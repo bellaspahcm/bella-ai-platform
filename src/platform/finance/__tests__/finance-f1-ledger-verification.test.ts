@@ -54,12 +54,18 @@ describe('Finance OS F1 Ledger Verification Suite', () => {
   let periodAugustId: string;
 
   // Helper to run seed SQL queries directly
+  type ExecuteSqlRpc = (
+    fn: 'execute_sql',
+    args: { sql: string; params: unknown[] }
+  ) => Promise<{ data: unknown[] | null; error: { message: string } | null }>;
+
   async function runDirectQuery(query: string, params: unknown[] = []): Promise<unknown[]> {
-    const { data, error } = await supabase.rpc('execute_sql' as any, { sql: query, params } as any);
+    const executeSql = supabase.rpc.bind(supabase) as ExecuteSqlRpc;
+    const { data, error } = await executeSql('execute_sql', { sql: query, params });
     if (error) {
       throw new Error(`Direct query failed: ${error.message} (Query: ${query})`);
     }
-    return data as unknown[];
+    return data ?? [];
   }
 
   beforeAll(async () => {
@@ -267,7 +273,7 @@ describe('Finance OS F1 Ledger Verification Suite', () => {
     it('should block direct UPDATE on financial fields of a POSTED transaction', async () => {
       const { error } = await supabase
         .from('finance_transactions')
-        .update({ exchange_rate_rate: 2.0 } as any)
+        .update({ exchange_rate_rate: 2.0 })
         .eq('id', txId);
 
       expect(error).not.toBeNull();

@@ -162,10 +162,10 @@ export interface CommunicationException {
   tenant_id: string;
   notice_id?: string | null;
   student_id: string;
-  guardian_party_id: string;
+  guardian_party_id: string | null;
   exception_type: ExceptionType;
   severity: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
-  assigned_role: 'TEACHER' | 'NURSE' | 'PRINCIPAL' | 'ADMIN';
+  assigned_role: 'TEACHER' | 'NURSE' | 'PRINCIPAL' | 'ADMIN' | 'FACILITY_MANAGER' | 'SAFETY_OFFICER';
   status: ExceptionStatus;
   resolved_by?: string;
   resolved_at?: string;
