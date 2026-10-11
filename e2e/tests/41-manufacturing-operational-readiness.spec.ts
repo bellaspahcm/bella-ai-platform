@@ -122,16 +122,12 @@ test.describe('Manufacturing operational readiness browser surface', () => {
       'pending_routing_completion'
     );
 
-    const planner = page.getByTestId('manufacturing-planner-form');
-    await planner.getByLabel('Order number').fill('PO-UI-002');
-    await planner.getByLabel('Finished good').fill('fg-2');
-    await planner.getByLabel('Quantity').fill('12');
-    await planner.getByLabel('UOM').fill('EA');
-    await planner
-      .locator('form')
-      .filter({ hasText: 'Production order' })
-      .getByRole('button', { name: 'Create' })
-      .click();
+    const productionOrderForm = page.getByTestId('manufacturing-planner-form').locator('form').first();
+    await productionOrderForm.getByLabel('Order number').fill('PO-UI-002');
+    await productionOrderForm.getByLabel('Finished good').fill('fg-2');
+    await productionOrderForm.getByLabel('Quantity').fill('12');
+    await productionOrderForm.getByLabel('UOM').fill('EA');
+    await productionOrderForm.getByRole('button', { name: 'Create' }).click();
 
     await expect(page.getByTestId('manufacturing-command-result')).toContainText('PO-UI-002');
   });
