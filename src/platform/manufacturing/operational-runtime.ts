@@ -34,6 +34,9 @@ import type {
 
 const ALL_MANUFACTURING_PERMISSIONS: ManufacturingPermission[] = [
   'manufacturing:operational_read:read',
+  'manufacturing:production_plan:write',
+  'manufacturing:production_plan:approve',
+  'manufacturing:production_plan:release',
   'manufacturing:production_order:write',
   'manufacturing:production_order:release',
   'manufacturing:production_order:complete',
@@ -57,6 +60,9 @@ const ALL_MANUFACTURING_PERMISSIONS: ManufacturingPermission[] = [
 const ROLE_PERMISSIONS: Record<string, ManufacturingPermission[]> = {
   manufacturing_planner: [
     'manufacturing:operational_read:read',
+    'manufacturing:production_plan:write',
+    'manufacturing:production_plan:approve',
+    'manufacturing:production_plan:release',
     'manufacturing:production_order:write',
     'manufacturing:production_order:release',
     'manufacturing:bom:write',
@@ -88,6 +94,9 @@ const ROLE_PERMISSIONS: Record<string, ManufacturingPermission[]> = {
   manufacturing_supervisor: ALL_MANUFACTURING_PERMISSIONS,
   planner: [
     'manufacturing:operational_read:read',
+    'manufacturing:production_plan:write',
+    'manufacturing:production_plan:approve',
+    'manufacturing:production_plan:release',
     'manufacturing:production_order:write',
     'manufacturing:production_order:release',
     'manufacturing:bom:write',

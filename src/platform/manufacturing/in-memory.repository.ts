@@ -10,6 +10,8 @@ import type {
   ManufacturingId,
   ManufacturingPermission,
   MaterialRequirement,
+  ProductionPlan,
+  ProductionPlanScheduleSlot,
   ProductionOperationProgress,
   ProductionCompletion,
   ProductionExecution,
@@ -52,6 +54,8 @@ export class InMemoryManufacturingRepository implements ManufacturingRepository 
   private readonly operationProgress = new Map<string, ProductionOperationProgress>();
   private readonly bomRevisions = new Map<string, BOMRevision>();
   private readonly materialRequirements = new Map<string, MaterialRequirement>();
+  private readonly productionPlans = new Map<string, ProductionPlan>();
+  private readonly productionPlanScheduleSlots = new Map<string, ProductionPlanScheduleSlot>();
   private readonly productionExecutions = new Map<string, ProductionExecution>();
   private readonly qualityDispositions = new Map<string, QualityDispositionEvidence>();
   private readonly productionCompletions = new Map<string, ProductionCompletion>();
@@ -103,6 +107,108 @@ export class InMemoryManufacturingRepository implements ManufacturingRepository 
     const order = this.productionOrders.get(this.key(params.tenantId, params.productionOrderId));
     const line = order?.lines.find((candidate) => candidate.id === params.productionOrderLineId);
     return line ? { ...line } : null;
+  }
+
+  async saveProductionPlan(plan: ProductionPlan): Promise<void> {
+    this.productionPlans.set(this.key(plan.tenantId, plan.id), cloneProductionPlan(plan));
+  }
+
+  async getProductionPlan(tenantId: TenantId, id: ManufacturingId): Promise<ProductionPlan | null> {
+    const plan = this.productionPlans.get(this.key(tenantId, id));
+    return plan ? cloneProductionPlan(plan) : null;
+  }
+
+  async listProductionPlans(params: {
+    tenantId: TenantId;
+    factoryOrgUnitId: FactoryOrgUnitId;
+    limit?: number;
+  }): Promise<ProductionPlan[]> {
+    return Array.from(this.productionPlans.values())
+      .filter(
+        (plan) =>
+          plan.tenantId === params.tenantId &&
+          plan.factoryOrgUnitId === params.factoryOrgUnitId
+      )
+      .sort((left, right) => (right.updatedAt ?? right.createdAt).localeCompare(left.updatedAt ?? left.createdAt))
+      .slice(0, params.limit ?? 50)
+      .map(cloneProductionPlan);
+  }
+
+  async findProductionPlanByNumber(tenantId: TenantId, planNumber: string): Promise<ProductionPlan | null> {
+    for (const plan of this.productionPlans.values()) {
+      if (plan.tenantId === tenantId && plan.planNumber === planNumber) {
+        return cloneProductionPlan(plan);
+      }
+    }
+    return null;
+  }
+
+  async saveProductionPlanScheduleSlots(params: {
+    productionPlanId: ManufacturingId;
+    slots: ProductionPlanScheduleSlot[];
+  }): Promise<void> {
+    for (const [key, slot] of this.productionPlanScheduleSlots.entries()) {
+      if (slot.productionPlanId === params.productionPlanId) {
+        this.productionPlanScheduleSlots.delete(key);
+      }
+    }
+    for (const slot of params.slots) {
+      this.productionPlanScheduleSlots.set(this.key(slot.tenantId, slot.id), { ...slot });
+    }
+  }
+
+  async getProductionPlanScheduleSlots(params: {
+    tenantId: TenantId;
+    productionPlanId: ManufacturingId;
+  }): Promise<ProductionPlanScheduleSlot[]> {
+    return Array.from(this.productionPlanScheduleSlots.values())
+      .filter((slot) => slot.tenantId === params.tenantId && slot.productionPlanId === params.productionPlanId)
+      .sort((left, right) =>
+        `${left.plannedDate}:${left.shiftCode}:${left.operationSequence}`.localeCompare(
+          `${right.plannedDate}:${right.shiftCode}:${right.operationSequence}`
+        )
+      )
+      .map((slot) => ({ ...slot }));
+  }
+
+  async listProductionPlanScheduleSlots(params: {
+    tenantId: TenantId;
+    factoryOrgUnitId: FactoryOrgUnitId;
+    limit?: number;
+  }): Promise<ProductionPlanScheduleSlot[]> {
+    return Array.from(this.productionPlanScheduleSlots.values())
+      .filter((slot) => slot.tenantId === params.tenantId && slot.factoryOrgUnitId === params.factoryOrgUnitId)
+      .sort((left, right) =>
+        `${left.plannedDate}:${left.shiftCode}:${left.operationSequence}`.localeCompare(
+          `${right.plannedDate}:${right.shiftCode}:${right.operationSequence}`
+        )
+      )
+      .slice(0, params.limit ?? 200)
+      .map((slot) => ({ ...slot }));
+  }
+
+  async findProductionPlanScheduleConflict(params: {
+    tenantId: TenantId;
+    factoryOrgUnitId: FactoryOrgUnitId;
+    workCenterId: ManufacturingId;
+    plannedDate: string;
+    shiftCode: string;
+    excludeProductionPlanId?: ManufacturingId;
+  }): Promise<ProductionPlanScheduleSlot | null> {
+    for (const slot of this.productionPlanScheduleSlots.values()) {
+      if (
+        slot.tenantId === params.tenantId &&
+        slot.factoryOrgUnitId === params.factoryOrgUnitId &&
+        slot.workCenterId === params.workCenterId &&
+        slot.plannedDate === params.plannedDate &&
+        slot.shiftCode === params.shiftCode &&
+        slot.status !== 'cancelled' &&
+        slot.productionPlanId !== params.excludeProductionPlanId
+      ) {
+        return { ...slot };
+      }
+    }
+    return null;
   }
 
   async saveWorkCenter(workCenter: WorkCenter): Promise<void> {
@@ -415,6 +521,13 @@ function cloneProductionOrder(order: ProductionOrder): ProductionOrder {
   return {
     ...order,
     lines: order.lines.map((line) => ({ ...line })),
+  };
+}
+
+function cloneProductionPlan(plan: ProductionPlan): ProductionPlan {
+  return {
+    ...plan,
+    materialRequirements: plan.materialRequirements.map((requirement) => ({ ...requirement })),
   };
 }
 

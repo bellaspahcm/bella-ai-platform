@@ -26,6 +26,7 @@ import type {
   ManufacturingActor,
   MaterialIssueLogisticsEvidence,
   OperationProgressStatus,
+  ProductionPlanSourceType,
   QualityDisposition,
   QualityDispositionSourceQuantityType,
 } from '@/platform/manufacturing';
@@ -140,6 +141,68 @@ async function executeManufacturingAction(
         finishedGoodItemId: requiredString(payload, 'finishedGoodItemId'),
         targetQuantity: requiredNumber(payload, 'targetQuantity'),
         uom: requiredString(payload, 'uom'),
+      });
+    case 'createProductionPlan':
+      return runtime.service.createProductionPlan(actor, {
+        idempotencyKey: requiredString(payload, 'idempotencyKey'),
+        planNumber: requiredString(payload, 'planNumber'),
+        sourceType: readProductionPlanSourceType(payload),
+        sourceReferenceId: optionalString(payload, 'sourceReferenceId'),
+        sourceReferenceNumber: optionalString(payload, 'sourceReferenceNumber'),
+        finishedGoodItemId: requiredString(payload, 'finishedGoodItemId'),
+        plannedQuantity: requiredNumber(payload, 'plannedQuantity'),
+        uom: requiredString(payload, 'uom'),
+        requestedDueAt: optionalString(payload, 'requestedDueAt'),
+      });
+    case 'updateProductionPlan':
+      return runtime.service.updateProductionPlan(actor, {
+        idempotencyKey: requiredString(payload, 'idempotencyKey'),
+        productionPlanId: requiredString(payload, 'productionPlanId'),
+        sourceReferenceId: optionalString(payload, 'sourceReferenceId'),
+        sourceReferenceNumber: optionalString(payload, 'sourceReferenceNumber'),
+        finishedGoodItemId: optionalString(payload, 'finishedGoodItemId'),
+        plannedQuantity: optionalNumber(payload, 'plannedQuantity'),
+        uom: optionalString(payload, 'uom'),
+        requestedDueAt: optionalString(payload, 'requestedDueAt'),
+        bomRevisionId: optionalString(payload, 'bomRevisionId'),
+        routingRevisionId: optionalString(payload, 'routingRevisionId'),
+        sourceLocationId: optionalString(payload, 'sourceLocationId'),
+      });
+    case 'calculateProductionPlanMaterialReadiness':
+      return runtime.service.calculateProductionPlanMaterialReadiness(actor, {
+        idempotencyKey: requiredString(payload, 'idempotencyKey'),
+        productionPlanId: requiredString(payload, 'productionPlanId'),
+        bomRevisionId: requiredString(payload, 'bomRevisionId'),
+        sourceLocationId: requiredString(payload, 'sourceLocationId'),
+      });
+    case 'scheduleProductionPlan':
+      return runtime.service.scheduleProductionPlan(actor, {
+        idempotencyKey: requiredString(payload, 'idempotencyKey'),
+        productionPlanId: requiredString(payload, 'productionPlanId'),
+        routingRevisionId: requiredString(payload, 'routingRevisionId'),
+        slots: requiredArray(payload, 'slots').map(readProductionPlanScheduleSlot),
+      });
+    case 'submitProductionPlanForApproval':
+      return runtime.service.submitProductionPlanForApproval(actor, {
+        idempotencyKey: requiredString(payload, 'idempotencyKey'),
+        productionPlanId: requiredString(payload, 'productionPlanId'),
+      });
+    case 'approveProductionPlan':
+      return runtime.service.approveProductionPlan(actor, {
+        idempotencyKey: requiredString(payload, 'idempotencyKey'),
+        productionPlanId: requiredString(payload, 'productionPlanId'),
+      });
+    case 'rejectProductionPlan':
+      return runtime.service.rejectProductionPlan(actor, {
+        idempotencyKey: requiredString(payload, 'idempotencyKey'),
+        productionPlanId: requiredString(payload, 'productionPlanId'),
+        reason: requiredString(payload, 'reason'),
+      });
+    case 'releaseProductionPlanToOrder':
+      return runtime.service.releaseProductionPlanToOrder(actor, {
+        idempotencyKey: requiredString(payload, 'idempotencyKey'),
+        productionPlanId: requiredString(payload, 'productionPlanId'),
+        orderNumber: requiredString(payload, 'orderNumber'),
       });
     case 'createBOMRevision':
       return runtime.service.createBOMRevision(actor, {
@@ -477,6 +540,20 @@ function readRoutingOperation(value: unknown) {
     operationName: requiredString(operation, 'operationName'),
     workCenterId: requiredString(operation, 'workCenterId'),
     required: optionalBoolean(operation, 'required'),
+  };
+}
+
+function readProductionPlanSourceType(payload: Record<string, unknown>): ProductionPlanSourceType {
+  return readAllowed(payload, 'sourceType', ['sales_order', 'manual']);
+}
+
+function readProductionPlanScheduleSlot(value: unknown) {
+  const slot = readRecord(value);
+  return {
+    routingOperationId: requiredString(slot, 'routingOperationId'),
+    plannedDate: requiredString(slot, 'plannedDate'),
+    shiftCode: requiredString(slot, 'shiftCode'),
+    plannedQuantity: requiredNumber(slot, 'plannedQuantity'),
   };
 }
 

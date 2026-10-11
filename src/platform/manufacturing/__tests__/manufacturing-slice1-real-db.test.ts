@@ -71,6 +71,13 @@ const lotGenealogyMigrationSql = readFileSync(
   ),
   'utf8'
 );
+const productionPlanMigrationSql = readFileSync(
+  path.resolve(
+    __dirname,
+    '../../../../supabase/migrations/20261011050000_create_manufacturing_production_plan_mvp.sql'
+  ),
+  'utf8'
+);
 
 const describeWithRealDb =
   isRunnableDbUrl(dbUrl) && isAllowedE2eProject() && isAllowedE2eDbUrl(dbUrl) ? describe : describe.skip;
@@ -143,6 +150,7 @@ describeWithRealDb('Manufacturing Slice 1 real DB verification', () => {
     await admin.query(routingProgressMigrationSql);
     await admin.query(operationProgressEvidenceMigrationSql);
     await admin.query(lotGenealogyMigrationSql);
+    await admin.query(productionPlanMigrationSql);
     await seedTenant(ids.tenantA, `${marker} Tenant A`);
     await seedTenant(ids.tenantB, `${marker} Tenant B`);
     await seedUser(ids.tenantA, ids.userA, ids.personA, ids.factoryA, ids.factoryADenied, 'a');
@@ -173,6 +181,8 @@ describeWithRealDb('Manufacturing Slice 1 real DB verification', () => {
       'manufacturing_routing_revisions',
       'manufacturing_routing_operations',
       'manufacturing_operation_progress',
+      'manufacturing_production_plans',
+      'manufacturing_production_plan_schedule_slots',
       'manufacturing_command_idempotency',
     ];
 
@@ -212,6 +222,8 @@ describeWithRealDb('Manufacturing Slice 1 real DB verification', () => {
         'manufacturing_routing_revisions_factory_access',
         'manufacturing_routing_operations_revision_access',
         'manufacturing_operation_progress_order_access',
+        'manufacturing_production_plans_factory_access',
+        'manufacturing_plan_schedule_slots_plan_access',
         'manufacturing_command_idempotency_factory_access',
       ])
     );
@@ -316,6 +328,140 @@ describeWithRealDb('Manufacturing Slice 1 real DB verification', () => {
       await expectCount('manufacturing_bom_revisions', ids.tenantA, 1);
       await expectCount('manufacturing_material_requirements', ids.tenantA, 1);
       await expectCount('manufacturing_command_idempotency', ids.tenantA, 5);
+    } finally {
+      await client.end();
+    }
+  });
+
+  it('persists production plans, schedule slots, approval, plan-to-order link, and tenant RLS', async () => {
+    const { service, repository, client } = await createRealDbService(ids.userA, ids.tenantA);
+    const actor = createActor(ids.tenantA, ids.userA, ids.factoryA);
+
+    try {
+      const bom = await service.createBOMRevision(actor, {
+        idempotencyKey: `${marker}-plan-bom`,
+        finishedGoodItemId: 'finished_good_plan',
+        revisionCode: 'PLAN-REV-1',
+        components: [{ componentItemId: 'component_a', quantityPerUnit: 2, uom: 'EA' }],
+      });
+      const approvedBom = await service.approveBOMRevision(actor, {
+        idempotencyKey: `${marker}-plan-bom-approve`,
+        bomRevisionId: bom.value.id,
+      });
+      const workCenter = await service.createWorkCenter(actor, {
+        idempotencyKey: `${marker}-plan-wc`,
+        code: `${marker}-WC-PLAN`,
+        name: 'Plan Work Center',
+      });
+      const routing = await service.createRoutingRevision(actor, {
+        idempotencyKey: `${marker}-plan-route`,
+        finishedGoodItemId: 'finished_good_plan',
+        revisionCode: 'PLAN-ROUTE-1',
+        operations: [{
+          sequence: 10,
+          operationCode: 'PLAN-OP-10',
+          operationName: 'Plan Operation',
+          workCenterId: workCenter.value.id,
+        }],
+      });
+      const approvedRouting = await service.approveRoutingRevision(actor, {
+        idempotencyKey: `${marker}-plan-route-approve`,
+        routingRevisionId: routing.value.id,
+      });
+      const plan = await service.createProductionPlan(actor, {
+        idempotencyKey: `${marker}-plan-create`,
+        planNumber: `${marker}-PLAN-001`,
+        sourceType: 'sales_order',
+        sourceReferenceId: `${marker}-SO-001`,
+        sourceReferenceNumber: 'SO-001',
+        finishedGoodItemId: 'finished_good_plan',
+        plannedQuantity: 10,
+        uom: 'EA',
+        requestedDueAt: '2026-10-20T00:00:00.000Z',
+      });
+      const retryPlan = await service.createProductionPlan(actor, {
+        idempotencyKey: `${marker}-plan-create`,
+        planNumber: `${marker}-PLAN-001`,
+        sourceType: 'sales_order',
+        sourceReferenceId: `${marker}-SO-001`,
+        sourceReferenceNumber: 'SO-001',
+        finishedGoodItemId: 'finished_good_plan',
+        plannedQuantity: 10,
+        uom: 'EA',
+        requestedDueAt: '2026-10-20T00:00:00.000Z',
+      });
+      expect(retryPlan.isDuplicate).toBe(true);
+      expect(retryPlan.value.id).toBe(plan.value.id);
+
+      const readiness = await service.calculateProductionPlanMaterialReadiness(actor, {
+        idempotencyKey: `${marker}-plan-ready`,
+        productionPlanId: plan.value.id,
+        bomRevisionId: approvedBom.value.id,
+        sourceLocationId: 'warehouse-a',
+      });
+      expect(readiness.value.materialReadinessStatus).toBe('available');
+      expect(readiness.value.materialRequirements[0]).toMatchObject({
+        componentItemId: 'component_a',
+        requiredQuantity: 20,
+        availableQuantity: 100,
+        status: 'available',
+      });
+
+      await service.scheduleProductionPlan(actor, {
+        idempotencyKey: `${marker}-plan-schedule`,
+        productionPlanId: plan.value.id,
+        routingRevisionId: approvedRouting.value.id,
+        slots: [{
+          routingOperationId: approvedRouting.value.operations[0].id,
+          plannedDate: '2026-10-20',
+          shiftCode: 'DAY',
+          plannedQuantity: 10,
+        }],
+      });
+      await service.submitProductionPlanForApproval(actor, {
+        idempotencyKey: `${marker}-plan-submit`,
+        productionPlanId: plan.value.id,
+      });
+      await service.approveProductionPlan(actor, {
+        idempotencyKey: `${marker}-plan-approve`,
+        productionPlanId: plan.value.id,
+      });
+      const released = await service.releaseProductionPlanToOrder(actor, {
+        idempotencyKey: `${marker}-plan-release`,
+        productionPlanId: plan.value.id,
+        orderNumber: `${marker}-PO-FROM-PLAN`,
+      });
+
+      expect(released.value.plan.status).toBe('released');
+      expect(released.value.productionOrder.status).toBe('draft');
+      expect(released.value.productionOrder.bomRevisionId).toBe(approvedBom.value.id);
+
+      const persistedPlan = await repository.getProductionPlan(ids.tenantA, plan.value.id);
+      const persistedSlots = await repository.getProductionPlanScheduleSlots({
+        tenantId: ids.tenantA,
+        productionPlanId: plan.value.id,
+      });
+      expect(persistedPlan).toMatchObject({
+        status: 'released',
+        linkedProductionOrderId: released.value.productionOrder.id,
+      });
+      expect(persistedSlots).toHaveLength(1);
+      expect(persistedSlots[0]).toMatchObject({
+        status: 'released',
+        workCenterId: workCenter.value.id,
+      });
+
+      const tenantB = await createRealDbService(ids.userB, ids.tenantB);
+      try {
+        await expect(
+          tenantB.repository.withTransaction((repository) => repository.getProductionPlan(ids.tenantA, plan.value.id))
+        ).resolves.toBeNull();
+      } finally {
+        await tenantB.client.end();
+      }
+
+      await expectCount('manufacturing_production_plans', ids.tenantA, 1);
+      await expectCount('manufacturing_production_plan_schedule_slots', ids.tenantA, 1);
     } finally {
       await client.end();
     }
@@ -914,6 +1060,9 @@ describeWithRealDb('Manufacturing Slice 1 real DB verification', () => {
       { [ids.userA]: ids.factoryA, [ids.userB]: ids.factoryB },
       {
         [ids.userA]: [
+          'manufacturing:production_plan:write',
+          'manufacturing:production_plan:approve',
+          'manufacturing:production_plan:release',
           'manufacturing:production_order:write',
           'manufacturing:production_order:release',
           'manufacturing:production_order:complete',
@@ -940,6 +1089,7 @@ describeWithRealDb('Manufacturing Slice 1 real DB verification', () => {
     };
     return {
       client,
+      repository,
       service: new ManufacturingSlice1Service(
         repository,
         authorization,
@@ -1218,6 +1368,12 @@ describeWithRealDb('Manufacturing Slice 1 real DB verification', () => {
 
   async function cleanupFixtures(): Promise<void> {
     await admin.query('SET row_security = off');
+    await admin.query('DELETE FROM public.manufacturing_production_plan_schedule_slots WHERE tenant_id = ANY($1::uuid[])', [
+      [ids.tenantA, ids.tenantB],
+    ]);
+    await admin.query('DELETE FROM public.manufacturing_production_plans WHERE tenant_id = ANY($1::uuid[])', [
+      [ids.tenantA, ids.tenantB],
+    ]);
     await admin.query('DELETE FROM public.manufacturing_production_order_completions WHERE tenant_id = ANY($1::uuid[])', [
       [ids.tenantA, ids.tenantB],
     ]);

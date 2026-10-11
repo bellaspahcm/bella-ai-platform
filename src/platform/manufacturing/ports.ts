@@ -20,6 +20,8 @@ import type {
   ManufacturingPermission,
   MaterialIssueLogisticsEvidence,
   MaterialRequirement,
+  ProductionPlan,
+  ProductionPlanScheduleSlot,
   ProductionOperationProgress,
   ProductionCompletion,
   ProductionExecution,
@@ -55,6 +57,35 @@ export interface ManufacturingRepository {
     productionOrderId: ManufacturingId;
     productionOrderLineId: ManufacturingId;
   }): Promise<ProductionOrderLine | null>;
+  saveProductionPlan(plan: ProductionPlan): Promise<void>;
+  getProductionPlan(tenantId: TenantId, id: ManufacturingId): Promise<ProductionPlan | null>;
+  listProductionPlans(params: {
+    tenantId: TenantId;
+    factoryOrgUnitId: FactoryOrgUnitId;
+    limit?: number;
+  }): Promise<ProductionPlan[]>;
+  findProductionPlanByNumber(tenantId: TenantId, planNumber: string): Promise<ProductionPlan | null>;
+  saveProductionPlanScheduleSlots(params: {
+    productionPlanId: ManufacturingId;
+    slots: ProductionPlanScheduleSlot[];
+  }): Promise<void>;
+  getProductionPlanScheduleSlots(params: {
+    tenantId: TenantId;
+    productionPlanId: ManufacturingId;
+  }): Promise<ProductionPlanScheduleSlot[]>;
+  listProductionPlanScheduleSlots(params: {
+    tenantId: TenantId;
+    factoryOrgUnitId: FactoryOrgUnitId;
+    limit?: number;
+  }): Promise<ProductionPlanScheduleSlot[]>;
+  findProductionPlanScheduleConflict(params: {
+    tenantId: TenantId;
+    factoryOrgUnitId: FactoryOrgUnitId;
+    workCenterId: ManufacturingId;
+    plannedDate: string;
+    shiftCode: string;
+    excludeProductionPlanId?: ManufacturingId;
+  }): Promise<ProductionPlanScheduleSlot | null>;
   saveWorkCenter(workCenter: WorkCenter): Promise<void>;
   getWorkCenter(tenantId: TenantId, id: ManufacturingId): Promise<WorkCenter | null>;
   listWorkCenters(params: {

@@ -13,6 +13,8 @@ const snapshot = {
   tenantId: 'tenant-manufacturing',
   factoryOrgUnitId: 'factory-a',
   generatedAt: '2026-10-11T00:00:00.000Z',
+  productionPlans: [],
+  productionPlanScheduleSlots: [],
   orders: [
     {
       order: {
@@ -131,7 +133,7 @@ test.describe('Manufacturing operational readiness browser surface', () => {
       'pending_routing_completion'
     );
 
-    const productionOrderForm = page.getByTestId('manufacturing-planner-form').locator('form').first();
+    const productionOrderForm = page.getByTestId('manufacturing-production-order-form');
     await productionOrderForm.getByLabel('Order number').fill('PO-UI-002');
     await productionOrderForm.getByLabel('Finished good').fill('fg-2');
     await productionOrderForm.getByLabel('Quantity').fill('12');
@@ -251,6 +253,25 @@ test.describe('Manufacturing operational readiness HTTP API authorization E2E', 
     const result = readRecord(readRecord(created.body).result);
     expect(readRecord(result.value).orderNumber).toBe(orderNumber);
     await expectManufacturingOrderCount(db, fixtures.tenantManufacturing, orderNumber, 1);
+
+    const planNumber = `${fixtures.marker}-PLAN-AUTH-001`;
+    const createdPlan = await apiPost(page, '/api/manufacturing/operational-readiness', {
+      action: 'createProductionPlan',
+      factoryOrgUnitId: fixtures.factoryManufacturing,
+      payload: {
+        idempotencyKey: `${fixtures.marker}-create-plan-001`,
+        planNumber,
+        sourceType: 'manual',
+        finishedGoodItemId: `${fixtures.marker}-fg`,
+        plannedQuantity: 3,
+        uom: 'EA',
+      },
+    });
+
+    expect(createdPlan.status).toBe(200);
+    const planResult = readRecord(readRecord(createdPlan.body).result);
+    expect(readRecord(planResult.value).planNumber).toBe(planNumber);
+    await expectManufacturingPlanCount(db, fixtures.tenantManufacturing, planNumber, 1);
   });
 
   test('rejects a real authenticated user whose role lacks Manufacturing command permission', async ({
@@ -593,6 +614,14 @@ async function cleanupApiAuthFixtures(
 
   await db.query('SET row_security = off');
   await db.query(
+    'DELETE FROM public.manufacturing_production_plan_schedule_slots WHERE tenant_id = ANY($1::uuid[])',
+    [tenantIds]
+  );
+  await db.query(
+    'DELETE FROM public.manufacturing_production_plans WHERE tenant_id = ANY($1::uuid[])',
+    [tenantIds]
+  );
+  await db.query(
     'DELETE FROM public.manufacturing_command_idempotency WHERE tenant_id = ANY($1::uuid[])',
     [tenantIds]
   );
@@ -636,6 +665,23 @@ async function expectManufacturingOrderCount(
       WHERE tenant_id = $1::uuid AND order_number = $2
     `,
     [tenantId, orderNumber]
+  );
+  expect(Number(result.rows[0].count)).toBe(expected);
+}
+
+async function expectManufacturingPlanCount(
+  db: Client,
+  tenantId: string,
+  planNumber: string,
+  expected: number
+): Promise<void> {
+  const result = await db.query<CountRow>(
+    `
+      SELECT COUNT(*)::text AS count
+      FROM public.manufacturing_production_plans
+      WHERE tenant_id = $1::uuid AND plan_number = $2
+    `,
+    [tenantId, planNumber]
   );
   expect(Number(result.rows[0].count)).toBe(expected);
 }

@@ -8,6 +8,16 @@ export type FactoryOrgUnitId = string;
 export type ProductionOrderStatus = 'draft' | 'released' | 'in_progress' | 'completed' | 'cancelled';
 export type BOMRevisionStatus = 'draft' | 'approved' | 'archived';
 export type MaterialRequirementStatus = 'not_checked' | 'available' | 'shortage' | 'not_proven';
+export type ProductionPlanStatus =
+  | 'draft'
+  | 'planned'
+  | 'pending_approval'
+  | 'approved'
+  | 'rejected'
+  | 'cancelled'
+  | 'released';
+export type ProductionPlanSourceType = 'sales_order' | 'manual';
+export type ProductionPlanScheduleSlotStatus = 'planned' | 'blocked' | 'released' | 'cancelled';
 export type WorkCenterStatus = 'active' | 'inactive';
 export type RoutingRevisionStatus = 'draft' | 'approved' | 'archived';
 export type OperationProgressStatus = 'planned' | 'ready' | 'in_progress' | 'completed' | 'blocked';
@@ -21,6 +31,9 @@ export type QualityDisposition =
 export type QualityDispositionSourceQuantityType = 'accepted' | 'rejected' | 'scrap' | 'pending';
 export type ManufacturingPermission =
   | 'manufacturing:operational_read:read'
+  | 'manufacturing:production_plan:write'
+  | 'manufacturing:production_plan:approve'
+  | 'manufacturing:production_plan:release'
   | 'manufacturing:production_order:write'
   | 'manufacturing:production_order:release'
   | 'manufacturing:production_order:complete'
@@ -107,6 +120,70 @@ export interface MaterialRequirement {
   availableQuantity?: Quantity;
   status: MaterialRequirementStatus;
   checkedAt?: string;
+}
+
+export interface ProductionPlanMaterialRequirement {
+  bomRevisionId: ManufacturingId;
+  componentItemId: ItemId;
+  sourceLocationId: LocationId;
+  requiredQuantity: Quantity;
+  availableQuantity?: Quantity;
+  status: MaterialRequirementStatus;
+  checkedAt?: string;
+}
+
+export interface ProductionPlan {
+  id: ManufacturingId;
+  tenantId: TenantId;
+  factoryOrgUnitId: FactoryOrgUnitId;
+  planNumber: string;
+  sourceType: ProductionPlanSourceType;
+  sourceReferenceId?: string;
+  sourceReferenceNumber?: string;
+  finishedGoodItemId: ItemId;
+  plannedQuantity: Quantity;
+  uom: string;
+  requestedDueAt?: string;
+  status: ProductionPlanStatus;
+  bomRevisionId?: ManufacturingId;
+  routingRevisionId?: ManufacturingId;
+  sourceLocationId?: LocationId;
+  materialReadinessStatus: MaterialRequirementStatus | 'not_calculated';
+  materialReadinessCheckedAt?: string;
+  materialRequirements: ProductionPlanMaterialRequirement[];
+  linkedProductionOrderId?: ManufacturingId;
+  createdBy: UserId;
+  createdAt: string;
+  updatedBy?: UserId;
+  updatedAt?: string;
+  submittedBy?: UserId;
+  submittedAt?: string;
+  approvedBy?: UserId;
+  approvedAt?: string;
+  rejectedBy?: UserId;
+  rejectedAt?: string;
+  rejectionReason?: string;
+  cancelledBy?: UserId;
+  cancelledAt?: string;
+}
+
+export interface ProductionPlanScheduleSlot {
+  id: ManufacturingId;
+  tenantId: TenantId;
+  factoryOrgUnitId: FactoryOrgUnitId;
+  productionPlanId: ManufacturingId;
+  routingRevisionId: ManufacturingId;
+  routingOperationId: ManufacturingId;
+  operationSequence: number;
+  workCenterId: ManufacturingId;
+  plannedDate: string;
+  shiftCode: string;
+  plannedQuantity: Quantity;
+  status: ProductionPlanScheduleSlotStatus;
+  createdBy: UserId;
+  createdAt: string;
+  updatedBy?: UserId;
+  updatedAt?: string;
 }
 
 export interface ProductionExecution {
@@ -324,6 +401,78 @@ export interface CreateProductionOrderCommand {
   uom: string;
 }
 
+export interface CreateProductionPlanCommand {
+  idempotencyKey: string;
+  planNumber: string;
+  sourceType: ProductionPlanSourceType;
+  sourceReferenceId?: string;
+  sourceReferenceNumber?: string;
+  finishedGoodItemId: ItemId;
+  plannedQuantity: Quantity;
+  uom: string;
+  requestedDueAt?: string;
+}
+
+export interface UpdateProductionPlanCommand {
+  idempotencyKey: string;
+  productionPlanId: ManufacturingId;
+  sourceReferenceId?: string;
+  sourceReferenceNumber?: string;
+  finishedGoodItemId?: ItemId;
+  plannedQuantity?: Quantity;
+  uom?: string;
+  requestedDueAt?: string;
+  bomRevisionId?: ManufacturingId;
+  routingRevisionId?: ManufacturingId;
+  sourceLocationId?: LocationId;
+}
+
+export interface CalculateProductionPlanMaterialReadinessCommand {
+  idempotencyKey: string;
+  productionPlanId: ManufacturingId;
+  bomRevisionId: ManufacturingId;
+  sourceLocationId: LocationId;
+}
+
+export interface ScheduleProductionPlanCommand {
+  idempotencyKey: string;
+  productionPlanId: ManufacturingId;
+  routingRevisionId: ManufacturingId;
+  slots: Array<{
+    routingOperationId: ManufacturingId;
+    plannedDate: string;
+    shiftCode: string;
+    plannedQuantity: Quantity;
+  }>;
+}
+
+export interface SubmitProductionPlanForApprovalCommand {
+  idempotencyKey: string;
+  productionPlanId: ManufacturingId;
+}
+
+export interface ApproveProductionPlanCommand {
+  idempotencyKey: string;
+  productionPlanId: ManufacturingId;
+}
+
+export interface RejectProductionPlanCommand {
+  idempotencyKey: string;
+  productionPlanId: ManufacturingId;
+  reason: string;
+}
+
+export interface ReleaseProductionPlanToOrderCommand {
+  idempotencyKey: string;
+  productionPlanId: ManufacturingId;
+  orderNumber: string;
+}
+
+export interface ProductionPlanReleaseResult {
+  plan: ProductionPlan;
+  productionOrder: ProductionOrder;
+}
+
 export interface CreateBOMRevisionCommand {
   idempotencyKey: string;
   finishedGoodItemId: ItemId;
@@ -487,6 +636,8 @@ export interface ManufacturingOperationalSnapshot {
   tenantId: TenantId;
   factoryOrgUnitId: FactoryOrgUnitId;
   generatedAt: string;
+  productionPlans: ProductionPlan[];
+  productionPlanScheduleSlots: ProductionPlanScheduleSlot[];
   orders: ManufacturingOperationalOrderSnapshot[];
   workCenters: WorkCenter[];
   routingRevisions: RoutingRevision[];

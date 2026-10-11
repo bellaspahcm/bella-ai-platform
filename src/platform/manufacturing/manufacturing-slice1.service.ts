@@ -6,13 +6,16 @@ import {
 } from './domain/errors';
 import type {
   ApproveBOMRevisionCommand,
+  ApproveProductionPlanCommand,
   ApproveRoutingRevisionCommand,
   BOMRevision,
-  CreateRoutingRevisionCommand,
   CalculateMaterialRequirementsCommand,
+  CalculateProductionPlanMaterialReadinessCommand,
   CompleteProductionOrderCommand,
   CreateBOMRevisionCommand,
+  CreateProductionPlanCommand,
   CreateProductionOrderCommand,
+  CreateRoutingRevisionCommand,
   CreateWorkCenterCommand,
   FinishedGoodsReceiptEvidence,
   IdempotentCommandResult,
@@ -28,18 +31,27 @@ import type {
   MaterialRequirement,
   MaterialRequirementStatus,
   MaterialIssueLogisticsEvidence,
+  ProductionPlan,
+  ProductionPlanReleaseResult,
+  ProductionPlanMaterialRequirement,
+  ProductionPlanScheduleSlot,
   ProductionOperationProgress,
   ProductionCompletion,
   ProductionExecution,
   QualityDispositionEvidence,
   ApplyRoutingRevisionCommand,
+  RejectProductionPlanCommand,
   ReleaseProductionOrderCommand,
+  ReleaseProductionPlanToOrderCommand,
   RecordProductionExecutionCommand,
   RecordQualityDispositionCommand,
   RoutingRevision,
+  ScheduleProductionPlanCommand,
+  SubmitProductionPlanForApprovalCommand,
   TraceFinishedGoodLotCommand,
   TraceRawMaterialLotCommand,
   UpdateOperationProgressCommand,
+  UpdateProductionPlanCommand,
   ProductionOrder,
   WorkCenter,
 } from './domain/types';
@@ -76,11 +88,22 @@ export class ManufacturingSlice1Service {
         permission: 'manufacturing:operational_read:read',
       });
 
-      const [orders, workCenters, routingRevisions, bomRevisions] = await Promise.all([
+      const [orders, productionPlans, productionPlanScheduleSlots, workCenters, routingRevisions, bomRevisions] =
+        await Promise.all([
         repository.listProductionOrders({
           tenantId: actor.tenantId,
           factoryOrgUnitId: actor.factoryOrgUnitId,
           limit: params.limit,
+        }),
+        repository.listProductionPlans({
+          tenantId: actor.tenantId,
+          factoryOrgUnitId: actor.factoryOrgUnitId,
+          limit: params.limit,
+        }),
+        repository.listProductionPlanScheduleSlots({
+          tenantId: actor.tenantId,
+          factoryOrgUnitId: actor.factoryOrgUnitId,
+          limit: 200,
         }),
         repository.listWorkCenters({
           tenantId: actor.tenantId,
@@ -134,6 +157,8 @@ export class ManufacturingSlice1Service {
         tenantId: actor.tenantId,
         factoryOrgUnitId: actor.factoryOrgUnitId,
         generatedAt: this.clock.now(),
+        productionPlans,
+        productionPlanScheduleSlots,
         orders: orderSnapshots,
         workCenters,
         routingRevisions,
@@ -191,6 +216,526 @@ export class ManufacturingSlice1Service {
         order.lines = order.lines.map((line) => ({ ...line, productionOrderId: order.id }));
         await repository.saveProductionOrder(order);
         return order;
+      },
+    });
+  }
+
+  async createProductionPlan(
+    actor: ManufacturingActor,
+    command: CreateProductionPlanCommand
+  ): Promise<IdempotentCommandResult<ProductionPlan>> {
+    this.assertPositiveQuantity(command.plannedQuantity, 'plannedQuantity');
+    this.assertRequiredText(command.planNumber, 'planNumber');
+    if (command.sourceType === 'sales_order') {
+      this.assertRequiredText(command.sourceReferenceId, 'sourceReferenceId');
+    }
+
+    return this.runIdempotent({
+      actor,
+      operation: 'manufacturing.production_plan.create',
+      businessKey: command.idempotencyKey,
+      payload: command,
+      execute: async (repository) => {
+        await this.authorization.ensureAllowed({
+          actor,
+          tenantId: actor.tenantId,
+          factoryOrgUnitId: actor.factoryOrgUnitId,
+          permission: 'manufacturing:production_plan:write',
+        });
+
+        const existingNumber = await repository.findProductionPlanByNumber(actor.tenantId, command.planNumber);
+        if (existingNumber) {
+          throw new ManufacturingValidationError('Production plan number already exists for tenant');
+        }
+
+        const now = this.clock.now();
+        const plan: ProductionPlan = {
+          id: this.ids.next('mfg_plan'),
+          tenantId: actor.tenantId,
+          factoryOrgUnitId: actor.factoryOrgUnitId,
+          planNumber: command.planNumber,
+          sourceType: command.sourceType,
+          sourceReferenceId: command.sourceReferenceId,
+          sourceReferenceNumber: command.sourceReferenceNumber,
+          finishedGoodItemId: command.finishedGoodItemId,
+          plannedQuantity: command.plannedQuantity,
+          uom: command.uom,
+          requestedDueAt: command.requestedDueAt,
+          status: 'draft',
+          materialReadinessStatus: 'not_calculated',
+          materialRequirements: [],
+          createdBy: actor.userId,
+          createdAt: now,
+          updatedBy: actor.userId,
+          updatedAt: now,
+        };
+        await repository.saveProductionPlan(plan);
+        return plan;
+      },
+    });
+  }
+
+  async updateProductionPlan(
+    actor: ManufacturingActor,
+    command: UpdateProductionPlanCommand
+  ): Promise<IdempotentCommandResult<ProductionPlan>> {
+    if (command.plannedQuantity !== undefined) {
+      this.assertPositiveQuantity(command.plannedQuantity, 'plannedQuantity');
+    }
+
+    return this.runIdempotent({
+      actor,
+      operation: 'manufacturing.production_plan.update',
+      businessKey: command.idempotencyKey,
+      payload: command,
+      execute: async (repository) => {
+        const plan = await this.requireProductionPlan(repository, actor.tenantId, command.productionPlanId);
+        this.assertSameFactory(actor, plan.factoryOrgUnitId);
+        await this.authorization.ensureAllowed({
+          actor,
+          tenantId: actor.tenantId,
+          factoryOrgUnitId: plan.factoryOrgUnitId,
+          permission: 'manufacturing:production_plan:write',
+        });
+        if (plan.status === 'released' || plan.status === 'cancelled') {
+          throw new ManufacturingStateError('Released or cancelled production plans cannot be changed');
+        }
+        if (plan.linkedProductionOrderId) {
+          throw new ManufacturingStateError('Production plan already linked to a production order');
+        }
+
+        const materialChange =
+          command.finishedGoodItemId !== undefined ||
+          command.plannedQuantity !== undefined ||
+          command.uom !== undefined ||
+          command.bomRevisionId !== undefined ||
+          command.sourceLocationId !== undefined;
+        const requiresReapproval =
+          plan.status === 'approved' || plan.status === 'pending_approval' || plan.status === 'rejected';
+        const now = this.clock.now();
+        const next: ProductionPlan = {
+          ...plan,
+          sourceReferenceId: command.sourceReferenceId ?? plan.sourceReferenceId,
+          sourceReferenceNumber: command.sourceReferenceNumber ?? plan.sourceReferenceNumber,
+          finishedGoodItemId: command.finishedGoodItemId ?? plan.finishedGoodItemId,
+          plannedQuantity: command.plannedQuantity ?? plan.plannedQuantity,
+          uom: command.uom ?? plan.uom,
+          requestedDueAt: command.requestedDueAt ?? plan.requestedDueAt,
+          bomRevisionId: command.bomRevisionId ?? plan.bomRevisionId,
+          routingRevisionId: command.routingRevisionId ?? plan.routingRevisionId,
+          sourceLocationId: command.sourceLocationId ?? plan.sourceLocationId,
+          materialReadinessStatus: materialChange ? 'not_calculated' : plan.materialReadinessStatus,
+          materialReadinessCheckedAt: materialChange ? undefined : plan.materialReadinessCheckedAt,
+          materialRequirements: materialChange ? [] : plan.materialRequirements,
+          status: requiresReapproval ? 'planned' : plan.status,
+          submittedBy: requiresReapproval ? undefined : plan.submittedBy,
+          submittedAt: requiresReapproval ? undefined : plan.submittedAt,
+          approvedBy: requiresReapproval ? undefined : plan.approvedBy,
+          approvedAt: requiresReapproval ? undefined : plan.approvedAt,
+          rejectedBy: undefined,
+          rejectedAt: undefined,
+          rejectionReason: undefined,
+          updatedBy: actor.userId,
+          updatedAt: now,
+        };
+        await repository.saveProductionPlan(next);
+        return next;
+      },
+    });
+  }
+
+  async calculateProductionPlanMaterialReadiness(
+    actor: ManufacturingActor,
+    command: CalculateProductionPlanMaterialReadinessCommand
+  ): Promise<IdempotentCommandResult<ProductionPlan>> {
+    return this.runIdempotent({
+      actor,
+      operation: 'manufacturing.production_plan.material_readiness.calculate',
+      businessKey: command.idempotencyKey,
+      payload: command,
+      execute: async (repository) => {
+        const plan = await this.requireProductionPlan(repository, actor.tenantId, command.productionPlanId);
+        this.assertSameFactory(actor, plan.factoryOrgUnitId);
+        await this.authorization.ensureAllowed({
+          actor,
+          tenantId: actor.tenantId,
+          factoryOrgUnitId: plan.factoryOrgUnitId,
+          permission: 'manufacturing:material_requirement:calculate',
+        });
+        await this.authorization.ensureAllowed({
+          actor,
+          tenantId: actor.tenantId,
+          factoryOrgUnitId: plan.factoryOrgUnitId,
+          permission: 'manufacturing:availability:read',
+        });
+        this.assertProductionPlanOpenForPlanning(plan);
+
+        const revision = await this.requireBOMRevision(repository, actor.tenantId, command.bomRevisionId);
+        if (revision.status !== 'approved') {
+          throw new ManufacturingStateError('Production plan readiness requires an approved BOM revision');
+        }
+        if (revision.finishedGoodItemId !== plan.finishedGoodItemId) {
+          throw new ManufacturingValidationError('BOM finished good does not match production plan');
+        }
+
+        const checkedAt = this.clock.now();
+        const requirements: ProductionPlanMaterialRequirement[] = [];
+        for (const component of revision.components) {
+          const requiredQuantity = this.roundQuantity(
+            plan.plannedQuantity *
+              component.quantityPerUnit *
+              (1 + (component.scrapAllowancePercent ?? 0) / 100)
+          );
+          const availableQuantity = await this.availability.getAvailable({
+            tenantId: actor.tenantId,
+            itemId: component.componentItemId,
+            locationId: command.sourceLocationId,
+          });
+          requirements.push({
+            bomRevisionId: revision.id,
+            componentItemId: component.componentItemId,
+            sourceLocationId: command.sourceLocationId,
+            requiredQuantity,
+            availableQuantity,
+            status: availableQuantity >= requiredQuantity ? 'available' : 'shortage',
+            checkedAt,
+          });
+        }
+
+        const next: ProductionPlan = {
+          ...plan,
+          bomRevisionId: revision.id,
+          sourceLocationId: command.sourceLocationId,
+          materialReadinessStatus: this.resolveMaterialReadiness(requirements),
+          materialReadinessCheckedAt: checkedAt,
+          materialRequirements: requirements,
+          status: plan.status === 'draft' || plan.status === 'rejected' ? 'planned' : plan.status,
+          updatedBy: actor.userId,
+          updatedAt: checkedAt,
+          rejectedBy: undefined,
+          rejectedAt: undefined,
+          rejectionReason: undefined,
+        };
+        await repository.saveProductionPlan(next);
+        return next;
+      },
+    });
+  }
+
+  async scheduleProductionPlan(
+    actor: ManufacturingActor,
+    command: ScheduleProductionPlanCommand
+  ): Promise<IdempotentCommandResult<ProductionPlanScheduleSlot[]>> {
+    if (command.slots.length === 0) {
+      throw new ManufacturingValidationError('Production plan schedule requires at least one slot');
+    }
+
+    return this.runIdempotent({
+      actor,
+      operation: 'manufacturing.production_plan.schedule',
+      businessKey: command.idempotencyKey,
+      payload: command,
+      execute: async (repository) => {
+        const plan = await this.requireProductionPlan(repository, actor.tenantId, command.productionPlanId);
+        this.assertSameFactory(actor, plan.factoryOrgUnitId);
+        await this.authorization.ensureAllowed({
+          actor,
+          tenantId: actor.tenantId,
+          factoryOrgUnitId: plan.factoryOrgUnitId,
+          permission: 'manufacturing:production_plan:write',
+        });
+        this.assertProductionPlanOpenForPlanning(plan);
+
+        const routing = await this.requireRoutingRevision(repository, actor.tenantId, command.routingRevisionId);
+        this.assertSameFactory(actor, routing.factoryOrgUnitId);
+        if (routing.status !== 'approved') {
+          throw new ManufacturingStateError('Production plan schedule requires an approved routing revision');
+        }
+        if (routing.finishedGoodItemId !== plan.finishedGoodItemId) {
+          throw new ManufacturingValidationError('Routing finished good does not match production plan');
+        }
+
+        const operationsById = new Map(routing.operations.map((operation) => [operation.id, operation]));
+        const seenOperations = new Set<string>();
+        const now = this.clock.now();
+        const slots: ProductionPlanScheduleSlot[] = [];
+        for (const slot of command.slots) {
+          const operation = operationsById.get(slot.routingOperationId);
+          if (!operation) {
+            throw new ManufacturingValidationError('Schedule slot references an operation outside the routing revision');
+          }
+          if (seenOperations.has(operation.id)) {
+            throw new ManufacturingValidationError('Schedule slot operation must be unique within a plan');
+          }
+          seenOperations.add(operation.id);
+          this.assertPositiveQuantity(slot.plannedQuantity, 'slot.plannedQuantity');
+          if (this.roundQuantity(slot.plannedQuantity) !== this.roundQuantity(plan.plannedQuantity)) {
+            throw new ManufacturingValidationError('Schedule slot planned quantity must match production plan quantity');
+          }
+          const workCenter = await this.requireWorkCenter(repository, actor.tenantId, operation.workCenterId);
+          this.assertSameFactory(actor, workCenter.factoryOrgUnitId);
+          if (workCenter.status !== 'active') {
+            throw new ManufacturingStateError('Schedule slot requires an active work center');
+          }
+          const plannedDate = this.normalizeDateOnly(slot.plannedDate);
+          const shiftCode = this.normalizeShiftCode(slot.shiftCode);
+          const conflict = await repository.findProductionPlanScheduleConflict({
+            tenantId: actor.tenantId,
+            factoryOrgUnitId: plan.factoryOrgUnitId,
+            workCenterId: operation.workCenterId,
+            plannedDate,
+            shiftCode,
+            excludeProductionPlanId: plan.id,
+          });
+          if (conflict) {
+            throw new ManufacturingStateError('Work center already has a production plan slot for this date and shift');
+          }
+          slots.push({
+            id: this.ids.next('mfg_plan_slot'),
+            tenantId: actor.tenantId,
+            factoryOrgUnitId: plan.factoryOrgUnitId,
+            productionPlanId: plan.id,
+            routingRevisionId: routing.id,
+            routingOperationId: operation.id,
+            operationSequence: operation.sequence,
+            workCenterId: operation.workCenterId,
+            plannedDate,
+            shiftCode,
+            plannedQuantity: this.roundQuantity(slot.plannedQuantity),
+            status: 'planned',
+            createdBy: actor.userId,
+            createdAt: now,
+            updatedBy: actor.userId,
+            updatedAt: now,
+          });
+        }
+        if (seenOperations.size !== routing.operations.length) {
+          throw new ManufacturingValidationError('Production plan schedule must cover every routing operation');
+        }
+
+        await repository.saveProductionPlanScheduleSlots({ productionPlanId: plan.id, slots });
+        const requiresReapproval =
+          plan.status === 'approved' || plan.status === 'pending_approval' || plan.status === 'rejected';
+        await repository.saveProductionPlan({
+          ...plan,
+          routingRevisionId: routing.id,
+          status: plan.status === 'draft' || requiresReapproval ? 'planned' : plan.status,
+          submittedBy: requiresReapproval ? undefined : plan.submittedBy,
+          submittedAt: requiresReapproval ? undefined : plan.submittedAt,
+          approvedBy: requiresReapproval ? undefined : plan.approvedBy,
+          approvedAt: requiresReapproval ? undefined : plan.approvedAt,
+          updatedBy: actor.userId,
+          updatedAt: now,
+          rejectedBy: undefined,
+          rejectedAt: undefined,
+          rejectionReason: undefined,
+        });
+        return slots;
+      },
+    });
+  }
+
+  async submitProductionPlanForApproval(
+    actor: ManufacturingActor,
+    command: SubmitProductionPlanForApprovalCommand
+  ): Promise<IdempotentCommandResult<ProductionPlan>> {
+    return this.runIdempotent({
+      actor,
+      operation: 'manufacturing.production_plan.submit',
+      businessKey: command.idempotencyKey,
+      payload: command,
+      execute: async (repository) => {
+        const plan = await this.requireProductionPlan(repository, actor.tenantId, command.productionPlanId);
+        this.assertSameFactory(actor, plan.factoryOrgUnitId);
+        await this.authorization.ensureAllowed({
+          actor,
+          tenantId: actor.tenantId,
+          factoryOrgUnitId: plan.factoryOrgUnitId,
+          permission: 'manufacturing:production_plan:write',
+        });
+        await this.assertProductionPlanReadyForApproval(repository, plan);
+        if (plan.status !== 'planned') {
+          throw new ManufacturingStateError('Only planned production plans can be submitted for approval');
+        }
+        const now = this.clock.now();
+        const next: ProductionPlan = {
+          ...plan,
+          status: 'pending_approval',
+          submittedBy: actor.userId,
+          submittedAt: now,
+          updatedBy: actor.userId,
+          updatedAt: now,
+        };
+        await repository.saveProductionPlan(next);
+        return next;
+      },
+    });
+  }
+
+  async approveProductionPlan(
+    actor: ManufacturingActor,
+    command: ApproveProductionPlanCommand
+  ): Promise<IdempotentCommandResult<ProductionPlan>> {
+    return this.runIdempotent({
+      actor,
+      operation: 'manufacturing.production_plan.approve',
+      businessKey: command.idempotencyKey,
+      payload: command,
+      execute: async (repository) => {
+        const plan = await this.requireProductionPlan(repository, actor.tenantId, command.productionPlanId);
+        this.assertSameFactory(actor, plan.factoryOrgUnitId);
+        await this.authorization.ensureAllowed({
+          actor,
+          tenantId: actor.tenantId,
+          factoryOrgUnitId: plan.factoryOrgUnitId,
+          permission: 'manufacturing:production_plan:approve',
+        });
+        await this.assertProductionPlanReadyForApproval(repository, plan);
+        if (plan.status !== 'pending_approval') {
+          throw new ManufacturingStateError('Only pending approval production plans can be approved');
+        }
+        const now = this.clock.now();
+        const next: ProductionPlan = {
+          ...plan,
+          status: 'approved',
+          approvedBy: actor.userId,
+          approvedAt: now,
+          updatedBy: actor.userId,
+          updatedAt: now,
+        };
+        await repository.saveProductionPlan(next);
+        return next;
+      },
+    });
+  }
+
+  async rejectProductionPlan(
+    actor: ManufacturingActor,
+    command: RejectProductionPlanCommand
+  ): Promise<IdempotentCommandResult<ProductionPlan>> {
+    this.assertRequiredText(command.reason, 'reason');
+    return this.runIdempotent({
+      actor,
+      operation: 'manufacturing.production_plan.reject',
+      businessKey: command.idempotencyKey,
+      payload: command,
+      execute: async (repository) => {
+        const plan = await this.requireProductionPlan(repository, actor.tenantId, command.productionPlanId);
+        this.assertSameFactory(actor, plan.factoryOrgUnitId);
+        await this.authorization.ensureAllowed({
+          actor,
+          tenantId: actor.tenantId,
+          factoryOrgUnitId: plan.factoryOrgUnitId,
+          permission: 'manufacturing:production_plan:approve',
+        });
+        if (plan.status !== 'pending_approval') {
+          throw new ManufacturingStateError('Only pending approval production plans can be rejected');
+        }
+        const now = this.clock.now();
+        const next: ProductionPlan = {
+          ...plan,
+          status: 'rejected',
+          rejectedBy: actor.userId,
+          rejectedAt: now,
+          rejectionReason: command.reason,
+          updatedBy: actor.userId,
+          updatedAt: now,
+        };
+        await repository.saveProductionPlan(next);
+        return next;
+      },
+    });
+  }
+
+  async releaseProductionPlanToOrder(
+    actor: ManufacturingActor,
+    command: ReleaseProductionPlanToOrderCommand
+  ): Promise<IdempotentCommandResult<ProductionPlanReleaseResult>> {
+    this.assertRequiredText(command.orderNumber, 'orderNumber');
+    return this.runIdempotent({
+      actor,
+      operation: 'manufacturing.production_plan.release_to_order',
+      businessKey: command.idempotencyKey,
+      payload: command,
+      execute: async (repository) => {
+        const plan = await this.requireProductionPlan(repository, actor.tenantId, command.productionPlanId);
+        this.assertSameFactory(actor, plan.factoryOrgUnitId);
+        await this.authorization.ensureAllowed({
+          actor,
+          tenantId: actor.tenantId,
+          factoryOrgUnitId: plan.factoryOrgUnitId,
+          permission: 'manufacturing:production_plan:release',
+        });
+        await this.authorization.ensureAllowed({
+          actor,
+          tenantId: actor.tenantId,
+          factoryOrgUnitId: plan.factoryOrgUnitId,
+          permission: 'manufacturing:production_order:write',
+        });
+        if (plan.status !== 'approved') {
+          throw new ManufacturingStateError('Only approved production plans can be linked to a production order');
+        }
+        if (plan.linkedProductionOrderId) {
+          throw new ManufacturingStateError('Production plan is already linked to a production order');
+        }
+        await this.assertProductionPlanReadyForApproval(repository, plan);
+        const existingNumber = await repository.findProductionOrderByNumber(actor.tenantId, command.orderNumber);
+        if (existingNumber) {
+          throw new ManufacturingValidationError('Production order number already exists for tenant');
+        }
+
+        const now = this.clock.now();
+        const productionOrder: ProductionOrder = {
+          id: this.ids.next('mfg_po'),
+          tenantId: actor.tenantId,
+          factoryOrgUnitId: plan.factoryOrgUnitId,
+          orderNumber: command.orderNumber,
+          finishedGoodItemId: plan.finishedGoodItemId,
+          targetQuantity: plan.plannedQuantity,
+          uom: plan.uom,
+          status: 'draft',
+          lines: [{
+            id: this.ids.next('mfg_po_line'),
+            tenantId: actor.tenantId,
+            productionOrderId: '',
+            finishedGoodItemId: plan.finishedGoodItemId,
+            targetQuantity: plan.plannedQuantity,
+            uom: plan.uom,
+          }],
+          bomRevisionId: plan.bomRevisionId,
+          createdBy: actor.userId,
+          createdAt: now,
+        };
+        productionOrder.lines = productionOrder.lines.map((line) => ({
+          ...line,
+          productionOrderId: productionOrder.id,
+        }));
+        await repository.saveProductionOrder(productionOrder);
+
+        const slots = await repository.getProductionPlanScheduleSlots({
+          tenantId: actor.tenantId,
+          productionPlanId: plan.id,
+        });
+        const releasedSlots = slots.map((slot) => ({
+          ...slot,
+          status: 'released' as const,
+          updatedBy: actor.userId,
+          updatedAt: now,
+        }));
+        await repository.saveProductionPlanScheduleSlots({
+          productionPlanId: plan.id,
+          slots: releasedSlots,
+        });
+
+        const releasedPlan: ProductionPlan = {
+          ...plan,
+          status: 'released',
+          linkedProductionOrderId: productionOrder.id,
+          updatedBy: actor.userId,
+          updatedAt: now,
+        };
+        await repository.saveProductionPlan(releasedPlan);
+        return { plan: releasedPlan, productionOrder };
       },
     });
   }
@@ -1120,6 +1665,16 @@ export class ManufacturingSlice1Service {
     return order;
   }
 
+  private async requireProductionPlan(
+    repository: ManufacturingRepository,
+    tenantId: string,
+    id: string
+  ): Promise<ProductionPlan> {
+    const plan = await repository.getProductionPlan(tenantId, id);
+    if (!plan) throw new ManufacturingNotFoundError('ProductionPlan', id);
+    return plan;
+  }
+
   private async requireBOMRevision(
     repository: ManufacturingRepository,
     tenantId: string,
@@ -1153,6 +1708,46 @@ export class ManufacturingSlice1Service {
   private assertSameFactory(actor: ManufacturingActor, factoryOrgUnitId: string): void {
     if (actor.factoryOrgUnitId !== factoryOrgUnitId) {
       throw new ManufacturingStateError('Actor factory scope does not match production order factory');
+    }
+  }
+
+  private assertProductionPlanOpenForPlanning(plan: ProductionPlan): void {
+    if (plan.status === 'released' || plan.status === 'cancelled') {
+      throw new ManufacturingStateError('Production plan is no longer open for planning changes');
+    }
+    if (plan.linkedProductionOrderId) {
+      throw new ManufacturingStateError('Production plan already linked to a production order');
+    }
+  }
+
+  private async assertProductionPlanReadyForApproval(
+    repository: ManufacturingRepository,
+    plan: ProductionPlan
+  ): Promise<void> {
+    if (!plan.bomRevisionId) {
+      throw new ManufacturingStateError('Production plan requires BOM readiness before approval');
+    }
+    if (!plan.routingRevisionId) {
+      throw new ManufacturingStateError('Production plan requires routing schedule before approval');
+    }
+    if (!plan.sourceLocationId) {
+      throw new ManufacturingStateError('Production plan requires source location before approval');
+    }
+    if (plan.materialReadinessStatus === 'not_calculated' || plan.materialReadinessStatus === 'not_checked') {
+      throw new ManufacturingStateError('Production plan requires material readiness check before approval');
+    }
+    if (plan.materialReadinessStatus === 'not_proven') {
+      throw new ManufacturingStateError('Production plan material readiness is not proven');
+    }
+    const slots = await repository.getProductionPlanScheduleSlots({
+      tenantId: plan.tenantId,
+      productionPlanId: plan.id,
+    });
+    if (slots.length === 0) {
+      throw new ManufacturingStateError('Production plan requires schedule slots before approval');
+    }
+    if (slots.some((slot) => slot.status === 'blocked' || slot.status === 'cancelled')) {
+      throw new ManufacturingStateError('Production plan has blocked or cancelled schedule slots');
     }
   }
 
@@ -1418,6 +2013,12 @@ export class ManufacturingSlice1Service {
   private assertNonNegativeQuantity(quantity: number, field: string): void {
     if (!Number.isFinite(quantity) || quantity < 0) {
       throw new ManufacturingValidationError(`${field} must be a non-negative finite quantity`);
+    }
+  }
+
+  private assertRequiredText(value: string | undefined, field: string): void {
+    if (!value?.trim()) {
+      throw new ManufacturingValidationError(`${field} is required`);
     }
   }
 
@@ -1822,7 +2423,7 @@ export class ManufacturingSlice1Service {
   }
 
   private resolveMaterialReadiness(
-    requirements: MaterialRequirement[]
+    requirements: Array<{ status: MaterialRequirementStatus }>
   ): MaterialRequirementStatus | 'not_calculated' {
     if (requirements.length === 0) return 'not_calculated';
     if (requirements.some((requirement) => requirement.status === 'shortage')) return 'shortage';
@@ -1905,6 +2506,22 @@ export class ManufacturingSlice1Service {
 
   private roundQuantity(quantity: number): number {
     return Math.round(quantity * 1_000_000) / 1_000_000;
+  }
+
+  private normalizeDateOnly(value: string): string {
+    const normalized = value.trim();
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(normalized)) {
+      throw new ManufacturingValidationError('plannedDate must use YYYY-MM-DD format');
+    }
+    return normalized;
+  }
+
+  private normalizeShiftCode(value: string): string {
+    const normalized = value.trim();
+    if (!normalized) {
+      throw new ManufacturingValidationError('shiftCode is required');
+    }
+    return normalized;
   }
 }
 

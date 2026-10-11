@@ -146,6 +146,19 @@ const defaultRoutingOperations = JSON.stringify(
   2
 );
 
+const defaultPlanScheduleSlots = JSON.stringify(
+  [
+    {
+      routingOperationId: '',
+      plannedDate: '2026-10-11',
+      shiftCode: 'DAY',
+      plannedQuantity: 1,
+    },
+  ],
+  null,
+  2
+);
+
 function createIdempotencyKey(prefix: string) {
   return `${prefix}-${Date.now()}`;
 }
@@ -170,6 +183,39 @@ export default function ManufacturingDashboardClient() {
     productionOrderId: '',
     bomRevisionId: '',
     sourceLocationId: '',
+  });
+  const [productionPlanForm, setProductionPlanForm] = useState({
+    idempotencyKey: createIdempotencyKey('plan'),
+    planNumber: '',
+    sourceType: 'manual',
+    sourceReferenceId: '',
+    sourceReferenceNumber: '',
+    finishedGoodItemId: '',
+    plannedQuantity: '1',
+    uom: 'EA',
+    requestedDueAt: '',
+  });
+  const [planReadinessForm, setPlanReadinessForm] = useState({
+    idempotencyKey: createIdempotencyKey('plan-ready'),
+    productionPlanId: '',
+    bomRevisionId: '',
+    sourceLocationId: '',
+  });
+  const [planScheduleForm, setPlanScheduleForm] = useState({
+    idempotencyKey: createIdempotencyKey('plan-schedule'),
+    productionPlanId: '',
+    routingRevisionId: '',
+    slotsJson: defaultPlanScheduleSlots,
+  });
+  const [planApprovalForm, setPlanApprovalForm] = useState({
+    idempotencyKey: createIdempotencyKey('plan-approval'),
+    productionPlanId: '',
+    rejectionReason: '',
+  });
+  const [planReleaseForm, setPlanReleaseForm] = useState({
+    idempotencyKey: createIdempotencyKey('plan-release'),
+    productionPlanId: '',
+    orderNumber: '',
   });
   const [bomForm, setBomForm] = useState({
     idempotencyKey: createIdempotencyKey('bom'),
@@ -285,7 +331,9 @@ export default function ManufacturingDashboardClient() {
 
   const stats = useMemo(() => {
     const orders = snapshot?.orders ?? [];
+    const plans = snapshot?.productionPlans ?? [];
     return {
+      plans: plans.length,
       orders: orders.length,
       shortage: orders.filter((order) => order.materialReadiness === 'shortage').length,
       blocked: orders.reduce((sum, order) => sum + order.blockedOperationCount, 0),
@@ -385,7 +433,8 @@ export default function ManufacturingDashboardClient() {
           </div>
         </header>
 
-        <section className="grid gap-3 md:grid-cols-5">
+        <section className="grid gap-3 md:grid-cols-6">
+          <MetricTile icon={ClipboardList} label="Plans" value={stats.plans} testId="manufacturing-plan-count" />
           <MetricTile icon={ClipboardList} label="Orders" value={stats.orders} testId="manufacturing-order-count" />
           <MetricTile icon={Boxes} label="Shortage" value={stats.shortage} tone="amber" />
           <MetricTile icon={Activity} label="Blocked ops" value={stats.blocked} tone="rose" />
@@ -395,6 +444,39 @@ export default function ManufacturingDashboardClient() {
 
         <section className="grid gap-5 xl:grid-cols-[minmax(0,1.25fr)_minmax(420px,0.75fr)]">
           <div className="space-y-5">
+            <Panel
+              title="Production plans"
+              icon={<ClipboardList className="h-4 w-4" aria-hidden="true" />}
+              testId="manufacturing-plan-list"
+            >
+              {loading ? (
+                <div className="h-24 rounded-md border border-dashed border-slate-300 bg-white" />
+              ) : snapshot?.productionPlans.length ? (
+                <div className="grid gap-3">
+                  {snapshot.productionPlans.map((plan) => (
+                    <div key={plan.id} className="rounded-md border border-slate-200 bg-white p-3">
+                      <div className="flex items-center justify-between gap-3">
+                        <div>
+                          <p className="text-sm font-semibold text-slate-950">{plan.planNumber}</p>
+                          <p className="text-xs text-slate-500">
+                            {plan.finishedGoodItemId} · {plan.plannedQuantity} {plan.uom}
+                          </p>
+                        </div>
+                        <StatusBadge value={plan.status} />
+                      </div>
+                      <div className="mt-2 grid gap-2 text-xs text-slate-600 sm:grid-cols-3">
+                        <span>Material: {plan.materialReadinessStatus}</span>
+                        <span>Source: {plan.sourceType}</span>
+                        <span>Order: {plan.linkedProductionOrderId ?? '-'}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <EmptyState label="No production plans in this factory scope." />
+              )}
+            </Panel>
+
             <Panel
               title="Production orders"
               icon={<ClipboardList className="h-4 w-4" aria-hidden="true" />}
@@ -454,8 +536,106 @@ export default function ManufacturingDashboardClient() {
               testId="manufacturing-planner-form"
             >
               <ActionForm
+                title="Production plan"
+                actionLabel="Create"
+                busy={submitting === 'createProductionPlan'}
+                onSubmit={() =>
+                  runAction('createProductionPlan', {
+                    ...productionPlanForm,
+                    sourceReferenceId: optionalValue(productionPlanForm.sourceReferenceId),
+                    sourceReferenceNumber: optionalValue(productionPlanForm.sourceReferenceNumber),
+                    plannedQuantity: numberValue(productionPlanForm.plannedQuantity),
+                    requestedDueAt: optionalValue(productionPlanForm.requestedDueAt),
+                  })
+                }
+              >
+                <Field label="Plan number" value={productionPlanForm.planNumber} onChange={(value) => setProductionPlanForm({ ...productionPlanForm, planNumber: value })} />
+                <Field label="Source type" value={productionPlanForm.sourceType} onChange={(value) => setProductionPlanForm({ ...productionPlanForm, sourceType: value })} />
+                <Field label="Source reference" value={productionPlanForm.sourceReferenceId} onChange={(value) => setProductionPlanForm({ ...productionPlanForm, sourceReferenceId: value })} />
+                <Field label="Finished good" value={productionPlanForm.finishedGoodItemId} onChange={(value) => setProductionPlanForm({ ...productionPlanForm, finishedGoodItemId: value })} />
+                <Field label="Quantity" value={productionPlanForm.plannedQuantity} onChange={(value) => setProductionPlanForm({ ...productionPlanForm, plannedQuantity: value })} />
+                <Field label="UOM" value={productionPlanForm.uom} onChange={(value) => setProductionPlanForm({ ...productionPlanForm, uom: value })} />
+                <Field label="Due at" value={productionPlanForm.requestedDueAt} onChange={(value) => setProductionPlanForm({ ...productionPlanForm, requestedDueAt: value })} />
+              </ActionForm>
+
+              <ActionForm
+                title="Plan readiness"
+                actionLabel="Calculate"
+                busy={submitting === 'calculateProductionPlanMaterialReadiness'}
+                onSubmit={() => runAction('calculateProductionPlanMaterialReadiness', planReadinessForm)}
+              >
+                <Field label="Production plan" value={planReadinessForm.productionPlanId} onChange={(value) => setPlanReadinessForm({ ...planReadinessForm, productionPlanId: value })} />
+                <Field label="BOM revision" value={planReadinessForm.bomRevisionId} onChange={(value) => setPlanReadinessForm({ ...planReadinessForm, bomRevisionId: value })} />
+                <Field label="Source location" value={planReadinessForm.sourceLocationId} onChange={(value) => setPlanReadinessForm({ ...planReadinessForm, sourceLocationId: value })} />
+              </ActionForm>
+
+              <ActionForm
+                title="Plan schedule"
+                actionLabel="Schedule"
+                busy={submitting === 'scheduleProductionPlan'}
+                onSubmit={() =>
+                  runAction('scheduleProductionPlan', {
+                    idempotencyKey: planScheduleForm.idempotencyKey,
+                    productionPlanId: planScheduleForm.productionPlanId,
+                    routingRevisionId: planScheduleForm.routingRevisionId,
+                    slots: parseJsonArray(planScheduleForm.slotsJson, 'production plan slots'),
+                  })
+                }
+              >
+                <Field label="Production plan" value={planScheduleForm.productionPlanId} onChange={(value) => setPlanScheduleForm({ ...planScheduleForm, productionPlanId: value })} />
+                <Field label="Routing revision" value={planScheduleForm.routingRevisionId} onChange={(value) => setPlanScheduleForm({ ...planScheduleForm, routingRevisionId: value })} />
+                <Textarea label="Schedule slots" value={planScheduleForm.slotsJson} onChange={(value) => setPlanScheduleForm({ ...planScheduleForm, slotsJson: value })} />
+              </ActionForm>
+
+              <ActionForm
+                title="Plan approval"
+                actionLabel="Submit"
+                secondaryLabel="Approve"
+                busy={submitting === 'submitProductionPlanForApproval' || submitting === 'approveProductionPlan'}
+                onSubmit={() =>
+                  runAction('submitProductionPlanForApproval', {
+                    idempotencyKey: planApprovalForm.idempotencyKey,
+                    productionPlanId: planApprovalForm.productionPlanId,
+                  })
+                }
+                onSecondary={() =>
+                  runAction('approveProductionPlan', {
+                    idempotencyKey: createIdempotencyKey('plan-approve'),
+                    productionPlanId: planApprovalForm.productionPlanId,
+                  })
+                }
+              >
+                <Field label="Production plan" value={planApprovalForm.productionPlanId} onChange={(value) => setPlanApprovalForm({ ...planApprovalForm, productionPlanId: value })} />
+                <Field label="Reject reason" value={planApprovalForm.rejectionReason} onChange={(value) => setPlanApprovalForm({ ...planApprovalForm, rejectionReason: value })} />
+                <button
+                  type="button"
+                  onClick={() =>
+                    void runAction('rejectProductionPlan', {
+                      idempotencyKey: createIdempotencyKey('plan-reject'),
+                      productionPlanId: planApprovalForm.productionPlanId,
+                      reason: planApprovalForm.rejectionReason,
+                    })
+                  }
+                  className="inline-flex h-9 items-center justify-center rounded-md border border-slate-300 px-3 text-xs font-semibold text-slate-700 hover:bg-slate-100"
+                >
+                  Reject
+                </button>
+              </ActionForm>
+
+              <ActionForm
+                title="Plan to order"
+                actionLabel="Link"
+                busy={submitting === 'releaseProductionPlanToOrder'}
+                onSubmit={() => runAction('releaseProductionPlanToOrder', planReleaseForm)}
+              >
+                <Field label="Production plan" value={planReleaseForm.productionPlanId} onChange={(value) => setPlanReleaseForm({ ...planReleaseForm, productionPlanId: value })} />
+                <Field label="Order number" value={planReleaseForm.orderNumber} onChange={(value) => setPlanReleaseForm({ ...planReleaseForm, orderNumber: value })} />
+              </ActionForm>
+
+              <ActionForm
                 title="Production order"
                 actionLabel="Create"
+                testId="manufacturing-production-order-form"
                 busy={submitting === 'createProductionOrder'}
                 onSubmit={() =>
                   runAction('createProductionOrder', {
@@ -827,6 +1007,7 @@ function ActionForm({
   secondaryLabel,
   busy,
   children,
+  testId,
   onSubmit,
   onSecondary,
 }: {
@@ -835,6 +1016,7 @@ function ActionForm({
   secondaryLabel?: string;
   busy: boolean;
   children: ReactNode;
+  testId?: string;
   onSubmit(): Promise<void>;
   onSecondary?(): Promise<void>;
 }) {
@@ -843,7 +1025,11 @@ function ActionForm({
     void onSubmit();
   };
   return (
-    <form onSubmit={submit} className="mb-4 rounded-md border border-slate-100 bg-slate-50 p-3 last:mb-0">
+    <form
+      onSubmit={submit}
+      className="mb-4 rounded-md border border-slate-100 bg-slate-50 p-3 last:mb-0"
+      data-testid={testId}
+    >
       <div className="mb-3 flex items-center justify-between gap-3">
         <h3 className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-600">{title}</h3>
         <div className="flex gap-2">
