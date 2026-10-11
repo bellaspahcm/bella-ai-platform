@@ -70,6 +70,22 @@ export class InMemoryManufacturingRepository implements ManufacturingRepository 
     return order ? cloneProductionOrder(order) : null;
   }
 
+  async listProductionOrders(params: {
+    tenantId: TenantId;
+    factoryOrgUnitId: FactoryOrgUnitId;
+    limit?: number;
+  }): Promise<ProductionOrder[]> {
+    return Array.from(this.productionOrders.values())
+      .filter(
+        (order) =>
+          order.tenantId === params.tenantId &&
+          order.factoryOrgUnitId === params.factoryOrgUnitId
+      )
+      .sort((left, right) => right.createdAt.localeCompare(left.createdAt))
+      .slice(0, params.limit ?? 50)
+      .map(cloneProductionOrder);
+  }
+
   async findProductionOrderByNumber(tenantId: TenantId, orderNumber: string): Promise<ProductionOrder | null> {
     for (const order of this.productionOrders.values()) {
       if (order.tenantId === tenantId && order.orderNumber === orderNumber) {
@@ -98,6 +114,20 @@ export class InMemoryManufacturingRepository implements ManufacturingRepository 
     return workCenter ? { ...workCenter } : null;
   }
 
+  async listWorkCenters(params: {
+    tenantId: TenantId;
+    factoryOrgUnitId: FactoryOrgUnitId;
+  }): Promise<WorkCenter[]> {
+    return Array.from(this.workCenters.values())
+      .filter(
+        (workCenter) =>
+          workCenter.tenantId === params.tenantId &&
+          workCenter.factoryOrgUnitId === params.factoryOrgUnitId
+      )
+      .sort((left, right) => left.code.localeCompare(right.code))
+      .map((workCenter) => ({ ...workCenter }));
+  }
+
   async findWorkCenterByCode(params: {
     tenantId: TenantId;
     factoryOrgUnitId: FactoryOrgUnitId;
@@ -122,6 +152,24 @@ export class InMemoryManufacturingRepository implements ManufacturingRepository 
   async getRoutingRevision(tenantId: TenantId, id: ManufacturingId): Promise<RoutingRevision | null> {
     const revision = this.routingRevisions.get(this.key(tenantId, id));
     return revision ? cloneRoutingRevision(revision) : null;
+  }
+
+  async listRoutingRevisions(params: {
+    tenantId: TenantId;
+    factoryOrgUnitId: FactoryOrgUnitId;
+  }): Promise<RoutingRevision[]> {
+    return Array.from(this.routingRevisions.values())
+      .filter(
+        (revision) =>
+          revision.tenantId === params.tenantId &&
+          revision.factoryOrgUnitId === params.factoryOrgUnitId
+      )
+      .sort((left, right) =>
+        `${left.finishedGoodItemId}:${left.revisionCode}`.localeCompare(
+          `${right.finishedGoodItemId}:${right.revisionCode}`
+        )
+      )
+      .map(cloneRoutingRevision);
   }
 
   async findRoutingRevisionByCode(params: {
@@ -180,6 +228,20 @@ export class InMemoryManufacturingRepository implements ManufacturingRepository 
     return revision
       ? { ...revision, components: revision.components.map((component) => ({ ...component })) }
       : null;
+  }
+
+  async listBOMRevisions(params: { tenantId: TenantId }): Promise<BOMRevision[]> {
+    return Array.from(this.bomRevisions.values())
+      .filter((revision) => revision.tenantId === params.tenantId)
+      .sort((left, right) =>
+        `${left.finishedGoodItemId}:${left.revisionCode}`.localeCompare(
+          `${right.finishedGoodItemId}:${right.revisionCode}`
+        )
+      )
+      .map((revision) => ({
+        ...revision,
+        components: revision.components.map((component) => ({ ...component })),
+      }));
   }
 
   async findBOMRevisionByCode(params: {

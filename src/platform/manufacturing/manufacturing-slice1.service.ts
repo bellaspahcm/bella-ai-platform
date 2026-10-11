@@ -20,8 +20,13 @@ import type {
   LotGenealogyMaterialTrace,
   LotGenealogyTrace,
   ManufacturingActor,
+  ManufacturingOperationalOrderSnapshot,
+  ManufacturingOperationalQuantities,
+  ManufacturingOperationalReconciliationStatus,
+  ManufacturingOperationalSnapshot,
   OperationProgressStatus,
   MaterialRequirement,
+  MaterialRequirementStatus,
   MaterialIssueLogisticsEvidence,
   ProductionOperationProgress,
   ProductionCompletion,
@@ -58,6 +63,84 @@ export class ManufacturingSlice1Service {
     private readonly ids: ManufacturingIdFactory,
     private readonly clock: ManufacturingClock
   ) {}
+
+  async getOperationalReadinessSnapshot(
+    actor: ManufacturingActor,
+    params: { limit?: number } = {}
+  ): Promise<ManufacturingOperationalSnapshot> {
+    return this.repository.withTransaction(async (repository) => {
+      await this.authorization.ensureAllowed({
+        actor,
+        tenantId: actor.tenantId,
+        factoryOrgUnitId: actor.factoryOrgUnitId,
+        permission: 'manufacturing:operational_read:read',
+      });
+
+      const [orders, workCenters, routingRevisions, bomRevisions] = await Promise.all([
+        repository.listProductionOrders({
+          tenantId: actor.tenantId,
+          factoryOrgUnitId: actor.factoryOrgUnitId,
+          limit: params.limit,
+        }),
+        repository.listWorkCenters({
+          tenantId: actor.tenantId,
+          factoryOrgUnitId: actor.factoryOrgUnitId,
+        }),
+        repository.listRoutingRevisions({
+          tenantId: actor.tenantId,
+          factoryOrgUnitId: actor.factoryOrgUnitId,
+        }),
+        repository.listBOMRevisions({ tenantId: actor.tenantId }),
+      ]);
+
+      const orderSnapshots: ManufacturingOperationalOrderSnapshot[] = [];
+      for (const order of orders) {
+        const [materialRequirements, executions, qualityDispositions, operationProgress, completion] =
+          await Promise.all([
+            order.bomRevisionId
+              ? repository.getMaterialRequirements({
+                  tenantId: actor.tenantId,
+                  productionOrderId: order.id,
+                  bomRevisionId: order.bomRevisionId,
+                })
+              : Promise.resolve([]),
+            repository.getProductionExecutions({
+              tenantId: actor.tenantId,
+              productionOrderId: order.id,
+            }),
+            repository.getQualityDispositions({
+              tenantId: actor.tenantId,
+              productionOrderId: order.id,
+            }),
+            repository.getOperationProgress({
+              tenantId: actor.tenantId,
+              productionOrderId: order.id,
+            }),
+            repository.getProductionCompletion(actor.tenantId, order.id),
+          ]);
+        orderSnapshots.push(
+          this.buildOperationalOrderSnapshot({
+            order,
+            materialRequirements,
+            executions,
+            qualityDispositions,
+            operationProgress,
+            completion: completion ?? undefined,
+          })
+        );
+      }
+
+      return {
+        tenantId: actor.tenantId,
+        factoryOrgUnitId: actor.factoryOrgUnitId,
+        generatedAt: this.clock.now(),
+        orders: orderSnapshots,
+        workCenters,
+        routingRevisions,
+        bomRevisions,
+      };
+    });
+  }
 
   async createProductionOrder(
     actor: ManufacturingActor,
@@ -1661,6 +1744,163 @@ export class ManufacturingSlice1Service {
 
   private sumQuantities(values: number[]): number {
     return this.roundQuantity(values.reduce((total, value) => total + value, 0));
+  }
+
+  private buildOperationalOrderSnapshot(params: {
+    order: ProductionOrder;
+    materialRequirements: MaterialRequirement[];
+    executions: ProductionExecution[];
+    qualityDispositions: QualityDispositionEvidence[];
+    operationProgress: ProductionOperationProgress[];
+    completion?: ProductionCompletion;
+  }): ManufacturingOperationalOrderSnapshot {
+    const receiptEvidence = params.completion?.receiptEvidence ?? [];
+    const quantities: ManufacturingOperationalQuantities = {
+      plannedQuantity: params.order.targetQuantity,
+      actualQuantity: this.sumQuantities(params.executions.map((execution) => execution.actualQuantity)),
+      acceptedQuantity: this.sumQuantities(params.executions.map((execution) => execution.acceptedQuantity)),
+      rejectedQuantity: this.sumQuantities(params.executions.map((execution) => execution.rejectedQuantity)),
+      scrapQuantity: this.sumQuantities(params.executions.map((execution) => execution.scrapQuantity)),
+      receivedAcceptedQuantity: this.sumQuantities(
+        receiptEvidence.map((receipt) => receipt.acceptedQuantity)
+      ),
+      receivedRejectedQuantity: this.sumQuantities(
+        receiptEvidence.map((receipt) => receipt.rejectedQuantity ?? 0)
+      ),
+      receivedPendingQuantity: this.sumQuantities(
+        receiptEvidence.map((receipt) => receipt.pendingQuantity ?? 0)
+      ),
+      completedQuantity: params.completion?.completedQuantity ?? 0,
+    };
+
+    const materialReadiness = this.resolveMaterialReadiness(params.materialRequirements);
+    const requiredOperations = params.operationProgress.filter((progress) => progress.required);
+    const completedRequiredOperations = requiredOperations.filter(
+      (progress) => progress.status === 'completed'
+    );
+    const blockedOperationCount = params.operationProgress.filter(
+      (progress) => progress.status === 'blocked'
+    ).length;
+    const openQualityDispositionCount = params.qualityDispositions.filter(
+      (evidence) => !evidence.terminal
+    ).length;
+    const missingEvidence = this.resolveOperationalMissingEvidence({
+      order: params.order,
+      materialRequirements: params.materialRequirements,
+      executions: params.executions,
+      qualityDispositions: params.qualityDispositions,
+      operationProgress: params.operationProgress,
+      completion: params.completion,
+    });
+
+    return {
+      order: params.order,
+      materialRequirements: params.materialRequirements,
+      executions: params.executions,
+      qualityDispositions: params.qualityDispositions,
+      operationProgress: params.operationProgress,
+      completion: params.completion,
+      quantities,
+      materialReadiness,
+      requiredOperationCount: requiredOperations.length,
+      completedRequiredOperationCount: completedRequiredOperations.length,
+      blockedOperationCount,
+      openQualityDispositionCount,
+      reconciliationStatus: this.resolveOperationalReconciliationStatus({
+        order: params.order,
+        materialReadiness,
+        quantities,
+        executions: params.executions,
+        operationProgress: params.operationProgress,
+        requiredOperationCount: requiredOperations.length,
+        completedRequiredOperationCount: completedRequiredOperations.length,
+        openQualityDispositionCount,
+        completion: params.completion,
+      }),
+      missingEvidence,
+    };
+  }
+
+  private resolveMaterialReadiness(
+    requirements: MaterialRequirement[]
+  ): MaterialRequirementStatus | 'not_calculated' {
+    if (requirements.length === 0) return 'not_calculated';
+    if (requirements.some((requirement) => requirement.status === 'shortage')) return 'shortage';
+    if (requirements.some((requirement) => requirement.status === 'not_proven')) return 'not_proven';
+    if (requirements.some((requirement) => requirement.status === 'not_checked')) return 'not_checked';
+    return 'available';
+  }
+
+  private resolveOperationalMissingEvidence(params: {
+    order: ProductionOrder;
+    materialRequirements: MaterialRequirement[];
+    executions: ProductionExecution[];
+    qualityDispositions: QualityDispositionEvidence[];
+    operationProgress: ProductionOperationProgress[];
+    completion?: ProductionCompletion;
+  }): string[] {
+    const missing: string[] = [];
+    if (!params.order.bomRevisionId) missing.push('released_bom_revision');
+    if (params.order.bomRevisionId && params.materialRequirements.length === 0) {
+      missing.push('material_requirements');
+    }
+    if (
+      (params.order.status === 'in_progress' || params.order.status === 'completed') &&
+      params.executions.length === 0
+    ) {
+      missing.push('production_execution');
+    }
+    if (params.qualityDispositions.some((evidence) => !evidence.terminal)) {
+      missing.push('terminal_quality_disposition');
+    }
+    if (
+      params.operationProgress.some(
+        (progress) =>
+          progress.required &&
+          (progress.status !== 'completed' ||
+            !progress.productionExecutionId ||
+            progress.completedQuantity === undefined ||
+            progress.completedQuantity <= 0)
+      )
+    ) {
+      missing.push('required_operation_completion_evidence');
+    }
+    if (params.order.status === 'completed' && !params.completion) {
+      missing.push('production_completion_record');
+    }
+    return Array.from(new Set(missing));
+  }
+
+  private resolveOperationalReconciliationStatus(params: {
+    order: ProductionOrder;
+    materialReadiness: MaterialRequirementStatus | 'not_calculated';
+    quantities: ManufacturingOperationalQuantities;
+    executions: ProductionExecution[];
+    operationProgress: ProductionOperationProgress[];
+    requiredOperationCount: number;
+    completedRequiredOperationCount: number;
+    openQualityDispositionCount: number;
+    completion?: ProductionCompletion;
+  }): ManufacturingOperationalReconciliationStatus {
+    if (params.order.status === 'completed' && params.completion) return 'completed_reconciled';
+    if (params.order.status === 'draft') {
+      if (params.materialReadiness === 'shortage') return 'material_shortage';
+      if (params.materialReadiness === 'available') return 'ready_to_release';
+      return 'draft';
+    }
+    if (params.order.status === 'released') return 'released';
+    if (params.executions.length === 0) return 'pending_execution';
+    if (params.openQualityDispositionCount > 0) return 'pending_quality_closure';
+    if (
+      params.requiredOperationCount > 0 &&
+      params.completedRequiredOperationCount < params.requiredOperationCount
+    ) {
+      return 'pending_routing_completion';
+    }
+    if (params.quantities.receivedAcceptedQuantity === 0 && params.order.status === 'in_progress') {
+      return 'pending_finished_goods_receipt';
+    }
+    return 'in_progress';
   }
 
   private roundQuantity(quantity: number): number {

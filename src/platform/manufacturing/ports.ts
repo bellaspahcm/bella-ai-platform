@@ -44,6 +44,11 @@ export interface ManufacturingRepository {
   withTransaction<T>(callback: (repository: ManufacturingRepository) => Promise<T>): Promise<T>;
   saveProductionOrder(order: ProductionOrder): Promise<void>;
   getProductionOrder(tenantId: TenantId, id: ManufacturingId): Promise<ProductionOrder | null>;
+  listProductionOrders(params: {
+    tenantId: TenantId;
+    factoryOrgUnitId: FactoryOrgUnitId;
+    limit?: number;
+  }): Promise<ProductionOrder[]>;
   findProductionOrderByNumber(tenantId: TenantId, orderNumber: string): Promise<ProductionOrder | null>;
   getProductionOrderLine(params: {
     tenantId: TenantId;
@@ -52,6 +57,10 @@ export interface ManufacturingRepository {
   }): Promise<ProductionOrderLine | null>;
   saveWorkCenter(workCenter: WorkCenter): Promise<void>;
   getWorkCenter(tenantId: TenantId, id: ManufacturingId): Promise<WorkCenter | null>;
+  listWorkCenters(params: {
+    tenantId: TenantId;
+    factoryOrgUnitId: FactoryOrgUnitId;
+  }): Promise<WorkCenter[]>;
   findWorkCenterByCode(params: {
     tenantId: TenantId;
     factoryOrgUnitId: FactoryOrgUnitId;
@@ -59,6 +68,10 @@ export interface ManufacturingRepository {
   }): Promise<WorkCenter | null>;
   saveRoutingRevision(revision: RoutingRevision): Promise<void>;
   getRoutingRevision(tenantId: TenantId, id: ManufacturingId): Promise<RoutingRevision | null>;
+  listRoutingRevisions(params: {
+    tenantId: TenantId;
+    factoryOrgUnitId: FactoryOrgUnitId;
+  }): Promise<RoutingRevision[]>;
   findRoutingRevisionByCode(params: {
     tenantId: TenantId;
     factoryOrgUnitId: FactoryOrgUnitId;
@@ -73,6 +86,9 @@ export interface ManufacturingRepository {
   }): Promise<ProductionOperationProgress[]>;
   saveBOMRevision(revision: BOMRevision): Promise<void>;
   getBOMRevision(tenantId: TenantId, id: ManufacturingId): Promise<BOMRevision | null>;
+  listBOMRevisions(params: {
+    tenantId: TenantId;
+  }): Promise<BOMRevision[]>;
   findBOMRevisionByCode(params: {
     tenantId: TenantId;
     finishedGoodItemId: string;
