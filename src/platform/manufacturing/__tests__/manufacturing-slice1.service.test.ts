@@ -45,6 +45,7 @@ function createService(availability: MaterialAvailabilityPort = createAvailabili
     { 'planner-1': 'factory-branch-a' },
     {
       'planner-1': [
+        'manufacturing:operational_read:read',
         'manufacturing:production_order:write',
         'manufacturing:production_order:release',
         'manufacturing:production_order:complete',
@@ -1578,5 +1579,80 @@ describe('Manufacturing Slice 1', () => {
         completedQuantity: 11,
       })
     ).rejects.toThrow(ManufacturingValidationError);
+  });
+
+  it('builds an operational readiness snapshot scoped to the actor factory', async () => {
+    const availability = createAvailability({ component_a: 25 });
+    const { service, repository } = createService(availability);
+    const actor = createActor();
+    const { order, bom } = await createApprovedBomAndOrder(service, actor);
+    await service.calculateMaterialRequirements(actor, {
+      idempotencyKey: 'calc-req-snapshot',
+      productionOrderId: order.id,
+      bomRevisionId: bom.id,
+      sourceLocationId: 'warehouse-bin-a',
+    });
+    await service.releaseProductionOrder(actor, {
+      idempotencyKey: 'release-snapshot',
+      productionOrderId: order.id,
+      bomRevisionId: bom.id,
+    });
+    await createApprovedRouting(service, actor, 'SNAP');
+
+    await repository.saveProductionOrder({
+      id: 'po-other-factory',
+      tenantId: actor.tenantId,
+      factoryOrgUnitId: 'factory-branch-b',
+      orderNumber: 'PO-OTHER',
+      finishedGoodItemId: 'finished_good_a',
+      targetQuantity: 5,
+      uom: 'EA',
+      status: 'draft',
+      lines: [
+        {
+          id: 'po-other-line',
+          tenantId: actor.tenantId,
+          productionOrderId: 'po-other-factory',
+          finishedGoodItemId: 'finished_good_a',
+          targetQuantity: 5,
+          uom: 'EA',
+        },
+      ],
+      createdBy: actor.userId,
+      createdAt: '2026-10-10T00:00:00.000Z',
+    });
+
+    const snapshot = await service.getOperationalReadinessSnapshot(actor);
+
+    expect(snapshot).toMatchObject({
+      tenantId: actor.tenantId,
+      factoryOrgUnitId: actor.factoryOrgUnitId,
+      generatedAt: '2026-10-10T00:00:00.000Z',
+    });
+    expect(snapshot.orders).toHaveLength(1);
+    expect(snapshot.orders[0].order.id).toBe(order.id);
+    expect(snapshot.orders[0]).toMatchObject({
+      materialReadiness: 'available',
+      reconciliationStatus: 'released',
+      missingEvidence: [],
+      quantities: {
+        plannedQuantity: 10,
+        actualQuantity: 0,
+        acceptedQuantity: 0,
+        receivedAcceptedQuantity: 0,
+      },
+    });
+    expect(snapshot.bomRevisions).toHaveLength(1);
+    expect(snapshot.routingRevisions).toHaveLength(1);
+    expect(snapshot.workCenters).toHaveLength(1);
+  });
+
+  it('requires operational read permission before returning the Manufacturing snapshot', async () => {
+    const { service } = createService();
+    const actor = createActor({ userId: 'operator-without-operational-read' });
+
+    await expect(service.getOperationalReadinessSnapshot(actor)).rejects.toThrow(
+      ManufacturingAuthorizationError
+    );
   });
 });

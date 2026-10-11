@@ -211,6 +211,39 @@ const cases = [
     },
   },
   {
+    name: 'RUN real database E2E and browser E2E for Manufacturing operational product surface',
+    files: [
+      'src/app/api/manufacturing/operational-readiness/route.ts',
+      'src/app/dashboard/manufacturing/page.tsx',
+      'e2e/tests/41-manufacturing-operational-readiness.spec.ts',
+    ],
+    expect(result) {
+      assert.equal(result.scope_status, 'ALLOW');
+      assert.equal(result.scope_level, 'product');
+      assert.deepEqual(result.products, ['manufacturing']);
+      assert.equal(result.needs_tests, true);
+      assert.equal(result.needs_e2e, true);
+      assert.equal(result.needs_real_db_e2e, true);
+      assert.equal(result.has_manufacturing_real_db_surface, true);
+    },
+  },
+  {
+    name: 'RUN real database E2E when Manufacturing OS runtime surface changes',
+    files: [
+      'src/platform/manufacturing/operational-runtime.ts',
+      'src/platform/manufacturing/manufacturing-slice1.service.ts',
+    ],
+    expect(result) {
+      assert.equal(result.scope_status, 'ALLOW');
+      assert.equal(result.scope_level, 'os');
+      assert.deepEqual(result.os, ['manufacturing']);
+      assertIncludes(result.affected_products, 'manufacturing', 'Manufacturing product should be affected by Manufacturing OS');
+      assert.equal(result.needs_tests, true);
+      assert.equal(result.needs_real_db_e2e, true);
+      assert.equal(result.has_manufacturing_real_db_surface, true);
+    },
+  },
+  {
     name: 'RUN real database E2E when Logistics production consumption Real DB proof changes',
     files: ['src/platform/logistics/warehouse/__tests__/stock-out-production-consumption-real-db.test.ts'],
     expect(result) {

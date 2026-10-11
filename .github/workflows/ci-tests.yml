@@ -162,7 +162,7 @@ jobs:
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.E2E_SUPABASE_SERVICE_ROLE_KEY }}
           SUPABASE_DB_URL: ${{ secrets.E2E_SUPABASE_DB_URL }}
           JEST_CACHE_DIRECTORY: .jest-cache
-        run: npm run test:real-db-e2e
+        run: node scripts/run-scoped-real-db-e2e.mjs
 
   security:
     name: Security Gates

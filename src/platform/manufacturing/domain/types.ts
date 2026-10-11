@@ -20,6 +20,7 @@ export type QualityDisposition =
   | 'pending';
 export type QualityDispositionSourceQuantityType = 'accepted' | 'rejected' | 'scrap' | 'pending';
 export type ManufacturingPermission =
+  | 'manufacturing:operational_read:read'
   | 'manufacturing:production_order:write'
   | 'manufacturing:production_order:release'
   | 'manufacturing:production_order:complete'
@@ -27,13 +28,16 @@ export type ManufacturingPermission =
   | 'manufacturing:bom:approve'
   | 'manufacturing:material_requirement:calculate'
   | 'manufacturing:availability:read'
+  | 'manufacturing:material_issue:record'
   | 'manufacturing:execution:record'
+  | 'manufacturing:fgr:record'
   | 'manufacturing:quality_disposition:record'
   | 'manufacturing:work_center:write'
   | 'manufacturing:routing:write'
   | 'manufacturing:routing:approve'
   | 'manufacturing:routing:apply'
   | 'manufacturing:operation_progress:update'
+  | 'manufacturing:reconciliation:read'
   | 'manufacturing:genealogy:read';
 
 export interface ManufacturingActor {
@@ -436,6 +440,57 @@ export interface LotGenealogyTrace {
   productionOrderLineId: ManufacturingId;
   materials: LotGenealogyMaterialTrace[];
   finishedGoods: LotGenealogyFinishedGoodTrace[];
+}
+
+export type ManufacturingOperationalReconciliationStatus =
+  | 'draft'
+  | 'material_shortage'
+  | 'ready_to_release'
+  | 'released'
+  | 'in_progress'
+  | 'pending_execution'
+  | 'pending_quality_closure'
+  | 'pending_routing_completion'
+  | 'pending_finished_goods_receipt'
+  | 'completed_reconciled';
+
+export interface ManufacturingOperationalQuantities {
+  plannedQuantity: Quantity;
+  actualQuantity: Quantity;
+  acceptedQuantity: Quantity;
+  rejectedQuantity: Quantity;
+  scrapQuantity: Quantity;
+  receivedAcceptedQuantity: Quantity;
+  receivedRejectedQuantity: Quantity;
+  receivedPendingQuantity: Quantity;
+  completedQuantity: Quantity;
+}
+
+export interface ManufacturingOperationalOrderSnapshot {
+  order: ProductionOrder;
+  materialRequirements: MaterialRequirement[];
+  executions: ProductionExecution[];
+  qualityDispositions: QualityDispositionEvidence[];
+  operationProgress: ProductionOperationProgress[];
+  completion?: ProductionCompletion;
+  quantities: ManufacturingOperationalQuantities;
+  materialReadiness: MaterialRequirementStatus | 'not_calculated';
+  requiredOperationCount: number;
+  completedRequiredOperationCount: number;
+  blockedOperationCount: number;
+  openQualityDispositionCount: number;
+  reconciliationStatus: ManufacturingOperationalReconciliationStatus;
+  missingEvidence: string[];
+}
+
+export interface ManufacturingOperationalSnapshot {
+  tenantId: TenantId;
+  factoryOrgUnitId: FactoryOrgUnitId;
+  generatedAt: string;
+  orders: ManufacturingOperationalOrderSnapshot[];
+  workCenters: WorkCenter[];
+  routingRevisions: RoutingRevision[];
+  bomRevisions: BOMRevision[];
 }
 
 export interface IdempotentCommandResult<T> {

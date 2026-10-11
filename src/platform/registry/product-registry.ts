@@ -562,6 +562,24 @@ const bellaHospitalityProduct: ProductDefinition = {
   navigationProfile: 'hospitality'
 };
 
+/**
+ * Bella Manufacturing Product Definition.
+ *
+ * @remarks
+ * Manufacturing product identity exposes the already-sealed Manufacturing OS
+ * operational surface. Registration does not authorize Factory EIP, Finance
+ * posting, MES/IoT, or Logistics Kernel changes.
+ */
+const bellaManufacturingProduct: ProductDefinition = {
+  productKey: 'bella_manufacturing',
+  displayName: 'Bella Manufacturing',
+  subtitle: 'Manufacturing Operations',
+  requiredModules: [],
+  serviceProfile: 'manufacturing',
+  defaultRoute: '/dashboard/manufacturing',
+  navigationProfile: 'manufacturing'
+};
+
 // Register products
 productRegistry.register(bellaHaircutProduct);
 productRegistry.register(bellaBabycareProduct);
@@ -571,3 +589,4 @@ productRegistry.register(bellaPreschoolProduct);
 productRegistry.register(bellaEnglishCenterProduct);
 productRegistry.register(bellaHospitalProduct);
 productRegistry.register(bellaHospitalityProduct);
+productRegistry.register(bellaManufacturingProduct);

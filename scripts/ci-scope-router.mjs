@@ -45,6 +45,14 @@ const PRODUCT_SCOPES = {
       /^e2e\/tests\/38-hospitality-hotel-core-chain-browser-e2e\.spec\.ts$/,
     ],
   },
+  manufacturing: {
+    label: 'Bella Manufacturing',
+    patterns: [
+      /^src\/app\/api\/manufacturing\//,
+      /^src\/app\/dashboard\/manufacturing\//,
+      /^e2e\/tests\/41-manufacturing-operational-readiness\.spec\.ts$/,
+    ],
+  },
   mobile: {
     label: 'Mobile App',
     patterns: [
@@ -102,6 +110,13 @@ const OS_SCOPES = {
     ],
     affectedProducts: ['real_estate'],
   },
+  manufacturing: {
+    label: 'Manufacturing OS',
+    patterns: [
+      /^src\/platform\/manufacturing\//,
+    ],
+    affectedProducts: ['manufacturing'],
+  },
 };
 
 const CODE_PATTERN = /\.(ts|tsx|js|jsx|mjs|cjs)$/;
@@ -118,6 +133,7 @@ const TYPECHECK_CONFIG_PATTERN = /^tsconfig(\..+)?\.json$/;
 const DB_RUNTIME_SURFACE_PATTERN = /^(src\/(app|core|lib|modules|platform|products|services|shared)\/.*\.(ts|tsx|js|jsx|mjs|cjs)$|supabase\/|database\/|prisma\/|migrations\/|.*\.sql$)/;
 const SECURITY_SCRIPT_PATTERN = /^scripts\/(audit-production|check-secret-leaks|check-ci-quality-env)\.mjs$/;
 const BELLA_AUTO_REAL_DB_SURFACE_PATTERN = /^src\/modules\/bella-auto\/services\//;
+const MANUFACTURING_REAL_DB_SURFACE_PATTERN = /^(src\/platform\/manufacturing\/|src\/app\/api\/manufacturing\/)/;
 const REAL_DB_TEST_CONFIG_PATTERN = /^jest\.real-db\.(config|setup)\.ts$/;
 const REAL_DB_TEST_FILE_PATTERN = /^(src\/__tests__\/bella-auto-phase5-experience\.test\.ts|src\/__tests__\/beauty-v2-(commission-branch|finance-branch|go-live-payroll-commission)-real-db\.test\.ts|src\/__tests__\/e2e-(order-lifecycle-real|refund-full|accounting-gl-verification|payroll-month-close)\.test\.ts|src\/app\/api\/english-center\/__tests__\/post-rc-real-db-validation\.test\.ts|src\/__tests__\/haircut-f3-debt-real-db-diagnostic\.test\.ts|src\/platform\/logistics\/warehouse\/__tests__\/stock-(out-production-consumption|in-production-order)-real-db\.test\.ts|src\/platform\/manufacturing\/__tests__\/manufacturing-(slice1|full-chain)-real-db\.test\.ts|src\/products\/beauty-spa-v2\/__tests__\/beauty-spa-v2-real-db\.test\.ts|src\/products\/bella-education\/__tests__\/preschool-chain-real-db\.test\.ts|src\/products\/bella-hospitality\/__tests__\/(tenant-profile|housekeeping|maintenance)-real-db\.test\.ts|e2e\/tests\/38-hospitality-hotel-core-chain-browser-e2e\.spec\.ts)$/;
 
@@ -203,6 +219,7 @@ export function classifyFiles(files) {
   let hasTypecheckConfig = false;
   let hasDbRuntimeSurface = false;
   let hasBellaAutoRealDbSurface = false;
+  let hasManufacturingRealDbSurface = false;
   let hasRealDbTestConfig = false;
   let hasRealDbTestFile = false;
 
@@ -221,6 +238,7 @@ export function classifyFiles(files) {
     hasTypecheckConfig ||= TYPECHECK_CONFIG_PATTERN.test(file);
     hasDbRuntimeSurface ||= DB_RUNTIME_SURFACE_PATTERN.test(file);
     hasBellaAutoRealDbSurface ||= BELLA_AUTO_REAL_DB_SURFACE_PATTERN.test(file);
+    hasManufacturingRealDbSurface ||= MANUFACTURING_REAL_DB_SURFACE_PATTERN.test(file);
     hasRealDbTestConfig ||= REAL_DB_TEST_CONFIG_PATTERN.test(file);
     hasRealDbTestFile ||= REAL_DB_TEST_FILE_PATTERN.test(file);
 
@@ -277,7 +295,7 @@ export function classifyFiles(files) {
   const needsTests = (hasCode || hasTest) && !docsOnly;
   const needsBuild = (hasCode || hasDependencies || scopeLevel === 'platform') && !hasMigration && !docsOnly;
   const needsArchitectureGuard = hasCode && !docsOnly;
-  const needsRealDbE2e = hasMigration || hasBellaAutoRealDbSurface || hasRealDbTestConfig || hasRealDbTestFile || (scopeLevel === 'platform' && hasDbRuntimeSurface);
+  const needsRealDbE2e = hasMigration || hasBellaAutoRealDbSurface || hasManufacturingRealDbSurface || hasRealDbTestConfig || hasRealDbTestFile || (scopeLevel === 'platform' && hasDbRuntimeSurface);
   const needsE2e = scopeLevel === 'platform' || products.size > 0 || hasDependencies;
   const needsMigrationGates = hasMigration;
   const needsApiDocs = hasApiDocs;
@@ -323,6 +341,7 @@ export function classifyFiles(files) {
     core_changed: hasCore,
     has_db_runtime_surface: hasDbRuntimeSurface,
     has_bella_auto_real_db_surface: hasBellaAutoRealDbSurface,
+    has_manufacturing_real_db_surface: hasManufacturingRealDbSurface,
     has_real_db_test_config: hasRealDbTestConfig,
     has_real_db_test_file: hasRealDbTestFile,
     needs_typecheck: needsTypecheck,

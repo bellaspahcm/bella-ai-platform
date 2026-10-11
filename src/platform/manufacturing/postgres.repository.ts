@@ -302,6 +302,29 @@ export class PostgresManufacturingRepository implements ManufacturingRepository 
       : null;
   }
 
+  async listProductionOrders(params: {
+    tenantId: TenantId;
+    factoryOrgUnitId: string;
+    limit?: number;
+  }): Promise<ProductionOrder[]> {
+    const result = await this.db.query<ProductionOrderRow>(
+      `
+        SELECT *
+        FROM public.manufacturing_production_orders
+        WHERE tenant_id = $1 AND factory_org_unit_id = $2
+        ORDER BY created_at DESC, id DESC
+        LIMIT $3
+      `,
+      [params.tenantId, params.factoryOrgUnitId, params.limit ?? 50]
+    );
+
+    const orders: ProductionOrder[] = [];
+    for (const row of result.rows) {
+      orders.push(this.mapProductionOrder(row, await this.getProductionOrderLines(row.tenant_id, row.id)));
+    }
+    return orders;
+  }
+
   async findProductionOrderByNumber(tenantId: TenantId, orderNumber: string): Promise<ProductionOrder | null> {
     const result = await this.db.query<ProductionOrderRow>(
       'SELECT * FROM public.manufacturing_production_orders WHERE tenant_id = $1 AND order_number = $2',
@@ -363,6 +386,22 @@ export class PostgresManufacturingRepository implements ManufacturingRepository 
       [tenantId, id]
     );
     return result.rows[0] ? this.mapWorkCenter(result.rows[0]) : null;
+  }
+
+  async listWorkCenters(params: {
+    tenantId: TenantId;
+    factoryOrgUnitId: string;
+  }): Promise<WorkCenter[]> {
+    const result = await this.db.query<WorkCenterRow>(
+      `
+        SELECT *
+        FROM public.manufacturing_work_centers
+        WHERE tenant_id = $1 AND factory_org_unit_id = $2
+        ORDER BY code, id
+      `,
+      [params.tenantId, params.factoryOrgUnitId]
+    );
+    return result.rows.map((row) => this.mapWorkCenter(row));
   }
 
   async findWorkCenterByCode(params: {
@@ -445,6 +484,27 @@ export class PostgresManufacturingRepository implements ManufacturingRepository 
     return result.rows[0]
       ? this.mapRoutingRevision(result.rows[0], await this.getRoutingOperations(tenantId, id))
       : null;
+  }
+
+  async listRoutingRevisions(params: {
+    tenantId: TenantId;
+    factoryOrgUnitId: string;
+  }): Promise<RoutingRevision[]> {
+    const result = await this.db.query<RoutingRevisionRow>(
+      `
+        SELECT *
+        FROM public.manufacturing_routing_revisions
+        WHERE tenant_id = $1 AND factory_org_unit_id = $2
+        ORDER BY finished_good_item_id, revision_code, id
+      `,
+      [params.tenantId, params.factoryOrgUnitId]
+    );
+
+    const revisions: RoutingRevision[] = [];
+    for (const row of result.rows) {
+      revisions.push(this.mapRoutingRevision(row, await this.getRoutingOperations(row.tenant_id, row.id)));
+    }
+    return revisions;
   }
 
   async findRoutingRevisionByCode(params: {
@@ -604,6 +664,24 @@ export class PostgresManufacturingRepository implements ManufacturingRepository 
     const revision = revisions.rows[0];
     if (!revision) return null;
     return this.mapBOMRevision(revision, await this.getBOMComponents(tenantId, id));
+  }
+
+  async listBOMRevisions(params: { tenantId: TenantId }): Promise<BOMRevision[]> {
+    const result = await this.db.query<BOMRevisionRow>(
+      `
+        SELECT *
+        FROM public.manufacturing_bom_revisions
+        WHERE tenant_id = $1
+        ORDER BY finished_good_item_id, revision_code, id
+      `,
+      [params.tenantId]
+    );
+
+    const revisions: BOMRevision[] = [];
+    for (const row of result.rows) {
+      revisions.push(this.mapBOMRevision(row, await this.getBOMComponents(row.tenant_id, row.id)));
+    }
+    return revisions;
   }
 
   async findBOMRevisionByCode(params: {
