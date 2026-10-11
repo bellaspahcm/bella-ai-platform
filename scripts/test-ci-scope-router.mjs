@@ -228,6 +228,19 @@ const cases = [
     },
   },
   {
+    name: 'RUN real database E2E when Manufacturing operational readiness browser Real DB proof changes',
+    files: ['e2e/tests/41-manufacturing-operational-readiness.spec.ts'],
+    expect(result) {
+      assert.equal(result.scope_status, 'ALLOW');
+      assert.equal(result.scope_level, 'product');
+      assert.deepEqual(result.products, ['manufacturing']);
+      assert.equal(result.needs_tests, true);
+      assert.equal(result.needs_e2e, true);
+      assert.equal(result.needs_real_db_e2e, true);
+      assert.equal(result.has_real_db_test_file, true);
+    },
+  },
+  {
     name: 'RUN real database E2E when Manufacturing OS runtime surface changes',
     files: [
       'src/platform/manufacturing/operational-runtime.ts',

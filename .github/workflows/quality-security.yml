@@ -249,13 +249,18 @@ jobs:
       - name: Manufacturing operational readiness browser E2E
         if: needs.detect_changes.outputs.needs_e2e == 'true' && contains(needs.detect_changes.outputs.scope_message, 'Manufacturing')
         timeout-minutes: 12
-        run: npx playwright test e2e/tests/41-manufacturing-operational-readiness.spec.ts
+        run: |
+          node -e "const expected='bmnbqbcdbuklhopfbopv.supabase.co'; const url=process.env.NEXT_PUBLIC_SUPABASE_URL || ''; const key=process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''; const db=process.env.SUPABASE_DB_URL || ''; if (!url || !key || !db) throw new Error('Manufacturing API auth E2E requires canonical Supabase URL, public key, and DB URL.'); if (new URL(url).host !== expected || !db.toLowerCase().includes('bmnbqbcdbuklhopfbopv')) throw new Error('Manufacturing API auth E2E must run only against canonical Bella E2E Supabase.');"
+          npx playwright test e2e/tests/41-manufacturing-operational-readiness.spec.ts
         env:
           E2E_NEXT_DEV_BUNDLER: webpack
-          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.E2E_SUPABASE_URL || vars.NEXT_PUBLIC_SUPABASE_URL || secrets.SUPABASE_URL }}
-          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.E2E_SUPABASE_PUBLISHABLE_KEY || vars.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.E2E_SUPABASE_ANON_KEY || secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
-          SUPABASE_URL: ${{ secrets.E2E_SUPABASE_URL || secrets.SUPABASE_URL }}
+          E2E_SUPABASE_URL: ${{ secrets.E2E_SUPABASE_URL }}
+          E2E_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.E2E_SUPABASE_PUBLISHABLE_KEY || secrets.E2E_SUPABASE_ANON_KEY }}
+          E2E_SUPABASE_ANON_KEY: ${{ secrets.E2E_SUPABASE_ANON_KEY || secrets.E2E_SUPABASE_PUBLISHABLE_KEY }}
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.E2E_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.E2E_SUPABASE_PUBLISHABLE_KEY || secrets.E2E_SUPABASE_ANON_KEY }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.E2E_SUPABASE_ANON_KEY || secrets.E2E_SUPABASE_PUBLISHABLE_KEY }}
+          SUPABASE_URL: ${{ secrets.E2E_SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.E2E_SUPABASE_SERVICE_ROLE_KEY || secrets.SUPABASE_SERVICE_ROLE_KEY }}
           SUPABASE_SECRET_KEY: ${{ secrets.E2E_SUPABASE_SERVICE_ROLE_KEY || secrets.SUPABASE_SECRET_KEY }}
           SUPABASE_DB_URL: ${{ secrets.E2E_SUPABASE_DB_URL || secrets.SUPABASE_DB_URL || secrets.SUPABASE_DATABASE_URL }}
