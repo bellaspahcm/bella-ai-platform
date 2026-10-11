@@ -325,33 +325,41 @@ test.describe('Manufacturing operational readiness HTTP API authorization E2E', 
 });
 
 async function loginWithSupabasePassword(page: Page, user: AuthFixtureUser): Promise<void> {
+  if (!user.email.trim()) {
+    throw new Error('Real Supabase login fixture is missing an email address.');
+  }
+  if (!user.password.trim()) {
+    throw new Error('Real Supabase login fixture is missing a password.');
+  }
+
   await page.context().clearCookies();
   await page.goto('/login', { waitUntil: 'networkidle' });
 
   const emailInput = page.locator('input[type="email"]');
   const passwordInput = page.locator('input[type="password"]');
   const submitButton = page.getByRole('button', { name: /đăng nhập ngay|login|sign in/i });
+  const authError = page.locator('div').filter({
+    hasText:
+      /invalid api key|supabase chưa được cấu hình|missing supabase credentials|missing email or phone|invalid login credentials/i,
+  });
 
   await expect(emailInput).toBeVisible();
   await expect(passwordInput).toBeVisible();
   await expect(submitButton).toBeEnabled();
-  await emailInput.fill(user.email);
-  await passwordInput.fill(user.password);
+  await emailInput.fill('');
+  await emailInput.pressSequentially(user.email);
+  await passwordInput.fill('');
+  await passwordInput.pressSequentially(user.password);
   await expect(emailInput).toHaveValue(user.email);
+  await expect(passwordInput).toHaveValue(user.password);
 
   await submitButton.click();
   await Promise.race([
     page.waitForURL(/\/dashboard/, { timeout: 30_000 }),
-    page
-      .getByText(/invalid api key|supabase chưa được cấu hình|missing supabase credentials/i)
-      .waitFor({ state: 'visible', timeout: 30_000 })
-      .then(async () => {
-        const message = await page
-          .getByText(/invalid api key|supabase chưa được cấu hình|missing supabase credentials/i)
-          .first()
-          .textContent();
-        throw new Error(`Real Supabase login failed before Manufacturing API authorization proof: ${message}`);
-      }),
+    authError.waitFor({ state: 'visible', timeout: 30_000 }).then(async () => {
+      const message = await authError.first().textContent();
+      throw new Error(`Real Supabase login failed before Manufacturing API authorization proof: ${message}`);
+    }),
   ]);
 }
 
@@ -431,9 +439,9 @@ async function seedApiAuthFixtures(
     db,
     supabaseAdmin,
     marker,
-    label: 'no-factory-ktv',
+    label: 'no-factory-admin',
     tenantId: tenantManufacturing,
-    role: 'ktv',
+    role: 'admin',
   });
   const otherProductAdmin = await seedAuthBackedUser({
     db,
