@@ -1031,58 +1031,115 @@ describeWithRealDb('Manufacturing full operational chain evidence binding real D
     productionOrderId: string,
     expected: number
   ): Promise<void> {
-    const result = await admin.query<CountRow>(
-      `
-        SELECT COUNT(*)::text AS count
-        FROM public.manufacturing_production_order_completions
-        WHERE tenant_id = $1::uuid AND production_order_id = $2::uuid
-      `,
-      [tenantId, productionOrderId]
+    const userId = tenantId === ids.tenantA ? ids.userA : ids.userB;
+    const result = await withAuthenticatedTenantContext(
+      tenantId,
+      userId,
+      () => admin.query<CountRow>(
+        `
+          SELECT COUNT(*)::text AS count
+          FROM public.manufacturing_production_order_completions
+          WHERE tenant_id = $1::uuid AND production_order_id = $2::uuid
+        `,
+        [tenantId, productionOrderId]
+      )
     );
     expect(Number(result.rows[0].count)).toBe(expected);
   }
 
+  async function withAuthenticatedTenantContext<T>(
+    tenantId: string,
+    userId: string,
+    operation: () => Promise<T>
+  ): Promise<T> {
+    await admin.query('BEGIN');
+    try {
+      await admin.query('SET LOCAL ROLE authenticated');
+      await admin.query('SET LOCAL row_security = on');
+      await admin.query(
+        `SELECT
+           set_config('request.jwt.claim.sub', $1, TRUE),
+           set_config('request.jwt.claim.role', 'authenticated', TRUE),
+           set_config('app.current_user_id', $1, TRUE),
+           set_config('app.current_tenant_id', $2, TRUE)`,
+        [userId, tenantId]
+      );
+      const result = await operation();
+      await admin.query('COMMIT');
+      return result;
+    } catch (error) {
+      await admin.query('ROLLBACK').catch(() => undefined);
+      throw error;
+    }
+  }
+
   async function cleanupFixtures(): Promise<void> {
     await admin.query('SET row_security = off');
-    await admin.query('DELETE FROM public.manufacturing_production_order_completions WHERE tenant_id = ANY($1::uuid[])', [
+    await tryCleanup(
+      'DELETE FROM public.manufacturing_production_order_completions WHERE tenant_id = ANY($1::uuid[])',
       [ids.tenantA, ids.tenantB],
-    ]);
-    await admin.query('DELETE FROM public.manufacturing_operation_progress WHERE tenant_id = ANY($1::uuid[])', [
+      'public.manufacturing_production_order_completions'
+    );
+    await tryCleanup(
+      'DELETE FROM public.manufacturing_operation_progress WHERE tenant_id = ANY($1::uuid[])',
       [ids.tenantA, ids.tenantB],
-    ]);
-    await admin.query('DELETE FROM public.manufacturing_quality_dispositions WHERE tenant_id = ANY($1::uuid[])', [
+      'public.manufacturing_operation_progress'
+    );
+    await tryCleanup(
+      'DELETE FROM public.manufacturing_quality_dispositions WHERE tenant_id = ANY($1::uuid[])',
       [ids.tenantA, ids.tenantB],
-    ]);
-    await admin.query('DELETE FROM public.manufacturing_production_executions WHERE tenant_id = ANY($1::uuid[])', [
+      'public.manufacturing_quality_dispositions'
+    );
+    await tryCleanup(
+      'DELETE FROM public.manufacturing_production_executions WHERE tenant_id = ANY($1::uuid[])',
       [ids.tenantA, ids.tenantB],
-    ]);
-    await admin.query('DELETE FROM public.manufacturing_command_idempotency WHERE tenant_id = ANY($1::uuid[])', [
+      'public.manufacturing_production_executions'
+    );
+    await tryCleanup(
+      'DELETE FROM public.manufacturing_command_idempotency WHERE tenant_id = ANY($1::uuid[])',
       [ids.tenantA, ids.tenantB],
-    ]);
-    await admin.query('DELETE FROM public.manufacturing_material_requirements WHERE tenant_id = ANY($1::uuid[])', [
+      'public.manufacturing_command_idempotency'
+    );
+    await tryCleanup(
+      'DELETE FROM public.manufacturing_material_requirements WHERE tenant_id = ANY($1::uuid[])',
       [ids.tenantA, ids.tenantB],
-    ]);
-    await admin.query('DELETE FROM public.manufacturing_bom_components WHERE tenant_id = ANY($1::uuid[])', [
+      'public.manufacturing_material_requirements'
+    );
+    await tryCleanup(
+      'DELETE FROM public.manufacturing_bom_components WHERE tenant_id = ANY($1::uuid[])',
       [ids.tenantA, ids.tenantB],
-    ]);
-    await admin.query('DELETE FROM public.manufacturing_bom_revisions WHERE tenant_id = ANY($1::uuid[])', [
+      'public.manufacturing_bom_components'
+    );
+    await tryCleanup(
+      'DELETE FROM public.manufacturing_bom_revisions WHERE tenant_id = ANY($1::uuid[])',
       [ids.tenantA, ids.tenantB],
-    ]);
-    await admin.query('DELETE FROM public.manufacturing_routing_operations WHERE tenant_id = ANY($1::uuid[])', [
+      'public.manufacturing_bom_revisions'
+    );
+    await tryCleanup(
+      'DELETE FROM public.manufacturing_routing_operations WHERE tenant_id = ANY($1::uuid[])',
       [ids.tenantA, ids.tenantB],
-    ]);
-    await admin.query('DELETE FROM public.manufacturing_routing_revisions WHERE tenant_id = ANY($1::uuid[])', [
+      'public.manufacturing_routing_operations'
+    );
+    await tryCleanup(
+      'DELETE FROM public.manufacturing_routing_revisions WHERE tenant_id = ANY($1::uuid[])',
       [ids.tenantA, ids.tenantB],
-    ]);
-    await admin.query('DELETE FROM public.manufacturing_work_centers WHERE tenant_id = ANY($1::uuid[])', [
+      'public.manufacturing_routing_revisions'
+    );
+    await tryCleanup(
+      'DELETE FROM public.manufacturing_work_centers WHERE tenant_id = ANY($1::uuid[])',
       [ids.tenantA, ids.tenantB],
-    ]);
-    await admin.query('DELETE FROM public.manufacturing_production_order_lines WHERE tenant_id = ANY($1::uuid[])', [
+      'public.manufacturing_work_centers'
+    );
+    await tryCleanup(
+      'DELETE FROM public.manufacturing_production_order_lines WHERE tenant_id = ANY($1::uuid[])',
       [ids.tenantA, ids.tenantB],
-    ]);
-    await admin.query('DELETE FROM public.manufacturing_production_orders WHERE tenant_id = ANY($1::uuid[])', [
+      'public.manufacturing_production_order_lines'
+    );
+    await tryCleanup(
+      'DELETE FROM public.manufacturing_production_orders WHERE tenant_id = ANY($1::uuid[])',
       [ids.tenantA, ids.tenantB],
-    ]);
+      'public.manufacturing_production_orders'
+    );
     await tryCleanup(
       'DELETE FROM logistics.stock_out_idempotency WHERE tenant_id = ANY($1::uuid[])',
       [ids.tenantA, ids.tenantB],
