@@ -155,14 +155,14 @@ describeWithRealDb('Manufacturing full operational chain evidence binding real D
   beforeAll(async () => {
     admin = new Client({ connectionString: dbUrl, ssl: sslConfig() });
     await admin.connect();
-    await admin.query(manufacturingFoundationMigrationSql);
-    await admin.query(stockOutIdempotencyMigrationSql);
-    await admin.query(stockInIdempotencyMigrationSql);
-    await admin.query(executionCompletionMigrationSql);
-    await admin.query(qualityDispositionMigrationSql);
-    await admin.query(routingProgressMigrationSql);
-    await admin.query(operationProgressEvidenceMigrationSql);
-    await admin.query(lotGenealogyMigrationSql);
+    await applyMigrationIfAllowed(manufacturingFoundationMigrationSql, 'manufacturing foundation');
+    await applyMigrationIfAllowed(stockOutIdempotencyMigrationSql, 'stock-out idempotency');
+    await applyMigrationIfAllowed(stockInIdempotencyMigrationSql, 'stock-in idempotency');
+    await applyMigrationIfAllowed(executionCompletionMigrationSql, 'execution completion');
+    await applyMigrationIfAllowed(qualityDispositionMigrationSql, 'quality disposition');
+    await applyMigrationIfAllowed(routingProgressMigrationSql, 'routing progress');
+    await applyMigrationIfAllowed(operationProgressEvidenceMigrationSql, 'operation progress evidence');
+    await applyMigrationIfAllowed(lotGenealogyMigrationSql, 'lot genealogy');
     await assertRuntimeTablesExist();
     await seedTenant(ids.tenantA, `${marker} Tenant A`);
     await seedTenant(ids.tenantB, `${marker} Tenant B`);
@@ -770,6 +770,20 @@ describeWithRealDb('Manufacturing full operational chain evidence binding real D
     expect(Number(result.rows[0].count)).toBe(15);
   }
 
+  async function applyMigrationIfAllowed(sql: string, label: string): Promise<void> {
+    try {
+      await admin.query(sql);
+    } catch (error) {
+      if (isPermissionDenied(error)) {
+        console.warn(
+          `[Manufacturing full-chain Real DB setup] ${label} migration apply skipped because canonical E2E DB user cannot own existing objects; runtime schema assertion follows.`
+        );
+        return;
+      }
+      throw error;
+    }
+  }
+
   async function seedTenant(tenantId: string, name: string): Promise<void> {
     await admin.query(
       `
@@ -1069,27 +1083,41 @@ describeWithRealDb('Manufacturing full operational chain evidence binding real D
     await admin.query('DELETE FROM public.manufacturing_production_orders WHERE tenant_id = ANY($1::uuid[])', [
       [ids.tenantA, ids.tenantB],
     ]);
-    await admin.query('DELETE FROM logistics.stock_out_idempotency WHERE tenant_id = ANY($1::uuid[])', [
+    await tryCleanup(
+      'DELETE FROM logistics.stock_out_idempotency WHERE tenant_id = ANY($1::uuid[])',
       [ids.tenantA, ids.tenantB],
-    ]);
-    await admin.query('DELETE FROM logistics.stock_in_idempotency WHERE tenant_id = ANY($1::uuid[])', [
+      'logistics.stock_out_idempotency'
+    );
+    await tryCleanup(
+      'DELETE FROM logistics.stock_in_idempotency WHERE tenant_id = ANY($1::uuid[])',
       [ids.tenantA, ids.tenantB],
-    ]);
-    await admin.query('DELETE FROM logistics.inventory_movements WHERE tenant_id = ANY($1::uuid[])', [
+      'logistics.stock_in_idempotency'
+    );
+    await tryCleanup(
+      'DELETE FROM logistics.inventory_movements WHERE tenant_id = ANY($1::uuid[])',
       [ids.tenantA, ids.tenantB],
-    ]);
-    await admin.query('DELETE FROM logistics.traceability WHERE tenant_id = ANY($1::uuid[])', [
+      'logistics.inventory_movements'
+    );
+    await tryCleanup(
+      'DELETE FROM logistics.traceability WHERE tenant_id = ANY($1::uuid[])',
       [ids.tenantA, ids.tenantB],
-    ]);
-    await admin.query('DELETE FROM logistics.inventory WHERE tenant_id = ANY($1::uuid[])', [
+      'logistics.traceability'
+    );
+    await tryCleanup(
+      'DELETE FROM logistics.inventory WHERE tenant_id = ANY($1::uuid[])',
       [ids.tenantA, ids.tenantB],
-    ]);
-    await admin.query('DELETE FROM logistics.locations WHERE tenant_id = ANY($1::uuid[])', [
+      'logistics.inventory'
+    );
+    await tryCleanup(
+      'DELETE FROM logistics.locations WHERE tenant_id = ANY($1::uuid[])',
       [ids.tenantA, ids.tenantB],
-    ]);
-    await admin.query('DELETE FROM logistics.items WHERE tenant_id = ANY($1::uuid[])', [
+      'logistics.locations'
+    );
+    await tryCleanup(
+      'DELETE FROM logistics.items WHERE tenant_id = ANY($1::uuid[])',
       [ids.tenantA, ids.tenantB],
-    ]);
+      'logistics.items'
+    );
     await admin.query('DELETE FROM public.users WHERE id = ANY($1::uuid[])', [[ids.userA, ids.userB]]);
     await admin.query('DELETE FROM auth.users WHERE id = ANY($1::uuid[])', [[ids.userA, ids.userB]]);
     for (const tenantId of [ids.tenantA, ids.tenantB]) {
@@ -1101,6 +1129,20 @@ describeWithRealDb('Manufacturing full operational chain evidence binding real D
             `[Manufacturing full-chain Real DB cleanup] retained tenant shell because append-only rows may hold tenant FK rows: ${tenantId}. ${message}`
           );
         });
+    }
+  }
+
+  async function tryCleanup(sql: string, tenantIds: readonly string[], label: string): Promise<void> {
+    try {
+      await admin.query(sql, [tenantIds]);
+    } catch (error) {
+      if (isPermissionDenied(error)) {
+        console.warn(
+          `[Manufacturing full-chain Real DB cleanup] retained ${label} rows for tenant-scoped proof data because canonical E2E DB user cannot bypass table RLS.`
+        );
+        return;
+      }
+      throw error;
     }
   }
 });
@@ -1121,6 +1163,12 @@ function fallbackValue(column: TableColumn): unknown {
   if (column.data_type === 'jsonb' || column.data_type === 'json') return {};
   if (column.data_type === 'integer' || column.data_type === 'numeric') return 0;
   return `${column.column_name}-test`;
+}
+
+function isPermissionDenied(error: unknown): boolean {
+  const pgError = error as { code?: string; message?: string };
+  const message = pgError.message ?? (error instanceof Error ? error.message : String(error));
+  return pgError.code === '42501' || message.includes('permission denied') || message.includes('row-level security');
 }
 
 function isRunnableDbUrl(value: string): boolean {
