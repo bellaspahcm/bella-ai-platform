@@ -212,6 +212,7 @@ test.describe('Manufacturing operational readiness HTTP API authorization E2E', 
   });
 
   test.afterAll(async () => {
+    test.setTimeout(120_000);
     if (db && fixtures && supabaseAdmin) {
       await cleanupApiAuthFixtures(db, supabaseAdmin, fixtures);
     }
@@ -439,9 +440,9 @@ async function seedApiAuthFixtures(
     db,
     supabaseAdmin,
     marker,
-    label: 'no-factory-admin',
+    label: 'no-factory-ktv',
     tenantId: tenantManufacturing,
-    role: 'admin',
+    role: 'ktv',
   });
   const otherProductAdmin = await seedAuthBackedUser({
     db,
