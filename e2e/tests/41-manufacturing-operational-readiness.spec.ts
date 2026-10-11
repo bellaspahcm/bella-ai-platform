@@ -1,6 +1,4 @@
-import { expect } from '@playwright/test';
-
-import { test } from '../fixtures/auth';
+import { expect, test, type Page } from '@playwright/test';
 
 const snapshot = {
   tenantId: 'tenant-manufacturing',
@@ -60,11 +58,24 @@ const snapshot = {
   bomRevisions: [],
 };
 
+async function enableLocalDashboardBypass(page: Page) {
+  await page.context().addCookies([
+    {
+      name: 'mock_user_email',
+      value: 'admin@medical.vn',
+      url: process.env.E2E_BASE_URL || 'http://localhost:3000',
+      sameSite: 'Lax',
+    },
+  ]);
+}
+
 test.describe('Manufacturing operational readiness browser surface', () => {
   test('renders the operational snapshot and sends a planner command through the public API route', async ({
-    adminPage,
+    page,
   }) => {
-    await adminPage.route('**/api/manufacturing/operational-readiness?**', async (route) => {
+    await enableLocalDashboardBypass(page);
+
+    await page.route('**/api/manufacturing/operational-readiness?**', async (route) => {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -76,7 +87,7 @@ test.describe('Manufacturing operational readiness browser surface', () => {
       });
     });
 
-    await adminPage.route('**/api/manufacturing/operational-readiness', async (route) => {
+    await page.route('**/api/manufacturing/operational-readiness', async (route) => {
       const requestBody = JSON.parse(route.request().postData() ?? '{}') as {
         action?: string;
         payload?: { orderNumber?: string; targetQuantity?: number };
@@ -102,16 +113,16 @@ test.describe('Manufacturing operational readiness browser surface', () => {
       });
     });
 
-    await adminPage.goto('/dashboard/manufacturing', { waitUntil: 'domcontentloaded' });
+    await page.goto('/dashboard/manufacturing', { waitUntil: 'domcontentloaded' });
 
-    await expect(adminPage.getByTestId('manufacturing-dashboard')).toBeVisible();
-    await expect(adminPage.getByTestId('manufacturing-order-count')).toContainText('1');
-    await expect(adminPage.getByTestId('manufacturing-order-list')).toContainText('PO-UI-001');
-    await expect(adminPage.getByTestId('manufacturing-order-list')).toContainText(
+    await expect(page.getByTestId('manufacturing-dashboard')).toBeVisible();
+    await expect(page.getByTestId('manufacturing-order-count')).toContainText('1');
+    await expect(page.getByTestId('manufacturing-order-list')).toContainText('PO-UI-001');
+    await expect(page.getByTestId('manufacturing-order-list')).toContainText(
       'pending_routing_completion'
     );
 
-    const planner = adminPage.getByTestId('manufacturing-planner-form');
+    const planner = page.getByTestId('manufacturing-planner-form');
     await planner.getByLabel('Order number').fill('PO-UI-002');
     await planner.getByLabel('Finished good').fill('fg-2');
     await planner.getByLabel('Quantity').fill('12');
@@ -122,6 +133,6 @@ test.describe('Manufacturing operational readiness browser surface', () => {
       .getByRole('button', { name: 'Create' })
       .click();
 
-    await expect(adminPage.getByTestId('manufacturing-command-result')).toContainText('PO-UI-002');
+    await expect(page.getByTestId('manufacturing-command-result')).toContainText('PO-UI-002');
   });
 });
