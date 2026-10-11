@@ -14,10 +14,15 @@ import type {
   CreateBOMRevisionCommand,
   CreateProductionOrderCommand,
   CreateWorkCenterCommand,
+  FinishedGoodsReceiptEvidence,
   IdempotentCommandResult,
+  LotGenealogyFinishedGoodTrace,
+  LotGenealogyMaterialTrace,
+  LotGenealogyTrace,
   ManufacturingActor,
   OperationProgressStatus,
   MaterialRequirement,
+  MaterialIssueLogisticsEvidence,
   ProductionOperationProgress,
   ProductionCompletion,
   ProductionExecution,
@@ -27,6 +32,8 @@ import type {
   RecordProductionExecutionCommand,
   RecordQualityDispositionCommand,
   RoutingRevision,
+  TraceFinishedGoodLotCommand,
+  TraceRawMaterialLotCommand,
   UpdateOperationProgressCommand,
   ProductionOrder,
   WorkCenter,
@@ -698,6 +705,7 @@ export class ManufacturingSlice1Service {
           productionOrderLineId: line.id,
           materialIssueDocumentId: command.materialIssueDocumentId,
           materialIssueMovementId: command.materialIssueMovementId,
+          materialIssueEvidence: this.cloneMaterialIssueEvidence(command.materialIssueEvidence),
           materialRequirementId: command.materialRequirementId,
           actualQuantity: this.roundQuantity(command.actualQuantity),
           acceptedQuantity: this.roundQuantity(command.acceptedQuantity),
@@ -866,7 +874,7 @@ export class ManufacturingSlice1Service {
           rejectedQuantity: reconciliation.rejectedQuantity,
           scrapQuantity: reconciliation.scrapQuantity,
           uom: order.uom,
-          receiptEvidence: command.receiptEvidence.map((receipt) => ({ ...receipt })),
+          receiptEvidence: command.receiptEvidence.map((receipt) => this.cloneReceiptEvidence(receipt)),
           qualityDispositionEvidence: qualityDispositionEvidence.map((evidence) => ({ ...evidence })),
           completedBy: actor.userId,
           completedAt,
@@ -880,6 +888,93 @@ export class ManufacturingSlice1Service {
         });
         return completion;
       },
+    });
+  }
+
+  async traceFinishedGoodLot(
+    actor: ManufacturingActor,
+    command: TraceFinishedGoodLotCommand
+  ): Promise<LotGenealogyTrace[]> {
+    this.assertTraceSelector(command.lotNumber, command.serialNumber);
+    return this.repository.withTransaction(async (repository) => {
+      await this.authorization.ensureAllowed({
+        actor,
+        tenantId: actor.tenantId,
+        factoryOrgUnitId: actor.factoryOrgUnitId,
+        permission: 'manufacturing:genealogy:read',
+      });
+      const completions = await repository.findProductionCompletionsByFinishedGoodLot({
+        tenantId: actor.tenantId,
+        factoryOrgUnitId: actor.factoryOrgUnitId,
+        itemId: command.finishedGoodItemId,
+        lotNumber: command.lotNumber,
+        serialNumber: command.serialNumber,
+      });
+      const traces: LotGenealogyTrace[] = [];
+      const seen = new Set<string>();
+      for (const completion of completions) {
+        const order = await this.requireProductionOrder(repository, actor.tenantId, completion.productionOrderId);
+        this.assertSameFactory(actor, order.factoryOrgUnitId);
+        const matchingLineIds = new Set(
+          completion.receiptEvidence
+            .filter((receipt) =>
+              this.finishedGoodReceiptMatches(receipt, {
+                itemId: command.finishedGoodItemId,
+                lotNumber: command.lotNumber,
+                serialNumber: command.serialNumber,
+              })
+            )
+            .map((receipt) => receipt.productionOrderLineId)
+        );
+        for (const productionOrderLineId of matchingLineIds) {
+          const key = `${order.id}:${productionOrderLineId}`;
+          if (seen.has(key)) continue;
+          seen.add(key);
+          traces.push(await this.buildLotGenealogyTrace(repository, order, productionOrderLineId, {
+            finishedGoodItemId: command.finishedGoodItemId,
+            finishedGoodLotNumber: command.lotNumber,
+            finishedGoodSerialNumber: command.serialNumber,
+          }));
+        }
+      }
+      return traces;
+    });
+  }
+
+  async traceRawMaterialLot(
+    actor: ManufacturingActor,
+    command: TraceRawMaterialLotCommand
+  ): Promise<LotGenealogyTrace[]> {
+    this.assertTraceSelector(command.lotNumber, command.serialNumber);
+    return this.repository.withTransaction(async (repository) => {
+      await this.authorization.ensureAllowed({
+        actor,
+        tenantId: actor.tenantId,
+        factoryOrgUnitId: actor.factoryOrgUnitId,
+        permission: 'manufacturing:genealogy:read',
+      });
+      const executions = await repository.findProductionExecutionsByMaterialLot({
+        tenantId: actor.tenantId,
+        factoryOrgUnitId: actor.factoryOrgUnitId,
+        itemId: command.rawMaterialItemId,
+        lotNumber: command.lotNumber,
+        serialNumber: command.serialNumber,
+      });
+      const traces: LotGenealogyTrace[] = [];
+      const seen = new Set<string>();
+      for (const execution of executions) {
+        const key = `${execution.productionOrderId}:${execution.productionOrderLineId}`;
+        if (seen.has(key)) continue;
+        seen.add(key);
+        const order = await this.requireProductionOrder(repository, actor.tenantId, execution.productionOrderId);
+        this.assertSameFactory(actor, order.factoryOrgUnitId);
+        traces.push(await this.buildLotGenealogyTrace(repository, order, execution.productionOrderLineId, {
+          rawMaterialItemId: command.rawMaterialItemId,
+          rawMaterialLotNumber: command.lotNumber,
+          rawMaterialSerialNumber: command.serialNumber,
+        }));
+      }
+      return traces;
     });
   }
 
@@ -976,6 +1071,180 @@ export class ManufacturingSlice1Service {
     if (actor.factoryOrgUnitId !== factoryOrgUnitId) {
       throw new ManufacturingStateError('Actor factory scope does not match production order factory');
     }
+  }
+
+  private async buildLotGenealogyTrace(
+    repository: ManufacturingRepository,
+    order: ProductionOrder,
+    productionOrderLineId: string,
+    selector: {
+      rawMaterialItemId?: string;
+      rawMaterialLotNumber?: string;
+      rawMaterialSerialNumber?: string;
+      finishedGoodItemId?: string;
+      finishedGoodLotNumber?: string;
+      finishedGoodSerialNumber?: string;
+    }
+  ): Promise<LotGenealogyTrace> {
+    const line = order.lines.find((candidate) => candidate.id === productionOrderLineId);
+    if (!line) {
+      throw new ManufacturingStateError('Lot genealogy requires a production order line');
+    }
+    const executions = await repository.getProductionExecutions({
+      tenantId: order.tenantId,
+      productionOrderId: order.id,
+    });
+    const lineExecutions = executions.filter((execution) => execution.productionOrderLineId === productionOrderLineId);
+    const materials = lineExecutions
+      .filter((execution) =>
+        selector.rawMaterialItemId || selector.rawMaterialLotNumber || selector.rawMaterialSerialNumber
+          ? this.materialIssueMatches(execution.materialIssueEvidence, {
+              itemId: selector.rawMaterialItemId,
+              lotNumber: selector.rawMaterialLotNumber,
+              serialNumber: selector.rawMaterialSerialNumber,
+            })
+          : true
+      )
+      .map((execution) => this.toMaterialTrace(execution));
+
+    if (lineExecutions.length > 0 && materials.length === 0) {
+      throw new ManufacturingStateError('Lot genealogy requires persisted material issue evidence');
+    }
+
+    const completion = await repository.getProductionCompletion(order.tenantId, order.id);
+    const finishedGoods = (completion?.receiptEvidence ?? [])
+      .filter((receipt) => receipt.productionOrderLineId === productionOrderLineId)
+      .filter((receipt) =>
+        selector.finishedGoodItemId || selector.finishedGoodLotNumber || selector.finishedGoodSerialNumber
+          ? this.finishedGoodReceiptMatches(receipt, {
+              itemId: selector.finishedGoodItemId,
+              lotNumber: selector.finishedGoodLotNumber,
+              serialNumber: selector.finishedGoodSerialNumber,
+            })
+          : true
+      )
+      .map((receipt) => this.toFinishedGoodTrace(receipt));
+
+    return {
+      tenantId: order.tenantId,
+      factoryOrgUnitId: order.factoryOrgUnitId,
+      productionOrderId: order.id,
+      productionOrderLineId,
+      materials,
+      finishedGoods,
+    };
+  }
+
+  private toMaterialTrace(execution: ProductionExecution): LotGenealogyMaterialTrace {
+    const evidence = execution.materialIssueEvidence;
+    if (!evidence) {
+      throw new ManufacturingStateError('Lot genealogy requires persisted material issue evidence');
+    }
+    return {
+      productionExecutionId: execution.id,
+      materialRequirementId: execution.materialRequirementId,
+      itemId: evidence.itemId,
+      locationId: evidence.locationId,
+      quantity: evidence.quantity,
+      lotNumber: evidence.lotNumber,
+      serialNumbers: evidence.serialNumbers ? [...evidence.serialNumbers] : undefined,
+      issueDocumentId: evidence.issueDocumentId,
+      movementId: evidence.movementId,
+      traceabilityEventId: evidence.traceabilityEventId,
+    };
+  }
+
+  private toFinishedGoodTrace(receipt: FinishedGoodsReceiptEvidence): LotGenealogyFinishedGoodTrace {
+    const evidence = receipt.logisticsEvidence;
+    return {
+      itemId: evidence.itemId,
+      locationId: evidence.locationId,
+      quantity: evidence.quantity,
+      lotNumber: evidence.lotNumber ?? receipt.lotNumber,
+      serialNumbers: evidence.serialNumbers
+        ? [...evidence.serialNumbers]
+        : receipt.serialNumbers
+          ? [...receipt.serialNumbers]
+          : undefined,
+      receiptDocumentId: receipt.receiptDocumentId,
+      receiptLineId: receipt.receiptLineId,
+      movementId: evidence.movementId,
+      traceabilityEventId: evidence.traceabilityEventId,
+      acceptedQuantity: receipt.acceptedQuantity,
+      rejectedQuantity: receipt.rejectedQuantity ?? 0,
+      pendingQuantity: receipt.pendingQuantity ?? 0,
+    };
+  }
+
+  private materialIssueMatches(
+    evidence: MaterialIssueLogisticsEvidence | undefined,
+    selector: { itemId?: string; lotNumber?: string; serialNumber?: string }
+  ): boolean {
+    if (!evidence) return false;
+    return this.traceSelectorMatches({
+      evidenceItemId: evidence.itemId,
+      evidenceLotNumber: evidence.lotNumber,
+      evidenceSerialNumbers: evidence.serialNumbers,
+      itemId: selector.itemId,
+      lotNumber: selector.lotNumber,
+      serialNumber: selector.serialNumber,
+    });
+  }
+
+  private finishedGoodReceiptMatches(
+    receipt: FinishedGoodsReceiptEvidence,
+    selector: { itemId?: string; lotNumber?: string; serialNumber?: string }
+  ): boolean {
+    return this.traceSelectorMatches({
+      evidenceItemId: receipt.logisticsEvidence.itemId,
+      evidenceLotNumber: receipt.logisticsEvidence.lotNumber ?? receipt.lotNumber,
+      evidenceSerialNumbers: receipt.logisticsEvidence.serialNumbers ?? receipt.serialNumbers,
+      itemId: selector.itemId,
+      lotNumber: selector.lotNumber,
+      serialNumber: selector.serialNumber,
+    });
+  }
+
+  private traceSelectorMatches(params: {
+    evidenceItemId: string;
+    evidenceLotNumber?: string;
+    evidenceSerialNumbers?: string[];
+    itemId?: string;
+    lotNumber?: string;
+    serialNumber?: string;
+  }): boolean {
+    if (params.itemId !== undefined && params.evidenceItemId !== params.itemId) return false;
+    if (params.lotNumber !== undefined && params.evidenceLotNumber !== params.lotNumber) return false;
+    if (params.serialNumber !== undefined && !(params.evidenceSerialNumbers ?? []).includes(params.serialNumber)) {
+      return false;
+    }
+    return true;
+  }
+
+  private assertTraceSelector(lotNumber: string | undefined, serialNumber: string | undefined): void {
+    if (!lotNumber?.trim() && !serialNumber?.trim()) {
+      throw new ManufacturingValidationError('Lot genealogy trace requires lot number or serial number');
+    }
+  }
+
+  private cloneMaterialIssueEvidence(evidence: MaterialIssueLogisticsEvidence): MaterialIssueLogisticsEvidence {
+    return {
+      ...evidence,
+      serialNumbers: evidence.serialNumbers ? [...evidence.serialNumbers] : undefined,
+    };
+  }
+
+  private cloneReceiptEvidence(receipt: FinishedGoodsReceiptEvidence): FinishedGoodsReceiptEvidence {
+    return {
+      ...receipt,
+      serialNumbers: receipt.serialNumbers ? [...receipt.serialNumbers] : undefined,
+      logisticsEvidence: {
+        ...receipt.logisticsEvidence,
+        serialNumbers: receipt.logisticsEvidence.serialNumbers
+          ? [...receipt.logisticsEvidence.serialNumbers]
+          : undefined,
+      },
+    };
   }
 
   private assertOperationProgressTransition(

@@ -221,7 +221,7 @@ export class InMemoryManufacturingRepository implements ManufacturingRepository 
   }
 
   async saveProductionExecution(execution: ProductionExecution): Promise<void> {
-    this.productionExecutions.set(this.key(execution.tenantId, execution.id), { ...execution });
+    this.productionExecutions.set(this.key(execution.tenantId, execution.id), cloneProductionExecution(execution));
   }
 
   async getProductionExecutions(params: {
@@ -234,7 +234,32 @@ export class InMemoryManufacturingRepository implements ManufacturingRepository 
           execution.tenantId === params.tenantId &&
           execution.productionOrderId === params.productionOrderId
       )
-      .map((execution) => ({ ...execution }));
+      .map(cloneProductionExecution);
+  }
+
+  async findProductionExecutionsByMaterialLot(params: {
+    tenantId: TenantId;
+    factoryOrgUnitId: FactoryOrgUnitId;
+    itemId?: string;
+    lotNumber?: string;
+    serialNumber?: string;
+  }): Promise<ProductionExecution[]> {
+    return Array.from(this.productionExecutions.values())
+      .filter(
+        (execution) =>
+          execution.tenantId === params.tenantId &&
+          execution.factoryOrgUnitId === params.factoryOrgUnitId &&
+          execution.materialIssueEvidence !== undefined &&
+          traceSelectorMatches({
+            evidenceItemId: execution.materialIssueEvidence.itemId,
+            evidenceLotNumber: execution.materialIssueEvidence.lotNumber,
+            evidenceSerialNumbers: execution.materialIssueEvidence.serialNumbers,
+            itemId: params.itemId,
+            lotNumber: params.lotNumber,
+            serialNumber: params.serialNumber,
+          })
+      )
+      .map(cloneProductionExecution);
   }
 
   async saveQualityDisposition(evidence: QualityDispositionEvidence): Promise<void> {
@@ -255,11 +280,10 @@ export class InMemoryManufacturingRepository implements ManufacturingRepository 
   }
 
   async saveProductionCompletion(completion: ProductionCompletion): Promise<void> {
-    this.productionCompletions.set(this.key(completion.tenantId, completion.productionOrderId), {
-      ...completion,
-      receiptEvidence: completion.receiptEvidence.map((receipt) => ({ ...receipt })),
-      qualityDispositionEvidence: completion.qualityDispositionEvidence.map((evidence) => ({ ...evidence })),
-    });
+    this.productionCompletions.set(
+      this.key(completion.tenantId, completion.productionOrderId),
+      cloneProductionCompletion(completion)
+    );
   }
 
   async getProductionCompletion(
@@ -268,12 +292,34 @@ export class InMemoryManufacturingRepository implements ManufacturingRepository 
   ): Promise<ProductionCompletion | null> {
     const completion = this.productionCompletions.get(this.key(tenantId, productionOrderId));
     return completion
-      ? {
-          ...completion,
-          receiptEvidence: completion.receiptEvidence.map((receipt) => ({ ...receipt })),
-          qualityDispositionEvidence: completion.qualityDispositionEvidence.map((evidence) => ({ ...evidence })),
-        }
+      ? cloneProductionCompletion(completion)
       : null;
+  }
+
+  async findProductionCompletionsByFinishedGoodLot(params: {
+    tenantId: TenantId;
+    factoryOrgUnitId: FactoryOrgUnitId;
+    itemId?: string;
+    lotNumber?: string;
+    serialNumber?: string;
+  }): Promise<ProductionCompletion[]> {
+    return Array.from(this.productionCompletions.values())
+      .filter(
+        (completion) =>
+          completion.tenantId === params.tenantId &&
+          completion.factoryOrgUnitId === params.factoryOrgUnitId &&
+          completion.receiptEvidence.some((receipt) =>
+            traceSelectorMatches({
+              evidenceItemId: receipt.logisticsEvidence.itemId,
+              evidenceLotNumber: receipt.logisticsEvidence.lotNumber ?? receipt.lotNumber,
+              evidenceSerialNumbers: receipt.logisticsEvidence.serialNumbers ?? receipt.serialNumbers,
+              itemId: params.itemId,
+              lotNumber: params.lotNumber,
+              serialNumber: params.serialNumber,
+            })
+          )
+      )
+      .map(cloneProductionCompletion);
   }
 
   async getCommandLog<T = unknown>(params: {
@@ -308,6 +354,53 @@ function cloneProductionOrder(order: ProductionOrder): ProductionOrder {
     ...order,
     lines: order.lines.map((line) => ({ ...line })),
   };
+}
+
+function cloneProductionExecution(execution: ProductionExecution): ProductionExecution {
+  return {
+    ...execution,
+    materialIssueEvidence: execution.materialIssueEvidence
+      ? {
+          ...execution.materialIssueEvidence,
+          serialNumbers: execution.materialIssueEvidence.serialNumbers
+            ? [...execution.materialIssueEvidence.serialNumbers]
+            : undefined,
+        }
+      : undefined,
+  };
+}
+
+function cloneProductionCompletion(completion: ProductionCompletion): ProductionCompletion {
+  return {
+    ...completion,
+    receiptEvidence: completion.receiptEvidence.map((receipt) => ({
+      ...receipt,
+      serialNumbers: receipt.serialNumbers ? [...receipt.serialNumbers] : undefined,
+      logisticsEvidence: {
+        ...receipt.logisticsEvidence,
+        serialNumbers: receipt.logisticsEvidence.serialNumbers
+          ? [...receipt.logisticsEvidence.serialNumbers]
+          : undefined,
+      },
+    })),
+    qualityDispositionEvidence: completion.qualityDispositionEvidence.map((evidence) => ({ ...evidence })),
+  };
+}
+
+function traceSelectorMatches(params: {
+  evidenceItemId: string;
+  evidenceLotNumber?: string;
+  evidenceSerialNumbers?: string[];
+  itemId?: string;
+  lotNumber?: string;
+  serialNumber?: string;
+}): boolean {
+  if (params.itemId !== undefined && params.evidenceItemId !== params.itemId) return false;
+  if (params.lotNumber !== undefined && params.evidenceLotNumber !== params.lotNumber) return false;
+  if (params.serialNumber !== undefined && !(params.evidenceSerialNumbers ?? []).includes(params.serialNumber)) {
+    return false;
+  }
+  return true;
 }
 
 function cloneRoutingRevision(revision: RoutingRevision): RoutingRevision {

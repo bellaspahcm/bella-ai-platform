@@ -89,6 +89,13 @@ export interface ManufacturingRepository {
     tenantId: TenantId;
     productionOrderId: ManufacturingId;
   }): Promise<ProductionExecution[]>;
+  findProductionExecutionsByMaterialLot(params: {
+    tenantId: TenantId;
+    factoryOrgUnitId: FactoryOrgUnitId;
+    itemId?: string;
+    lotNumber?: string;
+    serialNumber?: string;
+  }): Promise<ProductionExecution[]>;
   saveQualityDisposition(evidence: QualityDispositionEvidence): Promise<void>;
   getQualityDispositions(params: {
     tenantId: TenantId;
@@ -96,6 +103,13 @@ export interface ManufacturingRepository {
   }): Promise<QualityDispositionEvidence[]>;
   saveProductionCompletion(completion: ProductionCompletion): Promise<void>;
   getProductionCompletion(tenantId: TenantId, productionOrderId: ManufacturingId): Promise<ProductionCompletion | null>;
+  findProductionCompletionsByFinishedGoodLot(params: {
+    tenantId: TenantId;
+    factoryOrgUnitId: FactoryOrgUnitId;
+    itemId?: string;
+    lotNumber?: string;
+    serialNumber?: string;
+  }): Promise<ProductionCompletion[]>;
   getCommandLog<T = unknown>(params: {
     tenantId: TenantId;
     operation: string;
@@ -356,6 +370,12 @@ export class LogisticsEvidenceBindingAdapter implements LogisticsEvidenceBinding
         sameQuantity(readBack.traceability.quantity, evidence.quantity),
       'Material issue evidence quantity does not match Logistics read-back'
     );
+    assertOptionalTraceability(evidence.lotNumber, readBack.traceability.lot_number, 'Material issue evidence lot');
+    assertOptionalSerials(
+      evidence.serialNumbers,
+      readBack.traceability.serial_numbers,
+      'Material issue evidence serials'
+    );
     assertEvidence(Boolean(custodyEvent), 'Material issue evidence document is not a production consumption stock-out');
     const metadata = readRecord(custodyEvent?.metadata);
     assertEvidence(
@@ -421,6 +441,12 @@ export class LogisticsEvidenceBindingAdapter implements LogisticsEvidenceBinding
         sameQuantity(readBack.traceability.quantity, evidence.quantity),
       'Finished goods receipt evidence quantity does not match Logistics read-back'
     );
+    assertOptionalTraceability(evidence.lotNumber, readBack.traceability.lot_number, 'Finished goods receipt lot');
+    assertOptionalSerials(
+      evidence.serialNumbers,
+      readBack.traceability.serial_numbers,
+      'Finished goods receipt serials'
+    );
     assertEvidence(Boolean(custodyEvent), 'Finished goods receipt evidence document is not a production order stock-in');
     assertEvidence(
       metadata.production_order_id === params.productionOrderId &&
@@ -470,6 +496,25 @@ function assertEvidence(condition: boolean, message: string): void {
 
 function sameQuantity(left: number, right: number): boolean {
   return Math.round(left * 1_000_000) / 1_000_000 === Math.round(right * 1_000_000) / 1_000_000;
+}
+
+function assertOptionalTraceability(expected: string | undefined, actual: string | undefined, label: string): void {
+  if (expected !== undefined) {
+    assertEvidence(actual === expected, `${label} does not match Logistics read-back`);
+  }
+}
+
+function assertOptionalSerials(
+  expected: string[] | undefined,
+  actual: string[] | undefined,
+  label: string
+): void {
+  if (expected === undefined) return;
+  const actualSet = new Set(actual ?? []);
+  assertEvidence(
+    expected.every((serial) => actualSet.has(serial)),
+    `${label} do not match Logistics read-back`
+  );
 }
 
 function readRecord(value: unknown): Record<string, unknown> {

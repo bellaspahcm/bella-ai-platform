@@ -78,6 +78,13 @@ const operationProgressEvidenceMigrationSql = readFileSync(
   ),
   'utf8'
 );
+const lotGenealogyMigrationSql = readFileSync(
+  path.resolve(
+    __dirname,
+    '../../../../supabase/migrations/20261011030000_bind_manufacturing_lot_genealogy_evidence.sql'
+  ),
+  'utf8'
+);
 
 const describeWithRealDb =
   isRunnableDbUrl(dbUrl) && isAllowedE2eProject() && isAllowedE2eDbUrl(dbUrl) ? describe : describe.skip;
@@ -155,6 +162,7 @@ describeWithRealDb('Manufacturing full operational chain evidence binding real D
     await admin.query(qualityDispositionMigrationSql);
     await admin.query(routingProgressMigrationSql);
     await admin.query(operationProgressEvidenceMigrationSql);
+    await admin.query(lotGenealogyMigrationSql);
     await assertRuntimeTablesExist();
     await seedTenant(ids.tenantA, `${marker} Tenant A`);
     await seedTenant(ids.tenantB, `${marker} Tenant B`);
@@ -297,6 +305,56 @@ describeWithRealDb('Manufacturing full operational chain evidence binding real D
       await expectMovementCount(ids.tenantA, ids.rawItemA, 'warehouse_stock_out', 1);
       await expectMovementCount(ids.tenantA, ids.finishedGoodA, 'warehouse_stock_in', 1);
       await expectManufacturingCompletionCount(ids.tenantA, order.id, 1);
+
+      const finishedGoodTrace = await runtime.service.traceFinishedGoodLot(actor, {
+        finishedGoodItemId: ids.finishedGoodA,
+        lotNumber: `${marker}-fg-lot-happy`,
+      });
+      expect(finishedGoodTrace).toEqual([
+        expect.objectContaining({
+          productionOrderId: order.id,
+          productionOrderLineId: line.id,
+          materials: [
+            expect.objectContaining({
+              itemId: ids.rawItemA,
+              lotNumber: `${marker}-raw-lot-a`,
+              movementId: stockOut.value.lines[0].movement.id,
+              traceabilityEventId: stockOut.value.lines[0].traceabilityEvent.id,
+            }),
+          ],
+          finishedGoods: [
+            expect.objectContaining({
+              itemId: ids.finishedGoodA,
+              lotNumber: `${marker}-fg-lot-happy`,
+              movementId: stockIn.value.lines[0].movement.id,
+              traceabilityEventId: stockIn.value.lines[0].traceabilityEvent.id,
+            }),
+          ],
+        }),
+      ]);
+
+      const rawMaterialTrace = await runtime.service.traceRawMaterialLot(actor, {
+        rawMaterialItemId: ids.rawItemA,
+        lotNumber: `${marker}-raw-lot-a`,
+      });
+      expect(rawMaterialTrace).toEqual([
+        expect.objectContaining({
+          productionOrderId: order.id,
+          productionOrderLineId: line.id,
+          materials: [
+            expect.objectContaining({
+              itemId: ids.rawItemA,
+              lotNumber: `${marker}-raw-lot-a`,
+            }),
+          ],
+          finishedGoods: [
+            expect.objectContaining({
+              itemId: ids.finishedGoodA,
+              lotNumber: `${marker}-fg-lot-happy`,
+            }),
+          ],
+        }),
+      ]);
     } finally {
       await runtime.close();
     }
@@ -510,6 +568,7 @@ describeWithRealDb('Manufacturing full operational chain evidence binding real D
           'manufacturing:availability:read',
           'manufacturing:execution:record',
           'manufacturing:quality_disposition:record',
+          'manufacturing:genealogy:read',
         ],
         [ids.userB]: [
           'manufacturing:production_order:write',
@@ -519,6 +578,7 @@ describeWithRealDb('Manufacturing full operational chain evidence binding real D
           'manufacturing:material_requirement:calculate',
           'manufacturing:availability:read',
           'manufacturing:execution:record',
+          'manufacturing:genealogy:read',
         ],
       }
     );
@@ -602,7 +662,7 @@ describeWithRealDb('Manufacturing full operational chain evidence binding real D
         locationId: string;
         quantity: number;
         movement: { id: string };
-        traceabilityEvent: { id: string };
+        traceabilityEvent: { id: string; lot_number?: string; serial_numbers?: string[] };
       }>;
     },
     materialRequirementId: string
@@ -617,6 +677,8 @@ describeWithRealDb('Manufacturing full operational chain evidence binding real D
       itemId: line.itemId,
       locationId: line.locationId,
       quantity: line.quantity,
+      lotNumber: line.traceabilityEvent.lot_number,
+      serialNumbers: line.traceabilityEvent.serial_numbers,
       productionOrderId: reference.productionOrderId,
       productionOrderLineId: reference.productionOrderLineId,
       materialRequirementId,
@@ -636,7 +698,7 @@ describeWithRealDb('Manufacturing full operational chain evidence binding real D
         locationId: string;
         quantity: number;
         movement: { id: string };
-        traceabilityEvent: { id: string };
+        traceabilityEvent: { id: string; lot_number?: string; serial_numbers?: string[] };
       }>;
     },
     acceptedQuantity: number,
@@ -650,6 +712,8 @@ describeWithRealDb('Manufacturing full operational chain evidence binding real D
       productionOrderLineId: reference.productionOrderLineId,
       receiptDocumentId: value.sourceDocumentId,
       receiptLineId: reference.receiptLineId,
+      lotNumber: line.traceabilityEvent.lot_number,
+      serialNumbers: line.traceabilityEvent.serial_numbers,
       acceptedQuantity,
       rejectedQuantity,
       pendingQuantity,
@@ -661,6 +725,8 @@ describeWithRealDb('Manufacturing full operational chain evidence binding real D
         itemId: line.itemId,
         locationId: line.locationId,
         quantity: line.quantity,
+        lotNumber: line.traceabilityEvent.lot_number,
+        serialNumbers: line.traceabilityEvent.serial_numbers,
         productionOrderId: reference.productionOrderId,
         productionOrderLineId: reference.productionOrderLineId,
         acceptedQuantity,

@@ -33,7 +33,8 @@ export type ManufacturingPermission =
   | 'manufacturing:routing:write'
   | 'manufacturing:routing:approve'
   | 'manufacturing:routing:apply'
-  | 'manufacturing:operation_progress:update';
+  | 'manufacturing:operation_progress:update'
+  | 'manufacturing:genealogy:read';
 
 export interface ManufacturingActor {
   tenantId: TenantId;
@@ -112,6 +113,7 @@ export interface ProductionExecution {
   productionOrderLineId: ManufacturingId;
   materialIssueDocumentId: string;
   materialIssueMovementId: string;
+  materialIssueEvidence?: MaterialIssueLogisticsEvidence;
   materialRequirementId?: ManufacturingId;
   actualQuantity: Quantity;
   acceptedQuantity: Quantity;
@@ -129,6 +131,8 @@ export interface MaterialIssueLogisticsEvidence {
   itemId: ItemId;
   locationId: LocationId;
   quantity: Quantity;
+  lotNumber?: string;
+  serialNumbers?: string[];
   productionOrderId: ManufacturingId;
   productionOrderLineId: ManufacturingId;
   materialRequirementId?: ManufacturingId;
@@ -142,6 +146,8 @@ export interface FinishedGoodsReceiptLogisticsEvidence {
   itemId: ItemId;
   locationId: LocationId;
   quantity: Quantity;
+  lotNumber?: string;
+  serialNumbers?: string[];
   productionOrderId: ManufacturingId;
   productionOrderLineId: ManufacturingId;
   acceptedQuantity: Quantity;
@@ -153,6 +159,8 @@ export interface FinishedGoodsReceiptEvidence {
   productionOrderLineId: ManufacturingId;
   receiptDocumentId: string;
   receiptLineId: string;
+  lotNumber?: string;
+  serialNumbers?: string[];
   acceptedQuantity: Quantity;
   rejectedQuantity?: Quantity;
   pendingQuantity?: Quantity;
@@ -379,6 +387,55 @@ export interface CompleteProductionOrderCommand {
   idempotencyKey: string;
   productionOrderId: ManufacturingId;
   receiptEvidence: FinishedGoodsReceiptEvidence[];
+}
+
+export interface TraceFinishedGoodLotCommand {
+  finishedGoodItemId?: ItemId;
+  lotNumber?: string;
+  serialNumber?: string;
+}
+
+export interface TraceRawMaterialLotCommand {
+  rawMaterialItemId?: ItemId;
+  lotNumber?: string;
+  serialNumber?: string;
+}
+
+export interface LotGenealogyMaterialTrace {
+  productionExecutionId: ManufacturingId;
+  materialRequirementId?: ManufacturingId;
+  itemId: ItemId;
+  locationId: LocationId;
+  quantity: Quantity;
+  lotNumber?: string;
+  serialNumbers?: string[];
+  issueDocumentId: string;
+  movementId: string;
+  traceabilityEventId: string;
+}
+
+export interface LotGenealogyFinishedGoodTrace {
+  itemId: ItemId;
+  locationId: LocationId;
+  quantity: Quantity;
+  lotNumber?: string;
+  serialNumbers?: string[];
+  receiptDocumentId: string;
+  receiptLineId: string;
+  movementId: string;
+  traceabilityEventId: string;
+  acceptedQuantity: Quantity;
+  rejectedQuantity: Quantity;
+  pendingQuantity: Quantity;
+}
+
+export interface LotGenealogyTrace {
+  tenantId: TenantId;
+  factoryOrgUnitId: FactoryOrgUnitId;
+  productionOrderId: ManufacturingId;
+  productionOrderLineId: ManufacturingId;
+  materials: LotGenealogyMaterialTrace[];
+  finishedGoods: LotGenealogyFinishedGoodTrace[];
 }
 
 export interface IdempotentCommandResult<T> {
