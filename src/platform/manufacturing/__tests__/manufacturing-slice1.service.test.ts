@@ -59,6 +59,7 @@ function createService(availability: MaterialAvailabilityPort = createAvailabili
         'manufacturing:routing:approve',
         'manufacturing:routing:apply',
         'manufacturing:operation_progress:update',
+        'manufacturing:genealogy:read',
       ],
     }
   );
@@ -110,6 +111,8 @@ function materialIssueEvidence(params: {
   movementId: string;
   materialRequirementId?: string;
   quantity?: number;
+  lotNumber?: string;
+  serialNumbers?: string[];
 }): MaterialIssueLogisticsEvidence {
   return {
     issueDocumentId: params.issueDocumentId,
@@ -118,6 +121,8 @@ function materialIssueEvidence(params: {
     itemId: 'component_a',
     locationId: 'warehouse-bin-a',
     quantity: params.quantity ?? 20,
+    lotNumber: params.lotNumber ?? 'raw-lot-1',
+    serialNumbers: params.serialNumbers,
     productionOrderId: params.productionOrderId,
     productionOrderLineId: params.productionOrderLineId,
     materialRequirementId: params.materialRequirementId,
@@ -132,11 +137,15 @@ function receiptEvidence(params: {
   acceptedQuantity: number;
   rejectedQuantity?: number;
   pendingQuantity?: number;
+  lotNumber?: string;
+  serialNumbers?: string[];
 }): FinishedGoodsReceiptEvidence {
   return {
     productionOrderLineId: params.productionOrderLineId,
     receiptDocumentId: params.receiptDocumentId,
     receiptLineId: params.receiptLineId,
+    lotNumber: params.lotNumber ?? 'fg-lot-1',
+    serialNumbers: params.serialNumbers,
     acceptedQuantity: params.acceptedQuantity,
     rejectedQuantity: params.rejectedQuantity,
     pendingQuantity: params.pendingQuantity,
@@ -148,6 +157,8 @@ function receiptEvidence(params: {
       itemId: 'finished_good_a',
       locationId: 'finished-goods-warehouse',
       quantity: params.acceptedQuantity,
+      lotNumber: params.lotNumber ?? 'fg-lot-1',
+      serialNumbers: params.serialNumbers,
       productionOrderId: params.productionOrderId,
       productionOrderLineId: params.productionOrderLineId,
       acceptedQuantity: params.acceptedQuantity,
@@ -516,6 +527,112 @@ describe('Manufacturing Slice 1', () => {
       status: 'completed',
       completedBy: actor.userId,
     });
+  });
+
+  it('traces finished good lots back to material lots and raw lots forward to FGR lots', async () => {
+    const availability = createAvailability({ component_a: 25 });
+    const { service } = createService(availability);
+    const actor = createActor();
+    const { order, bom } = await createApprovedBomAndOrder(service, actor);
+    const requirements = await service.calculateMaterialRequirements(actor, {
+      idempotencyKey: 'calc-req-genealogy',
+      productionOrderId: order.id,
+      bomRevisionId: bom.id,
+      sourceLocationId: 'warehouse-bin-a',
+    });
+    const released = await service.releaseProductionOrder(actor, {
+      idempotencyKey: 'release-po-genealogy',
+      productionOrderId: order.id,
+      bomRevisionId: bom.id,
+    });
+    const [line] = released.value.lines;
+    const [requirement] = requirements.value;
+    if (!line || !requirement) throw new Error('Expected order line and material requirement');
+
+    await service.recordProductionExecution(actor, {
+      idempotencyKey: 'record-execution-genealogy',
+      productionOrderId: order.id,
+      productionOrderLineId: line.id,
+      materialIssueDocumentId: 'issue-doc-genealogy',
+      materialIssueMovementId: 'issue-movement-genealogy',
+      materialRequirementId: requirement.id,
+      materialIssueEvidence: materialIssueEvidence({
+        productionOrderId: order.id,
+        productionOrderLineId: line.id,
+        issueDocumentId: 'issue-doc-genealogy',
+        movementId: 'issue-movement-genealogy',
+        materialRequirementId: requirement.id,
+        lotNumber: 'raw-lot-genealogy',
+        quantity: 20,
+      }),
+      actualQuantity: 10,
+      acceptedQuantity: 10,
+      uom: 'EA',
+    });
+    await service.completeProductionOrder(actor, {
+      idempotencyKey: 'complete-po-genealogy',
+      productionOrderId: order.id,
+      receiptEvidence: [receiptEvidence({
+        productionOrderId: order.id,
+        productionOrderLineId: line.id,
+        receiptDocumentId: 'fgr-genealogy',
+        receiptLineId: 'fgr-line-genealogy',
+        acceptedQuantity: 10,
+        lotNumber: 'fg-lot-genealogy',
+      })],
+    });
+
+    await expect(
+      service.traceFinishedGoodLot(actor, {
+        finishedGoodItemId: 'finished_good_a',
+        lotNumber: 'fg-lot-genealogy',
+      })
+    ).resolves.toEqual([
+      expect.objectContaining({
+        productionOrderId: order.id,
+        productionOrderLineId: line.id,
+        materials: [
+          expect.objectContaining({
+            itemId: 'component_a',
+            lotNumber: 'raw-lot-genealogy',
+            movementId: 'issue-movement-genealogy',
+            materialRequirementId: requirement.id,
+          }),
+        ],
+        finishedGoods: [
+          expect.objectContaining({
+            itemId: 'finished_good_a',
+            lotNumber: 'fg-lot-genealogy',
+            receiptDocumentId: 'fgr-genealogy',
+            receiptLineId: 'fgr-line-genealogy',
+          }),
+        ],
+      }),
+    ]);
+
+    await expect(
+      service.traceRawMaterialLot(actor, {
+        rawMaterialItemId: 'component_a',
+        lotNumber: 'raw-lot-genealogy',
+      })
+    ).resolves.toEqual([
+      expect.objectContaining({
+        productionOrderId: order.id,
+        productionOrderLineId: line.id,
+        materials: [
+          expect.objectContaining({
+            itemId: 'component_a',
+            lotNumber: 'raw-lot-genealogy',
+          }),
+        ],
+        finishedGoods: [
+          expect.objectContaining({
+            itemId: 'finished_good_a',
+            lotNumber: 'fg-lot-genealogy',
+          }),
+        ],
+      }),
+    ]);
   });
 
   it('rejects completion when execution and FGR evidence do not reconcile', async () => {

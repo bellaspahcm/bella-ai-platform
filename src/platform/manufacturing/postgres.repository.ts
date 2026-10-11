@@ -6,6 +6,7 @@ import type {
   CommandLogEntry,
   FinishedGoodsReceiptEvidence,
   ManufacturingId,
+  MaterialIssueLogisticsEvidence,
   MaterialRequirement,
   ProductionOperationProgress,
   ProductionCompletion,
@@ -151,6 +152,7 @@ type ProductionExecutionRow = QueryResultRow & {
   production_order_line_id: string;
   material_issue_document_id: string;
   material_issue_movement_id: string;
+  material_issue_evidence: MaterialIssueLogisticsEvidence | null;
   material_requirement_id: string | null;
   actual_quantity: string | number;
   accepted_quantity: string | number;
@@ -674,13 +676,14 @@ export class PostgresManufacturingRepository implements ManufacturingRepository 
       `
         INSERT INTO public.manufacturing_production_executions (
           id, tenant_id, factory_org_unit_id, production_order_id, production_order_line_id,
-          material_issue_document_id, material_issue_movement_id, material_requirement_id,
+          material_issue_document_id, material_issue_movement_id, material_issue_evidence, material_requirement_id,
           actual_quantity, accepted_quantity, rejected_quantity, scrap_quantity,
           uom, recorded_by, recorded_at
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8::jsonb, $9, $10, $11, $12, $13, $14, $15, $16)
         ON CONFLICT (tenant_id, id)
         DO UPDATE SET
+          material_issue_evidence = EXCLUDED.material_issue_evidence,
           actual_quantity = EXCLUDED.actual_quantity,
           accepted_quantity = EXCLUDED.accepted_quantity,
           rejected_quantity = EXCLUDED.rejected_quantity,
@@ -694,6 +697,7 @@ export class PostgresManufacturingRepository implements ManufacturingRepository 
         execution.productionOrderLineId,
         execution.materialIssueDocumentId,
         execution.materialIssueMovementId,
+        JSON.stringify(execution.materialIssueEvidence ?? null),
         execution.materialRequirementId ?? null,
         execution.actualQuantity,
         execution.acceptedQuantity,
@@ -718,6 +722,39 @@ export class PostgresManufacturingRepository implements ManufacturingRepository 
         ORDER BY recorded_at, id
       `,
       [params.tenantId, params.productionOrderId]
+    );
+    return result.rows.map((row) => this.mapProductionExecution(row));
+  }
+
+  async findProductionExecutionsByMaterialLot(params: {
+    tenantId: string;
+    factoryOrgUnitId: string;
+    itemId?: string;
+    lotNumber?: string;
+    serialNumber?: string;
+  }): Promise<ProductionExecution[]> {
+    const result = await this.db.query<ProductionExecutionRow>(
+      `
+        SELECT *
+        FROM public.manufacturing_production_executions
+        WHERE tenant_id = $1
+          AND factory_org_unit_id = $2
+          AND material_issue_evidence IS NOT NULL
+          AND ($3::text IS NULL OR material_issue_evidence #>> '{itemId}' = $3)
+          AND ($4::text IS NULL OR material_issue_evidence #>> '{lotNumber}' = $4)
+          AND (
+            $5::text IS NULL OR
+            COALESCE(material_issue_evidence #> '{serialNumbers}', '[]'::jsonb) ? $5
+          )
+        ORDER BY recorded_at, id
+      `,
+      [
+        params.tenantId,
+        params.factoryOrgUnitId,
+        params.itemId ?? null,
+        params.lotNumber ?? null,
+        params.serialNumber ?? null,
+      ]
     );
     return result.rows.map((row) => this.mapProductionExecution(row));
   }
@@ -829,6 +866,45 @@ export class PostgresManufacturingRepository implements ManufacturingRepository 
       [tenantId, productionOrderId]
     );
     return result.rows[0] ? this.mapProductionCompletion(result.rows[0]) : null;
+  }
+
+  async findProductionCompletionsByFinishedGoodLot(params: {
+    tenantId: string;
+    factoryOrgUnitId: string;
+    itemId?: string;
+    lotNumber?: string;
+    serialNumber?: string;
+  }): Promise<ProductionCompletion[]> {
+    const result = await this.db.query<ProductionCompletionRow>(
+      `
+        SELECT *
+        FROM public.manufacturing_production_order_completions completion
+        WHERE completion.tenant_id = $1
+          AND completion.factory_org_unit_id = $2
+          AND EXISTS (
+            SELECT 1
+            FROM jsonb_array_elements(completion.receipt_evidence) AS receipt(value)
+            WHERE ($3::text IS NULL OR receipt.value #>> '{logisticsEvidence,itemId}' = $3)
+              AND (
+                $4::text IS NULL OR
+                COALESCE(receipt.value #>> '{logisticsEvidence,lotNumber}', receipt.value #>> '{lotNumber}') = $4
+              )
+              AND (
+                $5::text IS NULL OR
+                COALESCE(receipt.value #> '{logisticsEvidence,serialNumbers}', receipt.value #> '{serialNumbers}', '[]'::jsonb) ? $5
+              )
+          )
+        ORDER BY completed_at, id
+      `,
+      [
+        params.tenantId,
+        params.factoryOrgUnitId,
+        params.itemId ?? null,
+        params.lotNumber ?? null,
+        params.serialNumber ?? null,
+      ]
+    );
+    return result.rows.map((row) => this.mapProductionCompletion(row));
   }
 
   async getCommandLog<T = unknown>(params: {
@@ -1067,6 +1143,7 @@ export class PostgresManufacturingRepository implements ManufacturingRepository 
       productionOrderLineId: row.production_order_line_id,
       materialIssueDocumentId: row.material_issue_document_id,
       materialIssueMovementId: row.material_issue_movement_id,
+      materialIssueEvidence: row.material_issue_evidence ? { ...row.material_issue_evidence } : undefined,
       materialRequirementId: row.material_requirement_id ?? undefined,
       actualQuantity: toNumber(row.actual_quantity),
       acceptedQuantity: toNumber(row.accepted_quantity),

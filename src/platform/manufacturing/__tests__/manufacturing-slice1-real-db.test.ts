@@ -64,6 +64,13 @@ const operationProgressEvidenceMigrationSql = readFileSync(
   ),
   'utf8'
 );
+const lotGenealogyMigrationSql = readFileSync(
+  path.resolve(
+    __dirname,
+    '../../../../supabase/migrations/20261011030000_bind_manufacturing_lot_genealogy_evidence.sql'
+  ),
+  'utf8'
+);
 
 const describeWithRealDb =
   isRunnableDbUrl(dbUrl) && isAllowedE2eProject() && isAllowedE2eDbUrl(dbUrl) ? describe : describe.skip;
@@ -135,6 +142,7 @@ describeWithRealDb('Manufacturing Slice 1 real DB verification', () => {
     await admin.query(qualityDispositionMigrationSql);
     await admin.query(routingProgressMigrationSql);
     await admin.query(operationProgressEvidenceMigrationSql);
+    await admin.query(lotGenealogyMigrationSql);
     await seedTenant(ids.tenantA, `${marker} Tenant A`);
     await seedTenant(ids.tenantB, `${marker} Tenant B`);
     await seedUser(ids.tenantA, ids.userA, ids.personA, ids.factoryA, ids.factoryADenied, 'a');
@@ -920,6 +928,7 @@ describeWithRealDb('Manufacturing Slice 1 real DB verification', () => {
           'manufacturing:routing:approve',
           'manufacturing:routing:apply',
           'manufacturing:operation_progress:update',
+          'manufacturing:genealogy:read',
         ],
         [ids.userB]: ['manufacturing:production_order:write'],
       }
@@ -973,6 +982,8 @@ describeWithRealDb('Manufacturing Slice 1 real DB verification', () => {
     movementId: string;
     materialRequirementId?: string;
     quantity?: number;
+    lotNumber?: string;
+    serialNumbers?: string[];
   }): MaterialIssueLogisticsEvidence {
     return {
       issueDocumentId: params.issueDocumentId,
@@ -981,6 +992,8 @@ describeWithRealDb('Manufacturing Slice 1 real DB verification', () => {
       itemId: 'component_a',
       locationId: 'warehouse-bin-a',
       quantity: params.quantity ?? 20,
+      lotNumber: params.lotNumber ?? 'raw-lot-1',
+      serialNumbers: params.serialNumbers,
       productionOrderId: params.productionOrderId,
       productionOrderLineId: params.productionOrderLineId,
       materialRequirementId: params.materialRequirementId,
@@ -995,11 +1008,15 @@ describeWithRealDb('Manufacturing Slice 1 real DB verification', () => {
     acceptedQuantity: number;
     rejectedQuantity?: number;
     pendingQuantity?: number;
+    lotNumber?: string;
+    serialNumbers?: string[];
   }): FinishedGoodsReceiptEvidence {
     return {
       productionOrderLineId: params.productionOrderLineId,
       receiptDocumentId: params.receiptDocumentId,
       receiptLineId: params.receiptLineId,
+      lotNumber: params.lotNumber ?? 'fg-lot-1',
+      serialNumbers: params.serialNumbers,
       acceptedQuantity: params.acceptedQuantity,
       rejectedQuantity: params.rejectedQuantity,
       pendingQuantity: params.pendingQuantity,
@@ -1011,6 +1028,8 @@ describeWithRealDb('Manufacturing Slice 1 real DB verification', () => {
         itemId: 'finished_good_a',
         locationId: 'finished-goods-warehouse',
         quantity: params.acceptedQuantity,
+        lotNumber: params.lotNumber ?? 'fg-lot-1',
+        serialNumbers: params.serialNumbers,
         productionOrderId: params.productionOrderId,
         productionOrderLineId: params.productionOrderLineId,
         acceptedQuantity: params.acceptedQuantity,
