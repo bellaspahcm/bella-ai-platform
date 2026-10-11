@@ -8,6 +8,9 @@ import type {
   ManufacturingId,
   MaterialIssueLogisticsEvidence,
   MaterialRequirement,
+  ProductionPlan,
+  ProductionPlanMaterialRequirement,
+  ProductionPlanScheduleSlot,
   ProductionOperationProgress,
   ProductionCompletion,
   ProductionExecution,
@@ -142,6 +145,60 @@ type MaterialRequirementRow = QueryResultRow & {
   available_quantity: string | number | null;
   status: MaterialRequirement['status'];
   checked_at: string | Date | null;
+};
+
+type ProductionPlanRow = QueryResultRow & {
+  id: string;
+  tenant_id: string;
+  factory_org_unit_id: string;
+  plan_number: string;
+  source_type: ProductionPlan['sourceType'];
+  source_reference_id: string | null;
+  source_reference_number: string | null;
+  finished_good_item_id: string;
+  planned_quantity: string | number;
+  uom: string;
+  requested_due_at: string | Date | null;
+  status: ProductionPlan['status'];
+  bom_revision_id: string | null;
+  routing_revision_id: string | null;
+  source_location_id: string | null;
+  material_readiness_status: ProductionPlan['materialReadinessStatus'];
+  material_readiness_checked_at: string | Date | null;
+  material_requirements: unknown;
+  linked_production_order_id: string | null;
+  created_by: string;
+  created_at: string | Date;
+  updated_by: string | null;
+  updated_at: string | Date | null;
+  submitted_by: string | null;
+  submitted_at: string | Date | null;
+  approved_by: string | null;
+  approved_at: string | Date | null;
+  rejected_by: string | null;
+  rejected_at: string | Date | null;
+  rejection_reason: string | null;
+  cancelled_by: string | null;
+  cancelled_at: string | Date | null;
+};
+
+type ProductionPlanScheduleSlotRow = QueryResultRow & {
+  id: string;
+  tenant_id: string;
+  factory_org_unit_id: string;
+  production_plan_id: string;
+  routing_revision_id: string;
+  routing_operation_id: string;
+  operation_sequence: string | number;
+  work_center_id: string;
+  planned_date: string | Date;
+  shift_code: string;
+  planned_quantity: string | number;
+  status: ProductionPlanScheduleSlot['status'];
+  created_by: string;
+  created_at: string | Date;
+  updated_by: string | null;
+  updated_at: string | Date | null;
 };
 
 type ProductionExecutionRow = QueryResultRow & {
@@ -352,6 +409,247 @@ export class PostgresManufacturingRepository implements ManufacturingRepository 
       [params.tenantId, params.productionOrderId, params.productionOrderLineId]
     );
     return result.rows[0] ? this.mapProductionOrderLine(result.rows[0]) : null;
+  }
+
+  async saveProductionPlan(plan: ProductionPlan): Promise<void> {
+    await this.db.query(
+      `
+        INSERT INTO public.manufacturing_production_plans (
+          id, tenant_id, factory_org_unit_id, plan_number, source_type,
+          source_reference_id, source_reference_number, finished_good_item_id,
+          planned_quantity, uom, requested_due_at, status, bom_revision_id,
+          routing_revision_id, source_location_id, material_readiness_status,
+          material_readiness_checked_at, material_requirements, linked_production_order_id,
+          created_by, created_at, updated_by, updated_at, submitted_by, submitted_at,
+          approved_by, approved_at, rejected_by, rejected_at, rejection_reason,
+          cancelled_by, cancelled_at
+        )
+        VALUES (
+          $1, $2, $3, $4, $5,
+          $6, $7, $8,
+          $9, $10, $11, $12, $13,
+          $14, $15, $16,
+          $17, $18::jsonb, $19,
+          $20, $21, $22, $23, $24, $25,
+          $26, $27, $28, $29, $30,
+          $31, $32
+        )
+        ON CONFLICT (tenant_id, id)
+        DO UPDATE SET
+          source_reference_id = EXCLUDED.source_reference_id,
+          source_reference_number = EXCLUDED.source_reference_number,
+          finished_good_item_id = EXCLUDED.finished_good_item_id,
+          planned_quantity = EXCLUDED.planned_quantity,
+          uom = EXCLUDED.uom,
+          requested_due_at = EXCLUDED.requested_due_at,
+          status = EXCLUDED.status,
+          bom_revision_id = EXCLUDED.bom_revision_id,
+          routing_revision_id = EXCLUDED.routing_revision_id,
+          source_location_id = EXCLUDED.source_location_id,
+          material_readiness_status = EXCLUDED.material_readiness_status,
+          material_readiness_checked_at = EXCLUDED.material_readiness_checked_at,
+          material_requirements = EXCLUDED.material_requirements,
+          linked_production_order_id = EXCLUDED.linked_production_order_id,
+          updated_by = EXCLUDED.updated_by,
+          updated_at = EXCLUDED.updated_at,
+          submitted_by = EXCLUDED.submitted_by,
+          submitted_at = EXCLUDED.submitted_at,
+          approved_by = EXCLUDED.approved_by,
+          approved_at = EXCLUDED.approved_at,
+          rejected_by = EXCLUDED.rejected_by,
+          rejected_at = EXCLUDED.rejected_at,
+          rejection_reason = EXCLUDED.rejection_reason,
+          cancelled_by = EXCLUDED.cancelled_by,
+          cancelled_at = EXCLUDED.cancelled_at
+      `,
+      [
+        plan.id,
+        plan.tenantId,
+        plan.factoryOrgUnitId,
+        plan.planNumber,
+        plan.sourceType,
+        plan.sourceReferenceId ?? null,
+        plan.sourceReferenceNumber ?? null,
+        plan.finishedGoodItemId,
+        plan.plannedQuantity,
+        plan.uom,
+        plan.requestedDueAt ?? null,
+        plan.status,
+        plan.bomRevisionId ?? null,
+        plan.routingRevisionId ?? null,
+        plan.sourceLocationId ?? null,
+        plan.materialReadinessStatus,
+        plan.materialReadinessCheckedAt ?? null,
+        JSON.stringify(plan.materialRequirements),
+        plan.linkedProductionOrderId ?? null,
+        plan.createdBy,
+        plan.createdAt,
+        plan.updatedBy ?? null,
+        plan.updatedAt ?? null,
+        plan.submittedBy ?? null,
+        plan.submittedAt ?? null,
+        plan.approvedBy ?? null,
+        plan.approvedAt ?? null,
+        plan.rejectedBy ?? null,
+        plan.rejectedAt ?? null,
+        plan.rejectionReason ?? null,
+        plan.cancelledBy ?? null,
+        plan.cancelledAt ?? null,
+      ]
+    );
+  }
+
+  async getProductionPlan(tenantId: TenantId, id: ManufacturingId): Promise<ProductionPlan | null> {
+    const result = await this.db.query<ProductionPlanRow>(
+      'SELECT * FROM public.manufacturing_production_plans WHERE tenant_id = $1 AND id = $2',
+      [tenantId, id]
+    );
+    return result.rows[0] ? this.mapProductionPlan(result.rows[0]) : null;
+  }
+
+  async listProductionPlans(params: {
+    tenantId: TenantId;
+    factoryOrgUnitId: string;
+    limit?: number;
+  }): Promise<ProductionPlan[]> {
+    const result = await this.db.query<ProductionPlanRow>(
+      `
+        SELECT *
+        FROM public.manufacturing_production_plans
+        WHERE tenant_id = $1 AND factory_org_unit_id = $2
+        ORDER BY COALESCE(updated_at, created_at) DESC, id DESC
+        LIMIT $3
+      `,
+      [params.tenantId, params.factoryOrgUnitId, params.limit ?? 50]
+    );
+    return result.rows.map((row) => this.mapProductionPlan(row));
+  }
+
+  async findProductionPlanByNumber(tenantId: TenantId, planNumber: string): Promise<ProductionPlan | null> {
+    const result = await this.db.query<ProductionPlanRow>(
+      'SELECT * FROM public.manufacturing_production_plans WHERE tenant_id = $1 AND plan_number = $2',
+      [tenantId, planNumber]
+    );
+    return result.rows[0] ? this.mapProductionPlan(result.rows[0]) : null;
+  }
+
+  async saveProductionPlanScheduleSlots(params: {
+    productionPlanId: ManufacturingId;
+    slots: ProductionPlanScheduleSlot[];
+  }): Promise<void> {
+    const tenantId = params.slots[0]?.tenantId;
+    if (tenantId) {
+      await this.db.query(
+        'DELETE FROM public.manufacturing_production_plan_schedule_slots WHERE tenant_id = $1 AND production_plan_id = $2',
+        [tenantId, params.productionPlanId]
+      );
+    }
+    for (const slot of params.slots) {
+      await this.db.query(
+        `
+          INSERT INTO public.manufacturing_production_plan_schedule_slots (
+            id, tenant_id, factory_org_unit_id, production_plan_id, routing_revision_id,
+            routing_operation_id, operation_sequence, work_center_id, planned_date,
+            shift_code, planned_quantity, status, created_by, created_at, updated_by, updated_at
+          )
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9::date, $10, $11, $12, $13, $14, $15, $16)
+          ON CONFLICT (tenant_id, id)
+          DO UPDATE SET
+            planned_date = EXCLUDED.planned_date,
+            shift_code = EXCLUDED.shift_code,
+            planned_quantity = EXCLUDED.planned_quantity,
+            status = EXCLUDED.status,
+            updated_by = EXCLUDED.updated_by,
+            updated_at = EXCLUDED.updated_at
+        `,
+        [
+          slot.id,
+          slot.tenantId,
+          slot.factoryOrgUnitId,
+          slot.productionPlanId,
+          slot.routingRevisionId,
+          slot.routingOperationId,
+          slot.operationSequence,
+          slot.workCenterId,
+          slot.plannedDate,
+          slot.shiftCode,
+          slot.plannedQuantity,
+          slot.status,
+          slot.createdBy,
+          slot.createdAt,
+          slot.updatedBy ?? null,
+          slot.updatedAt ?? null,
+        ]
+      );
+    }
+  }
+
+  async getProductionPlanScheduleSlots(params: {
+    tenantId: TenantId;
+    productionPlanId: ManufacturingId;
+  }): Promise<ProductionPlanScheduleSlot[]> {
+    const result = await this.db.query<ProductionPlanScheduleSlotRow>(
+      `
+        SELECT *
+        FROM public.manufacturing_production_plan_schedule_slots
+        WHERE tenant_id = $1 AND production_plan_id = $2
+        ORDER BY planned_date, shift_code, operation_sequence, id
+      `,
+      [params.tenantId, params.productionPlanId]
+    );
+    return result.rows.map((row) => this.mapProductionPlanScheduleSlot(row));
+  }
+
+  async listProductionPlanScheduleSlots(params: {
+    tenantId: TenantId;
+    factoryOrgUnitId: string;
+    limit?: number;
+  }): Promise<ProductionPlanScheduleSlot[]> {
+    const result = await this.db.query<ProductionPlanScheduleSlotRow>(
+      `
+        SELECT *
+        FROM public.manufacturing_production_plan_schedule_slots
+        WHERE tenant_id = $1 AND factory_org_unit_id = $2
+        ORDER BY planned_date, shift_code, operation_sequence, id
+        LIMIT $3
+      `,
+      [params.tenantId, params.factoryOrgUnitId, params.limit ?? 200]
+    );
+    return result.rows.map((row) => this.mapProductionPlanScheduleSlot(row));
+  }
+
+  async findProductionPlanScheduleConflict(params: {
+    tenantId: TenantId;
+    factoryOrgUnitId: string;
+    workCenterId: ManufacturingId;
+    plannedDate: string;
+    shiftCode: string;
+    excludeProductionPlanId?: ManufacturingId;
+  }): Promise<ProductionPlanScheduleSlot | null> {
+    const result = await this.db.query<ProductionPlanScheduleSlotRow>(
+      `
+        SELECT *
+        FROM public.manufacturing_production_plan_schedule_slots
+        WHERE tenant_id = $1
+          AND factory_org_unit_id = $2
+          AND work_center_id = $3
+          AND planned_date = $4::date
+          AND shift_code = $5
+          AND status IN ('planned', 'released')
+          AND ($6::uuid IS NULL OR production_plan_id <> $6::uuid)
+        ORDER BY created_at, id
+        LIMIT 1
+      `,
+      [
+        params.tenantId,
+        params.factoryOrgUnitId,
+        params.workCenterId,
+        params.plannedDate,
+        params.shiftCode,
+        params.excludeProductionPlanId ?? null,
+      ]
+    );
+    return result.rows[0] ? this.mapProductionPlanScheduleSlot(result.rows[0]) : null;
   }
 
   async saveWorkCenter(workCenter: WorkCenter): Promise<void> {
@@ -1117,6 +1415,66 @@ export class PostgresManufacturingRepository implements ManufacturingRepository 
     };
   }
 
+  private mapProductionPlan(row: ProductionPlanRow): ProductionPlan {
+    return {
+      id: row.id,
+      tenantId: row.tenant_id,
+      factoryOrgUnitId: row.factory_org_unit_id,
+      planNumber: row.plan_number,
+      sourceType: row.source_type,
+      sourceReferenceId: row.source_reference_id ?? undefined,
+      sourceReferenceNumber: row.source_reference_number ?? undefined,
+      finishedGoodItemId: row.finished_good_item_id,
+      plannedQuantity: toNumber(row.planned_quantity),
+      uom: row.uom,
+      requestedDueAt: row.requested_due_at ? toTimestamp(row.requested_due_at) : undefined,
+      status: row.status,
+      bomRevisionId: row.bom_revision_id ?? undefined,
+      routingRevisionId: row.routing_revision_id ?? undefined,
+      sourceLocationId: row.source_location_id ?? undefined,
+      materialReadinessStatus: row.material_readiness_status,
+      materialReadinessCheckedAt: row.material_readiness_checked_at
+        ? toTimestamp(row.material_readiness_checked_at)
+        : undefined,
+      materialRequirements: readPlanMaterialRequirements(row.material_requirements),
+      linkedProductionOrderId: row.linked_production_order_id ?? undefined,
+      createdBy: row.created_by,
+      createdAt: toTimestamp(row.created_at),
+      updatedBy: row.updated_by ?? undefined,
+      updatedAt: row.updated_at ? toTimestamp(row.updated_at) : undefined,
+      submittedBy: row.submitted_by ?? undefined,
+      submittedAt: row.submitted_at ? toTimestamp(row.submitted_at) : undefined,
+      approvedBy: row.approved_by ?? undefined,
+      approvedAt: row.approved_at ? toTimestamp(row.approved_at) : undefined,
+      rejectedBy: row.rejected_by ?? undefined,
+      rejectedAt: row.rejected_at ? toTimestamp(row.rejected_at) : undefined,
+      rejectionReason: row.rejection_reason ?? undefined,
+      cancelledBy: row.cancelled_by ?? undefined,
+      cancelledAt: row.cancelled_at ? toTimestamp(row.cancelled_at) : undefined,
+    };
+  }
+
+  private mapProductionPlanScheduleSlot(row: ProductionPlanScheduleSlotRow): ProductionPlanScheduleSlot {
+    return {
+      id: row.id,
+      tenantId: row.tenant_id,
+      factoryOrgUnitId: row.factory_org_unit_id,
+      productionPlanId: row.production_plan_id,
+      routingRevisionId: row.routing_revision_id,
+      routingOperationId: row.routing_operation_id,
+      operationSequence: toNumber(row.operation_sequence),
+      workCenterId: row.work_center_id,
+      plannedDate: toDateOnly(row.planned_date),
+      shiftCode: row.shift_code,
+      plannedQuantity: toNumber(row.planned_quantity),
+      status: row.status,
+      createdBy: row.created_by,
+      createdAt: toTimestamp(row.created_at),
+      updatedBy: row.updated_by ?? undefined,
+      updatedAt: row.updated_at ? toTimestamp(row.updated_at) : undefined,
+    };
+  }
+
   private mapWorkCenter(row: WorkCenterRow): WorkCenter {
     return {
       id: row.id,
@@ -1282,4 +1640,63 @@ function toNumber(value: string | number): number {
 
 function toTimestamp(value: string | Date): string {
   return value instanceof Date ? value.toISOString() : value;
+}
+
+function toDateOnly(value: string | Date): string {
+  if (value instanceof Date) return value.toISOString().slice(0, 10);
+  return value.slice(0, 10);
+}
+
+function readPlanMaterialRequirements(value: unknown): ProductionPlanMaterialRequirement[] {
+  if (!Array.isArray(value)) return [];
+  return value.flatMap((entry): ProductionPlanMaterialRequirement[] => {
+    const record = readRecord(entry);
+    const bomRevisionId = readString(record.bomRevisionId);
+    const componentItemId = readString(record.componentItemId);
+    const sourceLocationId = readString(record.sourceLocationId);
+    const requiredQuantity = readFiniteNumber(record.requiredQuantity);
+    const status = readMaterialRequirementStatus(record.status);
+    if (!bomRevisionId || !componentItemId || !sourceLocationId || requiredQuantity === undefined || !status) {
+      return [];
+    }
+    const availableQuantity = readFiniteNumber(record.availableQuantity);
+    const checkedAt = readString(record.checkedAt);
+    return [{
+      bomRevisionId,
+      componentItemId,
+      sourceLocationId,
+      requiredQuantity,
+      availableQuantity,
+      status,
+      checkedAt,
+    }];
+  });
+}
+
+function readRecord(value: unknown): Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : {};
+}
+
+function readString(value: unknown): string | undefined {
+  return typeof value === 'string' && value.trim() ? value : undefined;
+}
+
+function readFiniteNumber(value: unknown): number | undefined {
+  if (typeof value === 'number' && Number.isFinite(value)) return value;
+  if (typeof value === 'string' && value.trim()) {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : undefined;
+  }
+  return undefined;
+}
+
+function readMaterialRequirementStatus(value: unknown): ProductionPlanMaterialRequirement['status'] | undefined {
+  return value === 'not_checked' ||
+    value === 'available' ||
+    value === 'shortage' ||
+    value === 'not_proven'
+    ? value
+    : undefined;
 }

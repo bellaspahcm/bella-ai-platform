@@ -46,6 +46,9 @@ function createService(availability: MaterialAvailabilityPort = createAvailabili
     {
       'planner-1': [
         'manufacturing:operational_read:read',
+        'manufacturing:production_plan:write',
+        'manufacturing:production_plan:approve',
+        'manufacturing:production_plan:release',
         'manufacturing:production_order:write',
         'manufacturing:production_order:release',
         'manufacturing:production_order:complete',
@@ -1645,6 +1648,291 @@ describe('Manufacturing Slice 1', () => {
     expect(snapshot.bomRevisions).toHaveLength(1);
     expect(snapshot.routingRevisions).toHaveLength(1);
     expect(snapshot.workCenters).toHaveLength(1);
+  });
+
+  it('plans production, checks readiness, schedules work centers, approves, and links to a draft production order', async () => {
+    const availability = createAvailability({ component_a: 25 });
+    const { service } = createService(availability);
+    const actor = createActor();
+    const { bom } = await createApprovedBomAndOrder(service, actor);
+    const { routing } = await createApprovedRouting(service, actor, 'PLAN');
+
+    const plan = await service.createProductionPlan(actor, {
+      idempotencyKey: 'create-plan-1',
+      planNumber: 'PLAN-001',
+      sourceType: 'manual',
+      sourceReferenceNumber: 'manual-plan-001',
+      finishedGoodItemId: 'finished_good_a',
+      plannedQuantity: 10,
+      uom: 'EA',
+      requestedDueAt: '2026-10-20T00:00:00.000Z',
+    });
+    const readiness = await service.calculateProductionPlanMaterialReadiness(actor, {
+      idempotencyKey: 'plan-ready-1',
+      productionPlanId: plan.value.id,
+      bomRevisionId: bom.id,
+      sourceLocationId: 'warehouse-bin-a',
+    });
+
+    expect(readiness.value).toMatchObject({
+      status: 'planned',
+      bomRevisionId: bom.id,
+      sourceLocationId: 'warehouse-bin-a',
+      materialReadinessStatus: 'available',
+    });
+    expect(readiness.value.materialRequirements).toMatchObject([
+      {
+        componentItemId: 'component_a',
+        requiredQuantity: 20,
+        availableQuantity: 25,
+        status: 'available',
+      },
+    ]);
+    expect(availability.calls).toContainEqual({
+      tenantId: actor.tenantId,
+      itemId: 'component_a',
+      locationId: 'warehouse-bin-a',
+    });
+
+    const slots = await service.scheduleProductionPlan(actor, {
+      idempotencyKey: ['plan', 'schedule', '1'].join('-'),
+      productionPlanId: plan.value.id,
+      routingRevisionId: routing.id,
+      slots: [{
+        routingOperationId: routing.operations[0].id,
+        plannedDate: '2026-10-18',
+        shiftCode: 'DAY',
+        plannedQuantity: 10,
+      }],
+    });
+    expect(slots.value).toMatchObject([
+      {
+        routingRevisionId: routing.id,
+        routingOperationId: routing.operations[0].id,
+        workCenterId: routing.operations[0].workCenterId,
+        plannedDate: '2026-10-18',
+        shiftCode: 'DAY',
+        status: 'planned',
+      },
+    ]);
+
+    const submitted = await service.submitProductionPlanForApproval(actor, {
+      idempotencyKey: 'plan-submit-1',
+      productionPlanId: plan.value.id,
+    });
+    expect(submitted.value.status).toBe('pending_approval');
+
+    const approved = await service.approveProductionPlan(actor, {
+      idempotencyKey: 'plan-approve-1',
+      productionPlanId: plan.value.id,
+    });
+    expect(approved.value.status).toBe('approved');
+
+    const released = await service.releaseProductionPlanToOrder(actor, {
+      idempotencyKey: 'plan-release-1',
+      productionPlanId: plan.value.id,
+      orderNumber: 'PO-FROM-PLAN-001',
+    });
+
+    expect(released.value.plan).toMatchObject({
+      status: 'released',
+      linkedProductionOrderId: released.value.productionOrder.id,
+    });
+    expect(released.value.productionOrder).toMatchObject({
+      orderNumber: 'PO-FROM-PLAN-001',
+      status: 'draft',
+      bomRevisionId: bom.id,
+      targetQuantity: 10,
+    });
+    expect(released.value.productionOrder.lines[0]).toMatchObject({
+      finishedGoodItemId: 'finished_good_a',
+      targetQuantity: 10,
+    });
+
+    const snapshot = await service.getOperationalReadinessSnapshot(actor);
+    expect(snapshot.productionPlans).toHaveLength(1);
+    expect(snapshot.productionPlanScheduleSlots).toHaveLength(1);
+    expect(snapshot.orders.some((order) => order.order.id === released.value.productionOrder.id)).toBe(true);
+  });
+
+  it('treats material shortage as a readiness warning and still allows authorized approval', async () => {
+    const { service } = createService(createAvailability({ component_a: 1 }));
+    const actor = createActor();
+    const { bom } = await createApprovedBomAndOrder(service, actor);
+    const { routing } = await createApprovedRouting(service, actor, 'SHORTAGE');
+    const plan = await service.createProductionPlan(actor, {
+      idempotencyKey: 'create-shortage-plan',
+      planNumber: 'PLAN-SHORTAGE',
+      sourceType: 'manual',
+      finishedGoodItemId: 'finished_good_a',
+      plannedQuantity: 10,
+      uom: 'EA',
+    });
+
+    const readiness = await service.calculateProductionPlanMaterialReadiness(actor, {
+      idempotencyKey: 'ready-shortage-plan',
+      productionPlanId: plan.value.id,
+      bomRevisionId: bom.id,
+      sourceLocationId: 'warehouse-bin-a',
+    });
+    expect(readiness.value.materialReadinessStatus).toBe('shortage');
+
+    await service.scheduleProductionPlan(actor, {
+      idempotencyKey: 'schedule-shortage-plan',
+      productionPlanId: plan.value.id,
+      routingRevisionId: routing.id,
+      slots: [{
+        routingOperationId: routing.operations[0].id,
+        plannedDate: '2026-10-19',
+        shiftCode: 'DAY',
+        plannedQuantity: 10,
+      }],
+    });
+    await service.submitProductionPlanForApproval(actor, {
+      idempotencyKey: 'submit-shortage-plan',
+      productionPlanId: plan.value.id,
+    });
+    const approved = await service.approveProductionPlan(actor, {
+      idempotencyKey: 'approve-shortage-plan',
+      productionPlanId: plan.value.id,
+    });
+
+    expect(approved.value.status).toBe('approved');
+    expect(approved.value.materialReadinessStatus).toBe('shortage');
+  });
+
+  it('blocks duplicate work center day shift schedule slots across active plans', async () => {
+    const { service } = createService(createAvailability({ component_a: 100 }));
+    const actor = createActor();
+    const { bom } = await createApprovedBomAndOrder(service, actor);
+    const { routing } = await createApprovedRouting(service, actor, 'CONFLICT');
+    const firstPlan = await service.createProductionPlan(actor, {
+      idempotencyKey: 'create-plan-conflict-a',
+      planNumber: 'PLAN-CONFLICT-A',
+      sourceType: 'manual',
+      finishedGoodItemId: 'finished_good_a',
+      plannedQuantity: 10,
+      uom: 'EA',
+    });
+    const secondPlan = await service.createProductionPlan(actor, {
+      idempotencyKey: 'create-plan-conflict-b',
+      planNumber: 'PLAN-CONFLICT-B',
+      sourceType: 'manual',
+      finishedGoodItemId: 'finished_good_a',
+      plannedQuantity: 10,
+      uom: 'EA',
+    });
+    await service.calculateProductionPlanMaterialReadiness(actor, {
+      idempotencyKey: 'ready-plan-conflict-a',
+      productionPlanId: firstPlan.value.id,
+      bomRevisionId: bom.id,
+      sourceLocationId: 'warehouse-bin-a',
+    });
+    await service.scheduleProductionPlan(actor, {
+      idempotencyKey: 'schedule-plan-conflict-a',
+      productionPlanId: firstPlan.value.id,
+      routingRevisionId: routing.id,
+      slots: [{
+        routingOperationId: routing.operations[0].id,
+        plannedDate: '2026-10-20',
+        shiftCode: 'DAY',
+        plannedQuantity: 10,
+      }],
+    });
+
+    await expect(
+      service.scheduleProductionPlan(actor, {
+        idempotencyKey: 'schedule-plan-conflict-b',
+        productionPlanId: secondPlan.value.id,
+        routingRevisionId: routing.id,
+        slots: [{
+          routingOperationId: routing.operations[0].id,
+          plannedDate: '2026-10-20',
+          shiftCode: 'DAY',
+          plannedQuantity: 10,
+        }],
+      })
+    ).rejects.toThrow(ManufacturingStateError);
+  });
+
+  it('requires reapproval when an approved plan changes material fields', async () => {
+    const { service } = createService(createAvailability({ component_a: 100 }));
+    const actor = createActor();
+    const { bom } = await createApprovedBomAndOrder(service, actor);
+    const { routing } = await createApprovedRouting(service, actor, 'REAPPROVE');
+    const plan = await service.createProductionPlan(actor, {
+      idempotencyKey: 'create-plan-reapprove',
+      planNumber: 'PLAN-REAPPROVE',
+      sourceType: 'manual',
+      finishedGoodItemId: 'finished_good_a',
+      plannedQuantity: 10,
+      uom: 'EA',
+    });
+    await service.calculateProductionPlanMaterialReadiness(actor, {
+      idempotencyKey: 'ready-plan-reapprove',
+      productionPlanId: plan.value.id,
+      bomRevisionId: bom.id,
+      sourceLocationId: 'warehouse-bin-a',
+    });
+    await service.scheduleProductionPlan(actor, {
+      idempotencyKey: 'schedule-plan-reapprove',
+      productionPlanId: plan.value.id,
+      routingRevisionId: routing.id,
+      slots: [{
+        routingOperationId: routing.operations[0].id,
+        plannedDate: '2026-10-21',
+        shiftCode: 'DAY',
+        plannedQuantity: 10,
+      }],
+    });
+    await service.submitProductionPlanForApproval(actor, {
+      idempotencyKey: 'submit-plan-reapprove',
+      productionPlanId: plan.value.id,
+    });
+    await service.approveProductionPlan(actor, {
+      idempotencyKey: 'approve-plan-reapprove',
+      productionPlanId: plan.value.id,
+    });
+
+    const updated = await service.updateProductionPlan(actor, {
+      idempotencyKey: 'update-plan-reapprove',
+      productionPlanId: plan.value.id,
+      plannedQuantity: 12,
+    });
+
+    expect(updated.value).toMatchObject({
+      status: 'planned',
+      plannedQuantity: 12,
+      materialReadinessStatus: 'not_calculated',
+      materialRequirements: [],
+    });
+    expect(updated.value.approvedBy).toBeUndefined();
+    expect(updated.value.approvedAt).toBeUndefined();
+  });
+
+  it('keeps production plan commands idempotent and rejects conflicting retry payloads', async () => {
+    const { service } = createService();
+    const actor = createActor();
+    const command = {
+      idempotencyKey: 'create-plan-idempotent',
+      planNumber: 'PLAN-IDEMPOTENT',
+      sourceType: 'manual' as const,
+      finishedGoodItemId: 'finished_good_a',
+      plannedQuantity: 10,
+      uom: 'EA',
+    };
+
+    const first = await service.createProductionPlan(actor, command);
+    const retry = await service.createProductionPlan(actor, command);
+    expect(retry.isDuplicate).toBe(true);
+    expect(retry.value.id).toBe(first.value.id);
+
+    await expect(
+      service.createProductionPlan(actor, {
+        ...command,
+        plannedQuantity: 11,
+      })
+    ).rejects.toThrow(ManufacturingIdempotencyConflictError);
   });
 
   it('requires operational read permission before returning the Manufacturing snapshot', async () => {
