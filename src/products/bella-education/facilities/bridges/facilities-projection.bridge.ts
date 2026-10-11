@@ -11,10 +11,11 @@
 
 import { CommunicationExceptionService } from '@/products/bella-education/parent-engagement/services/communication-exception.service';
 import { ParentCommunicationRepository } from '@/products/bella-education/parent-engagement/repositories/parent-communication.repository';
+import type { CommunicationException } from '@/products/bella-education/parent-engagement/domain/communication.types';
 
 export class FacilitiesProjectionBridge {
   constructor(
-    private readonly commRepo: ParentCommunicationRepository,
+    _commRepo: ParentCommunicationRepository,
     private readonly exceptionService: CommunicationExceptionService
   ) {}
 
@@ -26,7 +27,7 @@ export class FacilitiesProjectionBridge {
     zoneId: string;
     assetId?: string;
     remarks: string;
-  }): Promise<any> {
+  }): Promise<CommunicationException> {
     const existing = await this.exceptionService.getStaffWorkQueueExceptions(params.tenantId);
     const activeDefect = existing.find(
       e => e.exception_type === 'SAFETY_DEFECT' && e.student_id === (params.assetId || params.zoneId) && e.status === 'OPEN'
@@ -36,24 +37,14 @@ export class FacilitiesProjectionBridge {
       return activeDefect;
     }
 
-    const { data, error } = await (this.commRepo as any).supabase
-      .from('edu_comm_exceptions')
-      .insert({
-        tenant_id: params.tenantId,
-        notice_id: null,
-        student_id: params.assetId || params.zoneId, // Used as entity reference
-        exception_type: 'SAFETY_DEFECT',
-        assigned_role: 'FACILITY_MANAGER',
-        status: 'OPEN',
-      })
-      .select('*')
-      .single();
-
-    if (error || !data) {
-      throw new Error(`Failed to project SAFETY_DEFECT exception: ${error?.message}`);
-    }
-
-    return data;
+    return this.exceptionService.createException({
+      tenantId: params.tenantId,
+      noticeId: null,
+      studentId: params.assetId || params.zoneId,
+      guardianPartyId: null,
+      exceptionType: 'SAFETY_DEFECT',
+      assignedRole: 'FACILITY_MANAGER',
+    });
   }
 
   /**
@@ -64,7 +55,7 @@ export class FacilitiesProjectionBridge {
     scheduleId: string;
     zoneId: string;
     title: string;
-  }): Promise<any> {
+  }): Promise<CommunicationException> {
     const existing = await this.exceptionService.getStaffWorkQueueExceptions(params.tenantId);
     const activeOverdue = existing.find(
       e => e.exception_type === 'OVERDUE_INSPECTION' && e.student_id === params.scheduleId && e.status === 'OPEN'
@@ -74,23 +65,13 @@ export class FacilitiesProjectionBridge {
       return activeOverdue;
     }
 
-    const { data, error } = await (this.commRepo as any).supabase
-      .from('edu_comm_exceptions')
-      .insert({
-        tenant_id: params.tenantId,
-        notice_id: null,
-        student_id: params.scheduleId,
-        exception_type: 'OVERDUE_INSPECTION',
-        assigned_role: 'SAFETY_OFFICER',
-        status: 'OPEN',
-      })
-      .select('*')
-      .single();
-
-    if (error || !data) {
-      throw new Error(`Failed to project OVERDUE_INSPECTION exception: ${error?.message}`);
-    }
-
-    return data;
+    return this.exceptionService.createException({
+      tenantId: params.tenantId,
+      noticeId: null,
+      studentId: params.scheduleId,
+      guardianPartyId: null,
+      exceptionType: 'OVERDUE_INSPECTION',
+      assignedRole: 'SAFETY_OFFICER',
+    });
   }
 }

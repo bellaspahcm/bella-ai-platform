@@ -4,16 +4,16 @@
 // ============================================================================
 
 import { ParentCommunicationRepository } from '../repositories/parent-communication.repository';
-import { CommunicationException, ExceptionType, ExceptionStatus } from '../domain/communication.types';
+import { CommunicationException, ExceptionStatus } from '../domain/communication.types';
 
 export interface ICreateCommunicationExceptionDto {
   tenantId: string;
   noticeId?: string | null;
   studentId: string;
-  guardianPartyId: string;
-  exceptionType: ExceptionType;
+  guardianPartyId?: string | null;
+  exceptionType: CommunicationException['exception_type'];
   severity?: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
-  assignedRole?: 'TEACHER' | 'NURSE' | 'PRINCIPAL' | 'ADMIN';
+  assignedRole?: CommunicationException['assigned_role'];
 }
 
 export interface IResolveExceptionDto {
@@ -31,7 +31,7 @@ export class CommunicationExceptionService {
       tenant_id: dto.tenantId,
       notice_id: dto.noticeId ?? null,
       student_id: dto.studentId,
-      guardian_party_id: dto.guardianPartyId,
+      guardian_party_id: dto.guardianPartyId ?? null,
       exception_type: dto.exceptionType,
       severity: dto.severity ?? 'MEDIUM',
       assigned_role: dto.assignedRole ?? 'TEACHER',

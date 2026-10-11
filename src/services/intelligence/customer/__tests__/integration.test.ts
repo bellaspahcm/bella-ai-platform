@@ -22,7 +22,6 @@ import { describe, it, expect, beforeAll } from '@jest/globals';
 import { createServerClient } from '@/lib/supabase-server';
 import { CustomerIntelligenceService } from '../service';
 import { MemoryCacheService } from '../../cache/memory-cache';
-import type { Database } from '@/types/database.types';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Test Configuration
@@ -33,6 +32,30 @@ const SKIP_INTEGRATION_TESTS = process.env.SKIP_INTEGRATION_TESTS === 'true';
 
 // Test tenant ID (should exist in test database)
 const TEST_TENANT_ID = process.env.TEST_TENANT_ID || 'test-tenant-id';
+
+type MaterializedViewName =
+  | 'mv_customer_segments'
+  | 'mv_customer_ltv'
+  | 'mv_customer_activity_summary';
+
+type MaterializedViewRow = Record<string, unknown>;
+
+type MaterializedViewQuery = {
+  select(columns: string): {
+    eq(column: string, value: string): {
+      limit(count: number): {
+        single(): Promise<{
+          data: MaterializedViewRow | null;
+          error: { code?: string; message: string } | null;
+        }>;
+      };
+    };
+  };
+};
+
+type MaterializedViewClient = {
+  from(viewName: MaterializedViewName): MaterializedViewQuery;
+};
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Test Suite
@@ -77,8 +100,9 @@ describe.skip('Customer Intelligence Integration Tests', () => {
 
   describe('Materialized Views Schema', () => {
     it('mv_customer_segments should have correct columns', async () => {
-      const { data, error } = await supabase
-        .from('mv_customer_segments' as any)
+      const viewClient = supabase as unknown as MaterializedViewClient;
+      const { data, error } = await viewClient
+        .from('mv_customer_segments')
         .select('*')
         .eq('tenant_id', TEST_TENANT_ID)
         .limit(1)
@@ -105,8 +129,9 @@ describe.skip('Customer Intelligence Integration Tests', () => {
     });
 
     it('mv_customer_ltv should have correct columns', async () => {
-      const { data, error } = await supabase
-        .from('mv_customer_ltv' as any)
+      const viewClient = supabase as unknown as MaterializedViewClient;
+      const { data, error } = await viewClient
+        .from('mv_customer_ltv')
         .select('*')
         .eq('tenant_id', TEST_TENANT_ID)
         .limit(1)
@@ -130,8 +155,9 @@ describe.skip('Customer Intelligence Integration Tests', () => {
     });
 
     it('mv_customer_activity_summary should have correct columns', async () => {
-      const { data, error } = await supabase
-        .from('mv_customer_activity_summary' as any)
+      const viewClient = supabase as unknown as MaterializedViewClient;
+      const { data, error } = await viewClient
+        .from('mv_customer_activity_summary')
         .select('*')
         .eq('tenant_id', TEST_TENANT_ID)
         .limit(1)
@@ -605,9 +631,10 @@ describe.skip('Customer Intelligence Integration Tests', () => {
     });
 
     it('should handle invalid risk level filter', async () => {
-      const invalidRiskLevel = 'InvalidRiskLevel';
+      const invalidRiskLevel =
+        'InvalidRiskLevel' as Parameters<CustomerIntelligenceService['getChurnRiskAnalysis']>[1];
 
-      const result = await service.getChurnRiskAnalysis(TEST_TENANT_ID, invalidRiskLevel as any);
+      const result = await service.getChurnRiskAnalysis(TEST_TENANT_ID, invalidRiskLevel);
 
       // Should return empty array
       expect(result.data).toEqual([]);

@@ -6645,6 +6645,126 @@ Not authorized:
 
 ---
 
+# ARCHITECTURE GATE RESULT - ANY-TYPE CLEANUP NON-MANUFACTURING
+
+> **Status:** DEFER for full zero-any cleanup; PASS for authorized non-Manufacturing, non-frozen local cleanup subset
+> **Date:** 2026-10-11
+> **Scope:** Remove scanner-reported `any` usage where the fix is local, proven, and does not touch Manufacturing, Logistics sealed artifacts, or Education Kernel frozen artifacts.
+
+## Bella OS/Product Development Process Gate
+
+- Truth: `npm run check:any-types` reported 91 `any` violations in 21 files before this cleanup.
+- Source of Truth: local scanner output from `scripts/check-any-types.js` on this worktree.
+- Canonical Contract: Bella Constitution Law 11 forbids `any`; cleanup rules require frozen/sealed residuals to stop at boundary.
+- Gate result: `PASS` for local non-Manufacturing cleanup; `DEFER` for remaining frozen/sealed residuals.
+
+## Product Manifest
+
+- Product: none.
+- Capability in scope: technical-debt cleanup for scanner findings.
+- Non-goals: no Manufacturing changes, no schema/migration, no ProductRegistry, no Logistics E7.1-E7.3 sealed changes, no Education Kernel changes.
+
+## Ownership Map
+
+| Data / Behavior | Owner | Decision |
+|---|---|---|
+| Manufacturing API/Auth/E2E | Manufacturing workstream | not modified |
+| Logistics E7.1/E7.2/E7.3 residuals | Logistics OS sealed layers | DEFER without ACR/ADR |
+| `src/platform/education` residuals | Education Kernel frozen scope | DEFER without architecture authority |
+| Real Estate reservation `cancelled` vs `released` | Real Estate contract gap | DEFER; do not alter semantics to satisfy scanner |
+| Core pricing-actions test residual | Platform Core freeze scope | DEFER without APPROVED_CORE_CHANGE_V1 metadata |
+| Finance/Real Estate generated-contract consumers, Education Product bridge, Customer Intelligence tests | Local owners | type-local cleanup authorized |
+
+## Contract Dependency Map
+
+```text
+scanner finding
+  -> ownership classification
+  -> local typed boundary cleanup when proven
+  -> residual DEFER when frozen/sealed or semantic contract gap
+```
+
+## Change Authority
+
+Authorized:
+- Remove `any` in non-Manufacturing files when contract-preserving and local.
+
+Not authorized:
+- Touch Manufacturing.
+- Modify Logistics sealed artifacts.
+- Modify Education Kernel frozen artifacts.
+- Resolve Real Estate reservation lifecycle semantics by guessing.
+- Invent schema/RPC/API/generated type contracts.
+
+## UI -> Contract Reconciliation
+
+- No UI redesign.
+- No user-facing workflow or action contract change.
+
+## Additive Migration Plan
+
+- No migration.
+- No schema, RLS, generated type, or production data change.
+
+## 11 Automated Verification Gates Plan
+
+1. `npm run check:any-types`
+2. `npx tsc --noEmit --pretty false --incremental false`
+3. `npm run arch:guard`
+4. Targeted Jest for changed test/runtime-adjacent areas
+5. `git diff --check`
+
+## Residual Any Classification
+
+After the scoped cleanup, `npm run check:any-types` reports 77 residual scanner findings in 17 files. These are not treated as an authorization to continue mechanical edits:
+
+| Residual scope | Count | Classification | Decision |
+|---|---:|---|---|
+| `src/core/services/order/pricing-actions.test.ts` | 1 | Platform Core freeze scope | DEFER without APPROVED_CORE_CHANGE_V1 metadata |
+| `src/platform/education/__tests__/*` | 6 | Education Kernel frozen test scope | DEFER without explicit Education Kernel authority |
+| `src/platform/logistics/**` | 69 | Logistics E7.1/E7.2/E7.3 sealed artifacts and regression tests | BLOCKED/DEFER without ACR, ADR, unlock, and full Logistics re-seal |
+| `src/platform/real-estate/engines/reservation.service.ts` | 1 | Real Estate reservation lifecycle contract gap: generated status type lacks `cancelled` while code requests cancellation semantics | DEFER pending business/architecture contract decision |
+
+No residual `any` finding is in Manufacturing. No remaining scanner finding belongs to the changed file set.
+
+## Scope Verification
+
+Changed files in this cleanup:
+
+- `ARCHITECTURE_GATE_RESULT.md`
+- `src/platform/finance/__tests__/finance-f1-ledger-verification.test.ts`
+- `src/platform/real-estate/repositories/property-unit.repository.ts`
+- `src/products/bella-education/facilities/bridges/facilities-projection.bridge.ts`
+- `src/products/bella-education/parent-engagement/domain/communication.types.ts`
+- `src/products/bella-education/parent-engagement/services/communication-exception.service.ts`
+- `src/services/intelligence/customer/__tests__/integration.test.ts`
+
+Explicitly not modified:
+
+- Manufacturing files, including the Manufacturing operational readiness E2E/auth workstream.
+- `src/platform/education/**` frozen Education Kernel files.
+- `src/platform/logistics/**` sealed Logistics E7.1/E7.2/E7.3 files.
+- `src/platform/real-estate/engines/reservation.service.ts`; the `cancelled` status residual remains unchanged.
+
+## Local Evidence Snapshot
+
+The scope can be sealed only as a local cleanup subset, not as full Architecture Gate closure:
+
+| Gate | Result | Evidence boundary |
+|---|---|---|
+| `npm run check:any-types` | FAIL expected | reduced from 91 findings / 21 files to 77 findings / 17 files; residuals classified above |
+| `npx tsc --noEmit --pretty false --incremental false` | PASS | compile-only proof, no runtime proof |
+| `npm run arch:guard` | PASS | repository architecture guard only |
+| `npm run education:architecture:ci` | PASS | Education baseline policy allows the product-layer direct database access reduction and blocks no new signatures |
+| `npm run realestate:architecture` | PASS | Real Estate architecture suite only |
+| `npm run education:extensions:architecture` | PASS | Education product extension architecture only; does not unfreeze Kernel |
+| `npm test -- src/services/intelligence/customer/__tests__/integration.test.ts --runInBand` | SKIP | 36 skipped because the suite is pre-existing `describe.skip`; not counted as PASS |
+| `git diff --check` | PASS | whitespace/conflict-marker check only |
+
+GitHub PR #294 was opened against `main`. The first CI run correctly blocked a Core test hunk without approved Core metadata and a new Education direct database access signature; the Core hunk was removed and the Education projection now reuses the existing service/repository path. Therefore the final claim remains: `PASS` for the scoped non-Manufacturing, non-frozen cleanup subset; `NOT_SEALED` for complete Architecture Gate closure and zero-`any` compliance until the updated PR CI run completes.
+
+---
+
 # Architecture Gate - Hospitality Production Smoke Unauthenticated Request Probe (2026-10-09)
 
 > **Status:** PASS - smoke probe isolation fix authorized by production evidence.
