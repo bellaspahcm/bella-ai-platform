@@ -57,12 +57,15 @@ CREATE TABLE IF NOT EXISTS public.retail_pos_sale_items (
     CHECK (ROUND((quantity * unit_price - discount_amount)::numeric, 2) = line_total)
 );
 
+-- zero-downtime: allow blocking-index - new Retail Sale POS MVP tables have no existing production rows.
 CREATE INDEX IF NOT EXISTS idx_retail_pos_sales_tenant_branch_created
   ON public.retail_pos_sales (tenant_id, branch_id, created_at DESC);
 
+-- zero-downtime: allow blocking-index - new Retail Sale POS MVP tables have no existing production rows.
 CREATE INDEX IF NOT EXISTS idx_retail_pos_sales_tenant_store_created
   ON public.retail_pos_sales (tenant_id, store_id, created_at DESC);
 
+-- zero-downtime: allow blocking-index - new Retail Sale POS MVP tables have no existing production rows.
 CREATE INDEX IF NOT EXISTS idx_retail_pos_sale_items_sale
   ON public.retail_pos_sale_items (tenant_id, sale_id);
 

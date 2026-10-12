@@ -6,8 +6,6 @@
 -- - Preserve statement-level atomicity: any failed INSERT rolls back the call.
 -- - Do not add tables, rewrite historical migrations, or write Finance ledger internals.
 
-DROP FUNCTION IF EXISTS public.submit_financial_intent(TEXT, TEXT, JSONB);
-
 CREATE OR REPLACE FUNCTION public.submit_financial_intent(
     p_idempotency_key TEXT,
     p_intent_type TEXT,
