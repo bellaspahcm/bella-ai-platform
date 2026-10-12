@@ -13,12 +13,23 @@ const REAL_DB_TEST_BY_PATH = [
   /^src\/__tests__\/inventory-session-consumption-real-db\.test\.ts$/,
   /^src\/platform\/logistics\/warehouse\/__tests__\/stock-(out-production-consumption|in-production-order)-real-db\.test\.ts$/,
   /^src\/platform\/manufacturing\/__tests__\/manufacturing-(slice1|full-chain)-real-db\.test\.ts$/,
+  /^src\/platform\/agriculture\/__tests__\/agriculture-foundation-real-db\.test\.ts$/,
   /^src\/products\/beauty-spa-v2\/__tests__\/beauty-spa-v2-real-db\.test\.ts$/,
   /^src\/products\/bella-education\/__tests__\/preschool-chain-real-db\.test\.ts$/,
   /^src\/products\/bella-hospitality\/__tests__\/(tenant-profile|housekeeping|maintenance)-real-db\.test\.ts$/,
 ];
 
 const SCOPED_REAL_DB_SUITES = [
+  {
+    name: 'Agriculture OS foundation',
+    patterns: [
+      /^src\/platform\/agriculture\//,
+      /^supabase\/migrations\/20261012030000_create_agriculture_os_foundation\.sql$/,
+    ],
+    tests: [
+      'src/platform/agriculture/__tests__/agriculture-foundation-real-db.test.ts',
+    ],
+  },
   {
     name: 'Manufacturing operational readiness',
     patterns: [
