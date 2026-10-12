@@ -5,7 +5,7 @@ const migrationPath = path.join(
   process.cwd(),
   'supabase',
   'migrations',
-  '20261012010000_create_tourism_os_foundation.sql',
+  '20261012020000_create_tourism_os_foundation.sql',
 );
 
 const migrationSql = fs.readFileSync(migrationPath, 'utf8');
@@ -76,6 +76,8 @@ describe('Tourism OS foundation migration', () => {
     expect(migrationSql).toContain('tourism_assert_booking_party_tenant');
     expect(migrationSql).toContain('tourism_assert_participant_party_tenant');
     expect(migrationSql).toContain('tourism_assert_booking_departure');
+    expect(migrationSql).toContain('SECURITY DEFINER');
+    expect(migrationSql).toContain('REVOKE ALL ON FUNCTION public.tourism_assert_booking_party_tenant() FROM PUBLIC');
     expect(migrationSql).toContain('tourism_audit_events');
   });
 });

@@ -169,6 +169,8 @@ CREATE TABLE IF NOT EXISTS public.tourism_audit_events (
 CREATE OR REPLACE FUNCTION public.tourism_assert_booking_party_tenant()
 RETURNS trigger
 LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
 AS $$
 DECLARE
   party_tenant UUID;
@@ -188,6 +190,8 @@ $$;
 CREATE OR REPLACE FUNCTION public.tourism_assert_participant_party_tenant()
 RETURNS trigger
 LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
 AS $$
 DECLARE
   party_tenant UUID;
@@ -207,6 +211,8 @@ $$;
 CREATE OR REPLACE FUNCTION public.tourism_assert_booking_departure()
 RETURNS trigger
 LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
 AS $$
 DECLARE
   departure_record public.tourism_departures%ROWTYPE;
@@ -231,6 +237,10 @@ BEGIN
   RETURN NEW;
 END;
 $$;
+
+REVOKE ALL ON FUNCTION public.tourism_assert_booking_party_tenant() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.tourism_assert_participant_party_tenant() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.tourism_assert_booking_departure() FROM PUBLIC;
 
 DO $$
 DECLARE
