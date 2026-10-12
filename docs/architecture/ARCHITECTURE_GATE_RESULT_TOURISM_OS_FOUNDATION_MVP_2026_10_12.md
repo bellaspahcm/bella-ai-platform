@@ -1,0 +1,150 @@
+# Architecture Gate Result: Tourism OS Foundation MVP
+
+Date: 2026-10-12
+
+Baseline: `383972b97ed5eee0baee188c9e58a35a75c03c94` (`origin/main`, verified before implementation)
+
+Branch: `codex/tourism-foundation-mvp`
+
+## Decision
+
+Status: `PASS`
+
+Scope approval is for the reusable Tourism OS foundation only.
+
+- `TOURISM_OS_FOUNDATION_SCOPE = APPROVED`
+- `TOURISM_OS_IMPLEMENTATION = NOT_STARTED_AT_GATE`
+- `TOURISM_PRODUCT_IMPLEMENTATION = NOT_STARTED`
+- `TOURISM_BUSINESS_PROOF = NOT_PROVEN_AT_GATE`
+- `TOURISM_GO_LIVE = NOT_CLAIMED`
+
+This gate does not approve a Tour Operator product surface, ProductRegistry registration, product routes, product dashboards, browser UX, or production readiness.
+
+## Bella OS/Product Development Process Gate
+
+The requested change is a new OS foundation slice, not a Product Vertical. The approved implementation layer is `src/platform/tourism/**` plus additive `tourism_*` database artifacts and tests.
+
+The gate allows only additive Tourism OS artifacts needed to prove the first reusable tour-management flow:
+
+`Create Tour -> Configure Itinerary -> Open Departure -> Manage Capacity -> Book Guests -> Confirm Booking`
+
+The implementation must stop at the accepted OS scope. Product packaging and ProductRegistry identity are deferred until a separate Product MVP gate.
+
+## OS Manifest
+
+Approved Tourism OS capabilities:
+
+1. Tour Catalog
+2. Tour Package
+3. Itinerary Days
+4. Itinerary Segments
+5. Departures
+6. Tour Capacity
+7. Tour Bookings
+8. Participants
+9. Tenant isolation, authorization, RLS, idempotency, and audit evidence
+
+Explicitly excluded:
+
+- Tour Operator product UI or routes
+- ProductRegistry registration or `tenant.product_key` changes
+- Hotel PMS, restaurant management, fleet management, accounting, loyalty, dynamic pricing
+- New global Resource kernel
+- Logistics, Hospitality, Healthcare, Education, or Finance Ledger kernel changes
+- Production readiness or Go-Live claims
+
+## Ownership Map
+
+| Data | Owner | Approved Storage |
+| --- | --- | --- |
+| Tour definition | Tourism OS | `tourism_tours` |
+| Tour package | Tourism OS | `tourism_tour_packages` |
+| Itinerary day | Tourism OS | `tourism_itinerary_days` |
+| Itinerary segment | Tourism OS | `tourism_itinerary_segments` |
+| Departure and capacity counters | Tourism OS | `tourism_departures` |
+| Tour booking lifecycle | Tourism OS | `tourism_bookings` |
+| Participants | Tourism OS, linked to Party contract | `tourism_participants.party_id` |
+| Idempotency records | Tourism OS | `tourism_command_idempotency` |
+| Audit evidence | Tourism OS | `tourism_audit_events` |
+
+Tourism OS does not own Party, Organization/Branch, Finance, Logistics, inventory, hotel rooms, restaurant tables, or vehicle/fleet assets.
+
+## Contract Dependency Map
+
+`Tourism OS -> Tenant`: every runtime entity is tenant-scoped and protected by RLS.
+
+`Tourism OS -> Party`: bookings and participants reference existing `party_parties` where customer/guest identity is required.
+
+`Tourism OS -> Organization/Branch`: deferred for Product MVP integration. No new organization kernel is introduced in this slice.
+
+`Tourism OS -> Finance`: deferred. Booking confirmation does not create ledger entries or accounting outbox events in this MVP.
+
+`Tourism OS -> Logistics`: deferred. Itinerary segments may describe movement, but do not reserve vehicles, routes, or Logistics resources.
+
+`Tourism OS -> Audit`: Tourism OS records local audit events for approved commands. Cross-OS audit consolidation is not introduced here.
+
+## Change Authority
+
+Approved to modify:
+
+- `docs/architecture/ARCHITECTURE_GATE_RESULT_TOURISM_OS_FOUNDATION_MVP_2026_10_12.md`
+- `src/platform/tourism/**`
+- `supabase/migrations/*tourism_os_foundation*.sql`
+- Tourism OS tests only
+
+Not approved to modify:
+
+- ProductRegistry or product resolver
+- Product UI/routes
+- Logistics/Hospitality/Finance/Healthcare/Education kernels
+- Existing sealed Logistics E7 artifacts
+- Existing Healthcare H1-H12 artifacts
+- Shared global resource abstractions
+
+## Additive Migration Plan
+
+Create only additive `tourism_*` tables, indexes, triggers, RLS policies, and grants:
+
+- `tourism_tours`
+- `tourism_tour_packages`
+- `tourism_itinerary_days`
+- `tourism_itinerary_segments`
+- `tourism_departures`
+- `tourism_bookings`
+- `tourism_participants`
+- `tourism_command_idempotency`
+- `tourism_audit_events`
+
+The migration must not introduce product keys, ProductRegistry rows, ledger writes, accounting outbox rows, Logistics artifacts, Hospitality artifacts, or global resource tables.
+
+## Required Invariants
+
+- Every Tourism OS row carries `tenant_id`.
+- RLS denies cross-tenant reads/writes.
+- Commands require authorization through an explicit authorization port.
+- Idempotent retries return the original result for the same payload and reject conflicting payloads.
+- Departures cannot be oversold.
+- Booking confirmation moves seats from reserved to confirmed.
+- Booking cancellation releases reserved or confirmed seats.
+- Participants belong to the same booking tenant and reference Party identities.
+- Audit events are appended for approved state-changing commands.
+
+## 11 Automated Verification Gates Plan
+
+1. Architecture gate document exists and concludes `PASS` for OS-only scope.
+2. Migration shape test proves only approved `tourism_*` tables are created.
+3. Migration shape test proves no ProductRegistry/product key/Product UI coupling.
+4. TypeScript/domain tests prove tour catalog and itinerary lifecycle.
+5. Service tests prove departure opening and availability.
+6. Service tests prove capacity limit and cancellation release.
+7. Service tests prove idempotent retry and conflict behavior.
+8. Authorization tests prove denied actors cannot mutate Tourism OS state.
+9. RLS/Real DB tests prove cross-tenant denial when an approved non-production database is available.
+10. Audit tests prove command evidence is recorded.
+11. Browser E2E is `DEFERRED` until a Product MVP surface is approved.
+
+## Final Gate Boundary
+
+Architecture Gate: `PASS`
+
+Implementation may proceed only for the Tourism OS Foundation MVP. Product implementation remains `NOT_STARTED`.
