@@ -31,6 +31,7 @@ const config: Config = {
     '<rootDir>/src/platform/manufacturing/__tests__/manufacturing-full-chain-real-db.test.ts',
     '<rootDir>/src/platform/manufacturing/__tests__/manufacturing-slice1-real-db.test.ts',
     '<rootDir>/src/platform/agriculture/__tests__/agriculture-foundation-real-db.test.ts',
+    '<rootDir>/src/platform/construction/__tests__/construction-foundation-real-db.test.ts',
     '<rootDir>/src/products/beauty-spa-v2/__tests__/beauty-spa-v2-real-db.test.ts',
     '<rootDir>/src/products/bella-education/__tests__/preschool-chain-real-db.test.ts',
     '<rootDir>/src/products/bella-hospitality/__tests__/tenant-profile-real-db.test.ts',
