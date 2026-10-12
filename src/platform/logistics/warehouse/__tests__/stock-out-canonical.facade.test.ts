@@ -145,14 +145,14 @@ describe('WarehouseStockOutCanonicalFacade', () => {
       idempotency: {
         claim: jest.fn(async (params) => {
           calls.push('idempotency:claim');
-          const existing = idempotencyRecords.get(params.idempotencyKey);
+          const existing = idempotencyRecords.get(`${params.operation}:${params.idempotencyKey}`);
           if (!existing) return { status: 'claimed' };
           if (existing.payloadHash !== params.payloadHash) return { status: 'conflict' };
           return { status: 'completed', record: existing };
         }),
         complete: jest.fn(async (record) => {
           calls.push('idempotency:complete');
-          idempotencyRecords.set(record.idempotencyKey, record);
+          idempotencyRecords.set(`${record.operation}:${record.idempotencyKey}`, record);
         }),
       },
       readBack: {
@@ -336,6 +336,77 @@ describe('WarehouseStockOutCanonicalFacade', () => {
     ]);
   });
 
+  it('executes sales order stock out with sale reference and Logistics idempotency', async () => {
+    const calls: string[] = [];
+    const idempotencyRecords = new Map<string, WarehouseStockOutIdempotencyRecord>();
+    const ports = createPorts(calls, idempotencyRecords);
+    const facade = new WarehouseStockOutCanonicalFacade(ports, {
+      now: () => fixedNow,
+      idFactory: () => 'event-sales-order-1',
+    });
+    const command = validCommand();
+    command.issueDocument = {
+      id: 'sale-order-1',
+      number: 'RS-001',
+      type: 'sales_order',
+    };
+    command.idempotencyKey = 'sales-order-key-1';
+    command.lines[0].reason = 'sale';
+    command.lines[0].sourceLineId = 'sale-line-1';
+
+    const first = await facade.execute(command);
+    const second = await facade.execute(command);
+
+    expect(first.ok).toBe(true);
+    expect(second.ok).toBe(true);
+    if (!first.ok || !second.ok) throw new Error('sales order stock out failed');
+    expect(first.value.isDuplicate).toBe(false);
+    expect(second.value.isDuplicate).toBe(true);
+    expect(ports.balance.applyStockOut).toHaveBeenCalledTimes(1);
+    expect(ports.events.publish).toHaveBeenCalledTimes(1);
+    expect(ports.events.publish).toHaveBeenCalledWith(
+      expect.objectContaining({
+        reason: 'sale',
+        reference_id: 'sale-order-1',
+        reference_type: 'sales_order',
+      })
+    );
+    expect(ports.traceability.recordEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        event_type: TraceabilityEventType.SHIPPED,
+        reference_id: 'sale-order-1',
+        reference_type: 'sales_order',
+      })
+    );
+    expect(ports.idempotency?.claim).toHaveBeenCalledWith(
+      expect.objectContaining({
+        operation: 'warehouse_stock_out.sales_order',
+        idempotencyKey: 'sales-order-key-1',
+      })
+    );
+  });
+
+  it('fails sales order stock out before mutation without idempotency key', async () => {
+    const calls: string[] = [];
+    const ports = createPorts(calls);
+    const facade = new WarehouseStockOutCanonicalFacade(ports);
+    const command = validCommand();
+    command.issueDocument.type = 'sales_order';
+    command.lines[0].reason = 'sale';
+
+    const result = await facade.execute(command);
+
+    expect(result).toEqual({
+      ok: false,
+      error: {
+        code: 'WAREHOUSE_STOCK_OUT_SALES_ORDER_REFERENCE_REQUIRED',
+        message: 'sales order stock out requires an idempotency key',
+      },
+    });
+    expect(calls).toEqual([]);
+    expect(ports.balance.applyStockOut).not.toHaveBeenCalled();
+  });
+
   it('fails production consumption before mutation without production reference', async () => {
     const calls: string[] = [];
     const ports = createPorts(calls);
@@ -377,7 +448,7 @@ describe('WarehouseStockOutCanonicalFacade', () => {
       ok: false,
       error: {
         code: 'WAREHOUSE_STOCK_OUT_IDEMPOTENCY_REQUIRED',
-        message: 'production consumption stock out requires Logistics idempotency',
+        message: 'idempotent stock out requires Logistics idempotency',
       },
     });
     expect(calls).toEqual([]);
@@ -404,7 +475,7 @@ describe('WarehouseStockOutCanonicalFacade', () => {
       ok: false,
       error: {
         code: 'WAREHOUSE_STOCK_OUT_TRANSACTION_REQUIRED',
-        message: 'production consumption stock out requires transactional Logistics persistence',
+        message: 'idempotent stock out requires transactional Logistics persistence',
       },
     });
     expect(calls).toEqual([]);

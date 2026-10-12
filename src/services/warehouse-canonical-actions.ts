@@ -142,6 +142,7 @@ export interface WarehouseCanonicalStockOutActionInput {
     number?: string;
     type: WarehouseStockOutSourceType;
   };
+  idempotencyKey?: string;
   lines: WarehouseCanonicalStockOutLineInput[];
 }
 
@@ -587,6 +588,7 @@ function toStockOutCommand(
     actorId: authContext.userId,
     correlationId: input.correlationId,
     issueDocument: input.issueDocument,
+    idempotencyKey: input.idempotencyKey,
     lines: input.lines.map(toStockOutLineCommand),
   };
 }

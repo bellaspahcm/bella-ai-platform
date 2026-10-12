@@ -27,12 +27,14 @@ export type WarehouseStockOutSourceType =
   | 'disposal'
   | 'damage'
   | 'loss'
+  | 'sales_order'
   | 'production_consumption';
 
 export type WarehouseStockOutReason =
   | 'disposal'
   | 'damage'
   | 'loss'
+  | 'sale'
   | 'production_consumption';
 
 const traceabilityEventTypeByStockOutReason: Record<
@@ -42,6 +44,7 @@ const traceabilityEventTypeByStockOutReason: Record<
   disposal: TraceabilityEventType.SHIPPED,
   damage: TraceabilityEventType.DAMAGED,
   loss: TraceabilityEventType.SHIPPED,
+  sale: TraceabilityEventType.SHIPPED,
   production_consumption: TraceabilityEventType.PICKED,
 };
 
@@ -60,6 +63,7 @@ export interface WarehouseStockOutCommand {
     number?: string;
     type: WarehouseStockOutSourceType;
   };
+  idempotencyKey?: string;
   productionConsumptionReference?: ProductionConsumptionReference;
   lines: WarehouseStockOutLineCommand[];
 }
@@ -95,6 +99,7 @@ export interface CanonicalStockOutMutation {
 
 export interface WarehouseStockOutIdempotencyRecord {
   tenantId: string;
+  operation: string;
   idempotencyKey: string;
   payloadHash: string;
   result: WarehouseStockOutSuccess;
@@ -153,6 +158,7 @@ export interface WarehouseStockOutPorts {
   idempotency?: {
     claim(params: {
       tenantId: string;
+      operation: string;
       idempotencyKey: string;
       payloadHash: string;
     }): Promise<WarehouseStockOutIdempotencyClaim>;
@@ -177,6 +183,7 @@ export type WarehouseStockOutErrorCode =
   | 'WAREHOUSE_STOCK_OUT_INVALID_REASON'
   | 'WAREHOUSE_STOCK_OUT_SERIAL_REQUIRES_LOT'
   | 'WAREHOUSE_STOCK_OUT_PRODUCTION_REFERENCE_REQUIRED'
+  | 'WAREHOUSE_STOCK_OUT_SALES_ORDER_REFERENCE_REQUIRED'
   | 'WAREHOUSE_STOCK_OUT_IDEMPOTENCY_REQUIRED'
   | 'WAREHOUSE_STOCK_OUT_TRANSACTION_REQUIRED'
   | 'WAREHOUSE_STOCK_OUT_IDEMPOTENCY_CONFLICT'
@@ -244,17 +251,17 @@ export class WarehouseStockOutCanonicalFacade {
       if (lineError) return lineError;
     }
 
-    const idempotencyKey = command.productionConsumptionReference?.idempotencyKey;
+    const idempotencyKey = readStockOutIdempotencyKey(command);
     if (idempotencyKey && !this.ports.idempotency) {
       return failure(
         'WAREHOUSE_STOCK_OUT_IDEMPOTENCY_REQUIRED',
-        'production consumption stock out requires Logistics idempotency'
+        'idempotent stock out requires Logistics idempotency'
       );
     }
     if (idempotencyKey && !this.ports.transaction) {
       return failure(
         'WAREHOUSE_STOCK_OUT_TRANSACTION_REQUIRED',
-        'production consumption stock out requires transactional Logistics persistence'
+        'idempotent stock out requires transactional Logistics persistence'
       );
     }
 
@@ -273,16 +280,18 @@ export class WarehouseStockOutCanonicalFacade {
 
   private async executeValidated(command: WarehouseStockOutCommand): Promise<WarehouseStockOutResult> {
     const payloadHash = stablePayloadHash(command);
-    const idempotencyKey = command.productionConsumptionReference?.idempotencyKey;
+    const idempotencyKey = readStockOutIdempotencyKey(command);
+    const operation = readStockOutIdempotencyOperation(command);
     if (idempotencyKey) {
       if (!this.ports.idempotency) {
         return failure(
           'WAREHOUSE_STOCK_OUT_IDEMPOTENCY_REQUIRED',
-          'production consumption stock out requires Logistics idempotency'
+          'idempotent stock out requires Logistics idempotency'
         );
       }
       const claim = await this.ports.idempotency.claim({
         tenantId: command.tenantId,
+        operation,
         idempotencyKey,
         payloadHash,
       });
@@ -408,6 +417,7 @@ export class WarehouseStockOutCanonicalFacade {
     if (idempotencyKey && this.ports.idempotency) {
       await this.ports.idempotency.complete({
         tenantId: command.tenantId,
+        operation,
         idempotencyKey,
         payloadHash,
         result: value,
@@ -480,6 +490,33 @@ export class WarehouseStockOutCanonicalFacade {
       return failure(
         'WAREHOUSE_STOCK_OUT_PRODUCTION_REFERENCE_REQUIRED',
         'production_consumption reason requires production_consumption issue document'
+      );
+    }
+
+    if (hasText(command.idempotencyKey) && command.issueDocument.type !== 'sales_order') {
+      return failure(
+        'WAREHOUSE_STOCK_OUT_SALES_ORDER_REFERENCE_REQUIRED',
+        'stock out idempotency key is only supported for sales_order issue documents'
+      );
+    }
+
+    if (command.issueDocument.type === 'sales_order') {
+      if (!hasText(command.idempotencyKey)) {
+        return failure(
+          'WAREHOUSE_STOCK_OUT_SALES_ORDER_REFERENCE_REQUIRED',
+          'sales order stock out requires an idempotency key'
+        );
+      }
+      if (command.lines.some((line) => line.reason !== 'sale')) {
+        return failure(
+          'WAREHOUSE_STOCK_OUT_INVALID_REASON',
+          'sales order stock out requires sale reason'
+        );
+      }
+    } else if (command.lines.some((line) => line.reason === 'sale')) {
+      return failure(
+        'WAREHOUSE_STOCK_OUT_SALES_ORDER_REFERENCE_REQUIRED',
+        'sale reason requires sales_order issue document'
       );
     }
 
@@ -562,6 +599,7 @@ export class WarehouseStockOutCanonicalFacade {
         production_order_id: command.productionConsumptionReference?.productionOrderId,
         production_order_line_id: command.productionConsumptionReference?.productionOrderLineId,
         production_consumption_idempotency_key: command.productionConsumptionReference?.idempotencyKey,
+        stock_out_idempotency_key: command.idempotencyKey,
         unit_of_measure: line.unitOfMeasure,
         lot_number: line.lotNumber,
         serial_numbers: line.serialNumbers,
@@ -598,9 +636,7 @@ export class WarehouseStockOutCanonicalFacade {
       lot_number: line.lotNumber,
       serial_numbers: line.serialNumbers,
       reference_id: command.productionConsumptionReference?.productionOrderId ?? command.issueDocument.id,
-      reference_type: command.issueDocument.type === 'production_consumption'
-        ? 'work_order'
-        : undefined,
+      reference_type: readInventoryIssuedReferenceType(command),
       financial: this.toFinancialContext(command, line, balanceBefore, balanceAfter),
     };
   }
@@ -624,6 +660,8 @@ export class WarehouseStockOutCanonicalFacade {
         balance_after: balanceAfter.on_hand,
         finance_os_posting_required: true,
         source: 'warehouse_stock_out',
+        issue_document_type: command.issueDocument.type,
+        source_line_id: line.sourceLineId,
         production_order_id: command.productionConsumptionReference?.productionOrderId,
         production_order_line_id: command.productionConsumptionReference?.productionOrderLineId,
       },
@@ -647,8 +685,27 @@ function isWarehouseStockOutReason(value: string): value is WarehouseStockOutRea
     value === 'disposal' ||
     value === 'damage' ||
     value === 'loss' ||
+    value === 'sale' ||
     value === 'production_consumption'
   );
+}
+
+function readStockOutIdempotencyKey(command: WarehouseStockOutCommand): string | undefined {
+  return command.productionConsumptionReference?.idempotencyKey ?? command.idempotencyKey;
+}
+
+function readStockOutIdempotencyOperation(command: WarehouseStockOutCommand): string {
+  return command.issueDocument.type === 'sales_order'
+    ? 'warehouse_stock_out.sales_order'
+    : 'warehouse_stock_out.production_consumption';
+}
+
+function readInventoryIssuedReferenceType(
+  command: WarehouseStockOutCommand
+): InventoryIssuedEvent['reference_type'] {
+  if (command.issueDocument.type === 'production_consumption') return 'work_order';
+  if (command.issueDocument.type === 'sales_order') return 'sales_order';
+  return undefined;
 }
 
 function failure(
