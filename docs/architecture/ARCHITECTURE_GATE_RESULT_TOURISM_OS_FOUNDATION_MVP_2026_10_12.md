@@ -208,6 +208,7 @@ Verification commands:
 - `npm run typecheck:changed`: `PASS`, full strict TypeScript, zero diagnostics.
 - `git diff --check`: `PASS`.
 - `rg "\bany\b" src/platform/tourism`: `PASS`, no hits.
+- `npm run db:migration:zero-downtime -- --base a5fd4c26005a17cfe8926fd7ea27032bef7dd100`: `PASS`.
 - `npm run db:migration:check`: `NOT_PROVEN`, blocked by `LegacyProjectNotLinkedError` because the checkout is not linked to a Supabase project.
 
 Real DB evidence:

@@ -286,13 +286,21 @@ CREATE TRIGGER tourism_bookings_assert_departure
   FOR EACH ROW
   EXECUTE FUNCTION public.tourism_assert_booking_departure();
 
+-- zero-downtime: allow blocking-index - new Tourism OS foundation tables have no existing production rows.
 CREATE INDEX IF NOT EXISTS tourism_tours_tenant_status_idx ON public.tourism_tours(tenant_id, status);
+-- zero-downtime: allow blocking-index - new Tourism OS foundation tables have no existing production rows.
 CREATE INDEX IF NOT EXISTS tourism_packages_tenant_tour_idx ON public.tourism_tour_packages(tenant_id, tour_id);
+-- zero-downtime: allow blocking-index - new Tourism OS foundation tables have no existing production rows.
 CREATE INDEX IF NOT EXISTS tourism_itinerary_days_tenant_package_idx ON public.tourism_itinerary_days(tenant_id, package_id, day_number);
+-- zero-downtime: allow blocking-index - new Tourism OS foundation tables have no existing production rows.
 CREATE INDEX IF NOT EXISTS tourism_itinerary_segments_tenant_day_idx ON public.tourism_itinerary_segments(tenant_id, itinerary_day_id, sequence);
+-- zero-downtime: allow blocking-index - new Tourism OS foundation tables have no existing production rows.
 CREATE INDEX IF NOT EXISTS tourism_departures_tenant_status_idx ON public.tourism_departures(tenant_id, status, starts_on);
+-- zero-downtime: allow blocking-index - new Tourism OS foundation tables have no existing production rows.
 CREATE INDEX IF NOT EXISTS tourism_bookings_tenant_departure_idx ON public.tourism_bookings(tenant_id, departure_id, status);
+-- zero-downtime: allow blocking-index - new Tourism OS foundation tables have no existing production rows.
 CREATE INDEX IF NOT EXISTS tourism_participants_tenant_booking_idx ON public.tourism_participants(tenant_id, booking_id);
+-- zero-downtime: allow blocking-index - new Tourism OS foundation tables have no existing production rows.
 CREATE INDEX IF NOT EXISTS tourism_audit_events_tenant_entity_idx ON public.tourism_audit_events(tenant_id, entity_type, entity_id);
 
 ALTER TABLE public.tourism_tours ENABLE ROW LEVEL SECURITY;
