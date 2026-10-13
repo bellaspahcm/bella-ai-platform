@@ -25,3 +25,38 @@ describe('AutoMove available vehicles route contract', () => {
     expect(source).toContain('color_exterior: vehicle.colorExterior');
   });
 });
+
+describe('AutoMove inventory provider Mobility contract usage', () => {
+  it('moves vehicle inventory read-side access behind the Mobility public contract', () => {
+    const providerPath = path.resolve(
+      __dirname,
+      '../../../modules/bella-auto/services/AutoInventoryProvider.ts'
+    );
+    const source = readFileSync(providerPath, 'utf8');
+    const readSideStart = source.indexOf('async getSummary');
+    const writeSideStart = source.indexOf('async addVehicle');
+    const inventoryReadSideSource = source.slice(readSideStart, writeSideStart);
+    const statusHistoryStart = source.indexOf('async getStatusHistory');
+    const statusHistorySource = source.slice(statusHistoryStart);
+
+    expect(source).toContain("from '@/platform/mobility/supabase-vehicle-contract'");
+    expect(inventoryReadSideSource).toContain('getMobilityVehicleInventorySummary');
+    expect(inventoryReadSideSource).toContain('listMobilityVehicleInventory');
+    expect(inventoryReadSideSource).not.toContain(".from('auto_vehicles')");
+    expect(inventoryReadSideSource).not.toContain('.from("auto_vehicles")');
+    expect(statusHistorySource).toContain('listMobilityVehicleStatusHistory');
+    expect(statusHistorySource).not.toContain(".from('auto_vehicle_status_logs')");
+    expect(statusHistorySource).not.toContain('.from("auto_vehicle_status_logs")');
+  });
+
+  it('keeps the vehicle inventory client page from importing the provider runtime', () => {
+    const pagePath = path.resolve(
+      __dirname,
+      '../../../app/dashboard/bella-auto/vehicles/page.tsx'
+    );
+    const source = readFileSync(pagePath, 'utf8');
+
+    expect(source).toContain("import type { VehicleInventoryItem }");
+    expect(source).not.toContain('import { AutoInventoryProvider');
+  });
+});
