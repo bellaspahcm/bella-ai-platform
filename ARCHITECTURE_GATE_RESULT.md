@@ -1,4 +1,94 @@
-﻿# ARCHITECTURE GATE RESULT - AUTOMOVE CUSTOMER OWNERSHIP MOBILITY READ BATCH
+﻿# ARCHITECTURE GATE RESULT - AUTOMOVE VEHICLES PAGE MOBILITY READ BATCH
+
+> **Status:** PASS - minimal AutoMove `/dashboard/bella-auto/vehicles` read-side migration is authorized.
+> **Date:** 2026-10-13
+> **Scope:** Move the vehicle inventory page's direct `auto_vehicles` list query behind the existing Mobility OS public Supabase contract. Preserve the current client-side search, status filtering, pagination, export, detail drawer, and demo-only add/transition UI behavior. No write-side lifecycle change, no booking/workshop/rollback change, no schema migration, no ProductRegistry change, no Production mutation, and no other OS changes.
+
+## Bella OS/Product Development Process Gate
+
+- Truth: Mobility OS Foundation owns reusable vehicle inventory read mapping. After PR #311, `/dashboard/bella-auto/vehicles/page.tsx` remains a direct product UI read of `auto_vehicles`.
+- Source of Truth: `docs/governance/BELLA_AI_CODING_CONSTITUTION.md`, current `src/platform/mobility/supabase-vehicle-contract.ts`, existing `VehicleInventoryDashboard` precedent, and the post-#311 direct reference inventory.
+- Canonical Contract: AutoMove vehicle inventory read consumers should call Mobility public contract functions; the Mobility adapter owns persistence mapping to reused `auto_*` tables.
+- Gate result: `PASS` for this vehicle inventory page read-only consumer. `AUTOMOVE_WRITE_CONSUMERS_MIGRATED = NOT_PROVEN` and `AUTOMOVE_FULL_PRODUCT_READINESS = NOT_READY`.
+
+## Product Manifest
+
+- Product: Bella AutoMove / Bella Auto vehicle inventory page.
+- OS capability consumed: Mobility vehicle inventory list read contract.
+- Consumer in scope: `src/app/dashboard/bella-auto/vehicles/page.tsx`.
+- Non-goals: no vehicle creation, no lifecycle transition execution, no booking, no allocation/deallocation, no workshop joins, no rollback flows, no ProductRegistry entry, no schema migration, and no Production deployment.
+
+## Direct Reference Inventory After PR #311
+
+| Category | Files | Decision |
+|---|---|---|
+| Mobility-owned persistence mapping | `src/platform/mobility/**` | allowed owner of `auto_vehicles` mapping |
+| Read-side independent candidate | `src/app/dashboard/bella-auto/vehicles/page.tsx` | migrate in this batch |
+| Read-side candidate but separate scope | `NextBestActionEngine`, `FinancialReportingService`, `WarrantyService` reads | defer; each needs its own semantic contract |
+| Booking/workshop joins | booking table, service appointment/order/history joins | defer by explicit scope boundary |
+| Write lifecycle/allocation/rollback | status machine, allocation, rollback, booking POST vehicle update | out of scope |
+| Tests/generated types | `src/__tests__/**`, generated DB types | not product consumer migration targets |
+
+## Ownership Map
+
+| Data / Behavior | Owner | Decision |
+|---|---|---|
+| Vehicle inventory list, catalog joins, `list_price`, status fields | Mobility OS | use existing `listMobilityVehicleInventory` contract |
+| Vehicle inventory page presentation, local filters, pagination, CSV export | AutoMove Product UI | preserve current behavior |
+| Tenant identity | Platform tenant context | use `useTenantContext().tenantId`; no hardcoded tenant and no service-role bypass |
+| Vehicle writes/transitions | AutoMove Product / future Mobility write contract | unchanged in this batch |
+
+## Contract Dependency Map
+
+```text
+Bella Auto vehicles page
+  -> useTenantContext().tenantId
+  -> src/platform/mobility/supabase-vehicle-contract
+  -> Supabase client with authenticated RLS context
+  -> reused auto_vehicles / variant-model-brand persistence
+  -> existing page table, filters, export, and detail drawer
+```
+
+## Change Authority
+
+Authorized:
+- Refactor the scoped vehicle inventory page read path to call the existing Mobility public contract.
+- Preserve current page state, local filter/pagination semantics, and response shape.
+- Add/update static contract tests preventing direct `auto_vehicles` access from the page.
+- Update this gate record.
+
+Not authorized:
+- Modify vehicle add/import, allocation, deallocation, status lifecycle, booking, rollback, workshop, or service repair behavior.
+- Add or edit migrations, RLS/grants, generated database types, ProductRegistry, other OS/product scopes, or Production state.
+
+## UI -> Contract Reconciliation
+
+- No UI redesign.
+- Existing page fields are already present in `MobilityVehicleInventoryItem`.
+- Existing client-side filtering and pagination remain local over the loaded inventory list.
+
+## Additive Migration Plan
+
+- No migration.
+- No schema, table, index, RLS, generated type, or data change.
+
+## 11 Automated Verification Gates Plan
+
+1. Architecture Compliance: changed files limited to one AutoMove page, focused Mobility static test, and this gate record.
+2. Contract Boundary: vehicles page imports Mobility public contract instead of direct `auto_vehicles` query.
+3. Tenant Isolation: vehicles page uses current tenant context and the contract applies explicit `tenant_id` filtering.
+4. RLS & Authorization: no grants or policies changed.
+5. Database Migration Safety: no migration.
+6. Event-After-Persistence: no write/event path changed.
+7. Domain Safety Routing: no ProductRegistry or other OS/product scope touched.
+8. Type Safety: no `any`, suppressions, generated type edits, or provider runtime import into the client page.
+9. Regression: focused static contract test, changed typecheck, lint, build, and architecture guard.
+10. Evidence Integrity: report local/CI proof separately from Production; no Go-Live claim.
+11. Stop Condition: stop after this vehicle page read-side batch without broad AutoMove rewrite.
+
+---
+
+# ARCHITECTURE GATE RESULT - AUTOMOVE CUSTOMER OWNERSHIP MOBILITY READ BATCH
 
 > **Status:** PASS - minimal AutoMove customer ownership read-side migration is authorized.
 > **Date:** 2026-10-13

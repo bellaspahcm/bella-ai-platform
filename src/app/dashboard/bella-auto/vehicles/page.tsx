@@ -21,66 +21,15 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { createClient } from '@/lib/supabase-client';
-import type { VehicleInventoryItem } from '@/modules/bella-auto/services/AutoInventoryProvider';
+import { useTenantContext } from '@/core/hooks/useTenantContext';
 import { VehicleStatusMachineService, type VehicleStatus } from '@/modules/bella-auto/services/VehicleStatusMachineService';
-import type { Database } from '@/types/database.types';
+import {
+  listMobilityVehicleInventory,
+  type MobilityVehicleInventoryItem,
+} from '@/platform/mobility/supabase-vehicle-contract';
 import { useEffect } from 'react';
 
-type AutoVehicleRow = Database['public']['Tables']['auto_vehicles']['Row'];
-
-type VehicleQueryRow = Pick<
-  AutoVehicleRow,
-  | 'id'
-  | 'vin'
-  | 'chassis_number'
-  | 'engine_number'
-  | 'color_exterior'
-  | 'color_interior'
-  | 'model_year'
-  | 'list_price'
-  | 'cost_price'
-  | 'status'
-  | 'location_note'
-  | 'expected_arrival_date'
-  | 'actual_arrival_date'
-  | 'variant_id'
-  | 'created_at'
-  | 'updated_at'
-> & {
-  auto_variants: {
-    name: string | null;
-    auto_models: {
-      name: string | null;
-      auto_brands: {
-        name: string | null;
-      } | null;
-    } | null;
-  } | null;
-};
-
-function mapVehicleQueryRow(row: VehicleQueryRow): VehicleInventoryItem {
-  return {
-    id: row.id,
-    vin: row.vin,
-    chassisNumber: row.chassis_number,
-    engineNumber: row.engine_number,
-    colorExterior: row.color_exterior,
-    colorInterior: row.color_interior,
-    modelYear: row.model_year,
-    listPrice: row.list_price,
-    costPrice: row.cost_price,
-    status: row.status,
-    locationNote: row.location_note,
-    expectedArrivalDate: row.expected_arrival_date,
-    actualArrivalDate: row.actual_arrival_date,
-    variantId: row.variant_id,
-    variantName: row.auto_variants?.name ?? undefined,
-    modelName: row.auto_variants?.auto_models?.name ?? undefined,
-    brandName: row.auto_variants?.auto_models?.auto_brands?.name ?? undefined,
-    createdAt: row.created_at,
-    updatedAt: row.updated_at,
-  };
-}
+type VehicleInventoryItem = MobilityVehicleInventoryItem;
 
 // Status configuration
 const STATUS_CONFIG: Record<VehicleStatus, { label: string; bg: string; color: string; border: string }> = {
@@ -305,6 +254,7 @@ function StatusChip({
 
 // ── Main Page ─────────────────────────────────────────────────────────────────
 export default function VehicleInventoryPage() {
+  const { tenantId } = useTenantContext();
   const [vehicles, setVehicles] = useState<VehicleInventoryItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -327,37 +277,12 @@ export default function VehicleInventoryPage() {
         return;
       }
 
-      // Use JOIN query to get brand/model/variant names
-      const { data, error } = await supabase
-        .from('auto_vehicles')
-        .select(`
-          id, vin, chassis_number, engine_number,
-          color_exterior, color_interior, model_year,
-          list_price, cost_price, status, location_note,
-          expected_arrival_date, actual_arrival_date,
-          variant_id, created_at, updated_at,
-          auto_variants!inner(name, model_id,
-            auto_models!inner(name, brand_id,
-              auto_brands!inner(name)
-            )
-          )
-        `)
-        .returns<VehicleQueryRow[]>()
-        .order('created_at', { ascending: false });
+      const inventory = await listMobilityVehicleInventory(supabase, { tenantId });
 
-      if (error) {
-        console.error('Failed to fetch vehicles:', error);
-        toast.error('Không thể tải danh sách xe');
-        setVehicles([]);
-      } else {
-        // Map query result to VehicleInventoryItem interface
-        const mappedVehicles = (data || []).map(mapVehicleQueryRow);
-        
-        console.log('[VehiclesPage] Loaded vehicles:', mappedVehicles.length);
-        console.log('[VehiclesPage] Sample vehicle:', mappedVehicles[0]);
-        
-        setVehicles(mappedVehicles);
-      }
+      console.log('[VehiclesPage] Loaded vehicles:', inventory.length);
+      console.log('[VehiclesPage] Sample vehicle:', inventory[0]);
+
+      setVehicles(inventory);
     } catch (error) {
       console.error('Failed to fetch vehicles:', error);
       toast.error('Không thể tải danh sách xe');
@@ -365,7 +290,7 @@ export default function VehicleInventoryPage() {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [tenantId]);
 
   useEffect(() => {
     fetchVehicles();

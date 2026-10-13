@@ -56,8 +56,12 @@ describe('AutoMove inventory provider Mobility contract usage', () => {
     );
     const source = readFileSync(pagePath, 'utf8');
 
-    expect(source).toContain("import type { VehicleInventoryItem }");
+    expect(source).toContain("from '@/core/hooks/useTenantContext'");
+    expect(source).toContain("from '@/platform/mobility/supabase-vehicle-contract'");
+    expect(source).toContain('listMobilityVehicleInventory');
     expect(source).not.toContain('import { AutoInventoryProvider');
+    expect(source).not.toContain(".from('auto_vehicles')");
+    expect(source).not.toContain('.from("auto_vehicles")');
   });
 
   it('moves the dashboard inventory read-side access behind the Mobility public contract', () => {
