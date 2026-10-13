@@ -83,4 +83,18 @@ describe('AutoMove inventory provider Mobility contract usage', () => {
     expect(source).not.toContain(".from('auto_vehicles')");
     expect(source).not.toContain('.from("auto_vehicles")');
   });
+
+  it('moves customer ownership vehicle reads behind the Mobility public contract', () => {
+    const providerPath = path.resolve(
+      __dirname,
+      '../../../modules/bella-auto/services/AutoCustomerProvider.ts'
+    );
+    const source = readFileSync(providerPath, 'utf8');
+
+    expect(source).toContain("from '@/platform/mobility/supabase-vehicle-contract'");
+    expect(source).toContain('listMobilityCustomerOwnedVehicles');
+    expect(source).toContain('getMobilityCustomerOwnershipAggregate');
+    expect(source).not.toContain(".from('auto_vehicles')");
+    expect(source).not.toContain('.from("auto_vehicles")');
+  });
 });

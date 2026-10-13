@@ -1,4 +1,83 @@
-﻿# ARCHITECTURE GATE RESULT - AUTOMOVE DASHBOARD SHELL MOBILITY READ BATCH
+﻿# ARCHITECTURE GATE RESULT - AUTOMOVE CUSTOMER OWNERSHIP MOBILITY READ BATCH
+
+> **Status:** PASS - minimal AutoMove customer ownership read-side migration is authorized.
+> **Date:** 2026-10-13
+> **Scope:** Move `AutoCustomerProvider.getProfile` owned-vehicle reads and `recalculateProfileAggregates` active ownership valuation reads behind the Mobility OS public Supabase contract. Preserve existing Customer 360 response shape and aggregate semantics: active ownership count plus sum of owned vehicles' `list_price`. No write-side ownership/lifecycle change, no migration, no ProductRegistry change, no Production mutation, and no other OS changes.
+
+## Bella OS/Product Development Process Gate
+
+- Truth: Mobility OS Foundation owns reusable vehicle identity and ownership contracts. `AutoCustomerProvider` still directly reads `auto_vehicles` for customer-owned vehicle details and aggregate valuation.
+- Source of Truth: `docs/governance/BELLA_AI_CODING_CONSTITUTION.md`, merged Mobility Foundation contract, current `AutoCustomerProvider` behavior, and the approved user scope for `AUTO_CUSTOMER_OWNERSHIP_MOBILITY_READ`.
+- Canonical Contract: AutoMove customer read consumers should obtain vehicle ownership/valuation data through `src/platform/mobility` public contract functions; the Mobility adapter owns persistence mapping to reused `auto_*` tables.
+- Gate result: `PASS` for this customer ownership read-side consumer only. `AUTOMOVE_WRITE_CONSUMERS_MIGRATED = NOT_PROVEN` and `AUTOMOVE_FULL_PRODUCT_READINESS = NOT_READY`.
+
+## Product Manifest
+
+- Product: Bella AutoMove / Bella Auto customer 360 ownership surface.
+- OS capability consumed: Mobility vehicle ownership and vehicle identity read contract.
+- Consumers in scope: `AutoCustomerProvider.getProfile` and the read portion of `AutoCustomerProvider.recalculateProfileAggregates`.
+- Non-goals: no booking, allocation, deallocation, status lifecycle, rollback, workshop joins, ProductRegistry entry, schema migration, or Production deployment.
+
+## Ownership Map
+
+| Data / Behavior | Owner | Decision |
+|---|---|---|
+| Vehicle identity and `list_price` read mapping | Mobility OS | expose minimal customer ownership read contract |
+| Vehicle owner relationship read mapping | Mobility OS | expose customer-owned vehicle list with existing owner metadata |
+| Customer 360 profile response shape | AutoMove Product | preserve existing `OwnedVehicle` and aggregate semantics |
+| Ownership writes and transfers | AutoMove Product / future Mobility write batch | unchanged in this batch |
+| Tenant isolation | Supabase RLS plus tenant-scoped query input | preserve `tenantId` filters across owner, vehicle, variant, model, and brand reads |
+
+## Contract Dependency Map
+
+```text
+AutoCustomerProvider read methods
+  -> src/platform/mobility/supabase-vehicle-contract
+  -> Supabase client with authenticated RLS context
+  -> reused auto_vehicle_owners / auto_vehicles / variant-model-brand persistence
+  -> existing AutoMove Customer 360 response and aggregate profile update
+```
+
+## Change Authority
+
+Authorized:
+- Extend Mobility public Supabase contract with customer-owned vehicle list and customer ownership aggregate reads.
+- Refactor the scoped AutoMove customer provider read paths to call Mobility public contract functions.
+- Add focused tests for empty ownerships, multiple vehicles, tenant-scoped reads, aggregate `list_price`, and static consumer boundary.
+- Update this gate record.
+
+Not authorized:
+- Modify ownership write semantics, status lifecycle, allocation/deallocation, booking, rollback, or workshop joins.
+- Add migrations, change RLS/grants, change ProductRegistry, mutate Production, or touch unrelated OS/product scopes.
+
+## UI -> Contract Reconciliation
+
+- No UI redesign.
+- Existing Customer 360 `OwnedVehicle` fields remain unchanged.
+- Existing aggregate meaning remains unchanged: count active ownership records and sum `list_price` for active owned vehicles.
+
+## Additive Migration Plan
+
+- No migration.
+- No schema, table, index, RLS, generated type, or data change.
+
+## 11 Automated Verification Gates Plan
+
+1. Architecture Compliance: changed files limited to Mobility contract, one AutoMove customer provider consumer, focused tests, and this gate record.
+2. Contract Boundary: customer provider imports Mobility public contract instead of direct `auto_vehicles` queries.
+3. Tenant Isolation: contract tests verify every read query is scoped by `tenant_id`.
+4. RLS & Authorization: no grants or policies changed.
+5. Database Migration Safety: no migration.
+6. Event-After-Persistence: no write/event path changed.
+7. Domain Safety Routing: no ProductRegistry or other OS/product scope touched.
+8. Type Safety: no `any`, suppressions, or generated type edits.
+9. Regression: focused customer provider, Mobility contract, static contract tests, changed typecheck, lint, build, and architecture guard.
+10. Evidence Integrity: report local/CI proof separately from Production; no Go-Live claim.
+11. Stop Condition: stop after this customer ownership read-side batch without broad AutoMove rewrite.
+
+---
+
+# ARCHITECTURE GATE RESULT - AUTOMOVE DASHBOARD SHELL MOBILITY READ BATCH
 
 > **Status:** PASS - minimal AutoMove dashboard shell read-side migration is authorized.
 > **Date:** 2026-10-13
