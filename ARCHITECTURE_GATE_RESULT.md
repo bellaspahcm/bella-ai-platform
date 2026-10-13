@@ -1,4 +1,88 @@
-﻿# ARCHITECTURE GATE RESULT - BDGF OWNER-OPERATED WORKSHOP RLS REPAIR
+﻿# ARCHITECTURE GATE RESULT - BDGF PRODUCTION WORKFLOW FOR BELLA AUTO WORKSHOP RLS
+
+> **Status:** PASS - add a manual, protected Production workflow for the already-approved Bella Auto workshop RLS migration.
+> **Date:** 2026-10-13
+> **Scope:** Add the missing official GitHub Actions execution path for `20261013090000_reenable_bella_auto_workshop_rls.sql`. No migration content change, no automatic execution on merge, no Mobility OS, no ProductRegistry, and no kernel changes.
+
+## Bella OS/Product Development Process Gate
+
+- Truth: PR #300 merged the owner-operated BDGF approval mechanism and the approved workshop RLS migration. Production execution remains unproven until a protected operator-triggered workflow creates approval, executes through the BDGF wrapper, and passes post-deploy Real DB probes.
+- Source of Truth: BDGF R4 approval and execution contracts, `scripts/bdgf/create-migration-approval.mjs`, `scripts/bdgf/execute-migration-wrapper.mjs`, GitHub Actions Production environment protections, and the approved migration hash.
+- Canonical Contract: production mutation must be manual/authorized, run from `main`, use Production environment secrets, create an owner-operated approval from trusted GitHub Actions identity, issue a gate token, execute through the wrapper, and prove RLS after deployment.
+- Gate result: `PASS` for adding the workflow and static guard tests. `MIGRATION = NOT_APPLIED` and `POST_DEPLOY_RLS = NOT_PROVEN` until the workflow is merged, manually dispatched, and passes against the target database.
+
+## Product Manifest
+
+- Product: Bella Auto / Automove workshop security boundary.
+- Capability in scope: official BDGF Production migration execution workflow and post-deploy RLS probe.
+- Existing capabilities reused: GitHub Actions Production environment, BDGF owner-operated approval, BDGF wrapper/executor boundary, approved migration artifact.
+- Non-goals: no migration rewrite, no direct SQL deployment path, no Mobility OS, no ProductRegistry, no kernel change, no browser E2E, no Bella Auto Go-Live claim.
+
+## Ownership Map
+
+| Data / Behavior | Owner | Decision |
+|---|---|---|
+| Production migration execution | BDGF governance / operator | add manual workflow only |
+| Owner authority | GitHub Actions trusted runtime + GitHub API | reuse PR #300 mechanism |
+| Gate token and mutation | BDGF wrapper and executor | wrapper-only execution |
+| Workshop RLS proof | Bella Auto workshop persistence | transactional post-deploy probe |
+| Production readiness | separate Go-Live gate | not claimed |
+
+## Contract Dependency Map
+
+```text
+Manual workflow_dispatch on main
+  -> GitHub Environment Production protection
+  -> approved migration SHA-256 check
+  -> owner_operated approval
+  -> execute-migration-wrapper.mjs
+  -> migration-executor.mjs
+  -> post-deploy RLS probe
+  -> SECURITY_REPAIR = PROVEN only after probe PASS
+```
+
+## Change Authority
+
+Authorized:
+- Add one GitHub Actions workflow for the approved migration.
+- Add one post-deploy probe script for the two Bella Auto workshop tables.
+- Add focused static/pure tests for workflow guards and probe fail-closed behavior.
+- Add a package script for the focused tests.
+
+Not authorized:
+- Modify the approved migration content or hash.
+- Run production migration from this local session.
+- Use `supabase db push`, `psql`, or direct `migration-executor.mjs`.
+- Modify ProductRegistry, kernels, Mobility OS, Logistics/Warehouse/Healthcare/Education, or unrelated Bella Auto features.
+
+## UI -> Contract Reconciliation
+
+- No UI change.
+- No product workflow or user-facing data/action contract change.
+
+## Additive Migration Plan
+
+- No new migration in this PR.
+- Workflow binds to the existing approved file and SHA-256: `1FEDCE34702106E86A38D650AAF43FEC52A763F54E66A11187EEF6D3A37C2425`.
+- Database mutation remains deferred until the protected manual Production workflow is dispatched by an authorized operator.
+
+## 11 Automated Verification Gates Plan
+
+1. Architecture Compliance: changed files limited to workflow, BDGF probe/test scripts, package script, and gate record.
+2. Contract Boundary: workflow uses `create-migration-approval.mjs` and `execute-migration-wrapper.mjs`.
+3. Tenant Isolation: post-deploy probe checks tenant A/B read/write separation.
+4. RLS & Authorization: post-deploy probe checks RLS enabled and anon table privileges revoked.
+5. Database Migration Safety: workflow verifies exact approved migration hash before approval/execution.
+6. Event-After-Persistence: no app event path changed.
+7. Domain Safety Routing: no Healthcare, Education, Logistics, Warehouse, ProductRegistry, Mobility OS, or kernel files changed.
+8. Temporal Provenance: workflow runs only via manual dispatch from `main` in Production environment.
+9. Rule Governance: no accounting/legal/domain rule changed.
+10. Audit & Evidence Integrity: workflow fails closed on hash mismatch, missing secrets, invalid owner authority, wrapper failure, or probe failure.
+11. Regression: run focused BDGF owner tests, production workflow guard tests, diff check, secret scan, and final diff review.
+
+---
+
+# ARCHITECTURE GATE RESULT - BDGF OWNER-OPERATED WORKSHOP RLS REPAIR
 
 > **Status:** PASS - minimal BDGF owner-operated authority and Bella Auto workshop RLS repair are authorized.
 > **Date:** 2026-10-13
