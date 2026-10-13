@@ -77,6 +77,11 @@ export interface MobilityVehicleInventoryItem {
   updatedAt: string;
 }
 
+export interface MobilityVehicleInventoryPage {
+  vehicles: MobilityVehicleInventoryItem[];
+  totalCount: number;
+}
+
 export interface MobilityVehicleStatusHistoryEntry {
   id: string;
   fromStatus?: MobilityVehicleStatus;
@@ -205,6 +210,58 @@ export async function listMobilityVehicleInventory(
   }
 
   return (data ?? []).map(mapInventoryVehicle);
+}
+
+export async function listMobilityVehicleInventoryPage(
+  supabase: MobilitySupabaseClient,
+  input: {
+    tenantId: string;
+    status?: MobilityVehicleStatus;
+    search?: string;
+    page: number;
+    pageSize: number;
+  }
+): Promise<MobilityVehicleInventoryPage> {
+  const page = Math.max(1, input.page);
+  const pageSize = Math.max(1, input.pageSize);
+  const from = (page - 1) * pageSize;
+  const to = from + pageSize - 1;
+
+  let query = supabase
+    .from('auto_vehicles')
+    .select(`
+      id, vin, chassis_number, engine_number,
+      color_exterior, color_interior, model_year,
+      list_price, cost_price, status, location_note,
+      expected_arrival_date, actual_arrival_date,
+      variant_id, created_at, updated_at,
+      auto_variants!inner(name, model_id,
+        auto_models!inner(name, brand_id,
+          auto_brands!inner(name)
+        )
+      )
+    `, { count: 'planned' })
+    .eq('tenant_id', input.tenantId)
+    .order('created_at', { ascending: false })
+    .range(from, to);
+
+  if (input.status) {
+    query = query.eq('status', input.status);
+  }
+
+  if (input.search) {
+    query = query.or(`vin.ilike.%${input.search}%,location_note.ilike.%${input.search}%`);
+  }
+
+  const { data, error, count } = await query.returns<InventoryVehicleRow[]>();
+  if (error) {
+    throw new Error(`Mobility.listVehicleInventoryPage: ${error.message}`);
+  }
+
+  return {
+    vehicles: (data ?? []).map(mapInventoryVehicle),
+    totalCount: count ?? (data ?? []).length,
+  };
 }
 
 export async function listMobilityVehicleStatusHistory(
