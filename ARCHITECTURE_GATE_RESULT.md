@@ -1,4 +1,89 @@
-﻿# ARCHITECTURE GATE RESULT - MULTI-AGENT CODING PROTOCOL GOVERNANCE RULE
+﻿# ARCHITECTURE GATE RESULT - BDGF OWNER-OPERATED WORKSHOP RLS REPAIR
+
+> **Status:** PASS - minimal BDGF owner-operated authority and Bella Auto workshop RLS repair are authorized.
+> **Date:** 2026-10-13
+> **Scope:** Add a trusted GitHub Actions owner-authority source for BDGF `owner_operated` approvals, bind role integrity, include the rehearsed Bella Auto workshop RLS migration, and add focused BDGF tests. No production execution in this PR.
+
+## Bella OS/Product Development Process Gate
+
+- Truth: The Bella Auto workshop RLS defect is already proven and the repair migration passed rehearsal, but target deployment remains blocked because BDGF lacks a trusted owner-operated approval source.
+- Source of Truth: BDGF R4 approval/execution contracts, current BDGF scripts, GitHub Actions run identity/permission API, and the existing rehearsed migration content.
+- Canonical Contract: production database mutation must pass BDGF approval -> gate token -> wrapper -> executor. Owner-operated approval is allowed only when approver role is verified by trusted authority, not CLI self-declaration.
+- Gate result: `PASS` for BDGF control-plane code, focused tests, and the Bella Auto workshop RLS migration file. `DEPLOYMENT = NOT_EXECUTED` until merge, credentials, approval record, wrapper execution, and post-deploy probes are complete.
+
+## Product Manifest
+
+- Product: Bella Auto / Automove workshop security boundary.
+- Capability in scope: BDGF owner-operated migration approval and workshop RLS repair migration.
+- Existing capabilities reused: `bella_migration_approval`, `verifyApproval()`, gate token issuance, migration wrapper, GitHub Actions identity and permission API.
+- Non-goals: no Mobility OS, no ProductRegistry, no kernel changes, no production migration execution, no browser E2E, no Finance Go-Live claim.
+
+## Ownership Map
+
+| Data / Behavior | Owner | Decision |
+|---|---|---|
+| BDGF approval contract | Platform / BDGF governance | minimally extend implementation within existing `owner_operated` contract |
+| Owner identity source | GitHub Actions + GitHub API | verify workflow run actor and repository admin permission |
+| `auto_service_appointments` RLS | Bella Auto workshop persistence | re-enable RLS and revoke anon via approved migration |
+| `auto_repair_orders` RLS | Bella Auto workshop persistence | re-enable RLS and revoke anon via approved migration |
+| Production execution | BDGF wrapper / operator | not executed in this PR |
+
+## Contract Dependency Map
+
+```text
+GitHub Actions run
+  -> GitHub API run identity + collaborator permission
+  -> owner_operated approval request
+  -> bella_migration_approval role/hash/environment binding
+  -> verifyApproval()
+  -> gate token
+  -> execute-migration-wrapper.mjs
+  -> migration-executor.mjs
+  -> target database mutation
+```
+
+## Change Authority
+
+Authorized:
+- Modify `scripts/bdgf/create-migration-approval.mjs`.
+- Add a small BDGF owner authority helper.
+- Modify `scripts/bdgf/r4-verify-approval.mjs` to bind `approver_role` into the approval integrity hash while preserving legacy separated approvals.
+- Update focused BDGF approval tests.
+- Add `supabase/migrations/20261013090000_reenable_bella_auto_workshop_rls.sql`.
+
+Not authorized:
+- Execute production migration.
+- Use direct executor access or `supabase db push`.
+- Add broad RBAC, `BDGF_OWNER_*` self-declared authority, ProductRegistry, Mobility OS, kernels, or unrelated OS/Product changes.
+
+## UI -> Contract Reconciliation
+
+- No UI change.
+- No product workflow or user-facing data contract change.
+
+## Additive Migration Plan
+
+- Add one migration only: `20261013090000_reenable_bella_auto_workshop_rls.sql`.
+- Migration behavior: if each workshop table exists, enable RLS, revoke all anon table privileges, and grant authenticated table privileges for policies to enforce tenant boundaries.
+- Production application is explicitly deferred until PR approval and BDGF wrapper execution with post-deploy probes.
+
+## 11 Automated Verification Gates Plan
+
+1. Architecture Compliance: changed files limited to BDGF control plane, focused tests, gate record, and Bella Auto workshop RLS migration.
+2. Contract Boundary: `owner_operated` derives identity/role from GitHub API, not CLI role claims.
+3. Tenant Isolation: RLS repair preserves `public.get_auth_tenant_id()` policy boundary.
+4. RLS & Authorization: migration revokes anon table privileges and keeps authenticated path policy-bound.
+5. Database Migration Safety: run zero-downtime migration check for the new migration.
+6. Event-After-Persistence: no application write/event path changed.
+7. Domain Safety Routing: no Healthcare, Education, Logistics, Warehouse, ProductRegistry, or kernel files changed.
+8. Temporal Provenance: approval audit notes include run identity evidence without secrets.
+9. Rule Governance: no accounting/legal/domain business rule changed.
+10. Audit & Evidence Integrity: tests cover valid owner approval, non-admin spoof block, role tamper/hash mismatch, and environment mismatch.
+11. Regression: run focused BDGF tests, migration check, secret scan or diff check, and final diff review.
+
+---
+
+# ARCHITECTURE GATE RESULT - MULTI-AGENT CODING PROTOCOL GOVERNANCE RULE
 
 > **Status:** PASS - governance rule addition authorized
 > **Date:** 2026-10-08
