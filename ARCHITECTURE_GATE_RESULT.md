@@ -7394,3 +7394,92 @@ Not authorized:
 11. Regression: run focused BDGF workflow tests, owner authority tests, diff check, and secret scan.
 
 ---
+# ARCHITECTURE GATE RESULT - MOBILITY OS FOUNDATION MVP
+
+> **Status:** PASS - approved for minimal Mobility OS Foundation MVP implementation.
+> **Date:** 2026-10-13
+> **Scope:** Create a reusable Mobility OS public contract and runtime foundation for vehicle identity, tenant ownership, lifecycle trace, service-history trace, idempotency, and audit. Reuse existing `auto_*` schema where it already fits. Add only the minimal `mobility_*` OS control tables needed for command idempotency and domain events. Integrate AutoMove through one approved public-contract consumer in this batch. No ProductRegistry entry, no bulk schema rename, no Logistics/Warehouse/Finance change, and no Production mutation.
+
+## Bella OS/Product Development Process Gate
+
+- Truth: Bella Auto already has `auto_*` tables for vehicle identity, owners, lifecycle logs, appointments, repair orders, and service history. It does not yet have a Platform-owned Mobility OS public contract or OS-level command idempotency/audit tables.
+- Source of Truth: `docs/governance/BELLA_AI_CODING_CONSTITUTION.md`, the approved user scope for Mobility OS Foundation MVP, existing Bella Auto migrations `20260803200800`, `20260803210000`, `20260803220000`, `20260803260000`, and the sealed Bella Auto workshop RLS closure evidence.
+- Canonical Contract: Product code consumes Mobility through `src/platform/mobility` public exports. Mobility repository adapters own persistence mapping to existing `auto_*` tables and new minimal `mobility_*` control tables. ProductRegistry remains unchanged.
+- Gate result: `PASS` for this minimal foundation implementation. `MOBILITY_OS_FOUNDATION_MVP = NOT_PROVEN` remains true until local/static/Real DB/RLS/idempotency/audit checks are run and reported.
+
+## Product Manifest
+
+- Product registry: unchanged and not authorized.
+- OS capability: Mobility Foundation, not a standalone product.
+- First consumer: Bella AutoMove / Bella Auto vehicle availability route, migrated through a Mobility public contract in this batch.
+- Reused persistence: `auto_vehicles`, `auto_vehicle_status_logs`, `auto_vehicle_owners`, and `auto_service_history`.
+- New additive persistence: `mobility_domain_events` and `mobility_command_idempotency` only.
+- Non-goals: no Bella Auto rewrite, no ProductRegistry registration, no Production execution, no Logistics/Warehouse/Finance overlap, no bulk `auto_*` rename, and no full AutoMove Go-Live claim.
+
+## Ownership Map
+
+| Data / Behavior | Owner | Decision |
+|---|---|---|
+| Vehicle identity and VIN lifecycle contract | Mobility OS | Public types/service define reusable contract; existing `auto_vehicles` remains the adapter schema for this MVP |
+| Vehicle ownership/user relationship | Mobility OS contract with Auto persistence | Reuse `auto_vehicle_owners`; relationship semantics exposed through Mobility types |
+| Workshop appointment / repair workflow | AutoMove Product | Not moved into OS in this batch |
+| Service history trace by VIN | Mobility OS contract | Read/trace existing `auto_service_history`; do not rewrite workshop flow |
+| Command idempotency | Mobility OS | Add `mobility_command_idempotency` because no shared `auto_*` command log exists |
+| Domain audit events | Mobility OS | Add `mobility_domain_events` because no shared `auto_*` domain event log exists |
+| Tenant isolation | Platform DB/RLS + Mobility authorization port | Tests must prove same-tenant access and cross-tenant denial for target tables |
+
+## Contract Dependency Map
+
+```text
+AutoMove Product Consumer
+  -> src/platform/mobility public contract
+  -> MobilityFoundationService / Supabase contract adapter
+  -> MobilityRepository port
+  -> existing auto_* persistence for vehicle/ownership/service trace
+  -> mobility_* control tables for idempotency and audit
+  -> Platform tenant/RLS helpers
+```
+
+## Change Authority
+
+Authorized:
+- Add `src/platform/mobility` public contract, service, repository ports, in-memory adapter, Postgres adapter, and Supabase read adapter.
+- Add one additive migration for Mobility OS command idempotency, domain events, hardened adapter policies, and minimal adapter grants on existing `auto_*` tables used by the Mobility contract.
+- Add tests for architecture scope, service behavior, migration/RLS shape, Real DB/RLS where E2E DB credentials are available, and AutoMove route contract usage.
+- Update one AutoMove consumer in the approved batch to call the Mobility public contract.
+
+Not authorized:
+- Modify ProductRegistry or create `bella_mobility`.
+- Bulk rename or replace `auto_*` schema.
+- Modify Logistics, Warehouse, Finance, Healthcare, Education, Manufacturing, frozen kernels, or unrelated Bella products.
+- Execute Production mutation from this local session.
+
+## UI -> Contract Reconciliation
+
+- No UI redesign.
+- Data/action consumer in scope: `GET /api/bella-auto/vehicles/available` must fetch available VINs via Mobility public contract instead of directly querying `auto_vehicles`.
+- Existing workshop UI and full AutoMove product flows remain outside this batch unless tests reveal a direct break caused by the scoped change.
+
+## Additive Migration Plan
+
+- Add `20261013120000_create_mobility_os_foundation_contract.sql`.
+- Reuse existing `auto_*` tables for vehicle, owner, lifecycle, and service trace persistence.
+- Create only `mobility_domain_events` and `mobility_command_idempotency`, with tenant/org-unit scope, RLS enabled, anon revoked, authenticated SELECT/INSERT only, and service_role maintenance grants.
+- Use `public.get_auth_tenant_id()` and `auth.uid()` as the trusted tenant/user source; do not accept caller-supplied tenant context through `app.current_tenant_id` or `app.current_user_id`.
+- Replace the historical null-tenant adapter policies on the four Mobility-owned `auto_*` adapter tables before granting runtime privileges.
+- Grant only the adapter privileges needed by the contract on existing `auto_*` tables after policy hardening: vehicle read/write without delete, status-log read/insert, ownership read/write without delete, and service-history read-only.
+- Do not change Production; migration application is limited to local/E2E verification unless a later Production approval explicitly authorizes it.
+
+## 11 Automated Verification Gates Plan
+
+1. Architecture Compliance: changed files limited to Mobility OS foundation, one AutoMove consumer, additive migration, tests, and this gate record.
+2. Contract Boundary: Product consumer imports from `src/platform/mobility`; no ProductRegistry or other OS changes.
+3. Tenant Isolation: Real DB test verifies same-tenant trace and cross-tenant denial on target Mobility tables when E2E DB credentials are present.
+4. RLS & Authorization: migration-shape test verifies RLS enabled and anon revoked for Mobility control tables.
+5. Database Migration Safety: migration is additive and avoids `DROP`, `ALTER TYPE`, table rewrites, and bulk `auto_*` changes.
+6. Event-After-Persistence: domain events are recorded after successful persistence inside the service transaction.
+7. Idempotency: service tests cover duplicate replay and conflict detection by tenant/operation/business key.
+8. Domain Safety Routing: tests assert no Logistics/Warehouse/Finance/ProductRegistry mutation surface appears in the Mobility migration.
+9. Regression: targeted Mobility and AutoMove route tests must pass; broader regression reported separately if run.
+10. Audit & Evidence Integrity: trace output includes lifecycle, ownership/service history, and Mobility domain events without secrets.
+11. Stop Condition: report `PROVEN`, `NOT_PROVEN`, `NOT_READY`, or `HELD` by gate, then stop without expanding product scope.
