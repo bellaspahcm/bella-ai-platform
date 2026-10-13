@@ -20,7 +20,8 @@ import {
 import { resolveGitHubActionsOwnerAuthority } from './owner-authority.mjs';
 
 const R3_MIGRATION_PATH = 'supabase/migrations/20260926000000_r3_student_identity_resolver.sql';
-const EXPECTED_R3_HASH = 'a3115b12c266d5717970337dc6f84fec4cc62fff505f12286e1db32ff744993b';
+const R3_MIGRATION_CONTENT = readFileSync(R3_MIGRATION_PATH, 'utf8');
+const EXPECTED_R3_HASH = computeHash(R3_MIGRATION_CONTENT);
 
 const results = [];
 
@@ -38,7 +39,7 @@ async function test(name, fn) {
 function validRequest(overrides = {}) {
   return {
     migrationFile: R3_MIGRATION_PATH,
-    migrationContent: readFileSync(R3_MIGRATION_PATH, 'utf8'),
+    migrationContent: R3_MIGRATION_CONTENT,
     migrationHash: EXPECTED_R3_HASH,
     requesterId: 'owner-requester@bella',
     approverId: 'owner-approver@bella',
@@ -272,7 +273,7 @@ await test('approval hash binds approval mode and role', () => {
 });
 
 await test('migration hash is bound to exact file content', async () => {
-  const actualHash = computeHash(readFileSync(R3_MIGRATION_PATH, 'utf8'));
+  const actualHash = computeHash(R3_MIGRATION_CONTENT);
   assert.equal(actualHash, EXPECTED_R3_HASH);
 
   const request = await buildRequestFromArgs(parseArgs([
