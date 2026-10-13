@@ -7009,3 +7009,73 @@ Not authorized:
 9. CI safety: regular PR checks must pass before merge.
 10. Production evidence: dispatch Hospitality Production UI Smoke on `main` after merge.
 11. Closure: only `AUTHENTICATED_PRODUCTION_SMOKE` may become `PASS` after a passing run; UI seal and Go-Live require separate evaluation.
+# ARCHITECTURE GATE RESULT - BDGF OWNER HASH CI GUARD FIX
+
+> **Status:** PASS - minimal test-only repair for the owner-operated approval guard after the protected Production workflow failed before secrets, approval creation, migration execution, or post-deploy probes.
+> **Date:** 2026-10-13
+> **Scope:** Make the BDGF owner-approval hash fixture test derive the expected hash from the checked-out fixture content so the guard is not platform line-ending dependent. No migration content change, no workflow scope expansion, no database execution, no Mobility OS, no ProductRegistry, and no kernel changes.
+
+## Bella OS/Product Development Process Gate
+
+- Truth: Production run `38351566779` failed closed in `npm run test:bdgf-owner-authority`; later steps for secrets, BDGF approval, wrapper execution, and Real DB probe were skipped.
+- Source of Truth: `scripts/bdgf/test-create-migration-approval.mjs`, `scripts/bdgf/create-migration-approval.mjs`, and the failed GitHub Actions log for run `38351566779`.
+- Canonical Contract: owner-operated approval remains verified by BDGF authority evidence; migration execution remains wrapper-only and deferred until the protected workflow passes all guards.
+- Gate result: `PASS` for a test-only guard repair. `MIGRATION = NOT_APPLIED` and `POST_DEPLOY_RLS = NOT_PROVEN` remain unchanged.
+
+## Product Manifest
+
+- Product: Bella Auto / Automove workshop security boundary.
+- Capability in scope: BDGF owner-operated approval guard reliability in GitHub Actions.
+- Non-goals: no migration rewrite, no production SQL path, no Mobility OS, no ProductRegistry, no kernel change, no Bella Auto Go-Live claim.
+
+## Ownership Map
+
+| Data / Behavior | Owner | Decision |
+|---|---|---|
+| Owner approval guard tests | BDGF governance | remove platform-specific fixture hash constant |
+| Approved workshop RLS migration | Bella Auto workshop persistence | unchanged |
+| Production execution | BDGF wrapper / operator | still blocked until workflow passes and probes production DB |
+
+## Contract Dependency Map
+
+```text
+test-create-migration-approval.mjs
+  -> computeHash(checked-out fixture content)
+  -> buildRequestFromArgs()
+  -> validate approval request contract
+```
+
+## Change Authority
+
+Authorized:
+- Modify the focused BDGF owner approval test guard only.
+
+Not authorized:
+- Modify approved migration content or hash.
+- Execute production migration outside the protected workflow.
+- Modify ProductRegistry, kernels, Mobility OS, Logistics/Warehouse/Healthcare/Education, or unrelated Bella Auto features.
+
+## UI -> Contract Reconciliation
+
+- No UI change.
+
+## Additive Migration Plan
+
+- No database migration change.
+- No production database mutation in this fix.
+
+## 11 Automated Verification Gates Plan
+
+1. Architecture Compliance: changed files limited to BDGF test and gate record.
+2. Contract Boundary: no BDGF runtime approval or wrapper contract change.
+3. Tenant Isolation: no database behavior changed.
+4. RLS & Authorization: unchanged; production proof remains pending.
+5. Database Migration Safety: approved migration hash remains unchanged.
+6. Event-After-Persistence: no event path changed.
+7. Domain Safety Routing: no unrelated OS/Product files changed.
+8. Temporal Provenance: fix responds to failed protected workflow run `38351566779`.
+9. Rule Governance: no business rule changed.
+10. Audit & Evidence Integrity: failed production workflow remains fail-closed until rerun after this fix.
+11. Regression: run `npm run test:bdgf-owner-authority`, `npm run test:bdgf-production-workflow`, `npm run security:secrets`, and `git diff --check`.
+
+---
