@@ -1,4 +1,88 @@
-﻿# ARCHITECTURE GATE RESULT - BDGF PRODUCTION WORKFLOW FOR BELLA AUTO WORKSHOP RLS
+﻿# ARCHITECTURE GATE RESULT - BELLA AUTO WORKSHOP SECURITY CLOSURE
+
+> **Status:** PASS - minimal closure for the already-repaired Bella Auto workshop RLS incident is authorized.
+> **Date:** 2026-10-13
+> **Scope:** Prepare a protected Production workflow that repairs migration history for `20261013090000`, applies one least-privilege migration for the two workshop tables through BDGF, records that migration with Supabase migration repair, then verifies RLS, grants, history, and tenant isolation. No direct local Production SQL, no `supabase db push`, no bulk migration sync, no ProductRegistry, and no OS/kernel changes.
+
+## Bella OS/Product Development Process Gate
+
+- Truth: Production RLS repair is already proven for `auto_service_appointments` and `auto_repair_orders`, but `20261013090000` is not recorded in migration history and `authenticated` still has `REFERENCES`, `TRIGGER`, and `TRUNCATE` table privileges.
+- Source of Truth: Production read-only evidence, successful BDGF workflow `38376099290`, Supabase migration history, `scripts/bdgf/execute-migration-wrapper.mjs`, and the existing post-deploy Bella Auto workshop RLS probe.
+- Canonical Contract: Production DDL must use BDGF approval -> gate token -> wrapper -> executor. Migration-history repair must use the official Supabase CLI `migration repair --status applied` against the confirmed Production DB URL and must not rerun migration DDL.
+- Gate result: `PASS` for preparing the workflow, least-privilege migration, probes, and static guard tests. `MIGRATION_HISTORY = NOT_RECORDED` and `AUTHENTICATED_LEAST_PRIVILEGE = NOT_SEALED` remain true until the protected workflow is merged, manually dispatched, and passes.
+
+## Product Manifest
+
+- Product: Bella Auto / Automove workshop security boundary.
+- Capability in scope: incident closure for two workshop tables only.
+- Existing capabilities reused: GitHub Actions Production environment protection, owner-operated BDGF approval, BDGF migration wrapper/executor, Supabase migration repair, and Real DB post-deploy probes.
+- Non-goals: no broad migration synchronization, no direct Production SQL, no `supabase db push`, no Logistics/Healthcare/Education/Manufacturing changes, no ProductRegistry change, and no Bella Auto Go-Live claim.
+
+## Ownership Map
+
+| Data / Behavior | Owner | Decision |
+|---|---|---|
+| Migration history row for `20261013090000` | Supabase migration management / operator | repair as applied only after verifying DDL is already applied |
+| `authenticated` table privileges on workshop tables | Bella Auto workshop persistence | revoke only `REFERENCES`, `TRIGGER`, `TRUNCATE` |
+| Least-privilege Production DDL | BDGF governance / executor | execute through owner-operated approval and wrapper |
+| Tenant isolation proof | Bella Auto workshop RLS policies | reuse transactional tenant A/B Real DB probe |
+| Full Bella Auto readiness | separate product readiness gate | not claimed by this closure |
+
+## Contract Dependency Map
+
+```text
+Manual workflow_dispatch on main
+  -> GitHub Environment Production protection
+  -> Production URL project-ref preflight
+  -> Supabase migration repair for already-applied 20261013090000
+  -> owner_operated BDGF approval for 20261013103000
+  -> execute-migration-wrapper.mjs
+  -> Supabase migration repair for 20261013103000 after successful DDL
+  -> post-deploy RLS / grants / history / tenant-isolation probes
+```
+
+## Change Authority
+
+Authorized:
+- Add one least-privilege migration limited to `auto_service_appointments` and `auto_repair_orders`.
+- Add one protected manual workflow for Bella Auto workshop security closure.
+- Add read-only closure probes and static guard tests for the workflow and migration.
+- Update package scripts and this architecture gate record.
+
+Not authorized:
+- Run Production mutation from this local session.
+- Manually edit `supabase_migrations.schema_migrations`.
+- Use `supabase db push`, bulk sync, direct executor invocation, or direct `psql`.
+- Modify ProductRegistry, app product workflows, frozen kernels, Logistics, Healthcare, Education, Manufacturing, or unrelated Bella Auto features.
+
+## UI -> Contract Reconciliation
+
+- No UI change.
+- No user-facing product workflow or action contract change.
+
+## Additive Migration Plan
+
+- Add `20261013103000_restrict_bella_auto_workshop_authenticated_grants.sql`.
+- Migration behavior: revoke only `REFERENCES`, `TRIGGER`, and `TRUNCATE` from `authenticated` on the two workshop tables; preserve `SELECT`, `INSERT`, `UPDATE`, and `DELETE` for existing RLS policies.
+- Deployment is deferred to a protected manual Production workflow. The workflow repairs migration history with Supabase CLI only after preflight verification and records the new migration only after BDGF execution succeeds.
+
+## 11 Automated Verification Gates Plan
+
+1. Architecture Compliance: changed files limited to Bella Auto workshop closure workflow, migration, BDGF probes/tests, package script, and gate record.
+2. Contract Boundary: least-privilege DDL runs only through BDGF wrapper; history repair uses Supabase CLI migration repair, not direct SQL.
+3. Tenant Isolation: final workflow reruns the transactional tenant A/B RLS probe.
+4. RLS & Authorization: final workflow checks RLS enabled, anon denied, authenticated CRUD retained, and management privileges revoked.
+5. Database Migration Safety: static tests bind migration SHA-256 and zero-downtime check reviews the changed migration.
+6. Event-After-Persistence: no product write/event path changed.
+7. Domain Safety Routing: no Healthcare, Education, Logistics, Manufacturing, ProductRegistry, or kernel files changed.
+8. Temporal Provenance: workflow records exact migration versions and hashes in logs without secrets.
+9. Rule Governance: no accounting/legal/domain rule changed.
+10. Audit & Evidence Integrity: workflow fails closed on wrong project URL, missing secrets, history/grant mismatch, invalid approval, wrapper failure, repair failure, or post-probe failure.
+11. Regression: run focused BDGF tests, closure workflow guard tests, zero-downtime migration check, diff check, and final diff review.
+
+---
+
+# ARCHITECTURE GATE RESULT - BDGF PRODUCTION WORKFLOW FOR BELLA AUTO WORKSHOP RLS
 
 > **Status:** PASS - add a manual, protected Production workflow for the already-approved Bella Auto workshop RLS migration.
 > **Date:** 2026-10-13

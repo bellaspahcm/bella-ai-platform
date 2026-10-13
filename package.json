@@ -50,6 +50,7 @@
     "test:critical": "jest src/__tests__/payment-webhook.test.ts src/__tests__/accounting-outbox.test.ts src/__tests__/finance.test.ts src/__tests__/finance-transaction-mutations.test.ts src/__tests__/admin-salary-actions.test.ts src/__tests__/salary-recalculation-lifecycle.test.ts src/__tests__/salary-surface-parity.test.ts src/__tests__/salary-reconciliation.test.ts src/__tests__/salary-reconciliation-summary.test.ts src/__tests__/auth-guards.test.ts src/__tests__/tenant-actions.test.ts src/__tests__/meta-ads-actions.test.ts src/__tests__/meta-ads-ui.test.ts src/__tests__/business-invariants-check.test.ts src/__tests__/ai-autopilot-cron.test.ts src/__tests__/test-upcoming-route.test.ts src/__tests__/portal-payment-utils.test.ts --runInBand",
     "test:bdgf-owner-authority": "node scripts/bdgf/test-create-migration-approval.mjs",
     "test:bdgf-production-workflow": "node scripts/bdgf/test-production-migration-workflow.mjs",
+    "test:bdgf-bella-auto-security-closure": "node scripts/bdgf/test-bella-auto-security-closure-workflow.mjs",
     "test:booking-engine": "jest src/__tests__/booking-engine/ --runInBand",
     "test:intelligence": "jest src/services/intelligence/__tests__/ --coverage --collectCoverageFrom='src/services/intelligence/**/*.ts' --collectCoverageFrom='!src/services/intelligence/**/*.test.ts'",
     "test:coverage": "jest --coverage",
