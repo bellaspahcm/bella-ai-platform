@@ -134,4 +134,19 @@ describe('AutoMove inventory provider Mobility contract usage', () => {
     expect(validationSource).not.toContain(".from('auto_vehicles')");
     expect(validationSource).not.toContain('.from("auto_vehicles")');
   });
+
+  it('moves booking list vehicle display reads behind the Mobility public contract', () => {
+    const componentPath = path.resolve(
+      __dirname,
+      '../../../components/bella-auto/BookingListTable.tsx'
+    );
+    const source = readFileSync(componentPath, 'utf8');
+
+    expect(source).toContain("from '@/platform/mobility/supabase-vehicle-contract'");
+    expect(source).toContain('listMobilityVehicleDisplayByIds');
+    expect(source).toContain(".from('auto_bookings')");
+    expect(source).not.toContain('auto_vehicles!inner');
+    expect(source).not.toContain(".from('auto_vehicles')");
+    expect(source).not.toContain('.from("auto_vehicles")');
+  });
 });

@@ -17,6 +17,14 @@ type AutoBrandRow = Database['public']['Tables']['auto_brands']['Row'];
 type AvailableVehicleRow = Pick<AutoVehicleRow, 'id' | 'vin' | 'color_exterior' | 'status'>;
 type InventorySummaryRow = Pick<AutoVehicleRow, 'status' | 'delivered_at'>;
 type VehicleIdentityRow = Pick<AutoVehicleRow, 'id' | 'vin'>;
+type VehicleDisplayRow = Pick<AutoVehicleRow, 'id' | 'vin' | 'color_exterior' | 'variant_id'> & {
+  auto_variants: {
+    name: string | null;
+    auto_models: {
+      name: string | null;
+    } | null;
+  } | null;
+};
 type CustomerVehicleOwnerRow = Pick<
   AutoVehicleOwnerRow,
   | 'id'
@@ -117,6 +125,15 @@ export interface MobilityVehicleStatusHistoryEntry {
 export interface MobilityVehicleIdentity {
   vehicleId: string;
   vin: string;
+}
+
+export interface MobilityVehicleDisplay {
+  vehicleId: string;
+  vin: string;
+  colorExterior: string;
+  variantId: string;
+  variantName?: string;
+  modelName?: string;
 }
 
 export interface MobilityCustomerOwnedVehicle {
@@ -368,6 +385,42 @@ export async function getMobilityVehicleIdentity(
     vehicleId: row.id,
     vin: row.vin,
   };
+}
+
+export async function listMobilityVehicleDisplayByIds(
+  supabase: MobilitySupabaseClient,
+  input: {
+    tenantId: string;
+    vehicleIds: readonly string[];
+  }
+): Promise<MobilityVehicleDisplay[]> {
+  const vehicleIds = unique([...input.vehicleIds]);
+  if (vehicleIds.length === 0) return [];
+
+  const { data, error } = await supabase
+    .from('auto_vehicles')
+    .select(`
+      id, vin, color_exterior, variant_id,
+      auto_variants!inner(name,
+        auto_models!inner(name)
+      )
+    `)
+    .eq('tenant_id', input.tenantId)
+    .in('id', vehicleIds)
+    .returns<VehicleDisplayRow[]>();
+
+  if (error) {
+    throw new Error(`Mobility.listVehicleDisplayByIds: ${error.message}`);
+  }
+
+  return (data ?? []).map((row) => ({
+    vehicleId: row.id,
+    vin: row.vin,
+    colorExterior: row.color_exterior,
+    variantId: row.variant_id,
+    variantName: row.auto_variants?.name ?? undefined,
+    modelName: row.auto_variants?.auto_models?.name ?? undefined,
+  }));
 }
 
 export async function listMobilityCustomerOwnedVehicles(
