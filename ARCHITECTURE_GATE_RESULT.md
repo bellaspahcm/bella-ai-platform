@@ -166,6 +166,79 @@ Not authorized:
 
 ---
 
+# ARCHITECTURE GATE RESULT - CUSTOMER DETAIL TENANT THEME UI REPAIR
+
+> **Status:** PASS - minimal presentation-layer repair authorized.
+> **Date:** 2026-10-13
+> **Scope:** Replace hardcoded customer detail service-card and primary button colors with existing runtime tenant theme tokens. No schema, API, domain, ProductRegistry, Healthcare, Education, Logistics, or kernel change.
+
+## Bella OS/Product Development Process Gate
+
+- Truth: customer detail card/button colors must follow the active tenant brand preset.
+- Source of Truth: tenant brand resolver and runtime CSS variables in `src/lib/business-rules/tenant-modules.ts`.
+- Canonical Contract: UI consumes `--primary`, `--primary-hover`, `--primary-foreground`, `--accent`, and `--accent-foreground`; UI must not bake a product color into shared customer detail card classes.
+- Gate result: `PASS` for presentation CSS/classes only.
+
+## Product Manifest
+
+- Product surface: customer detail service/package UI.
+- Capability in scope: active booking card, package selector active card, customer detail primary actions, and modal primary actions.
+- Non-goals: booking/session/payment semantics, KTV matching logic, tenant identity, schema, migrations, RLS, authorization, service actions.
+
+## Ownership Map
+
+| Data / Behavior | Owner | Decision |
+|---|---|---|
+| Tenant preset tokens | Platform tenant branding contract | consume only |
+| Customer detail presentation | Product/UI layer | may update classes |
+| Booking/payment/session data | Existing service/domain contracts | unchanged |
+| Frozen kernels | Healthcare/Education/Logistics OS | not touched |
+
+## Contract Dependency Map
+
+```text
+Customer Detail UI
+  -> semantic CSS theme classes / Tailwind primary tokens
+  -> runtime tenant CSS variables
+  -> resolved tenant brand preset
+```
+
+## Change Authority
+
+Authorized:
+- Modify customer-detail presentation classes.
+- Modify existing CSS theme helper classes to use runtime tenant variables.
+
+Not authorized:
+- Change database, API, service, domain, ProductRegistry, migrations, generated types, or frozen kernels.
+
+## UI -> Contract Reconciliation
+
+- Current UI defect: global `.beauty-customer-theme-card` had a fixed jade fallback that could affect non-jade tenants such as babycare.
+- Required UI contract: card backgrounds and primary buttons resolve from the active tenant preset.
+- Reconciliation result: `MATCH` after converting the presentation layer to existing runtime tokens.
+
+## Additive Migration Plan
+
+- No migration.
+- No schema, table, index, RLS, generated type, or data change.
+
+## 11 Automated Verification Gates Plan
+
+1. Architecture Compliance: changed files limited to presentation and this gate record.
+2. Contract Boundary: no service/API/domain/schema changes.
+3. Tenant Isolation: no runtime data path change.
+4. RLS & Authorization: unchanged.
+5. Database Migration Safety: no migration.
+6. Event-After-Persistence: no event path changed.
+7. Product UI Theme Contract: verify card/button styles consume tenant CSS variables.
+8. Type Safety: run scoped static checks where available.
+9. Visual Smoke: browser/manual screenshot if local runtime is practical.
+10. Regression Scope: run `git diff --check` and focused lint/type validation.
+11. Evidence: report PASS/NOT_RUN honestly.
+
+---
+
 # ARCHITECTURE GATE RESULT - BDGF OWNER-OPERATED WORKSHOP RLS REPAIR
 
 > **Status:** PASS - minimal BDGF owner-operated authority and Bella Auto workshop RLS repair are authorized.

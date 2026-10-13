@@ -97,7 +97,7 @@ export default function CustomerDetailPage() {
   if (loading) {
     return (
       <div className="flex-1 flex items-center justify-center bg-slate-50 min-h-[500px]">
-        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-emerald-500" />
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary" />
       </div>
     );
   }
@@ -106,7 +106,7 @@ export default function CustomerDetailPage() {
     return (
       <div className="flex-1 flex flex-col items-center justify-center bg-slate-50 min-h-[500px] p-6">
         <h2 className="text-lg font-black text-slate-800 mb-3">Không tìm thấy thông tin khách hàng</h2>
-        <button onClick={handleBack} className="text-xs font-bold text-emerald-600 hover:underline">
+        <button onClick={handleBack} className="text-xs font-bold text-primary hover:underline">
           &larr; Quay lại danh sách
         </button>
       </div>
@@ -134,7 +134,7 @@ export default function CustomerDetailPage() {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
         <button
           onClick={handleBack}
-          className="flex items-center gap-2 font-black text-slate-800 text-base hover:text-emerald-600 transition-colors"
+          className="flex items-center gap-2 font-black text-slate-800 text-base hover:text-primary transition-colors"
         >
           <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-sm border border-slate-200">
             <ChevronLeft className="w-4 h-4 text-slate-600" />
@@ -161,7 +161,7 @@ export default function CustomerDetailPage() {
 
           <button
             onClick={() => setIsBookingModalOpen(true)}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-slate-900 text-white text-xs font-black hover:bg-slate-800 transition-all shadow-md active:scale-95"
+            className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-black hover:bg-primary-hover transition-all shadow-md shadow-primary/20 active:scale-95"
           >
             <Calendar className="w-3.5 h-3.5" />
             Đặt lịch nhanh
@@ -199,7 +199,7 @@ export default function CustomerDetailPage() {
             className={cn(
               "px-4 py-2 rounded-full text-xs font-black whitespace-nowrap transition-all border shrink-0",
               activeTab === tab.id
-                ? "bg-slate-900 text-white border-slate-900 shadow-md shadow-slate-900/10"
+                ? "bg-primary text-primary-foreground border-primary shadow-md shadow-primary/10"
                 : "bg-white text-slate-600 border-slate-200/80 hover:bg-slate-50"
             )}
           >
@@ -281,10 +281,10 @@ export default function CustomerDetailPage() {
           <div className="rounded-[2.5rem] bg-white p-6 border border-slate-200/80 shadow-lg shadow-slate-200/50">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-base font-black text-slate-900 flex items-center gap-2">
-                <Calendar className="w-5 h-5 text-indigo-600" />
+                <Calendar className="w-5 h-5 text-primary" />
                 <span>Ghi chú & hoạt động gần đây</span>
               </h3>
-              <button className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold text-blue-600 hover:bg-blue-50 transition-colors">
+              <button className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold text-primary hover:bg-primary/10 transition-colors">
                 <Plus className="w-3.5 h-3.5" /> Thêm ghi chú
               </button>
             </div>

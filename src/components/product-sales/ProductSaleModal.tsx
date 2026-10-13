@@ -608,7 +608,7 @@ export function ProductSaleModal({
               <button
                 type="submit"
                 disabled={isSubmitting || !formData.ktvId || !formData.productName}
-                className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-primary px-5 py-4 font-black text-white hover:bg-primary-hover shadow-lg shadow-primary/20 dark:shadow-none transition-all duration-200 active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none"
+                className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-primary px-5 py-4 font-black text-primary-foreground hover:bg-primary-hover shadow-lg shadow-primary/20 dark:shadow-none transition-all duration-200 active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none"
               >
                 {isSubmitting ? (
                   <>

@@ -117,7 +117,7 @@ export function ActiveBookingPanel({
   return (
     <div className="space-y-6 mb-6">
       {/* ── Theme-aware Active Package Card ── */}
-      <div className="beauty-customer-theme-card beauty-customer-theme-hero-card relative overflow-hidden rounded-[2.5rem] p-6 text-white shadow-2xl border">
+      <div className="beauty-customer-theme-card beauty-customer-theme-hero-card relative overflow-hidden rounded-[2.5rem] p-6 text-primary-foreground shadow-2xl border">
         <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 mb-6">
           {/* Header left */}
           <div className="flex items-start gap-4 min-w-0">
@@ -306,7 +306,7 @@ export function ActiveBookingPanel({
                   className={cn(
                     "w-full py-2.5 rounded-xl text-xs font-black transition-all shadow-sm active:scale-95",
                     ktv.isSelected
-                      ? "bg-amber-500 text-slate-950 hover:bg-amber-600"
+                      ? "bg-primary text-primary-foreground hover:bg-primary-hover"
                       : "bg-white text-slate-800 border border-slate-200 hover:bg-slate-100"
                   )}
                 >

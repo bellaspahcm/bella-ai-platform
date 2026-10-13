@@ -64,8 +64,8 @@ export function BookingSelectorPanel({
               className={cn(
                 'ml-2 rounded-full px-3 py-1 text-[9px] font-black uppercase tracking-widest transition-all border',
                 isCombineMode
-                  ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-100'
-                  : 'bg-indigo-50 text-indigo-600 border-indigo-200 hover:bg-indigo-100'
+                  ? 'bg-primary text-primary-foreground border-primary shadow-md shadow-primary/15'
+                  : 'bg-primary/10 text-primary border-primary/20 hover:bg-primary/15'
               )}
             >
               {isCombineMode ? '✓ Đang gộp' : '⊞ Chọn gộp'}
@@ -102,9 +102,9 @@ export function BookingSelectorPanel({
                 className={cn(
                   "relative cursor-pointer rounded-2xl border p-4 transition-all flex items-start gap-4 shadow-sm hover:shadow-md",
                   isActive
-                    ? "beauty-customer-theme-card text-white border-transparent shadow-xl"
+                    ? "beauty-customer-theme-card text-primary-foreground border-transparent shadow-xl"
                     : isSelected
-                    ? "bg-indigo-50 border-indigo-400 text-slate-900 ring-2 ring-indigo-300"
+                    ? "bg-primary/10 border-primary/40 text-slate-900 ring-2 ring-primary/25"
                     : "bg-slate-50/60 text-slate-900 border-slate-200 hover:bg-white hover:border-slate-300"
                 )}
               >

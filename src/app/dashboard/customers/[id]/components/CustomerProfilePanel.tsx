@@ -45,7 +45,7 @@ export function CustomerHeaderBanner({
             </div>
             <button
               onClick={onEditCustomer}
-              className="absolute -bottom-1 -right-1 w-7 h-7 bg-emerald-500 text-white rounded-full flex items-center justify-center shadow-md hover:scale-110 transition-transform"
+              className="absolute -bottom-1 -right-1 w-7 h-7 bg-primary text-primary-foreground rounded-full flex items-center justify-center shadow-md shadow-primary/20 hover:scale-110 transition-transform"
               title="Đổi ảnh đại diện"
             >
               <Camera className="w-3.5 h-3.5" />
@@ -157,7 +157,7 @@ export function CustomerDetailInfoCard({
         </h3>
         <button
           onClick={onEditCustomer}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-blue-600 hover:bg-blue-50 transition-colors"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-primary hover:bg-primary/10 transition-colors"
         >
           <Edit3 className="w-3.5 h-3.5" />
           Chỉnh sửa
