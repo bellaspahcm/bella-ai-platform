@@ -73,4 +73,14 @@ describe('AutoMove inventory provider Mobility contract usage', () => {
     expect(source).not.toContain(".from('auto_vehicles')");
     expect(source).not.toContain('.from("auto_vehicles")');
   });
+
+  it('moves the dashboard shell vehicle stats behind the Mobility public contract', () => {
+    const pagePath = path.resolve(__dirname, '../../../app/dashboard/bella-auto/page.tsx');
+    const source = readFileSync(pagePath, 'utf8');
+
+    expect(source).toContain("from '@/platform/mobility/supabase-vehicle-contract'");
+    expect(source).toContain('getMobilityVehicleInventorySummary');
+    expect(source).not.toContain(".from('auto_vehicles')");
+    expect(source).not.toContain('.from("auto_vehicles")');
+  });
 });
