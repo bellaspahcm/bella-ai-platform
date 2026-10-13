@@ -57,6 +57,13 @@ await test('workflow creates owner-operated approval before execution', () => {
   assert.match(workflow, /GITHUB_TOKEN: \$\{\{ github\.token \}\}/);
 });
 
+await test('workflow extracts approval JSON from noisy command output', () => {
+  assert.match(workflow, /approval-output\.log/);
+  assert.match(workflow, /output\.matchAll\(\//);
+  assert.match(workflow, /BDGF approval output did not include approval JSON/);
+  assert.doesNotMatch(workflow, /output\.indexOf\('\{'\)/);
+});
+
 await test('workflow uses the canonical Production Supabase database URL secret', () => {
   const productionUrlSecretReferences = workflow.match(/secrets\.PRODUCTION_SUPABASE_DB_URL/g) || [];
   assert.ok(productionUrlSecretReferences.length >= 3);

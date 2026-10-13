@@ -7232,3 +7232,81 @@ Not authorized:
 11. Regression: run focused BDGF workflow tests, owner authority tests, diff check, secret scan, and final diff review.
 
 ---
+
+# ARCHITECTURE GATE RESULT - BDGF APPROVAL OUTPUT PARSER HOTFIX
+
+> **Status:** PASS - minimal workflow parser hardening after Production attempt 3 created BDGF approval but failed to extract the approval id from noisy command output.
+> **Date:** 2026-10-13
+> **Scope:** Parse the approval JSON object from `approval-output.log` without being confused by dotenv tip text. No SQL change, no migration content change, no executor bypass, no Production mutation from this local session.
+
+## Bella OS/Product Development Process Gate
+
+- Truth: Production run `38361647192` attempt `3` created an approved BDGF record, then failed because the inline parser read the first brace in dotenv output (`{ override: true }`) instead of the approval JSON.
+- Source of Truth: GitHub Actions failed log, Production read-only approval lookup, workflow parser code, and focused BDGF workflow guard.
+- Canonical Contract: the workflow must pass the created `approval_id` to `execute-migration-wrapper.mjs` only after validating that the parsed JSON contains the approved migration hash.
+- Gate result: `PASS` for parser hardening. `MIGRATION_EXECUTION = NOT_RUN` for this code change.
+
+## Product Manifest
+
+- Product: Bella Auto / Automove workshop security boundary.
+- Capability in scope: Production BDGF workflow approval id extraction.
+- Existing capabilities reused: owner-operated approval, fixed migration hash gate, BDGF wrapper execution, and post-deploy RLS probe.
+- Non-goals: no migration SQL change, no `db push`, no direct executor invocation, no bulk migration sync, no owner authority relaxation.
+
+## Ownership Map
+
+| Data / Behavior | Owner | Decision |
+|---|---|---|
+| Approval output parsing | BDGF workflow | harden parser against non-JSON braces |
+| Approval record | BDGF governance | preserve existing create approval script |
+| Production mutation | BDGF wrapper / executor | unchanged |
+| Workshop RLS proof | Bella Auto workshop persistence | unchanged post-deploy probe |
+
+## Contract Dependency Map
+
+```text
+create-migration-approval.mjs stdout
+  -> approval-output.log
+  -> parse JSON object with approval_id + migration_hash
+  -> validate approved SHA-256
+  -> expose steps.approval.outputs.approval_id
+  -> execute-migration-wrapper.mjs
+```
+
+## Change Authority
+
+Authorized:
+- Harden approval JSON extraction in the protected Production workflow.
+- Add focused static guard coverage for noisy output.
+- Update this gate record.
+
+Not authorized:
+- Modify migration SQL or approved hash.
+- Run Production mutation locally.
+- Bypass BDGF, weaken owner authority, or change executor behavior.
+
+## UI -> Contract Reconciliation
+
+- No UI change.
+- No product user-facing contract change.
+
+## Additive Migration Plan
+
+- No new migration.
+- Existing migration binding and SHA-256 are unchanged.
+
+## 11 Automated Verification Gates Plan
+
+1. Architecture Compliance: changed files limited to workflow, focused workflow test, and gate record.
+2. Contract Boundary: approval and execution remain on existing BDGF scripts.
+3. Tenant Isolation: unchanged; post-deploy probe remains required.
+4. RLS & Authorization: unchanged; workflow still requires post-deploy probe before proven status.
+5. Database Migration Safety: approved migration hash remains fixed.
+6. Event-After-Persistence: no app event path changed.
+7. Domain Safety Routing: no Healthcare, Education, Logistics, Warehouse, ProductRegistry, Mobility OS, or kernel files changed.
+8. Temporal Provenance: workflow remains manual-only on `main` in Production environment.
+9. Rule Governance: no accounting/legal/domain rule changed.
+10. Audit & Evidence Integrity: parser validates approval hash before outputting the id.
+11. Regression: run focused BDGF workflow tests, owner authority tests, diff check, and secret scan.
+
+---
