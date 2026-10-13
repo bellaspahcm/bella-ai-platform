@@ -105,14 +105,14 @@ jobs:
       - name: Validate required Production secrets
         shell: bash
         env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          PRODUCTION_SUPABASE_DB_URL: ${{ secrets.PRODUCTION_SUPABASE_DB_URL }}
           DATABASE_EXECUTOR_URL: ${{ secrets.DATABASE_EXECUTOR_URL }}
           GATE_SIGNING_KEY: ${{ secrets.GATE_SIGNING_KEY }}
           GITHUB_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
 
-          test -n "$DATABASE_URL"
+          test -n "$PRODUCTION_SUPABASE_DB_URL"
           test -n "$DATABASE_EXECUTOR_URL"
           test -n "$GATE_SIGNING_KEY"
           test -n "$GITHUB_TOKEN"
@@ -122,7 +122,7 @@ jobs:
         id: approval
         shell: bash
         env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DATABASE_URL: ${{ secrets.PRODUCTION_SUPABASE_DB_URL }}
           GITHUB_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
@@ -172,7 +172,7 @@ jobs:
       - name: Probe post-deploy workshop RLS
         shell: bash
         env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DATABASE_URL: ${{ secrets.PRODUCTION_SUPABASE_DB_URL }}
         run: |
           set -euo pipefail
 
