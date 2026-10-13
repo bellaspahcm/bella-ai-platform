@@ -12,17 +12,19 @@ BEGIN
     ALTER TABLE public.auto_service_appointments ENABLE ROW LEVEL SECURITY;
     REVOKE ALL ON TABLE public.auto_service_appointments FROM anon;
     GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.auto_service_appointments TO authenticated;
+    EXECUTE $comment$
+      COMMENT ON TABLE public.auto_service_appointments IS
+        'Bella Auto workshop appointments. RLS is required; tenant isolation is enforced by public.get_auth_tenant_id() policies.'
+    $comment$;
   END IF;
 
   IF to_regclass('public.auto_repair_orders') IS NOT NULL THEN
     ALTER TABLE public.auto_repair_orders ENABLE ROW LEVEL SECURITY;
     REVOKE ALL ON TABLE public.auto_repair_orders FROM anon;
     GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.auto_repair_orders TO authenticated;
+    EXECUTE $comment$
+      COMMENT ON TABLE public.auto_repair_orders IS
+        'Bella Auto workshop repair orders. RLS is required; tenant isolation is enforced by public.get_auth_tenant_id() policies.'
+    $comment$;
   END IF;
 END $$;
-
-COMMENT ON TABLE public.auto_service_appointments IS
-  'Bella Auto workshop appointments. RLS is required; tenant isolation is enforced by public.get_auth_tenant_id() policies.';
-
-COMMENT ON TABLE public.auto_repair_orders IS
-  'Bella Auto workshop repair orders. RLS is required; tenant isolation is enforced by public.get_auth_tenant_id() policies.';
