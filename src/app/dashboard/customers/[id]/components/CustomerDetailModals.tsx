@@ -149,7 +149,7 @@ export function EditCustomerModal({
                   className={cn(
                     "py-2.5 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all border",
                     data.gender_baby === g.id
-                      ? "bg-primary text-white border-primary shadow-xl shadow-primary/20 scale-[1.02]"
+                      ? "bg-primary text-primary-foreground border-primary shadow-xl shadow-primary/20 scale-[1.02]"
                       : "bg-slate-50 text-slate-400 border-slate-100 hover:border-primary/30"
                   )}
                 >
@@ -265,7 +265,7 @@ export function EditCustomerModal({
           <button
             disabled={isSubmitting}
             onClick={onConfirm}
-            className="flex-1 py-4 bg-primary text-white rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2"
+            className="flex-1 py-4 bg-primary text-primary-foreground rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2"
           >
             {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
             Lưu thay đổi
@@ -372,7 +372,7 @@ export function BookingPaymentModal({
                   className={cn(
                     "py-3 px-4 rounded-xl font-bold text-sm transition-all border",
                     data.method === m.id
-                      ? "bg-primary text-white border-primary shadow-lg shadow-primary/20"
+                      ? "bg-primary text-primary-foreground border-primary shadow-lg shadow-primary/20"
                       : "bg-slate-50 text-slate-500 border-slate-100 hover:border-primary/30"
                   )}
                 >
@@ -486,7 +486,7 @@ export function BookingPaymentModal({
             disabled={isSubmitting || data.amount <= 0}
             onClick={onConfirm}
             data-testid="payment-submit-button"
-            className="flex-1 py-4 bg-primary text-white rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2"
+            className="flex-1 py-4 bg-primary text-primary-foreground rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2"
           >
             {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
             Xác nhận thu tiền
@@ -623,7 +623,7 @@ export function EditBookingModal({
       >
         <div className="p-8 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-amber-500 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-amber-200">
+            <div className="w-12 h-12 bg-primary rounded-2xl flex items-center justify-center text-primary-foreground shadow-lg shadow-primary/20">
               <Sparkles className="w-6 h-6" />
             </div>
             <div>
@@ -833,7 +833,7 @@ export function EditBookingModal({
           <button
             disabled={isSubmitting}
             onClick={onConfirm}
-            className="flex-1 py-4 bg-amber-500 text-white rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl shadow-amber-500/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2"
+            className="flex-1 py-4 bg-primary text-primary-foreground rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2"
           >
             {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
             Lưu thay đổi

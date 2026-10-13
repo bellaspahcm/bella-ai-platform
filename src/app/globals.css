@@ -2358,6 +2358,16 @@ html[data-tenant-module="babycare"] .beauty-erp-sidebar > div:last-child {
   z-index: 25 !important;
 }
 
+html[data-tenant-module="baby_care"],
+html[data-tenant-module="babycare"] {
+  --primary: #A91555;
+  --primary-hover: #881337;
+  --primary-foreground: #FFFFFF;
+  --accent: #F8A5C2;
+  --accent-foreground: #881337;
+  --ring: #A91555;
+}
+
 /* Dark mode Baby Care sidebar */
 html.dark[data-tenant-module="baby_care"] .beauty-erp-sidebar,
 html.dark[data-tenant-module="babycare"] .beauty-erp-sidebar,
@@ -3386,12 +3396,17 @@ html[data-tenant-module="beauty_spa"] .beauty-customer-add-cta span {
 
 .beauty-customer-theme-card {
   background:
-    radial-gradient(circle at 12% 10%, rgba(255, 255, 255, 0.16), transparent 28%),
-    linear-gradient(135deg, #074e44 0%, #03211d 58%, #021512 100%) !important;
-  border-color: rgba(200, 169, 122, 0.42) !important;
+    radial-gradient(circle at 12% 10%, color-mix(in srgb, var(--primary-foreground, #ffffff) 16%, transparent), transparent 28%),
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--primary, #A91555) 88%, #000 12%) 0%,
+      var(--primary-hover, color-mix(in srgb, var(--primary, #A91555) 78%, #000 22%)) 58%,
+      color-mix(in srgb, var(--primary, #A91555) 62%, #000 38%) 100%
+    ) !important;
+  border-color: color-mix(in srgb, var(--accent, #F8A5C2) 42%, transparent) !important;
   box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.16) inset,
-    0 24px 52px rgba(7, 78, 68, 0.28) !important;
+    0 1px 0 color-mix(in srgb, var(--primary-foreground, #ffffff) 16%, transparent) inset,
+    0 24px 52px color-mix(in srgb, var(--primary, #A91555) 32%, transparent) !important;
 }
 
 .beauty-customer-theme-title,
@@ -3401,65 +3416,65 @@ html[data-tenant-module="beauty_spa"] .beauty-customer-add-cta span {
 }
 
 .beauty-customer-theme-muted {
-  color: color-mix(in srgb, var(--primary-foreground, #ffffff) 78%, var(--accent, #c8a97a) 22%) !important;
+  color: color-mix(in srgb, var(--primary-foreground, #ffffff) 78%, var(--accent, #F8A5C2) 22%) !important;
 }
 
 .beauty-customer-theme-accent {
-  color: color-mix(in srgb, var(--accent, #c8a97a) 32%, #ffffff 68%) !important;
+  color: color-mix(in srgb, var(--accent, #F8A5C2) 32%, var(--primary-foreground, #ffffff) 68%) !important;
 }
 
 .beauty-customer-theme-panel {
-  background: color-mix(in srgb, #ffffff 12%, transparent) !important;
-  border: 1px solid color-mix(in srgb, #ffffff 18%, transparent) !important;
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.10) inset !important;
+  background: color-mix(in srgb, var(--primary-foreground, #ffffff) 12%, transparent) !important;
+  border: 1px solid color-mix(in srgb, var(--primary-foreground, #ffffff) 18%, transparent) !important;
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--primary-foreground, #ffffff) 10%, transparent) inset !important;
 }
 
 .beauty-customer-theme-media-frame {
-  border-color: color-mix(in srgb, #ffffff 28%, transparent) !important;
+  border-color: color-mix(in srgb, var(--primary-foreground, #ffffff) 28%, transparent) !important;
   box-shadow: 0 10px 26px color-mix(in srgb, #000 28%, transparent) !important;
 }
 
 .beauty-customer-theme-progress-track {
-  background: color-mix(in srgb, var(--primary, #074e44) 45%, #000000 55%) !important;
+  background: color-mix(in srgb, var(--primary, #A91555) 45%, #000000 55%) !important;
 }
 
 .beauty-customer-theme-progress-fill {
-  background: linear-gradient(90deg, color-mix(in srgb, var(--accent, #c8a97a) 35%, #ffffff 65%), #ffffff) !important;
-  box-shadow: 0 0 16px color-mix(in srgb, var(--accent, #c8a97a) 35%, transparent) !important;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--accent, #F8A5C2) 35%, var(--primary-foreground, #ffffff) 65%), var(--primary-foreground, #ffffff)) !important;
+  box-shadow: 0 0 16px color-mix(in srgb, var(--accent, #F8A5C2) 35%, transparent) !important;
 }
 
 .beauty-customer-theme-divider {
-  border-color: color-mix(in srgb, #ffffff 16%, transparent) !important;
+  border-color: color-mix(in srgb, var(--primary-foreground, #ffffff) 16%, transparent) !important;
 }
 
 .beauty-customer-theme-accent-cta {
-  background: linear-gradient(135deg, color-mix(in srgb, var(--accent, #c8a97a) 58%, #ffffff 42%), color-mix(in srgb, var(--accent, #c8a97a) 74%, #ffffff 26%)) !important;
-  color: #03211d !important;
-  border: 1px solid color-mix(in srgb, #ffffff 24%, transparent) !important;
-  box-shadow: 0 16px 32px color-mix(in srgb, var(--accent, #c8a97a) 28%, transparent) !important;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--accent, #F8A5C2) 58%, var(--primary-foreground, #ffffff) 42%), color-mix(in srgb, var(--accent, #F8A5C2) 74%, var(--primary-foreground, #ffffff) 26%)) !important;
+  color: var(--accent-foreground, var(--primary, #881337)) !important;
+  border: 1px solid color-mix(in srgb, var(--primary-foreground, #ffffff) 24%, transparent) !important;
+  box-shadow: 0 16px 32px color-mix(in srgb, var(--accent, #F8A5C2) 28%, transparent) !important;
 }
 
 .beauty-customer-theme-accent-cta:hover {
-  background: linear-gradient(135deg, color-mix(in srgb, var(--accent, #c8a97a) 66%, #ffffff 34%), color-mix(in srgb, var(--accent, #c8a97a) 82%, #ffffff 18%)) !important;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--accent, #F8A5C2) 66%, var(--primary-foreground, #ffffff) 34%), color-mix(in srgb, var(--accent, #F8A5C2) 82%, var(--primary-foreground, #ffffff) 18%)) !important;
 }
 
 .beauty-customer-theme-accent-cta,
 .beauty-customer-theme-accent-cta * {
-  color: #03211d !important;
+  color: var(--accent-foreground, var(--primary, #881337)) !important;
 }
 
 .beauty-customer-theme-ghost-button {
-  background: color-mix(in srgb, #ffffff 10%, transparent) !important;
-  border-color: color-mix(in srgb, #ffffff 18%, transparent) !important;
+  background: color-mix(in srgb, var(--primary-foreground, #ffffff) 10%, transparent) !important;
+  border-color: color-mix(in srgb, var(--primary-foreground, #ffffff) 18%, transparent) !important;
 }
 
 .beauty-customer-theme-ghost-button:hover {
-  background: color-mix(in srgb, #ffffff 18%, transparent) !important;
+  background: color-mix(in srgb, var(--primary-foreground, #ffffff) 18%, transparent) !important;
 }
 
 html[data-tenant-module="beauty_spa"] .beauty-customer-theme-card {
   background:
-    radial-gradient(circle at 12% 10%, rgba(255, 255, 255, 0.16), transparent 28%),
+    radial-gradient(circle at 12% 10%, color-mix(in srgb, var(--primary-foreground, #ffffff) 16%, transparent), transparent 28%),
     linear-gradient(
       135deg,
       color-mix(in srgb, var(--primary, #074e44) 88%, #000 12%) 0%,
@@ -3468,7 +3483,7 @@ html[data-tenant-module="beauty_spa"] .beauty-customer-theme-card {
     ) !important;
   border-color: color-mix(in srgb, var(--accent, #c8a97a) 42%, transparent) !important;
   box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.16) inset,
+    0 1px 0 color-mix(in srgb, var(--primary-foreground, #ffffff) 16%, transparent) inset,
     0 24px 52px color-mix(in srgb, var(--primary, #074e44) 32%, transparent) !important;
 }
 
@@ -3485,17 +3500,17 @@ html[data-tenant-module="beauty_spa"] .beauty-customer-theme-muted {
 }
 
 html[data-tenant-module="beauty_spa"] .beauty-customer-theme-accent {
-  color: color-mix(in srgb, var(--accent, #c8a97a) 32%, #ffffff 68%) !important;
+  color: color-mix(in srgb, var(--accent, #c8a97a) 32%, var(--primary-foreground, #ffffff) 68%) !important;
 }
 
 html[data-tenant-module="beauty_spa"] .beauty-customer-theme-panel {
-  background: color-mix(in srgb, #ffffff 12%, transparent) !important;
-  border: 1px solid color-mix(in srgb, #ffffff 18%, transparent) !important;
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.10) inset !important;
+  background: color-mix(in srgb, var(--primary-foreground, #ffffff) 12%, transparent) !important;
+  border: 1px solid color-mix(in srgb, var(--primary-foreground, #ffffff) 18%, transparent) !important;
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--primary-foreground, #ffffff) 10%, transparent) inset !important;
 }
 
 html[data-tenant-module="beauty_spa"] .beauty-customer-theme-media-frame {
-  border-color: color-mix(in srgb, #ffffff 28%, transparent) !important;
+  border-color: color-mix(in srgb, var(--primary-foreground, #ffffff) 28%, transparent) !important;
   box-shadow: 0 10px 26px color-mix(in srgb, #000 28%, transparent) !important;
 }
 
@@ -3504,43 +3519,80 @@ html[data-tenant-module="beauty_spa"] .beauty-customer-theme-progress-track {
 }
 
 html[data-tenant-module="beauty_spa"] .beauty-customer-theme-progress-fill {
-  background: linear-gradient(90deg, color-mix(in srgb, var(--accent, #c8a97a) 35%, #ffffff 65%), #ffffff) !important;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--accent, #c8a97a) 35%, var(--primary-foreground, #ffffff) 65%), var(--primary-foreground, #ffffff)) !important;
   box-shadow: 0 0 16px color-mix(in srgb, var(--accent, #c8a97a) 35%, transparent) !important;
 }
 
 html[data-tenant-module="beauty_spa"] .beauty-customer-theme-divider {
-  border-color: color-mix(in srgb, #ffffff 16%, transparent) !important;
+  border-color: color-mix(in srgb, var(--primary-foreground, #ffffff) 16%, transparent) !important;
 }
 
 html[data-tenant-module="beauty_spa"] .beauty-customer-theme-accent-cta {
-  background: linear-gradient(135deg, color-mix(in srgb, var(--accent, #c8a97a) 58%, #ffffff 42%), color-mix(in srgb, var(--accent, #c8a97a) 74%, #ffffff 26%)) !important;
-  color: #03211d !important;
-  border: 1px solid color-mix(in srgb, #ffffff 24%, transparent) !important;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--accent, #c8a97a) 58%, var(--primary-foreground, #ffffff) 42%), color-mix(in srgb, var(--accent, #c8a97a) 74%, var(--primary-foreground, #ffffff) 26%)) !important;
+  color: var(--accent-foreground, var(--primary, #03211d)) !important;
+  border: 1px solid color-mix(in srgb, var(--primary-foreground, #ffffff) 24%, transparent) !important;
   box-shadow: 0 16px 32px color-mix(in srgb, var(--accent, #c8a97a) 28%, transparent) !important;
 }
 
 html[data-tenant-module="beauty_spa"] .beauty-customer-theme-accent-cta:hover {
-  background: linear-gradient(135deg, color-mix(in srgb, var(--accent, #c8a97a) 66%, #ffffff 34%), color-mix(in srgb, var(--accent, #c8a97a) 82%, #ffffff 18%)) !important;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--accent, #c8a97a) 66%, var(--primary-foreground, #ffffff) 34%), color-mix(in srgb, var(--accent, #c8a97a) 82%, var(--primary-foreground, #ffffff) 18%)) !important;
 }
 
 html[data-tenant-module="beauty_spa"] .beauty-customer-theme-accent-cta,
 html[data-tenant-module="beauty_spa"] .beauty-customer-theme-accent-cta * {
-  color: #03211d !important;
+  color: var(--accent-foreground, var(--primary, #03211d)) !important;
 }
 
 html[data-tenant-module="beauty_spa"] .beauty-customer-theme-ghost-button {
-  background: color-mix(in srgb, #ffffff 10%, transparent) !important;
-  border-color: color-mix(in srgb, #ffffff 18%, transparent) !important;
+  background: color-mix(in srgb, var(--primary-foreground, #ffffff) 10%, transparent) !important;
+  border-color: color-mix(in srgb, var(--primary-foreground, #ffffff) 18%, transparent) !important;
   color: var(--primary-foreground, #ffffff) !important;
 }
 
 html[data-tenant-module="beauty_spa"] .beauty-customer-theme-ghost-button:hover {
-  background: color-mix(in srgb, #ffffff 18%, transparent) !important;
+  background: color-mix(in srgb, var(--primary-foreground, #ffffff) 18%, transparent) !important;
 }
 
 html[data-tenant-module="beauty_spa"] .beauty-customer-theme-ghost-button,
 html[data-tenant-module="beauty_spa"] .beauty-customer-theme-ghost-button * {
   color: var(--primary-foreground, #ffffff) !important;
+}
+
+html[data-tenant-module="baby_care"],
+html[data-tenant-module="babycare"] {
+  --primary: #A91555 !important;
+  --primary-hover: #881337 !important;
+  --primary-foreground: #FFFFFF !important;
+  --accent: #F8A5C2 !important;
+  --accent-foreground: #881337 !important;
+  --ring: #A91555 !important;
+}
+
+html[data-tenant-module="baby_care"] .beauty-customer-theme-card,
+html[data-tenant-module="babycare"] .beauty-customer-theme-card {
+  background:
+    radial-gradient(circle at 12% 10%, color-mix(in srgb, var(--primary-foreground, #ffffff) 16%, transparent), transparent 28%),
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--primary, #A91555) 88%, #000 12%) 0%,
+      var(--primary-hover, color-mix(in srgb, var(--primary, #A91555) 78%, #000 22%)) 58%,
+      color-mix(in srgb, var(--primary, #A91555) 62%, #000 38%) 100%
+    ) !important;
+  border-color: color-mix(in srgb, var(--accent, #F8A5C2) 42%, transparent) !important;
+  box-shadow:
+    0 1px 0 color-mix(in srgb, var(--primary-foreground, #ffffff) 16%, transparent) inset,
+    0 24px 52px color-mix(in srgb, var(--primary, #A91555) 26%, transparent) !important;
+}
+
+html[data-tenant-module="baby_care"] .beauty-customer-theme-progress-track,
+html[data-tenant-module="babycare"] .beauty-customer-theme-progress-track {
+  background: color-mix(in srgb, var(--primary, #A91555) 45%, #000000 55%) !important;
+}
+
+html[data-tenant-module="baby_care"] .beauty-customer-theme-progress-fill,
+html[data-tenant-module="babycare"] .beauty-customer-theme-progress-fill {
+  background: linear-gradient(90deg, color-mix(in srgb, var(--accent, #F8A5C2) 35%, var(--primary-foreground, #ffffff) 65%), var(--primary-foreground, #ffffff)) !important;
+  box-shadow: 0 0 16px color-mix(in srgb, var(--accent, #F8A5C2) 35%, transparent) !important;
 }
 
 html[data-tenant-module="beauty_spa"] .beauty-active-care-badge {
