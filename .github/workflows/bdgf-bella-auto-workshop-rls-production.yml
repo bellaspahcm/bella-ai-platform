@@ -1,0 +1,182 @@
+name: BDGF Bella Auto Workshop RLS Production Migration
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: Type APPLY_BELLA_AUTO_WORKSHOP_RLS_20261013090000 to run the approved migration.
+        required: true
+        type: string
+      approved_sha256:
+        description: Approved SHA-256 for the migration file.
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: bdgf-bella-auto-workshop-rls-production
+  cancel-in-progress: false
+
+env:
+  MIGRATION_FILE: supabase/migrations/20261013090000_reenable_bella_auto_workshop_rls.sql
+  APPROVED_SHA256: 1FEDCE34702106E86A38D650AAF43FEC52A763F54E66A11187EEF6D3A37C2425
+  TARGET_ENVIRONMENT: production
+  TARGET_SCHEMA: public
+
+jobs:
+  apply-approved-migration:
+    name: Apply Approved Workshop RLS Migration
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment:
+      name: Production
+    steps:
+      - name: Require explicit main dispatch
+        shell: bash
+        env:
+          DISPATCH_CONFIRMATION: ${{ inputs.confirmation }}
+          DISPATCH_APPROVED_SHA256: ${{ inputs.approved_sha256 }}
+        run: |
+          set -euo pipefail
+
+          if [ "$GITHUB_EVENT_NAME" != "workflow_dispatch" ]; then
+            echo "This workflow only supports explicit manual dispatch."
+            exit 1
+          fi
+
+          if [ "$GITHUB_REF" != "refs/heads/main" ]; then
+            echo "Production migration dispatch must run from main."
+            exit 1
+          fi
+
+          if [ "$DISPATCH_CONFIRMATION" != "APPLY_BELLA_AUTO_WORKSHOP_RLS_20261013090000" ]; then
+            echo "Confirmation phrase does not match the approved migration."
+            exit 1
+          fi
+
+          if [ "$DISPATCH_APPROVED_SHA256" != "$APPROVED_SHA256" ]; then
+            echo "Approved SHA-256 input does not match the workflow-bound hash."
+            exit 1
+          fi
+
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+
+      - name: Verify main head and migration artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          git fetch --no-tags origin main
+          if [ "$(git rev-parse HEAD)" != "$(git rev-parse origin/main)" ]; then
+            echo "Checked-out SHA is not origin/main."
+            exit 1
+          fi
+
+          test -f "$MIGRATION_FILE"
+          actual_sha="$(sha256sum "$MIGRATION_FILE" | awk '{print toupper($1)}')"
+          if [ "$actual_sha" != "$APPROVED_SHA256" ]; then
+            echo "Migration SHA-256 mismatch."
+            echo "Expected: $APPROVED_SHA256"
+            echo "Actual:   $actual_sha"
+            exit 1
+          fi
+
+          echo "Migration artifact verified: $MIGRATION_FILE"
+          echo "Migration SHA-256: $actual_sha"
+
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: '24'
+          cache: npm
+
+      - run: npm ci
+
+      - name: Run focused BDGF workflow guards
+        run: |
+          npm run test:bdgf-owner-authority
+          npm run test:bdgf-production-workflow
+
+      - name: Validate required Production secrets
+        shell: bash
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DATABASE_EXECUTOR_URL: ${{ secrets.DATABASE_EXECUTOR_URL }}
+          GATE_SIGNING_KEY: ${{ secrets.GATE_SIGNING_KEY }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+
+          test -n "$DATABASE_URL"
+          test -n "$DATABASE_EXECUTOR_URL"
+          test -n "$GATE_SIGNING_KEY"
+          test -n "$GITHUB_TOKEN"
+          echo "Required Production secrets are present."
+
+      - name: Create owner-operated BDGF approval
+        id: approval
+        shell: bash
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+
+          node scripts/bdgf/create-migration-approval.mjs \
+            --approval-mode=owner-operated \
+            --migration-file="$MIGRATION_FILE" \
+            --environment="$TARGET_ENVIRONMENT" \
+            --target-schema="$TARGET_SCHEMA" \
+            --expires-in-minutes=120 \
+            --notes="Owner-authorized Bella Auto workshop RLS repair via protected Production workflow" \
+            | tee approval-output.log
+
+          approval_id="$(node --input-type=module <<'NODE'
+          import { readFileSync } from 'fs';
+          const output = readFileSync('approval-output.log', 'utf8');
+          const start = output.indexOf('{');
+          const end = output.lastIndexOf('}');
+          if (start < 0 || end < start) {
+            throw new Error('BDGF approval output did not include JSON');
+          }
+          const approval = JSON.parse(output.slice(start, end + 1));
+          if (!approval.approval_id || approval.migration_hash !== process.env.APPROVED_SHA256.toLowerCase()) {
+            throw new Error('BDGF approval output did not match the approved migration hash');
+          }
+          console.log(approval.approval_id);
+          NODE
+          )"
+
+          echo "approval_id=$approval_id" >> "$GITHUB_OUTPUT"
+          echo "BDGF approval created."
+
+      - name: Execute migration through BDGF wrapper
+        shell: bash
+        env:
+          DATABASE_EXECUTOR_URL: ${{ secrets.DATABASE_EXECUTOR_URL }}
+          GATE_SIGNING_KEY: ${{ secrets.GATE_SIGNING_KEY }}
+          TARGET_ENVIRONMENT: production
+          TARGET_SCHEMA: public
+        run: |
+          set -euo pipefail
+
+          node scripts/bdgf/execute-migration-wrapper.mjs \
+            "${{ steps.approval.outputs.approval_id }}" \
+            "$MIGRATION_FILE"
+
+      - name: Probe post-deploy workshop RLS
+        shell: bash
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          set -euo pipefail
+
+          node scripts/bdgf/probe-bella-auto-workshop-rls.mjs
+          echo "MIGRATION=APPLIED"
+          echo "POST_DEPLOY_RLS=PASS"
+          echo "SECURITY_REPAIR=PROVEN"
