@@ -7956,3 +7956,91 @@ Not authorized:
 11. Stop Condition: stop after this dashboard read-side batch without broad AutoMove rewrite.
 
 ---
+# ARCHITECTURE GATE RESULT - AUTOMOVE NEXT BEST ACTION SERVICE HISTORY MOBILITY READ BATCH
+
+> **Status:** PASS - minimal AutoMove next-best-action service-history vehicle read migration is authorized.
+> **Date:** 2026-10-13
+> **Scope:** Move `NextBestActionEngine.analyzeServiceHistory` customer-owned vehicle reads behind the Mobility OS public Supabase contract. Preserve current recommendation timing thresholds, action types, priority/confidence, service appointment lookup, and persistence behavior. No write-side lifecycle, allocation/deallocation, booking, workshop workflow, rollback, schema migration, ProductRegistry, Production mutation, or other OS changes.
+
+## Bella OS/Product Development Process Gate
+
+- Truth: Mobility OS owns reusable vehicle identity and ownership read mapping; AutoMove next-best-action service-history logic only needs customer-owned vehicle identity, display metadata, and creation date to evaluate maintenance reminders.
+- Source of Truth: `docs/governance/BELLA_AI_CODING_CONSTITUTION.md`, merged Mobility public contract in `src/platform/mobility/supabase-vehicle-contract.ts`, current `NextBestActionEngine.analyzeServiceHistory` behavior, and post-#312 direct `auto_vehicles` inventory.
+- Canonical Contract: Product read consumers should obtain customer-owned vehicle identity through Mobility public contract functions; the Mobility adapter owns persistence mapping to reused `auto_vehicle_owners`, `auto_vehicles`, and catalog tables.
+- Gate result: `PASS` for this read-side service-history signal only. `AUTOMOVE_WRITE_CONSUMERS_MIGRATED = NOT_PROVEN` and `AUTOMOVE_FULL_PRODUCT_READINESS = NOT_READY`.
+
+## Product Manifest
+
+- Product: Bella AutoMove / AI Next Best Action service-history signal.
+- OS capability consumed: Mobility customer-owned vehicle read contract.
+- Consumer in scope: `src/modules/bella-auto/services/NextBestActionEngine.ts` inside `analyzeServiceHistory`.
+- Non-goals: no quotation/test-drive/touchpoint/satisfaction/life-event behavior changes, no service appointment query refactor, no booking/workshop flows, no vehicle lifecycle write migration, no schema migration, no Production deployment.
+
+## Direct Reference Inventory After PR #312
+
+| Category | Files | Decision |
+|---|---|---|
+| Mobility-owned persistence mapping | `src/platform/mobility/**` | allowed owner of `auto_vehicles` mapping |
+| Read-side independent candidate | `NextBestActionEngine.analyzeServiceHistory` | migrate in this batch |
+| Read-side candidate but separate scope | `FinancialReportingService`, `WarrantyService` | defer; each needs its own semantic contract |
+| Booking/workshop joins | booking table, service appointment/order/history joins | defer by explicit scope boundary |
+| Write lifecycle/allocation/rollback | status machine, allocation, rollback, booking POST vehicle update, provider add vehicle | out of scope |
+| Tests/generated/scripts/docs | `src/__tests__/**`, generated DB types, scripts, docs | not product consumer migration targets |
+
+## Ownership Map
+
+| Data / Behavior | Owner | Decision |
+|---|---|---|
+| Customer-owned vehicle identity and display metadata | Mobility OS | extend existing customer-owned vehicle read DTO with `createdAt` |
+| Maintenance recommendation thresholds and saved next-best-action records | AutoMove Product | preserve existing behavior |
+| Last completed service appointment lookup | AutoMove Workshop/Product service path | unchanged in this batch |
+| Tenant isolation | Mobility contract plus existing tenant-scoped service appointment query | preserve explicit `tenantId` filters; no service-role bypass |
+
+## Contract Dependency Map
+
+```text
+NextBestActionEngine.analyzeServiceHistory
+  -> src/platform/mobility/supabase-vehicle-contract
+  -> listMobilityCustomerOwnedVehicles
+  -> Supabase client with authenticated RLS context
+  -> reused auto_vehicle_owners / auto_vehicles / variant-model-brand persistence
+  -> existing auto_service_appointments read for last completed service
+  -> existing next-best-action recommendation persistence
+```
+
+## Change Authority
+
+Authorized:
+- Extend the existing Mobility customer-owned vehicle read DTO with `createdAt` from the existing `auto_vehicles.created_at` field.
+- Refactor only the scoped `analyzeServiceHistory` vehicle ownership read to call Mobility public contract.
+- Add focused tests proving contract mapping and preventing direct `auto_vehicles` access in this service-history signal.
+- Update this gate record.
+
+Not authorized:
+- Modify vehicle status transition, allocation/deallocation, booking POST allocation, rollback, workshop creation/update flows, financial reporting, warranty workflows, ProductRegistry, generated DB types, migrations, grants/RLS, or Production.
+
+## UI -> Contract Reconciliation
+
+- No UI change.
+- Recommendation text still uses a vehicle display name; the display value now comes from canonical Mobility-owned brand/model/variant metadata and falls back to VIN/vehicle ID.
+
+## Additive Migration Plan
+
+- No migration.
+- No schema, table, index, RLS, generated type, or data change.
+
+## 11 Automated Verification Gates Plan
+
+1. Architecture Compliance: changed files limited to Mobility read contract, `NextBestActionEngine`, focused Mobility tests, and this gate record.
+2. Contract Boundary: `analyzeServiceHistory` imports Mobility public contract instead of direct `auto_vehicles` query.
+3. Tenant Isolation: Mobility reads are tenant-scoped and service appointment lookup keeps explicit `tenant_id`.
+4. RLS & Authorization: no policies or grants changed.
+5. Database Migration Safety: no migration.
+6. Event-After-Persistence: recommendation save path unchanged; no new event path.
+7. Domain Safety Routing: no ProductRegistry, other OS, booking/workshop, or lifecycle write path touched.
+8. Type Safety: no `any`, suppressions, generated type edits, or compatibility aliases.
+9. Regression: focused Mobility static/unit tests, changed typecheck, lint, architecture guard, and security guard.
+10. Evidence Integrity: report local/CI proof separately from Production; no Go-Live claim.
+11. Stop Condition: stop after this read-side signal batch without broad AutoMove rewrite.
+
+---

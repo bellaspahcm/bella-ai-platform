@@ -28,7 +28,7 @@ type CustomerVehicleOwnerRow = Pick<
 >;
 type CustomerOwnedVehicleRow = Pick<
   AutoVehicleRow,
-  'id' | 'vin' | 'color_exterior' | 'model_year' | 'variant_id'
+  'id' | 'vin' | 'color_exterior' | 'model_year' | 'variant_id' | 'created_at'
 >;
 type CustomerOwnedVehiclePriceRow = Pick<AutoVehicleRow, 'list_price'>;
 type CustomerVehicleVariantRow = Pick<AutoVariantRow, 'id' | 'name' | 'model_id'>;
@@ -119,6 +119,7 @@ export interface MobilityCustomerOwnedVehicle {
   vin: string;
   colorExterior: string;
   modelYear: number;
+  createdAt: string;
   variantName?: string;
   modelName?: string;
   brandName?: string;
@@ -358,7 +359,7 @@ export async function listMobilityCustomerOwnedVehicles(
   const { data: vehiclesData, error: vehiclesError } = vehicleIds.length > 0
     ? await supabase
       .from('auto_vehicles')
-      .select('id, vin, color_exterior, model_year, variant_id')
+      .select('id, vin, color_exterior, model_year, variant_id, created_at')
       .eq('tenant_id', input.tenantId)
       .in('id', vehicleIds)
       .returns<CustomerOwnedVehicleRow[]>()
@@ -429,6 +430,7 @@ export async function listMobilityCustomerOwnedVehicles(
       vin: vehicle.vin,
       colorExterior: vehicle.color_exterior,
       modelYear: vehicle.model_year,
+      createdAt: vehicle.created_at,
       variantName: variant?.name,
       modelName: model?.name,
       brandName: brand?.name,

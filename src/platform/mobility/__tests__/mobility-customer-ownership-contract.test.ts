@@ -152,6 +152,7 @@ describe('Mobility customer ownership Supabase contract', () => {
           color_exterior: 'White',
           model_year: 2026,
           variant_id: 'variant-1',
+          created_at: '2026-01-15T00:00:00.000Z',
         },
         {
           id: 'vehicle-2',
@@ -160,6 +161,7 @@ describe('Mobility customer ownership Supabase contract', () => {
           color_exterior: 'Black',
           model_year: 2025,
           variant_id: 'variant-2',
+          created_at: '2026-02-15T00:00:00.000Z',
         },
         {
           id: 'vehicle-b',
@@ -168,6 +170,7 @@ describe('Mobility customer ownership Supabase contract', () => {
           color_exterior: 'Red',
           model_year: 2026,
           variant_id: 'variant-b',
+          created_at: '2026-03-15T00:00:00.000Z',
         },
       ],
       auto_variants: [
@@ -193,6 +196,7 @@ describe('Mobility customer ownership Supabase contract', () => {
       ownerRecordId: 'owner-1',
       vehicleId: 'vehicle-1',
       vin: 'VIN00000000000001',
+      createdAt: '2026-01-15T00:00:00.000Z',
       variantName: 'Luxury',
       modelName: 'Series 3',
       brandName: 'BMW',

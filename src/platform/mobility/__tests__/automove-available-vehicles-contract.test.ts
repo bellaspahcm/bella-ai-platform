@@ -101,4 +101,20 @@ describe('AutoMove inventory provider Mobility contract usage', () => {
     expect(source).not.toContain(".from('auto_vehicles')");
     expect(source).not.toContain('.from("auto_vehicles")');
   });
+
+  it('moves next-best-action service-history vehicle ownership reads behind the Mobility public contract', () => {
+    const enginePath = path.resolve(
+      __dirname,
+      '../../../modules/bella-auto/services/NextBestActionEngine.ts'
+    );
+    const source = readFileSync(enginePath, 'utf8');
+    const serviceHistoryStart = source.indexOf('private static async analyzeServiceHistory');
+    const lifeEventStart = source.indexOf('private static async detectLifeEvents');
+    const serviceHistorySource = source.slice(serviceHistoryStart, lifeEventStart);
+
+    expect(source).toContain("from '@/platform/mobility/supabase-vehicle-contract'");
+    expect(serviceHistorySource).toContain('listMobilityCustomerOwnedVehicles');
+    expect(serviceHistorySource).not.toContain(".from('auto_vehicles')");
+    expect(serviceHistorySource).not.toContain('.from("auto_vehicles")');
+  });
 });
