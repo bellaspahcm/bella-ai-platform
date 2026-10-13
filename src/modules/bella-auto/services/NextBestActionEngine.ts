@@ -7,6 +7,10 @@
  */
 
 import { getPrimaryClient } from '@/lib/database/read-replica';
+import {
+  listMobilityCustomerOwnedVehicles,
+  type MobilityCustomerOwnedVehicle,
+} from '@/platform/mobility/supabase-vehicle-contract';
 import { Database, type Json } from '@/types/database.types';
 
 type NextBestAction = Database['public']['Tables']['auto_next_best_actions']['Row'];
@@ -72,15 +76,6 @@ interface JourneyStageRow {
   code: string;
 }
 
-interface VehicleRow {
-  created_at: string;
-  id: string;
-  metadata?: Json | null;
-  model?: string | null;
-  model_name?: string | null;
-  variant_id?: string | null;
-}
-
 function autoClient(client: unknown): AutoClient {
   return client as AutoClient;
 }
@@ -105,14 +100,12 @@ function readMetadataString(metadata: Json | null | undefined, keys: string[]): 
   return null;
 }
 
-function vehicleDisplayName(vehicle: VehicleRow): string {
-  return (
-    vehicle.model ??
-    vehicle.model_name ??
-    readMetadataString(vehicle.metadata, ['model', 'model_name', 'modelName']) ??
-    vehicle.variant_id ??
-    vehicle.id
-  );
+function vehicleDisplayName(vehicle: MobilityCustomerOwnedVehicle): string {
+  const displayName = [vehicle.brandName, vehicle.modelName, vehicle.variantName]
+    .filter((value): value is string => Boolean(value))
+    .join(' ');
+
+  return displayName || vehicle.vin || vehicle.vehicleId;
 }
 
 export interface ActionRecommendation {
@@ -451,25 +444,24 @@ export class NextBestActionEngine {
     tenantId: string,
     customerId: string
   ): Promise<ActionRecommendation[]> {
-    const supabase = autoClient(getPrimaryClient());
+    const supabase = getPrimaryClient();
+    const autoSupabase = autoClient(supabase);
     const recommendations: ActionRecommendation[] = [];
     const now = new Date();
 
-    // Get customer vehicles
-    const { data: vehicles } = await supabase
-      .from('auto_vehicles')
-      .select<VehicleRow>('*, auto_vehicle_owners!inner(customer_id)')
-      .eq('tenant_id', tenantId)
-      .eq('auto_vehicle_owners.customer_id', customerId);
+    const vehicles = await listMobilityCustomerOwnedVehicles(supabase, {
+      tenantId,
+      customerId,
+    });
 
     if (vehicles && vehicles.length > 0) {
       for (const vehicle of vehicles) {
         // Check last service date
-        const { data: lastService } = await supabase
+        const { data: lastService } = await autoSupabase
           .from('auto_service_appointments')
           .select<ServiceAppointmentRow>('appointment_date, service_type')
           .eq('tenant_id', tenantId)
-          .eq('vehicle_id', vehicle.id)
+          .eq('vehicle_id', vehicle.vehicleId)
           .eq('status', 'completed')
           .order('appointment_date', { ascending: false })
           .limit(1)
@@ -490,7 +482,7 @@ export class NextBestActionEngine {
               reason: 'Vehicle due for scheduled maintenance based on time interval',
               confidenceScore: 0.85,
               dataPoints: {
-                vehicle_id: vehicle.id,
+                vehicle_id: vehicle.vehicleId,
                 vehicle_model: vehicleDisplayName(vehicle),
                 days_since_service: daysSinceService,
               },
@@ -500,7 +492,7 @@ export class NextBestActionEngine {
         } else {
           // Never serviced - high priority
           const vehicleAge = Math.floor(
-            (now.getTime() - new Date(vehicle.created_at).getTime()) / (24 * 60 * 60 * 1000)
+            (now.getTime() - new Date(vehicle.createdAt).getTime()) / (24 * 60 * 60 * 1000)
           );
 
           if (vehicleAge >= 90) {
@@ -512,7 +504,7 @@ export class NextBestActionEngine {
               reason: 'Vehicle never serviced - critical for customer retention',
               confidenceScore: 0.90,
               dataPoints: {
-                vehicle_id: vehicle.id,
+                vehicle_id: vehicle.vehicleId,
                 vehicle_model: vehicleDisplayName(vehicle),
                 vehicle_age_days: vehicleAge,
               },
