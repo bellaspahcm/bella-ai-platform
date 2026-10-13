@@ -16,6 +16,7 @@ type AutoModelRow = Database['public']['Tables']['auto_models']['Row'];
 type AutoBrandRow = Database['public']['Tables']['auto_brands']['Row'];
 type AvailableVehicleRow = Pick<AutoVehicleRow, 'id' | 'vin' | 'color_exterior' | 'status'>;
 type InventorySummaryRow = Pick<AutoVehicleRow, 'status' | 'delivered_at'>;
+type VehicleIdentityRow = Pick<AutoVehicleRow, 'id' | 'vin'>;
 type CustomerVehicleOwnerRow = Pick<
   AutoVehicleOwnerRow,
   | 'id'
@@ -111,6 +112,11 @@ export interface MobilityVehicleStatusHistoryEntry {
   reason: string | null;
   createdAt: string;
   changedByUserId: string | null;
+}
+
+export interface MobilityVehicleIdentity {
+  vehicleId: string;
+  vin: string;
 }
 
 export interface MobilityCustomerOwnedVehicle {
@@ -335,6 +341,33 @@ export async function listMobilityVehicleStatusHistory(
     createdAt: row.created_at,
     changedByUserId: row.changed_by_user_id,
   }));
+}
+
+export async function getMobilityVehicleIdentity(
+  supabase: MobilitySupabaseClient,
+  input: {
+    tenantId: string;
+    vehicleId: string;
+  }
+): Promise<MobilityVehicleIdentity | null> {
+  const { data, error } = await supabase
+    .from('auto_vehicles')
+    .select('id, vin')
+    .eq('tenant_id', input.tenantId)
+    .eq('id', input.vehicleId)
+    .returns<VehicleIdentityRow[]>();
+
+  if (error) {
+    throw new Error(`Mobility.getVehicleIdentity: ${error.message}`);
+  }
+
+  const row = (data ?? [])[0];
+  if (!row) return null;
+
+  return {
+    vehicleId: row.id,
+    vin: row.vin,
+  };
 }
 
 export async function listMobilityCustomerOwnedVehicles(

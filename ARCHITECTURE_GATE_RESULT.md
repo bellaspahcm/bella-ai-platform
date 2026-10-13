@@ -88,6 +88,97 @@ Not authorized:
 
 ---
 
+# ARCHITECTURE GATE RESULT - AUTOMOVE WARRANTY COVERAGE MOBILITY READ BATCH
+
+> **Status:** PASS - minimal AutoMove warranty coverage vehicle identity read migration is authorized.
+> **Date:** 2026-10-14
+> **Scope:** Move `WarrantyService.validateWarrantyCoverage` vehicle identity/existence read behind the Mobility OS public Supabase contract. Preserve warranty date and mileage validation semantics from `auto_sales`. No claim workflow change, write-side lifecycle, booking/workshop workflow, rollback, schema migration, ProductRegistry, Production mutation, or other OS changes.
+
+## Bella OS/Product Development Process Gate
+
+- Truth: Mobility OS owns reusable vehicle identity/tenant boundary reads; AutoMove Warranty owns warranty coverage rules and claim workflow.
+- Source of Truth: `docs/governance/BELLA_AI_CODING_CONSTITUTION.md`, merged Mobility public contract in `src/platform/mobility/supabase-vehicle-contract.ts`, current `WarrantyService.validateWarrantyCoverage` behavior, and post-#313 direct `auto_vehicles` inventory.
+- Canonical Contract: Product consumers should obtain vehicle identity through Mobility public contract functions; warranty-specific `auto_sales` coverage fields remain AutoMove warranty/business data in this batch.
+- Gate result: `PASS` for this read-side warranty coverage validation only. `AUTOMOVE_WRITE_CONSUMERS_MIGRATED = NOT_PROVEN` and `AUTOMOVE_FULL_PRODUCT_READINESS = NOT_READY`.
+
+## Product Manifest
+
+- Product: Bella AutoMove / Warranty coverage validation.
+- OS capability consumed: Mobility tenant-scoped vehicle identity read contract.
+- Consumer in scope: `src/modules/bella-auto/services/WarrantyService.ts` inside `validateWarrantyCoverage`.
+- Non-goals: no warranty claim creation/update/cancel behavior changes, no financial reporting, no service appointment/repair-order joins, no booking allocation, no vehicle lifecycle write migration, no schema migration, no Production deployment.
+
+## Direct Reference Inventory After PR #313
+
+| Category | Files | Decision |
+|---|---|---|
+| Mobility-owned persistence mapping | `src/platform/mobility/**` | allowed owner of `auto_vehicles` mapping |
+| Read-side independent candidate | `WarrantyService.validateWarrantyCoverage` | migrate in this batch |
+| Read-side candidate but separate scope | `FinancialReportingService` | defer; `purchase_price`/profit semantics need separate contract proof |
+| Booking/workshop joins | booking table, service appointment/order/history joins | defer by explicit scope boundary |
+| Write lifecycle/allocation/rollback | status machine, allocation, rollback, booking POST vehicle update, provider add vehicle | out of scope |
+| Tests/generated/scripts/docs | `src/__tests__/**`, generated DB types, scripts, docs | not product consumer migration targets |
+
+## Ownership Map
+
+| Data / Behavior | Owner | Decision |
+|---|---|---|
+| Vehicle identity/existence by tenant | Mobility OS | add a minimal public read DTO/function |
+| Warranty period and mileage limit | AutoMove Warranty/Product | preserve existing `auto_sales` read semantics |
+| Warranty claim creation/review/update/cancel | AutoMove Warranty/Product | unchanged in this batch |
+| Tenant isolation | Mobility contract plus existing warranty sale query | preserve explicit `tenantId` filters; no service-role bypass |
+
+## Contract Dependency Map
+
+```text
+WarrantyService.validateWarrantyCoverage
+  -> src/platform/mobility/supabase-vehicle-contract
+  -> getMobilityVehicleIdentity
+  -> Supabase client with authenticated RLS context
+  -> reused auto_vehicles persistence
+  -> existing auto_sales warranty coverage read
+  -> existing date/mileage validation response
+```
+
+## Change Authority
+
+Authorized:
+- Add a minimal Mobility vehicle identity read function that returns vehicle ID and VIN for a tenant-scoped vehicle lookup.
+- Refactor only `validateWarrantyCoverage` vehicle identity lookup to call Mobility public contract.
+- Preserve `auto_sales` warranty coverage fields and existing invalid reasons.
+- Add focused tests proving tenant-scoped identity lookup and no direct `auto_vehicles` read in the scoped warranty validation method.
+- Update this gate record.
+
+Not authorized:
+- Modify warranty claim write flows, vehicle status transition, allocation/deallocation, booking POST allocation, rollback, workshop creation/update flows, financial reporting, ProductRegistry, generated DB types, migrations, grants/RLS, or Production.
+
+## UI -> Contract Reconciliation
+
+- No UI change.
+- No new field, KPI, status, or action is introduced.
+- The coverage validation result shape and messages remain product-owned and unchanged.
+
+## Additive Migration Plan
+
+- No migration.
+- No schema, table, index, RLS, generated type, or data change.
+
+## 11 Automated Verification Gates Plan
+
+1. Architecture Compliance: changed files limited to Mobility read contract, warranty read consumer, focused Mobility tests, and this gate record.
+2. Contract Boundary: `validateWarrantyCoverage` imports Mobility public contract instead of direct `auto_vehicles` query.
+3. Tenant Isolation: Mobility identity read and warranty sale lookup are tenant-scoped.
+4. RLS & Authorization: no policies or grants changed.
+5. Database Migration Safety: no migration.
+6. Event-After-Persistence: no write/event path changed.
+7. Domain Safety Routing: no ProductRegistry, other OS, booking/workshop, or lifecycle write path touched.
+8. Type Safety: no `any`, suppressions, generated type edits, or compatibility aliases.
+9. Regression: focused Mobility static/unit tests, changed typecheck, lint, architecture guard, and security guard.
+10. Evidence Integrity: report local/CI proof separately from Production; no Go-Live claim.
+11. Stop Condition: stop after this read-side warranty coverage batch without broad AutoMove rewrite.
+
+---
+
 # ARCHITECTURE GATE RESULT - AUTOMOVE CUSTOMER OWNERSHIP MOBILITY READ BATCH
 
 > **Status:** PASS - minimal AutoMove customer ownership read-side migration is authorized.
