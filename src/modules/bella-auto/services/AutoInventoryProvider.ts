@@ -5,49 +5,22 @@
  * theo status, variant, và showroom. Tích hợp với VehicleStatusMachineService
  * để thực hiện nhập/xuất/điều chuyển xe.
  *
- * Kiến trúc: Provider-based, stateless, không truy cập DB trực tiếp
- * ngoài constructor injection của SupabaseClient.
+ * Kiến trúc: Provider-based, stateless. Read-side inventory/lifecycle access
+ * đi qua Mobility OS public contract; write-side legacy paths được giữ nguyên
+ * cho batch idempotency/write-semantics riêng.
  */
 
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { Database } from '@/types/database.types';
+import {
+  getMobilityVehicleInventorySummary,
+  listMobilityVehicleInventory,
+  listMobilityVehicleStatusHistory,
+} from '@/platform/mobility/supabase-vehicle-contract';
 import {
   VehicleStatusMachineService,
   type VehicleStatus,
   type TransitionVehicleInput,
 } from './VehicleStatusMachineService';
-
-type AutoVehicleRow = Database['public']['Tables']['auto_vehicles']['Row'];
-
-type VehicleListRow = Pick<
-  AutoVehicleRow,
-  | 'id'
-  | 'vin'
-  | 'chassis_number'
-  | 'engine_number'
-  | 'color_exterior'
-  | 'color_interior'
-  | 'model_year'
-  | 'list_price'
-  | 'cost_price'
-  | 'status'
-  | 'location_note'
-  | 'expected_arrival_date'
-  | 'actual_arrival_date'
-  | 'variant_id'
-  | 'created_at'
-  | 'updated_at'
-> & {
-  auto_variants: {
-    name: string | null;
-    auto_models: {
-      name: string | null;
-      auto_brands: {
-        name: string | null;
-      } | null;
-    } | null;
-  } | null;
-};
 
 export interface VehicleInventorySummary {
   totalVehicles: number;
@@ -105,48 +78,7 @@ export const AutoInventoryProvider = {
     supabase: SupabaseClient,
     tenantId: string
   ): Promise<VehicleInventorySummary> {
-    const { data, error } = await supabase
-      .from('auto_vehicles')
-      .select('status, delivered_at')
-      .eq('tenant_id', tenantId);
-
-    if (error) throw new Error(`AutoInventoryProvider.getSummary: ${error.message}`);
-
-    const now = new Date();
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
-
-    const byStatus: Record<VehicleStatus, number> = {
-      in_transit: 0,
-      warehouse:  0,
-      showroom:   0,
-      allocated:  0,
-      delivered:  0,
-      returned:   0,
-      scrapped:   0,
-    };
-
-    let deliveredThisMonth = 0;
-
-    for (const row of data ?? []) {
-      byStatus[row.status as VehicleStatus] = (byStatus[row.status as VehicleStatus] ?? 0) + 1;
-
-      if (
-        row.status === 'delivered' &&
-        row.delivered_at &&
-        row.delivered_at >= startOfMonth
-      ) {
-        deliveredThisMonth++;
-      }
-    }
-
-    return {
-      totalVehicles:   (data ?? []).length,
-      byStatus,
-      availableForSale: byStatus.warehouse + byStatus.showroom,
-      allocated:        byStatus.allocated,
-      inTransit:        byStatus.in_transit,
-      deliveredThisMonth,
-    };
+    return getMobilityVehicleInventorySummary(supabase, { tenantId });
   },
 
   /**
@@ -161,55 +93,12 @@ export const AutoInventoryProvider = {
       search?: string;
     }
   ): Promise<VehicleInventoryItem[]> {
-    let query = supabase
-      .from('auto_vehicles')
-      .select(`
-        id, vin, chassis_number, engine_number,
-        color_exterior, color_interior, model_year,
-        list_price, cost_price, status, location_note,
-        expected_arrival_date, actual_arrival_date,
-        variant_id, created_at, updated_at,
-        auto_variants!inner(name, model_id,
-          auto_models!inner(name, brand_id,
-            auto_brands!inner(name)
-          )
-        )
-      `)
-      .eq('tenant_id', tenantId)
-      .order('created_at', { ascending: false });
-
-    if (filters?.status) query = query.eq('status', filters.status);
-    if (filters?.variantId) query = query.eq('variant_id', filters.variantId);
-    if (filters?.search) {
-      query = query.or(
-        `vin.ilike.%${filters.search}%,color_exterior.ilike.%${filters.search}%`
-      );
-    }
-
-    const { data, error } = await query.returns<VehicleListRow[]>();
-    if (error) throw new Error(`AutoInventoryProvider.listVehicles: ${error.message}`);
-
-    return (data ?? []).map((row) => ({
-      id:                  row.id,
-      vin:                 row.vin,
-      chassisNumber:       row.chassis_number,
-      engineNumber:        row.engine_number,
-      colorExterior:       row.color_exterior,
-      colorInterior:       row.color_interior,
-      modelYear:           row.model_year,
-      listPrice:           Number(row.list_price),
-      costPrice:           Number(row.cost_price),
-      status:              row.status,
-      locationNote:        row.location_note,
-      expectedArrivalDate: row.expected_arrival_date,
-      actualArrivalDate:   row.actual_arrival_date,
-      variantId:           row.variant_id,
-      variantName:         row.auto_variants?.name ?? undefined,
-      modelName:           row.auto_variants?.auto_models?.name ?? undefined,
-      brandName:           row.auto_variants?.auto_models?.auto_brands?.name ?? undefined,
-      createdAt:           row.created_at,
-      updatedAt:           row.updated_at,
-    }));
+    return listMobilityVehicleInventory(supabase, {
+      tenantId,
+      status: filters?.status,
+      variantId: filters?.variantId,
+      search: filters?.search,
+    });
   },
 
   /**
@@ -263,14 +152,14 @@ export const AutoInventoryProvider = {
     tenantId: string,
     vehicleId: string
   ) {
-    const { data, error } = await supabase
-      .from('auto_vehicle_status_logs')
-      .select('id, from_status, to_status, reason, created_at, changed_by_user_id')
-      .eq('tenant_id', tenantId)
-      .eq('vehicle_id', vehicleId)
-      .order('created_at', { ascending: true });
-
-    if (error) throw new Error(`AutoInventoryProvider.getStatusHistory: ${error.message}`);
-    return data ?? [];
+    const history = await listMobilityVehicleStatusHistory(supabase, { tenantId, vehicleId });
+    return history.map((entry) => ({
+      id: entry.id,
+      from_status: entry.fromStatus ?? null,
+      to_status: entry.toStatus,
+      reason: entry.reason,
+      created_at: entry.createdAt,
+      changed_by_user_id: entry.changedByUserId,
+    }));
   },
 };

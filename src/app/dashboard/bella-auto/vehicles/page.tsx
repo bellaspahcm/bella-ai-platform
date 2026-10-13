@@ -21,7 +21,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { createClient } from '@/lib/supabase-client';
-import { AutoInventoryProvider, type VehicleInventoryItem } from '@/modules/bella-auto/services/AutoInventoryProvider';
+import type { VehicleInventoryItem } from '@/modules/bella-auto/services/AutoInventoryProvider';
 import { VehicleStatusMachineService, type VehicleStatus } from '@/modules/bella-auto/services/VehicleStatusMachineService';
 import type { Database } from '@/types/database.types';
 import { useEffect } from 'react';

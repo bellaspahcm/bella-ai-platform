@@ -1,4 +1,82 @@
-﻿# ARCHITECTURE GATE RESULT - BELLA AUTO WORKSHOP SECURITY CLOSURE
+﻿# ARCHITECTURE GATE RESULT - AUTOMOVE MOBILITY CONSUMER READ-SIDE BATCH
+
+> **Status:** PASS - minimal AutoMove read-side consumer migration is authorized.
+> **Date:** 2026-10-13
+> **Scope:** Move the `AutoInventoryProvider` vehicle inventory read-side paths for summary, inventory list, and vehicle status history behind the Mobility OS public Supabase contract. Keep write-side vehicle creation and lifecycle transition unchanged for a later batch because those require separate idempotency and write-semantic proof. No migration, no ProductRegistry change, no Production mutation, and no other OS changes.
+
+## Bella OS/Product Development Process Gate
+
+- Truth: Mobility OS Foundation MVP is merged on `main` and exposes the approved public contract boundary in `src/platform/mobility`. `AutoInventoryProvider` still owns product-facing inventory methods that directly query `auto_vehicles` and `auto_vehicle_status_logs` for read-side workflows.
+- Source of Truth: `docs/governance/BELLA_AI_CODING_CONSTITUTION.md`, merged PR #307, existing Mobility Foundation public contract files, and current `AutoInventoryProvider` consumer behavior.
+- Canonical Contract: AutoMove product services should consume shared vehicle identity/lifecycle reads through `src/platform/mobility` public contract functions. The Mobility adapter owns persistence mapping to reused `auto_*` tables.
+- Gate result: `PASS` for read-side consumer migration only. `AUTOMOVE_WRITE_CONSUMERS_MIGRATED = NOT_PROVEN` and `AUTOMOVE_FULL_PRODUCT_READINESS = NOT_READY`.
+
+## Product Manifest
+
+- Product: Bella AutoMove / Bella Auto vehicle inventory surface.
+- OS capability consumed: Mobility vehicle identity and lifecycle read contract.
+- Consumer in scope: `src/modules/bella-auto/services/AutoInventoryProvider.ts` read-side methods: `getSummary`, `listVehicles`, and `getStatusHistory`.
+- Non-goals: no state-machine write rewrite, no booking/sales/customer/finance flows, no marketplace capabilities, no ProductRegistry entry, no migration, no Production deployment.
+
+## Ownership Map
+
+| Data / Behavior | Owner | Decision |
+|---|---|---|
+| Vehicle identity and lifecycle read mapping | Mobility OS | move read persistence access into Mobility public Supabase contract |
+| AutoMove inventory provider response shape | AutoMove Product | preserve existing product-facing interfaces and legacy status-history row shape |
+| Vehicle creation and status transition writes | AutoMove Product / future Mobility write contract | keep unchanged in this batch |
+| Tenant isolation | Supabase RLS plus tenant-scoped query inputs | preserve existing tenant filters and do not add service-role bypass |
+
+## Contract Dependency Map
+
+```text
+AutoInventoryProvider read method
+  -> src/platform/mobility/supabase-vehicle-contract
+  -> Supabase client with authenticated RLS context
+  -> reused auto_vehicles / auto_vehicle_status_logs persistence
+  -> legacy AutoMove provider response shape
+```
+
+## Change Authority
+
+Authorized:
+- Extend Mobility public Supabase contract with vehicle inventory summary, inventory list, and status history read functions.
+- Refactor the scoped AutoMove provider read methods to call the Mobility contract.
+- Add focused static tests proving the consumer no longer performs direct read-side `auto_*` access.
+
+Not authorized:
+- Modify write-side vehicle creation or status transition semantics.
+- Add migrations, change RLS, change ProductRegistry, or mutate Production.
+- Modify Logistics, Warehouse, Finance, Healthcare, Education, Manufacturing, or frozen kernels.
+
+## UI -> Contract Reconciliation
+
+- No UI redesign.
+- Existing product-facing provider response shape must remain compatible for inventory UI consumers.
+- This batch moves the data-access boundary only; it does not add new UI states, KPIs, filters, or workflows.
+
+## Additive Migration Plan
+
+- No migration.
+- No schema, table, index, RLS, generated type, or data change.
+
+## 11 Automated Verification Gates Plan
+
+1. Architecture Compliance: changed files limited to Mobility contract, one AutoMove provider consumer, focused tests, and this gate record.
+2. Contract Boundary: provider imports Mobility public contract instead of direct read-side `auto_*` queries.
+3. Tenant Isolation: existing tenantId filters and authenticated Supabase RLS context are preserved.
+4. RLS & Authorization: no grants or policies changed.
+5. Database Migration Safety: no migration.
+6. Event-After-Persistence: no write/event path changed.
+7. Domain Safety Routing: no ProductRegistry or other OS/product scope touched.
+8. Type Safety: no `any`, suppressions, or generated type edits.
+9. Regression: focused Mobility/AutoMove contract tests plus changed typecheck.
+10. Evidence Integrity: report local proof separately from Production; no Go-Live claim.
+11. Stop Condition: stop after this read-side batch without broad AutoMove rewrite.
+
+---
+
+# ARCHITECTURE GATE RESULT - BELLA AUTO WORKSHOP SECURITY CLOSURE
 
 > **Status:** PASS - minimal closure for the already-repaired Bella Auto workshop RLS incident is authorized.
 > **Date:** 2026-10-13
