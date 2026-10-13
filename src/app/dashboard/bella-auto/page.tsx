@@ -6,6 +6,7 @@ import VehicleInventoryDashboard from '@/components/bella-auto/VehicleInventoryD
 import { BellaAutoHeader } from '@/components/bella-auto/BellaAutoHeader';
 import { AutoAnalyticsCharts } from '@/components/bella-auto/AutoAnalyticsCharts';
 import BellaAutoAnalyticsDashboard from '@/components/bella-auto/BellaAutoAnalyticsDashboard';
+import { getMobilityVehicleInventorySummary } from '@/platform/mobility/supabase-vehicle-contract';
 
 export const dynamic = 'force-dynamic';
 
@@ -58,18 +59,16 @@ export default async function BellaAutoPage() {
         .single();
       tenant = tenantData;
 
-      // Fetch vehicle stats for analytics
-      const { data: vehicles } = await supabase
-        .from('auto_vehicles')
-        .select('status')
-        .eq('tenant_id', profile.tenant_id);
+      const vehicleSummary = await getMobilityVehicleInventorySummary(supabase, {
+        tenantId: profile.tenant_id,
+      });
 
       vehicleStats = {
-        total: vehicles?.length || 0,
-        showroom: vehicles?.filter(v => v.status === 'showroom').length || 0,
-        warehouse: vehicles?.filter(v => v.status === 'warehouse').length || 0,
-        allocated: vehicles?.filter(v => v.status === 'allocated').length || 0,
-        delivered: vehicles?.filter(v => v.status === 'delivered').length || 0,
+        total: vehicleSummary.totalVehicles,
+        showroom: vehicleSummary.byStatus.showroom,
+        warehouse: vehicleSummary.byStatus.warehouse,
+        allocated: vehicleSummary.byStatus.allocated,
+        delivered: vehicleSummary.byStatus.delivered,
       };
 
       monogram = profile?.full_name ? profile.full_name.substring(0, 2).toUpperCase() : 'BA';

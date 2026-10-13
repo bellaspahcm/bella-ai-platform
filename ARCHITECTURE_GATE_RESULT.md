@@ -1,4 +1,81 @@
-﻿# ARCHITECTURE GATE RESULT - AUTOMOVE MOBILITY CONSUMER READ-SIDE BATCH
+﻿# ARCHITECTURE GATE RESULT - AUTOMOVE DASHBOARD SHELL MOBILITY READ BATCH
+
+> **Status:** PASS - minimal AutoMove dashboard shell read-side migration is authorized.
+> **Date:** 2026-10-13
+> **Scope:** Move `src/app/dashboard/bella-auto/page.tsx` vehicle status KPI reads behind the Mobility OS public Supabase contract. Preserve existing dashboard route behavior and chart props. No write path change, no migration, no ProductRegistry change, no Production mutation, and no other OS changes.
+
+## Bella OS/Product Development Process Gate
+
+- Truth: Mobility OS Foundation and prior AutoMove read-side batches are merged on `main`. The dashboard shell still directly reads `auto_vehicles` for status counts used by `AutoAnalyticsCharts`.
+- Source of Truth: `docs/governance/BELLA_AI_CODING_CONSTITUTION.md`, merged Mobility Foundation work, existing `src/platform/mobility/supabase-vehicle-contract.ts`, and current dashboard shell behavior.
+- Canonical Contract: AutoMove read consumers should call Mobility public contract functions for vehicle inventory/status reads; the Mobility adapter owns persistence mapping to reused `auto_*` tables.
+- Gate result: `PASS` for this dashboard shell read-only consumer. `AUTOMOVE_WRITE_CONSUMERS_MIGRATED = NOT_PROVEN` and `AUTOMOVE_FULL_PRODUCT_READINESS = NOT_READY`.
+
+## Product Manifest
+
+- Product: Bella AutoMove / Bella Auto dashboard shell.
+- OS capability consumed: Mobility vehicle inventory status summary read contract.
+- Consumer in scope: `src/app/dashboard/bella-auto/page.tsx`.
+- Non-goals: no vehicle creation, no lifecycle transition, no booking/workshop/service repair flows, no ProductRegistry entry, no schema migration, no Production deployment.
+
+## Ownership Map
+
+| Data / Behavior | Owner | Decision |
+|---|---|---|
+| Vehicle inventory status summary | Mobility OS | use existing `getMobilityVehicleInventorySummary` contract |
+| Dashboard shell presentation and chart props | AutoMove Product UI | preserve current prop shape and rendering behavior |
+| Tenant isolation | Supabase RLS plus tenant-scoped query input | preserve tenant filter from authenticated profile; do not add service-role bypass |
+| Vehicle writes/transitions | AutoMove Product / future Mobility write contract | unchanged in this batch |
+
+## Contract Dependency Map
+
+```text
+Bella Auto dashboard shell
+  -> src/platform/mobility/supabase-vehicle-contract
+  -> Supabase client with authenticated RLS context
+  -> reused auto_vehicles persistence
+  -> existing AutoAnalyticsCharts props
+```
+
+## Change Authority
+
+Authorized:
+- Refactor the scoped dashboard shell status summary read to call the existing Mobility public contract.
+- Add a focused static test proving this dashboard shell consumer no longer directly reads `auto_vehicles`.
+- Update this gate record.
+
+Not authorized:
+- Modify write-side vehicle creation or lifecycle transition semantics.
+- Add migrations, change RLS, change ProductRegistry, mutate Production, or touch unrelated OS/product scopes.
+
+## UI -> Contract Reconciliation
+
+- No UI redesign.
+- Existing `AutoAnalyticsCharts` props remain unchanged: total, showroom, warehouse, allocated, delivered.
+- This batch moves the data-access boundary only; it does not introduce new UI states, KPIs, actions, or workflows.
+
+## Additive Migration Plan
+
+- No migration.
+- No schema, table, index, RLS, generated type, or data change.
+
+## 11 Automated Verification Gates Plan
+
+1. Architecture Compliance: changed files limited to one AutoMove dashboard shell consumer, focused tests, and this gate record.
+2. Contract Boundary: dashboard shell imports Mobility public contract instead of direct `auto_vehicles` query.
+3. Tenant Isolation: existing authenticated profile `tenant_id` filter and Supabase RLS context are preserved.
+4. RLS & Authorization: no grants or policies changed.
+5. Database Migration Safety: no migration.
+6. Event-After-Persistence: no write/event path changed.
+7. Domain Safety Routing: no ProductRegistry or other OS/product scope touched.
+8. Type Safety: no `any`, suppressions, or generated type edits.
+9. Regression: focused Mobility/AutoMove contract tests plus changed typecheck/build.
+10. Evidence Integrity: report local/CI proof separately from Production; no Go-Live claim.
+11. Stop Condition: stop after this dashboard shell read-side batch without broad AutoMove rewrite.
+
+---
+
+# ARCHITECTURE GATE RESULT - AUTOMOVE MOBILITY CONSUMER READ-SIDE BATCH
 
 > **Status:** PASS - minimal AutoMove read-side consumer migration is authorized.
 > **Date:** 2026-10-13
