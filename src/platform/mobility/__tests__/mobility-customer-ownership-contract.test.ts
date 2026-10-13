@@ -2,6 +2,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 
 import type { Database } from '@/types/database.types';
 import {
+  getMobilityVehicleIdentity,
   getMobilityCustomerOwnershipAggregate,
   listMobilityCustomerOwnedVehicles,
 } from '../supabase-vehicle-contract';
@@ -92,6 +93,47 @@ function expectTenantScoped(queries: QueryRecord[], tenantId: string): void {
 }
 
 describe('Mobility customer ownership Supabase contract', () => {
+  it('returns tenant-scoped vehicle identity for warranty and workflow consumers', async () => {
+    const { client, queries } = makeSupabase({
+      auto_vehicles: [
+        { tenant_id: 'tenant-a', id: 'vehicle-1', vin: 'VIN00000000000001' },
+        { tenant_id: 'tenant-b', id: 'vehicle-1', vin: 'VIN0000000000000B' },
+      ],
+    });
+
+    const result = await getMobilityVehicleIdentity(client, {
+      tenantId: 'tenant-a',
+      vehicleId: 'vehicle-1',
+    });
+
+    expect(result).toEqual({
+      vehicleId: 'vehicle-1',
+      vin: 'VIN00000000000001',
+    });
+    expect(queries).toHaveLength(1);
+    expect(queries[0]?.table).toBe('auto_vehicles');
+    expect(queries[0]?.filters).toEqual([
+      { field: 'tenant_id', value: 'tenant-a' },
+      { field: 'id', value: 'vehicle-1' },
+    ]);
+  });
+
+  it('returns null when the tenant-scoped vehicle identity is absent', async () => {
+    const { client, queries } = makeSupabase({
+      auto_vehicles: [
+        { tenant_id: 'tenant-b', id: 'vehicle-1', vin: 'VIN0000000000000B' },
+      ],
+    });
+
+    const result = await getMobilityVehicleIdentity(client, {
+      tenantId: 'tenant-a',
+      vehicleId: 'vehicle-1',
+    });
+
+    expect(result).toBeNull();
+    expectTenantScoped(queries, 'tenant-a');
+  });
+
   it('returns an empty ownership list without querying vehicle details', async () => {
     const { client, queries } = makeSupabase({
       auto_vehicle_owners: [],

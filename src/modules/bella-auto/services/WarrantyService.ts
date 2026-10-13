@@ -6,6 +6,7 @@
  */
 
 import { getPrimaryClient } from '@/lib/database/read-replica';
+import { getMobilityVehicleIdentity } from '@/platform/mobility/supabase-vehicle-contract';
 import { Database } from '@/types/database.types';
 
 type WarrantyClaim = Database['public']['Tables']['auto_warranty_claims']['Row'];
@@ -51,6 +52,23 @@ interface RuntimeWarrantyClient {
 
 function runtimeWarrantyClient(client: unknown): RuntimeWarrantyClient {
   return client as RuntimeWarrantyClient;
+}
+
+interface RuntimeWarrantySaleQuery {
+  eq(column: string, value: unknown): RuntimeWarrantySaleQuery;
+  single(): PromiseLike<{ data: AutoSaleWarrantyInfo | null; error: { message: string } | null }>;
+}
+
+interface RuntimeWarrantySaleTable {
+  select(columns: string): RuntimeWarrantySaleQuery;
+}
+
+interface RuntimeWarrantySaleClient {
+  from(table: 'auto_sales'): RuntimeWarrantySaleTable;
+}
+
+function runtimeWarrantySaleClient(client: unknown): RuntimeWarrantySaleClient {
+  return client as RuntimeWarrantySaleClient;
 }
 
 interface AutoSaleWarrantyInfo {
@@ -158,22 +176,28 @@ export class WarrantyService {
   ): Promise<WarrantyValidationResult> {
     const supabase = getPrimaryClient();
 
-    // Get vehicle details
-    const { data: vehicle, error: vehicleError } = await supabase
-      .from('auto_vehicles')
-      .select('*, auto_sales!inner(sale_date, warranty_start_date, warranty_end_date, warranty_mileage_limit)')
-      .eq('id', vehicleId)
-      .eq('tenant_id', tenantId)
-      .single();
+    const vehicle = await getMobilityVehicleIdentity(supabase, { tenantId, vehicleId });
 
-    if (vehicleError || !vehicle) {
+    if (!vehicle) {
       return {
         isValid: false,
         reason: 'Vehicle not found or no sale record',
       };
     }
 
-    const sale = vehicle.auto_sales as AutoSaleWarrantyInfo;
+    const { data: sale, error: saleError } = await runtimeWarrantySaleClient(supabase)
+      .from('auto_sales')
+      .select('sale_date, warranty_start_date, warranty_end_date, warranty_mileage_limit')
+      .eq('vehicle_id', vehicle.vehicleId)
+      .eq('tenant_id', tenantId)
+      .single();
+
+    if (saleError || !sale) {
+      return {
+        isValid: false,
+        reason: 'Vehicle not found or no sale record',
+      };
+    }
 
     // Check if warranty exists
     if (!sale?.warranty_start_date || !sale?.warranty_end_date) {

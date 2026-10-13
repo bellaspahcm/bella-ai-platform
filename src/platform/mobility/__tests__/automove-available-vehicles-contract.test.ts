@@ -117,4 +117,21 @@ describe('AutoMove inventory provider Mobility contract usage', () => {
     expect(serviceHistorySource).not.toContain(".from('auto_vehicles')");
     expect(serviceHistorySource).not.toContain('.from("auto_vehicles")');
   });
+
+  it('moves warranty coverage vehicle identity reads behind the Mobility public contract', () => {
+    const servicePath = path.resolve(
+      __dirname,
+      '../../../modules/bella-auto/services/WarrantyService.ts'
+    );
+    const source = readFileSync(servicePath, 'utf8');
+    const validationStart = source.indexOf('static async validateWarrantyCoverage');
+    const reviewStart = source.indexOf('  /**\n   * Review warranty claim');
+    const validationSource = source.slice(validationStart, reviewStart);
+
+    expect(source).toContain("from '@/platform/mobility/supabase-vehicle-contract'");
+    expect(validationSource).toContain('getMobilityVehicleIdentity');
+    expect(validationSource).toContain(".from('auto_sales')");
+    expect(validationSource).not.toContain(".from('auto_vehicles')");
+    expect(validationSource).not.toContain('.from("auto_vehicles")');
+  });
 });
