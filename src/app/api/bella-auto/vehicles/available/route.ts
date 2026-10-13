@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@/lib/supabase-server';
+import { listAvailableVehiclesForVariant } from '@/platform/mobility/supabase-vehicle-contract';
 
 export async function GET(request: NextRequest) {
   try {
@@ -30,27 +31,20 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Variant ID required' }, { status: 400 });
     }
 
-    // Build query
-    let query = supabase
-      .from('auto_vehicles')
-      .select('id, vin, color_exterior, status')
-      .eq('tenant_id', profile.tenant_id)
-      .eq('variant_id', variantId)
-      .in('status', ['warehouse', 'showroom']);
+    const vehicles = await listAvailableVehiclesForVariant(supabase, {
+      tenantId: profile.tenant_id,
+      variantId,
+      colorExterior: colorExterior ?? undefined,
+    });
 
-    // Filter by color if provided
-    if (colorExterior) {
-      query = query.eq('color_exterior', colorExterior);
-    }
-
-    const { data: vehicles, error } = await query.order('created_at', { ascending: false });
-
-    if (error) {
-      console.error('Available vehicles fetch error:', error);
-      return NextResponse.json({ error: 'Failed to fetch available vehicles' }, { status: 500 });
-    }
-
-    return NextResponse.json({ vehicles: vehicles || [] });
+    return NextResponse.json({
+      vehicles: vehicles.map((vehicle) => ({
+        id: vehicle.id,
+        vin: vehicle.vin,
+        color_exterior: vehicle.colorExterior,
+        status: vehicle.status,
+      })),
+    });
   } catch (error) {
     console.error('Available vehicles fetch exception:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
