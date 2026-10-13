@@ -139,12 +139,27 @@ jobs:
           approval_id="$(node --input-type=module <<'NODE'
           import { readFileSync } from 'fs';
           const output = readFileSync('approval-output.log', 'utf8');
-          const start = output.indexOf('{');
-          const end = output.lastIndexOf('}');
-          if (start < 0 || end < start) {
-            throw new Error('BDGF approval output did not include JSON');
+          const approvals = [];
+
+          for (const match of output.matchAll(/{/g)) {
+            const start = match.index;
+            for (let end = output.indexOf('}', start); end !== -1; end = output.indexOf('}', end + 1)) {
+              try {
+                const candidate = JSON.parse(output.slice(start, end + 1));
+                if (candidate && candidate.approval_id && candidate.migration_hash) {
+                  approvals.push(candidate);
+                  break;
+                }
+              } catch {
+                // Keep scanning; dotenv tips may include non-JSON braces before approval output.
+              }
+            }
           }
-          const approval = JSON.parse(output.slice(start, end + 1));
+
+          const approval = approvals.at(-1);
+          if (!approval) {
+            throw new Error('BDGF approval output did not include approval JSON');
+          }
           if (!approval.approval_id || approval.migration_hash !== process.env.APPROVED_SHA256.toLowerCase()) {
             throw new Error('BDGF approval output did not match the approved migration hash');
           }
