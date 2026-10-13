@@ -7079,3 +7079,83 @@ Not authorized:
 11. Regression: run `npm run test:bdgf-owner-authority`, `npm run test:bdgf-production-workflow`, `npm run security:secrets`, and `git diff --check`.
 
 ---
+# ARCHITECTURE GATE RESULT - BDGF PRODUCTION DB URL SECRET FIX
+
+> **Status:** PASS - minimal workflow secret-source correction for the Bella Auto workshop RLS Production workflow.
+> **Date:** 2026-10-13
+> **Scope:** Replace the generic `secrets.DATABASE_URL` source with the confirmed canonical `secrets.PRODUCTION_SUPABASE_DB_URL` for read-only BDGF approval creation and post-deploy RLS probing. No SQL change, no executor bypass, no Production mutation from this local session.
+
+## Bella OS/Product Development Process Gate
+
+- Truth: Admin-triggered Production runs reached the approval step but failed before BDGF approval creation with `ENETUNREACH` while the workflow sourced the read-only PostgreSQL URL from `secrets.DATABASE_URL`.
+- Source of Truth: workflow run logs, GitHub Actions workflow file, BDGF approval/probe scripts, and the operator-confirmed canonical secret name `PRODUCTION_SUPABASE_DB_URL`.
+- Canonical Contract: the protected Production workflow must use the approved Production database URL secret for approval creation and read-only verification, while mutation still goes only through `DATABASE_EXECUTOR_URL` and the BDGF wrapper.
+- Gate result: `PASS` for correcting the workflow secret source and adding a static guard. `MIGRATION_EXECUTION = NOT_RUN` for this code change.
+
+## Product Manifest
+
+- Product: Bella Auto / Automove workshop security boundary.
+- Capability in scope: Production workflow connection-secret mapping for BDGF approval and post-deploy RLS probe.
+- Existing capabilities reused: BDGF owner-operated approval, BDGF wrapper, approved migration artifact, Production environment protection.
+- Non-goals: no migration content change, no `db push`, no direct executor invocation, no bulk migration sync, no ProductRegistry, no kernel change.
+
+## Ownership Map
+
+| Data / Behavior | Owner | Decision |
+|---|---|---|
+| Production read-only DB URL secret | Production operations / GitHub Actions secrets | use `PRODUCTION_SUPABASE_DB_URL` |
+| Approval record creation | BDGF governance | keep `create-migration-approval.mjs` path |
+| Production mutation | BDGF wrapper / executor | keep `DATABASE_EXECUTOR_URL` only for execution |
+| Workshop RLS proof | Bella Auto workshop persistence | keep post-deploy probe after migration |
+
+## Contract Dependency Map
+
+```text
+workflow_dispatch on main
+  -> Production environment secrets
+  -> PRODUCTION_SUPABASE_DB_URL for approval/probe read connection
+  -> DATABASE_EXECUTOR_URL for wrapper execution only
+  -> approved migration SHA-256 check
+  -> owner_operated approval
+  -> execute-migration-wrapper.mjs
+  -> post-deploy RLS probe
+```
+
+## Change Authority
+
+Authorized:
+- Update the Production workflow secret source for approval/probe DB connections.
+- Add focused static workflow guard coverage for the canonical secret.
+- Update this gate record.
+
+Not authorized:
+- Modify migration SQL or approved hash.
+- Run Production mutation locally.
+- Add a fallback to E2E credentials or a generic DB URL secret.
+- Bypass BDGF, weaken owner authority, or change executor behavior.
+
+## UI -> Contract Reconciliation
+
+- No UI change.
+- No product user-facing contract change.
+
+## Additive Migration Plan
+
+- No new migration.
+- The workflow remains bound to `supabase/migrations/20261013090000_reenable_bella_auto_workshop_rls.sql` and SHA-256 `1FEDCE34702106E86A38D650AAF43FEC52A763F54E66A11187EEF6D3A37C2425`.
+
+## 11 Automated Verification Gates Plan
+
+1. Architecture Compliance: changed files limited to workflow, focused BDGF workflow test, and gate record.
+2. Contract Boundary: approval and execution remain on existing BDGF scripts.
+3. Tenant Isolation: unchanged; post-deploy probe remains required.
+4. RLS & Authorization: unchanged; workflow still requires post-deploy probe before proven status.
+5. Database Migration Safety: approved migration hash remains fixed.
+6. Event-After-Persistence: no app event path changed.
+7. Domain Safety Routing: no Healthcare, Education, Logistics, Warehouse, ProductRegistry, Mobility OS, or kernel files changed.
+8. Temporal Provenance: workflow remains manual-only on `main` in Production environment.
+9. Rule Governance: no accounting/legal/domain rule changed.
+10. Audit & Evidence Integrity: static guard blocks `secrets.DATABASE_URL` from re-entering this workflow.
+11. Regression: run focused BDGF workflow tests, owner authority tests, diff check, secret scan, and final diff review.
+
+---

@@ -57,6 +57,15 @@ await test('workflow creates owner-operated approval before execution', () => {
   assert.match(workflow, /GITHUB_TOKEN: \$\{\{ github\.token \}\}/);
 });
 
+await test('workflow uses the canonical Production Supabase database URL secret', () => {
+  const productionUrlSecretReferences = workflow.match(/secrets\.PRODUCTION_SUPABASE_DB_URL/g) || [];
+  assert.ok(productionUrlSecretReferences.length >= 3);
+  assert.match(workflow, /PRODUCTION_SUPABASE_DB_URL: \$\{\{ secrets\.PRODUCTION_SUPABASE_DB_URL \}\}/);
+  assert.match(workflow, /DATABASE_URL: \$\{\{ secrets\.PRODUCTION_SUPABASE_DB_URL \}\}/);
+  assert.match(workflow, /test -n "\$PRODUCTION_SUPABASE_DB_URL"/);
+  assert.doesNotMatch(workflow, /secrets\.DATABASE_URL/);
+});
+
 await test('workflow pins third-party actions by full commit SHA', () => {
   const usesLines = workflow.split('\n').filter(line => line.trim().startsWith('- uses: '));
   assert.ok(usesLines.length >= 2);
