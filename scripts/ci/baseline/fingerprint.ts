@@ -192,7 +192,7 @@ function normalizeFilePath(file: string): string {
 
   // Strip absolute path prefixes to keep relative repository path
   const lower = normalized.toLowerCase();
-  const markers = ['bella-spa-erp/', 'bella spa erp/'];
+  const markers = ['bella-ai-platform/', 'bella-spa-erp/', 'bella spa erp/'];
   for (const marker of markers) {
     const lastIdx = lower.lastIndexOf(marker);
     if (lastIdx !== -1) {

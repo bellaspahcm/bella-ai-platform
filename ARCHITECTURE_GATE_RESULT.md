@@ -7079,6 +7079,79 @@ Not authorized:
 11. Regression: run `npm run test:bdgf-owner-authority`, `npm run test:bdgf-production-workflow`, `npm run security:secrets`, and `git diff --check`.
 
 ---
+# ARCHITECTURE GATE RESULT - BASELINE PATH NORMALIZATION FOR MOVED REPOSITORY
+
+> **Status:** PASS - minimal CI baseline identity fix for PR #303 failure.
+> **Date:** 2026-10-13
+> **Scope:** Fix baseline fingerprint path normalization after the GitHub repository move to `bella-ai-platform`. No baseline ratchet, no lint debt changes, no Product or database change.
+
+## Bella OS/Product Development Process Gate
+
+- Truth: PR #303 failed only on `Baseline Comparison`; required architecture checks and CI aggregate passed. The baseline log reported 73 new ESLint findings using absolute paths under `/home/runner/work/bella-ai-platform/bella-ai-platform/...`.
+- Source of Truth: live PR #303 check logs, `.github/workflows/baseline-no-new-debt.yml`, `scripts/ci/baseline/fingerprint.ts`, and `.github/ci/baselines/main.json`.
+- Canonical Contract: baseline identities must normalize runner-specific absolute workspace paths to stable repository-relative paths before computing fingerprints.
+- Gate result: `PASS` for adding the moved repository path marker and a regression test. `BASELINE_RATCHET = NOT_DONE`.
+
+## Product Manifest
+
+- Product: none.
+- Capability in scope: CI baseline fingerprint stability.
+- Existing capabilities reused: baseline `completeFinding()` and no-new-debt comparator.
+- Non-goals: no baseline file update, no ESLint rule change, no product code, no DB, no migration execution.
+
+## Ownership Map
+
+| Data / Behavior | Owner | Decision |
+|---|---|---|
+| Baseline fingerprint identity | CI governance | normalize `bella-ai-platform/` absolute runner paths |
+| Historical lint debt | Baseline governance | leave untouched |
+| BDGF Production workflow fix | PR #303 branch | keep existing secret-source fix |
+
+## Contract Dependency Map
+
+```text
+ESLint JSON absolute filePath
+  -> completeFinding()
+  -> normalizeFilePath()
+  -> stable repo-relative fingerprint
+  -> compareBaseline()
+```
+
+## Change Authority
+
+Authorized:
+- Fix CI baseline path normalization for the moved repository name.
+- Add targeted regression test.
+
+Not authorized:
+- Update `.github/ci/baselines/main.json`.
+- Fix unrelated ESLint debt.
+- Change BDGF migration execution, approval authority, or Production secrets beyond PR #303's existing scope.
+
+## UI -> Contract Reconciliation
+
+- No UI change.
+
+## Additive Migration Plan
+
+- No migration.
+
+## 11 Automated Verification Gates Plan
+
+1. Architecture Compliance: CI-only script/test change.
+2. Contract Boundary: preserve baseline fingerprint contract.
+3. Tenant Isolation: not applicable.
+4. RLS & Authorization: not applicable.
+5. Database Migration Safety: no migration change.
+6. Event-After-Persistence: no app event path changed.
+7. Domain Safety Routing: no ProductRegistry, Healthcare, Education, Logistics, Warehouse, Mobility OS, or kernel change.
+8. Temporal Provenance: PR #303 remains the delivery vehicle.
+9. Rule Governance: no domain rule changed.
+10. Audit & Evidence Integrity: no baseline ratchet; only identity normalization.
+11. Regression: run targeted baseline Jest test, focused BDGF workflow tests, secret scan, and diff check.
+
+---
+
 # ARCHITECTURE GATE RESULT - BDGF PRODUCTION DB URL SECRET FIX
 
 > **Status:** PASS - minimal workflow secret-source correction for the Bella Auto workshop RLS Production workflow.
