@@ -4,6 +4,11 @@ import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@/lib/supabase-client';
 import { RefreshCw, Search, Download } from 'lucide-react';
 import type { VehicleStatus } from '@/modules/bella-auto/services/VehicleStatusMachineService';
+import {
+  getMobilityVehicleInventorySummary,
+  listMobilityVehicleInventoryPage,
+  type MobilityVehicleInventoryItem,
+} from '@/platform/mobility/supabase-vehicle-contract';
 
 interface Vehicle {
   id: string;
@@ -26,15 +31,22 @@ interface Vehicle {
 const supabase = createClient();
 const ITEMS_PER_PAGE = 15;
 
-function getRelatedRecord(value: unknown): Record<string, unknown> | null {
-  if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
-    return Object.fromEntries(Object.entries(value));
-  }
-  return null;
-}
-
-function getOptionalString(value: unknown): string | undefined {
-  return typeof value === 'string' ? value : undefined;
+function mapMobilityVehicle(vehicle: MobilityVehicleInventoryItem): Vehicle {
+  return {
+    id: vehicle.id,
+    vin: vehicle.vin,
+    variant_id: vehicle.variantId,
+    color_exterior: vehicle.colorExterior,
+    colorInterior: vehicle.colorInterior,
+    model_year: vehicle.modelYear,
+    status: vehicle.status,
+    location_note: vehicle.locationNote,
+    list_price: vehicle.listPrice,
+    brandName: vehicle.brandName,
+    modelName: vehicle.modelName,
+    variantName: vehicle.variantName,
+    chassisNumber: vehicle.chassisNumber,
+  };
 }
 
 export default function VehicleInventoryDashboard({ tenantId }: { tenantId: string }) {
@@ -67,82 +79,32 @@ export default function VehicleInventoryDashboard({ tenantId }: { tenantId: stri
       
       console.log('✅ Auth session active:', { userId: session.user.id, email: session.user.email });
 
-      // Use AutoInventoryProvider JOIN query (same as vehicles page)
-      let query = supabase
-        .from('auto_vehicles')
-        .select(`
-          id, vin, chassis_number, engine_number,
-          color_exterior, color_interior, model_year,
-          list_price, cost_price, status, location_note,
-          expected_arrival_date, actual_arrival_date,
-          variant_id, created_at, updated_at,
-          auto_variants!inner(name, model_id,
-            auto_models!inner(name, brand_id,
-              auto_brands!inner(name)
-            )
-          )
-        `, { count: 'planned' })
-        .eq('tenant_id', tenantId)
-        .order('created_at', { ascending: false })
-        .range((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE - 1);
+      const [inventoryPage, summary] = await Promise.all([
+        listMobilityVehicleInventoryPage(supabase, {
+          tenantId,
+          status: statusFilter === 'all' ? undefined : statusFilter,
+          search: searchTerm || undefined,
+          page: currentPage,
+          pageSize: ITEMS_PER_PAGE,
+        }),
+        getMobilityVehicleInventorySummary(supabase, { tenantId }),
+      ]);
 
-      if (statusFilter !== 'all') {
-        query = query.eq('status', statusFilter);
-      }
+      const mappedVehicles = inventoryPage.vehicles.map(mapMobilityVehicle);
 
-      if (searchTerm) {
-        query = query.or(`vin.ilike.%${searchTerm}%,location_note.ilike.%${searchTerm}%`);
-      }
-
-      const { data, error, count } = await query;
-
-      if (error) throw error;
-
-      console.log('[VehicleInventory] Loaded vehicles:', data?.length);
-
-      // Map to interface format
-      const mappedVehicles = (data || []).map((row) => {
-        const variant = getRelatedRecord(row.auto_variants);
-        const model = getRelatedRecord(variant?.auto_models);
-        const brand = getRelatedRecord(model?.auto_brands);
-
-        return {
-          id: row.id,
-          vin: row.vin,
-          variant_id: row.variant_id,
-          color_exterior: row.color_exterior,
-          color_interior: row.color_interior,
-          model_year: row.model_year,
-          status: row.status,
-          location_note: row.location_note,
-          list_price: Number(row.list_price),
-          brandName: getOptionalString(brand?.name),
-          modelName: getOptionalString(model?.name),
-          variantName: getOptionalString(variant?.name),
-          chassisNumber: row.chassis_number,
-        };
-      });
+      console.log('[VehicleInventory] Loaded vehicles:', mappedVehicles.length);
 
       console.log('[VehicleInventory] Sample vehicle:', mappedVehicles[0]);
 
       setVehicles(mappedVehicles);
-      setTotalCount(count || 0);
-      
-      // Load stats
-      const [totalRes, showroomRes, warehouseRes, allocatedRes, deliveredRes] = await Promise.all([
-        supabase.from('auto_vehicles').select('*', { count: 'exact', head: true }).eq('tenant_id', tenantId),
-        supabase.from('auto_vehicles').select('*', { count: 'exact', head: true }).eq('tenant_id', tenantId).eq('status', 'showroom'),
-        supabase.from('auto_vehicles').select('*', { count: 'exact', head: true }).eq('tenant_id', tenantId).eq('status', 'warehouse'),
-        supabase.from('auto_vehicles').select('*', { count: 'exact', head: true }).eq('tenant_id', tenantId).eq('status', 'allocated'),
-        supabase.from('auto_vehicles').select('*', { count: 'exact', head: true }).eq('tenant_id', tenantId).eq('status', 'delivered'),
-      ]);
+      setTotalCount(inventoryPage.totalCount);
 
       setStats({
-        total: totalRes.count ?? 0,
-        showroom: showroomRes.count ?? 0,
-        warehouse: warehouseRes.count ?? 0,
-        allocated: allocatedRes.count ?? 0,
-        delivered: deliveredRes.count ?? 0,
+        total: summary.totalVehicles,
+        showroom: summary.byStatus.showroom,
+        warehouse: summary.byStatus.warehouse,
+        allocated: summary.byStatus.allocated,
+        delivered: summary.byStatus.delivered,
       });
     } catch (error) {
       console.error('Error loading vehicles:', error);

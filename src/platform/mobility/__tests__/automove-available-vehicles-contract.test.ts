@@ -59,4 +59,18 @@ describe('AutoMove inventory provider Mobility contract usage', () => {
     expect(source).toContain("import type { VehicleInventoryItem }");
     expect(source).not.toContain('import { AutoInventoryProvider');
   });
+
+  it('moves the dashboard inventory read-side access behind the Mobility public contract', () => {
+    const dashboardPath = path.resolve(
+      __dirname,
+      '../../../components/bella-auto/VehicleInventoryDashboard.tsx'
+    );
+    const source = readFileSync(dashboardPath, 'utf8');
+
+    expect(source).toContain("from '@/platform/mobility/supabase-vehicle-contract'");
+    expect(source).toContain('listMobilityVehicleInventoryPage');
+    expect(source).toContain('getMobilityVehicleInventorySummary');
+    expect(source).not.toContain(".from('auto_vehicles')");
+    expect(source).not.toContain('.from("auto_vehicles")');
+  });
 });
