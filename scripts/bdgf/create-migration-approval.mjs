@@ -10,6 +10,7 @@ import { readFileSync } from 'fs';
 import dotenv from 'dotenv';
 import pg from 'pg';
 import { computeApprovalHash, computeHash } from './r4-verify-approval.mjs';
+import { buildOwnerAuthorityNotes, resolveGitHubActionsOwnerAuthority } from './owner-authority.mjs';
 
 const { Client } = pg;
 dotenv.config();
@@ -75,6 +76,20 @@ function validateApprovalRequest(request) {
     throw new Error('Requester and approver must be different identities');
   }
 
+  if (request.approvalMode === 'owner_operated') {
+    if (request.requesterId !== request.approverId) {
+      throw new Error('Owner-operated approval requires requester and approver to be the same verified owner identity');
+    }
+
+    if (request.authoritySource !== 'github_actions') {
+      throw new Error('Owner-operated approval requires trusted GitHub Actions owner authority');
+    }
+
+    if (!request.authorityEvidence || request.authorityEvidence.provider !== 'github_actions') {
+      throw new Error('Owner-operated approval requires verifiable authority evidence');
+    }
+  }
+
   if (!authorizedRoles.includes(request.approverRole)) {
     throw new Error(
       `Approver role ${request.approverRole} is not authorized for ${request.targetEnvironment}`
@@ -94,15 +109,47 @@ function buildApprovalHashInput(row) {
     approval_mode: row.approval_mode || 'separated',
     requester_id: row.requester_id,
     approver_id: row.approver_id,
+    approver_role: row.approver_role,
     approved_at: row.approved_at,
     target_environment: row.target_environment,
     expires_at: row.expires_at
   };
 }
 
-function buildRequestFromArgs(args) {
+async function buildRequestFromArgs(args, options = {}) {
   const migrationFile = requireArg(args, 'migration-file');
   const migrationContent = readFileSync(migrationFile, 'utf8');
+  const approvalMode = (args['approval-mode']?.trim() || 'separated').replace(/-/g, '_');
+  const targetEnvironment = args.environment?.trim() || 'production';
+  const targetSchema = args['target-schema']?.trim() || 'public';
+  const notes = args.notes?.trim() || null;
+
+  if (approvalMode === 'owner_operated') {
+    if (args.requester || args.approver || args['approver-role']) {
+      throw new Error('owner_operated approvals derive requester, approver and role from trusted authority, not CLI arguments');
+    }
+
+    const authority = options.ownerAuthority || await resolveGitHubActionsOwnerAuthority({
+      targetEnvironment,
+      targetSchema
+    }, options);
+
+    return {
+      migrationFile,
+      migrationContent,
+      migrationHash: computeHash(migrationContent),
+      requesterId: authority.requesterId,
+      approverId: authority.approverId,
+      approverRole: authority.approverRole,
+      approvalMode,
+      targetEnvironment,
+      targetSchema,
+      expiresInMinutes: parseExpiryMinutes(args['expires-in-minutes']),
+      notes: buildOwnerAuthorityNotes(notes, authority.evidence),
+      authoritySource: authority.authoritySource,
+      authorityEvidence: authority.evidence
+    };
+  }
 
   return {
     migrationFile,
@@ -111,11 +158,11 @@ function buildRequestFromArgs(args) {
     requesterId: requireArg(args, 'requester'),
     approverId: requireArg(args, 'approver'),
     approverRole: requireArg(args, 'approver-role'),
-    approvalMode: (args['approval-mode']?.trim() || 'separated').replace(/-/g, '_'),
-    targetEnvironment: args.environment?.trim() || 'production',
-    targetSchema: args['target-schema']?.trim() || 'public',
+    approvalMode,
+    targetEnvironment,
+    targetSchema,
     expiresInMinutes: parseExpiryMinutes(args['expires-in-minutes']),
-    notes: args.notes?.trim() || null
+    notes
   };
 }
 
@@ -159,6 +206,7 @@ async function createApprovalRecord(db, request) {
           approval_mode,
           requester_id,
           approver_id,
+          approver_role,
           approved_at,
           target_environment,
           expires_at
@@ -219,7 +267,7 @@ async function createApprovalRecord(db, request) {
 
 async function main() {
   const args = parseArgs(process.argv.slice(2));
-  const request = buildRequestFromArgs(args);
+  const request = await buildRequestFromArgs(args);
   validateApprovalRequest(request);
 
   const dbUrl = process.env.DATABASE_URL || process.env.DATABASE_EXECUTOR_URL;

@@ -77,6 +77,7 @@ function computeApprovalHash(approval) {
     approval_mode: approval.approval_mode || 'separated',
     requester_id: approval.requester_id,
     approver_id: approval.approver_id,
+    approver_role: approval.approver_role,
     approved_at: new Date(approval.approved_at).toISOString(),
     target_environment: approval.target_environment,
     expires_at: new Date(approval.expires_at).toISOString()
@@ -302,6 +303,84 @@ function checkIntegrity(approval) {
   return { pass: true };
 }
 
+function buildBlockResult(reason, evidence, timestamp) {
+  return {
+    gate: 'G2_APPROVAL',
+    decision: 'BLOCK',
+    reason,
+    evidence,
+    timestamp
+  };
+}
+
+function evaluateApprovalRecord(approval, input, timestamp = Date.now()) {
+  const migrationHash = computeHash(input.migration_content);
+
+  const i0Check = checkNoSelfApproval(approval);
+  if (!i0Check.pass) {
+    return buildBlockResult(i0Check.reason, { invariant: 'I0', ...i0Check.evidence }, timestamp);
+  }
+
+  const i1Check = checkMigrationBinding(approval, migrationHash);
+  if (!i1Check.pass) {
+    return buildBlockResult(i1Check.reason, { invariant: 'I1', ...i1Check.evidence }, timestamp);
+  }
+
+  const i5Check = checkEnvironmentMatch(approval, input.execution_environment);
+  if (!i5Check.pass) {
+    return buildBlockResult(i5Check.reason, { invariant: 'I2/I5', ...i5Check.evidence }, timestamp);
+  }
+
+  if (input.execution_schema) {
+    const schemaCheck = checkSchemaMatch(approval, input.execution_schema);
+    if (!schemaCheck.pass) {
+      return buildBlockResult(schemaCheck.reason, { invariant: 'I2', ...schemaCheck.evidence }, timestamp);
+    }
+  }
+
+  const i4Check = checkTimeValidity(approval);
+  if (!i4Check.pass) {
+    return buildBlockResult(i4Check.reason, { invariant: 'I4', ...i4Check.evidence }, timestamp);
+  }
+
+  const i6Check = checkApproverAuthority(approval);
+  if (!i6Check.pass) {
+    return buildBlockResult(i6Check.reason, { invariant: 'I6', ...i6Check.evidence }, timestamp);
+  }
+
+  const i7Check = checkIntegrity(approval);
+  if (!i7Check.pass) {
+    return buildBlockResult(i7Check.reason, { invariant: 'I7', ...i7Check.evidence }, timestamp);
+  }
+
+  if (approval.status !== 'approved') {
+    return buildBlockResult('APPROVAL_ALREADY_USED', {
+      invariant: 'I3',
+      approval_id: approval.approval_id,
+      current_status: approval.status,
+      note: 'Approval no longer in approved state'
+    }, timestamp);
+  }
+
+  return {
+    gate: 'G2_APPROVAL',
+    decision: 'PASS',
+    evidence: {
+      approval_id: approval.approval_id,
+      migration_id: approval.migration_id,
+      approval_mode: approval.approval_mode || 'separated',
+      requester_id: approval.requester_id,
+      approver_id: approval.approver_id,
+      approver_role: approval.approver_role,
+      approved_at: approval.approved_at,
+      target_environment: approval.target_environment,
+      execution_started_at: new Date().toISOString(),
+      invariants_verified: ['I0', 'I1', 'I2', 'I3', 'I4', 'I5', 'I6', 'I7']
+    },
+    timestamp
+  };
+}
+
 // ============================================================================
 // MAIN GATE LOGIC
 // ============================================================================
@@ -350,10 +429,7 @@ async function verifyApproval(input) {
   try {
     await client.connect();
     
-    // 1. Compute migration hash
-    const migrationHash = computeHash(input.migration_content);
-    
-    // 2. Find approval (status MUST be 'approved')
+    // 1. Find approval (status MUST be 'approved')
     const result = await client.query(`
       SELECT * FROM bella_migration_approval
       WHERE migration_id = $1
@@ -375,128 +451,7 @@ async function verifyApproval(input) {
     }
     
     const approval = result.rows[0];
-    
-    // 3. Check I0: approval mode (CRITICAL - check first)
-    const i0Check = checkNoSelfApproval(approval);
-    if (!i0Check.pass) {
-      return {
-        gate: 'G2_APPROVAL',
-        decision: 'BLOCK',
-        reason: i0Check.reason,
-        evidence: { invariant: 'I0', ...i0Check.evidence },
-        timestamp: startTime
-      };
-    }
-    
-    // 4. Check I1: Migration Binding
-    const i1Check = checkMigrationBinding(approval, migrationHash);
-    if (!i1Check.pass) {
-      return {
-        gate: 'G2_APPROVAL',
-        decision: 'BLOCK',
-        reason: i1Check.reason,
-        evidence: { invariant: 'I1', ...i1Check.evidence },
-        timestamp: startTime
-      };
-    }
-    
-    // 5. Check I2/I5: Environment Match
-    const i5Check = checkEnvironmentMatch(approval, input.execution_environment);
-    if (!i5Check.pass) {
-      return {
-        gate: 'G2_APPROVAL',
-        decision: 'BLOCK',
-        reason: i5Check.reason,
-        evidence: { invariant: 'I2/I5', ...i5Check.evidence },
-        timestamp: startTime
-      };
-    }
-    
-    // 6. Check I2: Schema Match (if applicable)
-    if (input.execution_schema) {
-      const schemaCheck = checkSchemaMatch(approval, input.execution_schema);
-      if (!schemaCheck.pass) {
-        return {
-          gate: 'G2_APPROVAL',
-          decision: 'BLOCK',
-          reason: schemaCheck.reason,
-          evidence: { invariant: 'I2', ...schemaCheck.evidence },
-          timestamp: startTime
-        };
-      }
-    }
-    
-    // 7. Check I4: Time Validity
-    const i4Check = checkTimeValidity(approval);
-    if (!i4Check.pass) {
-      return {
-        gate: 'G2_APPROVAL',
-        decision: 'BLOCK',
-        reason: i4Check.reason,
-        evidence: { invariant: 'I4', ...i4Check.evidence },
-        timestamp: startTime
-      };
-    }
-    
-    // 8. Check I6: Approver Authority
-    const i6Check = checkApproverAuthority(approval);
-    if (!i6Check.pass) {
-      return {
-        gate: 'G2_APPROVAL',
-        decision: 'BLOCK',
-        reason: i6Check.reason,
-        evidence: { invariant: 'I6', ...i6Check.evidence },
-        timestamp: startTime
-      };
-    }
-    
-    // 9. Check I7: Integrity
-    const i7Check = checkIntegrity(approval);
-    if (!i7Check.pass) {
-      return {
-        gate: 'G2_APPROVAL',
-        decision: 'BLOCK',
-        reason: i7Check.reason,
-        evidence: { invariant: 'I7', ...i7Check.evidence },
-        timestamp: startTime
-      };
-    }
-    
-    // 10. Check I3: Single-Use (verify status is still 'approved')
-    // NOTE: Actual status transition happens AFTER execution via gate token
-    if (approval.status !== 'approved') {
-      return {
-        gate: 'G2_APPROVAL',
-        decision: 'BLOCK',
-        reason: 'APPROVAL_ALREADY_USED',
-        evidence: { 
-          invariant: 'I3',
-          approval_id: approval.approval_id,
-          current_status: approval.status,
-          note: 'Approval no longer in approved state'
-        },
-        timestamp: startTime
-      };
-    }
-    
-    // ALL CHECKS PASSED ✅
-    return {
-      gate: 'G2_APPROVAL',
-      decision: 'PASS',
-      evidence: {
-        approval_id: approval.approval_id,
-        migration_id: approval.migration_id,
-        approval_mode: approval.approval_mode || 'separated',
-        requester_id: approval.requester_id,
-        approver_id: approval.approver_id,
-        approver_role: approval.approver_role,
-        approved_at: approval.approved_at,
-        target_environment: approval.target_environment,
-        execution_started_at: new Date().toISOString(),
-        invariants_verified: ['I0', 'I1', 'I2', 'I3', 'I4', 'I5', 'I6', 'I7']
-      },
-      timestamp: startTime
-    };
+    return evaluateApprovalRecord(approval, input, startTime);
     
   } catch (error) {
     console.error('❌ verifyApproval() EXCEPTION CAUGHT:');
@@ -585,4 +540,4 @@ if (import.meta.url === `file://${process.argv[1]}`) {
 }
 
 // Export for testing
-export { verifyApproval, computeHash, computeApprovalHash };
+export { verifyApproval, evaluateApprovalRecord, computeHash, computeApprovalHash };
