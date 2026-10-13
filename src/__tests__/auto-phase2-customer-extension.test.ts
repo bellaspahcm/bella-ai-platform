@@ -6,6 +6,7 @@ type MockDbState = Record<string, MockRow[]>;
 type MockChain = {
   eq: (field: string, value: unknown) => MockChain;
   in: (field: string, values: unknown) => MockChain;
+  returns: <T>() => MockChain;
   maybeSingle: () => Promise<{ data: MockRow | null; error: null }>;
   single: () => Promise<{ data: MockRow; error: null }>;
   then: (onfulfilled: (value: { data: MockRow[]; error: null; count: number | null }) => unknown) => Promise<unknown>;
@@ -17,6 +18,7 @@ function makeSupabaseMock(dbState: MockDbState) {
     const chain: MockChain = {
       eq: () => chain,
       in: () => chain,
+      returns: () => chain,
       maybeSingle: () => {
         const items = dbState[table] ?? [];
         return Promise.resolve({ data: items[0] ?? null, error: null });

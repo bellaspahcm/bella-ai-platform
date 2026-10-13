@@ -9,9 +9,31 @@ import {
 
 type MobilitySupabaseClient = SupabaseClient<Database>;
 type AutoVehicleRow = Database['public']['Tables']['auto_vehicles']['Row'];
+type AutoVehicleOwnerRow = Database['public']['Tables']['auto_vehicle_owners']['Row'];
 type AutoVehicleStatusLogRow = Database['public']['Tables']['auto_vehicle_status_logs']['Row'];
+type AutoVariantRow = Database['public']['Tables']['auto_variants']['Row'];
+type AutoModelRow = Database['public']['Tables']['auto_models']['Row'];
+type AutoBrandRow = Database['public']['Tables']['auto_brands']['Row'];
 type AvailableVehicleRow = Pick<AutoVehicleRow, 'id' | 'vin' | 'color_exterior' | 'status'>;
 type InventorySummaryRow = Pick<AutoVehicleRow, 'status' | 'delivered_at'>;
+type CustomerVehicleOwnerRow = Pick<
+  AutoVehicleOwnerRow,
+  | 'id'
+  | 'vehicle_id'
+  | 'ownership_type'
+  | 'license_plate'
+  | 'registration_date'
+  | 'is_active'
+  | 'transferred_at'
+>;
+type CustomerOwnedVehicleRow = Pick<
+  AutoVehicleRow,
+  'id' | 'vin' | 'color_exterior' | 'model_year' | 'variant_id'
+>;
+type CustomerOwnedVehiclePriceRow = Pick<AutoVehicleRow, 'list_price'>;
+type CustomerVehicleVariantRow = Pick<AutoVariantRow, 'id' | 'name' | 'model_id'>;
+type CustomerVehicleModelRow = Pick<AutoModelRow, 'id' | 'name' | 'brand_id'>;
+type CustomerVehicleBrandRow = Pick<AutoBrandRow, 'id' | 'name'>;
 type InventoryVehicleRow = Pick<
   AutoVehicleRow,
   | 'id'
@@ -89,6 +111,27 @@ export interface MobilityVehicleStatusHistoryEntry {
   reason: string | null;
   createdAt: string;
   changedByUserId: string | null;
+}
+
+export interface MobilityCustomerOwnedVehicle {
+  ownerRecordId: string;
+  vehicleId: string;
+  vin: string;
+  colorExterior: string;
+  modelYear: number;
+  variantName?: string;
+  modelName?: string;
+  brandName?: string;
+  ownershipType: string;
+  licensePlate: string | null;
+  registrationDate: string | null;
+  isActive: boolean;
+  transferredAt: string | null;
+}
+
+export interface MobilityCustomerOwnershipAggregate {
+  totalVehiclesOwned: number;
+  totalValueSpent: number;
 }
 
 const EMPTY_STATUS_COUNTS: Record<MobilityVehicleStatus, number> = {
@@ -293,6 +336,161 @@ export async function listMobilityVehicleStatusHistory(
   }));
 }
 
+export async function listMobilityCustomerOwnedVehicles(
+  supabase: MobilitySupabaseClient,
+  input: {
+    tenantId: string;
+    customerId: string;
+  }
+): Promise<MobilityCustomerOwnedVehicle[]> {
+  const { data: ownersData, error: ownersError } = await supabase
+    .from('auto_vehicle_owners')
+    .select('id, vehicle_id, ownership_type, license_plate, registration_date, is_active, transferred_at')
+    .eq('tenant_id', input.tenantId)
+    .eq('customer_id', input.customerId)
+    .returns<CustomerVehicleOwnerRow[]>();
+
+  if (ownersError) {
+    throw new Error(`Mobility.listCustomerOwnedVehicles: ${ownersError.message}`);
+  }
+
+  const vehicleIds = unique((ownersData ?? []).map((row) => row.vehicle_id));
+  const { data: vehiclesData, error: vehiclesError } = vehicleIds.length > 0
+    ? await supabase
+      .from('auto_vehicles')
+      .select('id, vin, color_exterior, model_year, variant_id')
+      .eq('tenant_id', input.tenantId)
+      .in('id', vehicleIds)
+      .returns<CustomerOwnedVehicleRow[]>()
+    : { data: [] as CustomerOwnedVehicleRow[], error: null };
+
+  if (vehiclesError) {
+    throw new Error(`Mobility.listCustomerOwnedVehicles: ${vehiclesError.message}`);
+  }
+
+  const variantIds = unique((vehiclesData ?? []).map((row) => row.variant_id));
+  const { data: variantsData, error: variantsError } = variantIds.length > 0
+    ? await supabase
+      .from('auto_variants')
+      .select('id, name, model_id')
+      .eq('tenant_id', input.tenantId)
+      .in('id', variantIds)
+      .returns<CustomerVehicleVariantRow[]>()
+    : { data: [] as CustomerVehicleVariantRow[], error: null };
+
+  if (variantsError) {
+    throw new Error(`Mobility.listCustomerOwnedVehicles: ${variantsError.message}`);
+  }
+
+  const modelIds = unique((variantsData ?? []).map((row) => row.model_id));
+  const { data: modelsData, error: modelsError } = modelIds.length > 0
+    ? await supabase
+      .from('auto_models')
+      .select('id, name, brand_id')
+      .eq('tenant_id', input.tenantId)
+      .in('id', modelIds)
+      .returns<CustomerVehicleModelRow[]>()
+    : { data: [] as CustomerVehicleModelRow[], error: null };
+
+  if (modelsError) {
+    throw new Error(`Mobility.listCustomerOwnedVehicles: ${modelsError.message}`);
+  }
+
+  const brandIds = unique((modelsData ?? []).map((row) => row.brand_id));
+  const { data: brandsData, error: brandsError } = brandIds.length > 0
+    ? await supabase
+      .from('auto_brands')
+      .select('id, name')
+      .eq('tenant_id', input.tenantId)
+      .in('id', brandIds)
+      .returns<CustomerVehicleBrandRow[]>()
+    : { data: [] as CustomerVehicleBrandRow[], error: null };
+
+  if (brandsError) {
+    throw new Error(`Mobility.listCustomerOwnedVehicles: ${brandsError.message}`);
+  }
+
+  const vehiclesById = new Map((vehiclesData ?? []).map((vehicle) => [vehicle.id, vehicle]));
+  const variantsById = new Map((variantsData ?? []).map((variant) => [variant.id, variant]));
+  const modelsById = new Map((modelsData ?? []).map((model) => [model.id, model]));
+  const brandsById = new Map((brandsData ?? []).map((brand) => [brand.id, brand]));
+
+  return (ownersData ?? []).flatMap((owner) => {
+    const vehicle = vehiclesById.get(owner.vehicle_id);
+    if (!vehicle) return [];
+
+    const variant = variantsById.get(vehicle.variant_id);
+    const model = variant ? modelsById.get(variant.model_id) : undefined;
+    const brand = model ? brandsById.get(model.brand_id) : undefined;
+
+    return [{
+      ownerRecordId: owner.id,
+      vehicleId: vehicle.id,
+      vin: vehicle.vin,
+      colorExterior: vehicle.color_exterior,
+      modelYear: vehicle.model_year,
+      variantName: variant?.name,
+      modelName: model?.name,
+      brandName: brand?.name,
+      ownershipType: owner.ownership_type,
+      licensePlate: owner.license_plate,
+      registrationDate: owner.registration_date,
+      isActive: owner.is_active,
+      transferredAt: owner.transferred_at,
+    }];
+  });
+}
+
+export async function getMobilityCustomerOwnershipAggregate(
+  supabase: MobilitySupabaseClient,
+  input: {
+    tenantId: string;
+    customerId: string;
+  }
+): Promise<MobilityCustomerOwnershipAggregate> {
+  const { count, error: countError } = await supabase
+    .from('auto_vehicle_owners')
+    .select('*', { count: 'exact', head: true })
+    .eq('tenant_id', input.tenantId)
+    .eq('customer_id', input.customerId)
+    .eq('is_active', true);
+
+  if (countError) {
+    throw new Error(`Mobility.getCustomerOwnershipAggregate: ${countError.message}`);
+  }
+
+  const { data: activeOwners, error: activeOwnersError } = await supabase
+    .from('auto_vehicle_owners')
+    .select('vehicle_id')
+    .eq('tenant_id', input.tenantId)
+    .eq('customer_id', input.customerId)
+    .eq('is_active', true)
+    .returns<Pick<AutoVehicleOwnerRow, 'vehicle_id'>[]>();
+
+  if (activeOwnersError) {
+    throw new Error(`Mobility.getCustomerOwnershipAggregate: ${activeOwnersError.message}`);
+  }
+
+  const activeVehicleIds = unique((activeOwners ?? []).map((row) => row.vehicle_id));
+  const { data: priceData, error: priceError } = activeVehicleIds.length > 0
+    ? await supabase
+      .from('auto_vehicles')
+      .select('list_price')
+      .eq('tenant_id', input.tenantId)
+      .in('id', activeVehicleIds)
+      .returns<CustomerOwnedVehiclePriceRow[]>()
+    : { data: [] as CustomerOwnedVehiclePriceRow[], error: null };
+
+  if (priceError) {
+    throw new Error(`Mobility.getCustomerOwnershipAggregate: ${priceError.message}`);
+  }
+
+  return {
+    totalVehiclesOwned: count ?? 0,
+    totalValueSpent: (priceData ?? []).reduce((total, row) => total + Number(row.list_price), 0),
+  };
+}
+
 function mapInventoryVehicle(row: InventoryVehicleRow): MobilityVehicleInventoryItem {
   return {
     id: row.id,
@@ -315,4 +513,8 @@ function mapInventoryVehicle(row: InventoryVehicleRow): MobilityVehicleInventory
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
+}
+
+function unique(values: string[]): string[] {
+  return [...new Set(values)];
 }
