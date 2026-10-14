@@ -8407,3 +8407,92 @@ Not authorized:
 9. Regression: focused warranty service tests, static contract tests, changed typecheck, lint, architecture guard, and build/security checks as applicable.
 10. Evidence Integrity: report local/CI proof separately from Production; no Go-Live claim.
 11. Stop Condition: stop after this read-side warranty claims batch without broad AutoMove rewrite.
+
+# ARCHITECTURE GATE RESULT - AUTOMOVE RUNTIME VEHICLE SALE RECOGNITION COMMAND
+
+> **Status:** PASS - runtime command implementation and non-Production ledger posting are authorized under the user-approved scope.
+> **Date:** 2026-10-14
+> **Scope:** Implement the minimal `recognize_vehicle_sale_revenue` command that validates actor authority and tenant ownership, resolves the approved global accounting policy from `policy_registry`, stores immutable sale-time snapshots in `auto_vehicle_sale_recognitions`, and proves idempotency/RLS behavior on non-Production DB. No Production mutation, no Finance journal posting, no `FinancialReportingService` migration, no Warranty migration, no ProductRegistry change.
+
+## Bella OS/Product Development Process Gate
+
+- Truth: PR #319 already proved the additive ledger schema on `main`; runtime recognition remains missing.
+- Source of Truth: `docs/governance/BELLA_AI_CODING_CONSTITUTION.md`, `docs/architecture/AUTOMOVE_VEHICLE_SALE_REVENUE_CONTRACT_2026_10_14.md`, `docs/architecture/AUTOMOVE_ADDITIVE_SCHEMA_AUTHORIZATION_REVIEW_2026_10_14.md`, and the merged ledger migration `20261014010000_create_automove_vehicle_sale_recognition_ledgers.sql`.
+- Canonical Contract: revenue recognition must be an explicit, auditable command. Booking creation, deposit receipt, payment receipt, handover, invoice timing, `PACKAGE_SALE`, and mutable vehicle cost are not accepted substitutes for `sale_revenue_recognized`.
+- Gate result: `PASS` for runtime command and non-Production ledger insert verification only.
+
+## Product Manifest
+
+- Product/Domain: Bella AutoMove vehicle sale recognition.
+- Capability in scope: runtime initial recognition command for a vehicle sale.
+- Persistence artifact in scope: `public.auto_vehicle_sale_recognitions`.
+- Explicitly out of scope: adjustment command, Finance journal/TK posting, Financial Reporting migration, Warranty entitlement migration, Production mutation, ProductRegistry, and other OS/Product domains.
+
+## Ownership Map
+
+| Data / Behavior | Owner | Decision |
+|---|---|---|
+| Vehicle sale recognition command | AutoMove financial source-of-truth contract | implement minimal command |
+| Trusted accounting policy version | Finance/Platform governance via global `policy_registry` | resolve from DB; do not trust caller payload |
+| Recognition snapshot | AutoMove ledger schema from PR #319 | insert immutable snapshot only |
+| Actor authority | AutoMove command boundary | validate tenant profile and accounting-capable role before service-role insert |
+| Journal posting / account mapping | Finance/accounting owner | out of scope |
+| Tenant isolation | Platform auth/RLS + command prechecks + DB trigger | fail closed on cross-tenant data |
+
+## Contract Dependency Map
+
+```text
+POST /api/bella-auto/vehicle-sale-recognitions
+  -> authenticated actor profile from users
+  -> AutoMove command service
+  -> trusted global policy_registry resolver
+  -> tenant-scoped booking / vehicle / customer prechecks
+  -> service-role insert into auto_vehicle_sale_recognitions
+  -> DB trigger tenant validation + append-only ledger
+```
+
+## Change Authority
+
+Authorized:
+
+- Implement a service and API route for initial vehicle sale recognition.
+- Use a service-role insert only after explicit actor authority and tenant-boundary validation.
+- Reject caller-supplied `accounting_policy_id` / `accounting_policy_version`.
+- Add unit tests and non-Production Real DB verification for policy resolution, idempotency, RLS/tenant isolation, and snapshot immutability.
+- Update scoped Real DB runner so this command verifier runs for relevant changes.
+
+Not authorized:
+
+- Create or modify schema/migrations in this batch.
+- Implement adjustment/reversal runtime command.
+- Post Finance journal entries or map Vietnamese accounting accounts.
+- Modify `FinancialReportingService`, `WarrantyService`, `AutoSalesProvider`, ProductRegistry, or Production workflows.
+- Use `auto_sales` or create compatibility tables for stale consumers.
+
+## UI -> Contract Reconciliation
+
+- No UI change.
+- No dashboard/report semantics change.
+- This batch exposes a command boundary only; future UI/report consumers require separate authorization.
+
+## Additive Migration Plan
+
+- No new migration.
+- Reuse the PR #319 ledger schema already on `main`.
+- Verification may apply the existing PR #319 migration transactionally in non-Production test setup if the target E2E DB is behind; transaction must roll back.
+
+## 11 Automated Verification Gates Plan
+
+1. Architecture Compliance: changed files limited to gate, command service/adapter/route, focused tests, and scoped verifier wiring.
+2. Contract Boundary: command creates only initial recognition rows; no Finance journal posting or stale `auto_sales`.
+3. Tenant Isolation: actor, booking, vehicle, customer, and DB trigger enforce one tenant.
+4. RLS & Authorization: authenticated users do not get table INSERT; service role is used only after command prechecks.
+5. Database Migration Safety: no new schema mutation; non-Production verifier rolls back fixture data.
+6. Event-After-Persistence: no outbox or domain event is emitted before persistence.
+7. Domain Safety Routing: Financial Reporting, Warranty, ProductRegistry, and other OS domains remain untouched.
+8. Type Safety: no `any` or generated type edits.
+9. Regression: unit tests, typecheck, lint, static architecture guard, and scoped Real DB verification.
+10. Evidence Integrity: report unit/local/Real DB/non-Production separately from Production; no Go-Live claim.
+11. Stop Condition: stop after command proof; do not proceed to reporting/warranty/Production without new authorization.
+
+---

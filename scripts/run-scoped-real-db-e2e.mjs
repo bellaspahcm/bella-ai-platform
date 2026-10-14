@@ -36,11 +36,19 @@ const SCOPED_REAL_DB_SUITES = [
     patterns: [
       /^supabase\/migrations\/20261014010000_create_automove_vehicle_sale_recognition_ledgers\.sql$/,
       /^scripts\/verify-automove-vehicle-sale-recognition-schema\.mjs$/,
+      /^scripts\/verify-automove-vehicle-sale-recognition-command\.ts$/,
+      /^src\/modules\/bella-auto\/services\/(VehicleSaleRecognitionService|SupabaseVehicleSaleRecognitionRepository)\.ts$/,
+      /^src\/modules\/bella-auto\/services\/__tests__\/VehicleSaleRecognitionService\.test\.ts$/,
+      /^src\/app\/api\/bella-auto\/vehicle-sale-recognitions\/route\.ts$/,
     ],
     commands: [
       {
         command: 'node',
         args: ['scripts/verify-automove-vehicle-sale-recognition-schema.mjs'],
+      },
+      {
+        command: 'npx',
+        args: ['tsx', 'scripts/verify-automove-vehicle-sale-recognition-command.ts'],
       },
     ],
   },
