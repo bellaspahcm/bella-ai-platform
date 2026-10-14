@@ -8226,3 +8226,95 @@ Not authorized:
 9. Regression: focused static/unit tests, changed typecheck, lint, architecture guard, and build/security checks as applicable.
 10. Evidence Integrity: report local/CI proof separately from Production; no Go-Live claim.
 11. Stop Condition: stop after this read-side booking display batch without broad AutoMove rewrite.
+
+---
+
+# ARCHITECTURE GATE RESULT - AUTOMOVE WARRANTY CLAIMS MOBILITY READ BATCH
+
+> **Status:** PASS - minimal AutoMove warranty-claims vehicle display read migration is authorized.
+> **Date:** 2026-10-14
+> **Scope:** Move only `WarrantyService.getClaimsByStatus` vehicle display enrichment behind the existing Mobility OS public Supabase contract. Preserve warranty/customer claim query semantics, claim statuses, wrapper methods, coverage validation already sealed in PR #314, write workflow, schema, ProductRegistry, Production, and all other OS/Product scopes unchanged.
+
+## Bella OS/Product Development Process Gate
+
+- Truth: Mobility OS owns reusable tenant-scoped vehicle display/identity reads; AutoMove warranty claims own warranty/customer rows, claim status filtering, and review workflow semantics.
+- Source of Truth: `docs/governance/BELLA_AI_CODING_CONSTITUTION.md`, current Mobility public contract, sealed read-side batches through #315, user-approved `AUTO_WARRANTY_CLAIMS_MOBILITY_READ` scope, and fresh direct `auto_vehicles` inventory after PR #315.
+- Canonical Contract: AutoMove claim consumers should not join/read `auto_vehicles` directly for vehicle display; they should call Mobility public contract functions and keep product-owned warranty/customer data in product queries.
+- Gate result: `PASS` for `WarrantyService.getClaimsByStatus` read-side display enrichment only. `AUTOMOVE_WRITE_CONSUMERS_MIGRATED = NOT_PROVEN` and `AUTOMOVE_FULL_PRODUCT_READINESS = NOT_READY`.
+
+## Product Manifest
+
+- Product: Bella AutoMove / warranty claims read-side service.
+- OS capability consumed: Mobility tenant-scoped vehicle display read contract.
+- Consumer in scope: `WarrantyService.getClaimsByStatus`.
+- Non-goals: no `validateWarrantyCoverage` change, claim creation/update/review workflow change, warranty policy change, booking/allocation/status lifecycle change, workshop join change, schema migration, ProductRegistry entry, Production deployment, or other OS change.
+
+## Direct Reference Inventory After PR #315
+
+| Category | Files | Decision |
+|---|---|---|
+| Mobility-owned persistence mapping | `src/platform/mobility/**` | allowed owner of `auto_vehicles` mapping |
+| Read-side independent candidate | `WarrantyService.getClaimsByStatus` vehicle display join | migrate in this batch |
+| Already sealed warranty coverage identity read | `WarrantyService.validateWarrantyCoverage` | unchanged; PR #314 scope remains sealed |
+| Read-side candidate needing separate semantic proof | `FinancialReportingService` | defer; profit/cost semantics need contract proof |
+| Workshop joins | service appointment/order/history joins | defer by explicit scope boundary |
+| Write lifecycle/allocation/rollback | status machine, allocation service, rollback flows, inventory add vehicle | out of scope |
+| Tests/generated types | `src/__tests__/**`, generated DB types | not product consumer migration targets |
+
+## Ownership Map
+
+| Data / Behavior | Owner | Decision |
+|---|---|---|
+| Warranty claim rows, status filters, customers relation | AutoMove Product | keep `auto_warranty_claims` query and wrapper semantics |
+| Vehicle display by claim vehicle IDs | Mobility OS | call existing tenant-scoped display DTO/function |
+| Coverage validation | AutoMove Product using Mobility identity contract | unchanged from sealed PR #314 |
+| Tenant isolation | Supabase RLS plus explicit tenant-scoped contract input | preserve `tenantId` filters; no service-role bypass |
+
+## Contract Dependency Map
+
+```text
+WarrantyService.getClaimsByStatus
+  -> getPrimaryClient authenticated Supabase context
+  -> auto_warranty_claims product query for claim/customer/status data
+  -> src/platform/mobility/supabase-vehicle-contract
+  -> listMobilityVehicleDisplayByIds(tenantId, vehicleIds)
+  -> reused auto_vehicles / variant-model persistence
+  -> legacy claim DTO shape with optional auto_vehicles display object
+```
+
+## Change Authority
+
+Authorized:
+- Remove the direct `auto_vehicles(*)` join from `getClaimsByStatus`.
+- Reuse `listMobilityVehicleDisplayByIds` to enrich claim rows with display-only vehicle information.
+- Preserve claim status filters, customers relation, limit ordering, and wrapper method behavior.
+- Add focused regression and static contract tests.
+- Update this gate record.
+
+Not authorized:
+- Modify coverage validation, claim write/review workflows, warranty policy semantics, booking/allocation, vehicle status lifecycle, workshop flows, rollback flows, financial reporting, generated DB types, migrations, grants/RLS, ProductRegistry, other OS/product scopes, or Production.
+
+## UI -> Contract Reconciliation
+
+- No UI redesign.
+- Existing claim display shape is preserved by mapping Mobility DTO fields back into the legacy `auto_vehicles` display object expected by claim consumers.
+- Missing vehicle display data remains non-destructive: the claim row is retained and `auto_vehicles` is `null`.
+
+## Additive Migration Plan
+
+- No migration.
+- No schema, table, index, RLS, generated type, or data change.
+
+## 11 Automated Verification Gates Plan
+
+1. Architecture Compliance: changed files limited to the warranty read consumer, focused tests, and this gate record.
+2. Contract Boundary: `getClaimsByStatus` imports Mobility public contract and no longer contains a direct `auto_vehicles(*)` join.
+3. Tenant Isolation: Mobility display read applies explicit `tenant_id` filtering and vehicle ID filtering.
+4. RLS & Authorization: no policies or grants changed.
+5. Database Migration Safety: no migration.
+6. Event-After-Persistence: no write/event path changed.
+7. Domain Safety Routing: no ProductRegistry, other OS, workshop, financial, or lifecycle write path touched.
+8. Type Safety: no `any`, suppressions, generated type edits, or compatibility aliases.
+9. Regression: focused warranty service tests, static contract tests, changed typecheck, lint, architecture guard, and build/security checks as applicable.
+10. Evidence Integrity: report local/CI proof separately from Production; no Go-Live claim.
+11. Stop Condition: stop after this read-side warranty claims batch without broad AutoMove rewrite.
