@@ -73,6 +73,8 @@ export function ActiveBookingPanel({
   const completedSessions = activeBooking?.completed_sessions || 0;
   const totalSessions = activeBooking?.total_sessions || 12;
   const progressPercent = Math.min(100, Math.round((completedSessions / Math.max(1, totalSessions)) * 100));
+  const displayedFullPrice = activeBooking?.full_price ?? 0;
+  const displayedPaidAmount = paymentState?.totalPaid ?? 0;
 
   // Mock AI KTV recommendation list matching Image 2
   const aiKtvs = [
@@ -168,11 +170,11 @@ export function ActiveBookingPanel({
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
           <div className="beauty-customer-theme-panel rounded-2xl p-3">
             <p className="beauty-customer-theme-muted text-[9px] font-bold uppercase mb-0.5">Giá gói</p>
-            <p className="beauty-customer-theme-title font-black text-base">{formatNumberWithSeparator(activeBooking?.full_price || 4290000)}đ</p>
+            <p className="beauty-customer-theme-title font-black text-base">{formatNumberWithSeparator(displayedFullPrice)}đ</p>
           </div>
           <div className="beauty-customer-theme-panel rounded-2xl p-3">
             <p className="beauty-customer-theme-muted text-[9px] font-bold uppercase mb-0.5">Đã thanh toán</p>
-            <p className="beauty-customer-theme-accent font-black text-base">{formatNumberWithSeparator(paymentState?.totalPaid || 4290000)}đ</p>
+            <p className="beauty-customer-theme-accent font-black text-base">{formatNumberWithSeparator(displayedPaidAmount)}đ</p>
           </div>
           <div className="beauty-customer-theme-panel rounded-2xl p-3">
             <p className="beauty-customer-theme-muted text-[9px] font-bold uppercase mb-0.5">Còn lại</p>

@@ -174,6 +174,46 @@ describe('payment business rule audit', () => {
     expect(paymentHelperSource).toContain(".eq('tenant_id', tenantId)");
   });
 
+  it('keeps the active package paid amount on confirmed revenue without demo-money fallback', () => {
+    const activeBookingPanelSource = readSource('src/app/dashboard/customers/[id]/components/ActiveBookingPanel.tsx');
+    const stateWithNoConfirmedRevenue = calculateBookingPaymentState({
+      fullPrice: 6000000,
+      discountPercent: 25,
+      depositAmount: 500000,
+      bookingStatus: 'in_progress',
+      revenues: [],
+    });
+
+    expect(stateWithNoConfirmedRevenue.totalPaid).toBe(0);
+    expect(stateWithNoConfirmedRevenue.remainingDebt).toBe(4500000);
+    expect(activeBookingPanelSource).toContain('const displayedPaidAmount = paymentState?.totalPaid ?? 0;');
+    expect(activeBookingPanelSource).not.toContain('paymentState?.totalPaid || 4290000');
+  });
+
+  it('clarifies edit-package deposit target and shows the realtime discount amount preview', () => {
+    const editBookingModalSource = readSource('src/app/dashboard/customers/[id]/components/CustomerDetailModals.tsx');
+
+    expect(calculateBookingPaymentState({
+      fullPrice: 6000000,
+      discountPercent: 25,
+      depositAmount: 500000,
+      bookingStatus: 'in_progress',
+      revenues: [{ amount: 4290000, status: 'confirmed', revenue_type: 'package_payment' }],
+    })).toMatchObject({
+      priceAfterDiscount: 4500000,
+      totalPaid: 4290000,
+      remainingDebt: 210000,
+      depositTarget: 500000,
+    });
+
+    expect(editBookingModalSource).toContain('calculatePriceAfterDiscount');
+    expect(editBookingModalSource).toContain('Mục tiêu cọc / cọc cần thu');
+    expect(editBookingModalSource).toContain('Số đã thanh toán được tính từ các khoản thu đã xác nhận.');
+    expect(editBookingModalSource).toContain('Chiết khấu {discountPreview.discountPercent}%:');
+    expect(editBookingModalSource).toContain('Giá sau chiết khấu:');
+    expect(editBookingModalSource).not.toContain('Đã thanh toán / Cọc');
+  });
+
   it('keeps Haircut debt collection on the F3 receivable contract', () => {
     const haircutReconciliationSource = readSource(
       'src/app/dashboard/finance/reconciliation/components/HaircutReconciliationView.tsx'
