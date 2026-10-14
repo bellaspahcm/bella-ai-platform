@@ -6,7 +6,8 @@ import {
   listMobilityVehicleDisplayByIds,
   type MobilityVehicleDisplay,
 } from '@/platform/mobility/supabase-vehicle-contract';
-import { Search, User, Car, CheckCircle } from 'lucide-react';
+import { Search, User, Car, CheckCircle, FileCheck } from 'lucide-react';
+import { VehicleSaleChainDialog } from './VehicleSaleChainDialog';
 import { toast } from 'sonner';
 
 type FilterType = 'all' | 'unpaid' | 'partial' | 'full';
@@ -35,6 +36,7 @@ export function BookingListTable({ tenantId }: { tenantId: string }) {
   const [filter, setFilter] = useState<FilterType>('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [confirmingId, setConfirmingId] = useState<string | null>(null);
+  const [saleBooking, setSaleBooking] = useState<Booking | null>(null);
 
   const loadBookings = async () => {
     setLoading(true);
@@ -352,6 +354,11 @@ export function BookingListTable({ tenantId }: { tenantId: string }) {
                         </>
                       )}
                     </button>
+                    <button type="button" disabled={!booking.vehicle_id}
+                      onClick={() => setSaleBooking(booking)} title="Hồ sơ bán xe" aria-label={`Hồ sơ bán xe ${booking.booking_number}`}
+                      className="ml-2 inline-flex p-2 text-cyan-700 disabled:opacity-40 dark:text-cyan-400">
+                      <FileCheck className="h-5 w-5" />
+                    </button>
                   </td>
                 </tr>
               ))
@@ -359,6 +366,8 @@ export function BookingListTable({ tenantId }: { tenantId: string }) {
           </tbody>
         </table>
       </div>
+      {saleBooking && <VehicleSaleChainDialog key={saleBooking.id} bookingId={saleBooking.id}
+        bookingNumber={saleBooking.booking_number} tenantId={tenantId} onClose={() => setSaleBooking(null)} />}
     </div>
   );
 }

@@ -209,7 +209,7 @@ function mapActor(row: Record<string, unknown>): VehicleSaleRecognitionActor {
   };
 }
 
-function mapRecognitionRecord(row: Record<string, unknown>): VehicleSaleRecognitionRecord {
+export function mapRecognitionRecord(row: Record<string, unknown>): VehicleSaleRecognitionRecord {
   return {
     id: getString(row, 'id'),
     tenantId: getString(row, 'tenant_id'),
@@ -246,7 +246,7 @@ function mapRecognitionRecord(row: Record<string, unknown>): VehicleSaleRecognit
   };
 }
 
-function toRecognitionInsertRow(
+export function toRecognitionInsertRow(
   input: VehicleSaleRecognitionLedgerInsert
 ): Record<string, unknown> {
   return {

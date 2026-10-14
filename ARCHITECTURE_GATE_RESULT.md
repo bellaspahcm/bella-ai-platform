@@ -8914,3 +8914,280 @@ Not authorized:
 9. Regression: run existing #319-#323 verifiers plus the new chain verifier and scoped runner list.
 10. Evidence Integrity: report non-Production Real DB proof separately from Production and Go-Live.
 11. Stop Condition: if a missing handover contract, schema change, or Finance posting is required, stop for separate approval.
+# AUTOMOVE HANDOVER TO RECOGNITION E2E - 2026-10-14
+
+Result: PASS for the user-approved non-Production implementation batch.
+
+## Process, Manifest, Ownership And Authority
+
+Evidence: PR #319-#324; user approval for financial snapshots, explicit
+approval by active tenant accountants/finance managers, same actor allowed.
+AutoMove owns booking, approved financial source snapshots and recognition.
+Mobility owns vehicle transitions and their persisted status-log evidence.
+Platform owns authenticated identity and Storage document access.
+No ProductRegistry, Logistics, Warranty, commission, Finance journal or
+Production change is authorized. Existing sealed batches remain intact.
+
+## Contract And UI Reconciliation
+
+Booking UI -> dedicated sale-chain API -> authenticated AutoMove service ->
+Mobility public transition/trace contract -> persisted handover status log.
+Approval UI -> separate approval request -> authenticated Storage downloads
+and SHA-256 checks -> server approval actor/time. This is a human document
+verification action, not automated legal/accounting document interpretation.
+Recognition UI -> only snapshotId/handoverEvidenceId -> persisted approved
+snapshot, tenant-bound evidence -> existing recognition command -> ledger.
+These UI actions are approved contract additions, not implicit revenue from
+handover, booking status or deposit. Source amounts are not taken from mutable
+booking total_price or vehicle cost_price. Snapshot idempotency/transaction
+identity is preserved across retries.
+
+## Additive Migration Plan
+
+One AutoMove financial-source snapshot table with tenant RLS, business-reference
+validation, draft-only authenticated inserts, server-only approval updates,
+immutable approved rows, document references/checksums, unique business keys
+and minimal grants. No historical migration changes. Apply only for authorized
+non-Production verification; use rollback tests and clean up API/browser fixtures.
+
+## Business Test Contract And 11 Verification Gates
+
+1. Architecture: Product consumes Mobility public exports; frozen files unchanged.
+2. Authorization: trusted active accountant/finance_manager required for approval.
+3. Tenant: snapshot/booking/customer/vehicle/evidence must share tenant.
+4. Persistence: handover creates status log before returning its evidence ID.
+5. Revenue: handover and approval alone create no recognition.
+6. Documents: inaccessible, missing, empty, or checksum-mismatched files rejected.
+7. Immutability: approval data/amounts cannot be changed or deleted afterward.
+8. Idempotency: same snapshot/transaction retry yields one recognition.
+9. Financial truth: ledger matches approved snapshot despite mutable vehicle costs.
+10. Quality: focused tests, scoped typecheck/lint, migration/architecture guards.
+11. Real DB/browser: allowed chain, wrong role/inactive/tenant, draft, missing
+evidence, retry and ledger read-back; report each executed layer separately.
+
+## Execution Checkpoint
+
+Implementation remains local on codex/automove-handover-recognition-e2e.
+Migration 20261014030000 was applied only to the authorized E2E project using
+the existing explicit-file migration runner; Production was not accessed.
+The migration also provisions the private AutoMove evidence bucket and two
+tenant/accounting-role policies on the existing Platform Storage contract.
+
+Runtime typecheck, focused unit tests and lint passed. The accountant path
+previously passed Real DB plus browser component/HTTP dispatcher verification
+with actual Supabase Auth/Storage and rollback business fixtures. The browser
+proof is component/dispatcher evidence, not a full Next.js dashboard journey.
+The complete current verifier fails closed at finance_manager fixture creation:
+the existing public.users users_role_check does not permit finance_manager.
+No Platform identity constraint was changed and no simulated role was used.
+Approved actor authority cannot be fully proved from the current identity source.
+
+SNAPSHOT_APPROVAL_AUTHORITY_SOURCE = NOT_PROVEN_FOR_FINANCE_MANAGER
+AUTOMOVE_HANDOVER_TO_RECOGNITION_E2E = NOT_PROVEN
+PRODUCTION_MUTATION = NOT_PERFORMED
+AUTOMOVE_FULL_PRODUCT_READINESS = NOT_READY
+
+Temporary Auth profiles/documents were removed. Tagged tenant test fixtures
+were archived using canonical terminated status because an existing timeline
+soft-delete/FK contract prevents cascading physical tenant deletion.
+No commit, PR or seal is claimed at this execution boundary.
+
+## Accountant-Only Authority Revision
+
+Architecture/process result: PASS for the explicit owner-approved revision.
+The owner limits this batch to active `accountant` actors from Supabase Auth ->
+`public.users`, with a tenant matching the snapshot. No `finance_manager`
+support or admin alias is authorized. Platform identity and users_role_check
+remain unchanged. The existing public.users role/status/tenant source is reused;
+no user_roles fallback or parallel permission mechanism is introduced.
+
+Minimal implementation: restrict the AutoMove service and add forward migration
+20261014030100 to restrict snapshot trigger, snapshot RLS and private document
+policies. Preserve applied migration 20261014030000. Approval remains a separate
+server request that records approved_by/approved_at; approved data is immutable.
+The same accountant may explicitly recognize afterward. Mobility handover alone
+must not recognize revenue. All other ownership and UI contract boundaries above
+remain unchanged. Production mutation is not authorized.
+
+Business verification contract: an active tenant accountant may persist a draft,
+verify documents, approve, hand over and explicitly recognize once. Admin and
+other roles, inactive/missing identity, wrong tenant, unapproved snapshot and
+missing/invalid evidence must fail closed. Snapshot and recognition retries retain
+the persisted transaction/idempotency identity. Run Real DB chain, authenticated
+Storage and browser component/HTTP tests, existing recognition/reporting tests,
+fresh typecheck, lint, architecture guard and migration/diff checks. Evidence is
+pending; this authority approval is not a passing test or a main/Production seal.
+
+## Accountant-Only Verification Result
+
+Executed on the authorized non-Production E2E database:
+
+- Explicit-file runner applied forward migration 20261014030100; read-only
+  inspection confirms both snapshot migrations recorded and users_role_check
+  unchanged. Historical migration 20261014030000 was not rewritten.
+- `verify-automove-handover-recognition-e2e.ts --browser`: PASS, including real
+  Supabase Auth, private Storage, draft/approval, persisted Mobility handover,
+  explicit recognition and ledger read-back in a rollback business transaction.
+- Admin/admin_staff, inactive actor, missing identity and wrong tenant rejected
+  by the service and relevant DB policies/trigger; finance_manager is excluded
+  by runtime unit test and absent from snapshot/document policy predicates.
+- Draft snapshot, client-supplied approval/financial fields, missing documents,
+  checksum mismatch and missing handover evidence rejected. Approval retry
+  preserves actor/time; handover and recognition retries preserve their IDs.
+- Ledger contains one recognition: approved net sale 1,400,000,000 VND, frozen
+  cost 1,000,000,000 VND, confirmed receipts 100,000,000 VND and receivable
+  1,300,000,000 VND. Mutable booking/vehicle amounts do not replace snapshots.
+- Existing schema, recognition command, reporting, policy identity, sales-chain
+  RLS and Real DB alignment verifiers: all six PASS.
+- Focused Jest: 3 suites, 15 tests PASS. Full TypeScript, targeted ESLint,
+  Architecture Guard, CI scope-router regression, zero-downtime checks for both
+  migrations and git diff --check: PASS.
+- Browser desktop/mobile component + authenticated HTTP dispatcher evidence:
+  PASS with no page errors or mobile horizontal overflow. This harness does
+  not prove the full Next.js dashboard route. Screenshots are local cache only.
+- Temporary Auth/profile/document fixtures removed; tagged empty E2E tenants
+  archived using the existing terminated status. Business rows rolled back.
+
+Non-blocking diagnostics: existing ESLint ignore-file deprecation; pg concurrent
+query deprecation during the chain verifier. Neither was treated as a passing
+test substitute or fixed through an unrelated Platform/Mobility change.
+
+SNAPSHOT_APPROVAL_AUTHORITY = PROVEN_ACCOUNTANT_ONLY_ON_E2E
+FINANCE_MANAGER_ROLE_SOURCE = NOT_PROVEN_EXCLUDED
+AUTOMOVE_HANDOVER_TO_RECOGNITION_E2E = PROVEN_FOR_SCOPED_NON_PRODUCTION_HARNESS
+IMPLEMENTATION = LOCAL_VERIFIED_PENDING_FINAL_REVIEW
+MAIN_CI_SEAL = NOT_PERFORMED
+PRODUCTION_MUTATION = NOT_PERFORMED
+AUTOMOVE_FULL_PRODUCT_READINESS = NOT_READY
+
+No commit, push, PR, Production deployment or PROVEN_ON_MAIN claim in this batch.
+
+## Final Review - Changes Required (Historical Checkpoint)
+
+Review performed against all 13 tracked/new scoped files, excluding screenshot
+cache, at base 61777e1ea (current platform/main). BMAD Blind Hunter, Edge Case
+Hunter and Acceptance Auditor ran read-only; the Lead validated and triaged
+their findings. No implementation, migration, role or Production change was
+made during this review.
+
+The previously executed E2E/quality checks remain valid for their tested cases;
+they do not prove the untested boundaries below or override blocking findings.
+
+| Priority | Finding | Evidence / Minimum Follow-up |
+|---|---|---|
+| P1 | Handover lacks booking allocation binding | AutoMoveSaleChainService.handover passes booking.vehicle_id to Mobility but does not verify vehicle.allocatedToContractId equals booking.id. Mobility verifies the lifecycle transition, not the AutoMove booking binding. Add a Product-side public-trace check and a different-booking allocation denial test. |
+| P1 | Connection target guard inspects a different representation than pg | AutoMoveSaleChainHttp and verifier validate URL.hostname/username. pg honors host/user query overrides. A local no-network probe confirmed a whitelisted URL hostname with host=example.invalid yields effective pg host example.invalid. Validate effective driver configuration or reject endpoint/user overrides before connecting; retain Production refusal. |
+| P1 | Runtime SQL disables TLS peer verification | AutoMoveSaleChainHttp explicitly uses rejectUnauthorized:false for Supabase. The application connection needs a verified server certificate/trusted CA, not only a matching URI. Do not silently relax TLS as a credential/network workaround. |
+| Decision | Invalid persisted drafts have no correction path | createSnapshot rejects changed drafts, trigger permits only draft->approved, and unique booking/vehicle prevents replacement. Bad amounts or documents permanently block this sale. Owner must approve a narrow draft-only correction/replacement rule before schema/API changes; approved snapshots must remain immutable. |
+| P2 | Recognition retry re-reads mutable inputs | Existing matching recognition is loaded but current deposits and active policy are still checked. Later changes can make a retry fail despite a persisted recognition. Return the tenant-authorized, snapshot/evidence-bound existing record without recomputing historical inputs; test changed deposits and expired policy. |
+| P2 | Real DB CI lacks the public Auth/Storage key | ci-tests.yml real-db-e2e passes URL/service key/DB URL but no public key. Verifier requires NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY or ANON_KEY. The repository already has E2E_SUPABASE_PUBLISHABLE_KEY; wire it into this scoped verification path, never substitute service-role authentication. |
+| P2 | Bearer Auth is not forwarded to Storage | Existing createClient.auth.getUser handles a Bearer header by updating PostgREST headers, not Storage headers. New approval downloads use Storage. Verify and propagate the actual user session for Bearer-only approval, or explicitly document/enforce the approved cookie-only interface without changing Platform auth. |
+| P2 | Mismatched existing evidence is not tested | Verifier rejects random missing IDs but does not exercise a persisted delivery log from another booking/customer/vehicle/tenant. Add negative DB evidence fixtures and assert no recognition inserted. |
+| P2 | Failure cleanup can leave live fixtures | Initial profile/tenant transaction is not tracked for rollback; one Storage cleanup failure short-circuits later Auth/profile cleanup; unexpected cross-tenant upload is not tracked for removal. Make cleanup independent and always rollback open fixture transactions, including failing setup/negative tests. |
+
+Reviewed non-blocking boundary: Production refusal in the new handler is
+intentional under the non-Production authorization. No claim is made that a
+Production recognition caller is proven operational. Do not restore the legacy
+client-money/policy path as a workaround. Production endpoint/deployment
+readiness remains separate and unauthorized.
+
+Additional read-only evidence: migration check with platform/main baseline PASS,
+both new migration versions recorded, no new drift beyond the 426 historical
+baseline migrations; no attempt to bulk apply those migrations. Temporary
+automove-proof Auth/profile residue counts are both zero. Scoped secret-pattern
+scan found no credential literals in the proposed files.
+
+FINAL_REVIEW = CHANGES_REQUIRED
+COMMIT_PUSH_PR = NOT_PERFORMED
+MAIN_SEAL = NOT_PERFORMED
+PRODUCTION_MUTATION = NOT_PERFORMED
+AUTOMOVE_FULL_PRODUCT_READINESS = NOT_READY
+
+Stop before commit/PR. Resolve the draft-correction owner decision and apply
+only approved boundary-local fixes, then rerun affected Real DB/quality checks.
+Browser evidence remains component + authenticated HTTP dispatcher; full
+Next.js dashboard journey is NOT_PROVEN.
+
+## Approved Final-Review Remediation
+
+Owner approval: draft-only correction through a separate server API, preserving
+snapshot/transaction/idempotency IDs; active tenant accountant only. Approved
+snapshots remain immutable. Forward migration 20261014030200 replaces only the
+AutoMove snapshot trigger, without changing historical migrations or grants.
+Only financial values and document references can change on a draft; approval
+must verify the current values/documents again. Booking, tenant and identity
+links cannot be edited. Repeated identical correction requests are deterministic.
+
+Also authorized in this batch: Product-side booking allocation binding through
+Mobility public trace; effective-driver connection validation and authenticated
+TLS; original-record recognition retry; CI public key; Bearer Storage session;
+failure-safe verifier cleanup and genuine mismatched evidence tests. No Platform
+identity, Finance posting, Warranty, commission or Production change is allowed.
+Architecture/process result: PASS for this explicit scope, with all verification
+results still pending. No additional architecture gate is created.
+
+## Remediation Verification And Final Review
+
+The historical findings above are resolved within the approved batch:
+
+- Separate draft-update API restricts financial/document fields, retains snapshot,
+  sale transaction and idempotency IDs, and rejects approved records. Migration
+  20261014030200 changes only the Product snapshot trigger; authenticated UPDATE
+  remains revoked. Historical migrations are unchanged.
+- Approval verifies a server-computed content reviewHash plus current financial
+  values and real Storage documents. A changed draft rejects stale approval; UI
+  verification is bound to the displayed hash and cleared on changed refresh.
+  This hash is a concurrency guard, never a source of money/policy/authority.
+- Handover checks allocatedToContractId via Mobility public trace. Serializable
+  API transactions protect the checked allocation from concurrent change. No
+  Mobility/Logistics kernel modification or automatic revenue recognition.
+- Recognition retries authenticate the active tenant accountant and immutable
+  snapshot/evidence/key binding, then return the original record without current
+  deposit/policy/booking/vehicle eligibility changing historical amounts.
+  First recognition still checks current eligibility and active trusted policy.
+- Runtime and new verifier use explicit parsed driver configuration, reject host,
+  user/port/TLS query overrides, and authenticate certificate AND hostname with
+  the public Supabase Root 2021 CA. Verified TLS connection to E2E passed.
+  Sources: https://node-postgres.com/features/ssl and
+  https://supabase.com/docs/guides/platform/ssl-enforcement.
+- Bearer Auth and Storage share the real user client/session; no privileged
+  Storage fallback. Existing E2E publishable key is wired into Real DB CI.
+- Cleanup rolls back failed setup, independently attempts each fixture cleanup,
+  tracks cross-tenant upload paths, and closes browser/listener even on launch
+  failure. No Platform identity/constraint, ProductRegistry, Finance posting,
+  Warranty, commission or Production change.
+
+Executed final evidence:
+
+- New Real DB + --browser verifier PASS with actual Auth/Storage, serializable
+  rollback business chain, draft correction/retry, stale review denial, separate
+  approval, allocation denial, persisted mismatched evidence for booking/customer/
+  vehicle/tenant, explicit recognition, immutable snapshots and historical retry.
+- Ledger read-back: exactly one recognition, net sale 1.4 billion VND, cost
+  1 billion, receipts 100 million and receivable 1.3 billion, all snapshot-bound.
+- Browser refresh/correction regression PASS, including X -> Y -> X content;
+  prior human verification never resumes automatically. Desktop/mobile render
+  without page errors or horizontal overflow. This is component + authenticated
+  HTTP dispatcher proof, NOT the entire Next.js dashboard route.
+- 4 focused unit suites / 30 tests PASS; fresh full TypeScript and targeted
+  ESLint PASS; Architecture Guard, scope-router regression and diff-check PASS.
+- All 6 existing AutoMove schema/command/reporting/policy/RLS/alignment verifiers
+  PASS. Zero-downtime checks PASS for the 3 new migration files; E2E migration
+  check PASS with no new drift beyond the historical platform/main baseline.
+- Injected setup-transaction, setup, cleanup and browser-launch failures exited
+  fail-closed as expected. Independent DB read-back found zero test Auth actors,
+  public profiles and documents. Business fixtures were rolled back; tagged empty
+  tenants were archived under the existing terminated/soft-delete contract.
+- Final Blind Hunter, Edge Case Hunter and Acceptance Auditor findings were
+  independently re-reviewed and resolved. No unresolved blocker remains.
+
+FINAL_REVIEW = PASS_FOR_APPROVED_SCOPE
+NON_PRODUCTION_REAL_DB_E2E = PASS_EXECUTED
+LOCAL_VERIFICATION = PASS_EXECUTED
+COMMIT_PUSH_PR = AUTHORIZED_NEXT
+MAIN_SEAL = NOT_PERFORMED
+PRODUCTION_MUTATION = NOT_PERFORMED
+AUTOMOVE_FULL_PRODUCT_READINESS = NOT_READY
+
+Only this batch is eligible for commit/PR. CI/main verification remains pending;
+the local proof does not authorize merge, Production rollout or Go-Live.
