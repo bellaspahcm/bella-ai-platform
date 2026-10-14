@@ -22,6 +22,21 @@ const REAL_DB_TEST_BY_PATH = [
 
 const SCOPED_REAL_DB_SUITES = [
   {
+    name: 'AutoMove approved snapshot and handover recognition',
+    patterns: [
+      /^supabase\/migrations\/20261014030000_create_automove_approved_financial_snapshots\.sql$/,
+      /^supabase\/migrations\/20261014030100_restrict_automove_snapshot_accountant_authority\.sql$/,
+      /^supabase\/migrations\/20261014030200_allow_automove_server_draft_correction\.sql$/,
+      /^scripts\/verify-automove-handover-recognition-e2e\.ts$/,
+      /^src\/modules\/bella-auto\/services\/AutoMoveSaleChain(Service|Http|Connection)\.ts$/,
+      /^src\/modules\/bella-auto\/services\/__tests__\/AutoMoveSaleChain(Http|Connection)\.test\.ts$/,
+      /^src\/app\/api\/bella-auto\/sales-chain\//,
+      /^src\/app\/api\/bella-auto\/vehicle-sale-recognitions\/route\.ts$/,
+      /^src\/components\/bella-auto\/(VehicleSaleChainDialog|BookingListTable)\.tsx$/,
+    ],
+    commands: [{ command: 'npx', args: ['tsx', 'scripts/verify-automove-handover-recognition-e2e.ts'] }],
+  },
+  {
     name: 'Construction OS foundation',
     patterns: [
       /^src\/platform\/construction\//,

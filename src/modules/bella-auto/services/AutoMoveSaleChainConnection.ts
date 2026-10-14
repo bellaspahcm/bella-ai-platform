@@ -1,0 +1,56 @@
+import { parse } from 'pg-connection-string';
+import type { ClientConfig } from 'pg';
+import { VehicleSaleRecognitionError } from './VehicleSaleRecognitionService';
+
+// Public vendor CA, not a credential. Source:
+// https://supabase-downloads.s3-ap-southeast-1.amazonaws.com/prod/ssl/prod-ca-2021.crt
+// SHA-256: 807025AD50D4ED219D2C9C7D299C004F824EB00CF7F65AFEF607D07B72E6CAFA
+const supabaseRootCa = `-----BEGIN CERTIFICATE-----
+MIIDxDCCAqygAwIBAgIUbLxMod62P2ktCiAkxnKJwtE9VPYwDQYJKoZIhvcNAQEL
+BQAwazELMAkGA1UEBhMCVVMxEDAOBgNVBAgMB0RlbHdhcmUxEzARBgNVBAcMCk5l
+dyBDYXN0bGUxFTATBgNVBAoMDFN1cGFiYXNlIEluYzEeMBwGA1UEAwwVU3VwYWJh
+c2UgUm9vdCAyMDIxIENBMB4XDTIxMDQyODEwNTY1M1oXDTMxMDQyNjEwNTY1M1ow
+azELMAkGA1UEBhMCVVMxEDAOBgNVBAgMB0RlbHdhcmUxEzARBgNVBAcMCk5ldyBD
+YXN0bGUxFTATBgNVBAoMDFN1cGFiYXNlIEluYzEeMBwGA1UEAwwVU3VwYWJhc2Ug
+Um9vdCAyMDIxIENBMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAqQXW
+QyHOB+qR2GJobCq/CBmQ40G0oDmCC3mzVnn8sv4XNeWtE5XcEL0uVih7Jo4Dkx1Q
+DmGHBH1zDfgs2qXiLb6xpw/CKQPypZW1JssOTMIfQppNQ87K75Ya0p25Y3ePS2t2
+GtvHxNjUV6kjOZjEn2yWEcBdpOVCUYBVFBNMB4YBHkNRDa/+S4uywAoaTWnCJLUi
+cvTlHmMw6xSQQn1UfRQHk50DMCEJ7Cy1RxrZJrkXXRP3LqQL2ijJ6F4yMfh+Gyb4
+O4XajoVj/+R4GwywKYrrS8PrSNtwxr5StlQO8zIQUSMiq26wM8mgELFlS/32Uclt
+NaQ1xBRizkzpZct9DwIDAQABo2AwXjALBgNVHQ8EBAMCAQYwHQYDVR0OBBYEFKjX
+uXY32CztkhImng4yJNUtaUYsMB8GA1UdIwQYMBaAFKjXuXY32CztkhImng4yJNUt
+aUYsMA8GA1UdEwEB/wQFMAMBAf8wDQYJKoZIhvcNAQELBQADggEBAB8spzNn+4VU
+tVxbdMaX+39Z50sc7uATmus16jmmHjhIHz+l/9GlJ5KqAMOx26mPZgfzG7oneL2b
+VW+WgYUkTT3XEPFWnTp2RJwQao8/tYPXWEJDc0WVQHrpmnWOFKU/d3MqBgBm5y+6
+jB81TU/RG2rVerPDWP+1MMcNNy0491CTL5XQZ7JfDJJ9CCmXSdtTl4uUQnSuv/Qx
+Cea13BX2ZgJc7Au30vihLhub52De4P/4gonKsNHYdbWjg7OWKwNv/zitGDVDB9Y2
+CMTyZKG3XEu5Ghl1LEnI3QmEKsqaCLv12BnVjbkSeZsMnevJPs1Ye6TjjJwdik5P
+o/bKiIz+Fq8=
+-----END CERTIFICATE-----`;
+
+export function saleChainConnection(dbUrl: string, apiUrl: string): ClientConfig {
+  const invalid = () => new VehicleSaleRecognitionError('UNSAFE_DATABASE_CONFIG', 'An authenticated matching non-Production database configuration is required.', 503);
+  try {
+    const url = new URL(dbUrl), api = new URL(apiUrl);
+    const ref = api.hostname.split('.')[0];
+    if (!/^[a-z]{20}$/.test(ref) || api.hostname !== `${ref}.supabase.co` || api.protocol !== 'https:' ||
+        ref === 'lvnvkpyxtuilhrabtlwv' || dbUrl.includes('lvnvkpyxtuilhrabtlwv') ||
+        !['postgres:', 'postgresql:'].includes(url.protocol) || url.hash) throw invalid();
+    // Reject overrides before parsing: pg also honors query parameters and can read TLS files.
+    for (const [key, value] of url.searchParams) {
+      if (key !== 'sslmode' || value !== 'verify-full' || url.searchParams.getAll(key).length !== 1) throw invalid();
+    }
+    const config = parse(dbUrl);
+    const host = config.host, user = config.user;
+    const matchingHost = host === `db.${ref}.supabase.co` ||
+      (typeof host === 'string' && /^aws-\d+-[a-z0-9-]+\.pooler\.supabase\.com$/.test(host) && user?.endsWith(`.${ref}`));
+    const port = Number(config.port || 5432);
+    if (!matchingHost || !user || config.database !== 'postgres' || ![5432,6543].includes(port) ||
+        (host === `db.${ref}.supabase.co` && port !== 5432)) throw invalid();
+    // Do not pass connectionString again: it must not overwrite the verified SSL config.
+    return { host: host || '', user, password: config.password || '', database: config.database,
+      port, ssl: { ca: supabaseRootCa, rejectUnauthorized: true, servername: host || '' },
+      connectionTimeoutMillis: 10000 };
+  } catch { throw invalid(); }
+}
