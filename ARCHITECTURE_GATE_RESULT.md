@@ -1,4 +1,93 @@
-﻿# ARCHITECTURE GATE RESULT - AUTOMOVE VEHICLES PAGE MOBILITY READ BATCH
+﻿# ARCHITECTURE GATE RESULT - AUTOMOVE VEHICLE SALE RECOGNITION ADDITIVE SCHEMA
+
+> **Status:** PASS - additive schema migration is authorized under the approved `approve schema` scope.
+> **Date:** 2026-10-14
+> **Scope:** Create exactly two additive AutoMove vehicle sale recognition ledger tables plus required schema-level controls: immutable recognition snapshot, append-only adjustment/reversal records, idempotency keys, tenant-consistency validation, strict RLS, and minimum grants. No service implementation, no ledger posting, no FinancialReportingService migration, no WarrantyService migration, no ProductRegistry change, and no Production mutation.
+
+## Bella OS/Product Development Process Gate
+
+- Truth: AutoMove has no proven canonical vehicle sale revenue recognition persistence object. The approved Accounting Policy v1 scope requires trusted policy resolution, historical immutability, idempotency, and append-only adjustment/reversal boundaries before services or reports can safely migrate.
+- Source of Truth: `docs/governance/BELLA_AI_CODING_CONSTITUTION.md`, `docs/architecture/AUTOMOVE_ACCOUNTING_POLICY_V1_IMPLEMENTATION_PLAN_2026_10_14.md`, `docs/architecture/AUTOMOVE_SCHEMA_IMPLEMENTATION_SCOPE_REVIEW_2026_10_14.md`, and `docs/architecture/AUTOMOVE_ADDITIVE_SCHEMA_AUTHORIZATION_REVIEW_2026_10_14.md`.
+- Canonical Contract: AutoMove vehicle sale revenue must be represented by explicit `sale_revenue_recognized` persistence, not by booking creation, deposit receipt, `PACKAGE_SALE`, `auto_bookings.total_price`, mutable `auto_vehicles.cost_price`, or missing legacy `auto_sales`.
+- Gate result: `PASS` for additive schema only. `CODE_IMPLEMENTATION = NOT_AUTHORIZED`, `LEDGER_POSTING = NOT_AUTHORIZED`, and `AUTOMOVE_FULL_PRODUCT_READINESS = NOT_READY`.
+
+## Product Manifest
+
+- Product/Domain: Bella AutoMove vehicle sale recognition.
+- Capability: canonical persistence for recognized vehicle sale revenue snapshots and later adjustment/reversal records.
+- Schema artifacts in scope:
+  - `public.auto_vehicle_sale_recognitions`
+  - `public.auto_vehicle_sale_recognition_adjustments`
+- Non-goals: no command/service implementation, no report migration, no warranty migration, no journal posting, no tax invoice rules, no Production deployment.
+
+## Ownership Map
+
+| Data / Behavior | Owner | Decision |
+|---|---|---|
+| Vehicle sale recognition snapshot | AutoMove financial source-of-truth contract | create additive ledger table |
+| Adjustment/reversal history | AutoMove financial source-of-truth contract | create append-only child ledger table |
+| Accounting policy registry | Finance/Platform governance | reuse only global active policy v1; do not change registry uniqueness |
+| Vehicle identity and cost candidate | Mobility / AutoMove vehicle persistence | reference and snapshot, do not recompute historical profit from mutable current cost |
+| Ledger postings and account mapping | Finance/accounting owner | explicitly out of scope |
+| Tenant isolation | Platform auth/RLS plus schema tenant consistency | strict RLS and FK tenant validation required |
+
+## Contract Dependency Map
+
+```text
+future recognizeVehicleSaleRevenue command (not implemented here)
+  -> trusted global policy_registry entry
+  -> auto_bookings / auto_vehicles / customers / users source checks
+  -> auto_vehicle_sale_recognitions immutable snapshot
+  -> auto_vehicle_sale_recognition_adjustments append-only corrections
+  -> future reporting and warranty consumers after separate authorization
+```
+
+## Change Authority
+
+Authorized:
+
+- Add one migration creating the two reviewed tables.
+- Add RLS, grants, constraints, idempotency uniqueness, append-only triggers, and tenant-consistency validation triggers.
+- Add focused static and non-Production Real DB verification artifacts for the migration.
+
+Not authorized:
+
+- Implement `recognizeVehicleSaleRevenue` runtime service.
+- Insert live policy records or seed business policy data.
+- Change `policy_registry` uniqueness or introduce tenant-specific policy behavior.
+- Modify `FinancialReportingService`, `WarrantyService`, `AutoSalesProvider`, ProductRegistry, or Production workflows.
+- Post journal entries or map Vietnamese accounting accounts.
+
+## UI -> Contract Reconciliation
+
+- No UI change.
+- No new screen, route, KPI, or action is introduced.
+- Any future UI or report must consume the ledger only after service/report migration is separately authorized and verified.
+
+## Additive Migration Plan
+
+- Create `supabase/migrations/20261014010000_create_automove_vehicle_sale_recognition_ledgers.sql`.
+- Use only additive objects: new tables, new trigger functions, new triggers, new RLS policies, and minimum grants.
+- Keep zero-downtime posture: no drops, no rewrites, no table renames, no broad grants.
+- Verify on non-Production only.
+
+## 11 Automated Verification Gates Plan
+
+1. Architecture Compliance: changed files limited to gate, migration, docs, and verification tests/scripts.
+2. Contract Boundary: no service/report/warranty/ledger posting code.
+3. Tenant Isolation: strict RLS plus tenant consistency trigger on referenced booking/vehicle/customer/user/recognition rows.
+4. RLS & Grants: no anon access, authenticated `SELECT` only, no direct authenticated `INSERT`/`UPDATE`/`DELETE` before recognition command authorization.
+5. Database Migration Safety: additive only; zero-downtime migration check must pass.
+6. Event-After-Persistence: no event or ledger posting in this schema batch.
+7. Domain Safety Routing: no ProductRegistry, Finance posting, Warranty entitlement, or Mobility read contract change.
+8. Type Safety: no runtime TypeScript service changes or generated type edits.
+9. Regression: focused static migration test and non-Production Real DB verification.
+10. Evidence Integrity: report local/static/non-Production DB separately from Production.
+11. Stop Condition: stop after schema and verification; do not implement revenue command until separately authorized.
+
+---
+
+# ARCHITECTURE GATE RESULT - AUTOMOVE VEHICLES PAGE MOBILITY READ BATCH
 
 > **Status:** PASS - minimal AutoMove `/dashboard/bella-auto/vehicles` read-side migration is authorized.
 > **Date:** 2026-10-13

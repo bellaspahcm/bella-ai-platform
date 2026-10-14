@@ -11,6 +11,8 @@ This review checks whether the proposed AutoMove financial business contract is 
 
 No schema, migration, runtime service, or Production change is authorized by this review.
 
+Post-PR #318 addendum: the P0 producer fix has since merged and is no longer the pending next action. The remaining approved workstream is Business Contract Design for canonical vehicle sale revenue recognition, recorded in `docs/architecture/AUTOMOVE_VEHICLE_SALE_REVENUE_CONTRACT_2026_10_14.md`. Implementation authorization remains not granted.
+
 ## Evidence Checked
 
 - Proposal artifact created on 2026-10-14 and revised to reflect the four review decision groups.
@@ -64,10 +66,10 @@ PACKAGE_SALE_FOR_VEHICLE_REVENUE       = NOT_ALLOWED_WITHOUT_APPROVED_CONTRACT
 OUTBOX_IDEMPOTENCY_FIX                 = APPROVED_IN_SCOPE
 ```
 
-Scoped implementation may remove invalid AutoMove `PACKAGE_SALE` producer emissions and prevent booking/deposit updates from masquerading as vehicle revenue. It still may not introduce schema, mutate Production, or migrate `FinancialReportingService`.
+Scoped implementation removed invalid AutoMove `PACKAGE_SALE` producer emissions and prevented booking/deposit updates from masquerading as vehicle revenue. It did not introduce schema, mutate Production, or migrate `FinancialReportingService`.
 
 ```ini
-AUTOMOVE_PACKAGE_SALE_PRODUCER_FIX = REVIEWED_LOCAL_PENDING_PR
+AUTOMOVE_PACKAGE_SALE_PRODUCER_FIX = PROVEN_ON_MAIN
 DEPOSIT_STATUS_UPDATE              = PROVEN_BY_UNIT
 AUTO_DEPOSITS_ROUTE_PATH           = UNCHANGED_BY_BATCH
 DEPOSIT_TRANSACTION_RECORD_IN_PROVIDER = NOT_PRESENT_PRE_FIX
@@ -166,7 +168,9 @@ REVENUE_AMOUNT_SOURCE              = CANDIDATE_auto_bookings.total_price_NOT_PRO
 RECOGNITION_ACTOR_AUTHORITY        = NOT_PROVEN
 AUTO_BOOKINGS_COMPLETED_SEMANTIC   = NOT_PROVEN
 PACKAGE_SALE_PRODUCER_CONTRACT     = FAIL_CONFIRMED_PRE_FIX
-AUTOMOVE_PACKAGE_SALE_PRODUCER_FIX = REVIEWED_LOCAL_PENDING_PR
+AUTOMOVE_PACKAGE_SALE_PRODUCER_FIX = PROVEN_ON_MAIN
+REVENUE_RECOGNITION_CAPABILITY     = GAP_CONFIRMED_BY_REPO_TRACE
+VEHICLE_SALE_REVENUE_CONTRACT      = DESIGN_DRAFT_PENDING_OWNER_ACCOUNTING_APPROVAL
 DEPOSIT_STATUS_UPDATE              = PROVEN_BY_UNIT
 AUTO_DEPOSITS_ROUTE_PATH           = UNCHANGED_BY_BATCH
 DEPOSIT_TRANSACTION_RECORD_IN_PROVIDER = NOT_PRESENT_PRE_FIX
@@ -211,7 +215,9 @@ BUSINESS_CONTRACT_REVIEW_RESULT       = CHANGES_REQUIRED
 AUTOMOVE_FINANCIAL_SOURCE_OF_TRUTH    = HELD_PENDING_CONTRACT_REVISION
 OWNER_DECISION_P0                     = APPROVED
 PACKAGE_SALE_PRODUCER_CONTRACT        = FAIL_CONFIRMED_PRE_FIX
-AUTOMOVE_PACKAGE_SALE_PRODUCER_FIX    = REVIEWED_LOCAL_PENDING_PR
+AUTOMOVE_PACKAGE_SALE_PRODUCER_FIX    = PROVEN_ON_MAIN
+REVENUE_RECOGNITION_CAPABILITY        = GAP_CONFIRMED_BY_REPO_TRACE
+VEHICLE_SALE_REVENUE_CONTRACT         = DESIGN_DRAFT_PENDING_OWNER_ACCOUNTING_APPROVAL
 DEPOSIT_STATUS_UPDATE                 = PROVEN_BY_UNIT
 AUTO_DEPOSITS_ROUTE_PATH              = UNCHANGED_BY_BATCH
 DEPOSIT_TRANSACTION_RECORD_IN_PROVIDER = NOT_PRESENT_PRE_FIX
@@ -226,8 +232,8 @@ AUTOMOVE_FULL_PRODUCT_READINESS       = NOT_READY
 
 ## Next Required Action
 
-Finalize only the approved P0 producer batch:
+Review the focused vehicle sale revenue recognition contract draft with AutoMove owner and accounting owner:
 
-1. Commit and open PR for the reviewed local P0 producer fix only.
-2. Verify remote CI on the PR branch before any merge decision.
-3. Keep schema, `FinancialReportingService`, warranty entitlement, cost basis, and Production out of scope until separately approved.
+1. Approve or revise `recognize_vehicle_sale_revenue` as the canonical command.
+2. Decide required booking state, handover evidence, revenue amount source, sale-time cost basis, warranty entitlement, and ledger boundary.
+3. Keep schema, `FinancialReportingService`, warranty entitlement implementation, cost basis implementation, and Production out of scope until separately approved.

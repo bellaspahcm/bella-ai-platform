@@ -1,14 +1,16 @@
 # AutoMove Financial Source Of Truth Proposal
 
 Date: 2026-10-14
-Status: HELD_PENDING_CONTRACT_REVISION_WITH_P0_PRODUCER_FIX_REVIEWED_LOCAL
-Scope: Business contract proposal plus approved P0 producer fix status
+Status: HELD_PENDING_CANONICAL_CONTRACT_APPROVAL_AFTER_P0_FIX
+Scope: Business contract proposal plus P0 producer fix and vehicle sale revenue contract status
 
 ## Decision Summary
 
 AutoMove does not yet have a proven canonical financial source of truth for vehicle sale revenue, sale-time cost basis, receivables, refunds, and warranty entitlement.
 
 Do not migrate `FinancialReportingService` yet. Do not create `auto_sales` just because stale consumers currently query it. Do not treat booking completion, deposit collection, or full payment as sale revenue unless the revenue recognition contract below is satisfied.
+
+Post-PR #318 update: the invalid AutoMove `PACKAGE_SALE` producer fix is proven on `main`, and the remaining gap is a missing canonical vehicle sale revenue recognition capability. The focused business contract draft is now recorded in `docs/architecture/AUTOMOVE_VEHICLE_SALE_REVENUE_CONTRACT_2026_10_14.md`.
 
 ## Evidence Basis
 
@@ -214,7 +216,9 @@ REVENUE_AMOUNT_SOURCE              = CANDIDATE_auto_bookings.total_price_NOT_PRO
 RECOGNITION_ACTOR_AUTHORITY        = NOT_PROVEN
 AUTO_BOOKINGS_COMPLETED_SEMANTIC   = NOT_PROVEN
 PACKAGE_SALE_PRODUCER_CONTRACT     = FAIL_CONFIRMED_PRE_FIX
-AUTOMOVE_PACKAGE_SALE_PRODUCER_FIX = REVIEWED_LOCAL_PENDING_PR
+AUTOMOVE_PACKAGE_SALE_PRODUCER_FIX = PROVEN_ON_MAIN
+REVENUE_RECOGNITION_CAPABILITY     = GAP_CONFIRMED_BY_REPO_TRACE
+VEHICLE_SALE_REVENUE_CONTRACT      = DESIGN_DRAFT_PENDING_OWNER_ACCOUNTING_APPROVAL
 DEPOSIT_STATUS_UPDATE              = PROVEN_BY_UNIT
 AUTO_DEPOSITS_ROUTE_PATH           = UNCHANGED_BY_BATCH
 DEPOSIT_TRANSACTION_RECORD_IN_PROVIDER = NOT_PRESENT_PRE_FIX
@@ -391,12 +395,14 @@ When implementation is authorized, use a separate scoped batch:
 ## Current Status
 
 ```ini
-AUTOMOVE_FINANCIAL_SOURCE_OF_TRUTH = HELD_PENDING_CONTRACT_REVISION
+AUTOMOVE_FINANCIAL_SOURCE_OF_TRUTH = HELD_PENDING_CANONICAL_CONTRACT_APPROVAL
 FINANCIAL_REPORTING_SERVICE        = NOT_AUTHORIZED_FOR_MIGRATION
 OWNER_DECISION_P0                  = APPROVED
 PAYMENT_RECEIVED_SEPARATE_FROM_REVENUE = APPROVED
 PACKAGE_SALE_PRODUCER_CONTRACT     = FAIL_CONFIRMED_PRE_FIX
-AUTOMOVE_PACKAGE_SALE_PRODUCER_FIX = REVIEWED_LOCAL_PENDING_PR
+AUTOMOVE_PACKAGE_SALE_PRODUCER_FIX = PROVEN_ON_MAIN
+REVENUE_RECOGNITION_CAPABILITY     = GAP_CONFIRMED_BY_REPO_TRACE
+VEHICLE_SALE_REVENUE_CONTRACT      = DESIGN_DRAFT_PENDING_OWNER_ACCOUNTING_APPROVAL
 DEPOSIT_STATUS_UPDATE              = PROVEN_BY_UNIT
 AUTO_DEPOSITS_ROUTE_PATH           = UNCHANGED_BY_BATCH
 DEPOSIT_TRANSACTION_RECORD_IN_PROVIDER = NOT_PRESENT_PRE_FIX
@@ -410,7 +416,7 @@ DEPOSIT_FULL_PAYMENT_REVENUE        = NOT_ALLOWED
 VEHICLE_HANDOVER_CONFIRMED         = REQUIRED_EVIDENCE_BUT_NOT_ALWAYS_SUFFICIENT
 SALE_TIME_COST_BASIS               = REQUIRED_SNAPSHOT
 WARRANTY_ENTITLEMENT_SOURCE        = REQUIRED_CONTRACT
-CODE_MUTATION                      = P0_PRODUCER_FIX_LOCAL_ONLY
+CODE_MUTATION                      = NOT_PERFORMED_IN_CONTRACT_DESIGN_BATCH
 SCHEMA_MIGRATION                   = NOT_AUTHORIZED
 PRODUCTION_MUTATION                = NOT_PERFORMED
 AUTOMOVE_FULL_PRODUCT_READINESS    = NOT_READY
