@@ -2,7 +2,8 @@
 
 import { cn } from '@/lib/utils';
 import { Camera, Edit3, Heart, MapPin, Phone, PlusCircle, Share2, Sparkles, TrendingUp, Award, User, Calendar, MessageCircle, CheckCircle2 } from 'lucide-react';
-import { getTenantModulePresentationOrNeutral } from '@/lib/business-rules/tenant-module-presentation';
+import { getCustomerGenderPresentation, getTenantModulePresentationOrNeutral } from '@/lib/business-rules/tenant-module-presentation';
+import { formatViDate } from '@/lib/utils';
 import type { TenantModuleKey } from '@/lib/business-rules/tenant-modules';
 import type { CustomerDetailRecord } from '../types';
 
@@ -17,6 +18,7 @@ export function CustomerHeaderBanner({
   onOpenBooking,
   onOpenZalo,
   onSharePortal,
+  isBabyCare = false,
 }: {
   customer: CustomerDetailRecord;
   tenantModuleKey: TenantModuleKey | null;
@@ -25,8 +27,9 @@ export function CustomerHeaderBanner({
   onOpenBooking: () => void;
   onOpenZalo?: () => void;
   onSharePortal?: () => void;
+  isBabyCare?: boolean;
 }) {
-  const customerLabels = getTenantModulePresentationOrNeutral(tenantModuleKey);
+  const customerLabels = getTenantModulePresentationOrNeutral(isBabyCare ? 'babycare' : tenantModuleKey);
   const isBeauty = tenantModuleKey === 'beauty_spa';
 
   return (
@@ -43,13 +46,13 @@ export function CustomerHeaderBanner({
             )}>
               <Heart className="h-10 w-10 sm:h-12 sm:w-12 fill-current/20" />
             </div>
-            <button
+            {!isBabyCare && <button
               onClick={onEditCustomer}
               className="absolute -bottom-1 -right-1 w-7 h-7 bg-primary text-primary-foreground rounded-full flex items-center justify-center shadow-md shadow-primary/20 hover:scale-110 transition-transform"
               title="Đổi ảnh đại diện"
             >
               <Camera className="w-3.5 h-3.5" />
-            </button>
+            </button>}
           </div>
 
           {/* Info Details */}
@@ -74,7 +77,7 @@ export function CustomerHeaderBanner({
                   customerLabels.leadStatusLabel}
                 </span>
               )}
-              {customer.loyalty_points && customer.loyalty_points > 50 && (
+              {!isBabyCare && customer.loyalty_points && customer.loyalty_points > 50 && (
                 <span className="bg-rose-500 text-white font-black text-[9px] px-2.5 py-0.5 rounded-full uppercase tracking-wider shadow-sm">
                   VIP
                 </span>
@@ -85,9 +88,10 @@ export function CustomerHeaderBanner({
             <div className="flex items-center gap-3 text-xs font-bold text-slate-600 flex-wrap">
               <span className="flex items-center gap-1.5"><Phone className="w-3.5 h-3.5 text-slate-400" /> {customer.phone}</span>
               <span>•</span>
-              <span className="flex items-center gap-1.5"><User className="w-3.5 h-3.5 text-slate-400" /> {customer.baby?.gender || 'Nữ'}</span>
-              <span>•</span>
-              <span className="text-slate-400">Chưa phân nhóm</span>
+              <span className="flex items-center gap-1.5"><User className="w-3.5 h-3.5 text-slate-400" /> {isBabyCare
+                ? `Bé: ${customer.name_baby || 'Chưa cập nhật'} · ${getCustomerGenderPresentation(customer.gender_baby, 'babycare').label}`
+                : customer.baby?.gender || 'Nữ'}</span>
+              {!isBabyCare && <><span>•</span><span className="text-slate-400">Chưa phân nhóm</span></>}
             </div>
 
             {/* Line 2 */}
@@ -99,7 +103,7 @@ export function CustomerHeaderBanner({
 
             {/* Line 3 - Notes preview */}
             <p className="text-xs font-medium text-slate-500 line-clamp-1 pt-0.5">
-              📝 <strong className="text-slate-700">Ghi chú:</strong> {customer.notes || 'Khách thân thiết, ưu tiên xếp KTV tay nghề cao.'}
+              📝 <strong className="text-slate-700">Ghi chú:</strong> {customer.notes || (isBabyCare ? 'Chưa có ghi chú' : 'Khách thân thiết, ưu tiên xếp KTV tay nghề cao.')}
             </p>
           </div>
         </div>
@@ -126,14 +130,27 @@ export function CustomerDetailInfoCard({
   customer,
   tenantModuleKey,
   onEditCustomer,
+  isBabyCare = false,
 }: {
   customer: CustomerDetailRecord;
   tenantModuleKey: TenantModuleKey | null;
   onEditCustomer: () => void;
+  isBabyCare?: boolean;
 }) {
   const customerLabels = getTenantModulePresentationOrNeutral(tenantModuleKey);
 
-  const items = [
+  const items: Array<{ label: string; value: string; isVip?: boolean; isHighlight?: boolean }> = isBabyCare ? [
+    { label: 'Họ tên mẹ', value: customer.name_mother },
+    { label: 'Số điện thoại', value: customer.phone },
+    { label: 'Tên bé', value: customer.name_baby || 'Chưa cập nhật' },
+    { label: 'Giới tính của bé', value: getCustomerGenderPresentation(customer.gender_baby, 'babycare').label },
+    { label: 'Ngày sinh bé', value: customer.dob_baby ? formatViDate(customer.dob_baby) : 'Chưa cập nhật' },
+    { label: 'Ngày dự sinh', value: customer.dob_expected ? formatViDate(customer.dob_expected) : 'Chưa cập nhật' },
+    { label: 'Địa chỉ', value: customer.address || 'Chưa cập nhật' },
+    { label: 'Điểm tích lũy', value: `${customer.loyalty_points ?? 0} điểm` },
+    { label: 'Ghi chú', value: customer.notes || 'Chưa có ghi chú' },
+    { label: 'Ngày tạo hồ sơ (tự động)', value: customer.created_at ? formatViDate(customer.created_at) : 'Chưa cập nhật' },
+  ] : [
     { label: 'Họ và tên', value: customer.name_mother },
     { label: 'Điện thoại', value: customer.phone },
     { label: 'Giới tính', value: customer.baby?.gender || 'Nữ' },
@@ -153,7 +170,7 @@ export function CustomerDetailInfoCard({
           <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
             <User className="w-4 h-4" />
           </div>
-          <span>Thông tin khách hàng</span>
+          <span>{isBabyCare ? 'Thông tin mẹ và bé' : 'Thông tin khách hàng'}</span>
         </h3>
         <button
           onClick={onEditCustomer}
@@ -166,9 +183,9 @@ export function CustomerDetailInfoCard({
 
       <div className="space-y-3">
         {items.map((item, idx) => (
-          <div key={idx} className="flex items-center justify-between py-2 border-b border-slate-100 text-xs last:border-b-0">
-            <span className="font-bold text-slate-500">{item.label}</span>
-            <span className="font-black text-slate-900 flex items-center gap-1.5">
+          <div key={idx} className={cn("flex items-center justify-between py-2 border-b border-slate-100 text-xs last:border-b-0", isBabyCare && 'gap-4 items-start')}>
+            <span className={cn("font-bold text-slate-500", isBabyCare && 'shrink-0 max-w-[45%]')}>{item.label}</span>
+            <span className={cn("font-black text-slate-900 flex items-center gap-1.5", isBabyCare && 'min-w-0 break-words whitespace-pre-wrap text-right block')}>
               {item.value}
               {item.isVip && (
                 <span className="bg-rose-500 text-white text-[8px] font-black px-1.5 py-0.2 rounded uppercase">VIP</span>

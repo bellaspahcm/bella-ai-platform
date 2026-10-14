@@ -6,6 +6,7 @@ import type { CustomerDetailBooking, CustomerDetailSession } from '../types';
 import { useModuleVocabulary } from '@/lib/business-rules/module-vocabulary';
 import type { TenantModuleKey } from '@/lib/business-rules/tenant-modules';
 import { formatViDate } from '@/lib/utils';
+import { BabyCareSessionPanel } from './BabyCareSessionPanel';
 
 export function SessionHistoryPanel({
   activeBooking,
@@ -18,6 +19,8 @@ export function SessionHistoryPanel({
   onReusePackage,
   tenantModuleKey,
   tenantPhone,
+  isBabyCare = false,
+  customerAddress,
 }: {
   activeBooking: CustomerDetailBooking | null;
   sortedSessions: CustomerDetailSession[];
@@ -29,8 +32,20 @@ export function SessionHistoryPanel({
   onReusePackage: () => void;
   tenantModuleKey: TenantModuleKey | null;
   tenantPhone?: string;
+  isBabyCare?: boolean;
+  customerAddress?: string | null;
 }) {
   const vocab = useModuleVocabulary(tenantModuleKey);
+
+  if (isBabyCare) return <BabyCareSessionPanel
+    activeBooking={activeBooking}
+    customerAddress={customerAddress}
+    isCompleted={isCompleted}
+    isReusing={isReusing}
+    onOpenSessions={onOpenSessions}
+    onOpenBookingSessions={onOpenBookingSessions}
+    onReusePackage={onReusePackage}
+  />;
 
   // Sample before & after images matching Image 2
   const beforeAfterPhotos = [
