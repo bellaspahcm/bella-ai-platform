@@ -34,7 +34,7 @@ const migrationSql = readFileSync(
 );
 
 const policyRegistryMigrationPath =
-  'supabase/migrations/20260701000001_create_policy_registry.sql';
+  'supabase/migrations/20261014020000_create_policy_registry_user_identity_forward.sql';
 
 const { Client } = pg;
 const client = new Client({
@@ -62,13 +62,6 @@ function assertCondition(condition: boolean, message: string): void {
 }
 
 async function applyMissingPrerequisitesInRollbackTransaction(): Promise<void> {
-  const profilesResult = await client.query<DbRow>(
-    `select to_regclass('public.profiles') as relation`
-  );
-  if (!profilesResult.rows[0]?.relation) {
-    await client.query(`create table public.profiles (id uuid primary key)`);
-  }
-
   const policyResult = await client.query<DbRow>(
     `select to_regclass('public.policy_registry') as relation`
   );
