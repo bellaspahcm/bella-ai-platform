@@ -8582,4 +8582,92 @@ Not authorized:
 10. Evidence Integrity: report unit/local/Real DB/non-Production separately from Production; no Go-Live claim.
 11. Stop Condition: stop after command proof; do not proceed to reporting/warranty/Production without new authorization.
 
+# ARCHITECTURE GATE RESULT - POLICY REGISTRY USER IDENTITY FORWARD MIGRATION
+
+> **Status:** PASS - user approved `POLICY_REGISTRY_USER_IDENTITY_FORWARD_MIGRATION` for additive non-Production schema implementation.
+> **Date:** 2026-10-14
+> **Scope:** Create forward migrations that align `policy_registry` with current `public.users` actor identity, remove legacy profile-based policy registry RLS, and seed the active global AutoMove vehicle-sale accounting policy needed by trusted recognition resolution. No `public.profiles` compatibility table, no `policy_history` lifecycle, no Finance posting, no Warranty/commission, no ProductRegistry, no Production mutation.
+
+## Bella OS/Product Development Process Gate
+
+- Truth: `public.profiles` is a legacy reference and is not the current identity contract; `public.users` is the current actor identity used by AutoMove recognition ledgers and platform RLS helpers.
+- Source of Truth: `docs/governance/BELLA_AI_CODING_CONSTITUTION.md`, `20260511000000_initial_schema.sql`, `20260515000000_standardization_phase_1.sql`, `20260521000004_harden_rls_and_tenant.sql`, `20261014010000_create_automove_vehicle_sale_recognition_ledgers.sql`, and user approval for this batch.
+- Canonical Contract: AutoMove recognition resolves `AUTOMOVE_VEHICLE_SALE_ACCOUNTING_POLICY` from a trusted active global `policy_registry` row. Caller payload must not provide trusted policy version.
+- Gate result: `PASS` for forward migration and non-Production verifier. `AUTOMOVE_FULL_PRODUCT_READINESS` remains `NOT_READY`.
+
+## Product Manifest
+
+- Product/Domain: Bella AutoMove vehicle sale recognition readiness.
+- Capability in scope:
+  - `public.policy_registry` compatibility with `public.users` actor identity.
+  - Active global AutoMove accounting policy v1 row for trusted resolver proof.
+  - RLS and minimum grants for active global policy read and service-role governance writes, with legacy profile-based policies removed.
+  - Read-only non-Production verifier.
+- Explicitly out of scope: `public.profiles`, `policy_history`, tenant-specific policy assignment, Decision Engine lifecycle, Warranty, commission, Finance ledger posting, ProductRegistry, Logistics, Production mutation, and Go-Live declaration.
+
+## Ownership Map
+
+| Data / Behavior | Owner | Decision |
+|---|---|---|
+| Actor identity for policy audit fields | Platform identity | use `public.users(id)` |
+| Active AutoMove accounting policy identity | AutoMove/Finance governance boundary | create global v1 policy row only |
+| Tenant-specific policy behavior | Future Finance/Platform policy scope | not authorized |
+| Decision Engine lifecycle/audit history | Platform Decision Engine | not pulled into this batch |
+| Production state | Operations/BDGF | no access or mutation authorized |
+
+## Contract Dependency Map
+
+```text
+recognize_vehicle_sale_revenue
+  -> trusted policy resolver
+  -> public.policy_registry
+  -> public.users actor identity
+  -> auto_vehicle_sale_recognitions immutable snapshot
+```
+
+## Change Authority
+
+Authorized:
+
+- Add forward migrations `20261014020000_create_policy_registry_user_identity_forward.sql` and `20261014020100_harden_policy_registry_rls_profile_references.sql`.
+- Create/update `public.policy_registry` in non-Production with `public.users` actor FKs.
+- Seed exactly the active global `AUTOMOVE_VEHICLE_SALE_ACCOUNTING_POLICY` v1 row.
+- Enable RLS and strict grants.
+- Add verifier and scoped Real DB runner wiring.
+
+Not authorized:
+
+- Create `public.profiles` or any compatibility alias.
+- Pull `policy_history` or full Decision Engine lifecycle into this batch.
+- Change runtime recognition semantics beyond trusted policy availability.
+- Implement Finance ledger posting, Warranty migration, commission, ProductRegistry, Logistics, or Production deployment.
+
+## UI -> Contract Reconciliation
+
+- No UI change.
+- No reporting semantic change.
+- This batch only provides trusted policy state required by the existing recognition command.
+
+## Additive Migration Plan
+
+- Additive forward migrations only.
+- Preserve historical migration files.
+- Fail closed if an existing `policy_registry` still has legacy `public.profiles` foreign keys.
+- Remove known legacy `policy_registry_*` RLS policies and fail closed if any policy still references `profiles`.
+- Do not silently alter tenant-specific policy semantics; v1 is global only.
+
+## 11 Automated Verification Gates Plan
+
+1. Architecture Compliance: changed files limited to gate, migration, verifiers, and scoped runner wiring.
+2. Contract Boundary: `policy_registry` supports active global policy read only; no broader Decision Engine lifecycle.
+3. Tenant Isolation: no tenant-specific policy is introduced; global row is explicit and bounded.
+4. RLS & Authorization: RLS enabled; authenticated gets SELECT only; no anon/PUBLIC grants; service_role gets governance writes.
+5. Database Migration Safety: additive migration; no historical migration rewrite; no Production mutation.
+6. Event-After-Persistence: no runtime event or ledger posting path changed.
+7. Domain Safety Routing: Warranty, commission, Finance posting, ProductRegistry, and Logistics remain untouched.
+8. Type Safety: verifier uses typed unknown guards; no generated type edits.
+9. Regression: run migration checks, lint for changed verifiers, scoped runner selection, and non-Production Real DB verifier after migration apply.
+10. Evidence Integrity: report local/static/non-Production separately from Production and Go-Live.
+11. Stop Condition: if tenant-specific policy, profile FK retention, ledger posting, or Decision Engine lifecycle becomes required, stop for separate approval.
+
 ---
