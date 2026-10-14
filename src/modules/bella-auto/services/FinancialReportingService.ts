@@ -14,25 +14,26 @@
  */
 
 import { getPrimaryClient } from '@/lib/database/read-replica';
+import { listMobilityVehicleDisplayByIds } from '@/platform/mobility/supabase-vehicle-contract';
 
 interface DateRange {
   start: string;
   end: string;
 }
 
-interface SaleRow {
+interface RecognitionRow extends Record<string, unknown> {
   id: string;
   vehicle_id: string;
-  sale_price: number | null;
-  sale_date: string;
-  salesperson_id: string | null;
-  salesperson_commission?: number | null;
-  auto_vehicles: {
-    id: string;
-    make: string;
-    model: string;
-    purchase_price: number | null;
-  };
+  sale_price_recognized: number | string | null;
+  cost_basis_at_sale: number | string | null;
+  recognized_at: string;
+  recognized_by_user_id: string | null;
+}
+
+interface RecognitionAdjustmentRow extends Record<string, unknown> {
+  recognition_id: string;
+  sale_price_delta: number | string | null;
+  cost_basis_delta: number | string | null;
 }
 
 interface RepairOrderRow {
@@ -61,11 +62,6 @@ interface ExpenseRow {
   amount: number | null;
 }
 
-interface SalePriceRow {
-  sale_price: number | null;
-  salesperson_commission?: number | null;
-}
-
 interface LegacyQueryResult<Row> {
   data: Row[] | null;
   error: { message: string } | null;
@@ -76,6 +72,8 @@ interface LegacyQuery<Row> extends PromiseLike<LegacyQueryResult<Row>> {
   gte(column: string, value: unknown): LegacyQuery<Row>;
   in(column: string, values: readonly unknown[]): LegacyQuery<Row>;
   lte(column: string, value: unknown): LegacyQuery<Row>;
+  order(column: string, options?: { ascending?: boolean }): LegacyQuery<Row>;
+  returns(): LegacyQuery<Row>;
 }
 
 interface LegacyTable {
@@ -83,7 +81,7 @@ interface LegacyTable {
 }
 
 interface FinancialReportingClient {
-  from(table: 'auto_sales'): LegacyTable;
+  from(table: string): LegacyTable;
 }
 
 function financialReportingClient(client: unknown): FinancialReportingClient {
@@ -150,7 +148,133 @@ interface FinancialMetrics {
   averageProfitPerVehicle: number;
 }
 
+interface RecognizedVehicleSale {
+  recognitionId: string;
+  vehicleId: string;
+  vehicleMake: string;
+  vehicleModel: string;
+  salePrice: number;
+  costPrice: number;
+  recognizedAt: string;
+  recognizedByUserId: string | null;
+}
+
 export class FinancialReportingService {
+  private static async getRecognizedVehicleSales(
+    tenantId: string,
+    dateRange?: DateRange
+  ): Promise<RecognizedVehicleSale[]> {
+    const supabase = getPrimaryClient();
+    const reporting = financialReportingClient(supabase);
+
+    let query = reporting
+      .from('auto_vehicle_sale_recognitions')
+      .select<RecognitionRow>(`
+        id,
+        vehicle_id,
+        sale_price_recognized,
+        cost_basis_at_sale,
+        recognized_at,
+        recognized_by_user_id
+      `)
+      .eq('tenant_id', tenantId);
+
+    if (dateRange) {
+      query = query
+        .gte('recognized_at', dateRange.start)
+        .lte('recognized_at', dateRange.end);
+    }
+
+    const { data, error } = await query.order('recognized_at', { ascending: false });
+
+    if (error) {
+      throw new Error(`Failed to fetch recognized vehicle sales: ${error.message}`);
+    }
+
+    const recognitions = data ?? [];
+    const recognitionIds = recognitions.map((row) => row.id);
+    const adjustmentsByRecognitionId = await this.getRecognitionAdjustments(
+      reporting,
+      tenantId,
+      recognitionIds
+    );
+    const displayByVehicleId = await this.getVehicleDisplayById(
+      supabase,
+      tenantId,
+      recognitions.map((row) => row.vehicle_id)
+    );
+
+    return recognitions.map((row) => {
+      const adjustment = adjustmentsByRecognitionId.get(row.id) ?? {
+        salePriceDelta: 0,
+        costBasisDelta: 0,
+      };
+      const display = displayByVehicleId.get(row.vehicle_id);
+      const salePrice = toMoney(row.sale_price_recognized) + adjustment.salePriceDelta;
+      const costPrice = toMoney(row.cost_basis_at_sale) + adjustment.costBasisDelta;
+
+      return {
+        recognitionId: row.id,
+        vehicleId: row.vehicle_id,
+        vehicleMake: display?.modelName ?? 'Unknown',
+        vehicleModel: display?.variantName ?? display?.vin ?? row.vehicle_id,
+        salePrice,
+        costPrice,
+        recognizedAt: row.recognized_at,
+        recognizedByUserId: row.recognized_by_user_id,
+      };
+    });
+  }
+
+  private static async getRecognitionAdjustments(
+    reporting: FinancialReportingClient,
+    tenantId: string,
+    recognitionIds: readonly string[]
+  ): Promise<Map<string, { salePriceDelta: number; costBasisDelta: number }>> {
+    if (recognitionIds.length === 0) return new Map();
+
+    const { data, error } = await reporting
+      .from('auto_vehicle_sale_recognition_adjustments')
+      .select<RecognitionAdjustmentRow>(`
+        recognition_id,
+        sale_price_delta,
+        cost_basis_delta
+      `)
+      .eq('tenant_id', tenantId)
+      .in('recognition_id', recognitionIds);
+
+    if (error) {
+      throw new Error(`Failed to fetch vehicle sale recognition adjustments: ${error.message}`);
+    }
+
+    const adjustments = new Map<string, { salePriceDelta: number; costBasisDelta: number }>();
+    for (const row of data ?? []) {
+      const current = adjustments.get(row.recognition_id) ?? {
+        salePriceDelta: 0,
+        costBasisDelta: 0,
+      };
+
+      current.salePriceDelta += toMoney(row.sale_price_delta);
+      current.costBasisDelta += toMoney(row.cost_basis_delta);
+      adjustments.set(row.recognition_id, current);
+    }
+
+    return adjustments;
+  }
+
+  private static async getVehicleDisplayById(
+    supabase: unknown,
+    tenantId: string,
+    vehicleIds: readonly string[]
+  ) {
+    const displayRows = await listMobilityVehicleDisplayByIds(
+      supabase as Parameters<typeof listMobilityVehicleDisplayByIds>[0],
+      { tenantId, vehicleIds }
+    );
+
+    return new Map(displayRows.map((row) => [row.vehicleId, row]));
+  }
+
   /**
    * Calculate profit margin for individual vehicle sales
    */
@@ -158,56 +282,25 @@ export class FinancialReportingService {
     tenantId: string,
     dateRange?: DateRange
   ): Promise<VehicleProfitMargin[]> {
-    const supabase = getPrimaryClient();
-    
-    let query = financialReportingClient(supabase)
-      .from('auto_sales')
-      .select<SaleRow>(`
-        id,
-        vehicle_id,
-        sale_price,
-        sale_date,
-        salesperson_id,
-        auto_vehicles!inner (
-          id,
-          make,
-          model,
-          purchase_price
-        )
-      `)
-      .eq('tenant_id', tenantId)
-      .eq('status', 'completed');
-    
-    if (dateRange) {
-      query = query
-        .gte('sale_date', dateRange.start)
-        .lte('sale_date', dateRange.end);
-    }
-    
-    const { data, error } = await query;
-    
-    if (error) {
-      throw new Error(`Failed to fetch vehicle profit margins: ${error.message}`);
-    }
-    
-    const margins: VehicleProfitMargin[] = (data || []).map((sale: SaleRow) => {
-      const vehicle = sale.auto_vehicles;
-      const salePrice = Number(sale.sale_price) || 0;
-      const costPrice = Number(vehicle.purchase_price) || 0;
+    const recognizedSales = await this.getRecognizedVehicleSales(tenantId, dateRange);
+
+    const margins: VehicleProfitMargin[] = recognizedSales.map((sale) => {
+      const salePrice = sale.salePrice;
+      const costPrice = sale.costPrice;
       const grossProfit = salePrice - costPrice;
       const profitMargin = salePrice > 0 ? (grossProfit / salePrice) * 100 : 0;
       
       return {
-        saleId: sale.id,
-        vehicleId: vehicle.id,
-        vehicleMake: vehicle.make,
-        vehicleModel: vehicle.model,
+        saleId: sale.recognitionId,
+        vehicleId: sale.vehicleId,
+        vehicleMake: sale.vehicleMake,
+        vehicleModel: sale.vehicleModel,
         salePrice,
         costPrice,
         grossProfit,
         profitMargin,
-        saleDate: sale.sale_date,
-        salesperson: sale.salesperson_id || 'Unknown',
+        saleDate: sale.recognizedAt,
+        salesperson: sale.recognizedByUserId || 'Unknown',
       };
     });
     
@@ -304,25 +397,8 @@ export class FinancialReportingService {
       commissionPending: 0,
     };
     
-    // Get vehicle sales commission from auto_sales
-    let salesQuery = financialReportingClient(supabase)
-      .from('auto_sales')
-      .select<SalePriceRow>('salesperson_commission')
-      .eq('tenant_id', tenantId)
-      .eq('status', 'completed');
-    
-    if (dateRange) {
-      salesQuery = salesQuery
-        .gte('sale_date', dateRange.start)
-        .lte('sale_date', dateRange.end);
-    }
-    
-    const { data: salesData } = await salesQuery;
-    
-    (salesData || []).forEach((sale: SalePriceRow) => {
-      const commission = Number(sale.salesperson_commission) || 0;
-      breakdown.vehicleSalesCommission += commission;
-    });
+    // Vehicle sales commission has no approved canonical source in the
+    // recognition ledger yet, so it stays excluded from this read-side batch.
     
     // Get loan referral commission
     let loanQuery = supabase
@@ -404,24 +480,11 @@ export class FinancialReportingService {
       tradeIn: 0,
     };
     
-    // Vehicle sales revenue
-    let salesQuery = financialReportingClient(supabase)
-      .from('auto_sales')
-      .select<SalePriceRow>('sale_price')
-      .eq('tenant_id', tenantId)
-      .eq('status', 'completed');
-    
-    if (dateRange) {
-      salesQuery = salesQuery
-        .gte('sale_date', dateRange.start)
-        .lte('sale_date', dateRange.end);
-    }
-    
-    const { data: salesData } = await salesQuery;
-    
-    (salesData || []).forEach((sale: SalePriceRow) => {
-      breakdown.vehicleSales += Number(sale.sale_price) || 0;
-    });
+    const recognizedSales = await this.getRecognizedVehicleSales(tenantId, dateRange);
+    breakdown.vehicleSales = recognizedSales.reduce(
+      (sum, sale) => sum + sale.salePrice,
+      0
+    );
     
     // Service revenue
     const serviceRevenue = await this.getServiceRevenue(tenantId, dateRange);
@@ -580,7 +643,7 @@ export class FinancialReportingService {
       existing.vehiclesSold += 1;
       existing.totalRevenue += margin.salePrice;
       existing.totalProfit += margin.grossProfit;
-      // Commission calculation would come from auto_sales table
+      // Vehicle sales commission remains NOT_PROVEN in this batch.
       
       performanceMap.set(margin.salesperson, existing);
     });
@@ -620,4 +683,13 @@ export class FinancialReportingService {
       serviceRevenue,
     };
   }
+}
+
+function toMoney(value: number | string | null): number {
+  if (typeof value === 'number' && Number.isFinite(value)) return value;
+  if (typeof value === 'string' && value.trim() !== '') {
+    const parsed = Number(value);
+    if (Number.isFinite(parsed)) return parsed;
+  }
+  return 0;
 }

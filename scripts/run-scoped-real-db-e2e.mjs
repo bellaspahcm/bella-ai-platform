@@ -53,6 +53,20 @@ const SCOPED_REAL_DB_SUITES = [
     ],
   },
   {
+    name: 'AutoMove financial reporting recognized sales',
+    patterns: [
+      /^src\/modules\/bella-auto\/services\/FinancialReportingService\.ts$/,
+      /^src\/modules\/bella-auto\/services\/__tests__\/FinancialReportingService\.recognized-sales\.test\.ts$/,
+      /^scripts\/verify-automove-financial-reporting-recognized-sales\.ts$/,
+    ],
+    commands: [
+      {
+        command: 'npx',
+        args: ['tsx', 'scripts/verify-automove-financial-reporting-recognized-sales.ts'],
+      },
+    ],
+  },
+  {
     name: 'Agriculture OS foundation',
     patterns: [
       /^src\/platform\/agriculture\//,

@@ -1,4 +1,91 @@
-﻿# ARCHITECTURE GATE RESULT - AUTOMOVE VEHICLE SALE RECOGNITION ADDITIVE SCHEMA
+﻿# ARCHITECTURE GATE RESULT - AUTOMOVE FINANCIAL REPORTING RECOGNIZED SALES READ
+
+> **Status:** PASS - minimal read-side migration is authorized under the user-approved `AUTOMOVE_FINANCIAL_REPORTING_RECOGNIZED_SALES_READ` scope.
+> **Date:** 2026-10-14
+> **Scope:** Refactor only `FinancialReportingService` vehicle sales/profit read paths to consume `auto_vehicle_sale_recognitions` as the canonical recognized sale source. Keep `vehicleSalesCommission = NOT_PROVEN` and excluded from this batch. No Warranty migration, no Finance journal posting, no write-side lifecycle, no ProductRegistry change, no schema migration, and no Production mutation.
+
+## Bella OS/Product Development Process Gate
+
+- Truth: PR #319 proved the additive recognition ledger schema on `main`, and PR #320 proved the runtime command can write recognition rows in non-Production. The stale `auto_sales` table remains unproven and absent from the E2E schema audit.
+- Source of Truth: `docs/governance/BELLA_AI_CODING_CONSTITUTION.md`, `docs/architecture/AUTOMOVE_VEHICLE_SALE_REVENUE_CONTRACT_2026_10_14.md`, merged migration `20261014010000_create_automove_vehicle_sale_recognition_ledgers.sql`, and user approval for `AUTOMOVE_FINANCIAL_REPORTING_RECOGNIZED_SALES_READ`.
+- Canonical Contract: vehicle sales revenue and profit reporting must read recognized sale snapshots from `auto_vehicle_sale_recognitions`. Commission remains `NOT_PROVEN` because the canonical recognition schema has no commission field or approved commission source.
+- Gate result: `PASS` for read-side reporting only. `FINANCE_LEDGER_POSTING = NOT_AUTHORIZED`, `WARRANTY_SERVICE_MIGRATION = HELD`, and `AUTOMOVE_FULL_PRODUCT_READINESS = NOT_READY`.
+
+## Product Manifest
+
+- Product/Domain: Bella AutoMove financial reporting.
+- Capability in scope:
+  - `getVehicleProfitMargins`
+  - `getRevenueBreakdown.vehicleSales`
+  - vehicle-derived metrics in `getFinancialMetrics`
+- Canonical read source: `public.auto_vehicle_sale_recognitions`.
+- Explicitly out of scope: `vehicleSalesCommission`, WarrantyService, Finance journal posting, Production, ProductRegistry, write-side lifecycle, and schema changes.
+
+## Ownership Map
+
+| Data / Behavior | Owner | Decision |
+|---|---|---|
+| Recognized vehicle sale revenue | AutoMove recognition ledger | read `sale_price_recognized` |
+| Historical vehicle cost basis | AutoMove recognition ledger | read immutable `cost_basis_at_sale` |
+| Vehicle display | Mobility public contract | use tenant-scoped vehicle display mapping |
+| Vehicle sales commission | Not proven | keep excluded; do not infer from recognition rows |
+| Finance journal posting | Finance/accounting owner | out of scope |
+| Tenant isolation | RLS + explicit tenant filters | preserve tenant-scoped queries |
+
+## Contract Dependency Map
+
+```text
+FinancialReportingService
+  -> getPrimaryClient authenticated/read context
+  -> auto_vehicle_sale_recognitions tenant-scoped recognized sale rows
+  -> Mobility listMobilityVehicleDisplayByIds for display only
+  -> existing service/loan/insurance/trade-in reads unchanged
+```
+
+## Change Authority
+
+Authorized:
+
+- Replace stale `auto_sales` vehicle-sales reads in scoped reporting methods.
+- Keep `vehicleSalesCommission` excluded and reported as zero until a canonical commission source exists.
+- Add focused unit tests and non-Production Real DB verification for recognized sales reporting reads.
+- Update scoped Real DB runner only for this verifier.
+
+Not authorized:
+
+- Add or alter schema/migrations.
+- Post Finance ledger entries or infer Vietnamese account mapping.
+- Modify WarrantyService, ProductRegistry, write-side lifecycle, booking/deposit logic, or Production workflows.
+- Create compatibility `auto_sales` tables or aliases.
+
+## UI -> Contract Reconciliation
+
+- No UI change.
+- Existing reporting method shapes are preserved.
+- Values now trace to canonical recognized sale snapshots instead of unproven legacy sale rows.
+
+## Additive Migration Plan
+
+- No migration.
+- No schema, RLS, grants, generated type, or data changes.
+
+## 11 Automated Verification Gates Plan
+
+1. Architecture Compliance: changed files limited to gate, reporting service, focused tests, and verifier wiring.
+2. Contract Boundary: vehicle sale report reads `auto_vehicle_sale_recognitions`, not `auto_sales`.
+3. Tenant Isolation: reporting and Mobility display reads remain tenant-scoped.
+4. RLS & Authorization: no grants or policies changed; non-Production verifier checks authenticated tenant isolation.
+5. Database Migration Safety: no migration.
+6. Event-After-Persistence: no write/event path changed.
+7. Domain Safety Routing: Warranty, Finance posting, ProductRegistry, and write lifecycle remain untouched.
+8. Type Safety: no `any`, suppressions, or generated type edits.
+9. Regression: focused unit tests, typecheck/lint, architecture guard, and scoped Real DB verifier.
+10. Evidence Integrity: report local/non-Production proof separately from Production; no Go-Live claim.
+11. Stop Condition: stop after read-side reporting proof; do not proceed to Warranty/Finance/Production without new authorization.
+
+---
+
+# ARCHITECTURE GATE RESULT - AUTOMOVE VEHICLE SALE RECOGNITION ADDITIVE SCHEMA
 
 > **Status:** PASS - additive schema migration is authorized under the approved `approve schema` scope.
 > **Date:** 2026-10-14
