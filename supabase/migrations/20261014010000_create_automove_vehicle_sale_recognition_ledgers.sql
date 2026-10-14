@@ -22,8 +22,25 @@ DECLARE
   vehicle_tenant_id UUID;
   customer_tenant_id UUID;
   actor_tenant_id UUID;
+  policy_exists BOOLEAN;
   booking_row RECORD;
 BEGIN
+  IF to_regclass('public.policy_registry') IS NULL THEN
+    RAISE EXCEPTION 'Vehicle sale recognition requires policy_registry before inserts are allowed.';
+  END IF;
+
+  SELECT EXISTS (
+    SELECT 1
+      FROM public.policy_registry
+     WHERE policy_id = NEW.accounting_policy_id
+       AND version = NEW.accounting_policy_version
+  )
+    INTO policy_exists;
+
+  IF NOT policy_exists THEN
+    RAISE EXCEPTION 'Vehicle sale recognition references an unregistered accounting policy version.';
+  END IF;
+
   SELECT tenant_id
     INTO vehicle_tenant_id
     FROM public.auto_vehicles
@@ -43,6 +60,10 @@ BEGIN
   END IF;
 
   IF NEW.booking_id IS NOT NULL THEN
+    IF to_regclass('public.auto_bookings') IS NULL THEN
+      RAISE EXCEPTION 'Vehicle sale recognition booking evidence cannot be validated because auto_bookings is unavailable.';
+    END IF;
+
     SELECT tenant_id, customer_id, vehicle_id
       INTO booking_row
       FROM public.auto_bookings
@@ -85,7 +106,24 @@ AS $$
 DECLARE
   recognition_tenant_id UUID;
   actor_tenant_id UUID;
+  policy_exists BOOLEAN;
 BEGIN
+  IF to_regclass('public.policy_registry') IS NULL THEN
+    RAISE EXCEPTION 'Vehicle sale recognition adjustment requires policy_registry before inserts are allowed.';
+  END IF;
+
+  SELECT EXISTS (
+    SELECT 1
+      FROM public.policy_registry
+     WHERE policy_id = NEW.accounting_policy_id
+       AND version = NEW.accounting_policy_version
+  )
+    INTO policy_exists;
+
+  IF NOT policy_exists THEN
+    RAISE EXCEPTION 'Vehicle sale recognition adjustment references an unregistered accounting policy version.';
+  END IF;
+
   SELECT tenant_id
     INTO recognition_tenant_id
     FROM public.auto_vehicle_sale_recognitions
@@ -115,7 +153,7 @@ CREATE TABLE IF NOT EXISTS public.auto_vehicle_sale_recognitions (
   tenant_id UUID NOT NULL REFERENCES public.tenants(id) ON DELETE CASCADE,
   sale_transaction_id UUID NOT NULL,
   idempotency_key TEXT NOT NULL,
-  booking_id UUID REFERENCES public.auto_bookings(id) ON DELETE RESTRICT,
+  booking_id UUID,
   vehicle_id UUID NOT NULL REFERENCES public.auto_vehicles(id) ON DELETE RESTRICT,
   customer_id UUID NOT NULL REFERENCES public.customers(id) ON DELETE RESTRICT,
   recognized_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now()),
@@ -143,10 +181,6 @@ CREATE TABLE IF NOT EXISTS public.auto_vehicle_sale_recognitions (
 
   CONSTRAINT uq_auto_vehicle_sale_recognitions_transaction UNIQUE (tenant_id, sale_transaction_id),
   CONSTRAINT uq_auto_vehicle_sale_recognitions_idempotency UNIQUE (tenant_id, idempotency_key),
-  CONSTRAINT fk_auto_vehicle_sale_recognitions_policy
-    FOREIGN KEY (accounting_policy_id, accounting_policy_version)
-    REFERENCES public.policy_registry(policy_id, version)
-    ON DELETE RESTRICT,
   CONSTRAINT chk_auto_vehicle_sale_recognitions_idempotency_key CHECK (btrim(idempotency_key) <> ''),
   CONSTRAINT chk_auto_vehicle_sale_recognitions_basis CHECK (btrim(recognition_basis) <> ''),
   CONSTRAINT chk_auto_vehicle_sale_recognitions_source_type CHECK (btrim(source_document_type) <> ''),
@@ -181,10 +215,6 @@ CREATE TABLE IF NOT EXISTS public.auto_vehicle_sale_recognition_adjustments (
   created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now()),
 
   CONSTRAINT uq_auto_vehicle_sale_adjustments_idempotency UNIQUE (tenant_id, idempotency_key),
-  CONSTRAINT fk_auto_vehicle_sale_adjustments_policy
-    FOREIGN KEY (accounting_policy_id, accounting_policy_version)
-    REFERENCES public.policy_registry(policy_id, version)
-    ON DELETE RESTRICT,
   CONSTRAINT chk_auto_vehicle_sale_adjustments_type
     CHECK (adjustment_type IN (
       'sale_revenue_adjusted',

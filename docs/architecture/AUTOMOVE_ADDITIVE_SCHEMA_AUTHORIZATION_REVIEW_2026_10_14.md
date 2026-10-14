@@ -62,7 +62,7 @@ Minimum columns:
 - `tenant_id UUID NOT NULL REFERENCES public.tenants(id) ON DELETE CASCADE`
 - `sale_transaction_id UUID NOT NULL`
 - `idempotency_key TEXT NOT NULL`
-- `booking_id UUID REFERENCES public.auto_bookings(id) ON DELETE RESTRICT`
+- `booking_id UUID`; insert validation must fail closed unless `auto_bookings` exists and the row matches the recognition tenant, customer, and vehicle.
 - `vehicle_id UUID NOT NULL REFERENCES public.auto_vehicles(id) ON DELETE RESTRICT`
 - `customer_id UUID NOT NULL REFERENCES public.customers(id) ON DELETE RESTRICT`
 - `recognized_at TIMESTAMPTZ NOT NULL`

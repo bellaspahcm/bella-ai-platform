@@ -29,7 +29,7 @@
 | Accounting policy registry | Finance/Platform governance | reuse only global active policy v1; do not change registry uniqueness |
 | Vehicle identity and cost candidate | Mobility / AutoMove vehicle persistence | reference and snapshot, do not recompute historical profit from mutable current cost |
 | Ledger postings and account mapping | Finance/accounting owner | explicitly out of scope |
-| Tenant isolation | Platform auth/RLS plus schema tenant consistency | strict RLS and FK tenant validation required |
+| Tenant isolation | Platform auth/RLS plus schema tenant consistency | strict RLS and insert-time tenant validation required |
 
 ## Contract Dependency Map
 

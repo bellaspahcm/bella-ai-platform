@@ -26,7 +26,8 @@ describe('AutoMove vehicle sale recognition additive schema migration', () => {
     expect(migrationSql).toContain('cost_basis_at_sale NUMERIC(18,0) NOT NULL');
     expect(migrationSql).toContain('UNIQUE (tenant_id, sale_transaction_id)');
     expect(migrationSql).toContain('UNIQUE (tenant_id, idempotency_key)');
-    expect(migrationSql).toContain('REFERENCES public.policy_registry(policy_id, version)');
+    expect(migrationSql).toContain("to_regclass('public.policy_registry') IS NULL");
+    expect(migrationSql).toContain('FROM public.policy_registry');
   });
 
   it('protects both ledgers as append-only at database level', () => {
@@ -40,6 +41,7 @@ describe('AutoMove vehicle sale recognition additive schema migration', () => {
     expect(migrationSql).toContain('validate_auto_vehicle_sale_recognition_tenant');
     expect(migrationSql).toContain('FROM public.auto_vehicles');
     expect(migrationSql).toContain('FROM public.customers');
+    expect(migrationSql).toContain("to_regclass('public.auto_bookings') IS NULL");
     expect(migrationSql).toContain('FROM public.auto_bookings');
     expect(migrationSql).toContain('validate_auto_vehicle_sale_adjustment_tenant');
     expect(migrationSql).toContain('FROM public.auto_vehicle_sale_recognitions');
