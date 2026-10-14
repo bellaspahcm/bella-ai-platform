@@ -32,6 +32,19 @@ const SCOPED_REAL_DB_SUITES = [
     ],
   },
   {
+    name: 'AutoMove vehicle sale recognition ledgers',
+    patterns: [
+      /^supabase\/migrations\/20261014010000_create_automove_vehicle_sale_recognition_ledgers\.sql$/,
+      /^scripts\/verify-automove-vehicle-sale-recognition-schema\.mjs$/,
+    ],
+    commands: [
+      {
+        command: 'node',
+        args: ['scripts/verify-automove-vehicle-sale-recognition-schema.mjs'],
+      },
+    ],
+  },
+  {
     name: 'Agriculture OS foundation',
     patterns: [
       /^src\/platform\/agriculture\//,
@@ -124,15 +137,26 @@ function parseArgs() {
 }
 
 function shouldRunFullSuite(files) {
-  return files.some((file) => REAL_DB_CONFIG_PATTERN.test(file) || MIGRATION_PATTERN.test(file));
+  return files.some((file) => (
+    REAL_DB_CONFIG_PATTERN.test(file)
+    || (
+      MIGRATION_PATTERN.test(file)
+      && !SCOPED_REAL_DB_SUITES.some((suite) => suite.patterns.some((pattern) => pattern.test(file)))
+    )
+  ));
 }
 
 function addTest(tests, file) {
   tests.add(file);
 }
 
-function selectScopedTests(files) {
+function addCommand(commands, command) {
+  commands.set(`${command.command}\0${command.args.join('\0')}`, command);
+}
+
+function selectScopedWork(files) {
   const selectedTests = new Set();
+  const selectedCommands = new Map();
 
   for (const file of files) {
     if (REAL_DB_TEST_BY_PATH.some((pattern) => pattern.test(file))) {
@@ -142,13 +166,19 @@ function selectScopedTests(files) {
 
   for (const suite of SCOPED_REAL_DB_SUITES) {
     if (files.some((file) => suite.patterns.some((pattern) => pattern.test(file)))) {
-      for (const test of suite.tests) {
+      for (const test of suite.tests ?? []) {
         addTest(selectedTests, test);
+      }
+      for (const command of suite.commands ?? []) {
+        addCommand(selectedCommands, command);
       }
     }
   }
 
-  return [...selectedTests];
+  return {
+    tests: [...selectedTests],
+    commands: [...selectedCommands.values()],
+  };
 }
 
 const { changedFiles: explicitChangedFiles, listOnly } = parseArgs();
@@ -165,22 +195,45 @@ if (changedFiles.length === 0 || shouldRunFullSuite(changedFiles)) {
   process.exit(jest.status ?? 1);
 }
 
-const scopedTests = selectScopedTests(changedFiles);
-if (scopedTests.length === 0) {
-  console.log('No scoped real database business E2E tests matched changed files.');
+const scopedWork = selectScopedWork(changedFiles);
+if (scopedWork.tests.length === 0 && scopedWork.commands.length === 0) {
+  console.log('No scoped real database business E2E work matched changed files.');
   process.exit(0);
 }
 
-console.log('Running scoped real database business E2E tests:');
-for (const test of scopedTests) {
-  console.log(`- ${test}`);
+if (scopedWork.tests.length > 0) {
+  console.log('Running scoped real database business E2E tests:');
+  for (const test of scopedWork.tests) {
+    console.log(`- ${test}`);
+  }
 }
+
+if (scopedWork.commands.length > 0) {
+  console.log('Running scoped real database business E2E commands:');
+  for (const command of scopedWork.commands) {
+    console.log(`- ${command.command} ${command.args.join(' ')}`);
+  }
+}
+
 if (listOnly) {
   process.exit(0);
 }
 
-const jest = run('npx', ['jest', '--config', 'jest.real-db.config.ts', '--runInBand', ...scopedTests], {
-  stdio: 'inherit',
-});
+if (scopedWork.tests.length > 0) {
+  const jest = run('npx', ['jest', '--config', 'jest.real-db.config.ts', '--runInBand', ...scopedWork.tests], {
+    stdio: 'inherit',
+  });
 
-process.exit(jest.status ?? 1);
+  if ((jest.status ?? 1) !== 0) {
+    process.exit(jest.status ?? 1);
+  }
+}
+
+for (const command of scopedWork.commands) {
+  const result = run(command.command, command.args, { stdio: 'inherit' });
+  if ((result.status ?? 1) !== 0) {
+    process.exit(result.status ?? 1);
+  }
+}
+
+process.exit(0);

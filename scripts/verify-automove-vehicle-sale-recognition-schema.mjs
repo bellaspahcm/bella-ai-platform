@@ -237,6 +237,8 @@ async function verifyBehavior(fixtures) {
   const recognitionId = randomUUID();
   const saleTransactionId = randomUUID();
 
+  await client.query(`set local role service_role`);
+
   await client.query(
     `insert into public.auto_vehicle_sale_recognitions (
        id, tenant_id, sale_transaction_id, idempotency_key, booking_id, vehicle_id, customer_id,
@@ -341,6 +343,7 @@ async function verifyBehavior(fixtures) {
     /append-only/
   );
 
+  await client.query(`reset role`);
   await client.query(`set local role authenticated`);
   await client.query(`select set_config('request.jwt.claim.sub', $1, true)`, [fixtures.userB]);
 
@@ -378,6 +381,7 @@ try {
   await client.connect();
   await client.query('begin');
   await client.query(`set local statement_timeout = '30s'`);
+  await client.query(`set local row_security = on`);
   await applyMissingPrerequisitesInRollbackTransaction();
   await client.query(migrationSql);
   await verifySchemaMetadata();
