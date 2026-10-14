@@ -26,6 +26,7 @@ export function EditCustomerModal({
   setData,
   tenantModuleKey,
   customerCreatedAt,
+  isBabyCare = false,
 }: {
   isOpen: boolean;
   onClose: () => void;
@@ -35,9 +36,10 @@ export function EditCustomerModal({
   setData: ModalStateSetter<EditCustomerData>;
   tenantModuleKey: TenantModuleKey | null;
   customerCreatedAt?: string | null;
+  isBabyCare?: boolean;
 }) {
   const [isGeocoding, setIsGeocoding] = useState(false);
-  const customerLabels = getTenantModulePresentationOrNeutral(tenantModuleKey);
+  const customerLabels = getTenantModulePresentationOrNeutral(isBabyCare ? 'babycare' : tenantModuleKey);
   const createdAtLabel = customerCreatedAt ? new Date(customerCreatedAt).toLocaleDateString('vi-VN') : 'Mới tạo';
 
   useScrollLock(isOpen);
@@ -82,9 +84,9 @@ export function EditCustomerModal({
       <motion.div
         initial={{ scale: 0.9, opacity: 0, y: 20 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
-        className="relative w-full max-w-2xl bg-white rounded-[2.5rem] shadow-2xl overflow-hidden"
+        className={cn("relative w-full max-w-2xl bg-white rounded-[2.5rem] shadow-2xl overflow-hidden", isBabyCare && 'max-h-[calc(100dvh-2rem)] flex flex-col')}
       >
-        <div className="p-8 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+        <div className={cn("p-8 border-b border-slate-100 flex items-center justify-between bg-slate-50/50", isBabyCare && 'shrink-0 p-5 sm:p-8')}>
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 bg-primary rounded-2xl flex items-center justify-center text-primary-foreground shadow-lg shadow-primary/20">
               <User className="w-6 h-6" />
@@ -94,17 +96,18 @@ export function EditCustomerModal({
               <p className="text-xs text-slate-500 font-bold italic">{customerLabels.editDescription}</p>
             </div>
           </div>
-          <button onClick={onClose} className="p-3 hover:bg-rose-50 rounded-2xl text-slate-400 hover:text-rose-500 transition-all">
+          <button onClick={onClose} aria-label="Đóng cập nhật thông tin" className="p-3 hover:bg-rose-50 rounded-2xl text-slate-400 hover:text-rose-500 transition-all">
             <PlusCircle className="w-6 h-6 rotate-45" />
           </button>
         </div>
 
-        <div className="p-8 space-y-6 max-h-[70vh] overflow-y-auto custom-scrollbar">
-          <div className="grid grid-cols-2 gap-6">
+        <div className={cn("p-8 space-y-6 max-h-[70vh] overflow-y-auto custom-scrollbar", isBabyCare && 'min-h-0 p-5 sm:p-8')}>
+          <div className={cn("grid grid-cols-2 gap-6", isBabyCare && 'grid-cols-1 sm:grid-cols-2')}>
             <div className="space-y-2">
               <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">{customerLabels.primaryNameLabel}</label>
               <input
                 type="text"
+                aria-label={customerLabels.primaryNameLabel}
                 value={data.name_mother}
                 onChange={(e) => setData({ ...data, name_mother: e.target.value })}
                 className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:border-primary outline-none font-bold text-slate-700"
@@ -114,6 +117,7 @@ export function EditCustomerModal({
               <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Số điện thoại</label>
               <input
                 type="text"
+                aria-label="Số điện thoại"
                 value={data.phone}
                 onChange={(e) => setData({ ...data, phone: e.target.value })}
                 className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:border-primary outline-none font-bold text-slate-700"
@@ -123,20 +127,34 @@ export function EditCustomerModal({
               <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">{customerLabels.secondaryNameLabel}</label>
               <input
                 type="text"
+                aria-label={customerLabels.secondaryNameLabel}
                 value={data.name_baby}
                 onChange={(e) => setData({ ...data, name_baby: e.target.value })}
                 className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:border-primary outline-none font-bold text-slate-700"
               />
             </div>
             <div className="space-y-2">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">{customerLabels.secondaryDateLabel}</label>
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">{isBabyCare ? 'Ngày sinh bé' : customerLabels.secondaryDateLabel}</label>
               <input
                 type="date"
-                value={data.dob_baby || data.dob_expected || ''}
-                onChange={(e) => setData({ ...data, dob_baby: e.target.value, dob_expected: e.target.value })}
+                aria-label={isBabyCare ? 'Ngày sinh bé' : customerLabels.secondaryDateLabel}
+                value={isBabyCare ? data.dob_baby : data.dob_baby || data.dob_expected || ''}
+                onChange={(e) => setData(isBabyCare ? { ...data, dob_baby: e.target.value } : { ...data, dob_baby: e.target.value, dob_expected: e.target.value })}
                 className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:border-primary outline-none font-bold text-slate-700"
               />
             </div>
+            {isBabyCare && (
+              <div className="space-y-2">
+                <label htmlFor="babycare-expected-birth" className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Ngày dự sinh</label>
+                <input
+                  id="babycare-expected-birth"
+                  type="date"
+                  value={data.dob_expected}
+                  onChange={(e) => setData({ ...data, dob_expected: e.target.value })}
+                  className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:border-primary outline-none font-bold text-slate-700"
+                />
+              </div>
+            )}
           </div>
 
           <div className="space-y-3">
@@ -146,6 +164,7 @@ export function EditCustomerModal({
                 <button
                   key={g.id}
                   type="button"
+                  aria-pressed={data.gender_baby === g.id}
                   onClick={() => setData({ ...data, gender_baby: g.id })}
                   className={cn(
                     "py-2.5 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all border",
@@ -183,34 +202,37 @@ export function EditCustomerModal({
               </button>
             </div>
             <textarea
+              aria-label="Địa chỉ"
               value={data.address}
               onChange={(e) => setData({ ...data, address: e.target.value })}
               className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:border-primary outline-none font-bold text-slate-700 h-20 resize-none"
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-6">
+          <div className={cn("grid grid-cols-2 gap-6", isBabyCare && 'grid-cols-1')}>
             <div className="space-y-2">
               <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Điểm tích lũy</label>
               <input
                 type="number"
                 min="0"
+                aria-label="Điểm tích lũy"
                 value={data.loyalty_points.toString()}
                 onChange={(e) => setData({ ...data, loyalty_points: parseIntegerInput(e.target.value, { min: 0, max: 1000000 }) })}
                 className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:border-primary outline-none font-bold text-slate-700"
               />
             </div>
-            <div className="space-y-2">
+            {!isBabyCare && <div className="space-y-2">
               <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Khách thân thiết</label>
               <div className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl font-bold text-slate-700">
                 Có
               </div>
-            </div>
+            </div>}
           </div>
 
           <div className="space-y-2">
             <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Ghi chú</label>
             <textarea
+              aria-label="Ghi chú"
               value={data.notes}
               onChange={(e) => setData({ ...data, notes: e.target.value })}
               className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:border-primary outline-none font-bold text-slate-700 h-24 resize-none"
@@ -219,23 +241,23 @@ export function EditCustomerModal({
           </div>
 
           <div className="rounded-3xl border border-slate-100 bg-slate-50/70 p-5">
-            <div className="grid grid-cols-1 gap-3 text-xs font-bold text-slate-600 sm:grid-cols-3">
-              <div>
+            <div className={cn("grid grid-cols-1 gap-3 text-xs font-bold text-slate-600", !isBabyCare && 'sm:grid-cols-3')}>
+              {!isBabyCare && <div>
                 <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Phân nhóm</p>
                 <p className="mt-1 text-slate-900">Chưa phân nhóm</p>
-              </div>
-              <div>
+              </div>}
+              {!isBabyCare && <div>
                 <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Nguồn khách</p>
                 <p className="mt-1 text-slate-900">Giới thiệu</p>
-              </div>
+              </div>}
               <div>
-                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Ngày tạo hồ sơ</p>
+                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{isBabyCare ? 'Ngày tạo hồ sơ (tự động)' : 'Ngày tạo hồ sơ'}</p>
                 <p className="mt-1 text-slate-900">{createdAtLabel}</p>
               </div>
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-6">
+          <div className={cn("grid grid-cols-2 gap-6", isBabyCare && 'grid-cols-1 sm:grid-cols-2')}>
             <div className="space-y-2">
               <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">{customerLabels.locationLatitudeLabel}</label>
               <input
@@ -261,7 +283,7 @@ export function EditCustomerModal({
           </div>
         </div>
 
-        <div className="p-8 bg-slate-50/50 border-t border-slate-100 flex gap-4">
+        <div className={cn("p-8 bg-slate-50/50 border-t border-slate-100 flex gap-4", isBabyCare && 'shrink-0 p-5 sm:p-8')}>
           <button onClick={onClose} className="flex-1 py-4 bg-white border border-slate-200 text-slate-600 rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-slate-50 transition-all">Hủy</button>
           <button
             disabled={isSubmitting}

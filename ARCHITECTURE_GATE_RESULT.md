@@ -8758,6 +8758,77 @@ Not authorized:
 
 ---
 
+# Architecture Gate - BabyCare Customer Card/Form Reconciliation (2026-10-14)
+
+Status: PASS for BabyCare presentation consumer repair.
+
+## 1. Development Process Gate
+
+Truth: user confirms BabyCare has no rooms. Screenshots and source show demo room,
+AI scores, photos, CRM labels and dates without matching editable capabilities.
+Canonical identity: ProductRegistry `bella_babycare`, resolved by `useUser().product`.
+Canonical profile: customer-actions getCustomerById/updateCustomer plus generated
+customers Row/Update; booking/session/revenue: getBookingsByCustomerId public action.
+Scope is reconciliation of these consumers, not a new business capability.
+
+## 2. Product Manifest
+
+Existing Bella BabyCare, home-care customer detail page: mother/baby profile,
+packages, scheduled/completed sessions, confirmed payments, notes and KTV assignment.
+Beauty and all other products retain their existing rendering branches.
+
+## 3. Ownership Map
+
+Customer actions own persisted profile fields and audited tenant-scoped updates.
+Order actions own booking/session reads and KTV assignment writes. Payment rule
+owns confirmed paid totals. BabyCare UI owns labels, empty states and visibility.
+No kernel data owner is involved.
+
+## 4. Contract Dependency Map
+
+Product UI -> existing customer/order actions -> existing repositories / public DB.
+Product Identity -> existing UserProvider/ProductResolver -> ProductRegistry.
+No Healthcare, Education, Logistics or Finance contract dependency is added.
+
+## 5. Change Authority
+
+User authorizes BabyCare-only UI and profile edit reconciliation. Do not alter
+customer write actions, payment rules, identity registry, schema, auth/RLS or kernels.
+Separate persisted dob_baby/dob_expected inputs reuse the existing write contract.
+
+## 6. UI -> Contract Reconciliation
+
+| UI | Proven source / decision |
+|---|---|
+| Mother/baby names, gender, dates, address, points, notes | customers fields; editable via existing form |
+| Creation date | created_at; automatic/read-only |
+| Group / source / loyalty flag / VIP | no proven editable contract; hide on BabyCare |
+| Room | not applicable per user; omit |
+| Scheduled/completed sessions | session_logs status/date/time/address/duration and KTV relation |
+| AI recommendation scores / stock before-after photos / fake activity | no proven producer; omit on BabyCare |
+| Money, booking status, end date, empty states | existing booking/revenue contract; preserve zero/null |
+| KTV selection | existing ktvs list and updateBooking action; no demo candidates |
+
+## 7. Additive Migration Plan
+
+No migration or schema change needed.
+
+## 8. Eleven Verification Gates Plan
+
+1. Architecture: touched files stay in Product UI/tests/docs.
+2. Public contract: reuse existing reads/writes, no direct kernel access.
+3. Product isolation: only bella_babycare opts into new rendering.
+4. Tenant/RLS: existing actions unchanged; customer action regression.
+5. Migration safety: no migration.
+6. Persistence/events: existing audited update path unchanged.
+7. Profile semantics: mother vs baby, independent dates, no invented CRM data.
+8. Null/zero: fixture tests cover missing dates, no bookings/revenues/sessions.
+9. Operational semantics: scheduled vs completed, actual staff/location, no room.
+10. UX evidence: desktop/mobile render and supported interactions.
+11. Regression: scoped Jest/lint/typecheck/architecture; report unrun Real DB separately.
+
+---
+
 # Architecture Gate - Beauty/BabyCare Customer Package Payment UI Repair (2026-10-14)
 
 > **Status:** PASS - scoped Product UI consumer repair for shared Beauty/BabyCare customer detail payment display and edit-package discount preview.

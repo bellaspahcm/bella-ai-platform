@@ -13,6 +13,8 @@ import { PaymentHistoryPanel } from './components/PaymentHistoryPanel';
 import { SessionHistoryPanel } from './components/SessionHistoryPanel';
 import { useCustomerDetailController } from './useCustomerDetailController';
 import { cn } from '@/lib/utils';
+import { useUser } from '@/lib/user-context';
+import { getBabyCareSessionSummary } from './babycare-customer-view';
 
 // Lazy-load BookingModal to keep Customer Detail page fast
 const BookingModal = nextDynamic(
@@ -26,6 +28,8 @@ type CustomerDetailTab = 'overview' | 'services' | 'bookings' | 'sessions' | 'pa
 
 export default function CustomerDetailPage() {
   const [activeTab, setActiveTab] = useState<CustomerDetailTab>('overview');
+  const { product, isLoading: isProductLoading } = useUser();
+  const isBabyCare = product?.productKey === 'bella_babycare';
 
   const {
     activeBooking,
@@ -94,7 +98,7 @@ export default function CustomerDetailPage() {
     userRole,
   } = useCustomerDetailController();
 
-  if (loading) {
+  if (loading || isProductLoading) {
     return (
       <div className="flex-1 flex items-center justify-center bg-slate-50 min-h-[500px]">
         <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary" />
@@ -117,7 +121,15 @@ export default function CustomerDetailPage() {
   const totalSessions = allBookings.reduce((sum, booking) => sum + (booking.session_logs?.length || 0), 0);
   const totalPayments = allBookings.reduce((sum, booking) => sum + (booking.revenue?.length || 0), 0);
   const notesCount = customer.notes?.trim() ? 1 : 0;
-  const tabs: Array<{ id: CustomerDetailTab; label: string }> = [
+  const completedCareSessions = isBabyCare ? getBabyCareSessionSummary(activeBooking).completed.length : sortedSessions.length;
+  const tabs: Array<{ id: CustomerDetailTab; label: string }> = isBabyCare ? [
+    { id: 'overview', label: 'Tổng quan' },
+    { id: 'services', label: `Gói chăm sóc (${allBookings.length})` },
+    { id: 'sessions', label: `Lịch sử chăm sóc (${completedCareSessions})` },
+    ...(userRole === 'admin' ? [{ id: 'payments' as const, label: `Thanh toán gói (${activeBooking?.revenue?.length ?? 0})` }] : []),
+    { id: 'profile', label: 'Hồ sơ mẹ và bé' },
+    { id: 'notes', label: `Ghi chú (${notesCount})` },
+  ] : [
     { id: 'overview', label: 'Tổng quan' },
     { id: 'services', label: `Dịch vụ (${allBookings.length})` },
     { id: 'bookings', label: `Lịch hẹn (${totalSessions})` },
@@ -127,6 +139,11 @@ export default function CustomerDetailPage() {
     { id: 'activity', label: 'Hoạt động' },
     { id: 'notes', label: `Ghi chú (${notesCount})` },
   ];
+  const showPackages = !isBabyCare || activeTab === 'overview' || activeTab === 'services';
+  const showSessions = !isBabyCare || activeTab === 'overview' || activeTab === 'sessions';
+  const showProfile = !isBabyCare || activeTab === 'overview' || activeTab === 'profile';
+  const showPayments = !isBabyCare || activeTab === 'overview' || activeTab === 'payments';
+  const showNotes = !isBabyCare || activeTab === 'overview' || activeTab === 'notes';
 
   return (
     <div className="flex-1 overflow-auto bg-slate-100/70 p-4 sm:p-6 md:p-8">
@@ -171,6 +188,7 @@ export default function CustomerDetailPage() {
 
       {/* ── Top Customer Summary Header Banner ── */}
       <CustomerHeaderBanner
+        isBabyCare={isBabyCare}
         customer={customer}
         tenantModuleKey={tenantModuleKey}
         userRole={userRole}
@@ -182,6 +200,7 @@ export default function CustomerDetailPage() {
 
       {/* ── 5-KPI Stats Row ── */}
       <CustomerStatsPanel
+        isBabyCare={isBabyCare}
         activeBooking={activeBooking}
         activeDepositAmount={activeDepositAmount}
         activeNetPrice={activeNetPrice}
@@ -191,10 +210,12 @@ export default function CustomerDetailPage() {
       />
 
       {/* ── Tab Bar Navigation Pills matching Image 2 ── */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-2 mb-6 scrollbar-none">
+      <div role={isBabyCare ? 'tablist' : undefined} aria-label={isBabyCare ? 'Thông tin chăm sóc' : undefined} className="flex items-center gap-2 overflow-x-auto pb-2 mb-6 scrollbar-none">
         {tabs.map((tab) => (
           <button
             key={tab.id}
+            role={isBabyCare ? 'tab' : undefined}
+            aria-selected={isBabyCare ? activeTab === tab.id : undefined}
             onClick={() => setActiveTab(tab.id)}
             className={cn(
               "px-4 py-2 rounded-full text-xs font-black whitespace-nowrap transition-all border shrink-0",
@@ -207,9 +228,11 @@ export default function CustomerDetailPage() {
           </button>
         ))}
       </div>
+      {isBabyCare && activeBooking && !showPackages && <p className="mb-4 text-sm text-slate-500">Gói đang xem: <span className="font-bold text-slate-800">{activeBooking.package_name || activeBooking.packages?.name || 'Gói chăm sóc'}</span></p>}
 
       {/* ── Service Package Selector ("Chọn đơn dịch vụ đang xem") ── */}
-      <BookingSelectorPanel
+      {showPackages && <BookingSelectorPanel
+        isBabyCare={isBabyCare}
         bookings={customer.allBookings || []}
         activeBooking={activeBooking}
         onSelectBooking={setActiveBooking}
@@ -220,10 +243,11 @@ export default function CustomerDetailPage() {
         onToggleBookingSelection={handleToggleBookingSelection}
         isCombineMode={isCombineMode}
         onToggleCombineMode={handleToggleCombineMode}
-      />
+      />}
 
       {/* ── Active Package Dark Card + AI KTV Suggestion ── */}
-      <ActiveBookingPanel
+      {showPackages && <ActiveBookingPanel
+        isBabyCare={isBabyCare}
         activeBooking={activeBooking}
         ktvs={ktvs}
         tenantModuleKey={tenantModuleKey}
@@ -247,13 +271,15 @@ export default function CustomerDetailPage() {
         onOpenBookingSessions={handleOpenBookingSessions}
         onExportCombinedQuotation={handleExportCombinedQuotation}
         onShareCombinedPortal={handleShareCombinedPortal}
-      />
+      />}
 
       {/* ── 2-Column Main Workspace Grid matching Image 2 ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className={cn("grid grid-cols-1 gap-6", (!isBabyCare || activeTab === 'overview') && 'lg:grid-cols-2')}>
         {/* Left Column: Next Session + Care History + Before/After photos */}
-        <div>
+        {showSessions && <div>
           <SessionHistoryPanel
+            isBabyCare={isBabyCare}
+            customerAddress={customer.address}
             activeBooking={activeBooking}
             sortedSessions={sortedSessions}
             nextSession={nextSession}
@@ -265,31 +291,33 @@ export default function CustomerDetailPage() {
             tenantModuleKey={tenantModuleKey}
             tenantPhone={tenantPhone}
           />
-        </div>
+        </div>}
 
         {/* Right Column: Customer Detailed Info + Payment History + Recent Notes */}
-        <div className="space-y-6">
-          <CustomerDetailInfoCard
+        {(showProfile || showPayments || showNotes) && <div className="space-y-6">
+          {showProfile && <CustomerDetailInfoCard
+            isBabyCare={isBabyCare}
             customer={customer}
             tenantModuleKey={tenantModuleKey}
             onEditCustomer={handleOpenEditCustomer}
-          />
+          />}
 
-          <PaymentHistoryPanel activeBooking={activeBooking} userRole={userRole} />
+          {showPayments && <PaymentHistoryPanel activeBooking={activeBooking} userRole={userRole} />}
+          {isBabyCare && showPayments && !activeBooking && <p className="rounded-2xl bg-white p-6 text-sm text-slate-500">Chưa có gói chăm sóc để xem thanh toán.</p>}
 
           {/* Ghi chú & hoạt động gần đây Card matching Image 2 */}
-          <div className="rounded-[2.5rem] bg-white p-6 border border-slate-200/80 shadow-lg shadow-slate-200/50">
+          {showNotes && <div className="rounded-[2.5rem] bg-white p-6 border border-slate-200/80 shadow-lg shadow-slate-200/50">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-base font-black text-slate-900 flex items-center gap-2">
                 <Calendar className="w-5 h-5 text-primary" />
-                <span>Ghi chú & hoạt động gần đây</span>
+                <span>{isBabyCare ? 'Ghi chú chăm sóc' : 'Ghi chú & hoạt động gần đây'}</span>
               </h3>
-              <button className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold text-primary hover:bg-primary/10 transition-colors">
-                <Plus className="w-3.5 h-3.5" /> Thêm ghi chú
+              <button onClick={isBabyCare ? handleOpenEditCustomer : undefined} className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold text-primary hover:bg-primary/10 transition-colors">
+                <Plus className="w-3.5 h-3.5" /> {isBabyCare && customer.notes ? 'Sửa ghi chú' : 'Thêm ghi chú'}
               </button>
             </div>
 
-            <div className="space-y-3">
+            {isBabyCare ? <p className="text-sm text-slate-600 whitespace-pre-wrap break-words">{customer.notes || 'Chưa có ghi chú chăm sóc.'}</p> : <div className="space-y-3">
               <div className="flex items-start gap-3 p-3 bg-slate-50/80 rounded-2xl border border-slate-100 text-xs">
                 <span className="w-2 h-2 rounded-full bg-emerald-500 mt-1.5 shrink-0" />
                 <div className="flex-1 min-w-0">
@@ -311,9 +339,9 @@ export default function CustomerDetailPage() {
                   <p className="text-[10px] text-slate-400">24/07/2026 09:20 • Admin Spa</p>
                 </div>
               </div>
-            </div>
-          </div>
-        </div>
+            </div>}
+          </div>}
+        </div>}
       </div>
 
       {/* ── Modals & Hidden Receipt Templates ── */}
@@ -325,6 +353,7 @@ export default function CustomerDetailPage() {
       />
 
       <EditCustomerModal
+        isBabyCare={isBabyCare}
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
         onConfirm={handleUpdateCustomer}

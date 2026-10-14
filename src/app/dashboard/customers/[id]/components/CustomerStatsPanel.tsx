@@ -3,6 +3,7 @@
 import { cn, formatNumberWithSeparator, formatViDate } from '@/lib/utils';
 import { Calendar, Clock, DollarSign, TrendingUp, Award, PackageCheck, History } from 'lucide-react';
 import type { CustomerDetailBooking } from '../types';
+import { getBabyCareCustomerStats } from '../babycare-customer-view';
 
 export function CustomerStatsPanel({
   activeBooking,
@@ -11,6 +12,7 @@ export function CustomerStatsPanel({
   userRole,
   loyaltyPoints,
   allBookings,
+  isBabyCare = false,
 }: {
   activeBooking: CustomerDetailBooking | null;
   activeDepositAmount: number;
@@ -18,6 +20,7 @@ export function CustomerStatsPanel({
   userRole: 'admin' | 'ktv';
   loyaltyPoints?: number | null;
   allBookings?: CustomerDetailBooking[];
+  isBabyCare?: boolean;
 }) {
   const activeFullPrice = activeBooking?.full_price || 0;
 
@@ -34,7 +37,14 @@ export function CustomerStatsPanel({
   // Total sessions completed
   const totalSessionsCompleted = allBookings?.reduce((sum, b) => sum + (b.completed_sessions || 0), 0) || activeBooking?.completed_sessions || 0;
 
-  const stats = [
+  const babyCareStats = isBabyCare ? getBabyCareCustomerStats(allBookings ?? (activeBooking ? [activeBooking] : [])) : null;
+  const stats = babyCareStats ? [
+    { label: 'Đã thanh toán', value: `${formatNumberWithSeparator(babyCareStats.totalPaid)}đ`, icon: DollarSign, color: 'text-emerald-600', bg: 'bg-emerald-50 border-emerald-100' },
+    { label: 'Buổi hoàn thành', value: `${babyCareStats.completedSessions} buổi`, icon: TrendingUp, color: 'text-blue-600', bg: 'bg-blue-50 border-blue-100' },
+    { label: 'Gói đang chăm sóc', value: `${babyCareStats.activePackages} gói`, icon: PackageCheck, color: 'text-amber-600', bg: 'bg-amber-50 border-amber-100' },
+    { label: 'Chăm sóc gần nhất', value: babyCareStats.lastSessionDate ? formatViDate(babyCareStats.lastSessionDate) : 'Chưa có', icon: History, color: 'text-cyan-600', bg: 'bg-cyan-50 border-cyan-100' },
+    { label: 'Lịch chăm sóc tiếp theo', value: babyCareStats.nextSession?.assigned_date ? formatViDate(babyCareStats.nextSession.assigned_date) : 'Chưa xếp lịch', subValue: babyCareStats.nextSession?.assigned_time?.slice(0, 5) || undefined, icon: Calendar, color: 'text-primary', bg: 'bg-primary/10 border-primary/20' },
+  ] : [
     {
       label: 'Tổng chi tiêu',
       value: `${formatNumberWithSeparator(totalSpent > 0 ? totalSpent : 12450000)}đ`,
@@ -85,8 +95,8 @@ export function CustomerStatsPanel({
             <stat.icon className={cn('w-5 h-5', stat.color)} />
           </div>
           <div className="min-w-0 flex flex-col justify-center">
-            <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider truncate mb-0.5">{stat.label}</p>
-            <div className="text-sm font-black text-slate-900 leading-tight truncate">{stat.value}</div>
+            <p className={cn("text-[9px] font-black text-slate-400 uppercase tracking-wider mb-0.5", !isBabyCare && 'truncate')}>{stat.label}</p>
+            <div className={cn("text-sm font-black text-slate-900 leading-tight", isBabyCare ? 'break-words' : 'truncate')}>{stat.value}</div>
             {stat.subValue && (
               <p className="text-[9px] font-bold text-slate-400 truncate">{stat.subValue}</p>
             )}
