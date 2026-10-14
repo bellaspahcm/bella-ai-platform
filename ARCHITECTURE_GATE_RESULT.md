@@ -8671,3 +8671,87 @@ Not authorized:
 11. Stop Condition: if tenant-specific policy, profile FK retention, ledger posting, or Decision Engine lifecycle becomes required, stop for separate approval.
 
 ---
+
+# ARCHITECTURE GATE RESULT - AUTOMOVE SALES CHAIN RLS HARDENING
+
+> **Status:** PASS - forward RLS/grants hardening is authorized under the user-approved `AUTOMOVE_SALES_CHAIN_RLS_HARDENING` scope.
+> **Date:** 2026-10-14
+> **Scope:** Harden `auto_leads`, `auto_bookings`, and `auto_deposits` tenant RLS and authenticated grants for the AutoMove sales chain. Forward migration only; no historical migration rewrite, no Warranty, no Finance ledger posting, no commission, no ProductRegistry, no Logistics, and no Production mutation.
+
+## Bella OS/Product Development Process Gate
+
+- Truth: Non-Production runtime probes showed the sales-chain tables exist, but legacy policies allowed null-tenant fallback; `auto_bookings` lacked authenticated insert permission, while `auto_deposits` granted dangerous authenticated privileges including delete.
+- Source of Truth: `docs/governance/BELLA_AI_CODING_CONSTITUTION.md`, historical migrations `20260803240000_create_auto_leads_bookings.sql` and `20260804310000_create_auto_deposits_tracking.sql`, PR #319-#322 recognition/policy registry proof, and user approval for this hardening batch.
+- Canonical Contract: authenticated sales-chain access must be tenant-bound through `public.get_auth_tenant_id()` with no null-tenant bypass; ordinary authenticated users may read/insert/update only within their tenant and must not delete/truncate/reference/trigger these tables.
+- Gate result: `PASS` for forward migration plus non-Production Real DB verifier only. `PRODUCTION_MUTATION = NOT_AUTHORIZED` and `AUTOMOVE_FULL_PRODUCT_READINESS = NOT_READY`.
+
+## Product Manifest
+
+- Product/Domain: Bella AutoMove sales chain.
+- Tables in scope: `public.auto_leads`, `public.auto_bookings`, `public.auto_deposits`.
+- Capability in scope: RLS/grant alignment required before proving booking -> deposit -> handover -> revenue recognition on real non-Production DB.
+- Explicitly out of scope: `auto_sales`, Warranty, commission, Finance posting, ProductRegistry, Logistics, service/runtime command changes, and Production.
+
+## Ownership Map
+
+| Data / Behavior | Owner | Decision |
+|---|---|---|
+| Lead, booking, deposit rows | AutoMove sales chain | tenant-scoped authenticated read/insert/update only |
+| Tenant identity | Platform auth helper `public.get_auth_tenant_id()` | no null fallback; invalid identity fails closed |
+| Recognition ledgers and policy registry | AutoMove recognition/policy contracts from PR #319-#322 | keep existing verifiers passing |
+| Booking rollback delete behavior | Separate runtime/business decision | not granted in this security batch |
+| Production state | Operations/BDGF | not authorized |
+
+## Contract Dependency Map
+
+```text
+AutoMove sales-chain routes/services
+  -> authenticated Supabase runtime context
+  -> public.users actor identity
+  -> public.get_auth_tenant_id()
+  -> auto_leads / auto_bookings / auto_deposits tenant RLS
+  -> later handover -> vehicle sale recognition command
+```
+
+## Change Authority
+
+Authorized:
+
+- Add one forward migration that drops legacy null-tenant RLS policies for the three sales-chain tables.
+- Grant authenticated only `SELECT`, `INSERT`, and `UPDATE` on the three tables.
+- Revoke anon/PUBLIC and authenticated dangerous privileges.
+- Add rollback Real DB verifier proving allowed same-tenant behavior and denied delete/cross-tenant/unknown-user behavior.
+- Wire the scoped Real DB runner to this verifier and keep PR #319-#322 verifiers in the scoped proof set.
+
+Not authorized:
+
+- Change runtime services, Financial Reporting, Warranty, Finance journal posting, commission, ProductRegistry, Logistics, generated types, or Production state.
+- Create `auto_sales` or compatibility schemas.
+- Weaken RLS, bypass tenant identity, or grant authenticated delete/truncate/reference/trigger.
+
+## UI -> Contract Reconciliation
+
+- No UI change.
+- No API response shape change.
+- This batch only aligns database permissions and verifies runtime-like authenticated behavior.
+
+## Additive Migration Plan
+
+- Create `supabase/migrations/20261014020200_harden_automove_sales_chain_rls_grants.sql`.
+- Preserve historical migrations unchanged.
+- Apply only to isolated non-Production E2E DB for verification.
+- Fail closed if required tables are missing, legacy null-tenant policies remain, or authenticated dangerous grants remain.
+
+## 11 Automated Verification Gates Plan
+
+1. Architecture Compliance: changed files limited to gate, one migration, verifiers, and scoped runner wiring.
+2. Contract Boundary: no service/runtime or UI mutation.
+3. Tenant Isolation: strict `tenant_id = public.get_auth_tenant_id()` policies, no null fallback.
+4. RLS & Authorization: authenticated same-tenant read/insert/update works; delete, cross-tenant, and unknown-user access fail.
+5. Database Migration Safety: forward migration only; no history rewrite; zero-downtime migration check required.
+6. Event-After-Persistence: no event, ledger posting, or recognition command change.
+7. Domain Safety Routing: Warranty, Finance, commission, ProductRegistry, Logistics remain untouched.
+8. Type Safety: verifier uses typed unknown guards; no generated type edits.
+9. Regression: migration check, scoped Real DB verifier, PR #319-#322 verifiers, lint, and diff check.
+10. Evidence Integrity: report non-Production proof separately from Production and Go-Live.
+11. Stop Condition: if business-role permissions beyond tenant scope are required, report `NOT_PROVEN` and stop for separate authorization.

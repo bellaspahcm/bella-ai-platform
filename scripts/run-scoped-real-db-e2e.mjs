@@ -82,6 +82,37 @@ const SCOPED_REAL_DB_SUITES = [
     ],
   },
   {
+    name: 'AutoMove sales-chain RLS hardening',
+    patterns: [
+      /^supabase\/migrations\/20261014020200_harden_automove_sales_chain_rls_grants\.sql$/,
+      /^scripts\/verify-automove-sales-chain-rls-hardening\.ts$/,
+      /^scripts\/verify-automove-vehicle-sale-recognition-command\.ts$/,
+      /^scripts\/verify-automove-financial-reporting-recognized-sales\.ts$/,
+    ],
+    commands: [
+      {
+        command: 'npx',
+        args: ['tsx', 'scripts/verify-automove-policy-registry-user-identity.ts'],
+      },
+      {
+        command: 'node',
+        args: ['scripts/verify-automove-vehicle-sale-recognition-schema.mjs'],
+      },
+      {
+        command: 'npx',
+        args: ['tsx', 'scripts/verify-automove-vehicle-sale-recognition-command.ts'],
+      },
+      {
+        command: 'npx',
+        args: ['tsx', 'scripts/verify-automove-financial-reporting-recognized-sales.ts'],
+      },
+      {
+        command: 'npx',
+        args: ['tsx', 'scripts/verify-automove-sales-chain-rls-hardening.ts'],
+      },
+    ],
+  },
+  {
     name: 'Agriculture OS foundation',
     patterns: [
       /^src\/platform\/agriculture\//,
