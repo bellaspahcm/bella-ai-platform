@@ -8755,3 +8755,81 @@ Not authorized:
 9. Regression: migration check, scoped Real DB verifier, PR #319-#322 verifiers, lint, and diff check.
 10. Evidence Integrity: report non-Production proof separately from Production and Go-Live.
 11. Stop Condition: if business-role permissions beyond tenant scope are required, report `NOT_PROVEN` and stop for separate authorization.
+
+---
+
+# Architecture Gate - Beauty/BabyCare Customer Package Payment UI Repair (2026-10-14)
+
+> **Status:** PASS - scoped Product UI consumer repair for shared Beauty/BabyCare customer detail payment display and edit-package discount preview.
+> **Scope:** Fix customer detail presentation so "Da thanh toan" reads confirmed revenue through the existing payment rule engine, clarify that `deposit_amount` is the deposit target in the edit modal, and add a realtime after-discount amount preview. No payment engine, Finance OS, schema, migration, RLS, ProductRegistry, Healthcare, Education, or Logistics change is authorized.
+
+## 1. Bella OS/Product Development Process Gate
+
+- Truth: customer detail bookings already load related `revenue` rows, and `calculateBookingPaymentState()` defines `totalPaid` from confirmed revenue records while `deposit_amount` is only the deposit target.
+- Source of Truth: `src/core/services/order/query-actions.ts` customer booking query and `src/lib/business-rules/payment.ts`.
+- Canonical Contract: UI must consume `calculateBookingPaymentState()` for price-after-discount, paid amount, deposit due, and remaining debt.
+- Gate result: `PASS` for presentation-level consumer correction.
+
+## 2. Product Manifest
+
+- Products: Bella Beauty Spa current implementation and legacy Bella BabyCare customer detail surface.
+- Capability in scope: active package card metrics and edit-package admin preview.
+- Existing capabilities reused: customer detail booking query, revenue relation, shared payment rule engine, existing money/percent input helpers.
+- Non-goals: no new payment semantics, no accounting treatment, no database mutation, no production data fix, no Go-Live claim.
+
+## 3. Ownership Map
+
+| Data / Behavior | Owner | Decision |
+|---|---|---|
+| Confirmed paid amount | Shared payment business rule engine | consume only |
+| Deposit target | Booking package contract | relabel in UI; do not reinterpret as paid |
+| Active package customer card | Product UI consumer | remove hardcoded fallback |
+| Discount amount preview | Product UI consumer | derive from full price and discount percent |
+
+## 4. Contract Dependency Map
+
+```text
+Customer detail UI
+  -> getBookingsByCustomerId()
+  -> booking.revenue[]
+  -> calculateBookingPaymentState()
+  -> render priceAfterDiscount / totalPaid / remainingDebt
+```
+
+## 5. Change Authority
+
+Authorized:
+- Modify customer detail UI components and focused tests.
+- Clarify labels/help text for deposit target.
+- Add realtime display of discount percent, discount amount, and after-discount price.
+
+Not authorized:
+- Change payment recording actions, Finance OS, accounting outbox, migrations, RLS, auth, ProductRegistry, kernel code, or production data.
+
+## 6. UI -> Contract Reconciliation
+
+| UI Area | Current Issue | Contract Match After Fix |
+|---|---|---|
+| "Da thanh toan" card metric | hardcoded money fallback can show 4.290.000d when paid is 0 | confirmed revenue total |
+| "Con lai" card metric | already uses payment state remaining debt | keep shared rule engine |
+| Edit package deposit input | label implies paid amount and deposit are the same | label as deposit target |
+| Discount preview | admin cannot see amount impact while editing percent | display computed discount amount and price after discount |
+
+## 7. Additive Migration Plan
+
+- No migration.
+- No schema, table, index, trigger, RLS, generated type, or production data change.
+
+## 8. 11 Automated Verification Gates Plan
+
+1. Static scope confirms only customer UI/tests and this gate change.
+2. Type safety: no `any`, type suppression, generated type edit, or schema invention.
+3. Payment contract: paid amount remains confirmed revenue.
+4. Deposit contract: deposit field remains deposit target.
+5. Discount contract: after-discount amount uses shared payment rule.
+6. UI copy: no label presents deposit target as confirmed payment.
+7. Hardcode guard: active card does not fallback to demo paid amount.
+8. Tenant/product boundary: no Beauty/BabyCare branching or ProductRegistry change.
+9. Security boundary: no auth/RLS/service-role behavior change.
+10. Focused unit/static audit tests cover the regression.
+11. Closure: report only targeted proof; browser/Real DB/production remain `NOT_RUN` unless separately executed.

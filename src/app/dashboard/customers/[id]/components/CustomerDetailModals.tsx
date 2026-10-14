@@ -5,6 +5,7 @@ import { cn, parseIntegerInput, parsePercentInput } from '@/lib/utils';;
 import {
   getTenantModulePresentationOrNeutral,
 } from '@/lib/business-rules/tenant-module-presentation';
+import { calculatePriceAfterDiscount } from '@/lib/business-rules/payment';
 import type { TenantModuleKey } from '@/lib/business-rules/tenant-modules';
 import { geocodeAddress } from '@/services/customer-actions';
 import { motion } from 'framer-motion';
@@ -530,6 +531,20 @@ export function EditBookingModal({
 
   useScrollLock(isOpen);
 
+  const discountPreview = useMemo(() => {
+    const priceAfterDiscount = calculatePriceAfterDiscount({
+      fullPrice: data.full_price,
+      discountPercent: data.discount_percent,
+    });
+    const discountAmount = Math.max(0, Math.round(data.full_price - priceAfterDiscount));
+
+    return {
+      discountAmount,
+      priceAfterDiscount,
+      discountPercent: parsePercentInput(data.discount_percent),
+    };
+  }, [data.discount_percent, data.full_price]);
+
   // Check KTV availability when time changes
   useEffect(() => {
     if (!isOpen || !currentKtvId || !data.start_date || !data.preferred_time) {
@@ -736,7 +751,7 @@ export function EditBookingModal({
             </div>
 
             <div className="space-y-2">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Đã thanh toán / Cọc</label>
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Mục tiêu cọc / cọc cần thu</label>
               <div className="relative">
                 <input
                   type="text"
@@ -748,6 +763,9 @@ export function EditBookingModal({
                 />
                 <span className="absolute right-6 top-1/2 -translate-y-1/2 font-bold text-slate-400 text-xs">VNĐ</span>
               </div>
+              <p className="text-[10px] font-bold text-slate-400 ml-1">
+                Số đã thanh toán được tính từ các khoản thu đã xác nhận.
+              </p>
             </div>
 
             <div className="space-y-2">
@@ -780,6 +798,23 @@ export function EditBookingModal({
                 onChange={(e) => setData({ ...data, completed_sessions: parseIntegerInput(e.target.value, { min: 0, max: 100 }) })}
                 className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:border-primary outline-none font-bold text-slate-700"
               />
+            </div>
+
+            <div className="space-y-3 col-span-2 rounded-2xl border border-primary/10 bg-primary/5 p-4 text-xs">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <span className="font-bold text-slate-500 uppercase tracking-wider">
+                  Chiết khấu {discountPreview.discountPercent}%:
+                </span>
+                <span className="text-sm font-black text-primary">
+                  -{formatMoneyInput(discountPreview.discountAmount) || '0'} VNĐ
+                </span>
+              </div>
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <span className="font-bold text-slate-500 uppercase tracking-wider">Giá sau chiết khấu:</span>
+                <span className="text-sm font-black text-slate-900">
+                  {formatMoneyInput(discountPreview.priceAfterDiscount) || '0'} VNĐ
+                </span>
+              </div>
             </div>
 
             <div className="space-y-2">
