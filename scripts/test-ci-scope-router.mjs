@@ -153,6 +153,16 @@ const cases = [
     },
   },
   {
+    name: 'RUN real database E2E for AutoMove verifier script changes',
+    files: ['scripts/verify-automove-sales-chain-real-db-alignment.ts'],
+    expect(result) {
+      assert.equal(result.scope_status, 'ALLOW');
+      assert.equal(result.needs_tests, true);
+      assert.equal(result.needs_real_db_e2e, true);
+      assert.equal(result.has_bella_auto_real_db_surface, true);
+    },
+  },
+  {
     name: 'RUN real database E2E when real-db Jest config changes',
     files: [
       'jest.real-db.config.ts',
