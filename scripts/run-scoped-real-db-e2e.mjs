@@ -113,6 +113,45 @@ const SCOPED_REAL_DB_SUITES = [
     ],
   },
   {
+    name: 'AutoMove sales-chain Real DB alignment',
+    patterns: [
+      /^scripts\/verify-automove-sales-chain-real-db-alignment\.ts$/,
+      /^src\/modules\/bella-auto\/services\/AutoSalesProvider\.ts$/,
+      /^src\/modules\/bella-auto\/services\/(VehicleSaleRecognitionService|SupabaseVehicleSaleRecognitionRepository)\.ts$/,
+      /^src\/platform\/mobility\/(mobility-foundation\.service|postgres\.repository|ports)\.ts$/,
+      /^src\/platform\/mobility\/domain\/types\.ts$/,
+      /^src\/app\/api\/bella-auto\/bookings\/route\.ts$/,
+      /^src\/app\/api\/bella-auto\/bookings\/\[id\]\/confirm-deposit\/route\.ts$/,
+      /^src\/app\/api\/bella-auto\/vehicle-sale-recognitions\/route\.ts$/,
+    ],
+    commands: [
+      {
+        command: 'npx',
+        args: ['tsx', 'scripts/verify-automove-policy-registry-user-identity.ts'],
+      },
+      {
+        command: 'node',
+        args: ['scripts/verify-automove-vehicle-sale-recognition-schema.mjs'],
+      },
+      {
+        command: 'npx',
+        args: ['tsx', 'scripts/verify-automove-sales-chain-rls-hardening.ts'],
+      },
+      {
+        command: 'npx',
+        args: ['tsx', 'scripts/verify-automove-vehicle-sale-recognition-command.ts'],
+      },
+      {
+        command: 'npx',
+        args: ['tsx', 'scripts/verify-automove-financial-reporting-recognized-sales.ts'],
+      },
+      {
+        command: 'npx',
+        args: ['tsx', 'scripts/verify-automove-sales-chain-real-db-alignment.ts'],
+      },
+    ],
+  },
+  {
     name: 'Agriculture OS foundation',
     patterns: [
       /^src\/platform\/agriculture\//,

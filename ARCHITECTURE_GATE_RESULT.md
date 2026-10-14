@@ -8833,3 +8833,84 @@ Not authorized:
 9. Security boundary: no auth/RLS/service-role behavior change.
 10. Focused unit/static audit tests cover the regression.
 11. Closure: report only targeted proof; browser/Real DB/production remain `NOT_RUN` unless separately executed.
+
+---
+
+# ARCHITECTURE GATE RESULT - AUTOMOVE SALES CHAIN REAL DB ALIGNMENT
+
+> **Status:** PASS - non-Production Real DB alignment verification is authorized under the user-approved `AUTOMOVE_SALES_CHAIN_REAL_DB_ALIGNMENT` scope.
+> **Date:** 2026-10-14
+> **Scope:** Prove the existing AutoMove sales-chain capabilities operate on the same non-Production database data: booking, deposit, vehicle handover through Mobility lifecycle, vehicle-sale revenue recognition, and recognized-sales reporting. No schema migration, no new runtime API, no `auto_sales`, no Warranty migration, no commission, no Finance journal posting, no ProductRegistry change, and no Production mutation.
+
+## Bella OS/Product Development Process Gate
+
+- Truth: PR #319-#323 already proved the additive ledger schema, recognition command, reporting reads, policy registry identity, and sales-chain RLS hardening on `main`.
+- Source of Truth: `docs/governance/BELLA_AI_CODING_CONSTITUTION.md`, the merged AutoMove recognition/policy/RLS migrations, the Mobility public lifecycle contract, and the non-Production E2E database.
+- Canonical Contract: vehicle sale recognition remains an explicit command after booking/deposit and handover evidence exist. Deposit receipt and handover persistence are separate facts and do not themselves post Finance journals.
+- Gate result: `PASS` for rollback Real DB verification only. `AUTOMOVE_FULL_PRODUCT_READINESS = NOT_READY`.
+
+## Product Manifest
+
+- Product/Domain: Bella AutoMove sales chain.
+- Capability in scope: Real DB proof of `Booking -> Deposit -> Vehicle Handover -> Revenue Recognition -> Financial Reporting`.
+- Explicitly out of scope: new schema/migration, `auto_sales`, Warranty, commission, Finance ledger posting, ProductRegistry, Logistics, browser UI, Production deployment, and Go-Live declaration.
+
+## Ownership Map
+
+| Data / Behavior | Owner | Decision |
+|---|---|---|
+| Booking and deposit rows | AutoMove sales chain | prove tenant-scoped authenticated persistence |
+| Vehicle handover lifecycle | Mobility OS public lifecycle contract | prove `allocated -> delivered` persists vehicle fields, status log, and domain event |
+| Revenue recognition snapshot | AutoMove recognition command | prove trusted policy, idempotency, and immutable snapshot |
+| Reporting sales/profit read | AutoMove reporting read-side | prove recognized sale rows feed reporting math |
+| Finance journal posting | Finance/accounting owner | out of scope |
+| Production state | Operations/BDGF | not authorized |
+
+## Contract Dependency Map
+
+- Authenticated AutoMove actor
+- `auto_bookings` / `auto_deposits` tenant RLS
+- `MobilityFoundationService.transitionVehicleStatus`
+- `auto_vehicles` + `auto_vehicle_status_logs`
+- `recognizeVehicleSaleRevenue`
+- `auto_vehicle_sale_recognitions`
+- recognized-sales reporting query
+
+## Change Authority
+
+Authorized:
+
+- Add one fail-closed rollback verifier for the existing non-Production Real DB chain.
+- Wire scoped Real DB CI to run this verifier for AutoMove sales-chain alignment changes.
+- Update this gate record.
+
+Not authorized:
+
+- Add or alter schema/migrations.
+- Add new product runtime behavior or browser UI.
+- Post Finance journals, infer commission, migrate Warranty, create `auto_sales`, modify ProductRegistry, change Logistics, or mutate Production.
+
+## UI -> Contract Reconciliation
+
+- No UI change.
+- This batch proves DB/service capability only; browser/user workflow proof remains a later Go-Live evidence item.
+
+## Additive Migration Plan
+
+- No migration.
+- No schema, RLS, grant, generated type, or data change.
+- Verification runs inside a rollback transaction and refuses the Production project ref.
+
+## 11 Automated Verification Gates Plan
+
+1. Architecture Compliance: changed files limited to gate, verifier, and scoped Real DB runner wiring.
+2. Contract Boundary: use existing AutoMove sales-chain, Mobility lifecycle, recognition, and reporting contracts.
+3. Tenant Isolation: exercise authenticated tenant context and cross-tenant denial.
+4. RLS & Authorization: same-tenant booking/deposit/handover works; invalid/cross-tenant reads remain denied.
+5. Database Migration Safety: no migration.
+6. Event-After-Persistence: lifecycle status log/domain event occurs after vehicle update in the same transaction.
+7. Domain Safety Routing: Warranty, commission, Finance posting, ProductRegistry, and Logistics remain untouched.
+8. Type Safety: verifier uses typed guards; no `any`, suppressions, or generated type edits.
+9. Regression: run existing #319-#323 verifiers plus the new chain verifier and scoped runner list.
+10. Evidence Integrity: report non-Production Real DB proof separately from Production and Go-Live.
+11. Stop Condition: if a missing handover contract, schema change, or Finance posting is required, stop for separate approval.
