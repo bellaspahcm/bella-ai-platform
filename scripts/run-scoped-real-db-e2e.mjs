@@ -67,6 +67,21 @@ const SCOPED_REAL_DB_SUITES = [
     ],
   },
   {
+    name: 'AutoMove policy registry user identity',
+    patterns: [
+      /^supabase\/migrations\/20261014020000_create_policy_registry_user_identity_forward\.sql$/,
+      /^supabase\/migrations\/20261014020100_harden_policy_registry_rls_profile_references\.sql$/,
+      /^scripts\/verify-automove-policy-registry-user-identity\.ts$/,
+      /^scripts\/verify-automove-vehicle-sale-recognition-schema\.mjs$/,
+    ],
+    commands: [
+      {
+        command: 'npx',
+        args: ['tsx', 'scripts/verify-automove-policy-registry-user-identity.ts'],
+      },
+    ],
+  },
+  {
     name: 'Agriculture OS foundation',
     patterns: [
       /^src\/platform\/agriculture\//,
