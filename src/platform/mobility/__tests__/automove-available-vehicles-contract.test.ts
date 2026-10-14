@@ -135,6 +135,24 @@ describe('AutoMove inventory provider Mobility contract usage', () => {
     expect(validationSource).not.toContain('.from("auto_vehicles")');
   });
 
+  it('moves warranty claim vehicle display reads behind the Mobility public contract', () => {
+    const servicePath = path.resolve(
+      __dirname,
+      '../../../modules/bella-auto/services/WarrantyService.ts'
+    );
+    const source = readFileSync(servicePath, 'utf8');
+    const claimsStart = source.indexOf('static async getClaimsByStatus');
+    const pendingApprovalsStart = source.indexOf('static async getPendingApprovals');
+    const claimsSource = source.slice(claimsStart, pendingApprovalsStart);
+
+    expect(source).toContain("from '@/platform/mobility/supabase-vehicle-contract'");
+    expect(claimsSource).toContain('listMobilityVehicleDisplayByIds');
+    expect(claimsSource).toContain(".select('*, customers(*)')");
+    expect(claimsSource).not.toContain('auto_vehicles(*)');
+    expect(claimsSource).not.toContain(".from('auto_vehicles')");
+    expect(claimsSource).not.toContain('.from("auto_vehicles")');
+  });
+
   it('moves booking list vehicle display reads behind the Mobility public contract', () => {
     const componentPath = path.resolve(
       __dirname,
