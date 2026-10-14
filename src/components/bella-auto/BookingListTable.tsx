@@ -2,6 +2,10 @@
 
 import { useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase-client';
+import {
+  listMobilityVehicleDisplayByIds,
+  type MobilityVehicleDisplay,
+} from '@/platform/mobility/supabase-vehicle-contract';
 import { Search, User, Car, CheckCircle } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -15,21 +19,15 @@ interface Booking {
   payment_status: string;
   status: string;
   created_at: string;
+  vehicle_id: string | null;
   customers: {
     name_mother: string;
     phone: string;
   };
-  auto_vehicles: {
-    vin: string;
-    color_exterior: string;
-    auto_variants: {
-      name: string;
-      auto_models: {
-        name: string;
-      };
-    };
-  } | null;
+  vehicleDisplay: MobilityVehicleDisplay | null;
 }
+
+type BookingRow = Omit<Booking, 'vehicleDisplay'>;
 
 export function BookingListTable({ tenantId }: { tenantId: string }) {
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -53,15 +51,8 @@ export function BookingListTable({ tenantId }: { tenantId: string }) {
           payment_status,
           status,
           created_at,
-          customers (name_mother, phone),
-          auto_vehicles!inner (
-            vin,
-            color_exterior,
-            auto_variants!inner (
-              name,
-              auto_models!inner (name)
-            )
-          )
+          vehicle_id,
+          customers (name_mother, phone)
         `)
         .eq('tenant_id', tenantId)
         .order('created_at', { ascending: false });
@@ -84,8 +75,20 @@ export function BookingListTable({ tenantId }: { tenantId: string }) {
 
       if (error) throw error;
 
+      const bookingRows = (data || []) as BookingRow[];
+      const vehicleIds = bookingRows
+        .map((booking) => booking.vehicle_id)
+        .filter((vehicleId): vehicleId is string => typeof vehicleId === 'string' && vehicleId.length > 0);
+      const vehicles = await listMobilityVehicleDisplayByIds(supabase, { tenantId, vehicleIds });
+      const vehiclesById = new Map(vehicles.map((vehicle) => [vehicle.vehicleId, vehicle]));
+
       // Additional filtering for partial/full
-      const filtered = [...(data || [])];
+      const filtered = bookingRows.flatMap((booking) => {
+        if (!booking.vehicle_id) return [];
+        const vehicleDisplay = vehiclesById.get(booking.vehicle_id);
+        if (!vehicleDisplay) return [];
+        return [{ ...booking, vehicleDisplay }];
+      });
       let finalBookings = filtered;
       
       if (filter === 'partial') {
@@ -94,7 +97,7 @@ export function BookingListTable({ tenantId }: { tenantId: string }) {
         finalBookings = filtered.filter(b => b.deposit_paid >= b.deposit_amount);
       }
 
-      setBookings(finalBookings as Booking[]);
+      setBookings(finalBookings);
     } catch (error) {
       console.error('Load bookings error:', error);
       console.error('Error details:', {
@@ -165,7 +168,7 @@ export function BookingListTable({ tenantId }: { tenantId: string }) {
       b.booking_number.toLowerCase().includes(term) ||
       b.customers.name_mother.toLowerCase().includes(term) ||
       b.customers.phone.includes(term) ||
-      (b.auto_vehicles?.vin || '').toLowerCase().includes(term)
+      (b.vehicleDisplay?.vin || '').toLowerCase().includes(term)
     );
   });
 
@@ -294,15 +297,17 @@ export function BookingListTable({ tenantId }: { tenantId: string }) {
                     </div>
                   </td>
                   <td className="p-3">
-                    {booking.auto_vehicles ? (
+                    {booking.vehicleDisplay ? (
                       <div className="flex items-center gap-2">
                         <Car className="w-4 h-4 text-slate-400" />
                         <div>
                           <div className="font-semibold text-sm">
-                            {booking.auto_vehicles.auto_variants.auto_models.name} {booking.auto_vehicles.auto_variants.name}
+                            {[booking.vehicleDisplay.modelName, booking.vehicleDisplay.variantName]
+                              .filter(Boolean)
+                              .join(' ') || 'Xe đã phân bổ'}
                           </div>
                           <div className="text-xs text-slate-500">
-                            VIN: {booking.auto_vehicles.vin} • {booking.auto_vehicles.color_exterior}
+                            VIN: {booking.vehicleDisplay.vin} • {booking.vehicleDisplay.colorExterior}
                           </div>
                         </div>
                       </div>

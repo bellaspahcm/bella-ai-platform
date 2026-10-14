@@ -4,6 +4,7 @@ import type { Database } from '@/types/database.types';
 import {
   getMobilityVehicleIdentity,
   getMobilityCustomerOwnershipAggregate,
+  listMobilityVehicleDisplayByIds,
   listMobilityCustomerOwnedVehicles,
 } from '../supabase-vehicle-contract';
 
@@ -131,6 +132,94 @@ describe('Mobility customer ownership Supabase contract', () => {
     });
 
     expect(result).toBeNull();
+    expectTenantScoped(queries, 'tenant-a');
+  });
+
+  it('returns an empty booking vehicle display list without querying vehicles', async () => {
+    const { client, queries } = makeSupabase({
+      auto_vehicles: [],
+    });
+
+    const result = await listMobilityVehicleDisplayByIds(client, {
+      tenantId: 'tenant-a',
+      vehicleIds: [],
+    });
+
+    expect(result).toEqual([]);
+    expect(queries).toEqual([]);
+  });
+
+  it('maps booking vehicle display data through tenant-scoped Mobility reads', async () => {
+    const { client, queries } = makeSupabase({
+      auto_vehicles: [
+        {
+          id: 'vehicle-1',
+          tenant_id: 'tenant-a',
+          vin: 'VIN00000000000001',
+          color_exterior: 'White',
+          variant_id: 'variant-1',
+          auto_variants: {
+            name: 'Luxury',
+            auto_models: {
+              name: 'Series 3',
+            },
+          },
+        },
+        {
+          id: 'vehicle-2',
+          tenant_id: 'tenant-a',
+          vin: 'VIN00000000000002',
+          color_exterior: 'Black',
+          variant_id: 'variant-2',
+          auto_variants: {
+            name: 'Sport',
+            auto_models: {
+              name: 'Series 5',
+            },
+          },
+        },
+        {
+          id: 'vehicle-b',
+          tenant_id: 'tenant-b',
+          vin: 'VIN0000000000000B',
+          color_exterior: 'Red',
+          variant_id: 'variant-b',
+          auto_variants: {
+            name: 'Other',
+            auto_models: {
+              name: 'Other model',
+            },
+          },
+        },
+      ],
+    });
+
+    const result = await listMobilityVehicleDisplayByIds(client, {
+      tenantId: 'tenant-a',
+      vehicleIds: ['vehicle-1', 'vehicle-2', 'vehicle-1'],
+    });
+
+    expect(result).toEqual([
+      {
+        vehicleId: 'vehicle-1',
+        vin: 'VIN00000000000001',
+        colorExterior: 'White',
+        variantId: 'variant-1',
+        variantName: 'Luxury',
+        modelName: 'Series 3',
+      },
+      {
+        vehicleId: 'vehicle-2',
+        vin: 'VIN00000000000002',
+        colorExterior: 'Black',
+        variantId: 'variant-2',
+        variantName: 'Sport',
+        modelName: 'Series 5',
+      },
+    ]);
+    expect(queries).toHaveLength(1);
+    expect(queries[0]?.table).toBe('auto_vehicles');
+    expect(queries[0]?.inFilters).toEqual([{ field: 'id', values: ['vehicle-1', 'vehicle-2'] }]);
     expectTenantScoped(queries, 'tenant-a');
   });
 

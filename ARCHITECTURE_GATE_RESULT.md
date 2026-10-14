@@ -8135,3 +8135,94 @@ Not authorized:
 11. Stop Condition: stop after this read-side signal batch without broad AutoMove rewrite.
 
 ---
+
+# ARCHITECTURE GATE RESULT - AUTOMOVE BOOKING LIST MOBILITY READ BATCH
+
+> **Status:** PASS - minimal AutoMove booking-list vehicle display read migration is authorized.
+> **Date:** 2026-10-14
+> **Scope:** Move `BookingListTable` vehicle display enrichment behind the Mobility OS public Supabase contract. Preserve the current booking/deposit list behavior and keep booking writes, deposit confirmation, vehicle allocation, status lifecycle, workshop joins, schema, ProductRegistry, Production, and other OS scopes unchanged.
+
+## Bella OS/Product Development Process Gate
+
+- Truth: Mobility OS owns reusable tenant-scoped vehicle display/identity reads; AutoMove booking UI owns booking/deposit presentation and actions.
+- Source of Truth: `docs/governance/BELLA_AI_CODING_CONSTITUTION.md`, current Mobility public contract, sealed read-side batches through #314, and fresh post-#314 direct `auto_vehicles` inventory on `platform/main`.
+- Canonical Contract: AutoMove consumers should not join/read `auto_vehicles` directly for vehicle display; they should call Mobility public contract functions and keep product-owned booking data in product queries.
+- Gate result: `PASS` for the booking list read-side display enrichment only. `AUTOMOVE_WRITE_CONSUMERS_MIGRATED = NOT_PROVEN` and `AUTOMOVE_FULL_PRODUCT_READINESS = NOT_READY`.
+
+## Product Manifest
+
+- Product: Bella AutoMove / booking deposit list.
+- OS capability consumed: Mobility tenant-scoped vehicle display read contract.
+- Consumer in scope: `src/components/bella-auto/BookingListTable.tsx` load path.
+- Non-goals: no booking creation API, deposit confirmation API, allocation/deallocation, vehicle status update, workshop appointment/order/history joins, financial reporting, rollback, schema migration, ProductRegistry entry, or Production deployment.
+
+## Direct Reference Inventory After PR #314
+
+| Category | Files | Decision |
+|---|---|---|
+| Mobility-owned persistence mapping | `src/platform/mobility/**` | allowed owner of `auto_vehicles` mapping |
+| Read-side independent candidate | `BookingListTable` vehicle display join | migrate in this batch |
+| Read-side candidate needing separate semantic proof | `FinancialReportingService` | defer; profit/cost semantics need contract proof |
+| Booking write/allocation | booking POST route and vehicle status update | out of scope |
+| Workshop joins | service appointment/order/history joins | defer by explicit scope boundary |
+| Write lifecycle/allocation/rollback | status machine, allocation service, rollback flows, inventory add vehicle | out of scope |
+| Tests/generated types | `src/__tests__/**`, generated DB types | not product consumer migration targets |
+
+## Ownership Map
+
+| Data / Behavior | Owner | Decision |
+|---|---|---|
+| Booking/deposit rows and filters | AutoMove Product | keep `auto_bookings` query in component |
+| Vehicle display by assigned vehicle IDs | Mobility OS | expose minimal tenant-scoped display DTO/function |
+| Deposit confirmation action | AutoMove Product/API | unchanged |
+| Tenant isolation | Supabase RLS plus explicit tenant-scoped contract input | preserve `tenantId` filters; no service-role bypass |
+
+## Contract Dependency Map
+
+```text
+BookingListTable
+  -> createClient authenticated Supabase context
+  -> auto_bookings product query for booking/deposit/customer data
+  -> src/platform/mobility/supabase-vehicle-contract
+  -> listMobilityVehicleDisplayByIds(tenantId, vehicleIds)
+  -> reused auto_vehicles / variant-model persistence
+  -> existing booking table rendering and deposit action
+```
+
+## Change Authority
+
+Authorized:
+- Add a minimal Mobility vehicle display read function by tenant and vehicle IDs.
+- Refactor only `BookingListTable` vehicle display enrichment to call Mobility public contract.
+- Preserve booking/deposit filters, search, counts, and confirm-deposit action.
+- Add focused tests proving tenant-scoped display mapping and no direct booking-list `auto_vehicles` join.
+- Update this gate record.
+
+Not authorized:
+- Modify booking creation/allocation, deposit confirmation, vehicle status transitions, warranty, financial reporting, workshop flows, rollback flows, generated DB types, migrations, grants/RLS, ProductRegistry, other OS/product scopes, or Production.
+
+## UI -> Contract Reconciliation
+
+- No UI redesign.
+- Existing booking table fields remain product-owned.
+- Existing assigned-vehicle display values are mapped from Mobility DTO fields: VIN, exterior color, model name, and variant name.
+- Current behavior remains assigned-vehicle oriented; unassigned/write allocation behavior is not changed.
+
+## Additive Migration Plan
+
+- No migration.
+- No schema, table, index, RLS, generated type, or data change.
+
+## 11 Automated Verification Gates Plan
+
+1. Architecture Compliance: changed files limited to Mobility read contract, booking list consumer, focused Mobility tests, and this gate record.
+2. Contract Boundary: booking list imports Mobility public contract and no longer contains a direct `auto_vehicles!inner` join.
+3. Tenant Isolation: Mobility display read applies explicit `tenant_id` filtering and ID filtering.
+4. RLS & Authorization: no policies or grants changed.
+5. Database Migration Safety: no migration.
+6. Event-After-Persistence: no write/event path changed.
+7. Domain Safety Routing: no ProductRegistry, other OS, workshop, financial, or lifecycle write path touched.
+8. Type Safety: no `any`, suppressions, generated type edits, or compatibility aliases.
+9. Regression: focused static/unit tests, changed typecheck, lint, architecture guard, and build/security checks as applicable.
+10. Evidence Integrity: report local/CI proof separately from Production; no Go-Live claim.
+11. Stop Condition: stop after this read-side booking display batch without broad AutoMove rewrite.
