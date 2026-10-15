@@ -9,6 +9,19 @@ const select = (...paths: string[]) => {
   return result.stdout;
 };
 
+it.each([
+  'supabase/migrations/20261015030000_guard_automove_active_identity_access.sql',
+  'scripts/verify-automove-active-identity-access.ts',
+  'src/__tests__/automove-active-identity-migration.test.ts',
+  'scripts/verify-automove-sales-chain-rls-hardening.ts',
+])('selects the durable active identity proof with rolled-back fixtures for %s', path => {
+  const output = select(path);
+  expect(output).toContain('scripts/verify-automove-active-identity-access.ts');
+  expect(output).not.toContain('--test-migration');
+  expect(output).not.toContain('Running full real database business E2E suite.');
+  expect(output).not.toContain('No scoped real database business E2E work matched');
+});
+
 it('selects the approved catalog verifier instead of unrelated full-suite work', () => {
   const output = select('supabase/migrations/20261015010000_authorize_automove_catalog_tenant_reads.sql');
   expect(output).toContain('scripts/verify-automove-catalog-reads.ts');
