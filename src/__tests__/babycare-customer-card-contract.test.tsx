@@ -26,13 +26,29 @@ const sessionProps = {
   onOpenBookingSessions: noop, onReusePackage: noop, tenantModuleKey: 'babycare' as const,
 };
 
-function EditHarness({ isBabyCare = true }: { isBabyCare?: boolean }) {
+function EditHarness({ isBabyCare = true, loyaltyPoints = 45 }: { isBabyCare?: boolean; loyaltyPoints?: number | null }) {
   const [data, setData] = useState(babyCareEditData);
   return <EditCustomerModal isOpen onClose={noop} onConfirm={noop} isSubmitting={false}
-    data={data} setData={setData} tenantModuleKey={isBabyCare ? 'babycare' : 'beauty_spa'} isBabyCare={isBabyCare} />;
+    data={data} setData={setData} loyaltyPoints={loyaltyPoints} tenantModuleKey={isBabyCare ? 'babycare' : 'beauty_spa'} isBabyCare={isBabyCare} />;
 }
 
 describe('BabyCare customer card reconciliation', () => {
+  it.each([true, false])('keeps automatically calculated loyalty read-only (BabyCare=%s)', isBabyCare => {
+    render(<EditHarness isBabyCare={isBabyCare} />);
+    const points = screen.getByLabelText('Điểm tích lũy');
+    expect(points.tagName).toBe('OUTPUT');
+    expect(points).toHaveTextContent('45 điểm');
+    expect(screen.queryByRole('spinbutton', { name: 'Điểm tích lũy' })).not.toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText('Ghi chú'), { target: { value: 'Ghi chú mới' } });
+    expect(points).toHaveTextContent('45 điểm');
+  });
+
+  it('shows a readonly zero for an empty persisted loyalty balance', () => {
+    render(<EditHarness loyaltyPoints={null} />);
+    expect(screen.getByLabelText('Điểm tích lũy')).toHaveTextContent('0 điểm');
+    expect(babyCareEditData).not.toHaveProperty('loyalty_points');
+  });
+
   it('uses editable mother/baby fields and removes invented CRM attributes', () => {
     render(<CustomerDetailInfoCard customer={babyCareCustomer()} tenantModuleKey="babycare" isBabyCare onEditCustomer={noop} />);
     expect(screen.getByText('Họ tên mẹ')).toBeInTheDocument();

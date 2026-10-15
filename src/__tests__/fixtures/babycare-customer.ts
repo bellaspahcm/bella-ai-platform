@@ -54,5 +54,5 @@ export function babyCareRevenue(overrides: Partial<CustomerDetailRevenue> = {}):
 export const babyCareEditData: EditCustomerData = {
   name_mother: 'Mẹ Hồng', phone: '0900000001', name_baby: 'Bé An', gender_baby: 'boy',
   dob_baby: '2026-09-20', dob_expected: '2026-09-25', address: 'Địa chỉ chăm sóc tại nhà',
-  notes: '', loyalty_points: 0, latitude: null, longitude: null,
+  notes: '', latitude: null, longitude: null,
 };

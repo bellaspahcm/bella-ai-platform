@@ -362,6 +362,7 @@ export default function CustomerDetailPage() {
         setData={setEditData}
         tenantModuleKey={tenantModuleKey}
         customerCreatedAt={customer.created_at}
+        loyaltyPoints={customer.loyalty_points}
       />
 
       <BookingPaymentModal

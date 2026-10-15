@@ -349,28 +349,9 @@ export async function submitCustomerRating(sessionId: string, rating: number, co
   return { success: true };
 }
 
-/**
- * Tích điểm Loyalty khi hoàn thành thanh toán
- * (Hàm này nên được gọi từ finance-actions khi confirm revenue)
- */
-export async function addLoyaltyPoints(customerId: string, amount: number) {
-  const supabase = await createClient();
-  
-  // Logic: 100k = 1 điểm
-  const pointsToAdd = Math.floor(amount / 100000);
-  
-  if (pointsToAdd > 0) {
-    const { error } = await supabase.rpc('increment_loyalty_points', {
-      p_customer_id: customerId,
-      p_points: pointsToAdd
-    });
-    
-    if (error) {
-      throw new Error(`Failed to add loyalty points: ${error.message}`);
-    }
-  }
-
-  return { success: true };
+// Confirmed-revenue triggers own accrual; retain the old action as a denial.
+export async function addLoyaltyPoints(_customerId: string, _amount: number) {
+  throw new Error('Điểm tích lũy được tính tự động từ phiếu thu, không thể cập nhật thủ công.');
 }
 
 /**
@@ -480,7 +461,8 @@ export async function getCustomerById(id: string) {
 export async function createCustomer(customerData: CustomerCreateInput) {
   const supabase = await createDevelopmentBypassClient();
   const currentUser = await getCurrentUser();
-  const { name, ...customerPayload } = customerData;
+  const { name, loyalty_points: _ignoredLoyaltyPoints, ...customerPayload } = customerData;
+  void _ignoredLoyaltyPoints;
   if (!currentUser?.tenant_id) {
     return { data: null, error: CUSTOMER_TENANT_ACCESS_ERROR, warning: null };
   }
@@ -562,8 +544,9 @@ export async function updateCustomer(id: string, customerData: CustomerUpdate) {
     return { data: null, error: CUSTOMER_TENANT_ACCESS_ERROR, warning: null };
   }
 
-  const { tenant_id: _ignoredTenantId, ...scopedCustomerData } = customerData;
+  const { tenant_id: _ignoredTenantId, loyalty_points: _ignoredLoyaltyPoints, ...scopedCustomerData } = customerData;
   void _ignoredTenantId;
+  void _ignoredLoyaltyPoints;
   const payload: CustomerUpdate = { ...scopedCustomerData };
   
   // Normalize date fields: convert empty string "" to null
@@ -629,9 +612,11 @@ export async function updateCustomer(id: string, customerData: CustomerUpdate) {
       });
     } catch (auditErr) {
       if (oldCustomer) {
+        const { loyalty_points: _previousPoints, ...rollbackProfile } = oldCustomer;
+        void _previousPoints;
         await supabase
           .from('customers')
-          .update(oldCustomer)
+          .update(rollbackProfile)
           .eq('id', id)
           .eq('tenant_id', tenantId);
       }

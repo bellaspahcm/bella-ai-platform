@@ -26,6 +26,7 @@ export function EditCustomerModal({
   setData,
   tenantModuleKey,
   customerCreatedAt,
+  loyaltyPoints,
   isBabyCare = false,
 }: {
   isOpen: boolean;
@@ -36,6 +37,7 @@ export function EditCustomerModal({
   setData: ModalStateSetter<EditCustomerData>;
   tenantModuleKey: TenantModuleKey | null;
   customerCreatedAt?: string | null;
+  loyaltyPoints?: number | null;
   isBabyCare?: boolean;
 }) {
   const [isGeocoding, setIsGeocoding] = useState(false);
@@ -212,14 +214,12 @@ export function EditCustomerModal({
           <div className={cn("grid grid-cols-2 gap-6", isBabyCare && 'grid-cols-1')}>
             <div className="space-y-2">
               <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Điểm tích lũy</label>
-              <input
-                type="number"
-                min="0"
+              <output
                 aria-label="Điểm tích lũy"
-                value={data.loyalty_points.toString()}
-                onChange={(e) => setData({ ...data, loyalty_points: parseIntegerInput(e.target.value, { min: 0, max: 1000000 }) })}
-                className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:border-primary outline-none font-bold text-slate-700"
-              />
+                className="block w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl font-bold text-slate-700"
+              >
+                {(loyaltyPoints ?? 0).toLocaleString('vi-VN')} điểm
+              </output>
             </div>
             {!isBabyCare && <div className="space-y-2">
               <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Khách thân thiết</label>
