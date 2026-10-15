@@ -9,7 +9,7 @@ jest.mock('../AutoMoveBookingAllocationService', () => ({
 const mockDb = { connect: jest.fn(), query: jest.fn(), end: jest.fn() };
 const command = jest.mocked(createAllocatedBooking);
 const originalEnv = { DB_URL: process.env.DB_URL, NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL };
-const request = () => new Request('http://localhost/api/bella-auto/bookings', { method: 'POST', headers: { 'Idempotency-Key': '8ef93ef9-8a29-4a6e-94e0-f2d730249f31' } });
+const request = () => new Request('http://localhost/api/bella-auto/bookings', { method: 'POST', headers: { 'Idempotency-Key': '00000000-0000-4000-8000-000000000004' } });
 
 beforeEach(() => {
   jest.clearAllMocks();

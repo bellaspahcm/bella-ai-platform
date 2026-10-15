@@ -17,7 +17,7 @@ const fetchMock = jest.fn();
 const keyMock = jest.fn();
 const originalFetch = global.fetch;
 const originalUuid = Object.getOwnPropertyDescriptor(crypto, 'randomUUID');
-const firstKey = '7c95573b-09cd-4a5b-889e-8b9f832705b2', nextKey = 'ff3365c8-35bc-4c5e-9ac7-df3f37bb995e';
+const firstKey = '00000000-0000-4000-8000-000000000005', nextKey = '00000000-0000-4000-8000-000000000006';
 let promptSpy: jest.SpyInstance, alertSpy: jest.SpyInstance, logSpy: jest.SpyInstance;
 beforeEach(() => {
   fetchMock.mockReset().mockResolvedValue({ ok: true, json: async () => ({ success: true, message: 'Confirmed' }) });

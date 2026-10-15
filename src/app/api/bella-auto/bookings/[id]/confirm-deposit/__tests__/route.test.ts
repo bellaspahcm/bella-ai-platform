@@ -8,7 +8,7 @@ const mockClient = { auth: { getUser }, from: jest.fn() };
 const confirm = jest.mocked(depositConfirmationHttp);
 const bookingId = '1cc85369-4357-4272-a1d1-8d3f83c75d56';
 const request = (amount = 100000000) => new Request(`http://localhost/api/bella-auto/bookings/${bookingId}/confirm-deposit`, {
-  method: 'POST', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': 'dd185ca1-1c84-467d-840a-3591f73f5178' }, body: JSON.stringify({ amount, payment_method: 'cash', notes: 'Route regression' }),
+  method: 'POST', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': '00000000-0000-4000-8000-000000000001' }, body: JSON.stringify({ amount, payment_method: 'cash', notes: 'Route regression' }),
 });
 const context = () => ({ params: Promise.resolve({ id: bookingId }) });
 beforeEach(() => {

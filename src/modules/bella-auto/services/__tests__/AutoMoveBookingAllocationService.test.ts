@@ -1,7 +1,7 @@
 import { createAllocatedBooking } from '../AutoMoveBookingAllocationService';
 
 const actor = 'bcf037b2-76a3-4a2e-9bfd-cd0f6920e050';
-const key = 'f4f43c18-bcc2-4506-964d-b9dbd91f079c';
+const key = '00000000-0000-4000-8000-000000000002';
 const payload = { customerPhone: '0900000000', customerName: 'Customer',
   variantId: '12bd8cba-5c9d-4a46-b126-7c53adf5552b', vehicleId: '2b652d51-cc63-4a2b-a87e-8a5d12e58aeb',
   colorExterior: 'White', totalPrice: 1500000000, depositAmount: 100000000 };

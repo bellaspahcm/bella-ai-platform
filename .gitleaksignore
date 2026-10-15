@@ -1,0 +1,9 @@
+# PR #329: reviewed synthetic UUID idempotency fixtures, never authentication keys.
+# Exact historical findings only; no rule/path/whole-commit suppression.
+# Current fixtures use obvious low-entropy test UUIDs. History is not rewritten.
+870d6edd04bd9a3aaf57db81c690ba9caa6a8b59:src/app/api/bella-auto/bookings/[id]/confirm-deposit/__tests__/route.test.ts:generic-api-key:11
+870d6edd04bd9a3aaf57db81c690ba9caa6a8b59:src/modules/bella-auto/services/__tests__/AutoMoveBookingAllocationService.test.ts:generic-api-key:4
+870d6edd04bd9a3aaf57db81c690ba9caa6a8b59:src/modules/bella-auto/services/__tests__/AutoMoveDepositConfirmationService.test.ts:generic-api-key:4
+870d6edd04bd9a3aaf57db81c690ba9caa6a8b59:src/modules/bella-auto/services/__tests__/AutoMoveBookingAllocationHttp.test.ts:generic-api-key:12
+870d6edd04bd9a3aaf57db81c690ba9caa6a8b59:src/components/bella-auto/__tests__/BookingListTable.deposit-retry.test.tsx:generic-api-key:20
+870d6edd04bd9a3aaf57db81c690ba9caa6a8b59:src/modules/bella-auto/services/__tests__/AutoMoveDepositConfirmationHttp.test.ts:generic-api-key:10

@@ -7,7 +7,7 @@ jest.mock('../AutoMoveDepositConfirmationService', () => ({ ...jest.requireActua
 const mockDb = { connect: jest.fn(), query: jest.fn(), end: jest.fn() };
 const command = jest.mocked(confirmBookingDeposit);
 const env = { DB_URL: process.env.DB_URL, NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL };
-const key = 'd6cb0a07-a119-482d-a736-7c4604f12004';
+const key = '00000000-0000-4000-8000-000000000007';
 const request = (includeKey = true, body = '{"amount":30000000}') => new Request('http://localhost/confirm-deposit', { method: 'POST',
   headers: { 'Content-Type': 'application/json', ...(includeKey ? { 'Idempotency-Key': key } : {}) }, body });
 beforeEach(() => {

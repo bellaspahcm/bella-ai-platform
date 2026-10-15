@@ -1,7 +1,7 @@
 import { confirmBookingDeposit } from '../AutoMoveDepositConfirmationService';
 
 const actor = '96d14c7c-6023-4572-b0fb-9e959f55e066', bookingId = '6090d1e8-b144-4a51-9464-fd83c95959e0';
-const key = '1d58b8bd-b5d0-41ae-b913-96e2584c9d3e';
+const key = '00000000-0000-4000-8000-000000000003';
 const tenant = 'd4f7567f-787f-46e9-86d8-206c00457b43';
 const db = { query: jest.fn() };
 const payload = { amount: 30000000, payment_method: 'cash', notes: 'Proof' };

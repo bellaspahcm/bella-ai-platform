@@ -10037,3 +10037,47 @@ REMOTE_CI = PENDING_PR_CREATION
 MAIN_SEAL = NOT_PERFORMED
 PRODUCTION_MUTATION = NOT_PERFORMED
 AUTOMOVE_FULL_PRODUCT_READINESS = NOT_READY
+
+## PR 329 Gitleaks Fixture Remediation - 2026-10-15
+
+Root evidence: Gitleaks job 116218490617 on head 3660dea07 flags seven generic-api-key
+findings in six unit-test locations, all from commit 870d6edd0. Each is a static
+UUID payment/booking idempotency fixture passed to mocked Product/HTTP boundaries,
+not an API credential, password or real Auth identity. Gitleaks 8.24.3 reproduces
+the same seven findings locally using the exact CI commit range. The earlier
+repository secret/log guard did not detect this generic-rule fixture pattern.
+
+Repair boundary: test fixture representation and exact historical
+false-positive disposition only. Use unmistakable synthetic valid UUID values
+for current fixtures. Since CI scans original commit additions, changing HEAD
+alone cannot remove the earlier findings. Add only six exact historical
+commit/file/rule/line fingerprints (one covers two fake UUIDs on the same line)
+to .gitleaksignore with the review reason. No path, rule, commit-wide allowlist,
+workflow bypass, history rewrite or exclusion of future test additions.
+Gitleaks documents this exact-finding mechanism in its v8.24.3 README.
+
+Verification required: reproduce seven findings before; zero unexpected findings
+on the same historical range after; scan the correction commit; prove a generated
+non-credential canary still fails the generic rule; rerun affected tests/lint and
+diff checks. No runtime, DB, migration, environment or Production mutation.
+
+GITLEAKS_FAILURE = PROVEN_TEST_UUID_FALSE_POSITIVES
+GITLEAKS_REMEDIATION = IMPLEMENTATION_PENDING
+MAIN_SEAL = NOT_PERFORMED
+AUTOMOVE_FULL_PRODUCT_READINESS = NOT_READY
+
+Executed remediation evidence: checksum-verified official Gitleaks 8.24.3 binary
+reproduced seven findings before the correction; the exact historical CI range
+has zero findings after six reviewed fingerprints. Scanning all six current
+fixture files passes without additional exceptions. A generated in-memory
+non-credential canary still fails generic-api-key detection as expected; it was
+not printed or saved. All 13 scoped Jest suites/104 tests, targeted ESLint,
+Architecture Guard and diff-check pass. Runtime behavior is unchanged; no DB
+or Browser E2E rerun is claimed for this fixture-only delta.
+Reference: https://github.com/gitleaks/gitleaks/blob/v8.24.3/README.md#gitleaksignore
+
+GITLEAKS_REMEDIATION = LOCAL_VERIFIED_PENDING_CI
+REMOTE_CI = PENDING_CORRECTION_PUSH
+PRODUCTION_MUTATION = NOT_PERFORMED
+MAIN_SEAL = NOT_PERFORMED
+AUTOMOVE_FULL_PRODUCT_READINESS = NOT_READY
