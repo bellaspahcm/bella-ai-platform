@@ -9,7 +9,8 @@ import { saleChainConnection } from '../../src/modules/bella-auto/services/AutoM
 test.use({ trace: 'off', video: 'off' });
 
 test('AutoMove actual dashboard: login to booking, deposit and explicit recognition', async ({ page, baseURL }, testInfo) => {
-  test.setTimeout(240_000);
+  // Includes separate receipt collection, lost acknowledgement and reconciliation.
+  test.setTimeout(360_000);
   const apiUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
   const publicKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   const adminKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -166,20 +167,28 @@ test('AutoMove actual dashboard: login to booking, deposit and explicit recognit
       await sale.getByLabel(label, { exact: true }).setInputFiles({ name: 'source.pdf', mimeType: 'application/pdf', buffer: sources });
       await expect(sale.getByText('Đã tải chứng từ', { exact: true })).toHaveCount(label === 'Chứng từ bán xe' ? 1 : 2);
     }
+    const snapshotSaved = page.waitForResponse(response => response.url().endsWith('/sales-chain/snapshot') && response.request().method() === 'POST', { timeout: 60_000 });
     await sale.getByRole('button', { name: 'Lưu hồ sơ nháp', exact: true }).click();
+    expect((await snapshotSaved).status()).toBe(200);
     await expect(sale.getByRole('status')).toHaveText('Đã lưu hồ sơ nháp.');
     await sale.getByRole('checkbox').check();
+    const approved = page.waitForResponse(response => response.url().endsWith('/sales-chain/approve') && response.request().method() === 'POST', { timeout: 60_000 });
     await sale.getByRole('button', { name: 'Duyệt snapshot', exact: true }).click();
+    expect((await approved).status()).toBe(200);
     await expect(sale.getByRole('status')).toHaveText('Đã duyệt snapshot tài chính.');
     stage = 'handover';
+    const handedOver = page.waitForResponse(response => response.url().endsWith('/sales-chain/handover') && response.request().method() === 'POST', { timeout: 60_000 });
     await sale.getByRole('button', { name: 'Xác nhận bàn giao', exact: true }).click();
+    expect((await handedOver).status()).toBe(200);
     await expect(sale.getByRole('status')).toHaveText('Đã lưu bằng chứng bàn giao.');
     expect((await db.query('select count(*)::int as n from public.auto_vehicle_sale_recognitions where booking_id=$1', [bookingId])).rows[0].n).toBe(0);
     const handoverOnlyReport = await page.context().request.get('/api/bella-auto/analytics/recognized-sales');
     expect(handoverOnlyReport.status()).toBe(200);
     expect((await handoverOnlyReport.json()).revenueByMonth.every((month: { revenue: number }) => month.revenue === 0)).toBe(true);
     stage = 'explicit recognition';
+    const recognized = page.waitForResponse(response => response.url().endsWith('/sales-chain/recognize') && response.request().method() === 'POST', { timeout: 60_000 });
     await sale.getByRole('button', { name: 'Ghi nhận doanh thu', exact: true }).click();
+    expect((await recognized).status()).toBe(200);
     await expect(sale.getByRole('status')).toHaveText('Đã ghi nhận doanh thu bán xe.');
     const recognitionRetry = page.waitForResponse(response => response.url().endsWith('/api/bella-auto/sales-chain/recognize') && response.request().method() === 'POST');
     await sale.getByRole('button', { name: 'Ghi nhận doanh thu', exact: true }).click();
@@ -193,6 +202,81 @@ test('AutoMove actual dashboard: login to booking, deposit and explicit recognit
     expect(Number(ledger[0].cost_basis_at_sale)).toBe(1000000000);
     expect(Number(ledger[0].payment_received_total)).toBe(100000000);
     expect(Number(ledger[0].receivable_amount_at_recognition)).toBe(1300000000);
+
+    stage = 'post-sale collection and lost-response recovery';
+    const payments = sale.getByRole('region', { name: 'Thanh toán sau bán', exact: true });
+    await expect(payments.getByTestId('settlement-outstanding')).toHaveText('1.300.000.000 VND');
+    await payments.getByLabel('Số tiền sau bán (VND)', { exact: true }).fill('300000000');
+    await payments.getByLabel('Phương thức thu', { exact: true }).selectOption('bank_transfer');
+    await payments.getByLabel('Mã giao dịch', { exact: true }).fill(`sale-bank-${suffix}`);
+    const paymentUrl = `/api/bella-auto/bookings/${bookingId}/sale-payments`;
+    let loseResponse = true;
+    await page.route(`**${paymentUrl}`, async route => {
+      if (route.request().method() === 'POST' && loseResponse) {
+        loseResponse = false;
+        expect((await route.fetch()).status()).toBe(200);
+        await route.abort('failed');
+      } else await route.continue();
+    });
+    const firstRequest = page.waitForRequest(request => request.url().endsWith(paymentUrl) && request.method() === 'POST');
+    await payments.getByRole('button', { name: 'Xác nhận thu tiền sau bán', exact: true }).click();
+    const paymentRequest = await firstRequest;
+    await expect(payments.getByRole('alert')).toBeVisible();
+    await expect(payments.getByRole('status')).toHaveCount(0);
+    expect((await db.query('select amount from public.auto_vehicle_sale_payments where booking_id=$1', [bookingId])).rows).toEqual([{ amount: '300000000' }]);
+    const retryPayment = page.waitForResponse(response => response.url().endsWith(paymentUrl) && response.request().method() === 'POST');
+    await payments.getByRole('button', { name: 'Thử lại cùng yêu cầu thu', exact: true }).click();
+    const retriedPayment = await retryPayment;
+    expect(retriedPayment.status()).toBe(200);
+    expect(retriedPayment.request().headers()['idempotency-key']).toBe(paymentRequest.headers()['idempotency-key']);
+    expect(await retriedPayment.json()).toMatchObject({ result: { duplicate: true, state: { outstanding: 1000000000 } } });
+    await expect(payments.getByTestId('settlement-paid')).toHaveText('300.000.000 VND');
+    await expect(payments.getByRole('list', { name: 'Receipt sau bán' }).getByRole('listitem')).toHaveCount(1);
+    const postPayment = (key: string, amount: number, transactionRef: string | null = null) => page.context().request.post(paymentUrl, {
+      headers: { 'Idempotency-Key': key }, data: { amount, paymentMethod: transactionRef ? 'bank_transfer' : 'cash', transactionRef, notes: null },
+    });
+    expect((await page.context().request.post(paymentUrl, { headers: { 'Idempotency-Key': paymentRequest.headers()['idempotency-key'] },
+      data: { ...paymentRequest.postDataJSON(), amount: 1 } })).status()).toBe(409);
+    expect((await postPayment(randomUUID(), 300000000, `sale-bank-${suffix}`)).status()).toBe(409);
+    expect((await postPayment(randomUUID(), 1000000001)).status()).toBe(400);
+    stage = 'post-sale concurrent receipt idempotency';
+    const concurrentKey = randomUUID();
+    const concurrent = await Promise.all([postPayment(concurrentKey, 100000000), postPayment(concurrentKey, 100000000)]);
+    expect(concurrent.map(response => response.status())).toEqual([200, 200]);
+    expect((await Promise.all(concurrent.map(response => response.json()))).map(payload => payload.result.duplicate).sort()).toEqual([false, true]);
+    const independent = await Promise.all([postPayment(randomUUID(), 200000000), postPayment(randomUUID(), 200000000)]);
+    expect(independent.map(response => response.status())).toEqual([200, 200]);
+    stage = 'post-sale mismatch prevents false success';
+    await db.query('update public.auto_bookings set deposit_paid=200000000 where id=$1', [bookingId]);
+    await payments.getByRole('button', { name: 'Tải lại thanh toán', exact: true }).click();
+    await expect(payments.getByTestId('settlement-reconciliation')).toHaveText('Sai lệch');
+    await expect(payments.getByRole('alert')).toContainText('DEPOSIT_RECEIPT_MISMATCH');
+    await expect(payments.getByRole('button', { name: 'Xác nhận thu tiền sau bán', exact: true })).toHaveCount(0);
+    expect((await postPayment(randomUUID(), 1)).status()).toBe(409);
+    expect((await db.query('select count(*)::int n from public.auto_vehicle_sale_payments where booking_id=$1', [bookingId])).rows[0].n).toBe(4);
+    await db.query('update public.auto_bookings set deposit_paid=100000000 where id=$1', [bookingId]);
+    await payments.getByRole('button', { name: 'Tải lại thanh toán', exact: true }).click();
+    await expect(payments.getByTestId('settlement-reconciliation')).toHaveText('Khớp');
+    await expect(payments.getByTestId('settlement-outstanding')).toHaveText('500.000.000 VND');
+    await payments.getByLabel('Số tiền sau bán (VND)', { exact: true }).fill('500000000');
+    await payments.getByRole('button', { name: 'Xác nhận thu tiền sau bán', exact: true }).click();
+    await expect(payments.getByTestId('settlement-outstanding')).toHaveText('0 VND');
+    await expect(payments.getByTestId('settlement-paid')).toHaveText('1.300.000.000 VND');
+    await expect(payments.getByRole('list', { name: 'Receipt sau bán' }).getByRole('listitem')).toHaveCount(5);
+    await sale.getByRole('button', { name: 'Đóng', exact: true }).click();
+    await db.query("update public.auto_bookings set status='completed' where id=$1", [bookingId]);
+    await page.getByRole('button', { name: 'Thanh toán sau bán', exact: true }).click();
+    await row.getByRole('button', { name: `Hồ sơ bán xe ${booking[0].booking_number}`, exact: true }).click();
+    await expect(payments.getByTestId('settlement-outstanding')).toHaveText('0 VND');
+    await payments.scrollIntoViewIfNeeded();
+    await page.screenshot({ path: testInfo.outputPath('post-sale-receipts-desktop.png') });
+    await page.setViewportSize({ width: 390, height: 844 });
+    await payments.getByTestId('settlement-outstanding').scrollIntoViewIfNeeded();
+    await page.screenshot({ path: testInfo.outputPath('post-sale-receipts-mobile.png') });
+    await page.setViewportSize({ width: 1440, height: 900 });
+    expect((await db.query('select sum(amount)::text total from public.auto_vehicle_sale_payments where booking_id=$1', [bookingId])).rows[0].total).toBe('1300000000');
+    expect((await db.query('select * from public.auto_vehicle_sale_recognitions where booking_id=$1', [bookingId])).rows).toEqual(ledger);
+    console.log('AUTOMOVE_POST_SALE_UI_API_DB_RETRY_CONCURRENCY_RECONCILIATION=PASS');
     await sale.getByRole('button', { name: 'Đóng', exact: true }).click();
     const reportResponse = page.waitForResponse(response => response.url().endsWith('/api/bella-auto/analytics/recognized-sales'));
     await page.goto('/dashboard/bella-auto');

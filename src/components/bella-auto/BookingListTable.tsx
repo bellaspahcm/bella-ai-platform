@@ -10,7 +10,7 @@ import { Search, User, Car, CheckCircle, FileCheck } from 'lucide-react';
 import { VehicleSaleChainDialog } from './VehicleSaleChainDialog';
 import { toast } from 'sonner';
 
-type FilterType = 'all' | 'unpaid' | 'partial' | 'full';
+type FilterType = 'all' | 'unpaid' | 'partial' | 'full' | 'settlement';
 
 interface Booking {
   id: string;
@@ -60,8 +60,10 @@ export function BookingListTable({ tenantId }: { tenantId: string }) {
         .eq('tenant_id', tenantId)
         .order('created_at', { ascending: false });
 
-      // Apply status filter (exclude cancelled/completed)
-      query = query.not('status', 'in', '("cancelled","completed")');
+      // Completed sales remain accessible for collection without reopening deposits.
+      query = filter === 'settlement'
+        ? query.not('status', 'eq', 'cancelled')
+        : query.not('status', 'in', '("cancelled","completed")');
 
       // Apply deposit filter
       if (filter === 'unpaid') {
@@ -229,6 +231,7 @@ export function BookingListTable({ tenantId }: { tenantId: string }) {
             onClick={() => setFilter('full')}
             color="green"
           />
+          <FilterTab label="Thanh toán sau bán" count={0} active={filter === 'settlement'} onClick={() => setFilter('settlement')} />
         </div>
 
         {/* Search */}
@@ -338,7 +341,7 @@ export function BookingListTable({ tenantId }: { tenantId: string }) {
                     <DepositStatusBadge booking={booking} />
                   </td>
                   <td className="p-3 text-center">
-                    <button
+                    {filter !== 'settlement' && <button
                       onClick={() => handleConfirmDeposit(booking)}
                       disabled={
                         confirmingId === booking.id ||
@@ -357,7 +360,7 @@ export function BookingListTable({ tenantId }: { tenantId: string }) {
                           Xác Nhận Cọc
                         </>
                       )}
-                    </button>
+                    </button>}
                     <button type="button" disabled={!booking.vehicle_id}
                       onClick={() => setSaleBooking(booking)} title="Hồ sơ bán xe" aria-label={`Hồ sơ bán xe ${booking.booking_number}`}
                       className="ml-2 inline-flex p-2 text-cyan-700 disabled:opacity-40 dark:text-cyan-400">

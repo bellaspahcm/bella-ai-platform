@@ -82,6 +82,24 @@ async function verify() {
   const recovered = await confirmBookingDeposit(db, actor, secondBook, failedKey, payload);
   assert.equal(recovered.isDuplicate, false); assert.equal(recovered.data.new_deposit_paid, 30000000);
   console.log('DEPOSIT_RECEIPT_AND_BALANCE_ROLLBACK_ON_INJECTED_WRITE_FAILURE=PASS');
+
+  const receiptBeforeClosure = (await db.query('select * from public.auto_deposits where id=$1', [failedKey])).rows[0];
+  for (const [status, paymentStatus] of [['cancelled', 'partially_paid'], ['pending_deposit', 'refunded']]) {
+    await db.query('update public.auto_bookings set status=$1,payment_status=$2 where id=$3', [status, paymentStatus, secondBook]);
+    const closedBooking = (await db.query('select * from public.auto_bookings where id=$1', [secondBook])).rows[0];
+    const rejectedKey = randomUUID();
+    await rejected(() => confirmBookingDeposit(db, actor, secondBook, rejectedKey, payload), 'BOOKING_CLOSED_FOR_DEPOSIT');
+    assert.equal((await db.query('select id from public.auto_deposits where id=$1', [rejectedKey])).rows.length, 0);
+    assert.deepEqual((await db.query('select * from public.auto_bookings where id=$1', [secondBook])).rows[0], closedBooking);
+    assert.deepEqual((await db.query('select * from public.auto_deposits where id=$1', [failedKey])).rows[0], receiptBeforeClosure);
+    if (status === 'cancelled') {
+      const retry = await confirmBookingDeposit(db, actor, secondBook, failedKey, payload);
+      assert.equal(retry.isDuplicate, true);
+      assert.equal(retry.data.new_deposit_paid, 30000000);
+      assert.equal((await db.query('select id from public.auto_deposits where booking_id=$1', [secondBook])).rows.length, 1);
+    }
+  }
+  console.log('DEPOSIT_CLOSED_BOOKING_DENIAL_AND_EXISTING_RECEIPT_RETRY=PASS');
   await db.query('reset role'); await db.query('rollback'); transaction = false;
   assert.equal((await db.query('select id from public.tenants where id=any($1::uuid[])', [[tenantA, tenantB]])).rows.length, 0);
   assert.equal((await db.query('select id from auth.users where id=any($1::uuid[])', [[actor, other, inactive]])).rows.length, 0);

@@ -216,6 +216,18 @@ const SCOPED_REAL_DB_SUITES = [
     ],
   },
   {
+    name: 'AutoMove post-sale receipts',
+    patterns: [
+      /^supabase\/migrations\/20261015020000_create_automove_post_sale_receipts\.sql$/,
+      /^src\/modules\/bella-auto\/services\/AutoMoveSalePayment(Contract|Service|Http)\.ts$/,
+      /^src\/app\/api\/bella-auto\/bookings\/\[id\]\/sale-payments\/route\.ts$/,
+      /^src\/components\/bella-auto\/VehicleSalePayments\.tsx$/,
+      /^e2e\/tests\/42-automove-dashboard-sales-chain\.spec\.ts$/,
+      /^scripts\/verify-automove-post-sale-payments\.ts$/,
+    ],
+    commands: [{ command: 'npx', args: ['tsx', 'scripts/verify-automove-post-sale-payments.ts'] }],
+  },
+  {
     name: 'Agriculture OS foundation',
     patterns: [
       /^src\/platform\/agriculture\//,

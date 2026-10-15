@@ -53,3 +53,11 @@ it('also retains the key when the server asks the caller to retry', async () => 
   await submit(1); await submit(2);
   expect(fetchMock.mock.calls.map(call => call[1].headers['Idempotency-Key'])).toEqual([firstKey, firstKey]);
 });
+it('keeps completed records accessible in settlement mode without exposing another deposit action', async () => {
+  render(<BookingListTable tenantId="tenant-1" />);
+  await screen.findByRole('button', { name: /Xác Nhận Cọc/ });
+  fireEvent.click(screen.getByRole('button', { name: 'Thanh toán sau bán' }));
+  await waitFor(() => expect(mockQuery.not).toHaveBeenLastCalledWith('status', 'eq', 'cancelled'));
+  await screen.findByRole('button', { name: /Hồ sơ bán xe/ });
+  expect(screen.queryByRole('button', { name: /Xác Nhận Cọc/ })).not.toBeInTheDocument();
+});
