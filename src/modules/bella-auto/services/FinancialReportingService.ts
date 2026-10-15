@@ -50,6 +50,7 @@ interface RecognitionAdjustmentRow extends Record<string, unknown> {
   recognition_id: string;
   sale_price_delta: number | string | null;
   cost_basis_delta: number | string | null;
+  adjustment_type?: string;
 }
 
 interface RepairOrderRow {
@@ -283,11 +284,17 @@ export class FinancialReportingService {
       const adjustment = adjustmentsByRecognitionId.get(row.id) ?? {
         salePriceDelta: 0,
         costBasisDelta: 0,
+        reversed: false,
       };
       const display = displayByVehicleId.get(row.vehicle_id);
       const parseMoney = authenticatedClient ? recognizedMoney : toMoney;
       const salePrice = parseMoney(row.sale_price_recognized) + adjustment.salePriceDelta;
       const costPrice = parseMoney(row.cost_basis_at_sale) + adjustment.costBasisDelta;
+
+      if (adjustment.reversed) {
+        if (salePrice !== 0 || costPrice !== 0) throw new RecognizedSalesReadError('Invalid reversal totals', 503);
+        return null;
+      }
 
       return {
         recognitionId: row.id,
@@ -299,7 +306,7 @@ export class FinancialReportingService {
         recognizedAt: row.recognized_at,
         recognizedByUserId: row.recognized_by_user_id,
       };
-    });
+    }).filter((sale): sale is RecognizedVehicleSale => sale !== null);
   }
 
   private static async getRecognitionAdjustments(
@@ -307,10 +314,10 @@ export class FinancialReportingService {
     tenantId: string,
     recognitionIds: readonly string[],
     paginated = false
-  ): Promise<Map<string, { salePriceDelta: number; costBasisDelta: number }>> {
+  ): Promise<Map<string, { salePriceDelta: number; costBasisDelta: number; reversed: boolean }>> {
     if (recognitionIds.length === 0) return new Map();
 
-    const adjustments = new Map<string, { salePriceDelta: number; costBasisDelta: number }>();
+    const adjustments = new Map<string, { salePriceDelta: number; costBasisDelta: number; reversed: boolean }>();
     const chunks = paginated ? chunkIds(recognitionIds) : [recognitionIds];
     for (const ids of chunks) {
       let query = reporting
@@ -318,7 +325,8 @@ export class FinancialReportingService {
         .select<RecognitionAdjustmentRow>(`
           recognition_id,
           sale_price_delta,
-          cost_basis_delta
+          cost_basis_delta,
+          adjustment_type
         `)
         .eq('tenant_id', tenantId)
         .in('recognition_id', ids);
@@ -333,11 +341,13 @@ export class FinancialReportingService {
         const current = adjustments.get(row.recognition_id) ?? {
           salePriceDelta: 0,
           costBasisDelta: 0,
+          reversed: false,
         };
 
         const parseMoney = paginated ? recognizedMoney : toMoney;
         current.salePriceDelta += parseMoney(row.sale_price_delta);
         current.costBasisDelta += parseMoney(row.cost_basis_delta);
+        current.reversed ||= row.adjustment_type === 'sale_revenue_reversed';
         if (paginated && (!Number.isSafeInteger(current.salePriceDelta) || !Number.isSafeInteger(current.costBasisDelta))) {
           throw new RecognizedSalesReadError('Invalid recognized adjustment amount', 503);
         }

@@ -1,5 +1,6 @@
 import type { MobilitySqlClient } from '../../../platform/mobility';
 import { salePaymentIntentSchema, salePaymentReceiptSchema, type SalePaymentReceipt, type SalePaymentState } from './AutoMoveSalePaymentContract';
+import { adjustmentProducer } from './AutoMoveRecognitionAdjustmentContract';
 
 type Row = Record<string, unknown>;
 export class SalePaymentError extends Error {
@@ -50,7 +51,7 @@ export class AutoMoveSalePaymentService {
     const payments = (await this.db.query(`select * from public.auto_vehicle_sale_payments where booking_id=$1 and tenant_id=$2
       order by received_at,id limit 1001`, [bookingId, tenant])).rows;
     if (payments.length > 1000) fail('PAYMENT_HISTORY_LIMIT', 'Receipt history requires paginated reconciliation before collection.');
-    const adjustments = (await this.db.query(`select adjustment_type,sale_price_delta,receivable_delta,refund_amount
+    const adjustments = (await this.db.query(`select adjustment_type,sale_price_delta,receivable_delta,refund_amount,metadata
       from public.auto_vehicle_sale_recognition_adjustments where recognition_id=$1 and tenant_id=$2`, [recognition.id, tenant])).rows;
     const refunds = (await this.db.query(`select source_deposit_id,source_payment_id,amount
       from public.auto_vehicle_sale_settlement_actions where booking_id=$1 and tenant_id=$2 and action_type='refund'`, [bookingId, tenant])).rows;
@@ -72,14 +73,17 @@ export class AutoMoveSalePaymentService {
     if (integer(recognition.payment_received_total) !== integer(recognition.deposit_received_total) ||
         integer(recognition.receivable_amount_at_recognition) !== integer(recognition.sale_price_recognized) - integer(recognition.payment_received_total) ||
         depositReceived < integer(recognition.deposit_received_total)) issues.push('RECOGNITION_PAYMENT_MISMATCH');
+    const canonical = (row: Row) => row.metadata !== null && typeof row.metadata === 'object' && !Array.isArray(row.metadata) &&
+      'contract' in row.metadata && row.metadata.contract === adjustmentProducer;
+    const reversed = adjustments.some(row => row.adjustment_type === 'sale_revenue_reversed' && canonical(row));
     if (adjustments.some(row => integer(row.refund_amount) !== 0 || integer(row.receivable_delta) !== integer(row.sale_price_delta) ||
-        ['sale_revenue_reversed', 'refund_recorded'].includes(String(row.adjustment_type)))) issues.push('REFUND_OR_ADJUSTMENT_REQUIRES_RESOLUTION');
+        row.adjustment_type === 'refund_recorded' || (row.adjustment_type === 'sale_revenue_reversed' && !canonical(row)))) issues.push('REFUND_OR_ADJUSTMENT_REQUIRES_RESOLUTION');
     const references = [...deposits.filter(row => row.status === 'confirmed'), ...payments]
       .filter(row => typeof row.transaction_ref === 'string' && row.transaction_ref.trim() !== '')
       .map(row => `${row.payment_method}:${row.transaction_ref}`);
     if (new Set(references).size !== references.length || new Set(payments.map(row => row.idempotency_key)).size !== payments.length) issues.push('DUPLICATE_RECEIPT');
-    if (outstanding < 0) issues.push('OVERCOLLECTED');
-    const closed = booking.status === 'cancelled' || booking.payment_status === 'refunded';
+    if (outstanding < 0 && !adjustments.some(row => canonical(row) && integer(row.sale_price_delta) < 0)) issues.push('OVERCOLLECTED');
+    const closed = reversed || booking.status === 'cancelled' || booking.payment_status === 'refunded';
     return { bookingId, recognitionId: String(recognition.id), status: issues.length ? 'MISMATCH' : 'MATCHED', issues,
       saleAmount, depositReceived, postSaleReceived, totalReceived, refundedTotal, outstanding,
       canCollect: !closed && !issues.length && outstanding > 0, receipts };

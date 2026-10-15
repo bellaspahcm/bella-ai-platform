@@ -172,6 +172,17 @@ const SCOPED_REAL_DB_SUITES = [
     commands: [{ command: 'npx', args: ['tsx', 'scripts/verify-automove-settlement.ts'] }],
   },
   {
+    name: 'AutoMove recognition adjustment and period lock',
+    patterns: [
+      /^src\/modules\/bella-auto\/services\/AutoMoveRecognitionAdjustment.*\.ts$/,
+      /^src\/components\/bella-auto\/VehicleSaleRecognitionAdjustments\.tsx$/,
+      /^scripts\/verify-automove-recognition-adjustments\.ts$/,
+      /^e2e\/tests\/46-automove-recognition-adjustments\.spec\.ts$/,
+      /^src\/core\/services\/accounting\/period-guards\.ts$/,
+    ],
+    commands: [{ command: 'npx', args: ['tsx', 'scripts/verify-automove-recognition-adjustments.ts'] }],
+  },
+  {
     name: 'AutoMove policy registry user identity',
     patterns: [
       /^supabase\/migrations\/20261014020000_create_policy_registry_user_identity_forward\.sql$/,

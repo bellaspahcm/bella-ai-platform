@@ -6,6 +6,7 @@ import { Check, FileCheck, FileText, Loader2, Truck, X } from 'lucide-react';
 import { createClient } from '@/lib/supabase-client';
 import { VehicleSalePayments } from './VehicleSalePayments';
 import { VehicleSaleSettlement } from './VehicleSaleSettlement';
+import { VehicleSaleRecognitionAdjustments } from './VehicleSaleRecognitionAdjustments';
 
 interface DocumentRef { bucket: string; path: string; sha256: string }
 interface Snapshot { id: string; reviewHash: string; status: 'draft' | 'approved'; sale_price: number; discount_amount: number; cost_basis: number; sale_document: DocumentRef; cost_document: DocumentRef }
@@ -35,6 +36,7 @@ export function VehicleSaleChainDialog({ bookingId, bookingNumber, tenantId, onC
 }) {
   const [snapshot, setSnapshot] = useState<Snapshot | null>(null);
   const [settlementVersion, setSettlementVersion] = useState(0), [closed, setClosed] = useState(false);
+  const [reversed, setReversed] = useState(false);
   const settlementChanged = useCallback(() => setSettlementVersion(value => value + 1), []);
   const [evidenceId, setEvidenceId] = useState<string | null>(null);
   const [vehicleStatus, setVehicleStatus] = useState('');
@@ -158,11 +160,12 @@ export function VehicleSaleChainDialog({ bookingId, bookingNumber, tenantId, onC
         </div>}
         <div className="mt-5 flex flex-wrap gap-3 border-t border-slate-200 pt-4 dark:border-slate-800">
           <button type="button" disabled={busy || closed || !['allocated','delivered'].includes(vehicleStatus)} className={button} onClick={() => void run('handover',{ bookingId },'Đã lưu bằng chứng bàn giao.')}><Truck size={16} />{evidenceId ? 'Xác nhận lại bàn giao' : 'Xác nhận bàn giao'}</button>
-          <button type="button" disabled={busy || closed || !evidenceId || snapshot?.status !== 'approved'} className={button} onClick={() => snapshot && evidenceId && void run('recognize',{ snapshotId: snapshot.id, handoverEvidenceId: evidenceId },'Đã ghi nhận doanh thu bán xe.')}><Check size={16} />Ghi nhận doanh thu</button>
+          <button type="button" disabled={busy || closed || reversed || !evidenceId || snapshot?.status !== 'approved'} className={button} onClick={() => snapshot && evidenceId && void run('recognize',{ snapshotId: snapshot.id, handoverEvidenceId: evidenceId },'Đã ghi nhận doanh thu bán xe.')}><Check size={16} />Ghi nhận doanh thu</button>
           {busy && <Loader2 className="animate-spin" size={20} aria-label="Đang xử lý" />}
         </div>
         {snapshot?.status === 'approved' && <VehicleSalePayments key={`${snapshot.id}:${message}:${settlementVersion}`} bookingId={bookingId} />}
         <VehicleSaleSettlement bookingId={bookingId} tenantId={tenantId} onChanged={settlementChanged} onClosed={setClosed} />
+        {snapshot?.status === 'approved' && <VehicleSaleRecognitionAdjustments key={`${snapshot.id}:${message}`} bookingId={bookingId} tenantId={tenantId} onChanged={settlementChanged} onReversed={setReversed} />}
       </Dialog.Panel>
     </div>
   </Dialog>;
