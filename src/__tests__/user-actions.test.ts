@@ -68,7 +68,7 @@ type ScriptedResult = {
   table: string;
   op: 'select' | 'insert' | 'update' | 'delete';
   data?: unknown;
-  error?: { message: string };
+  error?: { message: string; code?: string };
 };
 
 type DbCall = {
@@ -191,6 +191,7 @@ describe('user update audit rollback', () => {
           email: 'admin@bella.test',
           full_name: 'Admin User',
           role: 'admin',
+          status: 'active',
           tenant_id: 'tenant-1',
           avatar_url: null,
         },
@@ -209,6 +210,7 @@ describe('user update audit rollback', () => {
           email: 'admin@bella.test',
           full_name: 'Admin User',
           role: 'admin',
+          status: 'active',
           tenant_id: 'tenant-1',
           avatar_url: null,
         },
@@ -247,6 +249,72 @@ describe('user update audit rollback', () => {
     }));
     expect(mockGetUser).toHaveBeenCalledTimes(1);
     expect(mockGetSession).not.toHaveBeenCalled();
+  });
+
+  function identityScripts(profileOverrides: Record<string, unknown> = {}, tenant: unknown = { status: 'active' }): ScriptedResult[] {
+    return [
+      { table: 'users', op: 'select', data: { id: 'admin-1', email: 'admin@bella.test', role: 'admin',
+        status: 'active', tenant_id: 'tenant-1', ...profileOverrides } },
+      { table: 'tenants', op: 'select', data: tenant },
+    ];
+  }
+
+  it('ignores cached profiles and rereads role and tenant on each call', async () => {
+    const { getCache, setCache } = await import('../lib/redis-cache');
+    jest.mocked(getCache).mockResolvedValue({ id: 'admin-1', role: 'admin', tenant_id: 'old-hq' });
+    const calls = installScriptedSupabase([
+      ...identityScripts(), ...identityScripts({ role: 'accountant', tenant_id: 'tenant-2' }),
+    ]);
+    expect(await getCurrentUser()).toEqual(expect.objectContaining({ role: 'admin', tenant_id: 'tenant-1' }));
+    expect(await getCurrentUser()).toEqual(expect.objectContaining({ role: 'accountant', tenant_id: 'tenant-2' }));
+    expect(calls[3].filters).toEqual([{ field: 'id', value: 'tenant-2' }]);
+    expect(getCache).not.toHaveBeenCalled();
+    expect(setCache).not.toHaveBeenCalled();
+  });
+
+  it.each([{ status: 'inactive' }, { status: null }, { tenant_id: null }, { id: 'another-auth-id' }])(
+    'denies noncanonical profile %j', async (overrides) => {
+      installScriptedSupabase(identityScripts(overrides));
+      expect(await getCurrentUser()).toBeNull();
+    },
+  );
+
+  it.each(['suspended', 'terminated', null])('denies tenant status %s', async (status) => {
+    installScriptedSupabase(identityScripts({}, { status }));
+    expect(await getCurrentUser()).toBeNull();
+  });
+
+  it('denies a missing tenant', async () => {
+    installScriptedSupabase(identityScripts({}, null));
+    expect(await getCurrentUser()).toBeNull();
+  });
+
+  it('never falls back to matching email or a placeholder profile', async () => {
+    const calls = installScriptedSupabase([{ table: 'users', op: 'select', data: null }]);
+    expect(await getCurrentUser()).toBeNull();
+    expect(calls).toEqual([{ table: 'users', op: 'select', filters: [{ field: 'id', value: 'admin-1' }] }]);
+  });
+
+  it('maps canonical RLS denial to absent current authority', async () => {
+    installScriptedSupabase([{ table: 'users', op: 'select', error: { code: '42501', message: 'denied' } }]);
+    expect(await getCurrentUser()).toBeNull();
+  });
+
+  it('does not disguise database errors as an unauthenticated session', async () => {
+    installScriptedSupabase([{ table: 'users', op: 'select', error: new Error('database unavailable') }]);
+    await expect(getCurrentUser()).rejects.toThrow('database unavailable');
+  });
+
+  it('does not read cached or database profiles without a validated Auth actor', async () => {
+    mockGetUser.mockResolvedValue({ data: { user: null }, error: null });
+    expect(await getCurrentUser()).toBeNull();
+    expect(mockFrom).not.toHaveBeenCalled();
+  });
+
+  it('does not return authority when Auth validation fails even if an actor is returned', async () => {
+    mockGetUser.mockResolvedValue({ data: { user: { id: 'admin-1' } }, error: new Error('invalid signature') });
+    await expect(getCurrentUser()).rejects.toThrow('invalid signature');
+    expect(mockFrom).not.toHaveBeenCalled();
   });
 
   const deletedUserSnapshot = {
@@ -547,6 +615,7 @@ describe('user update audit rollback', () => {
           email: 'admin@bella.test',
           full_name: 'Admin User',
           role: 'admin',
+          status: 'active',
           tenant_id: 'tenant-1',
           avatar_url: null,
         },
@@ -585,6 +654,7 @@ describe('user update audit rollback', () => {
           email: 'admin@bella.test',
           full_name: 'Admin User',
           role: 'admin',
+          status: 'active',
           tenant_id: 'tenant-1',
           avatar_url: null,
         },
@@ -614,6 +684,7 @@ describe('user update audit rollback', () => {
           email: 'admin@bella.test',
           full_name: 'Admin User',
           role: 'admin',
+          status: 'active',
           tenant_id: 'tenant-1',
           avatar_url: null,
         },
@@ -656,6 +727,7 @@ describe('user update audit rollback', () => {
           email: 'admin@bella.test',
           full_name: 'Admin User',
           role: 'admin',
+          status: 'active',
           tenant_id: 'tenant-1',
           avatar_url: null,
         },

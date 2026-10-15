@@ -74,7 +74,7 @@ describe('HQ actions data loading', () => {
   });
 
   it('authorizes HQ admins by bella_hq product_key instead of tenant name', async () => {
-    mockFrom.mockReturnValueOnce(new MockQueryBuilder({ product_key: 'bella_hq' }, null));
+    mockFrom.mockReturnValueOnce(new MockQueryBuilder({ product_key: 'bella_hq', status: 'active' }, null));
 
     await expect(checkHqAuth()).resolves.toEqual({
       authorized: true,
@@ -83,7 +83,7 @@ describe('HQ actions data loading', () => {
   });
 
   it('denies BabyCare admins even when they have admin role', async () => {
-    mockFrom.mockReturnValueOnce(new MockQueryBuilder({ product_key: 'bella_babycare' }, null));
+    mockFrom.mockReturnValueOnce(new MockQueryBuilder({ product_key: 'bella_babycare', status: 'active' }, null));
 
     await expect(checkHqAuth()).resolves.toEqual({
       authorized: false,
@@ -91,12 +91,28 @@ describe('HQ actions data loading', () => {
     });
   });
 
+  it.each(['suspended', 'terminated', null])('denies HQ tenant with status %s', async (status) => {
+    mockFrom.mockReturnValueOnce(new MockQueryBuilder({ product_key: 'bella_hq', status }, null));
+    expect((await checkHqAuth()).authorized).toBe(false);
+  });
+
+  it.each([null, { role: 'accountant', tenant_id: 'hq-tenant' }])('denies missing/non-admin authority %j', async (user) => {
+    mockGetCurrentUser.mockResolvedValue(user);
+    expect((await checkHqAuth()).authorized).toBe(false);
+    expect(mockFrom).not.toHaveBeenCalled();
+  });
+
+  it('denies canonical RLS permission errors', async () => {
+    mockFrom.mockReturnValueOnce(new MockQueryBuilder(null, { code: '42501', message: 'denied' }));
+    expect((await checkHqAuth()).authorized).toBe(false);
+  });
+
   it('counts the same tenant set returned to the HQ branch table', async () => {
     const hqTenant = { id: 'hq-tenant', name: 'Bella HQ Renamed', product_key: 'bella_hq', status: 'active', created_at: '2026-05-01' };
     const branchTenant = { id: 'branch-1', name: 'Bella Spa HCM', product_key: 'bella_spa', status: 'suspended', created_at: '2026-05-02' };
 
     mockFrom
-      .mockReturnValueOnce(new MockQueryBuilder({ product_key: 'bella_hq' }, null))
+      .mockReturnValueOnce(new MockQueryBuilder({ product_key: 'bella_hq', status: 'active' }, null))
       .mockReturnValueOnce(new MockQueryBuilder([hqTenant, branchTenant], null))
       .mockReturnValueOnce(new MockQueryBuilder([{ tenant_id: 'branch-1' }], null))
       .mockReturnValueOnce(new MockQueryBuilder([{ tenant_id: 'branch-1' }], null))
@@ -117,7 +133,7 @@ describe('HQ actions data loading', () => {
     const hqTenant = { id: 'hq-tenant', name: 'Bella HQ Renamed', product_key: 'bella_hq', status: 'active', created_at: '2026-05-01' };
 
     mockFrom
-      .mockReturnValueOnce(new MockQueryBuilder({ product_key: 'bella_hq' }, null))
+      .mockReturnValueOnce(new MockQueryBuilder({ product_key: 'bella_hq', status: 'active' }, null))
       .mockReturnValueOnce(new MockQueryBuilder([hqTenant], null))
       .mockReturnValueOnce(new MockQueryBuilder(null, { message: 'staff count failed' }))
       .mockReturnValueOnce(new MockQueryBuilder([
@@ -145,7 +161,7 @@ describe('HQ actions data loading', () => {
 
     mockRecordAuditLog.mockRejectedValueOnce(new Error('audit unavailable'));
     mockFrom
-      .mockReturnValueOnce(new MockQueryBuilder({ product_key: 'bella_hq' }, null))
+      .mockReturnValueOnce(new MockQueryBuilder({ product_key: 'bella_hq', status: 'active' }, null))
       .mockReturnValueOnce(new MockQueryBuilder(tenant, null))
       .mockReturnValueOnce(new MockQueryBuilder(null, null))
       .mockReturnValueOnce(new MockQueryBuilder(null, null));
@@ -169,7 +185,7 @@ describe('HQ actions data loading', () => {
 
   it('does not allow suspending the HQ tenant', async () => {
     mockFrom
-      .mockReturnValueOnce(new MockQueryBuilder({ product_key: 'bella_hq' }, null))
+      .mockReturnValueOnce(new MockQueryBuilder({ product_key: 'bella_hq', status: 'active' }, null))
       .mockReturnValueOnce(new MockQueryBuilder({
         id: 'hq-tenant',
         name: 'Bella HQ',
