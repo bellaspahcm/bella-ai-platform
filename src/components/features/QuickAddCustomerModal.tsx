@@ -160,7 +160,7 @@ export function QuickAddCustomerModal({ isOpen, onClose, onSuccess }: QuickAddCu
                 type="submit"
                 disabled={isSubmitting || !formData.name_mother || !formData.phone}
                 className={cn(
-                  "flex-1 px-8 py-4 bg-primary text-white rounded-2xl font-black transition-all shadow-xl shadow-primary/20 uppercase tracking-widest active:scale-95 flex items-center justify-center gap-3",
+                  "flex-1 px-8 py-4 bg-primary text-primary-foreground rounded-2xl font-black transition-all shadow-xl shadow-primary/20 uppercase tracking-widest active:scale-95 flex items-center justify-center gap-3",
                   (isSubmitting || !formData.name_mother || !formData.phone) && "opacity-50 cursor-not-allowed grayscale"
                 )}
               >

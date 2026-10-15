@@ -371,7 +371,7 @@ export function BookingDayDetailModal({
                   <div className="rounded-[24px] border border-slate-100 bg-slate-50 p-4 sm:rounded-[32px] sm:p-6">
                     <div className="flex items-center gap-3 mb-4 text-slate-400">
                       <History className="w-5 h-5" />
-                      <span className="text-xs font-black uppercase tracking-widest">Lịch sử buổi tập trước</span>
+                      <span className="text-xs font-black uppercase tracking-widest">Lịch sử {vocab.workUnit.singular.toLowerCase()} trước</span>
                     </div>
                     <div className="space-y-3 max-h-[150px] overflow-auto pr-2 custom-scrollbar">
                       {completedHistory.length > 0 ? (
@@ -500,7 +500,7 @@ export function BookingDayDetailModal({
                   <button
                     onClick={onPrintInvoice}
                     disabled={isPrintingInvoice}
-                    className="bg-slate-900 text-white py-3.5 rounded-2xl font-bold hover:bg-slate-800 transition-all active:scale-95 flex items-center justify-center gap-2 disabled:cursor-not-allowed disabled:bg-emerald-600 disabled:active:scale-100 text-sm"
+                    className="bg-primary text-primary-foreground py-3.5 rounded-2xl font-bold hover:bg-primary-hover transition-all active:scale-95 flex items-center justify-center gap-2 disabled:cursor-not-allowed disabled:bg-emerald-600 disabled:active:scale-100 text-sm"
                   >
                     {isPrintingInvoice ? <Loader2 className="w-4 h-4 animate-spin" /> : <Printer className="w-4 h-4" />}
                     <span>{isPrintingInvoice ? 'Đang chuẩn bị...' : 'In hóa đơn'}</span>
@@ -529,7 +529,7 @@ export function BookingDayDetailModal({
                   <button
                     onClick={onSave}
                     disabled={isUpdating}
-                    className="bg-primary text-white py-4 rounded-2xl font-black hover:bg-rose-600 transition-all active:scale-95 shadow-lg shadow-rose-200 dark:shadow-none disabled:opacity-50 text-sm uppercase tracking-wider flex items-center justify-center"
+                    className="bg-primary text-primary-foreground py-4 rounded-2xl font-black hover:bg-primary-hover transition-all active:scale-95 shadow-lg shadow-primary/20 dark:shadow-none disabled:opacity-50 text-sm uppercase tracking-wider flex items-center justify-center"
                   >
                     {isUpdating ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : 'Lưu thay đổi'}
                   </button>

@@ -87,7 +87,7 @@ export default function HrProfileTable({
                 <td className="px-8 py-6 text-center whitespace-nowrap">
                   <button
                     onClick={() => openHrEditModal(s)}
-                    className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all"
+                    className="px-4 py-2 bg-primary hover:bg-primary-hover text-primary-foreground rounded-xl text-xs font-black uppercase tracking-wider transition-all"
                   >
                     Thiết lập HR
                   </button>

@@ -8758,6 +8758,106 @@ Not authorized:
 
 ---
 
+# Architecture Gate - Spa Session Theme and Copy (2026-10-15)
+
+## Waitlist Consumer Addendum (2026-10-15)
+
+Status: PASS for the user-reported waitlist tenant mismatch repair.
+Truth: WaitlistContent uses TenantContextProvider. In development that provider
+can return the presentation fallback tenantId `dev-tenant` after a timeout or
+401. The waitlist API authorizes against getCurrentUser().tenant_id; the
+dashboard UserProvider exposes this same authenticated profile.
+Manifest: existing waitlist list/detail/filter/stats/add form, no new capability.
+Ownership: authenticated user profile owns request tenant; presentation fallback
+does not own data access. API/service owns authorization and persistence.
+Dependency: waitlist UI -> UserProvider.user.tenant_id -> unchanged waitlist API
+tenant checks -> unchanged tenant-scoped waitlist service.
+Authority: change only waitlist UI tenant selection/readiness and tests.
+Reconciliation: list/stats/filters/add form receive the same authenticated tenant;
+detail waits for that profile. Never use fallback/demo tenant for requests.
+Migration: none. No auth, API, RLS, Core/Platform or service modification.
+Verification gates: (1) scope diff, (2) profile tenant contract, (3) loading/absent
+profile, (4) stale/fallback context, (5) list/stats/filter/form propagation,
+(6) detail readiness, (7) unchanged 401/403 tenant checks, (8) no persistence
+change, (9) focused regression, (10) type/lint/architecture, (11) local runtime
+read-only proof distinguished from Production/authenticated Real DB E2E.
+
+Status: PASS for presentation-only repair, expanded by the user's sidebar sweep request.
+
+Expanded authority: audit all 17 active admin menu routes in sidebar.tsx (dashboard,
+ai-copilot, customers, bookings, sessions, waitlist, inventory, product-sales, salary,
+beauty-spa-v2/chain, accounting, finance/reconciliation, executive, analytics, guides,
+services, settings), their rendered UI components and shared brand CSS. Convert
+brand backgrounds/foregrounds/hover/shadows to existing semantic theme tokens.
+Do not change operational status colors, fixed palette swatches, chart categories,
+non-spa product implementations, identity rules or service/backend behavior.
+CSS module defaults must not override configured presets or custom inline tokens.
+
+## 1. Development Process Gate
+
+User evidence: BabyCare calendar renders Beauty Spa coordinator copy, fixed blue
+appointment cards, and the term "buoi tap" in session details. User authorizes
+tenant-preset colors for shared spa surfaces, BabyCare-only identity copy, and
+"buoi lieu trinh" terminology for both spa products.
+Canonical theme: sidebar applyTenantBrandRuntime -> resolveDynamicThemeTokens ->
+primary/primary-hover/primary-foreground CSS tokens. Canonical identity:
+useUser().product.productKey from ProductResolver. No new business semantics.
+
+## 2. Product Manifest
+
+Existing Bella BabyCare and Beauty Spa calendar, month view, session cards,
+booking/session detail dialogs and spa vocabulary. No product registration.
+
+## 3. Ownership Map
+
+Tenant theme resolver owns palette/contrast tokens; consume unchanged.
+Product Identity owns coordinator text; BabyCare opt-in is bella_babycare.
+Shared Product UI owns brand classes and labels; customer/order services own
+schedule/progress/actions and remain unchanged.
+
+## 4. Contract Dependency Map
+
+Calendar/session UI -> existing timeline/session props and order actions.
+UI identity -> existing UserProvider product; theme -> existing runtime tokens.
+No Kernel dependency or direct DB access is added.
+
+## 5. Change Authority
+
+Only UI color classes, coordinator identity text, spa terminology and tests/docs.
+No loader changes, schema, migration, auth/RLS, services, payment, Finance,
+ProductRegistry or frozen Healthcare/Education/Logistics changes.
+
+## 6. UI -> Contract Reconciliation
+
+| UI | Source / decision |
+|---|---|
+| Active/scheduled calendar card and primary action | tenant primary + paired foreground/hover tokens |
+| Selected day/tab, coordinator accent, KTV brand accent | same tenant tokens |
+| Coordinator text | BabyCare identity changes copy; Beauty keeps its label |
+| Completed/cancelled/overdue state | retain semantic status colors and state logic |
+| Session note/title/toasts | user-approved buoi lieu trinh terminology |
+| Appointment data and actions | existing contracts; unchanged |
+
+## 7. Additive Migration Plan
+
+No migration required.
+
+## 8. Eleven Verification Gates Plan
+
+1. Scope: presentation, vocabulary and tests/docs only.
+2. Contract: no changed DTO/action signature or state calculation.
+3. Identity: BabyCare/Beauty/unknown coordinator tests.
+4. Theme: rose/jade/custom/dark token browser checks.
+5. Semantic status: completed/cancelled/warning remain distinct.
+6. Terminology: no buoi tap in affected spa runtime sources.
+7. Interaction: date/tab selection and booking callback preserved.
+8. Tenant/security: no DB/RLS/auth/service change.
+9. Mobile/desktop: screenshots, overflow and text contrast.
+10. Type/lint/architecture: run relevant gates.
+11. Evidence: scoped regression; synthetic browser proof distinguished from Real DB.
+
+---
+
 # Architecture Gate - BabyCare Customer Card/Form Reconciliation (2026-10-14)
 
 Status: PASS for BabyCare presentation consumer repair.

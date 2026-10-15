@@ -68,24 +68,15 @@ export default function GuideReader({ params }: PageProps) {
   const getThemeStyles = () => {
     switch (tenantModuleKey) {
       case 'beauty_spa':
-        return {
-          wrapperBg: 'bg-[#FAF9F5] dark:bg-[#11100F]',
-          loaderColor: 'text-emerald-800 dark:text-emerald-400',
-          navBg: 'bg-white/80 dark:bg-[#1C1B19]/80 border border-slate-200/70 dark:border-[#3E3A35]',
-          backBtnBg: 'bg-emerald-50 hover:bg-emerald-100/80 dark:bg-emerald-950/40 dark:hover:bg-emerald-900/60 text-emerald-850 dark:text-[#A67D44]',
-          headerTag: 'text-emerald-800 dark:text-[#A67D44]',
-          iframeBorder: 'border-slate-200/60 dark:border-[#3E3A35]',
-          iframeShadow: 'shadow-sm',
-        };
       case 'babycare':
         return {
-          wrapperBg: 'bg-[#FFF5F7] dark:bg-[#11100F]',
-          loaderColor: 'text-primary dark:text-[#A67D44]',
-          navBg: 'bg-white/80 dark:bg-[#1C1B19]/80 border border-pink-100 dark:border-[#3E3A35]',
-          backBtnBg: 'bg-pink-50 hover:bg-pink-100 dark:bg-[#5D1C34]/40 dark:hover:bg-[#5D1C34]/60 text-primary dark:text-[#A67D44]',
-          headerTag: 'text-primary dark:text-[#A67D44]',
-          iframeBorder: 'border border-pink-100 dark:border-[#3E3A35]',
-          iframeShadow: 'shadow-[0_12px_40px_rgba(219,39,119,0.04)]',
+          wrapperBg: 'bg-background',
+          loaderColor: 'text-primary',
+          navBg: 'bg-card border border-border',
+          backBtnBg: 'bg-primary/10 hover:bg-primary/20 text-primary',
+          headerTag: 'text-primary',
+          iframeBorder: 'border border-border',
+          iframeShadow: 'shadow-sm',
         };
       case 'real_estate':
         return {

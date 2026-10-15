@@ -119,7 +119,7 @@ export function PromotionForm({
         <button
           type="submit"
           disabled={isSubmitting}
-          className="w-full min-h-12 bg-primary hover:bg-primary-hover text-white py-3.5 px-6 rounded-2xl font-black text-xs uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-primary/25 disabled:opacity-50 disabled:grayscale flex items-center justify-center gap-2 mt-6"
+          className="w-full min-h-12 bg-primary hover:bg-primary-hover text-primary-foreground py-3.5 px-6 rounded-2xl font-black text-xs uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-primary/25 disabled:opacity-50 disabled:grayscale flex items-center justify-center gap-2 mt-6"
         >
           {isSubmitting ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
           <span>{isSubmitting ? 'Đang thêm...' : 'Tạo khuyến mãi'}</span>

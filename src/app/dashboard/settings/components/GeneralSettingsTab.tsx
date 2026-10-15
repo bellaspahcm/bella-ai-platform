@@ -142,7 +142,7 @@ export default function GeneralSettingsTab({
                 PNG, JPG tối đa 5MB
               </p>
             </div>
-            <button className="p-4 bg-primary/10 text-primary rounded-2xl hover:bg-primary hover:text-white transition-all group">
+            <button className="p-4 bg-primary/10 text-primary rounded-2xl hover:bg-primary hover:text-primary-foreground transition-all group">
               <Camera className="w-6 h-6 group-hover:scale-110 transition-transform" />
             </button>
           </div>

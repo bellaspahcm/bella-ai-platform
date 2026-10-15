@@ -246,7 +246,7 @@ export default function PermissionsTab() {
             <button
               type="submit"
               disabled={isAuthenticating}
-              className="w-full bg-primary text-white py-4 rounded-2xl font-black uppercase tracking-widest text-sm hover:bg-primary-hover transition-all disabled:opacity-50"
+              className="w-full bg-primary text-primary-foreground py-4 rounded-2xl font-black uppercase tracking-widest text-sm hover:bg-primary-hover transition-all disabled:opacity-50"
             >
               {isAuthenticating ? "Đang xác minh..." : "Xác nhận truy cập"}
             </button>
@@ -276,7 +276,7 @@ export default function PermissionsTab() {
         <button
           onClick={handleSave}
           disabled={isSaving || isLoading}
-          className="px-6 py-3 bg-primary text-white rounded-xl font-black text-sm uppercase tracking-widest hover:bg-primary-hover transition-all flex items-center gap-2 shadow-md"
+          className="px-6 py-3 bg-primary text-primary-foreground rounded-xl font-black text-sm uppercase tracking-widest hover:bg-primary-hover transition-all flex items-center gap-2 shadow-md"
         >
           <Save className="w-4 h-4" />
           {isSaving ? "Đang lưu..." : "Lưu phân quyền"}

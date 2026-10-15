@@ -151,7 +151,7 @@ export function BookingsDayTimelineList({
                       event.stopPropagation();
                       onCareClick(session);
                     }}
-                    className="px-4 py-2 bg-primary hover:bg-rose-600 text-white rounded-xl font-bold text-xs transition-colors disabled:opacity-50 flex items-center gap-1 shadow-lg shadow-rose-100 dark:shadow-none"
+                    className="px-4 py-2 bg-primary hover:bg-primary-hover text-primary-foreground rounded-xl font-bold text-xs transition-colors disabled:opacity-50 flex items-center gap-1 shadow-lg shadow-primary/20 dark:shadow-none"
                   >
                     Chăm sóc
                   </button>

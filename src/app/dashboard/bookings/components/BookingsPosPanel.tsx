@@ -140,7 +140,7 @@ export function BookingsPosPanel({
       <div className="rounded-[28px] border border-slate-200 bg-white shadow-xl shadow-slate-100/60">
         <div className="flex flex-col gap-3 border-b border-slate-100 p-4 md:flex-row md:items-center md:justify-between">
           <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-900 text-white">
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary text-primary-foreground">
               <CreditCard className="h-5 w-5" />
             </div>
             <div>
@@ -218,7 +218,7 @@ export function BookingsPosPanel({
                       type="button"
                       onClick={() => onPrintInvoice(item.session)}
                       disabled={Boolean(printingSessionLogId)}
-                      className="inline-flex min-h-10 items-center gap-2 rounded-xl bg-slate-900 px-3 text-xs font-black text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-emerald-600 disabled:opacity-80"
+                      className="inline-flex min-h-10 items-center gap-2 rounded-xl bg-primary px-3 text-xs font-black text-primary-foreground transition hover:bg-primary-hover disabled:cursor-not-allowed disabled:bg-emerald-600 disabled:opacity-80"
                     >
                       {isThisPrinting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Printer className="h-4 w-4" />}
                       {isThisPrinting ? 'Đang in...' : 'In bill'}

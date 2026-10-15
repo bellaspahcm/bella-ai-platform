@@ -79,7 +79,7 @@ export function SessionCard({
     }
     
     if (alreadyDoneToday && userRole !== 'admin') {
-      toast.warning('Bạn đã cập nhật buổi tập hôm nay rồi. Chỉ Admin mới có quyền điều chỉnh thêm!');
+      toast.warning(`Bạn đã cập nhật ${vocab.workUnit.singular.toLowerCase()} hôm nay rồi. Chỉ Admin mới có quyền điều chỉnh thêm!`);
       return;
     }
 
@@ -254,8 +254,7 @@ export function SessionCard({
                 (alreadyDoneToday || (!isScheduledForToday && userRole !== 'admin')) 
                   ? "bg-slate-100 text-slate-400 shadow-none cursor-not-allowed" 
                   : cn(
-                      "bg-primary text-white dark:shadow-none hover:bg-primary-hover",
-                      tenantModuleKey === 'beauty_spa' ? "shadow-emerald-100" : "shadow-pink-100"
+                      "bg-primary text-primary-foreground dark:shadow-none hover:bg-primary-hover shadow-primary/20"
                     )
               )}
             >
@@ -278,7 +277,7 @@ export function SessionCard({
             <button 
               onClick={handleReuseClick}
               disabled={isReusingId === booking.id}
-              className="flex w-full items-center justify-center gap-3 rounded-2xl bg-slate-900 px-4 py-3 text-[9px] font-black uppercase tracking-widest text-white shadow-md transition-all hover:bg-slate-800 active:scale-95 sm:px-6"
+              className="flex w-full items-center justify-center gap-3 rounded-2xl bg-primary px-4 py-3 text-[9px] font-black uppercase tracking-widest text-primary-foreground shadow-md transition-all hover:bg-primary-hover active:scale-95 sm:px-6"
             >
               {isReusingId === booking.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <TrendingUp className="w-3 h-3" />}
               Tái sử dụng gói nhanh

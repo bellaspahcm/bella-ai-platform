@@ -398,7 +398,7 @@ function StandardDashboardPage() {
       }
       const result = await completeSession(sessionId, bookingId);
       if (result.success) {
-        toast.success('Đã cập nhật tiến độ buổi tập!');
+        toast.success('Đã cập nhật tiến độ buổi liệu trình!');
         fetchData();
       }
     } catch (error) {
@@ -531,7 +531,7 @@ function StandardDashboardPage() {
              */}
             <button
               onClick={() => setIsBookingModalOpen(true)}
-              className="flex items-center gap-3 bg-primary hover:bg-primary-hover text-white px-8 py-4 rounded-2xl font-black transition-all shadow-xl shadow-pink-200 dark:shadow-none active:scale-95 uppercase tracking-wider"
+              className="flex items-center gap-3 bg-primary hover:bg-primary-hover text-primary-foreground px-8 py-4 rounded-2xl font-black transition-all shadow-xl shadow-primary/20 dark:shadow-none active:scale-95 uppercase tracking-wider"
             >
               <PlusCircle className="w-5 h-5" />
               <span>Tạo Booking</span>
@@ -580,7 +580,7 @@ function StandardDashboardPage() {
               </div>
               <Link
                 href="/dashboard/bookings"
-                className="px-8 py-4 bg-white/80 backdrop-blur-md text-primary border border-primary/20 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-primary hover:text-white transition-all shadow-lg shadow-pink-100/50 dark:shadow-none flex items-center gap-3 group/link"
+                className="px-8 py-4 bg-white/80 backdrop-blur-md text-primary border border-primary/20 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-primary hover:text-primary-foreground transition-all shadow-lg shadow-primary/20 dark:shadow-none flex items-center gap-3 group/link"
               >
                 Xem tất cả <ChevronRight className="w-5 h-5 group-hover/link:translate-x-1.5 transition-transform" />
               </Link>
@@ -753,7 +753,7 @@ function StandardDashboardPage() {
                                     />
                                     <button
                                       onClick={() => handleCompleteSession(session.id, session.booking_id, quickNoteValue)}
-                                      className="absolute right-2 top-1/2 -translate-y-1/2 p-2.5 bg-primary text-white rounded-xl shadow-lg hover:scale-105 transition-transform"
+                                      className="absolute right-2 top-1/2 -translate-y-1/2 p-2.5 bg-primary text-primary-foreground rounded-xl shadow-lg hover:scale-105 transition-transform"
                                     >
                                       <CheckCircle2 className="w-4 h-4" />
                                     </button>
@@ -776,7 +776,7 @@ function StandardDashboardPage() {
                               <button
                                 onClick={() => handleCompleteSession(session.id, session.booking_id, quickNoteValue)}
                                 disabled={updatingId === session.id}
-                                className="min-h-12 w-full px-4 py-4 bg-gradient-to-br from-primary to-[#831843] text-white rounded-[1.25rem] text-[11px] font-black uppercase tracking-[0.15em] hover:shadow-2xl hover:shadow-primary/30 transition-all flex items-center justify-center gap-3 active:scale-[0.98] disabled:opacity-50 relative overflow-hidden group/btn"
+                                className="min-h-12 w-full px-4 py-4 bg-primary hover:bg-primary-hover text-primary-foreground rounded-[1.25rem] text-[11px] font-black uppercase tracking-[0.15em] hover:shadow-2xl hover:shadow-primary/30 transition-all flex items-center justify-center gap-3 active:scale-[0.98] disabled:opacity-50 relative overflow-hidden group/btn"
                               >
                                 <div className="absolute inset-0 bg-white/10 -translate-x-full group-hover/btn:translate-x-0 transition-transform duration-500" />
                                 {updatingId === session.id ? (
@@ -1040,7 +1040,7 @@ function StandardDashboardPage() {
                         className={cn(
                           "px-5 py-2.5 rounded-full text-xs font-black uppercase tracking-wider transition-all active:scale-95 border",
                           notifTab === tab.id
-                            ? "bg-primary text-white border-primary shadow-lg shadow-pink-100 dark:shadow-none"
+                            ? "bg-primary text-primary-foreground border-primary shadow-lg shadow-primary/20 dark:shadow-none"
                             : "bg-slate-50 border-slate-100 text-slate-500 hover:bg-slate-100"
                         )}
                       >

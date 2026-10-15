@@ -122,7 +122,7 @@ export function BookingsMonthCalendar({
       <div className="grid grid-cols-7 gap-px bg-slate-100 border border-slate-100 rounded-3xl overflow-hidden relative">
         {isSyncing && sessions.length === 0 && (
           <div className="absolute inset-0 bg-white/50 backdrop-blur-[2px] z-20 flex items-center justify-center">
-            <Loader2 className="w-10 h-10 text-rose-500 animate-spin" />
+            <Loader2 className="w-10 h-10 text-primary animate-spin" />
           </div>
         )}
         {monthDays.map((date, i) => {
@@ -145,21 +145,21 @@ export function BookingsMonthCalendar({
                 <span
                   className={`flex items-center justify-center w-8 h-8 text-sm font-bold rounded-xl transition-all ${
                     isSelected
-                      ? 'beauty-calendar-day-active bg-rose-500 text-white shadow-lg shadow-rose-200 dark:shadow-none'
+                      ? 'beauty-calendar-day-active bg-primary text-primary-foreground shadow-lg shadow-primary/20 dark:shadow-none'
                       : dateIsToday
-                        ? 'bg-rose-50 text-rose-500 border border-rose-100'
+                        ? 'bg-primary/10 text-primary border border-primary/20'
                         : 'text-slate-600 group-hover:text-slate-900'
                   }`}
                 >
                   {date.getDate()}
                 </span>
-                {dateIsToday && <div className="w-1.5 h-1.5 bg-rose-500 rounded-full animate-pulse" />}
+                {dateIsToday && <div className="w-1.5 h-1.5 bg-primary rounded-full animate-pulse" />}
               </div>
 
               {daySessions.length > 0 && (
                 <div className="flex flex-col gap-1">
                   <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
-                    <div className="h-full bg-rose-400" style={{ width: '100%' }} />
+                    <div className="h-full bg-primary" style={{ width: '100%' }} />
                   </div>
                   <span className="text-[9px] font-bold text-slate-400 truncate">
                     {daySessions.length} Lịch hẹn

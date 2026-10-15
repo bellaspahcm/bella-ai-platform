@@ -114,7 +114,7 @@ export default function AttendanceSummaryTable({
                     <button
                       onClick={() => openKtvCalendar(ktv)}
                       data-testid="attendance-open-calendar-button"
-                      className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all"
+                      className="px-4 py-2 bg-primary hover:bg-primary-hover text-primary-foreground rounded-xl text-xs font-black uppercase tracking-wider transition-all"
                     >
                       Chi tiết & Sửa
                     </button>

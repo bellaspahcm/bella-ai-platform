@@ -46,9 +46,10 @@ export function BookingsTimelineDateRibbon({
   const vocab = useModuleVocabulary();
   const { product } = useUser();
   const isHaircut = product?.productKey === 'bella_haircut';
+  const isBabyCare = product?.productKey === 'bella_babycare';
   
   // Dynamic coordinator label based on module
-  const coordinatorLabel = moduleKey == null
+  const coordinatorLabel = isBabyCare ? 'Điều phối BabyCare' : moduleKey == null
     ? 'Điều phối viên'
     : moduleKey === 'industrial_cleaning'
       ? 'Quản lý ca làm việc'
@@ -85,7 +86,7 @@ export function BookingsTimelineDateRibbon({
           <h2 className="break-words text-base font-black capitalize tracking-tight text-slate-900 sm:text-xl">
             {new Intl.DateTimeFormat('vi-VN', { dateStyle: 'full' }).format(selectedDate)}
           </h2>
-          <span className="text-[10px] font-black text-rose-500 uppercase tracking-widest">
+          <span className="text-[10px] font-black text-primary uppercase tracking-widest">
             {coordinatorLabel}
           </span>
         </div>
@@ -104,7 +105,7 @@ export function BookingsTimelineDateRibbon({
               onClick={() => onSelectedDateChange(date)}
               className={`flex flex-col items-center justify-center w-12 h-14 rounded-2xl transition-all shrink-0 select-none ${
                 selected
-                  ? 'beauty-date-ribbon-day-active bg-primary text-white shadow-md scale-105'
+                  ? 'beauty-date-ribbon-day-active bg-primary text-primary-foreground shadow-md scale-105'
                   : dateIsToday
                     ? 'bg-primary/10 text-primary border border-primary/20 font-extrabold'
                     : 'bg-slate-50 text-slate-700 hover:bg-slate-100 font-bold'

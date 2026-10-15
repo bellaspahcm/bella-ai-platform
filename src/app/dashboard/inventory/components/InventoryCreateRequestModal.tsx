@@ -82,7 +82,7 @@ export function InventoryCreateRequestModal({
                       />
                     </div>
                     <div className="flex items-end">
-                      <button type="button" onClick={addToCart} className="bg-slate-900 hover:bg-slate-800 text-white font-black text-[10px] uppercase tracking-widest px-6 py-3 rounded-xl transition-all shadow-md">
+                      <button type="button" onClick={addToCart} className="bg-primary hover:bg-primary-hover text-primary-foreground font-black text-[10px] uppercase tracking-widest px-6 py-3 rounded-xl transition-all shadow-md">
                         Thêm
                       </button>
                     </div>
@@ -132,7 +132,7 @@ export function InventoryCreateRequestModal({
 
             <div className="flex flex-col gap-3 border-t border-slate-100 pt-5 sm:flex-row sm:pt-6 flex-shrink-0">
               <button onClick={onClose} className="flex-1 py-3 text-slate-400 font-black text-[10px] uppercase tracking-widest hover:text-slate-600">Hủy</button>
-              <button onClick={submitTransferOrder} disabled={submittingOrder || requestCart.length === 0} className="flex-[2] bg-primary text-white py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50">
+              <button onClick={submitTransferOrder} disabled={submittingOrder || requestCart.length === 0} className="flex-[2] bg-primary text-primary-foreground py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50">
                 {submittingOrder ? <RefreshCw className="w-4 h-4 animate-spin" /> : <ArrowRight className="w-4 h-4" />}
                 Gửi yêu cầu cung ứng
               </button>
