@@ -1,5 +1,193 @@
 ﻿# Architecture Gate - Customer Loyalty Read-Only (2026-10-15)
 
+## AutoMove Sales Settlement Readiness - 2026-10-15
+
+Baseline: main 9503feaea10806424ffc6cd2944617d70fda903a (sealed PR 332).
+Single-agent execution. Result: PASS for the proven cancelled/refunded booking
+deposit blocker and the subsequently owner-approved post-sale receipt scope.
+This is not a Product MVP or Go-Live seal.
+
+### Process Gate, Manifest and Business Semantic Proof
+
+- Goal authorized by the owner: complete the remaining vehicle-sales chain on
+  Non-Production, preserving previously proven capabilities and Production safety.
+- Canonical business source: the approved separation of payments and recognition,
+  and the revenue contract's prohibition on proceeding with cancelled/refunded
+  bookings (AUTOMOVE_VEHICLE_SALE_REVENUE_CONTRACT_2026_10_14.md, recognition
+  preconditions and cancellation/refund sections).
+- New evidence: on the isolated E2E project, the actual authenticated deposit
+  command accepted a NEW 30,000,000 VND receipt for a cancelled booking and
+  increased deposit_paid from zero. The entire probe rolled back; fixture tenant
+  count after rollback was zero. This is a newly proven defect, not a reopening
+  of PR 332 or an assumption that an earlier deposit proof was false.
+- Invariant: a cancelled/refunded booking cannot accept a new deposit. An exact
+  retry of an existing, still-confirmed receipt is a read, not another collection;
+  payload conflict or a refunded receipt must still fail the existing binding.
+- Persistence: reject before receipt insertion or balance mutation, while holding
+  the same booking row lock already used by the command. No new state machine.
+
+### Ownership, Contracts, Authority and UI Reconciliation
+
+| Capability/data | Owner | Public path / change authority |
+| --- | --- | --- |
+| Auth identity and active tenant | Platform | existing Auth -> users -> tenants; unchanged |
+| Booking and deposit receipts | AutoMove Product | authenticated confirm-deposit API -> existing transaction command |
+| Vehicle allocation/handover | Mobility OS | existing public contract; regression only |
+| Recognized financial history | AutoMove Product | immutable recognition/adjustment tables; unchanged |
+| Actual Finance cash/AR posting | Finance OS | existing public allocation contract; not invoked or modified |
+
+UI confirm-deposit -> HTTP dispatcher -> confirmBookingDeposit -> existing RLS
+transaction. The local fix changes only rejection of a new invalid operation;
+success/retry response and tenant resolution remain unchanged. No new UI action
+or amount field is introduced. Contract/API/Platform/kernel changes: none.
+Additive migration plan: NONE for this blocker; no schema/grants/RLS changes.
+
+The read-only E2E schema inspection confirmed recognition snapshots, adjustment
+history and deposit receipts, but no AutoMove post-sale payment receipt relation.
+The existing Finance confirmed-payment allocation path posts a cash transaction;
+it is not a read-only substitute and is outside the prior no-Finance-posting
+authority. Do not repurpose deposit receipts, refund adjustments, metadata, a
+Beauty revenue RPC or immutable recognition totals as a payment subsystem.
+Settlement/refund authority and its canonical persistence must be approved before
+implementing that missing capability.
+
+### Owner-Approved Post-Sale Receipt Implementation
+
+The subsequent owner decision authorizes one additive Non-Production receipt
+table, tenant/RLS enforcement, payment API/UI and internal reconciliation. It
+does not authorize Finance posting, refund/forfeiture rules or Production access.
+Result: PASS for this concrete implementation scope; not Go-Live approval.
+
+- AutoMove owns operational receipt facts, not Finance cash/AR projections.
+  Reuse the active tenant accountant authority from the sale-chain contract.
+- One table: auto_vehicle_sale_payments. Immutable receipt references the existing
+  recognition and booking. Positive integer VND amount, server receipt time/actor,
+  method/reference/notes, tenant-scoped unique idempotency UUID and external
+  transaction reference. No mutation of deposits or recognition snapshots.
+- Source of amount due: recognition plus existing signed sale-price adjustments,
+  less confirmed deposit receipts and persisted post-sale receipts. Never use
+  current list_price/cost_price or booking.total_price as the sale amount.
+- Internal reconciliation compares booking deposit_paid with confirmed receipt
+  sum, recognition arithmetic/payment snapshot and current collections. Missing,
+  duplicate references and overcollection are MISMATCH, not a successful zero.
+  This is not bank-statement or Finance-ledger reconciliation.
+- Refund/reversal-bearing adjustments or refunded/cancelled booking block new
+  collection pending the separately approved refund policy. Existing exact receipt
+  retry remains a read; a reused key with changed intent is a conflict.
+- API derives actor/tenant from Auth and users, validates amount, serializes by
+  booking, and reads the committed receipt back. Database guard independently
+  enforces identity, ownership, totals and cap for direct authenticated inserts.
+- UI uses the existing sale dossier, a separate payment form and persisted receipt
+  list/reconciliation. Errors retain the same intent key and never show success.
+  Reload reads DB; collection never emits PACKAGE_SALE or recognizes revenue.
+- Verification extends the existing rollback verifier and actual Next.js sales
+  chain with partial/full collection, sequential/concurrent retry, changed intent,
+  overpayment, inactive/wrong-role/tenant/anonymous denial, integrity mismatch,
+  append-only constraints and transaction failure rollback. PR CI must run it.
+- Migration safety: one new product table/function/index/policy only; existing
+  history/helpers/Finance/kernel unchanged. Apply only to verified isolated E2E
+  after static checks, with explicit transaction and migration history via the
+  repository's changed-migration mechanism. Never invoke Production URLs.
+
+SETTLEMENT_IMPLEMENTATION_AUTHORITY = APPROVED_NON_PRODUCTION_ONLY
+ADD_NEW_RECEIPT_SCHEMA = AUTHORIZED_MINIMAL_ADDITIVE_SCOPE
+REFUND_POLICY_OR_FINANCE_POSTING = NOT_AUTHORIZED
+
+### Eleven Verification Gates Plan
+
+1. Architecture: scoped diff and Architecture Guard; no frozen/kernel changes.
+2. Contract: existing API/response and sequential/concurrent idempotency preserved.
+3. Tenant: existing A/B rejection remains exercised by the Real DB verifier.
+4. Authorization: active identity/tenant checks remain before receipt access.
+5. Migration: the deposit guard needs no schema changes. The subsequently
+   approved post-sale scope adds only migration 20261015020000, including its
+   receipt-table RLS/grants; existing migrations and shared helpers stay intact.
+6. Persistence/events: invalid operation writes zero receipts/balance changes;
+   injected-write-failure rollback still passes; no financial event emitted.
+7. Business: new receipts denied after cancellation/refund, including an amount
+   that would otherwise fit the remaining deposit; independent valid deposits work.
+8. History: existing confirmed receipt remains unchanged across cancellation/retry.
+9. Retry: exact receipt replays, changed payload/refunded receipt conflicts remain.
+10. Real DB: isolated E2E only, verified TLS, transaction rollback and zero residual
+    fixture tenants/Auth rows; no Production connection or mutation.
+11. Regression: focused service/HTTP/API/UI tests, typecheck, lint, diff-check and
+    the existing actual Next.js deposit browser regression where executable.
+
+### Executed Evidence and Current Boundary
+
+- Before the fix: isolated authenticated Real DB reproduction accepted a new
+  30,000,000 VND receipt for a cancelled booking; rollback left zero fixture
+  tenants. Three new unit cases failed on the unmodified command.
+- After the fix: 10 focused suites / 100 tests PASS. Covers active identity,
+  changed payload, refunded receipt, cancelled/refunded booking, exact receipt
+  replay, allocation, recognition, reporting and UI retry regressions.
+- Existing Real DB transaction verifier PASS, including
+  DEPOSIT_CLOSED_BOOKING_DENIAL_AND_EXISTING_RECEIPT_RETRY=PASS. Rejected commands
+  leave the full booking/receipt records unchanged. Injected-write failure and
+  rollback, independent deposits, caps, tenant/inactive denial still PASS.
+  Final rollback verifies zero fixture tenants and Auth actors.
+- Actual Next.js + Chromium specs 42 and 43: 2/2 PASS (4.4 minutes, no skips or
+  flaky retries). The dashboard sale chain still recognizes exactly one 1.4B VND
+  sale; API closure tests return HTTP 409 with BOOKING_CLOSED_FOR_DEPOSIT, persist
+  no new receipt/credit, and allow the exact previously confirmed receipt retry.
+  Sequential/concurrent retry, independent collections and cap tests still PASS.
+  Browser fixture Auth removed and tenants archived. Desktop/mobile inspected.
+- Full strict application typecheck PASS; separate changed test/verifier/E2E
+  compiler check reports zero diagnostics. Focused ESLint, Architecture Guard and
+  git diff --check PASS. Single-agent scoped diff review: no additional blocking
+  path in the changed guard; no independent multi-agent sign-off is claimed.
+- No Production query, mutation or deployment; no migration, grants/RLS,
+  Finance posting, ProductRegistry or kernel changes. No commit/push/PR performed.
+  Existing legacy inventory/delivery RPC errors remain outside this proof.
+- These are local Non-Production results, not main/release Browser CI or Go-Live
+  proof. The missing post-sale settlement source is not repaired by this guard.
+
+### Post-Sale Receipt Verification Checkpoint
+
+- Migration 20261015020000 passed the zero-downtime checker and was applied ONLY
+  to isolated E2E via the existing explicit-file applier, wrapped in a transaction
+  and the existing verified-TLS/non-Production connection guard. Read-only
+  read-back confirms that exact version in migration history and RLS enabled.
+  One new table; no mutation of previous migrations or Finance schema.
+- Actual rollback verifier PASS: partial/full receipts, exact retry, altered-key
+  intent, reused external reference, cap, anonymous/wrong-role/inactive/cross-tenant
+  denial, database-trigger cap/identity denial, UPDATE/DELETE denial and immutable
+  trigger even under the proof connection. Injected failure after INSERT rolls
+  back the receipt. Missing/duplicate deposit facts and unresolved refunds are
+  detected. Final rollback leaves zero fixture tenants and Auth actors.
+- 15 focused suites / 149 tests PASS. Covers service, HTTP transaction/auth/error,
+  UI uncertain acknowledgement/remount retry, completed-booking access, receipt
+  schema safety, CI selector and existing deposit/recognition/reporting regression.
+- Actual Next.js/Chromium: latest clean run 2/2 PASS (4.1 minutes, zero skips and
+  zero automatic/flaky retries). Browser simulates loss of the response AFTER
+  actual HTTP commit; UI shows an error, retains the same key, and recovers the
+  one existing receipt. Concurrent same-key and independent requests, duplicate
+  reference/overpayment denial, mismatch blocking, full settlement to zero and
+  completed-dossier read-back pass against independently queried DB records.
+  Recognition and deposit history remain unchanged; revenue remains 1.4B VND.
+  Desktop/mobile receipt screenshots inspected. Auth removed and tenants archived.
+- Earlier local attempts: cold-route compilation exceeded a message assertion;
+  test now awaits the actual operation response before checking success. Another
+  pre-fixture connection attempt timed out, and an earlier deposit retry returned
+  HTTP 500 without an attributable business error. Those attempts are NOT PASS;
+  the fresh complete run and DB proof above succeeded without TLS weakening or
+  test skips. This is not a claim that the network cannot fail.
+- Focused ESLint, separate strict compiler check for new tests/verifier/browser,
+  Architecture Guard and whitespace diff check PASS. Fresh full strict application
+  compiler (no incremental cache) exited 0 for the final diff before commit.
+- Internal receipt reconciliation is NOT bank-statement reconciliation, a Finance
+  cash/AR position, or posting proof. Refund/forfeiture semantics, Finance posting
+  and Production adoption still require separate authority. Full release browser
+  proof on main is not inferred from this local run.
+
+IMPLEMENTATION = IMPLEMENTED_LOCAL_VERIFIED_POST_SALE_RECEIPTS
+DEPOSIT_CLOSED_BOOKING_NEW_COLLECTION = DENIED_PROVEN_ON_E2E
+POST_SALE_PAYMENT_PERSISTENCE = PROVEN_ON_E2E
+SETTLEMENT_IMPLEMENTATION = LOCAL_VERIFIED_PENDING_PR_CI
+MAIN_SEAL = NOT_PERFORMED
+PRODUCTION_MUTATION = NOT_AUTHORIZED
+AUTOMOVE_FULL_PRODUCT_READINESS = NOT_READY
+
 ## AutoMove Dashboard Recognized Sales Read Alignment - 2026-10-15
 
 Architecture result: PASS for the owner-approved E2E-only implementation.

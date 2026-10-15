@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Dialog } from '@headlessui/react';
 import { Check, FileCheck, FileText, Loader2, Truck, X } from 'lucide-react';
 import { createClient } from '@/lib/supabase-client';
+import { VehicleSalePayments } from './VehicleSalePayments';
 
 interface DocumentRef { bucket: string; path: string; sha256: string }
 interface Snapshot { id: string; reviewHash: string; status: 'draft' | 'approved'; sale_price: number; discount_amount: number; cost_basis: number; sale_document: DocumentRef; cost_document: DocumentRef }
@@ -157,6 +158,7 @@ export function VehicleSaleChainDialog({ bookingId, bookingNumber, tenantId, onC
           <button type="button" disabled={busy || !evidenceId || snapshot?.status !== 'approved'} className={button} onClick={() => snapshot && evidenceId && void run('recognize',{ snapshotId: snapshot.id, handoverEvidenceId: evidenceId },'Đã ghi nhận doanh thu bán xe.')}><Check size={16} />Ghi nhận doanh thu</button>
           {busy && <Loader2 className="animate-spin" size={20} aria-label="Đang xử lý" />}
         </div>
+        {snapshot?.status === 'approved' && <VehicleSalePayments key={`${snapshot.id}:${message}`} bookingId={bookingId} />}
       </Dialog.Panel>
     </div>
   </Dialog>;

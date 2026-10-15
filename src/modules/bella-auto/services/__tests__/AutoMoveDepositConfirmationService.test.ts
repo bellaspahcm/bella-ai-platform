@@ -5,7 +5,7 @@ const key = '00000000-0000-4000-8000-000000000003';
 const tenant = 'd4f7567f-787f-46e9-86d8-206c00457b43';
 const db = { query: jest.fn() };
 const payload = { amount: 30000000, payment_method: 'cash', notes: 'Proof' };
-const stored = { id: bookingId, tenant_id: tenant, deposit_amount: '100000000', deposit_paid: '30000000', payment_status: 'partially_paid' };
+const stored = { id: bookingId, tenant_id: tenant, deposit_amount: '100000000', deposit_paid: '30000000', payment_status: 'partially_paid', status: 'pending_deposit' };
 const receipt = { id: key, booking_id: bookingId, amount: '30000000', payment_method: 'cash', transaction_ref: null, notes: 'Proof',
   status: 'confirmed', created_by: actor, confirmed_by: actor };
 beforeEach(() => { jest.clearAllMocks(); db.query.mockResolvedValue({ rows: [] }); });
@@ -41,6 +41,37 @@ it('replays a full deposit before checking an additional overpayment', async () 
 it.each([{ ...receipt, amount: '1' }, { ...receipt, booking_id: key }, { ...receipt, created_by: key }, { ...receipt, status: 'refunded' }])('rejects conflicting/revoked receipt reuse without modifying it', async existing => {
   db.query.mockResolvedValueOnce({ rows: [{ tenant_id: tenant }] }).mockResolvedValueOnce({ rows: [stored] }).mockResolvedValueOnce({ rows: [existing] });
   await expect(confirmBookingDeposit(db, actor, bookingId, key, payload)).rejects.toMatchObject({ code: 'DEPOSIT_IDEMPOTENCY_CONFLICT' });
+  expect(db.query).toHaveBeenCalledTimes(3);
+});
+it.each([
+  { ...stored, status: 'cancelled' },
+  { ...stored, payment_status: 'refunded' },
+  { ...stored, status: 'cancelled', payment_status: 'refunded' },
+])('rejects a new receipt for a cancelled/refunded booking without writes', async booking => {
+  db.query.mockResolvedValueOnce({ rows: [{ tenant_id: tenant }] }).mockResolvedValueOnce({ rows: [booking] })
+    .mockResolvedValueOnce({ rows: [] });
+  await expect(confirmBookingDeposit(db, actor, bookingId, key, payload)).rejects.toMatchObject({
+    code: 'BOOKING_CLOSED_FOR_DEPOSIT', httpStatus: 409,
+  });
+  expect(db.query).toHaveBeenCalledTimes(3);
+  expect(db.query.mock.calls.some(([sql]) => /insert|update public\.auto_bookings/i.test(sql))).toBe(false);
+});
+it('replays a still-confirmed receipt after booking cancellation without collecting again', async () => {
+  db.query.mockResolvedValueOnce({ rows: [{ tenant_id: tenant }] })
+    .mockResolvedValueOnce({ rows: [{ ...stored, status: 'cancelled' }] })
+    .mockResolvedValueOnce({ rows: [receipt] });
+  expect(await confirmBookingDeposit(db, actor, bookingId, key, payload)).toMatchObject({
+    isDuplicate: true, data: { deposit_id: key, new_deposit_paid: 30000000 },
+  });
+  expect(db.query).toHaveBeenCalledTimes(3);
+});
+it('does not turn a refunded receipt into a valid replay on a cancelled booking', async () => {
+  db.query.mockResolvedValueOnce({ rows: [{ tenant_id: tenant }] })
+    .mockResolvedValueOnce({ rows: [{ ...stored, status: 'cancelled', payment_status: 'refunded' }] })
+    .mockResolvedValueOnce({ rows: [{ ...receipt, status: 'refunded' }] });
+  await expect(confirmBookingDeposit(db, actor, bookingId, key, payload)).rejects.toMatchObject({
+    code: 'DEPOSIT_IDEMPOTENCY_CONFLICT',
+  });
   expect(db.query).toHaveBeenCalledTimes(3);
 });
 it('does not let a new key exceed the remaining requirement', async () => {

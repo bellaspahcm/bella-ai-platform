@@ -63,6 +63,9 @@ export async function confirmBookingDeposit(db: SqlClient, actorUserId: string, 
     }
     return result(stored, receiptId, true);
   }
+  if (stored.status === 'cancelled' || stored.payment_status === 'refunded') {
+    throw new DepositConfirmationError('BOOKING_CLOSED_FOR_DEPOSIT', 'Cancelled or refunded bookings cannot accept a new deposit.');
+  }
   const { paid, required } = balance(stored);
   if (amount > required - paid) throw new DepositConfirmationError('DEPOSIT_EXCEEDS_REQUIRED_AMOUNT', 'Deposit exceeds the booking requirement.', 400);
   const newPaid = paid + amount;

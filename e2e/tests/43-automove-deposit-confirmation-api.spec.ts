@@ -90,7 +90,7 @@ test('AutoMove deposit API: sequential retries, concurrent requests and independ
     expect(partial.receipts).toHaveLength(1);
     console.log('DEPOSIT_PARTIAL_CONFIRMATION=PASS');
     const partialRetry = await post(partialBooking, partialRequest, partialKey);
-    expect(partialRetry.status()).toBe(200);
+    expect(partialRetry.status(), await partialRetry.text()).toBe(200);
     expect(await partialRetry.json()).toMatchObject({ isDuplicate: true, data: { deposit_id: partialKey } });
     const afterRetry = await read(partialBooking);
     console.log(`DEPOSIT_PARTIAL_RETRY_READ_BACK=${JSON.stringify({ httpStatus: partialRetry.status(), receiptCount: afterRetry.receipts.length,
@@ -132,6 +132,25 @@ test('AutoMove deposit API: sequential retries, concurrent requests and independ
     expect(independentConcurrent.receipts).toHaveLength(2); expect(independentConcurrent.booking.deposit_paid).toBe('40000000');
     expect(independentConcurrent.receipts.map(receipt => receipt.id).sort()).toEqual([...cashKeys].sort());
     console.log('DEPOSIT_INDEPENDENT_EQUAL_AMOUNT_KEYS_SEQUENTIAL_AND_CONCURRENT=PASS');
+
+    stage = 'cancelled and refunded booking collection denial';
+    await db.query("update public.auto_bookings set status='cancelled' where id=$1", [independentBooking]);
+    const cancelled = await read(independentBooking);
+    const cancelledAttempt = await post(independentBooking, cash, randomUUID());
+    expect(cancelledAttempt.status()).toBe(409);
+    expect(await cancelledAttempt.json()).toMatchObject({ code: 'BOOKING_CLOSED_FOR_DEPOSIT' });
+    expect(await read(independentBooking)).toEqual(cancelled);
+    const cancelledRetry = await post(independentBooking, cash, cashKeys[0]);
+    expect(cancelledRetry.status()).toBe(200);
+    expect(await cancelledRetry.json()).toMatchObject({ isDuplicate: true, data: { deposit_id: cashKeys[0] } });
+    expect(await read(independentBooking)).toEqual(cancelled);
+    await db.query("update public.auto_bookings set payment_status='refunded' where id=$1", [partialBooking]);
+    const refunded = await read(partialBooking);
+    const refundedAttempt = await post(partialBooking, cash, randomUUID());
+    expect(refundedAttempt.status()).toBe(409);
+    expect(await refundedAttempt.json()).toMatchObject({ code: 'BOOKING_CLOSED_FOR_DEPOSIT' });
+    expect(await read(partialBooking)).toEqual(refunded);
+    console.log('DEPOSIT_API_CLOSED_BOOKING_NO_NEW_RECEIPT_AND_SAFE_EXISTING_RETRY=PASS');
 
     stage = 'concurrent overpayment guard';
     const cappedCalls = await Promise.all([post(cappedBooking, { ...cash, amount: 70000000 }, randomUUID()),

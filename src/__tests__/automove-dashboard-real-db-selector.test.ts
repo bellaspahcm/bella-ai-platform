@@ -41,6 +41,18 @@ it.each(['supabase/migrations/unknown-migration.sql', 'jest.real-db.config.ts'])
 });
 
 it.each([
+  'supabase/migrations/20261015020000_create_automove_post_sale_receipts.sql',
+  'src/modules/bella-auto/services/AutoMoveSalePaymentService.ts',
+  'src/modules/bella-auto/services/AutoMoveSalePaymentHttp.ts',
+  'src/components/bella-auto/VehicleSalePayments.tsx',
+  'src/app/api/bella-auto/bookings/[id]/sale-payments/route.ts',
+])('selects post-sale payment Real DB proof for %s', path => {
+  const output = select(path);
+  expect(output).toContain('scripts/verify-automove-post-sale-payments.ts');
+  expect(output).not.toContain('Running full real database business E2E suite.');
+});
+
+it.each([
   'src/modules/bella-auto/services/FinancialReportingService.ts',
   'src/app/api/bella-auto/analytics/recognized-sales/route.ts',
   'src/components/bella-auto/BellaAutoAnalyticsDashboard.tsx',
