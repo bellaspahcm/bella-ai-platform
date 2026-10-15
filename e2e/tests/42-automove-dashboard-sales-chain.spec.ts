@@ -263,6 +263,14 @@ test('AutoMove actual dashboard: login to booking, deposit and explicit recognit
     await expect(payments.getByTestId('settlement-outstanding')).toHaveText('0 VND');
     await expect(payments.getByTestId('settlement-paid')).toHaveText('1.300.000.000 VND');
     await expect(payments.getByRole('list', { name: 'Receipt sau bán' }).getByRole('listitem')).toHaveCount(5);
+    await db.query('update public.auto_bookings set deposit_amount=200000000 where id=$1', [bookingId]);
+    const lateDeposit = await page.context().request.post(`/api/bella-auto/bookings/${bookingId}/confirm-deposit`, {
+      headers: { 'Idempotency-Key': randomUUID() }, data: { amount: 1, payment_method: 'cash' },
+    });
+    expect(lateDeposit.status()).toBe(409);
+    expect(await lateDeposit.json()).toMatchObject({ code: 'DEPOSIT_EXCEEDS_SALE_BALANCE' });
+    expect((await db.query('select deposit_paid from public.auto_bookings where id=$1', [bookingId])).rows[0].deposit_paid).toBe('100000000');
+    console.log('AUTOMOVE_COMBINED_COLLECTION_CAP_API=PASS');
     await sale.getByRole('button', { name: 'Đóng', exact: true }).click();
     await db.query("update public.auto_bookings set status='completed' where id=$1", [bookingId]);
     await page.getByRole('button', { name: 'Thanh toán sau bán', exact: true }).click();
