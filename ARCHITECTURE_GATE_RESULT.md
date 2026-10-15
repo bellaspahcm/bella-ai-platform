@@ -9999,3 +9999,41 @@ REMOTE_CI = NOT_STARTED
 MAIN_SEAL = NOT_PERFORMED
 PRODUCTION_MUTATION = NOT_PERFORMED
 AUTOMOVE_FULL_PRODUCT_READINESS = NOT_READY
+
+Integration verification addendum: platform/main b7a49ee33 was merged into this
+branch without conflicts; the PR diff still contains only the reviewed 30 files.
+Fresh 104 tests, strict typecheck and architecture/API checks passed. The first
+post-integration browser run was NOT PASS: the observer PostgreSQL connection
+terminated during document upload. Deposit API test 43 still passed. Independent
+read-back confirmed no snapshot/recognition, no Auth user or Storage objects,
+but one active fixture profile/tenant remained because teardown reused the failed
+connection. Do not infer a runtime recognition regression or ignore this failure.
+Review remediation is test-only: collect observer connection errors as failures
+and use a fresh verified E2E connection for atomic fixture-authority cleanup.
+No query/assertion retry, business runtime change or lower TLS/Auth/RLS standard.
+Revoke the failed fixture's existing authority through the same approved teardown
+actions, preserve its financial/allocation history, then rerun the browser tests.
+FINAL_DIFF_REVIEW = CHANGES_REQUIRED_TEST_TEARDOWN_VERIFICATION
+
+Integration rerun executed: both actual Next.js/Chromium tests PASS (2.8 minutes).
+The earlier observer-connection failure remains recorded as FAIL, not counted
+as successful business evidence. No runtime semantics or test assertions changed.
+Fresh strict typecheck and teardown-test ESLint PASS. The failed fixture's profile
+was deactivated and tenant terminated; no business/allocation/financial history
+was deleted. Independent READ ONLY proof after rerun confirms zero tagged Auth
+users, active profiles/tenants and Storage documents, including the failed run.
+Deposit fixture bfae1cfd has the expected full/partial/concurrent/independent/cap
+receipt counts and exact balance sums. Booking d9b76b50-1abe-4138-8113-b5669b8a33bf
+has one canonical recognition with 1.4B revenue, 1B cost, 100M cash, 1.3B receivable,
+policy 1.0.0 and snapshot/handover bindings. Playwright listener is stopped and
+its generated AGENTS.md delta removed. Diff versus fetched platform/main retains
+only the approved batch files; primary-checkout work and cache images untouched.
+
+FINAL_DIFF_REVIEW = PASS_FOR_APPROVED_SCOPE
+LOCAL_INTEGRATION_WITH_MAIN = PASS
+DEPOSIT_IDEMPOTENCY_FIX = PROVEN_ON_E2E
+ACTUAL_NEXT_DESKTOP_BROWSER_AND_DEPOSIT_API = PASS_EXECUTED
+REMOTE_CI = PENDING_PR_CREATION
+MAIN_SEAL = NOT_PERFORMED
+PRODUCTION_MUTATION = NOT_PERFORMED
+AUTOMOVE_FULL_PRODUCT_READINESS = NOT_READY

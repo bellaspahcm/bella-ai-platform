@@ -33,6 +33,7 @@ test('AutoMove actual dashboard: login to booking, deposit and explicit recognit
   let authenticated = false;
   let stage = 'fixture';
   const errors: unknown[] = [];
+  db.on('error', error => { errors.push(error); });
   await db.connect();
   try {
     const created = await admin.auth.admin.createUser({ email, password, email_confirm: true });
@@ -205,8 +206,19 @@ test('AutoMove actual dashboard: login to booking, deposit and explicit recognit
       });
       // Preserve append-only test history. Revoke fixture authority instead of
       // disabling financial guards or deleting approved accounting records.
-      await cleanup(() => db.query("update public.users set status='inactive' where id=$1 and tenant_id=$2", [actorId, tenantId]));
-      await cleanup(() => db.query("update public.tenants set status='terminated' where id=$1", [tenantId]));
+      await cleanup(async () => {
+        const teardownDb = new Client(saleChainConnection(dbUrl, apiUrl));
+        try {
+          await teardownDb.connect();
+          await teardownDb.query('begin');
+          await teardownDb.query("update public.users set status='inactive' where id=$1 and tenant_id=$2", [actorId, tenantId]);
+          await teardownDb.query("update public.tenants set status='terminated' where id=$1", [tenantId]);
+          await teardownDb.query('commit');
+        } catch (error: unknown) {
+          await teardownDb.query('rollback').catch(() => undefined);
+          throw error;
+        } finally { await teardownDb.end(); }
+      });
     }
     if (actorId) await cleanup(async () => {
       const removed = await admin.auth.admin.deleteUser(actorId);

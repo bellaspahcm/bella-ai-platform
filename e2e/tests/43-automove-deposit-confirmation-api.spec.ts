@@ -10,10 +10,11 @@ test('AutoMove deposit API: sequential retries, concurrent requests and independ
   test.setTimeout(180_000);
   const apiUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
   const adminKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const dbUrl = process.env.DB_URL;
   expect(new URL(apiUrl).hostname).toBe('bmnbqbcdbuklhopfbopv.supabase.co');
   expect(baseURL && ['localhost', '127.0.0.1'].includes(new URL(baseURL).hostname)).toBe(true);
-  if (!adminKey || !process.env.DB_URL) throw new Error('Authorized E2E configuration is required.');
-  const db = new Client(saleChainConnection(process.env.DB_URL, apiUrl));
+  if (!adminKey || !dbUrl) throw new Error('Authorized E2E configuration is required.');
+  const db = new Client(saleChainConnection(dbUrl, apiUrl));
   const admin = createClient(apiUrl, adminKey, { auth: { persistSession: false, autoRefreshToken: false } });
   const tenantId = randomUUID(), customerId = randomUUID(), brandId = randomUUID(), modelId = randomUUID(), variantId = randomUUID();
   const fullBooking = randomUUID(), partialBooking = randomUUID();
@@ -23,6 +24,7 @@ test('AutoMove deposit API: sequential retries, concurrent requests and independ
   const password = randomBytes(32).toString('hex');
   let actorId: string | undefined, seeded = false, transaction = false;
   const errors: unknown[] = [];
+  db.on('error', error => { errors.push(error); });
   let stage = 'fixture';
   await db.connect();
   try {
@@ -146,8 +148,19 @@ test('AutoMove deposit API: sequential retries, concurrent requests and independ
     await clean(() => page.close());
     if (transaction) await clean(() => db.query('rollback'));
     if (seeded) {
-      await clean(() => db.query("update public.users set status='inactive' where id=$1 and tenant_id=$2", [actorId, tenantId]));
-      await clean(() => db.query("update public.tenants set status='terminated' where id=$1", [tenantId]));
+      await clean(async () => {
+        const teardownDb = new Client(saleChainConnection(dbUrl, apiUrl));
+        try {
+          await teardownDb.connect();
+          await teardownDb.query('begin');
+          await teardownDb.query("update public.users set status='inactive' where id=$1 and tenant_id=$2", [actorId, tenantId]);
+          await teardownDb.query("update public.tenants set status='terminated' where id=$1", [tenantId]);
+          await teardownDb.query('commit');
+        } catch (error: unknown) {
+          await teardownDb.query('rollback').catch(() => undefined);
+          throw error;
+        } finally { await teardownDb.end(); }
+      });
     }
     if (actorId) await clean(async () => { const removed = await admin.auth.admin.deleteUser(actorId!); if (removed.error) throw new Error('E2E Auth cleanup failed.'); });
     await clean(() => db.end());
