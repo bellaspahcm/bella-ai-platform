@@ -15,6 +15,22 @@
 
 import { getPrimaryClient } from '@/lib/database/read-replica';
 import { listMobilityVehicleDisplayByIds } from '@/platform/mobility/supabase-vehicle-contract';
+import type { SupabaseClient } from '@supabase/supabase-js';
+import type { Database } from '@/types/database.types';
+
+export interface RecognizedSalesDashboard {
+  summary: { revenue: number; sales: number; averageSalePrice: number };
+  revenueByMonth: Array<{ month: string; revenue: number; sales: number }>;
+  topModels: Array<{ model: string; sold: number; revenue: number }>;
+  timeZone: 'UTC';
+}
+
+export class RecognizedSalesReadError extends Error {
+  constructor(message: string, readonly status: 401 | 403 | 503) {
+    super(message);
+    this.name = 'RecognizedSalesReadError';
+  }
+}
 
 interface DateRange {
   start: string;
@@ -73,6 +89,7 @@ interface LegacyQuery<Row> extends PromiseLike<LegacyQueryResult<Row>> {
   in(column: string, values: readonly unknown[]): LegacyQuery<Row>;
   lte(column: string, value: unknown): LegacyQuery<Row>;
   order(column: string, options?: { ascending?: boolean }): LegacyQuery<Row>;
+  range(from: number, to: number): LegacyQuery<Row>;
   returns(): LegacyQuery<Row>;
 }
 
@@ -160,11 +177,65 @@ interface RecognizedVehicleSale {
 }
 
 export class FinancialReportingService {
+  static async getRecognizedSalesDashboard(
+    supabase: SupabaseClient<Database>,
+    now = new Date()
+  ): Promise<RecognizedSalesDashboard> {
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError?.status && authError.status >= 500) throw new RecognizedSalesReadError('Unable to verify authentication', 503);
+    if (authError || !user) throw new RecognizedSalesReadError('Unauthorized', 401);
+    const { data: profile, error: profileError } = await supabase.from('users')
+      .select('tenant_id, status').eq('id', user.id).single();
+    if (profileError) throw new RecognizedSalesReadError('Unable to verify actor', profileError.code === 'PGRST116' ? 403 : 503);
+    if (!profile?.tenant_id || profile.status !== 'active') {
+      throw new RecognizedSalesReadError('Active tenant identity required', 403);
+    }
+    const { data: tenant, error: tenantError } = await supabase.from('tenants')
+      .select('id, status').eq('id', profile.tenant_id).single();
+    if (tenantError) throw new RecognizedSalesReadError('Unable to verify tenant', tenantError.code === 'PGRST116' ? 403 : 503);
+    if (!tenant || tenant.status !== 'active') {
+      throw new RecognizedSalesReadError('Active tenant required', 403);
+    }
+    const sales = await this.getRecognizedVehicleSales(profile.tenant_id, undefined, supabase);
+    const revenueByMonth = Array.from({ length: 6 }, (_, index) => ({
+      month: new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 5 + index, 1))
+        .toISOString().slice(0, 7),
+      revenue: 0,
+      sales: 0,
+    }));
+    const models = new Map<string, { model: string; sold: number; revenue: number }>();
+    let totalRevenue = 0;
+    for (const sale of sales) {
+      if (!Number.isSafeInteger(sale.salePrice)) {
+        throw new RecognizedSalesReadError('Invalid recognized revenue amount', 503);
+      }
+      totalRevenue += sale.salePrice;
+      if (!Number.isSafeInteger(totalRevenue)) throw new RecognizedSalesReadError('Invalid recognized revenue amount', 503);
+      const month = revenueByMonth.find(item => item.month === new Date(sale.recognizedAt).toISOString().slice(0, 7));
+      if (month) { month.revenue += sale.salePrice; month.sales += 1; }
+      const name = sale.vehicleMake === 'Unknown' ? 'Unknown model' : sale.vehicleMake;
+      const model = models.get(name) ?? { model: name, sold: 0, revenue: 0 };
+      model.sold += 1;
+      model.revenue += sale.salePrice;
+      if ((month && !Number.isSafeInteger(month.revenue)) || !Number.isSafeInteger(model.revenue)) {
+        throw new RecognizedSalesReadError('Invalid recognized revenue amount', 503);
+      }
+      models.set(name, model);
+    }
+    return {
+      summary: { revenue: totalRevenue, sales: sales.length, averageSalePrice: sales.length ? totalRevenue / sales.length : 0 },
+      revenueByMonth,
+      topModels: [...models.values()].sort((a, b) => b.sold - a.sold || b.revenue - a.revenue || a.model.localeCompare(b.model)).slice(0, 5),
+      timeZone: 'UTC',
+    };
+  }
+
   private static async getRecognizedVehicleSales(
     tenantId: string,
-    dateRange?: DateRange
+    dateRange?: DateRange,
+    authenticatedClient?: SupabaseClient<Database>
   ): Promise<RecognizedVehicleSale[]> {
-    const supabase = getPrimaryClient();
+    const supabase = authenticatedClient ?? getPrimaryClient();
     const reporting = financialReportingClient(supabase);
 
     let query = reporting
@@ -185,7 +256,9 @@ export class FinancialReportingService {
         .lte('recognized_at', dateRange.end);
     }
 
-    const { data, error } = await query.order('recognized_at', { ascending: false });
+    query = query.order('recognized_at', { ascending: false });
+    if (authenticatedClient) query = query.order('id', { ascending: false });
+    const { data, error } = await readReportingRows(query, Boolean(authenticatedClient));
 
     if (error) {
       throw new Error(`Failed to fetch recognized vehicle sales: ${error.message}`);
@@ -196,12 +269,14 @@ export class FinancialReportingService {
     const adjustmentsByRecognitionId = await this.getRecognitionAdjustments(
       reporting,
       tenantId,
-      recognitionIds
+      recognitionIds,
+      Boolean(authenticatedClient)
     );
     const displayByVehicleId = await this.getVehicleDisplayById(
       supabase,
       tenantId,
-      recognitions.map((row) => row.vehicle_id)
+      recognitions.map((row) => row.vehicle_id),
+      Boolean(authenticatedClient)
     );
 
     return recognitions.map((row) => {
@@ -210,8 +285,9 @@ export class FinancialReportingService {
         costBasisDelta: 0,
       };
       const display = displayByVehicleId.get(row.vehicle_id);
-      const salePrice = toMoney(row.sale_price_recognized) + adjustment.salePriceDelta;
-      const costPrice = toMoney(row.cost_basis_at_sale) + adjustment.costBasisDelta;
+      const parseMoney = authenticatedClient ? recognizedMoney : toMoney;
+      const salePrice = parseMoney(row.sale_price_recognized) + adjustment.salePriceDelta;
+      const costPrice = parseMoney(row.cost_basis_at_sale) + adjustment.costBasisDelta;
 
       return {
         recognitionId: row.id,
@@ -229,34 +305,44 @@ export class FinancialReportingService {
   private static async getRecognitionAdjustments(
     reporting: FinancialReportingClient,
     tenantId: string,
-    recognitionIds: readonly string[]
+    recognitionIds: readonly string[],
+    paginated = false
   ): Promise<Map<string, { salePriceDelta: number; costBasisDelta: number }>> {
     if (recognitionIds.length === 0) return new Map();
 
-    const { data, error } = await reporting
-      .from('auto_vehicle_sale_recognition_adjustments')
-      .select<RecognitionAdjustmentRow>(`
-        recognition_id,
-        sale_price_delta,
-        cost_basis_delta
-      `)
-      .eq('tenant_id', tenantId)
-      .in('recognition_id', recognitionIds);
-
-    if (error) {
-      throw new Error(`Failed to fetch vehicle sale recognition adjustments: ${error.message}`);
-    }
-
     const adjustments = new Map<string, { salePriceDelta: number; costBasisDelta: number }>();
-    for (const row of data ?? []) {
-      const current = adjustments.get(row.recognition_id) ?? {
-        salePriceDelta: 0,
-        costBasisDelta: 0,
-      };
+    const chunks = paginated ? chunkIds(recognitionIds) : [recognitionIds];
+    for (const ids of chunks) {
+      let query = reporting
+        .from('auto_vehicle_sale_recognition_adjustments')
+        .select<RecognitionAdjustmentRow>(`
+          recognition_id,
+          sale_price_delta,
+          cost_basis_delta
+        `)
+        .eq('tenant_id', tenantId)
+        .in('recognition_id', ids);
+      if (paginated) query = query.order('id', { ascending: true });
+      const { data, error } = await readReportingRows(query, paginated);
 
-      current.salePriceDelta += toMoney(row.sale_price_delta);
-      current.costBasisDelta += toMoney(row.cost_basis_delta);
-      adjustments.set(row.recognition_id, current);
+      if (error) {
+        throw new Error(`Failed to fetch vehicle sale recognition adjustments: ${error.message}`);
+      }
+
+      for (const row of data ?? []) {
+        const current = adjustments.get(row.recognition_id) ?? {
+          salePriceDelta: 0,
+          costBasisDelta: 0,
+        };
+
+        const parseMoney = paginated ? recognizedMoney : toMoney;
+        current.salePriceDelta += parseMoney(row.sale_price_delta);
+        current.costBasisDelta += parseMoney(row.cost_basis_delta);
+        if (paginated && (!Number.isSafeInteger(current.salePriceDelta) || !Number.isSafeInteger(current.costBasisDelta))) {
+          throw new RecognizedSalesReadError('Invalid recognized adjustment amount', 503);
+        }
+        adjustments.set(row.recognition_id, current);
+      }
     }
 
     return adjustments;
@@ -265,14 +351,18 @@ export class FinancialReportingService {
   private static async getVehicleDisplayById(
     supabase: unknown,
     tenantId: string,
-    vehicleIds: readonly string[]
+    vehicleIds: readonly string[],
+    paginated = false
   ) {
-    const displayRows = await listMobilityVehicleDisplayByIds(
-      supabase as Parameters<typeof listMobilityVehicleDisplayByIds>[0],
-      { tenantId, vehicleIds }
-    );
-
-    return new Map(displayRows.map((row) => [row.vehicleId, row]));
+    const display = new Map<string, Awaited<ReturnType<typeof listMobilityVehicleDisplayByIds>>[number]>();
+    for (const ids of paginated ? chunkIds([...new Set(vehicleIds)]) : [vehicleIds]) {
+      const rows = await listMobilityVehicleDisplayByIds(
+        supabase as Parameters<typeof listMobilityVehicleDisplayByIds>[0],
+        { tenantId, vehicleIds: ids }
+      );
+      for (const row of rows) display.set(row.vehicleId, row);
+    }
+    return display;
   }
 
   /**
@@ -685,6 +775,23 @@ export class FinancialReportingService {
   }
 }
 
+function chunkIds(ids: readonly string[]): string[][] {
+  const chunks: string[][] = [];
+  for (let offset = 0; offset < ids.length; offset += 100) chunks.push(ids.slice(offset, offset + 100));
+  return chunks;
+}
+
+async function readReportingRows<Row>(query: LegacyQuery<Row>, paginated: boolean): Promise<LegacyQueryResult<Row>> {
+  if (!paginated) return query;
+  const rows: Row[] = [];
+  for (let offset = 0; ; offset += 1000) {
+    const result = await query.range(offset, offset + 999);
+    if (result.error) return result;
+    rows.push(...result.data ?? []);
+    if (!result.data || result.data.length < 1000) return { data: rows, error: null };
+  }
+}
+
 function toMoney(value: number | string | null): number {
   if (typeof value === 'number' && Number.isFinite(value)) return value;
   if (typeof value === 'string' && value.trim() !== '') {
@@ -692,4 +799,10 @@ function toMoney(value: number | string | null): number {
     if (Number.isFinite(parsed)) return parsed;
   }
   return 0;
+}
+
+function recognizedMoney(value: number | string | null): number {
+  const amount = typeof value === 'number' || (typeof value === 'string' && value.trim() !== '') ? Number(value) : NaN;
+  if (!Number.isSafeInteger(amount)) throw new RecognizedSalesReadError('Invalid recognized financial amount', 503);
+  return amount;
 }

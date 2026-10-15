@@ -51,6 +51,10 @@ test('AutoMove actual dashboard: login to booking, deposit and explicit recognit
     await db.query('insert into public.auto_variants (id,tenant_id,model_id,name,year) values ($1,$2,$3,$4,2026)', [variantId, tenantId, modelId, variantName]);
     await db.query(`insert into public.auto_vehicles (id,tenant_id,variant_id,vin,color_exterior,model_year,list_price,cost_price,status)
       values ($1,$2,$3,$4,'Trắng',2026,9900000000,8800000000,'showroom')`, [vehicleId, tenantId, variantId, vin]);
+    await db.query(`insert into public.auto_bookings
+      (tenant_id,booking_number,customer_id,variant_id,color_exterior,total_price,deposit_amount,deposit_paid,status,payment_status)
+      values($1,$2,$3,$4,'Trắng',9900000000,0,0,'completed','unpaid')`,
+      [tenantId,`NEGATIVE-${suffix}`,customerId,variantId]);
     await db.query('commit'); transaction = false; seeded = true;
 
     stage = 'login';
@@ -66,6 +70,7 @@ test('AutoMove actual dashboard: login to booking, deposit and explicit recognit
 
     stage = 'booking dashboard';
     await page.waitForURL('**/dashboard/bella-auto', { timeout: 60_000, waitUntil: 'domcontentloaded' });
+    await expect(page.getByTestId('recognized-sales-current-month')).toContainText('0 VNĐ', { timeout: 60_000 });
     const bookingNavigation = page.getByRole('link', { name: 'Booking & Đặt Cọc', exact: true });
     await expect(bookingNavigation).toBeVisible();
     await bookingNavigation.click();
@@ -147,6 +152,9 @@ test('AutoMove actual dashboard: login to booking, deposit and explicit recognit
     expect(deposits).toHaveLength(1);
     expect(Number(deposits[0].amount)).toBe(100000000);
     expect(deposits[0].status).toBe('confirmed');
+    const depositOnlyReport = await page.context().request.get('/api/bella-auto/analytics/recognized-sales');
+    expect(depositOnlyReport.status()).toBe(200);
+    expect((await depositOnlyReport.json()).revenueByMonth.every((month: { revenue: number }) => month.revenue === 0)).toBe(true);
     await row.getByRole('button', { name: `Hồ sơ bán xe ${booking[0].booking_number}`, exact: true }).click();
     const sale = page.getByRole('dialog');
     const sources = Buffer.from('%PDF-1.4\nOwner-approved AutoMove browser financial fixture\n%%EOF\n');
@@ -167,6 +175,9 @@ test('AutoMove actual dashboard: login to booking, deposit and explicit recognit
     await sale.getByRole('button', { name: 'Xác nhận bàn giao', exact: true }).click();
     await expect(sale.getByRole('status')).toHaveText('Đã lưu bằng chứng bàn giao.');
     expect((await db.query('select count(*)::int as n from public.auto_vehicle_sale_recognitions where booking_id=$1', [bookingId])).rows[0].n).toBe(0);
+    const handoverOnlyReport = await page.context().request.get('/api/bella-auto/analytics/recognized-sales');
+    expect(handoverOnlyReport.status()).toBe(200);
+    expect((await handoverOnlyReport.json()).revenueByMonth.every((month: { revenue: number }) => month.revenue === 0)).toBe(true);
     stage = 'explicit recognition';
     await sale.getByRole('button', { name: 'Ghi nhận doanh thu', exact: true }).click();
     await expect(sale.getByRole('status')).toHaveText('Đã ghi nhận doanh thu bán xe.');
@@ -182,8 +193,30 @@ test('AutoMove actual dashboard: login to booking, deposit and explicit recognit
     expect(Number(ledger[0].cost_basis_at_sale)).toBe(1000000000);
     expect(Number(ledger[0].payment_received_total)).toBe(100000000);
     expect(Number(ledger[0].receivable_amount_at_recognition)).toBe(1300000000);
+    await sale.getByRole('button', { name: 'Đóng', exact: true }).click();
+    const reportResponse = page.waitForResponse(response => response.url().endsWith('/api/bella-auto/analytics/recognized-sales'));
+    await page.goto('/dashboard/bella-auto');
+    const report = await reportResponse;
+    expect(report.status()).toBe(200);
+    expect(report.headers()['cache-control']).toContain('no-store');
+    const reportData = await report.json();
+    const recognizedMonth = new Date(ledger[0].recognized_at).toISOString().slice(0,7);
+    expect(reportData.revenueByMonth.find((month: { month: string }) => month.month === recognizedMonth))
+      .toMatchObject({ revenue: 1400000000, sales: 1 });
+    expect(reportData.topModels).toEqual([{ model: modelName, sold: 1, revenue: 1400000000 }]);
+    await expect(page.getByTestId('recognized-sales-current-month')).toContainText('1.400.000.000 VNĐ', { timeout: 60_000 });
+    await expect(page.getByTestId('recognized-sales-total')).toContainText('1.400.000.000 VNĐ');
+    await expect(page.getByTestId('recognized-sales-average')).toContainText('1.400.000.000 VNĐ');
+    await page.reload();
+    await expect(page.getByTestId('recognized-sales-current-month')).toContainText('1.400.000.000 VNĐ', { timeout: 60_000 });
+    expect((await db.query('select count(*)::int as n from public.auto_vehicle_sale_recognitions where booking_id=$1', [bookingId])).rows[0].n).toBe(1);
     stage = 'PASS';
     await page.screenshot({ path: testInfo.outputPath('dashboard-desktop.png') });
+    await page.setViewportSize({ width: 390, height: 844 });
+    await expect(page.getByTestId('recognized-sales-current-month')).toContainText('1.400.000.000 VNĐ');
+    await page.getByTestId('recognized-sales-current-month').scrollIntoViewIfNeeded();
+    await page.screenshot({ path: testInfo.outputPath('recognized-sales-mobile.png') });
+    console.log('AUTOMOVE_ACTUAL_DASHBOARD_RECOGNIZED_REVENUE_AND_LEDGER_READBACK=PASS');
   } catch (error: unknown) {
     errors.push(error);
     if (authenticated) await page.screenshot({ path: testInfo.outputPath('dashboard-blocker.png') }).catch(() => undefined);
@@ -220,8 +253,9 @@ test('AutoMove actual dashboard: login to booking, deposit and explicit recognit
         } finally { await teardownDb.end(); }
       });
     }
-    if (actorId) await cleanup(async () => {
-      const removed = await admin.auth.admin.deleteUser(actorId);
+    const cleanupActor = actorId;
+    if (cleanupActor) await cleanup(async () => {
+      const removed = await admin.auth.admin.deleteUser(cleanupActor);
       if (removed.error) throw new Error('E2E Auth cleanup failed.');
     });
     await cleanup(() => db.end());

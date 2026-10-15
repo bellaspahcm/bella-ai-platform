@@ -112,11 +112,21 @@ const SCOPED_REAL_DB_SUITES = [
       /^src\/modules\/bella-auto\/services\/FinancialReportingService\.ts$/,
       /^src\/modules\/bella-auto\/services\/__tests__\/FinancialReportingService\.recognized-sales\.test\.ts$/,
       /^scripts\/verify-automove-financial-reporting-recognized-sales\.ts$/,
+      /^scripts\/verify-automove-dashboard-recognized-sales\.ts$/,
+      /^src\/app\/api\/bella-auto\/analytics\/recognized-sales\//,
+      /^src\/components\/bella-auto\/(BellaAutoAnalyticsDashboard|AutoAnalyticsCharts)\.tsx$/,
+      /^src\/app\/dashboard\/bella-auto\/page\.tsx$/,
+      /^src\/(modules\/bella-auto\/services|components\/bella-auto)\/__tests__\/.*[Dd]ashboard.*\.test\.tsx?$/,
+      /^e2e\/tests\/42-automove-dashboard-sales-chain\.spec\.ts$/,
     ],
     commands: [
       {
         command: 'npx',
         args: ['tsx', 'scripts/verify-automove-financial-reporting-recognized-sales.ts'],
+      },
+      {
+        command: 'npx',
+        args: ['tsx', 'scripts/verify-automove-dashboard-recognized-sales.ts'],
       },
     ],
   },

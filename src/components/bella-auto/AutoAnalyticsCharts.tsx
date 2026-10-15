@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import type { RecognizedSalesDashboard } from '@/modules/bella-auto/services/FinancialReportingService';
 import {
   TrendingUp,
   DollarSign,
@@ -12,12 +13,17 @@ import {
   ShieldCheck,
 } from 'lucide-react';
 
-interface AutoAnalyticsChartsProps {
+export interface AutoAnalyticsInventory {
   totalVehicles: number;
   showroomCount: number;
   warehouseCount: number;
   allocatedCount: number;
   deliveredCount: number;
+}
+
+interface AutoAnalyticsChartsProps extends AutoAnalyticsInventory {
+  recognizedSales: RecognizedSalesDashboard | null;
+  salesError: boolean;
 }
 
 export const AutoAnalyticsCharts: React.FC<AutoAnalyticsChartsProps> = ({
@@ -26,23 +32,18 @@ export const AutoAnalyticsCharts: React.FC<AutoAnalyticsChartsProps> = ({
   warehouseCount = 0,
   allocatedCount = 0,
   deliveredCount = 0,
+  recognizedSales,
+  salesError,
 }) => {
   // Calculated metrics
   const turnoverRate = totalVehicles > 0 ? ((deliveredCount / totalVehicles) * 100).toFixed(1) : '0';
   const inventoryUtilization = totalVehicles > 0 ? (((showroomCount + allocatedCount) / totalVehicles) * 100).toFixed(1) : '0';
 
-  // Monthly Sales & Revenue Data
-  const monthlyData = [
-    { month: 'Thg 3', sales: 12, revenue: 8.5 },
-    { month: 'Thg 4', sales: 18, revenue: 13.2 },
-    { month: 'Thg 5', sales: 22, revenue: 16.8 },
-    { month: 'Thg 6', sales: 28, revenue: 21.5 },
-    { month: 'Thg 7', sales: 35, revenue: 27.2 },
-    { month: 'Thg 8 (Dự kiến)', sales: 42, revenue: 32.8 },
-  ];
-
-  const maxSales = 45;
-  const maxRevenue = 35;
+  const monthlyData = recognizedSales?.revenueByMonth ?? [];
+  const maxSales = Math.max(1, ...monthlyData.map(row => row.sales));
+  const maxRevenue = Math.max(1, ...monthlyData.map(row => Math.abs(row.revenue)));
+  const unavailable = salesError ? 'Không thể tải dữ liệu' : 'Đang tải…';
+  const money = (value: number) => `${value.toLocaleString('vi-VN', { maximumFractionDigits: 0 })} VNĐ`;
 
   // Sales Funnel Data
   const funnelData = [
@@ -55,12 +56,8 @@ export const AutoAnalyticsCharts: React.FC<AutoAnalyticsChartsProps> = ({
   ];
 
   // Top Sales Performers
-  const topSales = [
-    { rank: 1, name: 'Nguyễn Văn A', team: 'Đội Showroom 1', deals: 24, value: '18.5 Tỷ', responseTime: '12 phút' },
-    { rank: 2, name: 'Trần Thị B', team: 'Đội Showroom 2', deals: 19, value: '14.8 Tỷ', responseTime: '15 phút' },
-    { rank: 3, name: 'Lê Hoàng C', team: 'Đội Showroom 1', deals: 16, value: '12.2 Tỷ', responseTime: '18 phút' },
-    { rank: 4, name: 'Phạm Thanh D', team: 'Đội Online', deals: 14, value: '10.6 Tỷ', responseTime: '10 phút' },
-  ];
+  // A recognition actor is not a proven salesperson. Do not fabricate rankings.
+  const topSales: Array<{ rank: number; name: string; team: string; deals: number; value: string; responseTime: string }> = [];
 
   return (
     <div className="space-y-6">
@@ -69,16 +66,16 @@ export const AutoAnalyticsCharts: React.FC<AutoAnalyticsChartsProps> = ({
         {/* Card 1: Total Revenue */}
         <div className="bg-white dark:bg-slate-950 border border-slate-100 dark:border-slate-800/80 rounded-2xl p-5 shadow-sm transition-all duration-300 hover:shadow-md hover:border-emerald-300 dark:hover:border-emerald-700">
           <div className="flex justify-between items-start">
-            <span className="text-xs font-extrabold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Tổng Doanh Thu</span>
+            <span className="text-xs font-extrabold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Doanh thu đã ghi nhận</span>
             <div className="p-2.5 bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 rounded-xl border border-emerald-200 dark:border-emerald-800 shadow-sm">
               <DollarSign className="w-5 h-5" />
             </div>
           </div>
           <div className="mt-3">
-            <div className="text-3xl font-black text-slate-900 dark:text-white font-mono">{Number(142.8).toLocaleString('vi-VN', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} <span className="text-sm font-bold text-emerald-600 dark:text-emerald-400">Tỷ VNĐ</span></div>
+            <div data-testid="recognized-sales-total" className="text-xl font-bold text-slate-900 dark:text-white font-mono break-words">{recognizedSales ? money(recognizedSales.summary.revenue) : unavailable}</div>
             <div className="flex items-center gap-1.5 text-xs text-emerald-700 dark:text-emerald-400 font-bold mt-2">
               <TrendingUp className="w-3.5 h-3.5" />
-              <span>+22.5% so với tháng trước</span>
+              <span>Toàn thời gian</span>
             </div>
           </div>
         </div>
@@ -86,7 +83,7 @@ export const AutoAnalyticsCharts: React.FC<AutoAnalyticsChartsProps> = ({
         {/* Card 2: Inventory Turnover Rate */}
         <div className="bg-white dark:bg-slate-950 border border-slate-100 dark:border-slate-800/80 rounded-2xl p-5 shadow-sm transition-all duration-300 hover:shadow-md hover:border-cyan-300 dark:hover:border-cyan-700">
           <div className="flex justify-between items-start">
-            <span className="text-xs font-extrabold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Tỷ Lệ Bán Hàng</span>
+            <span className="text-xs font-extrabold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Tỷ lệ xe đã bàn giao</span>
             <div className="p-2.5 bg-cyan-50 dark:bg-cyan-950/30 text-cyan-600 dark:text-cyan-400 rounded-xl border border-cyan-200 dark:border-cyan-800 shadow-sm">
               <Target className="w-5 h-5" />
             </div>
@@ -108,10 +105,10 @@ export const AutoAnalyticsCharts: React.FC<AutoAnalyticsChartsProps> = ({
             </div>
           </div>
           <div className="mt-3">
-            <div className="text-3xl font-black text-slate-900 dark:text-white font-mono">1.46 <span className="text-sm font-bold text-blue-600 dark:text-blue-400">Tỷ</span></div>
+            <div data-testid="recognized-sales-average" className="text-xl font-bold text-slate-900 dark:text-white font-mono break-words">{recognizedSales ? money(recognizedSales.summary.averageSalePrice) : unavailable}</div>
             <div className="flex items-center gap-1.5 text-xs text-slate-700 dark:text-slate-300 font-semibold mt-2">
               <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-              <span>Trung bình 98 xe bán ra</span>
+              <span>{recognizedSales ? `${recognizedSales.summary.sales} giao dịch đã ghi nhận` : unavailable}</span>
             </div>
           </div>
         </div>
@@ -146,7 +143,7 @@ export const AutoAnalyticsCharts: React.FC<AutoAnalyticsChartsProps> = ({
                   Số Lượng Xe Bán & Doanh Thu
                 </h3>
                 <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mt-1">
-                  Đơn vị: Xe (cột trái) / Tỷ VNĐ (cột phải) - 6 tháng gần nhất
+                  Giao dịch đã ghi nhận (cột trái) / Doanh thu (cột phải) · 6 tháng · UTC
                 </p>
               </div>
 
@@ -163,15 +160,16 @@ export const AutoAnalyticsCharts: React.FC<AutoAnalyticsChartsProps> = ({
             </div>
 
             {/* Custom Interactive Bars Chart */}
-            <div className="h-64 flex items-end justify-between gap-4 pt-6 pb-2 px-4 border-b border-slate-200 dark:border-slate-800">
+            {!recognizedSales && <p role={salesError ? 'alert' : 'status'}>{unavailable}</p>}
+            <div className="h-64 flex items-end justify-between gap-2 pt-6 pb-2 px-1 border-b border-slate-200 dark:border-slate-800">
               {monthlyData.map((d, i) => {
                 const salesPct = (d.sales / maxSales) * 100;
-                const revPct = (d.revenue / maxRevenue) * 100;
+                const revPct = (Math.abs(d.revenue) / maxRevenue) * 100;
 
                 return (
-                  <div key={i} className="flex-1 flex flex-col items-center gap-2 h-full justify-end group">
+                  <div key={i} className="min-w-0 flex-1 flex flex-col items-center gap-2 h-full justify-end group" title={`${d.month}: ${d.sales} giao dịch; ${money(d.revenue)}`}>
                     <div className="text-[11px] font-mono text-slate-700 dark:text-slate-300 opacity-90 group-hover:opacity-100 font-extrabold transition-opacity">
-                      {d.sales} xe
+                      {d.sales}
                     </div>
                     <div className="w-full flex items-end justify-center gap-1.5 h-full max-h-48">
                       {/* Sales Bar */}
@@ -182,10 +180,10 @@ export const AutoAnalyticsCharts: React.FC<AutoAnalyticsChartsProps> = ({
                       {/* Revenue Bar */}
                       <div
                         className="w-1/2 bg-gradient-to-t from-emerald-600 via-emerald-500 to-teal-400 rounded-t-md transition-all duration-500 group-hover:from-emerald-500 group-hover:to-teal-300 shadow-md shadow-emerald-500/30"
-                        style={{ height: `${revPct}%` }}
+                        style={{ height: `${revPct}%`, background: d.revenue < 0 ? '#dc2626' : undefined }}
                       />
                     </div>
-                    <span className="text-xs text-slate-800 dark:text-slate-200 font-bold mt-1">{d.month}</span>
+                    <span className="text-[10px] text-slate-800 dark:text-slate-200 font-bold mt-1 break-all text-center">{d.month}</span>
                   </div>
                 );
               })}
@@ -193,8 +191,7 @@ export const AutoAnalyticsCharts: React.FC<AutoAnalyticsChartsProps> = ({
           </div>
 
           <div className="flex justify-between items-center pt-4 text-xs text-slate-600 dark:text-slate-400 font-semibold">
-            <span>Tăng trưởng doanh số trung bình: <strong className="text-emerald-600 dark:text-emerald-400 font-mono text-sm font-extrabold">+19.8%</strong></span>
-            <span className="text-slate-400 dark:text-slate-500">Cập nhật tự động</span>
+            <span>Doanh thu theo thời điểm ghi nhận</span>
           </div>
         </div>
 
@@ -245,6 +242,7 @@ export const AutoAnalyticsCharts: React.FC<AutoAnalyticsChartsProps> = ({
               </tr>
             </thead>
             <tbody>
+              <tr><td colSpan={6} className="p-4 text-sm text-slate-500">Chưa có nguồn dữ liệu hiệu suất đã xác minh.</td></tr>
               {topSales.map((sale) => (
                 <tr key={sale.rank} className="border-b border-slate-100 dark:border-slate-900 hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-colors">
                   <td className="py-3 px-4">

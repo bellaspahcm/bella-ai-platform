@@ -4,7 +4,6 @@ import { createClient } from '@/lib/supabase-server';
 import { redirect } from 'next/navigation';
 import VehicleInventoryDashboard from '@/components/bella-auto/VehicleInventoryDashboard';
 import { BellaAutoHeader } from '@/components/bella-auto/BellaAutoHeader';
-import { AutoAnalyticsCharts } from '@/components/bella-auto/AutoAnalyticsCharts';
 import BellaAutoAnalyticsDashboard from '@/components/bella-auto/BellaAutoAnalyticsDashboard';
 import { getMobilityVehicleInventorySummary } from '@/platform/mobility/supabase-vehicle-contract';
 
@@ -111,30 +110,6 @@ export default async function BellaAutoPage() {
         tenantName={tenant?.name || 'Bella Auto'}
       />
 
-      {/* Basic Analytics - HTML/CSS Charts */}
-      <Suspense fallback={
-        <div className="space-y-6 animate-pulse">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="h-32 bg-slate-200 dark:bg-slate-800 rounded-2xl" />
-            <div className="h-32 bg-slate-200 dark:bg-slate-800 rounded-2xl" />
-            <div className="h-32 bg-slate-200 dark:bg-slate-800 rounded-2xl" />
-            <div className="h-32 bg-slate-200 dark:bg-slate-800 rounded-2xl" />
-          </div>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2 h-96 bg-slate-200 dark:bg-slate-800 rounded-2xl" />
-            <div className="h-96 bg-slate-200 dark:bg-slate-800 rounded-2xl" />
-          </div>
-        </div>
-      }>
-        <AutoAnalyticsCharts 
-          totalVehicles={vehicleStats.total}
-          showroomCount={vehicleStats.showroom}
-          warehouseCount={vehicleStats.warehouse}
-          allocatedCount={vehicleStats.allocated}
-          deliveredCount={vehicleStats.delivered}
-        />
-      </Suspense>
-
       {/* Advanced Analytics - Recharts Interactive Charts */}
       <Suspense fallback={
         <div className="space-y-6 animate-pulse">
@@ -147,7 +122,11 @@ export default async function BellaAutoPage() {
           </div>
         </div>
       }>
-        <BellaAutoAnalyticsDashboard key={profile.tenant_id} tenantId={profile.tenant_id} />
+        <BellaAutoAnalyticsDashboard key={profile.tenant_id} tenantId={profile.tenant_id} inventory={{
+          totalVehicles: vehicleStats.total, showroomCount: vehicleStats.showroom,
+          warehouseCount: vehicleStats.warehouse, allocatedCount: vehicleStats.allocated,
+          deliveredCount: vehicleStats.delivered,
+        }} />
       </Suspense>
 
       {/* Vehicle Inventory Dashboard */}
