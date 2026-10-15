@@ -1,4 +1,79 @@
-﻿# ARCHITECTURE GATE RESULT - AUTOMOVE FINANCIAL REPORTING RECOGNIZED SALES READ
+﻿# Architecture Gate - Customer Loyalty Read-Only (2026-10-15)
+
+Status: PASS for application customer-profile write protection. Single-agent.
+
+## Development Process and Business Semantic Gate
+
+User-approved invariant: loyalty is calculated automatically; the customer editor
+must not allow manual changes. Live read-only catalog inspection proved active
+revenue trigger `trg_calculate_loyalty_points` -> `tr_calculate_loyalty_points` ->
+`increment_loyalty_points`. Confirmed booking revenue awards floor(amount/100000).
+The five screenshot customer balances match current confirmed-receipt totals.
+This task does not change that earning policy or claim refund/reconfirmation safety.
+
+## Product Manifest
+
+Existing shared BabyCare/Beauty customer profile: read loyalty, edit ordinary
+profile fields. No new product, loyalty engine, points adjustment workflow or UI.
+The KTV question is a read-only origin investigation, not staff cleanup authority.
+
+## Ownership Map
+
+- Revenue trigger owns automatic points accrual and persisted balance changes.
+- Customer UI owns display and editable profile data, not points calculation.
+- Customer actions own accepted profile write fields and their audit rollback.
+- Identity/staff provisioning owns staff validity; no staff rows are changed here.
+
+## Contract Dependency Map
+
+Customer UI -> existing customer read/update actions -> tenant-scoped customers.
+Confirmed revenue -> existing DB trigger -> persisted loyalty balance.
+KTV suggestion -> booking-decision service -> active tenant KTV users (read only).
+No Kernel/Platform dependency changes or direct kernel-table access.
+
+## Change Authority
+
+Authorized: readonly loyalty output, remove points from editor state/submission,
+ignore client-supplied points on create/update, exclude points from rollback,
+disable the unused application action that manually invokes the increment RPC,
+focused tests and evidence. Preserve other customer updates and tenant filters.
+Forbidden: DB/schema/RLS/RPC/trigger changes, staff deletion/deactivation/provisioning,
+AI ranking changes, payroll/payment rules, Core/Platform/frozen kernels.
+
+## UI -> Contract Reconciliation
+
+| UI/action | Contract |
+|---|---|
+| Loyalty display | current customer.loyalty_points, null displayed as zero |
+| Editor | readonly output; points absent from edit state/save payload |
+| Create/update | supplied loyalty_points never written by profile action |
+| Audit rollback | cannot restore an old loyalty snapshot over automatic accrual |
+| Direct addLoyaltyPoints action | reject without an RPC call; no runtime callers found |
+| Bella Test suggestion | persisted active KTV in same BabyCare tenant, Auth identity absent; report only |
+
+## Additive Migration Plan
+
+None. Database privilege enforcement beyond these application actions is not
+changed or claimed as proven by this batch.
+
+## Eleven Verification Gates Plan
+
+1. Scope: customer UI/actions/tests/docs only.
+2. Semantic: explicit user invariant plus live revenue trigger evidence.
+3. Read: existing nonzero/null points remain visible.
+4. UI: no editable loyalty control in BabyCare or Beauty profile.
+5. Update: tampered/old-client points ignored; other fields persist.
+6. Create: supplied initial points excluded; DB default unchanged.
+7. Rollback: old points not written after audit failure.
+8. Direct action: reject manual increment without calling RPC.
+9. Isolation: existing tenant-scoped query/update controls retained.
+10. Quality: focused regression, typecheck/lint/architecture/diff gates.
+11. Evidence: local browser fixtures and readonly live inspection distinct from
+    production mutation proof. No Production data changes in verification.
+
+---
+
+# ARCHITECTURE GATE RESULT - AUTOMOVE FINANCIAL REPORTING RECOGNIZED SALES READ
 
 > **Status:** PASS - minimal read-side migration is authorized under the user-approved `AUTOMOVE_FINANCIAL_REPORTING_RECOGNIZED_SALES_READ` scope.
 > **Date:** 2026-10-14
