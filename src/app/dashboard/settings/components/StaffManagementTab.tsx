@@ -181,7 +181,7 @@ export default function StaffManagementTab() {
                         toast.error("Không thể tự động sao chép mật khẩu");
                       }
                     }}
-                    className="px-2.5 py-1 bg-emerald-600 text-white text-xs font-bold rounded flex items-center gap-1 hover:bg-emerald-700 transition-all active:scale-95 cursor-pointer shadow-sm"
+                    className="px-2.5 py-1 bg-primary text-primary-foreground text-xs font-bold rounded flex items-center gap-1 hover:bg-primary-hover transition-all active:scale-95 cursor-pointer shadow-sm"
                   >
                     <Copy className="w-3.5 h-3.5" /> Copy
                   </button>
@@ -278,7 +278,7 @@ export default function StaffManagementTab() {
         </div>
         <button
           onClick={() => setIsAddModalOpen(true)}
-          className="px-6 py-3 bg-primary/10 text-primary rounded-xl font-black text-sm uppercase tracking-widest hover:bg-primary hover:text-white transition-all flex items-center gap-2"
+          className="px-6 py-3 bg-primary/10 text-primary rounded-xl font-black text-sm uppercase tracking-widest hover:bg-primary hover:text-primary-foreground transition-all flex items-center gap-2"
         >
           <UserPlus className="w-4 h-4" /> Thêm nhân sự
         </button>
@@ -552,7 +552,7 @@ export default function StaffManagementTab() {
                   <button
                     type="submit"
                     disabled={isAdding}
-                    className="w-full bg-primary text-white py-5 rounded-[2rem] font-black uppercase tracking-widest text-xs shadow-xl shadow-primary/25 dark:shadow-none flex items-center justify-center gap-3 hover:bg-primary-hover active:scale-95 transition-all disabled:opacity-50"
+                    className="w-full bg-primary text-primary-foreground py-5 rounded-[2rem] font-black uppercase tracking-widest text-xs shadow-xl shadow-primary/25 dark:shadow-none flex items-center justify-center gap-3 hover:bg-primary-hover active:scale-95 transition-all disabled:opacity-50"
                   >
                     {isAdding ? (
                       <Sparkles className="w-5 h-5 animate-spin" />
@@ -720,7 +720,7 @@ export default function StaffManagementTab() {
                   <button
                     type="submit"
                     disabled={isUpdating}
-                    className="w-full bg-primary text-white py-5 rounded-[2rem] font-black uppercase tracking-widest text-xs shadow-xl shadow-primary/25 dark:shadow-none flex items-center justify-center gap-3 hover:bg-primary-hover active:scale-95 transition-all disabled:opacity-50"
+                    className="w-full bg-primary text-primary-foreground py-5 rounded-[2rem] font-black uppercase tracking-widest text-xs shadow-xl shadow-primary/25 dark:shadow-none flex items-center justify-center gap-3 hover:bg-primary-hover active:scale-95 transition-all disabled:opacity-50"
                   >
                     {isUpdating ? (
                       <Sparkles className="w-5 h-5 animate-spin" />
@@ -851,7 +851,7 @@ export default function StaffManagementTab() {
                         "px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 transition-all active:scale-95 shrink-0 shadow-md cursor-pointer",
                         copiedPwd
                           ? "bg-emerald-600 text-white"
-                          : "bg-primary text-white hover:bg-primary-hover"
+                          : "bg-primary text-primary-foreground hover:bg-primary-hover"
                       )}
                     >
                       {copiedPwd ? (
@@ -874,7 +874,7 @@ export default function StaffManagementTab() {
               <button
                 type="button"
                 onClick={() => setCreatedStaffResult(null)}
-                className="w-full bg-slate-900 text-white py-4 rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-slate-800 transition-all active:scale-95 cursor-pointer"
+                className="w-full bg-primary text-primary-foreground py-4 rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-primary-hover transition-all active:scale-95 cursor-pointer"
               >
                 Hoàn tất & Đóng
               </button>

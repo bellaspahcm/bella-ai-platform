@@ -39,7 +39,7 @@ export function InventoryTransferOrdersPanel({
         </div>
         <button
           onClick={onCreateRequest}
-          className="flex items-center gap-2 bg-primary text-white px-5 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-rose-600 active:scale-95 transition-all shadow-lg"
+          className="flex items-center gap-2 bg-primary text-primary-foreground px-5 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-primary-hover active:scale-95 transition-all shadow-lg"
         >
           <ShoppingCart className="w-4 h-4" /> Tạo Yêu cầu mới
         </button>

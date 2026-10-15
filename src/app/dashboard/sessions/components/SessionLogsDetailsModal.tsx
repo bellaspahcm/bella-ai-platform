@@ -66,6 +66,8 @@ export function SessionLogsDetailsModal({
   userRole,
   tenantModuleKey,
 }: SessionLogsDetailsModalProps) {
+  const vocab = getModuleVocabulary(tenantModuleKey);
+  const workUnitLabel = vocab.workUnit.singular.toLowerCase();
   const [selectedSessionLog, setSelectedSessionLog] = useState<SessionLog | null>(null);
   const [currentNote, setCurrentNote] = useState('');
   const [selectedDate, setSelectedDate] = useState('');
@@ -158,11 +160,11 @@ export function SessionLogsDetailsModal({
       }
     } catch (error) {
       console.error('Error fetching logs:', error);
-      toast.error('Không thể tải lịch trình buổi tập');
+      toast.error(`Không thể tải lịch trình ${getModuleVocabulary(tenantModuleKey).workUnit.singular.toLowerCase()}`);
     } finally {
       setIsLoadingLogs(false);
     }
-  }, [onSuccess]);
+  }, [onSuccess, tenantModuleKey, setCurrentNote, setSelectedSessionLog]);
 
   const activeBookingId = activeBooking?.id;
 
@@ -224,7 +226,7 @@ export function SessionLogsDetailsModal({
     const finalStatus = (forcedStatus || selectedStatus) as 'scheduled' | 'completed' | 'cancelled' | 'in_progress';
     
     if (userRole !== 'admin' && !['scheduled', 'in_progress'].includes(selectedSessionLog.status)) {
-      toast.error('Buổi tập này đã hoàn thành hoặc bị hủy. Chỉ Quản trị viên mới có quyền điều chỉnh lịch sử!');
+      toast.error(`${vocab.workUnit.singular} này đã hoàn thành hoặc bị hủy. Chỉ Quản trị viên mới có quyền điều chỉnh lịch sử!`);
       return;
     }
 
@@ -254,7 +256,7 @@ export function SessionLogsDetailsModal({
       const result = await updateSessionLog(selectedSessionLog.id, updates);
       
       if (result.data) {
-        toast.success('Đã cập nhật trạng thái buổi tập thành công!');
+        toast.success(`Đã cập nhật trạng thái ${workUnitLabel} thành công!`);
         if (onSuccess) {
           onSuccess();
         }
@@ -285,7 +287,7 @@ export function SessionLogsDetailsModal({
       const result = await updateSessionLog(selectedSessionLog.id, updates);
 
       if (result.data) {
-        toast.success(newStatus === 'scheduled' ? 'Đã khôi phục buổi tập thành công!' : 'Đã hủy buổi tập thành công!');
+        toast.success(newStatus === 'scheduled' ? `Đã khôi phục ${workUnitLabel} thành công!` : `Đã hủy ${workUnitLabel} thành công!`);
         if (onSuccess) {
           onSuccess();
         }
@@ -329,13 +331,13 @@ export function SessionLogsDetailsModal({
 
   const handleAddExtraSession = async (bookingId: string) => {
     if (isSyncing) return;
-    if (!window.confirm('Bạn có muốn thêm một buổi tập bổ sung vào gói này không?')) return;
+    if (!window.confirm(`Bạn có muốn thêm một ${workUnitLabel} bổ sung vào gói này không?`)) return;
     
     setIsSyncing(true);
     try {
       const result = await addExtraSession(bookingId);
       if (result.success) {
-        toast.success('Đã thêm buổi tập bổ sung thành công!');
+        toast.success(`Đã thêm ${workUnitLabel} bổ sung thành công!`);
         if (onSuccess) {
           onSuccess();
         }
@@ -354,7 +356,6 @@ export function SessionLogsDetailsModal({
   if (!isOpen || !activeBooking) return null;
 
   const customerLabels = getTenantModulePresentationOrNeutral(tenantModuleKey);
-  const vocab = getModuleVocabulary(tenantModuleKey);
   const customerHeaderLabel = `${customerLabels.customerPrefix}: ${activeBooking.customers?.name_mother || 'Khách hàng'}${activeBooking.customers?.name_baby ? ` - ${customerLabels.secondaryPrefix}: ${activeBooking.customers.name_baby}` : ''}`;
   const sessionHeaderTitle = vocab.booking.singular;
 
@@ -402,12 +403,7 @@ export function SessionLogsDetailsModal({
             </div>
             <Link
               href={`/dashboard/customers/${activeBooking.customers?.id}?bookingId=${activeBooking.id}`}
-              className={cn(
-                "px-3 md:px-4 py-2 bg-primary text-white rounded-xl text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-all dark:shadow-none active:scale-95 flex items-center gap-2 whitespace-nowrap",
-                tenantModuleKey === 'beauty_spa' 
-                  ? "hover:bg-emerald-600 shadow-lg shadow-emerald-100" 
-                  : "hover:bg-rose-600 shadow-lg shadow-pink-100"
-              )}
+              className="px-3 md:px-4 py-2 bg-primary text-primary-foreground rounded-xl text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-all hover:bg-primary-hover shadow-lg shadow-primary/20 dark:shadow-none active:scale-95 flex items-center gap-2 whitespace-nowrap"
             >
               <UserCircle className="w-3.5 h-3.5" /> Hồ sơ
             </Link>
@@ -510,7 +506,7 @@ export function SessionLogsDetailsModal({
                       </div>
 
                       <div>
-                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block ml-1">Nội dung & Tiến độ buổi tập</label>
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block ml-1">Nội dung & Tiến độ {workUnitLabel}</label>
                         <textarea 
                           placeholder="Hôm nay khách hàng thế nào? Các bước kỹ thuật đã thực hiện, lưu ý cho buổi sau..."
                           value={currentNote}
@@ -734,8 +730,7 @@ export function SessionLogsDetailsModal({
                       onClick={() => handleSaveFullUpdate()}
                       disabled={isSavingNote || !selectedSessionLog || (userRole !== 'admin' && !['scheduled', 'in_progress'].includes(selectedSessionLog.status))}
                       className={cn(
-                        "w-full mt-2 bg-primary text-white py-4 rounded-2xl font-black uppercase tracking-[0.2em] text-[10px] dark:shadow-none flex items-center justify-center gap-2 hover:bg-primary-hover active:scale-95 transition-all disabled:opacity-50",
-                        tenantModuleKey === 'beauty_spa' ? "shadow-lg shadow-emerald-100" : "shadow-lg shadow-pink-100"
+                        "w-full mt-2 bg-primary text-primary-foreground py-4 rounded-2xl font-black uppercase tracking-[0.2em] text-[10px] dark:shadow-none flex items-center justify-center gap-2 hover:bg-primary-hover active:scale-95 transition-all disabled:opacity-50 shadow-lg shadow-primary/20"
                       )}
                     >
                       {isSavingNote ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} 
@@ -753,7 +748,7 @@ export function SessionLogsDetailsModal({
                         </button>
                         <button 
                           onClick={() => {
-                            if (window.confirm('Bạn có chắc muốn hủy buổi tập này?')) {
+                            if (window.confirm(`Bạn có chắc muốn hủy ${workUnitLabel} này?`)) {
                               handleStatusChange('cancelled');
                             }
                           }}
@@ -774,7 +769,7 @@ export function SessionLogsDetailsModal({
                     <AlertCircle className="w-4 h-4" /> Chế độ Admin
                   </div>
                   <p className="text-[11px] font-bold text-amber-600 leading-relaxed">
-                    Bạn có quyền chỉnh sửa lịch sử và các buổi tập đã hoàn thành. Hãy cẩn trọng khi thay đổi dữ liệu.
+                    Bạn có quyền chỉnh sửa lịch sử và {vocab.workUnit.plural.toLowerCase()} đã hoàn thành. Hãy cẩn trọng khi thay đổi dữ liệu.
                   </p>
                 </div>
               )}
@@ -800,7 +795,7 @@ export function SessionLogsDetailsModal({
                       <button 
                         onClick={() => handleAddExtraSession(activeBooking.id)}
                         disabled={isSyncing}
-                        className="absolute top-1 right-1 p-1 bg-white/80 rounded-lg text-primary hover:bg-primary hover:text-white transition-all opacity-0 group-hover:opacity-100 shadow-sm disabled:cursor-not-allowed disabled:opacity-100 disabled:hover:bg-white/80 disabled:hover:text-primary"
+                        className="absolute top-1 right-1 p-1 bg-white/80 rounded-lg text-primary hover:bg-primary hover:text-primary-foreground transition-all opacity-0 group-hover:opacity-100 shadow-sm disabled:cursor-not-allowed disabled:opacity-100 disabled:hover:bg-white/80 disabled:hover:text-primary"
                         title={isSyncing ? "Đang thêm buổi bổ sung" : "Thêm buổi bổ sung"}
                       >
                         {isSyncing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <PlusCircle className="w-3.5 h-3.5" />}
@@ -822,7 +817,7 @@ export function SessionLogsDetailsModal({
                    <button 
                     onClick={() => handleReusePackage(activeBooking.id, customerHeaderLabel)}
                     disabled={isReusingId === activeBooking.id}
-                    className="w-full mt-6 bg-slate-900 text-white py-4 rounded-2xl font-black uppercase tracking-[0.2em] text-[9px] shadow-xl flex items-center justify-center gap-2 hover:bg-slate-800 transition-all relative z-10"
+                    className="w-full mt-6 bg-primary text-primary-foreground py-4 rounded-2xl font-black uppercase tracking-[0.2em] text-[9px] shadow-xl shadow-primary/20 flex items-center justify-center gap-2 hover:bg-primary-hover transition-all relative z-10"
                   >
                     {isReusingId === activeBooking.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <TrendingUp className="w-4 h-4" />} 
                     Tái sử dụng gói nhanh
@@ -939,18 +934,15 @@ export function SessionLogsDetailsModal({
                               <p className="text-[8px] font-black uppercase text-amber-600">Làm ngay</p>
                             )}
                             
-                            <div className="absolute inset-0 bg-primary/90 text-white p-2 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-center z-20">
-                              <p className="text-[9px] font-black uppercase mb-0.5 text-white !text-white leading-tight">Buổi {log.session_number}</p>
-                              <p className="text-[8px] font-bold opacity-90 mb-1 text-white !text-white leading-tight">{log.assigned_date ? formatViDate(log.assigned_date) : 'Chưa hẹn'}</p>
+                            <div className="absolute inset-0 bg-primary text-primary-foreground p-2 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-center z-20">
+                              <p className="text-[9px] font-black uppercase mb-0.5 text-primary-foreground leading-tight">{vocab.workUnit.singular} {log.session_number}</p>
+                              <p className="text-[8px] font-bold opacity-90 mb-1 text-primary-foreground leading-tight">{log.assigned_date ? formatViDate(log.assigned_date) : 'Chưa hẹn'}</p>
                               <button 
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   setSelectedSessionLog(log);
                                 }}
-                                className={cn(
-                                  "bg-white px-2 py-1 rounded-lg text-[8px] font-black uppercase mt-0.5 transition-colors shadow-sm",
-                                  tenantModuleKey === 'beauty_spa' ? "text-emerald-900 !text-emerald-900 hover:bg-emerald-50" : "text-primary hover:bg-pink-50"
-                                )}
+                                className="bg-primary-foreground text-primary px-2 py-1 rounded-lg text-[8px] font-black uppercase mt-0.5 transition-colors shadow-sm hover:opacity-90"
                               >
                                 Cập nhật
                               </button>

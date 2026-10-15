@@ -269,7 +269,7 @@ export default function AccountingHealthPage() {
               type="button"
               onClick={() => loadData(month)}
               disabled={refreshing}
-              className="inline-flex h-11 w-full sm:w-auto items-center justify-center gap-2 rounded-xl bg-slate-950 dark:bg-[#EFE9E1] px-4 text-3xs font-black uppercase tracking-widest text-white dark:text-[#11100F] hover:opacity-90 disabled:opacity-60"
+              className="inline-flex h-11 w-full sm:w-auto items-center justify-center gap-2 rounded-xl bg-primary px-4 text-3xs font-black uppercase tracking-widest text-primary-foreground hover:opacity-90 disabled:opacity-60"
             >
               <RefreshCw className={cn('h-4 w-4', refreshing && 'animate-spin')} />
               Kiểm tra
@@ -358,7 +358,7 @@ export default function AccountingHealthPage() {
         ) : null}
       </section>
 
-      <section className="rounded-3xl md:rounded-[2rem] bg-white dark:bg-[#1C1B19] border border-[#FFE4E6] dark:border-[#3E3A35]/50 p-5 md:p-8 shadow-sm">
+      <section className="rounded-3xl md:rounded-[2rem] bg-white dark:bg-[#1C1B19] border border-primary/15 dark:border-[#3E3A35]/50 p-5 md:p-8 shadow-sm">
         <div className="flex flex-col xl:flex-row xl:items-start justify-between gap-5 mb-6">
           <div className="flex items-start gap-4">
             <div className={cn('w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 border', businessTone.bg, businessTone.border)}>
@@ -492,7 +492,7 @@ export default function AccountingHealthPage() {
       </section>
 
       <section className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-        <div className="xl:col-span-2 rounded-3xl md:rounded-[2rem] bg-white dark:bg-[#1C1B19] border border-[#FFE4E6] dark:border-[#3E3A35]/50 p-5 md:p-8 shadow-sm">
+        <div className="xl:col-span-2 rounded-3xl md:rounded-[2rem] bg-white dark:bg-[#1C1B19] border border-primary/15 dark:border-[#3E3A35]/50 p-5 md:p-8 shadow-sm">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-6">
             <div>
               <h3 className="text-sm font-black uppercase tracking-wider text-slate-950 dark:text-[#EFE9E1]">
@@ -545,7 +545,7 @@ export default function AccountingHealthPage() {
           )}
         </div>
 
-        <div className="rounded-3xl md:rounded-[2rem] bg-white dark:bg-[#1C1B19] border border-[#FFE4E6] dark:border-[#3E3A35]/50 p-5 md:p-8 shadow-sm">
+        <div className="rounded-3xl md:rounded-[2rem] bg-white dark:bg-[#1C1B19] border border-primary/15 dark:border-[#3E3A35]/50 p-5 md:p-8 shadow-sm">
           <h3 className="text-sm font-black uppercase tracking-wider text-slate-950 dark:text-[#EFE9E1]">
             Tóm tắt vận hành
           </h3>
@@ -572,7 +572,7 @@ export default function AccountingHealthPage() {
         </div>
       </section>
 
-      <section className="rounded-3xl md:rounded-[2rem] bg-white dark:bg-[#1C1B19] border border-[#FFE4E6] dark:border-[#3E3A35]/50 p-5 md:p-8 shadow-sm">
+      <section className="rounded-3xl md:rounded-[2rem] bg-white dark:bg-[#1C1B19] border border-primary/15 dark:border-[#3E3A35]/50 p-5 md:p-8 shadow-sm">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-6">
           <div>
             <h3 className="text-sm font-black uppercase tracking-wider text-slate-950 dark:text-[#EFE9E1]">
@@ -753,7 +753,7 @@ function BusinessFindingRow({
               type="button"
               onClick={() => onRepair(finding)}
               disabled={isRepairing}
-              className="inline-flex items-center gap-1.5 rounded-lg bg-slate-950 px-3 py-1.5 text-3xs font-black uppercase tracking-widest text-white hover:opacity-90 disabled:opacity-60 dark:bg-[#EFE9E1] dark:text-[#11100F]"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-3xs font-black uppercase tracking-widest text-primary-foreground hover:opacity-90 disabled:opacity-60 "
             >
               <RefreshCw className={cn('w-3 h-3', isRepairing && 'animate-spin')} />
               {finding.repair_label ?? 'Xử lý'}
@@ -785,7 +785,7 @@ function RepairConfirmModal({
 }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/45 px-4 py-6 backdrop-blur-sm">
-      <div className="w-full max-w-lg rounded-3xl border border-[#FFE4E6] bg-white p-6 shadow-2xl dark:border-[#3E3A35] dark:bg-[#1C1B19]">
+      <div className="w-full max-w-lg rounded-3xl border border-primary/15 bg-white p-6 shadow-2xl dark:border-[#3E3A35] dark:bg-[#1C1B19]">
         <div className="flex items-start gap-4">
           <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400">
             <AlertTriangle className="h-5 w-5" />
@@ -834,7 +834,7 @@ function RepairConfirmModal({
             type="button"
             onClick={onConfirm}
             disabled={isRepairing}
-            className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-slate-950 px-4 text-3xs font-black uppercase tracking-widest text-white hover:opacity-90 disabled:opacity-60 dark:bg-[#EFE9E1] dark:text-[#11100F]"
+            className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-primary px-4 text-3xs font-black uppercase tracking-widest text-primary-foreground hover:opacity-90 disabled:opacity-60 "
           >
             <RefreshCw className={cn('h-4 w-4', isRepairing && 'animate-spin')} />
             {isRepairing ? 'Đang xử lý' : finding.repair_label ?? 'Xác nhận'}

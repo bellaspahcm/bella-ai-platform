@@ -160,7 +160,7 @@ export function WaitlistFilters({
           <Filter className="h-4 w-4" />
           Bộ lọc
           {hasActiveFilters && (
-            <span className="ml-1 rounded-full bg-primary px-2 py-0.5 text-xs text-white">
+            <span className="ml-1 rounded-full bg-primary px-2 py-0.5 text-xs text-primary-foreground">
               {[packageId, preferredDate, status, search].filter(Boolean).length}
             </span>
           )}

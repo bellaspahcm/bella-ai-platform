@@ -241,7 +241,7 @@ export default function AccountingReadinessPage() {
         </div>
       </section>
 
-      <section className="rounded-[2rem] bg-white dark:bg-[#1C1B19] border border-[#FFE4E6] dark:border-[#3E3A35]/50 p-5 md:p-6 shadow-sm">
+      <section className="rounded-[2rem] bg-white dark:bg-[#1C1B19] border border-primary/15 dark:border-[#3E3A35]/50 p-5 md:p-6 shadow-sm">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h3 className="text-sm font-black uppercase tracking-wider text-slate-950 dark:text-[#EFE9E1]">
@@ -255,7 +255,7 @@ export default function AccountingReadinessPage() {
             type="button"
             onClick={handleRunBackfill}
             disabled={backfilling || refreshing}
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3 text-3xs font-black uppercase tracking-widest text-white shadow-sm hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3 text-3xs font-black uppercase tracking-widest text-primary-foreground shadow-sm hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
           >
             <RefreshCw className={cn('h-4 w-4', backfilling && 'animate-spin')} />
             {backfilling ? 'Đang quét...' : 'Chạy backfill'}
@@ -294,7 +294,7 @@ export default function AccountingReadinessPage() {
       </section>
 
       <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 rounded-[2rem] bg-white dark:bg-[#1C1B19] border border-[#FFE4E6] dark:border-[#3E3A35]/50 p-6 md:p-8 shadow-sm">
+        <div className="lg:col-span-2 rounded-[2rem] bg-white dark:bg-[#1C1B19] border border-primary/15 dark:border-[#3E3A35]/50 p-6 md:p-8 shadow-sm">
           <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h3 className="text-sm font-black uppercase tracking-wider text-slate-950 dark:text-[#EFE9E1]">
@@ -369,7 +369,7 @@ export default function AccountingReadinessPage() {
           )}
         </div>
 
-        <div className="rounded-[2rem] bg-white dark:bg-[#1C1B19] border border-[#FFE4E6] dark:border-[#3E3A35]/50 p-6 md:p-8 shadow-sm">
+        <div className="rounded-[2rem] bg-white dark:bg-[#1C1B19] border border-primary/15 dark:border-[#3E3A35]/50 p-6 md:p-8 shadow-sm">
           <h3 className="text-sm font-black uppercase tracking-wider text-slate-950 dark:text-[#EFE9E1]">Template TT133</h3>
           <p className="mt-1 text-2xs font-medium text-slate-500 dark:text-[#CDBCAB]/60">
             Bộ quy tắc định khoản mặc định cho các nghiệp vụ SIMPLE.
@@ -403,7 +403,7 @@ export default function AccountingReadinessPage() {
         </div>
       </section>
 
-      <section className="rounded-[2rem] bg-white dark:bg-[#1C1B19] border border-[#FFE4E6] dark:border-[#3E3A35]/50 p-6 md:p-8 shadow-sm">
+      <section className="rounded-[2rem] bg-white dark:bg-[#1C1B19] border border-primary/15 dark:border-[#3E3A35]/50 p-6 md:p-8 shadow-sm">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
           <div>
             <h3 className="text-sm font-black uppercase tracking-wider text-slate-950 dark:text-[#EFE9E1]">
@@ -415,7 +415,7 @@ export default function AccountingReadinessPage() {
           </div>
           <Link
             href="/dashboard/accounting/reconciliation"
-            className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-slate-950 px-4 py-2.5 text-3xs font-black uppercase tracking-widest text-white hover:opacity-90 dark:bg-[#EFE9E1] dark:text-[#11100F] sm:w-auto"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-3xs font-black uppercase tracking-widest text-primary-foreground hover:opacity-90 sm:w-auto"
           >
             Đối soát
             <ArrowRight className="w-3.5 h-3.5" />
@@ -519,7 +519,7 @@ function MetricCard({
   tone: string;
 }) {
   return (
-    <div className="rounded-[1.5rem] bg-white dark:bg-[#1C1B19] border border-[#FFE4E6] dark:border-[#3E3A35]/50 p-5 shadow-sm">
+    <div className="rounded-[1.5rem] bg-white dark:bg-[#1C1B19] border border-primary/15 dark:border-[#3E3A35]/50 p-5 shadow-sm">
       <div className="flex items-center justify-between">
         <span className="text-3xs font-black uppercase tracking-widest text-slate-400">{label}</span>
         <Icon className={cn('w-5 h-5', tone)} />

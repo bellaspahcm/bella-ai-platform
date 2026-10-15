@@ -134,15 +134,15 @@ export default function SalaryReconciliationPage() {
   return (
     <div className="space-y-8 relative">
       {refreshing && (
-        <div className="absolute top-0 right-0 flex items-center gap-1.5 text-xs font-semibold text-primary dark:text-[#A67D44] animate-pulse">
+        <div className="absolute top-0 right-0 flex items-center gap-1.5 text-xs font-semibold text-primary dark:text-primary animate-pulse">
           <RefreshCw className="w-3.5 h-3.5 animate-spin" />
           <span>Đang tính đối soát lương...</span>
         </div>
       )}
 
       {/* INTRO */}
-      <div className="p-6 md:p-8 bg-white dark:bg-[#1C1B19] rounded-[2.5rem] border border-[#FFE4E6] dark:border-[#3E3A35]/50 shadow-sm flex items-start gap-4">
-        <div className="w-12 h-12 rounded-2xl bg-pink-50 dark:bg-[#5D1C34]/30 flex items-center justify-center text-primary dark:text-[#A67D44] shrink-0">
+      <div className="p-6 md:p-8 bg-white dark:bg-[#1C1B19] rounded-[2.5rem] border border-primary/15 dark:border-[#3E3A35]/50 shadow-sm flex items-start gap-4">
+        <div className="w-12 h-12 rounded-2xl bg-pink-50 dark:bg-primary/5 flex items-center justify-center text-primary dark:text-primary shrink-0">
           <Users className="w-6 h-6 text-primary" />
         </div>
         <div className="flex-1">
@@ -162,7 +162,7 @@ export default function SalaryReconciliationPage() {
 
       {/* FILTER + SUMMARY */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
-        <div className="lg:col-span-2 bg-white dark:bg-[#1C1B19] rounded-2xl border border-[#FFE4E6] dark:border-[#3E3A35]/50 p-5 shadow-sm">
+        <div className="lg:col-span-2 bg-white dark:bg-[#1C1B19] rounded-2xl border border-primary/15 dark:border-[#3E3A35]/50 p-5 shadow-sm">
           <p className={`${filterLabelClassName} mb-3`}>Tháng đối soát</p>
           <div className="grid grid-cols-1">
             <input
@@ -182,7 +182,7 @@ export default function SalaryReconciliationPage() {
           <p className="text-3xs text-slate-500 mt-1">{matchCount}/{reconciledTotal} KTV đã chốt</p>
         </div>
 
-        <div className="bg-white dark:bg-[#1C1B19] rounded-2xl border border-[#FFE4E6] dark:border-[#3E3A35]/50 p-5 shadow-sm">
+        <div className="bg-white dark:bg-[#1C1B19] rounded-2xl border border-primary/15 dark:border-[#3E3A35]/50 p-5 shadow-sm">
           <p className="text-3xs font-black text-slate-400 dark:text-[#CDBCAB]/60 uppercase tracking-widest mb-2">Phân loại</p>
           <div className="space-y-1 text-2xs">
             <p className="flex items-center justify-between"><span className="text-emerald-600">✓ Khớp</span><strong className="font-mono">{matchCount}</strong></p>
@@ -192,7 +192,7 @@ export default function SalaryReconciliationPage() {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-[#1C1B19] rounded-2xl border border-[#FFE4E6] dark:border-[#3E3A35]/50 p-5 shadow-sm">
+        <div className="bg-white dark:bg-[#1C1B19] rounded-2xl border border-primary/15 dark:border-[#3E3A35]/50 p-5 shadow-sm">
           <p className="text-3xs font-black text-slate-400 dark:text-[#CDBCAB]/60 uppercase tracking-widest mb-2">Tổng chênh lệch</p>
           <p className={`text-sm font-mono font-black mt-1 ${totalDiffAbs < 5000 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
             {totalDiff >= 0 ? '+' : ''}{fmtVND(totalDiff)}
@@ -202,9 +202,9 @@ export default function SalaryReconciliationPage() {
       </div>
 
       {/* TABLE */}
-      <div className="bg-white dark:bg-[#1C1B19] rounded-[2.5rem] border border-[#FFE4E6] dark:border-[#3E3A35]/50 p-6 md:p-8 shadow-sm">
+      <div className="bg-white dark:bg-[#1C1B19] rounded-[2.5rem] border border-primary/15 dark:border-[#3E3A35]/50 p-6 md:p-8 shadow-sm">
         <h4 className="text-sm font-black text-slate-900 dark:text-[#EFE9E1] uppercase tracking-wider mb-6 flex items-center gap-2">
-          <Users className="w-4 h-4 text-primary dark:text-[#A67D44]" />
+          <Users className="w-4 h-4 text-primary dark:text-primary" />
           Bảng so sánh chi tiết per-KTV
         </h4>
 
@@ -251,7 +251,7 @@ export default function SalaryReconciliationPage() {
                         <td className={`${stickyBodyCellClassName} px-3 py-3 font-bold text-slate-900 dark:text-[#EFE9E1]`}>
                           <div className="flex items-center gap-2">
                             {isExpanded ? (
-                              <ChevronDown className="w-4 h-4 text-primary dark:text-[#A67D44]" />
+                              <ChevronDown className="w-4 h-4 text-primary dark:text-primary" />
                             ) : (
                               <ChevronRight className="w-4 h-4 text-slate-400" />
                             )}

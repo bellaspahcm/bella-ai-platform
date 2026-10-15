@@ -174,7 +174,7 @@ export default function CommissionSettingsTab({ className }: CommissionSettingsT
           onClick={handleSave}
           disabled={isSaving}
           className={cn(
-            'inline-flex items-center justify-center gap-2 rounded-2xl bg-primary px-6 py-3 text-sm font-black uppercase tracking-wider text-white shadow-lg shadow-primary/20 hover:bg-primary-hover active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed'
+            'inline-flex items-center justify-center gap-2 rounded-2xl bg-primary px-6 py-3 text-sm font-black uppercase tracking-wider text-primary-foreground shadow-lg shadow-primary/20 hover:bg-primary-hover active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed'
           )}
         >
           {isSaving ? (

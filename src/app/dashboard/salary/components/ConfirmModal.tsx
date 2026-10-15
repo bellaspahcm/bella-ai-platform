@@ -71,10 +71,10 @@ export default function ConfirmModal({
             disabled={isLoading}
             data-testid="salary-confirm-modal-submit"
             className={cn(
-              "flex-1 py-4 text-white font-black rounded-2xl transition-all text-xs uppercase tracking-wider flex items-center justify-center gap-2",
+              "flex-1 py-4 font-black rounded-2xl transition-all text-xs uppercase tracking-wider flex items-center justify-center gap-2",
               isDanger 
-                ? "bg-rose-500 hover:bg-rose-600 shadow-lg shadow-rose-100 dark:shadow-none" 
-                : "bg-primary hover:bg-primary-hover shadow-lg shadow-pink-100 dark:shadow-none"
+                ? "bg-rose-500 text-white hover:bg-rose-600 shadow-lg shadow-rose-100 dark:shadow-none"
+                : "bg-primary text-primary-foreground hover:bg-primary-hover shadow-lg shadow-primary/20 dark:shadow-none"
             )}
           >
             {isLoading ? (

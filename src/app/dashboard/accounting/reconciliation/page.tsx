@@ -264,15 +264,15 @@ export default function ReconciliationPage() {
   return (
     <div className="space-y-8 relative">
       {refreshing && (
-        <div className="absolute top-0 right-0 flex items-center gap-1.5 text-xs font-semibold text-primary dark:text-[#A67D44] animate-pulse">
+        <div className="absolute top-0 right-0 flex items-center gap-1.5 text-xs font-semibold text-primary dark:text-primary animate-pulse">
           <RefreshCw className="w-3.5 h-3.5 animate-spin" />
           <span>Đang tính đối soát...</span>
         </div>
       )}
 
       {/* ── INTRO BANNER ── */}
-      <div className="p-6 md:p-8 bg-white dark:bg-[#1C1B19] rounded-[2.5rem] border border-[#FFE4E6] dark:border-[#3E3A35]/50 shadow-sm flex items-start gap-4">
-        <div className="w-12 h-12 rounded-2xl bg-pink-50 dark:bg-[#5D1C34]/30 flex items-center justify-center text-primary dark:text-[#A67D44] shrink-0">
+      <div className="p-6 md:p-8 bg-white dark:bg-[#1C1B19] rounded-[2.5rem] border border-primary/15 dark:border-[#3E3A35]/50 shadow-sm flex items-start gap-4">
+        <div className="w-12 h-12 rounded-2xl bg-pink-50 dark:bg-primary/5 flex items-center justify-center text-primary dark:text-primary shrink-0">
           <GitCompareArrows className="w-6 h-6 text-primary" />
         </div>
         <div className="flex-1">
@@ -389,7 +389,7 @@ export default function ReconciliationPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
         {/* Date filter */}
-        <div className="lg:col-span-2 bg-white dark:bg-[#1C1B19] rounded-2xl border border-[#FFE4E6] dark:border-[#3E3A35]/50 p-5 shadow-sm">
+        <div className="lg:col-span-2 bg-white dark:bg-[#1C1B19] rounded-2xl border border-primary/15 dark:border-[#3E3A35]/50 p-5 shadow-sm">
           <p className={`${dateLabelClassName} mb-3`}>Kỳ đối soát</p>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <input
@@ -419,7 +419,7 @@ export default function ReconciliationPage() {
         </div>
 
         {/* Counts */}
-        <div className="bg-white dark:bg-[#1C1B19] rounded-2xl border border-[#FFE4E6] dark:border-[#3E3A35]/50 p-5 shadow-sm">
+        <div className="bg-white dark:bg-[#1C1B19] rounded-2xl border border-primary/15 dark:border-[#3E3A35]/50 p-5 shadow-sm">
           <p className="text-3xs font-black text-slate-400 dark:text-[#CDBCAB]/60 uppercase tracking-widest mb-2">Phân loại</p>
           <div className="space-y-1 text-2xs">
             <p className="flex items-center justify-between"><span className="text-emerald-600">✓ Khớp</span><strong className="font-mono">{matchCount}</strong></p>
@@ -429,7 +429,7 @@ export default function ReconciliationPage() {
         </div>
 
         {/* Biggest diff */}
-        <div className="bg-white dark:bg-[#1C1B19] rounded-2xl border border-[#FFE4E6] dark:border-[#3E3A35]/50 p-5 shadow-sm">
+        <div className="bg-white dark:bg-[#1C1B19] rounded-2xl border border-primary/15 dark:border-[#3E3A35]/50 p-5 shadow-sm">
           <p className="text-3xs font-black text-slate-400 dark:text-[#CDBCAB]/60 uppercase tracking-widest mb-2">Lệch lớn nhất</p>
           <p className="text-xs font-bold text-slate-700 dark:text-[#CDBCAB] truncate">{biggestDiff?.category_label || '—'}</p>
           <p className={`text-sm font-mono font-black mt-1 ${Math.abs(biggestDiff?.diff_amount || 0) > 0 ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400'}`}>
@@ -439,9 +439,9 @@ export default function ReconciliationPage() {
       </div>
 
       {/* ── COMPARISON TABLE ── */}
-      <div className="bg-white dark:bg-[#1C1B19] rounded-[2.5rem] border border-[#FFE4E6] dark:border-[#3E3A35]/50 p-6 md:p-8 shadow-sm">
+      <div className="bg-white dark:bg-[#1C1B19] rounded-[2.5rem] border border-primary/15 dark:border-[#3E3A35]/50 p-6 md:p-8 shadow-sm">
         <h4 className="text-sm font-black text-slate-900 dark:text-[#EFE9E1] uppercase tracking-wider mb-6 flex items-center gap-2">
-          <GitCompareArrows className="w-4 h-4 text-primary dark:text-[#A67D44]" />
+          <GitCompareArrows className="w-4 h-4 text-primary dark:text-primary" />
           Bảng so sánh chi tiết
         </h4>
 
@@ -555,7 +555,7 @@ export default function ReconciliationPage() {
       {/* ── SYNC & MIGRATION MODAL ── */}
       {showSyncModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-          <div className="bg-white dark:bg-[#1C1B19] rounded-[2rem] border border-[#FFE4E6] dark:border-[#3E3A35]/50 shadow-2xl p-6 md:p-8 max-w-md w-full relative z-50 animate-in zoom-in-95 duration-200">
+          <div className="bg-white dark:bg-[#1C1B19] rounded-[2rem] border border-primary/15 dark:border-[#3E3A35]/50 shadow-2xl p-6 md:p-8 max-w-md w-full relative z-50 animate-in zoom-in-95 duration-200">
             <h4 className="text-sm font-black text-slate-900 dark:text-[#EFE9E1] uppercase tracking-wider mb-4 flex items-center gap-2">
               <RefreshCw className="w-5 h-5 text-primary" />
               Kích hoạt Kế toán Chuyên nghiệp

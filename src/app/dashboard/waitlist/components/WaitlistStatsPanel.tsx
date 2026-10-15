@@ -48,13 +48,14 @@ export function WaitlistStatsPanel({ tenantId }: WaitlistStatsPanelProps) {
   const getThemeConfig = (moduleKey: TenantModuleKey | null) => {
     switch (moduleKey) {
       case 'beauty_spa':
+      case 'babycare':
         return {
-          cardBg: 'bg-white dark:bg-[#1c1b19] shadow-[0_10px_25px_-5px_rgba(16,185,129,0.06)]',
-          borderColor: 'border-emerald-500/22 dark:border-emerald-800/50 border-[1.5px]',
-          hoverBorder: 'hover:border-emerald-500/60 dark:hover:border-emerald-400/60',
-          hoverGlow: 'hover:shadow-[0_20px_40px_-10px_rgba(16,185,129,0.18)]',
-          iconBg: 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400',
-          accentText: 'text-emerald-700 dark:text-emerald-300',
+          cardBg: 'bg-card shadow-sm shadow-primary/5',
+          borderColor: 'border-primary/20 border-[1.5px]',
+          hoverBorder: 'hover:border-primary/60',
+          hoverGlow: 'hover:shadow-lg hover:shadow-primary/15',
+          iconBg: 'bg-primary/10 text-primary',
+          accentText: 'text-primary',
         };
       case 'industrial_cleaning':
         return {
@@ -65,7 +66,6 @@ export function WaitlistStatsPanel({ tenantId }: WaitlistStatsPanelProps) {
           iconBg: 'bg-sky-50 dark:bg-sky-950/50 text-sky-600 dark:text-sky-400',
           accentText: 'text-sky-700 dark:text-sky-300',
         };
-      case 'babycare':
       default:
         return {
           cardBg: 'bg-white dark:bg-[#1c1b19] shadow-[0_10px_25px_-5px_rgba(244,63,94,0.06)]',

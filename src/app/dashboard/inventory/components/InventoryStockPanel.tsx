@@ -61,7 +61,7 @@ export function InventoryStockPanel({
             />
             <button
               onClick={() => setShowAdd(true)}
-              className="flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-slate-900 px-5 py-3 text-[10px] font-black uppercase tracking-widest text-white shadow-lg transition-all hover:bg-slate-800 active:scale-95 sm:whitespace-nowrap"
+              className="flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-primary px-5 py-3 text-[10px] font-black uppercase tracking-widest text-primary-foreground shadow-lg transition-all hover:bg-primary-hover active:scale-95 sm:whitespace-nowrap"
             >
               <PlusCircle className="w-4 h-4" /> Thêm Vật Tư
             </button>

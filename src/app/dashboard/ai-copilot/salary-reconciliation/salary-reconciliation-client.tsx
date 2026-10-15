@@ -96,7 +96,7 @@ export function SalaryReconciliationClient({
           />
           <button
             type="submit"
-            className="bg-primary text-white text-xs font-black uppercase tracking-widest px-4 py-2 rounded-xl hover:bg-primary/90 transition-all"
+            className="bg-primary text-primary-foreground text-xs font-black uppercase tracking-widest px-4 py-2 rounded-xl hover:bg-primary/90 transition-all"
           >
             Xem
           </button>

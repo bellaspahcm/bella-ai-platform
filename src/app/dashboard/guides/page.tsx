@@ -83,48 +83,27 @@ export default function UserManualsHub() {
           footerLink: 'text-teal-700 hover:text-teal-600 dark:text-teal-400 dark:hover:text-teal-300',
         };
       case 'beauty_spa':
-        return {
-          wrapperBg: 'bg-[#FAF9F5] dark:bg-[#11100F]',
-          glowTop: 'bg-emerald-500/10 dark:bg-[#064e3b]/5',
-          glowBottom: 'bg-teal-500/5 dark:bg-[#115e59]/5',
-          tagBg: 'bg-emerald-50/50 border-emerald-100/60 dark:bg-emerald-950/20 dark:border-emerald-900/30',
-          tagText: 'text-emerald-800 dark:text-emerald-300',
-          titleFont: 'font-serif text-emerald-850 dark:text-emerald-400',
-          searchGlow: 'bg-emerald-500/5 dark:bg-emerald-900/5',
-          searchBorder: 'border-slate-200/70 focus-within:border-emerald-500/50 dark:border-[#3E3A35] dark:focus-within:border-emerald-800',
-          cardBgGlow: 'bg-emerald-100/20 dark:bg-emerald-950/5',
-          cardBorder: 'border-slate-200/60 dark:border-[#3E3A35]',
-          cardHoverBorder: 'hover:border-emerald-500/30 dark:hover:border-emerald-800',
-          cardIconBg: 'bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-100/50 dark:border-emerald-900/30 text-emerald-850',
-          cardSubtitle: 'text-emerald-800 dark:text-emerald-400',
-          cardTitle: 'text-slate-800 group-hover:text-emerald-800 dark:text-[#EFE9E1] dark:group-hover:text-emerald-400',
-          cardDivider: 'border-slate-100 dark:border-[#3E3A35]',
-          readLink: 'text-emerald-850 dark:text-emerald-400',
-          emptyStateBorder: 'border-slate-200/60 dark:border-[#3E3A35]',
-          footerBorder: 'border-slate-200/50 dark:border-[#3E3A35]/30',
-          footerLink: 'text-emerald-800 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300',
-        };
       case 'babycare':
         return {
-          wrapperBg: 'bg-[#FFF5F7] dark:bg-[#11100F]',
-          glowTop: 'bg-pink-300/30 dark:bg-[#5D1C34]/15',
-          glowBottom: 'bg-rose-300/20 dark:bg-[#A67D44]/5',
-          tagBg: 'bg-white/80 border-pink-100 dark:bg-[#1C1B19]/80 dark:border-[#3E3A35]',
-          tagText: 'text-primary dark:text-[#CDBCAB]',
-          titleFont: 'font-handwriting text-[#BE185D] dark:text-[#A67D44]',
-          searchGlow: 'bg-primary/10 dark:bg-[#A67D44]/10',
-          searchBorder: 'border-pink-100 focus-within:border-primary/50 dark:border-[#3E3A35] dark:focus-within:border-[#A67D44]/50',
-          cardBgGlow: 'bg-pink-100/30 dark:bg-[#5D1C34]/5',
-          cardBorder: 'border-pink-100 dark:border-[#3E3A35]',
-          cardHoverBorder: 'hover:border-primary dark:hover:border-[#A67D44]',
-          cardIconBg: 'bg-pink-50 dark:bg-[#5D1C34]/40 border border-pink-100/50 dark:border-[#3E3A35]/50 text-[#BE185D]',
-          cardSubtitle: 'text-primary dark:text-[#A67D44]',
-          cardTitle: 'text-slate-800 group-hover:text-primary dark:text-[#EFE9E1] dark:group-hover:text-[#A67D44]',
-          cardDivider: 'border-slate-50 dark:border-[#3E3A35]',
-          readLink: 'text-primary dark:text-[#A67D44]',
-          emptyStateBorder: 'border-pink-100 dark:border-[#3E3A35]',
-          footerBorder: 'border-pink-100/50 dark:border-[#3E3A35]/30',
-          footerLink: 'text-primary dark:text-[#A67D44]',
+          wrapperBg: 'bg-background',
+          glowTop: 'bg-primary/10',
+          glowBottom: 'bg-accent/5',
+          tagBg: 'bg-card border-primary/20',
+          tagText: 'text-primary',
+          titleFont: `${tenantModuleKey === 'babycare' ? 'font-handwriting' : 'font-serif'} text-primary`,
+          searchGlow: 'bg-primary/10',
+          searchBorder: 'border-border focus-within:border-primary/50',
+          cardBgGlow: 'bg-primary/10',
+          cardBorder: 'border-border',
+          cardHoverBorder: 'hover:border-primary',
+          cardIconBg: 'bg-primary/10 border border-primary/20 text-primary',
+          cardSubtitle: 'text-primary',
+          cardTitle: 'text-foreground group-hover:text-primary',
+          cardDivider: 'border-border',
+          readLink: 'text-primary',
+          emptyStateBorder: 'border-border',
+          footerBorder: 'border-border',
+          footerLink: 'text-primary',
         };
       case 'real_estate':
         return {
@@ -185,16 +164,16 @@ export default function UserManualsHub() {
         {/* Breadcrumbs & Navigation */}
         <div className="flex flex-wrap items-center justify-between gap-4 border-b border-emerald-950/5 pb-4">
           <div className="flex items-center gap-2 text-xs font-semibold tracking-wider text-slate-500 uppercase">
-            <Link href="/dashboard" className="hover:text-emerald-800 transition-colors">
+            <Link href="/dashboard" className="hover:text-primary transition-colors">
               Tổng quan
             </Link>
             <ChevronRight size={12} className="opacity-40" />
-            <span className="text-emerald-850 font-bold">Hướng dẫn sử dụng</span>
+            <span className="text-primary font-bold">Hướng dẫn sử dụng</span>
           </div>
 
           <Link
             href="/dashboard"
-            className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-1.5 text-xs font-bold text-slate-600 shadow-sm transition-all duration-200 hover:bg-slate-50 hover:text-emerald-800 hover:border-emerald-800/30 group"
+            className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-1.5 text-xs font-bold text-slate-600 shadow-sm transition-all duration-200 hover:bg-slate-50 hover:text-primary hover:border-primary/30 group"
           >
             <ArrowLeft size={14} className="transition-transform group-hover:-translate-x-1" />
             <span>Trở về tổng quan</span>
@@ -272,7 +251,7 @@ export default function UserManualsHub() {
                       Đọc tài liệu
                       <ArrowRight className="w-4 h-4 group-hover:translate-x-1.5 transition-transform duration-300" />
                     </span>
-                    <Bookmark className="w-4 h-4 text-slate-350 group-hover:text-emerald-800 transition-colors" />
+                    <Bookmark className="w-4 h-4 text-slate-350 group-hover:text-primary transition-colors" />
                   </div>
                 </Link>
               </motion.div>

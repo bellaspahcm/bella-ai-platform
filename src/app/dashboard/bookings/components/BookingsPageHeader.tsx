@@ -50,7 +50,7 @@ export function BookingsPageHeader({
                 : 'text-slate-500 hover:text-slate-700'
             }`}
           >
-            <CalendarDays className="w-3.5 h-3.5 text-rose-500" />
+            <CalendarDays className="w-3.5 h-3.5 text-primary" />
             <span>Timeline {vocab.worker.short}</span>
           </button>
           <button
@@ -62,7 +62,7 @@ export function BookingsPageHeader({
                 : 'text-slate-500 hover:text-slate-700'
             }`}
           >
-            <CalendarIcon className="w-3.5 h-3.5 text-rose-500" />
+            <CalendarIcon className="w-3.5 h-3.5 text-primary" />
             <span>Lịch tháng</span>
           </button>
         </div>
@@ -74,7 +74,7 @@ export function BookingsPageHeader({
           <button
             type="button"
             onClick={onCreateClick}
-            className="flex min-h-12 flex-grow items-center justify-center gap-2 rounded-2xl bg-primary px-4 py-3 text-xs font-bold text-white shadow-lg shadow-rose-200 transition-all hover:bg-rose-600 active:scale-95 dark:shadow-none sm:flex-initial sm:px-6"
+            className="flex min-h-12 flex-grow items-center justify-center gap-2 rounded-2xl bg-primary px-4 py-3 text-xs font-bold text-primary-foreground shadow-lg shadow-primary/20 transition-all hover:bg-primary-hover active:scale-95 dark:shadow-none sm:flex-initial sm:px-6"
           >
             <Plus className="w-4 h-4" />
             <span>Đặt lịch mới</span>

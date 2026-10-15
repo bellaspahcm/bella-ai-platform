@@ -170,7 +170,7 @@ export function InventoryReconciliationPanel({
             <button
               onClick={handleSaveReconciliation}
               disabled={reconSaving || reconRows.every(r => r.actual === '')}
-              className="flex items-center gap-2 bg-primary text-white px-6 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-rose-600 active:scale-95 transition-all shadow-lg disabled:opacity-50"
+              className="flex items-center gap-2 bg-primary text-primary-foreground px-6 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-primary-hover active:scale-95 transition-all shadow-lg disabled:opacity-50"
             >
               {reconSaving ? <RefreshCw className="w-4 h-4 animate-spin" /> : <ShieldCheck className="w-4 h-4" />}
               Lưu Kết Quả Kiểm Kê

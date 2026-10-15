@@ -413,7 +413,7 @@ export default function WorkforceAnalyticsDashboard() {
           <button
             onClick={() => fetchWorkforceAnalytics(true)}
             disabled={isRefreshing}
-            className="flex items-center justify-center gap-2 bg-primary hover:bg-primary-hover text-white px-6 py-3 rounded-2xl font-black text-xs uppercase tracking-wider transition-all shadow-lg shadow-pink-100 dark:shadow-none active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center justify-center gap-2 bg-primary hover:bg-primary-hover text-primary-foreground px-6 py-3 rounded-2xl font-black text-xs uppercase tracking-wider transition-all shadow-lg shadow-primary/20 dark:shadow-none active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <RefreshCw className={cn("h-4 w-4", isRefreshing && "animate-spin")} />
             Làm mới

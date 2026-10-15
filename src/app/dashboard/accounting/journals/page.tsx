@@ -103,14 +103,14 @@ export default function JournalsPage() {
     <div className="space-y-8 relative">
       {/* Synchronization Loader spinner */}
       {refreshing && (
-        <div className="absolute top-0 right-0 flex items-center gap-1.5 text-xs font-semibold text-primary dark:text-[#A67D44] animate-pulse">
+        <div className="absolute top-0 right-0 flex items-center gap-1.5 text-xs font-semibold text-primary dark:text-primary animate-pulse">
           <RefreshCw className="w-3.5 h-3.5 animate-spin" />
           <span>Đang tải...</span>
         </div>
       )}
 
       {/* ── SEARCH FILTERS & QUICK ACTIONS ── */}
-      <div className="bg-white dark:bg-[#1C1B19] rounded-[2.5rem] border border-[#FFE4E6] dark:border-[#3E3A35]/50 p-5 sm:p-6 shadow-sm">
+      <div className="bg-white dark:bg-[#1C1B19] rounded-[2.5rem] border border-primary/15 dark:border-[#3E3A35]/50 p-5 sm:p-6 shadow-sm">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-[repeat(2,minmax(10.75rem,12rem))_minmax(12rem,1fr)_minmax(14rem,1.35fr)_minmax(16rem,1.35fr)]">
           {/* Start Date */}
           <div className="min-w-0 space-y-1">
@@ -196,7 +196,7 @@ export default function JournalsPage() {
       </div>
 
       {/* ── BÚT TOÁN LIST ── */}
-      <div className="bg-white dark:bg-[#1C1B19] rounded-[2.5rem] border border-[#FFE4E6] dark:border-[#3E3A35]/50 p-6 md:p-8 shadow-sm">
+      <div className="bg-white dark:bg-[#1C1B19] rounded-[2.5rem] border border-primary/15 dark:border-[#3E3A35]/50 p-6 md:p-8 shadow-sm">
         <div className="flex items-center justify-between mb-6 border-b border-slate-50 dark:border-[#3E3A35]/30 pb-4">
           <h4 className="text-base font-black text-slate-900 dark:text-[#EFE9E1] uppercase tracking-wider flex items-center gap-2">
             <Layers className="w-5.5 h-5.5 text-primary" />
@@ -295,7 +295,7 @@ export default function JournalsPage() {
                       </td>
                       <td className="px-6 py-4 text-center">
                         <Link href={`/dashboard/accounting/journals/${entry.id}`}>
-                          <button className="inline-flex items-center gap-1 bg-slate-900 hover:bg-slate-800 dark:bg-[#5D1C34] dark:hover:bg-[#5D1C34]/80 text-white dark:text-[#EFE9E1] px-3.5 py-1.5 rounded-xl text-3xs font-black uppercase tracking-widest transition-all cursor-pointer">
+                          <button className="inline-flex items-center gap-1 bg-primary hover:bg-primary-hover text-primary-foreground px-3.5 py-1.5 rounded-xl text-3xs font-black uppercase tracking-widest transition-all cursor-pointer">
                             <Eye className="w-3.5 h-3.5" />
                             Chi tiết
                           </button>

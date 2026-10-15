@@ -15,6 +15,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { PremiumSelect } from '@/components/ui/PremiumSelect';
+import { useUser } from '@/lib/user-context';
 import type { TimelineSession } from '../../bookings/components/BookingsTimelineGrid';
 
 export interface KtvOption {
@@ -77,6 +78,8 @@ export function TimelineKtvView({
   onSelectBooking,
   onOpenBookingModal,
 }: TimelineKtvViewProps) {
+  const { product } = useUser();
+  const isBabyCare = product?.productKey === 'bella_babycare';
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [currentTimeStr, setCurrentTimeStr] = useState('12:00');
   const [searchQuery, setSearchQuery] = useState('');
@@ -264,7 +267,7 @@ export function TimelineKtvView({
       {/* ── Dynamic Operational KPI Summary Cards ── */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5 sm:gap-4">
         <div className="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-sm flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center shrink-0">
+          <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary border border-primary/20 flex items-center justify-center shrink-0">
             <CalendarIcon className="w-5 h-5" />
           </div>
           <div>
@@ -276,7 +279,7 @@ export function TimelineKtvView({
         </div>
 
         <div className="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-sm flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-pink-50 text-pink-600 border border-pink-100 flex items-center justify-center shrink-0">
+          <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary border border-primary/20 flex items-center justify-center shrink-0">
             <Users className="w-5 h-5" />
           </div>
           <div>
@@ -288,7 +291,7 @@ export function TimelineKtvView({
         </div>
 
         <div className="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-sm flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-teal-50 text-teal-600 border border-teal-100 flex items-center justify-center shrink-0">
+          <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary border border-primary/20 flex items-center justify-center shrink-0">
             <Clock className="w-5 h-5" />
           </div>
           <div>
@@ -333,7 +336,7 @@ export function TimelineKtvView({
             <h3 className="text-base font-black text-slate-900 capitalize">
               {selectedDate.toLocaleDateString('vi-VN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
             </h3>
-            <p className="text-[9.5px] font-black text-emerald-600 uppercase tracking-widest">BEAUTY SPA COORDINATOR</p>
+            <p className="text-[9.5px] font-black text-primary uppercase tracking-widest">{isBabyCare ? 'ĐIỀU PHỐI BABYCARE' : 'BEAUTY SPA COORDINATOR'}</p>
           </div>
         </div>
 
@@ -345,14 +348,14 @@ export function TimelineKtvView({
               className={cn(
                 "flex flex-col items-center justify-center min-w-[42px] py-2 px-3 rounded-xl text-xs font-black transition-all relative",
                 day.isActive
-                  ? "bg-slate-900 text-white shadow-md shadow-slate-900/10"
+                  ? "bg-primary text-primary-foreground shadow-md shadow-primary/10"
                   : "bg-slate-50 text-slate-600 hover:bg-slate-100"
               )}
             >
               <span className="text-[9px] uppercase tracking-wider font-bold opacity-80">{day.label}</span>
               <span className="text-sm font-black">{day.dateNum}</span>
               {day.isToday && !day.isActive && (
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 absolute bottom-1" />
+                <span className="w-1.5 h-1.5 rounded-full bg-primary absolute bottom-1" />
               )}
             </button>
           ))}
@@ -434,13 +437,13 @@ export function TimelineKtvView({
 
               return (
                 <div key={k.id} className="p-4 border-r border-slate-200 flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-emerald-100 border-2 border-white shadow-sm flex items-center justify-center text-emerald-800 font-black text-sm shrink-0">
+                  <div className="w-10 h-10 rounded-full bg-primary/10 border-2 border-white shadow-sm flex items-center justify-center text-primary font-black text-sm shrink-0">
                     {k.name[0] || 'K'}
                   </div>
                   <div className="min-w-0">
                     <h4 className="font-black text-xs text-slate-900 truncate">{k.name}</h4>
                     <p className="text-[10px] font-bold text-slate-500 truncate">
-                      🟢 08:00 - 17:00 • <span className="text-emerald-600 font-black">{count} lịch ({loadPct}%)</span>
+                      🟢 08:00 - 17:00 • <span className="text-primary font-black">{count} lịch ({loadPct}%)</span>
                     </p>
                   </div>
                 </div>
@@ -516,6 +519,7 @@ export function TimelineKtvView({
               return (
                 <div
                   key={session.id}
+                  data-session-id={session.id}
                   onClick={() => onSelectBooking(session)}
                   style={{
                     top: `${topOffset}px`,
@@ -529,7 +533,7 @@ export function TimelineKtvView({
                       ? "bg-amber-50 border-2 border-amber-300 text-slate-900"
                       : isCompleted
                       ? "bg-emerald-600 text-white border-emerald-500"
-                      : "bg-blue-600 text-white border-blue-500"
+                      : "bg-primary text-primary-foreground border-primary hover:bg-primary-hover"
                   )}
                 >
                   <div>
@@ -537,7 +541,7 @@ export function TimelineKtvView({
                       <span>{preferredTime}</span>
                       <span>#{session.bookings?.booking_number || session.booking_id.slice(0, 8)}</span>
                     </div>
-                    <h5 className="font-black text-xs mt-1 truncate">
+                    <h5 className={cn("font-black text-xs mt-1 truncate", isUnassigned ? '!text-slate-900' : isCompleted ? '!text-white' : '!text-primary-foreground')}>
                       {getCustomerName(session)}
                     </h5>
                     <p className="text-[10px] font-medium opacity-80 truncate">{getPackageName(session)}</p>
@@ -546,7 +550,7 @@ export function TimelineKtvView({
                   <div className="flex items-center justify-between mt-1 text-[9px] font-black">
                     <span className={cn(
                       "px-2 py-0.5 rounded-md uppercase tracking-wider truncate",
-                      isUnassigned ? "bg-amber-200 text-amber-900" : "bg-white/20 text-white"
+                      isUnassigned ? "bg-amber-200 text-amber-900" : isCompleted ? "bg-white/20 text-white" : "bg-primary-foreground/15 text-primary-foreground"
                     )}>
                       {isUnassigned ? 'Chưa phân KTV' : isCompleted ? 'Hoàn thành' : `Buổi ${completedCount}/${totalCount}`}
                     </span>
@@ -587,7 +591,7 @@ export function TimelineKtvView({
                   </div>
                   <button 
                     onClick={() => onSelectBooking(item)}
-                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-black text-xs rounded-xl transition-all shadow-md active:scale-95 whitespace-nowrap"
+                    className="px-4 py-2 bg-primary hover:bg-primary-hover text-primary-foreground font-black text-xs rounded-xl transition-all shadow-md active:scale-95 whitespace-nowrap"
                   >
                     Phân công KTV
                   </button>
@@ -601,7 +605,7 @@ export function TimelineKtvView({
         <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-lg shadow-slate-200/50">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-base font-black text-slate-900 flex items-center gap-2">
-              <Users className="w-5 h-5 text-blue-600" />
+              <Users className="w-5 h-5 text-primary" />
               <span>Phân bổ KTV trong ngày</span>
             </h3>
           </div>
@@ -619,11 +623,11 @@ export function TimelineKtvView({
                   <div key={k.id} className="space-y-1.5">
                     <div className="flex justify-between items-center text-xs font-black">
                       <span className="text-slate-900">{k.name}</span>
-                      <span className="text-emerald-600">{count} ca ({loadPct}%)</span>
+                      <span className="text-primary">{count} ca ({loadPct}%)</span>
                     </div>
                     <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
                       <div 
-                        className={cn("h-full rounded-full transition-all", loadPct > 80 ? "bg-rose-500" : "bg-emerald-500")} 
+                        className={cn("h-full rounded-full transition-all", loadPct > 80 ? "bg-rose-500" : "bg-primary")}
                         style={{ width: `${loadPct}%` }} 
                       />
                     </div>

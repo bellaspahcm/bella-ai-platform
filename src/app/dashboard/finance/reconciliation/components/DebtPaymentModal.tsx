@@ -105,7 +105,7 @@ export function DebtPaymentModal({
                     className={cn(
                       'py-3.5 rounded-2xl border text-xs font-black uppercase tracking-widest transition-all text-center',
                       paymentMethod === 'bank_transfer'
-                        ? 'bg-slate-900 text-white border-slate-900 shadow-sm'
+                        ? 'bg-primary text-primary-foreground border-slate-900 shadow-sm'
                         : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
                     )}
                   >
@@ -117,7 +117,7 @@ export function DebtPaymentModal({
                     className={cn(
                       'py-3.5 rounded-2xl border text-xs font-black uppercase tracking-widest transition-all text-center',
                       paymentMethod === 'cash'
-                        ? 'bg-slate-900 text-white border-slate-900 shadow-sm'
+                        ? 'bg-primary text-primary-foreground border-slate-900 shadow-sm'
                         : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
                     )}
                   >
@@ -130,7 +130,7 @@ export function DebtPaymentModal({
                 <button
                   onClick={onConfirm}
                   disabled={isPaying || !paymentAmount}
-                  className="w-full bg-rose-500 hover:bg-rose-600 text-white py-4 rounded-2xl font-black text-sm uppercase tracking-widest transition-all disabled:opacity-50 flex justify-center items-center gap-2 shadow-lg shadow-rose-200 dark:shadow-none"
+                  className="w-full bg-primary hover:bg-primary-hover text-primary-foreground py-4 rounded-2xl font-black text-sm uppercase tracking-widest transition-all disabled:opacity-50 flex justify-center items-center gap-2 shadow-lg shadow-primary/20 dark:shadow-none"
                 >
                   {isPaying ? 'Đang Xử Lý...' : 'Xác Nhận Thu Nợ'}
                   {!isPaying && <CheckCircle2 className="w-4 h-4" />}

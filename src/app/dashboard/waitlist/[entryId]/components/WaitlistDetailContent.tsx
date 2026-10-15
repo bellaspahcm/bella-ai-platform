@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { ArrowLeft, MoreVertical, Bell, Check, X, Edit } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
-import { useTenantContext } from '@/core/hooks/useTenantContext';
+import { useUser } from '@/lib/user-context';
 import { usePageRefresh } from '@/hooks/usePageRefresh';
 import { WaitlistStatusBadge } from '../../components/WaitlistStatusBadge';
 import { WaitlistDetailCards } from './WaitlistDetailCards';
@@ -20,8 +20,8 @@ interface WaitlistDetailContentProps {
 
 export function WaitlistDetailContent({ entryId }: WaitlistDetailContentProps) {
   const router = useRouter();
-  const tenantContext = useTenantContext();
-  const tenantId = tenantContext?.tenantId || '';
+  const { user, isLoading: isUserLoading } = useUser();
+  const tenantId = user?.tenant_id || '';
 
   const [entry, setEntry] = useState<WaitlistEntry | null>(null);
   const [notifications, setNotifications] = useState<WaitlistNotificationLog[]>([]);
@@ -32,7 +32,12 @@ export function WaitlistDetailContent({ entryId }: WaitlistDetailContentProps) {
   const [isProcessing, setIsProcessing] = useState(false);
 
   const fetchEntry = useCallback(async () => {
-    if (!entryId || !tenantId) return;
+    if (!entryId) return;
+    if (!tenantId) {
+      setError('Không tìm thấy thông tin chi nhánh');
+      setIsLoading(false);
+      return;
+    }
 
     const loadingFlag = entry ? setIsSyncing : setIsLoading;
     loadingFlag(true);
@@ -73,9 +78,10 @@ export function WaitlistDetailContent({ entryId }: WaitlistDetailContentProps) {
   }, [entryId, tenantId, entry]);
 
   useEffect(() => {
+    if (isUserLoading) return;
     void fetchEntry();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [entryId, tenantId]);
+  }, [entryId, tenantId, isUserLoading]);
 
   usePageRefresh(fetchEntry);
 
