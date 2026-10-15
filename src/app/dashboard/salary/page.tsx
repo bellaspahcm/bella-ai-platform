@@ -621,14 +621,14 @@ export default function SalaryPage() {
             <>
               <button
                 onClick={handlePublishAll}
-                className="beauty-customer-add-cta flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-primary px-5 py-3 text-xs font-black uppercase tracking-widest text-white shadow-lg transition-all hover:bg-primary-hover sm:px-6 sm:py-4"
+                className="beauty-customer-add-cta flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-primary px-5 py-3 text-xs font-black uppercase tracking-widest text-primary-foreground shadow-lg transition-all hover:bg-primary-hover sm:px-6 sm:py-4"
               >
-                <Send className="w-4 h-4 text-white" />
-                <span className="text-white">Gửi đối soát</span>
+                <Send className="w-4 h-4 text-primary-foreground" />
+                <span className="text-primary-foreground">Gửi đối soát</span>
               </button>
               <button
                 onClick={handleFinalizeAll}
-                className="flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-primary px-5 py-3 text-xs font-black uppercase tracking-widest text-white shadow-lg shadow-pink-100 transition-all hover:bg-primary-hover dark:shadow-none sm:px-6 sm:py-4"
+                className="flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-primary px-5 py-3 text-xs font-black uppercase tracking-widest text-primary-foreground shadow-lg shadow-primary/20 transition-all hover:bg-primary-hover dark:shadow-none sm:px-6 sm:py-4"
               >
                 <Lock className="w-4 h-4" />
                 <span>Chốt sổ</span>
@@ -657,7 +657,7 @@ export default function SalaryPage() {
               className={cn(
                 "flex items-center gap-2 px-6 py-3 rounded-xl text-xs font-black uppercase tracking-wider transition-all whitespace-nowrap",
                 activeTab === 'payroll'
-                  ? "bg-slate-900 text-white shadow-lg shadow-slate-950/10 dark:bg-[#091A2D] dark:text-[#F3F5F7] dark:shadow-none"
+                  ? "bg-primary text-primary-foreground shadow-lg shadow-slate-950/10 dark:shadow-none"
                   : "text-slate-500 hover:text-slate-700 hover:bg-slate-50 dark:text-[#D8E3EA] dark:hover:bg-[#193A50] dark:hover:text-[#F3F5F7]"
               )}
             >
@@ -669,7 +669,7 @@ export default function SalaryPage() {
               className={cn(
                 "flex items-center gap-2 px-6 py-3 rounded-xl text-xs font-black uppercase tracking-wider transition-all whitespace-nowrap",
                 activeTab === 'attendance'
-                  ? "bg-slate-900 text-white shadow-lg shadow-slate-950/10 dark:bg-[#091A2D] dark:text-[#F3F5F7] dark:shadow-none"
+                  ? "bg-primary text-primary-foreground shadow-lg shadow-slate-950/10 dark:shadow-none"
                   : "text-slate-500 hover:text-slate-700 hover:bg-slate-50 dark:text-[#D8E3EA] dark:hover:bg-[#193A50] dark:hover:text-[#F3F5F7]"
               )}
             >
@@ -681,7 +681,7 @@ export default function SalaryPage() {
               className={cn(
                 "flex items-center gap-2 px-6 py-3 rounded-xl text-xs font-black uppercase tracking-wider transition-all whitespace-nowrap",
                 activeTab === 'hr_profile'
-                  ? "bg-slate-900 text-white shadow-lg shadow-slate-950/10 dark:bg-[#091A2D] dark:text-[#F3F5F7] dark:shadow-none"
+                  ? "bg-primary text-primary-foreground shadow-lg shadow-slate-950/10 dark:shadow-none"
                   : "text-slate-500 hover:text-slate-700 hover:bg-slate-50 dark:text-[#D8E3EA] dark:hover:bg-[#193A50] dark:hover:text-[#F3F5F7]"
               )}
             >
@@ -758,7 +758,7 @@ export default function SalaryPage() {
                 <button
                   type="button"
                   onClick={() => void loadMatrixData()}
-                  className="min-h-11 rounded-2xl bg-slate-900 px-5 text-xs font-black uppercase tracking-widest text-white shadow-sm transition-all hover:bg-primary dark:bg-[#091A2D] dark:hover:bg-primary"
+                  className="min-h-11 rounded-2xl bg-primary px-5 text-xs font-black uppercase tracking-widest text-primary-foreground shadow-sm transition-all hover:bg-primary-hover dark:hover:bg-primary"
                 >
                   Tải lại
                 </button>

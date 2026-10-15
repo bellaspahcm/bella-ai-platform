@@ -270,7 +270,7 @@ function StandardFinancialReconciliationPage() {
         </Link>
         <Link 
           href="/dashboard/finance/reconciliation"
-          className="shrink-0 px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all bg-slate-900 text-white shadow-md dark:bg-slate-800"
+          className="shrink-0 px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all bg-primary text-primary-foreground shadow-md "
         >
           Đối soát công nợ
         </Link>
@@ -501,7 +501,7 @@ function StandardFinancialReconciliationPage() {
                                 <button
                                   onClick={() => handlePayClearing(rec.id)}
                                   disabled={isPayingClearing === rec.id}
-                                  className="inline-flex items-center gap-1.5 bg-rose-500 hover:bg-rose-600 text-white px-3.5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-sm shadow-rose-100 dark:shadow-none active:scale-95 disabled:opacity-50"
+                                  className="inline-flex items-center gap-1.5 bg-primary hover:bg-primary-hover text-primary-foreground px-3.5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-sm shadow-primary/20 dark:shadow-none active:scale-95 disabled:opacity-50"
                                 >
                                   {isPayingClearing === rec.id ? (
                                     <>
@@ -682,7 +682,7 @@ function StandardFinancialReconciliationPage() {
                           setPaymentMethod('bank_transfer');
                           setShowPaymentModal(true);
                         }}
-                        className="inline-flex items-center gap-2 bg-slate-100 hover:bg-primary hover:text-white text-slate-600 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all">
+                        className="inline-flex items-center gap-2 bg-slate-100 hover:bg-primary hover:text-primary-foreground text-slate-600 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all">
                         <DollarSign className="w-3 h-3" />
                         Thu Nợ
                       </button>

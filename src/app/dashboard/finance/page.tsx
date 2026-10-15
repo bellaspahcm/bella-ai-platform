@@ -317,7 +317,7 @@ export default function FinancePage() {
           <PremiumExportButton />
           <button 
             onClick={() => setIsModalOpen(true)}
-            className="flex w-full sm:w-auto items-center justify-center gap-2 bg-primary hover:bg-primary-hover text-white px-6 py-3 rounded-2xl font-black transition-all shadow-lg shadow-pink-100 dark:shadow-none uppercase tracking-widest text-xs active:scale-95"
+            className="flex w-full sm:w-auto items-center justify-center gap-2 bg-primary hover:bg-primary-hover text-primary-foreground px-6 py-3 rounded-2xl font-black transition-all shadow-lg shadow-primary/20 dark:shadow-none uppercase tracking-widest text-xs active:scale-95"
           >
             <PlusCircle className="w-5 h-5" />
             <span>Ghi nhận thu chi</span>
@@ -330,7 +330,7 @@ export default function FinancePage() {
         <button 
           onClick={() => setActiveTab('transactions')}
           className={`shrink-0 px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
-            activeTab === 'transactions' ? 'bg-slate-900 text-white shadow-md dark:bg-slate-800' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-350'
+            activeTab === 'transactions' ? 'bg-primary text-primary-foreground shadow-md ' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-350'
           }`}
         >
           Sổ nhật ký
@@ -338,7 +338,7 @@ export default function FinancePage() {
         <button 
           onClick={() => setActiveTab('analysis')}
           className={`shrink-0 px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
-            activeTab === 'analysis' ? 'bg-slate-900 text-white shadow-md dark:bg-slate-800' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-350'
+            activeTab === 'analysis' ? 'bg-primary text-primary-foreground shadow-md ' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-350'
           }`}
         >
           Khóa tháng & P&L
@@ -464,7 +464,7 @@ export default function FinancePage() {
                 placeholder="Tìm giao dịch..." 
                 value={searchTerm}
                 onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
-                className="pl-10 pr-4 py-2 bg-slate-50 border-none rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-rose-500/10 w-full sm:w-64 transition-all" 
+                className="pl-10 pr-4 py-2 bg-slate-50 border-none rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-primary/10 w-full sm:w-64 transition-all"
               />
             </div>
             <PremiumSelect
@@ -574,7 +574,7 @@ export default function FinancePage() {
                             whileTap={{ scale: 0.95 }}
                             onClick={() => handleConfirm(tx)}
                             disabled={isConfirmingId === tx.id}
-                            className="flex items-center gap-1.5 bg-slate-900 text-white px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-slate-800 transition-all shadow-sm shadow-slate-200 disabled:opacity-50"
+                            className="flex items-center gap-1.5 bg-primary text-primary-foreground px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-primary-hover transition-all shadow-sm shadow-slate-200 disabled:opacity-50"
                           >
                             {isConfirmingId === tx.id ? (
                               <RefreshCw className="w-3 h-3 animate-spin" />

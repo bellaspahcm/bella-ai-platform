@@ -131,7 +131,7 @@ export function WaitlistPagination({
                   onClick={() => updatePage(pageNum)}
                   className={`relative inline-flex items-center px-3 py-1.5 text-xs font-bold border-y border-r border-slate-200/60 dark:border-slate-800 transition-all ${
                     isActive
-                      ? 'z-10 bg-primary text-white border-primary dark:border-primary'
+                      ? 'z-10 bg-primary text-primary-foreground border-primary dark:border-primary'
                       : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100/50 dark:hover:bg-slate-900/40'
                   }`}
                 >

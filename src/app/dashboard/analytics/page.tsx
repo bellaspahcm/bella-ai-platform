@@ -63,8 +63,8 @@ export default function AnalyticsCenterPage() {
       <div className="bg-white border-b border-slate-100 px-6 sm:px-10 py-5 shrink-0 relative z-10 shadow-[0_4px_20px_rgba(0,0,0,0.02)]">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-rose-100/60 rounded-xl text-primary">
-              <LineChart className="h-6 w-6 text-rose-600" />
+            <div className="p-2.5 bg-primary/10 rounded-xl text-primary">
+              <LineChart className="h-6 w-6 text-primary" />
             </div>
             <div>
               <h1 className="text-2xl font-black text-slate-900 tracking-tight">Trung tâm Phân tích</h1>
@@ -84,14 +84,14 @@ export default function AnalyticsCenterPage() {
                 onClick={() => handleTabChange(tab.id)}
                 className={`relative flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all select-none cursor-pointer ${
                   isActive 
-                    ? 'text-white' 
+                    ? 'text-primary-foreground'
                     : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50/80'
                 }`}
               >
                 {isActive && (
                   <motion.div
                     layoutId="active-analytics-tab"
-                    className="absolute inset-0 bg-slate-900 rounded-xl shadow-md"
+                    className="absolute inset-0 bg-primary rounded-xl shadow-md"
                     transition={{ type: 'spring', stiffness: 380, damping: 30 }}
                   />
                 )}
@@ -107,7 +107,7 @@ export default function AnalyticsCenterPage() {
       <div className="flex-1 min-h-0 relative">
         {isPending && (
           <div className="absolute inset-0 bg-white/40 backdrop-blur-xs flex items-center justify-center z-50">
-            <div className="w-1.5 h-1.5 rounded-full bg-slate-900 animate-ping" />
+            <div className="w-1.5 h-1.5 rounded-full bg-primary animate-ping" />
           </div>
         )}
         

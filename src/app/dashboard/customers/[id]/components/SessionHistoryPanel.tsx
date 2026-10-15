@@ -191,7 +191,7 @@ export function SessionHistoryPanel({
             <div key={idx} className="relative rounded-2xl overflow-hidden aspect-square border border-slate-200 bg-slate-100 group cursor-pointer shadow-2xs">
               <Image src={img} alt={`Before after photo ${idx + 1}`} width={200} height={200} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
               {idx === 4 && (
-                <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center text-white font-black text-sm">
+                <div className="absolute inset-0 bg-primary/60 backdrop-blur-xs flex items-center justify-center text-primary-foreground font-black text-sm">
                   +8
                 </div>
               )}

@@ -73,7 +73,7 @@ export function InventoryAddItemModal({
             </div>
             <div className="flex flex-col gap-3 sm:flex-row">
               <button onClick={onClose} className="flex-1 py-3 text-slate-400 font-black text-[10px] uppercase tracking-widest hover:text-slate-600">Hủy</button>
-              <button onClick={onSubmit} disabled={submitting} className="flex-[2] bg-primary text-white py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50">
+              <button onClick={onSubmit} disabled={submitting} className="flex-[2] bg-primary text-primary-foreground py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50">
                 {submitting ? <RefreshCw className="w-4 h-4 animate-spin" /> : <PlusCircle className="w-4 h-4" />}
                 Lưu Vật Tư
               </button>

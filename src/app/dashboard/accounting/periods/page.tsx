@@ -139,15 +139,15 @@ export default function PeriodsPage() {
   return (
     <div className="space-y-8 relative">
       {refreshing && (
-        <div className="absolute top-0 right-0 flex items-center gap-1.5 text-xs font-semibold text-primary dark:text-[#A67D44] animate-pulse">
+        <div className="absolute top-0 right-0 flex items-center gap-1.5 text-xs font-semibold text-primary dark:text-primary animate-pulse">
           <RefreshCw className="w-3.5 h-3.5 animate-spin" />
           <span>Đang cập nhật...</span>
         </div>
       )}
 
       {/* ── INFO HEADER CARD ── */}
-      <div className="p-5 md:p-8 bg-white dark:bg-[#1C1B19] rounded-3xl md:rounded-[2.5rem] border border-[#FFE4E6] dark:border-[#3E3A35]/50 shadow-sm flex items-start gap-4">
-        <div className="w-12 h-12 rounded-2xl bg-pink-50 dark:bg-[#5D1C34]/30 flex items-center justify-center text-primary dark:text-[#A67D44] shrink-0">
+      <div className="p-5 md:p-8 bg-white dark:bg-[#1C1B19] rounded-3xl md:rounded-[2.5rem] border border-primary/15 dark:border-[#3E3A35]/50 shadow-sm flex items-start gap-4">
+        <div className="w-12 h-12 rounded-2xl bg-pink-50 dark:bg-primary/5 flex items-center justify-center text-primary dark:text-primary shrink-0">
           <Settings className="w-6 h-6 text-primary" />
         </div>
         <div>
@@ -165,7 +165,7 @@ export default function PeriodsPage() {
       </div>
 
       {/* ── PERIODS LIST TABLE ── */}
-      <div className="bg-white dark:bg-[#1C1B19] rounded-3xl md:rounded-[2.5rem] border border-[#FFE4E6] dark:border-[#3E3A35]/50 p-5 md:p-8 shadow-sm">
+      <div className="bg-white dark:bg-[#1C1B19] rounded-3xl md:rounded-[2.5rem] border border-primary/15 dark:border-[#3E3A35]/50 p-5 md:p-8 shadow-sm">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 border-b border-slate-50 dark:border-[#3E3A35]/30 pb-4">
           <h4 className="text-base font-black text-slate-900 dark:text-[#EFE9E1] uppercase tracking-wider flex items-center gap-2">
             <Calendar className="w-5 h-5 text-primary" />
@@ -215,7 +215,7 @@ export default function PeriodsPage() {
                       <td className={`${stickyBodyCellClassName} px-6 py-5`}>
                         <div className="flex items-center gap-3">
                           <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-                            isClosed ? 'bg-slate-100 text-slate-400' : 'bg-pink-50 text-primary dark:bg-[#5D1C34]/40 dark:text-[#A67D44]'
+                            isClosed ? 'bg-slate-100 text-slate-400' : 'bg-pink-50 text-primary dark:bg-primary/5 dark:text-primary'
                           }`}>
                             <Calendar className="w-4 h-4" />
                           </div>
@@ -252,7 +252,7 @@ export default function PeriodsPage() {
                         ) : (
                           <button
                             onClick={() => handleOpenCloseModal(p)}
-                            className="inline-flex items-center gap-1 bg-slate-900 hover:bg-slate-800 dark:bg-[#5D1C34] dark:hover:bg-[#5D1C34]/80 text-white dark:text-[#EFE9E1] px-4 py-2 rounded-xl text-3xs font-black uppercase tracking-widest transition-all cursor-pointer border-none active:scale-95"
+                            className="inline-flex items-center gap-1 bg-primary hover:bg-primary-hover text-primary-foreground px-4 py-2 rounded-xl text-3xs font-black uppercase tracking-widest transition-all cursor-pointer border-none active:scale-95"
                           >
                             <Lock className="w-3.5 h-3.5" />
                             Khóa sổ kỳ này
@@ -284,7 +284,7 @@ export default function PeriodsPage() {
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               transition={{ type: 'spring', stiffness: 300, damping: 30 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-white dark:bg-[#1C1B19] rounded-3xl border border-[#FFE4E6] dark:border-[#3E3A35]/50 shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden flex flex-col"
+              className="bg-white dark:bg-[#1C1B19] rounded-3xl border border-primary/15 dark:border-[#3E3A35]/50 shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden flex flex-col"
             >
               {/* Modal header */}
               <div className="px-5 sm:px-8 py-5 sm:py-6 border-b border-slate-100 dark:border-[#3E3A35]/30 flex items-start justify-between gap-4">
@@ -326,7 +326,7 @@ export default function PeriodsPage() {
                         key={row.step}
                         className="p-4 sm:p-5 rounded-2xl bg-slate-50/40 dark:bg-[#11100F]/40 border border-slate-100 dark:border-[#3E3A35]/30 flex items-start gap-3 sm:gap-4"
                       >
-                        <div className="w-10 h-10 rounded-xl bg-primary/10 dark:bg-[#5D1C34]/30 flex items-center justify-center text-primary dark:text-[#A67D44] font-black text-sm shrink-0">
+                        <div className="w-10 h-10 rounded-xl bg-primary/10 dark:bg-primary/5 flex items-center justify-center text-primary dark:text-primary font-black text-sm shrink-0">
                           {row.step}
                         </div>
                         <div className="flex-1">

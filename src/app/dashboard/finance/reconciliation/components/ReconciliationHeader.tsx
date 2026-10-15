@@ -40,7 +40,7 @@ export function ReconciliationHeader({
         <button
           onClick={onRefresh}
           disabled={isLoading}
-          className="flex w-full sm:w-auto justify-center items-center gap-2 bg-slate-900 text-white px-5 py-3 rounded-2xl font-black text-sm hover:bg-slate-800 transition-all shadow-sm active:scale-95 disabled:opacity-50"
+          className="flex w-full sm:w-auto justify-center items-center gap-2 bg-primary text-primary-foreground px-5 py-3 rounded-2xl font-black text-sm hover:bg-primary-hover transition-all shadow-sm active:scale-95 disabled:opacity-50"
         >
           <RefreshCw className={cn('w-4 h-4', isLoading && 'animate-spin')} />
           QUÉT LẠI

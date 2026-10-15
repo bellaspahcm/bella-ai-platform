@@ -191,7 +191,7 @@ export function BookingCreateScheduleModal({
                 <button
                   type="submit"
                   disabled={isUpdating}
-                  className="flex-1 bg-primary text-white py-4 rounded-2xl font-bold hover:bg-rose-600 transition-all active:scale-95 shadow-lg shadow-rose-200 dark:shadow-none disabled:opacity-50"
+                  className="flex-1 bg-primary text-primary-foreground py-4 rounded-2xl font-bold hover:bg-primary-hover transition-all active:scale-95 shadow-lg shadow-primary/20 dark:shadow-none disabled:opacity-50"
                 >
                   {isUpdating ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : 'Xác nhận lịch hẹn'}
                 </button>

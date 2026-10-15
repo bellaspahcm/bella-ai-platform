@@ -138,7 +138,7 @@ export default function HrProfileEditor({
           <button
             onClick={handleSaveHrProfile}
             disabled={isHrSaving}
-            className="flex-1 py-4 bg-primary text-white font-black rounded-2xl hover:bg-primary-hover shadow-lg shadow-pink-100 dark:shadow-none transition-all disabled:opacity-50 text-sm"
+            className="flex-1 py-4 bg-primary text-primary-foreground font-black rounded-2xl hover:bg-primary-hover shadow-lg shadow-primary/20 dark:shadow-none transition-all disabled:opacity-50 text-sm"
           >
             {isHrSaving ? 'Đang lưu...' : 'Lưu thông tin'}
           </button>

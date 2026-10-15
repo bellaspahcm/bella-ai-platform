@@ -276,7 +276,7 @@ export function FinancePnLSummary({ pnl, performance, selectedMonth, onMonthChan
                 onClick={handleLock}
                 disabled={isLockDisabled}
                 title={!canLockFromPreflight ? 'Cần preflight kế toán sạch trước khi chốt tháng' : undefined}
-                className="flex items-center gap-1.5 bg-slate-900 text-white px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-slate-800 transition-all disabled:opacity-50"
+                className="flex items-center gap-1.5 bg-primary text-primary-foreground px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-primary-hover transition-all disabled:opacity-50"
               >
                 {isLocking || isCheckingPreflight ? <Activity className="w-3.5 h-3.5 animate-spin" /> : <Lock className="w-3.5 h-3.5" />}
                 {isCheckingPreflight ? 'Đang kiểm tra' : isLocking ? 'Đang chốt sổ' : 'Chốt sổ tháng'}
@@ -463,19 +463,19 @@ export function FinancePnLSummary({ pnl, performance, selectedMonth, onMonthChan
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.3 }}
-          className="bg-primary p-6 rounded-[32px] shadow-lg shadow-pink-100 dark:shadow-none relative overflow-hidden"
+          className="bg-primary p-6 rounded-[32px] shadow-lg shadow-primary/20 dark:shadow-none relative overflow-hidden"
         >
           <div className="relative z-10">
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-md">
-                <DollarSign className="w-5 h-5 text-white" />
+              <div className="w-10 h-10 bg-primary-foreground/20 rounded-xl flex items-center justify-center backdrop-blur-md">
+                <DollarSign className="w-5 h-5 text-primary-foreground" />
               </div>
-              <span className="text-[10px] font-black text-white/90 uppercase tracking-widest">Lợi nhuận ròng</span>
+              <span className="text-[10px] font-black text-primary-foreground/90 uppercase tracking-widest">Lợi nhuận ròng</span>
             </div>
-            <h4 className="text-2xl font-black text-white">{Number(pnl.net_profit).toLocaleString()}đ</h4>
+            <h4 className="text-2xl font-black !text-primary-foreground">{Number(pnl.net_profit).toLocaleString()}đ</h4>
             <div className="flex items-center gap-1 mt-2">
-               <span className="text-[10px] font-bold text-white/80">Tỷ suất:</span>
-               <span className="text-[10px] font-black text-white bg-white/20 px-2 py-0.5 rounded-full">
+               <span className="text-[10px] font-bold text-primary-foreground/80">Tỷ suất:</span>
+               <span className="text-[10px] font-black text-primary-foreground bg-primary-foreground/20 px-2 py-0.5 rounded-full">
                   {pnl.total_revenue > 0 ? ((pnl.net_profit / pnl.total_revenue) * 100).toFixed(1) : 0}%
                </span>
             </div>

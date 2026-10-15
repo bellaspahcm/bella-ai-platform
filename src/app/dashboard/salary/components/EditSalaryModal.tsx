@@ -69,7 +69,7 @@ export default function EditSalaryModal({
                   type="number" 
                   value={editingSalary.deductions} 
                   onChange={e => setEditingSalary({...editingSalary, deductions: Number(e.target.value)})}
-                  className="w-full bg-rose-50 border-none rounded-xl px-4 py-3 font-bold text-rose-600 focus:ring-2 focus:ring-rose-500/20 outline-none"
+                  className="w-full bg-rose-50 border-none rounded-xl px-4 py-3 font-bold text-rose-600 focus:ring-2 focus:ring-primary/20 outline-none"
                 />
               </div>
               <div>
@@ -78,7 +78,7 @@ export default function EditSalaryModal({
                   type="number" 
                   value={editingSalary.advances} 
                   onChange={e => setEditingSalary({...editingSalary, advances: Number(e.target.value)})}
-                  className="w-full bg-rose-50 border-none rounded-xl px-4 py-3 font-bold text-rose-600 focus:ring-2 focus:ring-rose-500/20 outline-none"
+                  className="w-full bg-rose-50 border-none rounded-xl px-4 py-3 font-bold text-rose-600 focus:ring-2 focus:ring-primary/20 outline-none"
                 />
               </div>
             </div>
@@ -103,7 +103,7 @@ export default function EditSalaryModal({
           <button 
             onClick={handleSaveConfig}
             disabled={isSaving}
-            className="flex-1 py-4 bg-primary text-white font-black rounded-2xl hover:bg-primary-hover shadow-lg shadow-pink-100 dark:shadow-none transition-all disabled:opacity-50"
+            className="flex-1 py-4 bg-primary text-primary-foreground font-black rounded-2xl hover:bg-primary-hover shadow-lg shadow-primary/20 dark:shadow-none transition-all disabled:opacity-50"
           >
             {isSaving ? 'Đang lưu...' : 'Lưu thay đổi'}
           </button>

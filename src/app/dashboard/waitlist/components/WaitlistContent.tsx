@@ -5,7 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus } from 'lucide-react';
 import { toast } from 'sonner';
-import { useTenantContext } from '@/core/hooks/useTenantContext';
+import { useUser } from '@/lib/user-context';
 import { Button } from '@/components/ui/button';
 import { usePageRefresh } from '@/hooks/usePageRefresh';
 import { useModuleVocabulary } from '@/hooks/useModuleVocabulary';
@@ -18,8 +18,8 @@ import type { WaitlistStatus } from '@/types/waitlist';
 
 export function WaitlistContent() {
   const searchParams = useSearchParams();
-  const tenantContext = useTenantContext();
-  const tenantId = tenantContext?.tenantId || '';
+  const { user, isLoading: isUserLoading } = useUser();
+  const tenantId = user?.tenant_id || '';
   const vocab = useModuleVocabulary();
 
   // URL params
@@ -59,7 +59,7 @@ export function WaitlistContent() {
   usePageRefresh(handleSoftRefresh);
 
   // Loading state
-  if (isLoading && entries.length === 0) {
+  if (isUserLoading || (isLoading && entries.length === 0)) {
     return (
       <div className="flex-1 overflow-auto bg-background/30 p-3 sm:p-6 md:p-10">
         <div className="rounded-[2rem] border border-slate-100 dark:border-slate-800 bg-white dark:bg-[#1c1b19] p-10 text-center shadow-sm">

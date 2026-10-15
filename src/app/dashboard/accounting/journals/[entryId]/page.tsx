@@ -94,7 +94,7 @@ export default function JournalEntryDetailsPage({ params }: PageProps) {
 
   if (!entry) {
     return (
-      <div className="py-20 text-center text-slate-400 bg-white dark:bg-[#1C1B19] rounded-[2.5rem] border border-[#FFE4E6] dark:border-[#3E3A35]/50">
+      <div className="py-20 text-center text-slate-400 bg-white dark:bg-[#1C1B19] rounded-[2.5rem] border border-primary/15 dark:border-[#3E3A35]/50">
         <AlertTriangle className="w-12 h-12 mx-auto text-slate-300 mb-3 animate-bounce" />
         <p className="font-extrabold uppercase text-xs tracking-wider">Không tìm thấy bút toán tương ứng</p>
       </div>
@@ -121,7 +121,7 @@ export default function JournalEntryDetailsPage({ params }: PageProps) {
       </Link>
 
       {/* ── CARD HEADER: METADATA ── */}
-      <div className="bg-white dark:bg-[#1C1B19] rounded-[2.5rem] border border-[#FFE4E6] dark:border-[#3E3A35]/50 p-6 md:p-8 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div className="bg-white dark:bg-[#1C1B19] rounded-[2.5rem] border border-primary/15 dark:border-[#3E3A35]/50 p-6 md:p-8 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="space-y-3">
           <div className="flex flex-wrap items-center gap-3">
             <span className={`px-3 py-1.5 rounded-full text-4xs font-black uppercase tracking-wider border ${statusColors[entry.status]}`}>
@@ -149,8 +149,8 @@ export default function JournalEntryDetailsPage({ params }: PageProps) {
       {/* ── BENTO DETAILS GRID ── */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Entry Date */}
-        <div className="bg-white dark:bg-[#1C1B19] rounded-[2rem] border border-[#FFE4E6] dark:border-[#3E3A35]/50 p-6 shadow-sm flex items-center gap-4">
-          <div className="w-10 h-10 rounded-2xl bg-pink-50 dark:bg-[#5D1C34]/30 flex items-center justify-center text-primary dark:text-[#A67D44] shrink-0">
+        <div className="bg-white dark:bg-[#1C1B19] rounded-[2rem] border border-primary/15 dark:border-[#3E3A35]/50 p-6 shadow-sm flex items-center gap-4">
+          <div className="w-10 h-10 rounded-2xl bg-pink-50 dark:bg-primary/5 flex items-center justify-center text-primary dark:text-primary shrink-0">
             <Calendar className="w-5 h-5" />
           </div>
           <div>
@@ -160,8 +160,8 @@ export default function JournalEntryDetailsPage({ params }: PageProps) {
         </div>
 
         {/* Voucher ID */}
-        <div className="bg-white dark:bg-[#1C1B19] rounded-[2rem] border border-[#FFE4E6] dark:border-[#3E3A35]/50 p-6 shadow-sm flex items-center gap-4">
-          <div className="w-10 h-10 rounded-2xl bg-pink-50 dark:bg-[#5D1C34]/30 flex items-center justify-center text-primary dark:text-[#A67D44] shrink-0">
+        <div className="bg-white dark:bg-[#1C1B19] rounded-[2rem] border border-primary/15 dark:border-[#3E3A35]/50 p-6 shadow-sm flex items-center gap-4">
+          <div className="w-10 h-10 rounded-2xl bg-pink-50 dark:bg-primary/5 flex items-center justify-center text-primary dark:text-primary shrink-0">
             <Layers className="w-5 h-5" />
           </div>
           <div>
@@ -171,8 +171,8 @@ export default function JournalEntryDetailsPage({ params }: PageProps) {
         </div>
 
         {/* Created By user */}
-        <div className="bg-white dark:bg-[#1C1B19] rounded-[2rem] border border-[#FFE4E6] dark:border-[#3E3A35]/50 p-6 shadow-sm flex items-center gap-4">
-          <div className="w-10 h-10 rounded-2xl bg-pink-50 dark:bg-[#5D1C34]/30 flex items-center justify-center text-primary dark:text-[#A67D44] shrink-0">
+        <div className="bg-white dark:bg-[#1C1B19] rounded-[2rem] border border-primary/15 dark:border-[#3E3A35]/50 p-6 shadow-sm flex items-center gap-4">
+          <div className="w-10 h-10 rounded-2xl bg-pink-50 dark:bg-primary/5 flex items-center justify-center text-primary dark:text-primary shrink-0">
             <User className="w-5 h-5" />
           </div>
           <div>
@@ -183,7 +183,7 @@ export default function JournalEntryDetailsPage({ params }: PageProps) {
       </div>
 
       {/* ── BÚT TOÁN LINES TABLE ── */}
-      <div className="bg-white dark:bg-[#1C1B19] rounded-[2.5rem] border border-[#FFE4E6] dark:border-[#3E3A35]/50 p-6 md:p-8 shadow-sm">
+      <div className="bg-white dark:bg-[#1C1B19] rounded-[2.5rem] border border-primary/15 dark:border-[#3E3A35]/50 p-6 md:p-8 shadow-sm">
         <h4 className="text-sm font-black text-slate-900 dark:text-[#EFE9E1] uppercase tracking-wider mb-6 pb-3 border-b border-slate-50 dark:border-[#3E3A35]/30 flex items-center gap-2">
           <Scale className="w-5 h-5 text-primary" />
           Chi tiết định khoản Nợ / Có
@@ -259,7 +259,7 @@ export default function JournalEntryDetailsPage({ params }: PageProps) {
               initial={{ opacity: 0, scale: 0.95, y: 15 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 15 }}
-              className="bg-white dark:bg-[#1C1B19] rounded-[2.5rem] border border-[#FFE4E6] dark:border-[#3E3A35] shadow-2xl p-8 max-w-md w-full relative z-10 space-y-6"
+              className="bg-white dark:bg-[#1C1B19] rounded-[2.5rem] border border-primary/15 dark:border-[#3E3A35] shadow-2xl p-8 max-w-md w-full relative z-10 space-y-6"
             >
               <div className="flex items-center justify-between border-b border-slate-50 dark:border-[#3E3A35]/30 pb-4">
                 <h4 className="text-lg font-black text-slate-900 dark:text-[#EFE9E1] uppercase tracking-wide flex items-center gap-2 text-red-500">
@@ -287,7 +287,7 @@ export default function JournalEntryDetailsPage({ params }: PageProps) {
                     placeholder="Nhập lý do điều chỉnh..." 
                     value={reversalReason}
                     onChange={(e) => setReversalReason(e.target.value)}
-                    className="w-full px-4 py-3 bg-slate-50 dark:bg-[#11100F] border border-slate-100 dark:border-[#3E3A35] rounded-xl text-xs font-bold outline-none focus:ring-2 focus:ring-rose-500/10 text-slate-800 dark:text-[#EFE9E1] resize-none" 
+                    className="w-full px-4 py-3 bg-slate-50 dark:bg-[#11100F] border border-slate-100 dark:border-[#3E3A35] rounded-xl text-xs font-bold outline-none focus:ring-2 focus:ring-primary/10 text-slate-800 dark:text-[#EFE9E1] resize-none"
                   />
                 </div>
 

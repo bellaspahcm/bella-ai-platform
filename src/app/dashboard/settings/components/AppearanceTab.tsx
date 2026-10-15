@@ -717,7 +717,7 @@ export default function AppearanceTab() {
                         </span>
                       )}
                       {enabledModules.beauty_spa && (
-                        <span className="rounded-full bg-primary px-3 py-1 text-[11px] font-black text-white shadow-sm">
+                        <span className="rounded-full bg-primary px-3 py-1 text-[11px] font-black text-primary-foreground shadow-sm">
                           ✓ Beauty Spa (Đang bật)
                         </span>
                       )}

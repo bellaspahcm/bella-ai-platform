@@ -281,7 +281,7 @@ export default function MetaAdsSettingsTab() {
             <button
               onClick={handleSave}
               disabled={isSaving || !adAccountId.trim()}
-              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-primary px-6 py-4 text-sm font-black uppercase tracking-wider text-white shadow-md transition hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
+              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-primary px-6 py-4 text-sm font-black uppercase tracking-wider text-primary-foreground shadow-md transition hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
               Lưu tài khoản
@@ -336,7 +336,7 @@ export default function MetaAdsSettingsTab() {
             <button
               onClick={handleSync}
               disabled={isSyncing || !selectedAccountId}
-              className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-slate-950 px-6 py-4 text-sm font-black uppercase tracking-wider text-white shadow-xl shadow-slate-200 transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-primary px-6 py-4 text-sm font-black uppercase tracking-wider text-primary-foreground shadow-xl shadow-slate-200 transition hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isSyncing ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
               Đồng bộ Meta Ads

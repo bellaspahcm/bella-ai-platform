@@ -156,7 +156,7 @@ export function BookingsTimelineGrid({
     <div className="relative border border-slate-300/80 rounded-[40px] bg-white shadow-xl shadow-slate-100/50 overflow-hidden flex flex-col">
       {isSyncing && (
         <div className="absolute inset-0 bg-white/40 backdrop-blur-[1px] z-40 flex items-center justify-center pointer-events-none">
-          <Loader2 className="w-10 h-10 text-rose-500 animate-spin" />
+          <Loader2 className="w-10 h-10 text-primary animate-spin" />
         </div>
       )}
 
@@ -179,7 +179,7 @@ export function BookingsTimelineGrid({
                     className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm select-none ${
                       col.isUnassigned
                         ? 'bg-rose-50 text-rose-500 border-2 border-rose-100 border-dashed animate-pulse'
-                        : 'bg-gradient-to-tr from-rose-400 to-rose-300 text-white shadow-inner'
+                        : 'bg-primary text-primary-foreground shadow-inner'
                     }`}
                   >
                     {col.isUnassigned ? '?' : col.full_name[0]}
@@ -252,7 +252,7 @@ export function BookingsTimelineGrid({
                                         : isLate
                                           ? 'bg-red-50 border-red-200 hover:border-red-400 hover:bg-red-100/60 shadow-sm animate-pulse'
                                           : isScheduled
-                                            ? 'bg-rose-50/40 border-rose-100/50 hover:border-rose-200 hover:bg-rose-50'
+                                            ? 'bg-primary/5 border-primary/15 hover:border-primary/30 hover:bg-primary/10'
                                             : 'bg-slate-50 border-slate-100 hover:bg-slate-100'
                                   }`}
                                   data-testid="booking-session-row"
@@ -269,14 +269,14 @@ export function BookingsTimelineGrid({
                                             : isLate
                                               ? 'bg-red-600 text-white animate-bounce'
                                               : isScheduled
-                                                ? 'bg-rose-100 text-rose-700'
+                                                ? 'bg-primary/10 text-primary'
                                                 : 'bg-slate-100 text-slate-700'
                                       }`}
                                     >
                                       {isCompleted ? 'Xong' : isInProgress ? 'Chạy' : isLate ? 'TRỄ' : 'Sắp'}
                                     </span>
                                     <span className="text-[10px] font-black text-slate-400 flex items-center gap-0.5 shrink-0">
-                                      <Clock className="w-2.5 h-2.5 text-rose-400" />
+                                      <Clock className="w-2.5 h-2.5 text-primary" />
                                       {session.assigned_time || session.bookings?.preferred_time || '09:00'}
                                     </span>
                                   </div>
@@ -287,7 +287,7 @@ export function BookingsTimelineGrid({
                                     })}
                                   </h4>
                                   {session.bookings?.customers?.name_baby && (
-                                    <p className="text-[9px] font-bold text-rose-400 truncate">
+                                    <p className="text-[9px] font-bold text-primary truncate">
                                       {formatBookingCustomerLabel({
                                         moduleKey: tenantModuleKey,
                                         primaryName: '',
@@ -303,7 +303,7 @@ export function BookingsTimelineGrid({
                                           ? 'bg-emerald-100 text-emerald-700 border-emerald-200'
                                           : isLate
                                             ? 'bg-red-100 text-red-700 border-red-200'
-                                            : 'bg-violet-50 text-violet-700 border-violet-200'
+                                            : 'bg-primary/10 text-primary border-primary/20'
                                       }`}>
                                         Buổi {session.session_number ?? '?'}
                                         {session.bookings?.total_sessions
@@ -329,7 +329,7 @@ export function BookingsTimelineGrid({
                             onClick={() => onEmptySlotClick(hour)}
                             className="absolute inset-0 rounded-xl m-1 flex items-center justify-center border border-dashed border-transparent hover:border-slate-200 hover:bg-white/70 cursor-pointer group transition-all duration-200 z-0"
                           >
-                            <Plus className="w-4 h-4 text-rose-300 opacity-0 group-hover:opacity-100 transition-opacity" />
+                            <Plus className="w-4 h-4 text-primary/50 opacity-0 group-hover:opacity-100 transition-opacity" />
                           </div>
                         )}
                       </div>

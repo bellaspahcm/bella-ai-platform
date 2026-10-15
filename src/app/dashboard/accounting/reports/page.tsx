@@ -320,13 +320,13 @@ export default function AccountingReportsPage() {
     <div className="space-y-8 relative">
       {/* Sync indicator spinner */}
       {refreshing && (
-        <div className="absolute top-0 right-0 flex items-center gap-1.5 text-xs font-semibold text-primary dark:text-[#A67D44] animate-pulse">
+        <div className="absolute top-0 right-0 flex items-center gap-1.5 text-xs font-semibold text-primary dark:text-primary animate-pulse">
           <RefreshCw className="w-3.5 h-3.5 animate-spin" />
           <span>Đang tạo báo cáo...</span>
         </div>
       )}
 
-      <div className="bg-white dark:bg-[#1C1B19] rounded-[2.5rem] border border-[#FFE4E6] dark:border-[#3E3A35]/50 p-5 sm:p-6 shadow-sm grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-start w-full max-w-full overflow-hidden">
+      <div className="bg-white dark:bg-[#1C1B19] rounded-[2.5rem] border border-primary/15 dark:border-[#3E3A35]/50 p-5 sm:p-6 shadow-sm grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-start w-full max-w-full overflow-hidden">
         {/* Switch report type tabs */}
         <div className="flex max-w-full flex-wrap items-center gap-1 rounded-2xl border border-slate-100 bg-slate-50 p-1.5 dark:border-none dark:bg-[#11100F]">
           {reportTabs.map((t) => (
@@ -335,7 +335,7 @@ export default function AccountingReportsPage() {
               onClick={() => { setActiveTab(t.value); setLoading(true); }}
               className={`px-4 py-2.5 rounded-xl text-3xs font-black uppercase tracking-widest transition-all shrink-0 cursor-pointer ${
                 activeTab === t.value 
-                  ? 'bg-slate-900 text-white dark:bg-[#5D1C34] dark:text-[#EFE9E1]' 
+                  ? 'bg-primary text-primary-foreground'
                   : 'text-slate-400 hover:text-slate-600 dark:hover:text-[#EFE9E1]'
               }`}
             >
@@ -418,7 +418,7 @@ export default function AccountingReportsPage() {
           {activeTab !== 'account_ledger' && (
             <button 
               onClick={handleExportExcel}
-              className="flex w-full items-center justify-center gap-2 rounded-2xl border-none bg-emerald-600 px-5 py-2.5 text-3xs font-black uppercase tracking-widest text-white shadow-md shadow-emerald-100 transition-all hover:bg-emerald-500 active:scale-95 sm:w-auto xl:justify-self-end"
+              className="flex w-full items-center justify-center gap-2 rounded-2xl border-none bg-primary px-5 py-2.5 text-3xs font-black uppercase tracking-widest text-primary-foreground shadow-md shadow-primary/20 transition-all hover:bg-primary-hover active:scale-95 sm:w-auto xl:justify-self-end"
             >
               <Download className="w-3.5 h-3.5" />
               <span>Xuất Excel TT133</span>
@@ -428,7 +428,7 @@ export default function AccountingReportsPage() {
       </div>
 
       {/* ── REPORT CONTENT DISPLAY ── */}
-      <div className="bg-white dark:bg-[#1C1B19] rounded-[2.5rem] border border-[#FFE4E6] dark:border-[#3E3A35]/50 p-6 md:p-8 shadow-sm w-full max-w-full overflow-hidden">
+      <div className="bg-white dark:bg-[#1C1B19] rounded-[2.5rem] border border-primary/15 dark:border-[#3E3A35]/50 p-6 md:p-8 shadow-sm w-full max-w-full overflow-hidden">
         {loading ? (
           <SkeletonTable />
         ) : activeTab === 'trial_balance' ? (
@@ -732,7 +732,7 @@ export default function AccountingReportsPage() {
                           <tr key={idx} className={`hover:bg-slate-50/40 dark:hover:bg-[#11100F]/10 transition-colors ${
                             item.isFinal ? 'bg-emerald-50/40 dark:bg-emerald-500/10 font-black text-emerald-700 dark:text-emerald-300' :
                             item.isTotal ? 'bg-slate-50/50 dark:bg-[#11100F]/30 font-black text-slate-900 dark:text-[#EFE9E1]' :
-                            item.isSection ? 'bg-pink-50/30 dark:bg-[#5D1C34]/20 font-black text-primary dark:text-[#A67D44] uppercase tracking-wider' :
+                            item.isSection ? 'bg-pink-50/30 dark:bg-primary/5 font-black text-primary dark:text-primary uppercase tracking-wider' :
                             'text-slate-600 dark:text-[#CDBCAB]'
                           }`}>
                             <td className={`${stickyBodyCellClassName} ${reportLabelCellClassName} px-6 py-3 text-xs`}>{item.label}</td>

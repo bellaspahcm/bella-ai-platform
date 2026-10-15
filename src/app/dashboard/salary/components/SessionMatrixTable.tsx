@@ -57,7 +57,7 @@ export default function SessionMatrixTable({
         <button
           onClick={handleExportMatrix}
           disabled={isExportingMatrix || !matrixData}
-          className="flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-emerald-50 px-5 py-3 text-xs font-black uppercase tracking-widest text-emerald-600 transition-all hover:bg-emerald-600 hover:text-white disabled:opacity-50 sm:px-6"
+          className="flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-primary/10 px-5 py-3 text-xs font-black uppercase tracking-widest text-primary transition-all hover:bg-primary hover:text-primary-foreground disabled:opacity-50 sm:px-6"
         >
           <FileSpreadsheet className="w-5 h-5" />
           <span>Xuất file đối soát</span>

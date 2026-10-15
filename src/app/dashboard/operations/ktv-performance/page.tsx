@@ -306,7 +306,7 @@ export default function KtvPerformanceDashboardPage() {
                 onClick={() => handlePeriodChange(p)}
                 className={`rounded-xl px-4 py-2 text-xs font-bold transition-all duration-200 ${
                   period === p
-                    ? 'bg-primary text-white shadow-md shadow-primary/20'
+                    ? 'bg-primary text-primary-foreground shadow-md shadow-primary/20'
                     : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
                 }`}
               >
@@ -325,7 +325,7 @@ export default function KtvPerformanceDashboardPage() {
                 onClick={() => handleMetricChange(m)}
                 className={`rounded-xl px-4 py-2 text-xs font-bold transition-all duration-200 ${
                   metric === m
-                    ? 'bg-primary text-white shadow-md shadow-primary/20'
+                    ? 'bg-primary text-primary-foreground shadow-md shadow-primary/20'
                     : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
                 }`}
               >

@@ -119,9 +119,9 @@ const BEAUTY_BABYCARE_VOCABULARY: ModuleVocabulary = {
     role: 'KTV',
   },
   workUnit: {
-    singular: 'Buổi',
-    plural: 'Các buổi',
-    action: 'Thực hiện buổi',
+    singular: 'Buổi liệu trình',
+    plural: 'Các buổi liệu trình',
+    action: 'Thực hiện buổi liệu trình',
   },
   service: {
     singular: 'Liệu trình',
