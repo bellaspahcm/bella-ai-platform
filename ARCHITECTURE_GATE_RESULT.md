@@ -9437,3 +9437,722 @@ AUTOMOVE_FULL_PRODUCT_READINESS = NOT_READY
 
 Only this batch is eligible for commit/PR. CI/main verification remains pending;
 the local proof does not authorize merge, Production rollout or Go-Live.
+
+---
+
+## AutoMove Next.js Dashboard Sales Chain Verification - 2026-10-15
+
+Process gate: PASS for scoped browser verification, not a new capability gate.
+Baseline: PR #327, main 83ff2e357f49e17fc9b9d5a390f00e75e2ac29df.
+Single-agent execution. Do not reopen the sealed service/DB batch.
+
+Product manifest: existing AutoMove booking dashboard and sale-chain dialog.
+Problem: component/HTTP dispatcher proof does not prove the Next.js route.
+Owner-approved business test contract: real login and tenant-scoped booking and
+deposit must precede a separately approved immutable financial snapshot,
+Mobility handover evidence, and explicit idempotent recognition. Neither deposit
+nor handover automatically recognizes revenue. An active same-tenant accountant
+uses the existing contracts; client financial/policy input is not recognition
+truth. Ledger amounts must match the approved snapshot, not current vehicle cost.
+
+Ownership map: Platform owns Auth/public.users and tenant context; Mobility owns
+vehicle display, allocation and handover contracts; AutoMove owns booking,
+snapshot approval, recognition and their UI consumers. Test fixtures belong only
+to the authorized bmnbqbcdbuklhopfbopv E2E project.
+Dependency map: actual Next.js login/dashboard -> existing APIs/public contracts
+-> Auth/Storage and tenant-scoped DB. No mock login, request interception,
+dispatcher substitute, new identity mechanism or internal kernel access.
+
+Change authority: browser tests and proven local UI consumer defects only.
+Missing/contradictory lower-layer contracts require a separate user decision.
+No schema/migration, ProductRegistry, frozen OS, Warranty, commission, Finance
+posting, Production access or deployment.
+UI reconciliation: booking modal and deposit action consume the existing APIs;
+sale dialog consumes the PR #327 API. Read-only E2E schema inspection found that
+the catalog APIs request absent auto_models.year and auto_variants.base_price /
+features fields. Booking API also does not persist allocated_to_contract_id.
+These findings are not permission to invent replacement values or change the
+allocation write contract. Confirm the first executable blocker in the browser.
+Additive migration plan: NONE.
+
+Verification plan (11 scoped checks): baseline provenance; actual Next.js route;
+real Auth without mock cookies; tenant context; catalog/booking boundary;
+deposit persistence; separate approved snapshot; Mobility handover; explicit
+recognition/read-back and retry; negative authorization/error UI; teardown and
+diff/lint/type checks. Stop at the first proven contract boundary, report all
+unexecuted downstream checks NOT_PROVEN, and retain the failing regression.
+Use random temporary test identities; never persist passwords or auth traces.
+Keep immutable financial test history if created; archive only the tagged test
+tenant and remove the temporary Auth identity. Do not disable guards for cleanup.
+
+FULL_DASHBOARD_BROWSER_E2E = NOT_PROVEN
+PRODUCTION_MUTATION = NOT_AUTHORIZED
+AUTOMOVE_FULL_PRODUCT_READINESS = NOT_READY
+
+Executed checkpoint:
+
+- Actual Next.js 16.3.8 (package-lock version), localhost:3217, Chromium; real
+  Supabase Auth login, automatic AutoMove dashboard redirect, visible sidebar
+  Booking navigation, booking modal and tenant customer search executed.
+  No mock_user_email, injected browser session, API mock or HTTP dispatcher.
+- The full-chain test fails at the brand catalog step: GET
+  /api/bella-auto/vehicles/brands returns 500, PostgreSQL 42703:
+  column auto_brands.logo_url does not exist (brands/route.ts:28).
+  Screenshot shows an empty brand selector, with no useful visible error.
+  This is PRE_EXISTING / STALE_CONSUMER against verified E2E schema, not a
+  regression in the sealed recognition implementation and not a Production claim.
+- Read-only E2E schema evidence: brands have id/name/country_of_origin;
+  models have id/name/segment, not year; variants have id/name/year/fuel_type/
+  transmission/specs_json, not description/base_price/features.
+  The latter two API mismatches are schema/source findings, NOT successful
+  execution of those UI steps. No substitute pricing source was selected.
+- Source trace additionally shows booking POST changes vehicle.status without
+  allocated_to_contract_id. Handover explicitly checks that binding. This remains
+  a source-level downstream concern, NOT an executed handover failure in this run.
+- Booking creation, deposit, snapshot, handover, recognition, historical retry
+  and wrong-role/cross-tenant browser paths are NOT_RUN behind the catalog blocker.
+  PR #327 service/DB proof remains sealed and unchanged.
+- Local runtime dependency junction caused the initial startup failures, before
+  fixture setup. Preserved the junction under ignored scratch ownership and used
+  npm ci without lockfile changes to run the real Next.js server. Initial runs
+  are ENVIRONMENT / NOT_RUN, not Product PASS.
+- The latest browser fixture uses only the existing bella_auto module manifest,
+  no invented ProductRegistry identity. A cold automatic dashboard redirect was
+  fixed in the TEST by awaiting its actual navigation, not increasing global
+  timeouts or changing application routing.
+- Independent read-only teardown check found zero matching Auth actors, active
+  public profiles, active fixture tenants, documents and recognitions. Fixture
+  profiles are inactive and tenants archived under the existing lifecycle; no
+  financial guard, RLS or migration history was disabled/changed.
+- Full typecheck, targeted ESLint, Architecture Guard and diff check passed.
+  These quality checks do not convert the failed browser chain into PASS.
+
+RUNTIME_CODE_MUTATION = NOT_PERFORMED
+SCHEMA_MIGRATION = NOT_PERFORMED
+FULL_DASHBOARD_BROWSER_E2E = NOT_PROVEN
+CATALOG_SCHEMA_COMPATIBILITY = FAIL_PROVEN_ON_E2E
+NEXT_ACTION = OWNER_DECISION_FOR_MINIMAL_CATALOG_API_UI_ALIGNMENT
+COMMIT_PUSH_PR = NOT_PERFORMED
+PRODUCTION_MUTATION = NOT_PERFORMED
+AUTOMOVE_FULL_PRODUCT_READINESS = NOT_READY
+
+Approved catalog delta - 2026-10-15:
+
+The owner explicitly approved canonical catalog UI/API alignment in this batch.
+Only the brands, models and variants GET routes and CreateBookingModal may change.
+Keep existing Auth and tenant filters. Brands/models expose id/name; variant year
+belongs to auto_variants, not auto_models. Remove logo_url, description, features
+and base_price consumption. Booking price stays explicitly entered per agreement;
+neither current inventory price nor any fabricated catalog value substitutes it.
+Catalog HTTP failures must be visible, not silently presented as empty results.
+No new public abstraction, schema/migration, allocation write, recognition,
+policy, ProductRegistry, other OS or Production change is authorized.
+
+Acceptance: canonical catalog responses load through the actual authenticated
+dashboard; the pricing input is blank before explicit entry; focused route tests
+retain auth/tenant/error boundaries; fresh typecheck, lint, guard and diff-check.
+Re-run the full dashboard regression and stop at the next proven scope boundary.
+Unexecuted downstream business-chain checks remain NOT_PROVEN, even if catalog
+passes. Existing PR #327 service/DB proof stays sealed.
+
+CATALOG_ALIGNMENT_AUTHORITY = APPROVED_FOR_SCOPED_IMPLEMENTATION
+SCHEMA_MIGRATION = NOT_AUTHORIZED
+PRODUCTION_MUTATION = NOT_AUTHORIZED
+AUTOMOVE_FULL_PRODUCT_READINESS = NOT_READY
+
+Catalog alignment execution and owner stop decision - 2026-10-15:
+
+- Changed exactly the three catalog GET routes and CreateBookingModal. Auth and
+  tenant filters are unchanged. Variant year is canonical in selection/review;
+  agreed booking price is explicitly entered, without inferred catalog pricing.
+  Catalog HTTP failures now have a visible alert. No other runtime file changed.
+- Two focused route/component suites: 21 tests PASS, including canonical fields,
+  auth/tenant boundaries, absent parent IDs, empty catalog, database/HTTP errors,
+  blank agreed-price input, explicit price entry and the final review display.
+- Actual Next.js dashboard + real Auth rerun: FAIL at brand catalog, HTTP 500,
+  PostgreSQL 42501, permission denied for auto_brands. The prior 42703 nonexistent
+  column error is no longer reported. Screenshot confirms the new visible alert.
+  No booking/deposit/snapshot/handover/recognition step ran in this execution.
+- Independent READ ONLY E2E inspection: RLS is enabled on auto_brands, auto_models
+  and auto_variants, but authenticated SELECT is false on all three. Their current
+  ALL policies contain get_auth_tenant_id() IS NULL fallback. Merely granting
+  SELECT would not establish a fail-closed identity/tenant contract.
+- Historical grants migrations 20260804120000 and 20260804400000 grant broad CRUD
+  across multiple tables; neither was applied or modified. No policy/grant change.
+- Teardown read-back: zero tagged Auth actors, active profiles, active tenants,
+  Storage documents, bookings or recognitions. Fixture profiles were deactivated
+  and tenants archived; immutable-history protections were not bypassed.
+- Architecture Guard PASS. ESLint has zero errors and one pre-existing
+  handleSelectVehicle effect dependency warning. Next-generated AGENTS.md text
+  was removed from this batch's diff after the test server stopped.
+- Owner explicitly selected: keep the DB unchanged and stop at this blocker.
+  No forward migration or additional implementation is authorized by this run.
+
+CATALOG_ALIGNMENT = IMPLEMENTED_LOCAL_UNIT_VERIFIED
+CATALOG_REAL_DB_BROWSER_READ = BLOCKED_BY_EXISTING_GRANTS
+FULL_DASHBOARD_BROWSER_E2E = NOT_PROVEN
+TYPECHECK = PASS_EXECUTED
+DIFF_CHECK = PASS_EXECUTED
+DB_GRANTS_RLS_MUTATION = NOT_PERFORMED
+SCHEMA_MIGRATION = NOT_PERFORMED
+COMMIT_PUSH_PR = NOT_PERFORMED
+PRODUCTION_MUTATION = NOT_PERFORMED
+AUTOMOVE_FULL_PRODUCT_READINESS = NOT_READY
+NEXT_ACTION = STOP_AT_CATALOG_DB_AUTHORIZATION_BOUNDARY
+
+## AutoMove Catalog Read Authorization - 2026-10-15
+
+Process gate: PASS for the explicitly owner-approved three-table forward change.
+This supersedes the earlier stop decision only for catalog read authorization.
+Single-agent execution; no additional architecture gate or review document.
+
+Manifest: existing AutoMove booking catalog, not a new product/capability.
+Business invariant: an authenticated active identity may read catalog records
+only for its active tenant. Missing identity/profile/tenant, inactive tenant and
+cross-tenant reads must not expose records. No implicit HQ/global exception.
+Source: owner approval in this conversation; inspected E2E catalog/schema/RLS;
+existing Auth -> public.users identity contract and tenant-owned catalog schema.
+Ownership: Platform retains identity/helpers; Mobility owns catalog persistence
+mapping; AutoMove remains the existing UI/API consumer. No ownership transfer.
+Dependency: actual dashboard -> existing catalog routes / Mobility reads ->
+authenticated Supabase RLS -> public.users / tenants identity and status checks.
+
+Authority: one forward migration limited to auto_brands, auto_models and
+auto_variants, plus scoped tests/verifier and Non-Production application.
+Do not change shared helpers, historical migrations, ProductRegistry, write
+grants/policies, Logistics, recognition, Finance, Warranty or Production.
+UI reconciliation: no further UI/runtime correction in this authorization delta;
+reuse the canonical catalog alignment and actual dashboard regression already
+implemented locally. Stop at the next unrelated contract boundary.
+
+Migration plan: add 20261015010000_authorize_automove_catalog_tenant_reads.sql.
+Keep existing permissive ALL/write policies intact; add restrictive SELECT guards
+so legacy NULL fallback cannot bypass the read predicate. Grant SELECT only to
+authenticated and revoke SELECT from anon/PUBLIC. A no-authenticated-writers
+precondition fails closed rather than silently changing an existing write path
+whose row selection may also require SELECT policy approval. Do not alter a
+Platform helper or add a SECURITY DEFINER function. Missing tables/dependencies,
+unexpected anonymous column grants or absent permissive read policies fail closed.
+
+Verification plan (11 checks): exact three-table scope; canonical Auth/tenant
+source; same-tenant data read-back; cross-tenant denial; missing identity/profile/
+tenant; inactive actor and suspended/terminated tenant; HQ no cross-tenant bypass;
+anon privilege denial versus RLS-filtered empty rows; pre/post write ACL and
+policy/helper fingerprints; idempotent migration and rollback fixture teardown;
+actual Next.js Browser E2E plus focused tests/typecheck/lint/guard/diff checks.
+Non-Production migration persistence must use the existing explicit-file E2E
+applier with verified TLS; no manual history repair or bulk migration apply.
+
+ARCHITECTURE_DECISION = APPROVED
+MIGRATION_IMPLEMENTATION = AUTHORIZED_FOR_THREE_CATALOG_TABLES
+NON_PRODUCTION_VERIFICATION = AUTHORIZED
+DASHBOARD_BROWSER_E2E = NOT_PROVEN
+PRODUCTION_MUTATION = NOT_AUTHORIZED
+AUTOMOVE_FULL_PRODUCT_READINESS = NOT_READY
+
+Catalog authorization executed checkpoint - 2026-10-15:
+
+- Migration 20261015010000 was applied durably to the explicitly authorized E2E
+  project bmnbqbcdbuklhopfbopv using the existing explicit-file E2E applier.
+  Exactly one new history entry was added; no bulk apply or manual history repair.
+  PostgreSQL TLS certificate and hostname verification remained enabled.
+- The three tables retain RLS and gain authenticated SELECT only. Restrictive
+  SELECT guards require auth.uid(), an active public.users profile and its matching
+  active tenant. Existing ALL/write policies are preserved, including their old
+  text: the NULL-tenant fallback is blocked for reads, not rewritten globally.
+  Before/after fingerprints confirm non-SELECT ACLs, column ACLs, non-SELECT
+  policies and shared helper definitions are unchanged. Migration fails closed
+  if authenticated catalog writers exist and require a separate impact review.
+- Migration rehearsal executed twice in a rollback transaction. Durable-state
+  verifier also passed: exact same-tenant rows, cross-tenant denial, missing
+  identity/profile/tenant, inactive actor, suspended/terminated tenant, no HQ
+  cross-tenant bypass, forged tenant claims, anon denial (42501), unchanged write
+  authorization and complete rollback of verifier identities/catalog fixtures.
+- Actual Next.js 16.3.8 + Chromium + real Supabase Auth browser execution now
+  receives HTTP 200 and the exact fixture records from all three catalog APIs.
+  Variant year 2026 displays, VIN selection works, the agreed-price input starts
+  blank, and no invented listing price is shown. Explicit booking price and
+  deposit requirement persist as 1,500,000,000 and 100,000,000 VND respectively.
+  A scoped cold-compilation response wait and exact placeholder selector corrected
+  test execution issues; no global timeout, runtime, auth or RLS bypass was added.
+- The full dashboard regression fails at booking allocation read-back, not
+  catalog: POST /api/bella-auto/bookings returns 200 and creates one booking, but
+  auto_vehicles.status = allocated while allocated_to_contract_id = NULL.
+  bookings/route.ts updates status without that binding or the canonical allocation
+  command. The sealed handover service requires allocatedToContractId = booking.id
+  and has ALLOCATION_MISMATCH protection. This is an executed booking persistence
+  defect; handover rejection itself was NOT_RUN, not claimed as an HTTP result.
+- Deposit confirmation, snapshot approval, handover, explicit recognition and
+  retry remain NOT_RUN in this browser execution. Keep the failing regression;
+  do not patch fixture allocation, skip the assertion or reopen PR #327 proof.
+  Allocation write correction is outside the current catalog change authority.
+- Independent READ ONLY read-back confirms persisted migration/grants and the
+  allocation defect. Teardown has zero tagged Auth identities, active profiles,
+  active test tenants, Storage documents and recognitions. One test booking is
+  preserved in its terminated tenant; no financial/RLS guard was disabled.
+- Focused Jest: 3 suites / 24 tests PASS. Fresh full strict typecheck PASS.
+  Scoped ESLint: zero errors, one pre-existing handleSelectVehicle dependency
+  warning. Architecture Guard, one-file zero-downtime check and diff-check PASS.
+  Next-generated AGENTS.md delta was removed after the test server stopped.
+- The older broad grants versions were not applied by this batch and have no
+  entries in inspected E2E history; this does not prove they were never run by
+  another path. No historical migration or other OS/runtime file was changed.
+
+CATALOG_MIGRATION = APPLIED_AND_RECORDED_ON_E2E
+CATALOG_REAL_DB_RLS = PROVEN_ON_NON_PRODUCTION
+CATALOG_BROWSER_READ = PROVEN_FOR_THREE_CATALOG_ROUTES
+CATALOG_WRITE_CONTRACTS = UNCHANGED_VERIFIED
+BOOKING_ALLOCATION_BINDING = FAIL_PROVEN_ON_E2E
+FULL_DASHBOARD_BROWSER_E2E = NOT_PROVEN_BLOCKED_BY_BOOKING_ALLOCATION
+COMMIT_PUSH_PR = NOT_PERFORMED
+MAIN_SEAL = NOT_PERFORMED
+PRODUCTION_MUTATION = NOT_PERFORMED
+AUTOMOVE_FULL_PRODUCT_READINESS = NOT_READY
+NEXT_ACTION = OWNER_AUTHORIZATION_FOR_SCOPED_BOOKING_ALLOCATION_FIX
+
+## Booking Allocation Correction - 2026-10-15
+
+Process gate: PASS for the owner's explicit E2E-only booking/allocation approval.
+Reuse the current batch/worktree and this gate; do not introduce another gate doc.
+Manifest: existing AutoMove booking with a selected VIN, not a new capability.
+Approved business invariant: a successful VIN booking must have exactly its own
+Mobility allocation binding. Retrying one submission must not create another
+booking/allocation; different payloads/tenants must not steal the binding.
+Evidence: owner decision; actual dashboard POST 200 followed by READ ONLY E2E
+read-back of allocated status with NULL contract ID; sealed PR #327 handover
+checks that allocatedToContractId equals booking.id. Existing Mobility transition
+owns lifecycle persistence, command idempotency, status audit and domain events.
+Ownership: AutoMove owns booking/customer orchestration; Mobility owns vehicle
+lifecycle/allocation. Identity and tenant authority remain Platform-owned.
+Dependency: booking UI -> existing POST route -> Product transaction -> public
+MobilityFoundationService / PostgresMobilityRepository -> tenant RLS persistence.
+No Product SQL vehicle read/write or legacy VehicleAllocationService shortcut.
+Authority: scoped VIN booking orchestration, stable submission retry key, tests
+and non-Production verifier. No status graph, helper, RLS, schema, historical
+migration, Logistics, Finance, Warranty, ProductRegistry or Production changes.
+UI reconciliation: retain the existing form/response and no-VIN branch; add only
+a stable Idempotency-Key for retries of the same submission, reset on form close.
+Additive migration plan: NONE. Use existing booking PK/metadata and Mobility
+command ledger. Booking+allocation share a serializable authenticated transaction;
+failure rolls back both without deletion/compensation or service-role escalation.
+Server verifies active profile/active tenant, the customer/vehicle tenant, variant
+and color binding. Booking UUID is the retry key; metadata binds actor/payload.
+Reusing the UUID for changed inputs is a conflict, not an update or new booking.
+Preserve historical allocation on a valid retry; do not re-run a transition after
+later delivery. Contention/serialization failures require retry, not partial PASS.
+11 verification checks: route/public-contract boundary; real Auth/active tenant;
+booking ID equals allocation ID; actor/time/status persistence; valid retry;
+changed-payload conflict; second-booking denial; tenant/customer/variant mismatch;
+transaction rollback and lifecycle/command/event counts; actual dashboard read-back
+and teardown; focused regressions/typecheck/lint/Architecture Guard/diff check.
+Stop at an unrelated downstream browser failure rather than weakening its test.
+
+BOOKING_ALLOCATION_FIX = AUTHORIZED_FOR_E2E_IMPLEMENTATION
+SCHEMA_MIGRATION = NOT_REQUIRED_BY_THIS_DELTA
+DASHBOARD_BROWSER_E2E = NOT_PROVEN
+PRODUCTION_MUTATION = NOT_AUTHORIZED
+AUTOMOVE_FULL_PRODUCT_READINESS = NOT_READY
+
+Booking allocation executed checkpoint - 2026-10-15:
+
+- VIN booking POST now delegates to Product-owned authenticated serializable
+  orchestration and the existing public Mobility transition. No direct Product
+  auto_vehicles query, legacy allocation shortcut or service-role escalation.
+  Booking, customer creation when needed, allocation, command log, status audit
+  and domain-event persistence commit together or roll back. No-VIN path retained.
+- Dashboard submission retains a UUID Idempotency-Key across failed requests;
+  server uses the existing booking PK and actor/payload metadata, without schema
+  changes. A valid retry reads the existing binding, not another transition.
+  Changed input and second booking keys conflict. Transient serialization/deadlock
+  errors require retry; persistent unique-data conflicts are not mislabeled as
+  transient. Existing canonical status graph was not extended for warehouse VINs.
+- Real DB rollback verifier PASS: exact booking/allocation binding, actor/time,
+  unchanged valid retry, one booking/command/status log/domain event; changed
+  payload, wrong tenant/customer/variant/color and inactive actor denied.
+  Injected event-write failure rolled back booking, newly-created customer and
+  allocation together. Injection is a rollback test, not a natural DB failure.
+  Initial fixture phone collision and incorrect command-table lookup were
+  corrected; failed executions were not counted as PASS. No migration/RLS changes.
+- Actual Next.js dashboard with real Supabase Auth PASS for catalog -> agreed
+  price -> booking/allocation -> two authenticated HTTP retries. Durable READ ONLY
+  read-back shows booking 961653f9-a153-4b49-9bf1-ebd82f3ed6ae equals its vehicle's
+  allocated_to_contract_id, with allocated status, actor/time and one record in
+  each Mobility audit/event/idempotency source. No current price substituted the
+  explicitly-entered 1,500,000,000 VND booking agreement.
+- Full browser regression then FAILS at confirm-deposit: HTTP 404. Next.js runtime
+  reports synchronous params.id access in bookings/[id]/confirm-deposit/route.ts:33;
+  params is a Promise. Booking exists in DB; deposit count is zero. This pre-existing
+  downstream route was not modified. Snapshot/handover/recognition browser steps
+  remain NOT_RUN. No assertion, Auth/RLS rule or business contract was bypassed.
+- Independent READ ONLY cleanup: zero tagged Auth actors, active profiles/tenants,
+  rollback fixture tenants, Storage documents and recognitions. Preserve the
+  immutable proof booking and its allocation in a terminated test tenant; do not
+  repair the earlier legacy unbound booking or disable guards for teardown.
+- Seven focused Jest suites / 52 tests PASS; fresh full strict typecheck PASS;
+  Architecture Guard and diff-check PASS. ESLint has zero errors and the existing
+  handleSelectVehicle dependency warning. Existing Mobility trace query scheduling
+  emits a pg deprecation warning; no unrelated repository refactor was performed.
+  Next test server stopped and its generated AGENTS.md delta was removed.
+- No Platform/Mobility implementation, Logistics, Finance, Warranty, registry,
+  environment file or Production change; no staging, commit, push or PR.
+
+BOOKING_TO_ALLOCATION = PROVEN_ON_E2E_AND_ACTUAL_DASHBOARD
+BOOKING_ALLOCATION_RETRY = PROVEN_FOR_TESTED_RETRIES
+BOOKING_ALLOCATION_LOCAL_VERIFICATION = PASS
+FULL_DASHBOARD_BROWSER_E2E = NOT_PROVEN_BLOCKED_AT_CONFIRM_DEPOSIT
+MAIN_SEAL = NOT_PERFORMED
+SCHEMA_MIGRATION = NOT_PERFORMED_BY_ALLOCATION_DELTA
+PRODUCTION_MUTATION = NOT_PERFORMED
+COMMIT_PUSH_PR = NOT_PERFORMED
+AUTOMOVE_FULL_PRODUCT_READINESS = NOT_READY
+NEXT_ACTION = APPROVAL_FOR_SCOPED_CONFIRM_DEPOSIT_ROUTE_COMPATIBILITY
+
+## Deposit Confirmation API Correction - 2026-10-15
+
+Process gate: PASS for the owner's explicitly approved E2E-only API correction.
+Manifest: existing booking deposit confirmation; no new payment/Finance feature.
+Truth: the actual Next.js request reports synchronous params.id access and HTTP
+404 despite a persisted booking. Installed Next route.md requires Promise params
+and await. E2E auto_deposits matches its existing migration/generated types.
+Ownership: AutoMove owns the booking/deposit consumer; Platform retains Auth,
+identity, tenant RLS and helpers. Mobility allocation/recognition remain sealed.
+Dependency: Booking Hub -> existing confirm-deposit POST -> verified Supabase
+Auth -> tenant RLS -> existing auto_bookings / auto_deposits persistence.
+Authority: await route params, focused route/API tests and non-Production proof.
+Preserve response, amounts, status meanings and current storage/consumer contract.
+UI reconciliation: no UI change required for the Promise correction. Payment
+status here denotes the deposit requirement, not revenue or full vehicle payment.
+Additive migration plan: NONE. No grants, schema, helper or Mobility changes.
+Retry acceptance: verify the same request does not add a second receipt/amount;
+do not call a rejected retry an idempotent replay. Current route has no durable
+request key and updates booking before inserting deposit. If retry/atomicity is
+not proven, report the gap rather than inventing a payment contract or rewriting
+the flow without scope approval. No deletion or guard bypass for cleanup.
+11 checks: awaited exact booking ID; real Auth; active tenant access; confirmed
+deposit booking/tenant/actor links; partial/full deposit payment status; no
+unrelated booking lifecycle transition; full retry read-back; partial retry
+read-back; unchanged response/no new Finance event; tagged fixture cleanup;
+focused tests/typecheck/Architecture Guard/diff-check and actual dashboard run.
+
+DEPOSIT_CONFIRMATION_API_FIX = APPROVED_NOT_YET_VERIFIED
+DEPOSIT_RETRY_IDEMPOTENCY = NOT_PROVEN
+SCHEMA_MIGRATION = NOT_AUTHORIZED
+DASHBOARD_FULL_E2E = NOT_PROVEN
+PRODUCTION_MUTATION = NOT_AUTHORIZED
+COMMIT_PUSH_PR = NOT_AUTHORIZED
+AUTOMOVE_FULL_PRODUCT_READINESS = NOT_READY
+
+Deposit confirmation executed checkpoint - 2026-10-15:
+
+- Runtime correction is limited to Promise params plus one awaited bookingId used
+  by the existing read, booking update and deposit insert. No payment workflow,
+  amount/status semantics, response, Auth/RLS rule or Mobility contract changed.
+  The prior synchronous-param warning/404 is absent in the executed rerun.
+- Actual authenticated Next.js deposit confirmation now returns 200. READ ONLY
+  DB read-back proves the exact booking ID, tenant, confirmed receipt, created/
+  confirmed actor and time. Full deposit sets deposit_paid=100,000,000 VND and
+  payment_status=fully_paid; partial deposit initially sets 30,000,000 VND and
+  partially_paid. Existing booking.status=pending_deposit is retained, not treated
+  as vehicle delivery or revenue recognition.
+- Actual desktop dashboard happy-path test 42 PASS: Login -> Booking/Allocation
+  (two safe booking retries) -> Deposit -> Approved Financial Snapshot -> Handover
+  -> Explicit Recognition -> Ledger read-back and idempotent recognition retry.
+  Handover alone created no recognition. One canonical ledger contains recognized
+  sale 1,400,000,000 VND, historical cost 1,000,000,000, received deposit 100,000,000,
+  receivable 1,300,000,000, policy v1.0.0 and snapshot/handover evidence IDs.
+  This proves the tested happy path, not all roles/tenants/mobile or Go-Live.
+- Deposit full retry returns 400 via the existing overpayment guard; receipt and
+  booking state are unchanged. That is safe rejection, NOT idempotent replay.
+- Real authenticated API test 43 FAILS its required retry invariant: two identical
+  30,000,000 VND requests with the same transaction_ref both return 200, create two
+  confirmed receipts and set deposit_paid=60,000,000. Independent READ ONLY DB
+  inspection confirms both receipts belong to the exact booking/tenant/actor.
+  Classification: PRE_EXISTING_RETRY_GAP_EXPOSED_BY_PARAMS_FIX, not a new amount
+  calculation in this patch. Keep the failing test; do not replace its expectation
+  with two receipts or declare deposit idempotency PASS.
+- Source shows no durable operation-key check and two separate booking-update /
+  deposit-insert operations. Atomic failure/concurrency behavior is NOT_PROVEN,
+  not claimed as tested. A transaction/idempotency implementation or caller-key
+  contract needs explicit further scope approval; no payment engine was added.
+- Eight focused Jest suites / 59 tests, strict typecheck, scoped lint (zero errors),
+  Architecture Guard and diff-check PASS. Real E2E run: one happy-chain PASS and
+  one partial-deposit retry FAIL. No aggregate E2E PASS or main seal.
+- Teardown independently verified: zero tagged Auth actors, active profiles /
+  tenants and Storage documents. Retain immutable recognition proof and receipts
+  (including the duplicate negative-case evidence) in terminated test tenants.
+  No financial guard/RLS disable or manual financial-history repair. Next server
+  stopped and its generated AGENTS.md delta was removed.
+- No migration added/applied by this delta; no Mobility/Platform/Logistics, Finance,
+  Warranty, registry or Production change. No staging/commit/push/PR/merge.
+
+ROUTE_PARAMS_FIX = PROVEN_ON_E2E
+DEPOSIT_CONFIRMATION_HAPPY_PATH = PROVEN_ON_E2E
+DEPOSIT_CONFIRMATION_API_FIX = PARTIAL_VERIFIED_RETRY_BLOCKED
+PARTIAL_DEPOSIT_RETRY = FAIL_PROVEN_ON_E2E
+DEPOSIT_FULL_RETRY = REJECTED_WITHOUT_MUTATION_NOT_IDEMPOTENT_REPLAY
+DASHBOARD_SALES_CHAIN_HAPPY_PATH = PROVEN_ON_DESKTOP_E2E
+DASHBOARD_FULL_E2E = NOT_PROVEN_WITH_RETRY_FAILURE
+MAIN_SEAL = NOT_PERFORMED
+SCHEMA_MIGRATION = NOT_PERFORMED_BY_DEPOSIT_DELTA
+PRODUCTION_MUTATION = NOT_PERFORMED
+COMMIT_PUSH_PR = NOT_PERFORMED
+AUTOMOVE_FULL_PRODUCT_READINESS = NOT_READY
+NEXT_ACTION = OWNER_APPROVAL_FOR_SCOPED_DEPOSIT_TRANSACTION_AND_IDEMPOTENCY_FIX
+
+## Deposit Transaction and Idempotency Correction - 2026-10-15
+
+Process gate: PASS for the owner's explicit E2E-only implementation approval.
+Manifest: correct the existing confirmation command, not a new payment feature.
+Business invariant (owner-approved): one retried payment intent creates one
+receipt and adds its amount once; independent intents remain independently payable.
+Truth/source: actual test 43 and READ ONLY DB inspection show identical partial
+requests generated two receipts/60M from one 30M intent. Existing route has no key
+lookup and two separate writes. Verified schema has UUID auto_deposits.id PK and
+all required receipt/audit fields; no additive migration is necessary.
+Ownership: AutoMove owns booking/deposit orchestration. Platform keeps identity,
+Auth/RLS and connection configuration; Mobility/Logistics contracts do not change.
+Dependency: Booking Hub -> awaited confirm-deposit route -> trusted Supabase Auth
+-> Product transaction service -> existing authenticated booking/deposit tables.
+Authority: scoped transaction/idempotency service, caller key retention and tests.
+UI reconciliation: retain the prompt and request body/response fields. Introduce
+required UUID Idempotency-Key per payment intent, retained across failed requests
+and cleared after acknowledged success. New intentional payments use new UUIDs.
+No amount/booking/reference-based inferred deduplication. Clients omitting the key
+must fail closed; the one repository UI caller is updated in this same delta.
+Canonical persistence: receipt PK equals operation key; booking row FOR UPDATE
+serializes balance changes in one READ COMMITTED transaction. Receipt insert and
+booking update commit together; failure rolls back both. Look up an existing
+receipt before overpayment checks, bind booking/tenant/actor/amount/method/ref/notes,
+reject changed payloads, and never edit the existing receipt on retry. Replay
+returns the same receipt ID and current persisted booking balance, not an old
+balance that could overwrite a later independent payment. Auth/active tenant must
+be server-verified; no service-role escalation or client tenant/actor authority.
+Migration plan: NONE; reuse existing PK/FKs and existing RLS/grants. Preserve old
+proof/duplicate fixture history, booking lifecycle, accounting and Mobility.
+11 verification checks: required stable key; trusted active identity/tenant;
+one receipt/amount on sequential retry; overlapping same-key requests; independent
+keys (including equal amounts); concurrent independent payments/overpayment cap;
+changed payload/booking/tenant denial; transaction fault rollback; immutable replay
+read-back; actual dashboard and Auth API teardown; unit/regression/type/lint/guard/
+diff checks. Stop at any unrelated boundary, with no Production or remote action.
+
+DEPOSIT_IDEMPOTENCY_FIX = APPROVED_NOT_YET_VERIFIED
+PARTIAL_DEPOSIT_RETRY = FAIL_PROVEN_ON_E2E_PENDING_NEW_EVIDENCE
+PRODUCTION_MUTATION = NOT_AUTHORIZED
+COMMIT_PUSH_PR = NOT_AUTHORIZED
+AUTOMOVE_FULL_PRODUCT_READINESS = NOT_READY
+
+Deposit transaction/idempotency executed checkpoint - 2026-10-15:
+
+- Root cause confirmed: the previous endpoint had no durable payment-intent key
+  and changed the booking balance separately from receipt persistence. The Product
+  service now uses the existing receipt UUID PK, an authenticated READ COMMITTED
+  transaction and a booking row lock. Receipt insert and balance update commit
+  together. No migration, grants, RLS or shared contract change was needed.
+- The route awaits params, verifies real Supabase Auth and requires an explicit
+  UUID Idempotency-Key. It never invents a key for an unkeyed request. The server
+  verifies active canonical user/tenant, and binds the receipt to tenant, booking,
+  actor and normalized payment payload. Changed bindings return 409. Unknown
+  client authority fields are rejected; existing TLS/project checks stay intact.
+- A valid replay reads the existing immutable receipt before the overpayment
+  check, returns its ID and the current booking balance, and performs no writes.
+  The UI retains the operation key after network/server failure and clears it only
+  after acknowledged success. This proves retries reusing the same intent key,
+  not arbitrary browser reloads, newly generated keys or bank-reference dedup.
+- Actual Next.js/Auth API test 43 PASS: sequential partial/full replay; changed
+  amount and different-booking key reuse denied; concurrent same-key requests both
+  return 200 with one receipt/one credit; independent equal-amount intents work
+  sequentially and concurrently; concurrent overpayment has one success and one
+  denial with no partial receipt. Missing key returns 400 without persistence.
+- Independent READ ONLY E2E read-back for tenant marker 21a66cd5 confirms:
+  full=100,000,000 VND/1 receipt; partial plus independent payment=60,000,000/2;
+  concurrent same-key=20,000,000/1; concurrent independent=40,000,000/2;
+  concurrent capped=70,000,000/1. Each balance equals confirmed receipts, all
+  receipt tenant/booking/actor/time links match, booking lifecycle is unchanged.
+- scripts/verify-automove-deposit-idempotency.ts PASS_ROLLBACK on authorized E2E:
+  retry and independent intents, immutable receipt replay, tenant/actor/payload
+  denial, cap and cross-tenant key collision. An injected booking-write failure
+  after receipt insert rolls back both receipt and balance; retry then succeeds.
+  This is fault-injected rollback evidence, not a natural database failure.
+- Actual desktop Next.js dashboard test 42 also PASS: real Login -> Booking/
+  Allocation -> Deposit -> Approved Snapshot -> Handover -> Explicit Recognition
+  -> Ledger read-back/retry. UI request key equals persisted deposit receipt ID.
+  Independent read-back for booking e3c67383-b279-4242-8768-7d06bf779850 confirms
+  one recognition, 1,400,000,000 VND revenue, 1,000,000,000 historical cost,
+  100,000,000 cash, 1,300,000,000 receivable, policy v1.0.0, approved snapshot and
+  persisted matching handover. This is the tested desktop chain, not all product
+  flows, roles, mobile views or Production readiness.
+- Verification: 12 Jest suites/97 tests PASS (including 34 focused deposit tests);
+  both Chromium E2E tests PASS; fresh full strict typecheck, scoped ESLint,
+  Architecture Guard and diff-check PASS. Unit UI retry mocks are unit proof only;
+  the browser/API and rollback verifier use the real non-Production database.
+- Independent cleanup read-back: zero tagged Auth actors, active profiles/tenants,
+  rollback fixture tenants and Storage documents. Historical proof stays in
+  terminated test tenants; the earlier duplicate negative-case evidence remains
+  unchanged. No financial-history deletion or guard bypass. Playwright server
+  stopped; only its generated AGENTS.md block was removed.
+- Existing approved catalog/allocation edits remain intact. No new migration or
+  schema application in this delta, no Mobility/Platform helper/Logistics, Finance,
+  Warranty, commission, registry, environment file or Production change.
+  No staging, commit, push, PR or merge. Stop at this approved checkpoint.
+
+DEPOSIT_IDEMPOTENCY_FIX = PROVEN_ON_E2E
+PARTIAL_DEPOSIT_RETRY = PASS_PROVEN_ON_E2E
+DEPOSIT_FULL_RETRY = PASS_IDEMPOTENT_REPLAY
+DEPOSIT_CONCURRENT_SAME_KEY = PASS_ONE_RECEIPT_ONE_CREDIT
+DEPOSIT_INDEPENDENT_INTENTS = PASS_SEQUENTIAL_AND_CONCURRENT
+DEPOSIT_TRANSACTION_ROLLBACK = PROVEN_BY_REAL_DB_FAULT_INJECTION
+DEPOSIT_LOCAL_REGRESSION = PASS_97_TESTS
+DASHBOARD_SALES_CHAIN_HAPPY_PATH = PROVEN_ON_DESKTOP_E2E
+FULL_DASHBOARD_ALL_FLOW_COVERAGE = NOT_PROVEN
+MAIN_SEAL = NOT_PERFORMED
+SCHEMA_MIGRATION = NOT_PERFORMED_BY_IDEMPOTENCY_DELTA
+PRODUCTION_MUTATION = NOT_PERFORMED
+COMMIT_PUSH_PR = NOT_PERFORMED
+AUTOMOVE_FULL_PRODUCT_READINESS = NOT_READY
+NEXT_ACTION = STOP_AT_APPROVED_LOCAL_E2E_CHECKPOINT
+
+## Dashboard Batch Final Review And PR Integration - 2026-10-15
+
+Authority: owner's final diff review, scoped commit/push/PR preparation and
+verification approval. No merge, Production mutation or feature expansion.
+Review remains single-agent. Reuse the approved catalog/allocation/deposit
+changes above as one actual-dashboard business-chain batch; exclude existing
+.cache/automove-handover artifacts and all unrelated primary-worktree changes.
+The only migration in the proposed batch is the already-authorized catalog
+forward migration 20261015010000; idempotency adds no migration.
+
+Review finding: the Real DB selector currently treats that catalog migration as
+unmapped and requests the full cross-product suite. It also does not directly
+select the new catalog/allocation/deposit verifiers. Repair only the existing
+selector registration and its command environment, with a focused regression
+test. Preserve full-suite fallback for every other unknown migration and all
+existing suite selections. Keep exact E2E project and explicit verifier guards.
+No new workflow gate, business capability or Platform authority is introduced.
+
+Before PR: review transaction/key/error paths; run scoped selector regression,
+the registered rollback verifiers, full typecheck and affected quality checks;
+retain actual Next.js browser evidence, verify integration with fetched main,
+stage only the explicit batch manifest and inspect the cached diff.
+
+FINAL_DIFF_REVIEW = IN_PROGRESS_CI_SELECTION_FIX_REQUIRED
+MAIN_SEAL = NOT_PERFORMED
+PRODUCTION_MUTATION = NOT_AUTHORIZED
+AUTOMOVE_FULL_PRODUCT_READINESS = NOT_READY
+
+Final review result: PASS_FOR_APPROVED_SCOPE (single-agent review).
+
+- Transaction ownership, booking row lock, existing receipt UUID uniqueness,
+  immutable replay binding, required caller key and error rollback reviewed.
+  Current booking balance on replay preserves later independent payments.
+  No unresolved implementation blocker found in the approved payment-intent scope.
+- One CI integration finding was corrected: register only the approved catalog
+  migration and its catalog/allocation/deposit rollback verifiers, supply explicit
+  E2E verifier flags per command, and accept the existing CI SUPABASE_DB_URL name.
+  Unknown migrations still require the full suite; no assertions or E2E project
+  restrictions were weakened. No workflow, credential or Production change.
+- Fresh evidence: 13 Jest suites/104 tests PASS, including seven selector cases;
+  full strict TypeScript, scoped ESLint, Architecture Guard, secret/log guard,
+  scope-router regression and zero-downtime check against platform/main PASS.
+  Exactly one proposed migration: the earlier-approved catalog read boundary.
+- Executing the actual CI selector with only SUPABASE_DB_URL selected and passed
+  all ten commands: catalog reads, booking allocation, deposit idempotency,
+  snapshot/handover recognition, policy identity, recognition schema, sales-chain
+  RLS, recognition command, financial read-side and sales-chain alignment.
+  New business fixtures roll back; real Auth/Storage proof uses verified cleanup.
+- Two actual Next.js/Chromium tests from the preceding executed checkpoint PASS;
+  Browser evidence is local non-Production desktop scope, not a remote CI/main
+  browser run or full-product readiness claim. Shared-UI main integration remains
+  to be verified before PR delivery.
+- Explicit commit manifest: 30 approved batch files. Exclude .cache image artifacts,
+  environment/dependency files and all unrelated primary-checkout changes.
+
+FINAL_DIFF_REVIEW = PASS_FOR_APPROVED_SCOPE
+DEPOSIT_IDEMPOTENCY_FIX = PROVEN_ON_E2E
+COMMIT_PUSH_PR = AUTHORIZED_FOR_SCOPED_DELIVERY
+REMOTE_CI = NOT_STARTED
+MAIN_SEAL = NOT_PERFORMED
+PRODUCTION_MUTATION = NOT_PERFORMED
+AUTOMOVE_FULL_PRODUCT_READINESS = NOT_READY
+
+Integration verification addendum: platform/main b7a49ee33 was merged into this
+branch without conflicts; the PR diff still contains only the reviewed 30 files.
+Fresh 104 tests, strict typecheck and architecture/API checks passed. The first
+post-integration browser run was NOT PASS: the observer PostgreSQL connection
+terminated during document upload. Deposit API test 43 still passed. Independent
+read-back confirmed no snapshot/recognition, no Auth user or Storage objects,
+but one active fixture profile/tenant remained because teardown reused the failed
+connection. Do not infer a runtime recognition regression or ignore this failure.
+Review remediation is test-only: collect observer connection errors as failures
+and use a fresh verified E2E connection for atomic fixture-authority cleanup.
+No query/assertion retry, business runtime change or lower TLS/Auth/RLS standard.
+Revoke the failed fixture's existing authority through the same approved teardown
+actions, preserve its financial/allocation history, then rerun the browser tests.
+FINAL_DIFF_REVIEW = CHANGES_REQUIRED_TEST_TEARDOWN_VERIFICATION
+
+Integration rerun executed: both actual Next.js/Chromium tests PASS (2.8 minutes).
+The earlier observer-connection failure remains recorded as FAIL, not counted
+as successful business evidence. No runtime semantics or test assertions changed.
+Fresh strict typecheck and teardown-test ESLint PASS. The failed fixture's profile
+was deactivated and tenant terminated; no business/allocation/financial history
+was deleted. Independent READ ONLY proof after rerun confirms zero tagged Auth
+users, active profiles/tenants and Storage documents, including the failed run.
+Deposit fixture bfae1cfd has the expected full/partial/concurrent/independent/cap
+receipt counts and exact balance sums. Booking d9b76b50-1abe-4138-8113-b5669b8a33bf
+has one canonical recognition with 1.4B revenue, 1B cost, 100M cash, 1.3B receivable,
+policy 1.0.0 and snapshot/handover bindings. Playwright listener is stopped and
+its generated AGENTS.md delta removed. Diff versus fetched platform/main retains
+only the approved batch files; primary-checkout work and cache images untouched.
+
+FINAL_DIFF_REVIEW = PASS_FOR_APPROVED_SCOPE
+LOCAL_INTEGRATION_WITH_MAIN = PASS
+DEPOSIT_IDEMPOTENCY_FIX = PROVEN_ON_E2E
+ACTUAL_NEXT_DESKTOP_BROWSER_AND_DEPOSIT_API = PASS_EXECUTED
+REMOTE_CI = PENDING_PR_CREATION
+MAIN_SEAL = NOT_PERFORMED
+PRODUCTION_MUTATION = NOT_PERFORMED
+AUTOMOVE_FULL_PRODUCT_READINESS = NOT_READY
+
+## PR 329 Gitleaks Fixture Remediation - 2026-10-15
+
+Root evidence: Gitleaks job 116218490617 on head 3660dea07 flags seven generic-api-key
+findings in six unit-test locations, all from commit 870d6edd0. Each is a static
+UUID payment/booking idempotency fixture passed to mocked Product/HTTP boundaries,
+not an API credential, password or real Auth identity. Gitleaks 8.24.3 reproduces
+the same seven findings locally using the exact CI commit range. The earlier
+repository secret/log guard did not detect this generic-rule fixture pattern.
+
+Repair boundary: test fixture representation and exact historical
+false-positive disposition only. Use unmistakable synthetic valid UUID values
+for current fixtures. Since CI scans original commit additions, changing HEAD
+alone cannot remove the earlier findings. Add only six exact historical
+commit/file/rule/line fingerprints (one covers two fake UUIDs on the same line)
+to .gitleaksignore with the review reason. No path, rule, commit-wide allowlist,
+workflow bypass, history rewrite or exclusion of future test additions.
+Gitleaks documents this exact-finding mechanism in its v8.24.3 README.
+
+Verification required: reproduce seven findings before; zero unexpected findings
+on the same historical range after; scan the correction commit; prove a generated
+non-credential canary still fails the generic rule; rerun affected tests/lint and
+diff checks. No runtime, DB, migration, environment or Production mutation.
+
+GITLEAKS_FAILURE = PROVEN_TEST_UUID_FALSE_POSITIVES
+GITLEAKS_REMEDIATION = IMPLEMENTATION_PENDING
+MAIN_SEAL = NOT_PERFORMED
+AUTOMOVE_FULL_PRODUCT_READINESS = NOT_READY
+
+Executed remediation evidence: checksum-verified official Gitleaks 8.24.3 binary
+reproduced seven findings before the correction; the exact historical CI range
+has zero findings after six reviewed fingerprints. Scanning all six current
+fixture files passes without additional exceptions. A generated in-memory
+non-credential canary still fails generic-api-key detection as expected; it was
+not printed or saved. All 13 scoped Jest suites/104 tests, targeted ESLint,
+Architecture Guard and diff-check pass. Runtime behavior is unchanged; no DB
+or Browser E2E rerun is claimed for this fixture-only delta.
+Reference: https://github.com/gitleaks/gitleaks/blob/v8.24.3/README.md#gitleaksignore
+
+GITLEAKS_REMEDIATION = LOCAL_VERIFIED_PENDING_CI
+REMOTE_CI = PENDING_CORRECTION_PUSH
+PRODUCTION_MUTATION = NOT_PERFORMED
+MAIN_SEAL = NOT_PERFORMED
+AUTOMOVE_FULL_PRODUCT_READINESS = NOT_READY

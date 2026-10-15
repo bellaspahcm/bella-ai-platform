@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createServerClient } from '@/lib/supabase-server';
+import { bookingAllocationHttp } from '@/modules/bella-auto/services/AutoMoveBookingAllocationHttp';
 
 interface CreateBookingRequest {
   // Customer
@@ -59,22 +60,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Invalid deposit amount' }, { status: 400 });
     }
 
-    // Check for duplicate VIN in active bookings
     if (body.vehicleId) {
-      const { data: existingBooking } = await supabase
-        .from('auto_bookings')
-        .select('id, booking_number')
-        .eq('tenant_id', profile.tenant_id)
-        .eq('vehicle_id', body.vehicleId)
-        .in('status', ['pending_deposit', 'deposit_confirmed', 'awaiting_delivery'])
-        .maybeSingle();
-
-      if (existingBooking) {
-        return NextResponse.json({ 
-          error: `VIN này đã được sử dụng trong booking ${existingBooking.booking_number}. Vui lòng chọn VIN khác.`,
-          code: 'DUPLICATE_VIN'
-        }, { status: 409 });
-      }
+      return bookingAllocationHttp(request, user.id, body);
     }
 
     let customerId = body.customerId;
@@ -146,23 +133,6 @@ export async function POST(request: Request) {
     if (bookingError) {
       console.error('Booking creation error:', bookingError);
       return NextResponse.json({ error: 'Failed to create booking' }, { status: 500 });
-    }
-
-    // Update vehicle status if VIN allocated
-    if (body.vehicleId) {
-      const { error: vehicleError } = await supabase
-        .from('auto_vehicles')
-        .update({ 
-          status: 'allocated',
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', body.vehicleId)
-        .eq('tenant_id', profile.tenant_id);
-
-      if (vehicleError) {
-        console.error('Vehicle status update error:', vehicleError);
-        // Don't fail the entire transaction, just log
-      }
     }
 
     return NextResponse.json({ 

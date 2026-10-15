@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { createClient } from '@/lib/supabase-client';
 import {
   listMobilityVehicleDisplayByIds,
@@ -36,6 +36,7 @@ export function BookingListTable({ tenantId }: { tenantId: string }) {
   const [filter, setFilter] = useState<FilterType>('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [confirmingId, setConfirmingId] = useState<string | null>(null);
+  const confirmationKeys = useRef(new Map<string, string>());
   const [saleBooking, setSaleBooking] = useState<Booking | null>(null);
 
   const loadBookings = async () => {
@@ -132,9 +133,11 @@ export function BookingListTable({ tenantId }: { tenantId: string }) {
 
     setConfirmingId(booking.id);
     try {
+      const key = confirmationKeys.current.get(booking.id) ?? crypto.randomUUID();
+      confirmationKeys.current.set(booking.id, key);
       const response = await fetch(`/api/bella-auto/bookings/${booking.id}/confirm-deposit`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'Idempotency-Key': key },
         body: JSON.stringify({
           amount: Number(amount),
           payment_method: 'cash', // TODO: Add payment method selector
@@ -150,6 +153,7 @@ export function BookingListTable({ tenantId }: { tenantId: string }) {
       }
 
       alert(result.message);
+      confirmationKeys.current.delete(booking.id);
       await loadBookings(); // Reload list
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Lỗi không xác định';

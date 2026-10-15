@@ -1,6 +1,6 @@
 'use client';
 
-import { Fragment, useState, useEffect, useCallback } from 'react';
+import { Fragment, useState, useEffect, useCallback, useRef } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { X, Plus, User, Car, DollarSign, CheckCircle, ArrowRight, ArrowLeft, Search, UserPlus, Phone, MapPin, AlertCircle, Palette, Package } from 'lucide-react';
 
@@ -40,21 +40,17 @@ interface Customer {
 interface Brand {
   id: string;
   name: string;
-  logo_url: string | null;
 }
 
 interface Model {
   id: string;
   name: string;
-  year: number;
 }
 
 interface Variant {
   id: string;
   name: string;
-  description: string | null;
-  base_price: number;
-  features: unknown;
+  year: number | null;
 }
 
 interface Vehicle {
@@ -114,24 +110,34 @@ export function CreateBookingModal({ isOpen, onClose, onSuccess }: CreateBooking
   const [isLoadingModels, setIsLoadingModels] = useState(false);
   const [isLoadingVariants, setIsLoadingVariants] = useState(false);
   const [isLoadingVehicles, setIsLoadingVehicles] = useState(false);
+  const [catalogError, setCatalogError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const submissionKey = useRef<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
   // Load brands on vehicle step
   useEffect(() => {
     if (currentStep === 'vehicle' && brands.length === 0) {
+      const controller = new AbortController();
+      setCatalogError(null);
       setIsLoadingBrands(true);
-      fetch('/api/bella-auto/vehicles/brands')
-        .then(res => res.json())
-        .then(data => setBrands(data.brands || []))
-        .catch(err => console.error('Failed to load brands:', err))
-        .finally(() => setIsLoadingBrands(false));
+      fetch('/api/bella-auto/vehicles/brands', { signal: controller.signal })
+        .then(res => {
+          if (!res.ok) throw new Error('Catalog request failed');
+          return res.json();
+        })
+        .then(data => { if (!controller.signal.aborted) setBrands(data.brands || []); })
+        .catch(() => { if (!controller.signal.aborted) setCatalogError('Không tải được hãng xe.'); })
+        .finally(() => { if (!controller.signal.aborted) setIsLoadingBrands(false); });
+      return () => controller.abort();
     }
   }, [currentStep, brands.length]);
 
   // Load models when brand selected
   useEffect(() => {
     if (selectedBrand) {
+      const controller = new AbortController();
+      setCatalogError(null);
       setIsLoadingModels(true);
       setModels([]);
       setSelectedModel('');
@@ -140,28 +146,38 @@ export function CreateBookingModal({ isOpen, onClose, onSuccess }: CreateBooking
       setAvailableVehicles([]);
       setSelectedVehicle(null);
       
-      fetch(`/api/bella-auto/vehicles/models?brandId=${selectedBrand}`)
-        .then(res => res.json())
-        .then(data => setModels(data.models || []))
-        .catch(err => console.error('Failed to load models:', err))
-        .finally(() => setIsLoadingModels(false));
+      fetch(`/api/bella-auto/vehicles/models?brandId=${selectedBrand}`, { signal: controller.signal })
+        .then(res => {
+          if (!res.ok) throw new Error('Catalog request failed');
+          return res.json();
+        })
+        .then(data => { if (!controller.signal.aborted) setModels(data.models || []); })
+        .catch(() => { if (!controller.signal.aborted) setCatalogError('Không tải được dòng xe.'); })
+        .finally(() => { if (!controller.signal.aborted) setIsLoadingModels(false); });
+      return () => controller.abort();
     }
   }, [selectedBrand]);
 
   // Load variants when model selected
   useEffect(() => {
     if (selectedModel) {
+      const controller = new AbortController();
+      setCatalogError(null);
       setIsLoadingVariants(true);
       setVariants([]);
       setSelectedVariant(null);
       setAvailableVehicles([]);
       setSelectedVehicle(null);
       
-      fetch(`/api/bella-auto/vehicles/variants?modelId=${selectedModel}`)
-        .then(res => res.json())
-        .then(data => setVariants(data.variants || []))
-        .catch(err => console.error('Failed to load variants:', err))
-        .finally(() => setIsLoadingVariants(false));
+      fetch(`/api/bella-auto/vehicles/variants?modelId=${selectedModel}`, { signal: controller.signal })
+        .then(res => {
+          if (!res.ok) throw new Error('Catalog request failed');
+          return res.json();
+        })
+        .then(data => { if (!controller.signal.aborted) setVariants(data.variants || []); })
+        .catch(() => { if (!controller.signal.aborted) setCatalogError('Không tải được phiên bản xe.'); })
+        .finally(() => { if (!controller.signal.aborted) setIsLoadingVariants(false); });
+      return () => controller.abort();
     }
   }, [selectedModel]);
 
@@ -259,7 +275,6 @@ export function CreateBookingModal({ isOpen, onClose, onSuccess }: CreateBooking
   const handleSelectVariant = (variant: Variant) => {
     setSelectedVariant(variant);
     updateFormData('variantId', variant.id);
-    updateFormData('totalPrice', variant.base_price);
   };
 
   function handleSelectVehicle(vehicle: Vehicle | null) {
@@ -310,7 +325,9 @@ export function CreateBookingModal({ isOpen, onClose, onSuccess }: CreateBooking
     setSelectedCustomer(null);
     setDuplicateWarning(null);
     setSubmitError(null);
+    setCatalogError(null);
     setIsSubmitting(false);
+    submissionKey.current = null;
     onClose();
   };
 
@@ -319,9 +336,10 @@ export function CreateBookingModal({ isOpen, onClose, onSuccess }: CreateBooking
     setSubmitError(null);
 
     try {
+      submissionKey.current ??= crypto.randomUUID();
       const res = await fetch('/api/bella-auto/bookings', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'Idempotency-Key': submissionKey.current },
         body: JSON.stringify(formData),
       });
 
@@ -649,6 +667,13 @@ export function CreateBookingModal({ isOpen, onClose, onSuccess }: CreateBooking
                     <div className="space-y-6">
                       <h3 className="text-lg font-bold text-slate-900 dark:text-white">Chọn Xe</h3>
 
+                      {catalogError && (
+                        <div role="alert" className="flex items-center gap-2 text-sm text-red-600 dark:text-red-400">
+                          <AlertCircle className="w-5 h-5 shrink-0" />
+                          {catalogError}
+                        </div>
+                      )}
+
                       {/* Brand Selection */}
                       <div>
                         <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
@@ -704,7 +729,6 @@ export function CreateBookingModal({ isOpen, onClose, onSuccess }: CreateBooking
                                   }`}
                                 >
                                   <div className="font-semibold text-slate-900 dark:text-white">{model.name}</div>
-                                  <div className="text-sm text-slate-500 dark:text-slate-400 mt-1">Năm {model.year}</div>
                                 </button>
                               ))}
                             </div>
@@ -741,12 +765,9 @@ export function CreateBookingModal({ isOpen, onClose, onSuccess }: CreateBooking
                                   <div className="flex items-start justify-between">
                                     <div className="flex-1">
                                       <div className="font-semibold text-slate-900 dark:text-white">{variant.name}</div>
-                                      {variant.description && (
-                                        <div className="text-sm text-slate-500 dark:text-slate-400 mt-1">{variant.description}</div>
+                                      {variant.year != null && (
+                                        <div className="text-sm text-slate-500 dark:text-slate-400 mt-1">Năm {variant.year}</div>
                                       )}
-                                    </div>
-                                    <div className="text-lg font-bold text-cyan-600 dark:text-cyan-400 ml-4">
-                                      {(variant.base_price / 1000000).toFixed(0)}M
                                     </div>
                                   </div>
                                 </button>
@@ -868,11 +889,6 @@ export function CreateBookingModal({ isOpen, onClose, onSuccess }: CreateBooking
                             VNĐ
                           </div>
                         </div>
-                        {selectedVariant && (
-                          <div className="text-sm text-slate-500 dark:text-slate-400 mt-2">
-                            Giá niêm yết: {formatCurrency(selectedVariant.base_price)} VNĐ
-                          </div>
-                        )}
                       </div>
 
                       {/* Deposit Amount */}
@@ -1068,13 +1084,14 @@ export function CreateBookingModal({ isOpen, onClose, onSuccess }: CreateBooking
                           <div className="flex items-start gap-2">
                             <span className="text-slate-500 dark:text-slate-400 w-24">Dòng xe:</span>
                             <span className="font-semibold text-slate-900 dark:text-white flex-1">
-                              {models.find(m => m.id === selectedModel)?.name} ({models.find(m => m.id === selectedModel)?.year})
+                              {models.find(m => m.id === selectedModel)?.name}
                             </span>
                           </div>
                           <div className="flex items-start gap-2">
                             <span className="text-slate-500 dark:text-slate-400 w-24">Phiên bản:</span>
                             <span className="font-semibold text-slate-900 dark:text-white flex-1">
                               {selectedVariant?.name}
+                              {selectedVariant?.year != null && ` (${selectedVariant.year})`}
                             </span>
                           </div>
                           <div className="flex items-start gap-2">
