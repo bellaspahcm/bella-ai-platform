@@ -2,6 +2,50 @@
 
 Status: PASS for application customer-profile write protection. Single-agent.
 
+## Follow-Up Gate - Official KTV Accounts for AI (2026-10-15)
+
+Result: PASS for booking-service eligibility and suggestion action boundaries.
+
+- Development process / business truth: the user explicitly requires AI to use
+  only officially authorized KTV accounts. Staff provisioning in `createUser`
+  creates Auth first, then a tenant profile with the same ID and assigned role.
+  `@bella/shared` owns the KTV / KTV lead role group. Auth existence alone does
+  not grant a technician role; profile metadata or display names grant nothing.
+- Product manifest: existing shared Spa/BabyCare AI recommendations and applying
+  their selection. Keep ranking, capacity rules, product identity and UI intact.
+- Ownership: Auth owns login identity/ban/deletion; staff profiles own tenant,
+  assigned role, active status and resignation; booking services own eligibility.
+- Contract map: booking suggestion / auto-assignment -> local booking eligibility
+  -> authenticated tenant-scoped profile query + existing Auth Admin getUserById
+  contract. Never query auth tables or use an admin client for profile reads/writes.
+- Change authority: add a boundary-local eligibility helper, consume it before
+  ranking and again before applying a selected KTV, enforce the documented admin
+  selection action, and test negative cases. No changes to Platform, Auth/RLS,
+  organization contracts, staff provisioning/data, score algorithms or kernels.
+- UI -> contract: cards contain only verified candidates; stale/tampered choices
+  are rejected on save. An unverifiable identity cannot fall back into results.
+- Migration plan: none; no schema, policy, RPC, production mutation or data cleanup.
+
+Business Test Contract: a same-tenant active, non-resigned KTV/KTV lead with a
+matching non-deleted, non-anonymous, non-banned Auth identity may be ranked.
+Missing Auth, wrong role/tenant, inactive/resigned or locked identities cannot be
+ranked or selected. Missing verifier credentials / unexpected Auth errors fail
+closed. Selection requires an active tenant admin and a tenant-owned booking.
+
+Eleven verification gates:
+1. Scope / architecture guard: no frozen/Core/Platform edits.
+2. Contract: typed existing users fields and Auth Admin API only.
+3. Tenant: reject mismatched caller; candidate reads always tenant-scoped.
+4. Authorization: canonical technician roles and admin selection enforcement.
+5. Migration: no SQL or schema changes.
+6. Identity: missing, mismatched, deleted, anonymous and banned accounts excluded.
+7. Fail-closed: verifier absence/errors never yield unverified candidates.
+8. Ranking: only eligible candidates reach the unchanged provider.
+9. Write: recheck eligibility; rejected/stale IDs cause no booking update.
+10. Quality: focused Jest, ESLint, full typecheck, diff and architecture guards.
+11. Evidence: distinguish mock boundary tests from read-only live verification;
+    no production assignment or account mutation for proof.
+
 ## Development Process and Business Semantic Gate
 
 User-approved invariant: loyalty is calculated automatically; the customer editor
