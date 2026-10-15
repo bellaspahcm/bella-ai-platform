@@ -46,7 +46,8 @@ async function writer() {
   const before = await workspaceInventory(), beforeSource = await readFile(join(ROOT, target), 'utf8');
   const directory = await createPrivateDirectory({ retained: true });
   console.log(JSON.stringify({ phase: 'writer_started', directory }));
-  const createdAt = new Date().toISOString(), deadline = new Date(Date.now() + 7 * DAY_MS).toISOString();
+  const createdMillis = Date.now();
+  const createdAt = new Date(createdMillis).toISOString(), deadline = new Date(createdMillis + 7 * DAY_MS).toISOString();
   await writeDurableJson(join(directory, 'context.json'), { scope: 'filechange-canonical-batch', createdAt, outputReviewDeadline: deadline, evidenceClass: 'runtime' });
   const base = { repository: REPOSITORY, taskId: randomUUID(), runId: randomUUID(), attempt: 1, producerInstanceId: randomUUID() };
   let binding, store, server, failure, timer, complete; let queue = Promise.resolve();

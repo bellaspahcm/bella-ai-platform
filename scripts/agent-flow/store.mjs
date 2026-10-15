@@ -101,7 +101,8 @@ export class DevelopmentStore {
         if (error.code !== 'ENOENT') throw new Error('STORE_READ_FAILED');
         data = { binding: this.binding, records: [] };
       }
-      if (Object.keys(data).sort().join(',') !== 'binding,records' || JSON.stringify(data.binding) !== JSON.stringify(this.binding) || !Array.isArray(data.records)) throw new Error('STORE_SCOPE_MISMATCH');
+      if (Object.keys(data).sort().join(',') !== 'binding,records' || !data.binding || ['repository', 'taskId', 'runId', 'attempt', 'producerInstanceId', 'threadId', 'sessionId', 'turnId'].some(field => data.binding[field] !== this.binding[field]) || !Array.isArray(data.records)) throw new Error('STORE_SCOPE_MISMATCH');
+      validateBinding(data.binding);
       const now = this.clock();
       if (!Number.isSafeInteger(now) || now < 0) throw new Error('INVALID_STORE_CLOCK');
       const rowFields = 'digest,fact,key,metadataExpiresAt,outputExpiresAt,outputState,revision,storedAt';

@@ -160,7 +160,7 @@ test('history stays a snapshot; match, missing history/live and conflict are exp
   });
 });
 
-for (const field of ['repository', 'taskId', 'runId', 'threadId', 'turnId']) {
+for (const field of ['repository', 'taskId', 'runId', 'attempt', 'producerInstanceId', 'sessionId', 'threadId', 'turnId']) {
   for (const kind of ['item', 'turn']) {
     test(`reconciliation isolates different ${field} with ${kind === 'item' ? 'colliding itemId' : 'null turn itemId'}`, () => {
       const receivedAt = new Date(start).toISOString();
@@ -168,7 +168,7 @@ for (const field of ['repository', 'taskId', 'runId', 'threadId', 'turnId']) {
         method: 'turn/completed',
         params: { threadId: binding.threadId, turn: { id: binding.turnId, status: 'completed' }, completedAtMs: start },
       }, binding, receivedAt);
-      const otherBinding = { ...binding, [field]: field === 'repository' ? 'other/project' : `other-${field}` };
+      const otherBinding = { ...binding, [field]: field === 'repository' ? 'other/project' : field === 'attempt' ? 2 : `other-${field}` };
       const snapshot = kind === 'item'
         ? normalizeHistory({ turnId: otherBinding.turnId, item: command, completedAtMs: start }, otherBinding, receivedAt, nonce)
         : normalizeHistoryTurn({ id: otherBinding.turnId, status: 'completed', completedAt: start / 1000 }, otherBinding, receivedAt);
@@ -180,6 +180,17 @@ for (const field of ['repository', 'taskId', 'runId', 'threadId', 'turnId']) {
     });
   }
 }
+
+test('canonical store accepts equal binding fields irrespective of object property order', async () => {
+  await withStore(async (store, dir) => {
+    await store.ingest(normalized());
+    const reversed = Object.fromEntries(Object.entries(binding).reverse());
+    const rows = await new DevelopmentStore(dir, reversed, { authorize, nonce, clock: () => start }).read();
+    assert.equal(rows.length, 1);
+    assert.equal(rows[0].fact.runId, binding.runId);
+    await assert.rejects(new DevelopmentStore(dir, { ...reversed, attempt: 2 }, { authorize, nonce, clock: () => start }).read(), /STORE_SCOPE_MISMATCH/);
+  });
+});
 
 test('same-scope completed turn reconciles with unchanged null item result', () => {
   const receivedAt = new Date(start).toISOString();

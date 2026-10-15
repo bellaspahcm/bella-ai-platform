@@ -136,7 +136,7 @@ export function verifyFileChangeRecords(records, binding) {
 export function reconcile(records) {
   const finals = records.filter(r => r.fact.method === 'item/completed' || r.fact.method === 'turn/completed');
   const snapshots = records.filter(r => r.fact.sourceKind === 'history_snapshot');
-  const key = f => JSON.stringify([f.repository, f.taskId, f.runId, f.threadId, f.turnId, f.itemId || '@turn']);
+  const key = f => JSON.stringify([f.repository, f.taskId, f.runId, f.attempt, f.producerInstanceId, f.sessionId, f.threadId, f.turnId, f.itemId || '@turn']);
   const live = new Map(finals.map(r => [key(r.fact), r.fact]));
   const history = new Map(snapshots.map(r => [key(r.fact), r.fact]));
   return [...new Set([...live.keys(), ...history.keys()])].map(id => {

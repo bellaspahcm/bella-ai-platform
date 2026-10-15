@@ -1,6 +1,6 @@
 # Bella Agent Flow development tooling
 
-This directory integrates the existing managed-task lifecycle proof into source control. It is development tooling, not a continuously running orchestration service. It does not observe existing Desktop sessions, provide a dashboard, deploy products, or prove production readiness.
+This directory integrates the existing managed-task lifecycle proof into source control. It is development tooling, not a continuously running orchestration service. It does not observe existing Desktop sessions, provide a dashboard, deploy products, or prove production readiness. Delivery review additionally fixed complete reconciliation scope, order-independent store bindings and single-clock retention calculation; the retained runtime package remains the historical pre-delivery proof.
 
 ## Verified scope
 
@@ -25,7 +25,7 @@ node --test scripts/agent-flow/agent-flow.test.mjs scripts/agent-flow/task-workf
 node node_modules/jest/bin/jest.js src/__tests__/agent-flow-tooling.test.ts --runInBand
 ```
 
-The Jest adapter runs all45 existing Node tests and rejects failures/skips/cancellation/todo; this lets the existing changed-file CI discover them without changing workflows. It does not launch Codex or create runtime evidence.
+The Jest adapter runs all52 Node tests (45 original plus7 delivery-review regressions) and rejects failures/skips/cancellation/todo; this lets the existing changed-file CI discover them without changing workflows. It does not launch Codex or create runtime evidence.
 
 To verify the merged reader against the retained real package, from the merged checkout with an authorized `gh` session:
 
