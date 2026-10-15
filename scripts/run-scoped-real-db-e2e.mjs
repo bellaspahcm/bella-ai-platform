@@ -22,6 +22,17 @@ const REAL_DB_TEST_BY_PATH = [
 
 const SCOPED_REAL_DB_SUITES = [
   {
+    name: 'AutoMove active identity access',
+    patterns: [
+      /^supabase\/migrations\/20261015030000_guard_automove_active_identity_access\.sql$/,
+      /^scripts\/verify-automove-active-identity-access\.ts$/,
+      /^src\/__tests__\/automove-active-identity-migration\.test\.ts$/,
+      /^scripts\/verify-automove-sales-chain-rls-hardening\.ts$/,
+    ],
+    commands: [{ command: 'npx', args: ['tsx', 'scripts/verify-automove-active-identity-access.ts'],
+      env: { ALLOW_E2E_ACTIVE_IDENTITY_VERIFICATION: '1' } }],
+  },
+  {
     name: 'AutoMove catalog tenant reads',
     patterns: [
       /^supabase\/migrations\/20261015010000_authorize_automove_catalog_tenant_reads\.sql$/,

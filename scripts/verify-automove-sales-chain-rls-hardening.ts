@@ -154,6 +154,7 @@ async function verifyPolicies(): Promise<void> {
        from pg_policies
       where schemaname = 'public'
         and tablename = any($1::text[])
+        and permissive = 'PERMISSIVE'
       order by tablename, policyname`,
     [[...TARGET_TABLES]]
   );
@@ -167,6 +168,7 @@ async function verifyPolicies(): Promise<void> {
   }
 
   for (const table of TARGET_TABLES) {
+    // Additional restrictive guards are proved by verify-automove-active-identity-access.ts.
     const rows = policiesByTable.get(table) ?? [];
     assert(rows.length === 3, `${table} must have exactly SELECT, INSERT, UPDATE tenant policies.`);
     const commands = new Set(rows.map((row) => stringValue(row, 'cmd')));
@@ -501,6 +503,7 @@ async function verifyRuntimeBehavior(fixtures: SalesChainFixtures): Promise<void
 async function main(): Promise<void> {
   verifyMigrationSource();
 
+  assert(typeof dbUrl === 'string', 'A non-Production database URL is required.');
   const target = new URL(dbUrl);
   console.log(`AutoMove sales-chain RLS hardening target: ${target.hostname}/${target.pathname.replace(/^\//, '')}`);
   console.log('Mode: ROLLBACK transaction; Production ref guard enabled.');
