@@ -56,6 +56,14 @@ it('returns business denial without a commit', async () => {
   expect((await depositConfirmationHttp(request(), 'verified-actor', 'booking-1')).status).toBe(404);
   expect(mockDb.query).not.toHaveBeenCalledWith('commit');
 });
+it('reports the combined collection cap without committing a new deposit', async () => {
+  command.mockRejectedValueOnce({ code: '23514', constraint: 'automove_combined_collection_cap' });
+  const response = await depositConfirmationHttp(request(), 'verified-actor', 'booking-1');
+  expect(response.status).toBe(409);
+  expect(await response.json()).toMatchObject({ code: 'DEPOSIT_EXCEEDS_SALE_BALANCE' });
+  expect(mockDb.query).toHaveBeenCalledWith('rollback');
+  expect(mockDb.query).not.toHaveBeenCalledWith('commit');
+});
 it('rejects invalid JSON without opening a connection', async () => {
   expect((await depositConfirmationHttp(request(true, '{'), 'verified-actor', 'booking-1')).status).toBe(400);
   expect(mockDb.connect).not.toHaveBeenCalled();

@@ -13,3 +13,11 @@ it('adds only the approved operational receipt relation with immutable, tenant-b
   expect(sql).not.toMatch(/INSERT INTO (?:public\.)?(?:auto_deposits|auto_vehicle_sale_recognitions|finance_\w+|accounting_outbox)/i);
   expect(sql).not.toMatch(/GRANT[^;]+(?:UPDATE|DELETE|TRUNCATE)[^;]+TO\s+authenticated/i);
 });
+it('caps the legacy deposit entry point without widening grants or rewriting history', () => {
+  const guard = readFileSync(resolve('supabase/migrations/20261015020100_guard_automove_combined_collection_cap.sql'), 'utf8');
+  expect(guard).toContain('FOR UPDATE');
+  expect(guard).toContain('confirmed_total + post_sale_total + NEW.amount > recognized_total');
+  expect(guard).toContain("CONSTRAINT='automove_combined_collection_cap'");
+  expect(guard).toContain('BEFORE INSERT OR UPDATE OF amount,status,booking_id,tenant_id ON public.auto_deposits');
+  expect(guard).not.toMatch(/\b(?:GRANT|DROP|TRUNCATE)\b|\b(?:UPDATE public\.|DELETE FROM|INSERT INTO)/i);
+});

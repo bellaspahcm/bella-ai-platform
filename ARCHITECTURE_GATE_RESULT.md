@@ -100,8 +100,8 @@ REFUND_POLICY_OR_FINANCE_POSTING = NOT_AUTHORIZED
 3. Tenant: existing A/B rejection remains exercised by the Real DB verifier.
 4. Authorization: active identity/tenant checks remain before receipt access.
 5. Migration: the deposit guard needs no schema changes. The subsequently
-   approved post-sale scope adds only migration 20261015020000, including its
-   receipt-table RLS/grants; existing migrations and shared helpers stay intact.
+   approved post-sale scope adds migration 20261015020000 and the subsequently
+   proven cap guard 20261015020100; existing migrations/helpers stay intact.
 6. Persistence/events: invalid operation writes zero receipts/balance changes;
    injected-write-failure rollback still passes; no financial event emitted.
 7. Business: new receipts denied after cancellation/refund, including an amount
@@ -143,6 +143,31 @@ REFUND_POLICY_OR_FINANCE_POSTING = NOT_AUTHORIZED
   proof. The missing post-sale settlement source is not repaired by this guard.
 
 ### Post-Sale Receipt Verification Checkpoint
+
+Final cross-entry review reproduced a further cap defect: after post-sale receipts
+fully settle the recognized amount, a new deposit still succeeds when the booking
+deposit limit is not full. The probe rolled back. Existing receipt retries are
+not new collections. Within the approved total-collection/reconciliation scope,
+add forward migration 20261015020100 (do not edit the applied receipt migration):
+a deposit INSERT/financial UPDATE guard locks the same booking and caps confirmed
+deposits plus post-sale receipts against the canonical recognized amount. Preserve
+existing deposit grants/RLS and pre-sale behavior; no refund/forfeiture semantics.
+Acceptance requires direct DB and actual API denial, unchanged receipt history,
+and a valid deposit below the combined cap.
+
+- Forward guard applied only to isolated E2E via the same transaction-wrapped
+  migration applier. Rollback proof passes both additional valid deposit/retry
+  and denial of deposit INSERT/amount UPDATE after full settlement. Neither
+  deposits nor recognition snapshots change after the rejected operations.
+- Seventeen focused suites / 159 tests, strict application compiler, ESLint,
+  Architecture Guard and zero-downtime checks PASS for the guard delta.
+- Fresh Playwright-owned Next.js server: both actual browser specs PASS (2/2,
+  3.6 minutes, zero skipped/flaky retries). Combined cap API denial returns 409
+  with no additional deposit credit. Receipt read-back, retry/concurrency,
+  full collection, completed dossier, dashboard revenue and deposit regressions
+  pass. Desktop/mobile screenshots inspected. A reused-preview run stopped at
+  login before any business operation and is NOT PASS; Auth/login assertions
+  were not bypassed or weakened in the successful fresh-server run.
 
 - Migration 20261015020000 passed the zero-downtime checker and was applied ONLY
   to isolated E2E via the existing explicit-file applier, wrapped in a transaction

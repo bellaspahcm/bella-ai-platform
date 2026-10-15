@@ -3,6 +3,7 @@ import { randomUUID } from 'node:crypto';
 import { Client } from 'pg';
 import { saleChainConnection } from '../src/modules/bella-auto/services/AutoMoveSaleChainConnection';
 import { AutoMoveSalePaymentService } from '../src/modules/bella-auto/services/AutoMoveSalePaymentService';
+import { confirmBookingDeposit } from '../src/modules/bella-auto/services/AutoMoveDepositConfirmationService';
 import type { MobilitySqlClient } from '../src/platform/mobility';
 
 const api = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
@@ -37,7 +38,7 @@ async function verify() {
   await db.query("insert into public.auto_variants(id,tenant_id,model_id,name,year) values($1,$2,$3,'Receipt proof',2026)", [variant, tenant, model]);
   await db.query("insert into public.auto_vehicles(id,tenant_id,variant_id,vin,color_exterior,model_year,status) values($1,$2,$3,$4,'White',2026,'delivered')", [vehicle, tenant, variant, randomUUID().slice(0,17)]);
   await db.query(`insert into public.auto_bookings(id,tenant_id,customer_id,vehicle_id,variant_id,color_exterior,booking_number,total_price,deposit_amount,deposit_paid,status)
-    values($1,$2,$3,$4,$5,'White',$6,9900000000,100000000,100000000,'completed')`, [booking, tenant, customer, vehicle, variant, randomUUID()]);
+    values($1,$2,$3,$4,$5,'White',$6,9900000000,200000000,100000000,'completed')`, [booking, tenant, customer, vehicle, variant, randomUUID()]);
   await db.query(`insert into public.auto_deposits(tenant_id,booking_id,amount,status,created_by,confirmed_by,confirmed_at)
     values($1,$2,100000000,'confirmed',$3,$3,now())`, [tenant, booking, actor]);
   await db.query(`insert into public.auto_vehicle_sale_recognitions
@@ -56,6 +57,13 @@ async function verify() {
   const first = await service.collect(booking, key, intent);
   assert.equal(first.state.outstanding, 1000000000); assert.equal(first.state.totalReceived, 400000000);
   const retry = await service.collect(booking, key, intent); assert.equal(retry.duplicate, true); assert.deepEqual(retry.receipt, first.receipt);
+  await db.query('savepoint valid_deposit_after_receipt');
+  const additionalDepositKey = randomUUID();
+  const additionalDeposit = await confirmBookingDeposit(db, actor, booking, additionalDepositKey, { amount: 1, payment_method: 'cash' });
+  assert.equal(additionalDeposit.data.new_deposit_paid, 100000001);
+  assert.equal((await confirmBookingDeposit(db, actor, booking, additionalDepositKey, { amount: 1, payment_method: 'cash' })).isDuplicate, true);
+  assert.equal((await service.state(booking)).outstanding, 999999999);
+  await db.query('rollback to savepoint valid_deposit_after_receipt'); await db.query('release savepoint valid_deposit_after_receipt');
   await denied(() => service.collect(booking, key, { ...intent, amount: 1 }), 'PAYMENT_KEY_CONFLICT');
   await denied(() => service.collect(booking, randomUUID(), intent), '23505');
   await denied(() => service.collect(booking, randomUUID(), { ...intent, transactionRef: 'over', amount: 1000000001 }), 'PAYMENT_EXCEEDS_OUTSTANDING');
@@ -121,6 +129,10 @@ async function verify() {
   assert.equal(final.state.outstanding, 0); assert.equal(final.state.receipts.length, 2);
   assert.equal(final.state.status, 'MATCHED'); assert.equal(final.state.canCollect, false);
   await denied(() => service.collect(booking, randomUUID(), { amount: 1, paymentMethod: 'cash', transactionRef: null, notes: null }), 'PAYMENT_COLLECTION_CLOSED');
+  await denied(() => confirmBookingDeposit(db, actor, booking, randomUUID(), { amount: 1, payment_method: 'cash' }), '23514');
+  await denied(() => db.query('update public.auto_deposits set amount=amount+1 where booking_id=$1', [booking]), '23514');
+  assert.equal((await service.state(booking)).outstanding, 0);
+  console.log('AUTOMOVE_COMBINED_DEPOSIT_POST_SALE_CAP=PASS_ROLLBACK');
   await db.query('reset role');
   await denied(() => db.query('update public.auto_vehicle_sale_payments set amount=1 where id=$1', [first.receipt.id]), 'P0001');
   assert.deepEqual((await db.query('select * from public.auto_vehicle_sale_recognitions where id=$1', [recognition])).rows[0], original);
