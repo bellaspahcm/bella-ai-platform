@@ -9,7 +9,7 @@ function fixture() {
   const booking: Row = { id: bookingId, tenant_id: tenant, customer_id: 'customer', vehicle_id: 'vehicle', deposit_paid: '100000000', status: 'completed', payment_status: 'fully_paid' };
   const recognition: Row = { id: recognitionId, customer_id: 'customer', vehicle_id: 'vehicle', sale_price_recognized: '1400000000',
     payment_received_total: '100000000', deposit_received_total: '100000000', receivable_amount_at_recognition: '1300000000' };
-  const payments: Row[] = [], adjustments: Row[] = [];
+  const payments: Row[] = [], adjustments: Row[] = [], refunds: Row[] = [];
   let active = true, recognized = true;
   const query = jest.fn();
   query.mockImplementation(async (sql: string, values?: readonly unknown[]) => {
@@ -18,6 +18,7 @@ function fixture() {
     if (sql.includes('from public.auto_vehicle_sale_recognitions')) return { rows: recognized ? [recognition] : [] };
     if (sql.includes('from public.auto_deposits')) return { rows: sql.includes('transaction_ref=$4') ? [] : [{ id: 'deposit', amount: '100000000', status: 'confirmed' }] };
     if (sql.includes('from public.auto_vehicle_sale_recognition_adjustments')) return { rows: adjustments };
+    if (sql.includes('from public.auto_vehicle_sale_settlement_actions')) return { rows: refunds };
     if (sql.includes('insert into public.auto_vehicle_sale_payments') && values) {
       const row = { id: key, tenant_id: values[0], booking_id: values[1], recognition_id: values[2], idempotency_key: values[3], amount: values[4],
         payment_method: values[5], transaction_ref: values[6], notes: values[7], received_by: values[8], received_at: new Date('2026-10-15T00:00:00Z') };
@@ -26,7 +27,7 @@ function fixture() {
     if (sql.includes('from public.auto_vehicle_sale_payments')) return { rows: sql.includes('idempotency_key=$2') ? payments.filter(row => row.idempotency_key === values?.[1]) : payments };
     throw new Error(`Unhandled query: ${sql}`);
   });
-  return { service: new AutoMoveSalePaymentService({ query }, actor), query, booking, recognition, payments, adjustments,
+  return { service: new AutoMoveSalePaymentService({ query }, actor), query, booking, recognition, payments, adjustments, refunds,
     disable: () => { active = false; }, unrecognize: () => { recognized = false; } };
 }
 it('persists a separate receipt and reconciles approved sale less deposits, without updating either source', async () => {
@@ -74,4 +75,13 @@ it('blocks overpayment and unresolved refund effects without inventing a refund 
   await expect(f.service.collect(bookingId, key, { ...intent, amount: 1300000001 })).rejects.toMatchObject({ code: 'PAYMENT_EXCEEDS_OUTSTANDING' });
   f.adjustments.push({ adjustment_type: 'refund_recorded', sale_price_delta: '0', receivable_delta: '0', refund_amount: '1' });
   expect(await f.service.state(bookingId)).toMatchObject({ status: 'MISMATCH', issues: ['REFUND_OR_ADJUSTMENT_REQUIRES_RESOLUTION'] });
+});
+it('reconciles confirmed cash refunds separately without changing recognized sale revenue', async () => {
+  const f = fixture(); await f.service.collect(bookingId, key, intent);
+  f.refunds.push({ source_deposit_id: 'deposit', source_payment_id: null, amount: '20000000' });
+  expect(await f.service.state(bookingId)).toMatchObject({ status: 'MATCHED', saleAmount: 1400000000,
+    refundedTotal: 20000000, totalReceived: 380000000, outstanding: 1020000000 });
+  expect(await f.service.collect(bookingId, key, intent)).toMatchObject({ duplicate: true });
+  f.refunds.push({ source_deposit_id: 'missing', source_payment_id: null, amount: '1' });
+  expect(await f.service.state(bookingId)).toMatchObject({ status: 'MISMATCH', issues: ['REFUND_RECEIPT_MISMATCH'], canCollect: false });
 });

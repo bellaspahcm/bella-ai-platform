@@ -162,6 +162,7 @@ test('AutoMove actual dashboard: login to booking, deposit and explicit recognit
     const sale = page.getByRole('dialog');
     const sources = Buffer.from('%PDF-1.4\nOwner-approved AutoMove browser financial fixture\n%%EOF\n');
     stage = 'approved snapshot';
+    await expect(sale.getByLabel('Giá bán (VND)', { exact: true })).toBeVisible({ timeout:60_000 });
     await sale.getByLabel('Giá bán (VND)', { exact: true }).fill('1500000000');
     await sale.getByLabel('Chiết khấu (VND)', { exact: true }).fill('100000000');
     await sale.getByLabel('Giá vốn (VND)', { exact: true }).fill('1000000000');
@@ -173,7 +174,7 @@ test('AutoMove actual dashboard: login to booking, deposit and explicit recognit
     await sale.getByRole('button', { name: 'Lưu hồ sơ nháp', exact: true }).click();
     expect((await snapshotSaved).status()).toBe(200);
     await expect(sale.getByRole('status')).toHaveText('Đã lưu hồ sơ nháp.');
-    await sale.getByRole('checkbox').check();
+    await sale.getByRole('checkbox', { name: 'Tôi đã kiểm tra chứng từ và xác nhận các giá trị tài chính.' }).check();
     const approved = page.waitForResponse(response => response.url().endsWith('/sales-chain/approve') && response.request().method() === 'POST', { timeout: 60_000 });
     await sale.getByRole('button', { name: 'Duyệt snapshot', exact: true }).click();
     expect((await approved).status()).toBe(200);
@@ -213,17 +214,20 @@ test('AutoMove actual dashboard: login to booking, deposit and explicit recognit
     await payments.getByLabel('Mã giao dịch', { exact: true }).fill(`sale-bank-${suffix}`);
     const paymentUrl = `/api/bella-auto/bookings/${bookingId}/sale-payments`;
     let loseResponse = true;
+    let forwardedPaymentStatus = 0;
     await page.route(`**${paymentUrl}`, async route => {
       if (route.request().method() === 'POST' && loseResponse) {
         loseResponse = false;
-        expect((await route.fetch()).status()).toBe(200);
-        await route.abort('failed');
+        try { forwardedPaymentStatus = (await route.fetch({timeout:60_000})).status(); }
+        catch { forwardedPaymentStatus = -1; }
+        finally { await route.abort('failed').catch(() => undefined); }
       } else await route.continue();
     });
     const firstRequest = page.waitForRequest(request => request.url().endsWith(paymentUrl) && request.method() === 'POST');
     await payments.getByRole('button', { name: 'Xác nhận thu tiền sau bán', exact: true }).click();
     const paymentRequest = await firstRequest;
-    await expect(payments.getByRole('alert')).toBeVisible();
+    await expect(payments.getByRole('alert')).toBeVisible({timeout:60_000});
+    expect(forwardedPaymentStatus).toBe(200);
     await expect(payments.getByRole('status')).toHaveCount(0);
     expect((await db.query('select amount from public.auto_vehicle_sale_payments where booking_id=$1', [bookingId])).rows).toEqual([{ amount: '300000000' }]);
     const retryPayment = page.waitForResponse(response => response.url().endsWith(paymentUrl) && response.request().method() === 'POST');
@@ -403,6 +407,7 @@ test('AutoMove actual dashboard: login to booking, deposit and explicit recognit
     const cleanup = async (operation: () => Promise<unknown>) => {
       try { await operation(); } catch (error: unknown) { errors.push(error); }
     };
+    await cleanup(() => page.unrouteAll({behavior:'wait'}));
     await cleanup(() => page.close());
     if (transaction) await cleanup(() => db.query('rollback'));
     if (seeded) {

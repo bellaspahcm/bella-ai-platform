@@ -159,6 +159,19 @@ const SCOPED_REAL_DB_SUITES = [
     ],
   },
   {
+    name: 'AutoMove refund and cancellation',
+    patterns: [
+      /^supabase\/migrations\/20261015060000_record_automove_refunds_and_cancellations\.sql$/,
+      /^src\/modules\/bella-auto\/services\/AutoMoveSettlement.*\.ts$/,
+      /^src\/modules\/bella-auto\/services\/AutoMoveSalePayment.*\.ts$/,
+      /^src\/modules\/bella-auto\/services\/AutoMoveSaleChainService\.ts$/,
+      /^src\/components\/bella-auto\/VehicleSaleSettlement\.tsx$/,
+      /^scripts\/verify-automove-settlement\.ts$/,
+      /^e2e\/tests\/45-automove-refund-cancellation\.spec\.ts$/,
+    ],
+    commands: [{ command: 'npx', args: ['tsx', 'scripts/verify-automove-settlement.ts'] }],
+  },
+  {
     name: 'AutoMove policy registry user identity',
     patterns: [
       /^supabase\/migrations\/20261014020000_create_policy_registry_user_identity_forward\.sql$/,

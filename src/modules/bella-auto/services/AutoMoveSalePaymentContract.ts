@@ -17,6 +17,7 @@ export const salePaymentStateSchema = z.object({
   bookingId: z.string().uuid(), recognitionId: z.string().uuid().nullable(),
   status: z.enum(['NOT_RECOGNIZED', 'MATCHED', 'MISMATCH']), issues: z.array(z.string()),
   saleAmount: money, depositReceived: money, postSaleReceived: money, totalReceived: money,
+  refundedTotal: money,
   outstanding: z.number().int().safe(), canCollect: z.boolean(),
   receipts: z.array(salePaymentReceiptSchema),
 });

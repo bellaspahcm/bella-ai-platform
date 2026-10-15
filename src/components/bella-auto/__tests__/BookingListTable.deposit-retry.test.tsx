@@ -61,3 +61,11 @@ it('keeps completed records accessible in settlement mode without exposing anoth
   await screen.findByRole('button', { name: /Hồ sơ bán xe/ });
   expect(screen.queryByRole('button', { name: /Xác Nhận Cọc/ })).not.toBeInTheDocument();
 });
+it('keeps cancelled records accessible for refund history without a deposit action', async () => {
+  render(<BookingListTable tenantId="tenant-1" />);
+  await screen.findByRole('button', { name: /Xác Nhận Cọc/ });
+  fireEvent.click(screen.getByRole('button', { name: 'Lịch sử hủy' }));
+  await waitFor(() => expect(mockQuery.eq).toHaveBeenCalledWith('status', 'cancelled'));
+  await screen.findByRole('button', { name: /Hồ sơ bán xe/ });
+  expect(screen.queryByRole('button', { name: /Xác Nhận Cọc/ })).not.toBeInTheDocument();
+});

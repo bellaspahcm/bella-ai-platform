@@ -81,6 +81,8 @@ export function VehicleSalePayments({ bookingId }: { bookingId: string }) {
         <dt>Giá trị bán đã ghi nhận</dt><dd data-testid="settlement-sale">{money(state.saleAmount)}</dd>
         <dt>Cọc đã xác nhận</dt><dd>{money(state.depositReceived)}</dd>
         <dt>Đã thu sau bán</dt><dd data-testid="settlement-paid">{money(state.postSaleReceived)}</dd>
+        <dt>Đã hoàn</dt><dd>{money(state.refundedTotal)}</dd>
+        <dt>Thực thu sau hoàn</dt><dd>{money(state.totalReceived)}</dd>
         <dt>Còn phải thu</dt><dd data-testid="settlement-outstanding">{money(state.outstanding)}</dd>
         <dt>Đối soát receipt nội bộ</dt><dd data-testid="settlement-reconciliation">{state.status === 'MATCHED' ? 'Khớp' : 'Sai lệch'}</dd>
       </dl>

@@ -1,5 +1,60 @@
 # AutoMove Business-Chain Verification
 
+## Settlement Batch Authority - 2026-10-15
+
+Process gate: PASS for the owner-authorized Non-Production refund/cancellation
+batch, based on main ef059443dbe328a1a8eef4e9faab31c80d6272df (#338 sealed).
+Single-agent execution; no reopening of sealed identity/HQ or management work.
+
+Manifest: manually confirmed cash refunds, independent cancellation, immutable
+receipt-linked history, stable retry and post-refund internal reconciliation.
+Only active accountants in an active matching tenant may execute these commands;
+Supabase Auth -> current public.users/tenants is authoritative, not client roles.
+Refunds cannot exceed the unrefunded amount of their original confirmed receipt.
+Cancellation before handover releases only this booking's allocation through the
+existing Mobility transition contract. After handover, documented cancellation
+does not return the vehicle, refund money or reverse revenue automatically.
+
+The owner explicitly HELD adjustment/reversal after discovery that the existing
+accounting-period public read cannot lock the period in the command transaction.
+No Accounting/Finance change, period creation, adjustment writer, fee, forfeiture,
+Warranty, commission, ProductRegistry, kernel or Production access is authorized.
+
+Ownership: AutoMove owns refund/cancellation facts, bookings and receipt
+reconciliation; Mobility owns vehicle allocation/status; Platform owns identity
+and Storage access; Finance owns journal postings and accounting-period controls.
+Dependencies: authenticated UI -> AutoMove settlement command -> existing
+Mobility public contract. Existing recognition and receipts remain immutable.
+
+Migration plan: one forward migration creates only the minimum AutoMove
+settlement-action table, indexes, validation/append-only triggers and least-
+privilege RLS. Refunds before recognition cannot use the adjustment table because
+its recognition_id is mandatory. The new table records cash/cancellation facts,
+not a parallel revenue ledger. It also forward-aligns existing collection guards
+with net cash after recorded refunds; historical migrations are not rewritten.
+
+UI reconciliation: separate refund/cancel requests, verified tenant Storage
+document and explicit confirmation; read persisted history/balances, preserve
+pending intent/key after lost acknowledgement, and show failures as failures.
+
+Business test contract: per-receipt refund cap, receipt/recognition immutability,
+no automatic revenue reversal or physical vehicle return, safe sequential and
+concurrent retries, and current accountant/tenant authority come from the user's
+three explicit decisions and subsequent adjustment/reversal HOLD in this chat.
+
+Eleven verification gates: (1) architecture/frozen boundaries; (2) public Mobility
+contract; (3) real authenticated HTTP; (4) active accountant authority; (5) tenant,
+inactive and suspended denial; (6) safe forward migration; (7) atomic persistence
+and rollback; (8) unchanged original financial history; (9) idempotency/concurrency;
+(10) Non-Production Real DB and actual Next.js Browser E2E/read-back; (11) focused
+regression, strict typecheck, lint, required CI and honest readiness classification.
+No Production deployment or merge is authorized for this batch. Commit/push/PR
+are allowed after verification. Full readiness and Go-Live remain NOT_READY /
+NOT_PROVEN; local/PR/main evidence must remain separate.
+
+Current settlement result: see "Settlement Batch Executed Results" below. The
+older management checkpoint remains historical evidence for sealed PR #338.
+
 Baseline: main `2652d3b645b89715e4ca970d76b057a94775f7d2` (PR #337).
 Single agent. Identity/HQ is sealed and is not reopened.
 
@@ -321,5 +376,83 @@ Vehicle status controls/import and legacy analytics are not certified by intake
 proof. Refund/cancellation/adjustment and release/recovery evidence remain outside
 this management scope and unproven; no cancellation fee or forfeiture inferred.
 
+`AUTOMOVE_FULL_PRODUCT_READINESS = NOT_READY`
+`GO_LIVE = NOT_PROVEN`
+
+## Settlement Batch Executed Results
+
+Implemented one scoped refund/cancellation batch on
+`codex/automove-settlement-workflow`, based on sealed main `ef059443d` (#338).
+Adjustment/reversal remains HELD by the owner's explicit decision; no accounting
+period guard, recognition adjustment writer or Finance posting was introduced.
+
+The additive migration `20261015060000` creates one append-only, receipt-linked
+settlement-action table with active-accountant tenant RLS and server-owned
+writes. It preserves existing receipt guards while accounting for recorded cash
+refunds in the collection cap. Applied and recorded durably only on the approved
+E2E project through the existing migration applier; no history rewrite or
+Production DB access. No original receipt, snapshot or recognition is rewritten.
+
+The API verifies real Auth, current active accountant/tenant authority, tenant
+Storage content/checksum, original receipt and remaining refundable balance.
+The booking lock and transaction cover the persisted fact, Mobility allocation
+release, booking cancellation and reconciliation read-back. An aborted write
+retains its original retry SQLSTATE; no role-reset query masks it. Network loss
+fails closed, with bounded DB queries and no implicit command replay. A valid
+retry retains its original key and returns the persisted action; changed intent
+under that key is rejected. Current actor/tenant authority is still checked.
+
+Cancellation before handover releases only the matching allocation through the
+existing Mobility contract. Documented cancellation after handover leaves the
+vehicle delivered and does not auto-refund or reverse revenue. The UI exposes
+separate confirmed requests, retained retry intent and cancelled-booking history.
+Cash reconciliation uses gross receipts minus recorded refunds, not revenue
+reversal. Recognition after a pre-sale cash refund uses the verified net deposit
+without changing the approved sale-price/cost snapshot.
+
+| Check | Actual executed evidence |
+| --- | --- |
+| Settlement Real DB/RLS | 53 assertions PASS; allowed and denied actor/tenant operations, receipt caps, immutable originals, rollback injection, zero rollback fixture rows |
+| Existing handover/recognition verifier | PASS with real Auth/Storage; 100M receipt less 20M refund recognizes 80M cash and 1,320M receivable against unchanged 1,400M revenue; savepoint rolled back |
+| Existing post-sale payment verifier | PASS against the durable schema, including collection/retry/reconciliation regression |
+| Actual Next.js + Chromium | 2/2 PASS, no automatic retry/skip: manual refund/lost acknowledgement/concurrent same and independent keys, wrong actor/tenant/document, delivered cancellation, reload/read-back; pre-recognition refund/cancellation releases allocation without revenue |
+| Mobile follow-up | Recognized-sale browser test rerun PASS after a width-only fix; asserts dialog/control bounds at 390px and captures desktop/mobile screenshots |
+| Focused regression | 9 suites / 71 tests PASS, including original SQLSTATE preservation, idle disconnect and malformed-success handling |
+| Strict typecheck | 23 changed TypeScript root files plus dependencies, strict/noEmit, zero diagnostics |
+| Other gates | Focused ESLint, Architecture Guard, one-migration zero-downtime analysis, API-doc coverage and whitespace checks PASS |
+| Scoped CI selection | The new browser spec selects the settlement Real DB verifier; existing required selectors remain intact |
+
+Browser fixture creation of customers/catalog/bookings/receipts/recognition is
+privileged test setup, NOT evidence of those UI creation paths. The proven
+browser operations use the real login, dashboard, API, Storage and database.
+Evidence is local Non-Production, not Browser CI on main, release readiness or
+a main seal. Screenshots/logs are local `.cache/automove-settlement/` artifacts,
+not committed credentials or fixtures.
+
+Earlier cold-compile, intercepted-response timeout, Auth/DNS/network failures
+are not counted as PASS. The actual concurrency failure exposed a masked
+SQLSTATE and was fixed with focused regression and subsequent runtime proof.
+No Auth/RLS/TLS or financial assertion was weakened. Generic linked-project
+migration check was not executable in this unlinked worktree; it is not reported
+as PASS. Existing E2E apply/history verification and migration safety are the
+executed local evidence; remote CI still has to verify this exact PR SHA.
+
+Cleanup is PARTIAL: successful browser runs verify zero temporary Auth users,
+zero active fixture actors, zero Storage objects and terminated own tenant
+shells. Failed-network fixtures were recovered and their temporary identities
+removed. Immutable financial/audit records and archived fixture shells remain
+intentionally; no FK, append-only rule or trigger was disabled. The rollback
+verifier leaves zero fixture rows. Unrelated generated `AGENTS.md` and cache
+artifacts are excluded from the commit.
+
+Single-agent final security/contract diff review found no remaining blocker in
+this approved scope. Commit/push/open PR are authorized; merge, Production DB
+mutation, deployment and configuration changes are not. Required remote checks
+must PASS independently before any later merge decision.
+
+`REFUND_CANCELLATION_RECONCILIATION = IMPLEMENTED_LOCAL_VERIFIED`
+`ADJUSTMENT_REVERSAL = HELD`
+`MAIN_SEAL = NOT_PERFORMED`
+`PRODUCTION_MUTATION = NOT_PERFORMED`
 `AUTOMOVE_FULL_PRODUCT_READINESS = NOT_READY`
 `GO_LIVE = NOT_PROVEN`

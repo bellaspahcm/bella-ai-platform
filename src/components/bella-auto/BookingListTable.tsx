@@ -10,7 +10,7 @@ import { Search, User, Car, CheckCircle, FileCheck } from 'lucide-react';
 import { VehicleSaleChainDialog } from './VehicleSaleChainDialog';
 import { toast } from 'sonner';
 
-type FilterType = 'all' | 'unpaid' | 'partial' | 'full' | 'settlement';
+type FilterType = 'all' | 'unpaid' | 'partial' | 'full' | 'settlement' | 'cancelled';
 
 interface Booking {
   id: string;
@@ -61,7 +61,7 @@ export function BookingListTable({ tenantId }: { tenantId: string }) {
         .order('created_at', { ascending: false });
 
       // Completed sales remain accessible for collection without reopening deposits.
-      query = filter === 'settlement'
+      query = filter === 'cancelled' ? query.eq('status', 'cancelled') : filter === 'settlement'
         ? query.not('status', 'eq', 'cancelled')
         : query.not('status', 'in', '("cancelled","completed")');
 
@@ -232,6 +232,7 @@ export function BookingListTable({ tenantId }: { tenantId: string }) {
             color="green"
           />
           <FilterTab label="Thanh toán sau bán" count={0} active={filter === 'settlement'} onClick={() => setFilter('settlement')} />
+          <FilterTab label="Lịch sử hủy" count={0} active={filter === 'cancelled'} onClick={() => setFilter('cancelled')} />
         </div>
 
         {/* Search */}
@@ -341,7 +342,7 @@ export function BookingListTable({ tenantId }: { tenantId: string }) {
                     <DepositStatusBadge booking={booking} />
                   </td>
                   <td className="p-3 text-center">
-                    {filter !== 'settlement' && <button
+                    {filter !== 'settlement' && filter !== 'cancelled' && <button
                       onClick={() => handleConfirmDeposit(booking)}
                       disabled={
                         confirmingId === booking.id ||
