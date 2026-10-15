@@ -219,6 +219,7 @@ const SCOPED_REAL_DB_SUITES = [
     name: 'AutoMove post-sale receipts',
     patterns: [
       /^supabase\/migrations\/20261015020000_create_automove_post_sale_receipts\.sql$/,
+      /^supabase\/migrations\/20261015020100_guard_automove_combined_collection_cap\.sql$/,
       /^src\/modules\/bella-auto\/services\/AutoMoveSalePayment(Contract|Service|Http)\.ts$/,
       /^src\/app\/api\/bella-auto\/bookings\/\[id\]\/sale-payments\/route\.ts$/,
       /^src\/components\/bella-auto\/VehicleSalePayments\.tsx$/,

@@ -32,6 +32,9 @@ export async function depositConfirmationHttp(request: Request, actorUserId: str
       return Response.json({ error: error.message, code: error.code }, { status: error.httpStatus });
     }
     if (error && typeof error === 'object' && 'code' in error) {
+      if (error.code === '23514' && 'constraint' in error && error.constraint === 'automove_combined_collection_cap') {
+        return Response.json({ error: 'Combined receipts exceed the recognized sale balance.', code: 'DEPOSIT_EXCEEDS_SALE_BALANCE' }, { status: 409 });
+      }
       if (error.code === '23505') return Response.json({ error: 'Deposit key conflicts with an existing confirmation.', code: 'DEPOSIT_IDEMPOTENCY_CONFLICT' }, { status: 409 });
       if (['40001', '40P01', '55P03'].includes(String(error.code))) return Response.json({ error: 'Retry the deposit with the same key.', code: 'DEPOSIT_RETRY_REQUIRED' }, { status: 409 });
     }
