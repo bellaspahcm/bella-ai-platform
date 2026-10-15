@@ -32,10 +32,9 @@ export async function GET(request: NextRequest) {
     // Get models for brand
     const { data: models, error } = await supabase
       .from('auto_models')
-      .select('id, name, year')
+      .select('id, name')
       .eq('tenant_id', profile.tenant_id)
       .eq('brand_id', brandId)
-      .order('year', { ascending: false })
       .order('name');
 
     if (error) {

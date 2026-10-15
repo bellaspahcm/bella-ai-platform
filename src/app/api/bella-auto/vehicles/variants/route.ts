@@ -29,13 +29,14 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Model ID required' }, { status: 400 });
     }
 
-    // Get variants for model with pricing
+    // Year is variant metadata; agreed booking prices are not catalog data.
     const { data: variants, error } = await supabase
       .from('auto_variants')
-      .select('id, name, description, base_price, features')
+      .select('id, name, year')
       .eq('tenant_id', profile.tenant_id)
       .eq('model_id', modelId)
-      .order('base_price', { ascending: false });
+      .order('year', { ascending: false })
+      .order('name');
 
     if (error) {
       console.error('Variants fetch error:', error);

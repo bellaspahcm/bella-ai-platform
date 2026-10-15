@@ -22,6 +22,45 @@ const REAL_DB_TEST_BY_PATH = [
 
 const SCOPED_REAL_DB_SUITES = [
   {
+    name: 'AutoMove catalog tenant reads',
+    patterns: [
+      /^supabase\/migrations\/20261015010000_authorize_automove_catalog_tenant_reads\.sql$/,
+      /^scripts\/verify-automove-catalog-reads\.ts$/,
+      /^src\/__tests__\/automove-catalog-read-migration\.test\.ts$/,
+      /^src\/app\/api\/bella-auto\/vehicles\/(brands|models|variants)\/route\.ts$/,
+      /^src\/components\/bella-auto\/CreateBookingModal\.tsx$/,
+      /^e2e\/tests\/42-automove-dashboard-sales-chain\.spec\.ts$/,
+    ],
+    commands: [{ command: 'npx', args: ['tsx', 'scripts/verify-automove-catalog-reads.ts'],
+      env: { ALLOW_E2E_CATALOG_VERIFICATION: '1' } }],
+  },
+  {
+    name: 'AutoMove booking Mobility allocation',
+    patterns: [
+      /^scripts\/verify-automove-booking-allocation\.ts$/,
+      /^src\/modules\/bella-auto\/services\/AutoMoveBookingAllocation(Service|Http)\.ts$/,
+      /^src\/modules\/bella-auto\/services\/__tests__\/AutoMoveBookingAllocation(Service|Http)\.test\.ts$/,
+      /^src\/app\/api\/bella-auto\/bookings\/route\.ts$/,
+      /^src\/components\/bella-auto\/CreateBookingModal\.tsx$/,
+      /^e2e\/tests\/42-automove-dashboard-sales-chain\.spec\.ts$/,
+    ],
+    commands: [{ command: 'npx', args: ['tsx', 'scripts/verify-automove-booking-allocation.ts'],
+      env: { ALLOW_E2E_BOOKING_ALLOCATION_VERIFICATION: '1' } }],
+  },
+  {
+    name: 'AutoMove deposit transaction and idempotency',
+    patterns: [
+      /^scripts\/verify-automove-deposit-idempotency\.ts$/,
+      /^src\/modules\/bella-auto\/services\/AutoMoveDepositConfirmation(Service|Http)\.ts$/,
+      /^src\/modules\/bella-auto\/services\/__tests__\/AutoMoveDepositConfirmation(Service|Http)\.test\.ts$/,
+      /^src\/app\/api\/bella-auto\/bookings\/\[id\]\/confirm-deposit\//,
+      /^src\/components\/bella-auto\/BookingListTable\.tsx$/,
+      /^e2e\/tests\/(42-automove-dashboard-sales-chain|43-automove-deposit-confirmation-api)\.spec\.ts$/,
+    ],
+    commands: [{ command: 'npx', args: ['tsx', 'scripts/verify-automove-deposit-idempotency.ts'],
+      env: { ALLOW_E2E_DEPOSIT_VERIFICATION: '1' } }],
+  },
+  {
     name: 'AutoMove approved snapshot and handover recognition',
     patterns: [
       /^supabase\/migrations\/20261014030000_create_automove_approved_financial_snapshots\.sql$/,
@@ -352,7 +391,8 @@ if (scopedWork.tests.length > 0) {
 }
 
 for (const command of scopedWork.commands) {
-  const result = run(command.command, command.args, { stdio: 'inherit' });
+  const result = run(command.command, command.args, { stdio: 'inherit',
+    ...(command.env ? { env: { ...process.env, ...command.env } } : {}) });
   if ((result.status ?? 1) !== 0) {
     process.exit(result.status ?? 1);
   }
