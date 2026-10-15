@@ -153,17 +153,21 @@ a deposit INSERT/financial UPDATE guard locks the same booking and caps confirme
 deposits plus post-sale receipts against the canonical recognized amount. Preserve
 existing deposit grants/RLS and pre-sale behavior; no refund/forfeiture semantics.
 Acceptance requires direct DB and actual API denial, unchanged receipt history,
-and a valid deposit below the combined cap. PR remains draft until verified.
+and a valid deposit below the combined cap.
 
 - Forward guard applied only to isolated E2E via the same transaction-wrapped
   migration applier. Rollback proof passes both additional valid deposit/retry
   and denial of deposit INSERT/amount UPDATE after full settlement. Neither
   deposits nor recognition snapshots change after the rejected operations.
-- Eight focused suites / 86 tests, strict application compiler, ESLint,
+- Seventeen focused suites / 159 tests, strict application compiler, ESLint,
   Architecture Guard and zero-downtime checks PASS for the guard delta.
-  Latest browser rerun is pending; a reused-preview run stopped at login before
-  any business operation and is NOT PASS. Fresh Playwright-owned server is used
-  without bypassing Auth or changing the login assertion.
+- Fresh Playwright-owned Next.js server: both actual browser specs PASS (2/2,
+  3.6 minutes, zero skipped/flaky retries). Combined cap API denial returns 409
+  with no additional deposit credit. Receipt read-back, retry/concurrency,
+  full collection, completed dossier, dashboard revenue and deposit regressions
+  pass. Desktop/mobile screenshots inspected. A reused-preview run stopped at
+  login before any business operation and is NOT PASS; Auth/login assertions
+  were not bypassed or weakened in the successful fresh-server run.
 
 - Migration 20261015020000 passed the zero-downtime checker and was applied ONLY
   to isolated E2E via the existing explicit-file applier, wrapped in a transaction
