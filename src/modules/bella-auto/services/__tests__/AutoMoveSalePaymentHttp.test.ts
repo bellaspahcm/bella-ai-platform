@@ -60,3 +60,13 @@ it('preserves business rejection and performs GET through reconciliation', async
   expect((await salePaymentHttp(new Request('http://localhost/sale-payments'), booking)).status).toBe(200);
   expect(state).toHaveBeenCalledWith(booking);
 });
+it.each(['GET','POST'])('returns forbidden without a business result on %s RLS denial',async method=>{
+  const error=Object.assign(new Error('Private RLS detail'),{code:'42501'});
+  if(method==='GET')state.mockRejectedValueOnce(error);else collect.mockRejectedValueOnce(error);
+  const response=await salePaymentHttp(method==='GET'?new Request('http://localhost/sale-payments'):request(),booking);
+  expect(response.status).toBe(403);
+  expect(await response.json()).toEqual({error:'Access to this payment is denied.',code:'PAYMENT_ACCESS_DENIED'});
+  expect(mockDb.query).toHaveBeenCalledWith('rollback');
+  expect(mockDb.query).not.toHaveBeenCalledWith('commit');
+  expect(mockDb.end).toHaveBeenCalled();
+});

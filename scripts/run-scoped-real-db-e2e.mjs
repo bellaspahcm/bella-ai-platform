@@ -257,6 +257,20 @@ const SCOPED_REAL_DB_SUITES = [
     commands: [{ command: 'npx', args: ['tsx', 'scripts/verify-automove-post-sale-payments.ts'] }],
   },
   {
+    name: 'AutoMove management persistence',
+    patterns: [
+      /^supabase\/migrations\/(20261015050000_authorize_automove_customer_profile_management|20261015050100_limit_automove_profile_preference_columns)\.sql$/,
+      /^src\/modules\/bella-auto\/services\/(AutoMoveManagementHttp|AutoCustomerProvider)\.ts$/,
+      /^src\/modules\/bella-auto\/services\/__tests__\/AutoMoveManagementHttp\.test\.ts$/,
+      /^src\/app\/api\/bella-auto\/customers\/(route\.ts|\[id\]\/profile\/route\.ts)$/,
+      /^src\/app\/api\/bella-auto\/vehicles\/route\.ts$/,
+      /^src\/app\/dashboard\/bella-auto\/(customers|vehicles)\/page\.tsx$/,
+      /^scripts\/verify-automove-management-persistence\.ts$/,
+      /^e2e\/tests\/44-automove-management-persistence\.spec\.ts$/,
+    ],
+    commands: [{ command: 'npx', args: ['tsx', 'scripts/verify-automove-management-persistence.ts'] }],
+  },
+  {
     name: 'Agriculture OS foundation',
     patterns: [
       /^src\/platform\/agriculture\//,

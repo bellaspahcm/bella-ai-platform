@@ -41,6 +41,13 @@ export interface OwnedVehicle {
 }
 
 export const AutoCustomerProvider = {
+  async listCustomers(supabase: SupabaseClient<Database>, tenantId: string, search = '', page = 1) {
+    let query = supabase.from('customers').select('id,name_mother,phone,address', { count: 'exact' }).eq('tenant_id', tenantId);
+    if (search) query = query.ilike(/^\+?[\d\s-]+$/.test(search) ? 'phone' : 'name_mother', `%${search}%`);
+    const { data, count, error } = await query.order('created_at', { ascending: false }).order('id').range((page - 1) * 50, page * 50 - 1);
+    if (error) throw error;
+    return { customers: data ?? [], count: count ?? 0, page, pageSize: 50 };
+  },
   /**
    * Lấy hồ sơ 360 độ mở rộng của Khách hàng, bao gồm sở thích và danh sách xe sở hữu.
    */
@@ -98,7 +105,7 @@ export const AutoCustomerProvider = {
         preferred_segments: profile.preferredSegments,
         budget_range:       profile.budgetRange,
         purchasing_purpose: profile.purchasingPurpose,
-        metadata:           profile.metadata ?? {},
+        ...(profile.metadata === undefined ? {} : { metadata: profile.metadata ?? {} }),
         updated_at:         new Date().toISOString(),
       }, {
         onConflict: 'tenant_id,customer_id'

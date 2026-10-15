@@ -93,3 +93,26 @@ it('accepts only the two IDs and loads the snapshot from the server',async()=>{
   expect(response.status).toBe(404);
   expect(query).toHaveBeenCalledWith(expect.stringContaining('from public.auto_vehicle_sale_financial_snapshots'),[snapshotId,tenantId]);
 });
+it.each(['state','recognize'] as const)('reports canonical RLS denial as forbidden for %s, not a server failure',async action=>{
+  query.mockImplementation(async(sql:string)=>{
+    if(sql.startsWith('select id, tenant_id, role, status'))throw Object.assign(new Error('Private RLS detail'),{code:'42501'});
+    return {rows:[]};
+  });
+  const input=action==='state'?new Request(`http://localhost/sales-chain/state?bookingId=${bookingId}`):request({snapshotId,handoverEvidenceId});
+  const response=await saleChainHttp(input,action);
+  expect(response.status).toBe(403);
+  expect(await response.json()).toEqual({error:'Access to this sale is denied.',code:'SALE_ACCESS_DENIED'});
+  expect(query).toHaveBeenCalledWith('rollback');
+  expect(query).not.toHaveBeenCalledWith('commit');
+  expect(db.end).toHaveBeenCalled();
+});
+it('does not misclassify a non-permission database failure as forbidden',async()=>{
+  query.mockImplementation(async(sql:string)=>{
+    if(sql.startsWith('select id, tenant_id, role, status'))throw Object.assign(new Error('Private DB detail'),{code:'08006'});
+    return {rows:[]};
+  });
+  const response=await saleChainHttp(request({snapshotId,handoverEvidenceId}),'recognize');
+  expect(response.status).toBe(500);
+  expect(await response.text()).not.toContain('Private DB detail');
+  expect(query).toHaveBeenCalledWith('rollback');
+});

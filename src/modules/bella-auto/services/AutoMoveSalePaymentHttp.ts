@@ -39,6 +39,7 @@ export async function salePaymentHttp(request: Request, bookingId: string): Prom
     }
     if (error instanceof SyntaxError) return Response.json({ error: 'Invalid JSON' }, { status: 400 });
     if (error && typeof error === 'object' && 'code' in error) {
+      if (error.code === '42501') return Response.json({ error: 'Access to this payment is denied.', code: 'PAYMENT_ACCESS_DENIED' }, { status: 403 });
       if (error.code === '23505') return Response.json({ error: 'Receipt key or transaction reference already exists.', code: 'PAYMENT_REFERENCE_CONFLICT' }, { status: 409 });
       if (['40001', '40P01', '55P03'].includes(String(error.code))) return Response.json({ error: 'Retry the same payment intent.', code: 'PAYMENT_RETRY_REQUIRED' }, { status: 409 });
     }

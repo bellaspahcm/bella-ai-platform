@@ -6,7 +6,7 @@ import { FinancialReportingService } from '../FinancialReportingService';
 jest.mock('@/lib/database/read-replica', () => ({ getPrimaryClient: jest.fn() }));
 
 type Row = Record<string, unknown>;
-function clientFixture(overrides: Record<string, readonly Row[]> = {}, errorTable?: string, authenticated = true) {
+function clientFixture(overrides: Record<string, readonly Row[]> = {}, errorTable?: string, authenticated = true, errorCode?: string) {
   const tables: Record<string, readonly Row[]> = {
     users: [{ id: 'actor-a', tenant_id: 'tenant-a', status: 'active' }],
     tenants: [{ id: 'tenant-a', status: 'active' }],
@@ -29,7 +29,7 @@ function clientFixture(overrides: Record<string, readonly Row[]> = {}, errorTabl
       let range: [number, number] | undefined;
       const resolve = () => {
         calls.push({ table, range });
-        return { data: range ? rows.slice(range[0], range[1] + 1) : rows, error: table === errorTable ? { message: 'DB unavailable' } : null };
+        return { data: range ? rows.slice(range[0], range[1] + 1) : rows, error: table === errorTable ? { message: 'DB unavailable', code: errorCode } : null };
       };
       const builder = {
         select: () => builder,
@@ -118,6 +118,17 @@ describe('authenticated dashboard recognized sales contract', () => {
       const { client } = clientFixture({}, table);
       await expect(FinancialReportingService.getRecognizedSalesDashboard(client, now)).rejects.toThrow();
     });
+
+  it.each(['users', 'tenants'])('classifies canonical %s permission denial as 403 without reading sales', async table => {
+    const { client, calls } = clientFixture({}, table, true, '42501');
+    await expect(FinancialReportingService.getRecognizedSalesDashboard(client, now)).rejects.toMatchObject({ status: 403 });
+    expect(calls.map(call => call.table)).not.toContain('auto_vehicle_sale_recognitions');
+  });
+
+  it.each(['users', 'tenants'])('keeps %s schema errors distinct from denied authority', async table => {
+    const { client } = clientFixture({}, table, true, '42703');
+    await expect(FinancialReportingService.getRecognizedSalesDashboard(client, now)).rejects.toMatchObject({ status: 503 });
+  });
 
   it.each([null, 'invalid', '9007199254740993', 1.5])('fails closed for invalid canonical amount %s', async amount => {
     const { client } = clientFixture({ auto_vehicle_sale_recognitions: [{

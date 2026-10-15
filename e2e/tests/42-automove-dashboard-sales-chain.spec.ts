@@ -10,7 +10,7 @@ test.use({ trace: 'off', video: 'off' });
 
 test('AutoMove actual dashboard: login to booking, deposit and explicit recognition', async ({ page, baseURL }, testInfo) => {
   // Includes separate receipt collection, lost acknowledgement and reconciliation.
-  test.setTimeout(360_000);
+  test.setTimeout(480_000);
   const apiUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
   const publicKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   const adminKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -20,7 +20,7 @@ test('AutoMove actual dashboard: login to booking, deposit and explicit recognit
   if (!publicKey || !adminKey || !dbUrl) throw new Error('Non-Production Auth and DB configuration is required.');
   const db = new Client(saleChainConnection(dbUrl, apiUrl));
   const admin = createClient(apiUrl, adminKey, { auth: { persistSession: false, autoRefreshToken: false } });
-  const tenantId = randomUUID(), customerId = randomUUID(), brandId = randomUUID();
+  const tenantId = randomUUID(), otherTenantId = randomUUID(), customerId = randomUUID(), brandId = randomUUID();
   const modelId = randomUUID(), variantId = randomUUID(), vehicleId = randomUUID();
   const suffix = randomUUID().slice(0, 8);
   const email = `automove-dashboard-${randomUUID()}@example.test`;
@@ -43,6 +43,8 @@ test('AutoMove actual dashboard: login to booking, deposit and explicit recognit
     await db.query('begin'); transaction = true;
     await db.query(`insert into public.tenants (id,name,status,enabled_modules)
       values ($1,$2,'active','{"bella_auto":true}')`, [tenantId, `AutoMove browser proof ${suffix}`]);
+    await db.query(`insert into public.tenants (id,name,status,enabled_modules)
+      values ($1,$2,'active','{"bella_auto":true}')`, [otherTenantId, `AutoMove isolation proof ${suffix}`]);
     await db.query(`insert into public.users (id,email,full_name,tenant_id,role,status)
       values ($1,$2,'AutoMove browser accountant',$3,'accountant','active')
       on conflict(id) do update set tenant_id=excluded.tenant_id,role=excluded.role,status=excluded.status`, [actorId, email, tenantId]);
@@ -274,7 +276,11 @@ test('AutoMove actual dashboard: login to booking, deposit and explicit recognit
     await sale.getByRole('button', { name: 'Đóng', exact: true }).click();
     await db.query("update public.auto_bookings set status='completed' where id=$1", [bookingId]);
     await page.getByRole('button', { name: 'Thanh toán sau bán', exact: true }).click();
+    const reopenedPayment = page.waitForResponse(response => response.url().endsWith(paymentUrl) && response.request().method() === 'GET', { timeout: 60_000 });
     await row.getByRole('button', { name: `Hồ sơ bán xe ${booking[0].booking_number}`, exact: true }).click();
+    const persistedPayment = await reopenedPayment;
+    expect(persistedPayment.status()).toBe(200);
+    expect(await persistedPayment.json()).toMatchObject({ result: { outstanding: 0, postSaleReceived: 1300000000, status: 'MATCHED' } });
     await expect(payments.getByTestId('settlement-outstanding')).toHaveText('0 VND');
     await payments.scrollIntoViewIfNeeded();
     await page.screenshot({ path: testInfo.outputPath('post-sale-receipts-desktop.png') });
@@ -309,6 +315,85 @@ test('AutoMove actual dashboard: login to booking, deposit and explicit recognit
     await page.getByTestId('recognized-sales-current-month').scrollIntoViewIfNeeded();
     await page.screenshot({ path: testInfo.outputPath('recognized-sales-mobile.png') });
     console.log('AUTOMOVE_ACTUAL_DASHBOARD_RECOGNIZED_REVENUE_AND_LEDGER_READBACK=PASS');
+
+    stage = 'business transaction authorization';
+    // The real Auth session remains unchanged. Current DB authority, not its
+    // original JWT tenant/status, must control access to this persisted sale.
+    const stateUrl = `/api/bella-auto/sales-chain/state?bookingId=${bookingId}`;
+    const recognitionPayload = retryResponse.request().postDataJSON();
+    const beforeSecurity = {
+      ledger: (await db.query('select * from public.auto_vehicle_sale_recognitions where booking_id=$1', [bookingId])).rows,
+      receipts: (await db.query('select * from public.auto_vehicle_sale_payments where booking_id=$1 order by id', [bookingId])).rows,
+    };
+    const relations = ['auto_bookings','auto_deposits','auto_vehicle_sale_financial_snapshots',
+      'auto_vehicle_sale_recognitions','auto_vehicle_sale_payments'];
+    const databaseVisibility = async (allowed: boolean) => {
+      await db.query('begin'); transaction = true;
+      try {
+        await db.query('set local role authenticated');
+        await db.query("select set_config('request.jwt.claim.sub',$1,true),set_config('request.jwt.claim.role','authenticated',true)", [actorId]);
+        for (const relation of relations) {
+          await db.query('savepoint visibility');
+          let visible = 0, denied = false;
+          try {
+            const column = relation === 'auto_bookings' ? 'id' : 'booking_id';
+            visible = (await db.query(`select id from public.${relation} where ${column}=$1`, [bookingId])).rows.length;
+          } catch (error: unknown) {
+            expect(error && typeof error === 'object' && 'code' in error && error.code).toBe('42501');
+            denied = true;
+          } finally {
+            await db.query('rollback to savepoint visibility');
+            await db.query('release savepoint visibility');
+          }
+          if (allowed) expect(visible, `${relation}: own sale must be visible`).toBeGreaterThan(0);
+          else expect(denied || visible === 0, `${relation}: forbidden sale must not be visible`).toBe(true);
+        }
+      } finally { await db.query('rollback'); transaction = false; }
+    };
+    await databaseVisibility(true);
+    const deniedHttp = async (status: number) => {
+      for (const path of [stateUrl, paymentUrl]) {
+        const response = await page.context().request.get(path);
+        expect(response.status(), path).toBe(status);
+        const body = await response.json();
+        expect(body.error).toBeTruthy();
+        expect(body).not.toHaveProperty('result');
+      }
+      const response = await page.context().request.post('/api/bella-auto/sales-chain/recognize', { data: recognitionPayload });
+      expect(response.status()).toBe(status);
+      expect(await response.json()).not.toHaveProperty('result');
+      const collection = await postPayment(randomUUID(), 1);
+      expect(collection.status()).toBe(status);
+    };
+    try {
+      await db.query('update public.users set tenant_id=$2 where id=$1', [actorId, otherTenantId]);
+      await databaseVisibility(false); await deniedHttp(404);
+      console.log('AUTOMOVE_SAME_AUTH_CROSS_TENANT_DB_API_DENIAL=PASS');
+      await db.query("update public.users set tenant_id=$2,status='inactive' where id=$1", [actorId, tenantId]);
+      await databaseVisibility(false); await deniedHttp(403);
+      console.log('AUTOMOVE_SAME_AUTH_INACTIVE_DB_API_DENIAL=PASS');
+      await db.query("update public.users set status='active' where id=$1", [actorId]);
+      await db.query("update public.tenants set status='suspended' where id=$1", [tenantId]);
+      await databaseVisibility(false); await deniedHttp(403);
+      console.log('AUTOMOVE_SAME_AUTH_SUSPENDED_TENANT_DB_API_DENIAL=PASS');
+    } finally {
+      await db.query("update public.users set tenant_id=$2,status='active' where id=$1", [actorId, tenantId]);
+      await db.query("update public.tenants set status='active' where id=$1", [tenantId]);
+    }
+    await databaseVisibility(true);
+    expect((await page.context().request.get(stateUrl)).status()).toBe(200);
+    expect(await (await page.context().request.get(paymentUrl)).json()).toMatchObject({ result: { outstanding: 0, status: 'MATCHED' } });
+    expect({
+      ledger: (await db.query('select * from public.auto_vehicle_sale_recognitions where booking_id=$1', [bookingId])).rows,
+      receipts: (await db.query('select * from public.auto_vehicle_sale_payments where booking_id=$1 order by id', [bookingId])).rows,
+    }).toEqual(beforeSecurity);
+    stage = 'PASS';
+    await testInfo.attach('business-chain-proof', { contentType: 'application/json', body: Buffer.from(JSON.stringify({
+      baseline: '2652d3b645b89715e4ca970d76b057a94775f7d2', tenantId, otherTenantId, bookingId,
+      recognitionId: ledger[0].id, recognized: 1400000000, deposit: 100000000, postSalePaid: 1300000000,
+      outstanding: 0, receiptCount: 5, reconciliation: 'MATCHED', security: 'PROVEN_ON_NON_PRODUCTION',
+      setup: 'Customer/catalog/vehicle are privileged fixtures, not UI-created records', readiness: 'NOT_READY',
+    }, null, 2)) });
   } catch (error: unknown) {
     errors.push(error);
     if (authenticated) await page.screenshot({ path: testInfo.outputPath('dashboard-blocker.png') }).catch(() => undefined);
@@ -337,7 +422,7 @@ test('AutoMove actual dashboard: login to booking, deposit and explicit recognit
           await teardownDb.connect();
           await teardownDb.query('begin');
           await teardownDb.query("update public.users set status='inactive' where id=$1 and tenant_id=$2", [actorId, tenantId]);
-          await teardownDb.query("update public.tenants set status='terminated' where id=$1", [tenantId]);
+          await teardownDb.query("update public.tenants set status='terminated' where id=any($1::uuid[])", [[tenantId, otherTenantId]]);
           await teardownDb.query('commit');
         } catch (error: unknown) {
           await teardownDb.query('rollback').catch(() => undefined);
@@ -349,6 +434,16 @@ test('AutoMove actual dashboard: login to booking, deposit and explicit recognit
     if (cleanupActor) await cleanup(async () => {
       const removed = await admin.auth.admin.deleteUser(cleanupActor);
       if (removed.error) throw new Error('E2E Auth cleanup failed.');
+    });
+    if (seeded) await cleanup(async () => {
+      expect((await db.query('select id from auth.users where id=$1', [actorId])).rows).toHaveLength(0);
+      expect((await db.query("select id from public.users where id=$1 and status='active'", [actorId])).rows).toHaveLength(0);
+      expect((await db.query('select status from public.tenants where id=any($1::uuid[])', [[tenantId, otherTenantId]])).rows)
+        .toEqual([{ status: 'terminated' }, { status: 'terminated' }]);
+      const files = await admin.storage.from('automove-sale-documents').list(tenantId);
+      if (files.error) throw new Error('E2E Storage cleanup read-back failed.');
+      expect(files.data).toHaveLength(0);
+      console.log('AUTOMOVE_CHAIN_CLEANUP=AUTH_ZERO_ACTIVE_ACTOR_ZERO_DOCUMENTS_ZERO_TWO_ARCHIVED_TENANTS_HISTORY_RETAINED');
     });
     await cleanup(() => db.end());
     if (errors.length > 1 || (errors.length && stage === 'PASS')) throw new AggregateError(errors, 'Dashboard verification/cleanup failed.');
