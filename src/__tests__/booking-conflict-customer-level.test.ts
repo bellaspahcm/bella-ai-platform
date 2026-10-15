@@ -194,6 +194,7 @@ describe('Customer-Level Booking Conflict Detection', () => {
     const testTenant = {
       id: 'tenant-1',
       name: 'Test Tenant',
+      status: 'active',
       enabled_modules: ['babycare'],
     };
     mockStore.tenants.push(testTenant);
@@ -213,6 +214,7 @@ describe('Customer-Level Booking Conflict Detection', () => {
       id: 'user-1',
       tenant_id: 'tenant-1',
       role: 'admin',
+      status: 'active',
     };
     mockStore.users.push(testUser);
 

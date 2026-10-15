@@ -22,6 +22,23 @@ const REAL_DB_TEST_BY_PATH = [
 
 const SCOPED_REAL_DB_SUITES = [
   {
+    name: 'Platform canonical identity and HQ',
+    patterns: [
+      /^supabase\/migrations\/20261015040000_align_platform_identity_hq_authority\.sql$/,
+      /^supabase\/migrations\/20261015040100_preserve_explicit_active_hq_tenant_management\.sql$/,
+      /^scripts\/verify-platform-identity-hq\.ts$/,
+      /^tests\/integration\/platform-identity-hq\.spec\.ts$/,
+      /^src\/services\/(user-actions|hq-actions)\.ts$/,
+    ],
+    commands: [
+      { command: 'npx', args: ['tsx', 'scripts/verify-platform-identity-hq.ts'],
+        env: { ALLOW_E2E_PLATFORM_IDENTITY_VERIFICATION: '1' } },
+      { command: 'npx', args: ['jest', '--runInBand', '--runTestsByPath',
+        'tests/integration/platform-identity-hq.spec.ts', '--testMatch=**/tests/integration/platform-identity-hq.spec.ts'],
+        env: { ALLOW_E2E_PLATFORM_IDENTITY_VERIFICATION: '1' } },
+    ],
+  },
+  {
     name: 'AutoMove active identity access',
     patterns: [
       /^supabase\/migrations\/20261015030000_guard_automove_active_identity_access\.sql$/,
