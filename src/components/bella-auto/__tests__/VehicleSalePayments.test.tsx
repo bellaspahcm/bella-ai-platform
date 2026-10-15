@@ -4,7 +4,7 @@ import { VehicleSalePayments } from '../VehicleSalePayments';
 
 const booking = '6090d1e8-b144-4a51-9464-fd83c95959e0', key = '00000000-0000-4000-8000-000000000007';
 const state = { bookingId: booking, recognitionId: key, status: 'MATCHED', issues: [], saleAmount: 1400000000,
-  depositReceived: 100000000, postSaleReceived: 0, totalReceived: 100000000, outstanding: 1300000000, canCollect: true, receipts: [] };
+  depositReceived: 100000000, postSaleReceived: 0, totalReceived: 100000000, refundedTotal: 0, outstanding: 1300000000, canCollect: true, receipts: [] };
 const fetchMock = jest.fn();
 beforeEach(() => {
   sessionStorage.clear(); jest.clearAllMocks(); global.fetch = fetchMock;

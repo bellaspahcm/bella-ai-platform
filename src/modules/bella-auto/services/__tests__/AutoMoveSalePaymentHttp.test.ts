@@ -20,7 +20,7 @@ beforeEach(() => {
   collect.mockResolvedValue({ duplicate: false, receipt: { id: key, idempotencyKey: key, amount: 1, paymentMethod: 'cash',
     transactionRef: null, notes: null, receivedBy: key, receivedAt: '2026-10-15T00:00:00Z' },
   state: { bookingId: booking, recognitionId: key, status: 'MATCHED', issues: [], saleAmount: 1, depositReceived: 0,
-    postSaleReceived: 1, totalReceived: 1, outstanding: 0, canCollect: false, receipts: [] } });
+    postSaleReceived: 1, totalReceived: 1, refundedTotal: 0, outstanding: 0, canCollect: false, receipts: [] } });
 });
 afterAll(() => { for (const [name, value] of Object.entries(original)) { if (value === undefined) delete process.env[name]; else process.env[name] = value; } });
 it('authenticates before opening a DB transaction', async () => {
@@ -56,7 +56,7 @@ it('preserves business rejection and performs GET through reconciliation', async
   collect.mockRejectedValueOnce(new SalePaymentError('PAYMENT_FORBIDDEN', 'Unavailable', 403));
   expect((await salePaymentHttp(request(), booking)).status).toBe(403);
   state.mockResolvedValueOnce({ bookingId: booking, recognitionId: null, status: 'NOT_RECOGNIZED', issues: [], saleAmount: 0,
-    depositReceived: 0, postSaleReceived: 0, totalReceived: 0, outstanding: 0, canCollect: false, receipts: [] });
+    depositReceived: 0, postSaleReceived: 0, totalReceived: 0, refundedTotal: 0, outstanding: 0, canCollect: false, receipts: [] });
   expect((await salePaymentHttp(new Request('http://localhost/sale-payments'), booking)).status).toBe(200);
   expect(state).toHaveBeenCalledWith(booking);
 });

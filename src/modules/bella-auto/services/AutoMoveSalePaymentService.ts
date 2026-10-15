@@ -44,7 +44,7 @@ export class AutoMoveSalePaymentService {
       where booking_id=$1 and tenant_id=$2 order by id limit 2`, [bookingId, tenant])).rows;
     if (recognitions.length > 1) fail('PAYMENT_RECOGNITION_AMBIGUOUS', 'More than one recognized sale is linked to this booking.');
     if (!recognitions.length) return { bookingId, recognitionId: null, status: 'NOT_RECOGNIZED', issues: [],
-      saleAmount: 0, depositReceived: 0, postSaleReceived: 0, totalReceived: 0, outstanding: 0, canCollect: false, receipts: [] };
+      saleAmount: 0, depositReceived: 0, postSaleReceived: 0, totalReceived: 0, refundedTotal: 0, outstanding: 0, canCollect: false, receipts: [] };
     const recognition = recognitions[0];
     const deposits = (await this.db.query('select id,amount,status,payment_method,transaction_ref from public.auto_deposits where booking_id=$1 and tenant_id=$2', [bookingId, tenant])).rows;
     const payments = (await this.db.query(`select * from public.auto_vehicle_sale_payments where booking_id=$1 and tenant_id=$2
@@ -52,11 +52,19 @@ export class AutoMoveSalePaymentService {
     if (payments.length > 1000) fail('PAYMENT_HISTORY_LIMIT', 'Receipt history requires paginated reconciliation before collection.');
     const adjustments = (await this.db.query(`select adjustment_type,sale_price_delta,receivable_delta,refund_amount
       from public.auto_vehicle_sale_recognition_adjustments where recognition_id=$1 and tenant_id=$2`, [recognition.id, tenant])).rows;
+    const refunds = (await this.db.query(`select source_deposit_id,source_payment_id,amount
+      from public.auto_vehicle_sale_settlement_actions where booking_id=$1 and tenant_id=$2 and action_type='refund'`, [bookingId, tenant])).rows;
     const issues: string[] = [];
     const depositReceived = sum(deposits.filter(row => row.status === 'confirmed'), 'amount');
     const receipts = payments.map(receipt), postSaleReceived = sum(payments, 'amount');
     const saleAmount = integer(integer(recognition.sale_price_recognized) + sum(adjustments, 'sale_price_delta'));
-    const totalReceived = integer(depositReceived + postSaleReceived), outstanding = integer(saleAmount - totalReceived);
+    const refundedTotal = sum(refunds, 'amount');
+    const totalReceived = integer(depositReceived + postSaleReceived - refundedTotal), outstanding = integer(saleAmount - totalReceived);
+    if (totalReceived < 0 || [...deposits.filter(row => row.status === 'confirmed'), ...payments].some(row =>
+      sum(refunds.filter(refund => refund.source_deposit_id === row.id || refund.source_payment_id === row.id), 'amount') > integer(row.amount)) ||
+      refunds.some(refund => !deposits.some(row => row.status === 'confirmed' && row.id === refund.source_deposit_id) && !payments.some(row => row.id === refund.source_payment_id))) {
+      issues.push('REFUND_RECEIPT_MISMATCH');
+    }
     if (saleAmount < 0 || depositReceived < 0) fail('INVALID_PERSISTED_AMOUNT', 'Negative collection source amount.');
     if (recognition.customer_id !== booking.customer_id || recognition.vehicle_id !== booking.vehicle_id ||
         payments.some(row => row.recognition_id !== recognition.id)) issues.push('SALE_LINK_MISMATCH');
@@ -73,7 +81,7 @@ export class AutoMoveSalePaymentService {
     if (outstanding < 0) issues.push('OVERCOLLECTED');
     const closed = booking.status === 'cancelled' || booking.payment_status === 'refunded';
     return { bookingId, recognitionId: String(recognition.id), status: issues.length ? 'MISMATCH' : 'MATCHED', issues,
-      saleAmount, depositReceived, postSaleReceived, totalReceived, outstanding,
+      saleAmount, depositReceived, postSaleReceived, totalReceived, refundedTotal, outstanding,
       canCollect: !closed && !issues.length && outstanding > 0, receipts };
   }
   async state(bookingId: string): Promise<SalePaymentState> { return this.reconcile(await this.context(bookingId)); }

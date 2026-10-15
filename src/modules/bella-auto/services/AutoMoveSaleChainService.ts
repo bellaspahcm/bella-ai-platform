@@ -144,7 +144,7 @@ export class AutoMoveSaleChainService {
       { next: () => randomUUID() }, { now: () => new Date().toISOString() });
   }
   async state(bookingId: string) {
-    const booking = await this.booking(bookingId);
+    const booking = await this.booking(bookingId, false);
     const actor = await this.authorize();
     const trace = await this.mobility(actor).getVehicleTrace(actor, { vehicleId: text(booking,'vehicle_id') });
     const snapshot = (await this.db.query('select * from public.auto_vehicle_sale_financial_snapshots where booking_id = $1 and tenant_id = $2', [bookingId, actor.tenantId])).rows[0] ?? null;
@@ -284,7 +284,13 @@ export class AutoMoveSaleChainService {
     }
     const deposits = await this.db.query(`select coalesce(sum(amount),0) as amount from public.auto_deposits
       where tenant_id = $1 and booking_id = $2 and status = 'confirmed'`,[actor.tenantId,snapshot.booking_id]);
-    const deposit = Number(deposits.rows[0].amount);
+    const refunds = await this.db.query(`select coalesce(sum(amount),0) as amount from public.auto_vehicle_sale_settlement_actions
+      where tenant_id=$1 and booking_id=$2 and action_type='refund' and source_deposit_id is not null`, [actor.tenantId,snapshot.booking_id]);
+    const grossDeposit = Number(deposits.rows[0].amount), refundedDeposit = Number(refunds.rows[0].amount);
+    if (![grossDeposit,refundedDeposit].every(amount => Number.isSafeInteger(amount) && amount >= 0)) {
+      fail('PAYMENT_INVALID','Deposit/refund totals exceed the supported VND range.',409);
+    }
+    const deposit = grossDeposit - refundedDeposit;
     const sale = money({salePrice:Number(snapshot.sale_price)},'salePrice');
     const discount = money({discountAmount:Number(snapshot.discount_amount)},'discountAmount');
     const cost = money({costBasis:Number(snapshot.cost_basis)},'costBasis');

@@ -16,6 +16,7 @@ import postcss from 'postcss';
 import tailwind from '@tailwindcss/postcss';
 import { mkdirSync } from 'node:fs';
 import { VehicleSaleRecognitionError } from '../src/modules/bella-auto/services/VehicleSaleRecognitionService';
+import { AutoMoveSettlementService } from '../src/modules/bella-auto/services/AutoMoveSettlementService';
 import type { SaleChainAction } from '../src/modules/bella-auto/services/AutoMoveSaleChainHttp';
 
 // Business expectations come from the owner-approved snapshot/approval contract.
@@ -47,6 +48,8 @@ let actorId: string | undefined;
 let inBusinessTransaction = false;
 let headerCreated = false;
 let primaryFailure: unknown;
+let connectionFailure: Error | undefined;
+db.on('error', error => { connectionFailure = error; });
 
 const download: DocumentDownload = async document => {
   const result = await authenticated.storage.from(document.bucket).download(document.path);
@@ -158,7 +161,7 @@ async function browserProof(email: string, password: string) {
     await page.getByLabel('Giá vốn (VND)',{exact:true}).fill('1000000000');
     await page.getByRole('button',{name:'Lưu hồ sơ nháp',exact:true}).click();
     await page.getByText('Đã lưu hồ sơ nháp.',{exact:true}).waitFor();
-    await page.getByRole('checkbox').check();
+    await page.getByRole('checkbox',{name:'Tôi đã kiểm tra chứng từ và xác nhận các giá trị tài chính.'}).check();
     const stateResponse = await page.request.get(`http://127.0.0.1:${address.port}/api/bella-auto/sales-chain/state?bookingId=${bookingId}`);
     const displayed = object(object(await stateResponse.json()).result).snapshot;
     const viewed = object(displayed);
@@ -168,14 +171,14 @@ async function browserProof(email: string, password: string) {
     assert.equal(correctedResponse.status(),200);
     await page.getByRole('button',{name:'Xác nhận bàn giao',exact:true}).click();
     await page.getByText('Đã lưu bằng chứng bàn giao.',{exact:true}).waitFor();
-    assert.equal(await page.getByRole('checkbox').isChecked(),false,'Refreshing a corrected draft must invalidate prior human verification.');
+    assert.equal(await page.getByRole('checkbox',{name:'Tôi đã kiểm tra chứng từ và xác nhận các giá trị tài chính.'}).isChecked(),false,'Refreshing a corrected draft must invalidate prior human verification.');
     assert.equal(await page.getByRole('button',{name:'Duyệt snapshot',exact:true}).isDisabled(),true);
     const restoreResponse = await page.request.post(`http://127.0.0.1:${address.port}/api/bella-auto/sales-chain/draft-update`,{data:{...update,costBasis:1000000000}});
     assert.equal(restoreResponse.status(),200);
     await page.getByRole('button',{name:'Xác nhận lại bàn giao',exact:true}).click();
     await page.getByText('Đã lưu bằng chứng bàn giao.',{exact:true}).waitFor();
-    assert.equal(await page.getByRole('checkbox').isChecked(),false,'Restoring an old draft hash must not restore its old verification.');
-    await page.getByRole('checkbox').check();
+    assert.equal(await page.getByRole('checkbox',{name:'Tôi đã kiểm tra chứng từ và xác nhận các giá trị tài chính.'}).isChecked(),false,'Restoring an old draft hash must not restore its old verification.');
+    await page.getByRole('checkbox',{name:'Tôi đã kiểm tra chứng từ và xác nhận các giá trị tài chính.'}).check();
     await page.getByRole('button',{name:'Duyệt snapshot',exact:true}).click();
     await page.getByText('Đã duyệt snapshot tài chính.',{exact:true}).waitFor();
     await page.getByRole('button',{name:'Xác nhận lại bàn giao',exact:true}).click();
@@ -368,6 +371,20 @@ async function main() {
     assert.equal((await db.query('select count(*)::int as n from public.auto_vehicle_sale_recognitions where booking_id=$1',[bookingId])).rows[0].n,0,'Handover and approval must not auto-recognize.');
     assert.equal((await service.handover({bookingId})).handoverEvidenceId,handoverEvidenceId,'Handover retry must return the persisted evidence.');
     await rejected(()=>service.recognize({snapshotId,handoverEvidenceId,salePriceRecognized:1}),/Only .* are accepted/);
+    await db.query('savepoint refund_before_recognition');
+    const originalDeposit = (await db.query('select id from public.auto_deposits where booking_id=$1 and tenant_id=$2',[bookingId,tenantA])).rows[0];
+    const refundKey = randomUUID();
+    await new AutoMoveSettlementService(db,actorId,download).execute(bookingId,refundKey,{
+      action:'refund',receiptType:'deposit',receiptId:originalDeposit.id,amount:20000000,
+      reason:'Owner-confirmed receipt refund before explicit recognition',document:draft.saleDocument,confirmed:true,
+    });
+    const netRecognition = await service.recognize({snapshotId,handoverEvidenceId});
+    assert.equal(netRecognition.recognition.depositReceivedTotal,80000000);
+    assert.equal(netRecognition.recognition.paymentReceivedTotal,80000000);
+    assert.equal(netRecognition.recognition.receivableAmountAtRecognition,1320000000);
+    assert.equal(netRecognition.recognition.salePriceRecognized,1400000000);
+    await db.query('rollback to savepoint refund_before_recognition');
+    console.log('AUTOMOVE_PRE_RECOGNITION_REFUND_NET_CASH_AND_IMMUTABLE_PRICE=PASS_ROLLBACK');
     const recognized = object(await executeSaleChainAction({action:'recognize',payload:{snapshotId,handoverEvidenceId},actorUserId:actorId,db,download}));
     assert.equal(recognized.status,'created');
     const retry = await service.recognize({snapshotId,handoverEvidenceId});
@@ -413,8 +430,11 @@ async function main() {
     const attempt = async (cleanup: () => Promise<unknown>) => {
       try { await cleanup(); } catch (error: unknown) { cleanupErrors.push(error); }
     };
-    if (inBusinessTransaction) await attempt(()=>db.query('rollback'));
-    await attempt(()=>db.query('reset role'));
+    if (inBusinessTransaction && !connectionFailure) await attempt(()=>db.query('rollback'));
+    // Reconnect only for fixture cleanup, never to replay a business mutation.
+    const cleanupDb = connectionFailure ? new Client(saleChainConnection(dbUrl,apiUrl)) : db;
+    if (cleanupDb !== db) await attempt(()=>cleanupDb.connect());
+    await attempt(()=>cleanupDb.query('reset role'));
     if(process.argv.includes('--fail-cleanup'))await attempt(async()=>{throw new Error('INJECTED_CLEANUP_FAILURE');});
     const fixturePaths = new Set(cleanupPaths);
     for (const tenant of [tenantA,tenantB]) await attempt(async()=>{
@@ -426,14 +446,16 @@ async function main() {
       const removal = await admin.storage.from(bucket).remove([...fixturePaths]);
       if (removal.error) throw new Error('E2E Storage cleanup failed.');
     });
-    if (actorId) await attempt(()=>db.query('delete from public.users where id=$1',[actorId]));
+    if (actorId) await attempt(()=>cleanupDb.query('delete from public.users where id=$1',[actorId]));
     // Preserve the pre-existing tenant timeline/soft-delete contract.
-    if (headerCreated) await attempt(()=>db.query("update public.tenants set status='terminated' where id=any($1::uuid[])",[[tenantA,tenantB]]));
-    if (actorId) await attempt(async()=>{
-      const authRemoval = await admin.auth.admin.deleteUser(actorId);
+    if (headerCreated) await attempt(()=>cleanupDb.query("update public.tenants set status='terminated' where id=any($1::uuid[])",[[tenantA,tenantB]]));
+    const cleanupActor = actorId;
+    if (cleanupActor) await attempt(async()=>{
+      const authRemoval = await admin.auth.admin.deleteUser(cleanupActor);
       if (authRemoval.error) throw new Error('E2E Auth cleanup failed.');
     });
     await attempt(()=>db.end());
+    if (cleanupDb !== db) await attempt(()=>cleanupDb.end());
     if (cleanupErrors.length) throw new AggregateError([...(primaryFailure?[primaryFailure]:[]),...cleanupErrors],'Verification/fixture cleanup failed.');
   }
 }

@@ -5,6 +5,7 @@ import { Dialog } from '@headlessui/react';
 import { Check, FileCheck, FileText, Loader2, Truck, X } from 'lucide-react';
 import { createClient } from '@/lib/supabase-client';
 import { VehicleSalePayments } from './VehicleSalePayments';
+import { VehicleSaleSettlement } from './VehicleSaleSettlement';
 
 interface DocumentRef { bucket: string; path: string; sha256: string }
 interface Snapshot { id: string; reviewHash: string; status: 'draft' | 'approved'; sale_price: number; discount_amount: number; cost_basis: number; sale_document: DocumentRef; cost_document: DocumentRef }
@@ -33,6 +34,8 @@ export function VehicleSaleChainDialog({ bookingId, bookingNumber, tenantId, onC
   bookingId: string; bookingNumber: string; tenantId: string; onClose: () => void;
 }) {
   const [snapshot, setSnapshot] = useState<Snapshot | null>(null);
+  const [settlementVersion, setSettlementVersion] = useState(0), [closed, setClosed] = useState(false);
+  const settlementChanged = useCallback(() => setSettlementVersion(value => value + 1), []);
   const [evidenceId, setEvidenceId] = useState<string | null>(null);
   const [vehicleStatus, setVehicleStatus] = useState('');
   const [busy, setBusy] = useState(true);
@@ -120,7 +123,7 @@ export function VehicleSaleChainDialog({ bookingId, bookingNumber, tenantId, onC
         </div>
         {error && <p role="alert" className="mb-4 text-sm text-red-600 dark:text-red-400">{error}</p>}
         {message && <p role="status" className="mb-4 text-sm text-emerald-700 dark:text-emerald-400">{message}</p>}
-        {(!snapshot || (editing && snapshot.status === 'draft')) && vehicleStatus && <form onSubmit={createDraft} className="space-y-4">
+        {!closed && (!snapshot || (editing && snapshot.status === 'draft')) && vehicleStatus && <form onSubmit={createDraft} className="space-y-4">
           <div className="grid gap-3 sm:grid-cols-3">
             {[['salePrice','Giá bán (VND)'],['discountAmount','Chiết khấu (VND)'],['costBasis','Giá vốn (VND)']].map(([name,label]) =>
               <label key={name} className="text-sm">{label}<input name={name} type="number" required min={name === 'salePrice' ? 1 : 0} step="1"
@@ -145,7 +148,7 @@ export function VehicleSaleChainDialog({ bookingId, bookingNumber, tenantId, onC
             <button type="button" className="inline-flex items-center gap-2 text-sm underline" onClick={() => void openDocument(snapshot.sale_document)}><FileText size={16} />Chứng từ bán xe</button>
             <button type="button" className="inline-flex items-center gap-2 text-sm underline" onClick={() => void openDocument(snapshot.cost_document)}><FileText size={16} />Chứng từ giá vốn</button>
           </div>
-          {snapshot.status === 'draft' && <>
+          {snapshot.status === 'draft' && !closed && <>
             <button type="button" disabled={busy} className={button} onClick={() => {
               setDocuments({sale:snapshot.sale_document,cost:snapshot.cost_document});setEditing(true);setVerifiedHash(null);
             }}><FileText size={16} />Sửa hồ sơ nháp</button>
@@ -154,11 +157,12 @@ export function VehicleSaleChainDialog({ bookingId, bookingNumber, tenantId, onC
           </>}
         </div>}
         <div className="mt-5 flex flex-wrap gap-3 border-t border-slate-200 pt-4 dark:border-slate-800">
-          <button type="button" disabled={busy || !['allocated','delivered'].includes(vehicleStatus)} className={button} onClick={() => void run('handover',{ bookingId },'Đã lưu bằng chứng bàn giao.')}><Truck size={16} />{evidenceId ? 'Xác nhận lại bàn giao' : 'Xác nhận bàn giao'}</button>
-          <button type="button" disabled={busy || !evidenceId || snapshot?.status !== 'approved'} className={button} onClick={() => snapshot && evidenceId && void run('recognize',{ snapshotId: snapshot.id, handoverEvidenceId: evidenceId },'Đã ghi nhận doanh thu bán xe.')}><Check size={16} />Ghi nhận doanh thu</button>
+          <button type="button" disabled={busy || closed || !['allocated','delivered'].includes(vehicleStatus)} className={button} onClick={() => void run('handover',{ bookingId },'Đã lưu bằng chứng bàn giao.')}><Truck size={16} />{evidenceId ? 'Xác nhận lại bàn giao' : 'Xác nhận bàn giao'}</button>
+          <button type="button" disabled={busy || closed || !evidenceId || snapshot?.status !== 'approved'} className={button} onClick={() => snapshot && evidenceId && void run('recognize',{ snapshotId: snapshot.id, handoverEvidenceId: evidenceId },'Đã ghi nhận doanh thu bán xe.')}><Check size={16} />Ghi nhận doanh thu</button>
           {busy && <Loader2 className="animate-spin" size={20} aria-label="Đang xử lý" />}
         </div>
-        {snapshot?.status === 'approved' && <VehicleSalePayments key={`${snapshot.id}:${message}`} bookingId={bookingId} />}
+        {snapshot?.status === 'approved' && <VehicleSalePayments key={`${snapshot.id}:${message}:${settlementVersion}`} bookingId={bookingId} />}
+        <VehicleSaleSettlement bookingId={bookingId} tenantId={tenantId} onChanged={settlementChanged} onClosed={setClosed} />
       </Dialog.Panel>
     </div>
   </Dialog>;
