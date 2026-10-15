@@ -200,3 +200,18 @@ CI/main proof or seal the batch before the corresponding results exist.
 - Existing audit records are preserved. Subsequent authorized CI fixture execution
   can append audit history; 60 records is the reconciliation snapshot, not a fixed
   count to enforce by deleting later history. Cleanup remains PARTIAL.
+
+## PR #337 CI Follow-up
+
+- Initial reviewed implementation: 11 files, commit 8abe895d091d264710ebf356e10005fda847b570.
+- Real DB CI run 38714109255 / job 116352565579: durable verifier 59 assertions
+  PASS and real Auth/application integration 2/2 PASS; both E2E migrations already
+  recorded. This is PR CI proof, not main proof.
+- Affected-test CI exposed three stale dependent fixtures: consolidated P&L lacked
+  an active HQ tenant; the suspended-tenant test expected an authorized profile;
+  booking fixtures lacked active user/tenant states, cascading into a pre-existing
+  unmocked fallback path. Only fixtures/assertions were aligned with the approved
+  fail-closed contract. The three focused suites pass 27/27; no runtime or fallback
+  query was changed, no skip/exclusion added, no layout baseline fix attempted.
+- Delivery therefore adds exactly three dependent test files to the original
+  11-file batch. No new business capability, schema or policy scope is introduced.
