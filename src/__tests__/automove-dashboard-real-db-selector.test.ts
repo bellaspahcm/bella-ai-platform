@@ -39,3 +39,16 @@ it('keeps existing recognition proof and deduplicates commands in the dashboard 
 it.each(['supabase/migrations/unknown-migration.sql', 'jest.real-db.config.ts'])('preserves full-suite fallback for %s', path => {
   expect(select(path)).toContain('Running full real database business E2E suite.');
 });
+
+it.each([
+  'src/modules/bella-auto/services/FinancialReportingService.ts',
+  'src/app/api/bella-auto/analytics/recognized-sales/route.ts',
+  'src/components/bella-auto/BellaAutoAnalyticsDashboard.tsx',
+  'src/components/bella-auto/AutoAnalyticsCharts.tsx',
+  'src/app/dashboard/bella-auto/page.tsx',
+  'scripts/verify-automove-dashboard-recognized-sales.ts',
+])('selects the actual authenticated reporting service proof for %s', path => {
+  const output = select(path);
+  expect(output.split('scripts/verify-automove-dashboard-recognized-sales.ts')).toHaveLength(2);
+  expect(output).not.toContain('Running full real database business E2E suite.');
+});

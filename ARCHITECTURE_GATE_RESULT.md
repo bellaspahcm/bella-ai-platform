@@ -1,5 +1,112 @@
 ﻿# Architecture Gate - Customer Loyalty Read-Only (2026-10-15)
 
+## AutoMove Dashboard Recognized Sales Read Alignment - 2026-10-15
+
+Architecture result: PASS for the owner-approved E2E-only implementation.
+Baseline: 49f78e358817bb3991f699cc678204a3bd5ea8f9. Single-agent execution.
+Local implementation/evidence are recorded below; this is not a main or Product MVP seal.
+
+### Process, Product Manifest and Business Test Contract
+
+- Source: explicit owner approval in this conversation, sealed recognition
+  contracts from PRs 319-321/327/329, recognition/adjustment migrations.
+- Capability: monthly recognized vehicle revenue and top models on the actual
+  dashboard, reusing FinancialReportingService and Mobility display.
+- Invariant: booking completion, deposits and handover alone are not revenue.
+  Only recognition snapshots plus existing approved adjustment semantics count.
+  Current vehicle prices never rewrite historical sale/cost snapshots.
+- Period: recognized_at, six UTC calendar months including this month. Top-model
+  counts retain the existing all-time scope but count recognition transactions.
+- Negative cases: missing/inactive identity or tenant, cross-tenant reads, query
+  errors, missing display rows, repeated reads, unrecognized bookings/deposits.
+- Expected amounts come from approved fixtures and independent ledger read-back.
+  An error is never a verified zero.
+
+### Ownership and Contract Dependency Map
+
+| Data | Owner | Access |
+| --- | --- | --- |
+| Identity / active tenant | Platform | Auth getUser -> public.users -> tenants |
+| Recognition / adjustment history | AutoMove Product | existing reporting service, authenticated RLS client |
+| Vehicle/model display | Mobility OS | listMobilityVehicleDisplayByIds |
+| Chart, loading, error state | AutoMove UI | authenticated read API -> reporting service |
+
+Dashboard -> authenticated AutoMove API -> FinancialReportingService -> canonical
+recognition/adjustment reads + public Mobility display. No client-supplied tenant,
+price or policy establishes authority.
+
+### Change Authority and UI Reconciliation
+
+Approved: Product reporting client binding, one read API, sales charts/counters,
+focused tests, E2E proof and this checkpoint. Reuse this approved scope as the
+implementation specification; no additional approval document or architecture gate.
+Remove legacy sales RPC calls from these consumers; preserve inventory/delivery
+analytics. Label actual periods; omit nonfunctional filters on these two charts.
+Missing vehicle display must not remove a recognized sale. Screenshot review also
+identified the first-viewport AutoAnalyticsCharts hardcoded financial counters and
+monthly series. Bind them to the same authenticated response, without duplicating
+requests. Remove fabricated financial growth and salesperson amounts; do not infer
+salespeople from recognition actors. Lead funnel/response metrics remain outside
+this implementation/proof and must not be claimed as verified.
+
+Forbidden: migrations/schema/grant/RLS changes, Production access/deployment,
+Finance posting, commission, Warranty, ProductRegistry, shared helpers or kernels.
+Additive migration plan: NONE; stop at a proven schema gap.
+
+### Eleven Verification Gates Plan
+
+1. Architecture: arch:guard and scope-only diff.
+2. Contract: aligned charts no longer consume booking-based sales RPCs.
+3. Tenant: actual authenticated A/B clients; server-derived tenant.
+4. Authorization: missing/inactive actor or tenant fails closed.
+5. Migration: no migration or generated-type changes.
+6. Persistence/events: read-only runtime, no events/postings/snapshot updates.
+7. Business: canonical amounts/deltas; preserve missing display rows.
+8. Temporal: UTC month/year boundaries, historical cost immutability.
+9. Retry: repeated recognition/read keeps one sale and stable totals.
+10. Evidence: actual reporting service on non-Production DB and actual Next.js
+    browser UI, explicit error states, append-only fixture history preserved.
+11. Regression: focused tests, reporting/sales-chain regression, full typecheck,
+    focused lint and git diff --check.
+
+### Local Verification Checkpoint
+
+- Actual service verifier: PASS with two real Supabase Auth sessions, public-key
+  RLS reads, independent ledger comparison, current/historical periods, approved
+  adjustment deltas, current-cost mutation immunity, stable retries and denial for
+  anonymous/inactive actor/inactive tenant. Fixture Auth removed; financial history
+  preserved under archived E2E tenants. No DDL, migration or policy seed performed.
+- Actual Next.js/Chromium: specs 42 and 43 PASS (2/2, zero skips/flaky). Spec 42
+  proves a completed but unrecognized booking contributes zero; deposit/handover
+  alone remain zero; explicit recognition and retry produce one 1.4B VND sale;
+  API, executive counters and monthly UI agree with independent ledger read-back.
+  Reload stays 1.4B; desktop/mobile screenshots inspected. Spec 43 re-verifies
+  deposit sequential/concurrent retries, independent payments and overpayment.
+- Focused service/API/component/selector regression: 15 suites / 131 tests PASS. Full strict application
+  typecheck, separate changed verifier/test typecheck, focused ESLint, Architecture
+  Guard and diff whitespace check: PASS. CI selector includes this actual-service
+  verifier for dashboard/API/service changes; remote CI has not run for this diff.
+- Pre-existing E2E gaps: inventory trend, inventory stats and weekly-delivery RPCs
+  are absent (PGRST202). Their existing fallback UI is not verified by this batch.
+  Lead funnel/response metrics remain legacy/unverified. These are not recognition
+  errors and are not repaired or converted to PASS here.
+
+IMPLEMENTATION = IMPLEMENTED_LOCAL_VERIFIED
+READ_SIDE_RECOGNIZED_SALES = PROVEN_ON_E2E_FOR_APPROVED_SCOPE
+FINAL_REVIEW = PASS_SCOPED_LOCAL_REVIEW
+COMMIT_PUSH_PR = AUTHORIZED_AFTER_FINAL_REVIEW
+MAIN_SEAL = NOT_PERFORMED
+SCHEMA_MIGRATION = NOT_PERFORMED
+PRODUCTION_MUTATION = NOT_AUTHORIZED
+AUTOMOVE_FULL_PRODUCT_READINESS = NOT_READY
+
+Final review (2026-10-15): no blocking finding in the scoped local review.
+Rechecked 15 suites / 131 tests, Architecture Guard and diff-check: PASS.
+No legacy revenue RPC fallback, client tenant authority, schema/kernel changes or
+out-of-scope runtime repair. Existing Real DB and Browser evidence above remains
+non-Production/local evidence; PR CI and merge-SHA verification are still required.
+This was a single-agent review, not independent multi-agent sign-off.
+
 Status: PASS for application customer-profile write protection. Single-agent.
 
 ## Follow-Up Gate - Official KTV Accounts for AI (2026-10-15)
