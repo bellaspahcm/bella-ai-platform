@@ -55,7 +55,8 @@ async function verify() {
   await rejected(() => createAllocatedBooking(db, actorA, { ...payload, variantId: randomUUID() }, randomUUID()), 'VEHICLE_MISMATCH');
   await rejected(() => createAllocatedBooking(db, actorA, { ...payload, colorExterior: 'Black' }, randomUUID()), 'VEHICLE_MISMATCH');
   await context(inactive);
-  await rejected(() => createAllocatedBooking(db, inactive, payload, randomUUID()), 'ACTOR_NOT_AUTHORIZED');
+  // Canonical identity now rejects the SQL lookup before service authorization.
+  await rejected(() => createAllocatedBooking(db, inactive, payload, randomUUID()), '42501');
   await context(actorB);
   await rejected(() => createAllocatedBooking(db, actorB, { ...payload, customerId: customerB }, randomUUID()), 'MOBILITY_NOT_FOUND');
   await context(actorA);

@@ -57,7 +57,7 @@ async function context(userId: string) {
   await db.query('set local role authenticated');
   await db.query("select set_config('request.jwt.claim.sub',$1,true), set_config('request.jwt.claim.role','authenticated',true)",[userId]);
 }
-async function rejected(operation: () => Promise<unknown>, expected: RegExp) {
+async function rejected(operation: () => Promise<unknown>, expected: RegExp | { code: string }) {
   await db.query('savepoint negative_case');
   try {
     await assert.rejects(operation, expected);
@@ -298,16 +298,23 @@ async function main() {
       await db.query('savepoint actor_case'); await db.query('reset role');
       await db.query(`update public.users set ${change} where id = $1`,change.includes('$2') ? [actorId,tenantB] : [actorId]);
       await context(actorId);
-      await rejected(()=>service.approve(approvePayload),change.includes('$2') ? /unavailable for this tenant/ : /active tenant accountant/);
-      await rejected(()=>service.updateDraft(correction),change.includes('$2') ? /unavailable for this tenant/ : /active tenant accountant/);
-      assert.equal((await db.query('select id from public.auto_vehicle_sale_financial_snapshots where id=$1',[snapshotId])).rows.length,0,'RLS must also deny snapshot reads.');
-      assert.equal((await db.query('select id from storage.objects where bucket_id=$1 and name=$2',[bucket,paths[0]])).rows.length,0,'Document RLS must use the same authority source.');
+      const inactive = change.includes('inactive');
+      const rejection = inactive ? { code: '42501' } : change.includes('$2') ? /unavailable for this tenant/ : /active tenant accountant/;
+      await rejected(()=>service.approve(approvePayload),rejection);
+      await rejected(()=>service.updateDraft(correction),rejection);
+      for (const read of [
+        () => db.query('select id from public.auto_vehicle_sale_financial_snapshots where id=$1',[snapshotId]),
+        () => db.query('select id from storage.objects where bucket_id=$1 and name=$2',[bucket,paths[0]]),
+      ]) {
+        if (inactive) await rejected(read,{code:'42501'});
+        else assert.equal((await read()).rows.length,0,'RLS must deny snapshot and document reads.');
+      }
       await db.query('set local role service_role');
       await rejected(()=>db.query("update public.auto_vehicle_sale_financial_snapshots set status='approved',approved_by=$2,approved_at=now() where id=$1",[snapshotId,actorId]),/active tenant accountant/);
       await db.query('rollback to savepoint actor_case'); await db.query('release savepoint actor_case');
     }
     await context(randomUUID());
-    await rejected(()=>new AutoMoveSaleChainService(db,randomUUID(),download).approve(approvePayload),/active tenant accountant/);
+    await rejected(()=>new AutoMoveSaleChainService(db,randomUUID(),download).approve(approvePayload),{code:'42501'});
     await context(actorId);
     const token = (await authenticated.auth.getSession()).data.session?.access_token;
     assert.ok(token,'A real user Bearer session is required.');

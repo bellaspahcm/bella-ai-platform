@@ -95,8 +95,8 @@ async function verify() {
   await db.query(`insert into public.tenants(id,name,status) values
     ($1,$5,'active'),($2,$6,'active'),($3,$7,'suspended'),($4,$8,'terminated')`,
     [tenantA, tenantB, suspended, terminated, `${marker}-A`, `${marker}-B`, `${marker}-suspended`, `${marker}-terminated`]);
-  // The historical helper recognizes this exact HQ name. Do not change an existing HQ.
-  await db.query("insert into public.tenants(id,name,status) values ($1,'Bella Spa Headquarter','active')", [hq]);
+  // Sealed Platform identity contract: HQ is a product identity, not a name.
+  await db.query("insert into public.tenants(id,name,status,product_key) values ($1,$2,'active','bella_hq')", [hq, `${marker}-HQ`]);
   const userA = randomUUID(), userB = randomUUID(), inactive = randomUUID(), noTenant = randomUUID();
   const suspendedUser = randomUUID(), terminatedUser = randomUUID(), hqUser = randomUUID(), noProfile = randomUUID();
   const actorIds = [userA, userB, inactive, noTenant, suspendedUser, terminatedUser, hqUser, noProfile];
@@ -129,8 +129,12 @@ async function verify() {
     await context(userId, 'authenticated', claimedTenant);
     for (const [index, table] of tables.entries()) {
       const fixtureIds = [...rows.values()].map(ids => ids[index]);
+      if (!ownTenant) {
+        await deniedSql(() => db.query(`select id from public.${table} where id=any($1::uuid[])`, [fixtureIds]), '42501');
+        continue;
+      }
       const result = await db.query(`select id,tenant_id from public.${table} where id=any($1::uuid[]) order by id`, [fixtureIds]);
-      const expected = ownTenant ? [{ id: rows.get(ownTenant)![index], tenant_id: ownTenant }] : [];
+      const expected = [{ id: rows.get(ownTenant)![index], tenant_id: ownTenant }];
       assert.deepEqual(result.rows, expected, `${table} must return exactly the authorized fixture rows, not just HTTP success.`);
     }
     await db.query('reset role');
@@ -138,9 +142,10 @@ async function verify() {
   await read(userA, tenantA); await read(userB, tenantB);
   console.log('CATALOG_SAME_TENANT_AND_CROSS_TENANT_ROWS=PASS');
   for (const actor of [null, noProfile, noTenant, inactive, suspendedUser, terminatedUser]) await read(actor);
-  console.log('CATALOG_MISSING_IDENTITY_PROFILE_TENANT_INACTIVE_RLS_EMPTY_ROWS=PASS');
+  console.log('CATALOG_MISSING_IDENTITY_PROFILE_TENANT_INACTIVE_RLS_DENIED_42501=PASS');
   await context(hqUser);
-  assert.equal((await db.query('select public.get_auth_tenant_id() as tenant_id')).rows[0].tenant_id, null);
+  assert.equal((await db.query('select public.get_auth_tenant_id() as tenant_id')).rows[0].tenant_id, hq);
+  assert.equal((await db.query('select public.is_hq_super_admin() as hq')).rows[0].hq, true);
   await read(hqUser, hq);
   await context(userA, 'authenticated', tenantB);
   for (const table of tables) {

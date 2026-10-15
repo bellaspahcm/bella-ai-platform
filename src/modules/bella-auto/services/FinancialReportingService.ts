@@ -186,13 +186,13 @@ export class FinancialReportingService {
     if (authError || !user) throw new RecognizedSalesReadError('Unauthorized', 401);
     const { data: profile, error: profileError } = await supabase.from('users')
       .select('tenant_id, status').eq('id', user.id).single();
-    if (profileError) throw new RecognizedSalesReadError('Unable to verify actor', profileError.code === 'PGRST116' ? 403 : 503);
+    if (profileError) throw new RecognizedSalesReadError('Unable to verify actor', ['PGRST116', '42501'].includes(profileError.code) ? 403 : 503);
     if (!profile?.tenant_id || profile.status !== 'active') {
       throw new RecognizedSalesReadError('Active tenant identity required', 403);
     }
     const { data: tenant, error: tenantError } = await supabase.from('tenants')
       .select('id, status').eq('id', profile.tenant_id).single();
-    if (tenantError) throw new RecognizedSalesReadError('Unable to verify tenant', tenantError.code === 'PGRST116' ? 403 : 503);
+    if (tenantError) throw new RecognizedSalesReadError('Unable to verify tenant', ['PGRST116', '42501'].includes(tenantError.code) ? 403 : 503);
     if (!tenant || tenant.status !== 'active') {
       throw new RecognizedSalesReadError('Active tenant required', 403);
     }

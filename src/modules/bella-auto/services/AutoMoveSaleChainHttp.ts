@@ -75,6 +75,9 @@ export async function saleChainHttp(request: Request, action: SaleChainAction): 
     if (error instanceof VehicleSaleRecognitionError) {
       return Response.json({ error: error.message, code: error.code }, { status: error.httpStatus });
     }
+    if (error && typeof error === 'object' && 'code' in error && error.code === '42501') {
+      return Response.json({ error: 'Access to this sale is denied.', code: 'SALE_ACCESS_DENIED' }, { status: 403 });
+    }
     if (error instanceof SyntaxError) return Response.json({ error: 'Invalid JSON' }, { status: 400 });
     return Response.json({ error: 'AutoMove sale-chain operation failed.' }, { status: 500 });
   } finally { if (db) await db.end(); }

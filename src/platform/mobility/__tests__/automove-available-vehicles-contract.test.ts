@@ -56,7 +56,10 @@ describe('AutoMove inventory provider Mobility contract usage', () => {
     );
     const source = readFileSync(pagePath, 'utf8');
 
-    expect(source).toContain("from '@/core/hooks/useTenantContext'");
+    expect(source).toContain("from '@/services/user-actions'");
+    expect(source).toContain('await getCurrentUser()');
+    expect(source).toContain('tenantId: user.tenant_id');
+    expect(source).not.toContain("from '@/core/hooks/useTenantContext'");
     expect(source).toContain("from '@/platform/mobility/supabase-vehicle-contract'");
     expect(source).toContain('listMobilityVehicleInventory');
     expect(source).not.toContain('import { AutoInventoryProvider');

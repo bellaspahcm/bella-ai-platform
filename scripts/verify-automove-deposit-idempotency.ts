@@ -52,7 +52,8 @@ async function verify() {
   await rejected(() => confirmBookingDeposit(db, actor, secondBook, firstKey, payload), 'DEPOSIT_IDEMPOTENCY_CONFLICT');
   await rejected(() => confirmBookingDeposit(db, actor, foreignBook, randomUUID(), payload), 'BOOKING_NOT_FOUND');
   await context(inactive);
-  await rejected(() => confirmBookingDeposit(db, inactive, book, randomUUID(), payload), 'ACTOR_NOT_AUTHORIZED');
+  // Canonical identity now rejects the SQL lookup before service authorization.
+  await rejected(() => confirmBookingDeposit(db, inactive, book, randomUUID(), payload), '42501');
   await context(actor);
   await confirmBookingDeposit(db, actor, book, randomUUID(), payload);
   const laterReplay = await confirmBookingDeposit(db, actor, book, firstKey, payload);

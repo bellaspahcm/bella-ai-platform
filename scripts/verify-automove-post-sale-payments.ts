@@ -88,8 +88,10 @@ async function verify() {
   for (const user of [other, inactive, wrongRole]) {
     await context(user);
     const deniedService = new AutoMoveSalePaymentService(db, user);
-    await denied(() => deniedService.collect(booking, randomUUID(), intent), user === other ? 'PAYMENT_BOOKING_NOT_FOUND' : 'PAYMENT_FORBIDDEN');
-    assert.equal((await db.query('select id from public.auto_vehicle_sale_payments where tenant_id=$1', [tenant])).rows.length, 0);
+    await denied(() => deniedService.collect(booking, randomUUID(), intent), user === inactive ? '42501' : user === other ? 'PAYMENT_BOOKING_NOT_FOUND' : 'PAYMENT_FORBIDDEN');
+    const read = () => db.query('select id from public.auto_vehicle_sale_payments where tenant_id=$1', [tenant]);
+    if (user === inactive) await denied(read, '42501');
+    else assert.equal((await read()).rows.length, 0);
   }
   await context('', 'anon'); await denied(() => db.query('select * from public.auto_vehicle_sale_payments'), '42501');
   await context(actor);
