@@ -109,6 +109,10 @@ bypass. Local screenshots/logs and unrelated AGENTS.md changes are not committed
 PR/CI on remote and main seal remain pending; local Browser proof must not be
 reported as Browser CI on main. No merge or automatic application deployment is
 authorized in this batch. #339 remains sealed without rewriting prior evidence.
+Initial PR #340 Core Freeze failed because its machine-readable approval binding
+was missing. ACR-2026-019 records the existing owner approval for exactly
+src/core/services/accounting/period-guards.ts and PR #340; no guard was weakened
+and no additional Core/runtime scope was introduced.
 
 `ADJUSTMENT_REVERSAL = PROVEN_ON_E2E_PENDING_PR_CI`
 `MAIN_SEAL = NOT_PERFORMED`
