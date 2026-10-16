@@ -12,9 +12,11 @@ five appointment UI queries, two repair-order service queries and one reminder
 update. Main already contains the RLS repair migration from PR #300. This batch
 adds missing consumer predicates and preserves that migration unchanged.
 
-Recovered Phase 6 fixtures replace six stale date literals with current dates,
-matching number generators that count current-date records. This is fixture
-alignment, not proof that those database tests currently pass.
+Phase 6 fixtures use current dates matching number generators, reject null/error
+RPC results, and update the real service-history description field. The RLS test
+now uses an authenticated JWT and verifies persisted data stays unchanged after
+a valid-column mutation attempt. Fixture IDs are generated per run; teardown is
+limited to owned IDs and their tenant. Existing vehicle and tenant are read only.
 
 ## Executed local verification
 
@@ -26,10 +28,12 @@ alignment, not proof that those database tests currently pass.
 | `npm run arch:guard` | PASS, frozen artifacts and dependency boundaries |
 | `git diff --check` | PASS |
 | Strict TypeScript including only the two new test entrypoints | PASS |
-| Strict TypeScript including new tests and existing Phase 6 DB test | 8 diagnostics, identical messages to main after normalizing line numbers; zero new diagnostics |
+| `node node_modules/typescript/bin/tsc -p tsconfig.auto-workshop-tests.json --pretty false` | PASS, 0 diagnostics including the complete Phase 6 suite |
 
-The 8 pre-existing Phase 6 diagnostics concern nullable RPC number results and
-an excess `work_description` update property. They are not fixed in this scope.
+All 8 previously reported Phase 6 diagnostics are resolved without casts,
+suppressions, generated-type edits or schema changes. Number-generation failure
+now stops before insert; the history test no longer treats a missing column or
+missing row as immutability proof. PostgREST query failures throw at their source.
 The root application tsconfig excludes test files; its full result is recorded
 in the final verification section below, separately from test-entrypoint checks.
 
@@ -38,9 +42,16 @@ They do not prove RLS, authorization, DB persistence or browser behavior.
 
 ## Evidence limits
 
-- Real DB Phase 6: NOT_RUN / NOT_PROVEN. The existing teardown deletes by tenant
-  across workshop tables; an isolated target has not been established here.
-- Current target RLS / grants: NOT_PROVEN. No database probe or deployment ran.
+- Real DB Phase 6: BLOCKED_SCHEMA_DRIFT. Canonical E2E run exposed 7 failures / 12
+  passes because migration `20260804360000` has not been applied to that database.
+  Missing `scheduled_date` is the first appointment error; repair-order denormalized
+  fields are also absent. No passing RLS claim is made from this failed run.
+- The final suite preflights those columns before fixture writes and rejects any
+  target other than canonical E2E. `.env.test` was verified to point to production
+  and was not used. The test cannot become green by substituting production.
+- Current metadata/policy inspection was read only. No schema deployment ran.
+- The existing migration has no matching approval record in the E2E BDGF registry;
+  see `AUTO_WORKSHOP_E2E_SCHEMA_REPAIR_PLAN_2026_10_16.md` for the remaining boundary.
 - Browser E2E / production / Go-Live: NOT_PROVEN.
 - Existing October 13 NOT_READY closure in the source checkout is historical;
   it must not be presented as current database state.

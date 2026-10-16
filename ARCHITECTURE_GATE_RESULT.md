@@ -1,3 +1,30 @@
+# PR #344 Follow-up Gate - Phase 6 Test Contract Repair (2026-10-16)
+
+Status: PASS for the user's request to fix all PR errors, including the previously
+deferred Phase 6 diagnostics. The eight sections in the recovery gate below still
+apply, with this scoped extension:
+
+- Manifest/ownership: existing workshop QA fixtures only, owned by AutoMove QA.
+- Truth: number RPC results are nullable on failure; reject error/null before
+  insertion. `auto_service_history.service_description` is the canonical field.
+- Independent semantic authority: `docs/bella-auto/DATABASE_SCHEMA_DOCUMENTATION.md`
+  declares service history append-only, with no UPDATE/DELETE. The schema and
+  `20261013120000_create_mobility_os_foundation_contract.sql` provide read/tenant
+  contracts. A service-role attempt with a nonexistent field does not prove RLS.
+- Contract: authenticated JWT -> same-tenant history read -> update denied or zero
+  affected rows -> privileged observer verifies the persisted description unchanged.
+- Authority: repair test narrowing, real field selection, fixture ownership/cleanup,
+  focused test config and evidence. No application behavior/schema/RLS changes.
+- UI reconciliation: no additional UI change. Migration plan: none.
+- Positive/negative test contract: inserted history must be readable by the owning
+  tenant; a valid-column UPDATE must leave it unchanged. Missing history cannot skip
+  the assertion. Existing vehicle/tenant are read only; all created rows are tracked
+  by test-generated IDs and cleanup is limited to those IDs and the same tenant.
+- Verification: preserve the previous 11 gates; strict-check the complete Phase 6
+  suite, run it only on verified canonical E2E, and retain DB/RLS failures as failures.
+
+---
+
 # Architecture Gate - Recover Auto Workshop Tenant Filters (2026-10-16)
 
 Status: PASS for scoped local recovery; execution evidence is recorded separately.
