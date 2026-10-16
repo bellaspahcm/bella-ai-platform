@@ -199,7 +199,8 @@ export default function WorkshopPage() {
       const { error } = await supabase
         .from('auto_service_appointments')
         .update({ status: 'checked_in' })
-        .eq('id', appointmentId);
+        .eq('id', appointmentId)
+        .eq('tenant_id', tenantId);
 
       if (error) throw error;
       toast.success('Đã check-in xe thành công!');
@@ -222,7 +223,8 @@ export default function WorkshopPage() {
       const { error } = await supabase
         .from('auto_service_appointments')
         .update({ status: 'cancelled' })
-        .eq('id', appointmentId);
+        .eq('id', appointmentId)
+        .eq('tenant_id', tenantId);
 
       if (error) throw error;
       toast.success('Đã hủy lịch hẹn thành công!');
@@ -245,6 +247,7 @@ export default function WorkshopPage() {
         .from('auto_service_appointments')
         .select('*')
         .eq('id', appointmentId)
+        .eq('tenant_id', tenantId)
         .single();
         
       if (fetchError || !aptData) {
@@ -284,7 +287,8 @@ export default function WorkshopPage() {
       const { error: aptUpdateError } = await supabase
         .from('auto_service_appointments')
         .update({ status: 'in_progress' })
-        .eq('id', appointmentId);
+        .eq('id', appointmentId)
+        .eq('tenant_id', tenantId);
 
       if (aptUpdateError) throw aptUpdateError;
 
@@ -329,7 +333,8 @@ export default function WorkshopPage() {
           description: updatedData.description,
           estimated_duration_hours: updatedData.estimatedDuration,
         })
-        .eq('id', appointmentId);
+        .eq('id', appointmentId)
+        .eq('tenant_id', tenantId);
 
       if (error) throw error;
       toast.success('Đã cập nhật/dời lịch hẹn thành công!');

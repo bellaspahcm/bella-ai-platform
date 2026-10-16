@@ -1,3 +1,113 @@
+# PR #344 Execution Follow-up - Adopt Main BDGF Connection Contract
+
+Status: PASS for adopting main's BDGF connection contract from PR #343 when
+resolving the PR #344 conflict. The initial E2E execution investigation identified
+an old parser excluding reserved password characters; main independently repaired
+it through createBdgfDatabaseConfig with verified TLS and executor identity checks.
+
+Truth/contract: PostgreSQL connection URIs percent-encode reserved password
+characters. Main's createBdgfDatabaseConfig owns parsing/TLS, and
+assertExecutionIdentity owns executor-role verification. Owner: BDGF scripts.
+Resolve by reusing these implementations unchanged, not retaining duplicate parser
+logic. Preserve the approval/hash/environment/token boundaries and main regressions.
+No gate invariant, signing rule, authority matrix, credential or frozen spec change.
+UI/migration plan: only the explicitly approved existing E2E workshop migration
+and its normal ledger bookkeeping. No direct executor SQL or secret persistence.
+
+---
+
+# PR #344 Follow-up Gate - Phase 6 Test Contract Repair (2026-10-16)
+
+Status: PASS for the user's request to fix all PR errors, including the previously
+deferred Phase 6 diagnostics. The eight sections in the recovery gate below still
+apply, with this scoped extension:
+
+- Manifest/ownership: existing workshop QA fixtures only, owned by AutoMove QA.
+- Truth: number RPC results are nullable on failure; reject error/null before
+  insertion. `auto_service_history.service_description` is the canonical field.
+- Independent semantic authority: `docs/bella-auto/DATABASE_SCHEMA_DOCUMENTATION.md`
+  declares service history append-only, with no UPDATE/DELETE. The schema and
+  `20261013120000_create_mobility_os_foundation_contract.sql` provide read/tenant
+  contracts. A service-role attempt with a nonexistent field does not prove RLS.
+- Contract: authenticated JWT -> same-tenant history read -> update denied or zero
+  affected rows -> privileged observer verifies the persisted description unchanged.
+- Authority: repair test narrowing, real field selection, fixture ownership/cleanup,
+  focused test config and evidence. No application behavior/schema/RLS changes.
+- UI reconciliation: no additional UI change. Migration plan: none.
+- Positive/negative test contract: inserted history must be readable by the owning
+  tenant; a valid-column UPDATE must leave it unchanged. Missing history cannot skip
+  the assertion. Existing vehicle/tenant are read only; all created rows are tracked
+  by test-generated IDs and cleanup is limited to those IDs and the same tenant.
+- Verification: preserve the previous 11 gates; strict-check the complete Phase 6
+  suite, run it only on verified canonical E2E, and retain DB/RLS failures as failures.
+
+---
+
+# Architecture Gate - Recover Auto Workshop Tenant Filters (2026-10-16)
+
+Status: PASS for scoped local recovery; execution evidence is recorded separately.
+Base: origin/main 5483cc55e. Source checkout: f6ed9cec7, dirty Manufacturing branch.
+
+## 1. Bella OS/Product Development Process Gate
+Problem: security filters and regression evidence were left only in the old checkout.
+Truth/source: Bella Constitution sections 30/31 require tenant isolation; existing
+workshop policies and migration 20261013090000 enforce the database boundary.
+Reuse main's RLS migration unchanged. Recover only missing consumer filters.
+No business lifecycle or accounting meaning changes. MULTI_AGENT = OFF.
+
+## 2. Product Manifest
+Bella Auto/AutoMove workshop appointments and repair orders. Existing capability
+only: check-in, cancel, reschedule, repair handoff, technician assignment, totals,
+and reminders. No new Product, OS, registry entry, finance or Manufacturing work.
+
+## 3. Ownership Map
+Workshop tables/UI/services: Bella Auto Product. Tenant identity/RLS: Platform
+security, consume unchanged. Tests: Product QA. No kernel/Core changes authorized.
+
+## 4. Contract Dependency Map
+Workshop UI/services -> existing Supabase Product table access -> tenant_id
+predicate plus existing authenticated get_auth_tenant_id() RLS policy.
+No Healthcare/Education/Logistics kernel dependency or direct access.
+
+## 5. Change Authority
+User authorized separating missing changes from dirty checkout into fresh worktrees
+and verification. Allowed: three workshop consumer files, focused regression tests,
+Phase 6 fixture dates, this gate and evidence. No DB deployment or migration edits.
+
+## 6. UI -> Contract Reconciliation
+Check-in/cancel/reschedule/repair handoff: MATCH for existing fields/statuses;
+STALE UI for omitted tenant predicate. Add tenant_id to the existing query only.
+No visual redesign, new actions, permissions or business state transitions.
+
+## 7. Additive Migration Plan
+None. Existing RLS migration is already on main with a safer guarded COMMENT.
+Do not copy the untracked older migration or stale NOT_READY closure as current.
+
+## Business Test Contract
+Invariant: reads/mutations for an object ID also carry the caller tenant context.
+Authority: Constitution tenant-isolation invariant and existing workshop policy.
+Positive: authorized same-tenant query retains its existing operation and ID.
+Negative: an ID alone must never be sufficient for the eight recovered queries.
+Persistence: existing RLS remains the enforcement boundary; mocks/static evidence
+are local consumer proof only. DB/RLS/browser/production remain NOT_PROVEN here.
+Fixture date authority: phase6 number generators count rows for CURRENT_DATE;
+fixtures must use the current date, not the old 2026-08-09 literal.
+
+## 8. Eleven Automated Verification Gates Plan
+1. Record base/branch/worktree and original checkout fingerprints.
+2. Confirm only three Product consumers and focused tests change.
+3. Static regression covers each affected query without crossing statements.
+4. Service execution tests observe ID and tenant predicates on calls.
+5. Existing RLS migration remains unchanged.
+6. No new any/types/suppressions or public contracts.
+7. Focused Jest tests and negative control on unmodified main sources.
+8. Targeted ESLint.
+9. Fresh TypeScript check; classify pre-existing failures separately.
+10. Architecture guard and diff whitespace checks.
+11. Evidence report with exact commands; Real DB tests require isolated target.
+
+---
+
 # PR #345 Follow-up Gate - Runtime Fixture Contract Repair (2026-10-16)
 
 Status: PASS for the user's request to fix all PR errors, including the previously

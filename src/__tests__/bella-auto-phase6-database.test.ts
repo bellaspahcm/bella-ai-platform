@@ -6,51 +6,120 @@
 import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
 import { createClient } from '@supabase/supabase-js';
 import { Database } from '@/types/database.types';
+import { randomUUID } from 'node:crypto';
+import { generateTenantJWT } from '../../tests/utils/test-jwt-helper';
+
+function requireGeneratedNumber(result: { data: string | null; error: { message: string } | null }): string {
+  if (result.error) throw new Error(result.error.message);
+  if (!result.data) throw new Error('Number generator returned no value');
+  return result.data;
+}
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY!;
 
 describe('Bella Auto Phase 6 - Service Center & Workshop', () => {
   let supabase: ReturnType<typeof createClient<Database>>;
-  const testTenantId = 'da9e610b-88c5-4901-8ab9-5439f4931467'; // Valid UUID for test tenant
+  let testTenantId: string;
+  let testVehicleVin: string;
+  let testActorId: string;
+  const ownedIds = {
+    customers: [] as string[],
+    auto_service_appointments: [] as string[],
+    auto_repair_orders: [] as string[],
+    auto_service_history: [] as string[],
+    auto_warranty_claims: [] as string[],
+    auto_technician_time_logs: [] as string[],
+  };
+  function ownId(table: keyof typeof ownedIds): string {
+    const id = randomUUID();
+    ownedIds[table].push(id);
+    return id;
+  }
   let testCustomerId: string;
   let testVehicleId: string;
 
   beforeAll(async () => {
     jest.setTimeout(60000);
+    if (new URL(supabaseUrl).hostname !== 'bmnbqbcdbuklhopfbopv.supabase.co') {
+      throw new Error('Phase 6 write tests require the canonical isolated E2E project');
+    }
     supabase = createClient<Database>(supabaseUrl, supabaseKey);
 
-    // Create test customer
-    const { data: customer } = await supabase
+    if (!process.env.SUPABASE_JWT_SECRET) {
+      throw new Error('Phase 6 RLS test requires the E2E JWT secret');
+    }
+    const preflights = await Promise.all([
+      supabase.from('auto_service_appointments').select('scheduled_date, vehicle_info').limit(0),
+      supabase.from('auto_repair_orders').select('customer_name, vehicle_info').limit(0),
+    ]);
+    const preflightError = preflights.find(result => result.error)?.error;
+    if (preflightError) {
+      if (['42703', 'PGRST204'].includes(preflightError.code)) {
+        throw new Error('SCHEMA_DRIFT_E2E: verify existing migration 20260804360000_migrate_workshop_schema.sql before Phase 6 writes');
+      }
+      throw new Error(`Phase 6 schema preflight failed: ${preflightError.message}`);
+    }
+    // Resolve the complete active identity/tenant/vehicle tuple before any writes.
+    // Other E2E jobs may create active tenants that have no canonical Auth user.
+    const { data: vehicles } = await supabase.from('auto_vehicles')
+      .select('id, tenant_id, vin, tenants!inner(status)')
+      .eq('tenants.status', 'active').order('id').throwOnError();
+    const tenantIds = [...new Set((vehicles || []).map(vehicle => vehicle.tenant_id))];
+    if (!tenantIds.length) throw new Error('Missing active E2E workshop vehicle fixture');
+    const { data: actors } = await supabase.from('users')
+      .select('id, tenant_id, tenants!inner(status)')
+      .eq('status', 'active').eq('tenants.status', 'active').in('tenant_id', tenantIds)
+      .order('created_at')
+      .throwOnError();
+    for (const actor of actors || []) {
+      if (!actor.tenant_id) continue;
+      const { data, error } = await supabase.auth.admin.getUserById(actor.id);
+      if (error || !data.user) continue;
+      const vehicle = vehicles.find(candidate => candidate.tenant_id === actor.tenant_id);
+      if (!vehicle) continue;
+      testActorId = actor.id;
+      testTenantId = vehicle.tenant_id;
+      testVehicleId = vehicle.id;
+      testVehicleVin = vehicle.vin;
+      break;
+    }
+    if (!testActorId) throw new Error('Missing active auth-backed E2E workshop identity/vehicle tuple');
+
+    const { data: customer, error: customerError } = await supabase
       .from('customers')
       .insert({
+        id: ownId('customers'),
         tenant_id: testTenantId,
         name_mother: 'Test Customer Phase 6 DB',
         phone: '09' + Math.floor(10000000 + Math.random() * 90000000).toString(),
-      })
-      .select()
-      .single();
-    testCustomerId = customer!.id;
-
-    // Query an existing vehicle to bypass complex variant foreign keys
-    const { data: vehicle } = await supabase
-      .from('auto_vehicles')
-      .select('id')
-      .limit(1)
-      .single();
-    testVehicleId = vehicle!.id;
-  });
+      }).select().single().throwOnError();
+    if (customerError || !customer) throw new Error('Unable to create owned customer fixture');
+    testCustomerId = customer.id;
+  }, 60000);
 
   afterAll(async () => {
-    // Cleanup test data
-    await supabase.from('auto_technician_time_logs').delete().eq('tenant_id', testTenantId);
-    await supabase.from('auto_warranty_claims').delete().eq('tenant_id', testTenantId);
-    await supabase.from('auto_service_history').delete().eq('tenant_id', testTenantId);
-    await supabase.from('auto_repair_order_items').delete().eq('tenant_id', testTenantId);
-    await supabase.from('auto_repair_orders').delete().eq('tenant_id', testTenantId);
-    await supabase.from('auto_service_appointments').delete().eq('tenant_id', testTenantId);
-    await supabase.from('customers').delete().eq('id', testCustomerId);
-  }, 30000); // Increase timeout to 30s for cleanup
+    if (!supabase || !testTenantId) return;
+    const errors: string[] = [];
+    for (const table of ['auto_technician_time_logs', 'auto_warranty_claims', 'auto_service_history'] as const) {
+      if (!ownedIds[table].length) continue;
+      const { error } = await supabase.from(table).delete()
+        .eq('tenant_id', testTenantId).in('id', ownedIds[table]);
+      if (error) errors.push(error.message);
+    }
+    if (ownedIds.auto_repair_orders.length) {
+      const { error } = await supabase.from('auto_repair_order_items').delete()
+        .eq('tenant_id', testTenantId).in('repair_order_id', ownedIds.auto_repair_orders);
+      if (error) errors.push(error.message);
+    }
+    for (const table of ['auto_repair_orders', 'auto_service_appointments', 'customers'] as const) {
+      if (!ownedIds[table].length) continue;
+      const { error } = await supabase.from(table).delete()
+        .eq('tenant_id', testTenantId).in('id', ownedIds[table]);
+      if (error) errors.push(error.message);
+    }
+    if (errors.length) throw new Error('Owned fixture cleanup failed: ' + errors.join('; '));
+  }, 30000);
 
   describe('Schema Validation', () => {
     it('should have auto_service_packages table', async () => {
@@ -156,10 +225,11 @@ describe('Bella Auto Phase 6 - Service Center & Workshop', () => {
   describe('Service Appointment Lifecycle', () => {
     it('should create service appointment with unique number', async () => {
       const todayDateStr = new Date().toISOString().split('T')[0];
-      const { data: aptNumber } = await supabase
-        .rpc('generate_appointment_number', { p_tenant_id: testTenantId });
+      const aptNumber = requireGeneratedNumber(await supabase
+        .rpc('generate_appointment_number', { p_tenant_id: testTenantId }));
 
       const appointment = {
+        id: ownId('auto_service_appointments'),
         tenant_id: testTenantId,
         appointment_number: aptNumber,
         customer_id: testCustomerId,
@@ -177,7 +247,7 @@ describe('Bella Auto Phase 6 - Service Center & Workshop', () => {
         .from('auto_service_appointments')
         .insert(appointment)
         .select()
-        .single();
+        .single().throwOnError();
 
       expect(error).toBeNull();
       expect(data).toBeDefined();
@@ -187,12 +257,13 @@ describe('Bella Auto Phase 6 - Service Center & Workshop', () => {
 
     it('should transition appointment status: pending -> confirmed -> checked_in', async () => {
       const todayDateStr = new Date().toISOString().split('T')[0];
-      const { data: aptNumber } = await supabase
-        .rpc('generate_appointment_number', { p_tenant_id: testTenantId });
+      const aptNumber = requireGeneratedNumber(await supabase
+        .rpc('generate_appointment_number', { p_tenant_id: testTenantId }));
 
       const { data: apt, error: aptErr } = await supabase
         .from('auto_service_appointments')
         .insert({
+          id: ownId('auto_service_appointments'),
           tenant_id: testTenantId,
           appointment_number: aptNumber,
           customer_id: testCustomerId,
@@ -206,7 +277,7 @@ describe('Bella Auto Phase 6 - Service Center & Workshop', () => {
           status: 'pending',
         })
         .select()
-        .single();
+        .single().throwOnError();
 
       if (aptErr) {
         console.error('Apt Insert Error:', aptErr);
@@ -216,9 +287,9 @@ describe('Bella Auto Phase 6 - Service Center & Workshop', () => {
       const { data: confirmed } = await supabase
         .from('auto_service_appointments')
         .update({ status: 'confirmed', confirmed_at: new Date().toISOString() })
-        .eq('id', apt!.id)
+        .eq('id', apt.id)
         .select()
-        .single();
+        .single().throwOnError();
 
       expect(confirmed?.status).toBe('confirmed');
 
@@ -229,9 +300,9 @@ describe('Bella Auto Phase 6 - Service Center & Workshop', () => {
           status: 'checked_in',
           checked_in_at: new Date().toISOString(),
         })
-        .eq('id', apt!.id)
+        .eq('id', apt.id)
         .select()
-        .single();
+        .single().throwOnError();
 
       if (checkinErr) {
         console.error('Check-in Error:', checkinErr);
@@ -243,17 +314,19 @@ describe('Bella Auto Phase 6 - Service Center & Workshop', () => {
 
   describe('Repair Order Management', () => {
     it('should create repair order with line items', async () => {
-      const { data: roNumber } = await supabase
-        .rpc('generate_repair_order_number', { p_tenant_id: testTenantId });
+      const todayDateStr = new Date().toISOString().split('T')[0];
+      const roNumber = requireGeneratedNumber(await supabase
+        .rpc('generate_repair_order_number', { p_tenant_id: testTenantId }));
 
       const { data: repairOrder } = await supabase
         .from('auto_repair_orders')
         .insert({
+          id: ownId('auto_repair_orders'),
           tenant_id: testTenantId,
           order_number: roNumber,
           customer_id: testCustomerId,
           vehicle_id: testVehicleId,
-          order_date: '2026-08-09',
+          order_date: todayDateStr,
           order_type: 'Sửa chữa',
           work_description: 'Thay dầu động cơ',
           mileage_in: 50000,
@@ -262,7 +335,7 @@ describe('Bella Auto Phase 6 - Service Center & Workshop', () => {
           status: 'open',
         })
         .select()
-        .single();
+        .single().throwOnError();
 
       expect(repairOrder).toBeDefined();
       expect(repairOrder?.status).toBe('open');
@@ -273,7 +346,7 @@ describe('Bella Auto Phase 6 - Service Center & Workshop', () => {
         .insert([
           {
             tenant_id: testTenantId,
-            repair_order_id: repairOrder!.id,
+            repair_order_id: repairOrder.id,
             item_type: 'part',
             item_name: 'Dầu động cơ 5W-30',
             quantity: 4,
@@ -282,7 +355,7 @@ describe('Bella Auto Phase 6 - Service Center & Workshop', () => {
           },
           {
             tenant_id: testTenantId,
-            repair_order_id: repairOrder!.id,
+            repair_order_id: repairOrder.id,
             item_type: 'labor',
             item_name: 'Công thay dầu',
             quantity: 1,
@@ -298,17 +371,19 @@ describe('Bella Auto Phase 6 - Service Center & Workshop', () => {
     });
 
     it('should auto-calculate line item totals', async () => {
-      const { data: roNumber } = await supabase
-        .rpc('generate_repair_order_number', { p_tenant_id: testTenantId });
+      const todayDateStr = new Date().toISOString().split('T')[0];
+      const roNumber = requireGeneratedNumber(await supabase
+        .rpc('generate_repair_order_number', { p_tenant_id: testTenantId }));
 
       const { data: repairOrder } = await supabase
         .from('auto_repair_orders')
         .insert({
+          id: ownId('auto_repair_orders'),
           tenant_id: testTenantId,
           order_number: roNumber,
           customer_id: testCustomerId,
           vehicle_id: testVehicleId,
-          order_date: '2026-08-09',
+          order_date: todayDateStr,
           order_type: 'Test',
           work_description: 'Test',
           mileage_in: 50000,
@@ -317,13 +392,13 @@ describe('Bella Auto Phase 6 - Service Center & Workshop', () => {
           status: 'open',
         })
         .select()
-        .single();
+        .single().throwOnError();
 
       const { data: lineItem } = await supabase
         .from('auto_repair_order_items')
         .insert({
           tenant_id: testTenantId,
-          repair_order_id: repairOrder!.id,
+          repair_order_id: repairOrder.id,
           item_type: 'part',
           item_name: 'Test Part',
           quantity: 3,
@@ -332,7 +407,7 @@ describe('Bella Auto Phase 6 - Service Center & Workshop', () => {
           status: 'pending',
         })
         .select()
-        .single();
+        .single().throwOnError();
 
       // total_amount should be auto-calculated: (3 * 100000) * (1 - 0.1) = 270000
       expect(Number(lineItem?.total_amount)).toBe(270000);
@@ -341,17 +416,19 @@ describe('Bella Auto Phase 6 - Service Center & Workshop', () => {
 
   describe('Service History (Immutable)', () => {
     it('should create immutable service history record', async () => {
-      const { data: roNumber } = await supabase
-        .rpc('generate_repair_order_number', { p_tenant_id: testTenantId });
+      const todayDateStr = new Date().toISOString().split('T')[0];
+      const roNumber = requireGeneratedNumber(await supabase
+        .rpc('generate_repair_order_number', { p_tenant_id: testTenantId }));
 
       const { data: repairOrder } = await supabase
         .from('auto_repair_orders')
         .insert({
+          id: ownId('auto_repair_orders'),
           tenant_id: testTenantId,
           order_number: roNumber,
           customer_id: testCustomerId,
           vehicle_id: testVehicleId,
-          order_date: '2026-08-09',
+          order_date: todayDateStr,
           order_type: 'Bảo dưỡng',
           work_description: 'Test maintenance',
           mileage_in: 60000,
@@ -360,26 +437,27 @@ describe('Bella Auto Phase 6 - Service Center & Workshop', () => {
           status: 'completed',
         })
         .select()
-        .single();
+        .single().throwOnError();
 
       const { data: history, error: historyErr } = await supabase
         .from('auto_service_history')
         .insert({
+          id: ownId('auto_service_history'),
           tenant_id: testTenantId,
-          vin: 'TEST-VIN-123456',
-          vehicle_id: repairOrder!.vehicle_id,
-          repair_order_id: repairOrder!.id,
-          service_date: repairOrder!.order_date,
-          service_type: repairOrder!.order_type,
-          mileage: repairOrder!.mileage_in || 60000,
-          service_description: repairOrder!.work_description || 'Test maintenance',
+          vin: testVehicleVin,
+          vehicle_id: repairOrder.vehicle_id,
+          repair_order_id: repairOrder.id,
+          service_date: repairOrder.order_date,
+          service_type: repairOrder.order_type,
+          mileage: repairOrder.mileage_in || 60000,
+          service_description: repairOrder.work_description || 'Test maintenance',
           services_performed: ['Bảo dưỡng định kỳ'],
           recorded_at: new Date().toISOString(),
-          recorded_by: testCustomerId,
+          recorded_by: testActorId,
           is_locked: true,
         })
         .select()
-        .single();
+        .single().throwOnError();
 
       if (historyErr) {
         console.error('History Insert Error:', historyErr);
@@ -387,43 +465,55 @@ describe('Bella Auto Phase 6 - Service Center & Workshop', () => {
 
       expect(history).toBeDefined();
       expect(history?.is_locked).toBe(true);
-      expect(history?.vin).toBe('TEST-VIN-123456');
+      expect(history?.vin).toBe(testVehicleVin);
     });
 
     it('should prevent UPDATE on locked service history (RLS)', async () => {
-      // This test verifies RLS policy blocks updates
-      const { data: history } = await supabase
-        .from('auto_service_history')
-        .select('*')
-        .eq('is_locked', true)
-        .limit(1)
-        .single();
+      const historyId = ownedIds.auto_service_history[0];
+      if (!historyId) throw new Error('Owned locked-history fixture was not created');
+      const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+      if (!anonKey) throw new Error('Phase 6 RLS test requires the E2E anon key');
+      const token = generateTenantJWT({ tenantId: testTenantId, userId: testActorId });
+      const authenticated = createClient<Database>(supabaseUrl, anonKey, {
+        global: { headers: { Authorization: `Bearer ${token}` } },
+      });
+      const { data: before, error: readError } = await authenticated
+        .from('auto_service_history').select('service_description, is_locked')
+        .eq('tenant_id', testTenantId).eq('id', historyId).single().throwOnError();
+      expect(readError).toBeNull();
+      expect(before?.is_locked).toBe(true);
+      expect(before?.service_description).toBeTruthy();
 
-      if (history) {
-        const { error } = await supabase
-          .from('auto_service_history')
-          .update({ work_description: 'Modified' })
-          .eq('id', history.id);
+      const { data: updated, error } = await authenticated
+        .from('auto_service_history').update({ service_description: 'Modified' })
+        .eq('tenant_id', testTenantId).eq('id', historyId).select('id');
+      // PostgreSQL may deny the table privilege or silently hide rows via RLS.
+      if (error) expect(error.code).toBe('42501');
+      else expect(updated).toEqual([]);
 
-        // Should be blocked by RLS
-        expect(error).toBeDefined();
-      }
+      const { data: after, error: verifyError } = await supabase
+        .from('auto_service_history').select('service_description, is_locked')
+        .eq('tenant_id', testTenantId).eq('id', historyId).single().throwOnError();
+      expect(verifyError).toBeNull();
+      expect(after).toEqual(before);
     });
   });
 
   describe('Warranty Claims Workflow', () => {
     it('should create warranty claim with unique number', async () => {
-      const { data: claimNumber } = await supabase
-        .rpc('generate_warranty_claim_number', { p_tenant_id: testTenantId });
+      const todayDateStr = new Date().toISOString().split('T')[0];
+      const claimNumber = requireGeneratedNumber(await supabase
+        .rpc('generate_warranty_claim_number', { p_tenant_id: testTenantId }));
 
       const { data: claim } = await supabase
         .from('auto_warranty_claims')
         .insert({
+          id: ownId('auto_warranty_claims'),
           tenant_id: testTenantId,
           claim_number: claimNumber,
           customer_id: testCustomerId,
           vehicle_id: testVehicleId,
-          claim_date: '2026-08-09',
+          claim_date: todayDateStr,
           claim_type: 'Engine',
           issue_description: 'Test warranty claim',
           failure_date: '2026-08-01',
@@ -431,7 +521,7 @@ describe('Bella Auto Phase 6 - Service Center & Workshop', () => {
           status: 'submitted',
         })
         .select()
-        .single();
+        .single().throwOnError();
 
       expect(claim).toBeDefined();
       expect(claim?.claim_number).toBe(claimNumber);
@@ -439,17 +529,19 @@ describe('Bella Auto Phase 6 - Service Center & Workshop', () => {
     });
 
     it('should transition warranty claim status: submitted -> approved -> completed', async () => {
-      const { data: claimNumber } = await supabase
-        .rpc('generate_warranty_claim_number', { p_tenant_id: testTenantId });
+      const todayDateStr = new Date().toISOString().split('T')[0];
+      const claimNumber = requireGeneratedNumber(await supabase
+        .rpc('generate_warranty_claim_number', { p_tenant_id: testTenantId }));
 
       const { data: claim } = await supabase
         .from('auto_warranty_claims')
         .insert({
+          id: ownId('auto_warranty_claims'),
           tenant_id: testTenantId,
           claim_number: claimNumber,
           customer_id: testCustomerId,
           vehicle_id: testVehicleId,
-          claim_date: '2026-08-09',
+          claim_date: todayDateStr,
           claim_type: 'Test',
           issue_description: 'Test',
           failure_date: '2026-08-01',
@@ -457,7 +549,7 @@ describe('Bella Auto Phase 6 - Service Center & Workshop', () => {
           status: 'submitted',
         })
         .select()
-        .single();
+        .single().throwOnError();
 
       // Approve
       const { data: approved } = await supabase
@@ -466,9 +558,9 @@ describe('Bella Auto Phase 6 - Service Center & Workshop', () => {
           status: 'approved',
           approved_at: new Date().toISOString(),
         })
-        .eq('id', claim!.id)
+        .eq('id', claim.id)
         .select()
-        .single();
+        .single().throwOnError();
 
       expect(approved?.status).toBe('approved');
 
@@ -480,9 +572,9 @@ describe('Bella Auto Phase 6 - Service Center & Workshop', () => {
           closed_at: new Date().toISOString(),
           total_approved: 5000000,
         })
-        .eq('id', claim!.id)
+        .eq('id', claim.id)
         .select()
-        .single();
+        .single().throwOnError();
 
       if (completeErr) {
         console.error('Complete Claim Error:', completeErr);
@@ -495,17 +587,19 @@ describe('Bella Auto Phase 6 - Service Center & Workshop', () => {
 
   describe('Technician Time Tracking', () => {
     it('should create time log and auto-calculate hours', async () => {
-      const { data: roNumber } = await supabase
-        .rpc('generate_repair_order_number', { p_tenant_id: testTenantId });
+      const todayDateStr = new Date().toISOString().split('T')[0];
+      const roNumber = requireGeneratedNumber(await supabase
+        .rpc('generate_repair_order_number', { p_tenant_id: testTenantId }));
 
       const { data: repairOrder } = await supabase
         .from('auto_repair_orders')
         .insert({
+          id: ownId('auto_repair_orders'),
           tenant_id: testTenantId,
           order_number: roNumber,
           customer_id: testCustomerId,
           vehicle_id: testVehicleId,
-          order_date: '2026-08-09',
+          order_date: todayDateStr,
           order_type: 'Test',
           work_description: 'Test',
           mileage_in: 50000,
@@ -514,7 +608,7 @@ describe('Bella Auto Phase 6 - Service Center & Workshop', () => {
           status: 'in_progress',
         })
         .select()
-        .single();
+        .single().throwOnError();
 
       const clockIn = new Date();
       const clockOut = new Date(clockIn.getTime() + 2 * 60 * 60 * 1000); // 2 hours later
@@ -522,15 +616,16 @@ describe('Bella Auto Phase 6 - Service Center & Workshop', () => {
       const { data: timeLog } = await supabase
         .from('auto_technician_time_logs')
         .insert({
+          id: ownId('auto_technician_time_logs'),
           tenant_id: testTenantId,
-          repair_order_id: repairOrder!.id,
+          repair_order_id: repairOrder.id,
           technician_id: '00000000-0000-0000-0000-000000000003',
           technician_name: 'Test Tech',
           clock_in_time: clockIn.toISOString(),
           clock_out_time: clockOut.toISOString(),
         })
         .select()
-        .single();
+        .single().throwOnError();
 
       expect(timeLog).toBeDefined();
       // hours_worked should be auto-calculated by trigger

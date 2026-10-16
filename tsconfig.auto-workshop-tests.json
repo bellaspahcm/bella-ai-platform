@@ -1,0 +1,10 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": { "incremental": false },
+  "include": [
+    "src/__tests__/bella-auto-phase6-database.test.ts",
+    "src/__tests__/bella-auto-workshop-security.test.ts",
+    "src/__tests__/bella-auto-workshop-tenant-scope.test.ts"
+  ],
+  "exclude": []
+}

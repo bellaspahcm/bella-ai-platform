@@ -586,7 +586,8 @@ export class ServiceAppointmentService {
         reminder_sent: true,
         reminder_sent_at: new Date().toISOString(),
       })
-      .eq('id', appointmentId);
+      .eq('id', appointmentId)
+      .eq('tenant_id', tenantId);
   }
 
   /**

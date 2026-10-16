@@ -276,6 +276,7 @@ export class RepairOrderService {
         .from('auto_repair_orders')
         .select('additional_technicians')
         .eq('id', repairOrderId)
+        .eq('tenant_id', tenantId)
         .single();
 
       const additionalTechs = (currentOrder?.additional_technicians as string[]) || [];
@@ -585,7 +586,8 @@ export class RepairOrderService {
     await supabase
       .from('auto_repair_orders')
       .update(updateData)
-      .eq('id', repairOrderId);
+      .eq('id', repairOrderId)
+      .eq('tenant_id', tenantId);
   }
 
   /**
