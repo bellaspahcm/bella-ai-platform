@@ -60,27 +60,31 @@ describe('Bella Auto Phase 6 - Service Center & Workshop', () => {
       }
       throw new Error(`Phase 6 schema preflight failed: ${preflightError.message}`);
     }
-    // Read an existing vehicle only; all mutations below target newly owned rows.
-    const { data: vehicle, error: vehicleError } = await supabase
-      .from('auto_vehicles').select('id, tenant_id, vin, tenants!inner(status)')
-      .eq('tenants.status', 'active').order('id').limit(1).single().throwOnError();
-    if (vehicleError || !vehicle) throw new Error('Missing E2E vehicle fixture');
-    testVehicleId = vehicle.id;
-    testVehicleVin = vehicle.vin;
-    testTenantId = vehicle.tenant_id;
-    const { data: tenant } = await supabase.from('tenants').select('status')
-      .eq('id', testTenantId).single().throwOnError();
-    if (tenant.status !== 'active') throw new Error('E2E workshop tenant is inactive');
-    const { data: actors } = await supabase.from('users').select('id')
-      .eq('tenant_id', testTenantId).eq('status', 'active');
+    // Resolve the complete active identity/tenant/vehicle tuple before any writes.
+    // Other E2E jobs may create active tenants that have no canonical Auth user.
+    const { data: vehicles } = await supabase.from('auto_vehicles')
+      .select('id, tenant_id, vin, tenants!inner(status)')
+      .eq('tenants.status', 'active').order('id').throwOnError();
+    const tenantIds = [...new Set((vehicles || []).map(vehicle => vehicle.tenant_id))];
+    if (!tenantIds.length) throw new Error('Missing active E2E workshop vehicle fixture');
+    const { data: actors } = await supabase.from('users')
+      .select('id, tenant_id, tenants!inner(status)')
+      .eq('status', 'active').eq('tenants.status', 'active').in('tenant_id', tenantIds)
+      .order('created_at')
+      .throwOnError();
     for (const actor of actors || []) {
+      if (!actor.tenant_id) continue;
       const { data, error } = await supabase.auth.admin.getUserById(actor.id);
-      if (!error && data.user) {
-        testActorId = actor.id;
-        break;
-      }
+      if (error || !data.user) continue;
+      const vehicle = vehicles.find(candidate => candidate.tenant_id === actor.tenant_id);
+      if (!vehicle) continue;
+      testActorId = actor.id;
+      testTenantId = vehicle.tenant_id;
+      testVehicleId = vehicle.id;
+      testVehicleVin = vehicle.vin;
+      break;
     }
-    if (!testActorId) throw new Error('Missing active auth-backed E2E workshop identity');
+    if (!testActorId) throw new Error('Missing active auth-backed E2E workshop identity/vehicle tuple');
 
     const { data: customer, error: customerError } = await supabase
       .from('customers')

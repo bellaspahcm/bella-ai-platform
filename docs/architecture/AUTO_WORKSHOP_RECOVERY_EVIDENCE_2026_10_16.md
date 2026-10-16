@@ -31,6 +31,7 @@ limited to owned IDs and their tenant. Existing vehicle and tenant are read only
 | Strict TypeScript including only the two new test entrypoints | PASS |
 | `node node_modules/typescript/bin/tsc -p tsconfig.auto-workshop-tests.json --pretty false` | PASS, 0 diagnostics including the complete Phase 6 suite |
 | Canonical E2E Phase 6 suite after approved migration | PASS, 19/19, including authenticated history immutability |
+| Post-merge Phase 6 plus workshop regression suites on canonical E2E | PASS, 3 suites / 25 tests |
 | BDGF approval entrypoint regressions | PASS, 19/19 |
 | Main BDGF URI/TLS, identity, execution-path and owner rehearsal regressions | PASS, 65/65 |
 
@@ -79,6 +80,13 @@ Conflict with main `0639dd98f` (PRs #343 and #345) was limited to the shared roo
 architecture-gate header. Both sets of gate records were retained. BDGF scripts
 match main exactly, preserving its verified TLS and executor-identity checks;
 the intermediate local URI parser was discarded before integration.
+
+Concurrent E2E jobs can add active tenants without canonical Auth identities.
+Fixture resolution now filters candidate users to active tenants with vehicles,
+then verifies Auth backing before selecting the complete tuple. It never uses
+the arbitrary first vehicle or provisions a user. The final combined run above
+passed after this correction. Full application typecheck after main integration
+also passed with fresh, non-incremental execution and empty diagnostic output.
 
 Final application typecheck: PASS, exit 0, fresh
 `node node_modules/typescript/bin/tsc --noEmit --incremental false --pretty false`
