@@ -71,6 +71,12 @@ describe('authenticated dashboard recognized sales contract', () => {
     expect(data.revenueByMonth.every(row => row.revenue === 0 && row.sales === 0)).toBe(true);
     expect(data.topModels).toEqual([]);
   });
+  it('removes a fully reversed sale from active counts while preserving the immutable recognition source', async () => {
+    const { client } = clientFixture({ auto_vehicle_sale_recognition_adjustments: [{ id: 'reversal', tenant_id: 'tenant-a', recognition_id: 'sale-a',
+      adjustment_type: 'sale_revenue_reversed', sale_price_delta: '-1500000000', cost_basis_delta: '-1000000000' }] });
+    const data = await FinancialReportingService.getRecognizedSalesDashboard(client, now);
+    expect(data.summary).toEqual({ revenue: 0, sales: 0, averageSalePrice: 0 }); expect(data.topModels).toEqual([]);
+  });
 
   it('uses the UTC recognition period, preserves missing display, and never mixes tenants', async () => {
     const { client } = clientFixture({ auto_vehicles: [], auto_vehicle_sale_recognition_adjustments: [],

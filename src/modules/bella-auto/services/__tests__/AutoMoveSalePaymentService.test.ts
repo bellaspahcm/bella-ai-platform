@@ -85,3 +85,11 @@ it('reconciles confirmed cash refunds separately without changing recognized sal
   f.refunds.push({ source_deposit_id: 'missing', source_payment_id: null, amount: '1' });
   expect(await f.service.state(bookingId)).toMatchObject({ status: 'MISMATCH', issues: ['REFUND_RECEIPT_MISMATCH'], canCollect: false });
 });
+it('reconciles canonical price reduction/reversal as excess cash, without creating a refund or reopening collection', async () => {
+  const f = fixture();
+  f.adjustments.push({ adjustment_type: 'sale_revenue_adjusted', sale_price_delta: '-1350000000', receivable_delta: '-1350000000', refund_amount: '0', metadata: { contract: 'automove-recognition-adjustment-v1' } });
+  expect(await f.service.state(bookingId)).toMatchObject({ status: 'MATCHED', saleAmount: 50000000, totalReceived: 100000000, outstanding: -50000000, canCollect: false });
+  f.adjustments.push({ adjustment_type: 'sale_revenue_reversed', sale_price_delta: '-50000000', receivable_delta: '-50000000', refund_amount: '0', metadata: { contract: 'automove-recognition-adjustment-v1' } });
+  expect(await f.service.state(bookingId)).toMatchObject({ status: 'MATCHED', saleAmount: 0, totalReceived: 100000000, outstanding: -100000000, canCollect: false });
+  expect(f.refunds).toHaveLength(0);
+});

@@ -83,7 +83,7 @@ export function VehicleSalePayments({ bookingId }: { bookingId: string }) {
         <dt>Đã thu sau bán</dt><dd data-testid="settlement-paid">{money(state.postSaleReceived)}</dd>
         <dt>Đã hoàn</dt><dd>{money(state.refundedTotal)}</dd>
         <dt>Thực thu sau hoàn</dt><dd>{money(state.totalReceived)}</dd>
-        <dt>Còn phải thu</dt><dd data-testid="settlement-outstanding">{money(state.outstanding)}</dd>
+        <dt>{state.outstanding < 0 ? 'Thực thu vượt giá trị bán' : 'Còn phải thu'}</dt><dd data-testid="settlement-outstanding">{money(Math.abs(state.outstanding))}</dd>
         <dt>Đối soát receipt nội bộ</dt><dd data-testid="settlement-reconciliation">{state.status === 'MATCHED' ? 'Khớp' : 'Sai lệch'}</dd>
       </dl>
       {state.issues.length > 0 && <p role="alert" className="text-red-700 dark:text-red-400">Chặn thu tiền: {state.issues.join(', ')}</p>}

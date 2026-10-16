@@ -1,4 +1,123 @@
+---
+status: implemented-local-verified
+baseline_commit: 5f939791eddaac5eff45d0b089c0ec74042f6dba
+---
+
 # AutoMove Business-Chain Verification
+
+## Recognition Adjustment Authority - 2026-10-16
+
+Process gate: PASS for the owner's approval following scoped seal #339, main
+`5f939791eddaac5eff45d0b089c0ec74042f6dba`. This is a separate Non-Production
+batch; #339 is not reopened. Single agent, branch
+`codex/automove-recognition-adjustments`. Generated AGENTS/cache changes remain
+outside the commit. No merge, application deployment or Production DB authority.
+
+Manifest: accountant-confirmed, documented price/cost deltas and explicit full
+reversal against canonical, not-Finance-posted recognition. Use the existing
+append-only adjustment ledger, stable request key and immutable original policy
+version. No automatic cancellation, refund, vehicle return, fee or forfeiture.
+The owner's prior three financial decisions plus latest approval authorize this
+batch; approval does not make execution or Go-Live PROVEN.
+
+Ownership/contract: AutoMove owns recognition and its adjustments; Accounting
+owns accounting_periods and its public period guard. Product -> Accounting public
+transactional read-guard -> tenant period rows; Product -> existing AutoMove
+recognition ledger. No direct Product period query, Finance ledger engine/table,
+Mobility/Logistics/Healthcare kernel or ProductRegistry change.
+
+Change authority is limited to one additive public transactional read-guard in
+the existing Accounting period-guards module, AutoMove command/API/UI and the
+affected reporting/reconciliation consumers. The existing Supabase RPC guard is
+not changed: it cannot share the caller's PostgreSQL transaction and may create
+periods, so it is unsuitable here. Metadata-only E2E READ ONLY verified period
+schema, accountant RLS and lock privileges. Migration plan: NONE; reuse existing
+tables/grants and fail closed if runtime schema or rights are unavailable.
+
+Business test contract: actor must be currently active accountant in the active
+matching tenant. Each change references original recognition, verified tenant
+Storage document, actor/time, reason, source period and original policy version.
+Sale/cost totals may not become negative or exceed safe integer VND limits.
+Reversal negates remaining adjusted sale/cost totals once, not the cash received;
+any excess cash remains visible for separate manual refund, not auto-refunded.
+Only the sealed explicit snapshot-based recognition producer is in scope; legacy
+or unknown posting metadata fails closed rather than inspecting Finance internals.
+
+Both original recognition date and server command date must resolve unambiguously
+to OPEN tenant accounting_periods. Hold ordered row SHARE locks until outer
+transaction commit/rollback so closing cannot race the write. No period creation,
+reopening or status update in runtime; isolated test-fixture periods only for
+rollback/concurrency proof. Missing, overlapping, closed, foreign-tenant or
+unknown-state periods deny new changes. Persisted same-intent retry rechecks
+current identity but is not rejected because a period later closed, policy
+changed or evidence was removed. New requests require current reviewed revision.
+
+UI -> contract reconciliation: separate price/cost/reversal commands, explicit
+confirmation/document upload, server totals/revision and persisted history;
+retain pending exact key/intent across lost acknowledgement. Dashboard reads
+canonical adjusted totals, not client price or current vehicle cost. Cancelled
+booking history remains readable; reversal does not mutate booking/vehicle.
+
+Eleven verification gates: (1) scoped ownership; (2) public period boundary;
+(3) current Auth/active accountant; (4) cross-tenant/inactive/suspended denials;
+(5) original/current OPEN period and concurrent close; (6) append-only originals;
+(7) safe positive/negative deltas and explicit reversal; (8) idempotency/concurrent
+retry/read-back rollback; (9) adjusted reporting/cash reconciliation regression;
+(10) Real DB plus actual Next.js Browser E2E; (11) strict typecheck, lint,
+Architecture Guard, diff safety and exact-PR-SHA CI.
+
+Acceptance: Given matching valid actor/evidence/open periods, append exactly one
+documented adjustment with read-back. Given closed/missing/ambiguous periods,
+wrong authority/tenant or invalid evidence, write nothing. Given concurrent close,
+either adjustment commits before close or rejects/retries without a stale write.
+Given retry after success, return the original fact once, never a second delta.
+
+### Executed Evidence - 2026-10-16
+
+Final scoped review: PASS for the new command, public Accounting guard and
+affected reporting/payment consumers. This is single-agent review, not an
+independent multi-agent security certification. Unknown recognition producer or
+posting metadata fails closed; this does not establish arbitrary Finance posting
+state outside the sealed AutoMove producer. No schema/migration, period mutation
+in runtime, kernel, commission, Warranty or Finance posting changes.
+
+- Real DB verifier: PASS, 33 assertions, financial fixtures rolled back and zero
+  recognition/adjustment fixture rows read back. Independent connection attempting
+  to close a SHARE-locked period was blocked with SQLSTATE 55P03. Both source and
+  current closed periods, overlap, invalid evidence, inactive/suspended actors,
+  wrong role/tenant, stale review, failed read-back, immutable originals and
+  same-key replay after period close/evidence removal were exercised.
+- Actual Next.js Browser E2E: 1/1 PASS on E2E Non-Production. Real Auth, Storage
+  upload, dashboard dialog -> API -> DB -> reload; lost acknowledgement and
+  same-key retry, concurrent cost requests, closed period rejection, authority
+  denials, explicit reversal, reporting zero active recognized sales and retained
+  cash/excess balance were verified. Setup seeded original financial fixtures;
+  this is not new proof of booking/deposit/recognition creation UI. Desktop and
+  390px screenshots inspected; dialog horizontal bounds asserted.
+- Jest: 7 suites, 72 tests PASS (command, HTTP, UI, reporting and payment
+  regression). Failed commit/asynchronous connection failure never acknowledged.
+- Strict changed-source/dependency TypeScript: 17 root TS/TSX files, zero
+  diagnostics. Changed-file ESLint, Architecture Guard, API documentation and
+  git diff --check: PASS. Scoped CI selector lists the new verifier once.
+
+Cleanup: PARTIAL by design. Verifier-owned periods removed; Auth zero and actors
+inactive, tenant shells terminated, with read-back. Browser Auth/Storage zero;
+its fixture period closed, actor inactive and tenant shells terminated. Browser
+immutable history/snapshot and audit references retained; no append-only/FK
+bypass. Local screenshots/logs and unrelated AGENTS.md changes are not committed.
+
+PR/CI on remote and main seal remain pending; local Browser proof must not be
+reported as Browser CI on main. No merge or automatic application deployment is
+authorized in this batch. #339 remains sealed without rewriting prior evidence.
+Initial PR #340 Core Freeze failed because its machine-readable approval binding
+was missing. ACR-2026-019 records the existing owner approval for exactly
+src/core/services/accounting/period-guards.ts and PR #340; no guard was weakened
+and no additional Core/runtime scope was introduced.
+
+`ADJUSTMENT_REVERSAL = PROVEN_ON_E2E_PENDING_PR_CI`
+`MAIN_SEAL = NOT_PERFORMED`
+`PRODUCTION_MUTATION = NOT_AUTHORIZED`
+`AUTOMOVE_FULL_PRODUCT_READINESS = NOT_READY`
 
 ## Settlement Batch Authority - 2026-10-15
 
