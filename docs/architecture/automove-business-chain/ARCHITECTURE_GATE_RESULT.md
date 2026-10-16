@@ -5,6 +5,62 @@ baseline_commit: c9b4d2a1a61a539a18c27089438b552b9f74c0ad
 
 # AutoMove Business-Chain Verification
 
+## Hash-Bound Production Adoption Authority - 2026-10-16
+
+Process gate: PASS within the existing approved adoption scope. The owner
+explicitly approved canonical owner-operated BDGF approval issuance, token
+issuance through the wrapper and execution of exactly SHA-256
+a5e574c6985924d41436c2b05ff1ea9ffc45530861302b60f9ff8687a2e22f23.
+The owner also approved one temporary Environment Production tag rule for
+bdgf-automove-adoption-20261016, to be removed after job completion/failure.
+Preserve the main rule, PR #343, application deployment configuration and guard.
+
+Manifest: schema/security adoption only, not Product development or Go-Live.
+The frozen package creates eight absent tables and the private evidence bucket,
+adopts reviewed helpers/policies and closes ACL on eleven existing AutoMove
+surfaces. No business records, migration history, memberships or owner changes.
+The accepted backup exception remains; no backup/export/cost work is authorized.
+
+Ownership and contract: AutoMove/Mobility own the reviewed ledger/adapter
+contracts; Platform owns live identity/HQ and BDGF. Reuse the unchanged canonical
+owner-authority resolver, approval creator, wrapper, token implementation,
+executor, verified TLS connector and explicit postgres identity from PR #343.
+This is the approved owner principal, not a privileged fallback. Public/storage
+mixed scope is represented by null target_schema and exact SQL hash binding.
+
+Change authority: an isolated deployment tag only, operational runner/tests,
+the existing manual workflow and this checkpoint. No main merge, Vercel change,
+application deployment, runtime enablement, Finance posting or kernel change.
+The SQL artifact must remain byte-identical; never append ad hoc repair SQL.
+UI reconciliation: N/A. Migration plan: only the reviewed additive bundle;
+historical migration files and migration history are not modified.
+
+Eleven verification checks: exact source; frozen SQL/pre/post hashes; unchanged
+canonical executor primitives; genuine GitHub admin authority; correct Production
+target and CA/hostname verification; read-only before-state; existing ownership/
+ACL/delegation prerequisites; trusted signing-key resolution; canonical approval
+integrity; wrapper token/transaction binding and consumption; committed read-back.
+Reuse seven-case SQL rehearsal, E2E owner-route and current signing-key CI proof.
+
+Acceptance: precondition/hash/identity/privilege failure stops before approval or
+adoption writes. Any previous approval for this hash stops a blind retry. Only
+the canonical writer may issue approval, and only the wrapper may execute DDL.
+No raw key, nonce, signature, URL or token payload reaches logs/artifacts.
+Failure retains governance audit and does not trigger an alternate executor or
+automatic rollback of committed data. Only confirmed wrapper commit plus fresh
+read-only postchecks permits adoption PASS. Runtime remains HELD; GO_LIVE is
+NOT_PROVEN. Local tests cannot substitute for actual Production evidence.
+
+Local execution-package checks: 14/14 focused tests PASS, lint PASS. All sixteen
+source input hashes and nine unchanged execution primitives match their pinned
+Git sources. Secret/URL/UUID/private-key scans of the SQL payload find no literal
+credentials, identity records or business rows. No schema SQL was regenerated.
+Diff-check excludes only the immutable adoption.sql artifact's pre-existing
+blank line at EOF; trimming it would invalidate the owner-approved hash. Its
+raw staged bytes are SHA-256 checked instead. Other changed files are checked
+normally; do not describe this as an unqualified full diff-check PASS.
+Production execution evidence remains pending the actual approved dispatch.
+
 Current checkpoint: RC #341 is already merged; the draft/local RC evidence below
 is historical, not a current CI wait. Live GitHub metadata confirms RC Browser CI
 success on PR head d7c1780e36f691ea1c289fe1143c1880059b20a4 (run 38832452302)

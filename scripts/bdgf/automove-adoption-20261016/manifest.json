@@ -1,0 +1,209 @@
+{
+  "status": "PREPARED_LOCAL_REVIEW_CANDIDATE_NOT_AUTHORIZED_FOR_EXECUTION",
+  "project_ref": "lvnvkpyxtuilhrabtlwv",
+  "baseline_main_sha": "c9b4d2a1a61a539a18c27089438b552b9f74c0ad",
+  "preparation_pr": 343,
+  "preparation_sha": "a864f85165246b0f753184ddf18a766fc91cbdf7",
+  "metadata_checked_at_utc": "2026-10-16T06:53:13.312Z",
+  "metadata_sha256": "1eb2922e1031adc41d51e76f117d78abb67d43e6a98b60be80321b9d02b6614e",
+  "restored_check_spellings_sha256": "13015df51f9db9e2d12131d5412cb1cf25846e2ca982163fca093220a42d3133",
+  "adoption_sql_sha256": "a5e574c6985924d41436c2b05ff1ea9ffc45530861302b60f9ff8687a2e22f23",
+  "preconditions_sql_sha256": "72358112f9dd0fa811d75d3495e327cce86ec3c28cc4e3cf8e28b73321422cd3",
+  "final_acl_sql_sha256": "3b6bd77a8770f253eb88fcd0af6689eaee84e759414bdfaa696500d9d39f01fc",
+  "postconditions_path": "final-postconditions.sql",
+  "postconditions_sql_sha256": "cde68c7cde78683955fc8b3190a2fab86a41d71cc4b2bf753b720673142f221d",
+  "transaction": "ONE_BDGF_WRAPPER_TRANSACTION_WITH_PRE_AND_POST_ASSERTIONS",
+  "authorization": {
+    "production_execution": "NOT_GRANTED_BY_THIS_PACKAGE",
+    "executor": "postgres_REQUIRES_SEPARATE_PRODUCTION_AUTHORIZATION",
+    "approval_id": null,
+    "token_created": false,
+    "schemas": [
+      "public",
+      "storage"
+    ],
+    "approval_target_schema": null,
+    "runtime_guard": "UNCHANGED_HELD",
+    "backup": "DEFERRED_PENDING_BUDGET_OWNER_EXCEPTION_RECORDED"
+  },
+  "inputs": [
+    {
+      "path": "supabase/migrations/20261016010000_align_automove_catalog_read_acl.sql",
+      "source_sha": "a864f85165246b0f753184ddf18a766fc91cbdf7",
+      "sha256": "4b87b19444ef4b5f788278c94d8709983d94fe991674e48b9fcdc091fa83750e",
+      "reason": "Catalog permissive/read guard plus effective ACL correction"
+    },
+    {
+      "path": "supabase/migrations/20261014020000_create_policy_registry_user_identity_forward.sql",
+      "source_sha": "c9b4d2a1a61a539a18c27089438b552b9f74c0ad",
+      "sha256": "b121ac951eeba088bf26949826fb43f4d2a44e225a09942d95befb52eb881878",
+      "reason": "Absent registry: canonical users FKs and approved global policy v1"
+    },
+    {
+      "path": "supabase/migrations/20261015040000_align_platform_identity_hq_authority.sql",
+      "source_sha": "c9b4d2a1a61a539a18c27089438b552b9f74c0ad",
+      "sha256": "1e75e3f25d24814ca0e2f3f31e80447b091d34a53c1c7f2c5fd12e96d208c108",
+      "reason": "Shared live identity/HQ helper definitions"
+    },
+    {
+      "path": "supabase/migrations/20261015040100_preserve_explicit_active_hq_tenant_management.sql",
+      "source_sha": "c9b4d2a1a61a539a18c27089438b552b9f74c0ad",
+      "sha256": "fa50ead7cadc449fa0f05359e9f222b2996323bfb0775d595a8796ed4533413c",
+      "reason": "Explicit HQ exception on tenants only, same transaction as helpers"
+    },
+    {
+      "path": "supabase/migrations/20261013120000_create_mobility_os_foundation_contract.sql",
+      "source_sha": "c9b4d2a1a61a539a18c27089438b552b9f74c0ad",
+      "sha256": "a905b45ee856b9e7eae6f93baa980b1745a60887cc71eb9ae1d72de6b5c07793",
+      "reason": "Absent Mobility audit/idempotency and existing adapter tenant boundaries"
+    },
+    {
+      "path": "supabase/migrations/20261014010000_create_automove_vehicle_sale_recognition_ledgers.sql",
+      "source_sha": "c9b4d2a1a61a539a18c27089438b552b9f74c0ad",
+      "sha256": "75f165b8f134fcf537d4bf71357ccbbc9b09421f53a0d0a92ab2c752e5297dbc",
+      "reason": "Absent recognition and adjustment ledgers"
+    },
+    {
+      "path": "supabase/migrations/20261014020200_harden_automove_sales_chain_rls_grants.sql",
+      "source_sha": "c9b4d2a1a61a539a18c27089438b552b9f74c0ad",
+      "sha256": "aad8e91eb7797166c499a8c9cc0e594e9d0e95500079300d1225ab223c729244",
+      "reason": "Missing permissive sales policies and least-privilege table grants"
+    },
+    {
+      "path": "supabase/migrations/20261015030000_guard_automove_active_identity_access.sql",
+      "source_sha": "c9b4d2a1a61a539a18c27089438b552b9f74c0ad",
+      "sha256": "b3f90e3a740aa8e13711a67285d1b4b040fb130f5f8a5e58e9d3a75a4fbd45ef",
+      "reason": "Active identity guards after permissive policies"
+    },
+    {
+      "path": "supabase/migrations/20261014030000_create_automove_approved_financial_snapshots.sql",
+      "source_sha": "c9b4d2a1a61a539a18c27089438b552b9f74c0ad",
+      "sha256": "4afd86afa61e33f73e53ff955ae5689c8f2719a98a8281b9c657bfb35c3942f7",
+      "reason": "Absent snapshot, private document bucket and Storage policies"
+    },
+    {
+      "path": "supabase/migrations/20261014030100_restrict_automove_snapshot_accountant_authority.sql",
+      "source_sha": "c9b4d2a1a61a539a18c27089438b552b9f74c0ad",
+      "sha256": "0a0ba76957fb7aa0da35ffbdcdd7cacc9f875f614fb6f6a3f6020aba57f76696",
+      "reason": "Accountant-only snapshot/document authority before commit"
+    },
+    {
+      "path": "supabase/migrations/20261014030200_allow_automove_server_draft_correction.sql",
+      "source_sha": "c9b4d2a1a61a539a18c27089438b552b9f74c0ad",
+      "sha256": "203bca7a093c55e3bda0b827803b0ca15e0320b14fcf22282da5aa491dc30776",
+      "reason": "Final draft-correction/approved-immutability trigger"
+    },
+    {
+      "path": "supabase/migrations/20261015020000_create_automove_post_sale_receipts.sql",
+      "source_sha": "c9b4d2a1a61a539a18c27089438b552b9f74c0ad",
+      "sha256": "419db046db933dfcba7f196dce2b36d1c6a64643ac5e4e808a49a23c2dbac24c",
+      "reason": "Absent post-sale receipts; final receipt guard supplied by settlement input"
+    },
+    {
+      "path": "supabase/migrations/20261015020100_guard_automove_combined_collection_cap.sql",
+      "source_sha": "c9b4d2a1a61a539a18c27089438b552b9f74c0ad",
+      "sha256": "87e55490677965eda8a6031eed8b5191b2827469c5c128e69b80f19b0e73e460",
+      "reason": "Combined deposit/receipt collection cap"
+    },
+    {
+      "path": "supabase/migrations/20261015050000_authorize_automove_customer_profile_management.sql",
+      "source_sha": "c9b4d2a1a61a539a18c27089438b552b9f74c0ad",
+      "sha256": "fa3c1d08104435250d7f815f79e4b160f3a400622323a6d2a9fd833dcde8a296",
+      "reason": "Missing customer preference tenant policy"
+    },
+    {
+      "path": "supabase/migrations/20261015050100_limit_automove_profile_preference_columns.sql",
+      "source_sha": "c9b4d2a1a61a539a18c27089438b552b9f74c0ad",
+      "sha256": "41fcd3eb3a899b37413b1db2da86434ee650aa2c78c9ed896ec89f81f8800ea2",
+      "reason": "Final preference column grant surface, same transaction"
+    },
+    {
+      "path": "supabase/migrations/20261015060000_record_automove_refunds_and_cancellations.sql",
+      "source_sha": "c9b4d2a1a61a539a18c27089438b552b9f74c0ad",
+      "sha256": "7b5881798a24fae53a1eb9758c8709832d3fdb760d64fba64e9b81c6c0c4d231",
+      "reason": "Absent settlement actions and final net-cash receipt guard"
+    }
+  ],
+  "omitted_inputs": [
+    {
+      "version": "20261014020100",
+      "sha256": "30b7cc545eb3c01a15536f54ee6e0781a82ea35b75bb78181d309264dd37d660",
+      "reason": "Registry is absent; new registry input already creates only its approved read policy and ACL. Legacy profile-policy cleanup is not needed on this pinned before-state."
+    },
+    {
+      "version": "20261015010000",
+      "sha256": "64d9485d8fe9db557dd38ac534e770d1661bc2bdac7bf6011e9e081412610bbc",
+      "reason": "New catalog correction creates the exact three restrictive tenant_read_guard policies plus permissive policies and effective ACL checks. Reapplying the old guard adds no final-state delta."
+    }
+  ],
+  "creates": [
+    "public.policy_registry",
+    "public.mobility_domain_events",
+    "public.mobility_command_idempotency",
+    "public.auto_vehicle_sale_recognitions",
+    "public.auto_vehicle_sale_recognition_adjustments",
+    "public.auto_vehicle_sale_financial_snapshots",
+    "public.auto_vehicle_sale_payments",
+    "public.auto_vehicle_sale_settlement_actions"
+  ],
+  "existing_adapter_acl_scope": [
+    "public.auto_brands",
+    "public.auto_models",
+    "public.auto_variants",
+    "public.auto_leads",
+    "public.auto_bookings",
+    "public.auto_deposits",
+    "public.auto_customer_profiles",
+    "public.auto_vehicles",
+    "public.auto_vehicle_status_logs",
+    "public.auto_vehicle_owners",
+    "public.auto_service_history"
+  ],
+  "platform_scope": {
+    "helpers": [
+      "get_auth_tenant_id",
+      "is_admin",
+      "is_hr",
+      "is_accountant",
+      "is_hq_super_admin",
+      "is_hq_admin"
+    ],
+    "tenants_policies": [
+      "platform_active_hq_tenant_select",
+      "platform_active_hq_tenant_update"
+    ],
+    "other_platform_tables": "READ_ONLY_DEPENDENCIES_NOT_MODIFIED"
+  },
+  "storage_scope": {
+    "bucket": "automove-sale-documents",
+    "private": true,
+    "policies": [
+      "automove_sale_document_read",
+      "automove_sale_document_upload"
+    ],
+    "owner_transfer": false
+  },
+  "migration_history": "NOT_WRITTEN; bundle application does not imply all 17 historical versions were individually executed; use only a separately approved verified history procedure",
+  "verification": {
+    "source_hashes": "CHECKED_OFFLINE",
+    "before_state": "READ_ONLY_PRODUCTION_METADATA",
+    "owner_route": "REUSE_PR343_NON_PRODUCTION_CI_38862383168",
+    "combined_adoption_sql": "PASS_EXACT_PAYLOAD_ISOLATED_POSTGRESQL_17_6_SQL_COMPATIBILITY",
+    "combined_supabase_authority_execution": "NOT_CLAIMED; mechanism proof is separate from isolated SQL rehearsal",
+    "rehearsal_evidence_sha256": "16d464b689cbc0be7d817f182a12feb09696ee20e093af46445339e77ee80ba8",
+    "production_signing_key": "PASS_CURRENT_KEY_ONLY_CI_38873335211_NOT_ADOPTION_AUTHORIZATION",
+    "signing_key_evidence_sha256": "e51fac77f19ee507ce750308f2dcc9b1af92072f5706d9bf0e117f604e413cc3",
+    "production_business_probe": "NOT_AUTHORIZED"
+  },
+  "stop_conditions": [
+    "before-state drift",
+    "new table or bucket already present",
+    "unproved Production executor authority or signing configuration",
+    "missing exact hash-bound approval/token",
+    "effective inherited privileges exceed final contract",
+    "incomplete table/constraint/trigger/policy verification",
+    "unexpected source SHA",
+    "any unapproved scope change"
+  ],
+  "go_live": "NOT_PROVEN"
+}

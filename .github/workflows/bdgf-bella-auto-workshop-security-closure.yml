@@ -1,14 +1,14 @@
-name: BDGF Bella Auto Workshop Security Closure
+name: BDGF AutoMove Hash-Bound Production Adoption
 
 on:
   workflow_dispatch:
     inputs:
       confirmation:
-        description: Type CLOSE_BELLA_AUTO_WORKSHOP_SECURITY_20261013103000 to repair history and seal least privilege.
+        description: Type APPLY_AUTOMOVE_SCHEMA_SECURITY_ONLY. Runtime remains closed.
         required: true
         type: string
       approved_sha256:
-        description: Approved SHA-256 for the least-privilege migration file.
+        description: Exact approved immutable adoption SHA-256.
         required: true
         type: string
 
@@ -17,225 +17,48 @@ permissions:
   actions: read
 
 concurrency:
-  group: bdgf-bella-auto-workshop-security-closure
+  group: bdgf-automove-production-adoption
   cancel-in-progress: false
 
-env:
-  RLS_HISTORY_VERSION: 20261013090000
-  LEAST_PRIVILEGE_MIGRATION_VERSION: 20261013103000
-  LEAST_PRIVILEGE_MIGRATION_FILE: supabase/migrations/20261013103000_restrict_bella_auto_workshop_authenticated_grants.sql
-  LEAST_PRIVILEGE_APPROVED_SHA256: 20DD5EBC3C7EF55879CBE7B1EF318AC975F32CF9A3DF6E4E8E36DD008E110F4B
-  TARGET_ENVIRONMENT: production
-  TARGET_SCHEMA: public
-
 jobs:
-  close-workshop-security:
-    name: Repair History And Seal Workshop Grants
+  adopt:
+    if: github.repository == 'bellaspahcm/bella-ai-platform' && github.ref == 'refs/tags/bdgf-automove-adoption-20261016'
+    name: Apply approved schema and security only
     runs-on: ubuntu-latest
-    timeout-minutes: 30
-    environment:
-      name: Production
+    timeout-minutes: 10
+    environment: Production
     steps:
-      - name: Require explicit main dispatch
-        shell: bash
-        env:
-          DISPATCH_CONFIRMATION: ${{ inputs.confirmation }}
-          DISPATCH_APPROVED_SHA256: ${{ inputs.approved_sha256 }}
-        run: |
-          set -euo pipefail
-
-          if [ "$GITHUB_EVENT_NAME" != "workflow_dispatch" ]; then
-            echo "This workflow only supports explicit manual dispatch."
-            exit 1
-          fi
-
-          if [ "$GITHUB_REF" != "refs/heads/main" ]; then
-            echo "Production security closure dispatch must run from main."
-            exit 1
-          fi
-
-          if [ "$DISPATCH_CONFIRMATION" != "CLOSE_BELLA_AUTO_WORKSHOP_SECURITY_20261013103000" ]; then
-            echo "Confirmation phrase does not match the approved security closure."
-            exit 1
-          fi
-
-          if [ "$DISPATCH_APPROVED_SHA256" != "$LEAST_PRIVILEGE_APPROVED_SHA256" ]; then
-            echo "Approved SHA-256 input does not match the workflow-bound least-privilege migration hash."
-            exit 1
-          fi
-
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
         with:
           ref: ${{ github.sha }}
           fetch-depth: 0
-
-      - name: Verify main head and least-privilege migration artifact
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          git fetch --no-tags origin main
-          if [ "$(git rev-parse HEAD)" != "$(git rev-parse origin/main)" ]; then
-            echo "Checked-out SHA is not origin/main."
-            exit 1
-          fi
-
-          test -f "$LEAST_PRIVILEGE_MIGRATION_FILE"
-          actual_sha="$(sha256sum "$LEAST_PRIVILEGE_MIGRATION_FILE" | awk '{print toupper($1)}')"
-          if [ "$actual_sha" != "$LEAST_PRIVILEGE_APPROVED_SHA256" ]; then
-            echo "Least-privilege migration SHA-256 mismatch."
-            echo "Expected: $LEAST_PRIVILEGE_APPROVED_SHA256"
-            echo "Actual:   $actual_sha"
-            exit 1
-          fi
-
-          echo "Least-privilege migration artifact verified: $LEAST_PRIVILEGE_MIGRATION_FILE"
-          echo "Least-privilege migration SHA-256: $actual_sha"
-
+          persist-credentials: false
       - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
         with:
           node-version: '24'
           cache: npm
-
-      - run: npm ci
-
-      - name: Run focused BDGF and closure guards
-        run: |
-          npm run test:bdgf-owner-authority
-          npm run test:bdgf-production-workflow
-          npm run test:bdgf-bella-auto-security-closure
-
-      - name: Validate required Production secrets
-        shell: bash
+      - name: Install without lifecycle scripts or Production secrets
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Verify immutable artifacts and deployment safety
+        run: node --test scripts/bdgf/apply-automove-production-adoption.test.mjs
+      - name: Execute once through canonical owner-operated BDGF
         env:
-          PRODUCTION_SUPABASE_DB_URL: ${{ secrets.PRODUCTION_SUPABASE_DB_URL }}
-          DATABASE_EXECUTOR_URL: ${{ secrets.DATABASE_EXECUTOR_URL }}
-          GATE_SIGNING_KEY: ${{ secrets.GATE_SIGNING_KEY }}
+          ADOPTION_CONFIRMATION: ${{ inputs.confirmation }}
+          ADOPTION_APPROVED_SHA256: ${{ inputs.approved_sha256 }}
+          AUTOMOVE_PRODUCTION_DB_URL: ${{ secrets.PRODUCTION_SUPABASE_DB_URL }}
+          GATE_SIGNING_KEY_FROM_SECRETS_MANAGER: ${{ secrets.GATE_SIGNING_KEY }}
           GITHUB_TOKEN: ${{ github.token }}
-        run: |
-          set -euo pipefail
-
-          test -n "$PRODUCTION_SUPABASE_DB_URL"
-          test -n "$DATABASE_EXECUTOR_URL"
-          test -n "$GATE_SIGNING_KEY"
-          test -n "$GITHUB_TOKEN"
-          echo "Required Production secrets are present."
-
-      - name: Preflight Production closure state
-        id: preflight
-        shell: bash
-        env:
-          DATABASE_URL: ${{ secrets.PRODUCTION_SUPABASE_DB_URL }}
-        run: |
-          set -euo pipefail
-
-          node scripts/bdgf/probe-bella-auto-workshop-security-closure.mjs \
-            --phase=preflight \
-            --github-output="$GITHUB_OUTPUT"
-
-      - name: Repair applied RLS migration history
-        if: ${{ steps.preflight.outputs.history_repair_needed == 'true' }}
-        shell: bash
-        env:
-          PRODUCTION_SUPABASE_DB_URL: ${{ secrets.PRODUCTION_SUPABASE_DB_URL }}
-        run: |
-          set -euo pipefail
-
-          npx --yes supabase migration repair "$RLS_HISTORY_VERSION" \
-            --status applied \
-            --db-url "$PRODUCTION_SUPABASE_DB_URL"
-
-      - name: Create owner-operated BDGF approval for least privilege
-        if: ${{ steps.preflight.outputs.least_privilege_already_applied != 'true' }}
-        id: approval
-        shell: bash
-        env:
-          DATABASE_URL: ${{ secrets.PRODUCTION_SUPABASE_DB_URL }}
-          GITHUB_TOKEN: ${{ github.token }}
-        run: |
-          set -euo pipefail
-
-          node scripts/bdgf/create-migration-approval.mjs \
-            --approval-mode=owner-operated \
-            --migration-file="$LEAST_PRIVILEGE_MIGRATION_FILE" \
-            --environment="$TARGET_ENVIRONMENT" \
-            --target-schema="$TARGET_SCHEMA" \
-            --expires-in-minutes=120 \
-            --notes="Owner-authorized Bella Auto workshop least-privilege closure via protected Production workflow" \
-            | tee approval-output.log
-
-          approval_id="$(node --input-type=module <<'NODE'
-          import { readFileSync } from 'fs';
-          const output = readFileSync('approval-output.log', 'utf8');
-          const approvals = [];
-
-          for (const match of output.matchAll(/{/g)) {
-            const start = match.index;
-            for (let end = output.indexOf('}', start); end !== -1; end = output.indexOf('}', end + 1)) {
-              try {
-                const candidate = JSON.parse(output.slice(start, end + 1));
-                if (candidate && candidate.approval_id && candidate.migration_hash) {
-                  approvals.push(candidate);
-                  break;
-                }
-              } catch {
-                // Keep scanning; dotenv tips may include non-JSON braces before approval output.
-              }
-            }
-          }
-
-          const approval = approvals.at(-1);
-          if (!approval) {
-            throw new Error('BDGF approval output did not include approval JSON');
-          }
-          if (!approval.approval_id || approval.migration_hash !== process.env.LEAST_PRIVILEGE_APPROVED_SHA256.toLowerCase()) {
-            throw new Error('BDGF approval output did not match the approved least-privilege migration hash');
-          }
-          console.log(approval.approval_id);
-          NODE
-          )"
-
-          echo "approval_id=$approval_id" >> "$GITHUB_OUTPUT"
-          echo "BDGF approval created."
-
-      - name: Execute least-privilege migration through BDGF wrapper
-        if: ${{ steps.preflight.outputs.least_privilege_already_applied != 'true' }}
-        shell: bash
-        env:
-          DATABASE_EXECUTOR_URL: ${{ secrets.DATABASE_EXECUTOR_URL }}
-          GATE_SIGNING_KEY: ${{ secrets.GATE_SIGNING_KEY }}
-          TARGET_ENVIRONMENT: production
-          TARGET_SCHEMA: public
-        run: |
-          set -euo pipefail
-
-          node scripts/bdgf/execute-migration-wrapper.mjs \
-            "${{ steps.approval.outputs.approval_id }}" \
-            "$LEAST_PRIVILEGE_MIGRATION_FILE"
-
-      - name: Record least-privilege migration history
-        if: ${{ steps.preflight.outputs.least_privilege_already_applied != 'true' }}
-        shell: bash
-        env:
-          PRODUCTION_SUPABASE_DB_URL: ${{ secrets.PRODUCTION_SUPABASE_DB_URL }}
-        run: |
-          set -euo pipefail
-
-          npx --yes supabase migration repair "$LEAST_PRIVILEGE_MIGRATION_VERSION" \
-            --status applied \
-            --db-url "$PRODUCTION_SUPABASE_DB_URL"
-
-      - name: Probe final workshop security closure
-        shell: bash
-        env:
-          DATABASE_URL: ${{ secrets.PRODUCTION_SUPABASE_DB_URL }}
-        run: |
-          set -euo pipefail
-
-          node scripts/bdgf/probe-bella-auto-workshop-rls.mjs
-          node scripts/bdgf/probe-bella-auto-workshop-security-closure.mjs --phase=post
-          echo "MIGRATION_HISTORY=RECORDED"
-          echo "AUTHENTICATED_LEAST_PRIVILEGE=SEALED"
-          echo "POST_DEPLOY_RLS=PASS"
-          echo "WORKSHOP_TENANT_ISOLATION=PASS"
-          echo "BELLA_AUTO_SECURITY_CLOSURE=PROVEN"
+          BDGF_USE_SECRETS_MANAGER: 'false'
+          SECRETS_CACHE_ENABLED: 'false'
+          NODE_OPTIONS: ''
+          NODE_ENV: production
+        run: node scripts/bdgf/apply-automove-production-adoption.mjs
+      - name: Retain sanitized execution evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: automove-production-adoption-${{ github.sha }}
+          path: .cache/automove-production-adoption/execution-evidence.json
+          include-hidden-files: true
+          if-no-files-found: warn
+          retention-days: 30
