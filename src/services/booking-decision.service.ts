@@ -27,6 +27,7 @@ import type {
 } from '@/lib/decision-engine/providers/booking/types';
 import { DecisionEngineContext } from '@/lib/decision-engine/DecisionEngineContext';
 import { getTenantSettings } from '@/services/tenant-actions';
+import { getEligibleBookingKtvs } from '@/services/booking-ktv-eligibility';
 import { DEFAULT_CONFLICT_DETECTION_CONFIG } from '@/types/domain';
 
 /**
@@ -533,14 +534,8 @@ export async function autoAssignKtv(input: {
 }> {
   const supabase = await createClient();
 
-  // 1. Fetch available KTV candidates
-  const rawClientAuto = supabase as unknown as SupabaseClient;
-  const { data: ktvListData } = await rawClientAuto
-    .from('users')
-    .select('id, full_name, position_tier, metadata')
-    .eq('tenant_id', input.tenantId)
-    .eq('role', 'ktv')
-    .eq('status', 'active');
+  // 1. Verify official tenant KTV accounts before ranking.
+  const ktvListData = await getEligibleBookingKtvs(input.tenantId);
 
   interface KtvMetadata {
     skills?: string[];

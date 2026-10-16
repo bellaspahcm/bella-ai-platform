@@ -14,6 +14,10 @@ interface UserContextType {
   tenantSettings: TenantSettingsResult;
   product: ProductDefinition | null;
   isLoading: boolean;
+  activeBranchId: string | null;
+  setActiveBranchId: React.Dispatch<React.SetStateAction<string | null>>;
+  isBranchPending: boolean;
+  setIsBranchPending: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -24,6 +28,8 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   const [tenantSettings, setTenantSettings] = useState<TenantSettingsResult>(null);
   const [product, setProduct] = useState<ProductDefinition | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [activeBranchId, setActiveBranchId] = useState<string | null>(null);
+  const [isBranchPending, setIsBranchPending] = useState(false);
 
   useEffect(() => {
     async function loadData() {
@@ -60,7 +66,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <UserContext.Provider value={{ user, userRole, tenantSettings, product, isLoading }}>
+    <UserContext.Provider value={{ user, userRole, tenantSettings, product, isLoading, activeBranchId, setActiveBranchId, isBranchPending, setIsBranchPending }}>
       {children}
     </UserContext.Provider>
   );

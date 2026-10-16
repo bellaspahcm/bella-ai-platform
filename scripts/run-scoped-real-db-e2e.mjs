@@ -13,12 +13,298 @@ const REAL_DB_TEST_BY_PATH = [
   /^src\/__tests__\/inventory-session-consumption-real-db\.test\.ts$/,
   /^src\/platform\/logistics\/warehouse\/__tests__\/stock-(out-production-consumption|in-production-order)-real-db\.test\.ts$/,
   /^src\/platform\/manufacturing\/__tests__\/manufacturing-(slice1|full-chain)-real-db\.test\.ts$/,
+  /^src\/platform\/agriculture\/__tests__\/agriculture-foundation-real-db\.test\.ts$/,
+  /^src\/platform\/construction\/__tests__\/construction-foundation-real-db\.test\.ts$/,
   /^src\/products\/beauty-spa-v2\/__tests__\/beauty-spa-v2-real-db\.test\.ts$/,
   /^src\/products\/bella-education\/__tests__\/preschool-chain-real-db\.test\.ts$/,
   /^src\/products\/bella-hospitality\/__tests__\/(tenant-profile|housekeeping|maintenance)-real-db\.test\.ts$/,
 ];
 
 const SCOPED_REAL_DB_SUITES = [
+  {
+    name: 'Platform canonical identity and HQ',
+    patterns: [
+      /^supabase\/migrations\/20261015040000_align_platform_identity_hq_authority\.sql$/,
+      /^supabase\/migrations\/20261015040100_preserve_explicit_active_hq_tenant_management\.sql$/,
+      /^scripts\/verify-platform-identity-hq\.ts$/,
+      /^tests\/integration\/platform-identity-hq\.spec\.ts$/,
+      /^src\/services\/(user-actions|hq-actions)\.ts$/,
+    ],
+    commands: [
+      { command: 'npx', args: ['tsx', 'scripts/verify-platform-identity-hq.ts'],
+        env: { ALLOW_E2E_PLATFORM_IDENTITY_VERIFICATION: '1' } },
+      { command: 'npx', args: ['jest', '--runInBand', '--runTestsByPath',
+        'tests/integration/platform-identity-hq.spec.ts', '--testMatch=**/tests/integration/platform-identity-hq.spec.ts'],
+        env: { ALLOW_E2E_PLATFORM_IDENTITY_VERIFICATION: '1' } },
+    ],
+  },
+  {
+    name: 'AutoMove active identity access',
+    patterns: [
+      /^supabase\/migrations\/20261015030000_guard_automove_active_identity_access\.sql$/,
+      /^scripts\/verify-automove-active-identity-access\.ts$/,
+      /^src\/__tests__\/automove-active-identity-migration\.test\.ts$/,
+      /^scripts\/verify-automove-sales-chain-rls-hardening\.ts$/,
+    ],
+    commands: [{ command: 'npx', args: ['tsx', 'scripts/verify-automove-active-identity-access.ts'],
+      env: { ALLOW_E2E_ACTIVE_IDENTITY_VERIFICATION: '1' } }],
+  },
+  {
+    name: 'AutoMove catalog tenant reads',
+    patterns: [
+      /^supabase\/migrations\/20261016010000_align_automove_catalog_read_acl\.sql$/,
+      /^supabase\/migrations\/20261015010000_authorize_automove_catalog_tenant_reads\.sql$/,
+      /^scripts\/verify-automove-catalog-reads\.ts$/,
+      /^src\/__tests__\/automove-catalog-read-migration\.test\.ts$/,
+      /^src\/app\/api\/bella-auto\/vehicles\/(brands|models|variants)\/route\.ts$/,
+      /^src\/components\/bella-auto\/CreateBookingModal\.tsx$/,
+      /^e2e\/tests\/42-automove-dashboard-sales-chain\.spec\.ts$/,
+    ],
+    commands: [{ command: 'npx', args: ['tsx', 'scripts/verify-automove-catalog-reads.ts'],
+      env: { ALLOW_E2E_CATALOG_VERIFICATION: '1' } }],
+  },
+  {
+    name: 'AutoMove booking Mobility allocation',
+    patterns: [
+      /^scripts\/verify-automove-booking-allocation\.ts$/,
+      /^src\/modules\/bella-auto\/services\/AutoMoveBookingAllocation(Service|Http)\.ts$/,
+      /^src\/modules\/bella-auto\/services\/__tests__\/AutoMoveBookingAllocation(Service|Http)\.test\.ts$/,
+      /^src\/app\/api\/bella-auto\/bookings\/route\.ts$/,
+      /^src\/components\/bella-auto\/CreateBookingModal\.tsx$/,
+      /^e2e\/tests\/42-automove-dashboard-sales-chain\.spec\.ts$/,
+    ],
+    commands: [{ command: 'npx', args: ['tsx', 'scripts/verify-automove-booking-allocation.ts'],
+      env: { ALLOW_E2E_BOOKING_ALLOCATION_VERIFICATION: '1' } }],
+  },
+  {
+    name: 'AutoMove deposit transaction and idempotency',
+    patterns: [
+      /^scripts\/verify-automove-deposit-idempotency\.ts$/,
+      /^src\/modules\/bella-auto\/services\/AutoMoveDepositConfirmation(Service|Http)\.ts$/,
+      /^src\/modules\/bella-auto\/services\/__tests__\/AutoMoveDepositConfirmation(Service|Http)\.test\.ts$/,
+      /^src\/app\/api\/bella-auto\/bookings\/\[id\]\/confirm-deposit\//,
+      /^src\/components\/bella-auto\/BookingListTable\.tsx$/,
+      /^e2e\/tests\/(42-automove-dashboard-sales-chain|43-automove-deposit-confirmation-api)\.spec\.ts$/,
+    ],
+    commands: [{ command: 'npx', args: ['tsx', 'scripts/verify-automove-deposit-idempotency.ts'],
+      env: { ALLOW_E2E_DEPOSIT_VERIFICATION: '1' } }],
+  },
+  {
+    name: 'AutoMove approved snapshot and handover recognition',
+    patterns: [
+      /^supabase\/migrations\/20261014030000_create_automove_approved_financial_snapshots\.sql$/,
+      /^supabase\/migrations\/20261014030100_restrict_automove_snapshot_accountant_authority\.sql$/,
+      /^supabase\/migrations\/20261014030200_allow_automove_server_draft_correction\.sql$/,
+      /^scripts\/verify-automove-handover-recognition-e2e\.ts$/,
+      /^src\/modules\/bella-auto\/services\/AutoMoveSaleChain(Service|Http|Connection)\.ts$/,
+      /^src\/modules\/bella-auto\/services\/__tests__\/AutoMoveSaleChain(Http|Connection)\.test\.ts$/,
+      /^src\/app\/api\/bella-auto\/sales-chain\//,
+      /^src\/app\/api\/bella-auto\/vehicle-sale-recognitions\/route\.ts$/,
+      /^src\/components\/bella-auto\/(VehicleSaleChainDialog|BookingListTable)\.tsx$/,
+    ],
+    commands: [{ command: 'npx', args: ['tsx', 'scripts/verify-automove-handover-recognition-e2e.ts'] }],
+  },
+  {
+    name: 'Construction OS foundation',
+    patterns: [
+      /^src\/platform\/construction\//,
+      /^supabase\/migrations\/20261013010000_create_construction_foundation_mvp\.sql$/,
+    ],
+    tests: [
+      'src/platform/construction/__tests__/construction-foundation-real-db.test.ts',
+    ],
+  },
+  {
+    name: 'AutoMove vehicle sale recognition ledgers',
+    patterns: [
+      /^supabase\/migrations\/20261014010000_create_automove_vehicle_sale_recognition_ledgers\.sql$/,
+      /^scripts\/verify-automove-vehicle-sale-recognition-schema\.mjs$/,
+      /^scripts\/verify-automove-vehicle-sale-recognition-command\.ts$/,
+      /^src\/modules\/bella-auto\/services\/(VehicleSaleRecognitionService|SupabaseVehicleSaleRecognitionRepository)\.ts$/,
+      /^src\/modules\/bella-auto\/services\/__tests__\/VehicleSaleRecognitionService\.test\.ts$/,
+      /^src\/app\/api\/bella-auto\/vehicle-sale-recognitions\/route\.ts$/,
+    ],
+    commands: [
+      {
+        command: 'node',
+        args: ['scripts/verify-automove-vehicle-sale-recognition-schema.mjs'],
+      },
+      {
+        command: 'npx',
+        args: ['tsx', 'scripts/verify-automove-vehicle-sale-recognition-command.ts'],
+      },
+    ],
+  },
+  {
+    name: 'AutoMove financial reporting recognized sales',
+    patterns: [
+      /^src\/modules\/bella-auto\/services\/FinancialReportingService\.ts$/,
+      /^src\/modules\/bella-auto\/services\/__tests__\/FinancialReportingService\.recognized-sales\.test\.ts$/,
+      /^scripts\/verify-automove-financial-reporting-recognized-sales\.ts$/,
+      /^scripts\/verify-automove-dashboard-recognized-sales\.ts$/,
+      /^src\/app\/api\/bella-auto\/analytics\/recognized-sales\//,
+      /^src\/components\/bella-auto\/(BellaAutoAnalyticsDashboard|AutoAnalyticsCharts)\.tsx$/,
+      /^src\/app\/dashboard\/bella-auto\/page\.tsx$/,
+      /^src\/(modules\/bella-auto\/services|components\/bella-auto)\/__tests__\/.*[Dd]ashboard.*\.test\.tsx?$/,
+      /^e2e\/tests\/42-automove-dashboard-sales-chain\.spec\.ts$/,
+    ],
+    commands: [
+      {
+        command: 'npx',
+        args: ['tsx', 'scripts/verify-automove-financial-reporting-recognized-sales.ts'],
+      },
+      {
+        command: 'npx',
+        args: ['tsx', 'scripts/verify-automove-dashboard-recognized-sales.ts'],
+      },
+    ],
+  },
+  {
+    name: 'AutoMove refund and cancellation',
+    patterns: [
+      /^supabase\/migrations\/20261015060000_record_automove_refunds_and_cancellations\.sql$/,
+      /^src\/modules\/bella-auto\/services\/AutoMoveSettlement.*\.ts$/,
+      /^src\/modules\/bella-auto\/services\/AutoMoveSalePayment.*\.ts$/,
+      /^src\/modules\/bella-auto\/services\/AutoMoveSaleChainService\.ts$/,
+      /^src\/components\/bella-auto\/VehicleSaleSettlement\.tsx$/,
+      /^scripts\/verify-automove-settlement\.ts$/,
+      /^e2e\/tests\/45-automove-refund-cancellation\.spec\.ts$/,
+    ],
+    commands: [{ command: 'npx', args: ['tsx', 'scripts/verify-automove-settlement.ts'] }],
+  },
+  {
+    name: 'AutoMove recognition adjustment and period lock',
+    patterns: [
+      /^src\/modules\/bella-auto\/services\/AutoMoveRecognitionAdjustment.*\.ts$/,
+      /^src\/components\/bella-auto\/VehicleSaleRecognitionAdjustments\.tsx$/,
+      /^scripts\/verify-automove-recognition-adjustments\.ts$/,
+      /^e2e\/tests\/46-automove-recognition-adjustments\.spec\.ts$/,
+      /^src\/core\/services\/accounting\/period-guards\.ts$/,
+    ],
+    commands: [{ command: 'npx', args: ['tsx', 'scripts/verify-automove-recognition-adjustments.ts'] }],
+  },
+  {
+    name: 'AutoMove policy registry user identity',
+    patterns: [
+      /^supabase\/migrations\/20261014020000_create_policy_registry_user_identity_forward\.sql$/,
+      /^supabase\/migrations\/20261014020100_harden_policy_registry_rls_profile_references\.sql$/,
+      /^scripts\/verify-automove-policy-registry-user-identity\.ts$/,
+      /^scripts\/verify-automove-vehicle-sale-recognition-schema\.mjs$/,
+    ],
+    commands: [
+      {
+        command: 'npx',
+        args: ['tsx', 'scripts/verify-automove-policy-registry-user-identity.ts'],
+      },
+    ],
+  },
+  {
+    name: 'AutoMove sales-chain RLS hardening',
+    patterns: [
+      /^supabase\/migrations\/20261014020200_harden_automove_sales_chain_rls_grants\.sql$/,
+      /^scripts\/verify-automove-sales-chain-rls-hardening\.ts$/,
+      /^scripts\/verify-automove-vehicle-sale-recognition-command\.ts$/,
+      /^scripts\/verify-automove-financial-reporting-recognized-sales\.ts$/,
+    ],
+    commands: [
+      {
+        command: 'npx',
+        args: ['tsx', 'scripts/verify-automove-policy-registry-user-identity.ts'],
+      },
+      {
+        command: 'node',
+        args: ['scripts/verify-automove-vehicle-sale-recognition-schema.mjs'],
+      },
+      {
+        command: 'npx',
+        args: ['tsx', 'scripts/verify-automove-vehicle-sale-recognition-command.ts'],
+      },
+      {
+        command: 'npx',
+        args: ['tsx', 'scripts/verify-automove-financial-reporting-recognized-sales.ts'],
+      },
+      {
+        command: 'npx',
+        args: ['tsx', 'scripts/verify-automove-sales-chain-rls-hardening.ts'],
+      },
+    ],
+  },
+  {
+    name: 'AutoMove sales-chain Real DB alignment',
+    patterns: [
+      /^scripts\/verify-automove-sales-chain-real-db-alignment\.ts$/,
+      /^src\/modules\/bella-auto\/services\/AutoSalesProvider\.ts$/,
+      /^src\/modules\/bella-auto\/services\/(VehicleSaleRecognitionService|SupabaseVehicleSaleRecognitionRepository)\.ts$/,
+      /^src\/platform\/mobility\/(mobility-foundation\.service|postgres\.repository|ports)\.ts$/,
+      /^src\/platform\/mobility\/domain\/types\.ts$/,
+      /^src\/app\/api\/bella-auto\/bookings\/route\.ts$/,
+      /^src\/app\/api\/bella-auto\/bookings\/\[id\]\/confirm-deposit\/route\.ts$/,
+      /^src\/app\/api\/bella-auto\/vehicle-sale-recognitions\/route\.ts$/,
+    ],
+    commands: [
+      {
+        command: 'npx',
+        args: ['tsx', 'scripts/verify-automove-policy-registry-user-identity.ts'],
+      },
+      {
+        command: 'node',
+        args: ['scripts/verify-automove-vehicle-sale-recognition-schema.mjs'],
+      },
+      {
+        command: 'npx',
+        args: ['tsx', 'scripts/verify-automove-sales-chain-rls-hardening.ts'],
+      },
+      {
+        command: 'npx',
+        args: ['tsx', 'scripts/verify-automove-vehicle-sale-recognition-command.ts'],
+      },
+      {
+        command: 'npx',
+        args: ['tsx', 'scripts/verify-automove-financial-reporting-recognized-sales.ts'],
+      },
+      {
+        command: 'npx',
+        args: ['tsx', 'scripts/verify-automove-sales-chain-real-db-alignment.ts'],
+      },
+    ],
+  },
+  {
+    name: 'AutoMove post-sale receipts',
+    patterns: [
+      /^supabase\/migrations\/20261015020000_create_automove_post_sale_receipts\.sql$/,
+      /^supabase\/migrations\/20261015020100_guard_automove_combined_collection_cap\.sql$/,
+      /^src\/modules\/bella-auto\/services\/AutoMoveSalePayment(Contract|Service|Http)\.ts$/,
+      /^src\/app\/api\/bella-auto\/bookings\/\[id\]\/sale-payments\/route\.ts$/,
+      /^src\/components\/bella-auto\/VehicleSalePayments\.tsx$/,
+      /^e2e\/tests\/42-automove-dashboard-sales-chain\.spec\.ts$/,
+      /^scripts\/verify-automove-post-sale-payments\.ts$/,
+    ],
+    commands: [{ command: 'npx', args: ['tsx', 'scripts/verify-automove-post-sale-payments.ts'] }],
+  },
+  {
+    name: 'AutoMove management persistence',
+    patterns: [
+      /^supabase\/migrations\/(20261015050000_authorize_automove_customer_profile_management|20261015050100_limit_automove_profile_preference_columns)\.sql$/,
+      /^src\/modules\/bella-auto\/services\/(AutoMoveManagementHttp|AutoCustomerProvider)\.ts$/,
+      /^src\/modules\/bella-auto\/services\/__tests__\/AutoMoveManagementHttp\.test\.ts$/,
+      /^src\/app\/api\/bella-auto\/customers\/(route\.ts|\[id\]\/profile\/route\.ts)$/,
+      /^src\/app\/api\/bella-auto\/vehicles\/route\.ts$/,
+      /^src\/app\/dashboard\/bella-auto\/(customers|vehicles)\/page\.tsx$/,
+      /^scripts\/verify-automove-management-persistence\.ts$/,
+      /^e2e\/tests\/44-automove-management-persistence\.spec\.ts$/,
+    ],
+    commands: [{ command: 'npx', args: ['tsx', 'scripts/verify-automove-management-persistence.ts'] }],
+  },
+  {
+    name: 'Agriculture OS foundation',
+    patterns: [
+      /^src\/platform\/agriculture\//,
+      /^supabase\/migrations\/20261012030000_create_agriculture_os_foundation\.sql$/,
+    ],
+    tests: [
+      'src/platform/agriculture/__tests__/agriculture-foundation-real-db.test.ts',
+    ],
+  },
   {
     name: 'Manufacturing operational readiness',
     patterns: [
@@ -102,15 +388,26 @@ function parseArgs() {
 }
 
 function shouldRunFullSuite(files) {
-  return files.some((file) => REAL_DB_CONFIG_PATTERN.test(file) || MIGRATION_PATTERN.test(file));
+  return files.some((file) => (
+    REAL_DB_CONFIG_PATTERN.test(file)
+    || (
+      MIGRATION_PATTERN.test(file)
+      && !SCOPED_REAL_DB_SUITES.some((suite) => suite.patterns.some((pattern) => pattern.test(file)))
+    )
+  ));
 }
 
 function addTest(tests, file) {
   tests.add(file);
 }
 
-function selectScopedTests(files) {
+function addCommand(commands, command) {
+  commands.set(`${command.command}\0${command.args.join('\0')}`, command);
+}
+
+function selectScopedWork(files) {
   const selectedTests = new Set();
+  const selectedCommands = new Map();
 
   for (const file of files) {
     if (REAL_DB_TEST_BY_PATH.some((pattern) => pattern.test(file))) {
@@ -120,13 +417,19 @@ function selectScopedTests(files) {
 
   for (const suite of SCOPED_REAL_DB_SUITES) {
     if (files.some((file) => suite.patterns.some((pattern) => pattern.test(file)))) {
-      for (const test of suite.tests) {
+      for (const test of suite.tests ?? []) {
         addTest(selectedTests, test);
+      }
+      for (const command of suite.commands ?? []) {
+        addCommand(selectedCommands, command);
       }
     }
   }
 
-  return [...selectedTests];
+  return {
+    tests: [...selectedTests],
+    commands: [...selectedCommands.values()],
+  };
 }
 
 const { changedFiles: explicitChangedFiles, listOnly } = parseArgs();
@@ -143,22 +446,46 @@ if (changedFiles.length === 0 || shouldRunFullSuite(changedFiles)) {
   process.exit(jest.status ?? 1);
 }
 
-const scopedTests = selectScopedTests(changedFiles);
-if (scopedTests.length === 0) {
-  console.log('No scoped real database business E2E tests matched changed files.');
+const scopedWork = selectScopedWork(changedFiles);
+if (scopedWork.tests.length === 0 && scopedWork.commands.length === 0) {
+  console.log('No scoped real database business E2E work matched changed files.');
   process.exit(0);
 }
 
-console.log('Running scoped real database business E2E tests:');
-for (const test of scopedTests) {
-  console.log(`- ${test}`);
+if (scopedWork.tests.length > 0) {
+  console.log('Running scoped real database business E2E tests:');
+  for (const test of scopedWork.tests) {
+    console.log(`- ${test}`);
+  }
 }
+
+if (scopedWork.commands.length > 0) {
+  console.log('Running scoped real database business E2E commands:');
+  for (const command of scopedWork.commands) {
+    console.log(`- ${command.command} ${command.args.join(' ')}`);
+  }
+}
+
 if (listOnly) {
   process.exit(0);
 }
 
-const jest = run('npx', ['jest', '--config', 'jest.real-db.config.ts', '--runInBand', ...scopedTests], {
-  stdio: 'inherit',
-});
+if (scopedWork.tests.length > 0) {
+  const jest = run('npx', ['jest', '--config', 'jest.real-db.config.ts', '--runInBand', ...scopedWork.tests], {
+    stdio: 'inherit',
+  });
 
-process.exit(jest.status ?? 1);
+  if ((jest.status ?? 1) !== 0) {
+    process.exit(jest.status ?? 1);
+  }
+}
+
+for (const command of scopedWork.commands) {
+  const result = run(command.command, command.args, { stdio: 'inherit',
+    ...(command.env ? { env: { ...process.env, ...command.env } } : {}) });
+  if ((result.status ?? 1) !== 0) {
+    process.exit(result.status ?? 1);
+  }
+}
+
+process.exit(0);

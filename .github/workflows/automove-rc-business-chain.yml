@@ -1,0 +1,75 @@
+name: AutoMove RC Business Chain
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/modules/bella-auto/**'
+      - 'src/components/bella-auto/**'
+      - 'src/app/api/bella-auto/**'
+      - 'src/app/dashboard/bella-auto/**'
+      - 'src/platform/mobility/**'
+      - 'src/core/services/accounting/period-guards.ts'
+      - 'src/services/user-actions.ts'
+      - 'src/lib/supabase*'
+      - 'src/proxy.ts'
+      - 'e2e/fixtures/automove-rc-continuation.ts'
+      - 'e2e/tests/42-automove-dashboard-sales-chain.spec.ts'
+      - 'scripts/run-automove-rc-business-chain.ts'
+      - 'src/__tests__/automove-rc-runner.test.ts'
+      - 'playwright*.config.ts'
+      - 'next.config.ts'
+      - 'package*.json'
+      - '.github/workflows/automove-rc-business-chain.yml'
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: automove-rc-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  browser:
+    name: AutoMove Built RC Browser E2E
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      AUTOMOVE_RC_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.E2E_SUPABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.E2E_SUPABASE_PUBLISHABLE_KEY }}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.E2E_SUPABASE_ANON_KEY }}
+      SUPABASE_URL: ${{ secrets.E2E_SUPABASE_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.E2E_SUPABASE_SERVICE_ROLE_KEY }}
+      SUPABASE_DB_URL: ${{ secrets.E2E_SUPABASE_DB_URL }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Runner fail-closed regression
+        run: npx jest --runInBand --runTestsByPath src/__tests__/automove-rc-runner.test.ts
+      - name: Build exact candidate and verify real business chain
+        run: npx tsx scripts/run-automove-rc-business-chain.ts
+      - name: Publish sanitized RC evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: automove-rc-${{ github.event.pull_request.head.sha || github.sha }}
+          path: |
+            .cache/automove-rc/**/evidence.json
+            .cache/automove-rc/**/chain-proof.json
+            .cache/automove-rc/**/*.log
+            .cache/automove-rc/**/*.png
+          include-hidden-files: true
+          if-no-files-found: warn
+          retention-days: 7

@@ -184,6 +184,7 @@ describe('customer actions fail-fast behavior', () => {
       name: 'Customer A',
       phone: '0900000000',
       tenant_id: 'tenant-2',
+      loyalty_points: 999999,
     });
 
     expect(result.data).toEqual({ id: 'cust-1', tenant_id: 'tenant-1' });
@@ -192,6 +193,7 @@ describe('customer actions fail-fast behavior', () => {
       phone: '0900000000',
       tenant_id: 'tenant-1',
     })]);
+    expect(createQuery.insertSpy.mock.calls[0][0][0]).not.toHaveProperty('loyalty_points');
   });
 
   it('scopes customer updates and strips client tenant changes', async () => {
@@ -204,6 +206,7 @@ describe('customer actions fail-fast behavior', () => {
     const result = await updateCustomer('cust-1', {
       name_mother: 'New',
       tenant_id: 'tenant-2',
+      loyalty_points: 999999,
     });
 
     expect(result.data).toEqual({ id: 'cust-1', tenant_id: 'tenant-1', name_mother: 'New' });
@@ -261,12 +264,27 @@ describe('customer actions fail-fast behavior', () => {
     );
   });
 
-  it('propagates loyalty RPC failures', async () => {
-    mockRpc.mockResolvedValue({ data: null, error: { message: 'loyalty rpc failed' } });
+  it.each([200000, 0, -100000])('rejects direct application loyalty increments for amount %s without calling the RPC', async amount => {
+    await expect(addLoyaltyPoints('cust-1', amount)).rejects.toThrow('không thể cập nhật thủ công');
+    expect(mockRpc).not.toHaveBeenCalled();
+    expect(mockFrom).not.toHaveBeenCalled();
+  });
 
-    await expect(addLoyaltyPoints('cust-1', 200000)).rejects.toThrow(
-      'Failed to add loyalty points: loyalty rpc failed'
-    );
+  it('does not restore a stale loyalty balance when customer-profile audit fails', async () => {
+    const oldCustomerQuery = new MockQueryBuilder({ id: 'cust-1', tenant_id: 'tenant-1', name_mother: 'Old', loyalty_points: 45 });
+    const updateQuery = new MockQueryBuilder([{ id: 'cust-1', tenant_id: 'tenant-1', name_mother: 'New', loyalty_points: 90 }]);
+    const rollbackQuery = new MockQueryBuilder(null);
+    mockFrom.mockReturnValueOnce(oldCustomerQuery).mockReturnValueOnce(updateQuery).mockReturnValueOnce(rollbackQuery);
+    mockRecordAuditLog.mockRejectedValueOnce(new Error('Audit unavailable'));
+
+    const result = await updateCustomer('cust-1', { name_mother: 'New', loyalty_points: 0 });
+
+    expect(result.error).toBe('Audit unavailable');
+    expect(updateQuery.updateSpy).toHaveBeenCalledWith({ name_mother: 'New' });
+    expect(rollbackQuery.updateSpy).toHaveBeenCalledWith({ id: 'cust-1', tenant_id: 'tenant-1', name_mother: 'Old' });
+    expect(rollbackQuery.filters).toEqual(expect.arrayContaining([
+      { column: 'id', value: 'cust-1' }, { column: 'tenant_id', value: 'tenant-1' },
+    ]));
   });
 
   it('rolls back session rating when review lookup fails', async () => {

@@ -1,4 +1,6 @@
-import { describe, it, expect, jest } from '@jest/globals';
+import { describe, it, expect, jest, beforeEach } from '@jest/globals';
+import { readFileSync } from 'fs';
+import { join } from 'path';
 import { LeadRotationService } from '@/modules/bella-auto/services/LeadRotationService';
 import { AutoSalesProvider } from '@/modules/bella-auto/services/AutoSalesProvider';
 
@@ -24,11 +26,6 @@ jest.mock('@/modules/bella-auto/services/JourneySLAMonitorService', () => ({
   JourneySLAMonitorService: {
     recordTouchpoint: jest.fn().mockResolvedValue({ success: true }),
   }
-}));
-
-// Mock accounting-outbox để không cần real Supabase admin client
-jest.mock('@/lib/accounting-outbox', () => ({
-  enqueueWithAutoClient: jest.fn().mockResolvedValue(true),
 }));
 
 /**
@@ -129,6 +126,9 @@ function makeSupabaseMock(dbState: {
 }
 
 describe('Phase 4: Lead & Sales Center — Unit Tests', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
 
   describe('4.2 LeadRotationService', () => {
     it('should assign lead to agent who has oldest assignment (Round Robin)', async () => {
@@ -174,7 +174,18 @@ describe('Phase 4: Lead & Sales Center — Unit Tests', () => {
   });
 
   describe('4.3 AutoSalesProvider', () => {
-    it('should create new booking, allocate VIN, and enqueue outbox', async () => {
+    it('should not emit PACKAGE_SALE from AutoMove booking or deposit producer', () => {
+      const source = readFileSync(
+        join(process.cwd(), 'src/modules/bella-auto/services/AutoSalesProvider.ts'),
+        'utf8'
+      );
+
+      expect(source).not.toContain('enqueueWithAutoClient');
+      expect(source).not.toContain("eventType:     'PACKAGE_SALE'");
+      expect(source).toContain('payment_received / sale_revenue_recognized');
+    });
+
+    it('should create new booking and allocate VIN without vehicle revenue outbox', async () => {
       const dbState = {
         auto_bookings: [],
         auto_vehicles: [
@@ -216,7 +227,7 @@ describe('Phase 4: Lead & Sales Center — Unit Tests', () => {
       expect(booking.paymentStatus).toBe('unpaid');
     });
 
-    it('should update payment status when record deposit payment', async () => {
+    it('should update payment status when record deposit payment without recognizing vehicle revenue', async () => {
       const dbState = {
         singleOverride: {
           id: 'booking-id-123',
@@ -247,6 +258,11 @@ describe('Phase 4: Lead & Sales Center — Unit Tests', () => {
       expect(result.success).toBe(true);
       expect(result.paymentStatus).toBe('fully_paid');
       expect(result.depositPaid).toBe(100000000);
+      expect(dbState.auto_bookings[0]).toMatchObject({
+        deposit_paid: 100000000,
+        payment_status: 'fully_paid',
+        status: 'confirmed',
+      });
     });
   });
 

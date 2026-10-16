@@ -367,7 +367,7 @@ function BranchButton({
       type="button"
       onClick={onSelect}
       className={`w-full rounded-md border p-3 text-left transition ${
-        selected ? 'border-slate-900 bg-slate-900 text-white' : 'border-slate-200 bg-white text-slate-950 hover:bg-slate-50'
+        selected ? 'border-primary bg-primary text-primary-foreground' : 'border-slate-200 bg-white text-slate-950 hover:bg-slate-50'
       }`}
     >
       <div className="flex items-center justify-between gap-3">

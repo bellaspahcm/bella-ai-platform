@@ -395,15 +395,48 @@ export async function upsertBookingRecord(params: {
   supabase: SupabaseServerClient;
   existingBooking: BookingRow | null;
   bookingPayload: BookingInsertWithBranch;
+  expectedDraftScope?: { tenantId: string; customerId: string; branchId: string };
 }): Promise<{ booking: BookingRowWithBranch } | ActionError> {
-  const { supabase, existingBooking, bookingPayload } = params;
+  const { supabase, existingBooking, bookingPayload, expectedDraftScope } = params;
+
+  // Nail does not transfer an existing draft or its children between branches.
+  // Callers without this explicit policy (including Haircut) retain their path.
+  if (expectedDraftScope) {
+    const matchesScope = (row: { tenant_id?: string | null; customer_id?: string | null; branch_id?: string | null }) =>
+      row.tenant_id === expectedDraftScope.tenantId &&
+      String(row.customer_id) === expectedDraftScope.customerId &&
+      row.branch_id === expectedDraftScope.branchId;
+    if (!matchesScope(bookingPayload) || (existingBooking && !matchesScope(existingBooking))) {
+      return { error: 'Booking nháp không khớp tenant, khách hàng hoặc chi nhánh đã chọn. Không thể chuyển chi nhánh.' };
+    }
+    if (existingBooking) {
+      for (const table of ['session_logs', 'revenue'] as const) {
+        const { data, error } = await supabase
+          .from(table)
+          .select('tenant_id, branch_id')
+          .eq('booking_id', existingBooking.id)
+          .returns<Array<{ tenant_id: string | null; branch_id: string | null }>>();
+        if (error || !data) return { error: 'Không thể xác minh dữ liệu liên quan của booking nháp. Chưa thực hiện cập nhật.' };
+        if (data.some(row => row.tenant_id !== expectedDraftScope.tenantId || row.branch_id !== expectedDraftScope.branchId)) {
+          return { error: 'Session hoặc giao dịch của booking nháp không khớp chi nhánh. Chưa thực hiện cập nhật.' };
+        }
+      }
+    }
+  }
 
   if (existingBooking) {
     const updatePayload: BookingUpdateWithBranch = bookingPayload;
-    const { data: updated, error } = await supabase
+    let updateQuery = supabase
       .from('bookings')
       .update(updatePayload)
-      .eq('id', existingBooking.id)
+      .eq('id', existingBooking.id);
+    if (expectedDraftScope) {
+      updateQuery = updateQuery
+        .eq('tenant_id', expectedDraftScope.tenantId)
+        .eq('customer_id', expectedDraftScope.customerId)
+        .eq('branch_id', expectedDraftScope.branchId);
+    }
+    const { data: updated, error } = await updateQuery
       .select()
       .single();
 

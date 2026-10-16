@@ -22,10 +22,10 @@ export async function GET() {
       return NextResponse.json({ error: 'No tenant found' }, { status: 403 });
     }
 
-    // Get brands with model count
+    // Get tenant-scoped brand identities
     const { data: brands, error } = await supabase
       .from('auto_brands')
-      .select('id, name, logo_url')
+      .select('id, name')
       .eq('tenant_id', profile.tenant_id)
       .order('name');
 

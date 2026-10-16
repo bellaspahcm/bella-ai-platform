@@ -197,7 +197,7 @@ export default function SalaryTable({
                     <div className="flex gap-2">
                       <button 
                         onClick={() => router.push(`/dashboard/salary/${s.id}/detail?month=${currentMonth}`)}
-                        className="p-3 bg-blue-50 text-blue-500 hover:bg-blue-500 hover:text-white rounded-xl transition-all shadow-sm"
+                        className="p-3 bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground rounded-xl transition-all shadow-sm"
                         title="Xem chi tiết lương"
                       >
                         <Eye className="w-5 h-5" />
@@ -224,7 +224,7 @@ export default function SalaryTable({
                       <button 
                         onClick={() => handleApprove(s.id, s.name)}
                         disabled={isActionBlocked}
-                        className="p-3 bg-primary/10 text-primary hover:bg-primary hover:text-white rounded-xl transition-all shadow-sm disabled:opacity-50 disabled:pointer-events-none"
+                        className="p-3 bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground rounded-xl transition-all shadow-sm disabled:opacity-50 disabled:pointer-events-none"
                         title={isApproving ? 'Đang phê duyệt' : 'Phê duyệt'}
                       >
                         <CheckCircle2 className="w-5 h-5" />
@@ -232,7 +232,7 @@ export default function SalaryTable({
                       <button 
                         onClick={() => handleExport(s)}
                         disabled={isExportBlocked}
-                        className="p-3 bg-emerald-50 text-emerald-500 hover:bg-emerald-500 hover:text-white rounded-xl transition-all shadow-sm disabled:opacity-50 disabled:pointer-events-none"
+                        className="p-3 bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground rounded-xl transition-all shadow-sm disabled:opacity-50 disabled:pointer-events-none"
                         title={isExporting ? 'Đang xuất báo cáo' : 'Xuất báo cáo chi tiết'}
                       >
                         {isExporting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Download className="w-5 h-5" />}
@@ -243,7 +243,7 @@ export default function SalaryTable({
                     <div className="flex gap-2">
                       <button 
                         onClick={() => router.push(`/dashboard/salary/${s.id}/detail?month=${currentMonth}`)}
-                        className="flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white rounded-xl transition-all font-bold text-xs"
+                        className="flex items-center gap-2 px-4 py-2 bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground rounded-xl transition-all font-bold text-xs"
                         title="Xem chi tiết lương"
                       >
                         <Eye className="w-4 h-4" />
@@ -252,7 +252,7 @@ export default function SalaryTable({
                       <button 
                         onClick={() => handleExport(s)}
                         disabled={isExportBlocked}
-                        className="flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white rounded-xl transition-all font-bold text-xs disabled:opacity-50 disabled:pointer-events-none"
+                        className="flex items-center gap-2 px-4 py-2 bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground rounded-xl transition-all font-bold text-xs disabled:opacity-50 disabled:pointer-events-none"
                       >
                         {isExporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
                         {isExporting ? 'Đang xuất' : 'Xuất báo cáo'}

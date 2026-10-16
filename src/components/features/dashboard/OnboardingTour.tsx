@@ -146,7 +146,7 @@ export default function OnboardingTour({
             setIsOpen(true);
             setCurrentStep(0);
           }}
-          className="fixed bottom-6 right-6 z-40 bg-white/90 dark:bg-slate-900/90 hover:bg-primary hover:text-white border border-pink-100 dark:border-slate-800 text-slate-500 p-4 rounded-full shadow-2xl flex items-center gap-2 font-black uppercase tracking-widest text-[10px] backdrop-blur-md transition-all hover:scale-105 active:scale-95 group"
+          className="fixed bottom-6 right-6 z-40 bg-white/90 dark:bg-primary/90 hover:bg-primary-hover hover:text-primary-foreground border border-pink-100 dark:border-slate-800 text-slate-500 p-4 rounded-full shadow-2xl flex items-center gap-2 font-black uppercase tracking-widest text-[10px] backdrop-blur-md transition-all hover:scale-105 active:scale-95 group"
           title="Xem hướng dẫn sử dụng"
         >
           <HelpCircle className="w-5 h-5 text-primary group-hover:text-white transition-colors" />
@@ -270,7 +270,7 @@ export default function OnboardingTour({
                     className={`px-8 py-4 rounded-2xl text-white transition-all font-black uppercase text-[10px] tracking-widest flex items-center gap-2 shadow-lg active:scale-95 ${
                       currentStep === steps.length - 1
                         ? 'bg-gradient-to-r from-emerald-500 to-teal-500 shadow-emerald-100 dark:shadow-none'
-                        : 'bg-primary hover:bg-primary-hover shadow-pink-100 dark:shadow-none'
+                        : 'bg-primary hover:bg-primary-hover shadow-primary/20 dark:shadow-none'
                     }`}
                   >
                     {currentStep === steps.length - 1 ? (

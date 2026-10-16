@@ -388,7 +388,7 @@ export default function SubscriptionTab() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
           <div className="md:col-span-2 space-y-3">
             <div className="flex items-center gap-3">
-              <span className="px-4 py-1.5 rounded-full text-[10px] font-black uppercase bg-primary text-white tracking-wider animate-pulse">
+              <span className="px-4 py-1.5 rounded-full text-[10px] font-black uppercase bg-primary text-primary-foreground tracking-wider animate-pulse">
                 Gói hiện tại
               </span>
               {status?.isExpired && (
@@ -410,7 +410,7 @@ export default function SubscriptionTab() {
           <div className="flex justify-end">
             <button
               onClick={() => setSelectedPlan(PLANS.find(p => p.id === 'pro') ?? null)}
-              className="bg-primary hover:bg-primary-hover text-white px-8 py-4 rounded-2xl font-black text-sm transition-all shadow-lg shadow-pink-100 dark:shadow-none hover:-translate-y-0.5 active:translate-y-0"
+              className="bg-primary hover:bg-primary-hover text-primary-foreground px-8 py-4 rounded-2xl font-black text-sm transition-all shadow-lg shadow-primary/20 dark:shadow-none hover:-translate-y-0.5 active:translate-y-0"
             >
               Gia hạn / Nâng cấp
             </button>
@@ -524,7 +524,7 @@ export default function SubscriptionTab() {
               )}
             >
               {plan.recommended && (
-                <div className="absolute top-0 right-0 bg-primary text-white text-[8px] font-black px-4 py-1 rounded-bl-2xl uppercase tracking-wider">
+                <div className="absolute top-0 right-0 bg-primary text-primary-foreground text-[8px] font-black px-4 py-1 rounded-bl-2xl uppercase tracking-wider">
                   Bán chạy nhất
                 </div>
               )}
@@ -560,7 +560,7 @@ export default function SubscriptionTab() {
                   className={cn(
                     "w-full py-3.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all",
                     plan.recommended
-                      ? "bg-primary text-white hover:bg-primary-hover shadow-lg shadow-pink-100 dark:shadow-none"
+                      ? "bg-primary text-primary-foreground hover:bg-primary-hover shadow-lg shadow-primary/20 dark:shadow-none"
                       : "bg-slate-50 text-slate-700 hover:bg-slate-100 border border-slate-100"
                   )}
                 >
@@ -648,7 +648,7 @@ export default function SubscriptionTab() {
                 <button
                   onClick={handleCreateInvoice}
                   disabled={isPending}
-                  className="w-full bg-primary hover:bg-primary-hover text-white py-4 rounded-2xl font-black transition-all shadow-lg shadow-pink-100 dark:shadow-none flex items-center justify-center gap-3"
+                  className="w-full bg-primary hover:bg-primary-hover text-primary-foreground py-4 rounded-2xl font-black transition-all shadow-lg shadow-primary/20 dark:shadow-none flex items-center justify-center gap-3"
                 >
                   {isPending ? (
                     <Loader2 className="w-5 h-5 animate-spin" />
@@ -693,7 +693,7 @@ export default function SubscriptionTab() {
                     <button
                       onClick={() => handleSimulatePayment(pendingInvoice.invoice_number)}
                       disabled={isSimulating}
-                      className="w-full bg-slate-800 hover:bg-slate-900 text-white py-3.5 rounded-2xl font-black text-xs transition-all flex items-center justify-center gap-2.5 uppercase tracking-wider"
+                      className="w-full bg-primary hover:bg-primary-hover text-primary-foreground py-3.5 rounded-2xl font-black text-xs transition-all flex items-center justify-center gap-2.5 uppercase tracking-wider"
                     >
                       {isSimulating ? (
                         <Loader2 className="w-4 h-4 animate-spin" />

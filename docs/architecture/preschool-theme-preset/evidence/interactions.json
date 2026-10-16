@@ -1,0 +1,228 @@
+{
+  "proof": "UI_FIXTURE_ONLY",
+  "checks": [
+    {
+      "file": "courses/page.tsx",
+      "name": "Mở Lớp Học Mới",
+      "pass": true,
+      "rootVisible": true,
+      "primaryControls": 7,
+      "modalCount": 1
+    },
+    {
+      "file": "courses/[id]/page.tsx",
+      "name": "Phân công GVN",
+      "pass": true,
+      "rootVisible": true,
+      "primaryControls": 3,
+      "modalCount": 1
+    },
+    {
+      "file": "communication/page.tsx",
+      "name": "Gửi Thông Báo Điều Hành",
+      "pass": true,
+      "rootVisible": true,
+      "primaryControls": 5,
+      "modalCount": 1
+    },
+    {
+      "file": "communication/page.tsx",
+      "name": "Tổng Quan Communication Center",
+      "pass": true,
+      "rootVisible": true,
+      "primaryControls": 4,
+      "modalCount": 0
+    },
+    {
+      "file": "communication/page.tsx",
+      "name": "Tin Nhắn & Intent Workflows",
+      "pass": true,
+      "rootVisible": true,
+      "primaryControls": 2,
+      "modalCount": 0
+    },
+    {
+      "file": "communication/page.tsx",
+      "name": "Daily Child Update (Sổ Liên Lạc)",
+      "pass": true,
+      "rootVisible": true,
+      "primaryControls": 2,
+      "modalCount": 0
+    },
+    {
+      "file": "communication/page.tsx",
+      "name": "Thông Báo & Form Đồng Ý (Consent)",
+      "pass": true,
+      "rootVisible": true,
+      "primaryControls": 2,
+      "modalCount": 0
+    },
+    {
+      "file": "communication/page.tsx",
+      "name": "Hoạt Động & Media Feed",
+      "pass": true,
+      "rootVisible": true,
+      "primaryControls": 2,
+      "modalCount": 0
+    },
+    {
+      "file": "finance/page.tsx",
+      "name": "Staff Finance Command Center",
+      "pass": true,
+      "rootVisible": true,
+      "primaryControls": 2,
+      "modalCount": 0
+    },
+    {
+      "file": "finance/page.tsx",
+      "name": "Parent Finance View",
+      "pass": true,
+      "rootVisible": true,
+      "primaryControls": 1,
+      "modalCount": 0
+    },
+    {
+      "file": "teachers/[id]/page.tsx",
+      "name": "Tổng Quan & Hồ Sơ",
+      "pass": true,
+      "rootVisible": true,
+      "primaryControls": 2,
+      "modalCount": 0
+    },
+    {
+      "file": "teachers/[id]/page.tsx",
+      "name": "Bằng Cấp & Chứng Chỉ",
+      "pass": true,
+      "rootVisible": true,
+      "primaryControls": 3,
+      "modalCount": 0
+    },
+    {
+      "file": "teachers/[id]/page.tsx",
+      "name": "Lịch Sử Phân Công Lớp",
+      "pass": true,
+      "rootVisible": true,
+      "primaryControls": 2,
+      "modalCount": 0
+    },
+    {
+      "file": "teachers/[id]/page.tsx",
+      "name": "Thời Khóa Biểu Tuần",
+      "pass": true,
+      "rootVisible": true,
+      "primaryControls": 2,
+      "modalCount": 0
+    },
+    {
+      "file": "teachers/[id]/page.tsx",
+      "name": "Đánh Giá Sư Phạm",
+      "pass": true,
+      "rootVisible": true,
+      "primaryControls": 2,
+      "modalCount": 0
+    },
+    {
+      "file": "learning/page.tsx",
+      "name": "Work Queue Lớp Hàng Ngày",
+      "pass": true,
+      "rootVisible": true,
+      "primaryControls": 1,
+      "modalCount": 0
+    },
+    {
+      "file": "learning/page.tsx",
+      "name": "Ghi Nhận Quan Sát & Minh Chứng",
+      "pass": true,
+      "rootVisible": true,
+      "primaryControls": 2,
+      "modalCount": 0
+    },
+    {
+      "file": "learning/page.tsx",
+      "name": "Hồ Sơ Portfolio & Xuất Bản",
+      "pass": true,
+      "rootVisible": true,
+      "primaryControls": 2,
+      "modalCount": 0
+    },
+    {
+      "file": "learning/page.tsx",
+      "name": "Projection Phụ Huynh Xem (Parent View)",
+      "pass": true,
+      "rootVisible": true,
+      "primaryControls": 1,
+      "modalCount": 0
+    },
+    {
+      "file": "facilities/page.tsx",
+      "name": "Tổng Quan Facilities",
+      "pass": true,
+      "rootVisible": true,
+      "primaryControls": 2,
+      "modalCount": 0
+    },
+    {
+      "file": "facilities/page.tsx",
+      "name": "Không Gian & Zone Availability",
+      "pass": true,
+      "rootVisible": true,
+      "primaryControls": 1,
+      "modalCount": 0
+    },
+    {
+      "file": "facilities/page.tsx",
+      "name": "Danh Mục Tài Sản & QR",
+      "pass": true,
+      "rootVisible": true,
+      "primaryControls": 1,
+      "modalCount": 0
+    },
+    {
+      "file": "facilities/page.tsx",
+      "name": "Kiểm Định An Toàn & Sub-Jobs",
+      "pass": true,
+      "rootVisible": true,
+      "primaryControls": 1,
+      "modalCount": 0
+    },
+    {
+      "file": "facilities/page.tsx",
+      "name": "Work Orders & Exception Work Queue",
+      "pass": true,
+      "rootVisible": true,
+      "primaryControls": 1,
+      "modalCount": 0
+    },
+    {
+      "file": "scheduling/page.tsx",
+      "name": "Lịch Roster & Tỷ Lệ Bảo Mẫu",
+      "pass": true,
+      "rootVisible": true,
+      "primaryControls": 1,
+      "modalCount": 0
+    },
+    {
+      "file": "scheduling/page.tsx",
+      "name": "Quản Lý Nghỉ Phép & Phân Công Dạy Thay",
+      "pass": true,
+      "rootVisible": true,
+      "primaryControls": 1,
+      "modalCount": 0
+    },
+    {
+      "file": "scheduling/page.tsx",
+      "name": "Platform Exception Work Queue",
+      "pass": true,
+      "rootVisible": true,
+      "primaryControls": 0,
+      "modalCount": 0
+    },
+    {
+      "file": "enrollments/page.tsx",
+      "name": "Đăng Ký Nhập Học Mới",
+      "pass": true,
+      "observed": "Admission modal opened; input focused; no submit or mutation."
+    }
+  ],
+  "errors": []
+}

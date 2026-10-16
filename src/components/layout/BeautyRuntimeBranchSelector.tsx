@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useTransition } from 'react';
+import { useEffect, useRef, useState, useTransition } from 'react';
 import { GitFork } from 'lucide-react';
 import { toast } from 'sonner';
 import {
@@ -10,6 +10,7 @@ import {
 } from '@/services/beauty-runtime-branch-actions';
 import { cn } from '@/lib/utils';
 import { PremiumSelect } from '@/components/ui/PremiumSelect';
+import { useUser } from '@/lib/user-context';
 
 const ACTIVE_BRANCH_STORAGE_KEY = 'bella.beauty.active_branch.v1';
 
@@ -37,12 +38,22 @@ function writeStoredBranchId(branchId: string) {
 
 export function BeautyRuntimeBranchSelector({ enabled }: BeautyRuntimeBranchSelectorProps) {
   const [branches, setBranches] = useState<BeautyRuntimeBranch[]>([]);
-  const [activeBranchId, setActiveBranchId] = useState<string | null>(null);
+  const { user, activeBranchId, setActiveBranchId, isBranchPending, setIsBranchPending } = useUser();
   const [requiresSelection, setRequiresSelection] = useState(false);
   const [isPending, startTransition] = useTransition();
+  const selectionInFlight = useRef(false);
+  const requestVersion = useRef(0);
 
   useEffect(() => {
-    if (!enabled) return;
+    requestVersion.current += 1;
+    selectionInFlight.current = false;
+    setActiveBranchId(null);
+    setIsBranchPending(true);
+    if (!enabled || !user?.tenant_id) {
+      setBranches([]);
+      setIsBranchPending(false);
+      return;
+    }
 
     let cancelled = false;
     const storedBranchId = readStoredBranchId();
@@ -63,21 +74,33 @@ export function BeautyRuntimeBranchSelector({ enabled }: BeautyRuntimeBranchSele
         if (result.data.activeBranchId) {
           writeStoredBranchId(result.data.activeBranchId);
         }
+      }).catch(() => {
+        if (cancelled) return;
+        setBranches([]);
+        setActiveBranchId(null);
+        toast.error('Không thể xác minh chi nhánh. Vui lòng thử lại.');
+      }).finally(() => {
+        if (!cancelled) setIsBranchPending(false);
       });
     });
 
     return () => {
       cancelled = true;
+      requestVersion.current += 1;
     };
-  }, [enabled]);
+  }, [enabled, user?.id, user?.tenant_id, setActiveBranchId, setIsBranchPending]);
 
   if (!enabled || branches.length === 0) return null;
 
   function handleChange(branchId: string) {
-    if (!branchId) return;
+    if (!branchId || isBranchPending || selectionInFlight.current) return;
+    const version = requestVersion.current;
+    selectionInFlight.current = true;
+    setIsBranchPending(true);
 
     startTransition(() => {
       void selectBeautyRuntimeBranch(branchId).then((result) => {
+        if (version !== requestVersion.current) return;
         if (!result.success) {
           toast.error(result.error);
           return;
@@ -88,6 +111,13 @@ export function BeautyRuntimeBranchSelector({ enabled }: BeautyRuntimeBranchSele
         window.dispatchEvent(new CustomEvent('beauty-runtime-branch-change', {
           detail: { branchId: result.data.activeBranchId },
         }));
+      }).catch(() => {
+        if (version !== requestVersion.current) return;
+        toast.error('Không thể xác minh chi nhánh. Vui lòng thử lại.');
+      }).finally(() => {
+        if (version !== requestVersion.current) return;
+        selectionInFlight.current = false;
+        setIsBranchPending(false);
       });
     });
   }
@@ -106,7 +136,7 @@ export function BeautyRuntimeBranchSelector({ enabled }: BeautyRuntimeBranchSele
         value={activeBranchId ?? ''}
         onChange={handleChange}
         placeholder="Chọn chi nhánh"
-        disabled={isPending}
+        disabled={isPending || isBranchPending}
         ariaLabel="Chọn chi nhánh hoạt động"
         className="space-y-0"
         buttonClassName={cn(

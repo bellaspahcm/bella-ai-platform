@@ -180,18 +180,21 @@ export async function checkHqAuth() {
     return { authorized: false, error: 'Tài khoản không thuộc chi nhánh nào.' };
   }
   
-  const supabase = await createDevelopmentBypassClient();
+  const supabase = await createClient();
   const { data: tenant, error: tenantError } = await supabase
     .from('tenants')
-    .select('product_key')
+    .select('product_key, status')
     .eq('id', currentUser.tenant_id)
     .single();
 
   if (tenantError) {
+    if (tenantError.code === '42501' || tenantError.code === 'PGRST116') {
+      return { authorized: false, error: 'Quyền truy cập bị từ chối.' };
+    }
     throw new Error(`Failed to verify HQ tenant: ${tenantError.message}`);
   }
      
-  if (!isHqTenant(tenant)) {
+  if (tenant?.status !== 'active' || !isHqTenant(tenant)) {
     return { authorized: false, error: 'Trang này chỉ dành cho quản trị viên Tổng bộ.' };
   }
   

@@ -58,6 +58,8 @@ interface MovementRow extends QueryResultRow {
   created_at: Date | string;
 }
 
+type StockOutReason = 'disposal' | 'damage' | 'loss' | 'sale' | 'production_consumption';
+
 interface TraceabilityRow extends QueryResultRow {
   id: string;
   tenant_id: string;
@@ -77,8 +79,6 @@ interface StockOutIdempotencyRow extends QueryResultRow {
   status: string;
   result: unknown | null;
 }
-
-const STOCK_OUT_IDEMPOTENCY_OPERATION = 'warehouse_stock_out.production_consumption';
 
 export function createWarehousePostgresStockOutPorts(
   db: WarehousePostgresStockOutExecutor,
@@ -151,6 +151,7 @@ export function createWarehousePostgresStockOutPorts(
       recordStockOut: async ({ mutation, balanceAfter, occurredAt }) => {
         const movementId = idFactory();
         const locationType = await getLocationType(db, mutation.tenant_id, mutation.location_id);
+        const issueDocumentType = readOptionalText(mutation.metadata.issue_document_type);
         const sourceDocumentId = readUuid(mutation.reference_id);
         const sourceLineId = readUuid(readOptionalText(mutation.metadata.source_line_id));
         const unitCost = readOptionalNumber(mutation.metadata.unit_cost);
@@ -209,7 +210,7 @@ export function createWarehousePostgresStockOutPorts(
             unitCost,
             totalCost,
             currency,
-            'warehouse_stock_out',
+            readMovementSourceDocumentType(issueDocumentType),
             sourceDocumentId,
             readOptionalText(mutation.metadata.issue_document_number),
             sourceLineId,
@@ -303,6 +304,7 @@ export function createWarehousePostgresStockOutPorts(
     idempotency: {
       claim: (params) => claimStockOutIdempotency(db, {
         tenantId: params.tenantId,
+        operation: params.operation,
         idempotencyKey: params.idempotencyKey,
         payloadHash: params.payloadHash,
       }),
@@ -387,7 +389,7 @@ async function runInTransaction<TResult>(
 
 async function claimStockOutIdempotency(
   db: WarehousePostgresStockOutExecutor,
-  params: { tenantId: string; idempotencyKey: string; payloadHash: string }
+  params: { tenantId: string; operation: string; idempotencyKey: string; payloadHash: string }
 ): Promise<WarehouseStockOutIdempotencyClaim> {
   const inserted = await db.query<StockOutIdempotencyRow>(
     `
@@ -404,7 +406,7 @@ async function claimStockOutIdempotency(
     `,
     [
       params.tenantId,
-      STOCK_OUT_IDEMPOTENCY_OPERATION,
+      params.operation,
       params.idempotencyKey,
       params.payloadHash,
     ]
@@ -421,7 +423,7 @@ async function claimStockOutIdempotency(
       AND idempotency_key = $3
     FOR UPDATE
     `,
-    [params.tenantId, STOCK_OUT_IDEMPOTENCY_OPERATION, params.idempotencyKey]
+    [params.tenantId, params.operation, params.idempotencyKey]
   );
   const row = requireRow(existing.rows[0], 'stock-out idempotency row not found after conflict');
 
@@ -432,6 +434,7 @@ async function claimStockOutIdempotency(
       status: 'completed',
       record: {
         tenantId: row.tenant_id,
+        operation: row.operation,
         idempotencyKey: row.idempotency_key,
         payloadHash: row.payload_hash,
         result: toWarehouseStockOutSuccess(row.result),
@@ -445,6 +448,7 @@ async function completeStockOutIdempotency(
   db: WarehousePostgresStockOutExecutor,
   record: {
     tenantId: string;
+    operation: string;
     idempotencyKey: string;
     payloadHash: string;
     result: WarehouseStockOutSuccess;
@@ -464,7 +468,7 @@ async function completeStockOutIdempotency(
     `,
     [
       record.tenantId,
-      STOCK_OUT_IDEMPOTENCY_OPERATION,
+      record.operation,
       record.idempotencyKey,
       JSON.stringify(record.result),
       record.payloadHash,
@@ -604,7 +608,7 @@ function toInventoryBalance(row: InventoryRow): InventoryBalance {
 
 function toMovementRecord(
   row: MovementRow,
-  reason: 'disposal' | 'damage' | 'loss' | 'production_consumption',
+  reason: StockOutReason,
   fallbackActorId: string
 ): CanonicalStockOutMovementRecord {
   return {
@@ -620,12 +624,17 @@ function toMovementRecord(
   };
 }
 
-function readStockOutReason(value: string): 'disposal' | 'damage' | 'loss' | 'production_consumption' {
+function readStockOutReason(value: string): StockOutReason {
   return value === 'damage' ||
     value === 'loss' ||
+    value === 'sale' ||
     value === 'production_consumption'
     ? value
     : 'disposal';
+}
+
+function readMovementSourceDocumentType(issueDocumentType: string | undefined): string {
+  return issueDocumentType === 'sales_order' ? 'sales_order' : 'warehouse_stock_out';
 }
 
 function toTraceabilityEvent(

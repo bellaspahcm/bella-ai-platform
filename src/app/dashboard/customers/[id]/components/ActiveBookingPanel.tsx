@@ -8,6 +8,7 @@ import type { TenantModuleKey } from '@/lib/business-rules/tenant-modules';
 import { cn, formatNumberWithSeparator } from '@/lib/utils';
 import { Calendar, ChevronRight, FileText, Image as ImageIcon, Loader2, MessageCircle, MoreHorizontal, Share2, Sparkles, User } from 'lucide-react';
 import type { CustomerDetailBooking, KtvOption } from '../types';
+import { getStatusDisplay } from './BookingSelectorPanel';
 
 export function ActiveBookingPanel({
   activeBooking,
@@ -33,6 +34,7 @@ export function ActiveBookingPanel({
   onOpenBookingSessions,
   onExportCombinedQuotation,
   onShareCombinedPortal,
+  isBabyCare = false,
 }: {
   activeBooking: CustomerDetailBooking | null;
   ktvs: KtvOption[];
@@ -57,6 +59,7 @@ export function ActiveBookingPanel({
   onOpenBookingSessions: () => void;
   onExportCombinedQuotation?: () => void | Promise<void>;
   onShareCombinedPortal?: () => void | Promise<void>;
+  isBabyCare?: boolean;
 }) {
   const vocab = getModuleVocabulary(tenantModuleKey);
   
@@ -71,11 +74,14 @@ export function ActiveBookingPanel({
     : null;
   const remainingBalance = paymentState?.remainingDebt || 0;
   const completedSessions = activeBooking?.completed_sessions || 0;
-  const totalSessions = activeBooking?.total_sessions || 12;
+  const totalSessions = isBabyCare ? activeBooking?.total_sessions ?? 0 : activeBooking?.total_sessions || 12;
   const progressPercent = Math.min(100, Math.round((completedSessions / Math.max(1, totalSessions)) * 100));
+  const displayedFullPrice = activeBooking?.full_price ?? 0;
+  const displayedPaidAmount = paymentState?.totalPaid ?? 0;
+  const bookingStatus = getStatusDisplay(activeBooking?.status || 'Chưa cập nhật');
 
   // Mock AI KTV recommendation list matching Image 2
-  const aiKtvs = [
+  const aiKtvs = isBabyCare ? [] : [
     {
       id: ktvs[0]?.id || 'ktv-1',
       name: ktvs[0]?.full_name || 'KTV Demo Body',
@@ -114,20 +120,27 @@ export function ActiveBookingPanel({
     },
   ];
 
+  if (isBabyCare && !activeBooking) return (
+    <div className="mb-6 rounded-2xl bg-white border border-slate-200 p-6 text-sm text-slate-500">
+      <p>Khách hàng chưa có gói chăm sóc.</p>
+      <button onClick={onOpenBooking} className="mt-4 inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-xs font-bold text-primary-foreground"><Calendar className="w-4 h-4" />Đăng ký gói chăm sóc</button>
+    </div>
+  );
+
   return (
     <div className="space-y-6 mb-6">
       {/* ── Theme-aware Active Package Card ── */}
-      <div className="beauty-customer-theme-card beauty-customer-theme-hero-card relative overflow-hidden rounded-[2.5rem] p-6 text-white shadow-2xl border">
+      <div className="beauty-customer-theme-card beauty-customer-theme-hero-card relative overflow-hidden rounded-[2.5rem] p-6 text-primary-foreground shadow-2xl border">
         <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 mb-6">
           {/* Header left */}
           <div className="flex items-start gap-4 min-w-0">
             <div className="beauty-customer-theme-media-frame w-16 h-16 sm:w-20 sm:h-20 shrink-0 rounded-2xl overflow-hidden bg-white/15 border">
               <Image
-                src="https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=300&q=80"
-                alt="Package Thumbnail"
+                src={isBabyCare ? '/logo.png' : 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=300&q=80'}
+                alt={isBabyCare ? 'Bella BabyCare' : 'Package Thumbnail'}
                 width={80}
                 height={80}
-                className="w-full h-full object-cover"
+                className={cn("w-full h-full", isBabyCare ? 'object-contain bg-white p-2' : 'object-cover')}
               />
             </div>
             <div className="space-y-1">
@@ -135,15 +148,15 @@ export function ActiveBookingPanel({
                 <span className="beauty-customer-theme-accent text-[10px] font-black uppercase tracking-widest">
                   GÓI DỊCH VỤ HIỆN TẠI
                 </span>
-                <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase bg-emerald-500/20 !text-emerald-300 border border-emerald-500/30">
-                  Đang thực hiện
+                <span className={cn("px-2 py-0.5 rounded-full text-[9px] font-black uppercase border", isBabyCare ? `${bookingStatus.bg} ${bookingStatus.text}` : 'bg-emerald-500/20 !text-emerald-300 border-emerald-500/30')}>
+                  {isBabyCare ? bookingStatus.label : 'Đang thực hiện'}
                 </span>
                 <span className="beauty-customer-theme-muted text-[10px] font-medium">
-                  • Bắt đầu: {activeBooking?.start_date ? new Date(activeBooking.start_date).toLocaleDateString('vi-VN') : '24/07/2026'}
+                  • Bắt đầu: {activeBooking?.start_date ? new Date(activeBooking.start_date).toLocaleDateString('vi-VN') : isBabyCare ? 'Chưa xếp ngày' : '24/07/2026'}
                 </span>
               </div>
               <h2 className="beauty-customer-theme-title text-xl sm:text-2xl font-black leading-tight">
-                {activeBooking?.packages?.name || activeBooking?.package_name || 'Gội Đầu Dưỡng Sinh Demo'}
+                {activeBooking?.packages?.name || activeBooking?.package_name || (isBabyCare ? 'Gói chăm sóc' : 'Gội Đầu Dưỡng Sinh Demo')}
               </h2>
             </div>
           </div>
@@ -168,11 +181,11 @@ export function ActiveBookingPanel({
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
           <div className="beauty-customer-theme-panel rounded-2xl p-3">
             <p className="beauty-customer-theme-muted text-[9px] font-bold uppercase mb-0.5">Giá gói</p>
-            <p className="beauty-customer-theme-title font-black text-base">{formatNumberWithSeparator(activeBooking?.full_price || 4290000)}đ</p>
+            <p className="beauty-customer-theme-title font-black text-base">{formatNumberWithSeparator(displayedFullPrice)}đ</p>
           </div>
           <div className="beauty-customer-theme-panel rounded-2xl p-3">
             <p className="beauty-customer-theme-muted text-[9px] font-bold uppercase mb-0.5">Đã thanh toán</p>
-            <p className="beauty-customer-theme-accent font-black text-base">{formatNumberWithSeparator(paymentState?.totalPaid || 4290000)}đ</p>
+            <p className="beauty-customer-theme-accent font-black text-base">{formatNumberWithSeparator(displayedPaidAmount)}đ</p>
           </div>
           <div className="beauty-customer-theme-panel rounded-2xl p-3">
             <p className="beauty-customer-theme-muted text-[9px] font-bold uppercase mb-0.5">Còn lại</p>
@@ -180,7 +193,7 @@ export function ActiveBookingPanel({
           </div>
           <div className="beauty-customer-theme-panel rounded-2xl p-3">
             <p className="beauty-customer-theme-muted text-[9px] font-bold uppercase mb-0.5">Ngày kết thúc dự kiến</p>
-            <p className="beauty-customer-theme-title font-black text-base">15/09/2026</p>
+            <p className="beauty-customer-theme-title font-black text-base">{isBabyCare ? activeBooking?.end_date ? new Date(activeBooking.end_date).toLocaleDateString('vi-VN') : 'Chưa xếp ngày' : '15/09/2026'}</p>
           </div>
         </div>
 
@@ -212,7 +225,7 @@ export function ActiveBookingPanel({
             Xuất báo giá
           </button>
 
-          {userRole === 'admin' && (
+          {userRole === 'admin' && !isBabyCare && (
             <button
               onClick={onExportContract}
               className="beauty-customer-theme-ghost-button px-4 py-3 font-bold text-xs rounded-xl border transition-colors flex items-center gap-1.5"
@@ -222,14 +235,29 @@ export function ActiveBookingPanel({
             </button>
           )}
 
-          <button className="beauty-customer-theme-ghost-button p-3 rounded-xl border transition-colors ml-auto">
+          {isBabyCare && userRole === 'admin' && remainingBalance > 0 && <button onClick={() => onPayRemaining(remainingBalance)} className="beauty-customer-theme-ghost-button px-4 py-3 font-bold text-xs rounded-xl border transition-colors">Ghi nhận thanh toán</button>}
+          {!isBabyCare && <button className="beauty-customer-theme-ghost-button p-3 rounded-xl border transition-colors ml-auto">
             <MoreHorizontal className="w-4 h-4" />
-          </button>
+          </button>}
         </div>
       </div>
 
       {/* ── AI ĐỀ XUẤT KTV PHÙ HỢP Matching Image 2 ── */}
-      {userRole === 'admin' && (
+      {isBabyCare && userRole === 'admin' && activeBooking && (
+        <div className="rounded-[2.5rem] bg-white p-6 border border-slate-200/80 shadow-lg shadow-slate-200/50">
+          <h3 className="text-base font-black text-slate-900 mb-4 flex items-center gap-2"><User className="w-5 h-5 text-primary" />KTV phụ trách</h3>
+          <PremiumSelect
+            ariaLabel="KTV phụ trách"
+            value={activeBooking.assigned_ktv_id || ''}
+            options={ktvs.map(ktv => ({ value: ktv.id, label: ktv.full_name || 'Chưa cập nhật tên' }))}
+            placeholder={activeBooking.assigned_ktv?.full_name || 'Chưa phân công'}
+            onChange={onUpdateKtv}
+            disabled={isUpdatingKtv || ktvs.length === 0}
+          />
+          {ktvs.length === 0 && <p className="mt-3 text-xs text-slate-500">Chưa có KTV trong danh sách phân công.</p>}
+        </div>
+      )}
+      {!isBabyCare && userRole === 'admin' && (
         <div className="rounded-[2.5rem] bg-white p-6 border border-slate-200/80 shadow-lg shadow-slate-200/50">
           <div className="flex items-center justify-between mb-5">
             <div className="flex items-center gap-2">
@@ -306,7 +334,7 @@ export function ActiveBookingPanel({
                   className={cn(
                     "w-full py-2.5 rounded-xl text-xs font-black transition-all shadow-sm active:scale-95",
                     ktv.isSelected
-                      ? "bg-amber-500 text-slate-950 hover:bg-amber-600"
+                      ? "bg-primary text-primary-foreground hover:bg-primary-hover"
                       : "bg-white text-slate-800 border border-slate-200 hover:bg-slate-100"
                   )}
                 >

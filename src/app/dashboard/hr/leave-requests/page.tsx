@@ -624,7 +624,7 @@ function LeaveRequestsDashboard() {
                           placeholder="Nhập lý do từ chối đơn xin nghỉ (bắt buộc nếu từ chối)..."
                           value={rejectionReason}
                           onChange={(e) => setRejectionReason(e.target.value)}
-                          className="w-full p-3.5 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-rose-500/20 min-h-[70px]"
+                          className="w-full p-3.5 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 min-h-[70px]"
                         />
                       </div>
 

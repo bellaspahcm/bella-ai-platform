@@ -283,6 +283,9 @@ export async function createBooking(formData: CreateBookingInput): Promise<Creat
     supabase,
     existingBooking,
     bookingPayload,
+    ...(branchContext.requiresBranch && branchContext.strictDraftScope ? {
+      expectedDraftScope: { tenantId, customerId, branchId: branchContext.branchId },
+    } : {}),
   });
   if ('error' in bookingResult) {
     return { error: bookingResult.error };

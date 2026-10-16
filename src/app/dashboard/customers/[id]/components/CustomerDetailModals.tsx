@@ -5,6 +5,7 @@ import { cn, parseIntegerInput, parsePercentInput } from '@/lib/utils';;
 import {
   getTenantModulePresentationOrNeutral,
 } from '@/lib/business-rules/tenant-module-presentation';
+import { calculatePriceAfterDiscount } from '@/lib/business-rules/payment';
 import type { TenantModuleKey } from '@/lib/business-rules/tenant-modules';
 import { geocodeAddress } from '@/services/customer-actions';
 import { motion } from 'framer-motion';
@@ -25,6 +26,8 @@ export function EditCustomerModal({
   setData,
   tenantModuleKey,
   customerCreatedAt,
+  loyaltyPoints,
+  isBabyCare = false,
 }: {
   isOpen: boolean;
   onClose: () => void;
@@ -34,9 +37,11 @@ export function EditCustomerModal({
   setData: ModalStateSetter<EditCustomerData>;
   tenantModuleKey: TenantModuleKey | null;
   customerCreatedAt?: string | null;
+  loyaltyPoints?: number | null;
+  isBabyCare?: boolean;
 }) {
   const [isGeocoding, setIsGeocoding] = useState(false);
-  const customerLabels = getTenantModulePresentationOrNeutral(tenantModuleKey);
+  const customerLabels = getTenantModulePresentationOrNeutral(isBabyCare ? 'babycare' : tenantModuleKey);
   const createdAtLabel = customerCreatedAt ? new Date(customerCreatedAt).toLocaleDateString('vi-VN') : 'Mới tạo';
 
   useScrollLock(isOpen);
@@ -81,9 +86,9 @@ export function EditCustomerModal({
       <motion.div
         initial={{ scale: 0.9, opacity: 0, y: 20 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
-        className="relative w-full max-w-2xl bg-white rounded-[2.5rem] shadow-2xl overflow-hidden"
+        className={cn("relative w-full max-w-2xl bg-white rounded-[2.5rem] shadow-2xl overflow-hidden", isBabyCare && 'max-h-[calc(100dvh-2rem)] flex flex-col')}
       >
-        <div className="p-8 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+        <div className={cn("p-8 border-b border-slate-100 flex items-center justify-between bg-slate-50/50", isBabyCare && 'shrink-0 p-5 sm:p-8')}>
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 bg-primary rounded-2xl flex items-center justify-center text-primary-foreground shadow-lg shadow-primary/20">
               <User className="w-6 h-6" />
@@ -93,17 +98,18 @@ export function EditCustomerModal({
               <p className="text-xs text-slate-500 font-bold italic">{customerLabels.editDescription}</p>
             </div>
           </div>
-          <button onClick={onClose} className="p-3 hover:bg-rose-50 rounded-2xl text-slate-400 hover:text-rose-500 transition-all">
+          <button onClick={onClose} aria-label="Đóng cập nhật thông tin" className="p-3 hover:bg-rose-50 rounded-2xl text-slate-400 hover:text-rose-500 transition-all">
             <PlusCircle className="w-6 h-6 rotate-45" />
           </button>
         </div>
 
-        <div className="p-8 space-y-6 max-h-[70vh] overflow-y-auto custom-scrollbar">
-          <div className="grid grid-cols-2 gap-6">
+        <div className={cn("p-8 space-y-6 max-h-[70vh] overflow-y-auto custom-scrollbar", isBabyCare && 'min-h-0 p-5 sm:p-8')}>
+          <div className={cn("grid grid-cols-2 gap-6", isBabyCare && 'grid-cols-1 sm:grid-cols-2')}>
             <div className="space-y-2">
               <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">{customerLabels.primaryNameLabel}</label>
               <input
                 type="text"
+                aria-label={customerLabels.primaryNameLabel}
                 value={data.name_mother}
                 onChange={(e) => setData({ ...data, name_mother: e.target.value })}
                 className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:border-primary outline-none font-bold text-slate-700"
@@ -113,6 +119,7 @@ export function EditCustomerModal({
               <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Số điện thoại</label>
               <input
                 type="text"
+                aria-label="Số điện thoại"
                 value={data.phone}
                 onChange={(e) => setData({ ...data, phone: e.target.value })}
                 className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:border-primary outline-none font-bold text-slate-700"
@@ -122,20 +129,34 @@ export function EditCustomerModal({
               <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">{customerLabels.secondaryNameLabel}</label>
               <input
                 type="text"
+                aria-label={customerLabels.secondaryNameLabel}
                 value={data.name_baby}
                 onChange={(e) => setData({ ...data, name_baby: e.target.value })}
                 className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:border-primary outline-none font-bold text-slate-700"
               />
             </div>
             <div className="space-y-2">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">{customerLabels.secondaryDateLabel}</label>
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">{isBabyCare ? 'Ngày sinh bé' : customerLabels.secondaryDateLabel}</label>
               <input
                 type="date"
-                value={data.dob_baby || data.dob_expected || ''}
-                onChange={(e) => setData({ ...data, dob_baby: e.target.value, dob_expected: e.target.value })}
+                aria-label={isBabyCare ? 'Ngày sinh bé' : customerLabels.secondaryDateLabel}
+                value={isBabyCare ? data.dob_baby : data.dob_baby || data.dob_expected || ''}
+                onChange={(e) => setData(isBabyCare ? { ...data, dob_baby: e.target.value } : { ...data, dob_baby: e.target.value, dob_expected: e.target.value })}
                 className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:border-primary outline-none font-bold text-slate-700"
               />
             </div>
+            {isBabyCare && (
+              <div className="space-y-2">
+                <label htmlFor="babycare-expected-birth" className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Ngày dự sinh</label>
+                <input
+                  id="babycare-expected-birth"
+                  type="date"
+                  value={data.dob_expected}
+                  onChange={(e) => setData({ ...data, dob_expected: e.target.value })}
+                  className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:border-primary outline-none font-bold text-slate-700"
+                />
+              </div>
+            )}
           </div>
 
           <div className="space-y-3">
@@ -145,11 +166,12 @@ export function EditCustomerModal({
                 <button
                   key={g.id}
                   type="button"
+                  aria-pressed={data.gender_baby === g.id}
                   onClick={() => setData({ ...data, gender_baby: g.id })}
                   className={cn(
                     "py-2.5 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all border",
                     data.gender_baby === g.id
-                      ? "bg-primary text-white border-primary shadow-xl shadow-primary/20 scale-[1.02]"
+                      ? "bg-primary text-primary-foreground border-primary shadow-xl shadow-primary/20 scale-[1.02]"
                       : "bg-slate-50 text-slate-400 border-slate-100 hover:border-primary/30"
                   )}
                 >
@@ -182,34 +204,35 @@ export function EditCustomerModal({
               </button>
             </div>
             <textarea
+              aria-label="Địa chỉ"
               value={data.address}
               onChange={(e) => setData({ ...data, address: e.target.value })}
               className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:border-primary outline-none font-bold text-slate-700 h-20 resize-none"
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-6">
+          <div className={cn("grid grid-cols-2 gap-6", isBabyCare && 'grid-cols-1')}>
             <div className="space-y-2">
               <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Điểm tích lũy</label>
-              <input
-                type="number"
-                min="0"
-                value={data.loyalty_points.toString()}
-                onChange={(e) => setData({ ...data, loyalty_points: parseIntegerInput(e.target.value, { min: 0, max: 1000000 }) })}
-                className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:border-primary outline-none font-bold text-slate-700"
-              />
+              <output
+                aria-label="Điểm tích lũy"
+                className="block w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl font-bold text-slate-700"
+              >
+                {(loyaltyPoints ?? 0).toLocaleString('vi-VN')} điểm
+              </output>
             </div>
-            <div className="space-y-2">
+            {!isBabyCare && <div className="space-y-2">
               <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Khách thân thiết</label>
               <div className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl font-bold text-slate-700">
                 Có
               </div>
-            </div>
+            </div>}
           </div>
 
           <div className="space-y-2">
             <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Ghi chú</label>
             <textarea
+              aria-label="Ghi chú"
               value={data.notes}
               onChange={(e) => setData({ ...data, notes: e.target.value })}
               className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:border-primary outline-none font-bold text-slate-700 h-24 resize-none"
@@ -218,23 +241,23 @@ export function EditCustomerModal({
           </div>
 
           <div className="rounded-3xl border border-slate-100 bg-slate-50/70 p-5">
-            <div className="grid grid-cols-1 gap-3 text-xs font-bold text-slate-600 sm:grid-cols-3">
-              <div>
+            <div className={cn("grid grid-cols-1 gap-3 text-xs font-bold text-slate-600", !isBabyCare && 'sm:grid-cols-3')}>
+              {!isBabyCare && <div>
                 <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Phân nhóm</p>
                 <p className="mt-1 text-slate-900">Chưa phân nhóm</p>
-              </div>
-              <div>
+              </div>}
+              {!isBabyCare && <div>
                 <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Nguồn khách</p>
                 <p className="mt-1 text-slate-900">Giới thiệu</p>
-              </div>
+              </div>}
               <div>
-                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Ngày tạo hồ sơ</p>
+                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{isBabyCare ? 'Ngày tạo hồ sơ (tự động)' : 'Ngày tạo hồ sơ'}</p>
                 <p className="mt-1 text-slate-900">{createdAtLabel}</p>
               </div>
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-6">
+          <div className={cn("grid grid-cols-2 gap-6", isBabyCare && 'grid-cols-1 sm:grid-cols-2')}>
             <div className="space-y-2">
               <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">{customerLabels.locationLatitudeLabel}</label>
               <input
@@ -260,12 +283,12 @@ export function EditCustomerModal({
           </div>
         </div>
 
-        <div className="p-8 bg-slate-50/50 border-t border-slate-100 flex gap-4">
+        <div className={cn("p-8 bg-slate-50/50 border-t border-slate-100 flex gap-4", isBabyCare && 'shrink-0 p-5 sm:p-8')}>
           <button onClick={onClose} className="flex-1 py-4 bg-white border border-slate-200 text-slate-600 rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-slate-50 transition-all">Hủy</button>
           <button
             disabled={isSubmitting}
             onClick={onConfirm}
-            className="flex-1 py-4 bg-primary text-white rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2"
+            className="flex-1 py-4 bg-primary text-primary-foreground rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2"
           >
             {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
             Lưu thay đổi
@@ -372,7 +395,7 @@ export function BookingPaymentModal({
                   className={cn(
                     "py-3 px-4 rounded-xl font-bold text-sm transition-all border",
                     data.method === m.id
-                      ? "bg-primary text-white border-primary shadow-lg shadow-primary/20"
+                      ? "bg-primary text-primary-foreground border-primary shadow-lg shadow-primary/20"
                       : "bg-slate-50 text-slate-500 border-slate-100 hover:border-primary/30"
                   )}
                 >
@@ -486,7 +509,7 @@ export function BookingPaymentModal({
             disabled={isSubmitting || data.amount <= 0}
             onClick={onConfirm}
             data-testid="payment-submit-button"
-            className="flex-1 py-4 bg-primary text-white rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2"
+            className="flex-1 py-4 bg-primary text-primary-foreground rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2"
           >
             {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
             Xác nhận thu tiền
@@ -529,6 +552,20 @@ export function EditBookingModal({
   const [isCheckingAvailability, setIsCheckingAvailability] = useState(false);
 
   useScrollLock(isOpen);
+
+  const discountPreview = useMemo(() => {
+    const priceAfterDiscount = calculatePriceAfterDiscount({
+      fullPrice: data.full_price,
+      discountPercent: data.discount_percent,
+    });
+    const discountAmount = Math.max(0, Math.round(data.full_price - priceAfterDiscount));
+
+    return {
+      discountAmount,
+      priceAfterDiscount,
+      discountPercent: parsePercentInput(data.discount_percent),
+    };
+  }, [data.discount_percent, data.full_price]);
 
   // Check KTV availability when time changes
   useEffect(() => {
@@ -623,7 +660,7 @@ export function EditBookingModal({
       >
         <div className="p-8 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-amber-500 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-amber-200">
+            <div className="w-12 h-12 bg-primary rounded-2xl flex items-center justify-center text-primary-foreground shadow-lg shadow-primary/20">
               <Sparkles className="w-6 h-6" />
             </div>
             <div>
@@ -736,7 +773,7 @@ export function EditBookingModal({
             </div>
 
             <div className="space-y-2">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Đã thanh toán / Cọc</label>
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Mục tiêu cọc / cọc cần thu</label>
               <div className="relative">
                 <input
                   type="text"
@@ -748,6 +785,9 @@ export function EditBookingModal({
                 />
                 <span className="absolute right-6 top-1/2 -translate-y-1/2 font-bold text-slate-400 text-xs">VNĐ</span>
               </div>
+              <p className="text-[10px] font-bold text-slate-400 ml-1">
+                Số đã thanh toán được tính từ các khoản thu đã xác nhận.
+              </p>
             </div>
 
             <div className="space-y-2">
@@ -780,6 +820,23 @@ export function EditBookingModal({
                 onChange={(e) => setData({ ...data, completed_sessions: parseIntegerInput(e.target.value, { min: 0, max: 100 }) })}
                 className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:border-primary outline-none font-bold text-slate-700"
               />
+            </div>
+
+            <div className="space-y-3 col-span-2 rounded-2xl border border-primary/10 bg-primary/5 p-4 text-xs">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <span className="font-bold text-slate-500 uppercase tracking-wider">
+                  Chiết khấu {discountPreview.discountPercent}%:
+                </span>
+                <span className="text-sm font-black text-primary">
+                  -{formatMoneyInput(discountPreview.discountAmount) || '0'} VNĐ
+                </span>
+              </div>
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <span className="font-bold text-slate-500 uppercase tracking-wider">Giá sau chiết khấu:</span>
+                <span className="text-sm font-black text-slate-900">
+                  {formatMoneyInput(discountPreview.priceAfterDiscount) || '0'} VNĐ
+                </span>
+              </div>
             </div>
 
             <div className="space-y-2">
@@ -833,7 +890,7 @@ export function EditBookingModal({
           <button
             disabled={isSubmitting}
             onClick={onConfirm}
-            className="flex-1 py-4 bg-amber-500 text-white rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl shadow-amber-500/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2"
+            className="flex-1 py-4 bg-primary text-primary-foreground rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2"
           >
             {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
             Lưu thay đổi

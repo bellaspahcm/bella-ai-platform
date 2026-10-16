@@ -245,7 +245,7 @@ export default function AttendanceCalendar({
                 onClick={handleSaveOverride}
                 disabled={isSaving}
                 data-testid="attendance-save-button"
-                className="flex-1 py-3 bg-primary text-white font-black rounded-xl text-xs uppercase tracking-wider hover:bg-primary-hover transition-all disabled:opacity-50 flex items-center justify-center"
+                className="flex-1 py-3 bg-primary text-primary-foreground font-black rounded-xl text-xs uppercase tracking-wider hover:bg-primary-hover transition-all disabled:opacity-50 flex items-center justify-center"
               >
                 {isSaving ? 'Đang lưu...' : 'Lưu công'}
               </button>

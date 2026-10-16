@@ -37,6 +37,7 @@ import {
 import { useEffect,useState } from 'react';
 import { toast } from 'sonner';
 import { useScrollLock } from '@/hooks/useScrollLock';
+import { useUser } from '@/lib/user-context';
 
 type CustomerRow = Database['public']['Tables']['customers']['Row'];
 type PackageRow = Database['public']['Tables']['packages']['Row'];
@@ -64,6 +65,7 @@ interface BookingModalProps {
 }
 
 export function BookingModal({ isOpen, onClose, onSuccess, preselectedCustomer }: BookingModalProps) {
+  const { tenantSettings, isLoading: isUserLoading, activeBranchId, isBranchPending } = useUser();
   const [step, setStep] = useState(1);
   const [mode, setMode] = useState<'search' | 'new'>('search');
   const [searchQuery, setSearchQuery] = useState('');
@@ -442,6 +444,16 @@ export function BookingModal({ isOpen, onClose, onSuccess, preselectedCustomer }
         }
       }
 
+      if (isUserLoading || !tenantSettings?.product_key) {
+        toast.error('Chưa xác định được sản phẩm của cơ sở. Vui lòng tải lại trang.');
+        return;
+      }
+      const isNail = tenantSettings?.product_key === 'bella_nail';
+      if (isNail && (isBranchPending || !activeBranchId)) {
+        toast.error('Vui lòng chọn chi nhánh hợp lệ trước khi tạo booking Nail.');
+        return;
+      }
+
       const payload: BookingSubmitPayload = {
         ...formData,
         full_price: finalFullPrice,
@@ -450,6 +462,7 @@ export function BookingModal({ isOpen, onClose, onSuccess, preselectedCustomer }
         customer_id: mode === 'new' ? 'new' : selectedCustomer?.id || '',
         metadata: {
           gift_sessions: extraSessions,
+          ...(isNail ? { branch_id: activeBranchId } : {}),
         },
       };
 
@@ -674,7 +687,7 @@ export function BookingModal({ isOpen, onClose, onSuccess, preselectedCustomer }
                           <p className="text-slate-400 font-bold italic mb-4">Không tìm thấy khách hàng</p>
                           <button 
                             onClick={() => setMode('new')}
-                            className="px-6 py-3 bg-white border border-primary text-primary rounded-xl font-black hover:bg-primary hover:text-white transition-all flex items-center gap-2 mx-auto"
+                            className="px-6 py-3 bg-white border border-primary text-primary rounded-xl font-black hover:bg-primary hover:text-primary-foreground transition-all flex items-center gap-2 mx-auto"
                           >
                             <Plus className="w-5 h-5" /> Thêm khách hàng mới
                           </button>
@@ -1028,7 +1041,7 @@ export function BookingModal({ isOpen, onClose, onSuccess, preselectedCustomer }
               }}
               data-testid={step === 1 ? "booking-next-button" : "booking-submit-button"}
               className={cn(
-                "flex-1 px-8 py-4 bg-primary text-white rounded-2xl font-black transition-all shadow-xl shadow-primary/20 uppercase tracking-widest active:scale-95 flex items-center justify-center gap-3",
+                "flex-1 px-8 py-4 bg-primary text-primary-foreground rounded-2xl font-black transition-all shadow-xl shadow-primary/20 uppercase tracking-widest active:scale-95 flex items-center justify-center gap-3",
                 ((step === 1 && mode === 'search') || 
                  (step === 1 && mode === 'new' && (!newCustomer.name_mother || !newCustomer.phone)) ||
                  (step === 2 && (!formData.package_name || isSubmitting))) && "opacity-50 cursor-not-allowed grayscale"

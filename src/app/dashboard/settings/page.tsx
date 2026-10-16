@@ -280,7 +280,7 @@ function SettingsContent() {
           <button
             onClick={handleSave}
             disabled={isSaving || isLoadingSettings}
-            className="flex items-center gap-3 bg-primary hover:bg-primary-hover text-white px-8 py-4 rounded-2xl font-black transition-all shadow-xl shadow-primary/25 dark:shadow-none active:scale-95 uppercase tracking-wider disabled:opacity-50 disabled:grayscale"
+            className="flex items-center gap-3 bg-primary hover:bg-primary-hover text-primary-foreground px-8 py-4 rounded-2xl font-black transition-all shadow-xl shadow-primary/25 dark:shadow-none active:scale-95 uppercase tracking-wider disabled:opacity-50 disabled:grayscale"
           >
             {isSaving ? (
               <Sparkles className="w-5 h-5 animate-spin" />
@@ -300,7 +300,7 @@ function SettingsContent() {
               return (
                 <div
                   key={`header-${idx}`}
-                  className="px-5 pt-4 pb-2 text-[10px] font-extrabold text-primary/70 dark:text-[#A67D44]/75 uppercase tracking-[0.2em] relative z-10 select-none pointer-events-none mt-4 first:mt-0"
+                  className="px-5 pt-4 pb-2 text-[10px] font-extrabold text-primary/70 dark:text-primary/75 uppercase tracking-[0.2em] relative z-10 select-none pointer-events-none mt-4 first:mt-0"
                 >
                   {tab.label}
                 </div>
@@ -327,13 +327,13 @@ function SettingsContent() {
                   className={cn(
                     "w-5 h-5 transition-transform group-hover:scale-105",
                     isTabActive
-                      ? "text-primary dark:text-[#A67D44]"
-                      : "text-slate-400 group-hover:text-primary dark:group-hover:text-[#A67D44]",
+                      ? "text-primary dark:text-primary"
+                      : "text-slate-400 group-hover:text-primary dark:group-hover:text-primary",
                   )}
                 />
                 <span className="text-sm">{normalTab.label}</span>
                 {isTabActive && (
-                  <ChevronRight className="ml-auto w-4 h-4 text-primary dark:text-[#A67D44] animate-pulse" />
+                  <ChevronRight className="ml-auto w-4 h-4 text-primary dark:text-primary animate-pulse" />
                 )}
               </button>
             );

@@ -247,7 +247,7 @@ export default function AICopilotClient() {
                 <div className={`w-10 h-10 rounded-full shrink-0 flex items-center justify-center shadow-md ${
                   msg.role === "user" 
                     ? "bg-accent text-accent-foreground" 
-                    : "bg-primary text-white"
+                    : "bg-primary text-primary-foreground"
                 }`}>
                   {msg.role === "user" ? <User className="w-5 h-5" /> : <Bot className="w-5 h-5" />}
                 </div>
@@ -288,7 +288,7 @@ export default function AICopilotClient() {
 
             {isLoading && (
               <div className="flex gap-4 max-w-[80%] mr-auto">
-                <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white shadow-md">
+                <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-primary-foreground shadow-md">
                   <Loader2 className="w-5 h-5 animate-spin" />
                 </div>
                 <div className="bg-card border border-border rounded-3xl p-5 shadow-sm flex items-center gap-3">
@@ -315,7 +315,7 @@ export default function AICopilotClient() {
             <button 
               type="submit"
               disabled={isLoading || !input.trim()}
-              className="shrink-0 bg-primary hover:bg-primary-hover text-white font-bold px-4 sm:px-6 py-3.5 sm:py-4 rounded-2xl shadow-lg shadow-primary/20 transition-all hover:scale-105 active:scale-95 disabled:opacity-50 disabled:hover:scale-100 cursor-pointer"
+              className="shrink-0 bg-primary hover:bg-primary-hover text-primary-foreground font-bold px-4 sm:px-6 py-3.5 sm:py-4 rounded-2xl shadow-lg shadow-primary/20 transition-all hover:scale-105 active:scale-95 disabled:opacity-50 disabled:hover:scale-100 cursor-pointer"
             >
               <Send className="w-4 h-4" />
             </button>

@@ -24,7 +24,7 @@ import { join, resolve } from "node:path";
 // E2E_ENV_FILE lets local runs point at a temporary pulled env file without
 // writing secrets into the workspace .env.local.
 const tempE2eEnvPath = join(tmpdir(), "bella-spa-e2e.env");
-const envPath = [
+const envPath = process.env.AUTOMOVE_RC_SHA ? undefined : [
   process.env.E2E_ENV_FILE,
   tempE2eEnvPath,
   resolve(process.cwd(), ".env.local"),

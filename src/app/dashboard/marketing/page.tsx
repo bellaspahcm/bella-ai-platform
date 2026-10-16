@@ -305,7 +305,7 @@ function MarketingDashboard() {
           <button
             onClick={handleSync}
             disabled={isSyncing || connections.length === 0}
-            className="inline-flex items-center justify-center gap-2 rounded-2xl bg-slate-950 px-5 py-3 text-sm font-black uppercase tracking-wider text-white shadow-xl shadow-slate-200 transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex items-center justify-center gap-2 rounded-2xl bg-primary px-5 py-3 text-sm font-black uppercase tracking-wider text-primary-foreground shadow-xl shadow-slate-200 transition hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
           >
             {isSyncing ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
             Đồng bộ
@@ -330,7 +330,7 @@ function MarketingDashboard() {
               type="date"
               value={dateFrom}
               onChange={(event) => setDateFrom(event.target.value)}
-              className="w-full rounded-2xl border border-slate-100 bg-slate-50 px-5 py-4 text-sm font-black text-slate-900 outline-none transition focus:border-rose-300 focus:bg-white focus:ring-4 focus:ring-rose-50"
+              className="w-full rounded-2xl border border-slate-100 bg-slate-50 px-5 py-4 text-sm font-black text-slate-900 outline-none transition focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary"
             />
           </label>
           <label className="space-y-1.5">
@@ -341,7 +341,7 @@ function MarketingDashboard() {
               type="date"
               value={dateTo}
               onChange={(event) => setDateTo(event.target.value)}
-              className="w-full rounded-2xl border border-slate-100 bg-slate-50 px-5 py-4 text-sm font-black text-slate-900 outline-none transition focus:border-rose-300 focus:bg-white focus:ring-4 focus:ring-rose-50"
+              className="w-full rounded-2xl border border-slate-100 bg-slate-50 px-5 py-4 text-sm font-black text-slate-900 outline-none transition focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary"
             />
           </label>
         </div>
@@ -400,7 +400,7 @@ function MarketingDashboard() {
             <button
               onClick={handleRecognizeExpense}
               disabled={isRecognizingExpense || !expenseAccountId || summary.spend <= 0}
-              className="inline-flex min-h-[52px] items-center justify-center gap-2 rounded-2xl bg-primary px-5 py-3 text-sm font-black uppercase tracking-wider text-white shadow-xl shadow-rose-100 transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:shadow-none"
+              className="inline-flex min-h-[52px] items-center justify-center gap-2 rounded-2xl bg-primary px-5 py-3 text-sm font-black uppercase tracking-wider text-primary-foreground shadow-xl shadow-primary/20 transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:shadow-none"
             >
               {isRecognizingExpense ? (
                 <Loader2 className="h-4 w-4 animate-spin" />

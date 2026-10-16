@@ -21,66 +21,15 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { createClient } from '@/lib/supabase-client';
-import { AutoInventoryProvider, type VehicleInventoryItem } from '@/modules/bella-auto/services/AutoInventoryProvider';
+import { getCurrentUser } from '@/services/user-actions';
 import { VehicleStatusMachineService, type VehicleStatus } from '@/modules/bella-auto/services/VehicleStatusMachineService';
-import type { Database } from '@/types/database.types';
+import {
+  listMobilityVehicleInventory,
+  type MobilityVehicleInventoryItem,
+} from '@/platform/mobility/supabase-vehicle-contract';
 import { useEffect } from 'react';
 
-type AutoVehicleRow = Database['public']['Tables']['auto_vehicles']['Row'];
-
-type VehicleQueryRow = Pick<
-  AutoVehicleRow,
-  | 'id'
-  | 'vin'
-  | 'chassis_number'
-  | 'engine_number'
-  | 'color_exterior'
-  | 'color_interior'
-  | 'model_year'
-  | 'list_price'
-  | 'cost_price'
-  | 'status'
-  | 'location_note'
-  | 'expected_arrival_date'
-  | 'actual_arrival_date'
-  | 'variant_id'
-  | 'created_at'
-  | 'updated_at'
-> & {
-  auto_variants: {
-    name: string | null;
-    auto_models: {
-      name: string | null;
-      auto_brands: {
-        name: string | null;
-      } | null;
-    } | null;
-  } | null;
-};
-
-function mapVehicleQueryRow(row: VehicleQueryRow): VehicleInventoryItem {
-  return {
-    id: row.id,
-    vin: row.vin,
-    chassisNumber: row.chassis_number,
-    engineNumber: row.engine_number,
-    colorExterior: row.color_exterior,
-    colorInterior: row.color_interior,
-    modelYear: row.model_year,
-    listPrice: row.list_price,
-    costPrice: row.cost_price,
-    status: row.status,
-    locationNote: row.location_note,
-    expectedArrivalDate: row.expected_arrival_date,
-    actualArrivalDate: row.actual_arrival_date,
-    variantId: row.variant_id,
-    variantName: row.auto_variants?.name ?? undefined,
-    modelName: row.auto_variants?.auto_models?.name ?? undefined,
-    brandName: row.auto_variants?.auto_models?.auto_brands?.name ?? undefined,
-    createdAt: row.created_at,
-    updatedAt: row.updated_at,
-  };
-}
+type VehicleInventoryItem = MobilityVehicleInventoryItem;
 
 // Status configuration
 const STATUS_CONFIG: Record<VehicleStatus, { label: string; bg: string; color: string; border: string }> = {
@@ -101,22 +50,66 @@ function AddVehicleModal({ onClose, onSuccess }: { onClose: () => void; onSucces
     expectedArrivalDate: '',
   });
   const [isPending, startTransition] = useTransition();
+  const [brandId, setBrandId] = useState(''), [modelId, setModelId] = useState(''), [variantId, setVariantId] = useState('');
+  const [brands, setBrands] = useState<{ id: string; name: string }[]>([]);
+  const [models, setModels] = useState<{ id: string; name: string }[]>([]);
+  const [variants, setVariants] = useState<{ id: string; name: string; year: number }[]>([]);
+  const [error, setError] = useState(''), [retrying, setRetrying] = useState(false);
+  const intent = React.useRef<{ key: string; body: string } | null>(null);
+  useEffect(() => {
+    const controller = new AbortController();
+    void fetch('/api/bella-auto/vehicles/brands', { cache: 'no-store', signal: controller.signal })
+      .then(async response => { if (!response.ok) throw new Error(); return response.json(); })
+      .then(result => setBrands(result.brands)).catch(() => { if (!controller.signal.aborted) setError('Không tải được thương hiệu xe.'); });
+    return () => controller.abort();
+  }, []);
+  useEffect(() => {
+    const controller = new AbortController(); setModels([]); setModelId(''); setVariants([]); setVariantId('');
+    if (brandId) void fetch(`/api/bella-auto/vehicles/models?brandId=${encodeURIComponent(brandId)}`, { cache: 'no-store', signal: controller.signal })
+      .then(async response => { if (!response.ok) throw new Error(); return response.json(); })
+      .then(result => setModels(result.models)).catch(() => { if (!controller.signal.aborted) setError('Không tải được dòng xe.'); });
+    return () => controller.abort();
+  }, [brandId]);
+  useEffect(() => {
+    const controller = new AbortController(); setVariants([]); setVariantId('');
+    if (modelId) void fetch(`/api/bella-auto/vehicles/variants?modelId=${encodeURIComponent(modelId)}`, { cache: 'no-store', signal: controller.signal })
+      .then(async response => { if (!response.ok) throw new Error(); return response.json(); })
+      .then(result => setVariants(result.variants)).catch(() => { if (!controller.signal.aborted) setError('Không tải được phiên bản xe.'); });
+    return () => controller.abort();
+  }, [modelId]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (form.vin.length !== 17) { toast.error('Số VIN phải đúng 17 ký tự'); return; }
     if (!form.colorExterior) { toast.error('Vui lòng nhập màu ngoại thất'); return; }
+    if (!variantId) { setError('Vui lòng chọn phiên bản xe.'); return; }
 
       startTransition(async () => {
         try {
-          const supabase = createClient();
-          await new Promise(r => setTimeout(r, 900)); // Demo delay
+          setError('');
+          intent.current ??= { key: crypto.randomUUID(), body: JSON.stringify({ variantId, vin: form.vin,
+            colorExterior: form.colorExterior, modelYear: Number(form.modelYear), listPrice: Number(form.listPrice || 0),
+            chassisNumber: form.chassisNumber, engineNumber: form.engineNumber, locationNote: form.locationNote,
+            ...(form.expectedArrivalDate ? { expectedArrivalDate: form.expectedArrivalDate } : {}),
+          }) };
+          const response = await fetch('/api/bella-auto/vehicles', { method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Idempotency-Key': intent.current.key }, body: intent.current.body });
+          if (!response.ok) {
+            const failure = await response.json().catch(() => ({})) as { code?: string };
+            if (response.status < 500 && failure.code !== 'MANAGEMENT_RETRY_REQUIRED') { intent.current = null; setRetrying(false); }
+            throw new Error('Không xác minh được xe đã lưu. Kiểm tra dữ liệu hoặc tải lại trước khi thử lại.');
+          }
+          const result = await response.json();
+          if (!result.vehicle?.id || result.vehicle.vin !== form.vin.trim().toUpperCase()) throw new Error('Dữ liệu đọc lại không khớp.');
+          intent.current = null; setRetrying(false);
           toast.success(`Đã thêm xe VIN ${form.vin} vào kho thành công!`);
           onSuccess();
           onClose();
         } catch (error) {
           console.error('Failed to add vehicle:', error);
-          toast.error('Không thể thêm xe');
+          setRetrying(Boolean(intent.current));
+          const message = error instanceof Error ? error.message : 'Không thể thêm xe';
+          setError(message); toast.error(message);
         }
       });
   };
@@ -124,6 +117,8 @@ function AddVehicleModal({ onClose, onSuccess }: { onClose: () => void; onSucces
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/50 backdrop-blur-sm p-4 overflow-y-auto">
       <motion.div
+        role="dialog"
+        aria-label="Nhập xe mới"
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -140,7 +135,11 @@ function AddVehicleModal({ onClose, onSuccess }: { onClose: () => void; onSucces
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-5">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {error && <p role="alert" className="text-sm text-red-700 dark:text-red-400">{error}</p>}
+          <fieldset disabled={isPending || retrying} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <label className="text-xs font-semibold">Thương hiệu<select aria-label="Thương hiệu xe" required value={brandId} onChange={event => setBrandId(event.target.value)} className="mt-2 w-full rounded-md border p-2 dark:bg-slate-900"><option value="">Chọn thương hiệu</option>{brands.map(brand => <option key={brand.id} value={brand.id}>{brand.name}</option>)}</select></label>
+            <label className="text-xs font-semibold">Dòng xe<select aria-label="Dòng xe" required value={modelId} onChange={event => setModelId(event.target.value)} className="mt-2 w-full rounded-md border p-2 dark:bg-slate-900"><option value="">Chọn dòng xe</option>{models.map(model => <option key={model.id} value={model.id}>{model.name}</option>)}</select></label>
+            <label className="text-xs font-semibold md:col-span-2">Phiên bản<select aria-label="Phiên bản xe" required value={variantId} onChange={event => setVariantId(event.target.value)} className="mt-2 w-full rounded-md border p-2 dark:bg-slate-900"><option value="">Chọn phiên bản</option>{variants.map(variant => <option key={variant.id} value={variant.id}>{variant.name} · {variant.year}</option>)}</select></label>
             <div className="md:col-span-2">
               <label className="block text-xs font-black uppercase tracking-wider text-slate-500 mb-2">Số VIN (17 ký tự) *</label>
               <input
@@ -189,13 +188,13 @@ function AddVehicleModal({ onClose, onSuccess }: { onClose: () => void; onSucces
               <label className="block text-xs font-black uppercase tracking-wider text-slate-500 mb-2">Ngày Dự Kiến Về</label>
               <input type="date" value={form.expectedArrivalDate} onChange={e => setForm(f => ({ ...f, expectedArrivalDate: e.target.value }))} className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 outline-none text-sm font-semibold" />
             </div>
-          </div>
+          </fieldset>
 
           <div className="flex items-center gap-3 pt-2">
             <button type="button" onClick={onClose} className="flex-1 py-3 rounded-xl border border-slate-200/60 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-bold text-sm hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">Hủy</button>
             <button type="submit" disabled={isPending} className="flex-1 py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 disabled:opacity-60 text-white font-bold text-sm transition-all shadow-md hover:shadow-indigo-500/20 flex items-center justify-center gap-2">
               {isPending ? <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <PlusCircle className="w-4 h-4" />}
-              {isPending ? 'Đang thêm...' : 'Thêm vào kho'}
+              {isPending ? 'Đang thêm...' : retrying ? 'Thử lại cùng yêu cầu nhập xe' : 'Thêm vào kho'}
             </button>
           </div>
         </form>
@@ -327,37 +326,14 @@ export default function VehicleInventoryPage() {
         return;
       }
 
-      // Use JOIN query to get brand/model/variant names
-      const { data, error } = await supabase
-        .from('auto_vehicles')
-        .select(`
-          id, vin, chassis_number, engine_number,
-          color_exterior, color_interior, model_year,
-          list_price, cost_price, status, location_note,
-          expected_arrival_date, actual_arrival_date,
-          variant_id, created_at, updated_at,
-          auto_variants!inner(name, model_id,
-            auto_models!inner(name, brand_id,
-              auto_brands!inner(name)
-            )
-          )
-        `)
-        .returns<VehicleQueryRow[]>()
-        .order('created_at', { ascending: false });
+      const user = await getCurrentUser();
+      if (!user?.tenant_id) throw new Error('Authenticated tenant is required for vehicle inventory.');
+      const inventory = await listMobilityVehicleInventory(supabase, { tenantId: user.tenant_id });
 
-      if (error) {
-        console.error('Failed to fetch vehicles:', error);
-        toast.error('Không thể tải danh sách xe');
-        setVehicles([]);
-      } else {
-        // Map query result to VehicleInventoryItem interface
-        const mappedVehicles = (data || []).map(mapVehicleQueryRow);
-        
-        console.log('[VehiclesPage] Loaded vehicles:', mappedVehicles.length);
-        console.log('[VehiclesPage] Sample vehicle:', mappedVehicles[0]);
-        
-        setVehicles(mappedVehicles);
-      }
+      console.log('[VehiclesPage] Loaded vehicles:', inventory.length);
+      console.log('[VehiclesPage] Sample vehicle:', inventory[0]);
+
+      setVehicles(inventory);
     } catch (error) {
       console.error('Failed to fetch vehicles:', error);
       toast.error('Không thể tải danh sách xe');

@@ -286,7 +286,7 @@ function SessionsContent() {
             initial={{ opacity: 0, scaleX: 0 }}
             animate={{ opacity: 1, scaleX: 1 }}
             exit={{ opacity: 0 }}
-            className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 via-teal-400 to-indigo-500 origin-left z-50"
+            className="absolute top-0 left-0 right-0 h-1 bg-primary origin-left z-50"
             transition={{ duration: 0.5 }}
           />
         )}
@@ -296,7 +296,7 @@ function SessionsContent() {
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-6">
         <div>
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-600">
+            <div className="w-10 h-10 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
               <Flower2 className="w-5 h-5" />
             </div>
             <div>
@@ -320,7 +320,7 @@ function SessionsContent() {
                   : "text-slate-600 hover:text-slate-900"
               )}
             >
-              <Grid className="w-3.5 h-3.5 text-emerald-600" />
+              <Grid className="w-3.5 h-3.5 text-primary" />
               <span>Dạng Thẻ Premium</span>
             </button>
             <button
@@ -332,14 +332,14 @@ function SessionsContent() {
                   : "text-slate-600 hover:text-slate-900"
               )}
             >
-              <List className="w-3.5 h-3.5 text-blue-600" />
+              <List className="w-3.5 h-3.5 text-primary" />
               <span>Dạng Bảng</span>
             </button>
           </div>
 
           <button
             onClick={() => setIsBookingModalOpen(true)}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-slate-950 text-white font-black text-xs hover:bg-slate-800 transition-all shadow-md active:scale-95"
+            className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-primary-foreground font-black text-xs hover:bg-primary-hover transition-all shadow-md active:scale-95"
           >
             <Plus className="w-4 h-4" />
             <span>Thẻ liệu trình mới</span>
@@ -353,12 +353,12 @@ function SessionsContent() {
           onClick={() => setStatusFilter('all')}
           className={cn(
             "p-4 sm:p-5 rounded-2xl bg-white border shadow-sm cursor-pointer transition-all hover:scale-[1.02]",
-            statusFilter === 'all' ? "border-slate-900 ring-2 ring-slate-900/10" : "border-slate-200"
+            statusFilter === 'all' ? "border-primary ring-2 ring-primary/10" : "border-slate-200"
           )}
         >
           <div className="flex items-center justify-between text-slate-400 mb-2">
             <span className="text-[10px] font-black uppercase tracking-widest">Tổng số thẻ</span>
-            <Flower2 className="w-4 h-4 text-emerald-600" />
+            <Flower2 className="w-4 h-4 text-primary" />
           </div>
           <p className="text-2xl sm:text-3xl font-black text-slate-900">{stats.total}</p>
           <p className="text-[10px] font-bold text-slate-400 mt-1">Toàn bộ hồ sơ liệu trình</p>
@@ -420,7 +420,7 @@ function SessionsContent() {
             placeholder="Tìm theo tên khách hàng, SĐT, tên thẻ liệu trình, mã thẻ..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all placeholder:text-slate-400"
+            className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 outline-none focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-slate-400"
           />
         </div>
 
@@ -431,7 +431,7 @@ function SessionsContent() {
             className={cn(
               "px-3.5 py-2 rounded-xl text-[11px] font-black transition-all",
               statusFilter === 'all'
-                ? "bg-slate-900 text-white shadow-sm"
+                ? "bg-primary text-primary-foreground shadow-sm"
                 : "bg-slate-100 text-slate-600 hover:bg-slate-200"
             )}
           >
@@ -600,7 +600,7 @@ function SessionsContent() {
                         <div className="flex items-center justify-end gap-2" onClick={(e) => e.stopPropagation()}>
                           <button
                             onClick={() => setSelectedBooking(booking)}
-                            className="px-3 py-1.5 rounded-xl bg-slate-900 text-white font-black text-[10px] uppercase tracking-wider hover:bg-slate-800 transition-all"
+                            className="px-3 py-1.5 rounded-xl bg-primary text-primary-foreground font-black text-[10px] uppercase tracking-wider hover:bg-primary-hover transition-all"
                           >
                             Chi tiết
                           </button>

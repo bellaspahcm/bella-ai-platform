@@ -73,6 +73,40 @@ describe('Adversarial Verification Suite', () => {
     const result = applyPolicy('test', 'no-new-debt', [current], [baseline]);
     expect(result.verdict).toBe('pass');
   });
+
+  it('Scenario 1B: GitHub Actions bella-ai-platform paths should match baseline-relative paths', () => {
+    const baseline: FindingIdentity = completeFinding({
+      file: 'eslint.config.mjs',
+      line: 8,
+      column: 1,
+      tool: 'eslint',
+      severity: 'warning',
+      components: {
+        rule_id: 'import/no-anonymous-default-export',
+        context: 'c3310bc1'
+      } as ESLintComponents,
+      message: 'Assign array to a variable before exporting as module default'
+    });
+
+    const current: FindingIdentity = completeFinding({
+      file: '/home/runner/work/bella-ai-platform/bella-ai-platform/eslint.config.mjs',
+      line: 8,
+      column: 1,
+      tool: 'eslint',
+      severity: 'warning',
+      components: {
+        rule_id: 'import/no-anonymous-default-export',
+        context: 'c3310bc1'
+      } as ESLintComponents,
+      message: 'Assign array to a variable before exporting as module default'
+    });
+
+    expect(current.file).toBe('eslint.config.mjs');
+    expect(current.fingerprint).toBe(baseline.fingerprint);
+
+    const result = applyPolicy('eslint-changed', 'no-new-debt', [current], [baseline]);
+    expect(result.verdict).toBe('pass');
+  });
   
   /**
    * SCENARIO 2: New error → BLOCK

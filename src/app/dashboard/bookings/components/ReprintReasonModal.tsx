@@ -76,7 +76,7 @@ export function ReprintReasonModal({
             type="button"
             onClick={() => onConfirm(trimmedReason)}
             disabled={!canSubmit}
-            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl bg-slate-950 px-5 text-sm font-black text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-300"
+            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl bg-primary px-5 text-sm font-black text-primary-foreground transition hover:bg-primary-hover disabled:cursor-not-allowed disabled:bg-slate-300"
           >
             {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
             Xác nhận in lại

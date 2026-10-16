@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useTransition } from 'react';
+import React, { useEffect, useState, useTransition } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   User, 
@@ -20,84 +20,82 @@ import {
 import { toast } from 'sonner';
 import { type OwnedVehicle, type AutoCustomerProfile } from '@/modules/bella-auto/services/AutoCustomerProvider';
 
-// MOCK CUSTOMERS & AUTOMOTIVE PROFILES
-const MOCK_CUSTOMERS = [
-  { id: 'c1', name: 'Nguyễn Văn A', phone: '0901234567', email: 'vanya@gmail.com', address: 'Quận 1, TP.HCM', totalSpend: 5499000000 },
-  { id: 'c2', name: 'Trần Thị B',   phone: '0987654321', email: 'thib@yahoo.com',   address: 'Cầu Giấy, Hà Nội', totalSpend: 2439000000 },
-  { id: 'c3', name: 'Lê Hoàng C',   phone: '0911223344', email: 'hoangc@outlook.com', address: 'Hải Châu, Đà Nẵng', totalSpend: 0 },
-];
-
-const MOCK_PROFILES: Record<string, AutoCustomerProfile> = {
-  c1: { customerId: 'c1', preferredBrands: ['BMW', 'Porsche'], preferredSegments: ['SUV', 'Sedan'], budgetRange: '3B - 6B', purchasingPurpose: 'Gia đình & Ngoại giao', totalVehiclesOwned: 1, totalValueSpent: 5599000000 },
-  c2: { customerId: 'c2', preferredBrands: ['BMW', 'VinFast'], preferredSegments: ['Sedan'], budgetRange: '1.5B - 3B', purchasingPurpose: 'Di chuyển hàng ngày', totalVehiclesOwned: 1, totalValueSpent: 2439000000 },
-  c3: { customerId: 'c3', preferredBrands: ['Mercedes-Benz'], preferredSegments: ['Crossover'], budgetRange: '2B - 4B', purchasingPurpose: 'Công việc', totalVehiclesOwned: 0, totalValueSpent: 0 },
-};
-
-const MOCK_OWNED_VEHICLES: Record<string, OwnedVehicle[]> = {
-  c1: [
-    { ownerRecordId: 'or1', vehicleId: 'v3', vin: 'WBA53AZ04M8F12345', colorExterior: 'São Paulo Yellow', modelYear: 2026, variantName: 'Competition Coupe', modelName: 'M4', brandName: 'BMW', ownershipType: 'primary', licensePlate: '30K-999.99', registrationDate: '2026-07-28', isActive: true, transferredAt: null }
-  ],
-  c2: [
-    { ownerRecordId: 'or2', vehicleId: 'v1', vin: 'WBAHF3C01L7D34567', colorExterior: 'Alpine White', modelYear: 2026, variantName: '330i Luxury Line', modelName: '3 Series', brandName: 'BMW', ownershipType: 'primary', licensePlate: '51K-888.88', registrationDate: '2026-07-20', isActive: true, transferredAt: null }
-  ],
-  c3: [],
-};
+type Customer = { id: string; name_mother: string; phone: string; address: string | null };
+type CustomerDetail = { customer: Customer; profile: AutoCustomerProfile | null; ownedVehicles: OwnedVehicle[] };
+const emptyPreferences = { brands: '', segments: '', budget: '', purpose: '' };
 
 export default function Customer360Page() {
-  const [selectedCustomerId, setSelectedCustomerId] = useState<string>('c1');
+  const [selectedCustomerId, setSelectedCustomerId] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [isPending, startTransition] = useTransition();
-  const [tick, setTick] = useState(0);
-  // Track profiles in state to avoid mutating module-level const
-  const [profiles, setProfiles] = useState<Record<string, AutoCustomerProfile>>(MOCK_PROFILES);
+  const [customers, setCustomers] = useState<Customer[]>([]), [count, setCount] = useState(0), [page, setPage] = useState(1);
+  const [detail, setDetail] = useState<CustomerDetail | null>(null), [loading, setLoading] = useState(true);
+  const [detailsLoading, setDetailsLoading] = useState(false), [error, setError] = useState('');
+  const [prefForm, setPrefForm] = useState(emptyPreferences);
+  const activeCustomer = detail?.customer.id === selectedCustomerId ? detail.customer : undefined;
+  const activeProfile = detail?.profile;
+  const activeVehicles = detail?.ownedVehicles ?? [];
 
-  // Form states for Automotive preferences
-  const [prefForm, setPrefForm] = useState({
-    brands: '',
-    segments: '',
-    budget: '',
-    purpose: ''
-  });
+  useEffect(() => {
+    const controller = new AbortController();
+    setLoading(true); setError('');
+    const timer = setTimeout(async () => {
+      try {
+        const response = await fetch(`/api/bella-auto/customers?${new URLSearchParams({ q: searchQuery, page: String(page) })}`, { cache: 'no-store', signal: controller.signal });
+        if (!response.ok) throw new Error('Không tải được danh sách khách hàng.');
+        const result = await response.json() as { customers: Customer[]; count: number };
+        if (controller.signal.aborted) return;
+        setCustomers(result.customers); setCount(result.count);
+        setSelectedCustomerId(previous => result.customers.some(customer => customer.id === previous) ? previous : result.customers[0]?.id || '');
+      } catch (caught: unknown) {
+        if (!controller.signal.aborted) { setCustomers([]); setSelectedCustomerId(''); setError(caught instanceof Error ? caught.message : 'Không tải được khách hàng.'); }
+      } finally { if (!controller.signal.aborted) setLoading(false); }
+    }, 250);
+    return () => { clearTimeout(timer); controller.abort(); };
+  }, [searchQuery, page]);
 
-  const activeCustomer = MOCK_CUSTOMERS.find(c => c.id === selectedCustomerId) || MOCK_CUSTOMERS[0];
-  const activeProfile = profiles[activeCustomer.id];
-  const activeVehicles = MOCK_OWNED_VEHICLES[activeCustomer.id] || [];
+  useEffect(() => {
+    const controller = new AbortController();
+    setDetail(null); setPrefForm(emptyPreferences);
+    if (!selectedCustomerId) { setDetailsLoading(false); return; }
+    setDetailsLoading(true); setError('');
+    void (async () => {
+      try {
+        const response = await fetch(`/api/bella-auto/customers/${selectedCustomerId}/profile`, { cache: 'no-store', signal: controller.signal });
+        if (!response.ok) throw new Error('Không tải được hồ sơ khách hàng.');
+        const result = await response.json() as CustomerDetail;
+        if (controller.signal.aborted) return;
+        setDetail(result);
+        setPrefForm({ brands: result.profile?.preferredBrands.join(', ') || '', segments: result.profile?.preferredSegments.join(', ') || '',
+          budget: result.profile?.budgetRange || '', purpose: result.profile?.purchasingPurpose || '' });
+      } catch (caught: unknown) {
+        if (!controller.signal.aborted) setError(caught instanceof Error ? caught.message : 'Không tải được hồ sơ.');
+      } finally { if (!controller.signal.aborted) setDetailsLoading(false); }
+    })();
+    return () => controller.abort();
+  }, [selectedCustomerId]);
 
   const handleUpdatePreferences = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!activeCustomer || loading || detailsLoading || isPending) return;
     startTransition(async () => {
-      await new Promise(r => setTimeout(r, 650));
-      setProfiles(prev => ({
-        ...prev,
-        [activeCustomer.id]: {
-          ...prev[activeCustomer.id],
-          preferredBrands: prefForm.brands.split(',').map(s => s.trim()).filter(Boolean),
-          preferredSegments: prefForm.segments.split(',').map(s => s.trim()).filter(Boolean),
-          budgetRange: prefForm.budget,
-          purchasingPurpose: prefForm.purpose
-        }
-      }));
-      setTick(t => t + 1);
-      toast.success('Đã cập nhật sở thích xe của khách hàng!');
+      setError('');
+      try {
+        const response = await fetch(`/api/bella-auto/customers/${activeCustomer.id}/profile`, { method: 'PUT',
+          headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
+            preferredBrands: prefForm.brands.split(',').map(s => s.trim()).filter(Boolean),
+            preferredSegments: prefForm.segments.split(',').map(s => s.trim()).filter(Boolean),
+            budgetRange: prefForm.budget.trim() || null, purchasingPurpose: prefForm.purpose.trim() || null,
+          }) });
+        if (!response.ok) throw new Error('Không xác minh được thay đổi đã lưu. Vui lòng tải lại trước khi thử lại.');
+        setDetail(await response.json() as CustomerDetail);
+        toast.success('Đã cập nhật sở thích xe của khách hàng!');
+      } catch (caught: unknown) {
+        const message = caught instanceof Error ? caught.message : 'Không lưu được sở thích.';
+        setError(message); toast.error(message);
+      }
     });
   };
-
-  // Sync Form with activeProfile (from state, not module const)
-  React.useEffect(() => {
-    if (activeProfile) {
-      setPrefForm({
-        brands: activeProfile.preferredBrands.join(', '),
-        segments: activeProfile.preferredSegments.join(', '),
-        budget: activeProfile.budgetRange || '',
-        purpose: activeProfile.purchasingPurpose || ''
-      });
-    }
-  }, [selectedCustomerId, activeProfile]);
-
-  const filteredCustomers = MOCK_CUSTOMERS.filter(c => 
-    c.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-    c.phone.includes(searchQuery)
-  );
 
   return (
     <div className="flex-1 overflow-auto bg-slate-50/50 dark:bg-slate-950 p-6 md:p-10 space-y-8" data-auto-layout>
@@ -112,6 +110,8 @@ export default function Customer360Page() {
         </p>
       </div>
 
+      {error && <p role="alert" className="text-sm text-red-700 dark:text-red-400">{error}</p>}
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
         {/* Left Side: Customers list */}
@@ -122,44 +122,50 @@ export default function Customer360Page() {
               type="text"
               placeholder="Tìm theo tên hoặc SĐT..."
               value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
+              onChange={e => { setSearchQuery(e.target.value); setPage(1); }}
+              disabled={isPending}
               className="w-full pl-9 pr-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500/10 focus:border-indigo-500 text-xs font-semibold"
             />
           </div>
 
           <div className="space-y-2 max-h-[450px] overflow-y-auto pr-1">
-            {filteredCustomers.map(c => (
+            {loading && <p role="status">Đang tải khách hàng...</p>}
+            {!loading && !customers.length && !error && <p>Không có khách hàng.</p>}
+            {customers.map(c => (
               <button
                 key={c.id}
                 onClick={() => setSelectedCustomerId(c.id)}
+                disabled={isPending}
                 className={`w-full text-left p-3.5 rounded-2xl border transition-all flex items-center justify-between ${c.id === selectedCustomerId ? 'bg-indigo-50/50 border-indigo-200 dark:bg-indigo-950/20 dark:border-indigo-900/50' : 'bg-white dark:bg-slate-900 border-slate-100 dark:border-slate-800 hover:border-slate-300'}`}
               >
                 <div>
-                  <div className="font-bold text-xs text-slate-800 dark:text-slate-200">{c.name}</div>
+                  <div className="font-bold text-xs text-slate-800 dark:text-slate-200">{c.name_mother}</div>
                   <div className="text-[10px] text-slate-400 font-semibold mt-0.5">{c.phone}</div>
-                </div>
-                <div className="text-right">
-                  <span className="text-[10px] bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-black rounded-lg px-2 py-1">
-                    {(MOCK_PROFILES[c.id]?.totalVehiclesOwned || 0)} xe
-                  </span>
                 </div>
               </button>
             ))}
+          </div>
+          <div className="flex items-center justify-between text-xs">
+            <button aria-label="Trang khách hàng trước" disabled={page <= 1 || loading || isPending} onClick={() => setPage(value => value - 1)}><ArrowUpRight className="size-4 rotate-[-135deg]" /></button>
+            <span>{page} / {Math.max(1, Math.ceil(count / 50))}</span>
+            <button aria-label="Trang khách hàng tiếp" disabled={page * 50 >= count || loading || isPending} onClick={() => setPage(value => value + 1)}><ArrowUpRight className="size-4 rotate-45" /></button>
           </div>
         </div>
 
         {/* Right Side: Automotive details & Customer 360 */}
         <div className="lg:col-span-2 space-y-6">
+          {detailsLoading && <p role="status">Đang tải hồ sơ...</p>}
+          {activeCustomer && <>
           
           {/* Card 1: Core profile with quick statistics */}
           <div className="bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800 rounded-3xl p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="md:col-span-3 flex items-center gap-4 pb-4 border-b border-slate-100 dark:border-slate-800">
               <div className="w-12 h-12 rounded-2xl bg-indigo-50 dark:bg-indigo-950/40 flex items-center justify-center text-indigo-600 font-bold text-lg">
-                {activeCustomer.name.charAt(0)}
+                {activeCustomer.name_mother.charAt(0)}
               </div>
               <div>
-                <h3 className="text-base font-black text-slate-950 dark:text-white">{activeCustomer.name}</h3>
-                <p className="text-xs text-slate-400 font-semibold">{activeCustomer.phone} · {activeCustomer.email} · {activeCustomer.address}</p>
+                <h3 className="text-base font-black text-slate-950 dark:text-white">{activeCustomer.name_mother}</h3>
+                <p className="text-xs text-slate-400 font-semibold">{activeCustomer.phone} · {activeCustomer.address}</p>
               </div>
             </div>
 
@@ -223,7 +229,7 @@ export default function Customer360Page() {
               <Compass className="w-4 h-4" /> Sở Thích & Hành Vi Automotive
             </h4>
             
-            <form onSubmit={handleUpdatePreferences} className="space-y-4">
+            <form onSubmit={handleUpdatePreferences} className="space-y-4"><fieldset disabled={isPending || loading || detailsLoading} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-[10px] font-black uppercase tracking-wider text-slate-400 mb-1.5">Thương Hiệu Quan Tâm</label>
@@ -277,9 +283,9 @@ export default function Customer360Page() {
                   Lưu Thay Đổi
                 </button>
               </div>
-            </form>
+            </fieldset></form>
           </div>
-
+          </>}
         </div>
 
       </div>

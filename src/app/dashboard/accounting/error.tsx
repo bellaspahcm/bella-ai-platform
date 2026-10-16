@@ -66,7 +66,7 @@ export default function AccountingError({
           <button
             type="button"
             onClick={() => unstable_retry()}
-            className="inline-flex items-center justify-center gap-2 rounded-lg bg-slate-950 px-4 py-2.5 text-sm font-black text-white transition-colors hover:bg-slate-800 dark:bg-[#A67D44] dark:hover:bg-[#8A683A]"
+            className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-black text-primary-foreground transition-colors hover:bg-primary-hover dark:bg-primary dark:hover:bg-[#8A683A]"
           >
             <RefreshCw className="h-4 w-4" />
             Thử lại

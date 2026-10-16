@@ -167,7 +167,7 @@ export default function ManualEntryPage() {
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
       {/* ── HEADER DATA: VOUCHER CONFIG ── */}
-      <div className="bg-white dark:bg-[#1C1B19] rounded-[2.5rem] border border-[#FFE4E6] dark:border-[#3E3A35]/50 p-6 md:p-8 shadow-sm space-y-6">
+      <div className="bg-white dark:bg-[#1C1B19] rounded-[2.5rem] border border-primary/15 dark:border-[#3E3A35]/50 p-6 md:p-8 shadow-sm space-y-6">
         <h4 className="text-base font-black text-slate-900 dark:text-[#EFE9E1] uppercase tracking-wider flex items-center gap-2 pb-3 border-b border-slate-50 dark:border-[#3E3A35]/30">
           <PenTool className="w-5.5 h-5.5 text-primary" />
           Phiếu kế toán điều chỉnh thủ công (Manual Journal Voucher)
@@ -206,7 +206,7 @@ export default function ManualEntryPage() {
       </div>
 
       {/* ── DYNAMIC LEDGER LINES ENTRY ── */}
-      <div className="bg-white dark:bg-[#1C1B19] rounded-[2.5rem] border border-[#FFE4E6] dark:border-[#3E3A35]/50 p-6 md:p-8 shadow-sm space-y-6">
+      <div className="bg-white dark:bg-[#1C1B19] rounded-[2.5rem] border border-primary/15 dark:border-[#3E3A35]/50 p-6 md:p-8 shadow-sm space-y-6">
         <h4 className="text-sm font-black text-slate-900 dark:text-[#EFE9E1] uppercase tracking-wider pb-3 border-b border-slate-50 dark:border-[#3E3A35]/30">
           Các dòng định khoản Nợ / Có chi tiết
         </h4>
@@ -319,7 +319,7 @@ export default function ManualEntryPage() {
         <button 
           type="button"
           onClick={handleAddLine}
-          className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-[#FFE4E6] bg-slate-50/20 px-5 py-3 text-2xs font-black uppercase tracking-widest text-[#4C243B] transition-all hover:border-primary hover:text-primary active:scale-95 dark:border-[#3E3A35] dark:bg-transparent dark:text-[#CDBCAB] dark:hover:border-[#A67D44] sm:w-auto"
+          className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-primary/15 bg-slate-50/20 px-5 py-3 text-2xs font-black uppercase tracking-widest text-[#4C243B] transition-all hover:border-primary hover:text-primary active:scale-95 dark:border-[#3E3A35] dark:bg-transparent dark:text-[#CDBCAB] dark:hover:border-primary sm:w-auto"
         >
           <Plus className="w-4 h-4" />
           <span>Thêm dòng định khoản</span>
@@ -327,7 +327,7 @@ export default function ManualEntryPage() {
       </div>
 
       {/* ── REALTIME VOUCHER BALANCE STATUS CARD ── */}
-      <div className="bg-white dark:bg-[#1C1B19] rounded-[2.5rem] border border-[#FFE4E6] dark:border-[#3E3A35]/50 p-6 md:p-8 shadow-sm flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+      <div className="bg-white dark:bg-[#1C1B19] rounded-[2.5rem] border border-primary/15 dark:border-[#3E3A35]/50 p-6 md:p-8 shadow-sm flex flex-col lg:flex-row lg:items-center justify-between gap-6">
         {/* Balanced indicators */}
         <div className="flex items-start gap-4">
           <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${
@@ -352,7 +352,7 @@ export default function ManualEntryPage() {
         <button 
           type="submit" 
           disabled={saving || !isBalanced || !hasAccountsSelected}
-          className="flex w-full items-center justify-center gap-2 rounded-2xl border-none bg-primary px-8 py-4 text-xs font-black uppercase tracking-widest text-white shadow-lg shadow-pink-100 transition-all hover:bg-primary-hover active:scale-95 disabled:bg-slate-100 disabled:text-slate-400 disabled:shadow-none dark:shadow-none dark:disabled:bg-[#11100F] dark:disabled:text-slate-600 lg:w-auto lg:shrink-0"
+          className="flex w-full items-center justify-center gap-2 rounded-2xl border-none bg-primary px-8 py-4 text-xs font-black uppercase tracking-widest text-primary-foreground shadow-lg shadow-primary/20 transition-all hover:bg-primary-hover active:scale-95 disabled:bg-slate-100 disabled:text-slate-400 disabled:shadow-none dark:shadow-none dark:disabled:bg-[#11100F] dark:disabled:text-slate-600 lg:w-auto lg:shrink-0"
         >
           <span>Ghi sổ bút toán</span>
           <ArrowRight className="w-4 h-4" />

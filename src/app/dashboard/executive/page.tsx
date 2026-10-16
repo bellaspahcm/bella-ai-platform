@@ -405,7 +405,7 @@ function ExecutiveDashboardPage() {
           <button
             onClick={() => fetchAllMetrics(true)}
             disabled={isRefreshing}
-            className="flex items-center justify-center gap-2 bg-primary hover:bg-primary-hover text-white px-6 py-3 rounded-2xl font-black transition-all active:scale-95 uppercase tracking-wider disabled:opacity-50 text-xs shrink-0"
+            className="flex items-center justify-center gap-2 bg-primary hover:bg-primary-hover text-primary-foreground px-6 py-3 rounded-2xl font-black transition-all active:scale-95 uppercase tracking-wider disabled:opacity-50 text-xs shrink-0"
           >
             <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
             <span>Làm mới</span>

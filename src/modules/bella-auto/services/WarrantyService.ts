@@ -6,6 +6,11 @@
  */
 
 import { getPrimaryClient } from '@/lib/database/read-replica';
+import {
+  getMobilityVehicleIdentity,
+  listMobilityVehicleDisplayByIds,
+  type MobilityVehicleDisplay,
+} from '@/platform/mobility/supabase-vehicle-contract';
 import { Database } from '@/types/database.types';
 
 type WarrantyClaim = Database['public']['Tables']['auto_warranty_claims']['Row'];
@@ -31,6 +36,22 @@ type RuntimeWarrantyClaimUpdate = WarrantyClaimUpdate & {
 type WarrantyClaimWithRuntimeCost = WarrantyClaim & {
   actual_repair_cost?: number | null;
 };
+type WarrantyClaimVehicleDisplay = {
+  id: string;
+  vin: string;
+  color_exterior: string;
+  variant_id: string;
+  auto_variants: {
+    name: string | null;
+    auto_models: {
+      name: string | null;
+    } | null;
+  } | null;
+};
+type WarrantyClaimListRow = WarrantyClaim & {
+  customers?: unknown;
+  auto_vehicles?: WarrantyClaimVehicleDisplay | null;
+};
 
 interface RuntimeMutation<Row> extends PromiseLike<{ data: Row | null; error: { message: string } | null }> {
   eq(column: string, value: unknown): RuntimeMutation<Row>;
@@ -51,6 +72,23 @@ interface RuntimeWarrantyClient {
 
 function runtimeWarrantyClient(client: unknown): RuntimeWarrantyClient {
   return client as RuntimeWarrantyClient;
+}
+
+interface RuntimeWarrantySaleQuery {
+  eq(column: string, value: unknown): RuntimeWarrantySaleQuery;
+  single(): PromiseLike<{ data: AutoSaleWarrantyInfo | null; error: { message: string } | null }>;
+}
+
+interface RuntimeWarrantySaleTable {
+  select(columns: string): RuntimeWarrantySaleQuery;
+}
+
+interface RuntimeWarrantySaleClient {
+  from(table: 'auto_sales'): RuntimeWarrantySaleTable;
+}
+
+function runtimeWarrantySaleClient(client: unknown): RuntimeWarrantySaleClient {
+  return client as RuntimeWarrantySaleClient;
 }
 
 interface AutoSaleWarrantyInfo {
@@ -158,22 +196,28 @@ export class WarrantyService {
   ): Promise<WarrantyValidationResult> {
     const supabase = getPrimaryClient();
 
-    // Get vehicle details
-    const { data: vehicle, error: vehicleError } = await supabase
-      .from('auto_vehicles')
-      .select('*, auto_sales!inner(sale_date, warranty_start_date, warranty_end_date, warranty_mileage_limit)')
-      .eq('id', vehicleId)
-      .eq('tenant_id', tenantId)
-      .single();
+    const vehicle = await getMobilityVehicleIdentity(supabase, { tenantId, vehicleId });
 
-    if (vehicleError || !vehicle) {
+    if (!vehicle) {
       return {
         isValid: false,
         reason: 'Vehicle not found or no sale record',
       };
     }
 
-    const sale = vehicle.auto_sales as AutoSaleWarrantyInfo;
+    const { data: sale, error: saleError } = await runtimeWarrantySaleClient(supabase)
+      .from('auto_sales')
+      .select('sale_date, warranty_start_date, warranty_end_date, warranty_mileage_limit')
+      .eq('vehicle_id', vehicle.vehicleId)
+      .eq('tenant_id', tenantId)
+      .single();
+
+    if (saleError || !sale) {
+      return {
+        isValid: false,
+        reason: 'Vehicle not found or no sale record',
+      };
+    }
 
     // Check if warranty exists
     if (!sale?.warranty_start_date || !sale?.warranty_end_date) {
@@ -475,7 +519,7 @@ export class WarrantyService {
 
     let query = supabase
       .from('auto_warranty_claims')
-      .select('*, customers(*), auto_vehicles(*)')
+      .select('*, customers(*)')
       .eq('tenant_id', tenantId)
       .eq('status', status)
       .order('submitted_at', { ascending: false });
@@ -490,7 +534,15 @@ export class WarrantyService {
       throw new Error(`Failed to get claims: ${error.message}`);
     }
 
-    return data || [];
+    const claims: WarrantyClaimListRow[] = data || [];
+    const vehicleIds = uniqueStrings(claims.map((claim) => claim.vehicle_id));
+    const vehicles = await listMobilityVehicleDisplayByIds(supabase, { tenantId, vehicleIds });
+    const vehiclesById = new Map(vehicles.map((vehicle) => [vehicle.vehicleId, vehicle]));
+
+    return claims.map((claim) => ({
+      ...claim,
+      auto_vehicles: toWarrantyClaimVehicleDisplay(vehiclesById.get(claim.vehicle_id)),
+    }));
   }
 
   /**
@@ -619,4 +671,29 @@ export class WarrantyService {
   ): Promise<WarrantyClaim[]> {
     return this.getClaimsByStatus(tenantId, 'under_review');
   }
+}
+
+function toWarrantyClaimVehicleDisplay(
+  vehicle: MobilityVehicleDisplay | undefined
+): WarrantyClaimVehicleDisplay | null {
+  if (!vehicle) return null;
+
+  return {
+    id: vehicle.vehicleId,
+    vin: vehicle.vin,
+    color_exterior: vehicle.colorExterior,
+    variant_id: vehicle.variantId,
+    auto_variants: {
+      name: vehicle.variantName ?? null,
+      auto_models: vehicle.modelName
+        ? {
+            name: vehicle.modelName,
+          }
+        : null,
+    },
+  };
+}
+
+function uniqueStrings(values: readonly string[]): string[] {
+  return [...new Set(values.filter((value) => value.length > 0))];
 }

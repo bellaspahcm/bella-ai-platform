@@ -1,11 +1,16 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { createClient } from '@/lib/supabase-client';
-import { Search, User, Car, CheckCircle } from 'lucide-react';
+import {
+  listMobilityVehicleDisplayByIds,
+  type MobilityVehicleDisplay,
+} from '@/platform/mobility/supabase-vehicle-contract';
+import { Search, User, Car, CheckCircle, FileCheck } from 'lucide-react';
+import { VehicleSaleChainDialog } from './VehicleSaleChainDialog';
 import { toast } from 'sonner';
 
-type FilterType = 'all' | 'unpaid' | 'partial' | 'full';
+type FilterType = 'all' | 'unpaid' | 'partial' | 'full' | 'settlement' | 'cancelled';
 
 interface Booking {
   id: string;
@@ -15,21 +20,15 @@ interface Booking {
   payment_status: string;
   status: string;
   created_at: string;
+  vehicle_id: string | null;
   customers: {
     name_mother: string;
     phone: string;
   };
-  auto_vehicles: {
-    vin: string;
-    color_exterior: string;
-    auto_variants: {
-      name: string;
-      auto_models: {
-        name: string;
-      };
-    };
-  } | null;
+  vehicleDisplay: MobilityVehicleDisplay | null;
 }
+
+type BookingRow = Omit<Booking, 'vehicleDisplay'>;
 
 export function BookingListTable({ tenantId }: { tenantId: string }) {
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -37,6 +36,8 @@ export function BookingListTable({ tenantId }: { tenantId: string }) {
   const [filter, setFilter] = useState<FilterType>('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [confirmingId, setConfirmingId] = useState<string | null>(null);
+  const confirmationKeys = useRef(new Map<string, string>());
+  const [saleBooking, setSaleBooking] = useState<Booking | null>(null);
 
   const loadBookings = async () => {
     setLoading(true);
@@ -53,21 +54,16 @@ export function BookingListTable({ tenantId }: { tenantId: string }) {
           payment_status,
           status,
           created_at,
-          customers (name_mother, phone),
-          auto_vehicles!inner (
-            vin,
-            color_exterior,
-            auto_variants!inner (
-              name,
-              auto_models!inner (name)
-            )
-          )
+          vehicle_id,
+          customers (name_mother, phone)
         `)
         .eq('tenant_id', tenantId)
         .order('created_at', { ascending: false });
 
-      // Apply status filter (exclude cancelled/completed)
-      query = query.not('status', 'in', '("cancelled","completed")');
+      // Completed sales remain accessible for collection without reopening deposits.
+      query = filter === 'cancelled' ? query.eq('status', 'cancelled') : filter === 'settlement'
+        ? query.not('status', 'eq', 'cancelled')
+        : query.not('status', 'in', '("cancelled","completed")');
 
       // Apply deposit filter
       if (filter === 'unpaid') {
@@ -84,8 +80,20 @@ export function BookingListTable({ tenantId }: { tenantId: string }) {
 
       if (error) throw error;
 
+      const bookingRows = (data || []) as BookingRow[];
+      const vehicleIds = bookingRows
+        .map((booking) => booking.vehicle_id)
+        .filter((vehicleId): vehicleId is string => typeof vehicleId === 'string' && vehicleId.length > 0);
+      const vehicles = await listMobilityVehicleDisplayByIds(supabase, { tenantId, vehicleIds });
+      const vehiclesById = new Map(vehicles.map((vehicle) => [vehicle.vehicleId, vehicle]));
+
       // Additional filtering for partial/full
-      const filtered = [...(data || [])];
+      const filtered = bookingRows.flatMap((booking) => {
+        if (!booking.vehicle_id) return [];
+        const vehicleDisplay = vehiclesById.get(booking.vehicle_id);
+        if (!vehicleDisplay) return [];
+        return [{ ...booking, vehicleDisplay }];
+      });
       let finalBookings = filtered;
       
       if (filter === 'partial') {
@@ -94,7 +102,7 @@ export function BookingListTable({ tenantId }: { tenantId: string }) {
         finalBookings = filtered.filter(b => b.deposit_paid >= b.deposit_amount);
       }
 
-      setBookings(finalBookings as Booking[]);
+      setBookings(finalBookings);
     } catch (error) {
       console.error('Load bookings error:', error);
       console.error('Error details:', {
@@ -127,9 +135,11 @@ export function BookingListTable({ tenantId }: { tenantId: string }) {
 
     setConfirmingId(booking.id);
     try {
+      const key = confirmationKeys.current.get(booking.id) ?? crypto.randomUUID();
+      confirmationKeys.current.set(booking.id, key);
       const response = await fetch(`/api/bella-auto/bookings/${booking.id}/confirm-deposit`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'Idempotency-Key': key },
         body: JSON.stringify({
           amount: Number(amount),
           payment_method: 'cash', // TODO: Add payment method selector
@@ -145,6 +155,7 @@ export function BookingListTable({ tenantId }: { tenantId: string }) {
       }
 
       alert(result.message);
+      confirmationKeys.current.delete(booking.id);
       await loadBookings(); // Reload list
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Lỗi không xác định';
@@ -165,7 +176,7 @@ export function BookingListTable({ tenantId }: { tenantId: string }) {
       b.booking_number.toLowerCase().includes(term) ||
       b.customers.name_mother.toLowerCase().includes(term) ||
       b.customers.phone.includes(term) ||
-      (b.auto_vehicles?.vin || '').toLowerCase().includes(term)
+      (b.vehicleDisplay?.vin || '').toLowerCase().includes(term)
     );
   });
 
@@ -220,6 +231,8 @@ export function BookingListTable({ tenantId }: { tenantId: string }) {
             onClick={() => setFilter('full')}
             color="green"
           />
+          <FilterTab label="Thanh toán sau bán" count={0} active={filter === 'settlement'} onClick={() => setFilter('settlement')} />
+          <FilterTab label="Lịch sử hủy" count={0} active={filter === 'cancelled'} onClick={() => setFilter('cancelled')} />
         </div>
 
         {/* Search */}
@@ -294,15 +307,17 @@ export function BookingListTable({ tenantId }: { tenantId: string }) {
                     </div>
                   </td>
                   <td className="p-3">
-                    {booking.auto_vehicles ? (
+                    {booking.vehicleDisplay ? (
                       <div className="flex items-center gap-2">
                         <Car className="w-4 h-4 text-slate-400" />
                         <div>
                           <div className="font-semibold text-sm">
-                            {booking.auto_vehicles.auto_variants.auto_models.name} {booking.auto_vehicles.auto_variants.name}
+                            {[booking.vehicleDisplay.modelName, booking.vehicleDisplay.variantName]
+                              .filter(Boolean)
+                              .join(' ') || 'Xe đã phân bổ'}
                           </div>
                           <div className="text-xs text-slate-500">
-                            VIN: {booking.auto_vehicles.vin} • {booking.auto_vehicles.color_exterior}
+                            VIN: {booking.vehicleDisplay.vin} • {booking.vehicleDisplay.colorExterior}
                           </div>
                         </div>
                       </div>
@@ -327,7 +342,7 @@ export function BookingListTable({ tenantId }: { tenantId: string }) {
                     <DepositStatusBadge booking={booking} />
                   </td>
                   <td className="p-3 text-center">
-                    <button
+                    {filter !== 'settlement' && filter !== 'cancelled' && <button
                       onClick={() => handleConfirmDeposit(booking)}
                       disabled={
                         confirmingId === booking.id ||
@@ -346,6 +361,11 @@ export function BookingListTable({ tenantId }: { tenantId: string }) {
                           Xác Nhận Cọc
                         </>
                       )}
+                    </button>}
+                    <button type="button" disabled={!booking.vehicle_id}
+                      onClick={() => setSaleBooking(booking)} title="Hồ sơ bán xe" aria-label={`Hồ sơ bán xe ${booking.booking_number}`}
+                      className="ml-2 inline-flex p-2 text-cyan-700 disabled:opacity-40 dark:text-cyan-400">
+                      <FileCheck className="h-5 w-5" />
                     </button>
                   </td>
                 </tr>
@@ -354,6 +374,8 @@ export function BookingListTable({ tenantId }: { tenantId: string }) {
           </tbody>
         </table>
       </div>
+      {saleBooking && <VehicleSaleChainDialog key={saleBooking.id} bookingId={saleBooking.id}
+        bookingNumber={saleBooking.booking_number} tenantId={tenantId} onClose={() => setSaleBooking(null)} />}
     </div>
   );
 }

@@ -251,7 +251,7 @@ export default function CashFlowDashboardPage() {
         </Link>
         <Link 
           href="/dashboard/finance/cash-flow"
-          className="shrink-0 px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all bg-slate-900 text-white shadow-md dark:bg-slate-800"
+          className="shrink-0 px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all bg-primary text-primary-foreground shadow-md "
         >
           Dòng tiền & Dự báo
         </Link>
@@ -303,7 +303,7 @@ export default function CashFlowDashboardPage() {
           <button
             onClick={handleRefresh}
             disabled={false}
-            className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <RefreshCw className="h-4 w-4" />
             Làm mới

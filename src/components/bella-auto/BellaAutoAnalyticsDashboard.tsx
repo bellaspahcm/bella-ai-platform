@@ -18,22 +18,37 @@ import {
 import { SafeResponsiveContainer as ResponsiveContainer } from '@/components/ui/SafeResponsiveContainer';
 import { TrendingUp, TrendingDown, DollarSign, Clock, Package, Activity, Calendar } from 'lucide-react';
 import { PremiumSelect } from '@/components/ui/PremiumSelect';
+import type { RecognizedSalesDashboard } from '@/modules/bella-auto/services/FinancialReportingService';
+import { RefreshCw } from 'lucide-react';
+import { z } from 'zod';
+import { AutoAnalyticsCharts, type AutoAnalyticsInventory } from './AutoAnalyticsCharts';
+
+const recognizedSalesResponse = z.object({
+  summary: z.object({ revenue: z.number().int().safe(), sales: z.number().int().nonnegative(), averageSalePrice: z.number().finite() }),
+  timeZone: z.literal('UTC'),
+  revenueByMonth: z.array(z.object({
+    month: z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/),
+    revenue: z.number().int().safe(), sales: z.number().int().nonnegative(),
+  })).length(6),
+  topModels: z.array(z.object({
+    model: z.string(), sold: z.number().int().nonnegative(), revenue: z.number().int().safe(),
+  })).max(5),
+});
 
 interface AnalyticsData {
   monthlyTrend: Array<{ month: string; nhap: number; xuat: number; ton: number }>;
   statusDistribution: Array<{ name: string; value: number; color: string }>;
-  topModels: Array<{ model: string; sold: number; revenue: number }>;
   inventoryValue: {
     total: number;
     byStatus: Array<{ status: string; value: number }>;
   };
   averageDaysInStock: number;
   weeklyDeliveries: Array<{ week: string; deliveries: number }>;
-  revenueByMonth: Array<{ month: string; revenue: number }>;
 }
 
 interface BellaAutoAnalyticsDashboardProps {
   tenantId: string;
+  inventory?: AutoAnalyticsInventory;
 }
 
 // Interactive Header Actions for Premium look
@@ -111,10 +126,27 @@ const CustomTooltip = ({ active, payload, label, valueFormatter }: CustomTooltip
 // Create client outside component to avoid recreating on every render
 const supabase = createClient();
 
-export default function BellaAutoAnalyticsDashboard({ tenantId }: BellaAutoAnalyticsDashboardProps) {
+export default function BellaAutoAnalyticsDashboard({ tenantId, inventory }: BellaAutoAnalyticsDashboardProps) {
   const [loading, setLoading] = useState(true);
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
   const [mounted, setMounted] = useState(false);
+  const [sales, setSales] = useState<RecognizedSalesDashboard | null>(null);
+  const [salesError, setSalesError] = useState(false);
+  const [salesAttempt, setSalesAttempt] = useState(0);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    setSales(null);
+    setSalesError(false);
+    void fetch('/api/bella-auto/analytics/recognized-sales', {
+      cache: 'no-store', signal: controller.signal,
+    }).then(async response => {
+      if (!response.ok) throw new Error('Recognized sales read failed');
+      const data = recognizedSalesResponse.parse(await response.json());
+      if (!controller.signal.aborted) setSales(data);
+    }).catch(() => { if (!controller.signal.aborted) setSalesError(true); });
+    return () => controller.abort();
+  }, [tenantId, salesAttempt]);
 
   // Wait for component to mount before rendering charts
   useEffect(() => {
@@ -132,10 +164,8 @@ export default function BellaAutoAnalyticsDashboard({ tenantId }: BellaAutoAnaly
         console.log('[BellaAuto] Starting analytics load for tenant:', tenantId);
         
         // ✅ Call real RPCs — SECURITY DEFINER bypass RLS, DB timeout = 30s
-        const [trendResult, topModelsResult, revenueResult, deliveriesResult] = await Promise.all([
+        const [trendResult, deliveriesResult] = await Promise.all([
           supabase.rpc('get_auto_inventory_trend', { p_tenant_id: tenantId }),
-          supabase.rpc('get_auto_top_models', { p_tenant_id: tenantId, p_limit: 5 }),
-          supabase.rpc('get_auto_revenue_by_month', { p_tenant_id: tenantId }),
           supabase.rpc('get_auto_weekly_deliveries', { p_tenant_id: tenantId }),
         ]);
       
@@ -149,24 +179,6 @@ export default function BellaAutoAnalyticsDashboard({ tenantId }: BellaAutoAnaly
           code: trendResult.error.code,
           details: trendResult.error.details,
           hint: trendResult.error.hint,
-        });
-      }
-      if (topModelsResult.error) {
-        console.error('[BellaAuto] Top models RPC error:', topModelsResult.error);
-        console.error('[BellaAuto] Top models error details:', {
-          message: topModelsResult.error.message,
-          code: topModelsResult.error.code,
-          details: topModelsResult.error.details,
-          hint: topModelsResult.error.hint,
-        });
-      }
-      if (revenueResult.error) {
-        console.error('[BellaAuto] Revenue RPC error:', revenueResult.error);
-        console.error('[BellaAuto] Revenue error details:', {
-          message: revenueResult.error.message,
-          code: revenueResult.error.code,
-          details: revenueResult.error.details,
-          hint: revenueResult.error.hint,
         });
       }
       if (deliveriesResult.error) {
@@ -229,19 +241,15 @@ export default function BellaAutoAnalyticsDashboard({ tenantId }: BellaAutoAnaly
       setAnalytics({
         monthlyTrend: trendResult.data || [],
         statusDistribution: statusDistribution.filter(item => item.value > 0),
-        topModels: topModelsResult.data || [],
         inventoryValue,
         averageDaysInStock,
         weeklyDeliveries: deliveriesResult.data || [],
-        revenueByMonth: revenueResult.data || [],
       });
 
       // Log data summary for debugging
       console.log('[BellaAuto] Analytics loaded successfully:', {
         monthlyTrend: (trendResult.data || []).length,
-        topModels: (topModelsResult.data || []).length,
         weeklyDeliveries: (deliveriesResult.data || []).length,
-        revenueByMonth: (revenueResult.data || []).length,
         statusDistribution: statusDistribution.length,
       });
     } catch (error) {
@@ -250,11 +258,9 @@ export default function BellaAutoAnalyticsDashboard({ tenantId }: BellaAutoAnaly
       setAnalytics({
         monthlyTrend: [],
         statusDistribution: [],
-        topModels: [],
         inventoryValue: { total: 0, byStatus: [] },
         averageDaysInStock: 0,
         weeklyDeliveries: [],
-        revenueByMonth: [],
       });
     } finally {
       console.log('[BellaAuto] Loading complete, setting loading=false');
@@ -287,6 +293,18 @@ export default function BellaAutoAnalyticsDashboard({ tenantId }: BellaAutoAnaly
   const formatNumber = (value: number) => {
     return value.toLocaleString('vi-VN');
   };
+
+  const salesReadState = salesError ? (
+    <div role="alert" className="flex h-64 flex-col items-center justify-center gap-3 text-red-600 dark:text-red-400">
+      <p>Không thể tải dữ liệu bán xe đã ghi nhận.</p>
+      <button type="button" onClick={() => setSalesAttempt(value => value + 1)}
+        className="inline-flex items-center gap-2 rounded border border-current px-3 py-2" title="Thử tải lại">
+        <RefreshCw className="h-4 w-4" aria-hidden="true" />Thử lại
+      </button>
+    </div>
+  ) : !sales ? (
+    <p role="status" className="flex h-64 items-center justify-center text-slate-500">Đang tải dữ liệu bán xe…</p>
+  ) : null;
 
   if (loading || !mounted) {
     return (
@@ -322,6 +340,7 @@ export default function BellaAutoAnalyticsDashboard({ tenantId }: BellaAutoAnaly
 
   return (
     <div className="space-y-6">
+      {inventory && <AutoAnalyticsCharts {...inventory} recognizedSales={sales} salesError={salesError} />}
       {/* Key Metrics Row */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <MetricCard
@@ -486,22 +505,21 @@ export default function BellaAutoAnalyticsDashboard({ tenantId }: BellaAutoAnaly
         {/* Top Models by Sales */}
         <ChartCard 
           title="Top 5 mẫu xe bán chạy" 
-          subtitle="Các dòng xe đạt doanh số xuất kho cao nhất"
+          subtitle="Số giao dịch đã ghi nhận · Toàn thời gian"
           icon={<TrendingUp className="w-4 h-4" />}
-          extra={<CardHeaderActions />}
         >
-          {analytics.topModels.length === 0 ? (
+          {salesReadState || (sales && sales.topModels.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-64 gap-3 text-slate-400 dark:text-slate-500">
               <div className="w-14 h-14 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 flex items-center justify-center">
                 <TrendingUp className="w-6 h-6 opacity-40" />
               </div>
               <p className="text-sm font-semibold">Chưa có dữ liệu bán hàng</p>
-              <p className="text-xs text-center max-w-xs">Dữ liệu sẽ hiển thị sau khi có giao dịch xe hoàn tất</p>
+              <p className="text-xs text-center max-w-xs">Chưa có giao dịch bán xe được ghi nhận</p>
             </div>
           ) : (
             <div className="mt-4" style={{ width: '100%', height: 300 }}>
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={analytics.topModels} layout="vertical" margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
+                <BarChart data={sales?.topModels} layout="vertical" margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
                   <defs>
                     <linearGradient id="barModelGradient" x1="0" y1="0" x2="1" y2="0">
                       <stop offset="0%" stopColor="#06b6d4" />
@@ -512,32 +530,39 @@ export default function BellaAutoAnalyticsDashboard({ tenantId }: BellaAutoAnaly
                   <XAxis type="number" stroke="#cbd5e1" tick={{ fill: '#64748b', fontSize: 11, fontWeight: 600 }} axisLine={false} tickLine={false} />
                   <YAxis dataKey="model" type="category" stroke="#cbd5e1" tick={{ fill: '#475569', fontSize: 11, fontWeight: 700 }} axisLine={false} tickLine={false} dx={-4} width={110} />
                   <Tooltip content={<CustomTooltip />} formatter={formatTopModelTooltip} />
-                  <Bar dataKey="sold" fill="url(#barModelGradient)" name="Đã bán" radius={[0, 6, 6, 0]} barSize={12} />
+                  <Bar dataKey="sold" fill="url(#barModelGradient)" name="Đã bán" radius={[0, 6, 6, 0]} barSize={12} isAnimationActive={false} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
-          )}
+          ))}
         </ChartCard>
 
         {/* Revenue Trend (LineChart styled as Area) */}
         <ChartCard 
           title="Doanh thu theo tháng" 
-          subtitle="Diễn biến tổng doanh thu bán xe theo từng tháng"
+          subtitle="Doanh thu đã ghi nhận · 6 tháng · UTC"
           icon={<DollarSign className="w-4 h-4" />}
-          extra={<CardHeaderActions />}
         >
-          {analytics.revenueByMonth.every(m => m.revenue === 0) ? (
+          {sales && (
+            <div className="mt-3 flex flex-wrap items-baseline justify-between gap-2" data-testid="recognized-sales-current-month">
+              <span className="text-sm text-slate-500">{sales.revenueByMonth[5].month}</span>
+              <strong className="text-base text-slate-900 dark:text-white">
+                {sales.revenueByMonth[5].revenue.toLocaleString('vi-VN')} VNĐ
+              </strong>
+            </div>
+          )}
+          {salesReadState || (sales && sales.revenueByMonth.every(m => m.sales === 0) ? (
             <div className="flex flex-col items-center justify-center h-64 gap-3 text-slate-400 dark:text-slate-500">
               <div className="w-14 h-14 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 flex items-center justify-center">
                 <DollarSign className="w-6 h-6 opacity-40" />
               </div>
               <p className="text-sm font-semibold">Chưa có dữ liệu doanh thu</p>
-              <p className="text-xs text-center max-w-xs">Dữ liệu sẽ hiển thị sau khi có booking xe hoàn tất</p>
+              <p className="text-xs text-center max-w-xs">Chưa có doanh thu được ghi nhận trong kỳ</p>
             </div>
           ) : (
           <div className="mt-4" style={{ width: '100%', height: 300 }}>
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={analytics.revenueByMonth} margin={{ top: 10, right: 10, left: 58, bottom: 0 }}>
+              <AreaChart data={sales?.revenueByMonth} margin={{ top: 10, right: 10, left: 58, bottom: 0 }}>
                 <defs>
                   <linearGradient id="revenueGradient" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#10b981" stopOpacity={0.2} />
@@ -566,6 +591,7 @@ export default function BellaAutoAnalyticsDashboard({ tenantId }: BellaAutoAnaly
                 <Area 
                   type="monotone" 
                   dataKey="revenue" 
+                  isAnimationActive={false}
                   stroke="#10b981" 
                   strokeWidth={3.5}
                   fill="url(#revenueGradient)"
@@ -576,7 +602,7 @@ export default function BellaAutoAnalyticsDashboard({ tenantId }: BellaAutoAnaly
               </AreaChart>
             </ResponsiveContainer>
           </div>
-          )}
+          ))}
         </ChartCard>
 
         {/* Weekly Deliveries */}

@@ -1,0 +1,53 @@
+name: BDGF AutoMove Owner Rehearsal
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'scripts/bdgf/**'
+      - 'supabase/migrations/20261016010000_align_automove_catalog_read_acl.sql'
+      - '.github/workflows/bdgf-automove-owner-rehearsal.yml'
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: bdgf-automove-owner-rehearsal
+  cancel-in-progress: false
+
+jobs:
+  rehearse:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    name: Governed Owner DDL Non-Production
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      ALLOW_BDGF_OWNER_E2E_REHEARSAL: '1'
+      BDGF_REHEARSAL_SHA: ${{ github.event.pull_request.head.sha }}
+      BDGF_REHEARSAL_API_URL: ${{ secrets.E2E_SUPABASE_URL }}
+      BDGF_REHEARSAL_DB_URL: ${{ secrets.E2E_SUPABASE_DB_URL }}
+      GITHUB_TOKEN: ${{ github.token }}
+      TZ: UTC
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - name: Focused transport and rehearsal safety tests
+        run: node --test scripts/bdgf/database-connection.test.mjs scripts/bdgf/execution-identity.test.mjs scripts/bdgf/execution-path.test.mjs scripts/bdgf/rehearse-automove-owner-ddl.test.mjs
+      - name: Rehearse through canonical approval and execution wrapper
+        run: node scripts/bdgf/rehearse-automove-owner-ddl.mjs
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        if: always()
+        with:
+          name: bdgf-owner-rehearsal-${{ github.event.pull_request.head.sha }}
+          path: .cache/bdgf-owner-rehearsal/evidence.json
+          include-hidden-files: true
+          if-no-files-found: warn
+          retention-days: 7

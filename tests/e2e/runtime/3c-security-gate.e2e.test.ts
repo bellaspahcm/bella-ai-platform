@@ -75,11 +75,11 @@ describe('CMG-RT-001: Runtime Security Gate', () => {
     expect(error).toBeNull();
     expect(outboxId).toBeDefined();
 
-    // Verify tenant_id and actor_id derived from JWT context
+    // Verify tenant_id derived from JWT context
     const { data: outbox } = await serviceRoleClient
       .from('runtime_outbox')
       .select('tenant_id, created_at')
-      .eq('outbox_id', outboxId)
+      .eq('id', outboxId)
       .single();
 
     expect(outbox?.tenant_id).toBe(testTenantId);
@@ -87,23 +87,93 @@ describe('CMG-RT-001: Runtime Security Gate', () => {
     // Verify idempotency record
     const { data: idempotency } = await serviceRoleClient
       .from('runtime_idempotency_registry')
-      .select('tenant_id, created_by')
+      .select('tenant_id, intent_type, correlation_id, outbox_id')
       .eq('idempotency_key', idempotencyKey)
       .single();
 
     expect(idempotency?.tenant_id).toBe(testTenantId);
-    expect(idempotency?.created_by).toBe(testUserId);
+    expect(idempotency?.intent_type).toBe('INVOICE_PAYMENT');
+    expect(idempotency?.correlation_id).toBe(idempotencyKey);
+    expect(idempotency?.outbox_id).toBe(outboxId);
 
     // Verify audit record
     const { data: audit } = await serviceRoleClient
       .from('runtime_audit_log')
-      .select('tenant_id, actor_id')
-      .eq('outbox_id', outboxId)
-      .eq('action', 'INTENT_SUBMITTED')
+      .select('tenant_id, intent_type, entity_id, entity_type, correlation_id, status, source')
+      .eq('correlation_id', idempotencyKey)
+      .eq('entity_id', outboxId)
       .single();
 
     expect(audit?.tenant_id).toBe(testTenantId);
-    expect(audit?.actor_id).toBe(testUserId);
+    expect(audit?.intent_type).toBe('INVOICE_PAYMENT');
+    expect(audit?.entity_type).toBe('financial_intent');
+    expect(audit?.status).toBe('SUCCESS');
+    expect(audit?.source).toBe('submit_financial_intent');
+  });
+
+  test('CMG-RT-001.1a: Explicit metadata persists across the atomic Runtime records', async () => {
+    const uniqueId = `cmg-metadata-${Date.now()}-${Math.random()}`;
+    const payload = {
+      amount: 1000,
+      currency: 'VND',
+      correlationId: `corr-${uniqueId}`,
+      entityId: `entity-${uniqueId}`,
+      entityType: 'runtime_security_gate',
+      source: 'runtime-security-e2e',
+    };
+
+    const { data: outboxId, error } = await authenticatedClient.rpc('submit_financial_intent', {
+      p_idempotency_key: uniqueId,
+      p_intent_type: 'INVOICE_PAYMENT',
+      p_intent_payload: payload,
+    });
+    expect(error).toBeNull();
+    expect(outboxId).toBeTruthy();
+
+    const { data: outbox, error: outboxError } = await serviceRoleClient
+      .from('runtime_outbox')
+      .select('id, tenant_id, correlation_id, intent_payload, status')
+      .eq('id', outboxId)
+      .single();
+    expect(outboxError).toBeNull();
+    expect(outbox).toMatchObject({
+      id: outboxId,
+      tenant_id: testTenantId,
+      correlation_id: payload.correlationId,
+      intent_payload: payload,
+      status: 'PENDING',
+    });
+
+    const { data: idempotency, error: idempotencyError } = await serviceRoleClient
+      .from('runtime_idempotency_registry')
+      .select('tenant_id, correlation_id, outbox_id, intent_type')
+      .eq('idempotency_key', uniqueId)
+      .single();
+    expect(idempotencyError).toBeNull();
+    expect(idempotency).toMatchObject({
+      tenant_id: testTenantId,
+      correlation_id: payload.correlationId,
+      outbox_id: outboxId,
+      intent_type: 'INVOICE_PAYMENT',
+    });
+
+    const { data: audit, error: auditError } = await serviceRoleClient
+      .from('runtime_audit_log')
+      .select('tenant_id, correlation_id, entity_id, entity_type, source, status, amount, currency, intent_type')
+      .eq('correlation_id', payload.correlationId)
+      .single();
+    expect(auditError).toBeNull();
+    expect(audit).toMatchObject({
+      tenant_id: testTenantId,
+      correlation_id: payload.correlationId,
+      entity_id: payload.entityId,
+      entity_type: payload.entityType,
+      source: payload.source,
+      status: 'SUCCESS',
+      amount: payload.amount,
+      currency: payload.currency,
+      intent_type: 'INVOICE_PAYMENT',
+    });
   });
 
   test('CMG-RT-001.2: Unauthenticated call rejected at privilege layer (P0)', async () => {
@@ -147,10 +217,13 @@ describe('CMG-RT-001: Runtime Security Gate', () => {
     expect(successes.length).toBe(1);
     expect(failures.length).toBe(1);
 
-    // Extract outbox_id from success
+    // Extract outbox id from success
     const successResult = results.find(r => 
       r.status === 'fulfilled' && r.value.data
-    ) as PromiseFulfilledResult<any>;
+    );
+    if (!successResult || successResult.status !== 'fulfilled' || !successResult.value.data) {
+      throw new Error('Expected one successful submit_financial_intent result');
+    }
     const outboxId = successResult.value.data;
 
     // Verify database: Exactly 1 idempotency record FOR THIS KEY
@@ -166,7 +239,7 @@ describe('CMG-RT-001: Runtime Security Gate', () => {
     const { data: outboxRecords } = await serviceRoleClient
       .from('runtime_outbox')
       .select('*')
-      .eq('outbox_id', outboxId);
+      .eq('id', outboxId);
 
     expect(outboxRecords).toHaveLength(1);
 
@@ -174,8 +247,8 @@ describe('CMG-RT-001: Runtime Security Gate', () => {
     const { data: auditRecords } = await serviceRoleClient
       .from('runtime_audit_log')
       .select('*')
-      .eq('outbox_id', outboxId)
-      .eq('action', 'INTENT_SUBMITTED');
+      .eq('correlation_id', idempotencyKey)
+      .eq('entity_id', outboxId);
 
     expect(auditRecords).toHaveLength(1);
   });
@@ -249,7 +322,7 @@ describe('CMG-RT-001: Runtime Security Gate', () => {
 
     // Trigger constraint violation (NULL idempotency_key)
     const { error } = await authenticatedClient.rpc('submit_financial_intent', {
-      p_idempotency_key: null as any, // NULL violation
+      p_idempotency_key: null, // NULL violation
       p_intent_type: 'INVOICE_PAYMENT',
       p_intent_payload: { amount: 1000 }
     });
@@ -300,7 +373,7 @@ describe('CMG-RT-001: Runtime Security Gate', () => {
     const { data: outbox } = await serviceRoleClient
       .from('runtime_outbox')
       .select('*')
-      .eq('outbox_id', outboxId)
+      .eq('id', outboxId)
       .single();
 
     expect(outbox).toBeDefined();
@@ -318,20 +391,22 @@ describe('CMG-RT-001: Runtime Security Gate', () => {
     expect(idempotency).toBeDefined();
     expect(idempotency?.outbox_id).toBe(outboxId);
     expect(idempotency?.tenant_id).toBe(testTenantId);
-    expect(idempotency?.created_by).toBe(testUserId);
+    expect(idempotency?.intent_type).toBe('INVOICE_PAYMENT');
+    expect(idempotency?.correlation_id).toBe(idempotencyKey);
 
     // Verify audit record exists
     const { data: audit } = await serviceRoleClient
       .from('runtime_audit_log')
       .select('*')
-      .eq('outbox_id', outboxId)
-      .eq('action', 'INTENT_SUBMITTED')
+      .eq('correlation_id', idempotencyKey)
+      .eq('entity_id', outboxId)
       .single();
 
     expect(audit).toBeDefined();
-    expect(audit?.outbox_id).toBe(outboxId);
     expect(audit?.tenant_id).toBe(testTenantId);
-    expect(audit?.actor_id).toBe(testUserId);
+    expect(audit?.intent_type).toBe('INVOICE_PAYMENT');
+    expect(audit?.entity_type).toBe('financial_intent');
+    expect(audit?.status).toBe('SUCCESS');
   });
 
   test('CMG-RT-001.8: Submission does not trigger outbox processing (TB)', async () => {
@@ -350,7 +425,7 @@ describe('CMG-RT-001: Runtime Security Gate', () => {
     const { data: outbox } = await serviceRoleClient
       .from('runtime_outbox')
       .select('status')
-      .eq('outbox_id', outboxId)
+      .eq('id', outboxId)
       .single();
 
     expect(outbox?.status).toBe('PENDING');
@@ -362,7 +437,7 @@ describe('CMG-RT-001: Runtime Security Gate', () => {
     const { data: outboxStill } = await serviceRoleClient
       .from('runtime_outbox')
       .select('status')
-      .eq('outbox_id', outboxId)
+      .eq('id', outboxId)
       .single();
 
     expect(outboxStill?.status).toBe('PENDING');
@@ -385,7 +460,7 @@ describe('CMG-RT-001: Runtime Security Gate', () => {
     const { data: outbox } = await serviceRoleClient
       .from('runtime_outbox')
       .select('status')
-      .eq('outbox_id', outboxId)
+      .eq('id', outboxId)
       .single();
 
     expect(outbox?.status).toBe('PENDING');
@@ -397,7 +472,7 @@ describe('CMG-RT-001: Runtime Security Gate', () => {
     const { data: outboxStill } = await serviceRoleClient
       .from('runtime_outbox')
       .select('status')
-      .eq('outbox_id', outboxId)
+      .eq('id', outboxId)
       .single();
 
     expect(outboxStill?.status).toBe('PENDING');
@@ -414,9 +489,8 @@ describe('CMG-RT-001: Runtime Security Gate', () => {
       p_intent_payload: { amount: 1000 }
     });
 
-    // May be accepted by RPC (depends on validation), or rejected
-    // This tests that RPC does not perform deep business validation
-    // Business validation is responsibility of Finance OS
+    expect(structuralError).toBeDefined();
+    expect(structuralError?.message).toMatch(/intent_type.*required/i);
 
     // TEST 2: Business invalid but structurally valid → ACCEPT
     const idempotencyKey = `cmg-boundary-business-${Date.now()}-${Math.random()}`;
@@ -437,7 +511,7 @@ describe('CMG-RT-001: Runtime Security Gate', () => {
     const { data: outbox } = await serviceRoleClient
       .from('runtime_outbox')
       .select('intent_type, intent_payload')
-      .eq('outbox_id', outboxId)
+      .eq('id', outboxId)
       .single();
 
     expect(outbox).toBeDefined();

@@ -11,6 +11,8 @@
 
 import { createClient } from '@/lib/supabase-server';
 import { autoAssignKtv } from '@/services/booking-decision.service';
+import { getBookingTenantActor, getEligibleBookingKtvs } from '@/services/booking-ktv-eligibility';
+import { isAdminRole } from '@/lib/business-rules/permissions';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -110,6 +112,7 @@ export async function getKtvSuggestions(
   input: GetKtvSuggestionsInput
 ): Promise<GetKtvSuggestionsResult> {
   try {
+    await getBookingTenantActor(input.tenantId);
     const supabase = await createClient();
 
     // 1. Verify booking exists and fetch required context
@@ -206,7 +209,7 @@ export async function getKtvSuggestions(
       return {
         success: false,
         suggestions: [],
-        error: 'Không có KTV khả dụng lúc ' + input.requestedStartTime + ' (các KTV được đề xuất đều đã có lịch)',
+        error: 'Không có KTV có tài khoản và quyền hợp lệ khả dụng lúc ' + input.requestedStartTime,
       };
     }
 
@@ -247,6 +250,10 @@ export async function applyKtvSuggestion(
   tenantId: string
 ): Promise<ApplyKtvSuggestionResult> {
   try {
+    const actor = await getBookingTenantActor(tenantId);
+    if (!isAdminRole(actor.role)) {
+      return { success: false, error: 'Chỉ quản trị viên tenant được chọn KTV đề xuất.' };
+    }
     const supabase = await createClient();
 
     // Verify the booking belongs to this tenant
@@ -261,7 +268,12 @@ export async function applyKtvSuggestion(
       return { success: false, error: 'Booking không tồn tại hoặc không thuộc chi nhánh này' };
     }
 
-    // Update assigned_ktv_id
+    const eligibleKtvs = await getEligibleBookingKtvs(tenantId, ktvId);
+    if (!eligibleKtvs.some(ktv => ktv.id === ktvId)) {
+      return { success: false, error: 'KTV không có tài khoản đăng nhập và quyền hợp lệ trong tenant này.' };
+    }
+
+    // Revalidate account eligibility even for previously displayed suggestions.
     const { error: updateError } = await supabase
       .from('bookings')
       .update({ assigned_ktv_id: ktvId })

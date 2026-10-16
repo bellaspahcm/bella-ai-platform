@@ -111,7 +111,7 @@ export default function AccountingOverviewPage() {
     <div className="space-y-8 relative">
       {/* Pull to refresh indicator */}
       {refreshing && (
-        <div className="absolute top-0 right-0 flex items-center gap-1.5 text-xs font-semibold text-primary dark:text-[#A67D44] animate-pulse">
+        <div className="absolute top-0 right-0 flex items-center gap-1.5 text-xs font-semibold text-primary dark:text-primary animate-pulse">
           <RefreshCw className="w-3.5 h-3.5 animate-spin" />
           <span>Đang đồng bộ...</span>
         </div>
@@ -129,7 +129,7 @@ export default function AccountingOverviewPage() {
           {/* Card 1: Total Assets */}
           <motion.div 
             whileHover={{ y: -4 }}
-            className="p-6 rounded-[2rem] border border-[#FFE4E6] dark:border-[#3E3A35]/60 bg-gradient-to-tr from-white to-[#FFE4E6]/20 dark:from-[#1C1B19] dark:to-[#5D1C34]/15 shadow-[0_4px_25px_rgba(244,63,94,0.03)] dark:shadow-none"
+            className="p-6 rounded-[2rem] border border-primary/15 dark:border-[#3E3A35]/60 bg-gradient-to-tr from-white to-primary/5 dark:from-[#1C1B19] dark:to-primary/5 shadow-[0_4px_25px_rgba(244,63,94,0.03)] dark:shadow-none"
           >
             <div className="flex items-center justify-between mb-4">
               <span className="text-xs font-black text-slate-400 dark:text-[#CDBCAB]/60 uppercase tracking-widest">Tổng tài sản (ASSETS)</span>
@@ -147,7 +147,7 @@ export default function AccountingOverviewPage() {
           {/* Card 2: Total Liabilities */}
           <motion.div 
             whileHover={{ y: -4 }}
-            className="p-6 rounded-[2rem] border border-[#FFE4E6] dark:border-[#3E3A35]/60 bg-gradient-to-tr from-white to-[#FFE4E6]/20 dark:from-[#1C1B19] dark:to-[#5D1C34]/10 shadow-[0_4px_25px_rgba(244,63,94,0.03)] dark:shadow-none"
+            className="p-6 rounded-[2rem] border border-primary/15 dark:border-[#3E3A35]/60 bg-gradient-to-tr from-white to-primary/5 dark:from-[#1C1B19] dark:to-primary/5 shadow-[0_4px_25px_rgba(244,63,94,0.03)] dark:shadow-none"
           >
             <div className="flex items-center justify-between mb-4">
               <span className="text-xs font-black text-slate-400 dark:text-[#CDBCAB]/60 uppercase tracking-widest">Nợ phải trả (LIABILITIES)</span>
@@ -165,11 +165,11 @@ export default function AccountingOverviewPage() {
           {/* Card 3: Owner Equity */}
           <motion.div 
             whileHover={{ y: -4 }}
-            className="p-6 rounded-[2rem] border border-[#FFE4E6] dark:border-[#3E3A35]/60 bg-gradient-to-tr from-white to-[#FFE4E6]/20 dark:from-[#1C1B19] dark:to-[#5D1C34]/20 shadow-[0_4px_25px_rgba(244,63,94,0.03)] dark:shadow-none"
+            className="p-6 rounded-[2rem] border border-primary/15 dark:border-[#3E3A35]/60 bg-gradient-to-tr from-white to-primary/5 dark:from-[#1C1B19] dark:to-primary/5 shadow-[0_4px_25px_rgba(244,63,94,0.03)] dark:shadow-none"
           >
             <div className="flex items-center justify-between mb-4">
               <span className="text-xs font-black text-slate-400 dark:text-[#CDBCAB]/60 uppercase tracking-widest">Vốn chủ sở hữu (EQUITY)</span>
-              <div className="w-8 h-8 rounded-full bg-primary/10 dark:bg-[#A67D44]/15 flex items-center justify-center text-primary dark:text-[#A67D44]">
+              <div className="w-8 h-8 rounded-full bg-primary/10 dark:bg-primary/15 flex items-center justify-center text-primary dark:text-primary">
                 <CheckCircle2 className="w-4 h-4" />
               </div>
             </div>
@@ -184,7 +184,7 @@ export default function AccountingOverviewPage() {
       {/* ── SECTION 2: DUAL RUNNING RECONCILIATION & OUTBOX HEALTH ── */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Reconciliation Dashboard (Dual Running Comparison) */}
-        <div className="lg:col-span-2 p-6 md:p-8 bg-white dark:bg-[#1C1B19] rounded-[2.5rem] border border-[#FFE4E6] dark:border-[#3E3A35]/50 shadow-sm flex flex-col justify-between">
+        <div className="lg:col-span-2 p-6 md:p-8 bg-white dark:bg-[#1C1B19] rounded-[2.5rem] border border-primary/15 dark:border-[#3E3A35]/50 shadow-sm flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-6">
               <h4 className="text-lg font-black text-slate-900 dark:text-[#EFE9E1] uppercase tracking-wide flex items-center gap-2">
@@ -213,8 +213,8 @@ export default function AccountingOverviewPage() {
               </div>
 
               {/* New Accounting Ledger */}
-              <div className="p-5 bg-gradient-to-br from-pink-50/30 to-[#FFE4E6]/30 dark:from-[#5D1C34]/10 dark:to-[#11100F] rounded-2xl border border-[#FFE4E6]/50 dark:border-[#A67D44]/15">
-                <span className="text-2xs font-black text-primary dark:text-[#A67D44] uppercase tracking-widest">Nguồn 2: Kế Toán Sổ Cái Mới</span>
+              <div className="p-5 bg-gradient-to-br from-pink-50/30 to-primary/5 dark:from-primary/5 dark:to-[#11100F] rounded-2xl border border-primary/15 dark:border-primary/15">
+                <span className="text-2xs font-black text-primary dark:text-primary uppercase tracking-widest">Nguồn 2: Kế Toán Sổ Cái Mới</span>
                 <h5 className="text-2xl font-black text-slate-800 dark:text-[#EFE9E1] tracking-tight mt-1">{totalAssets > 0 ? (totalEquity).toLocaleString() : 'N/A'}đ</h5>
                 <p className="text-3xs font-bold text-slate-400 dark:text-[#CDBCAB]/40 mt-1">TỔNG PHÁT SINH CÂN ĐỐI KÉP</p>
               </div>
@@ -249,10 +249,10 @@ export default function AccountingOverviewPage() {
         </div>
 
         {/* Transactional Outbox Health Monitor */}
-        <div className="p-6 md:p-8 bg-white dark:bg-[#1C1B19] rounded-[2.5rem] border border-[#FFE4E6] dark:border-[#3E3A35]/50 shadow-sm flex flex-col justify-between">
+        <div className="p-6 md:p-8 bg-white dark:bg-[#1C1B19] rounded-[2.5rem] border border-primary/15 dark:border-[#3E3A35]/50 shadow-sm flex flex-col justify-between">
           <div>
             <h4 className="text-lg font-black text-slate-900 dark:text-[#EFE9E1] uppercase tracking-wide flex items-center gap-2 mb-6">
-              <Activity className="w-5.5 h-5.5 text-primary dark:text-[#A67D44]" />
+              <Activity className="w-5.5 h-5.5 text-primary dark:text-primary" />
               Giám sát Hàng đợi Outbox
             </h4>
 
@@ -315,12 +315,12 @@ export default function AccountingOverviewPage() {
       </div>
 
       {/* ── SECTION 3: QUICK ACTIONS BENTO GRID ── */}
-      <div className="bg-white dark:bg-[#1C1B19] rounded-[2.5rem] border border-[#FFE4E6] dark:border-[#3E3A35]/50 p-6 md:p-8 shadow-sm">
+      <div className="bg-white dark:bg-[#1C1B19] rounded-[2.5rem] border border-primary/15 dark:border-[#3E3A35]/50 p-6 md:p-8 shadow-sm">
         <h4 className="text-lg font-black text-slate-900 dark:text-[#EFE9E1] uppercase tracking-wide mb-6">Thao tác Nhanh</h4>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-6">
           {/* Accounting Health */}
           <Link href="/dashboard/accounting/health" className="group">
-            <div className="p-6 rounded-2xl border border-[#FFE4E6]/60 dark:border-[#3E3A35]/40 hover:border-primary dark:hover:border-[#A67D44] bg-slate-50/40 dark:bg-[#11100F]/30 hover:bg-white dark:hover:bg-[#1C1B19] transition-all duration-300 h-full flex flex-col justify-between">
+            <div className="p-6 rounded-2xl border border-primary/15 dark:border-[#3E3A35]/40 hover:border-primary dark:hover:border-primary bg-slate-50/40 dark:bg-[#11100F]/30 hover:bg-white dark:hover:bg-[#1C1B19] transition-all duration-300 h-full flex flex-col justify-between">
               <ShieldCheck className={`w-8 h-8 mb-4 group-hover:scale-105 transition-transform ${
                 canCloseMonth ? 'text-emerald-500' : 'text-rose-500'
               }`} />
@@ -333,8 +333,8 @@ export default function AccountingOverviewPage() {
 
           {/* Manual Entry */}
           <Link href="/dashboard/accounting/manual-entry" className="group">
-            <div className="p-6 rounded-2xl border border-[#FFE4E6]/60 dark:border-[#3E3A35]/40 hover:border-primary dark:hover:border-[#A67D44] bg-slate-50/40 dark:bg-[#11100F]/30 hover:bg-white dark:hover:bg-[#1C1B19] transition-all duration-300 h-full flex flex-col justify-between">
-              <PenTool className="w-8 h-8 text-primary dark:text-[#A67D44] mb-4 group-hover:scale-105 transition-transform" />
+            <div className="p-6 rounded-2xl border border-primary/15 dark:border-[#3E3A35]/40 hover:border-primary dark:hover:border-primary bg-slate-50/40 dark:bg-[#11100F]/30 hover:bg-white dark:hover:bg-[#1C1B19] transition-all duration-300 h-full flex flex-col justify-between">
+              <PenTool className="w-8 h-8 text-primary dark:text-primary mb-4 group-hover:scale-105 transition-transform" />
               <div>
                 <h5 className="font-extrabold text-sm text-slate-800 dark:text-[#EFE9E1] uppercase tracking-wider">Tạo Bút Toán Thủ Công</h5>
                 <p className="text-2xs text-slate-400 dark:text-[#CDBCAB]/60 mt-1">Định khoản điều chỉnh kế toán cuối kỳ.</p>
@@ -344,7 +344,7 @@ export default function AccountingOverviewPage() {
 
           {/* Chart of Accounts */}
           <Link href="/dashboard/accounting/chart-of-accounts" className="group">
-            <div className="p-6 rounded-2xl border border-[#FFE4E6]/60 dark:border-[#3E3A35]/40 hover:border-primary dark:hover:border-[#A67D44] bg-slate-50/40 dark:bg-[#11100F]/30 hover:bg-white dark:hover:bg-[#1C1B19] transition-all duration-300 h-full flex flex-col justify-between">
+            <div className="p-6 rounded-2xl border border-primary/15 dark:border-[#3E3A35]/40 hover:border-primary dark:hover:border-primary bg-slate-50/40 dark:bg-[#11100F]/30 hover:bg-white dark:hover:bg-[#1C1B19] transition-all duration-300 h-full flex flex-col justify-between">
               <PlusCircle className="w-8 h-8 text-pink-500 mb-4 group-hover:scale-105 transition-transform" />
               <div>
                 <h5 className="font-extrabold text-sm text-slate-800 dark:text-[#EFE9E1] uppercase tracking-wider">Tài Khoản Tùy Chỉnh</h5>
@@ -355,7 +355,7 @@ export default function AccountingOverviewPage() {
 
           {/* Outbox Monitor */}
           <Link href="/dashboard/accounting/outbox" className="group">
-            <div className="p-6 rounded-2xl border border-[#FFE4E6]/60 dark:border-[#3E3A35]/40 hover:border-primary dark:hover:border-[#A67D44] bg-slate-50/40 dark:bg-[#11100F]/30 hover:bg-white dark:hover:bg-[#1C1B19] transition-all duration-300 h-full flex flex-col justify-between">
+            <div className="p-6 rounded-2xl border border-primary/15 dark:border-[#3E3A35]/40 hover:border-primary dark:hover:border-primary bg-slate-50/40 dark:bg-[#11100F]/30 hover:bg-white dark:hover:bg-[#1C1B19] transition-all duration-300 h-full flex flex-col justify-between">
               <AlertTriangle className={`w-8 h-8 mb-4 group-hover:scale-105 transition-transform ${
                 hasOutboxBlockers ? 'text-red-500 animate-bounce' : 'text-slate-400 dark:text-[#CDBCAB]/80'
               }`} />
@@ -368,7 +368,7 @@ export default function AccountingOverviewPage() {
 
           {/* Standard Reports */}
           <Link href="/dashboard/accounting/reports" className="group">
-            <div className="p-6 rounded-2xl border border-[#FFE4E6]/60 dark:border-[#3E3A35]/40 hover:border-primary dark:hover:border-[#A67D44] bg-slate-50/40 dark:bg-[#11100F]/30 hover:bg-white dark:hover:bg-[#1C1B19] transition-all duration-300 h-full flex flex-col justify-between">
+            <div className="p-6 rounded-2xl border border-primary/15 dark:border-[#3E3A35]/40 hover:border-primary dark:hover:border-primary bg-slate-50/40 dark:bg-[#11100F]/30 hover:bg-white dark:hover:bg-[#1C1B19] transition-all duration-300 h-full flex flex-col justify-between">
               <FileSpreadsheet className="w-8 h-8 text-emerald-500 mb-4 group-hover:scale-105 transition-transform" />
               <div>
                 <h5 className="font-extrabold text-sm text-slate-800 dark:text-[#EFE9E1] uppercase tracking-wider">Báo Cáo TT133</h5>

@@ -11,7 +11,6 @@ import type { Database } from '@/types/database.types';
 import { getMonthStart } from '@/lib/utils';
 import type { SupabaseClient as SupabaseJsClient } from '@supabase/supabase-js';
 
-import { cache } from 'react';
 import { sendTemporaryPasswordEmail } from '@/lib/mail';
 
 type SupabaseClient = Awaited<ReturnType<typeof createClient>>;
@@ -85,179 +84,47 @@ function assertNonMissingQueryError(error: SupabaseQueryError, context: string) 
   throw new Error(`${context}: ${error instanceof Error ? error.message : 'Unknown database error'}`);
 }
 
-export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
-  const perfStart = Date.now();
+export async function getCurrentUser(): Promise<CurrentUser | null> {
   const supabase = await createClient();
-  
-  const authStart = Date.now();
   const {
     data: { user },
     error: authError,
   } = await supabase.auth.getUser();
-  console.log(`[getCurrentUser] auth.getUser took ${Date.now() - authStart}ms`);
-  
-  // Try Redis cache first (only if authenticated)
-  if (user?.id) {
-    const cacheStart = Date.now();
-    const { getCache, CacheKeys } = await import('@/lib/redis-cache');
-    const cached = await getCache<CurrentUser>(CacheKeys.user(user.id));
-    console.log(`[getCurrentUser] Redis cache check took ${Date.now() - cacheStart}ms`);
-    
-    if (cached) {
-      console.log(`[getCurrentUser] CACHE HIT - returning cached user in ${Date.now() - perfStart}ms`);
-      return cached;
-    }
-    console.log(`[getCurrentUser] Cache MISS - fetching from DB`);
-  }
 
   if (authError && !isMissingAuthSessionError(authError)) {
     console.error('[getCurrentUser] Auth user validation failed:', authError);
     throw new Error(`Failed to validate current user: ${getErrorMessage(authError)}`);
   }
   
-  if (!user) {
-    // Development bypass: proxy injects x-mock-user-email header when mock_user_email
-    // cookie is present, allowing E2E tests and local dev without real Supabase passwords.
-    if (process.env.NODE_ENV === 'development') {
-      const { headers } = await import('next/headers');
-      const mockEmail = (await headers()).get('x-mock-user-email');
-      const adminUrl = getSupabaseAdminUrl();
-      const adminKey = getSupabaseAdminKey();
-      if (mockEmail && adminUrl && adminKey) {
-        // Anon client is blocked by RLS without a session — use service role to bypass.
-        const { createClient: createAdmin } = await import('@supabase/supabase-js');
-        const adminClient = createAdmin(
-          adminUrl,
-          adminKey,
-          { auth: { persistSession: false, autoRefreshToken: false } },
-        );
-        const { data: mockProfile, error: mockProfileError } = await adminClient
-          .from('users')
-          .select('*')
-          .eq('email', mockEmail)
-          .single();
-        assertNonMissingQueryError(
-          mockProfileError as SupabaseQueryError,
-          '[getCurrentUser] Failed to fetch development mock profile',
-        );
-        if (mockProfile) {
-          const profile = mockProfile as unknown as CurrentUser;
-          profile.role = profile.role?.toLowerCase();
-          if (profile.tenant_id) {
-            const { data: tenant, error: tenantError } = await adminClient
-              .from('tenants')
-              .select('status')
-              .eq('id', profile.tenant_id)
-              .single();
-            assertNonMissingQueryError(
-              tenantError as SupabaseQueryError,
-              '[getCurrentUser] Failed to fetch development mock tenant',
-            );
-            if (tenant?.status === 'suspended') profile.isSuspended = true;
-          }
-          return profile;
-        }
+  if (authError || !user) return null;
 
-        if (mockEmail === 'admin@medical.vn' || mockEmail === 'admin@healthcare.vn') {
-          return {
-            id: '88888888-8888-8888-8888-888888888888',
-            email: mockEmail,
-            full_name: 'Bác sĩ Admin Phòng Khám',
-            role: 'admin',
-            status: 'active',
-            tenant_id: '77777777-7777-7777-7777-777777777777',
-          } as unknown as CurrentUser;
-        }
-      }
-    }
-    console.warn('[getCurrentUser] No active session found');
-    return null;
-  }
-
-
-  // Try fetching from 'users' table by ID (primary path)
-  let profile: CurrentUser | null = null;
-  const profileStart = Date.now();
+  // Authorization must reflect live canonical state, never a cached profile or email alias.
   const { data: mainProfile, error: mainProfileError } = await supabase
     .from('users')
     .select('*')
     .eq('id', user.id)
     .single();
-  console.log(`[getCurrentUser] users table query took ${Date.now() - profileStart}ms`);
+  if (mainProfileError?.code === '42501') return null;
   assertNonMissingQueryError(
     mainProfileError as SupabaseQueryError,
     '[getCurrentUser] Failed to fetch profile by auth id',
   );
   
-  if (mainProfile) {
-    profile = mainProfile as unknown as CurrentUser;
+  if (!mainProfile || mainProfile.id !== user.id || mainProfile.status !== 'active' || !mainProfile.tenant_id) {
+    return null;
   }
 
-  // Fallback 1: lookup by email (handles auth users created separately from public.users)
-  if (!profile && user.email) {
-    const emailStart = Date.now();
-    const { data: emailProfile, error: emailProfileError } = await supabase
-      .from('users')
-      .select('*')
-      .eq('email', user.email)
-      .single();
-    console.log(`[getCurrentUser] email fallback query took ${Date.now() - emailStart}ms`);
-    assertNonMissingQueryError(
-      emailProfileError as SupabaseQueryError,
-      '[getCurrentUser] Failed to fetch profile by email',
-    );
-    
-    if (emailProfile) {
-      profile = emailProfile as unknown as CurrentUser;
-    }
-  }
+  const { data: tenant, error: tenantError } = await supabase
+    .from('tenants')
+    .select('status')
+    .eq('id', mainProfile.tenant_id)
+    .single();
+  if (tenantError?.code === '42501') return null;
+  assertNonMissingQueryError(tenantError, '[getCurrentUser] Failed to fetch tenant status');
+  if (!tenant || tenant.status !== 'active') return null;
 
-
-
-  if (!profile) {
-    console.error('[getCurrentUser] No profile found for auth user:', user.email, '| auth_id:', user.id);
-  } else {
-    // Standardize role to lowercase to avoid case-sensitivity issues across the app
-    profile.role = profile.role?.toLowerCase();
-
-    // Check if the tenant is suspended
-    if (profile.tenant_id) {
-      const tenantStart = Date.now();
-      const { data: tenant, error: tenantError } = await supabase
-        .from('tenants')
-        .select('status, name')
-        .eq('id', profile.tenant_id)
-        .single();
-      console.log(`[getCurrentUser] tenant status query took ${Date.now() - tenantStart}ms`);
-      assertNonMissingQueryError(
-        tenantError as SupabaseQueryError,
-        '[getCurrentUser] Failed to fetch tenant status',
-      );
-      
-      if (tenant && tenant.status === 'suspended') {
-        console.warn(`[getCurrentUser] Tenant ${tenant.name} (${profile.tenant_id}) is suspended. Blocking user.`);
-        profile.isSuspended = true;
-      }
-    }
-  }
-
-  console.log(`[getCurrentUser] TOTAL TIME: ${Date.now() - perfStart}ms`);
-  
-  // Cache the result in Redis (60s TTL)
-  if (profile?.id) {
-    const { setCache, CacheKeys, CacheTTL } = await import('@/lib/redis-cache');
-    void setCache(CacheKeys.user(profile.id), profile, CacheTTL.medium);
-  }
-  
-  return profile || { 
-    id: user.id, 
-    email: user.email || '', 
-    role: "user", 
-    tenant_id: null,
-    full_name: "",
-    avatar_url: null
-  };
-});
+  return { ...mainProfile, role: mainProfile.role.toLowerCase() };
+}
 
 
 export async function getUsers(): Promise<StaffRecord[]> {

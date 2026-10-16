@@ -686,6 +686,7 @@ if (require.main === module) {
 }
 
 module.exports = {
+  applyMigration,
   canonicalMigrationIsNeeded,
   ensureRequiredE2eBaseline,
   listChangedMigrationFiles,

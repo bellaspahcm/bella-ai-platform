@@ -56,7 +56,7 @@ function mockTenantLookup(productKey: string) {
       return {
         select: () => ({
           eq: () => ({
-            single: () => Promise.resolve({ data: { product_key: productKey }, error: null }),
+            single: () => Promise.resolve({ data: { product_key: productKey, status: 'active' }, error: null }),
           }),
         }),
       };

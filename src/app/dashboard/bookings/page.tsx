@@ -109,7 +109,7 @@ function BookingsContent() {
               initial={{ opacity: 0, scaleX: 0 }}
               animate={{ opacity: 1, scaleX: 1 }}
               exit={{ opacity: 0 }}
-              className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 via-teal-400 to-indigo-500 origin-left z-50"
+              className="absolute top-0 left-0 right-0 h-1 bg-primary origin-left z-50"
               transition={{ duration: 0.5 }}
             />
           )}
@@ -125,7 +125,7 @@ function BookingsContent() {
           tenantModuleKey={null}
         />
         <div className="rounded-[2rem] border border-slate-200 bg-white p-10 text-center shadow-sm">
-          <Loader2 className="mx-auto mb-4 h-8 w-8 animate-spin text-emerald-600" />
+          <Loader2 className="mx-auto mb-4 h-8 w-8 animate-spin text-primary" />
           <p className="text-sm font-black uppercase tracking-[0.16em] text-slate-500">
             {isTenantModuleLoading
               ? 'Đang tải phân hệ dịch vụ...'
@@ -164,7 +164,7 @@ function BookingsContent() {
             initial={{ opacity: 0, scaleX: 0 }}
             animate={{ opacity: 1, scaleX: 1 }}
             exit={{ opacity: 0 }}
-            className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 via-teal-400 to-indigo-500 origin-left z-50"
+            className="absolute top-0 left-0 right-0 h-1 bg-primary origin-left z-50"
             transition={{ duration: 0.5 }}
           />
         )}
@@ -310,7 +310,7 @@ function BookingsContent() {
 
 export default function BookingsPage() {
   return (
-    <Suspense fallback={<div className="flex items-center justify-center h-screen"><Loader2 className="w-8 h-8 animate-spin text-emerald-600" /></div>}>
+    <Suspense fallback={<div className="flex items-center justify-center h-screen"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>}>
       <BookingsContent />
     </Suspense>
   );

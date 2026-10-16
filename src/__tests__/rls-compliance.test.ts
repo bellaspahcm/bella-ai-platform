@@ -43,6 +43,7 @@ function createSuspendedTenantQueryBuilder(table: string) {
           id: 'user-suspended',
           email: 'suspended@tenant.com',
           role: 'admin',
+          status: 'active',
           tenant_id: 'tenant-suspended',
           full_name: 'Suspended Admin',
         },
@@ -353,6 +354,7 @@ describe('Row-Level Security (RLS) & Tenant Isolation Compliance Suite', () => {
           id: 'user-suspended',
           email: 'suspended@tenant.com',
           role: 'admin',
+          status: 'active',
           tenant_id: 'tenant-suspended',
           full_name: 'Suspended Admin',
         },
@@ -365,8 +367,8 @@ describe('Row-Level Security (RLS) & Tenant Isolation Compliance Suite', () => {
       });
 
       const profile = await getCurrentUser();
-      expect(profile).not.toBeNull();
-      expect(profile?.isSuspended).toBe(true);
+      expect(profile).toBeNull();
+      expect(mockSupabase.from).toHaveBeenCalledWith('tenants');
     });
   });
 

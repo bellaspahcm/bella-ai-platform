@@ -210,7 +210,7 @@ export default function ServicesPage() {
             disabled={!canManageServices}
             title={canManageServices ? undefined : 'Dang tai cau hinh nganh kinh doanh'}
             data-testid="services-add-button"
-            className="flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-primary px-4 py-3 font-bold text-white shadow-xl shadow-rose-200 transition-all hover:bg-rose-600 active:scale-95 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:shadow-none dark:shadow-none sm:px-6"
+            className="flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-primary px-4 py-3 font-bold text-primary-foreground shadow-xl shadow-primary/20 transition-all hover:bg-primary-hover active:scale-95 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:shadow-none dark:shadow-none sm:px-6"
           >
             <Plus className="w-5 h-5" />
             <span>Thêm dịch vụ mới</span>
@@ -297,7 +297,7 @@ export default function ServicesPage() {
                 <input
                   value={resourceForm.name}
                   onChange={(event) => setResourceName(event.target.value)}
-                  className="w-full rounded-2xl border border-slate-100 bg-white px-5 py-3 text-sm font-bold text-slate-800 outline-none transition focus:border-rose-300 focus:ring-4 focus:ring-rose-50"
+                  className="w-full rounded-2xl border border-slate-100 bg-white px-5 py-3 text-sm font-bold text-slate-800 outline-none transition focus:border-primary focus:ring-4 focus:ring-primary"
                   placeholder={isHaircut ? 'VD: Ghế cắt 01' : 'VD: Giường Facial 01'}
                 />
               </div>
@@ -333,7 +333,7 @@ export default function ServicesPage() {
                   max={20}
                   value={resourceForm.capacity}
                   onChange={(event) => setResourceCapacity(event.target.value)}
-                  className="w-full rounded-2xl border border-slate-100 bg-white px-5 py-3 text-sm font-bold text-slate-800 outline-none transition focus:border-rose-300 focus:ring-4 focus:ring-rose-50"
+                  className="w-full rounded-2xl border border-slate-100 bg-white px-5 py-3 text-sm font-bold text-slate-800 outline-none transition focus:border-primary focus:ring-4 focus:ring-primary"
                 />
               </div>
               <div className="space-y-2">
@@ -343,7 +343,7 @@ export default function ServicesPage() {
                 <input
                   value={resourceForm.locationNote}
                   onChange={(event) => setResourceLocationNote(event.target.value)}
-                  className="w-full rounded-2xl border border-slate-100 bg-white px-5 py-3 text-sm font-bold text-slate-800 outline-none transition focus:border-rose-300 focus:ring-4 focus:ring-rose-50"
+                  className="w-full rounded-2xl border border-slate-100 bg-white px-5 py-3 text-sm font-bold text-slate-800 outline-none transition focus:border-primary focus:ring-4 focus:ring-primary"
                   placeholder="VD: Tầng 2"
                 />
               </div>
@@ -352,7 +352,7 @@ export default function ServicesPage() {
                   type="button"
                   onClick={saveBookingResource}
                   disabled={isSavingResource || !resourceForm.name.trim()}
-                  className="inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-2xl bg-primary px-5 py-3 text-sm font-black text-white shadow-lg shadow-rose-200 transition hover:bg-rose-600 disabled:opacity-50"
+                  className="inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-2xl bg-primary px-5 py-3 text-sm font-black text-primary-foreground shadow-lg shadow-primary/20 transition hover:bg-primary-hover disabled:opacity-50"
                 >
                   {isSavingResource && <RefreshCw className="h-4 w-4 animate-spin" />}
                   {resourceForm.id ? 'Cập nhật tài nguyên' : 'Thêm tài nguyên'}
@@ -473,14 +473,14 @@ export default function ServicesPage() {
             className="group luxury-card-white relative flex h-full flex-col overflow-hidden rounded-[2rem] transition-all lg:flex-row lg:rounded-[2.5rem]"
           >
             {/* Visual Section */}
-            <div className="relative flex flex-col items-center justify-center overflow-hidden bg-gradient-to-br from-rose-200 to-pink-300 p-5 dark:from-[#2D1620] dark:to-[#1A0A10] dark:border-r dark:border-[#3E3A35]/30 sm:p-8 lg:w-48">
+            <div className="relative flex flex-col items-center justify-center overflow-hidden bg-primary/10 p-5 border-r border-primary/20 sm:p-8 lg:w-48">
               <div className="absolute inset-0 opacity-20 pointer-events-none">
                 <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_center,_var(--tw-gradient-from)_0%,_transparent_70%)]" />
               </div>
               <div className="w-16 h-16 bg-white rounded-3xl flex items-center justify-center shadow-lg shadow-rose-200 dark:shadow-none mb-4 z-10">
                 <Sparkles className="!text-primary w-8 h-8" />
               </div>
-              <div className="bg-primary text-white text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full z-10">
+              <div className="bg-primary text-primary-foreground text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full z-10">
                 {service.total_sessions} Buổi
               </div>
             </div>
@@ -634,7 +634,7 @@ export default function ServicesPage() {
                     className={cn(
                       "w-10 h-10 rounded-xl font-black text-sm transition-all active:scale-90",
                       currentPage === page
-                        ? "bg-primary text-white shadow-lg shadow-rose-200 dark:shadow-none"
+                        ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20 dark:shadow-none"
                         : "bg-white border border-slate-100 text-slate-400 hover:text-slate-600 hover:border-slate-300"
                     )}
                   >
@@ -678,7 +678,7 @@ export default function ServicesPage() {
                 {/* Header */}
                 <div className="flex shrink-0 items-start justify-between gap-3 border-b border-slate-100 dark:border-white/10 bg-white dark:bg-[#1C1410] p-5 pb-4 sm:p-10 sm:pb-6">
                   <div className="flex min-w-0 items-center gap-3 sm:gap-5">
-                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[1.25rem] bg-primary text-white shadow-2xl shadow-rose-200 dark:shadow-none sm:h-14 sm:w-14 sm:rounded-[1.5rem]">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[1.25rem] bg-primary text-primary-foreground shadow-2xl shadow-primary/20 dark:shadow-none sm:h-14 sm:w-14 sm:rounded-[1.5rem]">
                       <Zap className="w-7 h-7" />
                     </div>
                     <div className="min-w-0">
@@ -1264,7 +1264,7 @@ export default function ServicesPage() {
                   <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 py-5 bg-slate-100 hover:bg-slate-200 text-slate-600 font-black rounded-[2rem] transition-all uppercase tracking-widest text-xs">
                     Hủy bỏ
                   </button>
-                  <button type="submit" data-testid="service-submit-button" className="flex-1 py-5 bg-primary hover:bg-rose-600 text-white font-black rounded-[2rem] shadow-2xl shadow-rose-200 dark:shadow-none transition-all uppercase tracking-widest text-xs">
+                  <button type="submit" data-testid="service-submit-button" className="flex-1 py-5 bg-primary hover:bg-primary-hover text-primary-foreground font-black rounded-[2rem] shadow-2xl shadow-primary/20 dark:shadow-none transition-all uppercase tracking-widest text-xs">
                     {modalMode === 'add' ? 'Lưu dịch vụ' : 'Cập nhật dịch vụ'}
                   </button>
                 </div>

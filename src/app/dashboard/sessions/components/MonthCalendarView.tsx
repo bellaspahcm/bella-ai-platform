@@ -250,26 +250,26 @@ export function MonthCalendarView({
       {/* ── Operational Monthly KPI Summary ── */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <div className="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-sm flex items-center gap-3.5">
-          <div className="w-11 h-11 rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center shrink-0">
+          <div className="w-11 h-11 rounded-2xl bg-primary/10 text-primary border border-primary/20 flex items-center justify-center shrink-0">
             <CalendarIcon className="w-6 h-6" />
           </div>
           <div>
             <div className="flex items-center gap-1.5">
               <span className="text-2xl font-black text-slate-900 leading-none">{monthlyTotalBookings}</span>
-              <span className="text-[9px] font-black text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-full">Tất cả</span>
+              <span className="text-[9px] font-black text-primary bg-primary/10 px-1.5 py-0.5 rounded-full">Tất cả</span>
             </div>
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider mt-1">Tổng lịch ({formattedMonthTitle})</p>
           </div>
         </div>
 
         <div className="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-sm flex items-center gap-3.5">
-          <div className="w-11 h-11 rounded-2xl bg-pink-50 text-pink-600 border border-pink-100 flex items-center justify-center shrink-0">
+          <div className="w-11 h-11 rounded-2xl bg-primary/10 text-primary border border-primary/20 flex items-center justify-center shrink-0">
             <Users className="w-6 h-6" />
           </div>
           <div>
             <div className="flex items-center gap-1.5">
               <span className="text-2xl font-black text-slate-900 leading-none">{monthlyUniqueCustomers}</span>
-              <span className="text-[9px] font-black text-pink-600 bg-pink-50 px-1.5 py-0.5 rounded-full">Khách</span>
+              <span className="text-[9px] font-black text-primary bg-primary/10 px-1.5 py-0.5 rounded-full">Khách</span>
             </div>
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider mt-1">Khách hàng unique</p>
           </div>
@@ -328,7 +328,7 @@ export function MonthCalendarView({
           {onOpenBookingModal && (
             <button 
               onClick={onOpenBookingModal}
-              className="px-3.5 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-black transition-colors flex items-center gap-1.5 shadow-sm"
+              className="px-3.5 py-2 rounded-xl bg-primary hover:bg-primary-hover text-primary-foreground text-xs font-black transition-colors flex items-center gap-1.5 shadow-sm"
             >
               <Sparkles className="w-3.5 h-3.5" />
               Tạo lịch mới
@@ -368,12 +368,12 @@ export function MonthCalendarView({
                     item.isOtherMonth
                       ? "bg-slate-50/40 border-slate-100 text-slate-300 pointer-events-none"
                       : isSelected
-                      ? "bg-slate-950 text-white border-slate-900 shadow-xl shadow-slate-900/20"
+                      ? "bg-primary text-primary-foreground border-primary shadow-xl shadow-primary/20"
                       : "bg-white border-slate-200/80 hover:border-slate-300 hover:bg-slate-50/60"
                   )}
                 >
                   <div className="flex items-center justify-between">
-                    <span className={cn("text-base font-black", isSelected ? "text-white" : "text-slate-900")}>
+                    <span className={cn("text-base font-black", isSelected ? "text-primary-foreground" : "text-slate-900")}>
                       {item.day}
                     </span>
                     {item.dotColor && (
@@ -383,15 +383,15 @@ export function MonthCalendarView({
 
                   {!item.isOtherMonth && item.count > 0 ? (
                     <div className="space-y-0.5">
-                      <p className={cn("text-[10px] font-black", isSelected ? "text-slate-300" : "text-slate-700")}>
+                      <p className={cn("text-[10px] font-black", isSelected ? "text-primary-foreground" : "text-slate-700")}>
                         • {item.count} lịch
                       </p>
-                      <p className={cn("text-[9px] font-bold", isSelected ? "text-emerald-400" : "text-emerald-600")}>
+                      <p className={cn("text-[9px] font-bold", isSelected ? "text-primary-foreground" : "text-primary")}>
                         ● {item.cap}%
                       </p>
                     </div>
                   ) : !item.isOtherMonth ? (
-                    <p className={cn("text-[9px] font-medium", isSelected ? "text-slate-500" : "text-slate-300")}>
+                    <p className={cn("text-[9px] font-medium", isSelected ? "text-primary-foreground" : "text-slate-300")}>
                       Trống
                     </p>
                   ) : null}
@@ -411,7 +411,7 @@ export function MonthCalendarView({
               <div className="flex items-center gap-2">
                 <h3 className="text-lg font-black text-slate-900">{formattedSelectedDate}</h3>
                 {selectedDateStr === `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}` && (
-                  <span className="bg-blue-50 text-blue-700 text-[10px] font-black px-2.5 py-0.5 rounded-full">Hôm nay</span>
+                  <span className="bg-primary/10 text-primary text-[10px] font-black px-2.5 py-0.5 rounded-full">Hôm nay</span>
                 )}
               </div>
               <p className="text-xs font-bold text-slate-500 mt-0.5">
@@ -426,7 +426,7 @@ export function MonthCalendarView({
               onClick={() => setAgendaTab('all')}
               className={cn(
                 "px-3.5 py-1.5 rounded-full text-xs font-black transition-all border shrink-0",
-                agendaTab === 'all' ? "bg-slate-900 text-white border-slate-900" : "bg-white text-slate-600 border-slate-200"
+                agendaTab === 'all' ? "bg-primary text-primary-foreground border-primary" : "bg-white text-slate-600 border-slate-200"
               )}
             >
               Tất cả ({selectedDayApps.length})
@@ -435,7 +435,7 @@ export function MonthCalendarView({
               onClick={() => setAgendaTab('confirmed')}
               className={cn(
                 "px-3.5 py-1.5 rounded-full text-xs font-black transition-all border shrink-0",
-                agendaTab === 'confirmed' ? "bg-blue-600 text-white border-blue-600" : "bg-white text-slate-600 border-slate-200"
+                agendaTab === 'confirmed' ? "bg-primary text-primary-foreground border-primary" : "bg-white text-slate-600 border-slate-200"
               )}
             >
               Đã xác nhận ({confirmedCount})
@@ -491,7 +491,7 @@ export function MonthCalendarView({
                 <tbody className="divide-y divide-slate-100 font-bold">
                   {agendaFilteredApps.map((item) => {
                     let statusLabel = 'Đã xác nhận';
-                    let statusStyle = 'bg-blue-50 text-blue-700 border-blue-200';
+                    let statusStyle = 'bg-primary/10 text-primary border-primary/20';
 
                     if (item.status === 'completed') {
                       statusLabel = 'Đã hoàn thành';
@@ -549,7 +549,7 @@ export function MonthCalendarView({
           {/* Daily Operational Summary */}
           <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-lg shadow-slate-200/50 space-y-4">
             <h3 className="text-base font-black text-slate-900 flex items-center gap-2">
-              <CalendarIcon className="w-5 h-5 text-emerald-600" />
+              <CalendarIcon className="w-5 h-5 text-primary" />
               <span>Tổng quan trong ngày</span>
             </h3>
 
@@ -612,7 +612,7 @@ export function MonthCalendarView({
           {/* KTV Distribution */}
           <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-lg shadow-slate-200/50 space-y-4">
             <h3 className="text-base font-black text-slate-900 flex items-center gap-2">
-              <Users className="w-5 h-5 text-blue-600" />
+              <Users className="w-5 h-5 text-primary" />
               <span>Phân bổ theo KTV</span>
             </h3>
 
@@ -624,11 +624,11 @@ export function MonthCalendarView({
                   <div key={idx} className="space-y-1">
                     <div className="flex justify-between text-xs font-black">
                       <span className="text-slate-900">{item.ktvName}</span>
-                      <span className="text-blue-600">{item.count} lịch • {item.cap}%</span>
+                      <span className="text-primary">{item.count} lịch • {item.cap}%</span>
                     </div>
                     <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
                       <div 
-                        className={cn("h-full rounded-full", item.cap >= 80 ? "bg-rose-500" : "bg-blue-500")} 
+                        className={cn("h-full rounded-full", item.cap >= 80 ? "bg-rose-500" : "bg-primary")}
                         style={{ width: `${item.cap}%` }} 
                       />
                     </div>

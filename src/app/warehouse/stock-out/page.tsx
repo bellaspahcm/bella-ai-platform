@@ -18,9 +18,10 @@ const sourceTypes = new Set<WarehouseStockOutSourceType>([
   'disposal',
   'damage',
   'loss',
+  'sales_order',
 ]);
 
-const reasons = new Set<WarehouseStockOutReason>(['disposal', 'damage', 'loss']);
+const reasons = new Set<WarehouseStockOutReason>(['disposal', 'damage', 'loss', 'sale']);
 
 export default async function WarehouseStockOutPage({ searchParams }: WarehouseStockOutPageProps) {
   const params = await searchParams;
@@ -74,6 +75,7 @@ export default async function WarehouseStockOutPage({ searchParams }: WarehouseS
           <div className="grid gap-4 md:grid-cols-2">
             <Field label="Issue document ID" name="issueDocumentId" />
             <Field label="Issue document number" name="issueDocumentNumber" />
+            <Field label="Idempotency key" name="idempotencyKey" />
             <SelectField
               label="Issue type"
               name="issueType"
@@ -82,6 +84,7 @@ export default async function WarehouseStockOutPage({ searchParams }: WarehouseS
                 ['disposal', 'Disposal'],
                 ['damage', 'Damage'],
                 ['loss', 'Loss'],
+                ['sales_order', 'Sales order'],
               ]}
             />
             <SelectReason label="Reason" name="reason" />
@@ -121,6 +124,7 @@ async function submitCanonicalStockOut(formData: FormData): Promise<void> {
       number: readOptionalFormText(formData, 'issueDocumentNumber'),
       type: readIssueType(readFormText(formData, 'issueType')),
     },
+    idempotencyKey: readOptionalFormText(formData, 'idempotencyKey'),
     lines: [
       {
         warehouseSkuId: readFormText(formData, 'warehouseSkuId'),
@@ -182,7 +186,12 @@ function Field(props: {
         data-testid={`stock-out-${props.name}`}
         defaultValue={props.defaultValue}
         name={props.name}
-        required={props.name !== 'issueDocumentNumber' && props.name !== 'sourceLineId' && props.name !== 'notes'}
+        required={
+          props.name !== 'issueDocumentNumber' &&
+          props.name !== 'idempotencyKey' &&
+          props.name !== 'sourceLineId' &&
+          props.name !== 'notes'
+        }
         step={props.step}
         type={props.type ?? 'text'}
       />
@@ -225,6 +234,7 @@ function SelectReason(props: { label: string; name: string }) {
         <option value="disposal">Disposal</option>
         <option value="damage">Damage</option>
         <option value="loss">Loss</option>
+        <option value="sale">Sale</option>
       </select>
     </label>
   );

@@ -386,8 +386,8 @@ export default function SalaryConfigTab({
       <section className="bg-white dark:bg-[#1C1B19] rounded-3xl border border-slate-100 dark:border-[#3E3A35] p-8 space-y-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-primary/10 dark:bg-[#5D1C34]/30 rounded-2xl flex items-center justify-center">
-              <Award className="w-6 h-6 text-primary dark:text-[#A67D44]" />
+            <div className="w-12 h-12 bg-primary/10 dark:bg-primary/5 rounded-2xl flex items-center justify-center">
+              <Award className="w-6 h-6 text-primary dark:text-primary" />
             </div>
             <div>
               <h3 className="text-lg font-black text-slate-900 dark:text-[#EFE9E1] uppercase">
@@ -405,7 +405,7 @@ export default function SalaryConfigTab({
               onChange={(e) => setKpiEnabled(e.target.checked)}
               className="sr-only peer"
             />
-            <div className="w-14 h-7 bg-slate-300 border border-slate-400/20 dark:bg-[#3E3A35] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 dark:after:border-[#2E2B27] after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-primary dark:peer-checked:bg-[#A67D44]"></div>
+            <div className="w-14 h-7 bg-slate-300 border border-slate-400/20 dark:bg-[#3E3A35] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 dark:after:border-[#2E2B27] after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-primary dark:peer-checked:bg-primary"></div>
           </label>
         </div>
 
@@ -449,7 +449,7 @@ export default function SalaryConfigTab({
                 value={kpiTarget}
                 onChange={(e) => setKpiTarget(parseIntegerInput(e.target.value, { min: 1, max: 500 }))}
                 disabled={!kpiEnabled}
-                className="w-full h-14 rounded-2xl border-2 border-slate-100 dark:border-[#3E3A35] bg-slate-50 dark:bg-[#11100F] px-5 text-base font-bold text-slate-900 dark:text-[#EFE9E1] focus:outline-none focus:border-primary dark:focus:border-[#A67D44] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full h-14 rounded-2xl border-2 border-slate-100 dark:border-[#3E3A35] bg-slate-50 dark:bg-[#11100F] px-5 text-base font-bold text-slate-900 dark:text-[#EFE9E1] focus:outline-none focus:border-primary dark:focus:border-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               />
             </div>
             <div>
@@ -461,7 +461,7 @@ export default function SalaryConfigTab({
                 value={kpiBonus}
                 onChange={(e) => setKpiBonus(parseIntegerInput(e.target.value, { min: 0 }))}
                 disabled={!kpiEnabled}
-                className="w-full h-14 rounded-2xl border-2 border-slate-100 dark:border-[#3E3A35] bg-slate-50 dark:bg-[#11100F] px-5 text-base font-bold text-slate-900 dark:text-[#EFE9E1] focus:outline-none focus:border-primary dark:focus:border-[#A67D44] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full h-14 rounded-2xl border-2 border-slate-100 dark:border-[#3E3A35] bg-slate-50 dark:bg-[#11100F] px-5 text-base font-bold text-slate-900 dark:text-[#EFE9E1] focus:outline-none focus:border-primary dark:focus:border-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               />
             </div>
           </div>
@@ -477,7 +477,7 @@ export default function SalaryConfigTab({
               value={kpiRatePerSession}
               onChange={(e) => setKpiRatePerSession(parseIntegerInput(e.target.value, { min: 0 }))}
               disabled={!kpiEnabled}
-              className="w-full h-14 rounded-2xl border-2 border-slate-100 dark:border-[#3E3A35] bg-slate-50 dark:bg-[#11100F] px-5 text-base font-bold text-slate-900 dark:text-[#EFE9E1] focus:outline-none focus:border-primary dark:focus:border-[#A67D44] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full h-14 rounded-2xl border-2 border-slate-100 dark:border-[#3E3A35] bg-slate-50 dark:bg-[#11100F] px-5 text-base font-bold text-slate-900 dark:text-[#EFE9E1] focus:outline-none focus:border-primary dark:focus:border-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               placeholder="Ví dụ: 50000 (50k mỗi ca)"
             />
           </div>
@@ -501,7 +501,7 @@ export default function SalaryConfigTab({
                       setKpiTiers(newTiers);
                     }}
                     disabled={!kpiEnabled}
-                    className="w-full h-12 rounded-xl border-2 border-slate-100 dark:border-[#3E3A35] bg-slate-50 dark:bg-[#11100F] px-4 text-sm font-bold text-slate-900 dark:text-[#EFE9E1] focus:outline-none focus:border-primary dark:focus:border-[#A67D44] transition-colors disabled:opacity-50"
+                    className="w-full h-12 rounded-xl border-2 border-slate-100 dark:border-[#3E3A35] bg-slate-50 dark:bg-[#11100F] px-4 text-sm font-bold text-slate-900 dark:text-[#EFE9E1] focus:outline-none focus:border-primary dark:focus:border-primary transition-colors disabled:opacity-50"
                   />
                 </div>
                 <div>
@@ -515,7 +515,7 @@ export default function SalaryConfigTab({
                       setKpiTiers(newTiers);
                     }}
                     disabled={!kpiEnabled}
-                    className="w-full h-12 rounded-xl border-2 border-slate-100 dark:border-[#3E3A35] bg-slate-50 dark:bg-[#11100F] px-4 text-sm font-bold text-slate-900 dark:text-[#EFE9E1] focus:outline-none focus:border-primary dark:focus:border-[#A67D44] transition-colors disabled:opacity-50"
+                    className="w-full h-12 rounded-xl border-2 border-slate-100 dark:border-[#3E3A35] bg-slate-50 dark:bg-[#11100F] px-4 text-sm font-bold text-slate-900 dark:text-[#EFE9E1] focus:outline-none focus:border-primary dark:focus:border-primary transition-colors disabled:opacity-50"
                   />
                 </div>
                 <div>
@@ -529,7 +529,7 @@ export default function SalaryConfigTab({
                       setKpiTiers(newTiers);
                     }}
                     disabled={!kpiEnabled}
-                    className="w-full h-12 rounded-xl border-2 border-slate-100 dark:border-[#3E3A35] bg-slate-50 dark:bg-[#11100F] px-4 text-sm font-bold text-slate-900 dark:text-[#EFE9E1] focus:outline-none focus:border-primary dark:focus:border-[#A67D44] transition-colors disabled:opacity-50"
+                    className="w-full h-12 rounded-xl border-2 border-slate-100 dark:border-[#3E3A35] bg-slate-50 dark:bg-[#11100F] px-4 text-sm font-bold text-slate-900 dark:text-[#EFE9E1] focus:outline-none focus:border-primary dark:focus:border-primary transition-colors disabled:opacity-50"
                   />
                 </div>
                 <button
@@ -538,7 +538,7 @@ export default function SalaryConfigTab({
                     setKpiTiers(newTiers);
                   }}
                   disabled={!kpiEnabled || kpiTiers.length <= 1}
-                  className="h-12 px-4 rounded-xl bg-rose-50 dark:bg-[#5D1C34]/20 text-rose-600 dark:text-[#EFE9E1] font-bold hover:bg-rose-100 dark:hover:bg-[#5D1C34]/40 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                  className="h-12 px-4 rounded-xl bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-[#EFE9E1] font-bold hover:bg-rose-100 dark:hover:bg-rose-500/20 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                 >
                   Xóa
                 </button>
@@ -551,7 +551,7 @@ export default function SalaryConfigTab({
                 setKpiTiers([...kpiTiers, { min: newMin, max: newMin + 9, bonus: 0 }]);
               }}
               disabled={!kpiEnabled}
-              className="w-full h-12 rounded-xl border-2 border-dashed border-slate-300 dark:border-[#3E3A35] text-slate-600 dark:text-[#CDBCAB] font-bold hover:border-primary dark:hover:border-[#A67D44] hover:text-primary dark:hover:text-[#A67D44] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full h-12 rounded-xl border-2 border-dashed border-slate-300 dark:border-[#3E3A35] text-slate-600 dark:text-[#CDBCAB] font-bold hover:border-primary dark:hover:border-primary hover:text-primary dark:hover:text-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               + Thêm mức thưởng
             </button>
@@ -569,8 +569,8 @@ export default function SalaryConfigTab({
       <section className="bg-white dark:bg-[#1C1B19] rounded-3xl border border-slate-100 dark:border-[#3E3A35] p-8 space-y-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-rose-50 dark:bg-[#5D1C34]/30 rounded-2xl flex items-center justify-center">
-              <Calendar className="w-6 h-6 text-rose-500 dark:text-[#A67D44]" />
+            <div className="w-12 h-12 bg-rose-50 dark:bg-primary/5 rounded-2xl flex items-center justify-center">
+              <Calendar className="w-6 h-6 text-rose-500 dark:text-primary" />
             </div>
             <div>
               <h3 className="text-lg font-black text-slate-900 dark:text-[#EFE9E1] uppercase">
@@ -588,7 +588,7 @@ export default function SalaryConfigTab({
               onChange={(e) => setAttendanceEnabled(e.target.checked)}
               className="sr-only peer"
             />
-            <div className="w-14 h-7 bg-slate-300 border border-slate-400/20 dark:bg-[#3E3A35] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 dark:after:border-[#2E2B27] after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-rose-500 dark:peer-checked:bg-[#5D1C34]"></div>
+            <div className="w-14 h-7 bg-slate-300 border border-slate-400/20 dark:bg-[#3E3A35] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 dark:after:border-[#2E2B27] after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-primary dark:peer-checked:bg-primary/5"></div>
           </label>
         </div>
 
@@ -602,7 +602,7 @@ export default function SalaryConfigTab({
               value={latePenalty}
               onChange={(e) => setLatePenalty(parseIntegerInput(e.target.value, { min: 0 }))}
               disabled={!attendanceEnabled}
-              className="w-full h-14 rounded-2xl border-2 border-slate-100 dark:border-[#3E3A35] bg-slate-50 dark:bg-[#11100F] px-5 text-base font-bold text-slate-900 dark:text-[#EFE9E1] focus:outline-none focus:border-rose-500 dark:focus:border-[#5D1C34] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full h-14 rounded-2xl border-2 border-slate-100 dark:border-[#3E3A35] bg-slate-50 dark:bg-[#11100F] px-5 text-base font-bold text-slate-900 dark:text-[#EFE9E1] focus:outline-none focus:border-primary dark:focus:border-primary/15 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             />
           </div>
           <div>
@@ -614,7 +614,7 @@ export default function SalaryConfigTab({
               value={absentPenalty}
               onChange={(e) => setAbsentPenalty(parseIntegerInput(e.target.value, { min: 0 }))}
               disabled={!attendanceEnabled}
-              className="w-full h-14 rounded-2xl border-2 border-slate-100 dark:border-[#3E3A35] bg-slate-50 dark:bg-[#11100F] px-5 text-base font-bold text-slate-900 dark:text-[#EFE9E1] focus:outline-none focus:border-rose-500 dark:focus:border-[#5D1C34] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full h-14 rounded-2xl border-2 border-slate-100 dark:border-[#3E3A35] bg-slate-50 dark:bg-[#11100F] px-5 text-base font-bold text-slate-900 dark:text-[#EFE9E1] focus:outline-none focus:border-primary dark:focus:border-primary/15 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             />
           </div>
           <div>
@@ -626,13 +626,13 @@ export default function SalaryConfigTab({
               value={lateGracePeriod}
               onChange={(e) => setLateGracePeriod(parseIntegerInput(e.target.value, { min: 0, max: 60 }))}
               disabled={!attendanceEnabled}
-              className="w-full h-14 rounded-2xl border-2 border-slate-100 dark:border-[#3E3A35] bg-slate-50 dark:bg-[#11100F] px-5 text-base font-bold text-slate-900 dark:text-[#EFE9E1] focus:outline-none focus:border-rose-500 dark:focus:border-[#5D1C34] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full h-14 rounded-2xl border-2 border-slate-100 dark:border-[#3E3A35] bg-slate-50 dark:bg-[#11100F] px-5 text-base font-bold text-slate-900 dark:text-[#EFE9E1] focus:outline-none focus:border-primary dark:focus:border-primary/15 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             />
           </div>
         </div>
 
         {!attendanceEnabled && (
-          <div className="bg-rose-50 dark:bg-[#5D1C34]/20 border border-rose-100 dark:border-[#5D1C34] rounded-xl px-4 py-3 text-xs text-rose-600 dark:text-[#EFE9E1] font-medium">
+          <div className="bg-rose-50 dark:bg-rose-500/10 border border-rose-100 dark:border-primary/15 rounded-xl px-4 py-3 text-xs text-rose-600 dark:text-[#EFE9E1] font-medium">
             ⚠️ Phạt kỷ luật hiện đang <strong>tắt</strong>. Hệ thống sẽ không tự động trừ lương khi nhân sự đi trễ hoặc vắng mặt.
           </div>
         )}
@@ -642,8 +642,8 @@ export default function SalaryConfigTab({
       <section className="bg-white dark:bg-[#1C1B19] rounded-3xl border border-slate-100 dark:border-[#3E3A35] p-8 space-y-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-amber-50 dark:bg-[#A67D44]/20 rounded-2xl flex items-center justify-center">
-              <Star className="w-6 h-6 text-amber-500 dark:text-[#A67D44]" />
+            <div className="w-12 h-12 bg-amber-50 dark:bg-primary/20 rounded-2xl flex items-center justify-center">
+              <Star className="w-6 h-6 text-amber-500 dark:text-primary" />
             </div>
             <div>
               <h3 className="text-lg font-black text-slate-900 dark:text-[#EFE9E1] uppercase">
@@ -661,7 +661,7 @@ export default function SalaryConfigTab({
               onChange={(e) => setRatingEnabled(e.target.checked)}
               className="sr-only peer"
             />
-            <div className="w-14 h-7 bg-slate-300 border border-slate-400/20 dark:bg-[#3E3A35] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 dark:after:border-[#2E2B27] after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-amber-500 dark:peer-checked:bg-[#A67D44]"></div>
+            <div className="w-14 h-7 bg-slate-300 border border-slate-400/20 dark:bg-[#3E3A35] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 dark:after:border-[#2E2B27] after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-amber-500 dark:peer-checked:bg-primary"></div>
           </label>
         </div>
 
@@ -706,7 +706,7 @@ export default function SalaryConfigTab({
                 value={minRating}
                 onChange={(e) => setMinRating(parseFloatInput(e.target.value, { min: 0, max: 5 }))}
                 disabled={!ratingEnabled}
-                className="w-full h-14 rounded-2xl border-2 border-slate-100 dark:border-[#3E3A35] bg-slate-50 dark:bg-[#11100F] px-5 text-base font-bold text-slate-900 dark:text-[#EFE9E1] focus:outline-none focus:border-amber-500 dark:focus:border-[#A67D44] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full h-14 rounded-2xl border-2 border-slate-100 dark:border-[#3E3A35] bg-slate-50 dark:bg-[#11100F] px-5 text-base font-bold text-slate-900 dark:text-[#EFE9E1] focus:outline-none focus:border-amber-500 dark:focus:border-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               />
             </div>
             <div>
@@ -718,7 +718,7 @@ export default function SalaryConfigTab({
                 value={ratingBonus}
                 onChange={(e) => setRatingBonus(parseIntegerInput(e.target.value, { min: 0 }))}
                 disabled={!ratingEnabled}
-                className="w-full h-14 rounded-2xl border-2 border-slate-100 dark:border-[#3E3A35] bg-slate-50 dark:bg-[#11100F] px-5 text-base font-bold text-slate-900 dark:text-[#EFE9E1] focus:outline-none focus:border-amber-500 dark:focus:border-[#A67D44] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full h-14 rounded-2xl border-2 border-slate-100 dark:border-[#3E3A35] bg-slate-50 dark:bg-[#11100F] px-5 text-base font-bold text-slate-900 dark:text-[#EFE9E1] focus:outline-none focus:border-amber-500 dark:focus:border-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               />
             </div>
           </div>
@@ -734,7 +734,7 @@ export default function SalaryConfigTab({
               value={ratingRatePerStar}
               onChange={(e) => setRatingRatePerStar(parseIntegerInput(e.target.value, { min: 0 }))}
               disabled={!ratingEnabled}
-              className="w-full h-14 rounded-2xl border-2 border-slate-100 dark:border-[#3E3A35] bg-slate-50 dark:bg-[#11100F] px-5 text-base font-bold text-slate-900 dark:text-[#EFE9E1] focus:outline-none focus:border-amber-500 dark:focus:border-[#A67D44] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full h-14 rounded-2xl border-2 border-slate-100 dark:border-[#3E3A35] bg-slate-50 dark:bg-[#11100F] px-5 text-base font-bold text-slate-900 dark:text-[#EFE9E1] focus:outline-none focus:border-amber-500 dark:focus:border-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               placeholder="Ví dụ: 10000 (10k mỗi 0.1 sao)"
             />
           </div>
@@ -759,7 +759,7 @@ export default function SalaryConfigTab({
                       setRatingTiers(newTiers);
                     }}
                     disabled={!ratingEnabled}
-                    className="w-full h-12 rounded-xl border-2 border-slate-100 dark:border-[#3E3A35] bg-slate-50 dark:bg-[#11100F] px-4 text-sm font-bold text-slate-900 dark:text-[#EFE9E1] focus:outline-none focus:border-amber-500 dark:focus:border-[#A67D44] transition-colors disabled:opacity-50"
+                    className="w-full h-12 rounded-xl border-2 border-slate-100 dark:border-[#3E3A35] bg-slate-50 dark:bg-[#11100F] px-4 text-sm font-bold text-slate-900 dark:text-[#EFE9E1] focus:outline-none focus:border-amber-500 dark:focus:border-primary transition-colors disabled:opacity-50"
                   />
                 </div>
                 <div>
@@ -774,7 +774,7 @@ export default function SalaryConfigTab({
                       setRatingTiers(newTiers);
                     }}
                     disabled={!ratingEnabled}
-                    className="w-full h-12 rounded-xl border-2 border-slate-100 dark:border-[#3E3A35] bg-slate-50 dark:bg-[#11100F] px-4 text-sm font-bold text-slate-900 dark:text-[#EFE9E1] focus:outline-none focus:border-amber-500 dark:focus:border-[#A67D44] transition-colors disabled:opacity-50"
+                    className="w-full h-12 rounded-xl border-2 border-slate-100 dark:border-[#3E3A35] bg-slate-50 dark:bg-[#11100F] px-4 text-sm font-bold text-slate-900 dark:text-[#EFE9E1] focus:outline-none focus:border-amber-500 dark:focus:border-primary transition-colors disabled:opacity-50"
                   />
                 </div>
                 <div>
@@ -788,7 +788,7 @@ export default function SalaryConfigTab({
                       setRatingTiers(newTiers);
                     }}
                     disabled={!ratingEnabled}
-                    className="w-full h-12 rounded-xl border-2 border-slate-100 dark:border-[#3E3A35] bg-slate-50 dark:bg-[#11100F] px-4 text-sm font-bold text-slate-900 dark:text-[#EFE9E1] focus:outline-none focus:border-amber-500 dark:focus:border-[#A67D44] transition-colors disabled:opacity-50"
+                    className="w-full h-12 rounded-xl border-2 border-slate-100 dark:border-[#3E3A35] bg-slate-50 dark:bg-[#11100F] px-4 text-sm font-bold text-slate-900 dark:text-[#EFE9E1] focus:outline-none focus:border-amber-500 dark:focus:border-primary transition-colors disabled:opacity-50"
                   />
                 </div>
                 <button
@@ -797,7 +797,7 @@ export default function SalaryConfigTab({
                     setRatingTiers(newTiers);
                   }}
                   disabled={!ratingEnabled || ratingTiers.length <= 1}
-                  className="h-12 px-4 rounded-xl bg-rose-50 dark:bg-[#5D1C34]/20 text-rose-600 dark:text-[#EFE9E1] font-bold hover:bg-rose-100 dark:hover:bg-[#5D1C34]/40 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                  className="h-12 px-4 rounded-xl bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-[#EFE9E1] font-bold hover:bg-rose-100 dark:hover:bg-rose-500/20 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                 >
                   Xóa
                 </button>
@@ -810,7 +810,7 @@ export default function SalaryConfigTab({
                 setRatingTiers([...ratingTiers, { min: newMin, max: 5.0, bonus: 0 }]);
               }}
               disabled={!ratingEnabled}
-              className="w-full h-12 rounded-xl border-2 border-dashed border-slate-300 dark:border-[#3E3A35] text-slate-600 dark:text-[#CDBCAB] font-bold hover:border-amber-500 dark:hover:border-[#A67D44] hover:text-amber-500 dark:hover:text-[#A67D44] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full h-12 rounded-xl border-2 border-dashed border-slate-300 dark:border-[#3E3A35] text-slate-600 dark:text-[#CDBCAB] font-bold hover:border-amber-500 dark:hover:border-primary hover:text-amber-500 dark:hover:text-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               + Thêm mức đánh giá
             </button>
@@ -818,7 +818,7 @@ export default function SalaryConfigTab({
         )}
 
         {!ratingEnabled && (
-          <div className="bg-amber-50 dark:bg-[#A67D44]/20 border border-amber-100 dark:border-[#A67D44] rounded-xl px-4 py-3 text-xs text-amber-700 dark:text-[#EFE9E1] font-medium">
+          <div className="bg-amber-50 dark:bg-primary/20 border border-amber-100 dark:border-primary rounded-xl px-4 py-3 text-xs text-amber-700 dark:text-[#EFE9E1] font-medium">
             ⚠️ Thưởng chất lượng hiện đang <strong>tắt</strong>. Nhân sự sẽ không nhận thưởng khi có đánh giá cao.
           </div>
         )}
@@ -829,7 +829,7 @@ export default function SalaryConfigTab({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 bg-emerald-50 dark:bg-[#2E5D3E]/30 rounded-2xl flex items-center justify-center">
-              <Coins className="w-6 h-6 text-emerald-600 dark:text-[#A67D44]" />
+              <Coins className="w-6 h-6 text-emerald-600 dark:text-primary" />
             </div>
             <div>
               <h3 className="text-lg font-black text-slate-900 dark:text-[#EFE9E1] uppercase">
@@ -847,7 +847,7 @@ export default function SalaryConfigTab({
               onChange={(e) => setCommissionEnabled(e.target.checked)}
               className="sr-only peer"
             />
-            <div className="w-14 h-7 bg-slate-300 border border-slate-400/20 dark:bg-[#3E3A35] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 dark:after:border-[#2E2B27] after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-emerald-600 dark:peer-checked:bg-[#2E5D3E]"></div>
+            <div className="w-14 h-7 bg-slate-300 border border-slate-400/20 dark:bg-[#3E3A35] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 dark:after:border-[#2E2B27] after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-primary peer-checked:bg-primary"></div>
           </label>
         </div>
 
@@ -906,7 +906,7 @@ export default function SalaryConfigTab({
                 value={commissionRate}
                 onChange={(e) => setCommissionRate(parseIntegerInput(e.target.value, { min: 0 }))}
                 disabled={!commissionEnabled}
-                className="w-full h-14 rounded-2xl border-2 border-slate-100 dark:border-[#3E3A35] bg-slate-50 dark:bg-[#11100F] px-5 text-base font-bold text-slate-900 dark:text-[#EFE9E1] focus:outline-none focus:border-emerald-600 dark:focus:border-[#2E5D3E] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full h-14 rounded-2xl border-2 border-slate-100 dark:border-[#3E3A35] bg-slate-50 dark:bg-[#11100F] px-5 text-base font-bold text-slate-900 dark:text-[#EFE9E1] focus:outline-none focus:border-primary dark:focus:border-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 placeholder="Ví dụ: 120000"
               />
             </div>
@@ -919,7 +919,7 @@ export default function SalaryConfigTab({
                 value={commissionMinSessions}
                 onChange={(e) => setCommissionMinSessions(parseIntegerInput(e.target.value, { min: 0, max: 100 }))}
                 disabled={!commissionEnabled}
-                className="w-full h-14 rounded-2xl border-2 border-slate-100 dark:border-[#3E3A35] bg-slate-50 dark:bg-[#11100F] px-5 text-base font-bold text-slate-900 dark:text-[#EFE9E1] focus:outline-none focus:border-emerald-600 dark:focus:border-[#2E5D3E] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full h-14 rounded-2xl border-2 border-slate-100 dark:border-[#3E3A35] bg-slate-50 dark:bg-[#11100F] px-5 text-base font-bold text-slate-900 dark:text-[#EFE9E1] focus:outline-none focus:border-primary dark:focus:border-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 placeholder="Ví dụ: 0 (không giới hạn)"
               />
             </div>
@@ -944,7 +944,7 @@ export default function SalaryConfigTab({
                       setCommissionTiers(newTiers);
                     }}
                     disabled={!commissionEnabled}
-                    className="w-full h-12 rounded-xl border-2 border-slate-100 dark:border-[#3E3A35] bg-slate-50 dark:bg-[#11100F] px-4 text-sm font-bold text-slate-900 dark:text-[#EFE9E1] focus:outline-none focus:border-emerald-600 dark:focus:border-[#2E5D3E] transition-colors disabled:opacity-50"
+                    className="w-full h-12 rounded-xl border-2 border-slate-100 dark:border-[#3E3A35] bg-slate-50 dark:bg-[#11100F] px-4 text-sm font-bold text-slate-900 dark:text-[#EFE9E1] focus:outline-none focus:border-primary dark:focus:border-primary transition-colors disabled:opacity-50"
                   />
                 </div>
                 <div>
@@ -958,7 +958,7 @@ export default function SalaryConfigTab({
                       setCommissionTiers(newTiers);
                     }}
                     disabled={!commissionEnabled}
-                    className="w-full h-12 rounded-xl border-2 border-slate-100 dark:border-[#3E3A35] bg-slate-50 dark:bg-[#11100F] px-4 text-sm font-bold text-slate-900 dark:text-[#EFE9E1] focus:outline-none focus:border-emerald-600 dark:focus:border-[#2E5D3E] transition-colors disabled:opacity-50"
+                    className="w-full h-12 rounded-xl border-2 border-slate-100 dark:border-[#3E3A35] bg-slate-50 dark:bg-[#11100F] px-4 text-sm font-bold text-slate-900 dark:text-[#EFE9E1] focus:outline-none focus:border-primary dark:focus:border-primary transition-colors disabled:opacity-50"
                   />
                 </div>
                 <div>
@@ -972,7 +972,7 @@ export default function SalaryConfigTab({
                       setCommissionTiers(newTiers);
                     }}
                     disabled={!commissionEnabled}
-                    className="w-full h-12 rounded-xl border-2 border-slate-100 dark:border-[#3E3A35] bg-slate-50 dark:bg-[#11100F] px-4 text-sm font-bold text-slate-900 dark:text-[#EFE9E1] focus:outline-none focus:border-emerald-600 dark:focus:border-[#2E5D3E] transition-colors disabled:opacity-50"
+                    className="w-full h-12 rounded-xl border-2 border-slate-100 dark:border-[#3E3A35] bg-slate-50 dark:bg-[#11100F] px-4 text-sm font-bold text-slate-900 dark:text-[#EFE9E1] focus:outline-none focus:border-primary dark:focus:border-primary transition-colors disabled:opacity-50"
                   />
                 </div>
                 <button
@@ -981,7 +981,7 @@ export default function SalaryConfigTab({
                     setCommissionTiers(newTiers);
                   }}
                   disabled={!commissionEnabled || commissionTiers.length <= 1}
-                  className="h-12 px-4 rounded-xl bg-rose-50 dark:bg-[#5D1C34]/20 text-rose-600 dark:text-[#EFE9E1] font-bold hover:bg-rose-100 dark:hover:bg-[#5D1C34]/40 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                  className="h-12 px-4 rounded-xl bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-[#EFE9E1] font-bold hover:bg-rose-100 dark:hover:bg-rose-500/20 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                 >
                   Xóa
                 </button>
@@ -994,7 +994,7 @@ export default function SalaryConfigTab({
                 setCommissionTiers([...commissionTiers, { min: newMin, max: newMin + 9, rate: 0 }]);
               }}
               disabled={!commissionEnabled}
-              className="w-full h-12 rounded-xl border-2 border-dashed border-slate-300 dark:border-[#3E3A35] text-slate-600 dark:text-[#CDBCAB] font-bold hover:border-emerald-600 dark:hover:border-[#2E5D3E] hover:text-emerald-600 dark:hover:text-[#A67D44] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full h-12 rounded-xl border-2 border-dashed border-slate-300 dark:border-[#3E3A35] text-slate-600 dark:text-[#CDBCAB] font-bold hover:border-emerald-600 dark:hover:border-[#2E5D3E] hover:text-emerald-600 dark:hover:text-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               + Thêm mức hoa hồng
             </button>
@@ -1013,7 +1013,7 @@ export default function SalaryConfigTab({
                 value={commissionPercentage}
                 onChange={(e) => setCommissionPercentage(parseFloatInput(e.target.value, { min: 0, max: 100, decimals: 1 }))}
                 disabled={!commissionEnabled}
-                className="w-full h-14 rounded-2xl border-2 border-slate-100 dark:border-[#3E3A35] bg-slate-50 dark:bg-[#11100F] px-5 text-base font-bold text-slate-900 dark:text-[#EFE9E1] focus:outline-none focus:border-emerald-600 dark:focus:border-[#2E5D3E] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full h-14 rounded-2xl border-2 border-slate-100 dark:border-[#3E3A35] bg-slate-50 dark:bg-[#11100F] px-5 text-base font-bold text-slate-900 dark:text-[#EFE9E1] focus:outline-none focus:border-primary dark:focus:border-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 placeholder="Ví dụ: 15 (15% doanh thu)"
               />
             </div>
@@ -1026,7 +1026,7 @@ export default function SalaryConfigTab({
                 value={commissionMinRevenue}
                 onChange={(e) => setCommissionMinRevenue(parseIntegerInput(e.target.value, { min: 0 }))}
                 disabled={!commissionEnabled}
-                className="w-full h-14 rounded-2xl border-2 border-slate-100 dark:border-[#3E3A35] bg-slate-50 dark:bg-[#11100F] px-5 text-base font-bold text-slate-900 dark:text-[#EFE9E1] focus:outline-none focus:border-emerald-600 dark:focus:border-[#2E5D3E] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full h-14 rounded-2xl border-2 border-slate-100 dark:border-[#3E3A35] bg-slate-50 dark:bg-[#11100F] px-5 text-base font-bold text-slate-900 dark:text-[#EFE9E1] focus:outline-none focus:border-primary dark:focus:border-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 placeholder="Ví dụ: 0 (không giới hạn)"
               />
             </div>
@@ -1052,7 +1052,7 @@ export default function SalaryConfigTab({
                       setCommissionServiceRates(newRates);
                     }}
                     disabled={!commissionEnabled}
-                    className="w-full h-12 rounded-xl border-2 border-slate-100 dark:border-[#3E3A35] bg-slate-50 dark:bg-[#11100F] px-4 text-sm font-bold text-slate-900 dark:text-[#EFE9E1] focus:outline-none focus:border-emerald-600 dark:focus:border-[#2E5D3E] transition-colors disabled:opacity-50"
+                    className="w-full h-12 rounded-xl border-2 border-slate-100 dark:border-[#3E3A35] bg-slate-50 dark:bg-[#11100F] px-4 text-sm font-bold text-slate-900 dark:text-[#EFE9E1] focus:outline-none focus:border-primary dark:focus:border-primary transition-colors disabled:opacity-50"
                     placeholder="massage, facial..."
                   />
                 </div>
@@ -1067,7 +1067,7 @@ export default function SalaryConfigTab({
                       setCommissionServiceRates(newRates);
                     }}
                     disabled={!commissionEnabled}
-                    className="w-full h-12 rounded-xl border-2 border-slate-100 dark:border-[#3E3A35] bg-slate-50 dark:bg-[#11100F] px-4 text-sm font-bold text-slate-900 dark:text-[#EFE9E1] focus:outline-none focus:border-emerald-600 dark:focus:border-[#2E5D3E] transition-colors disabled:opacity-50"
+                    className="w-full h-12 rounded-xl border-2 border-slate-100 dark:border-[#3E3A35] bg-slate-50 dark:bg-[#11100F] px-4 text-sm font-bold text-slate-900 dark:text-[#EFE9E1] focus:outline-none focus:border-primary dark:focus:border-primary transition-colors disabled:opacity-50"
                   />
                 </div>
                 <button
@@ -1077,7 +1077,7 @@ export default function SalaryConfigTab({
                     setCommissionServiceRates(newRates);
                   }}
                   disabled={!commissionEnabled || Object.keys(commissionServiceRates).length <= 1}
-                  className="h-12 px-4 rounded-xl bg-rose-50 dark:bg-[#5D1C34]/20 text-rose-600 dark:text-[#EFE9E1] font-bold hover:bg-rose-100 dark:hover:bg-[#5D1C34]/40 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                  className="h-12 px-4 rounded-xl bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-[#EFE9E1] font-bold hover:bg-rose-100 dark:hover:bg-rose-500/20 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                 >
                   Xóa
                 </button>
@@ -1089,7 +1089,7 @@ export default function SalaryConfigTab({
                 setCommissionServiceRates({ ...commissionServiceRates, [newKey]: 100000 });
               }}
               disabled={!commissionEnabled}
-              className="w-full h-12 rounded-xl border-2 border-dashed border-slate-300 dark:border-[#3E3A35] text-slate-600 dark:text-[#CDBCAB] font-bold hover:border-emerald-600 dark:hover:border-[#2E5D3E] hover:text-emerald-600 dark:hover:text-[#A67D44] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full h-12 rounded-xl border-2 border-dashed border-slate-300 dark:border-[#3E3A35] text-slate-600 dark:text-[#CDBCAB] font-bold hover:border-emerald-600 dark:hover:border-[#2E5D3E] hover:text-emerald-600 dark:hover:text-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               + Thêm dịch vụ
             </button>
@@ -1108,7 +1108,7 @@ export default function SalaryConfigTab({
                 value={productSalesPercentage}
                 onChange={(e) => setProductSalesPercentage(parseFloatInput(e.target.value, { min: 0, max: 100, decimals: 1 }))}
                 disabled={!commissionEnabled}
-                className="w-full h-14 rounded-2xl border-2 border-slate-100 dark:border-[#3E3A35] bg-slate-50 dark:bg-[#11100F] px-5 text-base font-bold text-slate-900 dark:text-[#EFE9E1] focus:outline-none focus:border-emerald-600 dark:focus:border-[#2E5D3E] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full h-14 rounded-2xl border-2 border-slate-100 dark:border-[#3E3A35] bg-slate-50 dark:bg-[#11100F] px-5 text-base font-bold text-slate-900 dark:text-[#EFE9E1] focus:outline-none focus:border-primary dark:focus:border-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 placeholder="Ví dụ: 10 (10% doanh số bán hàng)"
               />
             </div>
@@ -1121,7 +1121,7 @@ export default function SalaryConfigTab({
                 value={productSalesMinSales}
                 onChange={(e) => setProductSalesMinSales(parseIntegerInput(e.target.value, { min: 0 }))}
                 disabled={!commissionEnabled}
-                className="w-full h-14 rounded-2xl border-2 border-slate-100 dark:border-[#3E3A35] bg-slate-50 dark:bg-[#11100F] px-5 text-base font-bold text-slate-900 dark:text-[#EFE9E1] focus:outline-none focus:border-emerald-600 dark:focus:border-[#2E5D3E] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full h-14 rounded-2xl border-2 border-slate-100 dark:border-[#3E3A35] bg-slate-50 dark:bg-[#11100F] px-5 text-base font-bold text-slate-900 dark:text-[#EFE9E1] focus:outline-none focus:border-primary dark:focus:border-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 placeholder="Ví dụ: 0 (không giới hạn)"
               />
             </div>
@@ -1141,7 +1141,7 @@ export default function SalaryConfigTab({
                   value={totalRevenuePercentage}
                   onChange={(e) => setTotalRevenuePercentage(parseFloatInput(e.target.value, { min: 0, max: 100, decimals: 1 }))}
                   disabled={!commissionEnabled}
-                  className="w-full h-14 rounded-2xl border-2 border-slate-100 dark:border-[#3E3A35] bg-slate-50 dark:bg-[#11100F] px-5 text-base font-bold text-slate-900 dark:text-[#EFE9E1] focus:outline-none focus:border-emerald-600 dark:focus:border-[#2E5D3E] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full h-14 rounded-2xl border-2 border-slate-100 dark:border-[#3E3A35] bg-slate-50 dark:bg-[#11100F] px-5 text-base font-bold text-slate-900 dark:text-[#EFE9E1] focus:outline-none focus:border-primary dark:focus:border-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   placeholder="Ví dụ: 12 (12% tổng doanh thu)"
                 />
               </div>
@@ -1154,7 +1154,7 @@ export default function SalaryConfigTab({
                   value={totalRevenueMinRevenue}
                   onChange={(e) => setTotalRevenueMinRevenue(parseIntegerInput(e.target.value, { min: 0 }))}
                   disabled={!commissionEnabled}
-                  className="w-full h-14 rounded-2xl border-2 border-slate-100 dark:border-[#3E3A35] bg-slate-50 dark:bg-[#11100F] px-5 text-base font-bold text-slate-900 dark:text-[#EFE9E1] focus:outline-none focus:border-emerald-600 dark:focus:border-[#2E5D3E] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full h-14 rounded-2xl border-2 border-slate-100 dark:border-[#3E3A35] bg-slate-50 dark:bg-[#11100F] px-5 text-base font-bold text-slate-900 dark:text-[#EFE9E1] focus:outline-none focus:border-primary dark:focus:border-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   placeholder="Ví dụ: 0 (không giới hạn)"
                 />
               </div>
@@ -1185,7 +1185,7 @@ export default function SalaryConfigTab({
                     value={serviceWeight}
                     onChange={(e) => setServiceWeight(parseFloatInput(e.target.value, { min: 0, max: 10, decimals: 1 }))}
                     disabled={!commissionEnabled}
-                    className="w-full h-12 rounded-xl border-2 border-blue-200 dark:border-[#3E3A35] bg-white dark:bg-[#11100F] px-4 text-sm font-bold text-slate-900 dark:text-[#EFE9E1] focus:outline-none focus:border-blue-500 dark:focus:border-blue-600 transition-colors disabled:opacity-50"
+                    className="w-full h-12 rounded-xl border-2 border-blue-200 dark:border-[#3E3A35] bg-white dark:bg-[#11100F] px-4 text-sm font-bold text-slate-900 dark:text-[#EFE9E1] focus:outline-none focus:border-primary dark:focus:border-primary transition-colors disabled:opacity-50"
                     placeholder="1.0"
                   />
                 </div>
@@ -1199,7 +1199,7 @@ export default function SalaryConfigTab({
                     value={productWeight}
                     onChange={(e) => setProductWeight(parseFloatInput(e.target.value, { min: 0, max: 10, decimals: 1 }))}
                     disabled={!commissionEnabled}
-                    className="w-full h-12 rounded-xl border-2 border-blue-200 dark:border-[#3E3A35] bg-white dark:bg-[#11100F] px-4 text-sm font-bold text-slate-900 dark:text-[#EFE9E1] focus:outline-none focus:border-blue-500 dark:focus:border-blue-600 transition-colors disabled:opacity-50"
+                    className="w-full h-12 rounded-xl border-2 border-blue-200 dark:border-[#3E3A35] bg-white dark:bg-[#11100F] px-4 text-sm font-bold text-slate-900 dark:text-[#EFE9E1] focus:outline-none focus:border-primary dark:focus:border-primary transition-colors disabled:opacity-50"
                     placeholder="1.0"
                   />
                 </div>
@@ -1220,7 +1220,7 @@ export default function SalaryConfigTab({
         <button
           onClick={handleSave}
           disabled={isSaving || !tenantId}
-          className="flex items-center gap-3 bg-primary hover:bg-primary-hover text-white px-8 py-4 rounded-2xl font-black transition-all shadow-xl shadow-primary/25 dark:shadow-none active:scale-95 uppercase tracking-wider disabled:opacity-50 disabled:grayscale"
+          className="flex items-center gap-3 bg-primary hover:bg-primary-hover text-primary-foreground px-8 py-4 rounded-2xl font-black transition-all shadow-xl shadow-primary/25 dark:shadow-none active:scale-95 uppercase tracking-wider disabled:opacity-50 disabled:grayscale"
         >
           {isSaving ? (
             <Loader2 className="w-5 h-5 animate-spin" />

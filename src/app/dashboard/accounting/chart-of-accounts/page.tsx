@@ -227,7 +227,7 @@ export default function ChartOfAccountsPage() {
   return (
     <div className="space-y-8">
       {/* ── HEADER SEARCH & FILTERS ── */}
-      <div className="bella-toolbar flex flex-col justify-between gap-4 rounded-[2.5rem] border border-[#FFE4E6] bg-white p-5 shadow-sm dark:border-[#3E3A35]/50 dark:bg-[#1C1B19] sm:p-6 xl:flex-row xl:items-center">
+      <div className="bella-toolbar flex flex-col justify-between gap-4 rounded-[2.5rem] border border-primary/15 bg-white p-5 shadow-sm dark:border-[#3E3A35]/50 dark:bg-[#1C1B19] sm:p-6 xl:flex-row xl:items-center">
         <div className="grid w-full min-w-0 grid-cols-1 gap-3 sm:grid-cols-[minmax(14rem,1fr)_minmax(13rem,16rem)] xl:max-w-3xl">
           {/* Search bar */}
           <div className="relative flex-1">
@@ -237,7 +237,7 @@ export default function ChartOfAccountsPage() {
               placeholder="Tìm kiếm tài khoản..." 
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-11 pr-4 py-2.5 bg-slate-50 dark:bg-[#11100F] border-none rounded-xl text-xs font-bold outline-none focus:ring-2 focus:ring-rose-500/10 transition-all text-slate-800 dark:text-[#EFE9E1]" 
+              className="w-full pl-11 pr-4 py-2.5 bg-slate-50 dark:bg-[#11100F] border-none rounded-xl text-xs font-bold outline-none focus:ring-2 focus:ring-primary/10 transition-all text-slate-800 dark:text-[#EFE9E1]"
             />
           </div>
 
@@ -259,7 +259,7 @@ export default function ChartOfAccountsPage() {
 
         <button 
           onClick={() => setIsModalOpen(true)}
-          className="flex w-full items-center justify-center gap-2 rounded-2xl bg-primary px-6 py-3 text-xs font-black uppercase tracking-widest text-white shadow-lg shadow-pink-100 transition-all hover:bg-primary-hover active:scale-95 dark:shadow-none sm:w-auto xl:shrink-0"
+          className="flex w-full items-center justify-center gap-2 rounded-2xl bg-primary px-6 py-3 text-xs font-black uppercase tracking-widest text-primary-foreground shadow-lg shadow-primary/20 transition-all hover:bg-primary-hover active:scale-95 dark:shadow-none sm:w-auto xl:shrink-0"
         >
           <PlusCircle className="w-4 h-4" />
           <span>Thêm tài khoản</span>
@@ -267,7 +267,7 @@ export default function ChartOfAccountsPage() {
       </div>
 
       {/* ── TREE VIEW LIST ── */}
-      <div className="bg-white dark:bg-[#1C1B19] rounded-[2.5rem] border border-[#FFE4E6] dark:border-[#3E3A35]/50 p-6 md:p-8 shadow-sm">
+      <div className="bg-white dark:bg-[#1C1B19] rounded-[2.5rem] border border-primary/15 dark:border-[#3E3A35]/50 p-6 md:p-8 shadow-sm">
         <div className="flex items-center justify-between mb-6 border-b border-slate-50 dark:border-[#3E3A35]/30 pb-4">
           <h4 className="text-base font-black text-slate-900 dark:text-[#EFE9E1] uppercase tracking-wider">Hệ thống Tài khoản số cái (COA)</h4>
           <span className="text-xs font-bold text-slate-400 dark:text-[#CDBCAB]/60">
@@ -309,7 +309,7 @@ export default function ChartOfAccountsPage() {
               initial={{ opacity: 0, scale: 0.95, y: 15 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 15 }}
-              className="bg-white dark:bg-[#1C1B19] rounded-[2.5rem] border border-[#FFE4E6] dark:border-[#3E3A35] shadow-2xl p-8 max-w-lg w-full relative z-10 space-y-6"
+              className="bg-white dark:bg-[#1C1B19] rounded-[2.5rem] border border-primary/15 dark:border-[#3E3A35] shadow-2xl p-8 max-w-lg w-full relative z-10 space-y-6"
             >
               <div className="flex items-center justify-between border-b border-slate-50 dark:border-[#3E3A35]/30 pb-4">
                 <h4 className="text-lg font-black text-slate-900 dark:text-[#EFE9E1] uppercase tracking-wide">Thêm Tài khoản Mới</h4>
@@ -362,7 +362,7 @@ export default function ChartOfAccountsPage() {
                     placeholder="Ví dụ: 1121" 
                     value={newAccount.account_code}
                     onChange={(e) => setNewAccount(prev => ({ ...prev, account_code: e.target.value.replace(/\D/g, '') }))}
-                    className="w-full px-4 py-3 bg-slate-50 dark:bg-[#11100F] border border-slate-100 dark:border-[#3E3A35] rounded-xl text-xs font-bold outline-none focus:ring-2 focus:ring-rose-500/10 text-slate-800 dark:text-[#EFE9E1]" 
+                    className="w-full px-4 py-3 bg-slate-50 dark:bg-[#11100F] border border-slate-100 dark:border-[#3E3A35] rounded-xl text-xs font-bold outline-none focus:ring-2 focus:ring-primary/10 text-slate-800 dark:text-[#EFE9E1]"
                   />
                 </div>
 
@@ -374,7 +374,7 @@ export default function ChartOfAccountsPage() {
                     placeholder="Ví dụ: Tiền gửi BIDV VND" 
                     value={newAccount.account_name}
                     onChange={(e) => setNewAccount(prev => ({ ...prev, account_name: e.target.value }))}
-                    className="w-full px-4 py-3 bg-slate-50 dark:bg-[#11100F] border border-slate-100 dark:border-[#3E3A35] rounded-xl text-xs font-bold outline-none focus:ring-2 focus:ring-rose-500/10 text-slate-800 dark:text-[#EFE9E1]" 
+                    className="w-full px-4 py-3 bg-slate-50 dark:bg-[#11100F] border border-slate-100 dark:border-[#3E3A35] rounded-xl text-xs font-bold outline-none focus:ring-2 focus:ring-primary/10 text-slate-800 dark:text-[#EFE9E1]"
                   />
                 </div>
 
@@ -389,7 +389,7 @@ export default function ChartOfAccountsPage() {
                   <button 
                     type="submit" 
                     disabled={saving}
-                    className="flex-1 bg-primary hover:bg-primary-hover text-white py-4 rounded-2xl text-xs font-black uppercase tracking-widest active:scale-95 transition-all shadow-lg shadow-pink-100 dark:shadow-none disabled:opacity-50 cursor-pointer"
+                    className="flex-1 bg-primary hover:bg-primary-hover text-primary-foreground py-4 rounded-2xl text-xs font-black uppercase tracking-widest active:scale-95 transition-all shadow-lg shadow-primary/20 dark:shadow-none disabled:opacity-50 cursor-pointer"
                   >
                     {saving ? 'Đang lưu...' : 'Thêm tài khoản'}
                   </button>

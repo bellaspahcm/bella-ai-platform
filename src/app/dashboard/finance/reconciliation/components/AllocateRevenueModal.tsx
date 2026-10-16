@@ -84,7 +84,7 @@ export function AllocateRevenueModal({
                 <button
                   onClick={onConfirm}
                   disabled={isAllocating || !targetBookingId.trim()}
-                  className="w-full bg-primary hover:bg-primary-hover text-white py-4 rounded-2xl font-black text-sm uppercase tracking-widest transition-all disabled:opacity-50 flex justify-center items-center gap-2"
+                  className="w-full bg-primary hover:bg-primary-hover text-primary-foreground py-4 rounded-2xl font-black text-sm uppercase tracking-widest transition-all disabled:opacity-50 flex justify-center items-center gap-2"
                 >
                   {isAllocating ? 'Đang Xử Lý...' : 'Xác Nhận Phân Bổ'}
                   {!isAllocating && <CheckCircle2 className="w-4 h-4" />}

@@ -16,7 +16,7 @@ const STATUS_LABELS: Record<string, { label: string; bg: string; text: string }>
   'cancelled': { label: 'Đã hủy', bg: 'bg-red-50 border-red-200', text: 'text-red-700' },
 };
 
-function getStatusDisplay(status: string) {
+export function getStatusDisplay(status: string) {
   return STATUS_LABELS[status] || { label: status, bg: 'bg-slate-50 border-slate-200', text: 'text-slate-500' };
 }
 
@@ -31,6 +31,7 @@ export function BookingSelectorPanel({
   onToggleBookingSelection,
   isCombineMode,
   onToggleCombineMode,
+  isBabyCare = false,
 }: {
   bookings: CustomerDetailBooking[];
   activeBooking: CustomerDetailBooking | null;
@@ -42,6 +43,7 @@ export function BookingSelectorPanel({
   onToggleBookingSelection?: (id: string) => void;
   isCombineMode?: boolean;
   onToggleCombineMode?: () => void;
+  isBabyCare?: boolean;
 }) {
   const vocab = useModuleVocabulary(tenantModuleKey);
   const visibleBookings = bookings;
@@ -64,8 +66,8 @@ export function BookingSelectorPanel({
               className={cn(
                 'ml-2 rounded-full px-3 py-1 text-[9px] font-black uppercase tracking-widest transition-all border',
                 isCombineMode
-                  ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-100'
-                  : 'bg-indigo-50 text-indigo-600 border-indigo-200 hover:bg-indigo-100'
+                  ? 'bg-primary text-primary-foreground border-primary shadow-md shadow-primary/15'
+                  : 'bg-primary/10 text-primary border-primary/20 hover:bg-primary/15'
               )}
             >
               {isCombineMode ? '✓ Đang gộp' : '⊞ Chọn gộp'}
@@ -73,9 +75,9 @@ export function BookingSelectorPanel({
           )}
         </div>
 
-        <button className="text-xs font-bold text-blue-600 hover:underline flex items-center gap-1">
+        {!isBabyCare && <button className="text-xs font-bold text-blue-600 hover:underline flex items-center gap-1">
           Quản lý tất cả dịch vụ <ChevronRight className="w-3.5 h-3.5" />
-        </button>
+        </button>}
       </div>
 
       {/* Cards Grid */}
@@ -86,7 +88,7 @@ export function BookingSelectorPanel({
             const isActive = activeBooking?.id === b.id;
             const isSelected = selectedBookingIds?.has(b.id) ?? false;
             const completed = b.completed_sessions || 0;
-            const total = b.total_sessions || 12;
+            const total = isBabyCare ? b.total_sessions ?? 0 : b.total_sessions || 12;
             const percent = Math.min(100, Math.round((completed / Math.max(1, total)) * 100));
 
             return (
@@ -102,20 +104,20 @@ export function BookingSelectorPanel({
                 className={cn(
                   "relative cursor-pointer rounded-2xl border p-4 transition-all flex items-start gap-4 shadow-sm hover:shadow-md",
                   isActive
-                    ? "beauty-customer-theme-card text-white border-transparent shadow-xl"
+                    ? "beauty-customer-theme-card text-primary-foreground border-transparent shadow-xl"
                     : isSelected
-                    ? "bg-indigo-50 border-indigo-400 text-slate-900 ring-2 ring-indigo-300"
+                    ? "bg-primary/10 border-primary/40 text-slate-900 ring-2 ring-primary/25"
                     : "bg-slate-50/60 text-slate-900 border-slate-200 hover:bg-white hover:border-slate-300"
                 )}
               >
                 {/* Package Thumbnail */}
                 <div className="w-16 h-16 sm:w-20 sm:h-20 shrink-0 rounded-xl overflow-hidden bg-slate-200 relative border border-slate-200">
                   <Image
-                    src="https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=300&q=80"
+                    src={isBabyCare ? '/logo.png' : 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=300&q=80'}
                     alt={b.package_name || 'Service Package'}
                     width={80}
                     height={80}
-                    className="w-full h-full object-cover"
+                    className={cn("w-full h-full", isBabyCare ? 'object-contain bg-white p-2' : 'object-cover')}
                   />
                 </div>
 
@@ -156,9 +158,9 @@ export function BookingSelectorPanel({
                     <span className={isActive ? "beauty-customer-theme-muted" : "text-slate-500"}>
                       📅 Bắt đầu: {b.start_date ? new Date(b.start_date).toLocaleDateString('vi-VN') : '--/--/----'}
                     </span>
-                    {b.deposit_amount && b.deposit_amount > 0 && (
+                    {(isBabyCare ? (b.deposit_amount ?? 0) > 0 : b.deposit_amount && b.deposit_amount > 0) && (
                       <span className={isActive ? "beauty-customer-theme-accent font-bold" : "text-amber-600 font-bold"}>
-                        • Cọc: {b.deposit_amount.toLocaleString('vi-VN')}đ
+                        • {isBabyCare ? 'Cọc cần thu' : 'Cọc'}: {(b.deposit_amount ?? 0).toLocaleString('vi-VN')}đ
                       </span>
                     )}
                   </div>

@@ -25,6 +25,8 @@ import { validateGateToken, consumeGateToken } from './gate-token.mjs';
 import { computeHash } from './r4-verify-approval.mjs';
 import dotenv from 'dotenv';
 import pg from 'pg';
+import { createBdgfDatabaseConfig } from './database-connection.mjs';
+import { assertExecutionIdentity } from './execution-identity.mjs';
 
 const { Client } = pg;
 dotenv.config();
@@ -144,26 +146,20 @@ export async function executeMigration(params) {
     );
   }
   
-  const urlMatch = dbUrl.match(/postgresql:\/\/([^:]+):([^@]+)@([^:]+):(\d+)\/(.+)/);
-  if (!urlMatch) {
+  let dbConfig;
+  try {
+    dbConfig = createBdgfDatabaseConfig(dbUrl);
+  } catch {
     throw new ExecutionBlockedError(
       'INVALID_DATABASE_URL',
-      'DATABASE_URL format invalid'
+      'Invalid BDGF database connection configuration.'
     );
   }
-  
-  const [, user, password, host, port, database] = urlMatch;
-  const db = new Client({ 
-    host, 
-    port: parseInt(port), 
-    database, 
-    user, 
-    password, 
-    ssl: { rejectUnauthorized: false } 
-  });
+  const db = new Client(dbConfig);
   
   try {
     await db.connect();
+    await assertExecutionIdentity(db, executionContext.executor_identity);
     console.log('   ✅ Connected to database for validation');
     
     // Validate token

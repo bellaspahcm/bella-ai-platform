@@ -1,0 +1,63 @@
+name: AutoMove Production Runtime Smoke
+
+on:
+  workflow_dispatch:
+    inputs:
+      expected_sha:
+        description: Exact main release SHA deployed for the authorized read-only check
+        required: true
+        type: string
+      mode:
+        description: Verify existing real Auth with runtime closed first; full requires controlled activation
+        required: true
+        type: choice
+        default: auth-only
+        options:
+          - auth-only
+          - diagnose-identity
+          - full
+
+permissions:
+  contents: read
+
+concurrency:
+  group: automove-production-runtime-smoke
+  cancel-in-progress: false
+
+jobs:
+  smoke:
+    if: github.ref == 'refs/heads/main'
+    environment: Production
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: 24
+          cache: npm
+      - name: Install locked dependencies without lifecycle scripts
+        run: npm ci --ignore-scripts
+      - name: Offline smoke safety tests
+        run: npx tsx --test scripts/verify-automove-production-runtime.test.mjs
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Read-only real Auth, SQL and dashboard smoke
+        env:
+          AUTOMOVE_EXPECTED_SHA: ${{ inputs.expected_sha }}
+          AUTOMOVE_SMOKE_MODE: ${{ inputs.mode }}
+          E2E_BASE_URL: https://bella-spa-erp.vercel.app
+          E2E_VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.E2E_VERCEL_AUTOMATION_BYPASS_SECRET }}
+          PRODUCTION_E2E_ADMIN_EMAIL: ${{ secrets.PRODUCTION_E2E_ADMIN_EMAIL }}
+          PRODUCTION_E2E_ADMIN_PASSWORD: ${{ secrets.PRODUCTION_E2E_ADMIN_PASSWORD }}
+        run: npx tsx scripts/verify-automove-production-runtime.mjs
+      - name: Upload sanitized outcome only
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: automove-production-runtime-smoke
+          path: artifacts/automove-production-runtime/evidence.json
+          if-no-files-found: warn
+          retention-days: 7
