@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 import YAML from 'yaml';
-import { verifySmokeContext, verifyRecognitionDashboard, verifySqlRead, verifyAuthenticatedClosedGuard, inspectOwnIdentity } from './verify-automove-production-runtime.mjs';
+import { verifySmokeContext, verifyRecognitionDashboard, verifySqlRead, verifyAuthenticatedClosedGuard, inspectOwnIdentity, captureBrowserAuth } from './verify-automove-production-runtime.mjs';
 
 const fixture = { GITHUB_ACTIONS: 'true', GITHUB_EVENT_NAME: 'workflow_dispatch',
   GITHUB_REPOSITORY: 'bellaspahcm/bella-ai-platform', GITHUB_REF: 'refs/heads/main',
@@ -125,6 +125,33 @@ test('diagnosis rejects mismatched Auth/configured identity and profile binding 
   const { client, queries } = identityClient();
   await assert.rejects(inspectOwnIdentity(client, 'unit-session-canary', 'different@example.invalid'));
   assert.equal(queries.length, 0);
+});
+
+test('diagnostic login capture starts before navigation discards the browser response; failure never includes raw session', async () => {
+  let navigated = false;
+  const response = {
+    url: () => 'https://lvnvkpyxtuilhrabtlwv.supabase.co/auth/v1/token?grant_type=password',
+    status: () => 200,
+    json: async () => { if (navigated) throw new Error('private-canary'); return { access_token: 'unit-session-canary' }; },
+    request: () => ({ headerValue: async () => 'unit-public-key' }),
+  };
+  const capture = captureBrowserAuth(response);
+  navigated = true;
+  assert.deepEqual(await capture, { accessToken: 'unit-session-canary', publicKey: 'unit-public-key' });
+  assert.deepEqual(await captureBrowserAuth(response), { failure: 'LOGIN_RESPONSE_CAPTURE_UNAVAILABLE' });
+  for (const override of [{ url: () => 'https://other.invalid/auth/v1/token' },
+    { status: () => 403 }, { json: async () => { throw new Error('private-canary'); } }]) {
+    const result = await captureBrowserAuth({ ...response, ...override });
+    assert.deepEqual(result, { failure: 'LOGIN_RESPONSE_CAPTURE_UNAVAILABLE' });
+    assert.ok(!JSON.stringify(result).includes('private-canary'));
+  }
+});
+
+test('diagnostic failure substep identifies the boundary without raw Auth or profile errors', async () => {
+  const stages = [];
+  const { client } = identityClient({ foreignProfile: true });
+  await assert.rejects(inspectOwnIdentity(client, 'unit-session-canary', 'unit@example.invalid', stage => stages.push(stage)));
+  assert.deepEqual(stages, ['VERIFY_AUTH_SUBJECT', 'VERIFY_AUTH_SUBJECT_BINDING', 'READ_SELF_PROFILE', 'VERIFY_PROFILE_BINDING']);
 });
 
 test('reused login settles the page before credentials and waits for the real redirect', async () => {

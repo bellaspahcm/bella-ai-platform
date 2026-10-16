@@ -48,15 +48,29 @@ const safeStatus = value => ['active', 'inactive', 'suspended', 'terminated', 'p
 const safeRole = value => ['accountant', 'admin', 'manager', 'staff', 'owner', 'receptionist', 'cashier', 'therapist', 'doctor'].includes(value) ? value : 'OTHER';
 const safeErrorCode = error => ['42501', '42P01', 'PGRST116', 'PGRST301', 'PGRST205'].includes(error?.code) ? error.code : 'OTHER';
 
-export async function inspectOwnIdentity(client, accessToken, expectedEmail) {
+export async function captureBrowserAuth(response) {
+  try {
+    assert.equal(new URL(response.url()).origin, authOrigin);
+    assert.equal(new URL(response.url()).pathname, '/auth/v1/token');
+    assert.equal(response.status(), 200);
+    const [session, publicKey] = await Promise.all([response.json(), response.request().headerValue('apikey')]);
+    if (!publicKey || typeof session?.access_token !== 'string') return { failure: 'LOGIN_SESSION_OR_PUBLIC_KEY_MISSING' };
+    return { accessToken: session.access_token, publicKey };
+  } catch { return { failure: 'LOGIN_RESPONSE_CAPTURE_UNAVAILABLE' }; }
+}
+
+export async function inspectOwnIdentity(client, accessToken, expectedEmail, observe = () => {}) {
+  observe('VERIFY_AUTH_SUBJECT');
   const { data: auth, error: authError } = await client.auth.getUser(accessToken);
   assert.ok(!authError && auth?.user);
+  observe('VERIFY_AUTH_SUBJECT_BINDING');
   const user = auth.user;
   assert.match(user.id, uuid);
   assert.equal(user.email?.trim().toLowerCase(), expectedEmail.trim().toLowerCase());
   const result = { actorFingerprint: fingerprint(user.id), configuredIdentityMatches: true,
     source: 'Verified Supabase Auth -> authenticated public.users self -> owning public.tenants',
     failures: [], historical403Origin: 'NOT_PROVEN_RESPONSE_BODY_NOT_RETAINED' };
+  observe('READ_SELF_PROFILE');
   const profile = await client.from('users').select('id,tenant_id,role,status').eq('id', user.id).maybeSingle();
   result.profileRead = { status: profile.status, visible: Boolean(profile.data && !profile.error) };
   if (profile.error || !profile.data) {
@@ -64,6 +78,7 @@ export async function inspectOwnIdentity(client, accessToken, expectedEmail) {
     result.failures.push('PROFILE_NOT_VISIBLE_OR_READ_DENIED');
     return result;
   }
+  observe('VERIFY_PROFILE_BINDING');
   assert.equal(profile.data.id, user.id);
   result.profile = { subjectMatchesAuth: true, role: safeRole(profile.data.role), status: safeStatus(profile.data.status) };
   if (profile.data.role !== 'accountant') result.failures.push('ROLE_NOT_ACCOUNTANT');
@@ -73,6 +88,7 @@ export async function inspectOwnIdentity(client, accessToken, expectedEmail) {
     return result;
   }
   const tenantId = profile.data.tenant_id;
+  observe('READ_OWN_TENANT');
   const tenant = await client.from('tenants').select('id,status,product_key').eq('id', tenantId).maybeSingle();
   result.tenantRead = { status: tenant.status, visible: Boolean(tenant.data && !tenant.error) };
   if (tenant.error || !tenant.data) {
@@ -80,6 +96,7 @@ export async function inspectOwnIdentity(client, accessToken, expectedEmail) {
     result.failures.push('TENANT_NOT_VISIBLE_OR_READ_DENIED');
     return result;
   }
+  observe('VERIFY_TENANT_BINDING');
   assert.equal(tenant.data.id, tenantId);
   result.tenant = { fingerprint: fingerprint(tenantId), matchesProfile: true,
     status: safeStatus(tenant.data.status),
@@ -95,7 +112,7 @@ export async function verifyProductionRuntime() {
     mode: process.env.AUTOMOVE_SMOKE_MODE, businessMutation: false, migration: false, checks: {} };
   let browser, context, anonymous, page;
   let authHttpStatus = null;
-  let authResponse;
+  let capturedAuth;
   let phase = 'LAUNCH';
   try {
     browser = await chromium.launch();
@@ -116,7 +133,9 @@ export async function verifyProductionRuntime() {
       const target = new URL(response.url());
       if (target.hostname === 'lvnvkpyxtuilhrabtlwv.supabase.co' && target.pathname === '/auth/v1/token') {
         authHttpStatus = response.status();
-        if (process.env.AUTOMOVE_SMOKE_MODE === 'diagnose-identity' && response.status() === 200) authResponse = response;
+        if (process.env.AUTOMOVE_SMOKE_MODE === 'diagnose-identity' && response.status() === 200 && !capturedAuth) {
+          capturedAuth = captureBrowserAuth(response);
+        }
       }
     });
     await loginWithConfiguredCredentials(page, {
@@ -130,16 +149,19 @@ export async function verifyProductionRuntime() {
       verifyAuthenticatedClosedGuard(closed.status(), closedBody);
       evidence.checks.closedGuard = 'PASS_REAL_AUTH_RUNTIME_STILL_DISABLED';
       if (process.env.AUTOMOVE_SMOKE_MODE === 'diagnose-identity') {
-        phase = 'READ_OWN_CANONICAL_IDENTITY';
-        assert.ok(authResponse && new URL(authResponse.url()).origin === authOrigin);
-        const session = await authResponse.json();
-        const publicKey = await authResponse.request().headerValue('apikey');
-        assert.ok(publicKey && typeof session.access_token === 'string');
-        const client = createClient(authOrigin, publicKey, {
-          global: { headers: { Authorization: `Bearer ${session.access_token}` } },
+        phase = 'CAPTURE_LOGIN_SESSION';
+        const login = capturedAuth ? await capturedAuth : { failure: 'LOGIN_RESPONSE_NOT_OBSERVED' };
+        if (login.failure) {
+          evidence.diagnosticFailure = login.failure;
+          throw new Error('DIAGNOSTIC_SESSION_UNAVAILABLE');
+        }
+        phase = 'CREATE_AUTHENTICATED_READ_CLIENT';
+        const client = createClient(authOrigin, login.publicKey, {
+          global: { headers: { Authorization: `Bearer ${login.accessToken}` } },
           auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
         });
-        evidence.identity = await inspectOwnIdentity(client, session.access_token, process.env.PRODUCTION_E2E_ADMIN_EMAIL);
+        evidence.identity = await inspectOwnIdentity(client, login.accessToken, process.env.PRODUCTION_E2E_ADMIN_EMAIL,
+          step => { phase = step; });
         const requestId = closed.headers()['x-vercel-id'];
         evidence.closedRequest = { method: 'GET', path: '/api/bella-auto/sales-chain/state',
           status: closed.status(), code: closedBody.code,
