@@ -10,5 +10,5 @@ export default defineConfig(base, {
   retries: 0, workers: 1, forbidOnly: true,
   reporter: [['list'], ['json', { outputFile: process.env.PLAYWRIGHT_JSON_OUTPUT_FILE }]],
   webServer: undefined,
-  use: { trace: 'off', video: 'off' },
+  use: { trace: 'off', video: 'off', actionTimeout: 60_000 },
 });
