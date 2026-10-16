@@ -243,6 +243,7 @@ describe('Bella Auto Phase 6 - Service Center & Workshop', () => {
 
   describe('Repair Order Management', () => {
     it('should create repair order with line items', async () => {
+      const todayDateStr = new Date().toISOString().split('T')[0];
       const { data: roNumber } = await supabase
         .rpc('generate_repair_order_number', { p_tenant_id: testTenantId });
 
@@ -253,7 +254,7 @@ describe('Bella Auto Phase 6 - Service Center & Workshop', () => {
           order_number: roNumber,
           customer_id: testCustomerId,
           vehicle_id: testVehicleId,
-          order_date: '2026-08-09',
+          order_date: todayDateStr,
           order_type: 'Sửa chữa',
           work_description: 'Thay dầu động cơ',
           mileage_in: 50000,
@@ -298,6 +299,7 @@ describe('Bella Auto Phase 6 - Service Center & Workshop', () => {
     });
 
     it('should auto-calculate line item totals', async () => {
+      const todayDateStr = new Date().toISOString().split('T')[0];
       const { data: roNumber } = await supabase
         .rpc('generate_repair_order_number', { p_tenant_id: testTenantId });
 
@@ -308,7 +310,7 @@ describe('Bella Auto Phase 6 - Service Center & Workshop', () => {
           order_number: roNumber,
           customer_id: testCustomerId,
           vehicle_id: testVehicleId,
-          order_date: '2026-08-09',
+          order_date: todayDateStr,
           order_type: 'Test',
           work_description: 'Test',
           mileage_in: 50000,
@@ -341,6 +343,7 @@ describe('Bella Auto Phase 6 - Service Center & Workshop', () => {
 
   describe('Service History (Immutable)', () => {
     it('should create immutable service history record', async () => {
+      const todayDateStr = new Date().toISOString().split('T')[0];
       const { data: roNumber } = await supabase
         .rpc('generate_repair_order_number', { p_tenant_id: testTenantId });
 
@@ -351,7 +354,7 @@ describe('Bella Auto Phase 6 - Service Center & Workshop', () => {
           order_number: roNumber,
           customer_id: testCustomerId,
           vehicle_id: testVehicleId,
-          order_date: '2026-08-09',
+          order_date: todayDateStr,
           order_type: 'Bảo dưỡng',
           work_description: 'Test maintenance',
           mileage_in: 60000,
@@ -413,6 +416,7 @@ describe('Bella Auto Phase 6 - Service Center & Workshop', () => {
 
   describe('Warranty Claims Workflow', () => {
     it('should create warranty claim with unique number', async () => {
+      const todayDateStr = new Date().toISOString().split('T')[0];
       const { data: claimNumber } = await supabase
         .rpc('generate_warranty_claim_number', { p_tenant_id: testTenantId });
 
@@ -423,7 +427,7 @@ describe('Bella Auto Phase 6 - Service Center & Workshop', () => {
           claim_number: claimNumber,
           customer_id: testCustomerId,
           vehicle_id: testVehicleId,
-          claim_date: '2026-08-09',
+          claim_date: todayDateStr,
           claim_type: 'Engine',
           issue_description: 'Test warranty claim',
           failure_date: '2026-08-01',
@@ -439,6 +443,7 @@ describe('Bella Auto Phase 6 - Service Center & Workshop', () => {
     });
 
     it('should transition warranty claim status: submitted -> approved -> completed', async () => {
+      const todayDateStr = new Date().toISOString().split('T')[0];
       const { data: claimNumber } = await supabase
         .rpc('generate_warranty_claim_number', { p_tenant_id: testTenantId });
 
@@ -449,7 +454,7 @@ describe('Bella Auto Phase 6 - Service Center & Workshop', () => {
           claim_number: claimNumber,
           customer_id: testCustomerId,
           vehicle_id: testVehicleId,
-          claim_date: '2026-08-09',
+          claim_date: todayDateStr,
           claim_type: 'Test',
           issue_description: 'Test',
           failure_date: '2026-08-01',
@@ -495,6 +500,7 @@ describe('Bella Auto Phase 6 - Service Center & Workshop', () => {
 
   describe('Technician Time Tracking', () => {
     it('should create time log and auto-calculate hours', async () => {
+      const todayDateStr = new Date().toISOString().split('T')[0];
       const { data: roNumber } = await supabase
         .rpc('generate_repair_order_number', { p_tenant_id: testTenantId });
 
@@ -505,7 +511,7 @@ describe('Bella Auto Phase 6 - Service Center & Workshop', () => {
           order_number: roNumber,
           customer_id: testCustomerId,
           vehicle_id: testVehicleId,
-          order_date: '2026-08-09',
+          order_date: todayDateStr,
           order_type: 'Test',
           work_description: 'Test',
           mileage_in: 50000,

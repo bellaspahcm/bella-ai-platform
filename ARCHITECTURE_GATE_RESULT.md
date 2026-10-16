@@ -1,4 +1,68 @@
-﻿# Architecture Gate - Customer Loyalty Read-Only (2026-10-15)
+# Architecture Gate - Recover Auto Workshop Tenant Filters (2026-10-16)
+
+Status: PASS for scoped local recovery; execution evidence is recorded separately.
+Base: origin/main 5483cc55e. Source checkout: f6ed9cec7, dirty Manufacturing branch.
+
+## 1. Bella OS/Product Development Process Gate
+Problem: security filters and regression evidence were left only in the old checkout.
+Truth/source: Bella Constitution sections 30/31 require tenant isolation; existing
+workshop policies and migration 20261013090000 enforce the database boundary.
+Reuse main's RLS migration unchanged. Recover only missing consumer filters.
+No business lifecycle or accounting meaning changes. MULTI_AGENT = OFF.
+
+## 2. Product Manifest
+Bella Auto/AutoMove workshop appointments and repair orders. Existing capability
+only: check-in, cancel, reschedule, repair handoff, technician assignment, totals,
+and reminders. No new Product, OS, registry entry, finance or Manufacturing work.
+
+## 3. Ownership Map
+Workshop tables/UI/services: Bella Auto Product. Tenant identity/RLS: Platform
+security, consume unchanged. Tests: Product QA. No kernel/Core changes authorized.
+
+## 4. Contract Dependency Map
+Workshop UI/services -> existing Supabase Product table access -> tenant_id
+predicate plus existing authenticated get_auth_tenant_id() RLS policy.
+No Healthcare/Education/Logistics kernel dependency or direct access.
+
+## 5. Change Authority
+User authorized separating missing changes from dirty checkout into fresh worktrees
+and verification. Allowed: three workshop consumer files, focused regression tests,
+Phase 6 fixture dates, this gate and evidence. No DB deployment or migration edits.
+
+## 6. UI -> Contract Reconciliation
+Check-in/cancel/reschedule/repair handoff: MATCH for existing fields/statuses;
+STALE UI for omitted tenant predicate. Add tenant_id to the existing query only.
+No visual redesign, new actions, permissions or business state transitions.
+
+## 7. Additive Migration Plan
+None. Existing RLS migration is already on main with a safer guarded COMMENT.
+Do not copy the untracked older migration or stale NOT_READY closure as current.
+
+## Business Test Contract
+Invariant: reads/mutations for an object ID also carry the caller tenant context.
+Authority: Constitution tenant-isolation invariant and existing workshop policy.
+Positive: authorized same-tenant query retains its existing operation and ID.
+Negative: an ID alone must never be sufficient for the eight recovered queries.
+Persistence: existing RLS remains the enforcement boundary; mocks/static evidence
+are local consumer proof only. DB/RLS/browser/production remain NOT_PROVEN here.
+Fixture date authority: phase6 number generators count rows for CURRENT_DATE;
+fixtures must use the current date, not the old 2026-08-09 literal.
+
+## 8. Eleven Automated Verification Gates Plan
+1. Record base/branch/worktree and original checkout fingerprints.
+2. Confirm only three Product consumers and focused tests change.
+3. Static regression covers each affected query without crossing statements.
+4. Service execution tests observe ID and tenant predicates on calls.
+5. Existing RLS migration remains unchanged.
+6. No new any/types/suppressions or public contracts.
+7. Focused Jest tests and negative control on unmodified main sources.
+8. Targeted ESLint.
+9. Fresh TypeScript check; classify pre-existing failures separately.
+10. Architecture guard and diff whitespace checks.
+11. Evidence report with exact commands; Real DB tests require isolated target.
+
+---
+# Architecture Gate - Customer Loyalty Read-Only (2026-10-15)
 
 ## AutoMove Sales Settlement Readiness - 2026-10-15
 
