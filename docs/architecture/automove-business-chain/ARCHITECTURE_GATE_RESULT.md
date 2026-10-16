@@ -1,5 +1,5 @@
 ---
-status: rc-verification-in-progress
+status: rc-local-verified-pending-ci
 baseline_commit: 3356a04d15b021c5098512739bc5b3676922ce3b
 ---
 
@@ -64,6 +64,54 @@ archived tenant shells remain PARTIAL cleanup, never deleted through a bypass.
 Commit/push/PR/CI are allowed for this batch; merge and Production deployment
 are not authorized. Production runtime activation, DB/schema adoption and
 restore/rollback evidence remain separate. Full readiness stays NOT_READY.
+
+### RC Executed Evidence - 2026-10-16
+
+Candidate 95e0ac6204b94acca6dd523a159d1c3bd842db81: fresh next build --webpack
+and next start PASS; build ID GBWL-U2d5ZhgyPH3IgiNN. Main runtime source remains
+unchanged from 3356a04d1; only verification/CI/checkpoint files changed.
+Runner records SHA, build manifest hash, canonical E2E project and test counts.
+Health verifies production-mode process against Non-Production DB, not a
+Production deployment. No pre-existing server or stale build accepted.
+
+Actual Browser: 1/1 PASS, zero skipped/flaky/unexpected, 3.6 minutes. Same
+UI-created booking/recognition across allocation, deposit, approved snapshot,
+persisted handover, explicit recognition, full collection, receipt read-back,
+dashboard, stale-Auth cross-tenant/inactive/suspended denials, then documented
+price -100M/cost +50M deltas, 100M receipt-linked refund, independent delivered
+cancellation, explicit full reversal and remaining receipt-linked refunds.
+Final sale/cash/outstanding are zero, reconciliation MATCHED; original financial
+snapshot/recognition/deposit/payment rows unchanged and vehicle still delivered.
+Lost acknowledgement, concurrent receipt requests and same-intent replay passed.
+No financial records were inserted to shortcut the chain; customer/catalog/vehicle,
+Auth profiles and the isolated OPEN period are explicit setup fixtures. The
+negative completed-without-recognition booking is a denial fixture, not revenue.
+
+Initial candidate 289c90747 reached reversal but failed its retry HTTP request at
+the Browser default 15-second timeout: NOT_PROVEN, not a PASS. The RC-only test
+timeout was aligned to 60 seconds (existing transactional API bounds retained),
+then a fresh committed candidate was built and the entire test rerun. No runtime
+change or automatic test retries were introduced.
+
+13 runner safety regressions PASS; strict TypeScript for 6 roots/dependencies has
+zero diagnostics; changed-file ESLint, Architecture Guard, workflow YAML parse and
+diff-check PASS. Desktop/mobile screenshot evidence retained locally; 390px dialog
+horizontal bounds asserted. Sanitized artifacts live under .cache/automove-rc and
+are not committed. CI is configured to build/test the exact PR head or main SHA,
+publish sanitized evidence, fail on absent credentials/build/test/skip, and never
+deploy or run migrations. Remote execution remains pending, not Browser CI PASS.
+
+Cleanup PARTIAL: Auth removed, active actor zero, Storage documents zero, two
+tenant shells terminated with read-back; original append-only history retained.
+Fixture period closed in cleanup; no period, FK, RLS or append-only bypass.
+
+`RC_BUSINESS_CHAIN = PROVEN_LOCAL_NON_PRODUCTION_PENDING_CI`
+`RC_BROWSER_ON_MAIN = NOT_PROVEN`
+`PRODUCTION_RUNTIME_ACTIVATION = NOT_AUTHORIZED`
+`PRODUCTION_SCHEMA_CONFIG_ADOPTION = NOT_PROVEN`
+`RECOVERY_READINESS = NOT_PROVEN`
+`AUTOMOVE_FULL_PRODUCT_READINESS = NOT_READY`
+`GO_LIVE = NOT_PROVEN`
 
 ## Recognition Adjustment Authority - 2026-10-16
 
