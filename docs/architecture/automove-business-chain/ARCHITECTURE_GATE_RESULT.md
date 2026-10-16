@@ -1,9 +1,16 @@
 ---
-status: rc-local-verified-pending-ci
-baseline_commit: 3356a04d15b021c5098512739bc5b3676922ce3b
+status: bdgf-owner-ddl-rehearsal-pending-ci
+baseline_commit: c9b4d2a1a61a539a18c27089438b552b9f74c0ad
 ---
 
 # AutoMove Business-Chain Verification
+
+Current checkpoint: RC #341 is already merged; the draft/local RC evidence below
+is historical, not a current CI wait. Live GitHub metadata confirms RC Browser CI
+success on PR head d7c1780e36f691ea1c289fe1143c1880059b20a4 (run 38832452302)
+and main c9b4d2a1a61a539a18c27089438b552b9f74c0ad (run 38835173062).
+The current unsealed work is the separate BDGF owner-DDL Non-Production rehearsal.
+No business-chain workflow was rerun to establish this metadata correction.
 
 ## RC Business-Chain Authority - 2026-10-16
 
@@ -112,6 +119,423 @@ Fixture period closed in cleanup; no period, FK, RLS or append-only bypass.
 `RECOVERY_READINESS = NOT_PROVEN`
 `AUTOMOVE_FULL_PRODUCT_READINESS = NOT_READY`
 `GO_LIVE = NOT_PROVEN`
+
+## 2026-10-16: BDGF TLS and Production delta preparation
+
+Pre-code scope decision: PASS_FOR_SCOPED_PREPARATION_ONLY. This extends the
+existing checkpoint, not a new deployment gate or business capability. Reuse
+business-chain proof #339-#341 on baseline c9b4d2a1a61a539a18c27089438b552b9f74c0ad.
+
+Manifest/scope: correct certificate verification in the BDGF wrapper/executor
+connection path and prepare the exact AutoMove adoption delta. No new product,
+schema execution, Production configuration, runtime enablement, backup or cost.
+
+Ownership: Platform/BDGF owns execution transport, approval and gate tokens;
+Mobility owns its public vehicle contract; AutoMove owns its sale evidence and
+receipts; Platform owns identity/HQ. Do not import a Product service into BDGF.
+Dependency map: migration caller -> approved BDGF wrapper -> approval/token
+contract -> isolated executor -> pg with verified TLS. Product -> Mobility and
+Accounting contracts remain unchanged. No frozen kernel or ProductRegistry edit.
+
+Initial transport authority: user authorized the two transport callers, a small shared
+connection configuration helper and focused tests, plus this preparation packet.
+No change to approval invariants, token consumption or accounting rules. UI to
+contract reconciliation: N/A, no UI change. Additive migration plan: NONE written
+or executed; a needed catalog/ACL adoption delta is specified for later approval.
+
+Security test contract (source: approved requirement to verify certificates,
+not current insecure implementation): a trusted server with matching hostname
+can connect; untrusted certificates and wrong hostnames fail before SQL; URL
+parameters cannot disable verification, redirect the validated host or load TLS
+files. Credentials and raw URLs must not appear in validation errors. Given no
+valid approval/token, transport repair never permits migration execution.
+
+The helper removes duplicated regex URL parsing from exactly two callers, uses
+the existing structured pg-connection-string parser, pins rejectUnauthorized=true
+and hostname verification, and never forwards connectionString to pg to overwrite
+the verified configuration. Use bundled public Supabase CA plus normal Node roots;
+do not weaken verification to satisfy tests or support arbitrary URL overrides.
+
+Eleven verification checks: (1) scope/ownership diff; (2) structured URL parsing;
+(3) TLS downgrade/override rejection; (4) actual trusted local TLS handshake;
+(5) untrusted and hostname-mismatch handshake failures; (6) wrapper/executor wiring
+and unchanged authorization ordering; (7) existing offline BDGF guard regressions;
+(8) scoped syntax/lint; (9) Architecture Guard; (10) whitespace and secret/scope
+review; (11) read-only E2E TLS smoke if available, otherwise NOT_PROVEN. No
+Production handshake/mutation or re-run of sealed business tests is required.
+
+Backup/recovery remains DEFERRED_PENDING_BUDGET. The owner's subsequent scoped
+backup exception is recorded below; package-specific execution bindings remain
+pending. This preparation is not a completed Production execution approval.
+Production schema/security NOT_READY; runtime guard HELD; Go-Live NOT_PROVEN.
+
+### Initial transport result (before the prerequisite extension below)
+
+Initial phase status: IMPLEMENTED_LOCAL_VERIFIED, NOT_COMMITTED, NOT_ON_MAIN.
+That phase repaired wrapper/executor transport, not all historical BDGF utilities;
+the subsequent prerequisite extension below adds the reachable approval callers.
+The helper stays Platform/BDGF-local; the AutoMove runtime guard and
+Product/Mobility/Accounting code are unchanged. No workflow was added.
+
+Executed evidence:
+
+- `node --test scripts/bdgf/database-connection.test.mjs`: 37/37 PASS, zero skips.
+  Includes actual trusted/untrusted/hostname-mismatch TLS handshakes, rejection
+  of query-driven TLS/host/file overrides and weak PGSSLMODE not overriding pg's
+  explicit TLS options. Synthetic fixture keys are generated temporarily and
+  deleted after validating that cleanup stays inside the named temp directory.
+- Existing offline BDGF suites: owner authority 19/19, Production workflow
+  12/12 and workshop closure 12/12 PASS; total 80 focused tests including TLS.
+  The first workshop invocation was 11/12 due to Windows CRLF on an unchanged
+  hashed migration; Git blob bytes matched the approved hash. Restoring only
+  that clean working file to exact LF Git bytes made the same command pass.
+  No migration content or expected hash was changed and no migration was run.
+  Native checkout line endings were restored afterward; the historical file has
+  no final diff. The hash-bound suite must run against exact Git bytes in CI.
+- Syntax checks for all four JS files, scoped ESLint and Architecture Guard PASS.
+  ESLint emitted the existing config-format warning about .eslintignore; no
+  scoped lint violations. No full-repository typecheck is claimed for JS-only
+  tooling; unchanged business test suites #339-#341 were not repeated.
+  Single-agent scoped diff review found no remaining blocker in the TLS patch;
+  no independent multi-agent review, remote CI or main seal is claimed.
+- Real E2E read-only pg connection using the new helper: certificate authorized,
+  default hostname validation, transaction_read_only=on, SELECT 1 and ROLLBACK.
+  No mutation or fixture provisioning. This is transport evidence, not an
+  authorized migration-execution or post-deployment proof.
+
+### Authorized prerequisite implementation - 2026-10-16
+
+The user authorizes completing catalog/ACL and governed execution prerequisites
+locally and on Non-Production, not Production adoption or runtime enablement.
+Reuse this gate; no new approval tier, business feature or backup work.
+
+Ownership/manifest: exactly auto_brands/models/variants for the forward read-only
+ACL correction; BDGF owns approval creation/verification, token and execution
+transport. No ProductRegistry, shared identity helper, kernel or UI change.
+Contract dependency remains caller -> approval -> gate token -> executor -> pg;
+the current database principal must equal the token-bound executor, never an
+implicitly substituted administrator. UI reconciliation is N/A.
+
+Minimal additive plan: one new forward catalog migration, no historical edit.
+Preserve table ownership/service-role grants; revoke inappropriate table/column
+writes and dangerous rights only from PUBLIC/anon/authenticated on these three
+tables. Supply explicit active, same-tenant permissive and restrictive SELECT
+policies; reject inherited privileges that remain outside the contract.
+
+Verification contract: rollback rehearsal must reproduce the catalog's empty
+policy/broad-ACL baseline, prove the historical migration rejects it, then prove
+the forward delta and historical read guard compose safely and are retryable.
+Read exact fixture rows for two tenants; deny invalid/inactive/suspended actors,
+forged claims, HQ bypass, anon and writes. Rollback restores security metadata
+and fixtures. BDGF TLS tests cover all four reachable database callers; role
+mismatch blocks before token issuance/consumption or DDL. Preserve hash/schema/
+environment/identity/single-use token checks and transaction rollback ordering.
+
+Reuse the eleven scoped checks above, adding only affected approval/identity
+tests and the catalog rollback verifier. Do not bootstrap BDGF roles/tables,
+transfer owners or grant owner membership as a test shortcut. E2E read-only
+metadata found no bella_migration_executor, bella_migration_approval or
+bella_gate_tokens; full governed Real DB execution remains NOT_PROVEN unless
+an existing authorized environment can supply these contracts.
+
+Pre-code decision: PASS_FOR_NON_PRODUCTION_PREREQUISITE_IMPLEMENTATION_ONLY.
+
+### Prerequisite implementation evidence and stop point
+
+Status: IMPLEMENTED_LOCAL_VERIFIED_FOR_CATALOG_AND_TRANSPORT;
+GOVERNED_DDL_REAL_DB_PATH = NOT_PROVEN. No commit, PR or Production operation.
+
+Catalog forward delta:
+
+- New file: 20261016010000_align_automove_catalog_read_acl.sql; current LF-byte
+  SHA-256 4b87b19444ef4b5f788278c94d8709983d94fe991674e48b9fcdc091fa83750e.
+  This is a local input hash, not a final approved release-bundle hash.
+- Exactly auto_brands/models/variants: validate existing table/RLS/uuid tenant
+  shape and owner authority before DDL; revoke PUBLIC/anon/authenticated writes
+  and dangerous table/column rights; grant authenticated SELECT. Both permissive
+  and restrictive reads require canonical active actor/tenant match. No NULL/HQ
+  bypass, owner transfer, shared helper or service-role grant edit.
+- `verify-automove-catalog-reads.ts --test-adoption-delta` PASS on the authorized
+  E2E project using verified TLS. In one rollback transaction it reproduces the
+  observed empty-policy/broad-ACL baseline, proves the historical guard refuses
+  it, proves non-owner refusal, applies/retries the forward delta and historical
+  guard, then checks actual rows for two tenants, inactive/missing/suspended/
+  terminated identity, forged tenant claims, HQ isolation, anon and write denial.
+  Final metadata fingerprints and fixture checks confirm clean rollback.
+- Historical SQL files and history are unchanged. Production adoption must apply
+  this dependency before the historical catalog guard, in the approved atomic
+  package; this is not permission for sorted blanket migration replay or manual
+  history recording. E2E was not durably changed by this rehearsal.
+
+Governed execution preparation:
+
+- Approval creation, verifyApproval, wrapper and executor now all consume the
+  same strict CA/hostname configuration. No insecure regex URL parser or
+  rejectUnauthorized=false remains in these four callers. Other historical
+  utilities are outside this path and are not certified by this result.
+- Wrapper checks actual current_user AND session_user against its executor
+  identity before token issuance. Executor repeats the check before token
+  validation/consumption. A privileged fallback or SET ROLE session cannot silently
+  masquerade as the approved executor. No database role/owner grants were made.
+- 72 focused tests PASS with zero skips: TLS/identity 45, actual approval/token/
+  executor function paths against an explicitly unit-only database double 8,
+  owner-authority regression 19. Binding tests reject hash/environment/schema/
+  identity mismatches and reused tokens; failed DDL rolls back without reviving
+  the consumed token. These unit tests do NOT prove real DDL privileges or DB
+  concurrency. No token contract, signature algorithm or single-use SQL changed.
+- Separate actual E2E READ ONLY connection through the new BDGF TLS helper
+  confirms certificate authorization and rejects postgres impersonating the
+  bella_migration_executor identity. No token/approval/DDL was written there.
+- Scoped lint and nine JS syntax checks PASS; Architecture Guard PASS; zero-
+  downtime check PASS for the one new migration; git diff --check PASS.
+  `npm run typecheck:changed` selected its full strict fallback and completed with
+  zero diagnostics. Existing sealed business suites were not repeated. ESLint's
+  existing .eslintignore configuration-format warning remains unrelated.
+
+Remaining blocker is technical, not a missing second approver or backup task:
+
+1. E2E has no bella_migration_executor, bella_migration_approval or
+   bella_gate_tokens. Do not create imitation governance fixtures or grant broad
+   roles to turn the end-to-end result into PASS.
+2. The previously inspected Production executor cannot inherit/SET the owners
+   postgres/supabase_storage_admin for the existing objects. TLS/BYPASSRLS/CREATE
+   on public cannot supply ALTER/POLICY/function-replacement ownership. Neither
+   this migration nor a string executor_identity grants that authority.
+3. The next deployment step needs an explicitly scoped governed owner-authority
+   route for the listed public/storage objects, first rehearsed in an authorized
+   environment with the actual BDGF schema/role. Preserve token bindings and final
+   transaction states; no silent admin URL substitution, broad owner membership,
+   owner transfer, fake history or relabeling storage SQL as public-only.
+
+Until that existing execution infrastructure or a specifically authorized narrow
+owner route is available, stop before issuing an adoption token or running the
+package. Catalog/RLS proof and verified transport are not full adoption proof.
+Backup exception remains recorded; runtime guard and Production stay unchanged.
+
+Ownership-route clarification from Non-Production READ ONLY metadata: public
+targets are owned by postgres; storage.objects/buckets remain owned by
+supabase_storage_admin, with no inherited/SET membership for postgres. However,
+the current E2E supautils.policy_grants explicitly delegates policy management
+on those two Storage tables to postgres. Membership checks alone therefore do
+not prove that postgres cannot manage Storage policies. Supabase's existing
+supautils contract supports this narrow policy delegation without owner transfer:
+https://github.com/supabase/supautils#table-ownership-bypass
+
+This is a candidate existing owner-operated route, not actual DDL proof and not
+evidence of the Production configuration. Do not replace the configured executor
+or grant privileges automatically. Rehearsal under an explicitly declared
+postgres executor requires the owner's scoped authorization and the actual
+canonical BDGF approval/token infrastructure; preserve hash, principal and
+transaction binding. No new execution framework, backup task or runtime change.
+
+The owner subsequently authorized this explicit postgres owner-operated
+Non-Production rehearsal, plus commit/push/PR and real CI; merge and Production
+remain forbidden. Reuse the existing wrapper, owner-authority resolver and
+approval/token contract. Instantiate only its missing canonical approval/token
+tables on the pinned E2E project, deny application access, and retain execution
+records. No new DB role, membership, owner transfer or copied Production data.
+The legacy deploy-schema.sql is not a compatible substitute for these contracts.
+Bind fixed rehearsal SQL to its source SHA/hash and verified Actions admin;
+exercise catalog DDL and a fixture-named Storage policy in rollback boundaries,
+read back unchanged business/security state and consumed tokens. No local
+GitHub Actions spoof or fabricated approved row. A successful Non-Production
+rehearsal establishes this route only, not Production adoption or readiness.
+
+The scoped runner and same-repository PR workflow are now prepared. Twelve new
+rehearsal safety tests, scoped lint, workflow YAML/syntax and secret/log guard
+PASS locally. Existing 72 focused tests/strict TypeScript/Real DB catalog evidence
+above are reused. The catalog migration maps to its existing focused Real DB CI
+verifier rather than triggering an unrelated full suite. Actual owner-operated
+approval/DDL remains PENDING_CI until the trusted job executes; local unit tests
+or owner-readable metadata are not substituted for that result. The owner
+authorized commit/push/PR and rehearsal CI only, not merge or Production deploy.
+
+### Exact Production delta, not a blanket migration replay
+
+Production/E2E metadata rechecked at 2026-10-16 12:37 Asia/Saigon (05:37 UTC),
+with TLS-verified connections and enforced READ ONLY transactions. No customer
+or financial data rows were read or exported. This is not a backup preflight.
+Baseline source is c9b4d2a1a61a539a18c27089438b552b9f74c0ad.
+
+Seventeen candidate versions are recorded in E2E and absent from Production
+history. Direct catalog checks confirm eight relations absent in Production:
+policy_registry, mobility_domain_events, mobility_command_idempotency,
+auto_vehicle_sale_recognitions, auto_vehicle_sale_recognition_adjustments,
+auto_vehicle_sale_financial_snapshots, auto_vehicle_sale_payments and
+auto_vehicle_sale_settlement_actions. The private automove-sale-documents bucket
+is absent. History absence alone is NOT permission to re-run every statement.
+
+The reviewed inputs below bind Git blob bytes at the baseline SHA, not a Windows
+CRLF working copy. They are an inventory, NOT a final executable bundle/hash:
+
+| Version | Component / dependency | Git-byte SHA-256 |
+| --- | --- | --- |
+| 20261013120000 | Mobility audit/idempotency and existing adapters | a905b45ee856b9e7eae6f93baa980b1745a60887cc71eb9ae1d72de6b5c07793 |
+| 20261014010000 | Recognition/adjustment tables and append-only checks | 75f165b8f134fcf537d4bf71357ccbbc9b09421f53a0d0a92ab2c752e5297dbc |
+| 20261014020000 | Global policy registry using public.users identity | b121ac951eeba088bf26949826fb43f4d2a44e225a09942d95befb52eb881878 |
+| 20261014020100 | Policy registry read/security hardening | 30b7cc545eb3c01a15536f54ee6e0781a82ea35b75bb78181d309264dd37d660 |
+| 20261014020200 | Sales permissive tenant policies and least privilege | aad8e91eb7797166c499a8c9cc0e594e9d0e95500079300d1225ab223c729244 |
+| 20261014030000 | Snapshot plus private document bucket/policies | 4afd86afa61e33f73e53ff955ae5689c8f2719a98a8281b9c657bfb35c3942f7 |
+| 20261014030100 | Accountant-only snapshot approval | 0a0ba76957fb7aa0da35ffbdcdd7cacc9f875f614fb6f6a3f6020aba57f76696 |
+| 20261014030200 | Server-controlled draft correction | 203bca7a093c55e3bda0b827803b0ca15e0320b14fcf22282da5aa491dc30776 |
+| 20261015010000 | Restrictive catalog SELECT guards; unmet prerequisites | 64d9485d8fe9db557dd38ac534e770d1661bc2bdac7bf6011e9e081412610bbc |
+| 20261015020000 | Post-sale receipts, requires recognition | 419db046db933dfcba7f196dce2b36d1c6a64643ac5e4e808a49a23c2dbac24c |
+| 20261015020100 | Combined receipt/deposit collection cap | 87e55490677965eda8a6031eed8b5191b2827469c5c128e69b80f19b0e73e460 |
+| 20261015030000 | Active-identity guards, needs permissive sales policies | b3f90e3a740aa8e13711a67285d1b4b040fb130f5f8a5e58e9d3a75a4fbd45ef |
+| 20261015040000 | Shared Platform live identity/HQ helpers | 1e75e3f25d24814ca0e2f3f31e80447b091d34a53c1c7f2c5fd12e96d208c108 |
+| 20261015040100 | Explicit HQ SELECT/UPDATE on public.tenants only | fa50ead7cadc449fa0f05359e9f222b2996323bfb0775d595a8796ed4533413c |
+| 20261015050000 | Customer preference policy | fa3c1d08104435250d7f815f79e4b160f3a400622323a6d2a9fd833dcde8a296 |
+| 20261015050100 | Restrict preference column writes | 41fcd3eb3a899b37413b1db2da86434ee650aa2c78c9ed896ec89f81f8800ea2 |
+| 20261015060000 | Documented refund/cancellation settlement actions | 7b5881798a24fae53a1eb9758c8709832d3fdb760d64fba64e9b81c6c0c4d231 |
+
+Confirmed differences that the final executable package must resolve explicitly:
+
+1. Each of auto_brands/models/variants has RLS enabled, zero policies and
+   authenticated write privileges. Existing 20261015010000 correctly raises
+   before DDL on this baseline. Proposed minimum delta: after writer impact and
+   authority approval, remove inappropriate catalog write/dangerous ACLs and
+   provide an explicit permissive SELECT policy requiring active canonical
+   actor/tenant and matching tenant_id, then keep/apply the reviewed restrictive
+   guard. Do NOT add the old NULL/HQ bypass or weaken the migration's checks.
+   The separately authorized prerequisite extension above now supplies and
+   rollback-verifies that forward correction. Production application is not
+   authorized by the rehearsal.
+2. Existing sales/profile relations also have zero policies; auto_vehicles has
+   one legacy policy. Effective anon TRUNCATE is present on all eight inspected
+   existing relations, and old profile table grants exceed the intended column
+   writes. Therefore the final narrow object ACL delta must be specified for
+   the approved contract; column grants or RLS alone do not revoke inherited
+   dangerous privileges. No broad default-grant or unrelated-table change.
+3. Canonical helper fingerprints differ for get_auth_tenant_id, is_admin, is_hr,
+   is_accountant, is_hq_super_admin and is_hq_admin; Mobility helper is absent.
+   Adopting 20261015040000 is a shared Platform change, not only eight new tables.
+   Pair it with 20261015040100 and review the approved shared identity/HQ impact;
+   no default cross-tenant AutoMove exception is allowed.
+4. Existing inspected public relations are owned by postgres; storage.objects
+   and storage.buckets by supabase_storage_admin. bella_migration_executor is
+   not superuser and cannot inherit or SET either owning role. It has public
+   CREATE but not storage CREATE. BYPASSRLS is not DDL ownership. The current
+   executor cannot be assumed to ALTER these tables/policies or replace owned
+   helpers. Platform/data owners must approve the least-privileged execution
+   authority strategy before dispatch. Do not grant broad ownership membership,
+   transfer owner, use admin SQL directly or claim this transport fix grants DDL.
+
+### Conditional execution sequence and stop conditions
+
+This is one ordered release proposal, NOT rollout authorization:
+
+1. Carry the scoped owner backup exception below into the existing BDGF approval
+   process; do not request a second approver or restart backup. Freeze final
+   source SHA, project, approved dependency-ordered delta, exact execution hashes,
+   ownership route and before-state fingerprints. Stop before any write if the
+   package's authorization/token binding, object shape or DDL authority is unproven.
+2. Use the rollback-verified forward catalogue/ACL correction above, not a fake
+   legacy bootstrap. Preserve all historical files and the sealed workshop
+   history. Bind its exact bytes with the full approved package before execution.
+3. Stage policy_registry identity/read inputs 20261014020000/20100, Mobility
+   20261013120000 and recognition 20261014010000, with active global accounting
+   policy available before any recognition inserts. These depend on canonical
+   users/tenants/customer/vehicle/org-unit schema, not a fake public.profiles.
+   Stages 3-5 are dependency staging, not independently committable security
+   states: use one approved transaction unless each committed unit is separately
+   proven to preserve the final access boundary. Existing per-file wrappers must
+   not be assumed to make a multi-file sequence atomic.
+4. Apply shared identity/HQ 20261015040000/40100 as one logical security unit,
+   sales policies 20261014020200 and active guards 20261015030000 after their
+   permissive dependencies; satisfy catalog preconditions before 20261015010000.
+   All changes exposing existing access must be transactional with their final
+   restrictive guards/least-privilege ACLs. If approved tooling cannot guarantee
+   that or requires an unapproved maintenance operation, STOP; do not expose an
+   intermediate permissive state or silently re-order an approved package.
+5. Apply snapshot/bucket 20261014030000/30100/30200 as a final-state unit,
+   receipts/cap 20261015020000/20100, preferences 20261015050000/50100 and
+   settlement 20261015060000 after their dependencies. Approval must explicitly
+   cover both public and storage mutations under supported schema bindings;
+   do not relabel mixed-schema DDL as public-only to fit a token.
+6. After each authorized transaction verify actual columns, constraints/indexes,
+   trigger invariants, policies, effective table/column privileges and current
+   helper definitions against the approved final-state manifest, not only names
+   or counts. Verify the policy seed/private bucket/document rules. History
+   records only verified committed changes via the approved migration mechanism.
+   No manual history inserts, blanket db push or reused workshop confirmation.
+7. Keep runtime closed. Only after a separate explicit runtime decision and
+   successful adoption may a controlled default-deny enablement be implemented
+   and tested on the exact deployed SHA. No fixture/write probes on Production
+   without explicit test actor/data authorization. Reuse #339-#341; run only
+   affected regressions plus mandatory CI. Deployment success is not Go-Live.
+
+The four reachable approval/execution callers now use verified TLS; unrelated
+historical BDGF probe scripts are not covered. The old workshop workflows are
+not an authorized adoption entrypoint. Do not claim the entire framework or a
+new Real DB rollout path is sealed by transport and unit-test evidence.
+
+### Human decision and rollback boundary
+
+BDGF lists Bella Platform Architecture Team as owner and Platform Chief Architect
+as approval authority, with Amendment + Architecture Review + Security Review.
+The user's subsequent decision identifies the Bella AI Platform owner as the
+final human authority for this release. Do not require an additional person only
+because the framework describes organizational roles. Human authority, technical
+readiness and the machine-enforced execution approval are separate facts.
+
+Owner decision recorded from the current conversation, limited to this AutoMove
+Production adoption effort:
+
+- OWNER_BACKUP_EXCEPTION = APPROVED_BY_OWNER_IN_CONVERSATION. The owner accepts
+  proceeding without independent backup and the associated risk of data loss or
+  inability to restore independently. This does not prove a backup exists or that
+  recovery is possible. No global BDGF rule or other release is changed.
+- BACKUP_RECOVERY = DEFERRED_PENDING_BUDGET. Do not restart preflight, export,
+  backup/restore work, tasks or paid services. No expiry or standing waiver for
+  future releases is inferred from this decision.
+- Keep verified CA/hostname TLS. Do not replay all 17 historical migrations,
+  fabricate migration history, weaken catalog/ACL checks or bypass DDL ownership.
+- RUNTIME_GUARD = HELD until adoption and actual schema/security verification
+  succeed and runtime enablement is separately authorized.
+- EXECUTION_BINDING = NOT_READY. No final executable delta/hash, valid approval
+  record or gate token has been created for this adoption. Recording the owner's
+  decision in this document does not create one or impersonate a database actor.
+
+Technical prerequisites stay within the existing release preparation:
+
+1. Catalog/ACL delta: now implemented and rollback-verified in the prerequisite
+   extension above for exactly three tables under the reviewed tenant/least-
+   privilege contract. The historical migration is unchanged; no fake legacy
+   policy was added to pass its assertions. Production adoption is still pending.
+2. Governed DDL route: specify how the approved public/storage changes run with
+   their required object-owner authority, transaction boundaries and exact token
+   bindings. Do not silently switch to an administrator connection, grant broad
+   owner membership or treat BYPASSRLS as ownership. The prerequisite extension
+   above fixes TLS on all four reachable callers and enforces real DB principal
+   matching, but cannot create missing owner authority or E2E governance objects.
+
+These are prerequisites of the same release, not new architectural gates or a
+request to find another human approver. No Production mutation is authorized by
+an unfinished execution package, and no machine approval check is disabled.
+
+Rollback proposal: fail before mutation on any unmet precondition; failed
+uncommitted changes ROLLBACK under bounded locks/timeouts; verify before-state
+fingerprints and stop subsequent steps. For committed changes, retain runtime
+closure/history and use an explicitly authorized forward fix or proven recovery
+procedure. Never drop financial/append-only tables or erase history. A source
+revert or transaction test does not provide full-database restore capability.
+
+Current report for decision:
+
+| Requested field | Current result |
+| --- | --- |
+| DEPLOYMENT_STATUS | PREPARED_LOCAL; EXECUTION_HELD |
+| MIGRATION_DELTA | 17 historical candidates mapped plus one rollback-verified forward catalog correction; final adoption package NOT_READY |
+| SCHEMA_SECURITY_VERIFICATION | FAIL_PROVEN_FOR_CURRENT_PRODUCTION_ADOPTION; metadata only, no write probes |
+| RUNTIME_GUARD_STATUS | UNCHANGED_HELD |
+| BDGF_APPROVAL | OWNER_BACKUP_EXCEPTION_RECORDED; package execution binding NOT_READY |
+| ROLLBACK_PLAN | CONDITIONAL; independent recovery NOT_PROVEN |
+| GO_LIVE_STATUS | NOT_PROVEN |
+
+BUSINESS_CHAIN remains PROVEN_ON_MAIN for the sealed Non-Production proof.
+BACKUP_RECOVERY remains DEFERRED_PENDING_BUDGET; full product readiness NOT_READY.
+No Production mutation, backup/export, restore, configuration change, deployment,
+kernel/registry/business change, commit, push or PR was performed in this batch.
 
 ## Recognition Adjustment Authority - 2026-10-16
 

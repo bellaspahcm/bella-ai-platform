@@ -11,6 +11,7 @@ import dotenv from 'dotenv';
 import pg from 'pg';
 import { computeApprovalHash, computeHash } from './r4-verify-approval.mjs';
 import { buildOwnerAuthorityNotes, resolveGitHubActionsOwnerAuthority } from './owner-authority.mjs';
+import { createBdgfDatabaseConfig } from './database-connection.mjs';
 
 const { Client } = pg;
 dotenv.config();
@@ -275,10 +276,7 @@ async function main() {
     throw new Error('DATABASE_URL or DATABASE_EXECUTOR_URL is required');
   }
 
-  const db = new Client({
-    connectionString: dbUrl,
-    ssl: { rejectUnauthorized: false }
-  });
+  const db = new Client(createBdgfDatabaseConfig(dbUrl));
 
   await db.connect();
   try {

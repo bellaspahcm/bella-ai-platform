@@ -23,6 +23,8 @@ import { issueGateToken } from './gate-token.mjs';
 import { executeMigration } from './migration-executor.mjs';
 import dotenv from 'dotenv';
 import pg from 'pg';
+import { createBdgfDatabaseConfig } from './database-connection.mjs';
+import { assertExecutionIdentity } from './execution-identity.mjs';
 
 const { Client } = pg;
 dotenv.config();
@@ -146,19 +148,14 @@ export async function executeMigrationWithAuthorization(params) {
     throw new Error('DATABASE_EXECUTOR_URL not configured');
   }
   
-  const urlMatch = dbUrl.match(/postgresql:\/\/([^:]+):([^@]+)@([^:]+):(\d+)\/(.+)/);
-  if (!urlMatch) {
-    throw new Error('Invalid DATABASE_URL format');
-  }
-  
-  const [, user, password, host, port, database] = urlMatch;
-  const db = new Client({ host, port: parseInt(port), database, user, password, ssl: { rejectUnauthorized: false } });
+  const db = new Client(createBdgfDatabaseConfig(dbUrl));
   
   let token;
   let executionResult;
   
   try {
     await db.connect();
+    await assertExecutionIdentity(db, executor_identity);
     
     // Import computeHash from verifier
     const { computeHash } = await import('./r4-verify-approval.mjs');
