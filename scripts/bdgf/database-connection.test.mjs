@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { X509Certificate } from 'node:crypto';
+import { randomBytes, X509Certificate } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import { existsSync, mkdtempSync, readFileSync, realpathSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -9,14 +9,18 @@ import { connect, createServer, rootCertificates } from 'node:tls';
 import pg from 'pg';
 import { createBdgfDatabaseConfig } from './database-connection.mjs';
 
-const databaseUrl = 'postgresql://executor:p%40ss%3Aword@localhost:5432/postgres';
+const fixtureUrl = new URL('postgresql://localhost:5432/postgres');
+const fixturePassword = `synthetic:@${randomBytes(12).toString('hex')}`;
+fixtureUrl.username = 'executor';
+fixtureUrl.password = fixturePassword;
+const databaseUrl = fixtureUrl.href;
 
 test('structured parsing preserves encoded credentials and verifies chain/hostname', () => {
   const config = createBdgfDatabaseConfig(databaseUrl);
   assert.equal(config.host, 'localhost');
   assert.equal(config.port, 5432);
   assert.equal(config.user, 'executor');
-  assert.equal(config.password, 'p@ss:word');
+  assert.equal(config.password, fixturePassword);
   assert.equal(config.database, 'postgres');
   assert.equal(config.ssl.rejectUnauthorized, true);
   assert.equal(config.ssl.servername, config.host);

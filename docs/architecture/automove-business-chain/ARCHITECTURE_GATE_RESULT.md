@@ -1,5 +1,5 @@
 ---
-status: bdgf-owner-ddl-rehearsal-pending-ci
+status: bdgf-owner-ddl-proven-non-production-pr-ci-pending
 baseline_commit: c9b4d2a1a61a539a18c27089438b552b9f74c0ad
 ---
 
@@ -11,6 +11,9 @@ success on PR head d7c1780e36f691ea1c289fe1143c1880059b20a4 (run 38832452302)
 and main c9b4d2a1a61a539a18c27089438b552b9f74c0ad (run 38835173062).
 The current unsealed work is the separate BDGF owner-DDL Non-Production rehearsal.
 No business-chain workflow was rerun to establish this metadata correction.
+That owner-DDL route is now PROVEN_NON_PRODUCTION_BY_CI at b6e29da2937c830aa1c0f313b59b1788e212d3ec
+(run 38862036244). Earlier local NOT_PROVEN entries below describe the preceding
+preparation phases, not the current E2E governance state. Production remains held.
 
 ## RC Business-Chain Authority - 2026-10-16
 
@@ -240,7 +243,7 @@ an existing authorized environment can supply these contracts.
 
 Pre-code decision: PASS_FOR_NON_PRODUCTION_PREREQUISITE_IMPLEMENTATION_ONLY.
 
-### Prerequisite implementation evidence and stop point
+### Initial local prerequisite evidence (before the owner rehearsal)
 
 Status: IMPLEMENTED_LOCAL_VERIFIED_FOR_CATALOG_AND_TRANSPORT;
 GOVERNED_DDL_REAL_DB_PATH = NOT_PROVEN. No commit, PR or Production operation.
@@ -292,7 +295,7 @@ Governed execution preparation:
   zero diagnostics. Existing sealed business suites were not repeated. ESLint's
   existing .eslintignore configuration-format warning remains unrelated.
 
-Remaining blocker is technical, not a missing second approver or backup task:
+Blockers observed at the end of that local phase, before owner rehearsal:
 
 1. E2E has no bella_migration_executor, bella_migration_approval or
    bella_gate_tokens. Do not create imitation governance fixtures or grant broad
@@ -349,6 +352,27 @@ verifier rather than triggering an unrelated full suite. Actual owner-operated
 approval/DDL remains PENDING_CI until the trusted job executes; local unit tests
 or owner-readable metadata are not substituted for that result. The owner
 authorized commit/push/PR and rehearsal CI only, not merge or Production deploy.
+
+Owner-operated governed DDL subsequently PASSed in real CI on PR #343 head
+b6e29da2937c830aa1c0f313b59b1788e212d3ec, run 38862036244:
+https://github.com/bellaspahcm/bella-ai-platform/actions/runs/38862036244
+The trusted job verified operator bellaspahcm/admin and the exact source SHA,
+created the previously absent canonical E2E approval/token tables, and executed
+both fixed cases through the existing wrapper as postgres. Actual public catalog
+DDL, delegated storage.objects policy creation and private bucket creation/read-
+back succeeded. The success case restored security metadata inside its rollback
+boundary; the deliberate execution failure was rolled back by the executor.
+Both tokens stayed consumed and a second consumption was rejected; no policy or
+bucket probe remained. Governance schema/approval/token audit rows are retained.
+Evidence status: PROVEN_NON_PRODUCTION_OWNER_DDL_ROUTE. This does not establish
+Production delegation/configuration, final adoption-package approval, main seal
+or Go-Live. The PR remains open and must not be merged under this authorization.
+
+PR static analysis flagged the synthetic encoded-password URI in a TLS test,
+not a real credential. The fixture now uses a fresh synthetic password and URL
+username/password setters rather than an inline URI; the encoding invariant and
+scanner rules remain unchanged. The corrected
+PR head must finish its own required checks; no alert was suppressed.
 
 ### Exact Production delta, not a blanket migration replay
 
