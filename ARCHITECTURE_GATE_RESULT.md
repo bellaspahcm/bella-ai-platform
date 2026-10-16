@@ -1,3 +1,29 @@
+# PR #345 Follow-up Gate - Runtime Fixture Contract Repair (2026-10-16)
+
+Status: PASS for the user's request to fix all PR errors, including the previously
+deferred missing import. The eight recovery-gate sections below remain applicable.
+
+- Scope/owner: Runtime QA helper fixtures and their mock consumer, not Finance,
+  Healthcare or Education product/kernel behavior.
+- Canonical contract: public `types/financial-intent.types.ts` / exported types;
+  `FinancialIntentSchema` requires a Date and top-level source. Do not invent a
+  runtime-domain compatibility file or widen the runtime contract.
+- Semantic evidence: Runtime architecture v1.1 and Phase 3C test plan require
+  structural validation and explicit rejection of malformed effectiveDate. Valid
+  fixtures follow the public type; malformed raw input remains deliberately invalid.
+- Authority: update two stale helper imports, Date/source fixture values, focused
+  tests/typecheck configuration, evidence. Preserve existing rejection assertions.
+- Dependency: QA helper -> public FinancialIntent contract -> existing validator;
+  no Kernel access, schema, RPC, RLS or implementation changes. No UI/migration.
+- Test contract: valid fixtures and overrides satisfy the existing public schema;
+  malformed date/currency/missing-tenant inputs still fail the existing validator.
+- Verification: existing 11 gates plus complete Security E2E entrypoint typecheck,
+  fixture regressions and Real DB Security E2E on verified canonical project
+  `bmnbqbcdbuklhopfbopv`, with JWT_E2E mapped process-only to SUPABASE_JWT_SECRET.
+  No secret values or environment files may be persisted in either worktree.
+
+---
+
 # Architecture Gate - Recover Runtime Security E2E Coverage (2026-10-16)
 
 Status: PASS for test/harness-only recovery from origin/main 5483cc55e.

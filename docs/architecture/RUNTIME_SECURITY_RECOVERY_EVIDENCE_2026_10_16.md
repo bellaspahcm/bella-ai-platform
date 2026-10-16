@@ -19,6 +19,10 @@ All main Security E2E tests and assertions are preserved, including server
 metadata defaults, blank intent-type rejection, anon privilege boundary,
 duplicate rejection and atomicity checks. No runtime contract or DB change.
 
+Both stale Runtime QA helper imports now consume the existing public FinancialIntent
+type. Valid fixtures use a Date and top-level source. The malformed-date fixture
+remains deliberately invalid raw input; the runtime type/schema are unchanged.
+
 ## Executed local verification
 
 | Command / inspection | Result |
@@ -27,24 +31,28 @@ duplicate rejection and atomicity checks. No runtime contract or DB change.
 | Env selection subprocess cases using synthetic values only | PASS: default, explicit path, Bella alias, primary precedence, preserve process env |
 | ESLint on Vitest config, Security E2E and new env test | PASS, exit 0; repository ESLintIgnoreWarning only |
 | Strict TypeScript for Vitest config and new env test | PASS |
-| Strict TypeScript for Security E2E + config | Existing TS2307 in `tests/utils/e2e-fixtures.ts:9`; identical failure with main Security E2E restored |
+| `node node_modules/typescript/bin/tsc -p tsconfig.runtime-security-tests.json --pretty false` | PASS, 0 diagnostics including Security E2E, helper fixtures/mock, config and fixture regressions |
+| `vitest run tests/unit/runtime/e2e-fixtures.test.ts --reporter=verbose` | PASS, 12/12; valid fixtures/overrides/batch accepted and malformed inputs still rejected |
+| `vitest run tests/e2e/runtime/3c-security-gate.e2e.test.ts --reporter=verbose` on canonical E2E | PASS, 11/11, including explicit metadata |
 | `npm run arch:guard` | PASS |
 | `git diff --check` | PASS |
 
-The shared E2E helper imports nonexistent `runtime-domain.types`. Redirecting it
-to the existing FinancialIntent type would also require resolving Date/source
-fixture semantics across other tests. This pre-existing boundary is deferred;
-no compatibility alias, schema invention or type suppression is introduced.
+The pre-existing missing import and Date/source mismatches are resolved in the
+QA consumer layer. No compatibility alias, runtime contract widening, schema
+invention or type suppression is introduced.
 
 ## Evidence limits
 
-Runtime Security Real DB E2E: NOT_RUN / NOT_PROVEN. `.env.test` and `.env.e2e`
-do not supply the required JWT secret. The `.env.local` environment is not used
-as an unverified substitute. No credentials are copied to this worktree.
+Runtime Security Real DB E2E: PASS, 11/11, on verified canonical project
+`bmnbqbcdbuklhopfbopv`. The E2E-scoped `JWT_E2E` alias was verified and mapped to
+`SUPABASE_JWT_SECRET` in the child process only, while explicitly loading
+`.env.e2e`. No secret values or env files are copied to this worktree.
 
 The 3 migration tests are static contract evidence; the 5 env tests execute the
-real configuration loader. Neither proves the new E2E case against a database.
+real configuration loader. The separate 11-test Security run supplies Real DB
+evidence; fixture unit tests alone do not establish database behavior.
 No Production, deployment, schema, migration, RLS, runtime implementation,
 ProductRegistry, Manufacturing, frozen kernel or Core modification.
 
-Result: local harness recovery is verified; full Security E2E remains NOT_PROVEN.
+Result: scoped harness/fixture checks and Security Real DB E2E PASS. Production,
+full Product operation and Go-Live remain NOT_PROVEN.

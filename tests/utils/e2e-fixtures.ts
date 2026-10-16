@@ -6,7 +6,7 @@
  * @see BELLA_RUNTIME_PHASE_3C_TEST_PLAN.md
  */
 
-import { FinancialIntent } from '../../src/platform/integration-runtime/types/runtime-domain.types';
+import type { FinancialIntent } from '../../src/platform/integration-runtime/types/financial-intent.types';
 
 export interface E2ETenant {
   tenantId: string;
@@ -55,7 +55,8 @@ export function createTestIntent(
     correlationId: `test-corr-${random}`,
     amount: 1000.00,
     currency: 'USD',
-    effectiveDate: new Date().toISOString().split('T')[0], // YYYY-MM-DD
+    effectiveDate: new Date(),
+    source: 'E2E Test',
     entityType: 'Hospital',
     entityId: `hospital-${random}`,
     metadata: {
@@ -79,7 +80,8 @@ export const HEALTHCARE_INTENTS = {
     correlationId: `hc-patient-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
     amount,
     currency: 'USD',
-    effectiveDate: new Date().toISOString().split('T')[0],
+    effectiveDate: new Date(),
+    source: 'E2E Test',
     entityType: 'Patient',
     entityId: `patient-${Math.random().toString(36).substr(2, 9)}`,
     metadata: {
@@ -98,7 +100,8 @@ export const HEALTHCARE_INTENTS = {
     correlationId: `hc-insurance-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
     amount,
     currency: 'USD',
-    effectiveDate: new Date().toISOString().split('T')[0],
+    effectiveDate: new Date(),
+    source: 'E2E Test',
     entityType: 'Insurance',
     entityId: `insurance-${Math.random().toString(36).substr(2, 9)}`,
     metadata: {
@@ -116,7 +119,8 @@ export const HEALTHCARE_INTENTS = {
     correlationId: `hc-pharmacy-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
     amount,
     currency: 'USD',
-    effectiveDate: new Date().toISOString().split('T')[0],
+    effectiveDate: new Date(),
+    source: 'E2E Test',
     entityType: 'Pharmacy',
     entityId: `pharmacy-${Math.random().toString(36).substr(2, 9)}`,
     metadata: {
@@ -140,7 +144,8 @@ export const EDUCATION_INTENTS = {
     correlationId: `edu-tuition-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
     amount,
     currency: 'USD',
-    effectiveDate: new Date().toISOString().split('T')[0],
+    effectiveDate: new Date(),
+    source: 'E2E Test',
     entityType: 'Student',
     entityId: `student-${Math.random().toString(36).substr(2, 9)}`,
     metadata: {
@@ -159,7 +164,8 @@ export const EDUCATION_INTENTS = {
     correlationId: `edu-scholarship-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
     amount,
     currency: 'USD',
-    effectiveDate: new Date().toISOString().split('T')[0],
+    effectiveDate: new Date(),
+    source: 'E2E Test',
     entityType: 'Student',
     entityId: `student-${Math.random().toString(36).substr(2, 9)}`,
     metadata: {
@@ -182,7 +188,8 @@ export const INVALID_INTENTS = {
     correlationId: `invalid-${Date.now()}`,
     amount: 100.00,
     currency: 'USD',
-    effectiveDate: new Date().toISOString().split('T')[0],
+    effectiveDate: new Date(),
+    source: 'E2E Test',
     entityType: 'Test',
     entityId: 'test-001',
   }),
@@ -196,7 +203,8 @@ export const INVALID_INTENTS = {
     correlationId: `invalid-${Date.now()}`,
     amount: -100.00, // Invalid: negative
     currency: 'USD',
-    effectiveDate: new Date().toISOString().split('T')[0],
+    effectiveDate: new Date(),
+    source: 'E2E Test',
     entityType: 'Test',
     entityId: 'test-001',
   }),
@@ -210,7 +218,8 @@ export const INVALID_INTENTS = {
     correlationId: `invalid-${Date.now()}`,
     amount: 100.00,
     currency: 'INVALID', // Invalid: not 3-letter ISO code
-    effectiveDate: new Date().toISOString().split('T')[0],
+    effectiveDate: new Date(),
+    source: 'E2E Test',
     entityType: 'Test',
     entityId: 'test-001',
   }),
@@ -218,13 +227,14 @@ export const INVALID_INTENTS = {
   /**
    * Invalid date format
    */
-  INVALID_DATE: (tenantId: string): FinancialIntent => ({
+  INVALID_DATE: (tenantId: string): Record<string, unknown> => ({
     intentType: 'REVENUE_RECOGNIZED',
     tenantId,
     correlationId: `invalid-${Date.now()}`,
     amount: 100.00,
     currency: 'USD',
-    effectiveDate: 'not-a-date', // Invalid date
+    effectiveDate: 'not-a-date', // Deliberately malformed raw input
+    source: 'E2E Test',
     entityType: 'Test',
     entityId: 'test-001',
   }),
@@ -238,7 +248,8 @@ export const INVALID_INTENTS = {
     correlationId: `invalid-${Date.now()}`,
     amount: 100.00,
     currency: 'USD',
-    effectiveDate: new Date().toISOString().split('T')[0],
+    effectiveDate: new Date(),
+    source: 'E2E Test',
     entityType: 'Test',
     entityId: "'; DROP TABLE runtime_outbox; --",
   }),
