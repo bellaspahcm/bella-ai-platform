@@ -337,32 +337,32 @@ export default function FacilitiesPage() {
   const currentZone = zones[0];
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 p-6 md:p-10 font-sans">
+    <div className="preschool-ui min-h-screen bg-background text-foreground p-6 md:p-10 font-sans">
       <div className="max-w-7xl mx-auto space-y-8">
         {/* Header & Navigation */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-800 pb-6">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-border pb-6">
           <div>
             <div className="flex items-center gap-3">
-              <Link href="/dashboard/education" className="p-2 bg-slate-900 hover:bg-slate-800 rounded-lg text-slate-400 hover:text-white transition">
+              <Link href="/dashboard/education" className="p-2 bg-background hover:bg-muted rounded-lg text-muted-foreground hover:text-foreground transition">
                 <ArrowLeft size={18} />
               </Link>
-              <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-rose-400 via-amber-300 to-indigo-400 bg-clip-text text-transparent">
+              <h1 className="preschool-brand-heading text-3xl font-extrabold tracking-tight text-[var(--education-brand-ink)]">
                 P9 Preschool Facilities & Asset Maintenance OS
               </h1>
             </div>
-            <p className="text-slate-400 text-sm mt-1 ml-11">
+            <p className="text-muted-foreground text-sm mt-1 ml-11">
               Quản lý Cấu Trúc Không Gian, Danh Mục Tài Sản Cá Thể, Kiểm Định An Toàn PCCC, Work Order & Safety Invariants
             </p>
           </div>
 
           <div className="flex items-center gap-3">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-indigo-950/80 text-indigo-300 border border-indigo-800/60 shadow-lg shadow-indigo-950/40">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-primary text-primary-foreground border border-primary/20 shadow-lg shadow-primary/20">
               <ShieldCheck size={14} /> P9.2 INTEGRATION VERIFIED
             </span>
             <button 
               onClick={loadData}
               disabled={loading}
-              className="p-2.5 bg-slate-900 hover:bg-slate-800 text-slate-300 rounded-lg border border-slate-800 transition flex items-center gap-2 text-xs"
+              className="p-2.5 bg-background hover:bg-muted text-foreground rounded-lg border border-border transition flex items-center gap-2 text-xs"
             >
               <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
               Làm mới
@@ -386,70 +386,70 @@ export default function FacilitiesPage() {
 
         {/* Actionable Metrics & Invariant Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="p-5 bg-slate-900/80 border border-slate-800 rounded-2xl">
-            <div className="text-xs font-medium text-slate-400 uppercase tracking-wider">Trạng Thái Thiết Bị Cá Thể</div>
+          <div className="p-5 bg-background border border-border rounded-2xl">
+            <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Trạng Thái Thiết Bị Cá Thể</div>
             <div className="mt-2 flex items-center justify-between">
               <span data-testid="asset-status-badge" className={`text-2xl font-bold ${
                 currentAsset?.operationalStatus === 'OUT_OF_SERVICE'
-                  ? 'text-rose-400'
+                  ? 'text-rose-700 dark:text-rose-400'
                   : currentAsset?.operationalStatus === 'UNDER_INSPECTION'
-                  ? 'text-amber-400'
-                  : 'text-emerald-400'
+                  ? 'text-amber-700 dark:text-amber-400'
+                  : 'text-emerald-700 dark:text-emerald-400'
               }`}>
                 {currentAsset?.operationalStatus || 'OPERATIONAL'}
               </span>
               {currentAsset?.operationalStatus === 'OUT_OF_SERVICE' ? (
-                <AlertTriangle className="text-rose-400 animate-pulse" size={28} />
+                <AlertTriangle className="text-rose-700 dark:text-rose-400 animate-pulse" size={28} />
               ) : (
-                <ShieldCheck className="text-emerald-400" size={28} />
+                <ShieldCheck className="text-emerald-700 dark:text-emerald-400" size={28} />
               )}
             </div>
-            <p className="text-xs text-slate-500 mt-2">
+            <p className="text-xs text-muted-foreground mt-2">
               Mã QR: {currentAsset?.serialNumber || 'AST-PLAY-01'}
             </p>
           </div>
 
-          <div className="p-5 bg-slate-900/80 border border-slate-800 rounded-2xl">
-            <div className="text-xs font-medium text-slate-400 uppercase tracking-wider">Zone Availability (P3/P8)</div>
+          <div className="p-5 bg-background border border-border rounded-2xl">
+            <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Zone Availability (P3/P8)</div>
             <div className="mt-2 flex items-center justify-between">
               <span data-testid="zone-availability-badge" className={`text-xl font-bold ${
-                zoneAvailability?.availableForScheduling ? 'text-emerald-400' : 'text-rose-400'
+                zoneAvailability?.availableForScheduling ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-700 dark:text-rose-400'
               }`}>
                 {zoneAvailability?.availableForScheduling ? 'AVAILABLE' : 'OUT_OF_SERVICE'}
               </span>
-              <Building2 className={zoneAvailability?.availableForScheduling ? 'text-emerald-400' : 'text-rose-400'} size={24} />
+              <Building2 className={zoneAvailability?.availableForScheduling ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-700 dark:text-rose-400'} size={24} />
             </div>
-            <p className="text-xs text-slate-500 mt-2">Read-Only ZoneAvailabilityContract</p>
+            <p className="text-xs text-muted-foreground mt-2">Read-Only ZoneAvailabilityContract</p>
           </div>
 
-          <div className="p-5 bg-slate-900/80 border border-slate-800 rounded-2xl">
-            <div className="text-xs font-medium text-slate-400 uppercase tracking-wider">Work Order Bảo Trì Active</div>
-            <div className="mt-2 text-2xl font-bold text-amber-300">
-              {maintenanceJobs.length} <span className="text-xs font-normal text-slate-400">Work Orders</span>
+          <div className="p-5 bg-background border border-border rounded-2xl">
+            <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Work Order Bảo Trì Active</div>
+            <div className="mt-2 text-2xl font-bold text-amber-700 dark:text-amber-300">
+              {maintenanceJobs.length} <span className="text-xs font-normal text-muted-foreground">Work Orders</span>
             </div>
-            <p className="text-xs text-slate-500 mt-2">
+            <p className="text-xs text-muted-foreground mt-2">
               Trạng thái: {maintenanceJobs[0]?.status || 'NÓ/A'}
             </p>
           </div>
 
-          <div className="p-5 bg-slate-900/80 border border-slate-800 rounded-2xl">
-            <div className="text-xs font-medium text-slate-400 uppercase tracking-wider">Cảnh Báo Safety Work Queue</div>
-            <div className="mt-2 text-2xl font-bold text-rose-400">
-              {exceptions.filter(e => e.status === 'OPEN').length} <span className="text-xs font-normal text-slate-400">SAFETY_DEFECT</span>
+          <div className="p-5 bg-background border border-border rounded-2xl">
+            <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Cảnh Báo Safety Work Queue</div>
+            <div className="mt-2 text-2xl font-bold text-rose-700 dark:text-rose-400">
+              {exceptions.filter(e => e.status === 'OPEN').length} <span className="text-xs font-normal text-muted-foreground">SAFETY_DEFECT</span>
             </div>
-            <p className="text-xs text-slate-500 mt-2">Platform Reuse Candidate #3 Active</p>
+            <p className="text-xs text-muted-foreground mt-2">Platform Reuse Candidate #3 Active</p>
           </div>
         </div>
 
         {/* Tab Navigation */}
-        <div className="flex border-b border-slate-800 gap-8 overflow-x-auto">
+        <div className="flex border-b border-border gap-8 overflow-x-auto">
           <button
             data-testid="tab-overview"
             onClick={() => setActiveTab('OVERVIEW')}
             className={`pb-4 text-sm font-semibold flex items-center gap-2 border-b-2 transition whitespace-nowrap ${
               activeTab === 'OVERVIEW'
-                ? 'border-rose-400 text-rose-300'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
+                ? 'border-primary/20 text-[var(--education-brand-ink)]'
+                : 'border-transparent text-muted-foreground hover:text-foreground'
             }`}
           >
             <Activity size={16} /> Tổng Quan Facilities
@@ -459,8 +459,8 @@ export default function FacilitiesPage() {
             onClick={() => setActiveTab('SPACES')}
             className={`pb-4 text-sm font-semibold flex items-center gap-2 border-b-2 transition whitespace-nowrap ${
               activeTab === 'SPACES'
-                ? 'border-rose-400 text-rose-300'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
+                ? 'border-primary/20 text-[var(--education-brand-ink)]'
+                : 'border-transparent text-muted-foreground hover:text-foreground'
             }`}
           >
             <Building2 size={16} /> Không Gian & Zone Availability
@@ -470,8 +470,8 @@ export default function FacilitiesPage() {
             onClick={() => setActiveTab('ASSETS')}
             className={`pb-4 text-sm font-semibold flex items-center gap-2 border-b-2 transition whitespace-nowrap ${
               activeTab === 'ASSETS'
-                ? 'border-rose-400 text-rose-300'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
+                ? 'border-primary/20 text-[var(--education-brand-ink)]'
+                : 'border-transparent text-muted-foreground hover:text-foreground'
             }`}
           >
             <QrCode size={16} /> Danh Mục Tài Sản & QR ({assets.length})
@@ -481,8 +481,8 @@ export default function FacilitiesPage() {
             onClick={() => setActiveTab('INSPECTIONS')}
             className={`pb-4 text-sm font-semibold flex items-center gap-2 border-b-2 transition whitespace-nowrap ${
               activeTab === 'INSPECTIONS'
-                ? 'border-rose-400 text-rose-300'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
+                ? 'border-primary/20 text-[var(--education-brand-ink)]'
+                : 'border-transparent text-muted-foreground hover:text-foreground'
             }`}
           >
             <ShieldAlert size={16} /> Kiểm Định An Toàn & Sub-Jobs
@@ -492,8 +492,8 @@ export default function FacilitiesPage() {
             onClick={() => setActiveTab('MAINTENANCE')}
             className={`pb-4 text-sm font-semibold flex items-center gap-2 border-b-2 transition whitespace-nowrap ${
               activeTab === 'MAINTENANCE'
-                ? 'border-rose-400 text-rose-300'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
+                ? 'border-primary/20 text-[var(--education-brand-ink)]'
+                : 'border-transparent text-muted-foreground hover:text-foreground'
             }`}
           >
             <Wrench size={16} /> Work Orders & Exception Work Queue
@@ -508,8 +508,8 @@ export default function FacilitiesPage() {
         {/* Tab 1: OVERVIEW */}
         {activeTab === 'OVERVIEW' && (
           <div className="space-y-6">
-            <div className="flex flex-wrap items-center justify-between gap-4 bg-slate-900/60 p-4 rounded-xl border border-slate-800">
-              <span className="text-sm font-semibold text-slate-300">
+            <div className="flex flex-wrap items-center justify-between gap-4 bg-background p-4 rounded-xl border border-border">
+              <span className="text-sm font-semibold text-foreground">
                 Thao Tác Khởi Tạo & Kiểm Định An Toàn Nhanh
               </span>
 
@@ -518,7 +518,7 @@ export default function FacilitiesPage() {
                   data-testid="btn-seed-facility"
                   onClick={handleSeedFacility}
                   disabled={loading}
-                  className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-medium text-sm transition flex items-center gap-2 shadow-lg shadow-indigo-950"
+                  className="px-4 py-2 bg-primary hover:bg-primary-hover text-primary-foreground rounded-lg font-medium text-sm transition flex items-center gap-2 shadow-lg shadow-primary/20"
                 >
                   <Plus size={16} /> Khởi Tạo Cơ Sở Vật Chất Mẫu
                 </button>
@@ -536,32 +536,32 @@ export default function FacilitiesPage() {
 
             {/* Asset Details Overview Card */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 space-y-4">
-                <h3 className="text-base font-bold text-slate-200 flex items-center gap-2 border-b border-slate-800 pb-3">
-                  <QrCode className="text-rose-400" size={18} /> Chi Tiết Thiết Bị Giám Sát Cá Thể
+              <div className="bg-background border border-border rounded-2xl p-6 space-y-4">
+                <h3 className="text-base font-bold text-foreground flex items-center gap-2 border-b border-border pb-3">
+                  <QrCode className="text-[var(--education-brand-ink)]" size={18} /> Chi Tiết Thiết Bị Giám Sát Cá Thể
                 </h3>
                 {assets.length === 0 ? (
-                  <p className="text-xs text-slate-500 py-4">Chưa có dữ liệu. Nhấn nút &quot;Khởi Tạo Cơ Sở Vật Chất Mẫu&quot; để bắt đầu.</p>
+                  <p className="text-xs text-muted-foreground py-4">Chưa có dữ liệu. Nhấn nút &quot;Khởi Tạo Cơ Sở Vật Chất Mẫu&quot; để bắt đầu.</p>
                 ) : (
-                  <div className="space-y-2 text-xs text-slate-300">
-                    <div className="flex justify-between py-1 border-b border-slate-800/60">
-                      <span className="text-slate-400">Tên Thiết Bị:</span>
-                      <span className="font-bold text-slate-100">{currentAsset.name}</span>
+                  <div className="space-y-2 text-xs text-foreground">
+                    <div className="flex justify-between py-1 border-b border-border">
+                      <span className="text-muted-foreground">Tên Thiết Bị:</span>
+                      <span className="font-bold text-foreground">{currentAsset.name}</span>
                     </div>
-                    <div className="flex justify-between py-1 border-b border-slate-800/60">
-                      <span className="text-slate-400">Mã Serial / QR:</span>
-                      <span className="font-mono text-indigo-300">{currentAsset.serialNumber}</span>
+                    <div className="flex justify-between py-1 border-b border-border">
+                      <span className="text-muted-foreground">Mã Serial / QR:</span>
+                      <span className="font-mono text-[var(--education-brand-ink)]">{currentAsset.serialNumber}</span>
                     </div>
-                    <div className="flex justify-between py-1 border-b border-slate-800/60">
-                      <span className="text-slate-400">Khu Vực (Zone):</span>
+                    <div className="flex justify-between py-1 border-b border-border">
+                      <span className="text-muted-foreground">Khu Vực (Zone):</span>
                       <span>{currentZone?.name}</span>
                     </div>
-                    <div className="flex justify-between py-1 border-b border-slate-800/60">
-                      <span className="text-slate-400">Trạng Thái Vận Hành:</span>
-                      <span className="font-bold text-rose-400">{currentAsset.operationalStatus}</span>
+                    <div className="flex justify-between py-1 border-b border-border">
+                      <span className="text-muted-foreground">Trạng Thái Vận Hành:</span>
+                      <span className="font-bold text-rose-700 dark:text-rose-400">{currentAsset.operationalStatus}</span>
                     </div>
                     <div className="flex justify-between py-1">
-                      <span className="text-slate-400">Phạm Vi Hạn Chế:</span>
+                      <span className="text-muted-foreground">Phạm Vi Hạn Chế:</span>
                       <span className="font-mono">{currentAsset.restrictionScope}</span>
                     </div>
                   </div>
@@ -569,13 +569,13 @@ export default function FacilitiesPage() {
               </div>
 
               {/* Maintenance & Safety Restoration Panel */}
-              <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 space-y-4">
-                <h3 className="text-base font-bold text-slate-200 flex items-center gap-2 border-b border-slate-800 pb-3">
-                  <Wrench className="text-amber-400" size={18} /> Quy Trình Phục Hồi An Toàn (Safety Restoration Loop)
+              <div className="bg-background border border-border rounded-2xl p-6 space-y-4">
+                <h3 className="text-base font-bold text-foreground flex items-center gap-2 border-b border-border pb-3">
+                  <Wrench className="text-amber-700 dark:text-amber-400" size={18} /> Quy Trình Phục Hồi An Toàn (Safety Restoration Loop)
                 </h3>
                 <div className="space-y-3">
-                  <div className="p-3 bg-slate-950 rounded-xl border border-slate-800 text-xs space-y-1">
-                    <span className="text-slate-400">Bước 1: Hoàn thành sửa chữa bảo trì</span>
+                  <div className="p-3 bg-background rounded-xl border border-border text-xs space-y-1">
+                    <span className="text-muted-foreground">Bước 1: Hoàn thành sửa chữa bảo trì</span>
                     <button
                       data-testid="btn-complete-maintenance"
                       onClick={handleCompleteMaintenance}
@@ -586,8 +586,8 @@ export default function FacilitiesPage() {
                     </button>
                   </div>
 
-                  <div className="p-3 bg-slate-950 rounded-xl border border-slate-800 text-xs space-y-1">
-                    <span className="text-slate-400">Bước 2: Kiểm định an toàn độc lập (Safety Re-Inspection)</span>
+                  <div className="p-3 bg-background rounded-xl border border-border text-xs space-y-1">
+                    <span className="text-muted-foreground">Bước 2: Kiểm định an toàn độc lập (Safety Re-Inspection)</span>
                     <button
                       data-testid="btn-pass-reinspection"
                       onClick={handlePassReinspection}
@@ -605,19 +605,19 @@ export default function FacilitiesPage() {
 
         {/* Tab 2: SPACES & ZONE AVAILABILITY */}
         {activeTab === 'SPACES' && (
-          <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 space-y-4">
-            <h3 className="text-lg font-bold text-slate-200 flex items-center gap-2 border-b border-slate-800 pb-3">
-              <Building2 className="text-indigo-400" size={20} /> Cấu Trúc Không Gian & Contract Zone Availability
+          <div className="bg-background border border-border rounded-2xl p-6 space-y-4">
+            <h3 className="text-lg font-bold text-foreground flex items-center gap-2 border-b border-border pb-3">
+              <Building2 className="text-[var(--education-brand-ink)]" size={20} /> Cấu Trúc Không Gian & Contract Zone Availability
             </h3>
             {zones.length === 0 ? (
-              <p className="text-xs text-slate-500 py-4">Chưa có khu vực nào. Nhấn &quot;Khởi Tạo Cơ Sở Vật Chất Mẫu&quot; tại Tab Tổng quan.</p>
+              <p className="text-xs text-muted-foreground py-4">Chưa có khu vực nào. Nhấn &quot;Khởi Tạo Cơ Sở Vật Chất Mẫu&quot; tại Tab Tổng quan.</p>
             ) : (
               <div className="divide-y divide-slate-800">
                 {zones.map((z) => (
                   <div key={z.id} className="py-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                     <div>
-                      <h4 className="text-sm font-bold text-slate-100">{z.name}</h4>
-                      <p className="text-xs text-slate-400 mt-0.5">
+                      <h4 className="text-sm font-bold text-foreground">{z.name}</h4>
+                      <p className="text-xs text-muted-foreground mt-0.5">
                         Loại khu vực: {z.zoneType} | Sức chứa tối đa: {z.maxOccupancy} người
                       </p>
                     </div>
@@ -638,13 +638,13 @@ export default function FacilitiesPage() {
 
         {/* Tab 3: ASSET INVENTORY */}
         {activeTab === 'ASSETS' && (
-          <div className="bg-slate-900/80 border border-slate-800 rounded-2xl overflow-hidden">
-            <div className="p-4 border-b border-slate-800 font-semibold text-sm text-slate-300">
+          <div className="bg-background border border-border rounded-2xl overflow-hidden">
+            <div className="p-4 border-b border-border font-semibold text-sm text-foreground">
               Danh Mục Tài Sản Cá Thể & QR Code Identity
             </div>
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm text-slate-300">
-                <thead className="bg-slate-950/80 text-xs text-slate-400 uppercase border-b border-slate-800">
+              <table className="w-full text-left text-sm text-foreground">
+                <thead className="bg-background text-xs text-muted-foreground uppercase border-b border-border">
                   <tr>
                     <th className="px-6 py-3">Mã Asset / QR</th>
                     <th className="px-6 py-3">Tên Thiết Bị</th>
@@ -656,15 +656,15 @@ export default function FacilitiesPage() {
                 <tbody className="divide-y divide-slate-800/60">
                   {assets.length === 0 ? (
                     <tr>
-                      <td colSpan={5} className="px-6 py-8 text-center text-slate-500 text-sm">
+                      <td colSpan={5} className="px-6 py-8 text-center text-muted-foreground text-sm">
                         Chưa có tài sản cá thể nào.
                       </td>
                     </tr>
                   ) : (
                     assets.map((a) => (
-                      <tr key={a.id} className="hover:bg-slate-800/30 transition">
-                        <td className="px-6 py-4 font-mono text-xs text-indigo-300">{a.serialNumber}</td>
-                        <td className="px-6 py-4 font-bold text-slate-100">{a.name}</td>
+                      <tr key={a.id} className="hover:bg-muted transition">
+                        <td className="px-6 py-4 font-mono text-xs text-[var(--education-brand-ink)]">{a.serialNumber}</td>
+                        <td className="px-6 py-4 font-bold text-foreground">{a.name}</td>
                         <td className="px-6 py-4 text-xs">{a.assetCategory}</td>
                         <td className="px-6 py-4">
                           <span className={`px-2.5 py-1 rounded text-xs font-bold ${
@@ -687,28 +687,28 @@ export default function FacilitiesPage() {
 
         {/* Tab 4: SAFETY INSPECTIONS */}
         {activeTab === 'INSPECTIONS' && (
-          <div className="bg-slate-900/80 border border-slate-800 rounded-2xl overflow-hidden p-6 space-y-4">
-            <h3 className="text-lg font-bold text-slate-200 flex items-center gap-2 border-b border-slate-800 pb-3">
-              <ShieldAlert className="text-rose-400" size={20} /> Nhật Ký Kiểm Định An Toàn & Evidence Log
+          <div className="bg-background border border-border rounded-2xl overflow-hidden p-6 space-y-4">
+            <h3 className="text-lg font-bold text-foreground flex items-center gap-2 border-b border-border pb-3">
+              <ShieldAlert className="text-rose-700 dark:text-rose-400" size={20} /> Nhật Ký Kiểm Định An Toàn & Evidence Log
             </h3>
             <div className="divide-y divide-slate-800/60">
               {inspections.length === 0 ? (
-                <div className="p-8 text-center text-slate-500 text-sm">
+                <div className="p-8 text-center text-muted-foreground text-sm">
                   Chưa có nhật ký kiểm định an toàn nào.
                 </div>
               ) : (
                 inspections.map((i) => (
                   <div key={i.id} className="py-4 space-y-1">
                     <div className="flex items-center justify-between">
-                      <span className="font-mono text-xs text-slate-400">Log ID: #{i.id.slice(0, 8)}</span>
+                      <span className="font-mono text-xs text-muted-foreground">Log ID: #{i.id.slice(0, 8)}</span>
                       <span className={`px-2.5 py-0.5 rounded text-xs font-extrabold ${
                         i.resultStatus === 'PASS' ? 'bg-emerald-950 text-emerald-300 border border-emerald-800' : 'bg-rose-950 text-rose-300 border border-rose-800'
                       }`}>
                         {i.resultStatus}
                       </span>
                     </div>
-                    <p className="text-xs text-slate-300">{i.remarks}</p>
-                    <p className="text-[11px] text-slate-500">Ngày kiểm tra: {i.inspectionDate} | Người kiểm tra: {i.inspectorPartyId}</p>
+                    <p className="text-xs text-foreground">{i.remarks}</p>
+                    <p className="text-[11px] text-muted-foreground">Ngày kiểm tra: {i.inspectionDate} | Người kiểm tra: {i.inspectorPartyId}</p>
                   </div>
                 ))
               )}
@@ -719,13 +719,13 @@ export default function FacilitiesPage() {
         {/* Tab 5: MAINTENANCE & WORK QUEUE */}
         {activeTab === 'MAINTENANCE' && (
           <div className="space-y-6">
-            <div className="bg-slate-900/80 border border-slate-800 rounded-2xl overflow-hidden p-6 space-y-4">
-              <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+            <div className="bg-background border border-border rounded-2xl overflow-hidden p-6 space-y-4">
+              <div className="flex items-center justify-between border-b border-border pb-4">
                 <div>
-                  <h3 className="text-lg font-bold text-slate-200 flex items-center gap-2">
-                    <Layers className="text-rose-400" size={20} /> Platform Candidate Exception Work Queue Engine (#3 Reuse)
+                  <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
+                    <Layers className="text-rose-700 dark:text-rose-400" size={20} /> Platform Candidate Exception Work Queue Engine (#3 Reuse)
                   </h3>
-                  <p className="text-xs text-slate-400 mt-1">
+                  <p className="text-xs text-muted-foreground mt-1">
                     Sự cố an toàn Critical (SAFETY_DEFECT) tự động đẩy vào Work Queue điều hành
                   </p>
                 </div>
@@ -736,7 +736,7 @@ export default function FacilitiesPage() {
 
               <div className="divide-y divide-slate-800/60">
                 {exceptions.length === 0 ? (
-                  <div className="p-8 text-center text-slate-500 text-sm">
+                  <div className="p-8 text-center text-muted-foreground text-sm">
                     Hiện không có exception cảnh báo sự cố an toàn nào trong Work Queue.
                   </div>
                 ) : (
@@ -744,7 +744,7 @@ export default function FacilitiesPage() {
                     <div key={exc.id} className="py-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4" data-testid="work-queue-exception-badge">
                       <div>
                         <div className="flex items-center gap-3">
-                          <span className="font-mono text-xs text-amber-400 font-bold">#{exc.id.slice(0, 8)}</span>
+                          <span className="font-mono text-xs text-amber-700 dark:text-amber-400 font-bold">#{exc.id.slice(0, 8)}</span>
                           <span className="text-xs font-bold px-2 py-0.5 rounded bg-rose-950 text-rose-300 border border-rose-800">
                             {exc.exception_type}
                           </span>
@@ -754,8 +754,8 @@ export default function FacilitiesPage() {
                             {exc.status}
                           </span>
                         </div>
-                        <p className="text-xs text-slate-400 mt-1">
-                          Vị trí / Zone ID: <span className="font-mono text-slate-300">{exc.student_id}</span> | Vai trò: {exc.assigned_role}
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Vị trí / Zone ID: <span className="font-mono text-foreground">{exc.student_id}</span> | Vai trò: {exc.assigned_role}
                         </p>
                       </div>
 

@@ -260,7 +260,7 @@ export default function AttendancePage() {
   }
 
   return (
-    <div className="w-full p-4 sm:p-6 lg:p-8 space-y-6 pb-12">
+    <div className="preschool-ui w-full p-4 sm:p-6 lg:p-8 space-y-6 pb-12">
       <div className="w-full rounded-3xl bg-white dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 p-6 sm:p-8 shadow-sm space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-700/60 pb-5">
           <div className="flex items-center gap-3">
@@ -272,7 +272,7 @@ export default function AttendancePage() {
               <ArrowLeft className="w-4 h-4" />
             </Link>
             <div className="flex items-center gap-3">
-              <div className="p-3 rounded-2xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 shrink-0">
+              <div className="p-3 rounded-2xl bg-primary/10 text-[var(--education-brand-ink)] shrink-0">
                 <CalendarCheck className="w-6 h-6" />
               </div>
               <div>
@@ -291,9 +291,9 @@ export default function AttendancePage() {
               type="date"
               value={schoolDay}
               onChange={(event) => setSchoolDay(event.target.value)}
-              className="px-3.5 py-2 rounded-2xl bg-amber-50 dark:bg-amber-950 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800 text-xs font-bold"
+              className="px-3.5 py-2 rounded-2xl bg-primary/10 text-[var(--education-brand-ink)] border border-primary/20 text-xs font-bold"
             />
-            <span className="inline-flex items-center justify-center gap-2 rounded-2xl bg-amber-500 text-white px-5 py-3 text-xs font-bold shadow-lg shadow-amber-500/20">
+            <span className="inline-flex items-center justify-center gap-2 rounded-2xl bg-primary text-primary-foreground px-5 py-3 text-xs font-bold shadow-lg shadow-primary/20">
               <CheckCircle2 className="w-4 h-4" />
               Điểm danh thật
             </span>
@@ -319,7 +319,7 @@ export default function AttendancePage() {
                   onClick={() => setSelectedCourseId(classroom.id)}
                   className={`px-4 py-2 rounded-2xl text-xs font-bold transition-colors whitespace-nowrap ${
                     classroom.id === selectedCourseId
-                      ? 'bg-amber-500 text-white shadow-sm'
+                      ? 'bg-primary text-primary-foreground shadow-sm'
                       : 'bg-slate-100 dark:bg-slate-700/60 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
                   }`}
                 >
@@ -336,7 +336,7 @@ export default function AttendancePage() {
               value={search}
               onChange={(event) => setSearch(event.target.value)}
               placeholder="Tìm tên bé hoặc mã học sinh..."
-              className="w-full pl-10 pr-4 py-2.5 text-xs rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500 transition-all"
+              className="w-full pl-10 pr-4 py-2.5 text-xs rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-ring transition-all"
             />
           </div>
         </div>
@@ -357,7 +357,7 @@ export default function AttendancePage() {
         <div className="rounded-3xl bg-white dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 overflow-hidden shadow-sm flex flex-col">
           <div className="p-5 border-b border-slate-100 dark:border-slate-700/60 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Clock className="w-4 h-4 text-amber-500" />
+              <Clock className="w-4 h-4 text-[var(--education-brand-ink)]" />
               <h3 className="font-extrabold text-gray-900 dark:text-white text-base">
                 Danh Sách Điểm Danh Buổi Sáng
               </h3>
@@ -455,7 +455,7 @@ export default function AttendancePage() {
         <div className="rounded-3xl bg-white dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 p-6 shadow-sm space-y-5 flex flex-col justify-between">
           <div className="space-y-4">
             <div className="flex items-center gap-3 pb-3 border-b border-slate-100 dark:border-slate-700/60">
-              <div className="p-2.5 rounded-2xl bg-amber-50 dark:bg-amber-950 text-amber-600 dark:text-amber-400 shrink-0">
+              <div className="p-2.5 rounded-2xl bg-primary/10 text-[var(--education-brand-ink)] shrink-0">
                 <ShieldCheck className="w-5 h-5" />
               </div>
               <div>
@@ -527,7 +527,7 @@ export default function AttendancePage() {
                         handover
                           ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 cursor-default'
                           : guardian
-                            ? 'bg-amber-500 text-white hover:bg-amber-600 disabled:opacity-60'
+                            ? 'bg-primary text-primary-foreground hover:bg-primary-hover disabled:opacity-60'
                             : 'bg-slate-200 dark:bg-slate-700 text-slate-500 cursor-not-allowed'
                       }`}
                     >
@@ -539,12 +539,12 @@ export default function AttendancePage() {
             </div>
           </div>
 
-          <div className="p-4 rounded-2xl bg-indigo-50/80 dark:bg-indigo-950/40 border border-indigo-100 dark:border-indigo-900/50 space-y-1 text-xs">
-            <p className="font-bold text-indigo-900 dark:text-indigo-300 flex items-center gap-1.5">
-              <BellRing className="w-3.5 h-3.5 text-indigo-500" />
+          <div className="p-4 rounded-2xl bg-primary/10 border border-primary/20 space-y-1 text-xs">
+            <p className="font-bold text-[var(--education-brand-ink)] flex items-center gap-1.5">
+              <BellRing className="w-3.5 h-3.5 text-[var(--education-brand-ink)]" />
               Checkpoint hiện tại:
             </p>
-            <p className="text-indigo-800 dark:text-indigo-400 leading-relaxed text-[11px]">
+            <p className="text-[var(--education-brand-ink)] leading-relaxed text-[11px]">
               Điểm danh và bàn giao đang ghi dữ liệu thật. QR và thân nhiệt vẫn là capability riêng, chưa được giả lập trong UI này.
             </p>
           </div>

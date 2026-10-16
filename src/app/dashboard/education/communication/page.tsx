@@ -180,7 +180,7 @@ export default function CommunicationPage() {
   };
 
   return (
-    <div className="w-full p-4 sm:p-6 lg:p-8 space-y-6 pb-12">
+    <div className="preschool-ui w-full p-4 sm:p-6 lg:p-8 space-y-6 pb-12">
       {/* ── UNIFIED PAGE HEADER ── */}
       <div className="w-full rounded-3xl bg-white dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 p-6 sm:p-8 shadow-sm space-y-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-700/60 pb-5">
@@ -193,7 +193,7 @@ export default function CommunicationPage() {
               <ArrowLeft className="w-4 h-4" />
             </Link>
             <div className="flex items-center gap-3">
-              <div className="p-3 rounded-2xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 shrink-0">
+              <div className="p-3 rounded-2xl bg-primary/10 text-[var(--education-brand-ink)] shrink-0">
                 <MessageSquare className="w-6 h-6" />
               </div>
               <div>
@@ -209,7 +209,7 @@ export default function CommunicationPage() {
 
           <button
             onClick={() => setIsAnnouncementModalOpen(true)}
-            className="inline-flex items-center justify-center gap-2 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 text-xs font-bold shadow-lg shadow-indigo-500/20 transition-all active:scale-95 cursor-pointer shrink-0"
+            className="inline-flex items-center justify-center gap-2 rounded-2xl bg-primary hover:bg-primary-hover text-primary-foreground px-5 py-2.5 text-xs font-bold shadow-lg shadow-primary/20 transition-all active:scale-95 cursor-pointer shrink-0"
           >
             <Megaphone className="w-4 h-4" />
             <span>Gửi Thông Báo Điều Hành</span>
@@ -218,12 +218,12 @@ export default function CommunicationPage() {
 
         {/* ── ACTIONABLE OPERATIONAL GOVERNANCE METRICS ── */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="p-4 rounded-2xl bg-indigo-50/70 dark:bg-indigo-950/40 border border-indigo-200/80 dark:border-indigo-900/60 space-y-2">
+          <div className="p-4 rounded-2xl bg-primary/10 border border-primary/20 space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-extrabold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">
+              <span className="text-[11px] font-extrabold uppercase tracking-wider text-[var(--education-brand-ink)]">
                 Tin Nhắn Phụ Huynh Mới
               </span>
-              <MessageSquare className="w-4 h-4 text-indigo-600" />
+              <MessageSquare className="w-4 h-4 text-[var(--education-brand-ink)]" />
             </div>
             <div>
               <p className="text-2xl font-extrabold text-indigo-900 dark:text-indigo-200">08 Chưa Đọc</p>
@@ -285,7 +285,7 @@ export default function CommunicationPage() {
             onClick={() => setActiveTab('overview')}
             className={`px-4 py-2.5 text-xs font-extrabold rounded-2xl transition-all whitespace-nowrap cursor-pointer ${
               activeTab === 'overview'
-                ? 'bg-indigo-600 text-white shadow-sm'
+                ? 'bg-primary text-primary-foreground shadow-sm'
                 : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
             }`}
           >
@@ -295,7 +295,7 @@ export default function CommunicationPage() {
             onClick={() => setActiveTab('messages')}
             className={`px-4 py-2.5 text-xs font-extrabold rounded-2xl transition-all whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${
               activeTab === 'messages'
-                ? 'bg-indigo-600 text-white shadow-sm'
+                ? 'bg-primary text-primary-foreground shadow-sm'
                 : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
             }`}
           >
@@ -306,7 +306,7 @@ export default function CommunicationPage() {
             onClick={() => setActiveTab('daily')}
             className={`px-4 py-2.5 text-xs font-extrabold rounded-2xl transition-all whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${
               activeTab === 'daily'
-                ? 'bg-indigo-600 text-white shadow-sm'
+                ? 'bg-primary text-primary-foreground shadow-sm'
                 : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
             }`}
           >
@@ -317,7 +317,7 @@ export default function CommunicationPage() {
             onClick={() => setActiveTab('announcements')}
             className={`px-4 py-2.5 text-xs font-extrabold rounded-2xl transition-all whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${
               activeTab === 'announcements'
-                ? 'bg-indigo-600 text-white shadow-sm'
+                ? 'bg-primary text-primary-foreground shadow-sm'
                 : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
             }`}
           >
@@ -328,7 +328,7 @@ export default function CommunicationPage() {
             onClick={() => setActiveTab('media')}
             className={`px-4 py-2.5 text-xs font-extrabold rounded-2xl transition-all whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${
               activeTab === 'media'
-                ? 'bg-indigo-600 text-white shadow-sm'
+                ? 'bg-primary text-primary-foreground shadow-sm'
                 : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
             }`}
           >
@@ -346,7 +346,7 @@ export default function CommunicationPage() {
             <div className="rounded-3xl bg-white dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-700/80 p-6 shadow-sm space-y-5">
               <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-700/60 pb-4">
                 <h2 className="text-base font-extrabold text-gray-900 dark:text-white flex items-center gap-2">
-                  <MessageSquare className="w-5 h-5 text-indigo-500" />
+                  <MessageSquare className="w-5 h-5 text-[var(--education-brand-ink)]" />
                   Tin Nhắn Phụ Huynh Cần Xử Lý & Intent Actions
                 </h2>
                 <span className="text-xs font-bold text-slate-500">32 Cuộc Trò Chuyện Lớp</span>
@@ -369,7 +369,7 @@ export default function CommunicationPage() {
                         </div>
                         <div>
                           <h4 className="text-xs font-extrabold text-slate-900 dark:text-white">
-                            {msg.parentName} • <span className="text-indigo-600 dark:text-indigo-400">{msg.childName}</span>
+                            {msg.parentName} • <span className="text-[var(--education-brand-ink)]">{msg.childName}</span>
                           </h4>
                           <p className="text-[11px] font-semibold text-slate-500">{msg.className} • {msg.assignedTeacher}</p>
                         </div>
@@ -391,10 +391,10 @@ export default function CommunicationPage() {
 
                     {/* AI Intent Detection Box */}
                     {msg.detectedIntent && (
-                      <div className="p-3 rounded-2xl bg-indigo-50/80 dark:bg-indigo-950/50 border border-indigo-200/60 text-xs space-y-2">
+                      <div className="p-3 rounded-2xl bg-primary/10 border border-primary/20 text-xs space-y-2">
                         <div className="flex items-center justify-between">
-                          <span className="font-extrabold text-indigo-900 dark:text-indigo-300 flex items-center gap-1.5">
-                            <Bot className="w-3.5 h-3.5 text-indigo-500" />
+                          <span className="font-extrabold text-[var(--education-brand-ink)] flex items-center gap-1.5">
+                            <Bot className="w-3.5 h-3.5 text-[var(--education-brand-ink)]" />
                             AI Intent Detection: <strong>{msg.detectedIntent}</strong>
                           </span>
                           <span className="text-[10px] text-slate-500">(Cần cô giáo xác nhận)</span>
@@ -409,7 +409,7 @@ export default function CommunicationPage() {
                           <div className="flex items-center gap-2 pt-1">
                             <button
                               onClick={() => handleCreateCareNoteFromMessage(msg.id)}
-                              className="px-3 py-1.5 rounded-xl bg-indigo-600 text-white font-bold text-[11px] hover:bg-indigo-700 transition-all cursor-pointer flex items-center gap-1"
+                              className="px-3 py-1.5 rounded-xl bg-primary text-primary-foreground font-bold text-[11px] hover:bg-primary-hover transition-all cursor-pointer flex items-center gap-1"
                             >
                               <Plus className="w-3 h-3" />
                               <span>Tạo Lưu Ý Chăm Sóc (Care Note)</span>
@@ -431,15 +431,15 @@ export default function CommunicationPage() {
           <div className="space-y-6">
             <div className="rounded-3xl bg-white dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-700/80 p-6 shadow-sm space-y-5">
               <h2 className="text-base font-extrabold text-gray-900 dark:text-white flex items-center gap-2 border-b border-slate-100 dark:border-slate-700/60 pb-4">
-                <Megaphone className="w-5 h-5 text-indigo-500" />
+                <Megaphone className="w-5 h-5 text-[var(--education-brand-ink)]" />
                 Thông Báo & Form Đồng Ý (Consent)
               </h2>
 
               <div className="space-y-4">
                 {announcementsList.map((ann) => (
-                  <div key={ann.id} className="p-4 rounded-2xl bg-indigo-50/60 dark:bg-indigo-950/30 border border-indigo-200/80 dark:border-indigo-900/50 space-y-3 text-xs">
+                  <div key={ann.id} className="p-4 rounded-2xl bg-primary/10 border border-primary/20 space-y-3 text-xs">
                     <div className="flex items-center justify-between">
-                      <span className="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-800">
+                      <span className="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-primary/15 text-[var(--education-brand-ink)]">
                         {ann.category}
                       </span>
                       <span className="text-[11px] font-semibold text-slate-400">{ann.publishDate}</span>
@@ -471,15 +471,15 @@ export default function CommunicationPage() {
       {activeTab === 'daily' && (
         <div className="rounded-3xl bg-white dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-700/80 p-6 sm:p-8 shadow-sm space-y-6">
           <h3 className="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
-            <Activity className="w-5 h-5 text-indigo-500" />
+            <Activity className="w-5 h-5 text-[var(--education-brand-ink)]" />
             Sổ Liên Lạc Điện Tử Nhật Ký Con Hôm Nay (Daily Child Digest Engine)
           </h3>
 
-          <div className="p-4 rounded-2xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 text-xs space-y-1">
-            <span className="font-extrabold text-indigo-900 dark:text-indigo-300">
+          <div className="p-4 rounded-2xl bg-primary/10 border border-primary/20 text-xs space-y-1">
+            <span className="font-extrabold text-[var(--education-brand-ink)]">
               Tổng Hợp Dữ Liệu Tự Động Từ Các Domain Vận Hành:
             </span>
-            <p className="text-indigo-800 dark:text-indigo-400">
+            <p className="text-[var(--education-brand-ink)]">
               ✓ Điểm danh 07:42 • 🍱 Bữa trưa 90% • 😴 Giấc ngủ 12:10-13:45 • 🎨 Hoạt động STEAM • 📝 Lời nhắn cô giáo.
             </p>
           </div>
@@ -498,7 +498,7 @@ export default function CommunicationPage() {
             </button>
 
             <div className="space-y-1">
-              <span className="text-[11px] font-extrabold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">
+              <span className="text-[11px] font-extrabold uppercase tracking-wider text-[var(--education-brand-ink)]">
                 Khởi tạo thông báo điều hành có phân vùng
               </span>
               <h3 className="text-xl font-extrabold text-slate-900 dark:text-white">
@@ -511,7 +511,7 @@ export default function CommunicationPage() {
                 <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1.5">
                   Đối tượng tiếp nhận (Audience Scope)
                 </label>
-                <select className="w-full p-3 text-xs rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-medium focus:ring-2 focus:ring-indigo-500">
+                <select className="w-full p-3 text-xs rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-medium focus:ring-2 focus:ring-ring">
                   <option>Toàn Trường (280 Phụ Huynh)</option>
                   <option>Khối Mầm (80 Phụ Huynh)</option>
                   <option>Khối Chồi (90 Phụ Huynh)</option>
@@ -526,12 +526,12 @@ export default function CommunicationPage() {
                 <input
                   type="text"
                   placeholder="Nhập tiêu đề thông báo..."
-                  className="w-full p-3 text-xs rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-medium focus:ring-2 focus:ring-indigo-500"
+                  className="w-full p-3 text-xs rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-medium focus:ring-2 focus:ring-ring"
                 />
               </div>
 
               <div className="flex items-center gap-2 pt-1">
-                <input type="checkbox" id="requireConsent" className="rounded text-indigo-600 focus:ring-indigo-500" />
+                <input type="checkbox" id="requireConsent" className="rounded text-[var(--education-brand-ink)] focus:ring-ring" />
                 <label htmlFor="requireConsent" className="text-xs font-extrabold text-slate-700 dark:text-slate-300 cursor-pointer">
                   Yêu cầu Phụ huynh xác nhận / Đồng ý (Form Consent Engine)
                 </label>
@@ -549,7 +549,7 @@ export default function CommunicationPage() {
               <button
                 type="button"
                 onClick={() => setIsAnnouncementModalOpen(false)}
-                className="px-5 py-2.5 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-md transition-all cursor-pointer flex items-center gap-1.5"
+                className="px-5 py-2.5 rounded-2xl bg-primary hover:bg-primary-hover text-primary-foreground font-bold text-xs shadow-md transition-all cursor-pointer flex items-center gap-1.5"
               >
                 <Send className="w-4 h-4" />
                 <span>Phát Hành Thông Báo</span>

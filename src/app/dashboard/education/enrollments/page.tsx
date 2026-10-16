@@ -378,7 +378,7 @@ export default function EnrollmentsPage() {
   }
 
   return (
-    <div className="w-full p-4 sm:p-6 lg:p-8 space-y-6 pb-12">
+    <div className="preschool-ui w-full p-4 sm:p-6 lg:p-8 space-y-6 pb-12">
       {/* ── Unified Page Header ── */}
       <div className="w-full rounded-3xl bg-white dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 p-6 sm:p-8 shadow-sm space-y-6">
         {/* Top Navigation & Action */}
@@ -423,7 +423,7 @@ export default function EnrollmentsPage() {
             {/* Admission Workflow Button */}
             <button 
               onClick={openAdmissionModal}
-              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 text-xs font-bold shadow-lg shadow-emerald-500/20 transition-all active:scale-95 cursor-pointer"
+              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-primary hover:bg-primary-hover text-primary-foreground px-5 py-2.5 text-xs font-bold shadow-lg shadow-primary/20 transition-all active:scale-95 cursor-pointer"
             >
               <UserPlus className="w-4 h-4" />
               <span>Đăng Ký Nhập Học Mới</span>
@@ -440,7 +440,7 @@ export default function EnrollmentsPage() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Tìm tên bé, biệt danh, tên phụ huynh, SĐT..."
-              className="w-full pl-10 pr-4 py-2.5 text-xs rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all"
+              className="w-full pl-10 pr-4 py-2.5 text-xs rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-ring transition-all"
             />
           </div>
 
@@ -449,7 +449,7 @@ export default function EnrollmentsPage() {
               onClick={() => setSelectedStatusTab('all')}
               className={`px-4 py-2 rounded-2xl text-xs font-bold transition-colors whitespace-nowrap cursor-pointer ${
                 selectedStatusTab === 'all' 
-                  ? 'bg-emerald-600 text-white shadow-sm' 
+                  ? 'bg-primary text-primary-foreground shadow-sm'
                   : 'bg-slate-100 dark:bg-slate-700/60 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
               }`}
             >
@@ -459,7 +459,7 @@ export default function EnrollmentsPage() {
               onClick={() => setSelectedStatusTab('active')}
               className={`px-4 py-2 rounded-2xl text-xs font-bold transition-colors whitespace-nowrap cursor-pointer ${
                 selectedStatusTab === 'active' 
-                  ? 'bg-emerald-600 text-white shadow-sm' 
+                  ? 'bg-primary text-primary-foreground shadow-sm'
                   : 'bg-slate-100 dark:bg-slate-700/60 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
               }`}
             >
@@ -469,7 +469,7 @@ export default function EnrollmentsPage() {
               onClick={() => setSelectedStatusTab('pending')}
               className={`px-4 py-2 rounded-2xl text-xs font-semibold transition-colors whitespace-nowrap cursor-pointer ${
                 selectedStatusTab === 'pending' 
-                  ? 'bg-emerald-600 text-white shadow-sm' 
+                  ? 'bg-primary text-primary-foreground shadow-sm'
                   : 'bg-slate-100 dark:bg-slate-700/60 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
               }`}
             >
@@ -479,7 +479,7 @@ export default function EnrollmentsPage() {
               onClick={() => setSelectedStatusTab('healthAlert')}
               className={`px-4 py-2 rounded-2xl text-xs font-semibold transition-colors whitespace-nowrap cursor-pointer ${
                 selectedStatusTab === 'healthAlert' 
-                  ? 'bg-amber-500 text-white shadow-sm' 
+                  ? 'bg-amber-500 text-white shadow-sm'
                   : 'bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 hover:bg-amber-100'
               }`}
             >
@@ -566,24 +566,24 @@ export default function EnrollmentsPage() {
                         </Link>
                         <Link
                           href={`/dashboard/education/attendance?student=${stu.id}`}
-                          className="flex items-center gap-2.5 px-3 py-2 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-indigo-50 dark:hover:bg-indigo-950/50 hover:text-indigo-600 rounded-xl transition-colors"
+                          className="flex items-center gap-2.5 px-3 py-2 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-primary/10 hover:text-[var(--education-brand-ink)] rounded-xl transition-colors"
                         >
-                          <CalendarCheck className="w-4 h-4 text-indigo-500" />
+                          <CalendarCheck className="w-4 h-4 text-[var(--education-brand-ink)]" />
                           <span>Lịch Sử Điểm Danh</span>
                         </Link>
                         <Link
                           href={`/dashboard/education/grades?student=${stu.id}`}
-                          className="flex items-center gap-2.5 px-3 py-2 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-amber-50 dark:hover:bg-amber-950/50 hover:text-amber-600 rounded-xl transition-colors"
+                          className="flex items-center gap-2.5 px-3 py-2 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-primary/10 hover:text-[var(--education-brand-ink)] rounded-xl transition-colors"
                         >
-                          <GraduationCap className="w-4 h-4 text-amber-500" />
+                          <GraduationCap className="w-4 h-4 text-[var(--education-brand-ink)]" />
                           <span>Đánh Giá Phát Triển</span>
                         </Link>
                         <div className="border-t border-slate-100 dark:border-slate-800 pt-1">
                           <Link
                             href={`/dashboard/education/finance?student=${stu.id}`}
-                            className="flex items-center gap-2.5 px-3 py-2 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-rose-50 dark:hover:bg-rose-950/50 hover:text-rose-600 rounded-xl transition-colors"
+                            className="flex items-center gap-2.5 px-3 py-2 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-primary/10 hover:text-[var(--education-brand-ink)] rounded-xl transition-colors"
                           >
-                            <CreditCard className="w-4 h-4 text-rose-500" />
+                            <CreditCard className="w-4 h-4 text-[var(--education-brand-ink)]" />
                             <span>Học Phí & Công Nợ</span>
                           </Link>
                         </div>
@@ -640,7 +640,7 @@ export default function EnrollmentsPage() {
               <div className="pt-1 flex items-center justify-between gap-3 border-t border-slate-100 dark:border-slate-700/60">
                 <Link 
                   href={`/dashboard/education/enrollments/${stu.id}`}
-                  className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-2xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-md transition-all flex-1"
+                  className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-2xl text-xs font-bold bg-primary hover:bg-primary-hover text-primary-foreground shadow-md transition-all flex-1"
                 >
                   <FileText className="w-3.5 h-3.5" />
                   <span>Xem Hồ Sơ 360°</span>
@@ -695,7 +695,7 @@ export default function EnrollmentsPage() {
                       value={admissionForm.childName}
                       onChange={(event) => updateAdmissionForm('childName', event.target.value)}
                       placeholder="VD: Lê Hoàng Nam"
-                      className="w-full p-3 text-xs rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-medium focus:ring-2 focus:ring-emerald-500"
+                      className="w-full p-3 text-xs rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-medium focus:ring-2 focus:ring-ring"
                     />
                   </div>
                   <div>
@@ -707,7 +707,7 @@ export default function EnrollmentsPage() {
                       value={admissionForm.nickname}
                       onChange={(event) => updateAdmissionForm('nickname', event.target.value)}
                       placeholder="VD: Bé Tôm"
-                      className="w-full p-3 text-xs rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-medium focus:ring-2 focus:ring-emerald-500"
+                      className="w-full p-3 text-xs rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-medium focus:ring-2 focus:ring-ring"
                     />
                   </div>
                 </div>
@@ -721,7 +721,7 @@ export default function EnrollmentsPage() {
                       type="date"
                       value={admissionForm.dateOfBirth}
                       onChange={(event) => updateAdmissionForm('dateOfBirth', event.target.value)}
-                      className="w-full p-3 text-xs rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-medium focus:ring-2 focus:ring-emerald-500"
+                      className="w-full p-3 text-xs rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-medium focus:ring-2 focus:ring-ring"
                     />
                   </div>
                   <div>
@@ -731,7 +731,7 @@ export default function EnrollmentsPage() {
                     <select
                       value={admissionForm.gender}
                       onChange={(event) => updateAdmissionForm('gender', event.target.value as AdmissionFormState['gender'])}
-                      className="w-full p-3 text-xs rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-medium focus:ring-2 focus:ring-emerald-500"
+                      className="w-full p-3 text-xs rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-medium focus:ring-2 focus:ring-ring"
                     >
                       <option>Nam</option>
                       <option>Nữ</option>
@@ -754,7 +754,7 @@ export default function EnrollmentsPage() {
                       value={admissionForm.guardianName}
                       onChange={(event) => updateAdmissionForm('guardianName', event.target.value)}
                       placeholder="VD: Lê Văn Thành (Bố)"
-                      className="w-full p-3 text-xs rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-medium focus:ring-2 focus:ring-emerald-500"
+                      className="w-full p-3 text-xs rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-medium focus:ring-2 focus:ring-ring"
                     />
                   </div>
                   <div>
@@ -766,7 +766,7 @@ export default function EnrollmentsPage() {
                       value={admissionForm.guardianPhone}
                       onChange={(event) => updateAdmissionForm('guardianPhone', event.target.value)}
                       placeholder="VD: 0989 112 334"
-                      className="w-full p-3 text-xs rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-medium focus:ring-2 focus:ring-emerald-500"
+                      className="w-full p-3 text-xs rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-medium focus:ring-2 focus:ring-ring"
                     />
                   </div>
                 </div>
@@ -780,7 +780,7 @@ export default function EnrollmentsPage() {
                     value={admissionForm.medicalNote}
                     onChange={(event) => updateAdmissionForm('medicalNote', event.target.value)}
                     placeholder="VD: Dị ứng sữa bò, cần dùng sữa hạt thay thế."
-                    className="w-full p-3 text-xs rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-medium focus:ring-2 focus:ring-emerald-500"
+                    className="w-full p-3 text-xs rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-medium focus:ring-2 focus:ring-ring"
                   />
                 </div>
 
@@ -791,7 +791,7 @@ export default function EnrollmentsPage() {
                   <select
                     value={admissionForm.courseId}
                     onChange={(event) => updateAdmissionForm('courseId', event.target.value)}
-                    className="w-full p-3 text-xs rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-medium focus:ring-2 focus:ring-emerald-500"
+                    className="w-full p-3 text-xs rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-medium focus:ring-2 focus:ring-ring"
                   >
                     {classrooms.length === 0 ? (
                       <option value="">Chưa có lớp active để chọn</option>
@@ -813,7 +813,7 @@ export default function EnrollmentsPage() {
                     value={admissionForm.branchId}
                     onChange={(event) => updateAdmissionForm('branchId', event.target.value)}
                     disabled={branches.length === 0}
-                    className="w-full p-3 text-xs rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-medium focus:ring-2 focus:ring-emerald-500 disabled:opacity-60"
+                    className="w-full p-3 text-xs rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-medium focus:ring-2 focus:ring-ring disabled:opacity-60"
                   >
                     {branches.length === 0 ? (
                       <option value="">Chưa có chi nhánh active để chọn</option>
@@ -866,7 +866,7 @@ export default function EnrollmentsPage() {
                 <button
                   type="button"
                   onClick={() => setModalStep(2)}
-                  className="px-5 py-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md transition-all cursor-pointer"
+                  className="px-5 py-2.5 rounded-2xl bg-primary hover:bg-primary-hover text-primary-foreground font-bold text-xs shadow-md transition-all cursor-pointer"
                 >
                   Tiếp theo: Giám hộ →
                 </button>
@@ -875,7 +875,7 @@ export default function EnrollmentsPage() {
                   type="button"
                   onClick={submitAdmission}
                   disabled={isSubmittingAdmission}
-                  className="px-5 py-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-400 text-white font-bold text-xs shadow-md transition-all cursor-pointer disabled:cursor-not-allowed flex items-center gap-1.5"
+                  className="px-5 py-2.5 rounded-2xl bg-primary hover:bg-primary-hover disabled:bg-slate-400 text-primary-foreground font-bold text-xs shadow-md transition-all cursor-pointer disabled:cursor-not-allowed flex items-center gap-1.5"
                 >
                   {isSubmittingAdmission ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
                   <span>{isSubmittingAdmission ? 'Đang ghi nhận...' : 'Hoàn Tất Đăng Ký Nhập Học'}</span>

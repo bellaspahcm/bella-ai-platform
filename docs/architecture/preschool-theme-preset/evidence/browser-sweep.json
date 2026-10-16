@@ -1,0 +1,1531 @@
+{
+  "proof": "UI_FIXTURE_ONLY_NO_PRODUCTION_MUTATIONS",
+  "routes": [
+    {
+      "route": "dashboard",
+      "modes": [
+        {
+          "dark": false,
+          "primary": "#1E40AF",
+          "action": null,
+          "brandInk": "color-mix(in srgb, #1E40AF 45%, #000)",
+          "rootBg": "oklch(1 0 0)",
+          "sidebarText": "rgb(255, 255, 255)",
+          "overflow": false,
+          "root": true
+        },
+        {
+          "dark": true,
+          "primary": "#1E40AF",
+          "action": null,
+          "brandInk": "color-mix(in srgb, #1E40AF 35%, #fff)",
+          "rootBg": "rgba(0, 0, 0, 0)",
+          "sidebarText": "rgb(255, 255, 255)",
+          "overflow": false,
+          "root": true
+        }
+      ],
+      "pass": true
+    },
+    {
+      "route": "enrollments",
+      "modes": [
+        {
+          "dark": false,
+          "primary": "#1E40AF",
+          "action": {
+            "bg": "rgb(30, 64, 175)",
+            "fg": "rgb(255, 255, 255)",
+            "contrast": 8.722410784954462
+          },
+          "brandInk": "color-mix(in srgb, #1E40AF 45%, #000)",
+          "rootBg": "oklch(1 0 0)",
+          "sidebarText": "rgb(255, 255, 255)",
+          "overflow": false,
+          "root": true
+        },
+        {
+          "dark": true,
+          "primary": "#1E40AF",
+          "action": {
+            "bg": "rgb(30, 64, 175)",
+            "fg": "rgb(255, 255, 255)",
+            "contrast": 8.722410784954462
+          },
+          "brandInk": "color-mix(in srgb, #1E40AF 35%, #fff)",
+          "rootBg": "rgb(9, 26, 45)",
+          "sidebarText": "rgb(248, 249, 250)",
+          "overflow": false,
+          "root": true
+        }
+      ],
+      "pass": true
+    },
+    {
+      "route": "enrollments/STU-001",
+      "modes": [
+        {
+          "dark": false,
+          "primary": "#1E40AF",
+          "action": {
+            "bg": "rgb(30, 64, 175)",
+            "fg": "rgb(255, 255, 255)",
+            "contrast": 8.722410784954462
+          },
+          "brandInk": "color-mix(in srgb, #1E40AF 45%, #000)",
+          "rootBg": "oklch(1 0 0)",
+          "sidebarText": "rgb(255, 255, 255)",
+          "overflow": false,
+          "root": true
+        },
+        {
+          "dark": true,
+          "primary": "#1E40AF",
+          "action": {
+            "bg": "rgb(30, 64, 175)",
+            "fg": "rgb(255, 255, 255)",
+            "contrast": 8.722410784954462
+          },
+          "brandInk": "color-mix(in srgb, #1E40AF 35%, #fff)",
+          "rootBg": "rgb(9, 26, 45)",
+          "sidebarText": "rgb(251, 252, 253)",
+          "overflow": false,
+          "root": true
+        }
+      ],
+      "pass": true
+    },
+    {
+      "route": "courses",
+      "modes": [
+        {
+          "dark": false,
+          "primary": "#1E40AF",
+          "action": {
+            "bg": "rgb(30, 64, 175)",
+            "fg": "rgb(255, 255, 255)",
+            "contrast": 8.722410784954462
+          },
+          "brandInk": "color-mix(in srgb, #1E40AF 45%, #000)",
+          "rootBg": "oklch(1 0 0)",
+          "sidebarText": "rgb(255, 255, 255)",
+          "overflow": false,
+          "root": true
+        },
+        {
+          "dark": true,
+          "primary": "#1E40AF",
+          "action": {
+            "bg": "rgb(30, 64, 175)",
+            "fg": "rgb(255, 255, 255)",
+            "contrast": 8.722410784954462
+          },
+          "brandInk": "color-mix(in srgb, #1E40AF 35%, #fff)",
+          "rootBg": "rgb(9, 26, 45)",
+          "sidebarText": "rgb(248, 249, 250)",
+          "overflow": false,
+          "root": true
+        }
+      ],
+      "pass": true
+    },
+    {
+      "route": "courses/mam-a1",
+      "modes": [
+        {
+          "dark": false,
+          "primary": "#1E40AF",
+          "action": {
+            "bg": "rgb(30, 64, 175)",
+            "fg": "rgb(255, 255, 255)",
+            "contrast": 8.722410784954462
+          },
+          "brandInk": "color-mix(in srgb, #1E40AF 45%, #000)",
+          "rootBg": "oklch(1 0 0)",
+          "sidebarText": "rgb(255, 255, 255)",
+          "overflow": false,
+          "root": true
+        },
+        {
+          "dark": true,
+          "primary": "#1E40AF",
+          "action": {
+            "bg": "rgb(30, 64, 175)",
+            "fg": "rgb(255, 255, 255)",
+            "contrast": 8.722410784954462
+          },
+          "brandInk": "color-mix(in srgb, #1E40AF 35%, #fff)",
+          "rootBg": "rgb(9, 26, 45)",
+          "sidebarText": "rgb(250, 250, 251)",
+          "overflow": false,
+          "root": true
+        }
+      ],
+      "pass": true
+    },
+    {
+      "route": "teachers",
+      "modes": [
+        {
+          "dark": false,
+          "primary": "#1E40AF",
+          "action": {
+            "bg": "rgb(30, 64, 175)",
+            "fg": "rgb(255, 255, 255)",
+            "contrast": 8.722410784954462
+          },
+          "brandInk": "color-mix(in srgb, #1E40AF 45%, #000)",
+          "rootBg": "oklch(1 0 0)",
+          "sidebarText": "rgb(255, 255, 255)",
+          "overflow": false,
+          "root": true
+        },
+        {
+          "dark": true,
+          "primary": "#1E40AF",
+          "action": {
+            "bg": "rgb(30, 64, 175)",
+            "fg": "rgb(255, 255, 255)",
+            "contrast": 8.722410784954462
+          },
+          "brandInk": "color-mix(in srgb, #1E40AF 35%, #fff)",
+          "rootBg": "rgb(9, 26, 45)",
+          "sidebarText": "rgb(250, 250, 251)",
+          "overflow": false,
+          "root": true
+        }
+      ],
+      "pass": true
+    },
+    {
+      "route": "teachers/TEA-001",
+      "modes": [
+        {
+          "dark": false,
+          "primary": "#1E40AF",
+          "action": {
+            "bg": "rgb(30, 64, 175)",
+            "fg": "rgb(255, 255, 255)",
+            "contrast": 8.722410784954462
+          },
+          "brandInk": "color-mix(in srgb, #1E40AF 45%, #000)",
+          "rootBg": "oklch(1 0 0)",
+          "sidebarText": "rgb(255, 255, 255)",
+          "overflow": false,
+          "root": true
+        },
+        {
+          "dark": true,
+          "primary": "#1E40AF",
+          "action": {
+            "bg": "rgb(30, 64, 175)",
+            "fg": "rgb(255, 255, 255)",
+            "contrast": 8.722410784954462
+          },
+          "brandInk": "color-mix(in srgb, #1E40AF 35%, #fff)",
+          "rootBg": "rgb(9, 26, 45)",
+          "sidebarText": "rgb(250, 250, 251)",
+          "overflow": false,
+          "root": true
+        }
+      ],
+      "pass": true
+    },
+    {
+      "route": "care",
+      "modes": [
+        {
+          "dark": false,
+          "primary": "#1E40AF",
+          "action": null,
+          "brandInk": "color-mix(in srgb, #1E40AF 45%, #000)",
+          "rootBg": "oklch(1 0 0)",
+          "sidebarText": "rgb(255, 255, 255)",
+          "overflow": false,
+          "root": true
+        },
+        {
+          "dark": true,
+          "primary": "#1E40AF",
+          "action": null,
+          "brandInk": "color-mix(in srgb, #1E40AF 35%, #fff)",
+          "rootBg": "rgb(9, 26, 45)",
+          "sidebarText": "rgb(250, 250, 251)",
+          "overflow": false,
+          "root": true
+        }
+      ],
+      "pass": true
+    },
+    {
+      "route": "grades",
+      "modes": [
+        {
+          "dark": false,
+          "primary": "#1E40AF",
+          "action": {
+            "bg": "rgb(30, 64, 175)",
+            "fg": "rgb(255, 255, 255)",
+            "contrast": 8.722410784954462
+          },
+          "brandInk": "color-mix(in srgb, #1E40AF 45%, #000)",
+          "rootBg": "oklch(1 0 0)",
+          "sidebarText": "rgb(255, 255, 255)",
+          "overflow": false,
+          "root": true
+        },
+        {
+          "dark": true,
+          "primary": "#1E40AF",
+          "action": {
+            "bg": "rgb(30, 64, 175)",
+            "fg": "rgb(255, 255, 255)",
+            "contrast": 8.722410784954462
+          },
+          "brandInk": "color-mix(in srgb, #1E40AF 35%, #fff)",
+          "rootBg": "rgb(9, 26, 45)",
+          "sidebarText": "rgb(247, 248, 249)",
+          "overflow": false,
+          "root": true
+        }
+      ],
+      "pass": true
+    },
+    {
+      "route": "communication",
+      "modes": [
+        {
+          "dark": false,
+          "primary": "#1E40AF",
+          "action": {
+            "bg": "rgb(30, 64, 175)",
+            "fg": "rgb(255, 255, 255)",
+            "contrast": 8.722410784954462
+          },
+          "brandInk": "color-mix(in srgb, #1E40AF 45%, #000)",
+          "rootBg": "oklch(1 0 0)",
+          "sidebarText": "rgb(255, 255, 255)",
+          "overflow": false,
+          "root": true
+        },
+        {
+          "dark": true,
+          "primary": "#1E40AF",
+          "action": {
+            "bg": "rgb(30, 64, 175)",
+            "fg": "rgb(255, 255, 255)",
+            "contrast": 8.722410784954462
+          },
+          "brandInk": "color-mix(in srgb, #1E40AF 35%, #fff)",
+          "rootBg": "rgb(9, 26, 45)",
+          "sidebarText": "rgb(250, 250, 251)",
+          "overflow": false,
+          "root": true
+        }
+      ],
+      "pass": true
+    },
+    {
+      "route": "finance",
+      "modes": [
+        {
+          "dark": false,
+          "primary": "#1E40AF",
+          "action": {
+            "bg": "rgb(30, 64, 175)",
+            "fg": "rgb(255, 255, 255)",
+            "contrast": 8.722410784954462
+          },
+          "brandInk": "color-mix(in srgb, #1E40AF 45%, #000)",
+          "rootBg": "oklch(1 0 0)",
+          "sidebarText": "rgb(255, 255, 255)",
+          "overflow": false,
+          "root": true
+        },
+        {
+          "dark": true,
+          "primary": "#1E40AF",
+          "action": {
+            "bg": "rgb(30, 64, 175)",
+            "fg": "rgb(255, 255, 255)",
+            "contrast": 8.722410784954462
+          },
+          "brandInk": "color-mix(in srgb, #1E40AF 35%, #fff)",
+          "rootBg": "rgb(9, 26, 45)",
+          "sidebarText": "rgb(251, 252, 253)",
+          "overflow": false,
+          "root": true
+        }
+      ],
+      "pass": true
+    },
+    {
+      "route": "facilities",
+      "modes": [
+        {
+          "dark": false,
+          "primary": "#1E40AF",
+          "action": {
+            "bg": "rgb(30, 64, 175)",
+            "fg": "rgb(255, 255, 255)",
+            "contrast": 8.722410784954462
+          },
+          "brandInk": "color-mix(in srgb, #1E40AF 45%, #000)",
+          "rootBg": "oklch(1 0 0)",
+          "sidebarText": "rgb(255, 255, 255)",
+          "overflow": false,
+          "root": true
+        },
+        {
+          "dark": true,
+          "primary": "#1E40AF",
+          "action": {
+            "bg": "rgb(30, 64, 175)",
+            "fg": "rgb(255, 255, 255)",
+            "contrast": 8.722410784954462
+          },
+          "brandInk": "color-mix(in srgb, #1E40AF 35%, #fff)",
+          "rootBg": "rgba(0, 0, 0, 0)",
+          "sidebarText": "rgb(251, 252, 253)",
+          "overflow": false,
+          "root": true
+        }
+      ],
+      "pass": true
+    },
+    {
+      "route": "reports",
+      "modes": [
+        {
+          "dark": false,
+          "primary": "#1E40AF",
+          "action": {
+            "bg": "rgb(30, 64, 175)",
+            "fg": "rgb(255, 255, 255)",
+            "contrast": 8.722410784954462
+          },
+          "brandInk": "color-mix(in srgb, #1E40AF 45%, #000)",
+          "rootBg": "oklch(1 0 0)",
+          "sidebarText": "rgb(255, 255, 255)",
+          "overflow": false,
+          "root": true
+        },
+        {
+          "dark": true,
+          "primary": "#1E40AF",
+          "action": {
+            "bg": "rgb(30, 64, 175)",
+            "fg": "rgb(255, 255, 255)",
+            "contrast": 8.722410784954462
+          },
+          "brandInk": "color-mix(in srgb, #1E40AF 35%, #fff)",
+          "rootBg": "rgb(9, 26, 45)",
+          "sidebarText": "rgb(250, 250, 251)",
+          "overflow": false,
+          "root": true
+        }
+      ],
+      "pass": true
+    },
+    {
+      "route": "attendance",
+      "modes": [
+        {
+          "dark": false,
+          "primary": "#1E40AF",
+          "action": {
+            "bg": "rgb(30, 64, 175)",
+            "fg": "rgb(255, 255, 255)",
+            "contrast": 8.722410784954462
+          },
+          "brandInk": "color-mix(in srgb, #1E40AF 45%, #000)",
+          "rootBg": "oklch(1 0 0)",
+          "sidebarText": "rgb(255, 255, 255)",
+          "overflow": false,
+          "root": true
+        },
+        {
+          "dark": true,
+          "primary": "#1E40AF",
+          "action": {
+            "bg": "rgb(30, 64, 175)",
+            "fg": "rgb(255, 255, 255)",
+            "contrast": 8.722410784954462
+          },
+          "brandInk": "color-mix(in srgb, #1E40AF 35%, #fff)",
+          "rootBg": "rgb(9, 26, 45)",
+          "sidebarText": "rgb(248, 249, 250)",
+          "overflow": false,
+          "root": true
+        }
+      ],
+      "pass": true
+    },
+    {
+      "route": "scheduling",
+      "modes": [
+        {
+          "dark": false,
+          "primary": "#1E40AF",
+          "action": {
+            "bg": "rgb(30, 64, 175)",
+            "fg": "rgb(255, 255, 255)",
+            "contrast": 8.722410784954462
+          },
+          "brandInk": "color-mix(in srgb, #1E40AF 45%, #000)",
+          "rootBg": "oklch(1 0 0)",
+          "sidebarText": "rgb(255, 255, 255)",
+          "overflow": false,
+          "root": true
+        },
+        {
+          "dark": true,
+          "primary": "#1E40AF",
+          "action": {
+            "bg": "rgb(30, 64, 175)",
+            "fg": "rgb(255, 255, 255)",
+            "contrast": 8.722410784954462
+          },
+          "brandInk": "color-mix(in srgb, #1E40AF 35%, #fff)",
+          "rootBg": "rgba(0, 0, 0, 0)",
+          "sidebarText": "rgb(250, 250, 251)",
+          "overflow": false,
+          "root": true
+        }
+      ],
+      "pass": true
+    },
+    {
+      "route": "learning",
+      "modes": [
+        {
+          "dark": false,
+          "primary": "#1E40AF",
+          "action": {
+            "bg": "rgb(30, 64, 175)",
+            "fg": "rgb(255, 255, 255)",
+            "contrast": 8.722410784954462
+          },
+          "brandInk": "color-mix(in srgb, #1E40AF 45%, #000)",
+          "rootBg": "oklch(1 0 0)",
+          "sidebarText": "rgb(255, 255, 255)",
+          "overflow": false,
+          "root": true
+        },
+        {
+          "dark": true,
+          "primary": "#1E40AF",
+          "action": {
+            "bg": "rgb(30, 64, 175)",
+            "fg": "rgb(255, 255, 255)",
+            "contrast": 8.722410784954462
+          },
+          "brandInk": "color-mix(in srgb, #1E40AF 35%, #fff)",
+          "rootBg": "rgba(0, 0, 0, 0)",
+          "sidebarText": "rgb(254, 254, 254)",
+          "overflow": false,
+          "root": true
+        }
+      ],
+      "pass": true
+    },
+    {
+      "route": "parent-inbox",
+      "modes": [
+        {
+          "dark": false,
+          "primary": "#1E40AF",
+          "action": {
+            "bg": "rgb(30, 64, 175)",
+            "fg": "rgb(255, 255, 255)",
+            "contrast": 8.722410784954462
+          },
+          "brandInk": "color-mix(in srgb, #1E40AF 45%, #000)",
+          "rootBg": "oklch(1 0 0)",
+          "sidebarText": "rgb(255, 255, 255)",
+          "overflow": false,
+          "root": true
+        },
+        {
+          "dark": true,
+          "primary": "#1E40AF",
+          "action": {
+            "bg": "rgb(30, 64, 175)",
+            "fg": "rgb(255, 255, 255)",
+            "contrast": 8.722410784954462
+          },
+          "brandInk": "color-mix(in srgb, #1E40AF 35%, #fff)",
+          "rootBg": "rgb(9, 26, 45)",
+          "sidebarText": "rgb(248, 249, 250)",
+          "overflow": false,
+          "root": true
+        }
+      ],
+      "pass": true
+    }
+  ],
+  "themes": [
+    {
+      "route": "dashboard",
+      "preset": "bella_rose",
+      "dark": false,
+      "mobile": false,
+      "primary": "#A91555",
+      "action": null,
+      "brandInk": "color-mix(in srgb, #A91555 45%, #000)",
+      "rootBg": "oklch(1 0 0)",
+      "sidebarText": "rgb(198, 149, 169)",
+      "overflow": false,
+      "root": true
+    },
+    {
+      "route": "dashboard",
+      "preset": "bella_rose",
+      "dark": false,
+      "mobile": true,
+      "primary": "#A91555",
+      "action": null,
+      "brandInk": "color-mix(in srgb, #A91555 45%, #000)",
+      "rootBg": "oklch(1 0 0)",
+      "sidebarText": "rgb(131, 24, 67)",
+      "overflow": false,
+      "root": true
+    },
+    {
+      "route": "dashboard",
+      "preset": "bella_rose",
+      "dark": true,
+      "mobile": false,
+      "primary": "#A91555",
+      "action": null,
+      "brandInk": "color-mix(in srgb, #A91555 35%, #fff)",
+      "rootBg": "rgba(0, 0, 0, 0)",
+      "sidebarText": "rgb(132, 26, 68)",
+      "overflow": false,
+      "root": true
+    },
+    {
+      "route": "dashboard",
+      "preset": "bella_rose",
+      "dark": true,
+      "mobile": true,
+      "primary": "#A91555",
+      "action": null,
+      "brandInk": "color-mix(in srgb, #A91555 35%, #fff)",
+      "rootBg": "rgba(0, 0, 0, 0)",
+      "sidebarText": "rgb(240, 238, 241)",
+      "overflow": false,
+      "root": true
+    },
+    {
+      "route": "dashboard",
+      "preset": "jade_wellness",
+      "dark": false,
+      "mobile": false,
+      "primary": "#074E44",
+      "action": null,
+      "brandInk": "color-mix(in srgb, #074E44 45%, #000)",
+      "rootBg": "oklch(1 0 0)",
+      "sidebarText": "rgb(247, 248, 249)",
+      "overflow": false,
+      "root": true
+    },
+    {
+      "route": "dashboard",
+      "preset": "jade_wellness",
+      "dark": false,
+      "mobile": true,
+      "primary": "#074E44",
+      "action": null,
+      "brandInk": "color-mix(in srgb, #074E44 45%, #000)",
+      "rootBg": "oklch(1 0 0)",
+      "sidebarText": "rgb(255, 255, 255)",
+      "overflow": false,
+      "root": true
+    },
+    {
+      "route": "dashboard",
+      "preset": "jade_wellness",
+      "dark": true,
+      "mobile": false,
+      "primary": "#074E44",
+      "action": null,
+      "brandInk": "color-mix(in srgb, #074E44 35%, #fff)",
+      "rootBg": "rgba(0, 0, 0, 0)",
+      "sidebarText": "rgb(251, 252, 253)",
+      "overflow": false,
+      "root": true
+    },
+    {
+      "route": "dashboard",
+      "preset": "jade_wellness",
+      "dark": true,
+      "mobile": true,
+      "primary": "#074E44",
+      "action": null,
+      "brandInk": "color-mix(in srgb, #074E44 35%, #fff)",
+      "rootBg": "rgba(0, 0, 0, 0)",
+      "sidebarText": "rgb(243, 245, 247)",
+      "overflow": false,
+      "root": true
+    },
+    {
+      "route": "dashboard",
+      "preset": "graphite_luxe",
+      "dark": false,
+      "mobile": false,
+      "primary": "#18181B",
+      "action": null,
+      "brandInk": "color-mix(in srgb, #18181B 45%, #000)",
+      "rootBg": "oklch(1 0 0)",
+      "sidebarText": "rgb(248, 250, 251)",
+      "overflow": false,
+      "root": true
+    },
+    {
+      "route": "dashboard",
+      "preset": "graphite_luxe",
+      "dark": false,
+      "mobile": true,
+      "primary": "#18181B",
+      "action": null,
+      "brandInk": "color-mix(in srgb, #18181B 45%, #000)",
+      "rootBg": "oklch(1 0 0)",
+      "sidebarText": "rgb(255, 255, 255)",
+      "overflow": false,
+      "root": true
+    },
+    {
+      "route": "dashboard",
+      "preset": "graphite_luxe",
+      "dark": true,
+      "mobile": false,
+      "primary": "#18181B",
+      "action": null,
+      "brandInk": "color-mix(in srgb, #18181B 35%, #fff)",
+      "rootBg": "rgba(0, 0, 0, 0)",
+      "sidebarText": "rgb(250, 250, 251)",
+      "overflow": false,
+      "root": true
+    },
+    {
+      "route": "dashboard",
+      "preset": "graphite_luxe",
+      "dark": true,
+      "mobile": true,
+      "primary": "#18181B",
+      "action": null,
+      "brandInk": "color-mix(in srgb, #18181B 35%, #fff)",
+      "rootBg": "rgba(0, 0, 0, 0)",
+      "sidebarText": "rgb(243, 245, 247)",
+      "overflow": false,
+      "root": true
+    },
+    {
+      "route": "dashboard",
+      "preset": "ocean_clean",
+      "dark": false,
+      "mobile": false,
+      "primary": "#1E40AF",
+      "action": null,
+      "brandInk": "color-mix(in srgb, #1E40AF 45%, #000)",
+      "rootBg": "oklch(1 0 0)",
+      "sidebarText": "rgb(248, 250, 251)",
+      "overflow": false,
+      "root": true
+    },
+    {
+      "route": "dashboard",
+      "preset": "ocean_clean",
+      "dark": false,
+      "mobile": true,
+      "primary": "#1E40AF",
+      "action": null,
+      "brandInk": "color-mix(in srgb, #1E40AF 45%, #000)",
+      "rootBg": "oklch(1 0 0)",
+      "sidebarText": "rgb(255, 255, 255)",
+      "overflow": false,
+      "root": true
+    },
+    {
+      "route": "dashboard",
+      "preset": "ocean_clean",
+      "dark": true,
+      "mobile": false,
+      "primary": "#1E40AF",
+      "action": null,
+      "brandInk": "color-mix(in srgb, #1E40AF 35%, #fff)",
+      "rootBg": "rgba(0, 0, 0, 0)",
+      "sidebarText": "rgb(250, 250, 251)",
+      "overflow": false,
+      "root": true
+    },
+    {
+      "route": "dashboard",
+      "preset": "ocean_clean",
+      "dark": true,
+      "mobile": true,
+      "primary": "#1E40AF",
+      "action": null,
+      "brandInk": "color-mix(in srgb, #1E40AF 35%, #fff)",
+      "rootBg": "rgba(0, 0, 0, 0)",
+      "sidebarText": "rgb(243, 245, 247)",
+      "overflow": false,
+      "root": true
+    },
+    {
+      "route": "dashboard",
+      "preset": "luxury_navy",
+      "dark": false,
+      "mobile": false,
+      "primary": "#1E3A8A",
+      "action": null,
+      "brandInk": "color-mix(in srgb, #1E3A8A 45%, #000)",
+      "rootBg": "oklch(1 0 0)",
+      "sidebarText": "rgb(248, 250, 251)",
+      "overflow": false,
+      "root": true
+    },
+    {
+      "route": "dashboard",
+      "preset": "luxury_navy",
+      "dark": false,
+      "mobile": true,
+      "primary": "#1E3A8A",
+      "action": null,
+      "brandInk": "color-mix(in srgb, #1E3A8A 45%, #000)",
+      "rootBg": "oklch(1 0 0)",
+      "sidebarText": "rgb(255, 255, 255)",
+      "overflow": false,
+      "root": true
+    },
+    {
+      "route": "dashboard",
+      "preset": "luxury_navy",
+      "dark": true,
+      "mobile": false,
+      "primary": "#1E3A8A",
+      "action": null,
+      "brandInk": "color-mix(in srgb, #1E3A8A 35%, #fff)",
+      "rootBg": "rgba(0, 0, 0, 0)",
+      "sidebarText": "rgb(251, 252, 253)",
+      "overflow": false,
+      "root": true
+    },
+    {
+      "route": "dashboard",
+      "preset": "luxury_navy",
+      "dark": true,
+      "mobile": true,
+      "primary": "#1E3A8A",
+      "action": null,
+      "brandInk": "color-mix(in srgb, #1E3A8A 35%, #fff)",
+      "rootBg": "rgba(0, 0, 0, 0)",
+      "sidebarText": "rgb(243, 245, 247)",
+      "overflow": false,
+      "root": true
+    },
+    {
+      "route": "dashboard",
+      "preset": "slate_minimal",
+      "dark": false,
+      "mobile": false,
+      "primary": "#334155",
+      "action": null,
+      "brandInk": "color-mix(in srgb, #334155 45%, #000)",
+      "rootBg": "oklch(1 0 0)",
+      "sidebarText": "rgb(146, 152, 161)",
+      "overflow": false,
+      "root": true
+    },
+    {
+      "route": "dashboard",
+      "preset": "slate_minimal",
+      "dark": false,
+      "mobile": true,
+      "primary": "#334155",
+      "action": null,
+      "brandInk": "color-mix(in srgb, #334155 45%, #000)",
+      "rootBg": "oklch(1 0 0)",
+      "sidebarText": "rgb(30, 41, 59)",
+      "overflow": false,
+      "root": true
+    },
+    {
+      "route": "dashboard",
+      "preset": "slate_minimal",
+      "dark": true,
+      "mobile": false,
+      "primary": "#334155",
+      "action": null,
+      "brandInk": "color-mix(in srgb, #334155 35%, #fff)",
+      "rootBg": "rgba(0, 0, 0, 0)",
+      "sidebarText": "rgb(127, 134, 145)",
+      "overflow": false,
+      "root": true
+    },
+    {
+      "route": "dashboard",
+      "preset": "slate_minimal",
+      "dark": true,
+      "mobile": true,
+      "primary": "#334155",
+      "action": null,
+      "brandInk": "color-mix(in srgb, #334155 35%, #fff)",
+      "rootBg": "rgba(0, 0, 0, 0)",
+      "sidebarText": "rgb(243, 245, 247)",
+      "overflow": false,
+      "root": true
+    },
+    {
+      "route": "dashboard",
+      "preset": "custom_dark",
+      "dark": false,
+      "mobile": false,
+      "primary": "#5B217A",
+      "action": null,
+      "brandInk": "color-mix(in srgb, #5B217A 45%, #000)",
+      "rootBg": "oklch(1 0 0)",
+      "sidebarText": "rgb(243, 245, 247)",
+      "overflow": false,
+      "root": true
+    },
+    {
+      "route": "dashboard",
+      "preset": "custom_dark",
+      "dark": false,
+      "mobile": true,
+      "primary": "#5B217A",
+      "action": null,
+      "brandInk": "color-mix(in srgb, #5B217A 45%, #000)",
+      "rootBg": "oklch(1 0 0)",
+      "sidebarText": "rgb(255, 255, 255)",
+      "overflow": false,
+      "root": true
+    },
+    {
+      "route": "dashboard",
+      "preset": "custom_dark",
+      "dark": true,
+      "mobile": false,
+      "primary": "#5B217A",
+      "action": null,
+      "brandInk": "color-mix(in srgb, #5B217A 35%, #fff)",
+      "rootBg": "rgba(0, 0, 0, 0)",
+      "sidebarText": "rgb(250, 250, 251)",
+      "overflow": false,
+      "root": true
+    },
+    {
+      "route": "dashboard",
+      "preset": "custom_dark",
+      "dark": true,
+      "mobile": true,
+      "primary": "#5B217A",
+      "action": null,
+      "brandInk": "color-mix(in srgb, #5B217A 35%, #fff)",
+      "rootBg": "rgba(0, 0, 0, 0)",
+      "sidebarText": "rgb(243, 245, 247)",
+      "overflow": false,
+      "root": true
+    },
+    {
+      "route": "dashboard",
+      "preset": "custom_light",
+      "dark": false,
+      "mobile": false,
+      "primary": "#FFD54F",
+      "action": null,
+      "brandInk": "color-mix(in srgb, #FFD54F 45%, #000)",
+      "rootBg": "oklch(1 0 0)",
+      "sidebarText": "rgb(173, 177, 184)",
+      "overflow": false,
+      "root": true
+    },
+    {
+      "route": "dashboard",
+      "preset": "custom_light",
+      "dark": false,
+      "mobile": true,
+      "primary": "#FFD54F",
+      "action": null,
+      "brandInk": "color-mix(in srgb, #FFD54F 45%, #000)",
+      "rootBg": "oklch(1 0 0)",
+      "sidebarText": "rgb(15, 23, 42)",
+      "overflow": false,
+      "root": true
+    },
+    {
+      "route": "dashboard",
+      "preset": "custom_light",
+      "dark": true,
+      "mobile": false,
+      "primary": "#FFD54F",
+      "action": null,
+      "brandInk": "color-mix(in srgb, #FFD54F 35%, #fff)",
+      "rootBg": "rgba(0, 0, 0, 0)",
+      "sidebarText": "rgb(119, 125, 136)",
+      "overflow": false,
+      "root": true
+    },
+    {
+      "route": "dashboard",
+      "preset": "custom_light",
+      "dark": true,
+      "mobile": true,
+      "primary": "#FFD54F",
+      "action": null,
+      "brandInk": "color-mix(in srgb, #FFD54F 35%, #fff)",
+      "rootBg": "rgba(0, 0, 0, 0)",
+      "sidebarText": "rgb(243, 245, 247)",
+      "overflow": false,
+      "root": true
+    },
+    {
+      "route": "teachers",
+      "preset": "bella_rose",
+      "dark": false,
+      "mobile": false,
+      "primary": "#A91555",
+      "action": {
+        "bg": "rgb(169, 21, 85)",
+        "fg": "rgb(255, 255, 255)",
+        "contrast": 7.178395507895885
+      },
+      "brandInk": "color-mix(in srgb, #A91555 45%, #000)",
+      "rootBg": "oklch(1 0 0)",
+      "sidebarText": "rgb(217, 184, 197)",
+      "overflow": false,
+      "root": true
+    },
+    {
+      "route": "teachers",
+      "preset": "bella_rose",
+      "dark": false,
+      "mobile": true,
+      "primary": "#A91555",
+      "action": {
+        "bg": "rgb(169, 21, 85)",
+        "fg": "rgb(255, 255, 255)",
+        "contrast": 7.178395507895885
+      },
+      "brandInk": "color-mix(in srgb, #A91555 45%, #000)",
+      "rootBg": "oklch(1 0 0)",
+      "sidebarText": "rgb(132, 26, 68)",
+      "overflow": false,
+      "root": true
+    },
+    {
+      "route": "teachers",
+      "preset": "bella_rose",
+      "dark": true,
+      "mobile": false,
+      "primary": "#A91555",
+      "action": {
+        "bg": "rgb(169, 21, 85)",
+        "fg": "rgb(255, 255, 255)",
+        "contrast": 7.178395507895885
+      },
+      "brandInk": "color-mix(in srgb, #A91555 35%, #fff)",
+      "rootBg": "rgb(9, 26, 45)",
+      "sidebarText": "rgb(166, 92, 122)",
+      "overflow": false,
+      "root": true
+    },
+    {
+      "route": "teachers",
+      "preset": "bella_rose",
+      "dark": true,
+      "mobile": true,
+      "primary": "#A91555",
+      "action": {
+        "bg": "rgb(169, 21, 85)",
+        "fg": "rgb(255, 255, 255)",
+        "contrast": 7.178395507895885
+      },
+      "brandInk": "color-mix(in srgb, #A91555 35%, #fff)",
+      "rootBg": "rgb(9, 26, 45)",
+      "sidebarText": "rgb(243, 245, 247)",
+      "overflow": false,
+      "root": true
+    },
+    {
+      "route": "teachers",
+      "preset": "jade_wellness",
+      "dark": false,
+      "mobile": false,
+      "primary": "#074E44",
+      "action": {
+        "bg": "rgb(7, 78, 68)",
+        "fg": "rgb(255, 255, 255)",
+        "contrast": 9.623047297067776
+      },
+      "brandInk": "color-mix(in srgb, #074E44 45%, #000)",
+      "rootBg": "oklch(1 0 0)",
+      "sidebarText": "rgb(250, 251, 252)",
+      "overflow": false,
+      "root": true
+    },
+    {
+      "route": "teachers",
+      "preset": "jade_wellness",
+      "dark": false,
+      "mobile": true,
+      "primary": "#074E44",
+      "action": {
+        "bg": "rgb(7, 78, 68)",
+        "fg": "rgb(255, 255, 255)",
+        "contrast": 9.623047297067776
+      },
+      "brandInk": "color-mix(in srgb, #074E44 45%, #000)",
+      "rootBg": "oklch(1 0 0)",
+      "sidebarText": "rgb(255, 255, 255)",
+      "overflow": false,
+      "root": true
+    },
+    {
+      "route": "teachers",
+      "preset": "jade_wellness",
+      "dark": true,
+      "mobile": false,
+      "primary": "#074E44",
+      "action": {
+        "bg": "rgb(7, 78, 68)",
+        "fg": "rgb(255, 255, 255)",
+        "contrast": 9.623047297067776
+      },
+      "brandInk": "color-mix(in srgb, #074E44 35%, #fff)",
+      "rootBg": "rgb(9, 26, 45)",
+      "sidebarText": "rgb(251, 252, 253)",
+      "overflow": false,
+      "root": true
+    },
+    {
+      "route": "teachers",
+      "preset": "jade_wellness",
+      "dark": true,
+      "mobile": true,
+      "primary": "#074E44",
+      "action": {
+        "bg": "rgb(7, 78, 68)",
+        "fg": "rgb(255, 255, 255)",
+        "contrast": 9.623047297067776
+      },
+      "brandInk": "color-mix(in srgb, #074E44 35%, #fff)",
+      "rootBg": "rgb(9, 26, 45)",
+      "sidebarText": "rgb(243, 245, 247)",
+      "overflow": false,
+      "root": true
+    },
+    {
+      "route": "teachers",
+      "preset": "graphite_luxe",
+      "dark": false,
+      "mobile": false,
+      "primary": "#18181B",
+      "action": {
+        "bg": "rgb(24, 24, 27)",
+        "fg": "rgb(255, 255, 255)",
+        "contrast": 17.71676507806213
+      },
+      "brandInk": "color-mix(in srgb, #18181B 45%, #000)",
+      "rootBg": "oklch(1 0 0)",
+      "sidebarText": "rgb(247, 248, 249)",
+      "overflow": false,
+      "root": true
+    },
+    {
+      "route": "teachers",
+      "preset": "graphite_luxe",
+      "dark": false,
+      "mobile": true,
+      "primary": "#18181B",
+      "action": {
+        "bg": "rgb(24, 24, 27)",
+        "fg": "rgb(255, 255, 255)",
+        "contrast": 17.71676507806213
+      },
+      "brandInk": "color-mix(in srgb, #18181B 45%, #000)",
+      "rootBg": "oklch(1 0 0)",
+      "sidebarText": "rgb(255, 255, 255)",
+      "overflow": false,
+      "root": true
+    },
+    {
+      "route": "teachers",
+      "preset": "graphite_luxe",
+      "dark": true,
+      "mobile": false,
+      "primary": "#18181B",
+      "action": {
+        "bg": "rgb(24, 24, 27)",
+        "fg": "rgb(255, 255, 255)",
+        "contrast": 17.71676507806213
+      },
+      "brandInk": "color-mix(in srgb, #18181B 35%, #fff)",
+      "rootBg": "rgb(9, 26, 45)",
+      "sidebarText": "rgb(253, 253, 254)",
+      "overflow": false,
+      "root": true
+    },
+    {
+      "route": "teachers",
+      "preset": "graphite_luxe",
+      "dark": true,
+      "mobile": true,
+      "primary": "#18181B",
+      "action": {
+        "bg": "rgb(24, 24, 27)",
+        "fg": "rgb(255, 255, 255)",
+        "contrast": 17.71676507806213
+      },
+      "brandInk": "color-mix(in srgb, #18181B 35%, #fff)",
+      "rootBg": "rgb(9, 26, 45)",
+      "sidebarText": "rgb(243, 245, 247)",
+      "overflow": false,
+      "root": true
+    },
+    {
+      "route": "teachers",
+      "preset": "ocean_clean",
+      "dark": false,
+      "mobile": false,
+      "primary": "#1E40AF",
+      "action": {
+        "bg": "rgb(30, 64, 175)",
+        "fg": "rgb(255, 255, 255)",
+        "contrast": 8.722410784954462
+      },
+      "brandInk": "color-mix(in srgb, #1E40AF 45%, #000)",
+      "rootBg": "oklch(1 0 0)",
+      "sidebarText": "rgb(248, 250, 251)",
+      "overflow": false,
+      "root": true
+    },
+    {
+      "route": "teachers",
+      "preset": "ocean_clean",
+      "dark": false,
+      "mobile": true,
+      "primary": "#1E40AF",
+      "action": {
+        "bg": "rgb(30, 64, 175)",
+        "fg": "rgb(255, 255, 255)",
+        "contrast": 8.722410784954462
+      },
+      "brandInk": "color-mix(in srgb, #1E40AF 45%, #000)",
+      "rootBg": "oklch(1 0 0)",
+      "sidebarText": "rgb(255, 255, 255)",
+      "overflow": false,
+      "root": true
+    },
+    {
+      "route": "teachers",
+      "preset": "ocean_clean",
+      "dark": true,
+      "mobile": false,
+      "primary": "#1E40AF",
+      "action": {
+        "bg": "rgb(30, 64, 175)",
+        "fg": "rgb(255, 255, 255)",
+        "contrast": 8.722410784954462
+      },
+      "brandInk": "color-mix(in srgb, #1E40AF 35%, #fff)",
+      "rootBg": "rgb(9, 26, 45)",
+      "sidebarText": "rgb(251, 252, 253)",
+      "overflow": false,
+      "root": true
+    },
+    {
+      "route": "teachers",
+      "preset": "ocean_clean",
+      "dark": true,
+      "mobile": true,
+      "primary": "#1E40AF",
+      "action": {
+        "bg": "rgb(30, 64, 175)",
+        "fg": "rgb(255, 255, 255)",
+        "contrast": 8.722410784954462
+      },
+      "brandInk": "color-mix(in srgb, #1E40AF 35%, #fff)",
+      "rootBg": "rgb(9, 26, 45)",
+      "sidebarText": "rgb(243, 245, 247)",
+      "overflow": false,
+      "root": true
+    },
+    {
+      "route": "teachers",
+      "preset": "luxury_navy",
+      "dark": false,
+      "mobile": false,
+      "primary": "#1E3A8A",
+      "action": {
+        "bg": "rgb(30, 58, 138)",
+        "fg": "rgb(255, 255, 255)",
+        "contrast": 10.357982247884618
+      },
+      "brandInk": "color-mix(in srgb, #1E3A8A 45%, #000)",
+      "rootBg": "oklch(1 0 0)",
+      "sidebarText": "rgb(245, 247, 248)",
+      "overflow": false,
+      "root": true
+    },
+    {
+      "route": "teachers",
+      "preset": "luxury_navy",
+      "dark": false,
+      "mobile": true,
+      "primary": "#1E3A8A",
+      "action": {
+        "bg": "rgb(30, 58, 138)",
+        "fg": "rgb(255, 255, 255)",
+        "contrast": 10.357982247884618
+      },
+      "brandInk": "color-mix(in srgb, #1E3A8A 45%, #000)",
+      "rootBg": "oklch(1 0 0)",
+      "sidebarText": "rgb(255, 255, 255)",
+      "overflow": false,
+      "root": true
+    },
+    {
+      "route": "teachers",
+      "preset": "luxury_navy",
+      "dark": true,
+      "mobile": false,
+      "primary": "#1E3A8A",
+      "action": {
+        "bg": "rgb(30, 58, 138)",
+        "fg": "rgb(255, 255, 255)",
+        "contrast": 10.357982247884618
+      },
+      "brandInk": "color-mix(in srgb, #1E3A8A 35%, #fff)",
+      "rootBg": "rgb(9, 26, 45)",
+      "sidebarText": "rgb(253, 253, 254)",
+      "overflow": false,
+      "root": true
+    },
+    {
+      "route": "teachers",
+      "preset": "luxury_navy",
+      "dark": true,
+      "mobile": true,
+      "primary": "#1E3A8A",
+      "action": {
+        "bg": "rgb(30, 58, 138)",
+        "fg": "rgb(255, 255, 255)",
+        "contrast": 10.357982247884618
+      },
+      "brandInk": "color-mix(in srgb, #1E3A8A 35%, #fff)",
+      "rootBg": "rgb(9, 26, 45)",
+      "sidebarText": "rgb(243, 245, 247)",
+      "overflow": false,
+      "root": true
+    },
+    {
+      "route": "teachers",
+      "preset": "slate_minimal",
+      "dark": false,
+      "mobile": false,
+      "primary": "#334155",
+      "action": {
+        "bg": "rgb(51, 65, 85)",
+        "fg": "rgb(255, 255, 255)",
+        "contrast": 10.35474573184942
+      },
+      "brandInk": "color-mix(in srgb, #334155 45%, #000)",
+      "rootBg": "oklch(1 0 0)",
+      "sidebarText": "rgb(178, 183, 189)",
+      "overflow": false,
+      "root": true
+    },
+    {
+      "route": "teachers",
+      "preset": "slate_minimal",
+      "dark": false,
+      "mobile": true,
+      "primary": "#334155",
+      "action": {
+        "bg": "rgb(51, 65, 85)",
+        "fg": "rgb(255, 255, 255)",
+        "contrast": 10.35474573184942
+      },
+      "brandInk": "color-mix(in srgb, #334155 45%, #000)",
+      "rootBg": "oklch(1 0 0)",
+      "sidebarText": "rgb(30, 41, 59)",
+      "overflow": false,
+      "root": true
+    },
+    {
+      "route": "teachers",
+      "preset": "slate_minimal",
+      "dark": true,
+      "mobile": false,
+      "primary": "#334155",
+      "action": {
+        "bg": "rgb(51, 65, 85)",
+        "fg": "rgb(255, 255, 255)",
+        "contrast": 10.35474573184942
+      },
+      "brandInk": "color-mix(in srgb, #334155 35%, #fff)",
+      "rootBg": "rgb(9, 26, 45)",
+      "sidebarText": "rgb(156, 161, 170)",
+      "overflow": false,
+      "root": true
+    },
+    {
+      "route": "teachers",
+      "preset": "slate_minimal",
+      "dark": true,
+      "mobile": true,
+      "primary": "#334155",
+      "action": {
+        "bg": "rgb(51, 65, 85)",
+        "fg": "rgb(255, 255, 255)",
+        "contrast": 10.35474573184942
+      },
+      "brandInk": "color-mix(in srgb, #334155 35%, #fff)",
+      "rootBg": "rgb(9, 26, 45)",
+      "sidebarText": "rgb(243, 245, 247)",
+      "overflow": false,
+      "root": true
+    },
+    {
+      "route": "teachers",
+      "preset": "custom_dark",
+      "dark": false,
+      "mobile": false,
+      "primary": "#5B217A",
+      "action": {
+        "bg": "rgb(91, 33, 122)",
+        "fg": "rgb(255, 255, 255)",
+        "contrast": 10.805804105897046
+      },
+      "brandInk": "color-mix(in srgb, #5B217A 45%, #000)",
+      "rootBg": "oklch(1 0 0)",
+      "sidebarText": "rgb(250, 251, 252)",
+      "overflow": false,
+      "root": true
+    },
+    {
+      "route": "teachers",
+      "preset": "custom_dark",
+      "dark": false,
+      "mobile": true,
+      "primary": "#5B217A",
+      "action": {
+        "bg": "rgb(91, 33, 122)",
+        "fg": "rgb(255, 255, 255)",
+        "contrast": 10.805804105897046
+      },
+      "brandInk": "color-mix(in srgb, #5B217A 45%, #000)",
+      "rootBg": "oklch(1 0 0)",
+      "sidebarText": "rgb(255, 255, 255)",
+      "overflow": false,
+      "root": true
+    },
+    {
+      "route": "teachers",
+      "preset": "custom_dark",
+      "dark": true,
+      "mobile": false,
+      "primary": "#5B217A",
+      "action": {
+        "bg": "rgb(91, 33, 122)",
+        "fg": "rgb(255, 255, 255)",
+        "contrast": 10.805804105897046
+      },
+      "brandInk": "color-mix(in srgb, #5B217A 35%, #fff)",
+      "rootBg": "rgb(9, 26, 45)",
+      "sidebarText": "rgb(248, 249, 250)",
+      "overflow": false,
+      "root": true
+    },
+    {
+      "route": "teachers",
+      "preset": "custom_dark",
+      "dark": true,
+      "mobile": true,
+      "primary": "#5B217A",
+      "action": {
+        "bg": "rgb(91, 33, 122)",
+        "fg": "rgb(255, 255, 255)",
+        "contrast": 10.805804105897046
+      },
+      "brandInk": "color-mix(in srgb, #5B217A 35%, #fff)",
+      "rootBg": "rgb(9, 26, 45)",
+      "sidebarText": "rgb(243, 245, 247)",
+      "overflow": false,
+      "root": true
+    },
+    {
+      "route": "teachers",
+      "preset": "custom_light",
+      "dark": false,
+      "mobile": false,
+      "primary": "#FFD54F",
+      "action": {
+        "bg": "rgb(255, 213, 79)",
+        "fg": "rgb(15, 23, 42)",
+        "contrast": 12.652008685470664
+      },
+      "brandInk": "color-mix(in srgb, #FFD54F 45%, #000)",
+      "rootBg": "oklch(1 0 0)",
+      "sidebarText": "rgb(203, 206, 211)",
+      "overflow": false,
+      "root": true
+    },
+    {
+      "route": "teachers",
+      "preset": "custom_light",
+      "dark": false,
+      "mobile": true,
+      "primary": "#FFD54F",
+      "action": {
+        "bg": "rgb(255, 213, 79)",
+        "fg": "rgb(15, 23, 42)",
+        "contrast": 12.652008685470664
+      },
+      "brandInk": "color-mix(in srgb, #FFD54F 45%, #000)",
+      "rootBg": "oklch(1 0 0)",
+      "sidebarText": "rgb(15, 23, 42)",
+      "overflow": false,
+      "root": true
+    },
+    {
+      "route": "teachers",
+      "preset": "custom_light",
+      "dark": true,
+      "mobile": false,
+      "primary": "#FFD54F",
+      "action": {
+        "bg": "rgb(255, 213, 79)",
+        "fg": "rgb(15, 23, 42)",
+        "contrast": 12.652008685470664
+      },
+      "brandInk": "color-mix(in srgb, #FFD54F 35%, #fff)",
+      "rootBg": "rgb(9, 26, 45)",
+      "sidebarText": "rgb(85, 91, 105)",
+      "overflow": false,
+      "root": true
+    },
+    {
+      "route": "teachers",
+      "preset": "custom_light",
+      "dark": true,
+      "mobile": true,
+      "primary": "#FFD54F",
+      "action": {
+        "bg": "rgb(255, 213, 79)",
+        "fg": "rgb(15, 23, 42)",
+        "contrast": 12.652008685470664
+      },
+      "brandInk": "color-mix(in srgb, #FFD54F 35%, #fff)",
+      "rootBg": "rgb(9, 26, 45)",
+      "sidebarText": "rgb(243, 245, 247)",
+      "overflow": false,
+      "root": true
+    }
+  ],
+  "interactions": [],
+  "errors": []
+}

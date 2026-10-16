@@ -956,11 +956,12 @@ export function Sidebar() {
         isRealEstateShell && "beauty-erp-sidebar",
         isBellaAutoShell && "beauty-erp-sidebar",
         isBellaHealthcareShell && "beauty-erp-sidebar",
+        isBellaEducationShell && "preschool-sidebar",
         isOpen ? "translate-x-0" : "-translate-x-full"
       )}>
         <div className={cn(
-          "flex-1 beauty-erp-sidebar-inner rounded-[2.25rem] flex flex-col overflow-hidden shadow-2xs relative",
-          isBellaEducationShell && "border-rose-200/60 dark:border-rose-950/60"
+          "flex-1 rounded-[2.25rem] flex flex-col overflow-hidden shadow-2xs relative",
+          isBellaEducationShell ? "preschool-sidebar-inner" : "beauty-erp-sidebar-inner"
         )}>
         {/* Soft decorative light glows */}
         <div className={cn(
@@ -971,14 +972,14 @@ export function Sidebar() {
         <div className="px-8 pt-6 pb-4 shrink-0 relative z-10 flex items-center justify-between lg:block">
           {isBellaEducationShell ? (
             <Link href="/dashboard/education" onClick={handleNavigation} className="flex flex-col items-center group">
-              <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-2xl shadow-xs mb-2 group-hover:scale-105 transition-transform duration-300">
+              <div className="w-12 h-12 rounded-2xl bg-[color-mix(in_srgb,var(--education-sidebar-fg)_10%,transparent)] border border-[var(--education-sidebar-border)] flex items-center justify-center text-2xl shadow-xs mb-2 group-hover:scale-105 transition-transform duration-300">
                 ☀️
               </div>
               <div className="text-center w-full px-2">
-                <h2 className="text-lg font-black text-slate-900 dark:text-white tracking-tight leading-tight">
+                <h2 className="text-lg font-black text-[var(--education-sidebar-fg)] tracking-tight leading-tight">
                   {tenantBrand.displayName || 'Bella Preschool'}
                 </h2>
-                <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 block mt-0.5">
+                <span className="text-[11px] font-bold text-[var(--education-sidebar-fg)] opacity-75 block mt-0.5">
                   Nơi tuổi thơ tỏa sáng
                 </span>
               </div>
@@ -1025,6 +1026,7 @@ export function Sidebar() {
             onClick={() => setIsOpen(false)}
             className={cn(
               "lg:hidden p-2 rounded-xl text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 active:scale-95 transition-all",
+              isBellaEducationShell && "preschool-sidebar-close",
               (isBeautySpaShell || isIndustrialCleaningShell || isRealEstateShell || isBellaAutoShell || isBellaHealthcareShell) && "beauty-erp-icon-button"
             )}
           >
@@ -1050,7 +1052,7 @@ export function Sidebar() {
                   className={cn(
                     "px-3 pt-2.5 pb-1 text-[9px] font-extrabold uppercase tracking-[0.18em] relative z-10 select-none pointer-events-none mt-3 first:mt-1",
                     isBellaEducationShell
-                      ? "text-slate-400 dark:text-slate-500"
+                      ? "text-[var(--education-sidebar-fg)] opacity-70"
                       : "text-primary/60 dark:text-[#E5B861]/60",
                     (isBeautySpaShell || isIndustrialCleaningShell || isRealEstateShell || isBellaAutoShell || isBellaHealthcareShell) && "beauty-erp-nav-header"
                   )}
@@ -1061,60 +1063,12 @@ export function Sidebar() {
             }
 
             const isActive = activeHref === item.href;
-            const isRosePreset = tenantBrand.stylePreset === 'bella_rose' || tenantBrand.primaryColor === '#A91555' || tenantBrand.primaryColor === '#BE123C';
-            const isOceanPreset = tenantBrand.stylePreset === 'ocean_clean' || tenantBrand.primaryColor === '#1E40AF';
-            const isJadePreset = tenantBrand.stylePreset === 'jade_wellness' || tenantBrand.primaryColor === '#074E44';
-            const isNavyPreset = tenantBrand.stylePreset === 'luxury_navy' || tenantBrand.primaryColor === '#1E3A8A';
-
-            const activeEduClass = isRosePreset
-              ? "bg-rose-100/90 dark:bg-rose-950/70 text-rose-700 dark:text-rose-300 border border-rose-200/80 dark:border-rose-900/60 font-extrabold shadow-xs"
-              : isOceanPreset
-              ? "bg-blue-100/90 dark:bg-blue-950/70 text-blue-700 dark:text-blue-300 border border-blue-200/80 dark:border-blue-900/60 font-extrabold shadow-xs"
-              : isJadePreset
-              ? "bg-emerald-100/90 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-900/60 font-extrabold shadow-xs"
-              : isNavyPreset
-              ? "bg-indigo-100/90 dark:bg-indigo-950/70 text-indigo-900 dark:text-indigo-300 border border-indigo-200/80 dark:border-indigo-900/60 font-extrabold shadow-xs"
-              : "bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white border border-slate-200/90 dark:border-slate-700 font-extrabold shadow-xs";
-
-            const inactiveEduClass = isRosePreset
-              ? "text-slate-600 dark:text-slate-400 bg-transparent border-transparent hover:bg-rose-50/80 dark:hover:bg-rose-950/30 hover:text-rose-600 dark:hover:text-rose-300 font-medium"
-              : isOceanPreset
-              ? "text-slate-600 dark:text-slate-400 bg-transparent border-transparent hover:bg-blue-50/80 dark:hover:bg-blue-950/30 hover:text-blue-600 dark:hover:text-blue-300 font-medium"
-              : isJadePreset
-              ? "text-slate-600 dark:text-slate-400 bg-transparent border-transparent hover:bg-emerald-50/80 dark:hover:bg-emerald-950/30 hover:text-emerald-700 dark:hover:text-emerald-300 font-medium"
-              : isNavyPreset
-              ? "text-slate-600 dark:text-slate-400 bg-transparent border-transparent hover:bg-indigo-50/80 dark:hover:bg-indigo-950/30 hover:text-indigo-700 dark:hover:text-indigo-300 font-medium"
-              : "text-slate-600 dark:text-slate-400 bg-transparent border-transparent hover:bg-slate-50 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-slate-100 font-medium";
-
-            const activeEduIconClass = isRosePreset
-              ? "text-rose-600 dark:text-rose-400 scale-105"
-              : isOceanPreset
-              ? "text-blue-600 dark:text-blue-400 scale-105"
-              : isJadePreset
-              ? "text-emerald-700 dark:text-emerald-400 scale-105"
-              : isNavyPreset
-              ? "text-indigo-600 dark:text-indigo-400 scale-105"
-              : "text-slate-900 dark:text-slate-100 scale-105";
-
-            const activeEduTextClass = isRosePreset
-              ? "font-extrabold text-rose-700 dark:text-rose-300"
-              : isOceanPreset
-              ? "font-extrabold text-blue-700 dark:text-blue-300"
-              : isJadePreset
-              ? "font-extrabold text-emerald-800 dark:text-emerald-300"
-              : isNavyPreset
-              ? "font-extrabold text-indigo-900 dark:text-indigo-300"
-              : "font-extrabold text-slate-900 dark:text-white";
-
-            const activeEduPillClass = isRosePreset
-              ? "bg-rose-600 dark:bg-rose-400"
-              : isOceanPreset
-              ? "bg-blue-600 dark:bg-blue-400"
-              : isJadePreset
-              ? "bg-emerald-600 dark:bg-emerald-400"
-              : isNavyPreset
-              ? "bg-indigo-600 dark:bg-indigo-400"
-              : "bg-slate-700 dark:bg-slate-300";
+            // Education consumes resolved tenant tokens, including custom brand colors.
+            const activeEduClass = "bg-[color-mix(in_srgb,var(--education-sidebar-fg)_15%,transparent)] text-[var(--education-sidebar-fg)] border border-[var(--education-sidebar-border)] font-extrabold shadow-xs";
+            const inactiveEduClass = "text-[var(--education-sidebar-fg)] bg-transparent border-transparent hover:bg-[color-mix(in_srgb,var(--education-sidebar-fg)_10%,transparent)] font-medium";
+            const activeEduIconClass = "text-[var(--education-sidebar-fg)] scale-105";
+            const activeEduTextClass = "font-extrabold text-[var(--education-sidebar-fg)]";
+            const activeEduPillClass = "bg-[var(--education-sidebar-fg)]";
 
             return (
               <Link key={item.href} href={item.href} onClick={handleNavigation} aria-current={isActive ? 'page' : undefined} prefetch={false}>
@@ -1147,7 +1101,7 @@ export function Sidebar() {
                   <item.icon className={cn(
                     "w-4 h-4 transition-all duration-300 shrink-0",
                     isBellaEducationShell
-                      ? (isActive ? activeEduIconClass : "text-slate-400 dark:text-slate-500 group-hover:text-slate-700 dark:group-hover:text-slate-300")
+                      ? (isActive ? activeEduIconClass : "text-[var(--education-sidebar-fg)] opacity-75 group-hover:opacity-100")
                       // Real estate: CSS owns icon color — emit NO color classes, only scale
                       : isRealEstateShell
                       ? (isActive ? "scale-105" : "")
@@ -1158,7 +1112,7 @@ export function Sidebar() {
                   <span className={cn(
                     "text-[12.5px] tracking-tight transition-all duration-300 truncate",
                     isBellaEducationShell
-                      ? (isActive ? activeEduTextClass : "font-medium text-slate-700 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white")
+                      ? (isActive ? activeEduTextClass : "font-medium text-[var(--education-sidebar-fg)] opacity-90 group-hover:opacity-100")
                       // Real estate: CSS owns span color — emit NO color classes, only weight hint
                       : isRealEstateShell
                       ? (isActive ? "font-extrabold" : "font-semibold")

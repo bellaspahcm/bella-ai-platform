@@ -7439,3 +7439,50 @@ html.dark[data-tenant-module="pending"] .dashboard-shell .bella-data-table tbody
   color: var(--primary-foreground, #091A2D) !important;
 }
 
+
+/* Preschool presentation consumes the same resolved tenant tokens as Spa.
+   Keep status/category palettes in the components; no utility-color overrides. */
+.preschool-ui {
+  --education-brand-ink: color-mix(in srgb, var(--primary) 45%, #000);
+  background-color: var(--background);
+  color: var(--foreground);
+}
+
+.dark .preschool-ui {
+  --education-brand-ink: color-mix(in srgb, var(--primary) 35%, #fff);
+}
+
+html[data-tenant-module="bella_education"] .preschool-sidebar {
+  --education-sidebar-fg: var(--sidebar-fg);
+  --education-sidebar-border: var(--sidebar-border);
+  --education-sidebar-inner: var(--sidebar-inner-bg);
+  background: var(--sidebar-bg);
+  border-color: var(--education-sidebar-border);
+  color: var(--education-sidebar-fg);
+}
+
+html.dark[data-tenant-module="bella_education"] .preschool-sidebar {
+  --education-sidebar-fg: var(--foreground);
+  --education-sidebar-border: color-mix(in srgb, var(--primary) 25%, var(--border));
+  --education-sidebar-inner: color-mix(in srgb, var(--primary) 10%, var(--background));
+  background: color-mix(in srgb, var(--primary) 18%, var(--background));
+}
+
+.preschool-sidebar-inner {
+  background: var(--education-sidebar-inner);
+  border: 1px solid var(--education-sidebar-border);
+}
+
+.preschool-sidebar .preschool-sidebar-close {
+  color: var(--education-sidebar-fg);
+  background: color-mix(in srgb, var(--education-sidebar-fg) 10%, transparent);
+}
+
+/* The global unlayered heading rule otherwise overrides Tailwind text colors. */
+.preschool-ui .preschool-brand-heading {
+  color: var(--education-brand-ink);
+}
+
+.preschool-sidebar h2 {
+  color: var(--education-sidebar-fg);
+}

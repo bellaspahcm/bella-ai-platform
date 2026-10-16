@@ -341,20 +341,20 @@ export default function SchedulingPage() {
   const currentSnapshot = complianceSnapshots[0];
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 p-6 md:p-10 font-sans">
+    <div className="preschool-ui min-h-screen bg-background text-foreground p-6 md:p-10 font-sans">
       {/* Header & Navigation */}
       <div className="max-w-7xl mx-auto space-y-8">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-800 pb-6">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-border pb-6">
           <div>
             <div className="flex items-center gap-3">
-              <Link href="/dashboard" className="p-2 bg-slate-900 hover:bg-slate-800 rounded-lg text-slate-400 hover:text-white transition">
+              <Link href="/dashboard" className="p-2 bg-background hover:bg-muted rounded-lg text-muted-foreground hover:text-foreground transition">
                 <ArrowLeft size={18} />
               </Link>
-              <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-teal-400 via-emerald-300 to-sky-400 bg-clip-text text-transparent">
+              <h1 className="preschool-brand-heading text-3xl font-extrabold tracking-tight text-[var(--education-brand-ink)]">
                 P8 Preschool Staff Scheduling & Shift Management
               </h1>
             </div>
-            <p className="text-slate-400 text-sm mt-1 ml-11">
+            <p className="text-muted-foreground text-sm mt-1 ml-11">
               Hệ thống Xếp Ca Giảng Dạy, Kiểm Toán Tỷ Lệ Giáo Viên / Trẻ (Caregiver Ratio), Nghỉ Phép & Dạy Thay Tuân Thủ Quy Chuẩn
             </p>
           </div>
@@ -366,7 +366,7 @@ export default function SchedulingPage() {
             <button 
               onClick={loadData}
               disabled={loading}
-              className="p-2.5 bg-slate-900 hover:bg-slate-800 text-slate-300 rounded-lg border border-slate-800 transition flex items-center gap-2 text-xs"
+              className="p-2.5 bg-background hover:bg-muted text-foreground rounded-lg border border-border transition flex items-center gap-2 text-xs"
             >
               <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
               Làm mới
@@ -390,63 +390,63 @@ export default function SchedulingPage() {
 
         {/* Live Caregiver-to-Child Ratio Compliance Card */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="p-5 bg-slate-900/80 border border-slate-800 rounded-2xl relative overflow-hidden">
-            <div className="text-xs font-medium text-slate-400 uppercase tracking-wider">Trạng thái Tỷ lệ Nhân sự</div>
+          <div className="p-5 bg-background border border-border rounded-2xl relative overflow-hidden">
+            <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Trạng thái Tỷ lệ Nhân sự</div>
             <div className="mt-2 flex items-center justify-between">
               <span data-testid="ratio-compliance-badge" className={`text-2xl font-bold ${
                 currentSnapshot?.complianceState === 'SHORTAGE_VIOLATION'
-                  ? 'text-rose-400'
-                  : 'text-emerald-400'
+                  ? 'text-rose-700 dark:text-rose-400'
+                  : 'text-emerald-700 dark:text-emerald-400'
               }`}>
                 {currentSnapshot?.complianceState || 'COMPLIANT'}
               </span>
               {currentSnapshot?.complianceState === 'SHORTAGE_VIOLATION' ? (
-                <AlertTriangle className="text-rose-400 animate-pulse" size={28} />
+                <AlertTriangle className="text-rose-700 dark:text-rose-400 animate-pulse" size={28} />
               ) : (
-                <ShieldCheck className="text-emerald-400" size={28} />
+                <ShieldCheck className="text-emerald-700 dark:text-emerald-400" size={28} />
               )}
             </div>
-            <p className="text-xs text-slate-500 mt-2">
+            <p className="text-xs text-muted-foreground mt-2">
               {currentSnapshot?.complianceState === 'SHORTAGE_VIOLATION' 
                 ? `Thiếu ${currentSnapshot.shortageCount} bảo mẫu/giáo viên!`
                 : 'Đạt chuẩn 1 bảo mẫu / 5 trẻ (Lớp Toddler)'}
             </p>
           </div>
 
-          <div className="p-5 bg-slate-900/80 border border-slate-800 rounded-2xl">
-            <div className="text-xs font-medium text-slate-400 uppercase tracking-wider">Số Trẻ Có Mặt (Present)</div>
-            <div className="mt-2 text-2xl font-bold text-slate-100">
-              {currentSnapshot?.presentChildren ?? 10} <span className="text-xs font-normal text-slate-400">/ {currentSnapshot?.enrolledChildren ?? 10} Đã nhập học</span>
+          <div className="p-5 bg-background border border-border rounded-2xl">
+            <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Số Trẻ Có Mặt (Present)</div>
+            <div className="mt-2 text-2xl font-bold text-foreground">
+              {currentSnapshot?.presentChildren ?? 10} <span className="text-xs font-normal text-muted-foreground">/ {currentSnapshot?.enrolledChildren ?? 10} Đã nhập học</span>
             </div>
-            <p className="text-xs text-slate-500 mt-2">Nguồn dữ liệu: P3/P4 Student Attendance Contract</p>
+            <p className="text-xs text-muted-foreground mt-2">Nguồn dữ liệu: P3/P4 Student Attendance Contract</p>
           </div>
 
-          <div className="p-5 bg-slate-900/80 border border-slate-800 rounded-2xl">
-            <div className="text-xs font-medium text-slate-400 uppercase tracking-wider">Bảo Mẫu Yêu Cầu vs Đã Phân Công</div>
-            <div className="mt-2 text-2xl font-bold text-teal-300">
-              {currentSnapshot?.assignedCaregivers ?? assignments.filter(a => a.status === 'SCHEDULED').length} <span className="text-xs font-normal text-slate-400">/ Yêu cầu: {currentSnapshot?.requiredCaregivers ?? 2}</span>
+          <div className="p-5 bg-background border border-border rounded-2xl">
+            <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Bảo Mẫu Yêu Cầu vs Đã Phân Công</div>
+            <div className="mt-2 text-2xl font-bold text-[var(--education-brand-ink)]">
+              {currentSnapshot?.assignedCaregivers ?? assignments.filter(a => a.status === 'SCHEDULED').length} <span className="text-xs font-normal text-muted-foreground">/ Yêu cầu: {currentSnapshot?.requiredCaregivers ?? 2}</span>
             </div>
-            <p className="text-xs text-slate-500 mt-2">Công thức: ceil(active_children / max_ratio)</p>
+            <p className="text-xs text-muted-foreground mt-2">Công thức: ceil(active_children / max_ratio)</p>
           </div>
 
-          <div className="p-5 bg-slate-900/80 border border-slate-800 rounded-2xl">
-            <div className="text-xs font-medium text-slate-400 uppercase tracking-wider">Cảnh Báo Thiếu Người (Work Queue)</div>
-            <div className="mt-2 text-2xl font-bold text-amber-300">
-              {exceptions.filter(e => e.status === 'OPEN').length} <span className="text-xs font-normal text-slate-400">STAFFING_SHORTAGE_SLA</span>
+          <div className="p-5 bg-background border border-border rounded-2xl">
+            <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Cảnh Báo Thiếu Người (Work Queue)</div>
+            <div className="mt-2 text-2xl font-bold text-amber-700 dark:text-amber-300">
+              {exceptions.filter(e => e.status === 'OPEN').length} <span className="text-xs font-normal text-muted-foreground">STAFFING_SHORTAGE_SLA</span>
             </div>
-            <p className="text-xs text-slate-500 mt-2">Platform Candidate Reuse #2 Active</p>
+            <p className="text-xs text-muted-foreground mt-2">Platform Candidate Reuse #2 Active</p>
           </div>
         </div>
 
         {/* Tab Navigation */}
-        <div className="flex border-b border-slate-800 gap-8">
+        <div className="flex border-b border-border gap-8">
           <button
             data-testid="tab-roster"
             onClick={() => setActiveTab('ROSTER')}
             className={`pb-4 text-sm font-semibold flex items-center gap-2 border-b-2 transition ${
               activeTab === 'ROSTER'
-                ? 'border-teal-400 text-teal-300'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
+                ? 'border-primary text-[var(--education-brand-ink)]'
+                : 'border-transparent text-muted-foreground hover:text-foreground'
             }`}
           >
             <Calendar size={16} /> Lịch Roster & Tỷ Lệ Bảo Mẫu
@@ -456,8 +456,8 @@ export default function SchedulingPage() {
             onClick={() => setActiveTab('LEAVE')}
             className={`pb-4 text-sm font-semibold flex items-center gap-2 border-b-2 transition ${
               activeTab === 'LEAVE'
-                ? 'border-teal-400 text-teal-300'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
+                ? 'border-primary text-[var(--education-brand-ink)]'
+                : 'border-transparent text-muted-foreground hover:text-foreground'
             }`}
           >
             <UserX size={16} /> Quản Lý Nghỉ Phép & Phân Công Dạy Thay
@@ -472,8 +472,8 @@ export default function SchedulingPage() {
             onClick={() => setActiveTab('WORK_QUEUE')}
             className={`pb-4 text-sm font-semibold flex items-center gap-2 border-b-2 transition ${
               activeTab === 'WORK_QUEUE'
-                ? 'border-teal-400 text-teal-300'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
+                ? 'border-primary text-[var(--education-brand-ink)]'
+                : 'border-transparent text-muted-foreground hover:text-foreground'
             }`}
           >
             <Layers size={16} /> Platform Exception Work Queue
@@ -488,24 +488,24 @@ export default function SchedulingPage() {
         {/* Tab 1: ROSTER & RATIO */}
         {activeTab === 'ROSTER' && (
           <div className="space-y-6">
-            <div className="flex flex-wrap items-center justify-between gap-4 bg-slate-900/60 p-4 rounded-xl border border-slate-800">
+            <div className="flex flex-wrap items-center justify-between gap-4 bg-background p-4 rounded-xl border border-border">
               <div className="flex items-center gap-4">
                 <div>
-                  <label className="text-xs text-slate-400 block mb-1">Ngày Xếp Ca</label>
+                  <label className="text-xs text-muted-foreground block mb-1">Ngày Xếp Ca</label>
                   <input
                     type="date"
                     value={selectedDate}
                     onChange={(e) => setSelectedDate(e.target.value)}
-                    className="bg-slate-950 border border-slate-800 rounded-lg px-3 py-1.5 text-sm text-slate-200 focus:outline-none focus:border-teal-500"
+                    className="bg-background border border-border rounded-lg px-3 py-1.5 text-sm text-foreground focus:outline-none focus:border-ring"
                   />
                 </div>
                 <div>
-                  <label className="text-xs text-slate-400 block mb-1">Mã Lớp Học</label>
+                  <label className="text-xs text-muted-foreground block mb-1">Mã Lớp Học</label>
                   <input
                     type="text"
                     value={selectedClassroom}
                     onChange={(e) => setSelectedClassroom(e.target.value)}
-                    className="bg-slate-950 border border-slate-800 rounded-lg px-3 py-1.5 text-sm text-slate-200 focus:outline-none focus:border-teal-500"
+                    className="bg-background border border-border rounded-lg px-3 py-1.5 text-sm text-foreground focus:outline-none focus:border-ring"
                   />
                 </div>
               </div>
@@ -514,21 +514,21 @@ export default function SchedulingPage() {
                 data-testid="btn-seed-shift"
                 onClick={handleSeedShift}
                 disabled={loading}
-                className="px-4 py-2 bg-teal-600 hover:bg-teal-500 text-white rounded-lg font-medium text-sm transition flex items-center gap-2 shadow-lg shadow-teal-950"
+                className="px-4 py-2 bg-primary hover:bg-primary-hover text-primary-foreground rounded-lg font-medium text-sm transition flex items-center gap-2 shadow-lg shadow-primary/20"
               >
                 <Plus size={16} /> Phân Công Ca Sáng Mẫu (10 Trẻ / 2 Giáo Viên)
               </button>
             </div>
 
             {/* Roster Assignment Table */}
-            <div className="bg-slate-900/80 border border-slate-800 rounded-2xl overflow-hidden">
-              <div className="p-4 border-b border-slate-800 font-semibold text-sm text-slate-300 flex items-center justify-between">
+            <div className="bg-background border border-border rounded-2xl overflow-hidden">
+              <div className="p-4 border-b border-border font-semibold text-sm text-foreground flex items-center justify-between">
                 <span>Danh Sách Ca Phân Công Trong Ngày ({selectedDate})</span>
-                <span className="text-xs text-slate-500 font-normal">Append-Only Versioning Active</span>
+                <span className="text-xs text-muted-foreground font-normal">Append-Only Versioning Active</span>
               </div>
               <div className="overflow-x-auto">
-                <table className="w-full text-left text-sm text-slate-300">
-                  <thead className="bg-slate-950/80 text-xs text-slate-400 uppercase border-b border-slate-800">
+                <table className="w-full text-left text-sm text-foreground">
+                  <thead className="bg-background text-xs text-muted-foreground uppercase border-b border-border">
                     <tr>
                       <th className="px-6 py-3">Mã Ca</th>
                       <th className="px-6 py-3">Giáo Viên / Bảo Mẫu ID</th>
@@ -540,18 +540,18 @@ export default function SchedulingPage() {
                   <tbody className="divide-y divide-slate-800/60">
                     {assignments.length === 0 ? (
                       <tr>
-                        <td colSpan={5} className="px-6 py-8 text-center text-slate-500 text-sm">
+                        <td colSpan={5} className="px-6 py-8 text-center text-muted-foreground text-sm">
                           Chưa có ca làm việc nào được xếp cho ngày này. Bấm nút &quot;Phân Công Ca Sáng Mẫu&quot; để khởi tạo.
                         </td>
                       </tr>
                     ) : (
                       assignments.map((a) => (
-                        <tr key={a.id} className="hover:bg-slate-800/30 transition">
-                          <td className="px-6 py-4 font-mono text-xs text-teal-300">{a.shiftTemplateId.slice(0, 8)}</td>
+                        <tr key={a.id} className="hover:bg-muted transition">
+                          <td className="px-6 py-4 font-mono text-xs text-[var(--education-brand-ink)]">{a.shiftTemplateId.slice(0, 8)}</td>
                           <td className="px-6 py-4 font-mono text-xs">{a.staffPartyId}</td>
                           <td className="px-6 py-4">
                             <span className={`px-2.5 py-1 rounded-md text-xs font-semibold ${
-                              a.role === 'LEAD_TEACHER' ? 'bg-indigo-950 text-indigo-300 border border-indigo-800/60' : 'bg-slate-800 text-slate-300'
+                              a.role === 'LEAD_TEACHER' ? 'bg-indigo-950 text-indigo-300 border border-indigo-800/60' : 'bg-muted text-foreground'
                             }`}>
                               {a.role}
                             </span>
@@ -565,7 +565,7 @@ export default function SchedulingPage() {
                               {a.status}
                             </span>
                           </td>
-                          <td className="px-6 py-4 text-xs text-slate-400">v{a.amendmentVersion}</td>
+                          <td className="px-6 py-4 text-xs text-muted-foreground">v{a.amendmentVersion}</td>
                         </tr>
                       ))
                     )}
@@ -580,16 +580,16 @@ export default function SchedulingPage() {
         {activeTab === 'LEAVE' && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Form: Apply for Leave */}
-            <div className="bg-slate-900/80 border border-slate-800 p-6 rounded-2xl space-y-4">
-              <h3 className="text-lg font-bold text-slate-200 flex items-center gap-2 border-b border-slate-800 pb-3">
-                <UserX size={18} className="text-teal-400" /> Nộp Đơn Xin Nghỉ Phép
+            <div className="bg-background border border-border p-6 rounded-2xl space-y-4">
+              <h3 className="text-lg font-bold text-foreground flex items-center gap-2 border-b border-border pb-3">
+                <UserX size={18} className="text-teal-700 dark:text-teal-400" /> Nộp Đơn Xin Nghỉ Phép
               </h3>
               <div>
-                <label className="text-xs text-slate-400 block mb-1">Mã Nhân Viên</label>
+                <label className="text-xs text-muted-foreground block mb-1">Mã Nhân Viên</label>
                 <select
                   value={leaveStaffId}
                   onChange={(e) => setLeaveStaffId(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-sm text-slate-200 focus:outline-none focus:border-teal-500"
+                  className="w-full bg-background border border-border rounded-lg p-2.5 text-sm text-foreground focus:outline-none focus:border-ring"
                 >
                   <option value={DEFAULT_TEACHER1_ID}>Giáo viên 1 (Teacher Lead 1)</option>
                   <option value={DEFAULT_TEACHER2_ID}>Giáo viên 2 (Teacher Lead 2)</option>
@@ -599,27 +599,27 @@ export default function SchedulingPage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs text-slate-400 block mb-1">Từ Ngày</label>
+                  <label className="text-xs text-muted-foreground block mb-1">Từ Ngày</label>
                   <input
                     type="date"
                     value={leaveStartDate}
                     onChange={(e) => setLeaveStartDate(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-sm text-slate-200"
+                    className="w-full bg-background border border-border rounded-lg p-2 text-sm text-foreground"
                   />
                 </div>
                 <div>
-                  <label className="text-xs text-slate-400 block mb-1">Đến Ngày</label>
+                  <label className="text-xs text-muted-foreground block mb-1">Đến Ngày</label>
                   <input
                     type="date"
                     value={leaveEndDate}
                     onChange={(e) => setLeaveEndDate(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-sm text-slate-200"
+                    className="w-full bg-background border border-border rounded-lg p-2 text-sm text-foreground"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="text-xs text-slate-400 block mb-1">Loại Nghỉ Phép</label>
+                <label className="text-xs text-muted-foreground block mb-1">Loại Nghỉ Phép</label>
                 <select
                   value={leaveType}
                   onChange={(e) => {
@@ -627,7 +627,7 @@ export default function SchedulingPage() {
                       setLeaveType(e.target.value);
                     }
                   }}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-sm text-slate-200"
+                  className="w-full bg-background border border-border rounded-lg p-2.5 text-sm text-foreground"
                 >
                   <option value="SICK_LEAVE">Sick Leave (Nghỉ Bệnh)</option>
                   <option value="ANNUAL_LEAVE">Annual Leave (Nghỉ Phép Năm)</option>
@@ -639,7 +639,7 @@ export default function SchedulingPage() {
                 data-testid="btn-apply-leave"
                 onClick={handleApplyLeave}
                 disabled={loading}
-                className="w-full py-2.5 bg-teal-600 hover:bg-teal-500 text-white rounded-lg font-medium text-sm transition shadow-lg"
+                className="w-full py-2.5 bg-primary hover:bg-primary-hover text-primary-foreground rounded-lg font-medium text-sm transition shadow-lg"
               >
                 Gửi Đơn Xin Nghỉ Phép (PENDING)
               </button>
@@ -647,22 +647,22 @@ export default function SchedulingPage() {
 
             {/* List: Leave Requests & Manager Approval Actions */}
             <div className="lg:col-span-2 space-y-6">
-              <div className="bg-slate-900/80 border border-slate-800 rounded-2xl overflow-hidden">
-                <div className="p-4 border-b border-slate-800 font-semibold text-sm text-slate-300">
+              <div className="bg-background border border-border rounded-2xl overflow-hidden">
+                <div className="p-4 border-b border-border font-semibold text-sm text-foreground">
                   Danh Sách Đơn Xin Nghỉ Phép & Phân Công Dạy Thay
                 </div>
                 <div className="divide-y divide-slate-800/60">
                   {leaveRequests.length === 0 ? (
-                    <div className="p-8 text-center text-slate-500 text-sm">
+                    <div className="p-8 text-center text-muted-foreground text-sm">
                       Chưa có đơn xin nghỉ phép nào trong hệ thống.
                     </div>
                   ) : (
                     leaveRequests.map((l) => (
-                      <div key={l.id} className="p-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 hover:bg-slate-800/30 transition">
+                      <div key={l.id} className="p-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 hover:bg-muted transition">
                         <div>
                           <div className="flex items-center gap-3">
-                            <span className="font-mono text-xs text-teal-400 font-bold">#{l.id.slice(0, 8)}</span>
-                            <span className="text-sm font-semibold text-slate-200">{l.leave_type}</span>
+                            <span className="font-mono text-xs text-teal-700 dark:text-teal-400 font-bold">#{l.id.slice(0, 8)}</span>
+                            <span className="text-sm font-semibold text-foreground">{l.leave_type}</span>
                             <span className={`px-2 py-0.5 rounded text-xs font-semibold ${
                               l.status === 'PENDING' ? 'bg-amber-950 text-amber-300 border border-amber-800' :
                               l.status === 'APPROVED' ? 'bg-emerald-950 text-emerald-300 border border-emerald-800' :
@@ -671,10 +671,10 @@ export default function SchedulingPage() {
                               {l.status}
                             </span>
                           </div>
-                          <p className="text-xs text-slate-400 mt-1">
+                          <p className="text-xs text-muted-foreground mt-1">
                             Nhân viên: <span className="font-mono">{l.staff_party_id}</span> | Thời gian: {l.start_date} đến {l.end_date}
                           </p>
-                          {l.reason && <p className="text-xs text-slate-500 italic mt-0.5">Lý do: {l.reason}</p>}
+                          {l.reason && <p className="text-xs text-muted-foreground italic mt-0.5">Lý do: {l.reason}</p>}
                         </div>
 
                         <div className="flex items-center gap-2">
@@ -683,7 +683,7 @@ export default function SchedulingPage() {
                               data-testid="btn-approve-leave"
                               onClick={() => handleApproveLeave(l.id)}
                               disabled={loading}
-                              className="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-600 text-white rounded-md text-xs font-semibold transition shadow-md"
+                              className="px-3 py-1.5 bg-primary hover:bg-primary-hover text-primary-foreground rounded-md text-xs font-semibold transition shadow-md"
                             >
                               Duyệt Nghỉ Phép (Approve)
                             </button>
@@ -694,7 +694,7 @@ export default function SchedulingPage() {
                               <select
                                 value={substituteStaffId}
                                 onChange={(e) => setSubstituteStaffId(e.target.value)}
-                                className="bg-slate-950 border border-slate-800 rounded px-2 py-1 text-xs text-slate-300"
+                                className="bg-background border border-border rounded px-2 py-1 text-xs text-foreground"
                               >
                                 <option value={DEFAULT_TEACHER2_ID}>Giáo viên 2 (Teacher 2)</option>
                                 <option value={DEFAULT_CAREGIVER1_ID}>Bảo mẫu 1 (Caregiver 1)</option>
@@ -703,7 +703,7 @@ export default function SchedulingPage() {
                                 data-testid="btn-assign-substitute"
                                 onClick={() => handleAssignSubstitute(l.id)}
                                 disabled={loading}
-                                className="px-3 py-1.5 bg-indigo-700 hover:bg-indigo-600 text-white rounded-md text-xs font-semibold transition"
+                                className="px-3 py-1.5 bg-primary hover:bg-primary-hover text-primary-foreground rounded-md text-xs font-semibold transition"
                               >
                                 Phân Công Dạy Thay
                               </button>
@@ -722,13 +722,13 @@ export default function SchedulingPage() {
         {/* Tab 3: WORK QUEUE */}
         {activeTab === 'WORK_QUEUE' && (
           <div className="space-y-6">
-            <div className="bg-slate-900/80 border border-slate-800 rounded-2xl overflow-hidden p-6 space-y-4">
-              <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+            <div className="bg-background border border-border rounded-2xl overflow-hidden p-6 space-y-4">
+              <div className="flex items-center justify-between border-b border-border pb-4">
                 <div>
-                  <h3 className="text-lg font-bold text-slate-200 flex items-center gap-2">
-                    <Layers className="text-teal-400" size={20} /> Platform Candidate Exception Work Queue Engine (#2 Reuse)
+                  <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
+                    <Layers className="text-teal-700 dark:text-teal-400" size={20} /> Platform Candidate Exception Work Queue Engine (#2 Reuse)
                   </h3>
-                  <p className="text-xs text-slate-400 mt-1">
+                  <p className="text-xs text-muted-foreground mt-1">
                     Cảnh báo SLA Thiếu Nhân Sự (STAFFING_SHORTAGE_SLA) được tự động leo thang khi duyệt nghỉ phép gây vi phạm tỷ lệ bảo mẫu
                   </p>
                 </div>
@@ -739,7 +739,7 @@ export default function SchedulingPage() {
 
               <div className="divide-y divide-slate-800/60">
                 {exceptions.length === 0 ? (
-                  <div className="p-8 text-center text-slate-500 text-sm">
+                  <div className="p-8 text-center text-muted-foreground text-sm">
                     Hiện không có exception cảnh báo thiếu người nào trong Work Queue.
                   </div>
                 ) : (
@@ -747,7 +747,7 @@ export default function SchedulingPage() {
                     <div key={exc.id} className="py-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                       <div>
                         <div className="flex items-center gap-3">
-                          <span className="font-mono text-xs text-amber-400 font-bold">#{exc.id.slice(0, 8)}</span>
+                          <span className="font-mono text-xs text-amber-700 dark:text-amber-400 font-bold">#{exc.id.slice(0, 8)}</span>
                           <span className="text-xs font-bold px-2 py-0.5 rounded bg-rose-950 text-rose-300 border border-rose-800">
                             {exc.exception_type}
                           </span>
@@ -757,8 +757,8 @@ export default function SchedulingPage() {
                             {exc.status}
                           </span>
                         </div>
-                        <p className="text-xs text-slate-400 mt-1">
-                          Lớp học ID: <span className="font-mono text-slate-300">{exc.student_id}</span> | Vai trò phụ trách: {exc.assigned_role}
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Lớp học ID: <span className="font-mono text-foreground">{exc.student_id}</span> | Vai trò phụ trách: {exc.assigned_role}
                         </p>
                       </div>
 

@@ -148,7 +148,7 @@ export default function ParentInboxPage() {
   }
 
   return (
-    <div className="w-full p-4 sm:p-6 lg:p-8 space-y-6 pb-12">
+    <div className="preschool-ui w-full p-4 sm:p-6 lg:p-8 space-y-6 pb-12">
       <div className="w-full rounded-3xl bg-white dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 p-6 sm:p-8 shadow-sm space-y-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-700/60 pb-5">
           <div className="flex items-center gap-3">
@@ -159,7 +159,7 @@ export default function ParentInboxPage() {
             >
               <ArrowLeft className="w-4 h-4" />
             </Link>
-            <div className="p-3 rounded-2xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 shrink-0">
+            <div className="p-3 rounded-2xl bg-primary/10 text-[var(--education-brand-ink)] shrink-0">
               <Inbox className="w-6 h-6" />
             </div>
             <div>
@@ -186,7 +186,7 @@ export default function ParentInboxPage() {
               type="button"
               onClick={() => void loadDailyExperience()}
               disabled={loading}
-              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-4 py-2 text-xs font-extrabold text-white shadow-sm hover:bg-indigo-700 disabled:opacity-60"
+              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-primary px-4 py-2 text-xs font-extrabold text-primary-foreground shadow-sm hover:bg-primary-hover disabled:opacity-60"
             >
               <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
               Làm mới
@@ -195,9 +195,9 @@ export default function ParentInboxPage() {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="p-4 rounded-2xl bg-indigo-50/70 dark:bg-indigo-950/40 border border-indigo-200/80 dark:border-indigo-900/60">
-            <p className="text-[11px] font-black uppercase text-indigo-600 dark:text-indigo-300">Trẻ được phép xem</p>
-            <p className="mt-1 text-2xl font-extrabold text-indigo-900 dark:text-indigo-100">{childCount}</p>
+          <div className="p-4 rounded-2xl bg-primary/10 border border-primary/20 ">
+            <p className="text-[11px] font-black uppercase text-[var(--education-brand-ink)]">Trẻ được phép xem</p>
+            <p className="mt-1 text-2xl font-extrabold text-[var(--education-brand-ink)]">{childCount}</p>
           </div>
           <div className="p-4 rounded-2xl bg-emerald-50/70 dark:bg-emerald-950/40 border border-emerald-200/80 dark:border-emerald-900/60">
             <p className="text-[11px] font-black uppercase text-emerald-600 dark:text-emerald-300">Đã bàn giao</p>
@@ -250,7 +250,7 @@ export default function ParentInboxPage() {
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
               <section className="rounded-2xl border border-slate-200 dark:border-slate-700 p-4">
-                <div className="flex items-center gap-2 text-xs font-black uppercase text-indigo-600 dark:text-indigo-300">
+                <div className="flex items-center gap-2 text-xs font-black uppercase text-[var(--education-brand-ink)]">
                   <CheckCircle2 className="h-4 w-4" />
                   Attendance
                 </div>
