@@ -70,7 +70,7 @@ function getVercelProtectionHeaders(): Record<string, string> | undefined {
     : undefined;
 }
 
-function getE2eContextOptions(): BrowserContextOptions {
+export function getE2eContextOptions(): BrowserContextOptions {
   loadE2eEnv();
 
   return {
@@ -87,7 +87,7 @@ function getStorageStatePath(workerInfo: WorkerInfo): string {
   return join(tmpdir(), `bella-spa-e2e-admin-${projectName}-${workerInfo.workerIndex}.json`);
 }
 
-async function loginWithConfiguredCredentials(page: Page, credentials: AdminCredentials): Promise<void> {
+export async function loginWithConfiguredCredentials(page: Page, credentials: AdminCredentials): Promise<void> {
   await page.goto("/login", { waitUntil: "load" });
   await page.waitForLoadState("networkidle", { timeout: 15_000 }).catch(() => {});
   await page.locator('input[type="email"]').fill(credentials.email);
