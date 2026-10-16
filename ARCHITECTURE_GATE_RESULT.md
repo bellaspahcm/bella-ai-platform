@@ -10930,3 +10930,26 @@ Minimal implementation: add UI branch state to the existing `UserProvider` (no n
 Authorized layers/files: previous UI/Core files plus `src/lib/user-context.tsx`, `src/components/layout/BeautyRuntimeBranchSelector.tsx`, `src/core/services/order/create-booking-action.ts`, `src/core/services/order/create-booking-helpers.ts`, targeted tests and this gate/ACR. This is the owning boundary of the two review findings, not a new feature or architecture. The original conversation's UI/server booking authorization and current explicit P1/P2 corrective scope are the authority; Core ACR file list is updated to reflect the actual bounded change.
 
 Verification additions to eleven-gate plan: RED/GREEN A->B draft and inconsistent child scope; compare draft/session/revenue bytes before/after rejected browser request; same-branch MAIN success and DB readback; storage getter/setter throwing with shared state, missing state no request; Haircut regression; full typecheck, lint, guards and exact diff; independent code re-review. No migration/Production/commit/PR. Existing 2 timeout + 1 skip remain classified separately and are not counted as PASS.
+
+---
+
+# ARCHITECTURE GATE RESULT — PRE SCHOOL TEACHER WORKFORCE MANAGEMENT REDESIGN (IMAGE 3 FIDELITY)
+
+> **Status:** PASS  
+> **Date:** 2026-10-16  
+> **Scope:** Redesign Teachers Workforce Management UI (`src/app/dashboard/education/teachers/page.tsx`) to match Reference Design (Image 3) for Preschool tenants (`bella_education`).  
+> **Strict Type Invariant:** ZERO use of `any` and `unknown` in all code and handlers.
+
+## 1. Bella OS/Product Development Process Gate
+- **Truth:**
+  - Preschool Teacher Workforce Management UI requires high visual hierarchy, clean aesthetic, and specific UX structure as defined in Reference Image 3:
+    1. Header: Back button, pink icon badge, "Đội Ngũ Giáo Viên Mầm Non", "Quản lý 32 giáo viên chuyên môn, phân công giảng dạy", Year selector ("Năm học 2026 - 2027"), and "+ Thêm Giáo Viên Mới" primary button (`#0e5c43`).
+    2. 4 Distinct KPI Stat Cards: Mint (Tổng số giáo viên - 32), Blue (Giáo viên chủ nhiệm - 12), Amber (Giáo viên trợ giảng - 14), and Purple (Giáo viên năng khiếu - 6).
+    3. Two-Tier Filter & Search: Search input, Chức vụ selector, Khối lớp selector, "Bộ lọc" button, and 4 role pill tabs: "Tất cả (32)", "Chủ nhiệm (12)", "Trợ giảng (14)", "Năng khiếu & Ngoại ngữ (6)".
+    4. 2-Column Grid with 6 Teacher Cards matching Image 3: Portrait photo avatar, role, assigned class (green), status badge, 3 info rows with icons (Degree + Univ, Experience, Class), workload bar with availability badge ("● Còn lịch trống" / "● Đủ tải"), certification badges with shield icon, and 2 action buttons ("Xem Hồ Sơ" & "Phân Công Lớp").
+- **Strict Guard:**
+  - Non-preschool tenants retain standard `LegacyTeacherView`.
+  - Zero `any` and zero `unknown`.
+  - Zero modifications to frozen Kernels (H1–H12, E7.1–E7.3, Education Kernel).
+- **Gate Result:** PASS
+
