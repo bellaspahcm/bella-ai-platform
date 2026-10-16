@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 import YAML from 'yaml';
-import { verifySmokeContext, verifyRecognitionDashboard, verifySqlRead, verifyAuthenticatedClosedGuard } from './verify-automove-production-runtime.mjs';
+import { verifySmokeContext, verifyRecognitionDashboard, verifySqlRead, verifyAuthenticatedClosedGuard, inspectOwnIdentity } from './verify-automove-production-runtime.mjs';
 
 const fixture = { GITHUB_ACTIONS: 'true', GITHUB_EVENT_NAME: 'workflow_dispatch',
   GITHUB_REPOSITORY: 'bellaspahcm/bella-ai-platform', GITHUB_REF: 'refs/heads/main',
@@ -39,11 +39,92 @@ test('manual workflow pins main and expected SHA; smoke has no DB or mutation cl
   assert.equal(workflow.permissions.contents, 'read');
   assert.equal(workflow.jobs.smoke.environment, 'Production');
   assert.equal(workflow.on.workflow_dispatch.inputs.mode.default, 'auth-only');
+  assert.ok(workflow.on.workflow_dispatch.inputs.mode.options.includes('diagnose-identity'));
   assert.match(workflow.jobs.smoke.if, /refs\/heads\/main/);
   const source = readFileSync('scripts/verify-automove-production-runtime.mjs', 'utf8');
   assert.doesNotMatch(source, /from ['"]pg['"]|\.post\(|\.put\(|\.delete\(|\.patch\(|storageState\(|screenshot\(/);
   assert.match(source, /import\('\.\.\/e2e\/fixtures\/auth\.ts'\)/);
   assert.doesNotMatch(source, /loginWithLocalDevBypass|mock_user_email|E2E_ADMIN_PASSWORD\s*\|\|/);
+  assert.ok(source.indexOf('verifyAuthenticatedClosedGuard(closed.status(), closedBody)') < source.indexOf('evidence.identity = await inspectOwnIdentity'));
+  assert.doesNotMatch(source, /SUPABASE_SERVICE_ROLE|createAdmin|SUPABASE_DB_URL|DATABASE_URL/);
+});
+
+const actorId = '11111111-1111-4111-8111-111111111111';
+const tenantId = '22222222-2222-4222-8222-222222222222';
+function identityClient({ role = 'accountant', status = 'active', tenantStatus = 'active',
+  profileError, tenantError, profileMissing = false, tenantMissing = false, foreignProfile = false,
+  authError = false } = {}) {
+  const queries = [];
+  const client = {
+    auth: { getUser: async token => {
+      assert.equal(token, 'unit-session-canary');
+      return { data: { user: { id: actorId, email: 'unit@example.invalid',
+        app_metadata: { role: 'accountant', tenant_id: tenantId } } }, error: authError ? {} : null };
+    } },
+    from: table => ({ select: fields => ({ eq: (column, value) => ({ maybeSingle: async () => {
+      queries.push({ table, fields, column, value });
+      return table === 'users'
+        ? { status: profileError ? 403 : 200, error: profileError,
+          data: profileMissing ? null : { id: foreignProfile ? tenantId : actorId, tenant_id: tenantId, role, status } }
+        : { status: tenantError ? 403 : 200, error: tenantError,
+          data: tenantMissing ? null : { id: tenantId, status: tenantStatus, product_key: 'bella_hq' } };
+    } }) }) }),
+  };
+  return { client, queries };
+}
+
+test('closed-runtime diagnosis reads only verified self and owning tenant; never persists session or raw identities', async () => {
+  const { client, queries } = identityClient();
+  const result = await inspectOwnIdentity(client, 'unit-session-canary', 'unit@example.invalid');
+  assert.deepEqual(result.failures, []);
+  assert.equal(result.profile.role, 'accountant');
+  assert.equal(result.tenant.matchesProfile, true);
+  assert.deepEqual(queries, [
+    { table: 'users', fields: 'id,tenant_id,role,status', column: 'id', value: actorId },
+    { table: 'tenants', fields: 'id,status,product_key', column: 'id', value: tenantId },
+  ]);
+  const serialized = JSON.stringify(result);
+  for (const secret of ['unit-session-canary', 'unit@example.invalid', actorId, tenantId]) assert.ok(!serialized.includes(secret));
+  assert.equal(result.historical403Origin, 'NOT_PROVEN_RESPONSE_BODY_NOT_RETAINED');
+});
+
+test('canonical DB role/status override permissive JWT metadata; inactive tenant is reported without changing authority', async () => {
+  for (const [input, failure] of [
+    [{ role: 'admin' }, 'ROLE_NOT_ACCOUNTANT'],
+    [{ status: 'inactive' }, 'ACTOR_NOT_ACTIVE'],
+    [{ tenantStatus: 'suspended' }, 'TENANT_NOT_ACTIVE'],
+  ]) {
+    const { client } = identityClient(input);
+    const result = await inspectOwnIdentity(client, 'unit-session-canary', 'unit@example.invalid');
+    assert.deepEqual(result.failures, [failure]);
+  }
+});
+
+test('RLS-hidden or denied self/tenant rows remain unavailable, not fabricated identities or nonexistent records', async () => {
+  for (const input of [{ profileMissing: true }, { profileError: { code: '42501', message: 'secret-canary' } }]) {
+    const { client, queries } = identityClient(input);
+    const result = await inspectOwnIdentity(client, 'unit-session-canary', 'unit@example.invalid');
+    assert.deepEqual(result.failures, ['PROFILE_NOT_VISIBLE_OR_READ_DENIED']);
+    assert.equal(queries.length, 1);
+    assert.ok(!JSON.stringify(result).includes('secret-canary'));
+  }
+  for (const input of [{ tenantMissing: true }, { tenantError: { code: 'secret-canary', message: 'secret-canary' } }]) {
+    const { client } = identityClient(input);
+    const result = await inspectOwnIdentity(client, 'unit-session-canary', 'unit@example.invalid');
+    assert.deepEqual(result.failures, ['TENANT_NOT_VISIBLE_OR_READ_DENIED']);
+    assert.ok(!JSON.stringify(result).includes('secret-canary'));
+  }
+});
+
+test('diagnosis rejects mismatched Auth/configured identity and profile binding before any broader read', async () => {
+  for (const input of [{ authError: true }, { foreignProfile: true }]) {
+    const { client, queries } = identityClient(input);
+    await assert.rejects(inspectOwnIdentity(client, 'unit-session-canary', 'unit@example.invalid'));
+    assert.ok(queries.length <= 1);
+  }
+  const { client, queries } = identityClient();
+  await assert.rejects(inspectOwnIdentity(client, 'unit-session-canary', 'different@example.invalid'));
+  assert.equal(queries.length, 0);
 });
 
 test('reused login settles the page before credentials and waits for the real redirect', async () => {

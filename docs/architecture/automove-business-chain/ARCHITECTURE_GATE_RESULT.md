@@ -1,5 +1,5 @@
 ---
-status: controlled-production-release-withdrawn-smoke-login-not-proven
+status: production-auth-proven-runtime-closed-api-403-diagnosis
 baseline_commit: bbe57b5500ea5c4c9be6542d93f3497aa1482e53
 ---
 
@@ -166,6 +166,61 @@ Executed local harness verification: 7/7 safety/helper tests PASS, full strict
 typecheck PASS, focused ESLint and diff-check PASS. No application/runtime,
 migration, grant or identity implementation changed in this correction. Reuse
 the earlier architecture/business-chain evidence; do not rerun unrelated suites.
+
+### Closed-Runtime 403 Diagnosis - 2026-10-16
+
+Process gate: PASS for the owner's targeted read-only diagnosis. This approval
+does NOT permit runtime activation, identity/role changes, RLS changes, DDL or
+business mutations. Reuse the existing checkpoint and manual smoke workflow;
+do not reopen prior business-chain seals or backup work.
+
+Confirmed evidence: #347 merged as b9c9632f5df97499c3f928c0e218721bd5623331;
+all nine main workflows passed. Auth-only run 38891729817 passed real login and
+the actual AUTOMOVE_RUNTIME_DISABLED guard. Controlled full run 38892878547
+passed login but failed at AUTHENTICATED_SQL. Vercel request metadata confirms
+GET /api/bella-auto/sales-chain/state returned 403 at 1792149582532,
+request ID f25v4-1792149582532-3d49a01d9a0e. No function logs, trace ID or response
+body were retained. Do not invent the historical response code/body or actor.
+The preceding anonymous 401 is request 68rm9-1792149560796-7c6bd5980fab.
+
+Safe-stop was verified: flag disabled for future deployments, domain restored
+to auth-proven closed deployment dpl_9Aram7RP9VG5UW9QVo6ir2jtbfpC, attempted
+enabled deployment dpl_6ZewEFq9kCt8NTUPj5SvRgji2MKJ removed, direct URL 404.
+Production schema/security adoption is unchanged; operational PASS is absent.
+
+Manifest/ownership: add one diagnostic mode to the existing test harness, its
+offline tests and manual workflow. Supabase Auth verifies the current actor;
+authenticated public.users self-read supplies current role/status/tenant;
+authenticated public.tenants read supplies only that tenant's status/product.
+No JWT role/tenant claims substitute for canonical profile data. No admin client,
+DB credential or alternate identity is authorized. Session material stays only
+in memory. Evidence contains status, allowlisted codes, identity fingerprints
+and boolean bindings, never emails, tokens, cookies, full profiles or business
+rows. A missing/RLS-hidden row is NOT evidence that the row does not exist.
+
+Dependency/UI reconciliation: existing real-login fixture -> existing closed API
+guard -> verified Auth subject -> authenticated self-profile/own-tenant reads.
+No UI or Product/Platform runtime changes. Migration plan: NONE. The diagnostic
+must abort before profile queries unless the real authenticated closed guard
+returns 503/AUTOMOVE_RUNTIME_DISABLED. It must not call full-mode business reads.
+
+Eleven focused checks: exact main SHA; manual Production environment; real Auth;
+closed guard; fixed Supabase origin; own-subject/own-tenant query bounds; current
+DB role/status rather than JWT claims; minimal sanitized output; no privileged
+client/mutation; focused tests/lint/architecture/diff; actual CI diagnostic result.
+Diagnosis may prove a current authority precondition failure; historical 403
+origin stays NOT_PROVEN unless captured evidence establishes it. If current
+authority is valid, do not blame RLS by elimination without SQL/runtime proof.
+
+Local verification: 11/11 focused safety tests PASS, focused ESLint and
+Architecture Guard PASS, git diff --check PASS. Four files only; no application
+TypeScript/runtime change, migration, DB secret, authorization or RLS change.
+Current diagnostic data is not yet collected and is not reported as PASS.
+
+DIAGNOSIS = HARNESS_VERIFIED_PENDING_REAL_AUTH_RUN
+RUNTIME_PRODUCTION = CLOSED
+AUTOMOVE_FULL_PRODUCT_READINESS = NOT_READY
+GO_LIVE = NOT_PROVEN
 
 ## Historical Checkpoints
 
