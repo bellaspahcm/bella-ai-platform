@@ -11,6 +11,13 @@ it('resolves explicit isolated targets and production-mode runtime without Produ
   expect(result.DB_URL).toBe(result.SUPABASE_DB_URL); expect(result).not.toHaveProperty('PRODUCTION_SUPABASE_DB_URL');
   expect(result).not.toHaveProperty('VERCEL_TOKEN');
 });
+it('pins fallback Auth aliases and disables inherited read replicas for isolated verification', () => {
+  const result = rcEnvironment({ ...valid(), SUPABASE_SECRET_KEY: 'unrelated-secret', USE_READ_REPLICA: 'true',
+    SUPABASE_READ_REPLICA_URL: 'https://example.invalid', SUPABASE_READ_REPLICA_KEY: 'unrelated-replica' });
+  expect(result.SUPABASE_SECRET_KEY).toBe(valid().SUPABASE_SERVICE_ROLE_KEY);
+  expect(result.NEXT_PUBLIC_SUPABASE_ANON_KEY).toBe(valid().NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY);
+  expect(result.USE_READ_REPLICA).toBe('false'); expect(result.SUPABASE_READ_REPLICA_URL).toBe(''); expect(result.SUPABASE_READ_REPLICA_KEY).toBe('');
+});
 it.each([
   { AUTOMOVE_RC_SHA: 'short' }, { E2E_BASE_URL: 'http://localhost:3000' },
   { NEXT_PUBLIC_SUPABASE_URL: 'https://lvnvkpyxtuilhrabtlwv.supabase.co' },

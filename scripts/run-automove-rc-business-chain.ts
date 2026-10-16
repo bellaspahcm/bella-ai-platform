@@ -20,10 +20,14 @@ export function rcEnvironment(input: NodeJS.ProcessEnv): NodeJS.ProcessEnv {
   const urls = ['DB_URL', 'SUPABASE_DB_URL', 'DATABASE_URL'].map(key => env[key]).filter((url): url is string => !!url);
   assert.ok(urls.length, 'Non-Production DB required');
   for (const url of urls) saleChainConnection(url, env.NEXT_PUBLIC_SUPABASE_URL || '');
-  assert.ok(env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || env.NEXT_PUBLIC_SUPABASE_ANON_KEY, 'Public Auth key required');
+  const publicKey = env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  assert.ok(publicKey, 'Public Auth key required');
   assert.ok(env.SUPABASE_SERVICE_ROLE_KEY, 'Isolated fixture authority required');
   for (const key of Object.keys(env)) if (/^PRODUCTION_|^VERCEL_|^AWS_/.test(key)) delete env[key];
   return { ...env, DB_URL: urls[0], SUPABASE_DB_URL: urls[0], DATABASE_URL: urls[0],
+    SUPABASE_SECRET_KEY: env.SUPABASE_SERVICE_ROLE_KEY, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: publicKey,
+    NEXT_PUBLIC_SUPABASE_ANON_KEY: publicKey, SUPABASE_URL: `https://${project}.supabase.co`,
+    USE_READ_REPLICA: 'false', SUPABASE_READ_REPLICA_URL: '', SUPABASE_READ_REPLICA_KEY: '',
     NODE_ENV: 'production', DEPLOYMENT_ENV: '', NEXT_PUBLIC_VERCEL_ENV: '', NEXT_TELEMETRY_DISABLED: '1', E2E_REUSE_SERVER: '0', SKIP_WEBSERVER: '1' };
 }
 
