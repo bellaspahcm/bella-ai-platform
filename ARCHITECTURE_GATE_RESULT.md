@@ -1,4 +1,63 @@
-﻿# Architecture Gate - Customer Loyalty Read-Only (2026-10-15)
+# Architecture Gate - Recover Runtime Security E2E Coverage (2026-10-16)
+
+Status: PASS for test/harness-only recovery from origin/main 5483cc55e.
+
+## 1. Bella OS/Product Development Process Gate
+Truth/source: migration 20261011193000_fix_runtime_submit_financial_intent_schema.sql
+and BELLA_RUNTIME_TRANSACTION_ARCHITECTURE_DECISION_V1_1_CORRECTED.md define the
+current submit_financial_intent contract. Recover explicit payload coverage while
+retaining main's default-metadata and structural-validation assertions.
+MULTI_AGENT = OFF. No Runtime/RPC/schema/business semantics change.
+
+## 2. Product Manifest
+No Product. Integration/Common Runtime security E2E consumer and Vitest env loader.
+Scope: opt-in env-file selection and explicit correlation/entity/source coverage.
+
+## 3. Ownership Map
+RPC/runtime tables: Integration/Common Runtime, read only. E2E and env selection:
+QA harness. Credentials: environment owner, consume only, never persist/disclose.
+
+## 4. Contract Dependency Map
+Security E2E -> tenant JWT -> submit_financial_intent(text,text,jsonb) -> runtime
+outbox.id, registry.outbox_id/correlation_id, audit correlation/entity/source.
+Server derives tenant/actor. No Product -> private Kernel bypass.
+
+## 5. Change Authority
+Recover missing test/harness changes into fresh worktree, retaining stronger main
+checks. Authorized files: Vitest config, Runtime Security E2E, focused env-loader
+regression test and gate/evidence.
+No migrations, runtime implementation, auth/RLS changes, seeds or DB deployment.
+
+## 6. UI -> Contract Reconciliation
+Not applicable: no UI/data/action change.
+
+## 7. Additive Migration Plan
+None. Current migration is the contract evidence and must remain unchanged.
+
+## Business Test Contract
+Authority: Runtime architecture decision defines atomic outbox/idempotency/audit
+writes, JWT tenant identity, duplicate rejection and privilege boundary.
+Positive: explicit correlation/entity/source are persisted across the three rows;
+existing main tests continue to prove server defaults when those are omitted.
+Negative: empty intent_type rejected; anon submission rejected; duplicate blocked.
+No removed assertions or widened business rules. No ledger/posting semantics.
+
+## 8. Eleven Automated Verification Gates Plan
+1. Record exact main base and isolated branch.
+2. Verify current RPC field/default mappings.
+3. Preserve main tests and assertions; add explicit metadata case.
+4. Verify JWT-derived tenant and actor preconditions remain unchanged.
+5. Keep idempotency/atomicity/privilege tests intact.
+6. No schema/RPC/RLS/runtime implementation diff.
+7. No new any/suppression or frozen/Core changes.
+8. Executable env-loader precedence/default/override checks without credentials.
+9. Scoped lint and TypeScript checks.
+10. Run Runtime E2E only with proven isolated target + required JWT secret;
+    absent preconditions mean NOT_PROVEN, never skip-as-PASS.
+11. Record evidence/limitations and diff checks.
+
+---
+# Architecture Gate - Customer Loyalty Read-Only (2026-10-15)
 
 ## AutoMove Sales Settlement Readiness - 2026-10-15
 
