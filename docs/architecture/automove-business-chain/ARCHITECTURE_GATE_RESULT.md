@@ -1,9 +1,117 @@
 ---
-status: implemented-local-verified
-baseline_commit: 5f939791eddaac5eff45d0b089c0ec74042f6dba
+status: rc-local-verified-pending-ci
+baseline_commit: 3356a04d15b021c5098512739bc5b3676922ce3b
 ---
 
 # AutoMove Business-Chain Verification
+
+## RC Business-Chain Authority - 2026-10-16
+
+Process gate: PASS for AUTOMOVE_RC_BUSINESS_CHAIN_VERIFICATION, explicitly
+approved by the owner after #339/#340 seals. Baseline main is
+3356a04d15b021c5098512739bc5b3676922ce3b. Single agent, branch
+codex/automove-rc-business-chain. Existing seals are not reopened.
+
+Manifest: verification of the release build, not new product behavior. Build the
+exact checked-out candidate with next build; launch next start, real Auth and
+canonical E2E DB only. Record candidate SHA, build ID, environment and actual test
+counts. Missing credentials, build/start failure, skip or partial chain cannot
+be PASS. No reuse of a previously running server or stale build.
+
+Ownership/contract: AutoMove owns its API/UI/financial records, Mobility owns
+allocation/handover, Accounting owns the existing public period guard; tests
+consume the already-approved public contracts. Supabase Auth -> active
+public.users/accountant -> active same tenant remains authoritative. No runtime,
+Platform helper, Finance, kernel, registry or business-rule change authorized.
+
+Change authority: existing Browser spec extension, test-only continuation,
+production-mode test configuration, supervised build/start runner, scoped CI and
+this checkpoint. UI reconciliation is verification-only: actual dashboard/API
+commands create booking, receipts, approved snapshot, evidence and recognition;
+read back real DB after each milestone. Customer/catalog/vehicle/Auth and OPEN
+period are explicit Non-Production setup fixtures, not claimed UI creation.
+Migration plan: NONE. Do not alter schemas, migrate Production or remove the
+Production rejection in AutoMoveSaleChainConnection.ts.
+
+Business test contract: reuse owner-approved amounts (1.4B recognized sale, 1B
+cost, 100M deposit, 1.3B later receipts). After full collection, document price
+delta -100M and cost delta +50M, then manually refund 100M against an original
+receipt. Documented delivered cancellation does not return the vehicle, refund
+more money or reverse revenue. Explicit full reversal remains a separate command
+in OPEN source/current periods. Refund remaining original receipts separately;
+verify net cash/revenue/outstanding zero without changing original records.
+These operations are allowed by the sealed contracts; no invented fee, forfeiture
+or period reopening. A forbidden transition is a blocker, not an assertion to
+weaken. Test retries use original intent/key; cross-tenant/inactive/suspended
+denials remain required. No Finance posting, commission or Warranty scope.
+
+Eleven gates: (1) exact SHA/clean build inputs; (2) next build/start provenance;
+(3) Non-Production target and TLS; (4) real authenticated UI chain; (5) tenant/RLS
+and active authority; (6) snapshot/evidence/policy read-back; (7) receipt totals
+and idempotency; (8) documented independent compensation and OPEN periods;
+(9) immutable originals/dashboard reconciliation; (10) cleanup and evidence
+integrity; (11) focused regression/typecheck/lint/Architecture Guard and actual
+Browser CI on exact PR SHA. Existing unaffected Real DB proof is reused.
+
+Acceptance: Given canonical E2E and the exact candidate, a fresh production-mode
+build must execute the whole applicable chain on the same booking, preserve
+original receipts/snapshot/recognition, deny unauthorized requests and read back
+the expected final balances after reload. Given wrong target/SHA/dirty build or
+any failed/skipped test, the runner fails closed and terminates its own server.
+Only fixture-owned periods may be closed during cleanup; immutable history and
+archived tenant shells remain PARTIAL cleanup, never deleted through a bypass.
+
+Commit/push/PR/CI are allowed for this batch; merge and Production deployment
+are not authorized. Production runtime activation, DB/schema adoption and
+restore/rollback evidence remain separate. Full readiness stays NOT_READY.
+
+### RC Executed Evidence - 2026-10-16
+
+Candidate 95e0ac6204b94acca6dd523a159d1c3bd842db81: fresh next build --webpack
+and next start PASS; build ID GBWL-U2d5ZhgyPH3IgiNN. Main runtime source remains
+unchanged from 3356a04d1; only verification/CI/checkpoint files changed.
+Runner records SHA, build manifest hash, canonical E2E project and test counts.
+Health verifies production-mode process against Non-Production DB, not a
+Production deployment. No pre-existing server or stale build accepted.
+
+Actual Browser: 1/1 PASS, zero skipped/flaky/unexpected, 3.6 minutes. Same
+UI-created booking/recognition across allocation, deposit, approved snapshot,
+persisted handover, explicit recognition, full collection, receipt read-back,
+dashboard, stale-Auth cross-tenant/inactive/suspended denials, then documented
+price -100M/cost +50M deltas, 100M receipt-linked refund, independent delivered
+cancellation, explicit full reversal and remaining receipt-linked refunds.
+Final sale/cash/outstanding are zero, reconciliation MATCHED; original financial
+snapshot/recognition/deposit/payment rows unchanged and vehicle still delivered.
+Lost acknowledgement, concurrent receipt requests and same-intent replay passed.
+No financial records were inserted to shortcut the chain; customer/catalog/vehicle,
+Auth profiles and the isolated OPEN period are explicit setup fixtures. The
+negative completed-without-recognition booking is a denial fixture, not revenue.
+
+Initial candidate 289c90747 reached reversal but failed its retry HTTP request at
+the Browser default 15-second timeout: NOT_PROVEN, not a PASS. The RC-only test
+timeout was aligned to 60 seconds (existing transactional API bounds retained),
+then a fresh committed candidate was built and the entire test rerun. No runtime
+change or automatic test retries were introduced.
+
+13 runner safety regressions PASS; strict TypeScript for 6 roots/dependencies has
+zero diagnostics; changed-file ESLint, Architecture Guard, workflow YAML parse and
+diff-check PASS. Desktop/mobile screenshot evidence retained locally; 390px dialog
+horizontal bounds asserted. Sanitized artifacts live under .cache/automove-rc and
+are not committed. CI is configured to build/test the exact PR head or main SHA,
+publish sanitized evidence, fail on absent credentials/build/test/skip, and never
+deploy or run migrations. Remote execution remains pending, not Browser CI PASS.
+
+Cleanup PARTIAL: Auth removed, active actor zero, Storage documents zero, two
+tenant shells terminated with read-back; original append-only history retained.
+Fixture period closed in cleanup; no period, FK, RLS or append-only bypass.
+
+`RC_BUSINESS_CHAIN = PROVEN_LOCAL_NON_PRODUCTION_PENDING_CI`
+`RC_BROWSER_ON_MAIN = NOT_PROVEN`
+`PRODUCTION_RUNTIME_ACTIVATION = NOT_AUTHORIZED`
+`PRODUCTION_SCHEMA_CONFIG_ADOPTION = NOT_PROVEN`
+`RECOVERY_READINESS = NOT_PROVEN`
+`AUTOMOVE_FULL_PRODUCT_READINESS = NOT_READY`
+`GO_LIVE = NOT_PROVEN`
 
 ## Recognition Adjustment Authority - 2026-10-16
 
