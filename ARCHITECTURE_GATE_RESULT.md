@@ -1,3 +1,21 @@
+# PR #344 Execution Follow-up - Adopt Main BDGF Connection Contract
+
+Status: PASS for adopting main's BDGF connection contract from PR #343 when
+resolving the PR #344 conflict. The initial E2E execution investigation identified
+an old parser excluding reserved password characters; main independently repaired
+it through createBdgfDatabaseConfig with verified TLS and executor identity checks.
+
+Truth/contract: PostgreSQL connection URIs percent-encode reserved password
+characters. Main's createBdgfDatabaseConfig owns parsing/TLS, and
+assertExecutionIdentity owns executor-role verification. Owner: BDGF scripts.
+Resolve by reusing these implementations unchanged, not retaining duplicate parser
+logic. Preserve the approval/hash/environment/token boundaries and main regressions.
+No gate invariant, signing rule, authority matrix, credential or frozen spec change.
+UI/migration plan: only the explicitly approved existing E2E workshop migration
+and its normal ledger bookkeeping. No direct executor SQL or secret persistence.
+
+---
+
 # PR #344 Follow-up Gate - Phase 6 Test Contract Repair (2026-10-16)
 
 Status: PASS for the user's request to fix all PR errors, including the previously

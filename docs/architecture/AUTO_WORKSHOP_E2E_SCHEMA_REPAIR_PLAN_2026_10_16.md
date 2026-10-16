@@ -1,12 +1,12 @@
 # Auto Workshop E2E Schema Repair Plan
 
-Status: BLOCKED_PENDING_MIGRATION_APPROVAL. No deployment has been executed.
+Status: EXECUTED_AND_VERIFIED_ON_E2E after explicit human approval in this chat.
 Target: canonical isolated E2E project `bmnbqbcdbuklhopfbopv`, public schema.
 Production project `lvnvkpyxtuilhrabtlwv` is excluded.
 
-## Proven gap
+## Original proven gap
 
-The canonical E2E schema and migration ledger lack existing migration
+The canonical E2E schema and migration ledger originally lacked existing migration
 `supabase/migrations/20260804360000_migrate_workshop_schema.sql`.
 Read-only inspection confirms missing appointment `scheduled_date`, `vehicle_info`
 and repair-order `customer_name`, `vehicle_info` columns. The source migration is
@@ -24,14 +24,35 @@ backfills from existing customer/vehicle data, sets required constraints and add
 the appointment schedule index. It performs UPDATE backfills and SET NOT NULL;
 it must be reviewed as a database change, not a test-only patch.
 
-The E2E approval registry exists but contains no matching approval record. The
+The E2E approval registry initially contained no matching approval record. The
 mandatory execution contract in
 `docs/architecture/R4_3_EXECUTION_CONTRACT_SPECIFICATION.md` requires approval
 verification and a migration/environment-bound gate token before executor access.
 Do not forge an approval identity, bypass the wrapper, substitute production or
 rewrite the historical migration to make the test pass.
 
-## Verification after approved execution
+## Execution result
+
+BDGF wrapper executed the exact LF-content hash listed above. The worktree's CRLF
+copy has the same Git blob; execution used the reviewed LF content so approval
+was bound to the exact approved bytes. No historical migration file was rewritten.
+
+- Migration approval: `055497f6-9a39-4a40-aabf-2018d6362b5f`, dev environment, public
+  schema, canonical E2E connection; actual executor principal `postgres`.
+- Ledger/lifecycle finalization approval: `0120a02e-b2e2-40c7-9f34-1dd308f6869e`.
+- Both wrapper executions succeeded; both approval records and tokens are used.
+- Columns and migration ledger version `20260804360000` verified after commit.
+- Phase 6: 19/19 PASS, including authenticated read, denied/zero-row valid-column
+  update and unchanged persisted service history. Owned fixture cleanup succeeded.
+
+The existing dev-only signing-key backend was used for dev/E2E. No Production
+secret, signing configuration, approval invariant or token check was changed.
+The initial connection-URI repair was exercised before gated execution. Main
+PR #343 independently supplies the canonical URI/TLS implementation; final code
+adopts main unchanged and retains its TLS/identity regression tests. The temporary
+duplicate parser is discarded. The 19 approval regressions passed as well.
+
+## Verification performed
 
 1. Verify all migration prerequisites and exact target/content binding.
 2. Execute through BDGF with an authorized approval record; preserve its audit.
@@ -42,5 +63,5 @@ rewrite the historical migration to make the test pass.
    assertion to execute, not skip.
 5. Verify owned fixture cleanup, report actual counters and any new root failure.
 
-Until this succeeds: Phase 6 Real DB/RLS = NOT_PROVEN. Typecheck/lint/CI success
-must not be used to claim that the missing database migration is deployed.
+Phase 6 Real DB/RLS = PASS for this isolated suite and E2E target. This does not
+prove Production, the full AutoMove product or Go-Live.

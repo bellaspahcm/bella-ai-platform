@@ -22,7 +22,7 @@ describe('Bella Auto Phase 6 - Service Center & Workshop', () => {
   let supabase: ReturnType<typeof createClient<Database>>;
   let testTenantId: string;
   let testVehicleVin: string;
-  const testActorId = randomUUID();
+  let testActorId: string;
   const ownedIds = {
     customers: [] as string[],
     auto_service_appointments: [] as string[],
@@ -53,16 +53,34 @@ describe('Bella Auto Phase 6 - Service Center & Workshop', () => {
       supabase.from('auto_service_appointments').select('scheduled_date, vehicle_info').limit(0),
       supabase.from('auto_repair_orders').select('customer_name, vehicle_info').limit(0),
     ]);
-    if (preflights.some(result => result.error)) {
-      throw new Error('SCHEMA_DRIFT_E2E: verify existing migration 20260804360000_migrate_workshop_schema.sql before Phase 6 writes');
+    const preflightError = preflights.find(result => result.error)?.error;
+    if (preflightError) {
+      if (['42703', 'PGRST204'].includes(preflightError.code)) {
+        throw new Error('SCHEMA_DRIFT_E2E: verify existing migration 20260804360000_migrate_workshop_schema.sql before Phase 6 writes');
+      }
+      throw new Error(`Phase 6 schema preflight failed: ${preflightError.message}`);
     }
     // Read an existing vehicle only; all mutations below target newly owned rows.
     const { data: vehicle, error: vehicleError } = await supabase
-      .from('auto_vehicles').select('id, tenant_id, vin').limit(1).single().throwOnError();
+      .from('auto_vehicles').select('id, tenant_id, vin, tenants!inner(status)')
+      .eq('tenants.status', 'active').order('id').limit(1).single().throwOnError();
     if (vehicleError || !vehicle) throw new Error('Missing E2E vehicle fixture');
     testVehicleId = vehicle.id;
     testVehicleVin = vehicle.vin;
     testTenantId = vehicle.tenant_id;
+    const { data: tenant } = await supabase.from('tenants').select('status')
+      .eq('id', testTenantId).single().throwOnError();
+    if (tenant.status !== 'active') throw new Error('E2E workshop tenant is inactive');
+    const { data: actors } = await supabase.from('users').select('id')
+      .eq('tenant_id', testTenantId).eq('status', 'active');
+    for (const actor of actors || []) {
+      const { data, error } = await supabase.auth.admin.getUserById(actor.id);
+      if (!error && data.user) {
+        testActorId = actor.id;
+        break;
+      }
+    }
+    if (!testActorId) throw new Error('Missing active auth-backed E2E workshop identity');
 
     const { data: customer, error: customerError } = await supabase
       .from('customers')

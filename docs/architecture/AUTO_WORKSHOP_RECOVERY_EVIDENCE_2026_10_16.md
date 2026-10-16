@@ -14,7 +14,8 @@ adds missing consumer predicates and preserves that migration unchanged.
 
 Phase 6 fixtures use current dates matching number generators, reject null/error
 RPC results, and update the real service-history description field. The RLS test
-now uses an authenticated JWT and verifies persisted data stays unchanged after
+now uses an authenticated JWT for an existing active Auth/public user in an active
+tenant and verifies persisted data stays unchanged after
 a valid-column mutation attempt. Fixture IDs are generated per run; teardown is
 limited to owned IDs and their tenant. Existing vehicle and tenant are read only.
 
@@ -29,6 +30,8 @@ limited to owned IDs and their tenant. Existing vehicle and tenant are read only
 | `git diff --check` | PASS |
 | Strict TypeScript including only the two new test entrypoints | PASS |
 | `node node_modules/typescript/bin/tsc -p tsconfig.auto-workshop-tests.json --pretty false` | PASS, 0 diagnostics including the complete Phase 6 suite |
+| Canonical E2E Phase 6 suite after approved migration | PASS, 19/19, including authenticated history immutability |
+| BDGF approval entrypoint regressions | PASS, 19/19 |
 
 All 8 previously reported Phase 6 diagnostics are resolved without casts,
 suppressions, generated-type edits or schema changes. Number-generation failure
@@ -40,23 +43,34 @@ in the final verification section below, separately from test-entrypoint checks.
 The service tests use a table-aware query double to observe consumer predicates.
 They do not prove RLS, authorization, DB persistence or browser behavior.
 
-## Evidence limits
+## Approved E2E execution and evidence limits
 
-- Real DB Phase 6: BLOCKED_SCHEMA_DRIFT. Canonical E2E run exposed 7 failures / 12
-  passes because migration `20260804360000` has not been applied to that database.
-  Missing `scheduled_date` is the first appointment error; repair-order denormalized
-  fields are also absent. No passing RLS claim is made from this failed run.
+- Real DB Phase 6: PASS, 19/19 on canonical E2E `bmnbqbcdbuklhopfbopv`. Initial
+  schema drift was resolved after explicit human approval by executing existing
+  migration `20260804360000` through BDGF, not direct executor SQL.
 - The final suite preflights those columns before fixture writes and rejects any
   target other than canonical E2E. `.env.test` was verified to point to production
   and was not used. The test cannot become green by substituting production.
-- Current metadata/policy inspection was read only. No schema deployment ran.
-- The existing migration has no matching approval record in the E2E BDGF registry;
-  see `AUTO_WORKSHOP_E2E_SCHEMA_REPAIR_PLAN_2026_10_16.md` for the remaining boundary.
+- BDGF URI investigation confirmed reserved password parsing as the first
+  execution blocker. Main PR #343 independently supplies the canonical URI/TLS
+  implementation; the conflict resolution adopts it unchanged, including verified
+  TLS and executor identity checks. The temporary duplicate parser is not retained.
+- Applied migration SHA-256: `23bcf0f6fb4b7221d12d4fc24d13c02d3a53feb7fa807a5f3cab053c1ec75514`.
+  Approval: `055497f6-9a39-4a40-aabf-2018d6362b5f`.
+- Normal migration-ledger/lifecycle finalization also used BDGF. Approval:
+  `0120a02e-b2e2-40c7-9f34-1dd308f6869e`. Both approval records and tokens are used.
+  Ledger contains version `20260804360000`, and the four prerequisite columns exist.
+- The first post-migration test exposed invalid random identity; the repaired
+  fixture resolves an existing active Auth/public user in the same active tenant.
+  No user/tenant provisioning, auth changes or RLS-policy relaxation was performed.
+- After the successful run, no Phase 6 test customer remains; fixture teardown
+  completed without errors and only targets run-owned IDs plus tenant scope.
 - Browser E2E / production / Go-Live: NOT_PROVEN.
 - Existing October 13 NOT_READY closure in the source checkout is historical;
   it must not be presented as current database state.
-- No schema, migration, ProductRegistry, Manufacturing, frozen kernel, Core,
-  Finance or business lifecycle changes.
+- No new/edited migration file, ProductRegistry, Manufacturing, frozen kernel,
+  Core, Finance or business lifecycle change. Only the approved existing migration
+  was deployed to E2E. Production was not mutated.
 
 ## Final verification
 
