@@ -960,26 +960,42 @@ export function Sidebar() {
         isOpen ? "translate-x-0" : "-translate-x-full"
       )}>
         <div className={cn(
-          "flex-1 rounded-[2.25rem] flex flex-col overflow-hidden shadow-2xs relative",
-          isBellaEducationShell ? "preschool-sidebar-inner" : "beauty-erp-sidebar-inner"
+          "flex-1 beauty-erp-sidebar-inner rounded-[2.25rem] flex flex-col overflow-hidden shadow-2xs relative",
+          isBellaEducationShell && "border-emerald-800/40 dark:border-emerald-950/60"
         )}>
         {/* Soft decorative light glows */}
         <div className={cn(
           "absolute -top-24 -left-24 w-64 h-64 bg-slate-300/20 dark:bg-slate-800/10 rounded-full blur-[100px] pointer-events-none hidden"
         )} />
 
+        {/* Preschool subtle smiling sun watermark */}
+        {isBellaEducationShell && (
+          <div className="absolute bottom-28 -left-3 w-28 h-28 opacity-15 pointer-events-none text-emerald-300 select-none z-0">
+            <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="50" cy="50" r="24" />
+              <path d="M50 14v8M50 78v8M14 50h8M78 50h8M24.5 24.5l5.5 5.5M70 70l5.5 5.5M24.5 75.5l5.5-5.5M70 30l5.5-5.5" />
+              <circle cx="43" cy="46" r="2.5" fill="currentColor" />
+              <circle cx="57" cy="46" r="2.5" fill="currentColor" />
+              <path d="M42 56c2.5 4 13.5 4 16 0" />
+            </svg>
+          </div>
+        )}
+
         {/* ── Logo & Mobile Close Button ── */}
-        <div className="px-8 pt-6 pb-4 shrink-0 relative z-10 flex items-center justify-between lg:block">
+        <div className={cn(
+          "px-8 pt-6 pb-4 shrink-0 relative z-10 flex items-center justify-between lg:block",
+          isBellaEducationShell && "px-6 pt-4 pb-2"
+        )}>
           {isBellaEducationShell ? (
             <Link href="/dashboard/education" onClick={handleNavigation} className="flex flex-col items-center group">
-              <div className="w-12 h-12 rounded-2xl bg-[color-mix(in_srgb,var(--education-sidebar-fg)_10%,transparent)] border border-[var(--education-sidebar-border)] flex items-center justify-center text-2xl shadow-xs mb-2 group-hover:scale-105 transition-transform duration-300">
+              <div className="w-10 h-10 rounded-2xl bg-amber-400/20 border border-amber-400/30 flex items-center justify-center text-xl shadow-xs mb-1.5 group-hover:scale-105 transition-transform duration-300">
                 ☀️
               </div>
               <div className="text-center w-full px-2">
-                <h2 className="text-lg font-black text-[var(--education-sidebar-fg)] tracking-tight leading-tight">
-                  {tenantBrand.displayName || 'Bella Preschool'}
+                <h2 className="text-base font-black text-white tracking-tight leading-tight">
+                  {tenantBrand.displayName || 'Hệ thống'}
                 </h2>
-                <span className="text-[11px] font-bold text-[var(--education-sidebar-fg)] opacity-75 block mt-0.5">
+                <span className="text-[10px] font-bold text-emerald-200/80 block mt-0.5">
                   Nơi tuổi thơ tỏa sáng
                 </span>
               </div>
@@ -1039,6 +1055,7 @@ export function Sidebar() {
         {/* ── Nav (scrollable) ── */}
         <nav className={cn(
           "flex-1 min-h-0 px-3 space-y-1 overflow-y-auto relative z-10 pb-2 [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-track]:transparent [&::-webkit-scrollbar-thumb]:rounded-full",
+          isBellaEducationShell && "px-2.5 space-y-0.5 pb-1 [&::-webkit-scrollbar-thumb]:bg-emerald-800/40",
           isBeautySpaShell || isIndustrialCleaningShell || isRealEstateShell || isBellaAutoShell || isBellaHealthcareShell
             ? "" 
             : "[&::-webkit-scrollbar-thumb]:bg-slate-300 dark:[&::-webkit-scrollbar-thumb]:bg-slate-700",
@@ -1063,12 +1080,60 @@ export function Sidebar() {
             }
 
             const isActive = activeHref === item.href;
-            // Education consumes resolved tenant tokens, including custom brand colors.
-            const activeEduClass = "bg-[color-mix(in_srgb,var(--education-sidebar-fg)_15%,transparent)] text-[var(--education-sidebar-fg)] border border-[var(--education-sidebar-border)] font-extrabold shadow-xs";
-            const inactiveEduClass = "text-[var(--education-sidebar-fg)] bg-transparent border-transparent hover:bg-[color-mix(in_srgb,var(--education-sidebar-fg)_10%,transparent)] font-medium";
-            const activeEduIconClass = "text-[var(--education-sidebar-fg)] scale-105";
-            const activeEduTextClass = "font-extrabold text-[var(--education-sidebar-fg)]";
-            const activeEduPillClass = "bg-[var(--education-sidebar-fg)]";
+            const isRosePreset = tenantBrand.stylePreset === 'bella_rose' || tenantBrand.primaryColor === '#A91555' || tenantBrand.primaryColor === '#BE123C';
+            const isOceanPreset = tenantBrand.stylePreset === 'ocean_clean' || tenantBrand.primaryColor === '#1E40AF';
+            const isJadePreset = tenantBrand.stylePreset === 'jade_wellness' || tenantBrand.primaryColor === '#074E44';
+            const isNavyPreset = tenantBrand.stylePreset === 'luxury_navy' || tenantBrand.primaryColor === '#1E3A8A';
+
+            const activeEduClass = isRosePreset
+              ? "bg-rose-100/90 dark:bg-rose-950/70 text-rose-700 dark:text-rose-300 border border-rose-200/80 dark:border-rose-900/60 font-extrabold shadow-xs"
+              : isOceanPreset
+              ? "bg-blue-100/90 dark:bg-blue-950/70 text-blue-700 dark:text-blue-300 border border-blue-200/80 dark:border-blue-900/60 font-extrabold shadow-xs"
+              : isJadePreset
+              ? "bg-white/15 dark:bg-white/10 text-white border border-white/20 font-bold shadow-xs backdrop-blur-xs"
+              : isNavyPreset
+              ? "bg-indigo-100/90 dark:bg-indigo-950/70 text-indigo-900 dark:text-indigo-300 border border-indigo-200/80 dark:border-indigo-900/60 font-extrabold shadow-xs"
+              : "bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white border border-slate-200/90 dark:border-slate-700 font-extrabold shadow-xs";
+
+            const inactiveEduClass = isRosePreset
+              ? "text-slate-600 dark:text-slate-400 bg-transparent border-transparent hover:bg-rose-50/80 dark:hover:bg-rose-950/30 hover:text-rose-600 dark:hover:text-rose-300 font-medium"
+              : isOceanPreset
+              ? "text-slate-600 dark:text-slate-400 bg-transparent border-transparent hover:bg-blue-50/80 dark:hover:bg-blue-950/30 hover:text-blue-600 dark:hover:text-blue-300 font-medium"
+              : isJadePreset
+              ? "text-emerald-100/75 hover:text-white bg-transparent border-transparent hover:bg-white/10 font-medium transition-colors"
+              : isNavyPreset
+              ? "text-slate-600 dark:text-slate-400 bg-transparent border-transparent hover:bg-indigo-50/80 dark:hover:bg-indigo-950/30 hover:text-indigo-700 dark:hover:text-indigo-300 font-medium"
+              : "text-slate-600 dark:text-slate-400 bg-transparent border-transparent hover:bg-slate-50 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-slate-100 font-medium";
+
+            const activeEduIconClass = isRosePreset
+              ? "text-rose-600 dark:text-rose-400 scale-105"
+              : isOceanPreset
+              ? "text-blue-600 dark:text-blue-400 scale-105"
+              : isJadePreset
+              ? "text-emerald-300 scale-105"
+              : isNavyPreset
+              ? "text-indigo-600 dark:text-indigo-400 scale-105"
+              : "text-slate-900 dark:text-slate-100 scale-105";
+
+            const activeEduTextClass = isRosePreset
+              ? "font-extrabold text-rose-700 dark:text-rose-300"
+              : isOceanPreset
+              ? "font-extrabold text-blue-700 dark:text-blue-300"
+              : isJadePreset
+              ? "font-bold text-white"
+              : isNavyPreset
+              ? "font-extrabold text-indigo-900 dark:text-indigo-300"
+              : "font-extrabold text-slate-900 dark:text-white";
+
+            const activeEduPillClass = isRosePreset
+              ? "bg-rose-600 dark:bg-rose-400"
+              : isOceanPreset
+              ? "bg-blue-600 dark:bg-blue-400"
+              : isJadePreset
+              ? "bg-white shadow-[0_0_8px_rgba(255,255,255,0.7)]"
+              : isNavyPreset
+              ? "bg-indigo-600 dark:bg-indigo-400"
+              : "bg-slate-700 dark:bg-slate-300";
 
             return (
               <Link key={item.href} href={item.href} onClick={handleNavigation} aria-current={isActive ? 'page' : undefined} prefetch={false}>
@@ -1076,6 +1141,7 @@ export function Sidebar() {
                   whileHover={{ x: 2 }}
                   className={cn(
                     "flex items-center gap-2.5 px-3 py-2 rounded-xl transition-all duration-300 relative group cursor-pointer border border-transparent",
+                    isBellaEducationShell && "py-1.5 px-2.5",
                     isBellaEducationShell && isActive
                       ? activeEduClass
                       : isBellaEducationShell
@@ -1151,7 +1217,10 @@ export function Sidebar() {
         </nav>
 
         {/* ── Theme Switcher, User Profile & Logout — pinned at bottom ── */}
-        <div className="mt-auto shrink-0 relative z-10 px-2.5 pt-2 pb-3 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))] flex flex-col gap-2">
+        <div className={cn(
+          "mt-auto shrink-0 relative z-10 px-2.5 pt-2 pb-3 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))] flex flex-col gap-2",
+          isBellaEducationShell && "pt-1 pb-2 gap-1.5"
+        )}>
           {/* Unified Profile & Actions Panel */}
           <div className={cn(
             "bg-white dark:bg-[#181a20] rounded-xl shadow-xs border border-slate-200 dark:border-slate-800 flex flex-col overflow-hidden transition-all duration-300 hover:border-slate-300 dark:hover:border-slate-700",
@@ -1169,7 +1238,7 @@ export function Sidebar() {
               </div>
               <div className="min-w-0 flex-1">
                 <p className="text-xs font-bold text-slate-800 dark:text-slate-100 truncate leading-tight beauty-erp-profile-name">
-                  {user?.full_name || 'Tài khoản'}
+                  {user?.full_name || 'Admin'}
                 </p>
                 <p className="text-[8.5px] text-slate-500 dark:text-slate-400 font-black uppercase tracking-[0.08em] mt-0.5 beauty-erp-profile-role">
                   {roleLabel}
