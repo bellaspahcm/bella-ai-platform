@@ -2,8 +2,12 @@ import { defineConfig } from 'vitest/config';
 import path from 'path';
 import dotenv from 'dotenv';
 
-// Load environment variables from .env.local
-dotenv.config({ path: '.env.local' });
+const vitestEnvFile = process.env.VITEST_ENV_FILE || process.env.BELLA_VITEST_ENV_FILE || '.env.local';
+
+dotenv.config({
+  path: vitestEnvFile,
+  override: false,
+});
 
 export default defineConfig({
   test: {

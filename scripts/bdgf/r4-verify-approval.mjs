@@ -11,6 +11,7 @@
 import { createClient } from '@supabase/supabase-js';
 import crypto from 'crypto';
 import dotenv from 'dotenv';
+import { createBdgfDatabaseConfig } from './database-connection.mjs';
 
 dotenv.config();
 
@@ -411,9 +412,10 @@ async function verifyApproval(input) {
   const pg = await import('pg');
   const { Client } = pg.default;
   
-  // Parse DATABASE_URL
-  const dbUrlMatch = dbUrl.match(/postgresql:\/\/([^:]+):([^@]+)@([^:]+):(\d+)\/(.+)/);
-  if (!dbUrlMatch) {
+  let dbConfig;
+  try {
+    dbConfig = createBdgfDatabaseConfig(dbUrl);
+  } catch {
     return {
       gate: 'G2_APPROVAL',
       decision: 'BLOCK',
@@ -423,8 +425,7 @@ async function verifyApproval(input) {
     };
   }
   
-  const [, user, password, host, port, database] = dbUrlMatch;
-  const client = new Client({ host, port: parseInt(port), database, user, password, ssl: { rejectUnauthorized: false } });
+  const client = new Client(dbConfig);
   
   try {
     await client.connect();

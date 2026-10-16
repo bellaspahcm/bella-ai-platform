@@ -111,6 +111,71 @@ describe('CMG-RT-001: Runtime Security Gate', () => {
     expect(audit?.source).toBe('submit_financial_intent');
   });
 
+  test('CMG-RT-001.1a: Explicit metadata persists across the atomic Runtime records', async () => {
+    const uniqueId = `cmg-metadata-${Date.now()}-${Math.random()}`;
+    const payload = {
+      amount: 1000,
+      currency: 'VND',
+      correlationId: `corr-${uniqueId}`,
+      entityId: `entity-${uniqueId}`,
+      entityType: 'runtime_security_gate',
+      source: 'runtime-security-e2e',
+    };
+
+    const { data: outboxId, error } = await authenticatedClient.rpc('submit_financial_intent', {
+      p_idempotency_key: uniqueId,
+      p_intent_type: 'INVOICE_PAYMENT',
+      p_intent_payload: payload,
+    });
+    expect(error).toBeNull();
+    expect(outboxId).toBeTruthy();
+
+    const { data: outbox, error: outboxError } = await serviceRoleClient
+      .from('runtime_outbox')
+      .select('id, tenant_id, correlation_id, intent_payload, status')
+      .eq('id', outboxId)
+      .single();
+    expect(outboxError).toBeNull();
+    expect(outbox).toMatchObject({
+      id: outboxId,
+      tenant_id: testTenantId,
+      correlation_id: payload.correlationId,
+      intent_payload: payload,
+      status: 'PENDING',
+    });
+
+    const { data: idempotency, error: idempotencyError } = await serviceRoleClient
+      .from('runtime_idempotency_registry')
+      .select('tenant_id, correlation_id, outbox_id, intent_type')
+      .eq('idempotency_key', uniqueId)
+      .single();
+    expect(idempotencyError).toBeNull();
+    expect(idempotency).toMatchObject({
+      tenant_id: testTenantId,
+      correlation_id: payload.correlationId,
+      outbox_id: outboxId,
+      intent_type: 'INVOICE_PAYMENT',
+    });
+
+    const { data: audit, error: auditError } = await serviceRoleClient
+      .from('runtime_audit_log')
+      .select('tenant_id, correlation_id, entity_id, entity_type, source, status, amount, currency, intent_type')
+      .eq('correlation_id', payload.correlationId)
+      .single();
+    expect(auditError).toBeNull();
+    expect(audit).toMatchObject({
+      tenant_id: testTenantId,
+      correlation_id: payload.correlationId,
+      entity_id: payload.entityId,
+      entity_type: payload.entityType,
+      source: payload.source,
+      status: 'SUCCESS',
+      amount: payload.amount,
+      currency: payload.currency,
+      intent_type: 'INVOICE_PAYMENT',
+    });
+  });
+
   test('CMG-RT-001.2: Unauthenticated call rejected at privilege layer (P0)', async () => {
     const { error } = await anonClient.rpc('submit_financial_intent', {
       p_idempotency_key: 'cmg-anon-test',

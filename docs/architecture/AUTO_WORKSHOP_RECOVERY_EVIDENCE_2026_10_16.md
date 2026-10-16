@@ -32,6 +32,7 @@ limited to owned IDs and their tenant. Existing vehicle and tenant are read only
 | `node node_modules/typescript/bin/tsc -p tsconfig.auto-workshop-tests.json --pretty false` | PASS, 0 diagnostics including the complete Phase 6 suite |
 | Canonical E2E Phase 6 suite after approved migration | PASS, 19/19, including authenticated history immutability |
 | BDGF approval entrypoint regressions | PASS, 19/19 |
+| Main BDGF URI/TLS, identity, execution-path and owner rehearsal regressions | PASS, 65/65 |
 
 All 8 previously reported Phase 6 diagnostics are resolved without casts,
 suppressions, generated-type edits or schema changes. Number-generation failure
@@ -73,6 +74,11 @@ They do not prove RLS, authorization, DB persistence or browser behavior.
   was deployed to E2E. Production was not mutated.
 
 ## Final verification
+
+Conflict with main `0639dd98f` (PRs #343 and #345) was limited to the shared root
+architecture-gate header. Both sets of gate records were retained. BDGF scripts
+match main exactly, preserving its verified TLS and executor-identity checks;
+the intermediate local URI parser was discarded before integration.
 
 Final application typecheck: PASS, exit 0, fresh
 `node node_modules/typescript/bin/tsc --noEmit --incremental false --pretty false`

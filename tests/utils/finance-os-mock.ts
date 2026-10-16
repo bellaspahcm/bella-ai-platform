@@ -12,7 +12,7 @@
  * @see BELLA_RUNTIME_PHASE_3C_TEST_PLAN.md (Test Category 3C-9)
  */
 
-import { FinancialIntent } from '../../src/platform/integration-runtime/types/runtime-domain.types';
+import type { FinancialIntent } from '../../src/platform/integration-runtime/types/financial-intent.types';
 
 export type MockFinanceOSResponse = 
   | { status: 'accepted'; transactionId: string }

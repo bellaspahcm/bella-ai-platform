@@ -1,0 +1,12 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": { "incremental": false },
+  "include": [
+    "vitest.config.ts",
+    "src/__tests__/vitest-env-selection.test.ts",
+    "tests/e2e/runtime/3c-security-gate.e2e.test.ts",
+    "tests/unit/runtime/e2e-fixtures.test.ts",
+    "tests/utils/finance-os-mock.ts"
+  ],
+  "exclude": []
+}

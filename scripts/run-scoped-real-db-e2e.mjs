@@ -52,6 +52,7 @@ const SCOPED_REAL_DB_SUITES = [
   {
     name: 'AutoMove catalog tenant reads',
     patterns: [
+      /^supabase\/migrations\/20261016010000_align_automove_catalog_read_acl\.sql$/,
       /^supabase\/migrations\/20261015010000_authorize_automove_catalog_tenant_reads\.sql$/,
       /^scripts\/verify-automove-catalog-reads\.ts$/,
       /^src\/__tests__\/automove-catalog-read-migration\.test\.ts$/,

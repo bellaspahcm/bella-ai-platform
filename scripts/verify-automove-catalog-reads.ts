@@ -9,13 +9,26 @@ import { saleChainConnection } from '../src/modules/bella-auto/services/AutoMove
 // Fixtures and optional migration rehearsal are always rolled back.
 const tables = ['auto_brands', 'auto_models', 'auto_variants'] as const;
 const migrationPath = 'supabase/migrations/20261015010000_authorize_automove_catalog_tenant_reads.sql';
+const adoptionPath = 'supabase/migrations/20261016010000_align_automove_catalog_read_acl.sql';
 const apiUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 assert.equal(new URL(apiUrl).hostname, 'bmnbqbcdbuklhopfbopv.supabase.co', 'Only the authorized E2E project is allowed.');
 assert.equal(process.env.ALLOW_E2E_CATALOG_VERIFICATION, '1', 'Explicit Non-Production verification authorization is required.');
 const db = new Client(saleChainConnection(process.env.DB_URL || process.env.SUPABASE_DB_URL || '', apiUrl));
 const rehearse = process.argv.includes('--test-migration');
+const adoption = process.argv.includes('--test-adoption-delta');
+assert.ok(!(rehearse && adoption), 'Choose one migration rehearsal mode.');
 const marker = `automove-catalog-${randomUUID()}`;
 let inTransaction = false;
+let originalSecurity: unknown;
+
+async function securityFingerprint() {
+  const relations = await db.query(`select c.relname,c.relowner,c.relacl::text,c.relrowsecurity,
+    c.relforcerowsecurity from pg_class c join pg_namespace n on n.oid=c.relnamespace
+    where n.nspname='public' and c.relname=any($1::text[]) order by c.relname`, [tables]);
+  const policies = await db.query(`select tablename,policyname,permissive,roles,cmd,qual,with_check
+    from pg_policies where schemaname='public' and tablename=any($1::text[]) order by tablename,policyname`, [tables]);
+  return { relations: relations.rows, policies: policies.rows, other: await fingerprint() };
+}
 
 async function fingerprint() {
   const grants = await db.query(`select c.relname,e.grantor,e.grantee,e.privilege_type,e.is_grantable
@@ -61,8 +74,45 @@ async function verify() {
   await db.connect();
   await db.query('begin'); inTransaction = true;
   await db.query("set local lock_timeout='5s'");
-  const before = await fingerprint();
-  if (rehearse) {
+  originalSecurity = await securityFingerprint();
+  let before = await fingerprint();
+  if (adoption) {
+    // Reproduce the observed Production shape only inside this rollback transaction.
+    const drops = await db.query(`select format('DROP POLICY %I ON public.%I',policyname,tablename) as sql
+      from pg_policies where schemaname='public' and tablename=any($1::text[])`, [tables]);
+    for (const row of drops.rows) await db.query(row.sql);
+    for (const table of tables) {
+      await db.query(`grant all on table public.${table} to PUBLIC, anon, authenticated`);
+      await db.query(`grant select(name),update(name),references(name) on public.${table} to PUBLIC, anon, authenticated`);
+    }
+    const guard = readFileSync(migrationPath, 'utf8');
+    const delta = readFileSync(adoptionPath, 'utf8');
+    await deniedSql(() => db.query(guard), 'P0001');
+    console.log('CATALOG_HISTORICAL_GUARD_REJECTS_ADOPTION_BASELINE=PASS');
+    await db.query('set local role authenticated');
+    await deniedSql(() => db.query(delta), 'P0001');
+    await db.query('reset role');
+    await db.query(delta);
+    const safeState = await securityFingerprint();
+    await db.query(delta);
+    await db.query(guard);
+    await db.query(guard);
+    assert.deepEqual(await securityFingerprint(), safeState, 'Delta and historical guard retries must preserve the same final security state.');
+    const effective = await db.query(`select c.relname,
+      has_table_privilege('authenticated',c.oid,'INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER') as auth_writes,
+      has_any_column_privilege('authenticated',c.oid,'INSERT,UPDATE,REFERENCES') as auth_column_writes,
+      has_table_privilege('anon',c.oid,'INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER') as anon_writes,
+      has_any_column_privilege('anon',c.oid,'SELECT,INSERT,UPDATE,REFERENCES') as anon_columns
+      from pg_class c join pg_namespace n on n.oid=c.relnamespace
+      where n.nspname='public' and c.relname=any($1::text[])`, [tables]);
+    assert.equal(effective.rowCount, 3);
+    for (const row of effective.rows) {
+      assert.equal(row.auth_writes, false); assert.equal(row.auth_column_writes, false);
+      assert.equal(row.anon_writes, false); assert.equal(row.anon_columns, false);
+    }
+    before = await fingerprint();
+    console.log('CATALOG_FORWARD_DELTA_OWNERSHIP_TABLE_COLUMN_ACLS_RETRY=PASS');
+  } else if (rehearse) {
     const sql = readFileSync(migrationPath, 'utf8');
     await db.query(sql);
     await db.query(sql);
@@ -169,6 +219,7 @@ async function verify() {
   assert.deepEqual(await fingerprint(), before, 'Verification must preserve writes and shared helper contracts.');
   console.log('CATALOG_WRITE_ACLS_POLICIES_HELPERS_UNCHANGED=PASS');
   await db.query('rollback'); inTransaction = false;
+  assert.deepEqual(await securityFingerprint(), originalSecurity, 'Rollback must restore the original catalog security and helper metadata.');
   for (const table of ['public.users', 'auth.users']) {
     const leftovers = await db.query(`select id from ${table} where id=any($1::uuid[])`, [actorIds]);
     assert.equal(leftovers.rowCount, 0, 'Rolled-back fixture actors must not remain.');
@@ -182,5 +233,10 @@ verify().catch(error => {
   console.error('AUTOMOVE_CATALOG_REAL_DB_RLS=FAIL', error instanceof Error ? error.message : 'Unknown verification failure');
   process.exitCode = 1;
 }).finally(async () => {
-  try { if (inTransaction) await db.query('rollback'); } finally { await db.end(); }
+  try {
+    if (inTransaction) {
+      await db.query('rollback');
+      assert.deepEqual(await securityFingerprint(), originalSecurity, 'Failed verification must restore the original catalog security metadata.');
+    }
+  } finally { await db.end(); }
 });
