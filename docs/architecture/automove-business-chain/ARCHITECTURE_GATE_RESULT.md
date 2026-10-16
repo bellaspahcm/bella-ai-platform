@@ -5,6 +5,54 @@ baseline_commit: 3356a04d15b021c5098512739bc5b3676922ce3b
 
 # AutoMove Business-Chain Verification
 
+## Signing-Key Verification-Only Authority - 2026-10-16
+
+Process gate: PASS within the existing release-preparation scope. The owner
+explicitly approved running the signing-key-only job. This is not approval to
+dispatch adoption. Preserve PR #343 at a864f85165246b0f753184ddf18a766fc91cbdf7,
+all business-chain seals, runtime guard and the accepted backup exception.
+
+Manifest and ownership: Platform/BDGF owns key resolution; GitHub Environment
+Production owns the existing encrypted GATE_SIGNING_KEY secret. Reuse
+scripts/bdgf/get-signing-key.mjs unchanged. The verification consumer injects
+that secret through the resolver's existing trusted-injection parameter, never
+the development .env or rehearsal key. No new policy/key provider is created.
+
+Contract/dependency: verification-only workflow -> canonical key resolver ->
+in-memory Node HMAC-SHA256 challenge and independent verifier process. The probe
+is explicitly not an authorization token and contains no approval identity.
+Only booleans, source/run provenance and the approved adoption hash are logged.
+
+Change authority: isolated verification commit/tag only, updating the existing
+manual test-secret-injection workflow and adding its focused verifier/tests.
+No main merge, PR #343 changes, application/runtime code, Vercel configuration,
+DB credentials, DB connection, approval/token issuance or deployment. Publish a
+verification tag, not an application branch or release, then manually run only
+this workflow. The owner separately approved one temporary tag rule for
+bdgf-key-check-20261016 on Environment Production; preserve its main rule and
+remove only the newly created rule after completion/failure. No other protection
+change is authorized. UI reconciliation: N/A.
+Migration plan: NONE; no database targets or mutation APIs exist in the job.
+
+Verification gates: (1) approved manual event; (2) verification tag/source SHA;
+(3) exact adoption hash a5e574c6985924d41436c2b05ff1ea9ffc45530861302b60f9ff8687a2e22f23;
+(4) immutable resolver source; (5) only the approved Environment secret;
+(6) no development fallback or DB credential; (7) key format; (8) fresh-process
+issuer/verifier consistency; (9) modified message/hash/signature rejected;
+(10) boolean-only evidence; (11) focused safety tests and actual CI conclusion.
+
+Acceptance: Given the approved runner and secret, fresh processes resolve the
+same key and verify a non-authorizing challenge. Modified hash/nonce/signature
+and malformed signature must fail verification. Missing key, development
+fallback, wrong ref/event/hash or DB credentials fail closed. Never print key,
+key fingerprint, challenge signature or raw subprocess output. No local fixture
+may be reported as Production signing evidence. GO_LIVE remains NOT_PROVEN.
+
+Local safety verification: 12/12 tests PASS, lint PASS, diff-check PASS; single-
+agent review confirms only workflow, verifier/tests and this existing checkpoint
+change. This is not key proof. Actual CI on the immutable verification tag is
+required; no merge/Production adoption is authorized by a successful key check.
+
 ## RC Business-Chain Authority - 2026-10-16
 
 Process gate: PASS for AUTOMOVE_RC_BUSINESS_CHAIN_VERIFICATION, explicitly
