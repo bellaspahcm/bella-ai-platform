@@ -222,6 +222,34 @@ RUNTIME_PRODUCTION = CLOSED
 AUTOMOVE_FULL_PRODUCT_READINESS = NOT_READY
 GO_LIVE = NOT_PROVEN
 
+Diagnostic run 38895590523 on ad457bd782132ee9002204df97ec9108792a1b66
+passed real login and the authenticated closed guard, then failed in the harness
+at READ_OWN_CANONICAL_IDENTITY. It collected no role/tenant result; do not count
+this as an application authorization failure. Follow-up remains harness-only:
+capture the already-issued successful login response in memory as it arrives,
+before navigation can discard the response resource, and record allowlisted
+diagnostic substeps. This fixes a fragile delayed-body read; it does not establish
+that delayed access caused the observed failure. No alternate login, credential,
+runtime activation, permission or migration is authorized by this correction.
+Follow-up local verification: 13/13 safety tests PASS, including immediate
+response capture and sanitized failure substeps; focused ESLint, Architecture
+Guard and diff-check PASS. No application runtime files changed.
+
+The actual local Chromium POST/navigation fixture then exposed
+Network.getResponseBody: No resource with given identifier found even with an
+early response listener. The mock-only capture result was insufficient. Final
+repair never reads the login response body: it captures only the public API key
+synchronously and uses the existing browser cookie snapshot through canonical
+Supabase SSR. Auth getUser verifies the subject before self-profile/own-tenant
+reads. The diagnostic fetcher allows only GET to the fixed Auth user/users/tenants
+paths; even an expired session cannot send a refresh POST. Cookie snapshots are
+not written back or persisted. No alternate credential or privileged client.
+Final verification: 15/15 safety tests PASS, including real SSR cookie decoding,
+read bounds and zero-network refresh denial; actual Chromium navigation -> cookie
+snapshot -> SSR fixture PASS with all transport intercepted locally (not
+Production evidence). Focused lint and diff-check PASS. Real diagnostic remains
+pending; earlier failed runs retain FAIL.
+
 ## Historical Checkpoints
 
 Current checkpoint: RC #341 is already merged; the draft/local RC evidence below
