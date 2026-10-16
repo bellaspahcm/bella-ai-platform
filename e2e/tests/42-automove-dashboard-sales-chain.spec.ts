@@ -3,6 +3,7 @@ import { randomBytes, randomUUID } from 'node:crypto';
 import { Client } from 'pg';
 import { createClient } from '@supabase/supabase-js';
 import { saleChainConnection } from '../../src/modules/bella-auto/services/AutoMoveSaleChainConnection';
+import { continueAutoMoveRc } from '../fixtures/automove-rc-continuation';
 
 // Expectations come from the owner-approved PR #327 contract. All mutations
 // under test go through the actual dashboard, Auth, Storage and Next.js APIs.
@@ -10,7 +11,7 @@ test.use({ trace: 'off', video: 'off' });
 
 test('AutoMove actual dashboard: login to booking, deposit and explicit recognition', async ({ page, baseURL }, testInfo) => {
   // Includes separate receipt collection, lost acknowledgement and reconciliation.
-  test.setTimeout(480_000);
+  test.setTimeout(process.env.AUTOMOVE_RC_SHA ? 720_000 : 480_000);
   const apiUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
   const publicKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   const adminKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -22,6 +23,7 @@ test('AutoMove actual dashboard: login to booking, deposit and explicit recognit
   const admin = createClient(apiUrl, adminKey, { auth: { persistSession: false, autoRefreshToken: false } });
   const tenantId = randomUUID(), otherTenantId = randomUUID(), customerId = randomUUID(), brandId = randomUUID();
   const modelId = randomUUID(), variantId = randomUUID(), vehicleId = randomUUID();
+  const periodId = randomUUID();
   const suffix = randomUUID().slice(0, 8);
   const email = `automove-dashboard-${randomUUID()}@example.test`;
   const password = randomBytes(32).toString('hex');
@@ -58,6 +60,8 @@ test('AutoMove actual dashboard: login to booking, deposit and explicit recognit
       (tenant_id,booking_number,customer_id,variant_id,color_exterior,total_price,deposit_amount,deposit_paid,status,payment_status)
       values($1,$2,$3,$4,'Trắng',9900000000,0,0,'completed','unpaid')`,
       [tenantId,`NEGATIVE-${suffix}`,customerId,variantId]);
+    if (process.env.AUTOMOVE_RC_SHA) await db.query(`insert into public.accounting_periods(id,tenant_id,name,start_date,end_date,status)
+      values($1,$2,'AutoMove isolated RC period',date_trunc('month',now())::date,(date_trunc('month',now())+interval '1 month'-interval '1 day')::date,'OPEN')`, [periodId,tenantId]);
     await db.query('commit'); transaction = false; seeded = true;
 
     stage = 'login';
@@ -67,7 +71,7 @@ test('AutoMove actual dashboard: login to booking, deposit and explicit recognit
     const login = page.waitForResponse(response => response.url().startsWith(`${apiUrl}/auth/v1/token`) && response.request().method() === 'POST');
     await page.getByRole('button', { name: 'Đăng nhập ngay', exact: true }).click();
     expect((await login).status(), 'Real Supabase password authentication must succeed.').toBe(200);
-    await page.waitForURL('**/dashboard', { timeout: 60_000 });
+    await page.waitForURL(/\/dashboard(?:\/bella-auto)?(?:[/?#]|$)/, { timeout: 60_000 });
     expect((await page.context().cookies()).some(cookie => cookie.name === 'mock_user_email' && cookie.value)).toBe(false);
     authenticated = true;
 
@@ -278,7 +282,6 @@ test('AutoMove actual dashboard: login to booking, deposit and explicit recognit
     expect((await db.query('select deposit_paid from public.auto_bookings where id=$1', [bookingId])).rows[0].deposit_paid).toBe('100000000');
     console.log('AUTOMOVE_COMBINED_COLLECTION_CAP_API=PASS');
     await sale.getByRole('button', { name: 'Đóng', exact: true }).click();
-    await db.query("update public.auto_bookings set status='completed' where id=$1", [bookingId]);
     await page.getByRole('button', { name: 'Thanh toán sau bán', exact: true }).click();
     const reopenedPayment = page.waitForResponse(response => response.url().endsWith(paymentUrl) && response.request().method() === 'GET', { timeout: 60_000 });
     await row.getByRole('button', { name: `Hồ sơ bán xe ${booking[0].booking_number}`, exact: true }).click();
@@ -391,9 +394,10 @@ test('AutoMove actual dashboard: login to booking, deposit and explicit recognit
       ledger: (await db.query('select * from public.auto_vehicle_sale_recognitions where booking_id=$1', [bookingId])).rows,
       receipts: (await db.query('select * from public.auto_vehicle_sale_payments where booking_id=$1 order by id', [bookingId])).rows,
     }).toEqual(beforeSecurity);
+    if (process.env.AUTOMOVE_RC_SHA) await continueAutoMoveRc(page, db, bookingId, booking[0].booking_number, ledger[0].id, testInfo);
     stage = 'PASS';
     await testInfo.attach('business-chain-proof', { contentType: 'application/json', body: Buffer.from(JSON.stringify({
-      baseline: '2652d3b645b89715e4ca970d76b057a94775f7d2', tenantId, otherTenantId, bookingId,
+      baseline: process.env.AUTOMOVE_RC_SHA || '2652d3b645b89715e4ca970d76b057a94775f7d2', releaseBuildId: process.env.AUTOMOVE_RC_BUILD_ID, tenantId, otherTenantId, bookingId,
       recognitionId: ledger[0].id, recognized: 1400000000, deposit: 100000000, postSalePaid: 1300000000,
       outstanding: 0, receiptCount: 5, reconciliation: 'MATCHED', security: 'PROVEN_ON_NON_PRODUCTION',
       setup: 'Customer/catalog/vehicle are privileged fixtures, not UI-created records', readiness: 'NOT_READY',
@@ -426,6 +430,7 @@ test('AutoMove actual dashboard: login to booking, deposit and explicit recognit
         try {
           await teardownDb.connect();
           await teardownDb.query('begin');
+          if (process.env.AUTOMOVE_RC_SHA) await teardownDb.query("update public.accounting_periods set status='CLOSED' where id=$1 and tenant_id=$2", [periodId,tenantId]);
           await teardownDb.query("update public.users set status='inactive' where id=$1 and tenant_id=$2", [actorId, tenantId]);
           await teardownDb.query("update public.tenants set status='terminated' where id=any($1::uuid[])", [[tenantId, otherTenantId]]);
           await teardownDb.query('commit');

@@ -1,9 +1,69 @@
 ---
-status: implemented-local-verified
-baseline_commit: 5f939791eddaac5eff45d0b089c0ec74042f6dba
+status: rc-verification-in-progress
+baseline_commit: 3356a04d15b021c5098512739bc5b3676922ce3b
 ---
 
 # AutoMove Business-Chain Verification
+
+## RC Business-Chain Authority - 2026-10-16
+
+Process gate: PASS for AUTOMOVE_RC_BUSINESS_CHAIN_VERIFICATION, explicitly
+approved by the owner after #339/#340 seals. Baseline main is
+3356a04d15b021c5098512739bc5b3676922ce3b. Single agent, branch
+codex/automove-rc-business-chain. Existing seals are not reopened.
+
+Manifest: verification of the release build, not new product behavior. Build the
+exact checked-out candidate with next build; launch next start, real Auth and
+canonical E2E DB only. Record candidate SHA, build ID, environment and actual test
+counts. Missing credentials, build/start failure, skip or partial chain cannot
+be PASS. No reuse of a previously running server or stale build.
+
+Ownership/contract: AutoMove owns its API/UI/financial records, Mobility owns
+allocation/handover, Accounting owns the existing public period guard; tests
+consume the already-approved public contracts. Supabase Auth -> active
+public.users/accountant -> active same tenant remains authoritative. No runtime,
+Platform helper, Finance, kernel, registry or business-rule change authorized.
+
+Change authority: existing Browser spec extension, test-only continuation,
+production-mode test configuration, supervised build/start runner, scoped CI and
+this checkpoint. UI reconciliation is verification-only: actual dashboard/API
+commands create booking, receipts, approved snapshot, evidence and recognition;
+read back real DB after each milestone. Customer/catalog/vehicle/Auth and OPEN
+period are explicit Non-Production setup fixtures, not claimed UI creation.
+Migration plan: NONE. Do not alter schemas, migrate Production or remove the
+Production rejection in AutoMoveSaleChainConnection.ts.
+
+Business test contract: reuse owner-approved amounts (1.4B recognized sale, 1B
+cost, 100M deposit, 1.3B later receipts). After full collection, document price
+delta -100M and cost delta +50M, then manually refund 100M against an original
+receipt. Documented delivered cancellation does not return the vehicle, refund
+more money or reverse revenue. Explicit full reversal remains a separate command
+in OPEN source/current periods. Refund remaining original receipts separately;
+verify net cash/revenue/outstanding zero without changing original records.
+These operations are allowed by the sealed contracts; no invented fee, forfeiture
+or period reopening. A forbidden transition is a blocker, not an assertion to
+weaken. Test retries use original intent/key; cross-tenant/inactive/suspended
+denials remain required. No Finance posting, commission or Warranty scope.
+
+Eleven gates: (1) exact SHA/clean build inputs; (2) next build/start provenance;
+(3) Non-Production target and TLS; (4) real authenticated UI chain; (5) tenant/RLS
+and active authority; (6) snapshot/evidence/policy read-back; (7) receipt totals
+and idempotency; (8) documented independent compensation and OPEN periods;
+(9) immutable originals/dashboard reconciliation; (10) cleanup and evidence
+integrity; (11) focused regression/typecheck/lint/Architecture Guard and actual
+Browser CI on exact PR SHA. Existing unaffected Real DB proof is reused.
+
+Acceptance: Given canonical E2E and the exact candidate, a fresh production-mode
+build must execute the whole applicable chain on the same booking, preserve
+original receipts/snapshot/recognition, deny unauthorized requests and read back
+the expected final balances after reload. Given wrong target/SHA/dirty build or
+any failed/skipped test, the runner fails closed and terminates its own server.
+Only fixture-owned periods may be closed during cleanup; immutable history and
+archived tenant shells remain PARTIAL cleanup, never deleted through a bypass.
+
+Commit/push/PR/CI are allowed for this batch; merge and Production deployment
+are not authorized. Production runtime activation, DB/schema adoption and
+restore/rollback evidence remain separate. Full readiness stays NOT_READY.
 
 ## Recognition Adjustment Authority - 2026-10-16
 
