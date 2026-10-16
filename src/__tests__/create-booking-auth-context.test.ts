@@ -4,7 +4,14 @@ import { createClient } from '@/lib/supabase-server';
 import {
   createCustomerForBookingIfNeeded,
   findPendingBookingForCustomer,
+  resolveBookingTenant,
+  upsertBookingRecord,
+  recordBookingDepositRevenue,
+  createInitialSessionLogs,
 } from '@/core/services/order/create-booking-helpers';
+import { getCurrentUser } from '@/services/user-actions';
+
+jest.mock('@/services/user-actions', () => ({ getCurrentUser: jest.fn() }));
 
 jest.mock('@/lib/supabase-dev-bypass-server', () => ({
   createDevelopmentBypassClient: jest.fn(),
@@ -162,5 +169,51 @@ describe('createBooking auth context', () => {
       'customer-existing',
       'tenant-haircut',
     );
+  });
+
+  it.each([undefined, null, '', 'invalid', '10839580-7b7e-4da7-8b7b-16ad686c3a3e'])(
+    'rejects invalid Nail branch before any business mutation: %s', async branchId => {
+      (resolveBookingTenant as jest.Mock).mockResolvedValueOnce({ tenantId: 'tenant-nail', currentUserId: 'operator' });
+      (getCurrentUser as jest.Mock).mockResolvedValue({ id: 'operator', tenant_id: 'tenant-nail', role: 'admin' });
+      (createDevelopmentBypassClient as jest.Mock).mockResolvedValue({
+        from: jest.fn((table: string) => {
+          if (table !== 'tenants') throw new Error(`Unexpected mutation/query before branch validation: ${table}`);
+          return { select: jest.fn().mockReturnThis(), eq: jest.fn().mockReturnThis(), single: jest.fn(async () => ({ data: { product_key: 'bella_nail' }, error: null })) };
+        }),
+      });
+      (createClient as jest.Mock).mockResolvedValue({
+        from: jest.fn((table: string) => {
+          if (table !== 'org_units') throw new Error(`Unexpected table: ${table}`);
+          return { select: jest.fn().mockReturnThis(), eq: jest.fn().mockReturnThis(), then: (resolve: (result: { data: never[]; error: null }) => unknown) => Promise.resolve(resolve({ data: [], error: null })) };
+        }),
+      });
+      const result = await createBooking({
+        customer_id: 'new', newCustomer: { phone: 'TEST-ONLY', name_mother: 'Synthetic' },
+        full_price: 300000, deposit_amount: 0, total_sessions: 2,
+        metadata: { branch_id: branchId },
+      });
+      expect(result).toEqual({ error: expect.any(String) });
+      expect(createCustomerForBookingIfNeeded).not.toHaveBeenCalled();
+      expect(upsertBookingRecord).not.toHaveBeenCalled();
+      expect(recordBookingDepositRevenue).not.toHaveBeenCalled();
+      expect(createInitialSessionLogs).not.toHaveBeenCalled();
+    },
+  );
+
+  it('passes the resolved Nail scope to guarded upsert', async () => {
+    const branch = '30839580-7b7e-4da7-8b7b-16ad686c3a3e';
+    (resolveBookingTenant as jest.Mock).mockResolvedValueOnce({ tenantId: 'tenant-nail', currentUserId: 'operator' });
+    (getCurrentUser as jest.Mock).mockResolvedValue({ id: 'operator', tenant_id: 'tenant-nail', role: 'admin' });
+    (createDevelopmentBypassClient as jest.Mock).mockResolvedValue({
+      from: () => ({ select: jest.fn().mockReturnThis(), eq: jest.fn().mockReturnThis(), single: async () => ({ data: { product_key: 'bella_nail' }, error: null }) }),
+    });
+    (createClient as jest.Mock).mockResolvedValue({
+      from: () => ({ select: jest.fn().mockReturnThis(), eq: jest.fn().mockReturnThis(), then: (resolve: (r: { data: unknown[]; error: null }) => unknown) => Promise.resolve(resolve({ data: [{ id: branch, tenant_id: 'tenant-nail', unit_type: 'branch', is_active: true, parent_id: null, name: 'MAIN' }], error: null })) }),
+    });
+    const result = await createBooking({ customer_id: 'customer-1', full_price: 300000, deposit_amount: 0, total_sessions: 2, metadata: { branch_id: branch } });
+    expect(result).toHaveProperty('data');
+    expect(upsertBookingRecord).toHaveBeenCalledWith(expect.objectContaining({
+      expectedDraftScope: { tenantId: 'tenant-nail', customerId: 'customer-1', branchId: branch },
+    }));
   });
 });

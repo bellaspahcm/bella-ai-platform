@@ -37,6 +37,7 @@ import {
 import { useEffect,useState } from 'react';
 import { toast } from 'sonner';
 import { useScrollLock } from '@/hooks/useScrollLock';
+import { useUser } from '@/lib/user-context';
 
 type CustomerRow = Database['public']['Tables']['customers']['Row'];
 type PackageRow = Database['public']['Tables']['packages']['Row'];
@@ -64,6 +65,7 @@ interface BookingModalProps {
 }
 
 export function BookingModal({ isOpen, onClose, onSuccess, preselectedCustomer }: BookingModalProps) {
+  const { tenantSettings, isLoading: isUserLoading, activeBranchId, isBranchPending } = useUser();
   const [step, setStep] = useState(1);
   const [mode, setMode] = useState<'search' | 'new'>('search');
   const [searchQuery, setSearchQuery] = useState('');
@@ -442,6 +444,16 @@ export function BookingModal({ isOpen, onClose, onSuccess, preselectedCustomer }
         }
       }
 
+      if (isUserLoading || !tenantSettings?.product_key) {
+        toast.error('Chưa xác định được sản phẩm của cơ sở. Vui lòng tải lại trang.');
+        return;
+      }
+      const isNail = tenantSettings?.product_key === 'bella_nail';
+      if (isNail && (isBranchPending || !activeBranchId)) {
+        toast.error('Vui lòng chọn chi nhánh hợp lệ trước khi tạo booking Nail.');
+        return;
+      }
+
       const payload: BookingSubmitPayload = {
         ...formData,
         full_price: finalFullPrice,
@@ -450,6 +462,7 @@ export function BookingModal({ isOpen, onClose, onSuccess, preselectedCustomer }
         customer_id: mode === 'new' ? 'new' : selectedCustomer?.id || '',
         metadata: {
           gift_sessions: extraSessions,
+          ...(isNail ? { branch_id: activeBranchId } : {}),
         },
       };
 
