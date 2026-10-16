@@ -11168,4 +11168,134 @@ Preschool Learning Page (src/app/dashboard/education/grades/page.tsx)
 - Gate 3: Education TypeScript Gate (`npm run gate:education-no-new-debt`).
 - Gate 4: Zero `any` and Zero `unknown` strict audit.
 
+---
+
+# ARCHITECTURE GATE RESULT — PRE SCHOOL COMMUNICATION & PARENT ENGAGEMENT WORKSPACE REDESIGN (IMAGE 1 & 2 TO IMAGE 3)
+
+> **Status:** PASS  
+> **Date:** 2026-10-17  
+> **Scope:** Redesign Preschool Communication & Parent Engagement Workspace UI (`src/app/dashboard/education/communication/page.tsx`) from the cluttered, oversized nested container view (Image 1 & 2) to the high-hierarchy, compact Inbox Workspace (Image 3) exclusively for Preschool tenants (`bella_education`).  
+> **Strict Type Invariant:** ZERO use of `any` and `unknown` across all types, interfaces, state variables, props, event handlers, and helper functions.
+
+---
+
+## 1. Bella OS/Product Development Process Gate
+
+- **Truth:**
+  - Preschool parent communication and engagement requires an intuitive, high-efficiency Inbox Workspace:
+    1. **Unified Header:** Circular back button, chat bubble icon badge, Vietnamese title: "Truyền thông & Phụ huynh", subtitle: "Quản lý tin nhắn, thông báo, sổ liên lạc và biểu mẫu đồng ý của phụ huynh", month selector ("Tháng 09/2026" with calendar icon), primary CTA: "+ Gửi thông báo" in brand forest green (`#0c513f`).
+    2. **4 Clean KPI Stat Cards:**
+       - Tin chưa đọc: 8 (● 3 cuộc quá hạn) with blue icon.
+       - Tỷ lệ đã đọc: 96.8% (● 268 / 280 phụ huynh) with green icon & progress bar.
+       - Chưa phản hồi: 25 (● Biểu mẫu đồng ý) with orange icon & progress bar.
+       - Hài lòng phụ huynh: 4.9 / 5.0 (◆ Khảo sát tháng 9) with purple icon & 5 stars.
+    3. **6 Streamlined Workspace Tabs:**
+       - "Tổng quan" (Active, `#0c513f` background), "Tin nhắn" (with red badge 8), "Sổ liên lạc", "Thông báo", "Biểu mẫu đồng ý", "Hoạt động".
+    4. **Two-Column Split Inbox Workspace (60% / 40%):**
+       - **Left Column (Danh sách hội thoại):**
+         - Header: "Tin nhắn phụ huynh" with count `32 cuộc trò chuyện`.
+         - Search input: "Tìm phụ huynh, trẻ, lớp hoặc nội dung..." with filter icon.
+         - Quick filter pills: "Tất cả (32)", "Chưa đọc (8)", "Cần xử lý (6)", "Quá hạn (3)".
+         - Compact Conversation Cards (8 items) with avatar initials, sender name, timestamp, student & class metadata, truncated snippet, and context-specific status pill ("🔔 Lưu ý sức khỏe", "● Quá hạn", "💳 Hỏi học phí", "✔ Phản hồi tích cực", "💬 Hỏi thông tin", "💬 Chia sẻ thông tin", "💬 Hỏi hoạt động", "✔ Đã hoàn thành").
+         - Pagination footer: "Hiển thị 8 / 32" with `< [1] 2 3 4 >`.
+       - **Right Column (Chi tiết hội thoại & Action Workspace):**
+         - Conversation header: Parent name, student & class, more options (`⋮`).
+         - Tabs: "Trao đổi" (Active), "Thông tin", "Nhật ký", "Liên quan".
+         - Chat bubble conversation timeline: Parent message (in gray bubble) and Teacher reply (in green bubble with double checkmark).
+         - Contextual AI Intent Detection Box ("AI nhận diện yêu cầu" with Beta badge):
+           - Detected intent: "Ý định: Yêu cầu lưu ý sức khỏe" (Độ tin cậy: 92%).
+           - Tags: `🔴 Sức khỏe`, `🟡 Theo dõi`, `👕 Bé mặc thêm áo khoác`.
+           - Action shortcuts: "+ Tạo lưu ý chăm sóc", "💬 Tạo phản hồi nhanh", options button.
+         - Linked Care Note Widget ("📋 Lưu ý chăm sóc (1)") with link "Xem tất cả →", note content, and author signature.
+         - Bottom response compose bar: "Nhập tin nhắn phản hồi...", attachment, image, emoji, and Send CTA.
+- **Strict Guard:**
+  - Non-preschool tenants retain standard `LegacyCommunicationView`.
+  - Zero `any` and zero `unknown`.
+  - Frozen Kernels (H1–H12, E7.1–E7.3, Education Kernel) remain 100% frozen.
+- **Gate Result:** `PASS`
+
+---
+
+## 2. Product Manifest (Capabilities & Scope)
+
+- **Target Vertical:** Bella Education (Preschool Vertical — `bella_education`).
+- **Target Page:** `src/app/dashboard/education/communication/page.tsx`
+- **Capabilities in Scope:**
+  - Full two-column interactive Inbox Workspace conforming to Image 3.
+  - Interactive conversation selection, tab filtering (Tất cả, Chưa đọc, Cần xử lý, Quá hạn), search filter.
+  - Contextual AI Intent Actions with proper domain mappings (Health Care Note, Early Pickup / Absence, Tuition, Info).
+  - Modal for "+ Gửi thông báo" broadcast creation.
+  - Strict type definitions for conversations, messages, intents, and announcements.
+
+---
+
+## 3. Ownership Map ("WHO OWNS THIS DATA?")
+
+| Data / Component | Owner | Boundary & Scope |
+|---|---|---|
+| Communication UI (`communication/page.tsx`) | Preschool Product UI (`src/app/dashboard/education/communication/`) | Redesign to match Image 3 for preschool |
+| Parent Engagement Messages | Education Communication Engine | Consumed via typed interfaces |
+| Care & Health Notes | Education Care Engine | Action shortcuts link to care note creation |
+| Tenant Settings & Brand Theme | Core Platform Context | Read-only access via `getCachedTenantSettings` |
+| Healthcare OS & Logistics OS | Respective Kernels | 100% Frozen & untouched |
+
+---
+
+## 4. Contract Dependency Map
+
+```text
+Preschool Communication Page (src/app/dashboard/education/communication/page.tsx)
+   │
+   ├─► Client Context: getCachedTenantSettings() ──► resolveTenantBrandIdentity()
+   │     └─► isPreschool: boolean (moduleKey === 'bella_education')
+   │
+   ├─► Read Model: Parent Conversations & Intent Detection
+   │     ├─► Health & Attire Care Notes
+   │     ├─► Absence & Early Pickup Approvals
+   │     ├─► Tuition & Operational Inquiries
+   │     └─► Broadcast Announcements & Consents
+   │
+   └─► Actions:
+         ├─► Send Reply Message
+         ├─► Contextual Action: Create Care Note
+         └─► Broadcast Announcement Modal
+```
+
+---
+
+## 5. Change Authority
+
+- **Authorized to Modify:**
+  - `src/app/dashboard/education/communication/page.tsx`
+  - `ARCHITECTURE_GATE_RESULT.md`
+- **Strictly Prohibited:**
+  - Any file in `src/platform/healthcare/`
+  - Any file in `src/platform/logistics/`
+  - Any file in `src/platform/education/engines/`
+  - Any migration modifying existing tables
+
+---
+
+## 6. UI -> Contract Reconciliation
+
+- Replaces oversized card workflows with a compact Inbox Workspace.
+- Standardizes on Vietnamese microcopy across all labels and metrics.
+- Fixes AI intent action mapping so actions match intent (health note for health, pickup for pickup, etc.).
+
+---
+
+## 7. Additive Migration Plan
+
+- None required (Frontend UX/UI presentation layer refactor).
+
+---
+
+## 8. 11 Automated Verification Gates Plan
+
+- Gate 1: Architecture Guard (`npm run arch:guard`).
+- Gate 2: Healthcare Guard (`npm run healthcare:guard`).
+- Gate 3: Education TypeScript Gate (`npm run gate:education-no-new-debt`).
+- Gate 4: Zero `any` and Zero `unknown` strict audit.
+
+
 
