@@ -7,6 +7,14 @@ on:
         description: Exact main release SHA deployed for the authorized read-only check
         required: true
         type: string
+      mode:
+        description: Verify existing real Auth with runtime closed first; full requires controlled activation
+        required: true
+        type: choice
+        default: auth-only
+        options:
+          - auth-only
+          - full
 
 permissions:
   contents: read
@@ -32,15 +40,18 @@ jobs:
       - name: Install locked dependencies without lifecycle scripts
         run: npm ci --ignore-scripts
       - name: Offline smoke safety tests
-        run: node --test scripts/verify-automove-production-runtime.test.mjs
+        run: npx tsx --test scripts/verify-automove-production-runtime.test.mjs
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
       - name: Read-only real Auth, SQL and dashboard smoke
         env:
           AUTOMOVE_EXPECTED_SHA: ${{ inputs.expected_sha }}
+          AUTOMOVE_SMOKE_MODE: ${{ inputs.mode }}
+          E2E_BASE_URL: https://bella-spa-erp.vercel.app
+          E2E_VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.E2E_VERCEL_AUTOMATION_BYPASS_SECRET }}
           PRODUCTION_E2E_ADMIN_EMAIL: ${{ secrets.PRODUCTION_E2E_ADMIN_EMAIL }}
           PRODUCTION_E2E_ADMIN_PASSWORD: ${{ secrets.PRODUCTION_E2E_ADMIN_PASSWORD }}
-        run: node scripts/verify-automove-production-runtime.mjs
+        run: npx tsx scripts/verify-automove-production-runtime.mjs
       - name: Upload sanitized outcome only
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a

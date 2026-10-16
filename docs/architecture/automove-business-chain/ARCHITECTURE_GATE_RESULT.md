@@ -1,5 +1,5 @@
 ---
-status: controlled-production-runtime-authorized-implementation-in-progress
+status: controlled-production-release-withdrawn-smoke-login-not-proven
 baseline_commit: bbe57b5500ea5c4c9be6542d93f3497aa1482e53
 ---
 
@@ -85,6 +85,87 @@ Its exact expected SHA must match the dispatched main SHA. Only sanitized
 status/provenance is retained: no session files, credentials, identities, raw
 business responses or screenshots. This is scoped operational read proof, not a
 Production financial-write E2E or an automatic Go-Live declaration.
+
+### Controlled Runtime Attempt and Safe Stop
+
+PR #346 merged as 4fd2c73f3e099f231a07aab931f4837fedb51437 after all required
+PR checks passed. Source tree equals tested head ed061b9fba3ea1c3a3fcee7af4ec0ca1cab6d792.
+The first build failed in unchanged next/font; rerun passed without source change.
+The first Real DB attempt hit serialization during parallel RC verification;
+isolated rerun passed with unchanged assertions. These initial failures remain
+historical failures, not clean first-attempt proof.
+
+Exactly two AutoMove-only Production variables were configured. Vercel deployment
+dpl_3YAjNnsJsi5dU3PaQL1oc7V5urpS reached READY on the exact merge SHA and the
+public alias matched. No migration, grants/roles, business records or historical
+adoption evidence was changed.
+
+Actual Production smoke run 38888043099 FAILED at REAL_LOGIN between
+2026-10-16T10:34:56.407Z and 10:35:45.802Z. Unauthenticated API denial was 401;
+no authenticated SQL, financial report or dashboard proof was reached. The
+sanitized artifact does not establish whether credentials, MFA or redirect caused
+the login failure. Do not claim a password or role defect without evidence.
+
+The stop plan was executed immediately: future runtime flag set to disabled,
+public aliases rolled back to dpl_EnDqBpKPJitRfpu28ZCsCx6tqWmA and only the
+failed release deployment was retired so its direct URL no longer runs code.
+Independent alias read-back matched the closed-guard deployment and the retired
+URL returned 404. No DB rollback, trigger bypass or deletion of financial data.
+Sensitive flag-value API metadata does not expose plaintext; CLI write receipt
+is retained, not mislabeled as plaintext read-back. Closed source deployment is
+the independently verified current runtime stop.
+
+Owner is checking the two existing Production E2E login secrets. No actor, role,
+MFA setting or auth bypass was created/changed; no automatic reactivation while
+waiting. Main's eight other workflows passed; Quality Gates subsequently passed
+on isolated rerun after the first serialization failure. This is not Production
+operational or Go-Live PASS. Evidence is in the existing local runtime
+release-evidence.json and smoke-38888043099/evidence.json packet.
+
+RUNTIME_PRODUCTION = CLOSED_AFTER_FAILED_LOGIN_SMOKE
+PRODUCTION_OPERATIONAL_VERIFICATION = NOT_PROVEN
+AUTOMOVE_FULL_PRODUCT_READINESS = NOT_READY
+GO_LIVE = NOT_PROVEN
+
+### Reuse Proven Production Auth Smoke - 2026-10-16
+
+Process gate: PASS for the owner's request to recover Bella's previously working
+smoke path. Scope is test harness/workflow only; keep Production runtime disabled,
+no migrations, business writes, identity changes or new approval gates. Reuse
+the existing auth fixture's real-credential helper and context settings rather
+than duplicating login. Exporting these existing test helpers does not change
+their behavior or the application auth contract.
+
+Historical evidence was refreshed live: run 37237569628 on db9a28c00e8a024cde02834d2d26185f980e46de
+passed all 17 authenticated smoke cases on 2026-10-04. The two Production secrets
+were last updated earlier that day and remain unchanged. Run 37944272985 later
+reached authenticated Hospitality UI assertions; its failure was the mutation
+collector, not a reported login failure. These are historical scope/provenance,
+not current AutoMove or current credential PASS. Current main Quality Gates at
+4fd2c73f3e099f231a07aab931f4837fedb51437 subsequently passed on isolated rerun.
+
+The new bespoke runner omitted fixture page-load settling and context/protection
+settings. That is a verified implementation difference, NOT proof that hydration
+or credentials caused the failed login. Correct the harness to reuse the proven
+path, then run auth-only with guard closed. Require real Auth and the actual
+authenticated AUTOMOVE_RUNTIME_DISABLED response; do not count HTTP 200, a generic
+503, an MFA prompt, skip or a different account as successful AutoMove access.
+Retain sanitized response status/login-stage evidence, never credentials,
+cookies, token responses, screenshots or raw user/profile data.
+
+Ownership/contract/manifest: test helper exports, current AutoMove smoke script,
+focused unit tests and its existing manual workflow. No UI/domain/Platform helper
+change. Migration plan NONE; default workflow mode auth-only. Full mode preserves
+all existing accountant/SQL/report/dashboard assertions and still needs the
+approved controlled activation path. No credential fallback or dev mock path.
+Verification: pure safety tests, real-login helper focused regression, lint,
+strict typecheck and diff-check; existing business/Real DB seals reused. Actual
+auth-only run must pass at exact main SHA before any further activation.
+
+Executed local harness verification: 7/7 safety/helper tests PASS, full strict
+typecheck PASS, focused ESLint and diff-check PASS. No application/runtime,
+migration, grant or identity implementation changed in this correction. Reuse
+the earlier architecture/business-chain evidence; do not rerun unrelated suites.
 
 ## Historical Checkpoints
 
