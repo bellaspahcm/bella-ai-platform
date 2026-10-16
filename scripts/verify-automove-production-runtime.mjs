@@ -3,7 +3,7 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import { createHash, randomUUID } from 'node:crypto';
 import { pathToFileURL } from 'node:url';
 import { chromium, request as playwrightRequest } from '@playwright/test';
-import { createClient } from '@supabase/supabase-js';
+import { createServerClient } from '@supabase/ssr';
 
 const origin = 'https://bella-spa-erp.vercel.app';
 const artifact = 'artifacts/automove-production-runtime';
@@ -48,15 +48,38 @@ const safeStatus = value => ['active', 'inactive', 'suspended', 'terminated', 'p
 const safeRole = value => ['accountant', 'admin', 'manager', 'staff', 'owner', 'receptionist', 'cashier', 'therapist', 'doctor'].includes(value) ? value : 'OTHER';
 const safeErrorCode = error => ['42501', '42P01', 'PGRST116', 'PGRST301', 'PGRST205'].includes(error?.code) ? error.code : 'OTHER';
 
-export async function captureBrowserAuth(response) {
+export function captureDiagnosticPublicKey(response) {
   try {
     assert.equal(new URL(response.url()).origin, authOrigin);
     assert.equal(new URL(response.url()).pathname, '/auth/v1/token');
+    assert.equal(new URL(response.url()).searchParams.get('grant_type'), 'password');
+    assert.equal(response.request().method(), 'POST');
     assert.equal(response.status(), 200);
-    const [session, publicKey] = await Promise.all([response.json(), response.request().headerValue('apikey')]);
-    if (!publicKey || typeof session?.access_token !== 'string') return { failure: 'LOGIN_SESSION_OR_PUBLIC_KEY_MISSING' };
-    return { accessToken: session.access_token, publicKey };
+    const publicKey = response.request().headers().apikey;
+    return publicKey ? { publicKey } : { failure: 'LOGIN_PUBLIC_KEY_MISSING' };
   } catch { return { failure: 'LOGIN_RESPONSE_CAPTURE_UNAVAILABLE' }; }
+}
+
+export function createDiagnosticReadClient(publicKey, cookies, fetcher = fetch) {
+  const sessionCookies = cookies.filter(cookie => /^sb-lvnvkpyxtuilhrabtlwv-auth-token(?:\.\d+)?$/.test(cookie.name));
+  assert.ok(sessionCookies.length, 'DIAGNOSTIC_AUTH_COOKIE_MISSING');
+  return createServerClient(authOrigin, publicKey, {
+    global: { fetch: (input, init) => {
+      const url = new URL(typeof input === 'string' || input instanceof URL ? input : input.url);
+      const method = init?.method || (input instanceof Request ? input.method : 'GET');
+      assert.equal(url.origin, authOrigin, 'DIAGNOSTIC_AUTH_ORIGIN_MISMATCH');
+      if (method.toUpperCase() !== 'GET') {
+        // A terminal local response prevents Auth SDK network-error refresh retries.
+        return Promise.resolve(new Response(JSON.stringify({ error: 'diagnostic_read_only',
+          error_description: 'Diagnostic requests are read-only.' }),
+        { status: 400, headers: { 'content-type': 'application/json' } }));
+      }
+      assert.ok(url.pathname === '/auth/v1/user' || ['/rest/v1/users', '/rest/v1/tenants'].includes(url.pathname), 'DIAGNOSTIC_READ_SCOPE');
+      return fetcher(input, init);
+    } },
+    // This detached snapshot cannot update browser cookies or persist a session.
+    cookies: { getAll: () => sessionCookies, setAll: () => {} },
+  });
 }
 
 export async function inspectOwnIdentity(client, accessToken, expectedEmail, observe = () => {}) {
@@ -131,10 +154,11 @@ export async function verifyProductionRuntime() {
     page = await context.newPage();
     page.on('response', response => {
       const target = new URL(response.url());
-      if (target.hostname === 'lvnvkpyxtuilhrabtlwv.supabase.co' && target.pathname === '/auth/v1/token') {
+      if (target.origin === authOrigin && target.pathname === '/auth/v1/token' &&
+          target.searchParams.get('grant_type') === 'password' && response.request().method() === 'POST') {
         authHttpStatus = response.status();
         if (process.env.AUTOMOVE_SMOKE_MODE === 'diagnose-identity' && response.status() === 200 && !capturedAuth) {
-          capturedAuth = captureBrowserAuth(response);
+          capturedAuth = captureDiagnosticPublicKey(response);
         }
       }
     });
@@ -150,17 +174,14 @@ export async function verifyProductionRuntime() {
       evidence.checks.closedGuard = 'PASS_REAL_AUTH_RUNTIME_STILL_DISABLED';
       if (process.env.AUTOMOVE_SMOKE_MODE === 'diagnose-identity') {
         phase = 'CAPTURE_LOGIN_SESSION';
-        const login = capturedAuth ? await capturedAuth : { failure: 'LOGIN_RESPONSE_NOT_OBSERVED' };
+        const login = capturedAuth || { failure: 'LOGIN_RESPONSE_NOT_OBSERVED' };
         if (login.failure) {
           evidence.diagnosticFailure = login.failure;
           throw new Error('DIAGNOSTIC_SESSION_UNAVAILABLE');
         }
         phase = 'CREATE_AUTHENTICATED_READ_CLIENT';
-        const client = createClient(authOrigin, login.publicKey, {
-          global: { headers: { Authorization: `Bearer ${login.accessToken}` } },
-          auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
-        });
-        evidence.identity = await inspectOwnIdentity(client, login.accessToken, process.env.PRODUCTION_E2E_ADMIN_EMAIL,
+        const client = createDiagnosticReadClient(login.publicKey, await context.cookies(origin));
+        evidence.identity = await inspectOwnIdentity(client, undefined, process.env.PRODUCTION_E2E_ADMIN_EMAIL,
           step => { phase = step; });
         const requestId = closed.headers()['x-vercel-id'];
         evidence.closedRequest = { method: 'GET', path: '/api/bella-auto/sales-chain/state',

@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 import YAML from 'yaml';
-import { verifySmokeContext, verifyRecognitionDashboard, verifySqlRead, verifyAuthenticatedClosedGuard, inspectOwnIdentity, captureBrowserAuth } from './verify-automove-production-runtime.mjs';
+import { verifySmokeContext, verifyRecognitionDashboard, verifySqlRead, verifyAuthenticatedClosedGuard, inspectOwnIdentity, captureDiagnosticPublicKey, createDiagnosticReadClient } from './verify-automove-production-runtime.mjs';
 
 const fixture = { GITHUB_ACTIONS: 'true', GITHUB_EVENT_NAME: 'workflow_dispatch',
   GITHUB_REPOSITORY: 'bellaspahcm/bella-ai-platform', GITHUB_REF: 'refs/heads/main',
@@ -127,24 +127,64 @@ test('diagnosis rejects mismatched Auth/configured identity and profile binding 
   assert.equal(queries.length, 0);
 });
 
-test('diagnostic login capture starts before navigation discards the browser response; failure never includes raw session', async () => {
-  let navigated = false;
+test('diagnostic captures only the public key synchronously, never the browser response body or raw session', () => {
   const response = {
     url: () => 'https://lvnvkpyxtuilhrabtlwv.supabase.co/auth/v1/token?grant_type=password',
     status: () => 200,
-    json: async () => { if (navigated) throw new Error('private-canary'); return { access_token: 'unit-session-canary' }; },
-    request: () => ({ headerValue: async () => 'unit-public-key' }),
+    json: () => { throw new Error('MUST_NOT_READ_RESPONSE_BODY'); },
+    request: () => ({ method: () => 'POST', headers: () => ({ apikey: 'unit-public-key' }) }),
   };
-  const capture = captureBrowserAuth(response);
-  navigated = true;
-  assert.deepEqual(await capture, { accessToken: 'unit-session-canary', publicKey: 'unit-public-key' });
-  assert.deepEqual(await captureBrowserAuth(response), { failure: 'LOGIN_RESPONSE_CAPTURE_UNAVAILABLE' });
+  assert.deepEqual(captureDiagnosticPublicKey(response), { publicKey: 'unit-public-key' });
   for (const override of [{ url: () => 'https://other.invalid/auth/v1/token' },
-    { status: () => 403 }, { json: async () => { throw new Error('private-canary'); } }]) {
-    const result = await captureBrowserAuth({ ...response, ...override });
+    { url: () => 'https://lvnvkpyxtuilhrabtlwv.supabase.co/auth/v1/token?grant_type=refresh_token' },
+    { request: () => ({ method: () => 'OPTIONS' }) },
+    { status: () => 403 }, { request: () => { throw new Error('private-canary'); } }]) {
+    const result = captureDiagnosticPublicKey({ ...response, ...override });
     assert.deepEqual(result, { failure: 'LOGIN_RESPONSE_CAPTURE_UNAVAILABLE' });
     assert.ok(!JSON.stringify(result).includes('private-canary'));
   }
+});
+
+function diagnosticCookies(expired = false) {
+  const exp = Math.floor(Date.now() / 1000) + (expired ? -600 : 3600);
+  const token = `e30.${Buffer.from(JSON.stringify({ sub: actorId, exp })).toString('base64url')}.unit`;
+  const session = { access_token: token, refresh_token: 'unit-refresh-canary', token_type: 'bearer',
+    expires_at: exp, expires_in: 3600, user: { id: actorId, email: 'unit@example.invalid' } };
+  return [{ name: 'sb-lvnvkpyxtuilhrabtlwv-auth-token', value: `base64-${Buffer.from(JSON.stringify(session)).toString('base64url')}` }];
+}
+
+test('canonical SSR diagnostic uses existing cookies and real Auth verification before own-profile reads', async () => {
+  const requests = [];
+  const client = createDiagnosticReadClient('unit-public-key', diagnosticCookies(), async (input, init) => {
+    const url = new URL(input);
+    requests.push({ path: url.pathname, method: init?.method || 'GET', query: url.searchParams });
+    const body = url.pathname === '/auth/v1/user' ? { id: actorId, email: 'unit@example.invalid' }
+      : url.pathname === '/rest/v1/users' ? [{ id: actorId, tenant_id: tenantId, role: 'admin', status: 'active' }]
+        : [{ id: tenantId, status: 'active', product_key: 'bella_hq' }];
+    return new Response(JSON.stringify(body), { status: 200, headers: { 'content-type': 'application/json' } });
+  });
+  const result = await inspectOwnIdentity(client, undefined, 'unit@example.invalid');
+  assert.deepEqual(result.failures, ['ROLE_NOT_ACCOUNTANT']);
+  assert.deepEqual(requests.map(({ path, method }) => ({ path, method })), [
+    { path: '/auth/v1/user', method: 'GET' }, { path: '/rest/v1/users', method: 'GET' }, { path: '/rest/v1/tenants', method: 'GET' },
+  ]);
+  assert.equal(requests[1].query.get('id'), `eq.${actorId}`);
+  assert.equal(requests[2].query.get('id'), `eq.${tenantId}`);
+  assert.ok(!JSON.stringify(result).includes('unit-refresh-canary'));
+});
+
+test('SSR diagnostic forbids token refresh or any write before network transport', async () => {
+  const requests = [];
+  const cookies = diagnosticCookies(true);
+  const original = structuredClone(cookies);
+  const client = createDiagnosticReadClient('unit-public-key', cookies, async input => {
+    requests.push(String(input));
+    throw new Error('SHOULD_NOT_REACH_NETWORK');
+  });
+  await assert.rejects(inspectOwnIdentity(client, undefined, 'unit@example.invalid'));
+  assert.equal(requests.length, 0);
+  assert.deepEqual(cookies, original);
+  assert.throws(() => createDiagnosticReadClient('unit-public-key', []), /AUTH_COOKIE_MISSING/);
 });
 
 test('diagnostic failure substep identifies the boundary without raw Auth or profile errors', async () => {
