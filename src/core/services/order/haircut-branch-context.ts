@@ -1,5 +1,6 @@
 import type { createClient } from '@/lib/supabase-server';
 import type { Database } from '@/types/database.types';
+import { z } from 'zod';
 
 type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>;
 type Json = Database['public']['Tables']['bookings']['Insert']['metadata'];
@@ -17,6 +18,7 @@ export type HaircutBranchContext =
       requiresBranch: true;
       branchId: string;
       source: 'requested' | 'single_accessible';
+      strictDraftScope?: true;
     };
 
 type TenantProductRow = {
@@ -50,10 +52,10 @@ export function readRequestedBranchId(input: {
     ?? null;
 }
 
-async function isHaircutTenant(
+async function readTenantProduct(
   supabase: SupabaseServerClient,
   tenantId: string
-): Promise<boolean | ActionError> {
+): Promise<TenantProductRow | ActionError> {
   const { data, error } = await supabase
     .from('tenants')
     .select('product_key')
@@ -64,7 +66,7 @@ async function isHaircutTenant(
     return { error: 'Không thể xác định product identity của tenant: ' + (error?.message || 'Không tìm thấy tenant') };
   }
 
-  return data.product_key === HAIRCUT_PRODUCT_KEY;
+  return data;
 }
 
 export async function resolveHaircutBranchContext(params: {
@@ -74,12 +76,30 @@ export async function resolveHaircutBranchContext(params: {
   requestedBranchId?: string | null;
 }): Promise<HaircutBranchContext | ActionError> {
   const { supabase, tenantId, currentUserId, requestedBranchId } = params;
-  const haircutTenant = await isHaircutTenant(supabase, tenantId);
-  if (typeof haircutTenant !== 'boolean') {
-    return haircutTenant;
+  const tenantProduct = await readTenantProduct(supabase, tenantId);
+  if ('error' in tenantProduct) {
+    return tenantProduct;
   }
 
-  if (!haircutTenant) {
+  // Nail adopts the existing runtime branch authority without changing Haircut's
+  // single-accessible inference or the behavior of other products.
+  if (tenantProduct.product_key === 'bella_nail') {
+    const requestedBranch = z.string().uuid().safeParse(requestedBranchId);
+    if (!currentUserId || !requestedBranch.success) {
+      return { error: 'Nail yêu cầu người dùng và chi nhánh hợp lệ đã chọn.' };
+    }
+    const { getCurrentUser } = await import('@/services/user-actions');
+    const currentUser = await getCurrentUser();
+    if (currentUser?.id !== currentUserId || currentUser.tenant_id !== tenantId) {
+      return { error: 'Không thể xác thực người dùng và tenant cho booking Nail.' };
+    }
+    const { selectBeautyRuntimeBranch } = await import('@/services/beauty-runtime-branch-actions');
+    const selection = await selectBeautyRuntimeBranch(requestedBranch.data);
+    if (!selection.success) return { error: selection.error };
+    return { requiresBranch: true, branchId: selection.data.activeBranchId, source: 'requested', strictDraftScope: true };
+  }
+
+  if (tenantProduct.product_key !== HAIRCUT_PRODUCT_KEY) {
     return {
       requiresBranch: false,
       branchId: null,

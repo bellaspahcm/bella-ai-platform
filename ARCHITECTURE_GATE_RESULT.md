@@ -10520,3 +10520,64 @@ REMOTE_CI = PENDING_CORRECTION_PUSH
 PRODUCTION_MUTATION = NOT_PERFORMED
 MAIN_SEAL = NOT_PERFORMED
 AUTOMOVE_FULL_PRODUCT_READINESS = NOT_READY
+
+
+---
+
+# Architecture Gate — Nail booking branch correction
+
+Date: 2026-10-16. Result: **PASS for scoped implementation**, not Go-Live.
+
+## Process / truth / business test contract
+
+Follow Bella OS/Product process: verified runtime failure -> approved invariant -> ownership -> reuse -> contract -> minimal fix -> verification. Baseline `platform/main` at `3356a04d15b021c5098512739bc5b3676922ce3b`; the four booking-path files are unchanged since failed restored-app proof at `5f939791eddaac5eff45d0b089c0ec74042f6dba`.
+
+Independent semantic authority: user-approved scope in this conversation: Nail booking must explicitly select a valid branch of its tenant that the authenticated actor may access. Missing/invalid/foreign/unavailable branch must reject before customer/booking/session/revenue mutation. Haircut behavior must remain unchanged, including single-accessible-branch inference. Expected behavior comes from that approved rule, not current implementation or fixtures.
+
+Runtime evidence: `C:/Users/DELL/.codex/nail-app-restore/20261016-32dd4bfbb26698c668c7/attempt-08/REPORT.md`, failure JSON, screenshot and assertion source. Original FAIL evidence is immutable.
+
+## Product manifest / capability / ownership
+
+Existing product `bella_nail`; no registration, feature expansion or OS capability. Platform owns `org_units`, IAM/user access and runtime branch selection. Core order owns booking validation/persistence and branch propagation. Shared modal owns user-input transport only. Reuse `getBeautyRuntimeBranchContext` / `selectBeautyRuntimeBranch`, which validate active tenant org units and existing role/membership access. Reuse booking metadata and `buildBookingPayload`; no second permission model.
+
+## Contract dependency and UI reconciliation
+
+Nail UI -> existing createBooking input `metadata.branch_id` -> Core branch resolver -> existing Beauty runtime branch action / authenticated identity -> existing org-unit/access data -> existing booking insert. No Healthcare/Education/Logistics kernel access.
+
+Sidebar branch carrier: `bella.beauty.active_branch.v1`; untrusted input, never authority. Modal consults existing cached tenant settings, adds branch metadata only for Nail, and reads selection at submit time. Server resolves authoritative tenant product, requires an actor bound to that tenant, and accepts only the exact requested branch returned by the existing permission action. Missing branch is not inferred for Nail. Haircut path remains intact. Classification: **MAPPING BUG** at UI and missing Nail adoption at Core boundary; no schema gap.
+
+## Change authority / file plan
+
+User approved UI + server Nail booking fix and regression for Haircut, development only. Core: `src/core/services/order/haircut-branch-context.ts` (retain name/API for callers). UI: `src/components/features/BookingModal.tsx`. Tests: existing `src/__tests__/haircut-branch-chain.test.ts`, new `src/__tests__/booking-modal-branch.test.tsx`, action-boundary tests if needed. Governance: this gate and scoped ACR. No auth policy, branch service, DB/RLS, Finance, generated-type or kernel edits.
+
+## Additive migration plan
+
+None. Existing metadata, branch columns, access contracts and propagation suffice. No migration, backfill or historic evidence rewrite.
+
+## Eleven verification gates
+
+1. Architecture/frozen boundaries: architecture guard; exact file allowlist.
+2. Contract: existing branch action and booking metadata reused; Haircut compatibility.
+3. Tenant: reject foreign branch, bind actor/tenant before permission lookup.
+4. Authorization: reject absent actor, denied/inactive/non-branch selection; existing role policy unchanged.
+5. Migration: assert no schema/migration change.
+6. Persistence ordering: reject before mutation; successful booking and sessions retain branch.
+7. Business safety: RED then GREEN, MAIN booking DB read-back.
+8. Temporal/provenance: baseline/diff/hash; preserve failed proof and prior seals.
+9. Governance: approved exact Core change binding; lint/typecheck, no new any/suppressions.
+10. Evidence: external report/manifest, redact credentials, cleanup, honest failures/skips.
+11. Regression: Haircut and related booking/auth/payment tests; restored browser workflow. Payment only after valid branch booking. RTO/RPO approval pending; Production untouched.
+
+No commit, push, PR, merge, deploy or Production authorization. Single-agent execution. No independent-review claim without an actual reviewer.
+
+## Review correction — P1/P2 (2026-10-16)
+
+Result: **PASS for bounded correction**, not closure. User's latest scope requires preventing cross-branch draft reuse and sharing the sidebar/modal branch state, including blocked browser storage. Original 65-artifact package remains immutable at `C:/Users/DELL/.codex/nail-booking-branch-fix/20261016`; new evidence goes to sibling `nail-booking-review-fix/20261016`.
+
+Business test contract: Nail may reuse a draft only if tenant, customer, branch and existing session/revenue scope agree. Any mismatch, missing legacy branch, query failure or concurrent branch change rejects without changing that draft or its children. No auto-transfer, repair or backfill. Existing Haircut reuse/inference remains unchanged. UI must use the same selected state as the sidebar; browser storage is optional persistence, never the only carrier. Missing/pending/unresolved context produces a visible error and no create request.
+
+Minimal implementation: add UI branch state to the existing `UserProvider` (no new provider); selector publishes validated selection and pending state; modal consumes that state and existing product/tenant identity instead of storage. For Nail only, mark branch context as requiring scoped draft reuse, validate existing draft plus children before upsert, and condition update on unchanged tenant/customer/branch. Reuse current permission actions and schema, do not change policy.
+
+Authorized layers/files: previous UI/Core files plus `src/lib/user-context.tsx`, `src/components/layout/BeautyRuntimeBranchSelector.tsx`, `src/core/services/order/create-booking-action.ts`, `src/core/services/order/create-booking-helpers.ts`, targeted tests and this gate/ACR. This is the owning boundary of the two review findings, not a new feature or architecture. The original conversation's UI/server booking authorization and current explicit P1/P2 corrective scope are the authority; Core ACR file list is updated to reflect the actual bounded change.
+
+Verification additions to eleven-gate plan: RED/GREEN A->B draft and inconsistent child scope; compare draft/session/revenue bytes before/after rejected browser request; same-branch MAIN success and DB readback; storage getter/setter throwing with shared state, missing state no request; Haircut regression; full typecheck, lint, guards and exact diff; independent code re-review. No migration/Production/commit/PR. Existing 2 timeout + 1 skip remain classified separately and are not counted as PASS.
