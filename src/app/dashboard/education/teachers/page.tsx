@@ -36,6 +36,7 @@
 
 import { useState, useRef, useEffect, useMemo, type ChangeEvent } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import {
   Users,
   UserPlus,
@@ -275,9 +276,11 @@ function TeacherCard({ teacher, isMenuOpen, onMenuToggle, onAssignClass }: Teach
         <div className="flex items-center gap-3.5 min-w-0">
           <div className="relative w-13 h-13 rounded-full overflow-hidden shrink-0 border border-slate-100 dark:border-slate-700 shadow-xs">
             {!imageError ? (
-              <img
+              <Image
                 src={teacher.avatarUrl}
                 alt={teacher.name}
+                width={52}
+                height={52}
                 className="w-full h-full object-cover"
                 onError={() => setImageError(true)}
               />
