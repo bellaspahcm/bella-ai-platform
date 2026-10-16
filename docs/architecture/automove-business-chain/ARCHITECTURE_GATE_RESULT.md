@@ -1,9 +1,92 @@
 ---
-status: bdgf-owner-ddl-proven-non-production-pr-ci-pending
-baseline_commit: c9b4d2a1a61a539a18c27089438b552b9f74c0ad
+status: controlled-production-runtime-authorized-implementation-in-progress
+baseline_commit: bbe57b5500ea5c4c9be6542d93f3497aa1482e53
 ---
 
 # AutoMove Business-Chain Verification
+
+## Controlled Production Runtime Authority - 2026-10-16
+
+Process gate: PASS for the owner's explicit approval of controlled Production
+runtime activation and operational verification. This supersedes the historical
+runtime prohibition below only for this scope. Single-agent execution; existing
+business-chain seals and migrations are not reopened. Backup remains deferred
+under the recorded owner exception; no backup work or expenditure authorized.
+
+Production schema/security adoption of SHA-256
+a5e574c6985924d41436c2b05ff1ea9ffc45530861302b60f9ff8687a2e22f23
+committed through canonical BDGF in run 38875771934. Retain its original CI FAIL
+caused by reporting after commit. Independent read-only postcheck at
+2026-10-16T08:52:10.258Z passed the frozen final assertions, exact metadata
+comparison, canonical approval integrity and one consumed token. Do NOT replay
+DDL, issue a second token or repair migration history. PR #343 independently
+merged as 2f760b7eb836b7f0beb74ae2ba5833e3895c283e.
+
+Product manifest/ownership: enable only the existing AutoMove HTTP connection
+boundary and its seven consumers. AutoMove owns runtime configuration; current
+Auth, Platform identity, tenant/RLS, Mobility and Accounting public contracts
+continue to own their existing invariants. No kernel, helper, policy/grant,
+ProductRegistry, Finance posting, Warranty or commission changes.
+
+Contract/UI reconciliation: unchanged dashboard -> authenticated AutoMove API ->
+existing service -> public Mobility/Accounting contracts and tenant-bound SQL.
+No new UI controls or domain behavior. Server-only AUTOMOVE_DATABASE_URL is
+separate from shared DB settings; it cannot enable another product's SQL path.
+Production additionally requires VERCEL_ENV=production and exact server flag
+AUTOMOVE_PRODUCTION_RUNTIME=enabled. Missing/changed flag fails closed before
+connecting; URL matching and CA/hostname verification remain mandatory. Preview
+and local processes cannot opt into Production even with the flag.
+
+Migration plan: NONE. Approved changes are this configuration guard, exact
+AutoMove environment variables, one reviewed application release, read-only
+authenticated operational smoke and a known-good deployment stop path. Do not
+create Production test actors, sales/receipts, financial fixtures or change real
+business records to manufacture smoke-test proof. If no authorized operating
+identity exists, do not invent one or elevate a role.
+
+Eleven focused gates: (1) exact baseline/release SHA; (2) code scope/no DDL;
+(3) default-closed and re-disabled flag; (4) Production-only environment/project;
+(5) strict DB URL/TLS and dedicated credential binding; (6) unchanged Auth and
+active tenant authorization; (7) existing HTTP transaction/RLS regressions;
+(8) focused typecheck/lint/Architecture Guard; (9) exact PR CI and build;
+(10) deployment SHA/domain and authenticated read-only operational results;
+(11) known-good closed-guard deployment/stop command and sanitized evidence.
+Only affected tests run locally; existing full-chain Real DB/browser proof is
+reused. A deployment or unauthorized 401 alone is not operational PASS.
+
+Stop plan: record the current READY closed-guard deployment before any release.
+Keep activation off until checks PASS; if operational verification fails, remove
+the Production activation flag and immediately roll application aliases back to
+that closed-guard deployment without reverting DB objects or financial history.
+Environment changes apply to new deployments, not existing instances, so changing
+the flag alone is NOT an immediate stop. Preserve the old deployment for rollback.
+If verification lacks a valid actor or exposes a real failure, leave runtime
+closed/rolled back and report the exact boundary, not GO_LIVE PASS.
+
+Baseline stop deployment: dpl_EnDqBpKPJitRfpu28ZCsCx6tqWmA,
+source bbe57b5500ea5c4c9be6542d93f3497aa1482e53; READY at preflight.
+Implementation and live release results remain PENDING until executed.
+AUTOMOVE_FULL_PRODUCT_READINESS = NOT_READY; GO_LIVE = NOT_PROVEN.
+
+### Runtime Local Verification
+
+Eight existing guard/HTTP suites: 94/94 PASS, no skip. Four offline smoke safety
+tests PASS. Full strict tsc --noEmit --strict --incremental false, focused ESLint
+and Architecture Guard PASS. Review found no DB migration, grant/role/helper or
+domain invariant change. The owner confirmed use of the existing secrets
+PRODUCTION_E2E_ADMIN_EMAIL/PASSWORD for the read-only operating identity; do not
+create/elevate an actor if that identity fails current authority checks.
+
+The manual main-only Production smoke uses ephemeral real-browser login, then
+requires an authenticated BOOKING_NOT_FOUND from a fresh nonexistent UUID to
+prove the SQL/actor/tenant path (generic 404/401/403/503 do not qualify). It reads
+the canonical report and dashboard, never creates a sale, receipt or snapshot.
+Its exact expected SHA must match the dispatched main SHA. Only sanitized
+status/provenance is retained: no session files, credentials, identities, raw
+business responses or screenshots. This is scoped operational read proof, not a
+Production financial-write E2E or an automatic Go-Live declaration.
+
+## Historical Checkpoints
 
 Current checkpoint: RC #341 is already merged; the draft/local RC evidence below
 is historical, not a current CI wait. Live GitHub metadata confirms RC Browser CI

@@ -18,11 +18,13 @@ const query=jest.fn();
 const db={connect:jest.fn(),query,end:jest.fn()};
 const getUser=jest.fn();
 const previousEnv={DB_URL:process.env.DB_URL,NEXT_PUBLIC_SUPABASE_URL:process.env.NEXT_PUBLIC_SUPABASE_URL,NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY:process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY};
+const productionEnv={AUTOMOVE_DATABASE_URL:process.env.AUTOMOVE_DATABASE_URL,AUTOMOVE_PRODUCTION_RUNTIME:process.env.AUTOMOVE_PRODUCTION_RUNTIME,VERCEL_ENV:process.env.VERCEL_ENV};
 function request(body: unknown,authorization?:string) {return new Request('http://localhost/api/bella-auto/vehicle-sale-recognitions',{
   method:'POST',headers:{'Content-Type':'application/json',...(authorization?{Authorization:authorization}:{})},body:JSON.stringify(body),
 });}
 beforeEach(()=>{
   jest.clearAllMocks();
+  for(const key of Object.keys(productionEnv))delete process.env[key];
   process.env.DB_URL='postgresql://postgres.bmnbqbcdbuklhopfbopv@aws-1-ap-southeast-1.pooler.supabase.com:5432/postgres';
   process.env.NEXT_PUBLIC_SUPABASE_URL='https://bmnbqbcdbuklhopfbopv.supabase.co';
   process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY='test-public-key';
@@ -33,6 +35,7 @@ beforeEach(()=>{
     ? {rows:[{id:actorId,tenant_id:tenantId,role:'accountant',status:'active'}]} : {rows:[]});
 });
 afterAll(()=>{
+  for(const [key,value] of Object.entries(productionEnv)){if(value===undefined)delete process.env[key];else process.env[key]=value;}
   if(previousEnv.DB_URL===undefined)delete process.env.DB_URL;else process.env.DB_URL=previousEnv.DB_URL;
   if(previousEnv.NEXT_PUBLIC_SUPABASE_URL===undefined)delete process.env.NEXT_PUBLIC_SUPABASE_URL;else process.env.NEXT_PUBLIC_SUPABASE_URL=previousEnv.NEXT_PUBLIC_SUPABASE_URL;
   if(previousEnv.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY===undefined)delete process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;else process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=previousEnv.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
@@ -115,4 +118,26 @@ it('does not misclassify a non-permission database failure as forbidden',async()
   expect(response.status).toBe(500);
   expect(await response.text()).not.toContain('Private DB detail');
   expect(query).toHaveBeenCalledWith('rollback');
+});
+
+it('does not connect when the Production runtime flag is off',async()=>{
+  process.env.VERCEL_ENV='production';
+  process.env.NEXT_PUBLIC_SUPABASE_URL='https://lvnvkpyxtuilhrabtlwv.supabase.co';
+  process.env.AUTOMOVE_DATABASE_URL='postgresql://postgres.lvnvkpyxtuilhrabtlwv@aws-1-ap-southeast-1.pooler.supabase.com:5432/postgres';
+  const response=await POST(request({snapshotId,handoverEvidenceId}));
+  expect(response.status).toBe(503);
+  expect(await response.json()).toMatchObject({code:'AUTOMOVE_RUNTIME_DISABLED'});
+  expect(db.connect).not.toHaveBeenCalled();
+});
+it('uses only the dedicated AutoMove config and preserves authenticated transactions after opt-in',async()=>{
+  process.env.VERCEL_ENV='production';
+  process.env.AUTOMOVE_PRODUCTION_RUNTIME='enabled';
+  process.env.NEXT_PUBLIC_SUPABASE_URL='https://lvnvkpyxtuilhrabtlwv.supabase.co';
+  process.env.AUTOMOVE_DATABASE_URL='postgresql://postgres.lvnvkpyxtuilhrabtlwv@aws-1-ap-southeast-1.pooler.supabase.com:5432/postgres';
+  // The unrelated shared URL still targets E2E; only AutoMove's explicit URL can match.
+  const response=await POST(request({snapshotId,handoverEvidenceId}));
+  expect(response.status).toBe(404);
+  expect(db.connect).toHaveBeenCalledTimes(1);
+  expect(query).toHaveBeenCalledWith('set local role authenticated');
+  expect(query).toHaveBeenCalledWith(expect.stringContaining("request.jwt.claim.sub"),[actorId]);
 });

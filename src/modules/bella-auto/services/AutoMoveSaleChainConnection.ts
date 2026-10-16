@@ -30,13 +30,17 @@ o/bKiIz+Fq8=
 -----END CERTIFICATE-----`;
 
 export function saleChainConnection(dbUrl: string, apiUrl: string): ClientConfig {
-  const invalid = () => new VehicleSaleRecognitionError('UNSAFE_DATABASE_CONFIG', 'An authenticated matching non-Production database configuration is required.', 503);
+  const invalid = () => new VehicleSaleRecognitionError('UNSAFE_DATABASE_CONFIG', 'An authenticated matching database configuration is required.', 503);
   try {
     const url = new URL(dbUrl), api = new URL(apiUrl);
     const ref = api.hostname.split('.')[0];
     if (!/^[a-z]{20}$/.test(ref) || api.hostname !== `${ref}.supabase.co` || api.protocol !== 'https:' ||
-        ref === 'lvnvkpyxtuilhrabtlwv' || dbUrl.includes('lvnvkpyxtuilhrabtlwv') ||
         !['postgres:', 'postgresql:'].includes(url.protocol) || url.hash) throw invalid();
+    if (ref === 'lvnvkpyxtuilhrabtlwv') {
+      if (process.env.VERCEL_ENV !== 'production' || process.env.AUTOMOVE_PRODUCTION_RUNTIME !== 'enabled') {
+        throw new VehicleSaleRecognitionError('AUTOMOVE_RUNTIME_DISABLED', 'AutoMove Production runtime is disabled.', 503);
+      }
+    } else if (dbUrl.includes('lvnvkpyxtuilhrabtlwv')) throw invalid();
     // Reject overrides before parsing: pg also honors query parameters and can read TLS files.
     for (const [key, value] of url.searchParams) {
       if (key !== 'sslmode' || value !== 'verify-full' || url.searchParams.getAll(key).length !== 1) throw invalid();
@@ -52,5 +56,8 @@ export function saleChainConnection(dbUrl: string, apiUrl: string): ClientConfig
     return { host: host || '', user, password: config.password || '', database: config.database,
       port, ssl: { ca: supabaseRootCa, rejectUnauthorized: true, servername: host || '' },
       connectionTimeoutMillis: 10000 };
-  } catch { throw invalid(); }
+  } catch (error: unknown) {
+    if (error instanceof VehicleSaleRecognitionError && error.code === 'AUTOMOVE_RUNTIME_DISABLED') throw error;
+    throw invalid();
+  }
 }

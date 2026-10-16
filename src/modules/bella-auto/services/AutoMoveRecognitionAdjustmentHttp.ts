@@ -24,7 +24,7 @@ export async function recognitionAdjustmentHttp(request: Request, bookingId: str
     if (request.method === 'POST' && !key) throw new RecognitionAdjustmentError('ADJUSTMENT_KEY_REQUIRED', 400);
     let value: unknown;
     if (key) { paymentId(key); try { value = await request.json(); } catch { throw new RecognitionAdjustmentError('ADJUSTMENT_INVALID_JSON', 400); } }
-    const url = process.env.DB_URL || process.env.SUPABASE_DB_URL || process.env.DATABASE_URL;
+    const url = process.env.AUTOMOVE_DATABASE_URL || process.env.DB_URL || process.env.SUPABASE_DB_URL || process.env.DATABASE_URL;
     if (!api || !url) throw new RecognitionAdjustmentError('ADJUSTMENT_CONFIG', 503);
     db = new Client({ ...saleChainConnection(url, api), query_timeout: 35000 });
     db.on('error', (error: Error) => { disconnected = error; });

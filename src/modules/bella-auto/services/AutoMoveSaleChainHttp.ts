@@ -48,7 +48,7 @@ export async function saleChainHttp(request: Request, action: SaleChainAction): 
     }
     const { data: { user }, error } = await userClient.auth.getUser(authorization?.slice(7));
     if (error || !user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
-    const dbUrl = process.env.DB_URL || process.env.SUPABASE_DB_URL || process.env.DATABASE_URL;
+    const dbUrl = process.env.AUTOMOVE_DATABASE_URL || process.env.DB_URL || process.env.SUPABASE_DB_URL || process.env.DATABASE_URL;
     const apiUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     if (!dbUrl || !apiUrl) throw new VehicleSaleRecognitionError('DATABASE_NOT_CONFIGURED', 'Sale-chain database is not configured.', 503);
     const config = saleChainConnection(dbUrl,apiUrl);

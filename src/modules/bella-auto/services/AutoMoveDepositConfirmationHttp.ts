@@ -11,7 +11,7 @@ export async function depositConfirmationHttp(request: Request, actorUserId: str
     let payload: unknown;
     try { payload = await request.json(); }
     catch { throw new DepositConfirmationError('INVALID_DEPOSIT_REQUEST', 'Invalid JSON.', 400); }
-    const dbUrl = process.env.DB_URL || process.env.SUPABASE_DB_URL || process.env.DATABASE_URL;
+    const dbUrl = process.env.AUTOMOVE_DATABASE_URL || process.env.DB_URL || process.env.SUPABASE_DB_URL || process.env.DATABASE_URL;
     const apiUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     if (!dbUrl || !apiUrl) throw new DepositConfirmationError('DATABASE_NOT_CONFIGURED', 'Deposit database is not configured.', 503);
     db = new Client(saleChainConnection(dbUrl, apiUrl));

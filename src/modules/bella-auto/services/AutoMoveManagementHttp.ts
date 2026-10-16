@@ -61,7 +61,7 @@ export async function autoMoveManagementHttp(request: Request, action: Action, c
     const key = request.headers.get('Idempotency-Key');
     if (!parsed.success || !z.uuid().safeParse(key).success) return json({ error: 'Valid vehicle fields and retry key are required.' }, 400);
     const api = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-    db = new Client(saleChainConnection(process.env.DB_URL || process.env.SUPABASE_DB_URL || '', api));
+    db = new Client(saleChainConnection(process.env.AUTOMOVE_DATABASE_URL || process.env.DB_URL || process.env.SUPABASE_DB_URL || '', api));
     await db.connect(); await db.query('begin');
     await db.query("set local statement_timeout='30s'");
     await db.query("set local lock_timeout='10s'");
