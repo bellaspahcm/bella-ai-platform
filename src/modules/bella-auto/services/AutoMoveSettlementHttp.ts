@@ -29,7 +29,7 @@ export async function settlementHttp(request: Request, bookingId: string): Promi
       try { value = await request.json(); }
       catch { throw new SettlementError('SETTLEMENT_INVALID_JSON', 'Invalid JSON', 400); }
     }
-    const url = process.env.DB_URL || process.env.SUPABASE_DB_URL || process.env.DATABASE_URL;
+    const url = process.env.AUTOMOVE_DATABASE_URL || process.env.DB_URL || process.env.SUPABASE_DB_URL || process.env.DATABASE_URL;
     if (!api || !url) throw new SettlementError('SETTLEMENT_CONFIG', 'Settlement database is not configured.', 503);
     db = new Client({ ...saleChainConnection(url, api), query_timeout: 35000 });
     // An idle disconnect during Storage verification must fail this request,

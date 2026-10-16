@@ -18,7 +18,7 @@ export async function salePaymentHttp(request: Request, bookingId: string): Prom
       try { value = await request.json(); }
       catch { throw new SalePaymentError('INVALID_PAYMENT_JSON', 'Invalid JSON', 400); }
     }
-    const url = process.env.DB_URL || process.env.SUPABASE_DB_URL || process.env.DATABASE_URL;
+    const url = process.env.AUTOMOVE_DATABASE_URL || process.env.DB_URL || process.env.SUPABASE_DB_URL || process.env.DATABASE_URL;
     const api = process.env.NEXT_PUBLIC_SUPABASE_URL;
     if (!url || !api) throw new SalePaymentError('PAYMENT_CONFIG_MISSING', 'Payment database is not configured.', 503);
     db = new Client(saleChainConnection(url, api));
