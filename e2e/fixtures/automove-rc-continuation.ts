@@ -21,7 +21,10 @@ export async function continueAutoMoveRc(page: Page, db: Client, bookingId: stri
     await page.getByRole('button', { name: cancelled ? 'Lịch sử hủy' : 'Thanh toán sau bán', exact: true }).click();
     await page.getByRole('row').filter({ hasText: bookingNumber }).getByRole('button', { name: `Hồ sơ bán xe ${bookingNumber}`, exact: true }).click();
   };
+  const initialAdjustmentRead = page.waitForResponse(response => response.url().endsWith(adjustmentUrl) && response.request().method() === 'GET', { timeout: 60_000 });
   await open();
+  const initial = await initialAdjustmentRead; expect(initial.status()).toBe(200);
+  expect(await initial.json()).toMatchObject({ result: { recognitionId, salePrice: 1400000000, costBasis: 1000000000, reversed: false } });
   const dialog = page.getByRole('dialog');
   const adjustments = dialog.getByRole('region', { name: 'Điều chỉnh và đảo ghi nhận', exact: true });
   const settlement = dialog.getByRole('region', { name: 'Hoàn tiền và hủy giao dịch', exact: true });
