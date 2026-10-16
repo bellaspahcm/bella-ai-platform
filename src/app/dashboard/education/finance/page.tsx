@@ -298,7 +298,7 @@ export default function FinancePage() {
   const parentDueDate = parentInvoice?.dueDate || parentBillingPeriod?.dueDate || 'N/A';
 
   return (
-    <div className="w-full p-4 sm:p-6 lg:p-8 space-y-6 pb-16 font-sans" data-testid="finance-command-center">
+    <div className="preschool-ui w-full p-4 sm:p-6 lg:p-8 space-y-6 pb-16 font-sans" data-testid="finance-command-center">
       {/* Header & Role Switcher */}
       <div className="w-full rounded-3xl bg-white dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-700/80 p-6 sm:p-8 shadow-sm space-y-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-700/60 pb-5">
@@ -311,7 +311,7 @@ export default function FinancePage() {
               <ArrowLeft className="w-4 h-4" />
             </Link>
             <div className="flex items-center gap-3">
-              <div className="p-3 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 shrink-0">
+              <div className="p-3 rounded-2xl bg-primary/10 text-[var(--education-brand-ink)] shrink-0">
                 <CircleDollarSign className="w-6 h-6" />
               </div>
               <div>
@@ -335,7 +335,7 @@ export default function FinancePage() {
               data-testid="mode-tab-staff"
               className={`px-4 py-2 rounded-xl text-xs font-extrabold transition-all flex items-center gap-1.5 ${
                 userRole === 'STAFF'
-                  ? 'bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400 shadow-sm'
+                  ? 'bg-white dark:bg-slate-800 text-[var(--education-brand-ink)] shadow-sm'
                   : 'text-gray-500 hover:text-gray-800 dark:hover:text-white'
               }`}
             >
@@ -347,7 +347,7 @@ export default function FinancePage() {
               data-testid="mode-tab-parent"
               className={`px-4 py-2 rounded-xl text-xs font-extrabold transition-all flex items-center gap-1.5 ${
                 userRole === 'PARENT'
-                  ? 'bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400 shadow-sm'
+                  ? 'bg-white dark:bg-slate-800 text-[var(--education-brand-ink)] shadow-sm'
                   : 'text-gray-500 hover:text-gray-800 dark:hover:text-white'
               }`}
             >
@@ -359,8 +359,8 @@ export default function FinancePage() {
 
         {/* Action Message Alert */}
         {actionMessage && (
-          <div className="p-4 rounded-2xl bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800 text-indigo-900 dark:text-indigo-200 text-xs font-medium flex items-start gap-2">
-            <Sparkles className="w-4 h-4 text-indigo-500 shrink-0 mt-0.5" />
+          <div className="p-4 rounded-2xl bg-primary/10 border border-primary/20 text-[var(--education-brand-ink)] text-xs font-medium flex items-start gap-2">
+            <Sparkles className="w-4 h-4 text-[var(--education-brand-ink)] shrink-0 mt-0.5" />
             <div className="flex-1">{actionMessage}</div>
             <button onClick={() => setActionMessage(null)} className="text-gray-400 hover:text-gray-600 font-bold">×</button>
           </div>
@@ -374,7 +374,7 @@ export default function FinancePage() {
               data-testid="staff-zone-billing"
               className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
                 activeZone === 'BILLING'
-                  ? 'bg-emerald-600 text-white shadow-md shadow-emerald-500/20'
+                  ? 'bg-primary text-primary-foreground shadow-md shadow-primary/20'
                   : 'bg-slate-100 dark:bg-slate-700/60 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
               }`}
             >
@@ -386,7 +386,7 @@ export default function FinancePage() {
               data-testid="staff-zone-collections"
               className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
                 activeZone === 'COLLECTIONS'
-                  ? 'bg-amber-600 text-white shadow-md shadow-amber-500/20'
+                  ? 'bg-primary text-primary-foreground shadow-md shadow-primary/20'
                   : 'bg-slate-100 dark:bg-slate-700/60 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
               }`}
             >
@@ -398,7 +398,7 @@ export default function FinancePage() {
               data-testid="staff-zone-cash"
               className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
                 activeZone === 'CASH'
-                  ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/20'
+                  ? 'bg-primary text-primary-foreground shadow-md shadow-primary/20'
                   : 'bg-slate-100 dark:bg-slate-700/60 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
               }`}
             >
@@ -420,7 +420,7 @@ export default function FinancePage() {
               {/* Compile Invoice Card */}
               <div className="p-6 rounded-3xl bg-white dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-700/80 space-y-4 shadow-sm">
                 <h3 className="text-base font-extrabold text-gray-900 dark:text-white flex items-center gap-2">
-                  <Plus className="w-4 h-4 text-emerald-500" />
+                  <Plus className="w-4 h-4 text-[var(--education-brand-ink)]" />
                   Lập Hóa Đơn Nháp Mới
                 </h3>
                 <p className="text-xs text-gray-500 dark:text-gray-400">
@@ -490,7 +490,7 @@ export default function FinancePage() {
                     onClick={handleCompileDraftInvoice}
                     disabled={loading || billingPeriods.length === 0}
                     data-testid="btn-compile-invoice"
-                    className="w-full py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-md shadow-emerald-500/20 active:scale-95 transition-all"
+                    className="w-full py-3 rounded-2xl bg-primary hover:bg-primary-hover text-primary-foreground text-xs font-bold shadow-md shadow-primary/20 active:scale-95 transition-all"
                   >
                     Lập Hóa Đơn (Draft)
                   </button>
@@ -501,7 +501,7 @@ export default function FinancePage() {
               <div className="lg:col-span-2 p-6 rounded-3xl bg-white dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-700/80 space-y-4 shadow-sm">
                 <div className="flex items-center justify-between">
                   <h3 className="text-base font-extrabold text-gray-900 dark:text-white flex items-center gap-2">
-                    <FileText className="w-4 h-4 text-emerald-500" />
+                    <FileText className="w-4 h-4 text-[var(--education-brand-ink)]" />
                     Danh Sách Hóa Đơn ({invoices.length})
                   </h3>
                   <button onClick={loadData} className="p-2 rounded-xl bg-slate-100 dark:bg-slate-700 text-gray-600 dark:text-gray-300">
@@ -547,7 +547,7 @@ export default function FinancePage() {
                               <button
                                 onClick={() => handleIssueInvoice(inv.id)}
                                 data-testid="btn-issue-invoice"
-                                className="px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] font-bold shadow-sm"
+                                className="px-3 py-1.5 rounded-xl bg-primary hover:bg-primary-hover text-primary-foreground text-[11px] font-bold shadow-sm"
                               >
                                 Phát Hành (Issue)
                               </button>
@@ -556,7 +556,7 @@ export default function FinancePage() {
                               <button
                                 onClick={() => handleProjectInvoiceNotice(inv)}
                                 data-testid="btn-project-notice"
-                                className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold shadow-sm flex items-center gap-1"
+                                className="px-3 py-1.5 rounded-xl bg-primary hover:bg-primary-hover text-primary-foreground text-[11px] font-bold shadow-sm flex items-center gap-1"
                               >
                                 <Send className="w-3 h-3" />
                                 <span>Gửi Notice P6</span>
@@ -648,7 +648,7 @@ export default function FinancePage() {
               {/* Payment Form */}
               <div className="p-6 rounded-3xl bg-white dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-700/80 space-y-4 shadow-sm">
                 <h3 className="text-base font-extrabold text-gray-900 dark:text-white flex items-center gap-2">
-                  <CreditCard className="w-4 h-4 text-indigo-500" />
+                  <CreditCard className="w-4 h-4 text-[var(--education-brand-ink)]" />
                   Ghi Nhận Thanh Toán & Đối Soát
                 </h3>
                 <div className="space-y-3">
@@ -696,7 +696,7 @@ export default function FinancePage() {
                       }}
                       disabled={loading}
                       data-testid="btn-reconcile-payment"
-                      className="w-full py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-md shadow-indigo-500/20 active:scale-95 transition-all"
+                      className="w-full py-3 rounded-2xl bg-primary hover:bg-primary-hover text-primary-foreground text-xs font-bold shadow-md shadow-primary/20 active:scale-95 transition-all"
                     >
                       Xác Nhận Thu & Tạo Receipt Ledger
                     </button>
@@ -707,7 +707,7 @@ export default function FinancePage() {
               {/* Payments History */}
               <div className="lg:col-span-2 p-6 rounded-3xl bg-white dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-700/80 space-y-4 shadow-sm">
                 <h3 className="text-base font-extrabold text-gray-900 dark:text-white flex items-center gap-2">
-                  <ShieldCheck className="w-4 h-4 text-indigo-500" />
+                  <ShieldCheck className="w-4 h-4 text-[var(--education-brand-ink)]" />
                   Nhật Ký Dòng Tiền & Biên Lai Thu ({payments.length})
                 </h3>
 
@@ -741,7 +741,7 @@ export default function FinancePage() {
       {/* ==================================================================== */}
       {userRole === 'PARENT' && (
         <div className="max-w-4xl mx-auto space-y-6">
-          <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-emerald-600 to-teal-700 text-white shadow-xl space-y-4">
+          <div className="p-6 sm:p-8 rounded-3xl bg-primary text-primary-foreground shadow-xl space-y-4">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold uppercase tracking-wider bg-white/20 px-3 py-1 rounded-full">
                 Thông Báo Học Phí - {parentPeriodLabel}
@@ -753,7 +753,7 @@ export default function FinancePage() {
 
             {invoices.length > 0 ? (
               <div className="space-y-2">
-                <p className="text-xs text-emerald-100">Tổng Số Tiền Cần Thanh Toán:</p>
+                <p className="text-xs text-primary-foreground/85">Tổng Số Tiền Cần Thanh Toán:</p>
                 <h2 className="text-3xl sm:text-4xl font-black tracking-tight" data-testid="parent-outstanding-balance">
                   {(invoices[0].netAmount - invoices[0].paidAmount).toLocaleString('vi-VN')} VNĐ
                 </h2>
@@ -761,7 +761,7 @@ export default function FinancePage() {
                   <span className="text-xs font-extrabold bg-white text-emerald-800 px-3 py-1 rounded-full" data-testid="parent-settlement-status">
                     Trạng thái: {invoices[0].settlementStatus}
                   </span>
-                  <span className="text-xs text-emerald-100">
+                  <span className="text-xs text-primary-foreground/85">
                     Mã Hóa Đơn: {invoices[0].invoiceNumber}
                   </span>
                 </div>
@@ -775,7 +775,7 @@ export default function FinancePage() {
           {invoices.length > 0 && (
             <div className="p-6 rounded-3xl bg-white dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-700/80 space-y-4 shadow-sm">
               <h3 className="text-base font-extrabold text-gray-900 dark:text-white flex items-center gap-2">
-                <FileText className="w-4 h-4 text-emerald-500" />
+                <FileText className="w-4 h-4 text-[var(--education-brand-ink)]" />
                 Chi Tiết Khoản Thu - {parentPeriodLabel}
               </h3>
 
@@ -803,7 +803,7 @@ export default function FinancePage() {
           {/* Receipts & Fingerprint Audit Trail */}
           <div className="p-6 rounded-3xl bg-white dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-700/80 space-y-4 shadow-sm">
             <h3 className="text-base font-extrabold text-gray-900 dark:text-white flex items-center gap-2">
-              <ShieldCheck className="w-4 h-4 text-emerald-500" />
+              <ShieldCheck className="w-4 h-4 text-[var(--education-brand-ink)]" />
               Lịch Sử Lập Biên Lai & Chứng Nhận SHA-256
             </h3>
             <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900 text-xs space-y-2" data-testid="parent-receipt-fingerprint">

@@ -92,7 +92,7 @@ export default function Student360Page() {
   const [activeTab, setActiveTab] = useState<'overview' | 'guardians' | 'enrollments' | 'health' | 'messages'>('overview');
 
   return (
-    <div className="w-full p-4 sm:p-6 lg:p-8 space-y-6 pb-12">
+    <div className="preschool-ui w-full p-4 sm:p-6 lg:p-8 space-y-6 pb-12">
       {/* ── Student 360 Header Banner ── */}
       <div className="w-full rounded-3xl bg-white dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 p-6 sm:p-8 shadow-sm space-y-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-700/60 pb-5">
@@ -105,7 +105,7 @@ export default function Student360Page() {
               <ArrowLeft className="w-4 h-4" />
             </Link>
             <div className="flex items-center gap-3.5">
-              <div className="w-14 h-14 rounded-2xl bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 flex items-center justify-center font-black text-xl shrink-0 shadow-sm">
+              <div className="w-14 h-14 rounded-2xl bg-primary/15 text-[var(--education-brand-ink)] flex items-center justify-center font-black text-xl shrink-0 shadow-sm">
                 {stu.name.split(' ').pop()?.[0]}
               </div>
               <div>
@@ -130,7 +130,7 @@ export default function Student360Page() {
           <div className="flex items-center gap-3 shrink-0">
             <Link
               href={`/dashboard/education/communication?student=${stu.id}`}
-              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 text-xs font-bold shadow-lg shadow-emerald-500/20 transition-all active:scale-95 cursor-pointer"
+              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-primary hover:bg-primary-hover text-primary-foreground px-5 py-2.5 text-xs font-bold shadow-lg shadow-primary/20 transition-all active:scale-95 cursor-pointer"
             >
               <MessageSquare className="w-4 h-4" />
               <span>Sổ Liên Lạc Điện Tử</span>
@@ -144,7 +144,7 @@ export default function Student360Page() {
             onClick={() => setActiveTab('overview')}
             className={`px-4 py-2.5 rounded-2xl text-xs font-bold transition-colors cursor-pointer whitespace-nowrap ${
               activeTab === 'overview'
-                ? 'bg-emerald-600 text-white shadow-sm'
+                ? 'bg-primary text-primary-foreground shadow-sm'
                 : 'bg-slate-100 dark:bg-slate-700/60 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
             }`}
           >
@@ -154,7 +154,7 @@ export default function Student360Page() {
             onClick={() => setActiveTab('guardians')}
             className={`px-4 py-2.5 rounded-2xl text-xs font-bold transition-colors cursor-pointer whitespace-nowrap ${
               activeTab === 'guardians'
-                ? 'bg-emerald-600 text-white shadow-sm'
+                ? 'bg-primary text-primary-foreground shadow-sm'
                 : 'bg-slate-100 dark:bg-slate-700/60 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
             }`}
           >
@@ -164,7 +164,7 @@ export default function Student360Page() {
             onClick={() => setActiveTab('enrollments')}
             className={`px-4 py-2.5 rounded-2xl text-xs font-bold transition-colors cursor-pointer whitespace-nowrap ${
               activeTab === 'enrollments'
-                ? 'bg-emerald-600 text-white shadow-sm'
+                ? 'bg-primary text-primary-foreground shadow-sm'
                 : 'bg-slate-100 dark:bg-slate-700/60 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
             }`}
           >
@@ -174,7 +174,7 @@ export default function Student360Page() {
             onClick={() => setActiveTab('health')}
             className={`px-4 py-2.5 rounded-2xl text-xs font-bold transition-colors cursor-pointer whitespace-nowrap ${
               activeTab === 'health'
-                ? 'bg-emerald-600 text-white shadow-sm'
+                ? 'bg-primary text-primary-foreground shadow-sm'
                 : 'bg-slate-100 dark:bg-slate-700/60 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
             }`}
           >
@@ -217,7 +217,7 @@ export default function Student360Page() {
 
           <div className="rounded-3xl bg-white dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 p-6 shadow-sm space-y-4">
             <h3 className="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
-              <Users className="w-5 h-5 text-indigo-500" />
+              <Users className="w-5 h-5 text-[var(--education-brand-ink)]" />
               Người Giám Hộ Chính
             </h3>
             {stu.guardians.map((g, idx) => (

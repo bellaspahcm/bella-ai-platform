@@ -147,7 +147,7 @@ export default function ReportsPage() {
   ];
 
   return (
-    <div className="w-full p-4 sm:p-6 lg:p-8 space-y-6 pb-12">
+    <div className="preschool-ui w-full p-4 sm:p-6 lg:p-8 space-y-6 pb-12">
       {/* ── UNIFIED PAGE HEADER ── */}
       <div className="w-full rounded-3xl bg-white dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 p-6 sm:p-8 shadow-sm space-y-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-700/60 pb-5">
@@ -184,7 +184,7 @@ export default function ReportsPage() {
               <option>Tháng 09/2026</option>
               <option>Học kỳ I (2026-2027)</option>
             </select>
-            <button className="inline-flex items-center justify-center gap-2 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 text-xs font-bold shadow-lg shadow-emerald-500/20 transition-all active:scale-95 cursor-pointer">
+            <button className="inline-flex items-center justify-center gap-2 rounded-2xl bg-primary hover:bg-primary-hover text-primary-foreground px-5 py-2.5 text-xs font-bold shadow-lg shadow-primary/20 transition-all active:scale-95 cursor-pointer">
               <Download className="w-4 h-4" />
               <span>Xuất Báo Cáo Excel / PDF</span>
             </button>
@@ -274,7 +274,7 @@ export default function ReportsPage() {
             onClick={() => setActiveTab('overview')}
             className={`px-4 py-2.5 text-xs font-extrabold rounded-2xl transition-all whitespace-nowrap cursor-pointer ${
               activeTab === 'overview'
-                ? 'bg-emerald-600 text-white shadow-sm'
+                ? 'bg-primary text-primary-foreground shadow-sm'
                 : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
             }`}
           >
@@ -284,7 +284,7 @@ export default function ReportsPage() {
             onClick={() => setActiveTab('attendance')}
             className={`px-4 py-2.5 text-xs font-extrabold rounded-2xl transition-all whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${
               activeTab === 'attendance'
-                ? 'bg-emerald-600 text-white shadow-sm'
+                ? 'bg-primary text-primary-foreground shadow-sm'
                 : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
             }`}
           >
@@ -295,7 +295,7 @@ export default function ReportsPage() {
             onClick={() => setActiveTab('finance')}
             className={`px-4 py-2.5 text-xs font-extrabold rounded-2xl transition-all whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${
               activeTab === 'finance'
-                ? 'bg-emerald-600 text-white shadow-sm'
+                ? 'bg-primary text-primary-foreground shadow-sm'
                 : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
             }`}
           >
@@ -306,7 +306,7 @@ export default function ReportsPage() {
             onClick={() => setActiveTab('health')}
             className={`px-4 py-2.5 text-xs font-extrabold rounded-2xl transition-all whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${
               activeTab === 'health'
-                ? 'bg-emerald-600 text-white shadow-sm'
+                ? 'bg-primary text-primary-foreground shadow-sm'
                 : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
             }`}
           >
@@ -317,7 +317,7 @@ export default function ReportsPage() {
             onClick={() => setActiveTab('csat')}
             className={`px-4 py-2.5 text-xs font-extrabold rounded-2xl transition-all whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${
               activeTab === 'csat'
-                ? 'bg-emerald-600 text-white shadow-sm'
+                ? 'bg-primary text-primary-foreground shadow-sm'
                 : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
             }`}
           >

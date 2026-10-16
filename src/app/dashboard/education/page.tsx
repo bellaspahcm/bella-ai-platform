@@ -256,7 +256,7 @@ export default function EducationDashboardPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#F4F8FC] dark:bg-slate-950 p-4 sm:p-6 lg:p-7 space-y-6 text-slate-800 dark:text-slate-100 font-sans">
+    <div className="preschool-ui min-h-screen bg-background p-4 sm:p-6 lg:p-7 space-y-6 text-slate-800 dark:text-slate-100 font-sans">
       
       {/* ── 1. TOP VIEWPORT HEADER (Search bar + User Tools) ── */}
       <header className="flex flex-col md:flex-row items-center justify-between gap-4 bg-transparent pb-1">
@@ -268,7 +268,7 @@ export default function EducationDashboardPage() {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Tìm kiếm học sinh, lớp học, giáo viên, ..."
-            className="w-full pl-11 pr-4 py-2.5 rounded-full bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-sm text-slate-800 dark:text-slate-100 placeholder-slate-400 shadow-sm focus:outline-none focus:ring-2 focus:ring-sky-400/50 transition-all"
+            className="w-full pl-11 pr-4 py-2.5 rounded-full bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-sm text-slate-800 dark:text-slate-100 placeholder-slate-400 shadow-sm focus:outline-none focus:ring-2 focus:ring-ring/50 transition-all"
           />
         </div>
 
@@ -302,7 +302,7 @@ export default function EducationDashboardPage() {
                   {unreadCount > 0 && (
                     <button 
                       onClick={() => setUnreadCount(0)}
-                      className="text-[11px] font-bold text-sky-600 dark:text-sky-400 hover:underline cursor-pointer"
+                      className="text-[11px] font-bold text-[var(--education-brand-ink)] hover:underline cursor-pointer"
                     >
                       Đánh dấu đã đọc
                     </button>
@@ -348,7 +348,7 @@ export default function EducationDashboardPage() {
                   <Link 
                     href="/dashboard/education/communication" 
                     onClick={() => setIsNotificationsOpen(false)}
-                    className="text-xs font-extrabold text-sky-600 dark:text-sky-400 hover:underline inline-flex items-center gap-1"
+                    className="text-xs font-extrabold text-[var(--education-brand-ink)] hover:underline inline-flex items-center gap-1"
                   >
                     Xem tất cả thông báo
                     <ChevronRight className="w-3.5 h-3.5" />
@@ -386,7 +386,7 @@ export default function EducationDashboardPage() {
                 <h4 className="text-xs font-extrabold text-slate-900 dark:text-white leading-tight">
                   Nguyễn Thị Lan
                 </h4>
-                <p className="text-[11px] font-bold text-sky-600 dark:text-sky-400">
+                <p className="text-[11px] font-bold text-[var(--education-brand-ink)]">
                   Quản trị viên
                 </p>
               </div>
@@ -411,7 +411,7 @@ export default function EducationDashboardPage() {
                       <h4 className="text-sm font-black text-slate-900 dark:text-white truncate">
                         Nguyễn Thị Lan
                       </h4>
-                      <p className="text-xs font-bold text-sky-600 dark:text-sky-400 truncate">
+                      <p className="text-xs font-bold text-[var(--education-brand-ink)] truncate">
                         Quản trị viên Preschool
                       </p>
                       <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-100/80 dark:bg-emerald-950/60 px-2 py-0.5 rounded-full mt-1">
@@ -477,10 +477,10 @@ export default function EducationDashboardPage() {
       </header>
 
       {/* ── 2. PRESCHOOL WELCOME BANNER CARD ── */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-sky-100 via-indigo-50 to-amber-100 dark:from-slate-900 dark:via-indigo-950/40 dark:to-slate-900 border border-sky-200/60 dark:border-slate-800 p-6 sm:p-8 shadow-sm">
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-primary/10 via-background to-accent/10 border border-primary/20 dark:border-slate-800 p-6 sm:p-8 shadow-sm">
         {/* Background decorative illustrations */}
-        <div className="absolute top-2 right-44 w-72 h-72 rounded-full bg-amber-300/20 dark:bg-amber-500/10 blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-10 left-1/3 w-60 h-60 rounded-full bg-pink-300/20 dark:bg-pink-500/10 blur-2xl pointer-events-none" />
+        <div className="absolute top-2 right-44 w-72 h-72 rounded-full bg-primary/15 blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-10 left-1/3 w-60 h-60 rounded-full bg-primary/15 blur-2xl pointer-events-none" />
 
         {/* Date picker widget on top right corner */}
         <div className="absolute top-5 right-5 z-20" ref={datePickerRef}>
@@ -520,14 +520,14 @@ export default function EducationDashboardPage() {
                     setIsDatePickerOpen(false);
                   }
                 }}
-                className="w-full p-2.5 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium cursor-pointer"
+                className="w-full p-2.5 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-ring font-medium cursor-pointer"
               />
 
               <div className="mt-3 pt-2.5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px]">
-                <span className="text-slate-500">Đã chọn: <strong className="text-indigo-600 dark:text-indigo-400 font-bold">{selectedDate.toLocaleDateString('vi-VN')}</strong></span>
+                <span className="text-slate-500">Đã chọn: <strong className="text-[var(--education-brand-ink)] font-bold">{selectedDate.toLocaleDateString('vi-VN')}</strong></span>
                 <button
                   onClick={() => setIsDatePickerOpen(false)}
-                  className="px-3 py-1 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[10px] transition-colors cursor-pointer shadow-xs"
+                  className="px-3 py-1 rounded-xl bg-primary hover:bg-primary-hover text-primary-foreground font-bold text-[10px] transition-colors cursor-pointer shadow-xs"
                 >
                   Xác nhận
                 </button>
@@ -541,7 +541,7 @@ export default function EducationDashboardPage() {
           <div className="space-y-3 max-w-xl text-left">
             <div className="flex items-center gap-2">
               <span className="text-2xl">☀️</span>
-              <h1 className="text-3xl sm:text-4xl font-extrabold text-rose-500 dark:text-rose-400 tracking-tight font-handwriting">
+              <h1 className="preschool-brand-heading text-3xl sm:text-4xl font-extrabold text-[var(--education-brand-ink)] tracking-tight font-handwriting">
                 Chào mừng bạn trở lại!
               </h1>
             </div>
@@ -561,7 +561,7 @@ export default function EducationDashboardPage() {
             </div>
 
             {/* Banner Child Image */}
-            <div className="relative w-40 h-40 sm:w-48 sm:h-48 rounded-full overflow-hidden border-4 border-white dark:border-slate-800 shadow-xl bg-gradient-to-tr from-sky-200 to-pink-200">
+            <div className="relative w-40 h-40 sm:w-48 sm:h-48 rounded-full overflow-hidden border-4 border-white dark:border-slate-800 shadow-xl bg-gradient-to-tr from-primary/15 to-primary/15">
               <Image
                 src="/images/preschool_banner_kid.png"
                 alt="Bella Preschool Child"
@@ -812,7 +812,7 @@ export default function EducationDashboardPage() {
             </h3>
             <Link 
               href="/dashboard/education/attendance" 
-              className="text-xs font-bold text-sky-600 dark:text-sky-400 hover:underline flex items-center gap-0.5"
+              className="text-xs font-bold text-[var(--education-brand-ink)] hover:underline flex items-center gap-0.5"
             >
               <span>Xem tất cả</span>
               <ArrowRight className="w-3 h-3" />
@@ -920,7 +920,7 @@ export default function EducationDashboardPage() {
             </h3>
             <Link 
               href="/dashboard/education/care" 
-              className="text-xs font-bold text-sky-600 dark:text-sky-400 hover:underline flex items-center gap-0.5"
+              className="text-xs font-bold text-[var(--education-brand-ink)] hover:underline flex items-center gap-0.5"
             >
               <span>Xem chi tiết</span>
               <ArrowRight className="w-3 h-3" />
@@ -949,7 +949,7 @@ export default function EducationDashboardPage() {
             </h3>
             <Link 
               href="/dashboard/education/communication" 
-              className="text-xs font-bold text-sky-600 dark:text-sky-400 hover:underline flex items-center gap-0.5"
+              className="text-xs font-bold text-[var(--education-brand-ink)] hover:underline flex items-center gap-0.5"
             >
               <span>Xem tất cả</span>
               <ArrowRight className="w-3 h-3" />
@@ -979,7 +979,7 @@ export default function EducationDashboardPage() {
       <footer className="pt-4 border-t border-slate-200/80 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-500 dark:text-slate-400">
         <div className="flex items-center gap-1.5">
           <span>Nuôi dưỡng những giá trị tốt đẹp từ những năm tháng đầu đời</span>
-          <span className="text-rose-400">♡</span>
+          <span className="text-[var(--education-brand-ink)]">♡</span>
         </div>
         <div className="flex items-center gap-2 text-[11px]">
           <span className="font-bold text-slate-700 dark:text-slate-300">Bella Preschool</span>

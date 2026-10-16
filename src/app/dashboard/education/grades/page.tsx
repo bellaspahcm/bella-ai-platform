@@ -152,7 +152,7 @@ export default function GradesPage() {
   };
 
   return (
-    <div className="w-full p-4 sm:p-6 lg:p-8 space-y-6 pb-12">
+    <div className="preschool-ui w-full p-4 sm:p-6 lg:p-8 space-y-6 pb-12">
       {/* ── UNIFIED PAGE HEADER ── */}
       <div className="w-full rounded-3xl bg-white dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 p-6 sm:p-8 shadow-sm space-y-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-700/60 pb-5">
@@ -188,7 +188,7 @@ export default function GradesPage() {
               <option>Tháng 09/2026</option>
               <option>Tháng 10/2026</option>
             </select>
-            <button className="inline-flex items-center justify-center gap-2 rounded-2xl bg-purple-600 hover:bg-purple-700 text-white px-5 py-2.5 text-xs font-bold shadow-lg shadow-purple-500/20 transition-all active:scale-95 cursor-pointer">
+            <button className="inline-flex items-center justify-center gap-2 rounded-2xl bg-primary hover:bg-primary-hover text-primary-foreground px-5 py-2.5 text-xs font-bold shadow-lg shadow-primary/20 transition-all active:scale-95 cursor-pointer">
               <Award className="w-4 h-4" />
               <span>Trao Phiếu Bé Ngoan</span>
             </button>
@@ -219,12 +219,12 @@ export default function GradesPage() {
             </div>
           </div>
 
-          <div className="p-4 rounded-2xl bg-purple-50/80 dark:bg-purple-950/40 border border-purple-200 space-y-1">
-            <span className="text-[11px] font-extrabold text-purple-700 dark:text-purple-300 uppercase tracking-wider flex items-center gap-1">
-              <Bot className="w-3.5 h-3.5 text-purple-500" />
+          <div className="p-4 rounded-2xl bg-primary/10 border border-primary/20 space-y-1">
+            <span className="text-[11px] font-extrabold text-[var(--education-brand-ink)] uppercase tracking-wider flex items-center gap-1">
+              <Bot className="w-3.5 h-3.5 text-[var(--education-brand-ink)]" />
               Trợ Lý AI Sư Phạm:
             </span>
-            <p className="text-xs font-bold text-purple-900 dark:text-purple-200">
+            <p className="text-xs font-bold text-[var(--education-brand-ink)]">
               Đã tổng hợp 42 nhật ký quan sát tháng 9 & sẵn sàng draft nhận xét
             </p>
           </div>
@@ -236,7 +236,7 @@ export default function GradesPage() {
             onClick={() => setActiveTab('overview')}
             className={`px-4 py-2.5 text-xs font-extrabold rounded-2xl transition-all whitespace-nowrap cursor-pointer ${
               activeTab === 'overview'
-                ? 'bg-purple-600 text-white shadow-sm'
+                ? 'bg-primary text-primary-foreground shadow-sm'
                 : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
             }`}
           >
@@ -246,7 +246,7 @@ export default function GradesPage() {
             onClick={() => setActiveTab('observations')}
             className={`px-4 py-2.5 text-xs font-extrabold rounded-2xl transition-all whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${
               activeTab === 'observations'
-                ? 'bg-purple-600 text-white shadow-sm'
+                ? 'bg-primary text-primary-foreground shadow-sm'
                 : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
             }`}
           >
@@ -257,7 +257,7 @@ export default function GradesPage() {
             onClick={() => setActiveTab('progression')}
             className={`px-4 py-2.5 text-xs font-extrabold rounded-2xl transition-all whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${
               activeTab === 'progression'
-                ? 'bg-purple-600 text-white shadow-sm'
+                ? 'bg-primary text-primary-foreground shadow-sm'
                 : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
             }`}
           >
@@ -268,7 +268,7 @@ export default function GradesPage() {
             onClick={() => setActiveTab('portfolio')}
             className={`px-4 py-2.5 text-xs font-extrabold rounded-2xl transition-all whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${
               activeTab === 'portfolio'
-                ? 'bg-purple-600 text-white shadow-sm'
+                ? 'bg-primary text-primary-foreground shadow-sm'
                 : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
             }`}
           >
@@ -279,7 +279,7 @@ export default function GradesPage() {
             onClick={() => setActiveTab('recognition')}
             className={`px-4 py-2.5 text-xs font-extrabold rounded-2xl transition-all whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${
               activeTab === 'recognition'
-                ? 'bg-purple-600 text-white shadow-sm'
+                ? 'bg-primary text-primary-foreground shadow-sm'
                 : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
             }`}
           >
@@ -331,8 +331,8 @@ export default function GradesPage() {
 
                 {/* NAEYC Developmental Progression Competencies */}
                 <div className="space-y-3 pt-1">
-                  <span className="text-xs font-extrabold text-purple-700 dark:text-purple-300 flex items-center gap-1.5 uppercase tracking-wider">
-                    <TrendingUp className="w-4 h-4 text-purple-500" />
+                  <span className="text-xs font-extrabold text-[var(--education-brand-ink)] flex items-center gap-1.5 uppercase tracking-wider">
+                    <TrendingUp className="w-4 h-4 text-[var(--education-brand-ink)]" />
                     Tiến trình phát triển năng lực mầm non:
                   </span>
 
@@ -352,8 +352,8 @@ export default function GradesPage() {
                         {/* Evidence & Next Goal */}
                         <div className="pt-2 border-t border-slate-200/60 dark:border-slate-800 flex items-center justify-between text-[11px] text-slate-500">
                           <span className="flex items-center gap-2">
-                            <span className="flex items-center gap-1 font-semibold text-purple-600">
-                              <Camera className="w-3 h-3 text-purple-500" />
+                            <span className="flex items-center gap-1 font-semibold text-[var(--education-brand-ink)]">
+                              <Camera className="w-3 h-3 text-[var(--education-brand-ink)]" />
                               {comp.evidenceCount.photos} ảnh
                             </span>
                             <span>•</span>
@@ -376,12 +376,12 @@ export default function GradesPage() {
               {/* AI Draft Suggestion & Teacher Comment */}
               <div className="space-y-2 pt-2">
                 {card.aiSuggestedSummary && (
-                  <div className="p-3 rounded-2xl bg-purple-50/80 dark:bg-purple-950/40 border border-purple-200/60 text-xs space-y-1">
-                    <span className="font-bold text-purple-900 dark:text-purple-300 flex items-center gap-1.5">
-                      <Bot className="w-3.5 h-3.5 text-purple-500" />
+                  <div className="p-3 rounded-2xl bg-primary/10 border border-primary/20 text-xs space-y-1">
+                    <span className="font-bold text-[var(--education-brand-ink)] flex items-center gap-1.5">
+                      <Bot className="w-3.5 h-3.5 text-[var(--education-brand-ink)]" />
                       Trợ lý AI gợi ý tổng hợp từ 5 nhật ký quan sát:
                     </span>
-                    <p className="text-purple-800 dark:text-purple-400 text-[11px] italic">
+                    <p className="text-[var(--education-brand-ink)] text-[11px] italic">
                       &quot;{card.aiSuggestedSummary}&quot;
                     </p>
                   </div>
@@ -407,19 +407,19 @@ export default function GradesPage() {
         <div className="rounded-3xl bg-white dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-700/80 p-6 sm:p-8 shadow-sm space-y-6">
           <div className="flex items-center justify-between">
             <h3 className="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
-              <Camera className="w-5 h-5 text-purple-500" />
+              <Camera className="w-5 h-5 text-[var(--education-brand-ink)]" />
               Nhật Ký Quan Sát & Bằng Chứng Thực Địa (Observation & Evidence Artifacts)
             </h3>
-            <button className="px-4 py-2.5 rounded-2xl bg-purple-600 text-white font-extrabold text-xs hover:bg-purple-700 transition-colors">
+            <button className="px-4 py-2.5 rounded-2xl bg-primary text-primary-foreground font-extrabold text-xs hover:bg-primary-hover transition-colors">
               + Ghi Nhận Quan Sát Mới
             </button>
           </div>
 
-          <div className="p-4 rounded-2xl bg-purple-50 dark:bg-purple-950/40 border border-purple-200 text-xs space-y-1">
-            <span className="font-extrabold text-purple-900 dark:text-purple-300">
+          <div className="p-4 rounded-2xl bg-primary/10 border border-primary/20 text-xs space-y-1">
+            <span className="font-extrabold text-[var(--education-brand-ink)]">
               Quy tắc Quan sát Sư phạm NAEYC:
             </span>
-            <p className="text-purple-800 dark:text-purple-400">
+            <p className="text-[var(--education-brand-ink)]">
               ✓ Quan sát liên tục trong hoạt động tự nhiên • Gắn liền bằng chứng (Ảnh/Ghi chú) • Không đánh giá dựa trên snapshot đơn lẻ.
             </p>
           </div>
@@ -430,7 +430,7 @@ export default function GradesPage() {
       {activeTab === 'progression' && (
         <div className="rounded-3xl bg-white dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-700/80 p-6 sm:p-8 shadow-sm space-y-6">
           <h3 className="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
-            <TrendingUp className="w-5 h-5 text-purple-500" />
+            <TrendingUp className="w-5 h-5 text-[var(--education-brand-ink)]" />
             Ma Trận Đánh Giá Tiến Trình Phát Triển Theo Tiêu Chuẩn Mầm Non
           </h3>
           <p className="text-xs text-slate-500">Mô hình Strengths-based Progression không sử dụng thang điểm ⭐ 1-5</p>
@@ -441,7 +441,7 @@ export default function GradesPage() {
       {activeTab === 'portfolio' && (
         <div className="rounded-3xl bg-white dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-700/80 p-6 sm:p-8 shadow-sm space-y-6">
           <h3 className="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
-            <BookOpen className="w-5 h-5 text-purple-500" />
+            <BookOpen className="w-5 h-5 text-[var(--education-brand-ink)]" />
             Hồ Sơ Hành Trình Phát Triển Trẻ (Developmental Portfolio 360°)
           </h3>
           <p className="text-xs text-slate-500">Theo dõi tiến trình tăng trưởng năng lực theo từng tháng</p>

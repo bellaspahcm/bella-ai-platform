@@ -155,7 +155,7 @@ export default function TeacherDetailPage() {
   };
 
   return (
-    <div className="w-full p-4 sm:p-6 lg:p-8 space-y-6 pb-12">
+    <div className="preschool-ui w-full p-4 sm:p-6 lg:p-8 space-y-6 pb-12">
       {/* Top Header Navigation */}
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-3">
@@ -167,7 +167,7 @@ export default function TeacherDetailPage() {
           </Link>
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-xs font-extrabold text-rose-600 dark:text-rose-400 uppercase tracking-wider">
+              <span className="text-xs font-extrabold text-[var(--education-brand-ink)] uppercase tracking-wider">
                 Hồ sơ giáo viên 360°
               </span>
               <span className="text-xs text-slate-400">•</span>
@@ -184,7 +184,7 @@ export default function TeacherDetailPage() {
             <Download className="w-4 h-4 text-slate-500" />
             <span>Xuất Hồ Sơ PDF</span>
           </button>
-          <button className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-2xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold shadow-md transition-all cursor-pointer">
+          <button className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-2xl bg-primary hover:bg-primary-hover text-primary-foreground text-xs font-bold shadow-md transition-all cursor-pointer">
             <Edit className="w-4 h-4" />
             <span>Cập Nhật Hồ Sơ</span>
           </button>
@@ -203,11 +203,11 @@ export default function TeacherDetailPage() {
                 <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white">
                   {teacher.name}
                 </h2>
-                <span className="px-3 py-1 rounded-full text-xs font-extrabold bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200/60">
+                <span className="px-3 py-1 rounded-full text-xs font-extrabold bg-primary/10 text-[var(--education-brand-ink)] border border-primary/20">
                   {teacher.status}
                 </span>
               </div>
-              <p className="text-xs font-extrabold text-rose-600 dark:text-rose-400">
+              <p className="text-xs font-extrabold text-[var(--education-brand-ink)]">
                 {teacher.role}
               </p>
               <div className="flex items-center gap-4 text-xs text-slate-500 dark:text-slate-400 pt-1 flex-wrap">
@@ -231,7 +231,7 @@ export default function TeacherDetailPage() {
           <div className="w-full lg:w-auto p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-100 dark:border-slate-700/60 space-y-2 shrink-0">
             <div className="flex items-center justify-between gap-4">
               <span className="text-xs font-extrabold text-slate-700 dark:text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
-                <Clock className="w-4 h-4 text-rose-500" />
+                <Clock className="w-4 h-4 text-[var(--education-brand-ink)]" />
                 Định Mức Tải Công Việc:
               </span>
               <span className="text-xs font-extrabold text-emerald-700 dark:text-emerald-400 px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950 border border-emerald-200/60">
@@ -254,7 +254,7 @@ export default function TeacherDetailPage() {
             onClick={() => setActiveTab('overview')}
             className={`px-4 py-2.5 text-xs font-extrabold rounded-2xl transition-all whitespace-nowrap cursor-pointer ${
               activeTab === 'overview'
-                ? 'bg-rose-600 text-white shadow-sm'
+                ? 'bg-primary text-primary-foreground shadow-sm'
                 : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
             }`}
           >
@@ -264,7 +264,7 @@ export default function TeacherDetailPage() {
             onClick={() => setActiveTab('certifications')}
             className={`px-4 py-2.5 text-xs font-extrabold rounded-2xl transition-all whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${
               activeTab === 'certifications'
-                ? 'bg-rose-600 text-white shadow-sm'
+                ? 'bg-primary text-primary-foreground shadow-sm'
                 : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
             }`}
           >
@@ -275,7 +275,7 @@ export default function TeacherDetailPage() {
             onClick={() => setActiveTab('assignments')}
             className={`px-4 py-2.5 text-xs font-extrabold rounded-2xl transition-all whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${
               activeTab === 'assignments'
-                ? 'bg-rose-600 text-white shadow-sm'
+                ? 'bg-primary text-primary-foreground shadow-sm'
                 : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
             }`}
           >
@@ -286,7 +286,7 @@ export default function TeacherDetailPage() {
             onClick={() => setActiveTab('schedule')}
             className={`px-4 py-2.5 text-xs font-extrabold rounded-2xl transition-all whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${
               activeTab === 'schedule'
-                ? 'bg-rose-600 text-white shadow-sm'
+                ? 'bg-primary text-primary-foreground shadow-sm'
                 : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
             }`}
           >
@@ -297,7 +297,7 @@ export default function TeacherDetailPage() {
             onClick={() => setActiveTab('evaluations')}
             className={`px-4 py-2.5 text-xs font-extrabold rounded-2xl transition-all whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${
               activeTab === 'evaluations'
-                ? 'bg-rose-600 text-white shadow-sm'
+                ? 'bg-primary text-primary-foreground shadow-sm'
                 : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
             }`}
           >
@@ -312,7 +312,7 @@ export default function TeacherDetailPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 rounded-3xl bg-white dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-700/80 p-6 sm:p-8 shadow-sm space-y-6">
             <h3 className="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
-              <GraduationCap className="w-5 h-5 text-rose-500" />
+              <GraduationCap className="w-5 h-5 text-[var(--education-brand-ink)]" />
               Thông Tin Trình Độ & Kinh Nghiệm Sư Phạm
             </h3>
 
@@ -329,7 +329,7 @@ export default function TeacherDetailPage() {
                 </div>
                 <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-100 dark:border-slate-700/60 space-y-1">
                   <span className="text-slate-400 font-medium block">Thời gian gia nhập Bella:</span>
-                  <span className="font-extrabold text-rose-600 dark:text-rose-400">{teacher.joinedDate}</span>
+                  <span className="font-extrabold text-[var(--education-brand-ink)]">{teacher.joinedDate}</span>
                 </div>
               </div>
 
@@ -369,10 +369,10 @@ export default function TeacherDetailPage() {
         <div className="rounded-3xl bg-white dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-700/80 p-6 sm:p-8 shadow-sm space-y-6">
           <div className="flex items-center justify-between">
             <h3 className="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
-              <ShieldCheck className="w-5 h-5 text-rose-500" />
+              <ShieldCheck className="w-5 h-5 text-[var(--education-brand-ink)]" />
               Danh Sách Bằng Cấp & Chứng Chỉ Chuyên Môn
             </h3>
-            <button className="px-4 py-2 rounded-2xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold transition-all cursor-pointer">
+            <button className="px-4 py-2 rounded-2xl bg-primary hover:bg-primary-hover text-primary-foreground text-xs font-bold transition-all cursor-pointer">
               + Thêm Chứng Chỉ Mới
             </button>
           </div>
@@ -425,7 +425,7 @@ export default function TeacherDetailPage() {
       {activeTab === 'assignments' && (
         <div className="rounded-3xl bg-white dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-700/80 p-6 sm:p-8 shadow-sm space-y-6">
           <h3 className="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
-            <History className="w-5 h-5 text-rose-500" />
+            <History className="w-5 h-5 text-[var(--education-brand-ink)]" />
             Lịch Sử Quan Hệ Phân Công Giảng Dạy (Lifecycle History)
           </h3>
 
@@ -445,7 +445,7 @@ export default function TeacherDetailPage() {
                 {teacher.assignmentHistory.map((item, idx) => (
                   <tr key={idx} className="hover:bg-slate-50/50 dark:hover:bg-slate-900/40">
                     <td className="p-3.5 font-bold text-slate-900 dark:text-white">{item.academicYear}</td>
-                    <td className="p-3.5 font-extrabold text-rose-600 dark:text-rose-400">{item.classroom}</td>
+                    <td className="p-3.5 font-extrabold text-[var(--education-brand-ink)]">{item.classroom}</td>
                     <td className="p-3.5 font-semibold text-slate-700 dark:text-slate-300">{item.role}</td>
                     <td className="p-3.5 text-slate-500">{item.startDate} ➔ {item.endDate}</td>
                     <td className="p-3.5 font-bold text-slate-800 dark:text-slate-200">{item.workload}</td>
@@ -470,7 +470,7 @@ export default function TeacherDetailPage() {
       {activeTab === 'schedule' && (
         <div className="rounded-3xl bg-white dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-700/80 p-6 sm:p-8 shadow-sm space-y-6">
           <h3 className="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
-            <Calendar className="w-5 h-5 text-rose-500" />
+            <Calendar className="w-5 h-5 text-[var(--education-brand-ink)]" />
             Thời Khóa Biểu Giảng Dạy Tuần Này
           </h3>
 
@@ -478,7 +478,7 @@ export default function TeacherDetailPage() {
             {teacher.schedule.map((s, idx) => (
               <div key={idx} className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-100 dark:border-slate-700/60 space-y-1.5 text-xs">
                 <div className="flex items-center justify-between">
-                  <span className="font-extrabold text-rose-600 dark:text-rose-400">{s.day}</span>
+                  <span className="font-extrabold text-[var(--education-brand-ink)]">{s.day}</span>
                   <span className="font-bold text-slate-500">{s.shift}</span>
                 </div>
                 <p className="font-semibold text-slate-800 dark:text-slate-200">

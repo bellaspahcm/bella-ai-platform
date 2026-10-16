@@ -1,0 +1,74 @@
+[
+  {
+    "file": "src/app/dashboard/education/attendance/page.tsx",
+    "preserved": true
+  },
+  {
+    "file": "src/app/dashboard/education/care/page.tsx",
+    "preserved": true
+  },
+  {
+    "file": "src/app/dashboard/education/communication/page.tsx",
+    "preserved": true
+  },
+  {
+    "file": "src/app/dashboard/education/courses/[id]/page.tsx",
+    "preserved": true
+  },
+  {
+    "file": "src/app/dashboard/education/courses/page.tsx",
+    "preserved": true
+  },
+  {
+    "file": "src/app/dashboard/education/enrollments/[id]/page.tsx",
+    "preserved": true
+  },
+  {
+    "file": "src/app/dashboard/education/enrollments/page.tsx",
+    "preserved": true
+  },
+  {
+    "file": "src/app/dashboard/education/facilities/page.tsx",
+    "preserved": true
+  },
+  {
+    "file": "src/app/dashboard/education/finance/page.tsx",
+    "preserved": true
+  },
+  {
+    "file": "src/app/dashboard/education/grades/page.tsx",
+    "preserved": true
+  },
+  {
+    "file": "src/app/dashboard/education/learning/page.tsx",
+    "preserved": true
+  },
+  {
+    "file": "src/app/dashboard/education/page.tsx",
+    "preserved": true
+  },
+  {
+    "file": "src/app/dashboard/education/parent-inbox/page.tsx",
+    "preserved": true
+  },
+  {
+    "file": "src/app/dashboard/education/reports/page.tsx",
+    "preserved": true
+  },
+  {
+    "file": "src/app/dashboard/education/scheduling/page.tsx",
+    "preserved": true
+  },
+  {
+    "file": "src/app/dashboard/education/teachers/[id]/page.tsx",
+    "preserved": true
+  },
+  {
+    "file": "src/app/dashboard/education/teachers/page.tsx",
+    "preserved": true
+  },
+  {
+    "file": "src/components/layout/sidebar.tsx",
+    "preserved": true
+  }
+]

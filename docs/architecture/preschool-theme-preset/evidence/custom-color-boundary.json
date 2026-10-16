@@ -1,0 +1,20 @@
+[
+  {
+    "primary": "#AAAAAA",
+    "foreground": "#0F172A",
+    "contrast": 7.68471344471565,
+    "scope": "Unchanged shared resolver; outside six-preset UI repair"
+  },
+  {
+    "primary": "#777777",
+    "foreground": "#0F172A",
+    "contrast": 3.986640987873657,
+    "scope": "Unchanged shared resolver; outside six-preset UI repair"
+  },
+  {
+    "primary": "#118899",
+    "foreground": "#FFFFFF",
+    "contrast": 4.195402300549675,
+    "scope": "Unchanged shared resolver; outside six-preset UI repair"
+  }
+]
