@@ -7,6 +7,74 @@ type ProductUpdate = Database['public']['Tables']['real_estate_products']['Updat
 
 export class ProductService {
   /**
+   * Create a new product (apartment/unit) within a project
+   * Validates parent project ownership (Layer 5 cross-entity integrity)
+   */
+  static async createProduct(
+    supabase: SupabaseClient<Database>,
+    tenantId: string,
+    projectId: string,
+    data: {
+      product_code: string;
+      product_type: 'apartment' | 'townhouse' | 'shophouse' | 'villa' | 'land_plot' | 'office';
+      status?: 'available' | 'booked' | 'deposited' | 'contracted' | 'paid' | 'handed_over' | 'cancelled';
+      area?: number | null;
+      unit_price?: number | null;
+      block?: string | null;
+      floor?: string | null;
+    }
+  ): Promise<ProductRow> {
+    if (!tenantId) {
+      throw new Error('Tenant ID is required');
+    }
+    if (!projectId) {
+      throw new Error('Project ID is required');
+    }
+    if (!data.product_code) {
+      throw new Error('Product code is required');
+    }
+
+    // Layer 5: Verify parent project exists AND belongs to same tenant
+    const { data: project, error: projectError } = await supabase
+      .from('real_estate_projects')
+      .select('tenant_id')
+      .eq('id', projectId)
+      .eq('tenant_id', tenantId)
+      .single();
+
+    if (projectError || !project) {
+      console.error('[ProductService] Project not found or access denied:', projectError?.message);
+      throw new Error('Project not found or access denied');
+    }
+
+    // Insert product with explicit tenant_id injection
+    const { data: newProduct, error: insertError } = await supabase
+      .from('real_estate_products')
+      .insert({
+        tenant_id: tenantId,
+        project_id: projectId,
+        product_code: data.product_code,
+        product_type: data.product_type,
+        status: data.status || 'available',
+        area: data.area ?? undefined,
+        unit_price: data.unit_price ?? undefined,
+        block: data.block ?? null,
+        floor: data.floor ?? null,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
+      .select()
+      .single();
+
+    if (insertError || !newProduct) {
+      console.error('[ProductService] Error creating product:', insertError?.message);
+      throw new Error(insertError?.message || 'Failed to create product');
+    }
+
+    return newProduct;
+  }
+
+  /**
    * Fetch all products (units) inside a project for a given tenant
    */
   static async getProducts(
