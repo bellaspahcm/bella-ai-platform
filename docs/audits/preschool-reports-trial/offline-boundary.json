@@ -1,0 +1,8 @@
+{
+  "executedAt": "2026-10-17T14:45:17.609Z",
+  "projectEnvSetupLoaded": false,
+  "nextConfigLoaded": false,
+  "envReadAttempts": [],
+  "outbound": "DENIED",
+  "evidenceScope": "Synthetic component interaction only; no Auth, DB, tenant isolation or full-page E2E proof"
+}

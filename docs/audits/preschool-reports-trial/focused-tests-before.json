@@ -1,0 +1,53 @@
+{
+  "result": "FAIL",
+  "passed": 0,
+  "failed": 11,
+  "total": 11,
+  "tests": [
+    {
+      "name": "Reports trial truthful unavailable output shows persistent unavailable feedback when header export is requested twice",
+      "status": "failed"
+    },
+    {
+      "name": "Reports trial truthful unavailable output identifies unavailable quick document: Báo cáo tổng hợp tháng 09/2026",
+      "status": "failed"
+    },
+    {
+      "name": "Reports trial truthful unavailable output identifies unavailable quick document: Tài liệu chuyên cần",
+      "status": "failed"
+    },
+    {
+      "name": "Reports trial truthful unavailable output identifies unavailable quick document: Báo cáo học phí",
+      "status": "failed"
+    },
+    {
+      "name": "Reports trial truthful unavailable output identifies unavailable quick document: Báo cáo tăng trưởng theo WHO",
+      "status": "failed"
+    },
+    {
+      "name": "Reports trial truthful unavailable output identifies unavailable detail document: Báo cáo tổng hợp tháng 09/2026",
+      "status": "failed"
+    },
+    {
+      "name": "Reports trial truthful unavailable output identifies unavailable detail document: Tài liệu chuyên cần",
+      "status": "failed"
+    },
+    {
+      "name": "Reports trial truthful unavailable output identifies unavailable detail document: Báo cáo học phí",
+      "status": "failed"
+    },
+    {
+      "name": "Reports trial truthful unavailable output identifies unavailable detail document: Báo cáo tăng trưởng theo WHO",
+      "status": "failed"
+    },
+    {
+      "name": "Reports trial truthful unavailable output keeps output feedback across period selection and tab changes without claiming refresh",
+      "status": "failed"
+    },
+    {
+      "name": "Reports trial truthful unavailable output clearly labels every view as sample content and AI as no real analysis",
+      "status": "failed"
+    }
+  ],
+  "scope": "Synthetic component interactions only; project ENV and network denied; no Auth/DB evidence"
+}

@@ -24,7 +24,7 @@
  * - Scoped to bella_education preschool vertical
  */
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import {
   BarChart3,
@@ -349,6 +349,17 @@ function FinanceBarChart({ data }: { data: readonly FinanceTrendPoint[] }) {
 export default function ReportsPage() {
   const [activeTab, setActiveTab] = useState<ReportTab>('overview');
   const [selectedPeriod, setSelectedPeriod] = useState('Tháng 09/2026');
+  const [unavailableOutputs, setUnavailableOutputs] = useState<readonly string[]>([]);
+  const [lastOutput, setLastOutput] = useState<{ id: string } | null>(null);
+
+  function showUnavailableOutput(id: string) {
+    setUnavailableOutputs(current => current.includes(id) ? current : [...current, id]);
+    setLastOutput({ id });
+  }
+
+  useEffect(() => {
+    if (lastOutput) document.getElementById(lastOutput.id)?.scrollIntoView?.({ block: 'nearest' });
+  }, [lastOutput]);
 
   const tabs: readonly { id: ReportTab; label: string; icon: React.ReactNode }[] = [
     { id: 'overview',   label: 'Tổng quan',        icon: <BarChart3 className="w-3.5 h-3.5" /> },
@@ -390,10 +401,13 @@ export default function ReportsPage() {
           </div>
 
           {/* Right: period + export */}
-          <div className="flex items-center gap-2 shrink-0 self-end md:self-start">
+          <div className="flex flex-col gap-2 w-full md:w-auto md:max-w-sm self-end md:self-start">
+            <div className="flex flex-wrap items-center justify-end gap-2">
             <div className="flex items-center gap-1.5 rounded-2xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs font-bold text-slate-700 cursor-pointer hover:bg-slate-100 transition-colors">
               <Calendar className="w-3.5 h-3.5 text-slate-400" />
               <select
+                aria-label="Chọn kỳ minh họa"
+                aria-describedby="reports-period-note"
                 value={selectedPeriod}
                 onChange={(e) => setSelectedPeriod(e.target.value)}
                 className="appearance-none bg-transparent text-xs font-bold text-slate-700 focus:outline-none cursor-pointer"
@@ -403,12 +417,30 @@ export default function ReportsPage() {
                 <option>Học kỳ I (2026-2027)</option>
               </select>
             </div>
-            <button className="inline-flex items-center gap-2 rounded-2xl bg-primary hover:bg-primary-hover text-primary-foreground px-4 py-2.5 text-xs font-bold shadow-lg shadow-primary/20 transition-all active:scale-95 cursor-pointer">
+            <button
+              type="button"
+              onClick={() => showUnavailableOutput('reports-export-status')}
+              aria-describedby={unavailableOutputs.includes('reports-export-status') ? 'reports-export-status' : undefined}
+              className="inline-flex items-center gap-2 rounded-2xl bg-primary hover:bg-primary-hover text-primary-foreground px-4 py-2.5 text-xs font-bold shadow-lg shadow-primary/20 transition-all active:scale-95 cursor-pointer"
+            >
               <Download className="w-3.5 h-3.5" />
               <span>Xuất báo cáo</span>
             </button>
+            </div>
+            {unavailableOutputs.includes('reports-export-status') && (
+              <p id="reports-export-status" role="status" className="scroll-my-3 text-xs leading-relaxed text-slate-900 dark:text-slate-100">
+                Chưa xuất báo cáo: chức năng xuất chưa khả dụng. Không có file được tạo.
+              </p>
+            )}
+            <p id="reports-period-note" className="text-xs leading-relaxed text-slate-900 dark:text-slate-100">
+              Chỉ đổi lựa chọn kỳ: {selectedPeriod}; dữ liệu minh họa không được tải lại.
+            </p>
           </div>
         </div>
+
+        <p role="note" className="rounded-2xl border border-slate-200 bg-slate-50 p-3 text-xs leading-relaxed text-slate-900 dark:text-slate-100">
+          Dữ liệu minh họa: KPI, biểu đồ, phân tích AI, hoạt động và tài liệu bên dưới là nội dung mẫu, chưa tải từ dữ liệu thật.
+        </p>
 
         {/* ── 4 KPI CARDS ── */}
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
@@ -532,12 +564,16 @@ export default function ReportsPage() {
             <div className="flex items-center justify-between">
               <span className="font-extrabold text-sm text-[#172B38] flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-emerald-500" />
-                Phân tích &amp; Đề xuất từ AI ({selectedPeriod})
+                Gợi ý AI minh họa
               </span>
               <button className="inline-flex items-center gap-1 text-xs font-bold text-emerald-600 hover:text-emerald-700 transition-colors cursor-pointer">
                 Xem chi tiết <ChevronRight className="w-3.5 h-3.5" />
               </button>
             </div>
+
+            <p className="text-xs leading-relaxed text-slate-900 dark:text-slate-100">
+              Các nhận định mẫu dưới đây chưa phải kết quả phân tích AI từ hồ sơ thật.
+            </p>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               {/* Insight 1: Ổn định */}
@@ -769,7 +805,7 @@ export default function ReportsPage() {
               <div className="flex items-center justify-between">
                 <h3 className="text-sm font-extrabold text-[#172B38] flex items-center gap-2">
                   <FileSpreadsheet className="w-4 h-4 text-emerald-500" />
-                  Tài liệu &amp; Báo cáo nhanh
+                  Tài liệu &amp; Báo cáo nhanh (minh họa)
                 </h3>
                 <button className="inline-flex items-center gap-1 text-xs font-bold text-emerald-600 hover:text-emerald-700 transition-colors cursor-pointer">
                   Xem tất cả <ChevronRight className="w-3.5 h-3.5" />
@@ -777,7 +813,8 @@ export default function ReportsPage() {
               </div>
               <div className="space-y-3">
                 {QUICK_REPORTS.map((rep) => (
-                  <div key={rep.id} className="flex items-center gap-3">
+                  <div key={rep.id} className="space-y-2">
+                    <div className="flex items-center gap-3">
                     <div className={`w-9 h-9 rounded-2xl ${rep.color} flex items-center justify-center shrink-0 text-white`}>
                       {rep.type === 'pdf'
                         ? <FileText className="w-4 h-4" />
@@ -787,9 +824,21 @@ export default function ReportsPage() {
                       <p className="text-xs font-bold text-[#172B38] truncate">{rep.title}</p>
                       <p className="text-[10px] text-slate-400">{rep.updated}</p>
                     </div>
-                    <button className="p-2 rounded-xl hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors cursor-pointer">
+                    <button
+                      type="button"
+                      aria-label={`Tải báo cáo nhanh: ${rep.title}`}
+                      aria-describedby={unavailableOutputs.includes(`reports-quick-${rep.id}-status`) ? `reports-quick-${rep.id}-status` : undefined}
+                      onClick={() => showUnavailableOutput(`reports-quick-${rep.id}-status`)}
+                      className="p-2 rounded-xl hover:bg-slate-100 text-slate-900 dark:text-slate-100 transition-colors cursor-pointer shrink-0"
+                    >
                       <Download className="w-3.5 h-3.5" />
                     </button>
+                    </div>
+                    {unavailableOutputs.includes(`reports-quick-${rep.id}-status`) && (
+                      <p id={`reports-quick-${rep.id}-status`} role="status" className="scroll-my-3 text-xs leading-relaxed text-slate-900 dark:text-slate-100">
+                        Chưa tải “{rep.title}”: tài liệu minh họa chưa có file tải xuống. Không có file được tạo.
+                      </p>
+                    )}
                   </div>
                 ))}
               </div>
@@ -896,11 +945,12 @@ export default function ReportsPage() {
         <div className="rounded-3xl bg-white border border-slate-200/80 p-5 sm:p-8 shadow-sm space-y-4">
           <h3 className="text-base font-extrabold text-[#172B38] flex items-center gap-2">
             <FileSpreadsheet className="w-5 h-5 text-emerald-500" />
-            Báo Cáo Chi Tiết &amp; Tải Xuống
+            Báo Cáo Chi Tiết &amp; Tải Xuống (minh họa)
           </h3>
           <div className="space-y-3">
             {QUICK_REPORTS.map((rep) => (
-              <div key={rep.id} className="flex items-center gap-4 p-4 rounded-2xl border border-slate-200 bg-slate-50 hover:bg-slate-100 transition-colors">
+              <div key={rep.id} className="space-y-2 p-4 rounded-2xl border border-slate-200 bg-slate-50 hover:bg-slate-100 transition-colors">
+                <div className="flex flex-wrap items-center gap-4">
                 <div className={`w-10 h-10 rounded-2xl ${rep.color} flex items-center justify-center shrink-0 text-white`}>
                   {rep.type === 'pdf'
                     ? <FileText className="w-5 h-5" />
@@ -910,10 +960,22 @@ export default function ReportsPage() {
                   <p className="text-sm font-bold text-[#172B38] truncate">{rep.title}</p>
                   <p className="text-[11px] text-slate-400">{rep.updated}</p>
                 </div>
-                <button className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-bold hover:bg-primary-hover transition-colors cursor-pointer">
+                <button
+                  type="button"
+                  aria-label={`Tải báo cáo chi tiết: ${rep.title}`}
+                  aria-describedby={unavailableOutputs.includes(`reports-detail-${rep.id}-status`) ? `reports-detail-${rep.id}-status` : undefined}
+                  onClick={() => showUnavailableOutput(`reports-detail-${rep.id}-status`)}
+                  className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-bold hover:bg-primary-hover transition-colors cursor-pointer shrink-0"
+                >
                   <Download className="w-3.5 h-3.5" />
                   Tải xuống
                 </button>
+                </div>
+                {unavailableOutputs.includes(`reports-detail-${rep.id}-status`) && (
+                  <p id={`reports-detail-${rep.id}-status`} role="status" className="scroll-my-3 text-xs leading-relaxed text-slate-900 dark:text-slate-100">
+                    Chưa tải “{rep.title}”: tài liệu minh họa chưa có file tải xuống. Không có file được tạo.
+                  </p>
+                )}
               </div>
             ))}
           </div>
