@@ -5,7 +5,7 @@
  */
 
 import Link from 'next/link';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   CalendarCheck,
   ArrowLeft,
@@ -76,6 +76,8 @@ interface AttendanceRosterItem {
   safePickupHandover?: SafePickupHandover | null;
 }
 
+const EMPTY_ROSTER: readonly AttendanceRosterItem[] = [];
+
 const ATTENDANCE_LABELS: Record<AttendanceStatus, string> = {
   present: 'Có Mặt',
   absent: 'Vắng',
@@ -102,6 +104,7 @@ export default function AttendancePage() {
   const [selectedCourseId, setSelectedCourseId] = useState('');
   const [schoolDay, setSchoolDay] = useState(() => todayLocalDate());
   const [roster, setRoster] = useState<readonly AttendanceRosterItem[]>([]);
+  const [rosterContext, setRosterContext] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [loadingClassrooms, setLoadingClassrooms] = useState(true);
   const [loadingRoster, setLoadingRoster] = useState(false);
@@ -109,23 +112,31 @@ export default function AttendancePage() {
   const [savingHandoverStudentPartyId, setSavingHandoverStudentPartyId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const rosterRequestVersion = useRef(0);
+  const commandInFlight = useRef(false);
+  const mounted = useRef(true);
 
   const selectedClassroom = classrooms.find((classroom) => classroom.id === selectedCourseId) ?? null;
+  const contextKey = `${selectedCourseId}:${schoolDay}`;
+  const validContext = Boolean(selectedCourseId && /^\d{4}-\d{2}-\d{2}$/.test(schoolDay));
+  const rosterReady = validContext && !loadingRoster && rosterContext === contextKey;
+  const currentRoster = rosterReady ? roster : EMPTY_ROSTER;
+  const savingCommand = Boolean(savingEnrollmentId || savingHandoverStudentPartyId);
 
   const filteredRoster = useMemo(() => {
     const normalizedSearch = search.trim().toLowerCase();
-    if (!normalizedSearch) return roster;
+    if (!normalizedSearch) return currentRoster;
 
-    return roster.filter((student) => {
+    return currentRoster.filter((student) => {
       return (
         student.name.toLowerCase().includes(normalizedSearch) ||
         (student.studentCode ?? '').toLowerCase().includes(normalizedSearch)
       );
     });
-  }, [roster, search]);
+  }, [currentRoster, search]);
 
   const attendanceSummary = useMemo(() => {
-    return roster.reduce(
+    return currentRoster.reduce(
       (summary, student) => {
         if (!student.attendance) {
           summary.unmarked += 1;
@@ -137,9 +148,18 @@ export default function AttendancePage() {
       },
       { present: 0, absent: 0, excused: 0, unmarked: 0 },
     );
-  }, [roster]);
+  }, [currentRoster]);
 
   useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+      rosterRequestVersion.current += 1;
+    };
+  }, []);
+
+  useEffect(() => {
+    let active = true;
     async function loadClassrooms() {
       setLoadingClassrooms(true);
       setError(null);
@@ -151,52 +171,62 @@ export default function AttendancePage() {
         }
 
         const loadedClassrooms = (payload.classrooms ?? []) as ClassroomOverviewItem[];
-        setClassrooms(loadedClassrooms);
-        setSelectedCourseId((current) => current || loadedClassrooms[0]?.id || '');
+        if (active) {
+          setClassrooms(loadedClassrooms);
+          setSelectedCourseId((current) => current || loadedClassrooms[0]?.id || '');
+        }
       } catch (loadError) {
-        setError(loadError instanceof Error ? loadError.message : 'Không tải được danh sách lớp');
+        if (active) setError(loadError instanceof Error ? loadError.message : 'Không tải được danh sách lớp');
       } finally {
-        setLoadingClassrooms(false);
+        if (active) setLoadingClassrooms(false);
       }
     }
 
     void loadClassrooms();
+    return () => { active = false; };
   }, []);
 
-  const refreshRoster = useCallback(async (): Promise<void> => {
-    if (!selectedCourseId) {
-      setRoster([]);
-      return;
+  const refreshRoster = useCallback(async (): Promise<boolean> => {
+    const requestVersion = ++rosterRequestVersion.current;
+    const isCurrentRequest = () => mounted.current && requestVersion === rosterRequestVersion.current;
+    setLoadingRoster(true);
+    setRosterContext(null);
+    setRoster([]);
+    setError(null);
+    setSuccessMessage(null);
+    if (!validContext) {
+      setLoadingRoster(false);
+      return false;
     }
-
-    const params = new URLSearchParams({ courseId: selectedCourseId, date: schoolDay });
-    const response = await fetch(`/api/education/attendance?${params.toString()}`, { cache: 'no-store' });
-    const payload = await response.json();
-    if (!response.ok || !payload.success) {
-      throw new Error(payload.error ?? 'Không tải được danh sách điểm danh');
+    try {
+      const params = new URLSearchParams({ courseId: selectedCourseId, date: schoolDay });
+      const response = await fetch(`/api/education/attendance?${params.toString()}`, { cache: 'no-store' });
+      const payload = await response.json();
+      if (!response.ok || !payload.success) {
+        throw new Error(payload.error ?? 'Không tải được danh sách điểm danh');
+      }
+      if (!isCurrentRequest()) return false;
+      setRoster((payload.roster ?? []) as AttendanceRosterItem[]);
+      setRosterContext(contextKey);
+      return true;
+    } catch (loadError) {
+      if (isCurrentRequest()) {
+        setError(loadError instanceof Error ? loadError.message : 'Không tải được danh sách điểm danh');
+      }
+      return false;
+    } finally {
+      if (isCurrentRequest()) setLoadingRoster(false);
     }
-
-    setRoster((payload.roster ?? []) as AttendanceRosterItem[]);
-  }, [selectedCourseId, schoolDay]);
+  }, [selectedCourseId, schoolDay, contextKey, validContext]);
 
   useEffect(() => {
-    async function loadRoster() {
-      setLoadingRoster(true);
-      setError(null);
-      try {
-        await refreshRoster();
-      } catch (loadError) {
-        setError(loadError instanceof Error ? loadError.message : 'Không tải được danh sách điểm danh');
-        setRoster([]);
-      } finally {
-        setLoadingRoster(false);
-      }
-    }
-
-    void loadRoster();
+    void refreshRoster();
+    return () => { rosterRequestVersion.current += 1; };
   }, [refreshRoster]);
 
   async function markAttendance(enrollmentId: string, status: AttendanceStatus) {
+    if (commandInFlight.current || !rosterReady || !currentRoster.some((row) => row.enrollmentId === enrollmentId)) return;
+    commandInFlight.current = true;
     setSavingEnrollmentId(enrollmentId);
     setError(null);
     setSuccessMessage(null);
@@ -211,16 +241,27 @@ export default function AttendancePage() {
         throw new Error(payload.error ?? 'Không ghi được điểm danh');
       }
 
-      setSuccessMessage('Đã ghi nhận điểm danh thật vào hệ thống');
-      await refreshRoster();
+      if (!mounted.current) return;
+      const refreshed = await refreshRoster();
+      if (mounted.current) {
+        if (refreshed) setSuccessMessage('Đã ghi nhận điểm danh thật vào hệ thống');
+        else setError('Đã ghi nhận điểm danh nhưng chưa tải lại được danh sách. Hãy tải lại trước khi tiếp tục.');
+      }
     } catch (saveError) {
-      setError(saveError instanceof Error ? saveError.message : 'Không ghi được điểm danh');
+      if (mounted.current) setError(saveError instanceof Error ? saveError.message : 'Không ghi được điểm danh');
     } finally {
-      setSavingEnrollmentId(null);
+      commandInFlight.current = false;
+      if (mounted.current) setSavingEnrollmentId(null);
     }
   }
 
   async function recordHandover(row: AttendanceRosterItem, guardian: AuthorizedGuardian) {
+    const currentRow = currentRoster.find((item) => item.enrollmentId === row.enrollmentId && item.studentPartyId === row.studentPartyId);
+    if (
+      commandInFlight.current || !rosterReady || !currentRow || currentRow.safePickupHandover ||
+      !currentRow.authorizedGuardians?.some((item) => item.authorizationId === guardian.authorizationId && item.guardianPartyId === guardian.guardianPartyId)
+    ) return;
+    commandInFlight.current = true;
     setSavingHandoverStudentPartyId(row.studentPartyId);
     setError(null);
     setSuccessMessage(null);
@@ -239,12 +280,17 @@ export default function AttendancePage() {
         throw new Error(payload.error ?? 'Không ghi được bàn giao');
       }
 
-      setSuccessMessage(`Đã bàn giao ${row.name} cho ${guardian.displayName}`);
-      await refreshRoster();
+      if (!mounted.current) return;
+      const refreshed = await refreshRoster();
+      if (mounted.current) {
+        if (refreshed) setSuccessMessage(`Đã bàn giao ${row.name} cho ${guardian.displayName}`);
+        else setError('Đã ghi nhận bàn giao nhưng chưa tải lại được danh sách. Hãy tải lại trước khi tiếp tục.');
+      }
     } catch (handoverError) {
-      setError(handoverError instanceof Error ? handoverError.message : 'Không ghi được bàn giao');
+      if (mounted.current) setError(handoverError instanceof Error ? handoverError.message : 'Không ghi được bàn giao');
     } finally {
-      setSavingHandoverStudentPartyId(null);
+      commandInFlight.current = false;
+      if (mounted.current) setSavingHandoverStudentPartyId(null);
     }
   }
 
@@ -289,8 +335,12 @@ export default function AttendancePage() {
           <div className="flex flex-col sm:flex-row sm:items-center gap-3 shrink-0">
             <input
               type="date"
+              aria-label="Ngày điểm danh"
               value={schoolDay}
-              onChange={(event) => setSchoolDay(event.target.value)}
+              disabled={savingCommand}
+              onChange={(event) => {
+                if (!commandInFlight.current) setSchoolDay(event.target.value);
+              }}
               className="px-3.5 py-2 rounded-2xl bg-primary/10 text-[var(--education-brand-ink)] border border-primary/20 text-xs font-bold"
             />
             <span className="inline-flex items-center justify-center gap-2 rounded-2xl bg-primary text-primary-foreground px-5 py-3 text-xs font-bold shadow-lg shadow-primary/20">
@@ -316,7 +366,10 @@ export default function AttendancePage() {
                 <button
                   key={classroom.id}
                   type="button"
-                  onClick={() => setSelectedCourseId(classroom.id)}
+                  disabled={savingCommand}
+                  onClick={() => {
+                    if (!commandInFlight.current) setSelectedCourseId(classroom.id);
+                  }}
                   className={`px-4 py-2 rounded-2xl text-xs font-bold transition-colors whitespace-nowrap ${
                     classroom.id === selectedCourseId
                       ? 'bg-primary text-primary-foreground shadow-sm'
@@ -342,7 +395,7 @@ export default function AttendancePage() {
         </div>
 
         {(error || successMessage) && (
-          <div className={`flex items-center gap-2 rounded-2xl px-4 py-3 text-xs font-semibold ${
+          <div role={error ? 'alert' : 'status'} className={`flex items-center gap-2 rounded-2xl px-4 py-3 text-xs font-semibold ${
             error
               ? 'bg-rose-50 dark:bg-rose-950 text-rose-700 dark:text-rose-300'
               : 'bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300'
@@ -350,6 +403,11 @@ export default function AttendancePage() {
             {error ? <AlertCircle className="w-4 h-4" /> : <CheckCircle2 className="w-4 h-4" />}
             {error ?? successMessage}
           </div>
+        )}
+        {error && validContext && !rosterReady && !savingCommand && (
+          <button type="button" onClick={() => void refreshRoster()} className="text-xs font-bold text-slate-700 dark:text-slate-200 underline">
+            Thử tải lại danh sách
+          </button>
         )}
       </div>
 
@@ -363,7 +421,7 @@ export default function AttendancePage() {
               </h3>
             </div>
             <span className="text-xs font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-950 px-2.5 py-1 rounded-full">
-              {selectedClassroom ? `${selectedClassroom.name} • ${roster.length} học sinh` : 'Chưa chọn lớp'}
+              {selectedClassroom ? `${selectedClassroom.name} • ${currentRoster.length} học sinh` : 'Chưa chọn lớp'}
             </span>
           </div>
 
@@ -430,7 +488,7 @@ export default function AttendancePage() {
                               <button
                                 key={action}
                                 type="button"
-                                disabled={savingEnrollmentId === row.enrollmentId}
+                                disabled={!rosterReady || savingCommand}
                                 onClick={() => void markAttendance(row.enrollmentId, action)}
                                 className={`px-2.5 py-1.5 rounded-xl text-[10px] font-bold transition-colors disabled:opacity-50 ${
                                   status === action
@@ -519,7 +577,7 @@ export default function AttendancePage() {
 
                     <button
                       type="button"
-                      disabled={!guardian || Boolean(handover) || savingHandover}
+                      disabled={!rosterReady || savingCommand || !guardian || Boolean(handover)}
                       onClick={() => {
                         if (guardian) void recordHandover(row, guardian);
                       }}
