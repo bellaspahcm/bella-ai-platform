@@ -6,6 +6,8 @@ Before implementing or modifying any Bella OS or Product, you MUST read and comp
 
 These rules are mandatory. Do not introduce new abstractions, Platform/Core changes, or cross-scope refactors without evidence and explicit justification.
 
+For UI-driven changes, follow **UI-Driven Backend Change Safety** in the constitution: use its proportional Change Map and owner decision boundary before implementation.
+
 For multi-agent work, the default is single-agent execution unless Multi-Agent Mode is explicitly requested or authorized by the task context. Follow the **Multi-Agent Coding Protocol** in `docs/governance/BELLA_AI_CODING_CONSTITUTION.md`: one Lead, clear ownership, isolated worktrees/branches, public contracts across boundaries, QA before merge, and evidence before status.
 
 Before modifying any Healthcare or Education code or implementing any Product Vertical, you MUST also read and strictly comply with:
@@ -38,7 +40,7 @@ You MUST NOT:
 
 ## 📋 MANDATORY PRE-CODING ANALYSIS
 
-Before writing or modifying ANY code, you MUST generate an `ARCHITECTURE_GATE_RESULT.md` containing:
+Before writing or modifying code, apply the constitution's entry gate and proportional Change Map. Presentation-only maintenance may use a brief `UI_ONLY` classification and UI verification without a standalone report, as defined there. For work requiring `ARCHITECTURE_GATE_RESULT.md`, include:
 
 1. **Bella OS/Product Development Process Gate** from `docs/governance/BELLA_AI_CODING_CONSTITUTION.md`
 2. **Product Manifest** (Capabilities & Scope)

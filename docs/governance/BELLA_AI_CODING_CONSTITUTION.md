@@ -894,6 +894,8 @@ The gate must also state which layers the request authorizes changing. Requested
 
 This is a lightweight entry gate, not a new framework. It should be short, specific, and evidence-backed.
 
+For presentation-only maintenance (color, layout, spacing, typography, or icons with unchanged data, actions, states, and permissions), a brief `UI_ONLY` classification and relevant UI verification are sufficient; no standalone architecture report is required. A Product UI redesign still requires the entry gate above. Reuse its UI reconciliation as the Change Map below rather than creating a second report.
+
 ### 0. Define the Problem
 
 Do not code yet. Answer:
@@ -1290,6 +1292,89 @@ CONTRACT CHANGE REQUIRED
 `CONTRACT CHANGE REQUIRED` means the existing canonical contract is proven insufficient or incorrect for a real business requirement; handle it as an explicit contract change with ownership, affected consumers, and regression verification.
 
 Check only data, actions, states, and workflows. Do not expand a contract reconciliation into a visual audit of color, icon, font, or spacing.
+
+### UI-Driven Backend Change Safety
+
+This rule applies across Bella Platform, OS, and Products when a redesigned UI, new field, button, screen, or user workflow may affect backend behavior. It extends the existing Business Semantic Gate, Change Authority, and UI to Contract Reconciliation; it does not create a new agent system or approval workflow.
+
+#### Mandatory Pre-Code Review and Change Map
+
+Before implementation, read the applicable Bella rules, product/public contracts, ADRs, and existing implementation. Identify the current proven baseline with its evidence and preserve working behavior. Existing implementation proves current behavior only; it cannot establish intended business semantics on its own.
+
+Record a minimal Change Map in the task's existing gate or work record:
+
+```text
+UI change / intended user action
+Classification(s)
+Proven baseline / evidence source
+Reusable data / API / service / public contract / owner
+New or changed field / API / business rule / state transition / permission
+Canonical Truth / authoritative source for each business-critical field or state
+Authorized layers / unresolved owner decisions
+Required tests / security checks / regression / rollback considerations
+```
+
+Use these classifications per change; more than one may apply. Classification describes impact and never grants change authority.
+
+| Classification | Meaning |
+| --- | --- |
+| `UI_ONLY` | Presentation changes with unchanged data, actions, states, contracts, and permissions. |
+| `EXISTING_CAPABILITY_REUSE` | UI consumes an existing verified capability through its established public contract. |
+| `BACKEND_EXTENSION` | An explicitly authorized addition in the owning backend layer, supported by proven requirements. |
+| `CONTRACT_OR_SCHEMA_CHANGE` | A public contract or persisted data structure must change; identify owner, consumers, compatibility, and migration semantics. |
+| `SENSITIVE_BUSINESS_CHANGE` | Financial behavior, identity/ownership, permissions, isolation, security, or frozen architecture may change. |
+
+Keep effort proportional to impact:
+
+| Change | Minimum handling |
+| --- | --- |
+| Color, layout, icon maintenance | Brief `UI_ONLY` classification, confirm behavior is unchanged, inspect affected UI; no large Change Map. |
+| Filter using an existing API | Verify supported filter semantics, reuse the contract, test the affected path. |
+| Data field | Prove its authoritative source, mapping, validation, and persistence when applicable before choosing a UI or backend change. |
+| Business workflow | Change Map with contracts, owner, transitions, permissions, regression, and failure-path evidence. |
+| Payment, authorization, OS/kernel, or risky schema change | Full evidence proportional to impact; stop at any unresolved authority boundary. |
+
+A short classification may be recorded in the task response for small changes. Reuse existing task artifacts; do not require a second report or rerun unrelated product gates for presentation maintenance. Stricter applicable freeze, security, and architecture gates remain mandatory.
+
+#### Implementation Boundaries
+
+- UI is not the source of truth for business rules, permissions, or transaction states.
+- A new UI field does not imply a new database column. Inspect the existing model and contracts first.
+- Never create a second canonical source or bypass public contracts to satisfy the UI. Reuse existing APIs, services, and domain logic where their semantics match.
+- Enforce backend authorization and tenant isolation independently of frontend controls.
+- Preserve backward compatibility and proven workflows unless an approved change explicitly requires otherwise.
+- Respect frozen OS/kernel boundaries and ADRs. Do not introduce unrelated refactoring, abstractions, frameworks, or ProductRegistry entries.
+
+#### Owner Decision Boundary
+
+Proceed autonomously with UI-only work and compatible changes inside the task's established contracts, permissions, and authorized layers. A UI request alone does not authorize a backend extension.
+
+Stop the affected portion and request an explicit owner decision when a business rule is unresolved or an unapproved change materially affects:
+
+- Canonical data ownership or identity.
+- Database schema or migration semantics with material compatibility risk.
+- Financial transactions, deposits, refunds, cancellations, or reconciliation.
+- Authorization, tenant isolation, or security boundaries.
+- Frozen OS/kernel contracts or approved architecture decisions.
+- Production data operations or irreversible actions.
+
+Do not request approval again for decisions already explicitly approved and still applicable to the current scope. Frozen-kernel work still requires its existing ACR/ADR and unlock process; task approval alone cannot bypass it. When business semantics are unproven, apply `BUSINESS_SEMANTICS = NOT_PROVEN` and stop that implementation. Isolate the blocked portion and continue only independent, authorized work.
+
+#### Verification and Closure
+
+Run relevant existing tests and add tests where new behavior requires them. Verify affected critical legacy workflows, authorization, tenant isolation, invalid inputs, and failure paths where applicable. If data structures change, verify migrations, compatibility, and the rollback/recovery plan in the appropriate environment. Record actual commands, results, evidence, and any unexecuted checks with reasons.
+
+Use scope-qualified evidence states according to the applicable Bella conventions:
+
+- `PROVEN`: the stated invariant has executed supporting evidence in the stated environment.
+- `NOT_PROVEN`: evidence is missing or insufficient; this alone does not prove a defect.
+- `NOT_READY`: a required readiness criterion is unmet; identify it.
+- `HELD`: work or release is held at a stated decision/authority boundary.
+- `SEALED_ON_MAIN`: the scoped change is merged and verified on the actual main commit with required evidence. Local work or PR checks alone cannot establish it.
+
+These are distinct findings, not an automatic promotion sequence or substitutes for stricter product readiness gates. A successful build, UI preview, or isolated test does not prove complete product readiness or Go-Live.
+
+Follow `Evidence First -> Root Cause -> Minimal Fix -> Verify -> Seal -> Stop`. Do not expand beyond authorized scope.
 
 ### Missing Capability Process
 
