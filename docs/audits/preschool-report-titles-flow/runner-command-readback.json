@@ -1,0 +1,184 @@
+{
+  "result": "PASS_SCOPED_NATIVE_TEST_COMMAND_READBACK",
+  "recordedAt": "2026-10-17T15:23:34.607Z",
+  "binding": {
+    "repository": "bellaspahcm/bella-ai-platform",
+    "taskId": "98eb2bb4-9b65-4ff1-b1c7-f7deeb4a0577",
+    "runId": "71cbcb5c-e406-4f47-9d65-bfc0d9207811",
+    "attempt": 3,
+    "producerInstanceId": "594e300b-afc0-43cc-b383-5751f189f20e",
+    "threadId": "01a14a71-8a72-74d3-a854-fb51b01e85f3",
+    "sessionId": "01a14a71-8a72-74d3-a854-fb51b01e85f3",
+    "turnId": "01a14a71-8c17-7b82-8c7e-077a1bde96a4"
+  },
+  "matchedCommands": 13,
+  "success": 11,
+  "nonzero": 2,
+  "outputDigestMatches": 12,
+  "outputDigestDifferences": 1,
+  "commands": [
+    {
+      "itemId": "exec-1323e5d6-8da1-41ba-8193-83bdd6d5e3d6",
+      "exitCode": 1,
+      "commandHash": "3e9c52d88a797403882ce59713ad9738f5f011905b5a63fc87a1deda7eca9c9a",
+      "metadataMatch": true,
+      "outputDigestMatch": true
+    },
+    {
+      "itemId": "exec-8d1287dd-dd43-4152-a4fb-40b9d016d50e",
+      "exitCode": 0,
+      "commandHash": "374880755ad8299c241508442d1d07cbed9d1c95939346cf7867b31d71ee101b",
+      "metadataMatch": true,
+      "outputDigestMatch": false
+    },
+    {
+      "itemId": "exec-d604b9a5-3164-404e-8fb2-30d3e2824d2e",
+      "exitCode": 0,
+      "commandHash": "7ec3183dc60658d4e99b9f9781ac4d123704944b77cd8f9720b7db544697a8cc",
+      "metadataMatch": true,
+      "outputDigestMatch": true
+    },
+    {
+      "itemId": "exec-5ce626b0-a351-44ad-983e-77256f6d7345",
+      "exitCode": 0,
+      "commandHash": "5852cdc32c63be2651059027731e53b71a6ca7e2abc1598d9b846c76da2f98c9",
+      "metadataMatch": true,
+      "outputDigestMatch": true
+    },
+    {
+      "itemId": "exec-1871ab82-8428-44b7-829e-4c112eebd71f",
+      "exitCode": 1,
+      "commandHash": "723889501027f1cb15415258841a4860308fbeac34199b10b9585c378631bdcc",
+      "metadataMatch": true,
+      "outputDigestMatch": true
+    },
+    {
+      "itemId": "exec-2ca90012-fa12-486a-a778-6f44d04cf1c6",
+      "exitCode": 0,
+      "commandHash": "6ee651a5da62fc810b6d6181847e1a0c7a34870a3d540bf21d407b1262b00770",
+      "metadataMatch": true,
+      "outputDigestMatch": true
+    },
+    {
+      "itemId": "exec-1b7fb80f-6485-4d7a-9a7c-8aabdf733663",
+      "exitCode": 0,
+      "commandHash": "65294922dffa00e8d9f2a93cf1785bd3e4c45608f60ee044b1915312b4cfe1ab",
+      "metadataMatch": true,
+      "outputDigestMatch": true
+    },
+    {
+      "itemId": "exec-b61fc47e-5080-4d90-847c-9a4d80638701",
+      "exitCode": 0,
+      "commandHash": "44ba17a8944c9b9c661fab699d30bea5010954e236e4d6c3a3d10d097896a498",
+      "metadataMatch": true,
+      "outputDigestMatch": true
+    },
+    {
+      "itemId": "exec-9ef0d623-9733-4f89-98ba-41c460aceb70",
+      "exitCode": 0,
+      "commandHash": "38e4e2a424fcb095b37a9186f7e740717db16dcd151a86bd24b013e9069a1781",
+      "metadataMatch": true,
+      "outputDigestMatch": true
+    },
+    {
+      "itemId": "exec-7b18ebdc-afa6-48cd-861d-aa9198f983ff",
+      "exitCode": 0,
+      "commandHash": "65aeb8bef29953eec27a2805b96c2f72956c4197a1da40ee3b3d378a57cc5566",
+      "metadataMatch": true,
+      "outputDigestMatch": true
+    },
+    {
+      "itemId": "exec-ae532dbb-b382-4288-92dc-0a8b660cc865",
+      "exitCode": 0,
+      "commandHash": "1b6952b83d5dd9d788805b8266a650dc8fbe368b075c07d16b4075a3285d2658",
+      "metadataMatch": true,
+      "outputDigestMatch": true
+    },
+    {
+      "itemId": "exec-1e99c956-7e92-4600-91cc-94dd27b6d4c4",
+      "exitCode": 0,
+      "commandHash": "cb5e29d83bd8845c70d6f94b673d68e6545e51efbe8700203bb26922d58f090d",
+      "metadataMatch": true,
+      "outputDigestMatch": true
+    },
+    {
+      "itemId": "exec-c51ed01a-50a2-42ed-a631-71015a00e6ea",
+      "exitCode": 0,
+      "commandHash": "849fdc1941c790511c90d3729abc0922b39e14f932bc22e2b5fd0a37c21216c5",
+      "metadataMatch": true,
+      "outputDigestMatch": true
+    }
+  ],
+  "tests": [
+    {
+      "phase": "before",
+      "itemId": "exec-1871ab82-8428-44b7-829e-4c112eebd71f",
+      "historyIndex": 10,
+      "exitCode": 1,
+      "summary": {
+        "phase": "before",
+        "cases": 4,
+        "result": "FAIL",
+        "checked": 32,
+        "passed": 16,
+        "failed": 16,
+        "minimumRatio": 1.02277126539548,
+        "threshold": 4.5
+      },
+      "outputDigestMatch": true
+    },
+    {
+      "phase": "after",
+      "itemId": "exec-1b7fb80f-6485-4d7a-9a7c-8aabdf733663",
+      "historyIndex": 16,
+      "exitCode": 0,
+      "summary": {
+        "phase": "after",
+        "cases": 4,
+        "result": "PASS",
+        "checked": 32,
+        "passed": 32,
+        "failed": 0,
+        "minimumRatio": 13.656246675414016,
+        "threshold": 4.5
+      },
+      "outputDigestMatch": true
+    }
+  ],
+  "uiPatchHistoryIndex": 14,
+  "beforePatchAfterOrder": "PASS",
+  "leadChanges": [
+    "runner-provenance.json dependency-placement diagnostic, generated before worker finished"
+  ],
+  "workerChanges": [
+    {
+      "itemId": "exec-6147aa55-d5ea-4da1-9973-c17a8ee9c5a8",
+      "status": "completed",
+      "paths": [
+        "docs/audits/preschool-report-titles-flow/title-contrast.cjs"
+      ]
+    },
+    {
+      "itemId": "exec-87df6416-ea29-4df3-9974-28d187ab751e",
+      "status": "completed",
+      "paths": [
+        "src/app/dashboard/education/reports/page.tsx"
+      ]
+    },
+    {
+      "itemId": "exec-b3c8bbf1-8826-4f40-a423-0b8b6b4dfacd",
+      "status": "completed",
+      "paths": [
+        "docs/audits/preschool-report-titles-flow/RUNNER_REPAIR_PR_BODY.md"
+      ]
+    },
+    {
+      "itemId": "exec-7c3d9476-821e-467b-b789-09590b4e59e9",
+      "status": "completed",
+      "paths": [
+        "docs/audits/preschool-report-titles-flow/RUNNER_REPAIR_PR_BODY.md"
+      ]
+    }
+  ],
+  "limits": "Only actual one-task command/filechange/test proof; not generic autonomous orchestration, production or DB proof. Non-test stdout differences, if any, remain unproven."
+}

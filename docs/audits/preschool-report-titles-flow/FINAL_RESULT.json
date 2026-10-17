@@ -1,0 +1,113 @@
+{
+  "result": "PASS_SCOPED_RUNNER_AND_NATIVE_UI_CYCLE",
+  "recordedAt": "2026-10-17T15:24:11.071Z",
+  "base": "8f3441a08c6cea99f4544b32a662ce0fc53ec172",
+  "sourceSha256": "f4f3428104e1d17eb0d0a6f4bd3ca47a77e62c695bd9beacbc61db19b5924ba4",
+  "testSha256": "55082c9a7ae127fb96f20d2dea064c4c132f33878250b833fc20bc2c2e04094b",
+  "rootCause": "External AppData browser cache unreadable/unexecutable under managed workspaceWrite; same binary inside task-local ignored cache launches.",
+  "repair": "Select checksum-identical local executablePath, no ACL/global config/admin/sandbox/network policy changes.",
+  "runner": {
+    "policy": "workspaceWrite",
+    "networkAccess": false,
+    "browserDependencyFiles": 291,
+    "coreAgentFlowModified": false
+  },
+  "nativeExecution": {
+    "attempt": 3,
+    "taskId": "98eb2bb4-9b65-4ff1-b1c7-f7deeb4a0577",
+    "runId": "71cbcb5c-e406-4f47-9d65-bfc0d9207811",
+    "threadId": "01a14a71-8a72-74d3-a854-fb51b01e85f3",
+    "turnId": "01a14a71-8c17-7b82-8c7e-077a1bde96a4",
+    "commands": 13,
+    "fileChanges": 4,
+    "facts": 67,
+    "fileChangeReconciliation": "4/4 MATCH",
+    "testCommandReadback": "PASS_SCOPED_NATIVE_TEST_COMMAND_READBACK",
+    "beforePatchAfterOrder": "PASS",
+    "nonTestStdoutDigestDifferences": 1,
+    "limits": "One non-test stdout digest differs; full stdout identity not proven. Native before/after test outputs match exactly."
+  },
+  "before": {
+    "cases": 4,
+    "result": "FAIL",
+    "checked": 32,
+    "passed": 16,
+    "failed": 16,
+    "minimumRatio": 1.02277126539548,
+    "threshold": 4.5
+  },
+  "nativeBeforeHostAgreement": {
+    "matched": 32,
+    "maxDelta": 0
+  },
+  "after": {
+    "cases": 4,
+    "result": "PASS",
+    "checked": 32,
+    "passed": 32,
+    "failed": 0,
+    "minimumRatio": 13.656246675414016,
+    "threshold": 4.5
+  },
+  "checks": [
+    {
+      "command": "node node_modules/eslint/bin/eslint.js src/app/dashboard/education/reports/page.tsx",
+      "exitCode": 0
+    },
+    {
+      "command": "node --check docs/audits/preschool-report-titles-flow/title-contrast.cjs",
+      "exitCode": 0
+    },
+    {
+      "command": "git diff --check",
+      "exitCode": 0
+    },
+    {
+      "command": "git diff -- src/app/dashboard/education/reports/page.tsx",
+      "exitCode": 0
+    },
+    {
+      "command": "git diff --numstat",
+      "exitCode": 0
+    },
+    {
+      "command": "git show HEAD:src/app/dashboard/education/reports/page.tsx",
+      "exitCode": 0
+    },
+    {
+      "command": "git status --short",
+      "exitCode": 0
+    }
+  ],
+  "review": {
+    "lead": "Exact two document-title class replacements against base; four screenshots visually inspected for the changed titles; no other source change.",
+    "provenance": "Separate process queried native history, verified actual test summaries/source hashes and ordering."
+  },
+  "boundaries": {
+    "dbAuthOperations": 0,
+    "oldSuitesRerun": 0,
+    "endpoint503": "UNCHANGED",
+    "frozenKernels": "UNCHANGED",
+    "parentRls": "FAIL",
+    "courseAuthorization": "BLOCKED",
+    "uiToDb": "NOT_PROVEN",
+    "preGoLive": "BLOCKED",
+    "merge": false,
+    "deployment": false
+  },
+  "sourceFacts": {
+    "attempt2": "MODEL_USAGE_LIMIT; zero commands, preserved receipt",
+    "hostDiagnostic": "Lead executed baseline separately; not counted as native task proof",
+    "runnerDependencyPreparation": "Lead placed installed browser dependency, native worker selected it and executed code/tests; this is not unattended self-provisioning"
+  },
+  "proofHashes": {
+    "native-before.json": "bd33f0569138675740c60031242584b008e765a1255c04dd4d8be7ddb5ba7bc5",
+    "native-after.json": "b5eac39342433e1c12c2756c564793544223e69953fc936455c3a7cc4b4e5542",
+    "native-equivalence.json": "0f16bc699fd02df7742b1027f9b858fc5ac8154ce1a8af7e849c3f6b2e8ec6b5",
+    "runner-repair-result.json": "7243e571308b927bc21cd9200a95d7033c3f77622c2c900191035c126d7b6142",
+    "runner-repair-readback.json": "f1a3aa19b74fd5469226eccfd1a1363c8ba52a4aaa9c37b16b07925cb8661fcc",
+    "runner-command-readback.json": "6c1f52fca085f8174a43dc787326f0f60ca6395926c8c6cb6fc7f3a24713949f",
+    "runner-repair-verification.json": "966de6625a6acdbf862868d04ace44ed364ea1032bb06b5a5b8ebd38a6efae4c",
+    "runner-provenance.json": "5a1b1658f9176ac12cc58e173e170458bccc87311c467a0ebb151352403d22f8"
+  }
+}

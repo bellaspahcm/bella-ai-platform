@@ -1,0 +1,651 @@
+{
+  "phase": "before",
+  "recordedAt": "2026-10-17T15:03:21.990Z",
+  "command": "node docs/audits/preschool-report-titles-flow/title-contrast.cjs before",
+  "exitCode": 1,
+  "summary": {
+    "result": "FAIL",
+    "checked": 32,
+    "passed": 16,
+    "failed": 16,
+    "minimumRatio": 1.02277126539548,
+    "threshold": 4.5
+  },
+  "sourceSha256": "e8a8c19fd398e1a6ba988b3fd75c2ceba2b2bd48443792edb541a8ac919076e5",
+  "testSha256": "1141a7bec5975cc017aeab2c427a09b99dec35088853e6379d5097e220f12b3a",
+  "globalsSha256": "1f2458f1e1ff45ff29650ce9bc30a0a408004f079760de68bcef7c915ddce21e",
+  "compiledCssSha256": "2150a389cdde7ed6c1910f2335adf61baedf3738f57d0d06f109db55e4f9dfaf",
+  "bundleSha256": "657f8b722595227381197439e7f16fb18f7c3f16ccedbaadcced1a512974557f",
+  "method": "Chromium canvas CSS-to-sRGB foreground, native raster backgrounds with text ink removed; every pixel under rendered text rectangles; unrounded WCAG ratio >= 4.5.",
+  "limits": "Synthetic React mount; actual Reports component and globals.css; stubbed Next Link, no Next layout or downloaded fonts. No Auth/API/DB/runtime readiness proof. Only loopback document allowed; server closed.",
+  "results": [
+    {
+      "theme": "light",
+      "device": "desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "contrast": [
+        {
+          "label": "quick-r1",
+          "minimumRatio": 14.592583324527606,
+          "sampledPixels": 2296,
+          "worstBackground": [
+            255,
+            255,
+            255
+          ],
+          "worstForeground": [
+            23,
+            43,
+            56
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "rgb(23, 43, 56)"
+        },
+        {
+          "label": "quick-r2",
+          "minimumRatio": 14.592583324527606,
+          "sampledPixels": 1400,
+          "worstBackground": [
+            255,
+            255,
+            255
+          ],
+          "worstForeground": [
+            23,
+            43,
+            56
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "rgb(23, 43, 56)"
+        },
+        {
+          "label": "quick-r3",
+          "minimumRatio": 14.592583324527606,
+          "sampledPixels": 1148,
+          "worstBackground": [
+            255,
+            255,
+            255
+          ],
+          "worstForeground": [
+            23,
+            43,
+            56
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "rgb(23, 43, 56)"
+        },
+        {
+          "label": "quick-r4",
+          "minimumRatio": 14.592583324527606,
+          "sampledPixels": 2296,
+          "worstBackground": [
+            255,
+            255,
+            255
+          ],
+          "worstForeground": [
+            23,
+            43,
+            56
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "rgb(23, 43, 56)"
+        },
+        {
+          "label": "detail-r1",
+          "minimumRatio": 13.320268621543914,
+          "sampledPixels": 2670,
+          "worstBackground": [
+            241,
+            245,
+            249
+          ],
+          "worstForeground": [
+            23,
+            43,
+            56
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "rgb(23, 43, 56)"
+        },
+        {
+          "label": "detail-r2",
+          "minimumRatio": 13.320268621543914,
+          "sampledPixels": 1620,
+          "worstBackground": [
+            241,
+            245,
+            249
+          ],
+          "worstForeground": [
+            23,
+            43,
+            56
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "rgb(23, 43, 56)"
+        },
+        {
+          "label": "detail-r3",
+          "minimumRatio": 13.320268621543914,
+          "sampledPixels": 1320,
+          "worstBackground": [
+            241,
+            245,
+            249
+          ],
+          "worstForeground": [
+            23,
+            43,
+            56
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "rgb(23, 43, 56)"
+        },
+        {
+          "label": "detail-r4",
+          "minimumRatio": 13.320268621543914,
+          "sampledPixels": 2655,
+          "worstBackground": [
+            241,
+            245,
+            249
+          ],
+          "worstForeground": [
+            23,
+            43,
+            56
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "rgb(23, 43, 56)"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": []
+    },
+    {
+      "theme": "light",
+      "device": "mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "contrast": [
+        {
+          "label": "quick-r1",
+          "minimumRatio": 14.592583324527606,
+          "sampledPixels": 2296,
+          "worstBackground": [
+            255,
+            255,
+            255
+          ],
+          "worstForeground": [
+            23,
+            43,
+            56
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "rgb(23, 43, 56)"
+        },
+        {
+          "label": "quick-r2",
+          "minimumRatio": 14.592583324527606,
+          "sampledPixels": 1400,
+          "worstBackground": [
+            255,
+            255,
+            255
+          ],
+          "worstForeground": [
+            23,
+            43,
+            56
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "rgb(23, 43, 56)"
+        },
+        {
+          "label": "quick-r3",
+          "minimumRatio": 14.592583324527606,
+          "sampledPixels": 1148,
+          "worstBackground": [
+            255,
+            255,
+            255
+          ],
+          "worstForeground": [
+            23,
+            43,
+            56
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "rgb(23, 43, 56)"
+        },
+        {
+          "label": "quick-r4",
+          "minimumRatio": 14.592583324527606,
+          "sampledPixels": 2296,
+          "worstBackground": [
+            255,
+            255,
+            255
+          ],
+          "worstForeground": [
+            23,
+            43,
+            56
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "rgb(23, 43, 56)"
+        },
+        {
+          "label": "detail-r1",
+          "minimumRatio": 13.320268621543914,
+          "sampledPixels": 3225,
+          "worstBackground": [
+            241,
+            245,
+            249
+          ],
+          "worstForeground": [
+            23,
+            43,
+            56
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "rgb(23, 43, 56)"
+        },
+        {
+          "label": "detail-r2",
+          "minimumRatio": 13.320268621543914,
+          "sampledPixels": 1620,
+          "worstBackground": [
+            241,
+            245,
+            249
+          ],
+          "worstForeground": [
+            23,
+            43,
+            56
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "rgb(23, 43, 56)"
+        },
+        {
+          "label": "detail-r3",
+          "minimumRatio": 13.320268621543914,
+          "sampledPixels": 1320,
+          "worstBackground": [
+            241,
+            245,
+            249
+          ],
+          "worstForeground": [
+            23,
+            43,
+            56
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "rgb(23, 43, 56)"
+        },
+        {
+          "label": "detail-r4",
+          "minimumRatio": 13.320268621543914,
+          "sampledPixels": 3225,
+          "worstBackground": [
+            241,
+            245,
+            249
+          ],
+          "worstForeground": [
+            23,
+            43,
+            56
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "rgb(23, 43, 56)"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": []
+    },
+    {
+      "theme": "dark",
+      "device": "desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "contrast": [
+        {
+          "label": "quick-r1",
+          "minimumRatio": 1.0243552352039886,
+          "sampledPixels": 2296,
+          "worstBackground": [
+            15,
+            41,
+            61
+          ],
+          "worstForeground": [
+            23,
+            43,
+            56
+          ],
+          "threshold": 4.5,
+          "result": "FAIL",
+          "cssColor": "rgb(23, 43, 56)"
+        },
+        {
+          "label": "quick-r2",
+          "minimumRatio": 1.0604796600221698,
+          "sampledPixels": 1400,
+          "worstBackground": [
+            14,
+            38,
+            58
+          ],
+          "worstForeground": [
+            23,
+            43,
+            56
+          ],
+          "threshold": 4.5,
+          "result": "FAIL",
+          "cssColor": "rgb(23, 43, 56)"
+        },
+        {
+          "label": "quick-r3",
+          "minimumRatio": 1.1076782471104303,
+          "sampledPixels": 1148,
+          "worstBackground": [
+            13,
+            34,
+            54
+          ],
+          "worstForeground": [
+            23,
+            43,
+            56
+          ],
+          "threshold": 4.5,
+          "result": "FAIL",
+          "cssColor": "rgb(23, 43, 56)"
+        },
+        {
+          "label": "quick-r4",
+          "minimumRatio": 1.1455129339890247,
+          "sampledPixels": 2296,
+          "worstBackground": [
+            11,
+            31,
+            50
+          ],
+          "worstForeground": [
+            23,
+            43,
+            56
+          ],
+          "threshold": 4.5,
+          "result": "FAIL",
+          "cssColor": "rgb(23, 43, 56)"
+        },
+        {
+          "label": "detail-r1",
+          "minimumRatio": 1.02277126539548,
+          "sampledPixels": 2670,
+          "worstBackground": [
+            15,
+            41,
+            62
+          ],
+          "worstForeground": [
+            23,
+            43,
+            56
+          ],
+          "threshold": 4.5,
+          "result": "FAIL",
+          "cssColor": "rgb(23, 43, 56)"
+        },
+        {
+          "label": "detail-r2",
+          "minimumRatio": 1.0243552352039886,
+          "sampledPixels": 1620,
+          "worstBackground": [
+            15,
+            41,
+            61
+          ],
+          "worstForeground": [
+            23,
+            43,
+            56
+          ],
+          "threshold": 4.5,
+          "result": "FAIL",
+          "cssColor": "rgb(23, 43, 56)"
+        },
+        {
+          "label": "detail-r3",
+          "minimumRatio": 1.0243552352039886,
+          "sampledPixels": 1320,
+          "worstBackground": [
+            15,
+            41,
+            61
+          ],
+          "worstForeground": [
+            23,
+            43,
+            56
+          ],
+          "threshold": 4.5,
+          "result": "FAIL",
+          "cssColor": "rgb(23, 43, 56)"
+        },
+        {
+          "label": "detail-r4",
+          "minimumRatio": 1.0243552352039886,
+          "sampledPixels": 2655,
+          "worstBackground": [
+            15,
+            41,
+            61
+          ],
+          "worstForeground": [
+            23,
+            43,
+            56
+          ],
+          "threshold": 4.5,
+          "result": "FAIL",
+          "cssColor": "rgb(23, 43, 56)"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": []
+    },
+    {
+      "theme": "dark",
+      "device": "mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "contrast": [
+        {
+          "label": "quick-r1",
+          "minimumRatio": 1.02277126539548,
+          "sampledPixels": 2296,
+          "worstBackground": [
+            15,
+            41,
+            62
+          ],
+          "worstForeground": [
+            23,
+            43,
+            56
+          ],
+          "threshold": 4.5,
+          "result": "FAIL",
+          "cssColor": "rgb(23, 43, 56)"
+        },
+        {
+          "label": "quick-r2",
+          "minimumRatio": 1.0704330302051857,
+          "sampledPixels": 1400,
+          "worstBackground": [
+            14,
+            37,
+            58
+          ],
+          "worstForeground": [
+            23,
+            43,
+            56
+          ],
+          "threshold": 4.5,
+          "result": "FAIL",
+          "cssColor": "rgb(23, 43, 56)"
+        },
+        {
+          "label": "quick-r3",
+          "minimumRatio": 1.1089420212627126,
+          "sampledPixels": 1148,
+          "worstBackground": [
+            12,
+            34,
+            54
+          ],
+          "worstForeground": [
+            23,
+            43,
+            56
+          ],
+          "threshold": 4.5,
+          "result": "FAIL",
+          "cssColor": "rgb(23, 43, 56)"
+        },
+        {
+          "label": "quick-r4",
+          "minimumRatio": 1.154968774645755,
+          "sampledPixels": 2296,
+          "worstBackground": [
+            11,
+            30,
+            50
+          ],
+          "worstForeground": [
+            23,
+            43,
+            56
+          ],
+          "threshold": 4.5,
+          "result": "FAIL",
+          "cssColor": "rgb(23, 43, 56)"
+        },
+        {
+          "label": "detail-r1",
+          "minimumRatio": 1.02277126539548,
+          "sampledPixels": 3225,
+          "worstBackground": [
+            15,
+            41,
+            62
+          ],
+          "worstForeground": [
+            23,
+            43,
+            56
+          ],
+          "threshold": 4.5,
+          "result": "FAIL",
+          "cssColor": "rgb(23, 43, 56)"
+        },
+        {
+          "label": "detail-r2",
+          "minimumRatio": 1.0243552352039886,
+          "sampledPixels": 1620,
+          "worstBackground": [
+            15,
+            41,
+            61
+          ],
+          "worstForeground": [
+            23,
+            43,
+            56
+          ],
+          "threshold": 4.5,
+          "result": "FAIL",
+          "cssColor": "rgb(23, 43, 56)"
+        },
+        {
+          "label": "detail-r3",
+          "minimumRatio": 1.0243552352039886,
+          "sampledPixels": 1320,
+          "worstBackground": [
+            15,
+            41,
+            61
+          ],
+          "worstForeground": [
+            23,
+            43,
+            56
+          ],
+          "threshold": 4.5,
+          "result": "FAIL",
+          "cssColor": "rgb(23, 43, 56)"
+        },
+        {
+          "label": "detail-r4",
+          "minimumRatio": 1.034412058340331,
+          "sampledPixels": 3225,
+          "worstBackground": [
+            15,
+            40,
+            61
+          ],
+          "worstForeground": [
+            23,
+            43,
+            56
+          ],
+          "threshold": 4.5,
+          "result": "FAIL",
+          "cssColor": "rgb(23, 43, 56)"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": []
+    }
+  ]
+}

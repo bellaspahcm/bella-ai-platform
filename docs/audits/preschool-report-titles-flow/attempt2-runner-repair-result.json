@@ -1,0 +1,32 @@
+{
+  "result": "STOPPED_AT_NATIVE_BOUNDARY",
+  "fault": "MODEL_USAGE_LIMIT",
+  "completedAt": "2026-10-17T15:14:13.477Z",
+  "baseline": "8f3441a08c6cea99f4544b32a662ce0fc53ec172",
+  "binding": {
+    "repository": "bellaspahcm/bella-ai-platform",
+    "taskId": "98eb2bb4-9b65-4ff1-b1c7-f7deeb4a0577",
+    "runId": "215967f7-a262-4a94-968f-bedc10a29669",
+    "attempt": 2,
+    "producerInstanceId": "9a6158e4-aa28-4c0b-a6aa-b78a09e98bf3",
+    "threadId": "01a14a6d-4739-7932-92eb-b6519aa74b0f",
+    "sessionId": "01a14a6d-4739-7932-92eb-b6519aa74b0f",
+    "turnId": "01a14a6d-48f2-74f3-a47c-c99889274943"
+  },
+  "model": "gpt-6.1-sol",
+  "authorityVerifiedAt": "2026-10-17T15:13:54.067Z",
+  "directory": "C:\\Users\\DELL\\.codex\\agent-flow-evidence\\bella-agent-flow-4bGknE",
+  "nativeTurnStatus": "failed",
+  "commands": [],
+  "changes": [],
+  "changed": [],
+  "acks": 4,
+  "facts": 4,
+  "fileChange": [],
+  "sourceBefore": "e8a8c19fd398e1a6ba988b3fd75c2ceba2b2bd48443792edb541a8ac919076e5",
+  "sourceAfter": "e8a8c19fd398e1a6ba988b3fd75c2ceba2b2bd48443792edb541a8ac919076e5",
+  "beforeInventorySha256": "45f3da080e30b9a017e8a7e84b4e14a545fbedc39a7f0b88a91f7b7bd8c8cdf5",
+  "afterInventorySha256": "45f3da080e30b9a017e8a7e84b4e14a545fbedc39a7f0b88a91f7b7bd8c8cdf5",
+  "scope": "One synthetic UI task, not autonomous discovery or Product readiness",
+  "dbOperations": 0
+}

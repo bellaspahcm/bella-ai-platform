@@ -1,0 +1,20 @@
+# Native Agent Flow — Reports document-title contrast
+
+PASS scoped UI repair and one approved native task, not Product readiness or continuous orchestration.
+
+1. Process/Truth: PR363 dark-mobile screenshot shows document names difficult to read; source title paragraphs use fixed text-[#172B38] without a dark variant. Owner now asks next bounded UI task to execute through existing Agent Flow. Live PR363 at8f3441a has11SUCCESS checks and remains draft. Repair only this evidenced title-text issue.
+2. Manifest/capability unchanged. No reporting, export or AI capability added.
+3. Ownership: Reports UI owns title color; existing AppServer/DevelopmentStore owns minimized development lifecycle. Lead owns intake/gate/one-off invocation and independent readback; one native worker owns code/test/evidence/PR preparation. SINGLE_AGENT with sequential dev/QA; not an invented parallel team.
+4. Dependencies: Reports component → existing CSS/theme tokens. Agent task → unchanged scripts/agent-flow/probe.mjs AppServer → existing contract/DevelopmentStore → fresh native history readback. No business API/DB/Kernel/new public contract. One-off task input adaptation reuses those exports; no generic launcher or framework.
+5. Exact change authority: src/app/dashboard/education/reports/page.tsx ONLY quick/detail document-title text classes; new test/proof under this directory. Lead-only agent-flow-task.mjs, this gate and TASK.md cannot be altered by worker. No edits to scripts/agent-flow, _bmad, existing tests/proof, package/config/theme/globalCSS, other src, Auth/RLS/DB/migration/Kernel. Root scoped worktree8f3441a; two503 unchanged. No old suites, network/MCP/environment secrets or real data.
+6. UI reconciliation: same4documents/2locations, same titles/actions/feedback; dark/light title contrast must meet4.5:1. No metric/semantic/navigation changes. Test actual compiled component and globalsCSS with synthetic mount, font limitations disclosed.
+7. Migration NONE. No C10/E01/start/probe/fixture. Owner merge/release gate remains.
+8. Eleven gates: exactbase/scope, true before-failure/after-pass, minimal color fix, types/lint,4browser/32titlecontrast checks, unchanged public boundaries, no persistence/event claims, minimized native lifecycle+ACK, nativefileChange and actual command completion, separateprocess history reconciliation, independent diff/provenance. Parent RLS FAIL/Course authorization BLOCKED/UI-to-DB NOT_PROVEN/Pre-Go-Live BLOCKED are retained.
+
+Bounded execution: one native task,15minute hard turn limit, no more than3 repair rounds/rootcause or60minutes total. Usage/permission/canonical-source errors stop with actual reason; no bypass, no fake task completion or dashboard-only PASS. User authorizes commit/draftPR after Lead verifies actual diff. Worker prepares PR body only; Lead publishes under OD07 after verification.
+
+## Runner repair batch — latest Owner instruction
+
+PASS for task-local dependency placement and retry2. User authorizes diagnosing/fixing browser runner without broader network/admin/sandbox bypass. Managed command proved Node child works, AppData browser read/spawn returns EPERM. Same291browser files copied to ignored worktree cache with all checksums matching; unchanged workspaceWrite policy/networkAccess=false then launched Playwright and passed offline synthetic smoke. No ACL, global config, core AgentFlow or sandbox policy changed.
+
+Lead owns runner-repair-task.mjs, RUNNER_REPAIR_TASK.md, runner-repair-result/readback and provenance. Worker owns current title-contrast.cjs runner path/output correction plus minimal existing Reports title classes; native-before/native-after and4native screenshots, runner-repair-verification.json and RUNNER_REPAIR_PR_BODY.md. Preserve all attempt1 receipts and host-before.json; no old suites rerun. New Owner-approved batch has same3repair-round/rootcause and60min budget,15min native turn timeout; do not reset within batch. If existing sandbox still blocks, stop. Compare32native before measurements with unchanged-source host baseline before treating as UI failures.
