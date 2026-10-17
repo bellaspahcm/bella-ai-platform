@@ -31,6 +31,7 @@
 
 import { useState, useRef, useEffect, useMemo, useCallback, type ChangeEvent } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import {
   ArrowLeft,
   Heart,
@@ -747,10 +748,13 @@ export default function CarePage() {
                   {/* Name + Avatar */}
                   <td className="py-3 px-3">
                     <div className="flex items-center gap-2.5">
-                      <img
+                      <Image
                         src={student.avatarUrl}
                         alt={student.name}
+                        width={28}
+                        height={28}
                         className="w-7 h-7 rounded-full object-cover shrink-0 border border-slate-100"
+                        unoptimized
                         onError={(e) => {
                           e.currentTarget.style.display = 'none';
                         }}
@@ -905,10 +909,13 @@ export default function CarePage() {
                   className="p-3.5 rounded-xl bg-white dark:bg-slate-800 border border-rose-100/80 dark:border-rose-900/40 flex items-center justify-between gap-3 shadow-2xs"
                 >
                   <div className="flex items-center gap-3 min-w-0">
-                    <img
+                    <Image
                       src={student.avatarUrl}
                       alt={student.name}
+                      width={40}
+                      height={40}
                       className="w-10 h-10 rounded-full object-cover shrink-0 border border-slate-100"
+                      unoptimized
                     />
                     <div className="min-w-0">
                       <div className="text-xs font-bold text-slate-900 dark:text-white truncate">
@@ -1122,10 +1129,13 @@ export default function CarePage() {
             </button>
 
             <div className="flex items-center gap-3.5">
-              <img
+              <Image
                 src={selectedStudentForDetail.avatarUrl}
                 alt={selectedStudentForDetail.name}
+                width={48}
+                height={48}
                 className="w-12 h-12 rounded-full object-cover border-2 border-emerald-500/20 shadow-xs"
+                unoptimized
               />
               <div>
                 <h3 className="text-base font-extrabold text-slate-900 dark:text-white">

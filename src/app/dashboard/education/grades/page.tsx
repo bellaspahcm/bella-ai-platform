@@ -39,6 +39,7 @@
 
 import { useState, useEffect, useMemo, type ChangeEvent } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import {
   ArrowLeft,
   GraduationCap,
@@ -1171,10 +1172,13 @@ export default function PreschoolDevelopmentGradesPage() {
                           onClick={() => setInspectedStudent(child)}
                           className="flex items-center gap-3 cursor-pointer group"
                         >
-                          <img
+                          <Image
                             src={child.avatarUrl}
                             alt={child.name}
+                            width={32}
+                            height={32}
                             className="w-8 h-8 rounded-full object-cover border border-slate-200 dark:border-slate-700 shrink-0"
+                            unoptimized
                             onError={(e) => {
                               // Fallback styling if image fails
                               e.currentTarget.style.display = 'none';
@@ -1246,10 +1250,13 @@ export default function PreschoolDevelopmentGradesPage() {
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-center gap-3">
-                    <img
+                    <Image
                       src={child.avatarUrl}
                       alt={child.name}
+                      width={40}
+                      height={40}
                       className="w-10 h-10 rounded-full object-cover border border-slate-200 shrink-0"
+                      unoptimized
                     />
                     <div>
                       <h3 className="font-extrabold text-sm text-slate-900 dark:text-white">
@@ -1368,10 +1375,13 @@ export default function PreschoolDevelopmentGradesPage() {
                 className="p-3.5 rounded-2xl border border-slate-100 dark:border-slate-700/60 hover:bg-slate-50 dark:hover:bg-slate-700/40 transition-all flex items-center justify-between gap-3 cursor-pointer"
               >
                 <div className="flex items-center gap-3">
-                  <img
+                  <Image
                     src={item.avatarUrl}
                     alt={item.name}
+                    width={36}
+                    height={36}
                     className="w-9 h-9 rounded-full object-cover border border-slate-200 shrink-0"
+                    unoptimized
                   />
                   <div>
                     <div className="text-xs font-extrabold text-slate-900 dark:text-white">
@@ -1467,10 +1477,13 @@ export default function PreschoolDevelopmentGradesPage() {
             {/* Header */}
             <div className="flex items-start justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-4">
               <div className="flex items-center gap-3.5">
-                <img
+                <Image
                   src={inspectedStudent.avatarUrl}
                   alt={inspectedStudent.name}
+                  width={48}
+                  height={48}
                   className="w-12 h-12 rounded-full object-cover border-2 border-[#0c513f]"
+                  unoptimized
                 />
                 <div>
                   <div className="flex items-center gap-2">
