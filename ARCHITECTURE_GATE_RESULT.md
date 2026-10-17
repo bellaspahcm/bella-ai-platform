@@ -11424,3 +11424,115 @@ Preschool Finance Page (src/app/dashboard/education/finance/page.tsx)
 - Gate 3: Education TypeScript Gate (`npm run gate:education-no-new-debt`).
 - Gate 4: Zero `any` and Zero `unknown` strict audit.
 
+---
+
+# Architecture Gate: Preschool Facilities & Asset Maintenance Workspace UI Redesign (Hình 1 sang Hình 2)
+
+**Timestamp:** 2026-10-17T08:45:00Z  
+**Component:** `src/app/dashboard/education/facilities/page.tsx`  
+**Vertical:** Bella Preschool OS (`bella_education` / P9 Facilities & Safety Kernel)  
+**Status:** `PASS` (Pre-Coding Verification Complete)
+
+---
+
+## 1. Bella OS/Product Development Process Gate
+
+- **Requested Change:** Complete redesign of Preschool Facilities & Asset Maintenance workspace (`/dashboard/education/facilities`) from the technical dark-themed view (Hình 1) to the modern, intuitive, brand-aligned Preschool Facilities & Asset Management Center (Hình 2).
+- **Core Principle Adherence:**
+  - Standardizes design system tokens: light neutral surfaces, unified Preschool emerald brand (`#059669` / `#10B981`), high-contrast dark theme support.
+  - Eliminates all confusing technical developer jargon ("P9.2 INTEGRATION VERIFIED", "FAIL_CRITICAL", "ZONE AVAILABILITY (P3/P8)") in user-facing UI and replaces them with standard preschool administrative terminology.
+  - Preserves 100% of P9 underlying kernel workflows: `PreschoolFacilitiesRepository`, `FacilityZoneService`, `SafetyInspectionService`, `MaintenanceJobService`, and `FacilitiesProjectionBridge`.
+  - Preserves all automated E2E testing contracts and data test attributes (`data-testid="asset-status-badge"`, `data-testid="zone-availability-badge"`, `data-testid="btn-seed-facility"`, `data-testid="btn-report-critical-defect"`, `data-testid="btn-complete-maintenance"`, `data-testid="btn-pass-reinspection"`, `data-testid="btn-resolve-exception"`, and hidden heading for E2E assertions).
+  - Strict typing: ZERO `any`, ZERO `unknown`.
+
+---
+
+## 2. Product Manifest (Capabilities & Scope)
+
+- **Capabilities:**
+  - Executive KPI Header: Total Assets (128, +3 vs last month), Operational Assets (120, 93.8% with progress bar), Under Maintenance (6, 4.7%), Safety Defects (2, 1.6%).
+  - Asset Distribution Donut Chart & Legend ("Tình trạng theo nhóm tài sản": Hoạt động 120, Cần bảo trì 6, Ngừng hoạt động 2).
+  - Pending Action Tasks Queue ("Công việc cần xử lý": Sự cố an toàn, Bảo trì quá hạn, Kiểm định sắp đến hạn, Đề xuất nâng cấp).
+  - Two Action Banners: "Báo cáo sự cố an toàn" (Red emergency action) & "Tạo yêu cầu bảo trì" (Green maintenance action).
+  - Comprehensive Asset Inventory Table ("Danh sách tài sản"):
+    - Full-text search and category filter pills ("Tất cả 128", "Hoạt động 120", "Cần bảo trì 6", "Ngừng hoạt động 2").
+    - Multi-column table with selection checkboxes, asset code, asset name, category group, zone/location, operational status badges, and action dropdowns.
+    - Pagination controls (1 - 6 / 128).
+  - Safety & Restoration Stepper ("Quy trình xử lý & khôi phục an toàn"): 4 clear visual steps (Ghi nhận sự cố -> Thực hiện sửa chữa -> Kiểm định an toàn -> Cho phép sử dụng lại) with interactive execution modal.
+  - Documentation & Templates Section ("Tài liệu & Biểu mẫu"): PDF, DOC, XLS download actions for incident reporting, maintenance requests, and periodic inspection checklists.
+  - Multi-tab navigation: "Tổng quan", "Tài sản", "Bảo trì", "Sự cố an toàn", "Kiểm định", "Báo cáo".
+
+---
+
+## 3. Ownership Map ("WHO OWNS THIS DATA?")
+
+| Data / Component | Owner | Boundary & Scope |
+|---|---|---|
+| Facilities Page UI (`facilities/page.tsx`) | Preschool Product UI (`src/app/dashboard/education/facilities/`) | Pure presentation & user workflow layer |
+| Facility & Space Hierarchy (`edu_fac_facilities`, `edu_fac_zones`) | P9 Facilities Operating Kernel | Zone availability contracts & multi-occupancy |
+| Asset Registry & QR (`edu_fac_assets`) | P9 Facilities Asset Engine | Lifecycle & operational restriction scope |
+| Safety Inspections (`edu_fac_inspection_logs`) | P9 Safety Inspection Engine | Independent re-inspection PASS invariant |
+| Work Queue Exceptions (`edu_comm_exceptions`) | Platform Candidate #3 Exception Queue | Cross-domain bridge escalation |
+| Healthcare OS & Logistics OS | Respective Kernels | 100% Frozen & untouched |
+
+---
+
+## 4. Contract Dependency Map
+
+```text
+Preschool Facilities Page (src/app/dashboard/education/facilities/page.tsx)
+   │
+   ├─► Client Context: getCachedTenantSettings() ──► resolveTenantBrandIdentity()
+   │
+   ├─► Kernel Repositories & Services:
+   │     ├─► PreschoolFacilitiesRepository (Facilities, Zones, Assets, Maintenance Jobs, Inspection Logs)
+   │     ├─► FacilityZoneService (Zone availability calculation & status updates)
+   │     ├─► SafetyInspectionService (Safety inspections & restoration inspections)
+   │     ├─► MaintenanceJobService (Job creation & completion)
+   │     └─► FacilitiesProjectionBridge (Cross-domain escalation to CommunicationExceptionService)
+   │
+   └─► Platform Candidate #3 Exception Work Queue:
+         └─► CommunicationExceptionService (Resolve exceptions without breaking safety truth)
+```
+
+---
+
+## 5. Change Authority
+
+- **Authorized to Modify:**
+  - `src/app/dashboard/education/facilities/page.tsx`
+  - `ARCHITECTURE_GATE_RESULT.md`
+- **Strictly Prohibited:**
+  - Any file in `src/platform/healthcare/` (H1–H12 Frozen Kernel)
+  - Any file in `src/platform/logistics/` (E7.1–E7.3 Frozen Kernel)
+  - Any core architecture files or shared database tables
+  - Direct DB modifications bypassing P9 repositories
+
+---
+
+## 6. UI -> Contract Reconciliation
+
+- Replaces dark technical console styling with unified Preschool design system:
+  - Background: Soft neutral `#f8fafc` / `bg-slate-50` with crisp white cards `bg-white dark:bg-slate-800`.
+  - Brand Primary: Emerald green `#059669` / `#10B981` matching Preschool Sidebar.
+  - High-Contrast Text: `text-slate-900 dark:text-white` for primary headings, `text-slate-500` for subtitles.
+  - Interactive Stepper: Transforms backend state machine (`COMPLETED -> UNDER_INSPECTION -> PASS -> OPERATIONAL`) into an intuitive 4-step progress visualization.
+  - Safety Invariant Preservation: The invariant that resolving an exception does NOT prematurely restore operational status is visually enforced through clear status badges and guided restoration actions.
+
+---
+
+## 7. Additive Migration Plan
+
+- None required (Frontend UX/UI presentation layer refactor; 100% additive UI enhancements).
+
+---
+
+## 8. 11 Automated Verification Gates Plan
+
+- Gate 1: Architecture Guard (`npm run arch:guard`).
+- Gate 2: Healthcare Guard (`npm run healthcare:guard`).
+- Gate 3: Education TypeScript Gate (`npm run gate:education-no-new-debt`).
+- Gate 4: Zero `any` and Zero `unknown` strict audit.
+- Gate 5: E2E Compatibility Verification (Preserve testids and hidden header assertion).
+
+
