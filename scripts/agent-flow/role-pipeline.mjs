@@ -132,5 +132,5 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
   const [operation, input] = process.argv.slice(2);
   const action = operation === 'run' ? import('./role-native.mjs').then(async m => m.runNative(JSON.parse(await readFile(resolve(input), 'utf8'))))
     : operation === 'read' ? import('./role-native.mjs').then(m => m.readNative(input)) : Promise.reject(new Error('INVALID_OPERATION'));
-  action.then(r => { console.log(JSON.stringify(r)); if (r.status !== 'PASS') process.exitCode = 1; }).catch(e => { console.error(/^[A-Z_]{3,80}$/.test(e.message) ? e.message : 'PIPELINE_HELD'); process.exitCode = 1; });
+  action.then(r => { console.log(JSON.stringify({ status: r.status, reason: r.reason, taskId: r.taskId, candidate: r.candidate, revisions: r.revisions, directory: r.directory, checks: r.checks })); if (r.status !== 'PASS') process.exitCode = 1; }).catch(e => { console.error(/^[A-Z_]{3,80}$/.test(e.message) ? e.message : 'PIPELINE_HELD'); process.exitCode = 1; });
 }
