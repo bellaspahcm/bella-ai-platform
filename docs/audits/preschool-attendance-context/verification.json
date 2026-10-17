@@ -1,0 +1,209 @@
+{
+  "recordedAt": "2026-10-17T11:54:14.913Z",
+  "result": "PASS_SCOPED_SYNTHETIC_UI",
+  "review": "review.json: three independent read-only review lenses; metadata finding fixed and verified, no actionable findings remain",
+  "worktree": "C:\\Users\\DELL\\.codex\\worktrees\\preschool-attendance-context\\BELLA SPA ERP",
+  "branch": "codex/preschool-attendance-context",
+  "baseline": {
+    "file": "src/app/dashboard/education/attendance/page.tsx",
+    "sha256": "b80753831b47c2a170a3fbd7886e239376505ee33129ed5e7ef887f79612ba4f",
+    "head": "0bc9bba1b888ca121dd4ae56eb9ff7ebb1c9831f"
+  },
+  "baselineHeadMatches": {
+    "rawBytes": false,
+    "checkoutCrlfContent": true,
+    "gitBlobSha256": "3f4734a65d924d04868ad0cdecbcda5eb1f5a08b2a3b1c07f9d0db4c1611b0dc",
+    "explanation": "Git blob LF and unchanged pre-test checkout CRLF have equivalent text. failing-before source SHA is the exact checkout bytes."
+  },
+  "sourceFreeze": [
+    {
+      "file": "src/app/dashboard/education/attendance/page.tsx",
+      "sha256": "e29adc243dc692cf87892cdf8ae02812807c1831a382d1a82cc6e7fde76af80c"
+    },
+    {
+      "file": "src/app/dashboard/education/attendance/__tests__/page.test.tsx",
+      "sha256": "4b32776f2184898ae927d15df6ccae8d86cf0ba0edf45d650d39bbb6ad49f5c6"
+    }
+  ],
+  "runtimeDiffFiles": [
+    "src/app/dashboard/education/attendance/page.tsx"
+  ],
+  "scopeResult": "PASS",
+  "checks": {
+    "educationTypecheck": {
+      "command": [
+        "node",
+        "node_modules/typescript/bin/tsc",
+        "-p",
+        "tsconfig.education.json",
+        "--noEmit",
+        "--incremental",
+        "false",
+        "--pretty",
+        "false"
+      ],
+      "exitCode": 0,
+      "result": "PASS",
+      "diagnosticCount": 0,
+      "log": "education-typecheck.log"
+    },
+    "testSourceTypecheck": {
+      "command": [
+        "node",
+        "node_modules/typescript/bin/tsc",
+        "-p",
+        "docs/audits/preschool-attendance-context/tsconfig.ui-tests.json",
+        "--pretty",
+        "false"
+      ],
+      "exitCode": 0,
+      "result": "PASS",
+      "diagnosticCount": 0,
+      "log": "test-source-typecheck.log"
+    },
+    "lint": {
+      "command": [
+        "node",
+        "node_modules/eslint/bin/eslint.js",
+        "src/app/dashboard/education/attendance/page.tsx",
+        "src/app/dashboard/education/attendance/__tests__/page.test.tsx"
+      ],
+      "exitCode": 0,
+      "result": "PASS",
+      "diagnosticCount": 0,
+      "log": "targeted-lint.log"
+    }
+  },
+  "focusedTests": {
+    "result": "PASS",
+    "total": 13,
+    "passed": 13,
+    "failed": 0,
+    "proof": "focused-tests.json"
+  },
+  "failingBefore": {
+    "total": 3,
+    "failed": 3,
+    "source": {
+      "file": "src/app/dashboard/education/attendance/page.tsx",
+      "sha256": "b80753831b47c2a170a3fbd7886e239376505ee33129ed5e7ef887f79612ba4f",
+      "head": "0bc9bba1b888ca121dd4ae56eb9ff7ebb1c9831f"
+    },
+    "proof": "failing-before.json"
+  },
+  "businessContract": "Owner-approved context invariant only: never show or act on a row from another selected course/day. This is not proof or redesign of pickup/attendance permission, date, or persistence semantics.",
+  "offlineBoundary": {
+    "network": "All Jest socket/HTTP/fetch network denied except explicit synthetic fetch; unknown synthetic fetch throws. Browser routes intercept every request and reject all unexpected origins/routes.",
+    "env": "NextJest({}) with no dir; no project setup/Next config. Harness denies .env reads. No server started.",
+    "sourceOrTestDepsChanged": false,
+    "dbOrAuthAccess": false,
+    "migrationsOrFixtures": false,
+    "realData": false,
+    "remoteOps": false
+  },
+  "limitations": [
+    "No DB readback, real Auth/RLS, tenant proof, full Next browser E2E or Pre-Go-Live readiness.",
+    "Healthcare regression not run: no isolated integration target.",
+    "No API/backend/public contract/guardian/date eligibility change.",
+    "3-lens mandatory review handled by Lead; source frozen."
+  ],
+  "browser": {
+    "proof": "browser-proof.json",
+    "result": "PASS_SCOPED_SYNTHETIC_COMPONENT",
+    "cases": 4,
+    "contrast": {
+      "result": "PASS_SCOPED",
+      "checked": 12,
+      "failed": 0,
+      "minimumRatio": 4.817056245726985,
+      "threshold": 4.5
+    },
+    "sourceHashMatchesFreeze": true,
+    "screenshots": [
+      "component-light-desktop.png",
+      "component-light-mobile.png",
+      "component-dark-desktop.png",
+      "component-dark-mobile.png"
+    ],
+    "visualInspection": {
+      "lightMobile": true,
+      "darkDesktop": true,
+      "limits": "Standalone styling uses compiled globals CSS and fallback browser fonts, not authenticated Next layout/theme preset."
+    }
+  },
+  "artifacts": [
+    {
+      "file": "ARCHITECTURE_GATE_RESULT.md",
+      "sha256": "ecce0a4bc3d2bbba592397d93939c757ffb949797bce165a0f6818937bfebbad"
+    },
+    {
+      "file": "before-source.json",
+      "sha256": "20a0ff26d4436faf788844cc803d231c645805197c644232d33d1ae195fb7dbd"
+    },
+    {
+      "file": "browser-component.cjs",
+      "sha256": "7f6c2b9ac7d24f7a7cc91790cc4208d57708bd51dce8d854829cf492e96d9d6a"
+    },
+    {
+      "file": "browser-proof.json",
+      "sha256": "eb6858654e49e847d1f336d720392e3f0f83cb7eddbc173ec2a7c525a52bc54a"
+    },
+    {
+      "file": "component-dark-desktop.png",
+      "sha256": "79546711277e672fd287e0b4f865680a48c12b9a81d37422efb4d168ef908797"
+    },
+    {
+      "file": "component-dark-mobile.png",
+      "sha256": "579e38a6c83b39660ff8ee97390e391708cfe1a0ccf8715bade30ef9ec45fabe"
+    },
+    {
+      "file": "component-light-desktop.png",
+      "sha256": "3a7e3fee09b293b4bb636ccae0d88e16afc69ff3a0b9da8619f347403476c5e0"
+    },
+    {
+      "file": "component-light-mobile.png",
+      "sha256": "320492c0cde18427a2c48562fdf920b87969c1092d5be4f7652f926d2e77674e"
+    },
+    {
+      "file": "education-typecheck.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "file": "failing-before.json",
+      "sha256": "a3fea7ecdec3d857a8cd260a41fa3cba02e62a529ef557672436fef7cf503da3"
+    },
+    {
+      "file": "focused-tests.json",
+      "sha256": "0dbd988c304786e1c1b83aba2be07c4fffb85914a33cd2eacdb0efd8c8ada061"
+    },
+    {
+      "file": "offline-guard.cjs",
+      "sha256": "d40870e4b2cc83af7a76d23a72d0d8e5f967dd53e9e2059009fa3af0412a5c21"
+    },
+    {
+      "file": "run-focused.cjs",
+      "sha256": "fea7bc2e27941054762bec2e798e504c1b6a62632f0d5f251c0c6468eb08c6e1"
+    },
+    {
+      "file": "targeted-lint.log",
+      "sha256": "9904c4fcb30efd5a39d3a9ebcd61490de99b37a281a99d3fa24433ca66bf26a7"
+    },
+    {
+      "file": "test-source-typecheck.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "file": "tsconfig.ui-tests.json",
+      "sha256": "58e5fe41b96d2f69267d77e33a891c82a88b48219875a528719326c4e2312ed5"
+    },
+    {
+      "file": "review.json",
+      "sha256": "8b4ec0a0d3ad7860cca8e60ec8d12f02fe8365b3d58c1bf1220f1f3abec85bb3"
+    }
+  ],
+  "diffWhitespace": {
+    "exitCode": 0,
+    "result": "PASS"
+  },
+  "artifactHashMeaning": "Exact current worktree bytes; Git may normalize CRLF on checkout. Browser helper changed whitespace only after execution; no source/test or executable semantics changed."
+}
