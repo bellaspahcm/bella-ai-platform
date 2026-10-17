@@ -1,0 +1,83 @@
+diff --git a/src/app/dashboard/education/reports/page.tsx b/src/app/dashboard/education/reports/page.tsx
+index 3c21daaf8..d15e39c35 100644
+--- a/src/app/dashboard/education/reports/page.tsx
++++ b/src/app/dashboard/education/reports/page.tsx
+@@ -359,0 +360,5 @@ export default function ReportsPage() {
++  function showDetailReports() {
++    setActiveTab('detail');
++    setLastOutput({ id: 'reports-detail-heading' });
++  }
++
+@@ -361 +366,5 @@ export default function ReportsPage() {
+-    if (lastOutput) document.getElementById(lastOutput.id)?.scrollIntoView?.({ block: 'nearest' });
++    if (lastOutput) {
++      const destination = document.getElementById(lastOutput.id);
++      destination?.scrollIntoView?.({ block: 'nearest' });
++      if (lastOutput.id === 'reports-detail-heading') destination?.focus({ preventScroll: true });
++    }
+@@ -569 +578,6 @@ export default function ReportsPage() {
+-              <button className="inline-flex items-center gap-1 text-xs font-bold text-emerald-600 hover:text-emerald-700 transition-colors cursor-pointer">
++              <button
++                type="button"
++                aria-label="Xem chi tiết: Gợi ý AI minh họa"
++                aria-describedby={unavailableOutputs.includes('reports-ai-details-status') ? 'reports-ai-details-status' : undefined}
++                onClick={() => showUnavailableOutput('reports-ai-details-status')}
++                className="inline-flex items-center gap-1 text-xs font-bold text-emerald-600 hover:text-emerald-700 transition-colors cursor-pointer">
+@@ -572,0 +587,5 @@ export default function ReportsPage() {
++            {unavailableOutputs.includes('reports-ai-details-status') && (
++              <p id="reports-ai-details-status" role="status" className="scroll-my-3 text-xs leading-relaxed text-slate-900 dark:text-slate-100">
++                Chưa có chi tiết AI bổ sung trong bản xem trước; các gợi ý đang hiển thị là ví dụ minh họa.
++              </p>
++            )}
+@@ -688 +707,6 @@ export default function ReportsPage() {
+-                <button className="inline-flex items-center gap-1 text-xs font-bold text-emerald-600 hover:text-emerald-700 transition-colors cursor-pointer">
++                <button
++                  type="button"
++                  aria-label="Xem chi tiết: Tình trạng theo nhóm lớp"
++                  aria-describedby={unavailableOutputs.includes('reports-class-details-status') ? 'reports-class-details-status' : undefined}
++                  onClick={() => showUnavailableOutput('reports-class-details-status')}
++                  className="inline-flex items-center gap-1 text-xs font-bold text-emerald-600 hover:text-emerald-700 transition-colors cursor-pointer">
+@@ -691,0 +716,5 @@ export default function ReportsPage() {
++              {unavailableOutputs.includes('reports-class-details-status') && (
++                <p id="reports-class-details-status" role="status" className="scroll-my-3 text-xs leading-relaxed text-slate-900 dark:text-slate-100">
++                  Chưa có chế độ xem chi tiết đầy đủ theo nhóm lớp trong bản xem trước này.
++                </p>
++              )}
+@@ -729 +758,6 @@ export default function ReportsPage() {
+-                <button className="inline-flex items-center gap-1 text-xs font-bold text-emerald-600 hover:text-emerald-700 transition-colors cursor-pointer">
++                <button
++                  type="button"
++                  aria-label="Xem tất cả: Top vấn đề cần chú ý"
++                  aria-describedby={unavailableOutputs.includes('reports-all-issues-status') ? 'reports-all-issues-status' : undefined}
++                  onClick={() => showUnavailableOutput('reports-all-issues-status')}
++                  className="inline-flex items-center gap-1 text-xs font-bold text-emerald-600 hover:text-emerald-700 transition-colors cursor-pointer">
+@@ -732,0 +767,5 @@ export default function ReportsPage() {
++              {unavailableOutputs.includes('reports-all-issues-status') && (
++                <p id="reports-all-issues-status" role="status" className="scroll-my-3 text-xs leading-relaxed text-slate-900 dark:text-slate-100">
++                  Chưa có danh sách vấn đề đầy đủ trong bản xem trước này.
++                </p>
++              )}
+@@ -780 +819,6 @@ export default function ReportsPage() {
+-                <button className="inline-flex items-center gap-1 text-xs font-bold text-emerald-600 hover:text-emerald-700 transition-colors cursor-pointer">
++                <button
++                  type="button"
++                  aria-label="Xem tất cả: Hoạt động nổi bật trong tháng"
++                  aria-describedby={unavailableOutputs.includes('reports-all-events-status') ? 'reports-all-events-status' : undefined}
++                  onClick={() => showUnavailableOutput('reports-all-events-status')}
++                  className="inline-flex items-center gap-1 text-xs font-bold text-emerald-600 hover:text-emerald-700 transition-colors cursor-pointer">
+@@ -783,0 +828,5 @@ export default function ReportsPage() {
++              {unavailableOutputs.includes('reports-all-events-status') && (
++                <p id="reports-all-events-status" role="status" className="scroll-my-3 text-xs leading-relaxed text-slate-900 dark:text-slate-100">
++                  Chưa có danh sách hoạt động đầy đủ trong bản xem trước này.
++                </p>
++              )}
+@@ -810 +859,5 @@ export default function ReportsPage() {
+-                <button className="inline-flex items-center gap-1 text-xs font-bold text-emerald-600 hover:text-emerald-700 transition-colors cursor-pointer">
++                <button
++                  type="button"
++                  aria-label="Xem tất cả: Tài liệu & Báo cáo nhanh (minh họa)"
++                  onClick={showDetailReports}
++                  className="inline-flex items-center gap-1 text-xs font-bold text-emerald-600 hover:text-emerald-700 transition-colors cursor-pointer">
+@@ -946 +999 @@ export default function ReportsPage() {
+-          <h3 className="text-base font-extrabold text-[#172B38] flex items-center gap-2">
++          <h3 id="reports-detail-heading" tabIndex={-1} className="text-base font-extrabold text-[#172B38] flex items-center gap-2">
