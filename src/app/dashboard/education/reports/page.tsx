@@ -458,7 +458,7 @@ export default function ReportsPage() {
             </div>
             <div>
               <p className="text-[11px] font-semibold text-slate-500 mb-1">Tỷ lệ chuyên cần</p>
-              <p className="text-2xl font-extrabold text-[#172B38]">{KPI_ATTENDANCE}%</p>
+              <p className="text-2xl font-extrabold text-slate-900 dark:text-slate-100">{KPI_ATTENDANCE}%</p>
               <p className="text-[10px] text-slate-400 mt-0.5">So với tháng trước</p>
             </div>
             <ProgressBar pct={KPI_ATTENDANCE} color="bg-emerald-500" />
@@ -480,7 +480,7 @@ export default function ReportsPage() {
             </div>
             <div>
               <p className="text-[11px] font-semibold text-slate-500 mb-1">Tăng trưởng theo WHO</p>
-              <p className="text-2xl font-extrabold text-[#172B38]">{KPI_GROWTH}%</p>
+              <p className="text-2xl font-extrabold text-slate-900 dark:text-slate-100">{KPI_GROWTH}%</p>
               <p className="text-[10px] text-slate-400 mt-0.5">So với tháng trước</p>
             </div>
             <ProgressBar pct={KPI_GROWTH} color="bg-sky-500" />
@@ -502,7 +502,7 @@ export default function ReportsPage() {
             </div>
             <div>
               <p className="text-[11px] font-semibold text-slate-500 mb-1">Học phí đã thu</p>
-              <p className="text-2xl font-extrabold text-[#172B38]">{KPI_FINANCE_VND} tỷ</p>
+              <p className="text-2xl font-extrabold text-slate-900 dark:text-slate-100">{KPI_FINANCE_VND} tỷ</p>
               <p className="text-[10px] text-slate-400 mt-0.5">So với tháng trước</p>
             </div>
             <ProgressBar pct={(KPI_FINANCE_VND / KPI_FINANCE_PHAITHU) * 100} color="bg-rose-500" />
@@ -526,7 +526,7 @@ export default function ReportsPage() {
             </div>
             <div>
               <p className="text-[11px] font-semibold text-slate-500 mb-1">Mức hài lòng phụ huynh</p>
-              <p className="text-2xl font-extrabold text-[#172B38]">{KPI_CSAT} / 5.0</p>
+              <p className="text-2xl font-extrabold text-slate-900 dark:text-slate-100">{KPI_CSAT} / 5.0</p>
               <p className="text-[10px] text-slate-400 mt-0.5">So với tháng trước</p>
             </div>
             <StarRating score={KPI_CSAT} />

@@ -1,0 +1,129 @@
+{
+  "result": "PASS_SCOPED_NATIVE_KPI_CONTRAST_REPAIR",
+  "recordedAt": "2026-10-17T21:54:24.454Z",
+  "baseline": "db0e79ae50164de8c4754230f553305411dd2d8a",
+  "scope": "Four headline KPI color classes only",
+  "sourceSha256": "a1ba8b02aaba6b92b350d46b27effbb29e54452dd2987260c988d293af725d90",
+  "testSha256": "f8cde2348bdd2dff943d33c0c84e46e2fd20f3d24355546f8e709762c003a55a",
+  "before": {
+    "result": "FAIL",
+    "checked": 16,
+    "passed": 8,
+    "failed": 8,
+    "minimumRatio": 1.0604796600221698,
+    "threshold": 4.5
+  },
+  "after": {
+    "result": "PASS",
+    "checked": 16,
+    "passed": 16,
+    "failed": 0,
+    "minimumRatio": 14.15973670899138,
+    "threshold": 4.5
+  },
+  "cases": 4,
+  "kpiTextsAndNoticePreserved": true,
+  "sourceRepairRounds": 1,
+  "exactFourClassReplacements": true,
+  "runner": "Reused291 checksum-identical task-local dependency files; unchanged workspaceWrite/networkAccess=false; no runner/core/policy changes",
+  "native": {
+    "binding": {
+      "repository": "bellaspahcm/bella-ai-platform",
+      "taskId": "b323d9a8-4fe9-410b-9d7d-593c292756d1",
+      "runId": "6b8a5134-4818-47cb-8fa7-a0e52114c8a9",
+      "attempt": 1,
+      "producerInstanceId": "c34452c6-a0f7-4cbc-8797-b2f96e095805",
+      "threadId": "01a14bd8-5b7a-7d00-b504-1d0860617937",
+      "sessionId": "01a14bd8-5b7a-7d00-b504-1d0860617937",
+      "turnId": "01a14bd8-5cb6-7012-9d80-6454395d5b1c"
+    },
+    "commands": 8,
+    "fileChanges": 1,
+    "facts": 46,
+    "fileChangeReadback": "1/1 MATCH",
+    "testOutputsMatch": true,
+    "beforePatchAfterOrder": "PASS",
+    "nonTestStdoutDigestDifferences": 2
+  },
+  "checks": [
+    {
+      "command": "node docs/audits/preschool-report-kpi-flow/kpi-contrast.cjs before",
+      "exitCode": 1,
+      "result": "Expected contrast reproduction: 8 dark failures, 8 light passes"
+    },
+    {
+      "command": "node docs/audits/preschool-report-kpi-flow/kpi-contrast.cjs after",
+      "exitCode": 0,
+      "result": "16/16 contrast passes"
+    },
+    {
+      "command": "node node_modules/eslint/bin/eslint.js src/app/dashboard/education/reports/page.tsx",
+      "exitCode": 0,
+      "warnings": [
+        "Existing ESLintIgnoreWarning: .eslintignore is unsupported"
+      ]
+    },
+    {
+      "command": "node --check docs/audits/preschool-report-kpi-flow/kpi-contrast.cjs",
+      "exitCode": 0
+    },
+    {
+      "command": "git diff --check",
+      "exitCode": 0
+    },
+    {
+      "command": "git diff -- src/app/dashboard/education/reports/page.tsx",
+      "exitCode": 0,
+      "result": "Inspected four paragraph class-only replacements"
+    },
+    {
+      "command": "git show HEAD:src/app/dashboard/education/reports/page.tsx",
+      "exitCode": 0
+    },
+    {
+      "command": "git diff --name-only",
+      "exitCode": 0
+    },
+    {
+      "command": "Inline Node receipt/hash/screenshot/exact-four-paragraph verification",
+      "exitCode": 0
+    }
+  ],
+  "leadReview": {
+    "runtime": "Exactly four paragraph class replacements, no other tracked source changes",
+    "visual": "Light and dark mobile screenshots inspected; measurements cover desktop and mobile",
+    "provenance": "Independent fresh-process file-change readback and separate native command/history readback"
+  },
+  "limits": [
+    "Targeted synthetic React/component proof, not whole-page contrast, Next runtime, Auth/API/DB/RLS or Product readiness",
+    "No old suites or full build/typecheck rerun for class-only repair",
+    "Two non-test stdout digests differ; native before/after browser outputs match saved receipts exactly",
+    "Lead prepared task/dependencies, reconciled history and publishes PR; not unattended orchestration"
+  ],
+  "boundaries": {
+    "dbOperations": 0,
+    "authOperations": 0,
+    "oldSuitesRerun": 0,
+    "coreAgentFlowModified": false,
+    "networkPolicyChanged": false,
+    "endpoint503": "UNCHANGED",
+    "courseD01toD05": "UNCHANGED",
+    "courseEightFileAllowlist": "PRESERVED",
+    "parentRls": "FAIL",
+    "courseAuthorization": "BLOCKED",
+    "uiToDb": "NOT_PROVEN",
+    "preGoLive": "BLOCKED",
+    "merge": false,
+    "deploy": false
+  },
+  "proofHashes": {
+    "native-before.json": "afb56a80f51c619e33217f259f78ce96e3043b00a30494824b35b614f67ab4f5",
+    "native-after.json": "b8cb1cc24b38923fe0d721ce930e03226b3f85961d319ab649a8216ff8d7a57a",
+    "native-task-result.json": "7c10957db6d689fb1cc9ebb2dcc04cad21b78affa7158e55510034cac9967337",
+    "native-task-readback.json": "d622b94d143658d6c4eed7acfbe2b3d28fef58dab1d9f45954d59de1ec6248c6",
+    "native-command-readback.json": "60cd370a402eb99e22945cf82c058940fecdaea03cd11f7c4a012457ba295f52",
+    "dependency-provenance.json": "69aeff93262ea31099a502a73dd82801049b9b2a574205e01d073ab85ad67797",
+    "verification.json": "942142eba3ad10181af1e947f5a7c66cf1f022bac3a0c292e1455503cdb64d8d"
+  },
+  "hashScope": "Worktree bytes; Git may normalize line endings"
+}

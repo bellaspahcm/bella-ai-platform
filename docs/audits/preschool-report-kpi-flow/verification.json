@@ -1,0 +1,138 @@
+{
+  "result": "PASS",
+  "recordedAt": "2026-10-17T21:52:37.817Z",
+  "scope": "Four headline KPI text-color classes only",
+  "commands": [
+    {
+      "command": "node docs/audits/preschool-report-kpi-flow/kpi-contrast.cjs before",
+      "exitCode": 1,
+      "result": "Expected contrast reproduction: 8 dark failures, 8 light passes"
+    },
+    {
+      "command": "node docs/audits/preschool-report-kpi-flow/kpi-contrast.cjs after",
+      "exitCode": 0,
+      "result": "16/16 contrast passes"
+    },
+    {
+      "command": "node node_modules/eslint/bin/eslint.js src/app/dashboard/education/reports/page.tsx",
+      "exitCode": 0,
+      "warnings": [
+        "Existing ESLintIgnoreWarning: .eslintignore is unsupported"
+      ]
+    },
+    {
+      "command": "node --check docs/audits/preschool-report-kpi-flow/kpi-contrast.cjs",
+      "exitCode": 0
+    },
+    {
+      "command": "git diff --check",
+      "exitCode": 0
+    },
+    {
+      "command": "git diff -- src/app/dashboard/education/reports/page.tsx",
+      "exitCode": 0,
+      "result": "Inspected four paragraph class-only replacements"
+    },
+    {
+      "command": "git show HEAD:src/app/dashboard/education/reports/page.tsx",
+      "exitCode": 0
+    },
+    {
+      "command": "git diff --name-only",
+      "exitCode": 0
+    },
+    {
+      "command": "Inline Node receipt/hash/screenshot/exact-four-paragraph verification",
+      "exitCode": 0
+    }
+  ],
+  "before": {
+    "receipt": "native-before.json",
+    "summary": {
+      "result": "FAIL",
+      "checked": 16,
+      "passed": 8,
+      "failed": 8,
+      "minimumRatio": 1.0604796600221698,
+      "threshold": 4.5
+    },
+    "sourceSha256": "f4f3428104e1d17eb0d0a6f4bd3ca47a77e62c695bd9beacbc61db19b5924ba4",
+    "testSha256": "f8cde2348bdd2dff943d33c0c84e46e2fd20f3d24355546f8e709762c003a55a",
+    "globalsSha256": "1f2458f1e1ff45ff29650ce9bc30a0a408004f079760de68bcef7c915ddce21e",
+    "compiledCssSha256": "2150a389cdde7ed6c1910f2335adf61baedf3738f57d0d06f109db55e4f9dfaf"
+  },
+  "after": {
+    "receipt": "native-after.json",
+    "summary": {
+      "result": "PASS",
+      "checked": 16,
+      "passed": 16,
+      "failed": 0,
+      "minimumRatio": 14.15973670899138,
+      "threshold": 4.5
+    },
+    "sourceSha256": "a1ba8b02aaba6b92b350d46b27effbb29e54452dd2987260c988d293af725d90",
+    "testSha256": "f8cde2348bdd2dff943d33c0c84e46e2fd20f3d24355546f8e709762c003a55a",
+    "globalsSha256": "1f2458f1e1ff45ff29650ce9bc30a0a408004f079760de68bcef7c915ddce21e",
+    "compiledCssSha256": "2150a389cdde7ed6c1910f2335adf61baedf3738f57d0d06f109db55e4f9dfaf"
+  },
+  "assertions": {
+    "sameTestHash": true,
+    "sameGlobalsHash": true,
+    "sameCompiledCssHash": true,
+    "exactFourParagraphReplacementsFromHEAD": true,
+    "onlyTrackedSourceChanged": "src/app/dashboard/education/reports/page.tsx",
+    "kpiTextsAndNoticePreserved": true,
+    "casesPerPhase": 4,
+    "measurementsPerPhase": 16,
+    "pageErrors": 0,
+    "unexpectedRequests": 0,
+    "downloads": 0,
+    "sourceRepairRounds": 1
+  },
+  "screenshots": [
+    {
+      "file": "kpi-light-desktop.png",
+      "bytes": 190422,
+      "sha256": "ff9d43504eb91759a1d796b6ce0fc1592e6b8db4435741d48f64724a8bbfd302",
+      "width": 1440,
+      "height": 1790,
+      "visuallyInspected": true
+    },
+    {
+      "file": "kpi-light-mobile.png",
+      "bytes": 186547,
+      "sha256": "0a8709cf7f2ac06d70ad85b9efb3346d5033141aaa5f416453957097a4b22164",
+      "width": 390,
+      "height": 3711,
+      "visuallyInspected": true
+    },
+    {
+      "file": "kpi-dark-desktop.png",
+      "bytes": 332106,
+      "sha256": "09b41b5c93dcbcf5180e69f3a2a2ffddda2a817a200f79e4e816cbe3899f7eab",
+      "width": 1440,
+      "height": 1790,
+      "visuallyInspected": true
+    },
+    {
+      "file": "kpi-dark-mobile.png",
+      "bytes": 322370,
+      "sha256": "8b36aad86777023bd0a39af70731f4a73b9c93bffcf047092e78c068095d4638",
+      "width": 390,
+      "height": 3711,
+      "visuallyInspected": true
+    }
+  ],
+  "limits": [
+    "Synthetic React mount of actual component and globals.css; Next presentation stubs; no downloaded fonts or Next layout.",
+    "Only headline values measured; other page contrast is outside this task.",
+    "No old suites, full build/typecheck, API/Auth/DB/RLS or production proof. Both 503 handlers unchanged by exact source allowlist.",
+    "Lead files and previous evidence not edited; independent native lifecycle readback remains Lead-owned.",
+    "Parent RLS FAIL; Course authorization BLOCKED; UI-to-DB NOT_PROVEN; Pre-Go-Live BLOCKED.",
+    "No stage, commit, push, PR creation, merge or deployment."
+  ],
+  "diagnostics": [
+    "Read-only git status reported inaccessible user-global ignore file; exit0; no settings or ACL changes."
+  ]
+}
