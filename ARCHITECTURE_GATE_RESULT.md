@@ -11295,3 +11295,132 @@ Preschool Communication Page (src/app/dashboard/education/communication/page.tsx
 - Gate 2: Healthcare Guard (`npm run healthcare:guard`).
 - Gate 3: Education TypeScript Gate (`npm run gate:education-no-new-debt`).
 - Gate 4: Zero `any` and Zero `unknown` strict audit.
+
+---
+
+# ARCHITECTURE GATE RESULT — PRE SCHOOL FINANCE & TUITION WORKSPACE REDESIGN (IMAGE 1 TO IMAGE 2)
+
+> **Status:** PASS  
+> **Date:** 2026-10-17  
+> **Scope:** Redesign Preschool Finance & Tuition Workspace UI (`src/app/dashboard/education/finance/page.tsx`) from the raw, sparse developer view (Image 1) to the high-hierarchy, executive Finance Workspace (Image 2) exclusively for Preschool tenants (`bella_education`).  
+> **Strict Type Invariant:** ZERO use of `any` and `unknown` across all types, interfaces, state variables, props, event handlers, and helper functions.
+
+---
+
+## 1. Bella OS/Product Development Process Gate
+
+- **Truth:**
+  - Preschool tuition, billing, collections, and settlement require a comprehensive, high-hierarchy Finance Operating Workspace:
+    1. **Unified Header:** Circular back button, green currency coin badge, Vietnamese title: "Tài chính & Học phí", subtitle: "Quản lý hóa đơn, công nợ, thanh toán và đối soát", month selector ("Tháng 09/2026" with calendar icon), primary CTA: "+ Lập hóa đơn" in brand dark green (`#0c513f`).
+    2. **4 Clean KPI Stat Cards:**
+       - Phải thu trong kỳ: 245.0 tr (Tổng học phí cần thu, ↑ +12%) with green document icon.
+       - Đã thanh toán: 198.5 tr (81% đã thu, ↑ +8%) with green checkmark icon & badge.
+       - Còn phải thu: 46.5 tr (19% chưa thu, ↓ -5%) with orange wallet icon & badge.
+       - Khoản quá hạn: 12 (Cần nhắc thu, ↓ -3%) with red warning triangle icon & badge.
+    3. **6 Workspace Navigation Tabs:**
+       - "Tổng quan" (Active, `#0c513f` background), "Hóa đơn", "Công nợ", "Thanh toán", "Đối soát", "Báo cáo".
+    4. **3 Middle Analytical & Queue Cards (3 Columns):**
+       - **Biểu đồ thu phí:** 6-month stacked bar chart (Th04 to Th09) comparing "Đã thu" and "Còn phải thu" with selector ("6 tháng gần đây").
+       - **Tình trạng hóa đơn:** Multi-segment donut chart with center total 280 (hóa đơn), breakdown: Đã thanh toán (198 - 71%), Một phần (32 - 11%), Chưa thanh toán (42 - 15%), Bản nháp (8 - 3%).
+       - **Công việc cần xử lý:** Exception queue with count badge 12 and 4 actionable items: 8 hóa đơn quá hạn (Cần nhắc phụ huynh), 5 khoản thanh toán chờ đối soát (Đã nhận chuyển khoản), 3 yêu cầu điều chỉnh học phí (Chờ phê duyệt), 2 hóa đơn nháp chưa phát hành (Từ kỳ thu tháng 09).
+    5. **Main Interactive Workspace (Two Columns):**
+       - **Left Column (~30%): Lập hóa đơn mới:** Student search input ("Tìm theo tên, lớp hoặc mã học sinh..."), billing period selector, preview notice callout ("Hệ thống sẽ hiển thị chi tiết các khoản thu, chiết khấu và số tiền dự kiến trước khi lập nháp."), and action button "🔍 Xem trước hóa đơn".
+       - **Right Column (~70%): Danh sách hóa đơn:** Filter tabs (Tất cả 280, Bản nháp 8, Đã phát hành 252), search input ("Tìm theo mã hóa đơn, tên học sinh..."), dropdowns (Kỳ thu, Trạng thái phát hành, Trạng thái thanh toán), action button ("📥 Xuất dữ liệu"), table with independent dual statuses (Phát hành: Đã phát hành / Bản nháp; Thanh toán: Đã thanh toán / Một phần / Chưa thanh toán), and clean pagination (< [1] 2 3 4 5 ... 35 >).
+    6. **3 Bottom Mini Cards (3 Columns):**
+       - **Công nợ theo lớp:** Horizontal progress bars for Mầm A1 (12.5 tr), Chồi B1 (18.8 tr), Lá C1 (10.2 tr), Nhà Trẻ N1 (5.0 tr).
+       - **Top công nợ cần thu:** Ranked list with avatar initials, student & class, amount, and overdue days (Trần Bảo Ngọc 4.200.000 quá hạn 15 ngày, Hoàng Tuấn Kiệt 4.000.000 quá hạn 8 ngày, Vũ Gia Hân 3.700.000 quá hạn 5 ngày) with link "Xem tất cả →".
+       - **Thanh toán gần đây:** Recent transaction timeline with green checkmark, amount, payer & invoice, and timestamp with link "Xem tất cả →".
+    7. **Operational Modals & Integrity Safety:**
+       - Interactive "Xem trước hóa đơn" / "Lập hóa đơn" modal.
+       - Preserves immutable billing period provenance and completion evidence rules.
+       - Independent lifecycle truth: Draft -> Issued, and Settlement truth: Unpaid -> Partially Paid -> Paid.
+- **Strict Guard:**
+  - Non-preschool tenants retain standard `LegacyFinanceView`.
+  - Zero `any` and zero `unknown`.
+  - Frozen Kernels (H1–H12, E7.1–E7.3, Education Kernel) remain 100% frozen.
+- **Gate Result:** `PASS`
+
+---
+
+## 2. Product Manifest (Capabilities & Scope)
+
+- **Target Vertical:** Bella Education (Preschool Vertical — `bella_education`).
+- **Target Page:** `src/app/dashboard/education/finance/page.tsx`
+- **Capabilities in Scope:**
+  - Complete executive Finance Workspace conforming to Image 2.
+  - Interactive tab navigation, dual-status invoice filtering, invoice drafting, preview modal, and payment reconciliation.
+  - Strict typing without any `any` or `unknown`.
+
+---
+
+## 3. Ownership Map ("WHO OWNS THIS DATA?")
+
+| Data / Component | Owner | Boundary & Scope |
+|---|---|---|
+| Finance Workspace UI (`finance/page.tsx`) | Preschool Product UI (`src/app/dashboard/education/finance/`) | Redesign to match Image 2 for preschool |
+| Invoices & Billing Periods | Education Finance Domain | Read & commanded via typed API `/api/education/finance` |
+| Payments & Settlement Truth | Education Finance Repository | Double-entry / ledger integrity |
+| Tenant Settings & Brand Theme | Core Platform Context | Read-only access via `getCachedTenantSettings` |
+| Healthcare OS & Logistics OS | Respective Kernels | 100% Frozen & untouched |
+
+---
+
+## 4. Contract Dependency Map
+
+```text
+Preschool Finance Page (src/app/dashboard/education/finance/page.tsx)
+   │
+   ├─► Client Context: getCachedTenantSettings() ──► resolveTenantBrandIdentity()
+   │     └─► isPreschool: boolean (moduleKey === 'bella_education')
+   │
+   ├─► API Read Model: GET /api/education/finance
+   │     ├─► Invoices (Draft, Issued, Void)
+   │     ├─► Payments & Receipts
+   │     ├─► Billing Periods (Active only)
+   │     ├─► Enrolled Students
+   │     └─► Exceptions & Overdue Queue
+   │
+   └─► Commands: POST /api/education/finance
+         ├─► compileDraftInvoice
+         ├─► issueInvoice
+         ├─► projectInvoiceNotice
+         ├─► completeTuitionServicePeriod
+         └─► scanOverdueInvoices
+```
+
+---
+
+## 5. Change Authority
+
+- **Authorized to Modify:**
+  - `src/app/dashboard/education/finance/page.tsx`
+  - `ARCHITECTURE_GATE_RESULT.md`
+- **Strictly Prohibited:**
+  - Any file in `src/platform/healthcare/`
+  - Any file in `src/platform/logistics/`
+  - Any file in `src/platform/education/engines/`
+  - Any database migrations modifying existing tables
+
+---
+
+## 6. UI -> Contract Reconciliation
+
+- Replaces raw developer terms (e.g. "Operating Kernel (P7)", "Zone 1: Billing") with professional Vietnamese administrative terms ("Tài chính & Học phí", "Tổng quan", "Hóa đơn", "Công nợ", "Thanh toán", "Đối soát").
+- Keeps invoice lifecycle (DRAFT -> ISSUED) and settlement status (UNPAID -> PARTIALLY_PAID -> PAID) strictly independent.
+- Connects KPI and charts to verifiable data aggregations.
+
+---
+
+## 7. Additive Migration Plan
+
+- None required (Frontend UX/UI presentation layer refactor).
+
+---
+
+## 8. 11 Automated Verification Gates Plan
+
+- Gate 1: Architecture Guard (`npm run arch:guard`).
+- Gate 2: Healthcare Guard (`npm run healthcare:guard`).
+- Gate 3: Education TypeScript Gate (`npm run gate:education-no-new-debt`).
+- Gate 4: Zero `any` and Zero `unknown` strict audit.
+
