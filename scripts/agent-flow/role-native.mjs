@@ -45,7 +45,15 @@ export function exactTest(command, cwd, expected, workspace) {
 }
 
 export function reviewReads(task, verificationPath) {
-  return [`git diff -- ${task.ownedFiles.join(' ')}`, ...task.ownedFiles.map(p => `Get-Content -LiteralPath '${p}'`), `Get-Content -LiteralPath '${verificationPath.replaceAll("'", "''")}'`];
+  // Forward slashes avoid native Windows shell-display backslash escaping.
+  const portablePath = verificationPath.replaceAll('\\', '/');
+  return [`git diff -- ${task.ownedFiles.join(' ')}`, ...task.ownedFiles.map(p => `Get-Content -LiteralPath '${p}'`), `Get-Content -LiteralPath '${portablePath.replaceAll("'", "''")}'`];
+}
+
+export function terminalRecord(value) {
+  const result = Object.keys(value || {}).length === 1 && value.terminal ? value.terminal : value;
+  if (!result || !['PASS', 'HELD'].includes(result.status) || !Array.isArray(result.receipts)) stop('INVALID_TERMINAL_RECORD');
+  return result;
 }
 
 async function history(server, binding) {
@@ -102,7 +110,7 @@ function promptFor(name, input, expected) {
   if (name === 'LEAD') return common + 'Read-only Lead. Read owned files and identify root cause/minimal plan and test coverage. Return decision ACCEPT or HELD, plan:string, findings:[]. Do not code or run tests. Stop after analysis.';
   if (name === 'BUILDER') return common + `Builder is the only writer. Use native apply_patch file changes to implement the minimal fix plus meaningful regression tests. Do not modify driver or proof receipts. Verify Agent will run tests next, so do not run tests yourself.\nPLAN: ${input.plan}\nREVIEW FINDINGS TO ADDRESS: ${JSON.stringify(input.findings)}\nReturn decision DONE or HELD, findings:[], changed files list and concise summary. Actual changes will be independently observed; do not invent candidate fingerprint after edits.`;
   if (name === 'VERIFY') return common + `Read-only QA. Execute exactly once, without extra commands or wrappers/scripts: ${expected}\nNo edits, no retry, no skip, no test weakening. Return PASS only if every test passes with zero skipped/todo/cancelled; else FAIL. Do not repair. findings:[] or concise failure explanations.`;
-  return common + `Independent Reviewer in a fresh thread, no Builder transcript. MUST execute each of these exact read commands separately, without appending commands, filters, output fabrication or wrappers/scripts (normal native shell wrapping is permitted):\n${reviewReads(task, input.verification.verificationPath).join('\n')}\nThese read the actual complete diff, current owned files and actual Verify evidence. Do not run tests, code or change files.\nReview all acceptance criteria, edge cases and whether test output belongs to this candidate. Verification artifact SHA256: ${input.verification.artifactHash}.\nReturn decision PASS with findings:[] only if complete and tests green; REVISE with actionable findings (at most one repair available), or HELD if outside authority/uncertain. Do not demand changes outside scope; do not force a revision merely to exercise the loop.`;
+  return common + `Independent Reviewer in a fresh thread, no Builder transcript. MUST execute each of these exact read commands separately, without appending commands, filters, output fabrication or wrappers/scripts (normal native shell wrapping is permitted):\n${reviewReads(task, input.verification.verificationPath).join('\n')}\nThese read the actual complete diff, current owned files and actual Verify evidence. Do not run tests, code or change files.\nReview all acceptance criteria, edge cases and whether test output belongs to this candidate. Verification artifact SHA256: ${input.verification.artifactHash}. The collector computes this hash and fresh-process readback checks it; you must inspect the artifact content and candidate. Do not invoke Get-FileHash or broaden sandbox permissions.\nReturn decision PASS with findings:[] only if complete and tests green; REVISE with actionable findings (at most one repair available), or HELD if outside authority/uncertain. Do not demand changes outside scope; do not force a revision merely to exercise the loop.`;
 }
 
 async function executeRole(name, input, workspace, pipelineDirectory) {
@@ -178,6 +186,7 @@ async function executeRole(name, input, workspace, pipelineDirectory) {
       test = { candidate: input.before.fingerprint, itemId: item.id, command: expected, exitCode: item.exitCode, counters: summary, output: item.aggregatedOutput, outputHash: hash(item.aggregatedOutput) };
     }
     if (name === 'REVIEWER') {
+      if (native.commands.some(c => c.exitCode !== 0 || c.status !== 'completed')) stop('REVIEW_COMMAND_FAILED');
       if (reviewReads(input.task, input.verification.verificationPath).some(expectedRead => !native.commands.some(c => c.exitCode === 0 && c.status === 'completed' && exactTest(c.command, c.cwd, expectedRead, workspace)))) stop('ACTUAL_REVIEW_READ_REQUIRED');
     }
     const receipt = { ...result, test, role: name, candidate: input.before.fingerprint, nativeVerified: true, binding, directory, writerPid: process.pid, native, proof, acknowledgements: acks, changed: [...new Set(native.changes.flatMap(c => c.paths))], verificationPath: join(directory, 'role.json') };
@@ -216,7 +225,7 @@ export async function runNative(input) {
   const result = await drive(task, {
     snapshot: () => inventory(workspace),
     role: async (name, data) => { console.log(JSON.stringify({ phase: name, revision: data.revision, candidate: data.before.fingerprint })); return executeRole(name, data, workspace, directory); },
-    record: receipt => writeDurableJson(join(directory, receipt.terminal ? 'terminal.json' : `receipt-${++count}.json`), receipt),
+    record: receipt => writeDurableJson(join(directory, receipt.terminal ? 'terminal.json' : `receipt-${++count}.json`), receipt.terminal || receipt),
   });
   return { ...result, directory };
 }
@@ -229,7 +238,7 @@ export async function readNative(input) {
   workspaceIdentity(intake.workspace);
   if (intake.writerPid === process.pid) stop('FRESH_PROCESS_REQUIRED');
   try { process.kill(intake.writerPid, 0); stop('WRITER_STILL_RUNNING'); } catch (e) { if (e.code !== 'ESRCH') throw e; }
-  const terminal = JSON.parse(await readFile(join(directory, 'terminal.json'), 'utf8'));
+  const terminal = terminalRecord(JSON.parse(await readFile(join(directory, 'terminal.json'), 'utf8')));
   if (terminal.status === 'PASS') validateHandoff(terminal, admitTask(intake.task));
   if ((await inventory(intake.workspace)).fingerprint !== terminal.candidate) stop('CANDIDATE_CHANGED');
   const checks = [];

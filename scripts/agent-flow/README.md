@@ -74,3 +74,8 @@ Native sandbox modes constrain execution; the fingerprints are post-stage source
 checks, not a host-wide command firewall or proof against malicious tasks.
 No Product/DB/Auth/RLS/migration, remote probe, endpoint opening, automatic Git
 publication, merge or deployment is performed. Pipeline PASS does not mean Go-Live.
+
+Current real-task result: **HELD / MVP NOT_PROVEN**. See
+`docs/audits/agent-flow-mvp/agent-flow-mvp-evidence.json`. The first task reached
+an independent Reviewer but did not produce an accepted handoff. Post-HELD
+adapter fixes have unit/source verification only; no automatic task retry ran.

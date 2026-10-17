@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
 import { admitTask, counters, drive, validateHandoff } from './role-pipeline.mjs';
-import { parseResult, exactTest, reviewReads, repositoryIdentity } from './role-native.mjs';
+import { parseResult, exactTest, reviewReads, repositoryIdentity, terminalRecord } from './role-native.mjs';
 
 const task = () => ({ taskId: randomUUID(), sourceRevision: 'a'.repeat(40), goal: 'Repair a concrete final-test evidence defect.', ownedFiles: ['scripts/agent-flow/task-workflow.mjs', 'scripts/agent-flow/task-workflow.test.mjs'], testFile: 'scripts/agent-flow/task-workflow.test.mjs', acceptance: ['Only the final complete GREEN test run proves success.'], maxSeconds: 60 });
 const green = { tests: 3, pass: 3, fail: 0, cancelled: 0, skipped: 0, todo: 0 };
@@ -61,6 +61,20 @@ test('review requires actual exact reads of diff, each current file and Verify e
     assert.equal(exactTest(`Write-Output \"${command}\"`, process.cwd(), command, process.cwd()), false);
     assert.equal(exactTest(`${command} | Select-Object -First 0`, process.cwd(), command, process.cwd()), false);
   }
+});
+test('Windows review uses portable literal paths without relaxing exact command checks', () => {
+  const commands = reviewReads(task(), 'C:\\Users\\DELL\\.codex\\private\\role.json');
+  assert.equal(commands.at(-1), "Get-Content -LiteralPath 'C:/Users/DELL/.codex/private/role.json'");
+  const observedShell = '"C:\\\\Users\\\\DELL\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe"';
+  assert.ok(exactTest(`${observedShell} -Command "${commands.at(-1)}"`, process.cwd(), commands.at(-1), process.cwd()));
+  assert.equal(exactTest(`Write-Output \"${commands.at(-1)}\"`, process.cwd(), commands.at(-1), process.cwd()), false);
+});
+test('fresh reader accepts immutable V1 envelope and direct terminal format, never upgrades HELD', () => {
+  const held = { status: 'HELD', receipts: [], reason: 'ACTUAL_REVIEW_READ_REQUIRED' };
+  assert.strictEqual(terminalRecord({ terminal: held }), held);
+  assert.strictEqual(terminalRecord(held), held);
+  assert.equal(terminalRecord({ terminal: held }).status, 'HELD');
+  for (const value of [null, {}, { status: 'PASS' }, { terminal: held, extra: true }]) assert.throws(() => terminalRecord(value), /INVALID_TERMINAL_RECORD/);
 });
 test('happy path uses four independent role dispatches and final-candidate handoff', async () => {
   const r = await fixture(); assert.equal(r.output.status, 'PASS');

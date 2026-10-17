@@ -106,9 +106,18 @@ export function projectHistory(source, binding) {
 }
 
 function verifyRedGreen(tests) {
+  const counters = ['tests', 'pass', 'fail', 'skipped', 'cancelled', 'todo'];
+  if (!Array.isArray(tests) || tests.length < 2 || Array.from(tests).some(t =>
+    !t || !Number.isSafeInteger(t.exitCode) || !t.counters ||
+    !counters.every(key => Number.isSafeInteger(t.counters[key]) && t.counters[key] >= 0)
+  )) throw new Error('REAL_RED_GREEN_REQUIRED');
   const red = tests.findIndex(t => t.exitCode !== 0 && t.counters.fail > 0);
-  const green = tests.findIndex((t, i) => i > red && t.exitCode === 0 && t.counters.tests > 0 && t.counters.pass === t.counters.tests && t.counters.fail === 0 && t.counters.skipped === 0 && t.counters.cancelled === 0);
-  if (red < 0 || green <= red) throw new Error('REAL_RED_GREEN_REQUIRED');
+  const green = tests.length - 1;
+  const final = tests[green];
+  if (red < 0 || green <= red || final.exitCode !== 0 || final.counters.tests === 0 ||
+    final.counters.pass !== final.counters.tests ||
+    ['fail', 'skipped', 'cancelled', 'todo'].some(key => final.counters[key] !== 0)
+  ) throw new Error('REAL_RED_GREEN_REQUIRED');
   return { red: tests[red], green: tests[green] };
 }
 export { verifyRedGreen };

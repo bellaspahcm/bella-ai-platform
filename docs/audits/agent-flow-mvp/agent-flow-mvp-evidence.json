@@ -1,0 +1,257 @@
+{
+  "schemaVersion": 1,
+  "mission": "BELLA_AGENT_FLOW_MVP",
+  "entryPoint": true,
+  "updatedAt": "2026-10-17T23:50:55.323Z",
+  "status": "HELD",
+  "mvp": "NOT_PROVEN",
+  "ownerContract": {
+    "stages": [
+      "INTAKE",
+      "LEAD",
+      "BUILDER",
+      "VERIFY",
+      "REVIEWER"
+    ],
+    "maxRevisions": 1,
+    "onUnknownOrStop": "HELD_NO_AUTO_RESUME",
+    "mergeDeployDatabaseAuthority": "NOT_GRANTED"
+  },
+  "scope": "Development tooling only. No new Preschool batch or Product implementation.",
+  "implementation": {
+    "branch": "codex/bella-agent-flow-mvp",
+    "baseline": "0bc9bba1b888ca121dd4ae56eb9ff7ebb1c9831f",
+    "nativeDriverRevision": "cf3d90c9743096cde2218faabe90787213c90c3c",
+    "componentsReused": [
+      "AppServer",
+      "authorizeRepository",
+      "canonical lifecycle contract",
+      "DevelopmentStore",
+      "native thread/turn/item history"
+    ],
+    "newComponents": [
+      "bounded sequential role driver",
+      "native role adapter"
+    ],
+    "independentToolingReview": {
+      "findings": [
+        "exact actual reviewer reads",
+        "pre-dispatch absolute budget",
+        "repository identity"
+      ],
+      "resolution": "SOURCE_REVIEWED_FIXED",
+      "postHeldFixReview": "NO_UNRESOLVED_BLOCKER_SOURCE_ONLY"
+    }
+  },
+  "runtimeTask": {
+    "taskId": "fbafbb1d-2a9d-4d0b-9bad-64a467dfae2f",
+    "intake": {
+      "taskId": "fbafbb1d-2a9d-4d0b-9bad-64a467dfae2f",
+      "sourceRevision": "cf3d90c9743096cde2218faabe90787213c90c3c",
+      "goal": "Fix stale GREEN acceptance in verifyRedGreen: a failed or invalid final test result must invalidate an earlier GREEN in the same evidence list. Preserve the existing public result and error contract.",
+      "ownedFiles": [
+        "scripts/agent-flow/task-workflow.mjs",
+        "scripts/agent-flow/task-workflow.test.mjs"
+      ],
+      "testFile": "scripts/agent-flow/task-workflow.test.mjs",
+      "acceptance": [
+        "A valid RED followed by a complete final GREEN still returns the existing red/green result shape.",
+        "RED then GREEN then a later failing run must throw REAL_RED_GREEN_REQUIRED; do not select a stale earlier GREEN.",
+        "The final run must be complete and internally consistent: tests greater than zero, pass equals tests, fail/skipped/cancelled/todo zero, zero exit code. Missing or contradictory final counters must be rejected.",
+        "A final GREEN must follow an actual earlier RED; invalid input fails closed using the existing error contract.",
+        "Add meaningful regression tests for valid RED/GREEN, later RED, incomplete or contradictory final results, skipped/cancelled/todo and no earlier RED. Do not weaken existing assertions or change the public helper shape."
+      ],
+      "maxSeconds": 1800
+    },
+    "reason": "ACTUAL_REVIEW_READ_REQUIRED",
+    "writerPid": 7780,
+    "originalCandidate": "52f811ef2379ec4ccec8a211ebb1a7926e0312eadec43347d3d4af44ab35e3cf",
+    "candidate": "a405f406f60f17fbf040849014b69fd0272e6b92caea58217073ba859d7b29c2",
+    "taskFiles": [
+      {
+        "path": "scripts/agent-flow/task-workflow.mjs",
+        "beforeSha256": "15e6900f9ce6881aa9ad2ecb5d498c5dcbfb44472738dd78a70970517a7209ae",
+        "afterSha256": "59070d2eca4f5562ebb760489b8c2a401dbc2c30aa03a5b03448754660358c36"
+      },
+      {
+        "path": "scripts/agent-flow/task-workflow.test.mjs",
+        "beforeSha256": "0cdfb1730a5a46552f358d129f056a808184d3d4a05f696e4114dba863381aa6",
+        "afterSha256": "9b11cb8dca02ea057652bb222345b7f5303e04e00ae121fdde69b818686415e3"
+      }
+    ],
+    "revisions": 0,
+    "acceptedStages": [
+      "LEAD",
+      "BUILDER",
+      "VERIFY"
+    ],
+    "roles": [
+      {
+        "role": "LEAD",
+        "binding": {
+          "repository": "bellaspahcm/bella-ai-platform",
+          "taskId": "fbafbb1d-2a9d-4d0b-9bad-64a467dfae2f",
+          "runId": "80e70a85-92a7-4d3f-bd3a-f75bf5677d2e",
+          "attempt": 1,
+          "producerInstanceId": "a3be389d-dbf7-44c7-88be-bb5322ab18b6",
+          "threadId": "01a14c3f-a9fc-7292-bbf8-7576882f2901",
+          "sessionId": "01a14c3f-a9fc-7292-bbf8-7576882f2901",
+          "turnId": "01a14c3f-ab57-7a60-bcee-51b6243c0245"
+        },
+        "liveFacts": 9,
+        "historyMatches": 4,
+        "commandCount": 1,
+        "fileChanges": [],
+        "decision": "ACCEPT"
+      },
+      {
+        "role": "BUILDER",
+        "binding": {
+          "repository": "bellaspahcm/bella-ai-platform",
+          "taskId": "fbafbb1d-2a9d-4d0b-9bad-64a467dfae2f",
+          "runId": "839ade97-40b3-4b8a-95f7-154b11af6cf6",
+          "attempt": 1,
+          "producerInstanceId": "77cfd0ca-4649-4ec8-84ba-2ad892a4c81a",
+          "threadId": "01a14c40-5204-7ca3-a46c-e3e4b45bc3e5",
+          "sessionId": "01a14c40-5204-7ca3-a46c-e3e4b45bc3e5",
+          "turnId": "01a14c40-533a-7ea2-a326-4f991e89ec89"
+        },
+        "liveFacts": 17,
+        "historyMatches": 8,
+        "commandCount": 3,
+        "fileChanges": [
+          {
+            "itemId": "exec-ee169e28-5347-452b-a952-b6d05c13640d",
+            "paths": [
+              "D:\\Antigravity\\Projects\\BELLA_AGENT_FLOW_MVP\\scripts\\agent-flow\\task-workflow.mjs",
+              "D:\\Antigravity\\Projects\\BELLA_AGENT_FLOW_MVP\\scripts\\agent-flow\\task-workflow.test.mjs"
+            ]
+          }
+        ],
+        "decision": "DONE"
+      },
+      {
+        "role": "VERIFY",
+        "binding": {
+          "repository": "bellaspahcm/bella-ai-platform",
+          "taskId": "fbafbb1d-2a9d-4d0b-9bad-64a467dfae2f",
+          "runId": "c13a182f-7f72-410c-ae7c-094837c3ac70",
+          "attempt": 1,
+          "producerInstanceId": "55c89700-b0e8-4f26-b434-a732fe3a0d5b",
+          "threadId": "01a14c41-aa48-7200-a989-622e45ce0f36",
+          "sessionId": "01a14c41-aa48-7200-a989-622e45ce0f36",
+          "turnId": "01a14c41-ab85-7111-9070-5fb3903fed0e"
+        },
+        "liveFacts": 9,
+        "historyMatches": 4,
+        "commandCount": 1,
+        "fileChanges": [],
+        "decision": "PASS"
+      },
+      {
+        "role": "REVIEWER",
+        "binding": {
+          "repository": "bellaspahcm/bella-ai-platform",
+          "taskId": "fbafbb1d-2a9d-4d0b-9bad-64a467dfae2f",
+          "runId": "98cdcdde-aa87-47da-a369-f9375db2fe96",
+          "attempt": 1,
+          "producerInstanceId": "ce763672-41e5-45f5-9009-f64dea443145",
+          "threadId": "01a14c42-59cf-7ef2-9c75-03730cd2a6b5",
+          "sessionId": "01a14c42-59cf-7ef2-9c75-03730cd2a6b5",
+          "turnId": "01a14c42-5b07-7de1-8e71-c0e0c8fe947b"
+        },
+        "liveFacts": 17,
+        "historyMatches": 8,
+        "commandCount": 5,
+        "fileChanges": [],
+        "decision": "HELD"
+      }
+    ],
+    "verify": {
+      "result": "PASS_SCOPED",
+      "tests": 6,
+      "pass": 6,
+      "fail": 0,
+      "skipped": 0,
+      "cancelled": 0,
+      "todo": 0,
+      "command": "node --test --test-reporter=tap scripts/agent-flow/task-workflow.test.mjs"
+    },
+    "reviewer": {
+      "decision": "HELD",
+      "acceptedByDriver": false,
+      "sourceOpinion": "Acceptance criteria satisfied; no functional finding",
+      "blockers": [
+        "Native display escaped backslashes in private evidence path; strict actual-read matching rejected the command.",
+        "Reviewer attempted extra Get-FileHash and received Access denied; it independently returned HELD."
+      ]
+    },
+    "automaticRevisionLoop": {
+      "fixtureTests": "PASS",
+      "runtime": "NOT_ACTIVATED_NOT_PROVEN"
+    },
+    "dispatchCount": 4,
+    "autoRetry": 0,
+    "autoResume": 0
+  },
+  "freshReadback": {
+    "standardReaderFirstAttempt": "FAILED_CANDIDATE_CHANGED_DUE_TO_TERMINAL_ENVELOPE_FORMAT_BUG",
+    "diagnostic": "MATCH_SCOPED_ALL_FOUR_NATIVE_HISTORIES_AND_STORES",
+    "liveFacts": 52,
+    "historyMatches": 24,
+    "candidateManifestReconstruction": "MATCH",
+    "readerPid": 7540,
+    "limitations": [
+      "Candidate manifest reconstructed from immutable intake and unchanged task-file bytes; current driver includes post-HELD adapter fixes.",
+      "Not an accepted four-role handoff; no retry/resume or new task dispatched."
+    ],
+    "completeAcceptedHandoff": "NOT_PROVEN"
+  },
+  "postHeldFixes": {
+    "implemented": [
+      "portable forward-slash literal paths preserving strict command checks",
+      "collector/readback owns SHA checking; Reviewer not asked to invoke Get-FileHash",
+      "strict V1 envelope decoding and direct terminal writer format",
+      "failed Reviewer commands cannot be promoted"
+    ],
+    "runtimeValidation": "NOT_RUN_NO_REDISPATCH",
+    "tests": {
+      "command": "node node_modules/jest/bin/jest.js --runTestsByPath src/__tests__/agent-flow-tooling.test.ts --runInBand",
+      "jestSuites": 1,
+      "jestTests": 1,
+      "nodeTests": 73,
+      "pass": 73,
+      "fail": 0,
+      "skipped": 0,
+      "cancelled": 0,
+      "todo": 0
+    }
+  },
+  "privateExternalEvidenceDirectory": "C:/Users/DELL/.codex/agent-flow-evidence/bella-agent-flow-RkIgpO",
+  "artifacts": [
+    {
+      "name": "intake.json",
+      "sha256": "67554cc59492127c521a12bfba5b261151fd24adee0b743560ab067987fd81b8",
+      "location": "privateExternalEvidenceDirectory"
+    },
+    {
+      "name": "terminal.json",
+      "sha256": "bd1559dbbe6de6fcf04fc3dbfc0fcd01afadff4ca4ed58f51f55c1ebe535f9ed",
+      "location": "privateExternalEvidenceDirectory"
+    },
+    {
+      "name": "held-native-diagnostic.json",
+      "sha256": "012c1d3301f6803fb2f5a49170b5e81a1c3e65a0e760a493af69e754492ccc63",
+      "location": "privateExternalEvidenceDirectory"
+    }
+  ],
+  "productGates": {
+    "parentRls": "FAIL",
+    "courseAuthorization": "BLOCKED",
+    "uiToDb": "NOT_PROVEN",
+    "preGoLive": "BLOCKED"
+  },
+  "nextOwnerDecision": "Authorize exactly one NEW bounded task to validate the reviewed adapter fixes. Do not resume/retry the held task or reuse its task ID. No broader permissions are needed.",
+  "merge": "NOT_AUTHORIZED",
+  "deploy": "NOT_AUTHORIZED"
+}
