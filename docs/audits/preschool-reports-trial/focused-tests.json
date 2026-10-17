@@ -1,0 +1,53 @@
+{
+  "result": "PASS_SCOPED",
+  "passed": 11,
+  "failed": 0,
+  "total": 11,
+  "tests": [
+    {
+      "name": "Reports trial truthful unavailable output shows persistent unavailable feedback when header export is requested twice",
+      "status": "passed"
+    },
+    {
+      "name": "Reports trial truthful unavailable output identifies unavailable quick document: Báo cáo tổng hợp tháng 09/2026",
+      "status": "passed"
+    },
+    {
+      "name": "Reports trial truthful unavailable output identifies unavailable quick document: Tài liệu chuyên cần",
+      "status": "passed"
+    },
+    {
+      "name": "Reports trial truthful unavailable output identifies unavailable quick document: Báo cáo học phí",
+      "status": "passed"
+    },
+    {
+      "name": "Reports trial truthful unavailable output identifies unavailable quick document: Báo cáo tăng trưởng theo WHO",
+      "status": "passed"
+    },
+    {
+      "name": "Reports trial truthful unavailable output identifies unavailable detail document: Báo cáo tổng hợp tháng 09/2026",
+      "status": "passed"
+    },
+    {
+      "name": "Reports trial truthful unavailable output identifies unavailable detail document: Tài liệu chuyên cần",
+      "status": "passed"
+    },
+    {
+      "name": "Reports trial truthful unavailable output identifies unavailable detail document: Báo cáo học phí",
+      "status": "passed"
+    },
+    {
+      "name": "Reports trial truthful unavailable output identifies unavailable detail document: Báo cáo tăng trưởng theo WHO",
+      "status": "passed"
+    },
+    {
+      "name": "Reports trial truthful unavailable output keeps output feedback across period selection and tab changes without claiming refresh",
+      "status": "passed"
+    },
+    {
+      "name": "Reports trial truthful unavailable output clearly labels every view as sample content and AI as no real analysis",
+      "status": "passed"
+    }
+  ],
+  "scope": "Synthetic component interactions only; project ENV and network denied; no Auth/DB evidence"
+}

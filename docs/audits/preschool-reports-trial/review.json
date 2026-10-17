@@ -1,0 +1,32 @@
+{
+  "result": "PASS_SCOPED",
+  "recordedAt": "2026-10-17T14:47:48.603Z",
+  "runtimeSha256": {
+    "src/app/dashboard/education/reports/page.tsx": "e8a8c19fd398e1a6ba988b3fd75c2ceba2b2bd48443792edb541a8ac919076e5"
+  },
+  "verificationSha256": "193558fc0c717fd00d4c2c8578683cfe117a187fac389f672eb547bf3718f989",
+  "browserProofSha256": "a0c25a88d2181552a2904e2ec1d0e040dc7804f4466de30f1719994e57a08e2f",
+  "reviewers": [
+    {
+      "role": "Blind hunter",
+      "result": "No actionable findings after two passes of diff only"
+    },
+    {
+      "role": "Edge case hunter",
+      "result": "No unhandled paths in changed scope"
+    },
+    {
+      "role": "Acceptance auditor",
+      "result": "No actionable diff defects; 9 controls, immediate visibility and targeted evidence match"
+    }
+  ],
+  "unresolvedPatchFindings": 0,
+  "deferred": [
+    {
+      "finding": "Existing fixed palette on document titles is difficult to read in dark view",
+      "scope": "Pre-existing unchanged title styles; outside84targeted checks; no whole-page contrast PASS",
+      "action": "Retain as separate bounded future UI issue; not silently expanded into this patch"
+    }
+  ],
+  "limits": "Synthetic UI only. Auth/DB/RLS/full Next E2E and readiness not proven."
+}
