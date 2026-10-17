@@ -547,11 +547,38 @@ export default function PreschoolDevelopmentGradesPage() {
 
   // New Observation Form State (Strictly typed)
   const [newObsStudentId, setNewObsStudentId] = useState<string>('STU-001');
-  const [newObsDomain, setNewObsDomain] = useState<string>('Ngôn Ngữ & Giao Tiếp');
-  const [newObsSkill, setNewObsSkill] = useState<string>('');
-  const [newObsProgression, setNewObsProgression] = useState<string>('Đạt kỳ vọng');
-  const [newObsNote, setNewObsNote] = useState<string>('');
-  const [newObsPhotosCount, setNewObsPhotosCount] = useState<number>(1);
+  type ObservationDraft = {
+    domain: string;
+    skill: string;
+    progression: string;
+    note: string;
+    photosCount: number;
+  };
+  const defaultObservationDraft: ObservationDraft = {
+    domain: 'Ngôn Ngữ & Giao Tiếp',
+    skill: '',
+    progression: 'Đạt kỳ vọng',
+    note: '',
+    photosCount: 1,
+  };
+  const [observationDrafts, setObservationDrafts] = useState<Record<string, ObservationDraft>>({});
+  const {
+    domain: newObsDomain,
+    skill: newObsSkill,
+    progression: newObsProgression,
+    note: newObsNote,
+    photosCount: newObsPhotosCount,
+  } = observationDrafts[newObsStudentId] ?? defaultObservationDraft;
+  const updateObservationDraft = (patch: Partial<ObservationDraft>) => {
+    setObservationDrafts((drafts) => ({
+      ...drafts,
+      [newObsStudentId]: { ...(drafts[newObsStudentId] ?? defaultObservationDraft), ...patch },
+    }));
+  };
+  const selectObservationChild = (studentId: string) => {
+    setNewObsStudentId(studentId);
+    setObservationNotice(null);
+  };
 
   // Tenant detection
   useEffect(() => {
@@ -1590,6 +1617,7 @@ export default function PreschoolDevelopmentGradesPage() {
                 type="button"
                 onClick={() => {
                   profileToObservationRef.current = true;
+                  selectObservationChild(inspectedStudent.id);
                   setInspectedStudent(null);
                   setIsNewObservationModalOpen(true);
                 }}
@@ -1627,7 +1655,7 @@ export default function PreschoolDevelopmentGradesPage() {
             </div>
 
             <p id="new-observation-draft-note" className="text-xs leading-relaxed text-slate-700 dark:text-slate-200">
-              Bản nháp thử giao diện, chưa lưu vào hồ sơ. Nội dung được giữ khi đóng rồi mở lại trong màn hình này; tải lại hoặc rời trang sẽ mất bản nháp. Chỉ nhập dữ liệu giả.
+              Bản nháp thử giao diện, chưa lưu vào hồ sơ. Mỗi trẻ có bản nháp riêng, được giữ khi đổi trẻ hoặc đóng rồi mở lại trong màn hình này; tải lại hoặc rời trang sẽ mất bản nháp. Chỉ nhập dữ liệu giả.
             </p>
 
             <div className="space-y-4 text-xs">
@@ -1638,7 +1666,7 @@ export default function PreschoolDevelopmentGradesPage() {
                 <select
                   id="new-observation-student"
                   value={newObsStudentId}
-                  onChange={(e: ChangeEvent<HTMLSelectElement>) => setNewObsStudentId(e.target.value)}
+                  onChange={(e: ChangeEvent<HTMLSelectElement>) => selectObservationChild(e.target.value)}
                   className="w-full p-2.5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 font-medium"
                 >
                   {ROSTER_STUDENTS.map((s) => (
@@ -1657,7 +1685,7 @@ export default function PreschoolDevelopmentGradesPage() {
                   <select
                     id="new-observation-domain"
                     value={newObsDomain}
-                    onChange={(e: ChangeEvent<HTMLSelectElement>) => setNewObsDomain(e.target.value)}
+                    onChange={(e: ChangeEvent<HTMLSelectElement>) => updateObservationDraft({ domain: e.target.value })}
                     className="w-full p-2.5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 font-medium"
                   >
                     <option>Thể chất & Vận động</option>
@@ -1675,7 +1703,7 @@ export default function PreschoolDevelopmentGradesPage() {
                   <select
                     id="new-observation-progression"
                     value={newObsProgression}
-                    onChange={(e: ChangeEvent<HTMLSelectElement>) => setNewObsProgression(e.target.value)}
+                    onChange={(e: ChangeEvent<HTMLSelectElement>) => updateObservationDraft({ progression: e.target.value })}
                     className="w-full p-2.5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 font-medium"
                   >
                     <option>Đang làm quen</option>
@@ -1694,7 +1722,7 @@ export default function PreschoolDevelopmentGradesPage() {
                   id="new-observation-skill"
                   type="text"
                   value={newObsSkill}
-                  onChange={(e: ChangeEvent<HTMLInputElement>) => setNewObsSkill(e.target.value)}
+                  onChange={(e: ChangeEvent<HTMLInputElement>) => updateObservationDraft({ skill: e.target.value })}
                   placeholder="Ví dụ: Tự cởi cúc áo, nhận biết thẻ chữ o-ô-ơ..."
                   className="w-full p-2.5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 font-medium"
                 />
@@ -1708,7 +1736,7 @@ export default function PreschoolDevelopmentGradesPage() {
                   id="new-observation-note"
                   rows={3}
                   value={newObsNote}
-                  onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setNewObsNote(e.target.value)}
+                  onChange={(e: ChangeEvent<HTMLTextAreaElement>) => updateObservationDraft({ note: e.target.value })}
                   placeholder="Ghi lại hành vi cụ thể của trẻ trong ngữ cảnh tự nhiên..."
                   className="w-full p-2.5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 font-medium"
                 />
@@ -1724,7 +1752,7 @@ export default function PreschoolDevelopmentGradesPage() {
                   min={0}
                   max={10}
                   value={newObsPhotosCount}
-                  onChange={(e: ChangeEvent<HTMLInputElement>) => setNewObsPhotosCount(Number(e.target.value))}
+                  onChange={(e: ChangeEvent<HTMLInputElement>) => updateObservationDraft({ photosCount: Number(e.target.value) })}
                   className="w-full p-2.5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 font-medium"
                 />
               </div>

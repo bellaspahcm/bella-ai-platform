@@ -1,0 +1,450 @@
+{
+  "recordedAt": "2026-10-17T23:05:37.545Z",
+  "checks": [
+    {
+      "command": "node node_modules/eslint/bin/eslint.js src/app/dashboard/education/grades/page.tsx",
+      "commandSha256": "35ae17e0e8abbf1ffbf97d495a672dc58f072ecb26de51c33711eaed1006ce53",
+      "exit": 0,
+      "stdout": "",
+      "stderr": "(node:12476) ESLintIgnoreWarning: The \".eslintignore\" file is no longer supported. Switch to using the \"ignores\" property in \"eslint.config.js\": https://eslint.org/docs/latest/use/configure/migration-guide#ignoring-files\n(Use `node --trace-warnings ...` to show where the warning was created)\n",
+      "error": null,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "8e2699bff53385cb51c575ac3562dcdb023a3081058adbae01a54380022f1187"
+    },
+    {
+      "command": "node node_modules/typescript/bin/tsc -p tsconfig.education.json --pretty false --incremental --tsBuildInfoFile docs/audits/preschool-observation-drafts-flow/.cache/education.tsbuildinfo",
+      "commandSha256": "c75dafc25081ed9b3fe7596eea478cb7ac3429d99a8c95ab09b5371ab2d53a04",
+      "exit": 0,
+      "stdout": "",
+      "stderr": "",
+      "error": null,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": "node --check docs/audits/preschool-observation-drafts-flow/observation-browser.cjs",
+      "commandSha256": "ca9678892ac7ff7b2fb520f58213ef2d14888f10c6e03c78f5da295ebdc02c37",
+      "exit": 0,
+      "stdout": "",
+      "stderr": "",
+      "error": null,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": "git diff --check",
+      "commandSha256": "466c2f308b48c7661d646fdd068fbecea974c665fe65dbf8ed508f224180ce0b",
+      "exit": 0,
+      "stdout": "",
+      "stderr": "",
+      "error": null,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "limits": {
+    "parentRls": "FAIL",
+    "courseAuthorization": "BLOCKED",
+    "uiToDb": "NOT_PROVEN",
+    "preGoLive": "BLOCKED"
+  },
+  "edgeCaseReview": [],
+  "result": "BLOCKED_PRESERVATION_PROBE",
+  "browserRuns": [
+    {
+      "command": "node docs/audits/preschool-observation-drafts-flow/observation-browser.cjs before",
+      "commandSha256": "fa1d62b5c571305b16ec9d6646296bf590b59d7e09745dfae7740dc85490d061",
+      "exit": 1,
+      "stdout": "{\"phase\":\"before\",\"checked\":28,\"passed\":8,\"failed\":20,\"errors\":0,\"pageErrors\":0,\"unexpectedRequests\":0,\"downloads\":0}\n",
+      "stderr": "",
+      "summary": {
+        "checked": 28,
+        "passed": 8,
+        "failed": 20,
+        "errors": 0,
+        "pageErrors": 0,
+        "unexpectedRequests": 0,
+        "downloads": 0
+      },
+      "receipt": "native-before.json",
+      "sourceSha256": "117d063ee441a9c8b1eaa616b5a60ef31d5eddbdb621d20f02404902f168fccb",
+      "testSha256": "d1f7f9a6e8209252897ae01fd54328af0707a7b2975dd99fe4700b824f885c4b",
+      "globalsSha256": "1f2458f1e1ff45ff29650ce9bc30a0a408004f079760de68bcef7c915ddce21e",
+      "assertions": {
+        "passed": 88,
+        "failed": 44,
+        "errors": 0
+      },
+      "stdoutSha256": "dea050763fe8f32593ac62ff37264471d7893ba7e67d70c876a54fa840ef9cbf",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": "node docs/audits/preschool-observation-drafts-flow/observation-browser.cjs after",
+      "commandSha256": "4bef07275a66e869c1bba72d03ab2fa4eb0a05f4f6a8f52f8a166b624ceb82d6",
+      "exit": 0,
+      "stdout": "{\"phase\":\"after\",\"checked\":28,\"passed\":28,\"failed\":0,\"errors\":0,\"pageErrors\":0,\"unexpectedRequests\":0,\"downloads\":0}\n",
+      "stderr": "",
+      "summary": {
+        "checked": 28,
+        "passed": 28,
+        "failed": 0,
+        "errors": 0,
+        "pageErrors": 0,
+        "unexpectedRequests": 0,
+        "downloads": 0
+      },
+      "receipt": "native-after.json",
+      "sourceSha256": "6b4fa51595c66b39d7cc7b569d6673e18d0f4d5a704c4e1688c5ebaa46f8b0d5",
+      "testSha256": "d1f7f9a6e8209252897ae01fd54328af0707a7b2975dd99fe4700b824f885c4b",
+      "globalsSha256": "1f2458f1e1ff45ff29650ce9bc30a0a408004f079760de68bcef7c915ddce21e",
+      "assertions": {
+        "passed": 136,
+        "failed": 0,
+        "errors": 0
+      },
+      "stdoutSha256": "63e52cdbb376fd5ab3cc35f24cea61e42929d2ff1b4c69419a6de33e7be81972",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "unchangedBrowserTest": true,
+  "contrast": [
+    {
+      "theme": "light",
+      "device": "desktop",
+      "label": "Per-child draft note",
+      "minimumRatio": 10.35474573184942,
+      "sampledPixels": 12964,
+      "worstBackground": [
+        255,
+        255,
+        255
+      ],
+      "worstForeground": [
+        51,
+        65,
+        85
+      ],
+      "threshold": 4.5,
+      "result": "PASS",
+      "cssColor": "rgb(51, 65, 85)",
+      "resolvedForegroundRgba": [
+        51,
+        65,
+        85,
+        255
+      ],
+      "effectiveOpacity": 1,
+      "fontSize": "12px",
+      "fontFamily": "\"Times New Roman\"",
+      "ancestorLayers": [
+        {
+          "tag": "P",
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "backgroundImage": "none",
+          "opacity": "1",
+          "mixBlendMode": "normal"
+        },
+        {
+          "tag": "DIV",
+          "backgroundColor": "rgb(255, 255, 255)",
+          "backgroundImage": "none",
+          "opacity": "1",
+          "mixBlendMode": "normal"
+        },
+        {
+          "tag": "DIV",
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "backgroundImage": "none",
+          "opacity": "1",
+          "mixBlendMode": "normal"
+        },
+        {
+          "tag": "DIV",
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "backgroundImage": "none",
+          "opacity": "1",
+          "mixBlendMode": "normal"
+        },
+        {
+          "tag": "BODY",
+          "backgroundColor": "oklch(1 0 0)",
+          "backgroundImage": "radial-gradient(circle at 0% 0%, rgba(157, 23, 77, 0.04) 0%, rgba(0, 0, 0, 0) 40%), radial-gradient(circle at 100% 100%, rgba(190, 24, 93, 0.04) 0%, rgba(0, 0, 0, 0) 40%)",
+          "opacity": "1",
+          "mixBlendMode": "normal"
+        },
+        {
+          "tag": "HTML",
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "backgroundImage": "none",
+          "opacity": "1",
+          "mixBlendMode": "normal"
+        }
+      ],
+      "method": "Chromium canvas CSS-to-sRGB foreground; native raster background with text ink removed, sampling every pixel under actual text rects including ancestor/gradient/alpha/backdrop compositing; WCAG relative luminance; raw ratio compared to 4.5 without rounding."
+    },
+    {
+      "theme": "light",
+      "device": "mobile",
+      "label": "Per-child draft note",
+      "minimumRatio": 10.35474573184942,
+      "sampledPixels": 12922,
+      "worstBackground": [
+        255,
+        255,
+        255
+      ],
+      "worstForeground": [
+        51,
+        65,
+        85
+      ],
+      "threshold": 4.5,
+      "result": "PASS",
+      "cssColor": "rgb(51, 65, 85)",
+      "resolvedForegroundRgba": [
+        51,
+        65,
+        85,
+        255
+      ],
+      "effectiveOpacity": 1,
+      "fontSize": "12px",
+      "fontFamily": "\"Times New Roman\"",
+      "ancestorLayers": [
+        {
+          "tag": "P",
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "backgroundImage": "none",
+          "opacity": "1",
+          "mixBlendMode": "normal"
+        },
+        {
+          "tag": "DIV",
+          "backgroundColor": "rgb(255, 255, 255)",
+          "backgroundImage": "none",
+          "opacity": "1",
+          "mixBlendMode": "normal"
+        },
+        {
+          "tag": "DIV",
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "backgroundImage": "none",
+          "opacity": "1",
+          "mixBlendMode": "normal"
+        },
+        {
+          "tag": "DIV",
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "backgroundImage": "none",
+          "opacity": "1",
+          "mixBlendMode": "normal"
+        },
+        {
+          "tag": "BODY",
+          "backgroundColor": "oklch(1 0 0)",
+          "backgroundImage": "radial-gradient(circle at 0% 0%, rgba(157, 23, 77, 0.04) 0%, rgba(0, 0, 0, 0) 40%), radial-gradient(circle at 100% 100%, rgba(190, 24, 93, 0.04) 0%, rgba(0, 0, 0, 0) 40%)",
+          "opacity": "1",
+          "mixBlendMode": "normal"
+        },
+        {
+          "tag": "HTML",
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "backgroundImage": "none",
+          "opacity": "1",
+          "mixBlendMode": "normal"
+        }
+      ],
+      "method": "Chromium canvas CSS-to-sRGB foreground; native raster background with text ink removed, sampling every pixel under actual text rects including ancestor/gradient/alpha/backdrop compositing; WCAG relative luminance; raw ratio compared to 4.5 without rounding."
+    },
+    {
+      "theme": "dark",
+      "device": "desktop",
+      "label": "Per-child draft note",
+      "minimumRatio": 13.177733038404984,
+      "sampledPixels": 12964,
+      "worstBackground": [
+        17,
+        44,
+        64
+      ],
+      "worstForeground": [
+        243,
+        245,
+        247
+      ],
+      "threshold": 4.5,
+      "result": "PASS",
+      "cssColor": "rgb(243, 245, 247)",
+      "resolvedForegroundRgba": [
+        243,
+        245,
+        247,
+        255
+      ],
+      "effectiveOpacity": 1,
+      "fontSize": "12px",
+      "fontFamily": "\"Times New Roman\"",
+      "ancestorLayers": [
+        {
+          "tag": "P",
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "backgroundImage": "none",
+          "opacity": "1",
+          "mixBlendMode": "normal"
+        },
+        {
+          "tag": "DIV",
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "backgroundImage": "linear-gradient(rgba(17, 46, 67, 0.94) 0%, rgba(9, 26, 45, 0.88) 100%)",
+          "opacity": "1",
+          "mixBlendMode": "normal"
+        },
+        {
+          "tag": "DIV",
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "backgroundImage": "none",
+          "opacity": "1",
+          "mixBlendMode": "normal"
+        },
+        {
+          "tag": "DIV",
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "backgroundImage": "none",
+          "opacity": "1",
+          "mixBlendMode": "normal"
+        },
+        {
+          "tag": "BODY",
+          "backgroundColor": "rgb(9, 26, 45)",
+          "backgroundImage": "radial-gradient(circle at 0% 0%, rgba(39, 197, 150, 0.08) 0%, rgba(0, 0, 0, 0) 36%), radial-gradient(circle at 100% 100%, rgba(229, 184, 97, 0.07) 0%, rgba(0, 0, 0, 0) 40%)",
+          "opacity": "1",
+          "mixBlendMode": "normal"
+        },
+        {
+          "tag": "HTML",
+          "backgroundColor": "rgb(9, 26, 45)",
+          "backgroundImage": "none",
+          "opacity": "1",
+          "mixBlendMode": "normal"
+        }
+      ],
+      "method": "Chromium canvas CSS-to-sRGB foreground; native raster background with text ink removed, sampling every pixel under actual text rects including ancestor/gradient/alpha/backdrop compositing; WCAG relative luminance; raw ratio compared to 4.5 without rounding."
+    },
+    {
+      "theme": "dark",
+      "device": "mobile",
+      "label": "Per-child draft note",
+      "minimumRatio": 12.796405246072956,
+      "sampledPixels": 12922,
+      "worstBackground": [
+        20,
+        46,
+        67
+      ],
+      "worstForeground": [
+        243,
+        245,
+        247
+      ],
+      "threshold": 4.5,
+      "result": "PASS",
+      "cssColor": "rgb(243, 245, 247)",
+      "resolvedForegroundRgba": [
+        243,
+        245,
+        247,
+        255
+      ],
+      "effectiveOpacity": 1,
+      "fontSize": "12px",
+      "fontFamily": "\"Times New Roman\"",
+      "ancestorLayers": [
+        {
+          "tag": "P",
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "backgroundImage": "none",
+          "opacity": "1",
+          "mixBlendMode": "normal"
+        },
+        {
+          "tag": "DIV",
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "backgroundImage": "linear-gradient(rgba(17, 46, 67, 0.94) 0%, rgba(9, 26, 45, 0.88) 100%)",
+          "opacity": "1",
+          "mixBlendMode": "normal"
+        },
+        {
+          "tag": "DIV",
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "backgroundImage": "none",
+          "opacity": "1",
+          "mixBlendMode": "normal"
+        },
+        {
+          "tag": "DIV",
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "backgroundImage": "none",
+          "opacity": "1",
+          "mixBlendMode": "normal"
+        },
+        {
+          "tag": "BODY",
+          "backgroundColor": "rgb(9, 26, 45)",
+          "backgroundImage": "radial-gradient(circle at 0% 0%, rgba(39, 197, 150, 0.08) 0%, rgba(0, 0, 0, 0) 36%), radial-gradient(circle at 100% 100%, rgba(229, 184, 97, 0.07) 0%, rgba(0, 0, 0, 0) 40%)",
+          "opacity": "1",
+          "mixBlendMode": "normal"
+        },
+        {
+          "tag": "HTML",
+          "backgroundColor": "rgb(9, 26, 45)",
+          "backgroundImage": "none",
+          "opacity": "1",
+          "mixBlendMode": "normal"
+        }
+      ],
+      "method": "Chromium canvas CSS-to-sRGB foreground; native raster background with text ink removed, sampling every pixel under actual text rects including ancestor/gradient/alpha/backdrop compositing; WCAG relative luminance; raw ratio compared to 4.5 without rounding."
+    }
+  ],
+  "screenshots": [
+    {
+      "filename": "draft-light-desktop.png",
+      "sha256": "7963e84e875870e9cc8ca4c487c83f2be336f82f37b41b9adc7a8db74af74fa5",
+      "bytes": 219463,
+      "visualReview": "Selected Trần Bảo Ngọc, B draft fields and honest unavailable status visible; mobile footer scrolls below viewport."
+    },
+    {
+      "filename": "draft-dark-desktop.png",
+      "sha256": "5a4a9bb15c3da3d5e979b1cd111cf152388a0aecdc44b828258b9350eb457429",
+      "bytes": 284432,
+      "visualReview": "Selected Trần Bảo Ngọc, B draft fields and honest unavailable status visible; mobile footer scrolls below viewport."
+    },
+    {
+      "filename": "draft-light-mobile.png",
+      "sha256": "1558b8b08257e80760279f878f68540cd1de5a14c9808fc159ea724a31678232",
+      "bytes": 58848,
+      "visualReview": "Selected Trần Bảo Ngọc, B draft fields and honest unavailable status visible; mobile footer scrolls below viewport."
+    },
+    {
+      "filename": "draft-dark-mobile.png",
+      "sha256": "9dd2f0ae4f41b7e6ac684e87e7b07698b7a811fd283e52783632ca13855380e3",
+      "bytes": 110914,
+      "visualReview": "Selected Trần Bảo Ngọc, B draft fields and honest unavailable status visible; mobile footer scrolls below viewport."
+    }
+  ],
+  "additionalProbe": {
+    "command": "node docs/audits/preschool-observation-drafts-flow/.cache/seal.cjs",
+    "commandSha256": "a4bae9ed56d107fa2a603ab166205d8bc60b4725c3b6af500fe6f256ce76cbf4",
+    "scriptSha256": "c75b6aa8a94afb49d2818f29edd4a1741aeafa051d3935bb433827254b78200e",
+    "exit": 1,
+    "stdout": "",
+    "stderr": "AssertionError [ERR_ASSERTION]: referenceDataAndTypes\n\nfalse !== true\n\n    at Object.<anonymous> (docs/audits/preschool-observation-drafts-flow/.cache/seal.cjs:18:61)",
+    "classification": "Auxiliary raw-text preservation oracle failed. No browser harness error. Suspected line-ending sensitivity is unverified. Probe preserved unchanged; no repair or rerun under task stop rule.",
+    "preservationMachineProof": "NOT_PROVEN"
+  },
+  "sourceDiff": "diff --git a/src/app/dashboard/education/grades/page.tsx b/src/app/dashboard/education/grades/page.tsx\nindex b2fbea430..cefd368fb 100644\n--- a/src/app/dashboard/education/grades/page.tsx\n+++ b/src/app/dashboard/education/grades/page.tsx\n@@ -547,11 +547,38 @@ export default function PreschoolDevelopmentGradesPage() {\n \n   // New Observation Form State (Strictly typed)\n   const [newObsStudentId, setNewObsStudentId] = useState<string>('STU-001');\n-  const [newObsDomain, setNewObsDomain] = useState<string>('Ngôn Ngữ & Giao Tiếp');\n-  const [newObsSkill, setNewObsSkill] = useState<string>('');\n-  const [newObsProgression, setNewObsProgression] = useState<string>('Đạt kỳ vọng');\n-  const [newObsNote, setNewObsNote] = useState<string>('');\n-  const [newObsPhotosCount, setNewObsPhotosCount] = useState<number>(1);\n+  type ObservationDraft = {\n+    domain: string;\n+    skill: string;\n+    progression: string;\n+    note: string;\n+    photosCount: number;\n+  };\n+  const defaultObservationDraft: ObservationDraft = {\n+    domain: 'Ngôn Ngữ & Giao Tiếp',\n+    skill: '',\n+    progression: 'Đạt kỳ vọng',\n+    note: '',\n+    photosCount: 1,\n+  };\n+  const [observationDrafts, setObservationDrafts] = useState<Record<string, ObservationDraft>>({});\n+  const {\n+    domain: newObsDomain,\n+    skill: newObsSkill,\n+    progression: newObsProgression,\n+    note: newObsNote,\n+    photosCount: newObsPhotosCount,\n+  } = observationDrafts[newObsStudentId] ?? defaultObservationDraft;\n+  const updateObservationDraft = (patch: Partial<ObservationDraft>) => {\n+    setObservationDrafts((drafts) => ({\n+      ...drafts,\n+      [newObsStudentId]: { ...(drafts[newObsStudentId] ?? defaultObservationDraft), ...patch },\n+    }));\n+  };\n+  const selectObservationChild = (studentId: string) => {\n+    setNewObsStudentId(studentId);\n+    setObservationNotice(null);\n+  };\n \n   // Tenant detection\n   useEffect(() => {\n@@ -1590,6 +1617,7 @@ export default function PreschoolDevelopmentGradesPage() {\n                 type=\"button\"\n                 onClick={() => {\n                   profileToObservationRef.current = true;\n+                  selectObservationChild(inspectedStudent.id);\n                   setInspectedStudent(null);\n                   setIsNewObservationModalOpen(true);\n                 }}\n@@ -1627,7 +1655,7 @@ export default function PreschoolDevelopmentGradesPage() {\n             </div>\n \n             <p id=\"new-observation-draft-note\" className=\"text-xs leading-relaxed text-slate-700 dark:text-slate-200\">\n-              Bản nháp thử giao diện, chưa lưu vào hồ sơ. Nội dung được giữ khi đóng rồi mở lại trong màn hình này; tải lại hoặc rời trang sẽ mất bản nháp. Chỉ nhập dữ liệu giả.\n+              Bản nháp thử giao diện, chưa lưu vào hồ sơ. Mỗi trẻ có bản nháp riêng, được giữ khi đổi trẻ hoặc đóng rồi mở lại trong màn hình này; tải lại hoặc rời trang sẽ mất bản nháp. Chỉ nhập dữ liệu giả.\n             </p>\n \n             <div className=\"space-y-4 text-xs\">\n@@ -1638,7 +1666,7 @@ export default function PreschoolDevelopmentGradesPage() {\n                 <select\n                   id=\"new-observation-student\"\n                   value={newObsStudentId}\n-                  onChange={(e: ChangeEvent<HTMLSelectElement>) => setNewObsStudentId(e.target.value)}\n+                  onChange={(e: ChangeEvent<HTMLSelectElement>) => selectObservationChild(e.target.value)}\n                   className=\"w-full p-2.5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 font-medium\"\n                 >\n                   {ROSTER_STUDENTS.map((s) => (\n@@ -1657,7 +1685,7 @@ export default function PreschoolDevelopmentGradesPage() {\n                   <select\n                     id=\"new-observation-domain\"\n                     value={newObsDomain}\n-                    onChange={(e: ChangeEvent<HTMLSelectElement>) => setNewObsDomain(e.target.value)}\n+                    onChange={(e: ChangeEvent<HTMLSelectElement>) => updateObservationDraft({ domain: e.target.value })}\n                     className=\"w-full p-2.5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 font-medium\"\n                   >\n                     <option>Thể chất & Vận động</option>\n@@ -1675,7 +1703,7 @@ export default function PreschoolDevelopmentGradesPage() {\n                   <select\n                     id=\"new-observation-progression\"\n                     value={newObsProgression}\n-                    onChange={(e: ChangeEvent<HTMLSelectElement>) => setNewObsProgression(e.target.value)}\n+                    onChange={(e: ChangeEvent<HTMLSelectElement>) => updateObservationDraft({ progression: e.target.value })}\n                     className=\"w-full p-2.5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 font-medium\"\n                   >\n                     <option>Đang làm quen</option>\n@@ -1694,7 +1722,7 @@ export default function PreschoolDevelopmentGradesPage() {\n                   id=\"new-observation-skill\"\n                   type=\"text\"\n                   value={newObsSkill}\n-                  onChange={(e: ChangeEvent<HTMLInputElement>) => setNewObsSkill(e.target.value)}\n+                  onChange={(e: ChangeEvent<HTMLInputElement>) => updateObservationDraft({ skill: e.target.value })}\n                   placeholder=\"Ví dụ: Tự cởi cúc áo, nhận biết thẻ chữ o-ô-ơ...\"\n                   className=\"w-full p-2.5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 font-medium\"\n                 />\n@@ -1708,7 +1736,7 @@ export default function PreschoolDevelopmentGradesPage() {\n                   id=\"new-observation-note\"\n                   rows={3}\n                   value={newObsNote}\n-                  onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setNewObsNote(e.target.value)}\n+                  onChange={(e: ChangeEvent<HTMLTextAreaElement>) => updateObservationDraft({ note: e.target.value })}\n                   placeholder=\"Ghi lại hành vi cụ thể của trẻ trong ngữ cảnh tự nhiên...\"\n                   className=\"w-full p-2.5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 font-medium\"\n                 />\n@@ -1724,7 +1752,7 @@ export default function PreschoolDevelopmentGradesPage() {\n                   min={0}\n                   max={10}\n                   value={newObsPhotosCount}\n-                  onChange={(e: ChangeEvent<HTMLInputElement>) => setNewObsPhotosCount(Number(e.target.value))}\n+                  onChange={(e: ChangeEvent<HTMLInputElement>) => updateObservationDraft({ photosCount: Number(e.target.value) })}\n                   className=\"w-full p-2.5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 font-medium\"\n                 />\n               </div>\n",
+  "scopeReview": "Diff manually reviewed: only local observation draft state/type/helper, profile ID handoff, field setters and truthful note. No records/options/roster/tenant/modal keyboard/core/security/503/runner code edits.",
+  "edgeCaseReviewScope": "Changed source hunks: absent draft falls back to exact defaults; edits spread prior selected child draft in a functional update; child switch retains map; profile captures ID before close; global entry keeps ID; notice resets on child switch; reload drops map.",
+  "cleanup": "Browser suite closes fresh contexts, browser and loopback server in finally; both browser commands exited. Task-local ignored cache retained. No remote/API/DB/Auth/storage operation.",
+  "nativeLifecycle": "Lead owns native lifecycle counts/history/readback; no worker claim or Lead-file edit.",
+  "stop": "Stopped after first auxiliary preservation probe error; unchanged browser test and source not repaired or rerun. Publication not performed."
+}

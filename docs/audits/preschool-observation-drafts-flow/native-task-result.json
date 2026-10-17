@@ -1,0 +1,135 @@
+{
+  "result": "NATIVE_TASK_EXECUTED_PENDING_LEAD_REVIEW",
+  "fault": null,
+  "completedAt": "2026-10-17T23:06:29.045Z",
+  "baseline": "b55d3c28353e530bf713c745dc39edc730a6bc34",
+  "binding": {
+    "repository": "bellaspahcm/bella-ai-platform",
+    "taskId": "e619dfdf-aea9-4eea-9744-d0b17e4db313",
+    "runId": "2276074c-5950-409c-ac9b-bb6bde490d0b",
+    "attempt": 1,
+    "producerInstanceId": "1fb6518c-16b1-412c-8774-c3fbf4100ec8",
+    "threadId": "01a14c18-f343-74e2-8168-a5abe39dd408",
+    "sessionId": "01a14c18-f343-74e2-8168-a5abe39dd408",
+    "turnId": "01a14c18-f466-7620-a898-9db5afff6232"
+  },
+  "model": "gpt-6.1-sol",
+  "authorityVerifiedAt": "2026-10-17T23:01:03.802Z",
+  "directory": "C:\\Users\\DELL\\.codex\\agent-flow-evidence\\bella-agent-flow-fwXiyn",
+  "nativeTurnStatus": "completed",
+  "commands": [
+    {
+      "itemId": "exec-b0fc43e8-f56e-46d5-b5be-8d0080206099",
+      "exitCode": 0,
+      "commandSha256": "785971d6e442acbd352065c57c851dadb968ff8ef7700cc708815eda43126cd6",
+      "outputSha256": "67157f669144b23a6dc0a8b784e2dc4e87ae030721b12996f7fd2c45cdefef9b"
+    },
+    {
+      "itemId": "exec-8128709b-1c1d-4c28-baad-80b61b40a43c",
+      "exitCode": 1,
+      "commandSha256": "6980949e6c4c472f22ade91cb37489b2bf3e761418976ea885bcfb9f2f0005fd",
+      "outputSha256": "49e92bb1887e5c4bf1030fbcd491f0f831237bdab19c8779208339ba132eed63"
+    },
+    {
+      "itemId": "exec-640a216f-c340-4ec9-b2ed-bf5fee5cfade",
+      "exitCode": 0,
+      "commandSha256": "17ec3227bad43f1cbfbe1bef062786d4111a34b2c1bd95ce39efe655de564e07",
+      "outputSha256": "a165d4f8c138c011a9ae47d96952f9ae2eee0d21f12b91e8ac49997121809f00"
+    },
+    {
+      "itemId": "exec-7f88d484-31fd-465e-a50d-0e8451ed5952",
+      "exitCode": 0,
+      "commandSha256": "3de3f073c9facb0ba56c77106ce8b914b4483c7f14a77c3311c94f0e2358fe46",
+      "outputSha256": "84100abb6464ab08607ecaa49594963355b25db757a3dbf753b14d01d9155ff3"
+    },
+    {
+      "itemId": "exec-fb4f38b8-0b6f-481e-a8ea-2ebdad3bb584",
+      "exitCode": 0,
+      "commandSha256": "216349cc50f5915883329fcad486b5907ac919f35487edda9507cb5a49140012",
+      "outputSha256": "149e65b72fdb38be8345e6f977aa981059894ccb88ea9c1be76148b3cf778e04"
+    },
+    {
+      "itemId": "exec-d50501f8-8188-4402-b091-d8333f0e5b92",
+      "exitCode": 0,
+      "commandSha256": "1593f3d7a84268cbcfc85fb12992a2563835e9cbc4b66300d7326e27c22ca8d3",
+      "outputSha256": "d50ad5c94947957c4e85e801c3024d4ae239a132a530860e62631e635f12a0dc"
+    },
+    {
+      "itemId": "exec-cc2e1bec-4bfb-48a7-a6e9-a9286aae8716",
+      "exitCode": 1,
+      "commandSha256": "feb336b6ae4a7eb33db63e7409bf6710d9a65f5faec7e8267539efad31c678d8",
+      "outputSha256": "dea050763fe8f32593ac62ff37264471d7893ba7e67d70c876a54fa840ef9cbf"
+    },
+    {
+      "itemId": "exec-9980362c-091a-4b7b-95f8-9d58d800b3c7",
+      "exitCode": 0,
+      "commandSha256": "a02da19631c7a89f3d2abcb3d9df6102a7293cad4509e40e23189ffabf5a7d1e",
+      "outputSha256": "3598cd663605e14aa915e674d8e6861cb448638e6abaf399faa9b1a122023ada"
+    },
+    {
+      "itemId": "exec-529d33f4-2883-4c31-9383-735275f32afd",
+      "exitCode": 0,
+      "commandSha256": "0308fa96cace17032654664d65e6f24e72e635c0632f6e0b1976b40cd115907b",
+      "outputSha256": "ecddf9dcae1f6ec7b863de71e87574f908da1a201196b9ee47e929b46e3798ab"
+    },
+    {
+      "itemId": "exec-94ca85bc-b18d-4b6a-b698-88acd896e237",
+      "exitCode": 0,
+      "commandSha256": "a05e3454ab4b7459cfd6b1a74020c25bb9cbb8cc1208994b10928fae216a193e",
+      "outputSha256": "63e52cdbb376fd5ab3cc35f24cea61e42929d2ff1b4c69419a6de33e7be81972"
+    },
+    {
+      "itemId": "exec-6ecd2f04-4c15-4f7b-9a89-a23d78359da8",
+      "exitCode": 0,
+      "commandSha256": "b45b2970d65b851055d53adbdf6bd9e6715be4363eec047716058a62ed9d7b83",
+      "outputSha256": "6a8179efc8f23bb1e97ccb60a4a57e48314fc2d6a2b4449f748312cd1c906d44"
+    },
+    {
+      "itemId": "exec-9635f9ad-8c20-4937-a94b-b4b09dccf856",
+      "exitCode": 1,
+      "commandSha256": "520a1a19bfae7021cd2b4a82bbf0bbec86e0e80bb3c18701179a50e898aa6bf8",
+      "outputSha256": "a0905be01aea8f9c3e7e225e9b34042727ce3d391b2c03244cd60c1e56bad4a2"
+    },
+    {
+      "itemId": "exec-cf4d0944-9728-43a4-99fe-27a26fd67872",
+      "exitCode": 0,
+      "commandSha256": "190747ad93a5358620105de0f4ce076779effb00da671e9a91018d433cc0fe2a",
+      "outputSha256": "1d35815c80c38491d7d65ad75700a5e298cfba5106fb0e07fe43073cbe875c06"
+    }
+  ],
+  "changes": [
+    {
+      "itemId": "exec-84ea43b7-2e16-4494-b03e-a616a3dd869c",
+      "status": "completed",
+      "paths": [
+        "src/app/dashboard/education/grades/page.tsx"
+      ]
+    }
+  ],
+  "changed": [
+    "src/app/dashboard/education/grades/page.tsx",
+    "docs/audits/preschool-observation-drafts-flow/PR_BODY.md",
+    "docs/audits/preschool-observation-drafts-flow/draft-dark-desktop.png",
+    "docs/audits/preschool-observation-drafts-flow/draft-dark-mobile.png",
+    "docs/audits/preschool-observation-drafts-flow/draft-light-desktop.png",
+    "docs/audits/preschool-observation-drafts-flow/draft-light-mobile.png",
+    "docs/audits/preschool-observation-drafts-flow/native-after.json",
+    "docs/audits/preschool-observation-drafts-flow/native-before.json",
+    "docs/audits/preschool-observation-drafts-flow/observation-browser.cjs",
+    "docs/audits/preschool-observation-drafts-flow/verification.json"
+  ],
+  "acks": 70,
+  "facts": 70,
+  "fileChange": [
+    {
+      "itemId": "exec-84ea43b7-2e16-4494-b03e-a616a3dd869c",
+      "result": "MATCH"
+    }
+  ],
+  "sourceBefore": "117d063ee441a9c8b1eaa616b5a60ef31d5eddbdb621d20f02404902f168fccb",
+  "sourceAfter": "6b4fa51595c66b39d7cc7b569d6673e18d0f4d5a704c4e1688c5ebaa46f8b0d5",
+  "beforeInventorySha256": "3c2b482b955f2015535d453dd3a6de0ed1f78b650efbd41b752f94186dbb1dcc",
+  "afterInventorySha256": "08abd06687cde9236616b875c9ff2fa9c5e1e7a0479b892f16dc9497228bba16",
+  "scope": "One synthetic UI task, not autonomous discovery or Product readiness",
+  "dbOperations": 0
+}
