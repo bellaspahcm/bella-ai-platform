@@ -72,7 +72,6 @@ import {
   Target,
   Bot,
   Activity,
-  CheckCircle2,
   ShieldCheck,
   TrendingUp,
 } from 'lucide-react';
@@ -539,6 +538,7 @@ export default function PreschoolDevelopmentGradesPage() {
   const [isNewObservationModalOpen, setIsNewObservationModalOpen] = useState<boolean>(false);
   const [isAiSuggestionsDrawerOpen, setIsAiSuggestionsDrawerOpen] = useState<boolean>(false);
   const [exportNotice, setExportNotice] = useState<string | null>(null);
+  const [observationNotice, setObservationNotice] = useState<string | null>(null);
 
   // New Observation Form State (Strictly typed)
   const [newObsStudentId, setNewObsStudentId] = useState<string>('STU-001');
@@ -618,10 +618,7 @@ export default function PreschoolDevelopmentGradesPage() {
   };
 
   const handleExportReport = () => {
-    setExportNotice('Đang xuất báo cáo tiến trình phát triển NAEYC (Excel/PDF)...');
-    setTimeout(() => {
-      setExportNotice(null);
-    }, 3000);
+    setExportNotice('Chưa xuất báo cáo: chức năng xuất file chưa khả dụng trong bản thử giao diện này. Không có file được tạo.');
   };
 
   // Helper renderers for domain badges
@@ -698,13 +695,10 @@ export default function PreschoolDevelopmentGradesPage() {
 
   return (
     <div className="preschool-grades-workspace w-full p-4 sm:p-6 lg:p-8 space-y-6 pb-36 sm:pb-48">
-      {/* ── EXPORT TOAST NOTIFICATION ── */}
-      {exportNotice && (
-        <div className="fixed top-6 right-6 z-50 p-4 rounded-2xl bg-slate-900 text-white text-xs font-bold shadow-2xl flex items-center gap-3 animate-in fade-in slide-in-from-top-4">
-          <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-          <span>{exportNotice}</span>
-        </div>
-      )}
+      <p role="note" className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-xs leading-relaxed text-amber-950 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-100">
+        Dữ liệu minh họa: danh sách trẻ, chỉ số, tiến độ và lịch sử bên dưới chưa được tải từ hồ sơ thật.
+        {' '}Đây là bản thử giao diện; nhập liệu chỉ giữ tạm trong màn hình, chưa lưu hoặc xuất báo cáo.
+      </p>
 
       {/* ── UNIFIED HEADER MATCHING IMAGE 3 ── */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -731,7 +725,7 @@ export default function PreschoolDevelopmentGradesPage() {
           </div>
         </div>
 
-        <div className="flex items-center gap-3 self-end md:self-auto shrink-0">
+        <div className="flex flex-wrap items-center gap-3 self-end md:self-auto">
           <div className="relative">
             <select
               value={selectedMonth}
@@ -984,9 +978,10 @@ export default function PreschoolDevelopmentGradesPage() {
         </div>
 
         {/* Banner 2: Gợi ý từ AI sư phạm */}
-        <div
+        <button
+          type="button"
           onClick={() => setIsAiSuggestionsDrawerOpen(true)}
-          className="rounded-2xl p-4 bg-[#f0f7ff] dark:bg-blue-950/40 border border-blue-200/80 dark:border-blue-900/60 flex items-center justify-between cursor-pointer hover:bg-blue-100/50 transition-all shadow-sm"
+          className="rounded-2xl p-4 bg-[#f0f7ff] dark:bg-blue-950/40 border border-blue-200/80 dark:border-blue-900/60 flex items-center justify-between text-left cursor-pointer hover:bg-blue-100/50 transition-all shadow-sm"
         >
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/80 text-blue-600 dark:text-blue-300 flex items-center justify-center shrink-0">
@@ -994,15 +989,15 @@ export default function PreschoolDevelopmentGradesPage() {
             </div>
             <div>
               <div className="text-xs font-extrabold text-blue-950 dark:text-blue-100">
-                Gợi ý từ AI sư phạm
+                Gợi ý AI sư phạm minh họa
               </div>
               <div className="text-[11px] font-medium text-blue-700 dark:text-blue-300 mt-0.5">
-                Tổng hợp 12 gợi ý cá nhân hóa trong tháng 9
+                Nội dung mẫu, chưa phân tích hồ sơ thật
               </div>
             </div>
           </div>
           <ChevronRight className="w-4 h-4 text-blue-500 shrink-0" />
-        </div>
+        </button>
       </div>
 
       {/* ── SEARCH & FILTER BAR MATCHING IMAGE 3 ── */}
@@ -1112,6 +1107,13 @@ export default function PreschoolDevelopmentGradesPage() {
             </div>
           </div>
         </div>
+
+        {exportNotice && (
+          <div role="status" className="m-4 sm:m-5 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-xs font-bold text-amber-950 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-100 flex items-start gap-3">
+            <AlertCircle className="w-4 h-4 shrink-0" />
+            <span>{exportNotice}</span>
+          </div>
+        )}
 
         {/* View Mode: List Table or Grid Cards */}
         {viewMode === 'list' ? (
@@ -1228,6 +1230,7 @@ export default function PreschoolDevelopmentGradesPage() {
                           type="button"
                           onClick={() => setInspectedStudent(child)}
                           title="Tùy chọn thao tác"
+                          aria-label={`Xem hồ sơ minh họa ${child.name}`}
                           className="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
                         >
                           <MoreHorizontal className="w-4 h-4" />
@@ -1473,7 +1476,8 @@ export default function PreschoolDevelopmentGradesPage() {
       {/* ── MODAL 1: STUDENT PORTFOLIO 360° INSPECTION DRAWER ── */}
       {inspectedStudent && (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto animate-in fade-in duration-200">
-          <div className="w-full max-w-2xl bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl p-6 sm:p-8 space-y-6 max-h-[90vh] overflow-y-auto">
+          <div role="dialog" aria-modal="true" aria-label="Hồ sơ trẻ minh họa" className="w-full max-w-2xl bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl p-6 sm:p-8 space-y-6 max-h-[90vh] overflow-y-auto">
+            <p className="text-xs font-bold text-slate-700 dark:text-slate-200">Hồ sơ minh họa: thông tin thể chất, nhận xét, bằng chứng và gợi ý bên dưới là nội dung mẫu.</p>
             {/* Header */}
             <div className="flex items-start justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-4">
               <div className="flex items-center gap-3.5">
@@ -1502,6 +1506,7 @@ export default function PreschoolDevelopmentGradesPage() {
               <button
                 type="button"
                 onClick={() => setInspectedStudent(null)}
+                aria-label="Đóng hồ sơ minh họa"
                 className="p-2 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800"
               >
                 <X className="w-4 h-4" />
@@ -1572,7 +1577,7 @@ export default function PreschoolDevelopmentGradesPage() {
               <div className="p-4 rounded-2xl bg-[#f0f7ff] dark:bg-blue-950/40 border border-blue-200/80 dark:border-blue-900/60 space-y-1.5 text-xs">
                 <div className="font-extrabold text-blue-900 dark:text-blue-200 flex items-center gap-2">
                   <Bot className="w-4 h-4 text-blue-600" />
-                  <span>Trợ lý AI gợi ý tổng hợp (Bản thảo sư phạm):</span>
+                  <span>Gợi ý tổng hợp minh họa (chưa phân tích hồ sơ thật):</span>
                 </div>
                 <p className="text-blue-800 dark:text-blue-300 italic text-[11px] leading-relaxed">
                   &quot;{inspectedStudent.aiDraftSummary}&quot;
@@ -1621,34 +1626,40 @@ export default function PreschoolDevelopmentGradesPage() {
       {/* ── MODAL 2: NEW OBSERVATION ENTRY ── */}
       {isNewObservationModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto animate-in fade-in duration-200">
-          <div className="w-full max-w-lg bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl p-6 sm:p-8 space-y-5">
+          <div role="dialog" aria-modal="true" aria-labelledby="new-observation-title" aria-describedby="new-observation-draft-note" className="w-full max-w-lg bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl p-6 sm:p-8 space-y-5 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-700 flex items-center justify-center">
                   <Camera className="w-4 h-4" />
                 </div>
-                <h3 className="text-base font-extrabold text-slate-900 dark:text-white">
+                <h3 id="new-observation-title" className="text-base font-extrabold text-slate-900 dark:text-white">
                   Nhập quan sát sư phạm mới
                 </h3>
               </div>
               <button
                 type="button"
                 onClick={() => setIsNewObservationModalOpen(false)}
+                aria-label="Đóng nhập quan sát"
                 className="p-1.5 rounded-xl text-slate-400 hover:text-slate-600"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
+            <p id="new-observation-draft-note" className="text-xs leading-relaxed text-slate-700 dark:text-slate-200">
+              Bản nháp thử giao diện, chưa lưu vào hồ sơ. Nội dung được giữ khi đóng rồi mở lại trong màn hình này; tải lại hoặc rời trang sẽ mất bản nháp. Chỉ nhập dữ liệu giả.
+            </p>
+
             <div className="space-y-4 text-xs">
               <div>
-                <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">
+                <label htmlFor="new-observation-student" className="font-bold text-slate-700 dark:text-slate-300 block mb-1">
                   Chọn trẻ
                 </label>
                 <select
+                  id="new-observation-student"
                   value={newObsStudentId}
                   onChange={(e: ChangeEvent<HTMLSelectElement>) => setNewObsStudentId(e.target.value)}
-                  className="w-full p-2.5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 font-medium"
+                  className="w-full p-2.5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 font-medium"
                 >
                   {ROSTER_STUDENTS.map((s) => (
                     <option key={s.id} value={s.id}>
@@ -1660,13 +1671,14 @@ export default function PreschoolDevelopmentGradesPage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">
+                  <label htmlFor="new-observation-domain" className="font-bold text-slate-700 dark:text-slate-300 block mb-1">
                     Lĩnh vực NAEYC
                   </label>
                   <select
+                    id="new-observation-domain"
                     value={newObsDomain}
                     onChange={(e: ChangeEvent<HTMLSelectElement>) => setNewObsDomain(e.target.value)}
-                    className="w-full p-2.5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 font-medium"
+                    className="w-full p-2.5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 font-medium"
                   >
                     <option>Thể chất & Vận động</option>
                     <option>Ngôn Ngữ & Giao Tiếp</option>
@@ -1677,13 +1689,14 @@ export default function PreschoolDevelopmentGradesPage() {
                 </div>
 
                 <div>
-                  <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">
+                  <label htmlFor="new-observation-progression" className="font-bold text-slate-700 dark:text-slate-300 block mb-1">
                     Mức độ tiến trình
                   </label>
                   <select
+                    id="new-observation-progression"
                     value={newObsProgression}
                     onChange={(e: ChangeEvent<HTMLSelectElement>) => setNewObsProgression(e.target.value)}
-                    className="w-full p-2.5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 font-medium"
+                    className="w-full p-2.5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 font-medium"
                   >
                     <option>Đang làm quen</option>
                     <option>Đang phát triển</option>
@@ -1694,60 +1707,66 @@ export default function PreschoolDevelopmentGradesPage() {
               </div>
 
               <div>
-                <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">
+                <label htmlFor="new-observation-skill" className="font-bold text-slate-700 dark:text-slate-300 block mb-1">
                   Kỹ năng quan sát cụ thể
                 </label>
                 <input
+                  id="new-observation-skill"
                   type="text"
                   value={newObsSkill}
                   onChange={(e: ChangeEvent<HTMLInputElement>) => setNewObsSkill(e.target.value)}
                   placeholder="Ví dụ: Tự cởi cúc áo, nhận biết thẻ chữ o-ô-ơ..."
-                  className="w-full p-2.5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 font-medium"
+                  className="w-full p-2.5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 font-medium"
                 />
               </div>
 
               <div>
-                <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">
+                <label htmlFor="new-observation-note" className="font-bold text-slate-700 dark:text-slate-300 block mb-1">
                   Ghi chép hành vi khách quan
                 </label>
                 <textarea
+                  id="new-observation-note"
                   rows={3}
                   value={newObsNote}
                   onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setNewObsNote(e.target.value)}
                   placeholder="Ghi lại hành vi cụ thể của trẻ trong ngữ cảnh tự nhiên..."
-                  className="w-full p-2.5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 font-medium"
+                  className="w-full p-2.5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 font-medium"
                 />
               </div>
 
               <div>
-                <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">
+                <label htmlFor="new-observation-photos" className="font-bold text-slate-700 dark:text-slate-300 block mb-1">
                   Số lượng ảnh / video bằng chứng đính kèm
                 </label>
                 <input
+                  id="new-observation-photos"
                   type="number"
                   min={0}
                   max={10}
                   value={newObsPhotosCount}
                   onChange={(e: ChangeEvent<HTMLInputElement>) => setNewObsPhotosCount(Number(e.target.value))}
-                  className="w-full p-2.5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 font-medium"
+                  className="w-full p-2.5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 font-medium"
                 />
               </div>
             </div>
 
+            {observationNotice && (
+              <p role="status" className="rounded-2xl border border-amber-200 bg-amber-50 p-3 text-xs leading-relaxed text-amber-950 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-100">
+                {observationNotice}
+              </p>
+            )}
             <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100 dark:border-slate-800">
               <button
                 type="button"
                 onClick={() => setIsNewObservationModalOpen(false)}
-                className="px-4 py-2.5 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-xs hover:bg-slate-200 transition-colors"
+                className="px-4 py-2.5 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 font-bold text-xs hover:bg-slate-200 transition-colors"
               >
-                Hủy bỏ
+                Đóng và giữ bản nháp
               </button>
               <button
                 type="button"
                 onClick={() => {
-                  setIsNewObservationModalOpen(false);
-                  setExportNotice('Đã lưu quan sát mới vào nhật ký sư phạm thành công!');
-                  setTimeout(() => setExportNotice(null), 3000);
+                  setObservationNotice('Chưa lưu quan sát: chức năng lưu chưa khả dụng trong bản thử giao diện này. Bản nháp vẫn được giữ trong màn hình, chưa có hồ sơ mới được tạo.');
                 }}
                 className="px-5 py-2.5 rounded-2xl bg-[#0c513f] hover:bg-[#083b2e] text-white font-bold text-xs shadow-md transition-all flex items-center gap-1.5"
               >
@@ -1762,19 +1781,20 @@ export default function PreschoolDevelopmentGradesPage() {
       {/* ── MODAL 3: AI SUGGESTIONS DRAWER ── */}
       {isAiSuggestionsDrawerOpen && (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto animate-in fade-in duration-200">
-          <div className="w-full max-w-lg bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl p-6 sm:p-8 space-y-5">
+          <div role="dialog" aria-modal="true" aria-labelledby="ai-sample-title" className="w-full max-w-lg bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl p-6 sm:p-8 space-y-5 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/80 text-blue-600 flex items-center justify-center">
                   <Bot className="w-4 h-4" />
                 </div>
-                <h3 className="text-base font-extrabold text-slate-900 dark:text-white">
-                  Gợi ý từ AI Sư Phạm (Tháng 09/2026)
+                <h3 id="ai-sample-title" className="text-base font-extrabold text-slate-900 dark:text-white">
+                  Gợi ý AI sư phạm minh họa
                 </h3>
               </div>
               <button
                 type="button"
                 onClick={() => setIsAiSuggestionsDrawerOpen(false)}
+                aria-label="Đóng gợi ý AI minh họa"
                 className="p-1.5 rounded-xl text-slate-400 hover:text-slate-600"
               >
                 <X className="w-4 h-4" />
@@ -1782,8 +1802,8 @@ export default function PreschoolDevelopmentGradesPage() {
             </div>
 
             <div className="space-y-3 text-xs">
-              <p className="text-slate-600 dark:text-slate-400">
-                AI đã phân tích 42 nhật ký quan sát sư phạm trong tháng 9 và đưa ra các khuyến nghị có thể ứng dụng trong kế hoạch bài học tuần tới:
+              <p className="text-slate-700 dark:text-slate-200">
+                Gợi ý minh họa để thử giao diện. Chưa có phân tích AI từ nhật ký hoặc hồ sơ thật; các khuyến nghị bên dưới là nội dung mẫu.
               </p>
 
               <div className="p-3.5 rounded-2xl bg-blue-50/70 dark:bg-blue-950/40 border border-blue-200/60 space-y-1">
@@ -1820,7 +1840,7 @@ export default function PreschoolDevelopmentGradesPage() {
                 onClick={() => setIsAiSuggestionsDrawerOpen(false)}
                 className="px-5 py-2.5 rounded-2xl bg-[#0c513f] hover:bg-[#083b2e] text-white font-bold text-xs shadow-md"
               >
-                Đã tiếp nhận khuyến nghị
+                Đóng gợi ý minh họa
               </button>
             </div>
           </div>

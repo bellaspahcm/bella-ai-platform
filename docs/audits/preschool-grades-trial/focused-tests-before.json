@@ -1,0 +1,22 @@
+{
+  "result": "FAIL_REPRODUCED_BEFORE_FIX",
+  "baseCommit": "91468e5cb98030636f339e160d6baad70c4348ff",
+  "passed": 0,
+  "failed": 2,
+  "total": 2,
+  "rawResultSha256": "9b10e28eee8fbb937cc3fa1a7db7a8e601a55670b435a5032cc3e80e21640e8f",
+  "findings": [
+    "No sample-content note exists",
+    "Unavailable save closes observation dialog instead of retaining it"
+  ],
+  "tests": [
+    {
+      "name": "Grades trial truthful unavailable actions marks roster, metrics, progress and history as sample content",
+      "status": "failed"
+    },
+    {
+      "name": "Grades trial truthful unavailable actions does not close the form or claim success when unavailable save is requested",
+      "status": "failed"
+    }
+  ]
+}

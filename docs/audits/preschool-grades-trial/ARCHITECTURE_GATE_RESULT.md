@@ -1,0 +1,14 @@
+# Đánh giá phát triển — giới hạn thử giao diện
+
+Result: **PASS cho sửa presentation độc lập**; Product/Data/Safety và Preschool runtime Architecture Gate không được nâng trạng thái.
+
+1. Process/Truth: audit đã ghi nhận save chỉ đóng modal/toast và export không download (`FEATURE_DB_COVERAGE.md`, base 0bc9bba). Owner yêu cầu PRODUCT_FIRST_PRE_GO_LIVE: sửa lỗi độc lập đã có bằng chứng, chỉ synthetic. Quy tắc độc lập: không báo lưu/xuất/phân tích thật khi chưa thực hiện.
+2. Manifest/capability: unchanged. Đây là sửa lỗi phản hồi của màn `/dashboard/education/grades`, không triển khai assessment/observation persistence hay chuẩn NAEYC.
+3. Ownership: UI sở hữu thông báo, label, draft state và accessibility. Education Product/contract owner giữ nghiệp vụ đánh giá/lưu/xuất; Platform giữ identity/tenant/security. Không tạo primitive/engine/contract mới.
+4. Dependency: UI local draft → unavailable feedback. Existing tenant-brand presentation detection unchanged; không thêm fetch/API/DB. Parent Daily GET/Course POST503 kế thừa từ base containment, không sửa.
+5. Exact allowlist: `src/app/dashboard/education/grades/page.tsx`, colocated `__tests__/page.test.tsx`, gate/spec/test and browser proof under this directory. Không đổi src khác, contract, RLS, migration, seed, ProductRegistry, config/package, frozen Kernel. PR358–361 giữ nguyên draft/commit.
+6. UI reconciliation: save success → truthful unavailable and retain form; export progress → truthful unavailable, no pretend download; roster/KPI/history/AI are labelled sample, not loaded/evaluated records; modal labels/status must be accessible and legible. Không hứa persistence hoặc dữ liệu thật. Không thêm lưu localStorage để giả DB.
+7. Migration: NONE. No C10 start, Auth fixture, DB/remote connection, real child/parent data, merge/release.
+8. Eleven gates: G1 file/import/type scope; G2 no new contract access; G3/G4 unchanged and NOT_PROVEN; G5 no schema; G6 no fake persistence/event; G7–G9 no assessment/consent/history semantics change; G10 source/diff/command hashes plus bounded evidence; G11 new focused UI interaction tests, lint/typecheck, isolated browser synthetic render/light-dark/mobile/contrast of changed controls. No full DB/Auth/Go-Live PASS from these checks.
+
+Business Test Contract: Given a local observation draft and unavailable save, click must show a persistent non-success explanation, keep the modal and all values; explicit close/reopen retains component draft until reload. Given export action, no false progress/success/download is claimed. Given sample roster/KPIs/AI, UI must identify their synthetic origin. Expected values come from direct Owner rule and audited missing persistence, not a new business grading policy. Builder owns this UI/test only; Lead owns evidence index/delivery; independent reviewers are read-only.
