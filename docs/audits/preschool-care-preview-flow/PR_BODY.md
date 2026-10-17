@@ -1,0 +1,11 @@
+Care quick-record Save previously closed the form and discarded entries despite having no persistence operation. It now keeps all four dropdowns and the note mounted, announces that saving is unavailable and nothing was saved, and leaves sample records/KPIs unchanged on repeated attempts. Page and form notices disclose illustrative data and temporary input; Cancel/X still discard. Labels, dialog attributes and bounded overflow make the messages and controls usable.
+
+Only `src/app/dashboard/education/care/page.tsx` changes at runtime. Clinical options, recipients, roster/filter/selection, tenant/course fallback and both 503 routes are preserved. No persistence or transport added.
+
+Validation: same browser test SHA-256 `27bf6001715940562927bb183d90ecff8035a93fb006e59d9af974a4adf60e05` before and after. Before: 12/12 journeys failed, 84 intended assertion failures, zero harness errors. After: 12/12 journeys and 192/192 assertions passed across toolbar/row/detail entry in light/dark desktop 1440x1000 and mobile 390x844. Repeated Save retains exact edited fields; Cancel/X reset fields and feedback. Zero page errors, unexpected requests, mutations or downloads. Each journey performs one declared synthetic catalog GET failure to exercise existing fallback. Browser/context/server cleanup runs in finally.
+
+All 12 changed-message raster contrast measurements passed raw >=4.5; minimum 13.31213862994338. Four after screenshots inspected. Focused ESLint, Education typecheck, browser syntax and whitespace checks exited 0. ESLint emitted its existing unsupported `.eslintignore` warning; configuration untouched. One implementation round, no failed implementation or auxiliary check.
+
+Evidence: `native-before.json`, `native-after.json`, four `care-*.png`, `verification.json` (exact commands/exits/stdout/stderr/hashes), and `preservation-proof.json` (raw hashes, LF/CRLF-only text comparisons, nine preservation checks, exact diff). Before/after receipts and the test were not rewritten for hash equality.
+
+Scope result: bounded UI repair PASS. UI->DB NOT_PROVEN; Parent RLS FAIL; Course authorization BLOCKED; Pre-Go-Live BLOCKED. Synthetic component/browser evidence does not establish backend/Auth/DB correctness. Lead independent history/review/publication remains separate. No stage/commit/push/PR/merge/deploy performed.

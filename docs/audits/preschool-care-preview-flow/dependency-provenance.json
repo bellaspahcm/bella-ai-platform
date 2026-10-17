@@ -1,0 +1,37 @@
+{
+  "recordedAt": "2026-10-17T23:16:30.296Z",
+  "owner": "LEAD",
+  "baseline": "91468e5cb98030636f339e160d6baad70c4348ff",
+  "browserFiles": 291,
+  "checksumsIdentical": true,
+  "executableSha256": "2d8f2abad1a0f2998aaf861967c374d4aad6a104916b8794318760ed35db772f",
+  "referenceScaffolding": [
+    {
+      "path": ".cache/reference-dialog-browser.cjs",
+      "sha256": "728be1af6f8e47ee2fe78d67a321604d928f786260f94e84e9d338712803ec37",
+      "executed": false
+    },
+    {
+      "path": ".cache/reference-contrast-browser.cjs",
+      "sha256": "9d64f671b02008d9851f373fb5703ef4f7c592d49efc38a45957454e4688b6c3",
+      "executed": false
+    }
+  ],
+  "nodeModules": "Existing D dependency junction, no installation",
+  "policy": {
+    "type": "workspaceWrite",
+    "writableRoots": [
+      "D:\\Antigravity\\Projects\\BELLA_PRESCHOOL_CARE_TRIAL"
+    ],
+    "networkAccess": false
+  },
+  "coreAgentFlowModified": false,
+  "runnerBehaviorModified": false,
+  "taskLocalTemporaryDirectory": "D:\\Antigravity\\Projects\\BELLA_PRESCHOOL_CARE_TRIAL\\docs\\audits\\preschool-care-preview-flow\\.cache\\tmp",
+  "retainedStore": "Existing C user-private Agent Flow evidence root",
+  "cFreeBytes": 710512640,
+  "dFreeBytes": 80848375808,
+  "checkout": "Ordinary isolated D Git worktree; managed C provisioning previously failed ENOSPC, no host data deleted",
+  "parentPullRequest": 361,
+  "gradesStackDependency": false
+}

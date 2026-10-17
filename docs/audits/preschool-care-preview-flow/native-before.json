@@ -1,0 +1,1209 @@
+{
+  "phase": "before",
+  "recordedAt": "2026-10-17T23:18:18.379Z",
+  "command": "node docs/audits/preschool-care-preview-flow/care-browser.cjs before",
+  "exitCode": 1,
+  "summary": {
+    "journeys": 12,
+    "passed": 0,
+    "failed": 12,
+    "errors": 0,
+    "assertions": 192,
+    "assertionsPassed": 108,
+    "assertionsFailed": 84,
+    "contrastCount": 0,
+    "contrastFailed": 0,
+    "minimumRatio": null,
+    "pageErrors": 0,
+    "unexpectedRequests": 0,
+    "mutations": 0,
+    "downloads": 0,
+    "catalogGets": 12
+  },
+  "sourceSha256": "cfc6b328cb5d0fe20bea08faddc8a682195b723e2e7c02982b5ef448c6693052",
+  "testSha256": "27bf6001715940562927bb183d90ecff8035a93fb006e59d9af974a4adf60e05",
+  "globalsSha256": "1f2458f1e1ff45ff29650ce9bc30a0a408004f079760de68bcef7c915ddce21e",
+  "bundleSha256": "6a5ce3c34f1069667b761fcc6b87b9d13dce36d9d8108dcaa825571c6f48b6b7",
+  "compiledCssSha256": "a094407fb80550f60263217c4e7c355077ad0d9f633d1cff73324dd056d0ed41",
+  "limits": "Actual Care and globals. Only Next image/link and tenant settings stubbed. Synthetic catalog GET failure exercises existing fallback; no backend/Auth/DB/persistence proof. Fresh context per entry/theme/viewport. Raster contrast only three changed messages.",
+  "serverRequests": [
+    {
+      "method": "GET",
+      "url": "/"
+    },
+    {
+      "method": "GET",
+      "url": "/api/education/courses"
+    },
+    {
+      "method": "GET",
+      "url": "/"
+    },
+    {
+      "method": "GET",
+      "url": "/api/education/courses"
+    },
+    {
+      "method": "GET",
+      "url": "/"
+    },
+    {
+      "method": "GET",
+      "url": "/api/education/courses"
+    },
+    {
+      "method": "GET",
+      "url": "/"
+    },
+    {
+      "method": "GET",
+      "url": "/api/education/courses"
+    },
+    {
+      "method": "GET",
+      "url": "/"
+    },
+    {
+      "method": "GET",
+      "url": "/api/education/courses"
+    },
+    {
+      "method": "GET",
+      "url": "/"
+    },
+    {
+      "method": "GET",
+      "url": "/api/education/courses"
+    },
+    {
+      "method": "GET",
+      "url": "/"
+    },
+    {
+      "method": "GET",
+      "url": "/api/education/courses"
+    },
+    {
+      "method": "GET",
+      "url": "/"
+    },
+    {
+      "method": "GET",
+      "url": "/api/education/courses"
+    },
+    {
+      "method": "GET",
+      "url": "/"
+    },
+    {
+      "method": "GET",
+      "url": "/api/education/courses"
+    },
+    {
+      "method": "GET",
+      "url": "/"
+    },
+    {
+      "method": "GET",
+      "url": "/api/education/courses"
+    },
+    {
+      "method": "GET",
+      "url": "/"
+    },
+    {
+      "method": "GET",
+      "url": "/api/education/courses"
+    },
+    {
+      "method": "GET",
+      "url": "/"
+    },
+    {
+      "method": "GET",
+      "url": "/api/education/courses"
+    }
+  ],
+  "results": [
+    {
+      "theme": "light",
+      "device": "desktop",
+      "entry": "toolbar",
+      "assertions": [
+        {
+          "name": "Page discloses roster KPIs history are sample not real loaded care",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        },
+        {
+          "name": "Modal explains synthetic only no save and discard on close/leave",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        },
+        {
+          "name": "Dialog and labels associated",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\nnull !== 'dialog'\n"
+        },
+        {
+          "name": "Save 1 retains open form and all exact values",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        },
+        {
+          "name": "Save 1 explicitly unavailable and not saved",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        },
+        {
+          "name": "Save 1 preserves preview rows KPIs history",
+          "result": "PASS"
+        },
+        {
+          "name": "Save 2 retains open form and all exact values",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        },
+        {
+          "name": "Save 2 explicitly unavailable and not saved",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        },
+        {
+          "name": "Save 2 preserves preview rows KPIs history",
+          "result": "PASS"
+        },
+        {
+          "name": "Modal can scroll controls inside viewport",
+          "result": "PASS"
+        },
+        {
+          "name": "Cancel closes",
+          "result": "PASS"
+        },
+        {
+          "name": "Cancel discards fields and stale save status",
+          "result": "PASS"
+        },
+        {
+          "name": "X closes",
+          "result": "PASS"
+        },
+        {
+          "name": "X discards fields and stale save status",
+          "result": "PASS"
+        },
+        {
+          "name": "Class and roster unchanged",
+          "result": "PASS"
+        },
+        {
+          "name": "Only declared synthetic catalog GET",
+          "result": "PASS"
+        }
+      ],
+      "contrast": [],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "mutations": [],
+      "catalogGets": [
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:58828/api/education/courses"
+        }
+      ],
+      "downloads": [],
+      "result": "FAIL"
+    },
+    {
+      "theme": "light",
+      "device": "desktop",
+      "entry": "row",
+      "assertions": [
+        {
+          "name": "Page discloses roster KPIs history are sample not real loaded care",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        },
+        {
+          "name": "Modal explains synthetic only no save and discard on close/leave",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        },
+        {
+          "name": "Dialog and labels associated",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\nnull !== 'dialog'\n"
+        },
+        {
+          "name": "Save 1 retains open form and all exact values",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        },
+        {
+          "name": "Save 1 explicitly unavailable and not saved",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        },
+        {
+          "name": "Save 1 preserves preview rows KPIs history",
+          "result": "PASS"
+        },
+        {
+          "name": "Save 2 retains open form and all exact values",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        },
+        {
+          "name": "Save 2 explicitly unavailable and not saved",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        },
+        {
+          "name": "Save 2 preserves preview rows KPIs history",
+          "result": "PASS"
+        },
+        {
+          "name": "Modal can scroll controls inside viewport",
+          "result": "PASS"
+        },
+        {
+          "name": "Cancel closes",
+          "result": "PASS"
+        },
+        {
+          "name": "Cancel discards fields and stale save status",
+          "result": "PASS"
+        },
+        {
+          "name": "X closes",
+          "result": "PASS"
+        },
+        {
+          "name": "X discards fields and stale save status",
+          "result": "PASS"
+        },
+        {
+          "name": "Class and roster unchanged",
+          "result": "PASS"
+        },
+        {
+          "name": "Only declared synthetic catalog GET",
+          "result": "PASS"
+        }
+      ],
+      "contrast": [],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "mutations": [],
+      "catalogGets": [
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:58828/api/education/courses"
+        }
+      ],
+      "downloads": [],
+      "result": "FAIL"
+    },
+    {
+      "theme": "light",
+      "device": "desktop",
+      "entry": "detail",
+      "assertions": [
+        {
+          "name": "Page discloses roster KPIs history are sample not real loaded care",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        },
+        {
+          "name": "Modal explains synthetic only no save and discard on close/leave",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        },
+        {
+          "name": "Dialog and labels associated",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\nnull !== 'dialog'\n"
+        },
+        {
+          "name": "Save 1 retains open form and all exact values",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        },
+        {
+          "name": "Save 1 explicitly unavailable and not saved",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        },
+        {
+          "name": "Save 1 preserves preview rows KPIs history",
+          "result": "PASS"
+        },
+        {
+          "name": "Save 2 retains open form and all exact values",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        },
+        {
+          "name": "Save 2 explicitly unavailable and not saved",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        },
+        {
+          "name": "Save 2 preserves preview rows KPIs history",
+          "result": "PASS"
+        },
+        {
+          "name": "Modal can scroll controls inside viewport",
+          "result": "PASS"
+        },
+        {
+          "name": "Cancel closes",
+          "result": "PASS"
+        },
+        {
+          "name": "Cancel discards fields and stale save status",
+          "result": "PASS"
+        },
+        {
+          "name": "X closes",
+          "result": "PASS"
+        },
+        {
+          "name": "X discards fields and stale save status",
+          "result": "PASS"
+        },
+        {
+          "name": "Class and roster unchanged",
+          "result": "PASS"
+        },
+        {
+          "name": "Only declared synthetic catalog GET",
+          "result": "PASS"
+        }
+      ],
+      "contrast": [],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "mutations": [],
+      "catalogGets": [
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:58828/api/education/courses"
+        }
+      ],
+      "downloads": [],
+      "result": "FAIL"
+    },
+    {
+      "theme": "light",
+      "device": "mobile",
+      "entry": "toolbar",
+      "assertions": [
+        {
+          "name": "Page discloses roster KPIs history are sample not real loaded care",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        },
+        {
+          "name": "Modal explains synthetic only no save and discard on close/leave",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        },
+        {
+          "name": "Dialog and labels associated",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\nnull !== 'dialog'\n"
+        },
+        {
+          "name": "Save 1 retains open form and all exact values",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        },
+        {
+          "name": "Save 1 explicitly unavailable and not saved",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        },
+        {
+          "name": "Save 1 preserves preview rows KPIs history",
+          "result": "PASS"
+        },
+        {
+          "name": "Save 2 retains open form and all exact values",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        },
+        {
+          "name": "Save 2 explicitly unavailable and not saved",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        },
+        {
+          "name": "Save 2 preserves preview rows KPIs history",
+          "result": "PASS"
+        },
+        {
+          "name": "Modal can scroll controls inside viewport",
+          "result": "PASS"
+        },
+        {
+          "name": "Cancel closes",
+          "result": "PASS"
+        },
+        {
+          "name": "Cancel discards fields and stale save status",
+          "result": "PASS"
+        },
+        {
+          "name": "X closes",
+          "result": "PASS"
+        },
+        {
+          "name": "X discards fields and stale save status",
+          "result": "PASS"
+        },
+        {
+          "name": "Class and roster unchanged",
+          "result": "PASS"
+        },
+        {
+          "name": "Only declared synthetic catalog GET",
+          "result": "PASS"
+        }
+      ],
+      "contrast": [],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "mutations": [],
+      "catalogGets": [
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:58828/api/education/courses"
+        }
+      ],
+      "downloads": [],
+      "result": "FAIL"
+    },
+    {
+      "theme": "light",
+      "device": "mobile",
+      "entry": "row",
+      "assertions": [
+        {
+          "name": "Page discloses roster KPIs history are sample not real loaded care",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        },
+        {
+          "name": "Modal explains synthetic only no save and discard on close/leave",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        },
+        {
+          "name": "Dialog and labels associated",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\nnull !== 'dialog'\n"
+        },
+        {
+          "name": "Save 1 retains open form and all exact values",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        },
+        {
+          "name": "Save 1 explicitly unavailable and not saved",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        },
+        {
+          "name": "Save 1 preserves preview rows KPIs history",
+          "result": "PASS"
+        },
+        {
+          "name": "Save 2 retains open form and all exact values",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        },
+        {
+          "name": "Save 2 explicitly unavailable and not saved",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        },
+        {
+          "name": "Save 2 preserves preview rows KPIs history",
+          "result": "PASS"
+        },
+        {
+          "name": "Modal can scroll controls inside viewport",
+          "result": "PASS"
+        },
+        {
+          "name": "Cancel closes",
+          "result": "PASS"
+        },
+        {
+          "name": "Cancel discards fields and stale save status",
+          "result": "PASS"
+        },
+        {
+          "name": "X closes",
+          "result": "PASS"
+        },
+        {
+          "name": "X discards fields and stale save status",
+          "result": "PASS"
+        },
+        {
+          "name": "Class and roster unchanged",
+          "result": "PASS"
+        },
+        {
+          "name": "Only declared synthetic catalog GET",
+          "result": "PASS"
+        }
+      ],
+      "contrast": [],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "mutations": [],
+      "catalogGets": [
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:58828/api/education/courses"
+        }
+      ],
+      "downloads": [],
+      "result": "FAIL"
+    },
+    {
+      "theme": "light",
+      "device": "mobile",
+      "entry": "detail",
+      "assertions": [
+        {
+          "name": "Page discloses roster KPIs history are sample not real loaded care",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        },
+        {
+          "name": "Modal explains synthetic only no save and discard on close/leave",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        },
+        {
+          "name": "Dialog and labels associated",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\nnull !== 'dialog'\n"
+        },
+        {
+          "name": "Save 1 retains open form and all exact values",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        },
+        {
+          "name": "Save 1 explicitly unavailable and not saved",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        },
+        {
+          "name": "Save 1 preserves preview rows KPIs history",
+          "result": "PASS"
+        },
+        {
+          "name": "Save 2 retains open form and all exact values",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        },
+        {
+          "name": "Save 2 explicitly unavailable and not saved",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        },
+        {
+          "name": "Save 2 preserves preview rows KPIs history",
+          "result": "PASS"
+        },
+        {
+          "name": "Modal can scroll controls inside viewport",
+          "result": "PASS"
+        },
+        {
+          "name": "Cancel closes",
+          "result": "PASS"
+        },
+        {
+          "name": "Cancel discards fields and stale save status",
+          "result": "PASS"
+        },
+        {
+          "name": "X closes",
+          "result": "PASS"
+        },
+        {
+          "name": "X discards fields and stale save status",
+          "result": "PASS"
+        },
+        {
+          "name": "Class and roster unchanged",
+          "result": "PASS"
+        },
+        {
+          "name": "Only declared synthetic catalog GET",
+          "result": "PASS"
+        }
+      ],
+      "contrast": [],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "mutations": [],
+      "catalogGets": [
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:58828/api/education/courses"
+        }
+      ],
+      "downloads": [],
+      "result": "FAIL"
+    },
+    {
+      "theme": "dark",
+      "device": "desktop",
+      "entry": "toolbar",
+      "assertions": [
+        {
+          "name": "Page discloses roster KPIs history are sample not real loaded care",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        },
+        {
+          "name": "Modal explains synthetic only no save and discard on close/leave",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        },
+        {
+          "name": "Dialog and labels associated",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\nnull !== 'dialog'\n"
+        },
+        {
+          "name": "Save 1 retains open form and all exact values",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        },
+        {
+          "name": "Save 1 explicitly unavailable and not saved",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        },
+        {
+          "name": "Save 1 preserves preview rows KPIs history",
+          "result": "PASS"
+        },
+        {
+          "name": "Save 2 retains open form and all exact values",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        },
+        {
+          "name": "Save 2 explicitly unavailable and not saved",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        },
+        {
+          "name": "Save 2 preserves preview rows KPIs history",
+          "result": "PASS"
+        },
+        {
+          "name": "Modal can scroll controls inside viewport",
+          "result": "PASS"
+        },
+        {
+          "name": "Cancel closes",
+          "result": "PASS"
+        },
+        {
+          "name": "Cancel discards fields and stale save status",
+          "result": "PASS"
+        },
+        {
+          "name": "X closes",
+          "result": "PASS"
+        },
+        {
+          "name": "X discards fields and stale save status",
+          "result": "PASS"
+        },
+        {
+          "name": "Class and roster unchanged",
+          "result": "PASS"
+        },
+        {
+          "name": "Only declared synthetic catalog GET",
+          "result": "PASS"
+        }
+      ],
+      "contrast": [],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "mutations": [],
+      "catalogGets": [
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:58828/api/education/courses"
+        }
+      ],
+      "downloads": [],
+      "result": "FAIL"
+    },
+    {
+      "theme": "dark",
+      "device": "desktop",
+      "entry": "row",
+      "assertions": [
+        {
+          "name": "Page discloses roster KPIs history are sample not real loaded care",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        },
+        {
+          "name": "Modal explains synthetic only no save and discard on close/leave",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        },
+        {
+          "name": "Dialog and labels associated",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\nnull !== 'dialog'\n"
+        },
+        {
+          "name": "Save 1 retains open form and all exact values",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        },
+        {
+          "name": "Save 1 explicitly unavailable and not saved",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        },
+        {
+          "name": "Save 1 preserves preview rows KPIs history",
+          "result": "PASS"
+        },
+        {
+          "name": "Save 2 retains open form and all exact values",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        },
+        {
+          "name": "Save 2 explicitly unavailable and not saved",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        },
+        {
+          "name": "Save 2 preserves preview rows KPIs history",
+          "result": "PASS"
+        },
+        {
+          "name": "Modal can scroll controls inside viewport",
+          "result": "PASS"
+        },
+        {
+          "name": "Cancel closes",
+          "result": "PASS"
+        },
+        {
+          "name": "Cancel discards fields and stale save status",
+          "result": "PASS"
+        },
+        {
+          "name": "X closes",
+          "result": "PASS"
+        },
+        {
+          "name": "X discards fields and stale save status",
+          "result": "PASS"
+        },
+        {
+          "name": "Class and roster unchanged",
+          "result": "PASS"
+        },
+        {
+          "name": "Only declared synthetic catalog GET",
+          "result": "PASS"
+        }
+      ],
+      "contrast": [],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "mutations": [],
+      "catalogGets": [
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:58828/api/education/courses"
+        }
+      ],
+      "downloads": [],
+      "result": "FAIL"
+    },
+    {
+      "theme": "dark",
+      "device": "desktop",
+      "entry": "detail",
+      "assertions": [
+        {
+          "name": "Page discloses roster KPIs history are sample not real loaded care",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        },
+        {
+          "name": "Modal explains synthetic only no save and discard on close/leave",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        },
+        {
+          "name": "Dialog and labels associated",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\nnull !== 'dialog'\n"
+        },
+        {
+          "name": "Save 1 retains open form and all exact values",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        },
+        {
+          "name": "Save 1 explicitly unavailable and not saved",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        },
+        {
+          "name": "Save 1 preserves preview rows KPIs history",
+          "result": "PASS"
+        },
+        {
+          "name": "Save 2 retains open form and all exact values",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        },
+        {
+          "name": "Save 2 explicitly unavailable and not saved",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        },
+        {
+          "name": "Save 2 preserves preview rows KPIs history",
+          "result": "PASS"
+        },
+        {
+          "name": "Modal can scroll controls inside viewport",
+          "result": "PASS"
+        },
+        {
+          "name": "Cancel closes",
+          "result": "PASS"
+        },
+        {
+          "name": "Cancel discards fields and stale save status",
+          "result": "PASS"
+        },
+        {
+          "name": "X closes",
+          "result": "PASS"
+        },
+        {
+          "name": "X discards fields and stale save status",
+          "result": "PASS"
+        },
+        {
+          "name": "Class and roster unchanged",
+          "result": "PASS"
+        },
+        {
+          "name": "Only declared synthetic catalog GET",
+          "result": "PASS"
+        }
+      ],
+      "contrast": [],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "mutations": [],
+      "catalogGets": [
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:58828/api/education/courses"
+        }
+      ],
+      "downloads": [],
+      "result": "FAIL"
+    },
+    {
+      "theme": "dark",
+      "device": "mobile",
+      "entry": "toolbar",
+      "assertions": [
+        {
+          "name": "Page discloses roster KPIs history are sample not real loaded care",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        },
+        {
+          "name": "Modal explains synthetic only no save and discard on close/leave",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        },
+        {
+          "name": "Dialog and labels associated",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\nnull !== 'dialog'\n"
+        },
+        {
+          "name": "Save 1 retains open form and all exact values",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        },
+        {
+          "name": "Save 1 explicitly unavailable and not saved",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        },
+        {
+          "name": "Save 1 preserves preview rows KPIs history",
+          "result": "PASS"
+        },
+        {
+          "name": "Save 2 retains open form and all exact values",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        },
+        {
+          "name": "Save 2 explicitly unavailable and not saved",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        },
+        {
+          "name": "Save 2 preserves preview rows KPIs history",
+          "result": "PASS"
+        },
+        {
+          "name": "Modal can scroll controls inside viewport",
+          "result": "PASS"
+        },
+        {
+          "name": "Cancel closes",
+          "result": "PASS"
+        },
+        {
+          "name": "Cancel discards fields and stale save status",
+          "result": "PASS"
+        },
+        {
+          "name": "X closes",
+          "result": "PASS"
+        },
+        {
+          "name": "X discards fields and stale save status",
+          "result": "PASS"
+        },
+        {
+          "name": "Class and roster unchanged",
+          "result": "PASS"
+        },
+        {
+          "name": "Only declared synthetic catalog GET",
+          "result": "PASS"
+        }
+      ],
+      "contrast": [],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "mutations": [],
+      "catalogGets": [
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:58828/api/education/courses"
+        }
+      ],
+      "downloads": [],
+      "result": "FAIL"
+    },
+    {
+      "theme": "dark",
+      "device": "mobile",
+      "entry": "row",
+      "assertions": [
+        {
+          "name": "Page discloses roster KPIs history are sample not real loaded care",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        },
+        {
+          "name": "Modal explains synthetic only no save and discard on close/leave",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        },
+        {
+          "name": "Dialog and labels associated",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\nnull !== 'dialog'\n"
+        },
+        {
+          "name": "Save 1 retains open form and all exact values",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        },
+        {
+          "name": "Save 1 explicitly unavailable and not saved",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        },
+        {
+          "name": "Save 1 preserves preview rows KPIs history",
+          "result": "PASS"
+        },
+        {
+          "name": "Save 2 retains open form and all exact values",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        },
+        {
+          "name": "Save 2 explicitly unavailable and not saved",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        },
+        {
+          "name": "Save 2 preserves preview rows KPIs history",
+          "result": "PASS"
+        },
+        {
+          "name": "Modal can scroll controls inside viewport",
+          "result": "PASS"
+        },
+        {
+          "name": "Cancel closes",
+          "result": "PASS"
+        },
+        {
+          "name": "Cancel discards fields and stale save status",
+          "result": "PASS"
+        },
+        {
+          "name": "X closes",
+          "result": "PASS"
+        },
+        {
+          "name": "X discards fields and stale save status",
+          "result": "PASS"
+        },
+        {
+          "name": "Class and roster unchanged",
+          "result": "PASS"
+        },
+        {
+          "name": "Only declared synthetic catalog GET",
+          "result": "PASS"
+        }
+      ],
+      "contrast": [],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "mutations": [],
+      "catalogGets": [
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:58828/api/education/courses"
+        }
+      ],
+      "downloads": [],
+      "result": "FAIL"
+    },
+    {
+      "theme": "dark",
+      "device": "mobile",
+      "entry": "detail",
+      "assertions": [
+        {
+          "name": "Page discloses roster KPIs history are sample not real loaded care",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        },
+        {
+          "name": "Modal explains synthetic only no save and discard on close/leave",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        },
+        {
+          "name": "Dialog and labels associated",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\nnull !== 'dialog'\n"
+        },
+        {
+          "name": "Save 1 retains open form and all exact values",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        },
+        {
+          "name": "Save 1 explicitly unavailable and not saved",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        },
+        {
+          "name": "Save 1 preserves preview rows KPIs history",
+          "result": "PASS"
+        },
+        {
+          "name": "Save 2 retains open form and all exact values",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        },
+        {
+          "name": "Save 2 explicitly unavailable and not saved",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        },
+        {
+          "name": "Save 2 preserves preview rows KPIs history",
+          "result": "PASS"
+        },
+        {
+          "name": "Modal can scroll controls inside viewport",
+          "result": "PASS"
+        },
+        {
+          "name": "Cancel closes",
+          "result": "PASS"
+        },
+        {
+          "name": "Cancel discards fields and stale save status",
+          "result": "PASS"
+        },
+        {
+          "name": "X closes",
+          "result": "PASS"
+        },
+        {
+          "name": "X discards fields and stale save status",
+          "result": "PASS"
+        },
+        {
+          "name": "Class and roster unchanged",
+          "result": "PASS"
+        },
+        {
+          "name": "Only declared synthetic catalog GET",
+          "result": "PASS"
+        }
+      ],
+      "contrast": [],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "mutations": [],
+      "catalogGets": [
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:58828/api/education/courses"
+        }
+      ],
+      "downloads": [],
+      "result": "FAIL"
+    }
+  ]
+}
