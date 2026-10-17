@@ -1,0 +1,41 @@
+{
+  "result": "PASS_SCOPED",
+  "passed": 8,
+  "failed": 0,
+  "total": 8,
+  "tests": [
+    {
+      "name": "Grades trial truthful unavailable actions marks roster, metrics, progress and history as sample content",
+      "status": "passed"
+    },
+    {
+      "name": "Grades trial truthful unavailable actions does not close the form or claim success when unavailable save is requested",
+      "status": "passed"
+    },
+    {
+      "name": "Grades trial truthful unavailable actions retains all six draft fields after repeated save and elapsed toast time",
+      "status": "passed"
+    },
+    {
+      "name": "Grades trial truthful unavailable actions retains draft on explicit close with Đóng nhập quan sát then reopen",
+      "status": "passed"
+    },
+    {
+      "name": "Grades trial truthful unavailable actions retains draft on explicit close with Đóng và giữ bản nháp then reopen",
+      "status": "passed"
+    },
+    {
+      "name": "Grades trial truthful unavailable actions keeps export unavailable feedback without a fake file or progress/success claim",
+      "status": "passed"
+    },
+    {
+      "name": "Grades trial truthful unavailable actions identifies AI recommendations as sample content and makes no analysis claim",
+      "status": "passed"
+    },
+    {
+      "name": "Grades trial truthful unavailable actions labels the opened child portfolio and its evidence as illustrative",
+      "status": "passed"
+    }
+  ],
+  "scope": "Synthetic component interactions only; project ENV and network denied; no Auth/DB evidence"
+}
