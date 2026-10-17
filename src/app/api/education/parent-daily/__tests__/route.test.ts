@@ -25,7 +25,7 @@ const { GET } = require('../route') as typeof import('../route');
 const tenantId = '00000000-0000-0000-0000-0000000000aa';
 const parentUserId = '00000000-0000-0000-0000-0000000000pp';
 
-describe('/api/education/parent-daily role boundary', () => {
+describe('/api/education/parent-daily temporary containment', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockGetCurrentUser.mockResolvedValue({
@@ -63,36 +63,33 @@ describe('/api/education/parent-daily role boundary', () => {
     });
   });
 
-  it('blocks non-parent users before loading parent daily experience', async () => {
+  it('holds non-parent users before resolving authority or loading parent daily experience', async () => {
     mockGetCurrentUser.mockResolvedValue({
       id: 'admin-user',
       tenant_id: tenantId,
       role: 'admin',
     });
 
-    const response = await GET(new Request('http://localhost/api/education/parent-daily?date=2026-10-06'));
+    const response = await GET();
     const body = await response.json();
 
-    expect(response.status).toBe(403);
+    expect(response.status).toBe(503);
     expect(body.success).toBe(false);
-    expect(body.error).toBe('PARENT_ROLE_REQUIRED');
+    expect(body.error).toBe('PARENT_ACCESS_NOT_READY');
+    expect(mockGetCurrentUser).not.toHaveBeenCalled();
+    expect(mockFrom).not.toHaveBeenCalled();
     expect(mockGetDailyExperience).not.toHaveBeenCalled();
   });
 
-  it('allows a parent user and keeps tenant and phone resolved server-side', async () => {
-    const response = await GET(new Request('http://localhost/api/education/parent-daily?date=2026-10-06'));
+  it('also holds legitimate parent access without using phone as authority', async () => {
+    const response = await GET();
     const body = await response.json();
 
-    expect(response.status).toBe(200);
-    expect(body.success).toBe(true);
-    expect(mockGetDailyExperience).toHaveBeenCalledWith({
-      user: {
-        tenantId,
-        userId: parentUserId,
-        phone: '0900 111 222',
-      },
-      schoolDay: '2026-10-06',
-      requestedStudentPartyId: undefined,
-    });
+    expect(response.status).toBe(503);
+    expect(body.success).toBe(false);
+    expect(body.error).toBe('PARENT_ACCESS_NOT_READY');
+    expect(mockGetCurrentUser).not.toHaveBeenCalled();
+    expect(mockFrom).not.toHaveBeenCalled();
+    expect(mockGetDailyExperience).not.toHaveBeenCalled();
   });
 });
