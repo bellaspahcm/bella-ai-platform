@@ -1,0 +1,161 @@
+{
+  "status": "PASS_SCOPED_LOCAL_PENDING_LEAD_REVIEW",
+  "commands": [
+    {
+      "command": "node docs/audits/preschool-dialog-journey-flow/dialog-browser.cjs before",
+      "commandSha256": "1d4741a7345e91133d8eab438eaa46faf65a20c869c2ed1a1320c51e691e0026",
+      "exitCode": 1,
+      "stdout": "{\"phase\":\"before\",\"checked\":28,\"passed\":4,\"failed\":24,\"errors\":0,\"pageErrors\":0,\"unexpectedRequests\":0,\"downloads\":0}\n",
+      "stderr": "",
+      "receipt": "native-before.json"
+    },
+    {
+      "command": "node docs/audits/preschool-dialog-journey-flow/dialog-browser.cjs after",
+      "commandSha256": "fa27197c0731b4f8d8ef15014400df011ead1bda9c3247008cefd721a1ed24ae",
+      "exitCode": 0,
+      "stdout": "{\"phase\":\"after\",\"checked\":28,\"passed\":28,\"failed\":0,\"errors\":0,\"pageErrors\":0,\"unexpectedRequests\":0,\"downloads\":0}\n",
+      "stderr": "",
+      "error": null
+    },
+    {
+      "command": "node node_modules/eslint/bin/eslint.js src/app/dashboard/education/grades/page.tsx",
+      "commandSha256": "35ae17e0e8abbf1ffbf97d495a672dc58f072ecb26de51c33711eaed1006ce53",
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "(node:21560) ESLintIgnoreWarning: The \".eslintignore\" file is no longer supported. Switch to using the \"ignores\" property in \"eslint.config.js\": https://eslint.org/docs/latest/use/configure/migration-guide#ignoring-files\n(Use `node --trace-warnings ...` to show where the warning was created)\n",
+      "error": null
+    },
+    {
+      "command": "node node_modules/typescript/bin/tsc -p tsconfig.education.json --pretty false --incremental --tsBuildInfoFile docs/audits/preschool-dialog-journey-flow/.cache/education.tsbuildinfo",
+      "commandSha256": "fe6d838f7a5f36b4480164cd3a938d9191d09b9766279a2940e2cdf01ad7ae41",
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "",
+      "error": null
+    },
+    {
+      "command": "node --check docs/audits/preschool-dialog-journey-flow/dialog-browser.cjs",
+      "commandSha256": "542f5a6b938b0a1ef91eba41268cac0af802c341f46873c86477013c7a30999d",
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "",
+      "error": null
+    },
+    {
+      "command": "git diff --check",
+      "commandSha256": "466c2f308b48c7661d646fdd068fbecea974c665fe65dbf8ed508f224180ce0b",
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "",
+      "error": null
+    }
+  ],
+  "recordedAt": "2026-10-17T22:52:08.000Z",
+  "baseline": "27016e3c02da37f87865cf3bf6b391edb1898eb6",
+  "branch": "codex/preschool-dialog-journey-flow",
+  "rootCause": "Raw aria-modal divs had no focus entry, containment, Escape dismissal or restoration implementation.",
+  "implementation": "Consume real shared Dialog/DialogContent. Explicit observation finalFocus uses global opener ref; profile transition suppresses restoration to removed action. No domain logic changes.",
+  "beforeSummary": {
+    "checked": 28,
+    "passed": 4,
+    "failed": 24,
+    "errors": 0,
+    "pageErrors": 0,
+    "unexpectedRequests": 0,
+    "downloads": 0
+  },
+  "afterSummary": {
+    "checked": 28,
+    "passed": 28,
+    "failed": 0,
+    "errors": 0,
+    "pageErrors": 0,
+    "unexpectedRequests": 0,
+    "downloads": 0
+  },
+  "beforeSourceSha256": "4f62e34e3ed5a1a0b7ea1bcb44070ece6a1aaa8d81ef94995dcfde880e36850b",
+  "afterSourceSha256": "117d063ee441a9c8b1eaa616b5a60ef31d5eddbdb621d20f02404902f168fccb",
+  "testSha256": "728be1af6f8e47ee2fe78d67a321604d928f786260f94e84e9d338712803ec37",
+  "testUnchanged": true,
+  "globalsSha256": "1f2458f1e1ff45ff29650ce9bc30a0a408004f079760de68bcef7c915ddce21e",
+  "constantsUnchanged": true,
+  "repairRounds": 1,
+  "contrast": "NOT_APPLICABLE",
+  "screenshots": [
+    {
+      "file": "keyboard-light-desktop.png",
+      "sha256": "5e79e52b7e7b13d9cd05076754b998043324e99417c53111a7be9c798fc29c96",
+      "bytes": 217202,
+      "visualReview": "Reviewed: actual observation draft and honest unavailable notice visible; mobile popup scrolls; external fonts intentionally blocked."
+    },
+    {
+      "file": "keyboard-dark-desktop.png",
+      "sha256": "8f4409ed2ed75b7de10216871b80bec2a0f2a56cae89e7f10acebdf12f3819a1",
+      "bytes": 280199,
+      "visualReview": "Reviewed: actual observation draft and honest unavailable notice visible; mobile popup scrolls; external fonts intentionally blocked."
+    },
+    {
+      "file": "keyboard-light-mobile.png",
+      "sha256": "ce912caa1dd2fc77dd0f6aff7ea5e412da24a91901928b75621c7a2da36ffff3",
+      "bytes": 54522,
+      "visualReview": "Reviewed: actual observation draft and honest unavailable notice visible; mobile popup scrolls; external fonts intentionally blocked."
+    },
+    {
+      "file": "keyboard-dark-mobile.png",
+      "sha256": "accfa19b27b82bb7779951e5be4566d91c5f6ac58cb8b9f4eb9c25d85fc71088",
+      "bytes": 107871,
+      "visualReview": "Reviewed: actual observation draft and honest unavailable notice visible; mobile popup scrolls; external fonts intentionally blocked."
+    }
+  ],
+  "artifacts": [
+    {
+      "file": "dialog-browser.cjs",
+      "sha256": "728be1af6f8e47ee2fe78d67a321604d928f786260f94e84e9d338712803ec37"
+    },
+    {
+      "file": "native-before.json",
+      "sha256": "49efd00184f14c41654b403319616baa0d50938ee4d3e2cce59d619ff3dbd28f"
+    },
+    {
+      "file": "native-after.json",
+      "sha256": "e18dca5973f216e3bd2978fb52579a7bd67bebc0f37bfc334c8a5ba13e64f97b"
+    },
+    {
+      "file": "PR_BODY.md",
+      "sha256": "b1c4fbd86439f1eb22510683c58809c7f0f8bdc3a4e9e0b691f605552bb43947"
+    }
+  ],
+  "changedTrackedPaths": [
+    "src/app/dashboard/education/grades/page.tsx"
+  ],
+  "newWorkerPaths": [
+    "docs/audits/preschool-dialog-journey-flow/dialog-browser.cjs",
+    "docs/audits/preschool-dialog-journey-flow/native-before.json",
+    "docs/audits/preschool-dialog-journey-flow/native-after.json",
+    "docs/audits/preschool-dialog-journey-flow/PR_BODY.md",
+    "docs/audits/preschool-dialog-journey-flow/keyboard-light-desktop.png",
+    "docs/audits/preschool-dialog-journey-flow/keyboard-dark-desktop.png",
+    "docs/audits/preschool-dialog-journey-flow/keyboard-light-mobile.png",
+    "docs/audits/preschool-dialog-journey-flow/keyboard-dark-mobile.png",
+    "docs/audits/preschool-dialog-journey-flow/verification.json"
+  ],
+  "sourceDiff": "diff --git a/src/app/dashboard/education/grades/page.tsx b/src/app/dashboard/education/grades/page.tsx\nindex c18ccfcdf..b2fbea430 100644\n--- a/src/app/dashboard/education/grades/page.tsx\n+++ b/src/app/dashboard/education/grades/page.tsx\n@@ -37,7 +37,8 @@\n  * - STRICT TYPE SAFETY: Zero `any` and zero `unknown`\n  */\n \n-import { useState, useEffect, useMemo, type ChangeEvent } from 'react';\n+import { useState, useEffect, useMemo, useRef, type ChangeEvent } from 'react';\n+import { Dialog, DialogContent } from '@/components/ui/dialog';\n import Link from 'next/link';\n import Image from 'next/image';\n import {\n@@ -535,6 +536,12 @@ export default function PreschoolDevelopmentGradesPage() {\n   const [inspectedStudent, setInspectedStudent] = useState<ChildDevelopmentRosterItem | null>(null);\n   const [isNewObservationModalOpen, setIsNewObservationModalOpen] = useState<boolean>(false);\n   const [isAiSuggestionsDrawerOpen, setIsAiSuggestionsDrawerOpen] = useState<boolean>(false);\n+  const observationOpenerRef = useRef<HTMLButtonElement>(null);\n+  const profileToObservationRef = useRef(false);\n+\n+  useEffect(() => {\n+    if (inspectedStudent) profileToObservationRef.current = false;\n+  }, [inspectedStudent]);\n   const [exportNotice, setExportNotice] = useState<string | null>(null);\n   const [observationNotice, setObservationNotice] = useState<string | null>(null);\n \n@@ -744,6 +751,7 @@ export default function PreschoolDevelopmentGradesPage() {\n \n           <button\n             type=\"button\"\n+            ref={observationOpenerRef}\n             onClick={() => setIsNewObservationModalOpen(true)}\n             className=\"inline-flex items-center justify-center gap-2 rounded-2xl bg-[#0c513f] hover:bg-[#083b2e] text-white px-5 py-2.5 text-xs font-bold shadow-md shadow-[#0c513f]/20 transition-all active:scale-95 cursor-pointer\"\n           >\n@@ -1446,8 +1454,8 @@ export default function PreschoolDevelopmentGradesPage() {\n \n       {/* ── MODAL 1: STUDENT PORTFOLIO 360° INSPECTION DRAWER ── */}\n       {inspectedStudent && (\n-        <div className=\"fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto animate-in fade-in duration-200\">\n-          <div role=\"dialog\" aria-modal=\"true\" aria-label=\"Hồ sơ trẻ minh họa\" className=\"w-full max-w-2xl bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl p-6 sm:p-8 space-y-6 max-h-[90vh] overflow-y-auto\">\n+        <Dialog open onOpenChange={(open) => { if (!open) setInspectedStudent(null); }}>\n+          <DialogContent showCloseButton={false} initialFocus finalFocus={() => !profileToObservationRef.current} aria-label=\"Hồ sơ trẻ minh họa\" className=\"w-full max-w-2xl sm:max-w-2xl bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl p-6 sm:p-8 space-y-6 max-h-[90vh] overflow-y-auto\">\n             <p className=\"text-xs font-bold text-slate-700 dark:text-slate-200\">Hồ sơ minh họa: thông tin thể chất, nhận xét, bằng chứng và gợi ý bên dưới là nội dung mẫu.</p>\n             {/* Header */}\n             <div className=\"flex items-start justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-4\">\n@@ -1581,6 +1589,7 @@ export default function PreschoolDevelopmentGradesPage() {\n               <button\n                 type=\"button\"\n                 onClick={() => {\n+                  profileToObservationRef.current = true;\n                   setInspectedStudent(null);\n                   setIsNewObservationModalOpen(true);\n                 }}\n@@ -1590,14 +1599,14 @@ export default function PreschoolDevelopmentGradesPage() {\n                 <span>Thêm quan sát mới</span>\n               </button>\n             </div>\n-          </div>\n-        </div>\n+          </DialogContent>\n+        </Dialog>\n       )}\n \n       {/* ── MODAL 2: NEW OBSERVATION ENTRY ── */}\n       {isNewObservationModalOpen && (\n-        <div className=\"fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto animate-in fade-in duration-200\">\n-          <div role=\"dialog\" aria-modal=\"true\" aria-labelledby=\"new-observation-title\" aria-describedby=\"new-observation-draft-note\" className=\"w-full max-w-lg bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl p-6 sm:p-8 space-y-5 max-h-[90vh] overflow-y-auto\">\n+        <Dialog open onOpenChange={(open) => { if (!open) setIsNewObservationModalOpen(false); }}>\n+          <DialogContent showCloseButton={false} initialFocus finalFocus={observationOpenerRef} aria-labelledby=\"new-observation-title\" aria-describedby=\"new-observation-draft-note\" className=\"w-full max-w-lg sm:max-w-lg bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl p-6 sm:p-8 space-y-5 max-h-[90vh] overflow-y-auto\">\n             <div className=\"flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3\">\n               <div className=\"flex items-center gap-2\">\n                 <div className=\"w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-700 flex items-center justify-center\">\n@@ -1745,14 +1754,14 @@ export default function PreschoolDevelopmentGradesPage() {\n                 <span>Lưu quan sát</span>\n               </button>\n             </div>\n-          </div>\n-        </div>\n+          </DialogContent>\n+        </Dialog>\n       )}\n \n       {/* ── MODAL 3: AI SUGGESTIONS DRAWER ── */}\n       {isAiSuggestionsDrawerOpen && (\n-        <div className=\"fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto animate-in fade-in duration-200\">\n-          <div role=\"dialog\" aria-modal=\"true\" aria-labelledby=\"ai-sample-title\" className=\"w-full max-w-lg bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl p-6 sm:p-8 space-y-5 max-h-[90vh] overflow-y-auto\">\n+        <Dialog open onOpenChange={(open) => { if (!open) setIsAiSuggestionsDrawerOpen(false); }}>\n+          <DialogContent showCloseButton={false} initialFocus aria-labelledby=\"ai-sample-title\" className=\"w-full max-w-lg sm:max-w-lg bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl p-6 sm:p-8 space-y-5 max-h-[90vh] overflow-y-auto\">\n             <div className=\"flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3\">\n               <div className=\"flex items-center gap-2\">\n                 <div className=\"w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/80 text-blue-600 flex items-center justify-center\">\n@@ -1814,8 +1823,8 @@ export default function PreschoolDevelopmentGradesPage() {\n                 Đóng gợi ý minh họa\n               </button>\n             </div>\n-          </div>\n-        </div>\n+          </DialogContent>\n+        </Dialog>\n       )}\n     </div>\n   );\n",
+  "edgeCaseReview": {
+    "method": "Sequential edge-case-hunter path trace of changed hunks and referenced shared Dialog. Reviewed direct visible/Escape close, both keyboard boundaries, opening without activation, removed-profile transition, subsequent profile reset, retained drafts and unavailable save.",
+    "findings": [],
+    "independentLeadReview": "PENDING"
+  },
+  "limits": [
+    "Synthetic actual Grades component and globals, not full Next application. Real shared dialog bundled; only Next link/image and tenant settings stubbed.",
+    "No remote network, Auth, DB, persistence, downloads or browser installation.",
+    "External fonts blocked by CSP; screenshots use fallback fonts. Mobile modal content can scroll.",
+    "No whole-page accessibility or contrast claim.",
+    "Lead owns native fileChange/history/readback counters and independent review; no worker claim for those gates.",
+    "Parent RLS FAIL; Course authorization BLOCKED; UI->DB NOT_PROVEN; Pre-Go-Live BLOCKED. Daily/Course 503 preserved."
+  ],
+  "cleanup": "Browser and each fresh context closed in finally; loopback server closed in finally. Browser/TEMP/TMP files task-local .cache. No source changes after successful checks.",
+  "evidenceAssemblyNotes": [
+    "Initial auxiliary seal comparison exited 1 because git show used LF and the working file used CRLF. Compared records/types/constants after line-ending normalization, then seal exited 0. Browser test and before/after receipts were not edited or rerun; this was not a product or browser-harness failure."
+  ],
+  "constantsComparison": "Exact records/types/constants text match after CRLF-to-LF normalization."
+}

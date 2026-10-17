@@ -1,0 +1,205 @@
+{
+  "result": "PASS_SCOPED_NATIVE_KEYBOARD_DIALOG_JOURNEY",
+  "recordedAt": "2026-10-17T22:55:02.393Z",
+  "baseline": "27016e3c02da37f87865cf3bf6b391edb1898eb6",
+  "parentPullRequest": 367,
+  "dependencyChain": [
+    367,
+    362,
+    361
+  ],
+  "branch": "codex/preschool-dialog-journey-flow",
+  "worktree": "D:\\Antigravity\\Projects\\BELLA_PRESCHOOL_ROSTER_JOURNEY",
+  "runtimeFiles": 1,
+  "runtimeDiff": {
+    "additions": 22,
+    "deletions": 13
+  },
+  "sourceSha256": "117d063ee441a9c8b1eaa616b5a60ef31d5eddbdb621d20f02404902f168fccb",
+  "testSha256": "728be1af6f8e47ee2fe78d67a321604d928f786260f94e84e9d338712803ec37",
+  "sameTestBeforeAfter": true,
+  "sourceRepairRounds": 1,
+  "before": {
+    "checked": 28,
+    "passed": 4,
+    "failed": 24,
+    "errors": 0,
+    "pageErrors": 0,
+    "unexpectedRequests": 0,
+    "downloads": 0
+  },
+  "after": {
+    "checked": 28,
+    "passed": 28,
+    "failed": 0,
+    "errors": 0,
+    "pageErrors": 0,
+    "unexpectedRequests": 0,
+    "downloads": 0
+  },
+  "native": {
+    "commands": 17,
+    "fileChanges": 1,
+    "fileChangeReadback": "1/1 MATCH",
+    "facts": 79,
+    "binding": {
+      "repository": "bellaspahcm/bella-ai-platform",
+      "taskId": "eea3ada7-6281-4e28-9387-2d95c7b3dc9f",
+      "runId": "0e2677d9-0a41-44ec-849d-e1e42a8e4766",
+      "attempt": 1,
+      "producerInstanceId": "edbd446e-4a87-4d81-a0ef-34279f513f76",
+      "threadId": "01a14c0c-b179-77f3-a807-5b37e98aa3cc",
+      "sessionId": "01a14c0c-b179-77f3-a807-5b37e98aa3cc",
+      "turnId": "01a14c0c-b2c2-7252-a2e0-f719bbf43bf8"
+    },
+    "beforePatchAfterOrder": "PASS",
+    "browserOutputMatches": 2,
+    "outputDigestDifferences": 2,
+    "verificationReportsMatched": 5,
+    "verificationReportsTotal": 6,
+    "beforeReportScope": "5/6; before was a direct command, verified by native summary/output/exit instead"
+  },
+  "checks": [
+    {
+      "command": "node docs/audits/preschool-dialog-journey-flow/dialog-browser.cjs before",
+      "exitCode": 1,
+      "nativeReportMatch": false
+    },
+    {
+      "command": "node docs/audits/preschool-dialog-journey-flow/dialog-browser.cjs after",
+      "exitCode": 0,
+      "nativeReportMatch": true
+    },
+    {
+      "command": "node node_modules/eslint/bin/eslint.js src/app/dashboard/education/grades/page.tsx",
+      "exitCode": 0,
+      "nativeReportMatch": true
+    },
+    {
+      "command": "node node_modules/typescript/bin/tsc -p tsconfig.education.json --pretty false --incremental --tsBuildInfoFile docs/audits/preschool-dialog-journey-flow/.cache/education.tsbuildinfo",
+      "exitCode": 0,
+      "nativeReportMatch": true
+    },
+    {
+      "command": "node --check docs/audits/preschool-dialog-journey-flow/dialog-browser.cjs",
+      "exitCode": 0,
+      "nativeReportMatch": true
+    },
+    {
+      "command": "git diff --check",
+      "exitCode": 0,
+      "nativeReportMatch": true
+    }
+  ],
+  "leadReview": {
+    "source": "Exact reversal of only approved imports/ref/transition flag/modal wrapper substitutions reproduces baseline; all sample records, state values/defaults, filter/selection/persistence/tenant semantics unchanged",
+    "edgeCases": "Reviewed open/no-activation; normal close and Escape; both Tab boundaries via real shared modal; transition suppresses removed profile opener restoration and uses connected global fallback; reopen resets transition flag; retained draft and honest unavailable save",
+    "findings": [],
+    "visual": "Inspected light mobile and dark desktop observation screenshots; fonts blocked/fallback, scrollable modal; no full-page responsive/accessibility claim"
+  },
+  "contrast": "NOT_APPLICABLE_NO_COLOR_OR_TEXT_REPAIR",
+  "environment": {
+    "recordedAt": "2026-10-17T22:47:34.150Z",
+    "owner": "LEAD",
+    "browserSource": "D:\\Antigravity\\Projects\\BELLA_PRESCHOOL_ROSTER_JOURNEY\\docs\\audits\\preschool-roster-journey-flow\\.cache\\browser",
+    "browserFiles": 291,
+    "checksumsIdentical": true,
+    "executableSha256": "2d8f2abad1a0f2998aaf861967c374d4aad6a104916b8794318760ed35db772f",
+    "nodeModules": "Existing junction to D:/Antigravity/Projects/BELLA SPA ERP/node_modules",
+    "policy": {
+      "type": "workspaceWrite",
+      "writableRoots": [
+        "D:\\Antigravity\\Projects\\BELLA_PRESCHOOL_ROSTER_JOURNEY"
+      ],
+      "networkAccess": false
+    },
+    "coreAgentFlowModified": false,
+    "runnerBehaviorModified": false,
+    "taskLocalTemporaryDirectory": "D:\\Antigravity\\Projects\\BELLA_PRESCHOOL_ROSTER_JOURNEY\\docs\\audits\\preschool-dialog-journey-flow\\.cache\\tmp",
+    "retainedStore": "Existing C user-private Agent Flow evidence root",
+    "cFreeBytes": 752844800,
+    "dFreeBytes": 81680261120,
+    "checkout": "Reused clean isolated D Git worktree on new scoped branch; previous PR refs unchanged",
+    "oldDataDeleted": false,
+    "cacheCommitted": false,
+    "preparationIssue": "Initial Lead script write failed because task cache directory did not exist; no worker launched or runtime modified. Directory created, same preparation then executed."
+  },
+  "limits": [
+    "Synthetic actual Grades component and globals, not full Next application. Real shared dialog bundled; only Next link/image and tenant settings stubbed.",
+    "No remote network, Auth, DB, persistence, downloads or browser installation.",
+    "External fonts blocked by CSP; screenshots use fallback fonts. Mobile modal content can scroll.",
+    "No whole-page accessibility or contrast claim.",
+    "Lead owns native fileChange/history/readback counters and independent review; no worker claim for those gates.",
+    "Parent RLS FAIL; Course authorization BLOCKED; UI->DB NOT_PROVEN; Pre-Go-Live BLOCKED. Daily/Course 503 preserved.",
+    "Two non-test stdout digest differences remain disclosed; native metadata and both browser outputs match. Five of six structured verification reports match; before browser execution independently matches direct native output and exit.",
+    "Generated CSS hashes differ after allowed responsive width utility additions; globals are unchanged. Exact generated CSS delta is not claimed."
+  ],
+  "assemblyNotes": [
+    "Initial auxiliary seal comparison exited 1 because git show used LF and the working file used CRLF. Compared records/types/constants after line-ending normalization, then seal exited 0. Browser test and before/after receipts were not edited or rerun; this was not a product or browser-harness failure."
+  ],
+  "boundaries": {
+    "oldSuitesRerun": 0,
+    "dbOperations": 0,
+    "authOperations": 0,
+    "coreAgentFlowModified": false,
+    "sharedDialogModified": false,
+    "parentDailyAndCoursePost503": "UNCHANGED",
+    "courseD01toD05": "PRESERVED",
+    "courseEightFileAllowlist": "UNCHANGED",
+    "parentRls": "FAIL",
+    "courseAuthorization": "BLOCKED",
+    "uiToDb": "NOT_PROVEN",
+    "preGoLive": "BLOCKED",
+    "merge": false,
+    "manualDeploy": false
+  },
+  "proofHashes": {
+    "native-before.json": "49efd00184f14c41654b403319616baa0d50938ee4d3e2cce59d619ff3dbd28f",
+    "native-after.json": "e18dca5973f216e3bd2978fb52579a7bd67bebc0f37bfc334c8a5ba13e64f97b",
+    "verification.json": "9f51776132c2c818a9ca5e3e11d2ff284ab0d961e32fb7c0db8b9af614e5689e",
+    "native-task-result.json": "f51084c328294f0e20c30820037285372977096d9090a9557a5ec01054baea0e",
+    "native-task-readback.json": "4debfe788b94acee852d874cb3705992bfe995f9c06d39321cbc9527ac5604cc",
+    "native-command-readback.json": "d0251e2c2a6c33b45b1288a5577007a3ab29b8a4b0a7e908a818064532243793",
+    "edge-case-review.json": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+    "native-source.diff": "70afcba49587f25e707ccbdb21f53902811121ec70df5d3522f0327db7c171f1",
+    "keyboard-light-desktop.png": "5e79e52b7e7b13d9cd05076754b998043324e99417c53111a7be9c798fc29c96",
+    "keyboard-dark-desktop.png": "8f4409ed2ed75b7de10216871b80bec2a0f2a56cae89e7f10acebdf12f3819a1",
+    "keyboard-light-mobile.png": "ce912caa1dd2fc77dd0f6aff7ea5e412da24a91901928b75621c7a2da36ffff3",
+    "keyboard-dark-mobile.png": "accfa19b27b82bb7779951e5be4566d91c5f6ac58cb8b9f4eb9c25d85fc71088",
+    "lead-verification-notes.json": "656b82cb43a427861582e5f5e9761fad67286c8143f2370e1b8829c9f1f8920d",
+    "PR367_REVIEW.json": "8358bd216335ff153e7b380746d757844c01be7e81616bb6ba68aaa762a28843",
+    "architecture-guard-proof.json": "ea6b92f1372786d692f1e2906a6cc56a93c8aaad9c8f68e372512ab4a2f8c185"
+  },
+  "hashScope": "Worktree bytes; Git may normalize CRLF",
+  "compiledCss": {
+    "globalsUnchanged": true,
+    "before": "18e02b26cc871afa4fd7739d388ddc45b3110ebcb2962c2029ca40047414e31d",
+    "after": "c1fe0d0bfeb4d0f93baa6797465e341937d258065495352155908882af269220",
+    "generationHashEqual": false,
+    "scope": "The allowed wrapper substitutions add responsive max-width utility classes. Generated CSS hashes differ; original generated CSS bytes were not retained, so an exact emitted CSS delta is not claimed. Actual same browser test passed using each source generation."
+  },
+  "leadAssemblyNotes": [
+    {
+      "result": "FAIL",
+      "reason": "Lead assumed compiled CSS equality; globals were unchanged but responsive width utility additions change generation inputs. Removed that unsupported equality requirement; browser/source/receipt assertions unchanged."
+    },
+    {
+      "result": "FAIL",
+      "reason": "Lead raw-substring parser did not recognize after-summary escaped inside native NDJSON subprocess reports."
+    },
+    {
+      "result": "FAIL_DIAGNOSTIC_REPEAT",
+      "reason": "Repeated the same parser check while retaining a private native snapshot to inspect output format."
+    },
+    {
+      "result": "PASS",
+      "reason": "Parsed native JSON/NDJSON and nested stdout rather than requiring a literal raw substring. Both browser summaries/exits/order and five structured subprocess reports matched. No receipt/test/product edits or browser reruns."
+    }
+  ],
+  "architectureGuard": {
+    "command": "node scripts/architecture/git-pre-commit-guard.js",
+    "exitCode": 0,
+    "proof": "architecture-guard-proof.json",
+    "stagedFiles": 24
+  }
+}

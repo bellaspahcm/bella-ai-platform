@@ -1,0 +1,1108 @@
+{
+  "phase": "before",
+  "recordedAt": "2026-10-17T22:49:47.105Z",
+  "command": "node docs/audits/preschool-dialog-journey-flow/dialog-browser.cjs before",
+  "commandSha256": "1d4741a7345e91133d8eab438eaa46faf65a20c869c2ed1a1320c51e691e0026",
+  "exitCode": 1,
+  "summary": {
+    "checked": 28,
+    "passed": 4,
+    "failed": 24,
+    "errors": 0,
+    "pageErrors": 0,
+    "unexpectedRequests": 0,
+    "downloads": 0
+  },
+  "sourceSha256": "4f62e34e3ed5a1a0b7ea1bcb44070ece6a1aaa8d81ef94995dcfde880e36850b",
+  "testSha256": "728be1af6f8e47ee2fe78d67a321604d928f786260f94e84e9d338712803ec37",
+  "globalsSha256": "1f2458f1e1ff45ff29650ce9bc30a0a408004f079760de68bcef7c915ddce21e",
+  "compiledCssSha256": "18e02b26cc871afa4fd7739d388ddc45b3110ebcb2962c2029ca40047414e31d",
+  "bundleSha256": "e21053be4c0d9aba357b28c2e5308c3b7bfaf3b86569748d20fd4c5894de7d36",
+  "limits": "Actual Grades and shared modal code with real globals; synthetic Next link/image and tenant only. Loopback CSP; fresh browser context per journey; finally cleanup. No Auth/DB/full Next proof. Contrast NOT_APPLICABLE.",
+  "results": [
+    {
+      "journey": "J1",
+      "theme": "light",
+      "device": "desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "assertions": [
+        {
+          "name": "Initial focus enters profile",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\nfalse !== true\n"
+        },
+        {
+          "name": "Correct child profile",
+          "result": "PASS"
+        },
+        {
+          "name": "Visible close dismisses",
+          "result": "PASS"
+        },
+        {
+          "name": "Exact row opener restored",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\nfalse !== true\n"
+        },
+        {
+          "name": "Filters and selection retained",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "FAIL"
+    },
+    {
+      "journey": "J2",
+      "theme": "light",
+      "device": "desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "assertions": [
+        {
+          "name": "Initial focus enters profile",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\nfalse !== true\n"
+        },
+        {
+          "name": "Correct child profile",
+          "result": "PASS"
+        },
+        {
+          "name": "Shift+Tab at first stays inside",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\nfalse !== true\n"
+        },
+        {
+          "name": "Tab at last stays inside",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\nfalse !== true\n"
+        },
+        {
+          "name": "Escape dismisses dialog",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\n1 !== 0\n"
+        },
+        {
+          "name": "Filters and selection retained",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "FAIL"
+    },
+    {
+      "journey": "J3",
+      "theme": "light",
+      "device": "desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "assertions": [
+        {
+          "name": "Initial focus enters observation",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\nfalse !== true\n"
+        },
+        {
+          "name": "Escape dismisses dialog",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\n1 !== 0\n"
+        },
+        {
+          "name": "Every draft value retained after Escape",
+          "result": "PASS"
+        },
+        {
+          "name": "Global opener restored",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\nfalse !== true\n"
+        },
+        {
+          "name": "No new sample row",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "FAIL"
+    },
+    {
+      "journey": "J4",
+      "theme": "light",
+      "device": "desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "assertions": [
+        {
+          "name": "Shift+Tab at first stays inside",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\nfalse !== true\n"
+        },
+        {
+          "name": "Tab at last stays inside",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\nfalse !== true\n"
+        },
+        {
+          "name": "Input space and cursor selection work",
+          "result": "PASS"
+        },
+        {
+          "name": "Textarea newline and space work",
+          "result": "PASS"
+        },
+        {
+          "name": "Escape dismisses dialog",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\n1 !== 0\n"
+        },
+        {
+          "name": "Background values unchanged",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "FAIL"
+    },
+    {
+      "journey": "J5",
+      "theme": "light",
+      "device": "desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "assertions": [
+        {
+          "name": "Exactly one observation dialog",
+          "result": "PASS"
+        },
+        {
+          "name": "Transition focus enters observation",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\nfalse !== true\n"
+        },
+        {
+          "name": "Preview draft not retargeted",
+          "result": "PASS"
+        },
+        {
+          "name": "Escape dismisses dialog",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\n1 !== 0\n"
+        },
+        {
+          "name": "Selection/filter retained",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "FAIL"
+    },
+    {
+      "journey": "J6",
+      "theme": "light",
+      "device": "desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "assertions": [
+        {
+          "name": "Initial focus enters AI sample",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\nfalse !== true\n"
+        },
+        {
+          "name": "Honest sample disclaimer retained",
+          "result": "PASS"
+        },
+        {
+          "name": "Shift+Tab at first stays inside",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\nfalse !== true\n"
+        },
+        {
+          "name": "Tab at last stays inside",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\nfalse !== true\n"
+        },
+        {
+          "name": "Escape dismisses dialog",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\n1 !== 0\n"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "FAIL"
+    },
+    {
+      "journey": "J7",
+      "theme": "light",
+      "device": "desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "assertions": [
+        {
+          "name": "Explicit close dismisses",
+          "result": "PASS"
+        },
+        {
+          "name": "Explicit close retains every draft value",
+          "result": "PASS"
+        },
+        {
+          "name": "Save honestly unavailable",
+          "result": "PASS"
+        },
+        {
+          "name": "Save retains dialog and exact draft",
+          "result": "PASS"
+        },
+        {
+          "name": "No new sample record",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "PASS"
+    },
+    {
+      "journey": "J1",
+      "theme": "light",
+      "device": "mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "assertions": [
+        {
+          "name": "Initial focus enters profile",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\nfalse !== true\n"
+        },
+        {
+          "name": "Correct child profile",
+          "result": "PASS"
+        },
+        {
+          "name": "Visible close dismisses",
+          "result": "PASS"
+        },
+        {
+          "name": "Exact row opener restored",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\nfalse !== true\n"
+        },
+        {
+          "name": "Filters and selection retained",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "FAIL"
+    },
+    {
+      "journey": "J2",
+      "theme": "light",
+      "device": "mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "assertions": [
+        {
+          "name": "Initial focus enters profile",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\nfalse !== true\n"
+        },
+        {
+          "name": "Correct child profile",
+          "result": "PASS"
+        },
+        {
+          "name": "Shift+Tab at first stays inside",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\nfalse !== true\n"
+        },
+        {
+          "name": "Tab at last stays inside",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\nfalse !== true\n"
+        },
+        {
+          "name": "Escape dismisses dialog",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\n1 !== 0\n"
+        },
+        {
+          "name": "Filters and selection retained",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "FAIL"
+    },
+    {
+      "journey": "J3",
+      "theme": "light",
+      "device": "mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "assertions": [
+        {
+          "name": "Initial focus enters observation",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\nfalse !== true\n"
+        },
+        {
+          "name": "Escape dismisses dialog",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\n1 !== 0\n"
+        },
+        {
+          "name": "Every draft value retained after Escape",
+          "result": "PASS"
+        },
+        {
+          "name": "Global opener restored",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\nfalse !== true\n"
+        },
+        {
+          "name": "No new sample row",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "FAIL"
+    },
+    {
+      "journey": "J4",
+      "theme": "light",
+      "device": "mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "assertions": [
+        {
+          "name": "Shift+Tab at first stays inside",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\nfalse !== true\n"
+        },
+        {
+          "name": "Tab at last stays inside",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\nfalse !== true\n"
+        },
+        {
+          "name": "Input space and cursor selection work",
+          "result": "PASS"
+        },
+        {
+          "name": "Textarea newline and space work",
+          "result": "PASS"
+        },
+        {
+          "name": "Escape dismisses dialog",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\n1 !== 0\n"
+        },
+        {
+          "name": "Background values unchanged",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "FAIL"
+    },
+    {
+      "journey": "J5",
+      "theme": "light",
+      "device": "mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "assertions": [
+        {
+          "name": "Exactly one observation dialog",
+          "result": "PASS"
+        },
+        {
+          "name": "Transition focus enters observation",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\nfalse !== true\n"
+        },
+        {
+          "name": "Preview draft not retargeted",
+          "result": "PASS"
+        },
+        {
+          "name": "Escape dismisses dialog",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\n1 !== 0\n"
+        },
+        {
+          "name": "Selection/filter retained",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "FAIL"
+    },
+    {
+      "journey": "J6",
+      "theme": "light",
+      "device": "mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "assertions": [
+        {
+          "name": "Initial focus enters AI sample",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\nfalse !== true\n"
+        },
+        {
+          "name": "Honest sample disclaimer retained",
+          "result": "PASS"
+        },
+        {
+          "name": "Shift+Tab at first stays inside",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\nfalse !== true\n"
+        },
+        {
+          "name": "Tab at last stays inside",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\nfalse !== true\n"
+        },
+        {
+          "name": "Escape dismisses dialog",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\n1 !== 0\n"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "FAIL"
+    },
+    {
+      "journey": "J7",
+      "theme": "light",
+      "device": "mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "assertions": [
+        {
+          "name": "Explicit close dismisses",
+          "result": "PASS"
+        },
+        {
+          "name": "Explicit close retains every draft value",
+          "result": "PASS"
+        },
+        {
+          "name": "Save honestly unavailable",
+          "result": "PASS"
+        },
+        {
+          "name": "Save retains dialog and exact draft",
+          "result": "PASS"
+        },
+        {
+          "name": "No new sample record",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "PASS"
+    },
+    {
+      "journey": "J1",
+      "theme": "dark",
+      "device": "desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "assertions": [
+        {
+          "name": "Initial focus enters profile",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\nfalse !== true\n"
+        },
+        {
+          "name": "Correct child profile",
+          "result": "PASS"
+        },
+        {
+          "name": "Visible close dismisses",
+          "result": "PASS"
+        },
+        {
+          "name": "Exact row opener restored",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\nfalse !== true\n"
+        },
+        {
+          "name": "Filters and selection retained",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "FAIL"
+    },
+    {
+      "journey": "J2",
+      "theme": "dark",
+      "device": "desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "assertions": [
+        {
+          "name": "Initial focus enters profile",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\nfalse !== true\n"
+        },
+        {
+          "name": "Correct child profile",
+          "result": "PASS"
+        },
+        {
+          "name": "Shift+Tab at first stays inside",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\nfalse !== true\n"
+        },
+        {
+          "name": "Tab at last stays inside",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\nfalse !== true\n"
+        },
+        {
+          "name": "Escape dismisses dialog",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\n1 !== 0\n"
+        },
+        {
+          "name": "Filters and selection retained",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "FAIL"
+    },
+    {
+      "journey": "J3",
+      "theme": "dark",
+      "device": "desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "assertions": [
+        {
+          "name": "Initial focus enters observation",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\nfalse !== true\n"
+        },
+        {
+          "name": "Escape dismisses dialog",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\n1 !== 0\n"
+        },
+        {
+          "name": "Every draft value retained after Escape",
+          "result": "PASS"
+        },
+        {
+          "name": "Global opener restored",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\nfalse !== true\n"
+        },
+        {
+          "name": "No new sample row",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "FAIL"
+    },
+    {
+      "journey": "J4",
+      "theme": "dark",
+      "device": "desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "assertions": [
+        {
+          "name": "Shift+Tab at first stays inside",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\nfalse !== true\n"
+        },
+        {
+          "name": "Tab at last stays inside",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\nfalse !== true\n"
+        },
+        {
+          "name": "Input space and cursor selection work",
+          "result": "PASS"
+        },
+        {
+          "name": "Textarea newline and space work",
+          "result": "PASS"
+        },
+        {
+          "name": "Escape dismisses dialog",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\n1 !== 0\n"
+        },
+        {
+          "name": "Background values unchanged",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "FAIL"
+    },
+    {
+      "journey": "J5",
+      "theme": "dark",
+      "device": "desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "assertions": [
+        {
+          "name": "Exactly one observation dialog",
+          "result": "PASS"
+        },
+        {
+          "name": "Transition focus enters observation",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\nfalse !== true\n"
+        },
+        {
+          "name": "Preview draft not retargeted",
+          "result": "PASS"
+        },
+        {
+          "name": "Escape dismisses dialog",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\n1 !== 0\n"
+        },
+        {
+          "name": "Selection/filter retained",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "FAIL"
+    },
+    {
+      "journey": "J6",
+      "theme": "dark",
+      "device": "desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "assertions": [
+        {
+          "name": "Initial focus enters AI sample",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\nfalse !== true\n"
+        },
+        {
+          "name": "Honest sample disclaimer retained",
+          "result": "PASS"
+        },
+        {
+          "name": "Shift+Tab at first stays inside",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\nfalse !== true\n"
+        },
+        {
+          "name": "Tab at last stays inside",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\nfalse !== true\n"
+        },
+        {
+          "name": "Escape dismisses dialog",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\n1 !== 0\n"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "FAIL"
+    },
+    {
+      "journey": "J7",
+      "theme": "dark",
+      "device": "desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "assertions": [
+        {
+          "name": "Explicit close dismisses",
+          "result": "PASS"
+        },
+        {
+          "name": "Explicit close retains every draft value",
+          "result": "PASS"
+        },
+        {
+          "name": "Save honestly unavailable",
+          "result": "PASS"
+        },
+        {
+          "name": "Save retains dialog and exact draft",
+          "result": "PASS"
+        },
+        {
+          "name": "No new sample record",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "PASS"
+    },
+    {
+      "journey": "J1",
+      "theme": "dark",
+      "device": "mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "assertions": [
+        {
+          "name": "Initial focus enters profile",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\nfalse !== true\n"
+        },
+        {
+          "name": "Correct child profile",
+          "result": "PASS"
+        },
+        {
+          "name": "Visible close dismisses",
+          "result": "PASS"
+        },
+        {
+          "name": "Exact row opener restored",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\nfalse !== true\n"
+        },
+        {
+          "name": "Filters and selection retained",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "FAIL"
+    },
+    {
+      "journey": "J2",
+      "theme": "dark",
+      "device": "mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "assertions": [
+        {
+          "name": "Initial focus enters profile",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\nfalse !== true\n"
+        },
+        {
+          "name": "Correct child profile",
+          "result": "PASS"
+        },
+        {
+          "name": "Shift+Tab at first stays inside",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\nfalse !== true\n"
+        },
+        {
+          "name": "Tab at last stays inside",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\nfalse !== true\n"
+        },
+        {
+          "name": "Escape dismisses dialog",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\n1 !== 0\n"
+        },
+        {
+          "name": "Filters and selection retained",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "FAIL"
+    },
+    {
+      "journey": "J3",
+      "theme": "dark",
+      "device": "mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "assertions": [
+        {
+          "name": "Initial focus enters observation",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\nfalse !== true\n"
+        },
+        {
+          "name": "Escape dismisses dialog",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\n1 !== 0\n"
+        },
+        {
+          "name": "Every draft value retained after Escape",
+          "result": "PASS"
+        },
+        {
+          "name": "Global opener restored",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\nfalse !== true\n"
+        },
+        {
+          "name": "No new sample row",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "FAIL"
+    },
+    {
+      "journey": "J4",
+      "theme": "dark",
+      "device": "mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "assertions": [
+        {
+          "name": "Shift+Tab at first stays inside",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\nfalse !== true\n"
+        },
+        {
+          "name": "Tab at last stays inside",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\nfalse !== true\n"
+        },
+        {
+          "name": "Input space and cursor selection work",
+          "result": "PASS"
+        },
+        {
+          "name": "Textarea newline and space work",
+          "result": "PASS"
+        },
+        {
+          "name": "Escape dismisses dialog",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\n1 !== 0\n"
+        },
+        {
+          "name": "Background values unchanged",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "FAIL"
+    },
+    {
+      "journey": "J5",
+      "theme": "dark",
+      "device": "mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "assertions": [
+        {
+          "name": "Exactly one observation dialog",
+          "result": "PASS"
+        },
+        {
+          "name": "Transition focus enters observation",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\nfalse !== true\n"
+        },
+        {
+          "name": "Preview draft not retargeted",
+          "result": "PASS"
+        },
+        {
+          "name": "Escape dismisses dialog",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\n1 !== 0\n"
+        },
+        {
+          "name": "Selection/filter retained",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "FAIL"
+    },
+    {
+      "journey": "J6",
+      "theme": "dark",
+      "device": "mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "assertions": [
+        {
+          "name": "Initial focus enters AI sample",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\nfalse !== true\n"
+        },
+        {
+          "name": "Honest sample disclaimer retained",
+          "result": "PASS"
+        },
+        {
+          "name": "Shift+Tab at first stays inside",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\nfalse !== true\n"
+        },
+        {
+          "name": "Tab at last stays inside",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\nfalse !== true\n"
+        },
+        {
+          "name": "Escape dismisses dialog",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n\n1 !== 0\n"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "FAIL"
+    },
+    {
+      "journey": "J7",
+      "theme": "dark",
+      "device": "mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "assertions": [
+        {
+          "name": "Explicit close dismisses",
+          "result": "PASS"
+        },
+        {
+          "name": "Explicit close retains every draft value",
+          "result": "PASS"
+        },
+        {
+          "name": "Save honestly unavailable",
+          "result": "PASS"
+        },
+        {
+          "name": "Save retains dialog and exact draft",
+          "result": "PASS"
+        },
+        {
+          "name": "No new sample record",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "PASS"
+    }
+  ]
+}

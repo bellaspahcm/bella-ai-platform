@@ -1,0 +1,9 @@
+{
+  "command": "node scripts/architecture/git-pre-commit-guard.js",
+  "recordedAt": "2026-10-17T22:55:49.106Z",
+  "exitCode": 0,
+  "stdout": "🔒 Architecture Guard — Git Pre-Commit Hook\n   Checking staged files for frozen kernel modifications...\n\n   ✅ Checked 24 staged file(s)\n   ✅ No frozen files modified\n   ✅ Commit allowed\n\n",
+  "stderr": "",
+  "runtimeSourceSha256": "117d063ee441a9c8b1eaa616b5a60ef31d5eddbdb621d20f02404902f168fccb",
+  "scope": "Staged24 files: one runtime page and scoped task/evidence only; no frozen changes"
+}
