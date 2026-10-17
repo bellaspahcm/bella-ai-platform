@@ -1,0 +1,322 @@
+{
+  "result": "PASS_SCOPED_SYNTHETIC_UI_RECHECK",
+  "recordedAt": "2026-10-17T22:30:20.936Z",
+  "reason": "Corrected J4 surname only; actual baseline and identical saved candidate re-proven with same corrected test.",
+  "commands": [
+    {
+      "command": "node node_modules/eslint/bin/eslint.js src/app/dashboard/education/grades/page.tsx",
+      "startedAt": "2026-10-17T22:29:11.184Z",
+      "completedAt": "2026-10-17T22:29:15.131Z",
+      "exitCode": 0,
+      "output": "(node:22624) ESLintIgnoreWarning: The \".eslintignore\" file is no longer supported. Switch to using the \"ignores\" property in \"eslint.config.js\": https://eslint.org/docs/latest/use/configure/migration-guide#ignoring-files\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "command": "node --check docs/audits/preschool-roster-journey-flow/roster-browser.cjs",
+      "startedAt": "2026-10-17T22:29:15.132Z",
+      "completedAt": "2026-10-17T22:29:15.208Z",
+      "exitCode": 0,
+      "output": ""
+    },
+    {
+      "command": "git diff --check",
+      "startedAt": "2026-10-17T22:29:15.209Z",
+      "completedAt": "2026-10-17T22:29:15.417Z",
+      "exitCode": 0,
+      "output": ""
+    },
+    {
+      "command": "node node_modules/typescript/bin/tsc -p tsconfig.education.json --pretty false --incremental --tsBuildInfoFile docs/audits/preschool-roster-journey-flow/.cache/education.tsbuildinfo",
+      "startedAt": "2026-10-17T22:29:15.417Z",
+      "completedAt": "2026-10-17T22:29:18.259Z",
+      "exitCode": 0,
+      "output": ""
+    }
+  ],
+  "browserCommands": [
+    {
+      "command": "node docs/audits/preschool-roster-journey-flow/roster-browser.cjs before",
+      "exitCode": 1,
+      "recordedAt": "2026-10-17T22:28:31.632Z",
+      "summary": {
+        "checked": 24,
+        "passed": 4,
+        "failed": 20,
+        "errors": 0,
+        "contrastCount": 0,
+        "contrastFailed": 0,
+        "minimumRatio": null,
+        "pageErrors": 0,
+        "unexpectedRequests": 0,
+        "downloads": 0
+      },
+      "sourceSha256": "d623dc4cea64b570c5d5c1289ff59bcf48b499edf89ac2ae2fb6fa7be4a25fde",
+      "testSha256": "993cc6f84448668ef706b6742dde863a8abe067befa38b8b257deabdacbb7268"
+    },
+    {
+      "command": "node docs/audits/preschool-roster-journey-flow/roster-browser.cjs after",
+      "exitCode": 0,
+      "recordedAt": "2026-10-17T22:29:12.887Z",
+      "summary": {
+        "checked": 24,
+        "passed": 24,
+        "failed": 0,
+        "errors": 0,
+        "contrastCount": 8,
+        "contrastFailed": 0,
+        "minimumRatio": 10.35474573184942,
+        "pageErrors": 0,
+        "unexpectedRequests": 0,
+        "downloads": 0
+      },
+      "sourceSha256": "4f62e34e3ed5a1a0b7ea1bcb44070ece6a1aaa8d81ef94995dcfde880e36850b",
+      "testSha256": "993cc6f84448668ef706b6742dde863a8abe067befa38b8b257deabdacbb7268"
+    }
+  ],
+  "sameTestHash": true,
+  "testSha256": "993cc6f84448668ef706b6742dde863a8abe067befa38b8b257deabdacbb7268",
+  "sourceSha256": "4f62e34e3ed5a1a0b7ea1bcb44070ece6a1aaa8d81ef94995dcfde880e36850b",
+  "globalsUnchanged": true,
+  "compiledCssHashes": {
+    "before": "18e02b26cc871afa4fd7739d388ddc45b3110ebcb2962c2029ca40047414e31d",
+    "after": "18e02b26cc871afa4fd7739d388ddc45b3110ebcb2962c2029ca40047414e31d"
+  },
+  "preservation": [
+    {
+      "name": "sample data and constants",
+      "unchanged": true,
+      "baseSha256": "1ecbf033c92a4eb6668831b2954ec6aaa5764919de51a39713889714e1c2d808",
+      "currentSha256": "1ecbf033c92a4eb6668831b2954ec6aaa5764919de51a39713889714e1c2d808"
+    },
+    {
+      "name": "filter predicate",
+      "unchanged": true,
+      "baseSha256": "c6b7bd45aefb655740f2152c75f88946b5cff68fcf826f14ccfea6cdaa0453e4",
+      "currentSha256": "c6b7bd45aefb655740f2152c75f88946b5cff68fcf826f14ccfea6cdaa0453e4"
+    },
+    {
+      "name": "tenant detection",
+      "unchanged": true,
+      "baseSha256": "1f70349b2f02ec5f979a82b7cd7c8d02c83c226ead2f039a021fc71b415e4ec1",
+      "currentSha256": "1f70349b2f02ec5f979a82b7cd7c8d02c83c226ead2f039a021fc71b415e4ec1"
+    },
+    {
+      "name": "profile/observation/AI drawers",
+      "unchanged": true,
+      "baseSha256": "9877ad08befc8e5be96d195a0b90688780d5fc7cd1354e51cd48394657fbf236",
+      "currentSha256": "9877ad08befc8e5be96d195a0b90688780d5fc7cd1354e51cd48394657fbf236"
+    }
+  ],
+  "diff": {
+    "command": "git diff -- src/app/dashboard/education/grades/page.tsx",
+    "exitCode": 0,
+    "output": "diff --git a/src/app/dashboard/education/grades/page.tsx b/src/app/dashboard/education/grades/page.tsx\nindex 0cf00e760..c18ccfcdf 100644\n--- a/src/app/dashboard/education/grades/page.tsx\n+++ b/src/app/dashboard/education/grades/page.tsx\n@@ -54,7 +54,6 @@ import {\n   LayoutGrid,\n   ChevronDown,\n   ChevronRight,\n-  ChevronLeft,\n   Search,\n   Filter,\n   MoreHorizontal,\n@@ -530,7 +529,6 @@ export default function PreschoolDevelopmentGradesPage() {\n   const [selectedClass, setSelectedClass] = useState<'ALL' | 'MAM_A1' | 'CHOI_B1'>('ALL');\n   const [selectedStatus, setSelectedStatus] = useState<'ALL' | 'COMPLETED' | 'SUPPLEMENT' | 'ATTENTION'>('ALL');\n   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');\n-  const [currentPage, setCurrentPage] = useState<number>(1);\n   const [selectedStudentIds, setSelectedStudentIds] = useState<readonly string[]>([]);\n \n   // Modals & Drawers\n@@ -601,20 +599,24 @@ export default function PreschoolDevelopmentGradesPage() {\n   }, [selectedClass, selectedStatus, searchQuery]);\n \n   // Checkbox handlers\n+  const allVisibleSelected = filteredStudents.length > 0 &&\n+    filteredStudents.every((student) => selectedStudentIds.includes(student.id));\n+\n   const handleToggleSelectAll = () => {\n-    if (selectedStudentIds.length === filteredStudents.length) {\n-      setSelectedStudentIds([]);\n-    } else {\n-      setSelectedStudentIds(filteredStudents.map((s) => s.id));\n-    }\n+    if (filteredStudents.length === 0) return;\n+    const visibleIds = filteredStudents.map((student) => student.id);\n+    setSelectedStudentIds((previous) =>\n+      visibleIds.every((id) => previous.includes(id))\n+        ? previous.filter((id) => !visibleIds.includes(id))\n+        : [...new Set([...previous, ...visibleIds])]\n+    );\n   };\n \n   const handleToggleStudent = (id: string) => {\n-    if (selectedStudentIds.includes(id)) {\n-      setSelectedStudentIds(selectedStudentIds.filter((item) => item !== id));\n-    } else {\n-      setSelectedStudentIds([...selectedStudentIds, id]);\n-    }\n+    setSelectedStudentIds((previous) => previous.includes(id)\n+      ? previous.filter((item) => item !== id)\n+      : [...previous, id]\n+    );\n   };\n \n   const handleExportReport = () => {\n@@ -1053,7 +1055,7 @@ export default function PreschoolDevelopmentGradesPage() {\n             className=\"inline-flex items-center gap-1.5 px-4 py-2.5 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-700 dark:text-slate-200 shadow-sm hover:bg-slate-50 transition-colors cursor-pointer\"\n           >\n             <Filter className=\"w-3.5 h-3.5 text-slate-500\" />\n-            <span>Bộ lọc</span>\n+            <span>Xóa bộ lọc</span>\n           </button>\n         </div>\n       </div>\n@@ -1065,7 +1067,7 @@ export default function PreschoolDevelopmentGradesPage() {\n           <div className=\"flex items-center gap-2.5\">\n             <h2 className=\"text-sm font-extrabold text-slate-900 dark:text-white\">Danh sách trẻ</h2>\n             <span className=\"px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 text-[11px] font-bold\">\n-              46 trẻ\n+              {filteredStudents.length} / {ROSTER_STUDENTS.length} hồ sơ minh họa\n             </span>\n           </div>\n \n@@ -1116,6 +1118,11 @@ export default function PreschoolDevelopmentGradesPage() {\n         )}\n \n         {/* View Mode: List Table or Grid Cards */}\n+        {filteredStudents.length === 0 && (\n+          <p role=\"status\" className=\"p-5 text-xs text-slate-700 dark:text-slate-200\">\n+            Không tìm thấy hồ sơ minh họa phù hợp. Hãy điều chỉnh hoặc xóa bộ lọc.\n+          </p>\n+        )}\n         {viewMode === 'list' ? (\n           <div className=\"w-full overflow-x-auto\">\n             <table className=\"w-full text-left border-collapse\">\n@@ -1125,10 +1132,8 @@ export default function PreschoolDevelopmentGradesPage() {\n                     <input\n                       type=\"checkbox\"\n                       aria-label=\"Chọn tất cả trẻ em trong danh sách\"\n-                      checked={\n-                        filteredStudents.length > 0 &&\n-                        selectedStudentIds.length === filteredStudents.length\n-                      }\n+                      checked={allVisibleSelected}\n+                      disabled={filteredStudents.length === 0}\n                       onChange={handleToggleSelectAll}\n                       className=\"rounded border-slate-300 text-[#0c513f] focus:ring-[#0c513f] cursor-pointer\"\n                     />\n@@ -1298,46 +1303,12 @@ export default function PreschoolDevelopmentGradesPage() {\n           </div>\n         )}\n \n-        {/* Table Footer with Pagination */}\n+        {/* Available sample roster count */}\n         <div className=\"p-4 sm:p-5 border-t border-slate-100 dark:border-slate-700/70 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs\">\n           <div className=\"text-slate-500 font-medium\">\n-            Hiển thị <span className=\"font-bold text-slate-800 dark:text-slate-200\">{filteredStudents.length}</span> / 46 trẻ\n+            Hiển thị <span className=\"font-bold text-slate-800 dark:text-slate-200\">{filteredStudents.length}</span> / {ROSTER_STUDENTS.length} hồ sơ minh họa\n           </div>\n \n-          <div className=\"flex items-center gap-1.5\">\n-            <button\n-              type=\"button\"\n-              disabled={currentPage === 1}\n-              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}\n-              className=\"w-7 h-7 rounded-lg border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-50 disabled:opacity-40 transition-colors\"\n-            >\n-              <ChevronLeft className=\"w-3.5 h-3.5\" />\n-            </button>\n-\n-            {[1, 2, 3, 4, 5].map((pageNum) => (\n-              <button\n-                key={pageNum}\n-                type=\"button\"\n-                onClick={() => setCurrentPage(pageNum)}\n-                className={`w-7 h-7 rounded-lg text-xs font-bold transition-all ${\n-                  currentPage === pageNum\n-                    ? 'bg-[#0c513f] text-white shadow-xs'\n-                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'\n-                }`}\n-              >\n-                {pageNum}\n-              </button>\n-            ))}\n-\n-            <button\n-              type=\"button\"\n-              disabled={currentPage === 5}\n-              onClick={() => setCurrentPage((p) => Math.min(5, p + 1))}\n-              className=\"w-7 h-7 rounded-lg border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-50 disabled:opacity-40 transition-colors\"\n-            >\n-              <ChevronRight className=\"w-3.5 h-3.5\" />\n-            </button>\n-          </div>\n         </div>\n       </div>\n \n"
+  },
+  "screenshots": [
+    {
+      "name": "roster-light-desktop.png",
+      "sha256": "653a5ff5c33524e8984e03aef6e75b00f1d422f37c87c3692391eb8baec9a5d4",
+      "bytes": 281234
+    },
+    {
+      "name": "roster-light-mobile.png",
+      "sha256": "98cf84632212f219568b6201f25a174cc739a8d63632412d576dfc06b11101cd",
+      "bytes": 171214
+    },
+    {
+      "name": "roster-dark-desktop.png",
+      "sha256": "2178c4dfd4bd17e1da6bd8fe379085de9f70f61590421f85dde215b32f3be2fe",
+      "bytes": 450300
+    },
+    {
+      "name": "roster-dark-mobile.png",
+      "sha256": "9fc726132ce49fc670e0039055f2ca6f2af80c5dbaf8e2d9b8d8d8d87b358be0",
+      "bytes": 284177
+    }
+  ],
+  "harnessHistory": [
+    {
+      "stage": "Initial compile on unchanged source",
+      "result": "ERROR",
+      "error": "Cannot find module src/lib/business-rules/tenant-modules (extensionless TypeScript import)",
+      "resolution": "Added bounded local .ts/.tsx/index.ts/index.tsx candidate resolution before baseline; source unchanged."
+    },
+    {
+      "stage": "Completed baseline",
+      "result": "24 isolated flows; 4 PASS and 20 FAIL; 0 harness errors. J4 recovery assertion contains incorrect child surname, discovered in after run."
+    }
+  ],
+  "limitations": [
+    "Synthetic actual Grades component/globals with Next/tenant settings stubs; no API/DB/Auth or tenant/security proof.",
+    "Contrast claim covers only eight J3/J4 feedback targets; minimum raw ratio 10.35474573184942.",
+    "Attempt1 after remains FAIL:20/24. Its archives are intact; corrected attempt2 does not rewrite that outcome.",
+    "Parent RLS FAIL; Course authorization BLOCKED; UI-to-DB NOT_PROVEN; Pre-Go-Live BLOCKED.",
+    "Daily/Course POST503 preserved through unchanged backend scope; endpoint behavior not rerun.",
+    "Lead records and reconciles actual native lifecycle and fresh-process history separately."
+  ],
+  "stoppedAt": "Corrected same-test proof, required local checks, screenshots, source/test/archive hashes, final diff and prepared PR body; no extra feature repair or publication.",
+  "baselineCommit": "9418a8d4a532dd6ee71a05d9e2b335468a29f34c",
+  "sequence": [
+    "Saved candidate bytes and original diff in ignored cache",
+    "Native apply_patch restored actual baseline; baseline hash verified before run",
+    "Native apply_patch corrected only J4 surname",
+    "Corrected before: real UI failures, zero harness errors",
+    "Native apply_patch reapplied byte-identical candidate; candidate hash verified before after run",
+    "Same corrected test after: all24 journeys and8 contrast targets PASS"
+  ],
+  "sameBatch": {
+    "hardDeadline": "2026-10-17T23:00:00Z",
+    "maxNativeTurnMinutes": 15,
+    "maxBatchMinutes": 60,
+    "deadlineOrCountersReset": false,
+    "attempt": 2,
+    "oracleRepairRoundsThisTurn": 1,
+    "additionalFunctionalRepairRounds": 0,
+    "completedBrowserRunsAcrossAttempts": 4,
+    "flowExecutionsAcrossAttempts": 96,
+    "completedRequiredChecksAcrossAttempts": 8,
+    "nativeLifecycleCounters": "Lead-owned; not inferred from browser/check command counts"
+  },
+  "attempts": [
+    {
+      "attempt": 1,
+      "oracle": "Incorrect J4 surname; original evidence remains FAIL/BLOCKED",
+      "before": {
+        "checked": 24,
+        "passed": 4,
+        "failed": 20,
+        "errors": 0,
+        "contrastCount": 0,
+        "contrastFailed": 0,
+        "minimumRatio": null,
+        "pageErrors": 0,
+        "unexpectedRequests": 0,
+        "downloads": 0
+      },
+      "after": {
+        "checked": 24,
+        "passed": 20,
+        "failed": 4,
+        "errors": 0,
+        "contrastCount": 8,
+        "contrastFailed": 0,
+        "minimumRatio": 10.35474573184942,
+        "pageErrors": 0,
+        "unexpectedRequests": 0,
+        "downloads": 0
+      }
+    },
+    {
+      "attempt": 2,
+      "oracleCorrection": "J4 selector only: Đỗ Khánh Linh -> Đặng Khánh Linh",
+      "before": {
+        "checked": 24,
+        "passed": 4,
+        "failed": 20,
+        "errors": 0,
+        "contrastCount": 0,
+        "contrastFailed": 0,
+        "minimumRatio": null,
+        "pageErrors": 0,
+        "unexpectedRequests": 0,
+        "downloads": 0
+      },
+      "after": {
+        "checked": 24,
+        "passed": 24,
+        "failed": 0,
+        "errors": 0,
+        "contrastCount": 8,
+        "contrastFailed": 0,
+        "minimumRatio": 10.35474573184942,
+        "pageErrors": 0,
+        "unexpectedRequests": 0,
+        "downloads": 0
+      }
+    }
+  ],
+  "baselineSourceSha256": "d623dc4cea64b570c5d5c1289ff59bcf48b499edf89ac2ae2fb6fa7be4a25fde",
+  "headBlobSha256": "60c7954199d776595a1ba492a77dc5ea946991ef5b91192e6d46aaa179a0617e",
+  "savedCandidateSha256": "4f62e34e3ed5a1a0b7ea1bcb44070ece6a1aaa8d81ef94995dcfde880e36850b",
+  "identicalSavedCandidate": true,
+  "originalTestSha256": "ad53887a13b74a1e67ee538bd94606309c1020f8480209a1b4b1a303d79fc448",
+  "onlyOracleNameChanged": true,
+  "globalsSha256": "1f2458f1e1ff45ff29650ce9bc30a0a408004f079760de68bcef7c915ddce21e",
+  "attempt1ArchiveIntegrity": [
+    {
+      "file": "attempt1/roster-browser.cjs",
+      "expectedSha256": "ad53887a13b74a1e67ee538bd94606309c1020f8480209a1b4b1a303d79fc448",
+      "actualSha256": "ad53887a13b74a1e67ee538bd94606309c1020f8480209a1b4b1a303d79fc448",
+      "unchanged": true
+    },
+    {
+      "file": "attempt1/native-before.json",
+      "expectedSha256": "90036d93a4efd08157a31e48c9273bc5bb1e3db0c4e9aec19ec26c0edc822fdb",
+      "actualSha256": "90036d93a4efd08157a31e48c9273bc5bb1e3db0c4e9aec19ec26c0edc822fdb",
+      "unchanged": true
+    },
+    {
+      "file": "attempt1/native-after.json",
+      "expectedSha256": "94d6c76a1702df4c6cbfc9ad3bb4f60f529e6c91162c641c6476b8985bbb42a5",
+      "actualSha256": "94d6c76a1702df4c6cbfc9ad3bb4f60f529e6c91162c641c6476b8985bbb42a5",
+      "unchanged": true
+    },
+    {
+      "file": "attempt1/verification.json",
+      "expectedSha256": "a3cf811a2d9a7558cbc6eaae219d557a1eb498a0de7972be483be5bc6a12c385",
+      "actualSha256": "a3cf811a2d9a7558cbc6eaae219d557a1eb498a0de7972be483be5bc6a12c385",
+      "unchanged": true
+    },
+    {
+      "file": "attempt1/PR_BODY.md",
+      "expectedSha256": "b605552185a5a04e12a1d589dca410e34fa4180692a5168206c55b28fc35ddd5",
+      "actualSha256": "b605552185a5a04e12a1d589dca410e34fa4180692a5168206c55b28fc35ddd5",
+      "unchanged": true
+    },
+    {
+      "file": "attempt1/roster-light-desktop.png",
+      "expectedSha256": "653a5ff5c33524e8984e03aef6e75b00f1d422f37c87c3692391eb8baec9a5d4",
+      "actualSha256": "653a5ff5c33524e8984e03aef6e75b00f1d422f37c87c3692391eb8baec9a5d4",
+      "unchanged": true
+    },
+    {
+      "file": "attempt1/roster-light-mobile.png",
+      "expectedSha256": "98cf84632212f219568b6201f25a174cc739a8d63632412d576dfc06b11101cd",
+      "actualSha256": "98cf84632212f219568b6201f25a174cc739a8d63632412d576dfc06b11101cd",
+      "unchanged": true
+    },
+    {
+      "file": "attempt1/roster-dark-desktop.png",
+      "expectedSha256": "2178c4dfd4bd17e1da6bd8fe379085de9f70f61590421f85dde215b32f3be2fe",
+      "actualSha256": "2178c4dfd4bd17e1da6bd8fe379085de9f70f61590421f85dde215b32f3be2fe",
+      "unchanged": true
+    },
+    {
+      "file": "attempt1/roster-dark-mobile.png",
+      "expectedSha256": "9fc726132ce49fc670e0039055f2ca6f2af80c5dbaf8e2d9b8d8d8d87b358be0",
+      "actualSha256": "9fc726132ce49fc670e0039055f2ca6f2af80c5dbaf8e2d9b8d8d8d87b358be0",
+      "unchanged": true
+    },
+    {
+      "file": "attempt1/native-task-result.json",
+      "expectedSha256": "eaa87d40e0d1a797737b1fc545a400f4f63cc2e13db705c6cfce047766de2801",
+      "actualSha256": "eaa87d40e0d1a797737b1fc545a400f4f63cc2e13db705c6cfce047766de2801",
+      "unchanged": true
+    },
+    {
+      "file": "attempt1/native-task-readback.json",
+      "expectedSha256": "28ad54e3304676dba92a925a5b7e675f21f452438c99beb1000c1604cc0193ec",
+      "actualSha256": "28ad54e3304676dba92a925a5b7e675f21f452438c99beb1000c1604cc0193ec",
+      "unchanged": true
+    }
+  ],
+  "sourceDiffByteIdenticalToOriginalCandidateDiff": true,
+  "trackedChangedFiles": [
+    "src/app/dashboard/education/grades/page.tsx"
+  ],
+  "evidenceCheckDisclosure": "Initial receipt-assembly assertion compared LF Git blob bytes directly with the required CRLF worktree hash and exited1 before writing verification. Read-only verification then confirmed HEAD with checkout CRLF equals the exact required baseline hash. Receipt assembly corrected the comparison; no source, test, browser assertions or data changed and no browser rerun was needed.",
+  "frozenBoundary": {
+    "method": "git diff --name-only plus byte-identical original candidate diff and unchanged globals",
+    "result": "PASS_SCOPED_NO_OTHER_TRACKED_SOURCE_CHANGE",
+    "oldSuitesRun": false
+  }
+}

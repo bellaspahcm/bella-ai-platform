@@ -1,0 +1,254 @@
+{
+  "result": "PASS_SCOPED_NATIVE_ROSTER_JOURNEY",
+  "recordedAt": "2026-10-17T22:34:37.416Z",
+  "baseline": "9418a8d4a532dd6ee71a05d9e2b335468a29f34c",
+  "parentPullRequest": 362,
+  "worktree": "D:\\Antigravity\\Projects\\BELLA_PRESCHOOL_ROSTER_JOURNEY",
+  "worktreeKind": "Ordinary isolated Git worktree on D; managed attachment unsupported",
+  "scope": "Sample-roster search/filter/select/profile/close/reset/empty recovery",
+  "behavior": [
+    "Select-all uses visible IDs and preserves hidden selected IDs",
+    "Empty list/grid explain no matches and support recovery without selection loss",
+    "Header/footer describe eight available samples; unsupported page controls removed",
+    "Correct existing profile opens/closes with filters and selection retained"
+  ],
+  "before": {
+    "checked": 24,
+    "passed": 4,
+    "failed": 20,
+    "errors": 0,
+    "contrastCount": 0,
+    "contrastFailed": 0,
+    "minimumRatio": null,
+    "pageErrors": 0,
+    "unexpectedRequests": 0,
+    "downloads": 0
+  },
+  "after": {
+    "checked": 24,
+    "passed": 24,
+    "failed": 0,
+    "errors": 0,
+    "contrastCount": 8,
+    "contrastFailed": 0,
+    "minimumRatio": 10.35474573184942,
+    "pageErrors": 0,
+    "unexpectedRequests": 0,
+    "downloads": 0
+  },
+  "sourceRepairRounds": 1,
+  "testOracleCorrectionRounds": 1,
+  "sourceSha256": "4f62e34e3ed5a1a0b7ea1bcb44070ece6a1aaa8d81ef94995dcfde880e36850b",
+  "testSha256": "993cc6f84448668ef706b6742dde863a8abe067befa38b8b257deabdacbb7268",
+  "sameCorrectedTestBeforeAfter": true,
+  "candidateByteIdenticalToAttempt1": true,
+  "sampleDataFilterPredicateAndDrawersPreserved": true,
+  "originalFailedReceiptsPreserved": true,
+  "onlyTestCorrection": "Đỗ -> Đặng Khánh Linh in one J4 sample-name selector; count/assertions/data/thresholds unchanged",
+  "native": {
+    "attempts": [
+      {
+        "binding": {
+          "repository": "bellaspahcm/bella-ai-platform",
+          "taskId": "b5bbbfec-219a-49d7-9813-0eae507f01c4",
+          "runId": "91675113-bad0-4b4c-b9c3-99526608aaa0",
+          "attempt": 1,
+          "producerInstanceId": "28129998-8286-413d-bfb8-ec7a085df3a4",
+          "threadId": "01a14bf4-313d-7a21-9b91-a777dfebcb14",
+          "sessionId": "01a14bf4-313d-7a21-9b91-a777dfebcb14",
+          "turnId": "01a14bf4-327b-7c52-8ecb-6447f2d2a200"
+        },
+        "commands": 16,
+        "fileChanges": 1,
+        "facts": 73
+      },
+      {
+        "binding": {
+          "repository": "bellaspahcm/bella-ai-platform",
+          "taskId": "b5bbbfec-219a-49d7-9813-0eae507f01c4",
+          "runId": "665b5a54-541f-481b-ba0b-c7eadcc702b8",
+          "attempt": 2,
+          "producerInstanceId": "2676999f-0a5f-456f-bbf2-83c64934e820",
+          "threadId": "01a14bf9-ec47-76b0-b000-30766f1088af",
+          "sessionId": "01a14bf9-ec47-76b0-b000-30766f1088af",
+          "turnId": "01a14bf9-ed84-7460-abfa-05537a1717eb"
+        },
+        "commands": 18,
+        "fileChanges": 4,
+        "facts": 88
+      }
+    ],
+    "commands": 34,
+    "fileChangeReadback": "5/5 MATCH",
+    "fileChanges": 5,
+    "uiSourceChangeEvents": 3,
+    "allFourBrowserCommandOutputsMatch": true,
+    "baselineRestoreBeforeReapplyAfterOrder": "PASS",
+    "nonTestStdoutDigestDifferences": [
+      {
+        "attempt": 1,
+        "count": 2
+      },
+      {
+        "attempt": 2,
+        "count": 1
+      }
+    ],
+    "finalVerificationReportsMatchNativeHistory": true
+  },
+  "checks": [
+    {
+      "command": "node node_modules/eslint/bin/eslint.js src/app/dashboard/education/grades/page.tsx",
+      "exitCode": 0,
+      "nativeReportMatch": true
+    },
+    {
+      "command": "node --check docs/audits/preschool-roster-journey-flow/roster-browser.cjs",
+      "exitCode": 0,
+      "nativeReportMatch": true
+    },
+    {
+      "command": "git diff --check",
+      "exitCode": 0,
+      "nativeReportMatch": true
+    },
+    {
+      "command": "node node_modules/typescript/bin/tsc -p tsconfig.education.json --pretty false --incremental --tsBuildInfoFile docs/audits/preschool-roster-journey-flow/.cache/education.tsbuildinfo",
+      "exitCode": 0,
+      "nativeReportMatch": true
+    }
+  ],
+  "leadReview": {
+    "scope": "Eight allowed hunks only; sole import removal is unused ChevronLeft; immutable data/types/helpers, filter predicate and all profile/observation drawer implementation preserved after CRLF normalization",
+    "hunks": [
+      {
+        "beforeStart": 54,
+        "beforeLines": 7,
+        "afterStart": 54,
+        "afterLines": 6
+      },
+      {
+        "beforeStart": 530,
+        "beforeLines": 7,
+        "afterStart": 529,
+        "afterLines": 6
+      },
+      {
+        "beforeStart": 601,
+        "beforeLines": 20,
+        "afterStart": 599,
+        "afterLines": 24
+      },
+      {
+        "beforeStart": 1053,
+        "beforeLines": 7,
+        "afterStart": 1055,
+        "afterLines": 7
+      },
+      {
+        "beforeStart": 1065,
+        "beforeLines": 7,
+        "afterStart": 1067,
+        "afterLines": 7
+      },
+      {
+        "beforeStart": 1116,
+        "beforeLines": 6,
+        "afterStart": 1118,
+        "afterLines": 11
+      },
+      {
+        "beforeStart": 1125,
+        "beforeLines": 10,
+        "afterStart": 1132,
+        "afterLines": 8
+      },
+      {
+        "beforeStart": 1298,
+        "beforeLines": 46,
+        "afterStart": 1303,
+        "afterLines": 12
+      }
+    ],
+    "edgeCases": "Empty visible set guarded; membership-based checked status; partial/full add/remove preserve hidden IDs; functional row toggle; fresh-context filter/reset/profile journeys",
+    "visual": "Current light/dark mobile screenshots inspected; full responsive/Next runtime proof not claimed",
+    "postprocessing": "Corrected PR preparation attribution to Lead within existing Owner scope; native UI/test source unchanged"
+  },
+  "environment": {
+    "managedCCheckout": "FAILED_ENOSPC_AUTO_CLEANED",
+    "dGitWorktree": "CREATED_AND_USED",
+    "oldCacheOrWorktreeDeleted": false,
+    "taskTemporaryFiles": "D worktree ignored cache",
+    "retainedNativeStore": "Existing C private evidence root",
+    "runnerCorePolicyOrNetworkChanged": false,
+    "dependencyFiles": 291
+  },
+  "limits": [
+    "Synthetic actual Grades component with Next/tenant-settings stubs; no fonts/real Next layout/Auth/API/DB/RLS or whole-page responsiveness/contrast proof",
+    "Initial20/24 false-negative remained failed and archived; corrected oracle was rerun against actual restored baseline and identical candidate",
+    "Three non-test stdout digests differ across attempts; all four browser outputs and final verification reports match; no full stdout identity claim",
+    "Lead intake/dependency/storage provisioning, one bounded batch with two native tasks; not unattended orchestration",
+    "Exact executed test bytes retained as gzip; published .cjs differs only by removal of a blank EOF line after verification. Before/after executable hash in receipts refers to the retained executed snapshot."
+  ],
+  "boundaries": {
+    "oldSuitesRerun": 0,
+    "dbOperations": 0,
+    "authOperations": 0,
+    "coreAgentFlowModified": false,
+    "parentDailyAndCoursePost503": "UNCHANGED",
+    "courseD01toD05": "PRESERVED",
+    "courseEightFileAllowlist": "UNCHANGED",
+    "parentRls": "FAIL",
+    "courseAuthorization": "BLOCKED",
+    "uiToDb": "NOT_PROVEN",
+    "preGoLive": "BLOCKED",
+    "merge": false,
+    "deploy": false
+  },
+  "proofHashes": {
+    "native-before.json": "3d2bb65047c5173cf98b1e15c32a4c7b99f8487369a3089394d5879b27b51417",
+    "native-after.json": "28b030e9720b7754135a8c8681b0b1556ac045cd592b390cfca31acb8952e629",
+    "native-task-result.json": "eaa87d40e0d1a797737b1fc545a400f4f63cc2e13db705c6cfce047766de2801",
+    "native-task-readback.json": "28ad54e3304676dba92a925a5b7e675f21f452438c99beb1000c1604cc0193ec",
+    "native-recheck-result.json": "7aa1de85ee3df623c6892985ac36d82833aab950ea0314d6b28f7ac1e68fe50e",
+    "native-recheck-readback.json": "adfffddd1099ff167e8572356dcd8b447d5add7976cc66bb71527527322d59c8",
+    "native-command-readback.json": "0f513376a5a37c98d3270f05691e3ba2900bd28b2e846de584b06e1c988fa4b2",
+    "verification.json": "e75bd26bb9c084e267bdb4bd7d7cf1b110342c66bc36ff5cbded7e9c52f51854",
+    "attempt1-preservation.json": "5d427252654363c09e79cec948183acb5d4041c4fb3255261c69bcd4950b2fcd",
+    "dependency-provenance.json": "56b4870fc7d7c05d9534b051b42a2baf6c1f3284b186caf42cc0d8ad8818179e",
+    "edge-case-review.json": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+    "native-source.diff": "ef5018abd32750dc223e9d4d2e2db1e1a455bd6da32d2c019277ed2f0e595e22",
+    "executed-roster-browser.cjs.gz": "c2c6481d3b6eb1f6a676785e124b47dcaad2b54d8dafbf56a9c7cdf2afd6d74e",
+    "attempt1/roster-browser.cjs.gz": "cf169c24dcf6fe0a9c7bbed73aa772eeb19a717e31d486030a4e156ef27f0a1b",
+    "packaging-provenance.json": "df7ec6795bff0ce02e1c4e51b0ab5c244dc6d3d58ebc9082dc6a064d43330c8c"
+  },
+  "hashScope": "Worktree bytes; Git may normalize CRLF",
+  "publishedTestSha256": "9d64f671b02008d9851f373fb5703ef4f7c592d49efc38a45957454e4688b6c3",
+  "executedTestArtifact": "executed-roster-browser.cjs.gz",
+  "packaging": {
+    "recordedAt": "2026-10-17T22:37:09.033Z",
+    "reason": "Preserve exact executed/archived source bytes while publishing a script without an extra blank EOF line",
+    "executedSnapshots": [
+      {
+        "logicalPath": "roster-browser.cjs",
+        "artifact": "executed-roster-browser.cjs.gz",
+        "encoding": "gzip",
+        "decodedSha256": "993cc6f84448668ef706b6742dde863a8abe067befa38b8b257deabdacbb7268",
+        "artifactSha256": "c2c6481d3b6eb1f6a676785e124b47dcaad2b54d8dafbf56a9c7cdf2afd6d74e"
+      },
+      {
+        "logicalPath": "attempt1/roster-browser.cjs",
+        "artifact": "attempt1/roster-browser.cjs.gz",
+        "encoding": "gzip",
+        "decodedSha256": "ad53887a13b74a1e67ee538bd94606309c1020f8480209a1b4b1a303d79fc448",
+        "artifactSha256": "cf169c24dcf6fe0a9c7bbed73aa772eeb19a717e31d486030a4e156ef27f0a1b"
+      }
+    ],
+    "publishedTestSha256": "9d64f671b02008d9851f373fb5703ef4f7c592d49efc38a45957454e4688b6c3",
+    "executedTestSha256": "993cc6f84448668ef706b6742dde863a8abe067befa38b8b257deabdacbb7268",
+    "publishedDifference": "Only trailing blank EOF removed; one final CRLF. All code tokens/assertions/counts/thresholds unchanged.",
+    "originalPreservationManifest": "attempt1-preservation.json; logical raw script now mapped to gzip artifact here",
+    "runtimeSourceChanged": false,
+    "browserTestsRerun": 0
+  }
+}

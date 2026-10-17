@@ -1,0 +1,26 @@
+{
+  "recordedAt": "2026-10-17T22:37:09.033Z",
+  "reason": "Preserve exact executed/archived source bytes while publishing a script without an extra blank EOF line",
+  "executedSnapshots": [
+    {
+      "logicalPath": "roster-browser.cjs",
+      "artifact": "executed-roster-browser.cjs.gz",
+      "encoding": "gzip",
+      "decodedSha256": "993cc6f84448668ef706b6742dde863a8abe067befa38b8b257deabdacbb7268",
+      "artifactSha256": "c2c6481d3b6eb1f6a676785e124b47dcaad2b54d8dafbf56a9c7cdf2afd6d74e"
+    },
+    {
+      "logicalPath": "attempt1/roster-browser.cjs",
+      "artifact": "attempt1/roster-browser.cjs.gz",
+      "encoding": "gzip",
+      "decodedSha256": "ad53887a13b74a1e67ee538bd94606309c1020f8480209a1b4b1a303d79fc448",
+      "artifactSha256": "cf169c24dcf6fe0a9c7bbed73aa772eeb19a717e31d486030a4e156ef27f0a1b"
+    }
+  ],
+  "publishedTestSha256": "9d64f671b02008d9851f373fb5703ef4f7c592d49efc38a45957454e4688b6c3",
+  "executedTestSha256": "993cc6f84448668ef706b6742dde863a8abe067befa38b8b257deabdacbb7268",
+  "publishedDifference": "Only trailing blank EOF removed; one final CRLF. All code tokens/assertions/counts/thresholds unchanged.",
+  "originalPreservationManifest": "attempt1-preservation.json; logical raw script now mapped to gzip artifact here",
+  "runtimeSourceChanged": false,
+  "browserTestsRerun": 0
+}
