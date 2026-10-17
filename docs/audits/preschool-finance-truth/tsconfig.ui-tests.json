@@ -1,0 +1,9 @@
+{
+  "extends": "../../../tsconfig.json",
+  "compilerOptions": { "noEmit": true, "incremental": false },
+  "include": [
+    "../../../src/app/dashboard/education/finance/page.tsx",
+    "../../../src/app/dashboard/education/finance/__tests__/page.test.tsx"
+  ],
+  "exclude": []
+}

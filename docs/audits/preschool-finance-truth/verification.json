@@ -1,0 +1,139 @@
+{
+  "recordedAt": "2026-10-17T11:32:28.490Z",
+  "result": "PASS_SCOPED_UI_WITH_REVIEW",
+  "leadReview": "docs/audits/preschool-finance-truth/review.json",
+  "branch": "codex/preschool-finance-truth",
+  "head": "0bc9bba1b888ca121dd4ae56eb9ff7ebb1c9831f",
+  "sourceFiles": [
+    {
+      "file": "src/app/dashboard/education/finance/page.tsx",
+      "sha256": "170663233f0080f143bad2d82090036165122397b47e56aafc3eb40e1f9326f9"
+    },
+    {
+      "file": "src/app/dashboard/education/finance/__tests__/page.test.tsx",
+      "sha256": "57ee0ec8759ab0d88c1dde4828af8ec02853b0dcc51f18b59d0be3668bde3485"
+    }
+  ],
+  "readonlyBoundary": [
+    {
+      "file": "src/products/bella-education/finance/domain/finance.types.ts",
+      "sha256": "bd3a1d18699432979d82307795dbd72c93c834938e2b483ec010bb0bd8a9f745",
+      "matchesHeadAfterCheckoutLineEndingNormalization": true,
+      "gitDiff": ""
+    },
+    {
+      "file": "src/app/api/education/finance/route.ts",
+      "sha256": "1270013a3dd71ef3c6bb2f95aa4576702d2a36eafec40fe65e790d209eea60e1",
+      "matchesHeadAfterCheckoutLineEndingNormalization": true,
+      "gitDiff": ""
+    }
+  ],
+  "commands": [
+    {
+      "command": "node docs/audits/preschool-finance-truth/run-focused.cjs",
+      "exitCode": 0,
+      "result": "PASS",
+      "suites": 1,
+      "tests": 8,
+      "failed": 0,
+      "skipped": 0,
+      "limits": "Synthetic mocked HTTP component proof only. nextJest({}) without dir, no project setup/.env loading. Socket/http/fetch denied unless replaced by synthetic fetch."
+    },
+    {
+      "command": "node node_modules/typescript/bin/tsc -p tsconfig.education.json --noEmit --incremental false --pretty false",
+      "exitCode": 0,
+      "result": "PASS",
+      "diagnostics": 0
+    },
+    {
+      "command": "node node_modules/typescript/bin/tsc -p docs/audits/preschool-finance-truth/tsconfig.ui-tests.json --noEmit --pretty false",
+      "exitCode": 0,
+      "result": "PASS",
+      "diagnostics": 0
+    },
+    {
+      "command": "node node_modules/eslint/bin/eslint.js src/app/dashboard/education/finance/page.tsx src/app/dashboard/education/finance/__tests__/page.test.tsx",
+      "exitCode": 0,
+      "result": "PASS",
+      "note": "Preexisting ESLintIgnoreWarning only."
+    },
+    {
+      "command": "node docs/audits/preschool-finance-truth/browser-component.cjs",
+      "exitCode": 0,
+      "result": "PASS_SCOPED_SYNTHETIC_COMPONENT",
+      "cases": 4,
+      "limits": "Standalone React mount; Next Link stub; intercepted synthetic HTTP responses; actual compiled globals CSS; no Next-managed fonts/preset/layout, authenticated page/Auth/DB/E2E or complete Finance contrast proof.",
+      "contrast": {
+        "result": "PASS_SCOPED",
+        "checked": 36,
+        "failed": 0,
+        "minimumRatio": 4.758842787868666,
+        "threshold": 4.5
+      },
+      "verification": "36 raw WCAG ratios from computed sRGB foreground and rendered/composited background samples. No rounded ratio used for PASS; >=4.5 required."
+    },
+    {
+      "command": "git diff --check",
+      "exitCode": 0,
+      "result": "PASS"
+    }
+  ],
+  "reviewFixes": [
+    {
+      "id": "P2_STALE_INVOICE_PERIOD_FILTER",
+      "rootCause": "Refreshed invoice options dropped a period ID while filter state retained it, so visible filter and data diverged.",
+      "fix": "Retain the invoice-period filter only if its ID remains in current invoice DTOs; otherwise select ALL. Preserve invoice IDs without billing-period metadata.",
+      "regression": "A selected then GET B -> ALL and row B visible; select B then GET B without period metadata -> B retained."
+    }
+  ],
+  "nonExecuted": {
+    "dbAuthFixturesMutationCleanup": "NOT_RUN",
+    "databaseReadback": "NOT_PROVEN",
+    "authRlsTenantIsolation": "NOT_PROVEN",
+    "authenticatedNextBrowserE2E": "NOT_RUN",
+    "fullNextBuild": "NOT_RUN_NO_ENV_OR_REMOTE",
+    "healthcareIntegration": "NOT_RUN_NO_SAFE_ENV",
+    "commitPushPr": "NOT_PERFORMED_BY_BUILDER",
+    "mergeDeploy": "NOT_AUTHORIZED"
+  },
+  "dependencyRuntime": "Ignored node_modules junction to existing audit-worktree installation; no npm install/package edits.",
+  "scope": "Only Finance page and colocated component test are runtime/test changes. Verification files and spec are documentation. No API/domain/Kernel/Course/security changes.",
+  "artifacts": [
+    {
+      "file": "docs/audits/preschool-finance-truth/focused-tests.json",
+      "sha256": "36fe803a3203c03f188aa077a1a4314d98465064020d67fb2c50116e8c66c7e8"
+    },
+    {
+      "file": "docs/audits/preschool-finance-truth/browser-proof.json",
+      "sha256": "89e470b73b3f6d0f80bb09cd8a786bf0f3fcc73498524d5c780662535738c766"
+    },
+    {
+      "file": "docs/audits/preschool-finance-truth/component-light-desktop.png",
+      "sha256": "f4111b6199af2a523ab49ebddef362e4b8abd1e4459162dac4103ff7c18524a2"
+    },
+    {
+      "file": "docs/audits/preschool-finance-truth/component-light-mobile.png",
+      "sha256": "8e400f71c45dee8dd154951103440cc15c5f9b5196d1a7d21a4c37f5d60e9106"
+    },
+    {
+      "file": "docs/audits/preschool-finance-truth/component-dark-desktop.png",
+      "sha256": "e84a69fe98b21cf72224590bf3a7130efcc952e1071a8450c7935a95ed551afa"
+    },
+    {
+      "file": "docs/audits/preschool-finance-truth/component-dark-mobile.png",
+      "sha256": "f9a01e046a1718660eb136b08d9002b88cf3f6b47f012e00471e90dfae34f099"
+    },
+    {
+      "file": "docs/audits/preschool-finance-truth/browser-component.cjs",
+      "sha256": "eec62c72eb1946aba12b287b855a225e9248eb3dac27d0921c464a0fddf2abb9"
+    }
+  ],
+  "contrastFollowup": {
+    "recordedAt": "2026-10-17T11:34:59.213Z",
+    "sourceAndTestsUnchanged": true,
+    "priorFocusedSuitesRetainedWithoutRerun": true,
+    "reason": "Only verification harness changed; no product source change required.",
+    "result": "PASS_SCOPED",
+    "limits": "Standalone React mount; Next Link stub; intercepted synthetic HTTP responses; actual compiled globals CSS; no Next-managed fonts/preset/layout, authenticated page/Auth/DB/E2E or complete Finance contrast proof."
+  }
+}

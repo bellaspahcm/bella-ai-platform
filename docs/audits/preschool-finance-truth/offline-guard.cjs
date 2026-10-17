@@ -1,0 +1,10 @@
+const net = require('node:net');
+const http = require('node:http');
+const https = require('node:https');
+const deny = () => { throw new Error('Network denied by finance UI proof'); };
+net.Socket.prototype.connect = deny;
+http.request = deny;
+http.get = deny;
+https.request = deny;
+https.get = deny;
+globalThis.fetch = deny;
