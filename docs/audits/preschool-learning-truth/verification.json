@@ -1,0 +1,124 @@
+{
+  "recordedAt": "2026-10-17T11:41:22.939Z",
+  "result": "PASS_SCOPED_UI_TRUTH_WITH_REVIEW",
+  "leadReview": "docs/audits/preschool-learning-truth/review.json",
+  "branch": "codex/preschool-learning-communication-truth",
+  "head": "0bc9bba1b888ca121dd4ae56eb9ff7ebb1c9831f",
+  "scope": [
+    "src/app/dashboard/education/learning/page.tsx",
+    "src/app/dashboard/education/communication/page.tsx",
+    "src/app/dashboard/education/learning/__tests__/page.test.tsx",
+    "src/app/dashboard/education/communication/__tests__/page.test.tsx"
+  ],
+  "sourceSha256": {
+    "src/app/dashboard/education/learning/page.tsx": "e053e58946960c368b9326525a45c04bb2e962f84ff2110089bc8a4c90f87505",
+    "src/app/dashboard/education/communication/page.tsx": "5395087d891c6872737073dcb749e1f47c24493b143e9ea9d3ab2803c4ef604c",
+    "src/app/dashboard/education/learning/__tests__/page.test.tsx": "1116ef9d3e49b5a1803e1668de9a29f247b569e54e9f0161672f9f3d8d9802b5",
+    "src/app/dashboard/education/communication/__tests__/page.test.tsx": "039689bafedc3acba1ce5acf55fd25edd4bb6749b313ea7fb6c767cf4be02592"
+  },
+  "checks": [
+    {
+      "command": "node docs/audits/preschool-learning-truth/offline-jest.cjs",
+      "exitCode": 0,
+      "suites": 2,
+      "tests": 13,
+      "failed": 0,
+      "scope": "Synthetic UI interaction; no persistence/auth proof"
+    },
+    {
+      "command": "node node_modules/typescript/bin/tsc -p tsconfig.education.json --noEmit --incremental false --pretty false",
+      "exitCode": 0,
+      "diagnostics": 0
+    },
+    {
+      "command": "node node_modules/typescript/bin/tsc -p docs/audits/preschool-learning-truth/tsconfig.tests.json --noEmit --incremental false --pretty false",
+      "exitCode": 0,
+      "diagnostics": 0
+    },
+    {
+      "command": "node node_modules/eslint/bin/eslint.js src/app/dashboard/education/learning/page.tsx src/app/dashboard/education/communication/page.tsx src/app/dashboard/education/learning/__tests__/page.test.tsx src/app/dashboard/education/communication/__tests__/page.test.tsx",
+      "exitCode": 0,
+      "warning": "Existing .eslintignore deprecation only"
+    },
+    {
+      "command": "node docs/audits/preschool-learning-truth/browser-component.cjs",
+      "exitCode": 0,
+      "cases": 8,
+      "contrast": {
+        "result": "PASS_SCOPED",
+        "checked": 36,
+        "failed": 0,
+        "minimumRatio": 6.03108965399328,
+        "threshold": 4.5
+      }
+    },
+    {
+      "command": "git diff --check",
+      "exitCode": 0
+    }
+  ],
+  "reviewFix": {
+    "issue": "Broadcast retention notice could outlive explicit modal closure and lost uncontrolled content",
+    "fix": "Clear notice on both explicit close paths",
+    "tests": "X and Hủy bỏ close/reopen regressions included"
+  },
+  "outOfScope": {
+    "runtimeBackend": "UNCHANGED",
+    "auth": "NOT_RUN",
+    "database": "NOT_RUN",
+    "rls": "NOT_PROVEN",
+    "tenantIsolation": "NOT_PROVEN",
+    "e2e": "NOT_PROVEN",
+    "fullNextBuild": "NOT_RUN",
+    "healthcareIntegration": "NOT_RUN",
+    "seedMigrationCleanup": "NOT_RUN",
+    "commitPushPr": "NOT_PERFORMED_BY_BUILDER"
+  },
+  "limits": "Standalone React mount, Next Link stub, synthetic tenant-brand lookup returning null, actual compiled globals CSS; no Next fonts/layout/tenant preset/Auth/DB/full-page E2E or full-page contrast proof. Existing sample content is labelled. New sample and unavailable-action text only.",
+  "artifacts": [
+    {
+      "file": "focused-tests.json",
+      "sha256": "fcf308e58ff00ef10c3147b43be34280a09fa404049fcc3ab5cf241ba1df42ee"
+    },
+    {
+      "file": "offline-boundary.json",
+      "sha256": "b8c876d38f534d2e1a8906950a0e94632c953f6ea487b19897de0c0eafbc148b"
+    },
+    {
+      "file": "browser-proof.json",
+      "sha256": "b5e6fc6d340fb1644fcc50ad83e4b3c1bad924d5ffb28493362f51a969271ead"
+    },
+    {
+      "file": "learning-light-desktop.png",
+      "sha256": "044a5e2c0f051fe0e59f1025c63e2d26861539171fe56eb5ab038b95110ccff6"
+    },
+    {
+      "file": "communication-light-desktop.png",
+      "sha256": "3080f37954857a0faee6240afc5f2acd4e302cb59b204619d81d25712e6762ae"
+    },
+    {
+      "file": "learning-light-mobile.png",
+      "sha256": "3afe111c360a020af58992dad60b3f494b606621334509270116ad917961486c"
+    },
+    {
+      "file": "communication-light-mobile.png",
+      "sha256": "cb73c62d6543571c1320f06fafb882970be668a8d8b9dfe7038eda093497f7e0"
+    },
+    {
+      "file": "learning-dark-desktop.png",
+      "sha256": "8a7481e8fc617874363bae81a098fa9da2f5777807c2d2a772e5debcf308852b"
+    },
+    {
+      "file": "communication-dark-desktop.png",
+      "sha256": "d3d63b826546c495d5c2b744a05474f5b4406f30e8d170ea109c9ef478a5cee5"
+    },
+    {
+      "file": "learning-dark-mobile.png",
+      "sha256": "9a80240f1c405255ebe21856bc3896d820726e78e3a3121b68ed1aa0a8f736cd"
+    },
+    {
+      "file": "communication-dark-mobile.png",
+      "sha256": "06f8890ec9abc338fcb52e21d516557e57ea8dbfcc4c1ac074343e1a529f631e"
+    }
+  ]
+}

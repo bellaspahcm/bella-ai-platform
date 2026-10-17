@@ -52,7 +52,6 @@ import {
   ChevronDown,
   X,
   Check,
-  CheckCircle2,
   Bot,
   AlertCircle,
   FileCheck,
@@ -442,7 +441,7 @@ export default function PreschoolCommunicationPage() {
   const [detailSubTab, setDetailSubTab] = useState<'chat' | 'info' | 'logs' | 'related'>('chat');
   const [replyInput, setReplyInput] = useState<string>('');
   const [isBroadcastModalOpen, setIsBroadcastModalOpen] = useState<boolean>(false);
-  const [actionSuccessNotice, setActionSuccessNotice] = useState<string | null>(null);
+  const [actionNotice, setActionNotice] = useState<string | null>(null);
 
   // Detect tenant scope
   useEffect(() => {
@@ -549,20 +548,22 @@ export default function PreschoolCommunicationPage() {
 
   const handleSendReply = () => {
     if (!replyInput.trim()) return;
-    setActionSuccessNotice('Đã gửi phản hồi đến phụ huynh thành công!');
-    setReplyInput('');
-    setTimeout(() => setActionSuccessNotice(null), 3000);
+    setActionNotice('Chưa gửi phản hồi: tính năng gửi chưa được kết nối. Nội dung vẫn được giữ trên trang; hãy sao chép trước khi rời trang.');
   };
 
   const handleExecutePrimaryAction = () => {
     if (activeConversation.aiIntent.primaryActionType === 'care_note') {
-      setActionSuccessNotice('Đã tạo Lưu Ý Chăm Sóc cho Cô Chủ Nhiệm & Y Tế!');
+      setActionNotice('Chưa tạo lưu ý chăm sóc: hành động này chưa được kết nối. Chưa có dữ liệu chăm sóc nào được ghi nhận.');
     } else if (activeConversation.aiIntent.primaryActionType === 'early_pickup') {
-      setActionSuccessNotice('Đã xác nhận và chuyển lịch đón sớm vào sổ điểm danh!');
+      setActionNotice('Chưa xác nhận đón sớm: hành động này chưa được kết nối. Chưa có thay đổi nào trong sổ điểm danh.');
     } else {
-      setActionSuccessNotice('Đã áp dụng mẫu phản hồi tự động!');
+      setActionNotice('Chưa thực hiện hành động: tính năng này chưa được kết nối. Chưa có thông tin nào được gửi hoặc lưu.');
     }
-    setTimeout(() => setActionSuccessNotice(null), 3000);
+  };
+
+  const handleCloseBroadcast = () => {
+    setActionNotice(null);
+    setIsBroadcastModalOpen(false);
   };
 
   if (!isPreschoolTenant) {
@@ -571,11 +572,10 @@ export default function PreschoolCommunicationPage() {
 
   return (
     <div className="preschool-communication-workspace w-full p-4 sm:p-6 lg:p-8 space-y-6 pb-36 sm:pb-48">
-      {/* ── ACTION SUCCESS NOTIFICATION ── */}
-      {actionSuccessNotice && (
-        <div className="fixed top-6 right-6 z-50 p-4 rounded-2xl bg-slate-900 text-white text-xs font-bold shadow-2xl flex items-center gap-3 animate-in fade-in slide-in-from-top-4">
-          <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-          <span>{actionSuccessNotice}</span>
+      {actionNotice && !isBroadcastModalOpen && (
+        <div role="status" className="p-4 rounded-2xl border border-amber-200 dark:border-amber-900 bg-amber-50 dark:bg-amber-950 text-amber-900 dark:text-amber-200 text-sm flex items-center gap-3">
+          <AlertCircle className="w-4 h-4 shrink-0" />
+          <span>{actionNotice}</span>
         </div>
       )}
 
@@ -622,13 +622,20 @@ export default function PreschoolCommunicationPage() {
 
           <button
             type="button"
-            onClick={() => setIsBroadcastModalOpen(true)}
+            onClick={() => {
+              setActionNotice(null);
+              setIsBroadcastModalOpen(true);
+            }}
             className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#0c513f] hover:bg-[#083b2e] text-white px-5 py-2.5 text-xs font-bold shadow-md shadow-[#0c513f]/20 transition-all active:scale-95 cursor-pointer"
           >
             <Send className="w-4 h-4" />
             <span>Gửi thông báo</span>
           </button>
         </div>
+      </div>
+
+      <div role="note" className="rounded-2xl border border-amber-200 dark:border-amber-900 bg-amber-50 dark:bg-amber-950 p-4 text-sm text-amber-900 dark:text-amber-200">
+        Dữ liệu minh họa: hội thoại, chỉ số, gợi ý AI và lưu ý chăm sóc trên trang là nội dung mẫu. Chưa kết nối gửi tin, thông báo hoặc cập nhật hồ sơ thật.
       </div>
 
       {/* ── 4 KPI STAT CARDS MATCHING IMAGE 3 ── */}
@@ -1236,31 +1243,39 @@ export default function PreschoolCommunicationPage() {
       {/* ── BROADCAST ANNOUNCEMENT MODAL ── */}
       {isBroadcastModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto animate-in fade-in duration-200">
-          <div className="w-full max-w-lg bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl p-6 sm:p-8 space-y-5">
+          <div role="dialog" aria-modal="true" aria-labelledby="broadcast-title" className="w-full max-w-lg bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl p-6 sm:p-8 space-y-5">
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-950 text-[#0c513f] flex items-center justify-center">
                   <Megaphone className="w-4 h-4" />
                 </div>
-                <h3 className="text-base font-extrabold text-slate-900 dark:text-white">
+                <h3 id="broadcast-title" className="text-base font-extrabold text-slate-900 dark:text-white">
                   Soạn thông báo điều hành mới
                 </h3>
               </div>
               <button
                 type="button"
-                onClick={() => setIsBroadcastModalOpen(false)}
+                aria-label="Đóng thông báo"
+                onClick={handleCloseBroadcast}
                 className="p-1.5 rounded-xl text-slate-400 hover:text-slate-600 cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
+            {actionNotice && (
+              <div role="status" className="rounded-xl border border-amber-200 dark:border-amber-900 bg-amber-50 dark:bg-amber-950 p-3 text-sm text-amber-900 dark:text-amber-200">
+                {actionNotice}
+              </div>
+            )}
+
             <div className="space-y-4 text-xs">
               <div>
-                <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">
+                <label htmlFor="broadcast-subject" className="font-bold text-slate-700 dark:text-slate-300 block mb-1">
                   Tiêu đề thông báo
                 </label>
                 <input
+                  id="broadcast-subject"
                   type="text"
                   placeholder="Ví dụ: Kế hoạch tổ chức Lễ hội Trung Thu 2026..."
                   className="w-full p-2.5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 font-medium"
@@ -1294,10 +1309,11 @@ export default function PreschoolCommunicationPage() {
               </div>
 
               <div>
-                <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">
+                <label htmlFor="broadcast-content" className="font-bold text-slate-700 dark:text-slate-300 block mb-1">
                   Nội dung chi tiết
                 </label>
                 <textarea
+                  id="broadcast-content"
                   rows={4}
                   placeholder="Nhập nội dung thông báo gửi đến phụ huynh..."
                   className="w-full p-2.5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 font-medium"
@@ -1308,7 +1324,7 @@ export default function PreschoolCommunicationPage() {
             <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100 dark:border-slate-800">
               <button
                 type="button"
-                onClick={() => setIsBroadcastModalOpen(false)}
+                onClick={handleCloseBroadcast}
                 className="px-4 py-2.5 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-xs hover:bg-slate-200 transition-colors cursor-pointer"
               >
                 Hủy bỏ
@@ -1316,9 +1332,7 @@ export default function PreschoolCommunicationPage() {
               <button
                 type="button"
                 onClick={() => {
-                  setIsBroadcastModalOpen(false);
-                  setActionSuccessNotice('Đã gửi thông báo điều hành đến 280 phụ huynh thành công!');
-                  setTimeout(() => setActionSuccessNotice(null), 3000);
+                  setActionNotice('Chưa phát hành thông báo: tính năng gửi chưa được kết nối. Nội dung vẫn được giữ trong cửa sổ này; hãy sao chép trước khi đóng.');
                 }}
                 className="px-5 py-2.5 rounded-2xl bg-[#0c513f] hover:bg-[#083b2e] text-white font-bold text-xs shadow-md transition-all flex items-center gap-1.5 cursor-pointer"
               >

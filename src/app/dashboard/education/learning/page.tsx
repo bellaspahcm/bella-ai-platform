@@ -8,18 +8,16 @@
  * - Observation Logging (Planned / Spontaneous), Evidence Privacy & Consent Scopes
  * - Qualitative Progress Interpretation (`EMERGING`, `DEVELOPING`, `CONSISTENT`, `NEEDS_SUPPORT`)
  * - Actionable Next Steps (Classroom & Home)
- * - Versioned Developmental Portfolio Compilation, Publication & SHA-256 Checksum
- * - Parent View Projection (Filters out INTERNAL_TEACHER evidence & unconfirmed items)
+ * Current screen contains sample content; save/publication are not connected.
  */
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import {
   BookOpen,
   ArrowLeft,
   ShieldAlert,
   Calendar,
-  CheckCircle2,
   Sparkles,
   Clock,
   Activity,
@@ -72,45 +70,21 @@ export default function LearningWorkspacePage() {
   const [evidenceVisibility, setEvidenceVisibility] = useState<EvidenceVisibility>('PARENT_SHARED');
   const [consentScope, setConsentScope] = useState<ConsentScope>('CONSENT_VERIFIED');
   const [milestoneCode, setMilestoneCode] = useState('COG-01 (Phân loại màu sắc)');
-  const [obsSuccessMessage, setObsSuccessMessage] = useState<string | null>(null);
+  const [observationNotice, setObservationNotice] = useState<string | null>(null);
 
   // Interpretation State
   const [progressStatus, setProgressStatus] = useState<'EMERGING' | 'DEVELOPING' | 'CONSISTENT' | 'NEEDS_SUPPORT'>('CONSISTENT');
-  const [progressRationale, setProgressRationale] = useState('Bé đã thực hành thành công 3 lần trong tuần với các khối gỗ màu.');
   const [isConfirmed, setIsConfirmed] = useState(true);
 
   // Portfolio State
-  const [portfolioStatus, setPortfolioStatus] = useState<'DRAFT' | 'PUBLISHED'>('DRAFT');
-  const [portfolioVersionNumber, setPortfolioVersionNumber] = useState(1);
-  const [publicationChecksum, setPublicationChecksum] = useState<string | null>(null);
-  const [portfolioError, setPortfolioError] = useState<string | null>(null);
+  const [portfolioNotice, setPortfolioNotice] = useState<string | null>(null);
 
-  // Execute Observation Logging
   const handleSaveObservation = () => {
-    setObsSuccessMessage(`Đã lưu quan sát thành công cho bé! (Visibility: ${evidenceVisibility}, Consent: ${consentScope})`);
-    setTimeout(() => setObsSuccessMessage(null), 4000);
+    setObservationNotice('Chưa lưu quan sát: tính năng lưu chưa được kết nối. Nội dung vẫn được giữ trên trang; hãy sao chép trước khi rời trang.');
   };
 
-  // Execute Portfolio Publishing
   const handlePublishPortfolio = () => {
-    setPortfolioError(null);
-    if (consentScope === 'OPT_OUT') {
-      setPortfolioError('PORTFOLIO_CONSENT_VIOLATION_ERROR: Không thể xuất bản ảnh của trẻ khi chưa có xác nhận Consent hợp lệ (OPT_OUT).');
-      return;
-    }
-    setPortfolioStatus('PUBLISHED');
-    setPublicationChecksum('e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855');
-  };
-
-  // Edit Published Portfolio (Trigger DB Lock)
-  const handleEditPublishedPortfolio = () => {
-    setPortfolioError('PORTFOLIO_PUBLISHED_IMMUTABLE_ERROR: Portfolio đã xuất bản là Immutable. Đang chuyển sang tạo Version 2 (DRAFT)...');
-    setTimeout(() => {
-      setPortfolioVersionNumber(2);
-      setPortfolioStatus('DRAFT');
-      setPublicationChecksum(null);
-      setPortfolioError(null);
-    }, 2500);
+    setPortfolioNotice('Chưa xuất bản Portfolio: tính năng xuất bản chưa được kết nối. Không có hồ sơ nào được gửi cho phụ huynh.');
   };
 
   return (
@@ -140,6 +114,10 @@ export default function LearningWorkspacePage() {
             25 Bé Đang Học
           </span>
         </div>
+      </div>
+
+      <div role="note" className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-900 dark:text-amber-200">
+        Dữ liệu minh họa: danh sách trẻ, quan sát, consent và Portfolio trên trang chưa được tải từ hồ sơ thật. Thao tác lưu và xuất bản chưa được kết nối.
       </div>
 
       {/* Action Required Work Queue Banner */}
@@ -266,16 +244,16 @@ export default function LearningWorkspacePage() {
             Ghi Nhận Quan Sát Cá Nhân Hóa (Per-Child Observation)
           </h2>
 
-          {obsSuccessMessage && (
-            <div className="p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-xl text-emerald-700 dark:text-emerald-400 text-sm font-medium flex items-center gap-2" id="obs-success-banner">
-              <CheckCircle2 className="w-5 h-5" /> {obsSuccessMessage}
+          {observationNotice && (
+            <div role="status" className="p-4 bg-amber-500/10 border border-amber-500/30 rounded-xl text-amber-900 dark:text-amber-200 text-sm font-medium flex items-center gap-2" id="observation-notice">
+              <AlertCircle className="w-5 h-5 shrink-0" /> {observationNotice}
             </div>
           )}
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-muted-foreground mb-1">Chọn Trẻ Được Quan Sát</label>
+                <label htmlFor="select-child" className="block text-xs font-semibold text-muted-foreground mb-1">Chọn Trẻ Được Quan Sát</label>
                 <select
                   id="select-child"
                   value={selectedStudentId}
@@ -288,7 +266,7 @@ export default function LearningWorkspacePage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-muted-foreground mb-1">Nội Dung Quan Sát Thực Tế</label>
+                <label htmlFor="input-obs-text" className="block text-xs font-semibold text-muted-foreground mb-1">Nội Dung Quan Sát Thực Tế</label>
                 <textarea
                   id="input-obs-text"
                   rows={4}
@@ -299,7 +277,7 @@ export default function LearningWorkspacePage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-muted-foreground mb-1">Gắn Thẻ Cột Mốc Mầm Non (Milestone Tag)</label>
+                <label htmlFor="input-milestone-tag" className="block text-xs font-semibold text-muted-foreground mb-1">Gắn Thẻ Cột Mốc Mầm Non (Milestone Tag)</label>
                 <input
                   id="input-milestone-tag"
                   type="text"
@@ -316,7 +294,7 @@ export default function LearningWorkspacePage() {
               </h3>
 
               <div>
-                <label className="block text-xs font-semibold text-muted-foreground mb-1">Quyền Hiển Thị Minh Chứng (Visibility Scope)</label>
+                <label htmlFor="select-visibility" className="block text-xs font-semibold text-muted-foreground mb-1">Quyền Hiển Thị Minh Chứng (Visibility Scope)</label>
                 <select
                   id="select-visibility"
                   value={evidenceVisibility}
@@ -333,7 +311,7 @@ export default function LearningWorkspacePage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-muted-foreground mb-1">Xác Nhận Consent Của Phụ Huynh (Consent Scope)</label>
+                <label htmlFor="select-consent" className="block text-xs font-semibold text-muted-foreground mb-1">Xác Nhận Consent Của Phụ Huynh (Consent Scope)</label>
                 <select
                   id="select-consent"
                   value={consentScope}
@@ -372,22 +350,14 @@ export default function LearningWorkspacePage() {
               Tổng Hợp & Xuất Bản Portfolio Phát Triển (Học Kỳ 1 2026)
             </h2>
 
-            <span className={`px-3 py-1 rounded-full text-xs font-bold ${
-              portfolioStatus === 'PUBLISHED' ? 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30' : 'bg-amber-500/20 text-amber-700 dark:text-amber-400 border border-amber-500/30'
-            }`}>
-              {portfolioStatus} (Version {portfolioVersionNumber})
+            <span className="px-3 py-1 rounded-full text-xs font-bold bg-amber-500/20 text-amber-900 dark:text-amber-200 border border-amber-500/30">
+              Bản minh họa · Chưa xuất bản
             </span>
           </div>
 
-          {portfolioError && (
-            <div className="p-4 bg-rose-500/10 border border-rose-500/30 rounded-xl text-rose-400 text-sm font-medium flex items-center gap-2" id="portfolio-error-banner">
-              <AlertCircle className="w-5 h-5" /> {portfolioError}
-            </div>
-          )}
-
-          {publicationChecksum && (
-            <div className="p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-xl text-emerald-700 dark:text-emerald-400 text-xs font-mono break-all" id="checksum-banner">
-              SHA-256 Fingerprint: {publicationChecksum}
+          {portfolioNotice && (
+            <div role="status" className="p-4 bg-amber-500/10 border border-amber-500/30 rounded-xl text-amber-900 dark:text-amber-200 text-sm font-medium flex items-center gap-2" id="portfolio-notice">
+              <AlertCircle className="w-5 h-5 shrink-0" /> {portfolioNotice}
             </div>
           )}
 
@@ -406,23 +376,13 @@ export default function LearningWorkspacePage() {
             </ul>
 
             <div className="pt-4 flex items-center gap-4">
-              {portfolioStatus === 'DRAFT' ? (
-                <button
-                  id="btn-publish-portfolio"
-                  onClick={handlePublishPortfolio}
-                  className="px-6 py-2.5 bg-primary hover:bg-primary-hover font-semibold text-primary-foreground text-sm rounded-lg transition flex items-center gap-2"
-                >
-                  <ShieldCheck className="w-4 h-4" /> Xuất Bản Portfolio Cho Phụ Huynh
-                </button>
-              ) : (
-                <button
-                  id="btn-edit-published"
-                  onClick={handleEditPublishedPortfolio}
-                  className="px-6 py-2.5 bg-amber-600 hover:bg-amber-500 font-semibold text-foreground text-sm rounded-lg transition flex items-center gap-2"
-                >
-                  <Lock className="w-4 h-4" /> Chỉnh Sửa Portfolio (Tạo Version 2)
-                </button>
-              )}
+              <button
+                id="btn-publish-portfolio"
+                onClick={handlePublishPortfolio}
+                className="px-6 py-2.5 bg-primary hover:bg-primary-hover font-semibold text-primary-foreground text-sm rounded-lg transition flex items-center gap-2"
+              >
+                <ShieldCheck className="w-4 h-4" /> Xuất Bản Portfolio Cho Phụ Huynh
+              </button>
             </div>
           </div>
         </div>
@@ -436,7 +396,7 @@ export default function LearningWorkspacePage() {
               <Eye className="w-5 h-5 text-[var(--education-brand-ink)]" />
               Góc Nhìn Phụ Huynh trên Mobile App (Parent Read Projection)
             </h2>
-            <span className="text-xs text-muted-foreground">Filtering: strictly INTERNAL_TEACHER hidden</span>
+            <span className="text-xs text-muted-foreground">Bản xem trước minh họa</span>
           </div>
 
           <div className="max-w-md mx-auto bg-background border border-border rounded-2xl p-5 space-y-4 shadow-2xl">
@@ -445,31 +405,9 @@ export default function LearningWorkspacePage() {
               <div className="text-xs text-[var(--education-brand-ink)]">Nguyễn Minh Anh · Lớp Mầm A</div>
             </div>
 
-            {portfolioStatus === 'PUBLISHED' ? (
-              <div className="space-y-4" id="parent-projection-container">
-                <div className="bg-background p-4 rounded-xl border border-border space-y-2">
-                  <div className="text-xs font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider">Tiến Trình Đạt Được</div>
-                  <div className="text-sm font-semibold text-foreground">Phân Loại Màu Sắc: {progressStatus}</div>
-                  <div className="text-xs text-muted-foreground">{progressRationale}</div>
-                </div>
-
-                {evidenceVisibility === 'PARENT_SHARED' && consentScope === 'CONSENT_VERIFIED' && (
-                  <div className="bg-background p-4 rounded-xl border border-border space-y-2" id="parent-visible-evidence">
-                    <div className="text-xs font-bold text-[var(--education-brand-ink)] uppercase tracking-wider">Hình Ảnh Quan Sát Lớp</div>
-                    <div className="text-xs text-foreground">s3://photos/parent_shared_paint.jpg</div>
-                  </div>
-                )}
-
-                <div className="bg-background p-4 rounded-xl border border-border space-y-2">
-                  <div className="text-xs font-bold text-purple-700 dark:text-purple-400 uppercase tracking-wider">Khuyên Dùng Tại Nhà</div>
-                  <div className="text-xs text-foreground">Khám phá trộn màu finger paints tại nhà cùng bé.</div>
-                </div>
-              </div>
-            ) : (
-              <div className="text-center py-8 text-muted-foreground text-sm">
-                Chưa có phiên bản Portfolio nào được xuất bản cho học kỳ này.
-              </div>
-            )}
+            <div className="text-center py-8 text-muted-foreground text-sm">
+              Đây là bản xem trước minh họa. Chưa có hồ sơ được tải hoặc xuất bản từ hệ thống.
+            </div>
           </div>
         </div>
       )}
