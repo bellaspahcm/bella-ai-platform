@@ -1,0 +1,676 @@
+{
+  "kind": "E01_C10_CONTAINMENT_EXECUTION",
+  "id": "E01-C10-CONTAINMENT-A-V1",
+  "authority": "Current Owner: thực hiện một batch containment có kiểm soát trên C10; conditional OD-03 fixtures/cleanup",
+  "startedAt": "2026-10-17T13:34:00.120Z",
+  "result": "PASS_SCOPED_C10_ANONYMOUS_SELECT_CONTAINMENT",
+  "phases": [
+    {
+      "id": "P0_TARGET_SNAPSHOT_DIFF_PREFLIGHT_PASS",
+      "at": "2026-10-17T13:34:08.705Z"
+    },
+    {
+      "id": "P1_SYNTHETIC_NONEMPTY_BASELINE_ROLE_PROBES_PASS",
+      "at": "2026-10-17T13:34:18.765Z",
+      "probeCount": 7
+    },
+    {
+      "id": "P2_RESTRICTIVE_GUARD_COMMITTED_ANON_DENIED_AUTHENTICATED_UNCHANGED",
+      "at": "2026-10-17T13:34:24.752Z",
+      "anonymousNegativeCases": 4,
+      "authenticatedEqualityCases": 3,
+      "noNewPrivileges": true
+    },
+    {
+      "id": "P3_FIXTURES_CLEANED_TARGET_CLEANLY_STOPPED",
+      "at": "2026-10-17T13:34:31.650Z"
+    }
+  ],
+  "image": "sha256:86a2e078779e5bdccda1f6f6c5063aa9779a322d1fface5fb408d051909b230f",
+  "originalVolume": "supabase_db_platform-authority-e01",
+  "primaryVolume": "platform-authority-e01-containment-c10-a-v1",
+  "network": "none",
+  "publishedPorts": [],
+  "authFixtures": false,
+  "sourceMigrationVersionsMarkedApplied": [],
+  "limits": [
+    "Synthetic four-table source-derived C10 only; not canonical or Production-equivalent.",
+    "Real PostgreSQL RLS role proof; OS peer verifier/session_user postgres, current_user anon/authenticated, row_security_active true. No Auth/JWT/PostgREST proof.",
+    "Authenticated unrelated-parent/cross-tenant exposure remains FAIL; no functional authorization repair.",
+    "HTTP containment is verified/delivered separately; no merge, manual deployment or release."
+  ],
+  "review": {
+    "file": "docs/audits/preschool-remediation-20261017/parent-rls-containment.review.sql",
+    "sha256": "ff38220a46082d7609358b6ad22925d8f9f19eeb10afb27f61d697ec350d957b",
+    "executionPayloadSha256": "0e63a6c3e7f6c1edf6fd98a9746ffb5ae270d63d77603d5eb06679ab5be258c6",
+    "reviewOnlyArtifactUnchanged": true
+  },
+  "preflight": {
+    "snapshotDecryptedHashMatches": true,
+    "snapshotMetadataSha256": "8cc9fa310f6ab86f2ab18b0261a2ae2ee5d28839f69234d3145710f4a4f4e4ec",
+    "stoppedFileManifestSha256": "6d94cc78bac02bb11ef88268365561a936ebf43c29a733760bc4a07dfcb3c065",
+    "originalArchiveSha256": "b926e92ca20c0e0540c5ab391ec574e8aafed24c8e497d9d41d0e76336b6fe91",
+    "targetLabelVerified": true,
+    "pinnedImageVerified": true,
+    "configSha256": "d244d0647760169caab1b9602d955d4ae31c19d42e371398e43fc7f9aa6dc566"
+  },
+  "before": {
+    "schemaDumpSha256": "d35b3c20f3283aff584c51781127d36da8bcc3aee152f9d5bdca9cf3073780b4",
+    "rolesMembershipSettingsSha256": "85d2b89ba3d51843d7f760cdc15dc3e9a6cd778654d4366e036c052ed66b1581",
+    "tables": [
+      {
+        "name": "party_parties",
+        "rls": true,
+        "force_rls": false,
+        "owner": "postgres",
+        "acl": "{postgres=arwdDxtm/postgres,anon=Dxtm/postgres,authenticated=Dxtm/postgres,service_role=Dxtm/postgres}"
+      },
+      {
+        "name": "persons",
+        "rls": true,
+        "force_rls": false,
+        "owner": "postgres",
+        "acl": "{postgres=arwdDxtm/postgres,anon=Dxtm/postgres,authenticated=Dxtm/postgres,service_role=Dxtm/postgres}"
+      },
+      {
+        "name": "students",
+        "rls": true,
+        "force_rls": false,
+        "owner": "postgres",
+        "acl": "{postgres=arwdDxtm/postgres,anon=arwdDxtm/postgres,authenticated=arwdDxtm/postgres,service_role=arwdDxtm/postgres}"
+      },
+      {
+        "name": "tenants",
+        "rls": true,
+        "force_rls": false,
+        "owner": "postgres",
+        "acl": "{postgres=arwdDxtm/postgres,anon=Dxtm/postgres,authenticated=Dxtm/postgres,service_role=Dxtm/postgres}"
+      }
+    ],
+    "counts": {
+      "tenants": 0,
+      "party_parties": 0,
+      "persons": 0,
+      "students": 0,
+      "auth_users": 0
+    },
+    "studentPolicies": [
+      {
+        "policyname": "students_service_role",
+        "permissive": "PERMISSIVE",
+        "roles": "{service_role}",
+        "cmd": "ALL",
+        "qual": "true",
+        "with_check": null
+      },
+      {
+        "policyname": "students_tenant_isolation",
+        "permissive": "PERMISSIVE",
+        "roles": "{public}",
+        "cmd": "ALL",
+        "qual": "(tenant_id = (( SELECT (auth.jwt() ->> 'tenant_id'::text)))::uuid)",
+        "with_check": null
+      },
+      {
+        "policyname": "tenant_isolation_students",
+        "permissive": "PERMISSIVE",
+        "roles": "{public}",
+        "cmd": "ALL",
+        "qual": "true",
+        "with_check": null
+      }
+    ],
+    "shape": {
+      "party_fk": 1,
+      "person_nullable": true,
+      "trigger_count": 1,
+      "anon_select_privilege": true,
+      "authenticated_select_privilege": true,
+      "ledger_exists": false
+    },
+    "readback": "READ_ONLY_NO_AUTH_PRINCIPAL_TEST"
+  },
+  "subjectMembership": {
+    "authenticatedInheritsAnon": false,
+    "authenticatedCanSetAnon": false,
+    "anonOwnsStudents": false,
+    "authenticatedOwnsStudents": false
+  },
+  "beforeSecurityCatalogSha256": "2a3ab16ec39f21ad17387e77f56e669aba6c633eec36e1e3ca4eb934124fb246",
+  "syntheticFixtureIds": {
+    "tenantA": "55c4ed1c-b848-489e-b892-65057512b270",
+    "tenantB": "8ad252b3-9445-4dce-9afa-0af1bd03a3b9",
+    "partyA": "2a2dff25-6c15-4a99-a997-ae513ae33988",
+    "partyB": "d365f2bf-4a82-43f5-bed1-9f0745beac5a",
+    "studentA": "a444aedc-7be0-426e-8069-a58118b07ab6",
+    "studentB": "ceb1bf57-d1f3-4b96-ba3f-cec61c73a443",
+    "subjectA": "ef467582-696c-46cb-aa50-7dfb941a21d7",
+    "subjectB": "b6d94d7d-5d54-4b1e-8b02-daee7eb4cb11"
+  },
+  "fixtureReadback": {
+    "tenants": 2,
+    "party_parties": 2,
+    "persons": 0,
+    "students": 2,
+    "auth_users": 0
+  },
+  "beforeProbes": [
+    {
+      "role": "anon",
+      "tenant": null,
+      "subject": "ef467582-696c-46cb-aa50-7dfb941a21d7",
+      "currentUser": "anon",
+      "sessionUser": "postgres",
+      "rowSecurityActive": true,
+      "superuser": false,
+      "bypassRls": false,
+      "tenantClaim": null,
+      "claimedRole": "anon",
+      "rows": [
+        {
+          "student_id": "a444aedc-7be0-426e-8069-a58118b07ab6",
+          "tenant_id": "55c4ed1c-b848-489e-b892-65057512b270",
+          "student_code": "SYNTHETIC-C10-A"
+        },
+        {
+          "student_id": "ceb1bf57-d1f3-4b96-ba3f-cec61c73a443",
+          "tenant_id": "8ad252b3-9445-4dce-9afa-0af1bd03a3b9",
+          "student_code": "SYNTHETIC-C10-B"
+        }
+      ]
+    },
+    {
+      "role": "anon",
+      "tenant": "55c4ed1c-b848-489e-b892-65057512b270",
+      "subject": "ef467582-696c-46cb-aa50-7dfb941a21d7",
+      "currentUser": "anon",
+      "sessionUser": "postgres",
+      "rowSecurityActive": true,
+      "superuser": false,
+      "bypassRls": false,
+      "tenantClaim": "55c4ed1c-b848-489e-b892-65057512b270",
+      "claimedRole": "anon",
+      "rows": [
+        {
+          "student_id": "a444aedc-7be0-426e-8069-a58118b07ab6",
+          "tenant_id": "55c4ed1c-b848-489e-b892-65057512b270",
+          "student_code": "SYNTHETIC-C10-A"
+        },
+        {
+          "student_id": "ceb1bf57-d1f3-4b96-ba3f-cec61c73a443",
+          "tenant_id": "8ad252b3-9445-4dce-9afa-0af1bd03a3b9",
+          "student_code": "SYNTHETIC-C10-B"
+        }
+      ]
+    },
+    {
+      "role": "anon",
+      "tenant": "8ad252b3-9445-4dce-9afa-0af1bd03a3b9",
+      "subject": "b6d94d7d-5d54-4b1e-8b02-daee7eb4cb11",
+      "currentUser": "anon",
+      "sessionUser": "postgres",
+      "rowSecurityActive": true,
+      "superuser": false,
+      "bypassRls": false,
+      "tenantClaim": "8ad252b3-9445-4dce-9afa-0af1bd03a3b9",
+      "claimedRole": "anon",
+      "rows": [
+        {
+          "student_id": "a444aedc-7be0-426e-8069-a58118b07ab6",
+          "tenant_id": "55c4ed1c-b848-489e-b892-65057512b270",
+          "student_code": "SYNTHETIC-C10-A"
+        },
+        {
+          "student_id": "ceb1bf57-d1f3-4b96-ba3f-cec61c73a443",
+          "tenant_id": "8ad252b3-9445-4dce-9afa-0af1bd03a3b9",
+          "student_code": "SYNTHETIC-C10-B"
+        }
+      ]
+    },
+    {
+      "role": "anon",
+      "tenant": "55c4ed1c-b848-489e-b892-65057512b270",
+      "subject": "ef467582-696c-46cb-aa50-7dfb941a21d7",
+      "currentUser": "anon",
+      "sessionUser": "postgres",
+      "rowSecurityActive": true,
+      "superuser": false,
+      "bypassRls": false,
+      "tenantClaim": "55c4ed1c-b848-489e-b892-65057512b270",
+      "claimedRole": "authenticated",
+      "rows": [
+        {
+          "student_id": "a444aedc-7be0-426e-8069-a58118b07ab6",
+          "tenant_id": "55c4ed1c-b848-489e-b892-65057512b270",
+          "student_code": "SYNTHETIC-C10-A"
+        },
+        {
+          "student_id": "ceb1bf57-d1f3-4b96-ba3f-cec61c73a443",
+          "tenant_id": "8ad252b3-9445-4dce-9afa-0af1bd03a3b9",
+          "student_code": "SYNTHETIC-C10-B"
+        }
+      ]
+    },
+    {
+      "role": "authenticated",
+      "tenant": null,
+      "subject": "ef467582-696c-46cb-aa50-7dfb941a21d7",
+      "currentUser": "authenticated",
+      "sessionUser": "postgres",
+      "rowSecurityActive": true,
+      "superuser": false,
+      "bypassRls": false,
+      "tenantClaim": null,
+      "claimedRole": "authenticated",
+      "rows": [
+        {
+          "student_id": "a444aedc-7be0-426e-8069-a58118b07ab6",
+          "tenant_id": "55c4ed1c-b848-489e-b892-65057512b270",
+          "student_code": "SYNTHETIC-C10-A"
+        },
+        {
+          "student_id": "ceb1bf57-d1f3-4b96-ba3f-cec61c73a443",
+          "tenant_id": "8ad252b3-9445-4dce-9afa-0af1bd03a3b9",
+          "student_code": "SYNTHETIC-C10-B"
+        }
+      ]
+    },
+    {
+      "role": "authenticated",
+      "tenant": "55c4ed1c-b848-489e-b892-65057512b270",
+      "subject": "ef467582-696c-46cb-aa50-7dfb941a21d7",
+      "currentUser": "authenticated",
+      "sessionUser": "postgres",
+      "rowSecurityActive": true,
+      "superuser": false,
+      "bypassRls": false,
+      "tenantClaim": "55c4ed1c-b848-489e-b892-65057512b270",
+      "claimedRole": "authenticated",
+      "rows": [
+        {
+          "student_id": "a444aedc-7be0-426e-8069-a58118b07ab6",
+          "tenant_id": "55c4ed1c-b848-489e-b892-65057512b270",
+          "student_code": "SYNTHETIC-C10-A"
+        },
+        {
+          "student_id": "ceb1bf57-d1f3-4b96-ba3f-cec61c73a443",
+          "tenant_id": "8ad252b3-9445-4dce-9afa-0af1bd03a3b9",
+          "student_code": "SYNTHETIC-C10-B"
+        }
+      ]
+    },
+    {
+      "role": "authenticated",
+      "tenant": "8ad252b3-9445-4dce-9afa-0af1bd03a3b9",
+      "subject": "b6d94d7d-5d54-4b1e-8b02-daee7eb4cb11",
+      "currentUser": "authenticated",
+      "sessionUser": "postgres",
+      "rowSecurityActive": true,
+      "superuser": false,
+      "bypassRls": false,
+      "tenantClaim": "8ad252b3-9445-4dce-9afa-0af1bd03a3b9",
+      "claimedRole": "authenticated",
+      "rows": [
+        {
+          "student_id": "a444aedc-7be0-426e-8069-a58118b07ab6",
+          "tenant_id": "55c4ed1c-b848-489e-b892-65057512b270",
+          "student_code": "SYNTHETIC-C10-A"
+        },
+        {
+          "student_id": "ceb1bf57-d1f3-4b96-ba3f-cec61c73a443",
+          "tenant_id": "8ad252b3-9445-4dce-9afa-0af1bd03a3b9",
+          "student_code": "SYNTHETIC-C10-B"
+        }
+      ]
+    }
+  ],
+  "policyCommitted": true,
+  "after": {
+    "schemaDumpSha256": "f51c2e164b36f9cb7a1147247a90a3a35cf39bfc59fab2ce285c78647986a074",
+    "rolesMembershipSettingsSha256": "85d2b89ba3d51843d7f760cdc15dc3e9a6cd778654d4366e036c052ed66b1581",
+    "tables": [
+      {
+        "name": "party_parties",
+        "rls": true,
+        "force_rls": false,
+        "owner": "postgres",
+        "acl": "{postgres=arwdDxtm/postgres,anon=Dxtm/postgres,authenticated=Dxtm/postgres,service_role=Dxtm/postgres}"
+      },
+      {
+        "name": "persons",
+        "rls": true,
+        "force_rls": false,
+        "owner": "postgres",
+        "acl": "{postgres=arwdDxtm/postgres,anon=Dxtm/postgres,authenticated=Dxtm/postgres,service_role=Dxtm/postgres}"
+      },
+      {
+        "name": "students",
+        "rls": true,
+        "force_rls": false,
+        "owner": "postgres",
+        "acl": "{postgres=arwdDxtm/postgres,anon=arwdDxtm/postgres,authenticated=arwdDxtm/postgres,service_role=arwdDxtm/postgres}"
+      },
+      {
+        "name": "tenants",
+        "rls": true,
+        "force_rls": false,
+        "owner": "postgres",
+        "acl": "{postgres=arwdDxtm/postgres,anon=Dxtm/postgres,authenticated=Dxtm/postgres,service_role=Dxtm/postgres}"
+      }
+    ],
+    "counts": {
+      "tenants": 2,
+      "party_parties": 2,
+      "persons": 0,
+      "students": 2,
+      "auth_users": 0
+    },
+    "studentPolicies": [
+      {
+        "policyname": "preschool_students_anon_containment",
+        "permissive": "RESTRICTIVE",
+        "roles": "{anon}",
+        "cmd": "SELECT",
+        "qual": "false",
+        "with_check": null
+      },
+      {
+        "policyname": "students_service_role",
+        "permissive": "PERMISSIVE",
+        "roles": "{service_role}",
+        "cmd": "ALL",
+        "qual": "true",
+        "with_check": null
+      },
+      {
+        "policyname": "students_tenant_isolation",
+        "permissive": "PERMISSIVE",
+        "roles": "{public}",
+        "cmd": "ALL",
+        "qual": "(tenant_id = (( SELECT (auth.jwt() ->> 'tenant_id'::text)))::uuid)",
+        "with_check": null
+      },
+      {
+        "policyname": "tenant_isolation_students",
+        "permissive": "PERMISSIVE",
+        "roles": "{public}",
+        "cmd": "ALL",
+        "qual": "true",
+        "with_check": null
+      }
+    ],
+    "shape": {
+      "party_fk": 1,
+      "person_nullable": true,
+      "trigger_count": 1,
+      "anon_select_privilege": true,
+      "authenticated_select_privilege": true,
+      "ledger_exists": false
+    },
+    "readback": "READ_ONLY_NO_AUTH_PRINCIPAL_TEST"
+  },
+  "afterProbes": [
+    {
+      "role": "anon",
+      "tenant": null,
+      "subject": "ef467582-696c-46cb-aa50-7dfb941a21d7",
+      "currentUser": "anon",
+      "sessionUser": "postgres",
+      "rowSecurityActive": true,
+      "superuser": false,
+      "bypassRls": false,
+      "tenantClaim": null,
+      "claimedRole": "anon",
+      "rows": []
+    },
+    {
+      "role": "anon",
+      "tenant": "55c4ed1c-b848-489e-b892-65057512b270",
+      "subject": "ef467582-696c-46cb-aa50-7dfb941a21d7",
+      "currentUser": "anon",
+      "sessionUser": "postgres",
+      "rowSecurityActive": true,
+      "superuser": false,
+      "bypassRls": false,
+      "tenantClaim": "55c4ed1c-b848-489e-b892-65057512b270",
+      "claimedRole": "anon",
+      "rows": []
+    },
+    {
+      "role": "anon",
+      "tenant": "8ad252b3-9445-4dce-9afa-0af1bd03a3b9",
+      "subject": "b6d94d7d-5d54-4b1e-8b02-daee7eb4cb11",
+      "currentUser": "anon",
+      "sessionUser": "postgres",
+      "rowSecurityActive": true,
+      "superuser": false,
+      "bypassRls": false,
+      "tenantClaim": "8ad252b3-9445-4dce-9afa-0af1bd03a3b9",
+      "claimedRole": "anon",
+      "rows": []
+    },
+    {
+      "role": "anon",
+      "tenant": "55c4ed1c-b848-489e-b892-65057512b270",
+      "subject": "ef467582-696c-46cb-aa50-7dfb941a21d7",
+      "currentUser": "anon",
+      "sessionUser": "postgres",
+      "rowSecurityActive": true,
+      "superuser": false,
+      "bypassRls": false,
+      "tenantClaim": "55c4ed1c-b848-489e-b892-65057512b270",
+      "claimedRole": "authenticated",
+      "rows": []
+    },
+    {
+      "role": "authenticated",
+      "tenant": null,
+      "subject": "ef467582-696c-46cb-aa50-7dfb941a21d7",
+      "currentUser": "authenticated",
+      "sessionUser": "postgres",
+      "rowSecurityActive": true,
+      "superuser": false,
+      "bypassRls": false,
+      "tenantClaim": null,
+      "claimedRole": "authenticated",
+      "rows": [
+        {
+          "student_id": "a444aedc-7be0-426e-8069-a58118b07ab6",
+          "tenant_id": "55c4ed1c-b848-489e-b892-65057512b270",
+          "student_code": "SYNTHETIC-C10-A"
+        },
+        {
+          "student_id": "ceb1bf57-d1f3-4b96-ba3f-cec61c73a443",
+          "tenant_id": "8ad252b3-9445-4dce-9afa-0af1bd03a3b9",
+          "student_code": "SYNTHETIC-C10-B"
+        }
+      ]
+    },
+    {
+      "role": "authenticated",
+      "tenant": "55c4ed1c-b848-489e-b892-65057512b270",
+      "subject": "ef467582-696c-46cb-aa50-7dfb941a21d7",
+      "currentUser": "authenticated",
+      "sessionUser": "postgres",
+      "rowSecurityActive": true,
+      "superuser": false,
+      "bypassRls": false,
+      "tenantClaim": "55c4ed1c-b848-489e-b892-65057512b270",
+      "claimedRole": "authenticated",
+      "rows": [
+        {
+          "student_id": "a444aedc-7be0-426e-8069-a58118b07ab6",
+          "tenant_id": "55c4ed1c-b848-489e-b892-65057512b270",
+          "student_code": "SYNTHETIC-C10-A"
+        },
+        {
+          "student_id": "ceb1bf57-d1f3-4b96-ba3f-cec61c73a443",
+          "tenant_id": "8ad252b3-9445-4dce-9afa-0af1bd03a3b9",
+          "student_code": "SYNTHETIC-C10-B"
+        }
+      ]
+    },
+    {
+      "role": "authenticated",
+      "tenant": "8ad252b3-9445-4dce-9afa-0af1bd03a3b9",
+      "subject": "b6d94d7d-5d54-4b1e-8b02-daee7eb4cb11",
+      "currentUser": "authenticated",
+      "sessionUser": "postgres",
+      "rowSecurityActive": true,
+      "superuser": false,
+      "bypassRls": false,
+      "tenantClaim": "8ad252b3-9445-4dce-9afa-0af1bd03a3b9",
+      "claimedRole": "authenticated",
+      "rows": [
+        {
+          "student_id": "a444aedc-7be0-426e-8069-a58118b07ab6",
+          "tenant_id": "55c4ed1c-b848-489e-b892-65057512b270",
+          "student_code": "SYNTHETIC-C10-A"
+        },
+        {
+          "student_id": "ceb1bf57-d1f3-4b96-ba3f-cec61c73a443",
+          "tenant_id": "8ad252b3-9445-4dce-9afa-0af1bd03a3b9",
+          "student_code": "SYNTHETIC-C10-B"
+        }
+      ]
+    }
+  ],
+  "afterSecurityCatalogSha256": "2a3ab16ec39f21ad17387e77f56e669aba6c633eec36e1e3ca4eb934124fb246",
+  "existingAuthenticatedExposure": "FAIL_PRESERVED_NOT_REPAIRED",
+  "cleanedReadback": {
+    "schemaDumpSha256": "f51c2e164b36f9cb7a1147247a90a3a35cf39bfc59fab2ce285c78647986a074",
+    "rolesMembershipSettingsSha256": "85d2b89ba3d51843d7f760cdc15dc3e9a6cd778654d4366e036c052ed66b1581",
+    "tables": [
+      {
+        "name": "party_parties",
+        "rls": true,
+        "force_rls": false,
+        "owner": "postgres",
+        "acl": "{postgres=arwdDxtm/postgres,anon=Dxtm/postgres,authenticated=Dxtm/postgres,service_role=Dxtm/postgres}"
+      },
+      {
+        "name": "persons",
+        "rls": true,
+        "force_rls": false,
+        "owner": "postgres",
+        "acl": "{postgres=arwdDxtm/postgres,anon=Dxtm/postgres,authenticated=Dxtm/postgres,service_role=Dxtm/postgres}"
+      },
+      {
+        "name": "students",
+        "rls": true,
+        "force_rls": false,
+        "owner": "postgres",
+        "acl": "{postgres=arwdDxtm/postgres,anon=arwdDxtm/postgres,authenticated=arwdDxtm/postgres,service_role=arwdDxtm/postgres}"
+      },
+      {
+        "name": "tenants",
+        "rls": true,
+        "force_rls": false,
+        "owner": "postgres",
+        "acl": "{postgres=arwdDxtm/postgres,anon=Dxtm/postgres,authenticated=Dxtm/postgres,service_role=Dxtm/postgres}"
+      }
+    ],
+    "counts": {
+      "tenants": 0,
+      "party_parties": 0,
+      "persons": 0,
+      "students": 0,
+      "auth_users": 0
+    },
+    "studentPolicies": [
+      {
+        "policyname": "preschool_students_anon_containment",
+        "permissive": "RESTRICTIVE",
+        "roles": "{anon}",
+        "cmd": "SELECT",
+        "qual": "false",
+        "with_check": null
+      },
+      {
+        "policyname": "students_service_role",
+        "permissive": "PERMISSIVE",
+        "roles": "{service_role}",
+        "cmd": "ALL",
+        "qual": "true",
+        "with_check": null
+      },
+      {
+        "policyname": "students_tenant_isolation",
+        "permissive": "PERMISSIVE",
+        "roles": "{public}",
+        "cmd": "ALL",
+        "qual": "(tenant_id = (( SELECT (auth.jwt() ->> 'tenant_id'::text)))::uuid)",
+        "with_check": null
+      },
+      {
+        "policyname": "tenant_isolation_students",
+        "permissive": "PERMISSIVE",
+        "roles": "{public}",
+        "cmd": "ALL",
+        "qual": "true",
+        "with_check": null
+      }
+    ],
+    "shape": {
+      "party_fk": 1,
+      "person_nullable": true,
+      "trigger_count": 1,
+      "anon_select_privilege": true,
+      "authenticated_select_privilege": true,
+      "ledger_exists": false
+    },
+    "readback": "READ_ONLY_NO_AUTH_PRINCIPAL_TEST"
+  },
+  "fixtureCleanup": "PASS_EXACT_IDS_ZERO_REMAINING",
+  "finalStoppedFileManifestSha256": "ce91fc8f871ba7fd7001e002f93eb341fe2fa0a8fd319e3e7af82379446e8d22",
+  "cleanup": [
+    {
+      "container": "platform-authority-e01-containment-c10-a-v1-db",
+      "removed": true
+    }
+  ],
+  "originalVolumeByteIdentical": true,
+  "finalListeners": 0,
+  "remainingTargetContainers": 0,
+  "originalE01Containers": 0,
+  "snapshotCiphertextUnchanged": true,
+  "reviewArtifactUnchanged": true,
+  "retainedTargetState": "STOPPED_PRIVATE",
+  "completedAt": "2026-10-17T13:34:36.916Z",
+  "verifierSourceSha256": "5f9334e8327be924a313814ceeee5ff701d0512cea339d385d83b875a2a4e18c",
+  "architectureGateSha256": "b7f3a63ec9521670477f025db2e1153a909ce05ca7df6e64d19d878f46276de2",
+  "privateEvidenceFile": "C:\\Users\\DELL\\.codex\\local-environments\\platform-authority-e01\\E01_C10_CONTAINMENT_EVIDENCE.json",
+  "privateEvidenceSha256": "65581e4c45ecd4c5e982aa41448792059c3320ab0dcc93555ed4a1248656c4d9",
+  "independentFinalCheck": {
+    "checkedAt": "2026-10-17T13:36:05.712Z",
+    "volumeLabels": {
+      "com.bella.e01.precontainment": "c10-a-v1",
+      "com.bella.packet.sha256": "cfd32856bc7a7edd583de2d8dd3c16714596d007d4065d68a7e735c9b9a8ae37"
+    },
+    "targetContainers": 0,
+    "setupContainers": 0,
+    "encryptedSnapshotSha256": "66bfd8d264c9e7fd79ac6bf54c7d50527ae7413832e83187afe73ba5ab749862",
+    "verifierSourceMatches": true
+  },
+  "earlierAttempt": {
+    "result": "FAIL_BEFORE_TARGET_START_OR_SQL_WRITE",
+    "cause": "Verifier evidence shorthand referred to an undefined metadata variable; corrected before retry.",
+    "sqlWrites": false,
+    "containers": 0,
+    "listeners": 0,
+    "originalUnchanged": true,
+    "receipt": "C:\\Users\\DELL\\.codex\\local-environments\\platform-authority-e01\\E01_C10_CONTAINMENT_PREFLIGHT_ATTEMPT_1.json",
+    "sha256": "0bc815c57f9d1fda658ce6cabae3288acf09bec1ad456dd3897c62e26c5cf0da"
+  },
+  "sourcePreservation": {
+    "checkedAt": "2026-10-17T13:35:23.699Z",
+    "filesChecked": 4469,
+    "changed": [],
+    "allUnchanged": true
+  },
+  "hostOnlyIsolation": true,
+  "externalDeviceIsolation": "NOT_PROVEN",
+  "parentRls": "FAIL",
+  "courseAuthorization": "BLOCKED",
+  "preGoLive": "BLOCKED"
+}

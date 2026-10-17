@@ -1,0 +1,131 @@
+{
+  "scope": "Real NextResponse handlers and loopback HTTP adapter; not Next routing/Auth/DB/E2E proof",
+  "baselineCommit": "0bc9bba1b888ca121dd4ae56eb9ff7ebb1c9831f",
+  "executedAt": "2026-10-17T13:29:10.547Z",
+  "commands": [
+    {
+      "name": "focused-jest",
+      "executable": "node",
+      "args": [
+        "node_modules/jest/bin/jest.js",
+        "--config",
+        "C:\\Users\\DELL\\.codex\\worktrees\\preschool-containment\\BELLA SPA ERP\\.cache\\containment-http\\jest.config.json",
+        "--runInBand",
+        "--no-cache",
+        "--json",
+        "--outputFile",
+        "C:\\Users\\DELL\\.codex\\worktrees\\preschool-containment\\BELLA SPA ERP\\.cache\\containment-http\\jest-result.json",
+        "--runTestsByPath",
+        "src/__tests__/preschool-containment.test.ts"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "docs/audits/preschool-containment/focused-jest.log",
+      "outputSha256": "55300d78012bb24c17436d2f5b490799b2cfdfdb9e9d519c684d24cfbb9202db"
+    },
+    {
+      "name": "focused-eslint",
+      "executable": "node",
+      "args": [
+        "node_modules/eslint/bin/eslint.js",
+        "src/app/api/education/parent-daily/route.ts",
+        "src/app/api/education/courses/route.ts",
+        "src/__tests__/preschool-containment.test.ts"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "docs/audits/preschool-containment/focused-eslint.log",
+      "outputSha256": "2b3dabd98af638034a36c1941e51310b8a63e5e98706303c68cee4f84842319e"
+    },
+    {
+      "name": "education-typecheck",
+      "executable": "node",
+      "args": [
+        "node_modules/typescript/bin/tsc",
+        "-p",
+        "tsconfig.education.json",
+        "--noEmit",
+        "--incremental",
+        "false",
+        "--pretty",
+        "false"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "docs/audits/preschool-containment/education-typecheck.log",
+      "outputSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "jest": {
+    "success": true,
+    "suites": 1,
+    "passed": 12,
+    "failed": 0,
+    "tests": [
+      {
+        "title": "Preschool temporary HTTP containment GET /api/education/parent-daily holds the anonymous request with the approved response",
+        "status": "passed"
+      },
+      {
+        "title": "Preschool temporary HTTP containment GET /api/education/parent-daily holds the parent request with the approved response",
+        "status": "passed"
+      },
+      {
+        "title": "Preschool temporary HTTP containment GET /api/education/parent-daily holds the admin_staff request with the approved response",
+        "status": "passed"
+      },
+      {
+        "title": "Preschool temporary HTTP containment GET /api/education/parent-daily holds the other-tenant request with the approved response",
+        "status": "passed"
+      },
+      {
+        "title": "Preschool temporary HTTP containment GET /api/education/parent-daily does not inspect request properties or parse a body",
+        "status": "passed"
+      },
+      {
+        "title": "Preschool temporary HTTP containment POST /api/education/courses holds the anonymous request with the approved response",
+        "status": "passed"
+      },
+      {
+        "title": "Preschool temporary HTTP containment POST /api/education/courses holds the parent request with the approved response",
+        "status": "passed"
+      },
+      {
+        "title": "Preschool temporary HTTP containment POST /api/education/courses holds the admin_staff request with the approved response",
+        "status": "passed"
+      },
+      {
+        "title": "Preschool temporary HTTP containment POST /api/education/courses holds the other-tenant request with the approved response",
+        "status": "passed"
+      },
+      {
+        "title": "Preschool temporary HTTP containment POST /api/education/courses does not inspect request properties or parse a body",
+        "status": "passed"
+      },
+      {
+        "title": "Preschool temporary HTTP containment returns 503 before consuming malformed Course JSON",
+        "status": "passed"
+      },
+      {
+        "title": "Preschool temporary HTTP containment serves both real handler responses over loopback HTTP",
+        "status": "passed"
+      }
+    ]
+  },
+  "testTypecheck": {
+    "diagnostics": 0,
+    "files": []
+  },
+  "courseGetUnchanged": {
+    "equal": true,
+    "baselinePrefixSha256": "2c6192f7ccb955ecc5b8d465e0313398a6fb60ebae3f4584e9f3926b109c81bf",
+    "currentPrefixSha256": "2c6192f7ccb955ecc5b8d465e0313398a6fb60ebae3f4584e9f3926b109c81bf",
+    "lineEndingsNormalized": true
+  },
+  "sourceHashes": {
+    "src/app/api/education/parent-daily/route.ts": "cd11601735cf1698945e46f6693f21783c92bec3231cf781c59e6aa725ce6976",
+    "src/app/api/education/courses/route.ts": "7d67810346b9cc9f5bce071d7d5ef2c9525d61f3dad8b2300be38e66bc70015d",
+    "src/__tests__/preschool-containment.test.ts": "e58973025983cd69e6fc01ce346aed53a06bf26e386882a84ff98dc45bb94503"
+  },
+  "result": "PASS_SCOPED"
+}

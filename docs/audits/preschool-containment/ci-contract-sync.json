@@ -1,0 +1,114 @@
+{
+  "kind": "CONTAINMENT_CI_CONTRACT_SYNC",
+  "recordedAt": "2026-10-17T13:47:20.247Z",
+  "base": "60ff292c2ef7ad45bd8faa7096dc1a104b7173d6",
+  "result": "PASS_SCOPED",
+  "rootCause": "Three pre-containment 200/403/409 assertions conflict with independently Owner-approved unconditional503; PR regression caused by missing existing-suite synchronization.",
+  "ciFailure": {
+    "run": 39037452179,
+    "job": 117410088868,
+    "failedAssertions": 3,
+    "failedSuites": 2
+  },
+  "fix": "Update only existing ParentDaily and CoursePOST tests; preserve CourseGET and strengthen no-downstream assertions. No runtime/SQL change.",
+  "command": "node node_modules/jest/bin/jest.js --runInBand --runTestsByPath src/__tests__/preschool-containment.test.ts src/app/api/education/parent-daily/__tests__/route.test.ts src/app/api/education/courses/__tests__/route.test.ts",
+  "tests": {
+    "passed": 16,
+    "failed": 0,
+    "suites": 3,
+    "assertions": [
+      {
+        "title": "Preschool temporary HTTP containment GET /api/education/parent-daily holds the anonymous request with the approved response",
+        "status": "passed"
+      },
+      {
+        "title": "Preschool temporary HTTP containment GET /api/education/parent-daily holds the parent request with the approved response",
+        "status": "passed"
+      },
+      {
+        "title": "Preschool temporary HTTP containment GET /api/education/parent-daily holds the admin_staff request with the approved response",
+        "status": "passed"
+      },
+      {
+        "title": "Preschool temporary HTTP containment GET /api/education/parent-daily holds the other-tenant request with the approved response",
+        "status": "passed"
+      },
+      {
+        "title": "Preschool temporary HTTP containment GET /api/education/parent-daily does not inspect request properties or parse a body",
+        "status": "passed"
+      },
+      {
+        "title": "Preschool temporary HTTP containment POST /api/education/courses holds the anonymous request with the approved response",
+        "status": "passed"
+      },
+      {
+        "title": "Preschool temporary HTTP containment POST /api/education/courses holds the parent request with the approved response",
+        "status": "passed"
+      },
+      {
+        "title": "Preschool temporary HTTP containment POST /api/education/courses holds the admin_staff request with the approved response",
+        "status": "passed"
+      },
+      {
+        "title": "Preschool temporary HTTP containment POST /api/education/courses holds the other-tenant request with the approved response",
+        "status": "passed"
+      },
+      {
+        "title": "Preschool temporary HTTP containment POST /api/education/courses does not inspect request properties or parse a body",
+        "status": "passed"
+      },
+      {
+        "title": "Preschool temporary HTTP containment returns 503 before consuming malformed Course JSON",
+        "status": "passed"
+      },
+      {
+        "title": "Preschool temporary HTTP containment serves both real handler responses over loopback HTTP",
+        "status": "passed"
+      },
+      {
+        "title": "/api/education/courses canonical classroom route lists classrooms from canonical edu_courses and only uses courses as display projection",
+        "status": "passed"
+      },
+      {
+        "title": "/api/education/courses canonical classroom route holds Course creation before any legacy or canonical persistence attempt",
+        "status": "passed"
+      },
+      {
+        "title": "/api/education/parent-daily temporary containment holds non-parent users before resolving authority or loading parent daily experience",
+        "status": "passed"
+      },
+      {
+        "title": "/api/education/parent-daily temporary containment also holds legitimate parent access without using phone as authority",
+        "status": "passed"
+      }
+    ]
+  },
+  "lint": "PASS_SCOPED_EXISTING_ESLINTIGNORE_WARNING",
+  "educationTypecheck": "PASS_ZERO_DIAGNOSTICS",
+  "reviews": [
+    "Blind: no actionable finding",
+    "Edge: no findings",
+    "Acceptance: PASS_SCOPED"
+  ],
+  "fileHashes": {
+    "src/app/api/education/parent-daily/__tests__/route.test.ts": "796bcd239a15a59e0eb8a5d48134800f3a0470303455c13a758f1d61db7fb07a",
+    "src/app/api/education/courses/__tests__/route.test.ts": "dfbfb71e333a260173767b6b985a80afdd7312ae95dbca33241e836bd0ae9313"
+  },
+  "earlierLocalAttempt": {
+    "command": "unfiltered --findRelatedTests",
+    "result": "FAIL_SCOPE_SELECTION",
+    "extraSuite": "p32-classroom-field-e2e.integration.test.ts",
+    "testsPassed": 16,
+    "testsFailed": 5,
+    "environment": "No inherited Supabase/database variables and no .env files; repository Jest setup supplied dummy fallback URL/key.",
+    "dbProof": "NOT_PROVEN; no approved target used; do not rerun or promote dummy integration attempts to DB evidence"
+  },
+  "remaining": {
+    "parentRls": "FAIL",
+    "courseAuthorization": "BLOCKED",
+    "uiDbE2e": "NOT_PROVEN",
+    "preGoLive": "BLOCKED",
+    "merge": false,
+    "manualRelease": false
+  }
+}

@@ -224,115 +224,12 @@ export async function GET(request: Request) {
   }
 }
 
-export async function POST(request: Request) {
-  try {
-    const supabase = await createClient();
-    const body = await request.json();
-
-    const tenantId = body.tenantId || '00000000-0000-0000-0000-000000000001';
-    const courseCode = body.courseCode;
-    const courseName = body.courseName;
-    const maxStudents = Number(body.maxStudents) || 25;
-    const room = body.room || 'Phòng 101';
-    const teacherPartyId = body.teacherPartyId;
-    const academicYear = body.academicYear || '2025-2026';
-    const description = body.description || 'Khối Mầm (3 tuổi)';
-
-    if (!courseCode || !courseName) {
-      return NextResponse.json({ success: false, error: 'courseCode and courseName are required' }, { status: 400 });
-    }
-
-    // 1. Check duplicate course_code per tenant
-    const { data: existingCourse } = await supabase
-      .from('courses')
-      .select('course_id')
-      .eq('tenant_id', tenantId)
-      .eq('course_code', courseCode.trim().toUpperCase())
-      .maybeSingle();
-
-    if (existingCourse) {
-      return NextResponse.json({
-        success: false,
-        error: `Mã lớp '${courseCode}' đã tồn tại trong trường`,
-      }, { status: 409 });
-    }
-
-    // 2. Insert into courses table
-    const { data: newCourse, error: createErr } = await supabase
-      .from('courses')
-      .insert({
-        tenant_id: tenantId,
-        course_code: courseCode.trim().toUpperCase(),
-        course_name: courseName.trim(),
-        description,
-        credits: 3,
-        duration_weeks: maxStudents,
-        status: 'active',
-        metadata: { room },
-      })
-      .select('*')
-      .single();
-
-    if (createErr || !newCourse) {
-      return NextResponse.json({ success: false, error: createErr?.message || 'Failed to create course' }, { status: 500 });
-    }
-
-    // 3. Persist the canonical edu_courses row used by enrollment runtime.
-    const { error: eduCourseErr } = await supabase.from('edu_courses').insert({
-      id: newCourse.course_id,
-      tenant_id: tenantId,
-      course_code: newCourse.course_code,
-      title: newCourse.course_name,
-      status: 'active',
-      max_students: maxStudents,
-      current_enrollment: 0,
-    });
-    if (eduCourseErr) {
-      await supabase
-        .from('courses')
-        .delete()
-        .eq('tenant_id', tenantId)
-        .eq('course_id', newCourse.course_id);
-
-      return NextResponse.json({
-        success: false,
-        error: eduCourseErr.code === '23505'
-          ? `Mã lớp '${courseCode}' đã tồn tại trong canonical Education courses`
-          : `Failed to create canonical education course: ${eduCourseErr.message}`,
-      }, { status: eduCourseErr.code === '23505' ? 409 : 500 });
-    }
-
-    // 4. Assign Lead Teacher if provided
-    let assignedTeacherMessage = '';
-    if (teacherPartyId) {
-      const teacherContract = new TeacherAssignmentContractImpl(supabase);
-      try {
-        await teacherContract.assignTeacher({
-          tenantId,
-          courseId: newCourse.course_id,
-          teacherPartyId,
-          role: 'lead_teacher',
-          academicYear,
-        });
-        assignedTeacherMessage = 'và phân công GVN Chủ nhiệm thành công';
-      } catch (assignErr) {
-        const msg = assignErr instanceof Error ? assignErr.message : 'Teacher assignment failed';
-        if (msg.includes('TEACHER_ASSIGNMENT_CONFLICT')) {
-          return NextResponse.json({
-            success: false,
-            error: 'Xung đột: Giáo viên chủ nhiệm đã có lớp trong niên học này',
-          }, { status: 409 });
-        }
-      }
-    }
-
-    return NextResponse.json({
-      success: true,
-      message: `Mở lớp thành công ${assignedTeacherMessage}`,
-      course: newCourse,
-    });
-  } catch (err) {
-    const message = err instanceof Error ? err.message : 'Unknown error';
-    return NextResponse.json({ success: false, error: message }, { status: 500 });
-  }
+export async function POST() {
+  console.warn('[education/courses] COURSE_AUTHORIZATION_NOT_READY');
+  // Temporary containment; does not infer permission from a mutable profile.
+  return NextResponse.json({
+    success: false,
+    error: 'COURSE_AUTHORIZATION_NOT_READY',
+    message: 'Quyền tạo lớp đang được xác minh. Vui lòng thử lại sau.',
+  }, { status: 503 });
 }

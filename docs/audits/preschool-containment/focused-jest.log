@@ -1,0 +1,6 @@
+Test Suites: 1 passed, 1 total
+Tests:       12 passed, 12 total
+Snapshots:   0 total
+Time:        6.559 s
+Ran all test suites within paths "src/__tests__/preschool-containment.test.ts".
+Test results written to: .cache\containment-http\jest-result.json
