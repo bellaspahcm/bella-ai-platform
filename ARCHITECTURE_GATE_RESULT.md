@@ -10952,4 +10952,475 @@ Verification additions to eleven-gate plan: RED/GREEN A->B draft and inconsisten
   - Zero `any` and zero `unknown`.
   - Zero modifications to frozen Kernels (H1–H12, E7.1–E7.3, Education Kernel).
 - **Gate Result:** PASS
+---
+
+# ARCHITECTURE GATE RESULT — PRE SCHOOL CARE & DAILY NURTURING OPERATIONS WORKSPACE REDESIGN (IMAGE 1 TO IMAGE 2)
+
+> **Status:** PASS  
+> **Date:** 2026-10-16  
+> **Scope:** Redesign Daily Care & Nurturing Workspace UI (`src/app/dashboard/education/care/page.tsx`) from the raw developer/technical view (Image 1) to the modern, intuitive Preschool Care Operations Center (Image 2) exclusively for Preschool tenants (`bella_education`).  
+> **Strict Type Invariant:** ZERO use of `any` and `unknown` in all code, interfaces, state, and handlers.
+
+## 1. Bella OS/Product Development Process Gate
+- **Truth:**
+  - Preschool care operations require a human-centered, practical daily care dashboard:
+    1. Header: Back button, mint Heart badge, "Chăm sóc & Nuôi dưỡng", subtitle "Theo dõi ăn uống, giấc ngủ, sức khỏe và hoạt động chăm sóc trẻ hàng ngày", Class selector (`Lớp Mầm A1 – Họa Mi`), Date picker (`16/10/2026`).
+    2. 4 Actionable KPI Cards:
+       - Card 1 (Mint): Tổng số trẻ (22) — Lớp Mầm A1 – Họa Mi
+       - Card 2 (Blue): Đã ghi nhận chăm sóc (18 / 22) — 82%
+       - Card 3 (Amber): Chưa ghi nhận (4) — Cần cập nhật trong ngày
+       - Card 4 (Rose): Trẻ cần theo dõi (2) — Có dấu hiệu bất thường
+    3. Care Category Tabs: "Tổng quan", "Ăn uống", "Giấc ngủ", "Sức khỏe", "Vệ sinh", "Thuốc".
+    4. Progress Overview Card: "Tiến độ ghi nhận chăm sóc hôm nay" with 82% progress bar and 4 mini-breakdowns (Bữa ăn 17/22 77%, Giấc ngủ 18/22 82%, Sức khỏe 20/22 91%, Vệ sinh 19/22 86%).
+    5. Table Card: "Danh sách trẻ trong lớp" with student checkboxes, avatar & name, 4 status indicator columns (Ăn uống, Giấc ngủ, Sức khỏe, Vệ sinh), notes, action ellipsis, search input, status filter, "+ Ghi nhận nhanh" CTA, and pagination (Hiển thị 8 / 22 trẻ, [1] [2] [3]).
+    6. Bottom Split Cards:
+       - Left: "Trẻ cần chú ý hôm nay (2)" with alert badges, temperature indicators, and "Xem tất cả (2) →".
+       - Right: "Hoạt động gần đây" with timeline activities and "Xem thêm →".
+    7. Removal of all technical jargon: `canonical`, `edu_enrollments`, `student_party_id`, `slice`, `DB`, `Medication & Parent Digest technical disclaimer` from end-user UI.
+    8. Generous bottom breathing room (`pb-40 sm:pb-56` + spacer `h-20 sm:h-28`) preventing cards from touching the viewport edge.
+- **Strict Guard:**
+  - Non-preschool tenants retain `LegacyCareView`.
+  - Zero `any` and zero `unknown`.
+  - Frozen Kernels remain 100% untouched.
+- **Gate Result:** PASS
+
+## 2. Product Manifest (Capabilities & Scope)
+- **Target Page:** `src/app/dashboard/education/care/page.tsx`
+- **Capabilities in Scope:**
+  - Modern Preschool Care Workspace conforming to Image 2 design system.
+  - Interactive class & date switcher, live attendance/care status integration.
+  - Quick recording modal ("Ghi nhận nhanh").
+  - Detail inspection modal per student.
+  - Strict type definitions for meal, sleep, health, hygiene, and alert records.
+
+## 3. Ownership Map ("WHO OWNS THIS DATA?")
+- `Care Page UI`: Preschool Vertical UI (`src/app/dashboard/education/care/`)
+- `Care API`: `/api/education/care/bulk` and `/api/education/courses`
+- `Underlying DB`: Education OS Canonical care records and rosters
+
+## 4. Contract Dependency Map
+```text
+Preschool Care Page (src/app/dashboard/education/care/page.tsx)
+   │
+   ├─► Client Context: getCachedTenantSettings() ──► resolveTenantBrandIdentity()
+   │     └─► isPreschool: boolean (moduleKey === 'bella_education')
+   │
+   ├─► API: GET /api/education/courses
+   │     └─► Courses list
+   │
+   └─► API: GET & POST /api/education/care/bulk
+         └─► Daily Care truth
+```
+
+## 5. Change Authority
+- Authorized to modify:
+  - `src/app/dashboard/education/care/page.tsx`
+  - `ARCHITECTURE_GATE_RESULT.md`
+
+## 6. UI -> Contract Reconciliation
+- Replaces raw DB/slice technical terms with end-user preschool teacher terminology.
+- Real API calls `/api/education/courses` and `/api/education/care/bulk` are preserved and enriched with fallbacks for seamless operational rendering.
+
+## 7. Additive Migration Plan
+- None required (UI & presentation layer change).
+
+## 8. 11 Automated Verification Gates Plan
+- Gate 1: Frozen boundaries preserved.
+- Gate 2: No `any` or `unknown` types.
+- Gate 3: Guard checks (`npm run arch:guard`, `npm run healthcare:guard`, `npm run gate:education-no-new-debt`).
+
+---
+
+# ARCHITECTURE GATE RESULT — PRE SCHOOL LEARNING & DEVELOPMENT WORKSPACE REDESIGN (IMAGE 1 & 2 TO IMAGE 3)
+
+> **Status:** PASS  
+> **Date:** 2026-10-17  
+> **Scope:** Redesign Preschool Learning & Child Development Operations Workspace UI (`src/app/dashboard/education/grades/page.tsx`) from the cluttered, text-heavy card layout (Image 1 & 2) to the high-hierarchy, scanning-friendly workspace (Image 3) exclusively for Preschool tenants (`bella_education`).  
+> **Strict Type Invariant:** ZERO use of `any` and `unknown` across all types, interfaces, state variables, props, event handlers, and helper functions.
+
+---
+
+## 1. Bella OS/Product Development Process Gate
+
+- **Truth:**
+  - Preschool child development and learning management requires an intuitive, high-hierarchy Development Monitoring Workspace:
+    1. **Unified Header:** Back button, purple graduation cap icon, title "Học Tập & Phát Triển Mầm Non", subtitle "Theo dõi sự phát triển toàn diện của trẻ theo quan sát, bằng chứng và khung NAEYC", date switcher ("Tháng 09/2026" with calendar icon), primary button in unified brand green ("+ Nhập quan sát mới").
+    2. **4 Clean KPI Stat Cards:**
+       - Tổng số trẻ: 46 (2 lớp) with green icon.
+       - Đã đánh giá: 38 (83%) with purple icon and mini progress bar.
+       - Chưa đánh giá: 8 (17%) with orange icon and mini progress bar.
+       - Ghi nhận mới: 12 (Trong tháng) with soft purple star icon.
+    3. **Tiến độ đánh giá theo lớp Card:**
+       - "Tiến độ đánh giá theo lớp" header with "Xem chi tiết →" link.
+       - Lớp Mầm A1: 18 / 24 trẻ (75% progress bar).
+       - Lớp Chồi B1: 20 / 22 trẻ (90% progress bar).
+    4. **Refined Workspace Tabs:**
+       - Tab 1: "Tổng quan" (Active, brand forest green `#0c513f` background).
+       - Tab 2: "Nhật ký & Bằng chứng".
+       - Tab 3: "Tiến trình NAEYC".
+       - Tab 4: "Hồ sơ 360°".
+       - Tab 5: "Khen thưởng".
+    5. **Two Actionable Notification Banners:**
+       - Left: "8 trẻ cần chú ý" (Cần thêm quan sát ở một số lĩnh vực phát triển) with warning icon and red accent.
+       - Right: "Gợi ý từ AI sư phạm" (Tổng hợp 12 gợi ý cá nhân hóa trong tháng 9) with lightbulb icon and blue accent.
+    6. **Search & Filter Bar:**
+       - Search input ("Tìm tên trẻ, lớp..."), Class dropdown ("Tất cả lớp"), Status dropdown ("Tất cả trạng thái"), and Filter button ("Bộ lọc").
+    7. **Comprehensive Student Development Table ("Danh sách trẻ"):**
+       - Table header: "Danh sách trẻ" (46 trẻ badge), "Xuất báo cáo" button, List view / Grid view switcher.
+       - Columns: Checkbox, #, Họ tên (Avatar + Full name), Lớp, Thể chất, Nhận thức, Ngôn ngữ, Tình cảm XH, Vận động, Trạng thái, Thao tác (`...`).
+       - Domain competency badges: "↑ Đạt" (emerald pill), "↑ Tốt" (blue pill), "! Theo dõi" (amber pill), "! Cần hỗ trợ" (warning amber pill).
+       - Status badges: "● Đã đầy đủ" (emerald), "● Cần bổ sung" (amber), "● Cần chú ý" (rose).
+       - Table footer: "Hiển thị 8 / 46 trẻ" and clean pagination (< [1] 2 3 4 5 >).
+    8. **Two Bottom Split Cards:**
+       - Left Card: "Trẻ cần chú ý trong tháng 9 (8)" with students (Lê Gia Huy, Trần Bảo Ngọc, Vũ Gia Hân), status badges ("Theo dõi", "! Cần hỗ trợ"), growth note, and metric action buttons.
+       - Right Card: "Hoạt động gần đây" with timeline activities (Cập nhật ảnh hoạt động, Ghi nhận quan sát, Cập nhật đánh giá năng lực, Nhận xét gửi phụ huynh).
+    9. **Interactive Pedagogical Inspection:**
+       - Clicking student row opens child detail drawer / 360° portfolio inspection with complete developmental milestones, observation logs, evidence photos, AI draft summaries, and parent notes.
+       - "Nhập quan sát mới" modal for logging anecdotal observations with domain tags, evidence counts, and next-step goals.
+       - Generous bottom padding buffer (`pb-32 sm:pb-44`) preventing viewport collision.
+- **Strict Guard:**
+  - Non-preschool tenants retain legacy general view or fallback.
+  - Zero `any` and zero `unknown`.
+  - Frozen Kernels (H1–H12, E7.1–E7.3, Education Kernel) remain 100% frozen.
+- **Gate Result:** `PASS`
+
+---
+
+## 2. Product Manifest (Capabilities & Scope)
+
+- **Target Vertical:** Bella Education (Preschool Vertical — `bella_education`).
+- **Target Page:** `src/app/dashboard/education/grades/page.tsx`
+- **Capabilities in Scope:**
+  - Modern Preschool Learning & Child Development Operations Workspace conforming to Image 3.
+  - Live filtering (search, classroom, status), month selector, interactive modals for new observations and child portfolio details.
+  - Full adherence to NAEYC developmental progression and WHO reference data governance without misleading auto-labels.
+  - Strict type definitions for developmental competencies, classrooms, and activities.
+
+---
+
+## 3. Ownership Map ("WHO OWNS THIS DATA?")
+
+| Data / Component | Owner | Boundary & Scope |
+|---|---|---|
+| Development Workspace UI (`grades/page.tsx`) | Preschool Product UI (`src/app/dashboard/education/grades/`) | Redesign to match Image 3 for preschool |
+| Learning & Observation Domain | Education Platform Learning Engine | Consumed via typed interfaces; zero kernel mutations |
+| Care & Health Read-model | Education Care Engine | Read-only physical metrics summary |
+| Tenant Settings & Brand Theme | Core Platform Context | Read-only access via `getCachedTenantSettings` |
+| Healthcare OS & Logistics OS | Respective Kernels | 100% Frozen & untouched |
+
+---
+
+## 4. Contract Dependency Map
+
+```text
+Preschool Learning Page (src/app/dashboard/education/grades/page.tsx)
+   │
+   ├─► Client Context: getCachedTenantSettings() ──► resolveTenantBrandIdentity()
+   │     └─► isPreschool: boolean (moduleKey === 'bella_education')
+   │
+   ├─► Read Model: NAEYC Developmental Domains & Observable Competencies
+   │     ├─► Thể chất (Physical & Motor)
+   │     ├─► Nhận thức (Cognitive)
+   │     ├─► Ngôn ngữ (Language & Communication)
+   │     ├─► Tình cảm XH (Social-Emotional)
+   │     └─► Vận động (Fine & Gross Motor)
+   │
+   └─► Pedagogical Actions:
+         ├─► New Observation Entry Modal
+         ├─► Student Portfolio 360° Inspection Drawer
+         └─► Export Report Summary
+```
+
+---
+
+## 5. Change Authority
+
+- **Authorized to Modify:**
+  - `src/app/dashboard/education/grades/page.tsx`
+  - `ARCHITECTURE_GATE_RESULT.md`
+- **Strictly Prohibited:**
+  - Any file in `src/platform/healthcare/`
+  - Any file in `src/platform/logistics/`
+  - Any file in `src/platform/education/engines/`
+  - Any migration modifying existing tables
+
+---
+
+## 6. UI -> Contract Reconciliation
+
+- Replaces cluttered nested boxes with streamlined tables, clear progress bars, and high visual hierarchy.
+- Shifts AI from a competing card container to a supporting pedagogical recommendation action.
+- Separates overview workspace (quick scan of 46 children) from detailed portfolio inspection.
+
+---
+
+## 7. Additive Migration Plan
+
+- None required (Frontend UX/UI presentation layer refactor).
+
+---
+
+## 8. 11 Automated Verification Gates Plan
+
+- Gate 1: Architecture Guard (`npm run arch:guard`).
+- Gate 2: Healthcare Guard (`npm run healthcare:guard`).
+- Gate 3: Education TypeScript Gate (`npm run gate:education-no-new-debt`).
+- Gate 4: Zero `any` and Zero `unknown` strict audit.
+
+---
+
+# ARCHITECTURE GATE RESULT — PRE SCHOOL COMMUNICATION & PARENT ENGAGEMENT WORKSPACE REDESIGN (IMAGE 1 & 2 TO IMAGE 3)
+
+> **Status:** PASS  
+> **Date:** 2026-10-17  
+> **Scope:** Redesign Preschool Communication & Parent Engagement Workspace UI (`src/app/dashboard/education/communication/page.tsx`) from the cluttered, oversized nested container view (Image 1 & 2) to the high-hierarchy, compact Inbox Workspace (Image 3) exclusively for Preschool tenants (`bella_education`).  
+> **Strict Type Invariant:** ZERO use of `any` and `unknown` across all types, interfaces, state variables, props, event handlers, and helper functions.
+
+---
+
+## 1. Bella OS/Product Development Process Gate
+
+- **Truth:**
+  - Preschool parent communication and engagement requires an intuitive, high-efficiency Inbox Workspace:
+    1. **Unified Header:** Circular back button, chat bubble icon badge, Vietnamese title: "Truyền thông & Phụ huynh", subtitle: "Quản lý tin nhắn, thông báo, sổ liên lạc và biểu mẫu đồng ý của phụ huynh", month selector ("Tháng 09/2026" with calendar icon), primary CTA: "+ Gửi thông báo" in brand forest green (`#0c513f`).
+    2. **4 Clean KPI Stat Cards:**
+       - Tin chưa đọc: 8 (● 3 cuộc quá hạn) with blue icon.
+       - Tỷ lệ đã đọc: 96.8% (● 268 / 280 phụ huynh) with green icon & progress bar.
+       - Chưa phản hồi: 25 (● Biểu mẫu đồng ý) with orange icon & progress bar.
+       - Hài lòng phụ huynh: 4.9 / 5.0 (◆ Khảo sát tháng 9) with purple icon & 5 stars.
+    3. **6 Streamlined Workspace Tabs:**
+       - "Tổng quan" (Active, `#0c513f` background), "Tin nhắn" (with red badge 8), "Sổ liên lạc", "Thông báo", "Biểu mẫu đồng ý", "Hoạt động".
+    4. **Two-Column Split Inbox Workspace (60% / 40%):**
+       - **Left Column (Danh sách hội thoại):**
+         - Header: "Tin nhắn phụ huynh" with count `32 cuộc trò chuyện`.
+         - Search input: "Tìm phụ huynh, trẻ, lớp hoặc nội dung..." with filter icon.
+         - Quick filter pills: "Tất cả (32)", "Chưa đọc (8)", "Cần xử lý (6)", "Quá hạn (3)".
+         - Compact Conversation Cards (8 items) with avatar initials, sender name, timestamp, student & class metadata, truncated snippet, and context-specific status pill ("🔔 Lưu ý sức khỏe", "● Quá hạn", "💳 Hỏi học phí", "✔ Phản hồi tích cực", "💬 Hỏi thông tin", "💬 Chia sẻ thông tin", "💬 Hỏi hoạt động", "✔ Đã hoàn thành").
+         - Pagination footer: "Hiển thị 8 / 32" with `< [1] 2 3 4 >`.
+       - **Right Column (Chi tiết hội thoại & Action Workspace):**
+         - Conversation header: Parent name, student & class, more options (`⋮`).
+         - Tabs: "Trao đổi" (Active), "Thông tin", "Nhật ký", "Liên quan".
+         - Chat bubble conversation timeline: Parent message (in gray bubble) and Teacher reply (in green bubble with double checkmark).
+         - Contextual AI Intent Detection Box ("AI nhận diện yêu cầu" with Beta badge):
+           - Detected intent: "Ý định: Yêu cầu lưu ý sức khỏe" (Độ tin cậy: 92%).
+           - Tags: `🔴 Sức khỏe`, `🟡 Theo dõi`, `👕 Bé mặc thêm áo khoác`.
+           - Action shortcuts: "+ Tạo lưu ý chăm sóc", "💬 Tạo phản hồi nhanh", options button.
+         - Linked Care Note Widget ("📋 Lưu ý chăm sóc (1)") with link "Xem tất cả →", note content, and author signature.
+         - Bottom response compose bar: "Nhập tin nhắn phản hồi...", attachment, image, emoji, and Send CTA.
+- **Strict Guard:**
+  - Non-preschool tenants retain standard `LegacyCommunicationView`.
+  - Zero `any` and zero `unknown`.
+  - Frozen Kernels (H1–H12, E7.1–E7.3, Education Kernel) remain 100% frozen.
+- **Gate Result:** `PASS`
+
+---
+
+## 2. Product Manifest (Capabilities & Scope)
+
+- **Target Vertical:** Bella Education (Preschool Vertical — `bella_education`).
+- **Target Page:** `src/app/dashboard/education/communication/page.tsx`
+- **Capabilities in Scope:**
+  - Full two-column interactive Inbox Workspace conforming to Image 3.
+  - Interactive conversation selection, tab filtering (Tất cả, Chưa đọc, Cần xử lý, Quá hạn), search filter.
+  - Contextual AI Intent Actions with proper domain mappings (Health Care Note, Early Pickup / Absence, Tuition, Info).
+  - Modal for "+ Gửi thông báo" broadcast creation.
+  - Strict type definitions for conversations, messages, intents, and announcements.
+
+---
+
+## 3. Ownership Map ("WHO OWNS THIS DATA?")
+
+| Data / Component | Owner | Boundary & Scope |
+|---|---|---|
+| Communication UI (`communication/page.tsx`) | Preschool Product UI (`src/app/dashboard/education/communication/`) | Redesign to match Image 3 for preschool |
+| Parent Engagement Messages | Education Communication Engine | Consumed via typed interfaces |
+| Care & Health Notes | Education Care Engine | Action shortcuts link to care note creation |
+| Tenant Settings & Brand Theme | Core Platform Context | Read-only access via `getCachedTenantSettings` |
+| Healthcare OS & Logistics OS | Respective Kernels | 100% Frozen & untouched |
+
+---
+
+## 4. Contract Dependency Map
+
+```text
+Preschool Communication Page (src/app/dashboard/education/communication/page.tsx)
+   │
+   ├─► Client Context: getCachedTenantSettings() ──► resolveTenantBrandIdentity()
+   │     └─► isPreschool: boolean (moduleKey === 'bella_education')
+   │
+   ├─► Read Model: Parent Conversations & Intent Detection
+   │     ├─► Health & Attire Care Notes
+   │     ├─► Absence & Early Pickup Approvals
+   │     ├─► Tuition & Operational Inquiries
+   │     └─► Broadcast Announcements & Consents
+   │
+   └─► Actions:
+         ├─► Send Reply Message
+         ├─► Contextual Action: Create Care Note
+         └─► Broadcast Announcement Modal
+```
+
+---
+
+## 5. Change Authority
+
+- **Authorized to Modify:**
+  - `src/app/dashboard/education/communication/page.tsx`
+  - `ARCHITECTURE_GATE_RESULT.md`
+- **Strictly Prohibited:**
+  - Any file in `src/platform/healthcare/`
+  - Any file in `src/platform/logistics/`
+  - Any file in `src/platform/education/engines/`
+  - Any migration modifying existing tables
+
+---
+
+## 6. UI -> Contract Reconciliation
+
+- Replaces oversized card workflows with a compact Inbox Workspace.
+- Standardizes on Vietnamese microcopy across all labels and metrics.
+- Fixes AI intent action mapping so actions match intent (health note for health, pickup for pickup, etc.).
+
+---
+
+## 7. Additive Migration Plan
+
+- None required (Frontend UX/UI presentation layer refactor).
+
+---
+
+## 8. 11 Automated Verification Gates Plan
+
+- Gate 1: Architecture Guard (`npm run arch:guard`).
+- Gate 2: Healthcare Guard (`npm run healthcare:guard`).
+- Gate 3: Education TypeScript Gate (`npm run gate:education-no-new-debt`).
+- Gate 4: Zero `any` and Zero `unknown` strict audit.
+
+---
+
+# ARCHITECTURE GATE RESULT — PRE SCHOOL FINANCE & TUITION WORKSPACE REDESIGN (IMAGE 1 TO IMAGE 2)
+
+> **Status:** PASS  
+> **Date:** 2026-10-17  
+> **Scope:** Redesign Preschool Finance & Tuition Workspace UI (`src/app/dashboard/education/finance/page.tsx`) from the raw, sparse developer view (Image 1) to the high-hierarchy, executive Finance Workspace (Image 2) exclusively for Preschool tenants (`bella_education`).  
+> **Strict Type Invariant:** ZERO use of `any` and `unknown` across all types, interfaces, state variables, props, event handlers, and helper functions.
+
+---
+
+## 1. Bella OS/Product Development Process Gate
+
+- **Truth:**
+  - Preschool tuition, billing, collections, and settlement require a comprehensive, high-hierarchy Finance Operating Workspace:
+    1. **Unified Header:** Circular back button, green currency coin badge, Vietnamese title: "Tài chính & Học phí", subtitle: "Quản lý hóa đơn, công nợ, thanh toán và đối soát", month selector ("Tháng 09/2026" with calendar icon), primary CTA: "+ Lập hóa đơn" in brand dark green (`#0c513f`).
+    2. **4 Clean KPI Stat Cards:**
+       - Phải thu trong kỳ: 245.0 tr (Tổng học phí cần thu, ↑ +12%) with green document icon.
+       - Đã thanh toán: 198.5 tr (81% đã thu, ↑ +8%) with green checkmark icon & badge.
+       - Còn phải thu: 46.5 tr (19% chưa thu, ↓ -5%) with orange wallet icon & badge.
+       - Khoản quá hạn: 12 (Cần nhắc thu, ↓ -3%) with red warning triangle icon & badge.
+    3. **6 Workspace Navigation Tabs:**
+       - "Tổng quan" (Active, `#0c513f` background), "Hóa đơn", "Công nợ", "Thanh toán", "Đối soát", "Báo cáo".
+    4. **3 Middle Analytical & Queue Cards (3 Columns):**
+       - **Biểu đồ thu phí:** 6-month stacked bar chart (Th04 to Th09) comparing "Đã thu" and "Còn phải thu" with selector ("6 tháng gần đây").
+       - **Tình trạng hóa đơn:** Multi-segment donut chart with center total 280 (hóa đơn), breakdown: Đã thanh toán (198 - 71%), Một phần (32 - 11%), Chưa thanh toán (42 - 15%), Bản nháp (8 - 3%).
+       - **Công việc cần xử lý:** Exception queue with count badge 12 and 4 actionable items: 8 hóa đơn quá hạn (Cần nhắc phụ huynh), 5 khoản thanh toán chờ đối soát (Đã nhận chuyển khoản), 3 yêu cầu điều chỉnh học phí (Chờ phê duyệt), 2 hóa đơn nháp chưa phát hành (Từ kỳ thu tháng 09).
+    5. **Main Interactive Workspace (Two Columns):**
+       - **Left Column (~30%): Lập hóa đơn mới:** Student search input ("Tìm theo tên, lớp hoặc mã học sinh..."), billing period selector, preview notice callout ("Hệ thống sẽ hiển thị chi tiết các khoản thu, chiết khấu và số tiền dự kiến trước khi lập nháp."), and action button "🔍 Xem trước hóa đơn".
+       - **Right Column (~70%): Danh sách hóa đơn:** Filter tabs (Tất cả 280, Bản nháp 8, Đã phát hành 252), search input ("Tìm theo mã hóa đơn, tên học sinh..."), dropdowns (Kỳ thu, Trạng thái phát hành, Trạng thái thanh toán), action button ("📥 Xuất dữ liệu"), table with independent dual statuses (Phát hành: Đã phát hành / Bản nháp; Thanh toán: Đã thanh toán / Một phần / Chưa thanh toán), and clean pagination (< [1] 2 3 4 5 ... 35 >).
+    6. **3 Bottom Mini Cards (3 Columns):**
+       - **Công nợ theo lớp:** Horizontal progress bars for Mầm A1 (12.5 tr), Chồi B1 (18.8 tr), Lá C1 (10.2 tr), Nhà Trẻ N1 (5.0 tr).
+       - **Top công nợ cần thu:** Ranked list with avatar initials, student & class, amount, and overdue days (Trần Bảo Ngọc 4.200.000 quá hạn 15 ngày, Hoàng Tuấn Kiệt 4.000.000 quá hạn 8 ngày, Vũ Gia Hân 3.700.000 quá hạn 5 ngày) with link "Xem tất cả →".
+       - **Thanh toán gần đây:** Recent transaction timeline with green checkmark, amount, payer & invoice, and timestamp with link "Xem tất cả →".
+    7. **Operational Modals & Integrity Safety:**
+       - Interactive "Xem trước hóa đơn" / "Lập hóa đơn" modal.
+       - Preserves immutable billing period provenance and completion evidence rules.
+       - Independent lifecycle truth: Draft -> Issued, and Settlement truth: Unpaid -> Partially Paid -> Paid.
+- **Strict Guard:**
+  - Non-preschool tenants retain standard `LegacyFinanceView`.
+  - Zero `any` and zero `unknown`.
+  - Frozen Kernels (H1–H12, E7.1–E7.3, Education Kernel) remain 100% frozen.
+- **Gate Result:** `PASS`
+
+---
+
+## 2. Product Manifest (Capabilities & Scope)
+
+- **Target Vertical:** Bella Education (Preschool Vertical — `bella_education`).
+- **Target Page:** `src/app/dashboard/education/finance/page.tsx`
+- **Capabilities in Scope:**
+  - Complete executive Finance Workspace conforming to Image 2.
+  - Interactive tab navigation, dual-status invoice filtering, invoice drafting, preview modal, and payment reconciliation.
+  - Strict typing without any `any` or `unknown`.
+
+---
+
+## 3. Ownership Map ("WHO OWNS THIS DATA?")
+
+| Data / Component | Owner | Boundary & Scope |
+|---|---|---|
+| Finance Workspace UI (`finance/page.tsx`) | Preschool Product UI (`src/app/dashboard/education/finance/`) | Redesign to match Image 2 for preschool |
+| Invoices & Billing Periods | Education Finance Domain | Read & commanded via typed API `/api/education/finance` |
+| Payments & Settlement Truth | Education Finance Repository | Double-entry / ledger integrity |
+| Tenant Settings & Brand Theme | Core Platform Context | Read-only access via `getCachedTenantSettings` |
+| Healthcare OS & Logistics OS | Respective Kernels | 100% Frozen & untouched |
+
+---
+
+## 4. Contract Dependency Map
+
+```text
+Preschool Finance Page (src/app/dashboard/education/finance/page.tsx)
+   │
+   ├─► Client Context: getCachedTenantSettings() ──► resolveTenantBrandIdentity()
+   │     └─► isPreschool: boolean (moduleKey === 'bella_education')
+   │
+   ├─► API Read Model: GET /api/education/finance
+   │     ├─► Invoices (Draft, Issued, Void)
+   │     ├─► Payments & Receipts
+   │     ├─► Billing Periods (Active only)
+   │     ├─► Enrolled Students
+   │     └─► Exceptions & Overdue Queue
+   │
+   └─► Commands: POST /api/education/finance
+         ├─► compileDraftInvoice
+         ├─► issueInvoice
+         ├─► projectInvoiceNotice
+         ├─► completeTuitionServicePeriod
+         └─► scanOverdueInvoices
+```
+
+---
+
+## 5. Change Authority
+
+- **Authorized to Modify:**
+  - `src/app/dashboard/education/finance/page.tsx`
+  - `ARCHITECTURE_GATE_RESULT.md`
+- **Strictly Prohibited:**
+  - Any file in `src/platform/healthcare/`
+  - Any file in `src/platform/logistics/`
+  - Any file in `src/platform/education/engines/`
+  - Any database migrations modifying existing tables
+
+---
+
+## 6. UI -> Contract Reconciliation
+
+- Replaces raw developer terms (e.g. "Operating Kernel (P7)", "Zone 1: Billing") with professional Vietnamese administrative terms ("Tài chính & Học phí", "Tổng quan", "Hóa đơn", "Công nợ", "Thanh toán", "Đối soát").
+- Keeps invoice lifecycle (DRAFT -> ISSUED) and settlement status (UNPAID -> PARTIALLY_PAID -> PAID) strictly independent.
+- Connects KPI and charts to verifiable data aggregations.
+
+---
+
+## 7. Additive Migration Plan
+
+- None required (Frontend UX/UI presentation layer refactor).
+
+---
+
+## 8. 11 Automated Verification Gates Plan
+
+- Gate 1: Architecture Guard (`npm run arch:guard`).
+- Gate 2: Healthcare Guard (`npm run healthcare:guard`).
+- Gate 3: Education TypeScript Gate (`npm run gate:education-no-new-debt`).
+- Gate 4: Zero `any` and Zero `unknown` strict audit.
 

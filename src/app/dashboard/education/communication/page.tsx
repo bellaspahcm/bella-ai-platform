@@ -1,563 +1,1352 @@
 'use client';
 
 /**
- * Bella Education — Parent Communication & Engagement Hub
- * 
- * Scalable Architecture:
- * - Operational Metrics: SLA Queue, Read Receipts, Pending Consents, Parent Satisfaction
- * - Intent Detection & Action Shortcuts: Parent Message ➔ Care Note / Attendance / Finance Workflow
- * - Announcement Consent Engine: SENT ➔ DELIVERED ➔ READ ➔ ACKNOWLEDGED ➔ CONSENTED
- * - Sub-Workspace Tabs:
- *   1. Tổng Quan Engagement Hub (Urgent Queue & SLA Trackers)
- *   2. Tin Nhắn & Sổ Liên Lạc (Conversations with Intent Actions)
- *   3. Daily Child Update (Automated Daily Digest of Child Operations)
- *   4. Thông Báo & Form Đồng Ý (Announcements & Consent Engine)
- *   5. Hoạt Động & Thư Viện Ảnh (Media Feed & Privacy Consent Policy)
+ * Bella Education — Parent Communication & Engagement Workspace
+ *
+ * Redesigned from oversized card cluster (Image 1 & 2) to the streamlined,
+ * high-hierarchy Inbox Workspace (Image 3):
+ * - Scoped exclusively to Preschool tenants (`bella_education`)
+ * - Unified brand deep green palette (`#0c513f` / `#075548`)
+ * - Header: Back button + Chat bubble badge + "Truyền thông & Phụ huynh" +
+ *           Subtitle + Month Selector ("Tháng 09/2026") + "+ Gửi thông báo" CTA
+ * - 4 High-Hierarchy Neutral KPI Cards:
+ *     1. Blue MessageSquare: Tin chưa đọc (8) — ● 3 cuộc quá hạn
+ *     2. Green CheckCheck: Tỷ lệ đã đọc (96.8%) — ● 268 / 280 phụ huynh + progress bar
+ *     3. Orange FileText: Chưa phản hồi (25) — ● Biểu mẫu đồng ý + progress bar
+ *     4. Purple Heart: Hài lòng phụ huynh (4.9 / 5.0) — ◆ Khảo sát tháng 9 + 5 gold stars
+ * - 6 Workspace Navigation Tabs:
+ *     Tổng quan, Tin nhắn (badge 8), Sổ liên lạc, Thông báo, Biểu mẫu đồng ý, Hoạt động
+ * - Two-Column Split Inbox Workspace (60% / 40%):
+ *     - Left: "Tin nhắn phụ huynh" (32 cuộc trò chuyện), Search input, 4 quick filter pills
+ *       (Tất cả 32, Chưa đọc 8, Cần xử lý 6, Quá hạn 3), 8 compact conversation cards, pagination
+ *     - Right: Conversation Detail & Action Workspace (Chat history, Contextual AI Intent Detection Box,
+ *       Contextual Action Recommendations, Linked Care Notes, and Response Compose Bar)
+ * - Non-preschool fallback: Preserves standard view if tenant is not preschool
+ * - STRICT TYPE SAFETY: Zero `any` and zero `unknown`
  */
 
-import { useState } from 'react';
+import { useState, useEffect, useMemo, type ChangeEvent } from 'react';
 import Link from 'next/link';
 import {
-  MessageSquare,
-  Megaphone,
   ArrowLeft,
-  Search,
-  Bell,
-  CheckCheck,
-  User,
-  Heart,
-  Clock,
-  AlertCircle,
-  CheckCircle2,
-  Sparkles,
-  Bot,
-  Plus,
+  MessageSquare,
+  Calendar,
   Send,
-  FileCheck,
+  Plus,
+  Search,
+  Filter,
+  CheckCheck,
+  Clock,
+  Heart,
+  FileText,
+  Bell,
+  BookOpen,
+  ClipboardList,
   Camera,
-  ShieldCheck,
-  UserCheck,
+  MoreVertical,
+  Paperclip,
+  Image as ImageIcon,
+  Smile,
+  ChevronLeft,
+  ChevronRight,
+  ChevronDown,
   X,
   Check,
-  Layers,
-  Filter,
-  Activity,
-  Users
+  CheckCircle2,
+  Bot,
+  AlertCircle,
+  FileCheck,
+  Users,
+  Megaphone,
 } from 'lucide-react';
+import { getCachedTenantSettings } from '@/lib/dashboard-client-context';
+import { resolveTenantBrandIdentity } from '@/lib/business-rules/tenant-modules';
 
-type CommunicationMessage = {
-  id: string;
-  parentName: string;
-  childName: string;
-  className: string;
-  timestamp: string;
-  content: string;
-  unread: boolean;
-  slaExceeded: boolean;
-  assignedTeacher: string;
-  detectedIntent?: string;
-  actionDone?: string;
-  status: 'NEW' | 'IN_PROGRESS' | 'RESOLVED';
-  avatarBg: string;
-};
+// ── Strict Domain Types ───────────────────────────────────────────────────────
 
-type SchoolAnnouncement = {
-  id: string;
-  title: string;
-  category: 'CHUNG' | 'DÃ NGOẠI' | 'HỌC PHÍ' | 'Y TẾ';
-  publishDate: string;
-  author: string;
-  scope: string;
-  requiresConsent: boolean;
-  stats: {
-    totalTarget: number;
-    delivered: number;
-    read: number;
-    consented: number;
-    pending: number;
+export type CommTabKey = 'overview' | 'messages' | 'daily' | 'announcements' | 'consent' | 'media';
+
+export type ConversationFilterKey = 'ALL' | 'UNREAD' | 'ACTION_REQUIRED' | 'OVERDUE';
+
+export type TagType =
+  | 'health'
+  | 'overdue'
+  | 'tuition'
+  | 'positive'
+  | 'info'
+  | 'sharing'
+  | 'activity'
+  | 'completed';
+
+export interface ChatMessage {
+  readonly id: string;
+  readonly sender: 'parent' | 'teacher';
+  readonly authorName: string;
+  readonly time: string;
+  readonly text: string;
+  readonly isDelivered?: boolean;
+}
+
+export interface ConversationItem {
+  readonly id: string;
+  readonly parentName: string;
+  readonly studentName: string;
+  readonly className: string;
+  readonly timestamp: string;
+  readonly snippet: string;
+  readonly unread: boolean;
+  readonly isOverdue: boolean;
+  readonly requiresAction: boolean;
+  readonly tagType: TagType;
+  readonly tagLabel: string;
+  readonly avatarInitial: string;
+  readonly avatarBg: string;
+  readonly thread: readonly ChatMessage[];
+  readonly aiIntent: {
+    readonly title: string;
+    readonly confidence: string;
+    readonly tags: readonly { readonly label: string; readonly color: string }[];
+    readonly primaryActionLabel: string;
+    readonly primaryActionType: 'care_note' | 'early_pickup' | 'tuition' | 'reply';
   };
-};
-
-export default function CommunicationPage() {
-  const [activeTab, setActiveTab] = useState<'overview' | 'messages' | 'daily' | 'announcements' | 'media'>('overview');
-  const [isAnnouncementModalOpen, setIsAnnouncementModalOpen] = useState(false);
-
-  // Parent Messages with Intent Detection & Action Shortcuts
-  const [messagesList, setMessagesList] = useState<CommunicationMessage[]>([
-    {
-      id: 'MSG-001',
-      parentName: 'Mẹ Bé Minh An',
-      childName: 'Nguyễn Minh An (Bé Bi)',
-      className: 'Lớp Mầm A1',
-      timestamp: '08:15 Sáng (30 phút trước)',
-      content: 'Cô ơi hôm nay bé Bi hơi sụt sịt mũi, nhờ cô cho bé mặc thêm áo khoác và theo dõi giúp em ạ!',
-      unread: true,
-      slaExceeded: false,
-      assignedTeacher: 'Cô Nguyễn Thị Mai',
-      detectedIntent: 'Yêu cầu lưu ý sức khỏe & trang phục',
-      status: 'NEW',
-      avatarBg: 'bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300',
-    },
-    {
-      id: 'MSG-002',
-      parentName: 'Bố Bé Bảo Ngọc',
-      childName: 'Trần Bảo Ngọc (Bé Bắp)',
-      className: 'Lớp Chồi B1',
-      timestamp: '4 giờ trước',
-      content: 'Cô ơi chiều nay gia đình xin phép đón bé sớm lúc 15h30 để đi khám răng định kỳ ạ.',
-      unread: true,
-      slaExceeded: true,
-      assignedTeacher: 'Cô Trần Ngọc Anh',
-      detectedIntent: 'Xin đón sớm / Xin nghỉ',
-      status: 'NEW',
-      avatarBg: 'bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300',
-    },
-    {
-      id: 'MSG-003',
-      parentName: 'Mẹ Bé Hoàng Nam',
-      childName: 'Lê Hoàng Nam (Bé Tí)',
-      className: 'Lớp Lá C1',
-      timestamp: 'Thứ Ba, 08/09',
-      content: 'Cô Linh cho em hỏi lịch đóng học phí tháng 10 hạn chót là ngày nào ạ?',
-      unread: false,
-      slaExceeded: false,
-      assignedTeacher: 'Cô Đặng Thùy Linh',
-      actionDone: 'Đã gửi thông tin hạn đóng học phí 15/10',
-      status: 'RESOLVED',
-      avatarBg: 'bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300',
-    },
-  ]);
-
-  // Announcements with Consent Engine Tracking
-  const announcementsList: SchoolAnnouncement[] = [
-    {
-      id: 'ANN-001',
-      title: 'Thông Báo & Đơn Đồng Ý Tham Gia Dã Ngoại Nông Trại Sinh Thái Tháng 9',
-      category: 'DÃ NGOẠI',
-      publishDate: '08/09/2026',
-      author: 'Ban Giám Hiệu Bella Preschool',
-      scope: 'Toàn Trường (Khối Mầm, Chồi, Lá)',
-      requiresConsent: true,
-      stats: {
-        totalTarget: 280,
-        delivered: 272,
-        read: 265,
-        consented: 247,
-        pending: 25,
-      },
-    },
-    {
-      id: 'ANN-002',
-      title: 'Thư Mời Tham Dự Hội Thảo "Đồng Hành Cùng Con Trong Giới Hạn 0-6 Tuổi"',
-      category: 'CHUNG',
-      publishDate: '02/09/2026',
-      author: 'Chuyên gia Tâm lý & Ban Giám Hiệu',
-      scope: 'Toàn Trường',
-      requiresConsent: false,
-      stats: {
-        totalTarget: 280,
-        delivered: 280,
-        read: 240,
-        consented: 240,
-        pending: 0,
-      },
-    },
-  ];
-
-  const handleCreateCareNoteFromMessage = (id: string) => {
-    setMessagesList((prev) =>
-      prev.map((m) =>
-        m.id === id
-          ? {
-              ...m,
-              status: 'IN_PROGRESS',
-              actionDone: 'Đã chuyển thành Lưu Ý Chăm Sóc cho Cô Chủ Nhiệm & Y Tế',
-              unread: false,
-            }
-          : m
-      )
-    );
+  readonly linkedCareNote?: {
+    readonly id: string;
+    readonly count: number;
+    readonly text: string;
+    readonly teacherName: string;
+    readonly dateString: string;
   };
+}
+
+// ── Mock & Reference Data matching Image 3 ───────────────────────────────────
+
+const CONVERSATIONS_DATA: readonly ConversationItem[] = [
+  {
+    id: 'CONV-001',
+    parentName: 'Mẹ bé Minh An',
+    studentName: 'Nguyễn Minh An',
+    className: 'Mầm A1',
+    timestamp: '08:15',
+    snippet: 'Cô ơi hôm nay bé bị sụt sịt mũi, nhờ cô theo dõi...',
+    unread: true,
+    isOverdue: false,
+    requiresAction: true,
+    tagType: 'health',
+    tagLabel: '🔔 Lưu ý sức khỏe',
+    avatarInitial: 'A',
+    avatarBg: 'bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300',
+    thread: [
+      {
+        id: 'M-1',
+        sender: 'parent',
+        authorName: 'Mẹ bé Minh An',
+        time: '08:15',
+        text: 'Cô ơi hôm nay bé bị sụt sịt mũi, nhờ cô cho bé mặc thêm áo khoác và theo dõi giúp em ạ!',
+      },
+      {
+        id: 'M-2',
+        sender: 'teacher',
+        authorName: 'Cô Nguyễn Thị Mai',
+        time: '08:28',
+        text: 'Dạ cô đã kiểm tra, bé hơi sổ mũi nhẹ và vẫn ăn uống bình thường ạ. Cô đã cho bé mặc thêm áo khoác và tiếp tục theo dõi trong ngày. Có gì bất thường cô sẽ báo lại cho mẹ ạ.',
+        isDelivered: true,
+      },
+    ],
+    aiIntent: {
+      title: 'Ý định: Yêu cầu lưu ý sức khỏe',
+      confidence: 'Độ tin cậy: 92%',
+      tags: [
+        { label: '🔴 Sức khỏe', color: 'bg-rose-50 text-rose-700 border-rose-200' },
+        { label: '🟡 Theo dõi', color: 'bg-amber-50 text-amber-700 border-amber-200' },
+        { label: '👕 Bé mặc thêm áo khoác', color: 'bg-blue-50 text-blue-700 border-blue-200' },
+      ],
+      primaryActionLabel: '+ Tạo lưu ý chăm sóc',
+      primaryActionType: 'care_note',
+    },
+    linkedCareNote: {
+      id: 'CN-001',
+      count: 1,
+      text: 'Hôm nay bé hơi sổ mũi nhẹ, đã mặc thêm áo khoác và theo dõi trong ngày.',
+      teacherName: 'Cô Nguyễn Thị Mai',
+      dateString: '08:30 - 16/09/2026',
+    },
+  },
+  {
+    id: 'CONV-002',
+    parentName: 'Bố bé Bảo Ngọc',
+    studentName: 'Trần Bảo Ngọc',
+    className: 'Chồi B1',
+    timestamp: '4 giờ trước',
+    snippet: 'Gia đình xin phép đón bé sớm lúc 15h30 để đi k...',
+    unread: true,
+    isOverdue: true,
+    requiresAction: true,
+    tagType: 'overdue',
+    tagLabel: '● Quá hạn',
+    avatarInitial: 'N',
+    avatarBg: 'bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300',
+    thread: [
+      {
+        id: 'M-3',
+        sender: 'parent',
+        authorName: 'Bố bé Bảo Ngọc',
+        time: '4 giờ trước',
+        text: 'Cô ơi chiều nay gia đình xin phép đón bé sớm lúc 15h30 để đi khám răng định kỳ ạ.',
+      },
+    ],
+    aiIntent: {
+      title: 'Ý định: Xin đón sớm / Khám định kỳ',
+      confidence: 'Độ tin cậy: 95%',
+      tags: [
+        { label: '🟡 Đón sớm 15:30', color: 'bg-amber-50 text-amber-700 border-amber-200' },
+        { label: '🦷 Khám răng định kỳ', color: 'bg-indigo-50 text-indigo-700 border-indigo-200' },
+      ],
+      primaryActionLabel: '+ Xác nhận đón sớm',
+      primaryActionType: 'early_pickup',
+    },
+  },
+  {
+    id: 'CONV-003',
+    parentName: 'Mẹ bé Hoàng Nam',
+    studentName: 'Lê Hoàng Nam',
+    className: 'Lá C1',
+    timestamp: 'Thứ Ba',
+    snippet: 'Cô Linh cho em hỏi lịch đóng học phí tháng 10 ...',
+    unread: false,
+    isOverdue: false,
+    requiresAction: true,
+    tagType: 'tuition',
+    tagLabel: '💳 Hỏi học phí',
+    avatarInitial: 'H',
+    avatarBg: 'bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300',
+    thread: [
+      {
+        id: 'M-4',
+        sender: 'parent',
+        authorName: 'Mẹ bé Hoàng Nam',
+        time: 'Thứ Ba, 09:12',
+        text: 'Cô Linh cho em hỏi lịch đóng học phí tháng 10 hạn chót là ngày nào ạ?',
+      },
+    ],
+    aiIntent: {
+      title: 'Ý định: Hỏi lịch đóng học phí tháng 10',
+      confidence: 'Độ tin cậy: 98%',
+      tags: [
+        { label: '💳 Học phí', color: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
+        { label: '📅 Hạn chót 15/10', color: 'bg-slate-50 text-slate-700 border-slate-200' },
+      ],
+      primaryActionLabel: '+ Gửi thông tin biểu phí',
+      primaryActionType: 'tuition',
+    },
+  },
+  {
+    id: 'CONV-004',
+    parentName: 'Mẹ bé Phạm Thảo My',
+    studentName: 'Phạm Thảo My',
+    className: 'Chồi B1',
+    timestamp: 'Thứ Ba',
+    snippet: 'Em cảm ơn cô đã gửi hình hoạt động hôm nay ạ!',
+    unread: false,
+    isOverdue: false,
+    requiresAction: false,
+    tagType: 'positive',
+    tagLabel: '✔ Phản hồi tích cực',
+    avatarInitial: 'M',
+    avatarBg: 'bg-pink-100 dark:bg-pink-950 text-pink-700 dark:text-pink-300',
+    thread: [
+      {
+        id: 'M-5',
+        sender: 'parent',
+        authorName: 'Mẹ bé Phạm Thảo My',
+        time: 'Thứ Ba, 16:45',
+        text: 'Em cảm ơn cô đã gửi hình hoạt động hôm nay ạ! Con về nhà kể rất hào hứng với tiết học làm bánh.',
+      },
+      {
+        id: 'M-6',
+        sender: 'teacher',
+        authorName: 'Cô Trần Ngọc Anh',
+        time: 'Thứ Ba, 17:02',
+        text: 'Dạ bé Thảo My rất khéo tay và biết chia sẻ nguyên liệu cùng bạn mẹ nhé!',
+        isDelivered: true,
+      },
+    ],
+    aiIntent: {
+      title: 'Ý định: Cảm ơn & Phản hồi tích cực',
+      confidence: 'Độ tin cậy: 96%',
+      tags: [
+        { label: '💖 Hài lòng', color: 'bg-pink-50 text-pink-700 border-pink-200' },
+        { label: '📷 Hoạt động lớp', color: 'bg-teal-50 text-teal-700 border-teal-200' },
+      ],
+      primaryActionLabel: '💬 Tạo phản hồi nhanh',
+      primaryActionType: 'reply',
+    },
+  },
+  {
+    id: 'CONV-005',
+    parentName: 'Bố bé Hoàng Tuấn Kiệt',
+    studentName: 'Hoàng Tuấn Kiệt',
+    className: 'Mầm A1',
+    timestamp: 'Thứ Hai',
+    snippet: 'Tuần tới bé có tham gia dã ngoại không ạ?',
+    unread: false,
+    isOverdue: false,
+    requiresAction: true,
+    tagType: 'info',
+    tagLabel: '💬 Hỏi thông tin',
+    avatarInitial: 'K',
+    avatarBg: 'bg-teal-100 dark:bg-teal-950 text-teal-700 dark:text-teal-300',
+    thread: [
+      {
+        id: 'M-7',
+        sender: 'parent',
+        authorName: 'Bố bé Hoàng Tuấn Kiệt',
+        time: 'Thứ Hai, 14:10',
+        text: 'Tuần tới bé có tham gia dã ngoại không ạ? Nhà em chưa nhận được form đăng ký qua app.',
+      },
+    ],
+    aiIntent: {
+      title: 'Ý định: Hỏi lịch dã ngoại & Biểu mẫu',
+      confidence: 'Độ tin cậy: 94%',
+      tags: [
+        { label: '🚌 Dã ngoại', color: 'bg-amber-50 text-amber-700 border-amber-200' },
+        { label: '📝 Cần gửi lại form', color: 'bg-purple-50 text-purple-700 border-purple-200' },
+      ],
+      primaryActionLabel: '+ Gửi lại biểu mẫu dã ngoại',
+      primaryActionType: 'reply',
+    },
+  },
+  {
+    id: 'CONV-006',
+    parentName: 'Mẹ bé Đặng Khánh Linh',
+    studentName: 'Đặng Khánh Linh',
+    className: 'Chồi B1',
+    timestamp: '01/09',
+    snippet: 'Bé hôm nay ăn tốt hơn, cảm ơn cô nhiều ạ!',
+    unread: false,
+    isOverdue: false,
+    requiresAction: false,
+    tagType: 'sharing',
+    tagLabel: '💬 Chia sẻ thông tin',
+    avatarInitial: 'Đ',
+    avatarBg: 'bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300',
+    thread: [
+      {
+        id: 'M-8',
+        sender: 'parent',
+        authorName: 'Mẹ bé Đặng Khánh Linh',
+        time: '01/09, 18:20',
+        text: 'Bé hôm nay ăn tốt hơn, cảm ơn cô nhiều ạ! Bé khoe được cô khen ăn nhanh nhất bàn.',
+      },
+    ],
+    aiIntent: {
+      title: 'Ý định: Chia sẻ thông tin dinh dưỡng',
+      confidence: 'Độ tin cậy: 93%',
+      tags: [
+        { label: '🍲 Bữa ăn', color: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
+        { label: '⭐ Tích cực', color: 'bg-amber-50 text-amber-700 border-amber-200' },
+      ],
+      primaryActionLabel: '💬 Tạo phản hồi nhanh',
+      primaryActionType: 'reply',
+    },
+  },
+  {
+    id: 'CONV-007',
+    parentName: 'Mẹ bé Vũ Gia Hân',
+    studentName: 'Vũ Gia Hân',
+    className: 'Mầm A1',
+    timestamp: '01/09',
+    snippet: 'Bé có cần chuẩn bị gì cho buổi chụp hình không ...',
+    unread: false,
+    isOverdue: false,
+    requiresAction: true,
+    tagType: 'activity',
+    tagLabel: '💬 Hỏi hoạt động',
+    avatarInitial: 'V',
+    avatarBg: 'bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300',
+    thread: [
+      {
+        id: 'M-9',
+        sender: 'parent',
+        authorName: 'Mẹ bé Vũ Gia Hân',
+        time: '01/09, 10:05',
+        text: 'Bé có cần chuẩn bị gì cho buổi chụp hình kỷ yếu trung thu sắp tới không cô ơi?',
+      },
+    ],
+    aiIntent: {
+      title: 'Ý định: Hỏi quy định trang phục & chụp hình',
+      confidence: 'Độ tin cậy: 91%',
+      tags: [
+        { label: '📷 Chụp ảnh', color: 'bg-purple-50 text-purple-700 border-purple-200' },
+        { label: '👗 Trang phục lễ hội', color: 'bg-rose-50 text-rose-700 border-rose-200' },
+      ],
+      primaryActionLabel: '+ Gửi hướng dẫn trang phục',
+      primaryActionType: 'reply',
+    },
+  },
+  {
+    id: 'CONV-008',
+    parentName: 'Mẹ bé Ngô Nhật Minh',
+    studentName: 'Ngô Nhật Minh',
+    className: 'Chồi B1',
+    timestamp: '31/08',
+    snippet: 'Em đã điền form đồng ý rồi ạ.',
+    unread: false,
+    isOverdue: false,
+    requiresAction: false,
+    tagType: 'completed',
+    tagLabel: '✔ Đã hoàn thành',
+    avatarInitial: 'N',
+    avatarBg: 'bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300',
+    thread: [
+      {
+        id: 'M-10',
+        sender: 'parent',
+        authorName: 'Mẹ bé Ngô Nhật Minh',
+        time: '31/08, 11:30',
+        text: 'Em đã điền form đồng ý tham gia dã ngoại cho bé Nhật Minh rồi ạ. Cô kiểm tra giúp em nhé.',
+      },
+      {
+        id: 'M-11',
+        sender: 'teacher',
+        authorName: 'Cô Trần Ngọc Anh',
+        time: '31/08, 11:45',
+        text: 'Dạ cô đã nhận được xác nhận của gia đình trên hệ thống rồi ạ. Cảm ơn mẹ nhiều!',
+        isDelivered: true,
+      },
+    ],
+    aiIntent: {
+      title: 'Ý định: Xác nhận hoàn tất biểu mẫu',
+      confidence: 'Độ tin cậy: 97%',
+      tags: [
+        { label: '✔ Đồng ý', color: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
+        { label: '📝 Đã lưu hồ sơ', color: 'bg-slate-50 text-slate-700 border-slate-200' },
+      ],
+      primaryActionLabel: '💬 Tạo phản hồi nhanh',
+      primaryActionType: 'reply',
+    },
+  },
+];
+
+export default function PreschoolCommunicationPage() {
+  const [isPreschoolTenant, setIsPreschoolTenant] = useState<boolean>(true);
+
+  // Filter & Navigation states
+  const [activeNavTab, setActiveNavTab] = useState<CommTabKey>('overview');
+  const [selectedMonth, setSelectedMonth] = useState<string>('Tháng 09/2026');
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [conversationFilter, setConversationFilter] = useState<ConversationFilterKey>('ALL');
+  const [currentPage, setCurrentPage] = useState<number>(1);
+
+  // Selected conversation for the right detail workspace
+  const [selectedConversationId, setSelectedConversationId] = useState<string>('CONV-001');
+  const [detailSubTab, setDetailSubTab] = useState<'chat' | 'info' | 'logs' | 'related'>('chat');
+  const [replyInput, setReplyInput] = useState<string>('');
+  const [isBroadcastModalOpen, setIsBroadcastModalOpen] = useState<boolean>(false);
+  const [actionSuccessNotice, setActionSuccessNotice] = useState<string | null>(null);
+
+  // Detect tenant scope
+  useEffect(() => {
+    async function checkTenant() {
+      try {
+        const tenant = await getCachedTenantSettings();
+        if (tenant) {
+          const brand = resolveTenantBrandIdentity({
+            enabledModules: tenant.enabled_modules,
+            brandTheme: tenant.brand_theme,
+            logoUrl: tenant.logo_url,
+            tenantName: tenant.name,
+            surface: 'app',
+          });
+          setIsPreschoolTenant(brand.moduleKey === 'bella_education');
+        } else {
+          setIsPreschoolTenant(true);
+        }
+      } catch {
+        setIsPreschoolTenant(true);
+      }
+    }
+    void checkTenant();
+  }, []);
+
+  // Filtered conversation list
+  const filteredConversations = useMemo(() => {
+    return CONVERSATIONS_DATA.filter((conv) => {
+      if (conversationFilter === 'UNREAD' && !conv.unread) return false;
+      if (conversationFilter === 'ACTION_REQUIRED' && !conv.requiresAction) return false;
+      if (conversationFilter === 'OVERDUE' && !conv.isOverdue) return false;
+
+      if (searchQuery.trim().length > 0) {
+        const q = searchQuery.toLowerCase().trim();
+        const matchParent = conv.parentName.toLowerCase().includes(q);
+        const matchStudent = conv.studentName.toLowerCase().includes(q);
+        const matchClass = conv.className.toLowerCase().includes(q);
+        const matchContent = conv.snippet.toLowerCase().includes(q);
+        if (!matchParent && !matchStudent && !matchClass && !matchContent) return false;
+      }
+      return true;
+    });
+  }, [conversationFilter, searchQuery]);
+
+  // Current active conversation
+  const activeConversation = useMemo(() => {
+    const found = CONVERSATIONS_DATA.find((c) => c.id === selectedConversationId);
+    return found || CONVERSATIONS_DATA[0];
+  }, [selectedConversationId]);
+
+  // Tag renderer helper
+  const renderTagBadge = (tagType: TagType, label: string) => {
+    switch (tagType) {
+      case 'health':
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-[#fffbeb] text-[#b45309] border border-[#fde68a]">
+            {label}
+          </span>
+        );
+      case 'overdue':
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-[#fff1f2] text-[#e11d48] border border-[#fecdd3]">
+            {label}
+          </span>
+        );
+      case 'tuition':
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-[#eff6ff] text-[#2563eb] border border-[#bfdbfe]">
+            {label}
+          </span>
+        );
+      case 'positive':
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-[#f0fdf4] text-[#16a34a] border border-[#bbf7d0]">
+            {label}
+          </span>
+        );
+      case 'info':
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-[#faf5ff] text-[#9333ea] border border-[#e9d5ff]">
+            {label}
+          </span>
+        );
+      case 'sharing':
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-[#f0fdf4] text-[#0d9488] border border-[#99f6e4]">
+            {label}
+          </span>
+        );
+      case 'activity':
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-[#fdf2f8] text-[#db2777] border border-[#fbcfe8]">
+            {label}
+          </span>
+        );
+      case 'completed':
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-[#ecfdf5] text-[#059669] border border-[#a7f3d0]">
+            {label}
+          </span>
+        );
+    }
+  };
+
+  const handleSendReply = () => {
+    if (!replyInput.trim()) return;
+    setActionSuccessNotice('Đã gửi phản hồi đến phụ huynh thành công!');
+    setReplyInput('');
+    setTimeout(() => setActionSuccessNotice(null), 3000);
+  };
+
+  const handleExecutePrimaryAction = () => {
+    if (activeConversation.aiIntent.primaryActionType === 'care_note') {
+      setActionSuccessNotice('Đã tạo Lưu Ý Chăm Sóc cho Cô Chủ Nhiệm & Y Tế!');
+    } else if (activeConversation.aiIntent.primaryActionType === 'early_pickup') {
+      setActionSuccessNotice('Đã xác nhận và chuyển lịch đón sớm vào sổ điểm danh!');
+    } else {
+      setActionSuccessNotice('Đã áp dụng mẫu phản hồi tự động!');
+    }
+    setTimeout(() => setActionSuccessNotice(null), 3000);
+  };
+
+  if (!isPreschoolTenant) {
+    return <LegacyCommunicationView />;
+  }
 
   return (
-    <div className="preschool-ui w-full p-4 sm:p-6 lg:p-8 space-y-6 pb-12">
-      {/* ── UNIFIED PAGE HEADER ── */}
-      <div className="w-full rounded-3xl bg-white dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 p-6 sm:p-8 shadow-sm space-y-6">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-700/60 pb-5">
+    <div className="preschool-communication-workspace w-full p-4 sm:p-6 lg:p-8 space-y-6 pb-36 sm:pb-48">
+      {/* ── ACTION SUCCESS NOTIFICATION ── */}
+      {actionSuccessNotice && (
+        <div className="fixed top-6 right-6 z-50 p-4 rounded-2xl bg-slate-900 text-white text-xs font-bold shadow-2xl flex items-center gap-3 animate-in fade-in slide-in-from-top-4">
+          <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+          <span>{actionSuccessNotice}</span>
+        </div>
+      )}
+
+      {/* ── UNIFIED HEADER MATCHING IMAGE 3 ── */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex items-center gap-3.5">
+          <Link
+            href="/dashboard/education"
+            className="w-10 h-10 rounded-full flex items-center justify-center bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300 transition-colors shrink-0"
+            title="Quay lại"
+          >
+            <ArrowLeft className="w-4 h-4" />
+          </Link>
+
           <div className="flex items-center gap-3">
-            <Link
-              href="/dashboard/education"
-              className="p-2.5 rounded-2xl bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 transition-colors shrink-0"
-              title="Quay lại Dashboard Education"
+            <div className="w-10 h-10 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 text-[#0c513f] dark:text-emerald-400 flex items-center justify-center shrink-0 shadow-sm border border-emerald-100/80">
+              <MessageSquare className="w-5 h-5" />
+            </div>
+            <div>
+              <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+                Truyền thông & Phụ huynh
+              </h1>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                Quản lý tin nhắn, thông báo, sổ liên lạc và biểu mẫu đồng ý của phụ huynh
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3 self-end md:self-auto shrink-0">
+          <div className="relative">
+            <select
+              value={selectedMonth}
+              onChange={(e: ChangeEvent<HTMLSelectElement>) => setSelectedMonth(e.target.value)}
+              aria-label="Chọn tháng làm việc"
+              className="appearance-none bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-700 dark:text-slate-200 rounded-2xl pl-4 pr-9 py-2.5 shadow-sm cursor-pointer hover:border-slate-300 focus:outline-none"
             >
-              <ArrowLeft className="w-4 h-4" />
-            </Link>
-            <div className="flex items-center gap-3">
-              <div className="p-3 rounded-2xl bg-primary/10 text-[var(--education-brand-ink)] shrink-0">
-                <MessageSquare className="w-6 h-6" />
-              </div>
-              <div>
-                <h1 className="text-xl sm:text-2xl font-extrabold text-gray-900 dark:text-white tracking-tight">
-                  Truyền Thông & Parent Engagement Hub
-                </h1>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                  Kênh tương tác trực tiếp 360°, thông báo điều hành toàn trường, sổ liên lạc điện tử & quy trình phản hồi phụ huynh
-                </p>
-              </div>
-            </div>
+              <option>Tháng 09/2026</option>
+              <option>Tháng 10/2026</option>
+              <option>Tháng 11/2026</option>
+            </select>
+            <Calendar className="w-4 h-4 text-slate-400 absolute right-3 top-3 pointer-events-none" />
           </div>
 
           <button
-            onClick={() => setIsAnnouncementModalOpen(true)}
-            className="inline-flex items-center justify-center gap-2 rounded-2xl bg-primary hover:bg-primary-hover text-primary-foreground px-5 py-2.5 text-xs font-bold shadow-lg shadow-primary/20 transition-all active:scale-95 cursor-pointer shrink-0"
+            type="button"
+            onClick={() => setIsBroadcastModalOpen(true)}
+            className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#0c513f] hover:bg-[#083b2e] text-white px-5 py-2.5 text-xs font-bold shadow-md shadow-[#0c513f]/20 transition-all active:scale-95 cursor-pointer"
           >
-            <Megaphone className="w-4 h-4" />
-            <span>Gửi Thông Báo Điều Hành</span>
-          </button>
-        </div>
-
-        {/* ── ACTIONABLE OPERATIONAL GOVERNANCE METRICS ── */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="p-4 rounded-2xl bg-primary/10 border border-primary/20 space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-extrabold uppercase tracking-wider text-[var(--education-brand-ink)]">
-                Tin Nhắn Phụ Huynh Mới
-              </span>
-              <MessageSquare className="w-4 h-4 text-[var(--education-brand-ink)]" />
-            </div>
-            <div>
-              <p className="text-2xl font-extrabold text-indigo-900 dark:text-indigo-200">08 Chưa Đọc</p>
-              <p className="text-[11px] font-semibold text-rose-600 dark:text-rose-400 mt-0.5">
-                🔴 3 cuộc trò chuyện quá 4h SLA
-              </p>
-            </div>
-          </div>
-
-          <div className="p-4 rounded-2xl bg-emerald-50/70 dark:bg-emerald-950/40 border border-emerald-200/80 dark:border-emerald-900/60 space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-extrabold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
-                Tỷ Lệ Đã Đọc Thông Báo
-              </span>
-              <CheckCheck className="w-4 h-4 text-emerald-600" />
-            </div>
-            <div>
-              <p className="text-2xl font-extrabold text-emerald-900 dark:text-emerald-200">96.8% Đã Đọc</p>
-              <p className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-300 mt-0.5">
-                268 / 280 phụ huynh đã tiếp nhận
-              </p>
-            </div>
-          </div>
-
-          <div className="p-4 rounded-2xl bg-amber-50/70 dark:bg-amber-950/40 border border-amber-200/80 dark:border-amber-900/60 space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-extrabold uppercase tracking-wider text-amber-600 dark:text-amber-400">
-                Phản Hồi Consent Dã Ngoại
-              </span>
-              <FileCheck className="w-4 h-4 text-amber-600" />
-            </div>
-            <div>
-              <p className="text-2xl font-extrabold text-amber-900 dark:text-amber-200">25 Chưa Phản Hồi</p>
-              <p className="text-[11px] font-bold text-amber-700 dark:text-amber-300 mt-0.5 cursor-pointer underline">
-                👉 Nhắc 25 Phụ Huynh Qua Zalo/App
-              </p>
-            </div>
-          </div>
-
-          <div className="p-4 rounded-2xl bg-purple-50/70 dark:bg-purple-950/40 border border-purple-200/80 dark:border-purple-900/60 space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-extrabold uppercase tracking-wider text-purple-600 dark:text-purple-400">
-                Hài Lòng Phụ Huynh
-              </span>
-              <Heart className="w-4 h-4 text-purple-600" />
-            </div>
-            <div>
-              <p className="text-2xl font-extrabold text-purple-900 dark:text-purple-200">4.9 / 5.0 ⭐</p>
-              <p className="text-[11px] font-semibold text-purple-700 dark:text-purple-300 mt-0.5">
-                Khảo sát định kỳ tháng 9
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* ── WORKSPACE TABS NAVIGATION ── */}
-        <div className="flex items-center gap-2 border-b border-slate-100 dark:border-slate-700/60 overflow-x-auto pb-1">
-          <button
-            onClick={() => setActiveTab('overview')}
-            className={`px-4 py-2.5 text-xs font-extrabold rounded-2xl transition-all whitespace-nowrap cursor-pointer ${
-              activeTab === 'overview'
-                ? 'bg-primary text-primary-foreground shadow-sm'
-                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
-            }`}
-          >
-            Tổng Quan Communication Center
-          </button>
-          <button
-            onClick={() => setActiveTab('messages')}
-            className={`px-4 py-2.5 text-xs font-extrabold rounded-2xl transition-all whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${
-              activeTab === 'messages'
-                ? 'bg-primary text-primary-foreground shadow-sm'
-                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
-            }`}
-          >
-            <MessageSquare className="w-3.5 h-3.5" />
-            Tin Nhắn & Intent Workflows ({messagesList.filter((m) => m.unread).length})
-          </button>
-          <button
-            onClick={() => setActiveTab('daily')}
-            className={`px-4 py-2.5 text-xs font-extrabold rounded-2xl transition-all whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${
-              activeTab === 'daily'
-                ? 'bg-primary text-primary-foreground shadow-sm'
-                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
-            }`}
-          >
-            <Activity className="w-3.5 h-3.5" />
-            Daily Child Update (Sổ Liên Lạc)
-          </button>
-          <button
-            onClick={() => setActiveTab('announcements')}
-            className={`px-4 py-2.5 text-xs font-extrabold rounded-2xl transition-all whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${
-              activeTab === 'announcements'
-                ? 'bg-primary text-primary-foreground shadow-sm'
-                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
-            }`}
-          >
-            <Megaphone className="w-3.5 h-3.5" />
-            Thông Báo & Form Đồng Ý (Consent)
-          </button>
-          <button
-            onClick={() => setActiveTab('media')}
-            className={`px-4 py-2.5 text-xs font-extrabold rounded-2xl transition-all whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${
-              activeTab === 'media'
-                ? 'bg-primary text-primary-foreground shadow-sm'
-                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
-            }`}
-          >
-            <Camera className="w-3.5 h-3.5" />
-            Hoạt Động & Media Feed
+            <Send className="w-4 h-4" />
+            <span>Gửi thông báo</span>
           </button>
         </div>
       </div>
 
-      {/* ── TAB CONTENT 1: OVERVIEW & INTENT WORKFLOW MESSAGES ── */}
-      {activeTab === 'overview' && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Main Messages Stream with Intent Detection */}
-          <div className="lg:col-span-2 space-y-6">
-            <div className="rounded-3xl bg-white dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-700/80 p-6 shadow-sm space-y-5">
-              <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-700/60 pb-4">
-                <h2 className="text-base font-extrabold text-gray-900 dark:text-white flex items-center gap-2">
-                  <MessageSquare className="w-5 h-5 text-[var(--education-brand-ink)]" />
-                  Tin Nhắn Phụ Huynh Cần Xử Lý & Intent Actions
-                </h2>
-                <span className="text-xs font-bold text-slate-500">32 Cuộc Trò Chuyện Lớp</span>
-              </div>
-
-              <div className="space-y-4">
-                {messagesList.map((msg) => (
-                  <div
-                    key={msg.id}
-                    className={`p-5 rounded-3xl border ${
-                      msg.slaExceeded
-                        ? 'bg-rose-50/50 dark:bg-rose-950/30 border-rose-200 dark:border-rose-900/60'
-                        : 'bg-slate-50 dark:bg-slate-900/60 border-slate-200/80 dark:border-slate-700/60'
-                    } space-y-3`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className={`w-10 h-10 rounded-2xl ${msg.avatarBg} flex items-center justify-center font-extrabold text-sm shrink-0`}>
-                          {msg.parentName.split(' ').pop()?.[0]}
-                        </div>
-                        <div>
-                          <h4 className="text-xs font-extrabold text-slate-900 dark:text-white">
-                            {msg.parentName} • <span className="text-[var(--education-brand-ink)]">{msg.childName}</span>
-                          </h4>
-                          <p className="text-[11px] font-semibold text-slate-500">{msg.className} • {msg.assignedTeacher}</p>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        {msg.slaExceeded && (
-                          <span className="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-800 border border-rose-300">
-                            ⚠️ Quá 4h SLA
-                          </span>
-                        )}
-                        <span className="text-[11px] font-medium text-slate-400">{msg.timestamp}</span>
-                      </div>
-                    </div>
-
-                    <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed pl-1">
-                      &quot;{msg.content}&quot;
-                    </p>
-
-                    {/* AI Intent Detection Box */}
-                    {msg.detectedIntent && (
-                      <div className="p-3 rounded-2xl bg-primary/10 border border-primary/20 text-xs space-y-2">
-                        <div className="flex items-center justify-between">
-                          <span className="font-extrabold text-[var(--education-brand-ink)] flex items-center gap-1.5">
-                            <Bot className="w-3.5 h-3.5 text-[var(--education-brand-ink)]" />
-                            AI Intent Detection: <strong>{msg.detectedIntent}</strong>
-                          </span>
-                          <span className="text-[10px] text-slate-500">(Cần cô giáo xác nhận)</span>
-                        </div>
-
-                        {msg.actionDone ? (
-                          <div className="text-emerald-700 dark:text-emerald-400 font-bold text-[11px] flex items-center gap-1">
-                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
-                            {msg.actionDone}
-                          </div>
-                        ) : (
-                          <div className="flex items-center gap-2 pt-1">
-                            <button
-                              onClick={() => handleCreateCareNoteFromMessage(msg.id)}
-                              className="px-3 py-1.5 rounded-xl bg-primary text-primary-foreground font-bold text-[11px] hover:bg-primary-hover transition-all cursor-pointer flex items-center gap-1"
-                            >
-                              <Plus className="w-3 h-3" />
-                              <span>Tạo Lưu Ý Chăm Sóc (Care Note)</span>
-                            </button>
-                            <button className="px-3 py-1.5 rounded-xl bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-[11px] hover:bg-slate-300 transition-all cursor-pointer">
-                              Bỏ Qua
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
+      {/* ── 4 KPI STAT CARDS MATCHING IMAGE 3 ── */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {/* Card 1: Tin chưa đọc */}
+        <div className="rounded-3xl bg-white dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-700/80 p-5 shadow-sm flex flex-col justify-between">
+          <div className="w-9 h-9 rounded-full bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center mb-3">
+            <MessageSquare className="w-4 h-4" />
+          </div>
+          <div>
+            <div className="text-xs font-bold text-slate-700 dark:text-slate-300">Tin chưa đọc</div>
+            <div className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight mt-1">
+              8
+            </div>
+            <div className="text-[11px] font-semibold text-rose-600 dark:text-rose-400 mt-1 flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-rose-600" />
+              <span>3 cuộc quá hạn</span>
             </div>
           </div>
+        </div>
 
-          {/* School Announcements & Consent Tracker */}
-          <div className="space-y-6">
-            <div className="rounded-3xl bg-white dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-700/80 p-6 shadow-sm space-y-5">
-              <h2 className="text-base font-extrabold text-gray-900 dark:text-white flex items-center gap-2 border-b border-slate-100 dark:border-slate-700/60 pb-4">
-                <Megaphone className="w-5 h-5 text-[var(--education-brand-ink)]" />
-                Thông Báo & Form Đồng Ý (Consent)
+        {/* Card 2: Tỷ lệ đã đọc */}
+        <div className="rounded-3xl bg-white dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-700/80 p-5 shadow-sm flex flex-col justify-between">
+          <div className="w-9 h-9 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mb-3">
+            <CheckCheck className="w-4 h-4" />
+          </div>
+          <div>
+            <div className="text-xs font-bold text-slate-700 dark:text-slate-300">Tỷ lệ đã đọc</div>
+            <div className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight mt-1">
+              96.8%
+            </div>
+            <div className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-400 mt-1 flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" />
+              <span>268 / 280 phụ huynh</span>
+            </div>
+            <div className="w-full h-1.5 rounded-full bg-slate-100 dark:bg-slate-700 overflow-hidden mt-3">
+              <div className="h-full bg-emerald-500 rounded-full" style={{ width: '96.8%' }} />
+            </div>
+          </div>
+        </div>
+
+        {/* Card 3: Chưa phản hồi */}
+        <div className="rounded-3xl bg-white dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-700/80 p-5 shadow-sm flex flex-col justify-between">
+          <div className="w-9 h-9 rounded-full bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center mb-3">
+            <FileText className="w-4 h-4" />
+          </div>
+          <div>
+            <div className="text-xs font-bold text-slate-700 dark:text-slate-300">Chưa phản hồi</div>
+            <div className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight mt-1">
+              25
+            </div>
+            <div className="text-[11px] font-semibold text-amber-700 dark:text-amber-400 mt-1 flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-600" />
+              <span>Biểu mẫu đồng ý</span>
+            </div>
+            <div className="w-full h-1.5 rounded-full bg-slate-100 dark:bg-slate-700 overflow-hidden mt-3">
+              <div className="h-full bg-amber-500 rounded-full" style={{ width: '25%' }} />
+            </div>
+          </div>
+        </div>
+
+        {/* Card 4: Hài lòng phụ huynh */}
+        <div className="rounded-3xl bg-white dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-700/80 p-5 shadow-sm flex flex-col justify-between">
+          <div className="w-9 h-9 rounded-full bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center mb-3">
+            <Heart className="w-4 h-4" />
+          </div>
+          <div>
+            <div className="text-xs font-bold text-slate-700 dark:text-slate-300">Hài lòng phụ huynh</div>
+            <div className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight mt-1">
+              4.9 / 5.0
+            </div>
+            <div className="text-[11px] text-slate-400 mt-1 flex items-center gap-1.5">
+              <span>◆</span>
+              <span>Khảo sát tháng 9</span>
+            </div>
+            <div className="flex items-center gap-1 text-amber-400 text-xs mt-2">
+              <span>⭐</span>
+              <span>⭐</span>
+              <span>⭐</span>
+              <span>⭐</span>
+              <span>⭐</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ── WORKSPACE NAVIGATION TABS MATCHING IMAGE 3 ── */}
+      <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+        <button
+          type="button"
+          onClick={() => setActiveNavTab('overview')}
+          className={`px-4 py-2 text-xs font-extrabold rounded-2xl transition-all whitespace-nowrap cursor-pointer flex items-center gap-2 ${
+            activeNavTab === 'overview'
+              ? 'bg-[#0c513f] text-white shadow-sm'
+              : 'bg-white dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50'
+          }`}
+        >
+          <span>Tổng quan</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveNavTab('messages')}
+          className={`px-4 py-2 text-xs font-extrabold rounded-2xl transition-all whitespace-nowrap cursor-pointer flex items-center gap-2 ${
+            activeNavTab === 'messages'
+              ? 'bg-[#0c513f] text-white shadow-sm'
+              : 'bg-white dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50'
+          }`}
+        >
+          <MessageSquare className="w-3.5 h-3.5" />
+          <span>Tin nhắn</span>
+          <span className="w-4 h-4 rounded-full bg-rose-600 text-white text-[10px] flex items-center justify-center font-bold">
+            8
+          </span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveNavTab('daily')}
+          className={`px-4 py-2 text-xs font-extrabold rounded-2xl transition-all whitespace-nowrap cursor-pointer flex items-center gap-2 ${
+            activeNavTab === 'daily'
+              ? 'bg-[#0c513f] text-white shadow-sm'
+              : 'bg-white dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50'
+          }`}
+        >
+          <BookOpen className="w-3.5 h-3.5" />
+          <span>Sổ liên lạc</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveNavTab('announcements')}
+          className={`px-4 py-2 text-xs font-extrabold rounded-2xl transition-all whitespace-nowrap cursor-pointer flex items-center gap-2 ${
+            activeNavTab === 'announcements'
+              ? 'bg-[#0c513f] text-white shadow-sm'
+              : 'bg-white dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50'
+          }`}
+        >
+          <Bell className="w-3.5 h-3.5" />
+          <span>Thông báo</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveNavTab('consent')}
+          className={`px-4 py-2 text-xs font-extrabold rounded-2xl transition-all whitespace-nowrap cursor-pointer flex items-center gap-2 ${
+            activeNavTab === 'consent'
+              ? 'bg-[#0c513f] text-white shadow-sm'
+              : 'bg-white dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50'
+          }`}
+        >
+          <ClipboardList className="w-3.5 h-3.5" />
+          <span>Biểu mẫu đồng ý</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveNavTab('media')}
+          className={`px-4 py-2 text-xs font-extrabold rounded-2xl transition-all whitespace-nowrap cursor-pointer flex items-center gap-2 ${
+            activeNavTab === 'media'
+              ? 'bg-[#0c513f] text-white shadow-sm'
+              : 'bg-white dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50'
+          }`}
+        >
+          <Camera className="w-3.5 h-3.5" />
+          <span>Hoạt động</span>
+        </button>
+      </div>
+
+      {/* ── TWO-COLUMN SPLIT INBOX WORKSPACE MATCHING IMAGE 3 ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        {/* ── LEFT COLUMN: CONVERSATION LIST (7 COLUMNS / ~58%) ── */}
+        <div className="lg:col-span-7 rounded-3xl bg-white dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-700/80 shadow-sm p-5 sm:p-6 space-y-4">
+          {/* Header */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <MessageSquare className="w-4 h-4 text-[#0c513f]" />
+              <h2 className="text-sm font-extrabold text-slate-900 dark:text-white">
+                Tin nhắn phụ huynh
               </h2>
+            </div>
+            <span className="text-xs text-slate-500 font-bold">32 cuộc trò chuyện</span>
+          </div>
 
-              <div className="space-y-4">
-                {announcementsList.map((ann) => (
-                  <div key={ann.id} className="p-4 rounded-2xl bg-primary/10 border border-primary/20 space-y-3 text-xs">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-primary/15 text-[var(--education-brand-ink)]">
-                        {ann.category}
-                      </span>
-                      <span className="text-[11px] font-semibold text-slate-400">{ann.publishDate}</span>
+          {/* Search Bar */}
+          <div className="flex items-center gap-2">
+            <div className="relative flex-1">
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e: ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
+                placeholder="Tìm phụ huynh, trẻ, lớp hoặc nội dung..."
+                className="w-full bg-slate-50/70 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-700 text-xs text-slate-800 dark:text-slate-200 rounded-2xl pl-9 pr-4 py-2.5 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#0c513f]/20"
+              />
+              <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+            </div>
+
+            <button
+              type="button"
+              title="Mở bộ lọc nâng cao"
+              className="p-2.5 rounded-2xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 transition-colors shrink-0 cursor-pointer"
+            >
+              <Filter className="w-4 h-4" />
+            </button>
+          </div>
+
+          {/* Quick Filter Tabs */}
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+            <button
+              type="button"
+              onClick={() => setConversationFilter('ALL')}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                conversationFilter === 'ALL'
+                  ? 'bg-[#0c513f] text-white shadow-xs'
+                  : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
+              }`}
+            >
+              Tất cả (32)
+            </button>
+            <button
+              type="button"
+              onClick={() => setConversationFilter('UNREAD')}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                conversationFilter === 'UNREAD'
+                  ? 'bg-[#0c513f] text-white shadow-xs'
+                  : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
+              }`}
+            >
+              Chưa đọc (8)
+            </button>
+            <button
+              type="button"
+              onClick={() => setConversationFilter('ACTION_REQUIRED')}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                conversationFilter === 'ACTION_REQUIRED'
+                  ? 'bg-[#0c513f] text-white shadow-xs'
+                  : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
+              }`}
+            >
+              Cần xử lý (6)
+            </button>
+            <button
+              type="button"
+              onClick={() => setConversationFilter('OVERDUE')}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                conversationFilter === 'OVERDUE'
+                  ? 'bg-[#0c513f] text-white shadow-xs'
+                  : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
+              }`}
+            >
+              Quá hạn (3)
+            </button>
+          </div>
+
+          {/* Conversation Cards List */}
+          <div className="space-y-2.5">
+            {filteredConversations.map((conv) => {
+              const isSelected = conv.id === selectedConversationId;
+              return (
+                <div
+                  key={conv.id}
+                  onClick={() => setSelectedConversationId(conv.id)}
+                  className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between gap-3 ${
+                    isSelected
+                      ? 'bg-slate-50/90 dark:bg-slate-700/60 border-slate-300 dark:border-slate-600 shadow-xs ring-1 ring-[#0c513f]/30'
+                      : 'border-slate-100 dark:border-slate-700/60 hover:bg-slate-50/60 dark:hover:bg-slate-700/30'
+                  }`}
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div
+                      className={`w-9 h-9 rounded-full font-extrabold text-sm flex items-center justify-center shrink-0 ${conv.avatarBg}`}
+                    >
+                      {conv.avatarInitial}
                     </div>
 
-                    <h4 className="font-extrabold text-slate-900 dark:text-white leading-snug">{ann.title}</h4>
-
-                    {/* Consent Engine Progress */}
-                    {ann.requiresConsent && (
-                      <div className="p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/60 space-y-1.5">
-                        <div className="flex items-center justify-between font-bold text-[11px]">
-                          <span className="text-emerald-600">✓ 247 Phụ huynh đồng ý ({Math.round((247 / 280) * 100)}%)</span>
-                          <span className="text-amber-600">25 Chưa phản hồi</span>
-                        </div>
-                        <div className="w-full h-1.5 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
-                          <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${(247 / 280) * 100}%` }} />
-                        </div>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="font-extrabold text-xs text-slate-900 dark:text-white truncate">
+                          {conv.parentName}
+                        </span>
+                        <span className="text-[11px] text-slate-400 shrink-0">{conv.timestamp}</span>
                       </div>
-                    )}
+
+                      <div className="text-[11px] text-slate-500 font-medium truncate mt-0.5">
+                        {conv.className} • {conv.studentName}
+                      </div>
+
+                      <div className="text-xs text-slate-600 dark:text-slate-300 truncate mt-1">
+                        &quot;{conv.snippet}&quot;
+                      </div>
+                    </div>
                   </div>
-                ))}
-              </div>
-            </div>
+
+                  <div className="flex items-center gap-2 shrink-0">
+                    {renderTagBadge(conv.tagType, conv.tagLabel)}
+                    <ChevronRight className="w-4 h-4 text-slate-400" />
+                  </div>
+                </div>
+              );
+            })}
           </div>
-        </div>
-      )}
 
-      {/* ── TAB CONTENT 3: DAILY CHILD UPDATE DIGEST ── */}
-      {activeTab === 'daily' && (
-        <div className="rounded-3xl bg-white dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-700/80 p-6 sm:p-8 shadow-sm space-y-6">
-          <h3 className="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
-            <Activity className="w-5 h-5 text-[var(--education-brand-ink)]" />
-            Sổ Liên Lạc Điện Tử Nhật Ký Con Hôm Nay (Daily Child Digest Engine)
-          </h3>
-
-          <div className="p-4 rounded-2xl bg-primary/10 border border-primary/20 text-xs space-y-1">
-            <span className="font-extrabold text-[var(--education-brand-ink)]">
-              Tổng Hợp Dữ Liệu Tự Động Từ Các Domain Vận Hành:
+          {/* List Footer with Pagination */}
+          <div className="pt-3 border-t border-slate-100 dark:border-slate-700/60 flex items-center justify-between text-xs">
+            <span className="text-slate-500 font-medium">
+              Hiển thị <strong className="text-slate-800 dark:text-slate-200">{filteredConversations.length}</strong> / 32
             </span>
-            <p className="text-[var(--education-brand-ink)]">
-              ✓ Điểm danh 07:42 • 🍱 Bữa trưa 90% • 😴 Giấc ngủ 12:10-13:45 • 🎨 Hoạt động STEAM • 📝 Lời nhắn cô giáo.
-            </p>
+
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                className="w-7 h-7 rounded-lg border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-50 disabled:opacity-40 transition-colors cursor-pointer"
+              >
+                <ChevronLeft className="w-3.5 h-3.5" />
+              </button>
+
+              {[1, 2, 3, 4].map((page) => (
+                <button
+                  key={page}
+                  type="button"
+                  onClick={() => setCurrentPage(page)}
+                  className={`w-7 h-7 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    currentPage === page
+                      ? 'bg-[#0c513f] text-white shadow-xs'
+                      : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                  }`}
+                >
+                  {page}
+                </button>
+              ))}
+
+              <button
+                type="button"
+                disabled={currentPage === 4}
+                onClick={() => setCurrentPage((p) => Math.min(4, p + 1))}
+                className="w-7 h-7 rounded-lg border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-50 disabled:opacity-40 transition-colors cursor-pointer"
+              >
+                <ChevronRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
           </div>
         </div>
-      )}
 
-      {/* ── GOVERNED ANNOUNCEMENT MODAL WITH AUDIENCE TARGETING ── */}
-      {isAnnouncementModalOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className="w-full max-w-xl rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl p-6 sm:p-8 space-y-6 relative">
-            <button
-              onClick={() => setIsAnnouncementModalOpen(false)}
-              className="absolute top-5 right-5 p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer"
-            >
-              <X className="w-4 h-4" />
-            </button>
-
-            <div className="space-y-1">
-              <span className="text-[11px] font-extrabold uppercase tracking-wider text-[var(--education-brand-ink)]">
-                Khởi tạo thông báo điều hành có phân vùng
-              </span>
-              <h3 className="text-xl font-extrabold text-slate-900 dark:text-white">
-                Gửi Thông Báo Toàn Trường / Phân Vùng
-              </h3>
+        {/* ── RIGHT COLUMN: CONVERSATION DETAIL & ACTION WORKSPACE (5 COLUMNS / ~42%) ── */}
+        <div className="lg:col-span-5 rounded-3xl bg-white dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-700/80 shadow-sm p-5 sm:p-6 space-y-5">
+          {/* Conversation Detail Header */}
+          <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-700/60 pb-4">
+            <div className="flex items-center gap-3">
+              <div
+                className={`w-10 h-10 rounded-full font-extrabold text-sm flex items-center justify-center shrink-0 ${activeConversation.avatarBg}`}
+              >
+                {activeConversation.avatarInitial}
+              </div>
+              <div>
+                <h3 className="text-sm font-extrabold text-slate-900 dark:text-white">
+                  {activeConversation.parentName}
+                </h3>
+                <p className="text-xs text-slate-500 font-medium">
+                  {activeConversation.studentName} • Lớp {activeConversation.className}
+                </p>
+              </div>
             </div>
 
-            <div className="space-y-4">
+            <button
+              type="button"
+              title="Tùy chọn hội thoại"
+              className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors cursor-pointer"
+            >
+              <MoreVertical className="w-4 h-4" />
+            </button>
+          </div>
+
+          {/* Detail Sub Tabs */}
+          <div className="flex items-center gap-6 border-b border-slate-100 dark:border-slate-700/60 text-xs font-bold text-slate-500">
+            <button
+              type="button"
+              onClick={() => setDetailSubTab('chat')}
+              className={`pb-2 transition-all cursor-pointer ${
+                detailSubTab === 'chat'
+                  ? 'text-[#0c513f] dark:text-emerald-400 border-b-2 border-[#0c513f]'
+                  : 'hover:text-slate-800'
+              }`}
+            >
+              Trao đổi
+            </button>
+            <button
+              type="button"
+              onClick={() => setDetailSubTab('info')}
+              className={`pb-2 transition-all cursor-pointer ${
+                detailSubTab === 'info'
+                  ? 'text-[#0c513f] dark:text-emerald-400 border-b-2 border-[#0c513f]'
+                  : 'hover:text-slate-800'
+              }`}
+            >
+              Thông tin
+            </button>
+            <button
+              type="button"
+              onClick={() => setDetailSubTab('logs')}
+              className={`pb-2 transition-all cursor-pointer ${
+                detailSubTab === 'logs'
+                  ? 'text-[#0c513f] dark:text-emerald-400 border-b-2 border-[#0c513f]'
+                  : 'hover:text-slate-800'
+              }`}
+            >
+              Nhật ký
+            </button>
+            <button
+              type="button"
+              onClick={() => setDetailSubTab('related')}
+              className={`pb-2 transition-all cursor-pointer ${
+                detailSubTab === 'related'
+                  ? 'text-[#0c513f] dark:text-emerald-400 border-b-2 border-[#0c513f]'
+                  : 'hover:text-slate-800'
+              }`}
+            >
+              Liên quan
+            </button>
+          </div>
+
+          {/* Chat Messages Timeline */}
+          <div className="space-y-3.5 py-1 max-h-[300px] overflow-y-auto pr-1">
+            {activeConversation.thread.map((msg) => {
+              if (msg.sender === 'parent') {
+                return (
+                  <div key={msg.id} className="flex items-start gap-2.5">
+                    <div
+                      className={`w-7 h-7 rounded-full text-xs font-bold flex items-center justify-center shrink-0 mt-0.5 ${activeConversation.avatarBg}`}
+                    >
+                      {activeConversation.avatarInitial}
+                    </div>
+                    <div className="max-w-[85%] rounded-2xl rounded-tl-xs p-3.5 bg-slate-100 dark:bg-slate-700/80 text-xs text-slate-800 dark:text-slate-200 space-y-1">
+                      <p className="leading-relaxed">{msg.text}</p>
+                      <div className="text-[10px] text-slate-400 text-right">{msg.time}</div>
+                    </div>
+                  </div>
+                );
+              } else {
+                return (
+                  <div key={msg.id} className="flex items-end justify-end gap-2">
+                    <div className="max-w-[85%] rounded-2xl rounded-tr-xs p-3.5 bg-[#ecfdf5] dark:bg-emerald-950/60 border border-[#a7f3d0] dark:border-emerald-800 text-xs text-[#064e3b] dark:text-emerald-200 space-y-1">
+                      <p className="leading-relaxed">{msg.text}</p>
+                      <div className="flex items-center justify-end gap-1 text-[10px] text-emerald-600 dark:text-emerald-400">
+                        <span>{msg.time}</span>
+                        {msg.isDelivered && <span>✔✔</span>}
+                      </div>
+                    </div>
+                  </div>
+                );
+              }
+            })}
+          </div>
+
+          {/* AI Intent Detection Box Matching Image 3 */}
+          <div className="p-4 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200/90 dark:border-slate-700 shadow-xs space-y-3">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-700/60 pb-2">
+              <span className="text-xs font-extrabold text-slate-900 dark:text-white">
+                AI nhận diện yêu cầu
+              </span>
+              <span className="px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-[#fef3c7] text-[#92400e]">
+                Beta
+              </span>
+            </div>
+
+            <div className="flex items-start gap-3">
+              <div className="w-8 h-8 rounded-full bg-rose-50 dark:bg-rose-950/60 text-rose-500 flex items-center justify-center shrink-0">
+                <Heart className="w-4 h-4" />
+              </div>
               <div>
-                <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1.5">
-                  Đối tượng tiếp nhận (Audience Scope)
-                </label>
-                <select className="w-full p-3 text-xs rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-medium focus:ring-2 focus:ring-ring">
-                  <option>Toàn Trường (280 Phụ Huynh)</option>
-                  <option>Khối Mầm (80 Phụ Huynh)</option>
-                  <option>Khối Chồi (90 Phụ Huynh)</option>
-                  <option>Khối Lá (110 Phụ Huynh)</option>
-                </select>
+                <div className="font-extrabold text-xs text-slate-900 dark:text-white">
+                  {activeConversation.aiIntent.title}
+                </div>
+                <div className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 mt-0.5">
+                  {activeConversation.aiIntent.confidence}
+                </div>
+              </div>
+            </div>
+
+            {/* Tags */}
+            <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
+              {activeConversation.aiIntent.tags.map((t, idx) => (
+                <span
+                  key={idx}
+                  className={`px-2.5 py-1 rounded-full text-[11px] font-extrabold border ${t.color}`}
+                >
+                  {t.label}
+                </span>
+              ))}
+            </div>
+
+            {/* Action Recommendations */}
+            <div className="pt-2 border-t border-slate-100 dark:border-slate-700/60 space-y-2">
+              <span className="text-[11px] font-bold text-slate-500">Gợi ý hành động:</span>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleExecutePrimaryAction}
+                  className="px-3.5 py-2 rounded-xl bg-[#0c513f] hover:bg-[#083b2e] text-white text-xs font-extrabold transition-all active:scale-95 flex items-center gap-1.5 shadow-xs cursor-pointer"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>{activeConversation.aiIntent.primaryActionLabel}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setReplyInput('Dạ cô đã tiếp nhận thông tin từ gia đình ạ.')}
+                  className="px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 transition-colors flex items-center gap-1.5 cursor-pointer"
+                >
+                  <MessageSquare className="w-3.5 h-3.5 text-slate-500" />
+                  <span>Tạo phản hồi nhanh</span>
+                </button>
+
+                <button
+                  type="button"
+                  title="Thêm tùy chọn"
+                  className="p-2 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-500 hover:bg-slate-50 cursor-pointer"
+                >
+                  <MoreVertical className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Linked Care Note Box (If present) */}
+          {activeConversation.linkedCareNote && (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between text-xs">
+                <span className="font-extrabold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                  <ClipboardList className="w-3.5 h-3.5 text-[#0c513f]" />
+                  <span>Lưu ý chăm sóc ({activeConversation.linkedCareNote.count})</span>
+                </span>
+                <Link
+                  href="/dashboard/education/care"
+                  className="text-xs font-bold text-emerald-700 dark:text-emerald-400 hover:underline flex items-center gap-1"
+                >
+                  <span>Xem tất cả</span>
+                  <span>→</span>
+                </Link>
               </div>
 
+              <div className="p-3.5 rounded-2xl bg-[#fffbeb] dark:bg-amber-950/40 border border-[#fef3c7] dark:border-amber-900/60 space-y-2 text-xs">
+                <p className="text-[#92400e] dark:text-amber-200 leading-relaxed font-medium">
+                  &quot;{activeConversation.linkedCareNote.text}&quot;
+                </p>
+                <div className="flex items-center justify-between text-[11px] text-amber-700 dark:text-amber-300 pt-1 border-t border-[#fde68a]/50">
+                  <span className="font-bold">{activeConversation.linkedCareNote.teacherName}</span>
+                  <span>{activeConversation.linkedCareNote.dateString}</span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Bottom Response Compose Bar */}
+          <div className="pt-2 border-t border-slate-100 dark:border-slate-700/60 space-y-2">
+            <div className="relative">
+              <input
+                type="text"
+                value={replyInput}
+                onChange={(e: ChangeEvent<HTMLInputElement>) => setReplyInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleSendReply();
+                }}
+                placeholder="Nhập tin nhắn phản hồi..."
+                className="w-full bg-slate-50/80 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-700 text-xs text-slate-800 dark:text-slate-200 rounded-2xl pl-4 pr-12 py-3 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#0c513f]/20"
+              />
+              <button
+                type="button"
+                onClick={handleSendReply}
+                title="Gửi tin nhắn"
+                className="w-8 h-8 rounded-full bg-[#0c513f] hover:bg-[#083b2e] text-white flex items-center justify-center absolute right-2 top-2 shadow-xs transition-transform active:scale-90 cursor-pointer"
+              >
+                <Send className="w-3.5 h-3.5" />
+              </button>
+            </div>
+
+            <div className="flex items-center gap-3 text-slate-400 px-1 text-xs">
+              <button
+                type="button"
+                title="Đính kèm tệp"
+                className="hover:text-slate-600 transition-colors cursor-pointer"
+              >
+                <Paperclip className="w-4 h-4" />
+              </button>
+              <button
+                type="button"
+                title="Đính kèm hình ảnh"
+                className="hover:text-slate-600 transition-colors cursor-pointer"
+              >
+                <ImageIcon className="w-4 h-4" />
+              </button>
+              <button
+                type="button"
+                title="Chèn biểu tượng cảm xúc"
+                className="hover:text-slate-600 transition-colors cursor-pointer"
+              >
+                <Smile className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ── BROADCAST ANNOUNCEMENT MODAL ── */}
+      {isBroadcastModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto animate-in fade-in duration-200">
+          <div className="w-full max-w-lg bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl p-6 sm:p-8 space-y-5">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-950 text-[#0c513f] flex items-center justify-center">
+                  <Megaphone className="w-4 h-4" />
+                </div>
+                <h3 className="text-base font-extrabold text-slate-900 dark:text-white">
+                  Soạn thông báo điều hành mới
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsBroadcastModalOpen(false)}
+                className="p-1.5 rounded-xl text-slate-400 hover:text-slate-600 cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="space-y-4 text-xs">
               <div>
-                <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1.5">
+                <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">
                   Tiêu đề thông báo
                 </label>
                 <input
                   type="text"
-                  placeholder="Nhập tiêu đề thông báo..."
-                  className="w-full p-3 text-xs rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-medium focus:ring-2 focus:ring-ring"
+                  placeholder="Ví dụ: Kế hoạch tổ chức Lễ hội Trung Thu 2026..."
+                  className="w-full p-2.5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 font-medium"
                 />
               </div>
 
-              <div className="flex items-center gap-2 pt-1">
-                <input type="checkbox" id="requireConsent" className="rounded text-[var(--education-brand-ink)] focus:ring-ring" />
-                <label htmlFor="requireConsent" className="text-xs font-extrabold text-slate-700 dark:text-slate-300 cursor-pointer">
-                  Yêu cầu Phụ huynh xác nhận / Đồng ý (Form Consent Engine)
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">
+                    Phạm vi gửi
+                  </label>
+                  <select className="w-full p-2.5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 font-medium">
+                    <option>Toàn trường (Tất cả các lớp)</option>
+                    <option>Khối Mầm (Mầm A1, Mầm A2)</option>
+                    <option>Khối Chồi (Chồi B1, Chồi B2)</option>
+                    <option>Khối Lá (Lá C1, Lá C2)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">
+                    Loại thông báo
+                  </label>
+                  <select className="w-full p-2.5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 font-medium">
+                    <option>Thông báo chung</option>
+                    <option>Biểu mẫu đồng ý (Consent)</option>
+                    <option>Hoạt động dã ngoại</option>
+                    <option>Thông báo học phí</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">
+                  Nội dung chi tiết
                 </label>
+                <textarea
+                  rows={4}
+                  placeholder="Nhập nội dung thông báo gửi đến phụ huynh..."
+                  className="w-full p-2.5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 font-medium"
+                />
               </div>
             </div>
 
             <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100 dark:border-slate-800">
               <button
                 type="button"
-                onClick={() => setIsAnnouncementModalOpen(false)}
+                onClick={() => setIsBroadcastModalOpen(false)}
                 className="px-4 py-2.5 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-xs hover:bg-slate-200 transition-colors cursor-pointer"
               >
                 Hủy bỏ
               </button>
               <button
                 type="button"
-                onClick={() => setIsAnnouncementModalOpen(false)}
-                className="px-5 py-2.5 rounded-2xl bg-primary hover:bg-primary-hover text-primary-foreground font-bold text-xs shadow-md transition-all cursor-pointer flex items-center gap-1.5"
+                onClick={() => {
+                  setIsBroadcastModalOpen(false);
+                  setActionSuccessNotice('Đã gửi thông báo điều hành đến 280 phụ huynh thành công!');
+                  setTimeout(() => setActionSuccessNotice(null), 3000);
+                }}
+                className="px-5 py-2.5 rounded-2xl bg-[#0c513f] hover:bg-[#083b2e] text-white font-bold text-xs shadow-md transition-all flex items-center gap-1.5 cursor-pointer"
               >
                 <Send className="w-4 h-4" />
-                <span>Phát Hành Thông Báo</span>
+                <span>Phát hành thông báo</span>
               </button>
             </div>
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+/**
+ * Fallback view for non-preschool enterprise tenants
+ */
+function LegacyCommunicationView() {
+  return (
+    <div className="w-full p-6 space-y-6">
+      <div className="p-6 rounded-3xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm">
+        <h2 className="text-lg font-bold text-slate-900 dark:text-white">
+          Trung Tâm Truyền Thông & Tương Tác — Enterprise ERP
+        </h2>
+        <p className="text-xs text-slate-500 mt-1">
+          Chế độ xem dành riêng cho trung tâm đào tạo tiêu chuẩn và trường phổ thông liên cấp.
+        </p>
+      </div>
     </div>
   );
 }
