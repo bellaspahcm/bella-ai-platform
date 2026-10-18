@@ -86,5 +86,17 @@
     "native-command-readback.json",
     "independent-review.json"
   ],
-  "delivery": "DRAFT_PR_PENDING"
+  "delivery": {
+    "status": "DRAFT_PR_CREATED",
+    "url": "https://github.com/bellaspahcm/bella-ai-platform/pull/373",
+    "number": 373,
+    "base": "codex/preschool-containment",
+    "baseCommit": "91468e5cb98030636f339e160d6baad70c4348ff",
+    "runtimeCommit": "9bf68a005852e0df6a14730b35e43f6fefc89faa",
+    "ci": "PENDING_AT_PUBLICATION",
+    "remoteRuntimeScopeConfirmed": true,
+    "attachedToChat": true,
+    "merge": false,
+    "manualDeploy": false
+  }
 }
