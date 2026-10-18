@@ -1,0 +1,48 @@
+{
+  "recordedAt": "2026-10-18T01:29:07.268Z",
+  "result": "EXACT_REVIEWED_CANDIDATES_COMPOSED",
+  "sourceMatches": [
+    {
+      "path": "src/app/dashboard/education/grades/page.tsx",
+      "approvedRef": "c159d0eb53a919b556e37ca0391ed8a50d07ebca",
+      "sha256": "76e3d0d6862dcd4b789662a1768f48dcf808eddac5e3854da1df7fae26ace491",
+      "match": true
+    },
+    {
+      "path": "src/app/dashboard/education/reports/page.tsx",
+      "approvedRef": "9d4157c337c19405f047963db21181453e1eae9b",
+      "sha256": "f29e89fc398e7e097684944f082004508114002bb21196f5508fdff51b830cc5",
+      "match": true
+    },
+    {
+      "path": "src/app/dashboard/education/care/page.tsx",
+      "approvedRef": "2e52cb40069802fb08facb78fb6016bba7c888a6",
+      "sha256": "24b93819e6a15fd8fe620945f95d14e5d6451ce49ac122f1c591dc12ebc9d710",
+      "match": true
+    },
+    {
+      "path": "src/app/dashboard/education/enrollments/page.tsx",
+      "approvedRef": "550f537e94ce439ace569838aac5b0616e1d7701",
+      "sha256": "fd6f3ce95057384bd3e2001e8a668054d4d8ea7a983fbdcb322214196f2c8d1c",
+      "match": true
+    },
+    {
+      "path": "src/app/api/education/courses/route.ts",
+      "approvedRef": "91468e5cb98030636f339e160d6baad70c4348ff",
+      "match": true
+    },
+    {
+      "path": "src/app/api/education/parent-daily/route.ts",
+      "approvedRef": "91468e5cb98030636f339e160d6baad70c4348ff",
+      "match": true
+    }
+  ],
+  "changedRuntime": [
+    "src/app/dashboard/education/grades/page.tsx",
+    "src/app/dashboard/education/reports/page.tsx"
+  ],
+  "method": "Existing reviewed branch tips merged; two UI conflicts resolved to exact previously reviewed leaf blobs. No new behavior introduced.",
+  "ownerAuthority": "Current Owner explicitly allows main merge and Vercel auto Production deployment; DB/Auth/RLS/migration permissions unchanged.",
+  "dbOperations": 0,
+  "newRuntimeImplementation": false
+}
