@@ -16,12 +16,13 @@
  * - Preschool Footer Branding
  */
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase-client';
 import { clearDashboardClientContextCache } from '@/lib/dashboard-client-context';
+import type { ExecutiveDashboardDTO } from '@/products/bella-education/analytics/domain/preschool-analytics.types';
 import { 
   Search,
   Bell,
@@ -55,12 +56,24 @@ import {
   BookOpen,
 } from 'lucide-react';
 
+// Static default fallback data (module-level to avoid useMemo dep issues)
+const defaultClassHeadcounts = [
+  { classId: 'mam-non-1', name: 'Mầm non 1', count: 28, color: '#F472B6' },
+  { classId: 'mam-non-2', name: 'Mầm non 2', count: 24, color: '#60A5FA' },
+  { classId: 'nha-tre-1', name: 'Nhà trẻ 1', count: 18, color: '#FBBF24' },
+  { classId: 'nha-tre-2', name: 'Nhà trẻ 2', count: 16, color: '#34D399' },
+  { classId: 'la-1',      name: 'Lá 1',      count: 32, color: '#C084FC' },
+  { classId: 'la-2',      name: 'Lá 2',      count: 26, color: '#FB923C' },
+  { classId: 'choi-1',    name: 'Chồi 1',    count: 20, color: '#22D3EE' },
+  { classId: 'choi-2',    name: 'Chồi 2',    count: 22, color: '#A3E635' },
+];
+
 export default function EducationDashboardPage() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedAcademicYear, setSelectedAcademicYear] = useState('2026 - 2027');
+  const [selectedAcademicYear, setSelectedAcademicYear] = useState('Năm học 2026 - 2027');
   const [selectedRevenuePeriod, setSelectedRevenuePeriod] = useState('6 tháng gần nhất');
-  const [hoveredRevenueMonth, setHoveredRevenueMonth] = useState<string | null>('Tháng 5');
+  const [hoveredRevenueMonth, setHoveredRevenueMonth] = useState<string | null>('Tháng 10');
 
   // Interactive Header Popover & Date States
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -115,12 +128,63 @@ export default function EducationDashboardPage() {
     }
   };
 
-  // KPI Cards Data matching reference image
+  // Live Executive Dashboard Analytics
+  const [dashboardData, setDashboardData] = useState<ExecutiveDashboardDTO | null>(null);
+  const [loadingDashboard, setLoadingDashboard] = useState<boolean>(true);
+
+  const selectedDateStr = useMemo(() => {
+    return selectedDate.toISOString().split('T')[0];
+  }, [selectedDate]);
+
+  useEffect(() => {
+    let isMounted = true;
+    async function fetchAnalytics() {
+      try {
+        setLoadingDashboard(true);
+        const res = await fetch(`/api/education/analytics?date=${selectedDateStr}`, { cache: 'no-store' });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (isMounted && data.success && data.dashboard) {
+          setDashboardData(data.dashboard);
+        }
+      } catch (err) {
+        console.warn('Failed to load real-time preschool analytics:', err);
+      } finally {
+        if (isMounted) setLoadingDashboard(false);
+      }
+    }
+    fetchAnalytics();
+    return () => { isMounted = false; };
+  }, [selectedDateStr]);
+
+  // Derived Dynamic Metrics with Seeded Fallbacks
+  const totalKidsCount = dashboardData?.enrollment?.classroomUtilization
+    ? dashboardData.enrollment.classroomUtilization.reduce((sum, c) => sum + c.currentEnrollment, 0)
+    : 186;
+  const totalClassesCount = dashboardData?.enrollment?.totalClassrooms ?? 8;
+  const totalTeachersCount = dashboardData?.enrollment?.totalTeachers ?? 24;
+  const presentCount = dashboardData?.attendance?.todayPresentCount ?? 150;
+  const attendanceRate = totalKidsCount > 0 ? Math.round((presentCount / totalKidsCount) * 100) : 96;
+  const totalParentsCount = dashboardData?.commandCenter?.totalParentsCount ?? 142;
+
+  // Command Center Live Counts
+  const unmarkedAttendance = dashboardData?.commandCenter?.unmarkedAttendanceCount ?? 3;
+  const leaveRequests = dashboardData?.commandCenter?.leaveRequestsCount ?? 2;
+  const overdueInvoices = dashboardData?.commandCenter?.overdueInvoicesCount ?? 1;
+  const healthIncidents = dashboardData?.commandCenter?.healthIncidentsCount ?? 2;
+  const parentRequests = dashboardData?.commandCenter?.parentRequestsCount ?? 4;
+  const totalAttentionItems = (unmarkedAttendance > 0 ? 1 : 0) +
+    (leaveRequests > 0 ? 1 : 0) +
+    (overdueInvoices > 0 ? 1 : 0) +
+    (healthIncidents > 0 ? 1 : 0) +
+    (parentRequests > 0 ? 1 : 0);
+
+  // Dynamic KPI Cards Data
   const kpiStats = [
     {
       id: 'total-kids',
       label: 'Tổng số trẻ',
-      value: '156',
+      value: String(totalKidsCount),
       change: '+12%',
       comparison: 'so với tháng trước',
       icon: <Users className="w-5 h-5 text-rose-500" />,
@@ -129,7 +193,7 @@ export default function EducationDashboardPage() {
     {
       id: 'total-classes',
       label: 'Số lớp học',
-      value: '8',
+      value: String(totalClassesCount),
       change: '+1 lớp',
       comparison: 'so với kỳ trước',
       icon: <Users className="w-5 h-5 text-sky-500" />,
@@ -138,7 +202,7 @@ export default function EducationDashboardPage() {
     {
       id: 'total-teachers',
       label: 'Giáo viên',
-      value: '24',
+      value: String(totalTeachersCount),
       change: '+2',
       comparison: 'so với tháng trước',
       icon: <UserCheck className="w-5 h-5 text-emerald-500" />,
@@ -147,7 +211,7 @@ export default function EducationDashboardPage() {
     {
       id: 'attendance-rate',
       label: 'Tỷ lệ chuyên cần',
-      value: '96%',
+      value: `${attendanceRate}%`,
       change: '+3%',
       comparison: 'so với tháng trước',
       icon: <CalendarCheck className="w-5 h-5 text-amber-500" />,
@@ -156,7 +220,7 @@ export default function EducationDashboardPage() {
     {
       id: 'total-parents',
       label: 'Phụ huynh',
-      value: '142',
+      value: String(totalParentsCount),
       change: '+10%',
       comparison: 'so với tháng trước',
       icon: <Heart className="w-5 h-5 text-pink-500" />,
@@ -164,25 +228,71 @@ export default function EducationDashboardPage() {
     },
   ];
 
-  // Class Headcount Bar Chart Data (8 classes matching reference image)
-  const classHeadcounts = [
-    { classId: 'mam-non-1', name: 'Mầm non 1', count: 28, color: '#F472B6' }, // Pink
-    { classId: 'mam-non-2', name: 'Mầm non 2', count: 24, color: '#60A5FA' }, // Sky blue
-    { classId: 'nha-tre-1', name: 'Nhà trẻ 1', count: 18, color: '#FBBF24' }, // Yellow
-    { classId: 'nha-tre-2', name: 'Nhà trẻ 2', count: 16, color: '#34D399' }, // Mint
-    { classId: 'la-1',        name: 'Lá 1',      count: 32, color: '#C084FC' }, // Purple
-    { classId: 'la-2',        name: 'Lá 2',      count: 26, color: '#FB923C' }, // Orange
-    { classId: 'choi-1',      name: 'Chồi 1',    count: 20, color: '#22D3EE' }, // Cyan
-    { classId: 'choi-2',      name: 'Chồi 2',    count: 22, color: '#A3E635' }, // Light green
-  ];
+  // Dynamic Class Headcount Bar Chart Data with live counts
 
-  // Age Distribution Donut Chart Data
-  const ageDistribution = [
-    { label: 'Nhà trẻ (1-2 tuổi)', percentage: 22, color: '#F97316' },
-    { label: 'Mầm non (3-4 tuổi)', percentage: 38, color: '#F59E0B' },
-    { label: 'Chồi (4-5 tuổi)',    percentage: 25, color: '#3B82F6' },
-    { label: 'Lá (5-6 tuổi)',      percentage: 15, color: '#A855F7' },
-  ];
+  const classHeadcounts = useMemo(() => {
+    if (!dashboardData?.enrollment?.classroomUtilization?.length) {
+      return defaultClassHeadcounts;
+    }
+    const colorPalette = ['#FBBF24', '#34D399', '#F472B6', '#60A5FA', '#22D3EE', '#A3E635', '#C084FC', '#FB923C'];
+
+    const getRank = (name: string) => {
+      const lower = name.toLowerCase();
+      if (lower.includes('nhà trẻ')) return 10 + (lower.includes('1') ? 1 : 2);
+      if (lower.includes('mầm')) return 20 + (lower.includes('1') ? 1 : 2);
+      if (lower.includes('chồi')) return 30 + (lower.includes('1') ? 1 : 2);
+      if (lower.includes('lá')) return 40 + (lower.includes('1') ? 1 : 2);
+      return 50;
+    };
+
+    const sorted = [...dashboardData.enrollment.classroomUtilization].sort((a, b) => {
+      return getRank(a.className) - getRank(b.className);
+    });
+
+    return sorted.map((c, idx) => ({
+      classId: c.classId,
+      name: c.className.replace(/^Lớp\s+/, '').replace(/\s+—\s+.*$/, ''),
+      count: c.currentEnrollment,
+      color: colorPalette[idx % colorPalette.length],
+    }));
+  }, [dashboardData]);
+
+  // Dynamic Age Distribution Donut Chart Data derived from actual classroom enrollments
+  const ageDistribution = useMemo(() => {
+    const classrooms = dashboardData?.enrollment?.classroomUtilization ?? [];
+    let nhaTre = 0;
+    let mam = 0;
+    let choi = 0;
+    let la = 0;
+
+    if (classrooms.length > 0) {
+      classrooms.forEach((c) => {
+        const name = c.className.toLowerCase();
+        if (name.includes('nhà trẻ')) nhaTre += c.currentEnrollment;
+        else if (name.includes('mầm')) mam += c.currentEnrollment;
+        else if (name.includes('chồi')) choi += c.currentEnrollment;
+        else if (name.includes('lá')) la += c.currentEnrollment;
+      });
+    } else {
+      nhaTre = 34;
+      mam = 52;
+      choi = 42;
+      la = 58;
+    }
+
+    const total = nhaTre + mam + choi + la || 186;
+    const pNhaTre = Math.round((nhaTre / total) * 100);
+    const pMam = Math.round((mam / total) * 100);
+    const pChoi = Math.round((choi / total) * 100);
+    const pLa = 100 - pNhaTre - pMam - pChoi; // Guarantees exact 100%
+
+    return [
+      { label: 'Nhà trẻ (1-2 tuổi)', count: nhaTre, percentage: pNhaTre, color: '#F97316' },
+      { label: 'Mầm non (3-4 tuổi)', count: mam,    percentage: pMam,    color: '#F59E0B' },
+      { label: 'Chồi (4-5 tuổi)',    count: choi,   percentage: pChoi,   color: '#3B82F6' },
+      { label: 'Lá (5-6 tuổi)',      count: la,     percentage: pLa,     color: '#A855F7' },
+    ];
+  }, [dashboardData]);
 
   // Recent Activities Data
   const recentActivities = [
@@ -213,7 +323,7 @@ export default function EducationDashboardPage() {
     {
       id: 4,
       name: 'Phụ huynh Lê Hoàng',
-      action: 'Đã thanh toán học phí tháng 5',
+      action: 'Đã thanh toán học phí Tháng 10',
       time: '14:08',
       icon: <CreditCard className="w-4 h-4 text-amber-600" />,
       iconBg: 'bg-amber-100 dark:bg-amber-950/60',
@@ -228,15 +338,33 @@ export default function EducationDashboardPage() {
     },
   ];
 
-  // Monthly Revenue Chart Data
-  const monthlyRevenue = [
-    { month: 'Tháng 1', value: 180 },
-    { month: 'Tháng 2', value: 220 },
-    { month: 'Tháng 3', value: 260 },
-    { month: 'Tháng 4', value: 280 },
-    { month: 'Tháng 5', value: 320, highlighted: true, tooltip: '320 triệu VNĐ' },
-    { month: 'Tháng 6', value: 270 },
-  ];
+  // Monthly Revenue Chart Data responsive to selected period
+  const monthlyRevenue = useMemo(() => {
+    if (selectedRevenuePeriod === '12 tháng qua') {
+      return [
+        { month: 'T11/25', value: 250 },
+        { month: 'T12/25', value: 255 },
+        { month: 'T1/26',  value: 230 },
+        { month: 'T2/26',  value: 210 },
+        { month: 'T3/26',  value: 245 },
+        { month: 'T4/26',  value: 260 },
+        { month: 'T5/26',  value: 260 },
+        { month: 'T6/26',  value: 270 },
+        { month: 'T7/26',  value: 240 },
+        { month: 'T8/26',  value: 290 },
+        { month: 'T9/26',  value: 310 },
+        { month: 'T10/26', value: 320, highlighted: true, tooltip: '320 triệu VNĐ' },
+      ];
+    }
+    return [
+      { month: 'Tháng 5', value: 260 },
+      { month: 'Tháng 6', value: 270 },
+      { month: 'Tháng 7', value: 240 },
+      { month: 'Tháng 8', value: 290 },
+      { month: 'Tháng 9', value: 310 },
+      { month: 'Tháng 10', value: 320, highlighted: true, tooltip: '320 triệu VNĐ' },
+    ];
+  }, [selectedRevenuePeriod]);
 
   // Weekly Nutrition Menu
   const weeklyMenu = [
@@ -247,12 +375,12 @@ export default function EducationDashboardPage() {
     { day: 'T6', color: 'bg-purple-400 text-white', dishes: 'Mì trứng, Trứng hấp, Thanh long' },
   ];
 
-  // Announcements Data (Synchronized to 2026)
+  // Announcements Data (Synchronized to October 2026 operations)
   const announcements = [
-    { id: 1, title: 'Thông báo nghỉ lễ Quốc Khánh 2/9', date: '25/08/2026', iconColor: 'text-amber-500' },
-    { id: 2, title: 'Kế hoạch dã ngoại tháng 9', date: '22/08/2026', iconColor: 'text-sky-500' },
-    { id: 3, title: 'Hội thảo nuôi dạy trẻ tích cực', date: '18/08/2026', iconColor: 'text-rose-500' },
-    { id: 4, title: 'Tuyển sinh năm học 2026 - 2027', date: '10/08/2026', iconColor: 'text-amber-400' },
+    { id: 1, title: 'Kế hoạch tổ chức Ngày Phụ nữ VN 20/10', date: '15/10/2026', iconColor: 'text-rose-500' },
+    { id: 2, title: 'Lịch khám sức khỏe & nha khoa định kỳ HK1', date: '12/10/2026', iconColor: 'text-sky-500' },
+    { id: 3, title: 'Lễ hội Hóa trang Halloween & Buffet bé yêu', date: '08/10/2026', iconColor: 'text-purple-500' },
+    { id: 4, title: 'Thông báo thu học phí & tiền ăn Tháng 10', date: '01/10/2026', iconColor: 'text-amber-500' },
   ];
 
   return (
@@ -327,7 +455,7 @@ export default function EducationDashboardPage() {
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className="text-xs font-extrabold text-slate-900 dark:text-slate-100">Đóng học phí thành công</p>
-                      <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Phụ huynh Lê Hoàng đã đóng học phí Tháng 5 (3.200.000đ)</p>
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Phụ huynh Lê Hoàng đã đóng học phí Tháng 10 (3.200.000đ)</p>
                       <span className="text-[10px] text-slate-400 block mt-1">1 giờ trước</span>
                     </div>
                   </div>
@@ -589,7 +717,7 @@ export default function EducationDashboardPage() {
             <h2 className="text-sm sm:text-base font-black text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
               <span>Cần xử lý hôm nay</span>
               <span className="text-[11px] font-bold text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/80 border border-rose-200/60 dark:border-rose-900 px-2.5 py-0.5 rounded-full lowercase">
-                5 mục cần chú ý
+                {totalAttentionItems} mục cần chú ý
               </span>
             </h2>
           </div>
@@ -607,7 +735,7 @@ export default function EducationDashboardPage() {
               <CalendarCheck className="w-4 h-4" />
             </div>
             <div className="min-w-0">
-              <p className="text-xs font-black text-amber-950 dark:text-amber-200 truncate">3 trẻ chưa điểm danh</p>
+              <p className="text-xs font-black text-amber-950 dark:text-amber-200 truncate">{unmarkedAttendance} trẻ chưa điểm danh</p>
               <span className="text-[11px] font-bold text-amber-700 dark:text-amber-400 group-hover:underline">Điểm danh ngay →</span>
             </div>
           </Link>
@@ -620,7 +748,7 @@ export default function EducationDashboardPage() {
               <FileText className="w-4 h-4" />
             </div>
             <div className="min-w-0">
-              <p className="text-xs font-black text-sky-950 dark:text-sky-200 truncate">2 đơn nghỉ chờ duyệt</p>
+              <p className="text-xs font-black text-sky-950 dark:text-sky-200 truncate">{leaveRequests} đơn nghỉ chờ duyệt</p>
               <span className="text-[11px] font-bold text-sky-700 dark:text-sky-400 group-hover:underline">Duyệt ngay →</span>
             </div>
           </Link>
@@ -633,7 +761,7 @@ export default function EducationDashboardPage() {
               <CreditCard className="w-4 h-4" />
             </div>
             <div className="min-w-0">
-              <p className="text-xs font-black text-rose-950 dark:text-rose-200 truncate">1 học phí quá hạn</p>
+              <p className="text-xs font-black text-rose-950 dark:text-rose-200 truncate">{overdueInvoices} học phí quá hạn</p>
               <span className="text-[11px] font-bold text-rose-700 dark:text-rose-400 group-hover:underline">Gửi nhắc phí →</span>
             </div>
           </Link>
@@ -646,7 +774,7 @@ export default function EducationDashboardPage() {
               <Heart className="w-4 h-4 animate-pulse" />
             </div>
             <div className="min-w-0">
-              <p className="text-xs font-black text-red-950 dark:text-red-200 truncate">2 sự cố sức khỏe</p>
+              <p className="text-xs font-black text-red-950 dark:text-red-200 truncate">{healthIncidents} sự cố sức khỏe</p>
               <span className="text-[11px] font-bold text-red-700 dark:text-red-400 group-hover:underline">Theo dõi bé →</span>
             </div>
           </Link>
@@ -659,7 +787,7 @@ export default function EducationDashboardPage() {
               <MessageSquare className="w-4 h-4" />
             </div>
             <div className="min-w-0">
-              <p className="text-xs font-black text-purple-950 dark:text-purple-200 truncate">4 yêu cầu phụ huynh</p>
+              <p className="text-xs font-black text-purple-950 dark:text-purple-200 truncate">{parentRequests} yêu cầu phụ huynh</p>
               <span className="text-[11px] font-bold text-purple-700 dark:text-purple-400 group-hover:underline">Phản hồi →</span>
             </div>
           </Link>
@@ -765,16 +893,32 @@ export default function EducationDashboardPage() {
             {/* Donut Chart SVG */}
             <div className="relative w-36 h-36 flex items-center justify-center">
               <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
-                {/* Segments matching reference colors */}
-                <circle cx="18" cy="18" r="14.5" fill="transparent" stroke="#F97316" strokeWidth="4.5" strokeDasharray="22 78" strokeDashoffset="0" />
-                <circle cx="18" cy="18" r="14.5" fill="transparent" stroke="#F59E0B" strokeWidth="4.5" strokeDasharray="38 62" strokeDashoffset="-22" />
-                <circle cx="18" cy="18" r="14.5" fill="transparent" stroke="#3B82F6" strokeWidth="4.5" strokeDasharray="25 75" strokeDashoffset="-60" />
-                <circle cx="18" cy="18" r="14.5" fill="transparent" stroke="#A855F7" strokeWidth="4.5" strokeDasharray="15 85" strokeDashoffset="-85" />
+                {(() => {
+                  let accumulated = 0;
+                  return ageDistribution.map((seg) => {
+                    const offset = accumulated;
+                    accumulated += seg.percentage;
+                    return (
+                      <circle
+                        key={seg.label}
+                        cx="18"
+                        cy="18"
+                        r="14.5"
+                        pathLength="100"
+                        fill="transparent"
+                        stroke={seg.color}
+                        strokeWidth="4.5"
+                        strokeDasharray={`${seg.percentage} ${100 - seg.percentage}`}
+                        strokeDashoffset={-offset}
+                      />
+                    );
+                  });
+                })()}
               </svg>
               {/* Inner Center Label */}
               <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
                 <span className="text-lg font-extrabold text-slate-900 dark:text-white leading-none">
-                  156
+                  {totalKidsCount}
                 </span>
                 <span className="text-[10px] font-semibold text-slate-600 dark:text-slate-300">
                   học sinh
@@ -870,7 +1014,7 @@ export default function EducationDashboardPage() {
 
           <div className="pt-2 space-y-2">
             {/* Bars Grid */}
-            <div className="h-44 w-full grid grid-cols-6 gap-2 px-2 border-b border-slate-200 dark:border-slate-800 relative">
+            <div className={`h-44 w-full grid ${monthlyRevenue.length === 12 ? 'grid-cols-12 gap-1' : 'grid-cols-6 gap-2'} px-2 border-b border-slate-200 dark:border-slate-800 relative`}>
               {monthlyRevenue.map((item) => {
                 const heightPercentage = Math.round((item.value / 400) * 100);
                 const isHovered = hoveredRevenueMonth === item.month;
@@ -902,7 +1046,7 @@ export default function EducationDashboardPage() {
               })}
             </div>
             {/* Month Labels Grid - 100% pixel aligned with bars */}
-            <div className="grid grid-cols-6 gap-2 px-2 text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+            <div className={`grid ${monthlyRevenue.length === 12 ? 'grid-cols-12 gap-1 text-[10px]' : 'grid-cols-6 gap-2 text-[11px]'} px-2 font-semibold text-slate-500 dark:text-slate-400`}>
               {monthlyRevenue.map((item) => (
                 <span key={item.month} className="text-center truncate">
                   {item.month}

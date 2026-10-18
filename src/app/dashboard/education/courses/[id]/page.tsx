@@ -86,12 +86,12 @@ const DEFAULT_WORKSPACE: ClassroomDetail = {
       teacherPartyId: '88888888-8888-8888-8888-88888888888c',
       name: 'Cô Lê Thu Trang',
       role: 'co_teacher',
-      roleDisplay: 'Phó bản',
+      roleDisplay: 'GV Phụ',
       academicYear: '2025-2026',
       status: 'active',
     },
   ],
-  teacherSummary: 'Cô Nguyễn Thị Mai (Chủ nhiệm) & Cô Lê Thu Trang (Phó bản)',
+  teacherSummary: 'Cô Nguyễn Thị Mai (Chủ nhiệm) & Cô Lê Thu Trang (GV Phụ)',
   roster: [
     { enrollmentId: 'e-1', studentId: 's-1', studentCode: 'STU-001', name: 'Nguyễn Minh An (Bé Bi)', gender: 'Nam', status: 'Có mặt', temp: '36.5°C' },
     { enrollmentId: 'e-2', studentId: 's-2', studentCode: 'STU-002', name: 'Trần Bảo Ngọc (Bé Bắp)', gender: 'Nữ', status: 'Có mặt', temp: '36.6°C' },
@@ -497,7 +497,7 @@ export default function ClassWorkspacePage({ params }: { params: Promise<{ id: s
                   className="w-full p-3 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-medium"
                 >
                   <option value="lead_teacher">Giáo viên chủ nhiệm (Max 1 active per year)</option>
-                  <option value="co_teacher">Giáo viên phó bản</option>
+                  <option value="co_teacher">Giáo viên phụ / Bảo mẫu</option>
                   <option value="assistant">Trợ giảng</option>
                 </select>
               </div>

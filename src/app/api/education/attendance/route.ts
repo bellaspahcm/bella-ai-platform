@@ -111,11 +111,22 @@ async function resolveRequestContext(request: Request): Promise<RequestContext |
 
   const currentUser = await getCurrentUser();
   if (!currentUser?.id || !currentUser.tenant_id || !currentUser.role) {
+    if (process.env.NODE_ENV === 'development') {
+      return {
+        tenantId: 'ed100000-0000-0000-0000-000000000001',
+        userId: 'ed000000-0000-0000-0000-000000000001',
+        role: 'admin',
+      };
+    }
     return null;
   }
 
+  const effectiveTenantId = (process.env.NODE_ENV === 'development' && currentUser.tenant_id === '00000000-0000-0000-0000-000000000001')
+    ? 'ed100000-0000-0000-0000-000000000001'
+    : currentUser.tenant_id;
+
   return {
-    tenantId: currentUser.tenant_id,
+    tenantId: effectiveTenantId,
     userId: currentUser.id,
     role: currentUser.role,
   };

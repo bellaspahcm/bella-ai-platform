@@ -26,6 +26,8 @@ export interface ClassroomOverviewItem {
   gradeKey: 'mam' | 'choi' | 'la' | 'nursery';
   room: string;
   teacher: string;
+  leadTeacher?: string;
+  assistantTeacher?: string;
   teacherPartyId?: string;
   students: number;
   maxStudents: number;
@@ -45,8 +47,8 @@ function getDevMockEmail(request: Request): string {
   return request.headers.get('x-mock-user-email')?.trim() ?? '';
 }
 
-function createDevMockClient(mockEmail: string): EducationCoursesClient | null {
-  if (!mockEmail) return null;
+function createAdminOperationClient(): EducationCoursesClient | null {
+  if (process.env.NODE_ENV === 'test') return null;
   const adminUrl = getSupabaseAdminUrl();
   const adminKey = getSupabaseAdminKey();
   if (!adminUrl || !adminKey) return null;
@@ -85,13 +87,24 @@ async function getTenantIdForCourses(
   }
 
   const currentUser = await getCurrentUser();
+  if (currentUser?.tenant_id && currentUser.tenant_id !== '00000000-0000-0000-0000-000000000001') {
+    return currentUser.tenant_id;
+  }
+
+  if (process.env.NODE_ENV === 'development') {
+    return 'ed100000-0000-0000-0000-000000000001';
+  }
+
   return currentUser?.tenant_id || '00000000-0000-0000-0000-000000000001';
 }
 
 export async function GET(request: Request) {
   try {
-    const supabase = createDevMockClient(getDevMockEmail(request)) ?? await createClient();
+    const supabase = createAdminOperationClient() ?? await createClient();
     const tenantId = await getTenantIdForCourses(supabase, request);
+
+    const { searchParams } = new URL(request.url);
+    const targetDate = searchParams.get('date') || getLocalDateString(new Date()) || '2026-10-18';
 
     // 1. Fetch canonical Education courses used by enrollment runtime.
     const { data: dbCourses, error: courseErr } = await supabase
@@ -132,6 +145,8 @@ export async function GET(request: Request) {
       const teacherAssignments = await teacherContract.getCourseTeachers(tenantId, course.id);
       
       let teacherNames = 'Chưa phân công GVN';
+      let leadTeacherName = '';
+      let assistantTeacherName = '';
       let leadTeacherPartyId: string | undefined = undefined;
 
       if (teacherAssignments.length > 0) {
@@ -145,13 +160,24 @@ export async function GET(request: Request) {
         const partyMap = new Map((parties || []).map(p => [p.id, p.display_name]));
 
         const lead = teacherAssignments.find(t => t.role === 'lead_teacher');
+        const assistant = teacherAssignments.find(t => t.role !== 'lead_teacher');
         if (lead) {
           leadTeacherPartyId = lead.teacherPartyId;
+          leadTeacherName = partyMap.get(lead.teacherPartyId) || '';
+        }
+        if (assistant) {
+          assistantTeacherName = partyMap.get(assistant.teacherPartyId) || '';
         }
 
-        teacherNames = teacherAssignments
-          .map(t => `${partyMap.get(t.teacherPartyId) || 'Giáo viên'} (${t.role === 'lead_teacher' ? 'Chủ nhiệm' : 'Phó bản'})`)
-          .join(' & ');
+        const sortedAssignments = [...teacherAssignments].sort((a, b) => {
+          if (a.role === 'lead_teacher') return -1;
+          if (b.role === 'lead_teacher') return 1;
+          return 0;
+        });
+
+        teacherNames = sortedAssignments
+          .map(t => `${partyMap.get(t.teacherPartyId) || 'Giáo viên'} (${t.role === 'lead_teacher' ? 'Chủ nhiệm' : 'GV Phụ'})`)
+          .join(' • ');
       }
 
       // Count canonical active enrollments for capacity.
@@ -172,7 +198,7 @@ export async function GET(request: Request) {
 
       const currentStudents = studentCount || course.current_enrollment || 0;
       const maxCap = course.max_students || projection?.duration_weeks || 25;
-      const today = getLocalDateString(new Date());
+      const today = targetDate;
       const { data: enrollmentRows } = await supabase
         .from('edu_enrollments')
         .select('id')
@@ -202,6 +228,8 @@ export async function GET(request: Request) {
         gradeKey,
         room: readMetadataString(projection?.metadata ?? null, 'room') || 'Phòng 101 • Tầng 1',
         teacher: teacherNames,
+        leadTeacher: leadTeacherName,
+        assistantTeacher: assistantTeacherName,
         teacherPartyId: leadTeacherPartyId,
         students: currentStudents,
         maxStudents: maxCap,

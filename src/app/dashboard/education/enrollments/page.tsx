@@ -529,7 +529,7 @@ function ChildAvatar({ avatarUrl, name, gender, sizeClass = 'w-10 h-10' }: Child
 }
 
 export default function PreschoolEnrollmentsPage() {
-  const [students, setStudents] = useState<ReadonlyArray<StudentRecord>>(CANONICAL_PRESCHOOL_STUDENTS);
+  const [students, setStudents] = useState<ReadonlyArray<StudentRecord>>([]);
   const [selectedYear, setSelectedYear] = useState('Năm học 2026 - 2027');
   const [selectedSchool, setSelectedSchool] = useState('Trường Mầm non Ánh Dương');
   
@@ -628,17 +628,14 @@ export default function PreschoolEnrollmentsPage() {
             };
           });
 
-          // Merge with canonical students, prioritizing API records
-          const apiIds = new Set(apiStudents.map((s) => s.id));
-          const remainingCanonical = CANONICAL_PRESCHOOL_STUDENTS.filter((s) => !apiIds.has(s.id));
-          setStudents([...apiStudents, ...remainingCanonical]);
+          // Use API-loaded students as the only source of truth
+          setStudents(apiStudents);
         }
         setStudentLoadError('');
       } catch (error) {
         if (!cancelled) {
-          // Gracefully fallback to canonical preset
-          console.warn('[Preschool] Using canonical operational dataset:', error);
-          setStudents(CANONICAL_PRESCHOOL_STUDENTS);
+          // Keep current state on error, don't overwrite with stale mock data
+          console.warn('[Preschool] Student registry load failed:', error);
         }
       } finally {
         if (!cancelled) {
@@ -704,11 +701,22 @@ export default function PreschoolEnrollmentsPage() {
     };
   }, [isAdmissionModalOpen]);
 
-  // Aggregate KPI Counts (Fixed at official 280 school population capacity)
-  const totalCount = 280;
-  const activeCount = 242;
-  const pendingCount = 28;
-  const healthAlertCount = 12;
+  // Aggregate KPI Counts — derived from canonical students state loaded from API
+  const totalCount = students.length;
+  const activeCount = students.filter((s) => s.statusKey === 'active' || s.statusKey === 'healthAlert').length;
+  const pendingCount = students.filter((s) => s.statusKey === 'pending').length;
+  const healthAlertCount = students.filter((s) => s.hasHealthAlert || s.statusKey === 'healthAlert').length;
+
+  // Dynamic available classes derived from student registry
+  const availableClasses = useMemo(() => {
+    const classSet = new Set<string>();
+    students.forEach((s) => {
+      if (s.className && s.className !== 'Chưa xếp lớp') {
+        classSet.add(s.className);
+      }
+    });
+    return Array.from(classSet).sort();
+  }, [students]);
 
   // Filtered Students Calculation
   const filteredStudents = useMemo(() => {
@@ -724,7 +732,7 @@ export default function PreschoolEnrollmentsPage() {
       // Status Pill Filter
       let matchesTab = true;
       if (selectedStatusTab === 'active') {
-        matchesTab = stu.statusKey === 'active';
+        matchesTab = stu.statusKey === 'active' || stu.statusKey === 'healthAlert';
       } else if (selectedStatusTab === 'pending') {
         matchesTab = stu.statusKey === 'pending';
       } else if (selectedStatusTab === 'healthAlert') {
@@ -941,7 +949,7 @@ export default function PreschoolEnrollmentsPage() {
                 Quản Lý Trẻ
               </h1>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 font-medium">
-                Danh sách 280 trẻ mầm non, hồ sơ cá nhân, người giám hộ & lịch sử quá trình học tập
+                Danh sách toàn bộ hồ sơ trẻ mầm non ({totalCount} trẻ), hồ sơ cá nhân, người giám hộ & lịch sử học tập
               </p>
             </div>
           </div>
@@ -1047,13 +1055,10 @@ export default function PreschoolEnrollmentsPage() {
                 onChange={(e) => { setSelectedClassFilter(e.target.value); setCurrentPage(1); }}
                 className="appearance-none bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-200 rounded-xl px-3 py-1.5 pr-7 focus:outline-none cursor-pointer hover:border-slate-300"
               >
-                <option value="all">Tất cả lớp</option>
-                <option value="Lá 1">Lá 1</option>
-                <option value="Lá 2">Lá 2</option>
-                <option value="Chồi 1">Chồi 1</option>
-                <option value="Chồi 2">Chồi 2</option>
-                <option value="Mầm 1">Mầm 1</option>
-                <option value="Mầm 2">Mầm 2</option>
+                <option value="all">Tất cả lớp ({availableClasses.length > 0 ? `${availableClasses.length} lớp` : `${totalCount} trẻ`})</option>
+                {availableClasses.map((cls) => (
+                  <option key={cls} value={cls}>{cls}</option>
+                ))}
               </select>
               <ChevronDown className="w-3 h-3 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             </div>
