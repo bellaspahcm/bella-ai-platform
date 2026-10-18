@@ -745,10 +745,15 @@ export default function PreschoolEnrollmentsPage() {
 
   // Pagination slicing
   const totalPages = Math.max(1, Math.ceil(filteredStudents.length / pageSize));
+  const boundedPage = Math.min(currentPage, totalPages);
+  if (currentPage !== boundedPage) setCurrentPage(boundedPage);
+  const visiblePages = [...new Set([1, boundedPage - 1, boundedPage, boundedPage + 1, totalPages])]
+    .filter((page) => page >= 1 && page <= totalPages)
+    .sort((a, b) => a - b);
   const displayedStudents = useMemo(() => {
-    const startIndex = (currentPage - 1) * pageSize;
+    const startIndex = (boundedPage - 1) * pageSize;
     return filteredStudents.slice(startIndex, startIndex + pageSize);
-  }, [filteredStudents, currentPage, pageSize]);
+  }, [filteredStudents, boundedPage, pageSize]);
 
   // Checkbox handlers
   const isAllDisplayedSelected = displayedStudents.length > 0 && displayedStudents.every((s) => selectedStudentIds.has(s.id));
@@ -1424,7 +1429,7 @@ export default function PreschoolEnrollmentsPage() {
             {/* Table Footer / Pagination Matching Image 2 */}
             <div className="p-4 sm:p-5 border-t border-slate-100 dark:border-slate-700/60 flex flex-col sm:flex-row items-center justify-between gap-4 select-none">
               <span className="text-xs text-slate-500 dark:text-slate-400 font-semibold">
-                Hiển thị {displayedStudents.length} trên tổng {totalCount} trẻ
+                Hiển thị {displayedStudents.length} trên tổng {filteredStudents.length} trẻ
               </span>
 
               {/* Page Number Buttons */}
@@ -1432,20 +1437,21 @@ export default function PreschoolEnrollmentsPage() {
                 <button
                   type="button"
                   onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                  disabled={currentPage <= 1}
+                  disabled={boundedPage <= 1}
                   aria-label="Trang trước"
                   className="p-1.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-40 transition-colors"
                 >
                   <ChevronLeft className="w-4 h-4" />
                 </button>
 
-                {[1, 2, 3, 4, 5].map((page) => (
+                {visiblePages.map((page) => (
                   <button
                     key={page}
                     type="button"
                     onClick={() => setCurrentPage(page)}
+                    aria-current={boundedPage === page ? 'page' : undefined}
                     className={`w-8 h-8 rounded-xl text-xs font-bold transition-all ${
-                      currentPage === page
+                      boundedPage === page
                         ? 'bg-[#064E3B] text-white shadow-xs'
                         : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
                     }`}
@@ -1454,24 +1460,10 @@ export default function PreschoolEnrollmentsPage() {
                   </button>
                 ))}
 
-                <span className="text-slate-400 text-xs px-1 font-bold">...</span>
-
                 <button
                   type="button"
-                  onClick={() => setCurrentPage(28)}
-                  className={`w-8 h-8 rounded-xl text-xs font-bold transition-all ${
-                    currentPage === 28
-                      ? 'bg-[#064E3B] text-white shadow-xs'
-                      : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
-                  }`}
-                >
-                  28
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setCurrentPage((p) => Math.min(28, p + 1))}
-                  disabled={currentPage >= 28}
+                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={boundedPage >= totalPages}
                   aria-label="Trang kế tiếp"
                   className="p-1.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-40 transition-colors"
                 >
@@ -1482,6 +1474,7 @@ export default function PreschoolEnrollmentsPage() {
               {/* Page Size Select */}
               <div className="relative">
                 <select
+                  aria-label="Số trẻ trên trang"
                   value={pageSize}
                   onChange={(e) => {
                     setPageSize(Number(e.target.value));

@@ -1,0 +1,41 @@
+{
+  "recordedAt": "2026-10-18T00:59:34.602Z",
+  "result": "PASS",
+  "trackedAndLeadInputFilesChecked": 7936,
+  "rawHashBaseline": ".cache/baseline-hashes.json",
+  "baselineSha256": "b1f6ad165e9f7326df5e6f0f07a6c9add3f05a9126df3a56d2087e65ffcd430d",
+  "changedFiles": [
+    {
+      "path": "src/app/dashboard/education/enrollments/page.tsx",
+      "beforeSha256": "16df0a004eeceb061d46d173ee98703dbe14b9ce22efd28da40b3c2f38c82c28",
+      "afterSha256": "e6a8c7c821449d41dee3342f74dba6f0b41d764e67c4e1e721b07ab0f18dbc26"
+    }
+  ],
+  "sourceBeforeRawSha256": "16df0a004eeceb061d46d173ee98703dbe14b9ce22efd28da40b3c2f38c82c28",
+  "sourceAfterRawSha256": "e6a8c7c821449d41dee3342f74dba6f0b41d764e67c4e1e721b07ab0f18dbc26",
+  "sections": [
+    {
+      "name": "API, admission options, samples, filters and imports",
+      "normalization": "LF/CRLF only",
+      "beforeSha256": "dd7371fbaea809bbf9b14689a191d0bb37426a36f4c7cd8c210e359e84e312ac",
+      "afterSha256": "dd7371fbaea809bbf9b14689a191d0bb37426a36f4c7cd8c210e359e84e312ac",
+      "unchanged": true
+    },
+    {
+      "name": "Selection, admission submission, other handlers and UI before footer",
+      "normalization": "LF/CRLF only",
+      "beforeSha256": "a6d912c20bf7959c248790aee1be8a399b86518ca5787c9c04a1971247149b69",
+      "afterSha256": "a6d912c20bf7959c248790aee1be8a399b86518ca5787c9c04a1971247149b69",
+      "unchanged": true
+    },
+    {
+      "name": "Widgets and admission modal after pagination",
+      "normalization": "LF/CRLF only",
+      "beforeSha256": "4f828d046ebb26c24634c89e16e8077cba6ef4feb94989ea99790ccf7f769d40",
+      "afterSha256": "4f828d046ebb26c24634c89e16e8077cba6ef4feb94989ea99790ccf7f769d40",
+      "unchanged": true
+    }
+  ],
+  "leadInputsAndReferenceUnchanged": true,
+  "containment": "All tracked files outside the single enrollment UI source unchanged byte-for-byte; includes API routes, Parent Daily/Course containment, kernels, contracts, CSS, tooling and migrations. Lead task/gate/adapter/provenance and readonly reference harness additionally hashed."
+}

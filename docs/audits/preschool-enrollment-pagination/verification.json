@@ -1,0 +1,102 @@
+{
+  "recordedAt": "2026-10-18T01:00:10.861Z",
+  "result": "PASS",
+  "scope": "Presentation-only pagination; independent Reviewer pending",
+  "source": "src/app/dashboard/education/enrollments/page.tsx",
+  "sourceBeforeRawSha256": "16df0a004eeceb061d46d173ee98703dbe14b9ce22efd28da40b3c2f38c82c28",
+  "sourceAfterRawSha256": "e6a8c7c821449d41dee3342f74dba6f0b41d764e67c4e1e721b07ab0f18dbc26",
+  "harnessUnchanged": true,
+  "harnessSha256": "986ba98ba39684192563816668b7ebb8cff27954d3ad0d3f30b8fae10bbc436b",
+  "referenceHarnessSha256": "27bf6001715940562927bb183d90ecff8035a93fb006e59d9af974a4adf60e05",
+  "browserSha256": "2d8f2abad1a0f2998aaf861967c374d4aad6a104916b8794318760ed35db772f",
+  "globalsSha256": "1f2458f1e1ff45ff29650ce9bc30a0a408004f079760de68bcef7c915ddce21e",
+  "browserChecks": [
+    {
+      "command": "node docs/audits/preschool-enrollment-pagination/pagination-browser.cjs before",
+      "exitCode": 1,
+      "summary": {
+        "journeys": 4,
+        "passed": 0,
+        "assertions": 56,
+        "failed": 28,
+        "errors": 0,
+        "contrastCount": 4,
+        "contrastFailed": 0,
+        "minimumRatio": 4.758842787868666
+      }
+    },
+    {
+      "command": "node docs/audits/preschool-enrollment-pagination/pagination-browser.cjs after",
+      "exitCode": 0,
+      "summary": {
+        "journeys": 4,
+        "passed": 4,
+        "assertions": 56,
+        "failed": 0,
+        "errors": 0,
+        "contrastCount": 8,
+        "contrastFailed": 0,
+        "minimumRatio": 4.758842787868666
+      }
+    }
+  ],
+  "staticChecks": [
+    {
+      "name": "lint",
+      "command": "node node_modules/eslint/bin/eslint.js src/app/dashboard/education/enrollments/page.tsx",
+      "exitCode": 0,
+      "durationMs": 4766,
+      "logSha256": "02a226e041b1fa98887453b05b9e86df2d751eed09e8df8727f134a2866212b6"
+    },
+    {
+      "name": "typecheck",
+      "command": "node node_modules/typescript/bin/tsc -p tsconfig.education.json --pretty false --incremental --tsBuildInfoFile docs/audits/preschool-enrollment-pagination/.cache/education.tsbuildinfo",
+      "exitCode": 0,
+      "durationMs": 11222,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "syntax",
+      "command": "node --check docs/audits/preschool-enrollment-pagination/pagination-browser.cjs",
+      "exitCode": 0,
+      "durationMs": 59,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "whitespace",
+      "command": "git diff --check",
+      "exitCode": 0,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "artifactRawSha256": {
+    "pagination-browser.cjs": "986ba98ba39684192563816668b7ebb8cff27954d3ad0d3f30b8fae10bbc436b",
+    "native-before.json": "7d5f06c8656b0706cb9278bb7b8c986815baa3848fbeb7a89edd045dfacc3e39",
+    "native-after.json": "797af0779474750aa86c9cdab09183a304c0ba442c2f56b57585ba1fcd3bf21a",
+    "preservation-proof.json": "120ecd542d27dd68f6c9c7b8dd3a1a96c0cf6a2dadbbae76953d2ae6f0d8d423",
+    "source.diff": "33af5b0478fd5068bdb7e71903183c5bb9a10e74a74507bcfead429a2b70831a",
+    "PR_BODY.md": "f5d9a0a731f0626bd2e344b5c6e66fcc418dc63dc5d6d41ca9b431bf2af4d3ed",
+    "EVIDENCE.md": "2c20307e6e36765a6237974d3e0a403e7e2b456bb8d70f77e357719d1e28d3ed",
+    "pagination-light-desktop.png": "4790d586e43dbee7a2a40200529aeb4bbb07feb48364dad9942b6da536540aef",
+    "pagination-light-mobile.png": "a4135e695b057a9c2c8197ae11ea9c3609c93aee752a5ceaf9800a5872e328ee",
+    "pagination-dark-desktop.png": "076cb011cec318315e736969b20b0a303c79639b48e85478828cdb7c3dffd3df",
+    "pagination-dark-mobile.png": "5ec0ad9384df99fd648eefba8dc6e0b7d6f28c3cacf4a8eff34e7805956a6e6d",
+    "lint.log": "02a226e041b1fa98887453b05b9e86df2d751eed09e8df8727f134a2866212b6",
+    "typecheck.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "syntax.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "whitespace.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "preservation": "PASS",
+  "sourceCorrectionsAfterInitialFix": 0,
+  "screenshotsVisuallyInspected": 4,
+  "realApiCalls": 0,
+  "dbOperations": 0,
+  "limits": "Actual component and globals.css. Next Link presentation boundary only. Loopback synthetic GET only. Remote images blocked by CSP and routing. Late load uses test-only size 1 through actual select handler because preset has only 10 records. No API/DB/Auth proof.",
+  "remaining": [
+    "Independent review by Lead",
+    "UI→DB NOT_PROVEN",
+    "Parent RLS FAIL",
+    "Course authorization BLOCKED",
+    "Pre-Go-Live BLOCKED"
+  ]
+}

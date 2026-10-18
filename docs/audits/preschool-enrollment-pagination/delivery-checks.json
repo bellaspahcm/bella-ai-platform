@@ -1,0 +1,46 @@
+{
+  "recordedAt": "2026-10-18T01:05:38.979Z",
+  "architectureGuard": {
+    "exitCode": 0,
+    "stdout": "🔒 Architecture Guard — Git Pre-Commit Hook\n   Checking staged files for frozen kernel modifications...\n\n   ✅ Checked 28 staged file(s)\n   ✅ No frozen files modified\n   ✅ Commit allowed\n\n",
+    "stderr": ""
+  },
+  "stagedFiles": [
+    "docs/audits/preschool-enrollment-pagination/ARCHITECTURE_GATE_RESULT.md",
+    "docs/audits/preschool-enrollment-pagination/EVIDENCE.md",
+    "docs/audits/preschool-enrollment-pagination/FINAL_RESULT.json",
+    "docs/audits/preschool-enrollment-pagination/PR_BODY.md",
+    "docs/audits/preschool-enrollment-pagination/REVIEWED_PR_BODY.md",
+    "docs/audits/preschool-enrollment-pagination/TASK.md",
+    "docs/audits/preschool-enrollment-pagination/dependency-provenance.json",
+    "docs/audits/preschool-enrollment-pagination/independent-review.json",
+    "docs/audits/preschool-enrollment-pagination/lint.log",
+    "docs/audits/preschool-enrollment-pagination/native-after.json",
+    "docs/audits/preschool-enrollment-pagination/native-before.json",
+    "docs/audits/preschool-enrollment-pagination/native-command-readback.json",
+    "docs/audits/preschool-enrollment-pagination/native-task-readback.json",
+    "docs/audits/preschool-enrollment-pagination/native-task-result.json",
+    "docs/audits/preschool-enrollment-pagination/native-task.mjs",
+    "docs/audits/preschool-enrollment-pagination/pagination-browser.cjs",
+    "docs/audits/preschool-enrollment-pagination/pagination-dark-desktop.png",
+    "docs/audits/preschool-enrollment-pagination/pagination-dark-mobile.png",
+    "docs/audits/preschool-enrollment-pagination/pagination-light-desktop.png",
+    "docs/audits/preschool-enrollment-pagination/pagination-light-mobile.png",
+    "docs/audits/preschool-enrollment-pagination/preflight-note.json",
+    "docs/audits/preschool-enrollment-pagination/preservation-proof.json",
+    "docs/audits/preschool-enrollment-pagination/source.diff",
+    "docs/audits/preschool-enrollment-pagination/syntax.log",
+    "docs/audits/preschool-enrollment-pagination/typecheck.log",
+    "docs/audits/preschool-enrollment-pagination/verification.json",
+    "docs/audits/preschool-enrollment-pagination/whitespace.log",
+    "src/app/dashboard/education/enrollments/page.tsx"
+  ],
+  "hashScope": "Original receipts record exact worktree bytes. Git normalizes text line endings; staged blob SHA256 provided separately for portable candidate identity.",
+  "stagedSourceSha256": "fd6f3ce95057384bd3e2001e8a668054d4d8ea7a983fbdcb322214196f2c8d1c",
+  "stagedHarnessSha256": "2901a85976f7850eddb46d10deb619570d428dc8588eec666b4679ed480b8de9",
+  "whitespace": {
+    "codeAndNonDiffEvidence": "PASS",
+    "rawEvidenceDiff": "git diff --cached --check flags five diff context lines containing one required leading space. Original source.diff preserved byte-for-byte because its hash is reviewed evidence. No source/code whitespace errors."
+  },
+  "cache": "Task-local compiler/browser cache and readonly reference scaffold not staged; no cleanup or scope-result rewrite."
+}
