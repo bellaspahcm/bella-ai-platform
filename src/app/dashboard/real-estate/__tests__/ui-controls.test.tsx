@@ -234,6 +234,26 @@ test.each([
   if (query === 'giữ chỗ') expect(filter).not.toContain('deposited');
 });
 
+// PostgREST's quoted filter grammar escapes both quotes and backslashes.
+// The decoded value must still retain PostgreSQL LIKE's own literal escapes.
+// https://docs.postgrest.org/en/v12/references/api/url_grammar.html#reserved-characters
+test.each([
+  [String.raw`A\B`, String.raw`%A\\B%`],
+  [String.raw`A\"B`, String.raw`%A\\"B%`],
+  ['A%B_C', String.raw`%A\%B\_C%`],
+  [String.raw`A\%_"B`, String.raw`%A\\\%\_"B%`],
+  ['A",status.eq.paid),or(id.not.is.null', '%A",status.eq.paid),or(id.not.is.null%'],
+  ['Đường, block (A): tầng 2', '%Đường, block (A): tầng 2%'],
+])('quoted search preserves literal input %s inside a single filter value', async (query, expectedPattern) => {
+  jest.useFakeTimers();
+  render(<GlobalSearch />);
+  fireEvent.change(screen.getByRole('textbox'), { target: { value: query } });
+  await act(async () => { jest.advanceTimersByTime(400); });
+  const quotedPattern = JSON.stringify(expectedPattern);
+  expect(mockSearchFilter).toHaveBeenCalledWith('real_estate_projects', `name.ilike.${quotedPattern},code.ilike.${quotedPattern}`);
+  expect(mockSearchFilter).toHaveBeenCalledWith('real_estate_products', `product_code.ilike.${quotedPattern}`);
+});
+
 test('support date range filters rows and can be cleared', () => {
   render(<Support />);
   const before = screen.getByRole('navigation', { name: 'Phân trang' }).textContent;

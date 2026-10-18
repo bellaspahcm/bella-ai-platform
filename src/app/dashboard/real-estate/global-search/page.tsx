@@ -45,7 +45,9 @@ export default function GlobalSearchPage() {
     setSearched(true);
     try {
       const supabase = createClient();
-      const like = '"%' + q.trim().replaceAll('\\', '\\\\').replaceAll('"', '\\"').replace(/[%_]/g, '\\$&') + '%"';
+      // Escape LIKE literals before quoting the value for PostgREST's OR grammar.
+      const pattern = q.trim().replace(/[\\%_]/g, "\\$&");
+      const like = '"%' + pattern.replace(/["\\]/g, "\\$&") + '%"';
       const lowerQ = q.trim().toLowerCase();
       const projectTerms = [`name.ilike.${like}`, `code.ilike.${like}`];
       if (lowerQ.includes("mở bán")) projectTerms.push('status.eq.on_sale');
