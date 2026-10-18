@@ -37,7 +37,8 @@
  * - STRICT TYPE SAFETY: Zero `any` and zero `unknown`
  */
 
-import { useState, useEffect, useMemo, useRef, type ChangeEvent } from 'react';
+import { useState, useEffect, useMemo, useRef, Suspense, type ChangeEvent } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -520,7 +521,29 @@ const RECENT_ACTIVITIES: readonly DevelopmentActivityItem[] = [
   },
 ];
 
-export default function PreschoolDevelopmentGradesPage() {
+const STUDENT_TO_ROSTER_ID_MAP: Record<string, string> = {
+  'HS0001': 'STU-001',
+  'STU-001': 'STU-001',
+  'HS0002': 'STU-002',
+  'STU-002': 'STU-002',
+  'HS0003': 'STU-003',
+  'STU-003': 'STU-003',
+  'HS0004': 'STU-004',
+  'STU-004': 'STU-004',
+  'HS0005': 'STU-005',
+  'STU-005': 'STU-005',
+  'HS0006': 'STU-006',
+  'STU-006': 'STU-006',
+  'HS0007': 'STU-007',
+  'STU-007': 'STU-007',
+  'HS0008': 'STU-008',
+  'STU-008': 'STU-008',
+};
+
+function PreschoolDevelopmentGradesPageContent() {
+  const searchParams = useSearchParams();
+  const studentParam = searchParams.get('student');
+  const [studentContextActive, setStudentContextActive] = useState(false);
   const [isPreschoolTenant, setIsPreschoolTenant] = useState<boolean>(true);
 
   // Filter & Navigation states
@@ -534,6 +557,20 @@ export default function PreschoolDevelopmentGradesPage() {
 
   // Modals & Drawers
   const [inspectedStudent, setInspectedStudent] = useState<ChildDevelopmentRosterItem | null>(null);
+
+  // Handle deep link ?student=...
+  useEffect(() => {
+    if (!studentParam) return;
+    const targetId = STUDENT_TO_ROSTER_ID_MAP[studentParam] || studentParam;
+    const matched = ROSTER_STUDENTS.find(
+      (s) => s.id === targetId || s.id === studentParam || s.code === studentParam || s.code.replace(/[^0-9]/g, '') === studentParam.replace(/[^0-9]/g, '')
+    );
+    if (matched) {
+      setSearchQuery(matched.name);
+      setInspectedStudent(matched);
+      setStudentContextActive(true);
+    }
+  }, [studentParam]);
   const [isNewObservationModalOpen, setIsNewObservationModalOpen] = useState<boolean>(false);
   const [isAiSuggestionsDrawerOpen, setIsAiSuggestionsDrawerOpen] = useState<boolean>(false);
   const observationOpenerRef = useRef<HTMLButtonElement>(null);
@@ -624,7 +661,9 @@ export default function PreschoolDevelopmentGradesPage() {
         const matchName = item.name.toLowerCase().includes(query);
         const matchClass = item.className.toLowerCase().includes(query);
         const matchNickname = item.nickname ? item.nickname.toLowerCase().includes(query) : false;
-        if (!matchName && !matchClass && !matchNickname) {
+        const matchCode = item.code.toLowerCase().includes(query);
+        const matchId = item.id.toLowerCase().includes(query);
+        if (!matchName && !matchClass && !matchNickname && !matchCode && !matchId) {
           return false;
         }
       }
@@ -787,6 +826,49 @@ export default function PreschoolDevelopmentGradesPage() {
           </button>
         </div>
       </div>
+
+      {/* ── CONTEXT BANNER WHEN NAVIGATED FROM 3-DOTS POPUP ── */}
+      {studentContextActive && studentParam && (
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl bg-[#0c513f]/10 border border-[#0c513f]/20 text-xs">
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-xl bg-[#0c513f] text-white flex items-center justify-center font-bold shrink-0">
+              <Award className="w-4 h-4" />
+            </div>
+            <div>
+              <p className="font-extrabold text-slate-900 dark:text-white">
+                Đang xem đánh giá phát triển của bé: <span className="text-[#0c513f] dark:text-emerald-400 font-bold">{ROSTER_STUDENTS.find(s => s.id === (STUDENT_TO_ROSTER_ID_MAP[studentParam] || studentParam))?.name || studentParam}</span> ({studentParam})
+              </p>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                Phiếu theo dõi 360° đã được mở tự động. Bạn có thể xem kết quả NAEYC hoặc chuyển nhanh sang các nghiệp vụ khác.
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <Link
+              href={`/dashboard/education/enrollments/${studentParam}`}
+              className="px-3 py-1.5 rounded-xl text-[11px] font-bold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-750 transition-all shadow-2xs"
+            >
+              Hồ Sơ 360°
+            </Link>
+            <Link
+              href={`/dashboard/education/attendance?student=${studentParam}`}
+              className="px-3 py-1.5 rounded-xl text-[11px] font-bold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-750 transition-all shadow-2xs"
+            >
+              Điểm Danh
+            </Link>
+            <button
+              type="button"
+              onClick={() => {
+                setSearchQuery('');
+                setStudentContextActive(false);
+              }}
+              className="px-3 py-1.5 rounded-xl text-[11px] font-bold bg-[#0c513f] text-white hover:bg-[#083b2e] transition-all shadow-2xs"
+            >
+              Xem tất cả trẻ
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* ── 4 KPI STAT CARDS MATCHING IMAGE 3 ── */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -1873,5 +1955,19 @@ function LegacyGradesView() {
         </p>
       </div>
     </div>
+  );
+}
+
+export default function PreschoolDevelopmentGradesPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="p-8 flex items-center justify-center min-h-[400px]">
+          <GraduationCap className="w-8 h-8 animate-spin text-[#0c513f]" />
+        </div>
+      }
+    >
+      <PreschoolDevelopmentGradesPageContent />
+    </Suspense>
   );
 }
