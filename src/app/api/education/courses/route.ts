@@ -236,7 +236,6 @@ export async function GET(request: Request) {
         : gradeKey === 'la' ? 'Khối Lá (5 tuổi)'
         : 'Khối Mầm (3 tuổi)';
 
-      const currentStudents = studentCount || course.current_enrollment || 0;
       const maxCap = course.max_students || projection?.duration_weeks || 25;
       const today = targetDate;
       const { data: enrollmentRows } = await supabase
@@ -247,20 +246,38 @@ export async function GET(request: Request) {
         .in('status', [...ROSTER_ENROLLMENT_STATUSES]);
 
       const enrollmentIds = (enrollmentRows || []).map((enrollment) => enrollment.id);
+      const actualEnrolled = enrollmentIds.length;
+      const currentStudents = actualEnrolled > 0 ? actualEnrolled : (studentCount || course.current_enrollment || 0);
+
       const { data: todayStates } = enrollmentIds.length > 0
         ? await supabase
           .from('edu_attendance_daily_state')
-          .select('status')
+          .select('enrollment_id, status')
           .eq('tenant_id', tenantId)
           .eq('school_day', today)
           .in('enrollment_id', enrollmentIds)
         : { data: [] };
 
-      const states = todayStates || [];
-      const presentCount = states.filter((state) => state.status === 'present').length;
-      const absentCount  = states.filter((state) => state.status === 'absent').length;
-      const excusedCount = states.filter((state) => state.status === 'excused').length;
-      const markedCount  = states.length;
+      // Deduplicate state per enrollment to prevent duplicate row counts
+      const stateMap = new Map<string, string>();
+      let fallbackIdx = 0;
+      for (const state of (todayStates || []) as { enrollment_id?: string; status: string }[]) {
+        const key = state.enrollment_id || `idx-${fallbackIdx++}`;
+        if (!stateMap.has(key)) {
+          stateMap.set(key, state.status);
+        }
+      }
+
+      let presentCount = 0;
+      let absentCount  = 0;
+      let excusedCount = 0;
+      for (const statusVal of stateMap.values()) {
+        if (statusVal === 'present') presentCount++;
+        else if (statusVal === 'absent') absentCount++;
+        else if (statusVal === 'excused') excusedCount++;
+      }
+      const markedCount = stateMap.size;
+      const unmarkedCount = Math.max(0, currentStudents - markedCount);
 
       classrooms.push({
         id: course.id,
@@ -282,7 +299,7 @@ export async function GET(request: Request) {
           present: presentCount,
           absent: absentCount,
           excused: excusedCount,
-          unmarked: Math.max(0, currentStudents - markedCount),
+          unmarked: unmarkedCount,
           healthAlerts: 0,
         },
       });

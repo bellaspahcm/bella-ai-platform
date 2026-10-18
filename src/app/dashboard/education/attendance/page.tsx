@@ -31,6 +31,7 @@ interface ClassroomOverviewItem {
   maxStudents: number;
   todayStatus: {
     present: number;
+    absent: number;
     excused: number;
     unmarked: number;
     healthAlerts: number;
@@ -158,33 +159,29 @@ export default function AttendancePage() {
     };
   }, []);
 
-  useEffect(() => {
-    let active = true;
-    async function loadClassrooms() {
-      setLoadingClassrooms(true);
-      setError(null);
-      try {
-        const response = await fetch('/api/education/courses', { cache: 'no-store' });
-        const payload = await response.json();
-        if (!response.ok || !payload.success) {
-          throw new Error(payload.error ?? 'Không tải được danh sách lớp');
-        }
-
-        const loadedClassrooms = (payload.classrooms ?? []) as ClassroomOverviewItem[];
-        if (active) {
-          setClassrooms(loadedClassrooms);
-          setSelectedCourseId((current) => current || loadedClassrooms[0]?.id || '');
-        }
-      } catch (loadError) {
-        if (active) setError(loadError instanceof Error ? loadError.message : 'Không tải được danh sách lớp');
-      } finally {
-        if (active) setLoadingClassrooms(false);
+  const loadClassrooms = useCallback(async () => {
+    setLoadingClassrooms(true);
+    setError(null);
+    try {
+      const response = await fetch(`/api/education/courses?date=${schoolDay}`, { cache: 'no-store' });
+      const payload = await response.json();
+      if (!response.ok || !payload.success) {
+        throw new Error(payload.error ?? 'Không tải được danh sách lớp');
       }
-    }
 
+      const loadedClassrooms = (payload.classrooms ?? []) as ClassroomOverviewItem[];
+      setClassrooms(loadedClassrooms);
+      setSelectedCourseId((current) => current || loadedClassrooms[0]?.id || '');
+    } catch (loadError) {
+      setError(loadError instanceof Error ? loadError.message : 'Không tải được danh sách lớp');
+    } finally {
+      setLoadingClassrooms(false);
+    }
+  }, [schoolDay]);
+
+  useEffect(() => {
     void loadClassrooms();
-    return () => { active = false; };
-  }, []);
+  }, [loadClassrooms]);
 
   const refreshRoster = useCallback(async (): Promise<boolean> => {
     const requestVersion = ++rosterRequestVersion.current;
@@ -364,12 +361,14 @@ export default function AttendancePage() {
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
             {classrooms.map((classroom) => {
               const isSelected = classroom.id === selectedCourseId;
-              const present = classroom.todayStatus.present;
-              const absent  = classroom.todayStatus.absent;
-              const excused = classroom.todayStatus.excused;
-              const unmarked = classroom.todayStatus.unmarked;
+              const isLive = isSelected && rosterReady;
+              const totalStudents = (isLive && currentRoster.length > 0) ? currentRoster.length : classroom.students;
+              const present = isLive ? attendanceSummary.present : classroom.todayStatus.present;
+              const absent  = isLive ? attendanceSummary.absent  : (classroom.todayStatus.absent ?? 0);
+              const excused = isLive ? attendanceSummary.excused : classroom.todayStatus.excused;
+              const unmarked = isLive ? attendanceSummary.unmarked : classroom.todayStatus.unmarked;
               const fillPct = classroom.maxStudents > 0
-                ? Math.round((classroom.students / classroom.maxStudents) * 100)
+                ? Math.round((totalStudents / classroom.maxStudents) * 100)
                 : 0;
               return (
                 <button
@@ -393,7 +392,7 @@ export default function AttendancePage() {
                   <p className={`text-[10px] font-semibold mb-3 ${
                     isSelected ? 'text-[var(--education-brand-ink)]/70' : 'text-gray-500 dark:text-gray-400'
                   }`}>
-                    Sĩ số: <span className="font-extrabold">{classroom.students}</span>/{classroom.maxStudents}
+                    Sĩ số: <span className="font-extrabold">{totalStudents}</span>/{classroom.maxStudents}
                     <span className="ml-1 opacity-70">({fillPct}%)</span>
                   </p>
                   <div className="flex items-center gap-1.5 flex-wrap">
@@ -566,14 +565,22 @@ export default function AttendancePage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3 text-xs">
-              <div className="rounded-2xl bg-emerald-50 dark:bg-emerald-950 p-4">
-                <p className="font-bold text-emerald-700 dark:text-emerald-300">Có mặt</p>
-                <p className="text-2xl font-extrabold text-emerald-900 dark:text-emerald-100">{attendanceSummary.present}</p>
+            <div className="grid grid-cols-2 gap-2 text-xs">
+              <div className="rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 p-3 border border-emerald-100 dark:border-emerald-900/40">
+                <p className="font-bold text-[10px] text-emerald-700 dark:text-emerald-300">Có mặt</p>
+                <p className="text-xl font-extrabold text-emerald-900 dark:text-emerald-100 mt-0.5">{attendanceSummary.present}</p>
               </div>
-              <div className="rounded-2xl bg-slate-50 dark:bg-slate-700/50 p-4">
-                <p className="font-bold text-slate-600 dark:text-slate-300">Chưa điểm danh</p>
-                <p className="text-2xl font-extrabold text-slate-900 dark:text-white">{attendanceSummary.unmarked}</p>
+              <div className="rounded-2xl bg-rose-50 dark:bg-rose-950/60 p-3 border border-rose-100 dark:border-rose-900/40">
+                <p className="font-bold text-[10px] text-rose-700 dark:text-rose-300">Vắng</p>
+                <p className="text-xl font-extrabold text-rose-900 dark:text-rose-100 mt-0.5">{attendanceSummary.absent}</p>
+              </div>
+              <div className="rounded-2xl bg-amber-50 dark:bg-amber-950/60 p-3 border border-amber-100 dark:border-amber-900/40">
+                <p className="font-bold text-[10px] text-amber-700 dark:text-amber-300">Nghỉ phép</p>
+                <p className="text-xl font-extrabold text-amber-900 dark:text-amber-100 mt-0.5">{attendanceSummary.excused}</p>
+              </div>
+              <div className="rounded-2xl bg-slate-50 dark:bg-slate-700/50 p-3 border border-slate-200 dark:border-slate-700/50">
+                <p className="font-bold text-[10px] text-slate-600 dark:text-slate-300">Chưa điểm</p>
+                <p className="text-xl font-extrabold text-slate-900 dark:text-white mt-0.5">{attendanceSummary.unmarked}</p>
               </div>
             </div>
 
