@@ -131,6 +131,7 @@ describe('/api/education/courses canonical classroom route', () => {
       code: 'MAM-A1',
       name: 'Projection Name',
       grade: 'Khối Mầm (3 tuổi)',
+      gradeKey: 'mam',
       room: 'Phòng 105',
       students: 2,
       maxStudents: 25,
@@ -138,6 +139,86 @@ describe('/api/education/courses canonical classroom route', () => {
     })]);
     expect(queriedTables[0]).toBe('edu_courses');
     expect(queriedTables).toContain('courses');
+  });
+
+  it('correctly maps gradeKey for all preschool grades including nursery (Nhà Trẻ)', async () => {
+    const mockEduCourses = [
+      { id: 'c-nursery', course_code: 'NHA-TRE-1', title: 'Lớp Nhà trẻ 1 — Gấu Misa', status: 'active', max_students: 18, current_enrollment: 0, created_at: '2026-10-01' },
+      { id: 'c-choi', course_code: 'CHOI-1', title: 'Lớp Chồi 1 — Sóc Nhí', status: 'active', max_students: 25, current_enrollment: 0, created_at: '2026-10-02' },
+      { id: 'c-la', course_code: 'LA-1', title: 'Lớp Lá 1 — Vàng Anh', status: 'active', max_students: 25, current_enrollment: 0, created_at: '2026-10-03' },
+      { id: 'c-mam', course_code: 'MAM-NON-1', title: 'Lớp Mầm non 1 — Họa Mi', status: 'active', max_students: 25, current_enrollment: 0, created_at: '2026-10-04' },
+    ];
+
+    mockFrom.mockImplementation((table: string) => {
+      if (table === 'edu_courses') {
+        return {
+          select: () => ({
+            eq: () => ({
+              order: async () => ({
+                data: mockEduCourses,
+                error: null,
+              }),
+            }),
+          }),
+        };
+      }
+      if (table === 'courses') {
+        return {
+          select: () => ({
+            eq: () => ({
+              in: async () => ({
+                data: mockEduCourses.map((c) => ({
+                  course_id: c.id,
+                  course_code: c.course_code,
+                  course_name: c.title,
+                  description: null,
+                  duration_weeks: 25,
+                  metadata: {},
+                  status: 'active',
+                })),
+                error: null,
+              }),
+            }),
+          }),
+        };
+      }
+      if (table === 'edu_enrollments') {
+        return {
+          select: (_cols: string, options?: { count?: string; head?: boolean }) => {
+            if (options?.head) {
+              return {
+                eq: () => ({ eq: () => ({ in: async () => ({ count: 0, error: null }) }) }),
+              };
+            }
+            return {
+              eq: () => ({ eq: () => ({ in: async () => ({ data: [], error: null }) }) }),
+            };
+          },
+        };
+      }
+      if (table === 'edu_attendance_daily_state') {
+        return {
+          select: () => ({
+            eq: () => ({ eq: () => ({ in: async () => ({ data: [], error: null }) }) }),
+          }),
+        };
+      }
+      throw new Error(`Unexpected table access: ${table}`);
+    });
+
+    const response = await GET(new Request('http://localhost/api/education/courses'));
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.success).toBe(true);
+
+    const classrooms = body.classrooms;
+    expect(classrooms.find((c: { id: string }) => c.id === 'c-nursery')?.gradeKey).toBe('nursery');
+    expect(classrooms.find((c: { id: string }) => c.id === 'c-choi')?.gradeKey).toBe('choi');
+    expect(classrooms.find((c: { id: string }) => c.id === 'c-la')?.gradeKey).toBe('la');
+    expect(classrooms.find((c: { id: string }) => c.id === 'c-mam')?.gradeKey).toBe('mam');
+
+    expect(classrooms.find((c: { id: string }) => c.id === 'c-nursery')?.grade).toBe('Nhà Trẻ (18-36 tháng)');
   });
 
   it('holds Course creation before any legacy or canonical persistence attempt', async () => {
