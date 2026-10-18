@@ -1,0 +1,200 @@
+{
+  "result": "PASS_SCOPED_NATIVE_CHILD_DRAFT_JOURNEY",
+  "recordedAt": "2026-10-17T23:07:04.893Z",
+  "baseline": "b55d3c28353e530bf713c745dc39edc730a6bc34",
+  "parentPullRequest": 368,
+  "dependencyChain": [
+    368,
+    367,
+    362,
+    361
+  ],
+  "branch": "codex/preschool-observation-drafts-flow",
+  "worktree": "D:\\Antigravity\\Projects\\BELLA_PRESCHOOL_ROSTER_JOURNEY",
+  "runtimeFiles": 1,
+  "runtimeDiff": {
+    "additions": 40,
+    "deletions": 12
+  },
+  "sourceSha256": "6b4fa51595c66b39d7cc7b569d6673e18d0f4d5a704c4e1688c5ebaa46f8b0d5",
+  "testSha256": "d1f7f9a6e8209252897ae01fd54328af0707a7b2975dd99fe4700b824f885c4b",
+  "sameTestBeforeAfter": true,
+  "sourceRepairRounds": 1,
+  "before": {
+    "checked": 28,
+    "passed": 8,
+    "failed": 20,
+    "errors": 0,
+    "pageErrors": 0,
+    "unexpectedRequests": 0,
+    "downloads": 0
+  },
+  "after": {
+    "checked": 28,
+    "passed": 28,
+    "failed": 0,
+    "errors": 0,
+    "pageErrors": 0,
+    "unexpectedRequests": 0,
+    "downloads": 0
+  },
+  "native": {
+    "commands": 13,
+    "fileChanges": 1,
+    "fileChangeReadback": "1/1 MATCH",
+    "facts": 70,
+    "binding": {
+      "repository": "bellaspahcm/bella-ai-platform",
+      "taskId": "e619dfdf-aea9-4eea-9744-d0b17e4db313",
+      "runId": "2276074c-5950-409c-ac9b-bb6bde490d0b",
+      "attempt": 1,
+      "producerInstanceId": "1fb6518c-16b1-412c-8774-c3fbf4100ec8",
+      "threadId": "01a14c18-f343-74e2-8168-a5abe39dd408",
+      "sessionId": "01a14c18-f343-74e2-8168-a5abe39dd408",
+      "turnId": "01a14c18-f466-7620-a898-9db5afff6232"
+    },
+    "beforePatchAfterOrder": "PASS",
+    "browserOutputMatches": 2,
+    "outputDigestDifferences": 1,
+    "verificationReportsMatched": 4,
+    "verificationReportsTotal": 6,
+    "structuredReportScope": "4/4 lint/type/syntax/whitespace reports match; 2 browser commands verified directly by native output/exit/order"
+  },
+  "checks": [
+    {
+      "command": "node docs/audits/preschool-observation-drafts-flow/observation-browser.cjs before",
+      "exitCode": 1,
+      "nativeReportMatch": false
+    },
+    {
+      "command": "node docs/audits/preschool-observation-drafts-flow/observation-browser.cjs after",
+      "exitCode": 0,
+      "nativeReportMatch": false
+    },
+    {
+      "command": "node node_modules/eslint/bin/eslint.js src/app/dashboard/education/grades/page.tsx",
+      "exitCode": 0,
+      "nativeReportMatch": true
+    },
+    {
+      "command": "node node_modules/typescript/bin/tsc -p tsconfig.education.json --pretty false --incremental --tsBuildInfoFile docs/audits/preschool-observation-drafts-flow/.cache/education.tsbuildinfo",
+      "exitCode": 0,
+      "nativeReportMatch": true
+    },
+    {
+      "command": "node --check docs/audits/preschool-observation-drafts-flow/observation-browser.cjs",
+      "exitCode": 0,
+      "nativeReportMatch": true
+    },
+    {
+      "command": "git diff --check",
+      "exitCode": 0,
+      "nativeReportMatch": true
+    }
+  ],
+  "leadReview": {
+    "source": "Exact reversal of only observation state/field setter/profile handoff/note substitutions reproduces baseline; records, field defaults, roster/filter/keyboard/tenant/save semantics unchanged",
+    "edgeCases": "Reviewed A/B/C profile context; same-child preservation; immutable keyed updates merge latest draft; repeated switches retain all fields; selection/filters independent of draft keys; notice cleared on child context switch; no new storage; remount resets state and unavailable save stays honest",
+    "findings": [],
+    "visual": "Inspected light mobile and dark desktop observation screenshots; fonts blocked/fallback, scrollable modal; no full-page responsive/accessibility claim"
+  },
+  "contrast": {
+    "checked": 4,
+    "passed": 4,
+    "minimumRatio": 10.35474573184942,
+    "scope": "Updated per-child draft note only"
+  },
+  "environment": {
+    "recordedAt": "2026-10-17T23:01:01.840Z",
+    "owner": "LEAD",
+    "browserFiles": 291,
+    "checksumsIdentical": true,
+    "executableSha256": "2d8f2abad1a0f2998aaf861967c374d4aad6a104916b8794318760ed35db772f",
+    "nodeModules": "Existing D dependency junction",
+    "policy": {
+      "type": "workspaceWrite",
+      "writableRoots": [
+        "D:\\Antigravity\\Projects\\BELLA_PRESCHOOL_ROSTER_JOURNEY"
+      ],
+      "networkAccess": false
+    },
+    "coreAgentFlowModified": false,
+    "runnerBehaviorModified": false,
+    "taskLocalTemporaryDirectory": "D:\\Antigravity\\Projects\\BELLA_PRESCHOOL_ROSTER_JOURNEY\\docs\\audits\\preschool-observation-drafts-flow\\.cache\\tmp",
+    "retainedStore": "Existing C private Agent Flow evidence root",
+    "cFreeBytes": 741756928,
+    "dFreeBytes": 81376321536,
+    "checkout": "Reused isolated clean D Git worktree on scoped new branch",
+    "oldDataDeleted": false,
+    "cacheCommitted": false
+  },
+  "limits": [
+    "Synthetic actual Grades/shared Dialog, no full Next/Auth/DB proof; only component-lifetime drafts",
+    "No whole-page accessibility/responsive proof; targeted changed-note contrast only",
+    "Raw worker preservation probe failure is retained; Lead independently verifies exact scoped source reversal after explicit line-ending normalization",
+    "One non-test native stdout digest differs; raw failed probe and independent CRLF resolution retained. No full stdout identity/unattended completion claim."
+  ],
+  "assemblyNotes": {
+    "workerResult": "BLOCKED_PRESERVATION_PROBE",
+    "additionalProbe": {
+      "command": "node docs/audits/preschool-observation-drafts-flow/.cache/seal.cjs",
+      "commandSha256": "a4bae9ed56d107fa2a603ab166205d8bc60b4725c3b6af500fe6f256ce76cbf4",
+      "scriptSha256": "c75b6aa8a94afb49d2818f29edd4a1741aeafa051d3935bb433827254b78200e",
+      "exit": 1,
+      "stdout": "",
+      "stderr": "AssertionError [ERR_ASSERTION]: referenceDataAndTypes\n\nfalse !== true\n\n    at Object.<anonymous> (docs/audits/preschool-observation-drafts-flow/.cache/seal.cjs:18:61)",
+      "classification": "Auxiliary raw-text preservation oracle failed. No browser harness error. Suspected line-ending sensitivity is unverified. Probe preserved unchanged; no repair or rerun under task stop rule.",
+      "preservationMachineProof": "NOT_PROVEN"
+    },
+    "workerStop": "Stopped after first auxiliary preservation probe error; unchanged browser test and source not repaired or rerun. Publication not performed.",
+    "readOnlyResolution": "Raw git-show LF and working-tree CRLF compared directly by worker probe. Lead uses explicit line-ending normalization and exact reversal of approved substitutions to prove whole source preservation; original probe is not edited or rerun."
+  },
+  "boundaries": {
+    "oldSuitesRerun": 0,
+    "dbOperations": 0,
+    "authOperations": 0,
+    "coreAgentFlowModified": false,
+    "sharedDialogModified": false,
+    "parentDailyAndCoursePost503": "UNCHANGED",
+    "courseD01toD05": "PRESERVED",
+    "courseEightFileAllowlist": "UNCHANGED",
+    "parentRls": "FAIL",
+    "courseAuthorization": "BLOCKED",
+    "uiToDb": "NOT_PROVEN",
+    "preGoLive": "BLOCKED",
+    "merge": false,
+    "manualDeploy": false
+  },
+  "proofHashes": {
+    "native-before.json": "0b34d68bd3f1168ccf62468fd44164058f7c540de0866a4513d3d106f52fec14",
+    "native-after.json": "b194be82d04c45cec18fcac8509fc4dd0104ae9ec69c8041ce1d52fe2e166c39",
+    "verification.json": "d6cab05fed943470b20fafec28c23bda984f945155c2288062f5a8b502270274",
+    "native-task-result.json": "a2021535d9bef317df243a6cac941421cc98086794aa5461e011f42ef3f69b42",
+    "native-task-readback.json": "faae43fb24ea8fde5d1661403eeaaaf57bba8b98e061dc200fa92d4a7218d5b0",
+    "native-command-readback.json": "f0fc4c49178e15803895559b5a357c1707958afa98ff51120e477fd199cb4866",
+    "edge-case-review.json": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+    "native-source.diff": "8935423ffe992b6e1942eb464fbd9d3220c097484ff6b0b7d47e5fabd16cd2f5",
+    "draft-light-desktop.png": "7963e84e875870e9cc8ca4c487c83f2be336f82f37b41b9adc7a8db74af74fa5",
+    "draft-dark-desktop.png": "5a4a9bb15c3da3d5e979b1cd111cf152388a0aecdc44b828258b9350eb457429",
+    "draft-light-mobile.png": "1558b8b08257e80760279f878f68540cd1de5a14c9808fc159ea724a31678232",
+    "draft-dark-mobile.png": "9dd2f0ae4f41b7e6ac684e87e7b07698b7a811fd283e52783632ca13855380e3",
+    "lead-verification-notes.json": "9911da9d1fb94701da3e496d57fe5af2a3dec320db70ecce605b728cea2c64fb",
+    "worker-seal-probe.cjs.gz": "95aca54f18ff058a09a15cf556eaf6b6952f12f3209e828393a731890d23eb7b",
+    "PR_CHAIN_REVIEW.json": "6223fbab9bbebef675787b9a6626eef531cc14e83ea22ca18fbf966e73d23181",
+    "architecture-guard-proof.json": "875d93ec891662b234c17718c8ac88054e179a4b4e82fce43a85e6c494e73388"
+  },
+  "hashScope": "Worktree bytes; Git may normalize CRLF",
+  "workerPreservationProbe": {
+    "status": "FAILED_RAW_TEXT_COMPARISON_RETAINED",
+    "resolution": "PASS_SCOPED_INDEPENDENT_NORMALIZED_WHOLE_SOURCE_REVERSAL",
+    "notes": "lead-verification-notes.json",
+    "artifact": "worker-seal-probe.cjs.gz",
+    "probeEditedOrRerun": false
+  },
+  "architectureGuard": {
+    "command": "node scripts/architecture/git-pre-commit-guard.js",
+    "exitCode": 0,
+    "proof": "architecture-guard-proof.json",
+    "stagedFiles": 25
+  }
+}

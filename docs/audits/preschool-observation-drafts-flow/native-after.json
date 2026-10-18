@@ -1,0 +1,1574 @@
+{
+  "phase": "after",
+  "recordedAt": "2026-10-17T23:04:21.976Z",
+  "command": "node docs/audits/preschool-observation-drafts-flow/observation-browser.cjs after",
+  "commandSha256": "4bef07275a66e869c1bba72d03ab2fa4eb0a05f4f6a8f52f8a166b624ceb82d6",
+  "exitCode": 0,
+  "summary": {
+    "checked": 28,
+    "passed": 28,
+    "failed": 0,
+    "errors": 0,
+    "pageErrors": 0,
+    "unexpectedRequests": 0,
+    "downloads": 0
+  },
+  "sourceSha256": "6b4fa51595c66b39d7cc7b569d6673e18d0f4d5a704c4e1688c5ebaa46f8b0d5",
+  "testSha256": "d1f7f9a6e8209252897ae01fd54328af0707a7b2975dd99fe4700b824f885c4b",
+  "globalsSha256": "1f2458f1e1ff45ff29650ce9bc30a0a408004f079760de68bcef7c915ddce21e",
+  "compiledCssSha256": "c1fe0d0bfeb4d0f93baa6797465e341937d258065495352155908882af269220",
+  "bundleSha256": "8e15c7a546fec909944b2fa6a896fc444ac0730b4dfe8dbaef7281013a114704",
+  "limits": "Actual Grades and shared modal code with real globals; synthetic Next link/image and tenant only. Loopback CSP; fresh browser context per journey; finally cleanup. No Auth/DB/full Next proof. Contrast measured for draft note in four after contexts.",
+  "contrast": [
+    {
+      "label": "Per-child draft note",
+      "minimumRatio": 10.35474573184942,
+      "sampledPixels": 12964,
+      "worstBackground": [
+        255,
+        255,
+        255
+      ],
+      "worstForeground": [
+        51,
+        65,
+        85
+      ],
+      "threshold": 4.5,
+      "result": "PASS",
+      "cssColor": "rgb(51, 65, 85)",
+      "resolvedForegroundRgba": [
+        51,
+        65,
+        85,
+        255
+      ],
+      "effectiveOpacity": 1,
+      "fontSize": "12px",
+      "fontFamily": "\"Times New Roman\"",
+      "ancestorLayers": [
+        {
+          "tag": "P",
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "backgroundImage": "none",
+          "opacity": "1",
+          "mixBlendMode": "normal"
+        },
+        {
+          "tag": "DIV",
+          "backgroundColor": "rgb(255, 255, 255)",
+          "backgroundImage": "none",
+          "opacity": "1",
+          "mixBlendMode": "normal"
+        },
+        {
+          "tag": "DIV",
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "backgroundImage": "none",
+          "opacity": "1",
+          "mixBlendMode": "normal"
+        },
+        {
+          "tag": "DIV",
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "backgroundImage": "none",
+          "opacity": "1",
+          "mixBlendMode": "normal"
+        },
+        {
+          "tag": "BODY",
+          "backgroundColor": "oklch(1 0 0)",
+          "backgroundImage": "radial-gradient(circle at 0% 0%, rgba(157, 23, 77, 0.04) 0%, rgba(0, 0, 0, 0) 40%), radial-gradient(circle at 100% 100%, rgba(190, 24, 93, 0.04) 0%, rgba(0, 0, 0, 0) 40%)",
+          "opacity": "1",
+          "mixBlendMode": "normal"
+        },
+        {
+          "tag": "HTML",
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "backgroundImage": "none",
+          "opacity": "1",
+          "mixBlendMode": "normal"
+        }
+      ],
+      "method": "Chromium canvas CSS-to-sRGB foreground; native raster background with text ink removed, sampling every pixel under actual text rects including ancestor/gradient/alpha/backdrop compositing; WCAG relative luminance; raw ratio compared to 4.5 without rounding."
+    },
+    {
+      "label": "Per-child draft note",
+      "minimumRatio": 10.35474573184942,
+      "sampledPixels": 12922,
+      "worstBackground": [
+        255,
+        255,
+        255
+      ],
+      "worstForeground": [
+        51,
+        65,
+        85
+      ],
+      "threshold": 4.5,
+      "result": "PASS",
+      "cssColor": "rgb(51, 65, 85)",
+      "resolvedForegroundRgba": [
+        51,
+        65,
+        85,
+        255
+      ],
+      "effectiveOpacity": 1,
+      "fontSize": "12px",
+      "fontFamily": "\"Times New Roman\"",
+      "ancestorLayers": [
+        {
+          "tag": "P",
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "backgroundImage": "none",
+          "opacity": "1",
+          "mixBlendMode": "normal"
+        },
+        {
+          "tag": "DIV",
+          "backgroundColor": "rgb(255, 255, 255)",
+          "backgroundImage": "none",
+          "opacity": "1",
+          "mixBlendMode": "normal"
+        },
+        {
+          "tag": "DIV",
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "backgroundImage": "none",
+          "opacity": "1",
+          "mixBlendMode": "normal"
+        },
+        {
+          "tag": "DIV",
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "backgroundImage": "none",
+          "opacity": "1",
+          "mixBlendMode": "normal"
+        },
+        {
+          "tag": "BODY",
+          "backgroundColor": "oklch(1 0 0)",
+          "backgroundImage": "radial-gradient(circle at 0% 0%, rgba(157, 23, 77, 0.04) 0%, rgba(0, 0, 0, 0) 40%), radial-gradient(circle at 100% 100%, rgba(190, 24, 93, 0.04) 0%, rgba(0, 0, 0, 0) 40%)",
+          "opacity": "1",
+          "mixBlendMode": "normal"
+        },
+        {
+          "tag": "HTML",
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "backgroundImage": "none",
+          "opacity": "1",
+          "mixBlendMode": "normal"
+        }
+      ],
+      "method": "Chromium canvas CSS-to-sRGB foreground; native raster background with text ink removed, sampling every pixel under actual text rects including ancestor/gradient/alpha/backdrop compositing; WCAG relative luminance; raw ratio compared to 4.5 without rounding."
+    },
+    {
+      "label": "Per-child draft note",
+      "minimumRatio": 13.177733038404984,
+      "sampledPixels": 12964,
+      "worstBackground": [
+        17,
+        44,
+        64
+      ],
+      "worstForeground": [
+        243,
+        245,
+        247
+      ],
+      "threshold": 4.5,
+      "result": "PASS",
+      "cssColor": "rgb(243, 245, 247)",
+      "resolvedForegroundRgba": [
+        243,
+        245,
+        247,
+        255
+      ],
+      "effectiveOpacity": 1,
+      "fontSize": "12px",
+      "fontFamily": "\"Times New Roman\"",
+      "ancestorLayers": [
+        {
+          "tag": "P",
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "backgroundImage": "none",
+          "opacity": "1",
+          "mixBlendMode": "normal"
+        },
+        {
+          "tag": "DIV",
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "backgroundImage": "linear-gradient(rgba(17, 46, 67, 0.94) 0%, rgba(9, 26, 45, 0.88) 100%)",
+          "opacity": "1",
+          "mixBlendMode": "normal"
+        },
+        {
+          "tag": "DIV",
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "backgroundImage": "none",
+          "opacity": "1",
+          "mixBlendMode": "normal"
+        },
+        {
+          "tag": "DIV",
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "backgroundImage": "none",
+          "opacity": "1",
+          "mixBlendMode": "normal"
+        },
+        {
+          "tag": "BODY",
+          "backgroundColor": "rgb(9, 26, 45)",
+          "backgroundImage": "radial-gradient(circle at 0% 0%, rgba(39, 197, 150, 0.08) 0%, rgba(0, 0, 0, 0) 36%), radial-gradient(circle at 100% 100%, rgba(229, 184, 97, 0.07) 0%, rgba(0, 0, 0, 0) 40%)",
+          "opacity": "1",
+          "mixBlendMode": "normal"
+        },
+        {
+          "tag": "HTML",
+          "backgroundColor": "rgb(9, 26, 45)",
+          "backgroundImage": "none",
+          "opacity": "1",
+          "mixBlendMode": "normal"
+        }
+      ],
+      "method": "Chromium canvas CSS-to-sRGB foreground; native raster background with text ink removed, sampling every pixel under actual text rects including ancestor/gradient/alpha/backdrop compositing; WCAG relative luminance; raw ratio compared to 4.5 without rounding."
+    },
+    {
+      "label": "Per-child draft note",
+      "minimumRatio": 12.796405246072956,
+      "sampledPixels": 12922,
+      "worstBackground": [
+        20,
+        46,
+        67
+      ],
+      "worstForeground": [
+        243,
+        245,
+        247
+      ],
+      "threshold": 4.5,
+      "result": "PASS",
+      "cssColor": "rgb(243, 245, 247)",
+      "resolvedForegroundRgba": [
+        243,
+        245,
+        247,
+        255
+      ],
+      "effectiveOpacity": 1,
+      "fontSize": "12px",
+      "fontFamily": "\"Times New Roman\"",
+      "ancestorLayers": [
+        {
+          "tag": "P",
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "backgroundImage": "none",
+          "opacity": "1",
+          "mixBlendMode": "normal"
+        },
+        {
+          "tag": "DIV",
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "backgroundImage": "linear-gradient(rgba(17, 46, 67, 0.94) 0%, rgba(9, 26, 45, 0.88) 100%)",
+          "opacity": "1",
+          "mixBlendMode": "normal"
+        },
+        {
+          "tag": "DIV",
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "backgroundImage": "none",
+          "opacity": "1",
+          "mixBlendMode": "normal"
+        },
+        {
+          "tag": "DIV",
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "backgroundImage": "none",
+          "opacity": "1",
+          "mixBlendMode": "normal"
+        },
+        {
+          "tag": "BODY",
+          "backgroundColor": "rgb(9, 26, 45)",
+          "backgroundImage": "radial-gradient(circle at 0% 0%, rgba(39, 197, 150, 0.08) 0%, rgba(0, 0, 0, 0) 36%), radial-gradient(circle at 100% 100%, rgba(229, 184, 97, 0.07) 0%, rgba(0, 0, 0, 0) 40%)",
+          "opacity": "1",
+          "mixBlendMode": "normal"
+        },
+        {
+          "tag": "HTML",
+          "backgroundColor": "rgb(9, 26, 45)",
+          "backgroundImage": "none",
+          "opacity": "1",
+          "mixBlendMode": "normal"
+        }
+      ],
+      "method": "Chromium canvas CSS-to-sRGB foreground; native raster background with text ink removed, sampling every pixel under actual text rects including ancestor/gradient/alpha/backdrop compositing; WCAG relative luminance; raw ratio compared to 4.5 without rounding."
+    }
+  ],
+  "results": [
+    {
+      "journey": "J1",
+      "theme": "light",
+      "device": "desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "assertions": [
+        {
+          "name": "Profile B hands off B with exact defaults",
+          "result": "PASS"
+        },
+        {
+          "name": "One dialog and focus inside",
+          "result": "PASS"
+        },
+        {
+          "name": "Escape closes and returns connected global opener",
+          "result": "PASS"
+        },
+        {
+          "name": "Roster filters and selection unchanged",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "PASS"
+    },
+    {
+      "journey": "J2",
+      "theme": "light",
+      "device": "desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "assertions": [
+        {
+          "name": "B has its own untouched defaults, never A content",
+          "result": "PASS"
+        },
+        {
+          "name": "A full draft retained despite roster selection/filter",
+          "result": "PASS"
+        },
+        {
+          "name": "Roster filter and selected child remain independent",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "PASS"
+    },
+    {
+      "journey": "J3",
+      "theme": "light",
+      "device": "desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "assertions": [
+        {
+          "name": "Manual B starts exact defaults",
+          "result": "PASS"
+        },
+        {
+          "name": "Repeated A restores all fields 0",
+          "result": "PASS"
+        },
+        {
+          "name": "Repeated B restores all fields 0",
+          "result": "PASS"
+        },
+        {
+          "name": "Repeated A restores all fields 1",
+          "result": "PASS"
+        },
+        {
+          "name": "Repeated B restores all fields 1",
+          "result": "PASS"
+        },
+        {
+          "name": "Repeated A restores all fields 2",
+          "result": "PASS"
+        },
+        {
+          "name": "Repeated B restores all fields 2",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "PASS"
+    },
+    {
+      "journey": "J4",
+      "theme": "light",
+      "device": "desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "assertions": [
+        {
+          "name": "Initial exact defaults",
+          "result": "PASS"
+        },
+        {
+          "name": "Close and keep retains full same-child draft",
+          "result": "PASS"
+        },
+        {
+          "name": "Escape closes and returns connected global opener",
+          "result": "PASS"
+        },
+        {
+          "name": "Escape retains full same-child draft",
+          "result": "PASS"
+        },
+        {
+          "name": "One dialog and focus inside",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "PASS"
+    },
+    {
+      "journey": "J5",
+      "theme": "light",
+      "device": "desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "assertions": [
+        {
+          "name": "Same profile A never resets draft",
+          "result": "PASS"
+        },
+        {
+          "name": "Profile B receives exact defaults",
+          "result": "PASS"
+        },
+        {
+          "name": "Profile C receives exact defaults",
+          "result": "PASS"
+        },
+        {
+          "name": "Return from C retains A",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "PASS"
+    },
+    {
+      "journey": "J6",
+      "theme": "light",
+      "device": "desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "assertions": [
+        {
+          "name": "Global reopen retains active B and full draft",
+          "result": "PASS"
+        },
+        {
+          "name": "Profile A has exact defaults",
+          "result": "PASS"
+        },
+        {
+          "name": "Back to B retains full B draft",
+          "result": "PASS"
+        },
+        {
+          "name": "Save honestly unavailable and no success",
+          "result": "PASS"
+        },
+        {
+          "name": "Unavailable save preserves B",
+          "result": "PASS"
+        },
+        {
+          "name": "Draft note raw contrast >=4.5",
+          "result": "PASS"
+        },
+        {
+          "name": "Unavailable save leaves A intact",
+          "result": "PASS"
+        },
+        {
+          "name": "No new sample row",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "contrast": [
+        {
+          "label": "Per-child draft note",
+          "minimumRatio": 10.35474573184942,
+          "sampledPixels": 12964,
+          "worstBackground": [
+            255,
+            255,
+            255
+          ],
+          "worstForeground": [
+            51,
+            65,
+            85
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "rgb(51, 65, 85)",
+          "resolvedForegroundRgba": [
+            51,
+            65,
+            85,
+            255
+          ],
+          "effectiveOpacity": 1,
+          "fontSize": "12px",
+          "fontFamily": "\"Times New Roman\"",
+          "ancestorLayers": [
+            {
+              "tag": "P",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgb(255, 255, 255)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "BODY",
+              "backgroundColor": "oklch(1 0 0)",
+              "backgroundImage": "radial-gradient(circle at 0% 0%, rgba(157, 23, 77, 0.04) 0%, rgba(0, 0, 0, 0) 40%), radial-gradient(circle at 100% 100%, rgba(190, 24, 93, 0.04) 0%, rgba(0, 0, 0, 0) 40%)",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "HTML",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            }
+          ],
+          "method": "Chromium canvas CSS-to-sRGB foreground; native raster background with text ink removed, sampling every pixel under actual text rects including ancestor/gradient/alpha/backdrop compositing; WCAG relative luminance; raw ratio compared to 4.5 without rounding."
+        }
+      ],
+      "result": "PASS"
+    },
+    {
+      "journey": "J7",
+      "theme": "light",
+      "device": "desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "assertions": [
+        {
+          "name": "Remount resets active child and exact defaults",
+          "result": "PASS"
+        },
+        {
+          "name": "Remount discards all B text and restores defaults",
+          "result": "PASS"
+        },
+        {
+          "name": "Synthetic nonpersistent disclaimer",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "PASS"
+    },
+    {
+      "journey": "J1",
+      "theme": "light",
+      "device": "mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "assertions": [
+        {
+          "name": "Profile B hands off B with exact defaults",
+          "result": "PASS"
+        },
+        {
+          "name": "One dialog and focus inside",
+          "result": "PASS"
+        },
+        {
+          "name": "Escape closes and returns connected global opener",
+          "result": "PASS"
+        },
+        {
+          "name": "Roster filters and selection unchanged",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "PASS"
+    },
+    {
+      "journey": "J2",
+      "theme": "light",
+      "device": "mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "assertions": [
+        {
+          "name": "B has its own untouched defaults, never A content",
+          "result": "PASS"
+        },
+        {
+          "name": "A full draft retained despite roster selection/filter",
+          "result": "PASS"
+        },
+        {
+          "name": "Roster filter and selected child remain independent",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "PASS"
+    },
+    {
+      "journey": "J3",
+      "theme": "light",
+      "device": "mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "assertions": [
+        {
+          "name": "Manual B starts exact defaults",
+          "result": "PASS"
+        },
+        {
+          "name": "Repeated A restores all fields 0",
+          "result": "PASS"
+        },
+        {
+          "name": "Repeated B restores all fields 0",
+          "result": "PASS"
+        },
+        {
+          "name": "Repeated A restores all fields 1",
+          "result": "PASS"
+        },
+        {
+          "name": "Repeated B restores all fields 1",
+          "result": "PASS"
+        },
+        {
+          "name": "Repeated A restores all fields 2",
+          "result": "PASS"
+        },
+        {
+          "name": "Repeated B restores all fields 2",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "PASS"
+    },
+    {
+      "journey": "J4",
+      "theme": "light",
+      "device": "mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "assertions": [
+        {
+          "name": "Initial exact defaults",
+          "result": "PASS"
+        },
+        {
+          "name": "Close and keep retains full same-child draft",
+          "result": "PASS"
+        },
+        {
+          "name": "Escape closes and returns connected global opener",
+          "result": "PASS"
+        },
+        {
+          "name": "Escape retains full same-child draft",
+          "result": "PASS"
+        },
+        {
+          "name": "One dialog and focus inside",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "PASS"
+    },
+    {
+      "journey": "J5",
+      "theme": "light",
+      "device": "mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "assertions": [
+        {
+          "name": "Same profile A never resets draft",
+          "result": "PASS"
+        },
+        {
+          "name": "Profile B receives exact defaults",
+          "result": "PASS"
+        },
+        {
+          "name": "Profile C receives exact defaults",
+          "result": "PASS"
+        },
+        {
+          "name": "Return from C retains A",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "PASS"
+    },
+    {
+      "journey": "J6",
+      "theme": "light",
+      "device": "mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "assertions": [
+        {
+          "name": "Global reopen retains active B and full draft",
+          "result": "PASS"
+        },
+        {
+          "name": "Profile A has exact defaults",
+          "result": "PASS"
+        },
+        {
+          "name": "Back to B retains full B draft",
+          "result": "PASS"
+        },
+        {
+          "name": "Save honestly unavailable and no success",
+          "result": "PASS"
+        },
+        {
+          "name": "Unavailable save preserves B",
+          "result": "PASS"
+        },
+        {
+          "name": "Draft note raw contrast >=4.5",
+          "result": "PASS"
+        },
+        {
+          "name": "Unavailable save leaves A intact",
+          "result": "PASS"
+        },
+        {
+          "name": "No new sample row",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "contrast": [
+        {
+          "label": "Per-child draft note",
+          "minimumRatio": 10.35474573184942,
+          "sampledPixels": 12922,
+          "worstBackground": [
+            255,
+            255,
+            255
+          ],
+          "worstForeground": [
+            51,
+            65,
+            85
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "rgb(51, 65, 85)",
+          "resolvedForegroundRgba": [
+            51,
+            65,
+            85,
+            255
+          ],
+          "effectiveOpacity": 1,
+          "fontSize": "12px",
+          "fontFamily": "\"Times New Roman\"",
+          "ancestorLayers": [
+            {
+              "tag": "P",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgb(255, 255, 255)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "BODY",
+              "backgroundColor": "oklch(1 0 0)",
+              "backgroundImage": "radial-gradient(circle at 0% 0%, rgba(157, 23, 77, 0.04) 0%, rgba(0, 0, 0, 0) 40%), radial-gradient(circle at 100% 100%, rgba(190, 24, 93, 0.04) 0%, rgba(0, 0, 0, 0) 40%)",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "HTML",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            }
+          ],
+          "method": "Chromium canvas CSS-to-sRGB foreground; native raster background with text ink removed, sampling every pixel under actual text rects including ancestor/gradient/alpha/backdrop compositing; WCAG relative luminance; raw ratio compared to 4.5 without rounding."
+        }
+      ],
+      "result": "PASS"
+    },
+    {
+      "journey": "J7",
+      "theme": "light",
+      "device": "mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "assertions": [
+        {
+          "name": "Remount resets active child and exact defaults",
+          "result": "PASS"
+        },
+        {
+          "name": "Remount discards all B text and restores defaults",
+          "result": "PASS"
+        },
+        {
+          "name": "Synthetic nonpersistent disclaimer",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "PASS"
+    },
+    {
+      "journey": "J1",
+      "theme": "dark",
+      "device": "desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "assertions": [
+        {
+          "name": "Profile B hands off B with exact defaults",
+          "result": "PASS"
+        },
+        {
+          "name": "One dialog and focus inside",
+          "result": "PASS"
+        },
+        {
+          "name": "Escape closes and returns connected global opener",
+          "result": "PASS"
+        },
+        {
+          "name": "Roster filters and selection unchanged",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "PASS"
+    },
+    {
+      "journey": "J2",
+      "theme": "dark",
+      "device": "desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "assertions": [
+        {
+          "name": "B has its own untouched defaults, never A content",
+          "result": "PASS"
+        },
+        {
+          "name": "A full draft retained despite roster selection/filter",
+          "result": "PASS"
+        },
+        {
+          "name": "Roster filter and selected child remain independent",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "PASS"
+    },
+    {
+      "journey": "J3",
+      "theme": "dark",
+      "device": "desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "assertions": [
+        {
+          "name": "Manual B starts exact defaults",
+          "result": "PASS"
+        },
+        {
+          "name": "Repeated A restores all fields 0",
+          "result": "PASS"
+        },
+        {
+          "name": "Repeated B restores all fields 0",
+          "result": "PASS"
+        },
+        {
+          "name": "Repeated A restores all fields 1",
+          "result": "PASS"
+        },
+        {
+          "name": "Repeated B restores all fields 1",
+          "result": "PASS"
+        },
+        {
+          "name": "Repeated A restores all fields 2",
+          "result": "PASS"
+        },
+        {
+          "name": "Repeated B restores all fields 2",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "PASS"
+    },
+    {
+      "journey": "J4",
+      "theme": "dark",
+      "device": "desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "assertions": [
+        {
+          "name": "Initial exact defaults",
+          "result": "PASS"
+        },
+        {
+          "name": "Close and keep retains full same-child draft",
+          "result": "PASS"
+        },
+        {
+          "name": "Escape closes and returns connected global opener",
+          "result": "PASS"
+        },
+        {
+          "name": "Escape retains full same-child draft",
+          "result": "PASS"
+        },
+        {
+          "name": "One dialog and focus inside",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "PASS"
+    },
+    {
+      "journey": "J5",
+      "theme": "dark",
+      "device": "desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "assertions": [
+        {
+          "name": "Same profile A never resets draft",
+          "result": "PASS"
+        },
+        {
+          "name": "Profile B receives exact defaults",
+          "result": "PASS"
+        },
+        {
+          "name": "Profile C receives exact defaults",
+          "result": "PASS"
+        },
+        {
+          "name": "Return from C retains A",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "PASS"
+    },
+    {
+      "journey": "J6",
+      "theme": "dark",
+      "device": "desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "assertions": [
+        {
+          "name": "Global reopen retains active B and full draft",
+          "result": "PASS"
+        },
+        {
+          "name": "Profile A has exact defaults",
+          "result": "PASS"
+        },
+        {
+          "name": "Back to B retains full B draft",
+          "result": "PASS"
+        },
+        {
+          "name": "Save honestly unavailable and no success",
+          "result": "PASS"
+        },
+        {
+          "name": "Unavailable save preserves B",
+          "result": "PASS"
+        },
+        {
+          "name": "Draft note raw contrast >=4.5",
+          "result": "PASS"
+        },
+        {
+          "name": "Unavailable save leaves A intact",
+          "result": "PASS"
+        },
+        {
+          "name": "No new sample row",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "contrast": [
+        {
+          "label": "Per-child draft note",
+          "minimumRatio": 13.177733038404984,
+          "sampledPixels": 12964,
+          "worstBackground": [
+            17,
+            44,
+            64
+          ],
+          "worstForeground": [
+            243,
+            245,
+            247
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "rgb(243, 245, 247)",
+          "resolvedForegroundRgba": [
+            243,
+            245,
+            247,
+            255
+          ],
+          "effectiveOpacity": 1,
+          "fontSize": "12px",
+          "fontFamily": "\"Times New Roman\"",
+          "ancestorLayers": [
+            {
+              "tag": "P",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "linear-gradient(rgba(17, 46, 67, 0.94) 0%, rgba(9, 26, 45, 0.88) 100%)",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "BODY",
+              "backgroundColor": "rgb(9, 26, 45)",
+              "backgroundImage": "radial-gradient(circle at 0% 0%, rgba(39, 197, 150, 0.08) 0%, rgba(0, 0, 0, 0) 36%), radial-gradient(circle at 100% 100%, rgba(229, 184, 97, 0.07) 0%, rgba(0, 0, 0, 0) 40%)",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "HTML",
+              "backgroundColor": "rgb(9, 26, 45)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            }
+          ],
+          "method": "Chromium canvas CSS-to-sRGB foreground; native raster background with text ink removed, sampling every pixel under actual text rects including ancestor/gradient/alpha/backdrop compositing; WCAG relative luminance; raw ratio compared to 4.5 without rounding."
+        }
+      ],
+      "result": "PASS"
+    },
+    {
+      "journey": "J7",
+      "theme": "dark",
+      "device": "desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "assertions": [
+        {
+          "name": "Remount resets active child and exact defaults",
+          "result": "PASS"
+        },
+        {
+          "name": "Remount discards all B text and restores defaults",
+          "result": "PASS"
+        },
+        {
+          "name": "Synthetic nonpersistent disclaimer",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "PASS"
+    },
+    {
+      "journey": "J1",
+      "theme": "dark",
+      "device": "mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "assertions": [
+        {
+          "name": "Profile B hands off B with exact defaults",
+          "result": "PASS"
+        },
+        {
+          "name": "One dialog and focus inside",
+          "result": "PASS"
+        },
+        {
+          "name": "Escape closes and returns connected global opener",
+          "result": "PASS"
+        },
+        {
+          "name": "Roster filters and selection unchanged",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "PASS"
+    },
+    {
+      "journey": "J2",
+      "theme": "dark",
+      "device": "mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "assertions": [
+        {
+          "name": "B has its own untouched defaults, never A content",
+          "result": "PASS"
+        },
+        {
+          "name": "A full draft retained despite roster selection/filter",
+          "result": "PASS"
+        },
+        {
+          "name": "Roster filter and selected child remain independent",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "PASS"
+    },
+    {
+      "journey": "J3",
+      "theme": "dark",
+      "device": "mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "assertions": [
+        {
+          "name": "Manual B starts exact defaults",
+          "result": "PASS"
+        },
+        {
+          "name": "Repeated A restores all fields 0",
+          "result": "PASS"
+        },
+        {
+          "name": "Repeated B restores all fields 0",
+          "result": "PASS"
+        },
+        {
+          "name": "Repeated A restores all fields 1",
+          "result": "PASS"
+        },
+        {
+          "name": "Repeated B restores all fields 1",
+          "result": "PASS"
+        },
+        {
+          "name": "Repeated A restores all fields 2",
+          "result": "PASS"
+        },
+        {
+          "name": "Repeated B restores all fields 2",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "PASS"
+    },
+    {
+      "journey": "J4",
+      "theme": "dark",
+      "device": "mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "assertions": [
+        {
+          "name": "Initial exact defaults",
+          "result": "PASS"
+        },
+        {
+          "name": "Close and keep retains full same-child draft",
+          "result": "PASS"
+        },
+        {
+          "name": "Escape closes and returns connected global opener",
+          "result": "PASS"
+        },
+        {
+          "name": "Escape retains full same-child draft",
+          "result": "PASS"
+        },
+        {
+          "name": "One dialog and focus inside",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "PASS"
+    },
+    {
+      "journey": "J5",
+      "theme": "dark",
+      "device": "mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "assertions": [
+        {
+          "name": "Same profile A never resets draft",
+          "result": "PASS"
+        },
+        {
+          "name": "Profile B receives exact defaults",
+          "result": "PASS"
+        },
+        {
+          "name": "Profile C receives exact defaults",
+          "result": "PASS"
+        },
+        {
+          "name": "Return from C retains A",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "PASS"
+    },
+    {
+      "journey": "J6",
+      "theme": "dark",
+      "device": "mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "assertions": [
+        {
+          "name": "Global reopen retains active B and full draft",
+          "result": "PASS"
+        },
+        {
+          "name": "Profile A has exact defaults",
+          "result": "PASS"
+        },
+        {
+          "name": "Back to B retains full B draft",
+          "result": "PASS"
+        },
+        {
+          "name": "Save honestly unavailable and no success",
+          "result": "PASS"
+        },
+        {
+          "name": "Unavailable save preserves B",
+          "result": "PASS"
+        },
+        {
+          "name": "Draft note raw contrast >=4.5",
+          "result": "PASS"
+        },
+        {
+          "name": "Unavailable save leaves A intact",
+          "result": "PASS"
+        },
+        {
+          "name": "No new sample row",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "contrast": [
+        {
+          "label": "Per-child draft note",
+          "minimumRatio": 12.796405246072956,
+          "sampledPixels": 12922,
+          "worstBackground": [
+            20,
+            46,
+            67
+          ],
+          "worstForeground": [
+            243,
+            245,
+            247
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "rgb(243, 245, 247)",
+          "resolvedForegroundRgba": [
+            243,
+            245,
+            247,
+            255
+          ],
+          "effectiveOpacity": 1,
+          "fontSize": "12px",
+          "fontFamily": "\"Times New Roman\"",
+          "ancestorLayers": [
+            {
+              "tag": "P",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "linear-gradient(rgba(17, 46, 67, 0.94) 0%, rgba(9, 26, 45, 0.88) 100%)",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "BODY",
+              "backgroundColor": "rgb(9, 26, 45)",
+              "backgroundImage": "radial-gradient(circle at 0% 0%, rgba(39, 197, 150, 0.08) 0%, rgba(0, 0, 0, 0) 36%), radial-gradient(circle at 100% 100%, rgba(229, 184, 97, 0.07) 0%, rgba(0, 0, 0, 0) 40%)",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "HTML",
+              "backgroundColor": "rgb(9, 26, 45)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            }
+          ],
+          "method": "Chromium canvas CSS-to-sRGB foreground; native raster background with text ink removed, sampling every pixel under actual text rects including ancestor/gradient/alpha/backdrop compositing; WCAG relative luminance; raw ratio compared to 4.5 without rounding."
+        }
+      ],
+      "result": "PASS"
+    },
+    {
+      "journey": "J7",
+      "theme": "dark",
+      "device": "mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "assertions": [
+        {
+          "name": "Remount resets active child and exact defaults",
+          "result": "PASS"
+        },
+        {
+          "name": "Remount discards all B text and restores defaults",
+          "result": "PASS"
+        },
+        {
+          "name": "Synthetic nonpersistent disclaimer",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "PASS"
+    }
+  ]
+}

@@ -1,0 +1,65 @@
+diff --git a/src/app/dashboard/education/grades/page.tsx b/src/app/dashboard/education/grades/page.tsx
+index b2fbea430..cefd368fb 100644
+--- a/src/app/dashboard/education/grades/page.tsx
++++ b/src/app/dashboard/education/grades/page.tsx
+@@ -550,5 +550,32 @@ export default function PreschoolDevelopmentGradesPage() {
+-  const [newObsDomain, setNewObsDomain] = useState<string>('Ngôn Ngữ & Giao Tiếp');
+-  const [newObsSkill, setNewObsSkill] = useState<string>('');
+-  const [newObsProgression, setNewObsProgression] = useState<string>('Đạt kỳ vọng');
+-  const [newObsNote, setNewObsNote] = useState<string>('');
+-  const [newObsPhotosCount, setNewObsPhotosCount] = useState<number>(1);
++  type ObservationDraft = {
++    domain: string;
++    skill: string;
++    progression: string;
++    note: string;
++    photosCount: number;
++  };
++  const defaultObservationDraft: ObservationDraft = {
++    domain: 'Ngôn Ngữ & Giao Tiếp',
++    skill: '',
++    progression: 'Đạt kỳ vọng',
++    note: '',
++    photosCount: 1,
++  };
++  const [observationDrafts, setObservationDrafts] = useState<Record<string, ObservationDraft>>({});
++  const {
++    domain: newObsDomain,
++    skill: newObsSkill,
++    progression: newObsProgression,
++    note: newObsNote,
++    photosCount: newObsPhotosCount,
++  } = observationDrafts[newObsStudentId] ?? defaultObservationDraft;
++  const updateObservationDraft = (patch: Partial<ObservationDraft>) => {
++    setObservationDrafts((drafts) => ({
++      ...drafts,
++      [newObsStudentId]: { ...(drafts[newObsStudentId] ?? defaultObservationDraft), ...patch },
++    }));
++  };
++  const selectObservationChild = (studentId: string) => {
++    setNewObsStudentId(studentId);
++    setObservationNotice(null);
++  };
+@@ -1592,0 +1620 @@ export default function PreschoolDevelopmentGradesPage() {
++                  selectObservationChild(inspectedStudent.id);
+@@ -1630 +1658 @@ export default function PreschoolDevelopmentGradesPage() {
+-              Bản nháp thử giao diện, chưa lưu vào hồ sơ. Nội dung được giữ khi đóng rồi mở lại trong màn hình này; tải lại hoặc rời trang sẽ mất bản nháp. Chỉ nhập dữ liệu giả.
++              Bản nháp thử giao diện, chưa lưu vào hồ sơ. Mỗi trẻ có bản nháp riêng, được giữ khi đổi trẻ hoặc đóng rồi mở lại trong màn hình này; tải lại hoặc rời trang sẽ mất bản nháp. Chỉ nhập dữ liệu giả.
+@@ -1641 +1669 @@ export default function PreschoolDevelopmentGradesPage() {
+-                  onChange={(e: ChangeEvent<HTMLSelectElement>) => setNewObsStudentId(e.target.value)}
++                  onChange={(e: ChangeEvent<HTMLSelectElement>) => selectObservationChild(e.target.value)}
+@@ -1660 +1688 @@ export default function PreschoolDevelopmentGradesPage() {
+-                    onChange={(e: ChangeEvent<HTMLSelectElement>) => setNewObsDomain(e.target.value)}
++                    onChange={(e: ChangeEvent<HTMLSelectElement>) => updateObservationDraft({ domain: e.target.value })}
+@@ -1678 +1706 @@ export default function PreschoolDevelopmentGradesPage() {
+-                    onChange={(e: ChangeEvent<HTMLSelectElement>) => setNewObsProgression(e.target.value)}
++                    onChange={(e: ChangeEvent<HTMLSelectElement>) => updateObservationDraft({ progression: e.target.value })}
+@@ -1697 +1725 @@ export default function PreschoolDevelopmentGradesPage() {
+-                  onChange={(e: ChangeEvent<HTMLInputElement>) => setNewObsSkill(e.target.value)}
++                  onChange={(e: ChangeEvent<HTMLInputElement>) => updateObservationDraft({ skill: e.target.value })}
+@@ -1711 +1739 @@ export default function PreschoolDevelopmentGradesPage() {
+-                  onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setNewObsNote(e.target.value)}
++                  onChange={(e: ChangeEvent<HTMLTextAreaElement>) => updateObservationDraft({ note: e.target.value })}
+@@ -1727 +1755 @@ export default function PreschoolDevelopmentGradesPage() {
+-                  onChange={(e: ChangeEvent<HTMLInputElement>) => setNewObsPhotosCount(Number(e.target.value))}
++                  onChange={(e: ChangeEvent<HTMLInputElement>) => updateObservationDraft({ photosCount: Number(e.target.value) })}

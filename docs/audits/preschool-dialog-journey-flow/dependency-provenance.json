@@ -1,0 +1,26 @@
+{
+  "recordedAt": "2026-10-17T22:47:34.150Z",
+  "owner": "LEAD",
+  "browserSource": "D:\\Antigravity\\Projects\\BELLA_PRESCHOOL_ROSTER_JOURNEY\\docs\\audits\\preschool-roster-journey-flow\\.cache\\browser",
+  "browserFiles": 291,
+  "checksumsIdentical": true,
+  "executableSha256": "2d8f2abad1a0f2998aaf861967c374d4aad6a104916b8794318760ed35db772f",
+  "nodeModules": "Existing junction to D:/Antigravity/Projects/BELLA SPA ERP/node_modules",
+  "policy": {
+    "type": "workspaceWrite",
+    "writableRoots": [
+      "D:\\Antigravity\\Projects\\BELLA_PRESCHOOL_ROSTER_JOURNEY"
+    ],
+    "networkAccess": false
+  },
+  "coreAgentFlowModified": false,
+  "runnerBehaviorModified": false,
+  "taskLocalTemporaryDirectory": "D:\\Antigravity\\Projects\\BELLA_PRESCHOOL_ROSTER_JOURNEY\\docs\\audits\\preschool-dialog-journey-flow\\.cache\\tmp",
+  "retainedStore": "Existing C user-private Agent Flow evidence root",
+  "cFreeBytes": 752844800,
+  "dFreeBytes": 81680261120,
+  "checkout": "Reused clean isolated D Git worktree on new scoped branch; previous PR refs unchanged",
+  "oldDataDeleted": false,
+  "cacheCommitted": false,
+  "preparationIssue": "Initial Lead script write failed because task cache directory did not exist; no worker launched or runtime modified. Directory created, same preparation then executed."
+}

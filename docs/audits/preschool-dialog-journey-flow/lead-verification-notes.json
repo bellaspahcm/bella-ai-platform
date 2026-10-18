@@ -1,0 +1,56 @@
+{
+  "recordedAt": "2026-10-17T22:55:32.869Z",
+  "owner": "LEAD",
+  "browserTestRerunsAfterNativeTurn": 0,
+  "runtimeChangesAfterNativeTurn": 0,
+  "compiledCss": {
+    "globalsUnchanged": true,
+    "before": "18e02b26cc871afa4fd7739d388ddc45b3110ebcb2962c2029ca40047414e31d",
+    "after": "c1fe0d0bfeb4d0f93baa6797465e341937d258065495352155908882af269220",
+    "generationHashEqual": false,
+    "scope": "The allowed wrapper substitutions add responsive max-width utility classes. Generated CSS hashes differ; original generated CSS bytes were not retained, so an exact emitted CSS delta is not claimed. Actual same browser test passed using each source generation."
+  },
+  "auxiliaryReviewAttempts": [
+    {
+      "result": "FAIL",
+      "reason": "Lead assumed compiled CSS equality; globals were unchanged but responsive width utility additions change generation inputs. Removed that unsupported equality requirement; browser/source/receipt assertions unchanged."
+    },
+    {
+      "result": "FAIL",
+      "reason": "Lead raw-substring parser did not recognize after-summary escaped inside native NDJSON subprocess reports."
+    },
+    {
+      "result": "FAIL_DIAGNOSTIC_REPEAT",
+      "reason": "Repeated the same parser check while retaining a private native snapshot to inspect output format."
+    },
+    {
+      "result": "PASS",
+      "reason": "Parsed native JSON/NDJSON and nested stdout rather than requiring a literal raw substring. Both browser summaries/exits/order and five structured subprocess reports matched. No receipt/test/product edits or browser reruns."
+    }
+  ],
+  "nativeReadback": {
+    "fileChanges": "1/1 MATCH",
+    "nativeCommands": 17,
+    "facts": 79,
+    "browserOutputs": "2/2 MATCH",
+    "structuredReportMatches": "5/6; before was a direct command, verified by native summary/output/exit instead",
+    "nonTestStdoutDigestDifferences": [
+      {
+        "itemId": "exec-2dbf5bc5-2622-4924-a007-ff42bf79cd7f",
+        "index": 4,
+        "exitCode": 0,
+        "metadataMatch": true,
+        "outputDigestMatch": false
+      },
+      {
+        "itemId": "exec-85a12d6b-f667-489e-855d-3520fdda8f06",
+        "index": 9,
+        "exitCode": 0,
+        "metadataMatch": true,
+        "outputDigestMatch": false
+      }
+    ]
+  },
+  "sourceReview": "Exact reversal of approved modal substitutions reproduces baseline source. No other runtime hunk or new abstraction.",
+  "readiness": "All Product/Data/Safety gates retained; no full application/DB/accessibility proof"
+}
