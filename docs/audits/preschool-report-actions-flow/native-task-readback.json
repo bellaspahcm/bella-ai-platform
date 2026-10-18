@@ -1,0 +1,18 @@
+{
+  "result": "PASS_SCOPED_NATIVE_HISTORY_READBACK",
+  "recordedAt": "2026-10-17T22:08:02.160Z",
+  "writerResult": "NATIVE_TASK_EXECUTED_PENDING_LEAD_REVIEW",
+  "nativeTurnStatus": "completed",
+  "facts": 55,
+  "fileChanges": [
+    {
+      "itemId": "exec-0d288af4-df32-462b-9004-99bb4d307b4b",
+      "result": "MATCH"
+    }
+  ],
+  "freshHistoryChangeCount": 1,
+  "directory": "C:\\Users\\DELL\\.codex\\agent-flow-evidence\\bella-agent-flow-Ig4og5",
+  "fault": null,
+  "sourceAfter": "1bae64d4b75c62d479d56854fe845bbcf83497d4873d1508d283010b3481e4de",
+  "limits": "Independent fresh-process readback of actual one-task lifecycle; not continuous orchestration or Product/Auth/DB proof"
+}

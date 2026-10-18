@@ -1,0 +1,556 @@
+{
+  "phase": "before",
+  "recordedAt": "2026-10-17T22:05:12.006Z",
+  "command": "node docs/audits/preschool-report-actions-flow/actions-browser.cjs before",
+  "exitCode": 1,
+  "summary": {
+    "result": "FAIL",
+    "checked": 20,
+    "passed": 0,
+    "failed": 20,
+    "contrastCount": 0,
+    "contrastFailed": 0,
+    "minimumRatio": null,
+    "threshold": 4.5
+  },
+  "sourceSha256": "a1ba8b02aaba6b92b350d46b27effbb29e54452dd2987260c988d293af725d90",
+  "testSha256": "1794c3742c8488f877b78d0771ffc2d5c08417cb3dbba023b0d93d8ed82c07ae",
+  "globalsSha256": "1f2458f1e1ff45ff29650ce9bc30a0a408004f079760de68bcef7c915ddce21e",
+  "compiledCssSha256": "2150a389cdde7ed6c1910f2335adf61baedf3738f57d0d06f109db55e4f9dfaf",
+  "bundleSha256": "83bdd903ae15c25c0b7cca2e480be0731900fe1e8a69e022e3e4f49688f18a43",
+  "limits": "Synthetic React mount; actual Reports component/globals.css; stubbed Next boundaries. Only loopback document allowed; no fonts/Auth/API/DB. New feedback contrast only. Server/browser closed.",
+  "results": [
+    {
+      "theme": "light",
+      "device": "desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "flows": [
+        {
+          "action": "Gợi ý AI minh họa",
+          "result": "FAIL",
+          "cases": [
+            {
+              "name": "pointer",
+              "result": "FAIL",
+              "failure": "Unique feedback: Gợi ý AI minh họa\n\n0 !== 1\n"
+            },
+            {
+              "name": "Enter",
+              "result": "FAIL",
+              "failure": "Unique feedback: Gợi ý AI minh họa\n\n0 !== 1\n"
+            },
+            {
+              "name": "Space",
+              "result": "FAIL",
+              "failure": "Unique feedback: Gợi ý AI minh họa\n\n0 !== 1\n"
+            }
+          ]
+        },
+        {
+          "action": "Tình trạng theo nhóm lớp",
+          "result": "FAIL",
+          "cases": [
+            {
+              "name": "pointer",
+              "result": "FAIL",
+              "failure": "Unique feedback: Tình trạng theo nhóm lớp\n\n0 !== 1\n"
+            },
+            {
+              "name": "Enter",
+              "result": "FAIL",
+              "failure": "Unique feedback: Tình trạng theo nhóm lớp\n\n0 !== 1\n"
+            },
+            {
+              "name": "Space",
+              "result": "FAIL",
+              "failure": "Unique feedback: Tình trạng theo nhóm lớp\n\n0 !== 1\n"
+            }
+          ]
+        },
+        {
+          "action": "Top vấn đề cần chú ý",
+          "result": "FAIL",
+          "cases": [
+            {
+              "name": "pointer",
+              "result": "FAIL",
+              "failure": "Unique feedback: Top vấn đề cần chú ý\n\n0 !== 1\n"
+            },
+            {
+              "name": "Enter",
+              "result": "FAIL",
+              "failure": "Unique feedback: Top vấn đề cần chú ý\n\n0 !== 1\n"
+            },
+            {
+              "name": "Space",
+              "result": "FAIL",
+              "failure": "Unique feedback: Top vấn đề cần chú ý\n\n0 !== 1\n"
+            }
+          ]
+        },
+        {
+          "action": "Hoạt động nổi bật trong tháng",
+          "result": "FAIL",
+          "cases": [
+            {
+              "name": "pointer",
+              "result": "FAIL",
+              "failure": "Unique feedback: Hoạt động nổi bật trong tháng\n\n0 !== 1\n"
+            },
+            {
+              "name": "Enter",
+              "result": "FAIL",
+              "failure": "Unique feedback: Hoạt động nổi bật trong tháng\n\n0 !== 1\n"
+            },
+            {
+              "name": "Space",
+              "result": "FAIL",
+              "failure": "Unique feedback: Hoạt động nổi bật trong tháng\n\n0 !== 1\n"
+            }
+          ]
+        },
+        {
+          "action": "Tài liệu & Báo cáo nhanh (minh họa)",
+          "result": "FAIL",
+          "cases": [
+            {
+              "name": "pointer-return-reopen",
+              "result": "FAIL",
+              "failure": "Detail tab must open\n\n0 !== 1\n"
+            },
+            {
+              "name": "Enter-return-reopen",
+              "result": "FAIL",
+              "failure": "Detail tab must open\n\n0 !== 1\n"
+            },
+            {
+              "name": "Space-return-reopen",
+              "result": "FAIL",
+              "failure": "Detail tab must open\n\n0 !== 1\n"
+            }
+          ],
+          "documents": [
+            "Báo cáo tổng hợp tháng 09/2026",
+            "Tài liệu chuyên cần",
+            "Báo cáo học phí",
+            "Báo cáo tăng trưởng theo WHO"
+          ]
+        }
+      ],
+      "contrast": [],
+      "kpiTexts": [
+        "95.7%",
+        "92.1%",
+        "1.89 tỷ",
+        "4.8 / 5.0"
+      ],
+      "sampleDataUnchanged": true,
+      "sampleDataNotice": "Dữ liệu minh họa: KPI, biểu đồ, phân tích AI, hoạt động và tài liệu bên dưới là nội dung mẫu, chưa tải từ dữ liệu thật.",
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": []
+    },
+    {
+      "theme": "light",
+      "device": "mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "flows": [
+        {
+          "action": "Gợi ý AI minh họa",
+          "result": "FAIL",
+          "cases": [
+            {
+              "name": "pointer",
+              "result": "FAIL",
+              "failure": "Unique feedback: Gợi ý AI minh họa\n\n0 !== 1\n"
+            },
+            {
+              "name": "Enter",
+              "result": "FAIL",
+              "failure": "Unique feedback: Gợi ý AI minh họa\n\n0 !== 1\n"
+            },
+            {
+              "name": "Space",
+              "result": "FAIL",
+              "failure": "Unique feedback: Gợi ý AI minh họa\n\n0 !== 1\n"
+            }
+          ]
+        },
+        {
+          "action": "Tình trạng theo nhóm lớp",
+          "result": "FAIL",
+          "cases": [
+            {
+              "name": "pointer",
+              "result": "FAIL",
+              "failure": "Unique feedback: Tình trạng theo nhóm lớp\n\n0 !== 1\n"
+            },
+            {
+              "name": "Enter",
+              "result": "FAIL",
+              "failure": "Unique feedback: Tình trạng theo nhóm lớp\n\n0 !== 1\n"
+            },
+            {
+              "name": "Space",
+              "result": "FAIL",
+              "failure": "Unique feedback: Tình trạng theo nhóm lớp\n\n0 !== 1\n"
+            }
+          ]
+        },
+        {
+          "action": "Top vấn đề cần chú ý",
+          "result": "FAIL",
+          "cases": [
+            {
+              "name": "pointer",
+              "result": "FAIL",
+              "failure": "Unique feedback: Top vấn đề cần chú ý\n\n0 !== 1\n"
+            },
+            {
+              "name": "Enter",
+              "result": "FAIL",
+              "failure": "Unique feedback: Top vấn đề cần chú ý\n\n0 !== 1\n"
+            },
+            {
+              "name": "Space",
+              "result": "FAIL",
+              "failure": "Unique feedback: Top vấn đề cần chú ý\n\n0 !== 1\n"
+            }
+          ]
+        },
+        {
+          "action": "Hoạt động nổi bật trong tháng",
+          "result": "FAIL",
+          "cases": [
+            {
+              "name": "pointer",
+              "result": "FAIL",
+              "failure": "Unique feedback: Hoạt động nổi bật trong tháng\n\n0 !== 1\n"
+            },
+            {
+              "name": "Enter",
+              "result": "FAIL",
+              "failure": "Unique feedback: Hoạt động nổi bật trong tháng\n\n0 !== 1\n"
+            },
+            {
+              "name": "Space",
+              "result": "FAIL",
+              "failure": "Unique feedback: Hoạt động nổi bật trong tháng\n\n0 !== 1\n"
+            }
+          ]
+        },
+        {
+          "action": "Tài liệu & Báo cáo nhanh (minh họa)",
+          "result": "FAIL",
+          "cases": [
+            {
+              "name": "pointer-return-reopen",
+              "result": "FAIL",
+              "failure": "Detail tab must open\n\n0 !== 1\n"
+            },
+            {
+              "name": "Enter-return-reopen",
+              "result": "FAIL",
+              "failure": "Detail tab must open\n\n0 !== 1\n"
+            },
+            {
+              "name": "Space-return-reopen",
+              "result": "FAIL",
+              "failure": "Detail tab must open\n\n0 !== 1\n"
+            }
+          ],
+          "documents": [
+            "Báo cáo tổng hợp tháng 09/2026",
+            "Tài liệu chuyên cần",
+            "Báo cáo học phí",
+            "Báo cáo tăng trưởng theo WHO"
+          ]
+        }
+      ],
+      "contrast": [],
+      "kpiTexts": [
+        "95.7%",
+        "92.1%",
+        "1.89 tỷ",
+        "4.8 / 5.0"
+      ],
+      "sampleDataUnchanged": true,
+      "sampleDataNotice": "Dữ liệu minh họa: KPI, biểu đồ, phân tích AI, hoạt động và tài liệu bên dưới là nội dung mẫu, chưa tải từ dữ liệu thật.",
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": []
+    },
+    {
+      "theme": "dark",
+      "device": "desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "flows": [
+        {
+          "action": "Gợi ý AI minh họa",
+          "result": "FAIL",
+          "cases": [
+            {
+              "name": "pointer",
+              "result": "FAIL",
+              "failure": "Unique feedback: Gợi ý AI minh họa\n\n0 !== 1\n"
+            },
+            {
+              "name": "Enter",
+              "result": "FAIL",
+              "failure": "Unique feedback: Gợi ý AI minh họa\n\n0 !== 1\n"
+            },
+            {
+              "name": "Space",
+              "result": "FAIL",
+              "failure": "Unique feedback: Gợi ý AI minh họa\n\n0 !== 1\n"
+            }
+          ]
+        },
+        {
+          "action": "Tình trạng theo nhóm lớp",
+          "result": "FAIL",
+          "cases": [
+            {
+              "name": "pointer",
+              "result": "FAIL",
+              "failure": "Unique feedback: Tình trạng theo nhóm lớp\n\n0 !== 1\n"
+            },
+            {
+              "name": "Enter",
+              "result": "FAIL",
+              "failure": "Unique feedback: Tình trạng theo nhóm lớp\n\n0 !== 1\n"
+            },
+            {
+              "name": "Space",
+              "result": "FAIL",
+              "failure": "Unique feedback: Tình trạng theo nhóm lớp\n\n0 !== 1\n"
+            }
+          ]
+        },
+        {
+          "action": "Top vấn đề cần chú ý",
+          "result": "FAIL",
+          "cases": [
+            {
+              "name": "pointer",
+              "result": "FAIL",
+              "failure": "Unique feedback: Top vấn đề cần chú ý\n\n0 !== 1\n"
+            },
+            {
+              "name": "Enter",
+              "result": "FAIL",
+              "failure": "Unique feedback: Top vấn đề cần chú ý\n\n0 !== 1\n"
+            },
+            {
+              "name": "Space",
+              "result": "FAIL",
+              "failure": "Unique feedback: Top vấn đề cần chú ý\n\n0 !== 1\n"
+            }
+          ]
+        },
+        {
+          "action": "Hoạt động nổi bật trong tháng",
+          "result": "FAIL",
+          "cases": [
+            {
+              "name": "pointer",
+              "result": "FAIL",
+              "failure": "Unique feedback: Hoạt động nổi bật trong tháng\n\n0 !== 1\n"
+            },
+            {
+              "name": "Enter",
+              "result": "FAIL",
+              "failure": "Unique feedback: Hoạt động nổi bật trong tháng\n\n0 !== 1\n"
+            },
+            {
+              "name": "Space",
+              "result": "FAIL",
+              "failure": "Unique feedback: Hoạt động nổi bật trong tháng\n\n0 !== 1\n"
+            }
+          ]
+        },
+        {
+          "action": "Tài liệu & Báo cáo nhanh (minh họa)",
+          "result": "FAIL",
+          "cases": [
+            {
+              "name": "pointer-return-reopen",
+              "result": "FAIL",
+              "failure": "Detail tab must open\n\n0 !== 1\n"
+            },
+            {
+              "name": "Enter-return-reopen",
+              "result": "FAIL",
+              "failure": "Detail tab must open\n\n0 !== 1\n"
+            },
+            {
+              "name": "Space-return-reopen",
+              "result": "FAIL",
+              "failure": "Detail tab must open\n\n0 !== 1\n"
+            }
+          ],
+          "documents": [
+            "Báo cáo tổng hợp tháng 09/2026",
+            "Tài liệu chuyên cần",
+            "Báo cáo học phí",
+            "Báo cáo tăng trưởng theo WHO"
+          ]
+        }
+      ],
+      "contrast": [],
+      "kpiTexts": [
+        "95.7%",
+        "92.1%",
+        "1.89 tỷ",
+        "4.8 / 5.0"
+      ],
+      "sampleDataUnchanged": true,
+      "sampleDataNotice": "Dữ liệu minh họa: KPI, biểu đồ, phân tích AI, hoạt động và tài liệu bên dưới là nội dung mẫu, chưa tải từ dữ liệu thật.",
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": []
+    },
+    {
+      "theme": "dark",
+      "device": "mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "flows": [
+        {
+          "action": "Gợi ý AI minh họa",
+          "result": "FAIL",
+          "cases": [
+            {
+              "name": "pointer",
+              "result": "FAIL",
+              "failure": "Unique feedback: Gợi ý AI minh họa\n\n0 !== 1\n"
+            },
+            {
+              "name": "Enter",
+              "result": "FAIL",
+              "failure": "Unique feedback: Gợi ý AI minh họa\n\n0 !== 1\n"
+            },
+            {
+              "name": "Space",
+              "result": "FAIL",
+              "failure": "Unique feedback: Gợi ý AI minh họa\n\n0 !== 1\n"
+            }
+          ]
+        },
+        {
+          "action": "Tình trạng theo nhóm lớp",
+          "result": "FAIL",
+          "cases": [
+            {
+              "name": "pointer",
+              "result": "FAIL",
+              "failure": "Unique feedback: Tình trạng theo nhóm lớp\n\n0 !== 1\n"
+            },
+            {
+              "name": "Enter",
+              "result": "FAIL",
+              "failure": "Unique feedback: Tình trạng theo nhóm lớp\n\n0 !== 1\n"
+            },
+            {
+              "name": "Space",
+              "result": "FAIL",
+              "failure": "Unique feedback: Tình trạng theo nhóm lớp\n\n0 !== 1\n"
+            }
+          ]
+        },
+        {
+          "action": "Top vấn đề cần chú ý",
+          "result": "FAIL",
+          "cases": [
+            {
+              "name": "pointer",
+              "result": "FAIL",
+              "failure": "Unique feedback: Top vấn đề cần chú ý\n\n0 !== 1\n"
+            },
+            {
+              "name": "Enter",
+              "result": "FAIL",
+              "failure": "Unique feedback: Top vấn đề cần chú ý\n\n0 !== 1\n"
+            },
+            {
+              "name": "Space",
+              "result": "FAIL",
+              "failure": "Unique feedback: Top vấn đề cần chú ý\n\n0 !== 1\n"
+            }
+          ]
+        },
+        {
+          "action": "Hoạt động nổi bật trong tháng",
+          "result": "FAIL",
+          "cases": [
+            {
+              "name": "pointer",
+              "result": "FAIL",
+              "failure": "Unique feedback: Hoạt động nổi bật trong tháng\n\n0 !== 1\n"
+            },
+            {
+              "name": "Enter",
+              "result": "FAIL",
+              "failure": "Unique feedback: Hoạt động nổi bật trong tháng\n\n0 !== 1\n"
+            },
+            {
+              "name": "Space",
+              "result": "FAIL",
+              "failure": "Unique feedback: Hoạt động nổi bật trong tháng\n\n0 !== 1\n"
+            }
+          ]
+        },
+        {
+          "action": "Tài liệu & Báo cáo nhanh (minh họa)",
+          "result": "FAIL",
+          "cases": [
+            {
+              "name": "pointer-return-reopen",
+              "result": "FAIL",
+              "failure": "Detail tab must open\n\n0 !== 1\n"
+            },
+            {
+              "name": "Enter-return-reopen",
+              "result": "FAIL",
+              "failure": "Detail tab must open\n\n0 !== 1\n"
+            },
+            {
+              "name": "Space-return-reopen",
+              "result": "FAIL",
+              "failure": "Detail tab must open\n\n0 !== 1\n"
+            }
+          ],
+          "documents": [
+            "Báo cáo tổng hợp tháng 09/2026",
+            "Tài liệu chuyên cần",
+            "Báo cáo học phí",
+            "Báo cáo tăng trưởng theo WHO"
+          ]
+        }
+      ],
+      "contrast": [],
+      "kpiTexts": [
+        "95.7%",
+        "92.1%",
+        "1.89 tỷ",
+        "4.8 / 5.0"
+      ],
+      "sampleDataUnchanged": true,
+      "sampleDataNotice": "Dữ liệu minh họa: KPI, biểu đồ, phân tích AI, hoạt động và tài liệu bên dưới là nội dung mẫu, chưa tải từ dữ liệu thật.",
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": []
+    }
+  ]
+}
