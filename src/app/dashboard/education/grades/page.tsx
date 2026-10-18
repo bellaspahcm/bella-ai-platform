@@ -54,7 +54,6 @@ import {
   LayoutGrid,
   ChevronDown,
   ChevronRight,
-  ChevronLeft,
   Search,
   Filter,
   MoreHorizontal,
@@ -530,7 +529,6 @@ export default function PreschoolDevelopmentGradesPage() {
   const [selectedClass, setSelectedClass] = useState<'ALL' | 'MAM_A1' | 'CHOI_B1'>('ALL');
   const [selectedStatus, setSelectedStatus] = useState<'ALL' | 'COMPLETED' | 'SUPPLEMENT' | 'ATTENTION'>('ALL');
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
-  const [currentPage, setCurrentPage] = useState<number>(1);
   const [selectedStudentIds, setSelectedStudentIds] = useState<readonly string[]>([]);
 
   // Modals & Drawers
@@ -601,20 +599,24 @@ export default function PreschoolDevelopmentGradesPage() {
   }, [selectedClass, selectedStatus, searchQuery]);
 
   // Checkbox handlers
+  const allVisibleSelected = filteredStudents.length > 0 &&
+    filteredStudents.every((student) => selectedStudentIds.includes(student.id));
+
   const handleToggleSelectAll = () => {
-    if (selectedStudentIds.length === filteredStudents.length) {
-      setSelectedStudentIds([]);
-    } else {
-      setSelectedStudentIds(filteredStudents.map((s) => s.id));
-    }
+    if (filteredStudents.length === 0) return;
+    const visibleIds = filteredStudents.map((student) => student.id);
+    setSelectedStudentIds((previous) =>
+      visibleIds.every((id) => previous.includes(id))
+        ? previous.filter((id) => !visibleIds.includes(id))
+        : [...new Set([...previous, ...visibleIds])]
+    );
   };
 
   const handleToggleStudent = (id: string) => {
-    if (selectedStudentIds.includes(id)) {
-      setSelectedStudentIds(selectedStudentIds.filter((item) => item !== id));
-    } else {
-      setSelectedStudentIds([...selectedStudentIds, id]);
-    }
+    setSelectedStudentIds((previous) => previous.includes(id)
+      ? previous.filter((item) => item !== id)
+      : [...previous, id]
+    );
   };
 
   const handleExportReport = () => {
@@ -1053,7 +1055,7 @@ export default function PreschoolDevelopmentGradesPage() {
             className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-700 dark:text-slate-200 shadow-sm hover:bg-slate-50 transition-colors cursor-pointer"
           >
             <Filter className="w-3.5 h-3.5 text-slate-500" />
-            <span>Bộ lọc</span>
+            <span>Xóa bộ lọc</span>
           </button>
         </div>
       </div>
@@ -1065,7 +1067,7 @@ export default function PreschoolDevelopmentGradesPage() {
           <div className="flex items-center gap-2.5">
             <h2 className="text-sm font-extrabold text-slate-900 dark:text-white">Danh sách trẻ</h2>
             <span className="px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 text-[11px] font-bold">
-              46 trẻ
+              {filteredStudents.length} / {ROSTER_STUDENTS.length} hồ sơ minh họa
             </span>
           </div>
 
@@ -1116,6 +1118,11 @@ export default function PreschoolDevelopmentGradesPage() {
         )}
 
         {/* View Mode: List Table or Grid Cards */}
+        {filteredStudents.length === 0 && (
+          <p role="status" className="p-5 text-xs text-slate-700 dark:text-slate-200">
+            Không tìm thấy hồ sơ minh họa phù hợp. Hãy điều chỉnh hoặc xóa bộ lọc.
+          </p>
+        )}
         {viewMode === 'list' ? (
           <div className="w-full overflow-x-auto">
             <table className="w-full text-left border-collapse">
@@ -1125,10 +1132,8 @@ export default function PreschoolDevelopmentGradesPage() {
                     <input
                       type="checkbox"
                       aria-label="Chọn tất cả trẻ em trong danh sách"
-                      checked={
-                        filteredStudents.length > 0 &&
-                        selectedStudentIds.length === filteredStudents.length
-                      }
+                      checked={allVisibleSelected}
+                      disabled={filteredStudents.length === 0}
                       onChange={handleToggleSelectAll}
                       className="rounded border-slate-300 text-[#0c513f] focus:ring-[#0c513f] cursor-pointer"
                     />
@@ -1298,46 +1303,12 @@ export default function PreschoolDevelopmentGradesPage() {
           </div>
         )}
 
-        {/* Table Footer with Pagination */}
+        {/* Available sample roster count */}
         <div className="p-4 sm:p-5 border-t border-slate-100 dark:border-slate-700/70 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
           <div className="text-slate-500 font-medium">
-            Hiển thị <span className="font-bold text-slate-800 dark:text-slate-200">{filteredStudents.length}</span> / 46 trẻ
+            Hiển thị <span className="font-bold text-slate-800 dark:text-slate-200">{filteredStudents.length}</span> / {ROSTER_STUDENTS.length} hồ sơ minh họa
           </div>
 
-          <div className="flex items-center gap-1.5">
-            <button
-              type="button"
-              disabled={currentPage === 1}
-              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-              className="w-7 h-7 rounded-lg border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-50 disabled:opacity-40 transition-colors"
-            >
-              <ChevronLeft className="w-3.5 h-3.5" />
-            </button>
-
-            {[1, 2, 3, 4, 5].map((pageNum) => (
-              <button
-                key={pageNum}
-                type="button"
-                onClick={() => setCurrentPage(pageNum)}
-                className={`w-7 h-7 rounded-lg text-xs font-bold transition-all ${
-                  currentPage === pageNum
-                    ? 'bg-[#0c513f] text-white shadow-xs'
-                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
-                }`}
-              >
-                {pageNum}
-              </button>
-            ))}
-
-            <button
-              type="button"
-              disabled={currentPage === 5}
-              onClick={() => setCurrentPage((p) => Math.min(5, p + 1))}
-              className="w-7 h-7 rounded-lg border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-50 disabled:opacity-40 transition-colors"
-            >
-              <ChevronRight className="w-3.5 h-3.5" />
-            </button>
-          </div>
         </div>
       </div>
 

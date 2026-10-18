@@ -1,0 +1,23 @@
+{
+  "recordedAt": "2026-10-17T22:20:49.176Z",
+  "owner": "LEAD",
+  "browserFiles": 291,
+  "checksumsIdentical": true,
+  "executableSha256": "2d8f2abad1a0f2998aaf861967c374d4aad6a104916b8794318760ed35db772f",
+  "policy": {
+    "type": "workspaceWrite",
+    "writableRoots": [
+      "D:\\Antigravity\\Projects\\BELLA_PRESCHOOL_ROSTER_JOURNEY"
+    ],
+    "networkAccess": false
+  },
+  "coreAgentFlowModified": false,
+  "runnerBehaviorModified": false,
+  "taskLocalTemporaryDirectory": "D:\\Antigravity\\Projects\\BELLA_PRESCHOOL_ROSTER_JOURNEY\\docs\\audits\\preschool-roster-journey-flow\\.cache\\tmp",
+  "retainedStore": "Existing C user-private Agent Flow evidence root",
+  "cFreeBytes": 99520512,
+  "dFreeBytes": 81986076672,
+  "checkout": "Ordinary Git worktree on D; C managed creation failed ENOSPC and auto-cleaned; managed attachment unsupported",
+  "oldDataDeleted": false,
+  "cacheCommitted": false
+}
