@@ -821,7 +821,7 @@ export default function ReportsPage() {
                         : <FileSpreadsheet className="w-4 h-4" />}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs font-bold text-[#172B38] truncate">{rep.title}</p>
+                      <p className="text-xs font-bold text-slate-900 dark:text-slate-100 truncate">{rep.title}</p>
                       <p className="text-[10px] text-slate-400">{rep.updated}</p>
                     </div>
                     <button
@@ -957,7 +957,7 @@ export default function ReportsPage() {
                     : <FileSpreadsheet className="w-5 h-5" />}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-bold text-[#172B38] truncate">{rep.title}</p>
+                  <p className="text-sm font-bold text-slate-900 dark:text-slate-100 truncate">{rep.title}</p>
                   <p className="text-[11px] text-slate-400">{rep.updated}</p>
                 </div>
                 <button

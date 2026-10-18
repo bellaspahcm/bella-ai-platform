@@ -1,0 +1,56 @@
+{
+  "result": "PASS_SCOPED_RUNNER_DEPENDENCY_PLACEMENT",
+  "recordedAt": "2026-10-17T15:19:07.468Z",
+  "rootCause": "Managed workspace-write sandbox cannot read or execute browser binaries in external AppData cache; ordinary Node child process creation works.",
+  "minimalFix": "Use checksum-identical installed Chromium from ignored task-local cache; select explicit executablePath only.",
+  "sourceExecutableSha256": "2d8f2abad1a0f2998aaf861967c374d4aad6a104916b8794318760ed35db772f",
+  "copiedFiles": 291,
+  "copyLedgerSha256": "196c26703fc151d5ee452a4e57b30a3790d5e876881155dca77fdafa2dd8a623",
+  "pathDiagnostic": {
+    "policy": {
+      "type": "workspaceWrite",
+      "writableRoots": [
+        "C:\\Users\\DELL\\.codex\\worktrees\\preschool-report-titles-flow\\BELLA SPA ERP"
+      ],
+      "networkAccess": false
+    },
+    "cache": {
+      "readable": false,
+      "readError": "EPERM",
+      "status": null,
+      "error": "EPERM",
+      "signal": null,
+      "version": "",
+      "stderr": ""
+    },
+    "worktree": {
+      "readable": true,
+      "status": 0,
+      "signal": null,
+      "version": "Google Chrome for Testing 148.0.7778.96",
+      "stderr": ""
+    }
+  },
+  "browserSmoke": {
+    "policy": {
+      "type": "workspaceWrite",
+      "writableRoots": [
+        "C:\\Users\\DELL\\.codex\\worktrees\\preschool-report-titles-flow\\BELLA SPA ERP"
+      ],
+      "networkAccess": false
+    },
+    "result": "PASS_SCOPED_MANAGED_BROWSER_LAUNCH",
+    "value": 42,
+    "requests": 0
+  },
+  "unchanged": {
+    "admin": false,
+    "acl": false,
+    "globalConfig": false,
+    "sandboxMode": true,
+    "networkAccess": false,
+    "coreAgentFlow": true,
+    "browserSecurityFlags": true
+  },
+  "limits": "Standalone managed command smoke proves local browser launch only; native task before/after cycle remains pending."
+}
