@@ -357,8 +357,17 @@ export default function ReportsPage() {
     setLastOutput({ id });
   }
 
+  function showDetailReports() {
+    setActiveTab('detail');
+    setLastOutput({ id: 'reports-detail-heading' });
+  }
+
   useEffect(() => {
-    if (lastOutput) document.getElementById(lastOutput.id)?.scrollIntoView?.({ block: 'nearest' });
+    if (lastOutput) {
+      const destination = document.getElementById(lastOutput.id);
+      destination?.scrollIntoView?.({ block: 'nearest' });
+      if (lastOutput.id === 'reports-detail-heading') destination?.focus({ preventScroll: true });
+    }
   }, [lastOutput]);
 
   const tabs: readonly { id: ReportTab; label: string; icon: React.ReactNode }[] = [
@@ -458,7 +467,7 @@ export default function ReportsPage() {
             </div>
             <div>
               <p className="text-[11px] font-semibold text-slate-500 mb-1">Tỷ lệ chuyên cần</p>
-              <p className="text-2xl font-extrabold text-[#172B38]">{KPI_ATTENDANCE}%</p>
+              <p className="text-2xl font-extrabold text-slate-900 dark:text-slate-100">{KPI_ATTENDANCE}%</p>
               <p className="text-[10px] text-slate-400 mt-0.5">So với tháng trước</p>
             </div>
             <ProgressBar pct={KPI_ATTENDANCE} color="bg-emerald-500" />
@@ -480,7 +489,7 @@ export default function ReportsPage() {
             </div>
             <div>
               <p className="text-[11px] font-semibold text-slate-500 mb-1">Tăng trưởng theo WHO</p>
-              <p className="text-2xl font-extrabold text-[#172B38]">{KPI_GROWTH}%</p>
+              <p className="text-2xl font-extrabold text-slate-900 dark:text-slate-100">{KPI_GROWTH}%</p>
               <p className="text-[10px] text-slate-400 mt-0.5">So với tháng trước</p>
             </div>
             <ProgressBar pct={KPI_GROWTH} color="bg-sky-500" />
@@ -502,7 +511,7 @@ export default function ReportsPage() {
             </div>
             <div>
               <p className="text-[11px] font-semibold text-slate-500 mb-1">Học phí đã thu</p>
-              <p className="text-2xl font-extrabold text-[#172B38]">{KPI_FINANCE_VND} tỷ</p>
+              <p className="text-2xl font-extrabold text-slate-900 dark:text-slate-100">{KPI_FINANCE_VND} tỷ</p>
               <p className="text-[10px] text-slate-400 mt-0.5">So với tháng trước</p>
             </div>
             <ProgressBar pct={(KPI_FINANCE_VND / KPI_FINANCE_PHAITHU) * 100} color="bg-rose-500" />
@@ -526,7 +535,7 @@ export default function ReportsPage() {
             </div>
             <div>
               <p className="text-[11px] font-semibold text-slate-500 mb-1">Mức hài lòng phụ huynh</p>
-              <p className="text-2xl font-extrabold text-[#172B38]">{KPI_CSAT} / 5.0</p>
+              <p className="text-2xl font-extrabold text-slate-900 dark:text-slate-100">{KPI_CSAT} / 5.0</p>
               <p className="text-[10px] text-slate-400 mt-0.5">So với tháng trước</p>
             </div>
             <StarRating score={KPI_CSAT} />
@@ -566,10 +575,20 @@ export default function ReportsPage() {
                 <Sparkles className="w-4 h-4 text-emerald-500" />
                 Gợi ý AI minh họa
               </span>
-              <button className="inline-flex items-center gap-1 text-xs font-bold text-emerald-600 hover:text-emerald-700 transition-colors cursor-pointer">
+              <button
+                type="button"
+                aria-label="Xem chi tiết: Gợi ý AI minh họa"
+                aria-describedby={unavailableOutputs.includes('reports-ai-details-status') ? 'reports-ai-details-status' : undefined}
+                onClick={() => showUnavailableOutput('reports-ai-details-status')}
+                className="inline-flex items-center gap-1 text-xs font-bold text-emerald-600 hover:text-emerald-700 transition-colors cursor-pointer">
                 Xem chi tiết <ChevronRight className="w-3.5 h-3.5" />
               </button>
             </div>
+            {unavailableOutputs.includes('reports-ai-details-status') && (
+              <p id="reports-ai-details-status" role="status" className="scroll-my-3 text-xs leading-relaxed text-slate-900 dark:text-slate-100">
+                Chưa có chi tiết AI bổ sung trong bản xem trước; các gợi ý đang hiển thị là ví dụ minh họa.
+              </p>
+            )}
 
             <p className="text-xs leading-relaxed text-slate-900 dark:text-slate-100">
               Các nhận định mẫu dưới đây chưa phải kết quả phân tích AI từ hồ sơ thật.
@@ -685,10 +704,20 @@ export default function ReportsPage() {
                   <ShieldCheck className="w-4 h-4 text-emerald-500" />
                   Tình trạng theo nhóm lớp
                 </h3>
-                <button className="inline-flex items-center gap-1 text-xs font-bold text-emerald-600 hover:text-emerald-700 transition-colors cursor-pointer">
+                <button
+                  type="button"
+                  aria-label="Xem chi tiết: Tình trạng theo nhóm lớp"
+                  aria-describedby={unavailableOutputs.includes('reports-class-details-status') ? 'reports-class-details-status' : undefined}
+                  onClick={() => showUnavailableOutput('reports-class-details-status')}
+                  className="inline-flex items-center gap-1 text-xs font-bold text-emerald-600 hover:text-emerald-700 transition-colors cursor-pointer">
                   Xem chi tiết <ChevronRight className="w-3.5 h-3.5" />
                 </button>
               </div>
+              {unavailableOutputs.includes('reports-class-details-status') && (
+                <p id="reports-class-details-status" role="status" className="scroll-my-3 text-xs leading-relaxed text-slate-900 dark:text-slate-100">
+                  Chưa có chế độ xem chi tiết đầy đủ theo nhóm lớp trong bản xem trước này.
+                </p>
+              )}
               <div className="overflow-x-auto">
                 <table className="w-full text-xs">
                   <thead>
@@ -726,10 +755,20 @@ export default function ReportsPage() {
                   <AlertCircle className="w-4 h-4 text-rose-500" />
                   Top vấn đề cần chú ý
                 </h3>
-                <button className="inline-flex items-center gap-1 text-xs font-bold text-emerald-600 hover:text-emerald-700 transition-colors cursor-pointer">
+                <button
+                  type="button"
+                  aria-label="Xem tất cả: Top vấn đề cần chú ý"
+                  aria-describedby={unavailableOutputs.includes('reports-all-issues-status') ? 'reports-all-issues-status' : undefined}
+                  onClick={() => showUnavailableOutput('reports-all-issues-status')}
+                  className="inline-flex items-center gap-1 text-xs font-bold text-emerald-600 hover:text-emerald-700 transition-colors cursor-pointer">
                   Xem tất cả <ChevronRight className="w-3.5 h-3.5" />
                 </button>
               </div>
+              {unavailableOutputs.includes('reports-all-issues-status') && (
+                <p id="reports-all-issues-status" role="status" className="scroll-my-3 text-xs leading-relaxed text-slate-900 dark:text-slate-100">
+                  Chưa có danh sách vấn đề đầy đủ trong bản xem trước này.
+                </p>
+              )}
               <div className="overflow-x-auto">
                 <table className="w-full text-xs">
                   <thead>
@@ -777,10 +816,20 @@ export default function ReportsPage() {
                   <Calendar className="w-4 h-4 text-emerald-500" />
                   Hoạt động nổi bật trong tháng
                 </h3>
-                <button className="inline-flex items-center gap-1 text-xs font-bold text-emerald-600 hover:text-emerald-700 transition-colors cursor-pointer">
+                <button
+                  type="button"
+                  aria-label="Xem tất cả: Hoạt động nổi bật trong tháng"
+                  aria-describedby={unavailableOutputs.includes('reports-all-events-status') ? 'reports-all-events-status' : undefined}
+                  onClick={() => showUnavailableOutput('reports-all-events-status')}
+                  className="inline-flex items-center gap-1 text-xs font-bold text-emerald-600 hover:text-emerald-700 transition-colors cursor-pointer">
                   Xem tất cả <ChevronRight className="w-3.5 h-3.5" />
                 </button>
               </div>
+              {unavailableOutputs.includes('reports-all-events-status') && (
+                <p id="reports-all-events-status" role="status" className="scroll-my-3 text-xs leading-relaxed text-slate-900 dark:text-slate-100">
+                  Chưa có danh sách hoạt động đầy đủ trong bản xem trước này.
+                </p>
+              )}
               <div className="space-y-3">
                 {MONTHLY_EVENTS.map((ev, i) => {
                   const colors = ['bg-emerald-100 text-emerald-700', 'bg-sky-100 text-sky-700', 'bg-amber-100 text-amber-700', 'bg-rose-100 text-rose-700'];
@@ -807,7 +856,11 @@ export default function ReportsPage() {
                   <FileSpreadsheet className="w-4 h-4 text-emerald-500" />
                   Tài liệu &amp; Báo cáo nhanh (minh họa)
                 </h3>
-                <button className="inline-flex items-center gap-1 text-xs font-bold text-emerald-600 hover:text-emerald-700 transition-colors cursor-pointer">
+                <button
+                  type="button"
+                  aria-label="Xem tất cả: Tài liệu & Báo cáo nhanh (minh họa)"
+                  onClick={showDetailReports}
+                  className="inline-flex items-center gap-1 text-xs font-bold text-emerald-600 hover:text-emerald-700 transition-colors cursor-pointer">
                   Xem tất cả <ChevronRight className="w-3.5 h-3.5" />
                 </button>
               </div>
@@ -821,7 +874,7 @@ export default function ReportsPage() {
                         : <FileSpreadsheet className="w-4 h-4" />}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs font-bold text-[#172B38] truncate">{rep.title}</p>
+                      <p className="text-xs font-bold text-slate-900 dark:text-slate-100 truncate">{rep.title}</p>
                       <p className="text-[10px] text-slate-400">{rep.updated}</p>
                     </div>
                     <button
@@ -943,7 +996,7 @@ export default function ReportsPage() {
       {/* ── DETAIL REPORTS TAB ── */}
       {activeTab === 'detail' && (
         <div className="rounded-3xl bg-white border border-slate-200/80 p-5 sm:p-8 shadow-sm space-y-4">
-          <h3 className="text-base font-extrabold text-[#172B38] flex items-center gap-2">
+          <h3 id="reports-detail-heading" tabIndex={-1} className="text-base font-extrabold text-[#172B38] flex items-center gap-2">
             <FileSpreadsheet className="w-5 h-5 text-emerald-500" />
             Báo Cáo Chi Tiết &amp; Tải Xuống (minh họa)
           </h3>
@@ -957,7 +1010,7 @@ export default function ReportsPage() {
                     : <FileSpreadsheet className="w-5 h-5" />}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-bold text-[#172B38] truncate">{rep.title}</p>
+                  <p className="text-sm font-bold text-slate-900 dark:text-slate-100 truncate">{rep.title}</p>
                   <p className="text-[11px] text-slate-400">{rep.updated}</p>
                 </div>
                 <button

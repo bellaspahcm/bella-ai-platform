@@ -1,0 +1,124 @@
+{
+  "result": "PASS_SCOPED_EXACT_FOUR_KPI_CLASSES_AND_CI",
+  "recordedAt": "2026-10-17T22:11:15.540Z",
+  "draft": true,
+  "head": "a854bd22c913dcbf2e6bdb847cde7bb99bf75beb",
+  "pullRequest": "https://github.com/bellaspahcm/bella-ai-platform/pull/365",
+  "visibleChecks": {
+    "success": 11,
+    "pending": 0,
+    "failed": 0
+  },
+  "diffReview": "Independent exact four KPI class replacements against PR364; no other runtime edit",
+  "statusCheckRollup": [
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-10-17T21:55:18Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39072920236/job/117514070340",
+      "name": "Detect Changed Scope",
+      "startedAt": "2026-10-17T21:55:05Z",
+      "status": "COMPLETED",
+      "workflowName": "Quality and Security"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-10-17T21:57:07Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39072920112/job/117514070365",
+      "name": "CodeQL",
+      "startedAt": "2026-10-17T21:55:05Z",
+      "status": "COMPLETED",
+      "workflowName": "Static Analysis Security Suite"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-10-17T21:58:47Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39072920236/job/117514119840",
+      "name": "quality-security",
+      "startedAt": "2026-10-17T21:55:20Z",
+      "status": "COMPLETED",
+      "workflowName": "Quality and Security"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-10-17T21:56:19Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39072920112/job/117514070278",
+      "name": "Semgrep CE",
+      "startedAt": "2026-10-17T21:55:05Z",
+      "status": "COMPLETED",
+      "workflowName": "Static Analysis Security Suite"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-10-17T21:55:15Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39072920112/job/117514070362",
+      "name": "Gitleaks",
+      "startedAt": "2026-10-17T21:55:05Z",
+      "status": "COMPLETED",
+      "workflowName": "Static Analysis Security Suite"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-10-17T21:55:18Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39072920112/job/117514070387",
+      "name": "Trivy filesystem",
+      "startedAt": "2026-10-17T21:55:05Z",
+      "status": "COMPLETED",
+      "workflowName": "Static Analysis Security Suite"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-10-17T21:55:14Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39072920112/job/117514070367",
+      "name": "SonarQube",
+      "startedAt": "2026-10-17T21:55:05Z",
+      "status": "COMPLETED",
+      "workflowName": "Static Analysis Security Suite"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-10-17T21:57:01Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/bellaspahcm/bella-ai-platform/runs/117514438817",
+      "name": "CodeQL",
+      "startedAt": "2026-10-17T21:56:57Z",
+      "status": "COMPLETED",
+      "workflowName": ""
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-10-17T21:56:12Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/bellaspahcm/bella-ai-platform/runs/117514282153",
+      "name": "Semgrep OSS",
+      "startedAt": "2026-10-17T21:56:08Z",
+      "status": "COMPLETED",
+      "workflowName": ""
+    },
+    {
+      "__typename": "StatusContext",
+      "context": "Vercel",
+      "startedAt": "2026-10-17T21:58:51Z",
+      "state": "SUCCESS",
+      "targetUrl": "https://vercel.com/bella-spa-s-projects/bella-spa-erp/4yFBaWRY1qvEKuaN1iGswMyJXaAm"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-10-17T21:58:53Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://vercel.com/github",
+      "name": "Vercel Preview Comments",
+      "startedAt": "2026-10-17T21:58:53Z",
+      "status": "COMPLETED",
+      "workflowName": ""
+    }
+  ],
+  "merge": false,
+  "deploy": false
+}

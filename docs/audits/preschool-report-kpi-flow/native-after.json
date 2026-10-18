@@ -1,0 +1,427 @@
+{
+  "phase": "after",
+  "recordedAt": "2026-10-17T21:51:39.654Z",
+  "command": "node docs/audits/preschool-report-kpi-flow/kpi-contrast.cjs after",
+  "exitCode": 0,
+  "summary": {
+    "result": "PASS",
+    "checked": 16,
+    "passed": 16,
+    "failed": 0,
+    "minimumRatio": 14.15973670899138,
+    "threshold": 4.5
+  },
+  "sourceSha256": "a1ba8b02aaba6b92b350d46b27effbb29e54452dd2987260c988d293af725d90",
+  "testSha256": "f8cde2348bdd2dff943d33c0c84e46e2fd20f3d24355546f8e709762c003a55a",
+  "globalsSha256": "1f2458f1e1ff45ff29650ce9bc30a0a408004f079760de68bcef7c915ddce21e",
+  "compiledCssSha256": "2150a389cdde7ed6c1910f2335adf61baedf3738f57d0d06f109db55e4f9dfaf",
+  "bundleSha256": "83bdd903ae15c25c0b7cca2e480be0731900fe1e8a69e022e3e4f49688f18a43",
+  "method": "Chromium canvas CSS-to-sRGB foreground, native raster backgrounds with text ink removed; every pixel under rendered text rectangles; unrounded WCAG ratio >= 4.5.",
+  "limits": "Synthetic React mount; actual Reports component and globals.css; stubbed Next Link, no Next layout or downloaded fonts. No Auth/API/DB/runtime readiness proof. Only loopback document allowed; server closed.",
+  "results": [
+    {
+      "theme": "light",
+      "device": "desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "contrast": [
+        {
+          "text": "95.7%",
+          "element": "p.text-2xl.font-extrabold",
+          "label": "kpi-1",
+          "minimumRatio": 17.8305532523795,
+          "sampledPixels": 1210,
+          "worstBackground": [
+            255,
+            255,
+            255
+          ],
+          "worstForeground": [
+            15,
+            23,
+            43
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "oklch(0.208 0.042 265.755)"
+        },
+        {
+          "text": "92.1%",
+          "element": "p.text-2xl.font-extrabold",
+          "label": "kpi-2",
+          "minimumRatio": 17.8305532523795,
+          "sampledPixels": 1210,
+          "worstBackground": [
+            255,
+            255,
+            255
+          ],
+          "worstForeground": [
+            15,
+            23,
+            43
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "oklch(0.208 0.042 265.755)"
+        },
+        {
+          "text": "1.89 tỷ",
+          "element": "p.text-2xl.font-extrabold",
+          "label": "kpi-3",
+          "minimumRatio": 17.8305532523795,
+          "sampledPixels": 1254,
+          "worstBackground": [
+            255,
+            255,
+            255
+          ],
+          "worstForeground": [
+            15,
+            23,
+            43
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "oklch(0.208 0.042 265.755)"
+        },
+        {
+          "text": "4.8 / 5.0",
+          "element": "p.text-2xl.font-extrabold",
+          "label": "kpi-4",
+          "minimumRatio": 17.8305532523795,
+          "sampledPixels": 1452,
+          "worstBackground": [
+            255,
+            255,
+            255
+          ],
+          "worstForeground": [
+            15,
+            23,
+            43
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "oklch(0.208 0.042 265.755)"
+        }
+      ],
+      "kpiTexts": [
+        "95.7%",
+        "92.1%",
+        "1.89 tỷ",
+        "4.8 / 5.0"
+      ],
+      "sampleDataNotice": "Dữ liệu minh họa: KPI, biểu đồ, phân tích AI, hoạt động và tài liệu bên dưới là nội dung mẫu, chưa tải từ dữ liệu thật.",
+      "sampleDataNoticeVisible": true,
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": []
+    },
+    {
+      "theme": "light",
+      "device": "mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "contrast": [
+        {
+          "text": "95.7%",
+          "element": "p.text-2xl.font-extrabold",
+          "label": "kpi-1",
+          "minimumRatio": 17.8305532523795,
+          "sampledPixels": 1210,
+          "worstBackground": [
+            255,
+            255,
+            255
+          ],
+          "worstForeground": [
+            15,
+            23,
+            43
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "oklch(0.208 0.042 265.755)"
+        },
+        {
+          "text": "92.1%",
+          "element": "p.text-2xl.font-extrabold",
+          "label": "kpi-2",
+          "minimumRatio": 17.8305532523795,
+          "sampledPixels": 1210,
+          "worstBackground": [
+            255,
+            255,
+            255
+          ],
+          "worstForeground": [
+            15,
+            23,
+            43
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "oklch(0.208 0.042 265.755)"
+        },
+        {
+          "text": "1.89 tỷ",
+          "element": "p.text-2xl.font-extrabold",
+          "label": "kpi-3",
+          "minimumRatio": 17.8305532523795,
+          "sampledPixels": 1254,
+          "worstBackground": [
+            255,
+            255,
+            255
+          ],
+          "worstForeground": [
+            15,
+            23,
+            43
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "oklch(0.208 0.042 265.755)"
+        },
+        {
+          "text": "4.8 / 5.0",
+          "element": "p.text-2xl.font-extrabold",
+          "label": "kpi-4",
+          "minimumRatio": 17.8305532523795,
+          "sampledPixels": 1452,
+          "worstBackground": [
+            255,
+            255,
+            255
+          ],
+          "worstForeground": [
+            15,
+            23,
+            43
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "oklch(0.208 0.042 265.755)"
+        }
+      ],
+      "kpiTexts": [
+        "95.7%",
+        "92.1%",
+        "1.89 tỷ",
+        "4.8 / 5.0"
+      ],
+      "sampleDataNotice": "Dữ liệu minh họa: KPI, biểu đồ, phân tích AI, hoạt động và tài liệu bên dưới là nội dung mẫu, chưa tải từ dữ liệu thật.",
+      "sampleDataNoticeVisible": true,
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": []
+    },
+    {
+      "theme": "dark",
+      "device": "desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "contrast": [
+        {
+          "text": "95.7%",
+          "element": "p.text-2xl.font-extrabold",
+          "label": "kpi-1",
+          "minimumRatio": 14.15973670899138,
+          "sampledPixels": 1210,
+          "worstBackground": [
+            14,
+            38,
+            58
+          ],
+          "worstForeground": [
+            243,
+            245,
+            247
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "rgb(243, 245, 247)"
+        },
+        {
+          "text": "92.1%",
+          "element": "p.text-2xl.font-extrabold",
+          "label": "kpi-2",
+          "minimumRatio": 14.15973670899138,
+          "sampledPixels": 1210,
+          "worstBackground": [
+            14,
+            38,
+            58
+          ],
+          "worstForeground": [
+            243,
+            245,
+            247
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "rgb(243, 245, 247)"
+        },
+        {
+          "text": "1.89 tỷ",
+          "element": "p.text-2xl.font-extrabold",
+          "label": "kpi-3",
+          "minimumRatio": 14.15973670899138,
+          "sampledPixels": 1254,
+          "worstBackground": [
+            14,
+            38,
+            58
+          ],
+          "worstForeground": [
+            243,
+            245,
+            247
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "rgb(243, 245, 247)"
+        },
+        {
+          "text": "4.8 / 5.0",
+          "element": "p.text-2xl.font-extrabold",
+          "label": "kpi-4",
+          "minimumRatio": 14.15973670899138,
+          "sampledPixels": 1452,
+          "worstBackground": [
+            14,
+            38,
+            58
+          ],
+          "worstForeground": [
+            243,
+            245,
+            247
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "rgb(243, 245, 247)"
+        }
+      ],
+      "kpiTexts": [
+        "95.7%",
+        "92.1%",
+        "1.89 tỷ",
+        "4.8 / 5.0"
+      ],
+      "sampleDataNotice": "Dữ liệu minh họa: KPI, biểu đồ, phân tích AI, hoạt động và tài liệu bên dưới là nội dung mẫu, chưa tải từ dữ liệu thật.",
+      "sampleDataNoticeVisible": true,
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": []
+    },
+    {
+      "theme": "dark",
+      "device": "mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "contrast": [
+        {
+          "text": "95.7%",
+          "element": "p.text-2xl.font-extrabold",
+          "label": "kpi-1",
+          "minimumRatio": 14.15973670899138,
+          "sampledPixels": 1210,
+          "worstBackground": [
+            14,
+            38,
+            58
+          ],
+          "worstForeground": [
+            243,
+            245,
+            247
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "rgb(243, 245, 247)"
+        },
+        {
+          "text": "92.1%",
+          "element": "p.text-2xl.font-extrabold",
+          "label": "kpi-2",
+          "minimumRatio": 14.15973670899138,
+          "sampledPixels": 1210,
+          "worstBackground": [
+            14,
+            38,
+            58
+          ],
+          "worstForeground": [
+            243,
+            245,
+            247
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "rgb(243, 245, 247)"
+        },
+        {
+          "text": "1.89 tỷ",
+          "element": "p.text-2xl.font-extrabold",
+          "label": "kpi-3",
+          "minimumRatio": 14.292636100155264,
+          "sampledPixels": 1254,
+          "worstBackground": [
+            14,
+            37,
+            58
+          ],
+          "worstForeground": [
+            243,
+            245,
+            247
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "rgb(243, 245, 247)"
+        },
+        {
+          "text": "4.8 / 5.0",
+          "element": "p.text-2xl.font-extrabold",
+          "label": "kpi-4",
+          "minimumRatio": 14.292636100155264,
+          "sampledPixels": 1452,
+          "worstBackground": [
+            14,
+            37,
+            58
+          ],
+          "worstForeground": [
+            243,
+            245,
+            247
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "rgb(243, 245, 247)"
+        }
+      ],
+      "kpiTexts": [
+        "95.7%",
+        "92.1%",
+        "1.89 tỷ",
+        "4.8 / 5.0"
+      ],
+      "sampleDataNotice": "Dữ liệu minh họa: KPI, biểu đồ, phân tích AI, hoạt động và tài liệu bên dưới là nội dung mẫu, chưa tải từ dữ liệu thật.",
+      "sampleDataNoticeVisible": true,
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": []
+    }
+  ]
+}

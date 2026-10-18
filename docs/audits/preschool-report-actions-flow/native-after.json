@@ -1,0 +1,1864 @@
+{
+  "phase": "after",
+  "recordedAt": "2026-10-17T22:05:54.541Z",
+  "command": "node docs/audits/preschool-report-actions-flow/actions-browser.cjs after",
+  "exitCode": 0,
+  "summary": {
+    "result": "PASS",
+    "checked": 20,
+    "passed": 20,
+    "failed": 0,
+    "contrastCount": 16,
+    "contrastFailed": 0,
+    "minimumRatio": 13.328781541774159,
+    "threshold": 4.5
+  },
+  "sourceSha256": "1bae64d4b75c62d479d56854fe845bbcf83497d4873d1508d283010b3481e4de",
+  "testSha256": "1794c3742c8488f877b78d0771ffc2d5c08417cb3dbba023b0d93d8ed82c07ae",
+  "globalsSha256": "1f2458f1e1ff45ff29650ce9bc30a0a408004f079760de68bcef7c915ddce21e",
+  "compiledCssSha256": "2150a389cdde7ed6c1910f2335adf61baedf3738f57d0d06f109db55e4f9dfaf",
+  "bundleSha256": "ab8dda23c869393b0d32a4ba571c7a1120933a014b192e36a2c58196d841f335",
+  "limits": "Synthetic React mount; actual Reports component/globals.css; stubbed Next boundaries. Only loopback document allowed; no fonts/Auth/API/DB. New feedback contrast only. Server/browser closed.",
+  "results": [
+    {
+      "theme": "light",
+      "device": "desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "flows": [
+        {
+          "action": "Gợi ý AI minh họa",
+          "result": "PASS",
+          "cases": [
+            {
+              "name": "pointer",
+              "result": "PASS"
+            },
+            {
+              "name": "Enter",
+              "result": "PASS"
+            },
+            {
+              "name": "Space",
+              "result": "PASS"
+            }
+          ]
+        },
+        {
+          "action": "Tình trạng theo nhóm lớp",
+          "result": "PASS",
+          "cases": [
+            {
+              "name": "pointer",
+              "result": "PASS"
+            },
+            {
+              "name": "Enter",
+              "result": "PASS"
+            },
+            {
+              "name": "Space",
+              "result": "PASS"
+            }
+          ]
+        },
+        {
+          "action": "Top vấn đề cần chú ý",
+          "result": "PASS",
+          "cases": [
+            {
+              "name": "pointer",
+              "result": "PASS"
+            },
+            {
+              "name": "Enter",
+              "result": "PASS"
+            },
+            {
+              "name": "Space",
+              "result": "PASS"
+            }
+          ]
+        },
+        {
+          "action": "Hoạt động nổi bật trong tháng",
+          "result": "PASS",
+          "cases": [
+            {
+              "name": "pointer",
+              "result": "PASS"
+            },
+            {
+              "name": "Enter",
+              "result": "PASS"
+            },
+            {
+              "name": "Space",
+              "result": "PASS"
+            }
+          ]
+        },
+        {
+          "action": "Tài liệu & Báo cáo nhanh (minh họa)",
+          "result": "PASS",
+          "cases": [
+            {
+              "name": "pointer-return-reopen",
+              "result": "PASS"
+            },
+            {
+              "name": "Enter-return-reopen",
+              "result": "PASS"
+            },
+            {
+              "name": "Space-return-reopen",
+              "result": "PASS"
+            }
+          ],
+          "documents": [
+            "Báo cáo tổng hợp tháng 09/2026",
+            "Tài liệu chuyên cần",
+            "Báo cáo học phí",
+            "Báo cáo tăng trưởng theo WHO"
+          ]
+        }
+      ],
+      "contrast": [
+        {
+          "text": "Chưa có chi tiết AI bổ sung trong bản xem trước; các gợi ý đang hiển thị là ví dụ minh họa.",
+          "label": "reports-ai-details-status",
+          "minimumRatio": 17.8305532523795,
+          "sampledPixels": 6146,
+          "worstBackground": [
+            255,
+            255,
+            255
+          ],
+          "worstForeground": [
+            15,
+            23,
+            43
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "oklch(0.208 0.042 265.755)",
+          "resolvedForegroundRgba": [
+            15,
+            23,
+            43,
+            255
+          ],
+          "effectiveOpacity": 1,
+          "fontSize": "12px",
+          "fontFamily": "\"Times New Roman\"",
+          "ancestorLayers": [
+            {
+              "tag": "P",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgb(255, 255, 255)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "oklch(1 0 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "BODY",
+              "backgroundColor": "oklch(1 0 0)",
+              "backgroundImage": "radial-gradient(circle at 0% 0%, rgba(157, 23, 77, 0.04) 0%, rgba(0, 0, 0, 0) 40%), radial-gradient(circle at 100% 100%, rgba(190, 24, 93, 0.04) 0%, rgba(0, 0, 0, 0) 40%)",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "HTML",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            }
+          ],
+          "method": "Chromium canvas CSS-to-sRGB foreground; native raster background with text ink removed, sampling every pixel under actual text rects including ancestor/gradient/alpha/backdrop compositing; WCAG relative luminance; raw ratio compared to 4.5 without rounding."
+        },
+        {
+          "text": "Chưa có chế độ xem chi tiết đầy đủ theo nhóm lớp trong bản xem trước này.",
+          "label": "reports-class-details-status",
+          "minimumRatio": 17.8305532523795,
+          "sampledPixels": 5124,
+          "worstBackground": [
+            255,
+            255,
+            255
+          ],
+          "worstForeground": [
+            15,
+            23,
+            43
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "oklch(0.208 0.042 265.755)",
+          "resolvedForegroundRgba": [
+            15,
+            23,
+            43,
+            255
+          ],
+          "effectiveOpacity": 1,
+          "fontSize": "12px",
+          "fontFamily": "\"Times New Roman\"",
+          "ancestorLayers": [
+            {
+              "tag": "P",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgb(255, 255, 255)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "oklch(1 0 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "BODY",
+              "backgroundColor": "oklch(1 0 0)",
+              "backgroundImage": "radial-gradient(circle at 0% 0%, rgba(157, 23, 77, 0.04) 0%, rgba(0, 0, 0, 0) 40%), radial-gradient(circle at 100% 100%, rgba(190, 24, 93, 0.04) 0%, rgba(0, 0, 0, 0) 40%)",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "HTML",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            }
+          ],
+          "method": "Chromium canvas CSS-to-sRGB foreground; native raster background with text ink removed, sampling every pixel under actual text rects including ancestor/gradient/alpha/backdrop compositing; WCAG relative luminance; raw ratio compared to 4.5 without rounding."
+        },
+        {
+          "text": "Chưa có danh sách vấn đề đầy đủ trong bản xem trước này.",
+          "label": "reports-all-issues-status",
+          "minimumRatio": 17.8305532523795,
+          "sampledPixels": 3990,
+          "worstBackground": [
+            255,
+            255,
+            255
+          ],
+          "worstForeground": [
+            15,
+            23,
+            43
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "oklch(0.208 0.042 265.755)",
+          "resolvedForegroundRgba": [
+            15,
+            23,
+            43,
+            255
+          ],
+          "effectiveOpacity": 1,
+          "fontSize": "12px",
+          "fontFamily": "\"Times New Roman\"",
+          "ancestorLayers": [
+            {
+              "tag": "P",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgb(255, 255, 255)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "oklch(1 0 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "BODY",
+              "backgroundColor": "oklch(1 0 0)",
+              "backgroundImage": "radial-gradient(circle at 0% 0%, rgba(157, 23, 77, 0.04) 0%, rgba(0, 0, 0, 0) 40%), radial-gradient(circle at 100% 100%, rgba(190, 24, 93, 0.04) 0%, rgba(0, 0, 0, 0) 40%)",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "HTML",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            }
+          ],
+          "method": "Chromium canvas CSS-to-sRGB foreground; native raster background with text ink removed, sampling every pixel under actual text rects including ancestor/gradient/alpha/backdrop compositing; WCAG relative luminance; raw ratio compared to 4.5 without rounding."
+        },
+        {
+          "text": "Chưa có danh sách hoạt động đầy đủ trong bản xem trước này.",
+          "label": "reports-all-events-status",
+          "minimumRatio": 17.8305532523795,
+          "sampledPixels": 4214,
+          "worstBackground": [
+            255,
+            255,
+            255
+          ],
+          "worstForeground": [
+            15,
+            23,
+            43
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "oklch(0.208 0.042 265.755)",
+          "resolvedForegroundRgba": [
+            15,
+            23,
+            43,
+            255
+          ],
+          "effectiveOpacity": 1,
+          "fontSize": "12px",
+          "fontFamily": "\"Times New Roman\"",
+          "ancestorLayers": [
+            {
+              "tag": "P",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgb(255, 255, 255)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "oklch(1 0 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "BODY",
+              "backgroundColor": "oklch(1 0 0)",
+              "backgroundImage": "radial-gradient(circle at 0% 0%, rgba(157, 23, 77, 0.04) 0%, rgba(0, 0, 0, 0) 40%), radial-gradient(circle at 100% 100%, rgba(190, 24, 93, 0.04) 0%, rgba(0, 0, 0, 0) 40%)",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "HTML",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            }
+          ],
+          "method": "Chromium canvas CSS-to-sRGB foreground; native raster background with text ink removed, sampling every pixel under actual text rects including ancestor/gradient/alpha/backdrop compositing; WCAG relative luminance; raw ratio compared to 4.5 without rounding."
+        }
+      ],
+      "kpiTexts": [
+        "95.7%",
+        "92.1%",
+        "1.89 tỷ",
+        "4.8 / 5.0"
+      ],
+      "sampleDataUnchanged": true,
+      "sampleDataNotice": "Dữ liệu minh họa: KPI, biểu đồ, phân tích AI, hoạt động và tài liệu bên dưới là nội dung mẫu, chưa tải từ dữ liệu thật.",
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": []
+    },
+    {
+      "theme": "light",
+      "device": "mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "flows": [
+        {
+          "action": "Gợi ý AI minh họa",
+          "result": "PASS",
+          "cases": [
+            {
+              "name": "pointer",
+              "result": "PASS"
+            },
+            {
+              "name": "Enter",
+              "result": "PASS"
+            },
+            {
+              "name": "Space",
+              "result": "PASS"
+            }
+          ]
+        },
+        {
+          "action": "Tình trạng theo nhóm lớp",
+          "result": "PASS",
+          "cases": [
+            {
+              "name": "pointer",
+              "result": "PASS"
+            },
+            {
+              "name": "Enter",
+              "result": "PASS"
+            },
+            {
+              "name": "Space",
+              "result": "PASS"
+            }
+          ]
+        },
+        {
+          "action": "Top vấn đề cần chú ý",
+          "result": "PASS",
+          "cases": [
+            {
+              "name": "pointer",
+              "result": "PASS"
+            },
+            {
+              "name": "Enter",
+              "result": "PASS"
+            },
+            {
+              "name": "Space",
+              "result": "PASS"
+            }
+          ]
+        },
+        {
+          "action": "Hoạt động nổi bật trong tháng",
+          "result": "PASS",
+          "cases": [
+            {
+              "name": "pointer",
+              "result": "PASS"
+            },
+            {
+              "name": "Enter",
+              "result": "PASS"
+            },
+            {
+              "name": "Space",
+              "result": "PASS"
+            }
+          ]
+        },
+        {
+          "action": "Tài liệu & Báo cáo nhanh (minh họa)",
+          "result": "PASS",
+          "cases": [
+            {
+              "name": "pointer-return-reopen",
+              "result": "PASS"
+            },
+            {
+              "name": "Enter-return-reopen",
+              "result": "PASS"
+            },
+            {
+              "name": "Space-return-reopen",
+              "result": "PASS"
+            }
+          ],
+          "documents": [
+            "Báo cáo tổng hợp tháng 09/2026",
+            "Tài liệu chuyên cần",
+            "Báo cáo học phí",
+            "Báo cáo tăng trưởng theo WHO"
+          ]
+        }
+      ],
+      "contrast": [
+        {
+          "text": "Chưa có chi tiết AI bổ sung trong bản xem trước; các gợi ý đang hiển thị là ví dụ minh họa.",
+          "label": "reports-ai-details-status",
+          "minimumRatio": 17.8305532523795,
+          "sampledPixels": 6104,
+          "worstBackground": [
+            255,
+            255,
+            255
+          ],
+          "worstForeground": [
+            15,
+            23,
+            43
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "oklch(0.208 0.042 265.755)",
+          "resolvedForegroundRgba": [
+            15,
+            23,
+            43,
+            255
+          ],
+          "effectiveOpacity": 1,
+          "fontSize": "12px",
+          "fontFamily": "\"Times New Roman\"",
+          "ancestorLayers": [
+            {
+              "tag": "P",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgb(255, 255, 255)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "oklch(1 0 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "BODY",
+              "backgroundColor": "oklch(1 0 0)",
+              "backgroundImage": "radial-gradient(circle at 0% 0%, rgba(157, 23, 77, 0.04) 0%, rgba(0, 0, 0, 0) 40%), radial-gradient(circle at 100% 100%, rgba(190, 24, 93, 0.04) 0%, rgba(0, 0, 0, 0) 40%)",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "HTML",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            }
+          ],
+          "method": "Chromium canvas CSS-to-sRGB foreground; native raster background with text ink removed, sampling every pixel under actual text rects including ancestor/gradient/alpha/backdrop compositing; WCAG relative luminance; raw ratio compared to 4.5 without rounding."
+        },
+        {
+          "text": "Chưa có chế độ xem chi tiết đầy đủ theo nhóm lớp trong bản xem trước này.",
+          "label": "reports-class-details-status",
+          "minimumRatio": 17.8305532523795,
+          "sampledPixels": 5096,
+          "worstBackground": [
+            255,
+            255,
+            255
+          ],
+          "worstForeground": [
+            15,
+            23,
+            43
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "oklch(0.208 0.042 265.755)",
+          "resolvedForegroundRgba": [
+            15,
+            23,
+            43,
+            255
+          ],
+          "effectiveOpacity": 1,
+          "fontSize": "12px",
+          "fontFamily": "\"Times New Roman\"",
+          "ancestorLayers": [
+            {
+              "tag": "P",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgb(255, 255, 255)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "oklch(1 0 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "BODY",
+              "backgroundColor": "oklch(1 0 0)",
+              "backgroundImage": "radial-gradient(circle at 0% 0%, rgba(157, 23, 77, 0.04) 0%, rgba(0, 0, 0, 0) 40%), radial-gradient(circle at 100% 100%, rgba(190, 24, 93, 0.04) 0%, rgba(0, 0, 0, 0) 40%)",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "HTML",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            }
+          ],
+          "method": "Chromium canvas CSS-to-sRGB foreground; native raster background with text ink removed, sampling every pixel under actual text rects including ancestor/gradient/alpha/backdrop compositing; WCAG relative luminance; raw ratio compared to 4.5 without rounding."
+        },
+        {
+          "text": "Chưa có danh sách vấn đề đầy đủ trong bản xem trước này.",
+          "label": "reports-all-issues-status",
+          "minimumRatio": 17.8305532523795,
+          "sampledPixels": 3990,
+          "worstBackground": [
+            255,
+            255,
+            255
+          ],
+          "worstForeground": [
+            15,
+            23,
+            43
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "oklch(0.208 0.042 265.755)",
+          "resolvedForegroundRgba": [
+            15,
+            23,
+            43,
+            255
+          ],
+          "effectiveOpacity": 1,
+          "fontSize": "12px",
+          "fontFamily": "\"Times New Roman\"",
+          "ancestorLayers": [
+            {
+              "tag": "P",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgb(255, 255, 255)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "oklch(1 0 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "BODY",
+              "backgroundColor": "oklch(1 0 0)",
+              "backgroundImage": "radial-gradient(circle at 0% 0%, rgba(157, 23, 77, 0.04) 0%, rgba(0, 0, 0, 0) 40%), radial-gradient(circle at 100% 100%, rgba(190, 24, 93, 0.04) 0%, rgba(0, 0, 0, 0) 40%)",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "HTML",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            }
+          ],
+          "method": "Chromium canvas CSS-to-sRGB foreground; native raster background with text ink removed, sampling every pixel under actual text rects including ancestor/gradient/alpha/backdrop compositing; WCAG relative luminance; raw ratio compared to 4.5 without rounding."
+        },
+        {
+          "text": "Chưa có danh sách hoạt động đầy đủ trong bản xem trước này.",
+          "label": "reports-all-events-status",
+          "minimumRatio": 17.8305532523795,
+          "sampledPixels": 4214,
+          "worstBackground": [
+            255,
+            255,
+            255
+          ],
+          "worstForeground": [
+            15,
+            23,
+            43
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "oklch(0.208 0.042 265.755)",
+          "resolvedForegroundRgba": [
+            15,
+            23,
+            43,
+            255
+          ],
+          "effectiveOpacity": 1,
+          "fontSize": "12px",
+          "fontFamily": "\"Times New Roman\"",
+          "ancestorLayers": [
+            {
+              "tag": "P",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgb(255, 255, 255)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "oklch(1 0 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "BODY",
+              "backgroundColor": "oklch(1 0 0)",
+              "backgroundImage": "radial-gradient(circle at 0% 0%, rgba(157, 23, 77, 0.04) 0%, rgba(0, 0, 0, 0) 40%), radial-gradient(circle at 100% 100%, rgba(190, 24, 93, 0.04) 0%, rgba(0, 0, 0, 0) 40%)",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "HTML",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            }
+          ],
+          "method": "Chromium canvas CSS-to-sRGB foreground; native raster background with text ink removed, sampling every pixel under actual text rects including ancestor/gradient/alpha/backdrop compositing; WCAG relative luminance; raw ratio compared to 4.5 without rounding."
+        }
+      ],
+      "kpiTexts": [
+        "95.7%",
+        "92.1%",
+        "1.89 tỷ",
+        "4.8 / 5.0"
+      ],
+      "sampleDataUnchanged": true,
+      "sampleDataNotice": "Dữ liệu minh họa: KPI, biểu đồ, phân tích AI, hoạt động và tài liệu bên dưới là nội dung mẫu, chưa tải từ dữ liệu thật.",
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": []
+    },
+    {
+      "theme": "dark",
+      "device": "desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "flows": [
+        {
+          "action": "Gợi ý AI minh họa",
+          "result": "PASS",
+          "cases": [
+            {
+              "name": "pointer",
+              "result": "PASS"
+            },
+            {
+              "name": "Enter",
+              "result": "PASS"
+            },
+            {
+              "name": "Space",
+              "result": "PASS"
+            }
+          ]
+        },
+        {
+          "action": "Tình trạng theo nhóm lớp",
+          "result": "PASS",
+          "cases": [
+            {
+              "name": "pointer",
+              "result": "PASS"
+            },
+            {
+              "name": "Enter",
+              "result": "PASS"
+            },
+            {
+              "name": "Space",
+              "result": "PASS"
+            }
+          ]
+        },
+        {
+          "action": "Top vấn đề cần chú ý",
+          "result": "PASS",
+          "cases": [
+            {
+              "name": "pointer",
+              "result": "PASS"
+            },
+            {
+              "name": "Enter",
+              "result": "PASS"
+            },
+            {
+              "name": "Space",
+              "result": "PASS"
+            }
+          ]
+        },
+        {
+          "action": "Hoạt động nổi bật trong tháng",
+          "result": "PASS",
+          "cases": [
+            {
+              "name": "pointer",
+              "result": "PASS"
+            },
+            {
+              "name": "Enter",
+              "result": "PASS"
+            },
+            {
+              "name": "Space",
+              "result": "PASS"
+            }
+          ]
+        },
+        {
+          "action": "Tài liệu & Báo cáo nhanh (minh họa)",
+          "result": "PASS",
+          "cases": [
+            {
+              "name": "pointer-return-reopen",
+              "result": "PASS"
+            },
+            {
+              "name": "Enter-return-reopen",
+              "result": "PASS"
+            },
+            {
+              "name": "Space-return-reopen",
+              "result": "PASS"
+            }
+          ],
+          "documents": [
+            "Báo cáo tổng hợp tháng 09/2026",
+            "Tài liệu chuyên cần",
+            "Báo cáo học phí",
+            "Báo cáo tăng trưởng theo WHO"
+          ]
+        }
+      ],
+      "contrast": [
+        {
+          "text": "Chưa có chi tiết AI bổ sung trong bản xem trước; các gợi ý đang hiển thị là ví dụ minh họa.",
+          "label": "reports-ai-details-status",
+          "minimumRatio": 13.677396157378626,
+          "sampledPixels": 6146,
+          "worstBackground": [
+            15,
+            41,
+            61
+          ],
+          "worstForeground": [
+            243,
+            245,
+            247
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "rgb(243, 245, 247)",
+          "resolvedForegroundRgba": [
+            243,
+            245,
+            247,
+            255
+          ],
+          "effectiveOpacity": 1,
+          "fontSize": "12px",
+          "fontFamily": "\"Times New Roman\"",
+          "ancestorLayers": [
+            {
+              "tag": "P",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "linear-gradient(rgba(17, 46, 67, 0.94) 0%, rgba(9, 26, 45, 0.88) 100%)",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgb(9, 26, 45)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "BODY",
+              "backgroundColor": "rgb(9, 26, 45)",
+              "backgroundImage": "radial-gradient(circle at 0% 0%, rgba(39, 197, 150, 0.08) 0%, rgba(0, 0, 0, 0) 36%), radial-gradient(circle at 100% 100%, rgba(229, 184, 97, 0.07) 0%, rgba(0, 0, 0, 0) 40%)",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "HTML",
+              "backgroundColor": "rgb(9, 26, 45)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            }
+          ],
+          "method": "Chromium canvas CSS-to-sRGB foreground; native raster background with text ink removed, sampling every pixel under actual text rects including ancestor/gradient/alpha/backdrop compositing; WCAG relative luminance; raw ratio compared to 4.5 without rounding."
+        },
+        {
+          "text": "Chưa có chế độ xem chi tiết đầy đủ theo nhóm lớp trong bản xem trước này.",
+          "label": "reports-class-details-status",
+          "minimumRatio": 13.484255120566887,
+          "sampledPixels": 5124,
+          "worstBackground": [
+            16,
+            42,
+            63
+          ],
+          "worstForeground": [
+            243,
+            245,
+            247
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "rgb(243, 245, 247)",
+          "resolvedForegroundRgba": [
+            243,
+            245,
+            247,
+            255
+          ],
+          "effectiveOpacity": 1,
+          "fontSize": "12px",
+          "fontFamily": "\"Times New Roman\"",
+          "ancestorLayers": [
+            {
+              "tag": "P",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "linear-gradient(rgba(17, 46, 67, 0.94) 0%, rgba(9, 26, 45, 0.88) 100%)",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgb(9, 26, 45)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "BODY",
+              "backgroundColor": "rgb(9, 26, 45)",
+              "backgroundImage": "radial-gradient(circle at 0% 0%, rgba(39, 197, 150, 0.08) 0%, rgba(0, 0, 0, 0) 36%), radial-gradient(circle at 100% 100%, rgba(229, 184, 97, 0.07) 0%, rgba(0, 0, 0, 0) 40%)",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "HTML",
+              "backgroundColor": "rgb(9, 26, 45)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            }
+          ],
+          "method": "Chromium canvas CSS-to-sRGB foreground; native raster background with text ink removed, sampling every pixel under actual text rects including ancestor/gradient/alpha/backdrop compositing; WCAG relative luminance; raw ratio compared to 4.5 without rounding."
+        },
+        {
+          "text": "Chưa có danh sách vấn đề đầy đủ trong bản xem trước này.",
+          "label": "reports-all-issues-status",
+          "minimumRatio": 13.484255120566887,
+          "sampledPixels": 3990,
+          "worstBackground": [
+            16,
+            42,
+            63
+          ],
+          "worstForeground": [
+            243,
+            245,
+            247
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "rgb(243, 245, 247)",
+          "resolvedForegroundRgba": [
+            243,
+            245,
+            247,
+            255
+          ],
+          "effectiveOpacity": 1,
+          "fontSize": "12px",
+          "fontFamily": "\"Times New Roman\"",
+          "ancestorLayers": [
+            {
+              "tag": "P",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "linear-gradient(rgba(17, 46, 67, 0.94) 0%, rgba(9, 26, 45, 0.88) 100%)",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgb(9, 26, 45)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "BODY",
+              "backgroundColor": "rgb(9, 26, 45)",
+              "backgroundImage": "radial-gradient(circle at 0% 0%, rgba(39, 197, 150, 0.08) 0%, rgba(0, 0, 0, 0) 36%), radial-gradient(circle at 100% 100%, rgba(229, 184, 97, 0.07) 0%, rgba(0, 0, 0, 0) 40%)",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "HTML",
+              "backgroundColor": "rgb(9, 26, 45)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            }
+          ],
+          "method": "Chromium canvas CSS-to-sRGB foreground; native raster background with text ink removed, sampling every pixel under actual text rects including ancestor/gradient/alpha/backdrop compositing; WCAG relative luminance; raw ratio compared to 4.5 without rounding."
+        },
+        {
+          "text": "Chưa có danh sách hoạt động đầy đủ trong bản xem trước này.",
+          "label": "reports-all-events-status",
+          "minimumRatio": 13.50525865688788,
+          "sampledPixels": 4214,
+          "worstBackground": [
+            16,
+            42,
+            62
+          ],
+          "worstForeground": [
+            243,
+            245,
+            247
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "rgb(243, 245, 247)",
+          "resolvedForegroundRgba": [
+            243,
+            245,
+            247,
+            255
+          ],
+          "effectiveOpacity": 1,
+          "fontSize": "12px",
+          "fontFamily": "\"Times New Roman\"",
+          "ancestorLayers": [
+            {
+              "tag": "P",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "linear-gradient(rgba(17, 46, 67, 0.94) 0%, rgba(9, 26, 45, 0.88) 100%)",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgb(9, 26, 45)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "BODY",
+              "backgroundColor": "rgb(9, 26, 45)",
+              "backgroundImage": "radial-gradient(circle at 0% 0%, rgba(39, 197, 150, 0.08) 0%, rgba(0, 0, 0, 0) 36%), radial-gradient(circle at 100% 100%, rgba(229, 184, 97, 0.07) 0%, rgba(0, 0, 0, 0) 40%)",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "HTML",
+              "backgroundColor": "rgb(9, 26, 45)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            }
+          ],
+          "method": "Chromium canvas CSS-to-sRGB foreground; native raster background with text ink removed, sampling every pixel under actual text rects including ancestor/gradient/alpha/backdrop compositing; WCAG relative luminance; raw ratio compared to 4.5 without rounding."
+        }
+      ],
+      "kpiTexts": [
+        "95.7%",
+        "92.1%",
+        "1.89 tỷ",
+        "4.8 / 5.0"
+      ],
+      "sampleDataUnchanged": true,
+      "sampleDataNotice": "Dữ liệu minh họa: KPI, biểu đồ, phân tích AI, hoạt động và tài liệu bên dưới là nội dung mẫu, chưa tải từ dữ liệu thật.",
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": []
+    },
+    {
+      "theme": "dark",
+      "device": "mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "flows": [
+        {
+          "action": "Gợi ý AI minh họa",
+          "result": "PASS",
+          "cases": [
+            {
+              "name": "pointer",
+              "result": "PASS"
+            },
+            {
+              "name": "Enter",
+              "result": "PASS"
+            },
+            {
+              "name": "Space",
+              "result": "PASS"
+            }
+          ]
+        },
+        {
+          "action": "Tình trạng theo nhóm lớp",
+          "result": "PASS",
+          "cases": [
+            {
+              "name": "pointer",
+              "result": "PASS"
+            },
+            {
+              "name": "Enter",
+              "result": "PASS"
+            },
+            {
+              "name": "Space",
+              "result": "PASS"
+            }
+          ]
+        },
+        {
+          "action": "Top vấn đề cần chú ý",
+          "result": "PASS",
+          "cases": [
+            {
+              "name": "pointer",
+              "result": "PASS"
+            },
+            {
+              "name": "Enter",
+              "result": "PASS"
+            },
+            {
+              "name": "Space",
+              "result": "PASS"
+            }
+          ]
+        },
+        {
+          "action": "Hoạt động nổi bật trong tháng",
+          "result": "PASS",
+          "cases": [
+            {
+              "name": "pointer",
+              "result": "PASS"
+            },
+            {
+              "name": "Enter",
+              "result": "PASS"
+            },
+            {
+              "name": "Space",
+              "result": "PASS"
+            }
+          ]
+        },
+        {
+          "action": "Tài liệu & Báo cáo nhanh (minh họa)",
+          "result": "PASS",
+          "cases": [
+            {
+              "name": "pointer-return-reopen",
+              "result": "PASS"
+            },
+            {
+              "name": "Enter-return-reopen",
+              "result": "PASS"
+            },
+            {
+              "name": "Space-return-reopen",
+              "result": "PASS"
+            }
+          ],
+          "documents": [
+            "Báo cáo tổng hợp tháng 09/2026",
+            "Tài liệu chuyên cần",
+            "Báo cáo học phí",
+            "Báo cáo tăng trưởng theo WHO"
+          ]
+        }
+      ],
+      "contrast": [
+        {
+          "text": "Chưa có chi tiết AI bổ sung trong bản xem trước; các gợi ý đang hiển thị là ví dụ minh họa.",
+          "label": "reports-ai-details-status",
+          "minimumRatio": 13.328781541774159,
+          "sampledPixels": 6104,
+          "worstBackground": [
+            16,
+            43,
+            64
+          ],
+          "worstForeground": [
+            243,
+            245,
+            247
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "rgb(243, 245, 247)",
+          "resolvedForegroundRgba": [
+            243,
+            245,
+            247,
+            255
+          ],
+          "effectiveOpacity": 1,
+          "fontSize": "12px",
+          "fontFamily": "\"Times New Roman\"",
+          "ancestorLayers": [
+            {
+              "tag": "P",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "linear-gradient(rgba(17, 46, 67, 0.94) 0%, rgba(9, 26, 45, 0.88) 100%)",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgb(9, 26, 45)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "BODY",
+              "backgroundColor": "rgb(9, 26, 45)",
+              "backgroundImage": "radial-gradient(circle at 0% 0%, rgba(39, 197, 150, 0.08) 0%, rgba(0, 0, 0, 0) 36%), radial-gradient(circle at 100% 100%, rgba(229, 184, 97, 0.07) 0%, rgba(0, 0, 0, 0) 40%)",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "HTML",
+              "backgroundColor": "rgb(9, 26, 45)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            }
+          ],
+          "method": "Chromium canvas CSS-to-sRGB foreground; native raster background with text ink removed, sampling every pixel under actual text rects including ancestor/gradient/alpha/backdrop compositing; WCAG relative luminance; raw ratio compared to 4.5 without rounding."
+        },
+        {
+          "text": "Chưa có chế độ xem chi tiết đầy đủ theo nhóm lớp trong bản xem trước này.",
+          "label": "reports-class-details-status",
+          "minimumRatio": 13.349680162905496,
+          "sampledPixels": 5096,
+          "worstBackground": [
+            16,
+            43,
+            63
+          ],
+          "worstForeground": [
+            243,
+            245,
+            247
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "rgb(243, 245, 247)",
+          "resolvedForegroundRgba": [
+            243,
+            245,
+            247,
+            255
+          ],
+          "effectiveOpacity": 1,
+          "fontSize": "12px",
+          "fontFamily": "\"Times New Roman\"",
+          "ancestorLayers": [
+            {
+              "tag": "P",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "linear-gradient(rgba(17, 46, 67, 0.94) 0%, rgba(9, 26, 45, 0.88) 100%)",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgb(9, 26, 45)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "BODY",
+              "backgroundColor": "rgb(9, 26, 45)",
+              "backgroundImage": "radial-gradient(circle at 0% 0%, rgba(39, 197, 150, 0.08) 0%, rgba(0, 0, 0, 0) 36%), radial-gradient(circle at 100% 100%, rgba(229, 184, 97, 0.07) 0%, rgba(0, 0, 0, 0) 40%)",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "HTML",
+              "backgroundColor": "rgb(9, 26, 45)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            }
+          ],
+          "method": "Chromium canvas CSS-to-sRGB foreground; native raster background with text ink removed, sampling every pixel under actual text rects including ancestor/gradient/alpha/backdrop compositing; WCAG relative luminance; raw ratio compared to 4.5 without rounding."
+        },
+        {
+          "text": "Chưa có danh sách vấn đề đầy đủ trong bản xem trước này.",
+          "label": "reports-all-issues-status",
+          "minimumRatio": 13.484255120566887,
+          "sampledPixels": 3990,
+          "worstBackground": [
+            16,
+            42,
+            63
+          ],
+          "worstForeground": [
+            243,
+            245,
+            247
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "rgb(243, 245, 247)",
+          "resolvedForegroundRgba": [
+            243,
+            245,
+            247,
+            255
+          ],
+          "effectiveOpacity": 1,
+          "fontSize": "12px",
+          "fontFamily": "\"Times New Roman\"",
+          "ancestorLayers": [
+            {
+              "tag": "P",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "linear-gradient(rgba(17, 46, 67, 0.94) 0%, rgba(9, 26, 45, 0.88) 100%)",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgb(9, 26, 45)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "BODY",
+              "backgroundColor": "rgb(9, 26, 45)",
+              "backgroundImage": "radial-gradient(circle at 0% 0%, rgba(39, 197, 150, 0.08) 0%, rgba(0, 0, 0, 0) 36%), radial-gradient(circle at 100% 100%, rgba(229, 184, 97, 0.07) 0%, rgba(0, 0, 0, 0) 40%)",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "HTML",
+              "backgroundColor": "rgb(9, 26, 45)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            }
+          ],
+          "method": "Chromium canvas CSS-to-sRGB foreground; native raster background with text ink removed, sampling every pixel under actual text rects including ancestor/gradient/alpha/backdrop compositing; WCAG relative luminance; raw ratio compared to 4.5 without rounding."
+        },
+        {
+          "text": "Chưa có danh sách hoạt động đầy đủ trong bản xem trước này.",
+          "label": "reports-all-events-status",
+          "minimumRatio": 13.50525865688788,
+          "sampledPixels": 4214,
+          "worstBackground": [
+            16,
+            42,
+            62
+          ],
+          "worstForeground": [
+            243,
+            245,
+            247
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "rgb(243, 245, 247)",
+          "resolvedForegroundRgba": [
+            243,
+            245,
+            247,
+            255
+          ],
+          "effectiveOpacity": 1,
+          "fontSize": "12px",
+          "fontFamily": "\"Times New Roman\"",
+          "ancestorLayers": [
+            {
+              "tag": "P",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "linear-gradient(rgba(17, 46, 67, 0.94) 0%, rgba(9, 26, 45, 0.88) 100%)",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgb(9, 26, 45)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "BODY",
+              "backgroundColor": "rgb(9, 26, 45)",
+              "backgroundImage": "radial-gradient(circle at 0% 0%, rgba(39, 197, 150, 0.08) 0%, rgba(0, 0, 0, 0) 36%), radial-gradient(circle at 100% 100%, rgba(229, 184, 97, 0.07) 0%, rgba(0, 0, 0, 0) 40%)",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "HTML",
+              "backgroundColor": "rgb(9, 26, 45)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            }
+          ],
+          "method": "Chromium canvas CSS-to-sRGB foreground; native raster background with text ink removed, sampling every pixel under actual text rects including ancestor/gradient/alpha/backdrop compositing; WCAG relative luminance; raw ratio compared to 4.5 without rounding."
+        }
+      ],
+      "kpiTexts": [
+        "95.7%",
+        "92.1%",
+        "1.89 tỷ",
+        "4.8 / 5.0"
+      ],
+      "sampleDataUnchanged": true,
+      "sampleDataNotice": "Dữ liệu minh họa: KPI, biểu đồ, phân tích AI, hoạt động và tài liệu bên dưới là nội dung mẫu, chưa tải từ dữ liệu thật.",
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": []
+    }
+  ]
+}
