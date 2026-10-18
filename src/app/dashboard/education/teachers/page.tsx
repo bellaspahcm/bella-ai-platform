@@ -540,7 +540,7 @@ export default function TeachersPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
   const [selectedTeacherForAssign, setSelectedTeacherForAssign] = useState<TeacherItem | null>(null);
-  const [teachers, setTeachers] = useState<TeacherItem[]>(TEACHERS_LIST);
+  const [teachers, setTeachers] = useState<readonly TeacherItem[]>(TEACHERS_LIST);
   const [selectedTeacherForProfile, setSelectedTeacherForProfile] = useState<TeacherItem | null>(null);
   const [isAddTeacherOpen, setIsAddTeacherOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
