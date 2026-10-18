@@ -5,7 +5,8 @@
  */
 
 import Link from 'next/link';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import {
   CalendarCheck,
   ArrowLeft,
@@ -105,13 +106,35 @@ function todayLocalDate(): string {
   }).format(new Date());
 }
 
-export default function AttendancePage() {
+const STUDENT_NAMES_BY_ID: Record<string, string> = {
+  'HS0001': 'Nguyễn Minh An',
+  'STU-001': 'Nguyễn Minh An',
+  'HS0002': 'Trần Bảo Ngọc',
+  'STU-002': 'Trần Bảo Ngọc',
+  'HS0003': 'Lê Gia Huy',
+  'STU-003': 'Lê Gia Huy',
+  'HS0004': 'Phạm Khánh Linh',
+  'STU-004': 'Phạm Thảo My',
+  'HS0005': 'Hoàng Nhật Minh',
+  'STU-005': 'Hoàng Tuấn Kiệt',
+  'HS0006': 'Vũ Phương Anh',
+  'STU-006': 'Đặng Khánh Linh',
+  'HS0007': 'Vũ Gia Hân',
+  'STU-007': 'Vũ Gia Hân',
+  'HS0008': 'Ngô Nhật Minh',
+  'STU-008': 'Ngô Nhật Minh',
+};
+
+function AttendancePageContent() {
+  const searchParams = useSearchParams();
+  const studentParam = searchParams ? searchParams.get('student') : null;
   const [classrooms, setClassrooms] = useState<readonly ClassroomOverviewItem[]>([]);
   const [selectedCourseId, setSelectedCourseId] = useState('');
   const [schoolDay, setSchoolDay] = useState(() => todayLocalDate());
   const [roster, setRoster] = useState<readonly AttendanceRosterItem[]>([]);
   const [rosterContext, setRosterContext] = useState<string | null>(null);
   const [search, setSearch] = useState('');
+  const [studentContextActive, setStudentContextActive] = useState(false);
   const [loadingClassrooms, setLoadingClassrooms] = useState(true);
   const [loadingRoster, setLoadingRoster] = useState(false);
   const [savingEnrollmentId, setSavingEnrollmentId] = useState<string | null>(null);
@@ -121,6 +144,14 @@ export default function AttendancePage() {
   const rosterRequestVersion = useRef(0);
   const commandInFlight = useRef(false);
   const mounted = useRef(true);
+
+  // Auto-filter by student when navigated via deep link ?student=...
+  useEffect(() => {
+    if (!studentParam) return;
+    const targetName = STUDENT_NAMES_BY_ID[studentParam] || studentParam;
+    setSearch(targetName);
+    setStudentContextActive(true);
+  }, [studentParam]);
 
   const selectedClassroom = classrooms.find((classroom) => classroom.id === selectedCourseId) ?? null;
   const contextKey = `${selectedCourseId}:${schoolDay}`;
@@ -155,12 +186,14 @@ export default function AttendancePage() {
       if (query) {
         const nameMatch = student.name.toLowerCase().includes(query);
         const codeMatch = (student.studentCode ?? '').toLowerCase().includes(query);
+        const idMatch = (student.studentId ?? '').toLowerCase().includes(query) || (student.enrollmentId ?? '').toLowerCase().includes(query);
+        const partyMatch = (student.studentPartyId ?? '').toLowerCase().includes(query);
         const guardianMatch = student.authorizedGuardians?.some((g) =>
           g.displayName.toLowerCase().includes(query) ||
           g.phone.toLowerCase().includes(query)
         ) ?? false;
 
-        if (!nameMatch && !codeMatch && !guardianMatch) {
+        if (!nameMatch && !codeMatch && !idMatch && !partyMatch && !guardianMatch) {
           return false;
         }
       }
@@ -421,6 +454,41 @@ export default function AttendancePage() {
           </div>
         </div>
 
+        {studentContextActive && studentParam && (
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-2xl bg-primary/10 border border-primary/20 text-xs">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-xl bg-primary text-primary-foreground flex items-center justify-center font-bold shrink-0">
+                <CalendarCheck className="w-4 h-4" />
+              </div>
+              <div>
+                <p className="font-extrabold text-slate-900 dark:text-white">
+                  Đang lọc điểm danh theo học sinh: <span className="text-primary underline decoration-primary/40 font-bold">{STUDENT_NAMES_BY_ID[studentParam] || studentParam}</span> ({studentParam})
+                </p>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                  Bộ lọc tìm kiếm đã được áp dụng. Bạn có thể chọn lớp để xem chi tiết hoặc chuyển nhanh sang các nghiệp vụ khác.
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <Link
+                href={`/dashboard/education/enrollments/${studentParam}`}
+                className="px-3 py-1.5 rounded-xl text-[11px] font-bold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-750 transition-all shadow-2xs"
+              >
+                Xem Hồ Sơ 360°
+              </Link>
+              <button
+                type="button"
+                onClick={() => {
+                  setSearch('');
+                  setStudentContextActive(false);
+                }}
+                className="px-3 py-1.5 rounded-xl text-[11px] font-bold bg-primary text-primary-foreground hover:bg-primary/90 transition-all shadow-2xs"
+              >
+                Xem tất cả học sinh
+              </button>
+            </div>
+          </div>
+        )}
         {/* Grade tabs filter */}
         {classrooms.length > 0 && (
           <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar">
@@ -1015,5 +1083,18 @@ function PaginationControl({
         </div>
       )}
     </div>
+  );
+}
+export default function AttendancePage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="p-8 flex items-center justify-center min-h-[400px]">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      }
+    >
+      <AttendancePageContent />
+    </Suspense>
   );
 }

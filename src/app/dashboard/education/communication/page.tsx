@@ -25,8 +25,9 @@
  * - STRICT TYPE SAFETY: Zero `any` and zero `unknown`
  */
 
-import { useState, useEffect, useMemo, type ChangeEvent } from 'react';
+import { useState, useEffect, useMemo, Suspense, type ChangeEvent } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import {
   ArrowLeft,
   MessageSquare,
@@ -426,7 +427,28 @@ const CONVERSATIONS_DATA: readonly ConversationItem[] = [
   },
 ];
 
-export default function PreschoolCommunicationPage() {
+const STUDENT_TO_CONV_MAP: Record<string, { convId: string; studentName: string }> = {
+  'HS0001': { convId: 'CONV-001', studentName: 'Nguyễn Minh An' },
+  'STU-001': { convId: 'CONV-001', studentName: 'Nguyễn Minh An' },
+  'HS0002': { convId: 'CONV-002', studentName: 'Trần Bảo Ngọc' },
+  'STU-002': { convId: 'CONV-002', studentName: 'Trần Bảo Ngọc' },
+  'HS0003': { convId: 'CONV-003', studentName: 'Lê Gia Huy' },
+  'STU-003': { convId: 'CONV-003', studentName: 'Lê Gia Huy' },
+  'HS0004': { convId: 'CONV-004', studentName: 'Phạm Khánh Linh' },
+  'STU-004': { convId: 'CONV-004', studentName: 'Phạm Thảo My' },
+  'HS0005': { convId: 'CONV-005', studentName: 'Hoàng Nhật Minh' },
+  'STU-005': { convId: 'CONV-005', studentName: 'Hoàng Tuấn Kiệt' },
+  'HS0006': { convId: 'CONV-006', studentName: 'Vũ Phương Anh' },
+  'STU-006': { convId: 'CONV-006', studentName: 'Đặng Khánh Linh' },
+  'HS0007': { convId: 'CONV-007', studentName: 'Vũ Gia Hân' },
+  'STU-007': { convId: 'CONV-007', studentName: 'Vũ Gia Hân' },
+  'HS0008': { convId: 'CONV-008', studentName: 'Ngô Nhật Minh' },
+  'STU-008': { convId: 'CONV-008', studentName: 'Ngô Nhật Minh' },
+};
+
+function PreschoolCommunicationContent() {
+  const searchParams = useSearchParams();
+  const studentParam = searchParams ? searchParams.get('student') : null;
   const [isPreschoolTenant, setIsPreschoolTenant] = useState<boolean>(true);
 
   // Filter & Navigation states
@@ -438,10 +460,34 @@ export default function PreschoolCommunicationPage() {
 
   // Selected conversation for the right detail workspace
   const [selectedConversationId, setSelectedConversationId] = useState<string>('CONV-001');
+  const [selectedStudentContext, setSelectedStudentContext] = useState<{ id: string; name: string } | null>(null);
   const [detailSubTab, setDetailSubTab] = useState<'chat' | 'info' | 'logs' | 'related'>('chat');
   const [replyInput, setReplyInput] = useState<string>('');
   const [isBroadcastModalOpen, setIsBroadcastModalOpen] = useState<boolean>(false);
   const [actionNotice, setActionNotice] = useState<string | null>(null);
+
+  // Auto-focus on student when query param ?student=... is provided
+  useEffect(() => {
+    if (!studentParam) return;
+    const lookup = STUDENT_TO_CONV_MAP[studentParam];
+    if (lookup) {
+      setSelectedConversationId(lookup.convId);
+      setSelectedStudentContext({ id: studentParam, name: lookup.studentName });
+      setActiveNavTab('daily');
+    } else {
+      const found = CONVERSATIONS_DATA.find((c) =>
+        c.studentName.toLowerCase().includes(studentParam.toLowerCase()) || c.id === studentParam
+      );
+      if (found) {
+        setSelectedConversationId(found.id);
+        setSelectedStudentContext({ id: studentParam, name: found.studentName });
+        setActiveNavTab('daily');
+      } else {
+        setSelectedStudentContext({ id: studentParam, name: `Học sinh ${studentParam}` });
+        setActiveNavTab('daily');
+      }
+    }
+  }, [studentParam]);
 
   // Detect tenant scope
   useEffect(() => {
@@ -637,6 +683,40 @@ export default function PreschoolCommunicationPage() {
       <div role="note" className="rounded-2xl border border-amber-200 dark:border-amber-900 bg-amber-50 dark:bg-amber-950 p-4 text-sm text-amber-900 dark:text-amber-200">
         Dữ liệu minh họa: hội thoại, chỉ số, gợi ý AI và lưu ý chăm sóc trên trang là nội dung mẫu. Chưa kết nối gửi tin, thông báo hoặc cập nhật hồ sơ thật.
       </div>
+
+      {/* ── Active Student Context Banner (From Child Popup Action) ── */}
+      {selectedStudentContext && (
+        <div className="p-4 rounded-3xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200/90 dark:border-emerald-800 text-xs text-emerald-900 dark:text-emerald-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs animate-in fade-in duration-200">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-2xl bg-emerald-100 dark:bg-emerald-900 text-emerald-800 dark:text-emerald-300 flex items-center justify-center font-bold shrink-0">
+              <BookOpen className="w-4 h-4" />
+            </div>
+            <div>
+              <p className="font-extrabold text-sm text-slate-900 dark:text-white">
+                Đang mở sổ liên lạc điện tử: <span className="text-emerald-700 dark:text-emerald-400">{selectedStudentContext.name} ({selectedStudentContext.id})</span>
+              </p>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                Hiển thị trao đổi phụ huynh, phản hồi chăm sóc và dặn dò hàng ngày của bé.
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <Link
+              href={`/dashboard/education/enrollments/${selectedStudentContext.id}`}
+              className="px-3 py-1.5 rounded-xl border border-emerald-300 dark:border-emerald-700 text-emerald-800 dark:text-emerald-300 font-bold hover:bg-emerald-100/60 transition-colors"
+            >
+              Xem Hồ Sơ 360°
+            </Link>
+            <button
+              type="button"
+              onClick={() => setSelectedStudentContext(null)}
+              className="text-xs font-bold text-slate-600 dark:text-slate-300 hover:text-slate-900 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 transition-colors"
+            >
+              Xem tất cả
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* ── 4 KPI STAT CARDS MATCHING IMAGE 3 ── */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -1347,6 +1427,14 @@ export default function PreschoolCommunicationPage() {
   );
 }
 
+export default function PreschoolCommunicationPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-xs font-bold text-slate-500">Đang tải sổ liên lạc...</div>}>
+      <PreschoolCommunicationContent />
+    </Suspense>
+  );
+}
+
 /**
  * Fallback view for non-preschool enterprise tenants
  */
@@ -1364,3 +1452,4 @@ function LegacyCommunicationView() {
     </div>
   );
 }
+

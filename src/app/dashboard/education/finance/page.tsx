@@ -2,7 +2,8 @@
 
 /** Finance records come from the Product HTTP response. Reference analytics are labeled separately. */
 
-import React, { useState, useEffect, useCallback, useMemo, type ChangeEvent } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, Suspense, type ChangeEvent } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import {
   ArrowLeft,
@@ -207,7 +208,29 @@ const RECENT_PAYMENTS: readonly RecentPaymentItem[] = [
   },
 ];
 
-export default function FinancePage() {
+const STUDENT_NAME_BY_CODE: Record<string, string> = {
+  'HS0001': 'Nguyễn Minh An',
+  'STU-001': 'Nguyễn Minh An',
+  'HS0002': 'Trần Bảo Ngọc',
+  'STU-002': 'Trần Bảo Ngọc',
+  'HS0003': 'Lê Gia Huy',
+  'STU-003': 'Lê Gia Huy',
+  'HS0004': 'Phạm Khánh Linh',
+  'STU-004': 'Phạm Thảo My',
+  'HS0005': 'Hoàng Nhật Minh',
+  'STU-005': 'Hoàng Tuấn Kiệt',
+  'HS0006': 'Vũ Phương Anh',
+  'STU-006': 'Đặng Khánh Linh',
+  'HS0007': 'Vũ Gia Hân',
+  'STU-007': 'Vũ Gia Hân',
+  'HS0008': 'Ngô Nhật Minh',
+  'STU-008': 'Ngô Nhật Minh',
+};
+
+function FinancePageContent() {
+  const searchParams = useSearchParams();
+  const studentParam = searchParams ? searchParams.get('student') : null;
+  const [studentContextActive, setStudentContextActive] = useState(false);
   const [activeTab, setActiveTab] = useState<FinanceTabKey>('overview');
 
   // Backend state
@@ -234,6 +257,30 @@ export default function FinancePage() {
   const [filterSettlement, setFilterSettlement] = useState<string>('ALL');
   const [filterBillingPeriodId, setFilterBillingPeriodId] = useState('ALL');
   const [selectedInvoices, setSelectedInvoices] = useState<readonly string[]>([]);
+
+  // Deep-link auto-filter when ?student=... is present
+  useEffect(() => {
+    if (!studentParam) return;
+    setActiveTab('invoices');
+    setStudentContextActive(true);
+    const targetName = STUDENT_NAME_BY_CODE[studentParam] || studentParam;
+    setInvoiceSearchQuery(targetName);
+  }, [studentParam]);
+
+  // When students list loads, also auto-select studentPartyId if matched
+  useEffect(() => {
+    if (!studentParam || students.length === 0) return;
+    const targetName = (STUDENT_NAME_BY_CODE[studentParam] || studentParam).toLowerCase();
+    const matched = students.find((s) =>
+      s.studentId === studentParam ||
+      s.studentCode === studentParam ||
+      s.studentPartyId === studentParam ||
+      s.displayName.toLowerCase().includes(targetName)
+    );
+    if (matched) {
+      setSelectedStudentPartyId(matched.studentPartyId);
+    }
+  }, [studentParam, students]);
 
   // Preview & Create Modal
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState<boolean>(false);
@@ -456,7 +503,8 @@ export default function FinancePage() {
         const q = invoiceSearchQuery.toLowerCase();
         const matchNumber = inv.invoiceNumber.toLowerCase().includes(q);
         const matchName = inv.studentName.toLowerCase().includes(q);
-        if (!matchNumber && !matchName) return false;
+        const matchCode = (inv.studentCode ?? '').toLowerCase().includes(q);
+        if (!matchNumber && !matchName && !matchCode) return false;
       }
 
       return true;
@@ -590,6 +638,49 @@ export default function FinancePage() {
           </button>
         </div>
       </div>
+
+      {/* ── CONTEXT BANNER WHEN NAVIGATED FROM 3-DOTS POPUP ── */}
+      {studentContextActive && studentParam && (
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-xs">
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-xl bg-[#0c513f] text-white flex items-center justify-center font-bold shrink-0">
+              <Receipt className="w-4 h-4" />
+            </div>
+            <div>
+              <p className="font-extrabold text-slate-900 dark:text-white">
+                Đang xem học phí & công nợ của học sinh: <span className="text-[#0c513f] dark:text-emerald-400 font-bold">{STUDENT_NAME_BY_CODE[studentParam] || studentParam}</span> ({studentParam})
+              </p>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                Danh sách hóa đơn đã được tự động lọc theo bé. Bạn có thể kiểm tra trạng thái thanh toán, lập hóa đơn hoặc chuyển nhanh sang hồ sơ khác.
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <Link
+              href={`/dashboard/education/enrollments/${studentParam}`}
+              className="px-3 py-1.5 rounded-xl text-[11px] font-bold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-750 transition-all shadow-2xs"
+            >
+              Xem Hồ Sơ 360°
+            </Link>
+            <Link
+              href={`/dashboard/education/grades?student=${studentParam}`}
+              className="px-3 py-1.5 rounded-xl text-[11px] font-bold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-750 transition-all shadow-2xs"
+            >
+              Đánh Giá Phát Triển
+            </Link>
+            <button
+              type="button"
+              onClick={() => {
+                setInvoiceSearchQuery('');
+                setStudentContextActive(false);
+              }}
+              className="px-3 py-1.5 rounded-xl text-[11px] font-bold bg-[#0c513f] text-white hover:bg-[#093e30] transition-all shadow-2xs"
+            >
+              Xem tất cả hóa đơn
+            </button>
+          </div>
+        </div>
+      )}
 
       <div aria-live="polite" className="text-sm text-slate-700 dark:text-slate-200">
         {loading && <p role="status">Đang tải hoặc xử lý dữ liệu tài chính…</p>}
@@ -1545,5 +1636,19 @@ export default function FinancePage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function FinancePage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="p-8 flex items-center justify-center min-h-[400px]">
+          <CircleDollarSign className="w-8 h-8 animate-spin text-[#0c513f]" />
+        </div>
+      }
+    >
+      <FinancePageContent />
+    </Suspense>
   );
 }
