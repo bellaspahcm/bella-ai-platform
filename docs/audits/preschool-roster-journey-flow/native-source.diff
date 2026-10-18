@@ -1,0 +1,95 @@
+diff --git a/src/app/dashboard/education/grades/page.tsx b/src/app/dashboard/education/grades/page.tsx
+index 0cf00e760..c18ccfcdf 100644
+--- a/src/app/dashboard/education/grades/page.tsx
++++ b/src/app/dashboard/education/grades/page.tsx
+@@ -57 +56,0 @@ import {
+-  ChevronLeft,
+@@ -533 +531,0 @@ export default function PreschoolDevelopmentGradesPage() {
+-  const [currentPage, setCurrentPage] = useState<number>(1);
+@@ -603,0 +602,3 @@ export default function PreschoolDevelopmentGradesPage() {
++  const allVisibleSelected = filteredStudents.length > 0 &&
++    filteredStudents.every((student) => selectedStudentIds.includes(student.id));
++
+@@ -605,5 +606,7 @@ export default function PreschoolDevelopmentGradesPage() {
+-    if (selectedStudentIds.length === filteredStudents.length) {
+-      setSelectedStudentIds([]);
+-    } else {
+-      setSelectedStudentIds(filteredStudents.map((s) => s.id));
+-    }
++    if (filteredStudents.length === 0) return;
++    const visibleIds = filteredStudents.map((student) => student.id);
++    setSelectedStudentIds((previous) =>
++      visibleIds.every((id) => previous.includes(id))
++        ? previous.filter((id) => !visibleIds.includes(id))
++        : [...new Set([...previous, ...visibleIds])]
++    );
+@@ -613,5 +616,4 @@ export default function PreschoolDevelopmentGradesPage() {
+-    if (selectedStudentIds.includes(id)) {
+-      setSelectedStudentIds(selectedStudentIds.filter((item) => item !== id));
+-    } else {
+-      setSelectedStudentIds([...selectedStudentIds, id]);
+-    }
++    setSelectedStudentIds((previous) => previous.includes(id)
++      ? previous.filter((item) => item !== id)
++      : [...previous, id]
++    );
+@@ -1056 +1058 @@ export default function PreschoolDevelopmentGradesPage() {
+-            <span>Bộ lọc</span>
++            <span>Xóa bộ lọc</span>
+@@ -1068 +1070 @@ export default function PreschoolDevelopmentGradesPage() {
+-              46 trẻ
++              {filteredStudents.length} / {ROSTER_STUDENTS.length} hồ sơ minh họa
+@@ -1118,0 +1121,5 @@ export default function PreschoolDevelopmentGradesPage() {
++        {filteredStudents.length === 0 && (
++          <p role="status" className="p-5 text-xs text-slate-700 dark:text-slate-200">
++            Không tìm thấy hồ sơ minh họa phù hợp. Hãy điều chỉnh hoặc xóa bộ lọc.
++          </p>
++        )}
+@@ -1128,4 +1135,2 @@ export default function PreschoolDevelopmentGradesPage() {
+-                      checked={
+-                        filteredStudents.length > 0 &&
+-                        selectedStudentIds.length === filteredStudents.length
+-                      }
++                      checked={allVisibleSelected}
++                      disabled={filteredStudents.length === 0}
+@@ -1301 +1306 @@ export default function PreschoolDevelopmentGradesPage() {
+-        {/* Table Footer with Pagination */}
++        {/* Available sample roster count */}
+@@ -1304 +1309 @@ export default function PreschoolDevelopmentGradesPage() {
+-            Hiển thị <span className="font-bold text-slate-800 dark:text-slate-200">{filteredStudents.length}</span> / 46 trẻ
++            Hiển thị <span className="font-bold text-slate-800 dark:text-slate-200">{filteredStudents.length}</span> / {ROSTER_STUDENTS.length} hồ sơ minh họa
+@@ -1307,34 +1311,0 @@ export default function PreschoolDevelopmentGradesPage() {
+-          <div className="flex items-center gap-1.5">
+-            <button
+-              type="button"
+-              disabled={currentPage === 1}
+-              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+-              className="w-7 h-7 rounded-lg border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-50 disabled:opacity-40 transition-colors"
+-            >
+-              <ChevronLeft className="w-3.5 h-3.5" />
+-            </button>
+-
+-            {[1, 2, 3, 4, 5].map((pageNum) => (
+-              <button
+-                key={pageNum}
+-                type="button"
+-                onClick={() => setCurrentPage(pageNum)}
+-                className={`w-7 h-7 rounded-lg text-xs font-bold transition-all ${
+-                  currentPage === pageNum
+-                    ? 'bg-[#0c513f] text-white shadow-xs'
+-                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+-                }`}
+-              >
+-                {pageNum}
+-              </button>
+-            ))}
+-
+-            <button
+-              type="button"
+-              disabled={currentPage === 5}
+-              onClick={() => setCurrentPage((p) => Math.min(5, p + 1))}
+-              className="w-7 h-7 rounded-lg border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-50 disabled:opacity-40 transition-colors"
+-            >
+-              <ChevronRight className="w-3.5 h-3.5" />
+-            </button>
+-          </div>

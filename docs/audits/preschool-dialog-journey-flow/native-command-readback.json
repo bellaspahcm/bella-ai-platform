@@ -1,0 +1,188 @@
+{
+  "result": "PASS_SCOPED_NATIVE_COMMAND_AND_BROWSER_READBACK",
+  "recordedAt": "2026-10-17T22:55:02.338Z",
+  "binding": {
+    "repository": "bellaspahcm/bella-ai-platform",
+    "taskId": "eea3ada7-6281-4e28-9387-2d95c7b3dc9f",
+    "runId": "0e2677d9-0a41-44ec-849d-e1e42a8e4766",
+    "attempt": 1,
+    "producerInstanceId": "edbd446e-4a87-4d81-a0ef-34279f513f76",
+    "threadId": "01a14c0c-b179-77f3-a807-5b37e98aa3cc",
+    "sessionId": "01a14c0c-b179-77f3-a807-5b37e98aa3cc",
+    "turnId": "01a14c0c-b2c2-7252-a2e0-f719bbf43bf8"
+  },
+  "commands": [
+    {
+      "itemId": "exec-2af77b5d-d19d-44f2-bea3-5bd7ffe5aba8",
+      "index": 2,
+      "exitCode": 0,
+      "metadataMatch": true,
+      "outputDigestMatch": true
+    },
+    {
+      "itemId": "exec-2dbf5bc5-2622-4924-a007-ff42bf79cd7f",
+      "index": 4,
+      "exitCode": 0,
+      "metadataMatch": true,
+      "outputDigestMatch": false
+    },
+    {
+      "itemId": "exec-b57acf88-e4b5-4505-a3b5-bd8d56119e17",
+      "index": 6,
+      "exitCode": 0,
+      "metadataMatch": true,
+      "outputDigestMatch": true
+    },
+    {
+      "itemId": "exec-85a12d6b-f667-489e-855d-3520fdda8f06",
+      "index": 9,
+      "exitCode": 0,
+      "metadataMatch": true,
+      "outputDigestMatch": false
+    },
+    {
+      "itemId": "exec-124ed1ce-287c-4453-98e5-d1e519280abc",
+      "index": 11,
+      "exitCode": 0,
+      "metadataMatch": true,
+      "outputDigestMatch": true
+    },
+    {
+      "itemId": "exec-cfeb2038-9bb0-4c37-aec4-2eb239ce2843",
+      "index": 13,
+      "exitCode": 0,
+      "metadataMatch": true,
+      "outputDigestMatch": true
+    },
+    {
+      "itemId": "exec-d1caafd3-f6dc-4e4d-ac5a-2d34901213fe",
+      "index": 18,
+      "exitCode": 0,
+      "metadataMatch": true,
+      "outputDigestMatch": true
+    },
+    {
+      "itemId": "exec-19dcecf5-4d6e-4f8a-a5cf-dbbf7a6e2021",
+      "index": 20,
+      "exitCode": 0,
+      "metadataMatch": true,
+      "outputDigestMatch": true
+    },
+    {
+      "itemId": "exec-31ed0c01-c65e-4b02-9476-2803b0e9b2ff",
+      "index": 21,
+      "exitCode": 1,
+      "metadataMatch": true,
+      "outputDigestMatch": true
+    },
+    {
+      "itemId": "exec-f8ad5d5b-fa80-4dd9-b0dd-efeffc98a660",
+      "index": 23,
+      "exitCode": 0,
+      "metadataMatch": true,
+      "outputDigestMatch": true
+    },
+    {
+      "itemId": "exec-7f13ae8b-2a5d-4baf-9b3c-720ce8638974",
+      "index": 28,
+      "exitCode": 0,
+      "metadataMatch": true,
+      "outputDigestMatch": true
+    },
+    {
+      "itemId": "exec-3006ccff-ad69-4159-b91e-0c436590638b",
+      "index": 31,
+      "exitCode": 0,
+      "metadataMatch": true,
+      "outputDigestMatch": true
+    },
+    {
+      "itemId": "exec-36d715c2-a7bb-46ab-837e-7f867908795e",
+      "index": 34,
+      "exitCode": 0,
+      "metadataMatch": true,
+      "outputDigestMatch": true
+    },
+    {
+      "itemId": "exec-37cf0036-169a-42d5-aa58-75d904ef8162",
+      "index": 42,
+      "exitCode": 0,
+      "metadataMatch": true,
+      "outputDigestMatch": true
+    },
+    {
+      "itemId": "exec-73384a2d-be9c-4df3-8b4f-00261b0feca8",
+      "index": 46,
+      "exitCode": 0,
+      "metadataMatch": true,
+      "outputDigestMatch": true
+    },
+    {
+      "itemId": "exec-47e4a090-f63e-4733-9ae4-453483070081",
+      "index": 48,
+      "exitCode": 0,
+      "metadataMatch": true,
+      "outputDigestMatch": true
+    },
+    {
+      "itemId": "exec-6c1870f6-9fe0-47c2-bc84-445837b90860",
+      "index": 50,
+      "exitCode": 0,
+      "metadataMatch": true,
+      "outputDigestMatch": true
+    }
+  ],
+  "browser": [
+    {
+      "phase": "before",
+      "itemId": "exec-31ed0c01-c65e-4b02-9476-2803b0e9b2ff",
+      "index": 21,
+      "exitCode": 1,
+      "summaryMatches": true
+    },
+    {
+      "phase": "after",
+      "itemId": "exec-37cf0036-169a-42d5-aa58-75d904ef8162",
+      "index": 42,
+      "exitCode": 0,
+      "summaryMatches": true
+    }
+  ],
+  "beforePatchAfterOrder": "PASS",
+  "verification": [
+    {
+      "command": "node docs/audits/preschool-dialog-journey-flow/dialog-browser.cjs before",
+      "exitCode": 1,
+      "nativeReportMatch": false
+    },
+    {
+      "command": "node docs/audits/preschool-dialog-journey-flow/dialog-browser.cjs after",
+      "exitCode": 0,
+      "nativeReportMatch": true
+    },
+    {
+      "command": "node node_modules/eslint/bin/eslint.js src/app/dashboard/education/grades/page.tsx",
+      "exitCode": 0,
+      "nativeReportMatch": true
+    },
+    {
+      "command": "node node_modules/typescript/bin/tsc -p tsconfig.education.json --pretty false --incremental --tsBuildInfoFile docs/audits/preschool-dialog-journey-flow/.cache/education.tsbuildinfo",
+      "exitCode": 0,
+      "nativeReportMatch": true
+    },
+    {
+      "command": "node --check docs/audits/preschool-dialog-journey-flow/dialog-browser.cjs",
+      "exitCode": 0,
+      "nativeReportMatch": true
+    },
+    {
+      "command": "git diff --check",
+      "exitCode": 0,
+      "nativeReportMatch": true
+    }
+  ],
+  "outputDigestDifferences": 2,
+  "verificationReportsMatched": 5,
+  "verificationReportsTotal": 6,
+  "limits": "Native command metadata, outputs and browser summaries checked independently; report matches recorded individually, no broader orchestration/readiness claim"
+}

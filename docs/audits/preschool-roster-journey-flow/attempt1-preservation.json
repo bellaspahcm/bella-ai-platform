@@ -1,0 +1,61 @@
+{
+  "recordedAt": "2026-10-17T22:26:53.234Z",
+  "result": "PRESERVED_FAILED_ORACLE_EVIDENCE",
+  "files": [
+    {
+      "file": "roster-browser.cjs",
+      "archived": "attempt1/roster-browser.cjs",
+      "sha256": "ad53887a13b74a1e67ee538bd94606309c1020f8480209a1b4b1a303d79fc448"
+    },
+    {
+      "file": "native-before.json",
+      "archived": "attempt1/native-before.json",
+      "sha256": "90036d93a4efd08157a31e48c9273bc5bb1e3db0c4e9aec19ec26c0edc822fdb"
+    },
+    {
+      "file": "native-after.json",
+      "archived": "attempt1/native-after.json",
+      "sha256": "94d6c76a1702df4c6cbfc9ad3bb4f60f529e6c91162c641c6476b8985bbb42a5"
+    },
+    {
+      "file": "verification.json",
+      "archived": "attempt1/verification.json",
+      "sha256": "a3cf811a2d9a7558cbc6eaae219d557a1eb498a0de7972be483be5bc6a12c385"
+    },
+    {
+      "file": "PR_BODY.md",
+      "archived": "attempt1/PR_BODY.md",
+      "sha256": "b605552185a5a04e12a1d589dca410e34fa4180692a5168206c55b28fc35ddd5"
+    },
+    {
+      "file": "roster-light-desktop.png",
+      "archived": "attempt1/roster-light-desktop.png",
+      "sha256": "653a5ff5c33524e8984e03aef6e75b00f1d422f37c87c3692391eb8baec9a5d4"
+    },
+    {
+      "file": "roster-light-mobile.png",
+      "archived": "attempt1/roster-light-mobile.png",
+      "sha256": "98cf84632212f219568b6201f25a174cc739a8d63632412d576dfc06b11101cd"
+    },
+    {
+      "file": "roster-dark-desktop.png",
+      "archived": "attempt1/roster-dark-desktop.png",
+      "sha256": "2178c4dfd4bd17e1da6bd8fe379085de9f70f61590421f85dde215b32f3be2fe"
+    },
+    {
+      "file": "roster-dark-mobile.png",
+      "archived": "attempt1/roster-dark-mobile.png",
+      "sha256": "9fc726132ce49fc670e0039055f2ca6f2af80c5dbaf8e2d9b8d8d8d87b358be0"
+    },
+    {
+      "file": "native-task-result.json",
+      "archived": "attempt1/native-task-result.json",
+      "sha256": "eaa87d40e0d1a797737b1fc545a400f4f63cc2e13db705c6cfce047766de2801"
+    },
+    {
+      "file": "native-task-readback.json",
+      "archived": "attempt1/native-task-readback.json",
+      "sha256": "28ad54e3304676dba92a925a5b7e675f21f452438c99beb1000c1604cc0193ec"
+    }
+  ]
+}

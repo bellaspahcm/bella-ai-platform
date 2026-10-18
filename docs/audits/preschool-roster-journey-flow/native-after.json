@@ -1,0 +1,1206 @@
+{
+  "phase": "after",
+  "recordedAt": "2026-10-17T22:29:12.887Z",
+  "command": "node docs/audits/preschool-roster-journey-flow/roster-browser.cjs after",
+  "exitCode": 0,
+  "summary": {
+    "checked": 24,
+    "passed": 24,
+    "failed": 0,
+    "errors": 0,
+    "contrastCount": 8,
+    "contrastFailed": 0,
+    "minimumRatio": 10.35474573184942,
+    "pageErrors": 0,
+    "unexpectedRequests": 0,
+    "downloads": 0
+  },
+  "sourceSha256": "4f62e34e3ed5a1a0b7ea1bcb44070ece6a1aaa8d81ef94995dcfde880e36850b",
+  "testSha256": "993cc6f84448668ef706b6742dde863a8abe067befa38b8b257deabdacbb7268",
+  "globalsSha256": "1f2458f1e1ff45ff29650ce9bc30a0a408004f079760de68bcef7c915ddce21e",
+  "compiledCssSha256": "18e02b26cc871afa4fd7739d388ddc45b3110ebcb2962c2029ca40047414e31d",
+  "bundleSha256": "e21053be4c0d9aba357b28c2e5308c3b7bfaf3b86569748d20fd4c5894de7d36",
+  "limits": "Synthetic actual Grades component/globals; stubbed Next and tenant settings; loopback document only, no fonts/API/Auth/DB; contrast only empty feedback; fresh context/page per journey; server/browser closed in finally.",
+  "results": [
+    {
+      "theme": "light",
+      "device": "desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "flows": [
+        {
+          "journey": "J1",
+          "steps": [
+            {
+              "name": "Eight available rows",
+              "result": "PASS"
+            },
+            {
+              "name": "Truthful roster header",
+              "result": "PASS"
+            },
+            {
+              "name": "Truthful roster footer",
+              "result": "PASS"
+            },
+            {
+              "name": "No enabled imaginary pages",
+              "result": "PASS"
+            }
+          ],
+          "result": "PASS"
+        },
+        {
+          "journey": "J2",
+          "steps": [
+            {
+              "name": "Visible unchecked child does not inherit hidden selection",
+              "result": "PASS"
+            },
+            {
+              "name": "Bulk adds visible and preserves hidden IDs",
+              "result": "PASS"
+            },
+            {
+              "name": "Bulk removes only visible ID",
+              "result": "PASS"
+            }
+          ],
+          "result": "PASS"
+        },
+        {
+          "journey": "J3",
+          "steps": [
+            {
+              "name": "No rows",
+              "result": "PASS"
+            },
+            {
+              "name": "Explicit visible empty recovery feedback",
+              "result": "PASS"
+            },
+            {
+              "name": "Empty feedback raw contrast >=4.5",
+              "result": "PASS"
+            },
+            {
+              "name": "Zero visible select-all disabled or absent",
+              "result": "PASS"
+            },
+            {
+              "name": "Search retained",
+              "result": "PASS"
+            },
+            {
+              "name": "Recovery eight rows and original selection",
+              "result": "PASS"
+            },
+            {
+              "name": "Reset explicitly named",
+              "result": "PASS"
+            }
+          ],
+          "result": "PASS"
+        },
+        {
+          "journey": "J4",
+          "steps": [
+            {
+              "name": "Explicit visible empty recovery feedback",
+              "result": "PASS"
+            },
+            {
+              "name": "Empty feedback raw contrast >=4.5",
+              "result": "PASS"
+            },
+            {
+              "name": "Grid filters retained",
+              "result": "PASS"
+            },
+            {
+              "name": "Recovery preserves grid and eight cards",
+              "result": "PASS"
+            }
+          ],
+          "result": "PASS"
+        },
+        {
+          "journey": "J5",
+          "steps": [
+            {
+              "name": "Correct filtered child profile and class",
+              "result": "PASS"
+            },
+            {
+              "name": "Close retains filters and selection",
+              "result": "PASS"
+            },
+            {
+              "name": "Reset recovers all eight with selection",
+              "result": "PASS"
+            }
+          ],
+          "result": "PASS"
+        },
+        {
+          "journey": "J6",
+          "steps": [
+            {
+              "name": "Four Choi records",
+              "result": "PASS"
+            },
+            {
+              "name": "Five exact selected IDs",
+              "result": "PASS"
+            },
+            {
+              "name": "All visible IDs selected",
+              "result": "PASS"
+            },
+            {
+              "name": "Only hidden MAM ID remains",
+              "result": "PASS"
+            }
+          ],
+          "result": "PASS"
+        }
+      ],
+      "contrast": [
+        {
+          "label": "J3-light-desktop",
+          "minimumRatio": 10.35474573184942,
+          "sampledPixels": 4984,
+          "worstBackground": [
+            255,
+            255,
+            255
+          ],
+          "worstForeground": [
+            51,
+            65,
+            85
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "rgb(51, 65, 85)",
+          "resolvedForegroundRgba": [
+            51,
+            65,
+            85,
+            255
+          ],
+          "effectiveOpacity": 1,
+          "fontSize": "12px",
+          "fontFamily": "\"Times New Roman\"",
+          "ancestorLayers": [
+            {
+              "tag": "P",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgb(255, 255, 255)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "BODY",
+              "backgroundColor": "oklch(1 0 0)",
+              "backgroundImage": "radial-gradient(circle at 0% 0%, rgba(157, 23, 77, 0.04) 0%, rgba(0, 0, 0, 0) 40%), radial-gradient(circle at 100% 100%, rgba(190, 24, 93, 0.04) 0%, rgba(0, 0, 0, 0) 40%)",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "HTML",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            }
+          ],
+          "method": "Chromium canvas CSS-to-sRGB foreground; native raster background with text ink removed, sampling every pixel under actual text rects including ancestor/gradient/alpha/backdrop compositing; WCAG relative luminance; raw ratio compared to 4.5 without rounding."
+        },
+        {
+          "label": "J4-light-desktop",
+          "minimumRatio": 10.35474573184942,
+          "sampledPixels": 4984,
+          "worstBackground": [
+            255,
+            255,
+            255
+          ],
+          "worstForeground": [
+            51,
+            65,
+            85
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "rgb(51, 65, 85)",
+          "resolvedForegroundRgba": [
+            51,
+            65,
+            85,
+            255
+          ],
+          "effectiveOpacity": 1,
+          "fontSize": "12px",
+          "fontFamily": "\"Times New Roman\"",
+          "ancestorLayers": [
+            {
+              "tag": "P",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgb(255, 255, 255)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "BODY",
+              "backgroundColor": "oklch(1 0 0)",
+              "backgroundImage": "radial-gradient(circle at 0% 0%, rgba(157, 23, 77, 0.04) 0%, rgba(0, 0, 0, 0) 40%), radial-gradient(circle at 100% 100%, rgba(190, 24, 93, 0.04) 0%, rgba(0, 0, 0, 0) 40%)",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "HTML",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            }
+          ],
+          "method": "Chromium canvas CSS-to-sRGB foreground; native raster background with text ink removed, sampling every pixel under actual text rects including ancestor/gradient/alpha/backdrop compositing; WCAG relative luminance; raw ratio compared to 4.5 without rounding."
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": []
+    },
+    {
+      "theme": "light",
+      "device": "mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "flows": [
+        {
+          "journey": "J1",
+          "steps": [
+            {
+              "name": "Eight available rows",
+              "result": "PASS"
+            },
+            {
+              "name": "Truthful roster header",
+              "result": "PASS"
+            },
+            {
+              "name": "Truthful roster footer",
+              "result": "PASS"
+            },
+            {
+              "name": "No enabled imaginary pages",
+              "result": "PASS"
+            }
+          ],
+          "result": "PASS"
+        },
+        {
+          "journey": "J2",
+          "steps": [
+            {
+              "name": "Visible unchecked child does not inherit hidden selection",
+              "result": "PASS"
+            },
+            {
+              "name": "Bulk adds visible and preserves hidden IDs",
+              "result": "PASS"
+            },
+            {
+              "name": "Bulk removes only visible ID",
+              "result": "PASS"
+            }
+          ],
+          "result": "PASS"
+        },
+        {
+          "journey": "J3",
+          "steps": [
+            {
+              "name": "No rows",
+              "result": "PASS"
+            },
+            {
+              "name": "Explicit visible empty recovery feedback",
+              "result": "PASS"
+            },
+            {
+              "name": "Empty feedback raw contrast >=4.5",
+              "result": "PASS"
+            },
+            {
+              "name": "Zero visible select-all disabled or absent",
+              "result": "PASS"
+            },
+            {
+              "name": "Search retained",
+              "result": "PASS"
+            },
+            {
+              "name": "Recovery eight rows and original selection",
+              "result": "PASS"
+            },
+            {
+              "name": "Reset explicitly named",
+              "result": "PASS"
+            }
+          ],
+          "result": "PASS"
+        },
+        {
+          "journey": "J4",
+          "steps": [
+            {
+              "name": "Explicit visible empty recovery feedback",
+              "result": "PASS"
+            },
+            {
+              "name": "Empty feedback raw contrast >=4.5",
+              "result": "PASS"
+            },
+            {
+              "name": "Grid filters retained",
+              "result": "PASS"
+            },
+            {
+              "name": "Recovery preserves grid and eight cards",
+              "result": "PASS"
+            }
+          ],
+          "result": "PASS"
+        },
+        {
+          "journey": "J5",
+          "steps": [
+            {
+              "name": "Correct filtered child profile and class",
+              "result": "PASS"
+            },
+            {
+              "name": "Close retains filters and selection",
+              "result": "PASS"
+            },
+            {
+              "name": "Reset recovers all eight with selection",
+              "result": "PASS"
+            }
+          ],
+          "result": "PASS"
+        },
+        {
+          "journey": "J6",
+          "steps": [
+            {
+              "name": "Four Choi records",
+              "result": "PASS"
+            },
+            {
+              "name": "Five exact selected IDs",
+              "result": "PASS"
+            },
+            {
+              "name": "All visible IDs selected",
+              "result": "PASS"
+            },
+            {
+              "name": "Only hidden MAM ID remains",
+              "result": "PASS"
+            }
+          ],
+          "result": "PASS"
+        }
+      ],
+      "contrast": [
+        {
+          "label": "J3-light-mobile",
+          "minimumRatio": 10.35474573184942,
+          "sampledPixels": 4942,
+          "worstBackground": [
+            255,
+            255,
+            255
+          ],
+          "worstForeground": [
+            51,
+            65,
+            85
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "rgb(51, 65, 85)",
+          "resolvedForegroundRgba": [
+            51,
+            65,
+            85,
+            255
+          ],
+          "effectiveOpacity": 1,
+          "fontSize": "12px",
+          "fontFamily": "\"Times New Roman\"",
+          "ancestorLayers": [
+            {
+              "tag": "P",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgb(255, 255, 255)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "BODY",
+              "backgroundColor": "oklch(1 0 0)",
+              "backgroundImage": "radial-gradient(circle at 0% 0%, rgba(157, 23, 77, 0.04) 0%, rgba(0, 0, 0, 0) 40%), radial-gradient(circle at 100% 100%, rgba(190, 24, 93, 0.04) 0%, rgba(0, 0, 0, 0) 40%)",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "HTML",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            }
+          ],
+          "method": "Chromium canvas CSS-to-sRGB foreground; native raster background with text ink removed, sampling every pixel under actual text rects including ancestor/gradient/alpha/backdrop compositing; WCAG relative luminance; raw ratio compared to 4.5 without rounding."
+        },
+        {
+          "label": "J4-light-mobile",
+          "minimumRatio": 10.35474573184942,
+          "sampledPixels": 4942,
+          "worstBackground": [
+            255,
+            255,
+            255
+          ],
+          "worstForeground": [
+            51,
+            65,
+            85
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "rgb(51, 65, 85)",
+          "resolvedForegroundRgba": [
+            51,
+            65,
+            85,
+            255
+          ],
+          "effectiveOpacity": 1,
+          "fontSize": "12px",
+          "fontFamily": "\"Times New Roman\"",
+          "ancestorLayers": [
+            {
+              "tag": "P",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgb(255, 255, 255)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "BODY",
+              "backgroundColor": "oklch(1 0 0)",
+              "backgroundImage": "radial-gradient(circle at 0% 0%, rgba(157, 23, 77, 0.04) 0%, rgba(0, 0, 0, 0) 40%), radial-gradient(circle at 100% 100%, rgba(190, 24, 93, 0.04) 0%, rgba(0, 0, 0, 0) 40%)",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "HTML",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            }
+          ],
+          "method": "Chromium canvas CSS-to-sRGB foreground; native raster background with text ink removed, sampling every pixel under actual text rects including ancestor/gradient/alpha/backdrop compositing; WCAG relative luminance; raw ratio compared to 4.5 without rounding."
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": []
+    },
+    {
+      "theme": "dark",
+      "device": "desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "flows": [
+        {
+          "journey": "J1",
+          "steps": [
+            {
+              "name": "Eight available rows",
+              "result": "PASS"
+            },
+            {
+              "name": "Truthful roster header",
+              "result": "PASS"
+            },
+            {
+              "name": "Truthful roster footer",
+              "result": "PASS"
+            },
+            {
+              "name": "No enabled imaginary pages",
+              "result": "PASS"
+            }
+          ],
+          "result": "PASS"
+        },
+        {
+          "journey": "J2",
+          "steps": [
+            {
+              "name": "Visible unchecked child does not inherit hidden selection",
+              "result": "PASS"
+            },
+            {
+              "name": "Bulk adds visible and preserves hidden IDs",
+              "result": "PASS"
+            },
+            {
+              "name": "Bulk removes only visible ID",
+              "result": "PASS"
+            }
+          ],
+          "result": "PASS"
+        },
+        {
+          "journey": "J3",
+          "steps": [
+            {
+              "name": "No rows",
+              "result": "PASS"
+            },
+            {
+              "name": "Explicit visible empty recovery feedback",
+              "result": "PASS"
+            },
+            {
+              "name": "Empty feedback raw contrast >=4.5",
+              "result": "PASS"
+            },
+            {
+              "name": "Zero visible select-all disabled or absent",
+              "result": "PASS"
+            },
+            {
+              "name": "Search retained",
+              "result": "PASS"
+            },
+            {
+              "name": "Recovery eight rows and original selection",
+              "result": "PASS"
+            },
+            {
+              "name": "Reset explicitly named",
+              "result": "PASS"
+            }
+          ],
+          "result": "PASS"
+        },
+        {
+          "journey": "J4",
+          "steps": [
+            {
+              "name": "Explicit visible empty recovery feedback",
+              "result": "PASS"
+            },
+            {
+              "name": "Empty feedback raw contrast >=4.5",
+              "result": "PASS"
+            },
+            {
+              "name": "Grid filters retained",
+              "result": "PASS"
+            },
+            {
+              "name": "Recovery preserves grid and eight cards",
+              "result": "PASS"
+            }
+          ],
+          "result": "PASS"
+        },
+        {
+          "journey": "J5",
+          "steps": [
+            {
+              "name": "Correct filtered child profile and class",
+              "result": "PASS"
+            },
+            {
+              "name": "Close retains filters and selection",
+              "result": "PASS"
+            },
+            {
+              "name": "Reset recovers all eight with selection",
+              "result": "PASS"
+            }
+          ],
+          "result": "PASS"
+        },
+        {
+          "journey": "J6",
+          "steps": [
+            {
+              "name": "Four Choi records",
+              "result": "PASS"
+            },
+            {
+              "name": "Five exact selected IDs",
+              "result": "PASS"
+            },
+            {
+              "name": "All visible IDs selected",
+              "result": "PASS"
+            },
+            {
+              "name": "Only hidden MAM ID remains",
+              "result": "PASS"
+            }
+          ],
+          "result": "PASS"
+        }
+      ],
+      "contrast": [
+        {
+          "label": "J3-dark-desktop",
+          "minimumRatio": 14.15973670899138,
+          "sampledPixels": 4984,
+          "worstBackground": [
+            14,
+            38,
+            58
+          ],
+          "worstForeground": [
+            243,
+            245,
+            247
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "rgb(243, 245, 247)",
+          "resolvedForegroundRgba": [
+            243,
+            245,
+            247,
+            255
+          ],
+          "effectiveOpacity": 1,
+          "fontSize": "12px",
+          "fontFamily": "\"Times New Roman\"",
+          "ancestorLayers": [
+            {
+              "tag": "P",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "linear-gradient(rgba(17, 46, 67, 0.94) 0%, rgba(9, 26, 45, 0.88) 100%)",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "BODY",
+              "backgroundColor": "rgb(9, 26, 45)",
+              "backgroundImage": "radial-gradient(circle at 0% 0%, rgba(39, 197, 150, 0.08) 0%, rgba(0, 0, 0, 0) 36%), radial-gradient(circle at 100% 100%, rgba(229, 184, 97, 0.07) 0%, rgba(0, 0, 0, 0) 40%)",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "HTML",
+              "backgroundColor": "rgb(9, 26, 45)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            }
+          ],
+          "method": "Chromium canvas CSS-to-sRGB foreground; native raster background with text ink removed, sampling every pixel under actual text rects including ancestor/gradient/alpha/backdrop compositing; WCAG relative luminance; raw ratio compared to 4.5 without rounding."
+        },
+        {
+          "label": "J4-dark-desktop",
+          "minimumRatio": 14.314102321279112,
+          "sampledPixels": 4984,
+          "worstBackground": [
+            14,
+            37,
+            57
+          ],
+          "worstForeground": [
+            243,
+            245,
+            247
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "rgb(243, 245, 247)",
+          "resolvedForegroundRgba": [
+            243,
+            245,
+            247,
+            255
+          ],
+          "effectiveOpacity": 1,
+          "fontSize": "12px",
+          "fontFamily": "\"Times New Roman\"",
+          "ancestorLayers": [
+            {
+              "tag": "P",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "linear-gradient(rgba(17, 46, 67, 0.94) 0%, rgba(9, 26, 45, 0.88) 100%)",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "BODY",
+              "backgroundColor": "rgb(9, 26, 45)",
+              "backgroundImage": "radial-gradient(circle at 0% 0%, rgba(39, 197, 150, 0.08) 0%, rgba(0, 0, 0, 0) 36%), radial-gradient(circle at 100% 100%, rgba(229, 184, 97, 0.07) 0%, rgba(0, 0, 0, 0) 40%)",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "HTML",
+              "backgroundColor": "rgb(9, 26, 45)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            }
+          ],
+          "method": "Chromium canvas CSS-to-sRGB foreground; native raster background with text ink removed, sampling every pixel under actual text rects including ancestor/gradient/alpha/backdrop compositing; WCAG relative luminance; raw ratio compared to 4.5 without rounding."
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": []
+    },
+    {
+      "theme": "dark",
+      "device": "mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "flows": [
+        {
+          "journey": "J1",
+          "steps": [
+            {
+              "name": "Eight available rows",
+              "result": "PASS"
+            },
+            {
+              "name": "Truthful roster header",
+              "result": "PASS"
+            },
+            {
+              "name": "Truthful roster footer",
+              "result": "PASS"
+            },
+            {
+              "name": "No enabled imaginary pages",
+              "result": "PASS"
+            }
+          ],
+          "result": "PASS"
+        },
+        {
+          "journey": "J2",
+          "steps": [
+            {
+              "name": "Visible unchecked child does not inherit hidden selection",
+              "result": "PASS"
+            },
+            {
+              "name": "Bulk adds visible and preserves hidden IDs",
+              "result": "PASS"
+            },
+            {
+              "name": "Bulk removes only visible ID",
+              "result": "PASS"
+            }
+          ],
+          "result": "PASS"
+        },
+        {
+          "journey": "J3",
+          "steps": [
+            {
+              "name": "No rows",
+              "result": "PASS"
+            },
+            {
+              "name": "Explicit visible empty recovery feedback",
+              "result": "PASS"
+            },
+            {
+              "name": "Empty feedback raw contrast >=4.5",
+              "result": "PASS"
+            },
+            {
+              "name": "Zero visible select-all disabled or absent",
+              "result": "PASS"
+            },
+            {
+              "name": "Search retained",
+              "result": "PASS"
+            },
+            {
+              "name": "Recovery eight rows and original selection",
+              "result": "PASS"
+            },
+            {
+              "name": "Reset explicitly named",
+              "result": "PASS"
+            }
+          ],
+          "result": "PASS"
+        },
+        {
+          "journey": "J4",
+          "steps": [
+            {
+              "name": "Explicit visible empty recovery feedback",
+              "result": "PASS"
+            },
+            {
+              "name": "Empty feedback raw contrast >=4.5",
+              "result": "PASS"
+            },
+            {
+              "name": "Grid filters retained",
+              "result": "PASS"
+            },
+            {
+              "name": "Recovery preserves grid and eight cards",
+              "result": "PASS"
+            }
+          ],
+          "result": "PASS"
+        },
+        {
+          "journey": "J5",
+          "steps": [
+            {
+              "name": "Correct filtered child profile and class",
+              "result": "PASS"
+            },
+            {
+              "name": "Close retains filters and selection",
+              "result": "PASS"
+            },
+            {
+              "name": "Reset recovers all eight with selection",
+              "result": "PASS"
+            }
+          ],
+          "result": "PASS"
+        },
+        {
+          "journey": "J6",
+          "steps": [
+            {
+              "name": "Four Choi records",
+              "result": "PASS"
+            },
+            {
+              "name": "Five exact selected IDs",
+              "result": "PASS"
+            },
+            {
+              "name": "All visible IDs selected",
+              "result": "PASS"
+            },
+            {
+              "name": "Only hidden MAM ID remains",
+              "result": "PASS"
+            }
+          ],
+          "result": "PASS"
+        }
+      ],
+      "contrast": [
+        {
+          "label": "J3-dark-mobile",
+          "minimumRatio": 14.314102321279112,
+          "sampledPixels": 4942,
+          "worstBackground": [
+            14,
+            37,
+            57
+          ],
+          "worstForeground": [
+            243,
+            245,
+            247
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "rgb(243, 245, 247)",
+          "resolvedForegroundRgba": [
+            243,
+            245,
+            247,
+            255
+          ],
+          "effectiveOpacity": 1,
+          "fontSize": "12px",
+          "fontFamily": "\"Times New Roman\"",
+          "ancestorLayers": [
+            {
+              "tag": "P",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "linear-gradient(rgba(17, 46, 67, 0.94) 0%, rgba(9, 26, 45, 0.88) 100%)",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "BODY",
+              "backgroundColor": "rgb(9, 26, 45)",
+              "backgroundImage": "radial-gradient(circle at 0% 0%, rgba(39, 197, 150, 0.08) 0%, rgba(0, 0, 0, 0) 36%), radial-gradient(circle at 100% 100%, rgba(229, 184, 97, 0.07) 0%, rgba(0, 0, 0, 0) 40%)",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "HTML",
+              "backgroundColor": "rgb(9, 26, 45)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            }
+          ],
+          "method": "Chromium canvas CSS-to-sRGB foreground; native raster background with text ink removed, sampling every pixel under actual text rects including ancestor/gradient/alpha/backdrop compositing; WCAG relative luminance; raw ratio compared to 4.5 without rounding."
+        },
+        {
+          "label": "J4-dark-mobile",
+          "minimumRatio": 14.314102321279112,
+          "sampledPixels": 4942,
+          "worstBackground": [
+            14,
+            37,
+            57
+          ],
+          "worstForeground": [
+            243,
+            245,
+            247
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "rgb(243, 245, 247)",
+          "resolvedForegroundRgba": [
+            243,
+            245,
+            247,
+            255
+          ],
+          "effectiveOpacity": 1,
+          "fontSize": "12px",
+          "fontFamily": "\"Times New Roman\"",
+          "ancestorLayers": [
+            {
+              "tag": "P",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "linear-gradient(rgba(17, 46, 67, 0.94) 0%, rgba(9, 26, 45, 0.88) 100%)",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "BODY",
+              "backgroundColor": "rgb(9, 26, 45)",
+              "backgroundImage": "radial-gradient(circle at 0% 0%, rgba(39, 197, 150, 0.08) 0%, rgba(0, 0, 0, 0) 36%), radial-gradient(circle at 100% 100%, rgba(229, 184, 97, 0.07) 0%, rgba(0, 0, 0, 0) 40%)",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "HTML",
+              "backgroundColor": "rgb(9, 26, 45)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            }
+          ],
+          "method": "Chromium canvas CSS-to-sRGB foreground; native raster background with text ink removed, sampling every pixel under actual text rects including ancestor/gradient/alpha/backdrop compositing; WCAG relative luminance; raw ratio compared to 4.5 without rounding."
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": []
+    }
+  ]
+}

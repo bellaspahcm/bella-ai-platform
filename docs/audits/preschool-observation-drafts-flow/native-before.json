@@ -1,0 +1,1017 @@
+{
+  "phase": "before",
+  "recordedAt": "2026-10-17T23:03:10.065Z",
+  "command": "node docs/audits/preschool-observation-drafts-flow/observation-browser.cjs before",
+  "commandSha256": "fa1d62b5c571305b16ec9d6646296bf590b59d7e09745dfae7740dc85490d061",
+  "exitCode": 1,
+  "summary": {
+    "checked": 28,
+    "passed": 8,
+    "failed": 20,
+    "errors": 0,
+    "pageErrors": 0,
+    "unexpectedRequests": 0,
+    "downloads": 0
+  },
+  "sourceSha256": "117d063ee441a9c8b1eaa616b5a60ef31d5eddbdb621d20f02404902f168fccb",
+  "testSha256": "d1f7f9a6e8209252897ae01fd54328af0707a7b2975dd99fe4700b824f885c4b",
+  "globalsSha256": "1f2458f1e1ff45ff29650ce9bc30a0a408004f079760de68bcef7c915ddce21e",
+  "compiledCssSha256": "c1fe0d0bfeb4d0f93baa6797465e341937d258065495352155908882af269220",
+  "bundleSha256": "1bf3a6b2b3b22c4d7bd74430181ffb292e04e85686d49571ba935c4ba999505d",
+  "limits": "Actual Grades and shared modal code with real globals; synthetic Next link/image and tenant only. Loopback CSP; fresh browser context per journey; finally cleanup. No Auth/DB/full Next proof. Contrast measured for draft note in four after contexts.",
+  "contrast": [],
+  "results": [
+    {
+      "journey": "J1",
+      "theme": "light",
+      "device": "desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "assertions": [
+        {
+          "name": "Profile B hands off B with exact defaults",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'STU-001'\n- 'STU-002'\n         ^\n"
+        },
+        {
+          "name": "One dialog and focus inside",
+          "result": "PASS"
+        },
+        {
+          "name": "Escape closes and returns connected global opener",
+          "result": "PASS"
+        },
+        {
+          "name": "Roster filters and selection unchanged",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "FAIL"
+    },
+    {
+      "journey": "J2",
+      "theme": "light",
+      "device": "desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "assertions": [
+        {
+          "name": "B has its own untouched defaults, never A content",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'STU-001'\n- 'STU-002'\n         ^\n"
+        },
+        {
+          "name": "A full draft retained despite roster selection/filter",
+          "result": "PASS"
+        },
+        {
+          "name": "Roster filter and selected child remain independent",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "FAIL"
+    },
+    {
+      "journey": "J3",
+      "theme": "light",
+      "device": "desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "assertions": [
+        {
+          "name": "Manual B starts exact defaults",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  [\n+   'Thể chất & Vận động',\n+   'Đang phát triển',\n+   'SYNTHETIC A skill',\n+   'SYNTHETIC A note\\nsecond line',\n+   '3'\n-   'Ngôn Ngữ & Giao Tiếp',\n-   'Đạt kỳ vọng',\n-   '',\n-   '',\n-   '1'\n  ]\n"
+        },
+        {
+          "name": "Repeated A restores all fields 0",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  [\n+   'Thẩm Mỹ & Sáng Tạo',\n+   'Thành thạo',\n+   'SYNTHETIC B skill',\n+   'SYNTHETIC B note\\nsecond line',\n+   '7'\n-   'Thể chất & Vận động',\n-   'Đang phát triển',\n-   'SYNTHETIC A skill',\n-   'SYNTHETIC A note\\nsecond line',\n-   '3'\n  ]\n"
+        },
+        {
+          "name": "Repeated B restores all fields 0",
+          "result": "PASS"
+        },
+        {
+          "name": "Repeated A restores all fields 1",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  [\n+   'Thẩm Mỹ & Sáng Tạo',\n+   'Thành thạo',\n+   'SYNTHETIC B skill',\n+   'SYNTHETIC B note\\nsecond line',\n+   '7'\n-   'Thể chất & Vận động',\n-   'Đang phát triển',\n-   'SYNTHETIC A skill',\n-   'SYNTHETIC A note\\nsecond line',\n-   '3'\n  ]\n"
+        },
+        {
+          "name": "Repeated B restores all fields 1",
+          "result": "PASS"
+        },
+        {
+          "name": "Repeated A restores all fields 2",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  [\n+   'Thẩm Mỹ & Sáng Tạo',\n+   'Thành thạo',\n+   'SYNTHETIC B skill',\n+   'SYNTHETIC B note\\nsecond line',\n+   '7'\n-   'Thể chất & Vận động',\n-   'Đang phát triển',\n-   'SYNTHETIC A skill',\n-   'SYNTHETIC A note\\nsecond line',\n-   '3'\n  ]\n"
+        },
+        {
+          "name": "Repeated B restores all fields 2",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "FAIL"
+    },
+    {
+      "journey": "J4",
+      "theme": "light",
+      "device": "desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "assertions": [
+        {
+          "name": "Initial exact defaults",
+          "result": "PASS"
+        },
+        {
+          "name": "Close and keep retains full same-child draft",
+          "result": "PASS"
+        },
+        {
+          "name": "Escape closes and returns connected global opener",
+          "result": "PASS"
+        },
+        {
+          "name": "Escape retains full same-child draft",
+          "result": "PASS"
+        },
+        {
+          "name": "One dialog and focus inside",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "PASS"
+    },
+    {
+      "journey": "J5",
+      "theme": "light",
+      "device": "desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "assertions": [
+        {
+          "name": "Same profile A never resets draft",
+          "result": "PASS"
+        },
+        {
+          "name": "Profile B receives exact defaults",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'STU-001'\n- 'STU-002'\n         ^\n"
+        },
+        {
+          "name": "Profile C receives exact defaults",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'STU-001'\n- 'STU-004'\n         ^\n"
+        },
+        {
+          "name": "Return from C retains A",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "FAIL"
+    },
+    {
+      "journey": "J6",
+      "theme": "light",
+      "device": "desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "assertions": [
+        {
+          "name": "Global reopen retains active B and full draft",
+          "result": "PASS"
+        },
+        {
+          "name": "Profile A has exact defaults",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'STU-002'\n- 'STU-001'\n         ^\n"
+        },
+        {
+          "name": "Back to B retains full B draft",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  [\n+   'Thể chất & Vận động',\n+   'Đang phát triển',\n+   'SYNTHETIC A skill',\n+   'SYNTHETIC A note\\nsecond line',\n+   '3'\n-   'Thẩm Mỹ & Sáng Tạo',\n-   'Thành thạo',\n-   'SYNTHETIC B skill',\n-   'SYNTHETIC B note\\nsecond line',\n-   '7'\n  ]\n"
+        },
+        {
+          "name": "Save honestly unavailable and no success",
+          "result": "PASS"
+        },
+        {
+          "name": "Unavailable save preserves B",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  [\n+   'Thể chất & Vận động',\n+   'Đang phát triển',\n+   'SYNTHETIC A skill',\n+   'SYNTHETIC A note\\nsecond line',\n+   '3'\n-   'Thẩm Mỹ & Sáng Tạo',\n-   'Thành thạo',\n-   'SYNTHETIC B skill',\n-   'SYNTHETIC B note\\nsecond line',\n-   '7'\n  ]\n"
+        },
+        {
+          "name": "Unavailable save leaves A intact",
+          "result": "PASS"
+        },
+        {
+          "name": "No new sample row",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "FAIL"
+    },
+    {
+      "journey": "J7",
+      "theme": "light",
+      "device": "desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "assertions": [
+        {
+          "name": "Remount resets active child and exact defaults",
+          "result": "PASS"
+        },
+        {
+          "name": "Remount discards all B text and restores defaults",
+          "result": "PASS"
+        },
+        {
+          "name": "Synthetic nonpersistent disclaimer",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "PASS"
+    },
+    {
+      "journey": "J1",
+      "theme": "light",
+      "device": "mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "assertions": [
+        {
+          "name": "Profile B hands off B with exact defaults",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'STU-001'\n- 'STU-002'\n         ^\n"
+        },
+        {
+          "name": "One dialog and focus inside",
+          "result": "PASS"
+        },
+        {
+          "name": "Escape closes and returns connected global opener",
+          "result": "PASS"
+        },
+        {
+          "name": "Roster filters and selection unchanged",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "FAIL"
+    },
+    {
+      "journey": "J2",
+      "theme": "light",
+      "device": "mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "assertions": [
+        {
+          "name": "B has its own untouched defaults, never A content",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'STU-001'\n- 'STU-002'\n         ^\n"
+        },
+        {
+          "name": "A full draft retained despite roster selection/filter",
+          "result": "PASS"
+        },
+        {
+          "name": "Roster filter and selected child remain independent",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "FAIL"
+    },
+    {
+      "journey": "J3",
+      "theme": "light",
+      "device": "mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "assertions": [
+        {
+          "name": "Manual B starts exact defaults",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  [\n+   'Thể chất & Vận động',\n+   'Đang phát triển',\n+   'SYNTHETIC A skill',\n+   'SYNTHETIC A note\\nsecond line',\n+   '3'\n-   'Ngôn Ngữ & Giao Tiếp',\n-   'Đạt kỳ vọng',\n-   '',\n-   '',\n-   '1'\n  ]\n"
+        },
+        {
+          "name": "Repeated A restores all fields 0",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  [\n+   'Thẩm Mỹ & Sáng Tạo',\n+   'Thành thạo',\n+   'SYNTHETIC B skill',\n+   'SYNTHETIC B note\\nsecond line',\n+   '7'\n-   'Thể chất & Vận động',\n-   'Đang phát triển',\n-   'SYNTHETIC A skill',\n-   'SYNTHETIC A note\\nsecond line',\n-   '3'\n  ]\n"
+        },
+        {
+          "name": "Repeated B restores all fields 0",
+          "result": "PASS"
+        },
+        {
+          "name": "Repeated A restores all fields 1",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  [\n+   'Thẩm Mỹ & Sáng Tạo',\n+   'Thành thạo',\n+   'SYNTHETIC B skill',\n+   'SYNTHETIC B note\\nsecond line',\n+   '7'\n-   'Thể chất & Vận động',\n-   'Đang phát triển',\n-   'SYNTHETIC A skill',\n-   'SYNTHETIC A note\\nsecond line',\n-   '3'\n  ]\n"
+        },
+        {
+          "name": "Repeated B restores all fields 1",
+          "result": "PASS"
+        },
+        {
+          "name": "Repeated A restores all fields 2",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  [\n+   'Thẩm Mỹ & Sáng Tạo',\n+   'Thành thạo',\n+   'SYNTHETIC B skill',\n+   'SYNTHETIC B note\\nsecond line',\n+   '7'\n-   'Thể chất & Vận động',\n-   'Đang phát triển',\n-   'SYNTHETIC A skill',\n-   'SYNTHETIC A note\\nsecond line',\n-   '3'\n  ]\n"
+        },
+        {
+          "name": "Repeated B restores all fields 2",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "FAIL"
+    },
+    {
+      "journey": "J4",
+      "theme": "light",
+      "device": "mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "assertions": [
+        {
+          "name": "Initial exact defaults",
+          "result": "PASS"
+        },
+        {
+          "name": "Close and keep retains full same-child draft",
+          "result": "PASS"
+        },
+        {
+          "name": "Escape closes and returns connected global opener",
+          "result": "PASS"
+        },
+        {
+          "name": "Escape retains full same-child draft",
+          "result": "PASS"
+        },
+        {
+          "name": "One dialog and focus inside",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "PASS"
+    },
+    {
+      "journey": "J5",
+      "theme": "light",
+      "device": "mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "assertions": [
+        {
+          "name": "Same profile A never resets draft",
+          "result": "PASS"
+        },
+        {
+          "name": "Profile B receives exact defaults",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'STU-001'\n- 'STU-002'\n         ^\n"
+        },
+        {
+          "name": "Profile C receives exact defaults",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'STU-001'\n- 'STU-004'\n         ^\n"
+        },
+        {
+          "name": "Return from C retains A",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "FAIL"
+    },
+    {
+      "journey": "J6",
+      "theme": "light",
+      "device": "mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "assertions": [
+        {
+          "name": "Global reopen retains active B and full draft",
+          "result": "PASS"
+        },
+        {
+          "name": "Profile A has exact defaults",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'STU-002'\n- 'STU-001'\n         ^\n"
+        },
+        {
+          "name": "Back to B retains full B draft",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  [\n+   'Thể chất & Vận động',\n+   'Đang phát triển',\n+   'SYNTHETIC A skill',\n+   'SYNTHETIC A note\\nsecond line',\n+   '3'\n-   'Thẩm Mỹ & Sáng Tạo',\n-   'Thành thạo',\n-   'SYNTHETIC B skill',\n-   'SYNTHETIC B note\\nsecond line',\n-   '7'\n  ]\n"
+        },
+        {
+          "name": "Save honestly unavailable and no success",
+          "result": "PASS"
+        },
+        {
+          "name": "Unavailable save preserves B",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  [\n+   'Thể chất & Vận động',\n+   'Đang phát triển',\n+   'SYNTHETIC A skill',\n+   'SYNTHETIC A note\\nsecond line',\n+   '3'\n-   'Thẩm Mỹ & Sáng Tạo',\n-   'Thành thạo',\n-   'SYNTHETIC B skill',\n-   'SYNTHETIC B note\\nsecond line',\n-   '7'\n  ]\n"
+        },
+        {
+          "name": "Unavailable save leaves A intact",
+          "result": "PASS"
+        },
+        {
+          "name": "No new sample row",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "FAIL"
+    },
+    {
+      "journey": "J7",
+      "theme": "light",
+      "device": "mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "assertions": [
+        {
+          "name": "Remount resets active child and exact defaults",
+          "result": "PASS"
+        },
+        {
+          "name": "Remount discards all B text and restores defaults",
+          "result": "PASS"
+        },
+        {
+          "name": "Synthetic nonpersistent disclaimer",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "PASS"
+    },
+    {
+      "journey": "J1",
+      "theme": "dark",
+      "device": "desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "assertions": [
+        {
+          "name": "Profile B hands off B with exact defaults",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'STU-001'\n- 'STU-002'\n         ^\n"
+        },
+        {
+          "name": "One dialog and focus inside",
+          "result": "PASS"
+        },
+        {
+          "name": "Escape closes and returns connected global opener",
+          "result": "PASS"
+        },
+        {
+          "name": "Roster filters and selection unchanged",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "FAIL"
+    },
+    {
+      "journey": "J2",
+      "theme": "dark",
+      "device": "desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "assertions": [
+        {
+          "name": "B has its own untouched defaults, never A content",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'STU-001'\n- 'STU-002'\n         ^\n"
+        },
+        {
+          "name": "A full draft retained despite roster selection/filter",
+          "result": "PASS"
+        },
+        {
+          "name": "Roster filter and selected child remain independent",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "FAIL"
+    },
+    {
+      "journey": "J3",
+      "theme": "dark",
+      "device": "desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "assertions": [
+        {
+          "name": "Manual B starts exact defaults",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  [\n+   'Thể chất & Vận động',\n+   'Đang phát triển',\n+   'SYNTHETIC A skill',\n+   'SYNTHETIC A note\\nsecond line',\n+   '3'\n-   'Ngôn Ngữ & Giao Tiếp',\n-   'Đạt kỳ vọng',\n-   '',\n-   '',\n-   '1'\n  ]\n"
+        },
+        {
+          "name": "Repeated A restores all fields 0",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  [\n+   'Thẩm Mỹ & Sáng Tạo',\n+   'Thành thạo',\n+   'SYNTHETIC B skill',\n+   'SYNTHETIC B note\\nsecond line',\n+   '7'\n-   'Thể chất & Vận động',\n-   'Đang phát triển',\n-   'SYNTHETIC A skill',\n-   'SYNTHETIC A note\\nsecond line',\n-   '3'\n  ]\n"
+        },
+        {
+          "name": "Repeated B restores all fields 0",
+          "result": "PASS"
+        },
+        {
+          "name": "Repeated A restores all fields 1",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  [\n+   'Thẩm Mỹ & Sáng Tạo',\n+   'Thành thạo',\n+   'SYNTHETIC B skill',\n+   'SYNTHETIC B note\\nsecond line',\n+   '7'\n-   'Thể chất & Vận động',\n-   'Đang phát triển',\n-   'SYNTHETIC A skill',\n-   'SYNTHETIC A note\\nsecond line',\n-   '3'\n  ]\n"
+        },
+        {
+          "name": "Repeated B restores all fields 1",
+          "result": "PASS"
+        },
+        {
+          "name": "Repeated A restores all fields 2",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  [\n+   'Thẩm Mỹ & Sáng Tạo',\n+   'Thành thạo',\n+   'SYNTHETIC B skill',\n+   'SYNTHETIC B note\\nsecond line',\n+   '7'\n-   'Thể chất & Vận động',\n-   'Đang phát triển',\n-   'SYNTHETIC A skill',\n-   'SYNTHETIC A note\\nsecond line',\n-   '3'\n  ]\n"
+        },
+        {
+          "name": "Repeated B restores all fields 2",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "FAIL"
+    },
+    {
+      "journey": "J4",
+      "theme": "dark",
+      "device": "desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "assertions": [
+        {
+          "name": "Initial exact defaults",
+          "result": "PASS"
+        },
+        {
+          "name": "Close and keep retains full same-child draft",
+          "result": "PASS"
+        },
+        {
+          "name": "Escape closes and returns connected global opener",
+          "result": "PASS"
+        },
+        {
+          "name": "Escape retains full same-child draft",
+          "result": "PASS"
+        },
+        {
+          "name": "One dialog and focus inside",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "PASS"
+    },
+    {
+      "journey": "J5",
+      "theme": "dark",
+      "device": "desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "assertions": [
+        {
+          "name": "Same profile A never resets draft",
+          "result": "PASS"
+        },
+        {
+          "name": "Profile B receives exact defaults",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'STU-001'\n- 'STU-002'\n         ^\n"
+        },
+        {
+          "name": "Profile C receives exact defaults",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'STU-001'\n- 'STU-004'\n         ^\n"
+        },
+        {
+          "name": "Return from C retains A",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "FAIL"
+    },
+    {
+      "journey": "J6",
+      "theme": "dark",
+      "device": "desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "assertions": [
+        {
+          "name": "Global reopen retains active B and full draft",
+          "result": "PASS"
+        },
+        {
+          "name": "Profile A has exact defaults",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'STU-002'\n- 'STU-001'\n         ^\n"
+        },
+        {
+          "name": "Back to B retains full B draft",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  [\n+   'Thể chất & Vận động',\n+   'Đang phát triển',\n+   'SYNTHETIC A skill',\n+   'SYNTHETIC A note\\nsecond line',\n+   '3'\n-   'Thẩm Mỹ & Sáng Tạo',\n-   'Thành thạo',\n-   'SYNTHETIC B skill',\n-   'SYNTHETIC B note\\nsecond line',\n-   '7'\n  ]\n"
+        },
+        {
+          "name": "Save honestly unavailable and no success",
+          "result": "PASS"
+        },
+        {
+          "name": "Unavailable save preserves B",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  [\n+   'Thể chất & Vận động',\n+   'Đang phát triển',\n+   'SYNTHETIC A skill',\n+   'SYNTHETIC A note\\nsecond line',\n+   '3'\n-   'Thẩm Mỹ & Sáng Tạo',\n-   'Thành thạo',\n-   'SYNTHETIC B skill',\n-   'SYNTHETIC B note\\nsecond line',\n-   '7'\n  ]\n"
+        },
+        {
+          "name": "Unavailable save leaves A intact",
+          "result": "PASS"
+        },
+        {
+          "name": "No new sample row",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "FAIL"
+    },
+    {
+      "journey": "J7",
+      "theme": "dark",
+      "device": "desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "assertions": [
+        {
+          "name": "Remount resets active child and exact defaults",
+          "result": "PASS"
+        },
+        {
+          "name": "Remount discards all B text and restores defaults",
+          "result": "PASS"
+        },
+        {
+          "name": "Synthetic nonpersistent disclaimer",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "PASS"
+    },
+    {
+      "journey": "J1",
+      "theme": "dark",
+      "device": "mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "assertions": [
+        {
+          "name": "Profile B hands off B with exact defaults",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'STU-001'\n- 'STU-002'\n         ^\n"
+        },
+        {
+          "name": "One dialog and focus inside",
+          "result": "PASS"
+        },
+        {
+          "name": "Escape closes and returns connected global opener",
+          "result": "PASS"
+        },
+        {
+          "name": "Roster filters and selection unchanged",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "FAIL"
+    },
+    {
+      "journey": "J2",
+      "theme": "dark",
+      "device": "mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "assertions": [
+        {
+          "name": "B has its own untouched defaults, never A content",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'STU-001'\n- 'STU-002'\n         ^\n"
+        },
+        {
+          "name": "A full draft retained despite roster selection/filter",
+          "result": "PASS"
+        },
+        {
+          "name": "Roster filter and selected child remain independent",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "FAIL"
+    },
+    {
+      "journey": "J3",
+      "theme": "dark",
+      "device": "mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "assertions": [
+        {
+          "name": "Manual B starts exact defaults",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  [\n+   'Thể chất & Vận động',\n+   'Đang phát triển',\n+   'SYNTHETIC A skill',\n+   'SYNTHETIC A note\\nsecond line',\n+   '3'\n-   'Ngôn Ngữ & Giao Tiếp',\n-   'Đạt kỳ vọng',\n-   '',\n-   '',\n-   '1'\n  ]\n"
+        },
+        {
+          "name": "Repeated A restores all fields 0",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  [\n+   'Thẩm Mỹ & Sáng Tạo',\n+   'Thành thạo',\n+   'SYNTHETIC B skill',\n+   'SYNTHETIC B note\\nsecond line',\n+   '7'\n-   'Thể chất & Vận động',\n-   'Đang phát triển',\n-   'SYNTHETIC A skill',\n-   'SYNTHETIC A note\\nsecond line',\n-   '3'\n  ]\n"
+        },
+        {
+          "name": "Repeated B restores all fields 0",
+          "result": "PASS"
+        },
+        {
+          "name": "Repeated A restores all fields 1",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  [\n+   'Thẩm Mỹ & Sáng Tạo',\n+   'Thành thạo',\n+   'SYNTHETIC B skill',\n+   'SYNTHETIC B note\\nsecond line',\n+   '7'\n-   'Thể chất & Vận động',\n-   'Đang phát triển',\n-   'SYNTHETIC A skill',\n-   'SYNTHETIC A note\\nsecond line',\n-   '3'\n  ]\n"
+        },
+        {
+          "name": "Repeated B restores all fields 1",
+          "result": "PASS"
+        },
+        {
+          "name": "Repeated A restores all fields 2",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  [\n+   'Thẩm Mỹ & Sáng Tạo',\n+   'Thành thạo',\n+   'SYNTHETIC B skill',\n+   'SYNTHETIC B note\\nsecond line',\n+   '7'\n-   'Thể chất & Vận động',\n-   'Đang phát triển',\n-   'SYNTHETIC A skill',\n-   'SYNTHETIC A note\\nsecond line',\n-   '3'\n  ]\n"
+        },
+        {
+          "name": "Repeated B restores all fields 2",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "FAIL"
+    },
+    {
+      "journey": "J4",
+      "theme": "dark",
+      "device": "mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "assertions": [
+        {
+          "name": "Initial exact defaults",
+          "result": "PASS"
+        },
+        {
+          "name": "Close and keep retains full same-child draft",
+          "result": "PASS"
+        },
+        {
+          "name": "Escape closes and returns connected global opener",
+          "result": "PASS"
+        },
+        {
+          "name": "Escape retains full same-child draft",
+          "result": "PASS"
+        },
+        {
+          "name": "One dialog and focus inside",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "PASS"
+    },
+    {
+      "journey": "J5",
+      "theme": "dark",
+      "device": "mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "assertions": [
+        {
+          "name": "Same profile A never resets draft",
+          "result": "PASS"
+        },
+        {
+          "name": "Profile B receives exact defaults",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'STU-001'\n- 'STU-002'\n         ^\n"
+        },
+        {
+          "name": "Profile C receives exact defaults",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'STU-001'\n- 'STU-004'\n         ^\n"
+        },
+        {
+          "name": "Return from C retains A",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "FAIL"
+    },
+    {
+      "journey": "J6",
+      "theme": "dark",
+      "device": "mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "assertions": [
+        {
+          "name": "Global reopen retains active B and full draft",
+          "result": "PASS"
+        },
+        {
+          "name": "Profile A has exact defaults",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'STU-002'\n- 'STU-001'\n         ^\n"
+        },
+        {
+          "name": "Back to B retains full B draft",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  [\n+   'Thể chất & Vận động',\n+   'Đang phát triển',\n+   'SYNTHETIC A skill',\n+   'SYNTHETIC A note\\nsecond line',\n+   '3'\n-   'Thẩm Mỹ & Sáng Tạo',\n-   'Thành thạo',\n-   'SYNTHETIC B skill',\n-   'SYNTHETIC B note\\nsecond line',\n-   '7'\n  ]\n"
+        },
+        {
+          "name": "Save honestly unavailable and no success",
+          "result": "PASS"
+        },
+        {
+          "name": "Unavailable save preserves B",
+          "result": "FAIL",
+          "failure": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  [\n+   'Thể chất & Vận động',\n+   'Đang phát triển',\n+   'SYNTHETIC A skill',\n+   'SYNTHETIC A note\\nsecond line',\n+   '3'\n-   'Thẩm Mỹ & Sáng Tạo',\n-   'Thành thạo',\n-   'SYNTHETIC B skill',\n-   'SYNTHETIC B note\\nsecond line',\n-   '7'\n  ]\n"
+        },
+        {
+          "name": "Unavailable save leaves A intact",
+          "result": "PASS"
+        },
+        {
+          "name": "No new sample row",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "FAIL"
+    },
+    {
+      "journey": "J7",
+      "theme": "dark",
+      "device": "mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "assertions": [
+        {
+          "name": "Remount resets active child and exact defaults",
+          "result": "PASS"
+        },
+        {
+          "name": "Remount discards all B text and restores defaults",
+          "result": "PASS"
+        },
+        {
+          "name": "Synthetic nonpersistent disclaimer",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "PASS"
+    }
+  ]
+}

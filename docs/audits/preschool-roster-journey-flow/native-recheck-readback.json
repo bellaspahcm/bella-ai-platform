@@ -1,0 +1,30 @@
+{
+  "result": "PASS_SCOPED_NATIVE_HISTORY_READBACK",
+  "recordedAt": "2026-10-17T22:33:09.383Z",
+  "writerResult": "NATIVE_TASK_EXECUTED_PENDING_LEAD_REVIEW",
+  "nativeTurnStatus": "completed",
+  "facts": 88,
+  "fileChanges": [
+    {
+      "itemId": "exec-d1123307-fb88-4380-bf12-1e72d6fae8b5",
+      "result": "MATCH"
+    },
+    {
+      "itemId": "exec-f73d39da-1e6b-44a8-ac6c-9e3ad1bb5b91",
+      "result": "MATCH"
+    },
+    {
+      "itemId": "exec-071318d1-7150-41f2-b6ff-244a6ca54a8a",
+      "result": "MATCH"
+    },
+    {
+      "itemId": "exec-f39a3a7d-8751-4d2b-a75e-1f4deb91b84c",
+      "result": "MATCH"
+    }
+  ],
+  "freshHistoryChangeCount": 4,
+  "directory": "C:\\Users\\DELL\\.codex\\agent-flow-evidence\\bella-agent-flow-vdhgU5",
+  "fault": null,
+  "sourceAfter": "4f62e34e3ed5a1a0b7ea1bcb44070ece6a1aaa8d81ef94995dcfde880e36850b",
+  "limits": "Independent fresh-process readback of actual one-task lifecycle; not continuous orchestration or Product/Auth/DB proof"
+}

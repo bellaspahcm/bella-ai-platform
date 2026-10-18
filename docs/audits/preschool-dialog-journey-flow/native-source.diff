@@ -1,0 +1,49 @@
+diff --git a/src/app/dashboard/education/grades/page.tsx b/src/app/dashboard/education/grades/page.tsx
+index c18ccfcdf..b2fbea430 100644
+--- a/src/app/dashboard/education/grades/page.tsx
++++ b/src/app/dashboard/education/grades/page.tsx
+@@ -40 +40,2 @@
+-import { useState, useEffect, useMemo, type ChangeEvent } from 'react';
++import { useState, useEffect, useMemo, useRef, type ChangeEvent } from 'react';
++import { Dialog, DialogContent } from '@/components/ui/dialog';
+@@ -537,0 +539,6 @@ export default function PreschoolDevelopmentGradesPage() {
++  const observationOpenerRef = useRef<HTMLButtonElement>(null);
++  const profileToObservationRef = useRef(false);
++
++  useEffect(() => {
++    if (inspectedStudent) profileToObservationRef.current = false;
++  }, [inspectedStudent]);
+@@ -746,0 +754 @@ export default function PreschoolDevelopmentGradesPage() {
++            ref={observationOpenerRef}
+@@ -1449,2 +1457,2 @@ export default function PreschoolDevelopmentGradesPage() {
+-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto animate-in fade-in duration-200">
+-          <div role="dialog" aria-modal="true" aria-label="Hồ sơ trẻ minh họa" className="w-full max-w-2xl bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl p-6 sm:p-8 space-y-6 max-h-[90vh] overflow-y-auto">
++        <Dialog open onOpenChange={(open) => { if (!open) setInspectedStudent(null); }}>
++          <DialogContent showCloseButton={false} initialFocus finalFocus={() => !profileToObservationRef.current} aria-label="Hồ sơ trẻ minh họa" className="w-full max-w-2xl sm:max-w-2xl bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl p-6 sm:p-8 space-y-6 max-h-[90vh] overflow-y-auto">
+@@ -1583,0 +1592 @@ export default function PreschoolDevelopmentGradesPage() {
++                  profileToObservationRef.current = true;
+@@ -1593,2 +1602,2 @@ export default function PreschoolDevelopmentGradesPage() {
+-          </div>
+-        </div>
++          </DialogContent>
++        </Dialog>
+@@ -1599,2 +1608,2 @@ export default function PreschoolDevelopmentGradesPage() {
+-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto animate-in fade-in duration-200">
+-          <div role="dialog" aria-modal="true" aria-labelledby="new-observation-title" aria-describedby="new-observation-draft-note" className="w-full max-w-lg bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl p-6 sm:p-8 space-y-5 max-h-[90vh] overflow-y-auto">
++        <Dialog open onOpenChange={(open) => { if (!open) setIsNewObservationModalOpen(false); }}>
++          <DialogContent showCloseButton={false} initialFocus finalFocus={observationOpenerRef} aria-labelledby="new-observation-title" aria-describedby="new-observation-draft-note" className="w-full max-w-lg sm:max-w-lg bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl p-6 sm:p-8 space-y-5 max-h-[90vh] overflow-y-auto">
+@@ -1748,2 +1757,2 @@ export default function PreschoolDevelopmentGradesPage() {
+-          </div>
+-        </div>
++          </DialogContent>
++        </Dialog>
+@@ -1754,2 +1763,2 @@ export default function PreschoolDevelopmentGradesPage() {
+-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto animate-in fade-in duration-200">
+-          <div role="dialog" aria-modal="true" aria-labelledby="ai-sample-title" className="w-full max-w-lg bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl p-6 sm:p-8 space-y-5 max-h-[90vh] overflow-y-auto">
++        <Dialog open onOpenChange={(open) => { if (!open) setIsAiSuggestionsDrawerOpen(false); }}>
++          <DialogContent showCloseButton={false} initialFocus aria-labelledby="ai-sample-title" className="w-full max-w-lg sm:max-w-lg bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl p-6 sm:p-8 space-y-5 max-h-[90vh] overflow-y-auto">
+@@ -1817,2 +1826,2 @@ export default function PreschoolDevelopmentGradesPage() {
+-          </div>
+-        </div>
++          </DialogContent>
++        </Dialog>

@@ -37,7 +37,8 @@
  * - STRICT TYPE SAFETY: Zero `any` and zero `unknown`
  */
 
-import { useState, useEffect, useMemo, type ChangeEvent } from 'react';
+import { useState, useEffect, useMemo, useRef, type ChangeEvent } from 'react';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 import Link from 'next/link';
 import Image from 'next/image';
 import {
@@ -54,7 +55,6 @@ import {
   LayoutGrid,
   ChevronDown,
   ChevronRight,
-  ChevronLeft,
   Search,
   Filter,
   MoreHorizontal,
@@ -530,23 +530,55 @@ export default function PreschoolDevelopmentGradesPage() {
   const [selectedClass, setSelectedClass] = useState<'ALL' | 'MAM_A1' | 'CHOI_B1'>('ALL');
   const [selectedStatus, setSelectedStatus] = useState<'ALL' | 'COMPLETED' | 'SUPPLEMENT' | 'ATTENTION'>('ALL');
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
-  const [currentPage, setCurrentPage] = useState<number>(1);
   const [selectedStudentIds, setSelectedStudentIds] = useState<readonly string[]>([]);
 
   // Modals & Drawers
   const [inspectedStudent, setInspectedStudent] = useState<ChildDevelopmentRosterItem | null>(null);
   const [isNewObservationModalOpen, setIsNewObservationModalOpen] = useState<boolean>(false);
   const [isAiSuggestionsDrawerOpen, setIsAiSuggestionsDrawerOpen] = useState<boolean>(false);
+  const observationOpenerRef = useRef<HTMLButtonElement>(null);
+  const profileToObservationRef = useRef(false);
+
+  useEffect(() => {
+    if (inspectedStudent) profileToObservationRef.current = false;
+  }, [inspectedStudent]);
   const [exportNotice, setExportNotice] = useState<string | null>(null);
   const [observationNotice, setObservationNotice] = useState<string | null>(null);
 
   // New Observation Form State (Strictly typed)
   const [newObsStudentId, setNewObsStudentId] = useState<string>('STU-001');
-  const [newObsDomain, setNewObsDomain] = useState<string>('Ngôn Ngữ & Giao Tiếp');
-  const [newObsSkill, setNewObsSkill] = useState<string>('');
-  const [newObsProgression, setNewObsProgression] = useState<string>('Đạt kỳ vọng');
-  const [newObsNote, setNewObsNote] = useState<string>('');
-  const [newObsPhotosCount, setNewObsPhotosCount] = useState<number>(1);
+  type ObservationDraft = {
+    domain: string;
+    skill: string;
+    progression: string;
+    note: string;
+    photosCount: number;
+  };
+  const defaultObservationDraft: ObservationDraft = {
+    domain: 'Ngôn Ngữ & Giao Tiếp',
+    skill: '',
+    progression: 'Đạt kỳ vọng',
+    note: '',
+    photosCount: 1,
+  };
+  const [observationDrafts, setObservationDrafts] = useState<Record<string, ObservationDraft>>({});
+  const {
+    domain: newObsDomain,
+    skill: newObsSkill,
+    progression: newObsProgression,
+    note: newObsNote,
+    photosCount: newObsPhotosCount,
+  } = observationDrafts[newObsStudentId] ?? defaultObservationDraft;
+  const updateObservationDraft = (patch: Partial<ObservationDraft>) => {
+    setObservationDrafts((drafts) => ({
+      ...drafts,
+      [newObsStudentId]: { ...(drafts[newObsStudentId] ?? defaultObservationDraft), ...patch },
+    }));
+  };
+  const selectObservationChild = (studentId: string) => {
+    setNewObsStudentId(studentId);
+    setObservationNotice(null);
+  };
 
   // Tenant detection
   useEffect(() => {
@@ -601,20 +633,24 @@ export default function PreschoolDevelopmentGradesPage() {
   }, [selectedClass, selectedStatus, searchQuery]);
 
   // Checkbox handlers
+  const allVisibleSelected = filteredStudents.length > 0 &&
+    filteredStudents.every((student) => selectedStudentIds.includes(student.id));
+
   const handleToggleSelectAll = () => {
-    if (selectedStudentIds.length === filteredStudents.length) {
-      setSelectedStudentIds([]);
-    } else {
-      setSelectedStudentIds(filteredStudents.map((s) => s.id));
-    }
+    if (filteredStudents.length === 0) return;
+    const visibleIds = filteredStudents.map((student) => student.id);
+    setSelectedStudentIds((previous) =>
+      visibleIds.every((id) => previous.includes(id))
+        ? previous.filter((id) => !visibleIds.includes(id))
+        : [...new Set([...previous, ...visibleIds])]
+    );
   };
 
   const handleToggleStudent = (id: string) => {
-    if (selectedStudentIds.includes(id)) {
-      setSelectedStudentIds(selectedStudentIds.filter((item) => item !== id));
-    } else {
-      setSelectedStudentIds([...selectedStudentIds, id]);
-    }
+    setSelectedStudentIds((previous) => previous.includes(id)
+      ? previous.filter((item) => item !== id)
+      : [...previous, id]
+    );
   };
 
   const handleExportReport = () => {
@@ -742,6 +778,7 @@ export default function PreschoolDevelopmentGradesPage() {
 
           <button
             type="button"
+            ref={observationOpenerRef}
             onClick={() => setIsNewObservationModalOpen(true)}
             className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#0c513f] hover:bg-[#083b2e] text-white px-5 py-2.5 text-xs font-bold shadow-md shadow-[#0c513f]/20 transition-all active:scale-95 cursor-pointer"
           >
@@ -1053,7 +1090,7 @@ export default function PreschoolDevelopmentGradesPage() {
             className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-700 dark:text-slate-200 shadow-sm hover:bg-slate-50 transition-colors cursor-pointer"
           >
             <Filter className="w-3.5 h-3.5 text-slate-500" />
-            <span>Bộ lọc</span>
+            <span>Xóa bộ lọc</span>
           </button>
         </div>
       </div>
@@ -1065,7 +1102,7 @@ export default function PreschoolDevelopmentGradesPage() {
           <div className="flex items-center gap-2.5">
             <h2 className="text-sm font-extrabold text-slate-900 dark:text-white">Danh sách trẻ</h2>
             <span className="px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 text-[11px] font-bold">
-              46 trẻ
+              {filteredStudents.length} / {ROSTER_STUDENTS.length} hồ sơ minh họa
             </span>
           </div>
 
@@ -1116,6 +1153,11 @@ export default function PreschoolDevelopmentGradesPage() {
         )}
 
         {/* View Mode: List Table or Grid Cards */}
+        {filteredStudents.length === 0 && (
+          <p role="status" className="p-5 text-xs text-slate-700 dark:text-slate-200">
+            Không tìm thấy hồ sơ minh họa phù hợp. Hãy điều chỉnh hoặc xóa bộ lọc.
+          </p>
+        )}
         {viewMode === 'list' ? (
           <div className="w-full overflow-x-auto">
             <table className="w-full text-left border-collapse">
@@ -1125,10 +1167,8 @@ export default function PreschoolDevelopmentGradesPage() {
                     <input
                       type="checkbox"
                       aria-label="Chọn tất cả trẻ em trong danh sách"
-                      checked={
-                        filteredStudents.length > 0 &&
-                        selectedStudentIds.length === filteredStudents.length
-                      }
+                      checked={allVisibleSelected}
+                      disabled={filteredStudents.length === 0}
                       onChange={handleToggleSelectAll}
                       className="rounded border-slate-300 text-[#0c513f] focus:ring-[#0c513f] cursor-pointer"
                     />
@@ -1298,46 +1338,12 @@ export default function PreschoolDevelopmentGradesPage() {
           </div>
         )}
 
-        {/* Table Footer with Pagination */}
+        {/* Available sample roster count */}
         <div className="p-4 sm:p-5 border-t border-slate-100 dark:border-slate-700/70 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
           <div className="text-slate-500 font-medium">
-            Hiển thị <span className="font-bold text-slate-800 dark:text-slate-200">{filteredStudents.length}</span> / 46 trẻ
+            Hiển thị <span className="font-bold text-slate-800 dark:text-slate-200">{filteredStudents.length}</span> / {ROSTER_STUDENTS.length} hồ sơ minh họa
           </div>
 
-          <div className="flex items-center gap-1.5">
-            <button
-              type="button"
-              disabled={currentPage === 1}
-              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-              className="w-7 h-7 rounded-lg border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-50 disabled:opacity-40 transition-colors"
-            >
-              <ChevronLeft className="w-3.5 h-3.5" />
-            </button>
-
-            {[1, 2, 3, 4, 5].map((pageNum) => (
-              <button
-                key={pageNum}
-                type="button"
-                onClick={() => setCurrentPage(pageNum)}
-                className={`w-7 h-7 rounded-lg text-xs font-bold transition-all ${
-                  currentPage === pageNum
-                    ? 'bg-[#0c513f] text-white shadow-xs'
-                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
-                }`}
-              >
-                {pageNum}
-              </button>
-            ))}
-
-            <button
-              type="button"
-              disabled={currentPage === 5}
-              onClick={() => setCurrentPage((p) => Math.min(5, p + 1))}
-              className="w-7 h-7 rounded-lg border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-50 disabled:opacity-40 transition-colors"
-            >
-              <ChevronRight className="w-3.5 h-3.5" />
-            </button>
-          </div>
         </div>
       </div>
 
@@ -1475,8 +1481,8 @@ export default function PreschoolDevelopmentGradesPage() {
 
       {/* ── MODAL 1: STUDENT PORTFOLIO 360° INSPECTION DRAWER ── */}
       {inspectedStudent && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto animate-in fade-in duration-200">
-          <div role="dialog" aria-modal="true" aria-label="Hồ sơ trẻ minh họa" className="w-full max-w-2xl bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl p-6 sm:p-8 space-y-6 max-h-[90vh] overflow-y-auto">
+        <Dialog open onOpenChange={(open) => { if (!open) setInspectedStudent(null); }}>
+          <DialogContent showCloseButton={false} initialFocus finalFocus={() => !profileToObservationRef.current} aria-label="Hồ sơ trẻ minh họa" className="w-full max-w-2xl sm:max-w-2xl bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl p-6 sm:p-8 space-y-6 max-h-[90vh] overflow-y-auto">
             <p className="text-xs font-bold text-slate-700 dark:text-slate-200">Hồ sơ minh họa: thông tin thể chất, nhận xét, bằng chứng và gợi ý bên dưới là nội dung mẫu.</p>
             {/* Header */}
             <div className="flex items-start justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-4">
@@ -1610,6 +1616,8 @@ export default function PreschoolDevelopmentGradesPage() {
               <button
                 type="button"
                 onClick={() => {
+                  profileToObservationRef.current = true;
+                  selectObservationChild(inspectedStudent.id);
                   setInspectedStudent(null);
                   setIsNewObservationModalOpen(true);
                 }}
@@ -1619,14 +1627,14 @@ export default function PreschoolDevelopmentGradesPage() {
                 <span>Thêm quan sát mới</span>
               </button>
             </div>
-          </div>
-        </div>
+          </DialogContent>
+        </Dialog>
       )}
 
       {/* ── MODAL 2: NEW OBSERVATION ENTRY ── */}
       {isNewObservationModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto animate-in fade-in duration-200">
-          <div role="dialog" aria-modal="true" aria-labelledby="new-observation-title" aria-describedby="new-observation-draft-note" className="w-full max-w-lg bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl p-6 sm:p-8 space-y-5 max-h-[90vh] overflow-y-auto">
+        <Dialog open onOpenChange={(open) => { if (!open) setIsNewObservationModalOpen(false); }}>
+          <DialogContent showCloseButton={false} initialFocus finalFocus={observationOpenerRef} aria-labelledby="new-observation-title" aria-describedby="new-observation-draft-note" className="w-full max-w-lg sm:max-w-lg bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl p-6 sm:p-8 space-y-5 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-700 flex items-center justify-center">
@@ -1647,7 +1655,7 @@ export default function PreschoolDevelopmentGradesPage() {
             </div>
 
             <p id="new-observation-draft-note" className="text-xs leading-relaxed text-slate-700 dark:text-slate-200">
-              Bản nháp thử giao diện, chưa lưu vào hồ sơ. Nội dung được giữ khi đóng rồi mở lại trong màn hình này; tải lại hoặc rời trang sẽ mất bản nháp. Chỉ nhập dữ liệu giả.
+              Bản nháp thử giao diện, chưa lưu vào hồ sơ. Mỗi trẻ có bản nháp riêng, được giữ khi đổi trẻ hoặc đóng rồi mở lại trong màn hình này; tải lại hoặc rời trang sẽ mất bản nháp. Chỉ nhập dữ liệu giả.
             </p>
 
             <div className="space-y-4 text-xs">
@@ -1658,7 +1666,7 @@ export default function PreschoolDevelopmentGradesPage() {
                 <select
                   id="new-observation-student"
                   value={newObsStudentId}
-                  onChange={(e: ChangeEvent<HTMLSelectElement>) => setNewObsStudentId(e.target.value)}
+                  onChange={(e: ChangeEvent<HTMLSelectElement>) => selectObservationChild(e.target.value)}
                   className="w-full p-2.5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 font-medium"
                 >
                   {ROSTER_STUDENTS.map((s) => (
@@ -1677,7 +1685,7 @@ export default function PreschoolDevelopmentGradesPage() {
                   <select
                     id="new-observation-domain"
                     value={newObsDomain}
-                    onChange={(e: ChangeEvent<HTMLSelectElement>) => setNewObsDomain(e.target.value)}
+                    onChange={(e: ChangeEvent<HTMLSelectElement>) => updateObservationDraft({ domain: e.target.value })}
                     className="w-full p-2.5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 font-medium"
                   >
                     <option>Thể chất & Vận động</option>
@@ -1695,7 +1703,7 @@ export default function PreschoolDevelopmentGradesPage() {
                   <select
                     id="new-observation-progression"
                     value={newObsProgression}
-                    onChange={(e: ChangeEvent<HTMLSelectElement>) => setNewObsProgression(e.target.value)}
+                    onChange={(e: ChangeEvent<HTMLSelectElement>) => updateObservationDraft({ progression: e.target.value })}
                     className="w-full p-2.5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 font-medium"
                   >
                     <option>Đang làm quen</option>
@@ -1714,7 +1722,7 @@ export default function PreschoolDevelopmentGradesPage() {
                   id="new-observation-skill"
                   type="text"
                   value={newObsSkill}
-                  onChange={(e: ChangeEvent<HTMLInputElement>) => setNewObsSkill(e.target.value)}
+                  onChange={(e: ChangeEvent<HTMLInputElement>) => updateObservationDraft({ skill: e.target.value })}
                   placeholder="Ví dụ: Tự cởi cúc áo, nhận biết thẻ chữ o-ô-ơ..."
                   className="w-full p-2.5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 font-medium"
                 />
@@ -1728,7 +1736,7 @@ export default function PreschoolDevelopmentGradesPage() {
                   id="new-observation-note"
                   rows={3}
                   value={newObsNote}
-                  onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setNewObsNote(e.target.value)}
+                  onChange={(e: ChangeEvent<HTMLTextAreaElement>) => updateObservationDraft({ note: e.target.value })}
                   placeholder="Ghi lại hành vi cụ thể của trẻ trong ngữ cảnh tự nhiên..."
                   className="w-full p-2.5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 font-medium"
                 />
@@ -1744,7 +1752,7 @@ export default function PreschoolDevelopmentGradesPage() {
                   min={0}
                   max={10}
                   value={newObsPhotosCount}
-                  onChange={(e: ChangeEvent<HTMLInputElement>) => setNewObsPhotosCount(Number(e.target.value))}
+                  onChange={(e: ChangeEvent<HTMLInputElement>) => updateObservationDraft({ photosCount: Number(e.target.value) })}
                   className="w-full p-2.5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 font-medium"
                 />
               </div>
@@ -1774,14 +1782,14 @@ export default function PreschoolDevelopmentGradesPage() {
                 <span>Lưu quan sát</span>
               </button>
             </div>
-          </div>
-        </div>
+          </DialogContent>
+        </Dialog>
       )}
 
       {/* ── MODAL 3: AI SUGGESTIONS DRAWER ── */}
       {isAiSuggestionsDrawerOpen && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto animate-in fade-in duration-200">
-          <div role="dialog" aria-modal="true" aria-labelledby="ai-sample-title" className="w-full max-w-lg bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl p-6 sm:p-8 space-y-5 max-h-[90vh] overflow-y-auto">
+        <Dialog open onOpenChange={(open) => { if (!open) setIsAiSuggestionsDrawerOpen(false); }}>
+          <DialogContent showCloseButton={false} initialFocus aria-labelledby="ai-sample-title" className="w-full max-w-lg sm:max-w-lg bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl p-6 sm:p-8 space-y-5 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/80 text-blue-600 flex items-center justify-center">
@@ -1843,8 +1851,8 @@ export default function PreschoolDevelopmentGradesPage() {
                 Đóng gợi ý minh họa
               </button>
             </div>
-          </div>
-        </div>
+          </DialogContent>
+        </Dialog>
       )}
     </div>
   );

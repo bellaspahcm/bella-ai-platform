@@ -1,0 +1,193 @@
+{
+  "result": "NATIVE_TASK_EXECUTED_PENDING_LEAD_REVIEW",
+  "fault": null,
+  "completedAt": "2026-10-17T22:31:56.947Z",
+  "baseline": "9418a8d4a532dd6ee71a05d9e2b335468a29f34c",
+  "binding": {
+    "repository": "bellaspahcm/bella-ai-platform",
+    "taskId": "b5bbbfec-219a-49d7-9813-0eae507f01c4",
+    "runId": "665b5a54-541f-481b-ba0b-c7eadcc702b8",
+    "attempt": 2,
+    "producerInstanceId": "2676999f-0a5f-456f-bbf2-83c64934e820",
+    "threadId": "01a14bf9-ec47-76b0-b000-30766f1088af",
+    "sessionId": "01a14bf9-ec47-76b0-b000-30766f1088af",
+    "turnId": "01a14bf9-ed84-7460-abfa-05537a1717eb"
+  },
+  "model": "gpt-6.1-sol",
+  "authorityVerifiedAt": "2026-10-17T22:27:10.221Z",
+  "directory": "C:\\Users\\DELL\\.codex\\agent-flow-evidence\\bella-agent-flow-vdhgU5",
+  "nativeTurnStatus": "completed",
+  "commands": [
+    {
+      "itemId": "exec-2ced4190-f758-4dd8-ad53-47b80399553b",
+      "exitCode": 0,
+      "commandSha256": "010dc1636c4349e7f9fb61036c41648594060b4865a679ce623f84070c8735d5",
+      "outputSha256": "3b82a26b625ff7b3cc12aff65530e6389b7da9a87691e05f4687f81baf2e3e5e"
+    },
+    {
+      "itemId": "exec-1a7acc37-e37a-4ba3-92f7-694908bebc85",
+      "exitCode": 0,
+      "commandSha256": "8c3f4ae982c4a4ed0c5b8912946e20b33a7c5c3008497527eda17cb61ce4bf1c",
+      "outputSha256": "9d375731c8ca583bf8f272db06aede1f03763962cba5dc3d2cc40f7ff28e8064"
+    },
+    {
+      "itemId": "exec-683d3290-0e8d-429b-a1a8-329a0990fc8e",
+      "exitCode": 0,
+      "commandSha256": "ea45163b9a6cee346f5235195c5d18d3bb3c9c9eda6de302c0f5bbfee0a72d1e",
+      "outputSha256": "9fd6c72e04ab3b8f29ea883452c3f999a65aeb7bd29a8551e5de9323dc8fb4e7"
+    },
+    {
+      "itemId": "exec-004fb019-fc28-4ee8-b22c-7e021c2517d2",
+      "exitCode": 0,
+      "commandSha256": "a639ef6517cbfb9489befe04676af339ce63f7084b287fd58adccf52d1f6aa11",
+      "outputSha256": "5747ad25e626feb0133ca44cc893bb02339bd9e1a676c67ee27a14542d877544"
+    },
+    {
+      "itemId": "exec-8aa08367-c59f-4d28-babd-76d6a8fb99ba",
+      "exitCode": 0,
+      "commandSha256": "0a184c36e653626b7dcb037e161430616465c0a44ef2edde9c9d7af416705cda",
+      "outputSha256": "a407805e74638e010a12feb36b94d922b45826309691a1c2b1d438b925aec019"
+    },
+    {
+      "itemId": "exec-2a53eded-f090-44ed-a718-05e3abaada9c",
+      "exitCode": 0,
+      "commandSha256": "dbe08ea160ad18da5599566fc6c060617acf150c317aeaa5de33f60bb22b6ad9",
+      "outputSha256": "b867bb19f87d14d168b2cfc06fda3adff5f6d0a9fc24f1c5a31b105de09b815d"
+    },
+    {
+      "itemId": "exec-1e3ee2d3-6960-4764-a02f-419ab04fee52",
+      "exitCode": 0,
+      "commandSha256": "9115a186f9605d9cc16969cd3cef07bf71c24b9b4b5d05542b2d2b7dd4cc67c5",
+      "outputSha256": "786c54ff21a90d660a3444e95e1b47bb2beb23cf56e6735bf9223b678640ede0"
+    },
+    {
+      "itemId": "exec-c580ca48-4de9-4935-b075-0c4e8a368c04",
+      "exitCode": 0,
+      "commandSha256": "e8461c845814de4be3560a63222cd874fa2b92cee63a1186b729f715da2b0f2b",
+      "outputSha256": "75abd1ef7f8e24e3e236dbdc7ea6e884fb8f7c6feeb749023de0e2978a1aa134"
+    },
+    {
+      "itemId": "exec-cdeff26f-01ea-4ee0-ada6-b3436535c001",
+      "exitCode": 1,
+      "commandSha256": "a29e5a4b741db00efe236a95d6da3fd7f8d49e144e27e3a4da839764a4d3cf8d",
+      "outputSha256": "5a2cd96a9dce369083c1c5a700bc5131db2209c0d02f68867d37b389b0eb6ea8"
+    },
+    {
+      "itemId": "exec-47dec9e6-3da6-4553-b444-6ea4499c1d40",
+      "exitCode": 0,
+      "commandSha256": "9033dc4395cd5ed7fffb28d832f065e8bfb0ce36b910c5507147f94a25d57b3e",
+      "outputSha256": "fb7d14cd148453a820e6de99d65db847a6eb4cb4aff3e507a0f946a9475d7b8e"
+    },
+    {
+      "itemId": "exec-28cfaee9-6083-4a11-b8d2-f0dad990f4c1",
+      "exitCode": 0,
+      "commandSha256": "ca56f7dcd3d4a9355ad1f281d5cee835a0e3d9ca2c805de1dc30d7b58e7de1da",
+      "outputSha256": "a10c290c918cd93df305ed7555f956633123cf072d785aa7e39ca64add097bf9"
+    },
+    {
+      "itemId": "exec-2931483b-c6e2-4c5d-8621-0da66174b3a5",
+      "exitCode": 0,
+      "commandSha256": "73851040a02cd6411f33cbcd5b6f7bc79a44f76d9facc4274013cf14c1f7bcde",
+      "outputSha256": "5a93367a7210e5044dc2765c2bbbc555e83d722b77f1218ed51797f4bd298757"
+    },
+    {
+      "itemId": "exec-44ba0071-c314-4a5e-a75d-e8ec5be8e4e7",
+      "exitCode": 0,
+      "commandSha256": "e29cb92fde844eecd29481dfc905171fd53d2431636900df3bac4f613174df40",
+      "outputSha256": "fea78ffb85e8a14caf232be16bc3ca818663e08c9a7e1cd0dc00a64888270506"
+    },
+    {
+      "itemId": "exec-1a7cb092-3eff-4e53-b59a-f4bdcdae7eb0",
+      "exitCode": 1,
+      "commandSha256": "3a012754203ea0659da8193c9287f4b2104751d9d2cf401f99a2547a284b101e",
+      "outputSha256": "ec24288e730b9fc70f5ea36e4f79390a123c60e45685f2181e4efd0622e61951"
+    },
+    {
+      "itemId": "exec-e53e69e4-cf33-4ce1-85a9-94034c888320",
+      "exitCode": 0,
+      "commandSha256": "6320a041ffeaaee334b49c297835f07275c0a084035d1aba0cc4a17d6764fa10",
+      "outputSha256": "8e6c2705980f1205ff8a807829d4ed0db95f53945ac663fd6e123d92f72a9c0d"
+    },
+    {
+      "itemId": "exec-0c6b4a30-2d57-47bd-a460-203fd7ab1092",
+      "exitCode": 0,
+      "commandSha256": "23abf23955bd397f0438943cc119536bc335650c68fc06975c006f5bc767f755",
+      "outputSha256": "43fabc49bf6df8736f679eb122d276fc93749d5177407cb7a8590faf717b3850"
+    },
+    {
+      "itemId": "exec-ca55fbdc-e430-4c58-8b4c-b800ce165f48",
+      "exitCode": 0,
+      "commandSha256": "fd6b72a49ba06414b91d22f0ec13a9b52ac662675cee121fe7007baf4ccc4d2b",
+      "outputSha256": "15d62d688d5a9cb176b28df718983e889e849a0245085efdae6325f4c8b82129"
+    },
+    {
+      "itemId": "exec-4ff7e134-5784-4c05-8c74-17307a099c28",
+      "exitCode": 0,
+      "commandSha256": "2d76075f116e6fe2a7f662338531963c8f8d33fb40ae413abe5e4649fd2c6985",
+      "outputSha256": "e862d8af1210533ba7b0aba138e1770b8eb582679e62ee8711c569de2e6e949b"
+    }
+  ],
+  "changes": [
+    {
+      "itemId": "exec-d1123307-fb88-4380-bf12-1e72d6fae8b5",
+      "status": "completed",
+      "paths": [
+        "src/app/dashboard/education/grades/page.tsx"
+      ]
+    },
+    {
+      "itemId": "exec-f73d39da-1e6b-44a8-ac6c-9e3ad1bb5b91",
+      "status": "completed",
+      "paths": [
+        "docs/audits/preschool-roster-journey-flow/roster-browser.cjs"
+      ]
+    },
+    {
+      "itemId": "exec-071318d1-7150-41f2-b6ff-244a6ca54a8a",
+      "status": "completed",
+      "paths": [
+        "src/app/dashboard/education/grades/page.tsx"
+      ]
+    },
+    {
+      "itemId": "exec-f39a3a7d-8751-4d2b-a75e-1f4deb91b84c",
+      "status": "completed",
+      "paths": [
+        "docs/audits/preschool-roster-journey-flow/PR_BODY.md"
+      ]
+    }
+  ],
+  "changed": [
+    "docs/audits/preschool-roster-journey-flow/PR_BODY.md",
+    "docs/audits/preschool-roster-journey-flow/native-after.json",
+    "docs/audits/preschool-roster-journey-flow/native-before.json",
+    "docs/audits/preschool-roster-journey-flow/roster-browser.cjs",
+    "docs/audits/preschool-roster-journey-flow/verification.json"
+  ],
+  "acks": 88,
+  "facts": 88,
+  "fileChange": [
+    {
+      "itemId": "exec-d1123307-fb88-4380-bf12-1e72d6fae8b5",
+      "result": "MATCH"
+    },
+    {
+      "itemId": "exec-f73d39da-1e6b-44a8-ac6c-9e3ad1bb5b91",
+      "result": "MATCH"
+    },
+    {
+      "itemId": "exec-071318d1-7150-41f2-b6ff-244a6ca54a8a",
+      "result": "MATCH"
+    },
+    {
+      "itemId": "exec-f39a3a7d-8751-4d2b-a75e-1f4deb91b84c",
+      "result": "MATCH"
+    }
+  ],
+  "sourceBefore": "4f62e34e3ed5a1a0b7ea1bcb44070ece6a1aaa8d81ef94995dcfde880e36850b",
+  "sourceAfter": "4f62e34e3ed5a1a0b7ea1bcb44070ece6a1aaa8d81ef94995dcfde880e36850b",
+  "beforeInventorySha256": "0d5e2c1695a5e385bd0030a36e328dfe4415ac1b1f1e9ddf981615b791b15d38",
+  "afterInventorySha256": "e430db22d8a383e0fcd6884ddcaf3783c5e84c73dcd6590240ed123518c71543",
+  "scope": "One synthetic UI task, not autonomous discovery or Product readiness",
+  "dbOperations": 0
+}
