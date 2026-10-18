@@ -191,10 +191,49 @@ export async function GET(request: Request) {
       // Grade key mapping from course_code or course_name
       let gradeKey: 'mam' | 'choi' | 'la' | 'nursery' = 'mam';
       const codeUpper = (course.course_code || '').toUpperCase();
-      const title = projection?.course_name || course.title;
-      if (codeUpper.includes('CHOI') || title.includes('Chồi')) gradeKey = 'choi';
-      else if (codeUpper.includes('LA') || title.includes('Lá')) gradeKey = 'la';
-      else if (codeUpper.includes('NURSERY') || title.includes('Nhi')) gradeKey = 'nursery';
+      const title = projection?.course_name || course.title || '';
+      const titleLower = title.toLowerCase();
+
+      if (
+        codeUpper.includes('NURSERY') ||
+        codeUpper.includes('NHA-TRE') ||
+        codeUpper.includes('NHA_TRE') ||
+        /\b(TRE|NURSERY)\b/i.test(codeUpper) ||
+        titleLower.includes('nhà trẻ') ||
+        titleLower.includes('nhatre') ||
+        titleLower.includes('nursery')
+      ) {
+        gradeKey = 'nursery';
+      } else if (
+        codeUpper.includes('CHOI') ||
+        titleLower.includes('chồi') ||
+        /\bchoi\b/i.test(titleLower)
+      ) {
+        gradeKey = 'choi';
+      } else if (
+        /\bLA\b/.test(codeUpper) ||
+        codeUpper.startsWith('LA-') ||
+        codeUpper.startsWith('LA_') ||
+        titleLower.includes('khối lá') ||
+        titleLower.includes('lớp lá') ||
+        /\blá\b/i.test(titleLower)
+      ) {
+        gradeKey = 'la';
+      } else if (
+        codeUpper.includes('MAM') ||
+        titleLower.includes('khối mầm') ||
+        titleLower.includes('lớp mầm') ||
+        titleLower.includes('mầm non') ||
+        /\bmầm\b/i.test(titleLower)
+      ) {
+        gradeKey = 'mam';
+      }
+
+      const defaultGradeLabel =
+        gradeKey === 'nursery' ? 'Nhà Trẻ (18-36 tháng)'
+        : gradeKey === 'choi' ? 'Khối Chồi (4 tuổi)'
+        : gradeKey === 'la' ? 'Khối Lá (5 tuổi)'
+        : 'Khối Mầm (3 tuổi)';
 
       const currentStudents = studentCount || course.current_enrollment || 0;
       const maxCap = course.max_students || projection?.duration_weeks || 25;
@@ -224,7 +263,7 @@ export async function GET(request: Request) {
         id: course.id,
         code: course.course_code,
         name: title,
-        grade: projection?.description || 'Khối Mầm (3 tuổi)',
+        grade: projection?.description || defaultGradeLabel,
         gradeKey,
         room: readMetadataString(projection?.metadata ?? null, 'room') || 'Phòng 101 • Tầng 1',
         teacher: teacherNames,
@@ -234,7 +273,7 @@ export async function GET(request: Request) {
         students: currentStudents,
         maxStudents: maxCap,
         academicYear: '2025-2026',
-        focus: 'Phát triển Kỹ năng & Vận động',
+        focus: projection?.description || 'Phát triển Kỹ năng & Vận động',
         status: course.status === 'active' ? 'active' : course.status === 'archived' ? 'archived' : 'inactive',
         todayStatus: {
           present: presentCount,
