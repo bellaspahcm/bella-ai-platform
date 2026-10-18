@@ -19,6 +19,8 @@ import {
   BellRing,
   AlertCircle,
   Loader2,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 
 type AttendanceStatus = 'present' | 'absent' | 'excused';
@@ -135,6 +137,30 @@ export default function AttendancePage() {
       );
     });
   }, [currentRoster, search]);
+
+  const [attendancePage, setAttendancePage] = useState(1);
+  const [attendancePageSize, setAttendancePageSize] = useState(10);
+  const [handoverPage, setHandoverPage] = useState(1);
+  const [handoverPageSize, setHandoverPageSize] = useState(8);
+
+  useEffect(() => {
+    setAttendancePage(1);
+    setHandoverPage(1);
+  }, [search, selectedCourseId, schoolDay]);
+
+  const attendanceTotalPages = Math.max(1, Math.ceil(filteredRoster.length / attendancePageSize));
+  const validAttendancePage = Math.min(attendancePage, attendanceTotalPages);
+  const attendanceStartIdx = (validAttendancePage - 1) * attendancePageSize;
+  const paginatedAttendanceRoster = useMemo(() => {
+    return filteredRoster.slice(attendanceStartIdx, attendanceStartIdx + attendancePageSize);
+  }, [filteredRoster, attendanceStartIdx, attendancePageSize]);
+
+  const handoverTotalPages = Math.max(1, Math.ceil(filteredRoster.length / handoverPageSize));
+  const validHandoverPage = Math.min(handoverPage, handoverTotalPages);
+  const handoverStartIdx = (validHandoverPage - 1) * handoverPageSize;
+  const paginatedHandoverRoster = useMemo(() => {
+    return filteredRoster.slice(handoverStartIdx, handoverStartIdx + handoverPageSize);
+  }, [filteredRoster, handoverStartIdx, handoverPageSize]);
 
   const attendanceSummary = useMemo(() => {
     return currentRoster.reduce(
@@ -491,7 +517,7 @@ export default function AttendancePage() {
                     </td>
                   </tr>
                 ) : (
-                  filteredRoster.map((row) => {
+                  paginatedAttendanceRoster.map((row) => {
                     const status = row.attendance?.status;
                     return (
                       <tr key={row.enrollmentId} className="hover:bg-slate-50/80 dark:hover:bg-slate-700/30 transition-colors">
@@ -547,6 +573,16 @@ export default function AttendancePage() {
               </tbody>
             </table>
           </div>
+
+          <PaginationControl
+            currentPage={validAttendancePage}
+            totalItems={filteredRoster.length}
+            pageSize={attendancePageSize}
+            onPageChange={setAttendancePage}
+            onPageSizeChange={setAttendancePageSize}
+            pageSizeOptions={[8, 10, 15, 25, 50]}
+            itemLabel="học sinh"
+          />
         </div>
 
         <div className="rounded-3xl bg-white dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 p-6 shadow-sm space-y-5 flex flex-col justify-between">
@@ -585,60 +621,76 @@ export default function AttendancePage() {
             </div>
 
             <div className="space-y-3">
-              {filteredRoster.map((row) => {
-                const guardian = row.authorizedGuardians?.[0] ?? null;
-                const handover = row.safePickupHandover ?? null;
-                const savingHandover = savingHandoverStudentPartyId === row.studentPartyId;
+              {paginatedHandoverRoster.length === 0 ? (
+                <div className="py-8 text-center text-xs text-gray-500 dark:text-gray-400">
+                  {loadingRoster ? 'Đang tải danh sách...' : 'Không có học sinh nào trong lớp/ngày này'}
+                </div>
+              ) : (
+                paginatedHandoverRoster.map((row) => {
+                  const guardian = row.authorizedGuardians?.[0] ?? null;
+                  const handover = row.safePickupHandover ?? null;
+                  const savingHandover = savingHandoverStudentPartyId === row.studentPartyId;
 
-                return (
-                  <div
-                    key={row.studentPartyId}
-                    className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-700/40 border border-slate-100 dark:border-slate-700/50 flex items-center justify-between gap-4"
-                  >
-                    <div className="space-y-1">
-                      <h4 className="text-xs font-bold text-gray-900 dark:text-white">
-                        {row.name}
-                      </h4>
-                      {guardian ? (
-                        <p className="text-[11px] text-emerald-700 dark:text-emerald-300 font-bold">
-                          Được phép đón: {guardian.displayName}
-                          {guardian.phone ? ` · ${guardian.phone}` : ''}
-                        </p>
-                      ) : (
-                        <p className="text-[11px] text-amber-700 dark:text-amber-300 font-bold">
-                          Chưa có guardian được phép đón
-                        </p>
-                      )}
-                      {handover ? (
-                        <p className="text-[11px] text-sky-700 dark:text-sky-300 font-bold">
-                          Đã bàn giao: {guardian?.displayName ?? 'Guardian đã xác thực'} · {formatHandoverTime(handover.handedOverAt)}
-                        </p>
-                      ) : null}
-                      <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold flex items-center gap-1">
-                        <QrCode className="w-3 h-3" /> QR chưa kết nối; bàn giao ghi nhận bằng thao tác nhân viên
-                      </span>
-                    </div>
-
-                    <button
-                      type="button"
-                      disabled={!rosterReady || savingCommand || !guardian || Boolean(handover)}
-                      onClick={() => {
-                        if (guardian) void recordHandover(row, guardian);
-                      }}
-                      className={`px-3.5 py-2 rounded-2xl font-bold text-xs shrink-0 transition-colors ${
-                        handover
-                          ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 cursor-default'
-                          : guardian
-                            ? 'bg-primary text-primary-foreground hover:bg-primary-hover disabled:opacity-60'
-                            : 'bg-slate-200 dark:bg-slate-700 text-slate-500 cursor-not-allowed'
-                      }`}
+                  return (
+                    <div
+                      key={row.studentPartyId}
+                      className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-700/40 border border-slate-100 dark:border-slate-700/50 flex items-center justify-between gap-4"
                     >
-                      {savingHandover ? 'Đang ghi...' : handover ? 'Đã bàn giao' : 'Bàn giao'}
-                    </button>
-                  </div>
-                );
-              })}
+                      <div className="space-y-1">
+                        <h4 className="text-xs font-bold text-gray-900 dark:text-white">
+                          {row.name}
+                        </h4>
+                        {guardian ? (
+                          <p className="text-[11px] text-emerald-700 dark:text-emerald-300 font-bold">
+                            Được phép đón: {guardian.displayName}
+                            {guardian.phone ? ` · ${guardian.phone}` : ''}
+                          </p>
+                        ) : (
+                          <p className="text-[11px] text-amber-700 dark:text-amber-300 font-bold">
+                            Chưa có guardian được phép đón
+                          </p>
+                        )}
+                        {handover ? (
+                          <p className="text-[11px] text-sky-700 dark:text-sky-300 font-bold">
+                            Đã bàn giao: {guardian?.displayName ?? 'Guardian đã xác thực'} · {formatHandoverTime(handover.handedOverAt)}
+                          </p>
+                        ) : null}
+                        <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold flex items-center gap-1">
+                          <QrCode className="w-3 h-3" /> QR chưa kết nối; bàn giao ghi nhận bằng thao tác nhân viên
+                        </span>
+                      </div>
+
+                      <button
+                        type="button"
+                        disabled={!rosterReady || savingCommand || !guardian || Boolean(handover)}
+                        onClick={() => {
+                          if (guardian) void recordHandover(row, guardian);
+                        }}
+                        className={`px-3.5 py-2 rounded-2xl font-bold text-xs shrink-0 transition-colors ${
+                          handover
+                            ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 cursor-default'
+                            : guardian
+                              ? 'bg-primary text-primary-foreground hover:bg-primary-hover disabled:opacity-60'
+                              : 'bg-slate-200 dark:bg-slate-700 text-slate-500 cursor-not-allowed'
+                        }`}
+                      >
+                        {savingHandover ? 'Đang ghi...' : handover ? 'Đã bàn giao' : 'Bàn giao'}
+                      </button>
+                    </div>
+                  );
+                })
+              )}
             </div>
+
+            <PaginationControl
+              currentPage={validHandoverPage}
+              totalItems={filteredRoster.length}
+              pageSize={handoverPageSize}
+              onPageChange={setHandoverPage}
+              onPageSizeChange={setHandoverPageSize}
+              pageSizeOptions={[6, 8, 12, 20, 50]}
+              itemLabel="học sinh"
+            />
           </div>
 
           <div className="p-4 rounded-2xl bg-primary/10 border border-primary/20 space-y-1 text-xs">
@@ -657,3 +709,117 @@ export default function AttendancePage() {
 }
 
 const VALID_ATTENDANCE_ACTIONS: readonly AttendanceStatus[] = ['present', 'absent', 'excused'];
+
+interface PaginationControlProps {
+  currentPage: number;
+  totalItems: number;
+  pageSize: number;
+  onPageChange: (page: number) => void;
+  onPageSizeChange?: (size: number) => void;
+  pageSizeOptions?: readonly number[];
+  itemLabel?: string;
+}
+
+function PaginationControl({
+  currentPage,
+  totalItems,
+  pageSize,
+  onPageChange,
+  onPageSizeChange,
+  pageSizeOptions = [8, 10, 15, 25, 50],
+  itemLabel = 'học sinh',
+}: PaginationControlProps) {
+  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+  const safePage = Math.min(Math.max(1, currentPage), totalPages);
+  const startItem = totalItems === 0 ? 0 : (safePage - 1) * pageSize + 1;
+  const endItem = Math.min(safePage * pageSize, totalItems);
+
+  const getVisiblePages = (): (number | string)[] => {
+    if (totalPages <= 5) {
+      return Array.from({ length: totalPages }, (_, i) => i + 1);
+    }
+    if (safePage <= 3) {
+      return [1, 2, 3, 4, '...', totalPages];
+    }
+    if (safePage >= totalPages - 2) {
+      return [1, '...', totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
+    }
+    return [1, '...', safePage - 1, safePage, safePage + 1, '...', totalPages];
+  };
+
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 border-t border-slate-100 dark:border-slate-700/60 bg-slate-50/60 dark:bg-slate-800/40 text-xs">
+      <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400">
+        <span>
+          <strong className="text-slate-700 dark:text-slate-200">{startItem}–{endItem}</strong> / <strong className="text-slate-700 dark:text-slate-200">{totalItems}</strong> {itemLabel}
+        </span>
+        {onPageSizeChange && totalItems > 0 && (
+          <select
+            value={pageSize}
+            aria-label="Số lượng mỗi trang"
+            onChange={(e) => {
+              onPageSizeChange(Number(e.target.value));
+              onPageChange(1);
+            }}
+            className="ml-1 px-2 py-0.5 text-[11px] font-bold rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 focus:outline-none"
+          >
+            {pageSizeOptions.map((opt) => (
+              <option key={opt} value={opt}>
+                {opt >= 50 ? 'Tất cả' : `${opt}/trang`}
+              </option>
+            ))}
+          </select>
+        )}
+      </div>
+
+      {totalPages > 1 && (
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            disabled={safePage <= 1}
+            onClick={() => onPageChange(safePage - 1)}
+            className="p-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-30 disabled:pointer-events-none transition-all"
+            title="Trang trước"
+          >
+            <ChevronLeft className="w-3.5 h-3.5" />
+          </button>
+
+          {getVisiblePages().map((item, idx) => {
+            if (typeof item === 'string') {
+              return (
+                <span key={`ellipsis-${idx}`} className="px-1 text-slate-400 text-[10px]">
+                  …
+                </span>
+              );
+            }
+            const isCurrent = item === safePage;
+            return (
+              <button
+                key={item}
+                type="button"
+                onClick={() => onPageChange(item)}
+                className={`min-w-[26px] h-6 px-1.5 rounded-lg text-[10px] font-extrabold transition-all ${
+                  isCurrent
+                    ? 'bg-primary text-primary-foreground shadow-2xs'
+                    : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                }`}
+              >
+                {item}
+              </button>
+            );
+          })}
+
+          <button
+            type="button"
+            disabled={safePage >= totalPages}
+            onClick={() => onPageChange(safePage + 1)}
+            className="p-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-30 disabled:pointer-events-none transition-all"
+            title="Trang sau"
+          >
+            <ChevronRight className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
