@@ -591,6 +591,7 @@ export default function CarePage() {
   const unrecordedCount = totalCount - recordedCount;
   const alertCount = useMemo(() => roster.filter((s) => s.isAlert).length, [roster]);
   const recordedPct = totalCount > 0 ? Math.round((recordedCount / totalCount) * 100) : 0;
+  const attendancePct = totalCount > 0 ? Math.round((presentCount / totalCount) * 100) : 0;
   const mealPct = totalCount > 0 ? Math.round((roster.filter((s) => s.mealStatus === 'good').length / totalCount) * 100) : 0;
   const napPct = totalCount > 0 ? Math.round((roster.filter((s) => s.napStatus === 'good').length / totalCount) * 100) : 0;
   const healthPct = totalCount > 0 ? Math.round((roster.filter((s) => s.healthStatus === 'good').length / totalCount) * 100) : 0;
@@ -1183,10 +1184,12 @@ export default function CarePage() {
             {/* Attendance ratio sub-line */}
             {!isRosterLoading && totalCount > 0 && (
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                Có mặt hôm nay: <span className="font-bold text-slate-700 dark:text-slate-200">{recordedCount}</span>
+                Có mặt hôm nay: <span className="font-bold text-slate-700 dark:text-slate-200">{presentCount}</span>
                 <span className="mx-1 text-slate-300">/</span>
                 Sĩ số: <span className="font-bold text-slate-700 dark:text-slate-200">{totalCount}</span>
-                <span className="ml-2 text-emerald-600 dark:text-emerald-400 font-semibold">{recordedPct}%</span>
+                <span className="ml-2 text-emerald-600 dark:text-emerald-400 font-semibold">{attendancePct}%</span>
+                <span className="mx-2 text-slate-300">·</span>
+                Đã ghi nhận chăm sóc: <span className="font-bold text-blue-600 dark:text-blue-400">{recordedCount}/{totalCount}</span> ({recordedPct}%)
               </p>
             )}
           </div>
