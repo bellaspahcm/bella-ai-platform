@@ -1,0 +1,1114 @@
+{
+  "result": "PASS_SCOPED_SYNTHETIC_COMPONENT",
+  "contrastSummary": {
+    "result": "PASS_SCOPED",
+    "checked": 12,
+    "failed": 0,
+    "minimumRatio": 4.817056245726985,
+    "threshold": 4.5
+  },
+  "recordedAt": "2026-10-17T11:53:29.766Z",
+  "limits": "Standalone React mount; Next Link stub; intercepted synthetic HTTP only; actual compiled globals CSS; no Next-managed fonts/preset/layout, authenticated page/Auth/DB/E2E or complete Attendance contrast proof.",
+  "sourceSha256": "e29adc243dc692cf87892cdf8ae02812807c1831a382d1a82cc6e7fde76af80c",
+  "globalsSha256": "1f2458f1e1ff45ff29650ce9bc30a0a408004f079760de68bcef7c915ddce21e",
+  "compiledCssSha256": "a094407fb80550f60263217c4e7c355077ad0d9f633d1cff73324dd056d0ed41",
+  "bundleSha256": "99184266c8d36aa57caf9f3ee4444bce9bc6a2acb40a9feee0533c2e23c6f09b",
+  "results": [
+    {
+      "theme": "light",
+      "device": "desktop",
+      "viewportCheck": {
+        "width": 1440,
+        "contentWidth": 1440
+      },
+      "screenshot": "component-light-desktop.png",
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "gets": [
+        {
+          "courseId": "course-A",
+          "date": "2026-10-17"
+        },
+        {
+          "courseId": "course-B",
+          "date": "2026-10-17"
+        },
+        {
+          "courseId": "course-B",
+          "date": "2026-10-18"
+        },
+        {
+          "courseId": "course-B",
+          "date": "2026-10-18"
+        },
+        {
+          "courseId": "course-B",
+          "date": "2026-10-18"
+        },
+        {
+          "courseId": "course-B",
+          "date": "2026-10-18"
+        }
+      ],
+      "commands": [
+        {
+          "path": "/api/education/attendance",
+          "body": {
+            "enrollmentId": "enrollment-DAY",
+            "status": "present",
+            "date": "2026-10-18"
+          }
+        },
+        {
+          "path": "/api/education/attendance/handover",
+          "body": {
+            "studentPartyId": "party-FRESH",
+            "guardianPartyId": "guardian-FRESH",
+            "pickupAuthorizationId": "authorization-FRESH"
+          }
+        }
+      ],
+      "contrast": [
+        {
+          "label": "attendance-saved-readback-failed",
+          "minimumRatio": 5.164946284270809,
+          "sampledPixels": 6626,
+          "worstBackground": [
+            255,
+            232,
+            234
+          ],
+          "worstForeground": [
+            199,
+            0,
+            54
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "oklch(0.514 0.222 16.935)",
+          "resolvedForegroundRgba": [
+            199,
+            0,
+            54,
+            255
+          ],
+          "effectiveOpacity": 1,
+          "fontSize": "12px",
+          "fontFamily": "\"Times New Roman\"",
+          "ancestorLayers": [
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(255, 228, 230, 0.85)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgb(255, 255, 255)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "oklch(1 0 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "BODY",
+              "backgroundColor": "oklch(1 0 0)",
+              "backgroundImage": "radial-gradient(circle at 0% 0%, rgba(157, 23, 77, 0.04) 0%, rgba(0, 0, 0, 0) 40%), radial-gradient(circle at 100% 100%, rgba(190, 24, 93, 0.04) 0%, rgba(0, 0, 0, 0) 40%)",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "HTML",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            }
+          ],
+          "method": "Chromium canvas CSS-to-sRGB foreground; native raster background with text ink removed, sampling every pixel under actual text rects including ancestor/gradient/alpha/backdrop compositing; WCAG relative luminance; raw ratio compared to 4.5 without rounding."
+        },
+        {
+          "label": "retry-roster",
+          "minimumRatio": 10.35474573184942,
+          "sampledPixels": 1526,
+          "worstBackground": [
+            255,
+            255,
+            255
+          ],
+          "worstForeground": [
+            51,
+            65,
+            85
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "rgb(51, 65, 85)",
+          "resolvedForegroundRgba": [
+            51,
+            65,
+            85,
+            255
+          ],
+          "effectiveOpacity": 1,
+          "fontSize": "12px",
+          "fontFamily": "\"Times New Roman\"",
+          "ancestorLayers": [
+            {
+              "tag": "BUTTON",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgb(255, 255, 255)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "oklch(1 0 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "BODY",
+              "backgroundColor": "oklch(1 0 0)",
+              "backgroundImage": "radial-gradient(circle at 0% 0%, rgba(157, 23, 77, 0.04) 0%, rgba(0, 0, 0, 0) 40%), radial-gradient(circle at 100% 100%, rgba(190, 24, 93, 0.04) 0%, rgba(0, 0, 0, 0) 40%)",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "HTML",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            }
+          ],
+          "method": "Chromium canvas CSS-to-sRGB foreground; native raster background with text ink removed, sampling every pixel under actual text rects including ancestor/gradient/alpha/backdrop compositing; WCAG relative luminance; raw ratio compared to 4.5 without rounding."
+        },
+        {
+          "label": "handover-saved-readback-failed",
+          "minimumRatio": 5.164946284270809,
+          "sampledPixels": 6486,
+          "worstBackground": [
+            255,
+            232,
+            234
+          ],
+          "worstForeground": [
+            199,
+            0,
+            54
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "oklch(0.514 0.222 16.935)",
+          "resolvedForegroundRgba": [
+            199,
+            0,
+            54,
+            255
+          ],
+          "effectiveOpacity": 1,
+          "fontSize": "12px",
+          "fontFamily": "\"Times New Roman\"",
+          "ancestorLayers": [
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(255, 228, 230, 0.85)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgb(255, 255, 255)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "oklch(1 0 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "BODY",
+              "backgroundColor": "oklch(1 0 0)",
+              "backgroundImage": "radial-gradient(circle at 0% 0%, rgba(157, 23, 77, 0.04) 0%, rgba(0, 0, 0, 0) 40%), radial-gradient(circle at 100% 100%, rgba(190, 24, 93, 0.04) 0%, rgba(0, 0, 0, 0) 40%)",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "HTML",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            }
+          ],
+          "method": "Chromium canvas CSS-to-sRGB foreground; native raster background with text ink removed, sampling every pixel under actual text rects including ancestor/gradient/alpha/backdrop compositing; WCAG relative luminance; raw ratio compared to 4.5 without rounding."
+        }
+      ],
+      "result": "PASS_SCOPED_SYNTHETIC_COMPONENT"
+    },
+    {
+      "theme": "light",
+      "device": "mobile",
+      "viewportCheck": {
+        "width": 390,
+        "contentWidth": 390
+      },
+      "screenshot": "component-light-mobile.png",
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "gets": [
+        {
+          "courseId": "course-A",
+          "date": "2026-10-17"
+        },
+        {
+          "courseId": "course-B",
+          "date": "2026-10-17"
+        },
+        {
+          "courseId": "course-B",
+          "date": "2026-10-18"
+        },
+        {
+          "courseId": "course-B",
+          "date": "2026-10-18"
+        },
+        {
+          "courseId": "course-B",
+          "date": "2026-10-18"
+        },
+        {
+          "courseId": "course-B",
+          "date": "2026-10-18"
+        }
+      ],
+      "commands": [
+        {
+          "path": "/api/education/attendance",
+          "body": {
+            "enrollmentId": "enrollment-DAY",
+            "status": "present",
+            "date": "2026-10-18"
+          }
+        },
+        {
+          "path": "/api/education/attendance/handover",
+          "body": {
+            "studentPartyId": "party-FRESH",
+            "guardianPartyId": "guardian-FRESH",
+            "pickupAuthorizationId": "authorization-FRESH"
+          }
+        }
+      ],
+      "contrast": [
+        {
+          "label": "attendance-saved-readback-failed",
+          "minimumRatio": 5.164946284270809,
+          "sampledPixels": 6474,
+          "worstBackground": [
+            255,
+            232,
+            234
+          ],
+          "worstForeground": [
+            199,
+            0,
+            54
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "oklch(0.514 0.222 16.935)",
+          "resolvedForegroundRgba": [
+            199,
+            0,
+            54,
+            255
+          ],
+          "effectiveOpacity": 1,
+          "fontSize": "12px",
+          "fontFamily": "\"Times New Roman\"",
+          "ancestorLayers": [
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(255, 228, 230, 0.85)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgb(255, 255, 255)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "oklch(1 0 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "BODY",
+              "backgroundColor": "oklch(1 0 0)",
+              "backgroundImage": "radial-gradient(circle at 0% 0%, rgba(157, 23, 77, 0.04) 0%, rgba(0, 0, 0, 0) 40%), radial-gradient(circle at 100% 100%, rgba(190, 24, 93, 0.04) 0%, rgba(0, 0, 0, 0) 40%)",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "HTML",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            }
+          ],
+          "method": "Chromium canvas CSS-to-sRGB foreground; native raster background with text ink removed, sampling every pixel under actual text rects including ancestor/gradient/alpha/backdrop compositing; WCAG relative luminance; raw ratio compared to 4.5 without rounding."
+        },
+        {
+          "label": "retry-roster",
+          "minimumRatio": 10.35474573184942,
+          "sampledPixels": 1526,
+          "worstBackground": [
+            255,
+            255,
+            255
+          ],
+          "worstForeground": [
+            51,
+            65,
+            85
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "rgb(51, 65, 85)",
+          "resolvedForegroundRgba": [
+            51,
+            65,
+            85,
+            255
+          ],
+          "effectiveOpacity": 1,
+          "fontSize": "12px",
+          "fontFamily": "\"Times New Roman\"",
+          "ancestorLayers": [
+            {
+              "tag": "BUTTON",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgb(255, 255, 255)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "oklch(1 0 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "BODY",
+              "backgroundColor": "oklch(1 0 0)",
+              "backgroundImage": "radial-gradient(circle at 0% 0%, rgba(157, 23, 77, 0.04) 0%, rgba(0, 0, 0, 0) 40%), radial-gradient(circle at 100% 100%, rgba(190, 24, 93, 0.04) 0%, rgba(0, 0, 0, 0) 40%)",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "HTML",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            }
+          ],
+          "method": "Chromium canvas CSS-to-sRGB foreground; native raster background with text ink removed, sampling every pixel under actual text rects including ancestor/gradient/alpha/backdrop compositing; WCAG relative luminance; raw ratio compared to 4.5 without rounding."
+        },
+        {
+          "label": "handover-saved-readback-failed",
+          "minimumRatio": 5.164946284270809,
+          "sampledPixels": 6320,
+          "worstBackground": [
+            255,
+            232,
+            234
+          ],
+          "worstForeground": [
+            199,
+            0,
+            54
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "oklch(0.514 0.222 16.935)",
+          "resolvedForegroundRgba": [
+            199,
+            0,
+            54,
+            255
+          ],
+          "effectiveOpacity": 1,
+          "fontSize": "12px",
+          "fontFamily": "\"Times New Roman\"",
+          "ancestorLayers": [
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(255, 228, 230, 0.85)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgb(255, 255, 255)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "oklch(1 0 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "BODY",
+              "backgroundColor": "oklch(1 0 0)",
+              "backgroundImage": "radial-gradient(circle at 0% 0%, rgba(157, 23, 77, 0.04) 0%, rgba(0, 0, 0, 0) 40%), radial-gradient(circle at 100% 100%, rgba(190, 24, 93, 0.04) 0%, rgba(0, 0, 0, 0) 40%)",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "HTML",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            }
+          ],
+          "method": "Chromium canvas CSS-to-sRGB foreground; native raster background with text ink removed, sampling every pixel under actual text rects including ancestor/gradient/alpha/backdrop compositing; WCAG relative luminance; raw ratio compared to 4.5 without rounding."
+        }
+      ],
+      "result": "PASS_SCOPED_SYNTHETIC_COMPONENT"
+    },
+    {
+      "theme": "dark",
+      "device": "desktop",
+      "viewportCheck": {
+        "width": 1440,
+        "contentWidth": 1440
+      },
+      "screenshot": "component-dark-desktop.png",
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "gets": [
+        {
+          "courseId": "course-A",
+          "date": "2026-10-17"
+        },
+        {
+          "courseId": "course-B",
+          "date": "2026-10-17"
+        },
+        {
+          "courseId": "course-B",
+          "date": "2026-10-18"
+        },
+        {
+          "courseId": "course-B",
+          "date": "2026-10-18"
+        },
+        {
+          "courseId": "course-B",
+          "date": "2026-10-18"
+        },
+        {
+          "courseId": "course-B",
+          "date": "2026-10-18"
+        }
+      ],
+      "commands": [
+        {
+          "path": "/api/education/attendance",
+          "body": {
+            "enrollmentId": "enrollment-DAY",
+            "status": "present",
+            "date": "2026-10-18"
+          }
+        },
+        {
+          "path": "/api/education/attendance/handover",
+          "body": {
+            "studentPartyId": "party-FRESH",
+            "guardianPartyId": "guardian-FRESH",
+            "pickupAuthorizationId": "authorization-FRESH"
+          }
+        }
+      ],
+      "contrast": [
+        {
+          "label": "attendance-saved-readback-failed",
+          "minimumRatio": 4.817056245726985,
+          "sampledPixels": 6626,
+          "worstBackground": [
+            44,
+            44,
+            62
+          ],
+          "worstForeground": [
+            239,
+            115,
+            122
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "rgb(239, 115, 122)",
+          "resolvedForegroundRgba": [
+            239,
+            115,
+            122,
+            255
+          ],
+          "effectiveOpacity": 1,
+          "fontSize": "12px",
+          "fontFamily": "\"Times New Roman\"",
+          "ancestorLayers": [
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(239, 115, 122, 0.14)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "linear-gradient(rgba(17, 46, 67, 0.94) 0%, rgba(9, 26, 45, 0.88) 100%)",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgb(9, 26, 45)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "BODY",
+              "backgroundColor": "rgb(9, 26, 45)",
+              "backgroundImage": "radial-gradient(circle at 0% 0%, rgba(39, 197, 150, 0.08) 0%, rgba(0, 0, 0, 0) 36%), radial-gradient(circle at 100% 100%, rgba(229, 184, 97, 0.07) 0%, rgba(0, 0, 0, 0) 40%)",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "HTML",
+              "backgroundColor": "rgb(9, 26, 45)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            }
+          ],
+          "method": "Chromium canvas CSS-to-sRGB foreground; native raster background with text ink removed, sampling every pixel under actual text rects including ancestor/gradient/alpha/backdrop compositing; WCAG relative luminance; raw ratio compared to 4.5 without rounding."
+        },
+        {
+          "label": "retry-roster",
+          "minimumRatio": 15.567189317141134,
+          "sampledPixels": 1526,
+          "worstBackground": [
+            11,
+            29,
+            49
+          ],
+          "worstForeground": [
+            243,
+            245,
+            247
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "rgb(243, 245, 247)",
+          "resolvedForegroundRgba": [
+            243,
+            245,
+            247,
+            255
+          ],
+          "effectiveOpacity": 1,
+          "fontSize": "12px",
+          "fontFamily": "\"Times New Roman\"",
+          "ancestorLayers": [
+            {
+              "tag": "BUTTON",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "linear-gradient(rgba(17, 46, 67, 0.94) 0%, rgba(9, 26, 45, 0.88) 100%)",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgb(9, 26, 45)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "BODY",
+              "backgroundColor": "rgb(9, 26, 45)",
+              "backgroundImage": "radial-gradient(circle at 0% 0%, rgba(39, 197, 150, 0.08) 0%, rgba(0, 0, 0, 0) 36%), radial-gradient(circle at 100% 100%, rgba(229, 184, 97, 0.07) 0%, rgba(0, 0, 0, 0) 40%)",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "HTML",
+              "backgroundColor": "rgb(9, 26, 45)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            }
+          ],
+          "method": "Chromium canvas CSS-to-sRGB foreground; native raster background with text ink removed, sampling every pixel under actual text rects including ancestor/gradient/alpha/backdrop compositing; WCAG relative luminance; raw ratio compared to 4.5 without rounding."
+        },
+        {
+          "label": "handover-saved-readback-failed",
+          "minimumRatio": 4.817056245726985,
+          "sampledPixels": 6486,
+          "worstBackground": [
+            44,
+            44,
+            62
+          ],
+          "worstForeground": [
+            239,
+            115,
+            122
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "rgb(239, 115, 122)",
+          "resolvedForegroundRgba": [
+            239,
+            115,
+            122,
+            255
+          ],
+          "effectiveOpacity": 1,
+          "fontSize": "12px",
+          "fontFamily": "\"Times New Roman\"",
+          "ancestorLayers": [
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(239, 115, 122, 0.14)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "linear-gradient(rgba(17, 46, 67, 0.94) 0%, rgba(9, 26, 45, 0.88) 100%)",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgb(9, 26, 45)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "BODY",
+              "backgroundColor": "rgb(9, 26, 45)",
+              "backgroundImage": "radial-gradient(circle at 0% 0%, rgba(39, 197, 150, 0.08) 0%, rgba(0, 0, 0, 0) 36%), radial-gradient(circle at 100% 100%, rgba(229, 184, 97, 0.07) 0%, rgba(0, 0, 0, 0) 40%)",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "HTML",
+              "backgroundColor": "rgb(9, 26, 45)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            }
+          ],
+          "method": "Chromium canvas CSS-to-sRGB foreground; native raster background with text ink removed, sampling every pixel under actual text rects including ancestor/gradient/alpha/backdrop compositing; WCAG relative luminance; raw ratio compared to 4.5 without rounding."
+        }
+      ],
+      "result": "PASS_SCOPED_SYNTHETIC_COMPONENT"
+    },
+    {
+      "theme": "dark",
+      "device": "mobile",
+      "viewportCheck": {
+        "width": 390,
+        "contentWidth": 390
+      },
+      "screenshot": "component-dark-mobile.png",
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "gets": [
+        {
+          "courseId": "course-A",
+          "date": "2026-10-17"
+        },
+        {
+          "courseId": "course-B",
+          "date": "2026-10-17"
+        },
+        {
+          "courseId": "course-B",
+          "date": "2026-10-18"
+        },
+        {
+          "courseId": "course-B",
+          "date": "2026-10-18"
+        },
+        {
+          "courseId": "course-B",
+          "date": "2026-10-18"
+        },
+        {
+          "courseId": "course-B",
+          "date": "2026-10-18"
+        }
+      ],
+      "commands": [
+        {
+          "path": "/api/education/attendance",
+          "body": {
+            "enrollmentId": "enrollment-DAY",
+            "status": "present",
+            "date": "2026-10-18"
+          }
+        },
+        {
+          "path": "/api/education/attendance/handover",
+          "body": {
+            "studentPartyId": "party-FRESH",
+            "guardianPartyId": "guardian-FRESH",
+            "pickupAuthorizationId": "authorization-FRESH"
+          }
+        }
+      ],
+      "contrast": [
+        {
+          "label": "attendance-saved-readback-failed",
+          "minimumRatio": 4.945345580396917,
+          "sampledPixels": 6474,
+          "worstBackground": [
+            43,
+            42,
+            59
+          ],
+          "worstForeground": [
+            239,
+            115,
+            122
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "rgb(239, 115, 122)",
+          "resolvedForegroundRgba": [
+            239,
+            115,
+            122,
+            255
+          ],
+          "effectiveOpacity": 1,
+          "fontSize": "12px",
+          "fontFamily": "\"Times New Roman\"",
+          "ancestorLayers": [
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(239, 115, 122, 0.14)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "linear-gradient(rgba(17, 46, 67, 0.94) 0%, rgba(9, 26, 45, 0.88) 100%)",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgb(9, 26, 45)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "BODY",
+              "backgroundColor": "rgb(9, 26, 45)",
+              "backgroundImage": "radial-gradient(circle at 0% 0%, rgba(39, 197, 150, 0.08) 0%, rgba(0, 0, 0, 0) 36%), radial-gradient(circle at 100% 100%, rgba(229, 184, 97, 0.07) 0%, rgba(0, 0, 0, 0) 40%)",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "HTML",
+              "backgroundColor": "rgb(9, 26, 45)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            }
+          ],
+          "method": "Chromium canvas CSS-to-sRGB foreground; native raster background with text ink removed, sampling every pixel under actual text rects including ancestor/gradient/alpha/backdrop compositing; WCAG relative luminance; raw ratio compared to 4.5 without rounding."
+        },
+        {
+          "label": "retry-roster",
+          "minimumRatio": 15.749277566157884,
+          "sampledPixels": 1526,
+          "worstBackground": [
+            10,
+            28,
+            47
+          ],
+          "worstForeground": [
+            243,
+            245,
+            247
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "rgb(243, 245, 247)",
+          "resolvedForegroundRgba": [
+            243,
+            245,
+            247,
+            255
+          ],
+          "effectiveOpacity": 1,
+          "fontSize": "12px",
+          "fontFamily": "\"Times New Roman\"",
+          "ancestorLayers": [
+            {
+              "tag": "BUTTON",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "linear-gradient(rgba(17, 46, 67, 0.94) 0%, rgba(9, 26, 45, 0.88) 100%)",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgb(9, 26, 45)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "BODY",
+              "backgroundColor": "rgb(9, 26, 45)",
+              "backgroundImage": "radial-gradient(circle at 0% 0%, rgba(39, 197, 150, 0.08) 0%, rgba(0, 0, 0, 0) 36%), radial-gradient(circle at 100% 100%, rgba(229, 184, 97, 0.07) 0%, rgba(0, 0, 0, 0) 40%)",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "HTML",
+              "backgroundColor": "rgb(9, 26, 45)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            }
+          ],
+          "method": "Chromium canvas CSS-to-sRGB foreground; native raster background with text ink removed, sampling every pixel under actual text rects including ancestor/gradient/alpha/backdrop compositing; WCAG relative luminance; raw ratio compared to 4.5 without rounding."
+        },
+        {
+          "label": "handover-saved-readback-failed",
+          "minimumRatio": 4.945345580396917,
+          "sampledPixels": 6320,
+          "worstBackground": [
+            43,
+            42,
+            59
+          ],
+          "worstForeground": [
+            239,
+            115,
+            122
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "rgb(239, 115, 122)",
+          "resolvedForegroundRgba": [
+            239,
+            115,
+            122,
+            255
+          ],
+          "effectiveOpacity": 1,
+          "fontSize": "12px",
+          "fontFamily": "\"Times New Roman\"",
+          "ancestorLayers": [
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(239, 115, 122, 0.14)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "linear-gradient(rgba(17, 46, 67, 0.94) 0%, rgba(9, 26, 45, 0.88) 100%)",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgb(9, 26, 45)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "DIV",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "BODY",
+              "backgroundColor": "rgb(9, 26, 45)",
+              "backgroundImage": "radial-gradient(circle at 0% 0%, rgba(39, 197, 150, 0.08) 0%, rgba(0, 0, 0, 0) 36%), radial-gradient(circle at 100% 100%, rgba(229, 184, 97, 0.07) 0%, rgba(0, 0, 0, 0) 40%)",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            },
+            {
+              "tag": "HTML",
+              "backgroundColor": "rgb(9, 26, 45)",
+              "backgroundImage": "none",
+              "opacity": "1",
+              "mixBlendMode": "normal"
+            }
+          ],
+          "method": "Chromium canvas CSS-to-sRGB foreground; native raster background with text ink removed, sampling every pixel under actual text rects including ancestor/gradient/alpha/backdrop compositing; WCAG relative luminance; raw ratio compared to 4.5 without rounding."
+        }
+      ],
+      "result": "PASS_SCOPED_SYNTHETIC_COMPONENT"
+    }
+  ]
+}
