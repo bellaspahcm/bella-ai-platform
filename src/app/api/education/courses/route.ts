@@ -36,6 +36,7 @@ export interface ClassroomOverviewItem {
   status: 'active' | 'inactive' | 'archived';
   todayStatus: {
     present: number;
+    absent: number;
     excused: number;
     unmarked: number;
     healthAlerts: number;
@@ -255,9 +256,11 @@ export async function GET(request: Request) {
           .in('enrollment_id', enrollmentIds)
         : { data: [] };
 
-      const presentCount = (todayStates || []).filter((state) => state.status === 'present').length;
-      const excusedCount = (todayStates || []).filter((state) => state.status === 'excused').length;
-      const markedCount = todayStates?.length || 0;
+      const states = todayStates || [];
+      const presentCount = states.filter((state) => state.status === 'present').length;
+      const absentCount  = states.filter((state) => state.status === 'absent').length;
+      const excusedCount = states.filter((state) => state.status === 'excused').length;
+      const markedCount  = states.length;
 
       classrooms.push({
         id: course.id,
@@ -277,6 +280,7 @@ export async function GET(request: Request) {
         status: course.status === 'active' ? 'active' : course.status === 'archived' ? 'archived' : 'inactive',
         todayStatus: {
           present: presentCount,
+          absent: absentCount,
           excused: excusedCount,
           unmarked: Math.max(0, currentStudents - markedCount),
           healthAlerts: 0,

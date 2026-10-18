@@ -365,6 +365,7 @@ export default function AttendancePage() {
             {classrooms.map((classroom) => {
               const isSelected = classroom.id === selectedCourseId;
               const present = classroom.todayStatus.present;
+              const absent  = classroom.todayStatus.absent;
               const excused = classroom.todayStatus.excused;
               const unmarked = classroom.todayStatus.unmarked;
               const fillPct = classroom.maxStudents > 0
@@ -399,6 +400,11 @@ export default function AttendancePage() {
                     <span className="inline-flex items-center gap-0.5 text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300">
                       <CheckCircle2 className="w-2.5 h-2.5" />{present} có mặt
                     </span>
+                    {absent > 0 && (
+                      <span className="inline-flex items-center gap-0.5 text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300">
+                        <XCircle className="w-2.5 h-2.5" />{absent} vắng
+                      </span>
+                    )}
                     {excused > 0 && (
                       <span className="inline-flex items-center gap-0.5 text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300">
                         {excused} phép
