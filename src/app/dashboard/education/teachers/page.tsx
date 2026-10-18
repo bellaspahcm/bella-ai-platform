@@ -256,12 +256,6 @@ const TEACHERS_LIST: readonly TeacherItem[] = [
   },
 ];
 
-// ── Derived Counts (computed once, single source of truth) ───────────────────
-const TOTAL_TEACHERS = TEACHERS_LIST.length;
-const COUNT_CHUNHIEM = TEACHERS_LIST.filter((t) => t.roleKey === 'chunhiem').length;
-const COUNT_TROGIANG = TEACHERS_LIST.filter((t) => t.roleKey === 'trogiang').length;
-const COUNT_BOMON = TEACHERS_LIST.filter((t) => t.roleKey === 'bomon').length;
-
 // ── Preschool Teacher Card Component ──────────────────────────────────────────
 
 interface TeacherCardProps {
