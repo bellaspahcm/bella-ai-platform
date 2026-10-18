@@ -151,6 +151,16 @@ export interface HealthAlertChild {
   readonly className: string;
   readonly condition: string;
   readonly avatarUrl: string;
+  readonly gender?: 'Bé trai' | 'Bé gái';
+}
+
+export interface IncompleteDocChild {
+  readonly id: string;
+  readonly name: string;
+  readonly className: string;
+  readonly missingDoc: string;
+  readonly badgeClass: string;
+  readonly gender?: 'Bé trai' | 'Bé gái';
 }
 
 export interface UpcomingBirthdayChild {
@@ -160,6 +170,7 @@ export interface UpcomingBirthdayChild {
   readonly dob: string;
   readonly daysRemaining: number;
   readonly avatarUrl: string;
+  readonly gender?: 'Bé trai' | 'Bé gái';
 }
 
 export interface PendingAdmissionChild {
@@ -169,6 +180,7 @@ export interface PendingAdmissionChild {
   readonly statusText: 'Hồ sơ đầy đủ' | 'Chờ bổ sung hồ sơ' | 'Chờ xác nhận';
   readonly submittedDate: string;
   readonly avatarUrl: string;
+  readonly gender?: 'Bé trai' | 'Bé gái';
 }
 
 export interface ClassroomCapacityStat {
@@ -360,6 +372,7 @@ const CANONICAL_HEALTH_ALERT_CHILDREN: ReadonlyArray<HealthAlertChild> = [
     name: 'Vũ Phương Anh',
     className: 'Chồi 2',
     condition: 'Dị ứng hải sản',
+    gender: 'Bé gái',
     avatarUrl: 'https://images.unsplash.com/photo-1519456264917-42d0aa2e0625?w=150&auto=format&fit=crop&q=80',
   },
   {
@@ -367,6 +380,7 @@ const CANONICAL_HEALTH_ALERT_CHILDREN: ReadonlyArray<HealthAlertChild> = [
     name: 'Trần Đức Minh',
     className: 'Lá 1',
     condition: 'Hen suyễn',
+    gender: 'Bé trai',
     avatarUrl: 'https://images.unsplash.com/photo-1544717305-2782549b5136?w=150&auto=format&fit=crop&q=80',
   },
   {
@@ -374,6 +388,7 @@ const CANONICAL_HEALTH_ALERT_CHILDREN: ReadonlyArray<HealthAlertChild> = [
     name: 'Lê Thảo My',
     className: 'Mầm 1',
     condition: 'Dị ứng phấn hoa',
+    gender: 'Bé gái',
     avatarUrl: 'https://images.unsplash.com/photo-1517677208171-0bc6725a3e60?w=150&auto=format&fit=crop&q=80',
   },
   {
@@ -381,6 +396,7 @@ const CANONICAL_HEALTH_ALERT_CHILDREN: ReadonlyArray<HealthAlertChild> = [
     name: 'Nguyễn Gia Bảo',
     className: 'Chồi 1',
     condition: 'Tiền sử sốt cao',
+    gender: 'Bé trai',
     avatarUrl: 'https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?w=150&auto=format&fit=crop&q=80',
   },
   {
@@ -388,7 +404,51 @@ const CANONICAL_HEALTH_ALERT_CHILDREN: ReadonlyArray<HealthAlertChild> = [
     name: 'Phạm Minh Châu',
     className: 'Lá 2',
     condition: 'Dị ứng sữa bò',
+    gender: 'Bé gái',
     avatarUrl: 'https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?w=150&auto=format&fit=crop&q=80',
+  },
+];
+
+const CANONICAL_INCOMPLETE_DOC_CHILDREN: ReadonlyArray<IncompleteDocChild> = [
+  {
+    id: 'HS0003',
+    name: 'Lê Gia Huy',
+    className: 'Lá 1',
+    missingDoc: 'Thiếu sổ tiêm chủng',
+    badgeClass: 'bg-amber-50 text-amber-800 dark:bg-amber-950/70 dark:text-amber-300 border-amber-200/70',
+    gender: 'Bé trai',
+  },
+  {
+    id: 'HS0004',
+    name: 'Phạm Khánh Linh',
+    className: 'Chồi 1',
+    missingDoc: 'Thiếu giấy khám sức khỏe',
+    badgeClass: 'bg-blue-50 text-blue-700 dark:bg-blue-950/70 dark:text-blue-300 border-blue-200/70',
+    gender: 'Bé gái',
+  },
+  {
+    id: 'HS0007',
+    name: 'Đặng Quang Huy',
+    className: 'Mầm 2',
+    missingDoc: 'Thiếu bản sao khai sinh',
+    badgeClass: 'bg-rose-50 text-rose-700 dark:bg-rose-950/70 dark:text-rose-300 border-rose-200/70',
+    gender: 'Bé trai',
+  },
+  {
+    id: 'HS0008',
+    name: 'Bùi Thùy Chi',
+    className: 'Lá 2',
+    missingDoc: 'Chưa nộp ảnh thẻ 3x4',
+    badgeClass: 'bg-purple-50 text-purple-700 dark:bg-purple-950/70 dark:text-purple-300 border-purple-200/70',
+    gender: 'Bé gái',
+  },
+  {
+    id: 'HS0010',
+    name: 'Đỗ Hải Yến',
+    className: 'Chồi 2',
+    missingDoc: 'Chưa cập nhật thẻ BHYT',
+    badgeClass: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/70 dark:text-emerald-300 border-emerald-200/70',
+    gender: 'Bé gái',
   },
 ];
 
@@ -399,6 +459,7 @@ const CANONICAL_BIRTHDAY_CHILDREN: ReadonlyArray<UpcomingBirthdayChild> = [
     className: 'Mầm 1',
     dob: '02/01/2023',
     daysRemaining: 5,
+    gender: 'Bé trai',
     avatarUrl: 'https://images.unsplash.com/photo-1544717305-2782549b5136?w=150&auto=format&fit=crop&q=80',
   },
   {
@@ -407,6 +468,7 @@ const CANONICAL_BIRTHDAY_CHILDREN: ReadonlyArray<UpcomingBirthdayChild> = [
     className: 'Chồi 2',
     dob: '05/06/2021',
     daysRemaining: 12,
+    gender: 'Bé gái',
     avatarUrl: 'https://images.unsplash.com/photo-1517677208171-0bc6725a3e60?w=150&auto=format&fit=crop&q=80',
   },
   {
@@ -415,6 +477,7 @@ const CANONICAL_BIRTHDAY_CHILDREN: ReadonlyArray<UpcomingBirthdayChild> = [
     className: 'Chồi 1',
     dob: '17/05/2022',
     daysRemaining: 18,
+    gender: 'Bé trai',
     avatarUrl: 'https://images.unsplash.com/photo-1485546246426-74dc88dec4d9?w=150&auto=format&fit=crop&q=80',
   },
   {
@@ -423,6 +486,7 @@ const CANONICAL_BIRTHDAY_CHILDREN: ReadonlyArray<UpcomingBirthdayChild> = [
     className: 'Chồi 2',
     dob: '09/10/2021',
     daysRemaining: 25,
+    gender: 'Bé gái',
     avatarUrl: 'https://images.unsplash.com/photo-1543332164-6e82f355badc?w=150&auto=format&fit=crop&q=80',
   },
 ];
@@ -434,6 +498,7 @@ const CANONICAL_PENDING_CHILDREN: ReadonlyArray<PendingAdmissionChild> = [
     className: 'Mầm 1',
     statusText: 'Hồ sơ đầy đủ',
     submittedDate: '10/04/2026',
+    gender: 'Bé gái',
     avatarUrl: 'https://images.unsplash.com/photo-1517677208171-0bc6725a3e60?w=150&auto=format&fit=crop&q=80',
   },
   {
@@ -442,6 +507,7 @@ const CANONICAL_PENDING_CHILDREN: ReadonlyArray<PendingAdmissionChild> = [
     className: 'Chồi 1',
     statusText: 'Chờ bổ sung hồ sơ',
     submittedDate: '12/04/2026',
+    gender: 'Bé trai',
     avatarUrl: 'https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?w=150&auto=format&fit=crop&q=80',
   },
   {
@@ -450,6 +516,7 @@ const CANONICAL_PENDING_CHILDREN: ReadonlyArray<PendingAdmissionChild> = [
     className: 'Mầm 2',
     statusText: 'Hồ sơ đầy đủ',
     submittedDate: '15/04/2026',
+    gender: 'Bé gái',
     avatarUrl: 'https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?w=150&auto=format&fit=crop&q=80',
   },
   {
@@ -458,6 +525,7 @@ const CANONICAL_PENDING_CHILDREN: ReadonlyArray<PendingAdmissionChild> = [
     className: 'Lá 1',
     statusText: 'Chờ xác nhận',
     submittedDate: '16/04/2026',
+    gender: 'Bé trai',
     avatarUrl: 'https://images.unsplash.com/photo-1544717305-2782549b5136?w=150&auto=format&fit=crop&q=80',
   },
 ];
@@ -1167,11 +1235,11 @@ export default function PreschoolEnrollmentsPage() {
         </div>
       </div>
 
-      {/* ── Main Workspace: Left Column (Table) + Right Column (Widgets) ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start" ref={menuRef}>
+      {/* ── Main Workspace: Full-width Table ── */}
+      <div ref={menuRef}>
         
-        {/* ── LEFT COLUMN: Core Operational Table (8 cols / ~70%) ── */}
-        <div className="lg:col-span-8 space-y-4">
+        {/* ── FULL-WIDTH TABLE ── */}
+        <div className="space-y-4">
           <div className="rounded-3xl bg-white dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-700/80 shadow-2xs overflow-hidden">
             
             {/* Table Header Bar */}
@@ -1485,8 +1553,8 @@ export default function PreschoolEnrollmentsPage() {
           </div>
         </div>
 
-        {/* ── RIGHT COLUMN: Quick Actions, Class Capacity & Medical Alerts (4 cols / ~30%) ── */}
-        <div className="lg:col-span-4 space-y-6">
+        {/* ── BELOW TABLE: Quick Actions + Stats Widgets (2-col responsive grid) ── */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
           
           {/* Widget 1: Thao tác nhanh */}
           <div className="rounded-3xl bg-white dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-700/80 p-5 sm:p-6 shadow-2xs space-y-4">
@@ -1601,7 +1669,11 @@ export default function PreschoolEnrollmentsPage() {
               </div>
               <button 
                 type="button"
-                onClick={() => { setSelectedStatusTab('healthAlert'); setCurrentPage(1); }}
+                onClick={() => {
+                  setSelectedStatusTab('healthAlert');
+                  setCurrentPage(1);
+                  menuRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }}
                 className="text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
               >
                 Xem tất cả
@@ -1613,10 +1685,11 @@ export default function PreschoolEnrollmentsPage() {
                 <Link
                   key={child.id}
                   href={`/dashboard/education/enrollments/${child.id}`}
-                  className="flex items-center justify-between p-2 rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors group"
+                  className="flex items-center justify-between p-2 rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors group cursor-pointer"
                 >
                   <div className="flex items-center gap-3">
                     <ChildAvatar
+                      gender={child.gender}
                       avatarUrl={child.avatarUrl}
                       name={child.name}
                       sizeClass="w-9 h-9"
@@ -1639,6 +1712,52 @@ export default function PreschoolEnrollmentsPage() {
             </div>
           </div>
 
+          {/* Widget 4: Hồ sơ cần bổ sung */}
+          <div className="rounded-3xl bg-white dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-700/80 p-5 sm:p-6 shadow-2xs space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-slate-900 dark:text-white font-extrabold text-sm">
+                <FileText className="w-4 h-4 text-amber-500" />
+                <span>Hồ sơ cần bổ sung ({CANONICAL_INCOMPLETE_DOC_CHILDREN.length})</span>
+              </div>
+              <button 
+                type="button"
+                onClick={() => setToastMessage('Đã gửi thông báo nhắc hoàn thiện hồ sơ tới phụ huynh của 5 bé')}
+                className="text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
+              >
+                Xem tất cả
+              </button>
+            </div>
+
+            <div className="space-y-3 pt-1">
+              {CANONICAL_INCOMPLETE_DOC_CHILDREN.map((child) => (
+                <Link
+                  key={child.id}
+                  href={`/dashboard/education/enrollments/${child.id}`}
+                  className="flex items-center justify-between p-2 rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors group cursor-pointer"
+                >
+                  <div className="flex items-center gap-3">
+                    <ChildAvatar
+                      gender={child.gender}
+                      name={child.name}
+                      sizeClass="w-9 h-9"
+                    />
+                    <div>
+                      <h4 className="text-xs font-extrabold text-slate-900 dark:text-white group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors">
+                        {child.name}
+                      </h4>
+                      <p className="text-[11px] text-slate-400 font-semibold">{child.className}</p>
+                      <div className="mt-0.5">
+                        <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-bold border ${child.badgeClass}`}>
+                          {child.missingDoc}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-slate-400 group-hover:translate-x-0.5 transition-transform" />
+                </Link>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
 
@@ -1663,15 +1782,20 @@ export default function PreschoolEnrollmentsPage() {
 
           <div className="divide-y divide-slate-100 dark:divide-slate-800/80">
             {CANONICAL_BIRTHDAY_CHILDREN.map((bday) => (
-              <div key={bday.id} className="py-3 flex items-center justify-between gap-3">
+              <Link
+                key={bday.id}
+                href={`/dashboard/education/enrollments/${bday.id}`}
+                className="py-3 flex items-center justify-between gap-3 p-2 rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors group cursor-pointer"
+              >
                 <div className="flex items-center gap-3">
                   <ChildAvatar
+                    gender={bday.gender}
                     avatarUrl={bday.avatarUrl}
                     name={bday.name}
                     sizeClass="w-10 h-10"
                   />
                   <div>
-                    <h4 className="text-xs font-extrabold text-slate-900 dark:text-white">
+                    <h4 className="text-xs font-extrabold text-slate-900 dark:text-white group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors">
                       {bday.name}
                     </h4>
                     <p className="text-[11px] text-slate-400 font-semibold">{bday.className}</p>
@@ -1685,8 +1809,9 @@ export default function PreschoolEnrollmentsPage() {
                   <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[11px] font-bold bg-amber-50 text-amber-800 dark:bg-amber-950/70 dark:text-amber-300 border border-amber-200/80">
                     🎂 Còn {bday.daysRemaining} ngày
                   </span>
+                  <ChevronRight className="w-4 h-4 text-slate-400 group-hover:translate-x-0.5 transition-transform" />
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         </div>
@@ -1700,7 +1825,11 @@ export default function PreschoolEnrollmentsPage() {
             </div>
             <button 
               type="button" 
-              onClick={() => { setSelectedStatusTab('pending'); setCurrentPage(1); }}
+              onClick={() => {
+                setSelectedStatusTab('pending');
+                setCurrentPage(1);
+                menuRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }}
               className="text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
             >
               Xem tất cả
@@ -1709,15 +1838,20 @@ export default function PreschoolEnrollmentsPage() {
 
           <div className="divide-y divide-slate-100 dark:divide-slate-800/80">
             {CANONICAL_PENDING_CHILDREN.map((pending) => (
-              <div key={pending.id} className="py-3 flex items-center justify-between gap-3">
+              <Link
+                key={pending.id}
+                href={`/dashboard/education/enrollments/${pending.id}`}
+                className="py-3 flex items-center justify-between gap-3 p-2 rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors group cursor-pointer"
+              >
                 <div className="flex items-center gap-3">
                   <ChildAvatar
+                    gender={pending.gender}
                     avatarUrl={pending.avatarUrl}
                     name={pending.name}
                     sizeClass="w-10 h-10"
                   />
                   <div>
-                    <h4 className="text-xs font-extrabold text-slate-900 dark:text-white">
+                    <h4 className="text-xs font-extrabold text-slate-900 dark:text-white group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors">
                       {pending.name}
                     </h4>
                     <p className="text-[11px] text-slate-400 font-semibold">{pending.className}</p>
@@ -1737,9 +1871,9 @@ export default function PreschoolEnrollmentsPage() {
                       Nộp hồ sơ: {pending.submittedDate}
                     </p>
                   </div>
-                  <ChevronRight className="w-4 h-4 text-slate-400" />
+                  <ChevronRight className="w-4 h-4 text-slate-400 group-hover:translate-x-0.5 transition-transform" />
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         </div>

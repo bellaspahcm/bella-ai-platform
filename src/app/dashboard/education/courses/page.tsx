@@ -849,14 +849,9 @@ export default function CoursesPage() {
                   </h2>
 
                   <div className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-300">
-                    <img 
-                      src={cls.teacherAvatarUrl} 
-                      alt={cls.teacher} 
-                      className="w-5 h-5 rounded-full object-cover border border-slate-200 shrink-0"
-                      onError={(e: ChangeEvent<HTMLImageElement>) => {
-                        e.currentTarget.src = DEFAULT_CHILD_AVATARS[0];
-                      }}
-                    />
+                    <div className="w-5 h-5 rounded-full shrink-0 bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 flex items-center justify-center font-extrabold text-[10px]">
+                      {cls.teacher.trim().split(/\s+/).pop()?.[0]?.toUpperCase() ?? '?'}
+                    </div>
                     <span className="truncate font-medium">{cls.teacher}</span>
                   </div>
 
@@ -931,17 +926,22 @@ export default function CoursesPage() {
               <div className="space-y-1.5 pt-1">
                 <div className="text-xs font-bold text-slate-700 dark:text-slate-300">Học sinh</div>
                 <div className="flex items-center -space-x-1.5">
-                  {cls.studentAvatars.slice(0, 6).map((avatarUrl, idx) => (
-                    <img
-                      key={idx}
-                      src={avatarUrl}
-                      alt={`Học sinh ${idx + 1}`}
-                      className="w-7 h-7 rounded-full object-cover border-2 border-white dark:border-slate-900 shadow-2xs"
-                      onError={(e: ChangeEvent<HTMLImageElement>) => {
-                        e.currentTarget.src = DEFAULT_CHILD_AVATARS[idx % DEFAULT_CHILD_AVATARS.length];
-                      }}
-                    />
-                  ))}
+                  {cls.studentAvatars.slice(0, 6).map((_, idx) => {
+                    const colors = [
+                      'bg-sky-100 dark:bg-sky-950 text-sky-700 dark:text-sky-300',
+                      'bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300',
+                      'bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300',
+                      'bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300',
+                      'bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300',
+                      'bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300',
+                    ];
+                    return (
+                      <div
+                        key={idx}
+                        className={`w-7 h-7 rounded-full border-2 border-white dark:border-slate-900 shadow-2xs shrink-0 ${colors[idx % colors.length]}`}
+                      />
+                    );
+                  })}
                   {overflowStudents > 0 && (
                     <div className="w-7 h-7 rounded-full bg-slate-100 dark:bg-slate-800 border-2 border-white dark:border-slate-900 flex items-center justify-center text-[10px] font-bold text-slate-600 dark:text-slate-300">
                       +{overflowStudents}
