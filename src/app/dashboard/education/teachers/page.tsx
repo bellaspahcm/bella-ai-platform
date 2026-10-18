@@ -36,7 +36,6 @@
 
 import { useState, useRef, useEffect, useMemo, type ChangeEvent } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import {
   Users,
   UserPlus,
@@ -265,8 +264,7 @@ interface TeacherCardProps {
 }
 
 function TeacherCard({ teacher, isMenuOpen, onMenuToggle, onAssignClass }: TeacherCardProps) {
-  const [imageError, setImageError] = useState(false);
-  const initials = teacher.name.split(' ').pop()?.[0] ?? '?';
+  const initials = teacher.name.split(' ').pop()?.[0]?.toUpperCase() ?? '?';
 
   return (
     <div className="rounded-2xl border border-slate-200/90 dark:border-slate-700/80 bg-white dark:bg-slate-800 p-6 sm:p-7 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between space-y-4.5">
@@ -274,21 +272,8 @@ function TeacherCard({ teacher, isMenuOpen, onMenuToggle, onAssignClass }: Teach
       {/* Top Row: Avatar + Name + Class + Status Badge + More Menu */}
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-3.5 min-w-0">
-          <div className="relative w-13 h-13 rounded-full overflow-hidden shrink-0 border border-slate-100 dark:border-slate-700 shadow-xs">
-            {!imageError ? (
-              <Image
-                src={teacher.avatarUrl}
-                alt={teacher.name}
-                width={52}
-                height={52}
-                className="w-full h-full object-cover"
-                onError={() => setImageError(true)}
-              />
-            ) : (
-              <div className={`w-full h-full ${teacher.avatarFallbackBg} flex items-center justify-center font-bold text-base`}>
-                {initials}
-              </div>
-            )}
+          <div className={`relative w-13 h-13 rounded-full shrink-0 overflow-hidden border border-slate-100 dark:border-slate-700 shadow-xs ${teacher.avatarFallbackBg} flex items-center justify-center font-bold text-base`}>
+            {initials}
           </div>
           <div className="min-w-0">
             <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white leading-tight truncate">
