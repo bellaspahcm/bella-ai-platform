@@ -127,7 +127,7 @@ const STUDENT_NAMES_BY_ID: Record<string, string> = {
 
 function AttendancePageContent() {
   const searchParams = useSearchParams();
-  const studentParam = searchParams.get('student');
+  const studentParam = searchParams ? searchParams.get('student') : null;
   const [classrooms, setClassrooms] = useState<readonly ClassroomOverviewItem[]>([]);
   const [selectedCourseId, setSelectedCourseId] = useState('');
   const [schoolDay, setSchoolDay] = useState(() => todayLocalDate());

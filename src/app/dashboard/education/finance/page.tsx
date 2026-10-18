@@ -229,7 +229,7 @@ const STUDENT_NAME_BY_CODE: Record<string, string> = {
 
 function FinancePageContent() {
   const searchParams = useSearchParams();
-  const studentParam = searchParams.get('student');
+  const studentParam = searchParams ? searchParams.get('student') : null;
   const [studentContextActive, setStudentContextActive] = useState(false);
   const [activeTab, setActiveTab] = useState<FinanceTabKey>('overview');
 

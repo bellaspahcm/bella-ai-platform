@@ -542,7 +542,7 @@ const STUDENT_TO_ROSTER_ID_MAP: Record<string, string> = {
 
 function PreschoolDevelopmentGradesPageContent() {
   const searchParams = useSearchParams();
-  const studentParam = searchParams.get('student');
+  const studentParam = searchParams ? searchParams.get('student') : null;
   const [studentContextActive, setStudentContextActive] = useState(false);
   const [isPreschoolTenant, setIsPreschoolTenant] = useState<boolean>(true);
 

@@ -448,7 +448,7 @@ const STUDENT_TO_CONV_MAP: Record<string, { convId: string; studentName: string 
 
 function PreschoolCommunicationContent() {
   const searchParams = useSearchParams();
-  const studentParam = searchParams.get('student');
+  const studentParam = searchParams ? searchParams.get('student') : null;
   const [isPreschoolTenant, setIsPreschoolTenant] = useState<boolean>(true);
 
   // Filter & Navigation states
