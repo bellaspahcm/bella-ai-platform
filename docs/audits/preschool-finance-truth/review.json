@@ -1,0 +1,48 @@
+{
+  "recordedAt": "2026-10-17T11:35:25.752Z",
+  "result": "PASS_SCOPED_UI_REVIEW",
+  "roles": [
+    {
+      "role": "Blind hunter",
+      "context": "Diff only; no conversation/spec/project",
+      "finding": "Stale invoice period after refresh",
+      "classification": "patch",
+      "resolved": true
+    },
+    {
+      "role": "Edge-case hunter",
+      "context": "Diff with read-only referenced source access",
+      "finding": "Same stale period",
+      "classification": "patch",
+      "resolved": true,
+      "followup": "Reset removed period to ALL; preserve IDs present in invoices even without metadata; regression covers both."
+    },
+    {
+      "role": "Acceptance auditor",
+      "context": "Diff/spec/constitutions, no conversation",
+      "finding": "No remaining actionable finding besides assigned period patch"
+    }
+  ],
+  "lead": {
+    "sourceHash": "170663233f0080f143bad2d82090036165122397b47e56aafc3eb40e1f9326f9",
+    "testHash": "57ee0ec8759ab0d88c1dde4828af8ec02853b0dcc51f18b59d0be3668bde3485",
+    "contrast": {
+      "ratiosIndependentlyRecomputed": 36,
+      "mismatch": 0,
+      "source": "170663233f0080f143bad2d82090036165122397b47e56aafc3eb40e1f9326f9",
+      "limits": "Standalone React mount; Next Link stub; intercepted synthetic HTTP responses; actual compiled globals CSS; no Next-managed fonts/preset/layout, authenticated page/Auth/DB/E2E or complete Finance contrast proof.",
+      "summary": {
+        "result": "PASS_SCOPED",
+        "checked": 36,
+        "failed": 0,
+        "minimumRatio": 4.758842787868666,
+        "threshold": 4.5
+      }
+    },
+    "screenshotsInspected": [
+      "component-dark-mobile.png"
+    ],
+    "noBackendContractSecurityChanges": true
+  },
+  "limits": "Static review and synthetic component verification only; not Real DB/Auth/RLS/Next-page E2E or readiness proof."
+}

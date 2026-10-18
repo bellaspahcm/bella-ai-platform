@@ -1,36 +1,6 @@
 'use client';
 
-/**
- * Bella Preschool OS — Finance & Tuition Workspace
- * File: src/app/dashboard/education/finance/page.tsx
- *
- * Conforms 100% to Target Design (Image 2):
- * - Executive Preschool Finance & Tuition Workspace
- * - Scoped for Preschool operations (`bella_education`)
- * - Unified brand deep green palette (`#0c513f` / `#093e30`)
- * - Header: Back button + Coin badge + "Tài chính & Học phí" +
- *           Subtitle + Month Selector ("Tháng 09/2026") + "+ Lập hóa đơn" CTA
- * - 4 High-Hierarchy KPI Stat Cards:
- *     1. Phải thu trong kỳ: 245.0 tr (Tổng học phí cần thu, ↑ +12%)
- *     2. Đã thanh toán: 198.5 tr (81% đã thu, ↑ +8%)
- *     3. Còn phải thu: 46.5 tr (19% chưa thu, ↓ -5%)
- *     4. Khoản quá hạn: 12 (Cần nhắc thu, ↓ -3%)
- * - 6 Workspace Navigation Tabs:
- *     Tổng quan, Hóa đơn, Công nợ, Thanh toán, Đối soát, Báo cáo
- * - 3 Middle Analytics & Action Cards (3 Columns):
- *     1. Biểu đồ thu phí: 6-month stacked bar chart (Th04–Th09) with Đã thu & Còn phải thu
- *     2. Tình trạng hóa đơn: Donut chart center 280 hóa đơn + breakdown (Đã thanh toán 198, Một phần 32, Chưa thanh toán 42, Bản nháp 8)
- *     3. Công việc cần xử lý: Exception queue with badge 12 and 4 actionable items
- * - Main Interactive Workspace (Two Columns):
- *     - Left Column: "Lập hóa đơn mới" with student search, billing period select, preview callout, "Xem trước hóa đơn" CTA
- *     - Right Column: "Danh sách hóa đơn" with tabs (Tất cả 280, Bản nháp 8, Đã phát hành 252), search toolbar,
- *       dual independent statuses (Phát hành & Thanh toán), table, pagination (< [1] 2 3 4 5 ... 35 >)
- * - 3 Bottom Mini Cards:
- *     1. Công nợ theo lớp: Progress bars for Mầm A1, Chồi B1, Lá C1, Nhà Trẻ N1
- *     2. Top công nợ cần thu: Ranked list with avatar initials, student & class, amount, overdue badge
- *     3. Thanh toán gần đây: Transaction timeline with checkmark, student, invoice, timestamp
- * - Full compliance with supreme data integrity and zero `any` or `unknown`
- */
+/** Finance records come from the Product HTTP response. Reference analytics are labeled separately. */
 
 import React, { useState, useEffect, useCallback, useMemo, type ChangeEvent } from 'react';
 import Link from 'next/link';
@@ -53,8 +23,6 @@ import {
   MoreVertical,
   Clock,
   RotateCw,
-  ChevronLeft,
-  ChevronRight,
   TrendingUp,
   X,
   Wallet,
@@ -77,8 +45,8 @@ export type FinanceTabKey = 'overview' | 'invoices' | 'debts' | 'payments' | 're
 
 export type InvoiceFilterTab = 'ALL' | 'DRAFT' | 'ISSUED';
 
-export type InvoiceIssuanceStatus = 'DRAFT' | 'ISSUED' | 'VOID';
-export type InvoiceSettlementStatus = 'UNPAID' | 'PARTIALLY_PAID' | 'PAID';
+export type InvoiceIssuanceStatus = Invoice['invoiceStatus'];
+export type InvoiceSettlementStatus = Invoice['settlementStatus'];
 
 export interface FinanceStudentOption {
   readonly enrollmentId: string;
@@ -128,8 +96,9 @@ export interface TableInvoiceItem {
   readonly studentCode?: string;
   readonly className: string;
   readonly billingPeriodDisplay: string;
-  readonly issuanceStatus: 'DRAFT' | 'ISSUED';
-  readonly settlementStatus: 'PAID' | 'PARTIALLY_PAID' | 'UNPAID';
+  readonly billingPeriodId: string;
+  readonly issuanceStatus: InvoiceIssuanceStatus;
+  readonly settlementStatus: InvoiceSettlementStatus;
   readonly amount: number;
 }
 
@@ -167,99 +136,6 @@ export interface RecentPaymentItem {
 
 // ── Mock & Reference Datasets matching Image 2 ────────────────────────────────
 
-const FALLBACK_STUDENTS: readonly FinanceStudentOption[] = [
-  { enrollmentId: 'E-1', courseId: 'C-1', studentPartyId: 'SP-1', studentId: 'S-1', studentCode: 'HS-001', displayName: 'Nguyễn Minh An', className: 'Mầm A1' },
-  { enrollmentId: 'E-2', courseId: 'C-2', studentPartyId: 'SP-2', studentId: 'S-2', studentCode: 'HS-002', displayName: 'Trần Bảo Ngọc', className: 'Chồi B1' },
-  { enrollmentId: 'E-3', courseId: 'C-3', studentPartyId: 'SP-3', studentId: 'S-3', studentCode: 'HS-003', displayName: 'Lê Gia Huy', className: 'Mầm A1' },
-  { enrollmentId: 'E-4', courseId: 'C-4', studentPartyId: 'SP-4', studentId: 'S-4', studentCode: 'HS-004', displayName: 'Phạm Thảo My', className: 'Chồi B1' },
-  { enrollmentId: 'E-5', courseId: 'C-5', studentPartyId: 'SP-5', studentId: 'S-5', studentCode: 'HS-005', displayName: 'Hoàng Tuấn Kiệt', className: 'Lá C1' },
-  { enrollmentId: 'E-6', courseId: 'C-6', studentPartyId: 'SP-6', studentId: 'S-6', studentCode: 'HS-006', displayName: 'Đặng Khánh Linh', className: 'Chồi B1' },
-  { enrollmentId: 'E-7', courseId: 'C-7', studentPartyId: 'SP-7', studentId: 'S-7', studentCode: 'HS-007', displayName: 'Vũ Gia Hân', className: 'Mầm A1' },
-  { enrollmentId: 'E-8', courseId: 'C-8', studentPartyId: 'SP-8', studentId: 'S-8', studentCode: 'HS-008', displayName: 'Ngô Nhật Minh', className: 'Chồi B1' },
-];
-
-const SAMPLE_INVOICES: readonly TableInvoiceItem[] = [
-  {
-    id: 'INV-001',
-    invoiceNumber: 'HD0001',
-    studentName: 'Nguyễn Minh An',
-    className: 'Mầm A1',
-    billingPeriodDisplay: '09/2026',
-    issuanceStatus: 'ISSUED',
-    settlementStatus: 'PAID',
-    amount: 3500000,
-  },
-  {
-    id: 'INV-002',
-    invoiceNumber: 'HD0002',
-    studentName: 'Trần Bảo Ngọc',
-    className: 'Chồi B1',
-    billingPeriodDisplay: '09/2026',
-    issuanceStatus: 'ISSUED',
-    settlementStatus: 'PARTIALLY_PAID',
-    amount: 4200000,
-  },
-  {
-    id: 'INV-003',
-    invoiceNumber: 'HD0003',
-    studentName: 'Lê Gia Huy',
-    className: 'Mầm A1',
-    billingPeriodDisplay: '09/2026',
-    issuanceStatus: 'DRAFT',
-    settlementStatus: 'UNPAID',
-    amount: 3800000,
-  },
-  {
-    id: 'INV-004',
-    invoiceNumber: 'HD0004',
-    studentName: 'Phạm Thảo My',
-    className: 'Chồi B1',
-    billingPeriodDisplay: '09/2026',
-    issuanceStatus: 'ISSUED',
-    settlementStatus: 'PAID',
-    amount: 3600000,
-  },
-  {
-    id: 'INV-005',
-    invoiceNumber: 'HD0005',
-    studentName: 'Hoàng Tuấn Kiệt',
-    className: 'Lá C1',
-    billingPeriodDisplay: '09/2026',
-    issuanceStatus: 'ISSUED',
-    settlementStatus: 'UNPAID',
-    amount: 4000000,
-  },
-  {
-    id: 'INV-006',
-    invoiceNumber: 'HD0006',
-    studentName: 'Đặng Khánh Linh',
-    className: 'Chồi B1',
-    billingPeriodDisplay: '09/2026',
-    issuanceStatus: 'ISSUED',
-    settlementStatus: 'PARTIALLY_PAID',
-    amount: 3500000,
-  },
-  {
-    id: 'INV-007',
-    invoiceNumber: 'HD0007',
-    studentName: 'Vũ Gia Hân',
-    className: 'Mầm A1',
-    billingPeriodDisplay: '09/2026',
-    issuanceStatus: 'DRAFT',
-    settlementStatus: 'UNPAID',
-    amount: 3700000,
-  },
-  {
-    id: 'INV-008',
-    invoiceNumber: 'HD0008',
-    studentName: 'Ngô Nhật Minh',
-    className: 'Chồi B1',
-    billingPeriodDisplay: '09/2026',
-    issuanceStatus: 'ISSUED',
-    settlementStatus: 'PAID',
-    amount: 3300000,
-  },
-];
 
 const MONTHLY_CHART_DATA: readonly MonthlyCollectionData[] = [
   { month: 'Th04', collected: 130, remaining: 40, total: 170 },
@@ -343,7 +219,9 @@ export default function FinancePage() {
   const [billingPeriods, setBillingPeriods] = useState<BillingPeriod[]>([]);
   const [servicePeriodCompletions, setServicePeriodCompletions] = useState<TuitionServicePeriodCompletion[]>([]);
 
-  const [loading, setLoading] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [dataLoaded, setDataLoaded] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [actionMessage, setActionMessage] = useState<string | null>(null);
 
   // Form & filter states
@@ -354,16 +232,28 @@ export default function FinancePage() {
   const [invoiceFilterTab, setInvoiceFilterTab] = useState<InvoiceFilterTab>('ALL');
   const [filterIssuance, setFilterIssuance] = useState<string>('ALL');
   const [filterSettlement, setFilterSettlement] = useState<string>('ALL');
+  const [filterBillingPeriodId, setFilterBillingPeriodId] = useState('ALL');
   const [selectedInvoices, setSelectedInvoices] = useState<readonly string[]>([]);
 
   // Preview & Create Modal
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState<boolean>(false);
-  const [previewStudent, setPreviewStudent] = useState<FinanceStudentOption | null>(null);
-  const [previewAmount, setPreviewAmount] = useState<number>(3500000);
+  const selectedStudent = students.find((student) => student.studentPartyId === selectedStudentPartyId);
+  const selectedBillingPeriod = billingPeriods.find((period) => period.id === selectedBillingPeriodId);
+  const canCreateDraft = dataLoaded && !loading && !!selectedStudent && !!selectedBillingPeriod;
 
   // Fetch real backend data
   const loadData = useCallback(async () => {
     setLoading(true);
+    setDataLoaded(false);
+    setLoadError(null);
+    setIsPreviewModalOpen(false);
+    setStudents([]);
+    setBillingPeriods([]);
+    setInvoices([]);
+    setPayments([]);
+    setExceptions([]);
+    setServicePeriodCompletions([]);
+    setSelectedInvoices([]);
     try {
       const response = await fetch('/api/education/finance', { cache: 'no-store' });
       const payload = (await response.json()) as FinanceStateResponse;
@@ -373,28 +263,25 @@ export default function FinancePage() {
 
       const nextStudents = payload.students || [];
       const nextBillingPeriods = payload.billingPeriods || [];
+      const nextInvoices = payload.invoices || [];
       setStudents(nextStudents);
-      setSelectedStudentPartyId((prev) => (
-        nextStudents.some((student) => student.studentPartyId === prev) ? prev : nextStudents[0]?.studentPartyId || ''
-      ));
       setBillingPeriods(nextBillingPeriods);
-      setSelectedBillingPeriodId((prev) => (
-        nextBillingPeriods.some((period) => period.id === prev) ? prev : nextBillingPeriods[0]?.id || ''
-      ));
       setServicePeriodCompletions(payload.servicePeriodCompletions || []);
-      setInvoices(payload.invoices || []);
+      setInvoices(nextInvoices);
+      setFilterBillingPeriodId((previous) => previous === 'ALL' || nextInvoices.some((invoice) => invoice.billingPeriodId === previous) ? previous : 'ALL');
       setPayments(payload.payments || []);
       setExceptions(payload.exceptions || []);
-
+      setDataLoaded(true);
     } catch (err: unknown) {
-      console.error('Error loading finance data:', err);
-      setActionMessage(err instanceof Error ? err.message : 'Không tải được dữ liệu tài chính.');
+      setFilterBillingPeriodId('ALL');
+      setLoadError(err instanceof Error ? err.message : 'Không tải được dữ liệu tài chính.');
     } finally {
       setLoading(false);
     }
   }, []);
 
   const financeCommand = async (action: string, payload: Record<string, string | number | boolean> = {}): Promise<FinanceCommandResponse> => {
+    if (!dataLoaded || loading) throw new Error('Vui lòng tải dữ liệu tài chính thành công trước khi thao tác.');
     const response = await fetch('/api/education/finance', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -413,9 +300,10 @@ export default function FinancePage() {
 
   // Handle Create Draft Invoice
   const handleCompileDraftInvoice = async () => {
-    const targetStudent = students.find((s) => s.studentPartyId === selectedStudentPartyId) || students[0] || FALLBACK_STUDENTS[0];
+    if (!dataLoaded || loading) return;
+    const targetStudent = selectedStudent;
     if (!targetStudent) {
-      setActionMessage('Không có học sinh đã ghi danh hợp lệ để lập hóa đơn.');
+      setActionMessage('Vui lòng chọn học sinh hợp lệ trong danh sách đã tải.');
       return;
     }
     const targetBillingPeriod = billingPeriods.find((p) => p.id === selectedBillingPeriodId);
@@ -510,49 +398,46 @@ export default function FinancePage() {
     }
   };
 
-  // Active student list
-  const activeStudents = useMemo(() => {
-    return students.length > 0 ? students : FALLBACK_STUDENTS;
-  }, [students]);
-
   const handleOpenPreviewModal = () => {
-    const matched = activeStudents.find((s) => s.studentPartyId === selectedStudentPartyId) || activeStudents[0];
-    setPreviewStudent(matched);
-    setPreviewAmount(3500000);
+    if (!dataLoaded || loading) return;
+    if (!selectedStudent || !selectedBillingPeriod) {
+      setActionMessage('Vui lòng chọn đúng học sinh và kỳ thu trong danh sách đã tải.');
+      return;
+    }
     setIsPreviewModalOpen(true);
   };
 
   // Filter students for the left panel search
   const filteredStudents = useMemo(() => {
-    if (!studentSearchQuery.trim()) return activeStudents;
+    if (!studentSearchQuery.trim()) return students;
     const q = studentSearchQuery.toLowerCase();
-    return activeStudents.filter(
+    return students.filter(
       (s) =>
         s.displayName.toLowerCase().includes(q) ||
-        (s.studentCode && s.studentCode.toLowerCase().includes(q))
+        (s.studentCode && s.studentCode.toLowerCase().includes(q)) ||
+        (s.className && s.className.toLowerCase().includes(q))
     );
-  }, [activeStudents, studentSearchQuery]);
+  }, [students, studentSearchQuery]);
 
-  // Combine real backend invoices with reference dataset for rich representation
+  // Preserve identities, amounts and both independent statuses from the Product DTO.
   const displayInvoices = useMemo((): readonly TableInvoiceItem[] => {
-    if (invoices.length > 0) {
       return invoices.map((inv) => {
-        const student = activeStudents.find((s) => s.studentPartyId === inv.studentPartyId);
+        const student = students.find((s) => s.studentPartyId === inv.studentPartyId);
+        const period = billingPeriods.find((item) => item.id === inv.billingPeriodId);
         return {
           id: inv.id,
           invoiceNumber: inv.invoiceNumber,
-          studentName: student?.displayName || `Học sinh (${inv.studentPartyId.substring(0, 8)})`,
+          studentName: student?.displayName || `Party: ${inv.studentPartyId}`,
           studentCode: student?.studentCode || undefined,
-          className: student?.className || 'Lớp Mầm A1',
-          billingPeriodDisplay: '09/2026',
-          issuanceStatus: inv.invoiceStatus === 'ISSUED' ? 'ISSUED' : 'DRAFT',
-          settlementStatus: inv.settlementStatus === 'PAID' ? 'PAID' : inv.settlementStatus === 'PARTIALLY_PAID' ? 'PARTIALLY_PAID' : 'UNPAID',
+          className: student?.className || '—',
+          billingPeriodDisplay: period?.periodName || inv.billingPeriodId,
+          billingPeriodId: inv.billingPeriodId,
+          issuanceStatus: inv.invoiceStatus,
+          settlementStatus: inv.settlementStatus,
           amount: inv.netAmount,
         };
       });
-    }
-    return SAMPLE_INVOICES;
-  }, [invoices, activeStudents]);
+  }, [invoices, students, billingPeriods]);
 
   // Filter table invoices
   const filteredInvoices = useMemo(() => {
@@ -564,6 +449,7 @@ export default function FinancePage() {
       // Dropdown filters
       if (filterIssuance !== 'ALL' && inv.issuanceStatus !== filterIssuance) return false;
       if (filterSettlement !== 'ALL' && inv.settlementStatus !== filterSettlement) return false;
+      if (filterBillingPeriodId !== 'ALL' && inv.billingPeriodId !== filterBillingPeriodId) return false;
 
       // Text search
       if (invoiceSearchQuery.trim()) {
@@ -575,7 +461,7 @@ export default function FinancePage() {
 
       return true;
     });
-  }, [displayInvoices, invoiceFilterTab, filterIssuance, filterSettlement, invoiceSearchQuery]);
+  }, [displayInvoices, invoiceFilterTab, filterIssuance, filterSettlement, filterBillingPeriodId, invoiceSearchQuery]);
 
   const toggleSelectInvoice = (id: string) => {
     setSelectedInvoices((prev) =>
@@ -592,7 +478,10 @@ export default function FinancePage() {
   };
 
   // Helper renderers for badges
-  const renderIssuanceBadge = (status: 'DRAFT' | 'ISSUED') => {
+  const renderIssuanceBadge = (status: InvoiceIssuanceStatus) => {
+    if (status === 'VOID') {
+      return <span className="inline-flex px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-rose-50 text-rose-700 border border-rose-200">Đã hủy</span>;
+    }
     if (status === 'ISSUED') {
       return (
         <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
@@ -609,8 +498,10 @@ export default function FinancePage() {
     );
   };
 
-  const renderSettlementBadge = (status: 'PAID' | 'PARTIALLY_PAID' | 'UNPAID') => {
+  const renderSettlementBadge = (status: InvoiceSettlementStatus) => {
     switch (status) {
+      case 'OVERPAID':
+        return <span className="inline-flex px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-blue-50 text-blue-700 border border-blue-200">Thanh toán thừa</span>;
       case 'PAID':
         return (
           <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
@@ -684,13 +575,14 @@ export default function FinancePage() {
         {/* Right Controls: Month Selector & Primary CTA */}
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-bold text-slate-700 dark:text-slate-200 shadow-sm">
-            <span>Tháng 09/2026</span>
+            <span>{selectedBillingPeriod?.periodName || 'Chưa chọn kỳ thu'}</span>
             <Calendar className="w-4 h-4 text-slate-400" />
           </div>
 
           <button
             onClick={handleOpenPreviewModal}
             data-testid="btn-compile-invoice"
+            disabled={!canCreateDraft}
             className="px-4 py-2.5 rounded-xl bg-[#0c513f] hover:bg-[#093e30] text-white text-xs font-bold flex items-center gap-2 shadow-sm transition-all"
           >
             <Plus className="w-4 h-4" />
@@ -699,7 +591,18 @@ export default function FinancePage() {
         </div>
       </div>
 
+      <div aria-live="polite" className="text-sm text-slate-700 dark:text-slate-200">
+        {loading && <p role="status">Đang tải hoặc xử lý dữ liệu tài chính…</p>}
+        {loadError && (
+          <div role="alert" className="space-y-2">
+            <p>Không tải được dữ liệu tài chính: {loadError}</p>
+            <button onClick={loadData} disabled={loading} className="underline font-bold">Thử lại</button>
+          </div>
+        )}
+      </div>
+
       {/* ── 4 KPI STAT CARDS MATCHING IMAGE 2 ── */}
+      <p className="text-xs font-semibold text-slate-600 dark:text-slate-300">Chỉ số tổng quan minh họa — chưa kết nối số liệu thực tế.</p>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Card 1: Phải thu trong kỳ */}
         <div className="bg-white dark:bg-slate-800/90 rounded-2xl p-5 border border-slate-200/80 dark:border-slate-700/80 shadow-sm flex flex-col justify-between">
@@ -873,6 +776,7 @@ export default function FinancePage() {
       </div>
 
       {/* ── 3 MIDDLE ANALYTICS & TASK CARDS MATCHING IMAGE 2 ── */}
+      <p className="text-xs font-semibold text-slate-600 dark:text-slate-300">Biểu đồ và danh sách công việc dưới đây dùng dữ liệu minh họa.</p>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Column 1: Biểu đồ thu phí */}
         <div className="bg-white dark:bg-slate-800/90 rounded-2xl p-5 border border-slate-200/80 dark:border-slate-700/80 shadow-sm flex flex-col justify-between">
@@ -1049,6 +953,7 @@ export default function FinancePage() {
             </div>
             <button
               onClick={handleScanOverdueInvoices}
+              disabled={loading || !dataLoaded}
               title="Quét lại công nợ quá hạn"
               className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
             >
@@ -1132,13 +1037,13 @@ export default function FinancePage() {
           </div>
 
           <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-            Chọn học sinh và kỳ thu để xem trước các khoản phí, chiết khấu và lập hóa đơn.
+            Chọn học sinh và kỳ thu để xác nhận thông tin trước khi lập hóa đơn nháp.
           </p>
 
           <div className="space-y-4">
             {/* Student Selector with search */}
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1">
+              <label htmlFor="finance-student" className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1">
                 <span>Chọn học sinh</span>
                 <span className="text-rose-500">*</span>
               </label>
@@ -1155,13 +1060,18 @@ export default function FinancePage() {
 
               {/* Student Dropdown */}
               <select
+                id="finance-student"
+                disabled={loading || !dataLoaded}
                 value={selectedStudentPartyId}
                 onChange={(e: ChangeEvent<HTMLSelectElement>) => setSelectedStudentPartyId(e.target.value)}
                 className="w-full p-2.5 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#0c513f]/20"
               >
+                <option value="">{students.length === 0 ? 'Chưa có học sinh đã ghi danh' : 'Chọn học sinh'}</option>
+                {selectedStudentPartyId && !selectedStudent && <option value={selectedStudentPartyId} disabled>Học sinh đã chọn không còn trong danh sách</option>}
+                {selectedStudent && !filteredStudents.includes(selectedStudent) && <option value={selectedStudent.studentPartyId}>{selectedStudent.displayName} (đang chọn)</option>}
                 {filteredStudents.map((st) => (
                   <option key={st.studentPartyId} value={st.studentPartyId}>
-                    {st.displayName} {st.studentCode ? `(${st.studentCode})` : ''} - {st.className || 'Lớp Mầm A1'}
+                    {st.displayName} {st.studentCode ? `(${st.studentCode})` : ''}{st.className ? ` - ${st.className}` : ''}
                   </option>
                 ))}
               </select>
@@ -1169,24 +1079,24 @@ export default function FinancePage() {
 
             {/* Billing Period Selector */}
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1">
+              <label htmlFor="finance-billing-period" className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1">
                 <span>Kỳ thu</span>
                 <span className="text-rose-500">*</span>
               </label>
               <select
+                id="finance-billing-period"
+                disabled={loading || !dataLoaded}
                 value={selectedBillingPeriodId}
                 onChange={(e: ChangeEvent<HTMLSelectElement>) => setSelectedBillingPeriodId(e.target.value)}
                 className="w-full p-2.5 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#0c513f]/20"
               >
-                {billingPeriods.length > 0 ? (
-                  billingPeriods.map((period) => (
+                <option value="">{billingPeriods.length === 0 ? 'Chưa có kỳ thu khả dụng' : 'Chọn kỳ thu'}</option>
+                {selectedBillingPeriodId && !selectedBillingPeriod && <option value={selectedBillingPeriodId} disabled>Kỳ thu đã chọn không còn trong danh sách</option>}
+                {billingPeriods.map((period) => (
                     <option key={period.id} value={period.id}>
                       {period.periodName} ({period.dueDate})
                     </option>
-                  ))
-                ) : (
-                  <option value="BP-DEFAULT">Tháng 09/2026</option>
-                )}
+                  ))}
               </select>
             </div>
 
@@ -1198,6 +1108,7 @@ export default function FinancePage() {
                 </span>
                 <button
                   onClick={handleCompleteTuitionServicePeriod}
+                  disabled={loading || !dataLoaded || !selectedBillingPeriod}
                   className="px-2.5 py-1 rounded-lg bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 text-[11px] font-bold text-slate-700 dark:text-slate-200"
                 >
                   Xác nhận hoàn thành
@@ -1218,7 +1129,7 @@ export default function FinancePage() {
                   Xem trước hóa đơn
                 </h4>
                 <p className="text-[11px] text-blue-700 dark:text-blue-300 mt-0.5 leading-relaxed">
-                  Hệ thống sẽ hiển thị chi tiết các khoản thu, chiết khấu và số tiền dự kiến trước khi lập nháp.
+                  Chỉ xác nhận học sinh và kỳ thu. Các khoản phí và số tiền do hệ thống trả về sau khi lập nháp.
                 </p>
               </div>
             </div>
@@ -1226,6 +1137,7 @@ export default function FinancePage() {
             {/* Action CTA */}
             <button
               onClick={handleOpenPreviewModal}
+              disabled={!canCreateDraft}
               className="w-full py-2.5 rounded-xl bg-[#0c513f] hover:bg-[#093e30] text-white text-xs font-bold flex items-center justify-center gap-2 shadow-sm transition-all"
             >
               <Search className="w-4 h-4" />
@@ -1235,7 +1147,7 @@ export default function FinancePage() {
         </div>
 
         {/* RIGHT COLUMN: Danh sách hóa đơn (Width: ~70%) */}
-        <div className="lg:col-span-8 bg-white dark:bg-slate-800/90 rounded-2xl p-5 border border-slate-200/80 dark:border-slate-700/80 shadow-sm space-y-4">
+        <div data-testid="invoice-workspace" className="lg:col-span-8 bg-white dark:bg-slate-800/90 rounded-2xl p-5 border border-slate-200/80 dark:border-slate-700/80 shadow-sm space-y-4">
           {/* Header Row */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100 dark:border-slate-700/60">
             <div className="flex items-center gap-2">
@@ -1247,7 +1159,8 @@ export default function FinancePage() {
 
             <div className="flex items-center gap-2">
               <button
-                onClick={() => setActionMessage('Đã xuất dữ liệu hóa đơn thành công (CSV / Excel).')}
+                disabled
+                title="Chưa hỗ trợ xuất dữ liệu"
                 className="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-50 flex items-center gap-1.5 shadow-sm"
               >
                 <Download className="w-3.5 h-3.5 text-slate-500" />
@@ -1255,6 +1168,7 @@ export default function FinancePage() {
               </button>
               <button
                 onClick={loadData}
+                disabled={loading}
                 className="p-1.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-500 hover:bg-slate-50"
                 title="Làm mới"
               >
@@ -1273,7 +1187,7 @@ export default function FinancePage() {
                   : 'bg-slate-100 dark:bg-slate-700/60 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
               }`}
             >
-              Tất cả (280)
+              Tất cả ({displayInvoices.length})
             </button>
             <button
               onClick={() => setInvoiceFilterTab('DRAFT')}
@@ -1283,7 +1197,7 @@ export default function FinancePage() {
                   : 'bg-slate-100 dark:bg-slate-700/60 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
               }`}
             >
-              Bản nháp (8)
+              Bản nháp ({displayInvoices.filter((invoice) => invoice.issuanceStatus === 'DRAFT').length})
             </button>
             <button
               onClick={() => setInvoiceFilterTab('ISSUED')}
@@ -1293,7 +1207,7 @@ export default function FinancePage() {
                   : 'bg-slate-100 dark:bg-slate-700/60 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
               }`}
             >
-              Đã phát hành (252)
+              Đã phát hành ({displayInvoices.filter((invoice) => invoice.issuanceStatus === 'ISSUED').length})
             </button>
           </div>
 
@@ -1311,15 +1225,15 @@ export default function FinancePage() {
             </div>
 
             <div className="sm:col-span-2">
-              <select className="w-full py-2 px-2.5 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-200">
-                <option>Kỳ thu ▾</option>
-                <option>09/2026</option>
-                <option>08/2026</option>
+              <select aria-label="Lọc kỳ thu" value={filterBillingPeriodId} onChange={(event) => setFilterBillingPeriodId(event.target.value)} className="w-full py-2 px-2.5 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-200">
+                <option value="ALL">Tất cả kỳ thu</option>
+                {Array.from(new Map(displayInvoices.map((invoice) => [invoice.billingPeriodId, invoice.billingPeriodDisplay]))).map(([id, label]) => <option key={id} value={id}>{label}</option>)}
               </select>
             </div>
 
             <div className="sm:col-span-2">
               <select
+                aria-label="Lọc trạng thái phát hành"
                 value={filterIssuance}
                 onChange={(e: ChangeEvent<HTMLSelectElement>) => setFilterIssuance(e.target.value)}
                 className="w-full py-2 px-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-200"
@@ -1327,11 +1241,13 @@ export default function FinancePage() {
                 <option value="ALL">Trạng thái phát hành ▾</option>
                 <option value="ISSUED">Đã phát hành</option>
                 <option value="DRAFT">Bản nháp</option>
+                <option value="VOID">Đã hủy</option>
               </select>
             </div>
 
             <div className="sm:col-span-2">
               <select
+                aria-label="Lọc trạng thái thanh toán"
                 value={filterSettlement}
                 onChange={(e: ChangeEvent<HTMLSelectElement>) => setFilterSettlement(e.target.value)}
                 className="w-full py-2 px-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-200"
@@ -1340,11 +1256,13 @@ export default function FinancePage() {
                 <option value="PAID">Đã thanh toán</option>
                 <option value="PARTIALLY_PAID">Một phần</option>
                 <option value="UNPAID">Chưa thanh toán</option>
+                <option value="OVERPAID">Thanh toán thừa</option>
               </select>
             </div>
 
             <div className="sm:col-span-1 flex justify-end">
               <button
+                disabled
                 className="w-full p-2 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-500 hover:bg-slate-50 flex items-center justify-center"
                 title="Lọc nâng cao"
               >
@@ -1377,6 +1295,7 @@ export default function FinancePage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                {filteredInvoices.length === 0 && <tr><td colSpan={9} className="p-6 text-center text-slate-600 dark:text-slate-300">{loading ? 'Đang tải hóa đơn…' : loadError ? 'Chưa tải được danh sách hóa đơn.' : displayInvoices.length === 0 ? 'Chưa có hóa đơn.' : 'Không có hóa đơn phù hợp bộ lọc.'}</td></tr>}
                 {filteredInvoices.map((inv) => (
                   <tr
                     key={inv.id}
@@ -1413,16 +1332,11 @@ export default function FinancePage() {
                     </td>
                     <td className="p-3 text-center">
                       <button
-                        onClick={() => {
-                          if (inv.issuanceStatus === 'DRAFT') {
-                            handleIssueInvoice(inv.id);
-                          } else {
-                            setActionMessage(`Hóa đơn ${inv.invoiceNumber} đã phát hành. Đang mở chi tiết...`);
-                          }
-                        }}
+                        onClick={() => handleIssueInvoice(inv.id)}
+                        disabled={loading || !dataLoaded || inv.issuanceStatus !== 'DRAFT'}
                         data-testid="btn-issue-invoice"
                         className="p-1 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-600"
-                        title="Thao tác"
+                        title={inv.issuanceStatus === 'DRAFT' ? 'Phát hành hóa đơn' : 'Không có thao tác phát hành'}
                       >
                         <span className="text-base leading-none font-black tracking-widest">···</span>
                       </button>
@@ -1436,41 +1350,15 @@ export default function FinancePage() {
           {/* Table Footer / Pagination */}
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 text-xs text-slate-500">
             <div>
-              Hiển thị 1 - 8 / 280
+              Hiển thị {filteredInvoices.length} / {displayInvoices.length} hóa đơn đã tải
             </div>
 
-            <div className="flex items-center gap-1">
-              <button className="w-7 h-7 rounded-lg border border-slate-200 dark:border-slate-700 flex items-center justify-center hover:bg-slate-50 text-slate-600">
-                <ChevronLeft className="w-3.5 h-3.5" />
-              </button>
-              <button className="w-7 h-7 rounded-lg bg-[#0c513f] text-white font-bold flex items-center justify-center shadow-sm">
-                1
-              </button>
-              <button className="w-7 h-7 rounded-lg border border-slate-200 dark:border-slate-700 flex items-center justify-center hover:bg-slate-50 text-slate-600">
-                2
-              </button>
-              <button className="w-7 h-7 rounded-lg border border-slate-200 dark:border-slate-700 flex items-center justify-center hover:bg-slate-50 text-slate-600">
-                3
-              </button>
-              <button className="w-7 h-7 rounded-lg border border-slate-200 dark:border-slate-700 flex items-center justify-center hover:bg-slate-50 text-slate-600">
-                4
-              </button>
-              <button className="w-7 h-7 rounded-lg border border-slate-200 dark:border-slate-700 flex items-center justify-center hover:bg-slate-50 text-slate-600">
-                5
-              </button>
-              <span className="px-1 text-slate-400">...</span>
-              <button className="w-7 h-7 rounded-lg border border-slate-200 dark:border-slate-700 flex items-center justify-center hover:bg-slate-50 text-slate-600">
-                35
-              </button>
-              <button className="w-7 h-7 rounded-lg border border-slate-200 dark:border-slate-700 flex items-center justify-center hover:bg-slate-50 text-slate-600">
-                <ChevronRight className="w-3.5 h-3.5" />
-              </button>
-            </div>
           </div>
         </div>
       </div>
 
       {/* ── 3 BOTTOM MINI CARDS MATCHING IMAGE 2 ── */}
+      <p className="text-xs font-semibold text-slate-600 dark:text-slate-300">Công nợ theo lớp, học sinh và thanh toán gần đây dưới đây là dữ liệu minh họa.</p>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Card 1: Công nợ theo lớp */}
         <div className="bg-white dark:bg-slate-800/90 rounded-2xl p-5 border border-slate-200/80 dark:border-slate-700/80 shadow-sm space-y-4">
@@ -1596,23 +1484,24 @@ export default function FinancePage() {
       {/* ── MODAL: XEM TRƯỚC HÓA ĐƠN & TẠO BẢN NHÁP ── */}
       {isPreviewModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-slate-800 rounded-3xl p-6 sm:p-8 max-w-lg w-full space-y-6 shadow-2xl border border-slate-200 dark:border-slate-700 animate-in fade-in zoom-in-95">
+          <div role="dialog" aria-modal="true" aria-labelledby="invoice-preview-title" className="bg-white dark:bg-slate-800 rounded-3xl p-6 sm:p-8 max-w-lg w-full space-y-6 shadow-2xl border border-slate-200 dark:border-slate-700 animate-in fade-in zoom-in-95">
             <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-700">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-2xl bg-emerald-50 dark:bg-emerald-950 text-[#0c513f] dark:text-emerald-400 flex items-center justify-center">
                   <Receipt className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-base font-extrabold text-slate-900 dark:text-white">
+                  <h3 id="invoice-preview-title" className="text-base font-extrabold text-slate-900 dark:text-white">
                     Xem Trước Hóa Đơn Học Phí
                   </h3>
                   <p className="text-xs text-slate-500">
-                    Kỳ thu Tháng 09/2026
+                    Kỳ thu: {selectedBillingPeriod?.periodName}
                   </p>
                 </div>
               </div>
               <button
                 onClick={() => setIsPreviewModalOpen(false)}
+                aria-label="Đóng xem trước"
                 className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-500 flex items-center justify-center hover:bg-slate-200"
               >
                 <X className="w-4 h-4" />
@@ -1624,32 +1513,15 @@ export default function FinancePage() {
               <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200/60 dark:border-slate-700/60 flex items-center justify-between">
                 <div>
                   <p className="text-[11px] text-slate-400 uppercase tracking-wider font-bold">Học sinh</p>
-                  <p className="text-sm font-extrabold text-slate-900 dark:text-white">{previewStudent?.displayName}</p>
+                  <p className="text-sm font-extrabold text-slate-900 dark:text-white">{selectedStudent?.displayName}</p>
                 </div>
                 <div className="text-right">
                   <p className="text-[11px] text-slate-400 uppercase tracking-wider font-bold">Lớp</p>
-                  <p className="text-xs font-bold text-slate-700 dark:text-slate-300">{previewStudent?.className || 'Lớp Mầm A1'}</p>
+                  <p className="text-xs font-bold text-slate-700 dark:text-slate-300">{selectedStudent?.className || '—'}</p>
                 </div>
               </div>
 
-              <div className="space-y-2 text-xs">
-                <div className="flex justify-between py-1.5 border-b border-slate-100 dark:border-slate-700/60">
-                  <span className="text-slate-500">Học phí cơ bản (Tháng 09)</span>
-                  <span className="font-bold text-slate-900 dark:text-white">3.000.000 đ</span>
-                </div>
-                <div className="flex justify-between py-1.5 border-b border-slate-100 dark:border-slate-700/60">
-                  <span className="text-slate-500">Tiền ăn P4 (Dựa trên điểm danh)</span>
-                  <span className="font-bold text-slate-900 dark:text-white">700.000 đ</span>
-                </div>
-                <div className="flex justify-between py-1.5 border-b border-slate-100 dark:border-slate-700/60 text-emerald-600">
-                  <span>Chiết khấu đăng ký sớm (-5%)</span>
-                  <span className="font-bold">-200.000 đ</span>
-                </div>
-                <div className="flex justify-between py-2 text-sm font-black text-slate-900 dark:text-white">
-                  <span>Tổng cộng phải thu:</span>
-                  <span className="text-[#0c513f] dark:text-emerald-400">{previewAmount.toLocaleString('vi-VN')} đ</span>
-                </div>
-              </div>
+              <p className="text-xs text-slate-600 dark:text-slate-300">Chưa có số tiền xem trước. Các khoản thu và số tiền được xác định khi lập hóa đơn nháp.</p>
             </div>
 
             {/* Modal Actions */}
@@ -1662,7 +1534,7 @@ export default function FinancePage() {
               </button>
               <button
                 onClick={handleCompileDraftInvoice}
-                disabled={loading}
+                disabled={!canCreateDraft}
                 className="flex-1 py-2.5 rounded-xl bg-[#0c513f] hover:bg-[#093e30] text-white text-xs font-bold shadow-md transition-all flex items-center justify-center gap-2"
               >
                 {loading ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Plus className="w-3.5 h-3.5" />}
