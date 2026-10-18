@@ -1,0 +1,160 @@
+{
+  "result": "PASS_SCOPED_NATIVE_COMMAND_AND_BROWSER_READBACK",
+  "recordedAt": "2026-10-17T23:07:04.822Z",
+  "binding": {
+    "repository": "bellaspahcm/bella-ai-platform",
+    "taskId": "e619dfdf-aea9-4eea-9744-d0b17e4db313",
+    "runId": "2276074c-5950-409c-ac9b-bb6bde490d0b",
+    "attempt": 1,
+    "producerInstanceId": "1fb6518c-16b1-412c-8774-c3fbf4100ec8",
+    "threadId": "01a14c18-f343-74e2-8168-a5abe39dd408",
+    "sessionId": "01a14c18-f343-74e2-8168-a5abe39dd408",
+    "turnId": "01a14c18-f466-7620-a898-9db5afff6232"
+  },
+  "commands": [
+    {
+      "itemId": "exec-b0fc43e8-f56e-46d5-b5be-8d0080206099",
+      "index": 2,
+      "exitCode": 0,
+      "metadataMatch": true,
+      "outputDigestMatch": true
+    },
+    {
+      "itemId": "exec-8128709b-1c1d-4c28-baad-80b61b40a43c",
+      "index": 4,
+      "exitCode": 1,
+      "metadataMatch": true,
+      "outputDigestMatch": false
+    },
+    {
+      "itemId": "exec-640a216f-c340-4ec9-b2ed-bf5fee5cfade",
+      "index": 6,
+      "exitCode": 0,
+      "metadataMatch": true,
+      "outputDigestMatch": true
+    },
+    {
+      "itemId": "exec-7f88d484-31fd-465e-a50d-0e8451ed5952",
+      "index": 9,
+      "exitCode": 0,
+      "metadataMatch": true,
+      "outputDigestMatch": true
+    },
+    {
+      "itemId": "exec-fb4f38b8-0b6f-481e-a8ea-2ebdad3bb584",
+      "index": 11,
+      "exitCode": 0,
+      "metadataMatch": true,
+      "outputDigestMatch": true
+    },
+    {
+      "itemId": "exec-d50501f8-8188-4402-b091-d8333f0e5b92",
+      "index": 17,
+      "exitCode": 0,
+      "metadataMatch": true,
+      "outputDigestMatch": true
+    },
+    {
+      "itemId": "exec-cc2e1bec-4bfb-48a7-a6e9-a9286aae8716",
+      "index": 20,
+      "exitCode": 1,
+      "metadataMatch": true,
+      "outputDigestMatch": true
+    },
+    {
+      "itemId": "exec-9980362c-091a-4b7b-95f8-9d58d800b3c7",
+      "index": 26,
+      "exitCode": 0,
+      "metadataMatch": true,
+      "outputDigestMatch": true
+    },
+    {
+      "itemId": "exec-529d33f4-2883-4c31-9383-735275f32afd",
+      "index": 29,
+      "exitCode": 0,
+      "metadataMatch": true,
+      "outputDigestMatch": true
+    },
+    {
+      "itemId": "exec-94ca85bc-b18d-4b6a-b698-88acd896e237",
+      "index": 31,
+      "exitCode": 0,
+      "metadataMatch": true,
+      "outputDigestMatch": true
+    },
+    {
+      "itemId": "exec-6ecd2f04-4c15-4f7b-9a89-a23d78359da8",
+      "index": 33,
+      "exitCode": 0,
+      "metadataMatch": true,
+      "outputDigestMatch": true
+    },
+    {
+      "itemId": "exec-9635f9ad-8c20-4937-a94b-b4b09dccf856",
+      "index": 41,
+      "exitCode": 1,
+      "metadataMatch": true,
+      "outputDigestMatch": true
+    },
+    {
+      "itemId": "exec-cf4d0944-9728-43a4-99fe-27a26fd67872",
+      "index": 45,
+      "exitCode": 0,
+      "metadataMatch": true,
+      "outputDigestMatch": true
+    }
+  ],
+  "browser": [
+    {
+      "phase": "before",
+      "itemId": "exec-cc2e1bec-4bfb-48a7-a6e9-a9286aae8716",
+      "index": 20,
+      "exitCode": 1,
+      "summaryMatches": true
+    },
+    {
+      "phase": "after",
+      "itemId": "exec-94ca85bc-b18d-4b6a-b698-88acd896e237",
+      "index": 31,
+      "exitCode": 0,
+      "summaryMatches": true
+    }
+  ],
+  "beforePatchAfterOrder": "PASS",
+  "verification": [
+    {
+      "command": "node docs/audits/preschool-observation-drafts-flow/observation-browser.cjs before",
+      "exitCode": 1,
+      "nativeReportMatch": false
+    },
+    {
+      "command": "node docs/audits/preschool-observation-drafts-flow/observation-browser.cjs after",
+      "exitCode": 0,
+      "nativeReportMatch": false
+    },
+    {
+      "command": "node node_modules/eslint/bin/eslint.js src/app/dashboard/education/grades/page.tsx",
+      "exitCode": 0,
+      "nativeReportMatch": true
+    },
+    {
+      "command": "node node_modules/typescript/bin/tsc -p tsconfig.education.json --pretty false --incremental --tsBuildInfoFile docs/audits/preschool-observation-drafts-flow/.cache/education.tsbuildinfo",
+      "exitCode": 0,
+      "nativeReportMatch": true
+    },
+    {
+      "command": "node --check docs/audits/preschool-observation-drafts-flow/observation-browser.cjs",
+      "exitCode": 0,
+      "nativeReportMatch": true
+    },
+    {
+      "command": "git diff --check",
+      "exitCode": 0,
+      "nativeReportMatch": true
+    }
+  ],
+  "outputDigestDifferences": 1,
+  "verificationReportsMatched": 4,
+  "verificationReportsTotal": 6,
+  "limits": "Native command metadata, outputs and browser summaries checked independently; report matches recorded individually, no broader orchestration/readiness claim"
+}
