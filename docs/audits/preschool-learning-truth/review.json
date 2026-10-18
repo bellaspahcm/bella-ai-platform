@@ -1,0 +1,41 @@
+{
+  "recordedAt": "2026-10-17T11:42:11.967Z",
+  "result": "PASS_SCOPED_UI_REVIEW",
+  "roles": [
+    {
+      "role": "Blind hunter",
+      "context": "Diff only, no spec or project",
+      "findings": "No actionable changed-path findings"
+    },
+    {
+      "role": "Edge-case hunter",
+      "context": "Diff/referenced boundaries only",
+      "finding": "Broadcast retention notice outlived explicit modal close",
+      "classification": "patch",
+      "resolved": true,
+      "followup": "Both close paths clear notice; close/reopen regressions confirmed."
+    },
+    {
+      "role": "Acceptance auditor",
+      "context": "Diff/spec/constitutions",
+      "finding": "No other actionable issue; known notice patch verified separately"
+    }
+  ],
+  "lead": {
+    "sourceSha256": {
+      "src/app/dashboard/education/learning/page.tsx": "e053e58946960c368b9326525a45c04bb2e962f84ff2110089bc8a4c90f87505",
+      "src/app/dashboard/education/communication/page.tsx": "5395087d891c6872737073dcb749e1f47c24493b143e9ea9d3ab2803c4ef604c",
+      "src/app/dashboard/education/learning/__tests__/page.test.tsx": "1116ef9d3e49b5a1803e1668de9a29f247b569e54e9f0161672f9f3d8d9802b5",
+      "src/app/dashboard/education/communication/__tests__/page.test.tsx": "039689bafedc3acba1ce5acf55fd25edd4bb6749b313ea7fb6c767cf4be02592"
+    },
+    "sourceHashes": "PASS",
+    "artifactHashes": "PASS",
+    "contrastRatiosRecomputed": 36,
+    "ratioMismatches": 0,
+    "screenshotsInspected": [
+      "communication-light-mobile.png"
+    ],
+    "runtimeBackendContractSecurity": "UNCHANGED"
+  },
+  "limits": "UI truth only, not functioning backend/persistence or Auth/RLS/tenant safety evidence."
+}
