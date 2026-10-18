@@ -56,6 +56,18 @@ import {
   BookOpen,
 } from 'lucide-react';
 
+// Static default fallback data (module-level to avoid useMemo dep issues)
+const defaultClassHeadcounts = [
+  { classId: 'mam-non-1', name: 'Mầm non 1', count: 28, color: '#F472B6' },
+  { classId: 'mam-non-2', name: 'Mầm non 2', count: 24, color: '#60A5FA' },
+  { classId: 'nha-tre-1', name: 'Nhà trẻ 1', count: 18, color: '#FBBF24' },
+  { classId: 'nha-tre-2', name: 'Nhà trẻ 2', count: 16, color: '#34D399' },
+  { classId: 'la-1',      name: 'Lá 1',      count: 32, color: '#C084FC' },
+  { classId: 'la-2',      name: 'Lá 2',      count: 26, color: '#FB923C' },
+  { classId: 'choi-1',    name: 'Chồi 1',    count: 20, color: '#22D3EE' },
+  { classId: 'choi-2',    name: 'Chồi 2',    count: 22, color: '#A3E635' },
+];
+
 export default function EducationDashboardPage() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
@@ -217,16 +229,6 @@ export default function EducationDashboardPage() {
   ];
 
   // Dynamic Class Headcount Bar Chart Data with live counts
-  const defaultClassHeadcounts = [
-    { classId: 'mam-non-1', name: 'Mầm non 1', count: 28, color: '#F472B6' },
-    { classId: 'mam-non-2', name: 'Mầm non 2', count: 24, color: '#60A5FA' },
-    { classId: 'nha-tre-1', name: 'Nhà trẻ 1', count: 18, color: '#FBBF24' },
-    { classId: 'nha-tre-2', name: 'Nhà trẻ 2', count: 16, color: '#34D399' },
-    { classId: 'la-1',        name: 'Lá 1',      count: 32, color: '#C084FC' },
-    { classId: 'la-2',        name: 'Lá 2',      count: 26, color: '#FB923C' },
-    { classId: 'choi-1',      name: 'Chồi 1',    count: 20, color: '#22D3EE' },
-    { classId: 'choi-2',      name: 'Chồi 2',    count: 22, color: '#A3E635' },
-  ];
 
   const classHeadcounts = useMemo(() => {
     if (!dashboardData?.enrollment?.classroomUtilization?.length) {
