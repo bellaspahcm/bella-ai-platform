@@ -19,9 +19,13 @@ const config: Config = {
     '**/src/**/*.test.[jt]s?(x)',
     '**/tests/**/*.test.[jt]s?(x)',
   ],
+  modulePathIgnorePatterns: [
+    '<rootDir>/.audit-local-cache/',
+  ],
   // Jest chỉ scan src/. Playwright E2E nằm trong e2e/ — chạy bằng `npm run e2e`.
   testPathIgnorePatterns: [
     '/node_modules/',
+    '/.audit-local-cache/',
     '/.next/',
     '/e2e/',
     '/playwright-report/',

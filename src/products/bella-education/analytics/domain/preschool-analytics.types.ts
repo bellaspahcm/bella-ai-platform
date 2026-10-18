@@ -63,6 +63,15 @@ export interface ExecutiveFacilitiesMetricsDTO {
   openSafetyExceptions: number; // Exception Queue (SAFETY_DEFECT)
 }
 
+export interface ExecutiveCommandCenterDTO {
+  unmarkedAttendanceCount: number;
+  leaveRequestsCount: number;
+  overdueInvoicesCount: number;
+  healthIncidentsCount: number;
+  parentRequestsCount: number;
+  totalParentsCount: number;
+}
+
 export interface ExecutiveDashboardDTO {
   tenantId: string;
   evaluatedAt: string;
@@ -74,4 +83,5 @@ export interface ExecutiveDashboardDTO {
   finance: ExecutiveFinanceMetricsDTO;
   workforce: ExecutiveWorkforceMetricsDTO;
   facilities: ExecutiveFacilitiesMetricsDTO;
+  commandCenter?: ExecutiveCommandCenterDTO;
 }

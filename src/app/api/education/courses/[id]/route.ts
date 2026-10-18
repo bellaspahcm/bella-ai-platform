@@ -88,7 +88,7 @@ export async function GET(
           teacherPartyId: t.teacherPartyId,
           name: partyMap.get(t.teacherPartyId) || 'Giáo viên',
           role: t.role,
-          roleDisplay: t.role === 'lead_teacher' ? 'Chủ nhiệm' : 'Phó bản / Trợ giảng',
+          roleDisplay: t.role === 'lead_teacher' ? 'Chủ nhiệm' : 'GV Phụ / Bảo mẫu',
           academicYear: t.academicYear,
           status: t.status,
         });

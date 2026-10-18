@@ -317,8 +317,8 @@ export default function CoursesPage() {
   const [isHeaderMenuOpen, setIsHeaderMenuOpen] = useState(false);
   const [isNewClassModalOpen, setIsNewClassModalOpen] = useState(false);
   const [modalStep, setModalStep] = useState(1);
-  const [classList, setClassList] = useState<ClassItem[]>(INITIAL_CLASSES);
-  const [isLoading, setIsLoading] = useState(false);
+  const [classList, setClassList] = useState<ClassItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [modalError, setModalError] = useState<string | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
@@ -633,7 +633,11 @@ export default function CoursesPage() {
             </div>
             <div className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 pt-1">Tổng số lớp</div>
             <div className="text-2xl font-extrabold text-slate-900 dark:text-white flex items-baseline gap-1">
-              {classList.length} <span className="text-xs font-normal text-slate-500">lớp</span>
+              {isLoading ? (
+                <span className="inline-block w-8 h-7 rounded-lg bg-slate-200 dark:bg-slate-700 animate-pulse" />
+              ) : (
+                <>{classList.length} <span className="text-xs font-normal text-slate-500">lớp</span></>
+              )}
             </div>
           </div>
 
@@ -646,7 +650,11 @@ export default function CoursesPage() {
             </div>
             <div className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 pt-1">Tổng học sinh</div>
             <div className="text-2xl font-extrabold text-blue-600 dark:text-blue-400 flex items-baseline gap-1">
-              {totalStudents} <span className="text-xs font-normal text-blue-500">bé</span>
+              {isLoading ? (
+                <span className="inline-block w-10 h-7 rounded-lg bg-blue-100 dark:bg-blue-950 animate-pulse" />
+              ) : (
+                <>{totalStudents} <span className="text-xs font-normal text-blue-500">bé</span></>
+              )}
             </div>
           </div>
 
@@ -659,7 +667,11 @@ export default function CoursesPage() {
             </div>
             <div className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 pt-1">Chỗ trống còn lại</div>
             <div className="text-2xl font-extrabold text-amber-600 dark:text-amber-400 flex items-baseline gap-1">
-              {totalAvailableSeats} <span className="text-xs font-normal text-amber-600">chỗ</span>
+              {isLoading ? (
+                <span className="inline-block w-8 h-7 rounded-lg bg-amber-100 dark:bg-amber-950 animate-pulse" />
+              ) : (
+                <>{totalAvailableSeats} <span className="text-xs font-normal text-amber-600">chỗ</span></>
+              )}
             </div>
           </div>
 
@@ -672,12 +684,16 @@ export default function CoursesPage() {
             </div>
             <div className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 pt-1">Tỷ lệ lấp đầy</div>
             <div className="text-2xl font-extrabold text-indigo-700 dark:text-indigo-300">
-              {fillRatePercent}%
+              {isLoading ? (
+                <span className="inline-block w-12 h-7 rounded-lg bg-indigo-100 dark:bg-indigo-950 animate-pulse" />
+              ) : (
+                `${fillRatePercent}%`
+              )}
             </div>
             <div className="w-full h-1.5 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden mt-1.5">
               <div 
-                className="h-full rounded-full bg-indigo-500 transition-all duration-500" 
-                style={{ width: `${Math.min(100, fillRatePercent)}%` }} 
+                className="h-full rounded-full bg-indigo-500 transition-all duration-700" 
+                style={{ width: isLoading ? '0%' : `${Math.min(100, fillRatePercent)}%` }} 
               />
             </div>
           </div>

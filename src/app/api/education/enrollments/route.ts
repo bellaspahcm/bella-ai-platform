@@ -260,7 +260,7 @@ async function loadStudentRegistry(
     .eq('tenant_id', tenantId)
     .in('status', [...STUDENT_REGISTRY_STATUSES])
     .order('enrolled_at', { ascending: false })
-    .limit(100);
+    .limit(1000);
 
   if (enrollmentError) {
     throw new Error(`Failed to load canonical enrollments: ${enrollmentError.message}`);
