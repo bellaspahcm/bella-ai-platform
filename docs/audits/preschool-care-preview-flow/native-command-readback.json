@@ -1,0 +1,165 @@
+{
+  "result": "PASS_SCOPED_NATIVE_COMMAND_BROWSER_AND_SUBPROCESS_READBACK",
+  "recordedAt": "2026-10-17T23:29:11.051Z",
+  "binding": {
+    "repository": "bellaspahcm/bella-ai-platform",
+    "taskId": "b989fe1b-d6a6-4d0c-af4a-5c5913c1e9fc",
+    "runId": "f9fbde41-e4b5-4500-8ade-aff66ad870ed",
+    "attempt": 1,
+    "producerInstanceId": "c294b89e-e205-4e66-bea6-692ac72e6a16",
+    "threadId": "01a14c27-23f0-7af2-8a8f-f7eec0c833d6",
+    "sessionId": "01a14c27-23f0-7af2-8a8f-f7eec0c833d6",
+    "turnId": "01a14c27-253b-7783-ad8d-e515771bcad6"
+  },
+  "commands": [
+    {
+      "itemId": "exec-fe853497-ff24-4ae7-b361-f0ed985ba369",
+      "index": 2,
+      "exitCode": 0,
+      "metadataMatch": true,
+      "outputDigestMatch": true
+    },
+    {
+      "itemId": "exec-3ba4686a-58d8-4b07-91b4-6d5b29d292b2",
+      "index": 3,
+      "exitCode": 0,
+      "metadataMatch": true,
+      "outputDigestMatch": false
+    },
+    {
+      "itemId": "exec-f3874b3f-ccdb-415f-9916-5aad0756ba94",
+      "index": 5,
+      "exitCode": 0,
+      "metadataMatch": true,
+      "outputDigestMatch": true
+    },
+    {
+      "itemId": "exec-2c5f2161-c8b8-4363-83cf-257cebabc8be",
+      "index": 7,
+      "exitCode": 0,
+      "metadataMatch": true,
+      "outputDigestMatch": true
+    },
+    {
+      "itemId": "exec-d9e2d65b-5f73-4a07-9dc6-66c760fbeec2",
+      "index": 10,
+      "exitCode": 0,
+      "metadataMatch": true,
+      "outputDigestMatch": true
+    },
+    {
+      "itemId": "exec-a3ccc97a-99d6-442e-904d-1f6393845d15",
+      "index": 12,
+      "exitCode": 0,
+      "metadataMatch": true,
+      "outputDigestMatch": true
+    },
+    {
+      "itemId": "exec-7e356feb-d5dc-4394-ab06-7f529c520ea4",
+      "index": 15,
+      "exitCode": 1,
+      "metadataMatch": true,
+      "outputDigestMatch": true
+    },
+    {
+      "itemId": "exec-95b7d042-21c7-4264-8bc4-f2bd108dfd14",
+      "index": 17,
+      "exitCode": 0,
+      "metadataMatch": true,
+      "outputDigestMatch": true
+    },
+    {
+      "itemId": "exec-9108fe29-2444-403e-b862-68e88ce1fcf3",
+      "index": 22,
+      "exitCode": 0,
+      "metadataMatch": true,
+      "outputDigestMatch": true
+    },
+    {
+      "itemId": "exec-7cbaa6b7-a008-4f40-ace9-e2a041cc6860",
+      "index": 23,
+      "exitCode": 0,
+      "metadataMatch": true,
+      "outputDigestMatch": true
+    },
+    {
+      "itemId": "exec-d2b32cf2-44c0-46bb-be4c-6fc6b10c9988",
+      "index": 24,
+      "exitCode": 0,
+      "metadataMatch": true,
+      "outputDigestMatch": true
+    },
+    {
+      "itemId": "exec-71c3a811-7fc9-4b0d-8d2b-4c826ace11ae",
+      "index": 27,
+      "exitCode": 0,
+      "metadataMatch": true,
+      "outputDigestMatch": true
+    },
+    {
+      "itemId": "exec-18855b8d-fda3-4669-9996-ef9ba77d200b",
+      "index": 31,
+      "exitCode": 0,
+      "metadataMatch": true,
+      "outputDigestMatch": true
+    },
+    {
+      "itemId": "exec-948a1e17-a99e-4ad7-83fe-45bb6820c024",
+      "index": 33,
+      "exitCode": 0,
+      "metadataMatch": true,
+      "outputDigestMatch": true
+    },
+    {
+      "itemId": "exec-26b123b1-4e58-4d61-b2a8-7ef405f780e1",
+      "index": 39,
+      "exitCode": 0,
+      "metadataMatch": true,
+      "outputDigestMatch": true
+    }
+  ],
+  "browser": [
+    {
+      "phase": "before",
+      "itemId": "exec-7e356feb-d5dc-4394-ab06-7f529c520ea4",
+      "index": 15,
+      "exitCode": 1,
+      "summaryMatches": true,
+      "liveAndHistoryOutputMatch": true
+    },
+    {
+      "phase": "after",
+      "itemId": "exec-9108fe29-2444-403e-b862-68e88ce1fcf3",
+      "index": 22,
+      "exitCode": 0,
+      "summaryMatches": true,
+      "liveAndHistoryOutputMatch": true
+    }
+  ],
+  "beforePatchAfterOrder": "PASS",
+  "verification": [
+    {
+      "command": "node node_modules/eslint/bin/eslint.js src/app/dashboard/education/care/page.tsx",
+      "exitCode": 0,
+      "nativeReportMatch": true
+    },
+    {
+      "command": "node node_modules/typescript/bin/tsc -p tsconfig.education.json --pretty false --incremental --tsBuildInfoFile docs/audits/preschool-care-preview-flow/.cache/education.tsbuildinfo",
+      "exitCode": 0,
+      "nativeReportMatch": true
+    },
+    {
+      "command": "node --check docs/audits/preschool-care-preview-flow/care-browser.cjs",
+      "exitCode": 0,
+      "nativeReportMatch": true
+    },
+    {
+      "command": "git diff --check",
+      "exitCode": 0,
+      "nativeReportMatch": true
+    }
+  ],
+  "outputDigestDifferences": 1,
+  "verificationReportsMatched": 4,
+  "verificationReportsTotal": 4
+}
