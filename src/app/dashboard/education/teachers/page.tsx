@@ -34,16 +34,14 @@
  * - STRICT TYPE SAFETY: Zero `any` and zero `unknown`
  */
 
-import { useState, useRef, useEffect, useMemo, type ChangeEvent } from 'react';
+import { useState, useRef, useEffect, useMemo, type ChangeEvent, type FormEvent } from 'react';
 import Link from 'next/link';
 import {
   Users,
   UserPlus,
   Search,
   ArrowLeft,
-  Award,
   BookOpen,
-  Calendar,
   ShieldCheck,
   MoreVertical,
   GraduationCap,
@@ -56,6 +54,10 @@ import {
   Star,
   RefreshCw,
   Phone,
+  Mail,
+  AlertTriangle,
+  Sparkles,
+  ExternalLink,
 } from 'lucide-react';
 import { getCachedTenantSettings } from '@/lib/dashboard-client-context';
 import { resolveTenantBrandIdentity } from '@/lib/business-rules/tenant-modules';
@@ -267,9 +269,10 @@ interface TeacherCardProps {
   readonly isMenuOpen: boolean;
   readonly onMenuToggle: () => void;
   readonly onAssignClass: () => void;
+  readonly onOpenProfile: () => void;
 }
 
-function TeacherCard({ teacher, isMenuOpen, onMenuToggle, onAssignClass }: TeacherCardProps) {
+function TeacherCard({ teacher, isMenuOpen, onMenuToggle, onAssignClass, onOpenProfile }: TeacherCardProps) {
   const initials = teacher.name.split(' ').pop()?.[0]?.toUpperCase() ?? '?';
 
   return (
@@ -308,30 +311,44 @@ function TeacherCard({ teacher, isMenuOpen, onMenuToggle, onAssignClass }: Teach
               <MoreVertical className="w-4 h-4" />
             </button>
             {isMenuOpen && (
-              <div className="absolute right-0 mt-2 w-52 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl z-50 p-1.5 space-y-0.5 text-xs font-semibold">
-                {/* TODO: create /dashboard/education/teachers/[id]/page.tsx */}
-                <Link
-                  href={`/dashboard/education/teachers?teacher=${teacher.id}`}
-                  className="flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-[#0e5c43]/10 hover:text-[#0e5c43] dark:hover:text-emerald-300 rounded-lg transition-colors"
+              <div className="absolute right-0 mt-2 w-56 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl z-50 p-1.5 space-y-0.5 text-xs font-semibold">
+                <button
+                  type="button"
+                  onClick={onOpenProfile}
+                  className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-[#0e5c43]/10 hover:text-[#0e5c43] dark:hover:text-emerald-300 rounded-lg transition-colors text-left cursor-pointer"
                 >
                   <FileText className="w-3.5 h-3.5 text-[#0e5c43] dark:text-emerald-400 shrink-0" />
-                  <span>Hồ Sơ Giáo Viên</span>
+                  <span>Xem Hồ Sơ (Popup)</span>
+                </button>
+                <Link
+                  href={`/dashboard/education/teachers/${teacher.id}`}
+                  className="flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-[#0e5c43]/10 hover:text-[#0e5c43] dark:hover:text-emerald-300 rounded-lg transition-colors"
+                >
+                  <ExternalLink className="w-3.5 h-3.5 text-blue-500 shrink-0" />
+                  <span>Hồ Sơ 360° Đầy Đủ</span>
                 </Link>
                 <button
                   type="button"
                   onClick={onAssignClass}
-                  className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-[#0e5c43]/10 hover:text-[#0e5c43] dark:hover:text-emerald-300 rounded-lg transition-colors text-left"
+                  className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-[#0e5c43]/10 hover:text-[#0e5c43] dark:hover:text-emerald-300 rounded-lg transition-colors text-left cursor-pointer"
                 >
                   <Users className="w-3.5 h-3.5 text-[#0e5c43] dark:text-emerald-400 shrink-0" />
                   <span>Phân Công Lớp</span>
                 </button>
-                <div className="border-t border-slate-100 dark:border-slate-800 pt-1">
+                <div className="border-t border-slate-100 dark:border-slate-800 pt-1 space-y-0.5">
                   <a
                     href={`tel:${teacher.phone}`}
                     className="flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
                   >
                     <Phone className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
                     <span>Gọi Điện ({teacher.phone})</span>
+                  </a>
+                  <a
+                    href={`mailto:${teacher.email}`}
+                    className="flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+                  >
+                    <Mail className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
+                    <span>Gửi Email</span>
                   </a>
                 </div>
               </div>
@@ -426,14 +443,14 @@ function TeacherCard({ teacher, isMenuOpen, onMenuToggle, onAssignClass }: Teach
 
       {/* Card Action Buttons (Bottom) */}
       <div className="grid grid-cols-2 gap-3.5 pt-4 pb-1 border-t border-slate-100 dark:border-slate-700/60 mt-auto">
-        {/* TODO: navigate to /dashboard/education/teachers/[id] once created */}
-        <Link
-          href={`/dashboard/education/teachers?teacher=${teacher.id}`}
-          className="inline-flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-lg text-xs font-bold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-[#0e5c43] dark:text-emerald-400 hover:bg-slate-50 dark:hover:bg-slate-700/60 transition-colors shadow-2xs"
+        <button
+          type="button"
+          onClick={onOpenProfile}
+          className="inline-flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-lg text-xs font-bold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-[#0e5c43] dark:text-emerald-400 hover:bg-emerald-50/50 dark:hover:bg-slate-700/60 transition-colors shadow-2xs cursor-pointer active:scale-95"
         >
           <FileText className="w-4 h-4" />
           <span>Xem Hồ Sơ</span>
-        </Link>
+        </button>
         <button
           type="button"
           onClick={onAssignClass}
@@ -529,8 +546,25 @@ export default function TeachersPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
   const [selectedTeacherForAssign, setSelectedTeacherForAssign] = useState<TeacherItem | null>(null);
+  const [teachers, setTeachers] = useState<TeacherItem[]>(TEACHERS_LIST);
+  const [selectedTeacherForProfile, setSelectedTeacherForProfile] = useState<TeacherItem | null>(null);
+  const [isAddTeacherOpen, setIsAddTeacherOpen] = useState(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const menuRef = useRef<HTMLDivElement>(null);
+
+  // Auto-dismiss toast notification
+  useEffect(() => {
+    if (!toastMessage) return;
+    const timer = setTimeout(() => setToastMessage(null), 4000);
+    return () => clearTimeout(timer);
+  }, [toastMessage]);
+
+  // Derived counts (single source of truth from state)
+  const totalTeachers = teachers.length;
+  const countChunhiem = teachers.filter((t) => t.roleKey === 'chunhiem').length;
+  const countTrogiang = teachers.filter((t) => t.roleKey === 'trogiang').length;
+  const countBomon = teachers.filter((t) => t.roleKey === 'bomon').length;
 
   // Detect preschool tenant scoping
   useEffect(() => {
@@ -569,7 +603,7 @@ export default function TeachersPage() {
   // Filtered teachers list
   const filteredTeachers = useMemo(() => {
     const q = searchQuery.toLowerCase().trim();
-    return TEACHERS_LIST.filter((t) => {
+    return teachers.filter((t) => {
       const matchSearch =
         !q ||
         t.name.toLowerCase().includes(q) ||
@@ -583,12 +617,27 @@ export default function TeachersPage() {
 
       return matchSearch && matchRole && matchGrade;
     });
-  }, [searchQuery, roleFilter, gradeFilter]);
+  }, [teachers, searchQuery, roleFilter, gradeFilter]);
 
   if (!isPreschoolTenant) return <LegacyTeacherView />;
 
   return (
     <div className="w-full min-h-screen p-4 sm:p-6 lg:p-8 space-y-6 pb-40 sm:pb-56 bg-[#f8fafc]/50 dark:bg-slate-900/50">
+
+      {/* ── TOAST NOTIFICATION ── */}
+      {toastMessage && (
+        <div className="fixed top-6 right-6 z-50 flex items-center gap-2.5 px-4 py-3 rounded-xl bg-emerald-600 text-white shadow-xl text-xs font-bold animate-in slide-in-from-top-4 duration-300">
+          <Check className="w-4 h-4 shrink-0" />
+          <span>{toastMessage}</span>
+          <button
+            type="button"
+            onClick={() => setToastMessage(null)}
+            className="p-1 rounded-lg hover:bg-emerald-700 transition-colors ml-2 cursor-pointer"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
 
       {/* ── 1. HEADER SECTION ── */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -611,7 +660,7 @@ export default function TeachersPage() {
               Đội Ngũ Giáo Viên Mầm Non
             </h1>
             <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">
-              Quản lý {TOTAL_TEACHERS} giáo viên chuyên môn, phân công giảng dạy
+              Quản lý {totalTeachers} giáo viên chuyên môn, phân công giảng dạy
             </p>
           </div>
         </div>
@@ -631,6 +680,7 @@ export default function TeachersPage() {
 
           <button
             type="button"
+            onClick={() => setIsAddTeacherOpen(true)}
             className="px-4 py-2.5 rounded-lg bg-[#0e5c43] hover:bg-[#0a4633] active:scale-95 text-white font-bold text-xs shadow-xs transition-all flex items-center gap-1.5 cursor-pointer shrink-0"
           >
             <UserPlus className="w-4 h-4" />
@@ -639,7 +689,7 @@ export default function TeachersPage() {
         </div>
       </div>
 
-      {/* ── 2. FOUR KPI STAT CARDS — counts derived from TEACHERS_LIST (single source of truth) ── */}
+      {/* ── 2. FOUR KPI STAT CARDS — counts derived from teachers state (single source of truth) ── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Card 1: Tổng số giáo viên (Mint) */}
         <div className="rounded-2xl p-5 bg-[#ecfdf5] dark:bg-emerald-950/20 border border-emerald-100/60 dark:border-emerald-900/30">
@@ -650,7 +700,7 @@ export default function TeachersPage() {
             Tổng số giáo viên
           </div>
           <div className="text-3xl font-black text-slate-900 dark:text-white mt-1">
-            {TOTAL_TEACHERS}
+            {totalTeachers}
           </div>
         </div>
 
@@ -663,7 +713,7 @@ export default function TeachersPage() {
             Giáo viên chủ nhiệm
           </div>
           <div className="text-3xl font-black text-[#1d4ed8] dark:text-blue-400 mt-1">
-            {COUNT_CHUNHIEM}
+            {countChunhiem}
           </div>
         </div>
 
@@ -676,7 +726,7 @@ export default function TeachersPage() {
             Giáo viên trợ giảng
           </div>
           <div className="text-3xl font-black text-[#c2410c] dark:text-amber-400 mt-1">
-            {COUNT_TROGIANG}
+            {countTrogiang}
           </div>
         </div>
 
@@ -689,7 +739,7 @@ export default function TeachersPage() {
             Giáo viên năng khiếu
           </div>
           <div className="text-3xl font-black text-[#7c3aed] dark:text-purple-400 mt-1">
-            {COUNT_BOMON}
+            {countBomon}
           </div>
         </div>
       </div>
@@ -746,12 +796,11 @@ export default function TeachersPage() {
 
         {/* Row 2: Pill Tabs matching Image 3 */}
         <div className="flex items-center gap-2 overflow-x-auto pb-1">
-          {/* Pill tab counts are always derived from TEACHERS_LIST — no hardcoded numbers */}
-        {[
-            { id: 'all' as const, label: `Tất cả (${TOTAL_TEACHERS})` },
-            { id: 'chunhiem' as const, label: `Chủ nhiệm (${COUNT_CHUNHIEM})` },
-            { id: 'trogiang' as const, label: `Trợ giảng (${COUNT_TROGIANG})` },
-            { id: 'bomon' as const, label: `Năng khiếu & Ngoại ngữ (${COUNT_BOMON})` },
+          {[
+            { id: 'all' as const, label: `Tất cả (${totalTeachers})` },
+            { id: 'chunhiem' as const, label: `Chủ nhiệm (${countChunhiem})` },
+            { id: 'trogiang' as const, label: `Trợ giảng (${countTrogiang})` },
+            { id: 'bomon' as const, label: `Năng khiếu & Ngoại ngữ (${countBomon})` },
           ].map((tab) => {
             const isActive = roleFilter === tab.id;
             return (
@@ -790,6 +839,7 @@ export default function TeachersPage() {
               isMenuOpen={activeMenuId === teacher.id}
               onMenuToggle={() => setActiveMenuId(activeMenuId === teacher.id ? null : teacher.id)}
               onAssignClass={() => { setSelectedTeacherForAssign(teacher); setActiveMenuId(null); }}
+              onOpenProfile={() => { setSelectedTeacherForProfile(teacher); setActiveMenuId(null); }}
             />
           ))
         )}
@@ -798,7 +848,444 @@ export default function TeachersPage() {
       {/* Generous bottom spacing buffer so cards never sit flush against the viewport bottom */}
       <div className="h-20 sm:h-28 w-full" aria-hidden="true" />
 
-      {/* ── 5. GOVERNED CLASS ASSIGNMENT MODAL ── */}
+      {/* ── 5. TEACHER 360 PROFILE POPUP MODAL ── */}
+      {selectedTeacherForProfile && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="w-full max-w-2xl max-h-[92vh] overflow-y-auto rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl p-6 sm:p-8 space-y-6 relative">
+            <button
+              type="button"
+              onClick={() => setSelectedTeacherForProfile(null)}
+              className="absolute top-5 right-5 p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer"
+            >
+              <X className="w-4 h-4" />
+            </button>
+
+            {/* Profile Header */}
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 pb-5 border-b border-slate-100 dark:border-slate-800">
+              <div className={`w-16 h-16 rounded-2xl ${selectedTeacherForProfile.avatarFallbackBg} flex items-center justify-center font-black text-2xl shrink-0 shadow-sm`}>
+                {selectedTeacherForProfile.name.split(' ').pop()?.[0]?.toUpperCase() ?? '?'}
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-[11px] font-extrabold uppercase tracking-wider text-[#0e5c43] dark:text-emerald-400">
+                    Hồ Sơ Giáo Viên 360° • {selectedTeacherForProfile.id}
+                  </span>
+                  <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full border ${selectedTeacherForProfile.statusColorClass}`}>
+                    {selectedTeacherForProfile.status}
+                  </span>
+                </div>
+                <h3 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white mt-0.5">
+                  {selectedTeacherForProfile.name}
+                </h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                  {selectedTeacherForProfile.role} • <span className="font-bold text-[#059669] dark:text-emerald-400">{selectedTeacherForProfile.classAssigned}</span>
+                </p>
+              </div>
+            </div>
+
+            {/* Content Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Box 1: Thông tin liên hệ & Nhân sự */}
+              <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-700/60 space-y-3">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 block">
+                  Thông tin liên hệ & Công tác
+                </span>
+                <div className="space-y-2 text-xs">
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-500">Số điện thoại:</span>
+                    <a href={`tel:${selectedTeacherForProfile.phone}`} className="font-bold text-emerald-600 hover:underline">
+                      {selectedTeacherForProfile.phone}
+                    </a>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-500">Email:</span>
+                    <a href={`mailto:${selectedTeacherForProfile.email}`} className="font-semibold text-slate-800 dark:text-slate-200 hover:underline truncate max-w-[180px]">
+                      {selectedTeacherForProfile.email}
+                    </a>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-500">Năm vào trường:</span>
+                    <span className="font-semibold text-slate-700 dark:text-slate-300">
+                      {selectedTeacherForProfile.joinedYear}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-500">Khối phụ trách:</span>
+                    <span className="font-bold text-[#0e5c43] dark:text-emerald-400 uppercase">
+                      {selectedTeacherForProfile.gradeLevel === 'all' ? 'Toàn trường' : `Khối ${selectedTeacherForProfile.gradeLevel}`}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Box 2: Trình độ chuyên môn & Học vấn */}
+              <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-700/60 space-y-3">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 block">
+                  Trình độ & Bằng cấp
+                </span>
+                <div className="space-y-2 text-xs">
+                  <div>
+                    <span className="text-slate-500 block text-[11px]">Bằng cấp chuyên môn:</span>
+                    <p className="font-bold text-slate-900 dark:text-white mt-0.5">
+                      {selectedTeacherForProfile.degree}
+                    </p>
+                  </div>
+                  <div>
+                    <span className="text-slate-500 block text-[11px]">Cơ sở đào tạo:</span>
+                    <p className="font-semibold text-slate-700 dark:text-slate-300 mt-0.5">
+                      {selectedTeacherForProfile.university}
+                    </p>
+                  </div>
+                  <div className="flex items-center justify-between pt-1 border-t border-slate-200/60 dark:border-slate-700/60">
+                    <span className="text-slate-500">Kinh nghiệm:</span>
+                    <span className="font-bold text-slate-800 dark:text-slate-200">
+                      {selectedTeacherForProfile.experience}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Box 3: Định mức giờ dạy & Tải giảng dạy */}
+            <div className="p-4.5 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                  Định mức giảng dạy trong tuần
+                </span>
+                <span className="text-xs font-black text-slate-900 dark:text-white">
+                  {selectedTeacherForProfile.workloadHours} / {selectedTeacherForProfile.maxWorkloadHours} giờ ({selectedTeacherForProfile.loadPercent}%)
+                </span>
+              </div>
+              <div className="w-full h-2.5 rounded-full bg-slate-100 dark:bg-slate-700 overflow-hidden">
+                <div
+                  className={`h-full rounded-full transition-all duration-500 ${
+                    selectedTeacherForProfile.workloadStatus === 'Đủ tải' ? 'bg-amber-500' : 'bg-emerald-500'
+                  }`}
+                  style={{ width: `${Math.min(100, selectedTeacherForProfile.loadPercent)}%` }}
+                />
+              </div>
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-slate-500">
+                  {selectedTeacherForProfile.workloadStatus === 'Đủ tải'
+                    ? 'Đã đạt định mức giảng dạy quy định'
+                    : `Còn trống ${selectedTeacherForProfile.maxWorkloadHours - selectedTeacherForProfile.workloadHours} giờ phân công`}
+                </span>
+                <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold ${
+                  selectedTeacherForProfile.workloadStatus === 'Đủ tải'
+                    ? 'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300'
+                    : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300'
+                }`}>
+                  {selectedTeacherForProfile.workloadStatus}
+                </span>
+              </div>
+            </div>
+
+            {/* Box 4: Chứng chỉ sư phạm mầm non */}
+            <div className="space-y-2">
+              <span className="text-xs font-bold text-slate-700 dark:text-slate-300 block">
+                Chứng chỉ sư phạm & Giám sát chứng chỉ hành nghề:
+              </span>
+              <div className="flex flex-wrap gap-2">
+                {selectedTeacherForProfile.badges.map((badge, idx) => (
+                  <span
+                    key={idx}
+                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium ${
+                      badge.isWarning
+                        ? 'bg-[#fffbeb] text-[#b45309] border border-[#fef3c7] dark:bg-amber-950/40 dark:text-amber-300'
+                        : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700'
+                    }`}
+                  >
+                    <ShieldCheck className={`w-4 h-4 shrink-0 ${badge.isWarning ? 'text-amber-500' : 'text-emerald-500'}`} />
+                    <span>{badge.title}</span>
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            {/* Modal Actions */}
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
+              <button
+                type="button"
+                onClick={() => setSelectedTeacherForProfile(null)}
+                className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-xs hover:bg-slate-200 transition-colors cursor-pointer"
+              >
+                Đóng
+              </button>
+              <div className="flex items-center gap-2.5 w-full sm:w-auto">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const t = selectedTeacherForProfile;
+                    setSelectedTeacherForProfile(null);
+                    setSelectedTeacherForAssign(t);
+                  }}
+                  className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-[#0e5c43] dark:text-emerald-400 font-bold text-xs hover:bg-slate-50 transition-colors cursor-pointer shadow-2xs"
+                >
+                  <Users className="w-4 h-4" />
+                  <span>Phân Công Lớp</span>
+                </button>
+                <Link
+                  href={`/dashboard/education/teachers/${selectedTeacherForProfile.id}`}
+                  className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 px-5 py-2.5 rounded-xl bg-[#0e5c43] hover:bg-[#0a4633] text-white font-bold text-xs shadow-md transition-all cursor-pointer active:scale-95"
+                >
+                  <Sparkles className="w-4 h-4 text-amber-300" />
+                  <span>Hồ Sơ 360° Đầy Đủ</span>
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── 6. ADD NEW TEACHER MODAL ── */}
+      {isAddTeacherOpen && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="w-full max-w-xl max-h-[92vh] overflow-y-auto rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl p-6 sm:p-8 space-y-6 relative">
+            <button
+              type="button"
+              onClick={() => setIsAddTeacherOpen(false)}
+              className="absolute top-5 right-5 p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer"
+            >
+              <X className="w-4 h-4" />
+            </button>
+
+            <div className="space-y-1">
+              <span className="text-[11px] font-extrabold uppercase tracking-wider text-[#0e5c43] dark:text-emerald-400">
+                Khai báo hồ sơ nhân sự sư phạm mầm non
+              </span>
+              <h3 className="text-xl font-extrabold text-slate-900 dark:text-white">
+                + Thêm Giáo Viên Mới
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                Nhập thông tin nhân sự, chức danh, phân công lớp và chứng chỉ chuyên môn
+              </p>
+            </div>
+
+            <form
+              onSubmit={(e: FormEvent<HTMLFormElement>) => {
+                e.preventDefault();
+                const formData = new FormData(e.currentTarget);
+                const name = (formData.get('name') as string)?.trim() || 'Cô Giáo Viên Mới';
+                const roleKey = (formData.get('roleKey') as RoleKey) || 'chunhiem';
+                const gradeLevel = (formData.get('gradeLevel') as GradeLevel) || 'mam';
+                const classAssigned = (formData.get('classAssigned') as string)?.trim() || 'Chờ phân công lớp';
+                const degree = (formData.get('degree') as string)?.trim() || 'Cử nhân Sư phạm Mầm non';
+                const university = (formData.get('university') as string)?.trim() || 'ĐH Sư Phạm';
+                const experience = (formData.get('experience') as string)?.trim() || '2 năm kinh nghiệm';
+                const phone = (formData.get('phone') as string)?.trim() || '0900 123 456';
+                const email = (formData.get('email') as string)?.trim() || 'giaovien@bellapreschool.edu.vn';
+                const workloadHours = Math.min(45, Math.max(0, Number(formData.get('workloadHours')) || 30));
+                const certsStr = (formData.get('certs') as string)?.trim() || 'Sơ cứu Y tế Trẻ em, Giáo dục sớm';
+
+                const roleName =
+                  roleKey === 'chunhiem'
+                    ? 'Giáo viên chủ nhiệm'
+                    : roleKey === 'trogiang'
+                    ? 'Giáo viên trợ giảng'
+                    : 'Giáo viên năng khiếu';
+
+                const loadPercent = Math.min(100, Math.round((workloadHours / 40) * 100));
+                const workloadStatus = workloadHours >= 36 ? 'Đủ tải' : 'Còn lịch trống';
+
+                const badges: TeacherBadge[] = certsStr.split(',').map((c) => ({
+                  title: c.trim(),
+                  isWarning: false,
+                }));
+
+                const newTeacher: TeacherItem = {
+                  id: `TEA-${String(teachers.length + 1).padStart(3, '0')}`,
+                  name,
+                  role: roleName,
+                  roleKey,
+                  classAssigned,
+                  gradeLevel,
+                  degree,
+                  university,
+                  experience,
+                  joinedYear: '10/2026',
+                  phone,
+                  email,
+                  workloadHours,
+                  maxWorkloadHours: 40,
+                  loadPercent,
+                  workloadStatus,
+                  status: 'Đang Giảng Dạy',
+                  statusColorClass: 'bg-emerald-50 text-emerald-600 border-emerald-100',
+                  avatarUrl: '',
+                  avatarFallbackBg: 'bg-emerald-100 text-emerald-700',
+                  badges,
+                };
+
+                setTeachers((prev) => [newTeacher, ...prev]);
+                setIsAddTeacherOpen(false);
+                setToastMessage(`Đã thêm thành công hồ sơ giáo viên: ${name}!`);
+              }}
+              className="space-y-4"
+            >
+              <div>
+                <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">
+                  Họ và tên cô giáo <span className="text-rose-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  name="name"
+                  required
+                  placeholder="Ví dụ: Cô Vũ Hoàng Lan"
+                  className="w-full p-3 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-[#0e5c43]"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">
+                    Chức vụ / Vai trò <span className="text-rose-500">*</span>
+                  </label>
+                  <select
+                    name="roleKey"
+                    className="w-full p-3 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-[#0e5c43]"
+                  >
+                    <option value="chunhiem">Giáo viên chủ nhiệm</option>
+                    <option value="trogiang">Giáo viên trợ giảng</option>
+                    <option value="bomon">Giáo viên năng khiếu</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">
+                    Khối mầm non <span className="text-rose-500">*</span>
+                  </label>
+                  <select
+                    name="gradeLevel"
+                    className="w-full p-3 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-[#0e5c43]"
+                  >
+                    <option value="mam">Khối Mầm (3 - 4 tuổi)</option>
+                    <option value="choi">Khối Chồi (4 - 5 tuổi)</option>
+                    <option value="la">Khối Lá (5 - 6 tuổi)</option>
+                    <option value="nhatre">Khối Nhà Trẻ (18 - 36 tháng)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">
+                    Lớp phân công
+                  </label>
+                  <select
+                    name="classAssigned"
+                    className="w-full p-3 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-[#0e5c43]"
+                  >
+                    <option>Lớp Mầm A1 — Họa Mi</option>
+                    <option>Lớp Mầm A2 — Sơn Ca</option>
+                    <option>Lớp Chồi B1 — Thỏ Ngọc</option>
+                    <option>Lớp Lá C1 — Vàng Anh</option>
+                    <option>Lớp Nhà Trẻ N1 — Gấu Misa</option>
+                    <option>Âm nhạc — Nghệ thuật</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">
+                    Định mức giờ/tuần (Max 40h)
+                  </label>
+                  <input
+                    type="number"
+                    name="workloadHours"
+                    defaultValue={30}
+                    min={10}
+                    max={40}
+                    className="w-full p-3 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-[#0e5c43]"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">
+                    Trình độ bằng cấp
+                  </label>
+                  <input
+                    type="text"
+                    name="degree"
+                    defaultValue="Cử nhân Sư phạm Mầm non"
+                    className="w-full p-3 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-[#0e5c43]"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">
+                    Trường đào tạo
+                  </label>
+                  <input
+                    type="text"
+                    name="university"
+                    defaultValue="Đại học Sư Phạm"
+                    className="w-full p-3 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-[#0e5c43]"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">
+                    Số năm kinh nghiệm
+                  </label>
+                  <input
+                    type="text"
+                    name="experience"
+                    defaultValue="3 năm kinh nghiệm"
+                    className="w-full p-3 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-[#0e5c43]"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">
+                    Số điện thoại
+                  </label>
+                  <input
+                    type="text"
+                    name="phone"
+                    defaultValue="0988 123 456"
+                    className="w-full p-3 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-[#0e5c43]"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">
+                  Chứng chỉ chuyên môn (cách nhau bởi dấu phẩy)
+                </label>
+                <input
+                  type="text"
+                  name="certs"
+                  defaultValue="Montessori Quốc Tế, Sơ cứu Y tế Trẻ em"
+                  className="w-full p-3 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-[#0e5c43]"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100 dark:border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => setIsAddTeacherOpen(false)}
+                  className="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-xs hover:bg-slate-200 transition-colors cursor-pointer"
+                >
+                  Hủy bỏ
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2.5 rounded-xl bg-[#0e5c43] hover:bg-[#0a4633] text-white font-bold text-xs shadow-md transition-all cursor-pointer flex items-center gap-1.5 active:scale-95"
+                >
+                  <Check className="w-4 h-4" />
+                  <span>Lưu & Kích Hoạt Hồ Sơ</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── 7. GOVERNED CLASS ASSIGNMENT MODAL ── */}
       {selectedTeacherForAssign && (
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
           <div className="w-full max-w-xl rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl p-6 sm:p-8 space-y-6 relative">
@@ -822,7 +1309,31 @@ export default function TeachersPage() {
               </p>
             </div>
 
-            <div className="space-y-4">
+            <form
+              onSubmit={(e: FormEvent<HTMLFormElement>) => {
+                e.preventDefault();
+                const formData = new FormData(e.currentTarget);
+                const newClass = (formData.get('classAssigned') as string) || selectedTeacherForAssign.classAssigned;
+                const newRole = (formData.get('role') as string) || selectedTeacherForAssign.role;
+
+                setTeachers((prev) =>
+                  prev.map((t) => {
+                    if (t.id === selectedTeacherForAssign.id) {
+                      return {
+                        ...t,
+                        classAssigned: newClass,
+                        role: newRole,
+                      };
+                    }
+                    return t;
+                  })
+                );
+
+                setToastMessage(`Đã cập nhật phân công giảng dạy cho ${selectedTeacherForAssign.name}!`);
+                setSelectedTeacherForAssign(null);
+              }}
+              className="space-y-4"
+            >
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1.5">Năm học áp dụng</label>
@@ -836,6 +1347,7 @@ export default function TeachersPage() {
                 <div>
                   <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1.5">Lớp phân công</label>
                   <select
+                    name="classAssigned"
                     defaultValue={selectedTeacherForAssign.classAssigned}
                     className="w-full p-3 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-medium focus:ring-2 focus:ring-[#0e5c43] outline-none"
                   >
@@ -853,6 +1365,7 @@ export default function TeachersPage() {
                 <div>
                   <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1.5">Vai trò phụ trách</label>
                   <select
+                    name="role"
                     defaultValue={selectedTeacherForAssign.role}
                     className="w-full p-3 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-medium focus:ring-2 focus:ring-[#0e5c43] outline-none"
                   >
@@ -882,25 +1395,24 @@ export default function TeachersPage() {
                   ✓ Không trùng lịch giảng dạy với các lớp khác.
                 </p>
               </div>
-            </div>
 
-            <div className="flex items-center justify-end gap-3 pt-2 border-t border-slate-100 dark:border-slate-800">
-              <button
-                type="button"
-                onClick={() => setSelectedTeacherForAssign(null)}
-                className="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-xs hover:bg-slate-200 transition-colors cursor-pointer"
-              >
-                Hủy bỏ
-              </button>
-              <button
-                type="button"
-                onClick={() => setSelectedTeacherForAssign(null)}
-                className="px-5 py-2.5 rounded-xl bg-[#0e5c43] hover:bg-[#0a4633] text-white font-bold text-xs shadow-md transition-all cursor-pointer flex items-center gap-1.5 active:scale-95"
-              >
-                <Check className="w-4 h-4" />
-                <span>Xác Nhận Phân Công</span>
-              </button>
-            </div>
+              <div className="flex items-center justify-end gap-3 pt-2 border-t border-slate-100 dark:border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => setSelectedTeacherForAssign(null)}
+                  className="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-xs hover:bg-slate-200 transition-colors cursor-pointer"
+                >
+                  Hủy bỏ
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2.5 rounded-xl bg-[#0e5c43] hover:bg-[#0a4633] text-white font-bold text-xs shadow-md transition-all cursor-pointer flex items-center gap-1.5 active:scale-95"
+                >
+                  <Check className="w-4 h-4" />
+                  <span>Xác Nhận Phân Công</span>
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
