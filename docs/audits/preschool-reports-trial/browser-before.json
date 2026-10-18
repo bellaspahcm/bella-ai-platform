@@ -1,0 +1,12 @@
+{
+  "result": "FAIL",
+  "scope": "Initial changed UI, synthetic desktop light",
+  "sourceSha256": "3b9af3e5e0699bcbfaad97f9b35fb536e80cc80efe444329b197f29b4ef56cff",
+  "finding": "Quick report r4 status bottom exceeded viewport by 0.1875 CSS px after native nearest scroll; immediate-feedback check correctly failed before measurement.",
+  "observed": {
+    "statusTop": 980.6875,
+    "statusBottom": 1000.1875,
+    "height": 1000
+  },
+  "logSha256": "b68525831bb980c5c9857a54f647a3c9da51bc2487971deb88288283148adc3b"
+}

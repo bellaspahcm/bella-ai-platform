@@ -1,0 +1,27 @@
+{
+  "result": "FAIL_TEST_SOURCE_TYPECHECK",
+  "checks": [
+    {
+      "name": "lint",
+      "command": "node node_modules/eslint/bin/eslint.js src/app/dashboard/education/reports/page.tsx src/app/dashboard/education/reports/__tests__/page.test.tsx",
+      "beganAt": "2026-10-17T14:44:49.057Z",
+      "finishedAt": "2026-10-17T14:44:52.763Z",
+      "exitCode": 0,
+      "signal": null,
+      "result": "PASS_SCOPED",
+      "logPath": "docs/audits/preschool-reports-trial/.cache/lint.log"
+    },
+    {
+      "name": "test-typecheck",
+      "command": "node node_modules/typescript/bin/tsc --project docs/audits/preschool-reports-trial/tsconfig.tests.json --pretty false",
+      "beganAt": "2026-10-17T14:44:52.765Z",
+      "finishedAt": "2026-10-17T14:44:55.128Z",
+      "exitCode": 2,
+      "signal": null,
+      "result": "FAIL",
+      "logPath": "docs/audits/preschool-reports-trial/.cache/test-typecheck.log"
+    }
+  ],
+  "rootCause": "Testing Library getByRole does not accept Playwright exact option; string name matching is exact by default",
+  "fix": "Remove unsupported exact option from new unit suite only; runtime unchanged"
+}
