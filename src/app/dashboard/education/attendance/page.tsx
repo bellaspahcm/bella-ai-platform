@@ -350,19 +350,27 @@ export default function AttendancePage() {
           </div>
         </div>
 
-        <div className="flex flex-col lg:flex-row items-center gap-4 justify-between">
-          <div className="flex items-center gap-2 overflow-x-auto w-full lg:w-auto pb-1 lg:pb-0">
-            {loadingClassrooms ? (
-              <span className="inline-flex items-center gap-2 px-4 py-2 rounded-2xl text-xs font-bold bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300">
-                <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                Đang tải lớp
-              </span>
-            ) : classrooms.length === 0 ? (
-              <span className="px-4 py-2 rounded-2xl text-xs font-semibold bg-slate-100 dark:bg-slate-700/60 text-slate-600 dark:text-slate-300">
-                Chưa có lớp đang hoạt động
-              </span>
-            ) : (
-              classrooms.map((classroom) => (
+        {/* Classroom cards grid */}
+        {loadingClassrooms ? (
+          <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+            <Loader2 className="w-4 h-4 animate-spin" />
+            Đang tải danh sách lớp...
+          </div>
+        ) : classrooms.length === 0 ? (
+          <div className="text-xs text-slate-500 dark:text-slate-400 py-2">
+            Chưa có lớp đang hoạt động
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+            {classrooms.map((classroom) => {
+              const isSelected = classroom.id === selectedCourseId;
+              const present = classroom.todayStatus.present;
+              const excused = classroom.todayStatus.excused;
+              const unmarked = classroom.todayStatus.unmarked;
+              const fillPct = classroom.maxStudents > 0
+                ? Math.round((classroom.students / classroom.maxStudents) * 100)
+                : 0;
+              return (
                 <button
                   key={classroom.id}
                   type="button"
@@ -370,28 +378,54 @@ export default function AttendancePage() {
                   onClick={() => {
                     if (!commandInFlight.current) setSelectedCourseId(classroom.id);
                   }}
-                  className={`px-4 py-2 rounded-2xl text-xs font-bold transition-colors whitespace-nowrap ${
-                    classroom.id === selectedCourseId
-                      ? 'bg-primary text-primary-foreground shadow-sm'
-                      : 'bg-slate-100 dark:bg-slate-700/60 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+                  className={`text-left rounded-2xl p-4 border transition-all ${
+                    isSelected
+                      ? 'bg-primary/10 border-primary text-[var(--education-brand-ink)] shadow-sm ring-1 ring-primary'
+                      : 'bg-slate-50 dark:bg-slate-700/40 border-slate-200 dark:border-slate-700 text-gray-700 dark:text-gray-300 hover:bg-slate-100 dark:hover:bg-slate-700/60'
                   }`}
                 >
-                  {classroom.name} ({classroom.students}/{classroom.maxStudents})
+                  <p className={`font-extrabold text-[11px] leading-tight mb-2 ${
+                    isSelected ? 'text-[var(--education-brand-ink)]' : 'text-gray-900 dark:text-white'
+                  }`}>
+                    {classroom.name}
+                  </p>
+                  <p className={`text-[10px] font-semibold mb-3 ${
+                    isSelected ? 'text-[var(--education-brand-ink)]/70' : 'text-gray-500 dark:text-gray-400'
+                  }`}>
+                    Sĩ số: <span className="font-extrabold">{classroom.students}</span>/{classroom.maxStudents}
+                    <span className="ml-1 opacity-70">({fillPct}%)</span>
+                  </p>
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <span className="inline-flex items-center gap-0.5 text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300">
+                      <CheckCircle2 className="w-2.5 h-2.5" />{present} có mặt
+                    </span>
+                    {excused > 0 && (
+                      <span className="inline-flex items-center gap-0.5 text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300">
+                        {excused} phép
+                      </span>
+                    )}
+                    {unmarked > 0 && (
+                      <span className="inline-flex items-center gap-0.5 text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-500">
+                        <Clock className="w-2.5 h-2.5" />{unmarked} chưa điểm
+                      </span>
+                    )}
+                  </div>
                 </button>
-              ))
-            )}
+              );
+            })}
           </div>
+        )}
 
-          <div className="relative w-full lg:w-80">
-            <Search className="w-4 h-4 absolute left-3.5 top-3 text-gray-400" />
-            <input
-              type="text"
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              placeholder="Tìm tên bé hoặc mã học sinh..."
-              className="w-full pl-10 pr-4 py-2.5 text-xs rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-ring transition-all"
-            />
-          </div>
+        {/* Search bar */}
+        <div className="relative w-full sm:w-80">
+          <Search className="w-4 h-4 absolute left-3.5 top-3 text-gray-400" />
+          <input
+            type="text"
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder="Tìm tên bé hoặc mã học sinh..."
+            className="w-full pl-10 pr-4 py-2.5 text-xs rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-ring transition-all"
+          />
         </div>
 
         {(error || successMessage) && (
@@ -411,8 +445,8 @@ export default function AttendancePage() {
         )}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="rounded-3xl bg-white dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 overflow-hidden shadow-sm flex flex-col">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 rounded-3xl bg-white dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 overflow-hidden shadow-sm flex flex-col">
           <div className="p-5 border-b border-slate-100 dark:border-slate-700/60 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Clock className="w-4 h-4 text-[var(--education-brand-ink)]" />
@@ -552,9 +586,6 @@ export default function AttendancePage() {
                       <h4 className="text-xs font-bold text-gray-900 dark:text-white">
                         {row.name}
                       </h4>
-                      <p className="text-[11px] text-gray-600 dark:text-gray-300">
-                        Party: <strong>{row.studentPartyId}</strong>
-                      </p>
                       {guardian ? (
                         <p className="text-[11px] text-emerald-700 dark:text-emerald-300 font-bold">
                           Được phép đón: {guardian.displayName}
