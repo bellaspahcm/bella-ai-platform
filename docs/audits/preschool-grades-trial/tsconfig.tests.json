@@ -1,0 +1,10 @@
+{
+  "extends": "../../../tsconfig.json",
+  "compilerOptions": { "noEmit": true, "incremental": false, "skipLibCheck": true },
+  "include": [
+    "../../../next-env.d.ts",
+    "../../../src/app/dashboard/education/grades/page.tsx",
+    "../../../src/app/dashboard/education/grades/__tests__/page.test.tsx"
+  ],
+  "exclude": ["../../../node_modules", "../../../.next"]
+}

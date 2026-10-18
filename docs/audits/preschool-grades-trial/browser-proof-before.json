@@ -1,0 +1,40 @@
+{
+  "result": "FAIL_REPRODUCED_CONTRAST",
+  "sourceSha256": {
+    "src/app/dashboard/education/grades/page.tsx": "65c28cd2ef3d8b8f8d07bb74f3a1ad5315b5e2cf3195918e6f4ce6be5b6e2f48"
+  },
+  "rawResultSha256": "570d03f687dff8f5ec78d156873d2c566759e4a6ffe52cac4c71f9387c7ac09d",
+  "contrastSummary": {
+    "result": "FAIL",
+    "checked": 32,
+    "failed": 2,
+    "minimumRatio": 4.343923406321176,
+    "threshold": 4.5
+  },
+  "findings": [
+    {
+      "theme": "light",
+      "device": "desktop",
+      "label": "close-retain-draft",
+      "ratio": 4.343923406321176,
+      "foreground": "rgb(100, 116, 139)",
+      "background": [
+        241,
+        245,
+        249
+      ]
+    },
+    {
+      "theme": "light",
+      "device": "mobile",
+      "label": "close-retain-draft",
+      "ratio": 4.343923406321176,
+      "foreground": "rgb(100, 116, 139)",
+      "background": [
+        241,
+        245,
+        249
+      ]
+    }
+  ]
+}
