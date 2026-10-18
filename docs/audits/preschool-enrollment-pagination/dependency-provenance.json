@@ -1,0 +1,8 @@
+{
+  "baseline": "91468e5cb98030636f339e160d6baad70c4348ff",
+  "nativeAdapterSource": "D:/Antigravity/Projects/BELLA_PRESCHOOL_CARE_TRIAL/docs/audits/preschool-care-preview-flow/native-task.mjs",
+  "adapterSourceSha256": "939523f79ff0ac2997982e6e8e6a35b6a01e135541643e42d1008d067b25172c",
+  "adaptation": "Task input/path/id only. Existing AppServer/store/authority/history unchanged.",
+  "browserSource": "D:/Antigravity/Projects/BELLA_PRESCHOOL_CARE_TRIAL/docs/audits/preschool-care-preview-flow/.cache/browser",
+  "dbOperations": 0
+}

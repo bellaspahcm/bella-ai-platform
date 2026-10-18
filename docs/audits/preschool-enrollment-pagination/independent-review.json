@@ -1,0 +1,24 @@
+{
+  "recordedAt": "2026-10-18T01:05:19.897Z",
+  "reviewer": "/root/pagination_independent_review",
+  "mode": "Independent read-only final candidate review, no tests rerun",
+  "result": "PASS_SCOPED_UI",
+  "findings": [],
+  "sourceSha256": "e6a8c7c821449d41dee3342f74dba6f0b41d764e67c4e1e721b07ab0f18dbc26",
+  "testSha256": "986ba98ba39684192563816668b7ebb8cff27954d3ad0d3f30b8fae10bbc436b",
+  "independentlyVerified": {
+    "artifactHashes": 15,
+    "baselineFiles": 7936,
+    "sourceSectionsUnchanged": 3,
+    "browserAssertions": 56,
+    "contrastChecks": 8,
+    "minimumRatio": 4.758842787868666
+  },
+  "limits": [
+    "Late-load size1 is a test-injected branch probe, not a supported production-sized workflow",
+    "Link evidence checks href only; no actual route or DB verification",
+    "Native adapter STOPPED_AT_NATIVE_BOUNDARY/WORKTREE_SCOPE_VIOLATION remains immutable",
+    "Command readback MISMATCH:12/12 command+exit match,9/12 output match; browser/static outputs match",
+    "General Bella AgentFlow MVP NOT_PROVEN"
+  ]
+}
