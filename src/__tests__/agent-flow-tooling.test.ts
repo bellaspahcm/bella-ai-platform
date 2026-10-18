@@ -8,6 +8,7 @@ test('Agent Flow Node suites pass with no skipped or cancelled tests', () => {
     'scripts/agent-flow/agent-flow.test.mjs',
     'scripts/agent-flow/task-workflow.test.mjs',
     'scripts/agent-flow/filechange.test.mjs',
+    'scripts/agent-flow/role-pipeline.test.mjs',
   ], { cwd: process.cwd(), encoding: 'utf8', timeout: 60000, windowsHide: true });
 
   if (result.error || result.status !== 0) {
