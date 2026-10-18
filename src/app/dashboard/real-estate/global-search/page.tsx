@@ -45,9 +45,13 @@ export default function GlobalSearchPage() {
     setSearched(true);
     try {
       const supabase = createClient();
-      // Escape LIKE literals before quoting the value for PostgREST's OR grammar.
-      const pattern = q.trim().replace(/[\\%_]/g, "\\$&");
-      const like = '"%' + pattern.replace(/["\\]/g, "\\$&") + '%"';
+      // Encode both LIKE literals and PostgREST quotes in one pass; do not
+      // reprocess the escape characters inserted for the other grammar.
+      const like = '"%' + q.trim().replace(/[\\%_"]/g, character => {
+        if (character === '"') return '\\"';
+        if (character === "\\") return "\\\\\\\\";
+        return "\\\\" + character;
+      }) + '%"';
       const lowerQ = q.trim().toLowerCase();
       const projectTerms = [`name.ilike.${like}`, `code.ilike.${like}`];
       if (lowerQ.includes("mở bán")) projectTerms.push('status.eq.on_sale');
