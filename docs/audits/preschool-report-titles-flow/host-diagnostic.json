@@ -1,0 +1,25 @@
+{
+  "result": "HOST_BROWSER_EXECUTES_TITLE_CONTRAST_FAILS",
+  "recordedAt": "2026-10-17T15:04:22.509Z",
+  "executor": "LEAD_HOST_DIAGNOSTIC_NOT_NATIVE_AGENT",
+  "command": "node docs/audits/preschool-report-titles-flow/title-contrast.cjs before",
+  "exitCode": 1,
+  "browserCases": 4,
+  "contrast": {
+    "result": "FAIL",
+    "checked": 32,
+    "passed": 16,
+    "failed": 16,
+    "minimumRatio": 1.02277126539548,
+    "threshold": 4.5
+  },
+  "beforeFile": "docs/audits/preschool-report-titles-flow/before.json",
+  "beforeSha256": "b147335b51d84426783b38cba87f294f2e6e6a4ced7b64a0cbe22b7357a31318",
+  "sourceSha256": "e8a8c19fd398e1a6ba988b3fd75c2ceba2b2bd48443792edb541a8ac919076e5",
+  "testSha256": "1141a7bec5975cc017aeab2c427a09b99dec35088853e6379d5097e220f12b3a",
+  "meaning": "Same worker-prepared script runs on approved host; worker workspace-write profile returned Chromium spawnEPERM. Confirms execution-profile blocker. Native agent0browsercases remains historical truth.",
+  "uiSourceModified": false,
+  "afterVerification": "NOT_RUN",
+  "dbOperations": 0,
+  "oldSuitesRerun": 0
+}

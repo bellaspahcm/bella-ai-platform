@@ -1,0 +1,93 @@
+{
+  "result": "PASS_SCOPED",
+  "recordedAt": "2026-10-17T14:46:07.206Z",
+  "baseCommit": "91468e5cb98030636f339e160d6baad70c4348ff",
+  "sourceSha256": {
+    "src/app/dashboard/education/reports/page.tsx": "e8a8c19fd398e1a6ba988b3fd75c2ceba2b2bd48443792edb541a8ac919076e5",
+    "src/app/dashboard/education/reports/__tests__/page.test.tsx": "b73d8b84e8889eb4ca110dd1b1ba64ee91b77bc8304b8841583669db520522c1"
+  },
+  "checks": [
+    {
+      "name": "focused-tests",
+      "command": "node docs/audits/preschool-reports-trial/offline-jest.cjs",
+      "beganAt": "2026-10-17T14:45:12.425Z",
+      "finishedAt": "2026-10-17T14:45:17.759Z",
+      "exitCode": 0,
+      "signal": null,
+      "result": "PASS_SCOPED",
+      "logPath": "docs/audits/preschool-reports-trial/.cache/focused-tests.log"
+    },
+    {
+      "name": "lint",
+      "command": "node node_modules/eslint/bin/eslint.js src/app/dashboard/education/reports/page.tsx src/app/dashboard/education/reports/__tests__/page.test.tsx",
+      "beganAt": "2026-10-17T14:45:17.760Z",
+      "finishedAt": "2026-10-17T14:45:21.287Z",
+      "exitCode": 0,
+      "signal": null,
+      "result": "PASS_SCOPED",
+      "logPath": "docs/audits/preschool-reports-trial/.cache/lint.log"
+    },
+    {
+      "name": "test-typecheck",
+      "command": "node node_modules/typescript/bin/tsc --project docs/audits/preschool-reports-trial/tsconfig.tests.json --pretty false",
+      "beganAt": "2026-10-17T14:45:21.288Z",
+      "finishedAt": "2026-10-17T14:45:23.430Z",
+      "exitCode": 0,
+      "signal": null,
+      "result": "PASS_SCOPED",
+      "logPath": "docs/audits/preschool-reports-trial/.cache/test-typecheck.log"
+    },
+    {
+      "name": "education-typecheck",
+      "command": "node node_modules/typescript/bin/tsc --project tsconfig.education.json --pretty false --incremental false",
+      "beganAt": "2026-10-17T14:45:23.430Z",
+      "finishedAt": "2026-10-17T14:45:35.207Z",
+      "exitCode": 0,
+      "signal": null,
+      "result": "PASS_SCOPED",
+      "logPath": "docs/audits/preschool-reports-trial/.cache/education-typecheck.log"
+    },
+    {
+      "name": "synthetic-browser",
+      "command": "node docs/audits/preschool-reports-trial/browser-component.cjs",
+      "result": "PASS_SCOPED_SYNTHETIC_COMPONENT",
+      "finishedAt": "2026-10-17T14:41:25.288Z",
+      "exitCode": 0,
+      "proofPath": "docs/audits/preschool-reports-trial/browser-proof.json",
+      "proofSha256": "a0c25a88d2181552a2904e2ec1d0e040dc7804f4466de30f1719994e57a08e2f",
+      "cases": 4,
+      "contrastSummary": {
+        "result": "PASS_SCOPED",
+        "checked": 84,
+        "failed": 0,
+        "minimumRatio": 9.488632416041419,
+        "threshold": 4.5
+      }
+    },
+    {
+      "name": "diff-check",
+      "command": "git diff --check",
+      "exitCode": 0,
+      "result": "PASS_SCOPED"
+    }
+  ],
+  "focusedTests": {
+    "passed": 11,
+    "total": 11
+  },
+  "rawLogs": "Ignored .cache; verbose contrast raw receipt checksum in browser-proof.json",
+  "priorAttempts": {
+    "unitBefore": "focused-tests-before.json",
+    "browserPositionBefore": "browser-before.json",
+    "testTypecheckBefore": "typecheck-before.json",
+    "measurementCorrection": "Initial contrast falsely sampled SVG ink as background; final harness removes and restores descendant text/icon ink for native background sampling, runtime unchanged."
+  },
+  "runtimeScope": "One Reports page; unchanged controls outside output actions, existing tabs and links retained",
+  "limits": "Synthetic component with stubbed Link and actual CSS. Not authenticated Next/DB/RLS/tenant-isolation acceptance or Pre-Go-Live readiness.",
+  "dbOperations": 0,
+  "oldSuitesRerun": 0,
+  "preview": {
+    "path": "docs/audits/preschool-reports-trial/.cache/preview.html",
+    "sha256": "608f3e87a715b152d13b91a6567805b99b2c9bb6809ede8d8e796a0a7c4779fe"
+  }
+}

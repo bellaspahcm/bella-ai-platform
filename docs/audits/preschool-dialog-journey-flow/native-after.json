@@ -1,0 +1,1116 @@
+{
+  "phase": "after",
+  "recordedAt": "2026-10-17T22:51:12.229Z",
+  "command": "node docs/audits/preschool-dialog-journey-flow/dialog-browser.cjs after",
+  "commandSha256": "fa27197c0731b4f8d8ef15014400df011ead1bda9c3247008cefd721a1ed24ae",
+  "exitCode": 0,
+  "summary": {
+    "checked": 28,
+    "passed": 28,
+    "failed": 0,
+    "errors": 0,
+    "pageErrors": 0,
+    "unexpectedRequests": 0,
+    "downloads": 0
+  },
+  "sourceSha256": "117d063ee441a9c8b1eaa616b5a60ef31d5eddbdb621d20f02404902f168fccb",
+  "testSha256": "728be1af6f8e47ee2fe78d67a321604d928f786260f94e84e9d338712803ec37",
+  "globalsSha256": "1f2458f1e1ff45ff29650ce9bc30a0a408004f079760de68bcef7c915ddce21e",
+  "compiledCssSha256": "c1fe0d0bfeb4d0f93baa6797465e341937d258065495352155908882af269220",
+  "bundleSha256": "1bf3a6b2b3b22c4d7bd74430181ffb292e04e85686d49571ba935c4ba999505d",
+  "limits": "Actual Grades and shared modal code with real globals; synthetic Next link/image and tenant only. Loopback CSP; fresh browser context per journey; finally cleanup. No Auth/DB/full Next proof. Contrast NOT_APPLICABLE.",
+  "results": [
+    {
+      "journey": "J1",
+      "theme": "light",
+      "device": "desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "assertions": [
+        {
+          "name": "Initial focus enters profile",
+          "result": "PASS"
+        },
+        {
+          "name": "Correct child profile",
+          "result": "PASS"
+        },
+        {
+          "name": "Visible close dismisses",
+          "result": "PASS"
+        },
+        {
+          "name": "Exact row opener restored",
+          "result": "PASS"
+        },
+        {
+          "name": "Filters and selection retained",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "PASS"
+    },
+    {
+      "journey": "J2",
+      "theme": "light",
+      "device": "desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "assertions": [
+        {
+          "name": "Initial focus enters profile",
+          "result": "PASS"
+        },
+        {
+          "name": "Correct child profile",
+          "result": "PASS"
+        },
+        {
+          "name": "Shift+Tab at first stays inside",
+          "result": "PASS"
+        },
+        {
+          "name": "Tab at last stays inside",
+          "result": "PASS"
+        },
+        {
+          "name": "Escape dismisses dialog",
+          "result": "PASS"
+        },
+        {
+          "name": "Focus restores usable opener",
+          "result": "PASS"
+        },
+        {
+          "name": "Filters and selection retained",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "PASS"
+    },
+    {
+      "journey": "J3",
+      "theme": "light",
+      "device": "desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "assertions": [
+        {
+          "name": "Initial focus enters observation",
+          "result": "PASS"
+        },
+        {
+          "name": "Escape dismisses dialog",
+          "result": "PASS"
+        },
+        {
+          "name": "Focus restores usable opener",
+          "result": "PASS"
+        },
+        {
+          "name": "Every draft value retained after Escape",
+          "result": "PASS"
+        },
+        {
+          "name": "Global opener restored",
+          "result": "PASS"
+        },
+        {
+          "name": "No new sample row",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "PASS"
+    },
+    {
+      "journey": "J4",
+      "theme": "light",
+      "device": "desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "assertions": [
+        {
+          "name": "Shift+Tab at first stays inside",
+          "result": "PASS"
+        },
+        {
+          "name": "Tab at last stays inside",
+          "result": "PASS"
+        },
+        {
+          "name": "Input space and cursor selection work",
+          "result": "PASS"
+        },
+        {
+          "name": "Textarea newline and space work",
+          "result": "PASS"
+        },
+        {
+          "name": "Escape dismisses dialog",
+          "result": "PASS"
+        },
+        {
+          "name": "Focus restores usable opener",
+          "result": "PASS"
+        },
+        {
+          "name": "Background values unchanged",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "PASS"
+    },
+    {
+      "journey": "J5",
+      "theme": "light",
+      "device": "desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "assertions": [
+        {
+          "name": "Exactly one observation dialog",
+          "result": "PASS"
+        },
+        {
+          "name": "Transition focus enters observation",
+          "result": "PASS"
+        },
+        {
+          "name": "Preview draft not retargeted",
+          "result": "PASS"
+        },
+        {
+          "name": "Escape dismisses dialog",
+          "result": "PASS"
+        },
+        {
+          "name": "Focus restores usable opener",
+          "result": "PASS"
+        },
+        {
+          "name": "Selection/filter retained",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "PASS"
+    },
+    {
+      "journey": "J6",
+      "theme": "light",
+      "device": "desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "assertions": [
+        {
+          "name": "Initial focus enters AI sample",
+          "result": "PASS"
+        },
+        {
+          "name": "Honest sample disclaimer retained",
+          "result": "PASS"
+        },
+        {
+          "name": "Shift+Tab at first stays inside",
+          "result": "PASS"
+        },
+        {
+          "name": "Tab at last stays inside",
+          "result": "PASS"
+        },
+        {
+          "name": "Escape dismisses dialog",
+          "result": "PASS"
+        },
+        {
+          "name": "Focus restores usable opener",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "PASS"
+    },
+    {
+      "journey": "J7",
+      "theme": "light",
+      "device": "desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "assertions": [
+        {
+          "name": "Explicit close dismisses",
+          "result": "PASS"
+        },
+        {
+          "name": "Explicit close retains every draft value",
+          "result": "PASS"
+        },
+        {
+          "name": "Save honestly unavailable",
+          "result": "PASS"
+        },
+        {
+          "name": "Save retains dialog and exact draft",
+          "result": "PASS"
+        },
+        {
+          "name": "No new sample record",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "PASS"
+    },
+    {
+      "journey": "J1",
+      "theme": "light",
+      "device": "mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "assertions": [
+        {
+          "name": "Initial focus enters profile",
+          "result": "PASS"
+        },
+        {
+          "name": "Correct child profile",
+          "result": "PASS"
+        },
+        {
+          "name": "Visible close dismisses",
+          "result": "PASS"
+        },
+        {
+          "name": "Exact row opener restored",
+          "result": "PASS"
+        },
+        {
+          "name": "Filters and selection retained",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "PASS"
+    },
+    {
+      "journey": "J2",
+      "theme": "light",
+      "device": "mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "assertions": [
+        {
+          "name": "Initial focus enters profile",
+          "result": "PASS"
+        },
+        {
+          "name": "Correct child profile",
+          "result": "PASS"
+        },
+        {
+          "name": "Shift+Tab at first stays inside",
+          "result": "PASS"
+        },
+        {
+          "name": "Tab at last stays inside",
+          "result": "PASS"
+        },
+        {
+          "name": "Escape dismisses dialog",
+          "result": "PASS"
+        },
+        {
+          "name": "Focus restores usable opener",
+          "result": "PASS"
+        },
+        {
+          "name": "Filters and selection retained",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "PASS"
+    },
+    {
+      "journey": "J3",
+      "theme": "light",
+      "device": "mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "assertions": [
+        {
+          "name": "Initial focus enters observation",
+          "result": "PASS"
+        },
+        {
+          "name": "Escape dismisses dialog",
+          "result": "PASS"
+        },
+        {
+          "name": "Focus restores usable opener",
+          "result": "PASS"
+        },
+        {
+          "name": "Every draft value retained after Escape",
+          "result": "PASS"
+        },
+        {
+          "name": "Global opener restored",
+          "result": "PASS"
+        },
+        {
+          "name": "No new sample row",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "PASS"
+    },
+    {
+      "journey": "J4",
+      "theme": "light",
+      "device": "mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "assertions": [
+        {
+          "name": "Shift+Tab at first stays inside",
+          "result": "PASS"
+        },
+        {
+          "name": "Tab at last stays inside",
+          "result": "PASS"
+        },
+        {
+          "name": "Input space and cursor selection work",
+          "result": "PASS"
+        },
+        {
+          "name": "Textarea newline and space work",
+          "result": "PASS"
+        },
+        {
+          "name": "Escape dismisses dialog",
+          "result": "PASS"
+        },
+        {
+          "name": "Focus restores usable opener",
+          "result": "PASS"
+        },
+        {
+          "name": "Background values unchanged",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "PASS"
+    },
+    {
+      "journey": "J5",
+      "theme": "light",
+      "device": "mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "assertions": [
+        {
+          "name": "Exactly one observation dialog",
+          "result": "PASS"
+        },
+        {
+          "name": "Transition focus enters observation",
+          "result": "PASS"
+        },
+        {
+          "name": "Preview draft not retargeted",
+          "result": "PASS"
+        },
+        {
+          "name": "Escape dismisses dialog",
+          "result": "PASS"
+        },
+        {
+          "name": "Focus restores usable opener",
+          "result": "PASS"
+        },
+        {
+          "name": "Selection/filter retained",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "PASS"
+    },
+    {
+      "journey": "J6",
+      "theme": "light",
+      "device": "mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "assertions": [
+        {
+          "name": "Initial focus enters AI sample",
+          "result": "PASS"
+        },
+        {
+          "name": "Honest sample disclaimer retained",
+          "result": "PASS"
+        },
+        {
+          "name": "Shift+Tab at first stays inside",
+          "result": "PASS"
+        },
+        {
+          "name": "Tab at last stays inside",
+          "result": "PASS"
+        },
+        {
+          "name": "Escape dismisses dialog",
+          "result": "PASS"
+        },
+        {
+          "name": "Focus restores usable opener",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "PASS"
+    },
+    {
+      "journey": "J7",
+      "theme": "light",
+      "device": "mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "assertions": [
+        {
+          "name": "Explicit close dismisses",
+          "result": "PASS"
+        },
+        {
+          "name": "Explicit close retains every draft value",
+          "result": "PASS"
+        },
+        {
+          "name": "Save honestly unavailable",
+          "result": "PASS"
+        },
+        {
+          "name": "Save retains dialog and exact draft",
+          "result": "PASS"
+        },
+        {
+          "name": "No new sample record",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "PASS"
+    },
+    {
+      "journey": "J1",
+      "theme": "dark",
+      "device": "desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "assertions": [
+        {
+          "name": "Initial focus enters profile",
+          "result": "PASS"
+        },
+        {
+          "name": "Correct child profile",
+          "result": "PASS"
+        },
+        {
+          "name": "Visible close dismisses",
+          "result": "PASS"
+        },
+        {
+          "name": "Exact row opener restored",
+          "result": "PASS"
+        },
+        {
+          "name": "Filters and selection retained",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "PASS"
+    },
+    {
+      "journey": "J2",
+      "theme": "dark",
+      "device": "desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "assertions": [
+        {
+          "name": "Initial focus enters profile",
+          "result": "PASS"
+        },
+        {
+          "name": "Correct child profile",
+          "result": "PASS"
+        },
+        {
+          "name": "Shift+Tab at first stays inside",
+          "result": "PASS"
+        },
+        {
+          "name": "Tab at last stays inside",
+          "result": "PASS"
+        },
+        {
+          "name": "Escape dismisses dialog",
+          "result": "PASS"
+        },
+        {
+          "name": "Focus restores usable opener",
+          "result": "PASS"
+        },
+        {
+          "name": "Filters and selection retained",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "PASS"
+    },
+    {
+      "journey": "J3",
+      "theme": "dark",
+      "device": "desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "assertions": [
+        {
+          "name": "Initial focus enters observation",
+          "result": "PASS"
+        },
+        {
+          "name": "Escape dismisses dialog",
+          "result": "PASS"
+        },
+        {
+          "name": "Focus restores usable opener",
+          "result": "PASS"
+        },
+        {
+          "name": "Every draft value retained after Escape",
+          "result": "PASS"
+        },
+        {
+          "name": "Global opener restored",
+          "result": "PASS"
+        },
+        {
+          "name": "No new sample row",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "PASS"
+    },
+    {
+      "journey": "J4",
+      "theme": "dark",
+      "device": "desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "assertions": [
+        {
+          "name": "Shift+Tab at first stays inside",
+          "result": "PASS"
+        },
+        {
+          "name": "Tab at last stays inside",
+          "result": "PASS"
+        },
+        {
+          "name": "Input space and cursor selection work",
+          "result": "PASS"
+        },
+        {
+          "name": "Textarea newline and space work",
+          "result": "PASS"
+        },
+        {
+          "name": "Escape dismisses dialog",
+          "result": "PASS"
+        },
+        {
+          "name": "Focus restores usable opener",
+          "result": "PASS"
+        },
+        {
+          "name": "Background values unchanged",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "PASS"
+    },
+    {
+      "journey": "J5",
+      "theme": "dark",
+      "device": "desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "assertions": [
+        {
+          "name": "Exactly one observation dialog",
+          "result": "PASS"
+        },
+        {
+          "name": "Transition focus enters observation",
+          "result": "PASS"
+        },
+        {
+          "name": "Preview draft not retargeted",
+          "result": "PASS"
+        },
+        {
+          "name": "Escape dismisses dialog",
+          "result": "PASS"
+        },
+        {
+          "name": "Focus restores usable opener",
+          "result": "PASS"
+        },
+        {
+          "name": "Selection/filter retained",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "PASS"
+    },
+    {
+      "journey": "J6",
+      "theme": "dark",
+      "device": "desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "assertions": [
+        {
+          "name": "Initial focus enters AI sample",
+          "result": "PASS"
+        },
+        {
+          "name": "Honest sample disclaimer retained",
+          "result": "PASS"
+        },
+        {
+          "name": "Shift+Tab at first stays inside",
+          "result": "PASS"
+        },
+        {
+          "name": "Tab at last stays inside",
+          "result": "PASS"
+        },
+        {
+          "name": "Escape dismisses dialog",
+          "result": "PASS"
+        },
+        {
+          "name": "Focus restores usable opener",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "PASS"
+    },
+    {
+      "journey": "J7",
+      "theme": "dark",
+      "device": "desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "assertions": [
+        {
+          "name": "Explicit close dismisses",
+          "result": "PASS"
+        },
+        {
+          "name": "Explicit close retains every draft value",
+          "result": "PASS"
+        },
+        {
+          "name": "Save honestly unavailable",
+          "result": "PASS"
+        },
+        {
+          "name": "Save retains dialog and exact draft",
+          "result": "PASS"
+        },
+        {
+          "name": "No new sample record",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "PASS"
+    },
+    {
+      "journey": "J1",
+      "theme": "dark",
+      "device": "mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "assertions": [
+        {
+          "name": "Initial focus enters profile",
+          "result": "PASS"
+        },
+        {
+          "name": "Correct child profile",
+          "result": "PASS"
+        },
+        {
+          "name": "Visible close dismisses",
+          "result": "PASS"
+        },
+        {
+          "name": "Exact row opener restored",
+          "result": "PASS"
+        },
+        {
+          "name": "Filters and selection retained",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "PASS"
+    },
+    {
+      "journey": "J2",
+      "theme": "dark",
+      "device": "mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "assertions": [
+        {
+          "name": "Initial focus enters profile",
+          "result": "PASS"
+        },
+        {
+          "name": "Correct child profile",
+          "result": "PASS"
+        },
+        {
+          "name": "Shift+Tab at first stays inside",
+          "result": "PASS"
+        },
+        {
+          "name": "Tab at last stays inside",
+          "result": "PASS"
+        },
+        {
+          "name": "Escape dismisses dialog",
+          "result": "PASS"
+        },
+        {
+          "name": "Focus restores usable opener",
+          "result": "PASS"
+        },
+        {
+          "name": "Filters and selection retained",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "PASS"
+    },
+    {
+      "journey": "J3",
+      "theme": "dark",
+      "device": "mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "assertions": [
+        {
+          "name": "Initial focus enters observation",
+          "result": "PASS"
+        },
+        {
+          "name": "Escape dismisses dialog",
+          "result": "PASS"
+        },
+        {
+          "name": "Focus restores usable opener",
+          "result": "PASS"
+        },
+        {
+          "name": "Every draft value retained after Escape",
+          "result": "PASS"
+        },
+        {
+          "name": "Global opener restored",
+          "result": "PASS"
+        },
+        {
+          "name": "No new sample row",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "PASS"
+    },
+    {
+      "journey": "J4",
+      "theme": "dark",
+      "device": "mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "assertions": [
+        {
+          "name": "Shift+Tab at first stays inside",
+          "result": "PASS"
+        },
+        {
+          "name": "Tab at last stays inside",
+          "result": "PASS"
+        },
+        {
+          "name": "Input space and cursor selection work",
+          "result": "PASS"
+        },
+        {
+          "name": "Textarea newline and space work",
+          "result": "PASS"
+        },
+        {
+          "name": "Escape dismisses dialog",
+          "result": "PASS"
+        },
+        {
+          "name": "Focus restores usable opener",
+          "result": "PASS"
+        },
+        {
+          "name": "Background values unchanged",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "PASS"
+    },
+    {
+      "journey": "J5",
+      "theme": "dark",
+      "device": "mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "assertions": [
+        {
+          "name": "Exactly one observation dialog",
+          "result": "PASS"
+        },
+        {
+          "name": "Transition focus enters observation",
+          "result": "PASS"
+        },
+        {
+          "name": "Preview draft not retargeted",
+          "result": "PASS"
+        },
+        {
+          "name": "Escape dismisses dialog",
+          "result": "PASS"
+        },
+        {
+          "name": "Focus restores usable opener",
+          "result": "PASS"
+        },
+        {
+          "name": "Selection/filter retained",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "PASS"
+    },
+    {
+      "journey": "J6",
+      "theme": "dark",
+      "device": "mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "assertions": [
+        {
+          "name": "Initial focus enters AI sample",
+          "result": "PASS"
+        },
+        {
+          "name": "Honest sample disclaimer retained",
+          "result": "PASS"
+        },
+        {
+          "name": "Shift+Tab at first stays inside",
+          "result": "PASS"
+        },
+        {
+          "name": "Tab at last stays inside",
+          "result": "PASS"
+        },
+        {
+          "name": "Escape dismisses dialog",
+          "result": "PASS"
+        },
+        {
+          "name": "Focus restores usable opener",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "PASS"
+    },
+    {
+      "journey": "J7",
+      "theme": "dark",
+      "device": "mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "assertions": [
+        {
+          "name": "Explicit close dismisses",
+          "result": "PASS"
+        },
+        {
+          "name": "Explicit close retains every draft value",
+          "result": "PASS"
+        },
+        {
+          "name": "Save honestly unavailable",
+          "result": "PASS"
+        },
+        {
+          "name": "Save retains dialog and exact draft",
+          "result": "PASS"
+        },
+        {
+          "name": "No new sample record",
+          "result": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "PASS"
+    }
+  ]
+}

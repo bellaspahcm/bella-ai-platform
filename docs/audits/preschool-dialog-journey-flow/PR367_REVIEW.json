@@ -1,0 +1,91 @@
+{
+  "recordedAt": "2026-10-17T22:48:23.305Z",
+  "ci": {
+    "checkedAt": "2026-10-17T22:48:23.305Z",
+    "head": "27016e3c02da37f87865cf3bf6b391edb1898eb6",
+    "success": 11,
+    "pending": 0,
+    "failed": 0,
+    "checks": [
+      {
+        "name": "Detect Changed Scope",
+        "status": "COMPLETED",
+        "conclusion": "SUCCESS",
+        "url": "https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39076135107/job/117523562479"
+      },
+      {
+        "name": "CodeQL",
+        "status": "COMPLETED",
+        "conclusion": "SUCCESS",
+        "url": "https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39076135167/job/117523562891"
+      },
+      {
+        "name": "quality-security",
+        "status": "COMPLETED",
+        "conclusion": "SUCCESS",
+        "url": "https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39076135107/job/117523599944"
+      },
+      {
+        "name": "Semgrep CE",
+        "status": "COMPLETED",
+        "conclusion": "SUCCESS",
+        "url": "https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39076135167/job/117523562863"
+      },
+      {
+        "name": "Gitleaks",
+        "status": "COMPLETED",
+        "conclusion": "SUCCESS",
+        "url": "https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39076135167/job/117523562753"
+      },
+      {
+        "name": "Trivy filesystem",
+        "status": "COMPLETED",
+        "conclusion": "SUCCESS",
+        "url": "https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39076135167/job/117523562857"
+      },
+      {
+        "name": "SonarQube",
+        "status": "COMPLETED",
+        "conclusion": "SUCCESS",
+        "url": "https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39076135167/job/117523562921"
+      },
+      {
+        "name": "CodeQL",
+        "status": "COMPLETED",
+        "conclusion": "SUCCESS",
+        "url": "https://github.com/bellaspahcm/bella-ai-platform/runs/117524110867"
+      },
+      {
+        "name": "Semgrep OSS",
+        "status": "COMPLETED",
+        "conclusion": "SUCCESS",
+        "url": "https://github.com/bellaspahcm/bella-ai-platform/runs/117523845456"
+      },
+      {
+        "name": "Vercel",
+        "status": "SUCCESS",
+        "conclusion": "SUCCESS",
+        "url": "https://vercel.com/bella-spa-s-projects/bella-spa-erp/D3AZkSgRKqAwx8VX6F6cG1EV2aaK"
+      },
+      {
+        "name": "Vercel Preview Comments",
+        "status": "COMPLETED",
+        "conclusion": "SUCCESS",
+        "url": "https://vercel.com/github"
+      }
+    ]
+  },
+  "dependency": {
+    "checkedAt": "2026-10-17T22:48:23.305Z",
+    "basePullRequest": 362,
+    "baseRefName": "codex/preschool-grades-trial",
+    "baseRefOid": "9418a8d4a532dd6ee71a05d9e2b335468a29f34c",
+    "headRefOid": "27016e3c02da37f87865cf3bf6b391edb1898eb6",
+    "baseStillDraft": true,
+    "baseSuccessChecks": 11,
+    "basePendingChecks": 0,
+    "exactExpectedDependency": true,
+    "sourceDiffReview": "Retained eight-hunk review at identical PR367 head; no unrelated-suite rerun",
+    "merge": false
+  }
+}

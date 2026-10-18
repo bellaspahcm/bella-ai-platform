@@ -1,0 +1,7 @@
+{
+  "phase": "before_native_dispatch",
+  "result": "EMFILE",
+  "evidence": "inventory() attempted concurrent reads of all tracked files before creating a private task directory or AppServer; command exited 1 with EMFILE at Promise.all index 8191",
+  "nativeDispatchOccurred": false,
+  "minimalCorrection": "Task-local inventory reads in batches of 32; no scripts/agent-flow change, permission change or task retry/resume"
+}

@@ -1,0 +1,443 @@
+{
+  "result": "PASS_SCOPED_TWO_ATTEMPT_NATIVE_BROWSER_READBACK",
+  "recordedAt": "2026-10-17T22:33:11.741Z",
+  "attempts": [
+    {
+      "attempt": 1,
+      "binding": {
+        "repository": "bellaspahcm/bella-ai-platform",
+        "taskId": "b5bbbfec-219a-49d7-9813-0eae507f01c4",
+        "runId": "91675113-bad0-4b4c-b9c3-99526608aaa0",
+        "attempt": 1,
+        "producerInstanceId": "28129998-8286-413d-bfb8-ec7a085df3a4",
+        "threadId": "01a14bf4-313d-7a21-9b91-a777dfebcb14",
+        "sessionId": "01a14bf4-313d-7a21-9b91-a777dfebcb14",
+        "turnId": "01a14bf4-327b-7c52-8ecb-6447f2d2a200"
+      },
+      "matchedCommands": 16,
+      "outputDigestMatches": 14,
+      "outputDigestDifferences": 2,
+      "commands": [
+        {
+          "itemId": "exec-0a9d48ce-98d7-400e-8510-999e96289585",
+          "index": 2,
+          "exitCode": 0,
+          "metadataMatch": true,
+          "outputDigestMatch": true
+        },
+        {
+          "itemId": "exec-23128bd9-01a4-4d28-9dde-e97c281dec0f",
+          "index": 3,
+          "exitCode": 0,
+          "metadataMatch": true,
+          "outputDigestMatch": false
+        },
+        {
+          "itemId": "exec-45c3473e-12ea-470d-88c4-b3c76943f78a",
+          "index": 4,
+          "exitCode": 0,
+          "metadataMatch": true,
+          "outputDigestMatch": false
+        },
+        {
+          "itemId": "exec-63f9130f-2226-46cd-99cc-dee788a3e588",
+          "index": 5,
+          "exitCode": 0,
+          "metadataMatch": true,
+          "outputDigestMatch": true
+        },
+        {
+          "itemId": "exec-dfce6a76-8f0c-4da8-be66-ec7f6e958325",
+          "index": 6,
+          "exitCode": 0,
+          "metadataMatch": true,
+          "outputDigestMatch": true
+        },
+        {
+          "itemId": "exec-6e1c4b96-58bb-4ee6-81d4-07b907c0105f",
+          "index": 8,
+          "exitCode": 0,
+          "metadataMatch": true,
+          "outputDigestMatch": true
+        },
+        {
+          "itemId": "exec-a5c354eb-6ffa-4c98-9c1a-335f0a042405",
+          "index": 11,
+          "exitCode": 1,
+          "metadataMatch": true,
+          "outputDigestMatch": true
+        },
+        {
+          "itemId": "exec-e7505d4f-a9cf-4dbb-9a5f-2c89efcbed84",
+          "index": 14,
+          "exitCode": 0,
+          "metadataMatch": true,
+          "outputDigestMatch": true
+        },
+        {
+          "itemId": "exec-64333d64-efb8-4785-86d9-25f80a7731af",
+          "index": 16,
+          "exitCode": 1,
+          "metadataMatch": true,
+          "outputDigestMatch": true
+        },
+        {
+          "itemId": "exec-2cd950f9-f106-490c-9cfb-5bd3117488b6",
+          "index": 22,
+          "exitCode": 1,
+          "metadataMatch": true,
+          "outputDigestMatch": true
+        },
+        {
+          "itemId": "exec-f48fea98-f357-4f78-a7f6-9b4dfa613286",
+          "index": 24,
+          "exitCode": 0,
+          "metadataMatch": true,
+          "outputDigestMatch": true
+        },
+        {
+          "itemId": "exec-39b344c0-a642-471c-97f1-19c09a9ca0d7",
+          "index": 25,
+          "exitCode": 0,
+          "metadataMatch": true,
+          "outputDigestMatch": true
+        },
+        {
+          "itemId": "exec-249443ff-2b60-4bc8-a087-e3e6aa46fba0",
+          "index": 27,
+          "exitCode": 0,
+          "metadataMatch": true,
+          "outputDigestMatch": true
+        },
+        {
+          "itemId": "exec-c7ea32d4-927b-45b8-a6ee-452a9f9e5bb2",
+          "index": 29,
+          "exitCode": 0,
+          "metadataMatch": true,
+          "outputDigestMatch": true
+        },
+        {
+          "itemId": "exec-0956a0bf-6dd2-43cc-8768-2547d10c80e1",
+          "index": 35,
+          "exitCode": 0,
+          "metadataMatch": true,
+          "outputDigestMatch": true
+        },
+        {
+          "itemId": "exec-d6d4578d-4dc8-413b-9a43-fca621ba5a0f",
+          "index": 37,
+          "exitCode": 0,
+          "metadataMatch": true,
+          "outputDigestMatch": true
+        }
+      ],
+      "tests": [
+        {
+          "phase": "before",
+          "itemId": "exec-64333d64-efb8-4785-86d9-25f80a7731af",
+          "index": 16,
+          "exitCode": 1,
+          "savedSummaryMatch": true,
+          "outputDigestMatch": true,
+          "summary": {
+            "phase": "before",
+            "contexts": 4,
+            "result": "FAIL",
+            "checked": 24,
+            "passed": 4,
+            "failed": 20,
+            "errors": 0,
+            "contrastCount": 0,
+            "contrastFailed": 0,
+            "minimumRatio": null,
+            "pageErrors": 0,
+            "unexpectedRequests": 0,
+            "downloads": 0
+          }
+        },
+        {
+          "phase": "after",
+          "itemId": "exec-2cd950f9-f106-490c-9cfb-5bd3117488b6",
+          "index": 22,
+          "exitCode": 1,
+          "savedSummaryMatch": true,
+          "outputDigestMatch": true,
+          "summary": {
+            "phase": "after",
+            "contexts": 4,
+            "result": "FAIL",
+            "checked": 24,
+            "passed": 20,
+            "failed": 4,
+            "errors": 0,
+            "contrastCount": 8,
+            "contrastFailed": 0,
+            "minimumRatio": 10.35474573184942,
+            "pageErrors": 0,
+            "unexpectedRequests": 0,
+            "downloads": 0
+          }
+        }
+      ],
+      "uiChanges": [
+        {
+          "itemId": "exec-93b2b3f7-11d3-479c-953c-1e3a26802cf1",
+          "index": 19
+        }
+      ],
+      "order": "PASS",
+      "verificationSubprocesses": [
+        {
+          "command": "node node_modules/eslint/bin/eslint.js src/app/dashboard/education/grades/page.tsx",
+          "exitCode": 0,
+          "nativeReportMatch": false
+        },
+        {
+          "command": "node --check docs/audits/preschool-roster-journey-flow/roster-browser.cjs",
+          "exitCode": 0,
+          "nativeReportMatch": false
+        },
+        {
+          "command": "git diff --check",
+          "exitCode": 0,
+          "nativeReportMatch": false
+        },
+        {
+          "command": "node node_modules/typescript/bin/tsc -p tsconfig.education.json --pretty false --incremental --tsBuildInfoFile docs/audits/preschool-roster-journey-flow/.cache/education.tsbuildinfo",
+          "exitCode": 0,
+          "nativeReportMatch": false
+        }
+      ]
+    },
+    {
+      "attempt": 2,
+      "binding": {
+        "repository": "bellaspahcm/bella-ai-platform",
+        "taskId": "b5bbbfec-219a-49d7-9813-0eae507f01c4",
+        "runId": "665b5a54-541f-481b-ba0b-c7eadcc702b8",
+        "attempt": 2,
+        "producerInstanceId": "2676999f-0a5f-456f-bbf2-83c64934e820",
+        "threadId": "01a14bf9-ec47-76b0-b000-30766f1088af",
+        "sessionId": "01a14bf9-ec47-76b0-b000-30766f1088af",
+        "turnId": "01a14bf9-ed84-7460-abfa-05537a1717eb"
+      },
+      "matchedCommands": 18,
+      "outputDigestMatches": 17,
+      "outputDigestDifferences": 1,
+      "commands": [
+        {
+          "itemId": "exec-2ced4190-f758-4dd8-ad53-47b80399553b",
+          "index": 2,
+          "exitCode": 0,
+          "metadataMatch": true,
+          "outputDigestMatch": true
+        },
+        {
+          "itemId": "exec-1a7acc37-e37a-4ba3-92f7-694908bebc85",
+          "index": 4,
+          "exitCode": 0,
+          "metadataMatch": true,
+          "outputDigestMatch": false
+        },
+        {
+          "itemId": "exec-683d3290-0e8d-429b-a1a8-329a0990fc8e",
+          "index": 6,
+          "exitCode": 0,
+          "metadataMatch": true,
+          "outputDigestMatch": true
+        },
+        {
+          "itemId": "exec-004fb019-fc28-4ee8-b22c-7e021c2517d2",
+          "index": 9,
+          "exitCode": 0,
+          "metadataMatch": true,
+          "outputDigestMatch": true
+        },
+        {
+          "itemId": "exec-8aa08367-c59f-4d28-babd-76d6a8fb99ba",
+          "index": 10,
+          "exitCode": 0,
+          "metadataMatch": true,
+          "outputDigestMatch": true
+        },
+        {
+          "itemId": "exec-2a53eded-f090-44ed-a718-05e3abaada9c",
+          "index": 12,
+          "exitCode": 0,
+          "metadataMatch": true,
+          "outputDigestMatch": true
+        },
+        {
+          "itemId": "exec-1e3ee2d3-6960-4764-a02f-419ab04fee52",
+          "index": 13,
+          "exitCode": 0,
+          "metadataMatch": true,
+          "outputDigestMatch": true
+        },
+        {
+          "itemId": "exec-c580ca48-4de9-4935-b075-0c4e8a368c04",
+          "index": 16,
+          "exitCode": 0,
+          "metadataMatch": true,
+          "outputDigestMatch": true
+        },
+        {
+          "itemId": "exec-cdeff26f-01ea-4ee0-ada6-b3436535c001",
+          "index": 20,
+          "exitCode": 1,
+          "metadataMatch": true,
+          "outputDigestMatch": true
+        },
+        {
+          "itemId": "exec-47dec9e6-3da6-4553-b444-6ea4499c1d40",
+          "index": 22,
+          "exitCode": 0,
+          "metadataMatch": true,
+          "outputDigestMatch": true
+        },
+        {
+          "itemId": "exec-28cfaee9-6083-4a11-b8d2-f0dad990f4c1",
+          "index": 24,
+          "exitCode": 0,
+          "metadataMatch": true,
+          "outputDigestMatch": true
+        },
+        {
+          "itemId": "exec-2931483b-c6e2-4c5d-8621-0da66174b3a5",
+          "index": 28,
+          "exitCode": 0,
+          "metadataMatch": true,
+          "outputDigestMatch": true
+        },
+        {
+          "itemId": "exec-44ba0071-c314-4a5e-a75d-e8ec5be8e4e7",
+          "index": 29,
+          "exitCode": 0,
+          "metadataMatch": true,
+          "outputDigestMatch": true
+        },
+        {
+          "itemId": "exec-1a7cb092-3eff-4e53-b59a-f4bdcdae7eb0",
+          "index": 34,
+          "exitCode": 1,
+          "metadataMatch": true,
+          "outputDigestMatch": true
+        },
+        {
+          "itemId": "exec-e53e69e4-cf33-4ce1-85a9-94034c888320",
+          "index": 36,
+          "exitCode": 0,
+          "metadataMatch": true,
+          "outputDigestMatch": true
+        },
+        {
+          "itemId": "exec-0c6b4a30-2d57-47bd-a460-203fd7ab1092",
+          "index": 38,
+          "exitCode": 0,
+          "metadataMatch": true,
+          "outputDigestMatch": true
+        },
+        {
+          "itemId": "exec-ca55fbdc-e430-4c58-8b4c-b800ce165f48",
+          "index": 41,
+          "exitCode": 0,
+          "metadataMatch": true,
+          "outputDigestMatch": true
+        },
+        {
+          "itemId": "exec-4ff7e134-5784-4c05-8c74-17307a099c28",
+          "index": 44,
+          "exitCode": 0,
+          "metadataMatch": true,
+          "outputDigestMatch": true
+        }
+      ],
+      "tests": [
+        {
+          "phase": "before",
+          "itemId": "exec-cdeff26f-01ea-4ee0-ada6-b3436535c001",
+          "index": 20,
+          "exitCode": 1,
+          "savedSummaryMatch": true,
+          "outputDigestMatch": true,
+          "summary": {
+            "phase": "before",
+            "contexts": 4,
+            "result": "FAIL",
+            "checked": 24,
+            "passed": 4,
+            "failed": 20,
+            "errors": 0,
+            "contrastCount": 0,
+            "contrastFailed": 0,
+            "minimumRatio": null,
+            "pageErrors": 0,
+            "unexpectedRequests": 0,
+            "downloads": 0
+          }
+        },
+        {
+          "phase": "after",
+          "itemId": "exec-2931483b-c6e2-4c5d-8621-0da66174b3a5",
+          "index": 28,
+          "exitCode": 0,
+          "savedSummaryMatch": true,
+          "outputDigestMatch": true,
+          "summary": {
+            "phase": "after",
+            "contexts": 4,
+            "result": "PASS",
+            "checked": 24,
+            "passed": 24,
+            "failed": 0,
+            "errors": 0,
+            "contrastCount": 8,
+            "contrastFailed": 0,
+            "minimumRatio": 10.35474573184942,
+            "pageErrors": 0,
+            "unexpectedRequests": 0,
+            "downloads": 0
+          }
+        }
+      ],
+      "uiChanges": [
+        {
+          "itemId": "exec-d1123307-fb88-4380-bf12-1e72d6fae8b5",
+          "index": 14
+        },
+        {
+          "itemId": "exec-071318d1-7150-41f2-b6ff-244a6ca54a8a",
+          "index": 25
+        }
+      ],
+      "order": "PASS",
+      "verificationSubprocesses": [
+        {
+          "command": "node node_modules/eslint/bin/eslint.js src/app/dashboard/education/grades/page.tsx",
+          "exitCode": 0,
+          "nativeReportMatch": true
+        },
+        {
+          "command": "node --check docs/audits/preschool-roster-journey-flow/roster-browser.cjs",
+          "exitCode": 0,
+          "nativeReportMatch": true
+        },
+        {
+          "command": "git diff --check",
+          "exitCode": 0,
+          "nativeReportMatch": true
+        },
+        {
+          "command": "node node_modules/typescript/bin/tsc -p tsconfig.education.json --pretty false --incremental --tsBuildInfoFile docs/audits/preschool-roster-journey-flow/.cache/education.tsbuildinfo",
+          "exitCode": 0,
+          "nativeReportMatch": true
+        }
+      ]
+    }
+  ],
+  "commands": 34,
+  "browserCommands": 4,
+  "allBrowserOutputsMatch": true,
+  "sourceRestoreBeforeReapplyAfterOrder": "PASS",
+  "limits": "Non-test stdout differences disclosed per attempt. Original20/24 remains failed; corrected baseline/current receipts are authoritative. Subprocess matches are recorded exactly, not inferred from whole-turn success."
+}

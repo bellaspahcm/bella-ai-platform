@@ -1,0 +1,183 @@
+{
+  "result": "PASS_SCOPED_NATIVE_REPORT_SECTION_ACTIONS",
+  "recordedAt": "2026-10-17T22:11:15.548Z",
+  "baseline": "a854bd22c913dcbf2e6bdb847cde7bb99bf75beb",
+  "scope": "Five previously inert Reports section buttons only",
+  "behavior": {
+    "implementedNavigation": "Quick reports opens existing detail tab, scrolls/focuses heading, preserves four documents; pointer/keyboard and return/reopen pass",
+    "explicitUnavailable": "AI details, class details, full issues and full monthly activities show specific associated feedback; no backend capability added"
+  },
+  "before": {
+    "result": "FAIL",
+    "checked": 20,
+    "passed": 0,
+    "failed": 20,
+    "contrastCount": 0,
+    "contrastFailed": 0,
+    "minimumRatio": null,
+    "threshold": 4.5
+  },
+  "after": {
+    "result": "PASS",
+    "checked": 20,
+    "passed": 20,
+    "failed": 0,
+    "contrastCount": 16,
+    "contrastFailed": 0,
+    "minimumRatio": 13.328781541774159,
+    "threshold": 4.5
+  },
+  "contexts": 4,
+  "functionalFlows": 20,
+  "activations": 60,
+  "newFeedbackContrastTargets": 16,
+  "sourceSha256": "1bae64d4b75c62d479d56854fe845bbcf83497d4873d1508d283010b3481e4de",
+  "testSha256": "1794c3742c8488f877b78d0771ffc2d5c08417cb3dbba023b0d93d8ed82c07ae",
+  "sameTestAndCss": true,
+  "sampleDataAndNoticePreserved": true,
+  "sourceRepairRounds": 1,
+  "native": {
+    "binding": {
+      "repository": "bellaspahcm/bella-ai-platform",
+      "taskId": "c26e9a38-b49c-4736-a148-07a175e4cb11",
+      "runId": "b7b07294-762a-4869-98e3-795c1fd2df1c",
+      "attempt": 1,
+      "producerInstanceId": "ff7c0a8b-2e08-4edf-93f2-3b389caf4288",
+      "threadId": "01a14be4-8047-72d1-b16d-c66bd8ef363e",
+      "sessionId": "01a14be4-8047-72d1-b16d-c66bd8ef363e",
+      "turnId": "01a14be4-819a-7ab0-8fdc-6338c42ccec1"
+    },
+    "commands": 11,
+    "fileChanges": 1,
+    "facts": 55,
+    "fileChangeReadback": "1/1 MATCH",
+    "browserCommandOutputsMatch": true,
+    "verificationSubprocesses": 6,
+    "beforePatchAfterOrder": "PASS",
+    "nonTestStdoutDigestDifferences": 1
+  },
+  "leadReview": {
+    "runtime": "Seven approved source hunks only; data/types/helpers before main page unchanged after CRLF normalization; prior title/KPI repairs preserved",
+    "hunks": [
+      {
+        "beforeStart": 357,
+        "beforeLines": 8,
+        "afterStart": 357,
+        "afterLines": 17
+      },
+      {
+        "beforeStart": 566,
+        "beforeLines": 10,
+        "afterStart": 575,
+        "afterLines": 20
+      },
+      {
+        "beforeStart": 685,
+        "beforeLines": 10,
+        "afterStart": 704,
+        "afterLines": 20
+      },
+      {
+        "beforeStart": 726,
+        "beforeLines": 10,
+        "afterStart": 755,
+        "afterLines": 20
+      },
+      {
+        "beforeStart": 777,
+        "beforeLines": 10,
+        "afterStart": 816,
+        "afterLines": 20
+      },
+      {
+        "beforeStart": 807,
+        "beforeLines": 7,
+        "afterStart": 856,
+        "afterLines": 11
+      },
+      {
+        "beforeStart": 943,
+        "beforeLines": 7,
+        "afterStart": 996,
+        "afterLines": 7
+      }
+    ],
+    "edgeCaseReview": "Applied bmad-review-edge-case-hunter to changed branches: null destination, repeated feedback, tab return/reopen and focus; no additional unhandled paths found in scoped diff",
+    "visual": "Light/dark mobile screenshots inspected; native measurements/interactions cover desktop and mobile"
+  },
+  "checks": [
+    {
+      "command": "node node_modules/eslint/bin/eslint.js src/app/dashboard/education/reports/page.tsx",
+      "exitCode": 0,
+      "startedAt": "2026-10-17T22:06:02.378Z",
+      "finishedAt": "2026-10-17T22:06:06.197Z"
+    },
+    {
+      "command": "node node_modules/typescript/bin/tsc -p tsconfig.education.json --pretty false --incremental --tsBuildInfoFile docs/audits/preschool-report-actions-flow/.cache/education.tsbuildinfo",
+      "exitCode": 0,
+      "startedAt": "2026-10-17T22:06:06.198Z",
+      "finishedAt": "2026-10-17T22:06:18.787Z"
+    },
+    {
+      "command": "node --check docs/audits/preschool-report-actions-flow/actions-browser.cjs",
+      "exitCode": 0,
+      "startedAt": "2026-10-17T22:06:18.788Z",
+      "finishedAt": "2026-10-17T22:06:18.872Z"
+    },
+    {
+      "command": "git diff --check",
+      "exitCode": 0,
+      "startedAt": "2026-10-17T22:06:18.873Z",
+      "finishedAt": "2026-10-17T22:06:19.193Z"
+    },
+    {
+      "command": "git diff -- src/app/dashboard/education/reports/page.tsx",
+      "exitCode": 0,
+      "startedAt": "2026-10-17T22:06:19.194Z",
+      "finishedAt": "2026-10-17T22:06:19.283Z"
+    },
+    {
+      "command": "git status --short",
+      "exitCode": 0,
+      "startedAt": "2026-10-17T22:06:19.284Z",
+      "finishedAt": "2026-10-17T22:06:19.476Z"
+    }
+  ],
+  "runner": "Reused291 checksum-identical task-local browser files; no core/runner/policy/ACL/security-flag/network changes",
+  "limits": [
+    "Actual-component/globals.css synthetic mount with stubbed Next presentation boundaries; no real Next layout/fonts/Auth/API/DB or full-page contrast proof",
+    "Four controls only explain unavailable preview features; they do not implement AI, class/issue/event data workflows",
+    "One non-test stdout digest differs; both browser outputs and six subprocess records match native history",
+    "Initial pre-source harness selector error corrected before valid baseline receipt; test unchanged from legitimate before through after",
+    "Lead provisioning/publication; one native task, not continuous unattended orchestration",
+    "Lead review corrected JSON-log whitespace and Git-LF/worktree-CRLF comparison assumptions; no source edit or browser rerun"
+  ],
+  "boundaries": {
+    "oldSuitesRerun": 0,
+    "dbOperations": 0,
+    "authOperations": 0,
+    "coreAgentFlowModified": false,
+    "endpoint503": "UNCHANGED",
+    "courseD01toD05": "PRESERVED",
+    "courseEightFiles": "UNCHANGED",
+    "parentRls": "FAIL",
+    "courseAuthorization": "BLOCKED",
+    "uiToDb": "NOT_PROVEN",
+    "preGoLive": "BLOCKED",
+    "merge": false,
+    "deploy": false
+  },
+  "proofHashes": {
+    "native-before.json": "7aa47788482fd7c85820582cb6611c5ad4d67223cafe5f542de0e40168f252b5",
+    "native-after.json": "7443ebbf2ec948f180ca57a0d909e471cdc80c84299e90cda15742aac5c688c7",
+    "native-task-result.json": "fc0939bb14816267296f24fa78813a52c48d704925a15df6bec8e5d432ca61a7",
+    "native-task-readback.json": "cf126284719bcddf09df6c45cd16f68d3679c6bc8ed839b59846972c502f5ee2",
+    "native-command-readback.json": "4d1e1f0370060389b1a2aba06f6fe557e26ff4217b7a80b909db82469e462fd7",
+    "verification.json": "199e16cdadd451e5930e25ff9b46efbbc1b0c168b1606c8fe7ea931da6e00101",
+    "dependency-provenance.json": "9a5172dd75c7b9ac7171cb018cee62d138066e040bf03ff0f8b852b4e2155e2e",
+    "native-source.diff": "420d9a552a8070b99cfb89ff04aa4fc46b99435a9a12bf521952105d6d16a81c",
+    "edge-case-review.json": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
+  },
+  "hashScope": "Worktree bytes, Git may normalize line endings",
+  "diffArtifactFormat": "git diff --cached --unified=0; valid exact source patch without context-only whitespace lines"
+}

@@ -1,0 +1,1875 @@
+{
+  "result": "PASS_SCOPED_SYNTHETIC_COMPONENT",
+  "recordedAt": "2026-10-17T14:41:25.288Z",
+  "contrastSummary": {
+    "result": "PASS_SCOPED",
+    "checked": 84,
+    "failed": 0,
+    "minimumRatio": 9.488632416041419,
+    "threshold": 4.5
+  },
+  "sourceSha256": {
+    "src/app/dashboard/education/reports/page.tsx": "e8a8c19fd398e1a6ba988b3fd75c2ceba2b2bd48443792edb541a8ac919076e5"
+  },
+  "globalsSha256": "1f2458f1e1ff45ff29650ce9bc30a0a408004f079760de68bcef7c915ddce21e",
+  "compiledCssSha256": "2150a389cdde7ed6c1910f2335adf61baedf3738f57d0d06f109db55e4f9dfaf",
+  "bundleSha256": "d6b8d340c85edb4538e296fb985cf8659c2d21f4aeaa8447aa1a4c47a586fa64",
+  "previewSha256": "608f3e87a715b152d13b91a6567805b99b2c9bb6809ede8d8e796a0a7c4779fe",
+  "previewPath": "docs/audits/preschool-reports-trial/.cache/preview.html",
+  "csp": "default-src 'none'; script-src 'sha256-1rjTQMhe20U44pb7mFz4ZZwtIfSuqoRHqhpMR6WG+mQ='; style-src 'unsafe-inline'; connect-src 'none'; img-src data:; font-src 'none'; base-uri 'none'; form-action 'none'",
+  "rawMeasurementPath": "docs/audits/preschool-reports-trial/.cache/browser-proof.raw.json",
+  "rawMeasurementSha256": "72bc1b71bf7e320e69e416d298b3f3dd0522929792339f6061f9f1776d362286",
+  "contrastMethod": "Actual compiled CSS; Chromium CSS-to-sRGB foreground and native raster background with text ink removed; every pixel under rendered rects including compositing; raw WCAG ratio >= 4.5. Quick icon controls use SVG rect/currentColor and the same stricter threshold.",
+  "network": "HTTP bound 127.0.0.1 with ephemeral port; exact document only; connect-src none; server closed",
+  "limits": "Standalone React mount and stubbed Link, actual globals CSS; no Next layout/fonts/Auth/API/DB/tenant isolation or full-page E2E. Targeted changed controls and text only.",
+  "results": [
+    {
+      "theme": "light",
+      "device": "desktop",
+      "immediateFeedback": [
+        {
+          "id": "reports-export-status",
+          "statusTop": 141.5625,
+          "statusBottom": 161.0625,
+          "buttonTop": 96.5625,
+          "buttonBottom": 132.5625,
+          "height": 1000,
+          "result": "PASS"
+        },
+        {
+          "id": "reports-export-status",
+          "statusTop": 141.5625,
+          "statusBottom": 161.0625,
+          "buttonTop": 96.5625,
+          "buttonBottom": 132.5625,
+          "height": 1000,
+          "result": "PASS"
+        },
+        {
+          "id": "reports-quick-r1-status",
+          "statusTop": 807.1875,
+          "statusBottom": 826.6875,
+          "buttonTop": 766.1875,
+          "buttonBottom": 796.1875,
+          "height": 1000,
+          "result": "PASS"
+        },
+        {
+          "id": "reports-quick-r2-status",
+          "statusTop": 882.6875,
+          "statusBottom": 902.1875,
+          "buttonTop": 841.6875,
+          "buttonBottom": 871.6875,
+          "height": 1000,
+          "result": "PASS"
+        },
+        {
+          "id": "reports-quick-r3-status",
+          "statusTop": 958.1875,
+          "statusBottom": 977.6875,
+          "buttonTop": 917.1875,
+          "buttonBottom": 947.1875,
+          "height": 1000,
+          "result": "PASS"
+        },
+        {
+          "id": "reports-quick-r4-status",
+          "statusTop": 968.6875,
+          "statusBottom": 988.1875,
+          "buttonTop": 927.6875,
+          "buttonBottom": 957.6875,
+          "height": 1000,
+          "result": "PASS"
+        },
+        {
+          "id": "reports-detail-r1-status",
+          "statusTop": 713.71875,
+          "statusBottom": 733.21875,
+          "buttonTop": 669.71875,
+          "buttonBottom": 701.71875,
+          "height": 1000,
+          "result": "PASS"
+        },
+        {
+          "id": "reports-detail-r2-status",
+          "statusTop": 827.21875,
+          "statusBottom": 846.71875,
+          "buttonTop": 783.21875,
+          "buttonBottom": 815.21875,
+          "height": 1000,
+          "result": "PASS"
+        },
+        {
+          "id": "reports-detail-r3-status",
+          "statusTop": 940.71875,
+          "statusBottom": 960.21875,
+          "buttonTop": 896.71875,
+          "buttonBottom": 928.71875,
+          "height": 1000,
+          "result": "PASS"
+        },
+        {
+          "id": "reports-detail-r4-status",
+          "statusTop": 926.21875,
+          "statusBottom": 945.71875,
+          "buttonTop": 882.21875,
+          "buttonBottom": 914.21875,
+          "height": 1000,
+          "result": "PASS"
+        }
+      ],
+      "testedOutputControls": 9,
+      "periodSelections": 3,
+      "tabsVisited": 6,
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "PASS_SCOPED_SYNTHETIC_COMPONENT",
+      "contrast": [
+        {
+          "label": "workspace-sample-label",
+          "minimumRatio": 16.275922755447212,
+          "worstBackground": [
+            241,
+            245,
+            249
+          ],
+          "worstForeground": [
+            15,
+            23,
+            43
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "oklch(0.208 0.042 265.755)"
+        },
+        {
+          "label": "period-no-refresh",
+          "minimumRatio": 15.937555008926157,
+          "worstBackground": [
+            242,
+            242,
+            243
+          ],
+          "worstForeground": [
+            15,
+            23,
+            43
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "oklch(0.208 0.042 265.755)"
+        },
+        {
+          "label": "header-export-control",
+          "minimumRatio": 17.103975676880832,
+          "worstBackground": [
+            15,
+            23,
+            42
+          ],
+          "worstForeground": [
+            250,
+            250,
+            250
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "oklch(0.985 0 0)"
+        },
+        {
+          "label": "header-export-unavailable",
+          "minimumRatio": 15.937555008926157,
+          "worstBackground": [
+            242,
+            242,
+            243
+          ],
+          "worstForeground": [
+            15,
+            23,
+            43
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "oklch(0.208 0.042 265.755)"
+        },
+        {
+          "label": "ai-sample-not-analysis",
+          "minimumRatio": 17.8305532523795,
+          "worstBackground": [
+            255,
+            255,
+            255
+          ],
+          "worstForeground": [
+            15,
+            23,
+            43
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "oklch(0.208 0.042 265.755)"
+        },
+        {
+          "label": "quick-control-r1",
+          "minimumRatio": 17.8305532523795,
+          "worstBackground": [
+            255,
+            255,
+            255
+          ],
+          "worstForeground": [
+            15,
+            23,
+            43
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "oklch(0.208 0.042 265.755)"
+        },
+        {
+          "label": "quick-unavailable-r1",
+          "minimumRatio": 17.8305532523795,
+          "worstBackground": [
+            255,
+            255,
+            255
+          ],
+          "worstForeground": [
+            15,
+            23,
+            43
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "oklch(0.208 0.042 265.755)"
+        },
+        {
+          "label": "quick-control-r2",
+          "minimumRatio": 17.8305532523795,
+          "worstBackground": [
+            255,
+            255,
+            255
+          ],
+          "worstForeground": [
+            15,
+            23,
+            43
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "oklch(0.208 0.042 265.755)"
+        },
+        {
+          "label": "quick-unavailable-r2",
+          "minimumRatio": 17.8305532523795,
+          "worstBackground": [
+            255,
+            255,
+            255
+          ],
+          "worstForeground": [
+            15,
+            23,
+            43
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "oklch(0.208 0.042 265.755)"
+        },
+        {
+          "label": "quick-control-r3",
+          "minimumRatio": 17.8305532523795,
+          "worstBackground": [
+            255,
+            255,
+            255
+          ],
+          "worstForeground": [
+            15,
+            23,
+            43
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "oklch(0.208 0.042 265.755)"
+        },
+        {
+          "label": "quick-unavailable-r3",
+          "minimumRatio": 17.8305532523795,
+          "worstBackground": [
+            255,
+            255,
+            255
+          ],
+          "worstForeground": [
+            15,
+            23,
+            43
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "oklch(0.208 0.042 265.755)"
+        },
+        {
+          "label": "quick-control-r4",
+          "minimumRatio": 17.8305532523795,
+          "worstBackground": [
+            255,
+            255,
+            255
+          ],
+          "worstForeground": [
+            15,
+            23,
+            43
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "oklch(0.208 0.042 265.755)"
+        },
+        {
+          "label": "quick-unavailable-r4",
+          "minimumRatio": 17.8305532523795,
+          "worstBackground": [
+            255,
+            255,
+            255
+          ],
+          "worstForeground": [
+            15,
+            23,
+            43
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "oklch(0.208 0.042 265.755)"
+        },
+        {
+          "label": "detail-control-r1",
+          "minimumRatio": 17.103975676880832,
+          "worstBackground": [
+            15,
+            23,
+            42
+          ],
+          "worstForeground": [
+            250,
+            250,
+            250
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "oklch(0.985 0 0)"
+        },
+        {
+          "label": "detail-unavailable-r1",
+          "minimumRatio": 16.275922755447212,
+          "worstBackground": [
+            241,
+            245,
+            249
+          ],
+          "worstForeground": [
+            15,
+            23,
+            43
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "oklch(0.208 0.042 265.755)"
+        },
+        {
+          "label": "detail-control-r2",
+          "minimumRatio": 17.103975676880832,
+          "worstBackground": [
+            15,
+            23,
+            42
+          ],
+          "worstForeground": [
+            250,
+            250,
+            250
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "oklch(0.985 0 0)"
+        },
+        {
+          "label": "detail-unavailable-r2",
+          "minimumRatio": 16.275922755447212,
+          "worstBackground": [
+            241,
+            245,
+            249
+          ],
+          "worstForeground": [
+            15,
+            23,
+            43
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "oklch(0.208 0.042 265.755)"
+        },
+        {
+          "label": "detail-control-r3",
+          "minimumRatio": 17.103975676880832,
+          "worstBackground": [
+            15,
+            23,
+            42
+          ],
+          "worstForeground": [
+            250,
+            250,
+            250
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "oklch(0.985 0 0)"
+        },
+        {
+          "label": "detail-unavailable-r3",
+          "minimumRatio": 16.275922755447212,
+          "worstBackground": [
+            241,
+            245,
+            249
+          ],
+          "worstForeground": [
+            15,
+            23,
+            43
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "oklch(0.208 0.042 265.755)"
+        },
+        {
+          "label": "detail-control-r4",
+          "minimumRatio": 17.103975676880832,
+          "worstBackground": [
+            15,
+            23,
+            42
+          ],
+          "worstForeground": [
+            250,
+            250,
+            250
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "oklch(0.985 0 0)"
+        },
+        {
+          "label": "detail-unavailable-r4",
+          "minimumRatio": 16.275922755447212,
+          "worstBackground": [
+            241,
+            245,
+            249
+          ],
+          "worstForeground": [
+            15,
+            23,
+            43
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "oklch(0.208 0.042 265.755)"
+        }
+      ]
+    },
+    {
+      "theme": "light",
+      "device": "mobile",
+      "immediateFeedback": [
+        {
+          "id": "reports-export-status",
+          "statusTop": 260.078125,
+          "statusBottom": 299.078125,
+          "buttonTop": 216.94837951660156,
+          "buttonBottom": 251.20787048339844,
+          "height": 844,
+          "result": "PASS"
+        },
+        {
+          "id": "reports-export-status",
+          "statusTop": 44.078125,
+          "statusBottom": 83.078125,
+          "buttonTop": 0.9781265258789062,
+          "buttonBottom": 35.178131103515625,
+          "height": 844,
+          "result": "PASS"
+        },
+        {
+          "id": "reports-quick-r1-status",
+          "statusTop": 623.140625,
+          "statusBottom": 662.140625,
+          "buttonTop": 582.140625,
+          "buttonBottom": 612.140625,
+          "height": 844,
+          "result": "PASS"
+        },
+        {
+          "id": "reports-quick-r2-status",
+          "statusTop": 718.140625,
+          "statusBottom": 757.140625,
+          "buttonTop": 677.140625,
+          "buttonBottom": 707.140625,
+          "height": 844,
+          "result": "PASS"
+        },
+        {
+          "id": "reports-quick-r3-status",
+          "statusTop": 793.140625,
+          "statusBottom": 832.140625,
+          "buttonTop": 752.140625,
+          "buttonBottom": 782.140625,
+          "height": 844,
+          "result": "PASS"
+        },
+        {
+          "id": "reports-quick-r4-status",
+          "statusTop": 767.140625,
+          "statusBottom": 806.140625,
+          "buttonTop": 726.140625,
+          "buttonBottom": 756.140625,
+          "height": 844,
+          "result": "PASS"
+        },
+        {
+          "id": "reports-detail-r1-status",
+          "statusTop": 604.703125,
+          "statusBottom": 643.703125,
+          "buttonTop": 560.703125,
+          "buttonBottom": 592.703125,
+          "height": 844,
+          "result": "PASS"
+        },
+        {
+          "id": "reports-detail-r2-status",
+          "statusTop": 737.703125,
+          "statusBottom": 776.703125,
+          "buttonTop": 693.703125,
+          "buttonBottom": 725.703125,
+          "height": 844,
+          "result": "PASS"
+        },
+        {
+          "id": "reports-detail-r3-status",
+          "statusTop": 792.703125,
+          "statusBottom": 831.703125,
+          "buttonTop": 748.703125,
+          "buttonBottom": 780.703125,
+          "height": 844,
+          "result": "PASS"
+        },
+        {
+          "id": "reports-detail-r4-status",
+          "statusTop": 749.703125,
+          "statusBottom": 788.703125,
+          "buttonTop": 705.703125,
+          "buttonBottom": 737.703125,
+          "height": 844,
+          "result": "PASS"
+        }
+      ],
+      "testedOutputControls": 9,
+      "periodSelections": 3,
+      "tabsVisited": 6,
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "PASS_SCOPED_SYNTHETIC_COMPONENT",
+      "contrast": [
+        {
+          "label": "workspace-sample-label",
+          "minimumRatio": 16.275922755447212,
+          "worstBackground": [
+            241,
+            245,
+            249
+          ],
+          "worstForeground": [
+            15,
+            23,
+            43
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "oklch(0.208 0.042 265.755)"
+        },
+        {
+          "label": "period-no-refresh",
+          "minimumRatio": 15.937555008926157,
+          "worstBackground": [
+            242,
+            242,
+            243
+          ],
+          "worstForeground": [
+            15,
+            23,
+            43
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "oklch(0.208 0.042 265.755)"
+        },
+        {
+          "label": "header-export-control",
+          "minimumRatio": 17.103975676880832,
+          "worstBackground": [
+            15,
+            23,
+            42
+          ],
+          "worstForeground": [
+            250,
+            250,
+            250
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "oklch(0.985 0 0)"
+        },
+        {
+          "label": "header-export-unavailable",
+          "minimumRatio": 15.937555008926157,
+          "worstBackground": [
+            242,
+            242,
+            243
+          ],
+          "worstForeground": [
+            15,
+            23,
+            43
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "oklch(0.208 0.042 265.755)"
+        },
+        {
+          "label": "ai-sample-not-analysis",
+          "minimumRatio": 17.8305532523795,
+          "worstBackground": [
+            255,
+            255,
+            255
+          ],
+          "worstForeground": [
+            15,
+            23,
+            43
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "oklch(0.208 0.042 265.755)"
+        },
+        {
+          "label": "quick-control-r1",
+          "minimumRatio": 17.8305532523795,
+          "worstBackground": [
+            255,
+            255,
+            255
+          ],
+          "worstForeground": [
+            15,
+            23,
+            43
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "oklch(0.208 0.042 265.755)"
+        },
+        {
+          "label": "quick-unavailable-r1",
+          "minimumRatio": 17.8305532523795,
+          "worstBackground": [
+            255,
+            255,
+            255
+          ],
+          "worstForeground": [
+            15,
+            23,
+            43
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "oklch(0.208 0.042 265.755)"
+        },
+        {
+          "label": "quick-control-r2",
+          "minimumRatio": 17.8305532523795,
+          "worstBackground": [
+            255,
+            255,
+            255
+          ],
+          "worstForeground": [
+            15,
+            23,
+            43
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "oklch(0.208 0.042 265.755)"
+        },
+        {
+          "label": "quick-unavailable-r2",
+          "minimumRatio": 17.8305532523795,
+          "worstBackground": [
+            255,
+            255,
+            255
+          ],
+          "worstForeground": [
+            15,
+            23,
+            43
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "oklch(0.208 0.042 265.755)"
+        },
+        {
+          "label": "quick-control-r3",
+          "minimumRatio": 17.8305532523795,
+          "worstBackground": [
+            255,
+            255,
+            255
+          ],
+          "worstForeground": [
+            15,
+            23,
+            43
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "oklch(0.208 0.042 265.755)"
+        },
+        {
+          "label": "quick-unavailable-r3",
+          "minimumRatio": 17.8305532523795,
+          "worstBackground": [
+            255,
+            255,
+            255
+          ],
+          "worstForeground": [
+            15,
+            23,
+            43
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "oklch(0.208 0.042 265.755)"
+        },
+        {
+          "label": "quick-control-r4",
+          "minimumRatio": 17.8305532523795,
+          "worstBackground": [
+            255,
+            255,
+            255
+          ],
+          "worstForeground": [
+            15,
+            23,
+            43
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "oklch(0.208 0.042 265.755)"
+        },
+        {
+          "label": "quick-unavailable-r4",
+          "minimumRatio": 17.8305532523795,
+          "worstBackground": [
+            255,
+            255,
+            255
+          ],
+          "worstForeground": [
+            15,
+            23,
+            43
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "oklch(0.208 0.042 265.755)"
+        },
+        {
+          "label": "detail-control-r1",
+          "minimumRatio": 17.103975676880832,
+          "worstBackground": [
+            15,
+            23,
+            42
+          ],
+          "worstForeground": [
+            250,
+            250,
+            250
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "oklch(0.985 0 0)"
+        },
+        {
+          "label": "detail-unavailable-r1",
+          "minimumRatio": 16.275922755447212,
+          "worstBackground": [
+            241,
+            245,
+            249
+          ],
+          "worstForeground": [
+            15,
+            23,
+            43
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "oklch(0.208 0.042 265.755)"
+        },
+        {
+          "label": "detail-control-r2",
+          "minimumRatio": 17.103975676880832,
+          "worstBackground": [
+            15,
+            23,
+            42
+          ],
+          "worstForeground": [
+            250,
+            250,
+            250
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "oklch(0.985 0 0)"
+        },
+        {
+          "label": "detail-unavailable-r2",
+          "minimumRatio": 16.275922755447212,
+          "worstBackground": [
+            241,
+            245,
+            249
+          ],
+          "worstForeground": [
+            15,
+            23,
+            43
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "oklch(0.208 0.042 265.755)"
+        },
+        {
+          "label": "detail-control-r3",
+          "minimumRatio": 17.103975676880832,
+          "worstBackground": [
+            15,
+            23,
+            42
+          ],
+          "worstForeground": [
+            250,
+            250,
+            250
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "oklch(0.985 0 0)"
+        },
+        {
+          "label": "detail-unavailable-r3",
+          "minimumRatio": 16.275922755447212,
+          "worstBackground": [
+            241,
+            245,
+            249
+          ],
+          "worstForeground": [
+            15,
+            23,
+            43
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "oklch(0.208 0.042 265.755)"
+        },
+        {
+          "label": "detail-control-r4",
+          "minimumRatio": 17.103975676880832,
+          "worstBackground": [
+            15,
+            23,
+            42
+          ],
+          "worstForeground": [
+            250,
+            250,
+            250
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "oklch(0.985 0 0)"
+        },
+        {
+          "label": "detail-unavailable-r4",
+          "minimumRatio": 16.275922755447212,
+          "worstBackground": [
+            241,
+            245,
+            249
+          ],
+          "worstForeground": [
+            15,
+            23,
+            43
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "oklch(0.208 0.042 265.755)"
+        }
+      ]
+    },
+    {
+      "theme": "dark",
+      "device": "desktop",
+      "immediateFeedback": [
+        {
+          "id": "reports-export-status",
+          "statusTop": 141.5625,
+          "statusBottom": 161.0625,
+          "buttonTop": 96.5625,
+          "buttonBottom": 132.5625,
+          "height": 1000,
+          "result": "PASS"
+        },
+        {
+          "id": "reports-export-status",
+          "statusTop": 141.5625,
+          "statusBottom": 161.0625,
+          "buttonTop": 96.5625,
+          "buttonBottom": 132.5625,
+          "height": 1000,
+          "result": "PASS"
+        },
+        {
+          "id": "reports-quick-r1-status",
+          "statusTop": 807.1875,
+          "statusBottom": 826.6875,
+          "buttonTop": 766.1875,
+          "buttonBottom": 796.1875,
+          "height": 1000,
+          "result": "PASS"
+        },
+        {
+          "id": "reports-quick-r2-status",
+          "statusTop": 882.6875,
+          "statusBottom": 902.1875,
+          "buttonTop": 841.6875,
+          "buttonBottom": 871.6875,
+          "height": 1000,
+          "result": "PASS"
+        },
+        {
+          "id": "reports-quick-r3-status",
+          "statusTop": 958.1875,
+          "statusBottom": 977.6875,
+          "buttonTop": 917.1875,
+          "buttonBottom": 947.1875,
+          "height": 1000,
+          "result": "PASS"
+        },
+        {
+          "id": "reports-quick-r4-status",
+          "statusTop": 968.6875,
+          "statusBottom": 988.1875,
+          "buttonTop": 927.6875,
+          "buttonBottom": 957.6875,
+          "height": 1000,
+          "result": "PASS"
+        },
+        {
+          "id": "reports-detail-r1-status",
+          "statusTop": 713.71875,
+          "statusBottom": 733.21875,
+          "buttonTop": 669.71875,
+          "buttonBottom": 701.71875,
+          "height": 1000,
+          "result": "PASS"
+        },
+        {
+          "id": "reports-detail-r2-status",
+          "statusTop": 827.21875,
+          "statusBottom": 846.71875,
+          "buttonTop": 783.21875,
+          "buttonBottom": 815.21875,
+          "height": 1000,
+          "result": "PASS"
+        },
+        {
+          "id": "reports-detail-r3-status",
+          "statusTop": 940.71875,
+          "statusBottom": 960.21875,
+          "buttonTop": 896.71875,
+          "buttonBottom": 928.71875,
+          "height": 1000,
+          "result": "PASS"
+        },
+        {
+          "id": "reports-detail-r4-status",
+          "statusTop": 926.21875,
+          "statusBottom": 945.71875,
+          "buttonTop": 882.21875,
+          "buttonBottom": 914.21875,
+          "height": 1000,
+          "result": "PASS"
+        }
+      ],
+      "testedOutputControls": 9,
+      "periodSelections": 3,
+      "tabsVisited": 6,
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "PASS_SCOPED_SYNTHETIC_COMPONENT",
+      "contrast": [
+        {
+          "label": "workspace-sample-label",
+          "minimumRatio": 13.832910330978986,
+          "worstBackground": [
+            15,
+            40,
+            60
+          ],
+          "worstForeground": [
+            243,
+            245,
+            247
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "rgb(243, 245, 247)"
+        },
+        {
+          "label": "period-no-refresh",
+          "minimumRatio": 13.349680162905496,
+          "worstBackground": [
+            16,
+            43,
+            63
+          ],
+          "worstForeground": [
+            243,
+            245,
+            247
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "rgb(243, 245, 247)"
+        },
+        {
+          "label": "header-export-control",
+          "minimumRatio": 9.488632416041419,
+          "worstBackground": [
+            229,
+            184,
+            97
+          ],
+          "worstForeground": [
+            9,
+            26,
+            45
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "rgb(9, 26, 45)"
+        },
+        {
+          "label": "header-export-unavailable",
+          "minimumRatio": 13.349680162905496,
+          "worstBackground": [
+            16,
+            43,
+            63
+          ],
+          "worstForeground": [
+            243,
+            245,
+            247
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "rgb(243, 245, 247)"
+        },
+        {
+          "label": "ai-sample-not-analysis",
+          "minimumRatio": 13.832910330978986,
+          "worstBackground": [
+            15,
+            40,
+            60
+          ],
+          "worstForeground": [
+            243,
+            245,
+            247
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "rgb(243, 245, 247)"
+        },
+        {
+          "label": "quick-control-r1",
+          "minimumRatio": 13.677396157378626,
+          "worstBackground": [
+            15,
+            41,
+            61
+          ],
+          "worstForeground": [
+            243,
+            245,
+            247
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "rgb(243, 245, 247)"
+        },
+        {
+          "label": "quick-unavailable-r1",
+          "minimumRatio": 14.004746887911635,
+          "worstBackground": [
+            14,
+            39,
+            59
+          ],
+          "worstForeground": [
+            243,
+            245,
+            247
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "rgb(243, 245, 247)"
+        },
+        {
+          "label": "quick-control-r2",
+          "minimumRatio": 14.314102321279112,
+          "worstBackground": [
+            14,
+            37,
+            57
+          ],
+          "worstForeground": [
+            243,
+            245,
+            247
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "rgb(243, 245, 247)"
+        },
+        {
+          "label": "quick-unavailable-r2",
+          "minimumRatio": 14.659037234834033,
+          "worstBackground": [
+            13,
+            35,
+            54
+          ],
+          "worstForeground": [
+            243,
+            245,
+            247
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "rgb(243, 245, 247)"
+        },
+        {
+          "label": "quick-control-r3",
+          "minimumRatio": 14.958141692719456,
+          "worstBackground": [
+            12,
+            33,
+            53
+          ],
+          "worstForeground": [
+            243,
+            245,
+            247
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "rgb(243, 245, 247)"
+        },
+        {
+          "label": "quick-unavailable-r3",
+          "minimumRatio": 15.273897266240812,
+          "worstBackground": [
+            11,
+            31,
+            51
+          ],
+          "worstForeground": [
+            243,
+            245,
+            247
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "rgb(243, 245, 247)"
+        },
+        {
+          "label": "quick-control-r4",
+          "minimumRatio": 15.421374282415186,
+          "worstBackground": [
+            11,
+            30,
+            50
+          ],
+          "worstForeground": [
+            243,
+            245,
+            247
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "rgb(243, 245, 247)"
+        },
+        {
+          "label": "quick-unavailable-r4",
+          "minimumRatio": 15.605036675844794,
+          "worstBackground": [
+            10,
+            29,
+            48
+          ],
+          "worstForeground": [
+            243,
+            245,
+            247
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "rgb(243, 245, 247)"
+        },
+        {
+          "label": "detail-control-r1",
+          "minimumRatio": 9.488632416041419,
+          "worstBackground": [
+            229,
+            184,
+            97
+          ],
+          "worstForeground": [
+            9,
+            26,
+            45
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "rgb(9, 26, 45)"
+        },
+        {
+          "label": "detail-unavailable-r1",
+          "minimumRatio": 14.789941692076296,
+          "worstBackground": [
+            13,
+            34,
+            54
+          ],
+          "worstForeground": [
+            243,
+            245,
+            247
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "rgb(243, 245, 247)"
+        },
+        {
+          "label": "detail-control-r2",
+          "minimumRatio": 9.488632416041419,
+          "worstBackground": [
+            229,
+            184,
+            97
+          ],
+          "worstForeground": [
+            9,
+            26,
+            45
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "rgb(9, 26, 45)"
+        },
+        {
+          "label": "detail-unavailable-r2",
+          "minimumRatio": 14.8280695843675,
+          "worstBackground": [
+            12,
+            34,
+            53
+          ],
+          "worstForeground": [
+            243,
+            245,
+            247
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "rgb(243, 245, 247)"
+        },
+        {
+          "label": "detail-control-r3",
+          "minimumRatio": 9.488632416041419,
+          "worstBackground": [
+            229,
+            184,
+            97
+          ],
+          "worstForeground": [
+            9,
+            26,
+            45
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "rgb(9, 26, 45)"
+        },
+        {
+          "label": "detail-unavailable-r3",
+          "minimumRatio": 14.958141692719456,
+          "worstBackground": [
+            12,
+            33,
+            53
+          ],
+          "worstForeground": [
+            243,
+            245,
+            247
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "rgb(243, 245, 247)"
+        },
+        {
+          "label": "detail-control-r4",
+          "minimumRatio": 9.488632416041419,
+          "worstBackground": [
+            229,
+            184,
+            97
+          ],
+          "worstForeground": [
+            9,
+            26,
+            45
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "rgb(9, 26, 45)"
+        },
+        {
+          "label": "detail-unavailable-r4",
+          "minimumRatio": 14.958141692719456,
+          "worstBackground": [
+            12,
+            33,
+            53
+          ],
+          "worstForeground": [
+            243,
+            245,
+            247
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "rgb(243, 245, 247)"
+        }
+      ]
+    },
+    {
+      "theme": "dark",
+      "device": "mobile",
+      "immediateFeedback": [
+        {
+          "id": "reports-export-status",
+          "statusTop": 260.078125,
+          "statusBottom": 299.078125,
+          "buttonTop": 216.97811889648438,
+          "buttonBottom": 251.17813110351562,
+          "height": 844,
+          "result": "PASS"
+        },
+        {
+          "id": "reports-export-status",
+          "statusTop": 44.078125,
+          "statusBottom": 83.078125,
+          "buttonTop": 0.9781265258789062,
+          "buttonBottom": 35.178131103515625,
+          "height": 844,
+          "result": "PASS"
+        },
+        {
+          "id": "reports-quick-r1-status",
+          "statusTop": 623.140625,
+          "statusBottom": 662.140625,
+          "buttonTop": 582.140625,
+          "buttonBottom": 612.140625,
+          "height": 844,
+          "result": "PASS"
+        },
+        {
+          "id": "reports-quick-r2-status",
+          "statusTop": 718.140625,
+          "statusBottom": 757.140625,
+          "buttonTop": 677.140625,
+          "buttonBottom": 707.140625,
+          "height": 844,
+          "result": "PASS"
+        },
+        {
+          "id": "reports-quick-r3-status",
+          "statusTop": 793.140625,
+          "statusBottom": 832.140625,
+          "buttonTop": 752.140625,
+          "buttonBottom": 782.140625,
+          "height": 844,
+          "result": "PASS"
+        },
+        {
+          "id": "reports-quick-r4-status",
+          "statusTop": 767.140625,
+          "statusBottom": 806.140625,
+          "buttonTop": 726.140625,
+          "buttonBottom": 756.140625,
+          "height": 844,
+          "result": "PASS"
+        },
+        {
+          "id": "reports-detail-r1-status",
+          "statusTop": 604.703125,
+          "statusBottom": 643.703125,
+          "buttonTop": 560.703125,
+          "buttonBottom": 592.703125,
+          "height": 844,
+          "result": "PASS"
+        },
+        {
+          "id": "reports-detail-r2-status",
+          "statusTop": 737.703125,
+          "statusBottom": 776.703125,
+          "buttonTop": 693.703125,
+          "buttonBottom": 725.703125,
+          "height": 844,
+          "result": "PASS"
+        },
+        {
+          "id": "reports-detail-r3-status",
+          "statusTop": 792.703125,
+          "statusBottom": 831.703125,
+          "buttonTop": 748.703125,
+          "buttonBottom": 780.703125,
+          "height": 844,
+          "result": "PASS"
+        },
+        {
+          "id": "reports-detail-r4-status",
+          "statusTop": 749.703125,
+          "statusBottom": 788.703125,
+          "buttonTop": 705.703125,
+          "buttonBottom": 737.703125,
+          "height": 844,
+          "result": "PASS"
+        }
+      ],
+      "testedOutputControls": 9,
+      "periodSelections": 3,
+      "tabsVisited": 6,
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": [],
+      "result": "PASS_SCOPED_SYNTHETIC_COMPONENT",
+      "contrast": [
+        {
+          "label": "workspace-sample-label",
+          "minimumRatio": 13.484255120566887,
+          "worstBackground": [
+            16,
+            42,
+            63
+          ],
+          "worstForeground": [
+            243,
+            245,
+            247
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "rgb(243, 245, 247)"
+        },
+        {
+          "label": "period-no-refresh",
+          "minimumRatio": 13.484255120566887,
+          "worstBackground": [
+            16,
+            42,
+            63
+          ],
+          "worstForeground": [
+            243,
+            245,
+            247
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "rgb(243, 245, 247)"
+        },
+        {
+          "label": "header-export-control",
+          "minimumRatio": 9.488632416041419,
+          "worstBackground": [
+            229,
+            184,
+            97
+          ],
+          "worstForeground": [
+            9,
+            26,
+            45
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "rgb(9, 26, 45)"
+        },
+        {
+          "label": "header-export-unavailable",
+          "minimumRatio": 13.349680162905496,
+          "worstBackground": [
+            16,
+            43,
+            63
+          ],
+          "worstForeground": [
+            243,
+            245,
+            247
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "rgb(243, 245, 247)"
+        },
+        {
+          "label": "ai-sample-not-analysis",
+          "minimumRatio": 13.349680162905496,
+          "worstBackground": [
+            16,
+            43,
+            63
+          ],
+          "worstForeground": [
+            243,
+            245,
+            247
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "rgb(243, 245, 247)"
+        },
+        {
+          "label": "quick-control-r1",
+          "minimumRatio": 13.656246675414016,
+          "worstBackground": [
+            15,
+            41,
+            62
+          ],
+          "worstForeground": [
+            243,
+            245,
+            247
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "rgb(243, 245, 247)"
+        },
+        {
+          "label": "quick-unavailable-r1",
+          "minimumRatio": 14.004746887911635,
+          "worstBackground": [
+            14,
+            39,
+            59
+          ],
+          "worstForeground": [
+            243,
+            245,
+            247
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "rgb(243, 245, 247)"
+        },
+        {
+          "label": "quick-control-r2",
+          "minimumRatio": 14.314102321279112,
+          "worstBackground": [
+            14,
+            37,
+            57
+          ],
+          "worstForeground": [
+            243,
+            245,
+            247
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "rgb(243, 245, 247)"
+        },
+        {
+          "label": "quick-unavailable-r2",
+          "minimumRatio": 14.63783365320862,
+          "worstBackground": [
+            13,
+            35,
+            55
+          ],
+          "worstForeground": [
+            243,
+            245,
+            247
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "rgb(243, 245, 247)"
+        },
+        {
+          "label": "quick-control-r3",
+          "minimumRatio": 14.958141692719456,
+          "worstBackground": [
+            12,
+            33,
+            53
+          ],
+          "worstForeground": [
+            243,
+            245,
+            247
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "rgb(243, 245, 247)"
+        },
+        {
+          "label": "quick-unavailable-r3",
+          "minimumRatio": 15.273897266240812,
+          "worstBackground": [
+            11,
+            31,
+            51
+          ],
+          "worstForeground": [
+            243,
+            245,
+            247
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "rgb(243, 245, 247)"
+        },
+        {
+          "label": "quick-control-r4",
+          "minimumRatio": 15.421374282415186,
+          "worstBackground": [
+            11,
+            30,
+            50
+          ],
+          "worstForeground": [
+            243,
+            245,
+            247
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "rgb(243, 245, 247)"
+        },
+        {
+          "label": "quick-unavailable-r4",
+          "minimumRatio": 15.605036675844794,
+          "worstBackground": [
+            10,
+            29,
+            48
+          ],
+          "worstForeground": [
+            243,
+            245,
+            247
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "rgb(243, 245, 247)"
+        },
+        {
+          "label": "detail-control-r1",
+          "minimumRatio": 9.488632416041419,
+          "worstBackground": [
+            229,
+            184,
+            97
+          ],
+          "worstForeground": [
+            9,
+            26,
+            45
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "rgb(9, 26, 45)"
+        },
+        {
+          "label": "detail-unavailable-r1",
+          "minimumRatio": 14.48472676655166,
+          "worstBackground": [
+            13,
+            36,
+            56
+          ],
+          "worstForeground": [
+            243,
+            245,
+            247
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "rgb(243, 245, 247)"
+        },
+        {
+          "label": "detail-control-r2",
+          "minimumRatio": 9.488632416041419,
+          "worstBackground": [
+            229,
+            184,
+            97
+          ],
+          "worstForeground": [
+            9,
+            26,
+            45
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "rgb(9, 26, 45)"
+        },
+        {
+          "label": "detail-unavailable-r2",
+          "minimumRatio": 14.48472676655166,
+          "worstBackground": [
+            13,
+            36,
+            56
+          ],
+          "worstForeground": [
+            243,
+            245,
+            247
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "rgb(243, 245, 247)"
+        },
+        {
+          "label": "detail-control-r3",
+          "minimumRatio": 9.488632416041419,
+          "worstBackground": [
+            229,
+            184,
+            97
+          ],
+          "worstForeground": [
+            9,
+            26,
+            45
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "rgb(9, 26, 45)"
+        },
+        {
+          "label": "detail-unavailable-r3",
+          "minimumRatio": 14.63783365320862,
+          "worstBackground": [
+            13,
+            35,
+            55
+          ],
+          "worstForeground": [
+            243,
+            245,
+            247
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "rgb(243, 245, 247)"
+        },
+        {
+          "label": "detail-control-r4",
+          "minimumRatio": 9.488632416041419,
+          "worstBackground": [
+            229,
+            184,
+            97
+          ],
+          "worstForeground": [
+            9,
+            26,
+            45
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "rgb(9, 26, 45)"
+        },
+        {
+          "label": "detail-unavailable-r4",
+          "minimumRatio": 14.63783365320862,
+          "worstBackground": [
+            13,
+            35,
+            55
+          ],
+          "worstForeground": [
+            243,
+            245,
+            247
+          ],
+          "threshold": 4.5,
+          "result": "PASS",
+          "cssColor": "rgb(243, 245, 247)"
+        }
+      ]
+    }
+  ]
+}

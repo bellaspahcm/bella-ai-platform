@@ -1,0 +1,116 @@
+{
+  "checks": [
+    {
+      "command": "node node_modules/eslint/bin/eslint.js src/app/dashboard/education/care/page.tsx",
+      "startedAt": "2026-10-17T23:19:03.337Z",
+      "finishedAt": "2026-10-17T23:19:08.874Z",
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "(node:18512) ESLintIgnoreWarning: The \".eslintignore\" file is no longer supported. Switch to using the \"ignores\" property in \"eslint.config.js\": https://eslint.org/docs/latest/use/configure/migration-guide#ignoring-files\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "command": "node node_modules/typescript/bin/tsc -p tsconfig.education.json --pretty false --incremental --tsBuildInfoFile docs/audits/preschool-care-preview-flow/.cache/education.tsbuildinfo",
+      "startedAt": "2026-10-17T23:19:08.881Z",
+      "finishedAt": "2026-10-17T23:19:25.712Z",
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": "node --check docs/audits/preschool-care-preview-flow/care-browser.cjs",
+      "startedAt": "2026-10-17T23:19:25.713Z",
+      "finishedAt": "2026-10-17T23:19:25.792Z",
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": "git diff --check",
+      "startedAt": "2026-10-17T23:19:25.792Z",
+      "finishedAt": "2026-10-17T23:19:26.267Z",
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "browserRuns": [
+    {
+      "command": "node docs/audits/preschool-care-preview-flow/care-browser.cjs before",
+      "exitCode": 1,
+      "stdout": "{\"phase\":\"before\",\"journeys\":12,\"passed\":0,\"failed\":12,\"errors\":0,\"assertions\":192,\"assertionsPassed\":108,\"assertionsFailed\":84,\"contrastCount\":0,\"contrastFailed\":0,\"minimumRatio\":null,\"pageErrors\":0,\"unexpectedRequests\":0,\"mutations\":0,\"downloads\":0,\"catalogGets\":12}\n",
+      "stderr": "",
+      "outputOrigin": "Actual completed exec session stdout; receipt independently records counters and hashes",
+      "receipt": "native-before.json",
+      "receiptSha256": "d2f1bc4605eb1716b6229350b558c0933bae65d65493b51407a21ef038d9eba6",
+      "sourceSha256": "cfc6b328cb5d0fe20bea08faddc8a682195b723e2e7c02982b5ef448c6693052",
+      "testSha256": "27bf6001715940562927bb183d90ecff8035a93fb006e59d9af974a4adf60e05"
+    },
+    {
+      "command": "node docs/audits/preschool-care-preview-flow/care-browser.cjs after",
+      "exitCode": 0,
+      "stdout": "{\"phase\":\"after\",\"journeys\":12,\"passed\":12,\"failed\":0,\"errors\":0,\"assertions\":192,\"assertionsPassed\":192,\"assertionsFailed\":0,\"contrastCount\":12,\"contrastFailed\":0,\"minimumRatio\":13.31213862994338,\"pageErrors\":0,\"unexpectedRequests\":0,\"mutations\":0,\"downloads\":0,\"catalogGets\":12}\n",
+      "stderr": "",
+      "outputOrigin": "Actual completed exec session stdout; receipt independently records counters and hashes",
+      "receipt": "native-after.json",
+      "receiptSha256": "4471f78135d8f52a8e6d94540af81652ad9cc2049dc2a53e052878e77ab237cb",
+      "sourceSha256": "c60568d86453a441e930ea8f59d5b3d76bf863da610bdad30c03f76a8c0e3bd1",
+      "testSha256": "27bf6001715940562927bb183d90ecff8035a93fb006e59d9af974a4adf60e05"
+    }
+  ],
+  "result": "PASS",
+  "preflight": {
+    "freeBytes": {
+      "C": 709181440,
+      "D": 80848359424
+    },
+    "thresholds": {
+      "C": 67108864,
+      "D": 2147483648
+    },
+    "result": "PASS"
+  },
+  "repairRounds": 1,
+  "failedImplementationAttempts": 0,
+  "failedAuxiliaryChecks": [],
+  "visualReview": {
+    "result": "PASS",
+    "reviewed": [
+      "care-light-desktop.png",
+      "care-dark-desktop.png",
+      "care-light-mobile.png",
+      "care-dark-mobile.png"
+    ],
+    "scope": "Inspected all four screenshots; modal notices, exact synthetic note, not-saved status and actions visible. Native select option text may truncate on narrow screens; clinical text unchanged."
+  },
+  "screenshots": [
+    {
+      "file": "care-light-desktop.png",
+      "sha256": "d87a3a1513f90fccb5349c076a2a03e9ba6c8205b22b6cd75f95456cc5e25e11"
+    },
+    {
+      "file": "care-dark-desktop.png",
+      "sha256": "0eadf442df15c8ee2e31ff8f5a55b2037fdd92e657939ae12af4538ffaff9c87"
+    },
+    {
+      "file": "care-light-mobile.png",
+      "sha256": "3c61f9a294f22ffae0e1d4ab0f842b450e2d64ef8ad0fb14fb753761fa0cf37b"
+    },
+    {
+      "file": "care-dark-mobile.png",
+      "sha256": "a08d7ab64974e4d729fdf6400346231ae12429479687dc9c407d916509d5b238"
+    }
+  ],
+  "preservation": {
+    "file": "preservation-proof.json",
+    "sha256": "7222499c01df92a1597b211c8294a8a257aa53f7f75c4160aa143d58b461def9",
+    "result": "PASS"
+  },
+  "limits": [
+    "UI->DB NOT_PROVEN",
+    "Parent RLS FAIL",
+    "Course authorization BLOCKED",
+    "Pre-Go-Live BLOCKED",
+    "Synthetic catalog read is not backend proof",
+    "No staging commit push PR or deployment"
+  ]
+}

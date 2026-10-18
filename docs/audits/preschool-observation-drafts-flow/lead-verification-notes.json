@@ -1,0 +1,52 @@
+{
+  "recordedAt": "2026-10-17T23:07:48.208Z",
+  "owner": "LEAD",
+  "workerResult": "BLOCKED_PRESERVATION_PROBE",
+  "originalProbe": {
+    "command": "node docs/audits/preschool-observation-drafts-flow/.cache/seal.cjs",
+    "commandSha256": "a4bae9ed56d107fa2a603ab166205d8bc60b4725c3b6af500fe6f256ce76cbf4",
+    "scriptSha256": "c75b6aa8a94afb49d2818f29edd4a1741aeafa051d3935bb433827254b78200e",
+    "exit": 1,
+    "stdout": "",
+    "stderr": "AssertionError [ERR_ASSERTION]: referenceDataAndTypes\n\nfalse !== true\n\n    at Object.<anonymous> (docs/audits/preschool-observation-drafts-flow/.cache/seal.cjs:18:61)",
+    "classification": "Auxiliary raw-text preservation oracle failed. No browser harness error. Suspected line-ending sensitivity is unverified. Probe preserved unchanged; no repair or rerun under task stop rule.",
+    "preservationMachineProof": "NOT_PROVEN"
+  },
+  "probeArtifact": {
+    "path": "worker-seal-probe.cjs.gz",
+    "encoding": "gzip",
+    "decodedSha256": "c75b6aa8a94afb49d2818f29edd4a1741aeafa051d3935bb433827254b78200e",
+    "artifactSha256": "95aca54f18ff058a09a15cf556eaf6b6952f12f3209e828393a731890d23eb7b",
+    "probeEdited": false,
+    "probeRerun": false
+  },
+  "resolution": {
+    "rawPrefixEqual": false,
+    "normalizedPrefixEqual": true,
+    "originalPrefixSha256": "0493286255ef905c5f0ab1275b4c8c9bc98c4a2b0328d3cb329e970744607de1",
+    "worktreePrefixSha256": "ccd3fe25e7f89f6be014572e85572ff591b281e75c74d0928be555568ecd9753",
+    "normalizedPrefixSha256": "0493286255ef905c5f0ab1275b4c8c9bc98c4a2b0328d3cb329e970744607de1",
+    "originalHasCRLF": false,
+    "worktreeHasCRLF": true,
+    "wholeSourceProof": "Exact reversal of only approved view-state/field-setter/profile-handoff/note substitutions reproduces entire baseline after explicit line-ending normalization. Verified by independent Lead script; original probe/test/receipts/source untouched."
+  },
+  "sourceChangesAfterNativeTurn": 0,
+  "browserRerunsAfterNativeTurn": 0,
+  "nativeReadback": {
+    "commands": 13,
+    "fileChanges": "1/1 MATCH",
+    "facts": 70,
+    "browserOutputs": "2/2 MATCH",
+    "structuredReports": "4/4 lint/type/syntax/whitespace reports match; 2 browser commands verified directly by native output/exit/order",
+    "nonTestStdoutDigestDifferences": [
+      {
+        "itemId": "exec-8128709b-1c1d-4c28-baad-80b61b40a43c",
+        "index": 4,
+        "exitCode": 1,
+        "metadataMatch": true,
+        "outputDigestMatch": false
+      }
+    ]
+  },
+  "limits": "Worker halted at preservation comparison, Lead resolved read-only evidence defect. Not unattended orchestration, full Next, DB, Auth, RLS or whole-page accessibility proof."
+}

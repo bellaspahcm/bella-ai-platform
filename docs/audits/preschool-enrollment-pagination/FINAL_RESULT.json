@@ -1,0 +1,102 @@
+{
+  "recordedAt": "2026-10-18T01:05:19.900Z",
+  "result": "UI_PASS_SCOPED",
+  "journey": "Student registry filter → pagination → correct rows and filtered footer",
+  "runtimeFiles": [
+    "src/app/dashboard/education/enrollments/page.tsx"
+  ],
+  "baseline": "91468e5cb98030636f339e160d6baad70c4348ff",
+  "branch": "codex/preschool-enrollment-pagination",
+  "verification": {
+    "browser": {
+      "journeys": 4,
+      "passed": 4,
+      "assertions": 56,
+      "failed": 0,
+      "errors": 0,
+      "contrastCount": 8,
+      "contrastFailed": 0,
+      "minimumRatio": 4.758842787868666
+    },
+    "focusedStatics": [
+      {
+        "name": "lint",
+        "exitCode": 0
+      },
+      {
+        "name": "typecheck",
+        "exitCode": 0
+      },
+      {
+        "name": "syntax",
+        "exitCode": 0
+      },
+      {
+        "name": "whitespace",
+        "exitCode": 0
+      }
+    ],
+    "review": "PASS_SCOPED_UI",
+    "nativeFileChanges": 1,
+    "nativeFileChangesMatched": 1,
+    "nativeCommands": 12
+  },
+  "execution": {
+    "lead": "IDE Lead defined scoped task and coordinates review/delivery",
+    "builderAndVerify": "Existing Bella AppServer managed worker changed real source and ran actual browser/static checks",
+    "reviewer": "Fresh independent review agent; candidate hashes independently recomputed",
+    "nativeTaskResult": "STOPPED_AT_NATIVE_BOUNDARY",
+    "nativeFault": "WORKTREE_SCOPE_VIOLATION",
+    "commandReadback": "MISMATCH",
+    "generalAgentFlowMvp": "NOT_PROVEN",
+    "automaticFourRoleControllerProven": false,
+    "taskResume": false,
+    "newDispatchAfterCompletion": false
+  },
+  "scope": {
+    "changedPathsOutsideUiAndTaskDirectory": [],
+    "dbOperations": 0,
+    "authOperations": 0,
+    "containment": "UNCHANGED",
+    "coreAgentFlow": "UNCHANGED",
+    "merge": false,
+    "manualDeploy": false
+  },
+  "gates": {
+    "parentRls": "FAIL",
+    "courseAuthorization": "BLOCKED",
+    "uiToDb": "NOT_PROVEN",
+    "preGoLive": "BLOCKED"
+  },
+  "candidate": {
+    "source": "e6a8c7c821449d41dee3342f74dba6f0b41d764e67c4e1e721b07ab0f18dbc26",
+    "test": "986ba98ba39684192563816668b7ebb8cff27954d3ad0d3f30b8fae10bbc436b",
+    "verification": "b5cad84d356f86ca4e5c5173fd0262f974d2060a07ea80de0899b7209e3deb21",
+    "review": "bf053d8cd150b6d2cdc5d2f59dc432785b2d0d7839a9f839809d9f5b9f9c190d"
+  },
+  "artifacts": [
+    "ARCHITECTURE_GATE_RESULT.md",
+    "TASK.md",
+    "native-before.json",
+    "native-after.json",
+    "verification.json",
+    "preservation-proof.json",
+    "native-task-result.json",
+    "native-task-readback.json",
+    "native-command-readback.json",
+    "independent-review.json"
+  ],
+  "delivery": {
+    "status": "DRAFT_PR_CREATED",
+    "url": "https://github.com/bellaspahcm/bella-ai-platform/pull/373",
+    "number": 373,
+    "base": "codex/preschool-containment",
+    "baseCommit": "91468e5cb98030636f339e160d6baad70c4348ff",
+    "runtimeCommit": "9bf68a005852e0df6a14730b35e43f6fefc89faa",
+    "ci": "PENDING_AT_PUBLICATION",
+    "remoteRuntimeScopeConfirmed": true,
+    "attachedToChat": true,
+    "merge": false,
+    "manualDeploy": false
+  }
+}

@@ -1,0 +1,107 @@
+{
+  "result": "PASS",
+  "base": "8f3441a08c6cea99f4544b32a662ce0fc53ec172",
+  "branch": "codex/preschool-report-titles-flow",
+  "beforeCommand": {
+    "command": "node docs/audits/preschool-report-titles-flow/title-contrast.cjs before",
+    "actualExitCode": 1,
+    "summary": {
+      "result": "FAIL",
+      "checked": 32,
+      "passed": 16,
+      "failed": 16,
+      "minimumRatio": 1.02277126539548,
+      "threshold": 4.5
+    }
+  },
+  "afterCommand": {
+    "command": "node docs/audits/preschool-report-titles-flow/title-contrast.cjs after",
+    "actualExitCode": 0,
+    "summary": {
+      "result": "PASS",
+      "checked": 32,
+      "passed": 32,
+      "failed": 0,
+      "minimumRatio": 13.656246675414016,
+      "threshold": 4.5
+    }
+  },
+  "environmentEquivalence": {
+    "result": "PASS",
+    "matched": 32,
+    "maxDelta": 0,
+    "tolerance": 0.000001,
+    "proof": "docs/audits/preschool-report-titles-flow/native-equivalence.json"
+  },
+  "hashes": {
+    "beforeSourceSha256": "e8a8c19fd398e1a6ba988b3fd75c2ceba2b2bd48443792edb541a8ac919076e5",
+    "afterSourceSha256": "f4f3428104e1d17eb0d0a6f4bd3ca47a77e62c695bd9beacbc61db19b5924ba4",
+    "testSha256": "55082c9a7ae127fb96f20d2dea064c4c132f33878250b833fc20bc2c2e04094b",
+    "globalsSha256": "1f2458f1e1ff45ff29650ce9bc30a0a408004f079760de68bcef7c915ddce21e",
+    "beforeCompiledCssSha256": "2150a389cdde7ed6c1910f2335adf61baedf3738f57d0d06f109db55e4f9dfaf",
+    "afterCompiledCssSha256": "2150a389cdde7ed6c1910f2335adf61baedf3738f57d0d06f109db55e4f9dfaf"
+  },
+  "checks": [
+    {
+      "command": "node node_modules/eslint/bin/eslint.js src/app/dashboard/education/reports/page.tsx",
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "(node:18236) ESLintIgnoreWarning: The \".eslintignore\" file is no longer supported. Switch to using the \"ignores\" property in \"eslint.config.js\": https://eslint.org/docs/latest/use/configure/migration-guide#ignoring-files\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "command": "node --check docs/audits/preschool-report-titles-flow/title-contrast.cjs",
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": "git diff --check",
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": "git diff -- src/app/dashboard/education/reports/page.tsx",
+      "exitCode": 0,
+      "stdout": "diff --git a/src/app/dashboard/education/reports/page.tsx b/src/app/dashboard/education/reports/page.tsx\nindex 34801c408..c3ad03fa3 100644\n--- a/src/app/dashboard/education/reports/page.tsx\n+++ b/src/app/dashboard/education/reports/page.tsx\n@@ -821,7 +821,7 @@ export default function ReportsPage() {\n                         : <FileSpreadsheet className=\"w-4 h-4\" />}\n                     </div>\n                     <div className=\"flex-1 min-w-0\">\n-                      <p className=\"text-xs font-bold text-[#172B38] truncate\">{rep.title}</p>\n+                      <p className=\"text-xs font-bold text-slate-900 dark:text-slate-100 truncate\">{rep.title}</p>\n                       <p className=\"text-[10px] text-slate-400\">{rep.updated}</p>\n                     </div>\n                     <button\n@@ -957,7 +957,7 @@ export default function ReportsPage() {\n                     : <FileSpreadsheet className=\"w-5 h-5\" />}\n                 </div>\n                 <div className=\"flex-1 min-w-0\">\n-                  <p className=\"text-sm font-bold text-[#172B38] truncate\">{rep.title}</p>\n+                  <p className=\"text-sm font-bold text-slate-900 dark:text-slate-100 truncate\">{rep.title}</p>\n                   <p className=\"text-[11px] text-slate-400\">{rep.updated}</p>\n                 </div>\n                 <button\n",
+      "stderr": ""
+    },
+    {
+      "command": "git diff --numstat",
+      "exitCode": 0,
+      "stdout": "2\t2\tsrc/app/dashboard/education/reports/page.tsx\n",
+      "stderr": ""
+    },
+    {
+      "command": "git show HEAD:src/app/dashboard/education/reports/page.tsx",
+      "exitCode": 0,
+      "stdout": "[source comparison succeeded; full source omitted from receipt]",
+      "stderr": ""
+    },
+    {
+      "command": "git status --short",
+      "exitCode": 0,
+      "stdout": " M src/app/dashboard/education/reports/page.tsx\n?? docs/audits/preschool-report-titles-flow/\n",
+      "stderr": "warning: unable to access 'C:\\Users\\DELL/.config/git/ignore': Permission denied\nwarning: unable to access 'C:\\Users\\DELL/.config/git/ignore': Permission denied\n"
+    }
+  ],
+  "sourcePreservation": {
+    "result": "PASS",
+    "method": "Exact HEAD source equality after only the two approved title class replacements; existing 503 and output behavior preserved."
+  },
+  "screenshots": [
+    "docs/audits/preschool-report-titles-flow/native-titles-light-desktop.png",
+    "docs/audits/preschool-report-titles-flow/native-titles-light-mobile.png",
+    "docs/audits/preschool-report-titles-flow/native-titles-dark-desktop.png",
+    "docs/audits/preschool-report-titles-flow/native-titles-dark-mobile.png"
+  ],
+  "nativeLifecycle": "Lead independently records native tool events and command history; no worker-manufactured lifecycle proof.",
+  "limits": "Synthetic React mount; actual Reports component and globals.css; stubbed Next Link, no Next layout or downloaded fonts. No Auth/API/DB/runtime readiness proof. Only loopback document allowed; server closed.",
+  "parentGates": "RLS FAIL; Course authorization BLOCKED; UI-to-DB NOT_PROVEN; Pre-Go-Live BLOCKED. No old suites, fullbuild or full typecheck run.",
+  "preparedPR": "docs/audits/preschool-report-titles-flow/RUNNER_REPAIR_PR_BODY.md",
+  "testPreservation": {
+    "result": "PASS_FOR_CURRENT_NATIVE_PAIR",
+    "method": "Native apply_patch changed exactly the approved executablePath and receipt/screenshot output names. Native before and after record the same test SHA256; measurement code was not patched.",
+    "historicalByteComparison": "NOT_PROVEN: optional reverse-edit SHA256 comparison to attempt1 verification.json failed (Node assertion exit 1). Historical test SHA256 1141a7bec5975cc017aeab2c427a09b99dec35088853e6379d5097e220f12b3a; reverse-edit SHA256 5a4162cbf1fae095d18f5e3a34f8c43216b765166e0b900a2ae5ecd19c89631b. No measurement or historical evidence was changed to resolve it. Required native/host comparison is independently PASS for all 32 labels and ratios."
+  }
+}

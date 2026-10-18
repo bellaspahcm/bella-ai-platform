@@ -1,0 +1,29 @@
+{
+  "result": "PASS_SCOPED",
+  "recordedAt": "2026-10-17T14:16:51.348Z",
+  "sourceSha256": {
+    "src/app/dashboard/education/grades/page.tsx": "d623dc4cea64b570c5d5c1289ff59bcf48b499edf89ac2ae2fb6fa7be4a25fde"
+  },
+  "reviewers": [
+    {
+      "role": "Blind hunter",
+      "result": "No actionable findings; patch-only blind review"
+    },
+    {
+      "role": "Edge case hunter",
+      "finding": "Save feedback outside mobile viewport",
+      "resolution": "Moved beside save controls; immediate viewport check before scrolling; reviewer confirmed resolved"
+    },
+    {
+      "role": "Acceptance auditor",
+      "finding": "Export feedback outside mobile viewport",
+      "resolution": "Moved beside export toolbar; immediate viewport check before scrolling; reviewer confirmed resolved"
+    }
+  ],
+  "unresolved": 0,
+  "browserProofSha256": "6a3d6f332bcacf075d88a7ced51487da871783b177ed3048043a8290ecb34c83",
+  "verificationSha256": "a980612703385d1eacbd03390ca2d1bbfbb6523ced15177201cbba8eb40dc8a7",
+  "runtimeScope": "Only Grades page and colocated regression tests; no other source/contract/DB/security modification",
+  "dbOperations": 0,
+  "limits": "Synthetic standalone component only; no Next Auth/API/DB or readiness proof"
+}

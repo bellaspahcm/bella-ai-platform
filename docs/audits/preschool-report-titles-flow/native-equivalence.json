@@ -1,0 +1,266 @@
+{
+  "result": "PASS",
+  "matched": 32,
+  "tolerance": 0.000001,
+  "maxDelta": 0,
+  "sourceSha256": "e8a8c19fd398e1a6ba988b3fd75c2ceba2b2bd48443792edb541a8ac919076e5",
+  "globalsSha256": "1f2458f1e1ff45ff29650ce9bc30a0a408004f079760de68bcef7c915ddce21e",
+  "rows": [
+    {
+      "theme": "light",
+      "device": "desktop",
+      "label": "quick-r1",
+      "hostRatio": 14.592583324527606,
+      "nativeRatio": 14.592583324527606,
+      "delta": 0
+    },
+    {
+      "theme": "light",
+      "device": "desktop",
+      "label": "quick-r2",
+      "hostRatio": 14.592583324527606,
+      "nativeRatio": 14.592583324527606,
+      "delta": 0
+    },
+    {
+      "theme": "light",
+      "device": "desktop",
+      "label": "quick-r3",
+      "hostRatio": 14.592583324527606,
+      "nativeRatio": 14.592583324527606,
+      "delta": 0
+    },
+    {
+      "theme": "light",
+      "device": "desktop",
+      "label": "quick-r4",
+      "hostRatio": 14.592583324527606,
+      "nativeRatio": 14.592583324527606,
+      "delta": 0
+    },
+    {
+      "theme": "light",
+      "device": "desktop",
+      "label": "detail-r1",
+      "hostRatio": 13.320268621543914,
+      "nativeRatio": 13.320268621543914,
+      "delta": 0
+    },
+    {
+      "theme": "light",
+      "device": "desktop",
+      "label": "detail-r2",
+      "hostRatio": 13.320268621543914,
+      "nativeRatio": 13.320268621543914,
+      "delta": 0
+    },
+    {
+      "theme": "light",
+      "device": "desktop",
+      "label": "detail-r3",
+      "hostRatio": 13.320268621543914,
+      "nativeRatio": 13.320268621543914,
+      "delta": 0
+    },
+    {
+      "theme": "light",
+      "device": "desktop",
+      "label": "detail-r4",
+      "hostRatio": 13.320268621543914,
+      "nativeRatio": 13.320268621543914,
+      "delta": 0
+    },
+    {
+      "theme": "light",
+      "device": "mobile",
+      "label": "quick-r1",
+      "hostRatio": 14.592583324527606,
+      "nativeRatio": 14.592583324527606,
+      "delta": 0
+    },
+    {
+      "theme": "light",
+      "device": "mobile",
+      "label": "quick-r2",
+      "hostRatio": 14.592583324527606,
+      "nativeRatio": 14.592583324527606,
+      "delta": 0
+    },
+    {
+      "theme": "light",
+      "device": "mobile",
+      "label": "quick-r3",
+      "hostRatio": 14.592583324527606,
+      "nativeRatio": 14.592583324527606,
+      "delta": 0
+    },
+    {
+      "theme": "light",
+      "device": "mobile",
+      "label": "quick-r4",
+      "hostRatio": 14.592583324527606,
+      "nativeRatio": 14.592583324527606,
+      "delta": 0
+    },
+    {
+      "theme": "light",
+      "device": "mobile",
+      "label": "detail-r1",
+      "hostRatio": 13.320268621543914,
+      "nativeRatio": 13.320268621543914,
+      "delta": 0
+    },
+    {
+      "theme": "light",
+      "device": "mobile",
+      "label": "detail-r2",
+      "hostRatio": 13.320268621543914,
+      "nativeRatio": 13.320268621543914,
+      "delta": 0
+    },
+    {
+      "theme": "light",
+      "device": "mobile",
+      "label": "detail-r3",
+      "hostRatio": 13.320268621543914,
+      "nativeRatio": 13.320268621543914,
+      "delta": 0
+    },
+    {
+      "theme": "light",
+      "device": "mobile",
+      "label": "detail-r4",
+      "hostRatio": 13.320268621543914,
+      "nativeRatio": 13.320268621543914,
+      "delta": 0
+    },
+    {
+      "theme": "dark",
+      "device": "desktop",
+      "label": "quick-r1",
+      "hostRatio": 1.0243552352039886,
+      "nativeRatio": 1.0243552352039886,
+      "delta": 0
+    },
+    {
+      "theme": "dark",
+      "device": "desktop",
+      "label": "quick-r2",
+      "hostRatio": 1.0604796600221698,
+      "nativeRatio": 1.0604796600221698,
+      "delta": 0
+    },
+    {
+      "theme": "dark",
+      "device": "desktop",
+      "label": "quick-r3",
+      "hostRatio": 1.1076782471104303,
+      "nativeRatio": 1.1076782471104303,
+      "delta": 0
+    },
+    {
+      "theme": "dark",
+      "device": "desktop",
+      "label": "quick-r4",
+      "hostRatio": 1.1455129339890247,
+      "nativeRatio": 1.1455129339890247,
+      "delta": 0
+    },
+    {
+      "theme": "dark",
+      "device": "desktop",
+      "label": "detail-r1",
+      "hostRatio": 1.02277126539548,
+      "nativeRatio": 1.02277126539548,
+      "delta": 0
+    },
+    {
+      "theme": "dark",
+      "device": "desktop",
+      "label": "detail-r2",
+      "hostRatio": 1.0243552352039886,
+      "nativeRatio": 1.0243552352039886,
+      "delta": 0
+    },
+    {
+      "theme": "dark",
+      "device": "desktop",
+      "label": "detail-r3",
+      "hostRatio": 1.0243552352039886,
+      "nativeRatio": 1.0243552352039886,
+      "delta": 0
+    },
+    {
+      "theme": "dark",
+      "device": "desktop",
+      "label": "detail-r4",
+      "hostRatio": 1.0243552352039886,
+      "nativeRatio": 1.0243552352039886,
+      "delta": 0
+    },
+    {
+      "theme": "dark",
+      "device": "mobile",
+      "label": "quick-r1",
+      "hostRatio": 1.02277126539548,
+      "nativeRatio": 1.02277126539548,
+      "delta": 0
+    },
+    {
+      "theme": "dark",
+      "device": "mobile",
+      "label": "quick-r2",
+      "hostRatio": 1.0704330302051857,
+      "nativeRatio": 1.0704330302051857,
+      "delta": 0
+    },
+    {
+      "theme": "dark",
+      "device": "mobile",
+      "label": "quick-r3",
+      "hostRatio": 1.1089420212627126,
+      "nativeRatio": 1.1089420212627126,
+      "delta": 0
+    },
+    {
+      "theme": "dark",
+      "device": "mobile",
+      "label": "quick-r4",
+      "hostRatio": 1.154968774645755,
+      "nativeRatio": 1.154968774645755,
+      "delta": 0
+    },
+    {
+      "theme": "dark",
+      "device": "mobile",
+      "label": "detail-r1",
+      "hostRatio": 1.02277126539548,
+      "nativeRatio": 1.02277126539548,
+      "delta": 0
+    },
+    {
+      "theme": "dark",
+      "device": "mobile",
+      "label": "detail-r2",
+      "hostRatio": 1.0243552352039886,
+      "nativeRatio": 1.0243552352039886,
+      "delta": 0
+    },
+    {
+      "theme": "dark",
+      "device": "mobile",
+      "label": "detail-r3",
+      "hostRatio": 1.0243552352039886,
+      "nativeRatio": 1.0243552352039886,
+      "delta": 0
+    },
+    {
+      "theme": "dark",
+      "device": "mobile",
+      "label": "detail-r4",
+      "hostRatio": 1.034412058340331,
+      "nativeRatio": 1.034412058340331,
+      "delta": 0
+    }
+  ]
+}

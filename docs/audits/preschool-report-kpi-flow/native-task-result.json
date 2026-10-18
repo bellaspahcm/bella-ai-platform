@@ -1,0 +1,105 @@
+{
+  "result": "NATIVE_TASK_EXECUTED_PENDING_LEAD_REVIEW",
+  "fault": null,
+  "completedAt": "2026-10-17T21:53:18.966Z",
+  "baseline": "db0e79ae50164de8c4754230f553305411dd2d8a",
+  "binding": {
+    "repository": "bellaspahcm/bella-ai-platform",
+    "taskId": "b323d9a8-4fe9-410b-9d7d-593c292756d1",
+    "runId": "6b8a5134-4818-47cb-8fa7-a0e52114c8a9",
+    "attempt": 1,
+    "producerInstanceId": "c34452c6-a0f7-4cbc-8797-b2f96e095805",
+    "threadId": "01a14bd8-5b7a-7d00-b504-1d0860617937",
+    "sessionId": "01a14bd8-5b7a-7d00-b504-1d0860617937",
+    "turnId": "01a14bd8-5cb6-7012-9d80-6454395d5b1c"
+  },
+  "model": "gpt-6.1-sol",
+  "authorityVerifiedAt": "2026-10-17T21:50:30.173Z",
+  "directory": "C:\\Users\\DELL\\.codex\\agent-flow-evidence\\bella-agent-flow-OeF676",
+  "nativeTurnStatus": "completed",
+  "commands": [
+    {
+      "itemId": "exec-8c408912-3f42-443a-a879-1af3968010fd",
+      "exitCode": 0,
+      "commandSha256": "1eafc4ae7d00be13fbc228abb0555cf52a8d1dfeeec3b9d62f2e065291ad7f3c",
+      "outputSha256": "d962da94c5a5f948f77ff9cabc41219f9146e13e37770f28263a06afa2ac7149"
+    },
+    {
+      "itemId": "exec-881ffbff-8f97-4cbc-bdb3-2fc38c0eb3eb",
+      "exitCode": 0,
+      "commandSha256": "739c1031043bdf02f64db880738d0be9a258cddfc95834cc9477c0ec318b602f",
+      "outputSha256": "f4708d734e9ba2effc04250557d4ea3e5b879288fe13c2ae0b12a53b3a7b9acc"
+    },
+    {
+      "itemId": "exec-52da1fdb-b835-4fdf-9108-72aa19839a63",
+      "exitCode": 0,
+      "commandSha256": "0153a0288c6b7c94428f9398d3cb6bf766e7835e99ea767a6e8f368eac4f6275",
+      "outputSha256": "0591708273a131b4127fff91c74be91aaaf0eaba9499aaa905b597b2b4c6355b"
+    },
+    {
+      "itemId": "exec-ac6ff0db-f87c-4445-b9a8-556a6fa75218",
+      "exitCode": 1,
+      "commandSha256": "d5244ff442809255e7ed223f260aed274fb1c2955babb8208d0c7d6853ae0fce",
+      "outputSha256": "29a96e073738320a84eb37664588ee20392ae4dd9286b9bcda487d6d6c9ffdfc"
+    },
+    {
+      "itemId": "exec-4abdb0e8-d939-410e-822e-39532294bc29",
+      "exitCode": 0,
+      "commandSha256": "b1557bcde6872212d65b486461953bbfaf16c960a4ce6689bdff3cab396768ee",
+      "outputSha256": "cdcf3f3883d3d7437f9d34de3766f3d9dc09f9e1d48c740a44f06dd4f694f9f7"
+    },
+    {
+      "itemId": "exec-5aad78ff-2341-4ce0-9fdc-1c9d1cbb93ae",
+      "exitCode": 0,
+      "commandSha256": "d3b4ed517957e50df43f89a8a36d555d8263673ebae774f9a04fc8e086a6e550",
+      "outputSha256": "fff1a6a2c6fd87485e1afe1095cfd4db28f91630612304d8b189878ee7e97922"
+    },
+    {
+      "itemId": "exec-f9beeaa6-6e17-4b14-9801-783ed9a517a0",
+      "exitCode": 0,
+      "commandSha256": "7eabbf9ff1f979748723bf6d04703b760fe3963af246a6b2a703f4eb41657c78",
+      "outputSha256": "b887c6c376a407e6316b3c80f5e9eba0659bb1d22aa0948c9ba1f8c9056298ff"
+    },
+    {
+      "itemId": "exec-4342d880-f4a2-4b03-9b2f-a7a1c767dcbb",
+      "exitCode": 0,
+      "commandSha256": "1db4995c7c93e12b6b91099e1757f15cf87a0980e62a5ab4a3d5cbd40fa3f9dd",
+      "outputSha256": "049ae815972f5509d40179c59248143314605885e9fc3d906875cb53df2273c0"
+    }
+  ],
+  "changes": [
+    {
+      "itemId": "exec-48f89d9e-a558-4533-be54-e35adfebc517",
+      "status": "completed",
+      "paths": [
+        "src/app/dashboard/education/reports/page.tsx"
+      ]
+    }
+  ],
+  "changed": [
+    "src/app/dashboard/education/reports/page.tsx",
+    "docs/audits/preschool-report-kpi-flow/PR_BODY.md",
+    "docs/audits/preschool-report-kpi-flow/kpi-contrast.cjs",
+    "docs/audits/preschool-report-kpi-flow/kpi-dark-desktop.png",
+    "docs/audits/preschool-report-kpi-flow/kpi-dark-mobile.png",
+    "docs/audits/preschool-report-kpi-flow/kpi-light-desktop.png",
+    "docs/audits/preschool-report-kpi-flow/kpi-light-mobile.png",
+    "docs/audits/preschool-report-kpi-flow/native-after.json",
+    "docs/audits/preschool-report-kpi-flow/native-before.json",
+    "docs/audits/preschool-report-kpi-flow/verification.json"
+  ],
+  "acks": 46,
+  "facts": 46,
+  "fileChange": [
+    {
+      "itemId": "exec-48f89d9e-a558-4533-be54-e35adfebc517",
+      "result": "MATCH"
+    }
+  ],
+  "sourceBefore": "f4f3428104e1d17eb0d0a6f4bd3ca47a77e62c695bd9beacbc61db19b5924ba4",
+  "sourceAfter": "a1ba8b02aaba6b92b350d46b27effbb29e54452dd2987260c988d293af725d90",
+  "beforeInventorySha256": "bd42e1fba010f9442628eb421133483d2d92de589be95c2876b71c61a4068f0b",
+  "afterInventorySha256": "8f4c2e3821c98264fcc47f012ccd97b4eff2ecff85581a6200bf2eb44eedd9d2",
+  "scope": "One synthetic UI task, not autonomous discovery or Product readiness",
+  "dbOperations": 0
+}

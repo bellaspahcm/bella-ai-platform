@@ -1,0 +1,646 @@
+{
+  "phase": "before",
+  "recordedAt": "2026-10-17T22:22:31.656Z",
+  "command": "node docs/audits/preschool-roster-journey-flow/roster-browser.cjs before",
+  "exitCode": 1,
+  "summary": {
+    "checked": 24,
+    "passed": 4,
+    "failed": 20,
+    "errors": 0,
+    "contrastCount": 0,
+    "contrastFailed": 0,
+    "minimumRatio": null,
+    "pageErrors": 0,
+    "unexpectedRequests": 0,
+    "downloads": 0
+  },
+  "sourceSha256": "d623dc4cea64b570c5d5c1289ff59bcf48b499edf89ac2ae2fb6fa7be4a25fde",
+  "testSha256": "ad53887a13b74a1e67ee538bd94606309c1020f8480209a1b4b1a303d79fc448",
+  "globalsSha256": "1f2458f1e1ff45ff29650ce9bc30a0a408004f079760de68bcef7c915ddce21e",
+  "compiledCssSha256": "18e02b26cc871afa4fd7739d388ddc45b3110ebcb2962c2029ca40047414e31d",
+  "bundleSha256": "2e9f4c7d3e22163dee70503ecab86c6bffe3f18a967bc35a3060d05e3cc3014a",
+  "limits": "Synthetic actual Grades component/globals; stubbed Next and tenant settings; loopback document only, no fonts/API/Auth/DB; contrast only empty feedback; fresh context/page per journey; server/browser closed in finally.",
+  "results": [
+    {
+      "theme": "light",
+      "device": "desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "flows": [
+        {
+          "journey": "J1",
+          "steps": [
+            {
+              "name": "Eight available rows",
+              "result": "PASS"
+            },
+            {
+              "name": "Truthful roster header",
+              "result": "FAIL",
+              "failure": "The input did not match the regular expression /8 hồ sơ minh họa/. Input:\n\n'Danh sách trẻ\\n46 trẻ'\n"
+            },
+            {
+              "name": "Truthful roster footer",
+              "result": "FAIL",
+              "failure": "The input did not match the regular expression /8\\s*\\/\\s*8 hồ sơ minh họa/. Input:\n\n'Hiển thị 8 / 46 trẻ'\n"
+            },
+            {
+              "name": "No enabled imaginary pages",
+              "result": "FAIL",
+              "failure": "The expression evaluated to a falsy value:\n\n  assert.ok(await p.count()===0 || await p.isDisabled())\n"
+            }
+          ],
+          "result": "FAIL"
+        },
+        {
+          "journey": "J2",
+          "steps": [
+            {
+              "name": "Visible unchecked child does not inherit hidden selection",
+              "result": "FAIL",
+              "failure": "Expected values to be strictly equal:\n\ntrue !== false\n"
+            },
+            {
+              "name": "Bulk adds visible and preserves hidden IDs",
+              "result": "FAIL",
+              "failure": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n+ []\n- [\n-   'Nguyễn Minh An',\n-   'Trần Bảo Ngọc'\n- ]\n"
+            },
+            {
+              "name": "Bulk removes only visible ID",
+              "result": "FAIL",
+              "failure": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  [\n+   'Trần Bảo Ngọc'\n-   'Nguyễn Minh An'\n  ]\n"
+            }
+          ],
+          "result": "FAIL"
+        },
+        {
+          "journey": "J3",
+          "steps": [
+            {
+              "name": "No rows",
+              "result": "PASS"
+            },
+            {
+              "name": "Explicit visible empty recovery feedback",
+              "result": "FAIL",
+              "failure": "Expected values to be strictly equal:\n\n0 !== 1\n"
+            },
+            {
+              "name": "Zero visible select-all disabled or absent",
+              "result": "FAIL",
+              "failure": "The expression evaluated to a falsy value:\n\n  assert.ok(await all.count()===0 || await all.isDisabled())\n"
+            },
+            {
+              "name": "Search retained",
+              "result": "PASS"
+            },
+            {
+              "name": "Recovery eight rows and original selection",
+              "result": "PASS"
+            },
+            {
+              "name": "Reset explicitly named",
+              "result": "FAIL",
+              "failure": "Expected values to be strictly equal:\n\n0 !== 1\n"
+            }
+          ],
+          "result": "FAIL"
+        },
+        {
+          "journey": "J4",
+          "steps": [
+            {
+              "name": "Explicit visible empty recovery feedback",
+              "result": "FAIL",
+              "failure": "Expected values to be strictly equal:\n\n0 !== 1\n"
+            },
+            {
+              "name": "Grid filters retained",
+              "result": "PASS"
+            },
+            {
+              "name": "Recovery preserves grid and eight cards",
+              "result": "FAIL",
+              "failure": "Expected values to be strictly equal:\n\n7 !== 8\n"
+            }
+          ],
+          "result": "FAIL"
+        },
+        {
+          "journey": "J5",
+          "steps": [
+            {
+              "name": "Correct filtered child profile and class",
+              "result": "PASS"
+            },
+            {
+              "name": "Close retains filters and selection",
+              "result": "PASS"
+            },
+            {
+              "name": "Reset recovers all eight with selection",
+              "result": "PASS"
+            }
+          ],
+          "result": "PASS"
+        },
+        {
+          "journey": "J6",
+          "steps": [
+            {
+              "name": "Four Choi records",
+              "result": "PASS"
+            },
+            {
+              "name": "Five exact selected IDs",
+              "result": "FAIL",
+              "failure": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  [\n-   'Nguyễn Minh An',\n    'Ngô Nhật Minh',\n    'Phạm Thảo My',\n    'Trần Bảo Ngọc',\n    'Đặng Khánh Linh'\n  ]\n"
+            },
+            {
+              "name": "All visible IDs selected",
+              "result": "PASS"
+            },
+            {
+              "name": "Only hidden MAM ID remains",
+              "result": "FAIL",
+              "failure": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n+ []\n- [\n-   'Nguyễn Minh An'\n- ]\n"
+            }
+          ],
+          "result": "FAIL"
+        }
+      ],
+      "contrast": [],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": []
+    },
+    {
+      "theme": "light",
+      "device": "mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "flows": [
+        {
+          "journey": "J1",
+          "steps": [
+            {
+              "name": "Eight available rows",
+              "result": "PASS"
+            },
+            {
+              "name": "Truthful roster header",
+              "result": "FAIL",
+              "failure": "The input did not match the regular expression /8 hồ sơ minh họa/. Input:\n\n'Danh sách trẻ\\n46 trẻ'\n"
+            },
+            {
+              "name": "Truthful roster footer",
+              "result": "FAIL",
+              "failure": "The input did not match the regular expression /8\\s*\\/\\s*8 hồ sơ minh họa/. Input:\n\n'Hiển thị 8 / 46 trẻ'\n"
+            },
+            {
+              "name": "No enabled imaginary pages",
+              "result": "FAIL",
+              "failure": "The expression evaluated to a falsy value:\n\n  assert.ok(await p.count()===0 || await p.isDisabled())\n"
+            }
+          ],
+          "result": "FAIL"
+        },
+        {
+          "journey": "J2",
+          "steps": [
+            {
+              "name": "Visible unchecked child does not inherit hidden selection",
+              "result": "FAIL",
+              "failure": "Expected values to be strictly equal:\n\ntrue !== false\n"
+            },
+            {
+              "name": "Bulk adds visible and preserves hidden IDs",
+              "result": "FAIL",
+              "failure": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n+ []\n- [\n-   'Nguyễn Minh An',\n-   'Trần Bảo Ngọc'\n- ]\n"
+            },
+            {
+              "name": "Bulk removes only visible ID",
+              "result": "FAIL",
+              "failure": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  [\n+   'Trần Bảo Ngọc'\n-   'Nguyễn Minh An'\n  ]\n"
+            }
+          ],
+          "result": "FAIL"
+        },
+        {
+          "journey": "J3",
+          "steps": [
+            {
+              "name": "No rows",
+              "result": "PASS"
+            },
+            {
+              "name": "Explicit visible empty recovery feedback",
+              "result": "FAIL",
+              "failure": "Expected values to be strictly equal:\n\n0 !== 1\n"
+            },
+            {
+              "name": "Zero visible select-all disabled or absent",
+              "result": "FAIL",
+              "failure": "The expression evaluated to a falsy value:\n\n  assert.ok(await all.count()===0 || await all.isDisabled())\n"
+            },
+            {
+              "name": "Search retained",
+              "result": "PASS"
+            },
+            {
+              "name": "Recovery eight rows and original selection",
+              "result": "PASS"
+            },
+            {
+              "name": "Reset explicitly named",
+              "result": "FAIL",
+              "failure": "Expected values to be strictly equal:\n\n0 !== 1\n"
+            }
+          ],
+          "result": "FAIL"
+        },
+        {
+          "journey": "J4",
+          "steps": [
+            {
+              "name": "Explicit visible empty recovery feedback",
+              "result": "FAIL",
+              "failure": "Expected values to be strictly equal:\n\n0 !== 1\n"
+            },
+            {
+              "name": "Grid filters retained",
+              "result": "PASS"
+            },
+            {
+              "name": "Recovery preserves grid and eight cards",
+              "result": "FAIL",
+              "failure": "Expected values to be strictly equal:\n\n7 !== 8\n"
+            }
+          ],
+          "result": "FAIL"
+        },
+        {
+          "journey": "J5",
+          "steps": [
+            {
+              "name": "Correct filtered child profile and class",
+              "result": "PASS"
+            },
+            {
+              "name": "Close retains filters and selection",
+              "result": "PASS"
+            },
+            {
+              "name": "Reset recovers all eight with selection",
+              "result": "PASS"
+            }
+          ],
+          "result": "PASS"
+        },
+        {
+          "journey": "J6",
+          "steps": [
+            {
+              "name": "Four Choi records",
+              "result": "PASS"
+            },
+            {
+              "name": "Five exact selected IDs",
+              "result": "FAIL",
+              "failure": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  [\n-   'Nguyễn Minh An',\n    'Ngô Nhật Minh',\n    'Phạm Thảo My',\n    'Trần Bảo Ngọc',\n    'Đặng Khánh Linh'\n  ]\n"
+            },
+            {
+              "name": "All visible IDs selected",
+              "result": "PASS"
+            },
+            {
+              "name": "Only hidden MAM ID remains",
+              "result": "FAIL",
+              "failure": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n+ []\n- [\n-   'Nguyễn Minh An'\n- ]\n"
+            }
+          ],
+          "result": "FAIL"
+        }
+      ],
+      "contrast": [],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": []
+    },
+    {
+      "theme": "dark",
+      "device": "desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "flows": [
+        {
+          "journey": "J1",
+          "steps": [
+            {
+              "name": "Eight available rows",
+              "result": "PASS"
+            },
+            {
+              "name": "Truthful roster header",
+              "result": "FAIL",
+              "failure": "The input did not match the regular expression /8 hồ sơ minh họa/. Input:\n\n'Danh sách trẻ\\n46 trẻ'\n"
+            },
+            {
+              "name": "Truthful roster footer",
+              "result": "FAIL",
+              "failure": "The input did not match the regular expression /8\\s*\\/\\s*8 hồ sơ minh họa/. Input:\n\n'Hiển thị 8 / 46 trẻ'\n"
+            },
+            {
+              "name": "No enabled imaginary pages",
+              "result": "FAIL",
+              "failure": "The expression evaluated to a falsy value:\n\n  assert.ok(await p.count()===0 || await p.isDisabled())\n"
+            }
+          ],
+          "result": "FAIL"
+        },
+        {
+          "journey": "J2",
+          "steps": [
+            {
+              "name": "Visible unchecked child does not inherit hidden selection",
+              "result": "FAIL",
+              "failure": "Expected values to be strictly equal:\n\ntrue !== false\n"
+            },
+            {
+              "name": "Bulk adds visible and preserves hidden IDs",
+              "result": "FAIL",
+              "failure": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n+ []\n- [\n-   'Nguyễn Minh An',\n-   'Trần Bảo Ngọc'\n- ]\n"
+            },
+            {
+              "name": "Bulk removes only visible ID",
+              "result": "FAIL",
+              "failure": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  [\n+   'Trần Bảo Ngọc'\n-   'Nguyễn Minh An'\n  ]\n"
+            }
+          ],
+          "result": "FAIL"
+        },
+        {
+          "journey": "J3",
+          "steps": [
+            {
+              "name": "No rows",
+              "result": "PASS"
+            },
+            {
+              "name": "Explicit visible empty recovery feedback",
+              "result": "FAIL",
+              "failure": "Expected values to be strictly equal:\n\n0 !== 1\n"
+            },
+            {
+              "name": "Zero visible select-all disabled or absent",
+              "result": "FAIL",
+              "failure": "The expression evaluated to a falsy value:\n\n  assert.ok(await all.count()===0 || await all.isDisabled())\n"
+            },
+            {
+              "name": "Search retained",
+              "result": "PASS"
+            },
+            {
+              "name": "Recovery eight rows and original selection",
+              "result": "PASS"
+            },
+            {
+              "name": "Reset explicitly named",
+              "result": "FAIL",
+              "failure": "Expected values to be strictly equal:\n\n0 !== 1\n"
+            }
+          ],
+          "result": "FAIL"
+        },
+        {
+          "journey": "J4",
+          "steps": [
+            {
+              "name": "Explicit visible empty recovery feedback",
+              "result": "FAIL",
+              "failure": "Expected values to be strictly equal:\n\n0 !== 1\n"
+            },
+            {
+              "name": "Grid filters retained",
+              "result": "PASS"
+            },
+            {
+              "name": "Recovery preserves grid and eight cards",
+              "result": "FAIL",
+              "failure": "Expected values to be strictly equal:\n\n7 !== 8\n"
+            }
+          ],
+          "result": "FAIL"
+        },
+        {
+          "journey": "J5",
+          "steps": [
+            {
+              "name": "Correct filtered child profile and class",
+              "result": "PASS"
+            },
+            {
+              "name": "Close retains filters and selection",
+              "result": "PASS"
+            },
+            {
+              "name": "Reset recovers all eight with selection",
+              "result": "PASS"
+            }
+          ],
+          "result": "PASS"
+        },
+        {
+          "journey": "J6",
+          "steps": [
+            {
+              "name": "Four Choi records",
+              "result": "PASS"
+            },
+            {
+              "name": "Five exact selected IDs",
+              "result": "FAIL",
+              "failure": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  [\n-   'Nguyễn Minh An',\n    'Ngô Nhật Minh',\n    'Phạm Thảo My',\n    'Trần Bảo Ngọc',\n    'Đặng Khánh Linh'\n  ]\n"
+            },
+            {
+              "name": "All visible IDs selected",
+              "result": "PASS"
+            },
+            {
+              "name": "Only hidden MAM ID remains",
+              "result": "FAIL",
+              "failure": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n+ []\n- [\n-   'Nguyễn Minh An'\n- ]\n"
+            }
+          ],
+          "result": "FAIL"
+        }
+      ],
+      "contrast": [],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": []
+    },
+    {
+      "theme": "dark",
+      "device": "mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "flows": [
+        {
+          "journey": "J1",
+          "steps": [
+            {
+              "name": "Eight available rows",
+              "result": "PASS"
+            },
+            {
+              "name": "Truthful roster header",
+              "result": "FAIL",
+              "failure": "The input did not match the regular expression /8 hồ sơ minh họa/. Input:\n\n'Danh sách trẻ\\n46 trẻ'\n"
+            },
+            {
+              "name": "Truthful roster footer",
+              "result": "FAIL",
+              "failure": "The input did not match the regular expression /8\\s*\\/\\s*8 hồ sơ minh họa/. Input:\n\n'Hiển thị 8 / 46 trẻ'\n"
+            },
+            {
+              "name": "No enabled imaginary pages",
+              "result": "FAIL",
+              "failure": "The expression evaluated to a falsy value:\n\n  assert.ok(await p.count()===0 || await p.isDisabled())\n"
+            }
+          ],
+          "result": "FAIL"
+        },
+        {
+          "journey": "J2",
+          "steps": [
+            {
+              "name": "Visible unchecked child does not inherit hidden selection",
+              "result": "FAIL",
+              "failure": "Expected values to be strictly equal:\n\ntrue !== false\n"
+            },
+            {
+              "name": "Bulk adds visible and preserves hidden IDs",
+              "result": "FAIL",
+              "failure": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n+ []\n- [\n-   'Nguyễn Minh An',\n-   'Trần Bảo Ngọc'\n- ]\n"
+            },
+            {
+              "name": "Bulk removes only visible ID",
+              "result": "FAIL",
+              "failure": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  [\n+   'Trần Bảo Ngọc'\n-   'Nguyễn Minh An'\n  ]\n"
+            }
+          ],
+          "result": "FAIL"
+        },
+        {
+          "journey": "J3",
+          "steps": [
+            {
+              "name": "No rows",
+              "result": "PASS"
+            },
+            {
+              "name": "Explicit visible empty recovery feedback",
+              "result": "FAIL",
+              "failure": "Expected values to be strictly equal:\n\n0 !== 1\n"
+            },
+            {
+              "name": "Zero visible select-all disabled or absent",
+              "result": "FAIL",
+              "failure": "The expression evaluated to a falsy value:\n\n  assert.ok(await all.count()===0 || await all.isDisabled())\n"
+            },
+            {
+              "name": "Search retained",
+              "result": "PASS"
+            },
+            {
+              "name": "Recovery eight rows and original selection",
+              "result": "PASS"
+            },
+            {
+              "name": "Reset explicitly named",
+              "result": "FAIL",
+              "failure": "Expected values to be strictly equal:\n\n0 !== 1\n"
+            }
+          ],
+          "result": "FAIL"
+        },
+        {
+          "journey": "J4",
+          "steps": [
+            {
+              "name": "Explicit visible empty recovery feedback",
+              "result": "FAIL",
+              "failure": "Expected values to be strictly equal:\n\n0 !== 1\n"
+            },
+            {
+              "name": "Grid filters retained",
+              "result": "PASS"
+            },
+            {
+              "name": "Recovery preserves grid and eight cards",
+              "result": "FAIL",
+              "failure": "Expected values to be strictly equal:\n\n7 !== 8\n"
+            }
+          ],
+          "result": "FAIL"
+        },
+        {
+          "journey": "J5",
+          "steps": [
+            {
+              "name": "Correct filtered child profile and class",
+              "result": "PASS"
+            },
+            {
+              "name": "Close retains filters and selection",
+              "result": "PASS"
+            },
+            {
+              "name": "Reset recovers all eight with selection",
+              "result": "PASS"
+            }
+          ],
+          "result": "PASS"
+        },
+        {
+          "journey": "J6",
+          "steps": [
+            {
+              "name": "Four Choi records",
+              "result": "PASS"
+            },
+            {
+              "name": "Five exact selected IDs",
+              "result": "FAIL",
+              "failure": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  [\n-   'Nguyễn Minh An',\n    'Ngô Nhật Minh',\n    'Phạm Thảo My',\n    'Trần Bảo Ngọc',\n    'Đặng Khánh Linh'\n  ]\n"
+            },
+            {
+              "name": "All visible IDs selected",
+              "result": "PASS"
+            },
+            {
+              "name": "Only hidden MAM ID remains",
+              "result": "FAIL",
+              "failure": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n+ []\n- [\n-   'Nguyễn Minh An'\n- ]\n"
+            }
+          ],
+          "result": "FAIL"
+        }
+      ],
+      "contrast": [],
+      "pageErrors": [],
+      "unexpectedRequests": [],
+      "downloads": []
+    }
+  ]
+}

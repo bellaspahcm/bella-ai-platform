@@ -1,0 +1,18 @@
+{
+  "result": "NATIVE_STOP_CONFIRMED",
+  "recordedAt": "2026-10-18T01:01:04.621Z",
+  "writerResult": "STOPPED_AT_NATIVE_BOUNDARY",
+  "nativeTurnStatus": "completed",
+  "facts": 61,
+  "fileChanges": [
+    {
+      "itemId": "exec-d8adccc4-366a-4f84-b0fe-9673cff3bedd",
+      "result": "MATCH"
+    }
+  ],
+  "freshHistoryChangeCount": 1,
+  "directory": "C:\\Users\\DELL\\.codex\\agent-flow-evidence\\bella-agent-flow-wLXC4A",
+  "fault": "WORKTREE_SCOPE_VIOLATION",
+  "sourceAfter": "e6a8c7c821449d41dee3342f74dba6f0b41d764e67c4e1e721b07ab0f18dbc26",
+  "limits": "Independent fresh-process readback of actual one-task lifecycle; not continuous orchestration or Product/Auth/DB proof"
+}

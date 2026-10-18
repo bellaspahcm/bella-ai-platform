@@ -1,0 +1,7 @@
+The four Reports headline KPI values used a fixed dark foreground and were hard to read in dark mode. Replace only their text colors with text-slate-900 dark:text-slate-100. KPI values, sample-data notice, data, actions and 503 behavior are preserved.
+
+Validation: the new KPI-only harness adapts the proven title harness without executing old suites. It renders the actual component and globals.css using local Chromium and presentation stubs. The unchanged test measured four values across light/dark at 1440x1000 and 390x844: before exit1 with all eight dark rows failing (minimum 1.0604796600221698); after exit0 with 16/16 passing (minimum 14.15973670899138), threshold 4.5 without rounding. Both phases recorded zero page errors, unexpected requests and downloads.
+
+Changed-file ESLint, test syntax and git diff --check passed. Exact comparison to HEAD proves only four authorized paragraph color replacements. Receipts, hashes, four inspected screenshots and command exit codes are in docs/audits/preschool-report-kpi-flow/verification.json and native-{before,after}.json.
+
+This is synthetic KPI presentation proof only. Other page contrast, API/Auth/DB/RLS, Next runtime and production readiness are not proven here. Parent RLS FAIL, Course authorization BLOCKED, UI-to-DB NOT_PROVEN and Pre-Go-Live BLOCKED remain. Lead independently reviews native lifecycle evidence and publishes the PR; this task stops with prepared local artifacts.

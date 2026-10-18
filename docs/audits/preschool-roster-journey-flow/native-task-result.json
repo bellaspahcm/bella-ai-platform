@@ -1,0 +1,153 @@
+{
+  "result": "NATIVE_TASK_EXECUTED_PENDING_LEAD_REVIEW",
+  "fault": null,
+  "completedAt": "2026-10-17T22:25:11.646Z",
+  "baseline": "9418a8d4a532dd6ee71a05d9e2b335468a29f34c",
+  "binding": {
+    "repository": "bellaspahcm/bella-ai-platform",
+    "taskId": "b5bbbfec-219a-49d7-9813-0eae507f01c4",
+    "runId": "91675113-bad0-4b4c-b9c3-99526608aaa0",
+    "attempt": 1,
+    "producerInstanceId": "28129998-8286-413d-bfb8-ec7a085df3a4",
+    "threadId": "01a14bf4-313d-7a21-9b91-a777dfebcb14",
+    "sessionId": "01a14bf4-313d-7a21-9b91-a777dfebcb14",
+    "turnId": "01a14bf4-327b-7c52-8ecb-6447f2d2a200"
+  },
+  "model": "gpt-6.1-sol",
+  "authorityVerifiedAt": "2026-10-17T22:20:54.349Z",
+  "directory": "C:\\Users\\DELL\\.codex\\agent-flow-evidence\\bella-agent-flow-ehWsNn",
+  "nativeTurnStatus": "completed",
+  "commands": [
+    {
+      "itemId": "exec-0a9d48ce-98d7-400e-8510-999e96289585",
+      "exitCode": 0,
+      "commandSha256": "69bd83ce1ae580224688021a608a0a5734842537630c1cb25ed0c4ead8a1e4f7",
+      "outputSha256": "96550827fcd42260b9313b22678e129e933e0f8e0e85b55e40baba27f1f641a2"
+    },
+    {
+      "itemId": "exec-23128bd9-01a4-4d28-9dde-e97c281dec0f",
+      "exitCode": 0,
+      "commandSha256": "7b54d8b69545ff9296ec48e9b32fda415c746157693ce85d9418478f42efef6f",
+      "outputSha256": "16edcaa19662dfe7c86e0bba892e07f958e5fd2d2a5ed79b29b23aec9435bffc"
+    },
+    {
+      "itemId": "exec-45c3473e-12ea-470d-88c4-b3c76943f78a",
+      "exitCode": 0,
+      "commandSha256": "613a2c860b4755c102ffb5572a489e2857809cc5847f1fed4d647818c4d6181d",
+      "outputSha256": "26b80af833f4f2c6cbb4120ae77c1b5edf5130cf32e830a750aaf12c8939c921"
+    },
+    {
+      "itemId": "exec-63f9130f-2226-46cd-99cc-dee788a3e588",
+      "exitCode": 0,
+      "commandSha256": "d5df3941a69b941bd347f9a833bbd6bf342abfa9d3f8f064f80ccb4f62c13a4e",
+      "outputSha256": "86bf48d6a51702df64868557cfbe40e109a75352e1cefa2ef0adee27c4f67f8a"
+    },
+    {
+      "itemId": "exec-dfce6a76-8f0c-4da8-be66-ec7f6e958325",
+      "exitCode": 0,
+      "commandSha256": "95159cd19b41510da574f93f49c9ed0d333171306263425b2e6f294303e63dd3",
+      "outputSha256": "710cdf0c5537e9daf73590ad9ffc85f4e39aba2bc27ea070d7b4eb777303ccfa"
+    },
+    {
+      "itemId": "exec-6e1c4b96-58bb-4ee6-81d4-07b907c0105f",
+      "exitCode": 0,
+      "commandSha256": "d33c516f513ecf3c8bd8c1da15807e6a1bd82e35b1ab1ea9242890545574d127",
+      "outputSha256": "fc7aa9222a9da3c4353f4c686cd59a066a80f6843e8508bd84c68ed29cf88e24"
+    },
+    {
+      "itemId": "exec-a5c354eb-6ffa-4c98-9c1a-335f0a042405",
+      "exitCode": 1,
+      "commandSha256": "b07ec00fa706a7157aeb00410c66f80c64835c26b8e847b44a77a4274457e0a9",
+      "outputSha256": "dffc3140ef87b20dccc1a837f8e90fa36a75291d56b6ba348b885838dc843aa0"
+    },
+    {
+      "itemId": "exec-e7505d4f-a9cf-4dbb-9a5f-2c89efcbed84",
+      "exitCode": 0,
+      "commandSha256": "60f77b4bf4b332d3498951fca646ac5edacacefe05aaab3c1c224780bacf289f",
+      "outputSha256": "92b3f1e7265e2ee0031d2fd21a67bf392ce8642d789986af21d97608242b2042"
+    },
+    {
+      "itemId": "exec-64333d64-efb8-4785-86d9-25f80a7731af",
+      "exitCode": 1,
+      "commandSha256": "75f2f9127d1118d425588fcdf23ca508c90e52941f7825a0b1dff3d674061532",
+      "outputSha256": "5a2cd96a9dce369083c1c5a700bc5131db2209c0d02f68867d37b389b0eb6ea8"
+    },
+    {
+      "itemId": "exec-2cd950f9-f106-490c-9cfb-5bd3117488b6",
+      "exitCode": 1,
+      "commandSha256": "30fa99a5c67d69f86ddbee70e7c227da28c50a7f65d9cb50fbd6382ab77158a8",
+      "outputSha256": "96029062fe736419ebec9db8e95b3494fef6712331b72c19cb126ee9991d45e2"
+    },
+    {
+      "itemId": "exec-f48fea98-f357-4f78-a7f6-9b4dfa613286",
+      "exitCode": 0,
+      "commandSha256": "fe825d5a23389fbdab7eb1200a5d0ebda5842211c0710ed7c84980bd300211bb",
+      "outputSha256": "bdcf0c36f563316aa9b4c896bf6d3af52d8ecb9391adca444bf6c553a97130c7"
+    },
+    {
+      "itemId": "exec-39b344c0-a642-471c-97f1-19c09a9ca0d7",
+      "exitCode": 0,
+      "commandSha256": "5d3d71cb05aab03b580d5855320a5ca66ad1fbc515e33749e1ffe2f6754a2e0c",
+      "outputSha256": "6f3cce0b1ba89995a28a6456a7d79af12f76baa6f4d619bf902812c24101fc86"
+    },
+    {
+      "itemId": "exec-249443ff-2b60-4bc8-a087-e3e6aa46fba0",
+      "exitCode": 0,
+      "commandSha256": "db28ed6fdf10487ba032d072b9632e0ea8b5cf1f994880274cb4b65dc35c7d44",
+      "outputSha256": "f7e79ea4f755232b08969e225a8bfffe12c3030627ff47abf4f41bc71f8f76e7"
+    },
+    {
+      "itemId": "exec-c7ea32d4-927b-45b8-a6ee-452a9f9e5bb2",
+      "exitCode": 0,
+      "commandSha256": "65e924ecf7d84d7f634c2504fef0c483a7b03eca5cf29a64ba6b27d352f9626c",
+      "outputSha256": "70b686413cb28be16c8178a89f7de73b26d5a78cea16cd06351ea033b07b783a"
+    },
+    {
+      "itemId": "exec-0956a0bf-6dd2-43cc-8768-2547d10c80e1",
+      "exitCode": 0,
+      "commandSha256": "74819371abfbebd0071fba9f6c74e691547e317c10d52ffa2d870eee7c8cb6c4",
+      "outputSha256": "ffdfe8c9deb231ba89ed0101bb5a29d7ad6f37b3aa224ff1f7c3255cb7d1a18d"
+    },
+    {
+      "itemId": "exec-d6d4578d-4dc8-413b-9a43-fca621ba5a0f",
+      "exitCode": 0,
+      "commandSha256": "f54a9119c730d833b68c382e80cc562703471878c18ba94568ff5f80627b7f16",
+      "outputSha256": "af7f875f6ec09c591cb7084e297c4e2293008040f590251867cd374a703d93d8"
+    }
+  ],
+  "changes": [
+    {
+      "itemId": "exec-93b2b3f7-11d3-479c-953c-1e3a26802cf1",
+      "status": "completed",
+      "paths": [
+        "src/app/dashboard/education/grades/page.tsx"
+      ]
+    }
+  ],
+  "changed": [
+    "src/app/dashboard/education/grades/page.tsx",
+    "docs/audits/preschool-roster-journey-flow/PR_BODY.md",
+    "docs/audits/preschool-roster-journey-flow/native-after.json",
+    "docs/audits/preschool-roster-journey-flow/native-before.json",
+    "docs/audits/preschool-roster-journey-flow/roster-browser.cjs",
+    "docs/audits/preschool-roster-journey-flow/roster-dark-desktop.png",
+    "docs/audits/preschool-roster-journey-flow/roster-dark-mobile.png",
+    "docs/audits/preschool-roster-journey-flow/roster-light-desktop.png",
+    "docs/audits/preschool-roster-journey-flow/roster-light-mobile.png",
+    "docs/audits/preschool-roster-journey-flow/verification.json"
+  ],
+  "acks": 73,
+  "facts": 73,
+  "fileChange": [
+    {
+      "itemId": "exec-93b2b3f7-11d3-479c-953c-1e3a26802cf1",
+      "result": "MATCH"
+    }
+  ],
+  "sourceBefore": "d623dc4cea64b570c5d5c1289ff59bcf48b499edf89ac2ae2fb6fa7be4a25fde",
+  "sourceAfter": "4f62e34e3ed5a1a0b7ea1bcb44070ece6a1aaa8d81ef94995dcfde880e36850b",
+  "beforeInventorySha256": "89976fb6b61a4708f76ade8ac2f23aed8d5107ff2779cb6850ee97905881e899",
+  "afterInventorySha256": "2501bf85af25b21133a8026f234f6f70473090cd027cbb71885110e2273dcaaf",
+  "scope": "One synthetic UI task, not autonomous discovery or Product readiness",
+  "dbOperations": 0
+}

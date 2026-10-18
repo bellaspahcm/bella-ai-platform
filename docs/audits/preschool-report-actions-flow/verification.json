@@ -1,0 +1,118 @@
+{
+  "recordedAt": "2026-10-17T22:06:19.476Z",
+  "checks": [
+    {
+      "command": "node node_modules/eslint/bin/eslint.js src/app/dashboard/education/reports/page.tsx",
+      "startedAt": "2026-10-17T22:06:02.378Z",
+      "finishedAt": "2026-10-17T22:06:06.197Z",
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "(node:27100) ESLintIgnoreWarning: The \".eslintignore\" file is no longer supported. Switch to using the \"ignores\" property in \"eslint.config.js\": https://eslint.org/docs/latest/use/configure/migration-guide#ignoring-files\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "command": "node node_modules/typescript/bin/tsc -p tsconfig.education.json --pretty false --incremental --tsBuildInfoFile docs/audits/preschool-report-actions-flow/.cache/education.tsbuildinfo",
+      "startedAt": "2026-10-17T22:06:06.198Z",
+      "finishedAt": "2026-10-17T22:06:18.787Z",
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": "node --check docs/audits/preschool-report-actions-flow/actions-browser.cjs",
+      "startedAt": "2026-10-17T22:06:18.788Z",
+      "finishedAt": "2026-10-17T22:06:18.872Z",
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": "git diff --check",
+      "startedAt": "2026-10-17T22:06:18.873Z",
+      "finishedAt": "2026-10-17T22:06:19.193Z",
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": "git diff -- src/app/dashboard/education/reports/page.tsx",
+      "startedAt": "2026-10-17T22:06:19.194Z",
+      "finishedAt": "2026-10-17T22:06:19.283Z",
+      "exitCode": 0,
+      "stdout": "diff --git a/src/app/dashboard/education/reports/page.tsx b/src/app/dashboard/education/reports/page.tsx\nindex 3c21daaf8..d15e39c35 100644\n--- a/src/app/dashboard/education/reports/page.tsx\n+++ b/src/app/dashboard/education/reports/page.tsx\n@@ -357,8 +357,17 @@ export default function ReportsPage() {\n     setLastOutput({ id });\n   }\n \n+  function showDetailReports() {\n+    setActiveTab('detail');\n+    setLastOutput({ id: 'reports-detail-heading' });\n+  }\n+\n   useEffect(() => {\n-    if (lastOutput) document.getElementById(lastOutput.id)?.scrollIntoView?.({ block: 'nearest' });\n+    if (lastOutput) {\n+      const destination = document.getElementById(lastOutput.id);\n+      destination?.scrollIntoView?.({ block: 'nearest' });\n+      if (lastOutput.id === 'reports-detail-heading') destination?.focus({ preventScroll: true });\n+    }\n   }, [lastOutput]);\n \n   const tabs: readonly { id: ReportTab; label: string; icon: React.ReactNode }[] = [\n@@ -566,10 +575,20 @@ export default function ReportsPage() {\n                 <Sparkles className=\"w-4 h-4 text-emerald-500\" />\n                 Gợi ý AI minh họa\n               </span>\n-              <button className=\"inline-flex items-center gap-1 text-xs font-bold text-emerald-600 hover:text-emerald-700 transition-colors cursor-pointer\">\n+              <button\n+                type=\"button\"\n+                aria-label=\"Xem chi tiết: Gợi ý AI minh họa\"\n+                aria-describedby={unavailableOutputs.includes('reports-ai-details-status') ? 'reports-ai-details-status' : undefined}\n+                onClick={() => showUnavailableOutput('reports-ai-details-status')}\n+                className=\"inline-flex items-center gap-1 text-xs font-bold text-emerald-600 hover:text-emerald-700 transition-colors cursor-pointer\">\n                 Xem chi tiết <ChevronRight className=\"w-3.5 h-3.5\" />\n               </button>\n             </div>\n+            {unavailableOutputs.includes('reports-ai-details-status') && (\n+              <p id=\"reports-ai-details-status\" role=\"status\" className=\"scroll-my-3 text-xs leading-relaxed text-slate-900 dark:text-slate-100\">\n+                Chưa có chi tiết AI bổ sung trong bản xem trước; các gợi ý đang hiển thị là ví dụ minh họa.\n+              </p>\n+            )}\n \n             <p className=\"text-xs leading-relaxed text-slate-900 dark:text-slate-100\">\n               Các nhận định mẫu dưới đây chưa phải kết quả phân tích AI từ hồ sơ thật.\n@@ -685,10 +704,20 @@ export default function ReportsPage() {\n                   <ShieldCheck className=\"w-4 h-4 text-emerald-500\" />\n                   Tình trạng theo nhóm lớp\n                 </h3>\n-                <button className=\"inline-flex items-center gap-1 text-xs font-bold text-emerald-600 hover:text-emerald-700 transition-colors cursor-pointer\">\n+                <button\n+                  type=\"button\"\n+                  aria-label=\"Xem chi tiết: Tình trạng theo nhóm lớp\"\n+                  aria-describedby={unavailableOutputs.includes('reports-class-details-status') ? 'reports-class-details-status' : undefined}\n+                  onClick={() => showUnavailableOutput('reports-class-details-status')}\n+                  className=\"inline-flex items-center gap-1 text-xs font-bold text-emerald-600 hover:text-emerald-700 transition-colors cursor-pointer\">\n                   Xem chi tiết <ChevronRight className=\"w-3.5 h-3.5\" />\n                 </button>\n               </div>\n+              {unavailableOutputs.includes('reports-class-details-status') && (\n+                <p id=\"reports-class-details-status\" role=\"status\" className=\"scroll-my-3 text-xs leading-relaxed text-slate-900 dark:text-slate-100\">\n+                  Chưa có chế độ xem chi tiết đầy đủ theo nhóm lớp trong bản xem trước này.\n+                </p>\n+              )}\n               <div className=\"overflow-x-auto\">\n                 <table className=\"w-full text-xs\">\n                   <thead>\n@@ -726,10 +755,20 @@ export default function ReportsPage() {\n                   <AlertCircle className=\"w-4 h-4 text-rose-500\" />\n                   Top vấn đề cần chú ý\n                 </h3>\n-                <button className=\"inline-flex items-center gap-1 text-xs font-bold text-emerald-600 hover:text-emerald-700 transition-colors cursor-pointer\">\n+                <button\n+                  type=\"button\"\n+                  aria-label=\"Xem tất cả: Top vấn đề cần chú ý\"\n+                  aria-describedby={unavailableOutputs.includes('reports-all-issues-status') ? 'reports-all-issues-status' : undefined}\n+                  onClick={() => showUnavailableOutput('reports-all-issues-status')}\n+                  className=\"inline-flex items-center gap-1 text-xs font-bold text-emerald-600 hover:text-emerald-700 transition-colors cursor-pointer\">\n                   Xem tất cả <ChevronRight className=\"w-3.5 h-3.5\" />\n                 </button>\n               </div>\n+              {unavailableOutputs.includes('reports-all-issues-status') && (\n+                <p id=\"reports-all-issues-status\" role=\"status\" className=\"scroll-my-3 text-xs leading-relaxed text-slate-900 dark:text-slate-100\">\n+                  Chưa có danh sách vấn đề đầy đủ trong bản xem trước này.\n+                </p>\n+              )}\n               <div className=\"overflow-x-auto\">\n                 <table className=\"w-full text-xs\">\n                   <thead>\n@@ -777,10 +816,20 @@ export default function ReportsPage() {\n                   <Calendar className=\"w-4 h-4 text-emerald-500\" />\n                   Hoạt động nổi bật trong tháng\n                 </h3>\n-                <button className=\"inline-flex items-center gap-1 text-xs font-bold text-emerald-600 hover:text-emerald-700 transition-colors cursor-pointer\">\n+                <button\n+                  type=\"button\"\n+                  aria-label=\"Xem tất cả: Hoạt động nổi bật trong tháng\"\n+                  aria-describedby={unavailableOutputs.includes('reports-all-events-status') ? 'reports-all-events-status' : undefined}\n+                  onClick={() => showUnavailableOutput('reports-all-events-status')}\n+                  className=\"inline-flex items-center gap-1 text-xs font-bold text-emerald-600 hover:text-emerald-700 transition-colors cursor-pointer\">\n                   Xem tất cả <ChevronRight className=\"w-3.5 h-3.5\" />\n                 </button>\n               </div>\n+              {unavailableOutputs.includes('reports-all-events-status') && (\n+                <p id=\"reports-all-events-status\" role=\"status\" className=\"scroll-my-3 text-xs leading-relaxed text-slate-900 dark:text-slate-100\">\n+                  Chưa có danh sách hoạt động đầy đủ trong bản xem trước này.\n+                </p>\n+              )}\n               <div className=\"space-y-3\">\n                 {MONTHLY_EVENTS.map((ev, i) => {\n                   const colors = ['bg-emerald-100 text-emerald-700', 'bg-sky-100 text-sky-700', 'bg-amber-100 text-amber-700', 'bg-rose-100 text-rose-700'];\n@@ -807,7 +856,11 @@ export default function ReportsPage() {\n                   <FileSpreadsheet className=\"w-4 h-4 text-emerald-500\" />\n                   Tài liệu &amp; Báo cáo nhanh (minh họa)\n                 </h3>\n-                <button className=\"inline-flex items-center gap-1 text-xs font-bold text-emerald-600 hover:text-emerald-700 transition-colors cursor-pointer\">\n+                <button\n+                  type=\"button\"\n+                  aria-label=\"Xem tất cả: Tài liệu & Báo cáo nhanh (minh họa)\"\n+                  onClick={showDetailReports}\n+                  className=\"inline-flex items-center gap-1 text-xs font-bold text-emerald-600 hover:text-emerald-700 transition-colors cursor-pointer\">\n                   Xem tất cả <ChevronRight className=\"w-3.5 h-3.5\" />\n                 </button>\n               </div>\n@@ -943,7 +996,7 @@ export default function ReportsPage() {\n       {/* ── DETAIL REPORTS TAB ── */}\n       {activeTab === 'detail' && (\n         <div className=\"rounded-3xl bg-white border border-slate-200/80 p-5 sm:p-8 shadow-sm space-y-4\">\n-          <h3 className=\"text-base font-extrabold text-[#172B38] flex items-center gap-2\">\n+          <h3 id=\"reports-detail-heading\" tabIndex={-1} className=\"text-base font-extrabold text-[#172B38] flex items-center gap-2\">\n             <FileSpreadsheet className=\"w-5 h-5 text-emerald-500\" />\n             Báo Cáo Chi Tiết &amp; Tải Xuống (minh họa)\n           </h3>\n",
+      "stderr": ""
+    },
+    {
+      "command": "git status --short",
+      "startedAt": "2026-10-17T22:06:19.284Z",
+      "finishedAt": "2026-10-17T22:06:19.476Z",
+      "exitCode": 0,
+      "stdout": " M src/app/dashboard/education/reports/page.tsx\n?? docs/audits/preschool-report-actions-flow/\n",
+      "stderr": "warning: unable to access 'C:\\Users\\DELL/.config/git/ignore': Permission denied\nwarning: unable to access 'C:\\Users\\DELL/.config/git/ignore': Permission denied\n"
+    }
+  ],
+  "result": "PASS",
+  "browserRuns": [
+    {
+      "command": "node docs/audits/preschool-report-actions-flow/actions-browser.cjs before",
+      "exitCode": 1,
+      "stdout": "{\"phase\":\"before\",\"contexts\":4,\"result\":\"FAIL\",\"checked\":20,\"passed\":0,\"failed\":20,\"contrastCount\":0,\"contrastFailed\":0,\"minimumRatio\":null,\"threshold\":4.5}",
+      "receipt": "native-before.json"
+    },
+    {
+      "command": "node docs/audits/preschool-report-actions-flow/actions-browser.cjs after",
+      "exitCode": 0,
+      "stdout": "{\"phase\":\"after\",\"contexts\":4,\"result\":\"PASS\",\"checked\":20,\"passed\":20,\"failed\":0,\"contrastCount\":16,\"contrastFailed\":0,\"minimumRatio\":13.328781541774159,\"threshold\":4.5}",
+      "receipt": "native-after.json"
+    }
+  ],
+  "identity": {
+    "sameTest": true,
+    "sameGlobals": true,
+    "testMatchesDisk": true,
+    "sourceMatchesDisk": true,
+    "sameKpis": true,
+    "sameFourDocuments": true
+  },
+  "screenshots": [
+    {
+      "path": "docs/audits/preschool-report-actions-flow/actions-light-desktop.png",
+      "sha256": "12bd03d8d807911af854dac79006682cd4bb9b3547765502d9aab81913175aa2",
+      "visualReview": "New feedback visible in all four screenshots; existing unrelated dark text/AI card contrast limitations remain outside scope."
+    },
+    {
+      "path": "docs/audits/preschool-report-actions-flow/actions-dark-desktop.png",
+      "sha256": "5ba2fb817d3c6b31874e7788b91e3be5d904084f92974a8a802121be016d81c5",
+      "visualReview": "New feedback visible in all four screenshots; existing unrelated dark text/AI card contrast limitations remain outside scope."
+    },
+    {
+      "path": "docs/audits/preschool-report-actions-flow/actions-light-mobile.png",
+      "sha256": "1bae87c548b2aea65d1fd47fcd324d1bc2918866325558c3444c7a4266d0cf3a",
+      "visualReview": "New feedback visible in all four screenshots; existing unrelated dark text/AI card contrast limitations remain outside scope."
+    },
+    {
+      "path": "docs/audits/preschool-report-actions-flow/actions-dark-mobile.png",
+      "sha256": "9000eec39d7306157490d17c3ad38b34cd9b0b890aa22034f18207438702d001",
+      "visualReview": "New feedback visible in all four screenshots; existing unrelated dark text/AI card contrast limitations remain outside scope."
+    }
+  ],
+  "diffStat": {
+    "command": "git diff --stat",
+    "exitCode": 0,
+    "stdout": " src/app/dashboard/education/reports/page.tsx | 67 +++++++++++++++++++++++++---\n 1 file changed, 60 insertions(+), 7 deletions(-)\n",
+    "stderr": ""
+  },
+  "executionNotes": {
+    "harnessBootstrap": "Initial pre-source attempt exited 1 on selector assertion Existing section selector: Gợi ý AI minh họa (0 !== 1); AI label is an existing span, not heading. Corrected selector to exact current text/header parent, then obtained the legitimate before receipt. No source edited before that receipt. No test changes after before receipt.",
+    "sourceRepairRounds": 1,
+    "afterRuns": 1,
+    "chromium": "Task-local checksum-verified provisioned executable; no browser download or install.",
+    "nativeLifecycle": "Lead-owned independent observation; worker makes no lifecycle/history claim.",
+    "scope": "Only assigned page interactions/focus and new worker-owned evidence files. No Lead file, old suite, global CSS, contract, Kernel, API or DB changes. Both 503 handlers untouched."
+  },
+  "remainingGates": {
+    "parentRls": "FAIL",
+    "courseAuthorization": "BLOCKED",
+    "uiToDb": "NOT_PROVEN",
+    "preGoLive": "BLOCKED"
+  }
+}

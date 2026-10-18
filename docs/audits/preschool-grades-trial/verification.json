@@ -1,0 +1,78 @@
+{
+  "result": "PASS_SCOPED",
+  "recordedAt": "2026-10-17T14:15:55.095Z",
+  "sourceSha256": {
+    "src/app/dashboard/education/grades/page.tsx": "d623dc4cea64b570c5d5c1289ff59bcf48b499edf89ac2ae2fb6fa7be4a25fde",
+    "src/app/dashboard/education/grades/__tests__/page.test.tsx": "56459d999c11f3633db065150f02f9df0f6c86446ae8786d31aaabfc08f02dba"
+  },
+  "checks": [
+    {
+      "name": "focused-tests",
+      "command": "node docs/audits/preschool-grades-trial/offline-jest.cjs",
+      "exitCode": 0,
+      "signal": null,
+      "result": "PASS_SCOPED",
+      "beganAt": "2026-10-17T14:15:22.604Z",
+      "finishedAt": "2026-10-17T14:15:31.074Z",
+      "logPath": "docs/audits/preschool-grades-trial/.cache/focused-tests.log"
+    },
+    {
+      "name": "lint",
+      "command": "node node_modules/eslint/bin/eslint.js src/app/dashboard/education/grades/page.tsx src/app/dashboard/education/grades/__tests__/page.test.tsx",
+      "exitCode": 0,
+      "signal": null,
+      "result": "PASS_SCOPED",
+      "beganAt": "2026-10-17T14:15:31.075Z",
+      "finishedAt": "2026-10-17T14:15:35.287Z",
+      "logPath": "docs/audits/preschool-grades-trial/.cache/lint.log"
+    },
+    {
+      "name": "test-typecheck",
+      "command": "node node_modules/typescript/bin/tsc --project docs/audits/preschool-grades-trial/tsconfig.tests.json --pretty false",
+      "exitCode": 0,
+      "signal": null,
+      "result": "PASS_SCOPED",
+      "beganAt": "2026-10-17T14:15:35.287Z",
+      "finishedAt": "2026-10-17T14:15:40.872Z",
+      "logPath": "docs/audits/preschool-grades-trial/.cache/test-typecheck.log"
+    },
+    {
+      "name": "education-typecheck",
+      "command": "node node_modules/typescript/bin/tsc --project tsconfig.education.json --pretty false --incremental false",
+      "exitCode": 0,
+      "signal": null,
+      "result": "PASS_SCOPED",
+      "beganAt": "2026-10-17T14:15:40.872Z",
+      "finishedAt": "2026-10-17T14:15:55.095Z",
+      "logPath": "docs/audits/preschool-grades-trial/.cache/education-typecheck.log"
+    },
+    {
+      "name": "synthetic-browser",
+      "command": "node docs/audits/preschool-grades-trial/browser-component.cjs",
+      "exitCode": 0,
+      "result": "PASS_SCOPED_SYNTHETIC_COMPONENT",
+      "finishedAt": "2026-10-17T14:15:59.156Z",
+      "proofPath": "docs/audits/preschool-grades-trial/browser-proof.json",
+      "proofSha256": "6a3d6f332bcacf075d88a7ced51487da871783b177ed3048043a8290ecb34c83",
+      "cases": 4,
+      "contrastSummary": {
+        "result": "PASS_SCOPED",
+        "checked": 32,
+        "failed": 0,
+        "minimumRatio": 4.758842787868666,
+        "threshold": 4.5
+      }
+    },
+    {
+      "name": "diff-check",
+      "command": "git diff --check",
+      "exitCode": 0,
+      "result": "PASS_SCOPED"
+    }
+  ],
+  "limits": "Offline component UI only. No API/Auth/DB/RLS/migration integration or Pre-Go-Live readiness proof.",
+  "preview": {
+    "path": "docs/audits/preschool-grades-trial/.cache/preview.html",
+    "sha256": "d874d12919a0dcaa6cd5d21261bbe8d535137160e33cbd1eeaa17c3f82eb41d8"
+  }
+}

@@ -1,0 +1,166 @@
+{
+  "recordedAt": "2026-10-18T01:01:40.025Z",
+  "result": "MISMATCH",
+  "commands": 12,
+  "rows": [
+    {
+      "itemId": "exec-94c09cab-11e3-4839-a049-82c056a197b1",
+      "exitCode": 0,
+      "commandSha256": "4561a88b2aa6c38c97531f2ce18aef692a19b1fde21a3ecc1161327ddea5685f",
+      "outputSha256": "05ae971357f0f2518ad5b19f7f36b0415a1ad2e871deb5df90127fec810707fb",
+      "matchesWriter": true,
+      "mentions": {
+        "browser": false,
+        "eslint": false,
+        "educationTyping": false,
+        "whitespace": false
+      }
+    },
+    {
+      "itemId": "exec-f9e9348b-2048-446f-9d88-d1e99b7f40c7",
+      "exitCode": 0,
+      "commandSha256": "e8f104392a5f09d90fa54161db262d01b207e1d53cbefa63add4e92a6be77d16",
+      "outputSha256": "15ee69c7586c0b3650fb27f4cf798de0c161e26a3efca10d60d7beebd5efe541",
+      "matchesWriter": false,
+      "mentions": {
+        "browser": false,
+        "eslint": false,
+        "educationTyping": false,
+        "whitespace": false
+      }
+    },
+    {
+      "itemId": "exec-a0cf3854-ebe7-4f27-a6c1-9e8ff434b072",
+      "exitCode": 0,
+      "commandSha256": "6b6cbab47829b0f0bda501fce8eba30b5bee702539edc56cf9893ca6bac0b86d",
+      "outputSha256": "497a797d51f8bbc2e1451f86ed87ac9a9a52ed017dbd2f0d8954931cc5f96025",
+      "matchesWriter": false,
+      "mentions": {
+        "browser": false,
+        "eslint": false,
+        "educationTyping": false,
+        "whitespace": false
+      }
+    },
+    {
+      "itemId": "exec-32c7c75c-f2cd-4cd0-bf1b-09272b63ee8d",
+      "exitCode": 0,
+      "commandSha256": "3e2ede6c9b84f352f3d3a836dd519ed46e0c71dfe881ce5e109577af51debc2f",
+      "outputSha256": "5f3add87d4785b7e803679d0edb0dd01509815e18c08fe4a1a7d07565d95a64c",
+      "matchesWriter": true,
+      "mentions": {
+        "browser": false,
+        "eslint": false,
+        "educationTyping": false,
+        "whitespace": false
+      }
+    },
+    {
+      "itemId": "exec-d0527e23-14fb-4752-a311-af64c6c31ebe",
+      "exitCode": 0,
+      "commandSha256": "5a96c84317f8fd7c227398bb75b465e12d4ad642ed060a1158967d19add38b17",
+      "outputSha256": "e8d8e4014693641a9e02bc9f6493d6519eb57c655c0993bb0d823754a352fc08",
+      "matchesWriter": false,
+      "mentions": {
+        "browser": false,
+        "eslint": false,
+        "educationTyping": false,
+        "whitespace": false
+      }
+    },
+    {
+      "itemId": "exec-4036b377-1e2a-4b2b-b719-7213df1b1f62",
+      "exitCode": 1,
+      "commandSha256": "4e46b065566a975102a3dfb0b191589ce06aa7be0a5f976265d00dd43197b77f",
+      "outputSha256": "1f6a8c276ccccef6c18a170d47f0dfc7a0065425fb69403c8b201b6c3b406f2a",
+      "matchesWriter": true,
+      "mentions": {
+        "browser": true,
+        "eslint": false,
+        "educationTyping": false,
+        "whitespace": false
+      }
+    },
+    {
+      "itemId": "exec-de29c606-4a1f-4b14-8d37-70c95d4c08b3",
+      "exitCode": 0,
+      "commandSha256": "f096f5f34376b95b7467c5ad9e94363fb1aed10f985b0326a57dd0cba860f4b0",
+      "outputSha256": "34e4fe96bcf51e4ee41f72bfe459c92fe49550e9e72913c6e9406bcf7e99eb2a",
+      "matchesWriter": true,
+      "mentions": {
+        "browser": false,
+        "eslint": false,
+        "educationTyping": false,
+        "whitespace": false
+      }
+    },
+    {
+      "itemId": "exec-7822903c-4bdb-4de3-9c31-16914d6dfaac",
+      "exitCode": 0,
+      "commandSha256": "f9aed5db2c1967c330fd531299e59153652f1eb1d388954adb34f3006a6d1298",
+      "outputSha256": "97f4bec093dd9b0bf7853b223d52dc44af51fabc939ce2589c07929428a22837",
+      "matchesWriter": true,
+      "mentions": {
+        "browser": true,
+        "eslint": false,
+        "educationTyping": false,
+        "whitespace": false
+      }
+    },
+    {
+      "itemId": "exec-d8eedf67-122c-4198-a55a-c0fa476bedaf",
+      "exitCode": 0,
+      "commandSha256": "c4e9181a03d9b70b10ed4ffb6908f6a13479c67e621540602fd784a53d33eb60",
+      "outputSha256": "36fc6decd841700a2243c8bf3195789006b4d6f20b464bec329a2406a707ffd0",
+      "matchesWriter": true,
+      "mentions": {
+        "browser": false,
+        "eslint": false,
+        "educationTyping": false,
+        "whitespace": false
+      }
+    },
+    {
+      "itemId": "exec-2ac95617-0bef-42f0-8a98-bbb098ac884e",
+      "exitCode": 0,
+      "commandSha256": "890b135883737de339541eb80b734cf06e1116ade4193b381bea64a6db62e0d9",
+      "outputSha256": "c23994ac13526f4ec54c5ab79737b5577af175349148f1bc1a2960a70ba73555",
+      "matchesWriter": true,
+      "mentions": {
+        "browser": true,
+        "eslint": true,
+        "educationTyping": true,
+        "whitespace": true
+      }
+    },
+    {
+      "itemId": "exec-0cc66b51-fe47-4e94-bd11-739994e1b5e6",
+      "exitCode": 0,
+      "commandSha256": "28291788c5792d3f8d2a240b4a6a3b8f69aada001bc993e9bbac7b7029e8179a",
+      "outputSha256": "6adb6ce8e9b14ae2313021f593c8744179891bbb8875178ba46708485473f801",
+      "matchesWriter": true,
+      "mentions": {
+        "browser": false,
+        "eslint": false,
+        "educationTyping": false,
+        "whitespace": false
+      }
+    },
+    {
+      "itemId": "exec-2d856630-626f-4f66-85c1-708ed0bdf62e",
+      "exitCode": 0,
+      "commandSha256": "ac78191fe49a571a668102d9dea2e9afa119028dd9c0b360d1436daf9b24543e",
+      "outputSha256": "5da8784c3301ef96144386b276496cbd94902f4943dcdf592ce1b3e62f344f3a",
+      "matchesWriter": true,
+      "mentions": {
+        "browser": true,
+        "eslint": false,
+        "educationTyping": false,
+        "whitespace": true
+      }
+    }
+  ],
+  "originalTaskResult": "STOPPED_AT_NATIVE_BOUNDARY",
+  "originalFault": "WORKTREE_SCOPE_VIOLATION",
+  "meaning": "Fresh native readback matches recorded command exits and exact command/output fingerprints. Browser receipt asserts synthetic UI only; original scope guard remains held."
+}

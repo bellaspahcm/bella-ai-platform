@@ -140,7 +140,7 @@ describe('/api/education/courses canonical classroom route', () => {
     expect(queriedTables).toContain('courses');
   });
 
-  it('does not report class creation success when canonical edu_courses persistence fails', async () => {
+  it('holds Course creation before any legacy or canonical persistence attempt', async () => {
     const deletedCourseIds: string[] = [];
     const newCourse = {
       course_id: courseId,
@@ -190,7 +190,8 @@ describe('/api/education/courses canonical classroom route', () => {
       throw new Error(`Unexpected table access in courses POST test: ${table}`);
     });
 
-    const response = await POST(new Request('http://localhost/api/education/courses', {
+    const post: (request: Request) => Promise<Response> = POST;
+    const response = await post(new Request('http://localhost/api/education/courses', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -203,9 +204,12 @@ describe('/api/education/courses canonical classroom route', () => {
     }));
     const body = await response.json();
 
-    expect(response.status).toBe(409);
+    expect(response.status).toBe(503);
     expect(body.success).toBe(false);
-    expect(body.error).toContain('canonical Education courses');
-    expect(deletedCourseIds).toContain(courseId);
+    expect(body.error).toBe('COURSE_AUTHORIZATION_NOT_READY');
+    expect(mockGetCurrentUser).not.toHaveBeenCalled();
+    expect(mockFrom).not.toHaveBeenCalled();
+    expect(mockGetCourseTeachers).not.toHaveBeenCalled();
+    expect(deletedCourseIds).toEqual([]);
   });
 });
