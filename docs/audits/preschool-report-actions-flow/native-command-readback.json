@@ -1,0 +1,201 @@
+{
+  "result": "PASS_SCOPED_NATIVE_TEST_COMMAND_READBACK",
+  "recordedAt": "2026-10-17T22:09:20.068Z",
+  "binding": {
+    "repository": "bellaspahcm/bella-ai-platform",
+    "taskId": "c26e9a38-b49c-4736-a148-07a175e4cb11",
+    "runId": "b7b07294-762a-4869-98e3-795c1fd2df1c",
+    "attempt": 1,
+    "producerInstanceId": "ff7c0a8b-2e08-4edf-93f2-3b389caf4288",
+    "threadId": "01a14be4-8047-72d1-b16d-c66bd8ef363e",
+    "sessionId": "01a14be4-8047-72d1-b16d-c66bd8ef363e",
+    "turnId": "01a14be4-819a-7ab0-8fdc-6338c42ccec1"
+  },
+  "matchedCommands": 11,
+  "outputDigestMatches": 10,
+  "outputDigestDifferences": 1,
+  "commands": [
+    {
+      "itemId": "exec-fb6db753-f4c9-4ef8-8383-5459f60cb891",
+      "index": 2,
+      "exitCode": 0,
+      "metadataMatch": true,
+      "outputDigestMatch": true
+    },
+    {
+      "itemId": "exec-dc5918b2-8426-41e6-87a1-69fe07ffad8a",
+      "index": 3,
+      "exitCode": 0,
+      "metadataMatch": true,
+      "outputDigestMatch": false
+    },
+    {
+      "itemId": "exec-873dda60-ba78-4d35-bda1-7c60942f7576",
+      "index": 4,
+      "exitCode": 0,
+      "metadataMatch": true,
+      "outputDigestMatch": true
+    },
+    {
+      "itemId": "exec-e80ec237-6ffc-4eb7-bf51-465822481c48",
+      "index": 6,
+      "exitCode": 0,
+      "metadataMatch": true,
+      "outputDigestMatch": true
+    },
+    {
+      "itemId": "exec-e442132a-0f40-4748-8a49-30ab0c95fba5",
+      "index": 9,
+      "exitCode": 1,
+      "metadataMatch": true,
+      "outputDigestMatch": true
+    },
+    {
+      "itemId": "exec-6f414b1f-e5f7-448a-bd1e-d53e3514b91c",
+      "index": 11,
+      "exitCode": 0,
+      "metadataMatch": true,
+      "outputDigestMatch": true
+    },
+    {
+      "itemId": "exec-35264cf9-28c6-47b7-ac5d-07b0de26276d",
+      "index": 14,
+      "exitCode": 1,
+      "metadataMatch": true,
+      "outputDigestMatch": true
+    },
+    {
+      "itemId": "exec-4e3ccc77-3b92-4ade-88c7-0c747e729566",
+      "index": 19,
+      "exitCode": 0,
+      "metadataMatch": true,
+      "outputDigestMatch": true
+    },
+    {
+      "itemId": "exec-e34e25e1-9c01-41c0-b44c-6ecadd042460",
+      "index": 24,
+      "exitCode": 0,
+      "metadataMatch": true,
+      "outputDigestMatch": true
+    },
+    {
+      "itemId": "exec-d372a0cc-a904-4d85-b956-337b52fb3cf7",
+      "index": 25,
+      "exitCode": 0,
+      "metadataMatch": true,
+      "outputDigestMatch": true
+    },
+    {
+      "itemId": "exec-74c12663-721b-4008-a7b6-c45847b5cc2d",
+      "index": 32,
+      "exitCode": 0,
+      "metadataMatch": true,
+      "outputDigestMatch": true
+    }
+  ],
+  "tests": [
+    {
+      "phase": "before",
+      "itemId": "exec-35264cf9-28c6-47b7-ac5d-07b0de26276d",
+      "index": 14,
+      "exitCode": 1,
+      "outputDigestMatch": true,
+      "savedSummaryMatches": true,
+      "summary": {
+        "phase": "before",
+        "contexts": 4,
+        "result": "FAIL",
+        "checked": 20,
+        "passed": 0,
+        "failed": 20,
+        "contrastCount": 0,
+        "contrastFailed": 0,
+        "minimumRatio": null,
+        "threshold": 4.5
+      }
+    },
+    {
+      "phase": "after",
+      "itemId": "exec-4e3ccc77-3b92-4ade-88c7-0c747e729566",
+      "index": 19,
+      "exitCode": 0,
+      "outputDigestMatch": true,
+      "savedSummaryMatches": true,
+      "summary": {
+        "phase": "after",
+        "contexts": 4,
+        "result": "PASS",
+        "checked": 20,
+        "passed": 20,
+        "failed": 0,
+        "contrastCount": 16,
+        "contrastFailed": 0,
+        "minimumRatio": 13.328781541774159,
+        "threshold": 4.5
+      }
+    }
+  ],
+  "beforePatchAfterOrder": "PASS",
+  "nativeUiFileChanges": 1,
+  "verification": {
+    "nativeItemId": "exec-e34e25e1-9c01-41c0-b44c-6ecadd042460",
+    "nativeCommandExitCode": 0,
+    "reportsMatchSavedReceipt": true,
+    "subprocesses": [
+      {
+        "command": "node node_modules/eslint/bin/eslint.js src/app/dashboard/education/reports/page.tsx",
+        "exitCode": 0,
+        "startedAt": "2026-10-17T22:06:02.378Z",
+        "finishedAt": "2026-10-17T22:06:06.197Z"
+      },
+      {
+        "command": "node node_modules/typescript/bin/tsc -p tsconfig.education.json --pretty false --incremental --tsBuildInfoFile docs/audits/preschool-report-actions-flow/.cache/education.tsbuildinfo",
+        "exitCode": 0,
+        "startedAt": "2026-10-17T22:06:06.198Z",
+        "finishedAt": "2026-10-17T22:06:18.787Z"
+      },
+      {
+        "command": "node --check docs/audits/preschool-report-actions-flow/actions-browser.cjs",
+        "exitCode": 0,
+        "startedAt": "2026-10-17T22:06:18.788Z",
+        "finishedAt": "2026-10-17T22:06:18.872Z"
+      },
+      {
+        "command": "git diff --check",
+        "exitCode": 0,
+        "startedAt": "2026-10-17T22:06:18.873Z",
+        "finishedAt": "2026-10-17T22:06:19.193Z"
+      },
+      {
+        "command": "git diff -- src/app/dashboard/education/reports/page.tsx",
+        "exitCode": 0,
+        "startedAt": "2026-10-17T22:06:19.194Z",
+        "finishedAt": "2026-10-17T22:06:19.283Z"
+      },
+      {
+        "command": "git status --short",
+        "exitCode": 0,
+        "startedAt": "2026-10-17T22:06:19.284Z",
+        "finishedAt": "2026-10-17T22:06:19.476Z"
+      }
+    ]
+  },
+  "nonzero": [
+    {
+      "itemId": "exec-e442132a-0f40-4748-8a49-30ab0c95fba5",
+      "index": 9,
+      "exitCode": 1,
+      "classification": "PRE_SOURCE_HARNESS_PREPARATION"
+    },
+    {
+      "itemId": "exec-35264cf9-28c6-47b7-ac5d-07b0de26276d",
+      "index": 14,
+      "exitCode": 1,
+      "classification": "EXPECTED_BEFORE_SEMANTIC_FAILURE"
+    }
+  ],
+  "diagnostics": [
+    "First Lead readback rejected a whitespace-specific JSON substring; second parse reads actual JSON records and compares all subprocess reports structurally. No browser test rerun."
+  ],
+  "limits": "Fresh native history; both browser outputs match saved receipts exactly. Non-test stdout differences disclosed, not full-output identity proof."
+}
