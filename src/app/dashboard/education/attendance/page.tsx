@@ -21,6 +21,8 @@ import {
   Loader2,
   ChevronLeft,
   ChevronRight,
+  Filter,
+  X,
 } from 'lucide-react';
 
 type AttendanceStatus = 'present' | 'absent' | 'excused';
@@ -29,6 +31,7 @@ interface ClassroomOverviewItem {
   id: string;
   code: string;
   name: string;
+  gradeKey?: 'mam' | 'choi' | 'la' | 'nursery';
   students: number;
   maxStudents: number;
   todayStatus: {
@@ -126,17 +129,58 @@ export default function AttendancePage() {
   const currentRoster = rosterReady ? roster : EMPTY_ROSTER;
   const savingCommand = Boolean(savingEnrollmentId || savingHandoverStudentPartyId);
 
+  const [selectedGrade, setSelectedGrade] = useState<'all' | 'nursery' | 'mam' | 'choi' | 'la'>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'present' | 'absent' | 'excused' | 'unmarked'>('all');
+  const [handoverFilter, setHandoverFilter] = useState<'all' | 'handed_over' | 'pending'>('all');
+
+  const filteredClassrooms = useMemo(() => {
+    if (selectedGrade === 'all') return classrooms;
+    return classrooms.filter((c) => c.gradeKey === selectedGrade);
+  }, [classrooms, selectedGrade]);
+
+  const handleSelectGrade = (grade: 'all' | 'nursery' | 'mam' | 'choi' | 'la') => {
+    setSelectedGrade(grade);
+    if (grade !== 'all') {
+      const firstInGrade = classrooms.find((c) => c.gradeKey === grade);
+      if (firstInGrade) {
+        setSelectedCourseId(firstInGrade.id);
+      }
+    }
+  };
+
   const filteredRoster = useMemo(() => {
-    const normalizedSearch = search.trim().toLowerCase();
-    if (!normalizedSearch) return currentRoster;
+    const query = search.trim().toLowerCase();
 
     return currentRoster.filter((student) => {
-      return (
-        student.name.toLowerCase().includes(normalizedSearch) ||
-        (student.studentCode ?? '').toLowerCase().includes(normalizedSearch)
-      );
+      if (query) {
+        const nameMatch = student.name.toLowerCase().includes(query);
+        const codeMatch = (student.studentCode ?? '').toLowerCase().includes(query);
+        const guardianMatch = student.authorizedGuardians?.some((g) =>
+          g.displayName.toLowerCase().includes(query) ||
+          g.phone.toLowerCase().includes(query)
+        ) ?? false;
+
+        if (!nameMatch && !codeMatch && !guardianMatch) {
+          return false;
+        }
+      }
+
+      if (statusFilter !== 'all') {
+        const studentStatus = student.attendance?.status ?? 'unmarked';
+        if (studentStatus !== statusFilter) {
+          return false;
+        }
+      }
+
+      if (handoverFilter === 'handed_over') {
+        if (!student.safePickupHandover) return false;
+      } else if (handoverFilter === 'pending') {
+        if (student.safePickupHandover) return false;
+      }
+
+      return true;
     });
-  }, [currentRoster, search]);
+  }, [currentRoster, search, statusFilter, handoverFilter]);
 
   const [attendancePage, setAttendancePage] = useState(1);
   const [attendancePageSize, setAttendancePageSize] = useState(10);
@@ -146,7 +190,7 @@ export default function AttendancePage() {
   useEffect(() => {
     setAttendancePage(1);
     setHandoverPage(1);
-  }, [search, selectedCourseId, schoolDay]);
+  }, [search, selectedCourseId, schoolDay, statusFilter, handoverFilter]);
 
   const attendanceTotalPages = Math.max(1, Math.ceil(filteredRoster.length / attendancePageSize));
   const validAttendancePage = Math.min(attendancePage, attendanceTotalPages);
@@ -373,19 +417,55 @@ export default function AttendancePage() {
           </div>
         </div>
 
+        {/* Grade tabs filter */}
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar">
+          {[
+            { key: 'all', label: 'Tất cả khối' },
+            { key: 'nursery', label: 'Nhà Trẻ (18-36th)' },
+            { key: 'mam', label: 'Khối Mầm (3t)' },
+            { key: 'choi', label: 'Khối Chồi (4t)' },
+            { key: 'la', label: 'Khối Lá (5t)' },
+          ].map((tab) => {
+            const isActive = selectedGrade === tab.key;
+            const count = tab.key === 'all'
+              ? classrooms.length
+              : classrooms.filter((c) => c.gradeKey === tab.key).length;
+            if (tab.key !== 'all' && count === 0) return null;
+            return (
+              <button
+                key={tab.key}
+                type="button"
+                onClick={() => handleSelectGrade(tab.key as typeof selectedGrade)}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap shrink-0 flex items-center gap-1.5 ${
+                  isActive
+                    ? 'bg-primary text-primary-foreground shadow-sm'
+                    : 'bg-slate-100 dark:bg-slate-700/60 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+                }`}
+              >
+                {tab.label}
+                <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-extrabold ${
+                  isActive ? 'bg-primary-foreground/20 text-primary-foreground' : 'bg-slate-200 dark:bg-slate-600 text-slate-600 dark:text-slate-300'
+                }`}>
+                  {count}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+
         {/* Classroom cards grid */}
         {loadingClassrooms ? (
           <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
             <Loader2 className="w-4 h-4 animate-spin" />
             Đang tải danh sách lớp...
           </div>
-        ) : classrooms.length === 0 ? (
-          <div className="text-xs text-slate-500 dark:text-slate-400 py-2">
-            Chưa có lớp đang hoạt động
+        ) : filteredClassrooms.length === 0 ? (
+          <div className="text-xs text-slate-500 dark:text-slate-400 py-4 text-center bg-slate-50 dark:bg-slate-700/30 rounded-2xl">
+            Không có lớp học nào thuộc khối này
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-            {classrooms.map((classroom) => {
+            {filteredClassrooms.map((classroom) => {
               const isSelected = classroom.id === selectedCourseId;
               const isLive = isSelected && rosterReady;
               const totalStudents = (isLive && currentRoster.length > 0) ? currentRoster.length : classroom.students;
@@ -447,16 +527,120 @@ export default function AttendancePage() {
           </div>
         )}
 
-        {/* Search bar */}
-        <div className="relative w-full sm:w-80">
-          <Search className="w-4 h-4 absolute left-3.5 top-3 text-gray-400" />
-          <input
-            type="text"
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            placeholder="Tìm tên bé hoặc mã học sinh..."
-            className="w-full pl-10 pr-4 py-2.5 text-xs rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-ring transition-all"
-          />
+        {/* Search & Filter Toolbar */}
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 pt-1 border-t border-slate-100 dark:border-slate-700/60">
+          {/* Search bar */}
+          <div className="relative w-full lg:w-84 shrink-0">
+            <Search className="w-4 h-4 absolute left-3.5 top-3 text-gray-400" />
+            <input
+              type="text"
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder="Tìm tên bé, mã HS, phụ huynh, SĐT..."
+              className="w-full pl-10 pr-8 py-2.5 text-xs rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-ring transition-all"
+            />
+            {search && (
+              <button
+                type="button"
+                onClick={() => setSearch('')}
+                className="absolute right-3 top-3 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                title="Xóa tìm kiếm"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
+
+          {/* Quick Filter Badges */}
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span className="text-[11px] font-bold text-slate-400 hidden xl:inline-flex items-center gap-1 mr-0.5">
+              <Filter className="w-3 h-3" /> Lọc:
+            </span>
+            <button
+              type="button"
+              onClick={() => setStatusFilter('all')}
+              className={`px-2.5 py-1.5 rounded-xl text-[11px] font-bold transition-all ${
+                statusFilter === 'all'
+                  ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-sm'
+                  : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600'
+              }`}
+            >
+              Tất cả ({currentRoster.length})
+            </button>
+            <button
+              type="button"
+              onClick={() => setStatusFilter(statusFilter === 'present' ? 'all' : 'present')}
+              className={`px-2.5 py-1.5 rounded-xl text-[11px] font-bold transition-all flex items-center gap-1 ${
+                statusFilter === 'present'
+                  ? 'bg-emerald-600 text-white shadow-sm'
+                  : 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100'
+              }`}
+            >
+              <CheckCircle2 className="w-3 h-3" />
+              Có mặt ({attendanceSummary.present})
+            </button>
+            <button
+              type="button"
+              onClick={() => setStatusFilter(statusFilter === 'absent' ? 'all' : 'absent')}
+              className={`px-2.5 py-1.5 rounded-xl text-[11px] font-bold transition-all flex items-center gap-1 ${
+                statusFilter === 'absent'
+                  ? 'bg-rose-600 text-white shadow-sm'
+                  : 'bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 hover:bg-rose-100'
+              }`}
+            >
+              <XCircle className="w-3 h-3" />
+              Vắng ({attendanceSummary.absent})
+            </button>
+            <button
+              type="button"
+              onClick={() => setStatusFilter(statusFilter === 'excused' ? 'all' : 'excused')}
+              className={`px-2.5 py-1.5 rounded-xl text-[11px] font-bold transition-all ${
+                statusFilter === 'excused'
+                  ? 'bg-amber-600 text-white shadow-sm'
+                  : 'bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 hover:bg-amber-100'
+              }`}
+            >
+              Phép ({attendanceSummary.excused})
+            </button>
+            <button
+              type="button"
+              onClick={() => setStatusFilter(statusFilter === 'unmarked' ? 'all' : 'unmarked')}
+              className={`px-2.5 py-1.5 rounded-xl text-[11px] font-bold transition-all flex items-center gap-1 ${
+                statusFilter === 'unmarked'
+                  ? 'bg-slate-700 text-white dark:bg-slate-300 dark:text-slate-900 shadow-sm'
+                  : 'bg-slate-100 dark:bg-slate-700 text-slate-500 hover:bg-slate-200'
+              }`}
+            >
+              <Clock className="w-3 h-3" />
+              Chưa điểm ({attendanceSummary.unmarked})
+            </button>
+
+            {/* Handover filter */}
+            <select
+              value={handoverFilter}
+              aria-label="Lọc đưa đón"
+              onChange={(e) => setHandoverFilter(e.target.value as typeof handoverFilter)}
+              className="px-2.5 py-1.5 rounded-xl text-[11px] font-bold border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 focus:outline-none"
+            >
+              <option value="all">Đưa đón: Tất cả</option>
+              <option value="handed_over">Đã bàn giao</option>
+              <option value="pending">Chưa bàn giao</option>
+            </select>
+
+            {(search || statusFilter !== 'all' || handoverFilter !== 'all') && (
+              <button
+                type="button"
+                onClick={() => {
+                  setSearch('');
+                  setStatusFilter('all');
+                  setHandoverFilter('all');
+                }}
+                className="px-2 py-1 text-[11px] font-bold text-rose-600 dark:text-rose-400 hover:underline"
+              >
+                Xóa bộ lọc
+              </button>
+            )}
+          </div>
         </div>
 
         {(error || successMessage) && (
