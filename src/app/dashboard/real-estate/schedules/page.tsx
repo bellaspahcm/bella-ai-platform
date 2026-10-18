@@ -1,4 +1,5 @@
 "use client";
+import { LandPreviewNotice, unavailableLandAction } from "@/modules/real_estate/components/LandUiControls";
 
 import React, { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -160,7 +161,7 @@ const AVATAR_COLORS: Record<string, string> = {
 
 // ── MAIN COMPONENT ──
 export default function SchedulesPage() {
-  const today = new Date();
+  const [today] = useState(() => new Date());
   const [baseDate, setBaseDate] = useState(today);
   const [viewMode, setViewMode] = useState<"week" | "list">("week");
   const [filterDept, setFilterDept] = useState("all");
@@ -192,24 +193,12 @@ export default function SchedulesPage() {
         return weekDays.some(wd => formatDateKey(wd) === s.date) && s.shiftType !== 'off';
       }).length,
     };
-  }, [shifts, weekDays]);
-
-  // Build week grid data: staffId -> dateKey -> shift
-  const weekGrid = useMemo(() => {
-    const grid: Record<string, Record<string, ShiftEntry | null>> = {};
-    STAFF_LIST.forEach(st => {
-      grid[st.id] = {};
-      weekDays.forEach(d => {
-        const key = formatDateKey(d);
-        grid[st.id][key] = shifts.find(s => s.staffId === st.id && s.date === key) || null;
-      });
-    });
-    return grid;
-  }, [shifts, weekDays]);
+  }, [shifts, weekDays, today]);
 
   // Filtered list for list view
   const filteredShifts = useMemo(() => {
     return shifts.filter(s => {
+      if (!weekDays.some(day => formatDateKey(day) === s.date)) return false;
       if (activeTabFilter === 'mine' && !s.isMyShift) return false;
       if (activeTabFilter === 'pending' && !s.isPendingApproval) return false;
       if (activeTabFilter === 'absent' && s.status !== 'absent') return false;
@@ -224,10 +213,23 @@ export default function SchedulesPage() {
         if (!s.staffName.toLowerCase().includes(q) && !s.staffRole.toLowerCase().includes(q) && !s.department.toLowerCase().includes(q)) return false;
       }
       return true;
-    }).slice(0, 50);
-  }, [shifts, activeTabFilter, filterDept, filterShift, filterStatus, search]);
+    });
+  }, [shifts, activeTabFilter, filterDept, filterShift, filterStatus, search, weekDays, today]);
 
-  const selectedShift = useMemo(() => shifts.find(s => s.id === selectedShiftId) || null, [shifts, selectedShiftId]);
+  // Build week grid data: staffId -> dateKey -> shift
+  const weekGrid = useMemo(() => {
+    const grid: Record<string, Record<string, ShiftEntry | null>> = {};
+    STAFF_LIST.forEach(st => {
+      grid[st.id] = {};
+      weekDays.forEach(d => {
+        const key = formatDateKey(d);
+        grid[st.id][key] = filteredShifts.find(s => s.staffId === st.id && s.date === key) || null;
+      });
+    });
+    return grid;
+  }, [filteredShifts, weekDays]);
+
+  const selectedShift = useMemo(() => filteredShifts.find(s => s.id === selectedShiftId) || null, [filteredShifts, selectedShiftId]);
 
   const goToPrevWeek = () => {
     const d = new Date(baseDate);
@@ -241,13 +243,11 @@ export default function SchedulesPage() {
     setBaseDate(d);
   };
 
-  const handleConfirmShift = (shiftId: string) => {
-    setShifts(prev => prev.map(s => s.id === shiftId ? { ...s, status: 'confirmed', statusLabel: 'Đã xác nhận', isPendingApproval: false } : s));
-    toast.success("Đã xác nhận ca làm việc!");
-  };
+  const handleConfirmShift = (shiftId: string) => { unavailableLandAction("Lưu dữ liệu nghiệp vụ"); };
 
   return (
     <div className="p-4 md:p-6 space-y-5 max-w-[1680px] mx-auto font-sans text-slate-900 dark:text-slate-100 pb-12">
+      <LandPreviewNotice />
 
       {/* ── 1. HEADER BANNER (Light Theme, high contrast) ── */}
       <div className="relative rounded-2xl overflow-hidden bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 p-5 md:p-6 shadow-xs">
@@ -436,7 +436,7 @@ export default function SchedulesPage() {
             />
 
             <button
-              onClick={() => { setFilterDept('all'); setFilterShift('all'); setFilterStatus('all'); setSearch(''); toast.success('Đã đặt lại bộ lọc!'); }}
+              onClick={() => { setFilterDept('all'); setFilterShift('all'); setFilterStatus('all'); setSearch(''); setActiveTabFilter('all'); }}
               className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 transition"
               title="Đặt lại bộ lọc"
             >
@@ -480,8 +480,8 @@ export default function SchedulesPage() {
           <div className="flex items-center gap-2 shrink-0">
             <button
               onClick={() => {
-                downloadCsvReport("Bao_Cao_Lich_Lam_Viec.csv", "Báo Cáo Lịch Làm Việc Bella Land", ["StaffName", "ShiftType", "Status", "Date"]);
-                toast.success("✅ Đã xuất báo cáo lịch làm việc (CSV) thành công!");
+                unavailableLandAction("Xuất tài liệu nghiệp vụ");
+                unavailableLandAction("Thao tác lưu hoặc gửi dữ liệu");
               }}
               className="px-3.5 py-2 rounded-xl text-xs font-bold bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 shadow-2xs transition flex items-center gap-1.5"
             >
@@ -544,7 +544,7 @@ export default function SchedulesPage() {
                         <td
                           key={key}
                           className={`p-2 text-center align-middle ${isToday ? 'bg-blue-50/30 dark:bg-blue-950/10' : ''}`}
-                          onClick={() => shift && setSelectedShiftId(shift.id)}
+                          onClick={() => { if (shift) { setSelectedShiftId(shift.id); setViewMode("list"); } }}
                         >
                           {shift && shift.shiftType !== 'off' ? (
                             <button className={`w-full px-2 py-2 rounded-xl border text-[10px] font-bold text-left transition hover:shadow-sm ${cfg?.bg} ${cfg?.text} ${cfg?.border} ${shift.status === 'absent' ? 'opacity-60' : ''}`}>
@@ -595,7 +595,7 @@ export default function SchedulesPage() {
         /* LIST VIEW */
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-5 items-start">
           {/* List Table */}
-          <div className={`${selectedShiftId ? 'xl:col-span-8' : 'xl:col-span-12'} bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl shadow-2xs overflow-hidden`}>
+          <div className={`${selectedShift ? 'xl:col-span-8' : 'xl:col-span-12'} bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl shadow-2xs overflow-hidden`}>
             <div className="overflow-x-auto">
               <table className="w-full text-xs text-left border-collapse">
                 <thead>
@@ -771,13 +771,13 @@ export default function SchedulesPage() {
                     </button>
                   )}
                   <button
-                    onClick={() => { toast.success(`Đã mở bộ chỉnh sửa ca của ${selectedShift.staffName}`); setShowAddModal(true); setSelectedShiftId(null); }}
+                    onClick={() => { unavailableLandAction("Thao tác lưu hoặc gửi dữ liệu"); setShowAddModal(true); setSelectedShiftId(null); }}
                     className="w-full py-2 rounded-xl text-xs font-bold bg-blue-50 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 hover:bg-blue-100 transition cursor-pointer"
                   >
                     Chỉnh sửa ca
                   </button>
                   <button
-                    onClick={() => { toast.error(`Đã hủy ca của ${selectedShift.staffName}`); setSelectedShiftId(null); }}
+                    onClick={() => { unavailableLandAction("Hủy ca làm việc"); }}
                     className="w-full py-2 rounded-xl text-xs font-bold bg-rose-50 dark:bg-rose-950/50 text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-rose-800 hover:bg-rose-100 transition"
                   >
                     Hủy ca làm việc
@@ -804,7 +804,7 @@ export default function SchedulesPage() {
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
               onClick={e => e.stopPropagation()}
-              className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl p-6 w-full max-w-md"
+              className="max-h-[90vh] overflow-y-auto bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl p-6 w-full max-w-md"
             >
               <div className="flex items-center justify-between mb-5">
                 <div>
@@ -876,7 +876,7 @@ export default function SchedulesPage() {
                 <button
                   onClick={() => {
                     setShowAddModal(false);
-                    toast.success("🎉 Đã thêm ca làm việc mới thành công!");
+                    unavailableLandAction("Thao tác lưu hoặc gửi dữ liệu");
                   }}
                   className="flex-1 py-2.5 rounded-xl text-xs font-black bg-amber-500 hover:bg-amber-600 text-slate-950 shadow-sm transition"
                 >

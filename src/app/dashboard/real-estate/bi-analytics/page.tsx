@@ -1,4 +1,5 @@
 "use client";
+import { LandPreviewNotice, unavailableLandAction } from "@/modules/real_estate/components/LandUiControls";
 
 import { useState } from "react";
 import { motion } from "framer-motion";
@@ -77,6 +78,7 @@ export default function BIAnalyticsPage() {
 
   return (
     <div className="p-6 md:p-8 space-y-6 max-w-[1600px] mx-auto font-sans text-slate-900 dark:text-slate-100">
+      <LandPreviewNotice />
       
       {/* ── 1. PAGE HEADER & GLOBAL MULTI-DIMENSION SLICERS ── */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
@@ -98,7 +100,7 @@ export default function BIAnalyticsPage() {
 
         {/* Multi-Dimension Slicers Toolbar */}
         <div className="flex items-center gap-2 flex-wrap text-xs font-semibold">
-          <PremiumSelect
+          <PremiumSelect disabled
             value={selectedPeriod}
             onChange={(val) => setSelectedPeriod(val)}
             options={[
@@ -108,7 +110,7 @@ export default function BIAnalyticsPage() {
             ]}
           />
 
-          <PremiumSelect
+          <PremiumSelect disabled
             value={selectedProject}
             onChange={(val) => setSelectedProject(val)}
             options={[
@@ -119,7 +121,7 @@ export default function BIAnalyticsPage() {
             ]}
           />
 
-          <PremiumSelect
+          <PremiumSelect disabled
             value={selectedBranch}
             onChange={(val) => setSelectedBranch(val)}
             options={[
@@ -129,7 +131,7 @@ export default function BIAnalyticsPage() {
             ]}
           />
 
-          <PremiumSelect
+          <PremiumSelect disabled
             value={selectedTeam}
             onChange={(val) => setSelectedTeam(val)}
             options={[
@@ -140,7 +142,7 @@ export default function BIAnalyticsPage() {
           />
 
           <button
-            onClick={() => toast.success("Đã làm mới dữ liệu phân tích BI Analytics thành công!")}
+            onClick={() => unavailableLandAction("Thao tác lưu hoặc gửi dữ liệu")}
             className="p-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-700 dark:text-slate-300 hover:bg-slate-50 shadow-2xs cursor-pointer"
           >
             <RefreshCw className="w-4 h-4" />
@@ -306,7 +308,7 @@ export default function BIAnalyticsPage() {
                     <button
                       onClick={() => {
                         setDrillDownPath(["Chi nhánh HCM", "Sales Team 02", item.channel, "Site Visit ➔ Deposit"]);
-                        toast.success(`Đã drill-down phân tích nguyên nhân kênh ${item.channel}`);
+                        unavailableLandAction("Thao tác lưu hoặc gửi dữ liệu");
                       }}
                       className="px-2.5 py-1 text-xs font-bold text-blue-600 dark:text-sky-400 border border-blue-200 dark:border-sky-800/80 rounded-lg hover:bg-blue-50 dark:hover:bg-slate-800 transition-colors"
                     >

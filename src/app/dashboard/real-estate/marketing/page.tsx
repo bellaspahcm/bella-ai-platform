@@ -1,4 +1,5 @@
 'use client';
+import { LandPreviewNotice, unavailableLandAction } from "@/modules/real_estate/components/LandUiControls";
 
 /**
  * @module app/dashboard/real-estate/marketing/page
@@ -342,106 +343,19 @@ export default function RealEstateMarketingPage() {
     });
   }, [campaigns, filterProject, filterStatus, filterChannel, searchQuery]);
 
+  const filteredAgencies = agencies.filter(agency => filterProject === "all" || agency.assignedProject.includes(filterProject));
   // Actions
-  const handleSyncAdsApi = () => {
-    setIsSyncing(true);
-    toast.promise(
-      new Promise((resolve) => setTimeout(resolve, 1500)),
-      {
-        loading: 'Đang kết nối Facebook Ads & Zalo OA API...',
-        success: () => {
-          setIsSyncing(false);
-          return '✅ Đồng bộ chi phí quảng cáo & số lead mới nhất thành công!';
-        },
-        error: 'Đồng bộ thất bại',
-      }
-    );
-  };
+  const handleSyncAdsApi = () => { unavailableLandAction("Cập nhật Marketing / Ads"); };
 
-  const handleToggleCampaignStatus = (id: string) => {
-    setCampaigns(prev => prev.map(c => {
-      if (c.id !== id) return c;
-      const nextStatus = c.status === 'active' ? 'paused' : 'active';
-      toast.success(`Đã chuyển trạng thái chiến dịch [${c.code}] sang ${nextStatus === 'active' ? 'Đang chạy' : 'Tạm dừng'}`);
-      return { ...c, status: nextStatus };
-    }));
-  };
+  const handleToggleCampaignStatus = (id: string) => { unavailableLandAction("Cập nhật Marketing / Ads"); };
 
-  const handleCreateCampaign = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newCamp.name.trim()) {
-      toast.error('Vui lòng nhập tên chiến dịch');
-      return;
-    }
-    const created: CampaignItem = {
-      id: `camp-${Date.now()}`,
-      code: `CMP-2026-${(campaigns.length + 1).toString().padStart(3, '0')}`,
-      name: newCamp.name,
-      project: newCamp.project,
-      channel: newCamp.channel,
-      channelLabel: newCamp.channel === 'facebook' ? 'Facebook Ads' : newCamp.channel === 'zalo' ? 'Zalo OA Ads' : newCamp.channel === 'google' ? 'Google Search' : newCamp.channel === 'tiktok' ? 'TikTok Ads' : 'Sự kiện VIP',
-      budget: Number(newCamp.budget) || 500000000,
-      spent: 0,
-      leadsCount: 0,
-      convertedCount: 0,
-      cpl: 0,
-      status: 'active',
-      startDate: newCamp.startDate,
-      endDate: newCamp.endDate,
-      manager: newCamp.manager
-    };
-    setCampaigns([created, ...campaigns]);
-    setShowAddCampaignModal(false);
-    setNewCamp({
-      name: '',
-      project: 'Elyse Island',
-      channel: 'facebook',
-      budget: '500000000',
-      manager: 'Nguyễn Văn A',
-      startDate: '10/09/2026',
-      endDate: '31/10/2026'
-    });
-    toast.success(`✅ Khởi tạo chiến dịch [${created.code}] thành công!`);
-  };
+  const handleCreateCampaign = (e: React.FormEvent) => { e.preventDefault(); unavailableLandAction("Cập nhật Marketing / Ads"); };
 
-  const handleCreateAgency = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newAgency.name.trim() || !newAgency.contactPerson.trim()) {
-      toast.error('Vui lòng nhập tên đại lý và người liên hệ');
-      return;
-    }
-    const created: AgencyItem = {
-      id: `ag-${Date.now()}`,
-      code: `AG-${newAgency.name.slice(0, 4).toUpperCase()}`,
-      name: newAgency.name,
-      tier: newAgency.tier,
-      tierLabel: newAgency.tier === 'F1_EXCLUSIVE' ? 'Đại lý Độc quyền F1' : newAgency.tier === 'F1_STANDARD' ? 'Đại lý Chính thức F1' : 'Đại lý Liên kết F2',
-      assignedProject: newAgency.assignedProject,
-      leadQuota: Number(newAgency.leadQuota) || 300,
-      leadsDelivered: 0,
-      dealsClosed: 0,
-      commissionRate: Number(newAgency.commissionRate) || 3.0,
-      revenueGenerated: 0,
-      contactPerson: newAgency.contactPerson,
-      contactPhone: newAgency.contactPhone || '0900 000 000',
-      status: 'active'
-    };
-    setAgencies([created, ...agencies]);
-    setShowAddAgencyModal(false);
-    setNewAgency({
-      name: '',
-      tier: 'F1_STANDARD',
-      assignedProject: 'Elyse Island',
-      commissionRate: '3.0',
-      leadQuota: '300',
-      contactPerson: '',
-      contactPhone: ''
-    });
-    toast.success(`✅ Thêm sàn đại lý liên kết [${created.name}] thành công!`);
-  };
+  const handleCreateAgency = (e: React.FormEvent) => { e.preventDefault(); unavailableLandAction("Cập nhật Marketing / Ads"); };
 
   return (
     <div className="p-6 md:p-8 space-y-6 max-w-[1600px] mx-auto font-sans text-slate-900 dark:text-slate-100">
+      <LandPreviewNotice />
       
       {/* ── 1. Header Bar & Navigation ── */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
@@ -773,7 +687,7 @@ export default function RealEstateMarketingPage() {
                       </tr>
                     );
                   })}
-                </tbody>
+                {filteredCampaigns.length === 0 && <tr><td colSpan={9} className="p-6 text-center text-slate-500">Không có chiến dịch phù hợp với bộ lọc.</td></tr>}</tbody>
               </table>
             </div>
           </div>
@@ -783,7 +697,8 @@ export default function RealEstateMarketingPage() {
       {/* TAB 2: AGENCY NETWORK (F1/F2 KÊNH PHÂN PHỐI) */}
       {activeSubsystem === 'channels' && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {agencies.map(agency => (
+          {filteredAgencies.length === 0 && <p className="p-4">Không có đại lý phù hợp.</p>}
+          {filteredAgencies.map(agency => (
             <div key={agency.id} className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-5 shadow-xs space-y-4 hover:border-blue-400 transition-all">
               <div className="flex items-start justify-between">
                 <div>
@@ -856,7 +771,7 @@ export default function RealEstateMarketingPage() {
                     <span className="text-slate-600 dark:text-slate-400">{item.leads} lead ({item.percent}%)</span>
                   </div>
                   <div className="w-full h-2.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-                    <div className={`h-full rounded-full ${item.color}`} style={{ width: `${item.percent * 2.5}%` }} />
+                    <div className={`h-full rounded-full ${item.color}`} style={{ width: `${Math.min(100, Math.max(0, item.percent))}%` }} />
                   </div>
                 </div>
               ))}
@@ -902,7 +817,7 @@ export default function RealEstateMarketingPage() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 w-full max-w-lg shadow-xl space-y-5"
+              className="max-h-[90vh] overflow-y-auto bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 w-full max-w-lg shadow-xl space-y-5"
             >
               <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
                 <h3 className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2">
@@ -1009,7 +924,7 @@ export default function RealEstateMarketingPage() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 w-full max-w-lg shadow-xl space-y-5"
+              className="max-h-[90vh] overflow-y-auto bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 w-full max-w-lg shadow-xl space-y-5"
             >
               <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
                 <h3 className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2">
@@ -1138,7 +1053,7 @@ export default function RealEstateMarketingPage() {
             <motion.div
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl w-full max-w-lg border border-slate-200 dark:border-slate-800 overflow-hidden"
+              className="max-h-[90vh] overflow-y-auto bg-white dark:bg-slate-900 rounded-2xl shadow-xl w-full max-w-lg border border-slate-200 dark:border-slate-800 overflow-hidden"
               onClick={e => e.stopPropagation()}
             >
               <div className="flex items-center justify-between p-5 border-b border-slate-100 dark:border-slate-800">

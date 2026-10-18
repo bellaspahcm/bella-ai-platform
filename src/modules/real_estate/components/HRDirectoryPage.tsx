@@ -10,7 +10,7 @@
  * Design: Premium, dark-mode, card-based layout with animated transitions
  */
 
-import React, { useCallback, useContext, useEffect, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useState, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { TenantContextContext } from '@/core/hooks/useTenantContext';
 import {
@@ -126,6 +126,7 @@ export function HRDirectoryPage() {
   const searchParams = useSearchParams();
   const initialPersonId = searchParams ? searchParams.get('personId') : null;
 
+  const listVersion = useRef(0);
   // Data
   const [employees, setEmployees] = useState<HREmployeeSummaryRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -149,40 +150,44 @@ export function HRDirectoryPage() {
   // ── Load employee list ─────────────────────────────────────────────────────
 
   const loadEmployees = useCallback(async () => {
-    setLoading(true);
-    setError(null);
+    const version = ++listVersion.current;
+    setLoading(true); setError(null); setEmployees([]);
     try {
       const result = await listActiveEmployeesAction({ tenantId });
+      if (version !== listVersion.current) return;
       if (!result.success) {
         setError(result.error);
         return;
       }
       setEmployees(result.employees);
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Lỗi không xác định');
+      if (version === listVersion.current) setError(e instanceof Error ? e.message : 'Lỗi không xác định');
     } finally {
-      setLoading(false);
+      if (version === listVersion.current) setLoading(false);
     }
   }, [tenantId]);
 
-  useEffect(() => { loadEmployees(); }, [loadEmployees]);
+  const invalidateReads = useCallback(() => { ++listVersion.current; }, []);
+  useEffect(() => { void loadEmployees(); return invalidateReads; }, [loadEmployees, invalidateReads]);
 
   // ── Load detail when selected ──────────────────────────────────────────────
 
   useEffect(() => {
-    if (!selectedPersonId) {
-      setProfileDetail(null);
-      setActiveContract(null);
-      return;
-    }
+    let active = true;
+    setProfileDetail(null); setActiveContract(null); setDetailLoading(false); setError(null);
+    if (!selectedPersonId) return;
     setDetailLoading(true);
     Promise.all([
       getEmployeeProfileAction({ personId: selectedPersonId, tenantId }),
       getActiveContractAction({ personId: selectedPersonId, tenantId }),
-    ]).then(([profileRes, contractRes]) => {
-      if (profileRes.success) setProfileDetail(profileRes.profile);
-      if (contractRes.success) setActiveContract(contractRes.contract);
-    }).finally(() => setDetailLoading(false));
+    ]).then(([profile, contract]) => {
+      if (!active) return;
+      if (profile.success) setProfileDetail(profile.profile);
+      if (contract.success) setActiveContract(contract.contract);
+      if (!profile.success || !contract.success) setError("Không thể tải đầy đủ hồ sơ nhân sự.");
+    }).catch(() => { if (active) setError("Không thể tải hồ sơ nhân sự. Vui lòng thử lại."); })
+      .finally(() => { if (active) setDetailLoading(false); });
+    return () => { active = false; };
   }, [selectedPersonId, tenantId]);
 
   // ── Filtered list ──────────────────────────────────────────────────────────
@@ -239,8 +244,8 @@ export function HRDirectoryPage() {
 
       {/* ── Error ──────────────────────────────────────────────────────────── */}
       {error && (
-        <div className="bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/40 rounded-xl px-4 py-2.5 text-sm text-red-600 dark:text-red-400 mb-5">
-          ⚠️ {error} — Đang hiển thị dữ liệu trống.
+        <div role="alert" className="bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/40 rounded-xl px-4 py-2.5 text-sm text-red-600 dark:text-red-400 mb-5">
+          ⚠️ {error}
         </div>
       )}
 

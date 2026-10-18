@@ -1,4 +1,5 @@
 "use client";
+import { LandPreviewNotice, unavailableLandAction, LandPagination, useLandPagination, inDateRange } from "@/modules/real_estate/components/LandUiControls";
 
 import React, { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -373,6 +374,7 @@ export default function LegalDocumentsOperationsCenterPage() {
   const [filterProject, setFilterProject] = useState<string>("all");
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [filterOwner, setFilterOwner] = useState<string>("all");
+  const [pageSize, setPageSize] = useState("20");
   const [filterTime, setFilterTime] = useState<string>("all");
 
   // Selection Checkboxes
@@ -401,9 +403,7 @@ export default function LegalDocumentsOperationsCenterPage() {
   });
 
   // Selected Document object
-  const selectedDoc = useMemo(() => {
-    return documents.find(d => d.id === selectedDocId) || null;
-  }, [documents, selectedDocId]);
+
 
   // Operational KPIs (Matching Image 2 Metrics)
   const kpis = useMemo(() => {
@@ -428,6 +428,7 @@ export default function LegalDocumentsOperationsCenterPage() {
       if (activeTabFilter === "has_issue" && d.status !== "has_issue") return false;
 
       // Dropdown Filters
+      if (!inDateRange(d.createdAt, filterTime)) return false;
       if (filterType !== "all" && d.type !== filterType) return false;
       if (filterProject !== "all" && d.project !== filterProject) return false;
       if (filterStatus !== "all" && d.status !== filterStatus) return false;
@@ -445,12 +446,14 @@ export default function LegalDocumentsOperationsCenterPage() {
       }
       return true;
     });
-  }, [documents, activeTabFilter, filterType, filterProject, filterStatus, filterOwner, search]);
+  }, [documents, activeTabFilter, filterType, filterProject, filterStatus, filterOwner, filterTime, search]);
+  const pagination = useLandPagination(filteredDocs, Number(pageSize));
+  const selectedDoc = pagination.rows.find(d => d.id === selectedDocId) || null;
 
   // Handle Multi Select
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
-      setSelectedDocIds(filteredDocs.map(d => d.id));
+      setSelectedDocIds(pagination.rows.map(d => d.id));
     } else {
       setSelectedDocIds([]);
     }
@@ -463,69 +466,7 @@ export default function LegalDocumentsOperationsCenterPage() {
   };
 
   // Create Document Handler
-  const handleCreateDocumentSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newDocForm.title.trim()) {
-      toast.error("Vui lòng nhập tên tài liệu pháp lý!");
-      return;
-    }
-
-    const docId = `doc-${Date.now()}`;
-    const autoCode = newDocForm.code.trim() || `PL-${newDocForm.unitCode}-${Math.floor(100 + Math.random() * 900)}`;
-    
-    const newDocItem: LegalDocumentItem = {
-      id: docId,
-      code: autoCode,
-      title: newDocForm.title.trim(),
-      type: newDocForm.type,
-      tags: [
-        { label: "Mới", bg: "bg-blue-50 dark:bg-blue-950/50", text: "text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800" },
-        { label: "Pháp lý", bg: "bg-slate-100 dark:bg-slate-800", text: "text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700" }
-      ],
-      project: newDocForm.project,
-      unitCode: newDocForm.unitCode,
-      customerName: newDocForm.customerName || "Nguyễn Văn A",
-      customerCode: newDocForm.customerCode,
-      version: "v1",
-      isCurrentVersion: true,
-      createdAt: new Date().toLocaleDateString('vi-VN') + " " + new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }),
-      createdByName: "Nguyễn Văn A",
-      status: newDocForm.status,
-      statusLabel: newDocForm.status === 'draft' ? 'Nháp' : newDocForm.status === 'pending_approval' ? 'Đang duyệt' : 'Đã ký số',
-      statusBadgeBg: newDocForm.status === 'draft' ? 'bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700' : 'bg-amber-50 dark:bg-amber-950/60 border-amber-200 dark:border-amber-800',
-      statusTextColor: newDocForm.status === 'draft' ? 'text-slate-700 dark:text-slate-300' : 'text-amber-700 dark:text-amber-400',
-      fileIconBg: "bg-rose-100 dark:bg-rose-950/50",
-      fileIconColor: "text-rose-600 dark:text-rose-400",
-      validityRange: "Theo điều khoản hợp đồng",
-      description: newDocForm.description || "Tài liệu khởi tạo mới từ giao diện Quản lý Hồ sơ Pháp lý.",
-      isMine: true,
-      versionsList: [
-        { version: "v1", createdAt: new Date().toLocaleDateString('vi-VN'), createdByName: "Nguyễn Văn A", note: "Khởi tạo bản thảo tài liệu mới", isCurrent: true, fileSize: newDocForm.fileSize }
-      ],
-      auditLogs: [
-        { id: `log-${Date.now()}`, time: new Date().toLocaleDateString('vi-VN') + " " + new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }), action: "Khởi tạo tài liệu", actor: "Nguyễn Văn A", role: "Quản trị viên", detail: "Đã tạo tài liệu mới lên hệ thống ERP" }
-      ]
-    };
-
-    setDocuments([newDocItem, ...documents]);
-    setSelectedDocId(docId);
-    setShowAddModal(false);
-    toast.success(`🎉 Đã tạo thành công hồ sơ pháp lý "${newDocItem.title}"!`);
-
-    // Reset Form
-    setNewDocForm({
-      title: "",
-      code: "",
-      type: "Hợp đồng mua bán",
-      project: "The Grand Tower",
-      unitCode: "CH-001",
-      customerName: "",
-      customerCode: "KH00999",
-      status: "draft",
-      description: "",
-      fileSize: "2.5 MB"
-    });
-  };
+  const handleCreateDocumentSubmit = (e: React.FormEvent) => { e.preventDefault(); unavailableLandAction("Lưu dữ liệu nghiệp vụ"); };
 
   const drawerTabs: Array<{ id: LegalDocumentDrawerTab; label: string }> = selectedDoc
     ? [
@@ -538,6 +479,7 @@ export default function LegalDocumentsOperationsCenterPage() {
 
   return (
     <div className="p-4 md:p-6 space-y-5 max-w-[1680px] mx-auto font-sans text-slate-900 dark:text-slate-100 pb-12">
+      <LandPreviewNotice />
       
       {/* ── 1. HEADER BANNER WITH ARCHITECTURAL WATERMARK (Matching Image 2) ── */}
       <div className="relative rounded-2xl overflow-hidden bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 p-5 md:p-6 shadow-xs">
@@ -803,8 +745,7 @@ export default function LegalDocumentsOperationsCenterPage() {
                 setFilterProject('all');
                 setFilterStatus('all');
                 setFilterOwner('all');
-                setSearch('');
-                toast.success('Đã đặt lại bộ lọc!');
+                setSearch(''); setFilterTime('all'); setActiveTabFilter('all');
               }}
               className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 transition"
               title="Đặt lại bộ lọc"
@@ -853,8 +794,8 @@ export default function LegalDocumentsOperationsCenterPage() {
           <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
             <button
               onClick={() => {
-                downloadCsvReport("Bao_Cao_Ho_So_Phap_Ly.csv", "Báo Cáo Hồ Sơ Pháp Lý Bella Land", ["DocCode", "Title", "Project", "Status"]);
-                toast.success("✅ Đã xuất file CSV báo cáo hồ sơ pháp lý thành công!");
+                unavailableLandAction("Xuất tài liệu nghiệp vụ");
+                unavailableLandAction("Thao tác lưu hoặc gửi dữ liệu");
               }}
               className="px-3.5 py-2 rounded-xl text-xs font-bold bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 shadow-2xs transition flex items-center gap-1.5"
             >
@@ -886,7 +827,7 @@ export default function LegalDocumentsOperationsCenterPage() {
                   <th className="p-3 w-10 text-center">
                     <input
                       type="checkbox"
-                      checked={selectedDocIds.length === filteredDocs.length && filteredDocs.length > 0}
+                      checked={filteredDocs.every(doc => selectedDocIds.includes(doc.id)) && filteredDocs.length > 0}
                       onChange={e => handleSelectAll(e.target.checked)}
                       className="rounded border-slate-300 dark:border-slate-700 text-blue-600 focus:ring-blue-500"
                     />
@@ -903,7 +844,7 @@ export default function LegalDocumentsOperationsCenterPage() {
               </thead>
 
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800/80 font-medium">
-                {filteredDocs.map((doc) => {
+                {pagination.rows.map((doc) => {
                   const isSelected = doc.id === selectedDocId;
                   const isChecked = selectedDocIds.includes(doc.id);
 
@@ -1015,7 +956,7 @@ export default function LegalDocumentsOperationsCenterPage() {
                                 onClick={() => {
                                   setSelectedDocId(doc.id);
                                   setActiveActionMenuId(null);
-                                  toast.success(`Đã mở chi tiết hồ sơ ${doc.code}`);
+                                  unavailableLandAction("Thao tác lưu hoặc gửi dữ liệu");
                                 }}
                                 className="w-full text-left px-3 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-2"
                               >
@@ -1025,8 +966,8 @@ export default function LegalDocumentsOperationsCenterPage() {
                               <button
                                 onClick={() => {
                                   setActiveActionMenuId(null);
-                                  downloadPdfReport(`${doc.code}.pdf`, doc.title, { Code: doc.code, Version: doc.version });
-                                  toast.success(`✅ Đã tải xuống ${doc.code}.pdf thành công!`);
+                                  unavailableLandAction("Xuất tài liệu nghiệp vụ");
+                                  unavailableLandAction("Thao tác lưu hoặc gửi dữ liệu");
                                 }}
                                 className="w-full text-left px-3 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-2"
                               >
@@ -1035,11 +976,7 @@ export default function LegalDocumentsOperationsCenterPage() {
 
                               {doc.status === 'pending_approval' && (
                                 <button
-                                  onClick={() => {
-                                    setDocuments(prev => prev.map(item => item.id === doc.id ? { ...item, status: 'approved', statusLabel: 'Đã duyệt', statusBadgeBg: 'bg-emerald-50 dark:bg-emerald-950/60 border-emerald-200 dark:border-emerald-800', statusTextColor: 'text-emerald-700 dark:text-emerald-400' } : item));
-                                    setActiveActionMenuId(null);
-                                    toast.success(`Đã phê duyệt tài liệu ${doc.code}!`);
-                                  }}
+                                  onClick={() => { unavailableLandAction("Phê duyệt hoặc cập nhật nghiệp vụ"); }}
                                   className="w-full text-left px-3 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-2 text-emerald-600 font-bold"
                                 >
                                   <ShieldCheck className="w-3.5 h-3.5" /> Phê duyệt
@@ -1048,11 +985,7 @@ export default function LegalDocumentsOperationsCenterPage() {
 
                               {doc.status === 'pending_signature' && (
                                 <button
-                                  onClick={() => {
-                                    setDocuments(prev => prev.map(item => item.id === doc.id ? { ...item, status: 'signed', statusLabel: 'Đã ký số', statusBadgeBg: 'bg-emerald-50 dark:bg-emerald-950/60 border-emerald-200 dark:border-emerald-800', statusTextColor: 'text-emerald-700 dark:text-emerald-400' } : item));
-                                    setActiveActionMenuId(null);
-                                    toast.success(`Ký số VNPT CA thành công cho ${doc.code}!`);
-                                  }}
+                                  onClick={() => { unavailableLandAction("Phê duyệt hoặc cập nhật nghiệp vụ"); }}
                                   className="w-full text-left px-3 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-2 text-purple-600 font-bold"
                                 >
                                   <FileSignature className="w-3.5 h-3.5" /> Ký số tài liệu
@@ -1062,7 +995,7 @@ export default function LegalDocumentsOperationsCenterPage() {
                               <button
                                 onClick={() => {
                                   setActiveActionMenuId(null);
-                                  toast.success(`Đã khởi tạo phiên bản mới v${parseInt(doc.version.replace('v', '')) + 1} cho ${doc.code}!`);
+                                  unavailableLandAction("Thao tác lưu hoặc gửi dữ liệu");
                                 }}
                                 className="w-full text-left px-3 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-2"
                               >
@@ -1072,7 +1005,7 @@ export default function LegalDocumentsOperationsCenterPage() {
                               <button
                                 onClick={() => {
                                   setActiveActionMenuId(null);
-                                  toast.error(`Đã hủy tài liệu ${doc.code}`);
+                                  unavailableLandAction("Hủy tài liệu");
                                 }}
                                 className="w-full text-left px-3 py-1.5 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/50 text-rose-600 flex items-center gap-2"
                               >
@@ -1098,40 +1031,7 @@ export default function LegalDocumentsOperationsCenterPage() {
           </div>
 
           {/* Table Footer Pagination Controls (Matching Image 2) */}
-          <div className="p-4 bg-slate-50/50 dark:bg-slate-800/40 border-t border-slate-200/80 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500 dark:text-slate-400 font-semibold">
-            <div>
-              Hiển thị 1 - {filteredDocs.length} của {kpis.total.toLocaleString('vi-VN')} tài liệu
-            </div>
-
-            <div className="flex items-center gap-2">
-              <div className="flex items-center gap-1">
-                <button className="p-1.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300">
-                  <ChevronLeft className="w-3.5 h-3.5" />
-                </button>
-                <button className="w-7 h-7 rounded-lg bg-blue-600 text-white font-bold flex items-center justify-center">1</button>
-                <button className="w-7 h-7 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 font-bold flex items-center justify-center">2</button>
-                <button className="w-7 h-7 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 font-bold flex items-center justify-center">3</button>
-                <button className="w-7 h-7 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 font-bold flex items-center justify-center">4</button>
-                <button className="w-7 h-7 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 font-bold flex items-center justify-center">5</button>
-                <span>...</span>
-                <button className="w-7 h-7 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 font-bold flex items-center justify-center">63</button>
-                <button className="p-1.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300">
-                  <ChevronRight className="w-3.5 h-3.5" />
-                </button>
-              </div>
-
-              <PremiumSelect
-                value="20"
-                onChange={() => {}}
-                className="w-32"
-                options={[
-                  { value: "20", label: "20 / trang" },
-                  { value: "50", label: "50 / trang" },
-                  { value: "100", label: "100 / trang" },
-                ]}
-              />
-            </div>
-          </div>
+          <div className="border-t border-slate-200 dark:border-slate-800"><LandPagination {...pagination} /><PremiumSelect value={pageSize} onChange={setPageSize} className="m-3 w-32" options={[{value:'5',label:'5 / trang'},{value:'8',label:'8 / trang'},{value:'10',label:'10 / trang'},{value:'20',label:'20 / trang'},{value:'50',label:'50 / trang'}]} /></div>
         </div>
 
         {/* RIGHT COLUMN: CHI TIẾT TÀI LIỆU DRAWER PANEL (4 COLS - Matching Image 2 Exact Layout) */}
@@ -1407,7 +1307,7 @@ export default function LegalDocumentsOperationsCenterPage() {
               {/* Drawer Bottom Action Buttons (Matching Image 2 Footer Actions) */}
               <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center gap-2 flex-wrap">
                 <button
-                  onClick={() => toast.success(`Đã mở trình xem tài liệu ${selectedDoc.code}`)}
+                  onClick={() => unavailableLandAction("Thao tác lưu hoặc gửi dữ liệu")}
                   className="flex-1 py-2 px-3 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-200 font-bold text-xs transition flex items-center justify-center gap-1.5"
                 >
                   <Eye className="w-3.5 h-3.5" /> Xem trước
@@ -1415,8 +1315,8 @@ export default function LegalDocumentsOperationsCenterPage() {
 
                 <button
                   onClick={() => {
-                    downloadPdfReport(`${selectedDoc.code}.pdf`, selectedDoc.title, { Code: selectedDoc.code, Project: selectedDoc.project });
-                    toast.success(`✅ Đã tải xuống file ${selectedDoc.code}.pdf thành công!`);
+                    unavailableLandAction("Xuất tài liệu nghiệp vụ");
+                    unavailableLandAction("Thao tác lưu hoặc gửi dữ liệu");
                   }}
                   className="flex-1 py-2 px-3 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-200 font-bold text-xs transition flex items-center justify-center gap-1.5"
                 >
@@ -1424,12 +1324,7 @@ export default function LegalDocumentsOperationsCenterPage() {
                 </button>
 
                 <button
-                  onClick={() => {
-                    if (typeof navigator !== 'undefined' && navigator.clipboard) {
-                      navigator.clipboard.writeText(window.location.href);
-                    }
-                    toast.success(`Đã sao chép liên kết tài liệu ${selectedDoc.code}!`);
-                  }}
+                  onClick={() => unavailableLandAction("Chia sẻ tài liệu chưa có liên kết đã xác minh")}
                   className="py-2 px-3.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-xs transition flex items-center justify-center gap-1.5"
                 >
                   <Share2 className="w-3.5 h-3.5" /> Chia sẻ

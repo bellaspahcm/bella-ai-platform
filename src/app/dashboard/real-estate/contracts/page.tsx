@@ -1,4 +1,5 @@
 "use client";
+import { downloadLandCsv, LandPreviewNotice, unavailableLandAction, LandPagination, useLandPagination, inDateRange } from "@/modules/real_estate/components/LandUiControls";
 
 import React, { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -362,9 +363,7 @@ export default function RealEstateContractsPage() {
   const [modalProject, setModalProject] = useState<string>('Elyse Island');
   const [paymentMethod, setPaymentMethod] = useState<string>('transfer');
 
-  const selectedContract = useMemo(() => {
-    return contracts.find(c => c.id === selectedContractId) || null;
-  }, [contracts, selectedContractId]);
+
 
   // Financial Operational KPIs (Exact matching Reference Image 1)
   const stats = useMemo(() => {
@@ -400,6 +399,11 @@ export default function RealEstateContractsPage() {
       if (urgencyFilter === 'waiting_signature' && c.status !== 'waiting_signature') return false;
 
       // Dropdowns
+      if (filterType !== 'all' && c.contractType !== filterType) return false;
+      if (!inDateRange(c.signedDate, filterDate)) return false;
+      if (domainTab === 'debt' && c.remainingValueVnd <= 0) return false;
+      if (domainTab === 'payment' && c.paidValueVnd <= 0) return false;
+      if (urgencyFilter === 'need_action' && !['overdue', 'warning', 'waiting_signature'].includes(c.status)) return false;
       if (filterProject !== 'all' && c.projectName !== filterProject) return false;
       if (filterStatus !== 'all' && c.status !== filterStatus) return false;
 
@@ -413,29 +417,11 @@ export default function RealEstateContractsPage() {
       }
       return true;
     });
-  }, [contracts, domainTab, urgencyFilter, filterProject, filterStatus, search]);
+  }, [contracts, domainTab, urgencyFilter, filterProject, filterStatus, filterType, filterDate, search]);
+  const pagination = useLandPagination(filteredContracts, Number(pageSize));
+  const selectedContract = pagination.rows.find(c => c.id === selectedContractId) || null;
 
-  const handleRecordPayment = () => {
-    if (!selectedContract) return;
-    setContracts(prev => prev.map(c => {
-      if (c.id !== selectedContract.id) return c;
-      return {
-        ...c,
-        paidValueVnd: c.paidValueVnd + 428000000,
-        remainingValueVnd: Math.max(0, c.remainingValueVnd - 428000000),
-        paidText: '1.71 tỷ',
-        remainingText: '2.57 tỷ',
-        paidPct: 40,
-        nextMilestoneAmount: '856 triệu',
-        nextMilestoneDate: '18/11/2026',
-        nextMilestoneDueText: 'Còn 68 ngày',
-        nextMilestoneStatus: 'normal',
-        paymentMilestones: c.paymentMilestones.map(m => m.status === 'due_soon' ? { ...m, status: 'paid', statusLabel: 'Đã thu' } : m)
-      };
-    }));
-    setShowPaymentModal(false);
-    toast.success(`✅ Đã ghi nhận thanh toán 428.000.000 ₫ cho hợp đồng ${selectedContract.contractNo}!`);
-  };
+  const handleRecordPayment = () => { unavailableLandAction("Ghi nhận thanh toán"); };
 
   const domainTabs: Array<{ id: ContractDomainTab; label: string }> = [
     { id: 'overview', label: 'Tổng quan' },
@@ -447,6 +433,7 @@ export default function RealEstateContractsPage() {
 
   return (
     <div className="p-6 md:p-8 space-y-6 max-w-[1600px] mx-auto font-sans text-slate-900 dark:text-slate-100 pb-12">
+      <LandPreviewNotice />
       {/* ── 1. Header Bar & Controls (Matching Image 1) ── */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
@@ -470,13 +457,13 @@ export default function RealEstateContractsPage() {
 
         <div className="flex items-center gap-2.5 shrink-0 flex-wrap">
           <PremiumSelect
-            value={headerProject}
-            onChange={setHeaderProject}
+            value={filterProject}
+            onChange={setFilterProject}
             className="w-44"
-            options={[
-              { value: "elyse", label: "🏢 Elyse Island" },
-              { value: "sunrise", label: "Sunrise Residence" },
-              { value: "lumiere", label: "Lumière Bay" },
+            options={[{ value: "all", label: "Tất cả dự án" },
+              { value: "Elyse Island", label: "🏢 Elyse Island" },
+              { value: "Sunrise Residence", label: "Sunrise Residence" },
+              { value: "Lumière Bay", label: "Lumière Bay" },
             ]}
           />
 
@@ -612,7 +599,7 @@ export default function RealEstateContractsPage() {
           ].map(filter => (
             <button
               key={filter.id}
-              onClick={() => setUrgencyFilter(filter.id)}
+              onClick={() => filter.id === "missing_docs" ? unavailableLandAction("Lọc hồ sơ hợp đồng chưa được đối chiếu") : setUrgencyFilter(filter.id)}
               className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 flex items-center gap-1 cursor-pointer ${
                 urgencyFilter === filter.id
                   ? 'bg-blue-600 text-white shadow-xs'
@@ -680,13 +667,13 @@ export default function RealEstateContractsPage() {
               ]}
             />
 
-            <button className="p-1.5 rounded-xl text-slate-500 border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100">
+            <button aria-label="Xóa bộ lọc" onClick={() => (setSearch(""), setFilterProject("all"), setFilterStatus("all"), setFilterType("all"), setFilterDate("all"), setDomainTab("overview"), setUrgencyFilter("all"))} className="p-1.5 rounded-xl text-slate-500 border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100">
               <Filter className="w-3.5 h-3.5" />
             </button>
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
-            <button className="flex items-center gap-1 px-3 py-1.5 text-xs font-bold text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-100">
+            <button onClick={() => downloadLandCsv("bella-land-hop-dong-minh-hoa.csv", filteredContracts.map(row => ({ "Mã": row.contractNo, "Dự án": row.projectName, "Trạng thái": row.status })))} className="flex items-center gap-1 px-3 py-1.5 text-xs font-bold text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-100">
               <Download className="w-3.5 h-3.5" /> Xuất
             </button>
           </div>
@@ -703,7 +690,7 @@ export default function RealEstateContractsPage() {
               <thead className="bg-slate-50/80 dark:bg-slate-800/80 border-b border-slate-100 dark:border-slate-800 text-[11px] font-black text-slate-400 uppercase tracking-wider">
                 <tr>
                   <th className="p-3.5 w-10 text-center whitespace-nowrap">
-                    <input type="checkbox" className="rounded text-blue-600 focus:ring-blue-500" />
+                    <span>Chọn</span>
                   </th>
                   <th className="p-3.5 whitespace-nowrap">SỐ HỢP ĐỒNG</th>
                   <th className="p-3.5 whitespace-nowrap">KHÁCH HÀNG</th>
@@ -723,7 +710,7 @@ export default function RealEstateContractsPage() {
                     </td>
                   </tr>
                 ) : (
-                  filteredContracts.map(contract => {
+                  pagination.rows.map(contract => {
                     const isSelected = selectedContractId === contract.id;
 
                     return (
@@ -738,7 +725,7 @@ export default function RealEstateContractsPage() {
                       >
                         <td className="p-3.5 text-center whitespace-nowrap" onClick={e => e.stopPropagation()}>
                           <input
-                            type="checkbox"
+                            type="radio" name="contracts-selection" aria-label="Chọn hàng"
                             checked={isSelected}
                             onChange={() => setSelectedContractId(contract.id)}
                             className="rounded text-blue-600 focus:ring-blue-500"
@@ -840,53 +827,7 @@ export default function RealEstateContractsPage() {
           </div>
 
           {/* Pagination Footer */}
-          <div className="p-4 border-t border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500 font-medium">
-            <div>
-              Hiển thị <span className="font-extrabold text-slate-900 dark:text-white">1 - 8</span> của <span className="font-extrabold text-slate-900 dark:text-white">186</span> hợp đồng
-            </div>
-
-            <div className="flex items-center gap-1 font-bold">
-              <button className="w-8 h-8 rounded-xl border border-slate-200 dark:border-slate-700 flex items-center justify-center hover:bg-slate-100">
-                ‹
-              </button>
-              <button className="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center shadow-xs">
-                1
-              </button>
-              <button className="w-8 h-8 rounded-xl border border-slate-200 dark:border-slate-700 flex items-center justify-center hover:bg-slate-100">
-                2
-              </button>
-              <button className="w-8 h-8 rounded-xl border border-slate-200 dark:border-slate-700 flex items-center justify-center hover:bg-slate-100">
-                3
-              </button>
-              <button className="w-8 h-8 rounded-xl border border-slate-200 dark:border-slate-700 flex items-center justify-center hover:bg-slate-100">
-                4
-              </button>
-              <button className="w-8 h-8 rounded-xl border border-slate-200 dark:border-slate-700 flex items-center justify-center hover:bg-slate-100">
-                5
-              </button>
-              <span className="px-1 text-slate-400">...</span>
-              <button className="w-8 h-8 rounded-xl border border-slate-200 dark:border-slate-700 flex items-center justify-center hover:bg-slate-100">
-                24
-              </button>
-              <button className="w-8 h-8 rounded-xl border border-slate-200 dark:border-slate-700 flex items-center justify-center hover:bg-slate-100">
-                ›
-              </button>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <span>Hiển thị</span>
-              <PremiumSelect
-                value={pageSize}
-                onChange={setPageSize}
-                className="w-28"
-                options={[
-                  { value: "8", label: "8 / trang" },
-                  { value: "20", label: "20 / trang" },
-                  { value: "50", label: "50 / trang" },
-                ]}
-              />
-            </div>
-          </div>
+          <div className="border-t border-slate-200 dark:border-slate-800"><LandPagination {...pagination} /><PremiumSelect value={pageSize} onChange={setPageSize} className="m-3 w-32" options={[{value:'5',label:'5 / trang'},{value:'8',label:'8 / trang'},{value:'10',label:'10 / trang'},{value:'20',label:'20 / trang'},{value:'50',label:'50 / trang'}]} /></div>
         </div>
 
         {/* Right Column: Contract & Collection Detail Drawer (Matching Image 1 Right Panel) */}
@@ -919,21 +860,21 @@ export default function RealEstateContractsPage() {
             {/* Quick Contract Document Actions */}
             <div className="flex items-center gap-2">
               <button
-                onClick={() => toast.success(`Đã mở trình xem Hợp đồng ${selectedContract.contractNo}`)}
+                onClick={() => unavailableLandAction("Thao tác lưu hoặc gửi dữ liệu")}
                 className="flex-1 px-3 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-blue-700 dark:text-blue-300 font-extrabold text-xs rounded-xl flex items-center justify-center gap-1.5 transition-all"
               >
                 <FileText className="w-3.5 h-3.5" /> Xem hợp đồng
               </button>
               <button
                 onClick={() => {
-                  downloadPdfReport(`HopDong_${selectedContract.contractNo}.pdf`, `Hợp Đồng ${selectedContract.contractNo}`, { Customer: selectedContract.customerName, Unit: selectedContract.unitCode });
-                  toast.success(`✅ Tải bộ hồ sơ HĐ ${selectedContract.contractNo} PDF thành công!`);
+                  unavailableLandAction("Xuất tài liệu nghiệp vụ");
+                  unavailableLandAction("Thao tác lưu hoặc gửi dữ liệu");
                 }}
                 className="flex-1 px-3 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300 font-extrabold text-xs rounded-xl flex items-center justify-center gap-1.5 transition-all"
               >
                 <Download className="w-3.5 h-3.5" /> Tải hồ sơ
               </button>
-              <button className="p-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 rounded-xl text-slate-500">
+              <button onClick={() => unavailableLandAction("Thao tác này")} className="p-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 rounded-xl text-slate-500">
                 <MoreVertical className="w-4 h-4" />
               </button>
             </div>
@@ -1023,7 +964,7 @@ export default function RealEstateContractsPage() {
             <div className="space-y-2 text-xs">
               <div className="flex items-center justify-between">
                 <h4 className="text-[11px] font-black text-slate-400 uppercase tracking-wider">LỊCH THANH TOÁN</h4>
-                <button className="text-[10px] font-bold text-blue-600 hover:underline">Xem tất cả</button>
+                <button onClick={() => unavailableLandAction("Thao tác này")} className="text-[10px] font-bold text-blue-600 hover:underline">Xem tất cả</button>
               </div>
 
               <div className="space-y-2">
@@ -1062,7 +1003,7 @@ export default function RealEstateContractsPage() {
               </button>
 
               <button
-                onClick={() => toast.success(`Đã phát hành Phiếu thu cho HĐ ${selectedContract.contractNo}!`)}
+                onClick={() => unavailableLandAction("Thao tác lưu hoặc gửi dữ liệu")}
                 className="w-full py-2 bg-blue-50 dark:bg-blue-950/40 hover:bg-blue-100 text-blue-700 dark:text-blue-300 font-extrabold text-xs rounded-xl transition-all flex items-center justify-center gap-1.5"
               >
                 Tạo phiếu thu
@@ -1070,13 +1011,13 @@ export default function RealEstateContractsPage() {
 
               <div className="grid grid-cols-2 gap-2">
                 <button
-                  onClick={() => toast.success(`Đã khởi tạo thủ tục chuyển nhượng cho HĐ ${selectedContract.contractNo}`)}
+                  onClick={() => unavailableLandAction("Thao tác lưu hoặc gửi dữ liệu")}
                   className="py-1.5 text-slate-600 dark:text-slate-400 font-bold text-xs hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl"
                 >
                   Chuyển nhượng
                 </button>
                 <button
-                  onClick={() => toast.error(`Cảnh báo thanh lý/hủy HĐ ${selectedContract.contractNo}`)}
+                  onClick={() => unavailableLandAction("Thanh lý / hủy hợp đồng")}
                   className="py-1.5 text-rose-600 font-bold text-xs hover:bg-rose-50 dark:hover:bg-rose-950/30 rounded-xl"
                 >
                   Hủy hợp đồng
@@ -1092,7 +1033,7 @@ export default function RealEstateContractsPage() {
         {showAddModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowAddModal(false)} className="absolute inset-0 bg-slate-950/60 backdrop-blur-sm" />
-            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="relative w-full max-w-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-2xl z-10 space-y-4">
+            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="max-h-[90vh] overflow-y-auto relative w-full max-w-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-2xl z-10 space-y-4">
               <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
                 <h3 className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2">
                   <FileText className="w-5 h-5 text-amber-500" /> Lập Hợp Đồng Mới
@@ -1100,7 +1041,7 @@ export default function RealEstateContractsPage() {
                 <button onClick={() => setShowAddModal(false)} className="p-1 text-slate-400 hover:text-slate-600"><X className="w-5 h-5" /></button>
               </div>
 
-              <form onSubmit={e => { e.preventDefault(); toast.success('✅ Đã lập hợp đồng mới thành công!'); setShowAddModal(false); }} className="space-y-3 text-xs">
+              <form onSubmit={e => { e.preventDefault(); unavailableLandAction("Thao tác lưu hoặc gửi dữ liệu"); setShowAddModal(false); }} className="space-y-3 text-xs">
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">Loại hợp đồng</label>
@@ -1164,7 +1105,7 @@ export default function RealEstateContractsPage() {
         {showPaymentModal && selectedContract && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowPaymentModal(false)} className="absolute inset-0 bg-slate-950/60 backdrop-blur-sm" />
-            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="relative w-full max-w-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-2xl z-10 space-y-4">
+            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="max-h-[90vh] overflow-y-auto relative w-full max-w-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-2xl z-10 space-y-4">
               <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
                 <h3 className="text-base font-black text-slate-900 dark:text-white flex items-center gap-2">
                   <DollarSign className="w-5 h-5 text-emerald-500" /> Ghi Nhận Thanh Toán Tiến Độ

@@ -16,6 +16,7 @@ import {
   Briefcase, Layers, Award, TrendingUp, ShieldCheck, Key, FileText,
   SlidersHorizontal, Sparkles, DollarSign, Globe, Check, Eye, MessageSquare
 } from 'lucide-react';
+import { LandPreviewNotice, unavailableLandAction } from "@/modules/real_estate/components/LandUiControls";
 import { toast } from 'sonner';
 import { PremiumSelect } from '@/components/ui/PremiumSelect';
 
@@ -357,45 +358,10 @@ export function PeopleDirectoryPage() {
     setSelectedIds(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
   };
 
-  const handleCreatePerson = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newPerson.fullName.trim()) {
-      toast.error('Vui lòng nhập họ và tên nhân sự');
-      return;
-    }
-    const created: PeopleItem = {
-      id: `p-${Date.now()}`,
-      code: `${newPerson.category === 'employee' ? 'NV' : newPerson.category === 'broker' ? 'MG' : 'AG'}-2026-${(peopleList.length + 1).toString().padStart(3, '0')}`,
-      fullName: newPerson.fullName,
-      category: newPerson.category,
-      categoryLabel: newPerson.category === 'employee' ? 'Nhân viên' : newPerson.category === 'broker' ? 'Môi giới' : newPerson.category === 'agency' ? 'Đại lý' : 'Đối tác',
-      branch: newPerson.branch,
-      department: newPerson.department,
-      team: 'Sales Team 01',
-      roleTitle: newPerson.roleTitle,
-      email: newPerson.email || 'nhansu@bellaland.vn',
-      phone: newPerson.phone || '0900 000 000',
-      managerName: 'Trần Quốc Huy',
-      assignedProjects: [newPerson.assignedProject],
-      leadsCount: 0,
-      dealsClosedCount: 0,
-      monthlyRevenue: 0,
-      conversionRate: 0,
-      slaScore: 100,
-      status: 'active',
-      statusLabel: 'Hoạt động',
-      governanceScope: `${newPerson.branch} • ${newPerson.department}`,
-      accessRole: `${newPerson.roleTitle} (Standard Scope)`,
-      joinedDate: new Date().toLocaleDateString('vi-VN')
-    };
-
-    setPeopleList([created, ...peopleList]);
-    setShowAddModal(false);
-    toast.success(`✅ Đã khởi tạo hồ sơ nhân sự [${created.fullName}] thành công!`);
-  };
+  const handleCreatePerson = (e: React.FormEvent) => { e.preventDefault(); unavailableLandAction("Tạo hồ sơ nhân sự"); };
 
   return (
-    <div className="p-6 md:p-8 space-y-6 max-w-[1600px] mx-auto font-sans text-slate-900 dark:text-slate-100">
+    <div className="p-6 md:p-8 space-y-6 max-w-[1600px] mx-auto font-sans text-slate-900 dark:text-slate-100"><LandPreviewNotice />
       
       {/* ── 1. HEADER BAR & CONTROLS ── */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
@@ -608,7 +574,7 @@ export function PeopleDirectoryPage() {
             </div>
 
             <button
-              onClick={() => toast.success('Đang xuất danh sách nhân sự ra tập tin Excel...')}
+              onClick={() => unavailableLandAction("Thao tác nhân sự")}
               className="flex items-center gap-1 px-3 py-1.5 text-xs font-bold text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-100"
             >
               <Download className="w-3.5 h-3.5" /> Xuất Excel
@@ -668,7 +634,7 @@ export function PeopleDirectoryPage() {
                 <thead className="bg-slate-50/80 dark:bg-slate-800/80 border-b border-slate-100 dark:border-slate-800 text-[11px] font-black text-slate-400 uppercase tracking-wider">
                   <tr>
                     <th className="p-3.5 w-10 text-center">
-                      <input type="checkbox" onChange={handleSelectAll} checked={selectedIds.length === filteredPeople.length} className="rounded text-blue-600" />
+                      <input type="checkbox" onChange={handleSelectAll} checked={filteredPeople.length > 0 && filteredPeople.every(person => selectedIds.includes(person.id))} className="rounded text-blue-600" />
                     </th>
                     <th className="p-3.5 whitespace-nowrap">Nhân sự</th>
                     <th className="p-3.5 whitespace-nowrap">Đơn vị / Chi nhánh</th>
@@ -974,7 +940,7 @@ export function PeopleDirectoryPage() {
                   type="button"
                   onClick={() => {
                     setShowImportModal(false);
-                    toast.success('✅ Đã nhập 14 hồ sơ nhân sự mới từ file Excel thành công!');
+                    unavailableLandAction("Thao tác nhân sự");
                   }}
                   className="px-4 py-2 text-xs font-black text-white bg-blue-600 rounded-xl hover:bg-blue-700 shadow-xs"
                 >

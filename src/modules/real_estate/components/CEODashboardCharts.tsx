@@ -39,28 +39,32 @@ interface CEODashboardChartsProps {
   deliveredCount: number;
   selectedProjectName?: string;
   selectedPeriod?: string;
+  selectedProjectId?: string;
+  units?: { id: string; product_code: string | null; floor: string | null; status: string | null }[];
 }
 
 export const CEODashboardCharts: React.FC<CEODashboardChartsProps> = ({
-  totalProductsCount = 286,
-  availableCount = 119,
-  reservedCount = 24,
-  depositedCount = 31,
-  signedCount = 78,
-  paidCount = 9,
-  deliveredCount = 25,
+  totalProductsCount = 0,
+  availableCount = 0,
+  reservedCount = 0,
+  depositedCount = 0,
+  signedCount = 0,
+  paidCount = 0,
+  deliveredCount = 0,
   selectedProjectName = 'Tất cả dự án',
   selectedPeriod = 'Tháng 7/2026',
+  selectedProjectId,
+  units = [],
 }) => {
   const router = useRouter();
-  const [selectedFloor, setSelectedFloor] = useState<string>('Tầng 5');
+  const [selectedFloor, setSelectedFloor] = useState<string>('all');
   const [selectedTrendPeriod, setSelectedTrendPeriod] = useState<string>('6 tháng gần nhất');
   const [selectedFunnelMonth, setSelectedFunnelMonth] = useState<string>('Tháng 7/2026');
   const [selectedLeaderboardMonth, setSelectedLeaderboardMonth] = useState<string>('Tháng 7/2026');
 
   // Calculated Absorption Rate
   const totalOccupied = depositedCount + signedCount + paidCount + deliveredCount;
-  const absorptionRate = totalProductsCount > 0 ? ((totalOccupied / totalProductsCount) * 100).toFixed(1) : '58.3';
+  const absorptionRate = totalProductsCount > 0 ? ((totalOccupied / totalProductsCount) * 100).toFixed(1) : '0.0';
 
   // Revenue & Cashflow Monthly Data (Billions VND)
   const monthlyData = [
@@ -103,20 +107,10 @@ export const CEODashboardCharts: React.FC<CEODashboardChartsProps> = ({
     { id: 5, count: 4, badgeBg: 'bg-blue-600 text-white', title: '4 Hồ sơ bàn giao thiếu tài liệu', action: 'Cần bổ sung', border: 'border-blue-200 hover:border-blue-400', route: '/dashboard/real-estate/documents' },
   ];
 
-  // Dynamic Unit Floor Matrix Generator based on selectedFloor
-  const floorNum = selectedFloor.replace(/\D/g, '') || '5';
-  const floorUnits = [
-    { code: `CH-${floorNum}01`, status: 'available', label: 'Tự do', bg: 'bg-emerald-50 text-emerald-700 border-emerald-300 hover:bg-emerald-100', dot: 'bg-emerald-500' },
-    { code: `CH-${floorNum}02`, status: 'booked', label: 'Giữ chỗ', bg: 'bg-amber-50 text-amber-700 border-amber-300 hover:bg-amber-100', dot: 'bg-amber-500' },
-    { code: `CH-${floorNum}03`, status: 'deposited', label: 'Đã cọc', bg: 'bg-orange-50 text-orange-700 border-orange-300 hover:bg-orange-100', dot: 'bg-orange-500' },
-    { code: `CH-${floorNum}04`, status: 'contracted', label: 'Ký HĐMB', bg: 'bg-purple-50 text-purple-700 border-purple-300 hover:bg-purple-100', dot: 'bg-purple-600' },
-    { code: `CH-${floorNum}05`, status: 'available', label: 'Tự do', bg: 'bg-emerald-50 text-emerald-700 border-emerald-300 hover:bg-emerald-100', dot: 'bg-emerald-500' },
-    { code: `CH-${floorNum}06`, status: 'paid', label: 'Thanh toán', bg: 'bg-blue-50 text-blue-700 border-blue-300 hover:bg-blue-100', dot: 'bg-blue-600' },
-    { code: `CH-${floorNum}07`, status: 'handed_over', label: 'Bàn giao', bg: 'bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-200', dot: 'bg-slate-500' },
-    { code: `CH-${floorNum}08`, status: 'available', label: 'Tự do', bg: 'bg-emerald-50 text-emerald-700 border-emerald-300 hover:bg-emerald-100', dot: 'bg-emerald-500' },
-    { code: `CH-${floorNum}09`, status: 'deposited', label: 'Đã cọc', bg: 'bg-orange-50 text-orange-700 border-orange-300 hover:bg-orange-100', dot: 'bg-orange-500' },
-    { code: `CH-${floorNum}10`, status: 'available', label: 'Tự do', bg: 'bg-emerald-50 text-emerald-700 border-emerald-300 hover:bg-emerald-100', dot: 'bg-emerald-500' },
-  ];
+  const floors = Array.from(new Set(units.map(unit => unit.floor || 'Chưa cập nhật'))).sort();
+  const effectiveFloor = floors.includes(selectedFloor) ? selectedFloor : 'all';
+  const floorUnits = units.filter(unit => effectiveFloor === 'all' || (unit.floor || 'Chưa cập nhật') === effectiveFloor);
+  const inventoryHref = '/dashboard/real-estate/apartments' + (selectedProjectId ? '?projectId=' + encodeURIComponent(selectedProjectId) : '');
 
   // Recent Activity Feed
   const recentActivities = [
@@ -128,7 +122,7 @@ export const CEODashboardCharts: React.FC<CEODashboardChartsProps> = ({
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6"><aside role="note" className="rounded-xl border border-amber-300 p-4 text-sm text-amber-900 dark:text-amber-200">Kho căn và ma trận bên dưới dùng dữ liệu dự án đang chọn. Doanh thu, dòng tiền, phễu bán hàng, xếp hạng, công việc cần chú ý và lịch sử hoạt động là dữ liệu minh họa, chưa được xác minh.</aside>
       {/* 1. TOP EXECUTIVE METRIC CARDS (4 CARDS) */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Card 1: Doanh thu HĐMB */}
@@ -224,7 +218,7 @@ export const CEODashboardCharts: React.FC<CEODashboardChartsProps> = ({
               </div>
 
               <div className="flex items-center gap-3">
-                <PremiumSelect
+                <PremiumSelect disabled
                   value={selectedTrendPeriod}
                   onChange={(val) => setSelectedTrendPeriod(val)}
                   options={[
@@ -371,7 +365,7 @@ export const CEODashboardCharts: React.FC<CEODashboardChartsProps> = ({
               <Activity className="w-5 h-5 text-blue-600" />
               Phễu chuyển đổi Lead & Bán hàng
             </h3>
-            <PremiumSelect
+            <PremiumSelect disabled
               value={selectedFunnelMonth}
               onChange={(val) => setSelectedFunnelMonth(val)}
               options={[
@@ -401,13 +395,13 @@ export const CEODashboardCharts: React.FC<CEODashboardChartsProps> = ({
         {/* Right 1/2: Inventory Breakdown Donut & List */}
         <div className="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 shadow-xs">
           {(() => {
-            const totalCount = totalProductsCount || 286;
-            const pctAvail = totalCount > 0 ? (availableCount / totalCount) * 100 : 41.6;
-            const pctRes = totalCount > 0 ? (reservedCount / totalCount) * 100 : 8.4;
-            const pctDep = totalCount > 0 ? (depositedCount / totalCount) * 100 : 10.8;
-            const pctSig = totalCount > 0 ? (signedCount / totalCount) * 100 : 27.3;
-            const pctPaid = totalCount > 0 ? (paidCount / totalCount) * 100 : 3.1;
-            const pctDel = totalCount > 0 ? (deliveredCount / totalCount) * 100 : 8.7;
+            const totalCount = totalProductsCount;
+            const pctAvail = totalCount > 0 ? (availableCount / totalCount) * 100 : 0;
+            const pctRes = totalCount > 0 ? (reservedCount / totalCount) * 100 : 0;
+            const pctDep = totalCount > 0 ? (depositedCount / totalCount) * 100 : 0;
+            const pctSig = totalCount > 0 ? (signedCount / totalCount) * 100 : 0;
+            const pctPaid = totalCount > 0 ? (paidCount / totalCount) * 100 : 0;
+            const pctDel = totalCount > 0 ? (deliveredCount / totalCount) * 100 : 0;
 
             const offsetAvail = 0;
             const offsetRes = -pctAvail;
@@ -439,7 +433,8 @@ export const CEODashboardCharts: React.FC<CEODashboardChartsProps> = ({
                           #f97316 ${(pctAvail + pctRes).toFixed(2)}% ${(pctAvail + pctRes + pctDep).toFixed(2)}%,
                           #9333ea ${(pctAvail + pctRes + pctDep).toFixed(2)}% ${(pctAvail + pctRes + pctDep + pctSig).toFixed(2)}%,
                           #2563eb ${(pctAvail + pctRes + pctDep + pctSig).toFixed(2)}% ${(pctAvail + pctRes + pctDep + pctSig + pctPaid).toFixed(2)}%,
-                          #94a3b8 ${(pctAvail + pctRes + pctDep + pctSig + pctPaid).toFixed(2)}% 100%
+                          #94a3b8 ${(pctAvail + pctRes + pctDep + pctSig + pctPaid).toFixed(2)}% ${(pctAvail + pctRes + pctDep + pctSig + pctPaid + pctDel).toFixed(2)}%,
+                          #e2e8f0 ${(pctAvail + pctRes + pctDep + pctSig + pctPaid + pctDel).toFixed(2)}% 100%
                         )`
                       }}
                     >
@@ -512,7 +507,7 @@ export const CEODashboardCharts: React.FC<CEODashboardChartsProps> = ({
               Bảng xếp hạng Sale
             </h3>
             <div className="flex items-center gap-2">
-              <PremiumSelect
+              <PremiumSelect disabled
                 value={selectedLeaderboardMonth}
                 onChange={(val) => setSelectedLeaderboardMonth(val)}
                 options={[
@@ -581,13 +576,13 @@ export const CEODashboardCharts: React.FC<CEODashboardChartsProps> = ({
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <h4 className="font-black text-sm text-slate-900 dark:text-white">Elyse Island</h4>
+                  <h4 className="font-black text-sm text-slate-900 dark:text-white">{selectedProjectName}</h4>
                   <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
-                    Đang triển khai
+                    Trạng thái: Chưa xác minh
                   </span>
                 </div>
                 <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 flex items-center gap-1 mt-0.5">
-                  <MapPin className="w-3.5 h-3.5 text-rose-500" /> Shophouse Marina, TP. Nha Trang
+                  <MapPin className="w-3.5 h-3.5 text-rose-500" /> Vị trí: Chưa xác minh
                 </p>
               </div>
             </div>
@@ -596,7 +591,7 @@ export const CEODashboardCharts: React.FC<CEODashboardChartsProps> = ({
             <div className="grid grid-cols-3 gap-2.5 text-center mb-4">
               <div className="p-2.5 rounded-xl bg-slate-100/70 dark:bg-slate-800/50">
                 <span className="text-[10px] font-bold text-slate-500 uppercase block">Tổng số căn</span>
-                <span className="text-base font-black text-slate-900 dark:text-white font-mono mt-0.5 block">286</span>
+                <span className="text-base font-black text-slate-900 dark:text-white font-mono mt-0.5 block">{totalProductsCount}</span>
               </div>
               <div className="p-2.5 rounded-xl bg-slate-100/70 dark:bg-slate-800/50">
                 <span className="text-[10px] font-bold text-slate-500 uppercase block">Giá bán bình quân</span>
@@ -604,7 +599,7 @@ export const CEODashboardCharts: React.FC<CEODashboardChartsProps> = ({
               </div>
               <div className="p-2.5 rounded-xl bg-slate-100/70 dark:bg-slate-800/50">
                 <span className="text-[10px] font-bold text-slate-500 uppercase block">Tỷ lệ hấp thụ</span>
-                <span className="text-base font-black text-emerald-600 font-mono mt-0.5 block">58.3%</span>
+                <span className="text-base font-black text-emerald-600 font-mono mt-0.5 block">{absorptionRate}%</span>
               </div>
             </div>
 
@@ -638,57 +633,10 @@ export const CEODashboardCharts: React.FC<CEODashboardChartsProps> = ({
       {/* 5. ROW 4: UNIT MATRIX BY FLOOR (1/2) + RECENT ACTIVITY (1/2) */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Left 1/2: Unit Matrix Grid */}
-        <div className="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 shadow-xs">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
-            <h3 className="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
-              <Layers className="w-5 h-5 text-indigo-600" />
-              Sơ đồ ma trận căn hộ theo tầng
-            </h3>
-            <PremiumSelect
-              value={selectedFloor}
-              onChange={(val) => setSelectedFloor(val)}
-              options={[
-                { value: "Tầng 5", label: "Tầng 5" },
-                { value: "Tầng 4", label: "Tầng 4" },
-                { value: "Tầng 3", label: "Tầng 3" },
-                { value: "Tầng 2", label: "Tầng 2" },
-                { value: "Tầng 1", label: "Tầng 1" },
-              ]}
-            />
-          </div>
-
-          {/* Status Legend Pills */}
-          <div className="flex flex-wrap items-center gap-3 text-[11px] font-bold text-slate-600 dark:text-slate-400 mb-4 pb-3 border-b border-slate-100 dark:border-slate-800">
-            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-emerald-500" /> Tự do</span>
-            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-amber-500" /> Giữ chỗ</span>
-            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-orange-500" /> Đã cọc</span>
-            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-purple-600" /> Ký HĐMB</span>
-            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-blue-600" /> Thanh toán</span>
-            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-slate-500" /> Bàn giao</span>
-          </div>
-
-          {/* 10 Unit Cards Matrix */}
-          <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
-            {floorUnits.map((u, i) => (
-              <button
-                key={i}
-                type="button"
-                onClick={() => {
-                  toast.info(`Đang mở quản lý căn ${u.code} (${u.label})`);
-                  router.push('/dashboard/real-estate/apartments');
-                }}
-                className={`p-3 rounded-xl border flex flex-col items-center justify-center text-center transition-all cursor-pointer hover:scale-105 active:scale-95 text-left ${u.bg}`}
-                title={`Click để xem chi tiết căn ${u.code} (${u.label})`}
-              >
-                <span className="font-mono font-black text-sm text-slate-900 dark:text-white">{u.code}</span>
-                <span className="flex items-center gap-1 text-[10px] font-bold mt-1">
-                  <span className={`w-1.5 h-1.5 rounded-full ${u.dot}`} />
-                  {u.label}
-                </span>
-              </button>
-            ))}
-          </div>
-        </div>
+        <section aria-label="Ma trận kho căn" className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 space-y-4">
+<h3 className="font-bold">Sơ đồ ma trận căn hộ theo tầng</h3><PremiumSelect value={effectiveFloor} onChange={setSelectedFloor} ariaLabel="Tầng ma trận tổng quan" options={[{value:'all',label:'Tất cả tầng'},...floors.map(floor => ({value:floor,label:'Tầng '+floor}))]} />
+<div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5">{floorUnits.map(unit => <button key={unit.id} onClick={() => router.push(inventoryHref)} title="Mở kho căn của dự án" className="rounded-xl border p-3 text-left"><strong>{unit.product_code || 'Chưa cập nhật mã căn'}</strong><p className="text-xs">{unit.status || 'Chưa cập nhật trạng thái'}</p></button>)}</div>{floorUnits.length === 0 && <p>Chưa có căn hộ phù hợp.</p>}
+<a className="underline text-sm" href={inventoryHref}>Mở kho căn dự án</a></section>
 
         {/* Right 1/2: Recent Activity Feed */}
         <div className="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 shadow-xs">

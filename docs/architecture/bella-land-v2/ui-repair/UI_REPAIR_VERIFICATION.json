@@ -1,0 +1,148 @@
+{
+  "recordType": "DIRECT_IDE_UI_VERIFICATION",
+  "recordedAt": "2026-10-18T01:23:31.506Z",
+  "branch": "codex/bella-land-agent-flow",
+  "head": "38934855d7405422f77e26554839732bbaef904b",
+  "fingerprintAlgorithm": "SHA256(JSON.stringify(sorted [{path,sha256}]))",
+  "sourceFingerprint": "62fcba014cbbde52885a3e7c8e3b3da6e7953aad381f846efaa0c4e07b2511f5",
+  "sourceSnapshotTiming": "Captured after the reported verification; no UI source edits follow the successful test run.",
+  "files": [
+    {
+      "path": "src/app/dashboard/real-estate/__tests__/agent-flow-read-truth.test.tsx",
+      "sha256": "53ca6248e55d5e45b1724ec1e5adfab74c019c72af9ce4873c714f6af83e14d6"
+    },
+    {
+      "path": "src/app/dashboard/real-estate/__tests__/ui-controls.test.tsx",
+      "sha256": "8eeb41cb408b5208411bd4934be9475fc3f645b9581126c11bc522d3a0855956"
+    },
+    {
+      "path": "src/app/dashboard/real-estate/admin/page.tsx",
+      "sha256": "3e138488f8d5d67635dae2bad0e7903179706874883d328b1bd48d82d0c1bf54"
+    },
+    {
+      "path": "src/app/dashboard/real-estate/apartments/page.tsx",
+      "sha256": "d521698eb165afcd6d94658db9af2e9b29c61f6289ff6cb64a562c9577f392d8"
+    },
+    {
+      "path": "src/app/dashboard/real-estate/bi-analytics/page.tsx",
+      "sha256": "8db44ab624add1f0a26b2703388de009b865cb00a0824650c9942fa61499a24d"
+    },
+    {
+      "path": "src/app/dashboard/real-estate/contracts/page.tsx",
+      "sha256": "82541947ff92194d9534a0e8323a4f6339657fff688f2f1e39f87dc15d1a5206"
+    },
+    {
+      "path": "src/app/dashboard/real-estate/customers/page.tsx",
+      "sha256": "ea73ba43f662f60748e6a11d0a5c1a0a146344254236a184340f744130c43838"
+    },
+    {
+      "path": "src/app/dashboard/real-estate/documents/page.tsx",
+      "sha256": "3645590ce15fd33d8149c256e0ac53b071004caf42ec3b3af6d6332d7fa46ea4"
+    },
+    {
+      "path": "src/app/dashboard/real-estate/global-search/page.tsx",
+      "sha256": "416400b6855c5568bf895fa3978e13f8143e3517c97e13b9acd389af7fb59c73"
+    },
+    {
+      "path": "src/app/dashboard/real-estate/leads/page.tsx",
+      "sha256": "fe3fdaf09597d1d00e841356df2556098d28369a4f53880333d53f40cd8a4865"
+    },
+    {
+      "path": "src/app/dashboard/real-estate/marketing/page.tsx",
+      "sha256": "db7737ffd6a92dab644a85343cd23ae26a11a9111c68667250ac32bd9ce69f8c"
+    },
+    {
+      "path": "src/app/dashboard/real-estate/page.tsx",
+      "sha256": "ed1fb0ece0866605bf8d33a82f78ea0599ee0e4bfc51e7c1ecf1a9d82c259bc4"
+    },
+    {
+      "path": "src/app/dashboard/real-estate/projects/page.tsx",
+      "sha256": "4f337a64905d99886e78744d2e97482bc1b43bf342c7a042e5c38d221fe1828a"
+    },
+    {
+      "path": "src/app/dashboard/real-estate/reports/page.tsx",
+      "sha256": "77dfd002e55866d77cd1e2b30366492e454a6bf0ebddace9bc9410c8bbf4915d"
+    },
+    {
+      "path": "src/app/dashboard/real-estate/schedules/page.tsx",
+      "sha256": "ce07b7cce16fb2b0277ac7fd23d57a93a5e3a54b0c21a7284cf38deff4ca93b4"
+    },
+    {
+      "path": "src/app/dashboard/real-estate/support/page.tsx",
+      "sha256": "c34ef5353e637dd880481f30028b7954c1a301645db6ca0ccb9c0773830d0e18"
+    },
+    {
+      "path": "src/modules/real_estate/components/CEODashboardCharts.tsx",
+      "sha256": "e40d8699ecdd1ec694ab863774afd8fd87276a90d87157c56d2c5f6e08412c4a"
+    },
+    {
+      "path": "src/modules/real_estate/components/HRDirectoryPage.tsx",
+      "sha256": "260f5a1f5642019c0587ae01d15c4de037d6473cea7089eaed34bd30f439df3b"
+    },
+    {
+      "path": "src/modules/real_estate/components/LandUiControls.tsx",
+      "sha256": "43afdcfefe3a67dd4fda7811fae83924a581fd94f21713e7dc93d401368aa0a8"
+    },
+    {
+      "path": "src/modules/real_estate/components/OrgChartPage.tsx",
+      "sha256": "11cd9a14a682e5fc6a22c1fb41f53a849b3094461150ca0af24f6474e48108dc"
+    },
+    {
+      "path": "src/modules/real_estate/components/PeopleDirectoryPage.tsx",
+      "sha256": "5474830ba6c8eef8107940ead98badc54ffacd03169f1ffc40b088cdfcd8f3b6"
+    }
+  ],
+  "verification": {
+    "jest": {
+      "command": "node node_modules/jest/bin/jest.js --config scripts/agent-flow/land-jest.config.cjs --runInBand --no-cache --testMatch '**/src/app/dashboard/real-estate/__tests__/*.test.tsx'",
+      "exitCode": 0,
+      "suites": 2,
+      "passed": 60,
+      "failed": 0,
+      "skipped": 0,
+      "elapsedSeconds": 26.848
+    },
+    "types": {
+      "method": "TypeScript createProgram with repository compiler options; syntactic and semantic diagnostics for 17 route pages and 5 product-local presentation components; no emit/incremental writes",
+      "files": 22,
+      "errors": 0,
+      "exitCode": 0
+    },
+    "lint": {
+      "files": 25,
+      "errors": 0,
+      "warnings": 7,
+      "warningRule": "@next/next/no-img-element",
+      "exitCode": 0
+    },
+    "navigation": {
+      "scope": "Static dashboard destinations referenced by route/page components",
+      "routesInspected": 17,
+      "destinationsChecked": 11,
+      "missingDestinations": 0
+    },
+    "diffCheck": {
+      "exitCode": 0
+    },
+    "sourceReview": {
+      "scope": "Eight final navigation/read-state/query/preview findings",
+      "reviewer": "Independent read-only IDE collaborator",
+      "decision": "CLEAR",
+      "nativeManagedReview": false
+    }
+  },
+  "limits": {
+    "businessBoundaryMocks": true,
+    "databaseConnection": false,
+    "databaseWrite": false,
+    "migration": false,
+    "rlsOrGrantsChange": false,
+    "nativeTaskResume": false,
+    "oldEvidenceRewritten": false,
+    "browserE2E": "NOT_PROVEN",
+    "realDBRLSConcurrency": "NOT_PROVEN",
+    "agentFlowNativeMVP": "NOT_PROVEN",
+    "sealedOnMain": false,
+    "goLive": "NOT_READY"
+  }
+}

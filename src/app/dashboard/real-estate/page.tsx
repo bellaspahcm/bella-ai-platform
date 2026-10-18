@@ -1,13 +1,11 @@
 'use client';
 /* Quản lý Bảng Hàng Căn Hộ & Dự Án Bất Động Sản - Bella Land V2 */
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { Bell, RefreshCw, Zap, AlertTriangle, FileSignature } from 'lucide-react';
 import { toast } from 'sonner';
-import { ProjectHeader } from '@/modules/real_estate/components/ProjectHeader';
-import { InventoryMatrixGrid } from '@/modules/real_estate/components/InventoryMatrixGrid';
 import { fetchProjectsAction } from '@/modules/real_estate/actions/projectActions';
-import { fetchProductsAction, updateProductStatusAction, updateProductDetailsAction } from '@/modules/real_estate/actions/productActions';
+import { fetchProductsAction } from '@/modules/real_estate/actions/productActions';
 import { Database } from '@/types/database.types';
 import { useUser } from '@/lib/user-context';
 import { useTenantContext } from '@/core/hooks/useTenantContext';
@@ -16,12 +14,13 @@ type ProjectRow = Database['public']['Tables']['real_estate_projects']['Row'];
 type ProductRow = Database['public']['Tables']['real_estate_products']['Row'];
 
 import { CEODashboardCharts } from '@/modules/real_estate/components/CEODashboardCharts';
-import { PremiumProjectSelector } from '@/modules/real_estate/components/PremiumProjectSelector';
 
 export default function RealEstateDashboardPage() {
   const { user } = useUser();
   const tenantContext = useTenantContext();
 
+  const requestId = useRef(0);
+  const selectedProjectId = useRef<string | null>(null);
   const [projects, setProjects] = useState<ProjectRow[]>([]);
   const [selectedProject, setSelectedProject] = useState<ProjectRow | null>(null);
   const [products, setProducts] = useState<ProductRow[]>([]);
@@ -38,6 +37,8 @@ export default function RealEstateDashboardPage() {
   };
 
   // States for notifications & dropdowns
+  const notificationVersion = useRef(0);
+  const [notificationError, setNotificationError] = useState<string | null>(null);
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [unreadCount, setUnreadCount] = useState<number>(0);
   const [showNotifDropdown, setShowNotifDropdown] = useState<boolean>(false);
@@ -47,6 +48,7 @@ export default function RealEstateDashboardPage() {
   const [showUserDropdown, setShowUserDropdown] = useState<boolean>(false);
 
   const fetchNotifications = useCallback(async () => {
+    const version = ++notificationVersion.current;
     try {
       const { createClient } = await import('@/lib/supabase-client');
       const supabase = createClient();
@@ -56,159 +58,91 @@ export default function RealEstateDashboardPage() {
         .order('created_at', { ascending: false })
         .limit(5);
 
+      if (version !== notificationVersion.current) return;
+      if (error) throw new Error("NOTIFICATION_READ_FAILED");
+      setNotificationError(null);
       if (data) {
         setNotifications(data as AppNotification[]);
         setUnreadCount(data.filter((n) => !n.is_read).length);
       }
     } catch (err: unknown) {
-      console.error('Error fetching notifications:', err);
+      if (version === notificationVersion.current) { setNotifications([]); setUnreadCount(0); setNotificationError("Không thể tải thông báo."); }
     }
   }, []);
 
-  const handleToggleNotifications = async () => {
-    setShowNotifDropdown(!showNotifDropdown);
-    if (!showNotifDropdown && unreadCount > 0) {
-      try {
-        const { createClient } = await import('@/lib/supabase-client');
-        const supabase = createClient();
-        await supabase
-          .from('app_notifications')
-          .update({ is_read: true })
-          .eq('is_read', false);
-        setUnreadCount(0);
-      } catch (err: unknown) {
-        console.error('Error marking notifications as read:', err);
-      }
-    }
-  };
+  const handleToggleNotifications = () => setShowNotifDropdown(open => !open);
+
+  const readProducts = useCallback(async (project: ProjectRow, request: number) => {
+    const result = await fetchProductsAction(project.id);
+    if (request !== requestId.current) return;
+    if (!result.success || !result.data) throw new Error(result.error || 'Không thể tải căn hộ');
+    const rows = Array.isArray(result.data) ? result.data : [result.data];
+    setProducts(rows.filter(row => row.project_id === project.id));
+  }, []);
 
   const loadData = useCallback(async () => {
+    const request = ++requestId.current;
+    setIsLoading(true);
+    setError(null);
+    setProducts([]);
+    setSelectedProject(null);
+    setProjects([]);
     try {
-      setIsLoading(true);
-      setError(null);
-
-      // 1. Fetch projects
-      const resProjects = await fetchProjectsAction();
-      if (!resProjects.success || !resProjects.data) {
-        throw new Error(resProjects.error || 'Failed to load real estate projects');
-      }
-
-      const projectList = Array.isArray(resProjects.data) ? resProjects.data : [resProjects.data];
-      setProjects(projectList);
-
-      const currentProj = projectList[0] || null;
-      setSelectedProject(currentProj);
-
-      // 2. Fetch products if project exists
-      if (currentProj) {
-        const resProducts = await fetchProductsAction(currentProj.id);
-        if (resProducts.success && resProducts.data) {
-          setProducts(Array.isArray(resProducts.data) ? resProducts.data : [resProducts.data]);
-        }
-      }
+      const result = await fetchProjectsAction();
+      if (request !== requestId.current) return;
+      if (!result.success || !result.data) throw new Error(result.error || 'Không thể tải dự án');
+      const list = Array.isArray(result.data) ? result.data : [result.data];
+      setProjects(list);
+      const requestedId = selectedProjectId.current ?? new URLSearchParams(window.location.search).get('projectId');
+      const project = requestedId !== null ? list.find(item => item.id === requestedId) : list[0];
+      if (requestedId !== null && !project) throw new Error('Dự án không khả dụng trong danh sách được truy cập');
+      setSelectedProject(project || null);
+      selectedProjectId.current = project?.id ?? null;
+      if (project) await readProducts(project, request);
     } catch (err: unknown) {
-      console.error('[RealEstateDashboardPage] Error:', err);
-      setError(err instanceof Error ? err.message : 'System error loading Real Estate module');
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  const handleRefresh = async () => {
-    try {
-      setIsRefreshing(true);
-      setError(null);
-
-      // Fetch projects
-      const resProjects = await fetchProjectsAction();
-      if (!resProjects.success || !resProjects.data) {
-        throw new Error(resProjects.error || 'Failed to load real estate projects');
+      if (request === requestId.current) {
+        setProducts([]);
+        setError(err instanceof Error ? err.message : 'Không thể tải dữ liệu');
       }
-
-      const projectList = Array.isArray(resProjects.data) ? resProjects.data : [resProjects.data];
-      setProjects(projectList);
-
-      // Get current selected project id to restore selection
-      const currentProjId = selectedProject?.id || projectList[0]?.id || null;
-      const matchedProj = projectList.find(p => p.id === currentProjId) || projectList[0] || null;
-      setSelectedProject(matchedProj);
-
-      // Fetch products
-      if (matchedProj) {
-        const resProducts = await fetchProductsAction(matchedProj.id);
-        if (resProducts.success && resProducts.data) {
-          setProducts(Array.isArray(resProducts.data) ? resProducts.data : [resProducts.data]);
-        }
-      }
-    } catch (err: unknown) {
-      console.error('[RealEstateDashboardPage] Refresh Error:', err);
-      setError(err instanceof Error ? err.message : 'System error refreshing Real Estate module');
     } finally {
-      // Keep rotating effect active for a short period for a smoother feel
-      setTimeout(() => {
+      if (request === requestId.current) {
+        setIsLoading(false);
         setIsRefreshing(false);
-      }, 600);
+      }
     }
+  }, [readProducts]);
+
+  const handleRefresh = () => {
+    setIsRefreshing(true);
+    void loadData();
   };
 
+  const invalidateReads = useCallback(() => { ++requestId.current; ++notificationVersion.current; }, []);
   useEffect(() => {
-    loadData();
-    fetchNotifications();
+    void loadData();
+    void fetchNotifications();
     const interval = setInterval(fetchNotifications, 30000);
-    return () => clearInterval(interval);
-  }, [loadData, fetchNotifications]);
+    return () => { clearInterval(interval); invalidateReads(); };
+  }, [loadData, fetchNotifications, invalidateReads]);
 
-  const handleSelectProject = async (proj: ProjectRow) => {
-    setSelectedProject(proj);
-    const resProducts = await fetchProductsAction(proj.id);
-    if (resProducts.success && resProducts.data) {
-      setProducts(Array.isArray(resProducts.data) ? resProducts.data : [resProducts.data]);
-    }
-  };
-
-  const handleUpdateStatus = async (
-    productId: string,
-    targetStatus: ProductRow['status'],
-    ownerName?: string | null
-  ) => {
-    const res = await updateProductStatusAction(productId, targetStatus, ownerName);
-    if (!res.success) {
-      throw new Error(res.error || 'Cập nhật trạng thái thất bại');
-    }
-    // Refresh products list
-    if (selectedProject) {
-      const resProducts = await fetchProductsAction(selectedProject.id);
-      if (resProducts.success && resProducts.data) {
-        setProducts(Array.isArray(resProducts.data) ? resProducts.data : [resProducts.data]);
+  const handleSelectProject = async (candidate: ProjectRow) => {
+    const request = ++requestId.current;
+    setProducts([]);
+    setError(null);
+    setIsLoading(true);
+    const project = projects.find(item => item.id === candidate.id) || null;
+    setSelectedProject(project);
+    selectedProjectId.current = project?.id ?? null;
+    try {
+      if (!project) throw new Error('Dự án không khả dụng trong danh sách được truy cập');
+      await readProducts(project, request);
+    } catch (err: unknown) {
+      if (request === requestId.current) {
+        setProducts([]);
+        setError(err instanceof Error ? err.message : 'Không thể tải căn hộ');
       }
-    }
-  };
-  const handleUpdateDetails = async (
-    productId: string,
-    payload: {
-      unit_price?: number;
-      area?: number;
-      product_code?: string;
-      product_type?: 'apartment' | 'townhouse' | 'shophouse' | 'villa' | 'land_plot' | 'office';
-      block?: string | null;
-      floor?: string | null;
-    }
-  ) => {
-    const res = await updateProductDetailsAction(productId, payload);
-    if (!res.success) {
-      throw new Error(res.error || 'Cập nhật thông tin thất bại');
-    }
-    toast.success('✅ Cập nhật thông tin căn thành công');
-    // Immediately update local state from returned data
-    if (res.data && !Array.isArray(res.data)) {
-      setProducts(prev => prev.map(p => p.id === productId ? res.data as typeof p : p));
-    }
-    // Then do a full re-fetch to ensure consistency
-    if (selectedProject) {
-      const resProducts = await fetchProductsAction(selectedProject.id);
-      if (resProducts.success && resProducts.data) {
-        setProducts(Array.isArray(resProducts.data) ? resProducts.data : [resProducts.data]);
-      }
+    } finally {
+      if (request === requestId.current) { setIsLoading(false); setIsRefreshing(false); }
     }
   };
 
@@ -218,33 +152,6 @@ export default function RealEstateDashboardPage() {
   const signedCount = products.filter((p) => p.status === 'contracted').length;
   const paidCount = products.filter((p) => p.status === 'paid').length;
   const deliveredCount = products.filter((p) => p.status === 'handed_over').length;
-
-  if (isLoading) {
-    return (
-      <div className="p-8 space-y-6 animate-pulse">
-        <div className="h-20 bg-slate-200 dark:bg-slate-800 rounded-xl" />
-        <div className="h-40 bg-slate-200 dark:bg-slate-800 rounded-xl" />
-        <div className="h-96 bg-slate-200 dark:bg-slate-800 rounded-xl" />
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="p-8">
-        <div className="p-6 bg-rose-50 border border-rose-200 text-rose-700 rounded-2xl">
-          <h2 className="text-lg font-bold mb-2">⚠️ Lỗi Tải Phân Hệ Bất Động Sản</h2>
-          <p className="text-sm">{error}</p>
-          <button
-            onClick={loadData}
-            className="mt-4 px-4 py-2 bg-rose-600 text-white font-bold text-sm rounded-xl hover:bg-rose-700 transition-colors"
-          >
-            Thử Lại
-          </button>
-        </div>
-      </div>
-    );
-  }
 
   const monogram = user?.full_name ? user.full_name.substring(0, 2).toUpperCase() : 'AD';
 
@@ -286,6 +193,8 @@ export default function RealEstateDashboardPage() {
             <div className="relative">
               <button
                 type="button"
+                aria-label="Chọn dự án"
+                aria-expanded={showProjectDropdown}
                 onClick={() => {
                   setShowProjectDropdown(!showProjectDropdown);
                   setShowPeriodDropdown(false);
@@ -299,11 +208,11 @@ export default function RealEstateDashboardPage() {
                 </div>
                 <div>
                   <div className="text-xs font-extrabold text-slate-900 dark:text-white flex items-center gap-1">
-                    {selectedProject?.name || 'Vinhomes Green Paradise'}
+                    {selectedProject?.name || 'Chưa chọn dự án'}
                     <span className="text-[10px] text-slate-400">▾</span>
                   </div>
                   <div className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 truncate max-w-[180px]">
-                    📍 {selectedProject?.location || 'Grand Island, TP. Hồ Chí Minh'}
+                    📍 {selectedProject?.location || 'Chưa cập nhật vị trí'}
                   </div>
                 </div>
               </button>
@@ -326,7 +235,6 @@ export default function RealEstateDashboardPage() {
                             onClick={() => {
                               handleSelectProject(proj);
                               setShowProjectDropdown(false);
-                              toast.success(`Đã chuyển sang dự án ${proj.name}`);
                             }}
                             className={`w-full text-left p-2.5 rounded-xl text-xs flex items-center justify-between transition-colors ${
                               isSelected
@@ -385,9 +293,9 @@ export default function RealEstateDashboardPage() {
                           key={period}
                           type="button"
                           onClick={() => {
-                            setSelectedPeriod(period);
+
                             setShowPeriodDropdown(false);
-                            toast.success(`Đã cập nhật kỳ báo cáo: ${period}`);
+                            toast.info("Chưa có dữ liệu lịch sử theo kỳ. Đang hiển thị kho căn hiện tại.");
                           }}
                           className={`w-full text-left px-3 py-2 rounded-xl text-xs font-bold transition-colors flex items-center justify-between ${
                             isSelected
@@ -438,16 +346,7 @@ export default function RealEstateDashboardPage() {
                         </h3>
                         <span className="text-[10px] font-bold px-2 py-0.5 bg-blue-50 text-blue-600 rounded-full">System</span>
                       </div>
-                      <div className="space-y-2 text-xs">
-                        <div className="p-2 rounded-lg bg-blue-50/50 dark:bg-slate-900">
-                          <p className="font-bold text-slate-900 dark:text-white">Lead mới đăng ký dự án</p>
-                          <p className="text-[11px] text-slate-500 mt-0.5">Khách hàng Nguyễn Văn A quan tâm Shophouse Elyse Island.</p>
-                        </div>
-                        <div className="p-2 rounded-lg bg-amber-50/50 dark:bg-slate-900">
-                          <p className="font-bold text-slate-900 dark:text-white">Cảnh báo SLA Lead</p>
-                          <p className="text-[11px] text-slate-500 mt-0.5">3 lead quá hạn 15 phút chưa phân công.</p>
-                        </div>
-                      </div>
+                      <div className="space-y-2 text-xs" aria-label="Danh sách thông báo">{notificationError ? <p role="alert">{notificationError}</p> : notifications.length === 0 ? <p>Chưa có thông báo.</p> : notifications.map(notification => <article key={notification.id} className="p-2 rounded-lg bg-slate-50 dark:bg-slate-900"><h4 className="font-bold">{notification.title}</h4><p>{notification.message}</p><time dateTime={notification.created_at}>{new Date(notification.created_at).toLocaleString('vi-VN')}</time></article>)}</div>
                     </div>
                   </>
                 )}
@@ -486,7 +385,7 @@ export default function RealEstateDashboardPage() {
                         <p className="font-extrabold text-slate-900 dark:text-white">{user?.full_name || 'Quản Lý BĐS Bella Land'}</p>
                         <p className="text-[11px] text-slate-500 truncate">{user?.email || 'admin@bellaland.vn'}</p>
                         <div className="mt-1.5 inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded-md">
-                          <span>●</span> Tenant ID: {tenantContext.tenantId || 'bellaland-prod'}
+                          <span>●</span> Tenant ID: {tenantContext.tenantId || 'Chưa xác định'}
                         </div>
                       </div>
                       <div className="space-y-1 pt-1 border-t border-slate-100 dark:border-slate-800">
@@ -497,7 +396,7 @@ export default function RealEstateDashboardPage() {
                           👥 Quản lý Nhân sự & Môi giới
                         </a>
                         <a
-                          href="/dashboard/real-estate/settings"
+                          href="/dashboard/real-estate/admin"
                           className="flex items-center gap-2 px-3 py-2 hover:bg-slate-100 dark:hover:bg-slate-900 rounded-xl font-semibold text-slate-700 dark:text-slate-300 transition-colors"
                         >
                           ⚙️ Cấu hình hệ thống Bella Land
@@ -523,17 +422,22 @@ export default function RealEstateDashboardPage() {
       </div>
 
       {/* 2. EXECUTIVE DASHBOARD CHARTS & PANELS (MATCHING REFERENCE IMAGE 1) */}
+      {isLoading ? <p role="status">Đang tải dữ liệu…</p> : error ? <div role="alert">{error}<button onClick={loadData}>Thử Lại</button></div> : !selectedProject ? <p>Chưa có dự án được truy cập.</p> : <>
+      {products.length === 0 && <p>Chưa có căn hộ nào được khai báo cho dự án này.</p>}
       <CEODashboardCharts
-        totalProductsCount={products.length || 286}
-        availableCount={availableCount || 119}
-        reservedCount={reservedCount || 24}
-        depositedCount={depositedCount || 31}
-        signedCount={signedCount || 78}
-        paidCount={paidCount || 9}
-        deliveredCount={deliveredCount || 25}
-        selectedProjectName={selectedProject?.name || 'Vinhomes Green Paradise'}
+        units={products}
+        selectedProjectId={selectedProject.id}
+        totalProductsCount={products.length}
+        availableCount={availableCount}
+        reservedCount={reservedCount}
+        depositedCount={depositedCount}
+        signedCount={signedCount}
+        paidCount={paidCount}
+        deliveredCount={deliveredCount}
+        selectedProjectName={selectedProject.name}
         selectedPeriod={selectedPeriod}
       />
+      </>}
     </div>
   );
 }

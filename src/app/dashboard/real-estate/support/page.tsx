@@ -1,4 +1,5 @@
 "use client";
+import { LandPreviewNotice, unavailableLandAction, LandPagination, useLandPagination } from "@/modules/real_estate/components/LandUiControls";
 
 import React, { useState, useMemo, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -244,7 +245,10 @@ export default function CustomerServiceCenterPage() {
   const [selectedTicketId, setSelectedTicketId] = useState<string>("tick-001");
   const [activeTab, setActiveTab] = useState<"all" | "mine" | "unassigned" | "overdue" | "high" | "new" | "processing" | "waiting" | "closed">("all");
   const [search, setSearch] = useState("");
-  const [selectedDateRange, setSelectedDateRange] = useState("01/08/2026 - 31/08/2026");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
+  const [showDateFilter, setShowDateFilter] = useState(false);
+  const selectedDateRange = dateFrom || dateTo ? `${dateFrom || "Bắt đầu"} → ${dateTo || "Hiện tại"}` : "Tất cả thời gian";
   const [supportPageSize, setSupportPageSize] = useState("10");
 
   // Selection Checkboxes
@@ -265,28 +269,28 @@ export default function CustomerServiceCenterPage() {
   const [newUnit, setNewUnit] = useState("CH-1204");
 
   // Current selected ticket object
-  const currentTicket = useMemo(() => {
-    return ticketList.find(t => t.id === selectedTicketId) || ticketList[0];
-  }, [ticketList, selectedTicketId]);
+
 
   // Quick Filter Counts
   const filterCounts = useMemo(() => {
     return {
-      all: 32,
-      mine: 6,
-      unassigned: 4,
-      overdue: 5,
-      high: 8,
-      new: 7,
-      processing: 10,
-      waiting: 3,
-      closed: 28
+      all: ticketList.length,
+      mine: ticketList.filter(t => t.ownerName === "Trần Thị Hỗ Trợ").length,
+      unassigned: ticketList.filter(t => t.ownerName === "Chưa phân công").length,
+      overdue: ticketList.filter(t => t.slaStatus === "overdue").length,
+      high: ticketList.filter(t => t.priority === "HIGH" || t.priority === "CRITICAL").length,
+      new: ticketList.filter(t => t.status === "new").length,
+      processing: ticketList.filter(t => t.status === "processing" || t.status === "investigating").length,
+      waiting: ticketList.filter(t => t.status === "waiting_customer").length,
+      closed: ticketList.filter(t => t.status === "resolved" || t.status === "closed").length
     };
-  }, []);
+  }, [ticketList]);
 
   // Filtered tickets
   const filteredTickets = useMemo(() => {
     return ticketList.filter(t => {
+      const date = t.updatedDate.split("/").reverse().join("-");
+      if (dateFrom && date < dateFrom || dateTo && date > dateTo) return false;
       // Tab filter
       if (activeTab === "mine" && t.ownerName !== "Trần Thị Hỗ Trợ") return false;
       if (activeTab === "unassigned" && t.ownerName !== "Chưa phân công") return false;
@@ -309,11 +313,13 @@ export default function CustomerServiceCenterPage() {
       }
       return true;
     });
-  }, [ticketList, activeTab, search]);
+  }, [ticketList, activeTab, search, dateFrom, dateTo]);
 
+  const pagination = useLandPagination(filteredTickets, Number(supportPageSize));
+  const currentTicket = pagination.rows.find(ticket => ticket.id === selectedTicketId) || null;
   const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.checked) {
-      setSelectedRowIds(filteredTickets.map(t => t.id));
+      setSelectedRowIds(pagination.rows.map(t => t.id));
     } else {
       setSelectedRowIds([]);
     }
@@ -329,47 +335,11 @@ export default function CustomerServiceCenterPage() {
     setSelectedTicketId(ticket.id);
   };
 
-  const handleCreateSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newSubject.trim() || !newDesc.trim()) {
-      toast.error("Vui lòng nhập đầy đủ thông tin tiêu đề và chi tiết phản ánh!");
-      return;
-    }
-
-    const newTicket: SupportTicketItem = {
-      id: `tick-${Date.now()}`,
-      ticketNumber: `TK-2026-000${ticketList.length + 1}`,
-      priority: newPriority,
-      subject: newSubject,
-      description: newDesc,
-      categoryTags: [newCategory === "SERVICE_QUALITY" ? "Dịch vụ" : newCategory === "BILLING" ? "Thanh toán" : "Kỹ thuật"],
-      customerName: newCustomerName,
-      customerCode: `KH${String(ticketList.length + 1).padStart(5, "0")}`,
-      customerPhone: "0903 123 456",
-      customerEmail: "levanc@gmail.com",
-      projectName: newProject,
-      unitCode: newUnit,
-      status: "new",
-      statusLabel: "Mới nhận",
-      statusColor: "bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800",
-      progressStep: 1,
-      slaStatus: "valid",
-      slaLabel: "Còn hạn 24h",
-      updatedTime: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      updatedDate: new Date().toLocaleDateString('vi-VN'),
-      ownerName: "Chưa phân công"
-    };
-
-    setTicketList([newTicket, ...ticketList]);
-    setSelectedTicketId(newTicket.id);
-    setIsCreateOpen(false);
-    setNewSubject("");
-    setNewDesc("");
-    toast.success(`Đã tiếp nhận phản ánh mới ${newTicket.ticketNumber} thành công!`);
-  };
+  const handleCreateSubmit = (e: React.FormEvent) => { e.preventDefault(); unavailableLandAction("Lưu dữ liệu nghiệp vụ"); };
 
   return (
     <div className="p-6 md:p-8 space-y-6 max-w-[1600px] mx-auto font-sans text-slate-900 dark:text-slate-100 pb-12">
+      <LandPreviewNotice />
       
       {/* ── 1. HEADER BANNER (Light Theme with High Contrast) ── */}
       <div className="relative rounded-2xl overflow-hidden bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 p-6 md:p-7 shadow-xs">
@@ -404,7 +374,7 @@ export default function CustomerServiceCenterPage() {
             
             <div className="flex items-center gap-3">
               <button 
-                onClick={() => toast.success("Đã kích hoạt tìm kiếm nâng cao CSKH!")}
+                onClick={() => unavailableLandAction("Thao tác lưu hoặc gửi dữ liệu")}
                 className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center justify-center text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 transition shadow-2xs cursor-pointer"
                 title="Tìm kiếm nâng cao"
               >
@@ -540,7 +510,7 @@ export default function CustomerServiceCenterPage() {
           {/* Filter Actions & Primary Action Button */}
           <div className="flex flex-wrap items-center gap-3">
             <button 
-              onClick={() => toast.success("Đã mở bộ lọc nâng cao CSKH!")}
+              onClick={() => unavailableLandAction("Thao tác lưu hoặc gửi dữ liệu")}
               className="px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-100 transition flex items-center gap-2 cursor-pointer"
             >
               <SlidersHorizontal className="w-3.5 h-3.5 text-slate-500" />
@@ -550,7 +520,7 @@ export default function CustomerServiceCenterPage() {
 
             {/* Date Range Selector */}
             <button 
-              onClick={() => toast.success("Đã áp dụng khoảng thời gian tháng 09/2026!")}
+              aria-expanded={showDateFilter} onClick={() => setShowDateFilter(value => !value)}
               className="px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-100 transition flex items-center gap-2 cursor-pointer"
             >
               <Calendar className="w-3.5 h-3.5 text-slate-500" />
@@ -703,6 +673,7 @@ export default function CustomerServiceCenterPage() {
 
       </div>
 
+{showDateFilter && <fieldset className="flex gap-3 flex-wrap rounded-xl border p-3"><legend>Thời gian cập nhật</legend><label>Từ ngày<input aria-label="Từ ngày" type="date" max={dateTo || undefined} value={dateFrom} onChange={e => setDateFrom(e.target.value)} /></label><label>Đến ngày<input aria-label="Đến ngày" type="date" min={dateFrom || undefined} value={dateTo} onChange={e => setDateTo(e.target.value)} /></label><button onClick={() => { setDateFrom(""); setDateTo(""); }}>Xóa thời gian</button></fieldset>}
       {/* ── 4. MAIN WORKSPACE SPLIT (70% Table Queue / 30% Customer 360) ── */}
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
         
@@ -717,7 +688,7 @@ export default function CustomerServiceCenterPage() {
                     <input 
                       type="checkbox"
                       onChange={handleSelectAll}
-                      checked={filteredTickets.length > 0 && selectedRowIds.length === filteredTickets.length}
+                      checked={pagination.rows.length > 0 && pagination.rows.every(ticket => selectedRowIds.includes(ticket.id))}
                       className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
                     />
                   </th>
@@ -730,7 +701,7 @@ export default function CustomerServiceCenterPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800/80 text-xs">
-                {filteredTickets.map((ticket) => {
+                {pagination.rows.map((ticket) => {
                   const isSelected = selectedTicketId === ticket.id;
                   const isChecked = selectedRowIds.includes(ticket.id);
 
@@ -916,54 +887,12 @@ export default function CustomerServiceCenterPage() {
           </div>
 
           {/* Table Pagination Footer (Matching Image 2) */}
-          <div className="p-4 bg-slate-50/60 dark:bg-slate-800/40 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-xs text-slate-500 dark:text-slate-400">
-            <div>
-              Hiển thị <span className="font-bold text-slate-700 dark:text-slate-200">1 – {filteredTickets.length}</span> của <span className="font-bold text-slate-700 dark:text-slate-200">32</span> phiếu
-            </div>
-
-            <div className="flex items-center gap-3 self-end sm:self-auto">
-              <div className="flex items-center gap-1">
-                <button className="w-7 h-7 rounded-lg border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-400 hover:bg-white transition">
-                  <ChevronLeft className="w-4 h-4" />
-                </button>
-                <button className="w-7 h-7 rounded-lg bg-blue-600 text-white font-bold flex items-center justify-center">
-                  1
-                </button>
-                <button className="w-7 h-7 rounded-lg border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-white transition">
-                  2
-                </button>
-                <button className="w-7 h-7 rounded-lg border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-white transition">
-                  3
-                </button>
-                <button className="w-7 h-7 rounded-lg border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-white transition">
-                  4
-                </button>
-                <button className="w-7 h-7 rounded-lg border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-white transition">
-                  5
-                </button>
-                <span className="px-1 text-slate-400">...</span>
-                <button className="w-7 h-7 rounded-lg border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-400 hover:bg-white transition">
-                  <ChevronRight className="w-4 h-4" />
-                </button>
-              </div>
-
-              <PremiumSelect
-                value={supportPageSize}
-                onChange={setSupportPageSize}
-                className="w-28"
-                options={[
-                  { value: "5", label: "5/trang" },
-                  { value: "10", label: "10/trang" },
-                  { value: "20", label: "20/trang" },
-                ]}
-              />
-            </div>
-          </div>
+          <div className="border-t border-slate-200 dark:border-slate-800"><LandPagination {...pagination} /><PremiumSelect value={supportPageSize} onChange={setSupportPageSize} className="m-3 w-32" options={[{value:'5',label:'5 / trang'},{value:'8',label:'8 / trang'},{value:'10',label:'10 / trang'},{value:'20',label:'20 / trang'},{value:'50',label:'50 / trang'}]} /></div>
 
         </div>
 
         {/* ── RIGHT COLUMN (30% - 4 Cols): CUSTOMER 360 & TIMELINE PANEL (Matching Image 2) ── */}
-        <div className="xl:col-span-4 space-y-5">
+        {currentTicket && (<div className="xl:col-span-4 space-y-5">
           
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-5">
             
@@ -990,7 +919,7 @@ export default function CustomerServiceCenterPage() {
               </div>
 
               <button 
-                onClick={() => { window.location.href = `/dashboard/real-estate/customers?code=${currentTicket.customerCode}`; }}
+                onClick={() => { window.location.href = "/dashboard/real-estate/customers"; }}
                 className="text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1 shrink-0 cursor-pointer"
               >
                 <span>Xem chi tiết</span>
@@ -1010,7 +939,7 @@ export default function CustomerServiceCenterPage() {
               </div>
               <div className="bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 rounded-xl p-2.5 text-center">
                 <div className="text-[10px] text-slate-400 font-bold uppercase">Quan hệ</div>
-                <div className="text-xs font-bold text-slate-900 dark:text-white mt-0.5">Chủ sở hữu</div>
+                <div className="text-xs font-bold text-slate-900 dark:text-white mt-0.5">Chưa xác minh</div>
               </div>
             </div>
 
@@ -1049,44 +978,7 @@ export default function CustomerServiceCenterPage() {
             </div>
 
             {/* Vertical Customer 360 Journey Stepper Timeline (Matching Image 2) */}
-            {rightPanelTab === "timeline" && (
-              <div className="relative pl-6 space-y-5 pt-1 before:absolute before:left-2.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-200 dark:before:bg-slate-800">
-                {TIMELINE_LE_VAN_C.map((step) => (
-                  <div key={step.id} className="relative group">
-                    {/* Stepper Dot */}
-                    <div className={`absolute -left-6 top-0.5 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ring-4 ring-white dark:ring-slate-900 ${step.dotColor}`}>
-                      •
-                    </div>
-
-                    <div className="space-y-1">
-                      {/* Top Meta Header */}
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-[11px] font-mono text-slate-400">{step.timestamp}</span>
-                        <span className={`px-2 py-0.2 rounded text-[9px] font-black uppercase tracking-wider ${step.categoryColor}`}>
-                          {step.category}
-                        </span>
-                        {step.ticketTag && (
-                          <span className="px-2 py-0.2 rounded text-[9px] font-mono font-bold bg-rose-100 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300">
-                            {step.ticketTag}
-                          </span>
-                        )}
-                      </div>
-
-                      {/* Content Title */}
-                      <div className="text-xs font-bold text-slate-800 dark:text-slate-200 leading-snug">
-                        {step.title}
-                      </div>
-                      
-                      {step.description && (
-                        <div className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
-                          {step.description}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
+            {rightPanelTab === "timeline" && <p className="p-4 text-xs text-slate-500">Chưa có lịch sử khách hàng được xác minh.</p>}
 
             {rightPanelTab === "related" && (
               <div className="py-6 text-center text-xs text-slate-400 italic">
@@ -1103,17 +995,17 @@ export default function CustomerServiceCenterPage() {
             {/* Bottom Link Button */}
             <div className="border-t border-slate-100 dark:border-slate-800 pt-3 text-center">
               <button 
-                onClick={() => { window.location.href = `/dashboard/real-estate/customers?code=${currentTicket.customerCode}`; }}
+                onClick={() => { window.location.href = "/dashboard/real-estate/customers"; }}
                 className="text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline inline-flex items-center gap-1 cursor-pointer"
               >
-                <span>Xem toàn bộ lịch sử</span>
+                <span>Danh sách khách hàng</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </button>
             </div>
 
           </div>
 
-        </div>
+        </div>)}
 
       </div>
 
@@ -1125,7 +1017,7 @@ export default function CustomerServiceCenterPage() {
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-lg w-full p-6 space-y-5 shadow-2xl relative"
+              className="max-h-[90vh] overflow-y-auto bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-lg w-full p-6 space-y-5 shadow-2xl relative"
             >
               <button 
                 onClick={() => setIsCreateOpen(false)}
@@ -1252,7 +1144,7 @@ export default function CustomerServiceCenterPage() {
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-2xl w-full p-6 space-y-5 shadow-2xl relative"
+              className="max-h-[90vh] overflow-y-auto bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-2xl w-full p-6 space-y-5 shadow-2xl relative"
             >
               <button 
                 onClick={() => setIsDetailOpen(false)}
@@ -1318,7 +1210,7 @@ export default function CustomerServiceCenterPage() {
                 </button>
                 <button 
                   onClick={() => {
-                    toast.success(`Đã cập nhật tiến độ giải quyết phiếu ${currentTicket.ticketNumber}`);
+                    unavailableLandAction("Thao tác lưu hoặc gửi dữ liệu");
                     setIsDetailOpen(false);
                   }}
                   className="px-4 py-2 bg-blue-600 text-white font-bold text-xs rounded-xl hover:bg-blue-700 transition"

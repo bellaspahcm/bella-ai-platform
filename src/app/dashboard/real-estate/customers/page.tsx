@@ -1,4 +1,5 @@
 "use client";
+import { LandPreviewNotice, unavailableLandAction, LandPagination, useLandPagination, matchesBudgetRange } from "@/modules/real_estate/components/LandUiControls";
 
 import React, { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -409,6 +410,7 @@ export default function RealEstateCustomersPage() {
   const [filterDemand, setFilterDemand] = useState<string>('all');
   const [filterBudget, setFilterBudget] = useState<string>('all');
   const [filterSales, setFilterSales] = useState<string>('all');
+  const [sortAscending, setSortAscending] = useState(true);
   const [viewMode, setViewMode] = useState<'table' | 'grid'>('table');
 
   // Modals & Drawer State
@@ -421,9 +423,7 @@ export default function RealEstateCustomersPage() {
   const [modalReassignSales, setModalReassignSales] = useState<string>('Lê Thị Hoa (PKD 2)');
   const [pageSize, setPageSize] = useState<string>('8');
 
-  const selectedCustomer = useMemo(() => {
-    return customers.find(c => c.id === selectedCustomerId) || null;
-  }, [customers, selectedCustomerId]);
+
 
   // Operational Customer Intelligence Stats (Exact matching Image 2 Header KPIs)
   const stats = useMemo(() => {
@@ -449,6 +449,8 @@ export default function RealEstateCustomersPage() {
       if (activeTabFilter === 'closed_lost' && c.status !== 'closed_lost') return false;
 
       // Dropdown filters
+      if (filterDemand !== 'all' && !c.investorProfile.propertyTypes.some(type => type.toLowerCase().includes(({ apartment: 'căn hộ', villa: 'biệt thự', shophouse: 'shophouse' }[filterDemand] || filterDemand).toLowerCase()))) return false;
+      if (!matchesBudgetRange(c.budgetLabel, filterBudget)) return false;
       if (filterProject !== 'all' && c.project !== filterProject) return false;
       if (filterSource !== 'all' && c.source !== filterSource) return false;
       if (filterSales !== 'all' && c.salesOwnerName !== filterSales) return false;
@@ -464,26 +466,12 @@ export default function RealEstateCustomersPage() {
         if (!mName && !mPhone && !mEmail && !mCode && !mProj) return false;
       }
       return true;
-    });
-  }, [customers, activeTabFilter, filterProject, filterSource, filterSales, search]);
+    }).sort((a, b) => (sortAscending ? 1 : -1) * a.fullName.localeCompare(b.fullName, "vi"));
+  }, [sortAscending, customers, activeTabFilter, filterProject, filterSource, filterDemand, filterBudget, filterSales, search]);
+  const pagination = useLandPagination(filteredCustomers, Number(pageSize));
+  const selectedCustomer = pagination.rows.find(c => c.id === selectedCustomerId) || null;
 
-  const handleAddInteraction = () => {
-    if (!newInteractionNote.trim() || !selectedCustomer) return;
-    setCustomers(prev => prev.map(c => {
-      if (c.id !== selectedCustomer.id) return c;
-      return {
-        ...c,
-        interactionCount: c.interactionCount + 1,
-        lastUpdatedText: 'Vừa xong',
-        timeline: [
-          { time: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }), date: 'Hôm nay', title: 'Ghi nhận tương tác mới', description: newInteractionNote.trim(), type: 'meeting' },
-          ...c.timeline
-        ]
-      };
-    }));
-    setNewInteractionNote('');
-    toast.success('✅ Đã lưu tương tác mới vào Hồ sơ 360°!');
-  };
+  const handleAddInteraction = () => { unavailableLandAction("Lưu dữ liệu nghiệp vụ"); };
 
   const drawerTabs: Array<{ id: CustomerDrawerTab; label: string }> = [
     { id: 'demand', label: 'Thông tin' },
@@ -494,6 +482,7 @@ export default function RealEstateCustomersPage() {
 
   return (
     <div className="p-6 md:p-8 space-y-6 max-w-[1600px] mx-auto font-sans text-slate-900 dark:text-slate-100 pb-12">
+      <LandPreviewNotice />
       {/* ── 1. Page Header (Matching Image 2 Title & Actions) ── */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
@@ -517,14 +506,13 @@ export default function RealEstateCustomersPage() {
 
         <div className="flex items-center gap-2.5 shrink-0 flex-wrap">
           <PremiumSelect
-            value={headerProject}
-            onChange={setHeaderProject}
+            value={filterProject}
+            onChange={setFilterProject}
             className="w-44"
-            options={[
-              { value: "all", label: "🏢 Tất cả dự án" },
-              { value: "elyse", label: "Elyse Island" },
-              { value: "sunrise", label: "Sunrise Residence" },
-              { value: "lumiere", label: "Lumière Bay" },
+            options={[{ value: "all", label: "Tất cả dự án" },
+              { value: "Elyse Island", label: "Elyse Island" },
+              { value: "Sunrise Residence", label: "Sunrise Residence" },
+              { value: "Lumière Bay", label: "Lumière Bay" },
             ]}
           />
 
@@ -739,18 +727,18 @@ export default function RealEstateCustomersPage() {
               ]}
             />
 
-            <button className="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 flex items-center gap-1">
+            <button title="Xóa bộ lọc" onClick={() => { setSearch(""); setFilterProject("all"); setFilterSource("all"); setFilterDemand("all"); setFilterBudget("all"); setFilterSales("all"); setActiveTabFilter("all"); }} className="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 flex items-center gap-1">
               <SlidersHorizontal className="w-3.5 h-3.5" /> Bộ lọc ▾
             </button>
 
-            <button className="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 flex items-center gap-1">
+            <button aria-label="Đảo thứ tự tên khách hàng" onClick={() => setSortAscending(value => !value)} className="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 flex items-center gap-1">
               <ArrowUpDown className="w-3.5 h-3.5" /> Sắp xếp ▾
             </button>
           </div>
 
           <div className="flex items-center gap-1.5 shrink-0">
             <button
-              onClick={() => setViewMode('table')}
+              aria-label="Danh sách khách hàng" aria-pressed={viewMode === 'table'} onClick={() => setViewMode('table')}
               className={`p-2 rounded-xl text-xs font-bold border transition-all ${
                 viewMode === 'table'
                   ? 'bg-blue-600 text-white border-blue-600'
@@ -760,7 +748,7 @@ export default function RealEstateCustomersPage() {
               <LayoutList className="w-4 h-4" />
             </button>
             <button
-              onClick={() => setViewMode('grid')}
+              aria-label="Lưới khách hàng" aria-pressed={viewMode === 'grid'} onClick={() => setViewMode('grid')}
               className={`p-2 rounded-xl text-xs font-bold border transition-all ${
                 viewMode === 'grid'
                   ? 'bg-blue-600 text-white border-blue-600'
@@ -779,11 +767,11 @@ export default function RealEstateCustomersPage() {
         {/* Left Column (Customer Work Queue Table) */}
         <div className={`${selectedCustomer ? 'lg:col-span-8' : 'lg:col-span-12'} bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl overflow-hidden shadow-xs transition-all`}>
           <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-slate-700">
-            <table className="w-full text-left text-xs border-collapse min-w-[1050px]">
+            {viewMode === 'grid' ? <div role="region" aria-label="Lưới khách hàng" className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4">{pagination.rows.map(customer => <button key={customer.id} onClick={() => setSelectedCustomerId(customer.id)} className="rounded-xl border p-4 text-left"><strong>{customer.fullName}</strong><p>{customer.phone}</p><p>{customer.project}</p><p>{customer.budgetLabel}</p></button>)}{pagination.rows.length === 0 && <p>Không có khách hàng phù hợp.</p>}</div> : (<table className="w-full text-left text-xs border-collapse min-w-[1050px]">
               <thead className="bg-slate-50/80 dark:bg-slate-800/80 border-b border-slate-100 dark:border-slate-800 text-[11px] font-black text-slate-400 uppercase tracking-wider">
                 <tr>
                   <th className="p-3.5 w-10 text-center whitespace-nowrap">
-                    <input type="checkbox" className="rounded text-blue-600 focus:ring-blue-500" />
+                    <span>Chọn</span>
                   </th>
                   <th className="p-3.5 whitespace-nowrap">Khách hàng</th>
                   <th className="p-3.5 whitespace-nowrap">Dự án / Nguồn</th>
@@ -803,7 +791,7 @@ export default function RealEstateCustomersPage() {
                     </td>
                   </tr>
                 ) : (
-                  filteredCustomers.map(customer => {
+                  pagination.rows.map(customer => {
                     const isSelected = selectedCustomerId === customer.id;
 
                     return (
@@ -818,7 +806,7 @@ export default function RealEstateCustomersPage() {
                       >
                         <td className="p-3.5 text-center whitespace-nowrap" onClick={e => e.stopPropagation()}>
                           <input
-                            type="checkbox"
+                            type="radio" name="customers-selection" aria-label="Chọn hàng"
                             checked={isSelected}
                             onChange={() => setSelectedCustomerId(customer.id)}
                             className="rounded text-blue-600 focus:ring-blue-500"
@@ -900,57 +888,11 @@ export default function RealEstateCustomersPage() {
                   })
                 )}
               </tbody>
-            </table>
+            </table>)}
           </div>
 
           {/* Pagination Footer (Matching Image 2) */}
-          <div className="p-4 border-t border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500 font-medium">
-            <div>
-              Hiển thị <span className="font-extrabold text-slate-900 dark:text-white">1 - 8</span> của <span className="font-extrabold text-slate-900 dark:text-white">1,284</span> khách hàng
-            </div>
-
-            <div className="flex items-center gap-1 font-bold">
-              <button className="w-8 h-8 rounded-xl border border-slate-200 dark:border-slate-700 flex items-center justify-center hover:bg-slate-100">
-                ‹
-              </button>
-              <button className="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center shadow-xs">
-                1
-              </button>
-              <button className="w-8 h-8 rounded-xl border border-slate-200 dark:border-slate-700 flex items-center justify-center hover:bg-slate-100">
-                2
-              </button>
-              <button className="w-8 h-8 rounded-xl border border-slate-200 dark:border-slate-700 flex items-center justify-center hover:bg-slate-100">
-                3
-              </button>
-              <button className="w-8 h-8 rounded-xl border border-slate-200 dark:border-slate-700 flex items-center justify-center hover:bg-slate-100">
-                4
-              </button>
-              <button className="w-8 h-8 rounded-xl border border-slate-200 dark:border-slate-700 flex items-center justify-center hover:bg-slate-100">
-                5
-              </button>
-              <span className="px-1 text-slate-400">...</span>
-              <button className="w-8 h-8 rounded-xl border border-slate-200 dark:border-slate-700 flex items-center justify-center hover:bg-slate-100">
-                161
-              </button>
-              <button className="w-8 h-8 rounded-xl border border-slate-200 dark:border-slate-700 flex items-center justify-center hover:bg-slate-100">
-                ›
-              </button>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <span>Hiển thị</span>
-              <PremiumSelect
-                value={pageSize}
-                onChange={setPageSize}
-                className="w-28"
-                options={[
-                  { value: "8", label: "8 / trang" },
-                  { value: "20", label: "20 / trang" },
-                  { value: "50", label: "50 / trang" },
-                ]}
-              />
-            </div>
-          </div>
+          <div className="border-t border-slate-200 dark:border-slate-800"><LandPagination {...pagination} /><PremiumSelect value={pageSize} onChange={setPageSize} className="m-3 w-32" options={[{value:'5',label:'5 / trang'},{value:'8',label:'8 / trang'},{value:'10',label:'10 / trang'},{value:'20',label:'20 / trang'},{value:'50',label:'50 / trang'}]} /></div>
         </div>
 
         {/* Right Column: Investor 360 Workspace Drawer (Matching Image 2 Right Drawer Panel) */}
@@ -988,19 +930,19 @@ export default function RealEstateCustomersPage() {
             {/* Quick Contact Action Bar */}
             <div className="grid grid-cols-3 gap-2">
               <button
-                onClick={() => { if (typeof window !== 'undefined') window.location.href = `tel:${selectedCustomer.phone}`; toast.success(`Đang thực hiện cuộc gọi tới ${selectedCustomer.fullName} (${selectedCustomer.phone})...`); }}
+                onClick={() => { if (typeof window !== 'undefined') window.location.href = `tel:${selectedCustomer.phone}`; unavailableLandAction("Thao tác lưu hoặc gửi dữ liệu"); }}
                 className="px-3 py-2 bg-blue-50 dark:bg-blue-950/40 hover:bg-blue-100 text-blue-700 dark:text-blue-300 font-extrabold text-xs rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer"
               >
                 <PhoneCall className="w-3.5 h-3.5" /> Gọi ngay
               </button>
               <button
-                onClick={() => { if (typeof window !== 'undefined') window.open(`https://zalo.me/${selectedCustomer.phone}`, '_blank'); toast.success(`Đang mở Zalo chat với ${selectedCustomer.fullName}...`); }}
+                onClick={() => { if (typeof window !== 'undefined') window.open(`https://zalo.me/${selectedCustomer.phone}`, '_blank'); unavailableLandAction("Thao tác lưu hoặc gửi dữ liệu"); }}
                 className="px-3 py-2 bg-sky-50 dark:bg-sky-950/40 hover:bg-sky-100 text-sky-700 dark:text-sky-300 font-extrabold text-xs rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer"
               >
                 <MessageCircle className="w-3.5 h-3.5" /> Zalo
               </button>
               <button
-                onClick={() => { if (typeof window !== 'undefined') window.location.href = `mailto:${selectedCustomer.email}`; toast.success(`Đang mở trình soạn Email tới ${selectedCustomer.email}...`); }}
+                onClick={() => { if (typeof window !== 'undefined') window.location.href = `mailto:${selectedCustomer.email}`; unavailableLandAction("Thao tác lưu hoặc gửi dữ liệu"); }}
                 className="px-3 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300 font-extrabold text-xs rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer"
               >
                 <Mail className="w-3.5 h-3.5" /> Email
@@ -1089,7 +1031,7 @@ export default function RealEstateCustomersPage() {
 
                 {/* Inventory Matrix Matching Action */}
                 <Link
-                  href={`/dashboard/real-estate/apartments?project=${encodeURIComponent(selectedCustomer.project)}`}
+                  href="/dashboard/real-estate/apartments"
                   className="w-full py-3 bg-gradient-to-r from-blue-900 to-indigo-900 hover:from-blue-950 hover:to-indigo-950 text-white font-extrabold text-xs rounded-2xl shadow-md transition-all flex items-center justify-center gap-2 group cursor-pointer"
                 >
                   <Building2 className="w-4 h-4 text-blue-300 group-hover:scale-110 transition-transform" />
@@ -1201,7 +1143,7 @@ export default function RealEstateCustomersPage() {
         {showAddModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowAddModal(false)} className="absolute inset-0 bg-slate-950/60 backdrop-blur-sm" />
-            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="relative w-full max-w-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-2xl z-10 space-y-4">
+            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="max-h-[90vh] overflow-y-auto relative w-full max-w-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-2xl z-10 space-y-4">
               <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
                 <h3 className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2">
                   <Users className="w-5 h-5 text-blue-600" /> Thêm Khách Hàng & Nhà Đầu Tư Mới
@@ -1209,7 +1151,7 @@ export default function RealEstateCustomersPage() {
                 <button onClick={() => setShowAddModal(false)} className="p-1 text-slate-400 hover:text-slate-600"><X className="w-5 h-5" /></button>
               </div>
 
-              <form onSubmit={e => { e.preventDefault(); toast.success('✅ Đã khởi tạo hồ sơ Khách hàng 360° mới!'); setShowAddModal(false); }} className="space-y-3 text-xs">
+              <form onSubmit={e => { e.preventDefault(); unavailableLandAction("Thao tác lưu hoặc gửi dữ liệu"); setShowAddModal(false); }} className="space-y-3 text-xs">
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">Họ và tên *</label>
@@ -1261,7 +1203,7 @@ export default function RealEstateCustomersPage() {
         {showReassignModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowReassignModal(false)} className="absolute inset-0 bg-slate-950/60 backdrop-blur-sm" />
-            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="relative w-full max-w-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-2xl z-10 space-y-4">
+            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="max-h-[90vh] overflow-y-auto relative w-full max-w-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-2xl z-10 space-y-4">
               <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
                 <h3 className="text-base font-black text-slate-900 dark:text-white">Chuyển Sales Phụ Trách Hồ Sơ</h3>
                 <button onClick={() => setShowReassignModal(false)} className="p-1 text-slate-400 hover:text-slate-600"><X className="w-5 h-5" /></button>
@@ -1286,7 +1228,7 @@ export default function RealEstateCustomersPage() {
                 </div>
                 <div className="flex justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
                   <button type="button" onClick={() => setShowReassignModal(false)} className="px-4 py-2 font-bold bg-slate-100 text-slate-600 rounded-xl">Hủy</button>
-                  <button onClick={() => { toast.success('✅ Đã bàn giao hồ sơ Khách hàng cho Sales mới!'); setShowReassignModal(false); }} className="px-5 py-2 font-bold bg-blue-600 text-white rounded-xl">Xác nhận chuyển</button>
+                  <button onClick={() => { unavailableLandAction("Thao tác lưu hoặc gửi dữ liệu"); setShowReassignModal(false); }} className="px-5 py-2 font-bold bg-blue-600 text-white rounded-xl">Xác nhận chuyển</button>
                 </div>
               </div>
             </motion.div>

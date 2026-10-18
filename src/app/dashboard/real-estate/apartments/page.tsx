@@ -1,31 +1,20 @@
 "use client";
 
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import { motion } from "framer-motion";
-import {
-  Grid3x3, Building, Loader2, RefreshCw,
-  List, Search, CheckCircle2, Clock,
-  Home, UserCheck, ArrowRight, RotateCcw,
-  Building2, ChevronDown, Filter, Layers, DollarSign,
-  MapPin, Calendar, Users, SlidersHorizontal, Download,
-  CreditCard, PenTool, Key, XCircle, Eye, Phone, MessageSquare,
-  FileText, ChevronRight, X, Plus, FileSpreadsheet, Upload
-} from "lucide-react";
-import { toast } from "sonner";
+import { downloadLandCsv } from "@/modules/real_estate/components/LandUiControls";
+import { Grid3x3, List, Search, CheckCircle2, Clock, Home, Building2, SlidersHorizontal, Download, CreditCard, PenTool, Key, XCircle, Eye, X, Plus, FileSpreadsheet } from "lucide-react";
 import {
   fetchProjectsAction,
 } from "@/modules/real_estate/actions/projectActions";
 import {
   fetchProductsAction,
-  updateProductStatusAction,
-  updateProductDetailsAction,
 } from "@/modules/real_estate/actions/productActions";
 import { PremiumSelect } from "@/components/ui/PremiumSelect";
 import { Database } from "@/types/database.types";
 
 type ProjectRow = Database["public"]["Tables"]["real_estate_projects"]["Row"];
 type ProductRow = Database["public"]["Tables"]["real_estate_products"]["Row"];
-type ProductStatus = ProductRow["status"];
 
 const STATUS_MAP: Record<string, { label: string; bg: string; text: string; border: string; dot: string }> = {
   available: {
@@ -79,53 +68,15 @@ const STATUS_MAP: Record<string, { label: string; bg: string; text: string; bord
   },
 };
 
-const DEMO_DECLARED_UNITS: Partial<ProductRow>[] = [
-  // Tầng 20
-  { id: "demo-20-1", product_code: "A1-20A", floor: "20", block: "A", area: 76.5, unit_price: 55900000, status: "available" },
-  { id: "demo-20-2", product_code: "A1-2002", floor: "20", block: "A", area: 82.1, unit_price: 58000000, status: "available" },
-  { id: "demo-20-3", product_code: "A1-20B", floor: "20", block: "A", area: 102.3, unit_price: 62000000, status: "booked" },
-  { id: "demo-20-4", product_code: "A1-2004", floor: "20", block: "A", area: 76.5, unit_price: 55900000, status: "available" },
-  { id: "demo-20-5", product_code: "A1-2005", floor: "20", block: "A", area: 82.1, unit_price: 58000000, status: "available" },
-  { id: "demo-20-6", product_code: "A1-PH1", floor: "20", block: "A", area: 185.0, unit_price: 85000000, status: "paid" },
-  { id: "demo-20-7", product_code: "A1-PH2", floor: "20", block: "A", area: 210.0, unit_price: 88000000, status: "contracted" },
-  
-  // Tầng 19
-  { id: "demo-19-1", product_code: "A1-19A", floor: "19", block: "A", area: 76.5, unit_price: 55000000, status: "available" },
-  { id: "demo-19-2", product_code: "A1-1902", floor: "19", block: "A", area: 82.1, unit_price: 57500000, status: "available" },
-  { id: "demo-19-3", product_code: "A1-19B", floor: "19", block: "A", area: 102.3, unit_price: 61500000, status: "deposited" },
-  { id: "demo-19-4", product_code: "A1-1904", floor: "19", block: "A", area: 76.5, unit_price: 55000000, status: "available" },
-  { id: "demo-19-5", product_code: "A1-1905", floor: "19", block: "A", area: 82.1, unit_price: 57500000, status: "available" },
-  { id: "demo-19-6", product_code: "A1-1906", floor: "19", block: "A", area: 102.3, unit_price: 61500000, status: "paid" },
-  { id: "demo-19-7", product_code: "A1-19C", floor: "19", block: "A", area: 76.5, unit_price: 55000000, status: "contracted" },
-  { id: "demo-19-8", product_code: "A1-1908", floor: "19", block: "A", area: 82.1, unit_price: 57500000, status: "available" },
-
-  // Tầng 18 (Real developer units matching user specification)
-  { id: "demo-18-1", product_code: "A1-18A", floor: "18", block: "A", area: 76.5, unit_price: 54500000, status: "available" },
-  { id: "demo-18-2", product_code: "A1-1802", floor: "18", block: "A", area: 82.1, unit_price: 57000000, status: "available" },
-  { id: "demo-18-3", product_code: "A1-18B", floor: "18", block: "A", area: 102.3, unit_price: 61000000, status: "booked" },
-  { id: "demo-18-4", product_code: "A1-1804", floor: "18", block: "A", area: 76.5, unit_price: 54500000, status: "available" },
-  { id: "demo-18-5", product_code: "A1-1805", floor: "18", block: "A", area: 82.1, unit_price: 57000000, status: "available" },
-  { id: "demo-18-6", product_code: "A1-1806", floor: "18", block: "A", area: 102.3, unit_price: 61000000, status: "paid" },
-  { id: "demo-18-7", product_code: "A1-18C", floor: "18", block: "A", area: 76.5, unit_price: 54500000, status: "contracted" },
-  { id: "demo-18-8", product_code: "A1-1808", floor: "18", block: "A", area: 82.1, unit_price: 57000000, status: "available" },
-  { id: "demo-18-9", product_code: "A1-1809", floor: "18", block: "A", area: 90.0, unit_price: 59000000, status: "handed_over" },
-  { id: "demo-18-10", product_code: "A1-1810", floor: "18", block: "A", area: 110.0, unit_price: 64000000, status: "available" },
-
-  // Tầng 17
-  { id: "demo-17-1", product_code: "A1-17A", floor: "17", block: "A", area: 76.5, unit_price: 54000000, status: "available" },
-  { id: "demo-17-2", product_code: "A1-1702", floor: "17", block: "A", area: 82.1, unit_price: 56500000, status: "available" },
-  { id: "demo-17-3", product_code: "A1-17B", floor: "17", block: "A", area: 102.3, unit_price: 60500000, status: "booked" },
-  { id: "demo-17-4", product_code: "A1-1704", floor: "17", block: "A", area: 76.5, unit_price: 54000000, status: "available" },
-  { id: "demo-17-5", product_code: "A1-1705", floor: "17", block: "A", area: 82.1, unit_price: 56500000, status: "available" },
-  { id: "demo-17-6", product_code: "A1-1706", floor: "17", block: "A", area: 102.3, unit_price: 60500000, status: "paid" },
-];
-
 export default function RealEstateApartmentsPage() {
   const [projects, setProjects] = useState<ProjectRow[]>([]);
   const [selectedProject, setSelectedProject] = useState<ProjectRow | null>(null);
   const [products, setProducts] = useState<ProductRow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const requestId = useRef(0);
+  const selectedProjectId = useRef<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [showDetail, setShowDetail] = useState(false);
   const [viewMode, setViewMode] = useState<"matrix" | "list">("matrix");
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [search, setSearch] = useState("");
@@ -138,136 +89,119 @@ export default function RealEstateApartmentsPage() {
 
   // Bulk Inventory Declaration Modal States
   const [showBulkImportModal, setShowBulkImportModal] = useState(false);
-  const [bulkImportText, setBulkImportText] = useState("A1-18A\nA1-1802\nA1-18B\nA1-1804\nA1-1805\nA1-1806\nA1-18C\nA1-1808\nA1-1809\nA1-1810");
-  const [bulkBlock, setBulkBlock] = useState("A");
-  const [bulkFloor, setBulkFloor] = useState("18");
 
-  const loadInitialData = useCallback(async () => {
-    setIsLoading(true);
-    const resProjects = await fetchProjectsAction();
-    if (resProjects.success && resProjects.data) {
-      const list = Array.isArray(resProjects.data) ? resProjects.data : [resProjects.data];
-      setProjects(list);
-      if (list.length > 0) {
-        setSelectedProject(list[0]);
-        const prodRes = await fetchProductsAction(list[0].id);
-        if (prodRes.success && prodRes.data) {
-          const fetchedProds = Array.isArray(prodRes.data) ? prodRes.data : [prodRes.data];
-          setProducts(fetchedProds);
-          if (fetchedProds.length > 0) {
-            setSelectedProduct(fetchedProds[0]);
-          }
-        }
+  useEffect(() => {
+    if (!showBulkImportModal) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setShowBulkImportModal(false);
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [showBulkImportModal]);
+
+  // Each selection invalidates all previous project and unit responses.
+  const readProducts = useCallback(async (project: ProjectRow, request: number) => {
+    try {
+      const result = await fetchProductsAction(project.id);
+      if (request !== requestId.current) return;
+      if (!result.success || !result.data) throw new Error(result.error || "Không thể tải căn hộ");
+      const rows = Array.isArray(result.data) ? result.data : [result.data];
+      setProducts(rows.filter(row => row.project_id === project.id));
+    } catch (err: unknown) {
+      if (request === requestId.current) {
+        setProducts([]);
+        setError(err instanceof Error ? err.message : "Không thể tải căn hộ");
       }
+    } finally {
+      if (request === requestId.current) setIsLoading(false);
     }
-    setIsLoading(false);
   }, []);
 
-  useEffect(() => { loadInitialData(); }, [loadInitialData]);
+  const clearUnits = useCallback(() => {
+    setProducts([]);
+    setSelectedProduct(null);
+    setShowDetail(false);
+    setShowBulkImportModal(false);
+    setSelectedBlock("all");
+    setSelectedFloor("all");
+    setSelectedType("all");
+    setSelectedPriceRange("all");
+    setFilterStatus("all");
+    setSearch("");
+    setError(null);
+    setIsLoading(true);
+  }, []);
 
-  async function handleProjectChange(projId: string) {
-    const proj = projects.find(p => p.id === projId) || null;
-    setSelectedProject(proj);
-    if (proj) {
-      setIsLoading(true);
-      const res = await fetchProductsAction(proj.id);
-      if (res.success && res.data) {
-        const fetchedProds = Array.isArray(res.data) ? res.data : [res.data];
-        setProducts(fetchedProds);
-        if (fetchedProds.length > 0) setSelectedProduct(fetchedProds[0]);
+  const loadInitialData = useCallback(async () => {
+    const request = ++requestId.current;
+    clearUnits();
+    setProjects([]);
+    setSelectedProject(null);
+    try {
+      const result = await fetchProjectsAction();
+      if (request !== requestId.current) return;
+      if (!result.success || !result.data) throw new Error(result.error || "Không thể tải dự án");
+      const list = Array.isArray(result.data) ? result.data : [result.data];
+      setProjects(list);
+      const requestedId = selectedProjectId.current ?? new URLSearchParams(window.location.search).get("projectId");
+      const project = requestedId !== null ? list.find(item => item.id === requestedId) : list[0];
+      if (requestedId !== null && !project) throw new Error("Dự án không khả dụng trong danh sách được truy cập");
+      setSelectedProject(project || null);
+      selectedProjectId.current = project?.id ?? null;
+      if (project) await readProducts(project, request);
+      else setIsLoading(false);
+    } catch (err: unknown) {
+      if (request === requestId.current) {
+        setError(err instanceof Error ? err.message : "Không thể tải dự án");
+        setIsLoading(false);
       }
+    }
+  }, [clearUnits, readProducts]);
+
+  const invalidateReads = useCallback(() => { ++requestId.current; }, []);
+  useEffect(() => {
+    void loadInitialData();
+    return invalidateReads;
+  }, [loadInitialData, invalidateReads]);
+
+  function handleProjectChange(projId: string) {
+    const request = ++requestId.current;
+    clearUnits();
+    const project = projects.find(item => item.id === projId) || null;
+    setSelectedProject(project);
+    selectedProjectId.current = project?.id ?? null;
+    if (project) void readProducts(project, request);
+    else {
+      setError("Dự án không khả dụng trong danh sách được truy cập");
       setIsLoading(false);
     }
   }
 
-  async function handleUpdateStatus(
-    productId: string,
-    targetStatus: ProductRow['status'],
-    ownerName?: string | null
-  ) {
-    setUpdatingId(productId);
-    const res = await updateProductStatusAction(productId, targetStatus, ownerName);
-    if (!res.success) {
-      setUpdatingId(null);
-      toast.error(res.error || "Không thể cập nhật trạng thái");
-      return;
-    }
-    toast.success(`✅ Cập nhật trạng thái thành công`);
-    if (selectedProject) {
-      const r = await fetchProductsAction(selectedProject.id);
-      if (r.success && r.data) {
-        const updated = Array.isArray(r.data) ? r.data : [r.data];
-        setProducts(updated);
-        const active = updated.find(p => p.id === productId);
-        if (active) setSelectedProduct(active);
-      }
-    }
-    setUpdatingId(null);
-  }
-
-  // Handle Bulk Import of Real Developer Units
-  const handlePerformBulkImport = () => {
-    const lines = bulkImportText
-      .split("\n")
-      .map(line => line.trim())
-      .filter(Boolean);
-
-    if (lines.length === 0) {
-      toast.error("Vui lòng nhập ít nhất 1 mã căn thực tế");
-      return;
-    }
-
-    const newUnits: ProductRow[] = lines.map((code, idx) => ({
-      id: `imported-${bulkBlock}-${bulkFloor}-${idx}-${Date.now()}`,
-      product_code: code,
-      floor: bulkFloor,
-      floor_number: Number(bulkFloor) || null,
-      block: bulkBlock,
-      area: 76.5,
-      area_m2: 76.5,
-      unit_price: 55000000,
-      status: "available",
-      project_id: selectedProject?.id || "p1",
-      created_at: new Date().toISOString(),
-      created_by: null,
-      customer_id: null,
-      deleted_at: null,
-      direction: null,
-      metadata: null,
-      updated_at: new Date().toISOString(),
-      updated_by: null,
-      tenant_id: "tenant-1",
-      building_id: null,
-      floor_id: null,
-      owner_name: null,
-      product_type: "apartment"
-    }));
-
-    const updated = [...newUnits, ...displayUnits];
-    setProducts(updated);
-    setShowBulkImportModal(false);
-    toast.success(`✅ Khai báo thành công ${lines.length} căn thực tế cho Tòa ${bulkBlock} - Tầng ${bulkFloor}!`);
-  };
-
-  // Determine effective display list
-  const displayUnits = (products.length > 0 ? products : (DEMO_DECLARED_UNITS as ProductRow[]));
+  const displayUnits = isLoading || error ? [] : products;
 
   // Available blocks and floors
-  const availableBlocks = Array.from(new Set(displayUnits.map(p => p.block || "A"))).sort();
-  const availableFloors = Array.from(new Set(displayUnits.map(p => p.floor || "1"))).sort((a, b) => Number(b) - Number(a));
+  const availableBlocks = Array.from(new Set(displayUnits.map(p => p.block || "Chưa cập nhật"))).sort();
+  const availableFloors = Array.from(new Set(displayUnits.map(p => p.floor || "Chưa cập nhật"))).sort((a, b) => Number(b) - Number(a));
 
   // Filter and group
   const filtered = displayUnits.filter(p => {
     const matchStatus = filterStatus === "all" || p.status === filterStatus;
-    const matchBlock = selectedBlock === "all" || (p.block || "A") === selectedBlock;
-    const matchFloor = selectedFloor === "all" || (p.floor || "1") === selectedFloor;
+    const matchBlock = selectedBlock === "all" || (p.block || "Chưa cập nhật") === selectedBlock;
+    const matchFloor = selectedFloor === "all" || (p.floor || "Chưa cập nhật") === selectedFloor;
     const matchSearch = !search || p.product_code?.toLowerCase().includes(search.toLowerCase());
-    return matchStatus && matchBlock && matchFloor && matchSearch;
+    const matchType = selectedType === "all" || p.product_type === selectedType;
+    const price = p.unit_price;
+    const matchPrice = selectedPriceRange === "all" || (price !== null && (
+      selectedPriceRange === "3-5" ? price >= 3_000_000_000 && price < 5_000_000_000 :
+      selectedPriceRange === "5-8" ? price >= 5_000_000_000 && price <= 8_000_000_000 :
+      selectedPriceRange === "8+" && price > 8_000_000_000
+    ));
+    return matchStatus && matchBlock && matchFloor && matchSearch && matchType && matchPrice;
   });
 
   // Group by floor for matrix view
   const floorGroups = filtered.reduce<Record<string, ProductRow[]>>((acc, p) => {
-    const floor = p.floor ?? "20";
+    const floor = p.floor || "Chưa cập nhật";
     if (!acc[floor]) acc[floor] = [];
     acc[floor].push(p);
     return acc;
@@ -288,7 +222,7 @@ export default function RealEstateApartmentsPage() {
     cancelled: displayUnits.filter(p => p.status === "cancelled").length,
   };
 
-  const activeProduct = selectedProduct || displayUnits[0] || null;
+  const activeProduct = filtered.find(unit => unit.id === selectedProduct?.id) || filtered[0] || null;
 
   return (
     <div className="p-6 md:p-8 space-y-6 max-w-[1600px] mx-auto">
@@ -316,27 +250,10 @@ export default function RealEstateApartmentsPage() {
           <div className="space-y-2 max-w-xl">
             <div className="flex items-center gap-3 flex-wrap">
               <h1 className="text-3xl md:text-4xl font-black text-slate-900 dark:text-white tracking-tight">
-                {selectedProject?.name || "Elyse Island"}
+                {selectedProject?.name || "Chưa chọn dự án"}
               </h1>
-              <span className="px-3 py-1 rounded-full text-xs font-extrabold bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/40 flex items-center gap-1.5 backdrop-blur-xs">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                Đang mở bán
-              </span>
             </div>
-
-            <p className="text-xs md:text-sm text-slate-700 dark:text-slate-200 font-serif italic font-medium">
-              Sống giữa thiên nhiên, chạm tới tương lai
-            </p>
-
-            <div className="flex items-center gap-4 text-xs font-bold text-slate-700 dark:text-slate-300 pt-2 flex-wrap">
-              <span className="flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" /> Vịnh biển, Phú Quốc</span>
-              <span>•</span>
-              <span className="flex items-center gap-1.5"><Building className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" /> 3 tòa</span>
-              <span>•</span>
-              <span className="flex items-center gap-1.5"><Users className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" /> 1,284 căn</span>
-              <span>•</span>
-              <span className="flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" /> Bàn giao Q4/2027</span>
-            </div>
+            <p className="text-sm text-slate-600 dark:text-slate-300">{selectedProject?.location || "Chưa cập nhật vị trí"}</p>
           </div>
 
           <div className="relative z-20 shrink-0">
@@ -371,14 +288,14 @@ export default function RealEstateApartmentsPage() {
             }`}
           >
             <div className="flex items-center justify-between gap-1 mb-2">
-              <span className={`text-2xl font-black ${item.text}`}>{item.count}</span>
+              <span className={`text-2xl font-black ${item.text}`}>{isLoading || error || !selectedProject ? "—" : item.count}</span>
               <div className={`w-7 h-7 rounded-xl flex items-center justify-center ${item.iconBg}`}>
                 <item.icon className="w-3.5 h-3.5" />
               </div>
             </div>
             <div className="flex items-center justify-between text-[11px]">
               <span className="font-bold text-slate-700 dark:text-slate-300">{item.label}</span>
-              <span className="text-[10px] text-slate-400 font-semibold">{item.pct}</span>
+              <span className="text-[10px] text-slate-400 font-semibold">{totalCount ? `${((item.count / totalCount) * 100).toFixed(1)}%` : "—"}</span>
             </div>
           </button>
         ))}
@@ -411,9 +328,7 @@ export default function RealEstateApartmentsPage() {
               onChange={(val) => setSelectedType(val)}
               options={[
                 { value: "all", label: "Tất cả loại căn" },
-                { value: "2pn", label: "2 Phòng ngủ" },
-                { value: "3pn", label: "3 Phòng ngủ" },
-                { value: "shophouse", label: "Shophouse" },
+                ...Array.from(new Set(displayUnits.map(unit => unit.product_type).filter(type => Boolean(type)))).map(type => ({ value: type, label: ({ apartment: "Căn hộ", townhouse: "Nhà phố", shophouse: "Shophouse", villa: "Biệt thự", land_plot: "Đất nền", office: "Văn phòng" } as Record<string, string>)[type] || type })),
               ]}
             />
 
@@ -431,7 +346,7 @@ export default function RealEstateApartmentsPage() {
             <div className="relative min-w-[220px]">
               <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
               <input
-                placeholder="Tìm mã căn, khách hàng..."
+                placeholder="Tìm mã căn..."
                 value={search}
                 onChange={e => setSearch(e.target.value)}
                 className="w-full pl-9 pr-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-blue-500"
@@ -440,12 +355,13 @@ export default function RealEstateApartmentsPage() {
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
-            <button className="p-2 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800">
+            <button aria-label="Xóa bộ lọc" title="Xóa bộ lọc" onClick={() => { setSearch(""); setFilterStatus("all"); setSelectedType("all"); setSelectedPriceRange("all"); setSelectedBlock("all"); setSelectedFloor("all"); }} className="p-2 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800">
               <SlidersHorizontal className="w-4 h-4" />
             </button>
             <div className="flex items-center bg-slate-100 dark:bg-slate-800 rounded-xl p-1">
               <button
                 onClick={() => setViewMode("matrix")}
+                aria-pressed={viewMode === "matrix"}
                 className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
                   viewMode === "matrix" ? "bg-blue-600 text-white shadow-xs" : "text-slate-600 dark:text-slate-400"
                 }`}
@@ -454,6 +370,7 @@ export default function RealEstateApartmentsPage() {
               </button>
               <button
                 onClick={() => setViewMode("list")}
+                aria-pressed={viewMode === "list"}
                 className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
                   viewMode === "list" ? "bg-blue-600 text-white shadow-xs" : "text-slate-600 dark:text-slate-400"
                 }`}
@@ -461,7 +378,7 @@ export default function RealEstateApartmentsPage() {
                 <List className="w-3.5 h-3.5" /> Danh sách
               </button>
             </div>
-            <button className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800">
+            <button disabled={filtered.length === 0} onClick={() => downloadLandCsv("bella-land-can-ho.csv", filtered.map(unit => ({ "Mã căn": unit.product_code, "Dự án": unit.project_id, "Trạng thái": unit.status, "Diện tích": unit.area, "Đơn giá": unit.unit_price })))} className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800">
               <Download className="w-3.5 h-3.5" /> Xuất
             </button>
           </div>
@@ -480,7 +397,7 @@ export default function RealEstateApartmentsPage() {
           </div>
 
           <div className="flex items-center gap-3 text-slate-400 font-medium">
-            <span>Cập nhật: 2 phút trước</span>
+            <button onClick={loadInitialData}>Tải lại dữ liệu</button>
             <span className="cursor-pointer text-slate-600 dark:text-slate-300 font-bold">Trạng thái ▾</span>
           </div>
         </div>
@@ -491,16 +408,16 @@ export default function RealEstateApartmentsPage() {
         
         {/* Left Column (2.5 cols): Tower Selector Cards */}
         <div className="lg:col-span-2 space-y-2">
-          {[
-            { id: "A", name: "Tòa A", total: 120, avail: 42, active: true },
-            { id: "B", name: "Tòa B", total: 120, avail: 38, active: false },
-            { id: "C", name: "Tòa C", total: 96, avail: 25, active: false },
-          ].map(t => (
+          {availableBlocks.map(block => ({
+            id: block, name: `Tòa ${block}`,
+            total: displayUnits.filter(unit => (unit.block || "Chưa cập nhật") === block).length,
+            avail: displayUnits.filter(unit => (unit.block || "Chưa cập nhật") === block && unit.status === "available").length,
+          })).map(t => (
             <button
               key={t.id}
               onClick={() => setSelectedBlock(t.id)}
               className={`w-full p-4 rounded-2xl border text-left transition-all ${
-                selectedBlock === t.id || (selectedBlock === "all" && t.id === "A")
+                selectedBlock === t.id
                   ? "bg-blue-50/80 dark:bg-blue-950/40 border-blue-500 text-blue-950 dark:text-blue-100 shadow-sm ring-1 ring-blue-500"
                   : "bg-white dark:bg-slate-900 border-slate-200/80 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50"
               }`}
@@ -523,11 +440,11 @@ export default function RealEstateApartmentsPage() {
           <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 flex-wrap gap-2">
             <div>
               <h3 className="text-sm font-black text-slate-900 dark:text-white flex items-center gap-2">
-                Tòa {selectedBlock === "all" ? "A" : selectedBlock}
+                Tòa {selectedBlock === "all" ? "Tất cả" : selectedBlock}
                 <span className="text-slate-400 font-semibold text-xs">• Danh mục căn hộ thực tế đã khai báo</span>
               </h3>
               <p className="text-[11px] text-slate-500 font-medium mt-0.5">
-                Hiển thị đúng mã căn CĐT ({displayUnits.length} căn). Không tự tạo ô giả định.
+                Hiển thị đúng mã căn CĐT ({filtered.length} / {displayUnits.length} căn). Không tự tạo ô giả định.
               </p>
             </div>
 
@@ -541,9 +458,43 @@ export default function RealEstateApartmentsPage() {
 
           {/* Dynamic Floor Rows (No static 01..10 columns) */}
           <div className="space-y-3 max-h-[600px] overflow-y-auto pr-1">
-            {displayFloors.length === 0 ? (
+            {isLoading ? <p role="status">Đang tải dữ liệu…</p> : error ? <div role="alert">{error}<button onClick={loadInitialData}>Thử lại</button></div> : !selectedProject ? <p>Chưa có dự án được truy cập.</p> : displayFloors.length === 0 ? (
               <div className="p-8 text-center text-slate-400 font-semibold text-xs border border-dashed rounded-2xl">
-                Chưa có căn hộ nào được khai báo cho dự án này.
+                {displayUnits.length === 0 ? "Chưa có căn hộ nào được khai báo cho dự án này." : "Không có căn hộ phù hợp với bộ lọc."}
+                {displayUnits.length > 0 && <button className="ml-2 underline" onClick={() => { setSearch(""); setFilterStatus("all"); setSelectedType("all"); setSelectedPriceRange("all"); setSelectedFloor("all"); setSelectedBlock("all"); }}>Xóa bộ lọc</button>}
+              </div>
+            ) : viewMode === "list" ? (
+              <div className="overflow-x-auto">
+                <table aria-label="Danh sách căn hộ" className="w-full text-left text-xs text-slate-700 dark:text-slate-300">
+                  <thead>
+                    <tr className="border-b border-slate-200 dark:border-slate-700">
+                      {["Mã căn", "Tòa", "Tầng", "Loại căn", "Diện tích", "Đơn giá", "Trạng thái"].map(label => (
+                        <th key={label} scope="col" className="p-3 font-bold">{label}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filtered.map(unit => (
+                      <tr key={unit.id} className="border-b border-slate-100 dark:border-slate-800">
+                        <th scope="row" className="p-3">
+                          <button
+                            aria-pressed={activeProduct?.id === unit.id}
+                            onClick={() => { setSelectedProduct(unit); setShowDetail(false); }}
+                            className={`px-3 py-2 rounded-xl border font-bold ${activeProduct?.id === unit.id ? "ring-2 ring-blue-600" : "border-slate-200 dark:border-slate-700"}`}
+                          >
+                            {unit.product_code || "Chưa cập nhật mã căn"}
+                          </button>
+                        </th>
+                        <td className="p-3">{unit.block || "Chưa cập nhật"}</td>
+                        <td className="p-3">{unit.floor || "Chưa cập nhật"}</td>
+                        <td className="p-3">{unit.product_type || "Chưa cập nhật"}</td>
+                        <td className="p-3">{unit.area === null ? "Chưa cập nhật" : `${unit.area} m²`}</td>
+                        <td className="p-3">{unit.unit_price === null ? "Chưa cập nhật" : unit.unit_price.toLocaleString("vi-VN")}</td>
+                        <td className="p-3">{STATUS_MAP[unit.status ?? ""]?.label || "Chưa cập nhật trạng thái"}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             ) : (
               displayFloors.map(floor => {
@@ -559,13 +510,13 @@ export default function RealEstateApartmentsPage() {
 
                     <div className="flex flex-wrap gap-2 flex-1 items-center">
                       {floorUnits.map((u) => {
-                        const statusCfg = STATUS_MAP[u.status ?? "available"] ?? STATUS_MAP.available;
+                        const statusCfg = STATUS_MAP[u.status ?? ""] ?? { label: "Chưa cập nhật", bg: "bg-slate-100 dark:bg-slate-800", text: "text-slate-600 dark:text-slate-300", border: "border-slate-300 dark:border-slate-600", dot: "bg-slate-400" };
                         const isSelected = activeProduct?.id === u.id || activeProduct?.product_code === u.product_code;
 
                         return (
                           <button
                             key={u.id || u.product_code}
-                            onClick={() => setSelectedProduct(u)}
+                            onClick={() => { setSelectedProduct(u); setShowDetail(false); }}
                             className={`px-3.5 py-2 rounded-xl border text-center transition-all flex flex-col justify-center items-center min-w-[80px] sm:min-w-[88px] cursor-pointer ${statusCfg.bg} ${statusCfg.border} ${
                               isSelected ? "ring-2 ring-blue-600 border-blue-600 shadow-md scale-105 z-10 bg-white" : "hover:scale-105 hover:shadow-xs"
                             }`}
@@ -574,7 +525,7 @@ export default function RealEstateApartmentsPage() {
                               {u.product_code}
                             </span>
                             <span className="text-[10px] text-slate-500 font-bold mt-0.5">
-                              {u.area ?? 76.5} m²
+                              {u.area === null ? "Chưa cập nhật diện tích" : `${u.area} m²`}
                             </span>
                           </button>
                         );
@@ -591,132 +542,24 @@ export default function RealEstateApartmentsPage() {
         <div className="lg:col-span-3 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-5 shadow-xs space-y-4">
           {activeProduct ? (
             <>
-              {/* Unit Code Header & Status */}
-              <div className="flex items-start justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
-                <div>
-                  <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
-                    {activeProduct.product_code || "A1805"}
-                  </h2>
-                  <p className="text-xs text-slate-400 font-medium">
-                    Tòa {activeProduct.block || "A"} • Tầng {activeProduct.floor || "18"} • 2 Phòng ngủ
-                  </p>
-                </div>
-                <span className="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-amber-100 text-amber-800 border border-amber-300 flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-                  Giữ chỗ
-                </span>
-              </div>
-
-              {/* Price & Floorplan Thumbnail */}
-              <div className="flex items-center justify-between bg-slate-50 dark:bg-slate-800/60 p-3.5 rounded-2xl border border-slate-100 dark:border-slate-800">
-                <div>
-                  <p className="text-2xl font-black text-slate-900 dark:text-white">
-                    4.28 tỷ
-                  </p>
-                  <p className="text-[10px] font-bold text-slate-400">
-                    (~55.9 tr/m²)
-                  </p>
-                </div>
-                <div className="w-14 h-12 rounded-xl bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-[9px] font-bold text-slate-500 border border-slate-300 overflow-hidden">
-                  <img
-                    src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=200&q=80"
-                    alt="Floorplan"
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              </div>
-
-              {/* Property Attributes Table */}
-              <div className="space-y-2 text-xs divide-y divide-slate-100 dark:divide-slate-800 font-medium">
-                <div className="flex justify-between py-1.5">
-                  <span className="text-slate-400">Diện tích</span>
-                  <span className="font-bold text-slate-900 dark:text-white">{activeProduct.area ?? 76.5} m²</span>
-                </div>
-                <div className="flex justify-between py-1.5">
-                  <span className="text-slate-400">Loại căn</span>
-                  <span className="font-bold text-slate-900 dark:text-white">2 Phòng ngủ</span>
-                </div>
-                <div className="flex justify-between py-1.5">
-                  <span className="text-slate-400">Hướng cửa</span>
-                  <span className="font-bold text-slate-900 dark:text-white">Đông Nam</span>
-                </div>
-                <div className="flex justify-between py-1.5">
-                  <span className="text-slate-400">View</span>
-                  <span className="font-bold text-slate-900 dark:text-white">Hồ bơi</span>
-                </div>
-                <div className="flex justify-between py-1.5">
-                  <span className="text-slate-400">Tình trạng nội thất</span>
-                  <span className="font-bold text-slate-900 dark:text-white">Hoàn thiện cơ bản</span>
-                </div>
-              </div>
-
-              {/* Transaction Info Box (Buyer & Timer) */}
-              <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700 space-y-3">
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Thông tin giao dịch</p>
-                
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center font-bold text-xs text-slate-700 dark:text-slate-200">
-                      NT
-                    </div>
-                    <div>
-                      <p className="text-xs font-black text-slate-900 dark:text-white">Nguyễn Văn A</p>
-                      <p className="text-[10px] font-semibold text-slate-400">0901 234 567</p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-[9px] font-bold text-amber-700">Còn giữ</p>
-                    <p className="font-mono text-xs font-black text-amber-600">01:43:26</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between pt-2 border-t border-slate-200/60 dark:border-slate-700">
-                  <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-[10px]">
-                      TM
-                    </div>
-                    <span className="text-xs font-bold text-slate-700 dark:text-slate-300">Trần Minh</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <button className="p-1.5 rounded-lg bg-white border border-slate-200 text-slate-600 hover:bg-slate-100">
-                      <MessageSquare className="w-3.5 h-3.5" />
-                    </button>
-                    <button className="p-1.5 rounded-lg bg-white border border-slate-200 text-slate-600 hover:bg-slate-100">
-                      <Phone className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              {/* Primary & Secondary Action Buttons */}
-              <div className="space-y-2 pt-2">
-                <button
-                  disabled={!!updatingId}
-                  onClick={() => handleUpdateStatus(activeProduct.id, "deposited", "Nguyễn Văn A")}
-                  className="w-full py-3 bg-blue-900 hover:bg-blue-950 text-white font-black text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-1.5 disabled:opacity-50"
-                >
-                  {updatingId === activeProduct.id ? (
-                    <Loader2 className="w-4 h-4 animate-spin text-white" />
-                  ) : (
-                    "Xem chi tiết"
-                  )}
-                </button>
-
-                <div className="grid grid-cols-2 gap-2">
-                  <button className="py-2.5 px-3 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-bold text-xs rounded-xl transition-all flex items-center justify-center gap-1">
-                    <FileText className="w-3.5 h-3.5 text-blue-600" /> Tạo báo giá
-                  </button>
-                  <button className="py-2.5 px-3 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-bold text-xs rounded-xl transition-all flex items-center justify-center gap-1">
-                    <RefreshCw className="w-3.5 h-3.5 text-amber-600" /> Chuyển cọc
-                  </button>
-                </div>
-              </div>
-
-              {/* Accordion link */}
-              <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs font-bold text-slate-600 dark:text-slate-400 cursor-pointer hover:text-slate-900">
-                <span>Lịch sử giao dịch</span>
-                <ChevronRight className="w-4 h-4" />
-              </div>
+              <h2 className="text-2xl font-black">{activeProduct.product_code || "Chưa cập nhật mã căn"}</h2>
+              <p>{STATUS_MAP[activeProduct.status ?? ""]?.label || "Chưa cập nhật trạng thái"}</p>
+              <p>Tòa {activeProduct.block || "Chưa cập nhật"} • Tầng {activeProduct.floor || "Chưa cập nhật"}</p>
+              <button className="w-full py-3 bg-blue-900 text-white rounded-xl" onClick={() => setShowDetail(true)}>Xem chi tiết</button>
+              {showDetail && (
+                <section aria-label="Chi tiết căn hộ" className="space-y-3 border-t pt-4">
+                  <p>Thông tin chỉ đọc</p>
+                  <dl className="space-y-2 text-sm">
+                    <dt>Mã căn</dt><dd>{activeProduct.product_code || "Chưa cập nhật"}</dd>
+                    <dt>Diện tích</dt><dd>{activeProduct.area === null ? "Chưa cập nhật" : `${activeProduct.area} m²`}</dd>
+                    <dt>Đơn giá</dt><dd>{activeProduct.unit_price === null ? "Chưa cập nhật" : activeProduct.unit_price.toLocaleString("vi-VN")}</dd>
+                    <dt>Loại căn</dt><dd>{activeProduct.product_type || "Chưa cập nhật"}</dd>
+                    <dt>Hướng</dt><dd>{activeProduct.direction || "Chưa cập nhật"}</dd>
+                    <dt>Chủ sở hữu</dt><dd>{activeProduct.owner_name || "Chưa cập nhật"}</dd>
+                  </dl>
+                  <button onClick={() => setShowDetail(false)}>Đóng chi tiết</button>
+                </section>
+              )}
             </>
           ) : (
             <div className="text-center py-10 text-slate-400">
@@ -743,7 +586,7 @@ export default function RealEstateApartmentsPage() {
                   Khai Báo Căn Thực Tế Nhanh
                 </h2>
                 <p className="text-xs text-slate-500 font-medium mt-0.5">
-                  Nhập/Dán danh sách mã căn từ CĐT (Mỗi mã căn trên 1 dòng).
+                  Tính năng đang chờ hợp đồng nhập và lưu dữ liệu.
                 </p>
               </div>
               <button
@@ -755,63 +598,9 @@ export default function RealEstateApartmentsPage() {
             </div>
 
             <div className="p-6 space-y-4">
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1">Tòa / Block</label>
-                  <input
-                    value={bulkBlock}
-                    onChange={e => setBulkBlock(e.target.value.toUpperCase())}
-                    className="w-full px-3.5 py-2 text-xs font-bold bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl"
-                    placeholder="VD: A, B, C1"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1">Tầng</label>
-                  <input
-                    value={bulkFloor}
-                    onChange={e => setBulkFloor(e.target.value)}
-                    className="w-full px-3.5 py-2 text-xs font-bold bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl"
-                    placeholder="VD: 18, 19, 20"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1">
-                  Danh sách mã căn thực tế (Paste Excel/Text):
-                </label>
-                <textarea
-                  value={bulkImportText}
-                  onChange={e => setBulkImportText(e.target.value)}
-                  rows={6}
-                  className="w-full p-3 font-mono text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-900 dark:text-white focus:outline-none focus:border-amber-500"
-                  placeholder="A1-18A&#10;A1-1802&#10;A1-18B&#10;A1-1804&#10;A1-1805&#10;A1-PH1"
-                />
-              </div>
-
-              <div className="p-3.5 rounded-2xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/40 text-[11px] text-amber-800 dark:text-amber-300 space-y-1 font-medium">
-                <p className="font-bold flex items-center gap-1.5">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-amber-600 shrink-0" /> Nguyên tắc Bella Land Inventory:
-                </p>
-                <p>Bella Land sẽ hiển thị chính xác các mã căn thực tế bạn nhập ở trên. Không tự sinh cột 01-10 giả định.</p>
-              </div>
-
-              <div className="flex gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setShowBulkImportModal(false)}
-                  className="flex-1 py-2.5 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded-xl text-xs font-bold hover:bg-slate-50 transition-colors"
-                >
-                  Hủy
-                </button>
-                <button
-                  type="button"
-                  onClick={handlePerformBulkImport}
-                  className="flex-1 py-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 shadow-sm"
-                >
-                  <Upload className="w-3.5 h-3.5" /> Khai Báo Căn
-                </button>
-              </div>
+              <p role="status">Nhập căn hàng loạt chưa khả dụng: chưa có hợp đồng lưu dữ liệu được phê duyệt. Không có căn nào được tạo hoặc lưu.</p>
+              <button disabled className="py-2 px-4 rounded-xl bg-slate-200">Khai Báo Căn — chưa khả dụng</button>
+              <button onClick={() => setShowBulkImportModal(false)}>Đóng</button>
             </div>
           </motion.div>
         </div>
