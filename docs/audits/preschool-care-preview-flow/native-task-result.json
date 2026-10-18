@@ -1,0 +1,148 @@
+{
+  "result": "NATIVE_TASK_EXECUTED_PENDING_LEAD_REVIEW",
+  "fault": null,
+  "completedAt": "2026-10-17T23:23:13.616Z",
+  "baseline": "91468e5cb98030636f339e160d6baad70c4348ff",
+  "binding": {
+    "repository": "bellaspahcm/bella-ai-platform",
+    "taskId": "b989fe1b-d6a6-4d0c-af4a-5c5913c1e9fc",
+    "runId": "f9fbde41-e4b5-4500-8ade-aff66ad870ed",
+    "attempt": 1,
+    "producerInstanceId": "c294b89e-e205-4e66-bea6-692ac72e6a16",
+    "threadId": "01a14c27-23f0-7af2-8a8f-f7eec0c833d6",
+    "sessionId": "01a14c27-23f0-7af2-8a8f-f7eec0c833d6",
+    "turnId": "01a14c27-253b-7783-ad8d-e515771bcad6"
+  },
+  "model": "gpt-6.1-sol",
+  "authorityVerifiedAt": "2026-10-17T23:16:33.189Z",
+  "directory": "C:\\Users\\DELL\\.codex\\agent-flow-evidence\\bella-agent-flow-j2KfVh",
+  "nativeTurnStatus": "completed",
+  "commands": [
+    {
+      "itemId": "exec-fe853497-ff24-4ae7-b361-f0ed985ba369",
+      "exitCode": 0,
+      "commandSha256": "d34aced694088a98f2b253fd1407aee24b3cb5712e02f99636fa2fa4a8dc7a71",
+      "outputSha256": "fe8add53a87abba3b74e9f65c4cf0d46d611a14a4dbb13c5a95f282d05feb5f4"
+    },
+    {
+      "itemId": "exec-3ba4686a-58d8-4b07-91b4-6d5b29d292b2",
+      "exitCode": 0,
+      "commandSha256": "15f0b6d291f3baac8a74d15374e284152b738d2df07b9b3f06c99ae6cd52d3d3",
+      "outputSha256": "ff1e47deb9f8bfab4750be0a944cbe478ee415d2bf32d86a0b59c735cf31d034"
+    },
+    {
+      "itemId": "exec-f3874b3f-ccdb-415f-9916-5aad0756ba94",
+      "exitCode": 0,
+      "commandSha256": "55727c195e24b1ed4461d8c9409f0877eac89cb73dd3724938b041d2674fdbb5",
+      "outputSha256": "0f587207a41804985c69a1813084dd37b0af0b1849265047a53cff97ccf3a6c4"
+    },
+    {
+      "itemId": "exec-2c5f2161-c8b8-4363-83cf-257cebabc8be",
+      "exitCode": 0,
+      "commandSha256": "a4b8e1def610f5f4d4db5279786ea303686a9eaac04a6f31faf45adda98d1059",
+      "outputSha256": "3fd5f4e8a5f646bfec4f4490421d7019b64bf450ac0e71c419b0ef7e50492cdc"
+    },
+    {
+      "itemId": "exec-d9e2d65b-5f73-4a07-9dc6-66c760fbeec2",
+      "exitCode": 0,
+      "commandSha256": "b13acb6f34548df5a611c8cad042648c5b570f8840d63bdf66f0a4f758db02aa",
+      "outputSha256": "1450a651b0082a23e98e4226dab405a9e786c1eb665c5af5d231994de03aeefb"
+    },
+    {
+      "itemId": "exec-a3ccc97a-99d6-442e-904d-1f6393845d15",
+      "exitCode": 0,
+      "commandSha256": "a414e361ce141c31e9a8c4d0f807f0ab7835706a72aebd9ac9e3ef45ff2350eb",
+      "outputSha256": "a06bba4381ed561bc36eb0d3dceb0d21280da4ff387ce1580ac52278cc24dd52"
+    },
+    {
+      "itemId": "exec-7e356feb-d5dc-4394-ab06-7f529c520ea4",
+      "exitCode": 1,
+      "commandSha256": "fb3dee1c2ecc8369240df709d5f6354e87b31626992f559faf46664e9e01886a",
+      "outputSha256": "d802c9e5811e916ea8e304c9be99343d1467cb36574146e450641ad9dafbba28"
+    },
+    {
+      "itemId": "exec-95b7d042-21c7-4264-8bc4-f2bd108dfd14",
+      "exitCode": 0,
+      "commandSha256": "dbd447414ef070fe05fe7a78791d29aa23f4a1a2451956606a5d17f47c7161be",
+      "outputSha256": "b37aa440afb7f4cc7066cdc5610edfc1fbdc4d559a073fd44da6d1a6711bd6ca"
+    },
+    {
+      "itemId": "exec-9108fe29-2444-403e-b862-68e88ce1fcf3",
+      "exitCode": 0,
+      "commandSha256": "e8a168b70cb5a65963da512e579ff977e2fb761878746e81cbae5c92bcc32307",
+      "outputSha256": "039164d2fa105893c116f861c7de7a98542a0aced3a9b5c18616f654c8df6e3f"
+    },
+    {
+      "itemId": "exec-7cbaa6b7-a008-4f40-ace9-e2a041cc6860",
+      "exitCode": 0,
+      "commandSha256": "61c4aafd6ebb59c5992cc599cc341cc28226deb54fd44decf851230d4397d54d",
+      "outputSha256": "e0ab9a19073131529ca4ae59dd8e466a5a72ee4dcc037fa4ec6caf8e8b2376f9"
+    },
+    {
+      "itemId": "exec-d2b32cf2-44c0-46bb-be4c-6fc6b10c9988",
+      "exitCode": 0,
+      "commandSha256": "9f8afe2da75dff2424f3c6082db79dfa81ec1db755923929d644070c1ecbf321",
+      "outputSha256": "0f9465f23a2655618f5193205421ccbdb1ba2c6fcb33431689aaddd7997b713e"
+    },
+    {
+      "itemId": "exec-71c3a811-7fc9-4b0d-8d2b-4c826ace11ae",
+      "exitCode": 0,
+      "commandSha256": "c9db9ac458c50ee80e5b955cafa7a25b7d077251edb1420d41b5ba724ceda57c",
+      "outputSha256": "b4eebba2e897b75855102f5d4c295a2c3bc8d3b67d06d29805848edfe01fba80"
+    },
+    {
+      "itemId": "exec-18855b8d-fda3-4669-9996-ef9ba77d200b",
+      "exitCode": 0,
+      "commandSha256": "0769ee75be3798a12b19f3d445a2e9d19d1fe82781ac05b2f059778487912d03",
+      "outputSha256": "fe46f336a5e923af98af0bc2eabe0b4beca203f853e11145428585be6e52c5a3"
+    },
+    {
+      "itemId": "exec-948a1e17-a99e-4ad7-83fe-45bb6820c024",
+      "exitCode": 0,
+      "commandSha256": "eddd28d401edcf52378a874668dc31c10ae6c456fbe1535a6c648690489a6031",
+      "outputSha256": "7e27557f68a2db943843d9a447e81701546403163f3f1d4fd524e37cbda81b6a"
+    },
+    {
+      "itemId": "exec-26b123b1-4e58-4d61-b2a8-7ef405f780e1",
+      "exitCode": 0,
+      "commandSha256": "41f3042391050d064ba030c7732113f1ffcad560c8e7693566f8fef73020893f",
+      "outputSha256": "737fcc4ee9aa1ae6f6a168cbad00bc5e924f1885078492f2b2ea061e7cb54ccd"
+    }
+  ],
+  "changes": [
+    {
+      "itemId": "exec-3a4d513e-47d6-425e-b1f0-caec79c039e4",
+      "status": "completed",
+      "paths": [
+        "src/app/dashboard/education/care/page.tsx"
+      ]
+    }
+  ],
+  "changed": [
+    "src/app/dashboard/education/care/page.tsx",
+    "docs/audits/preschool-care-preview-flow/PR_BODY.md",
+    "docs/audits/preschool-care-preview-flow/care-browser.cjs",
+    "docs/audits/preschool-care-preview-flow/care-dark-desktop.png",
+    "docs/audits/preschool-care-preview-flow/care-dark-mobile.png",
+    "docs/audits/preschool-care-preview-flow/care-light-desktop.png",
+    "docs/audits/preschool-care-preview-flow/care-light-mobile.png",
+    "docs/audits/preschool-care-preview-flow/native-after.json",
+    "docs/audits/preschool-care-preview-flow/native-before.json",
+    "docs/audits/preschool-care-preview-flow/preservation-proof.json",
+    "docs/audits/preschool-care-preview-flow/verification.json"
+  ],
+  "acks": 67,
+  "facts": 67,
+  "fileChange": [
+    {
+      "itemId": "exec-3a4d513e-47d6-425e-b1f0-caec79c039e4",
+      "result": "MATCH"
+    }
+  ],
+  "sourceBefore": "cfc6b328cb5d0fe20bea08faddc8a682195b723e2e7c02982b5ef448c6693052",
+  "sourceAfter": "c60568d86453a441e930ea8f59d5b3d76bf863da610bdad30c03f76a8c0e3bd1",
+  "beforeInventorySha256": "09081c503271200d91af190608a55ba4dde20cf08476440a7432547d37aca6de",
+  "afterInventorySha256": "4930f9861f4db9d092f95c45cf9a0f20b81f0d5054d403f1164a2da70477530b",
+  "scope": "One synthetic UI task, not autonomous discovery or Product readiness",
+  "dbOperations": 0
+}

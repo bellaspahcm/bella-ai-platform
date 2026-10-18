@@ -1,0 +1,68 @@
+diff --git a/src/app/dashboard/education/care/page.tsx b/src/app/dashboard/education/care/page.tsx
+index f031ac442..7b87679b9 100644
+--- a/src/app/dashboard/education/care/page.tsx
++++ b/src/app/dashboard/education/care/page.tsx
+@@ -324,0 +325 @@ export default function CarePage() {
++  const [isQuickRecordSaveUnavailable, setIsQuickRecordSaveUnavailable] = useState(false);
+@@ -480,0 +482,4 @@ export default function CarePage() {
++      <p id="care-preview-notice" className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-4 text-sm text-slate-800 dark:text-slate-100">
++        Danh sách trẻ, chỉ số và lịch sử trên trang là dữ liệu minh họa; chưa tải dữ liệu chăm sóc thực tế.
++      </p>
++
+@@ -1006 +1011 @@ export default function CarePage() {
+-          <div className="w-full max-w-lg rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl p-6 sm:p-7 space-y-5 relative">
++          <div role="dialog" aria-modal="true" aria-labelledby="care-quick-record-title" aria-describedby="care-draft-notice" className="w-full max-w-lg max-h-[calc(100dvh-2rem)] overflow-y-auto rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl p-6 sm:p-7 space-y-5 relative">
+@@ -1009 +1014,2 @@ export default function CarePage() {
+-              onClick={() => setIsQuickRecordModalOpen(false)}
++              aria-label="Đóng ghi nhận nhanh"
++              onClick={() => { setIsQuickRecordModalOpen(false); setIsQuickRecordSaveUnavailable(false); }}
+@@ -1019 +1025 @@ export default function CarePage() {
+-              <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">
++              <h3 id="care-quick-record-title" className="text-lg font-extrabold text-slate-900 dark:text-white">
+@@ -1022,2 +1028,2 @@ export default function CarePage() {
+-              <p className="text-xs text-slate-500 dark:text-slate-400">
+-                Cập nhật bữa ăn, giấc ngủ, tình trạng sức khỏe theo lớp hoặc trẻ đã chọn
++              <p id="care-draft-notice" className="text-xs text-slate-800 dark:text-slate-100">
++                Chỉ nhập dữ liệu giả lập để thử giao diện; nội dung không được lưu. Đóng hoặc rời trang sẽ làm mất nội dung tạm thời.
+@@ -1041 +1047 @@ export default function CarePage() {
+-                  <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1.5">
++                  <label htmlFor="care-meal" className="font-bold text-slate-700 dark:text-slate-300 block mb-1.5">
+@@ -1044 +1050 @@ export default function CarePage() {
+-                  <select className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 font-medium">
++                  <select id="care-meal" className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 font-medium">
+@@ -1051 +1057 @@ export default function CarePage() {
+-                  <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1.5">
++                  <label htmlFor="care-nap" className="font-bold text-slate-700 dark:text-slate-300 block mb-1.5">
+@@ -1054 +1060 @@ export default function CarePage() {
+-                  <select className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 font-medium">
++                  <select id="care-nap" className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 font-medium">
+@@ -1064 +1070 @@ export default function CarePage() {
+-                  <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1.5">
++                  <label htmlFor="care-health" className="font-bold text-slate-700 dark:text-slate-300 block mb-1.5">
+@@ -1067 +1073 @@ export default function CarePage() {
+-                  <select className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 font-medium">
++                  <select id="care-health" className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 font-medium">
+@@ -1075 +1081 @@ export default function CarePage() {
+-                  <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1.5">
++                  <label htmlFor="care-hygiene" className="font-bold text-slate-700 dark:text-slate-300 block mb-1.5">
+@@ -1078 +1084 @@ export default function CarePage() {
+-                  <select className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 font-medium">
++                  <select id="care-hygiene" className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 font-medium">
+@@ -1087 +1093 @@ export default function CarePage() {
+-                <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1.5">
++                <label htmlFor="care-note" className="font-bold text-slate-700 dark:text-slate-300 block mb-1.5">
+@@ -1090,0 +1097 @@ export default function CarePage() {
++                  id="care-note"
+@@ -1097,0 +1105,6 @@ export default function CarePage() {
++            {isQuickRecordSaveUnavailable && (
++              <p id="care-save-status" role="status" className="text-xs text-slate-800 dark:text-slate-100">
++                Chưa lưu ghi nhận: chức năng lưu chưa khả dụng. Nội dung tạm thời vẫn ở trong biểu mẫu này.
++              </p>
++            )}
++
+@@ -1101 +1114 @@ export default function CarePage() {
+-                onClick={() => setIsQuickRecordModalOpen(false)}
++                onClick={() => { setIsQuickRecordModalOpen(false); setIsQuickRecordSaveUnavailable(false); }}
+@@ -1108 +1121 @@ export default function CarePage() {
+-                onClick={() => setIsQuickRecordModalOpen(false)}
++                onClick={() => setIsQuickRecordSaveUnavailable(true)}

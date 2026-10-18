@@ -322,6 +322,7 @@ export default function CarePage() {
   const [selectedStudentIds, setSelectedStudentIds] = useState<readonly string[]>([]);
   const [activeMenuStudentId, setActiveMenuStudentId] = useState<string | null>(null);
   const [isQuickRecordModalOpen, setIsQuickRecordModalOpen] = useState(false);
+  const [isQuickRecordSaveUnavailable, setIsQuickRecordSaveUnavailable] = useState(false);
   const [selectedStudentForDetail, setSelectedStudentForDetail] = useState<StudentCareItem | null>(null);
 
   const menuRef = useRef<HTMLDivElement>(null);
@@ -477,6 +478,10 @@ export default function CarePage() {
           </div>
         </div>
       </div>
+
+      <p id="care-preview-notice" className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-4 text-sm text-slate-800 dark:text-slate-100">
+        Danh sách trẻ, chỉ số và lịch sử trên trang là dữ liệu minh họa; chưa tải dữ liệu chăm sóc thực tế.
+      </p>
 
       {/* ── 2. FOUR ACTIONABLE KPI CARDS (Image 2 Style) ── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -1003,10 +1008,11 @@ export default function CarePage() {
       {/* ── 8. MODAL: GHI NHẬN NHANH (QUICK RECORD) ── */}
       {isQuickRecordModalOpen && (
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className="w-full max-w-lg rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl p-6 sm:p-7 space-y-5 relative">
+          <div role="dialog" aria-modal="true" aria-labelledby="care-quick-record-title" aria-describedby="care-draft-notice" className="w-full max-w-lg max-h-[calc(100dvh-2rem)] overflow-y-auto rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl p-6 sm:p-7 space-y-5 relative">
             <button
               type="button"
-              onClick={() => setIsQuickRecordModalOpen(false)}
+              aria-label="Đóng ghi nhận nhanh"
+              onClick={() => { setIsQuickRecordModalOpen(false); setIsQuickRecordSaveUnavailable(false); }}
               className="absolute top-5 right-5 p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer"
             >
               <X className="w-4 h-4" />
@@ -1016,11 +1022,11 @@ export default function CarePage() {
               <span className="text-[11px] font-extrabold uppercase tracking-wider text-[#0e5c43] dark:text-emerald-400">
                 Nhật ký chăm sóc mầm non
               </span>
-              <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">
+              <h3 id="care-quick-record-title" className="text-lg font-extrabold text-slate-900 dark:text-white">
                 Ghi Nhận Chăm Sóc Nhanh
               </h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
-                Cập nhật bữa ăn, giấc ngủ, tình trạng sức khỏe theo lớp hoặc trẻ đã chọn
+              <p id="care-draft-notice" className="text-xs text-slate-800 dark:text-slate-100">
+                Chỉ nhập dữ liệu giả lập để thử giao diện; nội dung không được lưu. Đóng hoặc rời trang sẽ làm mất nội dung tạm thời.
               </p>
             </div>
 
@@ -1038,20 +1044,20 @@ export default function CarePage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1.5">
+                  <label htmlFor="care-meal" className="font-bold text-slate-700 dark:text-slate-300 block mb-1.5">
                     Bữa ăn
                   </label>
-                  <select className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 font-medium">
+                  <select id="care-meal" className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 font-medium">
                     <option>Ăn hết khẩu phần</option>
                     <option>Ăn 1/2 khẩu phần</option>
                     <option>Ăn ít / Không ăn</option>
                   </select>
                 </div>
                 <div>
-                  <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1.5">
+                  <label htmlFor="care-nap" className="font-bold text-slate-700 dark:text-slate-300 block mb-1.5">
                     Giấc ngủ trưa
                   </label>
-                  <select className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 font-medium">
+                  <select id="care-nap" className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 font-medium">
                     <option>Ngủ ngoan (120 phút)</option>
                     <option>Ngủ ít (60 phút)</option>
                     <option>Khó ngủ / Không ngủ</option>
@@ -1061,10 +1067,10 @@ export default function CarePage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1.5">
+                  <label htmlFor="care-health" className="font-bold text-slate-700 dark:text-slate-300 block mb-1.5">
                     Thân nhiệt & Sức khỏe
                   </label>
-                  <select className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 font-medium">
+                  <select id="care-health" className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 font-medium">
                     <option>Bình thường (36.5°C - 37°C)</option>
                     <option>Sốt nhẹ (37.5°C - 38°C)</option>
                     <option>Sốt cao (&gt;38°C - Báo y tế)</option>
@@ -1072,10 +1078,10 @@ export default function CarePage() {
                   </select>
                 </div>
                 <div>
-                  <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1.5">
+                  <label htmlFor="care-hygiene" className="font-bold text-slate-700 dark:text-slate-300 block mb-1.5">
                     Vệ sinh cá nhân
                   </label>
-                  <select className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 font-medium">
+                  <select id="care-hygiene" className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 font-medium">
                     <option>Bình thường</option>
                     <option>Đã thay tã / quần áo</option>
                     <option>Tiêu chảy / Bất thường</option>
@@ -1084,10 +1090,11 @@ export default function CarePage() {
               </div>
 
               <div>
-                <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1.5">
+                <label htmlFor="care-note" className="font-bold text-slate-700 dark:text-slate-300 block mb-1.5">
                   Ghi chú cho phụ huynh / giáo viên ca sau
                 </label>
                 <textarea
+                  id="care-note"
                   rows={2}
                   placeholder="Ghi chú thêm (ví dụ: Bé vui vẻ, ăn ngoan...)"
                   className="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 outline-none focus:ring-2 focus:ring-[#0e5c43]"
@@ -1095,17 +1102,23 @@ export default function CarePage() {
               </div>
             </div>
 
+            {isQuickRecordSaveUnavailable && (
+              <p id="care-save-status" role="status" className="text-xs text-slate-800 dark:text-slate-100">
+                Chưa lưu ghi nhận: chức năng lưu chưa khả dụng. Nội dung tạm thời vẫn ở trong biểu mẫu này.
+              </p>
+            )}
+
             <div className="flex items-center justify-end gap-3 pt-2 border-t border-slate-100 dark:border-slate-800">
               <button
                 type="button"
-                onClick={() => setIsQuickRecordModalOpen(false)}
+                onClick={() => { setIsQuickRecordModalOpen(false); setIsQuickRecordSaveUnavailable(false); }}
                 className="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-xs hover:bg-slate-200 transition-colors cursor-pointer"
               >
                 Hủy bỏ
               </button>
               <button
                 type="button"
-                onClick={() => setIsQuickRecordModalOpen(false)}
+                onClick={() => setIsQuickRecordSaveUnavailable(true)}
                 className="px-5 py-2.5 rounded-xl bg-[#0e5c43] hover:bg-[#0a4633] text-white font-bold text-xs shadow-md transition-all cursor-pointer flex items-center gap-1.5 active:scale-95"
               >
                 <Check className="w-4 h-4" />

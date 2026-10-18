@@ -1,0 +1,218 @@
+{
+  "result": "PASS_SCOPED_NATIVE_CARE_QUICK_RECORD_PREVIEW",
+  "recordedAt": "2026-10-17T23:29:11.104Z",
+  "baseline": "91468e5cb98030636f339e160d6baad70c4348ff",
+  "parentPullRequest": 361,
+  "branch": "codex/preschool-care-preview-flow",
+  "worktree": "D:\\Antigravity\\Projects\\BELLA_PRESCHOOL_CARE_TRIAL",
+  "gradesStackDependency": false,
+  "runtimeFiles": 1,
+  "runtimeDiff": {
+    "additions": 29,
+    "deletions": 16
+  },
+  "sourceSha256": "c60568d86453a441e930ea8f59d5b3d76bf863da610bdad30c03f76a8c0e3bd1",
+  "testSha256": "27bf6001715940562927bb183d90ecff8035a93fb006e59d9af974a4adf60e05",
+  "sameTestBeforeAfter": true,
+  "sourceRepairRounds": 1,
+  "before": {
+    "journeys": 12,
+    "passed": 0,
+    "failed": 12,
+    "errors": 0,
+    "assertions": 192,
+    "assertionsPassed": 108,
+    "assertionsFailed": 84,
+    "contrastCount": 0,
+    "contrastFailed": 0,
+    "minimumRatio": null,
+    "pageErrors": 0,
+    "unexpectedRequests": 0,
+    "mutations": 0,
+    "downloads": 0,
+    "catalogGets": 12
+  },
+  "after": {
+    "journeys": 12,
+    "passed": 12,
+    "failed": 0,
+    "errors": 0,
+    "assertions": 192,
+    "assertionsPassed": 192,
+    "assertionsFailed": 0,
+    "contrastCount": 12,
+    "contrastFailed": 0,
+    "minimumRatio": 13.31213862994338,
+    "pageErrors": 0,
+    "unexpectedRequests": 0,
+    "mutations": 0,
+    "downloads": 0,
+    "catalogGets": 12
+  },
+  "native": {
+    "commands": 15,
+    "fileChanges": 1,
+    "fileChangeReadback": "1/1 MATCH",
+    "facts": 67,
+    "binding": {
+      "repository": "bellaspahcm/bella-ai-platform",
+      "taskId": "b989fe1b-d6a6-4d0c-af4a-5c5913c1e9fc",
+      "runId": "f9fbde41-e4b5-4500-8ade-aff66ad870ed",
+      "attempt": 1,
+      "producerInstanceId": "c294b89e-e205-4e66-bea6-692ac72e6a16",
+      "threadId": "01a14c27-23f0-7af2-8a8f-f7eec0c833d6",
+      "sessionId": "01a14c27-23f0-7af2-8a8f-f7eec0c833d6",
+      "turnId": "01a14c27-253b-7783-ad8d-e515771bcad6"
+    },
+    "beforePatchAfterOrder": "PASS",
+    "browserOutputMatches": 2,
+    "outputDigestDifferences": 1,
+    "verificationReportsMatched": 4,
+    "verificationReportsTotal": 4
+  },
+  "autonomy": {
+    "scope": "One bounded UI task, not business persistence or full product lifecycle",
+    "workerDiagnoseDesignTestImplementVerifyPreservePackage": "PASS_SCOPED",
+    "leadIntakeAndArchitectureScope": "MANUAL",
+    "leadEnvironmentProvisioning": "MANUAL",
+    "inTurnLeadFollowupMessages": 0,
+    "inTurnLeadRuntimeCodeOrTestEdits": 0,
+    "workerFailedAuxiliaryChecks": 0,
+    "leadIndependentReviewAndPublication": "MANUAL_REQUIRED",
+    "fullyUnattendedMission": "NOT_PROVEN"
+  },
+  "checks": [
+    {
+      "command": "node node_modules/eslint/bin/eslint.js src/app/dashboard/education/care/page.tsx",
+      "exitCode": 0,
+      "nativeReportMatch": true
+    },
+    {
+      "command": "node node_modules/typescript/bin/tsc -p tsconfig.education.json --pretty false --incremental --tsBuildInfoFile docs/audits/preschool-care-preview-flow/.cache/education.tsbuildinfo",
+      "exitCode": 0,
+      "nativeReportMatch": true
+    },
+    {
+      "command": "node --check docs/audits/preschool-care-preview-flow/care-browser.cjs",
+      "exitCode": 0,
+      "nativeReportMatch": true
+    },
+    {
+      "command": "git diff --check",
+      "exitCode": 0,
+      "nativeReportMatch": true
+    }
+  ],
+  "workerPreservation": {
+    "result": "PASS",
+    "checks": 9,
+    "auxiliaryFailures": []
+  },
+  "leadReview": {
+    "source": "Exact reversal of all reviewed state/disclosure/modal-label/status/handler/scroll substitutions reproduces entire baseline after LF/CRLF normalization. No unrelated runtime changes.",
+    "edgeCases": "Save false->true keeps uncontrolled inputs mounted; repeated true retains exact values, no record mutation; both close controls clear status and unmount/reset inputs; each entrypoint reopens cleanly; view data and clinical options unchanged",
+    "findings": [],
+    "visual": "Inspected light mobile and dark desktop screenshots; native options can truncate on narrow screens. No whole-page responsive or keyboard accessibility claim."
+  },
+  "contrast": {
+    "checked": 12,
+    "passed": 12,
+    "minimumRatio": 13.31213862994338,
+    "scope": "Three changed messages across four theme/device contexts"
+  },
+  "syntheticCatalog": {
+    "requestsBefore": 12,
+    "requestsAfter": 12,
+    "methods": [
+      "GET"
+    ],
+    "source": "Own loopback server only, success:false fixture exercises existing catalog fallback; not real API/DB proof"
+  },
+  "environment": {
+    "recordedAt": "2026-10-17T23:16:30.296Z",
+    "owner": "LEAD",
+    "baseline": "91468e5cb98030636f339e160d6baad70c4348ff",
+    "browserFiles": 291,
+    "checksumsIdentical": true,
+    "executableSha256": "2d8f2abad1a0f2998aaf861967c374d4aad6a104916b8794318760ed35db772f",
+    "referenceScaffolding": [
+      {
+        "path": ".cache/reference-dialog-browser.cjs",
+        "sha256": "728be1af6f8e47ee2fe78d67a321604d928f786260f94e84e9d338712803ec37",
+        "executed": false
+      },
+      {
+        "path": ".cache/reference-contrast-browser.cjs",
+        "sha256": "9d64f671b02008d9851f373fb5703ef4f7c592d49efc38a45957454e4688b6c3",
+        "executed": false
+      }
+    ],
+    "nodeModules": "Existing D dependency junction, no installation",
+    "policy": {
+      "type": "workspaceWrite",
+      "writableRoots": [
+        "D:\\Antigravity\\Projects\\BELLA_PRESCHOOL_CARE_TRIAL"
+      ],
+      "networkAccess": false
+    },
+    "coreAgentFlowModified": false,
+    "runnerBehaviorModified": false,
+    "taskLocalTemporaryDirectory": "D:\\Antigravity\\Projects\\BELLA_PRESCHOOL_CARE_TRIAL\\docs\\audits\\preschool-care-preview-flow\\.cache\\tmp",
+    "retainedStore": "Existing C user-private Agent Flow evidence root",
+    "cFreeBytes": 710512640,
+    "dFreeBytes": 80848375808,
+    "checkout": "Ordinary isolated D Git worktree; managed C provisioning previously failed ENOSPC, no host data deleted",
+    "parentPullRequest": 361,
+    "gradesStackDependency": false
+  },
+  "limits": [
+    "UI->DB NOT_PROVEN",
+    "Parent RLS FAIL",
+    "Course authorization BLOCKED",
+    "Pre-Go-Live BLOCKED",
+    "Synthetic catalog read is not backend proof",
+    "No staging commit push PR or deployment",
+    "Lead provisioned input/environment and independently reviewed/published. In-turn execution required no Lead messages or runtime/test edits; no unattended mission claim.",
+    "Existing raw dialog focus and clinical/recipient/date semantics were outside scope, not proven safe by label/scroll checks."
+  ],
+  "boundaries": {
+    "oldSuitesRerun": 0,
+    "dbOperations": 0,
+    "authOperations": 0,
+    "coreAgentFlowModified": false,
+    "runnerPolicyChanged": false,
+    "parentDailyAndCoursePost503": "UNCHANGED",
+    "courseD01toD05": "PRESERVED",
+    "courseEightFileAllowlist": "UNCHANGED",
+    "parentRls": "FAIL",
+    "courseAuthorization": "BLOCKED",
+    "uiToDb": "NOT_PROVEN",
+    "preGoLive": "BLOCKED",
+    "merge": false,
+    "manualDeploy": false
+  },
+  "proofHashes": {
+    "native-before.json": "d2f1bc4605eb1716b6229350b558c0933bae65d65493b51407a21ef038d9eba6",
+    "native-after.json": "4471f78135d8f52a8e6d94540af81652ad9cc2049dc2a53e052878e77ab237cb",
+    "verification.json": "6708f7c62a5ab25a7e18223ae569abcc27eb305aa1ea033bfe36aa3d679a96d4",
+    "preservation-proof.json": "7222499c01df92a1597b211c8294a8a257aa53f7f75c4160aa143d58b461def9",
+    "native-task-result.json": "257d1a6b44be7f93fa74f84653d769c9dd75afe704ea691c723a9878171286c1",
+    "native-task-readback.json": "bf3a2ee3a122177924f4533f5a52cc8ea7e12f9ca5e2aff2051e7ee856d087ec",
+    "native-command-readback.json": "3d72b1b168077232673358369532a5dabfc0e2b440b0fdaa4e24094e8e49970d",
+    "edge-case-review.json": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+    "native-source.diff": "46c7265f17d362a371eb8614adbd666ed90a6e9ac3457b2ebf7aa91a10b5eebb",
+    "PR369_REVIEW.json": "cf4054adac6b1954d40d58f493ffe17928dd2f216a1230e6c4aa6fa2c435dda9",
+    "care-light-desktop.png": "d87a3a1513f90fccb5349c076a2a03e9ba6c8205b22b6cd75f95456cc5e25e11",
+    "care-dark-desktop.png": "0eadf442df15c8ee2e31ff8f5a55b2037fdd92e657939ae12af4538ffaff9c87",
+    "care-light-mobile.png": "3c61f9a294f22ffae0e1d4ab0f842b450e2d64ef8ad0fb14fb753761fa0cf37b",
+    "care-dark-mobile.png": "a08d7ab64974e4d729fdf6400346231ae12429479687dc9c407d916509d5b238",
+    "architecture-guard-proof.json": "cc8f83626b841ecfe0f59d58db3afb506ad027470cb5d9b023dc06cbe6a04f1f"
+  },
+  "hashScope": "Worktree bytes; Git may normalize CRLF",
+  "architectureGuard": {
+    "command": "node scripts/architecture/git-pre-commit-guard.js",
+    "exitCode": 0,
+    "proof": "architecture-guard-proof.json",
+    "stagedFiles": 24
+  }
+}
