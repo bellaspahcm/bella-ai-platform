@@ -1,4 +1,5 @@
 "use client";
+import { LandPreviewNotice, unavailableLandAction } from "@/modules/real_estate/components/LandUiControls";
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -172,22 +173,14 @@ export default function ReportsPage() {
     return true;
   });
 
-  const handleDownload = (title: string, format: "PDF" | "CSV" | "Excel") => {
-    const filename = `${title.replace(/\s+/g, "_")}`;
-    if (format === "PDF") {
-      downloadPdfReport(`${filename}.pdf`, title, { Format: "PDF Report", Period: selectedPeriod });
-    } else {
-      downloadCsvReport(`${filename}.csv`, title, ["Metric", "Value", "Status", "Timestamp"]);
-    }
-    toast.success(`✅ Đã tải tệp ${format} cho "${title}" thành công!`);
-  };
+  const handleDownload = (title: string, format: "PDF" | "CSV" | "Excel") => { unavailableLandAction("Lưu dữ liệu nghiệp vụ"); };
 
   const handleShare = (title: string) => {
-    toast.success(`🔗 Đã sao chép liên kết chia sẻ báo cáo "${title}" vào bộ nhớ tạm!`);
+    unavailableLandAction("Thao tác lưu hoặc gửi dữ liệu");
   };
 
   const categoryTabs: Array<{ id: ReportCategoryFilter; label: string }> = [
-    { id: "all", label: "Tất cả báo cáo (5)" },
+    { id: "all", label: `Tất cả báo cáo (${REPORT_PACKAGES.length})` },
     { id: "executive", label: "Điều hành" },
     { id: "sales", label: "Kinh doanh" },
     { id: "inventory", label: "Tồn kho BĐS" },
@@ -197,6 +190,7 @@ export default function ReportsPage() {
 
   return (
     <div className="p-6 md:p-8 space-y-6 max-w-[1600px] mx-auto font-sans text-slate-900 dark:text-slate-100">
+      <LandPreviewNotice />
       
       {/* ── 1. PAGE HEADER & TOOLBAR ── */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
@@ -217,7 +211,7 @@ export default function ReportsPage() {
         {/* Global Toolbar */}
         <div className="flex items-center gap-2.5 flex-wrap text-xs font-semibold">
           <div className="relative">
-            <PremiumSelect
+            <PremiumSelect disabled
               value={selectedPeriod}
               onChange={setSelectedPeriod}
               className="w-48"
@@ -230,7 +224,7 @@ export default function ReportsPage() {
             />
           </div>
 
-          <PremiumSelect
+          <PremiumSelect disabled
             value={selectedProject}
             onChange={setSelectedProject}
             className="w-44"
@@ -243,7 +237,7 @@ export default function ReportsPage() {
           />
 
           <button
-            onClick={() => setShowCreateModal(true)}
+            onClick={() => unavailableLandAction("Tạo báo cáo")}
             className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-extrabold text-xs shadow-xs cursor-pointer active:scale-95"
           >
             <Plus className="w-4 h-4" /> Tạo báo cáo mới ▾
@@ -352,7 +346,7 @@ export default function ReportsPage() {
           <h3 className="text-base font-black text-slate-900 dark:text-white flex items-center gap-2">
             <Layers className="w-4 h-4 text-blue-600" /> Danh mục mẫu báo cáo chuẩn
           </h3>
-          <span className="text-xs font-semibold text-slate-400">Tự động tổng hợp dữ liệu từ hệ thống</span>
+          <span className="text-xs font-semibold text-slate-400">Mẫu báo cáo minh họa — chưa tổng hợp từ dữ liệu nghiệp vụ</span>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
@@ -429,7 +423,7 @@ export default function ReportsPage() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 w-full max-w-2xl shadow-xl space-y-5"
+              className="max-h-[90vh] overflow-y-auto bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 w-full max-w-2xl shadow-xl space-y-5"
             >
               <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
                 <div>

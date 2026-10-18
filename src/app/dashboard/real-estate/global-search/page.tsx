@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, Building2, Users, FileText, FolderKanban, Loader2, ChevronRight, X } from "lucide-react";
 import { createClient } from "@/lib/supabase-client";
@@ -22,7 +22,7 @@ const TYPE_CONFIG: Record<ResultType, { icon: React.ElementType; color: string; 
   project:  { icon: FolderKanban, color: "text-blue-600 dark:text-blue-400",    bg: "bg-blue-100 dark:bg-blue-900/40",    label: "Dự Án" },
   product:  { icon: Building2,    color: "text-amber-600 dark:text-amber-400",  bg: "bg-amber-100 dark:bg-amber-900/40",  label: "Căn Hộ" },
   customer: { icon: Users,        color: "text-emerald-600 dark:text-emerald-400", bg: "bg-emerald-100 dark:bg-emerald-900/40", label: "Khách Hàng" },
-  lead:     { icon: FileText,     color: "text-violet-600 dark:text-violet-400",bg: "bg-violet-100 dark:bg-violet-900/40",label: "Lead" },
+  lead:     { icon: FileText,     color: "text-violet-600 dark:text-violet-400",bg: "bg-violet-100 dark:bg-violet-900/40",label: "Lead cục bộ" },
 };
 
 export default function GlobalSearchPage() {
@@ -31,48 +31,44 @@ export default function GlobalSearchPage() {
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
   const router = useRouter();
+  const requestVersion = useRef(0);
+  const [searchError, setSearchError] = useState<string | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
-  const doSearch = useCallback(async (q: string) => {
+  const doSearch = useCallback(async (q: string, version: number) => {
     if (!q.trim() || q.trim().length < 2) {
       setResults([]);
       setSearched(false);
       return;
     }
-    setLoading(true);
+    setLoading(true); setSearchError(null);
     setSearched(true);
     try {
       const supabase = createClient();
-      const like = `%${q}%`;
-      const lowerQ = q.toLowerCase();
-
-      // 1. Build project query
-      let projQuery = supabase
-        .from("real_estate_projects")
-        .select("id, name, status, code");
-      if (lowerQ.includes("bán") || lowerQ.includes("mở bán")) {
-        projQuery = projQuery.or(`status.eq.selling,name.ilike.${like}`);
-      } else if (lowerQ.includes("hoàn thành")) {
-        projQuery = projQuery.or(`status.eq.completed,name.ilike.${like}`);
-      } else if (lowerQ.includes("quy hoạch")) {
-        projQuery = projQuery.or(`status.eq.planning,name.ilike.${like}`);
-      } else {
-        projQuery = projQuery.or(`name.ilike.${like},code.ilike.${like}`);
-      }
-
-      // 2. Build product query
-      let prodQuery = supabase
-        .from("real_estate_products")
-        .select("id, product_code, product_type, status, project_id, block, floor");
-      if (lowerQ.includes("cọc") || lowerQ.includes("giữ chỗ")) {
-        prodQuery = prodQuery.or(`status.eq.reserved,product_code.ilike.${like}`);
-      } else if (lowerQ.includes("bán") || lowerQ.includes("hđmb")) {
-        prodQuery = prodQuery.or(`status.eq.sold,product_code.ilike.${like}`);
-      } else if (lowerQ.includes("trống")) {
-        prodQuery = prodQuery.or(`status.eq.available,product_code.ilike.${like}`);
-      } else {
-        prodQuery = prodQuery.or(`product_code.ilike.${like},product_type.ilike.${like}`);
-      }
+      // Encode both LIKE literals and PostgREST quotes in one pass; do not
+      // reprocess the escape characters inserted for the other grammar.
+      const like = '"%' + q.trim().replace(/[\\%_"]/g, character => {
+        if (character === '"') return '\\"';
+        if (character === "\\") return "\\\\\\\\";
+        return "\\\\" + character;
+      }) + '%"';
+      const lowerQ = q.trim().toLowerCase();
+      const projectTerms = [`name.ilike.${like}`, `code.ilike.${like}`];
+      if (lowerQ.includes("mở bán")) projectTerms.push('status.eq.on_sale');
+      else if (lowerQ.includes("hoàn thành")) projectTerms.push('status.eq.completed');
+      else if (lowerQ.includes("quy hoạch")) projectTerms.push('status.eq.planning');
+      const projQuery = supabase.from("real_estate_projects").select("id, name, status, code").or(projectTerms.join(','));
+      // Enum columns support equality; keep ilike on text fields only.
+      const productTerms = [`product_code.ilike.${like}`];
+      if (lowerQ.includes("giữ chỗ")) productTerms.push('status.in.(booked,held)');
+      else if (lowerQ.includes("cọc")) productTerms.push('status.eq.deposited');
+      else if (lowerQ.includes("hđmb")) productTerms.push('status.eq.contracted');
+      else if (lowerQ.includes("đã bán")) productTerms.push('status.eq.paid');
+      else if (lowerQ.includes("trống")) productTerms.push('status.eq.available');
+      const types: Record<string, string> = { 'căn hộ': 'apartment', apartment: 'apartment', 'nhà phố': 'townhouse', townhouse: 'townhouse', shophouse: 'shophouse', 'biệt thự': 'villa', villa: 'villa', 'đất nền': 'land_plot', land_plot: 'land_plot', 'văn phòng': 'office', office: 'office' };
+      const type = types[lowerQ];
+      if (type) productTerms.push(`product_type.eq.${type}`);
+      const prodQuery = supabase.from("real_estate_products").select("id, product_code, product_type, status, project_id, block, floor").or(productTerms.join(','));
 
       const [projRes, prodRes, custRes] = await Promise.allSettled([
         projQuery.limit(5),
@@ -81,13 +77,14 @@ export default function GlobalSearchPage() {
       ]);
 
       const all: SearchResult[] = [];
+      let partialFailure = projRes.status === "rejected" || (projRes.status === "fulfilled" && Boolean(projRes.value.error)) || prodRes.status === "rejected" || (prodRes.status === "fulfilled" && Boolean(prodRes.value.error)) || custRes.status === "rejected" || (custRes.status === "fulfilled" && !custRes.value.success);
 
       // Add Projects
       if (projRes.status === "fulfilled" && projRes.value.data) {
         projRes.value.data.forEach(p => {
           const statusMap: Record<string, string> = {
             planning: "Đang Quy Hoạch",
-            selling: "Đang Mở Bán",
+            on_sale: "Đang Mở Bán",
             completed: "Đã Hoàn Thành",
             sold_out: "Đã Bán Hết"
           };
@@ -106,9 +103,13 @@ export default function GlobalSearchPage() {
         prodRes.value.data.forEach(p => {
           const statusMap: Record<string, string> = {
             available: "Còn trống",
-            reserved: "Đã Đặt Cọc",
-            sold: "Đã Bán",
-            unavailable: "Không mở bán"
+            booked: "Giữ chỗ",
+            held: "Giữ căn",
+            deposited: "Đã đặt cọc",
+            contracted: "Đã ký HĐMB",
+            paid: "Đã thanh toán",
+            handed_over: "Đã bàn giao",
+            cancelled: "Đã hủy"
           };
           const typeMap: Record<string, string> = {
             apartment: "Căn hộ",
@@ -121,7 +122,7 @@ export default function GlobalSearchPage() {
             type: "product",
             title: `${p.product_code} — ${typeMap[p.product_type] || p.product_type}`,
             subtitle: `Block: ${p.block || "—"} • Tầng: ${p.floor || "—"} • Trạng thái: ${statusMap[p.status] || p.status}`,
-            href: `/dashboard/real-estate/apartments`,
+            href: `/dashboard/real-estate/apartments?projectId=${encodeURIComponent(p.project_id)}`,
           });
         });
       }
@@ -181,8 +182,9 @@ export default function GlobalSearchPage() {
             currentSaleName?: string;
             state?: "unassigned" | "waiting_accept" | "in_progress" | "converted" | "lost";
           };
-          const leadsList = JSON.parse(savedLeadsStr) as SavedLead[];
-          const filteredLeads = leadsList.filter(l => {
+          const leadsList = JSON.parse(savedLeadsStr) as unknown;
+          if (!Array.isArray(leadsList)) throw new Error("INVALID_LOCAL_LEADS");
+          const filteredLeads = (leadsList as SavedLead[]).filter(l => {
             const matchesText =
               (l.fullName && l.fullName.toLowerCase().includes(lowerQ)) ||
               (l.phone && l.phone.includes(lowerQ)) ||
@@ -222,24 +224,29 @@ export default function GlobalSearchPage() {
           });
         }
       } catch (err: unknown) {
-        console.error("Error searching leads: ", err);
+        partialFailure = true;
       }
 
+      if (version !== requestVersion.current) return;
       setResults(all);
+      setSearchError(partialFailure ? "Một số nguồn chưa tải được; kết quả tìm kiếm chưa đầy đủ." : null);
     } catch (e) {
-      console.error("[GlobalSearch] Error: %s", e);
+      if (version === requestVersion.current) { setResults([]); setSearchError("Không thể tìm kiếm. Vui lòng thử lại."); }
     } finally {
-      setLoading(false);
+      if (version === requestVersion.current) setLoading(false);
     }
   }, []);
 
   const handleInput = (q: string) => {
-    setQuery(q);
+    const version = ++requestVersion.current;
+    setQuery(q); setResults([]); setSearchError(null); setLoading(false); setSearched(false);
     clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => doSearch(q), 350);
+    if (q.trim().length >= 2) debounceRef.current = setTimeout(() => void doSearch(q, version), 350);
   };
 
-  const SUGGESTIONS = ["The Grand Tower", "Riverside", "CH001", "Đặt cọc", "HĐMB", "Block A"];
+  useEffect(() => () => { clearTimeout(debounceRef.current); ++requestVersion.current; }, []);
+
+  const SUGGESTIONS = ["The Grand Tower", "Riverside", "CH001"];
 
   return (
     <div className="space-y-8 max-w-3xl mx-auto">
@@ -249,7 +256,7 @@ export default function GlobalSearchPage() {
           Tìm Kiếm Toàn Cục
         </h1>
         <p className="text-slate-500 dark:text-slate-400">
-          Tìm dự án, căn hộ, khách hàng, hợp đồng ngay lập tức
+          Tìm dự án, căn hộ, khách hàng và lead cục bộ
         </p>
       </div>
 
@@ -274,7 +281,7 @@ export default function GlobalSearchPage() {
           />
           {query && (
             <button
-              onClick={() => { setQuery(""); setResults([]); setSearched(false); }}
+              aria-label="Xóa tìm kiếm" onClick={() => handleInput("")}
               className="text-slate-400 hover:text-slate-700 dark:hover:text-white transition-colors p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"
             >
               <X className="w-4 h-4" />
@@ -304,6 +311,7 @@ export default function GlobalSearchPage() {
         </div>
       )}
 
+      {searchError && <p role="alert">{searchError}</p>}
       {/* ─ Results ─ */}
       <AnimatePresence mode="wait">
         {searched && (
@@ -314,7 +322,7 @@ export default function GlobalSearchPage() {
             exit={{ opacity: 0 }}
             className="space-y-2"
           >
-            {results.length === 0 && !loading && (
+            {results.length === 0 && !loading && !searchError && (
               <div className="text-center py-16 text-slate-400 dark:text-slate-500">
                 <Search className="w-12 h-12 mx-auto mb-3 opacity-30" />
                 <p className="text-sm">
@@ -333,7 +341,7 @@ export default function GlobalSearchPage() {
                   const Icon = cfg.icon;
                   return (
                     <motion.button
-                      key={res.id}
+                      key={`${res.type}:${res.id}`}
                       initial={{ opacity: 0, y: 8 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: i * 0.05 }}
@@ -371,7 +379,7 @@ export default function GlobalSearchPage() {
               project:  "/dashboard/real-estate/projects",
               product:  "/dashboard/real-estate/apartments",
               customer: "/dashboard/real-estate/customers",
-              lead:     "/dashboard/real-estate/customers",
+              lead:     "/dashboard/real-estate/leads",
             };
             return (
               <button

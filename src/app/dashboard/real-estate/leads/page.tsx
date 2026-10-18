@@ -1,4 +1,5 @@
 'use client';
+import { downloadLandCsv, LandPreviewNotice, unavailableLandAction } from "@/modules/real_estate/components/LandUiControls";
 
 /**
  * @module app/dashboard/real-estate/leads/page
@@ -345,6 +346,7 @@ const SALES_AGENTS = [
 
 export default function LeadsManagementPage() {
   const [leads, setLeads] = useState<LeadItem[]>(INITIAL_LEADS);
+  const [drawerTab, setDrawerTab] = useState("info");
   const [selectedLeadId, setSelectedLeadId] = useState<string | null>('l-001');
   const [activeTabFilter, setActiveTabFilter] = useState<string>('all');
   const [search, setSearch] = useState<string>('');
@@ -376,9 +378,7 @@ export default function LeadsManagementPage() {
     buyerDemand: '',
   });
 
-  const selectedLead = useMemo(() => {
-    return leads.find(l => l.id === selectedLeadId) || null;
-  }, [leads, selectedLeadId]);
+
 
   // Operational KPI Numbers
   const stats = useMemo(() => {
@@ -421,96 +421,18 @@ export default function LeadsManagementPage() {
       return true;
     });
   }, [leads, activeTabFilter, filterProject, filterSource, filterStatus, filterSales, search]);
+  const selectedLead = filteredLeads.find(l => l.id === selectedLeadId) || null;
 
   // Actions
-  const handleAcceptAndCall = (leadId: string) => {
-    setLeads(prev => prev.map(l => {
-      if (l.id !== leadId) return l;
-      return {
-        ...l,
-        saleAcknowledged: true,
-        status: 'in_progress',
-        statusLabel: 'Đang chăm sóc',
-        statusColor: 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800',
-        slaStatus: 'normal',
-        slaTimeText: 'Còn 24 giờ (Followup #1)',
-        timeline: [
-          { time: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }), title: 'Sales đã nhận & thực hiện cuộc gọi', description: 'Đã liên hệ trực tiếp với khách hàng', type: 'call' },
-          ...l.timeline
-        ]
-      };
-    }));
-    toast.success('✅ Đã nhận lead & kích hoạt cuộc gọi chăm sóc!');
-  };
+  const handleAcceptAndCall = (leadId: string) => { unavailableLandAction("Lưu dữ liệu nghiệp vụ"); };
 
-  const handleConfirmReassign = () => {
-    if (!selectedLead) return;
-    const targetAgent = SALES_AGENTS.find(a => a.id === reassignTargetSale);
-    setLeads(prev => prev.map(l => {
-      if (l.id !== selectedLead.id) return l;
-      return {
-        ...l,
-        salesOwnerId: reassignTargetSale,
-        salesOwnerName: targetAgent?.name || 'Trần Thị B',
-        saleAcknowledged: false,
-        status: 'waiting',
-        statusLabel: 'Chờ nhận',
-        slaStatus: 'warning',
-        slaTimeText: 'Còn 15 phút (Nhận mới)',
-        timeline: [
-          { time: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }), title: `Chuyển sales → ${targetAgent?.name}`, description: `Lý do: ${reassignReason}`, type: 'system' },
-          ...l.timeline
-        ]
-      };
-    }));
-    setShowReassignModal(false);
-    toast.success(`✅ Đã chuyển lead cho Sale [${targetAgent?.name}] thành công!`);
-  };
+  const handleConfirmReassign = () => { unavailableLandAction("Lưu dữ liệu nghiệp vụ"); };
 
-  const handleCreateLead = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newLead.fullName.trim() || !newLead.phone.trim()) {
-      toast.error('Vui lòng nhập họ tên và số điện thoại');
-      return;
-    }
-    const created: LeadItem = {
-      id: `l-${Date.now()}`,
-      leadCode: `L-${Date.now().toString().slice(-6)}`,
-      fullName: newLead.fullName,
-      phone: newLead.phone,
-      email: newLead.email || 'chua_co@email.com',
-      city: 'TP.HCM',
-      project: newLead.project,
-      subZone: newLead.subZone,
-      productType: newLead.productType,
-      budget: newLead.budget,
-      source: newLead.source,
-      sourceLabel: 'Facebook Ads',
-      salesOwnerId: 's-001',
-      salesOwnerName: 'Nguyễn Văn A',
-      saleAcknowledged: false,
-      nextAction: 'Nhận lead',
-      slaStatus: 'normal',
-      slaTimeText: 'Còn 30 phút',
-      status: 'waiting',
-      statusLabel: 'Chờ nhận',
-      statusColor: 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800',
-      notes: newLead.buyerDemand,
-      buyerDemand: newLead.buyerDemand,
-      createdAt: '10/09/2026',
-      createdTime: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }),
-      timeline: [
-        { time: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }), title: 'Lead mới khởi tạo', description: 'Tạo từ giao diện quản trị', type: 'system' }
-      ]
-    };
-    setLeads([created, ...leads]);
-    setSelectedLeadId(created.id);
-    setShowAddModal(false);
-    toast.success('✅ Thêm lead mới thành công!');
-  };
+  const handleCreateLead = (e: React.FormEvent) => { e.preventDefault(); unavailableLandAction("Lưu dữ liệu nghiệp vụ"); };
 
   return (
     <div className="p-6 md:p-8 space-y-6 max-w-[1600px] mx-auto font-sans text-slate-900 dark:text-slate-100">
+      <LandPreviewNotice />
       
       {/* ── 1. Header Bar & Controls (Matching Image 2) ── */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
@@ -665,8 +587,8 @@ export default function LeadsManagementPage() {
             </button>
           ))}
 
-          <button className="px-3 py-2 rounded-xl text-xs font-bold bg-slate-50 dark:bg-slate-800 text-slate-500 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 flex items-center gap-1 shrink-0">
-            <SlidersHorizontal className="w-3.5 h-3.5" /> Thêm bộ lọc ▾
+          <button aria-label="Xóa bộ lọc" onClick={() => (setSearch(""), setFilterProject("all"), setFilterSource("all"), setFilterStatus("all"), setFilterSales("all"), setActiveTabFilter("all"))} className="px-3 py-2 rounded-xl text-xs font-bold bg-slate-50 dark:bg-slate-800 text-slate-500 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 flex items-center gap-1 shrink-0">
+            <SlidersHorizontal className="w-3.5 h-3.5" /> Xóa bộ lọc
           </button>
         </div>
 
@@ -737,7 +659,7 @@ export default function LeadsManagementPage() {
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
-            <button className="flex items-center gap-1 px-3 py-1.5 text-xs font-bold text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-100">
+            <button onClick={() => downloadLandCsv("bella-land-lead-minh-hoa.csv", filteredLeads.map(row => ({ "Tên": row.fullName, "Điện thoại": row.phone, "Trạng thái": row.status })))} className="flex items-center gap-1 px-3 py-1.5 text-xs font-bold text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-100">
               <Download className="w-3.5 h-3.5" /> Xuất
             </button>
           </div>
@@ -754,7 +676,7 @@ export default function LeadsManagementPage() {
               <thead className="bg-slate-50/80 dark:bg-slate-800/80 border-b border-slate-100 dark:border-slate-800 text-[11px] font-black text-slate-400 uppercase tracking-wider">
                 <tr>
                   <th className="p-3.5 w-10 text-center whitespace-nowrap">
-                    <input type="checkbox" className="rounded text-blue-600 focus:ring-blue-500" />
+                    <span>Chọn</span>
                   </th>
                   <th className="p-3.5 whitespace-nowrap">Khách hàng</th>
                   <th className="p-3.5 whitespace-nowrap">Dự án / Nguồn</th>
@@ -791,7 +713,7 @@ export default function LeadsManagementPage() {
                         }`}
                       >
                         <td className="p-3.5 text-center whitespace-nowrap" onClick={e => e.stopPropagation()}>
-                          <input type="checkbox" className="rounded text-blue-600 focus:ring-blue-500" />
+                          <input type="radio" name="lead-selection" aria-label="Chọn lead" checked={selectedLeadId === lead.id} onChange={() => setSelectedLeadId(lead.id)} className="rounded text-blue-600 focus:ring-blue-500" />
                         </td>
 
                         {/* Customer Info */}
@@ -799,10 +721,10 @@ export default function LeadsManagementPage() {
                           <p className="font-extrabold text-slate-900 dark:text-white text-xs whitespace-nowrap">{lead.fullName}</p>
                           <div className="flex items-center gap-2 text-[11px] text-slate-500 mt-0.5 whitespace-nowrap">
                             <span>{lead.phone}</span>
-                            <button className="text-blue-600 hover:text-blue-700 p-0.5">
+                            <button onClick={() => unavailableLandAction("Thao tác này")} className="text-blue-600 hover:text-blue-700 p-0.5">
                               <Phone className="w-3 h-3" />
                             </button>
-                            <button className="text-cyan-600 hover:text-cyan-700 p-0.5">
+                            <button onClick={() => unavailableLandAction("Thao tác này")} className="text-cyan-600 hover:text-cyan-700 p-0.5">
                               <MessageSquare className="w-3 h-3" />
                             </button>
                           </div>
@@ -948,10 +870,10 @@ export default function LeadsManagementPage() {
                   >
                     <PhoneCall className="w-3.5 h-3.5" /> Gọi ngay
                   </button>
-                  <button className="px-3 py-1.5 bg-cyan-50 dark:bg-cyan-950/40 text-cyan-700 dark:text-cyan-300 border border-cyan-200 dark:border-cyan-800 rounded-xl text-xs font-extrabold flex items-center gap-1 hover:bg-cyan-100">
+                  <button onClick={() => unavailableLandAction("Thao tác này")} className="px-3 py-1.5 bg-cyan-50 dark:bg-cyan-950/40 text-cyan-700 dark:text-cyan-300 border border-cyan-200 dark:border-cyan-800 rounded-xl text-xs font-extrabold flex items-center gap-1 hover:bg-cyan-100">
                     <MessageSquare className="w-3.5 h-3.5" /> Zalo
                   </button>
-                  <button className="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-xl text-xs font-bold hover:bg-slate-200">
+                  <button onClick={() => unavailableLandAction("Thao tác này")} className="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-xl text-xs font-bold hover:bg-slate-200">
                     <Mail className="w-3.5 h-3.5" /> Email
                   </button>
                 </div>
@@ -966,13 +888,9 @@ export default function LeadsManagementPage() {
             </div>
 
             {/* Sub-tabs Bar */}
-            <div className="flex items-center border-b border-slate-100 dark:border-slate-800 text-xs font-bold text-slate-500 gap-6">
-              <span className="text-blue-600 border-b-2 border-blue-600 pb-2 cursor-pointer">Thông tin</span>
-              <span className="hover:text-slate-800 pb-2 cursor-pointer">Lịch sử</span>
-              <span className="hover:text-slate-800 pb-2 cursor-pointer">Hoạt động</span>
-              <span className="hover:text-slate-800 pb-2 cursor-pointer">Ghi chú</span>
-            </div>
+            <div role="tablist" aria-label="Chi tiết lead" className="flex gap-4 border-b text-xs">{[['info','Thông tin'],['history','Lịch sử'],['activity','Hoạt động'],['notes','Ghi chú']].map(([id,label]) => <button key={id} role="tab" aria-selected={drawerTab === id} onClick={() => setDrawerTab(id)} className="pb-2">{label}</button>)}</div>
 
+            {drawerTab === "info" && <>
             {/* Section 1: Nhu cầu & dự án */}
             <div className="space-y-2.5 text-xs">
               <h3 className="font-extrabold text-slate-900 dark:text-white uppercase tracking-wider text-[10px] text-slate-400">
@@ -1066,19 +984,21 @@ export default function LeadsManagementPage() {
               </div>
             </div>
 
+            </>}
             {/* Section 4: Quick Note */}
             <div className="space-y-1.5 text-xs">
               <label className="font-extrabold uppercase tracking-wider text-[10px] text-slate-400 block">
                 Ghi chú nhanh
               </label>
               <textarea
-                defaultValue={selectedLead.notes}
+                value={selectedLead.notes || ""} readOnly
                 rows={2}
                 className="w-full p-2.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none resize-none"
                 placeholder="Thêm ghi chú..."
               />
             </div>
 
+            {(drawerTab === 'history' || drawerTab === 'activity') && <section aria-label="Lịch sử lead" className="space-y-3 text-xs">{selectedLead.timeline.filter(event => drawerTab === 'history' || event.type === 'call' || event.type === 'status').map((event,index) => <article key={index}><time>{event.time}</time><h4>{event.title}</h4><p>{event.description}</p></article>)}</section>}
             {/* Section 5: Primary Footer Buttons */}
             <div className="space-y-2 pt-2">
               <button
@@ -1088,7 +1008,7 @@ export default function LeadsManagementPage() {
                 <PhoneCall className="w-4 h-4 text-white" /> Nhận lead & gọi ngay
               </button>
 
-              <button className="w-full py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-bold text-xs rounded-xl transition-all flex items-center justify-center gap-1.5">
+              <button onClick={() => unavailableLandAction("Thao tác này")} className="w-full py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-bold text-xs rounded-xl transition-all flex items-center justify-center gap-1.5">
                 <Calendar className="w-3.5 h-3.5 text-blue-600" /> Tạo lịch hẹn
               </button>
             </div>
@@ -1103,7 +1023,7 @@ export default function LeadsManagementPage() {
           <motion.div
             initial={{ scale: 0.95, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl w-full max-w-md border border-slate-200 dark:border-slate-800 overflow-hidden"
+            className="max-h-[90vh] overflow-y-auto bg-white dark:bg-slate-900 rounded-3xl shadow-2xl w-full max-w-md border border-slate-200 dark:border-slate-800 overflow-hidden"
             onClick={e => e.stopPropagation()}
           >
             <div className="flex items-center justify-between p-5 border-b border-slate-100 dark:border-slate-800">
@@ -1185,7 +1105,7 @@ export default function LeadsManagementPage() {
           <motion.div
             initial={{ scale: 0.95, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl w-full max-w-lg border border-slate-200 dark:border-slate-800 overflow-hidden"
+            className="max-h-[90vh] overflow-y-auto bg-white dark:bg-slate-900 rounded-3xl shadow-2xl w-full max-w-lg border border-slate-200 dark:border-slate-800 overflow-hidden"
             onClick={e => e.stopPropagation()}
           >
             <div className="flex items-center justify-between p-6 border-b border-slate-100 dark:border-slate-800">
@@ -1291,7 +1211,7 @@ export default function LeadsManagementPage() {
           <motion.div
             initial={{ scale: 0.95, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl w-full max-w-md border border-slate-200 dark:border-slate-800 overflow-hidden"
+            className="max-h-[90vh] overflow-y-auto bg-white dark:bg-slate-900 rounded-3xl shadow-2xl w-full max-w-md border border-slate-200 dark:border-slate-800 overflow-hidden"
             onClick={e => e.stopPropagation()}
           >
             <div className="flex items-center justify-between p-5 border-b border-slate-100 dark:border-slate-800">
@@ -1325,7 +1245,7 @@ export default function LeadsManagementPage() {
                 <button onClick={() => setShowSLAConfigModal(false)} className="px-4 py-2 border rounded-xl font-bold text-slate-600">
                   Hủy
                 </button>
-                <button onClick={() => { setShowSLAConfigModal(false); toast.success('✅ Đã lưu cấu hình SLA thành công!'); }} className="px-4 py-2 bg-blue-900 text-white rounded-xl font-black">
+                <button onClick={() => { setShowSLAConfigModal(false); unavailableLandAction("Thao tác lưu hoặc gửi dữ liệu"); }} className="px-4 py-2 bg-blue-900 text-white rounded-xl font-black">
                   Lưu thay đổi
                 </button>
               </div>

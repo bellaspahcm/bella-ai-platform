@@ -17,6 +17,7 @@ import {
   MoreVertical, Bell, ExternalLink, RefreshCw, UserPlus, Check, MessageSquare,
   TrendingUp, Calendar
 } from 'lucide-react';
+import { LandPreviewNotice, unavailableLandAction } from "@/modules/real_estate/components/LandUiControls";
 import { toast } from 'sonner';
 import { PremiumSelect } from '@/components/ui/PremiumSelect';
 
@@ -206,6 +207,9 @@ export function OrgChartPage() {
   const [globalSearch, setGlobalSearch] = useState('');
   const [selectedStatBranch, setSelectedStatBranch] = useState('Chi nhánh Hồ Chí Minh');
 
+  const allNodes = useMemo(() => { const items: OrgTreeNode[] = []; const visit = (node: OrgTreeNode) => { items.push(node); node.children?.forEach(visit); }; visit(DEMO_TREE_DATA); return items; }, []);
+  const filteredNodes = allNodes.filter(node => (node.name + " " + node.code).toLowerCase().includes((treeSearch || globalSearch).trim().toLowerCase()));
+  const selectedNode = allNodes.find(node => node.id === selectedUnitId);
   // Modals
   const [showAddUnitModal, setShowAddUnitModal] = useState(false);
   const [showAddPersonModal, setShowAddPersonModal] = useState(false);
@@ -225,19 +229,10 @@ export function OrgChartPage() {
     setExpandedNodes(prev => ({ ...prev, [nodeId]: !prev[nodeId] }));
   };
 
-  const handleCreateUnit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newUnit.name.trim()) {
-      toast.error('Vui lòng nhập tên đơn vị');
-      return;
-    }
-    setShowAddUnitModal(false);
-    toast.success(`✅ Đã tạo đơn vị mới [${newUnit.name}] thành công!`);
-    setNewUnit({ name: '', code: '', type: 'department', parentUnit: 'Chi nhánh Hồ Chí Minh', managerName: '' });
-  };
+  const handleCreateUnit = (e: React.FormEvent) => { e.preventDefault(); unavailableLandAction("Tạo đơn vị tổ chức"); };
 
   return (
-    <div className="p-6 md:p-8 space-y-6 max-w-[1600px] mx-auto font-sans text-slate-900 dark:text-slate-100">
+    <div className="p-6 md:p-8 space-y-6 max-w-[1600px] mx-auto font-sans text-slate-900 dark:text-slate-100"><LandPreviewNotice />
       
       {/* ── 1. HEADER BAR & CONTROLS (Matching Reference Image) ── */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
@@ -270,7 +265,7 @@ export function OrgChartPage() {
 
           {/* Bell & User Profile */}
           <div className="flex items-center gap-2">
-            <button className="relative w-9 h-9 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-300 shadow-2xs">
+            <button onClick={() => unavailableLandAction("Thao tác tổ chức")} className="relative w-9 h-9 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-300 shadow-2xs">
               <Bell className="w-4 h-4" />
               <span className="absolute top-1.5 right-1.5 w-4 h-4 bg-rose-500 text-white font-black text-[9px] rounded-full flex items-center justify-center">3</span>
             </button>
@@ -287,7 +282,7 @@ export function OrgChartPage() {
 
           {/* Export & Expand Buttons */}
           <button
-            onClick={() => toast.success('Đang xuất sơ đồ tổ chức dạng PDF...')}
+            onClick={() => unavailableLandAction("Thao tác tổ chức")}
             className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800 rounded-xl hover:bg-slate-50 transition-all shadow-2xs"
           >
             <Download className="w-3.5 h-3.5 text-slate-500" /> Xuất sơ đồ
@@ -583,7 +578,7 @@ export function OrgChartPage() {
           </div>
 
           {/* VISUAL ORG CHART DIAGRAM CONTAINER (MATCHING REFERENCE IMAGE DIAGRAM) */}
-          <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-6 shadow-xs overflow-x-auto min-h-[440px] flex flex-col items-center justify-center">
+          {activeCenterTab === 'chart' ? ((treeSearch || globalSearch).trim() ? <div className="p-4 space-y-2" aria-label="Kết quả đơn vị">{filteredNodes.map(node => <button key={node.id} onClick={() => setSelectedUnitId(node.id)} className="block rounded border p-3">{node.name} · {node.code}</button>)}{filteredNodes.length === 0 && <p>Không có đơn vị phù hợp.</p>}</div> : (<div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-6 shadow-xs overflow-x-auto min-h-[440px] flex flex-col items-center justify-center">
             
             <div className="space-y-6 text-center transition-transform duration-200" style={{ transform: `scale(${zoomLevel / 100})` }}>
               
@@ -768,7 +763,7 @@ export function OrgChartPage() {
               </div>
 
             </div>
-          </div>
+          </div>)) : <div className="rounded-2xl border p-6"><p>Chế độ này chưa có dữ liệu được xác minh.</p><a className="underline" href={activeCenterTab === 'people' ? '/dashboard/real-estate/people' : '/dashboard/real-estate/bi-analytics'}>Mở {activeCenterTab === 'people' ? 'danh bạ nhân sự' : 'phân tích'}</a></div>}
         </div>
 
         {/* ── RIGHT PANEL (3 COLS): UNIT COMMAND & DETAIL VIEW (CHI NHÁNH HỒ CHÍ MINH) ── */}
@@ -777,9 +772,9 @@ export function OrgChartPage() {
           {/* Header Unit Info */}
           <div className="flex items-start justify-between">
             <div>
-              <h2 className="text-base font-black text-slate-900 dark:text-white">{HCM_UNIT_DETAIL.name}</h2>
+              <h2 className="text-base font-black text-slate-900 dark:text-white">{selectedNode?.name || "Chọn đơn vị"}</h2>
               <p className="text-xs text-slate-500 font-semibold mt-0.5">
-                📍 {HCM_UNIT_DETAIL.regionName} • Mã đơn vị: <span className="font-mono">{HCM_UNIT_DETAIL.code}</span>
+                📍 {selectedNode?.typeLabel || "—"} • Mã đơn vị: <span className="font-mono">{selectedNode?.code || "—"}</span>
               </p>
             </div>
             <span className="px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-black">
@@ -793,17 +788,17 @@ export function OrgChartPage() {
               Tổng quan
             </button>
             <button onClick={() => setRightTab('people')} className={`pb-1 border-b-2 ${rightTab === 'people' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-400'}`}>
-              Nhân sự (86)
+              Nhân sự
             </button>
             <button onClick={() => setRightTab('departments')} className={`pb-1 border-b-2 ${rightTab === 'departments' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-400'}`}>
-              Phòng ban (5)
+              Phòng ban
             </button>
             <button onClick={() => setRightTab('projects')} className={`pb-1 border-b-2 ${rightTab === 'projects' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-400'}`}>
-              Dự án (4)
+              Dự án
             </button>
           </div>
 
-          {/* Manager Profile Box */}
+          {selectedUnitId === 'br-hcm' && rightTab === 'overview' ? <>          {/* Manager Profile Box */}
           <div className="p-3.5 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-100 dark:border-slate-700/80 flex items-center gap-3">
             <div className="w-12 h-12 rounded-full bg-blue-600 text-white font-black flex items-center justify-center text-base shrink-0 shadow-xs">
               QH
@@ -841,7 +836,7 @@ export function OrgChartPage() {
           <div className="text-xs space-y-1">
             <div className="flex items-center justify-between text-slate-500 font-bold">
               <span>Mô tả</span>
-              <button className="text-blue-600 hover:underline flex items-center gap-0.5 text-[10px]">
+              <button onClick={() => unavailableLandAction("Thao tác tổ chức")} className="text-blue-600 hover:underline flex items-center gap-0.5 text-[10px]">
                 <Edit3 className="w-3 h-3" /> Chỉnh sửa
               </button>
             </div>
@@ -854,7 +849,7 @@ export function OrgChartPage() {
           <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800">
             <div className="flex items-center justify-between text-xs font-extrabold">
               <span className="text-slate-900 dark:text-white">Dự án phụ trách</span>
-              <button className="text-blue-600 text-[10px] hover:underline">Xem tất cả</button>
+              <button onClick={() => unavailableLandAction("Thao tác tổ chức")} className="text-blue-600 text-[10px] hover:underline">Xem tất cả</button>
             </div>
 
             <div className="grid grid-cols-3 gap-2">
@@ -869,7 +864,12 @@ export function OrgChartPage() {
               ))}
             </div>
           </div>
-
+</> : <div className="space-y-3 text-sm">
+{rightTab === 'overview' && <><p>Nhân sự minh họa: {selectedNode?.memberCount ?? 'Chưa có'}</p><p>Quản lý: {selectedNode?.managerName || 'Chưa xác minh'}</p></>}
+{rightTab === 'people' && <a href="/dashboard/real-estate/people">Mở danh bạ nhân sự — chưa xác minh nhân sự của đơn vị này</a>}
+{rightTab === 'departments' && <ul>{selectedNode?.children?.map(node => <li key={node.id}><button onClick={() => setSelectedUnitId(node.id)}>{node.name}</button></li>)}{!selectedNode?.children?.length && <li>Chưa có đơn vị trực thuộc trong dữ liệu minh họa.</li>}</ul>}
+{rightTab === 'projects' && <a href="/dashboard/real-estate/projects">Mở danh mục dự án — chưa xác minh liên kết của đơn vị này</a>}
+</div>}
         </div>
       </div>
 
@@ -882,7 +882,7 @@ export function OrgChartPage() {
             <h3 className="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
               <BarChart3 className="w-4 h-4 text-blue-600" /> Thống kê nhân sự theo phòng ban
             </h3>
-            <PremiumSelect
+            <PremiumSelect disabled
               value={selectedStatBranch}
               onChange={(val) => setSelectedStatBranch(val)}
               options={[
@@ -953,7 +953,7 @@ export function OrgChartPage() {
             <span className="text-slate-900 dark:text-white flex items-center gap-1.5">
               <Award className="w-4 h-4 text-amber-500" /> Nhân sự nổi bật
             </span>
-            <button className="text-blue-600 text-[10px] hover:underline">Xem tất cả</button>
+            <button onClick={() => unavailableLandAction("Thao tác tổ chức")} className="text-blue-600 text-[10px] hover:underline">Xem tất cả</button>
           </div>
 
           <div className="space-y-2 pt-1">

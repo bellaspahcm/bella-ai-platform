@@ -1,4 +1,5 @@
 "use client";
+import { LandPreviewNotice, unavailableLandAction } from "@/modules/real_estate/components/LandUiControls";
 
 import { useState } from "react";
 import { PremiumSelect } from "@/components/ui/PremiumSelect";
@@ -104,9 +105,7 @@ export default function AdminPage() {
     e.resource.toLowerCase().includes(auditSearch.toLowerCase())
   );
 
-  const updateConfig = (key: string, val: string) => {
-    setConfigs(prev => prev.map(c => c.key === key ? { ...c, value: val } : c));
-  };
+  const updateConfig = (_key: string, _val: string) => { unavailableLandAction("Lưu cấu hình quản trị"); };
 
   const SECTIONS: { id: AdminSection; label: string; icon: React.ElementType }[] = [
     { id: "permissions",  label: "Ma Trận Phân Quyền", icon: Shield },
@@ -117,6 +116,7 @@ export default function AdminPage() {
 
   return (
     <div className="space-y-8">
+      <LandPreviewNotice />
       {/* ─ Header ─ */}
       <div>
         <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-3">
@@ -241,7 +241,7 @@ export default function AdminPage() {
               </div>
             ))}
           </div>
-          <button className="flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-black px-6 py-2.5 rounded-xl font-bold text-sm transition-all shadow-sm">
+          <button onClick={() => unavailableLandAction("Thao tác quản trị")} className="flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-black px-6 py-2.5 rounded-xl font-bold text-sm transition-all shadow-sm">
             <CheckCircle2 className="w-4 h-4" />
             Lưu Cấu Hình
           </button>
@@ -332,11 +332,11 @@ export default function AdminPage() {
                   </p>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
-                  <button className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 dark:bg-amber-500/10 hover:bg-amber-100 dark:hover:bg-amber-500/20 text-amber-700 dark:text-amber-400 rounded-xl text-xs font-bold transition-all border border-amber-200 dark:border-amber-500/20">
+                  <button onClick={() => unavailableLandAction("Thao tác quản trị")} className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 dark:bg-amber-500/10 hover:bg-amber-100 dark:hover:bg-amber-500/20 text-amber-700 dark:text-amber-400 rounded-xl text-xs font-bold transition-all border border-amber-200 dark:border-amber-500/20">
                     <RotateCcw className="w-3 h-3" />
                     Retry
                   </button>
-                  <button className="flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-400 rounded-xl text-xs font-bold transition-all border border-slate-200 dark:border-slate-700">
+                  <button onClick={() => unavailableLandAction("Thao tác quản trị")} className="flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-400 rounded-xl text-xs font-bold transition-all border border-slate-200 dark:border-slate-700">
                     <Trash2 className="w-3 h-3" />
                     Xoá
                   </button>
