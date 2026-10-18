@@ -2,6 +2,20 @@
 
 Entry point: [agent-flow-mvp-evidence.json](agent-flow-mvp-evidence.json).
 
+## Latest Owner-approved task — HELD at store persistence
+
+Task `ee7e958a-4194-44fe-aec6-ca3f5085a514` was dispatched exactly once from revision `257317780`. It reused the reviewed driver/adapter without changes, the same sandbox/network/repository authority and a two-file task scope within the existing four-file ceiling. The previous task and its immutable artifacts remain HELD and hash-identical.
+
+The new task targeted a separately reproduced parser defect: duplicate labels and contradictory summary totals were accepted by `testCounters`. Lead completed and its store/native history matches. Builder completed a native fileChange for the two assigned tooling files, but the driver returned `STORE_WRITE_FAILED` and did not accept its receipt. Verify and Reviewer were **NOT_RUN**. The partial Builder diff is retained locally, **unverified, unstaged and uncommitted**; it is not added to this PR's runtime changes.
+
+Read-only fresh-process diagnostics confirm 16 stored live Builder facts and no stored history facts. Fresh native history exposes one missing live `item/completed` for message `msg_0e626071353098c5016ad40c545d548191a13d43b20d39ca72`; reconciliation reports `MISSING_LIVE`. No missing fact was synthesized or re-ingested. Native completion and fileChange do not substitute for complete store evidence.
+
+The underlying write exception was replaced by the adapter's generic error and was not retained. Its root cause remains **NOT_PROVEN**. Present-time checks found repository authority available, API quota remaining and free disk space; those checks do not prove conditions at the failure instant. No store, authority, driver, adapter, permission or sandbox changes were made. No tests were run after HELD, no task was resumed/retried/replaced, and no merge/deploy command was invoked.
+
+See [followup-task-v2-evidence.json](followup-task-v2-evidence.json) for the exact intake, source hashes, native identities, incomplete reconciliation and private artifact hashes. The four-role adapter fix and real revision loop remain **NOT_PROVEN**. The next decision boundary is limited to diagnosing the original store error with safe error-code retention and a separately authorized execution; neither is automatically started by this report.
+
+The sections below preserve the earlier task's results. Their test counts do not verify the new partial Builder diff.
+
 ## Actual implementation
 
 The new sequential driver uses existing AppServer, repository authority, lifecycle contract, DevelopmentStore and native history. Intake pins repository/HEAD/scope/acceptance/budget. Each role gets a fresh thread. Builder owns task files; Verify runs one exact Node test command; Reviewer reads actual diff, current files and Verify output. One REVISE is allowed; uncertainty, source drift, another rejection or expiry is terminal HELD. A durable task-ID claim prevents implicit re-dispatch. There is no resume command.

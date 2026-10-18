@@ -1,0 +1,284 @@
+{
+  "schemaVersion": 1,
+  "mission": "BELLA_AGENT_FLOW_MVP",
+  "status": "HELD",
+  "mvp": "NOT_PROVEN",
+  "taskId": "ee7e958a-4194-44fe-aec6-ca3f5085a514",
+  "sourceRevision": "257317780339167a6d59740e89d18649cd720d14",
+  "ownerApproval": "Exactly one new task under six conditions; approved explicitly before dispatch.",
+  "intake": {
+    "taskId": "ee7e958a-4194-44fe-aec6-ca3f5085a514",
+    "sourceRevision": "257317780339167a6d59740e89d18649cd720d14",
+    "goal": "Repair testCounters ambiguity and accounting validation in the existing development-tooling helper. Repeated summary labels or contradictory totals must return null; preserve legitimate summaries and existing object-or-null API. This new task also verifies the unchanged post-HELD role adapter through all four native roles.",
+    "ownedFiles": [
+      "scripts/agent-flow/task-workflow.mjs",
+      "scripts/agent-flow/task-workflow.test.mjs"
+    ],
+    "testFile": "scripts/agent-flow/task-workflow.test.mjs",
+    "acceptance": [
+      "Require exactly one occurrence of each of tests, pass, fail, cancelled, skipped and todo in a parsed summary. Any duplicate label, even an identical repeated value, returns null.",
+      "Each counter is a nonnegative safe integer and pass + fail + cancelled + skipped + todo must exactly equal tests. Reject missing, unsafe, malformed or contradictory counters without changing the object-or-null return shape.",
+      "Preserve current supported TAP (#) and spec (info symbol) summaries, CRLF input, incidental non-summary output and valid zero-test/skipped/todo summaries. Parsing a skipped/todo summary does not make execution PASS.",
+      "Add meaningful regressions for duplicates, mismatched totals, missing counters and unsafe values, plus valid zero/skipped/todo and both supported reporter formats. Preserve all existing assertions, verifyRedGreen behavior and other helpers.",
+      "Only the two owned tooling files may change. Do not modify driver, adapter, collector, store, authority, Product, DB/Auth/RLS, migration, endpoints or CI. No extra dispatch/replacement task. Reviewer must inspect actual source diff and the same final candidate test artifact using the prescribed exact reads; leave artifact hashing to collector/readback."
+    ],
+    "maxSeconds": 1800
+  },
+  "dispatchCount": 2,
+  "acceptedRoles": [
+    "LEAD"
+  ],
+  "roles": [
+    {
+      "role": "LEAD",
+      "binding": {
+        "repository": "bellaspahcm/bella-ai-platform",
+        "taskId": "ee7e958a-4194-44fe-aec6-ca3f5085a514",
+        "runId": "101b099a-c5fe-4dcf-9f16-d0c9d5fdf689",
+        "attempt": 1,
+        "producerInstanceId": "be314f99-9eb8-41e2-9b52-b104ebf27ab5",
+        "threadId": "01a14c4f-5d00-7533-a49f-ea289c2c308a",
+        "sessionId": "01a14c4f-5d00-7533-a49f-ea289c2c308a",
+        "turnId": "01a14c4f-5e24-75b1-89be-14bc59938e81"
+      },
+      "nativeTurnStatus": "completed",
+      "storedFactsSha256": "048953e3606ed008b088bd17aa4ce730ce8dc9a5606b21cac26fe6a6dddf9757",
+      "storedLiveFacts": 9,
+      "storedHistoryFacts": 4,
+      "reconciliation": [
+        {
+          "itemId": "msg_0064be624d2a294a016ad40c2663c08191a5e65ac8d8df5651",
+          "result": "MATCH"
+        },
+        {
+          "itemId": "exec-1ad2a6df-ce1f-456d-82c8-acd2eccba193",
+          "result": "MATCH"
+        },
+        {
+          "itemId": "msg_0064be624d2a294a016ad40c2c50dc819195648b700a037c68",
+          "result": "MATCH"
+        },
+        {
+          "itemId": null,
+          "result": "MATCH"
+        }
+      ],
+      "nativeCommands": [
+        {
+          "itemId": "exec-1ad2a6df-ce1f-456d-82c8-acd2eccba193",
+          "commandHash": "97b8da2a7560d5a339e40e972e2cfa0eef95b71e1422ed9a36e4e569698b14f6",
+          "exitCode": 0,
+          "status": "completed",
+          "outputHash": "5099004fa51fe1e17e8dbc38b4700e2c52fe7dd528e9401d6968dc14e9c204e3"
+        }
+      ],
+      "nativeFileChanges": [],
+      "nativeDecision": [
+        "ACCEPT"
+      ]
+    },
+    {
+      "role": "BUILDER",
+      "binding": {
+        "repository": "bellaspahcm/bella-ai-platform",
+        "taskId": "ee7e958a-4194-44fe-aec6-ca3f5085a514",
+        "runId": "b395b5dd-ab41-4e49-ad8f-0a14535e1282",
+        "attempt": 1,
+        "producerInstanceId": "6f8e7c3d-f395-4e57-b0ee-d43eab8a0b9d",
+        "threadId": "01a14c50-0ce8-7a32-8ffd-225becbe98d8",
+        "sessionId": "01a14c50-0ce8-7a32-8ffd-225becbe98d8",
+        "turnId": "01a14c50-0e6f-79e0-8f44-30ebc7adfa42"
+      },
+      "nativeTurnStatus": "completed",
+      "storedFactsSha256": "06af6251848d95db7d35823e1c694b5a0e6f69e161f354026c53ebaffaeb677c",
+      "storedLiveFacts": 16,
+      "storedHistoryFacts": 0,
+      "reconciliation": [
+        {
+          "itemId": "exec-701dad6c-2d66-4534-bbd1-2a4a8b9676da",
+          "result": "MATCH"
+        },
+        {
+          "itemId": "exec-b1e1cb48-f77c-4540-896c-370816d8ee5f",
+          "result": "MATCH"
+        },
+        {
+          "itemId": "msg_0e626071353098c5016ad40c7524f88191b03f9f22fad35167",
+          "result": "MATCH"
+        },
+        {
+          "itemId": "exec-8ae388e0-747e-4216-8316-dcac83840eae",
+          "result": "MATCH"
+        },
+        {
+          "itemId": "exec-aacb4a90-f29c-4896-a6bc-063d654fcf2b",
+          "result": "MATCH"
+        },
+        {
+          "itemId": "msg_0e626071353098c5016ad40c96026081919599d829fa46f970",
+          "result": "MATCH"
+        },
+        {
+          "itemId": null,
+          "result": "MATCH"
+        },
+        {
+          "itemId": "msg_0e626071353098c5016ad40c545d548191a13d43b20d39ca72",
+          "result": "MISSING_LIVE"
+        }
+      ],
+      "nativeCommands": [
+        {
+          "itemId": "exec-701dad6c-2d66-4534-bbd1-2a4a8b9676da",
+          "commandHash": "bb884c8102a06079badfac1a6fd248ed6736d6d361140dc1d38f7ced0a2fb660",
+          "exitCode": 0,
+          "status": "completed",
+          "outputHash": "b9522825a54fe0d068a6f5fd0362b23c099e0b309cd3512898104d5d78ba22e5"
+        },
+        {
+          "itemId": "exec-b1e1cb48-f77c-4540-896c-370816d8ee5f",
+          "commandHash": "93c566a266139401ed747f318ede46f0da42b7fb5a95a2b7af2d8d1fae9b9c41",
+          "exitCode": 0,
+          "status": "completed",
+          "outputHash": "a3f1eeb73590d5b266d2010290377764302a541d139450bc49136ff0129a6973"
+        },
+        {
+          "itemId": "exec-aacb4a90-f29c-4896-a6bc-063d654fcf2b",
+          "commandHash": "1a4f73e43b0d1e2173479febfc05b3d88a115f57b0fdf59e15da9b6b2af1618e",
+          "exitCode": 0,
+          "status": "completed",
+          "outputHash": "78323be1ccd5e6511487d30323f31604757e39eb55d3cdd47d78531d78edff41"
+        }
+      ],
+      "nativeFileChanges": [
+        {
+          "itemId": "exec-8ae388e0-747e-4216-8316-dcac83840eae",
+          "status": "completed",
+          "paths": [
+            "D:\\Antigravity\\Projects\\BELLA_AGENT_FLOW_MVP\\scripts\\agent-flow\\task-workflow.mjs",
+            "D:\\Antigravity\\Projects\\BELLA_AGENT_FLOW_MVP\\scripts\\agent-flow\\task-workflow.test.mjs"
+          ]
+        }
+      ],
+      "nativeDecision": [
+        "DONE"
+      ]
+    }
+  ],
+  "verify": "NOT_RUN",
+  "reviewer": "NOT_RUN",
+  "standardFullReadback": "NOT_PROVEN_INCOMPLETE_BUILDER_RECEIPT",
+  "diagnostic": {
+    "artifact": "held-readonly-diagnostic.json",
+    "claim": "READ_ONLY_NATIVE_DIAGNOSTIC_NOT_PIPELINE_HANDOFF",
+    "readerPid": 22328,
+    "reingestion": false
+  },
+  "failure": {
+    "code": "STORE_WRITE_FAILED",
+    "missingLiveItems": [
+      {
+        "role": "BUILDER",
+        "itemId": "msg_0e626071353098c5016ad40c545d548191a13d43b20d39ca72"
+      }
+    ],
+    "underlyingException": "NOT_RETAINED",
+    "rootCause": "NOT_PROVEN",
+    "diskOrQuotaCause": "NOT_PROVEN; present-time checks are not historical failure evidence."
+  },
+  "source": {
+    "head": "257317780339167a6d59740e89d18649cd720d14",
+    "intakeCandidate": "46e71d2b363ce8937b6971b3dd9e9279da56aa35c5fc3500016b39659667ee44",
+    "terminalLastAcceptedCandidate": "46e71d2b363ce8937b6971b3dd9e9279da56aa35c5fc3500016b39659667ee44",
+    "observedPostBuilderCandidate": "594c24b1ed7e38cf7dbf2d83f279555c66f224b4ef5bd2391efe4948de95552c",
+    "scope": [
+      "scripts/agent-flow/task-workflow.mjs",
+      "scripts/agent-flow/task-workflow.test.mjs"
+    ],
+    "files": [
+      {
+        "path": "scripts/agent-flow/task-workflow.mjs",
+        "beforeSha256": "59070d2eca4f5562ebb760489b8c2a401dbc2c30aa03a5b03448754660358c36",
+        "afterSha256": "71a89074c6fd387441bf043008162cf86ff40827c4878e17e5afae4561074cc1"
+      },
+      {
+        "path": "scripts/agent-flow/task-workflow.test.mjs",
+        "beforeSha256": "9b11cb8dca02ea057652bb222345b7f5303e04e00ae121fdde69b818686415e3",
+        "afterSha256": "978c3dba597320bd32c12f33230e5d14dffc07542769360fd9c8bea519445a4e"
+      }
+    ],
+    "protectedFilesUnchanged": true,
+    "protectedChecks": [
+      {
+        "path": "scripts/agent-flow/role-pipeline.mjs",
+        "beforeSha256": "d70318697e4f391200eab4357d3d2cdeb88c8afa38b19603de5dfd58dc7ddcf8",
+        "currentSha256": "d70318697e4f391200eab4357d3d2cdeb88c8afa38b19603de5dfd58dc7ddcf8"
+      },
+      {
+        "path": "scripts/agent-flow/role-native.mjs",
+        "beforeSha256": "c9004c2319a7cdcbe2e03d306ae786380b1a1b68235a865dac06fcf623240ff5",
+        "currentSha256": "c9004c2319a7cdcbe2e03d306ae786380b1a1b68235a865dac06fcf623240ff5"
+      },
+      {
+        "path": "scripts/agent-flow/store.mjs",
+        "beforeSha256": "b419d8f4953b521db2cdbeb9e3d4d75bdaf71111d559410af857c3479fdc0265",
+        "currentSha256": "b419d8f4953b521db2cdbeb9e3d4d75bdaf71111d559410af857c3479fdc0265"
+      },
+      {
+        "path": "scripts/agent-flow/authority.mjs",
+        "beforeSha256": "d97c21c2c4357e8bc05ef761d77b9298b777d279fa8822dd0fc1660a5da0ca44",
+        "currentSha256": "d97c21c2c4357e8bc05ef761d77b9298b777d279fa8822dd0fc1660a5da0ca44"
+      },
+      {
+        "path": "scripts/agent-flow/contract.mjs",
+        "beforeSha256": "badf841c396e45944d58506452a3795c38b5af0dbe831bffcf619f80e05e059e",
+        "currentSha256": "badf841c396e45944d58506452a3795c38b5af0dbe831bffcf619f80e05e059e"
+      },
+      {
+        "path": "scripts/agent-flow/probe.mjs",
+        "beforeSha256": "df71906755d19b8b256e473ffc9b500170336775cb31e47c99436447fcb5f9a1",
+        "currentSha256": "df71906755d19b8b256e473ffc9b500170336775cb31e47c99436447fcb5f9a1"
+      }
+    ],
+    "heldBuilderDiff": {
+      "status": "UNVERIFIED_NOT_STAGED_OR_COMMITTED",
+      "insertions": 92,
+      "deletions": 2
+    }
+  },
+  "previousTask": {
+    "taskId": "fbafbb1d-2a9d-4d0b-9bad-64a467dfae2f",
+    "status": "HELD",
+    "artifactsUnchanged": true
+  },
+  "executionBoundary": {
+    "autoRetry": 0,
+    "autoResume": 0,
+    "replacementTask": 0,
+    "driverChanges": 0,
+    "permissionChanges": 0,
+    "testsAfterHeld": 0
+  },
+  "privateEvidenceDirectory": "C:/Users/DELL/.codex/agent-flow-evidence/bella-agent-flow-VCk0F2",
+  "artifacts": [
+    {
+      "name": "intake.json",
+      "sha256": "bdc381a53ffe981cd506c92c88442f0f15634a21510e1641cfc0b06c907dfb88"
+    },
+    {
+      "name": "terminal.json",
+      "sha256": "725007e4cc7b1780ea146a23599542dc65232a0b925970f38ee889616e64dcd0"
+    },
+    {
+      "name": "held-readonly-diagnostic.json",
+      "sha256": "b1f3b63b3c54344f3e758b62bef7bfb8d70edeb16aa3f7ff2206dcade93467db"
+    }
+  ],
+  "productGates": {
+    "parentRls": "FAIL",
+    "courseAuthorization": "BLOCKED",
+    "uiToDb": "NOT_PROVEN",
+    "preGoLive": "BLOCKED"
+  },
+  "nextBoundary": "Do not redispatch. Owner decision required before any driver diagnostic fix or additional native task. Preserve rejected Builder source as unverified work."
+}

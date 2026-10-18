@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "mission": "BELLA_AGENT_FLOW_MVP",
   "entryPoint": true,
-  "updatedAt": "2026-10-17T23:50:55.323Z",
+  "updatedAt": "2026-10-18T00:06:56.451Z",
   "status": "HELD",
   "mvp": "NOT_PROVEN",
   "ownerContract": {
@@ -214,7 +214,7 @@
       "strict V1 envelope decoding and direct terminal writer format",
       "failed Reviewer commands cannot be promoted"
     ],
-    "runtimeValidation": "NOT_RUN_NO_REDISPATCH",
+    "runtimeValidation": "FOLLOWUP_STARTED_BUT_HELD_AT_STORE_WRITE_BEFORE_VERIFY_REVIEWER; NOT_PROVEN",
     "tests": {
       "command": "node node_modules/jest/bin/jest.js --runTestsByPath src/__tests__/agent-flow-tooling.test.ts --runInBand",
       "jestSuites": 1,
@@ -251,7 +251,27 @@
     "uiToDb": "NOT_PROVEN",
     "preGoLive": "BLOCKED"
   },
-  "nextOwnerDecision": "Authorize exactly one NEW bounded task to validate the reviewed adapter fixes. Do not resume/retry the held task or reuse its task ID. No broader permissions are needed.",
+  "nextOwnerDecision": "No retry or replacement task. The one approved task was consumed and ended STORE_WRITE_FAILED. The underlying exception was not retained; root cause is NOT_PROVEN. Any driver diagnostic repair or additional task needs separate scope. Preserve both HELD decisions and the unverified local Builder diff.",
   "merge": "NOT_AUTHORIZED",
-  "deploy": "NOT_AUTHORIZED"
+  "deploy": "NOT_AUTHORIZED",
+  "latestTask": {
+    "evidence": "followup-task-v2-evidence.json",
+    "taskId": "ee7e958a-4194-44fe-aec6-ca3f5085a514",
+    "status": "HELD",
+    "reason": "STORE_WRITE_FAILED",
+    "sourceRevision": "257317780339167a6d59740e89d18649cd720d14",
+    "dispatchCount": 2,
+    "acceptedRoles": [
+      "LEAD"
+    ],
+    "verify": "NOT_RUN",
+    "reviewer": "NOT_RUN",
+    "builderDiff": "UNVERIFIED_LOCAL_UNSTAGED_UNCOMMITTED",
+    "driverChanges": 0,
+    "permissionChanges": 0,
+    "autoRetry": 0,
+    "autoResume": 0,
+    "replacementTask": 0,
+    "oldTaskAndArtifactsUnchanged": true
+  }
 }
