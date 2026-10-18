@@ -229,29 +229,33 @@ export default function AttendancePage() {
     };
   }, []);
 
-  const loadClassrooms = useCallback(async () => {
-    setLoadingClassrooms(true);
-    setError(null);
-    try {
-      const response = await fetch(`/api/education/courses?date=${schoolDay}`, { cache: 'no-store' });
-      const payload = await response.json();
-      if (!response.ok || !payload.success) {
-        throw new Error(payload.error ?? 'Không tải được danh sách lớp');
-      }
-
-      const loadedClassrooms = (payload.classrooms ?? []) as ClassroomOverviewItem[];
-      setClassrooms(loadedClassrooms);
-      setSelectedCourseId((current) => current || loadedClassrooms[0]?.id || '');
-    } catch (loadError) {
-      setError(loadError instanceof Error ? loadError.message : 'Không tải được danh sách lớp');
-    } finally {
-      setLoadingClassrooms(false);
-    }
-  }, [schoolDay]);
-
   useEffect(() => {
+    let active = true;
+    async function loadClassrooms() {
+      setLoadingClassrooms(true);
+      setError(null);
+      try {
+        const response = await fetch('/api/education/courses', { cache: 'no-store' });
+        const payload = await response.json();
+        if (!response.ok || !payload.success) {
+          throw new Error(payload.error ?? 'Không tải được danh sách lớp');
+        }
+
+        const loadedClassrooms = (payload.classrooms ?? []) as ClassroomOverviewItem[];
+        if (active) {
+          setClassrooms(loadedClassrooms);
+          setSelectedCourseId((current) => current || loadedClassrooms[0]?.id || '');
+        }
+      } catch (loadError) {
+        if (active) setError(loadError instanceof Error ? loadError.message : 'Không tải được danh sách lớp');
+      } finally {
+        if (active) setLoadingClassrooms(false);
+      }
+    }
+
     void loadClassrooms();
-  }, [loadClassrooms]);
+    return () => { active = false; };
+  }, []);
 
   const refreshRoster = useCallback(async (): Promise<boolean> => {
     const requestVersion = ++rosterRequestVersion.current;
@@ -418,46 +422,52 @@ export default function AttendancePage() {
         </div>
 
         {/* Grade tabs filter */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar">
-          {[
-            { key: 'all', label: 'Tất cả khối' },
-            { key: 'nursery', label: 'Nhà Trẻ (18-36th)' },
-            { key: 'mam', label: 'Khối Mầm (3t)' },
-            { key: 'choi', label: 'Khối Chồi (4t)' },
-            { key: 'la', label: 'Khối Lá (5t)' },
-          ].map((tab) => {
-            const isActive = selectedGrade === tab.key;
-            const count = tab.key === 'all'
-              ? classrooms.length
-              : classrooms.filter((c) => c.gradeKey === tab.key).length;
-            if (tab.key !== 'all' && count === 0) return null;
-            return (
-              <button
-                key={tab.key}
-                type="button"
-                onClick={() => handleSelectGrade(tab.key as typeof selectedGrade)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap shrink-0 flex items-center gap-1.5 ${
-                  isActive
-                    ? 'bg-primary text-primary-foreground shadow-sm'
-                    : 'bg-slate-100 dark:bg-slate-700/60 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
-                }`}
-              >
-                {tab.label}
-                <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-extrabold ${
-                  isActive ? 'bg-primary-foreground/20 text-primary-foreground' : 'bg-slate-200 dark:bg-slate-600 text-slate-600 dark:text-slate-300'
-                }`}>
-                  {count}
-                </span>
-              </button>
-            );
-          })}
-        </div>
+        {classrooms.length > 0 && (
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar">
+            {[
+              { key: 'all', label: 'Tất cả khối' },
+              { key: 'nursery', label: 'Nhà Trẻ (18-36th)' },
+              { key: 'mam', label: 'Khối Mầm (3t)' },
+              { key: 'choi', label: 'Khối Chồi (4t)' },
+              { key: 'la', label: 'Khối Lá (5t)' },
+            ].map((tab) => {
+              const isActive = selectedGrade === tab.key;
+              const count = tab.key === 'all'
+                ? classrooms.length
+                : classrooms.filter((c) => c.gradeKey === tab.key).length;
+              if (tab.key !== 'all' && count === 0) return null;
+              return (
+                <button
+                  key={tab.key}
+                  type="button"
+                  onClick={() => handleSelectGrade(tab.key as typeof selectedGrade)}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap shrink-0 flex items-center gap-1.5 ${
+                    isActive
+                      ? 'bg-primary text-primary-foreground shadow-sm'
+                      : 'bg-slate-100 dark:bg-slate-700/60 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+                  }`}
+                >
+                  {tab.label}
+                  <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-extrabold ${
+                    isActive ? 'bg-primary-foreground/20 text-primary-foreground' : 'bg-slate-200 dark:bg-slate-600 text-slate-600 dark:text-slate-300'
+                  }`}>
+                    {count}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        )}
 
         {/* Classroom cards grid */}
         {loadingClassrooms ? (
           <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
             <Loader2 className="w-4 h-4 animate-spin" />
             Đang tải danh sách lớp...
+          </div>
+        ) : classrooms.length === 0 ? (
+          <div className="text-xs text-slate-500 dark:text-slate-400 py-2">
+            Chưa có lớp đang hoạt động
           </div>
         ) : filteredClassrooms.length === 0 ? (
           <div className="text-xs text-slate-500 dark:text-slate-400 py-4 text-center bg-slate-50 dark:bg-slate-700/30 rounded-2xl">
