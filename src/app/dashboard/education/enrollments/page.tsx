@@ -499,32 +499,20 @@ interface ChildAvatarProps {
   readonly sizeClass?: string;
 }
 
-function ChildAvatar({ avatarUrl, name, gender, sizeClass = 'w-10 h-10' }: ChildAvatarProps) {
-  const [imgFailed, setImgFailed] = useState(false);
+function ChildAvatar({ name, gender, sizeClass = 'w-10 h-10' }: Omit<ChildAvatarProps, 'avatarUrl'> & { avatarUrl?: string }) {
   const isBoy = gender === 'Bé trai';
-  const initial = name.split(' ').pop()?.[0] ?? name[0] ?? '?';
+  const initial = name.trim().split(/\s+/).pop()?.[0]?.toUpperCase() ?? name[0]?.toUpperCase() ?? '?';
   const fallbackCls = isBoy
     ? 'bg-sky-100 dark:bg-sky-950 text-sky-800 dark:text-sky-300'
     : 'bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300';
 
-  if (imgFailed || !avatarUrl) {
-    return (
-      <div
-        className={`${sizeClass} rounded-full flex items-center justify-center font-extrabold text-xs shrink-0 ${fallbackCls}`}
-        aria-label={name}
-      >
-        {initial}
-      </div>
-    );
-  }
-
   return (
-    <img
-      src={avatarUrl}
-      alt=""
-      className={`${sizeClass} rounded-full object-cover shrink-0`}
-      onError={() => setImgFailed(true)}
-    />
+    <div
+      className={`${sizeClass} rounded-full flex items-center justify-center font-extrabold text-xs shrink-0 ${fallbackCls}`}
+      aria-label={name}
+    >
+      {initial}
+    </div>
   );
 }
 

@@ -41,7 +41,6 @@ import { useState, useEffect, useMemo, useRef, Suspense, type ChangeEvent } from
 import { useSearchParams } from 'next/navigation';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import Link from 'next/link';
-import Image from 'next/image';
 import {
   ArrowLeft,
   GraduationCap,
@@ -1296,18 +1295,9 @@ function PreschoolDevelopmentGradesPageContent() {
                           onClick={() => setInspectedStudent(child)}
                           className="flex items-center gap-3 cursor-pointer group"
                         >
-                          <Image
-                            src={child.avatarUrl}
-                            alt={child.name}
-                            width={32}
-                            height={32}
-                            className="w-8 h-8 rounded-full object-cover border border-slate-200 dark:border-slate-700 shrink-0"
-                            unoptimized
-                            onError={(e) => {
-                              // Fallback styling if image fails
-                              e.currentTarget.style.display = 'none';
-                            }}
-                          />
+                          <div className={`w-8 h-8 rounded-full shrink-0 flex items-center justify-center font-extrabold text-[13px] ${child.avatarFallbackBg}`}>
+                            {child.name.trim().split(/\s+/).pop()?.[0]?.toUpperCase() ?? '?'}
+                          </div>
                           <div>
                             <div className="font-extrabold text-slate-900 dark:text-white group-hover:text-[#0c513f] dark:group-hover:text-emerald-400 transition-colors">
                               {child.name}
@@ -1375,14 +1365,9 @@ function PreschoolDevelopmentGradesPageContent() {
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-center gap-3">
-                    <Image
-                      src={child.avatarUrl}
-                      alt={child.name}
-                      width={40}
-                      height={40}
-                      className="w-10 h-10 rounded-full object-cover border border-slate-200 shrink-0"
-                      unoptimized
-                    />
+                    <div className={`w-10 h-10 rounded-full shrink-0 flex items-center justify-center font-extrabold text-[15px] ${child.avatarFallbackBg}`}>
+                      {child.name.trim().split(/\s+/).pop()?.[0]?.toUpperCase() ?? '?'}
+                    </div>
                     <div>
                       <h3 className="font-extrabold text-sm text-slate-900 dark:text-white">
                         {child.name}
@@ -1466,14 +1451,9 @@ function PreschoolDevelopmentGradesPageContent() {
                 className="p-3.5 rounded-2xl border border-slate-100 dark:border-slate-700/60 hover:bg-slate-50 dark:hover:bg-slate-700/40 transition-all flex items-center justify-between gap-3 cursor-pointer"
               >
                 <div className="flex items-center gap-3">
-                  <Image
-                    src={item.avatarUrl}
-                    alt={item.name}
-                    width={36}
-                    height={36}
-                    className="w-9 h-9 rounded-full object-cover border border-slate-200 shrink-0"
-                    unoptimized
-                  />
+                  <div className={`w-9 h-9 rounded-full shrink-0 flex items-center justify-center font-extrabold text-[14px] ${item.avatarFallbackBg}`}>
+                    {item.name.trim().split(/\s+/).pop()?.[0]?.toUpperCase() ?? '?'}
+                  </div>
                   <div>
                     <div className="text-xs font-extrabold text-slate-900 dark:text-white">
                       {item.name}
@@ -1569,14 +1549,9 @@ function PreschoolDevelopmentGradesPageContent() {
             {/* Header */}
             <div className="flex items-start justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-4">
               <div className="flex items-center gap-3.5">
-                <Image
-                  src={inspectedStudent.avatarUrl}
-                  alt={inspectedStudent.name}
-                  width={48}
-                  height={48}
-                  className="w-12 h-12 rounded-full object-cover border-2 border-[#0c513f]"
-                  unoptimized
-                />
+                <div className={`w-12 h-12 rounded-full shrink-0 flex items-center justify-center font-extrabold text-[18px] ring-2 ring-[#0c513f] ${inspectedStudent.avatarFallbackBg}`}>
+                  {inspectedStudent.name.trim().split(/\s+/).pop()?.[0]?.toUpperCase() ?? '?'}
+                </div>
                 <div>
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-bold text-slate-500">
