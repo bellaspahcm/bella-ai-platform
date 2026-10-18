@@ -254,6 +254,12 @@ const TEACHERS_LIST: readonly TeacherItem[] = [
   },
 ];
 
+// ── Derived Counts (computed once, single source of truth) ───────────────────
+const TOTAL_TEACHERS = TEACHERS_LIST.length;
+const COUNT_CHUNHIEM = TEACHERS_LIST.filter((t) => t.roleKey === 'chunhiem').length;
+const COUNT_TROGIANG = TEACHERS_LIST.filter((t) => t.roleKey === 'trogiang').length;
+const COUNT_BOMON = TEACHERS_LIST.filter((t) => t.roleKey === 'bomon').length;
+
 // ── Preschool Teacher Card Component ──────────────────────────────────────────
 
 interface TeacherCardProps {
@@ -303,8 +309,9 @@ function TeacherCard({ teacher, isMenuOpen, onMenuToggle, onAssignClass }: Teach
             </button>
             {isMenuOpen && (
               <div className="absolute right-0 mt-2 w-52 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl z-50 p-1.5 space-y-0.5 text-xs font-semibold">
+                {/* TODO: create /dashboard/education/teachers/[id]/page.tsx */}
                 <Link
-                  href={`/dashboard/education/teachers/${teacher.id}`}
+                  href={`/dashboard/education/teachers?teacher=${teacher.id}`}
                   className="flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-[#0e5c43]/10 hover:text-[#0e5c43] dark:hover:text-emerald-300 rounded-lg transition-colors"
                 >
                   <FileText className="w-3.5 h-3.5 text-[#0e5c43] dark:text-emerald-400 shrink-0" />
@@ -419,8 +426,9 @@ function TeacherCard({ teacher, isMenuOpen, onMenuToggle, onAssignClass }: Teach
 
       {/* Card Action Buttons (Bottom) */}
       <div className="grid grid-cols-2 gap-3.5 pt-4 pb-1 border-t border-slate-100 dark:border-slate-700/60 mt-auto">
+        {/* TODO: navigate to /dashboard/education/teachers/[id] once created */}
         <Link
-          href={`/dashboard/education/teachers/${teacher.id}`}
+          href={`/dashboard/education/teachers?teacher=${teacher.id}`}
           className="inline-flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-lg text-xs font-bold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-[#0e5c43] dark:text-emerald-400 hover:bg-slate-50 dark:hover:bg-slate-700/60 transition-colors shadow-2xs"
         >
           <FileText className="w-4 h-4" />
@@ -603,7 +611,7 @@ export default function TeachersPage() {
               Đội Ngũ Giáo Viên Mầm Non
             </h1>
             <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">
-              Quản lý 32 giáo viên chuyên môn, phân công giảng dạy
+              Quản lý {TOTAL_TEACHERS} giáo viên chuyên môn, phân công giảng dạy
             </p>
           </div>
         </div>
@@ -631,7 +639,7 @@ export default function TeachersPage() {
         </div>
       </div>
 
-      {/* ── 2. FOUR KPI STAT CARDS (Image 3 Style) ── */}
+      {/* ── 2. FOUR KPI STAT CARDS — counts derived from TEACHERS_LIST (single source of truth) ── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Card 1: Tổng số giáo viên (Mint) */}
         <div className="rounded-2xl p-5 bg-[#ecfdf5] dark:bg-emerald-950/20 border border-emerald-100/60 dark:border-emerald-900/30">
@@ -642,7 +650,7 @@ export default function TeachersPage() {
             Tổng số giáo viên
           </div>
           <div className="text-3xl font-black text-slate-900 dark:text-white mt-1">
-            32
+            {TOTAL_TEACHERS}
           </div>
         </div>
 
@@ -655,7 +663,7 @@ export default function TeachersPage() {
             Giáo viên chủ nhiệm
           </div>
           <div className="text-3xl font-black text-[#1d4ed8] dark:text-blue-400 mt-1">
-            12
+            {COUNT_CHUNHIEM}
           </div>
         </div>
 
@@ -668,7 +676,7 @@ export default function TeachersPage() {
             Giáo viên trợ giảng
           </div>
           <div className="text-3xl font-black text-[#c2410c] dark:text-amber-400 mt-1">
-            14
+            {COUNT_TROGIANG}
           </div>
         </div>
 
@@ -681,7 +689,7 @@ export default function TeachersPage() {
             Giáo viên năng khiếu
           </div>
           <div className="text-3xl font-black text-[#7c3aed] dark:text-purple-400 mt-1">
-            6
+            {COUNT_BOMON}
           </div>
         </div>
       </div>
@@ -738,11 +746,12 @@ export default function TeachersPage() {
 
         {/* Row 2: Pill Tabs matching Image 3 */}
         <div className="flex items-center gap-2 overflow-x-auto pb-1">
-          {[
-            { id: 'all' as const, label: 'Tất cả (32)' },
-            { id: 'chunhiem' as const, label: 'Chủ nhiệm (12)' },
-            { id: 'trogiang' as const, label: 'Trợ giảng (14)' },
-            { id: 'bomon' as const, label: 'Năng khiếu & Ngoại ngữ (6)' },
+          {/* Pill tab counts are always derived from TEACHERS_LIST — no hardcoded numbers */}
+        {[
+            { id: 'all' as const, label: `Tất cả (${TOTAL_TEACHERS})` },
+            { id: 'chunhiem' as const, label: `Chủ nhiệm (${COUNT_CHUNHIEM})` },
+            { id: 'trogiang' as const, label: `Trợ giảng (${COUNT_TROGIANG})` },
+            { id: 'bomon' as const, label: `Năng khiếu & Ngoại ngữ (${COUNT_BOMON})` },
           ].map((tab) => {
             const isActive = roleFilter === tab.id;
             return (
