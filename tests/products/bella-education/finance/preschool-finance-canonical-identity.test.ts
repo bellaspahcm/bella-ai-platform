@@ -50,7 +50,7 @@ describe('Preschool Finance canonical Party identity Real DB E2E', () => {
   async function seedCourse(tenantId: string): Promise<string> {
     const { data, error } = await supabase.from('edu_courses').insert({
       tenant_id: tenantId,
-      course_code: `PRESCHOOL-${suffix}`,
+      course_code: `PRESCHOOL-${tenantId.slice(0, 8)}-${suffix}`,
       title: `Preschool Canonical Identity ${suffix}`,
       status: 'active',
     }).select('id').single();
@@ -74,6 +74,16 @@ describe('Preschool Finance canonical Party identity Real DB E2E', () => {
     await seedParty(tenantB, studentPartyB, `Student B ${suffix}`);
     await seedParty(tenantB, payerPartyB, `Payer B ${suffix}`);
     await seedParty(tenantB, staffPartyB, `Staff B ${suffix}`);
+
+    // Seed active enrollment for studentPartyB in tenantB so payment recording is allowed
+    const courseBId = await seedCourse(tenantB);
+    await supabase.from('edu_enrollments').insert({
+      tenant_id: tenantB,
+      student_party_id: studentPartyB,
+      course_id: courseBId,
+      status: 'active',
+      request_id: `finance-cutover-b-${suffix}`,
+    });
   }, 30_000);
 
   it('persists one Student Party ID across enrollment, attendance, invoice, payment, and tenant isolation checks', async () => {
