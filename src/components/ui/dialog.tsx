@@ -66,11 +66,11 @@ function DialogContent({
   return (
     <DialogPortal>
       <DialogOverlay />
-      <div className="fixed inset-0 z-[99999] flex items-start justify-center p-4 pt-20 md:pt-28 overflow-y-auto pointer-events-none">
+      <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 overflow-y-auto pointer-events-none">
         <DialogPrimitive.Popup
           data-slot="dialog-content"
           className={cn(
-            "pointer-events-auto group/dialog-content relative w-full max-w-lg gap-4 rounded-2xl bg-popover p-6 text-sm text-popover-foreground shadow-2xl border border-border/40 duration-100 outline-none sm:max-w-md data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",
+            "pointer-events-auto group/dialog-content relative my-auto w-full max-w-lg max-h-[88vh] overflow-y-auto gap-4 rounded-2xl bg-popover p-6 text-sm text-popover-foreground shadow-2xl border border-border/40 duration-100 outline-none sm:max-w-md data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",
             className
           )}
           {...props}
