@@ -240,12 +240,21 @@ function AttendancePageContent() {
     return filteredRoster.slice(attendanceStartIdx, attendanceStartIdx + attendancePageSize);
   }, [filteredRoster, attendanceStartIdx, attendancePageSize]);
 
-  const handoverTotalPages = Math.max(1, Math.ceil(filteredRoster.length / handoverPageSize));
+  // Học sinh vắng (absent) hoặc nghỉ phép (excused) đã không đến trường
+  // => không cần bàn giao, loại khỏi panel đưa đón
+  const handoverEligibleRoster = useMemo(() => {
+    return filteredRoster.filter((student) => {
+      const attendanceStatus = student.attendance?.status;
+      return attendanceStatus !== 'absent' && attendanceStatus !== 'excused';
+    });
+  }, [filteredRoster]);
+
+  const handoverTotalPages = Math.max(1, Math.ceil(handoverEligibleRoster.length / handoverPageSize));
   const validHandoverPage = Math.min(handoverPage, handoverTotalPages);
   const handoverStartIdx = (validHandoverPage - 1) * handoverPageSize;
   const paginatedHandoverRoster = useMemo(() => {
-    return filteredRoster.slice(handoverStartIdx, handoverStartIdx + handoverPageSize);
-  }, [filteredRoster, handoverStartIdx, handoverPageSize]);
+    return handoverEligibleRoster.slice(handoverStartIdx, handoverStartIdx + handoverPageSize);
+  }, [handoverEligibleRoster, handoverStartIdx, handoverPageSize]);
 
   const attendanceSummary = useMemo(() => {
     return currentRoster.reduce(
@@ -960,7 +969,7 @@ function AttendancePageContent() {
 
             <PaginationControl
               currentPage={validHandoverPage}
-              totalItems={filteredRoster.length}
+              totalItems={handoverEligibleRoster.length}
               pageSize={handoverPageSize}
               onPageChange={setHandoverPage}
               onPageSizeChange={setHandoverPageSize}
