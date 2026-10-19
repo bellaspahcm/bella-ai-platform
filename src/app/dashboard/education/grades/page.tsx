@@ -3141,7 +3141,7 @@ function PreschoolDevelopmentGradesPageContent() {
             initialFocus
             finalFocus={() => !profileToObservationRef.current}
             aria-label="Hồ sơ trẻ minh họa"
-            className="w-full max-w-2xl sm:max-w-2xl bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl p-6 sm:p-8 space-y-6 max-h-[90vh] overflow-y-auto"
+            className="w-full max-w-2xl sm:max-w-2xl bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl p-6 sm:p-8 space-y-6 max-h-[82vh] overflow-y-auto"
           >
             <p className="text-xs font-bold text-slate-700 dark:text-slate-200">
               Hồ sơ minh họa: thông tin thể chất, nhận xét, bằng chứng và gợi ý bên dưới là nội dung mẫu; chưa phân tích hồ sơ thật.
