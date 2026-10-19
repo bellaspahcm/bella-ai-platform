@@ -107,4 +107,132 @@ describe('Grades trial truthful unavailable actions', () => {
     expect(dialog).toHaveTextContent(/thông tin thể chất, nhận xét, bằng chứng và gợi ý bên dưới là nội dung mẫu/);
     expect(dialog).toHaveTextContent(/chưa phân tích hồ sơ thật/);
   });
+
+  it('renders exact canonical truth KPI metrics and class progress', async () => {
+    await mountPage();
+
+    // 4 KPI Cards
+    expect(screen.getAllByText('46').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByText('Tổng số trẻ')).toBeInTheDocument();
+    expect(screen.getByText('(2 lớp)')).toBeInTheDocument();
+
+    expect(screen.getByText('38')).toBeInTheDocument();
+    expect(screen.getByText('Đã đánh giá')).toBeInTheDocument();
+    expect(screen.getByText('83%')).toBeInTheDocument();
+
+    expect(screen.getAllByText('8').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByText('Chưa đánh giá')).toBeInTheDocument();
+    expect(screen.getByText('17%')).toBeInTheDocument();
+
+    expect(screen.getByText('12')).toBeInTheDocument();
+    expect(screen.getByText('Ghi nhận mới')).toBeInTheDocument();
+
+    // Class Progress
+    expect(screen.getAllByText('Lớp Mầm A1').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByText('18 / 24 trẻ')).toBeInTheDocument();
+    expect(screen.getByText('75%')).toBeInTheDocument();
+
+    expect(screen.getAllByText('Lớp Chồi B1').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByText('20 / 22 trẻ')).toBeInTheDocument();
+    expect(screen.getByText('90%')).toBeInTheDocument();
+  });
+
+  it('switches between all 5 tabs and renders dedicated workspace views', async () => {
+    await mountPage();
+
+    // Tab 2: Nhật ký & Bằng chứng
+    fireEvent.click(screen.getByRole('button', { name: 'Nhật ký & Bằng chứng' }));
+    expect(screen.getByText('Nhật Ký Quan Sát & Bằng Chứng Sư Phạm')).toBeInTheDocument();
+    expect(screen.getByText('Cô Nguyễn Thị Mai • GV Chủ Nhiệm • 10:15 hôm nay')).toBeInTheDocument();
+    expect(screen.getByText('NAEYC-PHY-02')).toBeInTheDocument();
+
+    // Tab 3: Tiến trình NAEYC
+    fireEvent.click(screen.getByRole('button', { name: 'Tiến trình NAEYC' }));
+    expect(screen.getByText('Khung Đánh Giá Chuẩn Phát Triển NAEYC Mầm Non')).toBeInTheDocument();
+    expect(screen.getByText('So Sánh Tiến Độ Giữa Các Khối Lớp')).toBeInTheDocument();
+    expect(screen.getByText('Lớp Mầm A1 (3-4 tuổi)')).toBeInTheDocument();
+    expect(screen.getByText('Lớp Chồi B1 (4-5 tuổi)')).toBeInTheDocument();
+
+    // Tab 4: Hồ sơ 360°
+    fireEvent.click(screen.getByRole('button', { name: 'Hồ sơ 360°' }));
+    expect(screen.getByText('Trung Tâm Hồ Sơ Phát Triển Toàn Diện 360°')).toBeInTheDocument();
+    expect(screen.getByText('Hồ Sơ Quản Lý Trẻ')).toBeInTheDocument();
+    expect(screen.getByText('Xem Điểm Danh')).toBeInTheDocument();
+    expect(screen.getByText('Chăm Sóc & Dinh Dưỡng')).toBeInTheDocument();
+
+    // Tab 5: Khen thưởng
+    fireEvent.click(screen.getByRole('button', { name: 'Khen thưởng' }));
+    expect(screen.getByText('Góc Khen Thưởng & Tuyên Dương Mầm Non')).toBeInTheDocument();
+    expect(screen.getByText('Ngôi Sao Tự Lập Giờ Ăn Trưa')).toBeInTheDocument();
+    expect(screen.getByText('Họa Sĩ Nhí Xuất Sắc Tháng 9')).toBeInTheDocument();
+
+    // Tab 1: Tổng quan
+    fireEvent.click(screen.getByRole('button', { name: 'Tổng quan' }));
+    expect(screen.getByText('Danh sách trẻ')).toBeInTheDocument();
+  });
+
+  it('filters students by class, attention status, and resets filters', async () => {
+    await mountPage();
+
+    // Filter by Attention
+    fireEvent.click(screen.getByText('8 trẻ cần chú ý'));
+    expect(screen.getByText(/Hiển thị 8 \/ 8 trẻ/)).toBeInTheDocument();
+    expect(screen.getAllByText('Lê Gia Huy').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('Trần Bảo Ngọc').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('Vũ Gia Hân').length).toBeGreaterThanOrEqual(1);
+
+    // Reset filters
+    fireEvent.click(screen.getByRole('button', { name: 'Xóa bộ lọc' }));
+    expect(screen.getByText(/Hiển thị 8 \/ 46 trẻ/)).toBeInTheDocument();
+
+    // Filter by Mầm A1
+    fireEvent.change(screen.getByLabelText('Lọc theo lớp học'), { target: { value: 'MAM_A1' } });
+    expect(screen.getByText(/Hiển thị 8 \/ 24 trẻ/)).toBeInTheDocument();
+
+    // Filter by Chồi B1
+    fireEvent.change(screen.getByLabelText('Lọc theo lớp học'), { target: { value: 'CHOI_B1' } });
+    expect(screen.getByText(/Hiển thị 8 \/ 22 trẻ/)).toBeInTheDocument();
+  });
+
+  it('navigates pagination across the 46 children', async () => {
+    await mountPage();
+    expect(screen.getByText('Nguyễn Minh An')).toBeInTheDocument();
+
+    // Click Page 2
+    fireEvent.click(screen.getByRole('button', { name: '2' }));
+    expect(screen.getByText('Dương Minh Khôi')).toBeInTheDocument();
+
+    // Click Previous
+    fireEvent.click(screen.getByRole('button', { name: 'Trang trước' }));
+    expect(screen.getByText('Nguyễn Minh An')).toBeInTheDocument();
+  });
+
+  it('opens and confirms award issuance in Khen thưởng tab', async () => {
+    await mountPage();
+
+    // Go to Khen thưởng tab
+    fireEvent.click(screen.getByRole('button', { name: 'Khen thưởng' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Trao khen thưởng mới' }));
+
+    const dialog = screen.getByRole('dialog', { name: 'Trao khen thưởng mầm non mới' });
+    expect(dialog).toBeInTheDocument();
+
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Xác nhận trao thưởng' }));
+    expect(screen.queryByRole('dialog', { name: 'Trao khen thưởng mầm non mới' })).not.toBeInTheDocument();
+  });
+
+  it('navigates from bottom widgets to respective tabs and filtered states', async () => {
+    await mountPage();
+
+    // Bottom widget Xem thêm -> jumps to observations tab
+    fireEvent.click(screen.getByRole('button', { name: 'Xem thêm →' }));
+    expect(screen.getByText('Nhật Ký Quan Sát & Bằng Chứng Sư Phạm')).toBeInTheDocument();
+
+    // Go back to overview
+    fireEvent.click(screen.getByRole('button', { name: 'Tổng quan' }));
+
+    // Tiến độ đánh giá theo lớp "Xem chi tiết →" -> jumps to progression tab
+    fireEvent.click(screen.getByRole('button', { name: 'Xem chi tiết →' }));
+    expect(screen.getByText('Khung Đánh Giá Chuẩn Phát Triển NAEYC Mầm Non')).toBeInTheDocument();
+  });
 });
