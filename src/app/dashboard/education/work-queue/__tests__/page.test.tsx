@@ -9,7 +9,7 @@ let selectedView = 'absences';
 jest.mock('next/navigation', () => ({ useSearchParams: () => new URLSearchParams(`view=${selectedView}`) }));
 jest.mock('next/link', () => ({ __esModule: true, default: ({ children, href, ...props }: React.AnchorHTMLAttributes<HTMLAnchorElement>) => <a href={href} {...props}>{children}</a> }));
 // Use semantic native buttons in JSDOM; shared Button styling is separately maintained.
-jest.mock('@/components/ui/Button', () => ({ Button: ({ children, variant: _variant, ...props }: React.ButtonHTMLAttributes<HTMLButtonElement> & { variant?: string }) => <button {...props}>{children}</button> }));
+jest.mock('@/components/ui/button', () => ({ Button: ({ children, variant: _variant, ...props }: React.ButtonHTMLAttributes<HTMLButtonElement> & { variant?: string }) => <button {...props}>{children}</button> }));
 
 type Reply = Pick<Response, 'ok' | 'json'>;
 const response = (payload: unknown, ok = true): Reply => ({ ok, json: async () => payload });
