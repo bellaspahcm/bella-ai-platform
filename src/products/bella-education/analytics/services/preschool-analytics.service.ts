@@ -131,14 +131,7 @@ export class PreschoolAnalyticsService {
 
     const commandCenter = 'getCommandCenterRawData' in this.repo && typeof this.repo.getCommandCenterRawData === 'function'
       ? await this.repo.getCommandCenterRawData(tenantId, targetDate)
-      : {
-          unmarkedAttendanceCount: Math.max(0, totalEnrolledStudents - (todayPresentCount + todayAbsentCount)),
-          leaveRequestsCount: 2,
-          overdueInvoicesCount: overdueAccountsCount,
-          healthIncidentsCount: activeHealthIncidents,
-          parentRequestsCount: 4,
-          totalParentsCount: 142,
-        };
+      : undefined;
 
     return {
       tenantId,

@@ -23,6 +23,8 @@ export interface ICloseIncidentCommand {
   incidentId: string;
   acknowledgedAt?: Date;
   escalationNotes?: string;
+  /** Queue reviewers require the same OPEN revision; omitted by existing consumers. */
+  expectedOpenUpdatedAt?: string;
 }
 
 export interface IIncidentSafetyContract {

@@ -2,7 +2,7 @@
 title: 'Chặn giao diện Spa trước khi xác định tenant'
 type: 'bugfix'
 created: '2026-10-19'
-status: 'in-review'
+status: 'done'
 baseline_commit: '40d14455e06cb4f7287c766558b5c63baf0dd3a8'
 pr_base_commit: '4816e75b1dbcca12c110c98af6da3604d793d962'
 context:
@@ -118,6 +118,33 @@ PR branch `codex/tenant-initial-render-pr` bắt đầu từ origin/main `4816e7
 Rerun tại PR branch: 10 suites / 197 tests; 196 PASS, 1 baseline palette failure; 83/83 test mới PASS. ESLint, secret/log scan trên runtime files sửa, configured-credential scan trên 16 file giao PR, Architecture Guard và diff-check đều PASS. Không copy .env; tests UI có mocked contracts, không gọi Real DB. PR để draft do browser/Real DB/full gate chưa được chứng minh.
 
 ## Suggested Review Order
+
+### Follow-up: Overview attention-card sources and tuition navigation — 2026-10-19
+
+User asks what pending leave, health incident and parent request attention cards are linked to, and explicitly requests overdue tuition to open the Finance debt tab. Change Map: `EXISTING_CAPABILITY_REUSE`, Product UI navigation only. User-selected destination is the authoritative intent; Finance already consumes the supported `tab=debts` query parameter. Change only the overdue card href in `src/app/dashboard/education/page.tsx` to `/dashboard/education/finance?tab=debts`. Preserve all financial calculations, transactions, queries, API, permissions, other links and metrics. Verify exact link targeting, unchanged surrounding code, Finance's existing tab regression and scoped lint. No backend extension, migration, kernel change, commit or push is authorized by this follow-up.
+
+Source audit: Overview consumes `/api/education/analytics` and `commandCenter` fields. Repository counts tenant-scoped `OPEN` `edu_comm_exceptions` with `ABSENCE_REQUEST` for leave; all other open exceptions except `ABSENCE_REQUEST`, `RATIO_SHORTAGE`, `SAFETY_DEFECT` for parent requests; and tenant-scoped `OPEN` `edu_health_incidents` for incidents. Thus the parent label can also include financial exceptions. These are not date-filtered queues despite the overview's selected day/today presentation. UI fallbacks include 2 leave requests, 2 incidents and 4 parent requests; the seed script contains matching sample groups. Leave and incident links open Care, whose current UI consumes daily care/attendance data; parent link opens Communication, whose conversations are static sample data. Static code/seed evidence does not prove which live rows produced screenshot counts. No count, workflow or source changes are included; this audit does not establish new business semantics.
+
+Verification: only the overdue tuition href changed in the runtime page; local/managed checkout sources match. Scoped ESLint and diff whitespace checks PASS. Existing Finance workspace tab regression PASS (one selected test; ten unselected tests skipped). The established Finance query effect accepts `debts` and selects the debt workspace; this query handling is unchanged. Browser automation remains disabled, so no executed browser/deep-link or live-DB count proof is claimed. Changes remain uncommitted.
+
+### Follow-up UI_ONLY: Enrollment filter ownership — 2026-10-19
+
+User reports the enrollment filters feel unrelated to the student list. Existing layout puts them in the page-title card, separated from the table by four KPI cards. Approved UI-only maintenance: move the existing search/status/class/status/age/reset controls into the existing list card immediately above its results. Keep handlers, default selected status, filter predicates, API loading, admissions, export, selection and pagination logic unchanged. Clarify filtered result count versus total loaded profiles using existing `filteredStudents.length` and `totalCount`; rename the existing reset control to its current action. No new capability, backend or business semantic is introduced. The title/year/admission action and global KPI cards remain page-level. Verify JSX parsing, preservation of behavior-bearing code/handlers, scoped ESLint and relevant existing checks; actual visual proof depends on browser availability. No automatic commit/push.
+
+Implemented in the delivery worktree and active localhost checkout. Search/status pills and secondary dropdowns now share the list card, with responsive wrapping/scrolling, a filtered-versus-total result summary and explicit reset copy. Footer reports displayed rows within filtered results. Existing imports, data, state, predicates and handlers remain byte-identical before the main JSX return; all 139 existing behavior-bearing JSX attributes are preserved. The relocated toolbar dismisses the row menu on mouse down to preserve its former outside-click behavior. Three independent reviews completed; one caused menu-containment finding was fixed and its edge review returned no findings. Existing accessibility opportunities and speculative layout concerns were outside this movement's scope. JSX parse, scoped ESLint (zero errors, one pre-existing unused-disable warning), worktree/local source equivalence and diff whitespace checks PASS. Browser access is still disabled in Work settings; visual confirmation remains `NOT_PROVEN`. No new tests or API/backend/schema/kernel changes. Local evidence: `.cache/preschool-enrollment-toolbar/preservation.json` and `toolbar.diff`.
+
+- Controls and result counts share the list surface.
+  [enrollments/page.tsx:1150](../src/app/dashboard/education/enrollments/page.tsx#L1150)
+- Footer labels the filtered result set explicitly.
+  [enrollments/page.tsx:1504](../src/app/dashboard/education/enrollments/page.tsx#L1504)
+
+### Follow-up UI_ONLY: Preschool viewport background — 2026-10-19
+
+User approved the diagnosed viewport background repair with `ok làm đi`. Scope: Education dashboard canvas and its `.preschool-ui` root wrappers. The scrollable main owns one flat `--dashboard-viewport-bg` surface in light/dark mode; wrappers fill the available height without repainting that surface. Preserve tenant sidebar, cards, embedded layout, actions, data and permissions. Shared CSS is the consumer owner; no backend/contract/schema/kernel change. Reuse the existing viewport token and scope overrides to `data-tenant-module="bella_education"` plus `.dashboard-main`. Verify the current 11 wrapper-bearing route templates, effective CSS ownership, existing brand/shell/sidebar checks and CSS parsing; Browser visual proof depends on access. No new low-impact test suite or automatic commit/push is required.
+
+Verification: existing brand/shell/sidebar suites 3/3, 79/79 tests PASS. Independent scoped CSS review found no actionable issue. CSS parses and diff whitespace checks PASS. Active localhost CSS and worktree source match after newline normalization; HTTP 200 serves the flat viewport rule plus transparent, non-shrinking, full-height wrapper rule (the compiler serializes transparent shorthand as `background: none`). Existing card/sidebar/embedded selectors are unchanged. Automated browser access remains disabled in Work settings, so visual confirmation is `NOT_PROVEN`. Evidence stays local: `.cache/preschool-root-redirect/viewport-jest.json`, `viewport-http.json`, `viewport-review.diff`.
+
+Delivery authorized by the user's `push đi`. The earlier redirect/sidebar branch was merged in PR #393 and deleted remotely. These two UI follow-ups are delivered on `codex/preschool-list-viewport-ui` from current `origin/main` `1c1547ae50e2cfde87d64de896e2343261bdb895`; the three scoped files have no intervening base changes. Only the enrollment page, viewport CSS and this work record belong to this delivery. Primary-checkout changes and local evidence remain untouched. No PR creation or merge is included.
 
 ### Follow-up delivery: Preschool redirect and sidebar — 2026-10-19
 

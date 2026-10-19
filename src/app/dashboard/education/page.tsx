@@ -141,6 +141,7 @@ export default function EducationDashboardPage() {
     async function fetchAnalytics() {
       try {
         setLoadingDashboard(true);
+        setDashboardData(null);
         const res = await fetch(`/api/education/analytics?date=${selectedDateStr}`, { cache: 'no-store' });
         if (!res.ok) return;
         const data = await res.json();
@@ -168,16 +169,14 @@ export default function EducationDashboardPage() {
   const totalParentsCount = dashboardData?.commandCenter?.totalParentsCount ?? 142;
 
   // Command Center Live Counts
-  const unmarkedAttendance = dashboardData?.commandCenter?.unmarkedAttendanceCount ?? 3;
-  const leaveRequests = dashboardData?.commandCenter?.leaveRequestsCount ?? 2;
-  const overdueInvoices = dashboardData?.commandCenter?.overdueInvoicesCount ?? 1;
-  const healthIncidents = dashboardData?.commandCenter?.healthIncidentsCount ?? 2;
-  const parentRequests = dashboardData?.commandCenter?.parentRequestsCount ?? 4;
-  const totalAttentionItems = (unmarkedAttendance > 0 ? 1 : 0) +
-    (leaveRequests > 0 ? 1 : 0) +
-    (overdueInvoices > 0 ? 1 : 0) +
-    (healthIncidents > 0 ? 1 : 0) +
-    (parentRequests > 0 ? 1 : 0);
+  const unmarkedAttendance = dashboardData?.commandCenter?.unmarkedAttendanceCount;
+  const leaveRequests = dashboardData?.commandCenter?.leaveRequestsCount;
+  const overdueInvoices = dashboardData?.commandCenter?.overdueInvoicesCount;
+  const healthIncidents = dashboardData?.commandCenter?.healthIncidentsCount;
+  const parentRequests = dashboardData?.commandCenter?.parentRequestsCount;
+  const totalAttentionItems = dashboardData?.commandCenter
+    ? [unmarkedAttendance, leaveRequests, overdueInvoices, healthIncidents, parentRequests].filter(count => count !== undefined && count > 0).length
+    : null;
 
   // Dynamic KPI Cards Data
   const kpiStats = [
@@ -717,12 +716,12 @@ export default function EducationDashboardPage() {
             <h2 className="text-sm sm:text-base font-black text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
               <span>Cần xử lý hôm nay</span>
               <span className="text-[11px] font-bold text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/80 border border-rose-200/60 dark:border-rose-900 px-2.5 py-0.5 rounded-full lowercase">
-                {totalAttentionItems} mục cần chú ý
+                {totalAttentionItems === null ? (loadingDashboard ? 'Đang tải' : 'Chưa có dữ liệu') : `${totalAttentionItems} mục cần chú ý`}
               </span>
             </h2>
           </div>
           <span className="text-xs font-semibold text-slate-600 dark:text-slate-300 hidden sm:inline-block">
-            Lớp 1: Command Center • Cập nhật realtime
+            {loadingDashboard ? 'Đang tải số liệu' : dashboardData?.commandCenter ? 'Dữ liệu tại lần tải gần nhất' : 'Không tải được số liệu cảnh báo'}
           </span>
         </div>
 
@@ -735,60 +734,60 @@ export default function EducationDashboardPage() {
               <CalendarCheck className="w-4 h-4" />
             </div>
             <div className="min-w-0">
-              <p className="text-xs font-black text-amber-950 dark:text-amber-200 truncate">{unmarkedAttendance} trẻ chưa điểm danh</p>
+              <p className="text-xs font-black text-amber-950 dark:text-amber-200 truncate">{unmarkedAttendance ?? '—'} trẻ chưa điểm danh</p>
               <span className="text-[11px] font-bold text-amber-700 dark:text-amber-400 group-hover:underline">Điểm danh ngay →</span>
             </div>
           </Link>
 
           <Link
-            href="/dashboard/education/care"
+            href="/dashboard/education/work-queue?view=absences"
             className="flex items-center gap-3 p-3.5 rounded-2xl bg-sky-50/80 dark:bg-sky-950/40 border border-sky-200/70 dark:border-sky-900/60 hover:bg-sky-100/90 dark:hover:bg-sky-900/60 transition-all group cursor-pointer shadow-2xs"
           >
             <div className="w-8 h-8 rounded-xl bg-sky-500 text-white flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform">
               <FileText className="w-4 h-4" />
             </div>
             <div className="min-w-0">
-              <p className="text-xs font-black text-sky-950 dark:text-sky-200 truncate">{leaveRequests} đơn nghỉ chờ duyệt</p>
+              <p className="text-xs font-black text-sky-950 dark:text-sky-200 truncate">{leaveRequests ?? '—'} đơn xin nghỉ học chờ duyệt</p>
               <span className="text-[11px] font-bold text-sky-700 dark:text-sky-400 group-hover:underline">Duyệt ngay →</span>
             </div>
           </Link>
 
           <Link
-            href="/dashboard/education/finance"
+            href="/dashboard/education/finance?tab=debts"
             className="flex items-center gap-3 p-3.5 rounded-2xl bg-rose-50/80 dark:bg-rose-950/40 border border-rose-200/70 dark:border-rose-900/60 hover:bg-rose-100/90 dark:hover:bg-rose-900/60 transition-all group cursor-pointer shadow-2xs"
           >
             <div className="w-8 h-8 rounded-xl bg-rose-500 text-white flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform">
               <CreditCard className="w-4 h-4" />
             </div>
             <div className="min-w-0">
-              <p className="text-xs font-black text-rose-950 dark:text-rose-200 truncate">{overdueInvoices} học phí quá hạn</p>
-              <span className="text-[11px] font-bold text-rose-700 dark:text-rose-400 group-hover:underline">Gửi nhắc phí →</span>
+              <p className="text-xs font-black text-rose-950 dark:text-rose-200 truncate">{overdueInvoices ?? '—'} học phí quá hạn</p>
+              <span className="text-[11px] font-bold text-rose-700 dark:text-rose-400 group-hover:underline">Xem công nợ →</span>
             </div>
           </Link>
 
           <Link
-            href="/dashboard/education/care"
+            href="/dashboard/education/work-queue?view=health"
             className="flex items-center gap-3 p-3.5 rounded-2xl bg-red-50/80 dark:bg-red-950/40 border border-red-200/70 dark:border-red-900/60 hover:bg-red-100/90 dark:hover:bg-red-900/60 transition-all group cursor-pointer shadow-2xs"
           >
             <div className="w-8 h-8 rounded-xl bg-red-500 text-white flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform">
               <Heart className="w-4 h-4 animate-pulse" />
             </div>
             <div className="min-w-0">
-              <p className="text-xs font-black text-red-950 dark:text-red-200 truncate">{healthIncidents} sự cố sức khỏe</p>
+              <p className="text-xs font-black text-red-950 dark:text-red-200 truncate">{healthIncidents ?? '—'} sự cố sức khỏe</p>
               <span className="text-[11px] font-bold text-red-700 dark:text-red-400 group-hover:underline">Theo dõi bé →</span>
             </div>
           </Link>
 
           <Link
-            href="/dashboard/education/communication"
+            href="/dashboard/education/work-queue?view=parents"
             className="flex items-center gap-3 p-3.5 rounded-2xl bg-purple-50/80 dark:bg-purple-950/40 border border-purple-200/70 dark:border-purple-900/60 hover:bg-purple-100/90 dark:hover:bg-purple-900/60 transition-all group cursor-pointer shadow-2xs"
           >
             <div className="w-8 h-8 rounded-xl bg-purple-500 text-white flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform">
               <MessageSquare className="w-4 h-4" />
             </div>
             <div className="min-w-0">
-              <p className="text-xs font-black text-purple-950 dark:text-purple-200 truncate">{parentRequests} yêu cầu phụ huynh</p>
-              <span className="text-[11px] font-bold text-purple-700 dark:text-purple-400 group-hover:underline">Phản hồi →</span>
+              <p className="text-xs font-black text-purple-950 dark:text-purple-200 truncate">{parentRequests ?? '—'} yêu cầu phụ huynh</p>
+              <span className="text-[11px] font-bold text-purple-700 dark:text-purple-400 group-hover:underline">Xem yêu cầu →</span>
             </div>
           </Link>
         </div>
