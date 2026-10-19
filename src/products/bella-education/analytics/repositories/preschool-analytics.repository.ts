@@ -216,65 +216,28 @@ export class PreschoolAnalyticsRepository {
 
   // 9. Command Center Operational Exceptions
   async getCommandCenterRawData(tenantId: string, dateStr: string) {
-    const [
-      { data: openExceptions },
-      { data: openIncidents },
-      { data: overdueInvoices },
-      { data: attendanceRecords },
-      { count: totalActiveEnrollments },
-      { count: totalParentsCount },
-    ] = await Promise.all([
-      this.supabase
-        .from('edu_comm_exceptions')
-        .select('id, exception_type, status')
-        .eq('tenant_id', tenantId)
-        .eq('status', 'OPEN'),
-      this.supabase
-        .from('edu_health_incidents')
-        .select('id, status')
-        .eq('tenant_id', tenantId)
-        .eq('status', 'OPEN'),
-      this.supabase
-        .from('edu_fin_invoices')
-        .select('id, settlement_status, due_date')
-        .eq('tenant_id', tenantId)
-        .neq('settlement_status', 'PAID')
-        .lt('due_date', dateStr),
-      this.supabase
-        .from('edu_attendance_daily_state')
-        .select('id, enrollment_id, status, school_day')
-        .eq('tenant_id', tenantId)
-        .eq('school_day', dateStr),
-      this.supabase
-        .from('edu_enrollments')
-        .select('*', { count: 'exact', head: true })
-        .eq('tenant_id', tenantId)
-        .eq('status', 'active'),
-      this.supabase
-        .from('party_identifiers')
-        .select('*', { count: 'exact', head: true })
-        .eq('tenant_id', tenantId),
+    const openExceptions = () => this.supabase.from('edu_comm_exceptions').select('id', { count: 'exact', head: true })
+      .eq('tenant_id', tenantId).eq('status', 'OPEN');
+    const results = await Promise.all([
+      openExceptions().eq('exception_type', 'ABSENCE_REQUEST'),
+      openExceptions().neq('exception_type', 'ABSENCE_REQUEST')
+        .neq('exception_type', 'RATIO_SHORTAGE').neq('exception_type', 'SAFETY_DEFECT'),
+      this.supabase.from('edu_health_incidents').select('id', { count: 'exact', head: true })
+        .eq('tenant_id', tenantId).eq('status', 'OPEN'),
+      this.supabase.from('edu_fin_invoices').select('id', { count: 'exact', head: true })
+        .eq('tenant_id', tenantId).neq('settlement_status', 'PAID').lt('due_date', dateStr),
+      this.supabase.from('edu_attendance_daily_state').select('id', { count: 'exact', head: true })
+        .eq('tenant_id', tenantId).eq('school_day', dateStr),
+      this.supabase.from('edu_enrollments').select('id', { count: 'exact', head: true })
+        .eq('tenant_id', tenantId).eq('status', 'active'),
+      this.supabase.from('party_identifiers').select('*', { count: 'exact', head: true }).eq('tenant_id', tenantId),
     ]);
-
-    const activeCount = totalActiveEnrollments ?? 156;
-    const markedCount = attendanceRecords?.length ?? 0;
-    const unmarkedAttendanceCount = Math.max(0, activeCount - markedCount);
-    const leaveRequestsCount = (openExceptions || []).filter(e => e.exception_type === 'ABSENCE_REQUEST').length;
-    const parentRequestsCount = (openExceptions || []).filter(e => 
-      e.exception_type !== 'ABSENCE_REQUEST' && 
-      e.exception_type !== 'RATIO_SHORTAGE' && 
-      e.exception_type !== 'SAFETY_DEFECT'
-    ).length;
-    const healthIncidentsCount = openIncidents?.length ?? 0;
-    const overdueInvoicesCount = overdueInvoices?.length ?? 0;
-
-    return {
-      unmarkedAttendanceCount,
-      leaveRequestsCount,
-      overdueInvoicesCount,
-      healthIncidentsCount,
-      parentRequestsCount,
-      totalParentsCount: totalParentsCount ?? 142,
-    };
+    const counts = results.map(result => {
+      if (result.error || result.count === null) throw new Error('COMMAND_CENTER_READ_FAILED: Unable to load attention counts.');
+      return result.count;
+    });
+    const [leaveRequestsCount, parentRequestsCount, healthIncidentsCount, overdueInvoicesCount, markedCount, activeCount, totalParentsCount] = counts;
+    return { unmarkedAttendanceCount: Math.max(0, activeCount - markedCount), leaveRequestsCount,
+      overdueInvoicesCount, healthIncidentsCount, parentRequestsCount, totalParentsCount };
   }
 }

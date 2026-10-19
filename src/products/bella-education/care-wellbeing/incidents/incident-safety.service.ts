@@ -49,6 +49,7 @@ export class IncidentSafetyService implements IIncidentSafetyContract {
       .from("edu_health_incidents")
       .update({
         parent_notified_at: command.notifiedAt.toISOString(),
+        updated_at: new Date().toISOString(),
       })
       .eq("id", command.incidentId)
       .eq("tenant_id", command.tenantId);
@@ -62,13 +63,16 @@ export class IncidentSafetyService implements IIncidentSafetyContract {
     // 1. Fetch current incident
     const { data: incident, error: fetchErr } = await this.supabase
       .from("edu_health_incidents")
-      .select("escalation_required, escalation_acknowledged_at")
+      .select("escalation_required, escalation_acknowledged_at, status, updated_at")
       .eq("id", command.incidentId)
       .eq("tenant_id", command.tenantId)
       .single();
 
     if (fetchErr || !incident) {
       throw new Error("Incident not found.");
+    }
+    if (command.expectedOpenUpdatedAt && (incident.status !== 'OPEN' || incident.updated_at !== command.expectedOpenUpdatedAt)) {
+      throw new Error('INCIDENT_REVIEW_CONFLICT: Incident has changed or is already processed.');
     }
 
     // 2. Domain logic invariant for escalation closure
@@ -82,7 +86,7 @@ export class IncidentSafetyService implements IIncidentSafetyContract {
     }
 
     // 3. Close the incident
-    const updateData: HealthIncidentUpdate = { status: "CLOSED" };
+    const updateData: HealthIncidentUpdate = { status: "CLOSED", updated_at: new Date().toISOString() };
     if (command.acknowledgedAt) {
       updateData.escalation_acknowledged_at = command.acknowledgedAt.toISOString();
     }
@@ -90,11 +94,20 @@ export class IncidentSafetyService implements IIncidentSafetyContract {
       updateData.escalation_notes = command.escalationNotes;
     }
 
-    const { error: updateErr } = await this.supabase
+    let updateQuery = this.supabase
       .from("edu_health_incidents")
       .update(updateData)
       .eq("id", command.incidentId)
       .eq("tenant_id", command.tenantId);
+
+    if (command.expectedOpenUpdatedAt) {
+      updateQuery = updateQuery.eq('status', 'OPEN').eq('updated_at', command.expectedOpenUpdatedAt);
+      const { data: saved, error } = await updateQuery.select('id').maybeSingle();
+      if (error) throw new Error(`Failed to close incident: ${error.message}`);
+      if (!saved) throw new Error('INCIDENT_REVIEW_CONFLICT: Incident has changed or is already processed.');
+      return;
+    }
+    const { error: updateErr } = await updateQuery;
 
     if (updateErr) {
       // The DB constraint `check_incident_closure` will also catch this and throw
