@@ -212,6 +212,62 @@ describe('authenticated shell and sidebar first render', () => {
   });
 });
 
+
+describe('authenticated AutoMove vertical shell', () => {
+  const autoTenant = { id: 'auto', product_key: null, enabled_modules: { bella_auto: true }, brand_theme: {}, name: 'Auto tenant', logo_url: null };
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockContextOverride = null;
+    mockGetUser.mockResolvedValue({ ...user, tenant_id: 'auto' });
+    mockGetSettings.mockResolvedValue(autoTenant);
+    window.history.replaceState({}, '', '/dashboard');
+    document.documentElement.removeAttribute('style');
+    document.documentElement.dataset.tenantModule = 'pending';
+    const stale = JSON.stringify({ tenantId: 'old-spa', displayName: 'Wrong Spa', moduleKey: 'beauty_spa', primaryColor: '#074E44' });
+    window.sessionStorage.setItem('bella.runtime.brand.v1', stale);
+    window.localStorage.setItem('bella.sidebar.brand.v3', stale);
+  });
+
+  it.each([undefined, null])('waits for auth and tenant then mounts the real AutoMove sidebar with product key %p', async product_key => {
+    const settingsResponse = deferred<unknown>();
+    mockGetSettings.mockReturnValue(settingsResponse.promise);
+    render(<UserProvider><DashboardAuthorizedShell><div>AutoMove Content</div></DashboardAuthorizedShell></UserProvider>);
+    expect(screen.queryByText('AutoMove Content')).not.toBeInTheDocument();
+    expect(screen.queryByText('Wrong Spa')).not.toBeInTheDocument();
+    expect(document.documentElement.dataset.tenantModule).toBe('pending');
+    await act(async () => { settingsResponse.resolve({ ...autoTenant, product_key }); });
+    expect(await screen.findByText('AutoMove Content')).toBeInTheDocument();
+    expect(await screen.findByRole('link', { name: 'Kho Xe' })).toHaveAttribute('href', '/dashboard/bella-auto/vehicles');
+    expect(screen.getByRole('link', { name: 'Trung tâm' })).toHaveAttribute('href', '/dashboard/bella-auto');
+    expect(document.documentElement.dataset.tenantModule).toBe('bella_auto');
+    expect(document.documentElement.style.getPropertyValue('--primary')).toBe('#1E40AF');
+    expect(mockObservedContext?.product).toBeNull();
+    expect(screen.queryByText('Wrong Spa')).not.toBeInTheDocument();
+  });
+
+  it.each([
+    { ...autoTenant, product_key: 'unregistered' },
+    { ...autoTenant, id: 'another-tenant' },
+    { ...autoTenant, enabled_modules: { bella_auto: false } },
+  ])('keeps invalid AutoMove identity %p neutral and does not mount children', async tenant => {
+    mockGetSettings.mockResolvedValue(tenant);
+    render(<UserProvider><DashboardAuthorizedShell><div>AutoMove Content</div></DashboardAuthorizedShell></UserProvider>);
+    expect(await screen.findByRole('alert')).toHaveTextContent('Không thể xác định cấu hình sản phẩm');
+    expect(screen.queryByText('AutoMove Content')).not.toBeInTheDocument();
+    expect(document.querySelector('aside')).toBeNull();
+    expect(document.documentElement.dataset.tenantModule).toBe('pending');
+  });
+
+  it('retains registered Preschool presentation even with AutoMove also enabled', async () => {
+    mockGetSettings.mockResolvedValue({ ...autoTenant, product_key: 'bella_preschool', enabled_modules: { bella_auto: true, bella_education: true } });
+    render(<UserProvider><DashboardAuthorizedShell><div>Registered Product</div></DashboardAuthorizedShell></UserProvider>);
+    expect(await screen.findByText('Registered Product')).toBeInTheDocument();
+    await waitFor(() => expect(screen.getAllByText('Bella Preschool').length).toBeGreaterThan(0));
+    expect(screen.queryByRole('link', { name: 'Kho Xe' })).not.toBeInTheDocument();
+    expect(document.documentElement.dataset.tenantModule).toBe('bella_education');
+  });
+});
+
 describe('tenant context theme ownership', () => {
   function ContextChild() {
     const tenant = useTenantContext();

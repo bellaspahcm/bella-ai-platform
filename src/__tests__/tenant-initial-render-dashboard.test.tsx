@@ -9,7 +9,7 @@ import { getDashboardWidgetAlerts } from '@/components/common/dashboard-widget-a
 
 const mockRouter = { replace: jest.fn(), push: jest.fn() };
 let mockPathname = '/dashboard';
-let mockContext: { isLoading: boolean; product: ProductDefinition | null; user: { tenant_id: string; role: string } | null; tenantSettings: { id: string; enabled_modules: Record<string, boolean> } | null };
+let mockContext: { isLoading: boolean; product: ProductDefinition | null; user: { tenant_id: string; role: string } | null; tenantSettings: { id: string; product_key?: string | null; enabled_modules: Record<string, boolean> } | null };
 let mockModule: { tenantModuleKey: string | null; isTenantModuleLoading: boolean; tenantModuleError: string | null };
 const mockPrimaryData = jest.fn().mockResolvedValue({ statsData: {}, sessionsData: [], inventorySummary: { totalItems: 0, lowStockCount: 0, totalValue: 0 } });
 const mockChannel = jest.fn(() => ({ on: jest.fn().mockReturnThis(), subscribe: jest.fn() }));
@@ -147,4 +147,31 @@ describe('root dashboard product dispatch', () => {
     expect(screen.getByRole('alert')).toHaveTextContent('Không thể tải cấu hình sản phẩm');
     expectNoDashboardWork();
   });
+
+  it.each([undefined, null])('redirects the existing AutoMove vertical with key %p without mounting Spa data work', product_key => {
+    mockContext = { isLoading: false, product: null, user: { tenant_id: 'auto', role: 'admin' }, tenantSettings: { id: 'auto', product_key, enabled_modules: { bella_auto: true } } };
+    const { rerender } = render(<DashboardPage />);
+    expect(mockRouter.replace).toHaveBeenCalledWith('/dashboard/bella-auto');
+    expect(screen.getByTestId('neutral-loading')).toBeInTheDocument();
+    expectNoDashboardWork();
+    mockRouter.replace.mockClear();
+    mockPathname = '/dashboard/bella-auto';
+    rerender(<DashboardPage />);
+    expect(mockRouter.replace).not.toHaveBeenCalled();
+    expect(screen.getByTestId('neutral-loading')).toBeInTheDocument();
+    expectNoDashboardWork();
+  });
+
+  it.each([
+    { id: 'auto', product_key: 'unregistered', enabled_modules: { bella_auto: true } },
+    { id: 'other', product_key: null, enabled_modules: { bella_auto: true } },
+    { id: 'auto', product_key: null, enabled_modules: { bella_auto: false } },
+  ])('rejects unverified AutoMove context %p without navigation or Spa work', tenantSettings => {
+    mockContext = { isLoading: false, product: null, user: { tenant_id: 'auto', role: 'admin' }, tenantSettings };
+    render(<DashboardPage />);
+    expect(screen.getByRole('alert')).toHaveTextContent('Không thể xác định sản phẩm');
+    expect(mockRouter.replace).not.toHaveBeenCalled();
+    expectNoDashboardWork();
+  });
+
 });

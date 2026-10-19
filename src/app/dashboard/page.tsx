@@ -68,7 +68,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useCallback,useEffect,useRef,useState } from 'react';
 import { toast } from 'sonner';
 import { useUser } from '@/lib/user-context';
-import { getDashboardProductDestination, isHaircutProductPresentation, resolveProductPresentationModule } from '@/lib/business-rules/product-presentation-routing';
+import { resolveDashboardPresentation, isHaircutProductPresentation, resolveProductPresentationModule } from '@/lib/business-rules/product-presentation-routing';
 
 // Heavy modals — lazy-loaded so they don't bloat the dashboard's initial JS bundle.
 // BookingModal (~715 LOC + form deps) only opens on user click.
@@ -1091,11 +1091,12 @@ export default function DashboardPage() {
   const pathname = usePathname();
   const { product, user, tenantSettings, isLoading } = useUser();
   const isHaircut = isHaircutProductPresentation(product);
-  const isIdentityReady = !isLoading && Boolean(product && tenantSettings && user?.tenant_id === tenantSettings.id);
-  const destination = isIdentityReady && product
-    ? getDashboardProductDestination(product, pathname)
+  const presentation = tenantSettings ? resolveDashboardPresentation(tenantSettings, product) : null;
+  const isIdentityReady = !isLoading && Boolean(presentation && tenantSettings && user?.tenant_id === tenantSettings.id);
+  const destination = isIdentityReady && presentation?.defaultRoute && pathname.replace(/\/+$/, '') !== presentation.defaultRoute.replace(/\/+$/, '')
+    ? presentation.defaultRoute
     : null;
-  const hasProductDestination = product && getDashboardProductDestination(product, '/dashboard') !== null;
+  const hasProductDestination = Boolean(presentation?.defaultRoute);
 
   useEffect(() => {
     if (destination) router.replace(destination);

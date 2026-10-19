@@ -67,7 +67,7 @@ import {
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { applyDashboardProductBrand, resolveProductBrandPresentation, type ProductBrandPresentation } from '@/lib/business-rules/product-presentation-routing';
+import { applyDashboardProductBrand, resolveDashboardPresentation, type ProductBrandPresentation } from '@/lib/business-rules/product-presentation-routing';
 import { verticalRegistry } from '@/platform/registry/vertical-registry';
 
 import { createClient } from '@/lib/supabase-client';
@@ -508,17 +508,19 @@ export function Sidebar() {
   const [tenantBrand, setTenantBrand] = useState<TenantBrandDisplay>(NEUTRAL_SIDEBAR_BRAND);
   const [isTenantBrandResolved, setIsTenantBrandResolved] = useState<boolean>(false);
   const [resolvedIdentityKey, setResolvedIdentityKey] = useState<string | null>(null);
-  const identityKey = tenantSettings && product ? `${tenantSettings.id}:${product.productKey}` : null;
+  const identityKey = tenantSettings ? resolveDashboardPresentation(tenantSettings, product)?.identityKey ?? null : null;
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [isMobileRefreshing, setIsMobileRefreshing] = useState(false);
 
   useLayoutEffect(() => {
-    if (isUserLoading || !product || !tenantSettings || !currentUser || currentUser.tenant_id !== tenantSettings.id) return;
-    const resolvedBrand = resolveProductBrandPresentation(tenantSettings, product);
+    if (isUserLoading || !tenantSettings || !currentUser || currentUser.tenant_id !== tenantSettings.id) return;
+    const presentation = resolveDashboardPresentation(tenantSettings, product);
+    if (!presentation) return;
+    const resolvedBrand = presentation.brand;
     setUser(currentUser);
     setTenantBrand(resolvedBrand);
     setIsTenantBrandResolved(true);
-    setResolvedIdentityKey(`${tenantSettings.id}:${product.productKey}`);
+    setResolvedIdentityKey(presentation.identityKey);
     writeCachedTenantBrand(currentUser.tenant_id, resolvedBrand);
     const perms = tenantSettings.role_permissions as Record<string, RolePermissions | undefined> | null;
     setRolePermissions(currentUser.role && currentUser.role !== 'admin' && currentUser.role !== 'customer' ? perms?.[currentUser.role] || null : null);
@@ -701,7 +703,7 @@ export function Sidebar() {
   const isBellaHealthcareShell = tenantBrand.moduleKey === 'bella_healthcare';
   const isBellaEducationShell = tenantBrand.moduleKey === 'bella_education';
 
-  if (isUserLoading || !product || !tenantSettings || currentUser?.tenant_id !== tenantSettings.id || !isTenantBrandResolved || resolvedIdentityKey !== identityKey) {
+  if (isUserLoading || !identityKey || !tenantSettings || currentUser?.tenant_id !== tenantSettings.id || !isTenantBrandResolved || resolvedIdentityKey !== identityKey) {
     return <aside aria-label="Đang tải cấu hình chi nhánh" className="hidden w-[270px] shrink-0 border-r border-slate-200 bg-slate-50 lg:block dark:border-slate-800 dark:bg-slate-950" />;
   }
 
