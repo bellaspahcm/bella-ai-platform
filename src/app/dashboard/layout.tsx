@@ -6,7 +6,7 @@ import {
   DashboardAuthLoadingShell,
   DashboardAuthorizedShell,
 } from '@/components/layout/DashboardLoadingShell';
-import { applyDashboardProductBrand, resetDashboardPresentation, resolveProductBrandPresentation } from '@/lib/business-rules/product-presentation-routing';
+import { applyDashboardProductBrand, resetDashboardPresentation, resolveDashboardPresentation } from '@/lib/business-rules/product-presentation-routing';
 import { productResolver } from '@/platform/registry/product-resolver';
 import {
   clearDashboardClientContextCache,
@@ -24,8 +24,9 @@ async function applyDashboardTenantBrandRuntime(
   if (!tenant || typeof document === 'undefined') return;
 
   const resolved = productResolver.tryResolve({ id: tenant.id, product_key: tenant.product_key ?? null });
-  if (!resolved) return;
-  const brand = resolveProductBrandPresentation(tenant, resolved.product);
+  const presentation = resolveDashboardPresentation(tenant, resolved?.product);
+  if (!presentation) return;
+  const brand = presentation.brand;
   applyDashboardProductBrand(brand);
 
   try {

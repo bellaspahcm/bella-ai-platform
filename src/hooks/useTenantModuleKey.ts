@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { type TenantModuleKey } from '@/lib/business-rules/tenant-modules';
-import { resolveProductPresentationModule } from '@/lib/business-rules/product-presentation-routing';
+import { resolveDashboardPresentation } from '@/lib/business-rules/product-presentation-routing';
 import { getCachedCurrentUser, getCachedTenantSettings } from '@/lib/dashboard-client-context';
 import { productResolver } from '@/platform/registry/product-resolver';
 
@@ -31,11 +31,12 @@ export function useTenantModuleKey(_options?: { forceFresh?: boolean }) {
       const tenant = await getCachedTenantSettings();
       if (version !== requestVersion.current) return;
       const resolved = tenant ? productResolver.tryResolve({ id: tenant.id, product_key: tenant.product_key ?? null }) : undefined;
-      if (!tenant || !user?.tenant_id || tenant.id !== user.tenant_id || !resolved) {
+      if (!tenant || !user?.tenant_id || tenant.id !== user.tenant_id) {
         throw new Error('Không thể xác định sản phẩm của chi nhánh');
       }
-      const moduleKey = resolveProductPresentationModule(resolved.product, tenant.enabled_modules);
-      if (!moduleKey) {
+      const presentation = resolveDashboardPresentation(tenant, resolved?.product);
+      const moduleKey = presentation?.brand.moduleKey;
+      if (!moduleKey || moduleKey === 'pending') {
         throw new Error('Chưa có cấu hình phân hệ hiển thị của chi nhánh');
       }
       resolvedIdentity.current = { tenantId: tenant.id, moduleKey };

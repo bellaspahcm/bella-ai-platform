@@ -1,3 +1,4 @@
+import { bellaAutoManifest } from '@/modules/bella-auto/manifest';
 import type { ProductDefinition } from '@/platform/registry/product-registry';
 import {
   resolveTenantBrandIdentity,
@@ -114,4 +115,45 @@ export function getDashboardProductDestination(product: ProductDefinition, pathn
   const currentPath = pathname.replace(/\/+$/, '') || '/';
   const defaultPath = product.defaultRoute.replace(/\/+$/, '') || '/';
   return currentPath === defaultPath ? null : product.defaultRoute;
+}
+
+
+type DashboardPresentationTenant = {
+  id: string;
+  product_key?: string | null;
+  enabled_modules: unknown;
+  brand_theme?: unknown;
+  logo_url?: string | null;
+  name?: string | null;
+};
+
+/** Presentation compatibility for the existing module-backed AutoMove vertical.
+ * This never resolves or synthesizes ProductIdentity. Callers must verify auth/tenant.
+ */
+export function resolveDashboardPresentation(
+  tenant: DashboardPresentationTenant,
+  product: ProductDefinition | null | undefined,
+) {
+  if (product) {
+    return {
+      identityKey: `${tenant.id}:product:${product.productKey}`,
+      brand: resolveProductBrandPresentation({ ...tenant, brand_theme: tenant.brand_theme }, product),
+      defaultRoute: getDashboardProductDestination(product, '/dashboard'),
+    };
+  }
+  // An explicit unknown identity must not inherit a module's presentation.
+  if (tenant.product_key != null || !isEnabled(tenant.enabled_modules, bellaAutoManifest.key)) return null;
+  const brand = resolveTenantBrandIdentity({
+    enabledModules: { [bellaAutoManifest.themeKey]: true },
+    brandTheme: tenant.brand_theme,
+    logoUrl: tenant.logo_url,
+    tenantName: tenant.name,
+    surface: 'app',
+  });
+  if (!brand.brandName) brand.displayName = bellaAutoManifest.name;
+  return {
+    identityKey: `${tenant.id}:vertical:${bellaAutoManifest.key}`,
+    brand,
+    defaultRoute: bellaAutoManifest.defaultRoute,
+  };
 }

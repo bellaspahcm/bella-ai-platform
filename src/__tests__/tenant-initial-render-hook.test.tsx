@@ -103,4 +103,33 @@ describe('live tenant module presentation', () => {
     await waitFor(() => expect(result.current.isTenantModuleLoading).toBe(false));
     expect(result.current.tenantModuleKey).toBe(expected);
   });
+
+  it.each([undefined, null])('resolves authenticated AutoMove with missing product key %p after the live response', async product_key => {
+    const response = deferred<unknown>();
+    mockGetSettings.mockReturnValue(response.promise);
+    const { result } = renderHook(() => useTenantModuleKey());
+    expect(result.current.tenantModuleKey).toBeNull();
+    await act(async () => { response.resolve({ id: 'preschool', product_key, enabled_modules: { bella_auto: true, beauty_spa: true } }); });
+    expect(result.current.tenantModuleKey).toBe('bella_auto');
+    expect(result.current.tenantModuleError).toBeNull();
+  });
+
+  it.each([
+    { id: 'preschool', product_key: 'unregistered', enabled_modules: { bella_auto: true } },
+    { id: 'another-tenant', product_key: null, enabled_modules: { bella_auto: true } },
+    { id: 'preschool', product_key: null, enabled_modules: { bella_auto: false } },
+  ])('does not resolve an invalid AutoMove context %p', async tenant => {
+    mockGetSettings.mockResolvedValue(tenant);
+    const { result } = renderHook(() => useTenantModuleKey());
+    await waitFor(() => expect(result.current.isTenantModuleLoading).toBe(false));
+    expect(result.current.tenantModuleKey).toBeNull();
+    expect(result.current.tenantModuleError).toBeTruthy();
+  });
+
+  it('keeps the registered product when AutoMove is also enabled', async () => {
+    mockGetSettings.mockResolvedValue({ id: 'preschool', product_key: 'bella_preschool', enabled_modules: { bella_auto: true, bella_education: true } });
+    const { result } = renderHook(() => useTenantModuleKey());
+    await waitFor(() => expect(result.current.tenantModuleKey).toBe('bella_education'));
+  });
+
 });

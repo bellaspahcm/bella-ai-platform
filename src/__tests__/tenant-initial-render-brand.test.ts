@@ -4,7 +4,7 @@ import fs from 'fs';
 import path from 'path';
 import postcss from 'postcss';
 import { productRegistry } from '@/platform/registry/product-registry';
-import { getDashboardProductDestination, resolveProductBrandPresentation } from '@/lib/business-rules/product-presentation-routing';
+import { getDashboardProductDestination, resolveDashboardPresentation, resolveProductBrandPresentation } from '@/lib/business-rules/product-presentation-routing';
 
 // Contract: approved tenant-initial-render spec and Constitution §§8–9.
 // Storage is not identity; custom tenant branding wins; unknown stays neutral.
@@ -136,5 +136,28 @@ describe('resolved product presentation', () => {
     document.body.removeAttribute('style');
     document.documentElement.removeAttribute('data-tenant-brand-preset');
     style.remove();
+  });
+});
+
+
+describe('existing AutoMove vertical presentation compatibility', () => {
+  const tenant = { id: 'auto', enabled_modules: { bella_auto: true }, brand_theme: {} };
+  it.each([undefined, null])('uses its existing manifest without creating a Product for key %p', product_key => {
+    const presentation = resolveDashboardPresentation({ ...tenant, product_key }, null);
+    expect(presentation).toMatchObject({ identityKey: 'auto:vertical:bella_auto', defaultRoute: '/dashboard/bella-auto', brand: { moduleKey: 'bella_auto', displayName: 'Bella Automotive Platform', primaryColor: '#1E40AF' } });
+  });
+  it('preserves custom AutoMove branding and ignores other enabled module priority', () => {
+    const presentation = resolveDashboardPresentation({ ...tenant, enabled_modules: ['babycare', 'bella_auto', 'beauty_spa'], brand_theme: { brandName: 'My Auto', primaryColor: '#6D28D9', logoUrl: '/assets/auto.png' } }, null);
+    expect(presentation?.brand).toMatchObject({ moduleKey: 'bella_auto', displayName: 'My Auto', primaryColor: '#6D28D9', logoUrl: '/assets/auto.png' });
+  });
+  it.each(['unknown-product', '', ' '])('rejects explicit unresolved identity %p despite AutoMove entitlement', product_key => {
+    expect(resolveDashboardPresentation({ ...tenant, product_key }, null)).toBeNull();
+  });
+  it.each([{}, { bella_auto: false }, { bella_auto: 'true' }, { beauty_spa: true }])('rejects absent or non-boolean AutoMove capability %p', enabled_modules => {
+    expect(resolveDashboardPresentation({ ...tenant, enabled_modules }, null)).toBeNull();
+  });
+  it('keeps a registered product ahead of an additional AutoMove capability', () => {
+    const product = productRegistry.getRequired('bella_preschool');
+    expect(resolveDashboardPresentation({ ...tenant, product_key: product.productKey, enabled_modules: { bella_auto: true, bella_education: true } }, product)).toMatchObject({ identityKey: 'auto:product:bella_preschool', defaultRoute: '/dashboard/education', brand: { moduleKey: 'bella_education' } });
   });
 });

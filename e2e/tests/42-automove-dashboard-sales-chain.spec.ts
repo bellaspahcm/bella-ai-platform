@@ -186,7 +186,12 @@ test('AutoMove actual dashboard: login to booking, deposit and explicit recognit
     stage = 'handover';
     const handedOver = page.waitForResponse(response => response.url().endsWith('/sales-chain/handover') && response.request().method() === 'POST', { timeout: 60_000 });
     await sale.getByRole('button', { name: 'Xác nhận bàn giao', exact: true }).click();
-    expect((await handedOver).status()).toBe(200);
+    const handoverResponse = await handedOver;
+    const handoverFailure: unknown = handoverResponse.ok() ? null : await handoverResponse.json().catch(() => null);
+    const handoverDiagnostic = handoverFailure && typeof handoverFailure === 'object'
+      ? { code: Reflect.get(handoverFailure, 'code'), error: Reflect.get(handoverFailure, 'error') }
+      : null;
+    expect(handoverResponse.status(), `AutoMove handover: ${JSON.stringify(handoverDiagnostic)}`).toBe(200);
     await expect(sale.getByRole('status')).toHaveText('Đã lưu bằng chứng bàn giao.');
     expect((await db.query('select count(*)::int as n from public.auto_vehicle_sale_recognitions where booking_id=$1', [bookingId])).rows[0].n).toBe(0);
     const handoverOnlyReport = await page.context().request.get('/api/bella-auto/analytics/recognized-sales');

@@ -2,7 +2,7 @@
 
 import { Sidebar } from '@/components/layout/sidebar';
 import { useUser } from '@/lib/user-context';
-import { applyDashboardProductBrand, resetDashboardPresentation, resolveProductBrandPresentation } from '@/lib/business-rules/product-presentation-routing';
+import { applyDashboardProductBrand, resetDashboardPresentation, resolveDashboardPresentation } from '@/lib/business-rules/product-presentation-routing';
 
 function PulseBlock({ className }: { className: string }) {
   return <div className={`animate-pulse bg-slate-200/60 dark:bg-slate-800/45 ${className}`} />;
@@ -82,15 +82,17 @@ import { useState, useEffect, useLayoutEffect } from 'react';
 
 export function DashboardAuthorizedShell({ children }: { children: React.ReactNode }) {
   const { isLoading, user, tenantSettings, product } = useUser();
+  const presentation = tenantSettings ? resolveDashboardPresentation(tenantSettings, product) : null;
   const [isEmbedded, setIsEmbedded] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   useLayoutEffect(() => {
-    if (isLoading || !user || !tenantSettings || user.tenant_id !== tenantSettings.id || !product) {
+    const presentation = tenantSettings ? resolveDashboardPresentation(tenantSettings, product) : null;
+    if (isLoading || !user || !tenantSettings || user.tenant_id !== tenantSettings.id || !presentation) {
       resetDashboardPresentation();
       return;
     }
-    applyDashboardProductBrand(resolveProductBrandPresentation(tenantSettings, product));
+    applyDashboardProductBrand(presentation.brand);
   }, [isLoading, user, tenantSettings, product]);
 
   useEffect(() => {
@@ -121,7 +123,7 @@ export function DashboardAuthorizedShell({ children }: { children: React.ReactNo
     return <DashboardAuthLoadingShell />;
   }
 
-  if (!user || !tenantSettings || user.tenant_id !== tenantSettings.id || !product) {
+  if (!user || !tenantSettings || user.tenant_id !== tenantSettings.id || !presentation) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-background p-6 text-foreground" role="alert">
         Không thể xác định cấu hình sản phẩm của chi nhánh. Vui lòng tải lại trang.
