@@ -50,11 +50,6 @@ export class PaymentReconciliationService {
       throw new Error(`INVALID_PAYMENT_AMOUNT_ERROR: Payment amount must be greater than zero.`);
     }
 
-    const hasEnrollment = await this.repo.hasActiveEnrollmentForStudentParty(tenantId, studentPartyId);
-    if (!hasEnrollment) {
-      throw new Error(`FINANCE_STUDENT_ENROLLMENT_REQUIRED: Student Party ${studentPartyId} is not actively enrolled in tenant ${tenantId}.`);
-    }
-
     await this.repo.assertStudentPartyBelongsToTenant(tenantId, studentPartyId);
     await this.repo.assertPayerPartyBelongsToTenant(tenantId, payerPartyId);
 

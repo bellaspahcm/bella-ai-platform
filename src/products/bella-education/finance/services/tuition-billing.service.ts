@@ -48,12 +48,12 @@ export class TuitionBillingService {
     }
     const studentId = suppliedStudentId;
 
+    await this.repo.assertStudentPartyBelongsToTenant(tenantId, studentPartyId);
+
     const hasEnrollment = await this.repo.hasActiveEnrollmentForStudentParty(tenantId, studentPartyId);
     if (!hasEnrollment) {
       throw new Error(`FINANCE_STUDENT_ENROLLMENT_REQUIRED: Student Party ${studentPartyId} is not actively enrolled in tenant ${tenantId}.`);
     }
-
-    await this.repo.assertStudentPartyBelongsToTenant(tenantId, studentPartyId);
 
     // 1. Fetch base active fee structures for Preschool
     const feeStructures = await this.repo.getFeeStructures(tenantId, 'PRESCHOOL');

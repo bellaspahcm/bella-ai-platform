@@ -1992,7 +1992,7 @@ function FinancePageContent() {
                               <button
                                 onClick={() => setDetailModalInvoice(inv)}
                                 data-testid="btn-issue-invoice"
-                                disabled={inv.issuanceStatus !== 'DRAFT'}
+                                disabled={true}
                                 className="p-1 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-600 disabled:opacity-40"
                                 title="Xem chi tiết hóa đơn"
                               >
