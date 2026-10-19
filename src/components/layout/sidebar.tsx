@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useLayoutEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
@@ -67,19 +67,12 @@ import {
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import {
-  applyThemeTokensToRoot,
-  resolveDynamicThemeTokens,
-  resolveTenantBrandIdentity,
-  type ResolvedTenantBrandIdentity,
-} from '@/lib/business-rules/tenant-modules';
+import { applyDashboardProductBrand, resolveProductBrandPresentation, type ProductBrandPresentation } from '@/lib/business-rules/product-presentation-routing';
 import { verticalRegistry } from '@/platform/registry/vertical-registry';
 
 import { createClient } from '@/lib/supabase-client';
 import {
   clearDashboardClientContextCache,
-  getCachedCurrentUser,
-  getCachedTenantSettings,
 } from '@/lib/dashboard-client-context';
 import { useUser } from '@/lib/user-context';
 import { createPageRefreshEvent } from '@/lib/page-refresh';
@@ -107,7 +100,7 @@ type MenuLink = {
 
 type SidebarMenuItem = MenuHeader | MenuLink;
 type TenantBrandDisplay = Pick<
-  ResolvedTenantBrandIdentity,
+  ProductBrandPresentation,
   | 'displayName'
   | 'logoUrl'
   | 'subtitle'
@@ -124,35 +117,14 @@ type TenantBrandDisplay = Pick<
   | 'fontHeading'
   | 'stylePreset'
 >;
-type CachedTenantBrandDisplay = TenantBrandDisplay & {
-  tenantId: string;
-};
-
-const DEFAULT_SIDEBAR_BRAND: TenantBrandDisplay = {
-  displayName: 'Spa ERP',
-  logoUrl: '',
-  subtitle: 'Management System',
-  moduleKey: 'babycare',
-  primaryColor: '#9D174D',
-  accentColor: '#BE185D',
-  primaryHoverColor: '#831843',
-  monogram: 'S',
-  buttonStyle: 'pill',
-  menuStyle: 'comfortable',
-  radiusStyle: 'soft',
-  isBeautySpa: false,
-  isHospitalInpatient: false,
-  fontHeading: 'sans',
-  stylePreset: 'bella_rose',
-};
 const NEUTRAL_SIDEBAR_BRAND: TenantBrandDisplay = {
   displayName: 'System ERP',
   logoUrl: '',
   subtitle: 'Management System',
-  moduleKey: 'industrial_cleaning',
-  primaryColor: '#18181B',
-  accentColor: '#27272A',
-  primaryHoverColor: '#3F3F46',
+  moduleKey: 'pending',
+  primaryColor: '#334155',
+  accentColor: '#94A3B8',
+  primaryHoverColor: '#1E293B',
   monogram: 'E',
   buttonStyle: 'pill',
   menuStyle: 'comfortable',
@@ -160,71 +132,11 @@ const NEUTRAL_SIDEBAR_BRAND: TenantBrandDisplay = {
   isBeautySpa: false,
   isHospitalInpatient: false,
   fontHeading: 'sans',
-  stylePreset: 'graphite_luxe',
+  stylePreset: 'slate_minimal',
 };
 const SIDEBAR_BRAND_CACHE_KEY = 'bella.sidebar.brand.v3';
 const RUNTIME_BRAND_CACHE_KEY = 'bella.runtime.brand.v1';
 const MOBILE_REFRESH_TIMEOUT_MS = 8_000;
-
-function isTenantBrandDisplay(value: unknown): value is CachedTenantBrandDisplay {
-  if (!value || typeof value !== 'object') return false;
-  const source = value as Record<string, unknown>;
-  return (
-    typeof source.tenantId === 'string' &&
-    typeof source.displayName === 'string' &&
-    typeof source.logoUrl === 'string' &&
-    typeof source.subtitle === 'string' &&
-    (source.moduleKey === 'babycare' ||
-      source.moduleKey === 'beauty_spa' ||
-      source.moduleKey === 'student_training' ||
-      source.moduleKey === 'industrial_cleaning' ||
-      source.moduleKey === 'real_estate' ||
-      source.moduleKey === 'bella_auto' ||
-      source.moduleKey === 'bella_healthcare' ||
-      source.moduleKey === 'bella_education') &&
-    typeof source.primaryColor === 'string' &&
-    typeof source.accentColor === 'string' &&
-    typeof source.primaryHoverColor === 'string' &&
-    typeof source.monogram === 'string' &&
-    typeof source.buttonStyle === 'string' &&
-    typeof source.menuStyle === 'string' &&
-    typeof source.radiusStyle === 'string' &&
-    typeof source.isBeautySpa === 'boolean' &&
-    typeof source.isHospitalInpatient === 'boolean'
-  );
-}
-
-function toTenantBrandDisplay(parsed: CachedTenantBrandDisplay): TenantBrandDisplay {
-  return {
-    displayName: parsed.displayName,
-    logoUrl: parsed.logoUrl,
-    subtitle: parsed.subtitle,
-    moduleKey: parsed.moduleKey,
-    primaryColor: parsed.primaryColor,
-    accentColor: parsed.accentColor,
-    primaryHoverColor: parsed.primaryHoverColor,
-    monogram: parsed.monogram,
-    buttonStyle: parsed.buttonStyle,
-    menuStyle: parsed.menuStyle,
-    radiusStyle: parsed.radiusStyle,
-    isBeautySpa: parsed.isBeautySpa,
-    isHospitalInpatient: parsed.isHospitalInpatient ?? false,
-    fontHeading: parsed.fontHeading ?? 'serif',
-    stylePreset: parsed.stylePreset ?? 'bella_rose',
-  };
-}
-
-function readCachedTenantBrand(tenantId: string | null | undefined): TenantBrandDisplay | null {
-  if (!tenantId || typeof window === 'undefined') return null;
-
-  try {
-    const parsed = JSON.parse(window.localStorage.getItem(SIDEBAR_BRAND_CACHE_KEY) || 'null');
-    if (!isTenantBrandDisplay(parsed) || parsed.tenantId !== tenantId) return null;
-    return toTenantBrandDisplay(parsed);
-  } catch {
-    return null;
-  }
-}
 
 function writeCachedTenantBrand(tenantId: string | null | undefined, brand: TenantBrandDisplay) {
   if (!tenantId || typeof window === 'undefined') return;
@@ -264,47 +176,6 @@ function clearTenantBrandRuntimeCache() {
   }
 }
 
-function resolveTenantBrandDisplay(settings: Awaited<ReturnType<typeof getCachedTenantSettings>>): TenantBrandDisplay {
-  if (!settings) {
-    return NEUTRAL_SIDEBAR_BRAND;
-  }
-
-  return resolveTenantBrandIdentity({
-    enabledModules: settings.enabled_modules,
-    brandTheme: settings.brand_theme,
-    logoUrl: settings.logo_url,
-    tenantName: settings.name,
-    surface: 'app',
-  });
-}
-
-function applyTenantBrandRuntime(brand: TenantBrandDisplay) {
-  if (typeof document === 'undefined') return;
-  const root = document.documentElement;
-  const themeMeta = document.querySelector('meta[name="theme-color"]');
-
-  root.dataset.tenantModule = brand.moduleKey;
-  root.dataset.tenantBrandButton = brand.buttonStyle;
-  root.dataset.tenantBrandMenu = brand.menuStyle;
-  root.dataset.tenantBrandRadius = brand.radiusStyle;
-  root.dataset.tenantBrandPreset = brand.stylePreset || (brand.primaryColor === '#074E44' ? 'jade_wellness' : brand.primaryColor === '#1E3A8A' ? 'luxury_navy' : brand.primaryColor === '#0891b2' ? 'ocean_clean' : brand.primaryColor === '#1E40AF' ? 'ocean_clean' : brand.primaryColor === '#18181B' ? 'graphite_luxe' : 'bella_rose');
-
-  for (const token of ['--background', '--foreground', '--border', '--input']) {
-    root.style.removeProperty(token);
-  }
-
-  const tokens = resolveDynamicThemeTokens(brand);
-  applyThemeTokensToRoot(tokens);
-
-  // Inject tenant heading font: 'serif' → Playfair Display, 'sans' → Geist
-  root.style.setProperty(
-    '--font-heading',
-    brand.fontHeading === 'serif'
-      ? 'var(--font-serif), Georgia, serif'
-      : 'var(--font-sans), system-ui, sans-serif',
-  );
-  themeMeta?.setAttribute('content', brand.primaryColor);
-}
 
 function isMenuHeader(item: SidebarMenuItem): item is MenuHeader {
   return item.type === 'header';
@@ -630,84 +501,33 @@ export function Sidebar() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const isDashboardHome = pathname?.replace(/\/+$/, '') === '/dashboard';
-  const { product } = useUser(); // Product Identity from UserProvider
+  const { product, isLoading: isUserLoading, user: currentUser, tenantSettings } = useUser();
   const isHaircut = product?.productKey === 'bella_haircut';
   const [user, setUser] = useState<CurrentUser | null>(null);
   const [rolePermissions, setRolePermissions] = useState<RolePermissions | null>(null);
   const [tenantBrand, setTenantBrand] = useState<TenantBrandDisplay>(NEUTRAL_SIDEBAR_BRAND);
   const [isTenantBrandResolved, setIsTenantBrandResolved] = useState<boolean>(false);
+  const [resolvedIdentityKey, setResolvedIdentityKey] = useState<string | null>(null);
+  const identityKey = tenantSettings && product ? `${tenantSettings.id}:${product.productKey}` : null;
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [isMobileRefreshing, setIsMobileRefreshing] = useState(false);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      const userData = await getCachedCurrentUser();
-      setUser(userData);
-
-      const cachedBrand = readCachedTenantBrand(userData?.tenant_id);
-      if (cachedBrand) {
-        if (typeof window !== 'undefined') {
-          const path = window.location.pathname;
-          const isMedicalPath = path.startsWith('/dashboard/medical') || path.startsWith('/dashboard/healthcare') || path.startsWith('/dashboard/dental');
-          const isRealEstatePath = path.startsWith('/dashboard/real-estate');
-          const isAutoPath = path.startsWith('/dashboard/bella-auto');
-
-          if (
-            (isMedicalPath && cachedBrand.moduleKey === 'bella_healthcare') ||
-            (isRealEstatePath && cachedBrand.moduleKey === 'real_estate') ||
-            (isAutoPath && cachedBrand.moduleKey === 'bella_auto') ||
-            (!isMedicalPath && !isRealEstatePath && !isAutoPath)
-          ) {
-            setTenantBrand(cachedBrand);
-            setIsTenantBrandResolved(true);
-          }
-        }
-      }
-
-      let settings: Awaited<ReturnType<typeof getCachedTenantSettings>> = null;
-      try {
-        settings = await getCachedTenantSettings();
-        
-        const resolvedBrand = resolveTenantBrandDisplay(settings);
-        
-        // Apply Product Identity if no custom brand configured
-        // Business Rule: CUSTOM BRAND > PRODUCT IDENTITY > NEUTRAL
-        const brandThemeObj = settings?.brand_theme as Record<string, unknown> | null | undefined;
-        const customBrandName = typeof brandThemeObj?.brandName === 'string' ? brandThemeObj.brandName.trim() : undefined;
-        if (!customBrandName && product?.displayName) {
-          resolvedBrand.displayName = product.displayName;
-          
-          // Apply product subtitle if available
-          if (product.subtitle) {
-            resolvedBrand.subtitle = product.subtitle;
-          }
-        }
-        
-        setTenantBrand(resolvedBrand);
-        setIsTenantBrandResolved(true);
-        writeCachedTenantBrand(userData?.tenant_id, resolvedBrand);
-      } catch (error) {
-        console.error("Failed to load tenant branding", error);
-        if (!cachedBrand) {
-          setTenantBrand(NEUTRAL_SIDEBAR_BRAND);
-          setIsTenantBrandResolved(false);
-        }
-      }
-      
-      if (userData?.role && userData.role !== 'admin' && userData.role !== 'customer') {
-        if (settings?.role_permissions) {
-          const perms = settings.role_permissions as Record<string, RolePermissions | undefined> | null;
-          setRolePermissions(perms?.[userData.role] || null);
-        }
-      }
-    };
-    fetchData();
-  }, [product]);  // Re-run when product loads
+  useLayoutEffect(() => {
+    if (isUserLoading || !product || !tenantSettings || !currentUser || currentUser.tenant_id !== tenantSettings.id) return;
+    const resolvedBrand = resolveProductBrandPresentation(tenantSettings, product);
+    setUser(currentUser);
+    setTenantBrand(resolvedBrand);
+    setIsTenantBrandResolved(true);
+    setResolvedIdentityKey(`${tenantSettings.id}:${product.productKey}`);
+    writeCachedTenantBrand(currentUser.tenant_id, resolvedBrand);
+    const perms = tenantSettings.role_permissions as Record<string, RolePermissions | undefined> | null;
+    setRolePermissions(currentUser.role && currentUser.role !== 'admin' && currentUser.role !== 'customer' ? perms?.[currentUser.role] || null : null);
+  }, [product, isUserLoading, currentUser, tenantSettings]);
 
   useEffect(() => {
-    if (!isTenantBrandResolved) return;
-    applyTenantBrandRuntime(tenantBrand);
-  }, [isTenantBrandResolved, tenantBrand]);
+    if (!isTenantBrandResolved || resolvedIdentityKey !== identityKey) return;
+    applyDashboardProductBrand(tenantBrand);
+  }, [isTenantBrandResolved, tenantBrand, resolvedIdentityKey, identityKey]);
 
   useEffect(() => {
     const handleBrandChange = (e: Event) => {
@@ -715,7 +535,7 @@ export function Sidebar() {
       if (customEvt.detail) {
         setTenantBrand(customEvt.detail);
         setIsTenantBrandResolved(true);
-        applyTenantBrandRuntime(customEvt.detail);
+        applyDashboardProductBrand(customEvt.detail);
       }
     };
     window.addEventListener('brand-theme-change', handleBrandChange);
@@ -753,7 +573,9 @@ export function Sidebar() {
 
   // ── Menu resolution: bella_auto, real_estate, bella_healthcare use hardcoded menus ──
   // Other verticals use verticalRegistry for simpler menu structure.
-  const baseMenuItems: SidebarMenuItem[] = user?.role?.toLowerCase() === 'customer'
+  const baseMenuItems: SidebarMenuItem[] = tenantBrand.moduleKey === 'pending'
+    ? []
+    : user?.role?.toLowerCase() === 'customer'
     ? customerMenuItems
     : tenantBrand.moduleKey === 'bella_auto'
     ? bellaAutoMenuItems
@@ -878,6 +700,10 @@ export function Sidebar() {
   const isBellaAutoShell = tenantBrand.moduleKey === 'bella_auto';
   const isBellaHealthcareShell = tenantBrand.moduleKey === 'bella_healthcare';
   const isBellaEducationShell = tenantBrand.moduleKey === 'bella_education';
+
+  if (isUserLoading || !product || !tenantSettings || currentUser?.tenant_id !== tenantSettings.id || !isTenantBrandResolved || resolvedIdentityKey !== identityKey) {
+    return <aside aria-label="Đang tải cấu hình chi nhánh" className="hidden w-[270px] shrink-0 border-r border-slate-200 bg-slate-50 lg:block dark:border-slate-800 dark:bg-slate-950" />;
+  }
 
   return (
     <>

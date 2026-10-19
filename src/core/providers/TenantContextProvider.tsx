@@ -201,6 +201,10 @@ export function TenantContextProvider({ children }: { children: ReactNode }) {
   // Apply tenant module theme to <html> element when context loads
   useEffect(() => {
     if (!context) return;
+    // Dashboard branding is resolved from the authenticated UserProvider tenant.
+    // This module/context provider must not overwrite that product identity.
+    const path = window.location.pathname;
+    if (path === '/dashboard' || path.startsWith('/dashboard/')) return;
 
     const enabledModules: unknown = context.enabledModules;
     let moduleKey: string = 'baby_care'; // Default fallback

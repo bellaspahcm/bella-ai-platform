@@ -14,6 +14,7 @@ import { RevenueChart } from '@/components/features/dashboard/RevenueChart';
 import { StatsGrid } from '@/components/features/dashboard/StatsGrid';
 import { PremiumSelect } from '@/components/ui/PremiumSelect';
 import SkeletonLoader from '@/components/ui/SkeletonLoader';
+import { DashboardRouteLoading } from '@/components/layout/DashboardLoadingShell';
 import { usePageRefresh } from '@/hooks/usePageRefresh';
 import { useTenantModuleKey } from '@/hooks/useTenantModuleKey';
 import { useModuleVocabulary } from '@/hooks/useModuleVocabulary';
@@ -63,11 +64,11 @@ X
 } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useCallback,useEffect,useRef,useState } from 'react';
 import { toast } from 'sonner';
 import { useUser } from '@/lib/user-context';
-import { isHaircutProductPresentation } from '@/lib/business-rules/product-presentation-routing';
+import { getDashboardProductDestination, isHaircutProductPresentation, resolveProductPresentationModule } from '@/lib/business-rules/product-presentation-routing';
 
 // Heavy modals — lazy-loaded so they don't bloat the dashboard's initial JS bundle.
 // BookingModal (~715 LOC + form deps) only opens on user click.
@@ -78,10 +79,6 @@ const BookingModal = dynamic(
 );
 const OnboardingTour = dynamic(
   () => import('@/components/features/dashboard/OnboardingTour'),
-  { ssr: false }
-);
-const RealEstateDashboardPage = dynamic(
-  () => import('@/app/dashboard/real-estate/page'),
   { ssr: false }
 );
 const HaircutDashboardView = dynamic(
@@ -95,7 +92,7 @@ const BeautySpaV2DashboardView = dynamic(
 
 function StandardDashboardPage() {
   const router = useRouter();
-  const { tenantModuleKey, isTenantModuleLoading } = useTenantModuleKey({ forceFresh: true });
+  const { tenantModuleKey, isTenantModuleLoading, tenantModuleError } = useTenantModuleKey({ forceFresh: true });
   const [stats, setStats] = useState<DashboardStatsViewModel[]>([]);
   const [sessions, setSessions] = useState<DashboardSessionViewModel[]>([]);
   const [topKTVs, setTopKTVs] = useState<KtvPerformanceViewModel[]>([]);
@@ -124,7 +121,9 @@ function StandardDashboardPage() {
   const dashboardAlertsRefreshTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const customerLabels = getTenantModulePresentationOrNeutral(tenantModuleKey);
   const vocab = useModuleVocabulary();
-  const { user: profile, product } = useUser();
+  const { user: profile, product, tenantSettings } = useUser();
+  const expectedModule = product && tenantSettings ? resolveProductPresentationModule(product, tenantSettings.enabled_modules) : null;
+  const isPresentationReady = Boolean(!isTenantModuleLoading && !tenantModuleError && tenantModuleKey && tenantModuleKey === expectedModule && profile?.tenant_id === tenantSettings?.id);
 
   // Use generic greeting until tenant data loads to avoid confusing flash of wrong business type
   const businessLabel = product?.displayName ?? 'Hệ thống';
@@ -147,7 +146,7 @@ function StandardDashboardPage() {
     : 'Lịch trình liệu trình trực tuyến';
 
   useEffect(() => {
-    if (isTenantModuleLoading || tenantModuleKey === 'real_estate' || tenantModuleKey === 'bella_auto' || tenantModuleKey === 'bella_healthcare') return;
+    if (!isPresentationReady) return;
     if (!profile) return;
     setTenantId(profile.tenant_id || null);
     const role = profile.role?.toLowerCase();
@@ -156,7 +155,7 @@ function StandardDashboardPage() {
       return;
     }
     setUserRole(role === 'admin' ? 'admin' : 'ktv');
-  }, [profile, router, isTenantModuleLoading, tenantModuleKey]);
+  }, [profile, router, isPresentationReady]);
 
   const getMonthRange = (month: number, year: number) => {
     // Manually construct YYYY-MM-DD to avoid timezone shifts from .toISOString()
@@ -191,7 +190,7 @@ function StandardDashboardPage() {
   }, [userRole, vocab.worker.short]);
 
   const fetchPrimaryData = useCallback(async () => {
-    if (isTenantModuleLoading || tenantModuleKey === 'real_estate') return;
+    if (!isPresentationReady || tenantId !== profile?.tenant_id) return;
     if (userRole === null) return; // Wait for role to be identified
     if (!tenantId) return;
 
@@ -221,10 +220,10 @@ function StandardDashboardPage() {
       setIsRefreshing(false);
       setIsLoading(false);
     }
-  }, [buildDashboardStats, selectedMonth, selectedYear, tenantId, userRole, isTenantModuleLoading, tenantModuleKey]);
+  }, [buildDashboardStats, selectedMonth, selectedYear, tenantId, userRole, isPresentationReady, profile?.tenant_id]);
 
   const fetchSecondaryData = useCallback(async () => {
-    if (isTenantModuleLoading || tenantModuleKey === 'real_estate') return;
+    if (!isPresentationReady || tenantId !== profile?.tenant_id) return;
     if (userRole === null) return;
     if (!tenantId) return;
 
@@ -244,10 +243,10 @@ function StandardDashboardPage() {
     } finally {
       setIsSecondaryLoading(false);
     }
-  }, [tenantId, userRole, isTenantModuleLoading, tenantModuleKey]);
+  }, [tenantId, userRole, isPresentationReady, profile?.tenant_id]);
 
   const fetchAlertsData = useCallback(async () => {
-    if (isTenantModuleLoading || tenantModuleKey === 'real_estate') return;
+    if (!isPresentationReady || tenantId !== profile?.tenant_id) return;
     if (userRole === null) return;
     if (!tenantId) return;
 
@@ -258,7 +257,7 @@ function StandardDashboardPage() {
       console.warn('Dashboard alerts are temporarily unavailable:', error);
       setAlerts([]);
     }
-  }, [tenantId, userRole, isTenantModuleLoading, tenantModuleKey]);
+  }, [tenantId, userRole, isPresentationReady, profile?.tenant_id]);
 
   // fetchData = manual refresh (e.g. realtime trigger) — runs both phases in parallel
   const fetchData = useCallback(async () => {
@@ -269,7 +268,7 @@ function StandardDashboardPage() {
   usePageRefresh(fetchData);
 
   useEffect(() => {
-    if (isTenantModuleLoading || tenantModuleKey === 'real_estate' || tenantModuleKey === 'bella_auto' || tenantModuleKey === 'bella_healthcare') return;
+    if (!isPresentationReady) return;
     // ── Progressive initial load ─────────────────────────────────────
     // Phase 1: today's schedule (sessions + stats) — clears the main spinner
     // Phase 2: KTV leaderboard + alerts — deferred 200ms so it never races
@@ -279,7 +278,7 @@ function StandardDashboardPage() {
     const t = setTimeout(() => { void fetchSecondaryData(); }, 200);
     return () => clearTimeout(t);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tenantId, isTenantModuleLoading, tenantModuleKey]); // re-run only if tenant changes, not on every userRole update
+  }, [tenantId, isPresentationReady]); // re-run only if tenant changes, not on every userRole update
 
   const scheduleDashboardRefresh = useCallback(() => {
     if (dashboardRefreshTimerRef.current) {
@@ -304,7 +303,7 @@ function StandardDashboardPage() {
   }, [fetchAlertsData]);
 
   useEffect(() => {
-    if (isTenantModuleLoading || tenantModuleKey === 'real_estate' || tenantModuleKey === 'bella_auto' || tenantModuleKey === 'bella_healthcare') return;
+    if (!isPresentationReady) return;
     // REALTIME SUBSCRIPTION
     const supabase = createClient();
     const channel = supabase
@@ -335,26 +334,7 @@ function StandardDashboardPage() {
       }
       supabase.removeChannel(channel);
     };
-  }, [scheduleDashboardAlertsRefresh, scheduleDashboardRefresh, isTenantModuleLoading, tenantModuleKey]);
-
-  // Redirect module-specific dashboards (hook moved ABOVE all conditional returns)
-  const hasRedirected = useRef(false);
-  useEffect(() => {
-    console.log('[Dashboard Redirect] tenantModuleKey:', tenantModuleKey, 'hasRedirected:', hasRedirected.current);
-    if (tenantModuleKey === 'bella_auto' && !hasRedirected.current) {
-      console.log('[Dashboard Redirect] ✅ Redirecting to /dashboard/bella-auto via hard redirect');
-      hasRedirected.current = true;
-      window.location.replace('/dashboard/bella-auto');
-    } else if (tenantModuleKey === 'bella_healthcare' && !hasRedirected.current) {
-      console.log('[Dashboard Redirect] ✅ Redirecting to /dashboard/hospital via hard redirect');
-      hasRedirected.current = true;
-      window.location.replace('/dashboard/hospital');
-    } else if (tenantModuleKey === 'bella_education' && !hasRedirected.current) {
-      console.log('[Dashboard Redirect] ✅ Redirecting to /dashboard/education via hard redirect');
-      hasRedirected.current = true;
-      window.location.replace('/dashboard/education');
-    }
-  }, [tenantModuleKey]);
+  }, [scheduleDashboardAlertsRefresh, scheduleDashboardRefresh, isPresentationReady]);
 
   // Now perform conditional early returns safe from Rule of Hooks violation
   if (isTenantModuleLoading) {
@@ -372,22 +352,8 @@ function StandardDashboardPage() {
     );
   }
 
-  // Early return for module-specific pages
-  if (tenantModuleKey === 'bella_auto' || tenantModuleKey === 'bella_healthcare') {
-    // Show a neutral redirect skeleton instead of null to prevent blank/white screen
-    // while router.replace() navigates.
-    return (
-      <div className="flex-1 p-8 space-y-6 animate-pulse bg-slate-50 dark:bg-slate-950 min-h-screen">
-        <div className="h-20 bg-slate-200 dark:bg-slate-800 rounded-2xl w-full" />
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <div className="h-32 bg-slate-200 dark:bg-slate-800 rounded-2xl" />
-          <div className="h-32 bg-slate-200 dark:bg-slate-800 rounded-2xl" />
-          <div className="h-32 bg-slate-200 dark:bg-slate-800 rounded-2xl" />
-          <div className="h-32 bg-slate-200 dark:bg-slate-800 rounded-2xl" />
-        </div>
-        <div className="h-96 bg-slate-200 dark:bg-slate-800 rounded-3xl w-full" />
-      </div>
-    );
+  if (!isPresentationReady || !product) {
+    return <div role="alert" className="flex-1 bg-background p-8 text-foreground">Không thể tải cấu hình sản phẩm của chi nhánh.</div>;
   }
 
   const handleCompleteSession = async (sessionId: string, bookingId: string, note: string) => {
@@ -411,7 +377,7 @@ function StandardDashboardPage() {
     }
   };
 
-  if (tenantModuleKey === 'beauty_spa' || tenantModuleKey === 'babycare' || product?.productKey === 'bella_spa' || !tenantModuleKey) {
+  if (tenantModuleKey === 'beauty_spa' || tenantModuleKey === 'babycare' || product.productKey === 'bella_spa') {
     return (
       <>
         <BeautySpaV2DashboardView
@@ -1121,16 +1087,34 @@ function StandardDashboardPage() {
 }
 
 export default function DashboardPage() {
-  const { tenantModuleKey } = useTenantModuleKey({ forceFresh: true });
-  const { product } = useUser();
+  const router = useRouter();
+  const pathname = usePathname();
+  const { product, user, tenantSettings, isLoading } = useUser();
   const isHaircut = isHaircutProductPresentation(product);
+  const isIdentityReady = !isLoading && Boolean(product && tenantSettings && user?.tenant_id === tenantSettings.id);
+  const destination = isIdentityReady && product
+    ? getDashboardProductDestination(product, pathname)
+    : null;
+  const hasProductDestination = product && getDashboardProductDestination(product, '/dashboard') !== null;
+
+  useEffect(() => {
+    if (destination) router.replace(destination);
+  }, [destination, router]);
+
+  // Keep the outgoing root neutral even if pathname updates before this page
+  // unmounts; only the destination page should mount that product's actions.
+  if (isLoading || (isIdentityReady && hasProductDestination)) return <DashboardRouteLoading />;
+  if (!isIdentityReady) {
+    return <div role="alert" className="flex-1 bg-background p-8 text-foreground">Không thể xác định sản phẩm của chi nhánh.</div>;
+  }
+
+  if (product && tenantSettings && !resolveProductPresentationModule(product, tenantSettings.enabled_modules)) {
+    return <div role="alert" className="flex-1 bg-background p-8 text-foreground">Không thể tải cấu hình sản phẩm của chi nhánh.</div>;
+  }
 
   if (isHaircut) {
     return <HaircutDashboardView />;
   }
 
-  if (tenantModuleKey === 'real_estate') {
-    return <RealEstateDashboardPage />;
-  }
   return <StandardDashboardPage />;
 }

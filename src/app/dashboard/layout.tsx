@@ -1,12 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useLayoutEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   DashboardAuthLoadingShell,
   DashboardAuthorizedShell,
 } from '@/components/layout/DashboardLoadingShell';
-import { resolveTenantBrandIdentity } from '@/lib/business-rules/tenant-modules';
+import { applyDashboardProductBrand, resetDashboardPresentation, resolveProductBrandPresentation } from '@/lib/business-rules/product-presentation-routing';
+import { productResolver } from '@/platform/registry/product-resolver';
 import {
   clearDashboardClientContextCache,
   getCachedCurrentUser,
@@ -22,43 +23,10 @@ async function applyDashboardTenantBrandRuntime(
   const tenant = tenantSettings ?? await getCachedTenantSettings();
   if (!tenant || typeof document === 'undefined') return;
 
-  const brand = resolveTenantBrandIdentity({
-    enabledModules: tenant.enabled_modules,
-    brandTheme: tenant.brand_theme,
-    logoUrl: tenant.logo_url,
-    tenantName: tenant.name,
-    surface: 'app',
-  });
-  const root = document.documentElement;
-  const themeMeta = document.querySelector('meta[name="theme-color"]');
-
-  root.dataset.tenantModule = brand.moduleKey;
-  root.dataset.tenantBrandButton = brand.buttonStyle;
-  root.dataset.tenantBrandMenu = brand.menuStyle;
-  root.dataset.tenantBrandRadius = brand.radiusStyle;
-  root.dataset.tenantBrandPreset = brand.stylePreset || (brand.primaryColor === '#074E44' ? 'jade_wellness' : brand.primaryColor === '#1E3A8A' ? 'luxury_navy' : brand.primaryColor === '#1E40AF' ? 'ocean_clean' : brand.primaryColor === '#18181B' ? 'graphite_luxe' : 'bella_rose');
-
-  // Dynamically set browser title to match current tenant & module identity
-  if (brand.displayName) {
-    document.title = `${brand.displayName} — ${brand.subtitle}`;
-  }
-
-  for (const token of ['--background', '--foreground', '--border', '--input']) {
-    root.style.removeProperty(token);
-  }
-
-  root.style.setProperty('--primary', brand.primaryColor);
-  root.style.setProperty('--primary-hover', brand.primaryHoverColor);
-  root.style.setProperty('--accent', brand.accentColor);
-  root.style.setProperty('--ring', brand.primaryColor);
-  // Inject tenant heading font: 'serif' → Playfair Display, 'sans' → Geist
-  root.style.setProperty(
-    '--font-heading',
-    brand.fontHeading === 'serif'
-      ? 'var(--font-serif), Georgia, serif'
-      : 'var(--font-sans), system-ui, sans-serif',
-  );
-  themeMeta?.setAttribute('content', brand.primaryColor);
+  const resolved = productResolver.tryResolve({ id: tenant.id, product_key: tenant.product_key ?? null });
+  if (!resolved) return;
+  const brand = resolveProductBrandPresentation(tenant, resolved.product);
+  applyDashboardProductBrand(brand);
 
   try {
     window.sessionStorage.setItem(
@@ -83,6 +51,12 @@ export default function DashboardLayout({
   const router = useRouter();
   const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
   const [isSuspended, setIsSuspended] = useState<boolean>(false);
+
+  useLayoutEffect(() => {
+    // The root bootstrap is skipped on login and does not rerun on client
+    // navigation. Clear the previous presentation before dashboard first paint.
+    resetDashboardPresentation();
+  }, []);
 
   useEffect(() => {
     async function checkAuth() {
@@ -119,7 +93,7 @@ export default function DashboardLayout({
           }
           
           // ── Auto-upgrade legacy theme colors ──
-          if (tenant) {
+          if (tenant && tenant.id === user.tenant_id && productResolver.hasValidProduct({ id: tenant.id, product_key: tenant.product_key ?? null })) {
             const { needsThemeUpgrade, upgradeTheme, getUpgradeDescription } = await import('@/lib/utils/theme-upgrade');
             const { getDefaultTenantModuleKey } = await import('@/lib/business-rules/tenant-modules');
             

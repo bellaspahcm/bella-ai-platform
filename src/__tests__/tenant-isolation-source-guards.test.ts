@@ -98,7 +98,8 @@ describe('dashboard tenant isolation source guards', () => {
   it('keeps sidebar startup branding neutral until the current tenant brand is loaded', () => {
     const sidebarSource = readSource('src/components/layout/sidebar.tsx');
 
-    expect(sidebarSource).toContain("displayName: 'Spa ERP'");
+    expect(sidebarSource).not.toContain("displayName: 'Spa ERP'");
+    expect(sidebarSource).toContain("moduleKey: 'pending'");
     expect(sidebarSource).toContain('useState<TenantBrandDisplay>(NEUTRAL_SIDEBAR_BRAND)');
     expect(sidebarSource).not.toContain('readRuntimeTenantBrand');
     expect(sidebarSource).not.toMatch(
@@ -149,8 +150,10 @@ describe('dashboard tenant isolation source guards', () => {
     expect(contextSource).toContain('requestVersion === tenantSettingsRequestVersion');
     expect(dashboardLayoutSource).toContain('getCachedCurrentUser()');
     expect(dashboardLayoutSource).toContain('getCachedTenantSettings()');
-    expect(sidebarSource).toContain('getCachedCurrentUser()');
-    expect(sidebarSource).toContain('getCachedTenantSettings()');
+    expect(sidebarSource).toContain('tenantSettings } = useUser()');
+    expect(sidebarSource).toContain('resolveProductBrandPresentation(tenantSettings, product)');
+    expect(sidebarSource).not.toContain('getCachedCurrentUser()');
+    expect(sidebarSource).not.toContain('getCachedTenantSettings()');
     expect(settingsSource).toContain('getCachedTenantSettings(options)');
     expect(settingsSource).toContain('usePageRefresh(() => loadSettings({ force: true }))');
     expect(settingsSource).toContain('nextPath !== currentPath');
@@ -267,7 +270,7 @@ describe('dashboard tenant isolation source guards', () => {
     expect(ktvTableSource).toContain('beauty-top-ktv-table');
     expect(ktvTableSource).toContain('w-full min-w-[760px]');
     expect(globalStyles).toContain('html:not([data-tenant-brand-preset])[data-tenant-module="beauty_spa"] .beauty-erp-sidebar');
-    expect(globalStyles).toContain(
+    expect(globalStyles).not.toContain(
       'html[data-tenant-module="pending"] .beauty-erp-nav-item-active:hover',
     );
     expect(globalStyles).toContain(
