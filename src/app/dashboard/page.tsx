@@ -68,7 +68,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useCallback,useEffect,useRef,useState } from 'react';
 import { toast } from 'sonner';
 import { useUser } from '@/lib/user-context';
-import { resolveDashboardPresentation, isHaircutProductPresentation, resolveProductPresentationModule } from '@/lib/business-rules/product-presentation-routing';
+import { resolveDashboardPresentation, isHaircutProductPresentation, replaceDashboardProductDocument, resolveProductPresentationModule } from '@/lib/business-rules/product-presentation-routing';
 
 // Heavy modals — lazy-loaded so they don't bloat the dashboard's initial JS bundle.
 // BookingModal (~715 LOC + form deps) only opens on user click.
@@ -1087,7 +1087,6 @@ function StandardDashboardPage() {
 }
 
 export default function DashboardPage() {
-  const router = useRouter();
   const pathname = usePathname();
   const { product, user, tenantSettings, isLoading } = useUser();
   const isHaircut = isHaircutProductPresentation(product);
@@ -1099,8 +1098,10 @@ export default function DashboardPage() {
   const hasProductDestination = Boolean(presentation?.defaultRoute);
 
   useEffect(() => {
-    if (destination) router.replace(destination);
-  }, [destination, router]);
+    // A product switch leaves the root dashboard. Replace the document so a
+    // pending App Router transition cannot keep the outgoing skeleton mounted.
+    if (destination) replaceDashboardProductDocument(destination);
+  }, [destination]);
 
   // Keep the outgoing root neutral even if pathname updates before this page
   // unmounts; only the destination page should mount that product's actions.

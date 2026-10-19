@@ -704,7 +704,7 @@ export function Sidebar() {
   const isBellaEducationShell = tenantBrand.moduleKey === 'bella_education';
 
   if (isUserLoading || !identityKey || !tenantSettings || currentUser?.tenant_id !== tenantSettings.id || !isTenantBrandResolved || resolvedIdentityKey !== identityKey) {
-    return <aside aria-label="Đang tải cấu hình chi nhánh" className="hidden w-[270px] shrink-0 border-r border-slate-200 bg-slate-50 lg:block dark:border-slate-800 dark:bg-slate-950" />;
+    return <aside aria-label="Đang tải cấu hình chi nhánh" className="hidden w-[243px] shrink-0 border-r border-slate-200 bg-slate-50 lg:block dark:border-slate-800 dark:bg-slate-950" />;
   }
 
   return (
@@ -774,11 +774,11 @@ export function Sidebar() {
 
       {/* 
         Responsive Sidebar
-        - Desktop: Sticky w-80 sidebar
+        - Desktop: 243px sidebar in the dashboard flex layout
         - Mobile: Slide-out fixed drawer based on `isOpen` state
       */}
       <aside className={cn(
-        "bg-slate-50/70 dark:bg-[#111318] border-r border-slate-200/60 dark:border-slate-800/60 p-2.5 flex flex-col h-screen lg:h-screen h-[100dvh] fixed inset-y-0 left-0 z-50 transform lg:translate-x-0 lg:relative lg:inset-auto lg:z-auto transition-transform duration-300 ease-in-out overflow-hidden shrink-0 w-[270px]",
+        "bg-slate-50/70 dark:bg-[#111318] border-r border-slate-200/60 dark:border-slate-800/60 p-2.5 flex flex-col h-screen lg:h-screen h-[100dvh] fixed inset-y-0 left-0 z-50 transform lg:translate-x-0 lg:relative lg:inset-auto lg:z-auto transition-transform duration-300 ease-in-out overflow-hidden shrink-0 w-[243px]",
         isBeautySpaShell && "beauty-erp-sidebar",
         isIndustrialCleaningShell && "beauty-erp-sidebar",
         isRealEstateShell && "beauty-erp-sidebar",
@@ -1051,31 +1051,36 @@ export function Sidebar() {
         )}>
           {/* Unified Profile & Actions Panel */}
           <div className={cn(
-            "bg-white dark:bg-[#181a20] rounded-xl shadow-xs border border-slate-200 dark:border-slate-800 flex flex-col overflow-hidden transition-all duration-300 hover:border-slate-300 dark:hover:border-slate-700",
+            "rounded-xl shadow-xs flex flex-col overflow-hidden transition-all duration-300",
+            isBellaEducationShell
+              ? "preschool-profile-card"
+              : "bg-white dark:bg-[#181a20] border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700",
             (isBeautySpaShell || isIndustrialCleaningShell || isRealEstateShell || isBellaAutoShell || isBellaHealthcareShell) && "beauty-erp-profile-card"
           )}>
             <div className="p-2.5 flex items-center gap-2.5">
               <div className="relative shrink-0">
                 <div className={cn(
-                  "w-8 h-8 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-full flex items-center justify-center font-extrabold text-xs shadow-2xs transition-transform duration-300 group-hover:scale-105",
+                  "w-8 h-8 rounded-full flex items-center justify-center font-extrabold text-xs shadow-2xs transition-transform duration-300 group-hover:scale-105",
+                  isBellaEducationShell ? "preschool-profile-avatar" : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300",
                   (isBeautySpaShell || isIndustrialCleaningShell || isRealEstateShell || isBellaAutoShell || isBellaHealthcareShell) && "beauty-erp-avatar"
                 )}>
                   {user?.full_name?.charAt(0)?.toUpperCase() || 'A'}
                 </div>
-                <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 border-2 border-white dark:border-[#091A2D] rounded-full" />
+                <div className={cn("absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 border-2 rounded-full", isBellaEducationShell ? "border-[var(--preschool-profile-bg)]" : "border-white dark:border-[#091A2D]")} />
               </div>
               <div className="min-w-0 flex-1">
-                <p className="text-xs font-bold text-slate-800 dark:text-slate-100 truncate leading-tight beauty-erp-profile-name">
+                <p className={cn("text-xs font-bold truncate leading-tight", isBellaEducationShell ? "preschool-profile-name" : "text-slate-800 dark:text-slate-100 beauty-erp-profile-name")}>
                   {user?.full_name || 'Admin'}
                 </p>
-                <p className="text-[8.5px] text-slate-500 dark:text-slate-400 font-black uppercase tracking-[0.08em] mt-0.5 beauty-erp-profile-role">
+                <p className={cn("text-[8.5px] font-black uppercase tracking-[0.08em] mt-0.5", isBellaEducationShell ? "preschool-profile-role" : "text-slate-500 dark:text-slate-400 beauty-erp-profile-role")}>
                   {roleLabel}
                 </p>
               </div>
             </div>
             
             <div className={cn(
-              "h-px w-full bg-slate-200 dark:bg-slate-800",
+              "h-px w-full",
+              isBellaEducationShell ? "preschool-profile-divider" : "bg-slate-200 dark:bg-slate-800",
               (isBeautySpaShell || isIndustrialCleaningShell || isRealEstateShell || isBellaAutoShell || isBellaHealthcareShell) && "beauty-erp-profile-divider"
             )} />
             
@@ -1085,14 +1090,15 @@ export function Sidebar() {
                </div>
                
                {user?.role && user.role !== 'customer' && !isDashboardHome && (
-                 <AdminNotificationBell position="top" className="shrink-0 scale-90" />
+                 <AdminNotificationBell position="top" className={cn("shrink-0", isBellaEducationShell ? "preschool-profile-notifications" : "scale-90")} />
                )}
 
                <button 
                  onClick={handleLogout} 
                  title="Đăng xuất"
                  className={cn(
-                   "p-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-slate-800 dark:hover:text-slate-100 transition-all shrink-0",
+                   "p-1.5 rounded-lg transition-all shrink-0",
+                   isBellaEducationShell ? "preschool-profile-action" : "text-slate-500 dark:text-slate-400 hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-slate-800 dark:hover:text-slate-100",
                    (isBeautySpaShell || isIndustrialCleaningShell || isRealEstateShell || isBellaAutoShell || isBellaHealthcareShell) && "beauty-erp-icon-button"
                  )}
                >

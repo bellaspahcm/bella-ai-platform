@@ -119,6 +119,16 @@ Rerun tại PR branch: 10 suites / 197 tests; 196 PASS, 1 baseline palette failu
 
 ## Suggested Review Order
 
+### Follow-up delivery: Preschool redirect and sidebar — 2026-10-19
+
+- User reported `/dashboard` stuck after Preschool identity loaded. Existing `bella_preschool.defaultRoute` remains `/dashboard/education`; no business, product-identity, authorization, data or kernel contract changes.
+- Final fix calls `window.location.replace` through the existing presentation-routing utility after the validated destination is resolved. Client/server SPA redirect experiments were removed. The user confirmed recovery with `ok được rồi`; exact internal Next/React cause remains `NOT_PROVEN`.
+- Subsequent user-authorized `UI_ONLY` changes: shared sidebar and loading width 270 → 243 CSS px; Education profile card uses tenant primary/foreground, has no white border or divider, and keeps equal Sáng/Tối columns with 28 px actions. Profile foreground remains fully opaque for custom tenant contrast. Shared actions and ThemeToggle behavior are preserved.
+- User explicitly authorized `commit và push`. Delivery branch starts at `origin/main` `ee2d12c3f00dfcc806a1a0141b509e7060fa900e`; PR #388's prior tenant-render patch is already merged. Apply only this follow-up's six runtime/test files and this work record. Preserve the newer AutoMove `resolveDashboardPresentation`, identity guards and accepted vertical routes; update its navigation assertions to the same document-replacement boundary.
+- Fresh delivery verification: 8 suites / 219 tests, 217 PASS / 2 FAIL. Both failures independently reproduce on the clean `main` baseline: `shares dashboard bootstrap reads through the client context cache` (stale source-string assertion) and `keeps Beauty Spa visual theme scoped behind the tenant module marker` (palette assertion). No new failed tests. All dispatcher, AutoMove presentation, shell, brand, hook, Registry/resolver and sidebar contract suites PASS.
+- Scoped ESLint, Architecture Guard, CSS parsing and diff whitespace checks PASS. No full typecheck, Real DB or automated after-fix browser proof is claimed. Browser automation remained disabled; redirect recovery is human-confirmed. No migration, credential, cache artifact, unrelated document, production operation, PR creation or merge is included.
+- Local evidence remains outside the commit in `.cache/preschool-root-redirect/`: `delivery-jest.json`, `main-baseline-jest.json`, `delivery-eslint.log`.
+
 - Product quyết định presentation; lỗi identity không trở thành Spa.
   [product-presentation-routing.ts:31](../src/lib/business-rules/product-presentation-routing.ts#L31)
 - Reset/applied brand trước paint, giữ accent tùy chỉnh.

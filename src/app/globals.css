@@ -7213,3 +7213,78 @@ html.dark[data-tenant-module="bella_education"] .preschool-sidebar {
 .preschool-sidebar h2 {
   color: var(--education-sidebar-fg);
 }
+
+.preschool-sidebar .preschool-profile-card {
+  --preschool-profile-bg: var(--primary);
+  --preschool-profile-fg: var(--primary-foreground);
+  background: var(--preschool-profile-bg);
+  color: var(--preschool-profile-fg);
+  border: 0;
+  box-shadow: none;
+}
+
+.preschool-profile-card .preschool-profile-name,
+.preschool-profile-card .preschool-profile-avatar,
+.preschool-profile-card .preschool-profile-action {
+  color: var(--preschool-profile-fg);
+}
+
+.preschool-profile-card .preschool-profile-role {
+  color: var(--preschool-profile-fg);
+}
+
+.preschool-profile-card .preschool-profile-avatar,
+.preschool-profile-card .beauty-theme-toggle-skeleton {
+  background: color-mix(in srgb, var(--preschool-profile-fg) 12%, transparent);
+}
+
+.preschool-profile-card .preschool-profile-divider {
+  background: transparent;
+}
+
+.preschool-profile-card .beauty-theme-toggle,
+.preschool-profile-card .preschool-profile-notifications > button {
+  background: transparent;
+  border: 0;
+  color: var(--preschool-profile-fg);
+  box-shadow: none;
+}
+
+.preschool-profile-card .beauty-theme-toggle {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 2px;
+  padding: 2px;
+}
+
+.preschool-profile-card .beauty-theme-toggle-button {
+  min-height: 28px;
+  padding: 0 4px;
+  white-space: nowrap;
+  color: var(--preschool-profile-fg);
+}
+
+.preschool-profile-card .beauty-theme-toggle-button-active {
+  color: var(--primary);
+}
+
+.preschool-profile-card .beauty-theme-toggle-active-light,
+.preschool-profile-card .beauty-theme-toggle-active-dark {
+  background: var(--preschool-profile-fg);
+  border: 0;
+}
+
+.preschool-profile-card .preschool-profile-action,
+.preschool-profile-card .preschool-profile-notifications > button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+}
+
+.preschool-profile-card .preschool-profile-action:hover,
+.preschool-profile-card .preschool-profile-notifications > button:hover {
+  background: color-mix(in srgb, var(--preschool-profile-fg) 16%, transparent);
+}

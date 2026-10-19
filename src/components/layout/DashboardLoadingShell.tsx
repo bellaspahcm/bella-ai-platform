@@ -59,7 +59,7 @@ export function DashboardRouteLoading() {
 export function DashboardAuthLoadingShell() {
   return (
     <div className="flex min-h-screen bg-background">
-      <div className="hidden w-[270px] shrink-0 border-r border-slate-200/50 bg-[#FAFAFA] p-5 lg:block">
+      <div className="hidden w-[243px] shrink-0 border-r border-slate-200/50 bg-[#FAFAFA] p-5 lg:block">
         <div className="mx-auto mb-8 h-20 w-20 animate-pulse rounded-[2rem] bg-primary/10" />
         <div className="mb-10 space-y-3">
           <PulseBlock className="mx-auto h-8 w-44 rounded-2xl" />
