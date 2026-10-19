@@ -53,6 +53,11 @@ export class PaymentReconciliationService {
     await this.repo.assertStudentPartyBelongsToTenant(tenantId, studentPartyId);
     await this.repo.assertPayerPartyBelongsToTenant(tenantId, payerPartyId);
 
+    const hasEnrollment = await this.repo.hasActiveEnrollmentForStudentParty(tenantId, studentPartyId);
+    if (!hasEnrollment) {
+      throw new Error(`FINANCE_STUDENT_ENROLLMENT_REQUIRED: Student Party ${studentPartyId} is not actively enrolled in tenant ${tenantId}.`);
+    }
+
     const paymentNumber = `PAY-${Date.now()}-${Math.floor(100 + Math.random() * 900)}`;
 
     return await this.repo.recordPayment({
