@@ -8,6 +8,7 @@ import { getBeautyDashboardCustomerRatingDistribution, getBeautyDashboardTopTech
 import { getDashboardWidgetAlerts } from '@/components/common/dashboard-widget-actions';
 
 const mockRouter = { replace: jest.fn(), push: jest.fn() };
+const mockDocumentReplace = jest.fn();
 let mockPathname = '/dashboard';
 let mockContext: { isLoading: boolean; product: ProductDefinition | null; user: { tenant_id: string; role: string } | null; tenantSettings: { id: string; product_key?: string | null; enabled_modules: Record<string, boolean> } | null };
 let mockModule: { tenantModuleKey: string | null; isTenantModuleLoading: boolean; tenantModuleError: string | null };
@@ -15,6 +16,10 @@ const mockPrimaryData = jest.fn().mockResolvedValue({ statsData: {}, sessionsDat
 const mockChannel = jest.fn(() => ({ on: jest.fn().mockReturnThis(), subscribe: jest.fn() }));
 
 jest.mock('@/lib/user-context', () => ({ useUser: () => mockContext }));
+jest.mock('@/lib/business-rules/product-presentation-routing', () => ({
+  ...jest.requireActual('@/lib/business-rules/product-presentation-routing'),
+  replaceDashboardProductDocument: (destination: string) => mockDocumentReplace(destination),
+}));
 jest.mock('next/navigation', () => ({ usePathname: () => mockPathname, useRouter: () => mockRouter }));
 jest.mock('@/hooks/useTenantModuleKey', () => ({ useTenantModuleKey: () => mockModule }));
 jest.mock('@/hooks/useModuleVocabulary', () => ({ useModuleVocabulary: () => ({ worker: { short: 'Nhân viên' } }) }));
@@ -64,7 +69,8 @@ describe('root dashboard product dispatch', () => {
     expect(mockPrimaryData).not.toHaveBeenCalled();
     ready('bella_preschool');
     rerender(<DashboardPage />);
-    expect(mockRouter.replace).toHaveBeenCalledWith('/dashboard/education');
+    expect(mockDocumentReplace).toHaveBeenCalledWith('/dashboard/education');
+    expect(mockRouter.replace).not.toHaveBeenCalled();
     expect(screen.queryByTestId('beauty-view')).not.toBeInTheDocument();
     expect(mockPrimaryData).not.toHaveBeenCalled();
   });
@@ -78,7 +84,8 @@ describe('root dashboard product dispatch', () => {
   ])('keeps %s neutral until navigation to its correct route completes', (key, route) => {
     ready(key);
     render(<DashboardPage />);
-    expect(mockRouter.replace).toHaveBeenCalledWith(route);
+    expect(mockDocumentReplace).toHaveBeenCalledWith(route);
+    expect(mockRouter.replace).not.toHaveBeenCalled();
     expect(screen.getByTestId('neutral-loading')).toBeInTheDocument();
     expect(screen.queryByTestId('beauty-view')).not.toBeInTheDocument();
     expect(mockPrimaryData).not.toHaveBeenCalled();
@@ -90,6 +97,7 @@ describe('root dashboard product dispatch', () => {
     render(<DashboardPage />);
     expect(screen.getByTestId('beauty-view')).toBeInTheDocument();
     expect(mockRouter.replace).not.toHaveBeenCalled();
+    expect(mockDocumentReplace).not.toHaveBeenCalled();
     await waitFor(() => expect(mockPrimaryData).toHaveBeenCalled());
   });
 
@@ -106,6 +114,7 @@ describe('root dashboard product dispatch', () => {
     mockPathname = '/dashboard/education';
     render(<DashboardPage />);
     expect(mockRouter.replace).not.toHaveBeenCalled();
+    expect(mockDocumentReplace).not.toHaveBeenCalled();
     expect(screen.getByTestId('neutral-loading')).toBeInTheDocument();
     expect(screen.queryByTestId('beauty-view')).not.toBeInTheDocument();
     expect(mockPrimaryData).not.toHaveBeenCalled();
@@ -117,6 +126,7 @@ describe('root dashboard product dispatch', () => {
     expect(screen.getByRole('alert')).toHaveTextContent('Không thể xác định sản phẩm');
     expect(screen.queryByTestId('beauty-view')).not.toBeInTheDocument();
     expect(mockRouter.replace).not.toHaveBeenCalled();
+    expect(mockDocumentReplace).not.toHaveBeenCalled();
   });
 
   it('does not render Spa after module resolution fails for a classified root product', () => {
@@ -151,12 +161,14 @@ describe('root dashboard product dispatch', () => {
   it.each([undefined, null])('redirects the existing AutoMove vertical with key %p without mounting Spa data work', product_key => {
     mockContext = { isLoading: false, product: null, user: { tenant_id: 'auto', role: 'admin' }, tenantSettings: { id: 'auto', product_key, enabled_modules: { bella_auto: true } } };
     const { rerender } = render(<DashboardPage />);
-    expect(mockRouter.replace).toHaveBeenCalledWith('/dashboard/bella-auto');
+    expect(mockDocumentReplace).toHaveBeenCalledWith('/dashboard/bella-auto');
+    expect(mockRouter.replace).not.toHaveBeenCalled();
     expect(screen.getByTestId('neutral-loading')).toBeInTheDocument();
     expectNoDashboardWork();
-    mockRouter.replace.mockClear();
+    mockDocumentReplace.mockClear();
     mockPathname = '/dashboard/bella-auto';
     rerender(<DashboardPage />);
+    expect(mockDocumentReplace).not.toHaveBeenCalled();
     expect(mockRouter.replace).not.toHaveBeenCalled();
     expect(screen.getByTestId('neutral-loading')).toBeInTheDocument();
     expectNoDashboardWork();
@@ -171,6 +183,7 @@ describe('root dashboard product dispatch', () => {
     render(<DashboardPage />);
     expect(screen.getByRole('alert')).toHaveTextContent('Không thể xác định sản phẩm');
     expect(mockRouter.replace).not.toHaveBeenCalled();
+    expect(mockDocumentReplace).not.toHaveBeenCalled();
     expectNoDashboardWork();
   });
 

@@ -157,3 +157,8 @@ export function resolveDashboardPresentation(
     defaultRoute: bellaAutoManifest.defaultRoute,
   };
 }
+
+/** Product entry switches replace the document rather than a pending SPA route. */
+export function replaceDashboardProductDocument(destination: string): void {
+  window.location.replace(destination);
+}
