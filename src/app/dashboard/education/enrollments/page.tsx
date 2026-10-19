@@ -994,8 +994,8 @@ export default function PreschoolEnrollmentsPage() {
       </div>
 
       {/* ── Page Header Card (Title, Academic Year Selector & Primary Action) ── */}
-      <div className="w-full rounded-3xl bg-white dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-700/80 p-6 sm:p-7 shadow-2xs space-y-5">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-700/60 pb-5">
+      <div className="w-full rounded-3xl bg-white dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-700/80 p-6 sm:p-7 shadow-2xs">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-3.5">
             <div className="w-11 h-11 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-100/80 dark:border-emerald-900/60">
               <Baby className="w-6 h-6" />
@@ -1034,135 +1034,6 @@ export default function PreschoolEnrollmentsPage() {
               <span>Đăng Ký Nhập Học Mới</span>
             </button>
           </div>
-        </div>
-
-        {/* ── Row 1 of Filters: Search Box + Status Tab Pills ── */}
-        <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-4 justify-between">
-          <div className="relative flex-1 max-w-md">
-            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => {
-                setSearchQuery(e.target.value);
-                setCurrentPage(1);
-              }}
-              placeholder="Tìm tên trẻ, mã hồ sơ, tên phụ huynh, SĐT..."
-              className="w-full pl-10 pr-4 py-2.5 text-xs rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-600 transition-all font-medium"
-            />
-          </div>
-
-          <div className="flex items-center gap-2 overflow-x-auto pb-1 lg:pb-0">
-            <button 
-              type="button"
-              onClick={() => { setSelectedStatusTab('all'); setCurrentPage(1); }}
-              className={`px-4 py-2 rounded-2xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
-                selectedStatusTab === 'all' 
-                  ? 'bg-[#064E3B] text-white shadow-xs' 
-                  : 'bg-slate-100 dark:bg-slate-700/60 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
-              }`}
-            >
-              Tất cả trẻ ({totalCount})
-            </button>
-            <button 
-              type="button"
-              onClick={() => { setSelectedStatusTab('active'); setCurrentPage(1); }}
-              className={`px-4 py-2 rounded-2xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
-                selectedStatusTab === 'active' 
-                  ? 'bg-[#064E3B] text-white shadow-xs' 
-                  : 'bg-slate-100 dark:bg-slate-700/60 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
-              }`}
-            >
-              Đang học ({activeCount})
-            </button>
-            <button 
-              type="button"
-              onClick={() => { setSelectedStatusTab('pending'); setCurrentPage(1); }}
-              className={`px-4 py-2 rounded-2xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
-                selectedStatusTab === 'pending' 
-                  ? 'bg-[#064E3B] text-white shadow-xs' 
-                  : 'bg-slate-100 dark:bg-slate-700/60 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
-              }`}
-            >
-              Chờ nhập học ({pendingCount})
-            </button>
-            <button 
-              type="button"
-              onClick={() => { setSelectedStatusTab('healthAlert'); setCurrentPage(1); }}
-              className={`px-4 py-2 rounded-2xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${
-                selectedStatusTab === 'healthAlert' 
-                  ? 'bg-amber-500 text-white shadow-xs' 
-                  : 'bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200/80 hover:bg-amber-100'
-              }`}
-            >
-              <AlertTriangle className="w-3.5 h-3.5" />
-              <span>Lưu ý y tế ({healthAlertCount})</span>
-            </button>
-          </div>
-        </div>
-
-        {/* ── Row 2 of Filters: Secondary Dropdowns (Lớp học, Trạng thái, Độ tuổi, Bộ lọc khác) ── */}
-        <div className="flex flex-wrap items-center gap-3 pt-1">
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-bold text-slate-500 dark:text-slate-400">Lớp học:</span>
-            <div className="relative">
-              <select
-                value={selectedClassFilter}
-                onChange={(e) => { setSelectedClassFilter(e.target.value); setCurrentPage(1); }}
-                className="appearance-none bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-200 rounded-xl px-3 py-1.5 pr-7 focus:outline-none cursor-pointer hover:border-slate-300"
-              >
-                <option value="all">Tất cả lớp ({availableClasses.length > 0 ? `${availableClasses.length} lớp` : `${totalCount} trẻ`})</option>
-                {availableClasses.map((cls) => (
-                  <option key={cls} value={cls}>{cls}</option>
-                ))}
-              </select>
-              <ChevronDown className="w-3 h-3 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-bold text-slate-500 dark:text-slate-400">Trạng thái:</span>
-            <div className="relative">
-              <select
-                value={selectedStatusFilter}
-                onChange={(e) => { setSelectedStatusFilter(e.target.value); setCurrentPage(1); }}
-                className="appearance-none bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-200 rounded-xl px-3 py-1.5 pr-7 focus:outline-none cursor-pointer hover:border-slate-300"
-              >
-                <option value="all">Tất cả trạng thái</option>
-                <option value="active">Đang học</option>
-                <option value="pending">Chờ nhập học</option>
-                <option value="healthAlert">Lưu ý y tế</option>
-              </select>
-              <ChevronDown className="w-3 h-3 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-bold text-slate-500 dark:text-slate-400">Độ tuổi:</span>
-            <div className="relative">
-              <select
-                value={selectedAgeFilter}
-                onChange={(e) => { setSelectedAgeFilter(e.target.value); setCurrentPage(1); }}
-                className="appearance-none bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-200 rounded-xl px-3 py-1.5 pr-7 focus:outline-none cursor-pointer hover:border-slate-300"
-              >
-                <option value="all">Tất cả độ tuổi</option>
-                <option value="2 tuổi">2 tuổi (Nhà trẻ)</option>
-                <option value="3 tuổi">3 tuổi (Mầm)</option>
-                <option value="4 tuổi">4 tuổi (Chồi)</option>
-                <option value="5 tuổi">5 tuổi (Lá)</option>
-              </select>
-              <ChevronDown className="w-3 h-3 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-            </div>
-          </div>
-
-          <button 
-            type="button"
-            onClick={resetAllFilters}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 transition-colors ml-auto"
-          >
-            <SlidersHorizontal className="w-3.5 h-3.5 text-slate-400" />
-            <span>Bộ lọc khác</span>
-          </button>
         </div>
       </div>
 
@@ -1243,11 +1114,11 @@ export default function PreschoolEnrollmentsPage() {
           <div className="rounded-3xl bg-white dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-700/80 shadow-2xs overflow-hidden">
             
             {/* Table Header Bar */}
-            <div className="p-5 sm:p-6 border-b border-slate-100 dark:border-slate-700/60 flex items-center justify-between gap-4">
-              <div className="flex items-center gap-2.5">
+            <div className="p-5 sm:p-6 border-b border-slate-100 dark:border-slate-700/60 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex flex-wrap items-center gap-2.5">
                 <ListFilter className="w-4 h-4 text-emerald-600" />
                 <h2 className="text-base font-extrabold text-slate-900 dark:text-white">
-                  Danh sách trẻ ({totalCount})
+                  Danh sách trẻ
                 </h2>
                 {selectedStudentIds.size > 0 && (
                   <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950/80 dark:text-emerald-300">
@@ -1274,6 +1145,146 @@ export default function PreschoolEnrollmentsPage() {
                   <MoreVertical className="w-3.5 h-3.5" />
                 </button>
               </div>
+            </div>
+
+            <div
+              role="search"
+              aria-label="Tìm kiếm và lọc danh sách trẻ"
+              onMouseDown={() => setActiveMenuId(null)}
+              className="space-y-4 border-b border-slate-100 dark:border-slate-700/60 p-5 sm:p-6"
+            >
+              {/* ── Row 1 of Filters: Search Box + Status Tab Pills ── */}
+              <div className="flex flex-col 2xl:flex-row items-stretch 2xl:items-center gap-4 justify-between">
+                <div className="relative min-w-0 w-full 2xl:max-w-sm">
+                  <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => {
+                      setSearchQuery(e.target.value);
+                      setCurrentPage(1);
+                    }}
+                    placeholder="Tìm tên trẻ, mã hồ sơ, tên phụ huynh, SĐT..."
+                    className="w-full pl-10 pr-4 py-2.5 text-xs rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-600 transition-all font-medium"
+                  />
+                </div>
+
+                <div className="flex items-center gap-2 min-w-0 overflow-x-auto pb-1 2xl:pb-0">
+                  <button
+                    type="button"
+                    onClick={() => { setSelectedStatusTab('all'); setCurrentPage(1); }}
+                    className={`px-4 py-2 rounded-2xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
+                      selectedStatusTab === 'all'
+                        ? 'bg-[#064E3B] text-white shadow-xs'
+                        : 'bg-slate-100 dark:bg-slate-700/60 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
+                    }`}
+                  >
+                    Tất cả trẻ ({totalCount})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setSelectedStatusTab('active'); setCurrentPage(1); }}
+                    className={`px-4 py-2 rounded-2xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
+                      selectedStatusTab === 'active'
+                        ? 'bg-[#064E3B] text-white shadow-xs'
+                        : 'bg-slate-100 dark:bg-slate-700/60 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
+                    }`}
+                  >
+                    Đang học ({activeCount})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setSelectedStatusTab('pending'); setCurrentPage(1); }}
+                    className={`px-4 py-2 rounded-2xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
+                      selectedStatusTab === 'pending'
+                        ? 'bg-[#064E3B] text-white shadow-xs'
+                        : 'bg-slate-100 dark:bg-slate-700/60 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
+                    }`}
+                  >
+                    Chờ nhập học ({pendingCount})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setSelectedStatusTab('healthAlert'); setCurrentPage(1); }}
+                    className={`px-4 py-2 rounded-2xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${
+                      selectedStatusTab === 'healthAlert'
+                        ? 'bg-amber-500 text-white shadow-xs'
+                        : 'bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200/80 hover:bg-amber-100'
+                    }`}
+                  >
+                    <AlertTriangle className="w-3.5 h-3.5" />
+                    <span>Lưu ý y tế ({healthAlertCount})</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* ── Row 2 of Filters: Secondary Dropdowns (Lớp học, Trạng thái, Độ tuổi, Xóa bộ lọc) ── */}
+              <div className="flex flex-wrap items-center gap-3 pt-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold text-slate-500 dark:text-slate-400">Lớp học:</span>
+                  <div className="relative">
+                    <select
+                      value={selectedClassFilter}
+                      onChange={(e) => { setSelectedClassFilter(e.target.value); setCurrentPage(1); }}
+                      className="appearance-none bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-200 rounded-xl px-3 py-1.5 pr-7 focus:outline-none cursor-pointer hover:border-slate-300"
+                    >
+                      <option value="all">Tất cả lớp ({availableClasses.length > 0 ? `${availableClasses.length} lớp` : `${totalCount} trẻ`})</option>
+                      {availableClasses.map((cls) => (
+                        <option key={cls} value={cls}>{cls}</option>
+                      ))}
+                    </select>
+                    <ChevronDown className="w-3 h-3 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold text-slate-500 dark:text-slate-400">Trạng thái:</span>
+                  <div className="relative">
+                    <select
+                      value={selectedStatusFilter}
+                      onChange={(e) => { setSelectedStatusFilter(e.target.value); setCurrentPage(1); }}
+                      className="appearance-none bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-200 rounded-xl px-3 py-1.5 pr-7 focus:outline-none cursor-pointer hover:border-slate-300"
+                    >
+                      <option value="all">Tất cả trạng thái</option>
+                      <option value="active">Đang học</option>
+                      <option value="pending">Chờ nhập học</option>
+                      <option value="healthAlert">Lưu ý y tế</option>
+                    </select>
+                    <ChevronDown className="w-3 h-3 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold text-slate-500 dark:text-slate-400">Độ tuổi:</span>
+                  <div className="relative">
+                    <select
+                      value={selectedAgeFilter}
+                      onChange={(e) => { setSelectedAgeFilter(e.target.value); setCurrentPage(1); }}
+                      className="appearance-none bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-200 rounded-xl px-3 py-1.5 pr-7 focus:outline-none cursor-pointer hover:border-slate-300"
+                    >
+                      <option value="all">Tất cả độ tuổi</option>
+                      <option value="2 tuổi">2 tuổi (Nhà trẻ)</option>
+                      <option value="3 tuổi">3 tuổi (Mầm)</option>
+                      <option value="4 tuổi">4 tuổi (Chồi)</option>
+                      <option value="5 tuổi">5 tuổi (Lá)</option>
+                    </select>
+                    <ChevronDown className="w-3 h-3 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={resetAllFilters}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 transition-colors ml-auto"
+                >
+                  <SlidersHorizontal className="w-3.5 h-3.5 text-slate-400" />
+                  <span>Xóa bộ lọc</span>
+                </button>
+              </div>
+
+              <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
+                Kết quả: <span className="font-bold text-slate-900 dark:text-white">{filteredStudents.length} trẻ</span> phù hợp bộ lọc · Tổng hồ sơ: {totalCount}
+              </p>
             </div>
 
             {/* Empty State when no results */}
@@ -1490,7 +1501,7 @@ export default function PreschoolEnrollmentsPage() {
             {/* Table Footer / Pagination Matching Image 2 */}
             <div className="p-4 sm:p-5 border-t border-slate-100 dark:border-slate-700/60 flex flex-col sm:flex-row items-center justify-between gap-4 select-none">
               <span className="text-xs text-slate-500 dark:text-slate-400 font-semibold">
-                Hiển thị {displayedStudents.length} trên tổng {filteredStudents.length} trẻ
+                Hiển thị {displayedStudents.length} trong {filteredStudents.length} kết quả sau lọc
               </span>
 
               {/* Page Number Buttons */}

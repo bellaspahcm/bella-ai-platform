@@ -7169,6 +7169,17 @@ html.dark[data-tenant-module="beauty_spa"] .dashboard-shell .bella-data-table tb
 
 /* Preschool presentation consumes the same resolved tenant tokens as Spa.
    Keep status/category palettes in the components; no utility-color overrides. */
+html[data-tenant-module="bella_education"] .dashboard-main {
+  background: var(--dashboard-viewport-bg) !important;
+}
+
+/* The viewport owns the canvas; page wrappers fill it without repainting it. */
+html[data-tenant-module="bella_education"] .dashboard-main .preschool-ui {
+  flex: 1 0 auto;
+  min-height: 100%;
+  background: transparent !important;
+}
+
 .preschool-ui {
   --education-brand-ink: color-mix(in srgb, var(--primary) 45%, #000);
   background-color: var(--background);
