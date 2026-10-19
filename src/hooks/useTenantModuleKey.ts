@@ -1,74 +1,59 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
-import { getDefaultTenantModuleKey, type TenantModuleKey } from '@/lib/business-rules/tenant-modules';
-import { getCachedTenantSettings } from '@/lib/dashboard-client-context';
+import { type TenantModuleKey } from '@/lib/business-rules/tenant-modules';
+import { resolveProductPresentationModule } from '@/lib/business-rules/product-presentation-routing';
+import { getCachedCurrentUser, getCachedTenantSettings } from '@/lib/dashboard-client-context';
+import { productResolver } from '@/platform/registry/product-resolver';
 
-const RUNTIME_BRAND_CACHE_KEY = 'bella.runtime.brand.v1';
-const SIDEBAR_BRAND_CACHE_KEY = 'bella.sidebar.brand.v3';
-
-function getSynchronousModuleKey(): TenantModuleKey | null {
-  if (typeof window === 'undefined') return null;
-  try {
-    const runtimeSession = window.sessionStorage.getItem(RUNTIME_BRAND_CACHE_KEY);
-    if (runtimeSession) {
-      const parsed = JSON.parse(runtimeSession);
-      if (parsed && typeof parsed.moduleKey === 'string') {
-        return parsed.moduleKey as TenantModuleKey;
-      }
-    }
-  } catch (e) {
-    // Ignore
-  }
-  try {
-    const sidebarLocal = window.localStorage.getItem(SIDEBAR_BRAND_CACHE_KEY);
-    if (sidebarLocal) {
-      const parsed = JSON.parse(sidebarLocal);
-      if (parsed && typeof parsed.moduleKey === 'string') {
-        return parsed.moduleKey as TenantModuleKey;
-      }
-    }
-  } catch (e) {
-    // Ignore
-  }
-  return null;
-}
-
-export function useTenantModuleKey(options?: { forceFresh?: boolean }) {
-  const forceFresh = options?.forceFresh ?? false;
-  const [tenantModuleKey, setTenantModuleKey] = useState<TenantModuleKey | null>(() =>
-    forceFresh ? null : getSynchronousModuleKey()
-  );
-  const [isTenantModuleLoading, setIsTenantModuleLoading] = useState(() =>
-    forceFresh ? true : !getSynchronousModuleKey()
-  );
+export function useTenantModuleKey(_options?: { forceFresh?: boolean }) {
+  // Storage cannot prove the authenticated tenant. All callers start neutral.
+  const [tenantModuleKey, setTenantModuleKey] = useState<TenantModuleKey | null>(null);
+  const [isTenantModuleLoading, setIsTenantModuleLoading] = useState(true);
   const [tenantModuleError, setTenantModuleError] = useState<string | null>(null);
+  const resolvedIdentity = useRef<{ tenantId: string; moduleKey: TenantModuleKey } | null>(null);
+  const requestVersion = useRef(0);
 
   const refreshTenantModuleKey = useCallback(async () => {
-    const initialKey = getSynchronousModuleKey();
-    if (!initialKey) {
-      setIsTenantModuleLoading(true);
-    }
+    const version = ++requestVersion.current;
+    setIsTenantModuleLoading(resolvedIdentity.current === null);
     setTenantModuleError(null);
 
     try {
-      const tenant = await getCachedTenantSettings();
-      const resolved = getDefaultTenantModuleKey(tenant?.enabled_modules);
-      setTenantModuleKey(resolved);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Khong the tai cau hinh phan he';
-      setTenantModuleError(message);
-      if (!initialKey) {
+      const user = await getCachedCurrentUser();
+      if (version !== requestVersion.current) return;
+      if (!user?.tenant_id || (resolvedIdentity.current && resolvedIdentity.current.tenantId !== user.tenant_id)) {
+        resolvedIdentity.current = null;
         setTenantModuleKey(null);
+        setIsTenantModuleLoading(true);
       }
+      const tenant = await getCachedTenantSettings();
+      if (version !== requestVersion.current) return;
+      const resolved = tenant ? productResolver.tryResolve({ id: tenant.id, product_key: tenant.product_key ?? null }) : undefined;
+      if (!tenant || !user?.tenant_id || tenant.id !== user.tenant_id || !resolved) {
+        throw new Error('Không thể xác định sản phẩm của chi nhánh');
+      }
+      const moduleKey = resolveProductPresentationModule(resolved.product, tenant.enabled_modules);
+      if (!moduleKey) {
+        throw new Error('Chưa có cấu hình phân hệ hiển thị của chi nhánh');
+      }
+      resolvedIdentity.current = { tenantId: tenant.id, moduleKey };
+      setTenantModuleKey(moduleKey);
+    } catch (error) {
+      if (version !== requestVersion.current) return;
+      const message = error instanceof Error ? error.message : 'Không thể tải cấu hình phân hệ';
+      resolvedIdentity.current = null;
+      setTenantModuleError(message);
+      setTenantModuleKey(null);
     } finally {
-      setIsTenantModuleLoading(false);
+      if (version === requestVersion.current) setIsTenantModuleLoading(false);
     }
   }, []);
 
   useEffect(() => {
     void refreshTenantModuleKey();
+    return () => { requestVersion.current += 1; };
   }, [refreshTenantModuleKey]);
 
   return {

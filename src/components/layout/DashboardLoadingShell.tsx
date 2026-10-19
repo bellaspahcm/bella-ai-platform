@@ -1,6 +1,8 @@
 'use client';
 
 import { Sidebar } from '@/components/layout/sidebar';
+import { useUser } from '@/lib/user-context';
+import { applyDashboardProductBrand, resetDashboardPresentation, resolveProductBrandPresentation } from '@/lib/business-rules/product-presentation-routing';
 
 function PulseBlock({ className }: { className: string }) {
   return <div className={`animate-pulse bg-slate-200/60 dark:bg-slate-800/45 ${className}`} />;
@@ -76,11 +78,20 @@ export function DashboardAuthLoadingShell() {
   );
 }
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useLayoutEffect } from 'react';
 
 export function DashboardAuthorizedShell({ children }: { children: React.ReactNode }) {
+  const { isLoading, user, tenantSettings, product } = useUser();
   const [isEmbedded, setIsEmbedded] = useState(false);
   const [mounted, setMounted] = useState(false);
+
+  useLayoutEffect(() => {
+    if (isLoading || !user || !tenantSettings || user.tenant_id !== tenantSettings.id || !product) {
+      resetDashboardPresentation();
+      return;
+    }
+    applyDashboardProductBrand(resolveProductBrandPresentation(tenantSettings, product));
+  }, [isLoading, user, tenantSettings, product]);
 
   useEffect(() => {
     setMounted(true);
@@ -106,10 +117,14 @@ export function DashboardAuthorizedShell({ children }: { children: React.ReactNo
     }
   }, []);
 
-  if (!mounted) {
+  if (!mounted || isLoading) {
+    return <DashboardAuthLoadingShell />;
+  }
+
+  if (!user || !tenantSettings || user.tenant_id !== tenantSettings.id || !product) {
     return (
-      <main className="flex-1 flex flex-col min-w-0 max-w-full overflow-x-auto bg-transparent">
-        {children}
+      <main className="flex min-h-screen items-center justify-center bg-background p-6 text-foreground" role="alert">
+        Không thể xác định cấu hình sản phẩm của chi nhánh. Vui lòng tải lại trang.
       </main>
     );
   }
