@@ -51,6 +51,14 @@ interface DailyAttendanceState {
   status: AttendanceStatus;
 }
 
+function isDailyAttendanceState(value: unknown): value is DailyAttendanceState {
+  if (!value || typeof value !== 'object') return false;
+  const attendance = value as Record<string, unknown>;
+  return typeof attendance.id === 'string' && attendance.id.trim().length > 0 &&
+    typeof attendance.enrollmentId === 'string' && typeof attendance.schoolDay === 'string' &&
+    (attendance.status === 'present' || attendance.status === 'absent' || attendance.status === 'excused');
+}
+
 interface AuthorizedGuardian {
   authorizationId: string;
   studentPartyId: string;
@@ -330,6 +338,8 @@ function AttendancePageContent() {
 
   async function markAttendance(enrollmentId: string, status: AttendanceStatus) {
     if (commandInFlight.current || !rosterReady || !currentRoster.some((row) => row.enrollmentId === enrollmentId)) return;
+    const requestVersion = rosterRequestVersion.current;
+    const isCurrentCommand = () => mounted.current && requestVersion === rosterRequestVersion.current;
     commandInFlight.current = true;
     setSavingEnrollmentId(enrollmentId);
     setError(null);
@@ -340,19 +350,23 @@ function AttendancePageContent() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ enrollmentId, status, date: schoolDay }),
       });
-      const payload = await response.json();
-      if (!response.ok || !payload.success) {
-        throw new Error(payload.error ?? 'Không ghi được điểm danh');
+      const payload: unknown = await response.json();
+      if (!isCurrentCommand()) return;
+      const result = payload && typeof payload === 'object' ? payload as Record<string, unknown> : null;
+      if (!response.ok || result?.success !== true) {
+        throw new Error(typeof result?.error === 'string' ? result.error : 'Không ghi được điểm danh');
+      }
+      const attendance = result.attendance;
+      if (!isDailyAttendanceState(attendance) || attendance.enrollmentId !== enrollmentId || attendance.schoolDay !== schoolDay) {
+        throw new Error('Chưa xác nhận được kết quả điểm danh. Hãy tải lại trang để kiểm tra trước khi tiếp tục.');
       }
 
-      if (!mounted.current) return;
-      const refreshed = await refreshRoster();
-      if (mounted.current) {
-        if (refreshed) setSuccessMessage('Đã ghi nhận điểm danh thật vào hệ thống');
-        else setError('Đã ghi nhận điểm danh nhưng chưa tải lại được danh sách. Hãy tải lại trước khi tiếp tục.');
-      }
+      setRoster((current) => isCurrentCommand()
+        ? current.map((row) => row.enrollmentId === enrollmentId ? { ...row, attendance } : row)
+        : current);
+      setSuccessMessage('Đã ghi nhận điểm danh thật vào hệ thống');
     } catch (saveError) {
-      if (mounted.current) setError(saveError instanceof Error ? saveError.message : 'Không ghi được điểm danh');
+      if (isCurrentCommand()) setError(saveError instanceof Error ? saveError.message : 'Không ghi được điểm danh');
     } finally {
       commandInFlight.current = false;
       if (mounted.current) setSavingEnrollmentId(null);

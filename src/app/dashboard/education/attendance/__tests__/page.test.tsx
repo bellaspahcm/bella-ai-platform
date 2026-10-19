@@ -6,7 +6,7 @@ import '@testing-library/jest-dom';
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import AttendancePage from '../page';
 
-// Synthetic HTTP fixtures verify context/ordering only, never guardian authority or DB/RLS.
+// Synthetic HTTP fixtures verify confirmed UI updates and context/ordering, never guardian authority or DB/RLS.
 type Reply = Pick<Response, 'ok' | 'json'>;
 const response = (payload: unknown, ok = true): Reply => ({ ok, json: async () => payload });
 function deferred<T>() {
@@ -36,6 +36,14 @@ const dateInput = () => {
   return input;
 };
 const table = () => screen.getByRole('table');
+const studentRow = (id: string) => {
+  const result = within(table()).getByText(`Synthetic Child ${id}`).closest('tr');
+  if (!result) throw new Error('Missing student row');
+  return within(result);
+};
+const attendanceReply = (id = 'A', status = 'present', schoolDay = dateInput().value) => ({
+  id: `attendance-${id}`, enrollmentId: `enrollment-${id}`, schoolDay, status,
+});
 async function complete(index: number, id: string) {
   await act(async () => gets[index].task.resolve(response({ success: true, roster: [row(id)] })));
 }
@@ -112,7 +120,7 @@ it('has no actionable roster or request when there are no courses', async () => 
   expect(posts()).toHaveLength(0);
 });
 
-it.each(['attendance', 'handover'] as const)('locks context and concurrent commands until %s POST and readback finish, keeping the original payload', async (kind) => {
+it.each(['attendance', 'handover'] as const)('locks context and concurrent commands until %s finishes, keeping the original payload', async (kind) => {
   await start();
   await complete(0, 'A');
   const day = dateInput().value;
@@ -132,28 +140,34 @@ it.each(['attendance', 'handover'] as const)('locks context and concurrent comma
   expect(JSON.parse(String(commands[0].init.body))).toEqual(kind === 'attendance'
     ? { enrollmentId: 'enrollment-A', status: 'present', date: day }
     : { studentPartyId: 'party-A', guardianPartyId: 'guardian-A', pickupAuthorizationId: 'authorization-A' });
-  await act(async () => commands[0].task.resolve(response({ success: true })));
-  expect(gets).toHaveLength(2);
-  expect(new URL(gets[1].url, 'https://synthetic.invalid').searchParams.get('courseId')).toBe('course-A');
-  expect(new URL(gets[1].url, 'https://synthetic.invalid').searchParams.get('date')).toBe(day);
-  expect(dateInput()).toBeDisabled();
-  expect(screen.queryAllByText('Synthetic Child A')).toHaveLength(0);
-  expect(screen.queryByRole('status')).not.toBeInTheDocument();
-  await complete(1, 'READBACK');
-  expect(within(table()).getByText('Synthetic Child READBACK')).toBeInTheDocument();
+  await act(async () => commands[0].task.resolve(response({ success: true, attendance: attendanceReply() })));
+  if (kind === 'handover') {
+    expect(gets).toHaveLength(2);
+    expect(new URL(gets[1].url, 'https://synthetic.invalid').searchParams.get('courseId')).toBe('course-A');
+    expect(new URL(gets[1].url, 'https://synthetic.invalid').searchParams.get('date')).toBe(day);
+    expect(dateInput()).toBeDisabled();
+    expect(screen.queryAllByText('Synthetic Child A')).toHaveLength(0);
+    expect(screen.queryByRole('status')).not.toBeInTheDocument();
+    await complete(1, 'READBACK');
+    expect(within(table()).getByText('Synthetic Child READBACK')).toBeInTheDocument();
+  } else {
+    expect(gets).toHaveLength(1);
+    expect(studentRow('A').getByText('Có Mặt', { selector: 'span' })).toBeInTheDocument();
+  }
   expect(dateInput()).toBeEnabled();
   expect(screen.getByRole('status')).toHaveTextContent(kind === 'attendance' ? 'Đã ghi nhận điểm danh' : 'Đã bàn giao Synthetic Child A');
   fireEvent.click(otherCourse);
-  expect(gets).toHaveLength(3);
+  const nextGet = kind === 'attendance' ? 1 : 2;
+  expect(gets).toHaveLength(nextGet + 1);
   expect(screen.queryByRole('status')).not.toBeInTheDocument();
-  await complete(2, 'B');
+  await complete(nextGet, 'B');
   expect(within(table()).getByText('Synthetic Child B')).toBeInTheDocument();
 });
 
-it.each(['attendance', 'handover'] as const)('distinguishes a successful %s POST from failed readback and requires fresh data before another command', async (kind) => {
+it('distinguishes a successful handover POST from failed readback and requires fresh data before another command', async () => {
   await start();
   await complete(0, 'A');
-  fireEvent.click(screen.getByRole('button', { name: kind === 'attendance' ? 'Có Mặt' : 'Bàn giao' }));
+  fireEvent.click(screen.getByRole('button', { name: 'Bàn giao' }));
   await act(async () => commands[0].task.resolve(response({ success: true })));
   expect(gets).toHaveLength(2);
   await act(async () => gets[1].task.reject(new Error('SYNTHETIC_READBACK_FAILURE')));
@@ -186,7 +200,7 @@ it('does not issue readback after the page unmounts during a command', async () 
   await complete(0, 'A');
   fireEvent.click(screen.getByRole('button', { name: 'Có Mặt' }));
   view.unmount();
-  await act(async () => commands[0].task.resolve(response({ success: true })));
+  await act(async () => commands[0].task.resolve(response({ success: true, attendance: attendanceReply('A', 'present', '2026-10-19') })));
   expect(gets).toHaveLength(1);
   expect(posts()).toHaveLength(1);
 });
@@ -213,4 +227,85 @@ it('hides stale pickup cards immediately while another course loads', async () =
   expect(screen.queryAllByText('Synthetic Child A')).toHaveLength(0);
   expect(screen.queryByRole('button', { name: 'Bàn giao' })).not.toBeInTheDocument();
   expect(posts()).toHaveLength(0);
+});
+
+
+it('merges only confirmed attendance, preserves other rows and pickup data, and derives counts and filters without GETs', async () => {
+  await start();
+  const second = { ...row('B'), safePickupHandover: {
+    id: 'handover-B', studentPartyId: 'party-B', guardianPartyId: 'guardian-B',
+    pickupAuthorizationId: 'authorization-B', handedOverAt: '2026-10-19T08:00:00.000Z', handedOverBy: 'actor',
+  } };
+  await act(async () => gets[0].task.resolve(response({ success: true, roster: [row('A'), second] })));
+  const otherStudent = studentRow('B').getByText('Synthetic Child B');
+  const otherGuardian = screen.getByText('Được phép đón: Synthetic Guardian B');
+  const initialReads = fetchMock.mock.calls.filter(([, init]) => init?.method !== 'POST').length;
+  fireEvent.click(studentRow('A').getByRole('button', { name: 'Có Mặt' }));
+  expect(otherStudent).toBeInTheDocument();
+  expect(screen.queryByText('Đang tải danh sách thật...')).not.toBeInTheDocument();
+  expect(screen.getByRole('button', { name: 'Chưa điểm (2)' })).toBeInTheDocument();
+  // The canonical POST result, rather than the requested status, supplies the displayed status.
+  await act(async () => commands[0].task.resolve(response({ success: true, attendance: attendanceReply('A', 'excused') })));
+  expect(studentRow('A').getByText('Có Phép', { selector: 'span' })).toBeInTheDocument();
+  expect(otherStudent).toBeInTheDocument();
+  expect(otherGuardian).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: 'Phép (1)' })).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: 'Chưa điểm (1)' })).toBeInTheDocument();
+  expect(within(screen.getByRole('button', { name: /Synthetic Class A/ })).getByText('1 phép')).toBeInTheDocument();
+  fireEvent.click(studentRow('A').getByRole('button', { name: 'Có Mặt' }));
+  await act(async () => commands[1].task.resolve(response({ success: true, attendance: attendanceReply() })));
+  expect(screen.getByRole('button', { name: 'Có mặt (1)' })).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: 'Phép (0)' })).toBeInTheDocument();
+  fireEvent.click(studentRow('A').getByRole('button', { name: 'Có Mặt' }));
+  await act(async () => commands[2].task.resolve(response({ success: true, attendance: attendanceReply() })));
+  expect(screen.getByRole('button', { name: 'Có mặt (1)' })).toBeInTheDocument();
+  fireEvent.click(screen.getByRole('button', { name: 'Có mặt (1)' }));
+  expect(within(table()).getByText('Synthetic Child A')).toBeInTheDocument();
+  expect(within(table()).queryByText('Synthetic Child B')).not.toBeInTheDocument();
+  fireEvent.click(screen.getByRole('button', { name: 'Tất cả (2)' }));
+  fireEvent.change(screen.getByRole('combobox', { name: 'Lọc đưa đón' }), { target: { value: 'handed_over' } });
+  expect(within(table()).getByText('Synthetic Child B')).toBeInTheDocument();
+  expect(within(table()).queryByText('Synthetic Child A')).not.toBeInTheDocument();
+  expect(gets).toHaveLength(1);
+  expect(fetchMock.mock.calls.filter(([, init]) => init?.method !== 'POST')).toHaveLength(initialReads);
+  expect(posts()).toHaveLength(3);
+});
+
+it.each(['missing', 'null', 'wrong-enrollment', 'wrong-day', 'wrong-status', 'missing-id', 'truthy-success'] as const)(
+  'rejects %s attendance confirmation without changing cached rows or claiming success', async (kind) => {
+    await start();
+    await complete(0, 'A');
+    const confirmed = attendanceReply();
+    const attendance: unknown = kind === 'missing' ? undefined : kind === 'null' ? null : {
+      ...confirmed,
+      ...(kind === 'wrong-enrollment' ? { enrollmentId: 'enrollment-OTHER' } : {}),
+      ...(kind === 'wrong-day' ? { schoolDay: '2000-01-01' } : {}),
+      ...(kind === 'wrong-status' ? { status: 'unmarked' } : {}),
+      ...(kind === 'missing-id' ? { id: '' } : {}),
+    };
+    fireEvent.click(screen.getByRole('button', { name: 'Có Mặt' }));
+    await act(async () => commands[0].task.resolve(response({ success: kind === 'truthy-success' ? 'true' : true, attendance })));
+    expect(screen.getByRole('alert')).toBeInTheDocument();
+    expect(screen.queryByRole('status')).not.toBeInTheDocument();
+    expect(studentRow('A').getByText('Chưa điểm danh')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Chưa điểm (1)' })).toBeInTheDocument();
+    expect(gets).toHaveLength(1);
+    expect(screen.getByRole('button', { name: 'Có Mặt' })).toBeEnabled();
+  },
+);
+
+it('keeps the existing attendance when a later POST fails and permits retry', async () => {
+  await start();
+  const day = dateInput().value;
+  await act(async () => gets[0].task.resolve(response({ success: true, roster: [{ ...row('A'), attendance: attendanceReply('A', 'excused', day) }] })));
+  fireEvent.click(screen.getByRole('button', { name: 'Có Mặt' }));
+  await act(async () => commands[0].task.reject(new Error('NETWORK_FAILURE')));
+  expect(screen.getByRole('alert')).toHaveTextContent('NETWORK_FAILURE');
+  expect(studentRow('A').getByText('Có Phép', { selector: 'span' })).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: 'Phép (1)' })).toBeInTheDocument();
+  fireEvent.click(screen.getByRole('button', { name: 'Có Mặt' }));
+  await act(async () => commands[1].task.resolve(response({ success: true, attendance: attendanceReply('A', 'absent', day) })));
+  expect(screen.getByRole('button', { name: 'Vắng (1)' })).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: 'Phép (0)' })).toBeInTheDocument();
+  expect(gets).toHaveLength(1);
 });
