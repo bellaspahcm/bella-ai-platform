@@ -154,3 +154,170 @@ it('resets a removed invoice-period filter and retains filters for IDs without p
   expect(screen.getByLabelText('Lọc kỳ thu')).toHaveValue('unlisted-period-b');
   expect(screen.getByText('Hiển thị 1 / 1 hóa đơn đã tải')).toBeInTheDocument();
 });
+
+it('switches tabs and displays corresponding workspace views without crashing', async () => {
+  fetchMock.mockResolvedValue(response(state({
+    students: [studentA],
+    billingPeriods: [period],
+    invoices: [invoice],
+    payments: [{
+      id: 'pay-1',
+      tenantId: 'synthetic-tenant',
+      payerPartyId: 'payer-1',
+      studentPartyId: studentA.studentPartyId,
+      paymentNumber: 'PAY-2027-001',
+      paymentMethod: 'BANK_TRANSFER',
+      amount: 500000,
+      allocatedAmount: 500000,
+      unallocatedAmount: 0,
+      paymentDate: '2027-01-10',
+      status: 'RECONCILED',
+      createdBy: 'staff-1',
+    }],
+    exceptions: [{
+      id: 'ex-1',
+      exception_type: 'PAYMENT_MISMATCH',
+      status: 'PENDING',
+      description: 'Số tiền nộp không khớp hóa đơn',
+    }],
+  })));
+
+  render(<FinancePage />);
+  await screen.findByText('SYNTHETIC-VOID');
+
+  // Switch to Invoices Tab
+  fireEvent.click(screen.getByRole('button', { name: /Hóa đơn/ }));
+  expect(screen.getByText('Quản lý Hóa Đơn Học Phí')).toBeInTheDocument();
+
+  // Switch to Debts Tab
+  fireEvent.click(screen.getByRole('button', { name: /Công nợ/ }));
+  expect(screen.getByText('Quản Lý Công Nợ & Thu Hồi Học Phí')).toBeInTheDocument();
+
+  // Switch to Payments Tab
+  fireEvent.click(screen.getByRole('button', { name: /Thanh toán/ }));
+  expect(screen.getByText('Sổ Quỹ Thanh Toán & Phiếu Thu Học Phí')).toBeInTheDocument();
+  expect(screen.getByText('PAY-2027-001')).toBeInTheDocument();
+
+  // Switch to Reconciliation Tab
+  fireEvent.click(screen.getByRole('button', { name: /Đối soát/ }));
+  expect(screen.getByText('Trung Tâm Đối Soát & Giải Quyết Ngoại Lệ Tài Chính')).toBeInTheDocument();
+  expect(screen.getByText('PAYMENT_MISMATCH')).toBeInTheDocument();
+
+  // Switch to Reports Tab
+  fireEvent.click(screen.getByRole('button', { name: /Báo cáo/ }));
+  expect(screen.getByText('Báo Cáo Thu Học Phí & Hiệu Quả Thu Hồi')).toBeInTheDocument();
+  expect(screen.getByText('Bảng Tổng Hợp Doanh Thu Theo Kỳ Thu')).toBeInTheDocument();
+});
+
+it('opens payment modal and submits recordAndReconcilePayment command', async () => {
+  const targetInvoice: Invoice = {
+    ...invoice,
+    id: 'inv-payable',
+    invoiceNumber: 'INV-PAYABLE-01',
+    invoiceStatus: 'ISSUED',
+    settlementStatus: 'UNPAID',
+    netAmount: 3000000,
+    paidAmount: 0,
+    outstandingAmount: 3000000,
+  };
+
+  fetchMock.mockResolvedValueOnce(response(state({
+    students: [studentA],
+    billingPeriods: [period],
+    invoices: [targetInvoice],
+  })));
+  fetchMock.mockResolvedValueOnce(response({
+    success: true,
+    payment: {
+      id: 'pay-new',
+      tenantId: 'synthetic-tenant',
+      payerPartyId: 'guardian-1',
+      studentPartyId: studentA.studentPartyId,
+      paymentNumber: 'PAY-0099',
+      paymentMethod: 'BANK_TRANSFER',
+      amount: 3000000,
+      allocatedAmount: 3000000,
+      unallocatedAmount: 0,
+      paymentDate: '2027-01-12',
+      status: 'RECONCILED',
+      createdBy: 'staff-1',
+    },
+    receipt: {
+      id: 'rcpt-1',
+      tenantId: 'synthetic-tenant',
+      paymentId: 'pay-new',
+      invoiceId: 'inv-payable',
+      receiptNumber: 'RCPT-0099',
+      settlementSnapshot: {},
+      sha256Fingerprint: 'mock-hash',
+      issuedAt: '2027-01-12',
+    },
+  }));
+  fetchMock.mockResolvedValueOnce(response(state({
+    students: [studentA],
+    billingPeriods: [period],
+    invoices: [{ ...targetInvoice, settlementStatus: 'PAID', paidAmount: 3000000, outstandingAmount: 0 }],
+  })));
+
+  render(<FinancePage />);
+  await screen.findByText('INV-PAYABLE-01');
+
+  // Click on the Thu tiền / Ghi nhận thanh toán button in row or header
+  fireEvent.click(screen.getByTitle('Thu tiền cho hóa đơn này'));
+  const modal = screen.getByRole('dialog');
+  expect(within(modal).getByText('Ghi Nhận Thanh Toán Học Phí')).toBeInTheDocument();
+  expect(screen.getByDisplayValue('3000000')).toBeInTheDocument();
+
+  // Submit payment
+  fireEvent.click(within(modal).getByRole('button', { name: 'Xác nhận thu tiền' }));
+  await waitFor(() => expect(postCalls()).toHaveLength(1));
+  expect(postCalls()[0][1]?.body).toBe(JSON.stringify({
+    action: 'recordAndReconcilePayment',
+    invoiceId: 'inv-payable',
+    paymentAmount: 3000000,
+    paymentMethod: 'BANK_TRANSFER',
+  }));
+});
+
+it('resolves finance exception via modal', async () => {
+  const mockException = {
+    id: 'exc-77',
+    exception_type: 'GUARDIAN_CONTACT_MISSING',
+    status: 'PENDING',
+    description: 'Chưa có thông tin phụ huynh để gửi hóa đơn',
+  };
+
+  fetchMock.mockResolvedValueOnce(response(state({
+    exceptions: [mockException],
+  })));
+  fetchMock.mockResolvedValueOnce(response({
+    success: true,
+    exception: { id: 'exc-77', status: 'RESOLVED' },
+  }));
+  fetchMock.mockResolvedValueOnce(response(state({
+    exceptions: [{ ...mockException, status: 'RESOLVED' }],
+  })));
+
+  render(<FinancePage />);
+  // Go to Reconciliation tab
+  fireEvent.click(await screen.findByRole('button', { name: /Đối soát/ }));
+  expect(await screen.findByText('GUARDIAN_CONTACT_MISSING')).toBeInTheDocument();
+
+  // Click Xử lý
+  fireEvent.click(screen.getByRole('button', { name: 'Xử lý' }));
+  const dialog = screen.getByRole('dialog');
+  expect(within(dialog).getByText(/Xử Lý Ngoại Lệ Tài Chính/)).toBeInTheDocument();
+
+  // Fill resolution notes and confirm
+  fireEvent.change(within(dialog).getByPlaceholderText('Nhập nội dung xử lý ngoại lệ...'), {
+    target: { value: 'Đã cập nhật số điện thoại mẹ và gửi lại thông báo.' },
+  });
+  fireEvent.click(within(dialog).getByRole('button', { name: 'Xác nhận giải quyết' }));
+
+  await waitFor(() => expect(postCalls()).toHaveLength(1));
+  expect(postCalls()[0][1]?.body).toBe(JSON.stringify({
+    action: 'resolveException',
+    exceptionId: 'exc-77',
+    resolutionNotes: 'Đã cập nhật số điện thoại mẹ và gửi lại thông báo.',
+  }));
+});
