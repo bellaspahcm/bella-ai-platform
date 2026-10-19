@@ -23,3 +23,9 @@ Ngày 19/10/2026. Nhánh `codex/preschool-attention-work-queue`, nền `3ec04c91
 ## Bằng chứng cục bộ
 
 Worktree `.cache/preschool-attention/`: `jest.json`, `typecheck.json`, `live-read.json`. Primary checkout `.cache/preschool-attention-work-queue/`: `source-sync.json`, `scope.json`, `runtime-http.json`, `healthcare-verification.json`, `candidate.diff`. Các file cache không thuộc nội dung cần commit.
+
+## Sửa lỗi Vercel Preview sau push
+
+Deployment `dpl_Ep4ZAEmrERNMt6rW5kfrUJ6V1UtW`, commit `87aad7345`, thất bại khi webpack resolve `@/components/ui/Button`. Git lưu file thật là `src/components/ui/button.tsx`; Windows không phát hiện lệch chữ hoa/thường trong kiểm tra local, Linux của Vercel thì có. Đây là lỗi của thay đổi mới, không phải lỗi DB hay cấu hình deployment. Commit nền `3ec04c91f` có Vercel success.
+
+Sửa tối thiểu: đổi import sang `@/components/ui/button`, không thay component hay nghiệp vụ. Rà 51 import nội bộ thuộc 18 file source/test: trước sửa có đúng một lỗi casing nêu trên; sau sửa không còn lỗi. Phân loại `UI_ONLY`/tương thích đường dẫn build, giữ nguyên gate và các giới hạn kiểm tra rộng. Bản sửa được đẩy lên cùng nhánh theo yêu cầu xử lý check fail.

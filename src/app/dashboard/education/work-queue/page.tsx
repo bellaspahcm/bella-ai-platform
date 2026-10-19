@@ -4,7 +4,7 @@ import { Suspense, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { ArrowLeft, CheckCircle2, FileText, HeartPulse, MessageSquare, RefreshCw } from 'lucide-react';
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import type { QueueAction, QueueItem, QueuePage, QueueStatus, QueueView } from '@/products/bella-education/work-queue/work-queue.types';
 
 const groups = [
