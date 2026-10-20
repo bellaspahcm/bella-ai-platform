@@ -1,5 +1,6 @@
 import { spawn, execFileSync } from 'node:child_process';
 import { randomBytes, randomUUID } from 'node:crypto';
+import { StringDecoder } from 'node:string_decoder';
 import { rm, access, readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve, join } from 'node:path';
@@ -15,8 +16,10 @@ export class AppServer {
     this.child.on('error', () => this.fail());
     this.child.on('exit', () => { this.closed = true; this.fail(); });
     this.child.stdin.on('error', () => this.fail());
+    const decoder = new StringDecoder('utf8');
+    this.child.stdout.once('end', () => { if (decoder.end()) this.notificationError = true; });
     this.child.stdout.on('data', bytes => {
-      this.buffer += bytes.toString('utf8');
+      this.buffer += decoder.write(bytes);
       if (this.buffer.length > 4 * 1024 * 1024) { this.fail(); this.child.kill(); return; }
       const lines = this.buffer.split('\n'); this.buffer = lines.pop();
       for (const line of lines) {
