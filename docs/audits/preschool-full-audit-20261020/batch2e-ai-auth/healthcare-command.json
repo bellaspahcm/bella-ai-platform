@@ -1,0 +1,16 @@
+{
+  "startedAt": "2026-10-20T21:58:18.541Z",
+  "finishedAt": "2026-10-20T21:59:45.978Z",
+  "task": "healthcare",
+  "command": [
+    "C:\\WINDOWS\\system32\\cmd.exe",
+    "/d",
+    "/s",
+    "/c",
+    "npm run healthcare:verify"
+  ],
+  "exitCode": 1,
+  "errorCode": null,
+  "signal": null,
+  "environment": "Process-scoped loopback offline endpoints and synthetic keys; no production business/model calls"
+}

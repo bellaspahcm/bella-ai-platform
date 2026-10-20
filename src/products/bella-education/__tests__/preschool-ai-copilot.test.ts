@@ -16,11 +16,18 @@ import {
 import { POST as copilotApiPost } from '@/app/api/education/ai/copilot/route';
 import { canUseEducationAiCopilotRole } from '@/lib/business-rules/permissions';
 
+jest.mock('@/lib/supabase-server', () => ({
+  createClient: jest.fn(() => ({
+    auth: { getUser: jest.fn(async () => ({ data: { user: { id: 'user-edu-teacher-1' } }, error: null })) },
+  })),
+}));
+
 jest.mock('@/services/user-actions', () => ({
   getCurrentUser: jest.fn(async () => ({
     id: 'user-edu-teacher-1',
     role: 'education_teacher',
-    tenantId: 'ed100000-0000-0000-0000-000000000001',
+    tenant_id: 'ed100000-0000-0000-0000-000000000001',
+    status: 'active',
     name: 'Cô Mai',
     email: 'mai.teacher@bellapreschool.edu.vn',
   })),

@@ -20,17 +20,27 @@ import {
 import { executePreschoolCopilot } from '../services/preschool-ai.service';
 import { POST as copilotRoute } from '@/app/api/education/ai/copilot/route';
 
+let mockProfileRole = 'CAMPUS_ADMIN';
+
+jest.mock('@/lib/supabase-server', () => ({
+  createClient: jest.fn(() => ({
+    auth: { getUser: jest.fn(async () => ({ data: { user: { id: 'user-edu-campus-admin-1' } }, error: null })) },
+  })),
+}));
+
 jest.mock('@/services/user-actions', () => ({
   getCurrentUser: jest.fn(async () => ({
     id: 'user-edu-campus-admin-1',
-    role: 'CAMPUS_ADMIN',
-    tenantId: 'ed100000-0000-0000-0000-000000000001',
+    role: mockProfileRole,
+    tenant_id: 'ed100000-0000-0000-0000-000000000001',
+    status: 'active',
     name: 'Cô Hiệu Trưởng Thảo',
     email: 'thao.principal@bellapreschool.edu.vn',
   })),
 }));
 
 describe('Bella Preschool Executive AI Copilot — School Leadership Suite', () => {
+  beforeEach(() => { mockProfileRole = 'CAMPUS_ADMIN'; });
   describe('Capability Pack Executive Tools Registration', () => {
     it('registers executive_daily_briefing and compliance_and_safety_sentinel', () => {
       const toolIds = preschoolAICapabilityPack.tools.map((t) => t.id);
@@ -179,7 +189,6 @@ describe('Bella Preschool Executive AI Copilot — School Leadership Suite', () 
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-mock-role': 'CAMPUS_ADMIN',
         },
         body: JSON.stringify({
           action: 'executive_briefing',
@@ -199,11 +208,11 @@ describe('Bella Preschool Executive AI Copilot — School Leadership Suite', () 
     });
 
     it('handles POST /api/education/ai/copilot with executive_safety_audit for SUPER_ADMIN', async () => {
+      mockProfileRole = 'SUPER_ADMIN';
       const req = new Request('http://localhost/api/education/ai/copilot?tenantId=ed100000-0000-0000-0000-000000000001', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-mock-role': 'SUPER_ADMIN',
         },
         body: JSON.stringify({
           action: 'executive_safety_audit',

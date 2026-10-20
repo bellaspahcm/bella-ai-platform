@@ -14,12 +14,21 @@
  */
 
 import { NextResponse } from 'next/server';
+import { createClient } from '@/lib/supabase-server';
 import { getCurrentUser } from '@/services/user-actions';
 import { canUseEducationAiCopilotRole } from '@/lib/business-rules/permissions';
 import {
   executePreschoolCopilot,
   type PreschoolCopilotRequest,
 } from '@/products/bella-education/services/preschool-ai.service';
+
+export const dynamic = 'force-dynamic';
+
+const PRIVATE_HEADERS = { 'Cache-Control': 'private, no-store' };
+// Approved Phase4 leadership contract; general Copilot access is broader.
+const EXECUTIVE_ROLES = new Set([
+  'super_admin', 'campus_admin', 'program_director', 'education_head', 'academic_admin',
+]);
 
 interface CopilotRequestBody {
   readonly action?: unknown;
@@ -59,19 +68,31 @@ function getErrorMessage(error: unknown): string {
 
 export async function POST(request: Request) {
   try {
-    // 1. Resolve Current User & Role
-    let user = null;
-    try {
-      user = await getCurrentUser();
-    } catch {
-      user = null;
+    // Verify Auth before a profile resolver that also has a development mock path.
+    const supabase = await createClient();
+    const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
+    if (authError || !authUser) {
+      return NextResponse.json({ error: 'COPILOT_UNAUTHENTICATED' }, {
+        status: 401, headers: PRIVATE_HEADERS,
+      });
     }
 
-    const mockRoleHeader = request.headers.get('x-mock-role')?.trim();
-    const effectiveRole =
-      mockRoleHeader !== undefined && mockRoleHeader !== ''
-        ? mockRoleHeader
-        : user?.role || (process.env.NODE_ENV === 'test' ? 'education_teacher' : '');
+    const user = await getCurrentUser();
+    const tenantId = user?.tenant_id?.trim();
+    if (!user || user.id !== authUser.id || !('status' in user) || user.status !== 'active' || !tenantId) {
+      return NextResponse.json({ error: 'FORBIDDEN' }, {
+        status: 403, headers: PRIVATE_HEADERS,
+      });
+    }
+
+    const requestedTenants = new URL(request.url).searchParams.getAll('tenantId');
+    if (requestedTenants.some(requestedTenant => requestedTenant !== tenantId)) {
+      return NextResponse.json({ error: 'TENANT_ISOLATION_VIOLATION' }, {
+        status: 403, headers: PRIVATE_HEADERS,
+      });
+    }
+
+    const effectiveRole = user.role?.trim().toLowerCase() || '';
 
     // 2. Validate Role Permission
     if (!canUseEducationAiCopilotRole(effectiveRole)) {
@@ -80,23 +101,7 @@ export async function POST(request: Request) {
           error: 'FORBIDDEN',
           message: 'Quyền hạn không hợp lệ. Chỉ có Giáo viên và Ban giám hiệu mới có quyền sử dụng Trợ lý AI Mầm non.',
         },
-        { status: 403 }
-      );
-    }
-
-    // 3. Resolve Tenant Context
-    const { searchParams } = new URL(request.url);
-    const tenantId =
-      searchParams.get('tenantId') ||
-      user?.tenant_id ||
-      (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test'
-        ? 'ed100000-0000-0000-0000-000000000001'
-        : null);
-
-    if (!tenantId) {
-      return NextResponse.json(
-        { error: 'TENANT_REQUIRED', message: 'Thiếu định danh trường mầm non (tenant_id).' },
-        { status: 400 }
+        { status: 403, headers: PRIVATE_HEADERS }
       );
     }
 
@@ -121,8 +126,14 @@ export async function POST(request: Request) {
           error: 'INVALID_ACTION',
           message: `Hành động AI '${action}' không được hỗ trợ. Các hành động hợp lệ: ${validActions.join(', ')}`,
         },
-        { status: 400 }
+        { status: 400, headers: PRIVATE_HEADERS }
       );
+    }
+
+    if ((action === 'executive_briefing' || action === 'executive_safety_audit') && !EXECUTIVE_ROLES.has(effectiveRole)) {
+      return NextResponse.json({ error: 'FORBIDDEN' }, {
+        status: 403, headers: PRIVATE_HEADERS,
+      });
     }
 
     const typedRequest: PreschoolCopilotRequest = {
@@ -164,7 +175,7 @@ export async function POST(request: Request) {
     return NextResponse.json({
       ...result,
       tenantId,
-    });
+    }, { headers: PRIVATE_HEADERS });
   } catch (err: unknown) {
     const errorMsg = getErrorMessage(err);
     return NextResponse.json(
@@ -172,7 +183,7 @@ export async function POST(request: Request) {
         error: 'INTERNAL_ERROR',
         message: errorMsg,
       },
-      { status: 500 }
+      { status: 500, headers: PRIVATE_HEADERS }
     );
   }
 }
