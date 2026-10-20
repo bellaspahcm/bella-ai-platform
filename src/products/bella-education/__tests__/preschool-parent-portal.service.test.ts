@@ -363,6 +363,26 @@ describe('PreschoolParentPortalService', () => {
       expect(payload.tuition).not.toBeNull();
       expect(payload.tuition?.vietQrPayload?.qrUrl).toContain('vietqr.io');
     });
+
+    it('populates aiDailyDigest with title, digest, highlights, and moodEmoji', async () => {
+      const token = PreschoolParentPortalService.generatePortalToken({
+        tenantId: TENANT_ID,
+        guardianPartyId: GUARDIAN_PARTY_ID,
+        studentPartyId: STUDENT_PARTY_ID,
+      });
+
+      const payload = await service.getParentPortalPayload(token);
+
+      // aiDailyDigest must be present when dailyCare is available
+      expect(payload.aiDailyDigest).not.toBeNull();
+      expect(typeof payload.aiDailyDigest?.title).toBe('string');
+      expect(payload.aiDailyDigest?.title.length).toBeGreaterThan(5);
+      expect(typeof payload.aiDailyDigest?.digest).toBe('string');
+      expect(Array.isArray(payload.aiDailyDigest?.highlights)).toBe(true);
+      expect((payload.aiDailyDigest?.highlights.length ?? 0)).toBeGreaterThanOrEqual(3);
+      expect(typeof payload.aiDailyDigest?.teacherMoodEmoji).toBe('string');
+      expect(typeof payload.aiDailyDigest?.generatedAt).toBe('string');
+    });
   });
 
   describe('Bidirectional Chat Message Persistence', () => {
@@ -395,6 +415,38 @@ describe('PreschoolParentPortalService', () => {
       });
 
       await expect(service.sendChatMessage(token, '   ')).rejects.toThrow(/MESSAGE_EMPTY/);
+    });
+  });
+
+  describe('Child PII Anonymization Shield (Phase 3)', () => {
+    it('masks Vietnamese phone numbers and child names before LLM egress', async () => {
+      const { maskChildPii } = await import('../services/preschool-ai.service');
+
+      const input = 'Bé Nguyễn Minh Anh bị sốt, phụ huynh gọi 0901234567 và 090.123.4568 nhé.';
+      const result = maskChildPii(input, ['Nguyễn Minh Anh']);
+
+      // Child name should be masked
+      expect(result.maskedText).not.toContain('Nguyễn Minh Anh');
+      expect(result.maskedText).toContain('[TRE_EM_1]');
+
+      // Phone numbers should be masked
+      expect(result.maskedText).not.toContain('0901234567');
+      expect(result.maskedText).toContain('[SDT_PHU_HUYNH_');
+
+      // TokenMap must hold originals
+      const tokens = Object.values(result.tokenMap);
+      expect(tokens.some((v) => v.includes('Nguyễn Minh Anh') || v.includes('0901234567'))).toBe(true);
+    });
+
+    it('preserves non-PII Vietnamese adjectives (mệt, sốt, khỏe) from masking', async () => {
+      const { maskChildPii } = await import('../services/preschool-ai.service');
+
+      const input = 'Bé mệt, bé sốt cao, bé ngoan hôm nay.';
+      const result = maskChildPii(input);
+
+      // Adjective-only references should NOT be replaced with tokens
+      expect(result.maskedText).toContain('mệt');
+      expect(result.maskedText).toContain('sốt');
     });
   });
 });

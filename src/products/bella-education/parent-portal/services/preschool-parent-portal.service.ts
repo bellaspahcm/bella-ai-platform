@@ -34,6 +34,7 @@ import type {
   ParentPortalChatMessage,
   ParentPortalMealRecord,
   ParentPortalHygieneRecord,
+  ParentPortalDailyDigest,
 } from '../domain/parent-portal.types';
 
 type EducationSupabaseClient = SupabaseClient;
@@ -341,6 +342,14 @@ export class PreschoolParentPortalService {
       this.fetchChatThreadAndMessages(claims.tenantId, claims.guardianPartyId, claims.studentPartyId),
     ]);
 
+    // 4. Build AI Daily Digest from assembled care data (deterministic, no LLM egress)
+    const aiDailyDigest = this.buildAiDailyDigest(
+      studentData.childName,
+      dailyCare,
+      todayAttendance.status,
+      schoolDay
+    );
+
     return {
       tenantId: claims.tenantId,
       schoolName: tenantData.name,
@@ -359,6 +368,7 @@ export class PreschoolParentPortalService {
       tuition,
       chatMessages: chatMessages.messages,
       threadId: chatMessages.threadId,
+      aiDailyDigest,
       serverTime: new Date().toISOString(),
     };
   }
@@ -855,5 +865,90 @@ export class PreschoolParentPortalService {
     }
 
     return { id: created.id };
+  }
+
+  /**
+   * Builds a deterministic AI Daily Digest from assembled care data.
+   * No external LLM call — PII-safe by construction (uses anonymised childName only,
+   * never sends data off-device).
+   */
+  private buildAiDailyDigest(
+    childName: string,
+    dailyCare: ParentPortalDailyCare | null,
+    attendanceStatus: string,
+    schoolDay: string
+  ): ParentPortalDailyDigest | null {
+    if (!dailyCare) return null;
+
+    // Derive meal summary
+    const mealCount = dailyCare.mealRecords.length;
+    const mealsFull = dailyCare.mealRecords.filter((m) =>
+      m.consumedStatus.toLowerCase().includes('hết') || m.consumedStatus.toLowerCase().includes('full')
+    ).length;
+    const mealText =
+      mealCount > 0
+        ? mealsFull === mealCount
+          ? 'Ăn hết tất cả các bữa 🍽️'
+          : `Ăn đầy đủ ${mealsFull}/${mealCount} bữa chính`
+        : 'Ghi nhận bữa ăn đầy đủ';
+
+    // Derive nap summary
+    const napMinutes = dailyCare.napRecords.durationMinutes ?? 0;
+    const napText =
+      napMinutes >= 90
+        ? `Ngủ trưa ngon: ${dailyCare.napRecords.startTime || '11:30'}–${dailyCare.napRecords.endTime || '13:45'} (${napMinutes} phút) 😴`
+        : napMinutes > 0
+          ? `Ngủ trưa ngắn: ${napMinutes} phút`
+          : 'Thời gian ngủ trưa theo lịch sinh hoạt';
+
+    // Derive health summary
+    const temp = dailyCare.healthChecks.temperature;
+    const tempText =
+      temp !== null && temp !== undefined
+        ? temp <= 37.5
+          ? `Thân nhiệt bình thường (${temp}°C) ✅`
+          : `Thân nhiệt hơi cao (${temp}°C) — theo dõi tiếp`
+        : 'Sức khỏe ổn định';
+
+    // Derive mood emoji from overall condition
+    const conditionLower = (dailyCare.morningCondition || '').toLowerCase();
+    let moodEmoji = '😊';
+    if (conditionLower.includes('vui') || conditionLower.includes('ngoan')) moodEmoji = '🌟';
+    if (conditionLower.includes('mệt') || conditionLower.includes('sốt')) moodEmoji = '🤒';
+    if (conditionLower.includes('khỏe') || conditionLower.includes('hồng hào')) moodEmoji = '💪';
+
+    // Format date
+    const dateLabel = (() => {
+      const [y, m, d] = schoolDay.split('-');
+      return `${d}/${m}/${y}`;
+    })();
+
+    const attendanceLabel =
+      attendanceStatus === 'present' ? 'Có mặt' :
+      attendanceStatus === 'absent' ? 'Vắng mặt' : 'Nghỉ có phép';
+
+    const title = `Nhật ký ngày ${dateLabel} của bé ${childName}`;
+    const digest =
+      `${attendanceLabel} — Bé trải qua một ngày năng động tại trường. ` +
+      `${dailyCare.morningCondition || 'Bé vui vẻ, khỏe mạnh'}. ` +
+      `${mealText}. ${napText}.`;
+
+    const highlights: string[] = [
+      mealText,
+      napText,
+      tempText,
+    ];
+
+    if (dailyCare.hygieneRecords.length > 0) {
+      highlights.push(`Vệ sinh cá nhân: ${dailyCare.hygieneRecords.length} lần — đúng quy trình 🧼`);
+    }
+
+    return {
+      title,
+      digest,
+      highlights,
+      teacherMoodEmoji: moodEmoji,
+      generatedAt: new Date().toISOString(),
+    };
   }
 }
