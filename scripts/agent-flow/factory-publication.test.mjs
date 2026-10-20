@@ -32,6 +32,9 @@ test('real disposable Git tree must match candidate bytes/mode/paths; source dri
 
 test('real Git proof includes additions/deletions/executable modes and rejects recreated deletion',async t=>{
   const root=await mkdtemp(join(tmpdir(),'bella-tree-changes-'));t.after(()=>rm(root,{recursive:true,force:true}));
+  const priorGlobal=process.env.GIT_CONFIG_GLOBAL,priorSystem=process.env.GIT_CONFIG_NOSYSTEM;
+  t.after(()=>{if(priorGlobal===undefined)delete process.env.GIT_CONFIG_GLOBAL;else process.env.GIT_CONFIG_GLOBAL=priorGlobal;if(priorSystem===undefined)delete process.env.GIT_CONFIG_NOSYSTEM;else process.env.GIT_CONFIG_NOSYSTEM=priorSystem;});
+  process.env.GIT_CONFIG_GLOBAL=join(root,'empty-git-config');process.env.GIT_CONFIG_NOSYSTEM='1';await writeFile(process.env.GIT_CONFIG_GLOBAL,'');
   const git=(args,options={})=>execFileSync('git',args,{cwd:root,encoding:'utf8',windowsHide:true,...options}).trim();
   git(['init','-q']);git(['config','user.name','Protocol Fixture']);git(['config','user.email','protocol@example.invalid']);git(['config','core.autocrlf','false']);
   await writeFile(join(root,'removed.mjs'),'old\n');await writeFile(join(root,'kept.mjs'),'export {};\n');git(['add','--','removed.mjs','kept.mjs']);git(['commit','-qm','base']);const baseRevision=git(['rev-parse','HEAD']);

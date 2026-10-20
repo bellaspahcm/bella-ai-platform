@@ -2,7 +2,7 @@
 title: Chứng minh một run Factory end-to-end trong sandbox hiện hành
 type: bugfix
 created: 2026-10-20
-status: in-review
+status: done
 baseline_commit: 2ef1c8ea6c0b58f45311ef8b2ad7d1d4b33801bc
 context: []
 ---
@@ -47,7 +47,7 @@ Ask First: quyền sandbox mới, Product/Core/kernel/registry/DB/migration/RLS/
 - [x] Đồng bộ gate không dispatch Reviewer sau Verify FAIL; test legitimate/pass và prohibited/fail.
 - [x] Commit nguồn sạch T; tạo owner task mới, native Lead → Builder → Verify → Reviewer. Không sửa code task trước Builder.
 - [x] Fresh-process canonical readback trước commit C; C chỉ chứa hai file Builder đã được Verify/Reviewer chấp nhận; canonical commit linkage so path/content/mode/add/delete và toàn inventory.
-- [x] Monitor đọc và mở đúng run; kiểm tra refresh/reload và bất biến sources. Negative copies từ positive run khi có; dùng lại evidence storage-negative đã xác nhận nếu không có thay đổi store.
+- [x] Monitor đọc và mở đúng run; kiểm tra refresh/reload và bất biến sources. Negative copies từ positive run; fresh controlled storage-negative trên code hiện tại đã xác nhận HELD trước Builder.
 - [x] Review source cuối, ghi actual outcomes và provenance; local commit tài liệu kết quả riêng.
 
 Given candidate chưa đổi, when Verify chạy exact command và Reviewer fresh thread đọc đủ diff/files/Verify receipt, then handoff PASS chỉ khi đầy đủ bằng chứng. Given candidate/commit khác path/mode/bytes, when link, then từ chối. Given run PASS đã lưu, when Monitor chọn đúng package, then task/factory/native IDs, actual counters, commit proof và hashes khớp sources.
@@ -69,3 +69,28 @@ Preflight executed: task-workflow baseline 6/6 PASS; duplicate and contradictory
 2026-10-20: Bounded-read run 2020342e / Factory 0d3e534e / package pzz5r3 still failed on a 20,437-byte output; therefore output size alone is not the root cause. Source inspection found AppServer decoding each stdout Buffer independently, corrupting UTF-8 characters split between pipe chunks. A deterministic real-child-process fixture reproduced DOWN ARROW becoming two replacement characters (RED 0/1). Minimal transport fix uses Node StringDecoder across chunks, with incomplete EOF flagged. Same fixture becomes GREEN; strict JSON/payload checks, canonical facts and sandbox remain unchanged. Earlier cap-only inference is insufficient; bounded policy reads remain lossless and avoid observed history size limits. New task/IDs only.
 
 Runtime acceptance: fresh task bf4f2ae7 / Factory 54679318 / package luXG6S PASSED Lead/Builder/Verify(15/15)/Reviewer, fresh readback 4 MATCH, exact candidate-commit link to f5983f7c2 and same-run desktop/mobile Monitor. Positive-copy missing/corrupt/expired, current-scope admission and real Git content/mode/deletion negatives pass. Operator 134 tests and lint pass separately. Source review is now IN_REVIEW; final records will include a current-code storage-negative replay. Historical store cause remains NOT_PROVEN, default/main/Go-Live not proven.
+
+Closure 2026-10-20: final static findings patched and parent-verified; full operator 134/134 plus affected follow-up 3/3, lint0. Fresh storage-negative 7f402561 / Factory135425fd HELD correctly; no source writes or Builder dispatch. Positive29 files retain hash/size/mtime; historical81 files retain hash/size. FACTORY_END_TO_END = PROVEN_IN_TEST_SCOPE for bf4f2ae7 / 54679318 and candidate commit f5983f7c2. Default routing/main/Go-Live remain NOT_PROVEN. Native acceptance remains bound to T/C; later diagnostic/test patches are separately verified. No deferred work added to this batch; unresolved historical storage/large-output causes remain explicitly unproven.
+
+## Suggested Review Order
+
+- Điểm vào và chặn Verify thất bại trước Reviewer.
+  [role-pipeline.mjs:49](../../../scripts/agent-flow/role-pipeline.mjs#L49)
+
+- So sánh payload nghiêm ngặt; diagnostic không được che nguyên nhân chặn.
+  [role-native.mjs:185](../../../scripts/agent-flow/role-native.mjs#L185)
+
+- Giữ nguyên UTF-8 khi ký tự bị chia giữa các pipe chunk.
+  [probe.mjs:19](../../../scripts/agent-flow/probe.mjs#L19)
+
+- Candidate phải khớp parent, đường dẫn, mode và blob thực tế.
+  [factory-publication.mjs:77](../../../scripts/agent-flow/factory-publication.mjs#L77)
+
+- Thay đổi coding do native Builder thực hiện, đã Verify và review độc lập.
+  [task-workflow.mjs:15](../../../scripts/agent-flow/task-workflow.mjs#L15)
+
+- Thử decoder qua pipe thật, đồng bộ bằng ACK thay vì thời gian chờ.
+  [probe-transport.test.mjs:9](../../../scripts/agent-flow/probe-transport.test.mjs#L9)
+
+- Fixture Git cô lập cấu hình và kiểm tra thêm, xóa, executable mode.
+  [factory-publication.test.mjs:33](../../../scripts/agent-flow/factory-publication.test.mjs#L33)

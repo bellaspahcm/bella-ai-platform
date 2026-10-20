@@ -183,7 +183,8 @@ async function executeRole(name, input, workspace, pipelineDirectory) {
     const native = nativeShape(source.entries.map(e => e.item), binding, input.task, workspace);
     const liveNative=nativeShape(liveItems,binding,input.task,workspace);
     if (JSON.stringify(liveNative) !== JSON.stringify(native)) {
-      await writeDurableJson(join(directory,'native-payload-mismatch.json'),{schemaVersion:1,source:'COLLECTOR_COMPARISON_OBSERVATION',binding,differences:nativePayloadDifferences(liveNative,native),rawPayloadRetained:false});
+      try { await writeDurableJson(join(directory,'native-payload-mismatch.json'),{schemaVersion:1,source:'COLLECTOR_COMPARISON_OBSERVATION',binding,differences:nativePayloadDifferences(liveNative,native),rawPayloadRetained:false}); }
+      catch { /* A failed diagnostic sink must not replace the known gate failure. */ }
       stop('NATIVE_PAYLOAD_MISMATCH');
     }
     const result = native.result;
