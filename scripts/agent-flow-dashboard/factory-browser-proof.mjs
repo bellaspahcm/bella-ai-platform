@@ -13,7 +13,7 @@ try{
   browser=await chromium.launch({headless:true});const context=await browser.newContext({viewport:{width:1500,height:1100}}),page=await context.newPage(),errors=[];
   page.on('pageerror',()=>errors.push('PAGE_ERROR'));
   await page.goto(app.url);await page.waitForFunction(()=>document.querySelector('#packages').children.length>0&&!document.querySelector('#refresh').disabled,{},{timeout:60000});
-  const select=async()=>{await page.getByRole('button',{name:new RegExp('Run · '+id.replace('bella-agent-flow-',''))}).click();await page.locator('#notice').filter({hasText:'MATCH_RETAINED_SOURCES'}).waitFor({timeout:60000});};
+  const select=async()=>{await page.getByRole('button',{name:'Run · '+id.replace('bella-agent-flow-','')}).click();await page.locator('#notice').filter({hasText:'MATCH_RETAINED_SOURCES'}).waitFor({timeout:60000});};
   await select();const data=await (await page.request.get(app.origin+'/api/packages/'+id)).json();
   assert.equal(data.state,'AVAILABLE');assert.equal(data.executionOutcome,expected);assert.equal(data.validation,'MATCH_RETAINED_SOURCES');if(expected==='PASS'){assert.ok([4,7].includes(data.stages.length));assert.equal(data.commit?.matches,true);}else assert.equal(data.commit,null);
   if(expected==='PASS')assert.deepEqual(data.stages.slice(0,4).map(s=>s.activity),['PLAN','CODE_CHANGE','TEST_EXECUTION','INDEPENDENT_REVIEW']);
