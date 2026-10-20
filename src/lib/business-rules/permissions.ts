@@ -10,6 +10,16 @@ export {
 
 // Web-specific permission functions below
 const AI_COPILOT_ROLES = new Set(['admin', 'super_admin', 'accountant']);
+const EDUCATION_AI_COPILOT_ROLES = new Set([
+  'admin',
+  'super_admin',
+  'principal',
+  'director',
+  'education_teacher',
+  'homeroom_teacher',
+  'teacher',
+  'education_staff'
+]);
 
 function normalizeRole(role: string | null | undefined) {
   return role?.trim().toLowerCase() || '';
@@ -17,6 +27,10 @@ function normalizeRole(role: string | null | undefined) {
 
 export function canUseAiCopilotRole(role: string | null | undefined) {
   return AI_COPILOT_ROLES.has(normalizeRole(role));
+}
+
+export function canUseEducationAiCopilotRole(role: string | null | undefined) {
+  return EDUCATION_AI_COPILOT_ROLES.has(normalizeRole(role));
 }
 
 export function canAccessAiCopilot(input: {

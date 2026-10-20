@@ -24,13 +24,15 @@ export const bellaEducationManifest: VerticalManifest & {
     'course_catalog_query',
     'student_enrollment_command',
     'attendance_checkpoint_command',
-    'grade_reporting_command'
+    'grade_reporting_command',
+    'preschool_ai_copilot'
   ],
   enabledCapabilities: [
     'course_catalog_query',
     'student_enrollment_command',
     'attendance_checkpoint_command',
-    'grade_reporting_command'
+    'grade_reporting_command',
+    'preschool_ai_copilot'
   ],
   workflows: [
     'student_academic_lifecycle'
