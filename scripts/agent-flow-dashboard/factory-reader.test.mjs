@@ -117,3 +117,10 @@ test('native result decision and Builder file-change sources cannot be omitted',
     assert.equal((await readFactory(f.root,f.id,f.now)).state,'CORRUPT');
   }
 });
+
+test('Builder declared changed list is not substituted for native observed paths',async t=>{
+  const f=await fixture(t),stage=f.index.stages[1],dir=join(f.root,stage.receipt.packageId),r=JSON.parse(await readFile(join(dir,'role.json'),'utf8'));
+  r.native.result.changed=['untrusted-declared-path'];stage.receipt=await f.put(dir,'role.json',r);
+  f.terminal.receipts[1]={...f.terminal.receipts[1],...r,artifactHash:stage.receipt.sha256};f.index.terminal=await f.put(f.directory,'terminal.json',f.terminal);await f.put(f.directory,'factory-index-terminal.json',f.index);
+  assert.equal((await readFactory(f.root,f.id,f.now)).state,'AVAILABLE');
+});

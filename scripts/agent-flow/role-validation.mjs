@@ -51,7 +51,7 @@ export function validateHandoff(terminal, task) {
 // Validate retained source payloads without starting a native process.
 export function validateRetainedRole(r, records, task, workspace, verificationPath) {
   if (JSON.stringify(r.native?.binding) !== JSON.stringify(r.binding) || !r.native?.result || !Array.isArray(r.native.commands) || !Array.isArray(r.native.changes)) fail('NATIVE_PAYLOAD_MISMATCH');
-  for (const [key,value] of Object.entries(r.native.result)) if (JSON.stringify(r[key]) !== JSON.stringify(value)) fail('NATIVE_RESULT_MISMATCH');
+  for (const [key,value] of Object.entries(r.native.result)) if (key!=='changed' && JSON.stringify(r[key]) !== JSON.stringify(value)) fail('NATIVE_RESULT_MISMATCH');
   if (!{LEAD:['ACCEPT','HELD'],BUILDER:['DONE','HELD'],VERIFY:['PASS','FAIL'],REVIEWER:['PASS','REVISE','HELD']}[r.role]?.includes(r.native.result.decision) || r.native.result.decision!==r.decision)fail('NATIVE_RESULT_MISMATCH');
   if (r.native.result.role !== r.role || r.native.result.candidate !== r.candidate || !Array.isArray(r.native.result.findings)) fail('NATIVE_RESULT_MISMATCH');
   const completed=records.filter(row=>row.fact.method==='item/completed'&&row.fact.itemType==='commandExecution').map(row=>row.fact);
