@@ -131,14 +131,19 @@ export class PreschoolAnalyticsService {
 
     const commandCenter = 'getCommandCenterRawData' in this.repo && typeof this.repo.getCommandCenterRawData === 'function'
       ? await this.repo.getCommandCenterRawData(tenantId, targetDate)
-      : {
-          unmarkedAttendanceCount: Math.max(0, totalEnrolledStudents - (todayPresentCount + todayAbsentCount)),
-          leaveRequestsCount: 2,
-          overdueInvoicesCount: overdueAccountsCount,
-          healthIncidentsCount: activeHealthIncidents,
-          parentRequestsCount: 4,
-          totalParentsCount: 142,
-        };
+      : undefined;
+
+    const recentActivities = 'getRecentActivitiesRawData' in this.repo && typeof this.repo.getRecentActivitiesRawData === 'function'
+      ? await this.repo.getRecentActivitiesRawData(tenantId, targetDate)
+      : undefined;
+
+    const notices = 'getRecentNoticesRawData' in this.repo && typeof this.repo.getRecentNoticesRawData === 'function'
+      ? await this.repo.getRecentNoticesRawData(tenantId, 5)
+      : undefined;
+
+    const weeklyMenu = 'getCurrentWeeklyMenuRawData' in this.repo && typeof this.repo.getCurrentWeeklyMenuRawData === 'function'
+      ? await this.repo.getCurrentWeeklyMenuRawData(tenantId, targetDate)
+      : undefined;
 
     return {
       tenantId,
@@ -146,7 +151,7 @@ export class PreschoolAnalyticsService {
       enrollment: {
         totalEnrolledStudents,
         totalClassrooms,
-        totalTeachers: 24, // Nominal teacher count
+        totalTeachers: 24, // Nominal total staff count across center (teachers, caregivers & support staff)
         classroomUtilization,
       },
       attendance: {
@@ -184,6 +189,9 @@ export class PreschoolAnalyticsService {
         openSafetyExceptions,
       },
       commandCenter,
+      recentActivities,
+      notices,
+      weeklyMenu,
     };
   }
 }

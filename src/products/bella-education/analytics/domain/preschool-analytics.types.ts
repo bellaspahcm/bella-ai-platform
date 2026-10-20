@@ -72,6 +72,64 @@ export interface ExecutiveCommandCenterDTO {
   totalParentsCount: number;
 }
 
+export type PreschoolActivityCategory = 
+  | 'ALL'
+  | 'ATTENDANCE'     // Điểm danh & Đón trả trẻ
+  | 'LEARNING'       // Hoạt động học tập & Ngoại khóa
+  | 'CARE_NUTRITION' // Dinh dưỡng & Sức khỏe
+  | 'PARENT_COMM'    // Trao đổi phụ huynh & Thông báo
+  | 'FINANCE';       // Học phí & Thu chi
+
+export interface PreschoolActivityItemDTO {
+  id: string;
+  category: PreschoolActivityCategory;
+  categoryLabel: string;
+  title: string;
+  description: string;
+  timestamp: string;
+  displayTime: string;
+  actorRole?: string;
+  status?: string;
+}
+
+export interface PreschoolNoticeItemDTO {
+  id: string;
+  title: string;
+  bodyText: string;
+  category: string;
+  priority: 'LOW' | 'NORMAL' | 'HIGH' | 'URGENT';
+  date: string;
+  displayDate: string;
+  dueAt?: string | null;
+  iconColor?: string;
+}
+
+export interface PreschoolWeeklyMenuMealItemDTO {
+  mealType: 'BREAKFAST' | 'MORNING_SNACK' | 'LUNCH' | 'AFTERNOON_SNACK';
+  mealTypeLabel: string;
+  dishes: string[];
+}
+
+export interface PreschoolWeeklyMenuDayDTO {
+  dayKey: 'T2' | 'T3' | 'T4' | 'T5' | 'T6' | 'T7';
+  dayLabel: string;
+  dateStr: string;
+  badgeColor: string;
+  summaryDishes: string;
+  caloriesKcal?: number;
+  meals?: PreschoolWeeklyMenuMealItemDTO[];
+}
+
+export interface PreschoolWeeklyMenuDTO {
+  menuId: string;
+  weekNumber: number;
+  year: number;
+  startDate: string;
+  endDate: string;
+  status: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
+  days: PreschoolWeeklyMenuDayDTO[];
+}
+
 export interface ExecutiveDashboardDTO {
   tenantId: string;
   evaluatedAt: string;
@@ -84,4 +142,8 @@ export interface ExecutiveDashboardDTO {
   workforce: ExecutiveWorkforceMetricsDTO;
   facilities: ExecutiveFacilitiesMetricsDTO;
   commandCenter?: ExecutiveCommandCenterDTO;
+  recentActivities?: PreschoolActivityItemDTO[];
+  notices?: PreschoolNoticeItemDTO[];
+  weeklyMenu?: PreschoolWeeklyMenuDTO;
 }
+

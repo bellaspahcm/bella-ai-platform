@@ -22,7 +22,14 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase-client';
 import { clearDashboardClientContextCache } from '@/lib/dashboard-client-context';
-import type { ExecutiveDashboardDTO } from '@/products/bella-education/analytics/domain/preschool-analytics.types';
+import type { 
+  ExecutiveDashboardDTO, 
+  PreschoolActivityCategory, 
+  PreschoolActivityItemDTO,
+  PreschoolNoticeItemDTO,
+  PreschoolWeeklyMenuDTO,
+  PreschoolWeeklyMenuDayDTO
+} from '@/products/bella-education/analytics/domain/preschool-analytics.types';
 import { 
   Search,
   Bell,
@@ -54,6 +61,9 @@ import {
   Check,
   X,
   BookOpen,
+  Info,
+  Activity,
+  Filter,
 } from 'lucide-react';
 
 // Static default fallback data (module-level to avoid useMemo dep issues)
@@ -82,6 +92,15 @@ export default function EducationDashboardPage() {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
 
+  // School Activities Timeline Drawer & Filter States
+  const [isActivityDrawerOpen, setIsActivityDrawerOpen] = useState(false);
+  const [activityCategoryFilter, setActivityCategoryFilter] = useState<PreschoolActivityCategory>('ALL');
+  const [activitySearchQuery, setActivitySearchQuery] = useState('');
+
+  // School Notice Detail Modal & Weekly Nutrition Menu Drawer States
+  const [selectedNoticeModal, setSelectedNoticeModal] = useState<PreschoolNoticeItemDTO | null>(null);
+  const [isMenuDrawerOpen, setIsMenuDrawerOpen] = useState(false);
+
   const profileRef = useRef<HTMLDivElement>(null);
   const notificationRef = useRef<HTMLDivElement>(null);
   const datePickerRef = useRef<HTMLDivElement>(null);
@@ -96,7 +115,7 @@ export default function EducationDashboardPage() {
     return `${dayName}, ${day} tháng ${month}, ${year}`;
   };
 
-  // Close popovers on outside click
+  // Close popovers on outside click or Escape key
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (profileRef.current && !profileRef.current.contains(event.target as Node)) {
@@ -109,8 +128,22 @@ export default function EducationDashboardPage() {
         setIsDatePickerOpen(false);
       }
     }
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Escape') {
+        setIsActivityDrawerOpen(false);
+        setSelectedNoticeModal(null);
+        setIsMenuDrawerOpen(false);
+        setIsProfileOpen(false);
+        setIsNotificationsOpen(false);
+        setIsDatePickerOpen(false);
+      }
+    }
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      window.removeEventListener('keydown', handleKeyDown);
+    };
   }, []);
 
   const handleLogout = async () => {
@@ -141,6 +174,7 @@ export default function EducationDashboardPage() {
     async function fetchAnalytics() {
       try {
         setLoadingDashboard(true);
+        setDashboardData(null);
         const res = await fetch(`/api/education/analytics?date=${selectedDateStr}`, { cache: 'no-store' });
         if (!res.ok) return;
         const data = await res.json();
@@ -168,16 +202,14 @@ export default function EducationDashboardPage() {
   const totalParentsCount = dashboardData?.commandCenter?.totalParentsCount ?? 142;
 
   // Command Center Live Counts
-  const unmarkedAttendance = dashboardData?.commandCenter?.unmarkedAttendanceCount ?? 3;
-  const leaveRequests = dashboardData?.commandCenter?.leaveRequestsCount ?? 2;
-  const overdueInvoices = dashboardData?.commandCenter?.overdueInvoicesCount ?? 1;
-  const healthIncidents = dashboardData?.commandCenter?.healthIncidentsCount ?? 2;
-  const parentRequests = dashboardData?.commandCenter?.parentRequestsCount ?? 4;
-  const totalAttentionItems = (unmarkedAttendance > 0 ? 1 : 0) +
-    (leaveRequests > 0 ? 1 : 0) +
-    (overdueInvoices > 0 ? 1 : 0) +
-    (healthIncidents > 0 ? 1 : 0) +
-    (parentRequests > 0 ? 1 : 0);
+  const unmarkedAttendance = dashboardData?.commandCenter?.unmarkedAttendanceCount;
+  const leaveRequests = dashboardData?.commandCenter?.leaveRequestsCount;
+  const overdueInvoices = dashboardData?.commandCenter?.overdueInvoicesCount;
+  const healthIncidents = dashboardData?.commandCenter?.healthIncidentsCount;
+  const parentRequests = dashboardData?.commandCenter?.parentRequestsCount;
+  const totalAttentionItems = dashboardData?.commandCenter
+    ? [unmarkedAttendance, leaveRequests, overdueInvoices, healthIncidents, parentRequests].filter(count => count !== undefined && count > 0).length
+    : null;
 
   // Dynamic KPI Cards Data
   const kpiStats = [
@@ -201,7 +233,9 @@ export default function EducationDashboardPage() {
     },
     {
       id: 'total-teachers',
-      label: 'Giáo viên',
+      label: 'Tổng nhân sự',
+      note: 'Gồm GV, bảo mẫu & hỗ trợ',
+      tooltip: 'Bao gồm giáo viên, bảo mẫu và nhân viên hỗ trợ toàn trường',
       value: String(totalTeachersCount),
       change: '+2',
       comparison: 'so với tháng trước',
@@ -294,48 +328,164 @@ export default function EducationDashboardPage() {
     ];
   }, [dashboardData]);
 
-  // Recent Activities Data
-  const recentActivities = [
+  // Visual Styling Mapping for Activity Feed Items
+  const getActivityVisuals = (category: PreschoolActivityCategory) => {
+    switch (category) {
+      case 'ATTENDANCE':
+        return {
+          icon: <Baby className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />,
+          iconBg: 'bg-emerald-100 dark:bg-emerald-950/60',
+          badgeBg: 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800',
+        };
+      case 'LEARNING':
+        return {
+          icon: <Sprout className="w-4 h-4 text-green-600 dark:text-green-400" />,
+          iconBg: 'bg-green-100 dark:bg-green-950/60',
+          badgeBg: 'bg-green-50 text-green-700 border-green-200 dark:bg-green-950/40 dark:text-green-300 dark:border-green-800',
+        };
+      case 'PARENT_COMM':
+        return {
+          icon: <MessageSquare className="w-4 h-4 text-purple-600 dark:text-purple-400" />,
+          iconBg: 'bg-purple-100 dark:bg-purple-950/60',
+          badgeBg: 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-950/40 dark:text-purple-300 dark:border-purple-800',
+        };
+      case 'FINANCE':
+        return {
+          icon: <CreditCard className="w-4 h-4 text-amber-600 dark:text-amber-400" />,
+          iconBg: 'bg-amber-100 dark:bg-amber-950/60',
+          badgeBg: 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800',
+        };
+      case 'CARE_NUTRITION':
+      default:
+        return {
+          icon: <Utensils className="w-4 h-4 text-sky-600 dark:text-sky-400" />,
+          iconBg: 'bg-sky-100 dark:bg-sky-950/60',
+          badgeBg: 'bg-sky-50 text-sky-700 border-sky-200 dark:bg-sky-950/40 dark:text-sky-300 dark:border-sky-800',
+        };
+    }
+  };
+
+  // Seeded fallback activities matching layout
+  const defaultRecentActivities: PreschoolActivityItemDTO[] = useMemo(() => [
     {
-      id: 1,
-      name: 'Nguyễn Minh Anh',
-      action: 'Đã đến trường',
-      time: '07:32',
-      icon: <Baby className="w-4 h-4 text-emerald-600" />,
-      iconBg: 'bg-emerald-100 dark:bg-emerald-950/60',
+      id: 'mock-1',
+      category: 'ATTENDANCE',
+      categoryLabel: 'Điểm danh & Đón trả',
+      title: 'Nguyễn Minh Anh',
+      description: 'Đã đến trường — Cô Lan đón vào lớp',
+      timestamp: `${selectedDateStr}T07:32:00Z`,
+      displayTime: '07:32',
+      actorRole: 'Học sinh',
+      status: 'Đã đến',
     },
     {
-      id: 2,
-      name: 'Lớp Lá 1',
-      action: 'Hoàn thành hoạt động: Bé trồng cây',
-      time: '10:15',
-      icon: <Sprout className="w-4 h-4 text-green-600" />,
-      iconBg: 'bg-green-100 dark:bg-green-950/60',
+      id: 'mock-2',
+      category: 'LEARNING',
+      categoryLabel: 'Học tập & Trải nghiệm',
+      title: 'Lớp Lá 1',
+      description: 'Hoàn thành hoạt động: Bé trồng cây & khám phá thiên nhiên',
+      timestamp: `${selectedDateStr}T10:15:00Z`,
+      displayTime: '10:15',
+      actorRole: 'Giáo viên',
+      status: 'Hoàn thành',
     },
     {
-      id: 3,
-      name: 'Trần Thị Mai',
-      action: 'Đã gửi phản hồi cho giáo viên',
-      time: '11:20',
-      icon: <MessageSquare className="w-4 h-4 text-purple-600" />,
-      iconBg: 'bg-purple-100 dark:bg-purple-950/60',
+      id: 'mock-3',
+      category: 'PARENT_COMM',
+      categoryLabel: 'Tương tác phụ huynh',
+      title: 'Trần Thị Mai',
+      description: 'Đã gửi phản hồi và dặn dò chế độ ăn cho giáo viên',
+      timestamp: `${selectedDateStr}T11:20:00Z`,
+      displayTime: '11:20',
+      actorRole: 'Phụ huynh',
+      status: 'Đã nhận',
     },
     {
-      id: 4,
-      name: 'Phụ huynh Lê Hoàng',
-      action: 'Đã thanh toán học phí Tháng 10',
-      time: '14:08',
-      icon: <CreditCard className="w-4 h-4 text-amber-600" />,
-      iconBg: 'bg-amber-100 dark:bg-amber-950/60',
+      id: 'mock-4',
+      category: 'FINANCE',
+      categoryLabel: 'Tài chính & Học phí',
+      title: 'Phụ huynh Lê Hoàng',
+      description: 'Đã thanh toán học phí Tháng 10 qua cổng VietQR',
+      timestamp: `${selectedDateStr}T14:08:00Z`,
+      displayTime: '14:08',
+      actorRole: 'Phụ huynh',
+      status: 'Đã thanh toán',
     },
     {
-      id: 5,
-      name: 'Lớp Chồi 2',
-      action: 'Cập nhật thực đơn tuần mới',
-      time: '15:30',
-      icon: <CalendarDays className="w-4 h-4 text-indigo-600" />,
-      iconBg: 'bg-indigo-100 dark:bg-indigo-950/60',
+      id: 'mock-5',
+      category: 'CARE_NUTRITION',
+      categoryLabel: 'Chăm sóc & Dinh dưỡng',
+      title: 'Lớp Chồi 2',
+      description: 'Cập nhật thực đơn tuần mới: Phở bò, Sữa tươi, Chuối tiêu',
+      timestamp: `${selectedDateStr}T15:30:00Z`,
+      displayTime: '15:30',
+      actorRole: 'Dinh dưỡng',
+      status: 'Đã duyệt',
     },
+    {
+      id: 'mock-6',
+      category: 'ATTENDANCE',
+      categoryLabel: 'Điểm danh & Đón trả',
+      title: 'Trần Gia Bảo',
+      description: 'Bàn giao phụ huynh đón về an toàn lúc tan trường',
+      timestamp: `${selectedDateStr}T16:45:00Z`,
+      displayTime: '16:45',
+      actorRole: 'Học sinh',
+      status: 'Đã đón',
+    },
+  ], [selectedDateStr]);
+
+  // Dynamic School Activities Feed: Real-time aggregated stream with graceful fallback
+  const allActivities: PreschoolActivityItemDTO[] = useMemo(() => {
+    if (dashboardData?.recentActivities && dashboardData.recentActivities.length > 0) {
+      return dashboardData.recentActivities;
+    }
+    return defaultRecentActivities;
+  }, [dashboardData, defaultRecentActivities]);
+
+  // Top 5 activities for preview on dashboard widget
+  const previewActivities = useMemo(() => {
+    return allActivities.slice(0, 5);
+  }, [allActivities]);
+
+  // Filtered Activities for the slide-over Drawer
+  const filteredDrawerActivities = useMemo(() => {
+    return allActivities.filter((act) => {
+      const matchCategory = activityCategoryFilter === 'ALL' || act.category === activityCategoryFilter;
+      const query = activitySearchQuery.toLowerCase().trim();
+      const matchSearch = !query || 
+        act.title.toLowerCase().includes(query) || 
+        act.description.toLowerCase().includes(query) ||
+        (act.actorRole && act.actorRole.toLowerCase().includes(query)) ||
+        (act.categoryLabel && act.categoryLabel.toLowerCase().includes(query));
+      return matchCategory && matchSearch;
+    });
+  }, [allActivities, activityCategoryFilter, activitySearchQuery]);
+
+  const activityCategoryCounts = useMemo(() => {
+    const counts: Record<PreschoolActivityCategory, number> = {
+      ALL: allActivities.length,
+      ATTENDANCE: 0,
+      LEARNING: 0,
+      CARE_NUTRITION: 0,
+      PARENT_COMM: 0,
+      FINANCE: 0,
+    };
+    allActivities.forEach((act) => {
+      if (counts[act.category] !== undefined) {
+        counts[act.category]++;
+      }
+    });
+    return counts;
+  }, [allActivities]);
+
+  const categoryFilterTabs: Array<{ id: PreschoolActivityCategory; label: string }> = [
+    { id: 'ALL', label: 'Tất cả' },
+    { id: 'ATTENDANCE', label: 'Điểm danh & Đón trả' },
+    { id: 'LEARNING', label: 'Học tập & Trải nghiệm' },
+    { id: 'CARE_NUTRITION', label: 'Chăm sóc & Dinh dưỡng' },
+    { id: 'PARENT_COMM', label: 'Tương tác phụ huynh' },
+    { id: 'FINANCE', label: 'Tài chính & Học phí' },
   ];
 
   // Monthly Revenue Chart Data responsive to selected period
@@ -366,22 +516,147 @@ export default function EducationDashboardPage() {
     ];
   }, [selectedRevenuePeriod]);
 
-  // Weekly Nutrition Menu
-  const weeklyMenu = [
-    { day: 'T2', color: 'bg-sky-400 text-white', dishes: 'Phở bò, Sữa tươi, Chuối' },
-    { day: 'T3', color: 'bg-rose-400 text-white', dishes: 'Cơm gà, Canh rau củ, Sữa chua' },
-    { day: 'T4', color: 'bg-emerald-400 text-white', dishes: 'Bún cá, Rau hấp, Dưa hấu' },
-    { day: 'T5', color: 'bg-blue-400 text-white', dishes: 'Cơm thịt kho, Canh bí đỏ, Sữa tươi' },
-    { day: 'T6', color: 'bg-purple-400 text-white', dishes: 'Mì trứng, Trứng hấp, Thanh long' },
-  ];
+  // Dynamic Weekly Nutrition Menu (P4.3) with real-time DB integration & graceful fallback
+  const defaultWeeklyMenuData: PreschoolWeeklyMenuDTO = useMemo(() => ({
+    menuId: 'menu-default',
+    weekNumber: 43,
+    year: 2026,
+    startDate: '2026-10-19',
+    endDate: '2026-10-23',
+    status: 'PUBLISHED',
+    days: [
+      {
+        dayKey: 'T2',
+        dayLabel: 'Thứ Hai',
+        dateStr: '19/10/2026',
+        badgeColor: 'bg-sky-400 text-white',
+        summaryDishes: 'Phở bò, Sữa tươi, Chuối',
+        caloriesKcal: 680,
+        meals: [
+          { mealType: 'BREAKFAST', mealTypeLabel: 'Bữa sáng', dishes: ['Phở bò Hà Nội'] },
+          { mealType: 'MORNING_SNACK', mealTypeLabel: 'Bữa phụ sáng', dishes: ['Sữa tươi thanh trùng 150ml'] },
+          { mealType: 'LUNCH', mealTypeLabel: 'Bữa trưa chính', dishes: ['Cơm dẻo', 'Thịt heo rim nước dừa', 'Canh bí đao nấu tôm'] },
+          { mealType: 'AFTERNOON_SNACK', mealTypeLabel: 'Bữa xế', dishes: ['Chuối tiêu chín', 'Bánh bông lan'] },
+        ],
+      },
+      {
+        dayKey: 'T3',
+        dayLabel: 'Thứ Ba',
+        dateStr: '20/10/2026',
+        badgeColor: 'bg-rose-400 text-white',
+        summaryDishes: 'Cơm gà, Canh rau củ, Sữa chua',
+        caloriesKcal: 710,
+        meals: [
+          { mealType: 'BREAKFAST', mealTypeLabel: 'Bữa sáng', dishes: ['Cháo gà hạt sen'] },
+          { mealType: 'MORNING_SNACK', mealTypeLabel: 'Bữa phụ sáng', dishes: ['Sữa đậu nành hữu cơ'] },
+          { mealType: 'LUNCH', mealTypeLabel: 'Bữa trưa chính', dishes: ['Cơm gà xé phay', 'Canh củ dền xương heo'] },
+          { mealType: 'AFTERNOON_SNACK', mealTypeLabel: 'Bữa xế', dishes: ['Sữa chua hoa quả dầm'] },
+        ],
+      },
+      {
+        dayKey: 'T4',
+        dayLabel: 'Thứ Tư',
+        dateStr: '21/10/2026',
+        badgeColor: 'bg-emerald-400 text-white',
+        summaryDishes: 'Bún cá, Rau hấp, Dưa hấu',
+        caloriesKcal: 670,
+        meals: [
+          { mealType: 'BREAKFAST', mealTypeLabel: 'Bữa sáng', dishes: ['Bún cá rô đồng'] },
+          { mealType: 'MORNING_SNACK', mealTypeLabel: 'Bữa phụ sáng', dishes: ['Nước ép táo nguyên chất'] },
+          { mealType: 'LUNCH', mealTypeLabel: 'Bữa trưa chính', dishes: ['Cơm trắng', 'Cá hồi áp chảo sốt bơ tỏi', 'Rau củ hấp', 'Canh rau ngót'] },
+          { mealType: 'AFTERNOON_SNACK', mealTypeLabel: 'Bữa xế', dishes: ['Dưa hấu tươi', 'Sữa hạt sen'] },
+        ],
+      },
+      {
+        dayKey: 'T5',
+        dayLabel: 'Thứ Năm',
+        dateStr: '22/10/2026',
+        badgeColor: 'bg-blue-400 text-white',
+        summaryDishes: 'Cơm thịt kho, Canh bí đỏ, Sữa tươi',
+        caloriesKcal: 720,
+        meals: [
+          { mealType: 'BREAKFAST', mealTypeLabel: 'Bữa sáng', dishes: ['Hủ tiếu Nam Vang thịt bằm'] },
+          { mealType: 'MORNING_SNACK', mealTypeLabel: 'Bữa phụ sáng', dishes: ['Sữa tươi Vinamilk 180ml'] },
+          { mealType: 'LUNCH', mealTypeLabel: 'Bữa trưa chính', dishes: ['Cơm thơm', 'Thịt ba chỉ kho trứng cút', 'Canh bí đỏ đậu phộng'] },
+          { mealType: 'AFTERNOON_SNACK', mealTypeLabel: 'Bữa xế', dishes: ['Bánh flan caramen', 'Thanh long ruột đỏ'] },
+        ],
+      },
+      {
+        dayKey: 'T6',
+        dayLabel: 'Thứ Sáu',
+        dateStr: '23/10/2026',
+        badgeColor: 'bg-purple-400 text-white',
+        summaryDishes: 'Mì trứng, Trứng hấp, Thanh long',
+        caloriesKcal: 690,
+        meals: [
+          { mealType: 'BREAKFAST', mealTypeLabel: 'Bữa sáng', dishes: ['Mì trứng xào thịt bò rau cải'] },
+          { mealType: 'MORNING_SNACK', mealTypeLabel: 'Bữa phụ sáng', dishes: ['Sữa bắp non ngọt dịu'] },
+          { mealType: 'LUNCH', mealTypeLabel: 'Bữa trưa chính', dishes: ['Cơm tấm mềm', 'Trứng hấp thịt bằm mộc nhĩ', 'Canh chua cá bông lau'] },
+          { mealType: 'AFTERNOON_SNACK', mealTypeLabel: 'Bữa xế', dishes: ['Thanh long trắng', 'Bánh quy bơ'] },
+        ],
+      },
+    ],
+  }), []);
 
-  // Announcements Data (Synchronized to October 2026 operations)
-  const announcements = [
-    { id: 1, title: 'Kế hoạch tổ chức Ngày Phụ nữ VN 20/10', date: '15/10/2026', iconColor: 'text-rose-500' },
-    { id: 2, title: 'Lịch khám sức khỏe & nha khoa định kỳ HK1', date: '12/10/2026', iconColor: 'text-sky-500' },
-    { id: 3, title: 'Lễ hội Hóa trang Halloween & Buffet bé yêu', date: '08/10/2026', iconColor: 'text-purple-500' },
-    { id: 4, title: 'Thông báo thu học phí & tiền ăn Tháng 10', date: '01/10/2026', iconColor: 'text-amber-500' },
-  ];
+  const weeklyMenuData: PreschoolWeeklyMenuDTO = useMemo(() => {
+    if (dashboardData?.weeklyMenu) {
+      return dashboardData.weeklyMenu;
+    }
+    return defaultWeeklyMenuData;
+  }, [dashboardData, defaultWeeklyMenuData]);
+
+  const weeklyMenuDays = weeklyMenuData.days;
+
+  // Dynamic School Announcements (P6.1) with real-time DB integration & fallback
+  const defaultAnnouncements: PreschoolNoticeItemDTO[] = useMemo(() => [
+    { 
+      id: 'n-1', 
+      title: 'Kế hoạch tổ chức Ngày Phụ nữ VN 20/10', 
+      bodyText: 'Nhà trường phát động chuỗi hoạt động làm thiệp và gửi lời chúc yêu thương của các bé đến bà và mẹ nhân ngày 20/10. Kính mời phụ huynh cùng tham gia triển lãm tranh tại sảnh trường.',
+      category: 'HOẠT ĐỘNG',
+      priority: 'HIGH',
+      date: '2026-10-15', 
+      displayDate: '15/10/2026', 
+      iconColor: 'text-rose-500' 
+    },
+    { 
+      id: 'n-2', 
+      title: 'Lịch khám sức khỏe & nha khoa định kỳ HK1', 
+      bodyText: 'Đoàn bác sĩ chuyên khoa Nhi & Răng Hàm Mặt sẽ tiến hành khám sức khỏe tổng quát và tầm soát răng miệng cho toàn bộ học sinh các khối Mầm, Chồi, Lá.',
+      category: 'Y TẾ',
+      priority: 'HIGH',
+      date: '2026-10-12', 
+      displayDate: '12/10/2026', 
+      iconColor: 'text-sky-500' 
+    },
+    { 
+      id: 'n-3', 
+      title: 'Lễ hội Hóa trang Halloween & Buffet bé yêu', 
+      bodyText: 'Chương trình hóa trang các nhân vật cổ tích và tiệc buffet dinh dưỡng với hơn 15 món ăn ngon miệng, hấp dẫn dành riêng cho bé diễn ra vào thứ Sáu cuối tháng.',
+      category: 'SỰ KIỆN',
+      priority: 'NORMAL',
+      date: '2026-10-08', 
+      displayDate: '08/10/2026', 
+      iconColor: 'text-purple-500' 
+    },
+    { 
+      id: 'n-4', 
+      title: 'Thông báo thu học phí & tiền ăn Tháng 10', 
+      bodyText: 'Kế toán gửi thông báo biểu phí học tập, tiền ăn và các câu lạc bộ ngoại khóa Tháng 10/2026. Hạn hoàn tất đối soát học phí đến hết ngày 15/10/2026.',
+      category: 'TÀI CHÍNH',
+      priority: 'NORMAL',
+      date: '2026-10-01', 
+      displayDate: '01/10/2026', 
+      iconColor: 'text-amber-500' 
+    },
+  ], []);
+
+  const announcements: PreschoolNoticeItemDTO[] = useMemo(() => {
+    if (dashboardData?.notices && dashboardData.notices.length > 0) {
+      return dashboardData.notices;
+    }
+    return defaultAnnouncements;
+  }, [dashboardData, defaultAnnouncements]);
 
   return (
     <div className="preschool-ui min-h-screen bg-background p-4 sm:p-6 lg:p-7 space-y-6 text-slate-800 dark:text-slate-100 font-sans">
@@ -717,12 +992,12 @@ export default function EducationDashboardPage() {
             <h2 className="text-sm sm:text-base font-black text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
               <span>Cần xử lý hôm nay</span>
               <span className="text-[11px] font-bold text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/80 border border-rose-200/60 dark:border-rose-900 px-2.5 py-0.5 rounded-full lowercase">
-                {totalAttentionItems} mục cần chú ý
+                {totalAttentionItems === null ? (loadingDashboard ? 'Đang tải' : 'Chưa có dữ liệu') : `${totalAttentionItems} mục cần chú ý`}
               </span>
             </h2>
           </div>
           <span className="text-xs font-semibold text-slate-600 dark:text-slate-300 hidden sm:inline-block">
-            Lớp 1: Command Center • Cập nhật realtime
+            {loadingDashboard ? 'Đang tải số liệu' : dashboardData?.commandCenter ? 'Dữ liệu tại lần tải gần nhất' : 'Không tải được số liệu cảnh báo'}
           </span>
         </div>
 
@@ -735,60 +1010,60 @@ export default function EducationDashboardPage() {
               <CalendarCheck className="w-4 h-4" />
             </div>
             <div className="min-w-0">
-              <p className="text-xs font-black text-amber-950 dark:text-amber-200 truncate">{unmarkedAttendance} trẻ chưa điểm danh</p>
+              <p className="text-xs font-black text-amber-950 dark:text-amber-200 truncate">{unmarkedAttendance ?? '—'} trẻ chưa điểm danh</p>
               <span className="text-[11px] font-bold text-amber-700 dark:text-amber-400 group-hover:underline">Điểm danh ngay →</span>
             </div>
           </Link>
 
           <Link
-            href="/dashboard/education/care"
+            href="/dashboard/education/work-queue?view=absences"
             className="flex items-center gap-3 p-3.5 rounded-2xl bg-sky-50/80 dark:bg-sky-950/40 border border-sky-200/70 dark:border-sky-900/60 hover:bg-sky-100/90 dark:hover:bg-sky-900/60 transition-all group cursor-pointer shadow-2xs"
           >
             <div className="w-8 h-8 rounded-xl bg-sky-500 text-white flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform">
               <FileText className="w-4 h-4" />
             </div>
             <div className="min-w-0">
-              <p className="text-xs font-black text-sky-950 dark:text-sky-200 truncate">{leaveRequests} đơn nghỉ chờ duyệt</p>
+              <p className="text-xs font-black text-sky-950 dark:text-sky-200 truncate">{leaveRequests ?? '—'} đơn xin nghỉ học chờ duyệt</p>
               <span className="text-[11px] font-bold text-sky-700 dark:text-sky-400 group-hover:underline">Duyệt ngay →</span>
             </div>
           </Link>
 
           <Link
-            href="/dashboard/education/finance"
+            href="/dashboard/education/finance?tab=debts"
             className="flex items-center gap-3 p-3.5 rounded-2xl bg-rose-50/80 dark:bg-rose-950/40 border border-rose-200/70 dark:border-rose-900/60 hover:bg-rose-100/90 dark:hover:bg-rose-900/60 transition-all group cursor-pointer shadow-2xs"
           >
             <div className="w-8 h-8 rounded-xl bg-rose-500 text-white flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform">
               <CreditCard className="w-4 h-4" />
             </div>
             <div className="min-w-0">
-              <p className="text-xs font-black text-rose-950 dark:text-rose-200 truncate">{overdueInvoices} học phí quá hạn</p>
-              <span className="text-[11px] font-bold text-rose-700 dark:text-rose-400 group-hover:underline">Gửi nhắc phí →</span>
+              <p className="text-xs font-black text-rose-950 dark:text-rose-200 truncate">{overdueInvoices ?? '—'} học phí quá hạn</p>
+              <span className="text-[11px] font-bold text-rose-700 dark:text-rose-400 group-hover:underline">Xem công nợ →</span>
             </div>
           </Link>
 
           <Link
-            href="/dashboard/education/care"
+            href="/dashboard/education/work-queue?view=health"
             className="flex items-center gap-3 p-3.5 rounded-2xl bg-red-50/80 dark:bg-red-950/40 border border-red-200/70 dark:border-red-900/60 hover:bg-red-100/90 dark:hover:bg-red-900/60 transition-all group cursor-pointer shadow-2xs"
           >
             <div className="w-8 h-8 rounded-xl bg-red-500 text-white flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform">
               <Heart className="w-4 h-4 animate-pulse" />
             </div>
             <div className="min-w-0">
-              <p className="text-xs font-black text-red-950 dark:text-red-200 truncate">{healthIncidents} sự cố sức khỏe</p>
+              <p className="text-xs font-black text-red-950 dark:text-red-200 truncate">{healthIncidents ?? '—'} sự cố sức khỏe</p>
               <span className="text-[11px] font-bold text-red-700 dark:text-red-400 group-hover:underline">Theo dõi bé →</span>
             </div>
           </Link>
 
           <Link
-            href="/dashboard/education/communication"
+            href="/dashboard/education/work-queue?view=parents"
             className="flex items-center gap-3 p-3.5 rounded-2xl bg-purple-50/80 dark:bg-purple-950/40 border border-purple-200/70 dark:border-purple-900/60 hover:bg-purple-100/90 dark:hover:bg-purple-900/60 transition-all group cursor-pointer shadow-2xs"
           >
             <div className="w-8 h-8 rounded-xl bg-purple-500 text-white flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform">
               <MessageSquare className="w-4 h-4" />
             </div>
             <div className="min-w-0">
-              <p className="text-xs font-black text-purple-950 dark:text-purple-200 truncate">{parentRequests} yêu cầu phụ huynh</p>
-              <span className="text-[11px] font-bold text-purple-700 dark:text-purple-400 group-hover:underline">Phản hồi →</span>
+              <p className="text-xs font-black text-purple-950 dark:text-purple-200 truncate">{parentRequests ?? '—'} yêu cầu phụ huynh</p>
+              <span className="text-[11px] font-bold text-purple-700 dark:text-purple-400 group-hover:underline">Xem yêu cầu →</span>
             </div>
           </Link>
         </div>
@@ -799,16 +1074,32 @@ export default function EducationDashboardPage() {
         {kpiStats.map((kpi) => (
           <div 
             key={kpi.id}
+            title={kpi.tooltip}
             className="rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/70 dark:border-slate-800 p-4 shadow-sm hover:shadow-md transition-all flex flex-col justify-between"
           >
             <div className="flex items-start justify-between">
               <div>
-                <span className="text-xs font-bold text-slate-600 dark:text-slate-300 block mb-1">
-                  {kpi.label}
-                </span>
+                <div className="flex items-center gap-1 mb-1">
+                  <span className="text-xs font-bold text-slate-600 dark:text-slate-300">
+                    {kpi.label}
+                  </span>
+                  {kpi.tooltip && (
+                    <span 
+                      className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-help inline-flex"
+                      title={kpi.tooltip}
+                    >
+                      <Info className="w-3.5 h-3.5" />
+                    </span>
+                  )}
+                </div>
                 <h3 className="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">
                   {kpi.value}
                 </h3>
+                {kpi.note && (
+                  <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium mt-0.5 leading-tight">
+                    {kpi.note}
+                  </p>
+                )}
               </div>
               <div className={`p-2.5 rounded-2xl ${kpi.iconBg}`}>
                 {kpi.icon}
@@ -951,39 +1242,43 @@ export default function EducationDashboardPage() {
         {/* Panel 3: Hoạt động gần đây (Timeline Feed - 3/12 cols) */}
         <div className="lg:col-span-3 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/70 dark:border-slate-800 p-5 shadow-sm space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="text-base font-bold text-slate-900 dark:text-white">
+            <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
               Hoạt động gần đây
             </h3>
-            <Link 
-              href="/dashboard/education/attendance" 
-              className="text-xs font-bold text-[var(--education-brand-ink)] hover:underline flex items-center gap-0.5"
+            <button 
+              type="button"
+              onClick={() => setIsActivityDrawerOpen(true)}
+              className="text-xs font-bold text-[var(--education-brand-ink)] hover:underline flex items-center gap-0.5 cursor-pointer"
             >
               <span>Xem tất cả</span>
               <ArrowRight className="w-3 h-3" />
-            </Link>
+            </button>
           </div>
 
           <div className="space-y-3 pt-1">
-            {recentActivities.map((act) => (
-              <div key={act.id} className="flex items-start justify-between gap-2 text-xs">
-                <div className="flex items-start gap-2.5 min-w-0">
-                  <div className={`p-1.5 rounded-full shrink-0 ${act.iconBg}`}>
-                    {act.icon}
+            {previewActivities.map((act) => {
+              const visuals = getActivityVisuals(act.category);
+              return (
+                <div key={act.id} className="flex items-start justify-between gap-2 text-xs">
+                  <div className="flex items-start gap-2.5 min-w-0">
+                    <div className={`p-1.5 rounded-full shrink-0 ${visuals.iconBg}`}>
+                      {visuals.icon}
+                    </div>
+                    <div className="min-w-0">
+                      <h4 className="font-bold text-slate-900 dark:text-white truncate">
+                        {act.title}
+                      </h4>
+                      <p className="text-[11px] font-medium text-slate-600 dark:text-slate-300 line-clamp-1">
+                        {act.description}
+                      </p>
+                    </div>
                   </div>
-                  <div className="min-w-0">
-                    <h4 className="font-bold text-slate-900 dark:text-white truncate">
-                      {act.name}
-                    </h4>
-                    <p className="text-[11px] font-medium text-slate-600 dark:text-slate-300 line-clamp-1">
-                      {act.action}
-                    </p>
-                  </div>
+                  <span className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 shrink-0 pt-0.5">
+                    {act.displayTime}
+                  </span>
                 </div>
-                <span className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 shrink-0 pt-0.5">
-                  {act.time}
-                </span>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 
@@ -1062,23 +1357,30 @@ export default function EducationDashboardPage() {
             <h3 className="text-base font-bold text-slate-900 dark:text-white">
               Thực đơn tuần này
             </h3>
-            <Link 
-              href="/dashboard/education/care" 
-              className="text-xs font-bold text-[var(--education-brand-ink)] hover:underline flex items-center gap-0.5"
+            <button 
+              type="button"
+              onClick={() => setIsMenuDrawerOpen(true)} 
+              className="text-xs font-bold text-[var(--education-brand-ink)] hover:underline flex items-center gap-0.5 cursor-pointer"
+              title="Xem chi tiết thực đơn dinh dưỡng 5 ngày"
             >
               <span>Xem chi tiết</span>
               <ArrowRight className="w-3 h-3" />
-            </Link>
+            </button>
           </div>
 
-          <div className="space-y-2.5 pt-1">
-            {weeklyMenu.map((item, idx) => (
-              <div key={idx} className="flex items-center gap-3 text-xs">
-                <span className={`w-6 h-6 rounded-lg font-bold flex items-center justify-center shrink-0 text-[11px] ${item.color}`}>
-                  {item.day}
+          <div className="space-y-2 pt-1">
+            {weeklyMenuDays.map((item, idx) => (
+              <div 
+                key={idx} 
+                onClick={() => setIsMenuDrawerOpen(true)}
+                className="flex items-center gap-3 text-xs p-1.5 -mx-1.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors cursor-pointer group"
+                title={`Nhấn xem thực đơn ${item.dayLabel}: ${item.summaryDishes}`}
+              >
+                <span className={`w-6 h-6 rounded-lg font-bold flex items-center justify-center shrink-0 text-[11px] shadow-xs group-hover:scale-105 transition-transform ${item.badgeColor}`}>
+                  {item.dayKey}
                 </span>
-                <span className="text-slate-700 dark:text-slate-300 font-medium truncate">
-                  {item.dishes}
+                <span className="text-slate-700 dark:text-slate-300 font-medium truncate group-hover:text-[var(--education-brand-ink)] transition-colors">
+                  {item.summaryDishes}
                 </span>
               </div>
             ))}
@@ -1092,25 +1394,31 @@ export default function EducationDashboardPage() {
               Thông báo
             </h3>
             <Link 
-              href="/dashboard/education/communication" 
+              href="/dashboard/education/communication?tab=announcements" 
               className="text-xs font-bold text-[var(--education-brand-ink)] hover:underline flex items-center gap-0.5"
+              title="Đến trang quản lý thông báo toàn trường"
             >
               <span>Xem tất cả</span>
               <ArrowRight className="w-3 h-3" />
             </Link>
           </div>
 
-          <div className="space-y-3 pt-1">
+          <div className="space-y-2.5 pt-1">
             {announcements.map((item) => (
-              <div key={item.id} className="flex items-center justify-between gap-3 text-xs">
+              <div 
+                key={item.id} 
+                onClick={() => setSelectedNoticeModal(item)}
+                className="flex items-center justify-between gap-3 text-xs p-1.5 -mx-1.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors cursor-pointer group"
+                title="Nhấn để xem toàn văn thông báo"
+              >
                 <div className="flex items-center gap-2.5 min-w-0">
-                  <Megaphone className={`w-4 h-4 shrink-0 ${item.iconColor}`} />
-                  <span className="font-semibold text-slate-800 dark:text-slate-200 truncate">
+                  <Megaphone className={`w-4 h-4 shrink-0 transition-transform group-hover:scale-110 ${item.iconColor || 'text-sky-500'}`} />
+                  <span className="font-semibold text-slate-800 dark:text-slate-200 truncate group-hover:text-[var(--education-brand-ink)] transition-colors">
                     {item.title}
                   </span>
                 </div>
                 <span className="text-[10px] font-medium text-slate-400 shrink-0">
-                  {item.date}
+                  {item.displayDate || item.date}
                 </span>
               </div>
             ))}
@@ -1132,6 +1440,370 @@ export default function EducationDashboardPage() {
           <span className="text-emerald-500">🌱</span>
         </div>
       </footer>
+
+      {/* ── 7. SCHOOL ACTIVITIES TIMELINE DRAWER / MODAL ── */}
+      {isActivityDrawerOpen && (
+        <div className="fixed inset-0 z-50 flex justify-end animate-in fade-in duration-200">
+          {/* Backdrop overlay */}
+          <div 
+            className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs transition-opacity cursor-pointer"
+            onClick={() => setIsActivityDrawerOpen(false)}
+            aria-label="Đóng nhật ký hoạt động"
+          />
+
+          {/* Drawer Container */}
+          <div className="relative w-full max-w-xl bg-white dark:bg-slate-900 shadow-2xl h-full flex flex-col z-10 border-l border-slate-200 dark:border-slate-800 animate-in slide-in-from-right duration-300">
+            {/* Drawer Header */}
+            <div className="p-5 sm:p-6 border-b border-slate-100 dark:border-slate-800 bg-gradient-to-r from-emerald-50/70 via-sky-50/40 to-transparent dark:from-emerald-950/30 dark:via-slate-900 dark:to-transparent">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-2xl bg-emerald-100 dark:bg-emerald-900/50 text-[#0e5c43] dark:text-emerald-400 flex items-center justify-center shrink-0 shadow-xs">
+                    <Clock className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h2 className="text-base sm:text-lg font-black text-slate-900 dark:text-white flex items-center gap-2">
+                      Nhật ký hoạt động toàn trường
+                      <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950/80 dark:text-emerald-300">
+                        {allActivities.length} sự kiện
+                      </span>
+                    </h2>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                      Dòng sự kiện thời gian thực tổng hợp đa phân hệ ({formatVietnameseDate(selectedDate)})
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setIsActivityDrawerOpen(false)}
+                  className="p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                  title="Đóng (Esc)"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Search Bar inside Drawer */}
+              <div className="relative mt-4">
+                <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  placeholder="Tìm theo tên học sinh, lớp, loại hoạt động..."
+                  value={activitySearchQuery}
+                  onChange={(e) => setActivitySearchQuery(e.target.value)}
+                  className="w-full pl-9 pr-8 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#0e5c43]"
+                />
+                {activitySearchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => setActivitySearchQuery('')}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-xs"
+                  >
+                    Xóa
+                  </button>
+                )}
+              </div>
+
+              {/* Category Filter Pills Bar */}
+              <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pt-3 -mx-1 px-1">
+                {categoryFilterTabs.map((tab) => {
+                  const isActive = activityCategoryFilter === tab.id;
+                  const count = activityCategoryCounts[tab.id] ?? 0;
+                  return (
+                    <button
+                      key={tab.id}
+                      type="button"
+                      onClick={() => setActivityCategoryFilter(tab.id)}
+                      className={`text-xs font-bold px-3 py-1.5 rounded-full whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 ${
+                        isActive
+                          ? 'bg-[#0e5c43] text-white shadow-xs'
+                          : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/60 border border-slate-200/80 dark:border-slate-700/80'
+                      }`}
+                    >
+                      <span>{tab.label}</span>
+                      <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-extrabold ${
+                        isActive 
+                          ? 'bg-white/20 text-white' 
+                          : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
+                      }`}>
+                        {count}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Activities Timeline Scrollable List */}
+            <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-4">
+              {filteredDrawerActivities.length === 0 ? (
+                <div className="py-16 text-center space-y-3">
+                  <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-400 flex items-center justify-center mx-auto">
+                    <Clock className="w-6 h-6" />
+                  </div>
+                  <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300">
+                    Không tìm thấy hoạt động nào phù hợp
+                  </h4>
+                  <p className="text-xs text-slate-400 max-w-xs mx-auto">
+                    Hãy thử đổi từ khóa tìm kiếm hoặc chọn danh mục khác.
+                  </p>
+                </div>
+              ) : (
+                <div className="relative pl-6 before:content-[''] before:absolute before:left-2.5 before:top-3 before:bottom-3 before:w-0.5 before:bg-slate-200 dark:before:bg-slate-800 space-y-4">
+                  {filteredDrawerActivities.map((act) => {
+                    const visuals = getActivityVisuals(act.category);
+                    return (
+                      <div key={act.id} className="relative group">
+                        {/* Timeline Node Dot */}
+                        <div className="absolute -left-6 top-1.5 w-5 h-5 rounded-full bg-white dark:bg-slate-900 border-2 border-slate-300 dark:border-slate-700 flex items-center justify-center group-hover:border-[#0e5c43] group-hover:scale-110 transition-all">
+                          <div className="w-2 h-2 rounded-full bg-[#0e5c43]" />
+                        </div>
+
+                        {/* Event Card */}
+                        <div className="rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-850 p-4 shadow-xs hover:shadow-md transition-shadow">
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="flex items-center gap-2">
+                              <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full border ${visuals.badgeBg}`}>
+                                {act.categoryLabel}
+                              </span>
+                              {act.actorRole && (
+                                <span className="text-[10px] font-semibold text-slate-500 dark:text-slate-400">
+                                  • {act.actorRole}
+                                </span>
+                              )}
+                            </div>
+                            <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 shrink-0">
+                              {act.displayTime}
+                            </span>
+                          </div>
+
+                          <div className="mt-2 flex items-start gap-3">
+                            <div className={`p-2 rounded-xl shrink-0 mt-0.5 ${visuals.iconBg}`}>
+                              {visuals.icon}
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <h4 className="text-sm font-extrabold text-slate-900 dark:text-white leading-tight">
+                                {act.title}
+                              </h4>
+                              <p className="text-xs text-slate-600 dark:text-slate-300 mt-1 leading-relaxed">
+                                {act.description}
+                              </p>
+                              {act.status && (
+                                <div className="mt-2.5 flex items-center gap-2">
+                                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                                    Trạng thái: {act.status}
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Drawer Footer with Quick Action Links */}
+            <div className="p-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/80 flex items-center justify-between text-xs font-semibold">
+              <span className="text-slate-500">
+                Nguồn: Tổng hợp hoạt động thời gian thực (P1–P9)
+              </span>
+              <div className="flex items-center gap-3">
+                <Link
+                  href="/dashboard/education/learning"
+                  className="text-emerald-700 dark:text-emerald-400 hover:underline flex items-center gap-1"
+                >
+                  <span>Học tập & Hoạt động</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── 8. NOTICE DETAIL MODAL ── */}
+      {selectedNoticeModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs animate-in fade-in duration-200">
+          <div 
+            className="fixed inset-0 cursor-pointer" 
+            onClick={() => setSelectedNoticeModal(null)}
+            aria-label="Đóng chi tiết thông báo"
+          />
+          <div className="relative w-full max-w-lg bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl p-6 sm:p-7 space-y-4 z-10 animate-in zoom-in-95 duration-200">
+            {/* Header */}
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-[10px] font-extrabold px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200/60">
+                  {selectedNoticeModal.category}
+                </span>
+                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                  selectedNoticeModal.priority === 'URGENT' || selectedNoticeModal.priority === 'HIGH'
+                    ? 'bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 border border-rose-200/60'
+                    : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300'
+                }`}>
+                  Độ ưu tiên: {selectedNoticeModal.priority}
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedNoticeModal(null)}
+                className="p-1.5 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                aria-label="Đóng"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Title & Date */}
+            <div>
+              <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-white leading-snug">
+                {selectedNoticeModal.title}
+              </h3>
+              <div className="flex items-center gap-3 text-xs text-slate-400 font-medium mt-1.5">
+                <span>Ngày ban hành: <strong className="text-slate-600 dark:text-slate-300">{selectedNoticeModal.displayDate}</strong></span>
+                {selectedNoticeModal.dueAt && (
+                  <span>• Hạn: <strong className="text-amber-600 dark:text-amber-400">{selectedNoticeModal.dueAt.slice(0, 10)}</strong></span>
+                )}
+              </div>
+            </div>
+
+            {/* Content Body */}
+            <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 text-xs sm:text-sm text-slate-700 dark:text-slate-300 leading-relaxed max-h-60 overflow-y-auto">
+              <p>{selectedNoticeModal.bodyText}</p>
+            </div>
+
+            {/* Footer */}
+            <div className="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-800">
+              <span className="text-[11px] text-slate-400 font-medium">
+                Nguồn: edu_comm_notices (P6.1)
+              </span>
+              <div className="flex items-center gap-2">
+                <Link
+                  href="/dashboard/education/communication?tab=announcements"
+                  onClick={() => setSelectedNoticeModal(null)}
+                  className="px-3.5 py-1.5 rounded-xl bg-[#0c513f] text-white text-xs font-bold hover:bg-[#083b2e] transition-colors flex items-center gap-1 shadow-xs"
+                >
+                  <span>Mở trong Truyền thông</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── 9. WEEKLY NUTRITION MENU DRAWER ── */}
+      {isMenuDrawerOpen && (
+        <div className="fixed inset-0 z-50 flex justify-end animate-in fade-in duration-200">
+          <div 
+            className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs transition-opacity cursor-pointer"
+            onClick={() => setIsMenuDrawerOpen(false)}
+            aria-label="Đóng thực đơn dinh dưỡng"
+          />
+
+          <div className="relative w-full max-w-xl bg-white dark:bg-slate-900 shadow-2xl h-full flex flex-col z-10 border-l border-slate-200 dark:border-slate-800 animate-in slide-in-from-right duration-300">
+            {/* Header */}
+            <div className="p-5 sm:p-6 border-b border-slate-100 dark:border-slate-800 bg-gradient-to-r from-emerald-50/70 via-sky-50/40 to-transparent dark:from-emerald-950/30 dark:via-slate-900 dark:to-transparent">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-2xl bg-emerald-100 dark:bg-emerald-900/50 text-[#0e5c43] dark:text-emerald-400 flex items-center justify-center shrink-0 shadow-xs">
+                    <Utensils className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h2 className="text-base sm:text-lg font-black text-slate-900 dark:text-white flex items-center gap-2">
+                      Thực đơn dinh dưỡng tuần này
+                      <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950/80 dark:text-emerald-300">
+                        {weeklyMenuData.status === 'PUBLISHED' ? 'Đã ban hành' : 'Dự thảo'}
+                      </span>
+                    </h2>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                      Tuần {weeklyMenuData.weekNumber} ({weeklyMenuData.startDate} – {weeklyMenuData.endDate}) • Đảm bảo chuẩn Kcal học đường
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setIsMenuDrawerOpen(false)}
+                  className="p-2 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                  aria-label="Đóng thực đơn"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Body: 5 Days Breakdown */}
+            <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-4">
+              {weeklyMenuDays.map((day) => (
+                <div 
+                  key={day.dayKey} 
+                  className="rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-850 p-4 shadow-xs space-y-3"
+                >
+                  <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800/80 pb-2.5">
+                    <div className="flex items-center gap-2.5">
+                      <span className={`w-7 h-7 rounded-lg font-bold flex items-center justify-center text-xs shadow-xs ${day.badgeColor}`}>
+                        {day.dayKey}
+                      </span>
+                      <div>
+                        <h4 className="text-xs font-black text-slate-900 dark:text-white">
+                          {day.dayLabel} • {day.dateStr}
+                        </h4>
+                        <span className="text-[11px] text-slate-500 font-medium">
+                          {day.summaryDishes}
+                        </span>
+                      </div>
+                    </div>
+                    {day.caloriesKcal && (
+                      <span className="text-[11px] font-extrabold px-2 py-0.5 rounded-md bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200/60">
+                        {day.caloriesKcal} Kcal
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Meals Breakdown */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1 text-xs">
+                    {day.meals && day.meals.length > 0 ? (
+                      day.meals.map((meal, mIdx) => (
+                        <div key={mIdx} className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800 space-y-1">
+                          <span className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400">
+                            {meal.mealTypeLabel}
+                          </span>
+                          <p className="font-semibold text-slate-800 dark:text-slate-200 text-xs">
+                            {meal.dishes.join(', ')}
+                          </p>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/40 col-span-2 text-slate-600 dark:text-slate-300">
+                        {day.summaryDishes}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Footer */}
+            <div className="p-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/80 flex items-center justify-between text-xs font-semibold">
+              <span className="text-slate-500">
+                Lá chắn dị ứng: P4.1 Allergy Shield
+              </span>
+              <Link
+                href="/dashboard/education/care"
+                onClick={() => setIsMenuDrawerOpen(false)}
+                className="text-emerald-700 dark:text-emerald-400 hover:underline flex items-center gap-1 font-bold"
+              >
+                <span>Chuyển tới Chăm sóc & Điểm danh suất ăn</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );

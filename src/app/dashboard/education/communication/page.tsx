@@ -62,7 +62,7 @@ import {
 import { getCachedTenantSettings } from '@/lib/dashboard-client-context';
 import { resolveTenantBrandIdentity } from '@/lib/business-rules/tenant-modules';
 
-// ── Strict Domain Types ───────────────────────────────────────────────────────
+// ── Strict Domain Types ─────────────────────────────────────────────────────────
 
 export type CommTabKey = 'overview' | 'messages' | 'daily' | 'announcements' | 'consent' | 'media';
 
@@ -446,17 +446,104 @@ const STUDENT_TO_CONV_MAP: Record<string, { convId: string; studentName: string 
   'STU-008': { convId: 'CONV-008', studentName: 'Ngô Nhật Minh' },
 };
 
+// ── Static notice seed for Announcements tab (replaces real DB data until API ready) ──
+interface NoticeRow {
+  readonly id: string;
+  readonly title: string;
+  readonly body: string;
+  readonly target_scope: string;
+  readonly notice_type: string;
+  readonly published_at: string;
+  readonly created_by_name: string;
+  readonly read_count: number;
+  readonly total_recipients: number;
+}
+
+const SAMPLE_NOTICES: readonly NoticeRow[] = [
+  {
+    id: 'N-001',
+    title: 'Thông báo lịch nghỉ Lễ 02/09 — Quốc khánh 2026',
+    body: 'Kính gửi quý phụ huynh, nhà trường thông báo học sinh được nghỉ học ngày 02/09/2026 (Thứ Tư) nhân dịp Quốc khánh nước CHXHCN Việt Nam. Trẻ sẽ đi học trở lại bình thường vào thứ Năm 03/09/2026. Nhà trường trân trọng kính báo.',
+    target_scope: 'Toàn trường',
+    notice_type: 'general',
+    published_at: '2026-08-28T08:00:00',
+    created_by_name: 'BGH Trường Mầm Non Bella',
+    read_count: 274,
+    total_recipients: 280,
+  },
+  {
+    id: 'N-002',
+    title: 'Biểu mẫu đồng ý tham gia Dã ngoại Tháng 9 — Hạn 10/09',
+    body: 'Nhà trường tổ chức chuyến dã ngoại học tập tại Vườn thực vật quận 9 vào ngày 15/09/2026. Kính mời phụ huynh điền xác nhận tham gia cho bé qua ứng dụng hoặc gửi phiếu giấy về cho giáo viên chủ nhiệm trước ngày 10/09/2026. Chi phí đóng góp: 150.000đ/bé (đã bao gồm xe, bảo hiểm và bữa ăn nhẹ).',
+    target_scope: 'Toàn trường',
+    notice_type: 'consent',
+    published_at: '2026-09-01T08:30:00',
+    created_by_name: 'Cô Nguyễn Thị Mai (BGH)',
+    read_count: 240,
+    total_recipients: 280,
+  },
+  {
+    id: 'N-003',
+    title: 'Thực đơn tháng 10 — Bổ sung món dinh dưỡng mới',
+    body: 'Từ tháng 10/2026, nhà bếp sẽ bổ sung thêm 3 món mới vào thực đơn hàng tuần theo tư vấn của chuyên gia dinh dưỡng: cháo lươn đậu xanh (thứ Hai), súp bí đỏ phô mai (thứ Tư), và mì sốt thịt bò bằm rau củ (thứ Sáu). Phụ huynh có thể xem thực đơn chi tiết từng tuần tại mục Thực đơn tuần trên trang Tổng quan.',
+    target_scope: 'Toàn trường',
+    notice_type: 'nutrition',
+    published_at: '2026-09-25T09:00:00',
+    created_by_name: 'Bếp trưởng Trần Văn Minh',
+    read_count: 198,
+    total_recipients: 280,
+  },
+  {
+    id: 'N-004',
+    title: 'Kế hoạch Tết Trung Thu 2026 — Chương trình đêm hội',
+    body: 'Nhà trường tổ chức Đêm hội Trung Thu cho toàn trường vào tối ngày 29/09/2026 (14 tháng 8 Âm lịch), từ 17:30–20:00 tại sân trường. Phụ huynh được mời tham dự và chụp ảnh cùng các bé. Trẻ mặc trang phục dân tộc hoặc hóa trang nhân vật đèn lồng yêu thích. Đêm hội bao gồm: múa lân, làm đèn lồng, phá cỗ và tặng quà cho các bé.',
+    target_scope: 'Toàn trường',
+    notice_type: 'event',
+    published_at: '2026-09-20T07:00:00',
+    created_by_name: 'BGH Trường Mầm Non Bella',
+    read_count: 268,
+    total_recipients: 280,
+  },
+  {
+    id: 'N-005',
+    title: 'Thông báo học phí tháng 10 — Hạn đóng 15/10',
+    body: 'Kính gửi quý phụ huynh, học phí tháng 10/2026 đến hạn thanh toán vào ngày 15/10/2026. Nhà trường hỗ trợ thanh toán qua: chuyển khoản ngân hàng (STK: 9704...1234 — Techcombank), QR Code tại quầy hoặc ứng dụng phụ huynh. Phụ huynh chưa đóng sau ngày 20/10 sẽ được liên hệ trực tiếp. Cảm ơn quý phụ huynh đã phối hợp.',
+    target_scope: 'Toàn trường',
+    notice_type: 'tuition',
+    published_at: '2026-10-01T08:00:00',
+    created_by_name: 'Phòng Kế toán',
+    read_count: 210,
+    total_recipients: 280,
+  },
+];
+
+const NOTICE_TYPE_LABEL: Record<string, { label: string; cls: string }> = {
+  general:   { label: 'Thông báo chung',  cls: 'bg-blue-50 text-blue-700 border-blue-200' },
+  consent:   { label: 'Biểu mẫu đồng ý', cls: 'bg-purple-50 text-purple-700 border-purple-200' },
+  nutrition: { label: 'Dinh dưỡng',       cls: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
+  event:     { label: 'Sự kiện',          cls: 'bg-amber-50 text-amber-700 border-amber-200' },
+  tuition:   { label: 'Học phí',          cls: 'bg-rose-50 text-rose-700 border-rose-200' },
+};
+
 function PreschoolCommunicationContent() {
   const searchParams = useSearchParams();
   const studentParam = searchParams ? searchParams.get('student') : null;
+  const tabParam = searchParams ? searchParams.get('tab') : null;
   const [isPreschoolTenant, setIsPreschoolTenant] = useState<boolean>(true);
 
   // Filter & Navigation states
-  const [activeNavTab, setActiveNavTab] = useState<CommTabKey>('overview');
+  const [activeNavTab, setActiveNavTab] = useState<CommTabKey>(tabParam === 'announcements' ? 'announcements' : 'overview');
   const [selectedMonth, setSelectedMonth] = useState<string>('Tháng 09/2026');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [conversationFilter, setConversationFilter] = useState<ConversationFilterKey>('ALL');
   const [currentPage, setCurrentPage] = useState<number>(1);
+
+  // Auto-switch to announcements if tab=announcements is passed in query
+  useEffect(() => {
+    if (tabParam === 'announcements') {
+      setActiveNavTab('announcements');
+    }
+  }, [tabParam]);
 
   // Selected conversation for the right detail workspace
   const [selectedConversationId, setSelectedConversationId] = useState<string>('CONV-001');
@@ -885,7 +972,100 @@ function PreschoolCommunicationContent() {
         </button>
       </div>
 
+      {/* ── ANNOUNCEMENTS TAB VIEW ── */}
+      {activeNavTab === 'announcements' && (
+        <div className="space-y-4">
+          {/* Header row */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Bell className="w-4 h-4 text-[#0c513f]" />
+              <h2 className="text-sm font-extrabold text-slate-900 dark:text-white">Thông báo điều hành</h2>
+              <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-[#0c513f]/10 text-[#0c513f]">
+                {SAMPLE_NOTICES.length} thông báo
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={() => { setActionNotice(null); setIsBroadcastModalOpen(true); }}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-[#0c513f] hover:bg-[#083b2e] text-white text-xs font-bold shadow-sm transition-all active:scale-95 cursor-pointer"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>Soạn thông báo mới</span>
+            </button>
+          </div>
+
+          {/* Notice cards */}
+          <div className="space-y-3">
+            {SAMPLE_NOTICES.map((notice) => {
+              const typeInfo = NOTICE_TYPE_LABEL[notice.notice_type] ?? { label: notice.notice_type, cls: 'bg-slate-50 text-slate-600 border-slate-200' };
+              const readPct = notice.total_recipients > 0
+                ? Math.round((notice.read_count / notice.total_recipients) * 100)
+                : 0;
+              const publishedDate = new Date(notice.published_at).toLocaleDateString('vi-VN', {
+                day: '2-digit', month: '2-digit', year: 'numeric',
+              });
+              return (
+                <div
+                  key={notice.id}
+                  className="rounded-3xl bg-white dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-700/80 shadow-sm p-5 space-y-3"
+                >
+                  {/* Top row: type badge + date + scope */}
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-extrabold border ${typeInfo.cls}`}>
+                      {typeInfo.label}
+                    </span>
+                    <span className="text-[11px] text-slate-400 font-medium">{publishedDate}</span>
+                    <span className="text-[11px] text-slate-400 font-medium">• {notice.target_scope}</span>
+                    <span className="text-[11px] text-slate-400 font-medium">• {notice.created_by_name}</span>
+                  </div>
+
+                  {/* Title */}
+                  <h3 className="text-sm font-extrabold text-slate-900 dark:text-white leading-snug">
+                    {notice.title}
+                  </h3>
+
+                  {/* Body preview */}
+                  <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed line-clamp-2">
+                    {notice.body}
+                  </p>
+
+                  {/* Footer: read progress */}
+                  <div className="flex items-center gap-3 pt-1">
+                    <div className="flex-1 space-y-1">
+                      <div className="flex items-center justify-between text-[11px] text-slate-500">
+                        <span>Đã đọc</span>
+                        <span className="font-bold text-slate-700 dark:text-slate-300">
+                          {notice.read_count} / {notice.total_recipients} phụ huynh ({readPct}%)
+                        </span>
+                      </div>
+                      <div className="w-full h-1.5 rounded-full bg-slate-100 dark:bg-slate-700 overflow-hidden">
+                        <div
+                          className="h-full bg-emerald-500 rounded-full transition-all"
+                          style={{ width: `${readPct}%` }}
+                        />
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      className="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/60 transition-colors cursor-pointer shrink-0"
+                    >
+                      Xem toàn văn
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Source note */}
+          <p className="text-[11px] text-slate-400 text-center">
+            Dữ liệu minh họa — Thực tế lấy từ bảng <code className="font-mono">edu_comm_notices</code> theo tenant.
+          </p>
+        </div>
+      )}
+
       {/* ── TWO-COLUMN SPLIT INBOX WORKSPACE MATCHING IMAGE 3 ── */}
+      {activeNavTab !== 'announcements' && (
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* ── LEFT COLUMN: CONVERSATION LIST (7 COLUMNS / ~58%) ── */}
         <div className="lg:col-span-7 rounded-3xl bg-white dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-700/80 shadow-sm p-5 sm:p-6 space-y-4">
@@ -1319,6 +1499,7 @@ function PreschoolCommunicationContent() {
           </div>
         </div>
       </div>
+      )}
 
       {/* ── BROADCAST ANNOUNCEMENT MODAL ── */}
       {isBroadcastModalOpen && (
