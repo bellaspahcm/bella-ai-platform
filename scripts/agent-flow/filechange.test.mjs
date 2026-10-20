@@ -97,6 +97,49 @@ test('reader denies authority before filesystem, refuses prior packages and expi
     await assert.rejects(readFileChanges(dir, { authorize: async () => ({}), clock: () => now + 1000 }), /EXPIRED/);
   } finally { await rm(dir, { recursive: true, force: true }); }
 });
+test('reader accepts mixed canonical facts and rejects each tampered digest without rewriting fixtures', async t => {
+  const dir = await createPrivateDirectory();
+  const options = { authorize: async () => ({}), clock: () => now };
+  try {
+    const contextPath = join(dir, 'context.json'), factsPath = join(dir, 'facts.json');
+    const context = { scope: 'filechange-canonical-batch', binding, createdAt: new Date(now).toISOString(), outputReviewDeadline: new Date(now + 1000).toISOString(), evidenceClass: 'fixture' };
+    const receivedAt = new Date(now).toISOString();
+    const facts = [
+      ...records().map(record => record.fact),
+      ...['commandExecution', 'agentMessage'].map(type => contract.normalizeNotification({
+        method: 'item/completed', params: { threadId: binding.threadId, turnId: binding.turnId, item: { id: `${type}-1`, type, status: 'completed', ...(type === 'commandExecution' ? { exitCode: 0 } : {}) } },
+      }, binding, receivedAt)),
+      contract.normalizeNotification({ method: 'turn/completed', params: { threadId: binding.threadId, turn: { id: binding.turnId, status: 'completed' } } }, binding, receivedAt),
+    ];
+    const data = { binding, records: facts.map(fact => ({ ...row(fact), storedAt: now, metadataExpiresAt: now + 14 * contract.DAY_MS, outputExpiresAt: now + 7 * contract.DAY_MS, outputState: 'ABSENT' })) };
+    await writeFile(contextPath, JSON.stringify(context));
+    await writeFile(factsPath, JSON.stringify(data));
+    const contextBefore = await readFile(contextPath), factsBefore = await readFile(factsPath);
+    const result = await readFileChanges(dir, options);
+    assert.equal(result.result, 'PASS_FILECHANGE_CANONICAL_READBACK');
+    assert.equal(result.records, 3);
+    assert.deepEqual(result.reconciliation, [{ itemId: 'change-1', result: 'MATCH' }]);
+    assert.deepEqual(await readFile(contextPath), contextBefore);
+    assert.deepEqual(await readFile(factsPath), factsBefore);
+
+    for (const [index, record] of data.records.entries()) {
+      await t.test(`${record.fact.itemType || 'turn'} ${record.fact.method} digest mismatch is rejected`, async () => {
+        const tampered = structuredClone(data);
+        const canonicalDigest = contract.signature(record.fact);
+        const incorrectDigest = (canonicalDigest[0] === '0' ? '1' : '0') + canonicalDigest.slice(1);
+        assert.match(incorrectDigest, /^[a-f0-9]{64}$/);
+        assert.notEqual(incorrectDigest, canonicalDigest);
+        tampered.records[index].digest = incorrectDigest;
+        await writeFile(factsPath, JSON.stringify(tampered));
+        const tamperedBefore = await readFile(factsPath);
+        await assert.rejects(readFileChanges(dir, options), { message: 'INVALID_STORE_RECORD' });
+        assert.deepEqual(await readFile(contextPath), contextBefore);
+        assert.deepEqual(await readFile(factsPath), tamperedBefore);
+      });
+    }
+  } finally { await rm(dir, { recursive: true, force: true }); }
+});
+
 test('reader rejects unauthorized repository and malformed canonical row metadata', async () => {
   const dir = await createPrivateDirectory();
   const options = { authorize: async () => ({}), clock: () => now };
