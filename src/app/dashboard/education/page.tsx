@@ -69,6 +69,19 @@ import {
   Loader2,
 } from 'lucide-react';
 
+let executiveMessageSequence = 0;
+function createExecutiveMessage(sender: 'user' | 'copilot', text: string) {
+  executiveMessageSequence += 1;
+  const now = new Date();
+  const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+  return {
+    id: `EXEC-${sender.toUpperCase()}-${executiveMessageSequence}`,
+    sender,
+    text,
+    time: timeStr,
+  };
+}
+
 export default function EducationDashboardPage() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
@@ -538,8 +551,7 @@ export default function EducationDashboardPage() {
     const q = (presetQuestion || executiveQuestion).trim();
     if (!q || isExecutiveAsking) return;
 
-    const timeStr = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
-    const userMsg = { id: `USER-${Date.now()}`, sender: 'user' as const, text: q, time: timeStr };
+    const userMsg = createExecutiveMessage('user', q);
     setExecutiveQnAMessages((prev) => [...prev, userMsg]);
     setExecutiveQuestion('');
     setIsExecutiveAsking(true);
@@ -567,12 +579,12 @@ export default function EducationDashboardPage() {
 
       setExecutiveQnAMessages((prev) => [
         ...prev,
-        { id: `COPILOT-${Date.now()}`, sender: 'copilot', text: reply, time: timeStr },
+        createExecutiveMessage('copilot', reply),
       ]);
     } catch {
       setExecutiveQnAMessages((prev) => [
         ...prev,
-        { id: `ERR-${Date.now()}`, sender: 'copilot', text: 'Có lỗi kết nối trợ lý AI.', time: timeStr },
+        createExecutiveMessage('copilot', 'Có lỗi kết nối trợ lý AI.'),
       ]);
     } finally {
       setIsExecutiveAsking(false);
