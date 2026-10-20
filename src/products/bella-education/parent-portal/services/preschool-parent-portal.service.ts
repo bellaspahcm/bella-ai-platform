@@ -4,9 +4,12 @@
  *
  * Implements:
  * 1. Cryptographic Magic Token generation and HMAC-SHA256 verification.
- * 2. Guardian Authorization Assertion against `party_relationships`.
+ * 2. Guardian Authorization Assertion (via ParentPortalRepository).
  * 3. Canonical Truth Aggregator across 7 operational pillars.
- * 4. Persistent Chat message dispatch to `edu_comm_responses`.
+ * 4. Persistent Chat message dispatch (via ParentPortalRepository).
+ *
+ * Architecture: This service MUST NOT call supabase.from() directly.
+ * All DB access is delegated to ParentPortalRepository.
  *
  * Strict Type Invariant: ZERO use of `any` and `unknown`.
  */
@@ -14,6 +17,7 @@
 import crypto from 'node:crypto';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Json } from '@/types/database.types';
+import { ParentPortalRepository } from '../repositories/parent-portal.repository';
 import type {
   ParentPortalTokenClaims,
   ParentPortalPayload,
@@ -33,34 +37,6 @@ import type {
 } from '../domain/parent-portal.types';
 
 type EducationSupabaseClient = SupabaseClient;
-
-interface DbWeeklyMenuDayRow {
-  day_of_week: string;
-  menu_date: string;
-  summary_dishes: string;
-  calories_kcal?: number | null;
-  meals_payload?: Json | null;
-}
-
-interface DbWeeklyMenuRow {
-  id: string;
-  week_number: number;
-  year: number;
-  start_date: string;
-  end_date: string;
-  status: string;
-  edu_weekly_menu_days?: DbWeeklyMenuDayRow[];
-}
-
-interface DbInvoiceRow {
-  id: string;
-  invoice_code?: string | null;
-  total_amount?: number | null;
-  paid_amount?: number | null;
-  status?: string | null;
-  due_date?: string | null;
-  billing_period_id?: string | null;
-}
 
 function parseMealRecords(raw: Json | null | undefined): ParentPortalMealRecord[] {
   if (!Array.isArray(raw)) return [];
@@ -244,7 +220,11 @@ function getTodayString(): string {
 }
 
 export class PreschoolParentPortalService {
-  constructor(private readonly supabase: EducationSupabaseClient) {}
+  private readonly repo: ParentPortalRepository;
+
+  constructor(supabase: EducationSupabaseClient) {
+    this.repo = new ParentPortalRepository(supabase);
+  }
 
   /**
    * Generates a tamper-proof signed magic token for guardian portal access
@@ -413,30 +393,21 @@ export class PreschoolParentPortalService {
       claims.studentPartyId
     );
 
-    // 2. Insert into `edu_comm_responses`
-    const { data: responseRow, error: insertError } = await this.supabase
-      .from('edu_comm_responses')
-      .insert({
-        tenant_id: claims.tenantId,
-        thread_id: thread.id,
-        sender_party_id: claims.guardianPartyId,
-        sender_role: 'GUARDIAN',
-        response_text: trimmed,
-        attachments: [],
-      })
-      .select('id, created_at, response_text, sender_role, sender_party_id')
-      .single();
+    // 2. Insert message via repository
+    const responseRow = await this.repo.insertCommResponse({
+      tenantId: claims.tenantId,
+      threadId: thread.id,
+      senderPartyId: claims.guardianPartyId,
+      senderRole: 'GUARDIAN',
+      responseText: trimmed,
+    });
 
-    if (insertError || !responseRow) {
-      throw new Error(`PERSIST_MESSAGE_FAILED: ${insertError?.message || 'Failed to save message'}`);
+    if (!responseRow) {
+      throw new Error('PERSIST_MESSAGE_FAILED: Failed to save message');
     }
 
     // 3. Touch thread last_activity_at
-    await this.supabase
-      .from('edu_comm_threads')
-      .update({ last_activity_at: new Date().toISOString() })
-      .eq('id', thread.id)
-      .eq('tenant_id', claims.tenantId);
+    await this.repo.touchThreadActivity(claims.tenantId, thread.id);
 
     return {
       id: responseRow.id,
@@ -454,48 +425,18 @@ export class PreschoolParentPortalService {
     guardianPartyId: string,
     studentPartyId: string
   ): Promise<boolean> {
-    const { data, error } = await this.supabase
-      .from('party_relationships')
-      .select('id, relationship_type, is_active')
-      .eq('tenant_id', tenantId)
-      .eq('party_id', guardianPartyId)
-      .eq('target_party_id', studentPartyId)
-      .eq('relationship_type', 'guardian_of')
-      .maybeSingle();
-
-    if (error || !data) {
-      // Check alternative case-insensitive relationship type
-      const { data: altData } = await this.supabase
-        .from('party_relationships')
-        .select('id')
-        .eq('tenant_id', tenantId)
-        .eq('party_id', guardianPartyId)
-        .eq('target_party_id', studentPartyId)
-        .maybeSingle();
-
-      return Boolean(altData);
-    }
-
-    return true;
+    const result = await this.repo.findGuardianRelationship(tenantId, guardianPartyId, studentPartyId);
+    return result !== null;
   }
 
   private async fetchGuardianProfile(
     tenantId: string,
     guardianPartyId: string
   ): Promise<{ name: string; phone: string | null }> {
-    const { data: party } = await this.supabase
-      .from('party_parties')
-      .select('display_name')
-      .eq('tenant_id', tenantId)
-      .eq('id', guardianPartyId)
-      .maybeSingle();
-
-    const { data: identifier } = await this.supabase
-      .from('party_identifiers')
-      .select('identifier_value')
-      .eq('tenant_id', tenantId)
-      .eq('party_id', guardianPartyId)
-      .maybeSingle();
+    const [party, identifier] = await Promise.all([
+      this.repo.findParty(tenantId, guardianPartyId),
+      this.repo.findPartyIdentifier(tenantId, guardianPartyId),
+    ]);
 
     return {
       name: party?.display_name || 'Phụ huynh',
@@ -507,19 +448,10 @@ export class PreschoolParentPortalService {
     tenantId: string,
     studentPartyId: string
   ): Promise<ParentPortalChildProfile> {
-    const { data: party } = await this.supabase
-      .from('party_parties')
-      .select('display_name, gender, dob')
-      .eq('tenant_id', tenantId)
-      .eq('id', studentPartyId)
-      .maybeSingle();
-
-    const { data: student } = await this.supabase
-      .from('students')
-      .select('student_code')
-      .eq('tenant_id', tenantId)
-      .eq('party_id', studentPartyId)
-      .maybeSingle();
+    const [party, student] = await Promise.all([
+      this.repo.findParty(tenantId, studentPartyId),
+      this.repo.findStudentByPartyId(tenantId, studentPartyId),
+    ]);
 
     return {
       studentPartyId,
@@ -535,11 +467,7 @@ export class PreschoolParentPortalService {
   private async fetchTenantProfile(
     tenantId: string
   ): Promise<{ name: string; logoUrl: string | null; phone: string | null; address: string | null }> {
-    const { data } = await this.supabase
-      .from('tenants')
-      .select('name, logo_url, contact_phone, address')
-      .eq('id', tenantId)
-      .maybeSingle();
+    const data = await this.repo.findTenant(tenantId);
 
     return {
       name: data?.name || 'Trường Mầm Non Ánh Dương',
@@ -555,13 +483,7 @@ export class PreschoolParentPortalService {
     schoolDay: string
   ): Promise<ParentPortalClassroomInfo> {
     // 1. Get student active enrollment
-    const { data: enrollment } = await this.supabase
-      .from('edu_enrollments')
-      .select('course_id')
-      .eq('tenant_id', tenantId)
-      .eq('student_party_id', studentPartyId)
-      .eq('status', 'active')
-      .maybeSingle();
+    const enrollment = await this.repo.findActiveEnrollment(tenantId, studentPartyId);
 
     if (!enrollment?.course_id) {
       return {
@@ -578,33 +500,15 @@ export class PreschoolParentPortalService {
 
     const courseId = enrollment.course_id;
 
-    // 2. Fetch course info
-    const { data: course } = await this.supabase
-      .from('edu_courses')
-      .select('course_code, title')
-      .eq('tenant_id', tenantId)
-      .eq('id', courseId)
-      .maybeSingle();
+    // 2. Fetch course info + counts in parallel
+    const [course, totalSize, presentCount] = await Promise.all([
+      this.repo.findCourse(tenantId, courseId),
+      this.repo.countActiveEnrollmentsInCourse(tenantId, courseId),
+      this.repo.countPresentStudentsInCourse(tenantId, courseId, schoolDay),
+    ]);
 
-    // 3. Count total active enrollments in this course
-    const { count: totalSize } = await this.supabase
-      .from('edu_enrollments')
-      .select('id', { count: 'exact', head: true })
-      .eq('tenant_id', tenantId)
-      .eq('course_id', courseId)
-      .eq('status', 'active');
-
-    // 4. Count present students on today in this course
-    const { count: presentCount } = await this.supabase
-      .from('edu_attendance_daily_state')
-      .select('id', { count: 'exact', head: true })
-      .eq('tenant_id', tenantId)
-      .eq('course_id', courseId)
-      .eq('school_day', schoolDay)
-      .in('status', ['present', 'late']);
-
-    const resolvedTotal = totalSize && totalSize > 0 ? totalSize : 25;
-    const resolvedPresent = presentCount !== null && presentCount !== undefined ? presentCount : Math.max(0, resolvedTotal - 2);
+    const resolvedTotal = totalSize > 0 ? totalSize : 25;
+    const resolvedPresent = presentCount >= 0 ? presentCount : Math.max(0, resolvedTotal - 2);
     const rate = Math.round((resolvedPresent / resolvedTotal) * 1000) / 10;
 
     return {
@@ -624,13 +528,7 @@ export class PreschoolParentPortalService {
     studentPartyId: string,
     schoolDay: string
   ): Promise<ParentPortalAttendance> {
-    const { data } = await this.supabase
-      .from('edu_attendance_daily_state')
-      .select('status, updated_at')
-      .eq('tenant_id', tenantId)
-      .eq('student_party_id', studentPartyId)
-      .eq('school_day', schoolDay)
-      .maybeSingle();
+    const data = await this.repo.findStudentAttendance(tenantId, studentPartyId, schoolDay);
 
     if (!data) {
       return {
@@ -656,25 +554,11 @@ export class PreschoolParentPortalService {
   private async fetchDailyCareRecord(
     tenantId: string,
     studentPartyId: string,
-    schoolDay: string
+    _schoolDay: string
   ): Promise<ParentPortalDailyCare | null> {
-    // 1. Try to find session for the day
-    const { data: session } = await this.supabase
-      .from('edu_daily_care_sessions')
-      .select('id')
-      .eq('tenant_id', tenantId)
-      .limit(1)
-      .maybeSingle();
-
-    // 2. Query record by student
-    const { data: record } = await this.supabase
-      .from('edu_daily_care_records')
-      .select('*')
-      .eq('tenant_id', tenantId)
-      .eq('student_id', studentPartyId)
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .maybeSingle();
+    // Fetch session and record via repository
+    await this.repo.findLatestDailyCareSession(tenantId);
+    const record = await this.repo.findLatestDailyCareRecord(tenantId, studentPartyId);
 
     if (!record) {
       return {
@@ -706,10 +590,10 @@ export class PreschoolParentPortalService {
       };
     }
 
-    const meals = parseMealRecords(record.meal_records as Json);
-    const hygiene = parseHygieneRecords(record.hygiene_records as Json);
-    const nap = parseNapRecords(record.nap_records as Json);
-    const health = parseHealthChecks(record.health_checks as Json);
+    const meals = parseMealRecords(record.meal_records);
+    const hygiene = parseHygieneRecords(record.hygiene_records);
+    const nap = parseNapRecords(record.nap_records);
+    const health = parseHealthChecks(record.health_checks);
 
     return {
       arrivalStatus: record.arrival_status || 'Đúng giờ',
@@ -726,7 +610,7 @@ export class PreschoolParentPortalService {
       ],
       napRecords: nap,
       healthChecks: health,
-      updatedAt: record.updated_at,
+      updatedAt: record.updated_at ?? new Date().toISOString(),
     };
   }
 
@@ -735,14 +619,7 @@ export class PreschoolParentPortalService {
     studentPartyId: string,
     schoolDay: string
   ): Promise<ParentPortalHandover> {
-    const { data } = await this.supabase
-      .from('edu_preschool_pickup_handover_events')
-      .select('id, handed_over_at, handed_over_by, guardian_party_id')
-      .eq('tenant_id', tenantId)
-      .eq('student_party_id', studentPartyId)
-      .gte('handed_over_at', `${schoolDay}T00:00:00.000Z`)
-      .lte('handed_over_at', `${schoolDay}T23:59:59.999Z`)
-      .maybeSingle();
+    const data = await this.repo.findPickupHandoverOnDay(tenantId, studentPartyId, schoolDay);
 
     if (!data) {
       return {
@@ -756,8 +633,8 @@ export class PreschoolParentPortalService {
     return {
       handedOver: true,
       handedOverAt: data.handed_over_at ? data.handed_over_at.slice(11, 16) : null,
-      handedOverBy: data.handed_over_by,
-      guardianPartyId: data.guardian_party_id,
+      handedOverBy: data.handed_over_by ?? null,
+      guardianPartyId: data.guardian_party_id ?? null,
     };
   }
 
@@ -765,15 +642,7 @@ export class PreschoolParentPortalService {
     tenantId: string,
     targetDateStr: string
   ): Promise<ParentPortalWeeklyMenu | null> {
-    const { data: rawMenuData } = await this.supabase
-      .from('edu_weekly_menus')
-      .select('id, week_number, year, start_date, end_date, status, edu_weekly_menu_days(*)')
-      .eq('tenant_id', tenantId)
-      .lte('start_date', targetDateStr)
-      .gte('end_date', targetDateStr)
-      .maybeSingle();
-
-    const menuData = rawMenuData as DbWeeklyMenuRow | null;
+    const menuData = await this.repo.findWeeklyMenuForDate(tenantId, targetDateStr);
 
     if (menuData && Array.isArray(menuData.edu_weekly_menu_days) && menuData.edu_weekly_menu_days.length > 0) {
       const daysMap: Record<string, 'T2' | 'T3' | 'T4' | 'T5' | 'T6' | 'T7'> = {
@@ -868,19 +737,9 @@ export class PreschoolParentPortalService {
     tenantId: string,
     studentPartyId: string
   ): Promise<ParentPortalTuition | null> {
-    const { data: rawInvoice } = await this.supabase
-      .from('edu_invoices')
-      .select('id, invoice_code, total_amount, paid_amount, status, due_date, billing_period_id')
-      .eq('tenant_id', tenantId)
-      .eq('student_party_id', studentPartyId)
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
-    const invoice = rawInvoice as DbInvoiceRow | null;
+    const invoice = await this.repo.findLatestInvoice(tenantId, studentPartyId);
 
     if (!invoice) {
-      // Return standard preschool fee outline
       const standardAmount = 4500000;
       return {
         invoiceId: 'inv-default',
@@ -897,7 +756,7 @@ export class PreschoolParentPortalService {
           { description: 'Phí dịch vụ bán trú & Chăm sóc', amount: 310000 },
         ],
         vietQrPayload: {
-          bankCode: '970407', // Techcombank
+          bankCode: '970407',
           accountNumber: '19036888999',
           accountName: 'TRUONG MAM NON ANH DUONG',
           amount: standardAmount,
@@ -910,7 +769,6 @@ export class PreschoolParentPortalService {
     const total = invoice.total_amount || 0;
     const paid = invoice.paid_amount || 0;
     const balance = Math.max(0, total - paid);
-    const rawStatus = (invoice.status || 'UNPAID').toUpperCase();
     const status: ParentPortalTuition['status'] =
       balance === 0 ? 'PAID' : paid > 0 ? 'PARTIALLY_PAID' : 'UNPAID';
 
@@ -944,16 +802,9 @@ export class PreschoolParentPortalService {
     studentPartyId: string
   ): Promise<{ threadId: string; messages: readonly ParentPortalChatMessage[] }> {
     const thread = await this.ensureCommunicationThread(tenantId, guardianPartyId, studentPartyId);
+    const responses = await this.repo.listCommResponses(tenantId, thread.id, 40);
 
-    const { data: responses } = await this.supabase
-      .from('edu_comm_responses')
-      .select('id, response_text, sender_role, created_at, sender_party_id')
-      .eq('tenant_id', tenantId)
-      .eq('thread_id', thread.id)
-      .order('created_at', { ascending: true })
-      .limit(40);
-
-    if (!responses || responses.length === 0) {
+    if (responses.length === 0) {
       return {
         threadId: thread.id,
         messages: [
@@ -990,35 +841,15 @@ export class PreschoolParentPortalService {
     guardianPartyId: string,
     studentPartyId: string
   ): Promise<{ id: string }> {
-    const { data: existing } = await this.supabase
-      .from('edu_comm_threads')
-      .select('id')
-      .eq('tenant_id', tenantId)
-      .eq('student_id', studentPartyId)
-      .eq('guardian_party_id', guardianPartyId)
-      .maybeSingle();
+    const existing = await this.repo.findCommThread(tenantId, studentPartyId, guardianPartyId);
 
     if (existing) {
       return { id: existing.id };
     }
 
-    const { data: created, error } = await this.supabase
-      .from('edu_comm_threads')
-      .insert({
-        tenant_id: tenantId,
-        student_id: studentPartyId,
-        guardian_party_id: guardianPartyId,
-        created_by: guardianPartyId,
-        title: 'Trao đổi Phụ huynh & Nhà trường',
-        thread_type: 'GENERAL',
-        status: 'ACTIVE',
-        last_activity_at: new Date().toISOString(),
-      })
-      .select('id')
-      .single();
+    const created = await this.repo.createCommThread(tenantId, studentPartyId, guardianPartyId);
 
-    if (error || !created) {
-      // Fallback: return deterministic ID or throw
+    if (!created) {
       const fallbackId = `thread-${studentPartyId.slice(0, 8)}-${guardianPartyId.slice(0, 8)}`;
       return { id: fallbackId };
     }
