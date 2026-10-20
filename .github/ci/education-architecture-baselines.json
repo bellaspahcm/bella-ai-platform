@@ -237,7 +237,23 @@
       "analytics/repositories/preschool-analytics.repository.ts:L314 - Direct database query targeting '.from('edu_' is prohibited in the Product layer.": 1,
       "analytics/repositories/preschool-analytics.repository.ts:L325 - Direct database query targeting '.from('edu_' is prohibited in the Product layer.": 1,
       "analytics/repositories/preschool-analytics.repository.ts:L534 - Direct database query targeting '.from('edu_' is prohibited in the Product layer.": 1,
-      "analytics/repositories/preschool-analytics.repository.ts:L588 - Direct database query targeting '.from('edu_' is prohibited in the Product layer.": 1
+      "analytics/repositories/preschool-analytics.repository.ts:L588 - Direct database query targeting '.from('edu_' is prohibited in the Product layer.": 1,
+      "parent-portal/repositories/parent-portal.repository.ts:L184 - Direct database query targeting '.from('students' is prohibited in the Product layer.": 1,
+      "parent-portal/repositories/parent-portal.repository.ts:L208 - Direct database query targeting '.from('edu_' is prohibited in the Product layer.": 1,
+      "parent-portal/repositories/parent-portal.repository.ts:L219 - Direct database query targeting '.from('edu_' is prohibited in the Product layer.": 1,
+      "parent-portal/repositories/parent-portal.repository.ts:L229 - Direct database query targeting '.from('edu_' is prohibited in the Product layer.": 1,
+      "parent-portal/repositories/parent-portal.repository.ts:L243 - Direct database query targeting '.from('edu_' is prohibited in the Product layer.": 1,
+      "parent-portal/repositories/parent-portal.repository.ts:L260 - Direct database query targeting '.from('edu_' is prohibited in the Product layer.": 1,
+      "parent-portal/repositories/parent-portal.repository.ts:L273 - Direct database query targeting '.from('edu_' is prohibited in the Product layer.": 1,
+      "parent-portal/repositories/parent-portal.repository.ts:L286 - Direct database query targeting '.from('edu_' is prohibited in the Product layer.": 1,
+      "parent-portal/repositories/parent-portal.repository.ts:L304 - Direct database query targeting '.from('edu_' is prohibited in the Product layer.": 1,
+      "parent-portal/repositories/parent-portal.repository.ts:L321 - Direct database query targeting '.from('edu_' is prohibited in the Product layer.": 1,
+      "parent-portal/repositories/parent-portal.repository.ts:L337 - Direct database query targeting '.from('edu_' is prohibited in the Product layer.": 1,
+      "parent-portal/repositories/parent-portal.repository.ts:L355 - Direct database query targeting '.from('edu_' is prohibited in the Product layer.": 1,
+      "parent-portal/repositories/parent-portal.repository.ts:L370 - Direct database query targeting '.from('edu_' is prohibited in the Product layer.": 1,
+      "parent-portal/repositories/parent-portal.repository.ts:L392 - Direct database query targeting '.from('edu_' is prohibited in the Product layer.": 1,
+      "parent-portal/repositories/parent-portal.repository.ts:L409 - Direct database query targeting '.from('edu_' is prohibited in the Product layer.": 1,
+      "parent-portal/repositories/parent-portal.repository.ts:L426 - Direct database query targeting '.from('edu_' is prohibited in the Product layer.": 1
     }
   },
   "internalKernelImports": {

@@ -21,11 +21,13 @@ const config: Config = {
   ],
   modulePathIgnorePatterns: [
     '<rootDir>/.audit-local-cache/',
+    '<rootDir>/.worktrees/',
   ],
   // Jest chỉ scan src/. Playwright E2E nằm trong e2e/ — chạy bằng `npm run e2e`.
   testPathIgnorePatterns: [
     '/node_modules/',
     '/.audit-local-cache/',
+    '/.worktrees/',
     '/.next/',
     '/e2e/',
     '/playwright-report/',
