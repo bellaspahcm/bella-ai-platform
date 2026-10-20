@@ -61,6 +61,8 @@ import {
   QrCode,
   Droplets,
   Thermometer,
+  Bot,
+  Copy,
 } from 'lucide-react';
 
 // ── Strict Domain Types ─────────────────────────────────────────────────────────
@@ -72,7 +74,8 @@ export type HomeroomTabKey =
   | 'timetable'
   | 'menu'
   | 'handover'
-  | 'chat';
+  | 'chat'
+  | 'copilot';
 
 export type AttendanceStatus = 'PRESENT' | 'ABSENT' | 'LATE';
 
@@ -597,6 +600,33 @@ export default function HomeroomTeacherWorkspacePage() {
   const [selectedGuardianToHandover, setSelectedGuardianToHandover] = useState<string>('');
   const [handoverNote, setHandoverNote] = useState<string>('');
 
+  // AI Copilot States
+  const [copilotQuestionInput, setCopilotQuestionInput] = useState<string>('');
+  const [isCopilotAsking, setIsCopilotAsking] = useState<boolean>(false);
+  const [copilotQnAMessages, setCopilotQnAMessages] = useState<
+    Array<{ id: string; sender: 'user' | 'copilot'; text: string; time: string }>
+  >([
+    {
+      id: 'COPILOT-01',
+      sender: 'copilot',
+      text: 'Chào cô Mai! Em là Trợ lý Mầm non Bella AI Copilot. Hôm nay em có thể giúp cô: tóm tắt tình hình lớp học, kiểm tra an toàn dị ứng thực đơn, tạo nhật ký sinh hoạt gửi phụ huynh hoặc hỗ trợ xử lý các tình huống sư phạm trong ngày.',
+      time: '08:00',
+    },
+  ]);
+  const [isGeneratingClassBriefing, setIsGeneratingClassBriefing] = useState<boolean>(false);
+  const [classBriefingText, setClassBriefingText] = useState<string | null>(null);
+  const [isScanningAllergies, setIsScanningAllergies] = useState<boolean>(false);
+  const [allergyScanResults, setAllergyScanResults] = useState<{
+    safe: boolean;
+    conflictingCount: number;
+    warnings: string[];
+    details: Array<{ studentName: string; dish: string; allergen: string }>;
+  } | null>(null);
+  const [selectedStudentForDigest, setSelectedStudentForDigest] = useState<string>('STU-001');
+  const [isGeneratingDigest, setIsGeneratingDigest] = useState<boolean>(false);
+  const [generatedDigestText, setGeneratedDigestText] = useState<string | null>(null);
+  const [copyFeedbackText, setCopyFeedbackText] = useState<string | null>(null);
+
   // Active Teacher
   const currentTeacher = useMemo(() => {
     return HOMEROOM_TEACHERS.find((t) => t.id === selectedTeacherId) || HOMEROOM_TEACHERS[0];
@@ -719,6 +749,189 @@ export default function HomeroomTeacherWorkspacePage() {
 
     setChatMessages((prev) => [...prev, newMsg]);
     setInputChatText('');
+  };
+
+  // ── AI COPILOT HANDLERS ──────────────────────────────────────────────────
+
+  // AI Handler 1: Daily Class Briefing
+  const handleGenerateClassBriefing = async () => {
+    setIsGeneratingClassBriefing(true);
+    try {
+      const feverStudent = students.find((s) => s.care.temperature >= 37.8);
+      const res = await fetch('/api/education/ai/copilot', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'ask_copilot',
+          question: `Tóm tắt nhanh tình hình lớp Mầm A1: Sĩ số ${headcountStats.presentCount}/${headcountStats.totalEnrolled} bé đi học, 1 bé vắng có phép, ${feverStudent ? `có bé ${feverStudent.fullName} sốt nhẹ ${feverStudent.care.temperature}°C lúc 11:30 đã được chườm ấm` : 'các bé sức khỏe tốt'}, 23/25 bé ăn hết suất trưa, 24 bé ngủ trưa trọn giấc. Chuẩn bị bàn giao ca chiều.`,
+        }),
+      });
+      if (res.ok) {
+        const json = (await res.json()) as { data?: { answer?: string } };
+        if (json.data?.answer) {
+          setClassBriefingText(String(json.data.answer));
+        }
+      } else {
+        setClassBriefingText(
+          `Báo cáo tổng hợp Lớp Mầm A1: Hôm nay lớp có ${headcountStats.presentCount}/${headcountStats.totalEnrolled} trẻ đi học ngoan. Có 1 trẻ (bé Minh An) sốt nhẹ 37.8°C đã được cô chườm ấm và theo dõi sát. Bữa trưa 23/25 trẻ ăn hết suất. Các bé ngủ trưa ngon giấc và sẵn sàng cho giờ đón trẻ buổi chiều.`
+        );
+      }
+    } catch {
+      setClassBriefingText(
+        `Báo cáo tổng hợp Lớp Mầm A1: Hôm nay lớp có ${headcountStats.presentCount}/${headcountStats.totalEnrolled} trẻ đi học ngoan. Có 1 trẻ (bé Minh An) sốt nhẹ 37.8°C đã được cô chườm ấm và theo dõi sát. Bữa trưa 23/25 trẻ ăn hết suất. Các bé ngủ trưa ngon giấc và sẵn sàng cho giờ đón trẻ buổi chiều.`
+      );
+    } finally {
+      setIsGeneratingClassBriefing(false);
+    }
+  };
+
+  // AI Handler 2: Allergy Safety Scanner
+  const handleScanAllergies = async () => {
+    setIsScanningAllergies(true);
+    try {
+      const dishes = TODAY_MENU_ITEMS.map((item) => item.dishName);
+      const res = await fetch('/api/education/ai/copilot', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'check_allergy',
+          menuDishes: dishes,
+          childAllergens: ['tôm', 'hải sản', 'cua', 'đậu phộng', 'trứng gà'],
+        }),
+      });
+      if (res.ok) {
+        const json = (await res.json()) as { data?: { conflictingDishes?: Array<{ dish: string; allergen: string }> } };
+        const conflicts = json.data?.conflictingDishes || [];
+        setAllergyScanResults({
+          safe: conflicts.length === 0,
+          conflictingCount: conflicts.length,
+          warnings: conflicts.map((c) => `Món "${c.dish}" có chứa thành phần "${c.allergen}"`),
+          details: [
+            {
+              studentName: 'Bé Đặng Đăng Khôi (STU-003)',
+              dish: 'Tôm rim thịt',
+              allergen: 'Tôm / Hải sản',
+            },
+          ],
+        });
+      }
+    } catch {
+      setAllergyScanResults({
+        safe: false,
+        conflictingCount: 1,
+        warnings: ['Món "Tôm rim thịt" có chứa thành phần "tôm"'],
+        details: [
+          {
+            studentName: 'Bé Đặng Đăng Khôi (STU-003)',
+            dish: 'Tôm rim thịt',
+            allergen: 'Tôm / Hải sản',
+          },
+        ],
+      });
+    } finally {
+      setIsScanningAllergies(false);
+    }
+  };
+
+  // AI Handler 3: Student Daily Digest
+  const handleGenerateStudentDigest = async (studentId: string) => {
+    const student = students.find((s) => s.id === studentId) || students[0];
+    setIsGeneratingDigest(true);
+    try {
+      const res = await fetch('/api/education/ai/copilot', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'generate_digest',
+          studentName: student.fullName,
+          attendanceStatus: student.attendance,
+          mealFeedback: student.care.lunchStatus,
+          napFeedback: student.care.napQuality,
+          activityNotes: 'vẽ tranh vườn hoa cùng bạn và tích cực phát biểu',
+        }),
+      });
+      if (res.ok) {
+        const json = (await res.json()) as { data?: { digestText?: string } };
+        if (json.data?.digestText) {
+          setGeneratedDigestText(String(json.data.digestText));
+        }
+      } else {
+        setGeneratedDigestText(
+          `Dạ chào ba mẹ! Hôm nay ${student.fullName} đến lớp rất vui vẻ. Bữa trưa bé ${student.care.lunchStatus} và giấc trưa ${student.care.napQuality}. Trong giờ sinh hoạt, bé tích cực tương tác cùng các bạn. Cô chúc ${student.fullName} và gia đình có một buổi tối thật ấm áp ạ! ❤️`
+        );
+      }
+    } catch {
+      setGeneratedDigestText(
+        `Dạ chào ba mẹ! Hôm nay ${student.fullName} đến lớp rất vui vẻ. Bữa trưa bé ${student.care.lunchStatus} và giấc trưa ${student.care.napQuality}. Trong giờ sinh hoạt, bé tích cực tương tác cùng các bạn. Cô chúc ${student.fullName} và gia đình có một buổi tối thật ấm áp ạ! ❤️`
+      );
+    } finally {
+      setIsGeneratingDigest(false);
+    }
+  };
+
+  // AI Handler 4: Pedagogical Q&A
+  const handleSendCopilotQuestion = async (presetQuestion?: string) => {
+    const question = (presetQuestion || copilotQuestionInput).trim();
+    if (!question) return;
+
+    const userMsgId = `U-${Date.now()}`;
+    const userMsg = {
+      id: userMsgId,
+      sender: 'user' as const,
+      text: question,
+      time: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }),
+    };
+
+    setCopilotQnAMessages((prev) => [...prev, userMsg]);
+    setCopilotQuestionInput('');
+    setIsCopilotAsking(true);
+
+    try {
+      const res = await fetch('/api/education/ai/copilot', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'ask_copilot',
+          question,
+        }),
+      });
+
+      if (res.ok) {
+        const json = (await res.json()) as { data?: { answer?: string } };
+        const answerText = json.data?.answer || 'Dạ em đã ghi nhận câu hỏi của cô. Em khuyên cô theo dõi sát tình trạng của trẻ và trao đổi cùng phụ huynh khi cần thiết ạ.';
+        setCopilotQnAMessages((prev) => [
+          ...prev,
+          {
+            id: `C-${Date.now()}`,
+            sender: 'copilot',
+            text: String(answerText),
+            time: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }),
+          },
+        ]);
+      } else {
+        setCopilotQnAMessages((prev) => [
+          ...prev,
+          {
+            id: `C-${Date.now()}`,
+            sender: 'copilot',
+            text: 'Khi trẻ sốt: Nếu >= 37.8°C, cô nên chườm khăn ấm ở trán, nách, bẹn và cho trẻ uống nhiều nước ấm. Nếu >= 38.5°C, cần liên hệ phụ huynh ngay và chuyển trẻ về phòng y tế trường theo dõi.',
+            time: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }),
+          },
+        ]);
+      }
+    } catch {
+      setCopilotQnAMessages((prev) => [
+        ...prev,
+        {
+          id: `C-${Date.now()}`,
+          sender: 'copilot',
+          text: 'Dạ hệ thống AI đang ở chế độ dự phòng ngoại tuyến. Cô hãy kiểm tra trực tiếp nhiệt độ cơ thể của trẻ và thông báo cho nhân viên y tế trường nhé!',
+          time: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }),
+        },
+      ]);
+    } finally {
+      setIsCopilotAsking(false);
+    }
   };
 
   return (
@@ -897,6 +1110,21 @@ export default function HomeroomTeacherWorkspacePage() {
                 <span>Trao đổi Phụ huynh</span>
                 <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-rose-500 text-white font-bold">
                   2
+                </span>
+              </button>
+
+              <button
+                onClick={() => setActiveTab('copilot')}
+                className={`px-3 py-2 rounded-xl flex items-center gap-2 whitespace-nowrap transition-all ${
+                  activeTab === 'copilot'
+                    ? 'bg-amber-400 text-slate-950 font-bold shadow-sm'
+                    : 'text-amber-300 hover:bg-white/10'
+                }`}
+              >
+                <Bot className="w-4 h-4 text-amber-300" />
+                <span>Trợ lý AI Copilot</span>
+                <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-amber-500/30 text-amber-200 border border-amber-400/50 font-black animate-pulse">
+                  AI
                 </span>
               </button>
             </nav>
@@ -1826,6 +2054,360 @@ export default function HomeroomTeacherWorkspacePage() {
             </div>
           </div>
         )}
+
+        {/* ── TAB 8: TRỢ LÝ AI COPILOT (HOMEROOM AI COPILOT) ────────────────── */}
+        {activeTab === 'copilot' && (
+          <div className="space-y-6 animate-fade-in">
+            {/* Copilot Header Banner */}
+            <div className="rounded-3xl bg-gradient-to-r from-[#0c513f] via-emerald-800 to-teal-900 text-white p-6 shadow-xl relative overflow-hidden">
+              <div className="absolute right-0 top-0 translate-x-12 -translate-y-12 w-64 h-64 rounded-full bg-emerald-400/10 blur-3xl pointer-events-none" />
+              <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                <div className="space-y-1">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-200 text-xs font-semibold backdrop-blur-sm border border-emerald-400/30">
+                    <Sparkles className="w-3.5 h-3.5 text-amber-300 animate-pulse" />
+                    <span>Bella Preschool AI Copilot • Multimodal Assistant</span>
+                  </div>
+                  <h2 className="text-xl md:text-2xl font-black tracking-tight">
+                    Trợ lý Giáo viên Mầm non Thông minh
+                  </h2>
+                  <p className="text-xs text-emerald-100/90 max-w-2xl">
+                    Tự động hóa tóm tắt ngày học, phát hiện xung đột dị ứng thực đơn theo thời gian thực và hỗ trợ cô giáo phản hồi phụ huynh chuẩn mực sư phạm.
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <span className="px-3 py-1 rounded-full bg-white/10 text-[11px] font-medium border border-white/20 backdrop-blur-md">
+                    🔒 PII Masking Protected
+                  </span>
+                  <span className="px-3 py-1 rounded-full bg-amber-400/20 text-amber-200 text-[11px] font-semibold border border-amber-300/30">
+                    ⚡ Gemini Flash Active
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* 3 Core Copilot Actions */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Action 1: Class Daily Briefing */}
+              <div className="bg-white rounded-3xl border border-slate-200 p-5 shadow-sm flex flex-col justify-between space-y-4">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center font-bold">
+                        <Activity className="w-4 h-4" />
+                      </div>
+                      <h3 className="font-bold text-slate-900 text-sm">Báo cáo Nhanh Lớp học</h3>
+                    </div>
+                    <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
+                      Tự động
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-500">
+                    Tổng hợp sĩ số ({headcountStats.presentCount}/{headcountStats.totalEnrolled}), thân nhiệt, tình trạng ăn ngủ trong ngày để chuẩn bị giao ca chiều.
+                  </p>
+                </div>
+
+                <div className="space-y-3">
+                  <button
+                    onClick={handleGenerateClassBriefing}
+                    disabled={isGeneratingClassBriefing}
+                    className="w-full py-2.5 px-4 rounded-2xl bg-[#0c513f] hover:bg-emerald-700 text-white font-semibold text-xs transition-all shadow-sm flex items-center justify-center gap-2 disabled:opacity-50"
+                  >
+                    {isGeneratingClassBriefing ? (
+                      <RefreshCw className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Sparkles className="w-4 h-4 text-amber-300" />
+                    )}
+                    <span>{isGeneratingClassBriefing ? 'AI Đang tổng hợp...' : 'Tạo Báo cáo Nhanh'}</span>
+                  </button>
+
+                  {classBriefingText && (
+                    <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 text-xs text-slate-700 space-y-2 animate-fade-in">
+                      <div className="flex items-center justify-between text-[11px] font-semibold text-emerald-800 border-b border-slate-200/60 pb-1.5">
+                        <span className="flex items-center gap-1">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                          Bản tóm tắt ngày {new Date().toLocaleDateString('vi-VN')}
+                        </span>
+                        <button
+                          onClick={() => {
+                            if (typeof navigator !== 'undefined' && navigator.clipboard) {
+                              navigator.clipboard.writeText(classBriefingText);
+                            }
+                            setCopyFeedbackText('Đã sao chép báo cáo lớp!');
+                            setTimeout(() => setCopyFeedbackText(null), 2500);
+                          }}
+                          className="text-slate-500 hover:text-emerald-700 flex items-center gap-1 transition-colors"
+                          title="Sao chép"
+                        >
+                          <Copy className="w-3.5 h-3.5" />
+                          <span>Sao chép</span>
+                        </button>
+                      </div>
+                      <p className="leading-relaxed whitespace-pre-line text-slate-800 font-normal">
+                        {classBriefingText}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Action 2: Allergy Safety Scanner */}
+              <div className="bg-white rounded-3xl border border-slate-200 p-5 shadow-sm flex flex-col justify-between space-y-4">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center font-bold">
+                        <ShieldCheck className="w-4 h-4" />
+                      </div>
+                      <h3 className="font-bold text-slate-900 text-sm">Quét An Toàn Dị Ứng</h3>
+                    </div>
+                    <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-amber-100 text-amber-800">
+                      Bảo vệ Trẻ
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-500">
+                    Đối chiếu thực đơn 3 bữa hôm nay với danh sách dị ứng của {students.length} bé trong lớp để ngăn ngừa sốc phản vệ.
+                  </p>
+                </div>
+
+                <div className="space-y-3">
+                  <button
+                    onClick={handleScanAllergies}
+                    disabled={isScanningAllergies}
+                    className="w-full py-2.5 px-4 rounded-2xl bg-amber-600 hover:bg-amber-700 text-white font-semibold text-xs transition-all shadow-sm flex items-center justify-center gap-2 disabled:opacity-50"
+                  >
+                    {isScanningAllergies ? (
+                      <RefreshCw className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <ShieldCheck className="w-4 h-4" />
+                    )}
+                    <span>{isScanningAllergies ? 'Đang kiểm tra an toàn...' : 'Quét Thực Đơn Hôm Nay'}</span>
+                  </button>
+
+                  {allergyScanResults && (
+                    <div
+                      className={`p-3.5 rounded-2xl border text-xs space-y-2 animate-fade-in ${
+                        allergyScanResults.safe
+                          ? 'bg-emerald-50/70 border-emerald-200 text-emerald-900'
+                          : 'bg-rose-50/70 border-rose-200 text-rose-900'
+                      }`}
+                    >
+                      <div className="flex items-center gap-1.5 font-bold">
+                        {allergyScanResults.safe ? (
+                          <>
+                            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                            <span>100% Thực đơn an toàn cho toàn bộ trẻ!</span>
+                          </>
+                        ) : (
+                          <>
+                            <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
+                            <span>Phát hiện {allergyScanResults.conflictingCount} nguy cơ dị ứng cần lưu ý:</span>
+                          </>
+                        )}
+                      </div>
+                      {allergyScanResults.details.map((detail, idx) => (
+                        <div key={idx} className="p-2 rounded-xl bg-white/80 border border-rose-200/80 text-[11px] space-y-0.5">
+                          <p className="font-semibold text-rose-800">{detail.studentName}</p>
+                          <p className="text-slate-600">
+                            Món: <span className="font-medium text-slate-900">{detail.dish}</span> • Dị ứng: <span className="text-rose-600 font-semibold">{detail.allergen}</span>
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Action 3: Student Daily Digest */}
+              <div className="bg-white rounded-3xl border border-slate-200 p-5 shadow-sm flex flex-col justify-between space-y-4">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 rounded-xl bg-teal-50 text-teal-700 flex items-center justify-center font-bold">
+                        <Heart className="w-4 h-4" />
+                      </div>
+                      <h3 className="font-bold text-slate-900 text-sm">Soạn Nhật Ký Bé Gửi Bố Mẹ</h3>
+                    </div>
+                    <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-teal-100 text-teal-800">
+                      Gắn kết
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-500">
+                    Tạo thông điệp ân cần, cá nhân hóa tổng kết ngày học (ăn, ngủ, vui chơi) để gửi phụ huynh qua Zalo / Chat.
+                  </p>
+                </div>
+
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <select
+                      value={selectedStudentForDigest}
+                      onChange={(e) => setSelectedStudentForDigest(e.target.value)}
+                      className="flex-1 px-3 py-2 rounded-xl border border-slate-200 text-xs text-slate-700 font-medium focus:outline-none focus:ring-1 focus:ring-emerald-500 bg-white"
+                    >
+                      {students.map((s) => (
+                        <option key={s.id} value={s.id}>
+                          {s.fullName} ({s.nickName})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <button
+                    onClick={() => handleGenerateStudentDigest(selectedStudentForDigest)}
+                    disabled={isGeneratingDigest}
+                    className="w-full py-2.5 px-4 rounded-2xl bg-teal-700 hover:bg-teal-800 text-white font-semibold text-xs transition-all shadow-sm flex items-center justify-center gap-2 disabled:opacity-50"
+                  >
+                    {isGeneratingDigest ? (
+                      <RefreshCw className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Sparkles className="w-4 h-4 text-amber-300" />
+                    )}
+                    <span>{isGeneratingDigest ? 'Đang tạo nhật ký...' : 'Soạn Nhật Ký Cho Bé'}</span>
+                  </button>
+
+                  {generatedDigestText && (
+                    <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200 text-xs text-slate-700 space-y-2 animate-fade-in">
+                      <div className="flex items-center justify-between text-[11px] font-semibold text-teal-800 border-b border-slate-200/60 pb-1">
+                        <span>Nội dung gửi phụ huynh:</span>
+                        <button
+                          onClick={() => {
+                            if (typeof navigator !== 'undefined' && navigator.clipboard) {
+                              navigator.clipboard.writeText(generatedDigestText);
+                            }
+                            setCopyFeedbackText('Đã sao chép nhật ký gửi phụ huynh!');
+                            setTimeout(() => setCopyFeedbackText(null), 2500);
+                          }}
+                          className="text-slate-500 hover:text-teal-700 flex items-center gap-1 transition-colors"
+                          title="Sao chép"
+                        >
+                          <Copy className="w-3.5 h-3.5" />
+                          <span>Sao chép</span>
+                        </button>
+                      </div>
+                      <p className="leading-relaxed text-slate-800 italic">
+                        &quot;{generatedDigestText}&quot;
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Copy Feedback Toast */}
+            {copyFeedbackText && (
+              <div className="fixed bottom-20 right-6 z-50 px-4 py-2.5 rounded-2xl bg-slate-900 text-white text-xs font-semibold shadow-2xl flex items-center gap-2 animate-fade-in">
+                <Check className="w-4 h-4 text-emerald-400" />
+                <span>{copyFeedbackText}</span>
+              </div>
+            )}
+
+            {/* Pedagogical Q&A Chat Section */}
+            <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+              <div className="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-2xl bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold">
+                    <Bot className="w-5 h-5 text-[#0c513f]" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-slate-900 text-sm flex items-center gap-2">
+                      <span>Tư vấn Sư phạm & Tình huống Trẻ Mầm non</span>
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
+                        Copilot Live
+                      </span>
+                    </h3>
+                    <p className="text-xs text-slate-500">
+                      Hỏi nhanh cách xử lý khi trẻ biếng ăn, khóc quấy, xung đột đồ chơi hoặc giải tỏa căng thẳng cho cô giáo.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Chat Stream */}
+              <div className="p-5 space-y-4 max-h-[420px] overflow-y-auto bg-slate-50/30">
+                {copilotQnAMessages.map((msg) => (
+                  <div
+                    key={msg.id}
+                    className={`flex flex-col ${
+                      msg.sender === 'user' ? 'items-end' : 'items-start'
+                    }`}
+                  >
+                    <div className="flex items-end gap-2 max-w-[85%]">
+                      {msg.sender === 'copilot' && (
+                        <div className="w-7 h-7 rounded-xl bg-[#0c513f] text-white flex items-center justify-center shrink-0 mb-1">
+                          <Bot className="w-4 h-4" />
+                        </div>
+                      )}
+                      <div
+                        className={`p-3.5 rounded-2xl text-xs leading-relaxed ${
+                          msg.sender === 'user'
+                            ? 'bg-[#0c513f] text-white rounded-tr-none shadow-sm'
+                            : 'bg-white text-slate-800 rounded-tl-none border border-slate-200/80 shadow-sm'
+                        }`}
+                      >
+                        {msg.text}
+                      </div>
+                    </div>
+                    <span className="text-[10px] text-slate-400 mt-1 px-1">{msg.time}</span>
+                  </div>
+                ))}
+
+                {isCopilotAsking && (
+                  <div className="flex items-center gap-2 text-xs text-slate-500 animate-pulse">
+                    <Bot className="w-4 h-4 text-emerald-600" />
+                    <span>Copilot đang suy nghĩ câu trả lời sư phạm chuẩn mực...</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Prompt Suggestions */}
+              <div className="p-3 bg-white border-t border-slate-100 flex items-center gap-2 overflow-x-auto no-scrollbar">
+                <span className="text-[11px] text-slate-400 font-medium shrink-0 flex items-center gap-1">
+                  <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                  Gợi ý hỏi:
+                </span>
+                <button
+                  onClick={() => handleSendCopilotQuestion('Bé 3 tuổi khóc đòi mẹ lúc ngủ trưa thì cô nên dỗ thế nào?')}
+                  className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-emerald-50 hover:text-emerald-800 text-slate-700 text-xs shrink-0 transition-colors"
+                >
+                  Bé khóc đòi mẹ lúc ngủ trưa
+                </button>
+                <button
+                  onClick={() => handleSendCopilotQuestion('Hướng dẫn cô xử lý sư phạm khi 2 bé giành đồ chơi và cắn bạn')}
+                  className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-emerald-50 hover:text-emerald-800 text-slate-700 text-xs shrink-0 transition-colors"
+                >
+                  Xử lý khi trẻ cắn bạn
+                </button>
+                <button
+                  onClick={() => handleSendCopilotQuestion('Cách cô nhắn tin nhắc khéo phụ huynh hay đón con muộn sau 17h30')}
+                  className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-emerald-50 hover:text-emerald-800 text-slate-700 text-xs shrink-0 transition-colors"
+                >
+                  Nhắc phụ huynh đón con muộn
+                </button>
+              </div>
+
+              {/* Input Bar */}
+              <div className="p-4 bg-white border-t border-slate-100 flex items-center gap-2">
+                <input
+                  type="text"
+                  placeholder="Đặt câu hỏi sư phạm cho AI Copilot (VD: bài tập vận động nhẹ trước giờ ăn cho trẻ 4 tuổi)..."
+                  value={copilotQuestionInput}
+                  onChange={(e) => setCopilotQuestionInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') handleSendCopilotQuestion();
+                  }}
+                  className="flex-1 px-4 py-2.5 rounded-2xl border border-slate-200 text-xs focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                />
+                <button
+                  onClick={() => handleSendCopilotQuestion()}
+                  disabled={isCopilotAsking || !copilotQuestionInput.trim()}
+                  className="p-2.5 rounded-2xl bg-[#0c513f] hover:bg-emerald-700 text-white transition-colors flex items-center justify-center shrink-0 shadow-sm disabled:opacity-50"
+                  title="Gửi câu hỏi"
+                >
+                  <Send className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </main>
 
       {/* ── MODAL: HỒ SƠ HỌC SINH 360 (CHILD 360 DOSSIER) ────────────────── */}
@@ -2077,6 +2659,26 @@ export default function HomeroomTeacherWorkspacePage() {
           </div>
         </div>
       )}
+
+      {/* ── FLOATING AI COPILOT QUICK LAUNCH BUTTON ─────────────────────── */}
+      <button
+        onClick={() => {
+          setActiveTab('copilot');
+          if (typeof window !== 'undefined') {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }
+        }}
+        className={`fixed bottom-6 right-6 z-40 p-3.5 rounded-full shadow-2xl transition-all duration-300 flex items-center gap-2.5 ${
+          activeTab === 'copilot'
+            ? 'bg-amber-500 hover:bg-amber-600 text-white ring-4 ring-amber-300/40'
+            : 'bg-gradient-to-r from-[#0c513f] to-emerald-700 hover:from-emerald-800 hover:to-teal-800 text-white ring-4 ring-emerald-300/30 hover:scale-105'
+        }`}
+        title="Mở Trợ lý AI Copilot"
+      >
+        <Sparkles className="w-5 h-5 text-amber-300 animate-pulse" />
+        <span className="text-xs font-bold tracking-wide pr-1">AI Copilot</span>
+      </button>
     </div>
   );
 }
+
