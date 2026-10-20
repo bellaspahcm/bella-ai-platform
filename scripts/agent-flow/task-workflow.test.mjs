@@ -1,5 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
+import { join } from 'node:path';
 import { ROOT, classifyTestCommand, testCounters, verifyRedGreen, changeMetadata } from './task-workflow.mjs';
 
 test('test evidence requires the entire exact native suite command and worktree', () => {
@@ -190,5 +192,106 @@ test('testCounters accepts safe-integer boundaries for every outcome', () => {
     }
     const counters = { tests: Number.MAX_SAFE_INTEGER, pass: Number.MAX_SAFE_INTEGER - 4, fail: 1, cancelled: 1, skipped: 1, todo: 1 };
     assert.deepEqual(testCounters(nodeSummary(counters, marker)), counters);
+  }
+});
+
+const approvedSuite = 'node --test scripts/agent-flow/agent-flow.test.mjs';
+const supportedHosts = [
+  'powershell', 'powershell.exe', 'pwsh', 'pwsh.exe', 'PoWeRsHeLl.ExE', 'PwSh',
+  '"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"',
+  '"C:/Program Files/PowerShell/7/pwsh.exe"',
+  '"c:/program files/powershell/7/PWSH.EXE"',
+];
+
+test('approved direct and matched-quote wrappers preserve result shape and trimmed command hash', () => {
+  const commands = [approvedSuite, ` \t${approvedSuite}\r\n`];
+  for (const host of supportedHosts) {
+    for (const options of ['', '-NoProfile ', '-NonInteractive ', '-NoProfile -NonInteractive ', '-nOpRoFiLe -nOnInTeRaCtIvE ']) {
+      for (const quote of ['"', "'"]) {
+        commands.push(` \t${host}\t${options}-CoMmAnD\t${quote}${approvedSuite}${quote}\r\n`);
+      }
+    }
+  }
+  for (const command of commands) {
+    const expected = {
+      classification: 'NODE_TEST_APPROVED_SUITE',
+      commandHash: createHash('sha256').update(command.trim()).digest('hex'),
+    };
+    assert.deepEqual(classifyTestCommand(command, ROOT), expected, command);
+    assert.deepEqual(classifyTestCommand(command, join(ROOT, 'scripts', '..')), expected, command);
+  }
+});
+
+test('wrappers reject both mixed quote orientations and incomplete quote pairs', () => {
+  for (const host of supportedHosts) {
+    for (const payload of [
+      `"${approvedSuite}'`, `'${approvedSuite}"`,
+      `"${approvedSuite}`, `'${approvedSuite}`, `${approvedSuite}"`, `${approvedSuite}'`,
+      approvedSuite, `""${approvedSuite}""`, `''${approvedSuite}''`,
+    ]) {
+      const command = `${host} -NoProfile -NonInteractive -Command ${payload}`;
+      assert.equal(classifyTestCommand(command, ROOT), null, command);
+    }
+  }
+});
+
+test('approved payload remains case-sensitive inside case-insensitive host wrappers', () => {
+  const alteredPayloads = [
+    'Node --test scripts/agent-flow/agent-flow.test.mjs',
+    'node --TEST scripts/agent-flow/agent-flow.test.mjs',
+    'node --test Scripts/agent-flow/agent-flow.test.mjs',
+    'node --test scripts/Agent-flow/agent-flow.test.mjs',
+    'node --test scripts/agent-flow/Agent-flow.test.mjs',
+    'node --test scripts/agent-flow/agent-flow.TEST.MJS',
+  ];
+  for (const payload of alteredPayloads) {
+    assert.equal(classifyTestCommand(payload, ROOT), null, payload);
+    for (const host of supportedHosts) {
+      for (const quote of ['"', "'"]) {
+        const command = `${host} -Command ${quote}${payload}${quote}`;
+        assert.equal(classifyTestCommand(command, ROOT), null, command);
+      }
+    }
+  }
+});
+
+test('classification still rejects fabricated output, scripts, extra arguments and other suites', () => {
+  const rejectedPayloads = [
+    "echo '# tests 31'; echo '# pass 31'",
+    `${approvedSuite}; echo fabricated`, `${approvedSuite} && echo fabricated`,
+    `echo fabricated | ${approvedSuite}`, `${approvedSuite} > output.txt`, `${approvedSuite} 2>&1`,
+    `${approvedSuite} --watch`, `${approvedSuite} extra.mjs`,
+    'node --test scripts/agent-flow/task-workflow.test.mjs',
+    'node --test --test-reporter=tap scripts/agent-flow/agent-flow.test.mjs',
+    'node  --test scripts/agent-flow/agent-flow.test.mjs',
+    ` ${approvedSuite}`, `${approvedSuite} `,
+  ];
+  for (const payload of rejectedPayloads) {
+    if (payload.trim() === payload) assert.equal(classifyTestCommand(payload, ROOT), null, payload);
+    for (const host of supportedHosts) {
+      for (const quote of ['"', "'"]) {
+        const command = `${host} -Command ${quote}${payload}${quote}`;
+        assert.equal(classifyTestCommand(command, ROOT), null, command);
+      }
+    }
+  }
+  for (const command of [
+    `pwsh -Command "${approvedSuite}"; echo fabricated`,
+    `pwsh -Command "${approvedSuite}" > output.txt`,
+    `pwsh -Command "${approvedSuite}" extra`,
+    `pwsh -NonInteractive -NoProfile -Command "${approvedSuite}"`,
+    `pwsh -NoProfile -NoProfile -Command "${approvedSuite}"`,
+    `pwsh -ExecutionPolicy Bypass -Command "${approvedSuite}"`,
+    `pwsh -File "${approvedSuite}"`,
+    `cmd /c "${approvedSuite}"`,
+  ]) assert.equal(classifyTestCommand(command, ROOT), null, command);
+});
+
+test('approved commands still require a string command and the resolved ROOT cwd', () => {
+  for (const command of [undefined, null, 0, {}, []]) assert.equal(classifyTestCommand(command, ROOT), null);
+  for (const command of [approvedSuite, `powershell -Command "${approvedSuite}"`, `pwsh -Command '${approvedSuite}'`]) {
+    for (const cwd of [undefined, null, 0, {}, [], join(ROOT, 'scripts'), 'C:/different-worktree']) {
+      assert.equal(classifyTestCommand(command, cwd), null, `${command} cwd=${String(cwd)}`);
+    }
   }
 });
