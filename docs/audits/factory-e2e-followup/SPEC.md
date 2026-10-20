@@ -2,7 +2,7 @@
 title: Chứng minh một run Factory end-to-end trong sandbox hiện hành
 type: bugfix
 created: 2026-10-20
-status: in-progress
+status: in-review
 baseline_commit: 2ef1c8ea6c0b58f45311ef8b2ad7d1d4b33801bc
 context: []
 ---
@@ -45,10 +45,10 @@ Ask First: quyền sandbox mới, Product/Core/kernel/registry/DB/migration/RLS/
 
 - [x] Preflight: phân loại lỗi cũ ENVIRONMENT; lưu baseline repro cho bug integrity mới và fingerprint packages cũ; cập nhật governing sources nguyên bản.
 - [x] Đồng bộ gate không dispatch Reviewer sau Verify FAIL; test legitimate/pass và prohibited/fail.
-- [ ] Commit nguồn sạch T; tạo owner task mới, native Lead → Builder → Verify → Reviewer. Không sửa code task trước Builder.
-- [ ] Fresh-process canonical readback trước commit C; C chỉ chứa hai file Builder đã được Verify/Reviewer chấp nhận; canonical commit linkage so path/content/mode/add/delete và toàn inventory.
-- [ ] Monitor đọc và mở đúng run; kiểm tra refresh/reload và bất biến sources. Negative copies từ positive run khi có; dùng lại evidence storage-negative đã xác nhận nếu không có thay đổi store.
-- [ ] Review source cuối, ghi actual outcomes và provenance; local commit tài liệu kết quả riêng.
+- [x] Commit nguồn sạch T; tạo owner task mới, native Lead → Builder → Verify → Reviewer. Không sửa code task trước Builder.
+- [x] Fresh-process canonical readback trước commit C; C chỉ chứa hai file Builder đã được Verify/Reviewer chấp nhận; canonical commit linkage so path/content/mode/add/delete và toàn inventory.
+- [x] Monitor đọc và mở đúng run; kiểm tra refresh/reload và bất biến sources. Negative copies từ positive run khi có; dùng lại evidence storage-negative đã xác nhận nếu không có thay đổi store.
+- [x] Review source cuối, ghi actual outcomes và provenance; local commit tài liệu kết quả riêng.
 
 Given candidate chưa đổi, when Verify chạy exact command và Reviewer fresh thread đọc đủ diff/files/Verify receipt, then handoff PASS chỉ khi đầy đủ bằng chứng. Given candidate/commit khác path/mode/bytes, when link, then từ chối. Given run PASS đã lưu, when Monitor chọn đúng package, then task/factory/native IDs, actual counters, commit proof và hashes khớp sources.
 
@@ -67,3 +67,5 @@ Preflight executed: task-workflow baseline 6/6 PASS; duplicate and contradictory
 2026-10-20: Second fresh run 7b8ba89d / Factory 4c3342e2 / package 5LpJWO reached Builder but strict payload comparison rejected exactly commands[3].outputHash. That command printed the whole Constitution; retained history output is 65,536 bytes, the corresponding operator document read is 78,376 bytes, and fresh history still has the recorded mismatching hash. No line-ending variant established equality; do not claim a complete transport algorithm/root cause. Preserve strict comparison. Bound policy-read outputs to <=400 lines/command to avoid this loss of readback fidelity, preserving all applicable rules and sandbox. Save exact unaccepted Builder bytes, patch and manifest externally before restoring only the two owned files to HEAD; neither failed run is resumed or rewritten. Fresh task must perform the actual fix anew.
 
 2026-10-20: Bounded-read run 2020342e / Factory 0d3e534e / package pzz5r3 still failed on a 20,437-byte output; therefore output size alone is not the root cause. Source inspection found AppServer decoding each stdout Buffer independently, corrupting UTF-8 characters split between pipe chunks. A deterministic real-child-process fixture reproduced DOWN ARROW becoming two replacement characters (RED 0/1). Minimal transport fix uses Node StringDecoder across chunks, with incomplete EOF flagged. Same fixture becomes GREEN; strict JSON/payload checks, canonical facts and sandbox remain unchanged. Earlier cap-only inference is insufficient; bounded policy reads remain lossless and avoid observed history size limits. New task/IDs only.
+
+Runtime acceptance: fresh task bf4f2ae7 / Factory 54679318 / package luXG6S PASSED Lead/Builder/Verify(15/15)/Reviewer, fresh readback 4 MATCH, exact candidate-commit link to f5983f7c2 and same-run desktop/mobile Monitor. Positive-copy missing/corrupt/expired, current-scope admission and real Git content/mode/deletion negatives pass. Operator 134 tests and lint pass separately. Source review is now IN_REVIEW; final records will include a current-code storage-negative replay. Historical store cause remains NOT_PROVEN, default/main/Go-Live not proven.
