@@ -33,7 +33,8 @@ export function classifyTestCommand(command, cwd) {
   const exact = 'node --test scripts/agent-flow/agent-flow.test.mjs';
   const text = command.trim();
   const direct = text === exact;
-  const wrapped = /^(?:"[A-Za-z]:[\\/][A-Za-z0-9_ .\\/-]*[\\/](?:powershell|pwsh)\.exe"|(?:powershell|pwsh)(?:\.exe)?)\s+(?:-NoProfile\s+)?(?:-NonInteractive\s+)?-Command\s+["']node --test scripts\/agent-flow\/agent-flow\.test\.mjs["']$/i.test(text);
+  const wrapper = /^(?:"[A-Za-z]:[\\/][A-Za-z0-9_ .\\/-]*[\\/](?:powershell|pwsh)\.exe"|(?:powershell|pwsh)(?:\.exe)?)\s+(?:-NoProfile\s+)?(?:-NonInteractive\s+)?-Command\s+(["'])(.*)\1$/i.exec(text);
+  const wrapped = wrapper?.[2] === exact;
   return (direct || wrapped) && typeof cwd === 'string' && resolve(cwd) === ROOT ? { classification: 'NODE_TEST_APPROVED_SUITE', commandHash: hash(text) } : null;
 }
 
