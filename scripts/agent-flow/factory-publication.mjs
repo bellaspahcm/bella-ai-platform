@@ -98,6 +98,7 @@ export async function linkFactoryCommit(input, commit) {
   if (!Number.isFinite(Date.parse(context.outputReviewDeadline)) || Date.now() >= Date.parse(context.outputReviewDeadline)) throw new Error('FACTORY_REVIEW_WINDOW_EXPIRED');
   const index = JSON.parse(await readFile(join(directory, 'factory-index-terminal.json'), 'utf8')); validateIndex(index);
   validateIndexIdentity(JSON.parse(await readFile(join(directory,'factory-index-intake.json'),'utf8')),index);
+  if(!index.candidate || !index.terminal)throw new Error('FACTORY_VERIFIED_CANDIDATE_REQUIRED');
   const { resolveArtifact } = await import('./run-evidence.mjs');
   const candidate = resolveArtifact(index.candidate, await readFile(join(directory, index.candidate.file)));
   const intake = resolveArtifact(index.intake, await readFile(join(directory, index.intake.file)));

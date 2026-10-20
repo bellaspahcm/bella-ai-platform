@@ -59,3 +59,17 @@ Node tests của contract/diagnostic và suites Agent Flow hiện có; test read
 A: strict v1 companion schema preserves native facts and source references. B: new diagnostic `34151eb6-1f87-4506-86f2-b717f62b6d90`, root `bella-agent-flow-2WTNKD`, completed one read-only Lead, 15 live facts / 7 history matches / zero source changes. No historical root cause proven, no store repair. Owner explicitly authorized C/D. C: existing viewer imported, pure read-only readers tested against incomplete/corrupt/expired/HELD and contradictory source artifacts. Independent reviews found validation gaps; these were fixed with source-binding regressions.
 
 D task selected: canonical file-change reader currently accepts a non-fileChange fact with a well-formed incorrect digest. A disposable protocol fixture reproduced this before any task edit; `baseline-repro.json` is external operator evidence, not a native run. The newly admitted coding task owns only `filechange-reader.mjs` and `filechange.test.mjs`; expectation comes from canonical fact signatures, not a fabricated business requirement. D runtime acceptance is still pending.
+
+## D execution boundary
+
+First admitted task `bb41c924-c1eb-4197-baa3-6ce800676420` / Factory `1b5bf105-8d69-4345-a625-3bfc763271e4` / package `bella-agent-flow-QeG0TU` stopped HELD at Lead due native `usageLimitExceeded`; no source changes. The owner explicitly authorized a new same-scope task, without resuming the old one.
+
+Second task `8d76e706-2c35-4273-b1f8-2275ffa91c39` / Factory `a29ce101-c9be-4d98-ac6a-59b7fd4674e4` / package `bella-agent-flow-OxwBsf` used source `4d2a831c3804d94ce03e88414fd72bee42be4176`. Lead ACCEPT: 19 live / 9 history matches; Builder DONE: 43 live / 21 matches / one native fileChange covering both owned files. Candidate fingerprint `c965d20e9196482149011be0bb0c39a47f537c03e8c66494733c5cf29d5634d6`.
+
+Verify executed an extra pre-read command, so the strict exact-command gate returned HELD / EXACT_TEST_REQUIRED. Its actual test command also exited 1: 11 tests, 6 pass, 5 fail, zero skip/todo/cancelled. The five failures are EPERM creating fixture directories under TEMP in the unchanged read-only native sandbox. Reviewer was not dispatched. No accepted Verify, native fresh PASS readback, verified candidate artifact or commit link exists. Neither run is resumed.
+
+Operator environment: full 122 Node tests PASS and independent static review has no findings in the two-file Builder diff. These do not replace native acceptance. The two-file fix is retained in local commit `2abc0ecada95169a50c821d8ea54465f93ffbb19`; it is not a verified Factory handoff. The contradictory general pre-read prompt was narrowed for future Verify roles; no subsequent positive native run is claimed. Sandbox, store and native fact contract remain unchanged.
+
+Monitor browser proof opened this exact second run on desktop/mobile: HELD, two accepted stages, task/factory IDs, original source artifact hashes. Missing/corrupt/expired controlled copies fail closed and original bytes remain unchanged. Forbidden Product scope is rejected before native dispatch. Controlled storage negative still pending.
+
+`FACTORY_END_TO_END = NOT_PROVEN`, `FACTORY_DEFAULT_EXECUTION = NOT_PROVEN`, `SEALED_ON_MAIN = NOT_PROVEN`, `GO_LIVE = NOT_PROVEN`. C is implemented locally; no main integration/merge was authorized. Further positive D execution needs a separately approved task and a decision about the fixture-write requirement; this batch does not change sandbox permissions or weaken tests.
