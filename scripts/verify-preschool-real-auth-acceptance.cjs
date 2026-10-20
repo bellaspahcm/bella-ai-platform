@@ -1,0 +1,569 @@
+/* Scoped real-Auth acceptance. Never provisions schema, grants, policies or JWTs. */
+'use strict';
+
+const { randomUUID, randomBytes, createHash } = require('node:crypto');
+const { readFileSync, writeFileSync, existsSync, mkdirSync } = require('node:fs');
+const { resolve, join } = require('node:path');
+const { spawn, execFileSync } = require('node:child_process');
+const net = require('node:net');
+const { Client } = require('pg');
+const { parse } = require('pg-connection-string');
+const { createClient } = require('@supabase/supabase-js');
+const { createServerClient } = require('@supabase/ssr');
+
+const ROOT = resolve(__dirname, '..');
+const REF = 'bmnbqbcdbuklhopfbopv';
+const API = `https://${REF}.supabase.co`;
+const BASELINE = 'ecfaf23ab06d043c5f2caec38ea67856705b6c26';
+const OUTPUT = join(ROOT, 'docs/audits/preschool-full-audit-20261020/batch2k-real-auth');
+const START = new Date();
+const STAMP = START.toISOString().replace(/[:.]/g, '-');
+const DEADLINE = START.getTime() + 12 * 60_000;
+const RUNTIME_PATHS = ['src', 'packages', 'package.json', 'package-lock.json', 'next.config.ts', 'tsconfig.json'];
+const NEXT_ENV_FILES = ['.env.development.local', '.env.local', '.env.development', '.env'];
+const TABLES = ['tenants', 'users', 'org_units', 'people_directory', 'org_relationships',
+  'user_org_unit_access', 'edu_courses', 'edu_enrollments', 'party_parties',
+  'preschool_chain_course_branch_assignments', 'edu_daily_care_sessions', 'edu_daily_care_records',
+  'edu_attendance_events', 'edu_attendance_daily_state', 'edu_daily_parent_digests', 'chat_threads', 'chat_messages'];
+const MUTATION_TABLES = ['edu_daily_care_records', 'edu_daily_care_sessions', 'edu_daily_parent_digests',
+  'edu_attendance_events', 'edu_attendance_daily_state', 'chat_messages', 'chat_threads'];
+const report = { startedAt: START.toISOString(), projectRef: REF, baseline: BASELINE,
+  scope: 'Real Auth, actual Next cookie HTTP, scoped org RLS and closed authorization guards; no Product Go-Live proof',
+  checks: [], cleanup: { failures: [] } };
+const fixtures = [0, 1].map(index => ({ index, tenant: randomUUID(), branch: randomUUID(),
+  person: randomUUID(), relationship: randomUUID(), course: randomUUID(), student: randomUUID(), actors: [] }));
+let db, config, admin, server, port, serverExit, agentBefore, agentClean = false, catalogBefore;
+let connected = false, transaction = false, fixtureWrites = false, primaryFailure = null, cleanupStarted = false;
+let interrupted = false;
+let stdoutBytes = 0, stderrBytes = 0;
+const authCreated = [];
+const authIntents = [];
+const sessions = [];
+process.once('SIGINT', () => { interrupted = true; });
+process.once('SIGTERM', () => { interrupted = true; });
+const hash = value => createHash('sha256').update(value).digest('hex');
+const wait = ms => new Promise(resolveWait => setTimeout(resolveWait, ms));
+function fail(code) { const error = new Error(code); error.acceptanceCode = code; throw error; }
+function must(value, code) { if (!value) fail(code); }
+function safeCode(error) {
+  if (error?.message === 'Query read timeout') return 'QUERY_READ_TIMEOUT';
+  const code = error?.acceptanceCode || error?.code;
+  return typeof code === 'string' && /^[A-Z0-9_]{2,80}$/.test(code) ? code : 'UNCLASSIFIED_FAILURE';
+}
+function git(args) { return execFileSync('git', args, { cwd: ROOT, windowsHide: true, encoding: 'utf8', timeout: 15_000 }); }
+function add(name, result, detail = {}) { report.checks.push({ name, result, ...detail }); }
+async function check(name, operation) {
+  try { add(name, 'PASS', await operation() || {}); }
+  catch (error) { add(name, 'FAIL', { code: safeCode(error) }); }
+}
+function sourceState() {
+  const head = git(['rev-parse', 'HEAD']).trim();
+  const tree = git(['rev-parse', 'HEAD^{tree}']).trim();
+  let baselineAncestor = false;
+  try { git(['merge-base', '--is-ancestor', BASELINE, 'HEAD']); baselineAncestor = true; } catch { /* Rejected by the entry gate. */ }
+  const changed = git(['diff', '--name-only', BASELINE, '--', ...RUNTIME_PATHS]).trim().split(/\r?\n/).filter(Boolean);
+  const untracked = git(['ls-files', '--others', '--exclude-standard', '--', ...RUNTIME_PATHS]).trim().split(/\r?\n/).filter(Boolean);
+  const paths = git(['ls-files', '-z', '--', ...RUNTIME_PATHS]).split('\0').filter(Boolean).sort();
+  const digest = createHash('sha256');
+  for (const path of paths) { digest.update(path).update('\0').update(readFileSync(join(ROOT, path))).update('\0'); }
+  return { head, tree, baselineAncestor, changed, untracked, sourceSha256: digest.digest('hex'), trackedFiles: paths.length,
+    nextAutoEnvFiles: NEXT_ENV_FILES.filter(path => existsSync(join(ROOT, path))) };
+}
+function readConfig() {
+  // An explicit E2E file is a complete secret source, never merged with local/Production env files.
+  const values = process.env.E2E_ENV_FILE
+    ? require('dotenv').parse(readFileSync(resolve(process.env.E2E_ENV_FILE))) : process.env;
+  const api = values.NEXT_PUBLIC_SUPABASE_URL;
+  const publicKey = values.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || values.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const adminKey = values.SUPABASE_SERVICE_ROLE_KEY || values.SUPABASE_SECRET_KEY;
+  const dbUrl = values.SUPABASE_DB_URL || values.SUPABASE_DATABASE_URL || values.DATABASE_URL || values.DB_URL;
+  must(api === API && publicKey && adminKey && dbUrl, 'ISOLATED_ENV_REQUIRED');
+  must(publicKey !== adminKey, 'PUBLIC_KEY_MUST_NOT_BE_PRIVILEGED');
+  const url = new URL(dbUrl);
+  must(['postgres:', 'postgresql:'].includes(url.protocol) && !url.hash, 'DATABASE_CONFIG_REJECTED');
+  for (const [key, value] of url.searchParams) {
+    must(key === 'sslmode' && ['require', 'verify-full'].includes(value)
+      && url.searchParams.getAll(key).length === 1, 'DATABASE_QUERY_OVERRIDE_REJECTED');
+  }
+  const parsed = parse(dbUrl);
+  const pooler = /^aws-\d+-[a-z0-9-]+\.pooler\.supabase\.com$/.test(parsed.host || '');
+  const direct = parsed.host === `db.${REF}.supabase.co`;
+  must((pooler && parsed.user === `postgres.${REF}` || direct && parsed.user === 'postgres')
+    && parsed.database === 'postgres' && parsed.password
+    && [5432, 6543].includes(Number(parsed.port || 5432))
+    && (!direct || Number(parsed.port || 5432) === 5432), 'DATABASE_PROJECT_BINDING_REJECTED');
+  for (const [key, role, prefix] of [[publicKey, 'anon', 'sb_publishable_'], [adminKey, 'service_role', 'sb_secret_']]) {
+    if (key.split('.').length === 3) {
+      let claims;
+      try { claims = JSON.parse(Buffer.from(key.split('.')[1], 'base64url').toString('utf8')); }
+      catch { fail('KEY_METADATA_INVALID'); }
+      must(claims.ref === REF && claims.role === role, 'KEY_PROJECT_OR_ROLE_BINDING_REJECTED');
+    } else must(key.startsWith(prefix) && key.length > prefix.length, 'KEY_KIND_REJECTED');
+  }
+  // The established E2E connection uses encrypted Supabase connections. No query-string SSL/file overrides survive.
+  return { publicKey, adminKey, pg: { host: parsed.host, user: parsed.user, password: parsed.password,
+    database: 'postgres', port: Number(parsed.port || 5432), ssl: { rejectUnauthorized: false },
+    connectionTimeoutMillis: 10_000, query_timeout: 20_000, statement_timeout: 15_000,
+    application_name: 'preschool-real-auth-acceptance' } };
+}
+async function remoteFetch(input, init = {}) {
+  must(cleanupStarted || !interrupted && Date.now() < DEADLINE, 'ACCEPTANCE_DEADLINE_OR_INTERRUPT');
+  const url = new URL(typeof input === 'string' || input instanceof URL ? input : input.url);
+  must(url.origin === API && !url.username && !url.password, 'AUTH_OR_REST_TARGET_REJECTED');
+  const timeout = AbortSignal.timeout(25_000);
+  return fetch(input, { ...init, redirect: 'error', signal: init.signal ? AbortSignal.any([init.signal, timeout]) : timeout });
+}
+async function catalog() {
+  await db.query('begin read only');
+  try {
+    const result = await db.query(`select wanted.name, c.oid is not null as present,
+      coalesce(c.relrowsecurity,false) as rls,
+      coalesce(has_table_privilege('authenticated',c.oid,'SELECT'),false) as auth_select,
+      coalesce(has_table_privilege('authenticated',c.oid,'INSERT'),false) as auth_insert,
+      exists(select 1 from information_schema.columns col where col.table_schema='public'
+        and col.table_name=wanted.name and col.column_name='tenant_id') as tenant_column
+      from unnest($1::text[]) wanted(name) left join pg_class c on c.oid=to_regclass('public.'||wanted.name)
+      order by wanted.name`, [TABLES]);
+    const roles = await db.query(`select pg_get_constraintdef(oid) as definition from pg_constraint
+      where conrelid='public.users'::regclass and conname='users_role_check'`);
+    const definition = roles.rows[0]?.definition || '';
+    const allowedRoles = ['admin', 'admin_staff', 'accountant'].filter(role => definition.includes(`'${role}'`));
+    const controls = await db.query(`select p.proname, md5(pg_get_functiondef(p.oid)) as definition_hash
+      from pg_proc p join pg_namespace n on n.oid=p.pronamespace
+      where n.nspname='public' and p.proname in ('get_auth_tenant_id','is_admin','is_hq_super_admin','sync_user_claims_to_auth')
+      order by p.proname,p.oid`);
+    const policies = await db.query(`select md5(coalesce(string_agg(tablename||':'||policyname||':'||roles::text||':'||cmd||':'||coalesce(qual,'')||':'||coalesce(with_check,''),
+      E'\n' order by tablename,policyname),'')) as digest from pg_policies where schemaname='public' and tablename=any($1::text[])`, [TABLES]);
+    await db.query('commit');
+    return { relations: result.rows, allowedRoles, controls: controls.rows, policyDigest: policies.rows[0].digest };
+  } catch (error) { await db.query('rollback'); throw error; }
+}
+async function mutationCounts() {
+  const counts = {};
+  for (const table of MUTATION_TABLES) {
+    const relation = catalogBefore.relations.find(item => item.name === table);
+    if (!relation?.present || !relation.tenant_column) { counts[table] = null; continue; }
+    const result = await db.query(`select count(*)::int as count from public.${table} where tenant_id=any($1::uuid[])`, [fixtures.map(item => item.tenant)]);
+    counts[table] = result.rows[0].count;
+  }
+  return counts;
+}
+async function seed() {
+  for (const fixture of fixtures) {
+    for (const role of ['admin', 'admin_staff', 'accountant']) {
+      const email = `preschool-acceptance-${randomUUID()}@example.test`, password = randomBytes(32).toString('hex');
+      authIntents.push(email);
+      const created = await admin.auth.admin.createUser({ email, password, email_confirm: true });
+      if (created.data.user?.id) authCreated.push(created.data.user.id);
+      must(!created.error && created.data.user, 'AUTH_FIXTURE_CREATE_FAILED');
+      const actor = { id: created.data.user.id, email, password, role, fixture };
+      fixture.actors.push(actor);
+    }
+  }
+  await db.query('begin'); transaction = true; fixtureWrites = true;
+  for (const fixture of fixtures) {
+    await db.query(`insert into public.tenants(id,name,status,product_key,enabled_modules)
+      values($1,$2,'active','bella_preschool','{"bella_education":true,"babycare":false,"beauty_spa":false}'::jsonb)`,
+    [fixture.tenant, `Preschool real Auth acceptance ${fixture.index}`]);
+    for (const actor of fixture.actors) await db.query(`insert into public.users(id,email,full_name,tenant_id,role,status)
+      values($1,$2,$3,$4,$5,'active') on conflict(id) do update set email=excluded.email,full_name=excluded.full_name,
+      tenant_id=excluded.tenant_id,role=excluded.role,status='active'`,
+    [actor.id, actor.email, `Synthetic acceptance ${actor.role}`, fixture.tenant, actor.role]);
+    await db.query(`insert into public.org_units(id,tenant_id,unit_type,name,code,is_active)
+      values($1,$2,'branch','Synthetic acceptance branch','ACCEPTANCE',true)`, [fixture.branch, fixture.tenant]);
+    const teacher = fixture.actors.find(actor => actor.role === 'admin_staff');
+    await db.query(`insert into public.people_directory(id,tenant_id,user_id,person_type,display_name,is_active)
+      values($1,$2,$3,'employee','Synthetic acceptance Person',true)`, [fixture.person, fixture.tenant, teacher.id]);
+    await db.query(`insert into public.org_relationships(id,tenant_id,from_id,from_type,to_id,to_type,rel_type,since)
+      values($1,$2,$3,'person',$4,'unit','belongs_to',CURRENT_DATE)`,
+    [fixture.relationship, fixture.tenant, fixture.person, fixture.branch]);
+  }
+  await db.query('commit'); transaction = false;
+  add('FIXTURE_COMMITTED', 'PASS', { tenants: 2, branches: 2, actors: authCreated.length, persons: 2, relationships: 2 });
+}
+async function loginActors() {
+  for (const fixture of fixtures) for (const actor of fixture.actors) {
+    const jar = new Map();
+    const client = createServerClient(API, config.publicKey, { global: { fetch: remoteFetch }, cookies: {
+      getAll: () => [...jar].map(([name, value]) => ({ name, value })),
+      setAll: cookies => { for (const { name, value, options } of cookies) {
+        if (options.maxAge === 0) jar.delete(name); else jar.set(name, value);
+      } },
+    } });
+    actor.client = client; actor.jar = jar; sessions.push(actor);
+    const result = await client.auth.signInWithPassword({ email: actor.email, password: actor.password });
+    must(!result.error && result.data.session && result.data.user?.id === actor.id, 'REAL_AUTH_LOGIN_FAILED');
+    const verified = await client.auth.getUser();
+    must(!verified.error && verified.data.user?.id === actor.id, 'REAL_AUTH_SUBJECT_FAILED');
+    const canonicalClaims = verified.data.user.app_metadata.role === actor.role
+      && verified.data.user.app_metadata.tenant_id === fixture.tenant;
+    // Live profile/tenant authority remains the source of authorization. A missing
+    // deployed metadata trigger is an environment finding, never a reason to mint claims.
+    if (!canonicalClaims) add(`AUTH_METADATA_PRODUCER_${fixture.index}_${actor.role}`, 'NOT_PROVEN',
+      { reason: 'DEPLOYED_CLAIMS_SYNC_UNAVAILABLE', metadataUsedAsAuthority: false });
+    must([...jar.keys()].some(name => new RegExp(`^sb-${REF}-auth-token(?:\\.\\d+)?$`).test(name))
+      && !jar.has('mock_user_email'), 'REAL_SSR_COOKIE_MISSING');
+    actor.password = undefined;
+    add(`REAL_AUTH_${fixture.index}_${actor.role}`, 'PASS', { verifiedSubject: true, canonicalClaims, cookieChunks: jar.size });
+  }
+}
+async function reservePort() {
+  return new Promise((resolvePort, reject) => {
+    const reservation = net.createServer(); reservation.once('error', reject);
+    reservation.listen(0, '127.0.0.1', () => { const selected = reservation.address().port;
+      reservation.close(error => error ? reject(error) : resolvePort(selected)); });
+  });
+}
+async function listening() {
+  return new Promise(resolveOpen => {
+    const socket = net.connect({ host: '127.0.0.1', port });
+    const done = open => { socket.destroy(); resolveOpen(open); };
+    socket.once('connect', () => done(true)); socket.once('error', () => done(false));
+    socket.setTimeout(500, () => done(false));
+  });
+}
+async function startServer() {
+  port = await reservePort();
+  const childEnv = {};
+  for (const key of ['PATH', 'Path', 'SystemRoot', 'SYSTEMROOT', 'WINDIR', 'COMSPEC', 'PATHEXT', 'TEMP', 'TMP', 'USERPROFILE', 'APPDATA', 'LOCALAPPDATA']) {
+    if (process.env[key]) childEnv[key] = process.env[key];
+  }
+  Object.assign(childEnv, { NODE_ENV: 'development', NEXT_TELEMETRY_DISABLED: '1', DEPLOYMENT_ENV: 'development',
+    NEXT_PUBLIC_SUPABASE_URL: API, SUPABASE_URL: API, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: config.publicKey,
+    NEXT_PUBLIC_SUPABASE_ANON_KEY: config.publicKey, SUPABASE_SERVICE_ROLE_KEY: '', SUPABASE_SECRET_KEY: '',
+    SUPABASE_DB_URL: '', SUPABASE_DATABASE_URL: '', DATABASE_URL: '', DB_URL: '',
+    SENTRY_DSN: '', NEXT_PUBLIC_SENTRY_DSN: '', SENTRY_AUTH_TOKEN: '' });
+  server = spawn(process.execPath, [require.resolve('next/dist/bin/next'), 'dev', '--webpack', '--hostname', '127.0.0.1', '--port', String(port)],
+    { cwd: ROOT, env: childEnv, windowsHide: true, detached: process.platform !== 'win32', stdio: ['ignore', 'pipe', 'pipe'] });
+  server.stdout.on('data', chunk => { stdoutBytes += chunk.length; });
+  server.stderr.on('data', chunk => { stderrBytes += chunk.length; });
+  server.on('error', () => { serverExit = { code: null, signal: null, spawnError: true }; });
+  server.on('exit', (code, signal) => { serverExit = { code, signal }; });
+  const until = Math.min(DEADLINE, Date.now() + 90_000);
+  while (Date.now() < until && !serverExit && !await listening()) await wait(250);
+  must(!serverExit && await listening(), 'NEXT_LISTENER_START_FAILED');
+  if (process.platform === 'win32') {
+    const ownership = execFileSync('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command',
+      `$taskRows=@(Get-CimInstance Win32_Process | Select-Object ProcessId,ParentProcessId); $taskOwned=@(${server.pid}); `
+      + `do { $taskNew=@($taskRows | Where-Object { $_.ParentProcessId -in $taskOwned -and $_.ProcessId -notin $taskOwned } | ForEach-Object { $_.ProcessId }); $taskOwned+= $taskNew } while($taskNew.Count); `
+      + `$taskListeners=@(Get-NetTCPConnection -LocalPort ${port} -State Listen -ErrorAction SilentlyContinue); `
+      + `@{count=$taskListeners.Count;owned=($taskListeners.Count -gt 0 -and @($taskListeners | Where-Object {$_.OwningProcess -notin $taskOwned}).Count -eq 0)} | ConvertTo-Json -Compress`],
+    { windowsHide: true, encoding: 'utf8', timeout: 20_000 });
+    const owner = JSON.parse(ownership); must(owner.owned === true, 'NEXT_LISTENER_OWNERSHIP_FAILED');
+  }
+  report.server = { mode: 'next dev --webpack', host: '127.0.0.1', port, ownPid: server.pid, nodeEnv: 'development', privilegedKeyInChild: false };
+}
+async function http(actor, path, method = 'GET', body, headers = {}) {
+  must(!interrupted && Date.now() < DEADLINE, 'ACCEPTANCE_DEADLINE_OR_INTERRUPT');
+  must(!Object.keys(headers).some(key => /authorization|cookie|x-mock-user-email/i.test(key)), 'UNSAFE_PROBE_HEADER');
+  const requestHeaders = { ...headers };
+  if (actor) requestHeaders.Cookie = [...actor.jar].map(([name, value]) => `${name}=${value}`).join('; ');
+  if (body !== undefined) requestHeaders['Content-Type'] = 'application/json';
+  const response = await fetch(`http://127.0.0.1:${port}${path}`, { method, headers: requestHeaders,
+    ...(body === undefined ? {} : { body: typeof body === 'string' ? body : JSON.stringify(body) }),
+    redirect: 'manual', signal: AbortSignal.timeout(Math.min(90_000, DEADLINE - Date.now())) });
+  const text = await response.text();
+  let json = null; try { json = JSON.parse(text); } catch { /* Only safe response metadata is retained. */ }
+  return { status: response.status, json, cacheControl: response.headers.get('cache-control') || '' };
+}
+async function expected(name, actor, path, method, body, status, code, headers = {}) {
+  await check(name, async () => {
+    const response = await http(actor, path, method, body, headers);
+    must(response.status === status, `HTTP_EXPECTED_${status}_GOT_${response.status}`);
+    must(response.json?.error === code, 'RESPONSE_CODE_MISMATCH');
+    must(response.json?.success === false, 'ERROR_RESPONSE_SHAPE_MISMATCH');
+    const directives = response.cacheControl.toLowerCase().split(',').map(item => item.trim());
+    must(directives.includes('no-store') && !directives.includes('public'), 'NO_STORE_OR_PRIVATE_CACHE_BOUNDARY_FAILED');
+    const literalPrivate = directives.includes('private');
+    // Keep literal contract-header proof separate from authorization. The shared
+    // proxy sets no-store before the Next dev response adapter copies route headers.
+    // Missing `private` remains NOT_PROVEN, never silently accepted as contract PASS.
+    add(`CACHE_CONTRACT_${name}`, literalPrivate ? 'PASS' : 'NOT_PROVEN', {
+      cacheControl: response.cacheControl, literalPrivate, noStore: true,
+      classification: literalPrivate ? 'PROVEN_HTTP_HEADER' : 'LOCAL_PROXY_HEADER_PRECEDENCE',
+    });
+    return { status: response.status, code, cookieOnly: Boolean(actor),
+      noStore: true, literalPrivate, proofScope: 'AUTHORIZATION_STATUS_ERROR_SHAPE' };
+  });
+}
+async function verifyRls() {
+  for (const fixture of fixtures) for (const actor of fixture.actors) {
+    const label = `${fixture.index}_${actor.role}`;
+    await check(`SELF_PROFILE_${label}`, async () => {
+      const own = await actor.client.from('users').select('id,tenant_id,role,status').eq('id', actor.id).single();
+      must(!own.error && own.data?.id === actor.id && own.data.tenant_id === fixture.tenant
+        && own.data.role === actor.role && own.data.status === 'active', 'SELF_PROFILE_CANONICAL_MISMATCH');
+      const tenant = await actor.client.rpc('get_auth_tenant_id');
+      must(!tenant.error && tenant.data === fixture.tenant, 'REAL_AUTH_TENANT_HELPER_MISMATCH');
+      return { count: 1, canonicalSubject: true };
+    });
+    await check(`ORG_RLS_${label}`, async () => {
+      const result = await actor.client.from('org_units').select('id,tenant_id').in('id', fixtures.map(item => item.branch));
+      must(!result.error && result.data?.length === 1 && result.data[0].id === fixture.branch
+        && result.data[0].tenant_id === fixture.tenant, 'ORG_RLS_POSITIVE_OR_NEGATIVE_FAILED');
+      const other = fixtures.find(item => item !== fixture);
+      const denied = await actor.client.from('org_units').select('id').eq('id', other.branch);
+      must(!denied.error && denied.data?.length === 0, 'ORG_RLS_FOREIGN_NOT_EMPTY');
+      return { allowedOwn: 1, forbiddenOther: 0 };
+    });
+    await check(`PROJECTION_RLS_${label}`, async () => {
+      const result = await actor.client.from('user_org_unit_access').select('user_id,tenant_id,org_unit_id').eq('user_id', actor.id)
+        .in('org_unit_id', fixtures.map(item => item.branch));
+      const count = actor.role === 'accountant' ? 0 : 1;
+      must(!result.error && result.data?.length === count && result.data.every(row => row.user_id === actor.id
+        && row.tenant_id === fixture.tenant && row.org_unit_id === fixture.branch), 'PROJECTION_SCOPE_FAILED');
+      const other = fixtures.find(item => item !== fixture);
+      const otherAdmin = other.actors.find(item => item.role === 'admin');
+      // Query a real foreign actor/branch pair. Filtering only by the caller's
+      // actor ID would exclude the foreign sentinel before RLS is exercised.
+      // The other admin's own iteration provides its positive control.
+      const foreign = await actor.client.from('user_org_unit_access').select('user_id,org_unit_id')
+        .eq('user_id', otherAdmin.id).eq('org_unit_id', other.branch);
+      must(!foreign.error && foreign.data?.length === 0, 'PROJECTION_FOREIGN_ACTOR_VISIBLE');
+      return { allowedOwn: count, forbiddenOther: foreign.data.length,
+        foreignActorAndBranchExplicitlyQueried: true, positiveControl: actor.role !== 'accountant' };
+    });
+  }
+  for (const table of ['edu_courses', 'edu_enrollments', 'party_parties']) {
+    const relation = catalogBefore.relations.find(item => item.name === table);
+    const probe = await fixtures[0].actors[0].client.from(table).select('id').eq('tenant_id', fixtures[0].tenant).limit(1);
+    if (relation?.present && !relation.auth_select && probe.error?.code === '42501') {
+      add(`EDUCATION_ACL_${table}`, 'NOT_PROVEN', { code: '42501', reason: 'AUTHENTICATED_SELECT_ACL_MISSING', count: 0 });
+    } else {
+      add(`EDUCATION_ACL_${table}`, 'NOT_PROVEN', { code: probe.error ? safeCode(probe.error) : 'ACL_SNAPSHOT_CHANGED',
+        reason: 'REQUIRES_SEPARATE_CANONICAL_EDUCATION_FIXTURE', count: probe.data?.length || 0 });
+    }
+  }
+}
+function schoolDay() {
+  const parts = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date());
+  return ['year', 'month', 'day'].map(type => parts.find(part => part.type === type).value).join('-');
+}
+async function verifyHttp() {
+  const care = '/api/education/care/bulk', portal = '/api/education/portal/token', broadcast = '/api/education/announcements';
+  const today = schoolDay(), history = '2000-01-01';
+  await expected('ANON_CARE', null, care, 'GET', undefined, 401, 'CARE_UNAUTHENTICATED');
+  await expected('ANON_PORTAL', null, portal, 'POST', '{', 401, 'PORTAL_UNAUTHENTICATED');
+  await expected('ANON_BROADCAST', null, broadcast, 'POST', '{', 401, 'ANNOUNCEMENT_UNAUTHENTICATED');
+  await expected('ANON_COURSES', null, '/api/education/courses', 'GET', undefined, 401, 'COURSE_UNAUTHENTICATED');
+  for (const fixture of fixtures) {
+    const other = fixtures.find(item => item !== fixture);
+    const administrator = fixture.actors.find(actor => actor.role === 'admin');
+    const teacher = fixture.actors.find(actor => actor.role === 'admin_staff');
+    const accountant = fixture.actors.find(actor => actor.role === 'accountant');
+    const target = `?courseId=${fixture.course}&date=${today}`;
+    const health = { action: 'save_care', courseId: fixture.course, date: today,
+      data: { records: [{ studentPartyId: fixture.student, health: {} }] } };
+    for (const actor of fixture.actors) await check(`HTTP_IDENTITY_${fixture.index}_${actor.role}`, async () => {
+      const response = await http(actor, '/api/tenant/context');
+      must(response.status === 200 && response.json?.tenantId === fixture.tenant, 'HTTP_IDENTITY_TENANT_MISMATCH');
+      return { status: 200, ownTenant: true, cookieOnly: true };
+    });
+    await expected(`CARE_ROLE_DENY_${fixture.index}`, accountant, care + target, 'GET', undefined, 403, 'CARE_ROLE_DENIED');
+    await expected(`CARE_TEACHER_HELD_${fixture.index}`, teacher, care + target, 'GET', undefined, 503, 'CARE_TEACHER_IDENTITY_UNAVAILABLE');
+    await expected(`CARE_HISTORICAL_HELD_${fixture.index}`, administrator,
+      `${care}?courseId=${fixture.course}&date=${history}`, 'GET', undefined, 503, 'CARE_HISTORICAL_SCOPE_UNAVAILABLE');
+    await expected(`CARE_HEALTH_HELD_${fixture.index}`, administrator, care, 'POST', health, 503, 'CARE_HEALTH_POLICY_UNAVAILABLE');
+    for (const [name, path, code] of [['PORTAL', portal, 'PORTAL_ISSUANCE_NOT_READY'], ['BROADCAST', broadcast, 'ANNOUNCEMENT_BROADCAST_NOT_READY']]) {
+      await expected(`${name}_ADMIN_HELD_${fixture.index}`, administrator, path, 'POST', '{', 503, code);
+      for (const actor of [teacher, accountant]) await expected(`${name}_ROLE_DENY_${fixture.index}_${actor.role}`,
+        actor, path, 'POST', '{', 403, name === 'PORTAL' ? 'PORTAL_ACCESS_DENIED' : 'ANNOUNCEMENT_ACCESS_DENIED');
+    }
+    const wrongQueries = [`tenantId=${fixture.tenant}&tenantId=${other.tenant}`, `tenant_id=${other.tenant}`, `actorId=${other.actors[0].id}`, `user_id=${other.actors[0].id}`];
+    for (let index = 0; index < wrongQueries.length; index++) {
+      await expected(`CARE_SELECTOR_${fixture.index}_${index}`, administrator, `${care}${target}&${wrongQueries[index]}`, 'GET', undefined, 403, 'CARE_CONTEXT_OVERRIDE_DENIED');
+      await expected(`PORTAL_SELECTOR_${fixture.index}_${index}`, administrator, `${portal}?${wrongQueries[index]}`, 'POST', '{', 403, 'TENANT_ISOLATION_VIOLATION');
+      await expected(`BROADCAST_SELECTOR_${fixture.index}_${index}`, administrator, `${broadcast}?${wrongQueries[index]}`, 'POST', '{', 403, 'ANNOUNCEMENT_CONTEXT_OVERRIDE_DENIED');
+    }
+    for (const headers of [{ 'x-tenant-id': other.tenant }, { 'x-actor-id': other.actors[0].id }]) {
+      const suffix = Object.keys(headers)[0];
+      await expected(`CARE_HEADER_${fixture.index}_${suffix}`, administrator, care + target, 'GET', undefined, 403, 'CARE_CONTEXT_OVERRIDE_DENIED', headers);
+      await expected(`PORTAL_HEADER_${fixture.index}_${suffix}`, administrator, portal, 'POST', '{', 403, 'TENANT_ISOLATION_VIOLATION', headers);
+      await expected(`BROADCAST_HEADER_${fixture.index}_${suffix}`, administrator, broadcast, 'POST', '{', 403, 'ANNOUNCEMENT_CONTEXT_OVERRIDE_DENIED', headers);
+    }
+    await expected(`CARE_BODY_TENANT_${fixture.index}`, administrator, care, 'POST', { ...health, tenantId: other.tenant }, 403, 'CARE_CONTEXT_OVERRIDE_DENIED');
+    await expected(`CARE_BODY_ROLE_${fixture.index}`, administrator, care, 'POST', { ...health, role: 'admin' }, 403, 'CARE_CONTEXT_OVERRIDE_DENIED');
+    await expected(`COURSE_DUPLICATE_TENANT_${fixture.index}`, administrator,
+      `/api/education/courses?tenantId=${fixture.tenant}&tenantId=${other.tenant}`, 'GET', undefined, 403, 'TENANT_ISOLATION_VIOLATION');
+    const ownCourses = await http(administrator, '/api/education/courses');
+    const deniedAcl = catalogBefore.relations.find(item => item.name === 'edu_courses')?.auth_select === false;
+    const knownMissingAcl = ownCourses.status === 500 && deniedAcl
+      && ownCourses.json?.success === false && /permission denied/i.test(ownCourses.json?.error || '')
+      && !Array.isArray(ownCourses.json?.classrooms);
+    add(`COURSE_OWN_HTTP_${fixture.index}`, knownMissingAcl ? 'NOT_PROVEN' : 'FAIL', { status: ownCourses.status,
+      code: knownMissingAcl ? 'AUTHENTICATED_SELECT_ACL_MISSING' : 'UNEXPECTED_COURSE_RESPONSE' });
+  }
+  for (const [index, actor] of [null, ...fixtures[0].actors].entries()) {
+    await expected(`MEDICATION_DISABLED_${index}`, actor, '/api/education/care/medication', 'POST', '{', 410, 'PRESCHOOL_MEDICATION_DISABLED');
+  }
+  const actor = fixtures[0].actors[0];
+  const restoreCases = [
+    ['INACTIVE_PROFILE', `update public.users set status='inactive' where id=$1`, `update public.users set status='active' where id=$1`, actor.id, 'CARE_ACCESS_DENIED'],
+    ['SUSPENDED_TENANT', `update public.tenants set status='suspended' where id=$1`, `update public.tenants set status='active' where id=$1`, actor.fixture.tenant, 'CARE_ACCESS_DENIED'],
+  ];
+  for (const [name, apply, restore, id, code] of restoreCases) {
+    await db.query(apply, [id]);
+    try { await expected(name, actor, care, 'GET', undefined, 403, code); }
+    finally { await db.query(restore, [id]); }
+  }
+  add('CARE_POSITIVE_AND_MIXED_STUDENT_ACCEPTANCE', 'NOT_PROVEN', { code: 'CARE_SCHEMA_AND_EDUCATION_ACL_MISSING',
+    missingTables: ['edu_daily_care_sessions', 'edu_daily_care_records', 'edu_attendance_daily_state'].filter(name => !catalogBefore.relations.find(item => item.name === name)?.present),
+    writesAttempted: 0, partialWriteOrRollbackClaim: false });
+  add('PORTAL_VALID_BEARER_AND_BROADCAST_DELIVERY', 'NOT_PROVEN', { code: 'CANONICAL_COMPOSITION_HELD', probes: 0 });
+}
+async function stopServer() {
+  if (!server) return;
+  if (!serverExit) {
+    if (process.platform === 'win32') {
+      try {
+        execFileSync('taskkill.exe', ['/PID', String(server.pid), '/T', '/F'], { windowsHide: true, stdio: 'ignore', timeout: 20_000 });
+        report.processTreeKillExitCode = 0;
+      }
+      catch { if (!serverExit && server.exitCode === null) fail('OWN_NEXT_PROCESS_TREE_STOP_FAILED'); }
+    } else { try { process.kill(-server.pid, 'SIGTERM'); } catch { /* Verify listener below. */ } }
+  }
+  for (let index = 0; index < 40 && await listening(); index++) await wait(250);
+  await wait(100); // Allow the child exit event to record its actual code after taskkill.
+  const closed = !await listening();
+  report.server = { ...report.server, exit: serverExit || { code: server.exitCode, signal: server.signalCode },
+    stdoutBytes, stderrBytes, rawLogsSaved: false, listenerClosed: closed };
+  must(closed, 'OWN_NEXT_LISTENER_STILL_OPEN');
+}
+function restoreGeneratedAgents() {
+  if (!agentBefore) return;
+  const path = join(ROOT, 'AGENTS.md'), after = readFileSync(path);
+  if (after.equals(agentBefore)) { report.generatedAgents = { changed: false }; return; }
+  const before = agentBefore.toString('utf8'), current = after.toString('utf8');
+  const eol = before.includes('\r\n') ? '\r\n' : '\n';
+  const block = '<!-- BEGIN:nextjs-agent-rules -->\n\n# This is NOT the Next.js you know\n\n'
+    + 'This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file\'s directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.\n\n'
+    + 'This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.\n\n<!-- END:nextjs-agent-rules -->';
+  const separator = before.length === 0 || /\r?\n$/.test(before) ? eol : eol + eol;
+  const expectedAfter = before + separator + block.replace(/\n/g, eol) + eol;
+  const diff = git(['diff', '--no-ext-diff', '--', 'AGENTS.md']);
+  const diffFile = `next-agent-diff-${STAMP}.patch`;
+  writeFileSync(join(OUTPUT, diffFile), diff);
+  report.generatedAgents = { changed: true, beforeSha256: hash(agentBefore), generatedSha256: hash(after), diffFile, restored: false };
+  must(agentClean && current === expectedAfter, 'UNRECOGNIZED_AGENTS_DELTA_PRESERVED');
+  writeFileSync(path, agentBefore);
+  must(readFileSync(path).equals(agentBefore), 'AGENTS_RESTORE_FAILED');
+  report.generatedAgents.restored = true;
+}
+async function cleanup() {
+  cleanupStarted = true;
+  const attempt = async (name, operation) => {
+    try { await operation(); } catch (error) { report.cleanup.failures.push({ name, code: safeCode(error) }); }
+  };
+  await attempt('NEXT_PROCESS_AND_LISTENER', stopServer);
+  await attempt('NEXT_GENERATED_AGENT_DELTA', restoreGeneratedAgents);
+  for (const actor of sessions) { actor.jar.clear(); actor.password = undefined; }
+  if (connected) {
+    if (transaction) await attempt('ROLLBACK_OPEN_FIXTURE_TRANSACTION', async () => { await db.query('rollback'); transaction = false; });
+    if (authIntents.length) await attempt('RECOVER_UNCERTAIN_AUTH_CREATION', async () => {
+      const recovered = await db.query('select id from auth.users where email=any($1::text[])', [authIntents]);
+      for (const row of recovered.rows) if (!authCreated.includes(row.id)) authCreated.push(row.id);
+    });
+    if (fixtureWrites) {
+      await attempt('DELETE_OWN_ORG_RELATIONSHIPS', () => db.query('delete from public.org_relationships where id=any($1::uuid[]) and tenant_id=any($2::uuid[])', [fixtures.map(item => item.relationship), fixtures.map(item => item.tenant)]));
+      await attempt('DELETE_OWN_PERSONS', () => db.query('delete from public.people_directory where id=any($1::uuid[]) and tenant_id=any($2::uuid[])', [fixtures.map(item => item.person), fixtures.map(item => item.tenant)]));
+      await attempt('DELETE_OWN_BRANCHES', () => db.query('delete from public.org_units where id=any($1::uuid[]) and tenant_id=any($2::uuid[])', [fixtures.map(item => item.branch), fixtures.map(item => item.tenant)]));
+    }
+    if (authCreated.length) {
+      await attempt('REVOKE_RESIDUAL_PROFILE_AUTHORITY', () => db.query("update public.users set status='inactive' where id=any($1::uuid[]) and status is distinct from 'inactive'", [authCreated]));
+    }
+    // Tenant insert creates immutable audit history. Preserve that history and
+    // neutralize only these owned synthetic shells instead of attempting cascade deletion.
+    if (fixtureWrites) await attempt('REVOKE_RESIDUAL_TENANT_AUTHORITY', () => db.query("update public.tenants set status='terminated' where id=any($1::uuid[]) and status is distinct from 'terminated'", [fixtures.map(item => item.tenant)]));
+  }
+  if (admin) for (const id of [...authCreated].reverse()) await attempt('DELETE_OWN_AUTH_USER', async () => {
+    const result = await admin.auth.admin.deleteUser(id); must(!result.error, 'AUTH_FIXTURE_DELETE_FAILED');
+  });
+  if (connected && authCreated.length) await attempt('DELETE_RESIDUAL_OWN_PROFILES', async () => {
+    // Auth deletion is the canonical owner lifecycle and may cascade the profile.
+    // Do not issue a bulk profile DELETE before it: its many FK checks can outlive
+    // the bounded query window. Only delete an owned residual, one UUID at a time.
+    const residual = await db.query('select id from public.users where id=any($1::uuid[])', [authCreated]);
+    for (const row of residual.rows) await attempt('DELETE_RESIDUAL_OWN_PROFILE', () => db.query('delete from public.users where id=$1', [row.id]));
+  });
+  if (connected && authCreated.length) await attempt('RESIDUAL_READBACK', async () => {
+    const result = await db.query(`select
+      (select count(*)::int from auth.users where id=any($1::uuid[])) as auth_users,
+      (select count(*)::int from public.users where id=any($1::uuid[])) as public_users,
+      (select count(*)::int from public.users where id=any($1::uuid[]) and status='active') as active_users,
+      (select count(*)::int from public.tenants where id=any($2::uuid[])) as tenants,
+      (select count(*)::int from public.tenants where id=any($2::uuid[]) and status='active') as active_tenants,
+      (select count(*)::int from public.org_units where id=any($3::uuid[])) as branches,
+      (select count(*)::int from public.people_directory where id=any($4::uuid[])) as persons,
+      (select count(*)::int from public.org_relationships where id=any($5::uuid[])) as relationships`,
+    [authCreated, fixtures.map(item => item.tenant), fixtures.map(item => item.branch), fixtures.map(item => item.person), fixtures.map(item => item.relationship)]);
+    report.cleanup.residual = result.rows[0];
+    const { tenants: retainedTenants, ...authority } = result.rows[0];
+    report.cleanup.retainedTenantShells = retainedTenants;
+    report.cleanup.retainedReason = retainedTenants ? 'IMMUTABLE_AUDIT_HISTORY_RETAINED_TERMINATED' : null;
+    must(Object.values(authority).every(count => count === 0), 'FIXTURE_RESIDUAL_AUTHORITY');
+  });
+  if (connected) await attempt('CATALOG_AFTER', async () => {
+    const after = await catalog(); report.catalogAfter = after;
+    must(JSON.stringify(after) === JSON.stringify(catalogBefore), 'CATALOG_DRIFT_DETECTED');
+  });
+  if (db) await attempt('DATABASE_CLOSE', () => db.end());
+  await attempt('SOURCE_AFTER', async () => {
+    report.sourceAfter = sourceState();
+    must(report.sourceAfter.head === report.sourceBefore?.head && report.sourceAfter.tree === report.sourceBefore?.tree
+      && report.sourceAfter.sourceSha256 === report.sourceBefore?.sourceSha256
+      && report.sourceAfter.changed.length === 0 && report.sourceAfter.untracked.length === 0
+      && report.sourceAfter.nextAutoEnvFiles.length === 0, 'RUNTIME_SOURCE_OR_ENV_DRIFT');
+  });
+}
+async function main() {
+  mkdirSync(OUTPUT, { recursive: true });
+  try {
+    report.sourceBefore = sourceState();
+    must(report.sourceBefore.baselineAncestor && !report.sourceBefore.changed.length && !report.sourceBefore.untracked.length, 'EXACT_SOURCE_BASELINE_REQUIRED');
+    must(report.sourceBefore.nextAutoEnvFiles.length === 0, 'NEXT_AUTO_ENV_FILES_FORBIDDEN');
+    report.harnessSha256 = hash(readFileSync(__filename));
+    must(existsSync(join(OUTPUT, 'SPEC.md')), 'APPROVED_SPEC_REQUIRED');
+    const prior = JSON.parse(readFileSync(join(OUTPUT, 'catalog-before.json'), 'utf8'));
+    must(prior.projectRef === REF && prior.readOnly === true, 'ISOLATED_CATALOG_REQUIRED');
+    agentClean = git(['status', '--porcelain', '--', 'AGENTS.md']).trim() === '';
+    must(agentClean, 'INITIAL_AGENTS_MUST_BE_CLEAN'); agentBefore = readFileSync(join(ROOT, 'AGENTS.md'));
+    config = readConfig(); // All target/source guards precede Auth creation and database DML.
+    add('SOURCE_AND_TARGET_PREFLIGHT', 'PASS', { exactBaseline: true, projectBinding: true, productionFallback: false });
+    db = new Client(config.pg); db.on('error', error => { report.databaseConnectionError = safeCode(error); });
+    await db.connect(); connected = true; catalogBefore = await catalog(); report.catalogBefore = catalogBefore;
+    must(catalogBefore.allowedRoles.length === 3, 'CANONICAL_ROLE_CHECK_MISMATCH');
+    for (const table of ['tenants', 'users', 'org_units', 'people_directory', 'org_relationships', 'user_org_unit_access']) {
+      const relation = catalogBefore.relations.find(item => item.name === table);
+      must(relation?.present && relation.auth_select && (table === 'user_org_unit_access' || relation.rls), 'IDENTITY_OR_ORG_PREREQUISITE_MISSING');
+    }
+    admin = createClient(API, config.adminKey, { auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false }, global: { fetch: remoteFetch } });
+    await seed(); await loginActors();
+    report.mutationCountsBefore = await mutationCounts();
+    await verifyRls(); await startServer(); await verifyHttp();
+    report.mutationCountsAfter = await mutationCounts();
+    await check('DENIED_REQUEST_FIXTURE_MUTATION_COUNTS', async () => {
+      must(JSON.stringify(report.mutationCountsBefore) === JSON.stringify(report.mutationCountsAfter), 'DENIED_REQUEST_MUTATION_DETECTED');
+      const checkedRelations = Object.values(report.mutationCountsAfter).filter(count => count !== null).length;
+      must(checkedRelations > 0, 'NO_MUTATION_RELATION_AVAILABLE_FOR_READBACK');
+      return { checkedRelations,
+        missingRelations: Object.values(report.mutationCountsAfter).filter(count => count === null).length,
+        zeroDelta: true, missingTableSideEffects: 'NOT_PROVEN', rollbackClaim: false };
+    });
+  } catch (error) { primaryFailure = safeCode(error); report.primaryFailure = primaryFailure; }
+  finally {
+    await cleanup();
+    report.finishedAt = new Date().toISOString();
+    report.counts = Object.fromEntries(['PASS', 'FAIL', 'NOT_PROVEN'].map(result => [result, report.checks.filter(item => item.result === result).length]));
+    report.result = primaryFailure || report.counts.FAIL || report.cleanup.failures.length ? 'FAIL'
+      : report.counts.NOT_PROVEN ? 'PARTIAL_NOT_PROVEN' : 'PASS_SCOPED_ACCEPTANCE';
+    report.exitCode = report.result === 'FAIL' ? 1 : 0;
+    report.cleanup.result = report.cleanup.failures.length ? 'FAIL' : authCreated.length
+      ? report.cleanup.retainedTenantShells ? 'PASS_AUTHORITY_REMOVED_AUDIT_SHELLS_RETAINED' : 'PASS_ZERO_RESIDUAL'
+      : 'NOT_APPLICABLE_NO_AUTH_FIXTURE';
+    writeFileSync(join(OUTPUT, `results-${STAMP}.json`), JSON.stringify(report, null, 2) + '\n');
+    console.log(JSON.stringify({ result: report.result, counts: report.counts, cleanup: report.cleanup.result,
+      primaryFailure, cleanupFailures: report.cleanup.failures.length, report: `docs/audits/preschool-full-audit-20261020/batch2k-real-auth/results-${STAMP}.json`, exitCode: report.exitCode }));
+    process.exitCode = report.exitCode;
+  }
+}
+main().catch(error => { console.error(JSON.stringify({ result: 'FAIL', code: safeCode(error) })); process.exitCode = 1; });

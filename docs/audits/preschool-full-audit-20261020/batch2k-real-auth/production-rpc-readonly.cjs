@@ -1,0 +1,8 @@
+const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
+const e=require('dotenv').parse(fs.readFileSync('D:/Antigravity/Projects/BELLA SPA ERP/.env.local'));
+const origin=new URL(e.NEXT_PUBLIC_SUPABASE_URL).origin;assert.equal(origin,'https://lvnvkpyxtuilhrabtlwv.supabase.co');
+const roles={anon:e.NEXT_PUBLIC_SUPABASE_ANON_KEY||e.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,service_role:e.SUPABASE_SERVICE_ROLE_KEY};
+for(const [role,key] of Object.entries(roles)){const claims=JSON.parse(Buffer.from(key.split('.')[1],'base64url'));assert.equal(claims.ref,'lvnvkpyxtuilhrabtlwv');assert.equal(claims.role,role);}
+(async()=>{const report={checkedAt:new Date().toISOString(),target:'lvnvkpyxtuilhrabtlwv',probeSql:'SELECT 1',businessTablesAccessed:[],mutationStatements:0,tests:[]};
+for(const [role,key] of Object.entries(roles)){const response=await fetch(origin+'/rest/v1/rpc/exec_sql',{method:'POST',headers:{apikey:key,Authorization:'Bearer '+key,'Content-Type':'application/json'},body:JSON.stringify({sql_query:'SELECT 1'}),signal:AbortSignal.timeout(15000)});const body=await response.json().catch(()=>null);report.tests.push({role,status:response.status,errorCode:body?.code||null,result:role==='anon'?(!response.ok&&body?.code==='42501'?'PASS':'FAIL'):(response.status===204?'PASS':'FAIL')});}
+report.result=report.tests.every(x=>x.result==='PASS')?'PASS':'FAIL';fs.writeFileSync(path.join(__dirname,'production-rpc-'+report.checkedAt.replace(/[:.]/g,'-')+'.json'),JSON.stringify(report,null,2)+'\n');console.log(JSON.stringify(report));if(report.result!=='PASS')process.exitCode=1;})().catch(()=>{console.error('RPC_READONLY_PROBE_FAILED');process.exitCode=1});
