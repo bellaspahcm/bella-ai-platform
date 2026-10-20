@@ -81,6 +81,7 @@ export async function drive(taskInput, { role, snapshot, record, now = Date.now 
       const c = verify.test.counters;
       const green = verify.test.exitCode === 0 && c.tests > 0 && c.pass === c.tests && ['fail', 'cancelled', 'skipped', 'todo'].every(k => c[k] === 0);
       if (green !== (verify.decision === 'PASS')) fail('TEST_VERDICT_MISMATCH');
+      if (!green) fail('VERIFY_FAILED');
       const review = await stage('REVIEWER', { verification: verify });
       if (review.decision === 'PASS' && green && Array.isArray(review.findings) && !review.findings.length) {
         if ((await snapshot()).fingerprint !== candidate) fail('FINAL_CANDIDATE_CHANGED');

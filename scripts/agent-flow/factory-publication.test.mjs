@@ -29,3 +29,17 @@ test('real disposable Git tree must match candidate bytes/mode/paths; source dri
     await assert.rejects(verifyCommitCandidate(root,candidate,git(['rev-parse','HEAD'])),/SCOPE_MISMATCH/);
   }finally{if(priorGlobal===undefined)delete process.env.GIT_CONFIG_GLOBAL;else process.env.GIT_CONFIG_GLOBAL=priorGlobal;if(priorSystem===undefined)delete process.env.GIT_CONFIG_NOSYSTEM;else process.env.GIT_CONFIG_NOSYSTEM=priorSystem;await rm(root,{recursive:true,force:true});}
 });
+
+test('real Git proof includes additions/deletions/executable modes and rejects recreated deletion',async t=>{
+  const root=await mkdtemp(join(tmpdir(),'bella-tree-changes-'));t.after(()=>rm(root,{recursive:true,force:true}));
+  const git=(args,options={})=>execFileSync('git',args,{cwd:root,encoding:'utf8',windowsHide:true,...options}).trim();
+  git(['init','-q']);git(['config','user.name','Protocol Fixture']);git(['config','user.email','protocol@example.invalid']);git(['config','core.autocrlf','false']);
+  await writeFile(join(root,'removed.mjs'),'old\n');await writeFile(join(root,'kept.mjs'),'export {};\n');git(['add','--','removed.mjs','kept.mjs']);git(['commit','-qm','base']);const baseRevision=git(['rev-parse','HEAD']);
+  await rm(join(root,'removed.mjs'));await writeFile(join(root,'added.mjs'),'export const added = true;\n');git(['add','-A','--','added.mjs','removed.mjs']);git(['update-index','--chmod=+x','kept.mjs']);
+  const blob=path=>git(['rev-parse',':'+path]);const entry=async(path,mode)=>({path,present:true,mode,worktreeSha256:hash(await readFile(join(root,path))),blobOid:blob(path),canonicalSha256:hash(execFileSync('git',['cat-file','blob',blob(path)],{cwd:root,windowsHide:true})),attributes:'text: unspecified'});
+  const candidate={representation:'git-clean-filtered-blob-v1',baseRevision,sourceFingerprint:'b'.repeat(64),coreAutocrlf:'false',files:[await entry('added.mjs','100644'),await entry('kept.mjs','100755'),{path:'removed.mjs',present:false,mode:null,worktreeSha256:null,blobOid:null,canonicalSha256:null}]};
+  git(['commit','-qm','candidate']);const commit=git(['rev-parse','HEAD']);assert.equal((await verifyCommitCandidate(root,candidate,commit)).matches,true);
+  await assert.rejects(verifyCommitCandidate(root,{...candidate,files:candidate.files.filter(f=>f.path!=='added.mjs')},commit),/SCOPE_MISMATCH/);
+  await assert.rejects(verifyCommitCandidate(root,{...candidate,files:candidate.files.map(f=>f.path==='kept.mjs'?{...f,mode:'100644'}:f)},commit),/CONTENT_MISMATCH/);
+  await writeFile(join(root,'removed.mjs'),'recreated\n');await assert.rejects(verifyCommitCandidate(root,candidate,commit),/POST_REVIEW_DRIFT/);
+});

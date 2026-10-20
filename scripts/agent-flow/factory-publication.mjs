@@ -24,7 +24,7 @@ export async function initializeFactory(directory, workspace, before) {
   const rules = [];
   for (const [path, sections, reason] of [
     ['AGENTS.md', ['Mandatory architectural control'], 'Preserve the approved tooling and protected-layer scope.'],
-    ['docs/governance/BELLA_AI_CODING_CONSTITUTION.md', ['Business Semantic Gate', 'Change Authority', 'Evidence Before Closure'], 'Apply scoped execution and distinguish test/proof/release outcomes.'],
+    ['docs/governance/BELLA_AI_CODING_CONSTITUTION.md', ['Workflow Routing', 'Scoped Autonomy and Approval', 'Verification Results and Applicability', 'Enforcement Evidence', 'Business Semantic Gate', 'Evidence Before Closure'], 'Apply scoped execution and distinguish test/proof/release outcomes.'],
     ['scripts/agent-flow/FACTORY_EVIDENCE_CONTRACT.md', ['Identity and sources', 'Candidate and commit'], 'Bind this workflow to original artifacts and verified source content.'],
   ]) rules.push({ path, revision: before.head, sha256: hash(await readFile(join(workspace, path))), sections, reason });
   const intake = JSON.parse(await readFile(join(directory, 'intake.json'), 'utf8'));

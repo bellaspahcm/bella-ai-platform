@@ -1,8 +1,10 @@
 # BELLA AI CODING — MANDATORY ARCHITECTURAL CONTROL
 
-Before implementing or modifying any Bella OS or Product, you MUST read and comply with:
+Before changing software, architecture, or engineering controls anywhere in the Bella AI Platform ecosystem, you MUST read and comply with:
 
-👉 **Bella AI Coding Constitution:** `docs/governance/BELLA_AI_CODING_CONSTITUTION.md`
+👉 **Bella AI Platform Architecture & Change Constitution:** `docs/governance/BELLA_AI_CODING_CONSTITUTION.md`
+
+Use its **Workflow Routing**, **Scoped Autonomy and Approval**, **Verification Results and Applicability**, and **Enforcement Evidence** sections. Follow its authority/applicability map and retain applicable specialized rules. The complete common rules live in that document; this entrypoint does not create a separate workflow or grant additional authority.
 
 These rules are mandatory. Do not introduce new abstractions, Platform/Core changes, or cross-scope refactors without evidence and explicit justification.
 
@@ -48,8 +50,8 @@ Before writing or modifying code, apply the constitution's entry gate and propor
 4. **Contract Dependency Map** (`Product → Contract → Kernel`)
 5. **Change Authority** (which layers the requested change authorizes modifying)
 6. **UI → Contract Reconciliation** for Product UI redesigns or data/action-bound UI changes
-7. **Additive Migration Plan** (`CREATE` new product tables / indexes only)
-8. **11 Automated Verification Gates Plan**
+7. **Migration Applicability & Additive Migration Plan** (`CREATE` new product tables / indexes only where applicable; explain `NOT_APPLICABLE` when no migration is needed)
+8. **Verification Plan** (mandatory applicable gates and risk-related checks; retain all 11 gates where the specialized constitution requires them)
 
 For any new OS, new Product, Product vertical, or Product UI redesign, `ARCHITECTURE_GATE_RESULT.md` must conclude `PASS`, `BLOCKED`, or `DEFER` before product/runtime code is written.
 
@@ -60,28 +62,30 @@ If the requested feature appears to require a new Kernel capability or modificat
 
 ---
 
-## 🛡️ MACHINE ARCHITECTURE GUARD ENFORCEMENT
+## 🛡️ ARCHITECTURE VERIFICATION & ENFORCEMENT EVIDENCE
 
 ### Healthcare OS
 Before submitting Healthcare code, you MUST verify:
 ```bash
 npm run healthcare:verify
 ```
-Which runs `scripts/healthcare/architecture-guard.ts` and the 52/52 Kernel Regression Test Suites.
+Runs the configured Healthcare guard, architecture, conformance, and Kernel regression commands. Report the actual executed suites/tests and outcomes; historical counts do not prove the current run. Applicable Healthcare requirements remain mandatory.
 
 ### Logistics OS
 Before submitting Logistics code, you MUST verify:
 ```bash
 npm run logistics:verify
 ```
-Which runs `scripts/architecture/architecture-guard.ts` and the 547/547 Kernel Regression Test Suites (E7.1: 366, E7.2: 73, E7.3: 108).
+Runs the configured Logistics guard and Kernel regression commands. Report actual suite and test counts separately; the historical 547 figure refers to tests, not suites. Applicable freeze/regression requirements remain mandatory.
 
-**Architecture Guard Protection:**
-- **Layer 1:** Architecture Guard Script (manual/pre-commit)
-- **Layer 2:** Pre-Tool-Use Hook (blocks AI modifications in real-time)
-- **Layer 3:** Git Pre-Commit Hook (prevents commits)
-- **Layer 4:** CI Architecture Gate (blocks PRs)
-- **Layer 5:** Regression Test Suite (validates integrity)
+**Architecture Guard Control Surfaces:**
+- **Layer 1:** Architecture Guard Script.
+- **Layer 2:** Pre-Tool-Use Hook for its configured AI tool and matched operations.
+- **Layer 3:** Git Pre-Commit Hook for the actual checkout configuration.
+- **Layer 4:** CI Architecture Gate with applicable triggers and required-check policy.
+- **Layer 5:** Regression Test Suite for the exercised scope.
+
+These are control surfaces, not a claim that all five are enforced in every tool or scope. Assess their actual state using **Enforcement Evidence** in the Constitution.
 
 **Frozen Artifacts:**
 - E7.1: 12 artifacts (domain primitives)

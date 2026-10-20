@@ -1,14 +1,144 @@
-# BELLA ENGINEERING RULES - OS & PRODUCT DEVELOPMENT v2
+# BELLA AI PLATFORM ARCHITECTURE & CHANGE CONSTITUTION
 
 > Follow Bella Engineering Execution Contract: Evidence -> Truth -> Source of Truth -> Canonical Contract -> Ownership -> Boundary -> Change Authority -> Minimal Implementation -> Verification -> Evidence. Never change a lower-layer contract merely to satisfy a higher-layer consumer, redesigned UI, TypeScript, or CI.
 
-This is the authoritative engineering constitution for Bella OS and Product development. It applies to AI-assisted and human implementation work across Platform, OS, Product, Integration, Shared UI, CI, tests, and technical-debt cleanup.
+This is the authoritative engineering execution constitution for the Bella AI Platform ecosystem. It applies to AI-assisted and human work across Platform/Core, Bella Factory, Industry OS, Product, Integration, Shared UI, CI, tests, security, migrations, dependency upgrades, technical-debt cleanup, and release readiness.
 
 This document is not a list of optional preferences. It is the default execution contract. If a local vertical constitution, freeze policy, ADR, or human architect decision is stricter, the stricter rule wins.
 
 AI must first determine what is true, which source has authority to prove it, which canonical contract represents it, who owns it, and whether the requested task authorizes changing it.
 
 The Truth, Contract, and Change Authority rules below apply to all Bella OS, Products, features, refactors, UI redesigns, and technical-debt fixes.
+
+## Scope, Responsibilities, and Applicable Authority
+
+The common Constitution applies to every change. The new OS/Product process below is one development workflow within that scope.
+
+| Control layer | Responsibility | Existing entrypoint |
+| --- | --- | --- |
+| Architecture Constitution | Common invariants, ownership, canonical truth, contracts, change authority, and evidence semantics. | This document and applicable approved architecture decisions. |
+| Development Workflows | Select analysis, implementation, review, and verification for the task's actual impact. | [Workflow Routing](#workflow-routing) and existing specialized procedures. |
+| Repository Enforcement | Apply configured permissions, required checks, protected paths, hooks, and approval controls. | Actual repository configuration and executed evidence; [Enforcement Evidence](#enforcement-evidence). |
+
+### Architectural Responsibilities
+
+| Responsibility | Owns |
+| --- | --- |
+| Platform/Core | Shared, industry-neutral foundational capabilities and their public contracts. |
+| Bella Factory | Software creation, orchestration, verification, and release governance within delegated authority. It does not acquire Industry OS or Product business ownership. |
+| Industry OS | Reusable industry capabilities, domain semantics, invariants, and public contracts. |
+| Product | Concrete business workflows, Product-specific behavior, identity, and user experience using approved capabilities. |
+
+These are responsibility boundaries, not a mandatory adjacent-layer dependency chain, folder template, or instruction to build another runtime framework. Integration and Shared UI retain their existing ownership boundaries.
+
+### Authority and Applicability Map
+
+| Existing source | Applicability and relationship |
+| --- | --- |
+| This document | Common engineering execution rules across the ecosystem; retain this canonical file path when referring to the renamed Constitution. |
+| [Approved Platform Architecture Constitution](../01-architecture/ARCHITECTURE_CONSTITUTION.md) | Approved architectural foundation. This engineering update does not revoke its constraints or approve deviations. |
+| [Healthcare Constitution](../architecture/HEALTHCARE_VERTICAL_CODING_CONSTITUTION.md), [Education Constitution](../architecture/EDUCATION_VERTICAL_CODING_CONSTITUTION.md), and other applicable OS/Product constitutions | Specialized rules for their declared scopes, including mandatory gates and public-contract boundaries. |
+| [Freeze Policy](../architecture/FREEZE_POLICY.md) and applicable ACRs/ADRs | Protected-layer changes retain their required approval, unlock, verification, and reseal process. Apply decisions only within their approved scope and effective conditions. |
+| [Git Workflow Constitution](../architecture/GIT_WORKFLOW_CONSTITUTION.md), [Operational Readiness SOP](OPERATIONAL_READINESS_SOP.md), [Deployment Governance](BELLA_DEPLOYMENT_GOVERNANCE_FRAMEWORK.md), and Product release criteria | Govern their respective change, operational, deployment, and Go-Live decisions; none is established by a generic gate PASS. |
+| [Draft Architecture Constitution](../BELLA_ARCHITECTURE_CONSTITUTION.md) and [conditional Meta-Platform Constitution](../architecture/BELLA_META_PLATFORM_CONSTITUTION.md) | Preserve their recorded status, scope, and effective conditions. A title, date, or file's presence does not establish activation or supersession. |
+
+AGENTS.md, CLAUDE.md, tool instructions, and directory instructions route execution to these sources; they must not create a competing copy of the common rules. Local instructions may add applicable constraints without weakening existing authority.
+
+Apply stricter applicable rules. When approved sources genuinely conflict and precedence cannot be resolved from an applicable decision, stop the dependent change and present the exact conflict to its owner. Continue independent, authorized work. AI must not silently repeal a rule, choose the easiest policy, or treat a document rename as approval of an architectural exception.
+
+### Mandatory Invariants and Conditional Techniques
+
+Ownership, canonical truth, public contracts, change authority, tenant isolation, authorization/RLS, data and audit integrity, and protected/frozen boundaries are mandatory. Preserve event-after-persistence wherever events are required or used.
+
+Use DDD, aggregates, new bounded contexts, repository interfaces, domain events, Clean Architecture layouts, and expand/migrate/contract only when the actual workflow, risk, or an applicable approved rule requires them. Preserve established approved module structure. A CRUD screen using an existing API does not, by itself, justify creating these abstractions.
+
+This proportional rule does not waive an existing mandate. For example, applicable Healthcare/Education 11-gate requirements and approved event/aggregate constraints remain in force until changed through their owning approval process. Protect boundaries; add architecture only with evidence and authority.
+
+## Scoped Autonomy and Approval
+
+Default: execute within delegated scope. Escalate: unresolved material business decisions or changes beyond granted authority. Stop: the dependent portion only.
+
+| Situation | Required action |
+| --- | --- |
+| Existing contracts and approved rules support the requested change inside authorized layers. | Implement, test, fix related failures, and verify without asking for approval for each routine technical step or file. |
+| Information can be verified from source, contracts, AGENTS.md, or applicable ACRs/ADRs. | Investigate before asking. Reuse approved decisions/defaults only while their scope and conditions remain valid. |
+| Several technical choices have no material business, ownership, compatibility, or security difference. | Choose the smallest proven, compatible, recoverable option within scope and record the reason in the existing task record. |
+| A material business rule is unresolved, or required change authority is missing. | Hold dependent implementation, provide evidence and a concrete proposal, and bundle the necessary owner decision where possible. Continue independent, authorized work. |
+
+Do not request approval again for an explicit decision that still applies. Scope approval can cover implementation, tests, related repairs, and verification; it does not automatically authorize commits, merge, release, Production operations, or frozen-layer changes. Follow the actual authorization already granted and the applicable repository/release process.
+
+Reuse already-read rules and verified evidence while their source revision, scope, and effective conditions remain valid. Refresh affected sources when these change; do not repeatedly restart discovery or produce duplicate reports for an unchanged decision.
+
+AI cannot grant itself authority. Calling an agent Architect or Reviewer does not create approval rights. Missing semantic evidence still triggers the Business Semantic Gate; independent tests must not invent the unresolved business expectation. Do not report a complete feature while a required dependency remains held.
+
+### Protection Changes Require Independent Authority
+
+An agent implementing a feature MUST NOT modify or disable branch protection, required checks, CODEOWNERS, protected paths, security policies, guard implementations, or their baselines/selectors merely to unblock that feature.
+
+If a protection is defective, capture the root evidence and propose a separately scoped change for the authorized owner. Protection changes require approval independent of the feature they protect, plus relevant verification of both legitimate and prohibited cases. A passing self-edited guard or approval text authored by the implementing agent does not establish independent authorization. Keep the protected feature held where the unresolved control is required.
+
+## Workflow Routing
+
+Use existing procedures below; combine applicable rows for a mixed task. Record only the scope, authority, unresolved decisions, and verification needed by that task in its existing work record. The mandatory entry gate still applies where specified; this table adds no new report or approval stage.
+
+| Task | Existing workflow and minimum focus |
+| --- | --- |
+| New Product / vertical | [Entry gate](#mandatory-entry-gate-for-new-osproduct-work) and [Product process](#additional-product-process): user/workflow scope, OS reuse, ownership, contracts, Product identity, and authorized layers. |
+| New feature | [Business Semantic Gate](#business-semantic-gate), [Change Authority](#change-authority), and [continuous verification](#9-verify-continuously): proven behavior, reuse, affected workflow, and failure paths. |
+| UI redesign / maintenance | [UI reconciliation](#ui-to-contract-reconciliation) and [UI change safety](#ui-driven-backend-change-safety): data/actions/permissions trace to existing contracts. Redesign requires the entry gate; presentation maintenance may use `UI_ONLY`. |
+| OS / shared kernel change | [OS process](#additional-os-process), owning contracts/consumers, and applicable specialized constitution. Protected changes retain the [ACR/ADR/unlock process](../architecture/FREEZE_POLICY.md#modification-process). |
+| Bug / security / migration | [Failure process](#failure-process), [tenant isolation](#30-multi-tenant-isolation-is-a-hard-invariant), and [security](#31-security-is-part-of-the-contract): root cause, minimum authorized fix, denial paths, and schema compatibility/recovery where affected. |
+| Refactor / integration / dependency upgrade | [Boundary semantics](#5-preserve-boundary-semantics), [contract drift](#contract-drift-classification), and affected consumers: behavioral preservation, compatibility, and relevant regression. Use the [baseline checkpoint](#baseline-checkpoint-before-broad-cleanup) for broad cleanup. |
+| Release readiness | [Operational Readiness SOP](OPERATIONAL_READINESS_SOP.md), applicable deployment governance, and Product-specific release criteria: real workflow evidence and a separate authorized merge/release/Go-Live decision. |
+
+For new Products, G0 Request -> G1 Read-only Discovery -> G2 Scope/Authority -> G3 Minimal Implementation -> G4 Verification -> G5 Review/Merge/Release Decision is a summary of the existing 0-10 process, not six additional gates. G5 remains subject to repository and release authority.
+
+## Verification Results and Applicability
+
+Use the following vocabulary for individual verification gates, and always identify the scope and environment:
+
+| Result | Meaning |
+| --- | --- |
+| `PASS` | The declared gate actually ran and met its acceptance criteria. |
+| `FAIL` | The declared gate ran and did not meet its acceptance criteria. Classify the cause separately; failure is not automatically a Product regression. |
+| `BLOCKED` | A specific identified obstacle prevented running or completing the required verification. Record the obstacle and the affected check. |
+| `NOT_PROVEN` | Evidence is missing or insufficient to establish the stated property; this alone proves neither success nor a defect. |
+| `NOT_APPLICABLE` | The check is outside this change's applicable scope, with a reason tied to the impact and governing policy. |
+
+Retain actual commands, source revision/working-tree scope, environment, raw exit/conclusion, executed counts, and evidence references. Report `SKIPPED`, `NOT_RUN`, or `TIMEOUT` as observed; explain the verification result rather than rewriting the raw outcome. Missing credentials/schema are an execution obstacle, not proof of `NOT_APPLICABLE`. An infrastructure allowance or green aggregate job does not turn an unexecuted conformance/DB test into `PASS`.
+
+List required and risk-related checks in the existing verification plan. Run every applicable gate mandated by CI, freeze/security policy, or a specialized constitution. Explain exclusions without inventing waivers. A required applicable gate that is `FAIL`, `BLOCKED`, or `NOT_PROVEN` does not establish merge readiness under its governing policy; an allowed narrower CI outcome must be reported as that allowance.
+
+### Verification Selection
+
+| Change impact | Verification to select in addition to mandatory applicable policy |
+| --- | --- |
+| UI using unchanged contracts | Relevant typecheck/lint and affected UI/behavior regression. |
+| Business workflow | Invariants, integration, and affected E2E/failure paths. |
+| Tenant authorization / RLS | Allowed access, denied access, and cross-tenant/role boundaries in the appropriate environment. |
+| Shared contract / integration / dependency | Affected consumers, compatibility, and runtime regression for changed behavior. |
+| Schema / migration | Migration safety, existing data compatibility, and rollback or forward recovery as appropriate. |
+
+These are selection categories, not a requirement to run every test category for every PR. Existing wider mandatory gates remain mandatory. A documentation-only change does not acquire a runtime test requirement from this table alone.
+
+Keep decision contexts separate: the entry gate below still uses `PASS` / `BLOCKED` / `DEFER` to decide implementation permission; the Operational Readiness SOP retains its own workflow statuses. `NOT_STARTED` describes task progress. `PROVEN`, `HELD`, `NOT_READY`, `SEALED_ON_MAIN`, and Go-Live labels retain their scoped meanings. None automatically converts into a gate result, merge authority, or release approval.
+
+### Enforcement Evidence
+
+For each claimed control, distinguish:
+
+| State | Evidence required |
+| --- | --- |
+| Defined | Applicable rule, owner, protected scope, and expected behavior. |
+| Automated | Executable checking logic exists for that scope. |
+| Configured / wired | The actual tool/workflow invokes it under identified triggers and conditions. |
+| Enforced | Current permissions or required-check policy makes the relevant rejection binding; state bypass/approval conditions. |
+| Execution verified | Actual result bound to a source revision, environment, and exercised path. |
+| Adversarially validated | Where relevant, prohibited cases are rejected and legitimate cases pass through the actual control. |
+
+These are separate claims. A hook for one AI tool does not prove interception in another; a workflow file or successful check does not establish required merge protection. File existence, fixture tests, and historical suite counts do not prove frozen content integrity, Real DB/RLS behavior, or Go-Live.
+
+Reuse existing controls before proposing additions. Verify the actual path and required-check configuration before claiming enforcement. Validate guard/policy changes in their separately authorized scope. For an authorized pilot, use existing task evidence to assess repeated questions, approval waits, delivery time, detected architecture errors, and gates with valid evidence; no new telemetry framework is required.
 
 ## 0. Truth -> Canonical -> Consumer
 
@@ -554,13 +684,11 @@ REGRESSION
 RESULT
 ```
 
-Valid evidence states include:
+Gate results follow [Verification Results and Applicability](#verification-results-and-applicability). Other evidence/progress labels include:
 
 ```text
-PASS
 PROVEN
 NOT_PROVEN
-BLOCKED
 NOT_STARTED
 ```
 
@@ -751,6 +879,8 @@ BELLA PLATFORM
 │
 ├── PLATFORM CORE
 │
+├── BELLA FACTORY (software creation / verification / release governance)
+│
 ├── INDUSTRY OS
 │     ├── Healthcare OS
 │     ├── Education OS
@@ -930,6 +1060,7 @@ Every capability must be classified:
 
 ```text
 PLATFORM
+FACTORY
 OS
 PRODUCT
 INTEGRATION
@@ -1015,7 +1146,7 @@ Do not let consumers invent fields such as `journey.current_stage` when the cano
 
 ### 6. Define Boundaries & Data Flow
 
-Use the standard flow:
+Map the logical flow using the existing approved module structure; separate files or abstractions for every node are not required:
 
 ```text
 DATABASE
@@ -1347,7 +1478,7 @@ A short classification may be recorded in the task response for small changes. R
 
 #### Owner Decision Boundary
 
-Proceed autonomously with UI-only work and compatible changes inside the task's established contracts, permissions, and authorized layers. A UI request alone does not authorize a backend extension.
+Apply [Scoped Autonomy and Approval](#scoped-autonomy-and-approval) within the task's established contracts, permissions, and authorized layers. A UI request alone does not authorize a backend extension.
 
 Stop the affected portion and request an explicit owner decision when a business rule is unresolved or an unapproved change materially affects:
 
@@ -1358,7 +1489,7 @@ Stop the affected portion and request an explicit owner decision when a business
 - Frozen OS/kernel contracts or approved architecture decisions.
 - Production data operations or irreversible actions.
 
-Do not request approval again for decisions already explicitly approved and still applicable to the current scope. Frozen-kernel work still requires its existing ACR/ADR and unlock process; task approval alone cannot bypass it. When business semantics are unproven, apply `BUSINESS_SEMANTICS = NOT_PROVEN` and stop that implementation. Isolate the blocked portion and continue only independent, authorized work.
+Frozen-kernel work still requires its existing ACR/ADR and unlock process; task approval alone cannot bypass it. When business semantics are unproven, apply `BUSINESS_SEMANTICS = NOT_PROVEN` and stop that implementation. Apply the common autonomy rule to continue independent, authorized work without repeating an approval already given.
 
 #### Verification and Closure
 
@@ -1598,6 +1729,7 @@ Before creating or modifying a capability, identify the owner:
 
 ```text
 Platform?
+Factory?
 OS?
 Product?
 Integration?
@@ -1659,7 +1791,7 @@ A TypeScript error may be architecture debt or schema debt, not type debt. Do no
 
 ## 5. Preserve Boundary Semantics
 
-The standard flow is:
+The logical flow is represented below; preserve existing approved structure as explained in [Mandatory Invariants and Conditional Techniques](#mandatory-invariants-and-conditional-techniques):
 
 ```text
 Database
@@ -2205,7 +2337,7 @@ BELLA OS / PRODUCT - DEFINITION OF DONE
 
 ## Default Stop Conditions
 
-Stop implementation and report status when any of these is true:
+Stop the dependent implementation and report status when any of these is true. Continue only independent, authorized work under [Scoped Autonomy and Approval](#scoped-autonomy-and-approval):
 
 ```text
 Owner is unclear
@@ -2224,4 +2356,4 @@ Execution environment cannot satisfy the test contract
 Verification evidence is stale or unavailable
 ```
 
-When stopped for these reasons, use `DEFER`, `BLOCKED`, `HOTSPOT`, or `UNVERIFIED`; do not claim PASS.
+Report the implementation decision separately from [verification results](#verification-results-and-applicability). Use the applicable decision/finding label, such as `DEFER`, `HELD`, `HOTSPOT`, or `UNVERIFIED`; identify any `BLOCKED` or `NOT_PROVEN` verification and its cause. Do not claim PASS without executed evidence.

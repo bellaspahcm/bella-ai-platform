@@ -103,9 +103,11 @@ test('fresh Reviewer thread identity is mandatory', async () => {
   const r = await fixture({ modifyRole: (name, result) => { result.binding.threadId = 'same-thread'; } });
   assert.equal(r.output.reason, 'NATIVE_ROLE_PROOF_REQUIRED');
 });
-test('failed tests cannot be promoted by a PASS review', async () => {
+test('failed tests hold before Reviewer dispatch', async () => {
   const r = await fixture({ modifyRole: (name, result) => { if (name === 'VERIFY') { result.test.exitCode = 1; result.test.counters = { ...green, pass: 2, fail: 1 }; result.decision = 'FAIL'; } } });
-  assert.equal(r.output.status, 'HELD'); assert.equal(r.output.reason, 'REVIEW_HELD');
+  assert.equal(r.output.status, 'HELD'); assert.equal(r.output.reason, 'VERIFY_FAILED');
+  assert.deepEqual(r.log.map(i=>i.name),['LEAD','BUILDER','VERIFY']);
+  assert.equal(r.output.receipts.length,3);
 });
 test('skip/todo/cancelled cannot pass despite zero exit code', async () => {
   for (const k of ['skipped', 'todo', 'cancelled']) {
