@@ -44,11 +44,20 @@ export interface ExecutiveParentEngagementMetricsDTO {
   pendingConsentRequests: number; // Deliveries with policy REQUIRES_CONSENT awaiting decision
 }
 
+export interface ExecutiveMonthlyRevenueItemDTO {
+  month: string;
+  yearMonth: string;
+  value: number; // in millions VND
+  highlighted?: boolean;
+  tooltip?: string;
+}
+
 export interface ExecutiveFinanceMetricsDTO {
   invoicedGrossTotal: number; // SUM(gross_amount) WHERE invoice_status = 'ISSUED'
   reconciledCashCollected: number; // SUM(reconciliation_ledger allocated_amount) - PAID Truth
   outstandingBalanceTotal: number; // SUM(gross_amount - allocated_amount) WHERE invoice_status = 'ISSUED'
   overdueAccountsCount: number; // COUNT(invoices WHERE ISSUED AND settlement != PAID AND due_date < today)
+  monthlyRevenue?: ExecutiveMonthlyRevenueItemDTO[];
 }
 
 export interface ExecutiveWorkforceMetricsDTO {
@@ -144,6 +153,6 @@ export interface ExecutiveDashboardDTO {
   commandCenter?: ExecutiveCommandCenterDTO;
   recentActivities?: PreschoolActivityItemDTO[];
   notices?: PreschoolNoticeItemDTO[];
-  weeklyMenu?: PreschoolWeeklyMenuDTO;
+  weeklyMenu?: PreschoolWeeklyMenuDTO | null;
 }
 

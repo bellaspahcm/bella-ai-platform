@@ -10,7 +10,8 @@
 import { PreschoolAnalyticsRepository } from '../repositories/preschool-analytics.repository';
 import { 
   ExecutiveDashboardDTO, 
-  ClassroomUtilizationDTO 
+  ClassroomUtilizationDTO,
+  ExecutiveMonthlyRevenueItemDTO 
 } from '../domain/preschool-analytics.types';
 import { PreschoolDomainEvent } from '../events/preschool-analytics-events';
 
@@ -119,6 +120,31 @@ export class PreschoolAnalyticsService {
       inv.settlement_status !== 'PAID' && inv.due_date && inv.due_date < targetDate
     ).length;
 
+    // Trailing 6-Month Real Monthly Revenue Projection
+    const monthlyRevenue: ExecutiveMonthlyRevenueItemDTO[] = [];
+    const targetDt = new Date(targetDate);
+    const targetYear = targetDt.getFullYear();
+    const targetMonth = targetDt.getMonth();
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(targetYear, targetMonth - i, 1);
+      const ym = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+      const monthLabel = `Tháng ${d.getMonth() + 1}`;
+      const sumForMonth = financeRaw.invoices
+        .filter(inv => {
+          const invDate = inv.due_date || inv.issued_at || inv.created_at;
+          return invDate && String(invDate).startsWith(ym);
+        })
+        .reduce((acc, inv) => acc + (inv.gross_amount || 0), 0);
+      const valueMillions = Math.round(sumForMonth / 1_000_000);
+      monthlyRevenue.push({
+        month: monthLabel,
+        yearMonth: ym,
+        value: valueMillions,
+        highlighted: i === 0,
+        tooltip: `${valueMillions} triệu VNĐ`,
+      });
+    }
+
     // 7. Workforce & Scheduling (P8)
     const activeStaffingViolations = workforceRaw.activeViolations.length; // P8 Domain Truth
     const openStaffingExceptions = workforceRaw.openExceptions.length; // Queue
@@ -178,6 +204,7 @@ export class PreschoolAnalyticsService {
         reconciledCashCollected,
         outstandingBalanceTotal,
         overdueAccountsCount,
+        monthlyRevenue,
       },
       workforce: {
         activeStaffingViolations,

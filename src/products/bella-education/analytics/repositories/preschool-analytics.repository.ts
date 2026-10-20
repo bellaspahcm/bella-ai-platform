@@ -180,7 +180,7 @@ export class PreschoolAnalyticsRepository {
   // 6. Finance & Billing Metrics (P7)
   async getFinanceRawData(tenantId: string, dateStr: string) {
     const [{ data: invoices }, { data: reconciliations }] = await Promise.all([
-      this.supabase.from('edu_fin_invoices').select('id, gross_amount, net_amount, invoice_status, settlement_status, due_date').eq('tenant_id', tenantId).eq('invoice_status', 'ISSUED'),
+      this.supabase.from('edu_fin_invoices').select('id, gross_amount, net_amount, invoice_status, settlement_status, due_date, issued_at, created_at').eq('tenant_id', tenantId).eq('invoice_status', 'ISSUED'),
       this.supabase.from('edu_fin_reconciliation_ledger').select('id, invoice_id, allocated_amount').eq('tenant_id', tenantId),
     ]);
 
@@ -519,7 +519,7 @@ export class PreschoolAnalyticsRepository {
     activities.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
     if (activities.length === 0) {
-      return getFallbackPreschoolActivities(dateStr);
+      return [];
     }
 
     return activities;
@@ -576,13 +576,13 @@ export class PreschoolAnalyticsRepository {
     } catch (err) {
       console.warn('Preschool notices aggregator warning:', err);
     }
-    return getFallbackPreschoolNotices();
+    return [];
   }
 
   /**
    * P4.3 Preschool Nutrition: Aggregates weekly menu plan from edu_weekly_menus & edu_weekly_menu_days
    */
-  async getCurrentWeeklyMenuRawData(tenantId: string, targetDateStr: string): Promise<PreschoolWeeklyMenuDTO> {
+  async getCurrentWeeklyMenuRawData(tenantId: string, targetDateStr: string): Promise<PreschoolWeeklyMenuDTO | null> {
     try {
       const { data: menuData, error: menuErr } = await this.supabase
         .from('edu_weekly_menus')
@@ -644,228 +644,8 @@ export class PreschoolAnalyticsRepository {
     } catch (err) {
       console.warn('Preschool weekly menu lookup warning:', err);
     }
-    return getFallbackPreschoolWeeklyMenu(targetDateStr);
+    return null;
   }
 }
 
-function getFallbackPreschoolActivities(dateStr: string): PreschoolActivityItemDTO[] {
-  return [
-    {
-      id: 'mock-1',
-      category: 'ATTENDANCE',
-      categoryLabel: 'Điểm danh & Đón trả',
-      title: 'Nguyễn Minh Anh',
-      description: 'Đã đến trường — Cô Lan đón vào lớp',
-      timestamp: `${dateStr}T07:32:00Z`,
-      displayTime: '07:32',
-      actorRole: 'Học sinh',
-      status: 'Đã đến',
-    },
-    {
-      id: 'mock-2',
-      category: 'LEARNING',
-      categoryLabel: 'Học tập & Trải nghiệm',
-      title: 'Lớp Lá 1',
-      description: 'Hoàn thành hoạt động: Bé trồng cây & khám phá thiên nhiên',
-      timestamp: `${dateStr}T10:15:00Z`,
-      displayTime: '10:15',
-      actorRole: 'Giáo viên',
-      status: 'Hoàn thành',
-    },
-    {
-      id: 'mock-3',
-      category: 'PARENT_COMM',
-      categoryLabel: 'Tương tác phụ huynh',
-      title: 'Trần Thị Mai',
-      description: 'Đã gửi phản hồi và dặn dò chế độ ăn cho giáo viên chủ nhiệm',
-      timestamp: `${dateStr}T11:20:00Z`,
-      displayTime: '11:20',
-      actorRole: 'Phụ huynh',
-      status: 'Đã nhận',
-    },
-    {
-      id: 'mock-4',
-      category: 'FINANCE',
-      categoryLabel: 'Tài chính & Học phí',
-      title: 'Phụ huynh Lê Hoàng',
-      description: 'Đã thanh toán học phí Tháng 10 qua cổng VietQR',
-      timestamp: `${dateStr}T14:08:00Z`,
-      displayTime: '14:08',
-      actorRole: 'Phụ huynh',
-      status: 'Đã thanh toán',
-    },
-    {
-      id: 'mock-5',
-      category: 'CARE_NUTRITION',
-      categoryLabel: 'Chăm sóc & Dinh dưỡng',
-      title: 'Lớp Chồi 2',
-      description: 'Cập nhật thực đơn tuần mới: Phở bò, Sữa tươi, Chuối tiêu',
-      timestamp: `${dateStr}T15:30:00Z`,
-      displayTime: '15:30',
-      actorRole: 'Dinh dưỡng',
-      status: 'Đã duyệt',
-    },
-    {
-      id: 'mock-6',
-      category: 'ATTENDANCE',
-      categoryLabel: 'Điểm danh & Đón trả',
-      title: 'Trần Gia Bảo',
-      description: 'Bàn giao phụ huynh đón về an toàn lúc tan trường',
-      timestamp: `${dateStr}T16:45:00Z`,
-      displayTime: '16:45',
-      actorRole: 'Học sinh',
-      status: 'Đã đón',
-    },
-    {
-      id: 'mock-7',
-      category: 'CARE_NUTRITION',
-      categoryLabel: 'Chăm sóc & Dinh dưỡng',
-      title: 'Bé Phạm Hoàng Yến',
-      description: 'Đã uống sữa chua & hoàn thành giấc ngủ trưa đủ giấc',
-      timestamp: `${dateStr}T13:30:00Z`,
-      displayTime: '13:30',
-      actorRole: 'Bảo mẫu',
-      status: 'Đã hoàn thành',
-    },
-    {
-      id: 'mock-8',
-      category: 'LEARNING',
-      categoryLabel: 'Học tập & Trải nghiệm',
-      title: 'Lớp Mầm non 1',
-      description: 'Hoàn thành tiết học Aerobic & Vận động phát triển thể chất',
-      timestamp: `${dateStr}T09:00:00Z`,
-      displayTime: '09:00',
-      actorRole: 'Giáo viên',
-      status: 'Hoàn thành',
-    },
-  ];
-}
-
-export function getFallbackPreschoolNotices(): PreschoolNoticeItemDTO[] {
-  return [
-    {
-      id: 'notice-1',
-      title: 'Kế hoạch tổ chức Ngày Phụ nữ VN 20/10',
-      bodyText: 'Nhà trường phát động chuỗi hoạt động làm thiệp và gửi lời chúc yêu thương của các bé đến bà và mẹ nhân ngày 20/10.',
-      category: 'HOẠT ĐỘNG',
-      priority: 'HIGH',
-      date: '2026-10-15',
-      displayDate: '15/10/2026',
-      iconColor: 'text-rose-500',
-    },
-    {
-      id: 'notice-2',
-      title: 'Lịch khám sức khỏe & nha khoa định kỳ HK1',
-      bodyText: 'Đoàn bác sĩ chuyên khoa Nhi & Răng Hàm Mặt sẽ tiến hành khám sức khỏe tổng quát và tầm soát răng miệng cho toàn bộ học sinh.',
-      category: 'Y TẾ',
-      priority: 'HIGH',
-      date: '2026-10-12',
-      displayDate: '12/10/2026',
-      iconColor: 'text-sky-500',
-    },
-    {
-      id: 'notice-3',
-      title: 'Lễ hội Hóa trang Halloween & Buffet bé yêu',
-      bodyText: 'Chương trình hóa trang các nhân vật cổ tích và tiệc buffet dinh dưỡng với hơn 15 món ăn ngon miệng, hấp dẫn dành riêng cho bé.',
-      category: 'SỰ KIỆN',
-      priority: 'NORMAL',
-      date: '2026-10-08',
-      displayDate: '08/10/2026',
-      iconColor: 'text-purple-500',
-    },
-    {
-      id: 'notice-4',
-      title: 'Thông báo thu học phí & tiền ăn Tháng 10',
-      bodyText: 'Kế toán gửi thông báo biểu phí học tập, tiền ăn và các câu lạc bộ ngoại khóa Tháng 10/2026. Hạn hoàn tất đến ngày 15/10/2026.',
-      category: 'TÀI CHÍNH',
-      priority: 'NORMAL',
-      date: '2026-10-01',
-      displayDate: '01/10/2026',
-      iconColor: 'text-amber-500',
-    },
-  ];
-}
-
-export function getFallbackPreschoolWeeklyMenu(targetDateStr: string): PreschoolWeeklyMenuDTO {
-  return {
-    menuId: 'menu-oct-w3',
-    weekNumber: 43,
-    year: 2026,
-    startDate: '2026-10-19',
-    endDate: '2026-10-23',
-    status: 'PUBLISHED',
-    days: [
-      {
-        dayKey: 'T2',
-        dayLabel: 'Thứ Hai',
-        dateStr: '19/10/2026',
-        badgeColor: 'bg-sky-400 text-white',
-        summaryDishes: 'Phở bò, Sữa tươi, Chuối',
-        caloriesKcal: 680,
-        meals: [
-          { mealType: 'BREAKFAST', mealTypeLabel: 'Bữa sáng', dishes: ['Phở bò Hà Nội'] },
-          { mealType: 'MORNING_SNACK', mealTypeLabel: 'Bữa phụ sáng', dishes: ['Sữa tươi thanh trùng 150ml'] },
-          { mealType: 'LUNCH', mealTypeLabel: 'Bữa trưa chính', dishes: ['Cơm dẻo', 'Thịt heo rim nước dừa', 'Canh bí đao nấu tôm'] },
-          { mealType: 'AFTERNOON_SNACK', mealTypeLabel: 'Bữa xế', dishes: ['Chuối tiêu chín', 'Bánh bông lan'] },
-        ],
-      },
-      {
-        dayKey: 'T3',
-        dayLabel: 'Thứ Ba',
-        dateStr: '20/10/2026',
-        badgeColor: 'bg-rose-400 text-white',
-        summaryDishes: 'Cơm gà, Canh rau củ, Sữa chua',
-        caloriesKcal: 710,
-        meals: [
-          { mealType: 'BREAKFAST', mealTypeLabel: 'Bữa sáng', dishes: ['Cháo gà hạt sen'] },
-          { mealType: 'MORNING_SNACK', mealTypeLabel: 'Bữa phụ sáng', dishes: ['Sữa đậu nành hữu cơ'] },
-          { mealType: 'LUNCH', mealTypeLabel: 'Bữa trưa chính', dishes: ['Cơm gà xé phay', 'Canh củ dền xương heo'] },
-          { mealType: 'AFTERNOON_SNACK', mealTypeLabel: 'Bữa xế', dishes: ['Sữa chua hoa quả dầm'] },
-        ],
-      },
-      {
-        dayKey: 'T4',
-        dayLabel: 'Thứ Tư',
-        dateStr: '21/10/2026',
-        badgeColor: 'bg-emerald-400 text-white',
-        summaryDishes: 'Bún cá, Rau hấp, Dưa hấu',
-        caloriesKcal: 670,
-        meals: [
-          { mealType: 'BREAKFAST', mealTypeLabel: 'Bữa sáng', dishes: ['Bún cá rô đồng'] },
-          { mealType: 'MORNING_SNACK', mealTypeLabel: 'Bữa phụ sáng', dishes: ['Nước ép táo nguyên chất'] },
-          { mealType: 'LUNCH', mealTypeLabel: 'Bữa trưa chính', dishes: ['Cơm trắng', 'Cá hồi áp chảo sốt bơ tỏi', 'Rau củ hấp thập cẩm', 'Canh rau ngót'] },
-          { mealType: 'AFTERNOON_SNACK', mealTypeLabel: 'Bữa xế', dishes: ['Dưa hấu tươi', 'Sữa hạt sen'] },
-        ],
-      },
-      {
-        dayKey: 'T5',
-        dayLabel: 'Thứ Năm',
-        dateStr: '22/10/2026',
-        badgeColor: 'bg-blue-400 text-white',
-        summaryDishes: 'Cơm thịt kho, Canh bí đỏ, Sữa tươi',
-        caloriesKcal: 720,
-        meals: [
-          { mealType: 'BREAKFAST', mealTypeLabel: 'Bữa sáng', dishes: ['Hủ tiếu Nam Vang thịt bằm'] },
-          { mealType: 'MORNING_SNACK', mealTypeLabel: 'Bữa phụ sáng', dishes: ['Sữa tươi Vinamilk 180ml'] },
-          { mealType: 'LUNCH', mealTypeLabel: 'Bữa trưa chính', dishes: ['Cơm thơm', 'Thịt ba chỉ kho trứng cút', 'Canh bí đỏ đậu phộng'] },
-          { mealType: 'AFTERNOON_SNACK', mealTypeLabel: 'Bữa xế', dishes: ['Bánh flan caramen', 'Thanh long ruột đỏ'] },
-        ],
-      },
-      {
-        dayKey: 'T6',
-        dayLabel: 'Thứ Sáu',
-        dateStr: '23/10/2026',
-        badgeColor: 'bg-purple-400 text-white',
-        summaryDishes: 'Mì trứng, Trứng hấp, Thanh long',
-        caloriesKcal: 690,
-        meals: [
-          { mealType: 'BREAKFAST', mealTypeLabel: 'Bữa sáng', dishes: ['Mì trứng xào thịt bò rau cải'] },
-          { mealType: 'MORNING_SNACK', mealTypeLabel: 'Bữa phụ sáng', dishes: ['Sữa bắp non ngọt dịu'] },
-          { mealType: 'LUNCH', mealTypeLabel: 'Bữa trưa chính', dishes: ['Cơm tấm mềm', 'Trứng hấp thịt bằm mộc nhĩ', 'Canh chua cá bông lau'] },
-          { mealType: 'AFTERNOON_SNACK', mealTypeLabel: 'Bữa xế', dishes: ['Thanh long trắng', 'Bánh quy bơ'] },
-        ],
-      },
-    ],
-  };
-}
 

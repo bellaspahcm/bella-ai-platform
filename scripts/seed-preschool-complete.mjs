@@ -377,7 +377,7 @@ async function seed() {
   console.log('  ✅ 6 open parent requests.');
 
   // ── 10. FINANCE (BILLING + INVOICE) ─────────────────────────────────────────
-  console.log('[10/11] Tuition Billing & 1 Overdue Invoice...');
+  console.log('[10/13] Tuition Billing & Historical Invoices (Trailing 6 Months)...');
   const billingPeriodId = 'ed100000-d001-0000-0000-000000000001';
 
   await batchUpsert('edu_fin_fee_structures', [
@@ -386,22 +386,270 @@ async function seed() {
     { id: 'ed100000-e001-0000-0000-000000000003', tenant_id: TENANT_ID, program_id: 'PRESCHOOL', fee_code: 'TUITION-LA',   fee_name: 'Học phí Song ngữ Quốc tế Khối Lá',  fee_type: 'TUITION',    amount: 6000000, currency: 'VND', billing_cycle: 'MONTHLY', is_active: true },
   ], 'id');
 
-  await batchUpsert('edu_fin_billing_periods', [{
-    id: billingPeriodId, tenant_id: TENANT_ID, period_name: 'Học phí & Tiền ăn Tháng 10/2026',
-    start_date: '2026-10-01', end_date: '2026-10-31', due_date: '2026-10-05', status: 'ACTIVE',
-    created_by: adminActorId,
-  }], 'id');
+  const billingPeriods = [
+    { id: 'ed100000-d001-0000-0000-000000000005', tenant_id: TENANT_ID, period_name: 'Học phí & Tiền ăn Tháng 05/2026', start_date: '2026-05-01', end_date: '2026-05-31', due_date: '2026-05-05', status: 'CLOSED', created_by: adminActorId },
+    { id: 'ed100000-d001-0000-0000-000000000006', tenant_id: TENANT_ID, period_name: 'Học phí & Tiền ăn Tháng 06/2026', start_date: '2026-06-01', end_date: '2026-06-30', due_date: '2026-06-05', status: 'CLOSED', created_by: adminActorId },
+    { id: 'ed100000-d001-0000-0000-000000000007', tenant_id: TENANT_ID, period_name: 'Học phí & Tiền ăn Tháng 07/2026', start_date: '2026-07-01', end_date: '2026-07-31', due_date: '2026-07-05', status: 'CLOSED', created_by: adminActorId },
+    { id: 'ed100000-d001-0000-0000-000000000008', tenant_id: TENANT_ID, period_name: 'Học phí & Tiền ăn Tháng 08/2026', start_date: '2026-08-01', end_date: '2026-08-31', due_date: '2026-08-05', status: 'CLOSED', created_by: adminActorId },
+    { id: 'ed100000-d001-0000-0000-000000000009', tenant_id: TENANT_ID, period_name: 'Học phí & Tiền ăn Tháng 09/2026', start_date: '2026-09-01', end_date: '2026-09-30', due_date: '2026-09-05', status: 'CLOSED', created_by: adminActorId },
+    { id: billingPeriodId, tenant_id: TENANT_ID, period_name: 'Học phí & Tiền ăn Tháng 10/2026', start_date: '2026-10-01', end_date: '2026-10-31', due_date: '2026-10-05', status: 'ACTIVE', created_by: adminActorId },
+  ];
+  await batchUpsert('edu_fin_billing_periods', billingPeriods, 'id');
 
-  // 1 OVERDUE invoice (bé Hoàng Nhật Minh — studentIdN(6) — Lớp Chồi 2)
-  // 20 paid invoices for chart completeness
+  // Seed monthly invoices to produce exact trailing revenue: T5: 260M, T6: 270M, T7: 240M, T8: 290M, T9: 310M, T10: 320M
+  const monthlyTargets = [
+    { month: 5, targetM: 260, periodId: 'ed100000-d001-0000-0000-000000000005', date: '2026-05-05' },
+    { month: 6, targetM: 270, periodId: 'ed100000-d001-0000-0000-000000000006', date: '2026-06-05' },
+    { month: 7, targetM: 240, periodId: 'ed100000-d001-0000-0000-000000000007', date: '2026-07-05' },
+    { month: 8, targetM: 290, periodId: 'ed100000-d001-0000-0000-000000000008', date: '2026-08-05' },
+    { month: 9, targetM: 310, periodId: 'ed100000-d001-0000-0000-000000000009', date: '2026-09-05' },
+  ];
+
+  const historicalInvoices = [];
+  for (const mt of monthlyTargets) {
+    historicalInvoices.push({
+      id: `ed100000-f000-0000-0000-${String(mt.month).padStart(12, '0')}`,
+      tenant_id: TENANT_ID,
+      student_id: studentIdN(1),
+      student_party_id: studentIdN(1),
+      billing_period_id: mt.periodId,
+      invoice_number: `INV-20260${mt.month}-SUM`,
+      invoice_status: 'ISSUED',
+      settlement_status: 'PAID',
+      gross_amount: mt.targetM * 1000000,
+      discount_amount: 0,
+      net_amount: mt.targetM * 1000000,
+      paid_amount: mt.targetM * 1000000,
+      outstanding_amount: 0,
+      issued_at: `${mt.date}T08:00:00+07:00`,
+      due_date: mt.date,
+      created_by: adminActorId,
+    });
+  }
+
+  // 1 OVERDUE invoice + October invoices totaling 320M
   const invoices = [
     { id: 'ed100000-f001-0000-0000-000000000001', tenant_id: TENANT_ID, student_id: studentIdN(6), student_party_id: studentIdN(6), billing_period_id: billingPeriodId, invoice_number: 'INV-202610-0089', invoice_status: 'ISSUED', settlement_status: 'UNPAID',  gross_amount: 5700000, discount_amount: 0, net_amount: 5700000, paid_amount: 0,       outstanding_amount: 5700000, issued_at: '2026-10-01T08:00:00+07:00', due_date: '2026-10-05', created_by: adminActorId },
   ];
   for (let i = 1; i <= 20; i++) {
-    invoices.push({ id: `ed100000-f001-0000-0000-${String(i + 1).padStart(12, '0')}`, tenant_id: TENANT_ID, student_id: studentIdN(i + 10), student_party_id: studentIdN(i + 10), billing_period_id: billingPeriodId, invoice_number: `INV-202610-${String(i).padStart(4, '0')}`, invoice_status: 'ISSUED', settlement_status: 'PAID', gross_amount: 5700000, discount_amount: 0, net_amount: 5700000, paid_amount: 5700000, outstanding_amount: 0, issued_at: '2026-10-01T08:00:00+07:00', due_date: '2026-10-05', created_by: adminActorId });
+    invoices.push({
+      id: `ed100000-f001-0000-0000-${String(i + 1).padStart(12, '0')}`,
+      tenant_id: TENANT_ID,
+      student_id: studentIdN(i + 10),
+      student_party_id: studentIdN(i + 10),
+      billing_period_id: billingPeriodId,
+      invoice_number: `INV-202610-${String(i).padStart(4, '0')}`,
+      invoice_status: 'ISSUED',
+      settlement_status: 'PAID',
+      gross_amount: 5700000,
+      discount_amount: 0,
+      net_amount: 5700000,
+      paid_amount: 5700000,
+      outstanding_amount: 0,
+      issued_at: '2026-10-01T08:00:00+07:00',
+      due_date: '2026-10-05',
+      created_by: adminActorId
+    });
   }
-  await batchUpsert('edu_fin_invoices', invoices, 'id');
-  console.log('  ✅ Fee structures + 1 overdue + 20 paid invoices.');
+  // Balance invoice so October total collected revenue reaches 320M (320M - 20 * 5.7M = 206M)
+  const octBalance = 320000000 - 20 * 5700000;
+  invoices.push({
+    id: 'ed100000-f001-0000-0000-000000000099',
+    tenant_id: TENANT_ID,
+    student_id: studentIdN(35),
+    student_party_id: studentIdN(35),
+    billing_period_id: billingPeriodId,
+    invoice_number: 'INV-202610-0099',
+    invoice_status: 'ISSUED',
+    settlement_status: 'PAID',
+    gross_amount: octBalance,
+    discount_amount: 0,
+    net_amount: octBalance,
+    paid_amount: octBalance,
+    outstanding_amount: 0,
+    issued_at: '2026-10-01T08:00:00+07:00',
+    due_date: '2026-10-05',
+    created_by: adminActorId
+  });
+
+  await batchUpsert('edu_fin_invoices', [...historicalInvoices, ...invoices], 'id');
+  console.log('  ✅ Fee structures + historical & October invoices seeded.');
+
+  // ── 11. WEEKLY NUTRITION MENUS ──────────────────────────────────────────────
+  console.log('[11/13] Weekly Nutrition Menus (P4.3)...');
+  const menuId = 'ed100000-0004-0000-0000-000000000001';
+  await batchUpsert('edu_weekly_menus', [{
+    id: menuId,
+    tenant_id: TENANT_ID,
+    academic_year: '2026-2027',
+    week_number: 43,
+    year: 2026,
+    start_date: '2026-10-19',
+    end_date: '2026-10-23',
+    age_group: 'ALL',
+    title: 'Thực đơn tuần 43 — Đảm bảo chuẩn Kcal học đường',
+    status: 'PUBLISHED',
+    created_by: adminActorId,
+  }], 'id');
+
+  const menuDays = [
+    {
+      id: 'ed100000-0005-0000-0000-000000000001',
+      tenant_id: TENANT_ID,
+      menu_id: menuId,
+      day_of_week: 'MON',
+      menu_date: '2026-10-19',
+      summary_dishes: 'Phở bò, Sữa tươi, Chuối',
+      calories_kcal: 680,
+      meals_payload: [
+        { mealType: 'BREAKFAST', mealTypeLabel: 'Bữa sáng', dishes: ['Phở bò Hà Nội'] },
+        { mealType: 'MORNING_SNACK', mealTypeLabel: 'Bữa phụ sáng', dishes: ['Sữa tươi thanh trùng 150ml'] },
+        { mealType: 'LUNCH', mealTypeLabel: 'Bữa trưa chính', dishes: ['Cơm dẻo', 'Thịt heo rim nước dừa', 'Canh bí đao nấu tôm'] },
+        { mealType: 'AFTERNOON_SNACK', mealTypeLabel: 'Bữa xế', dishes: ['Chuối tiêu chín', 'Bánh bông lan'] },
+      ],
+    },
+    {
+      id: 'ed100000-0005-0000-0000-000000000002',
+      tenant_id: TENANT_ID,
+      menu_id: menuId,
+      day_of_week: 'TUE',
+      menu_date: '2026-10-20',
+      summary_dishes: 'Cơm gà, Canh rau củ, Sữa chua',
+      calories_kcal: 710,
+      meals_payload: [
+        { mealType: 'BREAKFAST', mealTypeLabel: 'Bữa sáng', dishes: ['Cháo gà hạt sen'] },
+        { mealType: 'MORNING_SNACK', mealTypeLabel: 'Bữa phụ sáng', dishes: ['Sữa đậu nành hữu cơ'] },
+        { mealType: 'LUNCH', mealTypeLabel: 'Bữa trưa chính', dishes: ['Cơm gà xé phay', 'Canh củ dền xương heo'] },
+        { mealType: 'AFTERNOON_SNACK', mealTypeLabel: 'Bữa xế', dishes: ['Sữa chua hoa quả dầm'] },
+      ],
+    },
+    {
+      id: 'ed100000-0005-0000-0000-000000000003',
+      tenant_id: TENANT_ID,
+      menu_id: menuId,
+      day_of_week: 'WED',
+      menu_date: '2026-10-21',
+      summary_dishes: 'Bún cá, Rau hấp, Dưa hấu',
+      calories_kcal: 670,
+      meals_payload: [
+        { mealType: 'BREAKFAST', mealTypeLabel: 'Bữa sáng', dishes: ['Bún cá rô đồng'] },
+        { mealType: 'MORNING_SNACK', mealTypeLabel: 'Bữa phụ sáng', dishes: ['Nước ép táo nguyên chất'] },
+        { mealType: 'LUNCH', mealTypeLabel: 'Bữa trưa chính', dishes: ['Cơm trắng', 'Cá hồi áp chảo sốt bơ tỏi', 'Rau củ hấp thập cẩm', 'Canh rau ngót'] },
+        { mealType: 'AFTERNOON_SNACK', mealTypeLabel: 'Bữa xế', dishes: ['Dưa hấu tươi', 'Sữa hạt sen'] },
+      ],
+    },
+    {
+      id: 'ed100000-0005-0000-0000-000000000004',
+      tenant_id: TENANT_ID,
+      menu_id: menuId,
+      day_of_week: 'THU',
+      menu_date: '2026-10-22',
+      summary_dishes: 'Cơm thịt kho, Canh bí đỏ, Sữa tươi',
+      calories_kcal: 720,
+      meals_payload: [
+        { mealType: 'BREAKFAST', mealTypeLabel: 'Bữa sáng', dishes: ['Hủ tiếu Nam Vang thịt bằm'] },
+        { mealType: 'MORNING_SNACK', mealTypeLabel: 'Bữa phụ sáng', dishes: ['Sữa tươi Vinamilk 180ml'] },
+        { mealType: 'LUNCH', mealTypeLabel: 'Bữa trưa chính', dishes: ['Cơm thơm', 'Thịt ba chỉ kho trứng cút', 'Canh bí đỏ đậu phộng'] },
+        { mealType: 'AFTERNOON_SNACK', mealTypeLabel: 'Bữa xế', dishes: ['Bánh flan caramen', 'Thanh long ruột đỏ'] },
+      ],
+    },
+    {
+      id: 'ed100000-0005-0000-0000-000000000005',
+      tenant_id: TENANT_ID,
+      menu_id: menuId,
+      day_of_week: 'FRI',
+      menu_date: '2026-10-23',
+      summary_dishes: 'Mì trứng, Trứng hấp, Thanh long',
+      calories_kcal: 690,
+      meals_payload: [
+        { mealType: 'BREAKFAST', mealTypeLabel: 'Bữa sáng', dishes: ['Mì trứng xào thịt bò rau cải'] },
+        { mealType: 'MORNING_SNACK', mealTypeLabel: 'Bữa phụ sáng', dishes: ['Sữa bắp non ngọt dịu'] },
+        { mealType: 'LUNCH', mealTypeLabel: 'Bữa trưa chính', dishes: ['Cơm tấm mềm', 'Trứng hấp thịt bằm mộc nhĩ', 'Canh chua cá bông lau'] },
+        { mealType: 'AFTERNOON_SNACK', mealTypeLabel: 'Bữa xế', dishes: ['Thanh long trắng', 'Bánh quy bơ'] },
+      ],
+    },
+  ];
+  await batchUpsert('edu_weekly_menu_days', menuDays, 'id');
+  console.log('  ✅ Weekly nutrition menu (5 days) seeded.');
+
+  // ── 12. SCHOOL NOTICES & ANNOUNCEMENTS ──────────────────────────────────────
+  console.log('[12/13] School Notices & Announcements (P6.1)...');
+  const threadId = 'ed100000-0006-0000-0000-000000000001';
+  await batchUpsert('edu_comm_threads', [{
+    id: threadId,
+    tenant_id: TENANT_ID,
+    student_id: studentIdN(1),
+    guardian_party_id: parentIdN(1),
+    thread_type: 'GENERAL',
+    title: 'Kênh Thông Báo Toàn Trường',
+    status: 'ACTIVE',
+    created_by: adminActorId,
+  }], 'id');
+
+  const noticesSeed = [
+    {
+      id: 'ed100000-0007-0000-0000-000000000001',
+      tenant_id: TENANT_ID,
+      thread_id: threadId,
+      source_domain: 'SCHOOL_ADMIN',
+      source_entity_type: 'ANNOUNCEMENT',
+      source_entity_id: 'ed100000-0007-0000-0000-000000000001',
+      title: 'Kế hoạch tổ chức Ngày Phụ nữ VN 20/10',
+      body_text: 'Nhà trường phát động chuỗi hoạt động làm thiệp và gửi lời chúc yêu thương của các bé đến bà và mẹ nhân ngày 20/10. Kính mời phụ huynh cùng tham gia triển lãm tranh tại sảnh trường.',
+      notice_category: 'HOẠT ĐỘNG',
+      priority: 'HIGH',
+      requirement_type: 'NOTICE_ONLY',
+      created_by: adminActorId,
+      created_at: '2026-10-15T08:00:00+07:00',
+    },
+    {
+      id: 'ed100000-0007-0000-0000-000000000002',
+      tenant_id: TENANT_ID,
+      thread_id: threadId,
+      source_domain: 'P4_CARE',
+      source_entity_type: 'ANNOUNCEMENT',
+      source_entity_id: 'ed100000-0007-0000-0000-000000000002',
+      title: 'Lịch khám sức khỏe & nha khoa định kỳ HK1',
+      body_text: 'Đoàn bác sĩ chuyên khoa Nhi & Răng Hàm Mặt sẽ tiến hành khám sức khỏe tổng quát và tầm soát răng miệng cho toàn bộ học sinh các khối Mầm, Chồi, Lá.',
+      notice_category: 'Y TẾ',
+      priority: 'HIGH',
+      requirement_type: 'NOTICE_ONLY',
+      created_by: adminActorId,
+      created_at: '2026-10-12T08:00:00+07:00',
+    },
+    {
+      id: 'ed100000-0007-0000-0000-000000000003',
+      tenant_id: TENANT_ID,
+      thread_id: threadId,
+      source_domain: 'SCHOOL_ADMIN',
+      source_entity_type: 'ANNOUNCEMENT',
+      source_entity_id: 'ed100000-0007-0000-0000-000000000003',
+      title: 'Lễ hội Hóa trang Halloween & Buffet bé yêu',
+      body_text: 'Chương trình hóa trang các nhân vật cổ tích và tiệc buffet dinh dưỡng với hơn 15 món ăn ngon miệng, hấp dẫn dành riêng cho bé diễn ra vào thứ Sáu cuối tháng.',
+      notice_category: 'SỰ KIỆN',
+      priority: 'NORMAL',
+      requirement_type: 'NOTICE_ONLY',
+      created_by: adminActorId,
+      created_at: '2026-10-08T08:00:00+07:00',
+    },
+    {
+      id: 'ed100000-0007-0000-0000-000000000004',
+      tenant_id: TENANT_ID,
+      thread_id: threadId,
+      source_domain: 'SCHOOL_ADMIN',
+      source_entity_type: 'ANNOUNCEMENT',
+      source_entity_id: 'ed100000-0007-0000-0000-000000000004',
+      title: 'Thông báo thu học phí & tiền ăn Tháng 10',
+      body_text: 'Kế toán gửi thông báo biểu phí học tập, tiền ăn và các câu lạc bộ ngoại khóa Tháng 10/2026. Hạn hoàn tất đối soát học phí đến hết ngày 15/10/2026.',
+      notice_category: 'TÀI CHÍNH',
+      priority: 'NORMAL',
+      requirement_type: 'NOTICE_ONLY',
+      created_by: adminActorId,
+      created_at: '2026-10-01T08:00:00+07:00',
+    },
+  ];
+  await batchUpsert('edu_comm_notices', noticesSeed, 'id');
+  console.log('  ✅ 4 school notices seeded.');
 
   // ── 11. ADMIN USER ──────────────────────────────────────────────────────────
   console.log('[11/11] Preschool Admin User...');
