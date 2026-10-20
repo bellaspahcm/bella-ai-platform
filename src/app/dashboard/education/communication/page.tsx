@@ -58,6 +58,9 @@ import {
   FileCheck,
   Users,
   Megaphone,
+  RefreshCw,
+  UserCheck,
+  Copy,
 } from 'lucide-react';
 import { getCachedTenantSettings } from '@/lib/dashboard-client-context';
 import { resolveTenantBrandIdentity } from '@/lib/business-rules/tenant-modules';
@@ -553,6 +556,19 @@ function PreschoolCommunicationContent() {
   const [isBroadcastModalOpen, setIsBroadcastModalOpen] = useState<boolean>(false);
   const [actionNotice, setActionNotice] = useState<string | null>(null);
 
+  // Broadcast Announcement State
+  const [broadcastSubject, setBroadcastSubject] = useState<string>('');
+  const [broadcastScope, setBroadcastScope] = useState<string>('Toàn trường (Tất cả các lớp)');
+  const [broadcastCategory, setBroadcastCategory] = useState<string>('INFO');
+  const [broadcastContent, setBroadcastContent] = useState<string>('');
+  const [isPublishingBroadcast, setIsPublishingBroadcast] = useState<boolean>(false);
+
+  // Portal Link Modal State
+  const [isPortalModalOpen, setIsPortalModalOpen] = useState<boolean>(false);
+  const [generatedPortalUrl, setGeneratedPortalUrl] = useState<string | null>(null);
+  const [isGeneratingPortalToken, setIsGeneratingPortalToken] = useState<boolean>(false);
+  const [copiedPortalLink, setCopiedPortalLink] = useState<boolean>(false);
+
   // Auto-focus on student when query param ?student=... is provided
   useEffect(() => {
     if (!studentParam) return;
@@ -699,6 +715,66 @@ function PreschoolCommunicationContent() {
     setIsBroadcastModalOpen(false);
   };
 
+  const handlePublishBroadcast = async () => {
+    if (!broadcastSubject.trim() || !broadcastContent.trim()) {
+      setActionNotice('Vui lòng nhập đầy đủ tiêu đề và nội dung thông báo.');
+      return;
+    }
+
+    setIsPublishingBroadcast(true);
+    setActionNotice(null);
+
+    try {
+      const res = await fetch('/api/education/announcements', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: broadcastSubject,
+          bodyText: broadcastContent,
+          scope: broadcastScope,
+          category: broadcastCategory,
+        }),
+      });
+
+      const data = (await res.json()) as { success: boolean; message?: string };
+      if (!res.ok || !data.success) {
+        throw new Error(data.message || 'Không thể phát hành thông báo');
+      }
+
+      setActionNotice('Đã phát hành thông báo thành công đến toàn trường và lưu vào cơ sở dữ liệu!');
+      setBroadcastSubject('');
+      setBroadcastContent('');
+      setIsBroadcastModalOpen(false);
+    } catch (err) {
+      setActionNotice(err instanceof Error ? err.message : 'Lỗi phát hành thông báo');
+    } finally {
+      setIsPublishingBroadcast(false);
+    }
+  };
+
+  const handleGeneratePortalLink = async (studentId = '00000000-0000-0000-0000-000000000011') => {
+    setIsGeneratingPortalToken(true);
+    try {
+      const res = await fetch('/api/education/portal/token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ studentPartyId: studentId }),
+      });
+      const data = (await res.json()) as { success: boolean; portalUrl?: string; error?: string };
+      if (res.ok && data.success && data.portalUrl) {
+        const fullUrl = `${window.location.origin}${data.portalUrl}`;
+        setGeneratedPortalUrl(fullUrl);
+        setIsPortalModalOpen(true);
+      } else {
+        alert(data.error || 'Lỗi tạo liên kết phụ huynh');
+      }
+    } catch {
+      alert('Không thể tạo liên kết phụ huynh lúc này');
+    } finally {
+      setIsGeneratingPortalToken(false);
+    }
+  };
+
   if (!isPreschoolTenant) {
     return <LegacyCommunicationView />;
   }
@@ -752,6 +828,20 @@ function PreschoolCommunicationContent() {
             </select>
             <Calendar className="w-4 h-4 text-slate-400 absolute right-3 top-3 pointer-events-none" />
           </div>
+
+          <button
+            type="button"
+            onClick={() => void handleGeneratePortalLink(selectedStudentContext?.id || '00000000-0000-0000-0000-000000000011')}
+            disabled={isGeneratingPortalToken}
+            className="inline-flex items-center justify-center gap-2 rounded-2xl bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/60 dark:hover:bg-emerald-900 text-[#0c513f] dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800 px-4 py-2.5 text-xs font-bold transition-all active:scale-95 cursor-pointer"
+          >
+            {isGeneratingPortalToken ? (
+              <RefreshCw className="w-4 h-4 animate-spin" />
+            ) : (
+              <UserCheck className="w-4 h-4" />
+            )}
+            <span>Tạo link Portal Phụ huynh</span>
+          </button>
 
           <button
             type="button"
@@ -1538,6 +1628,8 @@ function PreschoolCommunicationContent() {
                 <input
                   id="broadcast-subject"
                   type="text"
+                  value={broadcastSubject}
+                  onChange={(e) => setBroadcastSubject(e.target.value)}
                   placeholder="Ví dụ: Kế hoạch tổ chức Lễ hội Trung Thu 2026..."
                   className="w-full p-2.5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 font-medium"
                 />
@@ -1548,7 +1640,11 @@ function PreschoolCommunicationContent() {
                   <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">
                     Phạm vi gửi
                   </label>
-                  <select className="w-full p-2.5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 font-medium">
+                  <select
+                    value={broadcastScope}
+                    onChange={(e) => setBroadcastScope(e.target.value)}
+                    className="w-full p-2.5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 font-medium"
+                  >
                     <option>Toàn trường (Tất cả các lớp)</option>
                     <option>Khối Mầm (Mầm A1, Mầm A2)</option>
                     <option>Khối Chồi (Chồi B1, Chồi B2)</option>
@@ -1560,11 +1656,16 @@ function PreschoolCommunicationContent() {
                   <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">
                     Loại thông báo
                   </label>
-                  <select className="w-full p-2.5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 font-medium">
-                    <option>Thông báo chung</option>
-                    <option>Biểu mẫu đồng ý (Consent)</option>
-                    <option>Hoạt động dã ngoại</option>
-                    <option>Thông báo học phí</option>
+                  <select
+                    value={broadcastCategory}
+                    onChange={(e) => setBroadcastCategory(e.target.value)}
+                    className="w-full p-2.5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 font-medium"
+                  >
+                    <option value="INFO">Thông báo chung</option>
+                    <option value="CONSENT">Biểu mẫu đồng ý (Consent)</option>
+                    <option value="EVENT">Hoạt động dã ngoại / Sự kiện</option>
+                    <option value="TUITION">Thông báo học phí</option>
+                    <option value="CRITICAL">Khẩn cấp</option>
                   </select>
                 </div>
               </div>
@@ -1576,6 +1677,8 @@ function PreschoolCommunicationContent() {
                 <textarea
                   id="broadcast-content"
                   rows={4}
+                  value={broadcastContent}
+                  onChange={(e) => setBroadcastContent(e.target.value)}
                   placeholder="Nhập nội dung thông báo gửi đến phụ huynh..."
                   className="w-full p-2.5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 font-medium"
                 />
@@ -1586,20 +1689,82 @@ function PreschoolCommunicationContent() {
               <button
                 type="button"
                 onClick={handleCloseBroadcast}
+                disabled={isPublishingBroadcast}
                 className="px-4 py-2.5 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-xs hover:bg-slate-200 transition-colors cursor-pointer"
               >
                 Hủy bỏ
               </button>
               <button
                 type="button"
-                onClick={() => {
-                  setActionNotice('Chưa phát hành thông báo: tính năng gửi chưa được kết nối. Nội dung vẫn được giữ trong cửa sổ này; hãy sao chép trước khi đóng.');
-                }}
-                className="px-5 py-2.5 rounded-2xl bg-[#0c513f] hover:bg-[#083b2e] text-white font-bold text-xs shadow-md transition-all flex items-center gap-1.5 cursor-pointer"
+                onClick={() => void handlePublishBroadcast()}
+                disabled={isPublishingBroadcast || !broadcastSubject.trim() || !broadcastContent.trim()}
+                className="px-5 py-2.5 rounded-2xl bg-[#0c513f] hover:bg-[#083b2e] disabled:opacity-50 text-white font-bold text-xs shadow-md transition-all flex items-center gap-1.5 cursor-pointer"
               >
-                <Send className="w-4 h-4" />
+                {isPublishingBroadcast ? (
+                  <RefreshCw className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Send className="w-4 h-4" />
+                )}
                 <span>Phát hành thông báo</span>
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── PORTAL LINK GENERATION MODAL ── */}
+      {isPortalModalOpen && generatedPortalUrl && (
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto animate-in fade-in duration-200">
+          <div role="dialog" aria-modal="true" className="w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl p-6 sm:p-7 space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-950 text-[#0c513f] flex items-center justify-center">
+                  <UserCheck className="w-4 h-4" />
+                </div>
+                <h3 className="text-sm font-extrabold text-slate-900 dark:text-white">
+                  Liên kết Portal Phụ huynh
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsPortalModalOpen(false)}
+                className="p-1.5 rounded-xl text-slate-400 hover:text-slate-600 cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+              Đây là liên kết an toàn (Magic Link) để phụ huynh mở Sổ liên lạc điện tử trên điện thoại. Phụ huynh có thể xem sĩ số lớp, nhật ký ăn ngủ của con, thực đơn tuần, học phí và dặn dò giáo viên.
+            </p>
+
+            <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 font-mono text-[11px] break-all select-all text-emerald-800 dark:text-emerald-300">
+              {generatedPortalUrl}
+            </div>
+
+            <div className="flex items-center gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  void navigator.clipboard.writeText(generatedPortalUrl);
+                  setCopiedPortalLink(true);
+                  setTimeout(() => setCopiedPortalLink(false), 2000);
+                }}
+                className="flex-1 py-2.5 rounded-2xl bg-[#0c513f] hover:bg-[#083b2e] text-white font-bold text-xs shadow-md transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+              >
+                {copiedPortalLink ? <Check className="w-4 h-4 text-emerald-300" /> : <Copy className="w-4 h-4" />}
+                <span>{copiedPortalLink ? 'Đã sao chép link' : 'Sao chép link'}</span>
+              </button>
+
+              <a
+                href={generatedPortalUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="py-2.5 px-4 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300 font-bold text-xs transition-colors flex items-center gap-1"
+              >
+                <span>Mở xem thử</span>
+                <ChevronRight className="w-3.5 h-3.5" />
+              </a>
             </div>
           </div>
         </div>

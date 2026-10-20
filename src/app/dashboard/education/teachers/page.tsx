@@ -58,6 +58,7 @@ import {
   AlertTriangle,
   Sparkles,
   ExternalLink,
+  Baby,
 } from 'lucide-react';
 import { getCachedTenantSettings } from '@/lib/dashboard-client-context';
 import { resolveTenantBrandIdentity } from '@/lib/business-rules/tenant-modules';
@@ -445,14 +446,24 @@ function TeacherCard({ teacher, isMenuOpen, onMenuToggle, onAssignClass, onOpenP
           <FileText className="w-4 h-4" />
           <span>Xem Hồ Sơ</span>
         </button>
-        <button
-          type="button"
-          onClick={onAssignClass}
-          className="inline-flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-lg text-xs font-bold bg-[#0e5c43] hover:bg-[#0a4633] text-white shadow-2xs transition-all active:scale-95 cursor-pointer"
-        >
-          <Users className="w-4 h-4" />
-          <span>Phân Công Lớp</span>
-        </button>
+        {teacher.roleKey === 'chunhiem' ? (
+          <Link
+            href="/dashboard/education/my-class"
+            className="inline-flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-lg text-xs font-bold bg-[#0e5c43] hover:bg-[#0a4633] text-white shadow-2xs transition-all active:scale-95 cursor-pointer"
+          >
+            <Baby className="w-4 h-4" />
+            <span>Vào Lớp Phụ Trách</span>
+          </Link>
+        ) : (
+          <button
+            type="button"
+            onClick={onAssignClass}
+            className="inline-flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-lg text-xs font-bold bg-[#0e5c43] hover:bg-[#0a4633] text-white shadow-2xs transition-all active:scale-95 cursor-pointer"
+          >
+            <Users className="w-4 h-4" />
+            <span>Phân Công Lớp</span>
+          </button>
+        )}
       </div>
     </div>
   );
