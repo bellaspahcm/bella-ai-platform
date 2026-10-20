@@ -1,0 +1,238 @@
+{
+  "capturedAt": "2026-10-20T22:46:39.076Z",
+  "criterion": "Exact committed Git blob identity plus original working SHA256 and CRLF-only working representation comparison",
+  "files": [
+    {
+      "file": "src/app/api/education/ai/copilot/route.ts",
+      "expectedWorkingSha256": "1bdf67a02007fafd5b83f5cd1d63a2f463d946274db7a318413d601b9ec55093",
+      "originalWorkingSha256": "1bdf67a02007fafd5b83f5cd1d63a2f463d946274db7a318413d601b9ec55093",
+      "integratedWorkingSha256": "1bdf67a02007fafd5b83f5cd1d63a2f463d946274db7a318413d601b9ec55093",
+      "normalizedBytesEqual": true,
+      "originalCommit": "88314bacf7c85ff73d02b00f0c57570c47135d3c",
+      "expectedBlob": "f3d721dbfc4b628b573e904590349873cc3a65f5",
+      "actualBlob": "f3d721dbfc4b628b573e904590349873cc3a65f5",
+      "committedBlobEqual": true
+    },
+    {
+      "file": "src/app/api/education/ai/copilot/__tests__/access.test.ts",
+      "expectedWorkingSha256": "2f8477976b146bb4ad7437be765eefef93df6646f312363563f8b037dd39f0ce",
+      "originalWorkingSha256": "2f8477976b146bb4ad7437be765eefef93df6646f312363563f8b037dd39f0ce",
+      "integratedWorkingSha256": "96cf3d09d36d8c91f65ba5209cf270d04e7829a2dba9fb3bf81617f2310b0ffb",
+      "normalizedBytesEqual": true,
+      "originalCommit": "88314bacf7c85ff73d02b00f0c57570c47135d3c",
+      "expectedBlob": "15ee9d9c786637a9efbf8e4bb99f95ebf1da91fe",
+      "actualBlob": "15ee9d9c786637a9efbf8e4bb99f95ebf1da91fe",
+      "committedBlobEqual": true
+    },
+    {
+      "file": "src/products/bella-education/__tests__/preschool-ai-copilot.test.ts",
+      "expectedWorkingSha256": "e1abec8c42af029ab1fb90f3438c412ef1b4429e58c766a2ba951dff1a133fd5",
+      "originalWorkingSha256": "e1abec8c42af029ab1fb90f3438c412ef1b4429e58c766a2ba951dff1a133fd5",
+      "integratedWorkingSha256": "e1abec8c42af029ab1fb90f3438c412ef1b4429e58c766a2ba951dff1a133fd5",
+      "normalizedBytesEqual": true,
+      "originalCommit": "88314bacf7c85ff73d02b00f0c57570c47135d3c",
+      "expectedBlob": "2e3e7b1f0d8a8a61053a839ad01a679b0f0325dc",
+      "actualBlob": "2e3e7b1f0d8a8a61053a839ad01a679b0f0325dc",
+      "committedBlobEqual": true
+    },
+    {
+      "file": "src/products/bella-education/__tests__/preschool-admin-ai-copilot.test.ts",
+      "expectedWorkingSha256": "5debe241b20de55cebcdd2e33a8ff9e98c562dd66d172c3420963184e0fa76c3",
+      "originalWorkingSha256": "5debe241b20de55cebcdd2e33a8ff9e98c562dd66d172c3420963184e0fa76c3",
+      "integratedWorkingSha256": "5debe241b20de55cebcdd2e33a8ff9e98c562dd66d172c3420963184e0fa76c3",
+      "normalizedBytesEqual": true,
+      "originalCommit": "88314bacf7c85ff73d02b00f0c57570c47135d3c",
+      "expectedBlob": "d53c172171fc14b6d3a269ecfbcedd49480493bb",
+      "actualBlob": "d53c172171fc14b6d3a269ecfbcedd49480493bb",
+      "committedBlobEqual": true
+    },
+    {
+      "file": "src/app/api/education/care/medication/route.ts",
+      "expectedWorkingSha256": "e5afbc3baf062f6ef75acb313437f66c7cc7ad3ccd83037401d61767ffde3b07",
+      "originalWorkingSha256": "e5afbc3baf062f6ef75acb313437f66c7cc7ad3ccd83037401d61767ffde3b07",
+      "integratedWorkingSha256": "e5afbc3baf062f6ef75acb313437f66c7cc7ad3ccd83037401d61767ffde3b07",
+      "normalizedBytesEqual": true,
+      "originalCommit": "4269492fbc41bdfb745b2c43062f11762803a252",
+      "expectedBlob": "40a32c7ebf73031b490ececeea086467676ba8c5",
+      "actualBlob": "40a32c7ebf73031b490ececeea086467676ba8c5",
+      "committedBlobEqual": true
+    },
+    {
+      "file": "src/app/api/education/care/medication/__tests__/route.test.ts",
+      "expectedWorkingSha256": "96654afac152045defaedb8b9825d6b104b1a9e3f7a47f4048beda8aac053ef9",
+      "originalWorkingSha256": "96654afac152045defaedb8b9825d6b104b1a9e3f7a47f4048beda8aac053ef9",
+      "integratedWorkingSha256": "370cc1808c4ac67b9d694fad80cb5fcc859e8362ac342da6b20b9215b712422f",
+      "normalizedBytesEqual": true,
+      "originalCommit": "4269492fbc41bdfb745b2c43062f11762803a252",
+      "expectedBlob": "c52c57dad0858a4e862de5f2ddcc9f4188c54afa",
+      "actualBlob": "c52c57dad0858a4e862de5f2ddcc9f4188c54afa",
+      "committedBlobEqual": true
+    },
+    {
+      "file": "src/app/api/education/care/bulk/route.ts",
+      "expectedWorkingSha256": "24521e3c938f635aece374805df67e1043e084f755af2a4107008b62f3235bd2",
+      "originalWorkingSha256": "24521e3c938f635aece374805df67e1043e084f755af2a4107008b62f3235bd2",
+      "integratedWorkingSha256": "24521e3c938f635aece374805df67e1043e084f755af2a4107008b62f3235bd2",
+      "normalizedBytesEqual": true,
+      "originalCommit": "7012ca82f6cc216fc8c4d549f284e2a0f4594a99",
+      "expectedBlob": "3133e8c76b963e49654166cc615d0d7eaa984662",
+      "actualBlob": "3133e8c76b963e49654166cc615d0d7eaa984662",
+      "committedBlobEqual": true
+    },
+    {
+      "file": "src/app/api/education/care/bulk/request-context.ts",
+      "expectedWorkingSha256": "6401e000c735c892c1a12461ef0718b885af99c283af5f40ba1f0e2a3cd60264",
+      "originalWorkingSha256": "6401e000c735c892c1a12461ef0718b885af99c283af5f40ba1f0e2a3cd60264",
+      "integratedWorkingSha256": "c6b2d01d7f020d1f1167877970f38379dc6d4dff74790899ee59a3a59633e5c7",
+      "normalizedBytesEqual": true,
+      "originalCommit": "7012ca82f6cc216fc8c4d549f284e2a0f4594a99",
+      "expectedBlob": "8ed8801b0f3be0ecc0ac56cced54fd635d43bf1a",
+      "actualBlob": "8ed8801b0f3be0ecc0ac56cced54fd635d43bf1a",
+      "committedBlobEqual": true
+    },
+    {
+      "file": "src/app/api/education/care/bulk/__tests__/access.test.ts",
+      "expectedWorkingSha256": "75b68de23c1a243bc721ac5c8fb2c052b9008045fc44870da98cc9e7f12066fb",
+      "originalWorkingSha256": "75b68de23c1a243bc721ac5c8fb2c052b9008045fc44870da98cc9e7f12066fb",
+      "integratedWorkingSha256": "4477d55521d8ad19ba60aef948f63e0cb3604886cdfe4266971d6fc0c157f481",
+      "normalizedBytesEqual": true,
+      "originalCommit": "7012ca82f6cc216fc8c4d549f284e2a0f4594a99",
+      "expectedBlob": "f60d34cb8d20727ac5be8ddacf05b938b270049f",
+      "actualBlob": "f60d34cb8d20727ac5be8ddacf05b938b270049f",
+      "committedBlobEqual": true
+    },
+    {
+      "file": "src/app/api/education/portal/token/route.ts",
+      "expectedWorkingSha256": "dda3766e3383cf1efe103573da63b59009ad20e1a7a2ff4ac34ae6a2af0d6eea",
+      "originalWorkingSha256": "dda3766e3383cf1efe103573da63b59009ad20e1a7a2ff4ac34ae6a2af0d6eea",
+      "integratedWorkingSha256": "87ddc6d811ed43b2dff5ba023a4edcbca1e43aefeeb2c930de96af7cc74f5f14",
+      "normalizedBytesEqual": true,
+      "originalCommit": "daf358e7a579f042a7417a7055e4f10fd02c2826",
+      "expectedBlob": "f259435c9f88a2c768623fcd2967082b2ea9df44",
+      "actualBlob": "f259435c9f88a2c768623fcd2967082b2ea9df44",
+      "committedBlobEqual": true
+    },
+    {
+      "file": "src/products/bella-education/parent-portal/services/preschool-parent-portal.service.ts",
+      "expectedWorkingSha256": "e7ff28f62f0fdd33181343ac884b66ba0f883056b3c54ad2876eb71c41da65dd",
+      "originalWorkingSha256": "e7ff28f62f0fdd33181343ac884b66ba0f883056b3c54ad2876eb71c41da65dd",
+      "integratedWorkingSha256": "e7ff28f62f0fdd33181343ac884b66ba0f883056b3c54ad2876eb71c41da65dd",
+      "normalizedBytesEqual": true,
+      "originalCommit": "daf358e7a579f042a7417a7055e4f10fd02c2826",
+      "expectedBlob": "c6f6a4b75d91b85b1cff9731be7eefcba5f380e5",
+      "actualBlob": "c6f6a4b75d91b85b1cff9731be7eefcba5f380e5",
+      "committedBlobEqual": true
+    },
+    {
+      "file": "src/products/bella-education/parent-portal/repositories/parent-portal.repository.ts",
+      "expectedWorkingSha256": "2786a392ff4025d3ab3018c396398d6757e1866ff5f4ef25b238eff46143f389",
+      "originalWorkingSha256": "2786a392ff4025d3ab3018c396398d6757e1866ff5f4ef25b238eff46143f389",
+      "integratedWorkingSha256": "2786a392ff4025d3ab3018c396398d6757e1866ff5f4ef25b238eff46143f389",
+      "normalizedBytesEqual": true,
+      "originalCommit": "daf358e7a579f042a7417a7055e4f10fd02c2826",
+      "expectedBlob": "6e881745aa29e742911f04df172ae3dcdcaead25",
+      "actualBlob": "6e881745aa29e742911f04df172ae3dcdcaead25",
+      "committedBlobEqual": true
+    },
+    {
+      "file": "src/app/api/education/portal/[token]/route.ts",
+      "expectedWorkingSha256": "c4cb01bc90440f12f685e56ee11877415e68830f0261d93385851f5a7272f436",
+      "originalWorkingSha256": "c4cb01bc90440f12f685e56ee11877415e68830f0261d93385851f5a7272f436",
+      "integratedWorkingSha256": "c4cb01bc90440f12f685e56ee11877415e68830f0261d93385851f5a7272f436",
+      "normalizedBytesEqual": true,
+      "originalCommit": "daf358e7a579f042a7417a7055e4f10fd02c2826",
+      "expectedBlob": "d2ae73276dfeeff7186868097514280afb6a7546",
+      "actualBlob": "d2ae73276dfeeff7186868097514280afb6a7546",
+      "committedBlobEqual": true
+    },
+    {
+      "file": "src/app/api/education/portal/[token]/chat/route.ts",
+      "expectedWorkingSha256": "6b7bb063ad2f94b68edc6e041b6187fd3843eae887c1900035d5d021c159fb7b",
+      "originalWorkingSha256": "6b7bb063ad2f94b68edc6e041b6187fd3843eae887c1900035d5d021c159fb7b",
+      "integratedWorkingSha256": "6b7bb063ad2f94b68edc6e041b6187fd3843eae887c1900035d5d021c159fb7b",
+      "normalizedBytesEqual": true,
+      "originalCommit": "daf358e7a579f042a7417a7055e4f10fd02c2826",
+      "expectedBlob": "ad16eb7de4479100d9fd2a3c4c505e78c54b4d67",
+      "actualBlob": "ad16eb7de4479100d9fd2a3c4c505e78c54b4d67",
+      "committedBlobEqual": true
+    },
+    {
+      "file": "src/app/api/education/portal/[token]/copilot/route.ts",
+      "expectedWorkingSha256": "da09ab3cd35cdb2bda05fc8fae603cfce721ec6e0afa1dcfea2c29efd5cc327c",
+      "originalWorkingSha256": "da09ab3cd35cdb2bda05fc8fae603cfce721ec6e0afa1dcfea2c29efd5cc327c",
+      "integratedWorkingSha256": "da09ab3cd35cdb2bda05fc8fae603cfce721ec6e0afa1dcfea2c29efd5cc327c",
+      "normalizedBytesEqual": true,
+      "originalCommit": "daf358e7a579f042a7417a7055e4f10fd02c2826",
+      "expectedBlob": "acce6b88748491142adea2f1b1ed6047d9c3ba83",
+      "actualBlob": "acce6b88748491142adea2f1b1ed6047d9c3ba83",
+      "committedBlobEqual": true
+    },
+    {
+      "file": "src/products/bella-education/__tests__/preschool-parent-portal.service.test.ts",
+      "expectedWorkingSha256": "dc15b3d61c846d9bcf5fd0c879481d9033381122f7061e5800b8ce7522430d42",
+      "originalWorkingSha256": "dc15b3d61c846d9bcf5fd0c879481d9033381122f7061e5800b8ce7522430d42",
+      "integratedWorkingSha256": "dc15b3d61c846d9bcf5fd0c879481d9033381122f7061e5800b8ce7522430d42",
+      "normalizedBytesEqual": true,
+      "originalCommit": "daf358e7a579f042a7417a7055e4f10fd02c2826",
+      "expectedBlob": "218ee89fea77eea7f86b7ea03e8511c9a70479fc",
+      "actualBlob": "218ee89fea77eea7f86b7ea03e8511c9a70479fc",
+      "committedBlobEqual": true
+    },
+    {
+      "file": "src/app/api/education/portal/token/__tests__/access.test.ts",
+      "expectedWorkingSha256": "e5744f66509eb233c7eec800492c25ed2e3592a852637592d57fdbb82e9137db",
+      "originalWorkingSha256": "e5744f66509eb233c7eec800492c25ed2e3592a852637592d57fdbb82e9137db",
+      "integratedWorkingSha256": "63c2d0a020adba0abdb06b4591c3623d1e5b5d024bd41fc4259432bcb02c145e",
+      "normalizedBytesEqual": true,
+      "originalCommit": "daf358e7a579f042a7417a7055e4f10fd02c2826",
+      "expectedBlob": "b6708acb4ef0a18b6f09758ba40c720ac54e71d0",
+      "actualBlob": "b6708acb4ef0a18b6f09758ba40c720ac54e71d0",
+      "committedBlobEqual": true
+    },
+    {
+      "file": "src/app/api/education/portal/__tests__/access.test.ts",
+      "expectedWorkingSha256": "1ffe1c56bb67cf1b8f19469d59df3c56cd7805905afcef7f36bf6a1bc38801d5",
+      "originalWorkingSha256": "1ffe1c56bb67cf1b8f19469d59df3c56cd7805905afcef7f36bf6a1bc38801d5",
+      "integratedWorkingSha256": "b84b362d9fbc6cfcbfee4cf3fc12ff22bd4236b88f554493197cac7c95650fac",
+      "normalizedBytesEqual": true,
+      "originalCommit": "daf358e7a579f042a7417a7055e4f10fd02c2826",
+      "expectedBlob": "6bf04a3f9d829a11c8a366dd8032fcaf2980fee5",
+      "actualBlob": "6bf04a3f9d829a11c8a366dd8032fcaf2980fee5",
+      "committedBlobEqual": true
+    },
+    {
+      "file": "src/products/bella-education/__tests__/preschool-parent-portal-security.test.ts",
+      "expectedWorkingSha256": "8582a3d29af44a487139b114d24238d0835d9745b968065eaebc6fff58ea5f91",
+      "originalWorkingSha256": "8582a3d29af44a487139b114d24238d0835d9745b968065eaebc6fff58ea5f91",
+      "integratedWorkingSha256": "891a2ec985c0d7fa6df784a58d6fd181d011dcc27260a2b866e3a6cc64be5965",
+      "normalizedBytesEqual": true,
+      "originalCommit": "daf358e7a579f042a7417a7055e4f10fd02c2826",
+      "expectedBlob": "ba2b96b46d2c8cc7905a956c571161bda29c9691",
+      "actualBlob": "ba2b96b46d2c8cc7905a956c571161bda29c9691",
+      "committedBlobEqual": true
+    },
+    {
+      "file": "src/app/api/education/announcements/route.ts",
+      "expectedWorkingSha256": "54ddbcb0874218c2a1ea15c3b19e3234f132ffb1c5edc865460d9eec25c129b2",
+      "originalWorkingSha256": "54ddbcb0874218c2a1ea15c3b19e3234f132ffb1c5edc865460d9eec25c129b2",
+      "integratedWorkingSha256": "c641597ebd4a06e96ef75460be44d84f953d4a859a9b8a20093c348229d158f4",
+      "normalizedBytesEqual": true,
+      "originalCommit": "65adcebab8402ba1d777bf292d0388cde4270bb1",
+      "expectedBlob": "a82fa59b031e04e6a3aa9f968d386f473dcacd7b",
+      "actualBlob": "a82fa59b031e04e6a3aa9f968d386f473dcacd7b",
+      "committedBlobEqual": true
+    },
+    {
+      "file": "src/app/api/education/announcements/__tests__/access.test.ts",
+      "expectedWorkingSha256": "e80ce6f9c6ad63dfbb378f9742ac2b64f14c06712f27ed4737ff67d5033b96fc",
+      "originalWorkingSha256": "e80ce6f9c6ad63dfbb378f9742ac2b64f14c06712f27ed4737ff67d5033b96fc",
+      "integratedWorkingSha256": "ea0f430b16af31058c9da090574956fa23ebd6bb418d9bd245039f28f76c0e7e",
+      "normalizedBytesEqual": true,
+      "originalCommit": "65adcebab8402ba1d777bf292d0388cde4270bb1",
+      "expectedBlob": "3a27d752607d57a1f85f74d3467449e159e87698",
+      "actualBlob": "3a27d752607d57a1f85f74d3467449e159e87698",
+      "committedBlobEqual": true
+    }
+  ],
+  "result": "PASS"
+}
