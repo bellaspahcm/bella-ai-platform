@@ -8,6 +8,10 @@ import { authorizeRepository, REPOSITORY } from './authority.mjs';
 import { createPrivateDirectory, DevelopmentStore, writeDurableJson, validateStorePath, enforceReviewRetention } from './store.mjs';
 import { hash, DAY_MS, normalizeNotification, normalizeHistory, normalizeHistoryTurn, reconcile, signature, verifyFileChangeRecords } from './contract.mjs';
 import { admitTask, drive, inventory, counters, validateHandoff } from './role-pipeline.mjs';
+import { exactTest, reviewReads } from './role-validation.mjs';
+export { exactTest, reviewReads } from './role-validation.mjs';
+import { persistenceDiagnostic } from './persistence-diagnostic.mjs';
+import { initializeFactory, finishFactory } from './factory-publication.mjs';
 
 const binary = () => process.platform === 'win32' ? execFileSync('where.exe', ['codex.exe'], { encoding: 'utf8', windowsHide: true }).trim().split(/\r?\n/)[0] : 'codex';
 const project = item => item ? { id: item.id, type: item.type, status: item.status, exitCode: item.exitCode } : undefined;
@@ -35,19 +39,6 @@ export function parseResult(messages) {
   if (finals.length !== 1 || finals[0].text.length > 12000) stop('AMBIGUOUS_ROLE_RESULT');
   try { return JSON.parse(finals[0].text.trim().slice('BELLA_ROLE_RESULT='.length)); }
   catch { stop('INVALID_ROLE_RESULT'); }
-}
-
-export function exactTest(command, cwd, expected, workspace) {
-  if (typeof command !== 'string' || typeof cwd !== 'string' || resolve(cwd) !== workspace) return false;
-  if (command.trim() === expected) return true;
-  const wrapped = command.match(/^(?:"[A-Za-z]:[\\/][A-Za-z0-9_ .\\/-]*[\\/](?:powershell|pwsh)\.exe"|(?:powershell|pwsh)(?:\.exe)?)\s+(?:-(?:NoProfile|NoLogo|NonInteractive)\s+)*-Command\s+(["'])(.*)\1$/i);
-  return wrapped?.[2] === expected;
-}
-
-export function reviewReads(task, verificationPath) {
-  // Forward slashes avoid native Windows shell-display backslash escaping.
-  const portablePath = verificationPath.replaceAll('\\', '/');
-  return [`git diff -- ${task.ownedFiles.join(' ')}`, ...task.ownedFiles.map(p => `Get-Content -LiteralPath '${p}'`), `Get-Content -LiteralPath '${portablePath.replaceAll("'", "''")}'`];
 }
 
 export function terminalRecord(value) {
@@ -121,6 +112,17 @@ async function executeRole(name, input, workspace, pipelineDirectory) {
   const base = { repository: REPOSITORY, taskId: input.task.taskId, runId: randomUUID(), attempt: input.revision + 1, producerInstanceId: randomUUID() };
   let binding, store, writer, reader, timer, turnFinished = false, writes = Promise.resolve(), intakeError;
   const liveItems = [], acks = [];
+  const persistenceFailures = [];
+  let diagnosticAttempted = false;
+  const observeFailure = (error, operation, fact = null) => {
+    if (!persistenceFailures.length) persistenceFailures.push(persistenceDiagnostic(error, { operation, role: name, binding, method: fact?.method || null, itemId: fact?.itemId || null }));
+  };
+  const retainFailure = async () => {
+    if (!persistenceFailures.length || diagnosticAttempted) return;
+    diagnosticAttempted = true;
+    try { await writeDurableJson(join(directory, 'persistence-failure.json'), { schemaVersion: 1, failures: persistenceFailures }); }
+    catch { /* A failing evidence sink cannot guarantee a retained diagnostic. */ }
+  };
   let complete;
   const finished = new Promise(resolveDone => { complete = resolveDone; });
   try {
@@ -131,7 +133,7 @@ async function executeRole(name, input, workspace, pipelineDirectory) {
           if (binding.turnId && binding.turnId !== message.params.turn.id) stop('UNEXPECTED_TURN');
           binding.turnId = message.params.turn.id;
           store = new DevelopmentStore(directory, binding);
-          writes = writes.then(() => writeDurableJson(join(directory, 'context.json'), { binding, createdAt: now(), outputReviewDeadline: new Date(Date.now() + 7 * DAY_MS).toISOString() }));
+          writes = writes.then(() => writeDurableJson(join(directory, 'context.json'), { binding, createdAt: now(), outputReviewDeadline: new Date(Date.now() + 7 * DAY_MS).toISOString() })).catch(error => { observeFailure(error, 'context.write'); throw error; });
         }
         if (!binding.turnId) return;
         if (message.method === 'item/completed') {
@@ -141,7 +143,13 @@ async function executeRole(name, input, workspace, pipelineDirectory) {
         }
         const projected = { ...message, params: { ...message.params, ...(message.params.item ? { item: project(message.params.item) } : {}) } };
         const fact = normalizeNotification(projected, binding, now());
-        if (fact) writes = writes.then(async () => { acks.push(await store.ingest(fact)); }).catch(() => { intakeError = 'STORE_WRITE_FAILED'; });
+        if (fact) {
+          let ingestStarted = false;
+          writes = writes.then(async () => { ingestStarted = true; acks.push(await store.ingest(fact)); }).catch(error => {
+            observeFailure(error, ingestStarted ? 'facts.ingest' : 'queued.write', fact);
+            intakeError = 'STORE_WRITE_FAILED';
+          });
+        }
         if (message.method === 'turn/completed') { turnFinished = true; complete(message.params.turn); }
       } catch (e) { intakeError = e.message; complete({ status: 'failed' }); }
     });
@@ -158,8 +166,9 @@ async function executeRole(name, input, workspace, pipelineDirectory) {
     const started = await writer.rpc('turn/start', { threadId: binding.threadId, input: [{ type: 'text', text: promptFor(name, input, expected) }], approvalPolicy: 'never', sandboxPolicy: name === 'BUILDER' ? { type: 'workspaceWrite', writableRoots: [workspace], networkAccess: false } : { type: 'readOnly' } });
     const terminal = await Promise.race([finished, new Promise((_, reject) => { timer = setTimeout(() => reject(new Error('ROLE_TIMEOUT')), Math.max(1, Math.min(deadline - Date.now(), 300000))); })]);
     clearTimeout(timer);
-    if (terminal.status !== 'completed' || !binding.turnId || binding.turnId !== started.turn.id || writer.notificationError || intakeError) stop(intakeError || 'NATIVE_RUNTIME_UNCERTAIN');
+    if (terminal.status !== 'completed' || !binding.turnId || binding.turnId !== started.turn.id || writer.notificationError) stop(intakeError || 'NATIVE_RUNTIME_UNCERTAIN');
     await writes;
+    await retainFailure();
     if (intakeError) stop(intakeError);
     await writer.close();
     reader = new AppServer(binary(), workspace); await reader.initialize();
@@ -200,7 +209,7 @@ async function executeRole(name, input, workspace, pipelineDirectory) {
       try { await writer.rpc('turn/interrupt', { threadId: binding.threadId, turnId: binding.turnId }); }
       catch { /* closing the owned AppServer is the final stop boundary */ }
     }
-    try { await writer?.close(); } finally { await reader?.close(); await writes; }
+    try { await writer?.close(); } finally { await reader?.close(); try { await writes; } finally { await retainFailure(); } }
   }
 }
 
@@ -220,6 +229,7 @@ export async function runNative(input) {
   try { await claim.writeFile(JSON.stringify({ taskId: task.taskId, directory, createdAt: now() })); await claim.sync(); } finally { await claim.close(); }
   await writeDurableJson(join(directory, 'context.json'), { createdAt: now(), outputReviewDeadline: new Date(Date.now() + 7 * DAY_MS).toISOString() });
   await writeDurableJson(join(directory, 'intake.json'), { task, workspace, before, actor: authority.actor, writerPid: process.pid });
+  const factoryIndex = await initializeFactory(directory, workspace, before);
   console.log(JSON.stringify({ phase: 'INTAKE_ACCEPTED', taskId: task.taskId, directory }));
   let count = 0;
   const result = await drive(task, {
@@ -227,7 +237,35 @@ export async function runNative(input) {
     role: async (name, data) => { console.log(JSON.stringify({ phase: name, revision: data.revision, candidate: data.before.fingerprint })); return executeRole(name, data, workspace, directory); },
     record: receipt => writeDurableJson(join(directory, receipt.terminal ? 'terminal.json' : `receipt-${++count}.json`), receipt.terminal || receipt),
   });
-  return { ...result, directory };
+  const published = await finishFactory(directory, workspace, factoryIndex, result, await inventory(workspace));
+  return { ...result, directory, factoryRunId: published.factoryRunId };
+}
+
+// B-only diagnostic: one fresh read-only Lead, no Builder/tests/review and no resume.
+// This never reports Factory acceptance or a reproduced historical cause by success.
+export async function diagnoseNativePersistence(input) {
+  const task = admitTask(input), workspace = workspaceIdentity(resolve(process.cwd()));
+  const authority = await authorizeRepository(REPOSITORY), before = await inventory(workspace);
+  if (before.head !== task.sourceRevision) stop('WRONG_SOURCE_REVISION');
+  for (const p of task.ownedFiles) if (!before.files.some(f => f.path === p)) stop('EXISTING_TASK_FILES_REQUIRED');
+  const gitCommon = execFileSync('git', ['rev-parse', '--git-common-dir'], { cwd: workspace, encoding: 'utf8', windowsHide: true }).trim();
+  const claims = resolve(workspace, gitCommon, 'bella-agent-flow-task-claims'); await mkdir(claims, { recursive: true });
+  const claim = await open(join(claims, `${task.taskId}.json`), 'wx', 0o600);
+  const directory = await createPrivateDirectory({ retained: true });
+  try { await claim.writeFile(JSON.stringify({ taskId: task.taskId, directory, operation: 'PERSISTENCE_DIAGNOSTIC_LEAD_ONLY', createdAt: now() })); await claim.sync(); } finally { await claim.close(); }
+  const started = Date.now();
+  await writeDurableJson(join(directory, 'context.json'), { createdAt: now(), outputReviewDeadline: new Date(started + 7 * DAY_MS).toISOString() });
+  await writeDurableJson(join(directory, 'diagnostic-intake.json'), { task, workspace, before, actor: authority.actor, writerPid: process.pid, mode: 'PERSISTENCE_DIAGNOSTIC_LEAD_ONLY' });
+  let report;
+  try {
+    const receipt = await executeRole('LEAD', { task, revision: 0, before, remainingMs: task.maxSeconds * 1000 - (Date.now() - started) }, workspace, directory);
+    if ((await inventory(workspace)).fingerprint !== before.fingerprint) stop('DIAGNOSTIC_SOURCE_CHANGED');
+    report = { status: 'DIAGNOSTIC_COMPLETED', taskId: task.taskId, directory, receipt, historicalCause: 'NOT_REPRODUCED_NOT_PROVEN', factoryAcceptance: 'NOT_PROVEN', nativeLeadDispatches: 1, autoResume: false };
+  } catch (error) {
+    report = { status: 'HELD', taskId: task.taskId, directory, reason: /^[A-Z_]{3,80}$/.test(error.message) ? error.message : 'DIAGNOSTIC_UNCERTAIN', historicalCause: 'NOT_PROVEN', factoryAcceptance: 'NOT_PROVEN', nativeLeadDispatches: 1, autoResume: false };
+  }
+  await writeDurableJson(join(directory, 'diagnostic-result.json'), report);
+  return report;
 }
 
 // Fresh CLI process: re-query every native session and compare payloads and store.
