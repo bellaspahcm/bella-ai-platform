@@ -1,0 +1,15 @@
+{
+  "startedAt": "2026-10-20T22:14:03.468Z",
+  "finishedAt": "2026-10-20T22:14:06.609Z",
+  "task": "lint",
+  "command": [
+    "node",
+    "node_modules/eslint/bin/eslint.js",
+    "src/app/api/education/care/medication/route.ts",
+    "src/app/api/education/care/medication/__tests__/route.test.ts"
+  ],
+  "exitCode": 0,
+  "errorCode": null,
+  "nextVersion": "16.3.8",
+  "environment": "Offline loopback/synthetic keys; source-only verification"
+}

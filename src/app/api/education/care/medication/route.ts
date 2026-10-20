@@ -1,48 +1,13 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
-import { MedicationSafetyService } from '@/products/bella-education/care-wellbeing/medication/medication-safety.service';
 
-function getErrorMessage(error: unknown): string | undefined {
-  if (typeof error === 'object' && error !== null && 'message' in error) {
-    const message = (error as { message?: unknown }).message;
-    return typeof message === 'string' ? message : String(message);
-  }
-
-  return undefined;
-}
-
-export async function POST(request: Request) {
-  try {
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'http://127.0.0.1:54321';
-    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
-
-    if (!supabaseKey) {
-      return NextResponse.json({ error: 'Supabase key not configured' }, { status: 500 });
-    }
-
-    const supabase = createClient(supabaseUrl, supabaseKey);
-    const medService = new MedicationSafetyService(supabase);
-
-    const body = await request.json();
-    const { tenantId, studentId, doseOccurrenceId, doseGiven, actorId, notes } = body;
-
-    if (!tenantId || !studentId || !doseOccurrenceId || !actorId) {
-      return NextResponse.json({ error: 'Missing required parameters' }, { status: 400 });
-    }
-
-    const result = await medService.administerDose({
-      tenantId,
-      studentId,
-      doseOccurrenceId,
-      administeredAt: new Date(),
-      doseGiven: doseGiven || 'Standard Dose',
-      actorId,
-      notes,
-    });
-
-    return NextResponse.json({ success: true, result });
-  } catch (error) {
-    console.error('Medication Admin API Error:', error);
-    return NextResponse.json({ error: getErrorMessage(error) || 'Internal Server Error' }, { status: 500 });
-  }
+// Medication administration is outside the active Preschool Product scope.
+export async function POST(_request: Request) {
+  return NextResponse.json({
+    success: false,
+    error: 'PRESCHOOL_MEDICATION_DISABLED',
+    message: 'Chức năng ghi nhận dùng thuốc đã được tắt và không thuộc phạm vi hoạt động của Bella Preschool.',
+  }, {
+    status: 410,
+    headers: { 'Cache-Control': 'private, no-store' },
+  });
 }
