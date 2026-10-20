@@ -1,4 +1,11 @@
-# BELLA HEALTHCARE & EDUCATION OS — CURSOR RULES & AI FIREWALL
+# BELLA AI PLATFORM — CURSOR RULES
+
+# BEFORE CHANGING SOFTWARE, ARCHITECTURE, OR ENGINEERING CONTROLS ANYWHERE IN BELLA:
+# Read the Bella AI Platform Architecture & Change Constitution:
+# docs/governance/BELLA_AI_CODING_CONSTITUTION.md
+# Use its Workflow Routing, Scoped Autonomy and Approval, Verification Results and Applicability,
+# and Enforcement Evidence sections. Retain applicable specialized rules via its authority map.
+# The complete common rules live there; this entrypoint grants no additional authority.
 
 # READ CONSTITUTIONS BEFORE ANY HEALTHCARE OR EDUCATION CODING:
 # Healthcare Path: docs/architecture/HEALTHCARE_VERTICAL_CODING_CONSTITUTION.md
