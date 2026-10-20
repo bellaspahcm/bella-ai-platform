@@ -1,13 +1,10 @@
 import { NextResponse } from 'next/server';
-import { createClient as createSupabaseClient, type SupabaseClient } from '@supabase/supabase-js';
 import { getLocalDateString } from '@bella/shared';
-import { createClient } from '@/lib/supabase-server';
-import { getSupabaseAdminKey, getSupabaseAdminUrl } from '@/lib/supabase-admin-env';
 import { TeacherAssignmentContractImpl } from '@/platform/education/contracts/teacher-assignment.contract.impl';
-import { getCurrentUser } from '@/services/user-actions';
 import type { Database } from '@/types/database.types';
+import { COURSE_PRIVATE_HEADERS, resolveCourseReadContext } from './request-context';
 
-type EducationCoursesClient = SupabaseClient<Database>;
+export const dynamic = 'force-dynamic';
 type EduCourseRow = Pick<
   Database['public']['Tables']['edu_courses']['Row'],
   'id' | 'course_code' | 'title' | 'status' | 'max_students' | 'current_enrollment' | 'created_at'
@@ -43,22 +40,6 @@ export interface ClassroomOverviewItem {
   };
 }
 
-function getDevMockEmail(request: Request): string {
-  if (process.env.NODE_ENV !== 'development') return '';
-  return request.headers.get('x-mock-user-email')?.trim() ?? '';
-}
-
-function createAdminOperationClient(): EducationCoursesClient | null {
-  if (process.env.NODE_ENV === 'test') return null;
-  const adminUrl = getSupabaseAdminUrl();
-  const adminKey = getSupabaseAdminKey();
-  if (!adminUrl || !adminKey) return null;
-
-  return createSupabaseClient<Database>(adminUrl, adminKey, {
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
-}
-
 function readMetadataString(metadata: CourseProjectionRow['metadata'], key: string): string {
   if (!metadata || Array.isArray(metadata) || typeof metadata !== 'object') {
     return '';
@@ -69,40 +50,11 @@ function readMetadataString(metadata: CourseProjectionRow['metadata'], key: stri
   return typeof value === 'string' ? value : '';
 }
 
-async function getTenantIdForCourses(
-  supabase: EducationCoursesClient,
-  request: Request,
-): Promise<string> {
-  const { searchParams } = new URL(request.url);
-  const explicitTenantId = searchParams.get('tenantId');
-  if (explicitTenantId) return explicitTenantId;
-
-  const mockEmail = getDevMockEmail(request);
-  if (mockEmail) {
-    const { data: mockUser } = await supabase
-      .from('users')
-      .select('tenant_id')
-      .eq('email', mockEmail)
-      .maybeSingle();
-    if (mockUser?.tenant_id) return mockUser.tenant_id;
-  }
-
-  const currentUser = await getCurrentUser();
-  if (currentUser?.tenant_id && currentUser.tenant_id !== '00000000-0000-0000-0000-000000000001') {
-    return currentUser.tenant_id;
-  }
-
-  if (process.env.NODE_ENV === 'development') {
-    return 'ed100000-0000-0000-0000-000000000001';
-  }
-
-  return currentUser?.tenant_id || '00000000-0000-0000-0000-000000000001';
-}
-
 export async function GET(request: Request) {
   try {
-    const supabase = createAdminOperationClient() ?? await createClient();
-    const tenantId = await getTenantIdForCourses(supabase, request);
+    const context = await resolveCourseReadContext(request);
+    if (!context.allowed) return context.response;
+    const { supabase, tenantId } = context;
 
     const { searchParams } = new URL(request.url);
     const targetDate = searchParams.get('date') || getLocalDateString(new Date()) || '2026-10-18';
@@ -115,7 +67,7 @@ export async function GET(request: Request) {
       .order('created_at', { ascending: false });
 
     if (courseErr) {
-      return NextResponse.json({ success: false, error: courseErr.message }, { status: 500 });
+      return NextResponse.json({ success: false, error: courseErr.message }, { status: 500, headers: COURSE_PRIVATE_HEADERS });
     }
 
     const teacherContract = new TeacherAssignmentContractImpl(supabase);
@@ -130,7 +82,7 @@ export async function GET(request: Request) {
       : { data: [] as CourseProjectionRow[], error: null };
 
     if (projectionErr) {
-      return NextResponse.json({ success: false, error: projectionErr.message }, { status: 500 });
+      return NextResponse.json({ success: false, error: projectionErr.message }, { status: 500, headers: COURSE_PRIVATE_HEADERS });
     }
 
     const projectionByCourseId = new Map(
@@ -156,6 +108,7 @@ export async function GET(request: Request) {
         const { data: parties } = await supabase
           .from('party_parties')
           .select('id, display_name')
+          .eq('tenant_id', tenantId)
           .in('id', partyIds);
 
         const partyMap = new Map((parties || []).map(p => [p.id, p.display_name]));
@@ -305,10 +258,10 @@ export async function GET(request: Request) {
       });
     }
 
-    return NextResponse.json({ success: true, classrooms });
+    return NextResponse.json({ success: true, classrooms }, { headers: COURSE_PRIVATE_HEADERS });
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unknown error';
-    return NextResponse.json({ success: false, error: message }, { status: 500 });
+    return NextResponse.json({ success: false, error: message }, { status: 500, headers: COURSE_PRIVATE_HEADERS });
   }
 }
 

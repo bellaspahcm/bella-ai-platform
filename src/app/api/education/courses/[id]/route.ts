@@ -1,60 +1,19 @@
 import { NextResponse } from 'next/server';
-import { createClient as createSupabaseClient, type SupabaseClient } from '@supabase/supabase-js';
-import { createClient } from '@/lib/supabase-server';
-import { getSupabaseAdminKey, getSupabaseAdminUrl } from '@/lib/supabase-admin-env';
 import { TeacherAssignmentContractImpl } from '@/platform/education/contracts/teacher-assignment.contract.impl';
-import { getCurrentUser } from '@/services/user-actions';
-import type { Database } from '@/types/database.types';
+import { COURSE_PRIVATE_HEADERS, resolveCourseReadContext } from '../request-context';
 
-type EducationCourseDetailClient = SupabaseClient<Database>;
+export const dynamic = 'force-dynamic';
 const ROSTER_ENROLLMENT_STATUSES = ['active', 'pending'] as const;
-
-function getDevMockEmail(request: Request): string {
-  if (process.env.NODE_ENV !== 'development') return '';
-  return request.headers.get('x-mock-user-email')?.trim() ?? '';
-}
-
-function createDevMockClient(mockEmail: string): EducationCourseDetailClient | null {
-  if (!mockEmail) return null;
-  const adminUrl = getSupabaseAdminUrl();
-  const adminKey = getSupabaseAdminKey();
-  if (!adminUrl || !adminKey) return null;
-
-  return createSupabaseClient<Database>(adminUrl, adminKey, {
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
-}
-
-async function getTenantIdForCourseDetail(
-  supabase: EducationCourseDetailClient,
-  request: Request,
-): Promise<string> {
-  const { searchParams } = new URL(request.url);
-  const explicitTenantId = searchParams.get('tenantId');
-  if (explicitTenantId) return explicitTenantId;
-
-  const mockEmail = getDevMockEmail(request);
-  if (mockEmail) {
-    const { data: mockUser } = await supabase
-      .from('users')
-      .select('tenant_id')
-      .eq('email', mockEmail)
-      .maybeSingle();
-    if (mockUser?.tenant_id) return mockUser.tenant_id;
-  }
-
-  const currentUser = await getCurrentUser();
-  return currentUser?.tenant_id || '00000000-0000-0000-0000-000000000001';
-}
 
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const context = await resolveCourseReadContext(request);
+    if (!context.allowed) return context.response;
+    const { supabase, tenantId } = context;
     const { id: courseId } = await params;
-    const supabase = createDevMockClient(getDevMockEmail(request)) ?? await createClient();
-    const tenantId = await getTenantIdForCourseDetail(supabase, request);
 
     // 1. Fetch Course details
     const { data: course, error: courseErr } = await supabase
@@ -65,7 +24,7 @@ export async function GET(
       .single();
 
     if (courseErr || !course) {
-      return NextResponse.json({ success: false, error: 'Lớp học không tồn tại' }, { status: 404 });
+      return NextResponse.json({ success: false, error: 'Lớp học không tồn tại' }, { status: 404, headers: COURSE_PRIVATE_HEADERS });
     }
 
     // 2. Fetch Assigned Teachers via Public Contract
@@ -78,6 +37,7 @@ export async function GET(
       const { data: parties } = await supabase
         .from('party_parties')
         .select('id, display_name')
+        .eq('tenant_id', tenantId)
         .in('id', partyIds);
 
       const partyMap = new Map((parties || []).map(p => [p.id, p.display_name]));
@@ -172,9 +132,9 @@ export async function GET(
         teacherSummary: teacherList.map(t => `${t.name} (${t.roleDisplay})`).join(' & ') || 'Chưa phân công GVN',
         roster: studentRoster,
       },
-    });
+    }, { headers: COURSE_PRIVATE_HEADERS });
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unknown error';
-    return NextResponse.json({ success: false, error: message }, { status: 500 });
+    return NextResponse.json({ success: false, error: message }, { status: 500, headers: COURSE_PRIVATE_HEADERS });
   }
 }

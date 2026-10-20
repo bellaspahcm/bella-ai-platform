@@ -1,0 +1,12 @@
+{
+  "startedAt": "2026-10-20T20:55:59.280Z",
+  "finishedAt": "2026-10-20T20:56:38.346Z",
+  "command": "node C:\\Users\\DELL\\.codex\\worktrees\\preschool-courses-auth-20261021\\BELLA SPA ERP\\scripts\\ci-run-typecheck.mjs changed",
+  "workspace": "C:/Users/DELL/.codex/worktrees/preschool-courses-auth-20261021/BELLA SPA ERP",
+  "branch": "codex/preschool-courses-auth-20261021",
+  "base": "339c89250d87964ba8d58860a5ecdbc0bdde4956",
+  "task": "typecheck",
+  "exitCode": 0,
+  "errorCode": null,
+  "environment": "Isolated worktree, process-scoped offline localhost and synthetic keys; no production business tests"
+}
