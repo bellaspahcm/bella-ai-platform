@@ -2,7 +2,7 @@
 title: Luồng evidence Factory có thể đối chiếu
 type: feature
 created: 2026-10-20
-status: in-progress
+status: closed-local-partial
 baseline_commit: 5ad15661f2dc2603881d50abdef17bcd7bc5fb20
 context: []
 ---
@@ -73,3 +73,9 @@ Operator environment: full 122 Node tests PASS and independent static review has
 Monitor browser proof opened this exact second run on desktop/mobile: HELD, two accepted stages, task/factory IDs, original source artifact hashes. Missing/corrupt/expired controlled copies fail closed and original bytes remain unchanged. Forbidden Product scope is rejected before native dispatch. Controlled storage negative PASS: fresh task `75b71d76-6a77-4137-ac2a-d4e914051fdc`, package `bella-agent-flow-tzrasy`, actual bounded exclusive-file-handle injection, HELD / STORE_WRITE_FAILED; safe observation facts.ingest / STORE_READ_FAILED. Zero source changes, no Builder, no retry. This does not identify the historical cause. HELD commit linkage and stale-source readback also reject.
 
 `FACTORY_END_TO_END = NOT_PROVEN`, `FACTORY_DEFAULT_EXECUTION = NOT_PROVEN`, `SEALED_ON_MAIN = NOT_PROVEN`, `GO_LIVE = NOT_PROVEN`. C is implemented locally; no main integration/merge was authorized. Further positive D execution needs a separately approved task and a decision about the fixture-write requirement; this batch does not change sandbox permissions or weaken tests.
+
+## Owner closure decision — 2026-10-20
+
+The owner reviewed the evidence and closed this batch as LOCAL_PARTIAL; positive acceptance remains HELD_AT_SCOPE_BOUNDARY. A and C are local implementations, not accepted end-to-end proof or main integration. Contract/source review is still required. Preserve both HELD runs and historical packages. Operator 122/122 PASS does not replace native Verify (11 tests / 6 pass / 5 fail), and EPERM does not establish that the coding fix is incorrect.
+
+No additional native task is authorized by this closure record. The next separately scoped acceptance should prefer a meaningful new coding task with a suite compatible with the existing sandbox, fresh task/factory IDs, no resume, exact Verify command, Reviewer only after successful Verify, complete candidate/tree comparison and same-run Monitor readback. Do not change tests to force PASS. Fixture-write permission remains a separate decision if the current suite must be retained. No push, PR, merge, CI, sandbox, kernel or deployment expansion.

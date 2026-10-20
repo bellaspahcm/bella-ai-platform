@@ -58,3 +58,9 @@ Full tests dùng runtime dependencies đã có của checkout chính, không cà
 `IMPLEMENTATION = LOCAL_PARTIAL`, `D = HELD_AT_SCOPE_BOUNDARY`, `FACTORY_END_TO_END = NOT_PROVEN`, `FACTORY_DEFAULT_EXECUTION = NOT_PROVEN`, `CANDIDATE_COMMIT_ACCEPTANCE = NOT_PROVEN`, `SEALED_ON_MAIN = NOT_PROVEN`, `GO_LIVE = NOT_PROVEN`.
 
 Muốn tiếp tục nghiệm thu dương cần quyết định riêng về fixture-write trong Verify hoặc một task mới có suite tương thích sandbox hiện hành. Chưa chạy task dương tiếp theo; không resume các task cũ. Không có quyền push/PR/merge trong batch này.
+
+## Quyết định đóng batch của chủ nhiệm — 2026-10-20
+
+Chủ nhiệm đã duyệt cách phân loại bằng chứng và đóng batch ở `CLOSED / LOCAL_PARTIAL`. Đây không phải nghiệm thu contract, native Factory, candidate–commit hay main/Go-Live. A còn cần review contract trên source thực tế; C vẫn chỉ ở branch cục bộ. D giữ `HELD_AT_SCOPE_BOUNDARY`; các trạng thái NOT_PROVEN phía trên không đổi.
+
+Bước tiếp theo được khuyến nghị là một task coding mới có ý nghĩa và suite tương thích sandbox hiện hành, dùng task/factory IDs mới; chưa chạy task đó trong batch đã đóng. Giữ đúng lệnh Verify, chỉ dispatch Reviewer sau Verify đạt, đối chiếu candidate với commit tree theo path/content/mode/add/delete, và mở cùng run trên Monitor. Không resume run cũ, không đổi test để ép PASS, không sửa store khi chưa chứng minh nguyên nhân lịch sử. Nếu cần giữ suite hiện tại, quyền ghi fixture phải được đánh giá và phê duyệt riêng. Chưa push, tạo PR, merge hoặc triển khai production.
