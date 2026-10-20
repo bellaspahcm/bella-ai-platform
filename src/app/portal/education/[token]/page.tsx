@@ -85,6 +85,13 @@ export default function PreschoolParentPortalPage({
   const [isQrModalOpen, setIsQrModalOpen] = useState(false);
   const [copiedBankInfo, setCopiedBankInfo] = useState(false);
 
+  // Smart Care Copilot State
+  const [isCopilotOpen, setIsCopilotOpen] = useState(false);
+  const [copilotQuestion, setCopilotQuestion] = useState('');
+  const [copilotAnswer, setCopilotAnswer] = useState<string | null>(null);
+  const [isCopilotLoading, setIsCopilotLoading] = useState(false);
+  const [, startCopilotTransition] = useTransition();
+
   // Load Portal Data
   async function loadData() {
     setLoading(true);
@@ -165,6 +172,41 @@ export default function PreschoolParentPortalPage({
     setTimeout(() => setCopiedBankInfo(false), 2000);
   }
 
+  async function handleCopilotAsk(e?: FormEvent) {
+    if (e) e.preventDefault();
+    const q = copilotQuestion.trim();
+    if (!q || isCopilotLoading) return;
+    setIsCopilotLoading(true);
+    setCopilotAnswer(null);
+    try {
+      const res = await fetch(`/api/education/portal/${encodeURIComponent(token)}/copilot`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'ask_copilot',
+          question: q,
+          studentName: portalData?.child.childName,
+        }),
+      });
+      const json = (await res.json()) as {
+        success: boolean;
+        data?: { answer?: string };
+        message?: string;
+      };
+      if (json.success && json.data?.answer) {
+        startCopilotTransition(() => {
+          setCopilotAnswer(json.data?.answer ?? 'Đã nhận câu hỏi của ba mẹ.');
+        });
+      } else {
+        setCopilotAnswer(json.message || 'Trợ lý AI hiện chưa khả dụng. Vui lòng liên hệ nhà trường trực tiếp.');
+      }
+    } catch {
+      setCopilotAnswer('Không thể kết nối trợ lý AI. Vui lòng thử lại sau.');
+    } finally {
+      setIsCopilotLoading(false);
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col items-center justify-center p-6 text-center">
@@ -216,6 +258,7 @@ export default function PreschoolParentPortalPage({
     weeklyMenu,
     dailyTimetable,
     tuition,
+    aiDailyDigest,
   } = portalData;
 
   const selectedMenuDay: ParentPortalWeeklyMenuDay | undefined =
@@ -394,6 +437,47 @@ export default function PreschoolParentPortalPage({
         {/* ── TAB 1: NHẬT KÝ HÔM NAY CỦA CON ── */}
         {activeTab === 'daily' && (
           <div className="space-y-4 animate-in fade-in duration-200">
+
+            {/* ── AI DAILY DIGEST CARD ── */}
+            {aiDailyDigest && (
+              <div className="rounded-3xl bg-gradient-to-br from-violet-600 via-purple-600 to-indigo-600 text-white p-5 shadow-xl relative overflow-hidden">
+                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_rgba(255,255,255,0.12),_transparent_60%)] pointer-events-none" />
+                <div className="relative z-10">
+                  <div className="flex items-start justify-between gap-3 mb-3">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-2xl bg-white/15 backdrop-blur-sm border border-white/20 flex items-center justify-center text-lg shrink-0">
+                        {aiDailyDigest.teacherMoodEmoji}
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-black uppercase tracking-widest text-purple-200">
+                          ✨ AI Daily Digest
+                        </p>
+                        <h3 className="text-xs font-extrabold text-white leading-tight mt-0.5">
+                          {aiDailyDigest.title}
+                        </h3>
+                      </div>
+                    </div>
+                    <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-white/15 text-purple-100 shrink-0">
+                      AI
+                    </span>
+                  </div>
+
+                  <p className="text-[11px] text-purple-100 leading-relaxed mb-3">
+                    {aiDailyDigest.digest}
+                  </p>
+
+                  <div className="space-y-1.5">
+                    {aiDailyDigest.highlights.map((h, i) => (
+                      <div key={i} className="flex items-start gap-2 text-[11px] text-white/90">
+                        <span className="text-purple-300 mt-0.5 shrink-0">▸</span>
+                        <span className="font-medium">{h}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Thân nhiệt & Sức khỏe */}
             <div className="p-4 sm:p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-3">
               <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2.5">
@@ -828,6 +912,113 @@ export default function PreschoolParentPortalPage({
                 Đóng
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── SMART CARE FLOATING ASSISTANT BUTTON ── */}
+      {!isCopilotOpen && (
+        <button
+          type="button"
+          id="smart-care-fab"
+          onClick={() => { setIsCopilotOpen(true); setCopilotAnswer(null); setCopilotQuestion(''); }}
+          className="fixed bottom-6 right-5 z-50 w-14 h-14 rounded-full bg-gradient-to-br from-violet-600 to-indigo-600 text-white shadow-2xl flex items-center justify-center hover:scale-105 active:scale-95 transition-transform cursor-pointer border-2 border-white/30"
+          aria-label="Mở trợ lý Smart Care"
+        >
+          <Sparkles className="w-6 h-6" />
+        </button>
+      )}
+
+      {/* ── SMART CARE COPILOT MODAL OVERLAY ── */}
+      {isCopilotOpen && (
+        <div className="fixed inset-0 z-50 flex flex-col justify-end sm:items-center sm:justify-center bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="w-full sm:max-w-md bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-700 flex flex-col max-h-[80vh] animate-in slide-in-from-bottom-4 sm:slide-in-from-bottom-0 duration-300">
+            {/* Header */}
+            <div className="flex items-center justify-between px-5 pt-5 pb-4 border-b border-slate-100 dark:border-slate-800 shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-2xl bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center text-white shadow-sm shrink-0">
+                  <Sparkles className="w-5 h-5" />
+                </div>
+                <div>
+                  <p className="text-sm font-black text-slate-900 dark:text-white">Smart Care</p>
+                  <p className="text-[10px] text-violet-600 dark:text-violet-400 font-bold">Trợ lý AI chăm sóc bé</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsCopilotOpen(false)}
+                className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 hover:bg-slate-200 transition-colors cursor-pointer"
+                aria-label="Đóng trợ lý"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Answer area */}
+            <div className="flex-1 overflow-y-auto px-5 py-4 space-y-3 min-h-[80px]">
+              {!copilotAnswer && !isCopilotLoading && (
+                <div className="text-center py-6">
+                  <p className="text-[11px] text-slate-400 dark:text-slate-500 font-medium leading-relaxed">
+                    Hỏi về tình trạng sức khỏe, bữa ăn, hoạt động<br/>hay bất kỳ điều gì về con hôm nay.
+                  </p>
+                  <div className="flex flex-wrap gap-1.5 justify-center mt-3">
+                    {['Bé có ăn ngon không?', 'Thân nhiệt bé hôm nay?', 'Bé ngủ bao lâu?'].map((q) => (
+                      <button
+                        key={q}
+                        type="button"
+                        onClick={() => { setCopilotQuestion(q); }}
+                        className="px-3 py-1.5 rounded-full bg-violet-50 dark:bg-violet-950/60 text-violet-700 dark:text-violet-300 text-[10px] font-bold border border-violet-200 dark:border-violet-800 hover:bg-violet-100 transition-colors cursor-pointer"
+                      >
+                        {q}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {isCopilotLoading && (
+                <div className="flex items-center gap-3 p-4 rounded-2xl bg-violet-50 dark:bg-violet-950/40 border border-violet-100 dark:border-violet-900/50">
+                  <div className="w-6 h-6 rounded-full border-2 border-violet-500 border-t-transparent animate-spin shrink-0" />
+                  <p className="text-[11px] text-violet-700 dark:text-violet-300 font-medium">Trợ lý đang phân tích...</p>
+                </div>
+              )}
+              {copilotAnswer && (
+                <div className="p-4 rounded-2xl bg-gradient-to-br from-violet-50 to-indigo-50 dark:from-violet-950/40 dark:to-indigo-950/40 border border-violet-100 dark:border-violet-900/40">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-5 h-5 rounded-full bg-violet-600 flex items-center justify-center shrink-0">
+                      <Sparkles className="w-3 h-3 text-white" />
+                    </div>
+                    <span className="text-[10px] font-black text-violet-700 dark:text-violet-300 uppercase tracking-wide">Smart Care</span>
+                  </div>
+                  <p className="text-xs text-slate-700 dark:text-slate-200 leading-relaxed font-medium whitespace-pre-line">
+                    {copilotAnswer}
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Input area */}
+            <form onSubmit={(e) => { void handleCopilotAsk(e); }} className="px-4 pb-5 pt-3 border-t border-slate-100 dark:border-slate-800 shrink-0">
+              <div className="flex items-center gap-2 p-1 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                <input
+                  id="copilot-question-input"
+                  type="text"
+                  value={copilotQuestion}
+                  onChange={(e) => setCopilotQuestion(e.target.value)}
+                  placeholder="Hỏi về bé hôm nay..."
+                  className="flex-1 bg-transparent px-3 py-2 text-xs font-medium text-slate-800 dark:text-slate-100 placeholder:text-slate-400 outline-none"
+                  disabled={isCopilotLoading}
+                  autoComplete="off"
+                />
+                <button
+                  type="submit"
+                  disabled={!copilotQuestion.trim() || isCopilotLoading}
+                  className="w-9 h-9 rounded-xl bg-violet-600 text-white flex items-center justify-center hover:bg-violet-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer shrink-0"
+                  aria-label="Gửi câu hỏi"
+                >
+                  <Send className="w-4 h-4" />
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

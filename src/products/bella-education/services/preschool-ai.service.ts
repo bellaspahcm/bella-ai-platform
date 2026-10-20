@@ -60,18 +60,22 @@ export function maskChildPii(text: string, knownNames?: readonly string[]): PiiM
   let masked = text;
   const tokenMap: Record<string, string> = {};
 
-  // 1. Mask Vietnamese phone numbers (09x, 08x, 03x, 07x, 05x, +84)
-  const phoneRegex = /(?:\+84|0[3|5|7|8|9])(?:[.\s]?[0-9]{2}){4}/g;
+  // 1. Mask Vietnamese phone numbers (mobile 03/05/07/08/09, landline 02x, +84, with spaces/dots/hyphens)
+  const phoneRegex = /(?:\+84|0)[0-9][0-9.\s-]{7,13}[0-9]/g;
   let phoneCounter = 1;
   masked = masked.replace(phoneRegex, (match) => {
+    const digitsOnly = match.replace(/\D/g, '');
+    if (digitsOnly.length < 9 || digitsOnly.length > 11) return match;
+    const normalizedDigits = digitsOnly.startsWith('84') ? '0' + digitsOnly.slice(2) : digitsOnly;
+    if (!/^0(2\d|[35789])\d{7,8}$/.test(normalizedDigits)) return match;
     const token = `[SDT_PHU_HUYNH_${phoneCounter++}]`;
     tokenMap[token] = match;
     return token;
   });
 
   // 2. Mask known student/guardian names if provided
+  let childCounter = 1;
   if (knownNames && knownNames.length > 0) {
-    let childCounter = 1;
     knownNames.forEach((name) => {
       const cleanName = name.trim();
       if (cleanName.length >= 2) {
@@ -84,6 +88,17 @@ export function maskChildPii(text: string, knownNames?: readonly string[]): PiiM
       }
     });
   }
+
+  // 3. Mask names following Vietnamese child honorifics (bé, cháu, em, học sinh, con gái, con trai)
+  const honorificNameRegex = /\b(bé|cháu|em|học sinh|con(?: gái| trai)?)\s+([A-ZÀÁẢÃẠĂẰẮẲẴẶÂẦẤẨẪẬÈÉẺẼẸÊỀẾỂỄỆÌÍỈĨỊÒÓỎÕỌÔỒỐỔỖỘƠỜỚỞỠỢÙÚỦŨỤƯỪỨỬỮỰỲÝỶỸỴĐ][a-zàáảãạăằắẳẵặâầấẩẫậèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵđ]+(?:\s+[A-ZÀÁẢÃẠĂẰẮẲẴẶÂẦẤẨẪẬÈÉẺẼẸÊỀẾỂỄỆÌÍỈĨỊÒÓỎÕỌÔỒỐỔỖỘƠỜỚỞỠỢÙÚỦŨỤƯỪỨỬỮỰỲÝỶỸỴĐ][a-zàáảãạăằắẳẵặâầấẩẫậèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵđ]+)*)/gu;
+  masked = masked.replace(honorificNameRegex, (fullMatch, prefix, capturedName) => {
+    if (!capturedName || capturedName.length < 2) return fullMatch;
+    const lower = capturedName.toLowerCase();
+    if (['ngoan', 'mệt', 'ốm', 'sốt', 'khỏe', 'vui'].includes(lower)) return fullMatch;
+    const token = `[TRE_EM_${childCounter++}]`;
+    tokenMap[token] = capturedName;
+    return `${prefix} ${token}`;
+  });
 
   return {
     maskedText: masked,
@@ -101,6 +116,8 @@ export function restoreChildPii(maskedText: string, tokenMap: Readonly<Record<st
   }
   return restored;
 }
+
+export const unmaskResponse = restoreChildPii;
 
 /**
  * Executes requested AI Copilot capability
@@ -281,7 +298,7 @@ Câu hỏi của giáo viên:
           source: 'preschool_ai_pack_rules',
           confidence: 0.9,
         },
-        piiMasked: false,
+        piiMasked: Object.keys(masked.tokenMap).length > 0,
         timestamp,
       };
     }

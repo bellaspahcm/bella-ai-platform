@@ -164,6 +164,14 @@ export interface ParentPortalChatMessage {
   readonly text: string;
 }
 
+export interface ParentPortalDailyDigest {
+  readonly title: string;
+  readonly digest: string;
+  readonly highlights: readonly string[];
+  readonly teacherMoodEmoji: string;
+  readonly generatedAt: string;
+}
+
 export interface ParentPortalPayload {
   readonly tenantId: string;
   readonly schoolName: string;
@@ -182,5 +190,6 @@ export interface ParentPortalPayload {
   readonly tuition: ParentPortalTuition | null;
   readonly chatMessages: readonly ParentPortalChatMessage[];
   readonly threadId?: string;
+  readonly aiDailyDigest?: ParentPortalDailyDigest | null;
   readonly serverTime: string;
 }
