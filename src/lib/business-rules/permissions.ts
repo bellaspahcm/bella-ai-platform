@@ -13,12 +13,16 @@ const AI_COPILOT_ROLES = new Set(['admin', 'super_admin', 'accountant']);
 const EDUCATION_AI_COPILOT_ROLES = new Set([
   'admin',
   'super_admin',
+  'campus_admin',
+  'program_director',
+  'academic_admin',
+  'education_head',
   'principal',
   'director',
   'education_teacher',
   'homeroom_teacher',
   'teacher',
-  'education_staff'
+  'education_staff',
 ]);
 
 function normalizeRole(role: string | null | undefined) {

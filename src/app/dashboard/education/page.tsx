@@ -58,6 +58,8 @@ import {
   User,
   LogOut,
   ShieldCheck,
+  ShieldAlert,
+  Send,
   Check,
   X,
   BookOpen,
@@ -428,6 +430,154 @@ export default function EducationDashboardPage() {
     return dashboardData?.notices ?? [];
   }, [dashboardData]);
 
+  // ── 0. EXECUTIVE AI COPILOT STATES & HANDLERS (PHASE 4) ──
+  const [isAiBriefingLoading, setIsAiBriefingLoading] = useState(false);
+  const [executiveBriefing, setExecutiveBriefing] = useState<{
+    executiveSummary: string;
+    attendanceRate: number;
+    criticalAlerts: readonly string[];
+    actionableRecommendations: readonly string[];
+    generatedAt: string;
+  } | null>(null);
+
+  const [isComplianceAuditLoading, setIsComplianceAuditLoading] = useState(false);
+  const [complianceResult, setComplianceResult] = useState<{
+    compliant: boolean;
+    complianceScore: number;
+    violations: readonly string[];
+    warnings: readonly string[];
+    inspectedClassesCount: number;
+  } | null>(null);
+
+  const [activeCopilotTab, setActiveCopilotTab] = useState<'briefing' | 'compliance' | 'qa'>('briefing');
+  const [executiveQuestion, setExecutiveQuestion] = useState('');
+  const [isExecutiveAsking, setIsExecutiveAsking] = useState(false);
+  const [executiveQnAMessages, setExecutiveQnAMessages] = useState<
+    Array<{ id: string; sender: 'user' | 'copilot'; text: string; time: string }>
+  >([
+    {
+      id: 'EXEC-WELCOME',
+      sender: 'copilot',
+      text: 'Kính chào Ban Giám Hiệu! Em là Trợ lý Điều hành AI Bella Preschool. Em có thể hỗ trợ Quý Thầy Cô: tổng hợp điểm tin toàn trường, rà soát chuẩn định mức Thông tư 52, hoặc soạn thảo thông báo gửi phụ huynh.',
+      time: 'Hôm nay',
+    },
+  ]);
+
+  const handleGenerateBriefing = async () => {
+    try {
+      setIsAiBriefingLoading(true);
+      const res = await fetch('/api/education/ai/copilot', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'executive_briefing',
+          totalStudents: totalKidsCount || 100,
+          presentCount: presentCount || totalKidsCount || 95,
+          absentCount: Math.max(0, (totalKidsCount || 100) - (presentCount || totalKidsCount || 95)),
+          feverCasesCount: healthIncidents || 0,
+          unpaidTuitionCount: overdueInvoices || 0,
+          pendingParentRequests: parentRequests || 0,
+        }),
+      });
+      const data = await res.json();
+      if (data.success && data.data) {
+        setExecutiveBriefing(data.data);
+      }
+    } catch (e) {
+      console.error('Failed to generate AI executive briefing:', e);
+    } finally {
+      setIsAiBriefingLoading(false);
+    }
+  };
+
+  const handleRunComplianceAudit = async () => {
+    try {
+      setIsComplianceAuditLoading(true);
+      const classrooms = dashboardData?.enrollment?.classroomUtilization || [];
+      const stats = classrooms.map((c) => {
+        const lower = c.className.toLowerCase();
+        let ageGroup: 'NHA_TRE' | 'MAM' | 'CHOI' | 'LA' = 'CHOI';
+        if (lower.includes('nhà trẻ')) ageGroup = 'NHA_TRE';
+        else if (lower.includes('mầm')) ageGroup = 'MAM';
+        else if (lower.includes('chồi')) ageGroup = 'CHOI';
+        else if (lower.includes('lá')) ageGroup = 'LA';
+
+        return {
+          className: c.className,
+          ageGroup,
+          studentCount: c.currentEnrollment,
+          teacherCount: 2,
+        };
+      });
+
+      const res = await fetch('/api/education/ai/copilot', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'executive_safety_audit',
+          classRosterStats: stats.length > 0 ? stats : [
+            { className: 'Nhà trẻ 1 (18-24T)', ageGroup: 'NHA_TRE', studentCount: 20, teacherCount: 2 },
+            { className: 'Mầm 1 (3-4T)', ageGroup: 'MAM', studentCount: 24, teacherCount: 2 },
+            { className: 'Chồi 1 (4-5T)', ageGroup: 'CHOI', studentCount: 28, teacherCount: 2 },
+            { className: 'Lá 1 (5-6T)', ageGroup: 'LA', studentCount: 30, teacherCount: 2 },
+          ],
+        }),
+      });
+      const data = await res.json();
+      if (data.success && data.data) {
+        setComplianceResult(data.data);
+      }
+    } catch (e) {
+      console.error('Failed to run compliance audit:', e);
+    } finally {
+      setIsComplianceAuditLoading(false);
+    }
+  };
+
+  const handleSendExecutiveQuestion = async (presetQuestion?: string) => {
+    const q = (presetQuestion || executiveQuestion).trim();
+    if (!q || isExecutiveAsking) return;
+
+    const timeStr = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+    const userMsg = { id: `USER-${Date.now()}`, sender: 'user' as const, text: q, time: timeStr };
+    setExecutiveQnAMessages((prev) => [...prev, userMsg]);
+    setExecutiveQuestion('');
+    setIsExecutiveAsking(true);
+
+    try {
+      const res = await fetch('/api/education/ai/copilot', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'ask_copilot',
+          question: q,
+          contextData: {
+            role: 'CAMPUS_ADMIN',
+            totalKidsCount,
+            presentCount,
+            attendanceRate,
+            healthIncidents,
+          },
+        }),
+      });
+      const data = await res.json();
+      const reply = data.success && data.data?.answer
+        ? String(data.data.answer)
+        : 'Hệ thống AI đang bận, Thầy Cô vui lòng thử lại sau.';
+
+      setExecutiveQnAMessages((prev) => [
+        ...prev,
+        { id: `COPILOT-${Date.now()}`, sender: 'copilot', text: reply, time: timeStr },
+      ]);
+    } catch {
+      setExecutiveQnAMessages((prev) => [
+        ...prev,
+        { id: `ERR-${Date.now()}`, sender: 'copilot', text: 'Có lỗi kết nối trợ lý AI.', time: timeStr },
+      ]);
+    } finally {
+      setIsExecutiveAsking(false);
+    }
+  };
 
   return (
     <div className="preschool-ui min-h-screen bg-background p-4 sm:p-6 lg:p-7 space-y-6 text-slate-800 dark:text-slate-100 font-sans">
@@ -758,6 +908,325 @@ export default function EducationDashboardPage() {
               <span className="text-[11px] font-extrabold">A<br />Brighter<br />Kinder<br />Future ♡</span>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* ── 2.3 EXECUTIVE AI COPILOT HUB (TRỢ LÝ ĐIỀU HÀNH BAN GIÁM HIỆU) ── */}
+      <div className="rounded-3xl bg-gradient-to-br from-violet-900 via-indigo-950 to-slate-900 text-white p-5 sm:p-6 shadow-xl border border-violet-500/30 relative overflow-hidden">
+        {/* Glow Effects */}
+        <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 left-10 w-72 h-72 bg-violet-600/20 rounded-full blur-2xl pointer-events-none" />
+
+        <div className="relative z-10 space-y-5">
+          {/* Header Bar */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/10 pb-4">
+            <div className="flex items-center gap-3">
+              <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-violet-400 to-indigo-500 flex items-center justify-center text-white shadow-lg shrink-0">
+                <Sparkles className="w-6 h-6 animate-pulse" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h2 className="text-base sm:text-lg font-black tracking-tight text-white">
+                    Trợ lý Điều hành AI — Ban Giám Hiệu
+                  </h2>
+                  <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-violet-500/30 text-violet-200 border border-violet-400/30 tracking-wide">
+                    Executive Copilot
+                  </span>
+                </div>
+                <p className="text-xs text-violet-200/80 mt-0.5 font-medium">
+                  Điểm tin toàn trường, rà soát tuân thủ định mức Thông tư 52 & hỏi đáp nghiệp vụ quản lý
+                </p>
+              </div>
+            </div>
+
+            {/* Navigation Tabs */}
+            <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-white/10 backdrop-blur-md border border-white/10 self-start sm:self-auto">
+              <button
+                type="button"
+                onClick={() => setActiveCopilotTab('briefing')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                  activeCopilotTab === 'briefing'
+                    ? 'bg-white text-indigo-950 shadow-sm'
+                    : 'text-violet-200 hover:text-white hover:bg-white/10'
+                }`}
+              >
+                Điểm tin AI
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveCopilotTab('compliance')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                  activeCopilotTab === 'compliance'
+                    ? 'bg-white text-indigo-950 shadow-sm'
+                    : 'text-violet-200 hover:text-white hover:bg-white/10'
+                }`}
+              >
+                Rà soát TT52
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveCopilotTab('qa')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                  activeCopilotTab === 'qa'
+                    ? 'bg-white text-indigo-950 shadow-sm'
+                    : 'text-violet-200 hover:text-white hover:bg-white/10'
+                }`}
+              >
+                Hỏi đáp BGH
+              </button>
+            </div>
+          </div>
+
+          {/* TAB 1: EXECUTIVE BRIEFING */}
+          {activeCopilotTab === 'briefing' && (
+            <div className="space-y-4 animate-in fade-in duration-200">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white/5 rounded-2xl p-4 border border-white/10">
+                <div className="space-y-1">
+                  <p className="text-xs font-bold text-violet-200 uppercase tracking-wide">
+                    Tình hình tổng quan hôm nay
+                  </p>
+                  <p className="text-sm font-semibold text-white/90">
+                    Sĩ số toàn trường: <span className="font-black text-amber-300">{totalKidsCount}</span> trẻ • 
+                    Có mặt: <span className="font-black text-emerald-300">{presentCount}</span> trẻ ({attendanceRate}% chuyên cần) • 
+                    Ca sốt/y tế: <span className="font-black text-rose-300">{healthIncidents ?? 0}</span>
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleGenerateBriefing}
+                  disabled={isAiBriefingLoading}
+                  className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-slate-950 font-black text-xs shadow-md transition-all active:scale-95 disabled:opacity-50 cursor-pointer shrink-0 inline-flex items-center gap-2"
+                >
+                  {isAiBriefingLoading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Đang tổng hợp...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-4 h-4" />
+                      <span>{executiveBriefing ? 'Cập nhật điểm tin' : 'Tạo điểm tin đầu ngày'}</span>
+                    </>
+                  )}
+                </button>
+              </div>
+
+              {executiveBriefing && (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {/* Summary Box */}
+                  <div className="md:col-span-2 p-4 rounded-2xl bg-white/10 border border-white/15 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-black uppercase text-amber-300 tracking-wider flex items-center gap-1.5">
+                        <FileText className="w-3.5 h-3.5" />
+                        Điểm tin tổng kết
+                      </span>
+                      <span className="text-[10px] text-violet-300">
+                        {new Date(executiveBriefing.generatedAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                    </div>
+                    <p className="text-xs sm:text-sm text-slate-100 leading-relaxed font-medium">
+                      {executiveBriefing.executiveSummary}
+                    </p>
+
+                    {/* Actionable recommendations */}
+                    {executiveBriefing.actionableRecommendations.length > 0 && (
+                      <div className="pt-2 border-t border-white/10 space-y-1.5">
+                        <p className="text-[11px] font-bold text-violet-200">Khuyến nghị hành động:</p>
+                        {executiveBriefing.actionableRecommendations.map((rec, i) => (
+                          <div key={i} className="flex items-start gap-2 text-xs text-white/90">
+                            <span className="text-amber-400 shrink-0">▸</span>
+                            <span>{rec}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Alerts Box */}
+                  <div className="p-4 rounded-2xl bg-white/10 border border-white/15 space-y-3">
+                    <span className="text-xs font-black uppercase text-rose-300 tracking-wider flex items-center gap-1.5">
+                      <ShieldAlert className="w-3.5 h-3.5" />
+                      Cảnh báo điều hành
+                    </span>
+                    {executiveBriefing.criticalAlerts.length === 0 ? (
+                      <div className="flex items-center gap-2 text-xs text-emerald-300 py-4">
+                        <CheckCircle className="w-4 h-4 shrink-0" />
+                        <span>Không có cảnh báo nguy cấp. Vận hành ổn định.</span>
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        {executiveBriefing.criticalAlerts.map((alert, i) => (
+                          <div key={i} className="p-2.5 rounded-xl bg-rose-500/20 border border-rose-400/30 text-rose-200 text-xs font-medium leading-relaxed">
+                            {alert}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* TAB 2: COMPLIANCE & SAFETY SENTINEL */}
+          {activeCopilotTab === 'compliance' && (
+            <div className="space-y-4 animate-in fade-in duration-200">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white/5 rounded-2xl p-4 border border-white/10">
+                <div>
+                  <p className="text-xs font-bold text-violet-200 uppercase tracking-wide">
+                    Kiểm định định mức mầm non (Thông tư 52/2020/TT-BGDĐT)
+                  </p>
+                  <p className="text-xs text-white/80 mt-1">
+                    Chuẩn định mức: Nhà trẻ ≤ 25 trẻ (≤ 12 trẻ/GV) • Mầm ≤ 25 • Chồi ≤ 30 • Lá ≤ 35
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleRunComplianceAudit}
+                  disabled={isComplianceAuditLoading}
+                  className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-400 to-teal-500 hover:from-emerald-500 hover:to-teal-600 text-slate-950 font-black text-xs shadow-md transition-all active:scale-95 disabled:opacity-50 cursor-pointer shrink-0 inline-flex items-center gap-2"
+                >
+                  {isComplianceAuditLoading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Đang rà soát...</span>
+                    </>
+                  ) : (
+                    <>
+                      <ShieldCheck className="w-4 h-4" />
+                      <span>{complianceResult ? 'Quét lại' : 'Quét an toàn & sĩ số'}</span>
+                    </>
+                  )}
+                </button>
+              </div>
+
+              {complianceResult && (
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="p-4 rounded-2xl bg-white/10 border border-white/15 flex items-center gap-4">
+                    <div className="text-3xl font-black text-amber-300">
+                      {complianceResult.complianceScore}<span className="text-sm text-violet-200">/100</span>
+                    </div>
+                    <div>
+                      <p className="text-xs font-black uppercase text-white">Điểm chuẩn TT52</p>
+                      <p className="text-[11px] text-violet-200 mt-0.5">
+                        {complianceResult.compliant ? 'Đạt chuẩn 100%' : 'Có điểm cần điều chỉnh'}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="sm:col-span-2 p-4 rounded-2xl bg-white/10 border border-white/15 space-y-2">
+                    <p className="text-xs font-black uppercase text-violet-200">Kết quả rà soát {complianceResult.inspectedClassesCount} lớp:</p>
+                    {complianceResult.violations.length === 0 && complianceResult.warnings.length === 0 ? (
+                      <div className="flex items-center gap-2 text-xs text-emerald-300 font-medium">
+                        <CheckCircle className="w-4 h-4 shrink-0" />
+                        <span>Tất cả các lớp học đều tuân thủ đúng định mức sĩ số và tỷ lệ giáo viên của Bộ GD&ĐT.</span>
+                      </div>
+                    ) : (
+                      <div className="space-y-1.5 max-h-36 overflow-y-auto">
+                        {complianceResult.violations.map((v, i) => (
+                          <div key={i} className="text-xs text-rose-300 font-medium flex items-start gap-1.5">
+                            <span className="text-rose-400 font-bold shrink-0">✕</span>
+                            <span>{v}</span>
+                          </div>
+                        ))}
+                        {complianceResult.warnings.map((w, i) => (
+                          <div key={i} className="text-xs text-amber-300 font-medium flex items-start gap-1.5">
+                            <span className="text-amber-400 font-bold shrink-0">⚠</span>
+                            <span>{w}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* TAB 3: EXECUTIVE Q&A */}
+          {activeCopilotTab === 'qa' && (
+            <div className="space-y-3 animate-in fade-in duration-200">
+              {/* Messages list */}
+              <div className="space-y-2.5 max-h-64 overflow-y-auto pr-1">
+                {executiveQnAMessages.map((msg) => (
+                  <div
+                    key={msg.id}
+                    className={`flex items-start gap-2.5 ${
+                      msg.sender === 'user' ? 'justify-end' : 'justify-start'
+                    }`}
+                  >
+                    {msg.sender === 'copilot' && (
+                      <div className="w-7 h-7 rounded-lg bg-violet-600 flex items-center justify-center text-white shrink-0 mt-0.5 text-xs font-black">
+                        AI
+                      </div>
+                    )}
+                    <div
+                      className={`max-w-[85%] rounded-2xl p-3 text-xs leading-relaxed ${
+                        msg.sender === 'user'
+                          ? 'bg-amber-400 text-slate-950 font-semibold'
+                          : 'bg-white/10 text-white border border-white/10 whitespace-pre-line'
+                      }`}
+                    >
+                      <p>{msg.text}</p>
+                      <span className="text-[9px] opacity-60 block mt-1 text-right">{msg.time}</span>
+                    </div>
+                  </div>
+                ))}
+                {isExecutiveAsking && (
+                  <div className="flex items-center gap-2 text-xs text-violet-300 p-2">
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    <span>Copilot đang phân tích số liệu quản trị mầm non...</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Preset quick questions */}
+              <div className="flex flex-wrap gap-1.5 pt-1">
+                {[
+                  'Soạn thông báo gửi phụ huynh về lịch khám sức khỏe',
+                  'Quy định sĩ số tối đa theo Thông tư 52 cho các lớp mầm non',
+                  'Tình hình chuyên cần và số ca sốt toàn trường hôm nay',
+                  'Giải pháp nhắc đóng học phí tự động qua VietQR',
+                ].map((q) => (
+                  <button
+                    key={q}
+                    type="button"
+                    onClick={() => void handleSendExecutiveQuestion(q)}
+                    disabled={isExecutiveAsking}
+                    className="px-2.5 py-1 rounded-full bg-white/10 hover:bg-white/20 text-violet-200 text-[10px] font-bold border border-white/10 transition-colors cursor-pointer disabled:opacity-40"
+                  >
+                    {q}
+                  </button>
+                ))}
+              </div>
+
+              {/* Input bar */}
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  void handleSendExecutiveQuestion();
+                }}
+                className="flex items-center gap-2 pt-2"
+              >
+                <input
+                  type="text"
+                  value={executiveQuestion}
+                  onChange={(e) => setExecutiveQuestion(e.target.value)}
+                  placeholder="Đặt câu hỏi điều hành (VD: Soạn thư cảm ơn phụ huynh, rà soát sĩ số lớp Chồi)..."
+                  disabled={isExecutiveAsking}
+                  className="flex-1 bg-white/10 border border-white/20 rounded-xl px-3.5 py-2 text-xs text-white placeholder:text-violet-300/60 outline-none focus:border-amber-400 transition-colors"
+                />
+                <button
+                  type="submit"
+                  disabled={!executiveQuestion.trim() || isExecutiveAsking}
+                  className="px-3.5 py-2 rounded-xl bg-amber-400 text-slate-950 hover:bg-amber-500 font-bold text-xs disabled:opacity-40 transition-all cursor-pointer shrink-0 flex items-center gap-1.5"
+                >
+                  <Send className="w-3.5 h-3.5" />
+                  <span>Gửi</span>
+                </button>
+              </form>
+            </div>
+          )}
         </div>
       </div>
 

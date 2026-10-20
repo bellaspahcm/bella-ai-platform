@@ -38,6 +38,14 @@ interface CopilotRequestBody {
   readonly question?: unknown;
   readonly contextData?: unknown;
   readonly geminiApiKey?: unknown;
+  // Executive Admin Copilot parameters
+  readonly totalStudents?: unknown;
+  readonly presentCount?: unknown;
+  readonly absentCount?: unknown;
+  readonly feverCasesCount?: unknown;
+  readonly unpaidTuitionCount?: unknown;
+  readonly pendingParentRequests?: unknown;
+  readonly classRosterStats?: unknown;
 }
 
 function getErrorMessage(error: unknown): string {
@@ -103,6 +111,8 @@ export async function POST(request: Request) {
       'check_allergy',
       'generate_digest',
       'ask_copilot',
+      'executive_briefing',
+      'executive_safety_audit',
     ];
 
     if (!validActions.includes(action as PreschoolCopilotRequest['action'])) {
@@ -137,6 +147,15 @@ export async function POST(request: Request) {
           ? (body.contextData as Record<string, unknown>)
           : undefined,
       geminiApiKey: typeof body.geminiApiKey === 'string' ? body.geminiApiKey : undefined,
+      totalStudents: typeof body.totalStudents === 'number' ? body.totalStudents : undefined,
+      presentCount: typeof body.presentCount === 'number' ? body.presentCount : undefined,
+      absentCount: typeof body.absentCount === 'number' ? body.absentCount : undefined,
+      feverCasesCount: typeof body.feverCasesCount === 'number' ? body.feverCasesCount : undefined,
+      unpaidTuitionCount: typeof body.unpaidTuitionCount === 'number' ? body.unpaidTuitionCount : undefined,
+      pendingParentRequests: typeof body.pendingParentRequests === 'number' ? body.pendingParentRequests : undefined,
+      classRosterStats: Array.isArray(body.classRosterStats)
+        ? (body.classRosterStats as readonly import('@/products/bella-education/ai-skills/PreschoolAICapabilityPack').ClassRosterStat[])
+        : undefined,
     };
 
     // 5. Execute Domain AI Logic
