@@ -1,5 +1,23 @@
 # Bella Agent Flow development tooling
 
+## Factory companion evidence (local implementation candidate)
+
+`role-pipeline.mjs run <owner-task.json>` remains the coding entrypoint. New runs
+require a clean isolated source baseline and publish immutable intake/terminal
+companion indexes linking a workflow UUID to original role receipts and facts.
+See `FACTORY_EVIDENCE_CONTRACT.md`. Native lifecycle schema is unchanged.
+After a successful native `read` in a fresh process, an authorized local task
+commit may be checked with `node scripts/agent-flow/role-pipeline.mjs commit
+<private-evidence-directory> <full-commit-sha>`. This verifies parent tree,
+exact changed paths, file modes and Git-filtered blob bytes against the candidate
+observed by Verify/Reviewer. It never creates a commit, PR, merge or deployment.
+The Monitor under `scripts/agent-flow-dashboard/` reads inert package files only;
+it never invokes `readNative`, store operations, cleanup or AppServer.
+Historical STORE_WRITE_FAILED remains NOT_PROVEN: one new read-only Lead diagnostic
+did not reproduce it (15 live facts / 7 matches), and the human explicitly allowed
+C/D to continue while keeping the store unchanged. Safe new failure observations
+are companion artifacts, not reconstructed native events.
+
 This directory integrates the existing managed-task lifecycle proof into source control. It is development tooling, not a continuously running orchestration service. It does not observe existing Desktop sessions, provide a dashboard, deploy products, or prove production readiness. Delivery review additionally fixed complete reconciliation scope, order-independent store bindings and single-clock retention calculation; the retained runtime package remains the historical pre-delivery proof.
 
 ## Verified scope
@@ -75,7 +93,19 @@ checks, not a host-wide command firewall or proof against malicious tasks.
 No Product/DB/Auth/RLS/migration, remote probe, endpoint opening, automatic Git
 publication, merge or deployment is performed. Pipeline PASS does not mean Go-Live.
 
-Current real-task result: **HELD / MVP NOT_PROVEN**. See
+Historical MVP task result (separate from the new Factory acceptance): **HELD / MVP NOT_PROVEN**. See
 `docs/audits/agent-flow-mvp/agent-flow-mvp-evidence.json`. The first task reached
 an independent Reviewer but did not produce an accepted handoff. Post-HELD
 adapter fixes have unit/source verification only; no automatic task retry ran.
+
+## Factory companion evidence
+
+The scoped Factory publication and pure Monitor reader use `FACTORY_EVIDENCE_CONTRACT.md`. The current implementation/acceptance record is under `docs/audits/factory-evidence-flow/`; legacy results above remain historical.
+
+After a PASS run and fresh native readback, an explicitly authorized operator may create a local commit containing exactly the verified changes and link it through the same entrypoint:
+
+```powershell
+node scripts/agent-flow/role-pipeline.mjs commit <private-evidence-directory> <full-local-commit-sha>
+```
+
+This compares the actual Git parent/tree/paths/modes/blob bytes and retained worktree fingerprint. It does not create, push or merge a commit. Monitor uses filesystem reads and pure validation only; `read` remains a separate operator action with native queries and store retention effects.

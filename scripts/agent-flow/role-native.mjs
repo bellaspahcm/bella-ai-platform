@@ -8,6 +8,10 @@ import { authorizeRepository, REPOSITORY } from './authority.mjs';
 import { createPrivateDirectory, DevelopmentStore, writeDurableJson, validateStorePath, enforceReviewRetention } from './store.mjs';
 import { hash, DAY_MS, normalizeNotification, normalizeHistory, normalizeHistoryTurn, reconcile, signature, verifyFileChangeRecords } from './contract.mjs';
 import { admitTask, drive, inventory, counters, validateHandoff } from './role-pipeline.mjs';
+import { exactTest, reviewReads, nativePayloadDifferences } from './role-validation.mjs';
+export { exactTest, reviewReads } from './role-validation.mjs';
+import { persistenceDiagnostic } from './persistence-diagnostic.mjs';
+import { initializeFactory, finishFactory } from './factory-publication.mjs';
 
 const binary = () => process.platform === 'win32' ? execFileSync('where.exe', ['codex.exe'], { encoding: 'utf8', windowsHide: true }).trim().split(/\r?\n/)[0] : 'codex';
 const project = item => item ? { id: item.id, type: item.type, status: item.status, exitCode: item.exitCode } : undefined;
@@ -35,19 +39,6 @@ export function parseResult(messages) {
   if (finals.length !== 1 || finals[0].text.length > 12000) stop('AMBIGUOUS_ROLE_RESULT');
   try { return JSON.parse(finals[0].text.trim().slice('BELLA_ROLE_RESULT='.length)); }
   catch { stop('INVALID_ROLE_RESULT'); }
-}
-
-export function exactTest(command, cwd, expected, workspace) {
-  if (typeof command !== 'string' || typeof cwd !== 'string' || resolve(cwd) !== workspace) return false;
-  if (command.trim() === expected) return true;
-  const wrapped = command.match(/^(?:"[A-Za-z]:[\\/][A-Za-z0-9_ .\\/-]*[\\/](?:powershell|pwsh)\.exe"|(?:powershell|pwsh)(?:\.exe)?)\s+(?:-(?:NoProfile|NoLogo|NonInteractive)\s+)*-Command\s+(["'])(.*)\1$/i);
-  return wrapped?.[2] === expected;
-}
-
-export function reviewReads(task, verificationPath) {
-  // Forward slashes avoid native Windows shell-display backslash escaping.
-  const portablePath = verificationPath.replaceAll('\\', '/');
-  return [`git diff -- ${task.ownedFiles.join(' ')}`, ...task.ownedFiles.map(p => `Get-Content -LiteralPath '${p}'`), `Get-Content -LiteralPath '${portablePath.replaceAll("'", "''")}'`];
 }
 
 export function terminalRecord(value) {
@@ -106,7 +97,7 @@ function validateStored(rows, acks, binding) {
 
 function promptFor(name, input, expected) {
   const { task, before, revision } = input;
-  const common = `GOAL: ${task.goal}\nOWNER: human task authority; Lead plans, Builder writes, Verify tests, independent Reviewer reviews.\nSCOPE / OWNED FILES: ${task.ownedFiles.join(', ')}\nFORBIDDEN: all other paths, running pipeline/collector/store/authority, Product, kernels, DB/Auth/RLS/migration, .env, credentials, network, MCP, subagents, git write operations, commit/PR/merge/deploy. No installation or permission changes.\nDEPENDENCIES: previous stages supplied below. AUTHORITY: code/test only inside scope.\nACCEPTANCE: ${JSON.stringify(task.acceptance)}\nCandidate fingerprint: ${before.fingerprint}. Revision ${revision}/1.\nRead relevant existing source before acting. Do not re-run historical real proof commands. Never fabricate evidence. If blocked/ambiguous stop HELD.\nFinal response MUST be exactly one line BELLA_ROLE_RESULT=<JSON object>, no fences, with role:${JSON.stringify(name)}, candidate:${JSON.stringify(before.fingerprint)}, decision and findings array.\n`;
+  const common = `GOAL: ${task.goal}\nOWNER: human task authority; Lead plans, Builder writes, Verify tests, independent Reviewer reviews.\nSCOPE / OWNED FILES: ${task.ownedFiles.join(', ')}\nFORBIDDEN: all other paths, running pipeline/collector/store/authority, Product, kernels, DB/Auth/RLS/migration, .env, credentials, network, MCP, subagents, git write operations, commit/PR/merge/deploy. No installation or permission changes.\nDEPENDENCIES: previous stages supplied below. AUTHORITY: code/test only inside scope.\nACCEPTANCE: ${JSON.stringify(task.acceptance)}\nCandidate fingerprint: ${before.fingerprint}. Revision ${revision}/1.\nLEAD and BUILDER read relevant existing source before acting. Keep every policy-read command bounded: read the Constitution in chunks of at most 400 lines using Get-Content with Select-Object -Skip/-First, or read its applicable sections. Never print the whole Constitution in one command: a large command output was observed to differ from retained native history. All output hashes must still match; do not suppress output or weaken verification. VERIFY and REVIEWER execute only their role-specific exact commands below. VERIFY must not run pre-read, setup, inspection or additional shell commands. Do not re-run historical real proof commands. Never fabricate evidence. If blocked/ambiguous stop HELD.\nFinal response MUST be exactly one line BELLA_ROLE_RESULT=<JSON object>, no fences, with role:${JSON.stringify(name)}, candidate:${JSON.stringify(before.fingerprint)}, decision and findings array.\n`;
   if (name === 'LEAD') return common + 'Read-only Lead. Read owned files and identify root cause/minimal plan and test coverage. Return decision ACCEPT or HELD, plan:string, findings:[]. Do not code or run tests. Stop after analysis.';
   if (name === 'BUILDER') return common + `Builder is the only writer. Use native apply_patch file changes to implement the minimal fix plus meaningful regression tests. Do not modify driver or proof receipts. Verify Agent will run tests next, so do not run tests yourself.\nPLAN: ${input.plan}\nREVIEW FINDINGS TO ADDRESS: ${JSON.stringify(input.findings)}\nReturn decision DONE or HELD, findings:[], changed files list and concise summary. Actual changes will be independently observed; do not invent candidate fingerprint after edits.`;
   if (name === 'VERIFY') return common + `Read-only QA. Execute exactly once, without extra commands or wrappers/scripts: ${expected}\nNo edits, no retry, no skip, no test weakening. Return PASS only if every test passes with zero skipped/todo/cancelled; else FAIL. Do not repair. findings:[] or concise failure explanations.`;
@@ -121,6 +112,17 @@ async function executeRole(name, input, workspace, pipelineDirectory) {
   const base = { repository: REPOSITORY, taskId: input.task.taskId, runId: randomUUID(), attempt: input.revision + 1, producerInstanceId: randomUUID() };
   let binding, store, writer, reader, timer, turnFinished = false, writes = Promise.resolve(), intakeError;
   const liveItems = [], acks = [];
+  const persistenceFailures = [];
+  let diagnosticAttempted = false;
+  const observeFailure = (error, operation, fact = null) => {
+    if (!persistenceFailures.length) persistenceFailures.push(persistenceDiagnostic(error, { operation, role: name, binding, method: fact?.method || null, itemId: fact?.itemId || null }));
+  };
+  const retainFailure = async () => {
+    if (!persistenceFailures.length || diagnosticAttempted) return;
+    diagnosticAttempted = true;
+    try { await writeDurableJson(join(directory, 'persistence-failure.json'), { schemaVersion: 1, failures: persistenceFailures }); }
+    catch { /* A failing evidence sink cannot guarantee a retained diagnostic. */ }
+  };
   let complete;
   const finished = new Promise(resolveDone => { complete = resolveDone; });
   try {
@@ -131,7 +133,7 @@ async function executeRole(name, input, workspace, pipelineDirectory) {
           if (binding.turnId && binding.turnId !== message.params.turn.id) stop('UNEXPECTED_TURN');
           binding.turnId = message.params.turn.id;
           store = new DevelopmentStore(directory, binding);
-          writes = writes.then(() => writeDurableJson(join(directory, 'context.json'), { binding, createdAt: now(), outputReviewDeadline: new Date(Date.now() + 7 * DAY_MS).toISOString() }));
+          writes = writes.then(() => writeDurableJson(join(directory, 'context.json'), { binding, createdAt: now(), outputReviewDeadline: new Date(Date.now() + 7 * DAY_MS).toISOString() })).catch(error => { observeFailure(error, 'context.write'); throw error; });
         }
         if (!binding.turnId) return;
         if (message.method === 'item/completed') {
@@ -141,7 +143,13 @@ async function executeRole(name, input, workspace, pipelineDirectory) {
         }
         const projected = { ...message, params: { ...message.params, ...(message.params.item ? { item: project(message.params.item) } : {}) } };
         const fact = normalizeNotification(projected, binding, now());
-        if (fact) writes = writes.then(async () => { acks.push(await store.ingest(fact)); }).catch(() => { intakeError = 'STORE_WRITE_FAILED'; });
+        if (fact) {
+          let ingestStarted = false;
+          writes = writes.then(async () => { ingestStarted = true; acks.push(await store.ingest(fact)); }).catch(error => {
+            observeFailure(error, ingestStarted ? 'facts.ingest' : 'queued.write', fact);
+            intakeError = 'STORE_WRITE_FAILED';
+          });
+        }
         if (message.method === 'turn/completed') { turnFinished = true; complete(message.params.turn); }
       } catch (e) { intakeError = e.message; complete({ status: 'failed' }); }
     });
@@ -151,15 +159,16 @@ async function executeRole(name, input, workspace, pipelineDirectory) {
     checkBudget();
     const model = models.data?.find(m => m.isDefault && !m.hidden)?.model;
     if (!model) stop('NO_DEFAULT_MODEL');
-    const startedThread = await writer.rpc('thread/start', { cwd: workspace, model, approvalPolicy: 'never', sandbox: name === 'BUILDER' ? 'workspace-write' : 'read-only', developerInstructions: 'Authorized Bella development tooling task. Follow the supplied role/scope exactly. No network, MCP, subagents, credentials or changes outside assigned files. Other roles are read-only. Stop if task needs broader permissions. Use only native shell and apply_patch tools.' });
+    const startedThread = await writer.rpc('thread/start', { cwd: workspace, model, approvalPolicy: 'never', sandbox: name === 'BUILDER' ? 'workspace-write' : 'read-only', developerInstructions: 'Authorized Bella development tooling task. Follow the supplied role/scope exactly. No network, MCP, subagents, credentials or changes outside assigned files. Other roles are read-only. Stop if task needs broader permissions. Use only native shell and apply_patch tools. For LEAD/BUILDER policy reads, split the Constitution into at most 400 lines per command; never print the full document in one command. VERIFY runs only its exact test command; REVIEWER runs only its exact separate read commands.' });
     binding = { ...base, threadId: startedThread.thread.id, sessionId: startedThread.thread.sessionId || null, turnId: null };
     await writeDurableJson(join(pipelineDirectory, `dispatch-${input.revision}-${name}.json`), { role: name, threadId: binding.threadId, candidate: input.before.fingerprint, directory, dispatchedAt: now() });
     checkBudget();
     const started = await writer.rpc('turn/start', { threadId: binding.threadId, input: [{ type: 'text', text: promptFor(name, input, expected) }], approvalPolicy: 'never', sandboxPolicy: name === 'BUILDER' ? { type: 'workspaceWrite', writableRoots: [workspace], networkAccess: false } : { type: 'readOnly' } });
     const terminal = await Promise.race([finished, new Promise((_, reject) => { timer = setTimeout(() => reject(new Error('ROLE_TIMEOUT')), Math.max(1, Math.min(deadline - Date.now(), 300000))); })]);
     clearTimeout(timer);
-    if (terminal.status !== 'completed' || !binding.turnId || binding.turnId !== started.turn.id || writer.notificationError || intakeError) stop(intakeError || 'NATIVE_RUNTIME_UNCERTAIN');
+    if (terminal.status !== 'completed' || !binding.turnId || binding.turnId !== started.turn.id || writer.notificationError) stop(intakeError || 'NATIVE_RUNTIME_UNCERTAIN');
     await writes;
+    await retainFailure();
     if (intakeError) stop(intakeError);
     await writer.close();
     reader = new AppServer(binary(), workspace); await reader.initialize();
@@ -172,7 +181,12 @@ async function executeRole(name, input, workspace, pipelineDirectory) {
     const proof = validateStored(await store.read(), acks, binding);
     checkBudget();
     const native = nativeShape(source.entries.map(e => e.item), binding, input.task, workspace);
-    if (JSON.stringify(nativeShape(liveItems, binding, input.task, workspace)) !== JSON.stringify(native)) stop('NATIVE_PAYLOAD_MISMATCH');
+    const liveNative=nativeShape(liveItems,binding,input.task,workspace);
+    if (JSON.stringify(liveNative) !== JSON.stringify(native)) {
+      try { await writeDurableJson(join(directory,'native-payload-mismatch.json'),{schemaVersion:1,source:'COLLECTOR_COMPARISON_OBSERVATION',binding,differences:nativePayloadDifferences(liveNative,native),rawPayloadRetained:false}); }
+      catch { /* A failed diagnostic sink must not replace the known gate failure. */ }
+      stop('NATIVE_PAYLOAD_MISMATCH');
+    }
     const result = native.result;
     if (result.role !== name || result.candidate !== input.before.fingerprint || !Array.isArray(result.findings) || result.findings.some(f => typeof f !== 'string' || !f.trim() || f.length > 2000)) stop('INVALID_ROLE_RESULT');
     if (!native.commands.length && name !== 'BUILDER') stop('NATIVE_READ_REQUIRED');
@@ -200,7 +214,7 @@ async function executeRole(name, input, workspace, pipelineDirectory) {
       try { await writer.rpc('turn/interrupt', { threadId: binding.threadId, turnId: binding.turnId }); }
       catch { /* closing the owned AppServer is the final stop boundary */ }
     }
-    try { await writer?.close(); } finally { await reader?.close(); await writes; }
+    try { await writer?.close(); } finally { await reader?.close(); try { await writes; } finally { await retainFailure(); } }
   }
 }
 
@@ -220,6 +234,7 @@ export async function runNative(input) {
   try { await claim.writeFile(JSON.stringify({ taskId: task.taskId, directory, createdAt: now() })); await claim.sync(); } finally { await claim.close(); }
   await writeDurableJson(join(directory, 'context.json'), { createdAt: now(), outputReviewDeadline: new Date(Date.now() + 7 * DAY_MS).toISOString() });
   await writeDurableJson(join(directory, 'intake.json'), { task, workspace, before, actor: authority.actor, writerPid: process.pid });
+  const factoryIndex = await initializeFactory(directory, workspace, before);
   console.log(JSON.stringify({ phase: 'INTAKE_ACCEPTED', taskId: task.taskId, directory }));
   let count = 0;
   const result = await drive(task, {
@@ -227,7 +242,35 @@ export async function runNative(input) {
     role: async (name, data) => { console.log(JSON.stringify({ phase: name, revision: data.revision, candidate: data.before.fingerprint })); return executeRole(name, data, workspace, directory); },
     record: receipt => writeDurableJson(join(directory, receipt.terminal ? 'terminal.json' : `receipt-${++count}.json`), receipt.terminal || receipt),
   });
-  return { ...result, directory };
+  const published = await finishFactory(directory, workspace, factoryIndex, result, await inventory(workspace));
+  return { ...result, directory, factoryRunId: published.factoryRunId };
+}
+
+// B-only diagnostic: one fresh read-only Lead, no Builder/tests/review and no resume.
+// This never reports Factory acceptance or a reproduced historical cause by success.
+export async function diagnoseNativePersistence(input) {
+  const task = admitTask(input), workspace = workspaceIdentity(resolve(process.cwd()));
+  const authority = await authorizeRepository(REPOSITORY), before = await inventory(workspace);
+  if (before.head !== task.sourceRevision) stop('WRONG_SOURCE_REVISION');
+  for (const p of task.ownedFiles) if (!before.files.some(f => f.path === p)) stop('EXISTING_TASK_FILES_REQUIRED');
+  const gitCommon = execFileSync('git', ['rev-parse', '--git-common-dir'], { cwd: workspace, encoding: 'utf8', windowsHide: true }).trim();
+  const claims = resolve(workspace, gitCommon, 'bella-agent-flow-task-claims'); await mkdir(claims, { recursive: true });
+  const claim = await open(join(claims, `${task.taskId}.json`), 'wx', 0o600);
+  const directory = await createPrivateDirectory({ retained: true });
+  try { await claim.writeFile(JSON.stringify({ taskId: task.taskId, directory, operation: 'PERSISTENCE_DIAGNOSTIC_LEAD_ONLY', createdAt: now() })); await claim.sync(); } finally { await claim.close(); }
+  const started = Date.now();
+  await writeDurableJson(join(directory, 'context.json'), { createdAt: now(), outputReviewDeadline: new Date(started + 7 * DAY_MS).toISOString() });
+  await writeDurableJson(join(directory, 'diagnostic-intake.json'), { task, workspace, before, actor: authority.actor, writerPid: process.pid, mode: 'PERSISTENCE_DIAGNOSTIC_LEAD_ONLY' });
+  let report;
+  try {
+    const receipt = await executeRole('LEAD', { task, revision: 0, before, remainingMs: task.maxSeconds * 1000 - (Date.now() - started) }, workspace, directory);
+    if ((await inventory(workspace)).fingerprint !== before.fingerprint) stop('DIAGNOSTIC_SOURCE_CHANGED');
+    report = { status: 'DIAGNOSTIC_COMPLETED', taskId: task.taskId, directory, receipt, historicalCause: 'NOT_REPRODUCED_NOT_PROVEN', factoryAcceptance: 'NOT_PROVEN', nativeLeadDispatches: 1, autoResume: false };
+  } catch (error) {
+    report = { status: 'HELD', taskId: task.taskId, directory, reason: /^[A-Z_]{3,80}$/.test(error.message) ? error.message : 'DIAGNOSTIC_UNCERTAIN', historicalCause: 'NOT_PROVEN', factoryAcceptance: 'NOT_PROVEN', nativeLeadDispatches: 1, autoResume: false };
+  }
+  await writeDurableJson(join(directory, 'diagnostic-result.json'), report);
+  return report;
 }
 
 // Fresh CLI process: re-query every native session and compare payloads and store.

@@ -3,8 +3,10 @@ import { readFile, lstat } from 'node:fs/promises';
 import { resolve, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { hash } from './contract.mjs';
+import { counters, validateHandoff } from './role-validation.mjs';
+export { counters, validateHandoff } from './role-validation.mjs';
 
-const protectedNames = new Set(['authority.mjs', 'contract.mjs', 'store.mjs', 'probe.mjs', 'role-pipeline.mjs', 'role-native.mjs', 'role-pipeline.test.mjs']);
+const protectedNames = new Set(['authority.mjs', 'contract.mjs', 'store.mjs', 'probe.mjs', 'role-pipeline.mjs', 'role-native.mjs', 'role-pipeline.test.mjs', 'run-evidence.mjs', 'persistence-diagnostic.mjs', 'factory-publication.mjs', 'role-validation.mjs']);
 const fail = code => { throw new Error(code); };
 export function admitTask(task) {
   const keys = ['taskId', 'sourceRevision', 'goal', 'ownedFiles', 'testFile', 'acceptance', 'maxSeconds'];
@@ -23,54 +25,23 @@ export async function inventory(root) {
   const git = args => execFileSync('git', args, { cwd: root, encoding: 'utf8', windowsHide: true, maxBuffer: 4 * 1024 * 1024 });
   const head = git(['rev-parse', 'HEAD']).trim();
   const paths = [...new Set(git(['ls-files', '--cached', '--others', '--exclude-standard', '-z']).split('\0').filter(Boolean))].sort();
+  const modes = new Map(git(['ls-files', '--stage', '-z']).split('\0').filter(Boolean).map(entry => { const [metadata, path] = entry.split('\t'); return [path, metadata.split(' ')[0]]; }));
   const files = [];
   for (const path of paths) {
     try {
       const info = await lstat(join(root, path));
       if (!info.isFile() || info.isSymbolicLink()) fail('UNSAFE_SOURCE_FILE');
-      files.push({ path, sha256: hash(await readFile(join(root, path))) });
+      const mode = process.platform === 'win32' ? (modes.get(path) || '100644') : (info.mode & 0o111 ? '100755' : '100644');
+      files.push({ path, mode, sha256: hash(await readFile(join(root, path))) });
     } catch (error) { if (error.code !== 'ENOENT') throw error; }
   }
   return { head, files, fingerprint: hash(JSON.stringify({ head, files })) };
 }
 
 export function changedPaths(before, after) {
-  const a = new Map(before.files.map(f => [f.path, f.sha256]));
-  const b = new Map(after.files.map(f => [f.path, f.sha256]));
+  const a = new Map(before.files.map(f => [f.path, `${f.mode}:${f.sha256}`]));
+  const b = new Map(after.files.map(f => [f.path, `${f.mode}:${f.sha256}`]));
   return [...new Set([...a.keys(), ...b.keys()])].filter(p => a.get(p) !== b.get(p)).sort();
-}
-
-export function counters(output) {
-  const values = {};
-  for (const line of String(output).split(/\r?\n/)) {
-    const match = line.match(/^(?:#|ℹ)\s+(tests|pass|fail|cancelled|skipped|todo)\s+(\d+)\s*$/);
-    if (match) {
-      if (Object.hasOwn(values, match[1]) || !Number.isSafeInteger(Number(match[2]))) return null;
-      values[match[1]] = Number(match[2]);
-    }
-  }
-  const names = ['pass', 'fail', 'cancelled', 'skipped', 'todo'];
-  if (!Number.isSafeInteger(values.tests) || values.tests < 1 || names.some(n => !Number.isSafeInteger(values[n])) || names.reduce((n, k) => n + values[k], 0) !== values.tests) return null;
-  return values;
-}
-
-export function validateHandoff(terminal, task) {
-  if (terminal.status !== 'PASS' || ![0, 1].includes(terminal.revisions) || terminal.taskId !== task.taskId) fail('HANDOFF_NOT_PASS');
-  const roles = ['LEAD', 'BUILDER', 'VERIFY', 'REVIEWER', ...(terminal.revisions ? ['BUILDER', 'VERIFY', 'REVIEWER'] : [])];
-  if (terminal.receipts.length !== roles.length || new Set(terminal.receipts.map(r => r.binding?.threadId)).size !== roles.length) fail('HANDOFF_ROLE_SEQUENCE');
-  let candidate = terminal.receipts[0].before;
-  terminal.receipts.forEach((r, i) => {
-    if (r.role !== roles[i] || !r.nativeVerified || r.before !== candidate || r.revision !== (i < 4 ? 0 : 1)) fail('HANDOFF_ROLE_SEQUENCE');
-    if (r.role !== 'BUILDER' && (r.after !== r.before || r.candidate !== candidate)) fail('HANDOFF_CANDIDATE_MISMATCH');
-    if (r.role === 'BUILDER' && (!r.changed.length || r.after === r.before || r.changed.some(p => !task.ownedFiles.includes(p)))) fail('HANDOFF_BUILDER_MISMATCH');
-    if (r.role === 'LEAD' && r.decision !== 'ACCEPT') fail('HANDOFF_LEAD_MISMATCH');
-    if (r.role === 'VERIFY' && r.test?.candidate !== candidate) fail('HANDOFF_TEST_MISMATCH');
-    if (r.role === 'REVIEWER' && i !== roles.length - 1 && (r.decision !== 'REVISE' || !r.findings?.length)) fail('HANDOFF_REVISION_MISMATCH');
-    candidate = r.after;
-  });
-  const verify = terminal.receipts.at(-2), review = terminal.receipts.at(-1), c = verify.test?.counters;
-  if (verify.decision !== 'PASS' || verify.test.exitCode !== 0 || !c || c.tests < 1 || c.pass !== c.tests || ['fail', 'cancelled', 'skipped', 'todo'].some(k => c[k] !== 0) || review.decision !== 'PASS' || review.findings.length || terminal.candidate !== candidate) fail('HANDOFF_FINAL_MISMATCH');
-  return true;
 }
 
 // No resume entry point: a fresh invocation requires a fresh, admitted task ID.
@@ -110,6 +81,7 @@ export async function drive(taskInput, { role, snapshot, record, now = Date.now 
       const c = verify.test.counters;
       const green = verify.test.exitCode === 0 && c.tests > 0 && c.pass === c.tests && ['fail', 'cancelled', 'skipped', 'todo'].every(k => c[k] === 0);
       if (green !== (verify.decision === 'PASS')) fail('TEST_VERDICT_MISMATCH');
+      if (!green) fail('VERIFY_FAILED');
       const review = await stage('REVIEWER', { verification: verify });
       if (review.decision === 'PASS' && green && Array.isArray(review.findings) && !review.findings.length) {
         if ((await snapshot()).fingerprint !== candidate) fail('FINAL_CANDIDATE_CHANGED');
@@ -131,6 +103,7 @@ export async function drive(taskInput, { role, snapshot, record, now = Date.now 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const [operation, input] = process.argv.slice(2);
   const action = operation === 'run' ? import('./role-native.mjs').then(async m => m.runNative(JSON.parse(await readFile(resolve(input), 'utf8'))))
-    : operation === 'read' ? import('./role-native.mjs').then(m => m.readNative(input)) : Promise.reject(new Error('INVALID_OPERATION'));
-  action.then(r => { console.log(JSON.stringify({ status: r.status, reason: r.reason, taskId: r.taskId, candidate: r.candidate, revisions: r.revisions, directory: r.directory, checks: r.checks })); if (r.status !== 'PASS') process.exitCode = 1; }).catch(e => { console.error(/^[A-Z_]{3,80}$/.test(e.message) ? e.message : 'PIPELINE_HELD'); process.exitCode = 1; });
+    : operation === 'read' ? import('./role-native.mjs').then(m => m.readNative(input))
+    : operation === 'commit' ? import('./factory-publication.mjs').then(m => m.linkFactoryCommit(input, process.argv[4])) : Promise.reject(new Error('INVALID_OPERATION'));
+  action.then(r => { console.log(JSON.stringify({ status: r.status, reason: r.reason, taskId: r.taskId, factoryRunId: r.factoryRunId, candidate: r.candidate, revisions: r.revisions, directory: r.directory, checks: r.checks, commit:r.commit })); if (!['PASS','PASS_CANDIDATE_COMMIT_CONTENT'].includes(r.status)) process.exitCode = 1; }).catch(e => { console.error(/^[A-Z_]{3,80}$/.test(e.message) ? e.message : 'PIPELINE_HELD'); process.exitCode = 1; });
 }

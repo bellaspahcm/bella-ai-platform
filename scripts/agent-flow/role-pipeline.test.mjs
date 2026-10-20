@@ -103,9 +103,11 @@ test('fresh Reviewer thread identity is mandatory', async () => {
   const r = await fixture({ modifyRole: (name, result) => { result.binding.threadId = 'same-thread'; } });
   assert.equal(r.output.reason, 'NATIVE_ROLE_PROOF_REQUIRED');
 });
-test('failed tests cannot be promoted by a PASS review', async () => {
+test('failed tests hold before Reviewer dispatch', async () => {
   const r = await fixture({ modifyRole: (name, result) => { if (name === 'VERIFY') { result.test.exitCode = 1; result.test.counters = { ...green, pass: 2, fail: 1 }; result.decision = 'FAIL'; } } });
-  assert.equal(r.output.status, 'HELD'); assert.equal(r.output.reason, 'REVIEW_HELD');
+  assert.equal(r.output.status, 'HELD'); assert.equal(r.output.reason, 'VERIFY_FAILED');
+  assert.deepEqual(r.log.map(i=>i.name),['LEAD','BUILDER','VERIFY']);
+  assert.equal(r.output.receipts.length,3);
 });
 test('skip/todo/cancelled cannot pass despite zero exit code', async () => {
   for (const k of ['skipped', 'todo', 'cancelled']) {
@@ -122,4 +124,11 @@ test('terminal handoff detects missing stage, forged final candidate and stale r
   for (const change of [v => v.receipts.pop(), v => { v.candidate = 'old'; }, v => { v.receipts.at(-1).before = 'old'; }]) {
     const value = structuredClone(r.output); change(value); assert.throws(() => validateHandoff(value, r.input));
   }
+});
+
+test('payload mismatch diagnostic retains field hashes only without relaxing equality',async()=>{
+  const {nativePayloadDifferences}=await import('./role-validation.mjs');const left={commands:[{itemId:'cmd',command:'SECRET_ARG',outputHash:'a'}],changes:[],result:{role:'LEAD'},binding:{taskId:'task'}};
+  assert.deepEqual(nativePayloadDifferences(left,structuredClone(left)),[]);
+  const right=structuredClone(left);right.commands[0].command='DIFFERENT_SECRET';right.commands[0].outputHash='b';const differences=nativePayloadDifferences(left,right);
+  assert.deepEqual(differences.map(d=>d.path),['commands[0].command','commands[0].outputHash']);assert.equal(JSON.stringify(differences).includes('SECRET'),false);assert.ok(differences.every(d=>/^[a-f0-9]{64}$/.test(d.leftSha256)&&/^[a-f0-9]{64}$/.test(d.rightSha256)));
 });

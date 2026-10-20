@@ -1,0 +1,123 @@
+{
+  "format": "bella-factory-operator-audit-v1",
+  "checkedAt": "2026-10-20T04:09:28.294Z",
+  "evidenceRoot": "C:/Users/DELL/.codex/delivery-evidence/factory-evidence-flow-20261020",
+  "classification": "Operator evidence of HELD runs and bounded negative tests, not positive end-to-end acceptance",
+  "artifacts": [
+    {
+      "file": "baseline-repro.json",
+      "bytes": 590,
+      "sha256": "f2eccc4449d9a98dc24fb32c6965f00bdd288cf3186d3097c4785c56ffb836d6"
+    },
+    {
+      "file": "acceptance-held-diagnostic.json",
+      "bytes": 1895,
+      "sha256": "45ded100717368a3d15b8f9d16b83f9e1b766f4904b935f3e0322bb9882f7cc7"
+    },
+    {
+      "file": "acceptance-2-held-diagnostic.json",
+      "bytes": 2151,
+      "sha256": "b7bbbfa55c989adb65b0eaf8e72810017c7bb8740d2d2698fe3e19393593219d"
+    },
+    {
+      "file": "native-verify-output.tap",
+      "bytes": 7668,
+      "sha256": "cd7ee75d76f9daafbebca986b147139a51fc2e563ee8c77976e297702a759333"
+    },
+    {
+      "file": "negative-scope-result.json",
+      "bytes": 263,
+      "sha256": "bedbfc07c4cbc4d45fc10a5fea94ea3a0c876380a1fd679395e1a4dd66e9b55f"
+    },
+    {
+      "file": "negative-reader-result.json",
+      "bytes": 2478,
+      "sha256": "f69e46d13e2f892418336b87da4c2f6ae60b8435010d591833b1efb8194025c2"
+    },
+    {
+      "file": "negative-storage-result.json",
+      "bytes": 1584,
+      "sha256": "d58f5bde092900bb0cf029c45e78265c0c438326c0b151879702331b65f39aae"
+    },
+    {
+      "file": "negative-storage-monitor-result.json",
+      "bytes": 3022,
+      "sha256": "b96fe4c9e3662fe68ff79c3edef9f073b313ec6dd7eeaafcc78b8c8fdedfda00"
+    },
+    {
+      "file": "negative-held-commit-result.json",
+      "bytes": 325,
+      "sha256": "88959e0d63d29c8ff906e559e725597a94b74a5922686e53aaa0d543134db3f6"
+    },
+    {
+      "file": "negative-stale-source-result.json",
+      "bytes": 368,
+      "sha256": "08b3412979ef7ff82f1a22d7f5842fe51077f15e7ef506bc89d9125b52eec661"
+    },
+    {
+      "file": "held-browser-result.json",
+      "bytes": 945,
+      "sha256": "d2b07bf3adcf978a190f46c673c01bcc650acd21e6ea3d350395e52d02964222"
+    },
+    {
+      "file": "held-desktop.png",
+      "bytes": 107411,
+      "sha256": "8ea604297f74cb150592bd230e0f8c853a6135a863d6353927d44e24f76b8903"
+    },
+    {
+      "file": "held-mobile.png",
+      "bytes": 67439,
+      "sha256": "1fb8aac42c66bb04ec2bea5e9713082e4a69d3331c48ca8e92a980686f84120e"
+    },
+    {
+      "file": "held-2/factory-browser-result.json",
+      "bytes": 4786,
+      "sha256": "c84671d0fe23b22794bd9eba1235c529c48aa93021612a1435302890f9d182f1"
+    },
+    {
+      "file": "held-2/factory-desktop.png",
+      "bytes": 161443,
+      "sha256": "5532f2d180956a63879c91ecb5e0e2b97a5f8b74eea1f9e36f2e3f39efdd8e7d"
+    },
+    {
+      "file": "held-2/factory-mobile.png",
+      "bytes": 120653,
+      "sha256": "9a9312212afa346f20f1f77bbf5e4040e4fe3d965a594918eb1eeefbe2e3d151"
+    },
+    {
+      "file": "historical-reader-result.json",
+      "bytes": 1980,
+      "sha256": "9220d393a23dcd0a11507685e343825e80cbafcfb644d8f0504d6dd1b16930a8"
+    },
+    {
+      "file": "original-packages-before-negatives.json",
+      "bytes": 8961,
+      "sha256": "1130376e83738639e8d22f4dbd80529c15091dcb8ffc6cf51010719a13de59be"
+    },
+    {
+      "file": "original-packages-after-negatives.json",
+      "bytes": 330,
+      "sha256": "54eda8797c3af538c7af92e752195524639a1c3f95880af9c14a1e10bbbb91a5"
+    },
+    {
+      "file": "operator-verification-result.json",
+      "bytes": 682,
+      "sha256": "d83397461d3bd2ff031ca377e0f4106b33b223a2927a6d14e71c3c06b5c7c372"
+    },
+    {
+      "file": "owner-task.json",
+      "bytes": 1451,
+      "sha256": "c2033423b10d77b061e573325cf930c6c9ab871cc8c935e9e2be5e90f5f028ae"
+    },
+    {
+      "file": "owner-task-2.json",
+      "bytes": 1451,
+      "sha256": "6319a73b7ba6dbd2081d6f4c81a712f06f24b477fc227ab58d97de604452041a"
+    },
+    {
+      "file": "negative-storage-task.json",
+      "bytes": 758,
+      "sha256": "d7bc2ad2ca7916afdd6b5f3ac7cec45459ceace335c8334256c4334c76ee0286"
+    }
+  ]
+}

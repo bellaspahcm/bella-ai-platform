@@ -3,7 +3,7 @@ import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { authorizeRepository, REPOSITORY } from './authority.mjs';
 import { validateStorePath } from './store.mjs';
-import { DAY_MS, verifyFileChangeRecords, validateBinding, validateFact, logicalKey } from './contract.mjs';
+import { DAY_MS, verifyFileChangeRecords, validateBinding, validateFact, logicalKey, signature } from './contract.mjs';
 
 // Independent read-only consumer of the canonical facts file. No source-query,
 // store.read(), purge, log reconstruction or rewriting the retained package.
@@ -29,6 +29,7 @@ export async function readFileChanges(input, { authorize = authorizeRepository, 
   for (const row of data.records) {
     if (!row || Object.keys(row).sort().join(',') !== 'digest,fact,key,metadataExpiresAt,outputExpiresAt,outputState,revision,storedAt' || !Number.isSafeInteger(row.storedAt) || row.storedAt < 0 || row.storedAt > now || row.metadataExpiresAt !== row.storedAt + 14 * DAY_MS || row.outputExpiresAt !== row.storedAt + 7 * DAY_MS || now >= row.metadataExpiresAt || !Number.isSafeInteger(row.revision) || row.revision < 1 || !['AVAILABLE', 'ABSENT', 'EXPIRED'].includes(row.outputState) || !/^[a-f0-9]{64}$/.test(row.digest) || row.key !== logicalKey(row.fact)) throw new Error('INVALID_STORE_RECORD');
     validateFact(row.fact, context.binding, context.nonce);
+    if (row.digest !== signature(row.fact)) throw new Error('INVALID_STORE_RECORD');
     if (row.fact.itemType === 'fileChange' && row.outputState !== 'ABSENT') throw new Error('INVALID_STORE_RECORD');
   }
   const reconciliation = verifyFileChangeRecords(data.records, context.binding);
