@@ -18,6 +18,9 @@ import {
   type CareInstructionExtraction,
   type HealthAnomalyResult,
   type AllergySafetyResult,
+  type ExecutiveDailyBriefingResult,
+  type ClassRosterStat,
+  type ComplianceSentinelResult,
 } from '../ai-skills/PreschoolAICapabilityPack';
 
 export interface PiiMaskResult {
@@ -26,7 +29,15 @@ export interface PiiMaskResult {
 }
 
 export interface PreschoolCopilotRequest {
-  readonly action: 'classify_intent' | 'extract_care' | 'detect_anomaly' | 'check_allergy' | 'generate_digest' | 'ask_copilot';
+  readonly action:
+    | 'classify_intent'
+    | 'extract_care'
+    | 'detect_anomaly'
+    | 'check_allergy'
+    | 'generate_digest'
+    | 'ask_copilot'
+    | 'executive_briefing'
+    | 'executive_safety_audit';
   readonly message?: string;
   readonly rawText?: string;
   readonly temperatureCelsius?: number;
@@ -42,6 +53,14 @@ export interface PreschoolCopilotRequest {
   readonly question?: string;
   readonly contextData?: Readonly<Record<string, unknown>>;
   readonly geminiApiKey?: string;
+  // Executive Admin Copilot parameters
+  readonly totalStudents?: number;
+  readonly presentCount?: number;
+  readonly absentCount?: number;
+  readonly feverCasesCount?: number;
+  readonly unpaidTuitionCount?: number;
+  readonly pendingParentRequests?: number;
+  readonly classRosterStats?: readonly ClassRosterStat[];
 }
 
 export interface PreschoolCopilotResponse {
@@ -222,6 +241,45 @@ export async function executePreschoolCopilot(
       };
     }
 
+    case 'executive_briefing': {
+      const tool = preschoolAICapabilityPack.tools.find((t) => t.id === 'executive_daily_briefing');
+      if (!tool) throw new Error('Tool executive_daily_briefing not found');
+
+      const rawResult = await tool.execute({
+        totalStudents: request.totalStudents,
+        presentCount: request.presentCount,
+        absentCount: request.absentCount,
+        feverCasesCount: request.feverCasesCount,
+        unpaidTuitionCount: request.unpaidTuitionCount,
+        pendingParentRequests: request.pendingParentRequests,
+      });
+
+      return {
+        success: true,
+        action: request.action,
+        data: rawResult,
+        piiMasked: false,
+        timestamp,
+      };
+    }
+
+    case 'executive_safety_audit': {
+      const tool = preschoolAICapabilityPack.tools.find((t) => t.id === 'compliance_and_safety_sentinel');
+      if (!tool) throw new Error('Tool compliance_and_safety_sentinel not found');
+
+      const rawResult = await tool.execute({
+        classRosterStats: request.classRosterStats,
+      });
+
+      return {
+        success: true,
+        action: request.action,
+        data: rawResult,
+        piiMasked: false,
+        timestamp,
+      };
+    }
+
     case 'ask_copilot': {
       const question = String(request.question || '').trim();
       const apiKey = request.geminiApiKey || process.env.GEMINI_API_KEY;
@@ -280,9 +338,17 @@ Câu hỏi của giáo viên:
 
       // Fallback deterministic response when offline or key absent
       const lower = question.toLowerCase();
-      let answer = 'Chào cô! Em là Trợ lý Mầm non Bella Copilot. Em có thể giúp cô kiểm tra bất thường sức khỏe, gợi ý thực đơn, trích xuất dặn thuốc hoặc soạn nhật ký gửi phụ huynh.';
+      let answer = 'Chào cô và Ban Giám Hiệu! Em là Trợ lý Mầm non Bella Copilot. Em có thể giúp kiểm tra bất thường sức khỏe, đối chiếu định mức sĩ số theo Thông tư 52, điểm tin điều hành hoặc soạn thông báo gửi phụ huynh.';
 
-      if (lower.includes('sốt') || lower.includes('nhiệt độ')) {
+      if (lower.includes('thông báo') || lower.includes('soạn')) {
+        answer = 'Kính gửi Quý Phụ huynh Trường Mầm non Bella,\nNhà trường xin trân trọng thông báo về kế hoạch kiểm tra sức khỏe và hoạt động học tập định kỳ của các con. Kính mong Quý Phụ huynh cùng phối hợp chặt chẽ với giáo viên chủ nhiệm để mang lại trải nghiệm an toàn, hạnh phúc nhất cho bé.\nTrân trọng,\nBan Giám Hiệu Trường Mầm non Bella.';
+      } else if (lower.includes('sĩ số') || lower.includes('thông tư 52') || lower.includes('định mức')) {
+        answer = 'Theo Thông tư 52/2020/TT-BGDĐT: Nhóm trẻ 12-36 tháng tối đa 25 trẻ (định mức tối đa 12 trẻ/GV); Mẫu giáo Bé (3-4 tuổi) tối đa 25 trẻ; Mẫu giáo Nhỡ (4-5 tuổi) tối đa 30 trẻ; Mẫu giáo Lớn (5-6 tuổi) tối đa 35 trẻ. Ban Giám Hiệu có thể dùng công cụ "Quét An toàn & Tuân thủ" để phát hiện ngay các lớp chạm hoặc vượt trần sĩ số.';
+      } else if (lower.includes('chuyên cần') || lower.includes('vắng')) {
+        answer = 'Chuyên cần toàn trường được tính bằng tỷ lệ số trẻ có mặt trên tổng sĩ số đăng ký. Khi tỷ lệ dưới 85%, Ban Giám Hiệu nên chỉ đạo giáo viên chủ nhiệm rà soát lý do vắng và thăm hỏi gia đình các bé ốm để phòng ngừa dịch bệnh theo mùa.';
+      } else if (lower.includes('học phí') || lower.includes('tài chính') || lower.includes('doanh thu')) {
+        answer = 'Hệ thống hỗ trợ gửi thông báo kèm mã VietQR động đến từng phụ huynh qua Sổ liên lạc điện tử PWA. Ban Giám Hiệu có thể kích hoạt thông báo nhắc tự động vào ngày 5 và 10 hàng tháng để tối ưu dòng tiền.';
+      } else if (lower.includes('sốt') || lower.includes('nhiệt độ')) {
         answer = 'Khi trẻ sốt: Nếu >= 37.8°C, cô nên chườm khăn ấm ở trán, nách, bẹn và cho trẻ uống nhiều nước ấm. Nếu >= 38.5°C, cần liên hệ phụ huynh ngay và chuyển trẻ về phòng y tế trường theo dõi.';
       } else if (lower.includes('dị ứng') || lower.includes('thực đơn')) {
         answer = 'Cô có thể dùng công cụ Đối chiếu Dị ứng để quét nhanh thực đơn trưa và chiều của lớp, nhằm loại bỏ các món có trứng, sữa bò, đậu phộng hoặc hải sản đối với các bé có tiền sử dị ứng.';

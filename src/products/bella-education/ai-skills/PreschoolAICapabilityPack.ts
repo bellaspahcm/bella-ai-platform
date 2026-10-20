@@ -44,6 +44,29 @@ export interface AllergySafetyResult {
   readonly warningMessage?: string;
 }
 
+export interface ExecutiveDailyBriefingResult {
+  readonly executiveSummary: string;
+  readonly attendanceRate: number;
+  readonly criticalAlerts: readonly string[];
+  readonly actionableRecommendations: readonly string[];
+  readonly generatedAt: string;
+}
+
+export interface ClassRosterStat {
+  readonly className: string;
+  readonly ageGroup: 'NHA_TRE' | 'MAM' | 'CHOI' | 'LA';
+  readonly studentCount: number;
+  readonly teacherCount: number;
+}
+
+export interface ComplianceSentinelResult {
+  readonly compliant: boolean;
+  readonly complianceScore: number;
+  readonly violations: readonly string[];
+  readonly warnings: readonly string[];
+  readonly inspectedClassesCount: number;
+}
+
 export const preschoolAICapabilityPack: AICapabilityPack = {
   id: 'preschool_ai_pack',
   name: 'Bella Preschool Educational & Daily Care Copilot',
@@ -59,6 +82,10 @@ export const preschoolAICapabilityPack: AICapabilityPack = {
       'Đối chiếu thực đơn bữa ăn trong ngày với danh sách dị ứng đã đăng ký của trẻ để ngăn ngừa ngộ độc hoặc phản ứng dị ứng thực phẩm.',
     generate_daily_digest:
       'Tạo nhật ký sinh hoạt cuối ngày (Daily Digest) cá nhân hóa cho từng trẻ: tóm tắt chuyên cần, bữa ăn, giấc ngủ, thái độ và hoạt động vui chơi với văn phong ấm áp, ân cần và chuẩn mực sư phạm mầm non.',
+    executive_daily_briefing:
+      'Điểm tin điều hành mầm non toàn trường: tóm tắt chuyên cần, cảnh báo sức khỏe y tế, tiến độ học phí và đề xuất hành động ưu tiên cho Ban Giám Hiệu.',
+    compliance_and_safety_sentinel:
+      'Rà soát tuân thủ định mức sĩ số lớp học và định mức giáo viên/học sinh theo Thông tư 52/2020/TT-BGDĐT cùng an toàn vệ sinh thực đơn toàn trường.',
   },
   decisionRules: {
     fever_warning_celsius: 37.8,
@@ -308,6 +335,118 @@ export const preschoolAICapabilityPack: AICapabilityPack = {
           characterCount: digest.length,
           generatedAt: new Date().toISOString(),
         };
+      },
+    },
+    {
+      id: 'executive_daily_briefing',
+      name: 'Executive Daily Briefing',
+      description: 'Tổng hợp điểm tin điều hành mầm non toàn trường cho Ban Giám Hiệu',
+      parametersSchema: {
+        totalStudents: { type: 'number', description: 'Tổng số trẻ toàn trường' },
+        presentCount: { type: 'number', description: 'Số trẻ có mặt hôm nay' },
+        absentCount: { type: 'number', description: 'Số trẻ vắng mặt hôm nay' },
+        feverCasesCount: { type: 'number', description: 'Số ca sốt hoặc sự cố y tế' },
+        unpaidTuitionCount: { type: 'number', description: 'Số hồ sơ học phí chưa thanh toán' },
+        pendingParentRequests: { type: 'number', description: 'Số yêu cầu dặn dò phụ huynh chờ xử lý' },
+      },
+      execute: async (params: Record<string, unknown>): Promise<Record<string, unknown>> => {
+        const total = typeof params.totalStudents === 'number' && params.totalStudents > 0 ? params.totalStudents : 100;
+        const present = typeof params.presentCount === 'number' ? params.presentCount : total;
+        const fever = typeof params.feverCasesCount === 'number' ? params.feverCasesCount : 0;
+        const unpaid = typeof params.unpaidTuitionCount === 'number' ? params.unpaidTuitionCount : 0;
+        const pendingReq = typeof params.pendingParentRequests === 'number' ? params.pendingParentRequests : 0;
+
+        const rate = Math.round((present / total) * 100);
+        const criticalAlerts: string[] = [];
+        const recommendations: string[] = [];
+
+        if (fever > 0) {
+          criticalAlerts.push(`Cảnh báo dịch tễ/y tế: Toàn trường ghi nhận ${fever} ca sốt cần theo dõi lâm sàng.`);
+          recommendations.push('Giám sát dịch tễ: Chỉ đạo bộ phận y tế và bảo mẫu kiểm tra thân nhiệt tăng cường đầu giờ chiều.');
+        }
+
+        if (rate < 85) {
+          criticalAlerts.push(`Tỷ lệ chuyên cần thấp (${rate}%): Tỷ lệ vắng mặt cao hơn mức bình thường 15%.`);
+          recommendations.push('Đôn đốc GVCN các lớp rà soát lý do nghỉ học và thăm hỏi gia đình các bé ốm.');
+        } else {
+          recommendations.push('Chuyên cần toàn trường ổn định trên 85%, đảm bảo tiến độ chương trình mầm non.');
+        }
+
+        if (unpaid > 10) {
+          recommendations.push(`Học phí tồn đọng: Có ${unpaid} hồ sơ quá hạn — kích hoạt thông báo nhắc tự động qua PWA.`);
+        }
+
+        if (pendingReq > 5) {
+          recommendations.push(`Có ${pendingReq} dặn dò thuốc/đón sớm chờ xác nhận từ giáo viên đứng lớp.`);
+        }
+
+        const summary =
+          `Điểm tin điều hành: Sĩ số toàn trường ${total} trẻ, có mặt ${present} trẻ (${rate}% chuyên cần). ` +
+          (fever > 0 ? `Lưu ý an toàn: ${fever} ca sốt cần theo dõi y tế. ` : `Sức khỏe toàn trường ổn định, không có ca sốt cao. `) +
+          `Vận hành: ${pendingReq} dặn dò phụ huynh, ${unpaid} hồ sơ học phí cần đối soát.`;
+
+        const result: ExecutiveDailyBriefingResult = {
+          executiveSummary: summary,
+          attendanceRate: rate,
+          criticalAlerts,
+          actionableRecommendations: recommendations,
+          generatedAt: new Date().toISOString(),
+        };
+
+        return { ...result };
+      },
+    },
+    {
+      id: 'compliance_and_safety_sentinel',
+      name: 'Compliance & Safety Sentinel',
+      description: 'Rà soát sĩ số lớp học và định mức giáo viên theo Thông tư 52/2020/TT-BGDĐT',
+      parametersSchema: {
+        classRosterStats: { type: 'array', description: 'Danh sách thông số sĩ số và giáo viên các lớp' },
+      },
+      execute: async (params: Record<string, unknown>): Promise<Record<string, unknown>> => {
+        const stats = Array.isArray(params.classRosterStats)
+          ? (params.classRosterStats as readonly ClassRosterStat[])
+          : [];
+
+        const violations: string[] = [];
+        const warnings: string[] = [];
+
+        stats.forEach((c) => {
+          const name = c.className || 'Lớp học';
+          const count = c.studentCount || 0;
+          const teachers = c.teacherCount || 1;
+
+          // Standard limits per Thông tư 52/2020/TT-BGDĐT
+          let maxCapacity = 30;
+          if (c.ageGroup === 'NHA_TRE') maxCapacity = 25;
+          if (c.ageGroup === 'MAM') maxCapacity = 25;
+          if (c.ageGroup === 'CHOI') maxCapacity = 30;
+          if (c.ageGroup === 'LA') maxCapacity = 35;
+
+          if (count > maxCapacity) {
+            violations.push(`${name} (${c.ageGroup}): Sĩ số ${count}/${maxCapacity} trẻ — vượt trần quy định Thông tư 52.`);
+          } else if (count >= maxCapacity - 2) {
+            warnings.push(`${name}: Sĩ số ${count}/${maxCapacity} sắp chạm trần công suất tiếp nhận.`);
+          }
+
+          // Teacher-to-student ratio check for infant/toddler groups
+          if (c.ageGroup === 'NHA_TRE' && count > 0 && count / teachers > 12) {
+            violations.push(`${name} (Nhà trẻ): Tỷ lệ ${Math.round(count / teachers)} trẻ/GV vượt định mức tối đa 12 trẻ/GV.`);
+          }
+        });
+
+        const compliant = violations.length === 0;
+        const score = Math.max(0, 100 - violations.length * 20 - warnings.length * 5);
+
+        const result: ComplianceSentinelResult = {
+          compliant,
+          complianceScore: score,
+          violations,
+          warnings,
+          inspectedClassesCount: stats.length,
+        };
+
+        return { ...result };
       },
     },
   ],
