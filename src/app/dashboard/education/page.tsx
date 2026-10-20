@@ -222,7 +222,7 @@ export default function EducationDashboardPage() {
     },
     {
       id: 'total-teachers',
-      label: 'Giáo viên',
+      label: 'Tổng nhân sự',
       note: 'Gồm GV, bảo mẫu & hỗ trợ',
       tooltip: 'Bao gồm giáo viên, bảo mẫu và nhân viên hỗ trợ toàn trường',
       value: String(totalTeachersCount),
@@ -427,6 +427,7 @@ export default function EducationDashboardPage() {
   const announcements: PreschoolNoticeItemDTO[] = useMemo(() => {
     return dashboardData?.notices ?? [];
   }, [dashboardData]);
+
 
   return (
     <div className="preschool-ui min-h-screen bg-background p-4 sm:p-6 lg:p-7 space-y-6 text-slate-800 dark:text-slate-100 font-sans">
