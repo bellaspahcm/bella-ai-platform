@@ -1,0 +1,20 @@
+{
+  "capturedAt": "2026-10-20T22:31:34.671Z",
+  "root": "C:\\Users\\DELL\\.codex\\worktrees\\shared-identity-containment-20261021\\BELLA SPA ERP",
+  "branch": "codex/preschool-disable-medication-20261021",
+  "head": "30134055d1ff5b846584e57833816f076034cdea",
+  "baseline": "30134055d1ff5b846584e57833816f076034cdea",
+  "state": "Uncommitted source patch; exact current working-file SHA256 below",
+  "patchSha256": "43c4897219b913012722ca00fbc6afc62c241421abc8b302e5d7a4aa76540ce4",
+  "patchRedaction": "Removed legacy hardcoded signing fallback redacted if present; current source hashes are exact",
+  "files": [
+    {
+      "file": "src/app/api/education/care/medication/route.ts",
+      "sha256": "e5afbc3baf062f6ef75acb313437f66c7cc7ad3ccd83037401d61767ffde3b07"
+    },
+    {
+      "file": "src/app/api/education/care/medication/__tests__/route.test.ts",
+      "sha256": "96654afac152045defaedb8b9825d6b104b1a9e3f7a47f4048beda8aac053ef9"
+    }
+  ]
+}

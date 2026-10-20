@@ -14,6 +14,28 @@ import type { Json } from '@/types/database.types';
 
 type EducationSupabaseClient = SupabaseClient;
 
+interface GuardianBindingRow {
+  id: string;
+  tenant_id: string;
+  source_party_id: string;
+  target_party_id: string;
+  relationship_type: string;
+  active_from: string | null;
+  active_to: string | null;
+}
+
+function isCalendarDate(value: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const parsed = Date.parse(`${value}T00:00:00.000Z`);
+  return Number.isFinite(parsed) && new Date(parsed).toISOString().slice(0, 10) === value;
+}
+
+function isCurrentRelationship(row: GuardianBindingRow, today: string): boolean {
+  // Canonical fields are DATE; the entire end date is included in school time.
+  return (row.active_from === null || isCalendarDate(row.active_from) && row.active_from <= today)
+    && (row.active_to === null || isCalendarDate(row.active_to) && today <= row.active_to);
+}
+
 // ── Row shapes returned from DB ───────────────────────────────────────────────
 
 export interface DbPartyRow {
@@ -133,28 +155,42 @@ export class ParentPortalRepository {
     guardianPartyId: string,
     studentPartyId: string
   ): Promise<{ id: string } | null> {
+    if (guardianPartyId === studentPartyId) return null;
+
+    const { data: tenant, error: tenantError } = await this.supabase
+      .from('tenants')
+      .select('id, status, product_key')
+      .eq('id', tenantId)
+      .maybeSingle();
+    if (tenantError) throw new Error('PORTAL_ACCESS_UNAVAILABLE');
+    if (!tenant || tenant.id !== tenantId || tenant.status !== 'active' || tenant.product_key !== 'bella_preschool') return null;
+
+    const { data: parties, error: partyError } = await this.supabase
+      .from('party_parties')
+      .select('id, tenant_id, deleted_at')
+      .eq('tenant_id', tenantId)
+      .in('id', [guardianPartyId, studentPartyId]);
+    if (partyError) throw new Error('PORTAL_ACCESS_UNAVAILABLE');
+    const existingParties = (parties ?? []) as Array<{ id: string; tenant_id: string; deleted_at: string | null }>;
+    if (![guardianPartyId, studentPartyId].every(id => existingParties.some(party =>
+      party.id === id && party.tenant_id === tenantId && party.deleted_at === null))) return null;
+
     const { data, error } = await this.supabase
       .from('party_relationships')
-      .select('id, relationship_type, is_active')
+      .select('id, tenant_id, source_party_id, target_party_id, relationship_type, active_from, active_to')
       .eq('tenant_id', tenantId)
-      .eq('party_id', guardianPartyId)
+      .eq('source_party_id', guardianPartyId)
       .eq('target_party_id', studentPartyId)
-      .eq('relationship_type', 'guardian_of')
-      .maybeSingle();
-
-    if (error || !data) {
-      // Fallback: check any relationship
-      const { data: altData } = await this.supabase
-        .from('party_relationships')
-        .select('id')
-        .eq('tenant_id', tenantId)
-        .eq('party_id', guardianPartyId)
-        .eq('target_party_id', studentPartyId)
-        .maybeSingle();
-      return altData ? { id: altData.id } : null;
-    }
-
-    return { id: data.id };
+      .in('relationship_type', ['guardian_of', 'parent_of']);
+    if (error) throw new Error('PORTAL_ACCESS_UNAVAILABLE');
+    // Authorization always uses current access time, never the requested payload date.
+    const today = new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'Asia/Ho_Chi_Minh', year: 'numeric', month: '2-digit', day: '2-digit',
+    }).format(new Date());
+    const relationship = ((data ?? []) as GuardianBindingRow[]).find(row =>
+      row.tenant_id === tenantId && row.source_party_id === guardianPartyId && row.target_party_id === studentPartyId
+      && ['guardian_of', 'parent_of'].includes(row.relationship_type) && isCurrentRelationship(row, today));
+    return relationship ? { id: relationship.id } : null;
   }
 
   // ── Party & Student profiles ───────────────────────────────────────────────

@@ -1,0 +1,18 @@
+{
+  "startedAt": "2026-10-20T22:21:22.288Z",
+  "finishedAt": "2026-10-20T22:21:25.975Z",
+  "task": "jest",
+  "command": [
+    "C:\\Program Files\\nodejs\\node.exe",
+    "node_modules/jest/bin/jest.js",
+    "--runInBand",
+    "--runTestsByPath",
+    "src/app/api/education/care/bulk/__tests__/access.test.ts",
+    "--json",
+    "--outputFile=C:\\Users\\DELL\\.codex\\worktrees\\preschool-care-authorization-20261021\\BELLA SPA ERP\\docs\\audits\\preschool-full-audit-20261020\\batch2g-care-auth\\jest-results.json"
+  ],
+  "exitCode": 0,
+  "errorCode": null,
+  "signal": null,
+  "environment": "Process-scoped loopback offline endpoints, synthetic keys; no production business/model calls"
+}

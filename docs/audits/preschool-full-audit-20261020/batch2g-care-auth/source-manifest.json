@@ -1,0 +1,24 @@
+{
+  "capturedAt": "2026-10-20T22:31:35.216Z",
+  "root": "C:\\Users\\DELL\\.codex\\worktrees\\preschool-care-authorization-20261021\\BELLA SPA ERP",
+  "branch": "codex/preschool-care-auth-20261021",
+  "head": "30134055d1ff5b846584e57833816f076034cdea",
+  "baseline": "30134055d1ff5b846584e57833816f076034cdea",
+  "state": "Uncommitted source patch; exact current working-file SHA256 below",
+  "patchSha256": "f6f1974a77769cbdb0fe29ed2177b934c5c8e46066085cc9526e7f2dda767f1f",
+  "patchRedaction": "Removed legacy hardcoded signing fallback redacted if present; current source hashes are exact",
+  "files": [
+    {
+      "file": "src/app/api/education/care/bulk/route.ts",
+      "sha256": "24521e3c938f635aece374805df67e1043e084f755af2a4107008b62f3235bd2"
+    },
+    {
+      "file": "src/app/api/education/care/bulk/request-context.ts",
+      "sha256": "6401e000c735c892c1a12461ef0718b885af99c283af5f40ba1f0e2a3cd60264"
+    },
+    {
+      "file": "src/app/api/education/care/bulk/__tests__/access.test.ts",
+      "sha256": "75b68de23c1a243bc721ac5c8fb2c052b9008045fc44870da98cc9e7f12066fb"
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "group": "portal",
+  "task": "typecheck",
+  "startedAt": "2026-10-20T22:27:04.262Z",
+  "finishedAt": "2026-10-20T22:27:21.140Z",
+  "command": [
+    "C:\\Program Files\\nodejs\\node.exe",
+    "scripts/ci-run-typecheck.mjs",
+    "changed"
+  ],
+  "exitCode": 0,
+  "errorCode": null,
+  "signal": null,
+  "environment": "Process-scoped loopback offline endpoints and synthetic keys; no production business/model calls"
+}

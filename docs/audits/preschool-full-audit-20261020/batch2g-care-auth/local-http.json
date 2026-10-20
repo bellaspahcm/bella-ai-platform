@@ -1,0 +1,52 @@
+{
+  "mode": "care",
+  "startedAt": "2026-10-20T22:28:05.453Z",
+  "source": "Uncommitted isolated branch from30134055d",
+  "environment": "Local Next16.3.8 development webpack with offline loopback DB/synthetic keys; no real Auth/DB/model calls",
+  "cacheCriterion": "Effective Cache-Control has no-store and lacks public; dev runtime can rewrite the exact application string",
+  "tests": [
+    {
+      "method": "GET",
+      "route": "/api/education/care/bulk?courseId=synthetic&date=2026-10-21",
+      "spoof": false,
+      "status": 401,
+      "code": "CARE_UNAUTHENTICATED",
+      "cacheControl": "no-store, must-revalidate",
+      "result": "PASS"
+    },
+    {
+      "method": "GET",
+      "route": "/api/education/care/bulk?courseId=synthetic&date=2026-10-21",
+      "spoof": true,
+      "status": 401,
+      "code": "CARE_UNAUTHENTICATED",
+      "cacheControl": "private, no-store, max-age=0",
+      "result": "PASS"
+    },
+    {
+      "method": "POST",
+      "route": "/api/education/care/bulk",
+      "spoof": false,
+      "status": 401,
+      "code": "CARE_UNAUTHENTICATED",
+      "cacheControl": "no-store, must-revalidate",
+      "result": "PASS"
+    },
+    {
+      "method": "POST",
+      "route": "/api/education/care/bulk",
+      "spoof": true,
+      "status": 401,
+      "code": "CARE_UNAUTHENTICATED",
+      "cacheControl": "private, no-store, max-age=0",
+      "result": "PASS"
+    }
+  ],
+  "serverPid": 16024,
+  "port": 64071,
+  "stopExitCode": 0,
+  "listenerStopped": true,
+  "agentsRestoration": "PENDING_LEAD_INSPECTION",
+  "result": "PASS",
+  "finishedAt": "2026-10-20T22:28:37.596Z"
+}

@@ -1,0 +1,7 @@
+{
+  "checkedAt": "2026-10-20T22:11:06.0556396Z",
+  "exitCode": 0,
+  "command": "node node_modules/jest/bin/jest.js --runInBand --runTestsByPath src/app/api/education/care/medication/__tests__/route.test.ts --json --outputFile=.../jest-results.json",
+  "installedNext": "16.3.8",
+  "businessOrAuthFixtures": "NOT_CREATED"
+}

@@ -1,0 +1,28 @@
+{
+  "capturedAt": "2026-10-20T22:31:34.216Z",
+  "root": "C:\\Users\\DELL\\.codex\\worktrees\\preschool-courses-auth-20261021\\BELLA SPA ERP",
+  "branch": "codex/preschool-api-identity-20261021",
+  "head": "30134055d1ff5b846584e57833816f076034cdea",
+  "baseline": "30134055d1ff5b846584e57833816f076034cdea",
+  "state": "Uncommitted source patch; exact current working-file SHA256 below",
+  "patchSha256": "035104223627fd0320429d49486a6574f33faef094f7718c9d6f3d9d375b9e5e",
+  "patchRedaction": "Removed legacy hardcoded signing fallback redacted if present; current source hashes are exact",
+  "files": [
+    {
+      "file": "src/app/api/education/ai/copilot/route.ts",
+      "sha256": "1bdf67a02007fafd5b83f5cd1d63a2f463d946274db7a318413d601b9ec55093"
+    },
+    {
+      "file": "src/app/api/education/ai/copilot/__tests__/access.test.ts",
+      "sha256": "2f8477976b146bb4ad7437be765eefef93df6646f312363563f8b037dd39f0ce"
+    },
+    {
+      "file": "src/products/bella-education/__tests__/preschool-ai-copilot.test.ts",
+      "sha256": "e1abec8c42af029ab1fb90f3438c412ef1b4429e58c766a2ba951dff1a133fd5"
+    },
+    {
+      "file": "src/products/bella-education/__tests__/preschool-admin-ai-copilot.test.ts",
+      "sha256": "5debe241b20de55cebcdd2e33a8ff9e98c562dd66d172c3420963184e0fa76c3"
+    }
+  ]
+}

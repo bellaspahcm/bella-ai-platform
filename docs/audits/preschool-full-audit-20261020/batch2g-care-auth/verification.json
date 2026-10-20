@@ -1,0 +1,95 @@
+{
+  "capturedAt": "2026-10-20T22:31:35.338Z",
+  "group": "care",
+  "sourceManifest": "source-manifest.json",
+  "tests": {
+    "suites": 1,
+    "passedSuites": 1,
+    "failedSuites": 0,
+    "total": 67,
+    "passed": 67,
+    "failed": 0,
+    "pending": 0,
+    "success": true
+  },
+  "commands": {
+    "jest": {
+      "startedAt": "2026-10-20T22:21:22.288Z",
+      "finishedAt": "2026-10-20T22:21:25.975Z",
+      "task": "jest",
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "node_modules/jest/bin/jest.js",
+        "--runInBand",
+        "--runTestsByPath",
+        "src/app/api/education/care/bulk/__tests__/access.test.ts",
+        "--json",
+        "--outputFile=C:\\Users\\DELL\\.codex\\worktrees\\preschool-care-authorization-20261021\\BELLA SPA ERP\\docs\\audits\\preschool-full-audit-20261020\\batch2g-care-auth\\jest-results.json"
+      ],
+      "exitCode": 0,
+      "errorCode": null,
+      "signal": null,
+      "environment": "Process-scoped loopback offline endpoints, synthetic keys; no production business/model calls"
+    },
+    "lint": {
+      "startedAt": "2026-10-20T22:21:34.235Z",
+      "finishedAt": "2026-10-20T22:21:38.755Z",
+      "task": "lint",
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "node_modules/eslint/bin/eslint.js",
+        "src/app/api/education/care/bulk/route.ts",
+        "src/app/api/education/care/bulk/request-context.ts",
+        "src/app/api/education/care/bulk/__tests__/access.test.ts"
+      ],
+      "exitCode": 0,
+      "errorCode": null,
+      "signal": null,
+      "environment": "Process-scoped loopback offline endpoints, synthetic keys; no production business/model calls"
+    },
+    "typecheck": {
+      "startedAt": "2026-10-20T22:21:34.237Z",
+      "finishedAt": "2026-10-20T22:21:55.826Z",
+      "task": "typecheck",
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "scripts/ci-run-typecheck.mjs",
+        "changed"
+      ],
+      "exitCode": 0,
+      "errorCode": null,
+      "signal": null,
+      "environment": "Process-scoped loopback offline endpoints, synthetic keys; no production business/model calls"
+    },
+    "secrets": {
+      "startedAt": "2026-10-20T22:21:34.258Z",
+      "finishedAt": "2026-10-20T22:21:34.354Z",
+      "task": "secrets",
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "scripts/check-secret-leaks.mjs",
+        "src/app/api/education/care/bulk/route.ts",
+        "src/app/api/education/care/bulk/request-context.ts",
+        "src/app/api/education/care/bulk/__tests__/access.test.ts"
+      ],
+      "exitCode": 0,
+      "errorCode": null,
+      "signal": null,
+      "environment": "Process-scoped loopback offline endpoints, synthetic keys; no production business/model calls"
+    }
+  },
+  "localHttp": {
+    "report": "local-http.json",
+    "rawResult": "PASS",
+    "probes": 4,
+    "listenerStopped": true,
+    "assessment": null
+  },
+  "independentReview": "COMPLETED_SOURCE_ONLY",
+  "productionSourceChange": "NOT_RUN",
+  "authenticatedDbRls": "NOT_PROVEN",
+  "fullPlatformRegression": "FAIL_ENVIRONMENT_IN_SIBLING_BATCH2E",
+  "goLive": "NOT_READY",
+  "reviewReceipt": "review-results.json",
+  "reviewCompletedAt": "2026-10-20T22:41:00.292Z"
+}

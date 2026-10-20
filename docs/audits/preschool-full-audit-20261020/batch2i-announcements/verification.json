@@ -1,0 +1,97 @@
+{
+  "capturedAt": "2026-10-20T22:31:36.889Z",
+  "group": "announcements",
+  "sourceManifest": "source-manifest.json",
+  "tests": {
+    "suites": 1,
+    "passedSuites": 1,
+    "failedSuites": 0,
+    "total": 32,
+    "passed": 32,
+    "failed": 0,
+    "pending": 0,
+    "success": true
+  },
+  "commands": {
+    "jest": {
+      "group": "announcements",
+      "task": "jest",
+      "startedAt": "2026-10-20T22:26:44.928Z",
+      "finishedAt": "2026-10-20T22:26:52.000Z",
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "node_modules/jest/bin/jest.js",
+        "--runInBand",
+        "--runTestsByPath",
+        "src/app/api/education/announcements/__tests__/access.test.ts",
+        "--json",
+        "--outputFile=C:\\Users\\DELL\\.codex\\worktrees\\preschool-announcement-auth-20261021\\BELLA SPA ERP\\docs\\audits\\preschool-full-audit-20261020\\batch2i-announcements\\jest-results.json"
+      ],
+      "exitCode": 0,
+      "errorCode": null,
+      "signal": null,
+      "environment": "Process-scoped loopback offline endpoints and synthetic keys; no production business/model calls"
+    },
+    "lint": {
+      "group": "announcements",
+      "task": "lint",
+      "startedAt": "2026-10-20T22:27:04.269Z",
+      "finishedAt": "2026-10-20T22:27:08.574Z",
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "node_modules/eslint/bin/eslint.js",
+        "src/app/api/education/announcements/route.ts",
+        "src/app/api/education/announcements/__tests__/access.test.ts"
+      ],
+      "exitCode": 0,
+      "errorCode": null,
+      "signal": null,
+      "environment": "Process-scoped loopback offline endpoints and synthetic keys; no production business/model calls"
+    },
+    "typecheck": {
+      "group": "announcements",
+      "task": "typecheck",
+      "startedAt": "2026-10-20T22:27:04.296Z",
+      "finishedAt": "2026-10-20T22:27:21.085Z",
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "scripts/ci-run-typecheck.mjs",
+        "changed"
+      ],
+      "exitCode": 0,
+      "errorCode": null,
+      "signal": null,
+      "environment": "Process-scoped loopback offline endpoints and synthetic keys; no production business/model calls"
+    },
+    "secrets": {
+      "group": "announcements",
+      "task": "secrets",
+      "startedAt": "2026-10-20T22:27:33.733Z",
+      "finishedAt": "2026-10-20T22:27:33.816Z",
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "scripts/check-secret-leaks.mjs",
+        "src/app/api/education/announcements/route.ts",
+        "src/app/api/education/announcements/__tests__/access.test.ts"
+      ],
+      "exitCode": 0,
+      "errorCode": null,
+      "signal": null,
+      "environment": "Process-scoped loopback offline endpoints and synthetic keys; no production business/model calls"
+    }
+  },
+  "localHttp": {
+    "report": "local-http.json",
+    "rawResult": "PASS",
+    "probes": 2,
+    "listenerStopped": true,
+    "assessment": null
+  },
+  "independentReview": "COMPLETED_SOURCE_ONLY",
+  "productionSourceChange": "NOT_RUN",
+  "authenticatedDbRls": "NOT_PROVEN",
+  "fullPlatformRegression": "FAIL_ENVIRONMENT_IN_SIBLING_BATCH2E",
+  "goLive": "NOT_READY",
+  "reviewReceipt": "review-results.json",
+  "reviewCompletedAt": "2026-10-20T22:43:39.159Z"
+}
