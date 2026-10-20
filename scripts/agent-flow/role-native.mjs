@@ -8,7 +8,7 @@ import { authorizeRepository, REPOSITORY } from './authority.mjs';
 import { createPrivateDirectory, DevelopmentStore, writeDurableJson, validateStorePath, enforceReviewRetention } from './store.mjs';
 import { hash, DAY_MS, normalizeNotification, normalizeHistory, normalizeHistoryTurn, reconcile, signature, verifyFileChangeRecords } from './contract.mjs';
 import { admitTask, drive, inventory, counters, validateHandoff } from './role-pipeline.mjs';
-import { exactTest, reviewReads } from './role-validation.mjs';
+import { exactTest, reviewReads, nativePayloadDifferences } from './role-validation.mjs';
 export { exactTest, reviewReads } from './role-validation.mjs';
 import { persistenceDiagnostic } from './persistence-diagnostic.mjs';
 import { initializeFactory, finishFactory } from './factory-publication.mjs';
@@ -181,7 +181,11 @@ async function executeRole(name, input, workspace, pipelineDirectory) {
     const proof = validateStored(await store.read(), acks, binding);
     checkBudget();
     const native = nativeShape(source.entries.map(e => e.item), binding, input.task, workspace);
-    if (JSON.stringify(nativeShape(liveItems, binding, input.task, workspace)) !== JSON.stringify(native)) stop('NATIVE_PAYLOAD_MISMATCH');
+    const liveNative=nativeShape(liveItems,binding,input.task,workspace);
+    if (JSON.stringify(liveNative) !== JSON.stringify(native)) {
+      await writeDurableJson(join(directory,'native-payload-mismatch.json'),{schemaVersion:1,source:'COLLECTOR_COMPARISON_OBSERVATION',binding,differences:nativePayloadDifferences(liveNative,native),rawPayloadRetained:false});
+      stop('NATIVE_PAYLOAD_MISMATCH');
+    }
     const result = native.result;
     if (result.role !== name || result.candidate !== input.before.fingerprint || !Array.isArray(result.findings) || result.findings.some(f => typeof f !== 'string' || !f.trim() || f.length > 2000)) stop('INVALID_ROLE_RESULT');
     if (!native.commands.length && name !== 'BUILDER') stop('NATIVE_READ_REQUIRED');

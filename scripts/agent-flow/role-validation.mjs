@@ -72,3 +72,18 @@ export function validateRetainedRole(r, records, task, workspace, verificationPa
   if (r.role==='REVIEWER' && (!verificationPath || r.native.commands.some(c=>c.exitCode!==0||c.status!=='completed') || reviewReads(task,verificationPath).some(expected=>!r.native.commands.some(c=>exactTest(c.command,c.cwd,expected,workspace))))) fail('ACTUAL_REVIEW_READ_REQUIRED');
   return true;
 }
+
+// Failure-only collector observation. No payload values are retained.
+export function nativePayloadDifferences(left,right) {
+  const differences=[];
+  const inspect=(path,a,b)=>{
+    const x=JSON.stringify(a)??'undefined',y=JSON.stringify(b)??'undefined';
+    if(x!==y)differences.push({path,leftSha256:hash(x),rightSha256:hash(y),leftBytes:Buffer.byteLength(x),rightBytes:Buffer.byteLength(y)});
+  };
+  for(const kind of ['commands','changes']){
+    if(!Array.isArray(left?.[kind])||!Array.isArray(right?.[kind])){inspect(kind,left?.[kind],right?.[kind]);continue;}
+    inspect(kind+'.length',left[kind].length,right[kind].length);
+    for(let i=0;i<Math.max(left[kind].length,right[kind].length);i++)for(const key of new Set([...Object.keys(left[kind][i]||{}),...Object.keys(right[kind][i]||{})]))inspect(`${kind}[${i}].${key}`,left[kind][i]?.[key],right[kind][i]?.[key]);
+  }
+  inspect('result',left?.result,right?.result);inspect('binding',left?.binding,right?.binding);return differences;
+}

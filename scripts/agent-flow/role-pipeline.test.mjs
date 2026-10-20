@@ -125,3 +125,10 @@ test('terminal handoff detects missing stage, forged final candidate and stale r
     const value = structuredClone(r.output); change(value); assert.throws(() => validateHandoff(value, r.input));
   }
 });
+
+test('payload mismatch diagnostic retains field hashes only without relaxing equality',async()=>{
+  const {nativePayloadDifferences}=await import('./role-validation.mjs');const left={commands:[{itemId:'cmd',command:'SECRET_ARG',outputHash:'a'}],changes:[],result:{role:'LEAD'},binding:{taskId:'task'}};
+  assert.deepEqual(nativePayloadDifferences(left,structuredClone(left)),[]);
+  const right=structuredClone(left);right.commands[0].command='DIFFERENT_SECRET';right.commands[0].outputHash='b';const differences=nativePayloadDifferences(left,right);
+  assert.deepEqual(differences.map(d=>d.path),['commands[0].command','commands[0].outputHash']);assert.equal(JSON.stringify(differences).includes('SECRET'),false);assert.ok(differences.every(d=>/^[a-f0-9]{64}$/.test(d.leftSha256)&&/^[a-f0-9]{64}$/.test(d.rightSha256)));
+});
