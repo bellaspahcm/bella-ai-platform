@@ -1,0 +1,39 @@
+{
+  "target": "lvnvkpyxtuilhrabtlwv",
+  "source": "339c89250d87964ba8d58860a5ecdbc0bdde4956",
+  "table": "public.users",
+  "mutations": [
+    "INSERT",
+    "UPDATE",
+    "DELETE",
+    "TRUNCATE",
+    "REFERENCES",
+    "TRIGGER",
+    "MAINTAIN"
+  ],
+  "clients": [
+    "anon",
+    "authenticated"
+  ],
+  "writers": [
+    "create_onboarding_user(text,text,text)",
+    "onboard_tenant(text,text,text,text,uuid,text,text)"
+  ],
+  "keptExistingDirectWriterPrincipals": [
+    "postgres",
+    "service_role",
+    "bella_migration_executor"
+  ],
+  "usersDelta": "REVOKE INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER, MAINTAIN ON TABLE public.users FROM anon, authenticated;",
+  "rpcDelta": "REVOKE EXECUTE ON FUNCTION public.create_onboarding_user(text,text,text) FROM PUBLIC, anon, authenticated;\nREVOKE EXECUTE ON FUNCTION public.onboard_tenant(text,text,text,text,uuid,text,text) FROM PUBLIC, anon, authenticated;",
+  "sha256": "629ea0f719081a9f8195ccecb8d683d9f0c37b53dc96467168e31270ff3f4f1b",
+  "authority": "Owner approve 2026-10-21 for public.users and related shared identity writers",
+  "businessDataMutations": 0,
+  "functionBodyChanges": 0,
+  "policyChanges": 0,
+  "roleMembershipChanges": 0,
+  "schemaOrDefaultAclChanges": 0,
+  "frozenOutsidePrecondition": true,
+  "incomingWriterReferences": 0,
+  "mutationSha256": "b4e0f5b618e07619a0bf71767df9bfe4476f144493531fdf95f91da2f9c408cd"
+}

@@ -1,0 +1,66 @@
+{
+  "checkedAt": "2026-10-20T20:57:18.055Z",
+  "base": "339c89250d87964ba8d58860a5ecdbc0bdde4956",
+  "branch": "codex/shared-identity-containment-20261021",
+  "codeSourceUnchangedFromReviewedManifest": true,
+  "checks": {
+    "jest": {
+      "startedAt": "2026-10-20T20:55:59.182Z",
+      "finishedAt": "2026-10-20T20:56:21.119Z",
+      "command": "node C:\\Users\\DELL\\.codex\\worktrees\\shared-identity-containment-20261021\\BELLA SPA ERP\\node_modules\\jest\\bin\\jest.js src/__tests__/user-actions.test.ts src/__tests__/onboarding.test.ts src/__tests__/auth-guards.test.ts --runInBand --json --outputFile=C:\\Users\\DELL\\.codex\\worktrees\\shared-identity-containment-20261021\\BELLA SPA ERP\\docs\\audits\\preschool-full-audit-20261020\\delivery-platform-20261021\\fresh-jest-results.json",
+      "workspace": "C:/Users/DELL/.codex/worktrees/shared-identity-containment-20261021/BELLA SPA ERP",
+      "branch": "codex/shared-identity-containment-20261021",
+      "base": "339c89250d87964ba8d58860a5ecdbc0bdde4956",
+      "task": "jest",
+      "exitCode": 0,
+      "errorCode": null,
+      "environment": "Isolated worktree, process-scoped offline localhost and synthetic keys; no production business tests"
+    },
+    "lint": {
+      "startedAt": "2026-10-20T20:56:19.892Z",
+      "finishedAt": "2026-10-20T20:56:29.848Z",
+      "command": "node C:\\Users\\DELL\\.codex\\worktrees\\shared-identity-containment-20261021\\BELLA SPA ERP\\node_modules\\eslint\\bin\\eslint.js src/services/user-actions.ts src/services/onboarding-actions.ts src/__tests__/user-actions.test.ts src/__tests__/onboarding.test.ts",
+      "workspace": "C:/Users/DELL/.codex/worktrees/shared-identity-containment-20261021/BELLA SPA ERP",
+      "branch": "codex/shared-identity-containment-20261021",
+      "base": "339c89250d87964ba8d58860a5ecdbc0bdde4956",
+      "task": "lint",
+      "exitCode": 0,
+      "errorCode": null,
+      "environment": "Isolated worktree, process-scoped offline localhost and synthetic keys; no production business tests"
+    },
+    "typecheck": {
+      "startedAt": "2026-10-20T20:55:59.221Z",
+      "finishedAt": "2026-10-20T20:56:38.134Z",
+      "command": "node C:\\Users\\DELL\\.codex\\worktrees\\shared-identity-containment-20261021\\BELLA SPA ERP\\scripts\\ci-run-typecheck.mjs changed",
+      "workspace": "C:/Users/DELL/.codex/worktrees/shared-identity-containment-20261021/BELLA SPA ERP",
+      "branch": "codex/shared-identity-containment-20261021",
+      "base": "339c89250d87964ba8d58860a5ecdbc0bdde4956",
+      "task": "typecheck",
+      "exitCode": 0,
+      "errorCode": null,
+      "environment": "Isolated worktree, process-scoped offline localhost and synthetic keys; no production business tests"
+    },
+    "secrets": {
+      "startedAt": "2026-10-20T20:56:20.132Z",
+      "finishedAt": "2026-10-20T20:56:20.634Z",
+      "command": "node C:\\Users\\DELL\\.codex\\worktrees\\shared-identity-containment-20261021\\BELLA SPA ERP\\scripts\\check-secret-leaks.mjs src/services/user-actions.ts src/services/onboarding-actions.ts src/__tests__/user-actions.test.ts src/__tests__/onboarding.test.ts",
+      "workspace": "C:/Users/DELL/.codex/worktrees/shared-identity-containment-20261021/BELLA SPA ERP",
+      "branch": "codex/shared-identity-containment-20261021",
+      "base": "339c89250d87964ba8d58860a5ecdbc0bdde4956",
+      "task": "secrets",
+      "exitCode": 0,
+      "errorCode": null,
+      "environment": "Isolated worktree, process-scoped offline localhost and synthetic keys; no production business tests"
+    }
+  },
+  "jest": {
+    "suites": 3,
+    "passed": 56,
+    "failed": 0,
+    "skipped": 0
+  },
+  "exactCredentialScan": {
+    "files": 31,
+    "matches": 0
+  }
+}
