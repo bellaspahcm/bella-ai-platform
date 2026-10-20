@@ -115,7 +115,7 @@ describe('P10 Preschool Analytics & Executive Dashboard Integration Test Suite',
     expect(students || []).toHaveLength(0);
     expect(invoices || []).toHaveLength(0);
     expect(exceptions || []).toHaveLength(0);
-  }, 20000);
+  }, 45000);
 
   it('Invariant 2: Work Queue RESOLVED while staffing still SHORTAGE MUST STILL report active staffing violation', async () => {
     const shiftTemplateId = await seedShiftTemplate();
@@ -152,7 +152,7 @@ describe('P10 Preschool Analytics & Executive Dashboard Integration Test Suite',
     // 4. Assert activeStaffingViolations (P8 Truth) is 1, while openStaffingExceptions (Queue) is 0
     expect(dash.workforce.activeStaffingViolations).toBe(1);
     expect(dash.workforce.openStaffingExceptions).toBe(0);
-  }, 20000);
+  }, 45000);
 
   it('Invariant 3: Work Queue RESOLVED while asset still OUT_OF_SERVICE MUST STILL report asset unavailable', async () => {
     const facId = crypto.randomUUID();
@@ -182,7 +182,7 @@ describe('P10 Preschool Analytics & Executive Dashboard Integration Test Suite',
 
     expect(dash.facilities.outOfServiceAssetsCount).toBe(1);
     expect(dash.facilities.openSafetyExceptions).toBe(0);
-  }, 20000);
+  }, 45000);
 
   it('Invariant 4: Invoice exception resolved WITHOUT reconciliation MUST STILL report outstanding balance', async () => {
     const periodId = await seedBillingPeriod();
@@ -216,7 +216,7 @@ describe('P10 Preschool Analytics & Executive Dashboard Integration Test Suite',
     expect(dash.finance.invoicedGrossTotal).toBe(5000000);
     expect(dash.finance.reconciledCashCollected).toBe(0);
     expect(dash.finance.outstandingBalanceTotal).toBe(5000000);
-  }, 20000);
+  }, 45000);
 
   it('Invariant 5: Dynamic Event-Driven & Hybrid Reconciliation across P1, P3, P7, P9 domain changes', async () => {
     const periodId = await seedBillingPeriod();

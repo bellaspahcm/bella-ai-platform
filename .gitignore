@@ -90,3 +90,7 @@ next-env.d.ts
 .supabase_token*.txt
 *.supabase_token
 supabase_token_*.txt
+
+# Git worktrees
+/.worktrees/
+
