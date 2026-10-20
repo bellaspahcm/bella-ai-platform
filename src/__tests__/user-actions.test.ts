@@ -1,4 +1,6 @@
 import { createUser, deleteUser, getCurrentUser, updateBaseSalary, updateUser, updateUserStatus } from '../services/user-actions';
+import { createClient as createSessionClient } from '@/lib/supabase-server';
+import { createClient as createAdminClient } from '@supabase/supabase-js';
 
 const mockFrom = jest.fn();
 const mockGetSession = jest.fn();
@@ -6,6 +8,8 @@ const mockGetUser = jest.fn();
 const mockAdminFrom = jest.fn();
 const mockCreateAdminUser = jest.fn();
 const mockDeleteAuthUser = jest.fn();
+const mockPrivilegedDeleteAuthUser = jest.fn();
+const mockSendTemporaryPasswordEmail = jest.fn();
 const mockRecordAuditLog = jest.fn();
 const mockSafeRevalidatePath = jest.fn();
 const mockRecalculateAndSaveSalaryRecordEngine = jest.fn();
@@ -32,6 +36,14 @@ jest.mock('@supabase/supabase-js', () => ({
       },
     },
   })),
+}));
+
+jest.mock('../lib/supabase-admin', () => ({
+  deleteAuthUser: (...args: unknown[]) => mockPrivilegedDeleteAuthUser(...args),
+}));
+
+jest.mock('../lib/mail', () => ({
+  sendTemporaryPasswordEmail: (...args: unknown[]) => mockSendTemporaryPasswordEmail(...args),
 }));
 
 jest.mock('../services/audit-actions', () => ({
@@ -175,12 +187,6 @@ describe('user update audit rollback', () => {
     return calls;
   }
 
-  function installScriptedAdminSupabase(scripts: ScriptedResult[]) {
-    const calls: DbCall[] = [];
-    mockAdminFrom.mockImplementation((table: string) => new ScriptedQueryBuilder(table, scripts, calls));
-    return calls;
-  }
-
   function installCurrentUser() {
     return installScriptedSupabase([
       {
@@ -317,292 +323,66 @@ describe('user update audit rollback', () => {
     expect(mockFrom).not.toHaveBeenCalled();
   });
 
-  const deletedUserSnapshot = {
-    avatar_url: null,
-    base_salary: 9000000,
-    created_at: '2026-05-01T00:00:00.000Z',
-    email: 'delete.me@bella.test',
-    full_name: 'Delete Me',
-    hire_date: '2026-05-01',
-    id: 'delete-user-1',
-    phone: '0900000000',
-    resignation_date: null,
-    role: 'ktv',
-    status: 'active',
-    tenant_id: 'tenant-1',
-    updated_at: '2026-05-20T00:00:00.000Z',
-  };
-
-  const deletedStaffLeaveSnapshot = {
-    approved_by: null,
-    created_at: '2026-05-10T00:00:00.000Z',
-    id: 'leave-1',
-    leave_date: '2026-05-20',
-    leave_type: 'full_day',
-    reason: 'Personal',
-    rejection_reason: null,
-    status: 'pending',
-    tenant_id: 'tenant-1',
-    updated_at: '2026-05-10T00:00:00.000Z',
-    user_id: 'delete-user-1',
-  };
-
-  it('creates auth user, profile row, audit log, and revalidates on success', async () => {
-    installCurrentUser();
-    const adminCalls = installScriptedAdminSupabase([
-      {
-        table: 'users',
-        op: 'insert',
-        data: {
-          id: 'created-user-1',
-          email: createUserInput.email,
-          full_name: createUserInput.full_name,
-          role: createUserInput.role,
-          tenant_id: 'tenant-1',
-          status: 'active',
-        },
-      },
+  it.each([
+    { label: 'missing Auth', actorId: null, callerRole: null, targetRole: 'ktv' },
+    { label: 'admin', actorId: 'admin-1', callerRole: 'admin', targetRole: 'admin' },
+    { label: 'HR', actorId: 'hr-1', callerRole: 'hr', targetRole: 'admin' },
+    { label: 'manager', actorId: 'manager-1', callerRole: 'manager', targetRole: 'manager' },
+    { label: 'unrecognized role', actorId: 'unknown-1', callerRole: 'arbitrary_role', targetRole: 'super_admin' },
+  ])('holds createUser for $label before all identity side effects', async ({ actorId, callerRole, targetRole }) => {
+    mockGetUser.mockResolvedValue({ data: { user: actorId ? { id: actorId } : null }, error: null });
+    installScriptedSupabase([
+      { table: 'users', op: 'select', data: { id: actorId, role: callerRole, tenant_id: 'tenant-1', status: 'active' } },
+      { table: 'tenants', op: 'select', data: { status: 'active' } },
     ]);
 
-    const result = await createUser(createUserInput);
+    const result = await createUser({ ...createUserInput, role: targetRole });
 
-    expect(result.data).toEqual(expect.objectContaining({ id: 'created-user-1' }));
-    expect(result.defaultPassword).toEqual(expect.stringMatching(/^Bella-.+1aA!$/));
-    expect(mockCreateAdminUser).toHaveBeenCalledWith(expect.objectContaining({
-      email: createUserInput.email,
-      email_confirm: true,
-      user_metadata: { full_name: createUserInput.full_name },
-    }));
-    expect(adminCalls.map(c => c.payload)).toEqual([[
-      {
-        id: 'created-user-1',
-        email: createUserInput.email,
-        full_name: createUserInput.full_name,
-        role: createUserInput.role,
-        status: 'active',
-        tenant_id: 'tenant-1',
-      },
-    ]]);
-    expect(mockRecordAuditLog).toHaveBeenCalledWith(expect.objectContaining({
-      action: 'INSERT',
-      table_name: 'users',
-      record_id: 'created-user-1',
-      new_data: {
-        full_name: createUserInput.full_name,
-        email: createUserInput.email,
-        role: createUserInput.role,
-      },
-    }));
-    expect(mockSafeRevalidatePath).toHaveBeenCalledWith('/dashboard/settings');
-  });
-
-  it('rolls back auth user when profile insert fails', async () => {
-    installCurrentUser();
-    installScriptedAdminSupabase([
-      { table: 'users', op: 'insert', error: { message: 'profile insert failed' } },
-    ]);
-
-    const result = await createUser(createUserInput);
-
-    expect(result.error).toContain('profile insert failed');
-    expect(mockDeleteAuthUser).toHaveBeenCalledWith('created-user-1');
+    expect(result.error).toContain('IDENTITY_MANAGEMENT_AUTHORIZATION_NOT_READY');
+    expect(result.data).toBeUndefined();
+    expect(result.defaultPassword).toBeUndefined();
+    expect(result.emailSent).toBeUndefined();
+    expect(createSessionClient).not.toHaveBeenCalled();
+    expect(createAdminClient).not.toHaveBeenCalled();
+    expect(mockGetUser).not.toHaveBeenCalled();
+    expect(mockFrom).not.toHaveBeenCalled();
+    expect(mockAdminFrom).not.toHaveBeenCalled();
+    expect(mockCreateAdminUser).not.toHaveBeenCalled();
+    expect(mockDeleteAuthUser).not.toHaveBeenCalled();
+    expect(mockPrivilegedDeleteAuthUser).not.toHaveBeenCalled();
+    expect(mockSendTemporaryPasswordEmail).not.toHaveBeenCalled();
     expect(mockRecordAuditLog).not.toHaveBeenCalled();
     expect(mockSafeRevalidatePath).not.toHaveBeenCalled();
   });
 
-  it('reports auth rollback failure when profile insert fails', async () => {
-    installCurrentUser();
-    installScriptedAdminSupabase([
-      { table: 'users', op: 'insert', error: { message: 'profile insert failed' } },
-    ]);
-    mockDeleteAuthUser.mockResolvedValue({ error: { message: 'auth delete failed' } });
-
-    const result = await createUser(createUserInput);
-
-    expect(result.error).toContain('profile insert failed');
-    expect(result.error).toContain('auth rollback failed: auth delete failed');
-  });
-
-  it('rolls back profile and auth user when create audit logging fails', async () => {
-    installCurrentUser();
-    const adminCalls = installScriptedAdminSupabase([
-      {
-        table: 'users',
-        op: 'insert',
-        data: {
-          id: 'created-user-1',
-          email: createUserInput.email,
-          full_name: createUserInput.full_name,
-          role: createUserInput.role,
-          tenant_id: 'tenant-1',
-          status: 'active',
-        },
-      },
-      { table: 'users', op: 'delete' },
-    ]);
-    mockRecordAuditLog.mockRejectedValue(new Error('audit failed'));
-
-    const result = await createUser(createUserInput);
-
-    expect(result.error).toContain('audit failed');
-    expect(adminCalls.map(c => ({ op: c.op, payload: c.payload }))).toEqual([
-      {
-        op: 'insert',
-        payload: [{
-          id: 'created-user-1',
-          email: createUserInput.email,
-          full_name: createUserInput.full_name,
-          role: createUserInput.role,
-          status: 'active',
-          tenant_id: 'tenant-1',
-        }],
-      },
-      { op: 'delete', payload: undefined },
-    ]);
-    expect(mockDeleteAuthUser).toHaveBeenCalledWith('created-user-1');
-    expect(mockSafeRevalidatePath).not.toHaveBeenCalled();
-  });
-
-  it('reports cleanup failures when create audit rollback fails', async () => {
-    installCurrentUser();
-    installScriptedAdminSupabase([
-      {
-        table: 'users',
-        op: 'insert',
-        data: {
-          id: 'created-user-1',
-          email: createUserInput.email,
-          full_name: createUserInput.full_name,
-          role: createUserInput.role,
-          tenant_id: 'tenant-1',
-          status: 'active',
-        },
-      },
-      { table: 'users', op: 'delete', error: { message: 'profile delete failed' } },
-    ]);
-    mockRecordAuditLog.mockRejectedValue(new Error('audit failed'));
-    mockDeleteAuthUser.mockResolvedValue({ error: { message: 'auth delete failed' } });
-
-    const result = await createUser(createUserInput);
-
-    expect(result.error).toContain('audit failed');
-    expect(result.error).toContain('profile rollback failed: profile delete failed');
-    expect(result.error).toContain('auth rollback failed: auth delete failed');
-  });
-
-  it('deletes user and records old audit data on success', async () => {
-    const calls = installTenantScopedSupabase([
-      { table: 'users', op: 'select', data: deletedUserSnapshot },
-      { table: 'staff_leaves', op: 'select', data: [] },
-      { table: 'users', op: 'update' },
+  it.each([
+    { label: 'missing Auth', actorId: null, callerRole: null },
+    { label: 'admin', actorId: 'admin-1', callerRole: 'admin' },
+    { label: 'HR', actorId: 'hr-1', callerRole: 'hr' },
+    { label: 'manager', actorId: 'manager-1', callerRole: 'manager' },
+    { label: 'unrecognized role', actorId: 'unknown-1', callerRole: 'arbitrary_role' },
+  ])('holds deleteUser for $label before Auth deletion or profile mutation', async ({ actorId, callerRole }) => {
+    mockGetUser.mockResolvedValue({ data: { user: actorId ? { id: actorId } : null }, error: null });
+    installScriptedSupabase([
+      { table: 'users', op: 'select', data: { id: actorId, role: callerRole, tenant_id: 'tenant-1', status: 'active' } },
+      { table: 'tenants', op: 'select', data: { status: 'active' } },
     ]);
 
     const result = await deleteUser('delete-user-1');
 
-    expect(result).toEqual({
-      success: true,
-      message: 'Nhân sự đã được đánh dấu nghỉ việc.',
-    });
-    expect(actionCalls(calls).map(c => `${c.table}.${c.op}`)).toEqual([
-      'users.select',
-      'staff_leaves.select',
-      'users.update',
-    ]);
-    expect(actionCalls(calls)[0].filters).toEqual(expect.arrayContaining([
-      { field: 'id', value: 'delete-user-1' },
-      { field: 'tenant_id', value: 'tenant-1' },
-    ]));
-    expect(actionCalls(calls)[1].filters).toEqual(expect.arrayContaining([
-      { field: 'user_id', value: 'delete-user-1' },
-      { field: 'tenant_id', value: 'tenant-1' },
-    ]));
-    expect(actionCalls(calls)[2].filters).toEqual(expect.arrayContaining([
-      { field: 'id', value: 'delete-user-1' },
-      { field: 'tenant_id', value: 'tenant-1' },
-    ]));
-    expect(mockRecordAuditLog).toHaveBeenCalledWith({
-      action: 'UPDATE',
-      table_name: 'users',
-      record_id: 'delete-user-1',
-      old_data: expect.any(Object),
-      new_data: expect.objectContaining({
-        resignation_date: expect.any(String),
-      }),
-    });
-    expect(mockSafeRevalidatePath).toHaveBeenCalledWith('/dashboard/settings');
-  });
-
-  it('does not delete user when delete snapshot fails', async () => {
-    const calls = installTenantScopedSupabase([
-      { table: 'users', op: 'select', error: { message: 'snapshot failed' } },
-    ]);
-
-    const result = await deleteUser('delete-user-1');
-
-    expect(result.error).toContain('snapshot failed');
-    expect(actionCalls(calls).map(c => c.op)).toEqual(['select']);
+    expect(result.error).toContain('IDENTITY_MANAGEMENT_AUTHORIZATION_NOT_READY');
+    expect(result.success).toBeUndefined();
+    expect(createSessionClient).not.toHaveBeenCalled();
+    expect(createAdminClient).not.toHaveBeenCalled();
+    expect(mockGetUser).not.toHaveBeenCalled();
+    expect(mockFrom).not.toHaveBeenCalled();
+    expect(mockAdminFrom).not.toHaveBeenCalled();
+    expect(mockCreateAdminUser).not.toHaveBeenCalled();
+    expect(mockDeleteAuthUser).not.toHaveBeenCalled();
+    expect(mockPrivilegedDeleteAuthUser).not.toHaveBeenCalled();
+    expect(mockSendTemporaryPasswordEmail).not.toHaveBeenCalled();
     expect(mockRecordAuditLog).not.toHaveBeenCalled();
     expect(mockSafeRevalidatePath).not.toHaveBeenCalled();
-  });
-
-  it.skip('restores deleted user when delete audit logging fails', async () => {
-    const calls = installTenantScopedSupabase([
-      { table: 'users', op: 'select', data: deletedUserSnapshot },
-      { table: 'staff_leaves', op: 'select', data: [deletedStaffLeaveSnapshot] },
-      { table: 'users', op: 'delete' },
-      { table: 'users', op: 'insert' },
-      { table: 'staff_leaves', op: 'insert' },
-    ]);
-    mockRecordAuditLog.mockRejectedValue(new Error('audit failed'));
-
-    const result = await deleteUser('delete-user-1');
-
-    expect(result.error).toContain('audit failed');
-    expect(actionCalls(calls).map(c => ({ table: c.table, op: c.op, payload: c.payload }))).toEqual([
-      { table: 'users', op: 'select', payload: undefined },
-      { table: 'staff_leaves', op: 'select', payload: undefined },
-      { table: 'users', op: 'delete', payload: undefined },
-      { table: 'users', op: 'insert', payload: [deletedUserSnapshot] },
-      { table: 'staff_leaves', op: 'insert', payload: [deletedStaffLeaveSnapshot] },
-    ]);
-    expect(mockSafeRevalidatePath).not.toHaveBeenCalled();
-  });
-
-  it.skip('reports restore failure when delete audit rollback fails', async () => {
-    const calls = installTenantScopedSupabase([
-      { table: 'users', op: 'select', data: deletedUserSnapshot },
-      { table: 'staff_leaves', op: 'select', data: [deletedStaffLeaveSnapshot] },
-      { table: 'users', op: 'delete' },
-      { table: 'users', op: 'insert', error: { message: 'restore failed' } },
-    ]);
-    mockRecordAuditLog.mockRejectedValue(new Error('audit failed'));
-
-    const result = await deleteUser('delete-user-1');
-
-    expect(result.error).toContain('audit failed');
-    expect(result.error).toContain('restore failed: restore failed');
-    expect(actionCalls(calls).map(c => `${c.table}.${c.op}`)).toEqual([
-      'users.select',
-      'staff_leaves.select',
-      'users.delete',
-      'users.insert',
-    ]);
-  });
-
-  it.skip('reports staff leave restore failure when delete audit rollback partially fails', async () => {
-    installTenantScopedSupabase([
-      { table: 'users', op: 'select', data: deletedUserSnapshot },
-      { table: 'staff_leaves', op: 'select', data: [deletedStaffLeaveSnapshot] },
-      { table: 'users', op: 'delete' },
-      { table: 'users', op: 'insert' },
-      { table: 'staff_leaves', op: 'insert', error: { message: 'staff leave restore failed' } },
-    ]);
-    mockRecordAuditLog.mockRejectedValue(new Error('audit failed'));
-
-    const result = await deleteUser('delete-user-1');
-
-    expect(result.error).toContain('audit failed');
-    expect(result.error).toContain('staff leaves restore failed: staff leave restore failed');
   });
 
   it('updates KTV base salary, recalculates salary, records audit, and revalidates', async () => {

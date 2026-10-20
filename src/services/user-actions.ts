@@ -6,27 +6,13 @@ import { getSupabaseAdminKey, getSupabaseAdminUrl } from '@/lib/supabase-admin-e
 import { createDevelopmentBypassClient } from '@/lib/supabase-dev-bypass-server';
 import { recordAuditLog } from './audit-actions';
 import { CurrentUser, StaffRecord } from '@/types/domain';
-import { randomBytes } from 'crypto';
 import type { Database } from '@/types/database.types';
 import { getMonthStart } from '@/lib/utils';
 import type { SupabaseClient as SupabaseJsClient } from '@supabase/supabase-js';
 
-import { sendTemporaryPasswordEmail } from '@/lib/mail';
-
 type SupabaseClient = Awaited<ReturnType<typeof createClient>>;
-type AdminSupabaseClient = {
-  from: SupabaseClient['from'];
-  auth: {
-    admin: {
-      deleteUser: (id: string) => Promise<{ error: { message: string } | null }>;
-    };
-  };
-};
-type UserInsert = Database['public']['Tables']['users']['Insert'];
 type UserRow = Database['public']['Tables']['users']['Row'];
 type UserUpdate = Database['public']['Tables']['users']['Update'];
-type StaffLeaveInsert = Database['public']['Tables']['staff_leaves']['Insert'];
-type StaffLeaveRow = Database['public']['Tables']['staff_leaves']['Row'];
 type SalarySupabaseClient = SupabaseJsClient<Database>;
 type SupabaseQueryError = { code?: string; message?: string } | null;
 
@@ -47,6 +33,23 @@ export interface CreateUserInput {
   full_name: string;
   role: string;
 }
+
+interface CreateUserResult {
+  data?: UserRow;
+  defaultPassword?: string;
+  emailSent?: boolean;
+  emailError?: string;
+  error?: string;
+}
+
+interface DeleteUserResult {
+  success?: boolean;
+  message?: string;
+  error?: string;
+}
+
+const IDENTITY_MANAGEMENT_HOLD =
+  'IDENTITY_MANAGEMENT_AUTHORIZATION_NOT_READY: Tạm dừng tạo/xóa nhân sự cho đến khi quyền quản lý tài khoản được xác minh.';
 
 function isMissingSingleRowError(error: SupabaseQueryError) {
   if (!error) return false;
@@ -212,12 +215,6 @@ export async function getUsers(): Promise<StaffRecord[]> {
   return processedData;
 }
 
-import { checkSubscriptionLimit } from '@/lib/subscription';
-
-function generateTemporaryPassword() {
-  return `Bella-${randomBytes(9).toString('base64url')}1aA!`;
-}
-
 function getErrorMessage(error: unknown, fallback = 'Loi he thong') {
   if (error instanceof Error) return error.message;
   if (typeof error === 'object' && error && 'message' in error) {
@@ -238,88 +235,6 @@ async function rollbackUserUpdate(
     .update(payload)
     .eq('id', id)
     .eq('tenant_id', tenantId);
-
-  return error?.message || '';
-}
-
-function toUserInsertSnapshot(user: UserRow): UserInsert {
-  return {
-    avatar_url: user.avatar_url,
-    base_salary: user.base_salary,
-    created_at: user.created_at,
-    email: user.email,
-    full_name: user.full_name,
-    hire_date: user.hire_date,
-    id: user.id,
-    phone: user.phone,
-    resignation_date: user.resignation_date,
-    role: user.role,
-    status: user.status,
-    tenant_id: user.tenant_id,
-    updated_at: user.updated_at,
-  };
-}
-
-function toUserAuditSnapshot(user: UserRow) {
-  return toUserInsertSnapshot(user);
-}
-
-function _toStaffLeaveInsertSnapshot(leave: StaffLeaveRow): StaffLeaveInsert {
-  return {
-    approved_by: leave.approved_by,
-    created_at: leave.created_at,
-    id: leave.id,
-    leave_date: leave.leave_date,
-    leave_type: leave.leave_type,
-    reason: leave.reason,
-    rejection_reason: leave.rejection_reason,
-    status: leave.status,
-    tenant_id: leave.tenant_id,
-    updated_at: leave.updated_at,
-    user_id: leave.user_id,
-  };
-}
-
-async function _restoreDeletedUser(
-  supabase: SupabaseClient,
-  payload: UserInsert,
-) {
-  const { error } = await supabase
-    .from('users')
-    .insert([payload]);
-
-  return error?.message || '';
-}
-
-async function _restoreDeletedStaffLeaves(
-  supabase: SupabaseClient,
-  payloads: StaffLeaveInsert[],
-) {
-  if (payloads.length === 0) return '';
-
-  const { error } = await supabase
-    .from('staff_leaves')
-    .insert(payloads);
-
-  return error?.message || '';
-}
-
-async function rollbackCreatedAuthUser(
-  supabaseAdmin: AdminSupabaseClient,
-  authUserId: string,
-) {
-  const { error } = await supabaseAdmin.auth.admin.deleteUser(authUserId);
-  return error?.message || '';
-}
-
-async function rollbackCreatedUserProfile(
-  supabaseAdmin: AdminSupabaseClient,
-  authUserId: string,
-) {
-  const { error } = await supabaseAdmin
-    .from('users')
-    .delete()
-    .eq('id', authUserId);
 
   return error?.message || '';
 }
@@ -371,157 +286,10 @@ async function rollbackBaseSalaryChange(
   ]);
 }
 
-export async function createUser(formData: CreateUserInput) {
-  try {
-    const currentUser = await getCurrentUser();
-    if (!currentUser?.tenant_id) {
-      return { error: 'Không xác định được chi nhánh của người dùng hiện tại.' };
-    }
-
-    const targetRole = (formData.role || 'ktv').trim().toLowerCase();
-
-    if (targetRole === 'ktv' || targetRole === 'ktv_lead') {
-      const ktvLimit = await checkSubscriptionLimit(currentUser.tenant_id, 'ktv');
-      if (ktvLimit.isBlocked) {
-        return { error: 'Vượt quá giới hạn nhân sự kỹ thuật viên của gói dịch vụ hiện tại. Vui lòng nâng cấp gói cước.' };
-      }
-    }
-
-    // STEP 1 — Create the Supabase Auth account first so the employee can log in.
-    // Without this, the public.users row was a dead record (no auth → no login).
-    // Pattern mirrors registerNewTenant() in onboarding-actions.ts.
-    const serviceRoleKey = getSupabaseAdminKey();
-    const supabaseUrl = getSupabaseAdminUrl();
-    console.warn('[createUser] env check', {
-      hasAdminKey: !!serviceRoleKey,
-      hasUrl: !!supabaseUrl,
-    });
-
-    if (!serviceRoleKey) {
-      return { error: 'Hệ thống chưa cấu hình SUPABASE_SECRET_KEY/SUPABASE_SERVICE_ROLE_KEY ở Vercel — không thể tạo tài khoản đăng nhập. Vào Vercel → Settings → Environment Variables để thêm.' };
-    }
-    if (!supabaseUrl) {
-      return { error: 'Hệ thống chưa cấu hình NEXT_PUBLIC_SUPABASE_URL — không thể kết nối Supabase.' };
-    }
-
-    const { createClient: createSupabaseClient } = await import('@supabase/supabase-js');
-    const supabaseAdmin = createSupabaseClient(
-      supabaseUrl,
-      serviceRoleKey,
-      { auth: { persistSession: false, autoRefreshToken: false } }
-    );
-
-    const temporaryPassword = generateTemporaryPassword();
-
-    const { data: adminData, error: adminError } = await supabaseAdmin.auth.admin.createUser({
-      email: formData.email,
-      password: temporaryPassword,
-      email_confirm: true, // bypass confirmation email (rate limit + UX)
-      user_metadata: { full_name: formData.full_name },
-    });
-
-    console.warn('[createUser] auth.admin.createUser result', {
-      hasUser: !!adminData?.user?.id,
-      authUserId: adminData?.user?.id ?? null,
-      errorMessage: adminError?.message ?? null,
-      errorStatus: (adminError as { status?: number } | null)?.status ?? null,
-    });
-
-    if (adminError) {
-      console.error('[createUser] Auth user creation failed:', adminError);
-      if (adminError.message?.toLowerCase().includes('already') || adminError.message?.includes('registered')) {
-        return { error: 'Email này đã được sử dụng trong hệ thống. Vui lòng sử dụng email khác.' };
-      }
-      return { error: `Không thể tạo tài khoản đăng nhập: ${adminError.message}` };
-    }
-
-    const authUserId = adminData?.user?.id;
-    if (!authUserId) {
-      return { error: 'Tạo tài khoản đăng nhập không thành công (auth user id rỗng).' };
-    }
-
-    // STEP 2 — Insert the profile row with id matching the auth user, so
-    // getCurrentUser()'s primary id lookup (users.id = auth.uid) hits directly.
-    // Uses supabaseAdmin (service role) to bypass any RLS policy that might
-    // restrict cross-user inserts on public.users (id != auth.uid()).
-    const userPayload: UserInsert = {
-      id: authUserId,
-      email: formData.email,
-      full_name: formData.full_name,
-      role: targetRole,
-      status: 'active',
-      tenant_id: currentUser.tenant_id,
-    };
-
-    const { data, error } = await supabaseAdmin
-      .from('users')
-      .insert([userPayload])
-      .select()
-      .single();
-
-    if (error) {
-      // Rollback the auth user so we don't leave an orphan account hanging.
-      const authRollbackError = await rollbackCreatedAuthUser(supabaseAdmin, authUserId);
-      console.error('[createUser] Profile insert failed:', error);
-      const rollbackNote = formatRollbackNotes([
-        ['auth rollback', authRollbackError],
-      ]);
-      if (!rollbackNote && (error.code === '23505' || error.message?.includes('users_email_key'))) {
-        return { error: 'Email này đã được sử dụng trong hệ thống. Vui lòng sử dụng email khác.' };
-      }
-      return { error: `${error.message}${rollbackNote}` };
-    }
-
-    try {
-      await recordAuditLog({
-        action: 'INSERT',
-        table_name: 'users',
-        record_id: data.id,
-        new_data: {
-          full_name: formData.full_name,
-          email: formData.email,
-          role: targetRole,
-        },
-      });
-    } catch (auditError: unknown) {
-      const profileRollbackError = await rollbackCreatedUserProfile(supabaseAdmin, authUserId);
-      const authRollbackError = await rollbackCreatedAuthUser(supabaseAdmin, authUserId);
-      const rollbackNote = formatRollbackNotes([
-        ['profile rollback', profileRollbackError],
-        ['auth rollback', authRollbackError],
-      ]);
-      return { error: `Failed to record user create audit log: ${getErrorMessage(auditError)}${rollbackNote}` };
-    }
-
-    await safeRevalidatePath('/dashboard/settings');
-
-    let emailSent = false;
-    let emailError: string | undefined;
-
-    try {
-      const mailResult = await sendTemporaryPasswordEmail(
-        formData.email,
-        formData.full_name,
-        temporaryPassword
-      );
-      emailSent = mailResult.success;
-      emailError = mailResult.error;
-    } catch (err: unknown) {
-      console.error('[createUser] Error calling sendTemporaryPasswordEmail:', err);
-      emailError = getErrorMessage(err, 'UNKNOWN_MAIL_ERROR');
-    }
-
-    return {
-      data,
-      defaultPassword: temporaryPassword,
-      emailSent,
-      emailError,
-    };
-  } catch (err: unknown) {
-    const message = getErrorMessage(err);
-    console.error('[createUser] Exception thrown:', err);
-    return { error: `Lỗi khởi tạo nhân sự: ${message}` };
-  }
+export async function createUser(_formData: CreateUserInput): Promise<CreateUserResult> {
+  // Temporary containment: the canonical management and assignable-role contract is unproven.
+  // Hold every caller before account, profile, audit, cache, or email side effects.
+  return { error: IDENTITY_MANAGEMENT_HOLD };
 }
 
 export async function updateUserStatus(id: string, status: 'active' | 'inactive') {
@@ -686,92 +454,9 @@ export async function updateUser(
   return { success: true };
 }
 
-export async function deleteUser(id: string) {
-  const supabase = await createClient();
-  const currentUser = await getCurrentUser();
-  const tenantId = currentUser?.tenant_id;
-  if (!tenantId) {
-    return { error: 'Khong xac dinh duoc chi nhanh cua nguoi dung hien tai.' };
-  }
-
-  const {
-    data: previousUser,
-    error: snapshotError,
-  }: { data: UserRow | null; error: { message?: string } | null } = await supabase
-    .from('users')
-    .select('*')
-    .eq('id', id)
-    .eq('tenant_id', tenantId)
-    .single();
-
-  if (snapshotError || !previousUser) {
-    return { error: snapshotError?.message || 'User not found' };
-  }
-
-  const {
-    data: _previousStaffLeaves,
-    error: staffLeavesSnapshotError,
-  }: { data: StaffLeaveRow[] | null; error: { message?: string } | null } = await supabase
-    .from('staff_leaves')
-    .select('*')
-    .eq('user_id', id)
-    .eq('tenant_id', tenantId);
-
-  if (staffLeavesSnapshotError) {
-    return { error: staffLeavesSnapshotError.message || 'Failed to snapshot staff leaves' };
-  }
-  
-  // Always use soft delete to prevent foreign key constraint violations
-  // Many tables reference users: bookings, attendance, sessions, salary_records, 
-  // expenses, audit_logs, kpi_records, leave_requests, product_sales, etc.
-  
-  // IMPORTANT: Delete from Supabase Auth first to free email for reuse
-  const { deleteAuthUser } = await import('@/lib/supabase-admin');
-  const authDeleteError = await deleteAuthUser(id);
-  if (authDeleteError) {
-    console.warn('[deleteUser] Failed to delete from auth.users:', authDeleteError);
-    // Continue with soft delete anyway - auth deletion is best-effort
-  }
-  
-  // Soft delete in public.users: Set resignation_date + archive email
-  const timestamp = Date.now();
-  const originalEmail = previousUser.email;
-  const archivedEmail = originalEmail ? `${timestamp}.deleted.${originalEmail}` : `${timestamp}.deleted@archived.local`;
-  
-  const { error: softDeleteError } = await supabase
-    .from('users')
-    .update({ 
-      resignation_date: new Date().toISOString().split('T')[0],
-      email: archivedEmail, // Archive email to free it for reuse
-      updated_at: new Date().toISOString()
-    })
-    .eq('id', id)
-    .eq('tenant_id', tenantId);
-  
-  if (softDeleteError) {
-    console.error('Error soft deleting user:', softDeleteError);
-    return { error: 'Không thể xóa nhân sự: ' + softDeleteError.message };
-  }
-  
-  // Record audit log for soft delete
-  try {
-    await recordAuditLog({
-      action: 'UPDATE',
-      table_name: 'users',
-      record_id: id,
-      old_data: toUserAuditSnapshot(previousUser),
-      new_data: { resignation_date: new Date().toISOString().split('T')[0] }
-    });
-  } catch (auditError: unknown) {
-    console.warn('Failed to record soft delete audit log:', auditError);
-    // Don't rollback soft delete if audit fails
-  }
-  
-  await safeRevalidatePath('/dashboard/settings');
-  return { 
-    success: true,
-    message: 'Nhân sự đã được đánh dấu nghỉ việc.'
-  };
+export async function deleteUser(_id: string): Promise<DeleteUserResult> {
+  // Do not delete Auth identities before a denied profile mutation or infer management authority.
+  return { error: IDENTITY_MANAGEMENT_HOLD };
 }
 
 export async function updateBaseSalary(id: string, base_salary: number) {

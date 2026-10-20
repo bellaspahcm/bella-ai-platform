@@ -1,0 +1,15 @@
+# Shared identity containment change map
+
+**Decision: PASS for approved fail-closed containment. Full identity-management semantics and Preschool RBAC/RLS remain NOT_PROVEN.**
+
+Truth and canonical contract: the common/Education/Healthcare constitutions require tenant isolation, backend authorization and Product → public contract → Kernel. Approved ADR-001 requires least privilege and audited role assignment; ADR-010 identifies HR employee registration but does not define an assignable-role or delegation matrix. The owner's latest approval explicitly authorizes the temporary containment described in SPEC.md. No new role entitlement is inferred from UI, existing SQL policy names or consumer tests.
+
+Manifest and ownership: Preschool consumes shared Platform identity. `public.users` is the role/tenant source used by helpers and Auth claims synchronization. This batch closes direct client mutation and the two related SECURITY DEFINER onboarding writer entrypoints. Shared server create/delete actions remain temporarily unavailable until a management contract is proven. Configured server onboarding retains its existing Product/HQ/BabyCare decision and service boundary.
+
+Authority: exactly users mutation ACL and EXECUTE ACL of create_onboarding_user(text,text,text) and onboard_tenant(text,text,text,text,uuid,text,text), plus related user/onboarding actions and tests. Existing 32-table and exec_sql containment is held. No business DML, Auth provisioning/reset, function/policy body change, schema/default ACL, membership, Kernel or unrelated-table change. No commit/push/deploy is implied.
+
+UI reconciliation: staff creation/deletion and direct profile/status/salary/partner metadata mutations may become unavailable. UI is a consumer and cannot justify restoring anonymous rights or adding service-role bypass. Courses source repair is preserved and remains undeployed. Migration creates no tables or indexes: new ordered migration revokes only the approved ACLs, validates effective permissions, and aborts unknown inherited/column paths.
+
+Verification: reconstruct exact users columns (including dropped attribute gap), constraints/indexes/policies/three trigger bodies and required helper definitions, using synthetic-only prerequisite tables. Rehearse the exact execution artifact, rollback at mutation boundaries, retained maintenance read/write/claims behavior, denied client SQL and two RPC calls, and ACL recovery. Live drift checks, bounded transaction, independent post-catalog and READ ONLY role probes follow. Full catalog hashes cover all other public/auth relations, policies, functions, memberships, role metadata, schema/default ACLs. No business-row contents or secrets are evidence.
+
+Enforcement: retain prior actual broad-suite failures; focused shared writer, Auth/Courses tests, lint and Education TypeScript checks are applicable. Independent review precedes production execution. Browser Auth E2E, authenticated Product role/branch matrix, source rollout, and Go-Live have separate outcomes. Lead owns SQL/evidence/production; builder owns only its four shared writer/test paths.
