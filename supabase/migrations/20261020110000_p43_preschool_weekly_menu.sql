@@ -42,9 +42,11 @@ CREATE TABLE IF NOT EXISTS public.edu_weekly_menu_days (
 );
 
 -- 3. High Performance Indexes
+-- zero-downtime: allow blocking-index - new empty table, no existing rows, lock contention impossible
 CREATE INDEX IF NOT EXISTS idx_edu_weekly_menus_tenant_lookup 
     ON public.edu_weekly_menus(tenant_id, year, week_number, status);
 
+-- zero-downtime: allow blocking-index - new empty table, no existing rows, lock contention impossible
 CREATE INDEX IF NOT EXISTS idx_edu_weekly_menu_days_lookup 
     ON public.edu_weekly_menu_days(tenant_id, menu_id, menu_date);
 
