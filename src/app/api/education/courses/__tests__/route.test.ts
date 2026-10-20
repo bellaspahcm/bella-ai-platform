@@ -1,12 +1,21 @@
 import { describe, expect, it, jest, beforeEach } from '@jest/globals';
 
-const mockFrom = jest.fn();
-const mockGetCurrentUser = jest.fn();
-const mockGetCourseTeachers = jest.fn();
+const mockFrom = jest.fn<(table: string) => unknown>();
+const mockGetAuthUser = jest.fn<() => Promise<{
+  data: { user: { id: string } | null };
+  error: { message: string } | null;
+}>>();
+const mockGetCurrentUser = jest.fn<() => Promise<{
+  id: string;
+  tenant_id: string;
+  status: string;
+} | null>>();
+const mockGetCourseTeachers = jest.fn<() => Promise<unknown[]>>();
 
 jest.mock('@/lib/supabase-server', () => ({
   createClient: () => ({
     from: mockFrom,
+    auth: { getUser: mockGetAuthUser },
   }),
 }));
 
@@ -25,11 +34,13 @@ const { GET, POST } = require('../route') as typeof import('../route');
 
 const tenantId = '00000000-0000-0000-0000-0000000000aa';
 const courseId = '00000000-0000-0000-0000-0000000000cc';
+const authUserId = '00000000-0000-0000-0000-0000000000dd';
 
 describe('/api/education/courses canonical classroom route', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockGetCurrentUser.mockResolvedValue({ tenant_id: tenantId });
+    mockGetAuthUser.mockResolvedValue({ data: { user: { id: authUserId } }, error: null });
+    mockGetCurrentUser.mockResolvedValue({ id: authUserId, tenant_id: tenantId, status: 'active' });
     mockGetCourseTeachers.mockResolvedValue([]);
   });
 
@@ -139,6 +150,7 @@ describe('/api/education/courses canonical classroom route', () => {
     })]);
     expect(queriedTables[0]).toBe('edu_courses');
     expect(queriedTables).toContain('courses');
+    expect(response.headers.get('Cache-Control')).toBe('private, no-store');
   });
 
   it('correctly maps gradeKey for all preschool grades including nursery (Nhà Trẻ)', async () => {
@@ -271,24 +283,14 @@ describe('/api/education/courses canonical classroom route', () => {
       throw new Error(`Unexpected table access in courses POST test: ${table}`);
     });
 
-    const post: (request: Request) => Promise<Response> = POST;
-    const response = await post(new Request('http://localhost/api/education/courses', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        tenantId,
-        courseCode: 'MAM-A1',
-        courseName: 'Lớp Mầm A1',
-        maxStudents: 25,
-        room: 'Phòng 105',
-      }),
-    }));
+    const response = await POST();
     const body = await response.json();
 
     expect(response.status).toBe(503);
     expect(body.success).toBe(false);
     expect(body.error).toBe('COURSE_AUTHORIZATION_NOT_READY');
     expect(mockGetCurrentUser).not.toHaveBeenCalled();
+    expect(mockGetAuthUser).not.toHaveBeenCalled();
     expect(mockFrom).not.toHaveBeenCalled();
     expect(mockGetCourseTeachers).not.toHaveBeenCalled();
     expect(deletedCourseIds).toEqual([]);
