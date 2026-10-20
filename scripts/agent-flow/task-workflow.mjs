@@ -16,10 +16,14 @@ export function testCounters(output) {
   if (typeof output !== 'string') return null;
   const values = {};
   for (const line of output.split(/\r?\n/)) {
-    const match = line.match(/^\s*(?:ℹ|#)\s+(tests|pass|fail|cancelled|skipped|todo)\s+(\d+)\s*$/);
-    if (match) values[match[1]] = Number(match[2]);
+    const match = line.match(/^\s*(?:ℹ|#)\s+(tests|pass|fail|cancelled|skipped|todo)\b(.*)$/s);
+    if (!match) continue;
+    if (Object.hasOwn(values, match[1]) || !/^\s+\d+\s*$/.test(match[2])) return null;
+    values[match[1]] = Number(match[2]);
   }
-  return ['tests', 'pass', 'fail', 'cancelled', 'skipped', 'todo'].every(k => Number.isSafeInteger(values[k])) ? values : null;
+  if (!['tests', 'pass', 'fail', 'cancelled', 'skipped', 'todo'].every(k => Number.isSafeInteger(values[k]) && values[k] >= 0)) return null;
+  const total = values.pass + values.fail + values.cancelled + values.skipped + values.todo;
+  return Number.isSafeInteger(total) && values.tests === total ? values : null;
 }
 
 export function classifyTestCommand(command, cwd) {
