@@ -16,6 +16,16 @@ import {
 import { POST as copilotApiPost } from '@/app/api/education/ai/copilot/route';
 import { canUseEducationAiCopilotRole } from '@/lib/business-rules/permissions';
 
+jest.mock('@/services/user-actions', () => ({
+  getCurrentUser: jest.fn(async () => ({
+    id: 'user-edu-teacher-1',
+    role: 'education_teacher',
+    tenantId: 'ed100000-0000-0000-0000-000000000001',
+    name: 'Cô Mai',
+    email: 'mai.teacher@bellapreschool.edu.vn',
+  })),
+}));
+
 describe('Bella Preschool AI Copilot — Capability Pack & Services', () => {
   describe('PreschoolAICapabilityPack Structure & Contract Adherence', () => {
     it('declares correct id, knowledge domain, and decision rules', () => {

@@ -786,13 +786,11 @@ function PreschoolCommunicationContent() {
   const handleExecutePrimaryAction = () => {
     const currentIntent = realtimeAiIntents[activeConversation.id] || activeConversation.aiIntent;
     if (currentIntent.primaryActionType === 'care_note') {
-      setActionNotice(`✅ Đã kết nối AI: Tạo phiếu dặn thuốc & lưu ý chăm sóc cho ${activeConversation.studentName}.`);
+      setActionNotice('Chưa tạo lưu ý chăm sóc: hành động này chưa được kết nối. Chưa có dữ liệu chăm sóc nào được ghi nhận.');
     } else if (currentIntent.primaryActionType === 'early_pickup') {
-      setActionNotice(`✅ Đã kết nối AI: Xác nhận đơn đón sớm cho ${activeConversation.studentName}. Đã cập nhật sổ bàn giao chiều.`);
-    } else if (currentIntent.primaryActionType === 'tuition') {
-      setActionNotice(`✅ Đã kết nối AI: Chuyển đối soát học phí cho bé ${activeConversation.studentName} đến bộ phận kế toán.`);
+      setActionNotice('Chưa xác nhận đón sớm: hành động này chưa được kết nối. Chưa có thay đổi nào trong sổ điểm danh.');
     } else {
-      setActionNotice(`✅ Đã tiếp nhận yêu cầu: ${currentIntent.title}.`);
+      setActionNotice('Chưa thực hiện hành động: tính năng này chưa được kết nối. Chưa có thông tin nào được gửi hoặc lưu.');
     }
   };
 
