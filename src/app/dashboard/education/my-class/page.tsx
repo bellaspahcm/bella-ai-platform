@@ -1,4 +1,5 @@
 'use client';
+/* eslint-disable @next/next/no-img-element */
 
 /**
  * Bella Education — Homeroom Teacher (Giáo viên Chủ nhiệm) Workspace

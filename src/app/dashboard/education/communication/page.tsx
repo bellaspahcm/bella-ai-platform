@@ -712,44 +712,13 @@ function PreschoolCommunicationContent() {
 
   const handleCloseBroadcast = () => {
     setActionNotice(null);
+    setBroadcastSubject('');
+    setBroadcastContent('');
     setIsBroadcastModalOpen(false);
   };
 
-  const handlePublishBroadcast = async () => {
-    if (!broadcastSubject.trim() || !broadcastContent.trim()) {
-      setActionNotice('Vui lòng nhập đầy đủ tiêu đề và nội dung thông báo.');
-      return;
-    }
-
-    setIsPublishingBroadcast(true);
-    setActionNotice(null);
-
-    try {
-      const res = await fetch('/api/education/announcements', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title: broadcastSubject,
-          bodyText: broadcastContent,
-          scope: broadcastScope,
-          category: broadcastCategory,
-        }),
-      });
-
-      const data = (await res.json()) as { success: boolean; message?: string };
-      if (!res.ok || !data.success) {
-        throw new Error(data.message || 'Không thể phát hành thông báo');
-      }
-
-      setActionNotice('Đã phát hành thông báo thành công đến toàn trường và lưu vào cơ sở dữ liệu!');
-      setBroadcastSubject('');
-      setBroadcastContent('');
-      setIsBroadcastModalOpen(false);
-    } catch (err) {
-      setActionNotice(err instanceof Error ? err.message : 'Lỗi phát hành thông báo');
-    } finally {
-      setIsPublishingBroadcast(false);
-    }
+  const handlePublishBroadcast = () => {
+    setActionNotice('Chưa phát hành thông báo: tính năng gửi chưa được kết nối. Nội dung vẫn được giữ trong cửa sổ này; hãy sao chép trước khi đóng.');
   };
 
   const handleGeneratePortalLink = async (studentId = '00000000-0000-0000-0000-000000000011') => {
@@ -1661,11 +1630,10 @@ function PreschoolCommunicationContent() {
                     onChange={(e) => setBroadcastCategory(e.target.value)}
                     className="w-full p-2.5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 font-medium"
                   >
-                    <option value="INFO">Thông báo chung</option>
-                    <option value="CONSENT">Biểu mẫu đồng ý (Consent)</option>
-                    <option value="EVENT">Hoạt động dã ngoại / Sự kiện</option>
-                    <option value="TUITION">Thông báo học phí</option>
-                    <option value="CRITICAL">Khẩn cấp</option>
+                    <option>Thông báo chung</option>
+                    <option>Biểu mẫu đồng ý (Consent)</option>
+                    <option>Hoạt động dã ngoại</option>
+                    <option>Thông báo học phí</option>
                   </select>
                 </div>
               </div>
@@ -1689,22 +1657,16 @@ function PreschoolCommunicationContent() {
               <button
                 type="button"
                 onClick={handleCloseBroadcast}
-                disabled={isPublishingBroadcast}
                 className="px-4 py-2.5 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-xs hover:bg-slate-200 transition-colors cursor-pointer"
               >
                 Hủy bỏ
               </button>
               <button
                 type="button"
-                onClick={() => void handlePublishBroadcast()}
-                disabled={isPublishingBroadcast || !broadcastSubject.trim() || !broadcastContent.trim()}
-                className="px-5 py-2.5 rounded-2xl bg-[#0c513f] hover:bg-[#083b2e] disabled:opacity-50 text-white font-bold text-xs shadow-md transition-all flex items-center gap-1.5 cursor-pointer"
+                onClick={handlePublishBroadcast}
+                className="px-5 py-2.5 rounded-2xl bg-[#0c513f] hover:bg-[#083b2e] text-white font-bold text-xs shadow-md transition-all flex items-center gap-1.5 cursor-pointer"
               >
-                {isPublishingBroadcast ? (
-                  <RefreshCw className="w-4 h-4 animate-spin" />
-                ) : (
-                  <Send className="w-4 h-4" />
-                )}
+                <Send className="w-4 h-4" />
                 <span>Phát hành thông báo</span>
               </button>
             </div>
