@@ -1,0 +1,28 @@
+{
+  "capturedAt": "2026-10-21T05:06:00.688Z",
+  "project": "bella-preschool-regression-20261021",
+  "result": "PASS_DECLARED_SYNTHETIC_HEALTHCARE_FIXTURES",
+  "sources": [
+    {
+      "path": "scripts/seed-healthcare-test-data.js",
+      "sha256": "cf34b1ab1229aa5c2579402b3a3324de4ae62d3333e3bdc2bcf5fe559a69b301"
+    },
+    {
+      "path": "src/platform/healthcare/engines/encounter-engine/__tests__/supabase-smoke.test.ts",
+      "sha256": "709334a8069a8a75b9cb1f22d224db599c38988597a1aa1415fb549f20d50c96"
+    }
+  ],
+  "syntheticOnly": true,
+  "businessDataCopied": false,
+  "tenantCount": 5,
+  "partyCount": 8,
+  "reservedEncounterCount": 1,
+  "reserveIds": {
+    "tenant": "7fca5618-1ae5-4065-a632-9dedb550d272",
+    "patient": "2460bf6a-638b-40c2-804a-d0263e8da6dc",
+    "provider": "dcaf59fe-70c1-4d1c-a0ef-7798f7d5eb9d",
+    "journey": "d99ed2ec-4aea-4dba-88d4-917463693b45",
+    "encounter": "a39ffd29-ff75-418b-a0a1-787fdcf60656"
+  },
+  "note": "Only UUIDs from the frozen smoke fixture are reused. Its real-name comment and any database row are not copied. Reserved encounter satisfies the repository suite declared pre-existing encounter requirement."
+}

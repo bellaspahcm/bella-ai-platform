@@ -1,0 +1,18 @@
+FAIL src/platform/education/__tests__/kernel-invariants.integration.test.ts
+  ● Console
+  ● Education OS — Kernel Invariants Integration Tests › Prerequisite Checks with Versioned Grading Rules › should validate prerequisite under Vietnamese 10-point scale: 4.5 -> BLOCK, 5.0 -> ALLOW
+  ● Education OS — Kernel Invariants Integration Tests › Prerequisite Checks with Versioned Grading Rules › should validate prerequisite under Percentage scale: 69 -> BLOCK, 70 -> ALLOW
+FAIL src/platform/education/__tests__/verification-gates.test.ts
+  ● Console
+  ● Education OS — 11 Automated Verification Gates › Gate 2: Contract Boundary Compliance › should retrieve course and register student using Public Contract implementation classes
+  ● Education OS — 11 Automated Verification Gates › Gate 3: Tenant Isolation › should completely isolate student and course records between Tenant A and Tenant B
+  ● Education OS — 11 Automated Verification Gates › Gate 8: Temporal Provenance › should log academic status changes inside platform timeline primitive
+FAIL src/platform/education/__tests__/attendance-contract-real-db.integration.test.ts
+  ● Console
+  ● Education Attendance Contract — canonical real DB chain › upserts one daily state while preserving additive attendance events
+  ● Education Attendance Contract — canonical real DB chain › loads daily course roster through party identity without requiring person_id
+Test Suites: 3 failed, 3 total
+Tests:       7 failed, 16 passed, 23 total
+Snapshots:   0 total
+Time:        3.276 s
+Ran all test suites within paths "src/platform/education/__tests__/verification-gates.test.ts", "src/platform/education/__tests__/kernel-invariants.integration.test.ts", "src/platform/education/__tests__/attendance-contract-real-db.integration.test.ts".

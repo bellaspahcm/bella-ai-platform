@@ -1,0 +1,4 @@
+> bella-spa-erp@0.1.0 healthcare:verify
+> npm run healthcare:guard && npm run healthcare:architecture && npm run healthcare:conformance && npm run healthcare:test
+> bella-spa-erp@0.1.0 healthcare:guard
+> npx tsx scripts/healthcare/architecture-guard.ts

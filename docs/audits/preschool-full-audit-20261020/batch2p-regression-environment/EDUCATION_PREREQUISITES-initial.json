@@ -1,0 +1,2866 @@
+{
+  "createdAt": "2026-10-21T04:46:44.223Z",
+  "sourceRevision": "6b031511fd37e5ee22288676b833cf855d40b43f",
+  "target": "OWNED_LOCAL_SANDBOX_ONLY",
+  "semantics": "Intentionally frozen Education reference environment from owning migrations, including legacy courses/course_id; does not assert compatibility with the shared production Training table.",
+  "selection": "Exact canonical DDL statements only. Exclude data migration/backfill/preflight, demo data, unrelated initial tables, table drops and transaction wrappers. No test or runtime source edits.",
+  "sources": [
+    {
+      "path": "supabase/migrations/20260511000000_initial_schema.sql",
+      "sha256": "bac51db3da0e71479cd9bbe0d1c6297f017aed3c8d46ba65e918dcbc82a356ce",
+      "mode": "foundation"
+    },
+    {
+      "path": "supabase/migrations/20260521000004_harden_rls_and_tenant.sql",
+      "sha256": "72cc70677d070434b964c6ea0fa4244a3780c3646b64cd64b4d4e6a7732bb5c2",
+      "mode": "tenantHelper"
+    },
+    {
+      "path": "supabase/migrations/20260806000000_blueprint_core_schema.sql",
+      "sha256": "41c7c62d4f7c9de6a0777b4d84ac79b7ad344adbe6dee07141bcdbfcde3b9ac1",
+      "mode": "ddl"
+    },
+    {
+      "path": "supabase/migrations/20260808000012_create_rule_engine_tables.sql",
+      "sha256": "60ebb0b50102abff715fb04710963e21352ddef0d889929b1f63b2beda93d979",
+      "mode": "ddl"
+    },
+    {
+      "path": "supabase/migrations/20260810000001_create_persons_table.sql",
+      "sha256": "3ae4f7f40d50f0b687c6d585490718ab782f700f3cc1507aaa9a36b7400491c9",
+      "mode": "ddl"
+    },
+    {
+      "path": "supabase/migrations/20260810224417_create_students_table.sql",
+      "sha256": "25254dfcee27e8e5cc4ba209b6f1776ba9ae07fae349319b4f30079ce32e0c02",
+      "mode": "ddl"
+    },
+    {
+      "path": "supabase/migrations/20260810231500_create_courses_and_enrollments.sql",
+      "sha256": "5654bdcbd49e4ce151997a3808771b88f0cc412ca13c54d7ad21adbff4da058f",
+      "mode": "ddl"
+    },
+    {
+      "path": "supabase/migrations/20260810235000_create_attendances.sql",
+      "sha256": "d1f24e034dcfc7979cab98ad035733d0b79255df5ff59e34ce373148e3aaa668",
+      "mode": "ddl"
+    },
+    {
+      "path": "supabase/migrations/20260812060000_create_education_schema.sql",
+      "sha256": "191a24c28149b5a0b675ee5f64cf51fc6398ec8f61d40f4cbfcd0f06ca73fb7c",
+      "mode": "ddl"
+    },
+    {
+      "path": "supabase/migrations/20260813000020_create_edu_attendance_and_assessment.sql",
+      "sha256": "f4a4838e4063b612d812010da7d1b6170dc176b11b3c3e182cbc7bf433e26432",
+      "mode": "ddl"
+    },
+    {
+      "path": "supabase/migrations/20260813000030_create_assessments_and_results.sql",
+      "sha256": "6ed6c81836f7e834c2208a2aa6eaa599e215126471c15bd1fcab7ab11128af60",
+      "mode": "ddl"
+    },
+    {
+      "path": "supabase/migrations/20260813000040_create_enrollment_transaction_rpc.sql",
+      "sha256": "16f2dae8e7e7fb39719968aaff5cdcd6e240e6d21a3d0480d4b5c48db389eb1d",
+      "mode": "ddl"
+    },
+    {
+      "path": "supabase/migrations/20260813000050_create_teacher_assignments.sql",
+      "sha256": "3be66d329187366d76ef37fcbcc8825ee7e6cd13597274baa37c0a94f0487eb0",
+      "mode": "ddl"
+    },
+    {
+      "path": "supabase/migrations/20260912000000_r3_education_identity_cutover.sql",
+      "sha256": "d45e99e83563ca72df14739e8c2f9921044c0b049f270c72fa21bc1cd6b7a42c",
+      "mode": "r3Ddl"
+    },
+    {
+      "path": "supabase/migrations/20260926002000_r3_student_create_side_nullable_person_id.sql",
+      "sha256": "b46a74ff8ce2123637d1099369b994b6fd88411860e2cee1232a3e273a5e0134",
+      "mode": "ddl"
+    },
+    {
+      "path": "supabase/migrations/20260926003000_education_daily_attendance_state.sql",
+      "sha256": "95d00c9a1df775500386b86c571ae8dad1dbe58e77e415ca80701ebc23491b8c",
+      "mode": "ddl"
+    }
+  ],
+  "statements": [
+    {
+      "source": "supabase/migrations/20260511000000_initial_schema.sql",
+      "start": 0,
+      "end": 69,
+      "line": 1,
+      "sha256": "589f94cdc97ea8bd8a6565e8ca2a98f6bc2f5e6d053b935a8437344a1d2fc9bc",
+      "kind": "CREATE EXTENSION IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260511000000_initial_schema.sql",
+      "start": 69,
+      "end": 608,
+      "line": 2,
+      "sha256": "7e3b2d8f4a3f60254d11255ccb21240710cd377e01f0c706f2f7640fd6cab15e",
+      "kind": "CREATE TABLE IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260511000000_initial_schema.sql",
+      "start": 608,
+      "end": 1107,
+      "line": 17,
+      "sha256": "00c1acd75189667fba7ba4d5bda1127181ccf0bbeafb2d27a01ea9e588f7b84d",
+      "kind": "CREATE TABLE IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260511000000_initial_schema.sql",
+      "start": 9730,
+      "end": 9920,
+      "line": 258,
+      "sha256": "433405cb66efabdb4ffe1f6c8d5402c5f7397a02ff91480826ba928bdd11323a",
+      "kind": "CREATE OR REPLACE FUNCTION"
+    },
+    {
+      "source": "supabase/migrations/20260521000004_harden_rls_and_tenant.sql",
+      "start": 371,
+      "end": 617,
+      "line": 10,
+      "sha256": "d484131d573f23caa750b7703c1e89f4e919eef571ae6050d01e6b2dd1eb40b5",
+      "kind": "CREATE OR REPLACE FUNCTION"
+    },
+    {
+      "source": "supabase/migrations/20260806000000_blueprint_core_schema.sql",
+      "start": 0,
+      "end": 1017,
+      "line": 1,
+      "sha256": "162d6fbb3ec5e3182b94295ea70e9c7bd3685a3a427c0766f8d2facdd4b9e04c",
+      "kind": "CREATE TABLE IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260806000000_blueprint_core_schema.sql",
+      "start": 1017,
+      "end": 1138,
+      "line": 25,
+      "sha256": "29d468609f5d40622aaee3ec6207a96606d00135ea5f39bbfc5a9b2f1916bf0e",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260806000000_blueprint_core_schema.sql",
+      "start": 1138,
+      "end": 1226,
+      "line": 28,
+      "sha256": "09437c53458280d13fc1b276eeeab7041ed8194961da7252f6225477a708e6e8",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260806000000_blueprint_core_schema.sql",
+      "start": 1226,
+      "end": 1342,
+      "line": 29,
+      "sha256": "718be6841ded56cf3735c0d8190dc815fd374f08aa7bcc17cb2a507c94d99ba3",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260806000000_blueprint_core_schema.sql",
+      "start": 1342,
+      "end": 2006,
+      "line": 30,
+      "sha256": "5ebc364f6fa370aec23f2acb72abb665496f185710dadd6a95c3bb7347a2638f",
+      "kind": "CREATE TABLE IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260806000000_blueprint_core_schema.sql",
+      "start": 2006,
+      "end": 2103,
+      "line": 43,
+      "sha256": "5deaa8a9ca476faa396e24869db11369e325486e8847dad7a313764ba606e692",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260806000000_blueprint_core_schema.sql",
+      "start": 2103,
+      "end": 2235,
+      "line": 45,
+      "sha256": "bcbb212eba4c52a6383d71565c962b0dd5aed97e0c6cd8c292824dd6656c9d55",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260806000000_blueprint_core_schema.sql",
+      "start": 2235,
+      "end": 3063,
+      "line": 46,
+      "sha256": "e30a7c49ddf0de8f620924d76625758eb484149e759102307818be0f017a9aeb",
+      "kind": "CREATE TABLE IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260806000000_blueprint_core_schema.sql",
+      "start": 3063,
+      "end": 3172,
+      "line": 61,
+      "sha256": "e775ed61ea115516290cc35f492635aabd16fa7dd850c9c6bcf674a6482c2269",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260806000000_blueprint_core_schema.sql",
+      "start": 3172,
+      "end": 3279,
+      "line": 63,
+      "sha256": "86b26802a243ed247967acec6c017880daff4653c34a360d929b72489b16fd16",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260806000000_blueprint_core_schema.sql",
+      "start": 3279,
+      "end": 3908,
+      "line": 64,
+      "sha256": "f9691b5f1ba3d487802e23826de807b6f17429aedcf6df18ec5d4873b42541f4",
+      "kind": "CREATE TABLE IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260806000000_blueprint_core_schema.sql",
+      "start": 3908,
+      "end": 4016,
+      "line": 77,
+      "sha256": "b6d16796d9776a5f7325f5143bb34d63ffd188ad99b4c9d0f743eeb80ab663cf",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260806000000_blueprint_core_schema.sql",
+      "start": 4016,
+      "end": 4837,
+      "line": 79,
+      "sha256": "3884b6f1eaeaa49f18707bad261d59a8a671967af5ddd9ee5a4fbae73867c453",
+      "kind": "CREATE TABLE IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260806000000_blueprint_core_schema.sql",
+      "start": 4837,
+      "end": 4934,
+      "line": 96,
+      "sha256": "22f00d945a2336e6fc188e3740739b17f6a436fbb8f09c6ba047769211f7e135",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260806000000_blueprint_core_schema.sql",
+      "start": 4934,
+      "end": 5035,
+      "line": 98,
+      "sha256": "e6c79f8521dad520db86862798edad1bf191097dfcba370c459f2ff2e39f2918",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260806000000_blueprint_core_schema.sql",
+      "start": 5035,
+      "end": 5723,
+      "line": 99,
+      "sha256": "bfdfc09f0975b9f96a18573741c16d0cf1132ad0983ee745b0c649ea0c66eba7",
+      "kind": "CREATE TABLE IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260806000000_blueprint_core_schema.sql",
+      "start": 5723,
+      "end": 5830,
+      "line": 112,
+      "sha256": "73d4cc310be80e94c8971420cdee9dbe5772ef5185df1f62c2f9a4718ae18a25",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260806000000_blueprint_core_schema.sql",
+      "start": 5830,
+      "end": 6653,
+      "line": 114,
+      "sha256": "c4aef5b0d8f255b32d2b654c84c30c341eb63bcda4e0cbc5e297a4979ffa964e",
+      "kind": "CREATE TABLE IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260806000000_blueprint_core_schema.sql",
+      "start": 6653,
+      "end": 6756,
+      "line": 129,
+      "sha256": "3723d1713a2c9392fdda3c61c76964691cea3342abab3cf49213fc7ec0d5d56b",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260806000000_blueprint_core_schema.sql",
+      "start": 6756,
+      "end": 7959,
+      "line": 131,
+      "sha256": "4a904f655ee66f0c70fc9949c5510ada943c3938214229733aed7e609e0d298d",
+      "kind": "CREATE TABLE IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260806000000_blueprint_core_schema.sql",
+      "start": 7959,
+      "end": 8078,
+      "line": 158,
+      "sha256": "6015ab32ba92fee1426ea2dc6704d925c85cf91725e087b8efb59080f59ee024",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260806000000_blueprint_core_schema.sql",
+      "start": 8078,
+      "end": 8181,
+      "line": 160,
+      "sha256": "b33655b841333806f3b5b254fba26424b550b7717ccc8ced06eedfed6a1c3072",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260806000000_blueprint_core_schema.sql",
+      "start": 8181,
+      "end": 8296,
+      "line": 161,
+      "sha256": "80e7c3f42056de19ca4d008c82974322d92c085627b522c30e6c8fbc547dae8c",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260806000000_blueprint_core_schema.sql",
+      "start": 8296,
+      "end": 8475,
+      "line": 162,
+      "sha256": "64f434933fc7592d76adc688a19fff7e1feb116d7de57f14edc02b506d05fb56",
+      "kind": "CREATE OR REPLACE RULE"
+    },
+    {
+      "source": "supabase/migrations/20260806000000_blueprint_core_schema.sql",
+      "start": 8475,
+      "end": 8584,
+      "line": 165,
+      "sha256": "0fdb8cc0cd6b985bca81261c0d392331506ddcbe3d3e0af5b4279343e8748b3e",
+      "kind": "CREATE OR REPLACE RULE"
+    },
+    {
+      "source": "supabase/migrations/20260806000000_blueprint_core_schema.sql",
+      "start": 8584,
+      "end": 8702,
+      "line": 166,
+      "sha256": "e3d0251713fef490aca3c2891563780ba0bbd620c6433551a50e869b052550a4",
+      "kind": "ALTER TABLE public.party_parties ENABLE"
+    },
+    {
+      "source": "supabase/migrations/20260806000000_blueprint_core_schema.sql",
+      "start": 8702,
+      "end": 8767,
+      "line": 169,
+      "sha256": "600b354a433a127c954de40a4939786e750223020be21ae6ee836028f07d41c4",
+      "kind": "ALTER TABLE public.party_identifiers ENABLE"
+    },
+    {
+      "source": "supabase/migrations/20260806000000_blueprint_core_schema.sql",
+      "start": 8767,
+      "end": 8834,
+      "line": 170,
+      "sha256": "d24a9354eee3044ff0883d4f18fa8978e6a739d596e440ea446053cf917f18ac",
+      "kind": "ALTER TABLE public.party_relationships ENABLE"
+    },
+    {
+      "source": "supabase/migrations/20260806000000_blueprint_core_schema.sql",
+      "start": 8834,
+      "end": 8893,
+      "line": 171,
+      "sha256": "d9ae9d0709b495891b59df1cee2b98b1452f44677b11067df73eccffc5149eba",
+      "kind": "ALTER TABLE public.party_roles ENABLE"
+    },
+    {
+      "source": "supabase/migrations/20260806000000_blueprint_core_schema.sql",
+      "start": 8893,
+      "end": 8957,
+      "line": 172,
+      "sha256": "8374b6e33c2fd74f8e400c55f76d4747743d44abdadb2496f58f0adecf414182",
+      "kind": "ALTER TABLE public.journey_journeys ENABLE"
+    },
+    {
+      "source": "supabase/migrations/20260806000000_blueprint_core_schema.sql",
+      "start": 8957,
+      "end": 9025,
+      "line": 173,
+      "sha256": "daf25a3564156da2e11adc0d671ad2f7a3dc9ff824f529ef2b6f1dc46b0d3e6d",
+      "kind": "ALTER TABLE public.journey_sub_journeys ENABLE"
+    },
+    {
+      "source": "supabase/migrations/20260806000000_blueprint_core_schema.sql",
+      "start": 9025,
+      "end": 9091,
+      "line": 174,
+      "sha256": "598dff2f0eee1065f3dd3a80b05cd17d4114a1f9439dc295384edf3121a603e0",
+      "kind": "ALTER TABLE public.journey_milestones ENABLE"
+    },
+    {
+      "source": "supabase/migrations/20260806000000_blueprint_core_schema.sql",
+      "start": 9091,
+      "end": 9154,
+      "line": 175,
+      "sha256": "78aa0a037306a8809d07f1324e1958dd7c08275a53555e4b1a4d452cb3e4363e",
+      "kind": "ALTER TABLE public.timeline_events ENABLE"
+    },
+    {
+      "source": "supabase/migrations/20260806000000_blueprint_core_schema.sql",
+      "start": 9154,
+      "end": 9559,
+      "line": 176,
+      "sha256": "9982f749a2118691006e462e3fdcb73829cd46aed5250aab9d9bd5bf684d25b1",
+      "kind": "DO $$ BEGIN IF"
+    },
+    {
+      "source": "supabase/migrations/20260806000000_blueprint_core_schema.sql",
+      "start": 9559,
+      "end": 9938,
+      "line": 190,
+      "sha256": "b125ba31bc322fc40db3adedfe6915dfdafedcd685a68d72d56f3ed2884a796a",
+      "kind": "DO $$ BEGIN IF"
+    },
+    {
+      "source": "supabase/migrations/20260806000000_blueprint_core_schema.sql",
+      "start": 9938,
+      "end": 10325,
+      "line": 203,
+      "sha256": "aa6de1eb1a045a515c3795b10a77ca3c521a27a705d2987d7463cd95b85c684b",
+      "kind": "DO $$ BEGIN IF"
+    },
+    {
+      "source": "supabase/migrations/20260806000000_blueprint_core_schema.sql",
+      "start": 10325,
+      "end": 10680,
+      "line": 216,
+      "sha256": "50b742d16fba232019b04a41d1f588a0e40eeb0c4cefbd76d9b76a5d2c84ebad",
+      "kind": "DO $$ BEGIN IF"
+    },
+    {
+      "source": "supabase/migrations/20260806000000_blueprint_core_schema.sql",
+      "start": 10680,
+      "end": 11039,
+      "line": 229,
+      "sha256": "85d9823a7df32c2929f7974ed1a22262c9f9f792cf704178dcf34762d40d753e",
+      "kind": "DO $$ BEGIN IF"
+    },
+    {
+      "source": "supabase/migrations/20260806000000_blueprint_core_schema.sql",
+      "start": 11039,
+      "end": 11414,
+      "line": 242,
+      "sha256": "7822e96bc49fc26022609e490201e893c34d653693e5591b0fb96f9f8d7aa340",
+      "kind": "DO $$ BEGIN IF"
+    },
+    {
+      "source": "supabase/migrations/20260806000000_blueprint_core_schema.sql",
+      "start": 11414,
+      "end": 11781,
+      "line": 255,
+      "sha256": "59115c1328e333e85de86f1550edac81f686a41806d8494321221a1f972496c2",
+      "kind": "DO $$ BEGIN IF"
+    },
+    {
+      "source": "supabase/migrations/20260806000000_blueprint_core_schema.sql",
+      "start": 11781,
+      "end": 12138,
+      "line": 268,
+      "sha256": "2aa67007d9e283d082369aca4f380b41119bdeb2c82a266418460396d3cafe4b",
+      "kind": "DO $$ BEGIN IF"
+    },
+    {
+      "source": "supabase/migrations/20260808000012_create_rule_engine_tables.sql",
+      "start": 0,
+      "end": 1299,
+      "line": 1,
+      "sha256": "9ce19b0c26e90560eec4034d2345156e19f369960d21fd8c6b90fe0efabb17ae",
+      "kind": "DO $$ BEGIN CREATE"
+    },
+    {
+      "source": "supabase/migrations/20260808000012_create_rule_engine_tables.sql",
+      "start": 1299,
+      "end": 1478,
+      "line": 31,
+      "sha256": "e5652a1ddc2c45cd9c44c88a2ada7c260d1dad214bc7351dc71f132832b0a737",
+      "kind": "DO $$ BEGIN CREATE"
+    },
+    {
+      "source": "supabase/migrations/20260808000012_create_rule_engine_tables.sql",
+      "start": 1478,
+      "end": 1685,
+      "line": 40,
+      "sha256": "13e1f4bb91d0b358f958aa68d304bc9d1fd0d38d023d473e2cd6184b06f389a1",
+      "kind": "DO $$ BEGIN CREATE"
+    },
+    {
+      "source": "supabase/migrations/20260808000012_create_rule_engine_tables.sql",
+      "start": 1685,
+      "end": 2060,
+      "line": 50,
+      "sha256": "536c46844cf13560f87056346f27e30f94b2b5b39a4cf6aca1de8412d9ee9b10",
+      "kind": "DO $$ BEGIN CREATE"
+    },
+    {
+      "source": "supabase/migrations/20260808000012_create_rule_engine_tables.sql",
+      "start": 2060,
+      "end": 2288,
+      "line": 66,
+      "sha256": "b5d3817a5d209d61a903d4a02061014acb63281dd14b3baf4e866c4456d3ce1c",
+      "kind": "DO $$ BEGIN CREATE"
+    },
+    {
+      "source": "supabase/migrations/20260808000012_create_rule_engine_tables.sql",
+      "start": 2288,
+      "end": 4338,
+      "line": 76,
+      "sha256": "b9c3ebbfadd7e4ed2309206ff748975acd3c40c38cb2fc07651a0f3c680b8599",
+      "kind": "CREATE TABLE IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000012_create_rule_engine_tables.sql",
+      "start": 4338,
+      "end": 4438,
+      "line": 125,
+      "sha256": "f5aa7bd6c2bf003eb87e66d5b54abfafcb6b98aa548f88052c3d5efb5fff1266",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000012_create_rule_engine_tables.sql",
+      "start": 4438,
+      "end": 4525,
+      "line": 127,
+      "sha256": "390690a910aa9003764847dcd0d26fc5fb28eaf34cac9e8f832c0626fa557b98",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000012_create_rule_engine_tables.sql",
+      "start": 4525,
+      "end": 4634,
+      "line": 128,
+      "sha256": "b44d457a9120593db8245f75e3886ba756d3385ac529e97e48286b7f59e7c6d6",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000012_create_rule_engine_tables.sql",
+      "start": 4634,
+      "end": 4767,
+      "line": 129,
+      "sha256": "b8a66c0fdb56ff43e530e3f9fa237c3b948912cb3f9fba3138350cae2ceb4f75",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000012_create_rule_engine_tables.sql",
+      "start": 4767,
+      "end": 4869,
+      "line": 131,
+      "sha256": "fcd3d8be4a98e7a40c4836eed557fad13525f261607f981ce17c4c21b9472443",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000012_create_rule_engine_tables.sql",
+      "start": 4869,
+      "end": 4935,
+      "line": 132,
+      "sha256": "d4a02394f20b9e260b4451e0656069a38f1f192d3769d9f8e4ed2561434f7043",
+      "kind": "ALTER TABLE platform_business_rules ENABLE"
+    },
+    {
+      "source": "supabase/migrations/20260808000012_create_rule_engine_tables.sql",
+      "start": 4935,
+      "end": 5007,
+      "line": 134,
+      "sha256": "fb5e79781013f6a2aaef70bbede447be905774bd1cf68baa7e870d0246ff3736",
+      "kind": "DROP POLICY IF EXISTS"
+    },
+    {
+      "source": "supabase/migrations/20260808000012_create_rule_engine_tables.sql",
+      "start": 5007,
+      "end": 5147,
+      "line": 135,
+      "sha256": "63bbf42eeb5c57cbee3847d7c2a33322900357da79c2e055d73d9ca8315ce270",
+      "kind": "CREATE POLICY pbr_tenant_isolation ON"
+    },
+    {
+      "source": "supabase/migrations/20260808000012_create_rule_engine_tables.sql",
+      "start": 5147,
+      "end": 5324,
+      "line": 137,
+      "sha256": "ab9d33455768331c783f435ee61c12e46fa7409a34ab72ca577fd0741ba8fc42",
+      "kind": "CREATE OR REPLACE FUNCTION"
+    },
+    {
+      "source": "supabase/migrations/20260808000012_create_rule_engine_tables.sql",
+      "start": 5324,
+      "end": 5397,
+      "line": 142,
+      "sha256": "08dd1ff65b60dbfc9dc49c2c8be4a3d9075c0229732020cf39ddaf065c11f230",
+      "kind": "DROP TRIGGER IF EXISTS"
+    },
+    {
+      "source": "supabase/migrations/20260808000012_create_rule_engine_tables.sql",
+      "start": 5397,
+      "end": 5542,
+      "line": 144,
+      "sha256": "f7bdf295076809976b2f5f5dd77624f3654a21d8a7d63deb160fe80ff7ad5de6",
+      "kind": "CREATE TRIGGER trg_pbr_updated_at BEFORE"
+    },
+    {
+      "source": "supabase/migrations/20260808000012_create_rule_engine_tables.sql",
+      "start": 5542,
+      "end": 6397,
+      "line": 147,
+      "sha256": "2ea5f987771813eb52f402d61f3e8845059283ed1d207b0da485c915647c7096",
+      "kind": "CREATE OR REPLACE FUNCTION"
+    },
+    {
+      "source": "supabase/migrations/20260808000012_create_rule_engine_tables.sql",
+      "start": 6397,
+      "end": 6479,
+      "line": 167,
+      "sha256": "edc39229b0bd8919778d9f8355e1b5accb1cf1ed414bffaa8d69859e9f927f6d",
+      "kind": "DROP TRIGGER IF EXISTS"
+    },
+    {
+      "source": "supabase/migrations/20260808000012_create_rule_engine_tables.sql",
+      "start": 6479,
+      "end": 6644,
+      "line": 169,
+      "sha256": "e64743c83aa2a112f61b45a31f45dc7559f541c2b4dd54698154d1d0b5336546",
+      "kind": "CREATE TRIGGER trg_pbr_active_immutability BEFORE"
+    },
+    {
+      "source": "supabase/migrations/20260808000012_create_rule_engine_tables.sql",
+      "start": 6644,
+      "end": 7779,
+      "line": 172,
+      "sha256": "23e34926f23cc078db8a1ae7cbc395be35b3eb78d2c661e3af5fa09c519ca779",
+      "kind": "CREATE TABLE IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000012_create_rule_engine_tables.sql",
+      "start": 7779,
+      "end": 7872,
+      "line": 201,
+      "sha256": "d9e957f7c4e9e9c4a20c9142f6bb76e6fe072c58994cdbf143dc736887f65aff",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000012_create_rule_engine_tables.sql",
+      "start": 7872,
+      "end": 7961,
+      "line": 203,
+      "sha256": "eeb1796f3dc24dd060d83ca5a70a340e060e4bde17e38aa6dd723577b27b85cd",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000012_create_rule_engine_tables.sql",
+      "start": 7961,
+      "end": 8067,
+      "line": 204,
+      "sha256": "ed0966540b7a62bbe99a1dad1c822eb728d7fb59997e6e254e72f4ca7d4da67d",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000012_create_rule_engine_tables.sql",
+      "start": 8067,
+      "end": 8166,
+      "line": 205,
+      "sha256": "3623809165676e802268f9c1f85a1297379d373721fa76e539b627d22eed76a7",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260808000012_create_rule_engine_tables.sql",
+      "start": 8166,
+      "end": 8237,
+      "line": 206,
+      "sha256": "be3fa3a10a5eb360512d91044aa2cfafb565a078da4dbeefe79da57beebddb09",
+      "kind": "ALTER TABLE platform_rule_evaluation_log ENABLE"
+    },
+    {
+      "source": "supabase/migrations/20260808000012_create_rule_engine_tables.sql",
+      "start": 8237,
+      "end": 8315,
+      "line": 208,
+      "sha256": "4931cc8165276224bd2ae4ba39bbde3f6e2a204ffa6885d3b205220b8aaffa7f",
+      "kind": "DROP POLICY IF EXISTS"
+    },
+    {
+      "source": "supabase/migrations/20260808000012_create_rule_engine_tables.sql",
+      "start": 8315,
+      "end": 8461,
+      "line": 209,
+      "sha256": "d5f145654f0ddfbb646739fb08007e34434a62c487726783a9e91156d1a24938",
+      "kind": "CREATE POLICY prel_tenant_isolation ON"
+    },
+    {
+      "source": "supabase/migrations/20260808000012_create_rule_engine_tables.sql",
+      "start": 8461,
+      "end": 8740,
+      "line": 211,
+      "sha256": "1a150c8be9ebe3edbaa7a01f1a3af0f7bb103a4116b50673419512dfe2a5c182",
+      "kind": "CREATE OR REPLACE FUNCTION"
+    },
+    {
+      "source": "supabase/migrations/20260808000012_create_rule_engine_tables.sql",
+      "start": 8740,
+      "end": 8821,
+      "line": 219,
+      "sha256": "219ec00f6614441065a466fb476939c5181fd2bdc4069dedeae6d85a85a62f55",
+      "kind": "DROP TRIGGER IF EXISTS"
+    },
+    {
+      "source": "supabase/migrations/20260808000012_create_rule_engine_tables.sql",
+      "start": 8821,
+      "end": 8991,
+      "line": 221,
+      "sha256": "8b45d2bd4402571dd83914079b16bb5db78aa4bd2dd1ccb5ce33b726984bb1db",
+      "kind": "CREATE TRIGGER trg_prel_immutability BEFORE"
+    },
+    {
+      "source": "supabase/migrations/20260808000012_create_rule_engine_tables.sql",
+      "start": 9621,
+      "end": 10131,
+      "line": 237,
+      "sha256": "88ed629eed261c820688d299af8633d52893f572604cd55bc5107b8ba86d20fa",
+      "kind": "COMMENT ON TABLE platform_business_rules"
+    },
+    {
+      "source": "supabase/migrations/20260808000012_create_rule_engine_tables.sql",
+      "start": 10131,
+      "end": 10297,
+      "line": 246,
+      "sha256": "c35a4fe9f03b4ee570d28348f16d09081b7a1bb6bc4246c4cd0027c49e292b4f",
+      "kind": "COMMENT ON TABLE platform_rule_evaluation_log"
+    },
+    {
+      "source": "supabase/migrations/20260808000012_create_rule_engine_tables.sql",
+      "start": 10297,
+      "end": 10460,
+      "line": 249,
+      "sha256": "cfadf263639534f19a530779a8412474d43f15381b3aa6f71006e46b95312437",
+      "kind": "COMMENT ON COLUMN platform_business_rules.rule_key"
+    },
+    {
+      "source": "supabase/migrations/20260808000012_create_rule_engine_tables.sql",
+      "start": 10460,
+      "end": 10635,
+      "line": 252,
+      "sha256": "8f2cd50ba0b1c0fec4d67685ed3b444fb6026446ab70469c0027c8256a618502",
+      "kind": "COMMENT ON COLUMN platform_business_rules.conditions"
+    },
+    {
+      "source": "supabase/migrations/20260810000001_create_persons_table.sql",
+      "start": 0,
+      "end": 2093,
+      "line": 1,
+      "sha256": "d8465b6d39ed782d23f42d9f0ad9f53e8050a914a4ae00189678d17bcaae7543",
+      "kind": "CREATE TABLE IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260810000001_create_persons_table.sql",
+      "start": 2093,
+      "end": 2396,
+      "line": 60,
+      "sha256": "26e403df00cae342cb1b555065acc6064cb83a7f4c8c42d82ea95a80dd07ab8e",
+      "kind": "CREATE INDEX idx_persons_tenant_id ON"
+    },
+    {
+      "source": "supabase/migrations/20260810000001_create_persons_table.sql",
+      "start": 2396,
+      "end": 2490,
+      "line": 67,
+      "sha256": "faab4f68ffc94137ac55b09b8c221471039f82ac181742a2136e1428844bc7e8",
+      "kind": "CREATE INDEX idx_persons_first_name ON"
+    },
+    {
+      "source": "supabase/migrations/20260810000001_create_persons_table.sql",
+      "start": 2490,
+      "end": 2556,
+      "line": 70,
+      "sha256": "7b1f85c5e2cbf8f41a66a97aee50c707141c53d834dd606bac2521e5a9e7567c",
+      "kind": "CREATE INDEX idx_persons_last_name ON"
+    },
+    {
+      "source": "supabase/migrations/20260810000001_create_persons_table.sql",
+      "start": 2556,
+      "end": 2634,
+      "line": 71,
+      "sha256": "0761b4161d1957d65330ff91118d3a0a0a52f908ed1592eddab194ced623dbf8",
+      "kind": "CREATE INDEX idx_persons_full_name ON"
+    },
+    {
+      "source": "supabase/migrations/20260810000001_create_persons_table.sql",
+      "start": 2634,
+      "end": 2758,
+      "line": 72,
+      "sha256": "8c6aba2a08b748478fbb141e21a9e70764b9866173c034f72751337344463a0a",
+      "kind": "CREATE INDEX idx_persons_date_of_birth ON"
+    },
+    {
+      "source": "supabase/migrations/20260810000001_create_persons_table.sql",
+      "start": 2758,
+      "end": 2870,
+      "line": 75,
+      "sha256": "ee5267d8dfce56b7f8cfac323605ff2b8e0753f40cc645c31e16d802f0756b4a",
+      "kind": "CREATE INDEX idx_persons_status ON"
+    },
+    {
+      "source": "supabase/migrations/20260810000001_create_persons_table.sql",
+      "start": 2870,
+      "end": 2994,
+      "line": 78,
+      "sha256": "bd32f10e480fd370ea867c403e8a91930df28d22889261cd8b39fe5504a49776",
+      "kind": "CREATE INDEX idx_persons_identifiers ON"
+    },
+    {
+      "source": "supabase/migrations/20260810000001_create_persons_table.sql",
+      "start": 2994,
+      "end": 3069,
+      "line": 81,
+      "sha256": "065bc24ad8e81822ffe5282a95306ec34ff4f54fa04690e7c98c34bff12b418c",
+      "kind": "CREATE INDEX idx_persons_contacts ON"
+    },
+    {
+      "source": "supabase/migrations/20260810000001_create_persons_table.sql",
+      "start": 3069,
+      "end": 3146,
+      "line": 82,
+      "sha256": "21b76fcb501fafb94bc91598030dbbaae3d2ca3fc493643dc62350934e5fb90e",
+      "kind": "CREATE INDEX idx_persons_addresses ON"
+    },
+    {
+      "source": "supabase/migrations/20260810000001_create_persons_table.sql",
+      "start": 3146,
+      "end": 3265,
+      "line": 83,
+      "sha256": "4e79b92e07802426e4aef7384be10bb98852faeae38ca344fec1b100810cbbc2",
+      "kind": "CREATE INDEX idx_persons_tenant_status ON"
+    },
+    {
+      "source": "supabase/migrations/20260810000001_create_persons_table.sql",
+      "start": 3265,
+      "end": 3530,
+      "line": 86,
+      "sha256": "624194ecdd2bbe5bcedec939f7a4af8675c086aaa1ffb09fc6143806979421ec",
+      "kind": "ALTER TABLE public.persons ENABLE"
+    },
+    {
+      "source": "supabase/migrations/20260810000001_create_persons_table.sql",
+      "start": 3530,
+      "end": 3948,
+      "line": 93,
+      "sha256": "1c725ee0c52b36a802e73c388f7799b92d81786129ea728d9162314336566c6d",
+      "kind": "DO $$ BEGIN IF"
+    },
+    {
+      "source": "supabase/migrations/20260810000001_create_persons_table.sql",
+      "start": 3948,
+      "end": 4357,
+      "line": 108,
+      "sha256": "c5af2d1237d2d8c16b2e56b33b128a8b9c7579e60b3a85b86837b0e5dde1ce96",
+      "kind": "DO $$ BEGIN IF"
+    },
+    {
+      "source": "supabase/migrations/20260810000001_create_persons_table.sql",
+      "start": 4357,
+      "end": 4747,
+      "line": 124,
+      "sha256": "f4236291109343971e99a5b63dd9d425a1bff7e64d7ee5d24796dbc5cf00fd5e",
+      "kind": "CREATE OR REPLACE FUNCTION"
+    },
+    {
+      "source": "supabase/migrations/20260810000001_create_persons_table.sql",
+      "start": 4747,
+      "end": 4892,
+      "line": 137,
+      "sha256": "2bcd48522c534093f7aba67ad75f70342b971d1cb0b14d82b756139bdcaa8019",
+      "kind": "CREATE TRIGGER trigger_persons_updated_at BEFORE"
+    },
+    {
+      "source": "supabase/migrations/20260810000001_create_persons_table.sql",
+      "start": 4892,
+      "end": 5205,
+      "line": 142,
+      "sha256": "fab18586c8bc38ca99f29924e57b747881cd45a24ce63bb496b9d14d0c3c6785",
+      "kind": "COMMENT ON TABLE public.persons"
+    },
+    {
+      "source": "supabase/migrations/20260810000001_create_persons_table.sql",
+      "start": 5205,
+      "end": 5280,
+      "line": 148,
+      "sha256": "c572d335e835b5e9de1f1b7180fce4805bd2fc912df1e95afd0c609c625b9e95",
+      "kind": "COMMENT ON COLUMN public.persons.id"
+    },
+    {
+      "source": "supabase/migrations/20260810000001_create_persons_table.sql",
+      "start": 5280,
+      "end": 5360,
+      "line": 149,
+      "sha256": "cd795da8cb603e2690f54c9ce654cf96365092c14da0831e2ec83677411c45c2",
+      "kind": "COMMENT ON COLUMN public.persons.tenant_id"
+    },
+    {
+      "source": "supabase/migrations/20260810000001_create_persons_table.sql",
+      "start": 5360,
+      "end": 5428,
+      "line": 150,
+      "sha256": "59ba5849a4ef5aeaf2959f165182fd9f85905eaa182e53dafc2bcb98753ce15d",
+      "kind": "COMMENT ON COLUMN public.persons.first_name"
+    },
+    {
+      "source": "supabase/migrations/20260810000001_create_persons_table.sql",
+      "start": 5428,
+      "end": 5494,
+      "line": 151,
+      "sha256": "62dce5c112ca14f4abd0d845adf505b9dc4ef28e7798a17da2bcc965192e0ba4",
+      "kind": "COMMENT ON COLUMN public.persons.last_name"
+    },
+    {
+      "source": "supabase/migrations/20260810000001_create_persons_table.sql",
+      "start": 5494,
+      "end": 5569,
+      "line": 152,
+      "sha256": "b5481a548c3439f59940e3ee234c0e646690f5c18dc1bf58f115489059ec9a12",
+      "kind": "COMMENT ON COLUMN public.persons.middle_name"
+    },
+    {
+      "source": "supabase/migrations/20260810000001_create_persons_table.sql",
+      "start": 5569,
+      "end": 5653,
+      "line": 153,
+      "sha256": "acdad2d874504cb9bcd0c1fc9dfa9f24b5dd8428cb7a8c8c599e25d8985d42ed",
+      "kind": "COMMENT ON COLUMN public.persons.date_of_birth"
+    },
+    {
+      "source": "supabase/migrations/20260810000001_create_persons_table.sql",
+      "start": 5653,
+      "end": 5748,
+      "line": 154,
+      "sha256": "7288dbfb3134d57dcbe8d197be1df9ce147c97a351eb31eb86a5b667f7ee8463",
+      "kind": "COMMENT ON COLUMN public.persons.gender"
+    },
+    {
+      "source": "supabase/migrations/20260810000001_create_persons_table.sql",
+      "start": 5748,
+      "end": 5846,
+      "line": 155,
+      "sha256": "a37afab66e7708aa269541b269d800205586a631aae70f1de30d8993ba6959a7",
+      "kind": "COMMENT ON COLUMN public.persons.nationality"
+    },
+    {
+      "source": "supabase/migrations/20260810000001_create_persons_table.sql",
+      "start": 5846,
+      "end": 5949,
+      "line": 156,
+      "sha256": "58e347f101fc250c0b671fdaf60a52373e2eaeaea9c4dadeac51013c8842c7fb",
+      "kind": "COMMENT ON COLUMN public.persons.identifiers"
+    },
+    {
+      "source": "supabase/migrations/20260810000001_create_persons_table.sql",
+      "start": 5949,
+      "end": 6054,
+      "line": 157,
+      "sha256": "87198b33931f4847a067139b692ccf36380067aa11dc17fbba0d7a6bac04d022",
+      "kind": "COMMENT ON COLUMN public.persons.contacts"
+    },
+    {
+      "source": "supabase/migrations/20260810000001_create_persons_table.sql",
+      "start": 6054,
+      "end": 6137,
+      "line": 158,
+      "sha256": "19084f54e9845c4e5e51ec28220a5fddca29be76bdf281678eb14e517918081d",
+      "kind": "COMMENT ON COLUMN public.persons.addresses"
+    },
+    {
+      "source": "supabase/migrations/20260810000001_create_persons_table.sql",
+      "start": 6137,
+      "end": 6205,
+      "line": 159,
+      "sha256": "86696f9f13208a0cfaa2339f91ff097f6e06f7d910fffdb158434c13fc6d47ea",
+      "kind": "COMMENT ON COLUMN public.persons.photo_url"
+    },
+    {
+      "source": "supabase/migrations/20260810000001_create_persons_table.sql",
+      "start": 6205,
+      "end": 6300,
+      "line": 160,
+      "sha256": "4ec36f6c15c160be48369062468136d0615429b079cb2f746401190127a2fbd4",
+      "kind": "COMMENT ON COLUMN public.persons.preferred_language"
+    },
+    {
+      "source": "supabase/migrations/20260810000001_create_persons_table.sql",
+      "start": 6300,
+      "end": 6398,
+      "line": 161,
+      "sha256": "1009d1f6c3cb20a593dd780fc96c7281c06d696e3194d346df5cace8ec28c650",
+      "kind": "COMMENT ON COLUMN public.persons.status"
+    },
+    {
+      "source": "supabase/migrations/20260810000001_create_persons_table.sql",
+      "start": 6398,
+      "end": 6488,
+      "line": 162,
+      "sha256": "e726f5e5a5d228851ae1405afe2134a87fcf9b4b762ab78ac61462efdbeb73d0",
+      "kind": "COMMENT ON COLUMN public.persons.metadata"
+    },
+    {
+      "source": "supabase/migrations/20260810224417_create_students_table.sql",
+      "start": 861,
+      "end": 2853,
+      "line": 18,
+      "sha256": "7b95ca3969afb7c285606c6ec73e81fde79a955007b0537ea1ccbe25aa1e5234",
+      "kind": "CREATE TABLE IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260810224417_create_students_table.sql",
+      "start": 2853,
+      "end": 3140,
+      "line": 80,
+      "sha256": "253d23caa57f4ebd3328259d7770e2e7acc2407e96d5b19000f18c119c2a86d3",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260810224417_create_students_table.sql",
+      "start": 3140,
+      "end": 3266,
+      "line": 87,
+      "sha256": "f4ba89dce7a34adfd3049e27e1e8e3801bf370b5c1fab7416fd5eb816a4186db",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260810224417_create_students_table.sql",
+      "start": 3266,
+      "end": 3406,
+      "line": 90,
+      "sha256": "12db85cdc79311a350cb93fc80e132f25f327c554ab1ddc33c365fb64ab16e54",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260810224417_create_students_table.sql",
+      "start": 3406,
+      "end": 3553,
+      "line": 93,
+      "sha256": "f1020b1d7d030351b5d1b654760d9de209205535aeb30e8be0720bf16de55eb0",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260810224417_create_students_table.sql",
+      "start": 3553,
+      "end": 3680,
+      "line": 96,
+      "sha256": "92165783cdc664b914c88737e03e909851512e13b854c6c3e01f7ee34862a542",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260810224417_create_students_table.sql",
+      "start": 3680,
+      "end": 3819,
+      "line": 99,
+      "sha256": "ab2fe0043f0fb27de82a1a643576b76d65d0b5bd5faf666e379755c497c4647d",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260810224417_create_students_table.sql",
+      "start": 3819,
+      "end": 3954,
+      "line": 102,
+      "sha256": "c10b665329e0fe02527070db741a60a301aeb5ba5cabb258a03fa605abb22b43",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260810224417_create_students_table.sql",
+      "start": 3954,
+      "end": 4100,
+      "line": 105,
+      "sha256": "8ad37b5291c0e5a76f66492afa22fa1ee783ed2141653c3dd032c5a1268659a8",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260810224417_create_students_table.sql",
+      "start": 4100,
+      "end": 4199,
+      "line": 108,
+      "sha256": "2d76917c0d643fd8de2bfe62758ce87aaac149b662cd0fc45846bf4b9e2df953",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260810224417_create_students_table.sql",
+      "start": 4199,
+      "end": 4465,
+      "line": 109,
+      "sha256": "215e8296bbdb125357a50adb52f446916a727eaa7b94ec1543f7c7e5ab0299f3",
+      "kind": "ALTER TABLE public.students ENABLE"
+    },
+    {
+      "source": "supabase/migrations/20260810224417_create_students_table.sql",
+      "start": 4465,
+      "end": 4888,
+      "line": 116,
+      "sha256": "1214842510f20d60e40cf4f9dc73b8cbe33ea31b3685be1dade76ebcb59ddfcb",
+      "kind": "DO $$ BEGIN IF"
+    },
+    {
+      "source": "supabase/migrations/20260810224417_create_students_table.sql",
+      "start": 4888,
+      "end": 5267,
+      "line": 131,
+      "sha256": "0849f81606c4db5c276aa1021973391ca1beb69f777bdd3b3ffba4bb220b60d3",
+      "kind": "DO $$ BEGIN IF"
+    },
+    {
+      "source": "supabase/migrations/20260810224417_create_students_table.sql",
+      "start": 5267,
+      "end": 5658,
+      "line": 147,
+      "sha256": "d6911500c91d6b5a8d1a95937426188266635bf4a41023bcd309389a5d896f57",
+      "kind": "CREATE OR REPLACE FUNCTION"
+    },
+    {
+      "source": "supabase/migrations/20260810224417_create_students_table.sql",
+      "start": 5658,
+      "end": 5732,
+      "line": 160,
+      "sha256": "b49143d234fd6f1086c46f7276eb0d1946b02775d8d2c8f8a18c22f74675d51b",
+      "kind": "DROP TRIGGER IF EXISTS"
+    },
+    {
+      "source": "supabase/migrations/20260810224417_create_students_table.sql",
+      "start": 5732,
+      "end": 5880,
+      "line": 162,
+      "sha256": "cf661eee15c4ef95d9803022e1e32413d86fd2112b6eeec38275e6b912c7fb06",
+      "kind": "CREATE TRIGGER trigger_students_updated_at BEFORE"
+    },
+    {
+      "source": "supabase/migrations/20260810224417_create_students_table.sql",
+      "start": 5880,
+      "end": 6172,
+      "line": 167,
+      "sha256": "b229f0fe343a1510c611691bdb70dae65c4fd81ef8c6a79b6b746255cdfec181",
+      "kind": "COMMENT ON TABLE public.students"
+    },
+    {
+      "source": "supabase/migrations/20260810224417_create_students_table.sql",
+      "start": 6172,
+      "end": 6257,
+      "line": 173,
+      "sha256": "3b7dff75ed11c46efa774cab83168c5fdd144293670bbd75e3a9399f775ace7f",
+      "kind": "COMMENT ON COLUMN public.students.student_id"
+    },
+    {
+      "source": "supabase/migrations/20260810224417_create_students_table.sql",
+      "start": 6257,
+      "end": 6339,
+      "line": 174,
+      "sha256": "c3d5cd01251df5204281b91210fff44b700d752b2ea362ace1b96efc32b0e055",
+      "kind": "COMMENT ON COLUMN public.students.tenant_id"
+    },
+    {
+      "source": "supabase/migrations/20260810224417_create_students_table.sql",
+      "start": 6339,
+      "end": 6443,
+      "line": 175,
+      "sha256": "efa73695ab65a1154afbf4b8ba06d07803e4a11138aba03ecaa99d3bb0afe8ee",
+      "kind": "COMMENT ON COLUMN public.students.person_id"
+    },
+    {
+      "source": "supabase/migrations/20260810224417_create_students_table.sql",
+      "start": 6443,
+      "end": 6544,
+      "line": 176,
+      "sha256": "c2c899c9cfd51d1b9dbe483108e8fbf59fa11617268fdf0d777d72ca0d285e57",
+      "kind": "COMMENT ON COLUMN public.students.student_code"
+    },
+    {
+      "source": "supabase/migrations/20260810224417_create_students_table.sql",
+      "start": 6544,
+      "end": 6680,
+      "line": 177,
+      "sha256": "269db2251b28a8ef8a5fe0d8536610e540a613bca795e1fd9d5c354a616c1126",
+      "kind": "COMMENT ON COLUMN public.students.academic_status"
+    },
+    {
+      "source": "supabase/migrations/20260810224417_create_students_table.sql",
+      "start": 6680,
+      "end": 6795,
+      "line": 178,
+      "sha256": "479ecdf753f651ae4f3c0736e1098bc957a9c64f33054ef90a5663d89dcc0d3e",
+      "kind": "COMMENT ON COLUMN public.students.enrollment_type"
+    },
+    {
+      "source": "supabase/migrations/20260810224417_create_students_table.sql",
+      "start": 6795,
+      "end": 6882,
+      "line": 179,
+      "sha256": "b41003e705d82b2931eea25c22c5d5b0ae7668340994ebfd02354fc6adf08857",
+      "kind": "COMMENT ON COLUMN public.students.program_id"
+    },
+    {
+      "source": "supabase/migrations/20260810224417_create_students_table.sql",
+      "start": 6882,
+      "end": 6961,
+      "line": 180,
+      "sha256": "f7b9039c218d353791242d18a02f9900e12139bde5e3a5eef6a2bf30b5c71155",
+      "kind": "COMMENT ON COLUMN public.students.enrollment_date"
+    },
+    {
+      "source": "supabase/migrations/20260810224417_create_students_table.sql",
+      "start": 6961,
+      "end": 7052,
+      "line": 181,
+      "sha256": "4ac12105cf5b16d09de96b4d0cad3a6eef82a771daa9da787c4fe29824fa7b9f",
+      "kind": "COMMENT ON COLUMN public.students.expected_graduation_date"
+    },
+    {
+      "source": "supabase/migrations/20260810224417_create_students_table.sql",
+      "start": 7052,
+      "end": 7156,
+      "line": 182,
+      "sha256": "f23016a7493cd8295b9bbe47b0b454f8c5770c677d545e1d65b9b9c4cc77476a",
+      "kind": "COMMENT ON COLUMN public.students.actual_graduation_date"
+    },
+    {
+      "source": "supabase/migrations/20260810224417_create_students_table.sql",
+      "start": 7156,
+      "end": 7261,
+      "line": 183,
+      "sha256": "51112276f62dc57e88c337df405163f8a32787afb8782967fa771207790631c9",
+      "kind": "COMMENT ON COLUMN public.students.current_level"
+    },
+    {
+      "source": "supabase/migrations/20260810224417_create_students_table.sql",
+      "start": 7261,
+      "end": 7338,
+      "line": 184,
+      "sha256": "a832158af979ca0e3509061fd906216ceb8cf7fccd3cab10bf9acfcd48776811",
+      "kind": "COMMENT ON COLUMN public.students.gpa"
+    },
+    {
+      "source": "supabase/migrations/20260810224417_create_students_table.sql",
+      "start": 7338,
+      "end": 7414,
+      "line": 185,
+      "sha256": "5da1729c18abc30a9b05691e67d591fb19cb439cd881ad31bff20e071348bc4f",
+      "kind": "COMMENT ON COLUMN public.students.total_credits"
+    },
+    {
+      "source": "supabase/migrations/20260810224417_create_students_table.sql",
+      "start": 7414,
+      "end": 7520,
+      "line": 186,
+      "sha256": "98d98a06547af054561d22a919c6e24b2cf67ba988a21fb478341ba689788aac",
+      "kind": "COMMENT ON COLUMN public.students.emergency_contact_name"
+    },
+    {
+      "source": "supabase/migrations/20260810224417_create_students_table.sql",
+      "start": 7520,
+      "end": 7609,
+      "line": 187,
+      "sha256": "0b75b07c35e12aaf731d663575aeff8af7762a9dc6697930c5de5f5ebb461ea3",
+      "kind": "COMMENT ON COLUMN public.students.emergency_contact_phone"
+    },
+    {
+      "source": "supabase/migrations/20260810224417_create_students_table.sql",
+      "start": 7609,
+      "end": 7705,
+      "line": 188,
+      "sha256": "315505de7c342830ad2689e6a49931630587869fb94adde7148958ded13161d0",
+      "kind": "COMMENT ON COLUMN public.students.emergency_contact_relationship"
+    },
+    {
+      "source": "supabase/migrations/20260810224417_create_students_table.sql",
+      "start": 7705,
+      "end": 7796,
+      "line": 189,
+      "sha256": "e0708d3c5190e1c57f78f1c2f5ab326c6aa97711e30ebe79dcbfb7c98dca4f4f",
+      "kind": "COMMENT ON COLUMN public.students.metadata"
+    },
+    {
+      "source": "supabase/migrations/20260810231500_create_courses_and_enrollments.sql",
+      "start": 720,
+      "end": 1634,
+      "line": 15,
+      "sha256": "58fd567116f42e13195f9911bbb005b6973869a6ef0a657c1a40491275c0a936",
+      "kind": "CREATE TABLE IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260810231500_create_courses_and_enrollments.sql",
+      "start": 1634,
+      "end": 1728,
+      "line": 38,
+      "sha256": "f55722463cd21c998d48984fa675b5817e93b5c3a24f4c5c4811234f9fda6eb2",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260810231500_create_courses_and_enrollments.sql",
+      "start": 1728,
+      "end": 1812,
+      "line": 41,
+      "sha256": "de085d988acb0e8dec06c6fc9aaab50fc610fdd165eda7b2c3f0197a324858a0",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260810231500_create_courses_and_enrollments.sql",
+      "start": 1812,
+      "end": 1886,
+      "line": 42,
+      "sha256": "b8945115a389048a0b04c944cb0764ced8f0ad1ad195ed4419d73df5782aee46",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260810231500_create_courses_and_enrollments.sql",
+      "start": 1886,
+      "end": 1951,
+      "line": 43,
+      "sha256": "9bd8cc34d88d90de05c9a105a53865eea2385181739e83b1bf14ac13b33dc02b",
+      "kind": "ALTER TABLE public.courses ENABLE"
+    },
+    {
+      "source": "supabase/migrations/20260810231500_create_courses_and_enrollments.sql",
+      "start": 1951,
+      "end": 2269,
+      "line": 46,
+      "sha256": "77705beed1b07216e3e020055255ee51e43605adf888e88498b8e7feb4f2daf6",
+      "kind": "DO $$ BEGIN IF"
+    },
+    {
+      "source": "supabase/migrations/20260810231500_create_courses_and_enrollments.sql",
+      "start": 2269,
+      "end": 2438,
+      "line": 53,
+      "sha256": "7c7a3b3a33d3a479da1ee41768524965b7ab98168279e91d358959e1324873fd",
+      "kind": "CREATE OR REPLACE FUNCTION"
+    },
+    {
+      "source": "supabase/migrations/20260810231500_create_courses_and_enrollments.sql",
+      "start": 2438,
+      "end": 2510,
+      "line": 61,
+      "sha256": "7980a21e8b611a30f5400c1e0128ced39a75ed444f5575aac7e3308ddc6d2407",
+      "kind": "DROP TRIGGER IF EXISTS"
+    },
+    {
+      "source": "supabase/migrations/20260810231500_create_courses_and_enrollments.sql",
+      "start": 2510,
+      "end": 2644,
+      "line": 63,
+      "sha256": "17d43f5a07eab0f8088c63ded95b0158be23e98b9c7e639916827e733075c0a2",
+      "kind": "CREATE TRIGGER trigger_courses_updated_at BEFORE"
+    },
+    {
+      "source": "supabase/migrations/20260810231500_create_courses_and_enrollments.sql",
+      "start": 2644,
+      "end": 4321,
+      "line": 64,
+      "sha256": "4368a6f5b4193737b9ecf5afd9d6e895a066f3ccd80250bf309295868390f4b1",
+      "kind": "CREATE TABLE IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260810231500_create_courses_and_enrollments.sql",
+      "start": 4321,
+      "end": 4423,
+      "line": 94,
+      "sha256": "adb9b3e43eda6384f894561bf975bd878a76e1ab6bf814a37e592c82c4134dc5",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260810231500_create_courses_and_enrollments.sql",
+      "start": 4423,
+      "end": 4513,
+      "line": 97,
+      "sha256": "733d414c025c464340b0992c83ed23509514d5074f330137d691b067914f699f",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260810231500_create_courses_and_enrollments.sql",
+      "start": 4513,
+      "end": 4601,
+      "line": 98,
+      "sha256": "f4800cd5c709f56c3295a30321313d573a3b665d17178179ea62b7a3b09231a5",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260810231500_create_courses_and_enrollments.sql",
+      "start": 4601,
+      "end": 4683,
+      "line": 99,
+      "sha256": "dca81c7b53f97705df9db8989d7731f2db150efa3f1568ec0d179e31ddf397f7",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260810231500_create_courses_and_enrollments.sql",
+      "start": 4683,
+      "end": 4783,
+      "line": 100,
+      "sha256": "a0f7bb52517bd3a89c47771572250aa117c12346138939a7cf8209204c48186f",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260810231500_create_courses_and_enrollments.sql",
+      "start": 4783,
+      "end": 4883,
+      "line": 101,
+      "sha256": "1f5fc15f69d293f20917306a22bfc2a026ddd963622b69b6a6ea120a1448f602",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260810231500_create_courses_and_enrollments.sql",
+      "start": 4883,
+      "end": 4952,
+      "line": 102,
+      "sha256": "36576714fd50518a977697807e484f2b6a90eb0d58f264a1225fc50c837899b6",
+      "kind": "ALTER TABLE public.enrollments ENABLE"
+    },
+    {
+      "source": "supabase/migrations/20260810231500_create_courses_and_enrollments.sql",
+      "start": 4952,
+      "end": 5286,
+      "line": 105,
+      "sha256": "fe598dc2503a77eaa28f8fdcea97216c34994d56d279fc98f7a079bf207034db",
+      "kind": "DO $$ BEGIN IF"
+    },
+    {
+      "source": "supabase/migrations/20260810231500_create_courses_and_enrollments.sql",
+      "start": 5286,
+      "end": 5459,
+      "line": 112,
+      "sha256": "fab5255dfb302de156ff5cae93887d190bdc5bcf39161b5a8f1aa90c9f231997",
+      "kind": "CREATE OR REPLACE FUNCTION"
+    },
+    {
+      "source": "supabase/migrations/20260810231500_create_courses_and_enrollments.sql",
+      "start": 5459,
+      "end": 5539,
+      "line": 120,
+      "sha256": "460668ae4aceeb65f8d2a6572f3d430a860e99ba930304fdc54c28206130be8d",
+      "kind": "DROP TRIGGER IF EXISTS"
+    },
+    {
+      "source": "supabase/migrations/20260810231500_create_courses_and_enrollments.sql",
+      "start": 5539,
+      "end": 5685,
+      "line": 122,
+      "sha256": "7fc2294d808f1a0c7bb433043449179e6ad7c6c68e815ab8018fd74325792f87",
+      "kind": "CREATE TRIGGER trigger_enrollments_updated_at BEFORE"
+    },
+    {
+      "source": "supabase/migrations/20260810235000_create_attendances.sql",
+      "start": 0,
+      "end": 2163,
+      "line": 1,
+      "sha256": "8cf2001e84719e8f9340e9e2883cd42306fb5eaa7c48891327079d98ffeff5b5",
+      "kind": "CREATE TABLE IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260810235000_create_attendances.sql",
+      "start": 2163,
+      "end": 2278,
+      "line": 57,
+      "sha256": "3e17743ce3908dfbe4bb84d7fed7506aa9d4fb62515aa8db345bd9a60fd74f13",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260810235000_create_attendances.sql",
+      "start": 2278,
+      "end": 2365,
+      "line": 60,
+      "sha256": "bed26bea8be8174b752dde227126198fb6830b2bedc9356d4cee8ac873a9c222",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260810235000_create_attendances.sql",
+      "start": 2365,
+      "end": 2450,
+      "line": 61,
+      "sha256": "dd8e5e137218a5ca3c539aeecf1c9974fcffbe597ff7dc39ddc74d953b1e2f49",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260810235000_create_attendances.sql",
+      "start": 2450,
+      "end": 2543,
+      "line": 62,
+      "sha256": "f74d84b451c6eed412f5bf9952a887306f4d412f1e5a1864be5a9b7fb6ebf6b5",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260810235000_create_attendances.sql",
+      "start": 2543,
+      "end": 2637,
+      "line": 63,
+      "sha256": "4abf7b0dbb3ff5a030f026857b1fef43bae0668c4e56e4f99710466dd842a127",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260810235000_create_attendances.sql",
+      "start": 2637,
+      "end": 2719,
+      "line": 64,
+      "sha256": "beef3385559e66cf965ebebe9a1b2d52208ff17f3b19958d600456b9994f9c9b",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260810235000_create_attendances.sql",
+      "start": 2719,
+      "end": 2865,
+      "line": 65,
+      "sha256": "3d1f17e1fc309ff37209e118dace8d6473786f285333cdb81e36aaa6e0e7e184",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260810235000_create_attendances.sql",
+      "start": 2865,
+      "end": 2969,
+      "line": 68,
+      "sha256": "1e347602eb7f6d649134bc1ab335451ca974639235d65358715e6fad98ae9d94",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260810235000_create_attendances.sql",
+      "start": 2969,
+      "end": 3221,
+      "line": 69,
+      "sha256": "a8513b7aa42d3f1c02c7225e046fec7529fbfc54e981f9a222a67771b9d96a89",
+      "kind": "CREATE UNIQUE INDEX IF"
+    },
+    {
+      "source": "supabase/migrations/20260810235000_create_attendances.sql",
+      "start": 3221,
+      "end": 3312,
+      "line": 73,
+      "sha256": "96a8b361c3418aff89a15db37a806d9b5446c3966233aa575614e85f330fd791",
+      "kind": "ALTER TABLE public.attendances ENABLE"
+    },
+    {
+      "source": "supabase/migrations/20260810235000_create_attendances.sql",
+      "start": 3312,
+      "end": 3531,
+      "line": 76,
+      "sha256": "53fc38e56b5b0d6b01ff5e3d97d089d42aeb9d32eaf8e3828fc6cc6fcc39d23b",
+      "kind": "CREATE POLICY tenant_isolation_policy ON"
+    },
+    {
+      "source": "supabase/migrations/20260810235000_create_attendances.sql",
+      "start": 3531,
+      "end": 3697,
+      "line": 81,
+      "sha256": "f2bf36a12ee55058112c1a32b147289f7c1252659365a8d70ce1ea32b22ec191",
+      "kind": "CREATE TRIGGER set_updated_at BEFORE"
+    },
+    {
+      "source": "supabase/migrations/20260810235000_create_attendances.sql",
+      "start": 3697,
+      "end": 3799,
+      "line": 87,
+      "sha256": "e16e9d16abd6d30566d52cb833fc49ae96d44afd7530fc993b6166f67c58730f",
+      "kind": "GRANT SELECT, INSERT, UPDATE,"
+    },
+    {
+      "source": "supabase/migrations/20260810235000_create_attendances.sql",
+      "start": 3799,
+      "end": 3876,
+      "line": 90,
+      "sha256": "935758ea3d0b7d6a523d9e886b42bbf7c9b2d6270cab17c90c58d33b8207997c",
+      "kind": "GRANT SELECT, INSERT, UPDATE,"
+    },
+    {
+      "source": "supabase/migrations/20260810235000_create_attendances.sql",
+      "start": 3876,
+      "end": 3981,
+      "line": 91,
+      "sha256": "88256060c3fd5fddb0d15f3f804b0d2cc65f8537dea033ea6da860466fd9c4b0",
+      "kind": "COMMENT ON TABLE public.attendances"
+    },
+    {
+      "source": "supabase/migrations/20260810235000_create_attendances.sql",
+      "start": 3981,
+      "end": 4051,
+      "line": 94,
+      "sha256": "c6d28f80005549d5e7a2637ed2645abaf85d2bd225cce78278453103b047ec51",
+      "kind": "COMMENT ON COLUMN public.attendances.attendance_id"
+    },
+    {
+      "source": "supabase/migrations/20260810235000_create_attendances.sql",
+      "start": 4051,
+      "end": 4122,
+      "line": 95,
+      "sha256": "99ce59e98258170cf1de83fbff47fe68b39b394edd21aca848c25cde3808fac3",
+      "kind": "COMMENT ON COLUMN public.attendances.tenant_id"
+    },
+    {
+      "source": "supabase/migrations/20260810235000_create_attendances.sql",
+      "start": 4122,
+      "end": 4207,
+      "line": 96,
+      "sha256": "0549a33c50acd20464f3d5b208ee9064dcf63e8803340a2b2f41f033639f8162",
+      "kind": "COMMENT ON COLUMN public.attendances.student_id"
+    },
+    {
+      "source": "supabase/migrations/20260810235000_create_attendances.sql",
+      "start": 4207,
+      "end": 4290,
+      "line": 97,
+      "sha256": "037f31721a302973c554bfe912162a6d303524b626f4e21adfb601084c2cde1b",
+      "kind": "COMMENT ON COLUMN public.attendances.course_id"
+    },
+    {
+      "source": "supabase/migrations/20260810235000_create_attendances.sql",
+      "start": 4290,
+      "end": 4390,
+      "line": 98,
+      "sha256": "c5e105f9b89a80aa31c7d81a657e95e5ce5e17d4d0ec4bdfa2e3c50f3fedd89a",
+      "kind": "COMMENT ON COLUMN public.attendances.enrollment_id"
+    },
+    {
+      "source": "supabase/migrations/20260810235000_create_attendances.sql",
+      "start": 4390,
+      "end": 4474,
+      "line": 99,
+      "sha256": "8764f09f4d7c70c0e596505466f2ede2a15686e5c9abcb3766c4d8d5ecb2106a",
+      "kind": "COMMENT ON COLUMN public.attendances.session_date"
+    },
+    {
+      "source": "supabase/migrations/20260810235000_create_attendances.sql",
+      "start": 4474,
+      "end": 4584,
+      "line": 100,
+      "sha256": "64e9d4dc27d8b01c275227f81882699241cc770a157a7b6bf8856174763392b9",
+      "kind": "COMMENT ON COLUMN public.attendances.status"
+    },
+    {
+      "source": "supabase/migrations/20260810235000_create_attendances.sql",
+      "start": 4584,
+      "end": 4672,
+      "line": 101,
+      "sha256": "dcacb5248787abd1b337754ddf0e52889539e1ba9b93a17230f06360b9d54ea5",
+      "kind": "COMMENT ON COLUMN public.attendances.minutes_late"
+    },
+    {
+      "source": "supabase/migrations/20260810235000_create_attendances.sql",
+      "start": 4672,
+      "end": 4762,
+      "line": 102,
+      "sha256": "ec54623a1dad7bc2495ebfa12b3e19abbd613e4c4b2cbdd75ea92558815bbe98",
+      "kind": "COMMENT ON COLUMN public.attendances.verified_by"
+    },
+    {
+      "source": "supabase/migrations/20260812060000_create_education_schema.sql",
+      "start": 0,
+      "end": 684,
+      "line": 1,
+      "sha256": "ab81235e080eced41cde7a496f9c4bf124d20f46afa849af7db7ff323a1cce91",
+      "kind": "CREATE TABLE IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260812060000_create_education_schema.sql",
+      "start": 684,
+      "end": 1581,
+      "line": 15,
+      "sha256": "79b6e83ca7d831931cf2e712d7cbe34cbaf2523dfb91d89a43895479e7cb9409",
+      "kind": "CREATE TABLE IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260812060000_create_education_schema.sql",
+      "start": 1581,
+      "end": 1692,
+      "line": 29,
+      "sha256": "c5cbe2bdf2cafde48a3b3f335b636911bdae6d4c264336b6839623cf6f2abc1c",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260812060000_create_education_schema.sql",
+      "start": 1692,
+      "end": 1785,
+      "line": 32,
+      "sha256": "73bed9fdeb14ca5e393fb057cece81980464595949a8f692d0b6a1c433ca3c02",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260812060000_create_education_schema.sql",
+      "start": 1785,
+      "end": 1886,
+      "line": 33,
+      "sha256": "95f8b5339e95a54bfa47a36e68a0a9af2fd7b5e5384b39d30face4a0808fb058",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260812060000_create_education_schema.sql",
+      "start": 1886,
+      "end": 1979,
+      "line": 34,
+      "sha256": "ecf84c7936a1206d8bdb48d2319377f9a457579e4910ad8d2511420847ff993c",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260812060000_create_education_schema.sql",
+      "start": 1979,
+      "end": 2055,
+      "line": 35,
+      "sha256": "67b51a8dfdec96b6a56fce3fb87e5e08f733f04d628e1864088a74be72d04c80",
+      "kind": "ALTER TABLE public.edu_courses ENABLE"
+    },
+    {
+      "source": "supabase/migrations/20260812060000_create_education_schema.sql",
+      "start": 2055,
+      "end": 2118,
+      "line": 38,
+      "sha256": "fec0ad5bfb00c705d7f8c80cb08a318426d68bbe28547d096570395227c1f87a",
+      "kind": "ALTER TABLE public.edu_enrollments ENABLE"
+    },
+    {
+      "source": "supabase/migrations/20260812060000_create_education_schema.sql",
+      "start": 2118,
+      "end": 2229,
+      "line": 39,
+      "sha256": "151cbcf4eec4699ee07dc2b5520e78f202cea5e975e86a8b1ed04e16975e8838",
+      "kind": "DROP POLICY IF EXISTS"
+    },
+    {
+      "source": "supabase/migrations/20260812060000_create_education_schema.sql",
+      "start": 2229,
+      "end": 2382,
+      "line": 42,
+      "sha256": "4d429769b6de7ce3a0229bb8032d1656b0281ffb9d21894b76040454d02a1eda",
+      "kind": "CREATE POLICY edu_courses_tenant_isolation ON"
+    },
+    {
+      "source": "supabase/migrations/20260812060000_create_education_schema.sql",
+      "start": 2382,
+      "end": 2467,
+      "line": 44,
+      "sha256": "1822892e4a57cd7b36f13d2c4c3626f1bd06107e8b88f6d6baa0ee55fd26c214",
+      "kind": "DROP POLICY IF EXISTS"
+    },
+    {
+      "source": "supabase/migrations/20260812060000_create_education_schema.sql",
+      "start": 2467,
+      "end": 2628,
+      "line": 46,
+      "sha256": "6b06dceadf8958447e92220f1be6885698dc33175eb257aa1948c27339045342",
+      "kind": "CREATE POLICY edu_enrollments_tenant_isolation ON"
+    },
+    {
+      "source": "supabase/migrations/20260813000020_create_edu_attendance_and_assessment.sql",
+      "start": 0,
+      "end": 612,
+      "line": 1,
+      "sha256": "fd89862a6cf6d338a372b1f8924122efbf6c96a76f6dc0f6dab2a6eefd8336c7",
+      "kind": "CREATE TABLE public.edu_attendance ("
+    },
+    {
+      "source": "supabase/migrations/20260813000020_create_edu_attendance_and_assessment.sql",
+      "start": 612,
+      "end": 1207,
+      "line": 13,
+      "sha256": "9c98a76ade46036702965303327b1c6c69347cca3f1f702fb249c3576197df28",
+      "kind": "CREATE TABLE public.edu_assessments ("
+    },
+    {
+      "source": "supabase/migrations/20260813000020_create_edu_attendance_and_assessment.sql",
+      "start": 1207,
+      "end": 1312,
+      "line": 26,
+      "sha256": "9afab484ec8c2646a204bec2d41e90f3fa2e99bb97bf08f64578c5a4f9d262f2",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260813000020_create_edu_attendance_and_assessment.sql",
+      "start": 1312,
+      "end": 1411,
+      "line": 29,
+      "sha256": "c8c5238119ae9c0f96b6ec76370fad4a1e492fd861c76855f799cae5f39f6f1e",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260813000020_create_edu_attendance_and_assessment.sql",
+      "start": 1411,
+      "end": 1504,
+      "line": 30,
+      "sha256": "b18d87ea5fe90bff4744b2b7638a5a0edbe7306ebca451351a8a6a814f7e132d",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260813000020_create_edu_attendance_and_assessment.sql",
+      "start": 1504,
+      "end": 1605,
+      "line": 31,
+      "sha256": "9703b4b6c5819a266157ea7e38733aa8e3a58021f5fe90871aa4df12fce993ca",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260813000020_create_edu_attendance_and_assessment.sql",
+      "start": 1605,
+      "end": 1684,
+      "line": 32,
+      "sha256": "f1a4f64c094b022a7db32988f47b63ba802121450791c34459b5bcb2a0f8c225",
+      "kind": "ALTER TABLE public.edu_attendance ENABLE"
+    },
+    {
+      "source": "supabase/migrations/20260813000020_create_edu_attendance_and_assessment.sql",
+      "start": 1684,
+      "end": 1747,
+      "line": 35,
+      "sha256": "b1963774565b3c6486f7a11f3bdefd1bfd931e47c5eea565906ebfdb54884897",
+      "kind": "ALTER TABLE public.edu_assessments ENABLE"
+    },
+    {
+      "source": "supabase/migrations/20260813000020_create_edu_attendance_and_assessment.sql",
+      "start": 1747,
+      "end": 1860,
+      "line": 36,
+      "sha256": "9396c3e233156e44974b7c444094e9877ca2ea7d11539c9cab5cca797854667f",
+      "kind": "DROP POLICY IF EXISTS"
+    },
+    {
+      "source": "supabase/migrations/20260813000020_create_edu_attendance_and_assessment.sql",
+      "start": 1860,
+      "end": 2019,
+      "line": 39,
+      "sha256": "162ba790a88229e3c44f2526ed906353eeb38558a36823cb438636c71368f0e2",
+      "kind": "CREATE POLICY edu_attendance_tenant_isolation ON"
+    },
+    {
+      "source": "supabase/migrations/20260813000020_create_edu_attendance_and_assessment.sql",
+      "start": 2019,
+      "end": 2104,
+      "line": 41,
+      "sha256": "c6240ae36bcde6188a9acc49af8f5aa8d30f988b29682871453d36889ae5f7b4",
+      "kind": "DROP POLICY IF EXISTS"
+    },
+    {
+      "source": "supabase/migrations/20260813000020_create_edu_attendance_and_assessment.sql",
+      "start": 2104,
+      "end": 2265,
+      "line": 43,
+      "sha256": "46970f0cfb24e31aba47fef0d6f5eab1100c5133ae90ab091ae9ba0f350b6d66",
+      "kind": "CREATE POLICY edu_assessments_tenant_isolation ON"
+    },
+    {
+      "source": "supabase/migrations/20260813000030_create_assessments_and_results.sql",
+      "start": 0,
+      "end": 934,
+      "line": 1,
+      "sha256": "5c799260203168a4a7fcd2e65ffbaf8e1bdd04ad0de1a53e78421b5c445357e3",
+      "kind": "CREATE TABLE IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260813000030_create_assessments_and_results.sql",
+      "start": 934,
+      "end": 1665,
+      "line": 21,
+      "sha256": "797b28da8df6e587c41475e6a38a2e3fc8b6da9c74408d91cd699df57c88f954",
+      "kind": "CREATE TABLE IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260813000030_create_assessments_and_results.sql",
+      "start": 1665,
+      "end": 1741,
+      "line": 37,
+      "sha256": "44e0f4434d8f58cb7d47693fea5ce3474c9e454d2966b39c544f6d2aeee9d545",
+      "kind": "ALTER TABLE public.assessments ENABLE"
+    },
+    {
+      "source": "supabase/migrations/20260813000030_create_assessments_and_results.sql",
+      "start": 1741,
+      "end": 1807,
+      "line": 40,
+      "sha256": "c8526a2118f616539a0417855992c35a3b98cfbc0ad708e8a8116c8d9c778f25",
+      "kind": "ALTER TABLE public.assessment_results ENABLE"
+    },
+    {
+      "source": "supabase/migrations/20260813000030_create_assessments_and_results.sql",
+      "start": 1807,
+      "end": 1914,
+      "line": 41,
+      "sha256": "ad1aabeab8d9a9b81152afd4f0c709051ea481c39129f8c5128ab2d46e537cbf",
+      "kind": "DROP POLICY IF EXISTS"
+    },
+    {
+      "source": "supabase/migrations/20260813000030_create_assessments_and_results.sql",
+      "start": 1914,
+      "end": 2067,
+      "line": 44,
+      "sha256": "3e0c6bf37fc39e09517162291ae844e6b6bbc88ca87fe54b0f5f38fe224d9458",
+      "kind": "CREATE POLICY assessments_tenant_isolation ON"
+    },
+    {
+      "source": "supabase/migrations/20260813000030_create_assessments_and_results.sql",
+      "start": 2067,
+      "end": 2158,
+      "line": 46,
+      "sha256": "ba526121588e6d88198acc8b1771b58907caf7646b8b01ab785a79be78cb33fe",
+      "kind": "DROP POLICY IF EXISTS"
+    },
+    {
+      "source": "supabase/migrations/20260813000030_create_assessments_and_results.sql",
+      "start": 2158,
+      "end": 2325,
+      "line": 48,
+      "sha256": "4b8910b0cb4e4af795a0e39fa671fb1c16094faa23800994e64b4c3e7c1d0f4c",
+      "kind": "CREATE POLICY assessment_results_tenant_isolation ON"
+    },
+    {
+      "source": "supabase/migrations/20260813000030_create_assessments_and_results.sql",
+      "start": 2325,
+      "end": 2448,
+      "line": 50,
+      "sha256": "31855be5e3784ab349d4a215ac78ba9d5a9b9676c606240df915d9c5510f3a07",
+      "kind": "GRANT ALL ON public.assessments"
+    },
+    {
+      "source": "supabase/migrations/20260813000030_create_assessments_and_results.sql",
+      "start": 2448,
+      "end": 2520,
+      "line": 53,
+      "sha256": "f3a3cbad9d4168a24e3eb8c3d5441e79a166b55fc4050bb7d3db0044e6aa08dc",
+      "kind": "GRANT ALL ON public.assessment_results"
+    },
+    {
+      "source": "supabase/migrations/20260813000040_create_enrollment_transaction_rpc.sql",
+      "start": 0,
+      "end": 316,
+      "line": 1,
+      "sha256": "dcb9a60f51bc94f7d83d2355516da69e3f605aaa11581dd3de825fa672517ccf",
+      "kind": "DROP FUNCTION IF EXISTS"
+    },
+    {
+      "source": "supabase/migrations/20260813000040_create_enrollment_transaction_rpc.sql",
+      "start": 316,
+      "end": 453,
+      "line": 5,
+      "sha256": "938422b32bae8c3f16a083f52f9c46d29280a4df9c81f817a6160c57ef91035d",
+      "kind": "ALTER TYPE public.platform_rule_domain ADD"
+    },
+    {
+      "source": "supabase/migrations/20260813000040_create_enrollment_transaction_rpc.sql",
+      "start": 453,
+      "end": 607,
+      "line": 8,
+      "sha256": "34ba0722563236b0dcf1440b2042139375837ba1765a29c37651da29ba82e16a",
+      "kind": "ALTER TABLE public.edu_courses ADD"
+    },
+    {
+      "source": "supabase/migrations/20260813000040_create_enrollment_transaction_rpc.sql",
+      "start": 607,
+      "end": 702,
+      "line": 11,
+      "sha256": "c0f6144816729e4296ede6acec6b4b2906008519ed37fc0baad3213dc8658175",
+      "kind": "ALTER TABLE public.edu_courses ADD"
+    },
+    {
+      "source": "supabase/migrations/20260813000040_create_enrollment_transaction_rpc.sql",
+      "start": 702,
+      "end": 806,
+      "line": 12,
+      "sha256": "e32488cecfd6d88cb591c7259d3dfd10d28b7c00fc23e48a4643fc76fbc1ad09",
+      "kind": "ALTER TABLE public.edu_courses ADD"
+    },
+    {
+      "source": "supabase/migrations/20260813000040_create_enrollment_transaction_rpc.sql",
+      "start": 806,
+      "end": 1001,
+      "line": 13,
+      "sha256": "41df34bd464a837e57fafa3364b0c73c730c69bf83e1382797006ba8bd9b6851",
+      "kind": "ALTER TABLE public.edu_courses DROP"
+    },
+    {
+      "source": "supabase/migrations/20260813000040_create_enrollment_transaction_rpc.sql",
+      "start": 1001,
+      "end": 1089,
+      "line": 16,
+      "sha256": "dcfaf96d5095d225e5c06a18f00a4a84e05a1041d161c386a8e0bdd92da86c89",
+      "kind": "ALTER TABLE public.edu_courses DROP"
+    },
+    {
+      "source": "supabase/migrations/20260813000040_create_enrollment_transaction_rpc.sql",
+      "start": 1089,
+      "end": 1173,
+      "line": 17,
+      "sha256": "477308011456348166f65a2fc7fb8fffe5bcbf1b445c8932068167422e668a2c",
+      "kind": "ALTER TABLE public.edu_courses DROP"
+    },
+    {
+      "source": "supabase/migrations/20260813000040_create_enrollment_transaction_rpc.sql",
+      "start": 1173,
+      "end": 1343,
+      "line": 18,
+      "sha256": "75b2098fae0d5732a117c74d7208f532a682e6edff6dc85ed13740907a71ea90",
+      "kind": "ALTER TABLE public.edu_courses ADD"
+    },
+    {
+      "source": "supabase/migrations/20260813000040_create_enrollment_transaction_rpc.sql",
+      "start": 1343,
+      "end": 1469,
+      "line": 21,
+      "sha256": "ead10f03f5dd07620bfaa4a6784e93d0d7cffa56011526028f1fec90f7a6a575",
+      "kind": "ALTER TABLE public.edu_courses ADD"
+    },
+    {
+      "source": "supabase/migrations/20260813000040_create_enrollment_transaction_rpc.sql",
+      "start": 1469,
+      "end": 1609,
+      "line": 22,
+      "sha256": "40fca7aff08de11b1de965dc3ed9767788535babe690b420e827b22dab0f209b",
+      "kind": "ALTER TABLE public.edu_courses ADD"
+    },
+    {
+      "source": "supabase/migrations/20260813000040_create_enrollment_transaction_rpc.sql",
+      "start": 1609,
+      "end": 1776,
+      "line": 23,
+      "sha256": "59492901798397a96311f41b6353d1c3488585c65e14a9daa7fdde12b496fd5f",
+      "kind": "ALTER TABLE public.edu_enrollments ADD"
+    },
+    {
+      "source": "supabase/migrations/20260813000040_create_enrollment_transaction_rpc.sql",
+      "start": 1776,
+      "end": 1847,
+      "line": 26,
+      "sha256": "f9495a9b91c1bab928a5500af2c769ab14f1ea479a4f4ee79941a062b75d42e4",
+      "kind": "ALTER TABLE public.edu_enrollments ALTER"
+    },
+    {
+      "source": "supabase/migrations/20260813000040_create_enrollment_transaction_rpc.sql",
+      "start": 2012,
+      "end": 2134,
+      "line": 30,
+      "sha256": "3d494e0c1cfabf2b8780c49dec5fca4a82c8193057ab4c34b70898eb16d08d21",
+      "kind": "ALTER TABLE public.edu_enrollments ALTER"
+    },
+    {
+      "source": "supabase/migrations/20260813000040_create_enrollment_transaction_rpc.sql",
+      "start": 2134,
+      "end": 2292,
+      "line": 33,
+      "sha256": "d1c9261c6e4a212ed5ea98d7320fb0b548e09b71dd9caa5901d3f0cb3d8e0fa6",
+      "kind": "ALTER TABLE public.edu_enrollments DROP"
+    },
+    {
+      "source": "supabase/migrations/20260813000040_create_enrollment_transaction_rpc.sql",
+      "start": 2292,
+      "end": 2405,
+      "line": 36,
+      "sha256": "1fa5fd09c5d9e90cda90425c84227910ce970aecaed87ed6209e5c555b3199fe",
+      "kind": "ALTER TABLE public.edu_enrollments ADD"
+    },
+    {
+      "source": "supabase/migrations/20260813000040_create_enrollment_transaction_rpc.sql",
+      "start": 2405,
+      "end": 5424,
+      "line": 37,
+      "sha256": "09f26d5d7cbc583c3ece13efe25911209261564d898cbe731a5cd3a49f1226b7",
+      "kind": "CREATE OR REPLACE FUNCTION"
+    },
+    {
+      "source": "supabase/migrations/20260813000050_create_teacher_assignments.sql",
+      "start": 0,
+      "end": 1662,
+      "line": 1,
+      "sha256": "ca122dd84ecd0e8c36693cd93dca0ddfe021115849e96c8230bb163a0a25c5d8",
+      "kind": "CREATE TABLE IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260813000050_create_teacher_assignments.sql",
+      "start": 1662,
+      "end": 1799,
+      "line": 28,
+      "sha256": "09a19efbde682fba03e3e1e731328816130b95efd7361296648d7c29ce5a4bbd",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260813000050_create_teacher_assignments.sql",
+      "start": 1799,
+      "end": 1900,
+      "line": 31,
+      "sha256": "789384f24f9a15bc0fd0af47443e77bf9ff470c204651115ac2d919876112115",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260813000050_create_teacher_assignments.sql",
+      "start": 1900,
+      "end": 2009,
+      "line": 32,
+      "sha256": "b4821769b79cac071a300f0ba37cd3304965dfafd706c100f887009688c7c2ca",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260813000050_create_teacher_assignments.sql",
+      "start": 2009,
+      "end": 2107,
+      "line": 33,
+      "sha256": "f17423eb9d1871ebef383811904b535be37be72f318a33212cbf4704590653c5",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260813000050_create_teacher_assignments.sql",
+      "start": 2107,
+      "end": 2242,
+      "line": 34,
+      "sha256": "49b12dcece7ce6b5c89cc33aa42e1e0d06374470b1764facb034cbc3e8fe80a7",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260813000050_create_teacher_assignments.sql",
+      "start": 2242,
+      "end": 2551,
+      "line": 35,
+      "sha256": "66c4bd7e1cc7f6d0c23586c979b91dda42f4146cd2fa6941e0672ca59ed3f516",
+      "kind": "CREATE UNIQUE INDEX IF"
+    },
+    {
+      "source": "supabase/migrations/20260813000050_create_teacher_assignments.sql",
+      "start": 2551,
+      "end": 2848,
+      "line": 40,
+      "sha256": "c020bd6e0a403818088732ad6cbb6c8bd441bd81a60e3dabbfda7903f46cc7ad",
+      "kind": "CREATE UNIQUE INDEX IF"
+    },
+    {
+      "source": "supabase/migrations/20260813000050_create_teacher_assignments.sql",
+      "start": 2848,
+      "end": 2947,
+      "line": 45,
+      "sha256": "570bca1371a35788affa93fc0c2052070c6c76a32aa47c29a81524361f556e6b",
+      "kind": "ALTER TABLE public.teacher_assignments ENABLE"
+    },
+    {
+      "source": "supabase/migrations/20260813000050_create_teacher_assignments.sql",
+      "start": 2947,
+      "end": 3389,
+      "line": 48,
+      "sha256": "b63d34fb9210412794430e69cfef5072d3d4e9bc3ee691910cd12689f40d3ddf",
+      "kind": "DO $$ BEGIN IF"
+    },
+    {
+      "source": "supabase/migrations/20260813000050_create_teacher_assignments.sql",
+      "start": 3389,
+      "end": 3581,
+      "line": 56,
+      "sha256": "d35482c72ee15a74b8b91ccfb7d5f0c9c25d12107d593248abe6f7d43027dd67",
+      "kind": "CREATE OR REPLACE FUNCTION"
+    },
+    {
+      "source": "supabase/migrations/20260813000050_create_teacher_assignments.sql",
+      "start": 3581,
+      "end": 3677,
+      "line": 64,
+      "sha256": "835e2be2eb070b8a82305377a1de52d752acee8425fa9d84a3cd311b91c556ba",
+      "kind": "DROP TRIGGER IF EXISTS"
+    },
+    {
+      "source": "supabase/migrations/20260813000050_create_teacher_assignments.sql",
+      "start": 3677,
+      "end": 3853,
+      "line": 66,
+      "sha256": "4d80dc79e0adbd8f30791589939faa2bb4da07bcfce460120cc9e5a8b9d09646",
+      "kind": "CREATE TRIGGER trigger_teacher_assignments_updated_at BEFORE"
+    },
+    {
+      "source": "supabase/migrations/20260912000000_r3_education_identity_cutover.sql",
+      "start": 1565,
+      "end": 2198,
+      "line": 39,
+      "sha256": "61f3e46200cbf5dd6f2258618765061dc3e081b387847a9dbe473f041d367b68",
+      "kind": "DO $$ BEGIN IF"
+    },
+    {
+      "source": "supabase/migrations/20260912000000_r3_education_identity_cutover.sql",
+      "start": 3616,
+      "end": 4408,
+      "line": 103,
+      "sha256": "bb4f3fb9085e1ae7b0f325037a5215d9ea9a1e4ce3864266335e507d73ca0d57",
+      "kind": "DO $$ BEGIN IF"
+    },
+    {
+      "source": "supabase/migrations/20260912000000_r3_education_identity_cutover.sql",
+      "start": 6244,
+      "end": 6871,
+      "line": 190,
+      "sha256": "96889664aec9530c7ae5e06f21ecdaf068b5f20b02f3ed3301bc7a2c6b59a1b9",
+      "kind": "DO $$ BEGIN IF"
+    },
+    {
+      "source": "supabase/migrations/20260926002000_r3_student_create_side_nullable_person_id.sql",
+      "start": 0,
+      "end": 748,
+      "line": 1,
+      "sha256": "486477365ac921d99ed78841ce7ac3500294529c873afaf66ae6f3a7dc913347",
+      "kind": "ALTER TABLE public.students ALTER"
+    },
+    {
+      "source": "supabase/migrations/20260926003000_education_daily_attendance_state.sql",
+      "start": 0,
+      "end": 703,
+      "line": 1,
+      "sha256": "caa026441041c79d9ab7f5878c6c8a92220097cd48ca350f69aa5e7e4f134a21",
+      "kind": "CREATE TABLE IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260926003000_education_daily_attendance_state.sql",
+      "start": 703,
+      "end": 959,
+      "line": 14,
+      "sha256": "90ee3efcd7ef31fafebf73a2a9c1507d05ecee72c1ce07e8dfd6971018d41e94",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260926003000_education_daily_attendance_state.sql",
+      "start": 959,
+      "end": 1215,
+      "line": 18,
+      "sha256": "9fe920b7bd75a6202a5dc47b7a55000ec0389afa6d78bd2c04abb2bc8e2cf05d",
+      "kind": "CREATE INDEX IF NOT"
+    },
+    {
+      "source": "supabase/migrations/20260926003000_education_daily_attendance_state.sql",
+      "start": 1215,
+      "end": 1291,
+      "line": 22,
+      "sha256": "d94f576ced262597690329eacc0c6967e23e231cd4cc49cd951a0d17f9966719",
+      "kind": "ALTER TABLE public.edu_attendance_daily_state ENABLE"
+    },
+    {
+      "source": "supabase/migrations/20260926003000_education_daily_attendance_state.sql",
+      "start": 1291,
+      "end": 1401,
+      "line": 24,
+      "sha256": "3d64808e7878515c6e9be1f4b35e1cf4e321fea8d8fefd2380fd8b85c5093da2",
+      "kind": "DROP POLICY IF EXISTS"
+    },
+    {
+      "source": "supabase/migrations/20260926003000_education_daily_attendance_state.sql",
+      "start": 1401,
+      "end": 1675,
+      "line": 27,
+      "sha256": "ada4f9ed6fe5ed27c258aebb235a033d7e7beba075a59f98fb0c1b8f1f7c9e55",
+      "kind": "CREATE POLICY edu_attendance_daily_state_tenant_isolation ON"
+    },
+    {
+      "source": "supabase/migrations/20260926003000_education_daily_attendance_state.sql",
+      "start": 1675,
+      "end": 3824,
+      "line": 33,
+      "sha256": "cca8cb21527d0de0de35a8218c273eeb2149029edde93627bcab454e8350b2bb",
+      "kind": "CREATE OR REPLACE FUNCTION"
+    },
+    {
+      "source": "supabase/migrations/20260926003000_education_daily_attendance_state.sql",
+      "start": 3824,
+      "end": 3932,
+      "line": 128,
+      "sha256": "8bfebad85700dcec6d1a061c76898a32bbe4694595c738ec1d1845e8243b831f",
+      "kind": "REVOKE ALL ON FUNCTION"
+    },
+    {
+      "source": "supabase/migrations/20260926003000_education_daily_attendance_state.sql",
+      "start": 3932,
+      "end": 4060,
+      "line": 130,
+      "sha256": "7cb15a003ebf40536a86deb1f988a8e1f185f1c62b3bea4f001fb7cf0cd74f38",
+      "kind": "GRANT EXECUTE ON FUNCTION"
+    },
+    {
+      "source": "supabase/migrations/20260926003000_education_daily_attendance_state.sql",
+      "start": 4060,
+      "end": 4218,
+      "line": 131,
+      "sha256": "fdae427680bd3a42d6737c6c4dfe29b7db06a214b196b1f375291ed50cd07e28",
+      "kind": "COMMENT ON TABLE public.edu_attendance_daily_state"
+    }
+  ],
+  "excluded": [
+    {
+      "source": "supabase/migrations/20260511000000_initial_schema.sql",
+      "start": 1107,
+      "end": 1619,
+      "line": 32,
+      "sha256": "8d27ed4ee87013f9f9accfc662c77fae324b98229e91443fbbb46166ab6c2a5f",
+      "kind": "CREATE TABLE IF NOT",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260511000000_initial_schema.sql",
+      "start": 1619,
+      "end": 2467,
+      "line": 50,
+      "sha256": "9006d578d4a6500c3cb487698c171f86b37b9919b9cc1d5cd8b8315430b1c1a4",
+      "kind": "CREATE TABLE IF NOT",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260511000000_initial_schema.sql",
+      "start": 2467,
+      "end": 2987,
+      "line": 72,
+      "sha256": "97026cbafd27eaef8d21dc87424b6ac5fa706bf72b7c9820a4a27dc874ea408b",
+      "kind": "CREATE TABLE IF NOT",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260511000000_initial_schema.sql",
+      "start": 2987,
+      "end": 3072,
+      "line": 86,
+      "sha256": "eb9089ba4f5da2308a305eaaba7abf6867da4ecc4bd5aabe226892f1f3bf2e7d",
+      "kind": "CREATE INDEX IF NOT",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260511000000_initial_schema.sql",
+      "start": 3072,
+      "end": 3165,
+      "line": 87,
+      "sha256": "201eaac2b0621397920b0090d28afd82bf51b88d28ad3818daaa589b52b88064",
+      "kind": "CREATE INDEX IF NOT",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260511000000_initial_schema.sql",
+      "start": 3165,
+      "end": 3805,
+      "line": 88,
+      "sha256": "943366d13d969e60886c0ba2c077ad2f6c13be1df028401009871b67a9603f9a",
+      "kind": "CREATE TABLE IF NOT",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260511000000_initial_schema.sql",
+      "start": 3805,
+      "end": 3888,
+      "line": 103,
+      "sha256": "82b6d87efe1335ce44c5c39d60e2b7a2316f046279149727695e40c9fc747c92",
+      "kind": "CREATE INDEX IF NOT",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260511000000_initial_schema.sql",
+      "start": 3888,
+      "end": 3987,
+      "line": 104,
+      "sha256": "6bb86f7cd1453e355dadba91f3b49267d1f9cceda9d7a97db06a956e4e8581f4",
+      "kind": "CREATE INDEX IF NOT",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260511000000_initial_schema.sql",
+      "start": 3987,
+      "end": 4406,
+      "line": 105,
+      "sha256": "d5b2369ac6646324d00a3cc99a5f56852d8aa830e91175d9324b10c1e450af3d",
+      "kind": "CREATE TABLE IF NOT",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260511000000_initial_schema.sql",
+      "start": 4406,
+      "end": 5052,
+      "line": 117,
+      "sha256": "4b11c528b41eb5ce9bace7dcc32691cbd6b2e5f2daa72b44e6ce8c82ea9838a9",
+      "kind": "CREATE TABLE IF NOT",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260511000000_initial_schema.sql",
+      "start": 5052,
+      "end": 5125,
+      "line": 137,
+      "sha256": "7aae0ad7b1b68c2edc9724514bbe970360de0ad328ec233f3efa9ed34e8d0800",
+      "kind": "CREATE INDEX IF NOT",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260511000000_initial_schema.sql",
+      "start": 5125,
+      "end": 5726,
+      "line": 138,
+      "sha256": "195edc7e4715b1009774637c080a8d6ed8cfcb4d5f037c228684a2035e7d2cb8",
+      "kind": "CREATE TABLE IF NOT",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260511000000_initial_schema.sql",
+      "start": 5726,
+      "end": 5818,
+      "line": 152,
+      "sha256": "363a04703dad02a04e634470da24f28327f561385522d26412f2b65f54d2e293",
+      "kind": "CREATE INDEX IF NOT",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260511000000_initial_schema.sql",
+      "start": 5818,
+      "end": 6302,
+      "line": 153,
+      "sha256": "1ab0bf625b76e09dc88323e6a8700de463d6238e956058eac389879c77387795",
+      "kind": "CREATE TABLE IF NOT",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260511000000_initial_schema.sql",
+      "start": 6302,
+      "end": 6394,
+      "line": 167,
+      "sha256": "b70660846bd7b33a209b5f1974804c839b2f6aceb26c337c45089c0e47a79c7c",
+      "kind": "CREATE INDEX IF NOT",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260511000000_initial_schema.sql",
+      "start": 6394,
+      "end": 6990,
+      "line": 168,
+      "sha256": "6588c0e07bb276613d9e24a926b0f557fce659cb72d1f61c6c7342b0b546958d",
+      "kind": "CREATE TABLE IF NOT",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260511000000_initial_schema.sql",
+      "start": 6990,
+      "end": 7078,
+      "line": 184,
+      "sha256": "df4b64d2fe1a5a16f2f401e8a97c2bdb22eba154a8c5c1b5aeb00d971241357c",
+      "kind": "CREATE INDEX IF NOT",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260511000000_initial_schema.sql",
+      "start": 7078,
+      "end": 7541,
+      "line": 185,
+      "sha256": "73fe83bd18ed3b7d11e7e80c0fe60f58af41b98749a661f2bd10acae0910db15",
+      "kind": "CREATE TABLE IF NOT",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260511000000_initial_schema.sql",
+      "start": 7541,
+      "end": 8090,
+      "line": 198,
+      "sha256": "aee66913eee1641d52fdc657cfd207720dbb9daa1d718cd45636a1cce38a2ea4",
+      "kind": "CREATE TABLE IF NOT",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260511000000_initial_schema.sql",
+      "start": 8090,
+      "end": 8579,
+      "line": 214,
+      "sha256": "09e8a27ffcbe9f1ed1ae82ba8b6fa2adda328183a08ec6b40329f813df7e23f1",
+      "kind": "CREATE TABLE IF NOT",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260511000000_initial_schema.sql",
+      "start": 8579,
+      "end": 9076,
+      "line": 228,
+      "sha256": "1c1b884b957779a64dbd8a5ebf5e93f482edcc2845094f3eac1fa6c0d4908714",
+      "kind": "CREATE TABLE IF NOT",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260511000000_initial_schema.sql",
+      "start": 9076,
+      "end": 9175,
+      "line": 242,
+      "sha256": "5ba6c8f68e815c52e4b23472a4e9bcb2be5131f1b1baf97bdb3fcbe28e9c18e3",
+      "kind": "CREATE INDEX IF NOT",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260511000000_initial_schema.sql",
+      "start": 9175,
+      "end": 9730,
+      "line": 243,
+      "sha256": "9778ee2ba57b7e4769174fe838a36853ecc639ce6af6dc14f01e79f03eac8db6",
+      "kind": "CREATE TABLE IF NOT",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260511000000_initial_schema.sql",
+      "start": 9920,
+      "end": 10117,
+      "line": 267,
+      "sha256": "db25156464643e758252a7476495400c179a3240edb8733f72085981c6c6aaf4",
+      "kind": "DO $$ BEGIN CREATE",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260511000000_initial_schema.sql",
+      "start": 10117,
+      "end": 10310,
+      "line": 271,
+      "sha256": "fadee81ffed92da282514f531a63511f23a9dea2cc8f8737e012278653951144",
+      "kind": "DO $$ BEGIN CREATE",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260511000000_initial_schema.sql",
+      "start": 10310,
+      "end": 10511,
+      "line": 275,
+      "sha256": "26a5bc8ba27bdf4f290277e6bd5f858a61a73f4a57abe24c53e467e74d3dcb8d",
+      "kind": "DO $$ BEGIN CREATE",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260511000000_initial_schema.sql",
+      "start": 10511,
+      "end": 10710,
+      "line": 279,
+      "sha256": "6eb3e29e663a7a42651f4837d5411f1d11cb48d2317a5df8feea6501f494cdd5",
+      "kind": "DO $$ BEGIN CREATE",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260511000000_initial_schema.sql",
+      "start": 10710,
+      "end": 10921,
+      "line": 283,
+      "sha256": "4210592a6ea5cfa429169fc4bf624f4746f3042db43cec697798860776be831b",
+      "kind": "DO $$ BEGIN CREATE",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260521000004_harden_rls_and_tenant.sql",
+      "start": 0,
+      "end": 371,
+      "line": 1,
+      "sha256": "9cdad20a7d163bce00e15287e78ecc14628eef31e255b419bffde524daa06954",
+      "kind": "CREATE OR REPLACE FUNCTION",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260521000004_harden_rls_and_tenant.sql",
+      "start": 617,
+      "end": 823,
+      "line": 20,
+      "sha256": "2a4bb8353ea1fdfacf78b003cc65dcc29366bf40e552baddcd5c1d31f4eb5a86",
+      "kind": "CREATE OR REPLACE FUNCTION",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260521000004_harden_rls_and_tenant.sql",
+      "start": 823,
+      "end": 940,
+      "line": 27,
+      "sha256": "0a4e75ca86a6007803b79da2eaecb3c5dbc33c40780cdca5a9fabf9008dfd43c",
+      "kind": "DROP POLICY IF EXISTS",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260521000004_harden_rls_and_tenant.sql",
+      "start": 940,
+      "end": 1075,
+      "line": 30,
+      "sha256": "f3bd54966f629f52f0a50ae70efbc0cd7ef15f510f724036b454e11cc6f275db",
+      "kind": "CREATE POLICY \"Guest tạo",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260521000004_harden_rls_and_tenant.sql",
+      "start": 1075,
+      "end": 1181,
+      "line": 35,
+      "sha256": "b2c698d1bedb54fa21ae448742728c08f525a0cab8bc223a899d28aa4f045896",
+      "kind": "ALTER TABLE customers ENABLE",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260521000004_harden_rls_and_tenant.sql",
+      "start": 1181,
+      "end": 1246,
+      "line": 38,
+      "sha256": "73915ecfc330c78ed8853265b50925676f8b9a104020521e1704cd621959e931",
+      "kind": "DROP POLICY IF EXISTS",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260521000004_harden_rls_and_tenant.sql",
+      "start": 1246,
+      "end": 1416,
+      "line": 40,
+      "sha256": "097879dabe499463f2fea6842adac012b02bb6a185ec7b2bd8d718638f1c5335",
+      "kind": "CREATE POLICY \"Admin quản",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260521000004_harden_rls_and_tenant.sql",
+      "start": 1416,
+      "end": 1490,
+      "line": 45,
+      "sha256": "093f4a8b085a1a83f6ff5754e0988fdd6c3d3b486f3e44be0ba3e52ecef82895",
+      "kind": "DROP POLICY IF EXISTS",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260521000004_harden_rls_and_tenant.sql",
+      "start": 1490,
+      "end": 1650,
+      "line": 47,
+      "sha256": "bd475989b0b93c00d9f0897dcde4412128e13c4111090da7093428cdbfb8f911",
+      "kind": "CREATE POLICY \"KTV xem",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260521000004_harden_rls_and_tenant.sql",
+      "start": 1650,
+      "end": 1722,
+      "line": 52,
+      "sha256": "9927bd0b477214b94b3442e74b8990aa1f8ffe86d5af91a4d93b9140d20c2de5",
+      "kind": "DROP POLICY IF EXISTS",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260521000004_harden_rls_and_tenant.sql",
+      "start": 1722,
+      "end": 1870,
+      "line": 54,
+      "sha256": "0b415bfdd37ca8ac1be99e6e05cc3c1008b7c48cb3d561d59cd63581e8eae551",
+      "kind": "CREATE POLICY \"Guest tạo",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260521000004_harden_rls_and_tenant.sql",
+      "start": 1870,
+      "end": 1968,
+      "line": 59,
+      "sha256": "fc778bdacda6321ac837a6ab8bb2942b7b3492c138d35e1fae2b620a96e44d34",
+      "kind": "ALTER TABLE users ENABLE",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260521000004_harden_rls_and_tenant.sql",
+      "start": 1968,
+      "end": 2035,
+      "line": 62,
+      "sha256": "b36327e3fe28bbcd6e4e86e81a31d5582c0cba5068595bf7926e3f0c7ac2f3db",
+      "kind": "DROP POLICY IF EXISTS",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260521000004_harden_rls_and_tenant.sql",
+      "start": 2035,
+      "end": 2161,
+      "line": 64,
+      "sha256": "76c40d036448a1160421d28f61fa078f70287e27c3bf13dd1be1e905671805bd",
+      "kind": "CREATE POLICY \"User tự",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260521000004_harden_rls_and_tenant.sql",
+      "start": 2161,
+      "end": 2228,
+      "line": 69,
+      "sha256": "b7eb517a2036454123fc9aead3fb155049f69b729c7ce72e34a67a229f151765",
+      "kind": "DROP POLICY IF EXISTS",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260521000004_harden_rls_and_tenant.sql",
+      "start": 2228,
+      "end": 2400,
+      "line": 71,
+      "sha256": "8a4fb67e7c36fef8589afadfd01fee8f931a3af864ae7175fe6abf3cdc346ea4",
+      "kind": "CREATE POLICY \"Admin quản",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260521000004_harden_rls_and_tenant.sql",
+      "start": 2400,
+      "end": 2516,
+      "line": 76,
+      "sha256": "30eef7fdf5b781d84ac7c1a265db9bf2f4bff57cfd356906b0ebe4ca634b55e7",
+      "kind": "ALTER TABLE salary_records ENABLE",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260521000004_harden_rls_and_tenant.sql",
+      "start": 2516,
+      "end": 2591,
+      "line": 79,
+      "sha256": "f4b36b3e8eaaa0b7db45abeb8662cdd8b07e2216ff5601618d162e85089f7372",
+      "kind": "DROP POLICY IF EXISTS",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260521000004_harden_rls_and_tenant.sql",
+      "start": 2591,
+      "end": 2771,
+      "line": 81,
+      "sha256": "c8ea0b63e09cfa52fbb34140630e6e122b5cfd417852f4b634a700efb79f66f6",
+      "kind": "CREATE POLICY \"Admin quản",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260521000004_harden_rls_and_tenant.sql",
+      "start": 2771,
+      "end": 2849,
+      "line": 86,
+      "sha256": "11518bf8ac1259787203b4e74030e0aae2c63e3340970a5d3752bb1f29bd0009",
+      "kind": "DROP POLICY IF EXISTS",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260521000004_harden_rls_and_tenant.sql",
+      "start": 2849,
+      "end": 2993,
+      "line": 88,
+      "sha256": "661462ff5359b4f89239652be4401de9cdb6d44849becd33230285d77297a4de",
+      "kind": "CREATE POLICY \"KTV xem",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260808000012_create_rule_engine_tables.sql",
+      "start": 8991,
+      "end": 9621,
+      "line": 224,
+      "sha256": "7e5fb3d332f37bd9d73e4ba8e86eb58ffc29767578a6b868fc1c9ca3c7464d2c",
+      "kind": "INSERT INTO feature_flags (key,",
+      "reason": "DATA_MIGRATION_NOT_REQUIRED_FOR_EMPTY_SANDBOX"
+    },
+    {
+      "source": "supabase/migrations/20260810224417_create_students_table.sql",
+      "start": 0,
+      "end": 861,
+      "line": 1,
+      "sha256": "5d3bf9dccb7442ce362a0cb7f400a5fca219288c2694f4ad6b2d2345a2dea4db",
+      "kind": "DROP TABLE IF EXISTS",
+      "reason": "TABLE_DROP_NOT_REQUIRED_FOR_EMPTY_SANDBOX"
+    },
+    {
+      "source": "supabase/migrations/20260810224417_create_students_table.sql",
+      "start": 7796,
+      "end": 8601,
+      "line": 190,
+      "sha256": "19f721c80636c68d6d93ebf794406f81a71124f306190dbecd928fc56f1f6e19",
+      "kind": "SELECT 'students' AS table_name,",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260810231500_create_courses_and_enrollments.sql",
+      "start": 0,
+      "end": 674,
+      "line": 1,
+      "sha256": "a1567e97ff09b3ffb8d1ffafd65248cccf19e107dd24003e4d46cfcf418e1dbf",
+      "kind": "DROP TABLE IF EXISTS",
+      "reason": "TABLE_DROP_NOT_REQUIRED_FOR_EMPTY_SANDBOX"
+    },
+    {
+      "source": "supabase/migrations/20260810231500_create_courses_and_enrollments.sql",
+      "start": 674,
+      "end": 720,
+      "line": 14,
+      "sha256": "f9ae4bd590367b6c6e1c2b5aec01b04e4726cacbff651b1417b36e3774a3899d",
+      "kind": "DROP TABLE IF EXISTS",
+      "reason": "TABLE_DROP_NOT_REQUIRED_FOR_EMPTY_SANDBOX"
+    },
+    {
+      "source": "supabase/migrations/20260810231500_create_courses_and_enrollments.sql",
+      "start": 5685,
+      "end": 5904,
+      "line": 123,
+      "sha256": "4ba4d474bcbd931c6d3f7456de1b3d183a2efef0919ffb9980e5fea1d32b1b60",
+      "kind": "NOTIFY pgrst, 'reload schema';",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260813000040_create_enrollment_transaction_rpc.sql",
+      "start": 1847,
+      "end": 2012,
+      "line": 27,
+      "sha256": "4431374c9877c742e670b4571af83c695ba780a316c95e7f138f9a42d35a6f28",
+      "kind": "DELETE FROM public.edu_enrollments WHERE",
+      "reason": "DATA_MIGRATION_NOT_REQUIRED_FOR_EMPTY_SANDBOX"
+    },
+    {
+      "source": "supabase/migrations/20260813000050_create_teacher_assignments.sql",
+      "start": 3853,
+      "end": 3887,
+      "line": 69,
+      "sha256": "90da932b73b2a7a634988d5295da59d996e26b617f4b93ae308c930d07dd097e",
+      "kind": "NOTIFY pgrst, 'reload schema';",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260912000000_r3_education_identity_cutover.sql",
+      "start": 0,
+      "end": 1565,
+      "line": 1,
+      "sha256": "751636282e5b0b2244358caed5d375dee80654bd55a9a03859769a3a7434df89",
+      "kind": "DO $$ DECLARE v_mapped_parties",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260912000000_r3_education_identity_cutover.sql",
+      "start": 2198,
+      "end": 2672,
+      "line": 58,
+      "sha256": "6a724d0b407a39103dd1332e896503742c4813dfa60461de847849a3ebe10feb",
+      "kind": "UPDATE students s SET",
+      "reason": "DATA_MIGRATION_NOT_REQUIRED_FOR_EMPTY_SANDBOX"
+    },
+    {
+      "source": "supabase/migrations/20260912000000_r3_education_identity_cutover.sql",
+      "start": 2672,
+      "end": 3616,
+      "line": 71,
+      "sha256": "26c59d04ea8d057c618ae84e6227fc5b7af4af7529402f278559cd2803353154",
+      "kind": "DO $$ DECLARE v_total",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260912000000_r3_education_identity_cutover.sql",
+      "start": 4408,
+      "end": 5016,
+      "line": 127,
+      "sha256": "8cc5cb351e43594802887682fa79bb530f19e99732e387f42139f17dff94bbe3",
+      "kind": "DO $$ DECLARE v_orphan_refs",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260912000000_r3_education_identity_cutover.sql",
+      "start": 5016,
+      "end": 5630,
+      "line": 148,
+      "sha256": "a50220c794fcf2587c9cbffc8c4543331f5ca39b257973b13aafd2e138cc4196",
+      "kind": "DO $$ DECLARE v_tenant_mismatch",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260912000000_r3_education_identity_cutover.sql",
+      "start": 5630,
+      "end": 6244,
+      "line": 169,
+      "sha256": "bb1a32a187a995c821639bccddaaa0131b7bd212b9de373abb577d6749ee3dcc",
+      "kind": "DO $$ DECLARE v_wrong_type",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    },
+    {
+      "source": "supabase/migrations/20260912000000_r3_education_identity_cutover.sql",
+      "start": 6871,
+      "end": 9452,
+      "line": 209,
+      "sha256": "cbd806d6f4eacc2026c35f1fe611b251264570118f8cc87e47bc7f249e1e24b6",
+      "kind": "DO $$ DECLARE v_total",
+      "reason": "NON_PREREQUISITE_OR_DATA_CONTROL"
+    }
+  ],
+  "tables": [
+    "assessment_results",
+    "assessments",
+    "attendances",
+    "courses",
+    "edu_assessments",
+    "edu_attendance",
+    "edu_attendance_daily_state",
+    "edu_courses",
+    "edu_enrollments",
+    "enrollments",
+    "journey_journeys",
+    "journey_milestones",
+    "journey_sub_journeys",
+    "party_identifiers",
+    "party_parties",
+    "party_relationships",
+    "party_roles",
+    "persons",
+    "platform_business_rules",
+    "platform_rule_evaluation_log",
+    "students",
+    "teacher_assignments",
+    "tenants",
+    "timeline_events",
+    "users"
+  ],
+  "sqlSha256": "35e803c9bfdb240da5d8e5c5841d73c557f85c909b83d274ea69c2fc3a3e60d6",
+  "statementCount": 271
+}

@@ -1,0 +1,34 @@
+{
+  "startedAt": "2026-10-21T04:42:50.867Z",
+  "project": "bella-preschool-regression-20261021",
+  "sandbox": "C:\\Users\\DELL\\AppData\\Local\\Temp\\bella-preschool-regression-20261021",
+  "cliVersion": "2.115.0",
+  "migrationAutoEnabled": false,
+  "demoSeedEnabled": false,
+  "remoteProjectLinked": false,
+  "runtimeSourceChanges": false,
+  "configSha256": "26569c78f4119418501ec2c3a6510c03db34d705eb81a8ea038f4c2db342dffb",
+  "dockerServer": "29.7.2",
+  "containersBefore": [
+    "a9929c8258ab supabase_rest_bella-preschool-proof-20261019",
+    "7726cccd8d41 supabase_auth_bella-preschool-proof-20261019",
+    "c3078034b1a6 supabase_kong_bella-preschool-proof-20261019",
+    "f9a43026f1ee supabase_db_bella-preschool-proof-20261019"
+  ],
+  "command": "supabase start --workdir [owned sandbox] --exclude [unused services]",
+  "startExit": {
+    "code": 0,
+    "signal": null
+  },
+  "timedOut": false,
+  "outputBytes": 2931,
+  "diagnostics": [],
+  "containersAfter": [
+    "4ce865d938e4 supabase_rest_bella-preschool-regression-20261021 Up 11 seconds",
+    "1a4b969d64c2 supabase_auth_bella-preschool-regression-20261021 Up 12 seconds (healthy)",
+    "80edd1c0c02d supabase_kong_bella-preschool-regression-20261021 Up 13 seconds (healthy)",
+    "6c21d5c1d28c supabase_db_bella-preschool-regression-20261021 Up 26 seconds (healthy)"
+  ],
+  "finishedAt": "2026-10-21T04:43:20.569Z",
+  "result": "LOCAL_STACK_STARTED_NOT_SCHEMA_PROVEN"
+}

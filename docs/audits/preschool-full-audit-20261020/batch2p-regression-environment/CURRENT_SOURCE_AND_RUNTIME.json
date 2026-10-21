@@ -1,0 +1,36 @@
+{
+  "capturedAt": "2026-10-21T05:12:39.698Z",
+  "sourceHead": "6b031511fd37e5ee22288676b833cf855d40b43f",
+  "existingFrozenFilesUnchanged": 332,
+  "priorCareProductFilesUnchanged": 10,
+  "priorBrowserProofReused": "Same source hashes; no fresh Care Browser run in batch2p",
+  "project": "bella-preschool-regression-20261021",
+  "containerId": "799eed1bc29a7ca2e33e9afc6abf5612e56be211d165856ccbcb2ba47d2de9a7",
+  "images": [
+    {
+      "name": "supabase_db_bella-preschool-regression-20261021",
+      "configuredImage": "public.ecr.aws/supabase/postgres:17.6.1.159",
+      "imageId": "sha256:86a2e078779e5bdccda1f6f6c5063aa9779a322d1fface5fb408d051909b230f"
+    },
+    {
+      "name": "supabase_auth_bella-preschool-regression-20261021",
+      "configuredImage": "public.ecr.aws/supabase/gotrue:v2.195.0",
+      "imageId": "sha256:362659ca70eaa75ba05bbaf963caa84c1c5afe5e8fbf0777e17b830dd5f0f60a"
+    },
+    {
+      "name": "supabase_rest_bella-preschool-regression-20261021",
+      "configuredImage": "public.ecr.aws/supabase/postgrest:v16.1",
+      "imageId": "sha256:5922bde07147b82b1c9d8f749e48c1e5b99ebb233f3888bb7ab65f07cf4ac82d"
+    },
+    {
+      "name": "supabase_kong_bella-preschool-regression-20261021",
+      "configuredImage": "public.ecr.aws/supabase/kong:2.8.1",
+      "imageId": "sha256:1b53405d8680a09d6f44494b7990bf7da2ea43f84a258c59717d4539abf09f6d"
+    }
+  ],
+  "productionChange": "NOT_RUN",
+  "remoteE2EMutations": 0,
+  "guardOrSelectorChanges": false,
+  "committed": false,
+  "pushed": false
+}
