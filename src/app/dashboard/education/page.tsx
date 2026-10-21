@@ -82,6 +82,21 @@ function createExecutiveMessage(sender: 'user' | 'copilot', text: string) {
   };
 }
 
+async function readCopilotResponse<T>(response: Response): Promise<T> {
+  const result = await response.json().catch(() => null) as { success?: boolean; data?: T; error?: string } | null;
+  if (!response.ok || !result?.success || !result.data) {
+    const errors: Record<string, string> = {
+      COPILOT_UNAUTHENTICATED: 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại để dùng Copilot.',
+      FORBIDDEN: 'Tài khoản chưa có quyền sử dụng chức năng Copilot này.',
+      COPILOT_PRODUCT_ACCESS_DENIED: 'Chức năng điều hành yêu cầu tài khoản thuộc tenant Preschool đang hoạt động.',
+      COPILOT_IDENTITY_UNAVAILABLE: 'Chưa xác minh được tenant Preschool. Vui lòng thử lại sau.',
+      TENANT_ISOLATION_VIOLATION: 'Tenant của yêu cầu không khớp tài khoản đăng nhập. Vui lòng tải lại trang.',
+    };
+    throw new Error(errors[result?.error ?? ''] ?? 'Không thể xử lý yêu cầu Copilot. Vui lòng tải lại dữ liệu và thử lại.');
+  }
+  return result.data;
+}
+
 export default function EducationDashboardPage() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
@@ -455,6 +470,7 @@ export default function EducationDashboardPage() {
 
   const [isComplianceAuditLoading, setIsComplianceAuditLoading] = useState(false);
   const [complianceResult, setComplianceResult] = useState<{
+    verificationComplete: boolean;
     compliant: boolean;
     complianceScore: number;
     violations: readonly string[];
@@ -465,6 +481,8 @@ export default function EducationDashboardPage() {
   const [activeCopilotTab, setActiveCopilotTab] = useState<'briefing' | 'compliance' | 'qa'>('briefing');
   const [executiveQuestion, setExecutiveQuestion] = useState('');
   const [isExecutiveAsking, setIsExecutiveAsking] = useState(false);
+  const [copilotError, setCopilotError] = useState<string | null>(null);
+  const copilotSnapshot = useRef(selectedDateStr);
   const [executiveQnAMessages, setExecutiveQnAMessages] = useState<
     Array<{ id: string; sender: 'user' | 'copilot'; text: string; time: string }>
   >([
@@ -476,72 +494,72 @@ export default function EducationDashboardPage() {
     },
   ]);
 
+  useEffect(() => {
+    copilotSnapshot.current = selectedDateStr;
+    setExecutiveBriefing(null);
+    setComplianceResult(null);
+    setCopilotError(null);
+  }, [selectedDateStr]);
+
   const handleGenerateBriefing = async () => {
+    const snapshotDate = selectedDateStr;
     try {
+      setCopilotError(null);
+      setExecutiveBriefing(null);
+      if (loadingDashboard || !dashboardData?.attendance || !dashboardData?.enrollment) {
+        throw new Error('Chưa tải được số liệu tổng quan. Vui lòng đợi hoặc tải lại trang trước khi tạo điểm tin.');
+      }
       setIsAiBriefingLoading(true);
       const res = await fetch('/api/education/ai/copilot', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           action: 'executive_briefing',
-          totalStudents: totalKidsCount || 100,
-          presentCount: presentCount || totalKidsCount || 95,
-          absentCount: Math.max(0, (totalKidsCount || 100) - (presentCount || totalKidsCount || 95)),
-          feverCasesCount: healthIncidents || 0,
-          unpaidTuitionCount: overdueInvoices || 0,
-          pendingParentRequests: parentRequests || 0,
+          totalStudents: totalKidsCount,
+          presentCount: dashboardData.attendance.todayPresentCount,
+          absentCount: dashboardData.attendance.todayAbsentCount,
+          unmarkedAttendanceCount: unmarkedAttendance,
+          feverCasesCount: healthIncidents ?? 0,
+          unpaidTuitionCount: overdueInvoices ?? 0,
+          pendingParentRequests: parentRequests ?? 0,
         }),
       });
-      const data = await res.json();
-      if (data.success && data.data) {
-        setExecutiveBriefing(data.data);
-      }
+      const data = await readCopilotResponse<NonNullable<typeof executiveBriefing>>(res);
+      if (copilotSnapshot.current === snapshotDate) setExecutiveBriefing(data);
     } catch (e) {
-      console.error('Failed to generate AI executive briefing:', e);
+      if (copilotSnapshot.current === snapshotDate) setCopilotError(e instanceof Error ? e.message : 'Có lỗi kết nối Copilot.');
     } finally {
       setIsAiBriefingLoading(false);
     }
   };
 
   const handleRunComplianceAudit = async () => {
+    const snapshotDate = selectedDateStr;
     try {
+      setCopilotError(null);
+      setComplianceResult(null);
+      if (loadingDashboard || !dashboardData?.enrollment) {
+        throw new Error('Chưa tải được dữ liệu lớp học. Vui lòng tải lại trang để rà soát.');
+      }
       setIsComplianceAuditLoading(true);
-      const classrooms = dashboardData?.enrollment?.classroomUtilization || [];
-      const stats = classrooms.map((c) => {
-        const lower = c.className.toLowerCase();
-        let ageGroup: 'NHA_TRE' | 'MAM' | 'CHOI' | 'LA' = 'CHOI';
-        if (lower.includes('nhà trẻ')) ageGroup = 'NHA_TRE';
-        else if (lower.includes('mầm')) ageGroup = 'MAM';
-        else if (lower.includes('chồi')) ageGroup = 'CHOI';
-        else if (lower.includes('lá')) ageGroup = 'LA';
-
-        return {
-          className: c.className,
-          ageGroup,
-          studentCount: c.currentEnrollment,
-          teacherCount: 2,
-        };
-      });
+      // Analytics does not expose verified age groups or per-class staffing.
+      const stats = dashboardData.enrollment.classroomUtilization.map((c) => ({
+        className: c.className,
+        studentCount: c.currentEnrollment,
+      }));
 
       const res = await fetch('/api/education/ai/copilot', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           action: 'executive_safety_audit',
-          classRosterStats: stats.length > 0 ? stats : [
-            { className: 'Nhà trẻ 1 (18-24T)', ageGroup: 'NHA_TRE', studentCount: 20, teacherCount: 2 },
-            { className: 'Mầm 1 (3-4T)', ageGroup: 'MAM', studentCount: 24, teacherCount: 2 },
-            { className: 'Chồi 1 (4-5T)', ageGroup: 'CHOI', studentCount: 28, teacherCount: 2 },
-            { className: 'Lá 1 (5-6T)', ageGroup: 'LA', studentCount: 30, teacherCount: 2 },
-          ],
+          classRosterStats: stats,
         }),
       });
-      const data = await res.json();
-      if (data.success && data.data) {
-        setComplianceResult(data.data);
-      }
+      const data = await readCopilotResponse<NonNullable<typeof complianceResult>>(res);
+      if (copilotSnapshot.current === snapshotDate) setComplianceResult(data);
     } catch (e) {
-      console.error('Failed to run compliance audit:', e);
+      if (copilotSnapshot.current === snapshotDate) setCopilotError(e instanceof Error ? e.message : 'Có lỗi kết nối Copilot.');
     } finally {
       setIsComplianceAuditLoading(false);
     }
@@ -555,6 +573,7 @@ export default function EducationDashboardPage() {
     setExecutiveQnAMessages((prev) => [...prev, userMsg]);
     setExecutiveQuestion('');
     setIsExecutiveAsking(true);
+    setCopilotError(null);
 
     try {
       const res = await fetch('/api/education/ai/copilot', {
@@ -564,7 +583,6 @@ export default function EducationDashboardPage() {
           action: 'ask_copilot',
           question: q,
           contextData: {
-            role: 'CAMPUS_ADMIN',
             totalKidsCount,
             presentCount,
             attendanceRate,
@@ -572,19 +590,21 @@ export default function EducationDashboardPage() {
           },
         }),
       });
-      const data = await res.json();
-      const reply = data.success && data.data?.answer
-        ? String(data.data.answer)
-        : 'Hệ thống AI đang bận, Thầy Cô vui lòng thử lại sau.';
+      const data = await readCopilotResponse<{ answer: string; source: string }>(res);
+      const reply = data.source === 'preschool_ai_pack_rules'
+        ? `Hướng dẫn theo quy tắc (chưa kết nối mô hình AI):\n${data.answer}`
+        : data.answer;
 
       setExecutiveQnAMessages((prev) => [
         ...prev,
         createExecutiveMessage('copilot', reply),
       ]);
-    } catch {
+    } catch (e) {
+      const message = e instanceof Error ? e.message : 'Có lỗi kết nối trợ lý AI.';
+      setCopilotError(message);
       setExecutiveQnAMessages((prev) => [
         ...prev,
-        createExecutiveMessage('copilot', 'Có lỗi kết nối trợ lý AI.'),
+        createExecutiveMessage('copilot', message),
       ]);
     } finally {
       setIsExecutiveAsking(false);
@@ -989,6 +1009,12 @@ export default function EducationDashboardPage() {
             </div>
           </div>
 
+          {copilotError && (
+            <p role="alert" className="mb-4 rounded-xl border border-rose-200 dark:border-rose-800 bg-rose-50 dark:bg-rose-950 p-3 text-sm font-semibold text-[var(--color-rose-700)] dark:text-[var(--color-rose-200)]">
+              {copilotError}
+            </p>
+          )}
+
           {/* TAB 1: EXECUTIVE BRIEFING */}
           {activeCopilotTab === 'briefing' && (
             <div className="space-y-4 animate-in fade-in duration-200">
@@ -1000,13 +1026,13 @@ export default function EducationDashboardPage() {
                   <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">
                     Sĩ số toàn trường: <span className="font-black text-[var(--education-brand-ink)]">{totalKidsCount}</span> trẻ •
                     Có mặt: <span className="font-black text-[var(--color-emerald-700)] dark:text-[var(--color-emerald-300)]">{presentCount}</span> trẻ ({attendanceRate}% chuyên cần) •
-                    Ca sốt/y tế: <span className="font-black text-[var(--color-rose-700)] dark:text-[var(--color-rose-300)]">{healthIncidents ?? 0}</span>
+                    Sự cố sức khỏe: <span className="font-black text-[var(--color-rose-700)] dark:text-[var(--color-rose-300)]">{healthIncidents ?? 0}</span>
                   </p>
                 </div>
                 <button
                   type="button"
                   onClick={handleGenerateBriefing}
-                  disabled={isAiBriefingLoading}
+                  disabled={isAiBriefingLoading || loadingDashboard}
                   className="px-4 py-2.5 rounded-xl bg-primary hover:bg-primary-hover text-primary-foreground font-black text-xs shadow-md transition-all active:scale-95 disabled:cursor-wait cursor-pointer shrink-0 inline-flex items-center gap-2"
                 >
                   {isAiBriefingLoading ? (
@@ -1095,7 +1121,7 @@ export default function EducationDashboardPage() {
                 <button
                   type="button"
                   onClick={handleRunComplianceAudit}
-                  disabled={isComplianceAuditLoading}
+                  disabled={isComplianceAuditLoading || loadingDashboard}
                   className="px-4 py-2.5 rounded-xl bg-primary hover:bg-primary-hover text-primary-foreground font-black text-xs shadow-md transition-all active:scale-95 disabled:cursor-wait cursor-pointer shrink-0 inline-flex items-center gap-2"
                 >
                   {isComplianceAuditLoading ? (
@@ -1116,12 +1142,12 @@ export default function EducationDashboardPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div className="p-4 rounded-2xl bg-background border border-primary/20 flex items-center gap-4">
                     <div className="text-3xl font-black text-[var(--education-brand-ink)]">
-                      {complianceResult.complianceScore}<span className="text-sm text-[var(--color-slate-600)] dark:text-[var(--color-slate-200)]">/100</span>
+                      {complianceResult.verificationComplete ? <>{complianceResult.complianceScore}<span className="text-sm text-[var(--color-slate-600)] dark:text-[var(--color-slate-200)]">/100</span></> : <Info className="w-6 h-6" />}
                     </div>
                     <div>
                       <p className="text-xs font-black uppercase text-slate-800 dark:text-slate-100">Điểm chuẩn TT52</p>
                       <p className="text-[11px] text-[var(--color-slate-600)] dark:text-[var(--color-slate-200)] mt-0.5">
-                        {complianceResult.compliant ? 'Đạt chuẩn 100%' : 'Có điểm cần điều chỉnh'}
+                        {!complianceResult.verificationComplete ? 'Chưa đủ dữ liệu để kết luận' : complianceResult.compliant ? 'Không phát hiện vi phạm trong các tiêu chí đã kiểm tra' : 'Có điểm cần điều chỉnh'}
                       </p>
                     </div>
                   </div>

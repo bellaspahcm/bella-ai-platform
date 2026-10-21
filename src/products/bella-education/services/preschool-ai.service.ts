@@ -57,6 +57,7 @@ export interface PreschoolCopilotRequest {
   readonly totalStudents?: number;
   readonly presentCount?: number;
   readonly absentCount?: number;
+  readonly unmarkedAttendanceCount?: number;
   readonly feverCasesCount?: number;
   readonly unpaidTuitionCount?: number;
   readonly pendingParentRequests?: number;
@@ -249,6 +250,7 @@ export async function executePreschoolCopilot(
         totalStudents: request.totalStudents,
         presentCount: request.presentCount,
         absentCount: request.absentCount,
+        unmarkedAttendanceCount: request.unmarkedAttendanceCount,
         feverCasesCount: request.feverCasesCount,
         unpaidTuitionCount: request.unpaidTuitionCount,
         pendingParentRequests: request.pendingParentRequests,
