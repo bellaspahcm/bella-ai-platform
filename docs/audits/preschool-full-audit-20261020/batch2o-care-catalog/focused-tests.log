@@ -1,0 +1,7 @@
+
+Test Suites: 6 passed, 6 total
+Tests:       140 passed, 140 total
+Snapshots:   0 total
+Time:        5.341 s
+Ran all test suites within paths "src/app/api/education/care/classes/__tests__/access.test.ts", "src/app/api/education/care/classes/__tests__/catalog-contract.test.ts", "src/app/dashboard/education/care/__tests__/page.test.tsx", "src/app/dashboard/education/care/__tests__/care-save.test.ts", "src/app/api/education/care/bulk/__tests__/access.test.ts", "src/products/bella-education/__tests__/preschool-daily-care-canonical.service.test.ts".
+Test results written to: docs\audits\preschool-full-audit-20261020\batch2o-care-catalog\focused-tests.json

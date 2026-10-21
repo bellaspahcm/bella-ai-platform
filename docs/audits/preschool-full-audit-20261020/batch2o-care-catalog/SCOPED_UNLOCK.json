@@ -1,0 +1,30 @@
+{
+  "acr": "ACR-20261021-PRESCHOOL-COURSE-READ",
+  "adr": "ADR.md",
+  "authority": "AUTHORITY.json",
+  "status": "IMPLEMENTED_HELD_RESEAL",
+  "automatedEnforcement": false,
+  "exactPaths": [
+    "src/platform/education/contracts/canonical-course-catalog.contract.ts",
+    "src/platform/education/contracts/canonical-course-catalog.contract.impl.ts"
+  ],
+  "priorState": "ABSENT_PATHS_WITHIN_FROZEN_EDUCATION_DIRECTORY",
+  "allowedOperations": [
+    "ADD_READ_ONLY_CONTRACT_INTERFACE",
+    "ADD_CALLER_SCOPED_READ_ONLY_IMPLEMENTATION"
+  ],
+  "existingKernelFilesUnlocked": 0,
+  "guardChangesAllowed": false,
+  "createdAt": "2026-10-21T04:00:58.157Z",
+  "reseal": {
+    "result": "HELD",
+    "evidence": "RESEAL_STATUS.json",
+    "reason": "Mandatory full Education regression executed native1 with mock DB DNS/fixture failures; full regression PASS not proven. No baseline waiver or protection change."
+  },
+  "implementationWindowClosed": true,
+  "globalEducationState": "FROZEN",
+  "exactArtifactHashes": {
+    "src/platform/education/contracts/canonical-course-catalog.contract.ts": "786482c9253ae9846fdba79f5db8db7ee790de9c87743c614b65f3e0851cca18",
+    "src/platform/education/contracts/canonical-course-catalog.contract.impl.ts": "63d202f07318fe32de41145df53295283adb93f3b1d63d0f470119d07d496924"
+  }
+}

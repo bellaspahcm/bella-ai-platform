@@ -20,6 +20,7 @@ export async function proxy(request: NextRequest) {
   const isStudentRoute = pathname.startsWith('/student');
   const isLoginRoute = pathname === '/login';
   const isApiRoute = pathname.startsWith('/api/');
+  const isPrivateCareRoute = pathname === '/api/education/care/bulk' || pathname === '/api/education/care/classes';
 
   let response = NextResponse.next({
     request: {
@@ -43,7 +44,7 @@ export async function proxy(request: NextRequest) {
   }
   // Internal API routes - No cache (dynamic data)
   else if (pathname.startsWith('/api/')) {
-    response.headers.set('Cache-Control', 'no-store, must-revalidate');
+    response.headers.set('Cache-Control', isPrivateCareRoute ? 'private, no-store' : 'no-store, must-revalidate');
   }
 
   // Static assets - Long cache
@@ -125,6 +126,7 @@ export async function proxy(request: NextRequest) {
               headers: request.headers,
             },
           });
+          if (isPrivateCareRoute) response.headers.set('Cache-Control', 'private, no-store');
           response.cookies.set({ name, value, ...options });
         },
         remove(name: string, options: CookieOptions) {
@@ -134,6 +136,7 @@ export async function proxy(request: NextRequest) {
               headers: request.headers,
             },
           });
+          if (isPrivateCareRoute) response.headers.set('Cache-Control', 'private, no-store');
           response.cookies.set({ name, value: '', ...options });
         },
       },

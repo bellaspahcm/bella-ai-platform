@@ -1,0 +1,64 @@
+{
+  "startedAt": "2026-10-21T03:07:31.289Z",
+  "scope": "Local production build and actual browser; E2E only, no schema change",
+  "checks": [
+    {
+      "name": "LOCAL_PRODUCTION_BUILD",
+      "result": "PASS",
+      "code": 0,
+      "signal": null,
+      "command": "next build --webpack",
+      "nodeEnv": "production",
+      "privilegedKeyInChild": false,
+      "outputBytes": 32266,
+      "typescriptGate": "NOT_PROVEN_BUILD_CONFIG_IGNORES_TYPE_ERRORS",
+      "buildId": "fEg3tXOvMTKi4JrKiIEf7"
+    }
+  ],
+  "projectRef": "bmnbqbcdbuklhopfbopv",
+  "harnessSha256": "528cef0f5a672ba32173bec0a9b2d6d17fc789fb0559c1315d5f0420c4c38f61",
+  "sourceBefore": {
+    "head": "6b031511fd37e5ee22288676b833cf855d40b43f",
+    "tree": "af0264a65227106e1f693b0c5915e61e1be7c40d",
+    "ancestor": true,
+    "changed": [
+      "src/app/dashboard/education/care/page.tsx"
+    ],
+    "untracked": [
+      "src/app/dashboard/education/care/__tests__/care-save.test.ts",
+      "src/app/dashboard/education/care/care-save.ts"
+    ],
+    "sha256": "7e925d45d7d05b780e0903231ea017eb2f113af6664aea0a94268cb605cafc6d",
+    "environmentFiles": []
+  },
+  "build": {
+    "code": 0,
+    "signal": null,
+    "command": "next build --webpack",
+    "nodeEnv": "production",
+    "privilegedKeyInChild": false,
+    "outputBytes": 32266,
+    "typescriptGate": "NOT_PROVEN_BUILD_CONFIG_IGNORES_TYPE_ERRORS",
+    "buildId": "fEg3tXOvMTKi4JrKiIEf7"
+  },
+  "cleanup": {
+    "failures": []
+  },
+  "sourceAfter": {
+    "head": "6b031511fd37e5ee22288676b833cf855d40b43f",
+    "tree": "af0264a65227106e1f693b0c5915e61e1be7c40d",
+    "ancestor": true,
+    "changed": [
+      "src/app/dashboard/education/care/page.tsx"
+    ],
+    "untracked": [
+      "src/app/dashboard/education/care/__tests__/care-save.test.ts",
+      "src/app/dashboard/education/care/care-save.ts"
+    ],
+    "sha256": "7e925d45d7d05b780e0903231ea017eb2f113af6664aea0a94268cb605cafc6d",
+    "environmentFiles": []
+  },
+  "finishedAt": "2026-10-21T03:11:07.435Z",
+  "result": "BUILD_ONLY_NOT_PROVEN",
+  "exitCode": 0
+}

@@ -1,0 +1,317 @@
+{
+  "partial": true,
+  "acceptance": "NOT_PROVEN",
+  "capturedAt": "2026-10-21T04:21:03.390Z",
+  "startedAt": "2026-10-21T04:17:34.442Z",
+  "projectRef": "bmnbqbcdbuklhopfbopv",
+  "baseline": "4a7a855e3472dcfd86649b18f27671ccbe7188a1",
+  "scope": "Already-retained E2E fixture/browser verification; no DDL",
+  "checks": [
+    {
+      "name": "ISOLATED_FIXTURES",
+      "result": "PASS",
+      "tenants": 2,
+      "branches": 2,
+      "actors": 6,
+      "courses": 2,
+      "parties": 4,
+      "enrollments": 4,
+      "fakeLegacyStudents": 0
+    }
+  ],
+  "cleanup": {
+    "failures": []
+  },
+  "recovery": {
+    "attempted": false
+  },
+  "databaseTls": {
+    "rejectUnauthorized": true,
+    "servernameVerified": true,
+    "vendorCaFingerprint256": "80:70:25:AD:50:D4:ED:21:9D:2C:9C:7D:29:9C:00:4F:82:4E:B0:0C:F7:F6:5A:FE:F6:07:D0:7B:72:E6:CA:FA",
+    "reusedHelper": "scripts/bdgf/database-connection.mjs"
+  },
+  "sourceBefore": {
+    "head": "6b031511fd37e5ee22288676b833cf855d40b43f",
+    "tree": "af0264a65227106e1f693b0c5915e61e1be7c40d",
+    "ancestor": true,
+    "changed": [
+      "src/app/dashboard/education/care/page.tsx",
+      "src/proxy.ts"
+    ],
+    "untracked": [
+      "src/app/api/education/care/classes/__tests__/access.test.ts",
+      "src/app/api/education/care/classes/__tests__/catalog-contract.test.ts",
+      "src/app/api/education/care/classes/route.ts",
+      "src/app/dashboard/education/care/__tests__/care-save.test.ts",
+      "src/app/dashboard/education/care/__tests__/page.test.tsx",
+      "src/app/dashboard/education/care/care-save.ts",
+      "src/platform/education/contracts/canonical-course-catalog.contract.impl.ts",
+      "src/platform/education/contracts/canonical-course-catalog.contract.ts"
+    ],
+    "sha256": "5f844bb80c578f76cbe4a1a2c8825be5fb4849d75c2cdc28d06b49780dfc1835",
+    "environmentFiles": []
+  },
+  "effectiveTransactionTimeouts": {
+    "lock_timeout": "5s",
+    "statement_timeout": "30s"
+  },
+  "server": {
+    "host": "127.0.0.1",
+    "port": 65052,
+    "ownPid": 20060,
+    "nodeEnv": "production",
+    "privilegedKeyInChild": false,
+    "exit": {
+      "code": 1,
+      "signal": null
+    },
+    "stdoutBytes": 2084,
+    "stderrBytes": 0,
+    "rawLogsSaved": false,
+    "listenerClosed": true
+  },
+  "httpReceipts": [
+    {
+      "check": null,
+      "method": "GET",
+      "status": 401,
+      "code": "CARE_UNAUTHENTICATED",
+      "cacheControl": "private, no-store",
+      "noStore": true,
+      "private": true,
+      "public": false
+    },
+    {
+      "check": null,
+      "method": "GET",
+      "status": 200,
+      "code": null,
+      "cacheControl": "private, no-store",
+      "noStore": true,
+      "private": true,
+      "public": false
+    },
+    {
+      "check": null,
+      "method": "GET",
+      "status": 503,
+      "code": "CARE_TEACHER_IDENTITY_UNAVAILABLE",
+      "cacheControl": "private, no-store",
+      "noStore": true,
+      "private": true,
+      "public": false
+    },
+    {
+      "check": null,
+      "method": "GET",
+      "status": 403,
+      "code": "CARE_ROLE_DENIED",
+      "cacheControl": "private, no-store",
+      "noStore": true,
+      "private": true,
+      "public": false
+    },
+    {
+      "check": null,
+      "method": "GET",
+      "status": 200,
+      "code": null,
+      "cacheControl": "private, no-store",
+      "noStore": true,
+      "private": true,
+      "public": false
+    },
+    {
+      "check": null,
+      "method": "GET",
+      "status": 503,
+      "code": "CARE_TEACHER_IDENTITY_UNAVAILABLE",
+      "cacheControl": "private, no-store",
+      "noStore": true,
+      "private": true,
+      "public": false
+    },
+    {
+      "check": null,
+      "method": "GET",
+      "status": 403,
+      "code": "CARE_ROLE_DENIED",
+      "cacheControl": "private, no-store",
+      "noStore": true,
+      "private": true,
+      "public": false
+    },
+    {
+      "check": null,
+      "method": "GET",
+      "status": 403,
+      "code": "CARE_CONTEXT_OVERRIDE_DENIED",
+      "cacheControl": "private, no-store",
+      "noStore": true,
+      "private": true,
+      "public": false
+    },
+    {
+      "check": null,
+      "method": "GET",
+      "status": 403,
+      "code": "CARE_CONTEXT_OVERRIDE_DENIED",
+      "cacheControl": "private, no-store",
+      "noStore": true,
+      "private": true,
+      "public": false
+    },
+    {
+      "check": null,
+      "method": "GET",
+      "status": 403,
+      "code": "CARE_CONTEXT_OVERRIDE_DENIED",
+      "cacheControl": "private, no-store",
+      "noStore": true,
+      "private": true,
+      "public": false
+    },
+    {
+      "check": null,
+      "method": "GET",
+      "status": 200,
+      "code": null,
+      "cacheControl": "private, no-store",
+      "noStore": true,
+      "private": true,
+      "public": false
+    },
+    {
+      "check": null,
+      "method": "GET",
+      "status": 403,
+      "code": "CARE_ACCESS_DENIED",
+      "cacheControl": "private, no-store",
+      "noStore": true,
+      "private": true,
+      "public": false
+    },
+    {
+      "check": null,
+      "method": "GET",
+      "status": 403,
+      "code": "CARE_ROLE_DENIED",
+      "cacheControl": "private, no-store",
+      "noStore": true,
+      "private": true,
+      "public": false
+    },
+    {
+      "check": null,
+      "method": "GET",
+      "status": 403,
+      "code": "CARE_ACCESS_DENIED",
+      "cacheControl": "private, no-store",
+      "noStore": true,
+      "private": true,
+      "public": false
+    },
+    {
+      "check": null,
+      "method": "GET",
+      "status": 403,
+      "code": "CARE_CONTEXT_OVERRIDE_DENIED",
+      "cacheControl": "private, no-store",
+      "noStore": true,
+      "private": true,
+      "public": false
+    },
+    {
+      "check": null,
+      "method": "GET",
+      "status": 200,
+      "code": null,
+      "cacheControl": "private, no-store",
+      "noStore": true,
+      "private": true,
+      "public": false
+    }
+  ],
+  "databaseErrorReceipts": [
+    {
+      "check": null,
+      "phase": "STATEMENT",
+      "code": "57014",
+      "statementSha256": "3a81cc1a720e68b82ff1bcd2036c8c4f061e934a58ad24bba914a3bd817a6357",
+      "durationMs": 30594
+    }
+  ],
+  "fixtureIdentities": [
+    {
+      "tenant": "2b4c13be-8bb0-4e48-974c-541d00ad4597",
+      "branch": "18cffaac-8f7b-4ba3-98e8-58ddfa1a0969",
+      "person": "e655a743-0509-4fdc-a475-284ab6d24f6e",
+      "relationship": "22b29078-258d-4a9f-8c3d-571749d43e45",
+      "course": "b421309f-465d-4457-b639-5f65c9b26821",
+      "assignment": "4c4ce4a5-c3db-4429-abf5-f79bbb4472aa",
+      "attendance": "a2534c39-6027-4495-ac21-3627b10a62b3",
+      "students": [
+        {
+          "id": "e637ab27-4424-4857-bcfa-d66ade12fa56",
+          "enrollment": "031fbd09-17d7-4453-8f13-09e1a12afd0b",
+          "status": "active"
+        },
+        {
+          "id": "7c1f78c3-43ff-4927-b36b-da9bbca41eee",
+          "enrollment": "bacefdf6-ff51-4a02-b062-1bfe2fa2d600",
+          "status": "pending"
+        }
+      ],
+      "actors": [
+        {
+          "id": "7573aa24-a48c-496e-8ca6-f9e217a7c654",
+          "role": "admin"
+        },
+        {
+          "id": "56657450-8cfd-403f-9e59-5293884eccd7",
+          "role": "admin_staff"
+        },
+        {
+          "id": "300461a0-7a0b-461d-9fdf-1c4cc398ac47",
+          "role": "accountant"
+        }
+      ]
+    },
+    {
+      "tenant": "b639b5d1-ea03-44d6-99ce-5b88036046f4",
+      "branch": "965ff97a-65f4-41f7-8797-7996b3e5c581",
+      "person": "a5b58983-879e-4b44-8226-4a1f6969ecf8",
+      "relationship": "77db0299-80d7-47f8-a056-a2297fef48e8",
+      "course": "154b9406-34fa-4208-959f-6596311c0ce5",
+      "assignment": "670da779-fbb6-412e-bb29-966826fa810f",
+      "attendance": "dd00ff12-b6c9-4c09-b2ba-9b3a5392d153",
+      "students": [
+        {
+          "id": "990d93a8-4a35-460f-9f0f-b2f1bbcf6ddf",
+          "enrollment": "3685893e-50f9-421e-9189-f5ae762e0361",
+          "status": "active"
+        },
+        {
+          "id": "c439f136-391c-4922-adcb-fec26ef20465",
+          "enrollment": "72b894a2-0843-474d-bb10-0b9d5de4cd77",
+          "status": "pending"
+        }
+      ],
+      "actors": [
+        {
+          "id": "86617502-b953-49ee-98b4-92db95c5e444",
+          "role": "admin"
+        },
+        {
+          "id": "0fc97139-2ff7-4103-81ae-623cf4ed7d2d",
+          "role": "admin_staff"
+        },
+        {
+          "id": "4cbaa825-0bf5-4d40-bfcb-4b159482104c",
+          "role": "accountant"
+        }
+      ]
+    }
+  ]
+}

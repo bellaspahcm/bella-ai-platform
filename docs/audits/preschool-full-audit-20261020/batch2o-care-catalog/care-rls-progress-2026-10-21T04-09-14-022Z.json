@@ -1,0 +1,131 @@
+{
+  "partial": true,
+  "acceptance": "NOT_PROVEN",
+  "capturedAt": "2026-10-21T04:11:07.078Z",
+  "startedAt": "2026-10-21T04:09:14.022Z",
+  "projectRef": "bmnbqbcdbuklhopfbopv",
+  "baseline": "4a7a855e3472dcfd86649b18f27671ccbe7188a1",
+  "scope": "Already-retained E2E fixture/browser verification; no DDL",
+  "checks": [
+    {
+      "name": "ISOLATED_FIXTURES",
+      "result": "PASS",
+      "tenants": 2,
+      "branches": 2,
+      "actors": 6,
+      "courses": 2,
+      "parties": 4,
+      "enrollments": 4,
+      "fakeLegacyStudents": 0
+    }
+  ],
+  "cleanup": {
+    "failures": []
+  },
+  "recovery": {
+    "attempted": false
+  },
+  "databaseTls": {
+    "rejectUnauthorized": true,
+    "servernameVerified": true,
+    "vendorCaFingerprint256": "80:70:25:AD:50:D4:ED:21:9D:2C:9C:7D:29:9C:00:4F:82:4E:B0:0C:F7:F6:5A:FE:F6:07:D0:7B:72:E6:CA:FA",
+    "reusedHelper": "scripts/bdgf/database-connection.mjs"
+  },
+  "sourceBefore": {
+    "head": "6b031511fd37e5ee22288676b833cf855d40b43f",
+    "tree": "af0264a65227106e1f693b0c5915e61e1be7c40d",
+    "ancestor": true,
+    "changed": [
+      "src/app/dashboard/education/care/page.tsx",
+      "src/proxy.ts"
+    ],
+    "untracked": [
+      "src/app/api/education/care/classes/__tests__/access.test.ts",
+      "src/app/api/education/care/classes/__tests__/catalog-contract.test.ts",
+      "src/app/api/education/care/classes/route.ts",
+      "src/app/dashboard/education/care/__tests__/care-save.test.ts",
+      "src/app/dashboard/education/care/__tests__/page.test.tsx",
+      "src/app/dashboard/education/care/care-save.ts",
+      "src/platform/education/contracts/canonical-course-catalog.contract.impl.ts",
+      "src/platform/education/contracts/canonical-course-catalog.contract.ts"
+    ],
+    "sha256": "5f844bb80c578f76cbe4a1a2c8825be5fb4849d75c2cdc28d06b49780dfc1835",
+    "environmentFiles": []
+  },
+  "effectiveTransactionTimeouts": {
+    "lock_timeout": "5s",
+    "statement_timeout": "30s"
+  },
+  "fixtureIdentities": [
+    {
+      "tenant": "e4675466-9f15-4e77-95e0-37ad6f1c5cb8",
+      "branch": "dcc1faa2-bfab-4547-9d87-bd53453d5f56",
+      "person": "c15e498a-d9c7-4192-bf86-e4431b10b769",
+      "relationship": "6d474941-67a6-4979-a70a-86769e8215ef",
+      "course": "7dd08f73-4cae-4492-97ff-ef74ea3e029a",
+      "assignment": "db62ce59-8f6a-4ca0-a1c3-6ea7513046b6",
+      "attendance": "218d12f8-615a-4d96-bd7e-628f77747c68",
+      "students": [
+        {
+          "id": "070394c6-64b3-4140-9f09-36e7a703f225",
+          "enrollment": "72fadfc2-6c30-408b-8e79-1649bd130c29",
+          "status": "active"
+        },
+        {
+          "id": "6487f1d6-c3ec-4fb0-b78c-75e7d6187121",
+          "enrollment": "76309275-6053-4d1d-ac38-2deb9513ee39",
+          "status": "pending"
+        }
+      ],
+      "actors": [
+        {
+          "id": "40234339-4504-4cd9-9721-65116fc838fa",
+          "role": "admin"
+        },
+        {
+          "id": "b82a144a-82ba-4f67-9f7d-60b60f01b560",
+          "role": "admin_staff"
+        },
+        {
+          "id": "1aafedf9-9b0a-483d-a1b6-923135aa6d16",
+          "role": "accountant"
+        }
+      ]
+    },
+    {
+      "tenant": "5efd6fea-cb2f-4fb8-a15d-ddcd9d7d24f1",
+      "branch": "8e17465f-1422-4a8f-863a-bbc7a5bdd8ec",
+      "person": "e9763070-c306-465a-905b-60bb6109f546",
+      "relationship": "77961232-a7ec-4ae3-a49f-e0220bab65c1",
+      "course": "b6566485-b2c7-4ae2-b4ac-820248c14ab3",
+      "assignment": "34e36ec4-1227-4dfa-a02c-60505706abfa",
+      "attendance": "f65b39d6-6d4b-40ce-a5a3-a02d9cf2985d",
+      "students": [
+        {
+          "id": "e485976b-34d5-4735-85cf-29fccc541efd",
+          "enrollment": "f1b2a643-d603-482d-a439-8d6689cb40af",
+          "status": "active"
+        },
+        {
+          "id": "7845fad9-5bf5-42af-b8e5-bd1db3003907",
+          "enrollment": "becc5a86-ef49-4389-8b86-23ebf6d922b8",
+          "status": "pending"
+        }
+      ],
+      "actors": [
+        {
+          "id": "74d8c7e6-19f9-4018-823c-a81178c8e3ed",
+          "role": "admin"
+        },
+        {
+          "id": "e572e555-e1c7-499c-ad08-d589a8cfa66e",
+          "role": "admin_staff"
+        },
+        {
+          "id": "322aab88-1cf4-46a9-aff1-2ea8100978a9",
+          "role": "accountant"
+        }
+      ]
+    }
+  ]
+}

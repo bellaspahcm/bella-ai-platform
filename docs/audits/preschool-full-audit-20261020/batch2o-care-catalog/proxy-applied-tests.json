@@ -1,0 +1,346 @@
+{
+  "result": "PASS_UNIT_APPLIED_PROXY",
+  "cases": 42,
+  "sourceSha256": "534626ffd4a808d795db57699b5a15e272b364cc2a94ffc2007bf4a2566b9189",
+  "candidateSha256": "534626ffd4a808d795db57699b5a15e272b364cc2a94ffc2007bf4a2566b9189",
+  "applied": true,
+  "networkCalls": 0,
+  "casesDetail": [
+    {
+      "route": "/api/education/care/bulk",
+      "authenticatedSimulation": false,
+      "refresh": null,
+      "baseline": "no-store, must-revalidate",
+      "candidate": "private, no-store",
+      "result": "PASS"
+    },
+    {
+      "route": "/api/education/care/classes",
+      "authenticatedSimulation": false,
+      "refresh": null,
+      "baseline": "no-store, must-revalidate",
+      "candidate": "private, no-store",
+      "result": "PASS"
+    },
+    {
+      "route": "/api/education/care/classes-extra",
+      "authenticatedSimulation": false,
+      "refresh": null,
+      "baseline": "no-store, must-revalidate",
+      "candidate": "no-store, must-revalidate",
+      "result": "PASS"
+    },
+    {
+      "route": "/api/education/care/bulk-extra",
+      "authenticatedSimulation": false,
+      "refresh": null,
+      "baseline": "no-store, must-revalidate",
+      "candidate": "no-store, must-revalidate",
+      "result": "PASS"
+    },
+    {
+      "route": "/api/education/courses",
+      "authenticatedSimulation": false,
+      "refresh": null,
+      "baseline": "no-store, must-revalidate",
+      "candidate": "no-store, must-revalidate",
+      "result": "PASS"
+    },
+    {
+      "route": "/api/v1/public/catalog",
+      "authenticatedSimulation": false,
+      "refresh": null,
+      "baseline": "s-maxage=300, stale-while-revalidate=600",
+      "candidate": "s-maxage=300, stale-while-revalidate=600",
+      "result": "PASS"
+    },
+    {
+      "route": "/api/v1/webhooks/partner",
+      "authenticatedSimulation": false,
+      "refresh": null,
+      "baseline": "no-store, no-cache, must-revalidate",
+      "candidate": "no-store, no-cache, must-revalidate",
+      "result": "PASS"
+    },
+    {
+      "route": "/api/education/care/bulk",
+      "authenticatedSimulation": false,
+      "refresh": "set",
+      "baseline": null,
+      "candidate": "private, no-store",
+      "result": "PASS"
+    },
+    {
+      "route": "/api/education/care/classes",
+      "authenticatedSimulation": false,
+      "refresh": "set",
+      "baseline": null,
+      "candidate": "private, no-store",
+      "result": "PASS"
+    },
+    {
+      "route": "/api/education/care/classes-extra",
+      "authenticatedSimulation": false,
+      "refresh": "set",
+      "baseline": null,
+      "candidate": null,
+      "result": "PASS"
+    },
+    {
+      "route": "/api/education/care/bulk-extra",
+      "authenticatedSimulation": false,
+      "refresh": "set",
+      "baseline": null,
+      "candidate": null,
+      "result": "PASS"
+    },
+    {
+      "route": "/api/education/courses",
+      "authenticatedSimulation": false,
+      "refresh": "set",
+      "baseline": null,
+      "candidate": null,
+      "result": "PASS"
+    },
+    {
+      "route": "/api/v1/public/catalog",
+      "authenticatedSimulation": false,
+      "refresh": "set",
+      "baseline": null,
+      "candidate": null,
+      "result": "PASS"
+    },
+    {
+      "route": "/api/v1/webhooks/partner",
+      "authenticatedSimulation": false,
+      "refresh": "set",
+      "baseline": null,
+      "candidate": null,
+      "result": "PASS"
+    },
+    {
+      "route": "/api/education/care/bulk",
+      "authenticatedSimulation": false,
+      "refresh": "remove",
+      "baseline": null,
+      "candidate": "private, no-store",
+      "result": "PASS"
+    },
+    {
+      "route": "/api/education/care/classes",
+      "authenticatedSimulation": false,
+      "refresh": "remove",
+      "baseline": null,
+      "candidate": "private, no-store",
+      "result": "PASS"
+    },
+    {
+      "route": "/api/education/care/classes-extra",
+      "authenticatedSimulation": false,
+      "refresh": "remove",
+      "baseline": null,
+      "candidate": null,
+      "result": "PASS"
+    },
+    {
+      "route": "/api/education/care/bulk-extra",
+      "authenticatedSimulation": false,
+      "refresh": "remove",
+      "baseline": null,
+      "candidate": null,
+      "result": "PASS"
+    },
+    {
+      "route": "/api/education/courses",
+      "authenticatedSimulation": false,
+      "refresh": "remove",
+      "baseline": null,
+      "candidate": null,
+      "result": "PASS"
+    },
+    {
+      "route": "/api/v1/public/catalog",
+      "authenticatedSimulation": false,
+      "refresh": "remove",
+      "baseline": null,
+      "candidate": null,
+      "result": "PASS"
+    },
+    {
+      "route": "/api/v1/webhooks/partner",
+      "authenticatedSimulation": false,
+      "refresh": "remove",
+      "baseline": null,
+      "candidate": null,
+      "result": "PASS"
+    },
+    {
+      "route": "/api/education/care/bulk",
+      "authenticatedSimulation": true,
+      "refresh": null,
+      "baseline": "no-store, must-revalidate",
+      "candidate": "private, no-store",
+      "result": "PASS"
+    },
+    {
+      "route": "/api/education/care/classes",
+      "authenticatedSimulation": true,
+      "refresh": null,
+      "baseline": "no-store, must-revalidate",
+      "candidate": "private, no-store",
+      "result": "PASS"
+    },
+    {
+      "route": "/api/education/care/classes-extra",
+      "authenticatedSimulation": true,
+      "refresh": null,
+      "baseline": "no-store, must-revalidate",
+      "candidate": "no-store, must-revalidate",
+      "result": "PASS"
+    },
+    {
+      "route": "/api/education/care/bulk-extra",
+      "authenticatedSimulation": true,
+      "refresh": null,
+      "baseline": "no-store, must-revalidate",
+      "candidate": "no-store, must-revalidate",
+      "result": "PASS"
+    },
+    {
+      "route": "/api/education/courses",
+      "authenticatedSimulation": true,
+      "refresh": null,
+      "baseline": "no-store, must-revalidate",
+      "candidate": "no-store, must-revalidate",
+      "result": "PASS"
+    },
+    {
+      "route": "/api/v1/public/catalog",
+      "authenticatedSimulation": true,
+      "refresh": null,
+      "baseline": "s-maxage=300, stale-while-revalidate=600",
+      "candidate": "s-maxage=300, stale-while-revalidate=600",
+      "result": "PASS"
+    },
+    {
+      "route": "/api/v1/webhooks/partner",
+      "authenticatedSimulation": true,
+      "refresh": null,
+      "baseline": "no-store, no-cache, must-revalidate",
+      "candidate": "no-store, no-cache, must-revalidate",
+      "result": "PASS"
+    },
+    {
+      "route": "/api/education/care/bulk",
+      "authenticatedSimulation": true,
+      "refresh": "set",
+      "baseline": null,
+      "candidate": "private, no-store",
+      "result": "PASS"
+    },
+    {
+      "route": "/api/education/care/classes",
+      "authenticatedSimulation": true,
+      "refresh": "set",
+      "baseline": null,
+      "candidate": "private, no-store",
+      "result": "PASS"
+    },
+    {
+      "route": "/api/education/care/classes-extra",
+      "authenticatedSimulation": true,
+      "refresh": "set",
+      "baseline": null,
+      "candidate": null,
+      "result": "PASS"
+    },
+    {
+      "route": "/api/education/care/bulk-extra",
+      "authenticatedSimulation": true,
+      "refresh": "set",
+      "baseline": null,
+      "candidate": null,
+      "result": "PASS"
+    },
+    {
+      "route": "/api/education/courses",
+      "authenticatedSimulation": true,
+      "refresh": "set",
+      "baseline": null,
+      "candidate": null,
+      "result": "PASS"
+    },
+    {
+      "route": "/api/v1/public/catalog",
+      "authenticatedSimulation": true,
+      "refresh": "set",
+      "baseline": null,
+      "candidate": null,
+      "result": "PASS"
+    },
+    {
+      "route": "/api/v1/webhooks/partner",
+      "authenticatedSimulation": true,
+      "refresh": "set",
+      "baseline": null,
+      "candidate": null,
+      "result": "PASS"
+    },
+    {
+      "route": "/api/education/care/bulk",
+      "authenticatedSimulation": true,
+      "refresh": "remove",
+      "baseline": null,
+      "candidate": "private, no-store",
+      "result": "PASS"
+    },
+    {
+      "route": "/api/education/care/classes",
+      "authenticatedSimulation": true,
+      "refresh": "remove",
+      "baseline": null,
+      "candidate": "private, no-store",
+      "result": "PASS"
+    },
+    {
+      "route": "/api/education/care/classes-extra",
+      "authenticatedSimulation": true,
+      "refresh": "remove",
+      "baseline": null,
+      "candidate": null,
+      "result": "PASS"
+    },
+    {
+      "route": "/api/education/care/bulk-extra",
+      "authenticatedSimulation": true,
+      "refresh": "remove",
+      "baseline": null,
+      "candidate": null,
+      "result": "PASS"
+    },
+    {
+      "route": "/api/education/courses",
+      "authenticatedSimulation": true,
+      "refresh": "remove",
+      "baseline": null,
+      "candidate": null,
+      "result": "PASS"
+    },
+    {
+      "route": "/api/v1/public/catalog",
+      "authenticatedSimulation": true,
+      "refresh": "remove",
+      "baseline": null,
+      "candidate": null,
+      "result": "PASS"
+    },
+    {
+      "route": "/api/v1/webhooks/partner",
+      "authenticatedSimulation": true,
+      "refresh": "remove",
+      "baseline": null,
+      "candidate": null,
+      "result": "PASS"
+    }
+  ]
+}
