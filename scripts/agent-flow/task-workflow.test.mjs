@@ -29,6 +29,74 @@ test('native file-change projection rejects paths outside two owned files', () =
   assert.throws(() => changeMetadata({ type: 'fileChange', changes: [{ path: '../../outside.txt' }] }), /FORBIDDEN_PATH/);
 });
 
+test('completed native file-change projection rejects missing changes', () => {
+  assert.throws(() => changeMetadata({ type: 'fileChange', status: 'completed' }), { message: 'EMPTY_NATIVE_FILECHANGE' });
+});
+
+test('completed native file-change projection rejects null changes', () => {
+  assert.throws(() => changeMetadata({ type: 'fileChange', status: 'completed', changes: null }), { message: 'EMPTY_NATIVE_FILECHANGE' });
+});
+
+test('completed native file-change projection rejects an empty changes array', () => {
+  assert.throws(() => changeMetadata({ type: 'fileChange', status: 'completed', changes: [] }), { message: 'EMPTY_NATIVE_FILECHANGE' });
+});
+
+test('non-fileChange items still project to null without inspecting changes', () => {
+  for (const item of [undefined, null, {}, { type: 'commandExecution', status: 'completed', changes: [{ path: '../../outside.txt' }] }]) {
+    assert.equal(changeMetadata(item), null);
+  }
+});
+
+test('non-completed native file-change projection preserves empty and populated paths', () => {
+  for (const status of [undefined, 'inProgress', 'failed']) {
+    const item = { type: 'fileChange', id: 'file-pending', status };
+    for (const changeFields of [{}, { changes: null }, { changes: [] }]) {
+      assert.deepEqual(changeMetadata({ ...item, ...changeFields }), {
+        itemId: item.id, type: 'fileChange', status, paths: [],
+      });
+    }
+    assert.deepEqual(changeMetadata({ ...item, changes: [{ path: 'scripts/agent-flow/contract.mjs' }] }), {
+      itemId: item.id, type: 'fileChange', status, paths: ['scripts/agent-flow/contract.mjs'],
+    });
+  }
+});
+
+test('completed native file-change projection accepts each allowed path and preserves metadata', () => {
+  for (const path of ['scripts/agent-flow/contract.mjs', 'scripts/agent-flow/agent-flow.test.mjs']) {
+    assert.deepEqual(changeMetadata({ type: 'fileChange', id: 'file-complete', status: 'completed', changes: [{ path }] }), {
+      itemId: 'file-complete', type: 'fileChange', status: 'completed', paths: [path],
+    });
+  }
+});
+
+test('native file-change paths remain normalized, sorted and deduplicated', () => {
+  const item = {
+    type: 'fileChange', id: 'file-normalized', status: 'completed',
+    changes: [
+      { path: './scripts/agent-flow/../agent-flow/contract.mjs' },
+      { path: join(ROOT, 'scripts', 'agent-flow', 'agent-flow.test.mjs') },
+      { path: join('scripts', 'agent-flow', 'contract.mjs') },
+      { path: 'scripts/agent-flow/agent-flow.test.mjs' },
+    ],
+  };
+  assert.deepEqual(changeMetadata(item), {
+    itemId: item.id, type: 'fileChange', status: 'completed',
+    paths: ['scripts/agent-flow/agent-flow.test.mjs', 'scripts/agent-flow/contract.mjs'],
+  });
+});
+
+test('native file-change projection rejects forbidden paths alongside allowed changes', () => {
+  for (const path of [
+    '../../outside.txt', 'scripts/agent-flow/task-workflow.mjs',
+    'scripts/agent-flow/contract.mjs/../store.mjs', join(ROOT, '..', 'outside.txt'),
+  ]) {
+    assert.throws(() => changeMetadata({
+      type: 'fileChange', status: 'completed',
+      changes: [{ path: 'scripts/agent-flow/contract.mjs' }, { path }],
+    }), { message: 'AGENT_CHANGED_FORBIDDEN_PATH' });
+  }
+});
+
 test('RED/GREEN returns the original RED and final GREEN entries only', () => {
   const red = { exitCode: 1, counters: { tests: 2, pass: 1, fail: 1, skipped: 0, cancelled: 0, todo: 0 } };
   const green = { exitCode: 0, counters: { tests: 2, pass: 2, fail: 0, skipped: 0, cancelled: 0, todo: 0 } };
