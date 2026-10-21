@@ -64,6 +64,7 @@ export function changeMetadata(item, root = ROOT) {
     if (!OWNED.includes(local)) throw new Error('AGENT_CHANGED_FORBIDDEN_PATH');
     return local;
   });
+  if (item.status === 'completed' && paths.length === 0) throw new Error('EMPTY_NATIVE_FILECHANGE');
   return { itemId: item.id, type: 'fileChange', status: item.status, paths: [...new Set(paths)].sort() };
 }
 
