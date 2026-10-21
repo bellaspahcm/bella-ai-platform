@@ -15,7 +15,11 @@ interface Profile {
 const mockGetUser = jest.fn<() => Promise<AuthResult>>();
 const mockGetCurrentUser = jest.fn<() => Promise<Profile | null>>();
 const mockExecute = jest.fn<() => Promise<{ success: boolean; action: string }>>();
-const mockClient = { auth: { getUser: mockGetUser } };
+const mockTenantResult = jest.fn();
+const mockTenantEq = jest.fn(() => ({ maybeSingle: mockTenantResult }));
+const mockTenantSelect = jest.fn(() => ({ eq: mockTenantEq }));
+const mockFrom = jest.fn(() => ({ select: mockTenantSelect }));
+const mockClient = { auth: { getUser: mockGetUser }, from: mockFrom };
 const mockCreateClient = jest.fn<() => typeof mockClient>();
 
 jest.mock('@/lib/supabase-server', () => ({ createClient: mockCreateClient }));
@@ -53,6 +57,10 @@ beforeEach(() => {
   mockGetUser.mockResolvedValue({ data: { user: { id: userId } }, error: null });
   mockGetCurrentUser.mockResolvedValue(profile);
   mockExecute.mockResolvedValue({ success: true, action: 'classify_intent' });
+  mockFrom.mockReturnValue({ select: mockTenantSelect });
+  mockTenantSelect.mockReturnValue({ eq: mockTenantEq });
+  mockTenantEq.mockReturnValue({ maybeSingle: mockTenantResult });
+  mockTenantResult.mockResolvedValue({ data: { id: tenantId, status: 'active', product_key: 'bella_preschool' }, error: null });
 });
 
 describe('Copilot verified request boundary', () => {
@@ -150,12 +158,41 @@ describe('Copilot executive action authorization from approved Phase4 contract',
       expect(mockExecute).toHaveBeenCalledWith(expect.objectContaining({ action }));
     });
 
-    it.each(['education_teacher', 'homeroom_teacher', 'teacher', 'education_staff', 'principal', 'director', 'admin'])(
+    it.each(['education_teacher', 'homeroom_teacher', 'teacher', 'education_staff', 'principal', 'director'])(
       `denies general role %s for ${action} even with a forged admin header`, async role => {
         mockGetCurrentUser.mockResolvedValue({ ...profile, role });
         await expectDenied(request({ action }, '', { 'x-mock-role': 'SUPER_ADMIN' }), 403, 'FORBIDDEN');
       },
     );
+  }
+
+  for (const action of executiveActions) {
+    it(`permits approved admin in own active Preschool tenant for ${action}`, async () => {
+      mockGetCurrentUser.mockResolvedValue({ ...profile, role: '  ADMIN  ' });
+      const response = await POST(request({ action, product_key: 'other_product', tenantId: foreignTenant }));
+      expect(response.status).toBe(200);
+      expect(mockFrom).toHaveBeenCalledWith('tenants');
+      expect(mockTenantEq).toHaveBeenCalledWith('id', tenantId);
+      expect(mockExecute).toHaveBeenCalledTimes(1);
+    });
+
+    it.each([
+      ['other product', { id: tenantId, status: 'active', product_key: 'bella_english_center' }],
+      ['missing product', { id: tenantId, status: 'active', product_key: null }],
+      ['inactive tenant', { id: tenantId, status: 'inactive', product_key: 'bella_preschool' }],
+      ['foreign tenant', { id: foreignTenant, status: 'active', product_key: 'bella_preschool' }],
+      ['missing tenant', null],
+    ])(`denies admin with %s for ${action}`, async (_label, tenant) => {
+      mockGetCurrentUser.mockResolvedValue({ ...profile, role: 'admin' });
+      mockTenantResult.mockResolvedValue({ data: tenant, error: null });
+      await expectDenied(request({ action, product_key: 'bella_preschool' }), 403, 'COPILOT_PRODUCT_ACCESS_DENIED');
+    });
+
+    it(`fails closed when admin tenant lookup fails for ${action}`, async () => {
+      mockGetCurrentUser.mockResolvedValue({ ...profile, role: 'admin' });
+      mockTenantResult.mockResolvedValue({ data: null, error: { message: 'unavailable' } });
+      await expectDenied(request({ action }), 503, 'COPILOT_IDENTITY_UNAVAILABLE');
+    });
   }
 
   it('normalizes the verified executive role without accepting header authority', async () => {

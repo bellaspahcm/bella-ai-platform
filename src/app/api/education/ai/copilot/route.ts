@@ -25,9 +25,9 @@ import {
 export const dynamic = 'force-dynamic';
 
 const PRIVATE_HEADERS = { 'Cache-Control': 'private, no-store' };
-// Approved Phase4 leadership contract; general Copilot access is broader.
+// Phase4 section9: admin access is additionally bound to canonical Preschool identity.
 const EXECUTIVE_ROLES = new Set([
-  'super_admin', 'campus_admin', 'program_director', 'education_head', 'academic_admin',
+  'super_admin', 'campus_admin', 'program_director', 'education_head', 'academic_admin', 'admin',
 ]);
 
 interface CopilotRequestBody {
@@ -51,6 +51,7 @@ interface CopilotRequestBody {
   readonly totalStudents?: unknown;
   readonly presentCount?: unknown;
   readonly absentCount?: unknown;
+  readonly unmarkedAttendanceCount?: unknown;
   readonly feverCasesCount?: unknown;
   readonly unpaidTuitionCount?: unknown;
   readonly pendingParentRequests?: unknown;
@@ -131,9 +132,27 @@ export async function POST(request: Request) {
     }
 
     if ((action === 'executive_briefing' || action === 'executive_safety_audit') && !EXECUTIVE_ROLES.has(effectiveRole)) {
-      return NextResponse.json({ error: 'FORBIDDEN' }, {
+      return NextResponse.json({ error: 'FORBIDDEN', message: 'Tài khoản chưa có quyền sử dụng chức năng điều hành này.' }, {
         status: 403, headers: PRIVATE_HEADERS,
       });
+    }
+
+    if ((action === 'executive_briefing' || action === 'executive_safety_audit') && effectiveRole === 'admin') {
+      const { data: tenant, error: tenantError } = await supabase
+        .from('tenants')
+        .select('id, status, product_key')
+        .eq('id', tenantId)
+        .maybeSingle();
+      if (tenantError) {
+        return NextResponse.json({ error: 'COPILOT_IDENTITY_UNAVAILABLE' }, {
+          status: 503, headers: PRIVATE_HEADERS,
+        });
+      }
+      if (!tenant || tenant.id !== tenantId || tenant.status !== 'active' || tenant.product_key !== 'bella_preschool') {
+        return NextResponse.json({ error: 'COPILOT_PRODUCT_ACCESS_DENIED' }, {
+          status: 403, headers: PRIVATE_HEADERS,
+        });
+      }
     }
 
     const typedRequest: PreschoolCopilotRequest = {
@@ -161,6 +180,7 @@ export async function POST(request: Request) {
       totalStudents: typeof body.totalStudents === 'number' ? body.totalStudents : undefined,
       presentCount: typeof body.presentCount === 'number' ? body.presentCount : undefined,
       absentCount: typeof body.absentCount === 'number' ? body.absentCount : undefined,
+      unmarkedAttendanceCount: typeof body.unmarkedAttendanceCount === 'number' ? body.unmarkedAttendanceCount : undefined,
       feverCasesCount: typeof body.feverCasesCount === 'number' ? body.feverCasesCount : undefined,
       unpaidTuitionCount: typeof body.unpaidTuitionCount === 'number' ? body.unpaidTuitionCount : undefined,
       pendingParentRequests: typeof body.pendingParentRequests === 'number' ? body.pendingParentRequests : undefined,

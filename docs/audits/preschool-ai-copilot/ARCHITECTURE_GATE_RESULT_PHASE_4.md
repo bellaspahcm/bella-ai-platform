@@ -75,4 +75,12 @@ The requested change authorizes modifying:
 - **G10 Auditability & PII Masking:** Executive questions processed through `maskChildPii` shield.
 - **G11 Static Guard & Conformance:** Verify passing `tsc --noEmit` and all Jest test suites.
 
-**CONCLUSION: PASS**
+## 9. Approved runtime repair — 2026-10-21
+
+The human owner explicitly approved: **“Cho phép admin trong tenant Preschool”** for morning briefing and TT52 review. This extends the executive list above with `admin` only when the authenticated profile's own active tenant has canonical `product_key = bella_preschool`. Existing leadership roles retain their approved access. Real Auth, active subject/profile binding, tenant selector rejection and private responses remain mandatory. Client role assertions and development mock identities grant no access.
+
+Attendance zero is a measured value, never a fallback to total enrollment. Missing analytics must not generate sample statistics. Unmarked attendance must remain distinct from recorded absence. TT52 review must report incomplete evidence when structured age-group or teacher staffing data is missing; dashboard class names and invented staffing are not authoritative evidence. Rules-based Q&A must identify its source instead of implying a model response.
+
+Implementation and verification scope is recorded in [runtime repair](RUNTIME_REPAIR_2026_10_21.md). No Kernel, shared authorization policy, RLS, schema, credential or ProductRegistry changes are authorized.
+
+**CONCLUSION: PASS** (bounded Product repair authorized; runtime verification reported separately)
