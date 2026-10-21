@@ -924,42 +924,42 @@ export default function EducationDashboardPage() {
       </div>
 
       {/* ── 2.3 EXECUTIVE AI COPILOT HUB (TRỢ LÝ ĐIỀU HÀNH BAN GIÁM HIỆU) ── */}
-      <div className="rounded-3xl bg-gradient-to-br from-violet-900 via-indigo-950 to-slate-900 text-white p-5 sm:p-6 shadow-xl border border-violet-500/30 relative overflow-hidden">
+      <div className="rounded-3xl bg-[color-mix(in_srgb,var(--primary)_6%,var(--background))] text-slate-800 dark:text-slate-100 p-5 sm:p-6 shadow-xl border border-primary/20 relative overflow-hidden">
         {/* Glow Effects */}
-        <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 left-10 w-72 h-72 bg-violet-600/20 rounded-full blur-2xl pointer-events-none" />
+        <div className="absolute top-0 right-0 w-96 h-96 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 left-10 w-72 h-72 bg-primary/5 rounded-full blur-2xl pointer-events-none" />
 
         <div className="relative z-10 space-y-5">
           {/* Header Bar */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/10 pb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-primary/20 pb-4">
             <div className="flex items-center gap-3">
-              <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-violet-400 to-indigo-500 flex items-center justify-center text-white shadow-lg shrink-0">
+              <div className="w-11 h-11 rounded-2xl bg-primary flex items-center justify-center text-primary-foreground shadow-lg shrink-0">
                 <Sparkles className="w-6 h-6 animate-pulse" />
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <h2 className="text-base sm:text-lg font-black tracking-tight text-white">
+                  <h2 className="preschool-brand-heading text-base sm:text-lg font-black tracking-tight text-[var(--education-brand-ink)]">
                     Trợ lý Điều hành AI — Ban Giám Hiệu
                   </h2>
-                  <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-violet-500/30 text-violet-200 border border-violet-400/30 tracking-wide">
+                  <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-background text-[var(--education-brand-ink)] border border-primary/20 tracking-wide">
                     Executive Copilot
                   </span>
                 </div>
-                <p className="text-xs text-violet-200/80 mt-0.5 font-medium">
+                <p className="text-xs text-[var(--color-slate-600)] dark:text-[var(--color-slate-200)] mt-0.5 font-medium">
                   Điểm tin toàn trường, rà soát tuân thủ định mức Thông tư 52 & hỏi đáp nghiệp vụ quản lý
                 </p>
               </div>
             </div>
 
             {/* Navigation Tabs */}
-            <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-white/10 backdrop-blur-md border border-white/10 self-start sm:self-auto">
+            <div className="flex flex-wrap items-center gap-1.5 p-1 rounded-2xl bg-background border border-primary/20 self-start sm:self-auto">
               <button
                 type="button"
                 onClick={() => setActiveCopilotTab('briefing')}
                 className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                   activeCopilotTab === 'briefing'
-                    ? 'bg-white text-indigo-950 shadow-sm'
-                    : 'text-violet-200 hover:text-white hover:bg-white/10'
+                    ? 'bg-primary text-primary-foreground shadow-sm'
+                    : 'text-slate-700 dark:text-slate-200 hover:bg-primary/10'
                 }`}
               >
                 Điểm tin AI
@@ -969,8 +969,8 @@ export default function EducationDashboardPage() {
                 onClick={() => setActiveCopilotTab('compliance')}
                 className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                   activeCopilotTab === 'compliance'
-                    ? 'bg-white text-indigo-950 shadow-sm'
-                    : 'text-violet-200 hover:text-white hover:bg-white/10'
+                    ? 'bg-primary text-primary-foreground shadow-sm'
+                    : 'text-slate-700 dark:text-slate-200 hover:bg-primary/10'
                 }`}
               >
                 Rà soát TT52
@@ -980,8 +980,8 @@ export default function EducationDashboardPage() {
                 onClick={() => setActiveCopilotTab('qa')}
                 className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                   activeCopilotTab === 'qa'
-                    ? 'bg-white text-indigo-950 shadow-sm'
-                    : 'text-violet-200 hover:text-white hover:bg-white/10'
+                    ? 'bg-primary text-primary-foreground shadow-sm'
+                    : 'text-slate-700 dark:text-slate-200 hover:bg-primary/10'
                 }`}
               >
                 Hỏi đáp BGH
@@ -992,22 +992,22 @@ export default function EducationDashboardPage() {
           {/* TAB 1: EXECUTIVE BRIEFING */}
           {activeCopilotTab === 'briefing' && (
             <div className="space-y-4 animate-in fade-in duration-200">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white/5 rounded-2xl p-4 border border-white/10">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-background rounded-2xl p-4 border border-primary/20">
                 <div className="space-y-1">
-                  <p className="text-xs font-bold text-violet-200 uppercase tracking-wide">
+                  <p className="text-xs font-bold text-[var(--education-brand-ink)] uppercase tracking-wide">
                     Tình hình tổng quan hôm nay
                   </p>
-                  <p className="text-sm font-semibold text-white/90">
-                    Sĩ số toàn trường: <span className="font-black text-amber-300">{totalKidsCount}</span> trẻ • 
-                    Có mặt: <span className="font-black text-emerald-300">{presentCount}</span> trẻ ({attendanceRate}% chuyên cần) • 
-                    Ca sốt/y tế: <span className="font-black text-rose-300">{healthIncidents ?? 0}</span>
+                  <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">
+                    Sĩ số toàn trường: <span className="font-black text-[var(--education-brand-ink)]">{totalKidsCount}</span> trẻ •
+                    Có mặt: <span className="font-black text-[var(--color-emerald-700)] dark:text-[var(--color-emerald-300)]">{presentCount}</span> trẻ ({attendanceRate}% chuyên cần) •
+                    Ca sốt/y tế: <span className="font-black text-[var(--color-rose-700)] dark:text-[var(--color-rose-300)]">{healthIncidents ?? 0}</span>
                   </p>
                 </div>
                 <button
                   type="button"
                   onClick={handleGenerateBriefing}
                   disabled={isAiBriefingLoading}
-                  className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-slate-950 font-black text-xs shadow-md transition-all active:scale-95 disabled:opacity-50 cursor-pointer shrink-0 inline-flex items-center gap-2"
+                  className="px-4 py-2.5 rounded-xl bg-primary hover:bg-primary-hover text-primary-foreground font-black text-xs shadow-md transition-all active:scale-95 disabled:cursor-wait cursor-pointer shrink-0 inline-flex items-center gap-2"
                 >
                   {isAiBriefingLoading ? (
                     <>
@@ -1026,27 +1026,27 @@ export default function EducationDashboardPage() {
               {executiveBriefing && (
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {/* Summary Box */}
-                  <div className="md:col-span-2 p-4 rounded-2xl bg-white/10 border border-white/15 space-y-3">
+                  <div className="md:col-span-2 p-4 rounded-2xl bg-background border border-primary/20 space-y-3">
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-black uppercase text-amber-300 tracking-wider flex items-center gap-1.5">
+                      <span className="text-xs font-black uppercase text-[var(--education-brand-ink)] tracking-wider flex items-center gap-1.5">
                         <FileText className="w-3.5 h-3.5" />
                         Điểm tin tổng kết
                       </span>
-                      <span className="text-[10px] text-violet-300">
+                      <span className="text-[10px] text-[var(--color-slate-600)] dark:text-[var(--color-slate-200)]">
                         {new Date(executiveBriefing.generatedAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}
                       </span>
                     </div>
-                    <p className="text-xs sm:text-sm text-slate-100 leading-relaxed font-medium">
+                    <p className="text-xs sm:text-sm text-slate-700 dark:text-slate-200 leading-relaxed font-medium">
                       {executiveBriefing.executiveSummary}
                     </p>
 
                     {/* Actionable recommendations */}
                     {executiveBriefing.actionableRecommendations.length > 0 && (
-                      <div className="pt-2 border-t border-white/10 space-y-1.5">
-                        <p className="text-[11px] font-bold text-violet-200">Khuyến nghị hành động:</p>
+                      <div className="pt-2 border-t border-primary/20 space-y-1.5">
+                        <p className="text-[11px] font-bold text-[var(--education-brand-ink)]">Khuyến nghị hành động:</p>
                         {executiveBriefing.actionableRecommendations.map((rec, i) => (
-                          <div key={i} className="flex items-start gap-2 text-xs text-white/90">
-                            <span className="text-amber-400 shrink-0">▸</span>
+                          <div key={i} className="flex items-start gap-2 text-xs text-slate-700 dark:text-slate-200">
+                            <span className="text-[var(--education-brand-ink)] shrink-0">▸</span>
                             <span>{rec}</span>
                           </div>
                         ))}
@@ -1055,20 +1055,20 @@ export default function EducationDashboardPage() {
                   </div>
 
                   {/* Alerts Box */}
-                  <div className="p-4 rounded-2xl bg-white/10 border border-white/15 space-y-3">
-                    <span className="text-xs font-black uppercase text-rose-300 tracking-wider flex items-center gap-1.5">
+                  <div className="p-4 rounded-2xl bg-background border border-primary/20 space-y-3">
+                    <span className="text-xs font-black uppercase text-[var(--color-rose-700)] dark:text-[var(--color-rose-300)] tracking-wider flex items-center gap-1.5">
                       <ShieldAlert className="w-3.5 h-3.5" />
                       Cảnh báo điều hành
                     </span>
                     {executiveBriefing.criticalAlerts.length === 0 ? (
-                      <div className="flex items-center gap-2 text-xs text-emerald-300 py-4">
+                      <div className="flex items-center gap-2 text-xs text-[var(--color-emerald-700)] dark:text-[var(--color-emerald-300)] py-4">
                         <CheckCircle className="w-4 h-4 shrink-0" />
                         <span>Không có cảnh báo nguy cấp. Vận hành ổn định.</span>
                       </div>
                     ) : (
                       <div className="space-y-2">
                         {executiveBriefing.criticalAlerts.map((alert, i) => (
-                          <div key={i} className="p-2.5 rounded-xl bg-rose-500/20 border border-rose-400/30 text-rose-200 text-xs font-medium leading-relaxed">
+                          <div key={i} className="p-2.5 rounded-xl bg-rose-50 dark:bg-rose-950 border border-rose-200 dark:border-rose-800 text-[var(--color-rose-700)] dark:text-[var(--color-rose-200)] text-xs font-medium leading-relaxed">
                             {alert}
                           </div>
                         ))}
@@ -1083,12 +1083,12 @@ export default function EducationDashboardPage() {
           {/* TAB 2: COMPLIANCE & SAFETY SENTINEL */}
           {activeCopilotTab === 'compliance' && (
             <div className="space-y-4 animate-in fade-in duration-200">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white/5 rounded-2xl p-4 border border-white/10">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-background rounded-2xl p-4 border border-primary/20">
                 <div>
-                  <p className="text-xs font-bold text-violet-200 uppercase tracking-wide">
+                  <p className="text-xs font-bold text-[var(--education-brand-ink)] uppercase tracking-wide">
                     Kiểm định định mức mầm non (Thông tư 52/2020/TT-BGDĐT)
                   </p>
-                  <p className="text-xs text-white/80 mt-1">
+                  <p className="text-xs text-[var(--color-slate-600)] dark:text-[var(--color-slate-200)] mt-1">
                     Chuẩn định mức: Nhà trẻ ≤ 25 trẻ (≤ 12 trẻ/GV) • Mầm ≤ 25 • Chồi ≤ 30 • Lá ≤ 35
                   </p>
                 </div>
@@ -1096,7 +1096,7 @@ export default function EducationDashboardPage() {
                   type="button"
                   onClick={handleRunComplianceAudit}
                   disabled={isComplianceAuditLoading}
-                  className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-400 to-teal-500 hover:from-emerald-500 hover:to-teal-600 text-slate-950 font-black text-xs shadow-md transition-all active:scale-95 disabled:opacity-50 cursor-pointer shrink-0 inline-flex items-center gap-2"
+                  className="px-4 py-2.5 rounded-xl bg-primary hover:bg-primary-hover text-primary-foreground font-black text-xs shadow-md transition-all active:scale-95 disabled:cursor-wait cursor-pointer shrink-0 inline-flex items-center gap-2"
                 >
                   {isComplianceAuditLoading ? (
                     <>
@@ -1114,36 +1114,36 @@ export default function EducationDashboardPage() {
 
               {complianceResult && (
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <div className="p-4 rounded-2xl bg-white/10 border border-white/15 flex items-center gap-4">
-                    <div className="text-3xl font-black text-amber-300">
-                      {complianceResult.complianceScore}<span className="text-sm text-violet-200">/100</span>
+                  <div className="p-4 rounded-2xl bg-background border border-primary/20 flex items-center gap-4">
+                    <div className="text-3xl font-black text-[var(--education-brand-ink)]">
+                      {complianceResult.complianceScore}<span className="text-sm text-[var(--color-slate-600)] dark:text-[var(--color-slate-200)]">/100</span>
                     </div>
                     <div>
-                      <p className="text-xs font-black uppercase text-white">Điểm chuẩn TT52</p>
-                      <p className="text-[11px] text-violet-200 mt-0.5">
+                      <p className="text-xs font-black uppercase text-slate-800 dark:text-slate-100">Điểm chuẩn TT52</p>
+                      <p className="text-[11px] text-[var(--color-slate-600)] dark:text-[var(--color-slate-200)] mt-0.5">
                         {complianceResult.compliant ? 'Đạt chuẩn 100%' : 'Có điểm cần điều chỉnh'}
                       </p>
                     </div>
                   </div>
 
-                  <div className="sm:col-span-2 p-4 rounded-2xl bg-white/10 border border-white/15 space-y-2">
-                    <p className="text-xs font-black uppercase text-violet-200">Kết quả rà soát {complianceResult.inspectedClassesCount} lớp:</p>
+                  <div className="sm:col-span-2 p-4 rounded-2xl bg-background border border-primary/20 space-y-2">
+                    <p className="text-xs font-black uppercase text-[var(--education-brand-ink)]">Kết quả rà soát {complianceResult.inspectedClassesCount} lớp:</p>
                     {complianceResult.violations.length === 0 && complianceResult.warnings.length === 0 ? (
-                      <div className="flex items-center gap-2 text-xs text-emerald-300 font-medium">
+                      <div className="flex items-center gap-2 text-xs text-[var(--color-emerald-700)] dark:text-[var(--color-emerald-300)] font-medium">
                         <CheckCircle className="w-4 h-4 shrink-0" />
                         <span>Tất cả các lớp học đều tuân thủ đúng định mức sĩ số và tỷ lệ giáo viên của Bộ GD&ĐT.</span>
                       </div>
                     ) : (
                       <div className="space-y-1.5 max-h-36 overflow-y-auto">
                         {complianceResult.violations.map((v, i) => (
-                          <div key={i} className="text-xs text-rose-300 font-medium flex items-start gap-1.5">
-                            <span className="text-rose-400 font-bold shrink-0">✕</span>
+                          <div key={i} className="text-xs text-[var(--color-rose-700)] dark:text-[var(--color-rose-300)] font-medium flex items-start gap-1.5">
+                            <span className="text-[var(--color-rose-700)] dark:text-[var(--color-rose-300)] font-bold shrink-0">✕</span>
                             <span>{v}</span>
                           </div>
                         ))}
                         {complianceResult.warnings.map((w, i) => (
-                          <div key={i} className="text-xs text-amber-300 font-medium flex items-start gap-1.5">
-                            <span className="text-amber-400 font-bold shrink-0">⚠</span>
+                          <div key={i} className="text-xs text-[var(--color-amber-700)] dark:text-[var(--color-amber-300)] font-medium flex items-start gap-1.5">
+                            <span className="text-[var(--color-amber-700)] dark:text-[var(--color-amber-300)] font-bold shrink-0">⚠</span>
                             <span>{w}</span>
                           </div>
                         ))}
@@ -1168,24 +1168,24 @@ export default function EducationDashboardPage() {
                     }`}
                   >
                     {msg.sender === 'copilot' && (
-                      <div className="w-7 h-7 rounded-lg bg-violet-600 flex items-center justify-center text-white shrink-0 mt-0.5 text-xs font-black">
+                      <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center text-primary-foreground shrink-0 mt-0.5 text-xs font-black">
                         AI
                       </div>
                     )}
                     <div
                       className={`max-w-[85%] rounded-2xl p-3 text-xs leading-relaxed ${
                         msg.sender === 'user'
-                          ? 'bg-amber-400 text-slate-950 font-semibold'
-                          : 'bg-white/10 text-white border border-white/10 whitespace-pre-line'
+                          ? 'bg-primary text-primary-foreground font-semibold'
+                          : 'bg-background text-slate-700 dark:text-slate-200 border border-primary/20 whitespace-pre-line'
                       }`}
                     >
                       <p>{msg.text}</p>
-                      <span className="text-[9px] opacity-60 block mt-1 text-right">{msg.time}</span>
+                      <span className="text-[9px] block mt-1 text-right">{msg.time}</span>
                     </div>
                   </div>
                 ))}
                 {isExecutiveAsking && (
-                  <div className="flex items-center gap-2 text-xs text-violet-300 p-2">
+                  <div className="flex items-center gap-2 text-xs text-[var(--color-slate-600)] dark:text-[var(--color-slate-200)] p-2">
                     <Loader2 className="w-3.5 h-3.5 animate-spin" />
                     <span>Copilot đang phân tích số liệu quản trị mầm non...</span>
                   </div>
@@ -1205,7 +1205,7 @@ export default function EducationDashboardPage() {
                     type="button"
                     onClick={() => void handleSendExecutiveQuestion(q)}
                     disabled={isExecutiveAsking}
-                    className="px-2.5 py-1 rounded-full bg-white/10 hover:bg-white/20 text-violet-200 text-[10px] font-bold border border-white/10 transition-colors cursor-pointer disabled:opacity-40"
+                    className="px-2.5 py-1 rounded-full bg-background hover:bg-primary/10 text-[var(--education-brand-ink)] text-[10px] font-bold border border-primary/20 transition-colors cursor-pointer disabled:cursor-wait"
                   >
                     {q}
                   </button>
@@ -1226,12 +1226,12 @@ export default function EducationDashboardPage() {
                   onChange={(e) => setExecutiveQuestion(e.target.value)}
                   placeholder="Đặt câu hỏi điều hành (VD: Soạn thư cảm ơn phụ huynh, rà soát sĩ số lớp Chồi)..."
                   disabled={isExecutiveAsking}
-                  className="flex-1 bg-white/10 border border-white/20 rounded-xl px-3.5 py-2 text-xs text-white placeholder:text-violet-300/60 outline-none focus:border-amber-400 transition-colors"
+                  className="min-w-0 flex-1 bg-background border border-slate-400 dark:border-slate-500 rounded-xl px-3.5 py-2 text-xs text-slate-800 dark:text-slate-100 placeholder:text-[var(--color-slate-600)] dark:placeholder:text-[var(--color-slate-200)] outline-none focus:border-[var(--education-brand-ink)] focus:ring-2 focus:ring-[var(--education-brand-ink)] transition-colors"
                 />
                 <button
                   type="submit"
                   disabled={!executiveQuestion.trim() || isExecutiveAsking}
-                  className="px-3.5 py-2 rounded-xl bg-amber-400 text-slate-950 hover:bg-amber-500 font-bold text-xs disabled:opacity-40 transition-all cursor-pointer shrink-0 flex items-center gap-1.5"
+                  className="px-3.5 py-2 rounded-xl bg-[var(--primary)] text-[var(--primary-foreground)] enabled:hover:bg-[var(--primary-hover)] font-bold text-xs disabled:bg-slate-200 disabled:text-[var(--color-slate-600)] dark:disabled:bg-slate-800 dark:disabled:text-[var(--color-slate-200)] disabled:cursor-not-allowed transition-all cursor-pointer shrink-0 flex items-center gap-1.5"
                 >
                   <Send className="w-3.5 h-3.5" />
                   <span>Gửi</span>
