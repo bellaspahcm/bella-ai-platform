@@ -1,0 +1,647 @@
+/* E2E-only Care experiment. Default is an offline plan; this file is not approval. */
+'use strict';
+
+const { randomUUID, randomBytes, createHash, X509Certificate } = require('node:crypto');
+const { readFileSync, writeFileSync, mkdirSync, existsSync } = require('node:fs');
+const { resolve, join, dirname } = require('node:path');
+const { spawn, execFileSync } = require('node:child_process');
+const net = require('node:net');
+
+const ROOT = resolve(__dirname, '..');
+const REF = 'bmnbqbcdbuklhopfbopv';
+const API = `https://${REF}.supabase.co`;
+const BASELINE = '4a7a855e3472dcfd86649b18f27671ccbe7188a1';
+const APPROVED_SQL_SHA256 = '612277fd1d8aa49bd868e07652b10d89fce79fb5e6d567f1de9f18e70feac37e';
+const EXISTING = ['edu_courses', 'edu_enrollments', 'party_parties'];
+const CREATED = ['edu_attendance_daily_state', 'edu_daily_care_sessions', 'edu_daily_care_records'];
+const TARGETS = [...EXISTING, ...CREATED];
+const RUNTIME = ['src', 'packages', 'package.json', 'package-lock.json', 'next.config.ts', 'tsconfig.json', 'scripts/bdgf/database-connection.mjs'];
+const ENV_FILES = ['.env.development.local', '.env.local', '.env.development', '.env'];
+const START = new Date();
+const STAMP = START.toISOString().replace(/[:.]/g, '-');
+const DEADLINE = START.getTime() + 15 * 60_000;
+const hash = value => createHash('sha256').update(value).digest('hex');
+const jsonHash = value => hash(JSON.stringify(value));
+const wait = ms => new Promise(done => setTimeout(done, ms));
+const fixtures = [0, 1].map(index => ({ index, tenant: randomUUID(), branch: randomUUID(),
+  person: randomUUID(), relationship: randomUUID(), course: randomUUID(), assignment: randomUUID(),
+  attendance: randomUUID(), students: ['active', 'pending'].map(status => ({ id: randomUUID(), enrollment: randomUUID(), status })), actors: [] }));
+const owned = { records: new Set(), sessions: new Set() };
+const authCreated = [], authIntents = [], loggedIn = [];
+const report = { startedAt: START.toISOString(), projectRef: REF, baseline: BASELINE,
+  scope: 'Exact six-relation E2E preparation and real Auth Care acceptance; no Production or Go-Live proof',
+  checks: [], cleanup: { failures: [] }, recovery: { attempted: false } };
+let args, bundle, config, db, admin, before, prepared, server, port, serverExit, agentBefore;
+let connected = false, transaction = false, preparationAttempted = false, committed = false;
+let fixtureWrites = false, cleanupStarted = false, cleanupDeadline = Infinity, interrupted = false;
+let primaryFailure = null, stdoutBytes = 0, stderrBytes = 0, currentCheck = null;
+process.once('SIGINT', () => { interrupted = true; });
+process.once('SIGTERM', () => { interrupted = true; });
+
+function fail(code) { const error = new Error(code); error.acceptanceCode = code; throw error; }
+function must(value, code) { if (!value) fail(code); }
+function safeCode(error) {
+  if (error?.message === 'Query read timeout') return 'QUERY_READ_TIMEOUT';
+  const code = error?.acceptanceCode || error?.code;
+  return typeof code === 'string' && /^[A-Z0-9_]{2,90}$/.test(code) ? code : 'UNCLASSIFIED_FAILURE';
+}
+function add(name, result, detail = {}) { report.checks.push({ name, result, ...detail }); }
+async function check(name, work) {
+  const previous = currentCheck; currentCheck = name;
+  try { const detail = await work(); add(name, 'PASS', detail || {}); }
+  catch (error) { add(name, 'FAIL', { code: safeCode(error) }); throw error; }
+  finally { currentCheck = previous; }
+}
+function budget() {
+  must(Date.now() < (cleanupStarted ? cleanupDeadline : DEADLINE) && (cleanupStarted || !interrupted), 'DEADLINE_OR_INTERRUPT');
+}
+function git(argv) { return execFileSync('git', argv, { cwd: ROOT, windowsHide: true, encoding: 'utf8', timeout: 15_000 }); }
+function parseArgs() {
+  const result = { approved: false, retain: false,
+    sql: join(ROOT, 'docs/audits/preschool-full-audit-20261020/batch2l-care-rls/E2E_PREPARE.sql'),
+    output: join(ROOT, 'docs/audits/preschool-full-audit-20261020/batch2l-care-rls') };
+  for (let i = 2; i < process.argv.length; i++) {
+    const item = process.argv[i];
+    if (item === '--owner-approved-e2e-scope6') result.approved = true;
+    else if (item === '--retain-on-pass') result.retain = true;
+    else if (item === '--metadata-only') result.metadataOnly = true;
+    else if (item === '--sql' || item === '--output') { must(process.argv[i + 1] && !process.argv[i + 1].startsWith('--'), 'ARGUMENT_VALUE_REQUIRED'); result[item.slice(2)] = resolve(process.argv[++i]); }
+    else fail('UNKNOWN_ARGUMENT');
+  }
+  must(!result.retain || result.approved, 'RETENTION_REQUIRES_EXPLICIT_SCOPE_APPROVAL');
+  must(!result.metadataOnly || !result.retain, 'METADATA_ONLY_RETENTION_FORBIDDEN');
+  return result;
+}
+function sourceState() {
+  let ancestor = false;
+  try { git(['merge-base', '--is-ancestor', BASELINE, 'HEAD']); ancestor = true; } catch { /* Entry gate rejects. */ }
+  const paths = git(['ls-files', '-z', '--', ...RUNTIME]).split('\0').filter(Boolean).sort();
+  const digest = createHash('sha256');
+  for (const path of paths) digest.update(path).update('\0').update(readFileSync(join(ROOT, path))).update('\0');
+  return { head: git(['rev-parse', 'HEAD']).trim(), tree: git(['rev-parse', 'HEAD^{tree}']).trim(), ancestor,
+    changed: git(['diff', '--name-only', BASELINE, '--', ...RUNTIME]).trim().split(/\r?\n/).filter(Boolean),
+    untracked: git(['ls-files', '--others', '--exclude-standard', '--', ...RUNTIME]).trim().split(/\r?\n/).filter(Boolean),
+    sha256: digest.digest('hex'), environmentFiles: ENV_FILES.filter(path => existsSync(join(ROOT, path))) };
+}
+function loadBundle() {
+  const sql = readFileSync(args.sql, 'utf8');
+  must(hash(sql) === APPROVED_SQL_SHA256, 'APPROVED_SQL_HASH_MISMATCH');
+  const markers = [...sql.matchAll(/^-- BELLA_CARE_E2E_MANIFEST: (.+)$/gm)];
+  must(markers.length === 1, 'EXACT_SQL_MANIFEST_REQUIRED');
+  let manifest; try { manifest = JSON.parse(markers[0][1]); } catch { fail('SQL_MANIFEST_INVALID'); }
+  const sameSet = (left, right) => Array.isArray(left) && JSON.stringify([...left].sort()) === JSON.stringify([...right].sort());
+  must(manifest.projectRef === REF && sameSet(manifest.existingRelations, EXISTING)
+    && sameSet(manifest.newRelations, CREATED) && sameSet(Object.keys(manifest.policies || {}), EXISTING), 'SQL_SCOPE_MANIFEST_REJECTED');
+  const names = [];
+  for (const table of EXISTING) {
+    const policies = manifest.policies[table];
+    must(Array.isArray(policies) && policies.length === 2 && policies.every(name => /^e2e_care_[a-z_]+$/.test(name)), 'SQL_POLICY_MANIFEST_REJECTED');
+    names.push(...policies);
+  }
+  must(new Set(names).size === 6 && sql.includes('app.bella_e2e_project_ref'), 'SQL_MARKER_OR_POLICY_NAMES_REJECTED');
+  // DDL is reviewed separately. Never accept business DML, helper/role/schema changes or a transaction wrapper here.
+  const withoutComments = sql.replace(/--[^\r\n]*/g, '');
+  must(!/\b(?:INSERT\s+INTO|DELETE\s+FROM|TRUNCATE\s+(?:TABLE\s+)?public\.|UPDATE\s+public\.|SECURITY\s+DEFINER|ALTER\s+DEFAULT\s+PRIVILEGES|ALTER\s+ROLE|CREATE\s+(?:OR\s+REPLACE\s+)?FUNCTION|DROP\s+(?:TABLE|POLICY|FUNCTION)|COMMIT\s*;|ROLLBACK\s*;)\b/i.test(withoutComments), 'SQL_PROHIBITED_OPERATION');
+  const preflight = JSON.parse(readFileSync(join(dirname(args.sql), 'preflight.json'), 'utf8'));
+  must(preflight.projectRef === REF && preflight.readOnly === true && Array.isArray(preflight.sourceHashes), 'PREFLIGHT_TARGET_REJECTED');
+  for (const source of preflight.sourceHashes) {
+    must(typeof source.file === 'string' && !source.file.includes('..') && /^[a-f0-9]{64}$/.test(source.sha256), 'PREFLIGHT_SOURCE_INVALID');
+    must(hash(readFileSync(join(ROOT, source.file))) === source.sha256, 'CANONICAL_SOURCE_HASH_CHANGED');
+  }
+  return { sql, sha256: hash(sql), manifest, preflightSha256: hash(readFileSync(join(dirname(args.sql), 'preflight.json'))) };
+}
+function stableSql() { must(hash(readFileSync(args.sql)) === bundle.sha256, 'SQL_SOURCE_CHANGED'); }
+async function readConfig() {
+  must(process.env.E2E_ENV_FILE, 'EXPLICIT_E2E_ENV_FILE_REQUIRED');
+  const values = require('dotenv').parse(readFileSync(resolve(process.env.E2E_ENV_FILE)));
+  const publicKey = values.NEXT_PUBLIC_SUPABASE_ANON_KEY || values.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+  const adminKey = values.SUPABASE_SERVICE_ROLE_KEY || values.SUPABASE_SECRET_KEY;
+  const dbUrl = values.SUPABASE_DB_URL || values.SUPABASE_DATABASE_URL || values.DATABASE_URL || values.DB_URL;
+  must(values.NEXT_PUBLIC_SUPABASE_URL === API && publicKey && adminKey && dbUrl && publicKey !== adminKey, 'EXACT_E2E_CONFIGURATION_REQUIRED');
+  for (const [key, role] of [[publicKey, 'anon'], [adminKey, 'service_role']]) {
+    must(key.split('.').length === 3, 'BOUND_JWT_KEY_REQUIRED');
+    let claims; try { claims = JSON.parse(Buffer.from(key.split('.')[1], 'base64url').toString('utf8')); } catch { fail('KEY_METADATA_INVALID'); }
+    must(claims.ref === REF && claims.role === role, 'KEY_PROJECT_OR_ROLE_REJECTED');
+  }
+  const url = new URL(dbUrl), parsed = require('pg-connection-string').parse(dbUrl);
+  must(['postgres:', 'postgresql:'].includes(url.protocol) && !url.hash, 'DATABASE_URL_REJECTED');
+  for (const [key, value] of url.searchParams) must(key === 'sslmode' && ['require', 'verify-full'].includes(value)
+    && url.searchParams.getAll(key).length === 1, 'DATABASE_QUERY_OVERRIDE_REJECTED');
+  const direct = parsed.host === `db.${REF}.supabase.co`;
+  const pooler = /^aws-\d+-[a-z0-9-]+\.pooler\.supabase\.com$/.test(parsed.host || '');
+  must((direct && parsed.user === 'postgres' || pooler && parsed.user === `postgres.${REF}`)
+    && parsed.database === 'postgres' && parsed.password && [5432, 6543].includes(Number(parsed.port || 5432))
+    && (!direct || Number(parsed.port || 5432) === 5432), 'DATABASE_PROJECT_BINDING_REJECTED');
+  // Reuse the repository's verified vendor-root + hostname configuration.
+  // No production environment values, supplied endpoint certificate or TOFU trust.
+  const { createBdgfDatabaseConfig } = await import('./bdgf/database-connection.mjs');
+  const verified = createBdgfDatabaseConfig(dbUrl);
+  const certificate = new X509Certificate(verified.ssl.ca.at(-1));
+  must(certificate.ca && certificate.fingerprint256.replaceAll(':', '').toLowerCase()
+    === '807025ad50d4ed219d2c9c7d299c004f824eb00cf7f65afef607d07b72e6cafa', 'VENDOR_CA_FINGERPRINT_CHANGED');
+  report.databaseTls = { rejectUnauthorized: true, servernameVerified: true,
+    vendorCaFingerprint256: certificate.fingerprint256, reusedHelper: 'scripts/bdgf/database-connection.mjs' };
+  return { publicKey, adminKey, pg: { ...verified,
+    query_timeout: 35_000, statement_timeout: 30_000, lock_timeout: 5_000, application_name: 'preschool-care-rls-e2e' } };
+}
+async function remoteFetch(input, init = {}) {
+  budget(); const url = new URL(typeof input === 'string' || input instanceof URL ? input : input.url);
+  must(url.origin === API && !url.username && !url.password, 'REMOTE_TARGET_REJECTED');
+  const timeout = AbortSignal.timeout(25_000);
+  const response = await fetch(input, { ...init, redirect: 'error', signal: init.signal ? AbortSignal.any([init.signal, timeout]) : timeout });
+  // Error codes only: retain no PostgREST message/details, query values or rows.
+  if (!response.ok && url.pathname.startsWith('/rest/v1/')) {
+    let payload; try { payload = await response.clone().json(); } catch { /* No raw body evidence. */ }
+    report.restErrorReceipts ||= [];
+    report.restErrorReceipts.push({ status: response.status, code: typeof payload?.code === 'string'
+      && /^[A-Z0-9_]{2,90}$/.test(payload.code) ? payload.code : null });
+  }
+  return response;
+}
+async function q(text, values = []) { budget(); return db.query({ text, values, query_timeout: 35_000 }); }
+
+async function snapshot() {
+  // No business rows or function bodies are exported. Internal FK triggers on parents are intentionally excluded.
+  const relations = (await q(`select c.relname as name, jsonb_build_object(
+    'kind',c.relkind,'owner',pg_get_userbyid(c.relowner),'rls',c.relrowsecurity,'force',c.relforcerowsecurity,
+    'options',c.reloptions,'view',case when c.relkind in ('v','m') then pg_get_viewdef(c.oid,true) else null end,
+    'acl',coalesce((select jsonb_agg(jsonb_build_object('grantor',pg_get_userbyid(x.grantor),'grantee',case when x.grantee=0 then 'PUBLIC' else pg_get_userbyid(x.grantee) end,
+      'privilege',x.privilege_type,'grantable',x.is_grantable) order by x.grantor,x.grantee,x.privilege_type)
+      from aclexplode(coalesce(c.relacl,acldefault('r',c.relowner))) x),'[]'::jsonb),
+    'columns',coalesce((select jsonb_agg(jsonb_build_object('name',a.attname,'type',format_type(a.atttypid,a.atttypmod),
+      'notnull',a.attnotnull,'acl',a.attacl::text,'default',pg_get_expr(d.adbin,d.adrelid),'identity',a.attidentity,'generated',a.attgenerated)
+      order by a.attnum) from pg_attribute a left join pg_attrdef d on d.adrelid=a.attrelid and d.adnum=a.attnum
+      where a.attrelid=c.oid and a.attnum>0 and not a.attisdropped),'[]'::jsonb),
+    'policies',coalesce((select jsonb_agg(jsonb_build_object('name',p.policyname,'permissive',p.permissive,'roles',p.roles,'cmd',p.cmd,'using',p.qual,'check',p.with_check)
+      order by p.policyname) from pg_policies p where p.schemaname='public' and p.tablename=c.relname),'[]'::jsonb),
+    'constraints',coalesce((select jsonb_agg(jsonb_build_object('name',k.conname,'definition',pg_get_constraintdef(k.oid,true),'validated',k.convalidated)
+      order by k.conname) from pg_constraint k where k.conrelid=c.oid),'[]'::jsonb),
+    'indexes',coalesce((select jsonb_agg(jsonb_build_object('name',i.indexname,'definition',i.indexdef) order by i.indexname)
+      from pg_indexes i where i.schemaname='public' and i.tablename=c.relname),'[]'::jsonb),
+    'triggers',coalesce((select jsonb_agg(jsonb_build_object('name',t.tgname,'definition',pg_get_triggerdef(t.oid,true),'enabled',t.tgenabled)
+      order by t.tgname) from pg_trigger t where t.tgrelid=c.oid and not t.tgisinternal),'[]'::jsonb)) as meta
+    from pg_class c join pg_namespace n on n.oid=c.relnamespace
+    where n.nspname='public' and c.relkind in ('r','p','v','m','f','S') order by c.relname`)).rows;
+  const controls = (await q(`select
+    (select md5(coalesce(string_agg(p.oid::regprocedure::text||':'||pg_get_userbyid(p.proowner)||':'||coalesce(p.proacl::text,'')||':'||pg_get_functiondef(p.oid),E'\n' order by p.oid::regprocedure::text),''))
+      from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname in ('public','auth') and p.prokind in ('f','p')) as helpers,
+    (select md5(coalesce(string_agg(nspname||':'||pg_get_userbyid(nspowner)||':'||coalesce(nspacl::text,''),E'\n' order by nspname),'')) from pg_namespace where nspname not like 'pg_temp_%' and nspname not like 'pg_toast_temp_%') as schemas,
+    (select md5(coalesce(string_agg(pg_get_userbyid(d.defaclrole)||':'||coalesce(n.nspname,'')||':'||d.defaclobjtype::text||':'||d.defaclacl::text,E'\n' order by d.defaclrole,d.defaclnamespace,d.defaclobjtype),'')) from pg_default_acl d left join pg_namespace n on n.oid=d.defaclnamespace) as defaults,
+    (select md5(coalesce(string_agg(rolname||':'||rolsuper::text||':'||rolinherit::text||':'||rolcreaterole::text||':'||rolcreatedb::text||':'||rolcanlogin::text||':'||rolreplication::text||':'||rolbypassrls::text||':'||rolconnlimit::text||':'||coalesce(rolvaliduntil::text,'')||':'||coalesce(rolconfig::text,''),E'\n' order by rolname),'')) from pg_roles) as roles,
+    (select md5(coalesce(string_agg(pg_get_userbyid(m.roleid)||':'||pg_get_userbyid(m.member)||':'||pg_get_userbyid(m.grantor)||':'||m.admin_option::text||':'||coalesce(to_jsonb(m)->>'inherit_option','')||':'||coalesce(to_jsonb(m)->>'set_option',''),E'\n' order by m.roleid,m.member,m.grantor),'')) from pg_auth_members m) as memberships`)).rows[0];
+  const all = Object.fromEntries(relations.map(row => [row.name, row.meta]));
+  const targets = Object.fromEntries(TARGETS.map(name => [name, all[name] || null]));
+  const outside = Object.fromEntries(relations.filter(row => !TARGETS.includes(row.name)).map(row => [row.name, row.meta]));
+  return { targets, outsideSha256: jsonHash(outside), controls, sha256: jsonHash({ all, controls }) };
+}
+function summarize(snapshotValue) {
+  return { sha256: snapshotValue.sha256, outsideSha256: snapshotValue.outsideSha256, controls: snapshotValue.controls,
+    targets: Object.fromEntries(TARGETS.map(name => [name, { present: Boolean(snapshotValue.targets[name]), sha256: jsonHash(snapshotValue.targets[name]) }])),
+    targetCatalog: snapshotValue.targets };
+}
+function sameControls(left, right) {
+  must(left.outsideSha256 === right.outsideSha256 && JSON.stringify(left.controls) === JSON.stringify(right.controls), 'OUTSIDE_SIX_OR_SHARED_CONTROL_DRIFT');
+}
+function verifyPrepared(value) {
+  sameControls(before, value);
+  for (const table of EXISTING) {
+    const old = before.targets[table], current = value.targets[table];
+    must(old && current, 'SHARED_RELATION_MISSING');
+    const allow = bundle.manifest.policies[table];
+    const originalPolicies = current.policies.filter(policy => !allow.includes(policy.name));
+    must(JSON.stringify(originalPolicies) === JSON.stringify(old.policies), 'ORIGINAL_POLICY_CHANGED');
+    const added = current.policies.filter(policy => allow.includes(policy.name));
+    must(added.length === 2 && added.every(policy => policy.cmd === 'SELECT' && JSON.stringify(policy.roles) === '["authenticated"]')
+      && added.some(policy => policy.permissive === 'RESTRICTIVE') && added.some(policy => policy.permissive === 'PERMISSIVE'), 'SHARED_CANDIDATE_POLICY_INVALID');
+    const strip = meta => { const { acl, policies, ...other } = meta; return other; };
+    must(JSON.stringify(strip(old)) === JSON.stringify(strip(current)), 'SHARED_SCHEMA_OR_COLUMN_ACL_CHANGED');
+    const isSelect = grant => grant.grantee === 'authenticated' && grant.privilege === 'SELECT';
+    must(!old.acl.some(isSelect) && current.acl.filter(isSelect).length === 1 && !current.acl.find(isSelect).grantable
+      && JSON.stringify(old.acl) === JSON.stringify(current.acl.filter(grant => !isSelect(grant))), 'SHARED_ACL_DELTA_NOT_EXACT_SELECT');
+  }
+  for (const table of CREATED) must(value.targets[table]?.rls && !before.targets[table], 'NEW_RELATION_OR_RLS_INVALID');
+}
+async function preparation() {
+  before = await snapshot(); report.before = summarize(before);
+  for (const table of EXISTING) must(before.targets[table] && !before.targets[table].acl.some(item => item.grantee === 'authenticated'), 'SHARED_ACL_BASELINE_NOT_EMPTY');
+  for (const table of CREATED) must(!before.targets[table], 'NEW_RELATION_ALREADY_EXISTS');
+  for (const table of EXISTING) must(!before.targets[table].policies.some(policy => bundle.manifest.policies[table].includes(policy.name)), 'CANDIDATE_POLICY_ALREADY_EXISTS');
+  const execute = async () => {
+    stableSql(); await q('begin'); transaction = true;
+    await q("set local lock_timeout='5s'"); await q("set local statement_timeout='30s'");
+    await q("select set_config('app.bella_e2e_project_ref',$1,true)", [REF]);
+    await q(bundle.sql); const result = await snapshot(); verifyPrepared(result); return result;
+  };
+  try { const trial = await execute(); prepared = trial;
+    await reversePreparation(trial);
+    await q('rollback'); transaction = false;
+    const restored = await snapshot(); must(restored.sha256 === before.sha256, 'REHEARSAL_ROLLBACK_DRIFT');
+    add('REHEARSAL_ROLLBACK', 'PASS', { compensatingRecoveryProven: true, restoredBaseline: true, prepared: summarize(trial) });
+  } catch (error) { if (transaction) { await q('rollback'); transaction = false; } throw error; }
+  preparationAttempted = true;
+  try {
+    const actual = await execute(); must(actual.sha256 === prepared.sha256, 'COMMIT_DIFFERS_FROM_REHEARSAL');
+    await q('commit'); transaction = false; committed = true;
+    const visible = await snapshot(); must(visible.sha256 === prepared.sha256, 'COMMITTED_PREPARATION_DRIFT');
+    await q("notify pgrst, 'reload schema'"); report.prepared = summarize(visible);
+    add('COMMITTED_SAME_SQL', 'PASS', { sqlSha256: bundle.sha256, outsideSixUnchanged: true });
+  } catch (error) { if (transaction) { await q('rollback'); transaction = false; } throw error; }
+}
+async function diagnoseMetadata() {
+  report.metadataOnly = true;
+  add('REAL_AUTH_FUNCTIONAL_ACCEPTANCE', 'NOT_PROVEN', { reason: 'METADATA_ONLY_NO_AUTH_ACCEPTANCE' });
+  await check('POSTGREST_ATTENDANCE_EMBED_METADATA', async () => {
+    const result = await admin.from('edu_attendance_daily_state')
+      .select('id,status,school_day,enrollment_id,edu_enrollments!inner(id,student_party_id)')
+      .eq('edu_enrollments.course_id', randomUUID()).limit(0);
+    report.metadataDiagnostic = { privilegedSchemaOnly: true, requestedLimit: 0,
+      code: result.error?.code || null, status: result.status, rows: result.data?.length || 0 };
+    must(!result.error && Array.isArray(result.data) && result.data.length === 0, 'ATTENDANCE_EMBED_METADATA_UNAVAILABLE');
+    return { privilegedSchemaOnly: true, authAcceptance: false, rows: 0 };
+  });
+}
+function schoolDay() {
+  const parts = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date());
+  return ['year', 'month', 'day'].map(type => parts.find(part => part.type === type).value).join('-');
+}
+async function seed() {
+  for (const fixture of fixtures) for (const role of ['admin', 'admin_staff', 'accountant']) {
+    const email = `preschool-care-${randomUUID()}@example.test`, password = randomBytes(32).toString('hex'); authIntents.push(email);
+    const created = await admin.auth.admin.createUser({ email, password, email_confirm: true });
+    if (created.data.user?.id) authCreated.push(created.data.user.id);
+    must(!created.error && created.data.user, 'AUTH_FIXTURE_CREATE_FAILED');
+    fixture.actors.push({ id: created.data.user.id, email, password, role, fixture });
+  }
+  fixtureWrites = true; await q('begin'); transaction = true;
+  try {
+    for (const fixture of fixtures) {
+      await q(`insert into public.tenants(id,name,status,product_key,enabled_modules) values($1,$2,'active','bella_preschool','{"bella_education":true,"babycare":false,"beauty_spa":false}'::jsonb)`, [fixture.tenant, `Synthetic Care E2E ${fixture.index}`]);
+      for (const actor of fixture.actors) await q(`insert into public.users(id,email,full_name,tenant_id,role,status) values($1,$2,$3,$4,$5,'active')
+        on conflict(id) do update set email=excluded.email,full_name=excluded.full_name,tenant_id=excluded.tenant_id,role=excluded.role,status='active'`, [actor.id, actor.email, `Synthetic ${actor.role}`, fixture.tenant, actor.role]);
+      await q("insert into public.org_units(id,tenant_id,unit_type,name,code,is_active) values($1,$2,'branch','Synthetic Care branch','CARE_E2E',true)", [fixture.branch, fixture.tenant]);
+      const teacher = fixture.actors.find(actor => actor.role === 'admin_staff');
+      await q("insert into public.people_directory(id,tenant_id,user_id,person_type,display_name,is_active) values($1,$2,$3,'employee','Synthetic Care Person',true)", [fixture.person, fixture.tenant, teacher.id]);
+      await q("insert into public.org_relationships(id,tenant_id,from_id,from_type,to_id,to_type,rel_type,since) values($1,$2,$3,'person',$4,'unit','belongs_to',CURRENT_DATE)", [fixture.relationship, fixture.tenant, fixture.person, fixture.branch]);
+      await q("insert into public.edu_courses(id,tenant_id,course_code,title,status) values($1,$2,$3,'Synthetic Care course','active')", [fixture.course, fixture.tenant, `CARE_${fixture.index}_${STAMP}`]);
+      await q('insert into public.preschool_chain_course_branch_assignments(id,tenant_id,course_id,branch_id,assigned_by) values($1,$2,$3,$4,$5)', [fixture.assignment, fixture.tenant, fixture.course, fixture.branch, fixture.actors[0].id]);
+      for (const student of fixture.students) {
+        await q("insert into public.party_parties(id,tenant_id,party_type,display_name) values($1,$2,'person',$3)", [student.id, fixture.tenant, `Synthetic Care ${student.status}`]);
+        await q('insert into public.edu_enrollments(id,tenant_id,student_party_id,course_id,status,enrolled_at,request_id) values($1,$2,$3,$4,$5,$6,$7)', [student.enrollment, fixture.tenant, student.id, fixture.course, student.status, new Date(Date.now() - 60_000).toISOString(), `care-e2e-${randomUUID()}`]);
+      }
+      await q("insert into public.edu_attendance_daily_state(id,tenant_id,enrollment_id,school_day,status) values($1,$2,$3,$4,'present')", [fixture.attendance, fixture.tenant, fixture.students[0].enrollment, schoolDay()]);
+    }
+    await q('commit'); transaction = false;
+  } catch (error) { await q('rollback'); transaction = false; throw error; }
+  add('ISOLATED_FIXTURES', 'PASS', { tenants: 2, branches: 2, actors: 6, courses: 2, parties: 4, enrollments: 4, fakeLegacyStudents: 0 });
+}
+async function login() {
+  const { createServerClient } = require('@supabase/ssr');
+  for (const fixture of fixtures) for (const actor of fixture.actors) {
+    const jar = new Map(); actor.jar = jar;
+    actor.client = createServerClient(API, config.publicKey, { global: { fetch: remoteFetch }, cookies: {
+      getAll: () => [...jar].map(([name, value]) => ({ name, value })),
+      setAll: cookies => { for (const { name, value, options } of cookies) { if (options.maxAge === 0) jar.delete(name); else jar.set(name, value); } },
+    } }); loggedIn.push(actor);
+    const result = await actor.client.auth.signInWithPassword({ email: actor.email, password: actor.password });
+    must(!result.error && result.data.session && result.data.user?.id === actor.id, 'REAL_AUTH_LOGIN_FAILED');
+    const verified = await actor.client.auth.getUser(); must(!verified.error && verified.data.user?.id === actor.id, 'REAL_AUTH_SUBJECT_MISMATCH');
+    must([...jar.keys()].some(name => new RegExp(`^sb-${REF}-auth-token(?:\\.\\d+)?$`).test(name)) && !jar.has('mock_user_email'), 'REAL_COOKIE_MISSING');
+    actor.password = undefined; add(`REAL_AUTH_${fixture.index}_${actor.role}`, 'PASS', { subjectVerified: true, cookieChunks: jar.size });
+  }
+  // PostgREST reload is asynchronous. Only schema-cache misses are retried; authorization failures are not relaxed.
+  const until = Math.min(DEADLINE, Date.now() + 40_000); let attempts = 0;
+  while (Date.now() < until) {
+    attempts++; const result = await fixtures[0].actors[0].client.from('edu_attendance_daily_state').select('id').eq('id', fixtures[0].attendance);
+    if (!result.error) { must(result.data?.length === 1, 'SCHEMA_READY_POSITIVE_CONTROL_MISSING'); add('POSTGREST_SCHEMA_READY', 'PASS', { attempts }); return; }
+    must(['PGRST200', 'PGRST204', 'PGRST205'].includes(result.error.code), 'POSTGREST_READINESS_DENIED'); await wait(500);
+  }
+  fail('POSTGREST_SCHEMA_CACHE_TIMEOUT');
+}
+async function reservePort() {
+  return new Promise((done, reject) => { const reservation = net.createServer(); reservation.once('error', reject);
+    reservation.listen(0, '127.0.0.1', () => { const selected = reservation.address().port; reservation.close(error => error ? reject(error) : done(selected)); }); });
+}
+async function listening() {
+  if (!port) return false;
+  return new Promise(done => { const socket = net.connect({ host: '127.0.0.1', port }); let finished = false;
+    const close = open => { if (!finished) { finished = true; socket.destroy(); done(open); } };
+    socket.once('connect', () => close(true)); socket.once('error', () => close(false)); socket.setTimeout(500, () => close(false)); });
+}
+async function startServer() {
+  port = await reservePort(); const childEnv = {};
+  for (const key of ['PATH', 'Path', 'SystemRoot', 'SYSTEMROOT', 'WINDIR', 'COMSPEC', 'PATHEXT', 'TEMP', 'TMP', 'USERPROFILE', 'APPDATA', 'LOCALAPPDATA']) if (process.env[key]) childEnv[key] = process.env[key];
+  Object.assign(childEnv, { NODE_ENV: 'development', NEXT_TELEMETRY_DISABLED: '1', DEPLOYMENT_ENV: 'development',
+    NEXT_PUBLIC_SUPABASE_URL: API, SUPABASE_URL: API, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: config.publicKey, NEXT_PUBLIC_SUPABASE_ANON_KEY: config.publicKey,
+    SUPABASE_SERVICE_ROLE_KEY: '', SUPABASE_SECRET_KEY: '', SUPABASE_DB_URL: '', SUPABASE_DATABASE_URL: '', DATABASE_URL: '', DB_URL: '',
+    SENTRY_DSN: '', NEXT_PUBLIC_SENTRY_DSN: '', SENTRY_AUTH_TOKEN: '' });
+  server = spawn(process.execPath, [require.resolve('next/dist/bin/next'), 'dev', '--webpack', '--hostname', '127.0.0.1', '--port', String(port)],
+    { cwd: ROOT, env: childEnv, windowsHide: true, detached: process.platform !== 'win32', stdio: ['ignore', 'pipe', 'pipe'] });
+  server.stdout.on('data', chunk => { stdoutBytes += chunk.length; }); server.stderr.on('data', chunk => { stderrBytes += chunk.length; });
+  server.on('error', () => { serverExit = { code: null, signal: null, spawnError: true }; }); server.on('exit', (code, signal) => { serverExit = { code, signal }; });
+  const until = Math.min(DEADLINE, Date.now() + 90_000);
+  while (Date.now() < until && !serverExit && !await listening()) await wait(250);
+  must(!serverExit && await listening(), 'NEXT_START_FAILED');
+  must(process.platform === 'win32', 'LISTENER_OWNER_VERIFICATION_REQUIRES_WINDOWS');
+  const ownership = execFileSync('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command',
+    `$taskRows=@(Get-CimInstance Win32_Process | Select-Object ProcessId,ParentProcessId); $taskOwned=@(${server.pid}); `
+    + `do { $taskNew=@($taskRows | Where-Object { $_.ParentProcessId -in $taskOwned -and $_.ProcessId -notin $taskOwned } | ForEach-Object { $_.ProcessId }); $taskOwned+= $taskNew } while($taskNew.Count); `
+    + `$taskListeners=@(Get-NetTCPConnection -LocalPort ${port} -State Listen -ErrorAction SilentlyContinue); `
+    + `@{count=$taskListeners.Count;owned=($taskListeners.Count -gt 0 -and @($taskListeners | Where-Object {$_.OwningProcess -notin $taskOwned}).Count -eq 0)} | ConvertTo-Json -Compress`], { windowsHide: true, encoding: 'utf8', timeout: 20_000 });
+  must(JSON.parse(ownership).owned === true, 'NEXT_LISTENER_NOT_OWNED');
+  report.server = { host: '127.0.0.1', port, ownPid: server.pid, nodeEnv: 'development', privilegedKeyInChild: false };
+}
+async function http(actor, path, method = 'GET', body) {
+  budget(); const headers = { Accept: 'application/json' };
+  if (actor) headers.Cookie = [...actor.jar].map(([name, value]) => `${name}=${value}`).join('; ');
+  if (body !== undefined) headers['Content-Type'] = 'application/json';
+  const response = await fetch(`http://127.0.0.1:${port}${path}`, { method, headers, body: body === undefined ? undefined : JSON.stringify(body), redirect: 'error', signal: AbortSignal.timeout(90_000) });
+  let data; try { data = await response.json(); } catch { fail('HTTP_JSON_REQUIRED'); }
+  const cache = response.headers.get('cache-control') || '';
+  report.httpReceipts ||= [];
+  report.httpReceipts.push({ check: currentCheck, method, status: response.status,
+    code: typeof data.error === 'string' && /^[A-Z0-9_]{2,90}$/.test(data.error) ? data.error : null,
+    noStore: cache.includes('no-store'), private: cache.includes('private'), public: /(?:^|,)\s*public\s*(?:,|$)/i.test(cache) });
+  must(cache.includes('no-store') && !/(?:^|,)\s*public\s*(?:,|$)/i.test(cache), 'PRIVATE_RESPONSE_CACHE_UNSAFE');
+  if (!cache.includes('private')) add(`LOCAL_PRIVATE_${report.checks.length}`, 'NOT_PROVEN', { reason: 'KNOWN_NEXT_DEV_HEADER_ADAPTER', status: response.status, noStore: true });
+  return { status: response.status, data };
+}
+function carePath(fixture, extra = '') { return `/api/education/care/bulk?courseId=${fixture.course}&date=${schoolDay()}${extra}`; }
+function arrival(fixture, students = [fixture.students[0].id]) { return { action: 'arrival', courseId: fixture.course, date: schoolDay(), data: { arrivals: students.map(studentPartyId => ({ studentPartyId, status: 'PRESENT', condition: 'GOOD' })) } }; }
+async function expectHttp(name, actor, path, method, body, status, code) {
+  return check(name, async () => { const result = await http(actor, path, method, body);
+    must(result.status === status && (!code || result.data.error === code), 'HTTP_STATUS_OR_CODE_MISMATCH'); return { status, code: code || null, cookieOnly: Boolean(actor) }; });
+}
+async function counts() {
+  const result = (await q(`select (select count(*)::int from public.edu_daily_care_sessions where tenant_id=any($1::uuid[])) as sessions,
+    (select count(*)::int from public.edu_daily_care_records where tenant_id=any($1::uuid[])) as records`, [fixtures.map(item => item.tenant)])).rows[0];
+  return result;
+}
+async function rememberOwned() {
+  for (const fixture of fixtures) {
+    const result = await q('select id from public.edu_daily_care_sessions where tenant_id=$1 and class_id=$2', [fixture.tenant, fixture.course]);
+    for (const row of result.rows) owned.sessions.add(row.id);
+    const records = await q(`select r.id from public.edu_daily_care_records r join public.edu_daily_care_sessions s on s.id=r.session_id
+      where s.tenant_id=$1 and s.class_id=$2 and r.tenant_id=any($3::uuid[]) and r.student_party_id=any($4::uuid[])`,
+    [fixture.tenant, fixture.course, fixtures.map(item => item.tenant), fixtures.flatMap(item => item.students.map(student => student.id))]);
+    for (const row of records.rows) owned.records.add(row.id);
+  }
+}
+async function verifyHttp() {
+  await expectHttp('CARE_ANONYMOUS', null, carePath(fixtures[0]), 'GET', undefined, 401, 'CARE_UNAUTHENTICATED');
+  for (const fixture of fixtures) {
+    const actor = fixture.actors[0], foreign = fixtures[1 - fixture.index];
+    await check(`CARE_GET_ACTIVE_${fixture.index}`, async () => {
+      const result = await http(actor, carePath(fixture));
+      must(result.status === 200 && result.data.success === true && result.data.roster?.length === 1
+        && result.data.roster[0].studentPartyId === fixture.students[0].id && result.data.roster[0].attendance?.status === 'present', 'ACTIVE_ROSTER_OR_ATTENDANCE_MISMATCH');
+      return { status: 200, activeRoster: 1, pendingExcluded: true, attendanceJoined: true };
+    });
+    for (const [label, unauthorized] of [['PENDING', fixture.students[1].id], ['FOREIGN', foreign.students[0].id]]) {
+      await check(`MIXED_${label}_ZERO_WRITE_${fixture.index}`, async () => {
+        const initial = await counts(); const result = await http(actor, '/api/education/care/bulk', 'POST', arrival(fixture, [fixture.students[0].id, unauthorized]));
+        must(result.status === 403 && result.data.error === 'CARE_STUDENT_ACCESS_DENIED', 'MIXED_BULK_DENIAL_FAILED');
+        const final = await counts(); must(JSON.stringify(initial) === JSON.stringify(final), 'MIXED_BULK_WROTE_ROWS');
+        return { status: 403, sessionDelta: 0, recordDelta: 0 };
+      });
+    }
+    await expectHttp(`FORBIDDEN_ROLE_${fixture.index}`, fixture.actors[2], carePath(fixture), 'GET', undefined, 403, 'CARE_ROLE_DENIED');
+    await expectHttp(`TEACHER_HELD_${fixture.index}`, fixture.actors[1], carePath(fixture), 'GET', undefined, 503, 'CARE_TEACHER_IDENTITY_UNAVAILABLE');
+    await expectHttp(`HISTORICAL_HELD_${fixture.index}`, actor, `/api/education/care/bulk?courseId=${fixture.course}&date=2020-01-01`, 'GET', undefined, 503, 'CARE_HISTORICAL_SCOPE_UNAVAILABLE');
+    await expectHttp(`FOREIGN_TENANT_SELECTOR_${fixture.index}`, actor, carePath(fixture, `&tenantId=${foreign.tenant}`), 'GET', undefined, 403, 'CARE_CONTEXT_OVERRIDE_DENIED');
+    await expectHttp(`FOREIGN_BRANCH_SELECTOR_${fixture.index}`, actor, carePath(fixture, `&branchId=${foreign.branch}`), 'GET', undefined, 403, 'CARE_CONTEXT_OVERRIDE_DENIED');
+    await check(`FOREIGN_COURSE_CLOSED_${fixture.index}`, async () => {
+      const result = await http(actor, carePath(foreign));
+      must([403, 503].includes(result.status) && ['CARE_BRANCH_SCOPE_UNAVAILABLE', 'CARE_BRANCH_ACCESS_DENIED', 'CARE_COURSE_ACCESS_DENIED'].includes(result.data.error), 'FOREIGN_COURSE_NOT_CLOSED');
+      return { status: result.status, code: result.data.error, missingMappingCanHold: true };
+    });
+    await expectHttp(`HEALTH_HELD_${fixture.index}`, actor, '/api/education/care/bulk', 'POST', { action: 'save_care', courseId: fixture.course, date: schoolDay(), data: { records: [{ studentPartyId: fixture.students[0].id, health: {} }] } }, 503, 'CARE_HEALTH_POLICY_UNAVAILABLE');
+    await check(`ARRIVAL_AND_READBACK_${fixture.index}`, async () => {
+      const result = await http(actor, '/api/education/care/bulk', 'POST', arrival(fixture)); await rememberOwned();
+      must(result.status === 200 && result.data.success === true && result.data.result?.committed === 1 && result.data.result?.blocked === 0, 'ARRIVAL_POSITIVE_FAILED');
+      const rows = (await q(`select r.id,r.arrival_status,r.morning_condition,r.arrival_time is not null as has_time,r.health_checks
+        from public.edu_daily_care_records r join public.edu_daily_care_sessions s on s.id=r.session_id
+        where r.tenant_id=$1 and s.tenant_id=$1 and s.class_id=$2 and s.date=$3 and r.student_party_id=$4`, [fixture.tenant, fixture.course, schoolDay(), fixture.students[0].id])).rows;
+      must(rows.length === 1 && rows[0].arrival_status === 'PRESENT' && rows[0].morning_condition === 'GOOD' && rows[0].has_time, 'ARRIVAL_DB_READBACK_FAILED');
+      fixture.record = rows[0].id; owned.records.add(fixture.record); return { status: 200, committed: 1, independentReadback: true, arrivalMatched: true };
+    });
+    await check(`SAVE_PRESERVES_HEALTH_${fixture.index}`, async () => {
+      const marker = { synthetic_e2e_marker: `care-${STAMP}-${fixture.index}` };
+      await q('update public.edu_daily_care_records set health_checks=$1::jsonb where id=$2 and tenant_id=$3', [JSON.stringify(marker), fixture.record, fixture.tenant]);
+      const result = await http(actor, '/api/education/care/bulk', 'POST', { action: 'save_care', courseId: fixture.course, date: schoolDay(), data: { records: [{ studentPartyId: fixture.students[0].id, meal: { portion: 'HALF' }, note: 'Synthetic nonhealth note' }] } });
+      must(result.status === 200 && result.data.success === true && result.data.savedCount === 1, 'NONHEALTH_SAVE_FAILED');
+      const row = (await q('select health_checks,meal_records,morning_condition from public.edu_daily_care_records where id=$1 and tenant_id=$2', [fixture.record, fixture.tenant])).rows[0];
+      must(row && JSON.stringify(row.health_checks) === JSON.stringify(marker) && row.meal_records?.[0]?.portion === 'HALF' && row.morning_condition === 'Synthetic nonhealth note', 'SAVE_OR_HEALTH_READBACK_FAILED');
+      return { status: 200, independentReadback: true, healthPreserved: true, markerSyntheticOnly: true };
+    });
+    for (const [label, update, restore, code, status] of [
+      ['INACTIVE_BRANCH', 'update public.org_units set is_active=false where id=$1', 'update public.org_units set is_active=true where id=$1', 'CARE_BRANCH_ACCESS_DENIED', 403],
+      ['INACTIVE_PROFILE', "update public.users set status='inactive' where id=$1", "update public.users set status='active' where id=$1", 'CARE_ACCESS_DENIED', 403],
+      ['INACTIVE_TENANT', "update public.tenants set status='suspended' where id=$1", "update public.tenants set status='active' where id=$1", null, 403],
+    ]) {
+      const id = label === 'INACTIVE_BRANCH' ? fixture.branch : label === 'INACTIVE_PROFILE' ? actor.id : fixture.tenant;
+      await check(`${label}_${fixture.index}`, async () => { await q(update, [id]);
+        try { const result = await http(actor, carePath(fixture)); must(result.status === status && (!code || result.data.error === code), 'INACTIVE_CONTEXT_NOT_DENIED'); return { status: result.status, sameSession: true }; }
+        finally { await q(restore, [id]); }
+      });
+    }
+  }
+}
+async function denyRest(name, operation, expectedCode) {
+  await check(name, async () => { const result = await operation();
+    if (expectedCode) must(result.error?.code === expectedCode, 'DIRECT_COLUMN_DENIAL_FAILED');
+    else must(result.error ? ['42501', 'PGRST301'].includes(result.error.code) : Array.isArray(result.data) && result.data.length === 0, 'DIRECT_RLS_DENIAL_FAILED');
+    return { denied: true, code: result.error?.code || null, rows: result.data?.length || 0 };
+  });
+}
+async function verifyRest() {
+  const anonymous = require('@supabase/supabase-js').createClient(API, config.publicKey,
+    { global: { fetch: remoteFetch }, auth: { persistSession: false, autoRefreshToken: false } });
+  for (const table of TARGETS) await denyRest(`REST_ANONYMOUS_${table}`, () => anonymous.from(table).select('id').limit(1), '42501');
+  for (const fixture of fixtures) {
+    const actor = fixture.actors[0], other = fixtures[1 - fixture.index];
+    for (const [table, ownId, otherId] of [['edu_courses', fixture.course, other.course], ['edu_enrollments', fixture.students[0].enrollment, other.students[0].enrollment], ['party_parties', fixture.students[0].id, other.students[0].id], ['edu_attendance_daily_state', fixture.attendance, other.attendance], ['edu_daily_care_records', fixture.record, other.record]]) {
+      await check(`REST_POSITIVE_${table}_${fixture.index}`, async () => { const result = await actor.client.from(table).select('id').eq('id', ownId); must(!result.error && result.data?.length === 1 && result.data[0].id === ownId, 'DIRECT_POSITIVE_CONTROL_FAILED'); return { rows: 1 }; });
+      await denyRest(`REST_FOREIGN_${table}_${fixture.index}`, () => actor.client.from(table).select('id').eq('id', otherId));
+      for (const deniedActor of fixture.actors.slice(1)) await denyRest(`REST_ROLE_${table}_${fixture.index}_${deniedActor.role}`, () => deniedActor.client.from(table).select('id').eq('id', ownId));
+    }
+    await denyRest(`REST_PENDING_ENROLLMENT_${fixture.index}`, () => actor.client.from('edu_enrollments').select('id').eq('id', fixture.students[1].enrollment));
+    for (const [label, payload] of [['HEALTH', { health_checks: { synthetic_e2e_attempt: true } }], ['PARTY_REASSIGN', { student_party_id: fixture.students[1].id }], ['TENANT_REASSIGN', { tenant_id: other.tenant }], ['SESSION_REASSIGN', { session_id: randomUUID() }]])
+      await denyRest(`REST_COLUMN_${label}_${fixture.index}`, () => actor.client.from('edu_daily_care_records').update(payload).eq('id', fixture.record).select('id'), '42501');
+    const session = (await q('select id from public.edu_daily_care_sessions where tenant_id=$1 and class_id=$2 and date=$3', [fixture.tenant, fixture.course, schoolDay()])).rows[0];
+    must(session, 'OWN_SESSION_MISSING'); owned.sessions.add(session.id);
+    await check(`REST_SESSION_POSITIVE_${fixture.index}`, async () => { const result = await actor.client.from('edu_daily_care_sessions').select('id').eq('id', session.id); must(!result.error && result.data?.length === 1, 'SESSION_POSITIVE_FAILED'); return { rows: 1 }; });
+    for (const [label, payload, writer] of [
+      ['FOREIGN_TENANT', { tenant_id: other.tenant, class_id: other.course }, actor],
+      ['FOREIGN_RESOURCE', { tenant_id: fixture.tenant, class_id: other.course }, actor],
+      ['FORBIDDEN_ROLE', { tenant_id: fixture.tenant, class_id: fixture.course }, fixture.actors[2]],
+    ]) {
+      const id = randomUUID(); owned.sessions.add(id);
+      await denyRest(`REST_SESSION_INSERT_${label}_${fixture.index}`, () => writer.client.from('edu_daily_care_sessions').insert({ id, ...payload, date: schoolDay() }).select('id'), '42501');
+    }
+    await denyRest(`REST_PENDING_RECORD_INSERT_${fixture.index}`, () => actor.client.from('edu_daily_care_records').insert({ tenant_id: fixture.tenant, session_id: session.id, student_party_id: fixture.students[1].id }).select('id'), '42501');
+  }
+  await rememberOwned();
+}
+async function stopServer() {
+  if (!server) return;
+  if (!serverExit) {
+    try { execFileSync('taskkill.exe', ['/PID', String(server.pid), '/T', '/F'], { windowsHide: true, stdio: 'ignore', timeout: 20_000 }); }
+    catch { if (!serverExit && server.exitCode === null) fail('OWN_NEXT_STOP_FAILED'); }
+  }
+  for (let i = 0; i < 40 && await listening(); i++) await wait(250);
+  await wait(100); const closed = !await listening();
+  report.server = { ...report.server, exit: serverExit || { code: server.exitCode, signal: server.signalCode }, stdoutBytes, stderrBytes, rawLogsSaved: false, listenerClosed: closed };
+  must(closed, 'OWN_NEXT_LISTENER_STILL_OPEN');
+}
+function restoreAgents() {
+  if (!agentBefore) return;
+  const path = join(ROOT, 'AGENTS.md'), after = readFileSync(path); if (after.equals(agentBefore)) return;
+  const beforeText = agentBefore.toString('utf8'), eol = beforeText.includes('\r\n') ? '\r\n' : '\n';
+  const block = '<!-- BEGIN:nextjs-agent-rules -->\n\n# This is NOT the Next.js you know\n\n'
+    + 'This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file\'s directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.\n\n'
+    + 'This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.\n\n<!-- END:nextjs-agent-rules -->';
+  const separator = beforeText.length === 0 || /\r?\n$/.test(beforeText) ? eol : eol + eol;
+  must(after.toString('utf8') === beforeText + separator + block.replace(/\n/g, eol) + eol, 'UNKNOWN_AGENTS_DELTA_PRESERVED');
+  writeFileSync(path, agentBefore); must(readFileSync(path).equals(agentBefore), 'AGENTS_RESTORE_FAILED'); report.generatedAgents = { knownDeltaRestored: true };
+}
+async function attempt(name, operation) {
+  try { await operation(); } catch (error) { report.cleanup.failures.push({ name, code: safeCode(error) }); }
+}
+async function cleanFixtures() {
+  cleanupStarted = true; cleanupDeadline = Date.now() + 5 * 60_000;
+  await attempt('STOP_OWN_NEXT', stopServer); await attempt('RESTORE_KNOWN_AGENTS_DELTA', async () => restoreAgents());
+  for (const actor of loggedIn) { actor.jar.clear(); actor.password = undefined; }
+  if (!connected) return;
+  if (transaction) await attempt('ROLLBACK_OPEN_TRANSACTION', async () => { await q('rollback'); transaction = false; });
+  if (authIntents.length) await attempt('RECOVER_UNCERTAIN_AUTH_CREATE', async () => { const result = await q('select id from auth.users where email=any($1::text[])', [authIntents]); for (const row of result.rows) if (!authCreated.includes(row.id)) authCreated.push(row.id); });
+  // Revoke authority before potentially slow row cleanup consumes its budget.
+  if (authCreated.length) await attempt('REMOVE_PROFILE_AUTHORITY', () => q("update public.users set status='inactive' where id=any($1::uuid[]) and status is distinct from 'inactive'", [authCreated]));
+  if (fixtureWrites) await attempt('TERMINATE_OWN_TENANT_SHELLS', () => q("update public.tenants set status='terminated' where id=any($1::uuid[]) and status is distinct from 'terminated'", [fixtures.map(item => item.tenant)]));
+  if (fixtureWrites) {
+    await attempt('CAPTURE_EXACT_OWNED_ROWS', rememberOwned);
+    for (const [table, ids] of [
+      ['edu_daily_care_records', [...owned.records]], ['edu_daily_care_sessions', [...owned.sessions]],
+      ['edu_attendance_daily_state', fixtures.map(item => item.attendance)],
+      ['edu_enrollments', fixtures.flatMap(item => item.students.map(student => student.enrollment))],
+      ['preschool_chain_course_branch_assignments', fixtures.map(item => item.assignment)],
+      ['party_parties', fixtures.flatMap(item => item.students.map(student => student.id))], ['edu_courses', fixtures.map(item => item.course)],
+      ['org_relationships', fixtures.map(item => item.relationship)], ['people_directory', fixtures.map(item => item.person)], ['org_units', fixtures.map(item => item.branch)],
+    ]) for (const id of ids) await attempt(`DELETE_OWN_${table}`, () => q(`delete from public.${table} where id=$1 and tenant_id=any($2::uuid[])`, [id, fixtures.map(item => item.tenant)]));
+  }
+  if (admin) for (const id of [...authCreated].reverse()) await attempt('DELETE_OWN_AUTH', async () => { const result = await admin.auth.admin.deleteUser(id); must(!result.error, 'AUTH_DELETE_FAILED'); });
+  for (const id of authCreated) await attempt('DELETE_RESIDUAL_OWN_PROFILE', () => q('delete from public.users where id=$1', [id]));
+  if (fixtureWrites || authCreated.length) await attempt('FIXTURE_RESIDUAL_READBACK', async () => {
+    const residue = {};
+    for (const table of ['edu_daily_care_records', 'edu_daily_care_sessions', 'edu_attendance_daily_state', 'edu_enrollments', 'preschool_chain_course_branch_assignments', 'party_parties', 'edu_courses', 'org_relationships', 'people_directory', 'org_units'])
+      residue[table] = (await q(`select count(*)::int as count from public.${table} where tenant_id=any($1::uuid[])`, [fixtures.map(item => item.tenant)])).rows[0].count;
+    for (const schema of ['auth', 'public']) residue[`${schema}_users`] = (await q(`select count(*)::int as count from ${schema}.users where id=any($1::uuid[])`, [authCreated])).rows[0].count;
+    const tenants = (await q("select count(*)::int as shells,count(*) filter(where status is distinct from 'terminated')::int as authoritative from public.tenants where id=any($1::uuid[])", [fixtures.map(item => item.tenant)])).rows[0];
+    report.cleanup.residualCounts = residue; report.cleanup.retainedTenantShells = tenants.shells;
+    report.cleanup.retainedReason = tenants.shells ? 'IMMUTABLE_AUDIT_SHELLS_TERMINATED' : null;
+    must(Object.values(residue).every(count => count === 0) && tenants.authoritative === 0, 'FIXTURE_RESIDUAL_OR_ACTIVE_AUTHORITY');
+  });
+}
+async function reversePreparation(expected) {
+  must(transaction, 'RECOVERY_TRANSACTION_REQUIRED');
+  await q("set local lock_timeout='5s'");
+  // The identical reverse path is rehearsed before commit, then reused on any failed acceptance.
+  await q('lock table public.edu_daily_care_records,public.edu_daily_care_sessions,public.edu_attendance_daily_state,public.edu_courses,public.edu_enrollments,public.party_parties in access exclusive mode');
+  const locked = await snapshot(); must(locked.sha256 === expected.sha256, 'RECOVERY_HOLD_LOCKED_METADATA_DRIFT');
+  for (const table of CREATED) must((await q(`select count(*)::int as count from public.${table}`)).rows[0].count === 0, 'RECOVERY_HOLD_LOCKED_RELATION_NOT_EMPTY');
+  for (const table of EXISTING) {
+    for (const policy of bundle.manifest.policies[table]) await q(`drop policy "${policy}" on public.${table}`);
+    await q(`revoke select on public.${table} from authenticated`);
+  }
+  for (const table of ['edu_daily_care_records', 'edu_daily_care_sessions', 'edu_attendance_daily_state']) await q(`drop table public.${table}`);
+  const restored = await snapshot(); must(restored.sha256 === before.sha256, 'RECOVERY_BASELINE_NOT_EXACT');
+}
+async function recoverOrRetain() {
+  if (!connected || !before || !preparationAttempted) return;
+  const current = await snapshot();
+  report.afterFixtureCleanup = summarize(current);
+  if (current.sha256 === before.sha256) { report.after = summarize(current); report.recovery = { attempted: false, baselineAlreadyRestored: true, restored: true }; return; }
+  must(prepared && current.sha256 === prepared.sha256, 'RECOVERY_HOLD_UNACCOUNTED_METADATA_DRIFT');
+  const functionalPass = !primaryFailure && !report.checks.some(item => item.result === 'FAIL') && report.cleanup.failures.length === 0
+    && report.checks.filter(item => item.result === 'NOT_PROVEN').every(item => item.reason === 'KNOWN_NEXT_DEV_HEADER_ADAPTER');
+  report.functionalAcceptance = functionalPass ? 'PASS' : 'FAIL';
+  if (args.retain && functionalPass && committed) {
+    await q('begin'); transaction = true;
+    try {
+      await q('lock table public.edu_daily_care_records,public.edu_daily_care_sessions,public.edu_attendance_daily_state in share row exclusive mode');
+      const locked = await snapshot(); must(locked.sha256 === prepared.sha256, 'RETENTION_HOLD_METADATA_DRIFT');
+      const counts = {};
+      for (const table of CREATED) counts[table] = (await q(`select count(*)::int as count from public.${table}`)).rows[0].count;
+      must(Object.values(counts).every(count => count === 0), 'RETENTION_HOLD_UNACCOUNTED_NEW_RELATION_DATA');
+      sameControls(before, locked); stableSql();
+      await q('commit'); transaction = false; report.after = summarize(locked);
+      report.recovery = { attempted: false, retainedOnExplicitApprovedPass: true, outsideSixUnchanged: true, newRelationRowCounts: counts, preparedSha256: locked.sha256 }; return;
+    } catch (error) { if (transaction) { await q('rollback'); transaction = false; } throw error; }
+  }
+  report.recovery.attempted = true;
+  for (const table of CREATED) must((await q(`select count(*)::int as count from public.${table}`)).rows[0].count === 0, 'RECOVERY_HOLD_NEW_RELATION_NOT_EMPTY');
+  await q('begin'); transaction = true;
+  try {
+    await reversePreparation(prepared);
+    await q('commit'); transaction = false; await q("notify pgrst, 'reload schema'");
+    const final = await snapshot(); must(final.sha256 === before.sha256, 'RECOVERY_COMMITTED_READBACK_DRIFT');
+    report.after = summarize(final);
+    report.recovery = { attempted: true, restored: true, baselineSha256: final.sha256, droppedEmptyOwnedRelations: 3, cascadeUsed: false };
+  } catch (error) { if (transaction) { await q('rollback'); transaction = false; } throw error; }
+}
+async function main() {
+  try {
+    args = parseArgs();
+    if (!args.approved) {
+      console.log(JSON.stringify({ mode: 'READ_ONLY_OFFLINE_PLAN', projectRef: REF, relations: TARGETS,
+        executionRequires: ['explicit owner scope for exact six E2E relations', '--owner-approved-e2e-scope6', 'E2E_ENV_FILE', 'reviewed E2E_PREPARE.sql and preflight.json'],
+        retentionRequires: 'separate explicit approval to keep on pass, supplied as --retain-on-pass', networkCalls: 0, mutations: 0 })); return;
+    }
+    bundle = loadBundle(); config = await readConfig(); report.sqlSha256 = bundle.sha256; report.preflightSha256 = bundle.preflightSha256;
+    report.harnessSha256 = hash(readFileSync(__filename)); report.retentionRequested = args.retain;
+    report.sourceBefore = sourceState(); must(report.sourceBefore.ancestor && report.sourceBefore.changed.length === 0 && report.sourceBefore.untracked.length === 0
+      && report.sourceBefore.environmentFiles.length === 0, 'RUNTIME_SOURCE_OR_ENV_GATE_REJECTED');
+    agentBefore = readFileSync(join(ROOT, 'AGENTS.md')); must(git(['status', '--porcelain', '--', 'AGENTS.md']).trim() === '', 'AGENTS_NOT_CLEAN');
+    mkdirSync(args.output, { recursive: true });
+    const { Client } = require('pg'); const { createClient } = require('@supabase/supabase-js');
+    db = new Client(config.pg); db.on('error', () => { report.databaseConnectionError = true; });
+    await db.connect(); connected = true;
+    admin = createClient(API, config.adminKey, { global: { fetch: remoteFetch }, auth: { persistSession: false, autoRefreshToken: false } });
+    await check('PREPARATION', preparation);
+    if (args.metadataOnly) await diagnoseMetadata();
+    else {
+      await check('FIXTURE_AND_AUTH', async () => { await seed(); await login(); });
+      await check('OWN_NEXT_START', startServer); await verifyHttp(); await verifyRest();
+    }
+    stableSql(); must((await snapshot()).sha256 === prepared.sha256, 'ACCEPTANCE_METADATA_DRIFT');
+  } catch (error) { primaryFailure = safeCode(error); add('RUN_ABORT', 'FAIL', { code: primaryFailure }); }
+  finally {
+    if (!args?.approved) {
+      if (primaryFailure) { console.error(JSON.stringify({ result: 'FAIL', code: primaryFailure, networkCalls: 0, mutations: 0, exitCode: 1 })); process.exitCode = 1; }
+      return;
+    }
+    await cleanFixtures();
+    await attempt('SOURCE_AND_SQL_FINAL', async () => { if (!report.sourceBefore) return; stableSql();
+      report.sourceAfter = sourceState(); must(report.sourceAfter.head === report.sourceBefore.head && report.sourceAfter.sha256 === report.sourceBefore.sha256
+        && report.sourceAfter.changed.length === 0 && report.sourceAfter.untracked.length === 0 && report.sourceAfter.environmentFiles.length === 0, 'RUNTIME_SOURCE_OR_ENV_DRIFT'); });
+    await attempt('RECOVER_OR_RETAIN_APPROVED_PREPARATION', recoverOrRetain);
+    if (db) await attempt('DATABASE_CLOSE', () => db.end());
+    report.finishedAt = new Date().toISOString(); report.durationMs = Date.now() - START.getTime();
+    report.counts = Object.fromEntries(['PASS', 'FAIL', 'NOT_PROVEN'].map(state => [state, report.checks.filter(item => item.result === state).length]));
+    report.primaryFailure = primaryFailure;
+    report.functionalAcceptance ??= 'NOT_PROVEN';
+    if (primaryFailure || report.counts.FAIL || report.cleanup.failures.length) report.functionalAcceptance = 'FAIL';
+    if (args.metadataOnly) report.functionalAcceptance = 'NOT_PROVEN';
+    report.result = primaryFailure || report.counts.FAIL || report.cleanup.failures.length ? 'FAIL' : report.counts.NOT_PROVEN ? 'PARTIAL_NOT_PROVEN' : 'PASS';
+    report.cleanup.result = report.cleanup.failures.length ? 'FAIL' : fixtureWrites || authCreated.length || server
+      ? 'PASS_OWNED_FIXTURES_REMOVED_AUTHORITY_REVOKED' : 'NOT_RUN_NO_FIXTURES';
+    report.exitCode = report.result === 'FAIL' ? 1 : 0;
+    report.remainingProof = 'Browser E2E, broad mandatory regression, Production deployment and Go-Live are not established by this harness.';
+    // No emails, passwords, keys, JWTs, cookies, business payloads or child logs are persisted.
+    try { mkdirSync(args.output, { recursive: true }); writeFileSync(join(args.output, `care-rls-results-${STAMP}.json`), JSON.stringify(report, null, 2) + '\n'); }
+    catch { report.exitCode = 1; report.result = 'FAIL'; report.functionalAcceptance = 'FAIL'; report.evidenceWriteFailure = 'REPORT_WRITE_FAILED'; }
+    console.log(JSON.stringify({ result: report.result, counts: report.counts, cleanup: report.cleanup.result, recovery: report.recovery,
+      primaryFailure, cleanupFailures: report.cleanup.failures.length, report: join(args.output, `care-rls-results-${STAMP}.json`), exitCode: report.exitCode }));
+    process.exitCode = report.exitCode;
+  }
+}
+main().catch(() => { console.error('CARE_E2E_FATAL_SANITIZED'); process.exitCode = 1; });

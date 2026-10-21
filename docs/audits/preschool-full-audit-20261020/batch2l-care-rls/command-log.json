@@ -1,0 +1,101 @@
+{
+  "scope": "Exact six-relation E2E; no production command",
+  "commands": [
+    {
+      "command": "node --check scripts/verify-preschool-care-rls-e2e.cjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node scripts/verify-preschool-care-rls-e2e.cjs",
+      "exitCode": 0,
+      "result": "READ_ONLY_OFFLINE_PLAN",
+      "networkCalls": 0,
+      "mutations": 0
+    },
+    {
+      "command": "node scripts/verify-preschool-care-rls-e2e.cjs --unknown",
+      "exitCode": 1,
+      "expectedRejection": "UNKNOWN_ARGUMENT",
+      "networkCalls": 0,
+      "mutations": 0
+    },
+    {
+      "command": "node scripts/verify-preschool-care-rls-e2e.cjs --retain-on-pass",
+      "exitCode": 1,
+      "expectedRejection": "RETENTION_REQUIRES_EXPLICIT_SCOPE_APPROVAL",
+      "networkCalls": 0,
+      "mutations": 0
+    },
+    {
+      "command": "node scripts/verify-preschool-care-rls-e2e.cjs --owner-approved-e2e-scope6 --output TEMP; E2E_ENV_FILE absent",
+      "exitCode": 1,
+      "expectedRejection": "EXPLICIT_E2E_ENV_FILE_REQUIRED",
+      "networkCalls": 0,
+      "mutations": 0
+    },
+    {
+      "command": "changed SQL --owner-approved-e2e-scope6 --sql TEMP",
+      "exitCode": 1,
+      "expectedRejection": "APPROVED_SQL_HASH_MISMATCH",
+      "networkCalls": 0,
+      "mutations": 0
+    },
+    {
+      "command": "E2E_ENV_FILE=<explicit E2E file>; node scripts/verify-preschool-care-rls-e2e.cjs --owner-approved-e2e-scope6 --retain-on-pass",
+      "report": "care-rls-results-2026-10-21T00-11-53-929Z.json",
+      "exitCode": 1,
+      "result": "FAIL",
+      "counts": {
+        "PASS": 0,
+        "FAIL": 1,
+        "NOT_PROVEN": 0
+      },
+      "primaryFailure": "SELF_SIGNED_CERT_IN_CHAIN"
+    },
+    {
+      "command": "E2E_ENV_FILE=<explicit E2E file>; node scripts/verify-preschool-care-rls-e2e.cjs --owner-approved-e2e-scope6 --retain-on-pass",
+      "report": "care-rls-results-2026-10-21T00-13-49-996Z.json",
+      "exitCode": 1,
+      "result": "FAIL",
+      "counts": {
+        "PASS": 0,
+        "FAIL": 2,
+        "NOT_PROVEN": 0
+      },
+      "primaryFailure": "42725"
+    },
+    {
+      "command": "E2E_ENV_FILE=<explicit E2E file>; node scripts/verify-preschool-care-rls-e2e.cjs --owner-approved-e2e-scope6 --retain-on-pass",
+      "report": "care-rls-results-2026-10-21T00-14-48-530Z.json",
+      "exitCode": 1,
+      "result": "FAIL",
+      "counts": {
+        "PASS": 14,
+        "FAIL": 2,
+        "NOT_PROVEN": 2
+      },
+      "primaryFailure": "ACTIVE_ROSTER_OR_ATTENDANCE_MISMATCH"
+    },
+    {
+      "command": "E2E_ENV_FILE=<explicit E2E file>; node scripts/verify-preschool-care-rls-e2e.cjs --owner-approved-e2e-scope6 --metadata-only",
+      "report": "care-rls-results-2026-10-21T00-20-57-940Z.json",
+      "exitCode": 0,
+      "result": "PARTIAL_NOT_PROVEN",
+      "counts": {
+        "PASS": 4,
+        "FAIL": 0,
+        "NOT_PROVEN": 1
+      },
+      "primaryFailure": null
+    },
+    {
+      "command": "fresh scoped residual Party delete diagnostic",
+      "nativeExitCode": 0,
+      "sqlSucceeded": false,
+      "sqlCode": "XX000",
+      "routine": "ri_PerformCheck",
+      "transaction": "ROLLBACK",
+      "ownedResidualParties": 4
+    }
+  ]
+}
