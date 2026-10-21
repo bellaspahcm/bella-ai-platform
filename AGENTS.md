@@ -6,6 +6,8 @@ Before changing software, architecture, or engineering controls anywhere in the 
 
 Use its **Workflow Routing**, **Scoped Autonomy and Approval**, **Verification Results and Applicability**, and **Enforcement Evidence** sections. Follow its authority/applicability map and retain applicable specialized rules. The complete common rules live in that document; this entrypoint does not create a separate workflow or grant additional authority.
 
+For coding requests received in project Codex chat, follow **Factory Intake from Project Codex Chat** in that Constitution before implementation. It routes admitted tasks to the existing Factory and specifies the boundary for unsupported tasks and already-dispatched roles.
+
 These rules are mandatory. Do not introduce new abstractions, Platform/Core changes, or cross-scope refactors without evidence and explicit justification.
 
 For UI-driven changes, follow **UI-Driven Backend Change Safety** in the constitution: use its proportional Change Map and owner decision boundary before implementation.

@@ -93,6 +93,24 @@ Use existing procedures below; combine applicable rows for a mixed task. Record 
 
 For new Products, G0 Request -> G1 Read-only Discovery -> G2 Scope/Authority -> G3 Minimal Implementation -> G4 Verification -> G5 Review/Merge/Release Decision is a summary of the existing 0-10 process, not six additional gates. G5 remains subject to repository and release authority.
 
+### Factory Intake from Project Codex Chat
+
+Project Codex chat is the human entrypoint for Factory work. For an authorized coding task, the chat Lead first checks the actual admission contract in `scripts/agent-flow/role-pipeline.mjs` (`admitTask`), source revision, working-tree inventory, ownership and execution permissions. Reuse the existing Factory; do not create another dispatcher or weaken admission to fit a request.
+
+For a task admitted by that contract:
+
+1. Prepare an owner-approved task definition outside the repository, containing the goal, acceptance criteria, exact owned files, test file, source revision and time budget required by `admitTask`. Keep credentials and application data out of the definition.
+2. Dispatch through `node scripts/agent-flow/role-pipeline.mjs run <task.json>` in the isolated, verified worktree. The existing native Lead -> Builder -> Verify -> Reviewer sequence owns execution and handoffs. The chat Lead coordinates and reports; it must not substitute its own coding or review for those native stages. Already-dispatched Factory roles follow their assigned role and must not recursively launch another Factory.
+3. Preserve the actual terminal result. A failed, skipped, timed-out or uncertain stage cannot become PASS. A HELD run is not permission to resume it, retry automatically, start a replacement task or bypass the Factory with direct edits.
+4. After the writer exits, use a separate process running `node scripts/agent-flow/role-pipeline.mjs read <evidence-directory>` to verify the same candidate against canonical persistence and native history. Retain task/run/role bindings and evidence deadlines. A later source change invalidates reuse of that candidate's read-back as proof of the changed source.
+5. Use the existing Monitor reader for the same Factory package. Report execution, independent read-back, retained-source validation and any commit linkage separately. Missing events, ACKs or linkage remain missing; never reconstruct them to complete a report. The viewer is historical evidence, not proof of live orchestration.
+
+Admission currently covers bounded Agent Flow tooling, not arbitrary Product work. When a coding request is not admitted, report the exact reason and a minimal proposal to its owner. Do not silently broaden paths, change protections or fall back to direct implementation. A separately authorized alternative workflow remains separate evidence and must not be called a Factory run. Read-only questions, planning and documentation-only governance maintenance continue through the applicable Workflow Routing rows without claiming native execution.
+
+Existing explicit authority covers routine dispatch within its valid scope; do not request the same approval for each role. Unresolved permissions, business semantics, protected changes and release operations retain their own authority boundaries. A local candidate does not authorize a commit, push, PR, merge, deployment or Go-Live. If an existing commit is separately authorized and created, `role-pipeline.mjs commit <evidence-directory> <sha>` verifies content linkage; that command does not create the commit.
+
+This is an instruction route for project chat, not a new hook, OS sandbox or claim that every tool call is intercepted. Distinguish Defined/Configured instructions, tested CLI behavior and actually executed native evidence under Enforcement Evidence below. General default automation, continuous Monitor coverage and SEALED_ON_MAIN require their own current evidence.
+
 ## Verification Results and Applicability
 
 Use the following vocabulary for individual verification gates, and always identify the scope and environment:

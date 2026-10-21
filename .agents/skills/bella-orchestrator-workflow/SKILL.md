@@ -31,6 +31,7 @@ When Healthcare or Education code may be touched, also read the relevant vertica
 ## Workflow
 
 1. Establish the user goal.
+   For project Codex chat coding requests, apply **Factory Intake from Project Codex Chat** in the Constitution before selecting an implementation route. Use its existing CLI and admission boundary; do not create a parallel dispatcher or recursively dispatch an already-running Factory role.
 2. Identify Truth, Source of Truth, Canonical Contract, Ownership, Boundary, and Change Authority.
 3. Classify the task:
    - `SINGLE_AGENT`
