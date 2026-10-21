@@ -2,7 +2,7 @@
 'use strict';
 
 const { randomUUID, randomBytes, createHash, X509Certificate } = require('node:crypto');
-const { readFileSync, writeFileSync, mkdirSync, existsSync } = require('node:fs');
+const { readFileSync, writeFileSync, renameSync, mkdirSync, existsSync } = require('node:fs');
 const { resolve, join, dirname } = require('node:path');
 const { spawn, execFileSync } = require('node:child_process');
 const net = require('node:net');
@@ -12,6 +12,8 @@ const REF = 'bmnbqbcdbuklhopfbopv';
 const API = `https://${REF}.supabase.co`;
 const BASELINE = '4a7a855e3472dcfd86649b18f27671ccbe7188a1';
 const APPROVED_SQL_SHA256 = '612277fd1d8aa49bd868e07652b10d89fce79fb5e6d567f1de9f18e70feac37e';
+const REVIEWED_EQUIVALENT_SQL_V2_SHA256 = 'c69331759dc44db804c07c9a7b666ef4f97b623b93cc5843e7c69975a36ff43f';
+const REVIEWED_EQUIVALENT_SQL_V3_SHA256 = '19816c681c67358445e4039c8ebe54e8b4824c556fa01cb394a95072b432eeb1';
 const EXISTING = ['edu_courses', 'edu_enrollments', 'party_parties'];
 const CREATED = ['edu_attendance_daily_state', 'edu_daily_care_sessions', 'edu_daily_care_records'];
 const TARGETS = [...EXISTING, ...CREATED];
@@ -33,19 +35,45 @@ const report = { startedAt: START.toISOString(), projectRef: REF, baseline: BASE
   checks: [], cleanup: { failures: [] }, recovery: { attempted: false } };
 let args, bundle, config, db, admin, before, prepared, server, port, serverExit, agentBefore;
 let connected = false, transaction = false, preparationAttempted = false, committed = false;
+let transactionUncertain = false;
 let fixtureWrites = false, cleanupStarted = false, cleanupDeadline = Infinity, interrupted = false;
 let primaryFailure = null, stdoutBytes = 0, stderrBytes = 0, currentCheck = null;
+let timelineOriginal, timelinePrepared, timelineAttempted = false, timelineCommitted = false, timelineSql;
 process.once('SIGINT', () => { interrupted = true; });
 process.once('SIGTERM', () => { interrupted = true; });
 
 function fail(code) { const error = new Error(code); error.acceptanceCode = code; throw error; }
 function must(value, code) { if (!value) fail(code); }
 function safeCode(error) {
+  if (error?.name === 'TimeoutError') return 'REQUEST_TIMEOUT';
+  if (error?.name === 'AbortError') return 'REQUEST_ABORTED';
   if (error?.message === 'Query read timeout') return 'QUERY_READ_TIMEOUT';
   const code = error?.acceptanceCode || error?.code;
   return typeof code === 'string' && /^[A-Z0-9_]{2,90}$/.test(code) ? code : 'UNCLASSIFIED_FAILURE';
 }
-function add(name, result, detail = {}) { report.checks.push({ name, result, ...detail }); }
+function checkpoint() {
+  if (!args?.approved) return;
+  // Durable, sanitized partial evidence survives a killed shell. Never a final PASS.
+  try {
+    mkdirSync(args.output, { recursive: true });
+    const destination = join(args.output, `care-rls-progress-${STAMP}.json`);
+    writeFileSync(`${destination}.tmp`, JSON.stringify({
+      partial: true, acceptance: 'NOT_PROVEN', capturedAt: new Date().toISOString(), ...report,
+      fixtureIdentities: fixtures.map(fixture => ({ tenant: fixture.tenant, branch: fixture.branch,
+        person: fixture.person, relationship: fixture.relationship, course: fixture.course,
+        assignment: fixture.assignment, attendance: fixture.attendance, students: fixture.students,
+        actors: fixture.actors.map(actor => ({ id: actor.id, role: actor.role })) })),
+    }, null, 2) + '\n', { flush: true });
+    renameSync(`${destination}.tmp`, destination);
+  } catch { report.evidenceWriteFailure = 'PROGRESS_WRITE_FAILED'; }
+}
+function add(name, result, detail = {}) {
+  report.checks.push({ name, result, ...detail });
+  checkpoint();
+  if (args?.approved && ['TIMELINE_PREPARATION', 'PRIOR_FIXTURE_CLEANUP', 'PREPARATION', 'FIXTURE_AND_AUTH', 'OWN_NEXT_START'].includes(name)) {
+    console.log(JSON.stringify({ stage: name, result }));
+  }
+}
 async function check(name, work) {
   const previous = currentCheck; currentCheck = name;
   try { const detail = await work(); add(name, 'PASS', detail || {}); }
@@ -65,11 +93,16 @@ function parseArgs() {
     if (item === '--owner-approved-e2e-scope6') result.approved = true;
     else if (item === '--retain-on-pass') result.retain = true;
     else if (item === '--metadata-only') result.metadataOnly = true;
+    else if (item === '--with-owner-approved-timeline-fk') result.timeline = true;
+    else if (item === '--arrival-diagnostic') result.arrivalDiagnostic = true;
     else if (item === '--sql' || item === '--output') { must(process.argv[i + 1] && !process.argv[i + 1].startsWith('--'), 'ARGUMENT_VALUE_REQUIRED'); result[item.slice(2)] = resolve(process.argv[++i]); }
     else fail('UNKNOWN_ARGUMENT');
   }
   must(!result.retain || result.approved, 'RETENTION_REQUIRES_EXPLICIT_SCOPE_APPROVAL');
   must(!result.metadataOnly || !result.retain, 'METADATA_ONLY_RETENTION_FORBIDDEN');
+  must(!result.timeline || result.approved && !result.metadataOnly, 'TIMELINE_SCOPE_FLAG_REJECTED');
+  must(!result.arrivalDiagnostic || result.approved && result.timeline && !result.retain && !result.metadataOnly, 'ARRIVAL_DIAGNOSTIC_SCOPE_REJECTED');
+  if (result.timeline && !process.argv.includes('--output')) result.output = join(ROOT, 'docs/audits/preschool-full-audit-20261020/batch2m-timeline-fk');
   return result;
 }
 function sourceState() {
@@ -85,7 +118,7 @@ function sourceState() {
 }
 function loadBundle() {
   const sql = readFileSync(args.sql, 'utf8');
-  must(hash(sql) === APPROVED_SQL_SHA256, 'APPROVED_SQL_HASH_MISMATCH');
+  must([APPROVED_SQL_SHA256, REVIEWED_EQUIVALENT_SQL_V2_SHA256, REVIEWED_EQUIVALENT_SQL_V3_SHA256].includes(hash(sql)), 'APPROVED_SQL_HASH_MISMATCH');
   const markers = [...sql.matchAll(/^-- BELLA_CARE_E2E_MANIFEST: (.+)$/gm)];
   must(markers.length === 1, 'EXACT_SQL_MANIFEST_REQUIRED');
   let manifest; try { manifest = JSON.parse(markers[0][1]); } catch { fail('SQL_MANIFEST_INVALID'); }
@@ -102,15 +135,19 @@ function loadBundle() {
   // DDL is reviewed separately. Never accept business DML, helper/role/schema changes or a transaction wrapper here.
   const withoutComments = sql.replace(/--[^\r\n]*/g, '');
   must(!/\b(?:INSERT\s+INTO|DELETE\s+FROM|TRUNCATE\s+(?:TABLE\s+)?public\.|UPDATE\s+public\.|SECURITY\s+DEFINER|ALTER\s+DEFAULT\s+PRIVILEGES|ALTER\s+ROLE|CREATE\s+(?:OR\s+REPLACE\s+)?FUNCTION|DROP\s+(?:TABLE|POLICY|FUNCTION)|COMMIT\s*;|ROLLBACK\s*;)\b/i.test(withoutComments), 'SQL_PROHIBITED_OPERATION');
-  const preflight = JSON.parse(readFileSync(join(dirname(args.sql), 'preflight.json'), 'utf8'));
+  const preflightPath = join(ROOT, 'docs/audits/preschool-full-audit-20261020/batch2l-care-rls/preflight.json');
+  const preflight = JSON.parse(readFileSync(preflightPath, 'utf8'));
   must(preflight.projectRef === REF && preflight.readOnly === true && Array.isArray(preflight.sourceHashes), 'PREFLIGHT_TARGET_REJECTED');
   for (const source of preflight.sourceHashes) {
     must(typeof source.file === 'string' && !source.file.includes('..') && /^[a-f0-9]{64}$/.test(source.sha256), 'PREFLIGHT_SOURCE_INVALID');
     must(hash(readFileSync(join(ROOT, source.file))) === source.sha256, 'CANONICAL_SOURCE_HASH_CHANGED');
   }
-  return { sql, sha256: hash(sql), manifest, preflightSha256: hash(readFileSync(join(dirname(args.sql), 'preflight.json'))) };
+  return { sql, sha256: hash(sql), manifest, preflightSha256: hash(readFileSync(preflightPath)) };
 }
-function stableSql() { must(hash(readFileSync(args.sql)) === bundle.sha256, 'SQL_SOURCE_CHANGED'); }
+function stableSql() {
+  must(hash(readFileSync(args.sql)) === bundle.sha256, 'SQL_SOURCE_CHANGED');
+  if (args.timeline) loadTimelineSql();
+}
 async function readConfig() {
   must(process.env.E2E_ENV_FILE, 'EXPLICIT_E2E_ENV_FILE_REQUIRED');
   const values = require('dotenv').parse(readFileSync(resolve(process.env.E2E_ENV_FILE)));
@@ -158,7 +195,53 @@ async function remoteFetch(input, init = {}) {
   }
   return response;
 }
-async function q(text, values = []) { budget(); return db.query({ text, values, query_timeout: 35_000 }); }
+async function q(text, values = []) {
+  budget();
+  const isBegin = /^\s*begin\s*;?\s*$/i.test(text);
+  const isCommit = /^\s*commit\s*;?\s*$/i.test(text);
+  const isRollback = /^\s*rollback\s*;?\s*$/i.test(text);
+  must(!transactionUncertain || isRollback, 'TRANSACTION_STATE_UNCERTAIN_ROLLBACK_REQUIRED');
+  must(!isBegin || !transaction, 'NESTED_TRANSACTION_FORBIDDEN');
+  let phase = 'STATEMENT';
+  const execute = (statement, parameters = []) => db.query({ text: statement, values: parameters, query_timeout: 35_000 });
+  const begin = async () => {
+    transaction = true; // A failed BEGIN acknowledgement still requires recovery.
+    phase = 'BEGIN';
+    await execute('begin');
+    phase = 'SET_TIMEOUTS';
+    await execute("set local lock_timeout='5s'; set local statement_timeout='30s'");
+    phase = 'VERIFY_TIMEOUTS';
+    const settings = (await execute("select current_setting('lock_timeout') as lock_timeout,current_setting('statement_timeout') as statement_timeout")).rows[0];
+    must(settings.lock_timeout === '5s' && settings.statement_timeout === '30s', 'TRANSACTION_TIMEOUTS_NOT_EFFECTIVE');
+    report.effectiveTransactionTimeouts = settings;
+  };
+  const started = Date.now(), automatic = !transaction && !isBegin && !isCommit && !isRollback;
+  try {
+    if (isBegin) { await begin(); return { rows: [], rowCount: null }; }
+    if (automatic) await begin();
+    phase = isCommit ? 'COMMIT' : isRollback ? 'ROLLBACK' : 'STATEMENT';
+    const result = await execute(text, values);
+    if (automatic) { phase = 'COMMIT'; await execute('commit'); transaction = false; }
+    else if (isCommit || isRollback) { transaction = false; transactionUncertain = false; }
+    return result;
+  } catch (error) {
+    const code = safeCode(error);
+    // An acknowledgement timeout does not prove whether COMMIT reached the server.
+    if (phase === 'COMMIT') {
+      report.uncertainTransactionOutcomes ||= [];
+      report.uncertainTransactionOutcomes.push({ phase, statementSha256: hash(text), code, outcome: 'NOT_PROVEN_COMMITTED_OR_ROLLED_BACK' });
+    }
+    if (['BEGIN', 'COMMIT', 'ROLLBACK', 'SET_TIMEOUTS', 'VERIFY_TIMEOUTS'].includes(phase)
+      || ['QUERY_READ_TIMEOUT', 'UNCLASSIFIED_FAILURE'].includes(code) || /^08|^ECONN|^EPIPE/.test(code)) transactionUncertain = true;
+    report.databaseErrorReceipts ||= [];
+    report.databaseErrorReceipts.push({ check: currentCheck, phase, code, statementSha256: hash(text), durationMs: Date.now() - started });
+    if (automatic || isBegin) {
+      try { await execute('rollback'); transaction = false; transactionUncertain = false; }
+      catch { transactionUncertain = true; } // Normal queries remain blocked until an acknowledged full ROLLBACK.
+    }
+    checkpoint(); throw error;
+  }
+}
 
 async function snapshot() {
   // No business rows or function bodies are exported. Internal FK triggers on parents are intentionally excluded.
@@ -192,12 +275,132 @@ async function snapshot() {
   const all = Object.fromEntries(relations.map(row => [row.name, row.meta]));
   const targets = Object.fromEntries(TARGETS.map(name => [name, all[name] || null]));
   const outside = Object.fromEntries(relations.filter(row => !TARGETS.includes(row.name)).map(row => [row.name, row.meta]));
-  return { targets, outsideSha256: jsonHash(outside), controls, sha256: jsonHash({ all, controls }) };
+  const rules = (await q("select rulename,definition from pg_rules where schemaname='public' and tablename='timeline_events' order by rulename")).rows;
+  const outsideSeven = Object.fromEntries(relations.filter(row => !TARGETS.includes(row.name) && row.name !== 'timeline_events').map(row => [row.name, row.meta]));
+  return { targets, outsideSha256: jsonHash(outside), controls, sha256: jsonHash({ all, controls }),
+    timeline: { ...all.timeline_events, rules }, outsideSevenSha256: jsonHash(outsideSeven) };
 }
 function summarize(snapshotValue) {
   return { sha256: snapshotValue.sha256, outsideSha256: snapshotValue.outsideSha256, controls: snapshotValue.controls,
     targets: Object.fromEntries(TARGETS.map(name => [name, { present: Boolean(snapshotValue.targets[name]), sha256: jsonHash(snapshotValue.targets[name]) }])),
-    targetCatalog: snapshotValue.targets };
+    targetCatalog: snapshotValue.targets, timelineCatalog: snapshotValue.timeline,
+    outsideSevenSha256: snapshotValue.outsideSevenSha256 };
+}
+function timelineEquivalent(left, right, includeCare) {
+  must(left.outsideSevenSha256 === right.outsideSevenSha256 && jsonHash(left.controls) === jsonHash(right.controls)
+    && jsonHash(left.timeline) === jsonHash(right.timeline)
+    && (!includeCare || jsonHash(left.targets) === jsonHash(right.targets)), 'TIMELINE_OR_OUTSIDE_SCOPE_DRIFT');
+}
+function timelineExpected(value, action) {
+  const result = structuredClone(value);
+  const constraint = result.timeline.constraints.find(item => item.name === 'timeline_events_primary_party_id_fkey');
+  must(constraint?.validated && constraint.definition === `FOREIGN KEY (primary_party_id) REFERENCES party_parties(id) ON DELETE ${action === 'RESTRICT' ? 'CASCADE' : 'RESTRICT'}`, 'TIMELINE_FK_BASELINE_DRIFT');
+  constraint.definition = `FOREIGN KEY (primary_party_id) REFERENCES party_parties(id) ON DELETE ${action}`;
+  return result;
+}
+function loadTimelineSql() {
+  const folder = join(ROOT, 'docs/audits/preschool-full-audit-20261020/batch2m-timeline-fk');
+  const up = readFileSync(join(folder, 'E2E_TIMELINE_FK_EXECUTE.sql'), 'utf8');
+  const down = readFileSync(join(folder, 'E2E_TIMELINE_FK_RECOVERY.sql'), 'utf8');
+  must(hash(up) === '257021688facc8ce7e51f2c5a24b031a80c5322782d10250b96d13c07635f6e1'
+    && hash(down) === 'ec9512530c3c8e94be668ab91e4def678361d659ae69a5a50e07f43ff2940673', 'TIMELINE_SQL_HASH_CHANGED');
+  return { up, down, upSha256: hash(up), downSha256: hash(down) };
+}
+async function timelineRehearsalAndCommit() {
+  timelineOriginal = await snapshot();
+  const priorBaseline = JSON.parse(readFileSync(join(ROOT, 'docs/audits/preschool-full-audit-20261020/batch2l-care-rls/care-rls-results-2026-10-21T00-20-57-940Z.json'), 'utf8'));
+  must(priorBaseline.projectRef === REF && timelineOriginal.sha256 === priorBaseline.after.sha256, 'E2E_FULL_CATALOG_BASELINE_DRIFT');
+  report.timelineFk = { ownerDecision: 'Duyệt đúng FK E2E, giữ sửa đổi nếu PASS', before: summarize(timelineOriginal),
+    upSha256: timelineSql.upSha256, downSha256: timelineSql.downSha256 };
+  const baselineRules = JSON.parse(readFileSync(join(ROOT, 'docs/audits/preschool-full-audit-20261020/batch2l-care-rls/timeline-cleanup-blocker.json'), 'utf8')).rules;
+  must(jsonHash(timelineOriginal.timeline.rules) === jsonHash(baselineRules), 'TIMELINE_RULE_BASELINE_DRIFT');
+  const expected = timelineExpected(timelineOriginal, 'RESTRICT');
+  const apply = async () => {
+    await q('begin'); transaction = true;
+    await q('lock table public.party_parties, public.timeline_events in access exclusive mode');
+    timelineEquivalent(timelineOriginal, await snapshot(), true);
+    await q(timelineSql.up); const current = await snapshot(); timelineEquivalent(expected, current, true); return current;
+  };
+  try {
+    const trial = await apply();
+    const tenant = randomUUID(), unused = randomUUID(), linked = randomUUID(), event = randomUUID();
+    await q("insert into public.tenants(id,name,status,product_key) values($1,'Synthetic FK rehearsal','active','bella_preschool')", [tenant]);
+    for (const id of [unused, linked]) await q("insert into public.party_parties(id,tenant_id,party_type,display_name) values($1,$2,'person','Synthetic FK rehearsal')", [id, tenant]);
+    must((await q('delete from public.party_parties where id=$1 and tenant_id=$2', [unused, tenant])).rowCount === 1, 'UNUSED_PARTY_DELETE_NOT_ALLOWED');
+    await q(`insert into public.timeline_events(id,tenant_id,vertical,primary_party_id,correlation_id,event_category,event_type,
+      aggregate_id,aggregate_type,sequence_number,event_hash,summary) values($1,$2,'education',$3,$4,'system','E2E_FK_PROBE',$5,'e2e_fk_probe',1,$6,'Synthetic rollback-only FK probe')`,
+    [event, tenant, linked, randomUUID(), randomUUID(), hash('synthetic FK probe')]);
+    await q('savepoint linked_party_denial'); let denied = false;
+    try { await q('delete from public.party_parties where id=$1 and tenant_id=$2', [linked, tenant]); }
+    catch (error) { must(error.code === '23503', 'LINKED_PARTY_UNEXPECTED_FAILURE'); denied = true; await q('rollback to savepoint linked_party_denial'); }
+    must(denied, 'LINKED_PARTY_DELETE_NOT_DENIED'); await q('release savepoint linked_party_denial');
+    must((await q("update public.timeline_events set summary='Uncommitted prohibited change' where id=$1", [event])).rowCount === 0, 'TIMELINE_UPDATE_NOT_IMMUTABLE');
+    must((await q('delete from public.timeline_events where id=$1', [event])).rowCount === 0, 'TIMELINE_DELETE_NOT_IMMUTABLE');
+    must((await q("select count(*)::int as count from public.timeline_events where id=$1 and summary='Synthetic rollback-only FK probe'", [event])).rows[0].count === 1, 'TIMELINE_EVENT_NOT_PRESERVED');
+    timelineEquivalent(trial, await snapshot(), true);
+    await q(timelineSql.down); timelineEquivalent(timelineOriginal, await snapshot(), true);
+    await q('rollback'); transaction = false; timelineEquivalent(timelineOriginal, await snapshot(), true);
+    const residue = (await q('select (select count(*) from public.tenants where id=$1)::int as tenants,(select count(*) from public.party_parties where id=any($2::uuid[]))::int as parties,(select count(*) from public.timeline_events where id=$3)::int as events', [tenant, [unused, linked], event])).rows[0];
+    must(Object.values(residue).every(count => count === 0), 'FK_REHEARSAL_RESIDUE');
+    add('TIMELINE_REHEARSAL_AND_RECOVERY', 'PASS', { unusedPartyDelete: true, linkedPartyCode: '23503', immutableUpdateDelete: true, rollbackResidues: residue });
+  } catch (error) { if (transaction) { await q('rollback'); transaction = false; } throw error; }
+  timelineAttempted = true;
+  try {
+    timelinePrepared = await apply(); await q('commit'); transaction = false; timelineCommitted = true;
+    timelineEquivalent(timelinePrepared, await snapshot(), true);
+    report.timelineFk.prepared = summarize(timelinePrepared); add('TIMELINE_EXACT_FK_COMMITTED', 'PASS');
+  } catch (error) { if (transaction) { await q('rollback'); transaction = false; } throw error; }
+}
+async function cleanupPreviousParties() {
+  const prior = JSON.parse(readFileSync(join(ROOT, 'docs/audits/preschool-full-audit-20261020/batch2l-care-rls/care-rls-results-2026-10-21T00-14-48-530Z.json'), 'utf8'));
+  must(prior.projectRef === REF && prior.cleanup.residualCounts.party_parties === 4 && prior.cleanup.retainedTenantShells === 2, 'PRIOR_FIXTURE_EVIDENCE_REJECTED');
+  const identityBytes = readFileSync(join(ROOT, 'docs/audits/preschool-full-audit-20261020/batch2m-timeline-fk/prior-fixture-identities.json'));
+  must(hash(identityBytes) === '885a1f03f952fe504b9c472979795914f03c87cc55c7493a3d07a3d979a3d0e2', 'PRIOR_IDENTITY_MANIFEST_CHANGED');
+  const identities = JSON.parse(identityBytes);
+  must(identities.projectRef === REF && identities.parties.length === 4 && identities.tenantIds.length === 2, 'PRIOR_IDENTITY_MANIFEST_INVALID');
+  await q('begin'); transaction = true;
+  try {
+    await q('lock table public.party_parties, public.timeline_events in share row exclusive mode');
+    const shells = (await q(`select id from public.tenants where status='terminated'
+      and name in ('Synthetic Care E2E 0','Synthetic Care E2E 1') and created_at >= $1 and created_at <= $2`, [prior.startedAt, prior.finishedAt])).rows;
+    must(shells.length === 2, 'PRIOR_EXACT_TWO_TERMINATED_SHELLS_REQUIRED');
+    must(jsonHash(shells.map(row => row.id).sort()) === jsonHash(identities.tenantIds), 'PRIOR_TENANT_IDENTITY_DRIFT');
+    const rows = (await q('select id,tenant_id,created_at from public.party_parties where tenant_id=any($1::uuid[]) order by tenant_id,id', [identities.tenantIds])).rows;
+    must(rows.length === 0 || rows.length === 4 && new Set(rows.map(row => row.tenant_id)).size === 2, 'PRIOR_EXACT_FOUR_PARTIES_REQUIRED');
+    if (rows.length) must(jsonHash(rows.map(row => ({ id: row.id, tenantId: row.tenant_id, createdAt: row.created_at.toISOString() })))
+      === jsonHash(identities.parties), 'PRIOR_PARTY_IDENTITY_DRIFT');
+    const ids = identities.parties.map(row => row.id), tenants = identities.tenantIds;
+    must((await q('select count(*)::int as count from public.party_parties where id=any($1::uuid[])', [ids])).rows[0].count === rows.length, 'PRIOR_PARTY_TENANT_REASSIGNMENT');
+    const controls = (await q(`select (select count(*) from public.timeline_events where primary_party_id=any($1::uuid[]) or recorded_by=any($1::uuid[]))::int as events,
+      (select count(*) from public.users where tenant_id=any($2::uuid[]))::int as profiles,
+      (select count(*) from auth.users where email like 'preschool-care-%' and created_at >= $3 and created_at <= $4)::int as auth`, [ids, tenants, prior.startedAt, prior.finishedAt])).rows[0];
+    must(Object.values(controls).every(count => count === 0), 'PRIOR_FIXTURE_EVENT_OR_AUTHORITY_DRIFT');
+    must((await q('delete from public.party_parties where id=any($1::uuid[]) and tenant_id=any($2::uuid[])', [ids, tenants])).rowCount === rows.length, 'PRIOR_PARTY_CLEANUP_INCOMPLETE');
+    must((await q('select count(*)::int as count from public.party_parties where id=any($1::uuid[]) or tenant_id=any($2::uuid[])', [ids, tenants])).rows[0].count === 0, 'PRIOR_PARTY_RESIDUE');
+    await q('commit'); transaction = false;
+    report.timelineFk.priorCleanup = { deletedParties: rows.length, alreadyAbsent: rows.length === 0, profiles: 0, auth: 0, referencingEvents: 0, retainedTerminatedTenantShells: 2 };
+    add('PRIOR_FOUR_PARTIES_CLEANED', 'PASS', report.timelineFk.priorCleanup);
+  } catch (error) { if (transaction) { await q('rollback'); transaction = false; } throw error; }
+}
+async function finalizeTimeline() {
+  if (!timelineOriginal || !timelineAttempted) return;
+  if (report.timelineFk.recovery?.retainedOnApprovedPass) return; // Already coordinated with Care under the same retention transaction.
+  const current = await snapshot();
+  if (jsonHash(current.timeline) === jsonHash(timelineOriginal.timeline)) {
+    timelineEquivalent(timelineOriginal, current, false); report.timelineFk.recovery = { baselineAlreadyRestored: true }; return;
+  }
+  must(timelinePrepared, 'TIMELINE_PREPARED_STATE_MISSING'); timelineEquivalent(timelinePrepared, current, false);
+  await q('begin'); transaction = true;
+  try {
+    await q('lock table public.party_parties,public.timeline_events in access exclusive mode');
+    timelineEquivalent(timelinePrepared, await snapshot(), false);
+    await q(timelineSql.down);
+    timelineEquivalent(timelineOriginal, await snapshot(), false);
+    await q('commit'); transaction = false;
+    const final = await snapshot(); timelineEquivalent(timelineOriginal, final, false);
+    report.timelineFk.after = summarize(final);
+    report.timelineFk.recovery = { retainedOnApprovedPass: false, restoredOriginalFk: true };
+  } catch (error) { if (transaction) { await q('rollback'); transaction = false; } throw error; }
 }
 function sameControls(left, right) {
   must(left.outsideSha256 === right.outsideSha256 && JSON.stringify(left.controls) === JSON.stringify(right.controls), 'OUTSIDE_SIX_OR_SHARED_CONTROL_DRIFT');
@@ -271,6 +474,7 @@ async function seed() {
     if (created.data.user?.id) authCreated.push(created.data.user.id);
     must(!created.error && created.data.user, 'AUTH_FIXTURE_CREATE_FAILED');
     fixture.actors.push({ id: created.data.user.id, email, password, role, fixture });
+    checkpoint();
   }
   fixtureWrites = true; await q('begin'); transaction = true;
   try {
@@ -292,7 +496,8 @@ async function seed() {
     }
     await q('commit'); transaction = false;
   } catch (error) { await q('rollback'); transaction = false; throw error; }
-  add('ISOLATED_FIXTURES', 'PASS', { tenants: 2, branches: 2, actors: 6, courses: 2, parties: 4, enrollments: 4, fakeLegacyStudents: 0 });
+  add('ISOLATED_FIXTURES', 'PASS', { tenants: fixtures.length, branches: fixtures.length, actors: authCreated.length,
+    courses: fixtures.length, parties: fixtures.length * 2, enrollments: fixtures.length * 2, fakeLegacyStudents: 0 });
 }
 async function login() {
   const { createServerClient } = require('@supabase/ssr');
@@ -386,16 +591,100 @@ async function rememberOwned() {
     for (const row of records.rows) owned.records.add(row.id);
   }
 }
+async function diagnoseArrivalFailure(actor, fixture, response = { status: null, data: {} }) {
+  report.arrivalDiagnostics ||= [];
+  const diagnostic = { fixture: fixture.index, status: response.status, committed: response.data.result?.committed,
+    blocked: response.data.result?.blocked, exceptions: (response.data.result?.exceptions || []).map(item => ({
+      code: /^[A-Z0-9_]{2,90}$/.test(item.errorCode || '') ? item.errorCode : null,
+      stage: /^CARE_RECORD_LOOKUP_FAILED:/.test(item.errorMessage || '') ? 'RECORD_SELECT'
+        : /^FAILED_TO_CREATE_STUDENT_CARE_RECORD:/.test(item.errorMessage || '') ? 'RECORD_INSERT' : 'UNCLASSIFIED',
+      kind: item.errorMessage?.includes('statement timeout') ? 'STATEMENT_TIMEOUT'
+        : item.errorMessage?.includes('permission denied') ? 'PERMISSION_DENIED' : null })) };
+  report.arrivalDiagnostics.push(diagnostic);
+  const receipt = (stage, result) => {
+    diagnostic.directStage = stage; diagnostic.directCode = result.error?.code || null;
+    diagnostic.directKind = result.error?.message?.includes('statement timeout') ? 'STATEMENT_TIMEOUT'
+      : result.error?.message?.includes('permission denied') ? 'PERMISSION_DENIED'
+      : result.error?.message?.includes('TimeoutError') ? 'REQUEST_TIMEOUT' : null;
+    checkpoint();
+  };
+  checkpoint();
+  try {
+    const sessionRead = await actor.client.from('edu_daily_care_sessions').select('id')
+      .eq('tenant_id', fixture.tenant).eq('class_id', fixture.course).eq('date', schoolDay()).maybeSingle();
+    receipt('SESSION_SELECT', sessionRead); if (sessionRead.error) return;
+    let session = sessionRead.data;
+    if (!session) {
+      const inserted = await actor.client.from('edu_daily_care_sessions').insert({ tenant_id: fixture.tenant,
+        class_id: fixture.course, date: schoolDay() }).select('id').single();
+      receipt('SESSION_INSERT', inserted); if (inserted.error) return;
+      session = inserted.data;
+    }
+    must(session?.id, 'DIAGNOSTIC_SESSION_MISSING');
+    owned.sessions.add(session.id);
+    const selected = await actor.client.from('edu_daily_care_records').select('*')
+      .eq('session_id', session.id).eq('tenant_id', fixture.tenant).eq('student_party_id', fixture.students[0].id).maybeSingle();
+    receipt('RECORD_SELECT', selected);
+    if (selected.error) return;
+    if (!selected.data) {
+      const inserted = await actor.client.from('edu_daily_care_records').insert({ tenant_id: fixture.tenant,
+        session_id: session.id, student_party_id: fixture.students[0].id }).select('*').single();
+      receipt('RECORD_INSERT', inserted);
+      if (inserted.error) return;
+      if (inserted.data?.id) owned.records.add(inserted.data.id);
+    } else {
+      owned.records.add(selected.data.id);
+      const updated = await actor.client.from('edu_daily_care_records').update({ arrival_status: 'PRESENT',
+        arrival_time: new Date().toISOString(), morning_condition: 'GOOD', updated_at: new Date().toISOString() }).eq('id', selected.data.id);
+      receipt('RECORD_UPDATE', updated);
+      if (updated.error) return;
+    }
+    diagnostic.authDiagnosticOnly = true; // Never substitutes for the failed API acceptance.
+  } catch (error) { diagnostic.probeFailure = safeCode(error); }
+  finally { await rememberOwned(); checkpoint(); }
+}
 async function verifyHttp() {
   await expectHttp('CARE_ANONYMOUS', null, carePath(fixtures[0]), 'GET', undefined, 401, 'CARE_UNAUTHENTICATED');
   for (const fixture of fixtures) {
     const actor = fixture.actors[0], foreign = fixtures[1 - fixture.index];
+    await check(`REST_AUTH_ATTENDANCE_EMBED_${fixture.index}`, async () => {
+      const result = await actor.client.from('edu_attendance_daily_state')
+        .select('id, status, school_day, enrollment_id, edu_enrollments!inner(id, student_party_id)')
+        .eq('tenant_id', fixture.tenant).eq('school_day', schoolDay()).eq('edu_enrollments.course_id', fixture.course);
+      report.attendanceRestDiagnostic ||= [];
+      report.attendanceRestDiagnostic.push({ actorTenantIndex: fixture.index, status: result.status,
+        code: result.error?.code || null, rows: result.data?.length || 0,
+        errorKind: result.error?.message?.includes('statement timeout') ? 'STATEMENT_TIMEOUT'
+          : result.error?.message?.includes('infinite recursion') ? 'RLS_RECURSION'
+          : result.error?.message?.includes('stack depth') ? 'STACK_DEPTH'
+          : result.error?.message?.includes('permission denied') ? 'PERMISSION_DENIED' : null });
+      must(!result.error && result.data?.length === 1, 'AUTH_ATTENDANCE_EMBED_FAILED');
+      return { realAuth: true, rows: 1 };
+    });
     await check(`CARE_GET_ACTIVE_${fixture.index}`, async () => {
       const result = await http(actor, carePath(fixture));
       must(result.status === 200 && result.data.success === true && result.data.roster?.length === 1
         && result.data.roster[0].studentPartyId === fixture.students[0].id && result.data.roster[0].attendance?.status === 'present', 'ACTIVE_ROSTER_OR_ATTENDANCE_MISMATCH');
       return { status: 200, activeRoster: 1, pendingExcluded: true, attendanceJoined: true };
     });
+    if (args.arrivalDiagnostic) {
+      add('FULL_ACCEPTANCE_NOT_RUN', 'NOT_PROVEN', { reason: 'ARRIVAL_DIAGNOSTIC_ONLY' });
+      await check('ARRIVAL_DIRECT_STAGE_DIAGNOSTIC', async () => {
+        await diagnoseArrivalFailure(actor, fixture);
+        const diagnostic = report.arrivalDiagnostics.at(-1);
+        must(diagnostic.authDiagnosticOnly === true && !diagnostic.directCode && !diagnostic.probeFailure, 'DIRECT_ARRIVAL_STAGE_FAILED');
+        return { realAuth: true, diagnosticOnly: true };
+      });
+      await check('ARRIVAL_DIAGNOSTIC_API', async () => {
+        const result = await http(actor, '/api/education/care/bulk', 'POST', arrival(fixture));
+        await rememberOwned();
+        if (!result.data.success || result.data.result?.committed !== 1 || result.data.result?.blocked !== 0) {
+          await diagnoseArrivalFailure(actor, fixture, result); fail('ARRIVAL_POSITIVE_FAILED');
+        }
+        return { status: result.status, diagnosticOnly: true };
+      });
+      return;
+    }
     for (const [label, unauthorized] of [['PENDING', fixture.students[1].id], ['FOREIGN', foreign.students[0].id]]) {
       await check(`MIXED_${label}_ZERO_WRITE_${fixture.index}`, async () => {
         const initial = await counts(); const result = await http(actor, '/api/education/care/bulk', 'POST', arrival(fixture, [fixture.students[0].id, unauthorized]));
@@ -417,6 +706,9 @@ async function verifyHttp() {
     await expectHttp(`HEALTH_HELD_${fixture.index}`, actor, '/api/education/care/bulk', 'POST', { action: 'save_care', courseId: fixture.course, date: schoolDay(), data: { records: [{ studentPartyId: fixture.students[0].id, health: {} }] } }, 503, 'CARE_HEALTH_POLICY_UNAVAILABLE');
     await check(`ARRIVAL_AND_READBACK_${fixture.index}`, async () => {
       const result = await http(actor, '/api/education/care/bulk', 'POST', arrival(fixture)); await rememberOwned();
+      if (!(result.status === 200 && result.data.success === true && result.data.result?.committed === 1 && result.data.result?.blocked === 0)) {
+        await diagnoseArrivalFailure(actor, fixture, result);
+      }
       must(result.status === 200 && result.data.success === true && result.data.result?.committed === 1 && result.data.result?.blocked === 0, 'ARRIVAL_POSITIVE_FAILED');
       const rows = (await q(`select r.id,r.arrival_status,r.morning_condition,r.arrival_time is not null as has_time,r.health_checks
         from public.edu_daily_care_records r join public.edu_daily_care_sessions s on s.id=r.session_id
@@ -440,8 +732,24 @@ async function verifyHttp() {
     ]) {
       const id = label === 'INACTIVE_BRANCH' ? fixture.branch : label === 'INACTIVE_PROFILE' ? actor.id : fixture.tenant;
       await check(`${label}_${fixture.index}`, async () => { await q(update, [id]);
-        try { const result = await http(actor, carePath(fixture)); must(result.status === status && (!code || result.data.error === code), 'INACTIVE_CONTEXT_NOT_DENIED'); return { status: result.status, sameSession: true }; }
+        try {
+          const result = await http(actor, carePath(fixture)); must(result.status === status && (!code || result.data.error === code), 'INACTIVE_CONTEXT_NOT_DENIED');
+          for (const table of TARGETS) await denyRest(`${label}_REST_${table}_${fixture.index}`,
+            () => actor.client.from(table).select('id').eq('tenant_id', fixture.tenant).limit(1));
+          const beforeValue = (await q('select morning_condition from public.edu_daily_care_records where id=$1 and tenant_id=$2', [fixture.record, fixture.tenant])).rows;
+          must(beforeValue.length === 1, 'REVOCATION_RECORD_POSITIVE_MISSING');
+          await denyRest(`${label}_REST_UPDATE_${fixture.index}`, () => actor.client.from('edu_daily_care_records')
+            .update({ morning_condition: 'E2E_DENIED_PROBE' }).eq('id', fixture.record).select('id'));
+          const afterValue = (await q('select morning_condition from public.edu_daily_care_records where id=$1 and tenant_id=$2', [fixture.record, fixture.tenant])).rows;
+          must(afterValue.length === 1 && afterValue[0].morning_condition === beforeValue[0].morning_condition, 'REVOKED_CONTEXT_MUTATED_RECORD');
+          return { status: result.status, sameSession: true, directRelationDenials: TARGETS.length, mutationDenied: true, independentValueUnchanged: true };
+        }
         finally { await q(restore, [id]); }
+      });
+      await check(`${label}_RESTORED_AUTHORITY_${fixture.index}`, async () => {
+        const result = await actor.client.from('edu_daily_care_records').select('id').eq('id', fixture.record);
+        must(!result.error && result.data?.length === 1, 'RESTORED_AUTHORITY_POSITIVE_FAILED');
+        return { sameSession: true, rows: 1 };
       });
     }
   }
@@ -512,7 +820,7 @@ async function cleanFixtures() {
   await attempt('STOP_OWN_NEXT', stopServer); await attempt('RESTORE_KNOWN_AGENTS_DELTA', async () => restoreAgents());
   for (const actor of loggedIn) { actor.jar.clear(); actor.password = undefined; }
   if (!connected) return;
-  if (transaction) await attempt('ROLLBACK_OPEN_TRANSACTION', async () => { await q('rollback'); transaction = false; });
+  if (transaction || transactionUncertain) await attempt('ROLLBACK_OPEN_TRANSACTION', async () => { await q('rollback'); transaction = false; });
   if (authIntents.length) await attempt('RECOVER_UNCERTAIN_AUTH_CREATE', async () => { const result = await q('select id from auth.users where email=any($1::text[])', [authIntents]); for (const row of result.rows) if (!authCreated.includes(row.id)) authCreated.push(row.id); });
   // Revoke authority before potentially slow row cleanup consumes its budget.
   if (authCreated.length) await attempt('REMOVE_PROFILE_AUTHORITY', () => q("update public.users set status='inactive' where id=any($1::uuid[]) and status is distinct from 'inactive'", [authCreated]));
@@ -561,21 +869,32 @@ async function recoverOrRetain() {
   report.afterFixtureCleanup = summarize(current);
   if (current.sha256 === before.sha256) { report.after = summarize(current); report.recovery = { attempted: false, baselineAlreadyRestored: true, restored: true }; return; }
   must(prepared && current.sha256 === prepared.sha256, 'RECOVERY_HOLD_UNACCOUNTED_METADATA_DRIFT');
-  const functionalPass = !primaryFailure && !report.checks.some(item => item.result === 'FAIL') && report.cleanup.failures.length === 0
+  const functionalPass = !primaryFailure && !report.evidenceWriteFailure && !report.uncertainTransactionOutcomes?.length && !report.checks.some(item => item.result === 'FAIL') && report.cleanup.failures.length === 0
     && report.checks.filter(item => item.result === 'NOT_PROVEN').every(item => item.reason === 'KNOWN_NEXT_DEV_HEADER_ADAPTER');
   report.functionalAcceptance = functionalPass ? 'PASS' : 'FAIL';
   if (args.retain && functionalPass && committed) {
     await q('begin'); transaction = true;
     try {
       await q('lock table public.edu_daily_care_records,public.edu_daily_care_sessions,public.edu_attendance_daily_state in share row exclusive mode');
+      if (args.timeline) await q('lock table public.party_parties,public.timeline_events in share row exclusive mode');
       const locked = await snapshot(); must(locked.sha256 === prepared.sha256, 'RETENTION_HOLD_METADATA_DRIFT');
+      if (args.timeline) timelineEquivalent(timelinePrepared, locked, false);
       const counts = {};
       for (const table of CREATED) counts[table] = (await q(`select count(*)::int as count from public.${table}`)).rows[0].count;
       must(Object.values(counts).every(count => count === 0), 'RETENTION_HOLD_UNACCOUNTED_NEW_RELATION_DATA');
       sameControls(before, locked); stableSql();
       await q('commit'); transaction = false; report.after = summarize(locked);
+      if (args.timeline) {
+        report.timelineFk.after = summarize(locked);
+        report.timelineFk.recovery = { retainedOnApprovedPass: true, restoredOriginalFk: false, coordinatedWithCare: true };
+      }
       report.recovery = { attempted: false, retainedOnExplicitApprovedPass: true, outsideSixUnchanged: true, newRelationRowCounts: counts, preparedSha256: locked.sha256 }; return;
-    } catch (error) { if (transaction) { await q('rollback'); transaction = false; } throw error; }
+    } catch (error) {
+      if (transaction) { await q('rollback'); transaction = false; }
+      report.cleanup.failures.push({ name: 'COORDINATED_RETENTION_CHECK', code: safeCode(error) });
+      // A failed retention check must enter the guarded recovery branch once.
+      return recoverOrRetain();
+    }
   }
   report.recovery.attempted = true;
   for (const table of CREATED) must((await q(`select count(*)::int as count from public.${table}`)).rows[0].count === 0, 'RECOVERY_HOLD_NEW_RELATION_NOT_EMPTY');
@@ -591,12 +910,14 @@ async function recoverOrRetain() {
 async function main() {
   try {
     args = parseArgs();
+    if (args.arrivalDiagnostic) fixtures.splice(1);
     if (!args.approved) {
       console.log(JSON.stringify({ mode: 'READ_ONLY_OFFLINE_PLAN', projectRef: REF, relations: TARGETS,
         executionRequires: ['explicit owner scope for exact six E2E relations', '--owner-approved-e2e-scope6', 'E2E_ENV_FILE', 'reviewed E2E_PREPARE.sql and preflight.json'],
         retentionRequires: 'separate explicit approval to keep on pass, supplied as --retain-on-pass', networkCalls: 0, mutations: 0 })); return;
     }
-    bundle = loadBundle(); config = await readConfig(); report.sqlSha256 = bundle.sha256; report.preflightSha256 = bundle.preflightSha256;
+    bundle = loadBundle(); if (args.timeline) timelineSql = loadTimelineSql();
+    config = await readConfig(); report.sqlSha256 = bundle.sha256; report.preflightSha256 = bundle.preflightSha256;
     report.harnessSha256 = hash(readFileSync(__filename)); report.retentionRequested = args.retain;
     report.sourceBefore = sourceState(); must(report.sourceBefore.ancestor && report.sourceBefore.changed.length === 0 && report.sourceBefore.untracked.length === 0
       && report.sourceBefore.environmentFiles.length === 0, 'RUNTIME_SOURCE_OR_ENV_GATE_REJECTED');
@@ -606,11 +927,17 @@ async function main() {
     db = new Client(config.pg); db.on('error', () => { report.databaseConnectionError = true; });
     await db.connect(); connected = true;
     admin = createClient(API, config.adminKey, { global: { fetch: remoteFetch }, auth: { persistSession: false, autoRefreshToken: false } });
+    if (args.timeline) {
+      report.scope = 'Owner-approved E2E Timeline FK plus previously approved exact-six Care package; no Production';
+      await check('TIMELINE_PREPARATION', timelineRehearsalAndCommit);
+      await check('PRIOR_FIXTURE_CLEANUP', cleanupPreviousParties);
+    }
     await check('PREPARATION', preparation);
     if (args.metadataOnly) await diagnoseMetadata();
     else {
       await check('FIXTURE_AND_AUTH', async () => { await seed(); await login(); });
-      await check('OWN_NEXT_START', startServer); await verifyHttp(); await verifyRest();
+      await check('OWN_NEXT_START', startServer); await verifyHttp();
+      if (!args.arrivalDiagnostic) await verifyRest();
     }
     stableSql(); must((await snapshot()).sha256 === prepared.sha256, 'ACCEPTANCE_METADATA_DRIFT');
   } catch (error) { primaryFailure = safeCode(error); add('RUN_ABORT', 'FAIL', { code: primaryFailure }); }
@@ -623,15 +950,18 @@ async function main() {
     await attempt('SOURCE_AND_SQL_FINAL', async () => { if (!report.sourceBefore) return; stableSql();
       report.sourceAfter = sourceState(); must(report.sourceAfter.head === report.sourceBefore.head && report.sourceAfter.sha256 === report.sourceBefore.sha256
         && report.sourceAfter.changed.length === 0 && report.sourceAfter.untracked.length === 0 && report.sourceAfter.environmentFiles.length === 0, 'RUNTIME_SOURCE_OR_ENV_DRIFT'); });
+    if (timelineCommitted) await attempt('TIMELINE_PRE_RETENTION_VALIDATION', async () => timelineEquivalent(timelinePrepared, await snapshot(), false));
     await attempt('RECOVER_OR_RETAIN_APPROVED_PREPARATION', recoverOrRetain);
+    if (args.timeline) await attempt('FINALIZE_APPROVED_TIMELINE_FK', finalizeTimeline);
     if (db) await attempt('DATABASE_CLOSE', () => db.end());
     report.finishedAt = new Date().toISOString(); report.durationMs = Date.now() - START.getTime();
     report.counts = Object.fromEntries(['PASS', 'FAIL', 'NOT_PROVEN'].map(state => [state, report.checks.filter(item => item.result === state).length]));
     report.primaryFailure = primaryFailure;
     report.functionalAcceptance ??= 'NOT_PROVEN';
-    if (primaryFailure || report.counts.FAIL || report.cleanup.failures.length) report.functionalAcceptance = 'FAIL';
+    if (primaryFailure || report.evidenceWriteFailure || report.uncertainTransactionOutcomes?.length || report.counts.FAIL || report.cleanup.failures.length) report.functionalAcceptance = 'FAIL';
     if (args.metadataOnly) report.functionalAcceptance = 'NOT_PROVEN';
-    report.result = primaryFailure || report.counts.FAIL || report.cleanup.failures.length ? 'FAIL' : report.counts.NOT_PROVEN ? 'PARTIAL_NOT_PROVEN' : 'PASS';
+    if (args.arrivalDiagnostic && !primaryFailure && !report.counts.FAIL && !report.evidenceWriteFailure && !report.uncertainTransactionOutcomes?.length && !report.cleanup.failures.length) report.functionalAcceptance = 'NOT_PROVEN';
+    report.result = primaryFailure || report.evidenceWriteFailure || report.uncertainTransactionOutcomes?.length || report.counts.FAIL || report.cleanup.failures.length ? 'FAIL' : report.counts.NOT_PROVEN ? 'PARTIAL_NOT_PROVEN' : 'PASS';
     report.cleanup.result = report.cleanup.failures.length ? 'FAIL' : fixtureWrites || authCreated.length || server
       ? 'PASS_OWNED_FIXTURES_REMOVED_AUTHORITY_REVOKED' : 'NOT_RUN_NO_FIXTURES';
     report.exitCode = report.result === 'FAIL' ? 1 : 0;
