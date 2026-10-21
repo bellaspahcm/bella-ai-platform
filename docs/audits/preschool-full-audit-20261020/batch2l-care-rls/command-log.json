@@ -96,6 +96,11 @@
       "routine": "ri_PerformCheck",
       "transaction": "ROLLBACK",
       "ownedResidualParties": 4
+    },
+    {
+      "command": "git diff --check HEAD^ HEAD after review-navigation append",
+      "exitCode": 2,
+      "diagnostic": "extra blank line at SPEC EOF; corrected in follow-up commit"
     }
   ]
 }

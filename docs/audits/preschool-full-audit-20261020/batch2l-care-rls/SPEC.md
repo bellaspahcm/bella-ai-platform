@@ -89,4 +89,3 @@ Syntax + scope review first. Rehearsal must prove transaction rollback and uncha
 
 - Đối chiếu review và các sửa đã xác minh.
   [REVIEW.md:1](REVIEW.md#L1)
-
