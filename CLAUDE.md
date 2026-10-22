@@ -3,7 +3,7 @@
 Before changing software, architecture, or engineering controls anywhere in the Bella AI Platform ecosystem, you MUST read and obey:
 - **Bella AI Platform Architecture & Change Constitution:** `docs/governance/BELLA_AI_CODING_CONSTITUTION.md`
 
-Use its **Workflow Routing**, **Scoped Autonomy and Approval**, **Verification Results and Applicability**, and **Enforcement Evidence** sections. Follow its authority/applicability map and retain applicable specialized rules. The complete common rules live in that document; this entrypoint does not create a separate workflow or grant additional authority.
+Use its **[Fast, Correct, Evidence-Based Execution](docs/governance/BELLA_AI_CODING_CONSTITUTION.md#fast-correct-evidence-based-execution)**, **Workflow Routing**, **Scoped Autonomy and Approval**, **Verification Results and Applicability**, and **Enforcement Evidence** sections. Follow its authority/applicability map and retain applicable specialized rules. The complete common rules live in that document; this entrypoint does not create a separate workflow or grant additional authority.
 
 For coding requests received in project Codex chat, follow **Factory Intake from Project Codex Chat** in that Constitution before implementation. It routes admitted tasks to the existing Factory and specifies the boundary for unsupported tasks and already-dispatched roles.
 
@@ -27,4 +27,4 @@ Before creating or modifying any code, you MUST read and obey:
 7. **TENANT ISOLATION (GATE 0):** Enforce `tenant_id` on all queries/services.
 8. **PRE-CODING ANALYSIS:** Apply the entry gate and proportional Change Map in the Bella AI Coding Constitution. Presentation-only maintenance may use a brief `UI_ONLY` classification and UI verification without a standalone report, as defined there. For any new OS, new Product, Product vertical, or Product UI redesign, output `ARCHITECTURE_GATE_RESULT.md` with `PASS`, `BLOCKED`, or `DEFER` before product/runtime code is written, including explicit Change Authority.
 9. **NO CROSS-INDUSTRY COUPLING:** Retail/Education/Healthcare OS must never import from each other. They must remain completely isolated.
-10. **VERIFICATION:** Run `npm run healthcare:verify` before completion.
+10. **VERIFICATION:** For Healthcare code, run `npm run healthcare:verify` before completion. Select other checks using the Constitution's Verification Selection and mandatory applicable policies.
