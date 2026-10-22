@@ -65,7 +65,9 @@ Default: execute within delegated scope. Escalate: unresolved material business 
 | Several technical choices have no material business, ownership, compatibility, or security difference. | Choose the smallest proven, compatible, recoverable option within scope and record the reason in the existing task record. |
 | A material business rule is unresolved, or required change authority is missing. | Hold dependent implementation, provide evidence and a concrete proposal, and bundle the necessary owner decision where possible. Continue independent, authorized work. |
 
-Do not request approval again for an explicit decision that still applies. Scope approval can cover implementation, tests, related repairs, and verification; it does not automatically authorize commits, merge, release, Production operations, or frozen-layer changes. Follow the actual authorization already granted and the applicable repository/release process.
+Do not request approval again for an explicit decision that still applies. Scope approval can cover source implementation, tests, related repairs, and verification within existing contracts and permissions.
+
+Production operations, schema/migrations, ACL/grants or access-permission changes, public-contract/Kernel changes, and commit/push/merge/deploy actions require explicit authority for that category. If authority is missing, stop the dependent action, present the minimum concrete change and its evidence, and request the owner's decision. Continue independent, authorized work. Frozen-layer changes also retain their required ACR/ADR, approval, unlock, verification, and reseal process; task approval alone cannot bypass it. Follow the authorization already granted and the applicable repository/release process.
 
 Reuse already-read rules and verified evidence while their source revision, scope, and effective conditions remain valid. Refresh affected sources when these change; do not repeatedly restart discovery or produce duplicate reports for an unchanged decision.
 
@@ -92,6 +94,57 @@ Use existing procedures below; combine applicable rows for a mixed task. Record 
 | Release readiness | [Operational Readiness SOP](OPERATIONAL_READINESS_SOP.md), applicable deployment governance, and Product-specific release criteria: real workflow evidence and a separate authorized merge/release/Go-Live decision. |
 
 For new Products, G0 Request -> G1 Read-only Discovery -> G2 Scope/Authority -> G3 Minimal Implementation -> G4 Verification -> G5 Review/Merge/Release Decision is a summary of the existing 0-10 process, not six additional gates. G5 remains subject to repository and release authority.
+
+## Fast, Correct, Evidence-Based Execution
+
+This is the common execution rule for existing-product bug fixes, feature improvements, and new Products across Bella. Apply it with [Workflow Routing](#workflow-routing) and the applicable specialized rules; it adds no separate governance framework, report, sandbox, or agent requirement.
+
+Optimize in this order: **business correctness -> completion speed -> sufficiently reliable evidence**. Complete the requested business outcome with the smallest safe change and fewest useful iterations. Test counts, report counts, agent counts, and architectural complexity are not delivery goals.
+
+### Default Execution Loop
+
+1. **Define the task.** Identify current behavior, expected behavior, acceptance criteria, and the smallest reproduction. For new work, identify the first core business workflow and how to verify it. Establish the authoritative source, public contract, owning boundary, and affected files/modules. Do not audit the whole system without evidence that the task requires it.
+2. **Find the root cause.** Read the relevant code and run the smallest check that can reproduce the issue. Distinguish Product logic, data, configuration, environment, and test/fixture failures. Once evidence is sufficient for a safe fix, stop investigating unrelated branches and implement within authority.
+3. **Make the minimum fix.** Change the proven owner and reuse existing services, contracts, and patterns. Do not add a framework, service, abstraction, migration, or agent without a demonstrated need and the required authority. Do not fabricate business data, present synthetic/fallback values as real data, bypass contracts or authorization, suppress a failure as `PASS`, or fix unrelated scope to make the entire suite green. Test fixtures must remain explicit test evidence, not runtime proof.
+4. **Verify according to risk.** Run the reproducer and relevant regression checks. For API/UI changes, exercise the corresponding real user flow when the environment permits; record any missing evidence. For authorization, tenant isolation, financial behavior, or mutations, verify permitted and denied/failure paths, including persistence and side effects where affected. Select typecheck, lint, build, and wider suites according to impact and [Verification Selection](#verification-selection); every mandatory applicable gate remains required. Unit-test `PASS` does not prove Browser, Production, or Go-Live behavior.
+5. **Review and hand over.** Use the existing review process, with independent review for security, data-integrity, public-contract, or broad changes. A small local bug does not automatically require multiple review layers or additional agents; review needs do not themselves activate Multi-Agent Mode. Report the root cause, main changes, actual verification results, remaining risk, and one concrete next action if acceptance is incomplete.
+
+Apply [Scoped Autonomy and Approval](#scoped-autonomy-and-approval). An unrelated finding is not permission to expand scope: record it briefly, hold only its dependent work, and continue independent authorized delivery. Missing evidence alone is `NOT_PROVEN`, not an automatic `BLOCKED`; neither means `PASS`. Do not claim completion while an acceptance criterion remains unmet.
+
+### Bounded Test and Environment Diagnosis
+
+Use existing failure evidence first. By default, perform at most one additional diagnostic that can add new information. Continue diagnosis only when a clear reason exists, such as a new supported hypothesis or changed input, and state what the next check can resolve.
+
+Separate an environment failure from a Product defect. If diagnosis or verification needs permissions, data, or resources outside scope, stop at that dependency and report the specific obstacle. Do not repeat an unchanged command, create another sandbox, or produce another artifact unless it increases understanding or confidence. Verification after a relevant fix or environment change is a new check, not an unchanged retry.
+
+This diagnostic limit does not waive a required gate or turn `TIMEOUT`, `SKIPPED`, or `NOT_RUN` into `PASS`. Preserve the actual outcome under [Verification Results and Applicability](#verification-results-and-applicability).
+
+### Completion and Stop Rule
+
+| Task | Completion criteria |
+| --- | --- |
+| Bug fix / feature improvement | The reproduced defect or requested behavior meets acceptance criteria, verification confirms the expected behavior, and relevant regression checks support the affected workflow. |
+| New Product | Core business workflows work through real contracts, access and data are controlled, applicable entry/verification gates are satisfied, and unfinished capabilities and evidence limits are disclosed. A missing required acceptance criterion prevents completion. |
+| Go-Live | A separate authorized decision based on applicable operational, data, security, and recovery criteria. Code and test `PASS` alone cannot establish it. |
+
+When acceptance and mandatory applicable checks are satisfied, record the scoped evidence and stop. Do not start another audit merely to accumulate proof. A local evidence seal does not authorize commit, push, merge, deploy, or a `SEALED_ON_MAIN` claim.
+
+### Minimum Handoff
+
+Use a short task response or the existing work record; do not create a separate report unless an applicable workflow requires it:
+
+```text
+Result: PASS / PARTIAL / HELD, qualified by task scope
+Root cause: one or two sentences; for new work, the business need
+Changes: principal files/modules
+Verification: commands/tests and actual outcomes
+Remaining: obstacles, risks, and properties not proven
+Next: one concrete action or STOP
+```
+
+These are task-summary labels, not replacements for individual gate results. Task `PASS` means the authorized acceptance criteria and applicable checks are satisfied; `PARTIAL` means work or required evidence remains; `HELD` identifies a specific authority/decision or execution obstacle. Missing evidence alone does not justify `HELD`. Preserve `FAIL`, `BLOCKED`, `NOT_PROVEN`, `NOT_APPLICABLE`, and raw execution outcomes for each relevant check, and do not infer merge or release readiness from a task summary.
+
+**Root Cause -> Minimal Fix -> Verify -> Seal -> Stop.**
 
 ## Verification Results and Applicability
 
@@ -2136,23 +2189,13 @@ PR checkpoint when authorized
 
 Historical artifacts do not prove current readiness. A baseline checkpoint is valid only when its commands, commit, branch, and scope are recorded.
 
-## 26. Fresh Full Verification Is Final Authority
+## 26. Fresh Verification at the Required Scope Is Final Authority
 
-Targeted checks save time, but important closure requires fresh evidence:
+Closure requires current evidence for the acceptance criteria, affected behavior, and every mandatory applicable gate. Use [Verification Selection](#verification-selection) to select the smallest sufficient checks for the change's risk.
 
-```text
-targeted test
-      ↓
-targeted lint
-      ↓
-diff-check
-      ↓
-full typecheck
-      ↓
-relevant architecture/test gates
-```
+Run full typecheck, build, or broader regression when impact, CI, freeze/security policy, a specialized constitution, or the approved verification plan requires it. Do not infer a universal full-suite requirement for every small bug or documentation change, and do not repeat passed checks without a relevant change, failure, or unresolved concern.
 
-Do not use stale cache or old artifacts as closure evidence.
+Reuse evidence only while its source revision, working-tree scope, environment, and effective conditions remain valid. Refresh affected evidence when these change. Stale cache or old artifacts cannot establish current closure.
 
 ## 27. Easy + Proven + Local First
 
@@ -2290,7 +2333,7 @@ READY
 
 merely because code was written.
 
-Closure requires appropriate evidence:
+Closure requires evidence selected by acceptance criteria, risk, and mandatory applicable policy under [Verification Selection](#verification-selection). The following list describes applicable evidence, not a universal command checklist for every task:
 
 ```text
 contract verified
@@ -2302,7 +2345,7 @@ security/tenant verification when relevant
 regression check PASS
 ```
 
-If evidence is missing, report the status as open, partial, deferred, blocked, hotspot, or unverified.
+If required evidence is missing, keep the acceptance decision incomplete and report its actual verification result and cause. Use `NOT_PROVEN` for insufficient evidence and `BLOCKED` only for an identified execution obstacle; do not convert either into `PASS`. Follow the [minimum handoff](#minimum-handoff) and stop when the scoped completion criteria are met.
 
 ## Definition of Done for New OS/Product Work
 

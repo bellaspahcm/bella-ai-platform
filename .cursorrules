@@ -3,8 +3,10 @@
 # BEFORE CHANGING SOFTWARE, ARCHITECTURE, OR ENGINEERING CONTROLS ANYWHERE IN BELLA:
 # Read the Bella AI Platform Architecture & Change Constitution:
 # docs/governance/BELLA_AI_CODING_CONSTITUTION.md
-# Use its Workflow Routing, Scoped Autonomy and Approval, Verification Results and Applicability,
-# and Enforcement Evidence sections. Retain applicable specialized rules via its authority map.
+# Use its Fast, Correct, Evidence-Based Execution, Workflow Routing, Scoped Autonomy and Approval,
+# Verification Results and Applicability, and Enforcement Evidence sections.
+# Execution rule: docs/governance/BELLA_AI_CODING_CONSTITUTION.md#fast-correct-evidence-based-execution
+# Retain applicable specialized rules via its authority map.
 # The complete common rules live there; this entrypoint grants no additional authority.
 
 # READ CONSTITUTIONS BEFORE ANY HEALTHCARE OR EDUCATION CODING:
