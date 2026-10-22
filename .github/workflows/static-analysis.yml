@@ -54,22 +54,57 @@ jobs:
       
       - name: Check if application code changed
         id: check-code
+        env:
+          SEMGREP_BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+          SEMGREP_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         run: |
-          # Get changed files
+          set -eu
+          # Manual/scheduled scans and a new branch have no prior comparison.
+          case "$GITHUB_EVENT_NAME" in
+            pull_request|push) ;;
+            *) echo "has_code=true" >> "$GITHUB_OUTPUT"; exit 0 ;;
+          esac
+          if [ "$GITHUB_EVENT_NAME" = "push" ] && [ "$SEMGREP_BASE_SHA" = "0000000000000000000000000000000000000000" ]; then
+            echo "has_code=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          : "${SEMGREP_BASE_SHA:?Missing comparison base}"
+          : "${SEMGREP_HEAD_SHA:?Missing comparison head}"
+          case "$SEMGREP_BASE_SHA$SEMGREP_HEAD_SHA" in
+            *[!0-9a-f]*) echo "Invalid comparison revision" >&2; exit 1 ;;
+          esac
+          if [ "${#SEMGREP_BASE_SHA}" -ne 40 ] || [ "${#SEMGREP_HEAD_SHA}" -ne 40 ]; then
+            echo "Invalid comparison revision" >&2
+            exit 1
+          fi
+
+          # Trust only this checkout for these commands, not a global directory.
+          # Any Git error must fail the step, never reduce the security scan.
+          git -c safe.directory="$GITHUB_WORKSPACE" fetch --no-tags origin "$SEMGREP_BASE_SHA" "$SEMGREP_HEAD_SHA"
           if [ "$GITHUB_EVENT_NAME" = "pull_request" ]; then
-            git fetch origin "$GITHUB_BASE_REF" || true
-            CHANGED_FILES=$(git diff --name-only "origin/$GITHUB_BASE_REF"...HEAD 2>/dev/null || echo "")
+            CHANGED_FILES=$(git -c safe.directory="$GITHUB_WORKSPACE" diff --no-renames --name-only "$SEMGREP_BASE_SHA...$SEMGREP_HEAD_SHA")
           else
-            CHANGED_FILES=$(git diff --name-only HEAD^ HEAD 2>/dev/null || echo "")
+            CHANGED_FILES=$(git -c safe.directory="$GITHUB_WORKSPACE" diff --no-renames --name-only "$SEMGREP_BASE_SHA" "$SEMGREP_HEAD_SHA")
+          fi
+          if [ -z "$CHANGED_FILES" ]; then
+            echo "has_code=true" >> "$GITHUB_OUTPUT"
+            exit 0
           fi
           
-          # Check if any files remain after excluding infrastructure paths
-          NON_INFRA_FILES=$(echo "$CHANGED_FILES" | grep -vE '^(\.github/|docs/|scripts/|\.eslintignore$|\.trivyignore$)' | grep '.' || echo "")
+          HAS_CODE=false
+          while IFS= read -r FILE; do
+            case "$FILE" in
+              .github/*|docs/*|scripts/*|.eslintignore|.trivyignore) ;;
+              *) HAS_CODE=true ;;
+            esac
+          done <<EOF
+          $CHANGED_FILES
+          EOF
           
-          if [ -n "$NON_INFRA_FILES" ]; then
+          if [ "$HAS_CODE" = "true" ]; then
             echo "has_code=true" >> "$GITHUB_OUTPUT"
             echo "✅ Found application code to scan"
-            echo "Files: $NON_INFRA_FILES"
           else
             echo "has_code=false" >> "$GITHUB_OUTPUT"
             echo "⏭️  Infrastructure-only PR, reducing Semgrep scope"
