@@ -42,7 +42,6 @@ interface AnalyticsData {
     total: number;
     byStatus: Array<{ status: string; value: number }>;
   };
-  averageDaysInStock: number;
   weeklyDeliveries: Array<{ week: string; deliveries: number }>;
 }
 
@@ -234,15 +233,11 @@ export default function BellaAutoAnalyticsDashboard({ tenantId, inventory }: Bel
         byStatus,
       };
 
-      // Calculate average days in stock (simplified - mock for now)
-      const averageDaysInStock = 42; // TODO: Calculate from actual data
-
       // ✅ Use RPC data with proper null handling
       setAnalytics({
         monthlyTrend: trendResult.data || [],
         statusDistribution: statusDistribution.filter(item => item.value > 0),
         inventoryValue,
-        averageDaysInStock,
         weeklyDeliveries: deliveriesResult.data || [],
       });
 
@@ -259,7 +254,6 @@ export default function BellaAutoAnalyticsDashboard({ tenantId, inventory }: Bel
         monthlyTrend: [],
         statusDistribution: [],
         inventoryValue: { total: 0, byStatus: [] },
-        averageDaysInStock: 0,
         weeklyDeliveries: [],
       });
     } finally {
@@ -353,10 +347,9 @@ export default function BellaAutoAnalyticsDashboard({ tenantId, inventory }: Bel
         />
         <MetricCard
           title="Thời gian tồn TB"
-          value={analytics.averageDaysInStock.toString()}
-          suffix="ngày"
+          value="Chưa có dữ liệu"
+          suffix=""
           icon={<Clock className="w-4 h-4 text-amber-600 dark:text-amber-400" />}
-          trend={{ value: 8.2, isPositive: false }}
           color="amber"
         />
         <MetricCard
