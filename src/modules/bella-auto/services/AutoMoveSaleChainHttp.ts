@@ -59,6 +59,7 @@ export async function saleChainHttp(request: Request, action: SaleChainAction): 
     await db.query('begin isolation level serializable');
     await db.query("set local statement_timeout = '30s'");
     await db.query('set local role authenticated');
+    await db.query('set local row_security=on');
     await db.query("select set_config('request.jwt.claim.sub', $1, true), set_config('request.jwt.claim.role','authenticated',true)", [user.id]);
     const result = await executeSaleChainAction({ action, payload, actorUserId: user.id, db,
       download: async document => {

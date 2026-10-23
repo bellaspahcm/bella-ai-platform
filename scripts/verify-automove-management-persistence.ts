@@ -12,6 +12,7 @@ const tenant = randomUUID(), otherTenant = randomUUID(), actor = randomUUID(), o
 const customer = randomUUID(), foreignCustomer = randomUUID(), brand = randomUUID(), model = randomUUID(), variant = randomUUID();
 async function context(id: string) {
   await db.query('reset role'); await db.query('set local role authenticated');
+  await db.query('set local row_security=on');
   await db.query("select set_config('request.jwt.claim.sub',$1,true),set_config('request.jwt.claim.role','authenticated',true)", [id]);
 }
 async function denied(fn: () => Promise<unknown>) {

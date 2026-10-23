@@ -17,6 +17,7 @@ export async function bookingAllocationHttp(request: Request, actorUserId: strin
     await db.query('begin isolation level serializable');
     await db.query("set local statement_timeout='30s'");
     await db.query('set local role authenticated');
+    await db.query('set local row_security=on');
     await db.query("select set_config('request.jwt.claim.sub',$1,true),set_config('request.jwt.claim.role','authenticated',true)", [actorUserId]);
     const result = await createAllocatedBooking(db, actorUserId, payload, request.headers.get('Idempotency-Key') ?? randomUUID());
     await db.query('commit');
@@ -37,6 +38,11 @@ export async function bookingAllocationHttp(request: Request, actorUserId: strin
     if (error && typeof error === 'object' && 'code' in error && error.code === '23505') {
       return Response.json({ error: 'Booking conflicts with existing data.', code: 'BOOKING_CONFLICT' }, { status: 409 });
     }
+    const diagnosticCode = error && typeof error === 'object' && 'code' in error
+      && typeof error.code === 'string' && /^[A-Z0-9]{5}$/.test(error.code)
+      ? error.code
+      : 'UNKNOWN';
+    console.error('[automove-booking-allocation] failed', { stage: 'allocation', diagnosticCode });
     return Response.json({ error: 'Booking allocation failed.' }, { status: 500 });
   } finally { if (db) await db.end(); }
 }
