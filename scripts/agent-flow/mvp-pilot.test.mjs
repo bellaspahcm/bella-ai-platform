@@ -258,3 +258,15 @@ test('failed or skipped verification stops before Reviewer; source drift remains
   for(const options of [{verifyExit:1},{skipped:1}]) {const {terminal,roles}=await proof(options);assert.equal(terminal.status,'HELD');assert.equal(terminal.reason,'VERIFY_FAILED');assert.ok(!roles.includes('REVIEWER'));}
   const {terminal}=await proof({drift:true});assert.equal(terminal.status,'HELD');assert.equal(terminal.reason,'SOURCE_SCOPE_VIOLATION');
 });
+
+// Reconciliation with generic bounded-native execution must not broaden the pilot.
+test('pilot cannot opt into generic bounded permissions or baseline review commands', async()=>{
+  const {factoryScratch,factoryTransport}=await import('./probe.mjs');
+  const {runNative}=await import('./role-native.mjs');
+  const {reviewReads}=await import('./role-validation.mjs');
+  assert.throws(()=>factoryScratch(workspace,task()),/INVALID_FACTORY_PERMISSION_OPT_IN/);
+  for(const role of ['LEAD','BUILDER','VERIFY','REVIEWER']) assert.throws(()=>factoryTransport(workspace,{task:task(),role}),/INVALID_FACTORY_PERMISSION_OPT_IN/);
+  await assert.rejects(()=>runNative(task(),['--bounded-native']),/INVALID_NATIVE_MODE/);
+  assert.deepEqual(reviewReads(task(),'C:/fixture/verify.json'),pilotReads('REVIEWER','C:/fixture/verify.json'));
+  assert.throws(()=>reviewReads(task(),'C:/fixture/verify.json','PINNED_BASELINE_AND_CURRENT'),/INVALID_REVIEW_METHOD/);
+});

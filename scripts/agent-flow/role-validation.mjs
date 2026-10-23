@@ -1,7 +1,33 @@
 import { resolve } from 'node:path';
 import { hash } from './contract.mjs';
-import { isMvpPilot, pilotCommand, pilotReviewReads } from './mvp-pilot.mjs';
+import { isMvpPilot, pilotId, pilotCommand, pilotReviewReads } from './mvp-pilot.mjs';
 const fail = code => { throw new Error(code); };
+
+const protectedNames = new Set(['authority.mjs', 'contract.mjs', 'store.mjs', 'probe.mjs', 'role-pipeline.mjs', 'role-native.mjs', 'role-pipeline.test.mjs', 'run-evidence.mjs', 'persistence-diagnostic.mjs', 'factory-publication.mjs', 'role-validation.mjs', 'mvp-pilot.mjs', 'mvp-pilot.test.mjs', 'mvp-pilot-runner.mjs', 'mvp-pilot-runner.test.mjs']);
+export function admitTask(task) {
+  const keys = ['taskId', 'sourceRevision', 'goal', 'ownedFiles', 'testFile', 'acceptance', 'maxSeconds'];
+  if (!task || Object.keys(task).sort().join() !== keys.sort().join() ||
+      !/^[a-f0-9-]{36}$/.test(task.taskId) || !/^[a-f0-9]{40}$/.test(task.sourceRevision) ||
+      typeof task.goal !== 'string' || task.goal.length < 20 || task.goal.length > 4000 ||
+      !Array.isArray(task.acceptance) || !task.acceptance.length || task.acceptance.length > 12 || task.acceptance.some(v => typeof v !== 'string' || !v.length || v.length > 1000) ||
+      !Number.isSafeInteger(task.maxSeconds) || task.maxSeconds < 60 || task.maxSeconds > 1800 ||
+      !Array.isArray(task.ownedFiles) || !task.ownedFiles.length || task.ownedFiles.length > 4 || new Set(task.ownedFiles).size !== task.ownedFiles.length ||
+      (task.taskId === pilotId && !isMvpPilot(task)) ||
+      (!isMvpPilot(task) && (task.ownedFiles.some(p => typeof p !== 'string' || !/^scripts\/agent-flow\/[a-z][a-z0-9.-]*\.mjs$/.test(p) || protectedNames.has(p.split('/').at(-1))) ||
+      !/^scripts\/agent-flow\/[a-z][a-z0-9.-]*\.test\.mjs$/.test(task.testFile) || !task.ownedFiles.includes(task.testFile)))) fail('INVALID_TASK_SCOPE');
+  return structuredClone(task);
+}
+
+export function nativeMode(options = []) {
+  if (!Array.isArray(options) || (options.length && (options.length !== 1 || options[0] !== '--bounded-native'))) fail('INVALID_NATIVE_MODE');
+  return options.length ? 'bounded-native' : 'legacy';
+}
+
+export function validateRoleResult(result, role, candidate) {
+  if (!result || Object.hasOwn(result, 'reviewMethod') || result.role !== role || result.candidate !== candidate || !Array.isArray(result.findings) ||
+      result.findings.some(f => typeof f !== 'string' || !f.trim() || f.length > 2000)) fail('INVALID_ROLE_RESULT');
+  return result;
+}
 
 export function exactTest(command, cwd, expected, workspace) {
   if (typeof command !== 'string' || typeof cwd !== 'string' || resolve(cwd) !== workspace) return false;
@@ -10,11 +36,30 @@ export function exactTest(command, cwd, expected, workspace) {
   return wrapped?.[2] === expected;
 }
 
-export function reviewReads(task, verificationPath) {
-  if (isMvpPilot(task)) return pilotReviewReads(task, verificationPath);
+export function reviewReads(task, verificationPath, method) {
+  if (isMvpPilot(task)) {
+    if (method !== undefined) fail('INVALID_REVIEW_METHOD');
+    return pilotReviewReads(task, verificationPath);
+  }
   // Forward slashes avoid native Windows shell-display backslash escaping.
   const portablePath = verificationPath.replaceAll('\\', '/');
-  return [`git diff -- ${task.ownedFiles.join(' ')}`, ...task.ownedFiles.map(p => `Get-Content -LiteralPath '${p}'`), `Get-Content -LiteralPath '${portablePath.replaceAll("'", "''")}'`];
+  if (method !== undefined && method !== 'PINNED_BASELINE_AND_CURRENT') fail('INVALID_REVIEW_METHOD');
+  const reads = method === 'PINNED_BASELINE_AND_CURRENT'
+    ? task.ownedFiles.flatMap(p => [`git show "${task.sourceRevision}:${p}"`, `Get-Content -LiteralPath '${p}'`])
+    : [`git diff -- ${task.ownedFiles.join(' ')}`, ...task.ownedFiles.map(p => `Get-Content -LiteralPath '${p}'`)];
+  return [...reads, `Get-Content -LiteralPath '${portablePath.replaceAll("'", "''")}'`];
+}
+
+export function validateReviewCommands(commands, task, workspace, verificationPath, method) {
+  if (!verificationPath || !Array.isArray(commands)) fail('ACTUAL_REVIEW_READ_REQUIRED');
+  const expected = reviewReads(task, verificationPath, method);
+  if (commands.some(c => c.exitCode !== 0 || c.status !== 'completed') ||
+      expected.some(read => {
+        const count = commands.filter(c => exactTest(c.command, c.cwd, read, workspace)).length;
+        return method === undefined ? count === 0 : count !== 1;
+      }) ||
+      (method !== undefined && commands.length !== expected.length)) fail('ACTUAL_REVIEW_READ_REQUIRED');
+  return true;
 }
 
 export function counters(output) {
@@ -29,6 +74,29 @@ export function counters(output) {
   const names = ['pass', 'fail', 'cancelled', 'skipped', 'todo'];
   if (!Number.isSafeInteger(values.tests) || values.tests < 1 || names.some(n => !Number.isSafeInteger(values[n])) || names.reduce((n, k) => n + values[k], 0) !== values.tests) return null;
   return values;
+}
+
+export function canonicalVerifyDecision(result, test) {
+  const c = test?.counters;
+  if (!result || typeof result.decision !== 'string' || !c || !Number.isSafeInteger(test.exitCode) ||
+      !Number.isSafeInteger(c.tests) || !Number.isSafeInteger(c.pass) || !Number.isSafeInteger(c.fail) ||
+      !Number.isSafeInteger(c.cancelled) || !Number.isSafeInteger(c.skipped) || !Number.isSafeInteger(c.todo)) fail('INVALID_VERIFY_DECISION');
+  const expected = test.exitCode === 0 && c.tests > 0 && c.pass === c.tests &&
+    c.fail === 0 && c.cancelled === 0 && c.skipped === 0 && c.todo === 0 ? 'PASS' : 'FAIL';
+  if (result.decision === expected) return expected;
+  if (result.decision === 'PASS' || result.decision === 'FAIL') fail('VERIFY_DECISION_MISMATCH');
+  const match = result.decision.match(/^(PASS|FAIL) \(tests=(\d+), suites=(\d+), pass=(\d+), fail=(\d+), cancelled=(\d+), skipped=(\d+), todo=(\d+); exit=(\d+)\)$/);
+  if (!match) fail('INVALID_VERIFY_DECISION');
+  const [, declared, tests, suites, pass, failures, cancelled, skipped, todo, exitCode] = match;
+  if (![tests, suites, pass, failures, cancelled, skipped, todo, exitCode].every(value => Number.isSafeInteger(Number(value)))) fail('INVALID_VERIFY_DECISION');
+  const suiteLines = typeof test.output === 'string' ? test.output.split(/\r?\n/).filter(line => /^(?:#|ℹ)[ \t]+suites\b/.test(line)) : [];
+  const observedSuites = suiteLines.length === 1 && suiteLines[0].match(/^(?:#|ℹ)[ \t]+suites[ \t]+(\d+)[ \t]*$/);
+  if (!observedSuites || !Number.isSafeInteger(Number(observedSuites[1]))) fail('INVALID_VERIFY_DECISION');
+  if (declared !== expected || Number(tests) !== c.tests || Number(pass) !== c.pass || Number(failures) !== c.fail ||
+      Number(cancelled) !== c.cancelled || Number(skipped) !== c.skipped || Number(todo) !== c.todo || Number(exitCode) !== test.exitCode || Number(suites) !== Number(observedSuites[1])) {
+    fail('VERIFY_DECISION_MISMATCH');
+  }
+  return expected;
 }
 
 export function validateHandoff(terminal, task) {
@@ -54,9 +122,14 @@ export function validateHandoff(terminal, task) {
 // Validate retained source payloads without starting a native process.
 export function validateRetainedRole(r, records, task, workspace, verificationPath) {
   if (JSON.stringify(r.native?.binding) !== JSON.stringify(r.binding) || !r.native?.result || !Array.isArray(r.native.commands) || !Array.isArray(r.native.changes)) fail('NATIVE_PAYLOAD_MISMATCH');
-  for (const [key,value] of Object.entries(r.native.result)) if (key!=='changed' && JSON.stringify(r[key]) !== JSON.stringify(value)) fail('NATIVE_RESULT_MISMATCH');
-  if (!{LEAD:['ACCEPT','HELD'],BUILDER:['DONE','HELD'],VERIFY:['PASS','FAIL'],REVIEWER:['PASS','REVISE','HELD']}[r.role]?.includes(r.native.result.decision) || r.native.result.decision!==r.decision)fail('NATIVE_RESULT_MISMATCH');
-  if (r.native.result.role !== r.role || r.native.result.candidate !== r.candidate || !Array.isArray(r.native.result.findings)) fail('NATIVE_RESULT_MISMATCH');
+  for (const [key,value] of Object.entries(r.native.result)) if (key!=='changed' && !(r.role==='VERIFY'&&key==='decision') && JSON.stringify(r[key]) !== JSON.stringify(value)) fail('NATIVE_RESULT_MISMATCH');
+  if (!{LEAD:['ACCEPT','HELD'],BUILDER:['DONE','HELD'],VERIFY:['PASS','FAIL'],REVIEWER:['PASS','REVISE','HELD']}[r.role]?.includes(r.native.result.decision) && r.role!=='VERIFY')fail('NATIVE_RESULT_MISMATCH');
+  if (r.role==='VERIFY') {
+    const canonicalDecision = canonicalVerifyDecision(r.native.result,r.test);
+    if (r.decision !== canonicalDecision && r.decision !== r.native.result.decision) fail('NATIVE_RESULT_MISMATCH');
+  }
+  if (r.role!=='VERIFY' && r.native.result.decision!==r.decision) fail('NATIVE_RESULT_MISMATCH');
+  validateRoleResult(r.native.result, r.role, r.candidate);
   const completed=records.filter(row=>row.fact.method==='item/completed'&&row.fact.itemType==='commandExecution').map(row=>row.fact);
   if (completed.length!==r.native.commands.length || new Set(r.native.commands.map(c=>c.itemId)).size!==completed.length) fail('NATIVE_COMMAND_MISMATCH');
   for (const c of r.native.commands) {
@@ -72,7 +145,7 @@ export function validateRetainedRole(r, records, task, workspace, verificationPa
     const expected=isMvpPilot(task) ? pilotCommand : 'node --test --test-reporter=tap '+task.testFile, c=r.native.commands[0], parsed=counters(r.test?.output);
     if (r.native.commands.length!==1 || !exactTest(c.command,c.cwd,expected,workspace) || c.status!=='completed' || r.test?.itemId!==c.itemId || r.test?.command!==expected || r.test?.exitCode!==c.exitCode || r.test?.candidate!==r.candidate || !parsed || hash(r.test.output)!==r.test.outputHash || c.outputHash!==r.test.outputHash || Object.keys(r.test.counters||{}).length!==6 || Object.entries(parsed).some(([k,v])=>r.test.counters[k]!==v)) fail('TEST_OUTPUT_MISMATCH');
   }
-  if (r.role==='REVIEWER' && (!verificationPath || r.native.commands.some(c=>c.exitCode!==0||c.status!=='completed') || reviewReads(task,verificationPath).some(expected=>!r.native.commands.some(c=>exactTest(c.command,c.cwd,expected,workspace))))) fail('ACTUAL_REVIEW_READ_REQUIRED');
+  if (r.role==='REVIEWER') validateReviewCommands(r.native.commands, task, workspace, verificationPath, r.reviewMethod);
   return true;
 }
 
