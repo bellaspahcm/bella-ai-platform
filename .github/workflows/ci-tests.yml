@@ -11,7 +11,8 @@ permissions:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
+  queue: max
 
 jobs:
   detect_changes:
@@ -100,6 +101,10 @@ jobs:
 
   real-db-e2e:
     name: Real Database Business E2E
+    concurrency:
+      group: bella-e2e-bmnbqbcdbuklhopfbopv
+      cancel-in-progress: false
+      queue: max
     needs: detect_changes
     if: needs.detect_changes.outputs.needs_real_db_e2e == 'true'
     runs-on: ubuntu-latest

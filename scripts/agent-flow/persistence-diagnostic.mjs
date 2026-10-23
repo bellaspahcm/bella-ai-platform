@@ -1,4 +1,5 @@
 import { validateBinding } from './contract.mjs';
+import { safeAuthorityFailure } from './authority.mjs';
 
 // A collector observation of an actual failed call; never a native event.
 const systemCodes = new Set(['EACCES', 'EPERM', 'EIO', 'ENOSPC', 'EDQUOT', 'ENOENT', 'EEXIST', 'EMFILE', 'ENFILE', 'EBUSY', 'EROFS', 'EINVAL', 'ENOTDIR', 'EISDIR']);
@@ -11,6 +12,8 @@ export function persistenceDiagnostic(error, { operation, role, binding, method 
       (method !== null && !methods.has(method)) || (itemId !== null && !/^[A-Za-z0-9_-]{1,160}$/.test(itemId)) || !Number.isFinite(Date.parse(observedAt))) throw new Error('INVALID_PERSISTENCE_DIAGNOSTIC_CONTEXT');
   const system = systemCodes.has(error?.code) ? error.code : null;
   const domain = domainCodes.has(error?.message) ? error.message : null;
+  const authorityFailure = !system && domain === 'TELEMETRY_ACCESS_DENIED' ? safeAuthorityFailure(error) : null;
   return { schemaVersion: 1, source: 'COLLECTOR_FAILURE_OBSERVATION', operation, role, binding: { ...binding }, method, itemId,
-    observedAt, causeCode: system || domain || 'UNKNOWN_CAUSE', causeClass: system ? 'SYSTEM_ERROR' : domain ? 'STORE_GUARD_OR_AUTHORITY' : 'UNKNOWN', rawDiagnosticsRetained: false };
+    observedAt, causeCode: system || domain || 'UNKNOWN_CAUSE', causeClass: system ? 'SYSTEM_ERROR' : domain ? 'STORE_GUARD_OR_AUTHORITY' : 'UNKNOWN',
+    ...(authorityFailure ? { authorityFailure } : {}), rawDiagnosticsRetained: false };
 }

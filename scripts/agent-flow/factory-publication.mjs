@@ -8,6 +8,7 @@ import { validateIndex, validateCandidate, verifyCandidateInventory, validateRea
 import { authorizeRepository, REPOSITORY } from './authority.mjs';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { isMvpPilot, assertPreparedPilot } from './mvp-pilot.mjs';
 
 // Collection-side publication only. The Monitor never imports this module.
 const git = (cwd, args, options = {}) => execFileSync('git', args, { cwd, windowsHide: true, maxBuffer: 16 * 1024 * 1024, ...options });
@@ -20,14 +21,20 @@ export async function artifactReference(directory, file) {
   return { packageId: basename(directory), file, bytes: bytes.length, sha256: hash(bytes) };
 }
 export async function initializeFactory(directory, workspace, before) {
-  if (git(workspace, ['status', '--porcelain', '--untracked-files=all'], { encoding: 'utf8' }).trim()) throw new Error('FACTORY_CLEAN_SOURCE_REQUIRED');
+  const intake = JSON.parse(await readFile(join(directory, 'intake.json'), 'utf8'));
+  const pilot = isMvpPilot(intake.task);
+  if (pilot) {
+    const prepared = [...git(workspace,['diff','HEAD','--name-only'],{encoding:'utf8'}).trim().split(/\r?\n/),
+      ...git(workspace,['ls-files','--others','--exclude-standard'],{encoding:'utf8'}).trim().split(/\r?\n/)].filter(Boolean);
+    assertPreparedPilot(intake.task,before,prepared);
+  } else if (git(workspace, ['status', '--porcelain', '--untracked-files=all'], { encoding: 'utf8' }).trim()) throw new Error('FACTORY_CLEAN_SOURCE_REQUIRED');
   const rules = [];
   for (const [path, sections, reason] of [
     ['AGENTS.md', ['Mandatory architectural control'], 'Preserve the approved tooling and protected-layer scope.'],
     ['docs/governance/BELLA_AI_CODING_CONSTITUTION.md', ['Workflow Routing', 'Scoped Autonomy and Approval', 'Verification Results and Applicability', 'Enforcement Evidence', 'Business Semantic Gate', 'Evidence Before Closure'], 'Apply scoped execution and distinguish test/proof/release outcomes.'],
     ['scripts/agent-flow/FACTORY_EVIDENCE_CONTRACT.md', ['Identity and sources', 'Candidate and commit'], 'Bind this workflow to original artifacts and verified source content.'],
   ]) rules.push({ path, revision: before.head, sha256: hash(await readFile(join(workspace, path))), sections, reason });
-  const intake = JSON.parse(await readFile(join(directory, 'intake.json'), 'utf8'));
+  if (pilot) rules.find(r=>r.path==='docs/governance/BELLA_AI_CODING_CONSTITUTION.md').sections.push('MVP UI-to-Database Completion');
   const index = { format: 'bella-factory-evidence', schemaVersion: 1, repository: 'bellaspahcm/bella-ai-platform', taskId: intake.task.taskId, factoryRunId: randomUUID(),
     provenance: { auditedMainRevision: '5ad15661f2dc2603881d50abdef17bcd7bc5fb20', constitutionCandidateRevision: '36a57668f5aba61da10d7c555dde2e6d01518a5b', rules },
     intake: await artifactReference(directory, 'intake.json'), stages: [], terminal: null, candidate: null, commit: null };
@@ -40,9 +47,17 @@ export async function finishFactory(directory, workspace, index, terminal, after
   const original = JSON.parse(await readFile(join(directory, 'intake.json'), 'utf8'));
   const stages = [];
   const activities = { LEAD: 'PLAN', BUILDER: 'CODE_CHANGE', VERIFY: 'TEST_EXECUTION', REVIEWER: 'INDEPENDENT_REVIEW' };
-  for (const r of terminal.receipts) stages.push({ role: r.role, activity: activities[r.role], receipt: await artifactReference(r.directory, 'role.json'), sourcePointer: '' });
+  for (const r of terminal.receipts) {
+    // A read-only Builder assessment is retained in terminal receipts, never
+    // advertised as CODE_CHANGE in the existing publication contract.
+    if (isMvpPilot(original.task) && r.role==='BUILDER' && r.noChange===true) continue;
+    stages.push({ role: r.role, activity: activities[r.role], receipt: await artifactReference(r.directory, 'role.json'), sourcePointer: '' });
+  }
   let candidate = null;
-  if (terminal.status === 'PASS') {
+  if (terminal.status==='PASS' && isMvpPilot(original.task)) {
+    if (after.fingerprint!==terminal.candidate || after.fingerprint!==original.before.fingerprint) throw new Error('FACTORY_CANDIDATE_CHANGED');
+    await writeDurableJson(join(directory,'verified-source.json'), {kind:'VERIFIED_EXISTING_FLOW_NO_PRODUCT_CHANGE', before:original.before, after});
+  } else if (terminal.status === 'PASS') {
     if (after.fingerprint !== terminal.candidate) throw new Error('FACTORY_CANDIDATE_CHANGED');
     const before = new Map(original.before.files.map(f => [f.path, f]));
     const current = new Map(after.files.map(f => [f.path, f]));

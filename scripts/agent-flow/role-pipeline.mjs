@@ -3,23 +3,11 @@ import { readFile, lstat } from 'node:fs/promises';
 import { resolve, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { hash } from './contract.mjs';
-import { counters, validateHandoff } from './role-validation.mjs';
-export { counters, validateHandoff } from './role-validation.mjs';
+import { isMvpPilot } from './mvp-pilot.mjs';
+import { admitTask, counters, validateHandoff, nativeMode } from './role-validation.mjs';
+export { admitTask, counters, validateHandoff } from './role-validation.mjs';
 
-const protectedNames = new Set(['authority.mjs', 'contract.mjs', 'store.mjs', 'probe.mjs', 'role-pipeline.mjs', 'role-native.mjs', 'role-pipeline.test.mjs', 'run-evidence.mjs', 'persistence-diagnostic.mjs', 'factory-publication.mjs', 'role-validation.mjs']);
 const fail = code => { throw new Error(code); };
-export function admitTask(task) {
-  const keys = ['taskId', 'sourceRevision', 'goal', 'ownedFiles', 'testFile', 'acceptance', 'maxSeconds'];
-  if (!task || Object.keys(task).sort().join() !== keys.sort().join() ||
-      !/^[a-f0-9-]{36}$/.test(task.taskId) || !/^[a-f0-9]{40}$/.test(task.sourceRevision) ||
-      typeof task.goal !== 'string' || task.goal.length < 20 || task.goal.length > 4000 ||
-      !Array.isArray(task.acceptance) || !task.acceptance.length || task.acceptance.length > 12 || task.acceptance.some(v => typeof v !== 'string' || !v.length || v.length > 1000) ||
-      !Number.isSafeInteger(task.maxSeconds) || task.maxSeconds < 60 || task.maxSeconds > 1800 ||
-      !Array.isArray(task.ownedFiles) || !task.ownedFiles.length || task.ownedFiles.length > 4 || new Set(task.ownedFiles).size !== task.ownedFiles.length ||
-      task.ownedFiles.some(p => typeof p !== 'string' || !/^scripts\/agent-flow\/[a-z][a-z0-9.-]*\.mjs$/.test(p) || protectedNames.has(p.split('/').at(-1))) ||
-      !/^scripts\/agent-flow\/[a-z][a-z0-9.-]*\.test\.mjs$/.test(task.testFile) || !task.ownedFiles.includes(task.testFile)) fail('INVALID_TASK_SCOPE');
-  return structuredClone(task);
-}
 
 export async function inventory(root) {
   const git = args => execFileSync('git', args, { cwd: root, encoding: 'utf8', windowsHide: true, maxBuffer: 4 * 1024 * 1024 });
@@ -61,7 +49,8 @@ export async function drive(taskInput, { role, snapshot, record, now = Date.now 
     if (before.head !== after.head || changed.some(p => !task.ownedFiles.includes(p)) || (name !== 'BUILDER' && changed.length)) fail('SOURCE_SCOPE_VIOLATION');
     if (!result || result.role !== name || !result.nativeVerified || !result.binding?.threadId || receipts.some(r => r.binding.threadId === result.binding.threadId)) fail('NATIVE_ROLE_PROOF_REQUIRED');
     if (name !== 'BUILDER' && result.candidate !== before.fingerprint) fail('STALE_ROLE_RESULT');
-    if (name === 'BUILDER' && (!changed.length || !Array.isArray(result.changed) || changed.some(p => !result.changed.includes(p)) || result.changed.some(p => !task.ownedFiles.includes(p)))) fail('REAL_BUILDER_CHANGE_REQUIRED');
+    const verifiedExisting = isMvpPilot(task) && name === 'BUILDER' && result.noChange === true && result.decision === 'DONE' && changed.length === 0 && Array.isArray(result.changed) && result.changed.length === 0;
+    if (name === 'BUILDER' && !verifiedExisting && (!changed.length || !Array.isArray(result.changed) || changed.some(p => !result.changed.includes(p)) || result.changed.some(p => !task.ownedFiles.includes(p)))) fail('REAL_BUILDER_CHANGE_REQUIRED');
     const receipt = { ...result, revision, before: before.fingerprint, after: after.fingerprint, changed, elapsedMs: now() - started };
     await record(receipt); receipts.push(receipt); candidate = after.fingerprint;
     return receipt;
@@ -90,6 +79,7 @@ export async function drive(taskInput, { role, snapshot, record, now = Date.now 
         await record({ terminal: result }); return result;
       }
       if (review.decision !== 'REVISE' || !Array.isArray(review.findings) || !review.findings.length) fail('REVIEW_HELD');
+      if (isMvpPilot(task)) fail('MVP_REVIEW_HELD');
       if (revision === 1) fail('REVISION_LIMIT');
       findings = review.findings; revision++;
     }
@@ -101,8 +91,10 @@ export async function drive(taskInput, { role, snapshot, record, now = Date.now 
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  const [operation, input] = process.argv.slice(2);
-  const action = operation === 'run' ? import('./role-native.mjs').then(async m => m.runNative(JSON.parse(await readFile(resolve(input), 'utf8'))))
+  const [operation, input, ...options] = process.argv.slice(2);
+  let mode;
+  try { mode = operation === 'run' ? nativeMode(options) : null; } catch (error) { console.error(error.message); process.exit(1); }
+  const action = operation === 'run' ? import('./role-native.mjs').then(async m => m.runNative(JSON.parse(await readFile(resolve(input), 'utf8')), mode === 'bounded-native' ? ['--bounded-native'] : []))
     : operation === 'read' ? import('./role-native.mjs').then(m => m.readNative(input))
     : operation === 'commit' ? import('./factory-publication.mjs').then(m => m.linkFactoryCommit(input, process.argv[4])) : Promise.reject(new Error('INVALID_OPERATION'));
   action.then(r => { console.log(JSON.stringify({ status: r.status, reason: r.reason, taskId: r.taskId, factoryRunId: r.factoryRunId, candidate: r.candidate, revisions: r.revisions, directory: r.directory, checks: r.checks, commit:r.commit })); if (!['PASS','PASS_CANDIDATE_COMMIT_CONTENT'].includes(r.status)) process.exitCode = 1; }).catch(e => { console.error(/^[A-Z_]{3,80}$/.test(e.message) ? e.message : 'PIPELINE_HELD'); process.exitCode = 1; });
