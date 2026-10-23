@@ -12,7 +12,8 @@ try{
   app=await createDashboard({root});stage='BROWSER_STARTUP';
   browser=await chromium.launch({headless:true});const context=await browser.newContext({viewport:{width:1500,height:1100}}),page=await context.newPage(),errors=[];
   page.on('pageerror',()=>errors.push('PAGE_ERROR'));
-  stage='PACKAGE_LIST';await page.goto(app.url);await page.waitForFunction(()=>document.querySelector('#packages').children.length>0&&!document.querySelector('#refresh').disabled,{},{timeout:60000});
+  const dashboardUrl=new URL(app.url);assert.equal(dashboardUrl.protocol,'http:');assert.equal(dashboardUrl.hostname,'127.0.0.1');assert.equal(dashboardUrl.origin,app.origin);assert.equal(dashboardUrl.pathname,'/');assert.match(dashboardUrl.hash,/^#[a-f0-9]{64}$/);
+  stage='PACKAGE_LIST';await page.goto(dashboardUrl.href);await page.waitForFunction(()=>document.querySelector('#packages').children.length>0&&!document.querySelector('#refresh').disabled,{},{timeout:60000});
   const select=async()=>{await page.getByRole('button',{name:'Run · '+id.replace('bella-agent-flow-','')}).click();await page.locator('#notice').filter({hasText:'MATCH_RETAINED_SOURCES'}).waitFor({timeout:60000});};
   stage='PACKAGE_SELECT';await select();const data=await (await page.request.get(app.origin+'/api/packages/'+id)).json();stage='RETAINED_BINDING';
   const existingFlow=data.sourceEvidence==='VERIFIED_EXISTING_FLOW_NO_PRODUCT_CHANGE';

@@ -1,5 +1,5 @@
 import { spawnSync } from 'node:child_process';
-import { readFileSync, unlinkSync, writeFileSync } from 'node:fs';
+import { writeFileSync } from 'node:fs';
 
 const CODE_FILE_PATTERN = /\.(ts|tsx|js|jsx)$/;
 const TEST_FILE_PATTERN = /\.(test|spec)\.(ts|tsx|js|jsx)$/;
@@ -121,71 +121,31 @@ function writeEmptyJestResult(outputPath) {
   writeFileSync(outputPath, `${JSON.stringify(emptyResult)}\n`, 'utf8');
 }
 
-function mergeJestResults(outputPath, resultPaths) {
-  const suitesByName = new Map();
-  for (const resultPath of resultPaths) {
-    if (!resultPath) continue;
-    const result = JSON.parse(readFileSync(resultPath, 'utf8'));
-    if (!Array.isArray(result.testResults)) {
-      throw new Error(`Jest output is missing testResults: ${resultPath}`);
-    }
-    for (const suite of result.testResults) {
-      suitesByName.set(suite.name, suite);
-    }
-  }
-
-  const testResults = [...suitesByName.values()];
-  const assertionResults = testResults.flatMap((suite) => suite.assertionResults ?? []);
-  const counts = {
-    numFailedTests: assertionResults.filter((test) => test.status === 'failed').length,
-    numPassedTests: assertionResults.filter((test) => test.status === 'passed').length,
-    numPendingTests: assertionResults.filter((test) => test.status === 'pending').length,
-    numTodoTests: assertionResults.filter((test) => test.status === 'todo').length,
-    numFailedTestSuites: testResults.filter((suite) => suite.status === 'failed').length,
-    numPassedTestSuites: testResults.filter((suite) => suite.status === 'passed').length,
-    numPendingTestSuites: testResults.filter((suite) => suite.status === 'pending').length,
-    numRuntimeErrorTestSuites: testResults.filter((suite) => suite.status === 'failed' && !(suite.assertionResults?.length)).length,
-  };
-  writeFileSync(outputPath, `${JSON.stringify({
-    ...counts,
-    numTotalTests: assertionResults.length,
-    numTotalTestSuites: testResults.length,
-    success: counts.numFailedTests === 0 && counts.numFailedTestSuites === 0,
-    testResults,
-  })}\n`, 'utf8');
-}
-
 function runJestRuns(sourceFiles, directTestFiles, jestJsonOutput) {
-  const resultPaths = [];
-  let exitCode = 0;
-  const runs = [];
+  let relatedTestFiles = [];
   if (sourceFiles.length > 0) {
-    const args = ['jest', '--findRelatedTests', ...sourceFiles, '--runInBand', '--passWithNoTests'];
+    const args = ['jest', '--listTests', '--findRelatedTests', ...sourceFiles];
     for (const pattern of RELATED_TEST_EXCLUDED_PATTERNS) {
       args.push('--testPathIgnorePatterns', pattern);
     }
-    runs.push({ args, suffix: 'related' });
-  }
-  if (directTestFiles.length > 0) {
-    runs.push({ args: ['jest', '--runInBand', '--runTestsByPath', ...directTestFiles], suffix: 'direct' });
-  }
-
-  for (const { args, suffix } of runs) {
-    let outputPath;
-    if (jestJsonOutput) {
-      outputPath = `${jestJsonOutput}.${suffix}.json`;
-      args.push('--json', '--outputFile', outputPath);
-      resultPaths.push(outputPath);
-    }
-    const result = run('npx', args, { stdio: 'inherit' });
-    if (result.status !== 0) exitCode = result.status ?? 1;
+    const result = run('npx', args);
+    if (result.status !== 0) return result.status ?? 1;
+    relatedTestFiles = (result.stdout ?? '').split(/\r?\n/).map((file) => file.trim()).filter(Boolean);
   }
 
+  const testFiles = [...new Set([...relatedTestFiles, ...directTestFiles])];
+  if (testFiles.length === 0) {
+    if (jestJsonOutput) writeEmptyJestResult(jestJsonOutput);
+    console.log('No related or changed Jest tests were selected.');
+    return 0;
+  }
+
+  const jestArgs = ['jest', '--runInBand', '--runTestsByPath', ...testFiles];
   if (jestJsonOutput) {
-    mergeJestResults(jestJsonOutput, resultPaths);
-    for (const resultPath of resultPaths) unlinkSync(resultPath);
+    jestArgs.push('--json', '--outputFile', jestJsonOutput);
   }
-  return exitCode;
+  const jest = run('npx', jestArgs, { stdio: 'inherit' });
+  return jest.status ?? 1;
 }
 
 function resolveChangedFiles(explicitChangedFiles) {
