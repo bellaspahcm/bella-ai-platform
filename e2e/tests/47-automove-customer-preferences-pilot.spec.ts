@@ -7,9 +7,9 @@ import { saleChainConnection } from '../../src/modules/bella-auto/services/AutoM
 import { openPilotBrowser, openPilotDatabase } from '../../scripts/agent-flow/mvp-pilot-runner.mjs';
 
 const test = base.extend({
-  context: async ({}, use) => {
+  context: async ({}, provideContext) => {
     const browser = await openPilotBrowser(process.env);
-    try { await use(browser.context); }
+    try { await provideContext(browser.context); }
     finally { await browser.cleanup(); }
   },
 });

@@ -21,9 +21,9 @@ const localProxy = () => ({ HTTP_PROXY: 'http://127.0.0.1:49687', HTTPS_PROXY: '
 const browserEnvironment = () => ({ FACTORY_MVP_BASE_URL: 'http://127.0.0.1:3000', FACTORY_MVP_OUTPUT: 'synthetic-output',
   FACTORY_MVP_CANDIDATE: 'a'.repeat(64), NODE_USE_ENV_PROXY: '1' });
 function loadBrowserConfig(environment) {
-  const module = { exports: {} };
-  runInNewContext(browserConfig, { module, exports: module.exports, require, process: { env: environment }, URL });
-  return module.exports.default;
+  const fixtureModule = { exports: {} };
+  runInNewContext(browserConfig, { module: fixtureModule, exports: fixtureModule.exports, require, process: { env: environment }, URL });
+  return fixtureModule.exports.default;
 }
 const rejectedProxies = [
   {}, { HTTPS_PROXY: 'http://example.com:8080' }, { HTTPS_PROXY: 'http://127.0.0.1' }, { HTTPS_PROXY: 'http://127.0.0.1:0' },
@@ -35,7 +35,7 @@ const rejectedProxies = [
 ];
 
 const valid = () => ({ NEXT_PUBLIC_SUPABASE_URL: `https://${pilotProject}.supabase.co`, NEXT_PUBLIC_SUPABASE_ANON_KEY: 'public-test',
-  SUPABASE_SERVICE_ROLE_KEY: 'fixture-test', DB_URL: `postgresql://postgres.${pilotProject}:example@aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres?sslmode=verify-full` });
+  SUPABASE_SERVICE_ROLE_KEY: 'test-fixture', DB_URL: `postgresql://postgres.${pilotProject}:example@aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres?sslmode=verify-full` });
 
 test('pilot permits only matching Non-Production target and removes unrelated host secrets', () => {
   const result = pilotEnvironment({ ...valid(), VERCEL_ENV: 'production', VERCEL_AUTOMATION_BYPASS_SECRET: 'not-passed', AWS_SECRET_ACCESS_KEY: 'not-passed', OTHER_SECRET: 'not-passed' }, localProxy());

@@ -13,6 +13,8 @@ test('Agent Flow Node suites pass with no skipped or cancelled tests', () => {
     'scripts/agent-flow/run-evidence.test.mjs',
     'scripts/agent-flow/persistence-diagnostic.test.mjs',
     'scripts/agent-flow/factory-publication.test.mjs',
+    'scripts/agent-flow/mvp-pilot.test.mjs',
+    'scripts/agent-flow/mvp-pilot-runner.test.mjs',
     'scripts/agent-flow-dashboard/dashboard.test.mjs',
     'scripts/agent-flow-dashboard/factory-reader.test.mjs',
     'scripts/agent-flow-dashboard/historical-reader.test.mjs',
