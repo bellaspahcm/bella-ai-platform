@@ -9,6 +9,7 @@ import { authorizeRepository, REPOSITORY } from './authority.mjs';
 import { normalizeNotification, normalizeHistory, normalizeHistoryTurn, reconcile, approvedOutput, DAY_MS } from './contract.mjs';
 import { DevelopmentStore, createPrivateDirectory, enforceReviewRetention } from './store.mjs';
 import { verifyLifecycle } from './readback.mjs';
+import { persistenceDiagnostic } from './persistence-diagnostic.mjs';
 
 // Expectations below follow approved retention, provenance and security invariants.
 // These are protocol fixtures, not claims of live Codex execution.
@@ -146,6 +147,47 @@ test('default gh adapter retains safe failures and existing command options with
   }
 });
 
+test('authority distinguishes unavailable GitHub lookups without retaining provider diagnostics', async () => {
+  for (const unavailableEndpoint of ['user', `repos/${REPOSITORY}/collaborators/operator/permission`]) {
+    const calls = [];
+    const original = Object.assign(new Error('GITHUB_AUTHORITY_UNAVAILABLE'), {
+      stderr: 'sensitive-provider-detail', cause: new Error('sensitive-provider-detail'), stack: 'sensitive-provider-detail',
+    });
+    await assert.rejects(authorizeRepository(REPOSITORY, async endpoint => {
+      calls.push(endpoint);
+      if (endpoint === unavailableEndpoint) throw original;
+      return { login: 'operator' };
+    }), error => {
+      assert.equal(error.message, 'TELEMETRY_ACCESS_DENIED');
+      assert.deepEqual(error.authorityFailure, { stage: unavailableEndpoint === 'user' ? 'ACTOR_LOOKUP' : 'GRANT_LOOKUP', cause: 'PROVIDER_UNAVAILABLE' });
+      assert.notEqual(error, original);
+      assert.deepEqual(Object.keys(error), ['authorityFailure']);
+      assert.equal(error.cause, undefined);
+      assert.equal(String(error.stack).includes('sensitive-provider-detail'), false);
+      const diagnostic = persistenceDiagnostic(error, { operation: 'facts.ingest', role: 'LEAD', binding, method: 'turn/started', observedAt: new Date(start).toISOString() });
+      assert.equal(diagnostic.causeCode, 'TELEMETRY_ACCESS_DENIED');
+      assert.deepEqual(diagnostic.authorityFailure, error.authorityFailure);
+      assert.equal(diagnostic.rawDiagnosticsRetained, false);
+      assert.equal(JSON.stringify(diagnostic).includes('sensitive-provider-detail'), false);
+      return true;
+    });
+    assert.equal(calls.at(-1), unavailableEndpoint);
+    assert.equal(calls.length, unavailableEndpoint === 'user' ? 1 : 2);
+  }
+});
+
+test('authority sanitizes unknown failures rather than accepting arbitrary provider error codes', async () => {
+  for (const failure of [null, 'sensitive-provider-detail', new Error('GITHUB_AUTHORITY_UNAVAILABLE sensitive-provider-detail'), Object.assign(new Error('sensitive-provider-detail'), { code: 'GITHUB_AUTHORITY_UNAVAILABLE' })]) {
+    await assert.rejects(authorizeRepository(REPOSITORY, async () => { throw failure; }), error => {
+      assert.equal(error.message, 'TELEMETRY_ACCESS_DENIED');
+      assert.deepEqual(Object.keys(error), ['authorityFailure']);
+      assert.equal(error.cause, undefined);
+      assert.equal(String(error.stack).includes('sensitive-provider-detail'), false);
+      return true;
+    });
+  }
+});
+
 test('normalization preserves separate identities/source timestamps and removes arguments/paths', () => {
   const f = normalized();
   assert.equal(f.taskId, 'task-1'); assert.equal(f.runId, 'run-1'); assert.equal(f.threadId, 'thread-1'); assert.equal(f.turnId, 'turn-1');
@@ -216,10 +258,26 @@ test('scope mismatch, injected fields and unsafe output are rejected', async () 
 
 test('authorization occurs before filesystem read on every operation', async () => {
   const dir = join(tmpdir(), 'bella-agent-flow-DoesNotExist');
-  const store = new DevelopmentStore(dir, binding, { nonce, authorize: async () => { throw new Error('AUTH_DENIED'); } });
-  await assert.rejects(store.read(), /AUTH_DENIED/);
-  await assert.rejects(store.ingest(normalized()), /AUTH_DENIED/);
-  await assert.rejects(store.destroy(), /AUTH_DENIED/);
+  for (const expected of ['GITHUB_AUTHORITY_UNAVAILABLE', 'TELEMETRY_ACCESS_DENIED']) {
+    let calls = 0;
+    const store = new DevelopmentStore(dir, binding, { nonce, authorize: repository => {
+      calls++;
+      return authorizeRepository(repository, async endpoint => {
+        if (expected === 'GITHUB_AUTHORITY_UNAVAILABLE') throw new Error(expected);
+        return endpoint === 'user' ? { login: 'operator' } : { user: { login: 'operator' }, permission: 'write' };
+      });
+    } });
+    for (const operation of [() => store.read(), () => store.ingest(normalized()), () => store.destroy()]) {
+      await assert.rejects(operation(), error => {
+        assert.equal(error.message, 'TELEMETRY_ACCESS_DENIED');
+        assert.deepEqual(error.authorityFailure, expected === 'GITHUB_AUTHORITY_UNAVAILABLE'
+          ? { stage:'ACTOR_LOOKUP', cause:'PROVIDER_UNAVAILABLE' }
+          : { stage:'PERMISSION_CHECK', cause:'PERMISSION_REJECTED' });
+        return true;
+      });
+    }
+    assert.equal(calls, 3);
+  }
 });
 
 test('output expires at exactly 7 days; metadata expires at exactly 14, with physical operation-time purge', async () => {

@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const workflow = readFileSync(join(root, '.github/workflows/static-analysis.yml'), 'utf8').replaceAll('\r\n', '\n');
-const step = workflow.split('      - name: Check if application code changed\n')[1]?.split('      - name: Run Semgrep CE\n')[0];
+const step = workflow.split('      - name: Check if application code changed\n')[1]?.split(/\n {6}- name:/)[0];
 assert.ok(step, 'Semgrep scope step must exist');
 const script = step.split('        run: |\n')[1].split('\n').map(line => line.startsWith('          ') ? line.slice(10) : line).join('\n');
 const shell = process.platform === 'win32' ? 'C:/Program Files/Git/bin/bash.exe' : '/bin/sh';
@@ -67,12 +67,20 @@ test('AutoMove source/test files require application scan', () => {
   });
 });
 
-test('verified infrastructure-only diff retains reduced scan', () => {
+test('verified infrastructure-only diff records its scope while the full scan remains mandatory', () => {
   fixture(['.github/workflows/test.yml', 'docs/test.md', 'scripts/test.mjs'], ({ execute }) => {
     const result = execute();
     assert.equal(result.status, 0, result.stderr);
     assert.equal(result.output, 'has_code=false\n');
   });
+});
+
+test('classification never bypasses the full report and native PR gate', () => {
+  const gateStep = workflow.split('      - name: Full report and native PR baseline gate\n')[1]?.split('      - name: Upload full Semgrep SARIF\n')[0];
+  assert.ok(gateStep);
+  assert.ok(gateStep.includes('run: python3 scripts/run-semgrep-gate.py'));
+  assert.equal(/^\s*if:/m.test(gateStep), false);
+  assert.equal(workflow.includes('Run Semgrep CE (infrastructure scope)'), false);
 });
 
 test('mixed changes still require application scan', () => {

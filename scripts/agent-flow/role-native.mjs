@@ -12,6 +12,7 @@ import { exactTest, reviewReads, validateReviewCommands, nativePayloadDifference
 export { exactTest, reviewReads, validateRoleResult } from './role-validation.mjs';
 import { persistenceDiagnostic } from './persistence-diagnostic.mjs';
 import { initializeFactory, finishFactory } from './factory-publication.mjs';
+import { isMvpPilot, pilotCommand, readPilotRule, pilotPrompt, pilotSupervisorContext, pilotNativeTurnFailure, validatePilotReceipt, checkPilotPermission, pilotNetworkProbe, assertNetworkDenial } from './mvp-pilot.mjs';
 
 const binary = () => process.platform === 'win32' ? execFileSync('where.exe', ['codex.exe'], { encoding: 'utf8', windowsHide: true }).trim().split(/\r?\n/)[0] : 'codex';
 const project = item => item ? { id: item.id, type: item.type, status: item.status, exitCode: item.exitCode } : undefined;
@@ -96,6 +97,7 @@ function validateStored(rows, acks, binding) {
 }
 
 function promptFor(name, input, expected, reviewMethod) {
+  if (isMvpPilot(input.task)) return pilotPrompt(name, input, readPilotRule(process.cwd()), name === 'REVIEWER' ? reviewReads(input.task, input.verification.verificationPath) : []);
   const { task, before, revision } = input;
   const common = `GOAL: ${task.goal}\nOWNER: human task authority; Lead plans, Builder writes, Verify tests, independent Reviewer reviews.\nSCOPE / OWNED FILES: ${task.ownedFiles.join(', ')}\nFORBIDDEN: all other paths, running pipeline/collector/store/authority, Product, kernels, DB/Auth/RLS/migration, .env, credentials, network, MCP, subagents, git write operations, commit/PR/merge/deploy. No installation or permission changes.\nDEPENDENCIES: previous stages supplied below. AUTHORITY: code/test only inside scope.\nACCEPTANCE: ${JSON.stringify(task.acceptance)}\nCandidate fingerprint: ${before.fingerprint}. Revision ${revision}/1.\nLEAD and BUILDER read relevant existing source before acting. Keep every policy-read command bounded: read the Constitution in chunks of at most 400 lines using Get-Content with Select-Object -Skip/-First, or read its applicable sections. Never print the whole Constitution in one command: a large command output was observed to differ from retained native history. All output hashes must still match; do not suppress output or weaken verification. VERIFY and REVIEWER execute only their role-specific exact commands below. VERIFY must not run pre-read, setup, inspection or additional shell commands. Do not re-run historical real proof commands. Never fabricate evidence. If blocked/ambiguous stop HELD.\nFinal response MUST be exactly one line BELLA_ROLE_RESULT=<JSON object>, no fences, with role:${JSON.stringify(name)}, candidate:${JSON.stringify(before.fingerprint)}, decision and findings:string[]. Every findings element MUST be a non-empty string of at most 2000 characters, never an object. Use [] when there are no findings.\n`;
   if (name === 'LEAD') return common + 'Read-only Lead. Read owned files and identify root cause/minimal plan and test coverage. Return decision ACCEPT or HELD, plan:string, findings:[]. Do not code or run tests. Stop after analysis.';
@@ -110,8 +112,21 @@ async function executeRole(name, input, workspace, pipelineDirectory, mode = 'le
   const execution = factoryTransport(workspace, transportOptions);
   const deadline = Date.now() + input.remainingMs;
   const checkBudget = () => { if (Date.now() >= deadline) stop('BUDGET_EXHAUSTED'); };
-  const directory = await createPrivateDirectory({ retained: true });
-  const expected = `node --test --test-reporter=tap ${input.task.testFile}`;
+  const pilot = isMvpPilot(input.task);
+  // Pilot output may use the launcher's process-local temporary volume. The
+  // same private-directory ACL, binding and retention controls still apply.
+  const directory = await createPrivateDirectory({ retained: !pilot });
+  const expected = pilot ? pilotCommand : `node --test --test-reporter=tap ${input.task.testFile}`;
+  const rule = pilot ? readPilotRule(workspace) : null;
+  const executionOptions = pilot ? { task:input.task, role:name, candidate:input.before.fingerprint,
+    output:join(pipelineDirectory,'browser'), envFile:process.env.E2E_ENV_FILE } : {};
+  if (pilot) {
+    await mkdir(resolve(executionOptions.output,'..','scratch',input.task.taskId), { recursive:true });
+    if (name === 'VERIFY') {
+      await mkdir(executionOptions.output, { recursive:true });
+      await mkdir(join(workspace,'.next'), { recursive:true });
+    }
+  }
   const base = { repository: REPOSITORY, taskId: input.task.taskId, runId: randomUUID(), attempt: input.revision + 1, producerInstanceId: randomUUID() };
   let binding, store, writer, reader, timer, turnFinished = false, writes = Promise.resolve(), intakeError;
   const liveItems = [], acks = [];
@@ -155,22 +170,33 @@ async function executeRole(name, input, workspace, pipelineDirectory, mode = 'le
         }
         if (message.method === 'turn/completed') { turnFinished = true; complete(message.params.turn); }
       } catch (e) { intakeError = e.message; complete({ status: 'failed' }); }
-    }, transportOptions);
+    }, pilot ? executionOptions : transportOptions);
     await writer.initialize();
-    if (execution.profileId) await writeDurableJson(join(directory, 'effective-permission.json'), await inspectFactoryPermission(writer, execution, workspace));
+    const activeExecution = writer.execution;
+    const permission = pilot ? await checkPilotPermission(writer, activeExecution, workspace) : null;
+    if (!pilot && execution.profileId) await writeDurableJson(join(directory, 'effective-permission.json'), await inspectFactoryPermission(writer, execution, workspace));
+    let networkControl;
+    if (pilot && name === 'VERIFY') {
+      networkControl = await pilotNetworkProbe(writer, activeExecution, workspace);
+      await writeDurableJson(join(pipelineDirectory, 'network-preflight.json'), { role:name, candidate:input.before.fingerprint, permission, result:networkControl });
+      assertNetworkDenial(networkControl);
+    }
     checkBudget();
     const models = await writer.rpc('model/list', {});
     checkBudget();
     const model = models.data?.find(m => m.isDefault && !m.hidden)?.model;
     if (!model) stop('NO_DEFAULT_MODEL');
-    const startedThread = await writer.rpc('thread/start', { cwd: workspace, model, approvalPolicy: 'never', ...(execution.thread || { sandbox: name === 'BUILDER' ? 'workspace-write' : 'read-only' }), developerInstructions: 'Authorized Bella development tooling task. Follow the supplied role/scope exactly. No network, MCP, subagents, credentials or changes outside assigned files. Other roles are read-only. Stop if task needs broader permissions. Use only native shell and apply_patch tools. For LEAD/BUILDER policy reads, split the Constitution into at most 400 lines per command; never print the full document in one command. VERIFY runs only its exact test command; REVIEWER runs only its exact separate read commands.' });
+    const startedThread = await writer.rpc('thread/start', { cwd: workspace, model, approvalPolicy: 'never', ...(activeExecution.thread || { sandbox: name === 'BUILDER' ? 'workspace-write' : 'read-only' }), developerInstructions: pilot ? 'Owner-approved one-task AutoMove MVP pilot. Follow the supplied exact role instructions and stage responsibilities. All roles are source-read-only; only VERIFY may invoke the one supervised Non-Production Browser/DB runner. Never read env/credentials, use MCP/subagents, edit source, install, commit/push/merge/deploy or access Production. Execute only the exact supplied commands; no unrelated policy reload or Factory redispatch. The supervisor checks pre-dispatch policy/binding; the collector validates actual native receipts after your turn. LEAD accepts a safe scoped plan and BUILDER assesses source; neither must certify later runtime gates or inspect receipts not yet generated. Keep those gates NOT_PROVEN until VERIFY/REVIEWER prove them. Missing evidence required by your own assigned stage is HELD/FAIL.' : 'Authorized Bella development tooling task. Follow the supplied role/scope exactly. No network, MCP, subagents, credentials or changes outside assigned files. Other roles are read-only. Stop if task needs broader permissions. Use only native shell and apply_patch tools. For LEAD/BUILDER policy reads, split the Constitution into at most 400 lines per command; never print the full document in one command. VERIFY runs only its exact test command; REVIEWER runs only its exact separate read commands.' });
     binding = { ...base, threadId: startedThread.thread.id, sessionId: startedThread.thread.sessionId || null, turnId: null };
     await writeDurableJson(join(pipelineDirectory, `dispatch-${input.revision}-${name}.json`), { role: name, threadId: binding.threadId, candidate: input.before.fingerprint, directory, dispatchedAt: now() });
+    const supervisor=pilot?pilotSupervisorContext(name,input,rule,permission,binding,networkControl):null;
+    const supervisorPath=join(directory,'supervisor.json');
+    if(pilot) await writeDurableJson(supervisorPath,supervisor);
     checkBudget();
-    const started = await writer.rpc('turn/start', { threadId: binding.threadId, input: [{ type: 'text', text: promptFor(name, input, expected, reviewMethod) }], approvalPolicy: 'never', ...(execution.turn || { sandboxPolicy: name === 'BUILDER' ? { type: 'workspaceWrite', writableRoots: [workspace], networkAccess: false } : { type: 'readOnly' } }) });
+    const started = await writer.rpc('turn/start', { threadId: binding.threadId, input: [{ type: 'text', text: promptFor(name, { ...input, ...(pilot ? { supervisor } : {}) }, expected, reviewMethod) }], approvalPolicy: 'never', ...(activeExecution.turn || { sandboxPolicy: name === 'BUILDER' ? { type: 'workspaceWrite', writableRoots: [workspace], networkAccess: false } : { type: 'readOnly' } }) });
     const terminal = await Promise.race([finished, new Promise((_, reject) => { timer = setTimeout(() => reject(new Error('ROLE_TIMEOUT')), Math.max(1, Math.min(deadline - Date.now(), 300000))); })]);
     clearTimeout(timer);
-    if (terminal.status !== 'completed' || !binding.turnId || binding.turnId !== started.turn.id || writer.notificationError) stop(intakeError || 'NATIVE_RUNTIME_UNCERTAIN');
+    if (terminal.status !== 'completed' || !binding.turnId || binding.turnId !== started.turn.id || writer.notificationError) stop(intakeError || (pilot?pilotNativeTurnFailure(terminal):'NATIVE_RUNTIME_UNCERTAIN'));
     await writes;
     await retainFailure();
     if (intakeError) stop(intakeError);
@@ -192,6 +218,8 @@ async function executeRole(name, input, workspace, pipelineDirectory, mode = 'le
       stop('NATIVE_PAYLOAD_MISMATCH');
     }
     const result = validateRoleResult(native.result, name, input.before.fingerprint);
+    const ruleLoad = pilot ? validatePilotReceipt(result, source.entries.map(e => e.item), rule,
+      (command, expectedCommand) => exactTest(command, workspace, expectedCommand, workspace), input.verification?.verificationPath) : null;
     if (!native.commands.length && name !== 'BUILDER') stop('NATIVE_READ_REQUIRED');
     if (name !== 'BUILDER' && native.changes.length) stop('READ_ONLY_ROLE_CHANGED_FILES');
     let test;
@@ -207,7 +235,7 @@ async function executeRole(name, input, workspace, pipelineDirectory, mode = 'le
       validateReviewCommands(native.commands, input.task, workspace, input.verification.verificationPath, reviewMethod);
     }
     const decision = name === 'VERIFY' ? canonicalVerifyDecision(result, test) : result.decision;
-    const receipt = { ...result, ...(reviewMethod ? { reviewMethod } : {}), decision, test, role: name, candidate: input.before.fingerprint, nativeVerified: true, binding, directory, writerPid: process.pid, native, proof, acknowledgements: acks, changed: [...new Set(native.changes.flatMap(c => c.paths))], verificationPath: join(directory, 'role.json') };
+    const receipt = { ...result, ...(pilot ? {ruleLoad,permission,supervisor,supervisorSha256:hash(await readFile(supervisorPath))} : {}), ...(reviewMethod ? { reviewMethod } : {}), decision, test, role: name, candidate: input.before.fingerprint, nativeVerified: true, binding, directory, writerPid: process.pid, native, proof, acknowledgements: acks, changed: [...new Set(native.changes.flatMap(c => c.paths))], verificationPath: join(directory, 'role.json') };
     await writeDurableJson(receipt.verificationPath, receipt);
     return { ...receipt, artifactHash: hash(await readFile(receipt.verificationPath)) };
   } finally {
@@ -235,7 +263,9 @@ export function validateNativeBaseline(task, before, workspace, mode) {
 
 export async function runNative(input, options = []) {
   const mode = nativeMode(options);
-  const task = admitTask(input), workspace = workspaceIdentity(resolve(process.cwd()));
+  const task = admitTask(input);
+  if (isMvpPilot(task) && mode !== 'legacy') stop('INVALID_NATIVE_MODE');
+  const workspace = workspaceIdentity(resolve(process.cwd()));
   const authority = await authorizeRepository(REPOSITORY);
   const before = await inventory(workspace);
   validateNativeBaseline(task, before, workspace, mode);
@@ -246,7 +276,7 @@ export async function runNative(input, options = []) {
   let claim;
   try { claim = await open(join(claims, `${task.taskId}.json`), 'wx', 0o600); }
   catch (e) { if (e.code === 'EEXIST') stop('TASK_ALREADY_DISPATCHED'); throw e; }
-  const directory = await createPrivateDirectory({ retained: true });
+  const directory = await createPrivateDirectory({ retained: !isMvpPilot(task) });
   try { await claim.writeFile(JSON.stringify({ taskId: task.taskId, directory, createdAt: now() })); await claim.sync(); } finally { await claim.close(); }
   await writeDurableJson(join(directory, 'context.json'), { createdAt: now(), outputReviewDeadline: new Date(Date.now() + 7 * DAY_MS).toISOString() });
   await writeDurableJson(join(directory, 'intake.json'), { task, workspace, before, actor: authority.actor, writerPid: process.pid, mode });
@@ -311,6 +341,13 @@ export async function readNative(input) {
       if (key !== 'changed' && JSON.stringify(receipt[key]) !== JSON.stringify(value)) stop('ROLE_RECEIPT_MISMATCH');
     }
     if (receipt.changed.some(p => !original.changed.includes(p))) stop('ROLE_RECEIPT_MISMATCH');
+    if(original.supervisor) {
+      const bytes=await readFile(join(dir,'supervisor.json'));
+      const observed=JSON.parse(bytes);
+      if(hash(bytes)!==original.supervisorSha256||JSON.stringify(observed)!==JSON.stringify(original.supervisor)||
+          observed.role!==receipt.role||observed.taskId!==receipt.binding.taskId||observed.candidate!==receipt.candidate||
+          Object.entries(observed.binding).some(([key,value])=>receipt.binding[key]!==value)) stop('SUPERVISOR_CONTEXT_CHANGED');
+    }
     if (receipt.role === 'VERIFY' && (hash(receipt.test.output) !== receipt.test.outputHash || JSON.stringify(counters(receipt.test.output)) !== JSON.stringify(receipt.test.counters) || receipt.native.commands[0].outputHash !== receipt.test.outputHash)) stop('TEST_OUTPUT_CHANGED');
     const server = new AppServer(binary(), intake.workspace);
     try {
