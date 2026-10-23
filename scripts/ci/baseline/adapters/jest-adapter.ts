@@ -79,11 +79,28 @@ function extractStackTrace(failureMessage: string): string | undefined {
  */
 function extractErrorMessage(failureMessage: string): string {
   const lines = failureMessage.split('\n');
+
+  // Node's TAP reporter wraps failed subtests in a YAML diagnostic block.
+  // Jest preserves that block in failureMessages; prefer its actual error
+  // payload over the YAML document separator (`---`).
+  const yamlErrorIndex = lines.findIndex(line => /^\s+error:\s*/.test(line));
+  if (yamlErrorIndex !== -1) {
+    const errorLine = lines[yamlErrorIndex].trim().replace(/^error:\s*/, '');
+    if (errorLine && !/^[|>]([-+])?$/.test(errorLine)) {
+      return errorLine.replace(/^(['"])(.*)\1$/, '$2');
+    }
+    for (const line of lines.slice(yamlErrorIndex + 1)) {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith('at ') || trimmed === '...') continue;
+      if (!line.startsWith(' ') && !line.startsWith('\t')) break;
+      return trimmed;
+    }
+  }
   
   // Find first non-empty line that's not part of stack
   for (const line of lines) {
     const trimmed = line.trim();
-    if (trimmed && !trimmed.startsWith('at ') && !trimmed.startsWith('Error:')) {
+    if (trimmed && trimmed !== '---' && trimmed !== '...' && !trimmed.startsWith('at ') && !trimmed.startsWith('Error:')) {
       return trimmed;
     }
   }
