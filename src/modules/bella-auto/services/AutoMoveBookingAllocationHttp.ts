@@ -37,6 +37,11 @@ export async function bookingAllocationHttp(request: Request, actorUserId: strin
     if (error && typeof error === 'object' && 'code' in error && error.code === '23505') {
       return Response.json({ error: 'Booking conflicts with existing data.', code: 'BOOKING_CONFLICT' }, { status: 409 });
     }
+    const diagnosticCode = error && typeof error === 'object' && 'code' in error
+      && typeof error.code === 'string' && /^[A-Z0-9]{5}$/.test(error.code)
+      ? error.code
+      : 'UNKNOWN';
+    console.error('[automove-booking-allocation] failed', { stage: 'allocation', diagnosticCode });
     return Response.json({ error: 'Booking allocation failed.' }, { status: 500 });
   } finally { if (db) await db.end(); }
 }
