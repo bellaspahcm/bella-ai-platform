@@ -421,32 +421,55 @@ describe('Preschool Chain real DB E2E proof', () => {
 
   it('rechecks Auth revocation after the course lock wait and leaves no admission intent', async () => {
     const worker = new Client({ connectionString: dbUrl, ssl: sslConfig() });
+    const blocker = new Client({ connectionString: dbUrl, ssl: sslConfig() });
     const operationKey = randomUUID();
     const lockName = `preschool-course:${ids.tenant}:${ids.course}`;
     await worker.connect();
-    const pid = (await worker.query<{ pid: number }>('SELECT pg_backend_pid() AS pid')).rows[0].pid;
-    const before = (await pg.query('SELECT banned_until,deleted_at FROM auth.users WHERE id=$1', [actorUserId])).rows[0];
     let attempt: Promise<{ code?: string }> | undefined;
-    await pg.query('SELECT pg_advisory_lock(hashtextextended($1,0))', [lockName]);
+    let before: { banned_until: Date | null; deleted_at: Date | null } | undefined;
     try {
+      await blocker.connect();
+      // Pin both backends across observations, including transaction poolers.
+      // Session locks and a PID sampled outside a transaction can move apart.
+      await worker.query('BEGIN');
+      await blocker.query('BEGIN');
+      const pid = (await worker.query<{ pid: number }>('SELECT pg_backend_pid() AS pid')).rows[0].pid;
+      const blockerPid = (await blocker.query<{ pid: number }>('SELECT pg_backend_pid() AS pid')).rows[0].pid;
+      before = (await pg.query('SELECT banned_until,deleted_at FROM auth.users WHERE id=$1', [actorUserId])).rows[0];
+      await blocker.query('SELECT pg_advisory_xact_lock(hashtextextended($1,0))', [lockName]);
       attempt = worker.query('SELECT * FROM public.preschool_open_admission($1,$2,$3,$4::jsonb)', [ids.tenant, actorUserId, operationKey,
         JSON.stringify({ courseId: ids.course, branchId: ids.branchA })]).then(() => ({}), (error: { code?: string }) => error);
       let waiting = false;
       for (let i = 0; i < 100; i++) {
-        const activity = await pg.query<{ wait_event_type: string }>('SELECT wait_event_type FROM pg_stat_activity WHERE pid=$1', [pid]);
-        if (activity.rows[0]?.wait_event_type === 'Lock') { waiting = true; break; }
+        const activity = await pg.query<{ blocked: boolean }>(
+          'SELECT $2::int = ANY(pg_blocking_pids($1::int)) AS blocked', [pid, blockerPid]);
+        if (activity.rows[0]?.blocked) { waiting = true; break; }
         await new Promise(resolve => setTimeout(resolve, 50));
       }
       expect(waiting).toBe(true);
       await pg.query("UPDATE auth.users SET banned_until=clock_timestamp()+interval '1 hour' WHERE id=$1", [actorUserId]);
-      await pg.query('SELECT pg_advisory_unlock(hashtextextended($1,0))', [lockName]);
+      await blocker.query('ROLLBACK');
       expect(await attempt).toMatchObject({ code: '42501' });
       expect((await pg.query('SELECT operation_key FROM public.preschool_admission_operations WHERE tenant_id=$1 AND operation_key=$2', [ids.tenant, operationKey])).rows).toEqual([]);
     } finally {
-      await pg.query('SELECT pg_advisory_unlock(hashtextextended($1,0))', [lockName]);
-      if (attempt) await attempt;
-      await pg.query('UPDATE auth.users SET banned_until=$2,deleted_at=$3 WHERE id=$1', [actorUserId, before.banned_until, before.deleted_at]);
-      await worker.end();
+      try {
+        await blocker.query('ROLLBACK');
+        if (attempt) await attempt;
+        await worker.query('ROLLBACK');
+      } finally {
+        try {
+          const closed = await Promise.allSettled([worker.end(), blocker.end()]);
+          for (const connection of closed) {
+            if (connection.status === 'rejected') throw connection.reason;
+          }
+        } finally {
+          // Restore even when a worker rollback/close fails; the observer is
+          // independent and must not leave this run's actor banned.
+          if (before) {
+            await pg.query('UPDATE auth.users SET banned_until=$2,deleted_at=$3 WHERE id=$1', [actorUserId, before.banned_until, before.deleted_at]);
+          }
+        }
+      }
     }
   });
 
