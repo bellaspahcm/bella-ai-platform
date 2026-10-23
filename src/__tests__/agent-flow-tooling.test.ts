@@ -23,11 +23,25 @@ test('Agent Flow Node suites pass with no skipped or cancelled tests', () => {
   ], { cwd: process.cwd(), encoding: 'utf8', timeout: 60000, windowsHide: true });
 
   if (result.error || result.status !== 0) {
-    const failures = result.stdout.match(/^not ok \d+ - .+$/gm) ?? [];
-    throw new Error(`Agent Flow tests failed: exit=${result.status ?? result.error?.message ?? 'unknown'}; ${failures.join('; ') || 'no named failure emitted'}`);
+    const lines = result.stdout.split(/\r?\n/);
+    const failureBlocks = lines.flatMap((line, index) => {
+      if (!/^not ok \d+ - /.test(line)) return [];
+      const end = lines.findIndex((candidate, offset) => offset > index && /^(?:ok|not ok) \d+ - /.test(candidate));
+      return [lines.slice(index, end < 0 ? lines.length : end).join('\n')];
+    });
+    const diagnostic = failureBlocks.join('\n').slice(0, 6000);
+    throw new Error(`Agent Flow tests failed: exit=${result.status ?? result.error?.message ?? 'unknown'}; ${diagnostic || 'no named failure emitted'}`);
   }
-  const counters = Object.fromEntries(['tests', 'pass', 'fail', 'cancelled', 'skipped', 'todo'].map(counter => {
-    const match = result.stdout.match(new RegExp(`^# ${counter} (\\d+)$`, 'm'));
+  const counterPatterns = {
+    tests: /^# tests (\d+)$/m,
+    pass: /^# pass (\d+)$/m,
+    fail: /^# fail (\d+)$/m,
+    cancelled: /^# cancelled (\d+)$/m,
+    skipped: /^# skipped (\d+)$/m,
+    todo: /^# todo (\d+)$/m,
+  };
+  const counters = Object.fromEntries(Object.entries(counterPatterns).map(([counter, pattern]) => {
+    const match = result.stdout.match(pattern);
     return [counter, match ? Number(match[1]) : null];
   }));
   expect(counters).toEqual({
