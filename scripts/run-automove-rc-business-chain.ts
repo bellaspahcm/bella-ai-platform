@@ -36,6 +36,20 @@ export function assertRcReport(report: unknown) {
   return parsed.stats;
 }
 
+export function summarizeRcHealth(statusCode: number, body: unknown) {
+  const value = typeof body === 'object' && body !== null ? body as Record<string, unknown> : {};
+  const checks = typeof value.checks === 'object' && value.checks !== null ? value.checks as Record<string, unknown> : {};
+  const appStatus = z.enum(['healthy', 'unhealthy', 'error']).safeParse(value.status);
+  const environment = z.enum(['production', 'preview', 'development', 'staging']).safeParse(value.environment);
+  const database = z.enum(['ok', 'failed']).safeParse(checks.database);
+  return {
+    httpStatus: statusCode,
+    appStatus: appStatus.success ? appStatus.data : 'unexpected',
+    environment: environment.success ? environment.data : 'unexpected',
+    database: database.success ? database.data : 'unexpected',
+  } as const;
+}
+
 export function redactRcLog(line: string, env: NodeJS.ProcessEnv) {
   let result = line;
   for (const [key, value] of Object.entries(env)) if (value && value.length >= 8 && /KEY|TOKEN|SECRET|PASSWORD|DB_URL|DATABASE_URL/.test(key)) result = result.split(value).join('[REDACTED]');
@@ -106,15 +120,22 @@ export async function runRc() {
     const report = resolve(root, 'playwright-results.json'); env.PLAYWRIGHT_JSON_OUTPUT_FILE = report;
     const server = launch(['node_modules/next/dist/bin/next', 'start', '--hostname', '127.0.0.1', '--port', String(port)], 'server');
     let healthy = false;
+    const readiness: { attempts: number; last?: ReturnType<typeof summarizeRcHealth> | { transportError: string } } = { attempts: 0 };
     for (let attempt = 0; attempt < 60; attempt++) {
       assert.equal(server.child.exitCode, null, 'RC server exited before readiness');
+      readiness.attempts = attempt + 1;
       try {
         const response = await fetch(`${env.E2E_BASE_URL}/api/health`, { signal: AbortSignal.timeout(3000) });
-        const body: unknown = await response.json();
+        let body: unknown = null;
+        try { body = await response.json(); } catch { /* Record a safe summary for non-JSON readiness responses. */ }
+        readiness.last = summarizeRcHealth(response.status, body);
         if (response.ok && z.object({ status: z.literal('healthy'), environment: z.literal('production'), checks: z.object({ database: z.literal('ok') }) }).safeParse(body).success) { healthy = true; break; }
-      } catch { /* A newly launched server may not be listening yet. */ }
+      } catch (error) {
+        readiness.last = { transportError: error instanceof Error && error.name === 'AbortError' ? 'timeout' : error instanceof Error && error.name === 'TypeError' ? 'connection' : 'other' };
+      }
       await new Promise(done => setTimeout(done, 1000));
     }
+    evidence.readiness = readiness;
     assert.ok(healthy, 'Fresh production-mode server failed health/readiness');
     console.log(`AUTOMOVE_RC_BROWSER sha=${sha} buildId=${buildId} project=${project}`);
     const browser = launch(['node_modules/@playwright/test/cli.js', 'test', '--config=playwright.automove-rc.config.ts', '--workers=1', '--retries=0', `--output=${resolve(root, 'browser')}`], 'browser');
