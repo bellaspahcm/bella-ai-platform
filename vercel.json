@@ -2,6 +2,11 @@
   "buildCommand": "npm run build:prod",
   "framework": "nextjs",
   "installCommand": "npm ci --legacy-peer-deps",
+  "git": {
+    "deploymentEnabled": {
+      "main": false
+    }
+  },
   "build": {
     "env": {
       "SKIP_TYPE_CHECK": "true",

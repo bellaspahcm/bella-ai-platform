@@ -2,6 +2,8 @@
 
 Scope: user-authorized review, related repairs, push and merge of PR 418. No Production operation. Existing packets and untracked diagnostic history are preserved.
 
+Additional deployment-control authority: human approved "Duyệt chặn auto-deploy main rồi merge". Set only `git.deploymentEnabled.main=false` in `vercel.json`; unspecified branches retain Preview deployments. Preserve the current Production deployment; no Production migration, deploy, ruleset or workflow change is authorized. Verify final main contains this setting after merge.
+
 Review base: main `3d91a8f95a8b497ab952ef66587ff4596da24811`; reviewed candidate `6a6d52be54960daacbed0dde8a9a3d6c5c6c8080` plus this repair diff. Final CI must bind the resulting commit; prior SHA checks are not final proof.
 
 ## Findings and repairs
