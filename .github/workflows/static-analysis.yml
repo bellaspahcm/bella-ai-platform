@@ -53,6 +53,65 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 0
 
+      - name: Check if application code changed
+        id: check-code
+        env:
+          SEMGREP_BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+          SEMGREP_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          set -eu
+          # Manual/scheduled scans and a new branch have no prior comparison.
+          case "$GITHUB_EVENT_NAME" in
+            pull_request|push) ;;
+            *) echo "has_code=true" >> "$GITHUB_OUTPUT"; exit 0 ;;
+          esac
+          if [ "$GITHUB_EVENT_NAME" = "push" ] && [ "$SEMGREP_BASE_SHA" = "0000000000000000000000000000000000000000" ]; then
+            echo "has_code=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          : "${SEMGREP_BASE_SHA:?Missing comparison base}"
+          : "${SEMGREP_HEAD_SHA:?Missing comparison head}"
+          case "$SEMGREP_BASE_SHA$SEMGREP_HEAD_SHA" in
+            *[!0-9a-f]*) echo "Invalid comparison revision" >&2; exit 1 ;;
+          esac
+          if [ "${#SEMGREP_BASE_SHA}" -ne 40 ] || [ "${#SEMGREP_HEAD_SHA}" -ne 40 ]; then
+            echo "Invalid comparison revision" >&2
+            exit 1
+          fi
+
+          # Trust only this checkout for these commands, not a global directory.
+          # Any Git error must fail the step, never reduce the security scan.
+          git -c safe.directory="$GITHUB_WORKSPACE" fetch --no-tags origin "$SEMGREP_BASE_SHA" "$SEMGREP_HEAD_SHA"
+          if [ "$GITHUB_EVENT_NAME" = "pull_request" ]; then
+            CHANGED_FILES=$(git -c safe.directory="$GITHUB_WORKSPACE" diff --no-renames --name-only "$SEMGREP_BASE_SHA...$SEMGREP_HEAD_SHA")
+          else
+            CHANGED_FILES=$(git -c safe.directory="$GITHUB_WORKSPACE" diff --no-renames --name-only "$SEMGREP_BASE_SHA" "$SEMGREP_HEAD_SHA")
+          fi
+          if [ -z "$CHANGED_FILES" ]; then
+            echo "has_code=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          HAS_CODE=false
+          while IFS= read -r FILE; do
+            case "$FILE" in
+              .github/*|docs/*|scripts/*|.eslintignore|.trivyignore) ;;
+              *) HAS_CODE=true ;;
+            esac
+          done <<EOF
+          $CHANGED_FILES
+          EOF
+
+          if [ "$HAS_CODE" = "true" ]; then
+            echo "has_code=true" >> "$GITHUB_OUTPUT"
+            echo "✅ Found application code to scan"
+          else
+            echo "has_code=false" >> "$GITHUB_OUTPUT"
+            echo "Infrastructure-only scope recorded; full report remains mandatory"
+            echo "All changed files are infrastructure: .github/, docs/, scripts/"
+          fi
+
       - name: Verify gate failure paths
         run: python3 scripts/test_semgrep_gate.py
 
