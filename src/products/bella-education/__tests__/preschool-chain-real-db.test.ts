@@ -38,10 +38,15 @@ function isRunnableDbUrl(value: string): boolean {
   }
 }
 
-function sslConfig(): { rejectUnauthorized: boolean } | undefined {
+function sslConfig(): { rejectUnauthorized: boolean; ca?: string } | undefined {
   return dbUrl.includes('localhost') || dbUrl.includes('127.0.0.1')
     ? undefined
-    : { rejectUnauthorized: true };
+    : {
+        rejectUnauthorized: true,
+        ...(process.env.E2E_SUPABASE_DB_SSL_CA
+          ? { ca: process.env.E2E_SUPABASE_DB_SSL_CA }
+          : {}),
+      };
 }
 
 function hasRealSupabaseAdminEnv(): boolean {

@@ -162,6 +162,7 @@ jobs:
           SUPABASE_URL: ${{ secrets.E2E_SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.E2E_SUPABASE_SERVICE_ROLE_KEY }}
           SUPABASE_DB_URL: ${{ secrets.E2E_SUPABASE_DB_URL }}
+          E2E_SUPABASE_DB_SSL_CA: ${{ secrets.E2E_SUPABASE_DB_SSL_CA }}
           JEST_CACHE_DIRECTORY: .jest-cache
         run: node scripts/run-scoped-real-db-e2e.mjs
 
