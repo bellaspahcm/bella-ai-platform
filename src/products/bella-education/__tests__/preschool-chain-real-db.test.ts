@@ -401,6 +401,55 @@ describe('Preschool Chain real DB E2E proof', () => {
     expect(grants.rows.every((row) => !row.can_write)).toBe(true);
   });
 
+  it.each(['banned', 'deleted'])('denies a currently %s Auth actor without creating admission intent', async state => {
+    const operationKey = randomUUID();
+    await pg.query('BEGIN');
+    try {
+      await pg.query("SELECT set_config('request.jwt.claims', '{\"role\":\"service_role\"}', true)");
+      await pg.query(state === 'banned'
+        ? "UPDATE auth.users SET banned_until=clock_timestamp()+interval '1 hour' WHERE id=$1"
+        : 'UPDATE auth.users SET deleted_at=clock_timestamp() WHERE id=$1', [actorUserId]);
+      const access = await pg.query<{ allowed: boolean }>("SELECT public.preschool_branch_access($1,$2,$3,'admission') AS allowed", [ids.tenant, actorUserId, ids.branchA]);
+      expect(access.rows[0].allowed).toBe(false);
+      await pg.query('SAVEPOINT rejected_admission');
+      await expect(pg.query('SELECT * FROM public.preschool_open_admission($1,$2,$3,$4::jsonb)', [ids.tenant, actorUserId, operationKey,
+        JSON.stringify({ courseId: ids.course, branchId: ids.branchA })])).rejects.toMatchObject({ code: '42501' });
+      await pg.query('ROLLBACK TO SAVEPOINT rejected_admission');
+      expect((await pg.query('SELECT operation_key FROM public.preschool_admission_operations WHERE tenant_id=$1 AND operation_key=$2', [ids.tenant, operationKey])).rows).toEqual([]);
+    } finally { await pg.query('ROLLBACK'); }
+  });
+
+  it('rechecks Auth revocation after the course lock wait and leaves no admission intent', async () => {
+    const worker = new Client({ connectionString: dbUrl, ssl: sslConfig() });
+    const operationKey = randomUUID();
+    const lockName = `preschool-course:${ids.tenant}:${ids.course}`;
+    await worker.connect();
+    const pid = (await worker.query<{ pid: number }>('SELECT pg_backend_pid() AS pid')).rows[0].pid;
+    const before = (await pg.query('SELECT banned_until,deleted_at FROM auth.users WHERE id=$1', [actorUserId])).rows[0];
+    let attempt: Promise<{ code?: string }> | undefined;
+    await pg.query('SELECT pg_advisory_lock(hashtextextended($1,0))', [lockName]);
+    try {
+      attempt = worker.query('SELECT * FROM public.preschool_open_admission($1,$2,$3,$4::jsonb)', [ids.tenant, actorUserId, operationKey,
+        JSON.stringify({ courseId: ids.course, branchId: ids.branchA })]).then(() => ({}), (error: { code?: string }) => error);
+      let waiting = false;
+      for (let i = 0; i < 100; i++) {
+        const activity = await pg.query<{ wait_event_type: string }>('SELECT wait_event_type FROM pg_stat_activity WHERE pid=$1', [pid]);
+        if (activity.rows[0]?.wait_event_type === 'Lock') { waiting = true; break; }
+        await new Promise(resolve => setTimeout(resolve, 50));
+      }
+      expect(waiting).toBe(true);
+      await pg.query("UPDATE auth.users SET banned_until=clock_timestamp()+interval '1 hour' WHERE id=$1", [actorUserId]);
+      await pg.query('SELECT pg_advisory_unlock(hashtextextended($1,0))', [lockName]);
+      expect(await attempt).toMatchObject({ code: '42501' });
+      expect((await pg.query('SELECT operation_key FROM public.preschool_admission_operations WHERE tenant_id=$1 AND operation_key=$2', [ids.tenant, operationKey])).rows).toEqual([]);
+    } finally {
+      await pg.query('SELECT pg_advisory_unlock(hashtextextended($1,0))', [lockName]);
+      if (attempt) await attempt;
+      await pg.query('UPDATE auth.users SET banned_until=$2,deleted_at=$3 WHERE id=$1', [actorUserId, before.banned_until, before.deleted_at]);
+      await worker.end();
+    }
+  });
+
   it('proves admission branch assignment persists through edu_enrollments, chain tables, read-back, tenant isolation, authorization, and idempotency', async () => {
     const chainService = new PreschoolChainService(supabase);
     const accessibleBranches = await chainService.listAccessibleBranches(ids.tenant, actorUserId);
@@ -558,5 +607,39 @@ describe('Preschool Chain real DB E2E proof', () => {
     } finally {
       await pg.query("UPDATE public.users SET role = 'admin' WHERE id = $1 AND tenant_id = $2", [actorUserId, ids.tenant]);
     }
+  });
+
+  it('scans only positive unpaid debt and leaves settled invoices without overdue exceptions', async () => {
+    const periodId = randomUUID();
+    await pg.query('BEGIN');
+    try {
+      const student = (await pg.query<{ party_id: string; student_id: string }>('SELECT party_id,student_id FROM public.students WHERE tenant_id=$1', [ids.tenant])).rows[0];
+      expect(student).toBeDefined();
+      await pg.query(`INSERT INTO public.edu_fin_billing_periods(id,tenant_id,period_name,start_date,end_date,due_date,status,created_by)
+        VALUES($1,$2,'Review overdue proof',CURRENT_DATE-30,CURRENT_DATE-1,CURRENT_DATE-5,'ACTIVE',$3)`, [periodId, ids.tenant, actorUserId]);
+      const expectedDebtId = randomUUID();
+      const cases = [
+        { id: randomUUID(), status: 'OVERPAID', paid: 110, outstanding: 0 },
+        { id: randomUUID(), status: 'PAID', paid: 100, outstanding: 0 },
+        { id: randomUUID(), status: 'UNPAID', paid: 0, outstanding: 0 },
+        { id: expectedDebtId, status: 'PARTIALLY_PAID', paid: 20, outstanding: 80 },
+      ];
+      for (const invoice of cases) {
+        await pg.query(`INSERT INTO public.edu_fin_invoices(id,tenant_id,student_id,student_party_id,billing_period_id,invoice_number,
+          invoice_status,settlement_status,gross_amount,net_amount,paid_amount,outstanding_amount,due_date,created_by)
+          VALUES($1,$2,$3,$4,$5,$6,'ISSUED',$7,100,100,$8,$9,CURRENT_DATE-5,$10)`,
+        [invoice.id, ids.tenant, student.student_id, student.party_id, periodId, 'REVIEW-' + invoice.id, invoice.status, invoice.paid, invoice.outstanding, actorUserId]);
+        await pg.query(`SELECT public.preschool_finance_branch_command($1,$2,$3,'projectInvoiceNotice',$4::jsonb)`,
+          [ids.tenant, actorUserId, ids.branchA, JSON.stringify({ invoiceId: invoice.id, title: 'Controlled review proof', bodyText: 'Isolated test transaction' })]);
+      }
+      const before = (await pg.query('SELECT to_jsonb(i) AS row FROM public.edu_fin_invoices i WHERE tenant_id=$1 ORDER BY id', [ids.tenant])).rows;
+      const scan = () => pg.query<{ result: { escalatedCount: number } }>(`SELECT public.preschool_finance_branch_command($1,$2,$3,'scanOverdueInvoices','{}') AS result`, [ids.tenant, actorUserId, ids.branchA]);
+      expect((await scan()).rows[0].result.escalatedCount).toBe(1);
+      expect((await scan()).rows[0].result.escalatedCount).toBe(0);
+      const exceptions = await pg.query('SELECT n.source_entity_id AS invoice_id FROM public.edu_comm_exceptions x JOIN public.edu_comm_notices n ON n.id=x.notice_id AND n.tenant_id=x.tenant_id WHERE x.tenant_id=$1', [ids.tenant]);
+      expect(exceptions.rows).toEqual([{ invoice_id: expectedDebtId }]);
+      expect((await pg.query('SELECT to_jsonb(i) AS row FROM public.edu_fin_invoices i WHERE tenant_id=$1 ORDER BY id', [ids.tenant])).rows).toEqual(before);
+    } finally { await pg.query('ROLLBACK'); }
+    expect((await pg.query('SELECT id FROM public.edu_fin_billing_periods WHERE id=$1', [periodId])).rows).toEqual([]);
   });
 });

@@ -7,6 +7,7 @@ export interface FinancePaymentIntent extends FinancePaymentScope {
   paymentAmount: number;
   paymentMethod: 'CASH' | 'BANK_TRANSFER' | 'QR_CODE';
   result?: { paymentId: string; receiptId: string };
+  correctable?: true;
 }
 
 // Reconstruct an allowed literal at the persistence boundary. A TypeScript
@@ -41,7 +42,7 @@ export function parsePaymentIntent(raw: string | null, scope: FinancePaymentScop
     result = { paymentId: saved.paymentId, receiptId: saved.receiptId };
   }
   return { version: 1, ...scope, invoiceId, operationKey: row.operationKey, paymentAmount: row.paymentAmount,
-    paymentMethod, ...(result ? { result } : {}) };
+    paymentMethod, ...(result ? { result } : {}), ...(!result && row.correctable === true ? { correctable: true } : {}) };
 }
 export function preparePaymentIntent(existing: FinancePaymentIntent | null, scope: FinancePaymentScope, invoiceId: string,
   paymentAmount: number, paymentMethod: FinancePaymentIntent['paymentMethod'], newKey: () => string,
@@ -51,10 +52,12 @@ export function preparePaymentIntent(existing: FinancePaymentIntent | null, scop
   if (expectedOperationKey && existing?.operationKey !== expectedOperationKey) {
     throw new Error('Yêu cầu thanh toán đã thay đổi ở thẻ khác. Đóng và mở lại khoản thu để kiểm tra.');
   }
-  if (existing) {
+  if (existing && !existing.correctable) {
     if (existing.paymentAmount !== paymentAmount || existing.paymentMethod !== method) throw new Error('Khoản thu đang chờ có nội dung khác. Hãy khôi phục đúng khoản thu trước.');
     return existing;
   }
-  if (!Number.isFinite(paymentAmount) || paymentAmount <= 0 || !/^\d+(?:\.\d{1,2})?$/.test(String(paymentAmount))) throw new Error('Nhập số tiền hợp lệ, tối đa hai chữ số thập phân.');
-  return { version: 1, ...scope, invoiceId, operationKey: newKey(), paymentAmount, paymentMethod: method };
+  if (!Number.isFinite(paymentAmount) || paymentAmount <= 0 || paymentAmount >= 10000000000000 || !/^\d+(?:\.\d{1,2})?$/.test(String(paymentAmount))) throw new Error('Nhập số tiền hợp lệ, tối đa hai chữ số thập phân.');
+  // A corrected rejection keeps its key. If a concurrent process committed the
+  // old payload, the server reports a conflict instead of making another payment.
+  return { version: 1, ...scope, invoiceId, operationKey: existing?.operationKey ?? newKey(), paymentAmount, paymentMethod: method };
 }

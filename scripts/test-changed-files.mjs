@@ -4,6 +4,12 @@ import { writeFileSync } from 'node:fs';
 const CODE_FILE_PATTERN = /\.(ts|tsx|js|jsx)$/;
 const TEST_FILE_PATTERN = /\.(test|spec)\.(ts|tsx|js|jsx)$/;
 const DIRECT_TEST_EXCLUDED_PATTERNS = [
+  // These suites provision controlled local DB fixtures and are deliberately
+  // excluded from related-test discovery below as well. Keep their target guards;
+  // they are not mockable unit coverage or evidence of CI database execution.
+  /^tests\/products\/bella-education\/finance\/p7[12]-finance-(billing|communication)\.integration\.test\.ts$/,
+  /^tests\/products\/bella-education\/finance\/preschool-finance-canonical-identity\.test\.ts$/,
+  /^src\/platform\/education\/__tests__\/enrollment-event-recovery-real-db\.test\.ts$/,
   /^e2e\//,
   /^src\/__tests__\/bella-auto-phase5-experience\.test\.ts$/,
   /^src\/__tests__\/e2e-(order-lifecycle-real|refund-full|accounting-gl-verification|payroll-month-close)\.test\.ts$/,

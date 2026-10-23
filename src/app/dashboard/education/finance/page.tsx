@@ -120,6 +120,7 @@ export interface FinanceStateResponse {
 
 export interface FinanceCommandResponse {
   readonly success: boolean;
+  readonly paymentNotCommitted?: boolean;
   readonly error?: string;
   readonly invoice?: Invoice;
   readonly completion?: TuitionServicePeriodCompletion;
@@ -130,6 +131,10 @@ export interface FinanceCommandResponse {
   readonly receipt?: PaymentReceipt;
   readonly updatedSettlementStatus?: string;
   readonly exception?: { readonly id: string; readonly status: string };
+}
+
+class FinanceCommandError extends Error {
+  constructor(message: string, readonly paymentNotCommitted: boolean) { super(message); }
 }
 
 export interface TableInvoiceItem {
@@ -401,7 +406,7 @@ function FinancePageContent() {
     });
     const body = (await response.json()) as FinanceCommandResponse;
     if (!response.ok || !body.success) {
-      throw new Error(body.error || 'Thao tác tài chính không thành công.');
+      throw new FinanceCommandError(body.error || 'Thao tác tài chính không thành công.', response.status === 400 && body.paymentNotCommitted === true);
     }
     return body;
   };
@@ -431,18 +436,30 @@ function FinancePageContent() {
       await navigator.locks.request(key, async () => {
         const saved = parsePaymentIntent(localStorage.getItem(key), scope, paymentInvoiceId);
         const intent = preparePaymentIntent(saved, scope, paymentInvoiceId, Number(paymentAmount), paymentMethod, () => crypto.randomUUID(), retainedIntent?.operationKey);
-        // Persist before fetch. Never discard a pending key after an error or reload.
+        // Persist before fetch. Keep the key after every error and reload.
         localStorage.setItem(key, JSON.stringify(intent)); setRetainedIntent(intent);
-        const result = await financeCommand('recordAndReconcilePayment', {
-          invoiceId: intent.invoiceId, operationKey: intent.operationKey, paymentAmount: intent.paymentAmount, paymentMethod: intent.paymentMethod,
-        });
+        let result: FinanceCommandResponse;
+        try {
+          result = await financeCommand('recordAndReconcilePayment', {
+            invoiceId: intent.invoiceId, operationKey: intent.operationKey, paymentAmount: intent.paymentAmount, paymentMethod: intent.paymentMethod,
+          });
+        } catch (error) {
+          if (error instanceof FinanceCommandError && error.paymentNotCommitted) {
+            const rejected = { ...intent, correctable: true as const };
+            localStorage.setItem(key, JSON.stringify(rejected)); setRetainedIntent(rejected);
+          }
+          throw error;
+        }
         if (!result.payment?.id || !result.receipt?.id) throw new Error('Thiếu ID kết quả; hãy thử lại cùng khoản thu đã lưu.');
         const completed = { ...intent, result: { paymentId: result.payment.id, receiptId: result.receipt.id } };
         localStorage.setItem(key, JSON.stringify(completed)); setRetainedIntent(completed);
         setActionMessage('Đã xác nhận khoản thu ' + result.payment.paymentNumber + '.');
       });
       await loadData();
-    } catch (error) { setActionMessage((error instanceof Error ? error.message : 'Chưa xác định kết quả thanh toán.') + ' Yêu cầu đã lưu được giữ để khôi phục.'); }
+    } catch (error) { setActionMessage((error instanceof Error ? error.message : 'Chưa xác định kết quả thanh toán.')
+      + (error instanceof FinanceCommandError && error.paymentNotCommitted
+        ? ' Khoản thu chưa được ghi nhận. Có thể sửa nội dung và gửi lại cùng mã yêu cầu.'
+        : ' Yêu cầu đã lưu được giữ để khôi phục.')); }
     finally { setLoading(false); }
   };
 
@@ -1088,7 +1105,7 @@ function FinancePageContent() {
             </div>
             <div>
               <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
-                <span>Tài chính & Học phí</span>
+                <span>Tài chính &amp; Học phí</span>
                 <span className="sr-only">Preschool Finance Operating Kernel (P7)</span>
               </h1>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
@@ -1155,7 +1172,7 @@ function FinancePageContent() {
             </div>
             <div>
               <p className="font-extrabold text-slate-900 dark:text-white">
-                Đang xem học phí & công nợ của học sinh: <span className="text-[#0c513f] dark:text-emerald-400 font-bold">{students.find(student => student.studentPartyId === studentParam || student.studentId === studentParam || student.studentCode === studentParam)?.displayName || studentParam}</span> ({studentParam})
+                Đang xem học phí &amp; công nợ của học sinh: <span className="text-[#0c513f] dark:text-emerald-400 font-bold">{students.find(student => student.studentPartyId === studentParam || student.studentId === studentParam || student.studentCode === studentParam)?.displayName || studentParam}</span> ({studentParam})
               </p>
               <p className="text-[11px] text-slate-500 dark:text-slate-400">
                 Danh sách hóa đơn đã được tự động lọc theo bé. Bạn có thể kiểm tra trạng thái thanh toán, lập hóa đơn hoặc chuyển nhanh sang hồ sơ khác.
@@ -1648,7 +1665,7 @@ function FinancePageContent() {
                       {pendingExceptionsCount} ngoại lệ tài chính
                     </p>
                     <p className="text-[11px] text-slate-500 truncate">
-                      Cần xử lý & xác nhận
+                      Cần xử lý &amp; xác nhận
                     </p>
                   </div>
                   <ChevronRight className="w-4 h-4 text-slate-400" />
@@ -1670,7 +1687,7 @@ function FinancePageContent() {
                       {draftInvoicesCount} hóa đơn nháp chưa phát hành
                     </p>
                     <p className="text-[11px] text-slate-500 truncate">
-                      Chờ duyệt & gửi phụ huynh
+                      Chờ duyệt &amp; gửi phụ huynh
                     </p>
                   </div>
                   <ChevronRight className="w-4 h-4 text-slate-400" />
@@ -2138,17 +2155,49 @@ function FinancePageContent() {
                   </h3>
                 </div>
                 <button
-                  onClick={handleCompleteTuitionServicePeriod}
-                  disabled
-                  className="px-2.5 py-1 rounded-lg bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 text-[11px] font-bold text-slate-700 dark:text-slate-200"
+                  onClick={() => setActiveTab('debts')}
+                  className="text-xs font-bold text-emerald-700 dark:text-emerald-400 hover:underline flex items-center gap-1"
                 >
                   <span>Xem tất cả</span>
                   <span>→</span>
                 </button>
               </div>
-              <p className="text-[10px] text-slate-500 leading-tight">
-                Xác nhận kỳ toàn trường chưa khả dụng trong luồng theo cơ sở.
-              </p>
+
+              <div className="space-y-3 pt-1">
+                {dynamicTopOverdue.length === 0 ? (
+                  <div className="py-6 text-center text-xs text-slate-400">
+                    <CheckCircle2 className="w-6 h-6 mx-auto mb-1.5 text-emerald-500 opacity-60" />
+                    <span>Chưa có công nợ quá hạn trong dữ liệu đã tải.</span>
+                  </div>
+                ) : (
+                  dynamicTopOverdue.map((st) => (
+                    <div key={st.id} className="flex items-center justify-between gap-3 text-xs">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0 ${st.avatarBg}`}>
+                          {st.initial}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="font-extrabold text-slate-900 dark:text-white truncate">
+                            {st.name}
+                          </p>
+                          <p className="text-[11px] text-slate-500 truncate">
+                            {st.className} {st.studentCode ? `· ${st.studentCode}` : ''}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="text-right shrink-0">
+                        <p className="font-extrabold text-slate-900 dark:text-white">
+                          {formatCurrency(st.amount)}
+                        </p>
+                        <p className="text-[11px] font-bold text-rose-500">
+                          ● Quá hạn {st.overdueDays} ngày
+                        </p>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
             </div>
 
             {/* Card 3: Thanh toán gần đây */}
@@ -2447,7 +2496,7 @@ function FinancePageContent() {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl bg-white dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-700/80 shadow-sm">
             <div>
               <h2 className="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
-                <span>Quản Lý Công Nợ & Thu Hồi Học Phí</span>
+                <span>Quản Lý Công Nợ &amp; Thu Hồi Học Phí</span>
                 <span className="px-2 py-0.5 rounded-full text-[11px] font-black bg-rose-500 text-white leading-none">
                   {overdueCount} quá hạn
                 </span>
@@ -2462,7 +2511,7 @@ function FinancePageContent() {
               className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 disabled:bg-rose-300 text-white text-xs font-bold flex items-center gap-2 shadow-sm transition-all"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${scanningOverdue ? 'animate-spin' : ''}`} />
-              <span>Quét & Leo thang công nợ</span>
+              <span>Quét &amp; Leo thang công nợ</span>
             </button>
           </div>
 
@@ -2572,7 +2621,7 @@ function FinancePageContent() {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl bg-white dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-700/80 shadow-sm">
             <div>
               <h2 className="text-base font-extrabold text-slate-900 dark:text-white">
-                Sổ Quỹ Thanh Toán & Phiếu Thu Học Phí
+                Sổ Quỹ Thanh Toán &amp; Phiếu Thu Học Phí
               </h2>
               <p className="text-xs text-slate-500 mt-0.5">
                 Ghi nhận các giao dịch thu tiền, đối soát và cấp phát biên lai điện tử.
@@ -2667,7 +2716,7 @@ function FinancePageContent() {
         <div className="space-y-6">
           <div className="p-5 rounded-2xl bg-white dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-700/80 shadow-sm space-y-2">
             <h2 className="text-base font-extrabold text-slate-900 dark:text-white">
-              Trung Tâm Đối Soát & Giải Quyết Ngoại Lệ Tài Chính
+              Trung Tâm Đối Soát &amp; Giải Quyết Ngoại Lệ Tài Chính
             </h2>
             <p className="text-xs text-slate-500">
               Khớp nối các khoản thanh toán dôi dư, xử lý ngoại lệ truyền thông và tạo bằng chứng hoàn thành kỳ dịch vụ học phí.
@@ -2788,7 +2837,7 @@ function FinancePageContent() {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl bg-white dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-700/80 shadow-sm">
             <div>
               <h2 className="text-base font-extrabold text-slate-900 dark:text-white">
-                Báo Cáo Thu Học Phí & Hiệu Quả Thu Hồi
+                Báo Cáo Thu Học Phí &amp; Hiệu Quả Thu Hồi
               </h2>
               <p className="text-xs text-slate-500 mt-0.5">
                 Tổng hợp doanh thu theo từng kỳ thu học phí và phân tích cơ cấu nợ theo từng khối lớp.
@@ -2800,7 +2849,7 @@ function FinancePageContent() {
               className="px-4 py-2 rounded-xl bg-[#0c513f] hover:bg-[#093e30] text-white text-xs font-bold flex items-center gap-2 shadow-sm"
             >
               <Download className="w-4 h-4" />
-              <span>In & Xuất Báo Cáo</span>
+              <span>In &amp; Xuất Báo Cáo</span>
             </button>
           </div>
 
@@ -2877,12 +2926,15 @@ function FinancePageContent() {
             <h2 id="finance-payment-title" className="text-lg font-bold">Thu học phí / khôi phục khoản thu</h2>
             <label className="block text-sm">Số tiền
               <input aria-label="Số tiền thanh toán" type="number" min="0.01" step="0.01" value={paymentAmount}
-                disabled={!!retainedIntent} onChange={event => setPaymentAmount(event.target.value)} className="block w-full border rounded-lg p-2 bg-transparent" />
+                disabled={!!retainedIntent && !retainedIntent.correctable} onChange={event => setPaymentAmount(event.target.value)} className="block w-full border rounded-lg p-2 bg-transparent" />
             </label>
-            <PremiumSelect ariaLabel="Phương thức thanh toán" value={paymentMethod} disabled={!!retainedIntent}
+            <PremiumSelect ariaLabel="Phương thức thanh toán" value={paymentMethod} disabled={!!retainedIntent && !retainedIntent.correctable}
               options={[{ value: 'CASH', label: 'Tiền mặt' }, { value: 'BANK_TRANSFER', label: 'Chuyển khoản' }, { value: 'QR_CODE', label: 'Mã QR' }]}
               onChange={value => setPaymentMethod(value as FinancePaymentIntent['paymentMethod'])} />
-            {retainedIntent && <p role="status" className="text-sm">{retainedIntent.result ? 'Khoản thu đã có kết quả. Kiểm tra lại sẽ dùng đúng yêu cầu đã lưu.' : 'Khoản thu đang chờ xác nhận. Thử lại sẽ giữ nguyên nội dung và mã yêu cầu.'}</p>}
+            {retainedIntent && <p role="status" className="text-sm">{retainedIntent.result
+              ? 'Khoản thu đã có kết quả. Kiểm tra lại sẽ dùng đúng yêu cầu đã lưu.'
+              : retainedIntent.correctable ? 'Khoản thu đã bị từ chối và chưa được ghi nhận. Có thể sửa nội dung; mã yêu cầu được giữ nguyên.'
+                : 'Khoản thu đang chờ xác nhận. Thử lại sẽ giữ nguyên nội dung và mã yêu cầu.'}</p>}
             {retainedIntent?.result && <p className="text-sm break-all">Biên nhận: {retainedIntent.result.receiptId}</p>}
             <div className="flex gap-3">
               <button type="button" disabled={loading} onClick={() => setPaymentInvoiceId('')} className="border rounded-xl px-3 py-2">Đóng</button>

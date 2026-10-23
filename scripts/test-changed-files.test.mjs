@@ -57,6 +57,20 @@ test('no covered changes writes truthful empty counters without spawning Jest', 
   assert.equal(r.writes[0].value.numFailedTests, 0);
 });
 
+test('controlled local DB proofs never run as direct tests without their local fixture environment', () => {
+  const local = [
+    'tests/products/bella-education/finance/p71-finance-billing.integration.test.ts',
+    'tests/products/bella-education/finance/p72-finance-communication.integration.test.ts',
+    'tests/products/bella-education/finance/preschool-finance-canonical-identity.test.ts',
+    'src/platform/education/__tests__/enrollment-event-recovery-real-db.test.ts',
+  ];
+  const r = select([...local, 'src/__tests__/example.test.ts']);
+  assert.deepEqual(r.calls[0].args, ['jest', '--runInBand', '--runTestsByPath', 'src/__tests__/example.test.ts']);
+  const onlyLocal = select(local, 0, true);
+  assert.equal(onlyLocal.calls.length, 0);
+  assert.equal(onlyLocal.writes[0].value.numTotalTests, 0);
+});
+
 test('failed process creation is a failure, never a no-tests pass', () => {
   assert.equal(select(['src/example.ts', 'src/__tests__/example.test.ts'], null).exit, 1);
 });

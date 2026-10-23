@@ -25,6 +25,22 @@ describe('approved durable browser request identity boundary', () => {
     expect(() => preparePaymentIntent(first, scope, 'invoice-a', 20, 'BANK_TRANSFER', () => 'different-key')).toThrow();
     expect(first.operationKey).toBe('key');
   });
+
+  it('corrects a rejected payload with the SAME key after reload; the next pending attempt is immutable again', () => {
+    const first = preparePaymentIntent(null, scope, 'invoice-a', 200, 'CASH', () => 'original-key');
+    const restored = parsePaymentIntent(JSON.stringify({ ...first, correctable: true }), scope, 'invoice-a');
+    const corrected = preparePaymentIntent(restored, scope, 'invoice-a', 20, 'BANK_TRANSFER', () => { throw new Error('must keep key'); }, first.operationKey);
+    expect(corrected).toMatchObject({ operationKey: 'original-key', paymentAmount: 20, paymentMethod: 'BANK_TRANSFER' });
+    expect(corrected.correctable).toBeUndefined();
+    expect(() => preparePaymentIntent(corrected, scope, 'invoice-a', 21, 'CASH', () => 'new')).toThrow();
+  });
+
+  it('never permits editing a persisted canonical success', () => {
+    const first = preparePaymentIntent(null, scope, 'invoice-a', 20, 'CASH', () => 'key');
+    const restored = parsePaymentIntent(JSON.stringify({ ...first, correctable: true, result: { paymentId: 'p', receiptId: 'r' } }), scope, 'invoice-a');
+    expect(restored?.correctable).toBeUndefined();
+    expect(() => preparePaymentIntent(restored, scope, 'invoice-a', 21, 'CASH', () => 'new')).toThrow();
+  });
   it('preserves acknowledged canonical IDs for another result check rather than creating a new payment', () => {
     const first = { ...preparePaymentIntent(null, scope, 'invoice-a', 20, 'CASH', () => 'key'), result: { paymentId: 'payment-a', receiptId: 'receipt-a' } };
     const restored = parsePaymentIntent(JSON.stringify(first), scope, 'invoice-a');

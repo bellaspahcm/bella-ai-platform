@@ -1044,7 +1044,7 @@ export default function PreschoolEnrollmentsPage() {
                 Quản Lý Trẻ
               </h1>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 font-medium">
-                Danh sách toàn bộ hồ sơ trẻ mầm non ({totalCount} trẻ), hồ sơ cá nhân, người giám hộ & lịch sử học tập
+                Danh sách toàn bộ hồ sơ trẻ mầm non ({totalCount} trẻ), hồ sơ cá nhân, người giám hộ &amp; lịch sử học tập
               </p>
             </div>
           </div>
@@ -1523,7 +1523,7 @@ export default function PreschoolEnrollmentsPage() {
                                     className="flex items-center gap-2.5 px-3 py-2 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-rose-50 dark:hover:bg-rose-950/50 hover:text-rose-600 rounded-xl transition-colors"
                                   >
                                     <CreditCard className="w-4 h-4 text-rose-500" />
-                                    <span>Học Phí & Công Nợ</span>
+                                    <span>Học Phí &amp; Công Nợ</span>
                                   </Link>
                                 </div>
                               </div>

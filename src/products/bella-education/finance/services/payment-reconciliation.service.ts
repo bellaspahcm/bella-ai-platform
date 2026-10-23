@@ -10,7 +10,7 @@
  */
 
 import { createHash, randomUUID } from 'crypto';
-import { PreschoolFinanceRepository } from '../repositories/preschool-finance.repository';
+import { FinanceAtomicDatabaseError, PreschoolFinanceRepository } from '../repositories/preschool-finance.repository';
 import { canonicalJsonString } from './invoice-issuance.service';
 import type { FinanceReconciliationCommand, FinanceReconciliationResult, Payment } from '../domain/finance.types';
 
@@ -168,6 +168,13 @@ export class PaymentReconciliationService {
       // the first read. Keep the same key; never issue another payment command blindly.
       const afterUncertainOutcome = await this.repo.recoverAtomicReconciliation(command);
       if (afterUncertainOutcome) return this.verifyReceipt(afterUncertainOutcome);
+      // Only an acknowledged transaction rejection followed by successful,
+      // authorized read-back permits correction. Transport, authority and
+      // canonical-conflict failures retain the original immutable request.
+      if (error instanceof FinanceAtomicDatabaseError && error.code === 'P0001'
+          && /^(ALLOCATION_EXCEEDS_OUTSTANDING_ERROR|UNISSUED_INVOICE_RECONCILIATION_ERROR|FINANCE_STUDENT_ENROLLMENT_REQUIRED):/.test(error.message)) {
+        error.paymentNotCommitted = true;
+      }
       throw error;
     }
   }

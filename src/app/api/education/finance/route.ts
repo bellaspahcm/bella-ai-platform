@@ -66,7 +66,9 @@ function errorStatus(error: unknown): number {
 
 function jsonError(error: unknown) {
   const message = error instanceof Error ? error.message : 'Finance operation failed';
-  return NextResponse.json({ success: false, error: message }, { status: errorStatus(error) });
+  return NextResponse.json({ success: false, error: message,
+    ...(error instanceof FinanceAtomicDatabaseError && error.paymentNotCommitted ? { paymentNotCommitted: true } : {}),
+  }, { status: errorStatus(error) });
 }
 
 async function resolveActor(operation: PreschoolFinanceOperation) {

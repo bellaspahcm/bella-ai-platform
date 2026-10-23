@@ -456,7 +456,7 @@ function AttendancePageContent() {
               </div>
               <div>
                 <h1 className="text-xl sm:text-2xl font-extrabold text-gray-900 dark:text-white tracking-tight">
-                  Điểm Danh & Đưa Đón Bé An Toàn
+                  Điểm Danh &amp; Đưa Đón Bé An Toàn
                 </h1>
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                   Ghi nhận điểm danh hằng ngày từ danh sách học sinh đã enrollment thật
@@ -888,7 +888,7 @@ function AttendancePageContent() {
               </div>
               <div>
                 <h3 className="font-extrabold text-gray-900 dark:text-white text-base">
-                  Ủy Quyền Đưa Đón & Quét QR An Toàn
+                  Ủy Quyền Đưa Đón &amp; Quét QR An Toàn
                 </h3>
                 <p className="text-xs text-gray-500 dark:text-gray-400">
                   Danh sách bên dưới dùng học sinh thật; capability đưa đón/QR chưa nối trong bước này

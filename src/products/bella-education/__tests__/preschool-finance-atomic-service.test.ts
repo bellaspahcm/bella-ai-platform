@@ -5,6 +5,7 @@
  */
 import { createHash } from 'crypto';
 import { PaymentReconciliationService, type PaymentReconciliationRepository } from '../finance/services/payment-reconciliation.service';
+import { FinanceAtomicDatabaseError } from '../finance/repositories/preschool-finance.repository';
 import type { FinanceReconciliationResult } from '../finance/domain/finance.types';
 import { canonicalJsonString } from '../finance/services/invoice-issuance.service';
 
@@ -102,6 +103,31 @@ describe('Preschool Finance atomic command orchestration', () => {
     repo.recoverAtomicReconciliation.mockRejectedValue(new Error('database unavailable'));
     await expect(service.recordAndReconcilePayment(command)).rejects.toThrow('database unavailable');
     expect(repo.commitAtomicReconciliation).not.toHaveBeenCalled();
+  });
+
+  it('permits correction only after an acknowledged rejection and authorized null read-back', async () => {
+    const error = new FinanceAtomicDatabaseError('ALLOCATION_EXCEEDS_OUTSTANDING_ERROR: Balance exceeded.', 'P0001');
+    repo.commitAtomicReconciliation.mockRejectedValue(error);
+    await expect(service.recordAndReconcilePayment(command)).rejects.toMatchObject({ paymentNotCommitted: true });
+    expect(repo.recoverAtomicReconciliation).toHaveBeenCalledTimes(2);
+  });
+
+  it.each([
+    new FinanceAtomicDatabaseError('FINANCE_OPERATION_CONFLICT: Mismatch.', 'P0001'),
+    new FinanceAtomicDatabaseError('ALLOCATION_EXCEEDS_OUTSTANDING_ERROR: Balance exceeded.', '08006'),
+    new Error('Response lost'),
+  ])('does not permit correction for conflict or uncertain transport outcome (%p)', async error => {
+    repo.commitAtomicReconciliation.mockRejectedValue(error);
+    await expect(service.recordAndReconcilePayment(command)).rejects.toBe(error);
+    expect('paymentNotCommitted' in error && error.paymentNotCommitted).not.toBe(true);
+  });
+
+  it('does not mark a rejection safe when read-back fails or access is revoked', async () => {
+    const error = new FinanceAtomicDatabaseError('ALLOCATION_EXCEEDS_OUTSTANDING_ERROR: Balance exceeded.', 'P0001');
+    repo.commitAtomicReconciliation.mockRejectedValue(error);
+    repo.recoverAtomicReconciliation.mockResolvedValueOnce(null).mockRejectedValueOnce(new Error('permission revoked'));
+    await expect(service.recordAndReconcilePayment(command)).rejects.toThrow('permission revoked');
+    expect(error.paymentNotCommitted).toBe(false);
   });
 
   it('fails closed when current authority was revoked after an uncertain outcome', async () => {

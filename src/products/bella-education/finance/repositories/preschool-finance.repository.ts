@@ -53,6 +53,7 @@ type TuitionServicePeriodCompletionRow = {
 type DbRow = Record<string, unknown>;
 
 export class FinanceAtomicDatabaseError extends Error {
+  paymentNotCommitted = false;
   constructor(message: string, readonly code: string) {
     super(message);
     this.name = 'FinanceAtomicDatabaseError';

@@ -13,6 +13,7 @@ jest.mock('@/lib/supabase-server', () => ({ createClient: () => mockCreateClient
 jest.mock('@/products/bella-education/finance/repositories/preschool-finance.repository', () => ({
   PreschoolFinanceRepository: jest.fn(() => ({ getInvoiceById: mockInvoiceRead, readBranchState: mockBranchRead })),
   FinanceAtomicDatabaseError: class extends Error {
+    paymentNotCommitted = false;
     constructor(message: string, readonly code: string) { super(message); }
   },
 }));
@@ -161,6 +162,17 @@ describe('Preschool Finance atomic API', () => {
   it('keeps unissued or archived invoice rejection a client error', async () => {
     mockAtomicCommand.mockRejectedValue(new FinanceAtomicDatabaseError('UNISSUED_INVOICE_RECONCILIATION_ERROR: Active ISSUED invoice required.', 'P0001'));
     expect((await POST(request())).status).toBe(400);
+  });
+
+  it('exposes correction only when the service confirms no committed operation', async () => {
+    const rejection = new FinanceAtomicDatabaseError('ALLOCATION_EXCEEDS_OUTSTANDING_ERROR: Balance exceeded.', 'P0001');
+    rejection.paymentNotCommitted = true;
+    mockAtomicCommand.mockRejectedValueOnce(rejection);
+    const response = await POST(request());
+    expect(response.status).toBe(400);
+    expect(await response.json()).toMatchObject({ paymentNotCommitted: true });
+    mockAtomicCommand.mockRejectedValueOnce(new FinanceAtomicDatabaseError('ALLOCATION_EXCEEDS_OUTSTANDING_ERROR: Balance exceeded.', 'P0001'));
+    expect(await (await POST(request())).json()).not.toHaveProperty('paymentNotCommitted');
   });
 
   it('fails closed on permission denial and database failures', async () => {
