@@ -1,4 +1,4 @@
-import { parsePaymentIntent, preparePaymentIntent, paymentIntentStorageKey } from '../finance/services/preschool-finance-payment-intent';
+import { parsePaymentIntent, preparePaymentIntent, paymentIntentStorageKey, type FinancePaymentIntent } from '../finance/services/preschool-finance-payment-intent';
 const scope = { actorId: 'actor-a', tenantId: 'tenant-a', branchId: 'branch-a' };
 describe('approved durable browser request identity boundary', () => {
   it('recovers exactly the same operation key and payload from persisted JSON after reload', () => {
@@ -11,6 +11,13 @@ describe('approved durable browser request identity boundary', () => {
     expect(() => parsePaymentIntent(JSON.stringify(first), { ...scope, ...change }, 'invoice-a')).toThrow();
   });
   it('fails closed on corrupt persisted state', () => { expect(() => parsePaymentIntent('{', scope, 'invoice-a')).toThrow(); });
+  it.each(['CARD', 'untrusted-select-value', { toString: () => 'CASH' }])('rejects an undeclared runtime method before allocating a key (%p)', value => {
+    const allocate = jest.fn(() => 'must-not-persist');
+    expect(() => preparePaymentIntent(null, scope, 'invoice-a', 20, value as FinancePaymentIntent['paymentMethod'], allocate)).toThrow('Phương thức');
+    expect(allocate).not.toHaveBeenCalled();
+    const valid = preparePaymentIntent(null, scope, 'invoice-a', 20, 'CASH', () => 'key');
+    expect(() => parsePaymentIntent(JSON.stringify({ ...valid, paymentMethod: value }), scope, 'invoice-a')).toThrow();
+  });
   it('distinguishes missing state from corrupt state', () => { expect(parsePaymentIntent(null, scope, 'invoice-a')).toBeNull(); });
   it('rejects changed payload while retaining the original operation', () => {
     const first = preparePaymentIntent(null, scope, 'invoice-a', 20, 'CASH', () => 'key');
