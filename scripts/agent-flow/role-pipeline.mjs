@@ -4,9 +4,10 @@ import { resolve, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { hash } from './contract.mjs';
 import { counters, validateHandoff } from './role-validation.mjs';
+import { isMvpPilot, pilotId } from './mvp-pilot.mjs';
 export { counters, validateHandoff } from './role-validation.mjs';
 
-const protectedNames = new Set(['authority.mjs', 'contract.mjs', 'store.mjs', 'probe.mjs', 'role-pipeline.mjs', 'role-native.mjs', 'role-pipeline.test.mjs', 'run-evidence.mjs', 'persistence-diagnostic.mjs', 'factory-publication.mjs', 'role-validation.mjs']);
+const protectedNames = new Set(['authority.mjs', 'contract.mjs', 'store.mjs', 'probe.mjs', 'role-pipeline.mjs', 'role-native.mjs', 'role-pipeline.test.mjs', 'run-evidence.mjs', 'persistence-diagnostic.mjs', 'factory-publication.mjs', 'role-validation.mjs', 'mvp-pilot.mjs', 'mvp-pilot.test.mjs', 'mvp-pilot-runner.mjs', 'mvp-pilot-runner.test.mjs']);
 const fail = code => { throw new Error(code); };
 export function admitTask(task) {
   const keys = ['taskId', 'sourceRevision', 'goal', 'ownedFiles', 'testFile', 'acceptance', 'maxSeconds'];
@@ -16,8 +17,9 @@ export function admitTask(task) {
       !Array.isArray(task.acceptance) || !task.acceptance.length || task.acceptance.length > 12 || task.acceptance.some(v => typeof v !== 'string' || !v.length || v.length > 1000) ||
       !Number.isSafeInteger(task.maxSeconds) || task.maxSeconds < 60 || task.maxSeconds > 1800 ||
       !Array.isArray(task.ownedFiles) || !task.ownedFiles.length || task.ownedFiles.length > 4 || new Set(task.ownedFiles).size !== task.ownedFiles.length ||
-      task.ownedFiles.some(p => typeof p !== 'string' || !/^scripts\/agent-flow\/[a-z][a-z0-9.-]*\.mjs$/.test(p) || protectedNames.has(p.split('/').at(-1))) ||
-      !/^scripts\/agent-flow\/[a-z][a-z0-9.-]*\.test\.mjs$/.test(task.testFile) || !task.ownedFiles.includes(task.testFile)) fail('INVALID_TASK_SCOPE');
+      (task.taskId===pilotId && !isMvpPilot(task)) ||
+      (!isMvpPilot(task) && (task.ownedFiles.some(p => typeof p !== 'string' || !/^scripts\/agent-flow\/[a-z][a-z0-9.-]*\.mjs$/.test(p) || protectedNames.has(p.split('/').at(-1))) ||
+      !/^scripts\/agent-flow\/[a-z][a-z0-9.-]*\.test\.mjs$/.test(task.testFile) || !task.ownedFiles.includes(task.testFile)))) fail('INVALID_TASK_SCOPE');
   return structuredClone(task);
 }
 
@@ -61,7 +63,8 @@ export async function drive(taskInput, { role, snapshot, record, now = Date.now 
     if (before.head !== after.head || changed.some(p => !task.ownedFiles.includes(p)) || (name !== 'BUILDER' && changed.length)) fail('SOURCE_SCOPE_VIOLATION');
     if (!result || result.role !== name || !result.nativeVerified || !result.binding?.threadId || receipts.some(r => r.binding.threadId === result.binding.threadId)) fail('NATIVE_ROLE_PROOF_REQUIRED');
     if (name !== 'BUILDER' && result.candidate !== before.fingerprint) fail('STALE_ROLE_RESULT');
-    if (name === 'BUILDER' && (!changed.length || !Array.isArray(result.changed) || changed.some(p => !result.changed.includes(p)) || result.changed.some(p => !task.ownedFiles.includes(p)))) fail('REAL_BUILDER_CHANGE_REQUIRED');
+    const verifiedExisting = isMvpPilot(task) && name === 'BUILDER' && result.noChange === true && result.decision === 'DONE' && changed.length === 0 && Array.isArray(result.changed) && result.changed.length === 0;
+    if (name === 'BUILDER' && !verifiedExisting && (!changed.length || !Array.isArray(result.changed) || changed.some(p => !result.changed.includes(p)) || result.changed.some(p => !task.ownedFiles.includes(p)))) fail('REAL_BUILDER_CHANGE_REQUIRED');
     const receipt = { ...result, revision, before: before.fingerprint, after: after.fingerprint, changed, elapsedMs: now() - started };
     await record(receipt); receipts.push(receipt); candidate = after.fingerprint;
     return receipt;
@@ -90,6 +93,7 @@ export async function drive(taskInput, { role, snapshot, record, now = Date.now 
         await record({ terminal: result }); return result;
       }
       if (review.decision !== 'REVISE' || !Array.isArray(review.findings) || !review.findings.length) fail('REVIEW_HELD');
+      if (isMvpPilot(task)) fail('MVP_REVIEW_HELD');
       if (revision === 1) fail('REVISION_LIMIT');
       findings = review.findings; revision++;
     }

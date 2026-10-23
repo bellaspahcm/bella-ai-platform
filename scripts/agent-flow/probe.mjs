@@ -7,11 +7,13 @@ import { dirname, resolve, join } from 'node:path';
 import { authorizeRepository, REPOSITORY } from './authority.mjs';
 import { normalizeNotification, normalizeHistory, normalizeHistoryTurn, reconcile, hash, DAY_MS } from './contract.mjs';
 import { createPrivateDirectory, DevelopmentStore, writeDurableJson } from './store.mjs';
+import { pilotExecution, isMvpPilot } from './mvp-pilot.mjs';
 
 export class AppServer {
-  constructor(binary, cwd, onNotification = () => {}) {
+  constructor(binary, cwd, onNotification = () => {}, options = {}) {
     this.pending = new Map(); this.sequence = 0; this.buffer = ''; this.closed = false;
-    this.child = spawn(binary, ['app-server', '--listen', 'stdio://'], { cwd, windowsHide: true, stdio: ['pipe', 'pipe', 'pipe'] });
+    this.execution = isMvpPilot(options.task) ? pilotExecution(cwd, options) : null;
+    this.child = spawn(binary, this.execution?.args || ['app-server', '--listen', 'stdio://'], { cwd, windowsHide: true, stdio: ['pipe', 'pipe', 'pipe'] });
     this.child.stderr.on('data', () => {}); // Never persist raw diagnostics.
     this.child.on('error', () => this.fail());
     this.child.on('exit', () => { this.closed = true; this.fail(); });
@@ -52,7 +54,7 @@ export class AppServer {
   }
 
   async initialize() {
-    const result = await this.rpc('initialize', { clientInfo: { name: 'bella_monitor_batch1_dev', version: '0.0.1' }, capabilities: { experimentalApi: false } });
+    const result = await this.rpc('initialize', { clientInfo: { name: 'bella_monitor_batch1_dev', version: '0.0.1' }, capabilities: { experimentalApi: !!this.execution } });
     this.child.stdin.write(JSON.stringify({ method: 'initialized', params: {} }) + '\n');
     return result;
   }

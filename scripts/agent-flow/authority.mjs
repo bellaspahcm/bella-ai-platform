@@ -15,7 +15,9 @@ export async function authorizeRepository(repository, githubGet = githubApi) {
     if (grant?.user?.login?.toLowerCase() !== user.login.toLowerCase()) throw new Error();
     roleForPermission(grant.permission, 'dev');
     return { repository, actor: user.login, permission: grant.permission, verifiedAt: new Date().toISOString() };
-  } catch {
+  } catch (error) {
+    // Preserve only the known provider code; never forward its raw diagnostics.
+    if (error?.message === 'GITHUB_AUTHORITY_UNAVAILABLE') throw new Error('GITHUB_AUTHORITY_UNAVAILABLE');
     throw new Error('TELEMETRY_ACCESS_DENIED');
   }
 }

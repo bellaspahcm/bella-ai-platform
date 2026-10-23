@@ -1,5 +1,6 @@
 import { resolve } from 'node:path';
 import { hash } from './contract.mjs';
+import { isMvpPilot, pilotCommand, pilotReviewReads } from './mvp-pilot.mjs';
 const fail = code => { throw new Error(code); };
 
 export function exactTest(command, cwd, expected, workspace) {
@@ -10,6 +11,7 @@ export function exactTest(command, cwd, expected, workspace) {
 }
 
 export function reviewReads(task, verificationPath) {
+  if (isMvpPilot(task)) return pilotReviewReads(task, verificationPath);
   // Forward slashes avoid native Windows shell-display backslash escaping.
   const portablePath = verificationPath.replaceAll('\\', '/');
   return [`git diff -- ${task.ownedFiles.join(' ')}`, ...task.ownedFiles.map(p => `Get-Content -LiteralPath '${p}'`), `Get-Content -LiteralPath '${portablePath.replaceAll("'", "''")}'`];
@@ -37,7 +39,8 @@ export function validateHandoff(terminal, task) {
   terminal.receipts.forEach((r, i) => {
     if (r.role !== roles[i] || !r.nativeVerified || r.before !== candidate || r.revision !== (i < 4 ? 0 : 1)) fail('HANDOFF_ROLE_SEQUENCE');
     if (r.role !== 'BUILDER' && (r.after !== r.before || r.candidate !== candidate)) fail('HANDOFF_CANDIDATE_MISMATCH');
-    if (r.role === 'BUILDER' && (!r.changed.length || r.after === r.before || r.changed.some(p => !task.ownedFiles.includes(p)))) fail('HANDOFF_BUILDER_MISMATCH');
+    const verifiedExisting = isMvpPilot(task) && r.role === 'BUILDER' && r.noChange === true && r.decision === 'DONE' && r.changed.length === 0 && r.after === r.before;
+    if (r.role === 'BUILDER' && !verifiedExisting && (!r.changed.length || r.after === r.before || r.changed.some(p => !task.ownedFiles.includes(p)))) fail('HANDOFF_BUILDER_MISMATCH');
     if (r.role === 'LEAD' && r.decision !== 'ACCEPT') fail('HANDOFF_LEAD_MISMATCH');
     if (r.role === 'VERIFY' && r.test?.candidate !== candidate) fail('HANDOFF_TEST_MISMATCH');
     if (r.role === 'REVIEWER' && i !== roles.length - 1 && (r.decision !== 'REVISE' || !r.findings?.length)) fail('HANDOFF_REVISION_MISMATCH');
@@ -66,7 +69,7 @@ export function validateRetainedRole(r, records, task, workspace, verificationPa
   if(JSON.stringify([...new Set(r.native.changes.flatMap(c=>c.paths))].sort())!==JSON.stringify([...r.changed].sort()))fail('NATIVE_CHANGE_MISMATCH');
   if (r.role!=='BUILDER' && (!r.native.commands.length || r.native.changes.length)) fail('NATIVE_READ_REQUIRED');
   if (r.role==='VERIFY') {
-    const expected='node --test --test-reporter=tap '+task.testFile, c=r.native.commands[0], parsed=counters(r.test?.output);
+    const expected=isMvpPilot(task) ? pilotCommand : 'node --test --test-reporter=tap '+task.testFile, c=r.native.commands[0], parsed=counters(r.test?.output);
     if (r.native.commands.length!==1 || !exactTest(c.command,c.cwd,expected,workspace) || c.status!=='completed' || r.test?.itemId!==c.itemId || r.test?.command!==expected || r.test?.exitCode!==c.exitCode || r.test?.candidate!==r.candidate || !parsed || hash(r.test.output)!==r.test.outputHash || c.outputHash!==r.test.outputHash || Object.keys(r.test.counters||{}).length!==6 || Object.entries(parsed).some(([k,v])=>r.test.counters[k]!==v)) fail('TEST_OUTPUT_MISMATCH');
   }
   if (r.role==='REVIEWER' && (!verificationPath || r.native.commands.some(c=>c.exitCode!==0||c.status!=='completed') || reviewReads(task,verificationPath).some(expected=>!r.native.commands.some(c=>exactTest(c.command,c.cwd,expected,workspace))))) fail('ACTUAL_REVIEW_READ_REQUIRED');
