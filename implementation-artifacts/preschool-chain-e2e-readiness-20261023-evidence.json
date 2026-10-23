@@ -1,0 +1,10 @@
+{
+  "archive": "implementation-artifacts/preschool-chain-e2e-readiness-20261023-evidence.zip",
+  "sha256": "13ca2bab0fb0f45cadb47bdcbd978ccc5f1a9b42f642ffda3e367596d28662d6",
+  "files": 200,
+  "bytes": 5321835,
+  "allExtractedHashesMatch": true,
+  "sourceManifest": "7b72cc814db67f9d5cc853fcbe643041579a8aff6600da27ec4e968fe94d3551",
+  "sourceFiles": 106,
+  "lineEndingOnlySourceVariance": 44
+}

@@ -137,6 +137,37 @@ export class SupabaseEducationRepository extends BaseSupabaseRepositoryPrimitive
     });
   }
 
+  public async findEnrollmentByRequestId(requestId: string, tenantId: string): Promise<Enrollment | null> {
+    const { data, error } = await this.supabase
+      .from('edu_enrollments')
+      .select('*')
+      .eq('tenant_id', tenantId)
+      .eq('request_id', requestId)
+      .maybeSingle();
+
+    if (error) {
+      throw this.mapDatabaseError(error, 'Failed to recover enrollment by request');
+    }
+    if (!data) return null;
+
+    const status = data.status;
+    if (status !== 'pending' && status !== 'active' && status !== 'completed' && status !== 'cancelled') {
+      throw new Error('Invalid enrollment recovery status');
+    }
+
+    return Enrollment.reconstitute({
+      id: data.id,
+      tenantId: data.tenant_id,
+      studentPartyId: data.student_party_id,
+      courseId: data.course_id,
+      status,
+      requestId: data.request_id,
+      enrolledAt: new Date(data.enrolled_at),
+      createdAt: new Date(data.created_at),
+      updatedAt: new Date(data.updated_at),
+    });
+  }
+
   public async findEnrollmentByStudentAndCourse(
     studentPartyId: string,
     courseId: string,

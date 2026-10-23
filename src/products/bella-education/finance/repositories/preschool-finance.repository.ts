@@ -7,6 +7,9 @@
 
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import type { Database, Json } from '@/types/database.types';
+import type { PreschoolFinanceAtomicDatabase } from '@/types/preschool-finance-atomic.database.types';
+import type { PreschoolFinanceBranchDatabase } from '@/types/preschool-finance-branch.database.types';
+import { FINANCE_BRANCH_COMMAND_RPC, FINANCE_BRANCH_READ_RPC, type FinanceBranchContext, type FinanceBranchOption, type FinanceBranchStudent } from '../services/preschool-finance-branch.contract';
 import {
   FeeStructure,
   BillingPeriod,
@@ -18,6 +21,8 @@ import {
   PaymentReceipt,
   TuitionRecognitionPolicy,
   TuitionServicePeriodCompletion,
+  FinanceReconciliationCommand,
+  FinanceReconciliationResult,
 } from '../domain/finance.types';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'http://127.0.0.1:54321';
@@ -46,6 +51,21 @@ type TuitionServicePeriodCompletionRow = {
 };
 
 type DbRow = Record<string, unknown>;
+
+export class FinanceAtomicDatabaseError extends Error {
+  paymentNotCommitted = false;
+  constructor(message: string, readonly code: string) {
+    super(message);
+    this.name = 'FinanceAtomicDatabaseError';
+  }
+}
+
+function readObject(value: unknown): DbRow {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw new Error('FINANCE_CANONICAL_CONFLICT: Expected canonical financial object.');
+  }
+  return Object.fromEntries(Object.entries(value));
+}
 
 type PartyValidationOptions = {
   tenantId: string;
@@ -101,7 +121,53 @@ function createDefaultFinanceClient(): PreschoolFinanceClient {
 }
 
 export class PreschoolFinanceRepository {
-  constructor(private readonly client: PreschoolFinanceClient = createDefaultFinanceClient()) {}
+  constructor(
+    private readonly client: PreschoolFinanceClient = createDefaultFinanceClient(),
+    private readonly branchContext?: FinanceBranchContext,
+  ) {}
+
+  async readBranchState(tenantId: string, actorId: string, branchId: string | null) {
+    const client = this.client as unknown as SupabaseClient<PreschoolFinanceBranchDatabase>;
+    const { data, error } = await client.rpc(FINANCE_BRANCH_READ_RPC, {
+      p_tenant_id: tenantId, p_actor_id: actorId, ...(branchId ? { p_branch_id: branchId } : {}),
+    });
+    if (error) throw new FinanceAtomicDatabaseError(error.message, error.code);
+    const result = readObject(data);
+    const array = (key: string): DbRow[] => {
+      if (!Array.isArray(result[key])) throw new Error('FINANCE_CANONICAL_CONFLICT: Expected branch collection.');
+      return result[key].map(readObject);
+    };
+    const branches: FinanceBranchOption[] = array('branches').map((row) => ({ id: readString(row, 'id'), name: readString(row, 'name'), code: readOptionalString(row, 'code') ?? null }));
+    const students: FinanceBranchStudent[] = array('students').map((row) => ({
+      enrollmentId: readString(row, 'enrollmentId'), courseId: readString(row, 'courseId'),
+      studentPartyId: readString(row, 'studentPartyId'), studentId: readString(row, 'studentId'),
+      studentCode: readString(row, 'studentCode'), displayName: readString(row, 'displayName'),
+    }));
+    return {
+      branches, selectedBranchId: readOptionalString(result, 'selectedBranchId') ?? null,
+      actorId, tenantId, students, completionAvailable: false,
+      billingPeriods: array('billingPeriods').map(this.mapBillingPeriod),
+      invoices: array('invoices').map(this.mapInvoice), payments: array('payments').map(this.mapPayment),
+      exceptions: array('exceptions'), servicePeriodCompletions: [] as TuitionServicePeriodCompletion[],
+    };
+  }
+
+  async branchCommand(action: string, payload: Record<string, unknown>): Promise<unknown> {
+    if (!this.branchContext?.branchId) throw new Error('AUTH_ROLE_PERMISSION_ERROR: Explicit Finance branch context required.');
+    const client = this.client as unknown as SupabaseClient<PreschoolFinanceBranchDatabase>;
+    const { data, error } = await client.rpc(FINANCE_BRANCH_COMMAND_RPC, {
+      p_tenant_id: this.branchContext.tenantId, p_actor_id: this.branchContext.actorId,
+      p_branch_id: this.branchContext.branchId, p_action: action, p_payload: toJson(payload),
+    });
+    if (error) throw new FinanceAtomicDatabaseError(error.message, error.code);
+    return data;
+  }
+
+  private branchInvoice(value: unknown): Invoice {
+    const row = readObject(value);
+    if (!Array.isArray(row.line_items)) throw new Error('FINANCE_CANONICAL_CONFLICT: Invoice lines required.');
+    return { ...this.mapInvoice(row), lineItems: row.line_items.map((item: unknown) => this.mapLineItem(readObject(item))) };
+  }
 
   async hasActiveEnrollmentForStudentParty(tenantId: string, studentPartyId: string): Promise<boolean> {
     const { data, error } = await this.client
@@ -394,6 +460,7 @@ export class PreschoolFinanceRepository {
     invoiceData: Omit<Invoice, 'id' | 'createdAt' | 'updatedAt'>,
     lineItems: Omit<InvoiceLineItem, 'id' | 'invoiceId' | 'createdAt'>[]
   ): Promise<Invoice> {
+    if (this.branchContext) return this.branchInvoice(await this.branchCommand('create-invoice', { invoice: invoiceData, lineItems }));
     // 1. Insert Invoice Header
     const { data: invResult, error: invErr } = await this.client
       .from('edu_fin_invoices')
@@ -479,13 +546,20 @@ export class PreschoolFinanceRepository {
       .eq('tenant_id', tenantId)
       .single();
 
+    if (invErr && this.branchContext && invErr.code !== 'PGRST116') {
+      throw new FinanceAtomicDatabaseError(invErr.message, invErr.code);
+    }
     if (invErr || !inv) return null;
 
-    const { data: items } = await this.client
+    const { data: items, error: itemsError } = await this.client
       .from('edu_fin_invoice_line_items')
       .select()
       .eq('invoice_id', invoiceId)
       .eq('tenant_id', tenantId);
+
+    if (itemsError && this.branchContext) {
+      throw new FinanceAtomicDatabaseError(itemsError.message, itemsError.code);
+    }
 
     return {
       ...this.mapInvoice(inv),
@@ -508,6 +582,10 @@ export class PreschoolFinanceRepository {
       sha256Checksum?: string;
     }
   ): Promise<Invoice> {
+    if (this.branchContext) {
+      if (tenantId !== this.branchContext.tenantId) throw new Error('TENANT_ISOLATION_VIOLATION: Invoice context mismatch.');
+      return this.branchInvoice(await this.branchCommand('issue-invoice', { invoiceId, patch: update }));
+    }
     const patch: EduFinInvoiceUpdate = { updated_at: new Date().toISOString() };
     if (update.invoiceStatus !== undefined) patch.invoice_status = update.invoiceStatus;
     if (update.settlementStatus !== undefined) patch.settlement_status = update.settlementStatus;
@@ -538,6 +616,56 @@ export class PreschoolFinanceRepository {
   }
 
   // ── PAYMENTS & RECONCILIATION ──
+  async commitAtomicReconciliation(command: FinanceReconciliationCommand): Promise<FinanceReconciliationResult> {
+    const result = await this.atomicReconciliationRpc('preschool_reconcile_finance_atomic', command);
+    if (!result) throw new Error('FINANCE_CANONICAL_CONFLICT: Atomic commit returned no canonical result.');
+    return result;
+  }
+
+  async recoverAtomicReconciliation(command: FinanceReconciliationCommand): Promise<FinanceReconciliationResult | null> {
+    return this.atomicReconciliationRpc('preschool_recover_finance_reconciliation', command);
+  }
+
+  private async atomicReconciliationRpc(
+    name: 'preschool_reconcile_finance_atomic' | 'preschool_recover_finance_reconciliation',
+    command: FinanceReconciliationCommand,
+  ): Promise<FinanceReconciliationResult | null> {
+    // The client has the same public schema; this projection is generated from
+    // the actual isolated DB rather than duplicating the new RPC's shape here.
+    const client = this.client as unknown as SupabaseClient<PreschoolFinanceAtomicDatabase>;
+    const response = command.branchId
+      ? await (this.client as unknown as SupabaseClient<PreschoolFinanceBranchDatabase>).rpc(FINANCE_BRANCH_COMMAND_RPC, {
+        p_tenant_id: command.tenantId, p_actor_id: command.actorId, p_branch_id: command.branchId,
+        p_action: name === 'preschool_recover_finance_reconciliation' ? 'recover-payment' : 'recordAndReconcilePayment',
+        p_payload: toJson({ operationKey: command.operationKey, request: command.request }),
+      })
+      : await client.rpc(name, {
+      p_tenant_id: command.tenantId,
+      p_actor_id: command.actorId,
+      p_operation_key: command.operationKey,
+      p_request: toJson(command.request),
+      });
+    const { data, error } = response;
+    if (error) throw new FinanceAtomicDatabaseError(error.message, error.code);
+    if (data === null) return null;
+    const row = readObject(data);
+    const payment = this.mapPayment(readObject(row.payment));
+    const reconciliationEntry = this.mapReconciliationEntry(readObject(row.reconciliationEntry));
+    const receipt = this.mapReceipt(readObject(row.receipt));
+    const status = row.updatedSettlementStatus;
+    if (status !== 'UNPAID' && status !== 'PARTIALLY_PAID' && status !== 'PAID' && status !== 'OVERPAID') {
+      throw new Error('FINANCE_CANONICAL_CONFLICT: Unknown settlement status.');
+    }
+    if ([payment.tenantId, reconciliationEntry.tenantId, receipt.tenantId].some((tenant) => tenant !== command.tenantId)
+        || reconciliationEntry.invoiceId !== command.request.invoiceId
+        || receipt.invoiceId !== command.request.invoiceId
+        || receipt.paymentId !== payment.id || reconciliationEntry.paymentId !== payment.id
+        || (command.request.kind === 'existing-payment' && payment.id !== command.request.paymentId)) {
+      throw new Error('FINANCE_CANONICAL_CONFLICT: Canonical command IDs or tenant mismatch.');
+    }
+    return { payment, reconciliationEntry, receipt, updatedSettlementStatus: status };
+  }
+
   async recordPayment(data: Omit<Payment, 'id' | 'createdAt'>): Promise<Payment> {
     const { data: result, error } = await this.client
       .from('edu_fin_payments')

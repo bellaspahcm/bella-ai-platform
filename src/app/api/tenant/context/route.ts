@@ -1,13 +1,14 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { cookies, headers } from 'next/headers';
+import { cookies } from 'next/headers';
 import { combineChunks, createServerClient as createSupabaseServerClient } from '@supabase/ssr';
 import { createClient as createSupabaseJsClient } from '@supabase/supabase-js';
-import { getSupabaseAdminUrl, getSupabaseAdminKey } from '@/lib/supabase-admin-env';
 import { getSupabasePublicUrl, requireSupabasePublicEnv } from '@/lib/supabase-public-env';
 import type { TenantContext } from '@/core/types/tenant';
 import type { Database } from '@/types/database.types';
 import type { SupabaseClient, User } from '@supabase/supabase-js';
+import { getTenantSettings } from '@/services/tenant-actions';
+import { CURRENT_ACTOR_PROFILE_RPC, reconcileCurrentActorProfile, type PlatformActorDatabase } from '@/platform/security/current-actor.contract';
 
 /**
  * Create a fresh Supabase server client for this Route Handler.
@@ -139,6 +140,11 @@ async function readAccessTokenFromChunkedCookie(
 }
 
 async function getSupabaseAccessTokenFromRequest(request: NextRequest) {
+  const authorization = request.headers.get('authorization');
+  if (authorization?.startsWith('Bearer ')) {
+    const token = authorization.slice(7).trim();
+    if (token) return token;
+  }
   const requestCookies = getRequestCookies(request);
   const projectRef = getProjectRefFromSupabaseUrl();
   const preferredCookieName = projectRef ? `sb-${projectRef}-auth-token` : null;
@@ -249,173 +255,53 @@ type TenantRow = Database['public']['Tables']['tenants']['Row'];
  */
 export async function GET(request: NextRequest) {
   try {
-    // ── Development mock bypass ──────────────────────────────────────────────
-    // proxy.ts injects x-mock-user-email when mock_user_email cookie is set.
-    // API Route Handlers don't receive the cookie-based session in this case,
-    // so we use the admin client to look up the user by email.
-    if (process.env.NODE_ENV === 'development') {
-      const reqHeaders = await headers();
-      const mockEmail = reqHeaders.get('x-mock-user-email');
-      const adminUrl = getSupabaseAdminUrl();
-      const adminKey = getSupabaseAdminKey();
-
-      if (mockEmail === 'admin@medical.vn' || mockEmail === 'admin@healthcare.vn') {
-        return NextResponse.json(
-          {
-            tenantId: '77777777-7777-7777-7777-777777777777',
-            tenantName: 'Bella Medical Clinic',
-            enabledModules: ['bella_healthcare'],
-            subscriptionPlan: 'enterprise',
-            featureFlags: {},
-            settings: {},
-          },
-          {
-            status: 200,
-            headers: {
-              'Cache-Control': 'no-store, no-cache, must-revalidate',
-              'Pragma': 'no-cache',
-              'Expires': '0',
-            },
-          }
-        );
-      }
-
-      if (mockEmail && adminUrl && adminKey) {
-        const admin = createSupabaseJsClient<Database>(adminUrl, adminKey, {
-          auth: { persistSession: false, autoRefreshToken: false },
-        });
-
-        const { data: mockUserProfile } = await admin
-          .from('users')
-          .select('id, tenant_id')
-          .eq('email', mockEmail)
-          .single();
-
-        if (mockUserProfile?.tenant_id) {
-          const { data: mockTenant } = await admin
-            .from('tenants')
-            .select('*')
-            .eq('id', mockUserProfile.tenant_id)
-            .single();
-
-          if (mockTenant) {
-            return NextResponse.json(transformTenantRowToContext(mockTenant), {
-              status: 200,
-              headers: {
-                'Cache-Control': 'no-store, no-cache, must-revalidate',
-                'Pragma': 'no-cache',
-                'Expires': '0',
-              },
-            });
-          }
-        }
-      }
-    }
-    // ── End dev bypass ───────────────────────────────────────────────────────
-
     const supabase = await createRouteHandlerClient();
-
-    // Get authenticated user from session
     const { user, authError, queryClient } = await resolveAuthenticatedUser(request, supabase);
-
     if (authError || !user) {
-      if (process.env.NODE_ENV === 'development') {
-        return NextResponse.json(
-          {
-            tenantId: 'dev-tenant',
-            tenantName: 'Bella Land (Dev)',
-            enabledModules: ['real_estate', 'beauty_spa', 'cleaning', 'bella_healthcare'],
-            subscriptionPlan: 'enterprise',
-            featureFlags: {},
-            settings: {},
-          },
-          {
-            status: 200,
-            headers: {
-              'Cache-Control': 'no-store, no-cache, must-revalidate',
-            },
-          }
-        );
-      }
-
-      console.error('[GET /api/tenant/context] Authentication failed:', authError);
       return NextResponse.json(
         { error: 'Unauthorized: Please log in to access tenant configuration' },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
-    // Fetch user profile to get tenant_id
-    const { data: userProfile, error: userError } = await queryClient
-      .from('users')
-      .select('tenant_id')
-      .eq('id', user.id)
-      .single();
-
-    if (userError) {
-      console.error('[GET /api/tenant/context] Failed to fetch user profile:', userError);
-      console.error('[GET /api/tenant/context] User ID:', user.id);
-      console.error('[GET /api/tenant/context] Error details:', JSON.stringify(userError));
-      
-      // If user record not found (PGRST116), provide more helpful error
-      if (userError.code === 'PGRST116') {
-        return NextResponse.json(
-          { 
-            error: 'User profile not found. Please contact administrator to set up your account.',
-            details: 'Your account exists in auth system but not linked to a tenant yet.'
-          },
-          { status: 403 }
-        );
-      }
-      
+    // Identity is read through the installed signed-in Platform contract. Do not
+    // restore direct table grants or treat caller tenant IDs as authority.
+    const actorClient = queryClient as unknown as SupabaseClient<PlatformActorDatabase>;
+    const { data: profiles, error: profileError } = await actorClient.rpc(CURRENT_ACTOR_PROFILE_RPC);
+    if (profileError) {
       return NextResponse.json(
-        { error: 'Failed to fetch user profile', details: userError.message },
-        { status: 500 }
+        { error: 'Failed to fetch user profile' },
+        { status: profileError.code === '42501' ? 403 : 500 },
       );
     }
-
-    if (!userProfile?.tenant_id) {
-      console.error('[GET /api/tenant/context] User has no tenant assigned:', user.id);
+    const actor = reconcileCurrentActorProfile(user.id, profiles);
+    if (!actor?.tenant_id) {
       return NextResponse.json(
-        { error: 'Forbidden: User has no tenant assigned. Please contact administrator.' },
-        { status: 403 }
+        { error: 'Forbidden: Active user profile and tenant assignment required.' },
+        { status: 403 },
       );
     }
 
-    const tenantId = userProfile.tenant_id;
-
-    // Fetch tenant configuration from database
-    const { data: tenant, error: tenantError } = await queryClient
-      .from('tenants')
-      .select('*')
-      .eq('id', tenantId)
-      .single();
-
-    if (tenantError) {
-      console.error('[GET /api/tenant/context] Failed to fetch tenant:', tenantError);
+    // Reuse the current-tenant service already consumed by the dashboard. It
+    // independently validates the actor before its existing server-owned read.
+    const tenant = await getTenantSettings();
+    if (!tenant) {
       return NextResponse.json(
         { error: 'Failed to fetch tenant configuration' },
-        { status: 500 }
+        { status: 500 },
       );
     }
-
-    if (!tenant) {
-      console.error('[GET /api/tenant/context] Tenant not found:', tenantId);
+    if (tenant.id !== actor.tenant_id || tenant.status !== 'active') {
       return NextResponse.json(
-        { error: 'Not Found: Tenant configuration not found' },
-        { status: 404 }
+        { error: 'Forbidden: Tenant configuration does not match current actor.' },
+        { status: 403 },
       );
     }
 
-    // Transform database row to TenantContext
-    const tenantContext = transformTenantRowToContext(tenant);
-
-    // Return tenant context
-    return NextResponse.json(tenantContext, {
+    return NextResponse.json(transformTenantRowToContext(tenant), {
       status: 200,
       headers: {
         'Content-Type': 'application/json',
-        // Prevent browser caching to ensure fresh tenant state when switching users or logging in
         'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
         'Pragma': 'no-cache',
         'Expires': '0',
@@ -423,11 +309,7 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error('[GET /api/tenant/context] Unexpected error:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    return NextResponse.json(
-      { error: `Internal server error: ${errorMessage}` },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to fetch tenant configuration' }, { status: 500 });
   }
 }
 
@@ -501,7 +383,15 @@ function transformTenantRowToContext(tenant: TenantRow): TenantContext {
     timezone: 'Asia/Ho_Chi_Minh', // Default timezone
     locale: 'vi-VN', // Default locale
     companyName: tenant.name, // Always set company name
+    productKey: tenant.product_key ?? null,
   };
+
+  const brand = tenant.brand_theme;
+  if (brand && typeof brand === 'object' && !Array.isArray(brand)) {
+    const keys = ['brandName', 'logoUrl', 'primaryColor', 'accentColor', 'portalDisplayName',
+      'invoiceDisplayName', 'stylePreset', 'radiusStyle', 'buttonStyle', 'menuStyle', 'fontHeading'];
+    settings.brandTheme = Object.fromEntries(keys.filter(key => typeof brand[key] === 'string').map(key => [key, brand[key]]));
+  }
 
   // Merge in any additional settings from database
   if (tenant.brand_theme && typeof tenant.brand_theme === 'object') {

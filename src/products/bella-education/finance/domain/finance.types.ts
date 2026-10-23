@@ -158,6 +158,27 @@ export type PaymentReceipt = {
   createdAt?: string;
 };
 
+/** Explicit command identity; it never conveys authorization. */
+export type FinanceReconciliationRequest =
+  | { kind: 'new-payment'; invoiceId: string; paymentAmount: number; paymentMethod: PaymentMethod }
+  | { kind: 'existing-payment'; invoiceId: string; paymentId: string; allocationAmount: number; notes: string | null };
+
+export interface FinanceReconciliationCommand {
+  tenantId: string;
+  actorId: string;
+  operationKey: string;
+  /** Explicit selected branch for the Product HTTP surface; never an access grant. */
+  branchId?: string;
+  request: FinanceReconciliationRequest;
+}
+
+export interface FinanceReconciliationResult {
+  payment: Payment;
+  reconciliationEntry: ReconciliationLedgerEntry;
+  receipt: PaymentReceipt;
+  updatedSettlementStatus: SettlementStatus;
+}
+
 export type TuitionRecognitionPolicy = {
   id: string;
   tenantId: string;

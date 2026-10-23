@@ -1,0 +1,26 @@
+  console.log
+    ◇ injected env (0) from .env.local // tip: ◈ secrets for agents [www.dotenvx.com]
+
+      at _log (D:/Antigravity/Projects/BELLA SPA ERP/node_modules/dotenv/lib/main.js:131:11)
+
+  console.log
+    [Jest Setup] SUPABASE_SERVICE_ROLE_KEY loaded: true
+
+      at Object.log (jest.setup.ts:17:9)
+
+  console.log
+    [EventBus] No handlers for event: edu.enrollment.created.v1
+
+      at MemoryEventBusAdapter.log [as publish] (src/platform/host/event-bus/memory-adapter.ts:20:15)
+
+  console.info
+[Preschool Chain retained fixture] retained history and retired run actor; generated IDs redacted for CI secret scanning
+
+      at Object.info (src/products/bella-education/__tests__/preschool-chain-real-db.test.ts:185:15)
+
+Test Suites: 1 passed, 1 total
+Tests:       2 passed, 2 total
+Snapshots:   0 total
+Time:        21.196 s
+Ran all test suites within paths "src/products/bella-education/__tests__/preschool-chain-real-db.test.ts".
+Test results written to: implementation-artifacts\preschool-chain-e2e-readiness-20261023T020601Z\delivery-20261023T041100Z\PRESCHOOL_REALDB_FIXTURE_REPAIR.json

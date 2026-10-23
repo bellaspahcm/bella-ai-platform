@@ -27,6 +27,7 @@ import { CommunicationDeliveryService } from '../../../../src/products/bella-edu
 import { AcknowledgementService } from '../../../../src/products/bella-education/parent-engagement/services/acknowledgement.service';
 import { CommunicationExceptionService } from '../../../../src/products/bella-education/parent-engagement/services/communication-exception.service';
 import { ParentCommunicationRepository } from '../../../../src/products/bella-education/parent-engagement/repositories/parent-communication.repository';
+import { assertLocalFinanceFixtureTarget, createFinanceBranchFixture, assignFinanceStudentFixture } from './fixtures/branch.fixture';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'http://127.0.0.1:54321';
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
@@ -45,13 +46,19 @@ describe('P7.2 Finance Communication & Collection Lifecycle Integration Suite', 
   let commRepo: ParentCommunicationRepository;
   let billingPeriodId: string;
   let courseId: string;
+  let branchFixture: Awaited<ReturnType<typeof createFinanceBranchFixture>>;
 
   let tenantA: string;
   let tenantB: string;
   let staffPartyId: string;
+  let financeActorUserId: string;
   let parentPartyId: string;
 
   beforeEach(async () => {
+    assertLocalFinanceFixtureTarget();
+    if (!['127.0.0.1', 'localhost'].includes(new URL(supabaseUrl).hostname)) {
+      throw new Error('P72_FIXTURE_REQUIRES_ISOLATED_LOCAL_DB');
+    }
     tenantA = crypto.randomUUID();
     tenantB = crypto.randomUUID();
     staffPartyId = crypto.randomUUID();
@@ -72,6 +79,25 @@ describe('P7.2 Finance Communication & Collection Lifecycle Integration Suite', 
     // 1. Seed Tenants & Persons for this test execution
     await supabase.from('tenants').insert({ id: tenantA, name: 'Bella Preschool Tenant A ' + tenantA.slice(0, 4) });
     await supabase.from('tenants').insert({ id: tenantB, name: 'Bella Preschool Tenant B ' + tenantB.slice(0, 4) });
+
+    // Finance authorization uses the Auth/public user ID; P6 keeps its separate staff Party ID.
+    const email = `controlled-p72-finance-${crypto.randomUUID()}@example.invalid`;
+    const { data: identity, error: identityError } = await supabase.auth.admin.createUser({
+      email,
+      email_confirm: true,
+    });
+    if (identityError || !identity.user) throw new Error('P72_AUTH_FIXTURE_FAILED');
+    financeActorUserId = identity.user.id;
+    const { error: actorError } = await supabase.from('users').insert({
+      id: financeActorUserId,
+      tenant_id: tenantA,
+      email,
+      full_name: 'Controlled P72 Finance actor',
+      role: 'accountant',
+      status: 'active',
+    });
+    if (actorError) throw new Error(`P72_ACTOR_FIXTURE_FAILED: ${actorError.message}`);
+    branchFixture = await createFinanceBranchFixture(supabase, tenantA, financeActorUserId, 'accountant');
 
     await supabase.from('party_parties').insert([
       { id: parentPartyId, tenant_id: tenantA, party_type: 'person', display_name: 'Mẹ Phụ Huynh P72' },
@@ -132,13 +158,22 @@ describe('P7.2 Finance Communication & Collection Lifecycle Integration Suite', 
         status: 'active',
       });
     }
-    await supabase.from('edu_enrollments').insert({
+    const requestId = crypto.randomUUID();
+    const enrollment = await supabase.from('edu_enrollments').insert({
       tenant_id: tenantId,
       course_id: enrollmentCourseId,
       student_party_id: studentPartyId,
       status: 'active',
-      request_id: `p72-${studentPartyId}`,
-    });
+      request_id: requestId,
+    }).select('id').single();
+    if (enrollment.error || !enrollment.data) throw new Error(`P72_ENROLLMENT_FIXTURE_FAILED: ${enrollment.error?.message}`);
+    if (tenantId === tenantA) {
+      await assignFinanceStudentFixture(supabase, {
+        tenantId, actorUserId: branchFixture.assignmentActorUserId,
+        branchId: branchFixture.branchId, studentPartyId,
+        enrollmentId: enrollment.data.id, courseId: enrollmentCourseId, requestId,
+      });
+    }
 
     if (tenantId === tenantA) {
       await supabase.from('party_relationships').insert({
@@ -418,7 +453,7 @@ describe('P7.2 Finance Communication & Collection Lifecycle Integration Suite', 
       studentId,
       paymentMethod: 'BANK_TRANSFER',
       amount: 5000000,
-      createdBy: staffPartyId,
+      createdBy: financeActorUserId,
     });
 
     await reconService.reconcilePaymentToInvoice({
@@ -426,7 +461,7 @@ describe('P7.2 Finance Communication & Collection Lifecycle Integration Suite', 
       paymentId: payment.id,
       invoiceId: issued.id,
       allocationAmount: 5000000,
-      reconciledByPartyId: staffPartyId,
+      reconciledByPartyId: financeActorUserId,
     });
 
     const { exceptions } = await scannerService.scanAndEscalateOverdueInvoices(tenantA, parentPartyId);
@@ -492,7 +527,7 @@ describe('P7.2 Finance Communication & Collection Lifecycle Integration Suite', 
       studentId,
       paymentMethod: 'QR_CODE',
       amount: 5000000,
-      createdBy: staffPartyId,
+      createdBy: financeActorUserId,
     });
 
     const { receipt, updatedSettlementStatus } = await reconService.reconcilePaymentToInvoice({
@@ -500,7 +535,7 @@ describe('P7.2 Finance Communication & Collection Lifecycle Integration Suite', 
       paymentId: payment.id,
       invoiceId: issued.id,
       allocationAmount: 5000000,
-      reconciledByPartyId: staffPartyId,
+      reconciledByPartyId: financeActorUserId,
     });
 
     expect(updatedSettlementStatus).toBe('PAID');

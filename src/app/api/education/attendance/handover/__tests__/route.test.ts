@@ -4,6 +4,8 @@ const mockFrom = jest.fn();
 const mockGetCurrentUser = jest.fn();
 const mockRecordHandover = jest.fn();
 
+const mockBranchCheck = jest.fn(async()=>undefined);
+jest.mock('@/products/bella-education/services/preschool-chain.service',()=>{ const actual=jest.requireActual('@/products/bella-education/services/preschool-chain.service') as typeof import('@/products/bella-education/services/preschool-chain.service');return {...actual,PreschoolChainService:jest.fn().mockImplementation(()=>({assertStudentAccess:mockBranchCheck}))};});
 jest.mock('@/lib/supabase-server', () => ({
   createClient: () => ({
     from: mockFrom,
