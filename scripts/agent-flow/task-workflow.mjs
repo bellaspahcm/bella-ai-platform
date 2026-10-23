@@ -59,7 +59,12 @@ export function projectItem(item) {
 
 export function changeMetadata(item, root = ROOT) {
   if (item?.type !== 'fileChange') return null;
-  const paths = (item.changes || []).map(change => {
+  const changes = item.changes ?? [];
+  if (!Array.isArray(changes) || Array.from(changes).some(change =>
+    !change || typeof change !== 'object' || Array.isArray(change) ||
+    typeof change.path !== 'string' || change.path.trim().length === 0
+  )) throw new Error('MALFORMED_NATIVE_FILECHANGE');
+  const paths = changes.map(change => {
     const local = relative(root, resolve(root, change.path)).replaceAll('\\', '/');
     if (!OWNED.includes(local)) throw new Error('AGENT_CHANGED_FORBIDDEN_PATH');
     return local;

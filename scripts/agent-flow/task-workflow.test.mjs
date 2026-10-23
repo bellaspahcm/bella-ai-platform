@@ -41,6 +41,54 @@ test('completed native file-change projection rejects an empty changes array', (
   assert.throws(() => changeMetadata({ type: 'fileChange', status: 'completed', changes: [] }), { message: 'EMPTY_NATIVE_FILECHANGE' });
 });
 
+test('native file-change projection rejects map-like changes without invoking map', () => {
+  let calls = 0;
+  const changes = {
+    map() {
+      calls += 1;
+      return ['scripts/agent-flow/contract.mjs'];
+    },
+  };
+  assert.throws(() => changeMetadata({ type: 'fileChange', status: 'completed', changes }), { message: 'MALFORMED_NATIVE_FILECHANGE' });
+  assert.equal(calls, 0);
+});
+
+test('native file-change projection rejects every non-null non-array changes collection', () => {
+  for (const changes of [false, true, 0, 1, '', 'scripts/agent-flow/contract.mjs', {}, { 0: { path: 'scripts/agent-flow/contract.mjs' }, length: 1 }]) {
+    for (const status of [undefined, 'inProgress', 'failed', 'completed']) {
+      assert.throws(() => changeMetadata({ type: 'fileChange', status, changes }), { message: 'MALFORMED_NATIVE_FILECHANGE' });
+    }
+  }
+});
+
+test('native file-change projection rejects malformed entries after a valid entry', () => {
+  for (const change of [
+    null, undefined, false, true, 0, 1, '', 'scripts/agent-flow/contract.mjs', 1n, Symbol('change'), () => {},
+    [], Object.assign([], { path: 'scripts/agent-flow/contract.mjs' }), {},
+    { path: undefined }, { path: null }, { path: false }, { path: 1 }, { path: {} }, { path: [] },
+    { path: '' }, { path: ' \t\n' },
+  ]) {
+    assert.throws(() => changeMetadata({
+      type: 'fileChange', status: 'completed',
+      changes: [{ path: 'scripts/agent-flow/contract.mjs' }, change],
+    }), { message: 'MALFORMED_NATIVE_FILECHANGE' });
+  }
+});
+
+test('native file-change projection rejects sparse arrays including holes beside valid entries', () => {
+  const valid = { path: 'scripts/agent-flow/contract.mjs' };
+  for (const changes of [new Array(1), [, valid], [valid, , valid], [valid, ,]]) {
+    assert.throws(() => changeMetadata({ type: 'fileChange', status: 'completed', changes }), { message: 'MALFORMED_NATIVE_FILECHANGE' });
+  }
+});
+
+test('native file-change validation rejects malformed entries before projecting an earlier forbidden path', () => {
+  const forbidden = { path: '../../outside.txt' };
+  for (const changes of [[forbidden, null], [forbidden, {}], [forbidden, { path: '' }], [forbidden, []], [forbidden, ,]]) {
+    assert.throws(() => changeMetadata({ type: 'fileChange', status: 'completed', changes }), { message: 'MALFORMED_NATIVE_FILECHANGE' });
+  }
+});
+
 test('non-fileChange items still project to null without inspecting changes', () => {
   for (const item of [undefined, null, {}, { type: 'commandExecution', status: 'completed', changes: [{ path: '../../outside.txt' }] }]) {
     assert.equal(changeMetadata(item), null);
