@@ -102,9 +102,12 @@ function extractErrorMessage(failureMessage: string): string {
   // `test failed` while the isolated output carries the actual assertion.
   const isolatedIndex = lines.findIndex(line => line.includes('ISOLATED scripts/'));
   if (isolatedIndex !== -1) {
+    const isolatedEnd = lines.findIndex((line, index) => index > isolatedIndex && line.includes('ISOLATED scripts/'));
+    const isolatedSummary = lines.slice(isolatedIndex, isolatedEnd === -1 ? isolatedIndex + 18 : isolatedEnd)
+      .map(line => line.trim()).filter(Boolean).join(' ').slice(0, 1200);
     const isolatedError = yamlError(isolatedIndex);
-    if (isolatedError && isolatedError !== 'test failed') return isolatedError;
-    if (lines[isolatedIndex].includes('exit=0')) return 'aggregate test failed; isolated file passed';
+    if (isolatedError && isolatedError !== 'test failed') return `${isolatedSummary} | ${isolatedError}`;
+    return isolatedSummary || isolatedError || lines[isolatedIndex].trim();
   }
   const aggregateError = yamlError(0);
   if (aggregateError) return aggregateError;
