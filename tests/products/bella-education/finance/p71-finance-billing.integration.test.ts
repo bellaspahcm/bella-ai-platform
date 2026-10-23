@@ -23,15 +23,16 @@ import { InvoiceIssuanceService, canonicalJsonString } from '../../../../src/pro
 import { PaymentReconciliationService } from '../../../../src/products/bella-education/finance/services/payment-reconciliation.service';
 import { StudentMealChargeInput } from '../../../../src/products/bella-education/finance/domain/finance.types';
 import { createHash } from 'crypto';
+import { assertLocalFinanceFixtureTarget, createFinanceBranchFixture, assignFinanceStudentFixture } from './fixtures/branch.fixture';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'http://127.0.0.1:54321';
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-const tenantA = '00000000-0000-0000-0000-000000000001';
-const tenantB = '00000000-0000-0000-0000-000000000002';
-const staffPartyId = '00000000-0000-0000-0000-000000000003';
-const parentPartyId = '00000000-0000-0000-0000-000000000004';
+let tenantA: string;
+let tenantB: string;
+let staffPartyId: string;
+let parentPartyId: string;
 
 describe('P7.1 Preschool Finance & Billing Engine 12-Invariant Integration Suite', () => {
   let repo: PreschoolFinanceRepository;
@@ -40,8 +41,22 @@ describe('P7.1 Preschool Finance & Billing Engine 12-Invariant Integration Suite
   let reconService: PaymentReconciliationService;
   let billingPeriodId: string;
   let courseId: string;
+  let branchFixture: Awaited<ReturnType<typeof createFinanceBranchFixture>>;
 
   beforeEach(async () => {
+    assertLocalFinanceFixtureTarget();
+    if (!['127.0.0.1', 'localhost'].includes(new URL(supabaseUrl).hostname)) {
+      throw new Error('P71_FIXTURE_REQUIRES_ISOLATED_LOCAL_DB');
+    }
+    // New Auth-backed actor and tenant per case: do not mutate old evidence or
+    // accumulate fee structures in a shared tenant across invariant assertions.
+    tenantA = crypto.randomUUID();
+    tenantB = crypto.randomUUID();
+    parentPartyId = crypto.randomUUID();
+    const email = `controlled-p71-${crypto.randomUUID()}@example.invalid`;
+    const identity = await supabase.auth.admin.createUser({ email, email_confirm: true });
+    if (identity.error || !identity.data.user) throw new Error('P71_AUTH_FIXTURE_FAILED');
+    staffPartyId = identity.data.user.id;
     repo = new PreschoolFinanceRepository();
     billingService = new TuitionBillingService(repo);
     issuanceService = new InvoiceIssuanceService(repo);
@@ -50,6 +65,9 @@ describe('P7.1 Preschool Finance & Billing Engine 12-Invariant Integration Suite
     // 1. Seed Tenants
     await supabase.from('tenants').upsert({ id: tenantA, name: 'Bella Preschool Tenant A' });
     await supabase.from('tenants').upsert({ id: tenantB, name: 'Bella Preschool Tenant B' });
+    const actor = await supabase.from('users').insert({ id: staffPartyId, tenant_id: tenantA, email, full_name: 'Controlled P71 Finance actor', role: 'admin', status: 'active' });
+    if (actor.error) throw new Error(`P71_ACTOR_FIXTURE_FAILED: ${actor.error.message}`);
+    branchFixture = await createFinanceBranchFixture(supabase, tenantA, staffPartyId, 'admin');
     await supabase.from('party_parties').upsert([
       { id: staffPartyId, tenant_id: tenantA, party_type: 'person', display_name: 'P71 Staff Party' },
       { id: parentPartyId, tenant_id: tenantA, party_type: 'person', display_name: 'P71 Payer Party' },
@@ -99,12 +117,19 @@ describe('P7.1 Preschool Finance & Billing Engine 12-Invariant Integration Suite
       party_type: 'person',
       display_name: `P71 Student ${label}`,
     });
-    await supabase.from('edu_enrollments').insert({
+    const requestId = crypto.randomUUID();
+    const enrollment = await supabase.from('edu_enrollments').insert({
       tenant_id: tenantId,
       course_id: courseId,
       student_party_id: studentPartyId,
       status: 'active',
-      request_id: `p71-${label}-${studentPartyId}`,
+      request_id: requestId,
+    }).select('id').single();
+    if (enrollment.error || !enrollment.data) throw new Error(`P71_ENROLLMENT_FIXTURE_FAILED: ${enrollment.error?.message}`);
+    await assignFinanceStudentFixture(supabase, {
+      tenantId, actorUserId: branchFixture.assignmentActorUserId,
+      branchId: branchFixture.branchId, studentPartyId,
+      enrollmentId: enrollment.data.id, courseId, requestId,
     });
     return studentPartyId;
   };

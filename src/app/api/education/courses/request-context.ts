@@ -9,6 +9,7 @@ type CourseReadContext =
     allowed: true;
     supabase: Awaited<ReturnType<typeof createClient>>;
     tenantId: string;
+    actor: NonNullable<Awaited<ReturnType<typeof getCurrentUser>>>;
   }
   | { allowed: false; response: NextResponse };
 
@@ -40,5 +41,5 @@ export async function resolveCourseReadContext(request: Request): Promise<Course
   }
 
   // RLS remains authoritative for these reads; this does not establish a full role/branch matrix.
-  return { allowed: true, supabase, tenantId };
+  return { allowed: true, supabase, tenantId, actor: profile };
 }

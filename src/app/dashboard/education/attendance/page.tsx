@@ -30,17 +30,16 @@ type AttendanceStatus = 'present' | 'absent' | 'excused';
 
 interface ClassroomOverviewItem {
   id: string;
-  code: string;
+  code?: string;
   name: string;
-  gradeKey?: 'mam' | 'choi' | 'la' | 'nursery';
+  gradeKey?: 'mam' | 'choi' | 'la' | 'nursery' | null;
   students: number;
-  maxStudents: number;
+  maxStudents: number | null;
   todayStatus: {
     present: number;
     absent: number;
     excused: number;
     unmarked: number;
-    healthAlerts: number;
   };
 }
 
@@ -178,6 +177,7 @@ function AttendancePageContent() {
   }, [classrooms, selectedGrade]);
 
   const handleSelectGrade = (grade: 'all' | 'nursery' | 'mam' | 'choi' | 'la') => {
+    if (commandInFlight.current) return;
     setSelectedGrade(grade);
     if (grade !== 'all') {
       const firstInGrade = classrooms.find((c) => c.gradeKey === grade);
@@ -285,7 +285,7 @@ function AttendancePageContent() {
       setLoadingClassrooms(true);
       setError(null);
       try {
-        const response = await fetch('/api/education/courses', { cache: 'no-store' });
+        const response = await fetch('/api/education/attendance/courses', { cache: 'no-store' });
         const payload = await response.json();
         if (!response.ok || !payload.success) {
           throw new Error(payload.error ?? 'Không tải được danh sách lớp');
@@ -375,7 +375,13 @@ function AttendancePageContent() {
         : current);
       setSuccessMessage('Đã ghi nhận điểm danh thật vào hệ thống');
     } catch (saveError) {
-      if (isCurrentCommand()) setError(saveError instanceof Error ? saveError.message : 'Không ghi được điểm danh');
+      if (isCurrentCommand()) {
+        // A failed response can follow a commit; require read-back before another command.
+        rosterRequestVersion.current += 1;
+        setRosterContext(null);
+        setRoster([]);
+        setError(saveError instanceof Error ? saveError.message : 'Không ghi được điểm danh');
+      }
     } finally {
       commandInFlight.current = false;
       if (mounted.current) setSavingEnrollmentId(null);
@@ -531,6 +537,7 @@ function AttendancePageContent() {
                 <button
                   key={tab.key}
                   type="button"
+                  disabled={savingCommand}
                   onClick={() => handleSelectGrade(tab.key as typeof selectedGrade)}
                   className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap shrink-0 flex items-center gap-1.5 ${
                     isActive
@@ -569,12 +576,12 @@ function AttendancePageContent() {
             {filteredClassrooms.map((classroom) => {
               const isSelected = classroom.id === selectedCourseId;
               const isLive = isSelected && rosterReady;
-              const totalStudents = (isLive && currentRoster.length > 0) ? currentRoster.length : classroom.students;
+              const totalStudents = isLive ? currentRoster.length : classroom.students;
               const present = isLive ? attendanceSummary.present : classroom.todayStatus.present;
               const absent  = isLive ? attendanceSummary.absent  : (classroom.todayStatus.absent ?? 0);
               const excused = isLive ? attendanceSummary.excused : classroom.todayStatus.excused;
               const unmarked = isLive ? attendanceSummary.unmarked : classroom.todayStatus.unmarked;
-              const fillPct = classroom.maxStudents > 0
+              const fillPct = classroom.maxStudents !== null && classroom.maxStudents > 0
                 ? Math.round((totalStudents / classroom.maxStudents) * 100)
                 : 0;
               return (
@@ -599,9 +606,12 @@ function AttendancePageContent() {
                   <p className={`text-[10px] font-semibold mb-3 ${
                     isSelected ? 'text-[var(--education-brand-ink)]/70' : 'text-gray-500 dark:text-gray-400'
                   }`}>
-                    Sĩ số: <span className="font-extrabold">{totalStudents}</span>/{classroom.maxStudents}
-                    <span className="ml-1 opacity-70">({fillPct}%)</span>
+                    Sĩ số: <span className="font-extrabold">{totalStudents}</span>
+                    {classroom.maxStudents !== null
+                      ? <>/{classroom.maxStudents}<span className="ml-1 opacity-70">({fillPct}%)</span></>
+                      : <span className="ml-1 opacity-70">· Chưa có dữ liệu sức chứa</span>}
                   </p>
+                  {!classroom.gradeKey && <p className="text-[10px] mb-2">Chưa có dữ liệu khối tuổi</p>}
                   <div className="flex items-center gap-1.5 flex-wrap">
                     <span className="inline-flex items-center gap-0.5 text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300">
                       <CheckCircle2 className="w-2.5 h-2.5" />{present} có mặt

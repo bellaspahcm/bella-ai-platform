@@ -25,7 +25,10 @@
  * - Zero `any` types (Strict TypeScript compliance).
  */
 
-import React, { useState, useEffect, useCallback, useMemo, Suspense, type ChangeEvent } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef, Suspense, type ChangeEvent } from 'react';
+import { PremiumSelect } from '@/components/ui/PremiumSelect';
+import { paymentIntentStorageKey, parsePaymentIntent, preparePaymentIntent, type FinancePaymentIntent } from '@/products/bella-education/finance/services/preschool-finance-payment-intent';
+import type { FinanceBranchOption } from '@/products/bella-education/finance/services/preschool-finance-branch.contract';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -103,6 +106,10 @@ export interface FinanceExceptionRow {
 export interface FinanceStateResponse {
   readonly success: boolean;
   readonly error?: string;
+  readonly branches?: FinanceBranchOption[];
+  readonly selectedBranchId?: string | null;
+  readonly actorId?: string;
+  readonly tenantId?: string;
   readonly students?: FinanceStudentOption[];
   readonly billingPeriods?: BillingPeriod[];
   readonly servicePeriodCompletions?: TuitionServicePeriodCompletion[];
@@ -251,6 +258,14 @@ function FinancePageContent() {
 
   const [studentContextActive, setStudentContextActive] = useState(false);
   const [activeTab, setActiveTab] = useState<FinanceTabKey>('overview');
+  const [branches, setBranches] = useState<FinanceBranchOption[]>([]);
+  const [selectedBranchId, setSelectedBranchId] = useState('');
+  const [actorContext, setActorContext] = useState<{ actorId: string; tenantId: string } | null>(null);
+  const loadSequence = useRef(0);
+  const [paymentInvoiceId, setPaymentInvoiceId] = useState('');
+  const [paymentAmount, setPaymentAmount] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState<FinancePaymentIntent['paymentMethod']>('CASH');
+  const [retainedIntent, setRetainedIntent] = useState<FinancePaymentIntent | null>(null);
 
   // Backend state
   const [invoices, setInvoices] = useState<Invoice[]>([]);
@@ -282,8 +297,7 @@ function FinancePageContent() {
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState<boolean>(false);
   const [paymentTargetInvoice, setPaymentTargetInvoice] = useState<TableInvoiceItem | null>(null);
   const [paymentAmountInput, setPaymentAmountInput] = useState<string>('');
-  const [paymentMethodInput, setPaymentMethodInput] = useState<Payment['paymentMethod']>('BANK_TRANSFER');
-  const [paymentSubmitting, setPaymentSubmitting] = useState<boolean>(false);
+  const [paymentMethodInput, setPaymentMethodInput] = useState<FinancePaymentIntent['paymentMethod']>('BANK_TRANSFER');
 
   const [detailModalInvoice, setDetailModalInvoice] = useState<TableInvoiceItem | null>(null);
   const [exceptionModalItem, setExceptionModalItem] = useState<FinanceExceptionRow | null>(null);
@@ -301,18 +315,15 @@ function FinancePageContent() {
     if (!studentParam) return;
     setActiveTab('invoices');
     setStudentContextActive(true);
-    const targetName = STUDENT_NAME_BY_CODE[studentParam] || studentParam;
-    setInvoiceSearchQuery(targetName);
+    setInvoiceSearchQuery(studentParam);
   }, [studentParam]);
 
   useEffect(() => {
     if (!studentParam || students.length === 0) return;
-    const targetName = (STUDENT_NAME_BY_CODE[studentParam] || studentParam).toLowerCase();
     const matched = students.find((s) =>
       s.studentId === studentParam ||
       s.studentCode === studentParam ||
-      s.studentPartyId === studentParam ||
-      s.displayName.toLowerCase().includes(targetName)
+      s.studentPartyId === studentParam || s.studentId === studentParam
     );
     if (matched) {
       setSelectedStudentPartyId(matched.studentPartyId);
@@ -325,6 +336,7 @@ function FinancePageContent() {
 
   // Fetch real backend data
   const loadData = useCallback(async () => {
+    const sequence = ++loadSequence.current;
     setLoading(true);
     setDataLoaded(false);
     setLoadError(null);
@@ -341,13 +353,17 @@ function FinancePageContent() {
     setSelectedInvoices([]);
 
     try {
-      const response = await fetch('/api/education/finance', { cache: 'no-store' });
+      const response = await fetch('/api/education/finance' + (selectedBranchId ? '?branchId=' + encodeURIComponent(selectedBranchId) : ''), { cache: 'no-store' });
       const payload = (await response.json()) as FinanceStateResponse;
+      if (sequence !== loadSequence.current) return;
       if (!response.ok || !payload.success) {
         throw new Error(payload.error || 'Không tải được dữ liệu tài chính.');
       }
 
       const nextStudents = payload.students || [];
+      setBranches(payload.branches || []);
+      setActorContext(payload.actorId && payload.tenantId ? { actorId: payload.actorId, tenantId: payload.tenantId } : null);
+      if (selectedBranchId && payload.selectedBranchId !== selectedBranchId) throw new Error('Cơ sở phản hồi không khớp cơ sở đã chọn.');
       const nextBillingPeriods = payload.billingPeriods || [];
       const nextInvoices = payload.invoices || [];
       setStudents(nextStudents);
@@ -361,14 +377,15 @@ function FinancePageContent() {
       );
       setPayments(payload.payments || []);
       setExceptions(payload.exceptions || []);
-      setDataLoaded(true);
+      setDataLoaded(!!selectedBranchId);
     } catch (err: unknown) {
+      if (sequence !== loadSequence.current) return;
       setFilterBillingPeriodId('ALL');
       setLoadError(err instanceof Error ? err.message : 'Không tải được dữ liệu tài chính.');
     } finally {
-      setLoading(false);
+      if (sequence === loadSequence.current) setLoading(false);
     }
-  }, []);
+  }, [selectedBranchId]);
 
   const financeCommand = async (
     action: string,
@@ -380,7 +397,7 @@ function FinancePageContent() {
     const response = await fetch('/api/education/finance', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action, ...payload }),
+      body: JSON.stringify({ ...payload, action, branchId: selectedBranchId }),
     });
     const body = (await response.json()) as FinanceCommandResponse;
     if (!response.ok || !body.success) {
@@ -393,7 +410,43 @@ function FinancePageContent() {
     loadData();
   }, [loadData]);
 
-  // Command Handlers
+  const openPayment = (invoice: Invoice, proposed?: { amount: number; method: FinancePaymentIntent['paymentMethod'] }) => {
+    if (!actorContext || !selectedBranchId || loading || !dataLoaded) return;
+    try {
+      const scope = { ...actorContext, branchId: selectedBranchId };
+      const intent = parsePaymentIntent(localStorage.getItem(paymentIntentStorageKey(scope, invoice.id)), scope, invoice.id);
+      setRetainedIntent(intent);
+      setPaymentAmount(String(intent?.paymentAmount ?? proposed?.amount ?? invoice.outstandingAmount));
+      setPaymentMethod(intent?.paymentMethod ?? proposed?.method ?? 'CASH');
+      setPaymentInvoiceId(invoice.id);
+    } catch (error) { setActionMessage(error instanceof Error ? error.message : 'Không đọc được khoản thu đã lưu.'); }
+  };
+
+  const submitPayment = async () => {
+    if (!actorContext || !selectedBranchId || !paymentInvoiceId || loading || !dataLoaded) return;
+    if (!navigator.locks) { setActionMessage('Trình duyệt chưa hỗ trợ khóa khoản thu giữa các thẻ. Vui lòng dùng trình duyệt được hỗ trợ.'); return; }
+    const scope = { ...actorContext, branchId: selectedBranchId }, key = paymentIntentStorageKey(scope, paymentInvoiceId);
+    setLoading(true);
+    try {
+      await navigator.locks.request(key, async () => {
+        const saved = parsePaymentIntent(localStorage.getItem(key), scope, paymentInvoiceId);
+        const intent = preparePaymentIntent(saved, scope, paymentInvoiceId, Number(paymentAmount), paymentMethod, () => crypto.randomUUID(), retainedIntent?.operationKey);
+        // Persist before fetch. Never discard a pending key after an error or reload.
+        localStorage.setItem(key, JSON.stringify(intent)); setRetainedIntent(intent);
+        const result = await financeCommand('recordAndReconcilePayment', {
+          invoiceId: intent.invoiceId, operationKey: intent.operationKey, paymentAmount: intent.paymentAmount, paymentMethod: intent.paymentMethod,
+        });
+        if (!result.payment?.id || !result.receipt?.id) throw new Error('Thiếu ID kết quả; hãy thử lại cùng khoản thu đã lưu.');
+        const completed = { ...intent, result: { paymentId: result.payment.id, receiptId: result.receipt.id } };
+        localStorage.setItem(key, JSON.stringify(completed)); setRetainedIntent(completed);
+        setActionMessage('Đã xác nhận khoản thu ' + result.payment.paymentNumber + '.');
+      });
+      await loadData();
+    } catch (error) { setActionMessage((error instanceof Error ? error.message : 'Chưa xác định kết quả thanh toán.') + ' Yêu cầu đã lưu được giữ để khôi phục.'); }
+    finally { setLoading(false); }
+  };
+
+  // Handle Create Draft Invoice
   const handleCompileDraftInvoice = async () => {
     if (!dataLoaded || loading) return;
     const targetStudent = selectedStudent;
@@ -528,12 +581,16 @@ function FinancePageContent() {
 
   const handleOpenPaymentModal = (invoiceItem?: TableInvoiceItem) => {
     if (invoiceItem) {
-      setPaymentTargetInvoice(invoiceItem);
-      setPaymentAmountInput(String(invoiceItem.outstandingAmount > 0 ? invoiceItem.outstandingAmount : invoiceItem.amount));
-    } else {
-      setPaymentTargetInvoice(null);
-      setPaymentAmountInput('');
+      const canonicalInvoice = invoices.find(invoice => invoice.id === invoiceItem.id);
+      if (!canonicalInvoice) {
+        setActionMessage('Không tìm thấy hóa đơn trong dữ liệu cơ sở hiện tại. Hãy tải lại trước khi thu.');
+        return;
+      }
+      openPayment(canonicalInvoice);
+      return;
     }
+    setPaymentTargetInvoice(null);
+    setPaymentAmountInput('');
     setPaymentMethodInput('BANK_TRANSFER');
     setIsPaymentModalOpen(true);
   };
@@ -548,24 +605,16 @@ function FinancePageContent() {
       setActionMessage('Số tiền thanh toán phải lớn hơn 0.');
       return;
     }
-    setPaymentSubmitting(true);
-    try {
-      const result = await financeCommand('recordAndReconcilePayment', {
-        invoiceId: paymentTargetInvoice.id,
-        paymentAmount: amount,
-        paymentMethod: paymentMethodInput,
-      });
-      setActionMessage(
-        `Ghi nhận thanh toán thành công: ${formatCurrency(amount)} cho hóa đơn ${paymentTargetInvoice.invoiceNumber}. Biên lai mã: ${result.receipt?.receiptNumber || 'Đã đối soát'}`
-      );
-      setIsPaymentModalOpen(false);
-      setPaymentTargetInvoice(null);
-      await loadData();
-    } catch (err: unknown) {
-      setActionMessage(`Lỗi thanh toán: ${err instanceof Error ? err.message : 'Lỗi không xác định'}`);
-    } finally {
-      setPaymentSubmitting(false);
+    const canonicalInvoice = invoices.find(invoice => invoice.id === paymentTargetInvoice.id);
+    if (!canonicalInvoice) {
+      setActionMessage('Không tìm thấy hóa đơn trong dữ liệu cơ sở hiện tại. Hãy tải lại trước khi thu.');
+      return;
     }
+    // The picker never sends a payment. The shared durable dialog restores a
+    // pending intent before allowing the operator to confirm or recover it.
+    openPayment(canonicalInvoice, { amount, method: paymentMethodInput });
+    setIsPaymentModalOpen(false);
+    setPaymentTargetInvoice(null);
   };
 
   const handleResolveException = async () => {
@@ -1012,7 +1061,17 @@ function FinancePageContent() {
         </div>
       )}
 
-      {/* ── UNIFIED HEADER ── */}
+      {/* ── UNIFIED HEADER MATCHING IMAGE 2 ── */}
+      <div className="rounded-2xl border border-slate-200 dark:border-slate-700 p-4 space-y-2">
+        <PremiumSelect ariaLabel="Cơ sở tài chính" label="Cơ sở tài chính" placeholder="Chọn cơ sở được cấp quyền" value={selectedBranchId} disabled={loading}
+          options={branches.map(branch => ({ value: branch.id, label: branch.name }))}
+          onChange={branchId => {
+            ++loadSequence.current; setDataLoaded(false); setSelectedBranchId(branchId);
+            setPaymentInvoiceId(''); setRetainedIntent(null); setSelectedStudentPartyId(''); setSelectedBillingPeriodId('');
+          }} />
+        {!selectedBranchId && <p className="text-sm text-slate-600 dark:text-slate-300">Chọn cơ sở để tải hồ sơ tài chính. Không có cơ sở mặc định.</p>}
+        {!loading && branches.length === 0 && <p className="text-sm text-slate-600 dark:text-slate-300">Chưa có cơ sở được cấp quyền.</p>}
+      </div>
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-3.5">
           <Link
@@ -1096,11 +1155,7 @@ function FinancePageContent() {
             </div>
             <div>
               <p className="font-extrabold text-slate-900 dark:text-white">
-                Đang xem học phí & công nợ của học sinh:{' '}
-                <span className="text-[#0c513f] dark:text-emerald-400 font-bold">
-                  {STUDENT_NAME_BY_CODE[studentParam] || studentParam}
-                </span>{' '}
-                ({studentParam})
+                Đang xem học phí & công nợ của học sinh: <span className="text-[#0c513f] dark:text-emerald-400 font-bold">{students.find(student => student.studentPartyId === studentParam || student.studentId === studentParam || student.studentCode === studentParam)?.displayName || studentParam}</span> ({studentParam})
               </p>
               <p className="text-[11px] text-slate-500 dark:text-slate-400">
                 Danh sách hóa đơn đã được tự động lọc theo bé. Bạn có thể kiểm tra trạng thái thanh toán, lập hóa đơn hoặc chuyển nhanh sang hồ sơ khác.
@@ -2083,49 +2138,17 @@ function FinancePageContent() {
                   </h3>
                 </div>
                 <button
-                  onClick={() => setActiveTab('debts')}
-                  className="text-xs font-bold text-emerald-700 dark:text-emerald-400 hover:underline flex items-center gap-1"
+                  onClick={handleCompleteTuitionServicePeriod}
+                  disabled
+                  className="px-2.5 py-1 rounded-lg bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 text-[11px] font-bold text-slate-700 dark:text-slate-200"
                 >
                   <span>Xem tất cả</span>
                   <span>→</span>
                 </button>
               </div>
-
-              <div className="space-y-3 pt-1">
-                {dynamicTopOverdue.length === 0 ? (
-                  <div className="py-6 text-center text-xs text-slate-400">
-                    <CheckCircle2 className="w-6 h-6 mx-auto mb-1.5 text-emerald-500 opacity-60" />
-                    <span>Tất cả học sinh đã hoàn thành học phí.</span>
-                  </div>
-                ) : (
-                  dynamicTopOverdue.map((st) => (
-                    <div key={st.id} className="flex items-center justify-between gap-3 text-xs">
-                      <div className="flex items-center gap-2.5 min-w-0">
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0 ${st.avatarBg}`}>
-                          {st.initial}
-                        </div>
-                        <div className="min-w-0">
-                          <p className="font-extrabold text-slate-900 dark:text-white truncate">
-                            {st.name}
-                          </p>
-                          <p className="text-[11px] text-slate-500 truncate">
-                            {st.className} {st.studentCode ? `· ${st.studentCode}` : ''}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="text-right shrink-0">
-                        <p className="font-extrabold text-slate-900 dark:text-white">
-                          {formatCurrency(st.amount)}
-                        </p>
-                        <p className="text-[11px] font-bold text-rose-500">
-                          ● Quá hạn {st.overdueDays} ngày
-                        </p>
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
+              <p className="text-[10px] text-slate-500 leading-tight">
+                Xác nhận kỳ toàn trường chưa khả dụng trong luồng theo cơ sở.
+              </p>
             </div>
 
             {/* Card 3: Thanh toán gần đây */}
@@ -2316,19 +2339,18 @@ function FinancePageContent() {
                         onChange={toggleSelectAllInvoices}
                         className="rounded text-[#0c513f]"
                       />
-                    </th>
-                    <th className="p-3 font-bold">Mã hóa đơn</th>
-                    <th className="p-3 font-bold">Học sinh</th>
-                    <th className="p-3 font-bold">Lớp</th>
-                    <th className="p-3 font-bold">Kỳ thu</th>
-                    <th className="p-3 font-bold">Phát hành</th>
-                    <th className="p-3 font-bold">Thanh toán</th>
-                    <th className="p-3 font-bold text-right">Số tiền</th>
-                    <th className="p-3 font-bold text-right">Còn nợ</th>
-                    <th className="p-3 font-bold text-center">Thao tác</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                      </th>
+                      <th className="p-3 font-bold">Mã hóa đơn</th>
+                      <th className="p-3 font-bold">Học sinh</th>
+                      <th className="p-3 font-bold">Lớp</th>
+                      <th className="p-3 font-bold">Kỳ thu</th>
+                      <th className="p-3 font-bold">Phát hành</th>
+                      <th className="p-3 font-bold">Thanh toán</th>
+                      <th className="p-3 font-bold text-right">Số tiền</th>
+                      <th className="p-3 font-bold text-center">Hành động</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                   {filteredInvoices.length === 0 && (
                     <tr>
                       <td colSpan={10} className="p-6 text-center text-slate-500">
@@ -2849,7 +2871,44 @@ function FinancePageContent() {
         </div>
       )}
 
-      {/* ── MODAL 1: XEM TRƯỚC HÓA ĐƠN & TẠO BẢN NHÁP ── */}
+      {paymentInvoiceId && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+          <div role="dialog" aria-modal="true" aria-labelledby="finance-payment-title" className="bg-white dark:bg-slate-900 rounded-2xl p-6 max-w-lg w-full space-y-4">
+            <h2 id="finance-payment-title" className="text-lg font-bold">Thu học phí / khôi phục khoản thu</h2>
+            <label className="block text-sm">Số tiền
+              <input aria-label="Số tiền thanh toán" type="number" min="0.01" step="0.01" value={paymentAmount}
+                disabled={!!retainedIntent} onChange={event => setPaymentAmount(event.target.value)} className="block w-full border rounded-lg p-2 bg-transparent" />
+            </label>
+            <PremiumSelect ariaLabel="Phương thức thanh toán" value={paymentMethod} disabled={!!retainedIntent}
+              options={[{ value: 'CASH', label: 'Tiền mặt' }, { value: 'BANK_TRANSFER', label: 'Chuyển khoản' }, { value: 'QR_CODE', label: 'Mã QR' }]}
+              onChange={value => setPaymentMethod(value as FinancePaymentIntent['paymentMethod'])} />
+            {retainedIntent && <p role="status" className="text-sm">{retainedIntent.result ? 'Khoản thu đã có kết quả. Kiểm tra lại sẽ dùng đúng yêu cầu đã lưu.' : 'Khoản thu đang chờ xác nhận. Thử lại sẽ giữ nguyên nội dung và mã yêu cầu.'}</p>}
+            {retainedIntent?.result && <p className="text-sm break-all">Biên nhận: {retainedIntent.result.receiptId}</p>}
+            <div className="flex gap-3">
+              <button type="button" disabled={loading} onClick={() => setPaymentInvoiceId('')} className="border rounded-xl px-3 py-2">Đóng</button>
+              <button type="button" data-testid="finance-confirm-payment" disabled={loading} onClick={submitPayment} className="bg-primary text-primary-foreground rounded-xl px-3 py-2">{retainedIntent ? 'Kiểm tra / thử lại khoản thu' : 'Xác nhận thu'}</button>
+              {retainedIntent?.result && <button type="button" disabled={loading} onClick={async () => {
+                if (!actorContext || !navigator.locks) return;
+                const scope = { ...actorContext, branchId: selectedBranchId };
+                const key = paymentIntentStorageKey(scope, paymentInvoiceId);
+                setLoading(true);
+                try {
+                  await navigator.locks.request(key, async () => {
+                    const current = parsePaymentIntent(localStorage.getItem(key), scope, paymentInvoiceId);
+                    if (current?.operationKey !== retainedIntent.operationKey || !current?.result) {
+                      throw new Error('Yêu cầu thanh toán đã thay đổi ở thẻ khác. Đóng và mở lại khoản thu để kiểm tra.');
+                    }
+                    localStorage.removeItem(key);
+                    setRetainedIntent(null); setPaymentAmount('');
+                  });
+                } catch (error) { setActionMessage(error instanceof Error ? error.message : 'Không thể bắt đầu khoản thu mới.'); }
+                finally { setLoading(false); }
+              }} className="border rounded-xl px-3 py-2">Bắt đầu khoản thu mới</button>}
+            </div>
+          </div>
+        </div>
+      )}
+      {/* ── MODAL: XEM TRƯỚC HÓA ĐƠN & TẠO BẢN NHÁP ── */}
       {isPreviewModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
           <div
@@ -3036,11 +3095,11 @@ function FinancePageContent() {
               </button>
               <button
                 onClick={handleSubmitPayment}
-                disabled={paymentSubmitting || !paymentTargetInvoice || !paymentAmountInput}
+                disabled={loading || !paymentTargetInvoice || !paymentAmountInput}
                 className="flex-1 py-2.5 rounded-xl bg-[#0c513f] hover:bg-[#093e30] disabled:bg-slate-300 text-white text-xs font-bold shadow-md transition-all flex items-center justify-center gap-2"
               >
-                {paymentSubmitting ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
-                <span>Xác nhận thu tiền</span>
+                {loading ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
+                <span>Tiếp tục xác nhận khoản thu</span>
               </button>
             </div>
           </div>

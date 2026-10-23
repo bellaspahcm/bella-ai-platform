@@ -4,18 +4,29 @@
  * Responsible for:
  * 1. Recording inbound payments (append-only payment history)
  * 2. Allocating payment amounts to ISSUED invoices
- * 3. Adding double-entry reconciliation ledger entries
+ * 3. Recording Product allocation facts (not Finance GL postings)
  * 4. Dynamically deriving Settlement Status (UNPAID | PARTIALLY_PAID | PAID | OVERPAID)
  * 5. Issuing payment receipt evidence packages with deterministic SHA-256 fingerprints
  */
 
-import { createHash } from 'crypto';
+import { createHash, randomUUID } from 'crypto';
 import { PreschoolFinanceRepository } from '../repositories/preschool-finance.repository';
 import { canonicalJsonString } from './invoice-issuance.service';
-import { Payment, PaymentReceipt, ReconciliationLedgerEntry, SettlementStatus } from '../domain/finance.types';
+import type { FinanceReconciliationCommand, FinanceReconciliationResult, Payment } from '../domain/finance.types';
+
+export type PaymentReconciliationRepository = Pick<PreschoolFinanceRepository,
+  'hasActiveEnrollmentForStudentParty' | 'assertStudentPartyBelongsToTenant' | 'assertPayerPartyBelongsToTenant'
+  | 'recordPayment' | 'recoverAtomicReconciliation' | 'commitAtomicReconciliation'>;
+
+function canonicalUuid(value: string): string {
+  const compact = value.replace(/^\{(.*)\}$/, '$1').replaceAll('-', '');
+  if (!/^[0-9a-f]{32}$/i.test(compact)) return value;
+  const lower = compact.toLowerCase();
+  return [lower.slice(0, 8), lower.slice(8, 12), lower.slice(12, 16), lower.slice(16, 20), lower.slice(20)].join('-');
+}
 
 export class PaymentReconciliationService {
-  constructor(private repo: PreschoolFinanceRepository = new PreschoolFinanceRepository()) {}
+  constructor(private repo: PaymentReconciliationRepository = new PreschoolFinanceRepository()) {}
 
   /**
    * Records an inbound payment from parent/payer
@@ -77,9 +88,31 @@ export class PaymentReconciliationService {
     });
   }
 
-  /**
-   * Reconciles/allocates a portion of an inbound payment to an ISSUED invoice
-   */
+  /** New payment and its allocation are one Product database transaction. */
+  async recordAndReconcilePayment(params: {
+    tenantId: string;
+    actorId: string;
+    operationKey: string;
+    branchId?: string;
+    invoiceId: string;
+    paymentAmount: number;
+    paymentMethod: Payment['paymentMethod'];
+  }): Promise<FinanceReconciliationResult> {
+    return this.execute({
+      tenantId: params.tenantId,
+      actorId: params.actorId,
+      operationKey: params.operationKey,
+      branchId: params.branchId,
+      request: {
+        kind: 'new-payment',
+        invoiceId: params.invoiceId,
+        paymentAmount: params.paymentAmount,
+        paymentMethod: params.paymentMethod,
+      },
+    });
+  }
+
+  /** Existing-payment callers retain duplicate-pair rejection without an explicit key. */
   async reconcilePaymentToInvoice(params: {
     tenantId: string;
     paymentId: string;
@@ -87,116 +120,64 @@ export class PaymentReconciliationService {
     allocationAmount: number;
     reconciledByPartyId: string;
     notes?: string;
-  }): Promise<{
-    reconciliationEntry: ReconciliationLedgerEntry;
-    receipt: PaymentReceipt;
-    updatedSettlementStatus: SettlementStatus;
-  }> {
-    const { tenantId, paymentId, invoiceId, allocationAmount, reconciledByPartyId, notes } = params;
-
-    if (allocationAmount <= 0) {
-      throw new Error(`INVALID_ALLOCATION_AMOUNT_ERROR: Allocation amount must be greater than zero.`);
-    }
-
-    // 1. Fetch Payment & Invoice Records
-    const invoice = await this.repo.getInvoiceById(tenantId, invoiceId);
-    if (!invoice) {
-      throw new Error(`INVOICE_NOT_FOUND_ERROR: Invoice ${invoiceId} not found.`);
-    }
-
-    if (invoice.invoiceStatus !== 'ISSUED') {
-      throw new Error(`UNISSUED_INVOICE_RECONCILIATION_ERROR: Cannot reconcile payments to a DRAFT or VOID invoice.`);
-    }
-
-    // Validate Outstanding Balance Invariant: Allocation cannot exceed invoice outstanding amount
-    if (allocationAmount > invoice.outstandingAmount) {
-      throw new Error(`ALLOCATION_EXCEEDS_OUTSTANDING_ERROR: Allocation amount (${allocationAmount}) exceeds invoice outstanding balance (${invoice.outstandingAmount}).`);
-    }
-
-    // 2. Fetch Payment Record & Validate Unallocated Balance
-    const payment = await this.repo.getPaymentById(tenantId, paymentId);
-    if (!payment) {
-      throw new Error(`PAYMENT_NOT_FOUND_ERROR: Payment ${paymentId} not found.`);
-    }
-
-    if (payment.studentPartyId !== invoice.studentPartyId) {
-      throw new Error(`PAYMENT_INVOICE_STUDENT_MISMATCH_ERROR: Payment student does not match invoice student.`);
-    }
-
-    if (allocationAmount > payment.unallocatedAmount) {
-      throw new Error(`ALLOCATION_EXCEEDS_PAYMENT_UNALLOCATED_ERROR: Allocation amount (${allocationAmount}) exceeds payment unallocated balance (${payment.unallocatedAmount}).`);
-    }
-
-    // 3. Add Reconciliation Ledger Entry
-    const reconciliationEntry = await this.repo.addReconciliationEntry({
-      tenantId,
-      paymentId,
-      invoiceId,
-      allocatedAmount: allocationAmount,
-      allocationDate: new Date().toISOString(),
-      reconciledByPartyId,
-      notes,
+    operationKey?: string;
+  }): Promise<FinanceReconciliationResult> {
+    return this.execute({
+      tenantId: params.tenantId,
+      actorId: params.reconciledByPartyId,
+      operationKey: params.operationKey ?? `legacy-${randomUUID()}`,
+      request: {
+        kind: 'existing-payment',
+        invoiceId: params.invoiceId,
+        paymentId: params.paymentId,
+        allocationAmount: params.allocationAmount,
+        notes: params.notes ?? null,
+      },
     });
-
-    // 4. Update Payment Allocated & Unallocated Balances
-    const newPaymentAllocated = payment.allocatedAmount + allocationAmount;
-    const newPaymentUnallocated = payment.unallocatedAmount - allocationAmount;
-    const newPaymentStatus: Payment['status'] = newPaymentUnallocated === 0 ? 'RECONCILED' : 'RECEIVED';
-
-    await this.repo.updatePaymentAllocation(tenantId, paymentId, newPaymentAllocated, newPaymentUnallocated, newPaymentStatus);
-
-    // 5. Update Invoice Paid & Outstanding Balances, Derive Settlement Status
-    const newInvoicePaid = invoice.paidAmount + allocationAmount;
-    const newInvoiceOutstanding = Math.max(0, invoice.netAmount - newInvoicePaid);
-
-    let updatedSettlementStatus: SettlementStatus = 'UNPAID';
-    if (newInvoicePaid >= invoice.netAmount) {
-      updatedSettlementStatus = newInvoicePaid > invoice.netAmount ? 'OVERPAID' : 'PAID';
-    } else if (newInvoicePaid > 0) {
-      updatedSettlementStatus = 'PARTIALLY_PAID';
-    }
-
-    await this.repo.updateInvoiceStatus(tenantId, invoiceId, {
-      settlementStatus: updatedSettlementStatus,
-      paidAmount: newInvoicePaid,
-      outstandingAmount: newInvoiceOutstanding,
-    });
-
-    // 6. Generate Payment Receipt Evidence Package & SHA-256 Fingerprint
-    const receiptNumber = `RCT-${Date.now()}-${Math.floor(100 + Math.random() * 900)}`;
-    const issuedAt = new Date().toISOString();
-
-    const settlementSnapshot = {
-      tenantId,
-      paymentId,
-      invoiceId,
-      receiptNumber,
-      allocationAmount,
-      invoiceNetAmount: invoice.netAmount,
-      newInvoicePaidAmount: newInvoicePaid,
-      newInvoiceOutstandingAmount: newInvoiceOutstanding,
-      settlementStatus: updatedSettlementStatus,
-      issuedAt,
-    };
-
-    const canonicalJson = canonicalJsonString(settlementSnapshot);
-    const sha256Fingerprint = createHash('sha256').update(canonicalJson).digest('hex');
-
-    const receipt = await this.repo.createReceipt({
-      tenantId,
-      paymentId,
-      invoiceId,
-      receiptNumber,
-      settlementSnapshot,
-      sha256Fingerprint,
-      issuedAt,
-    });
-
-    return {
-      reconciliationEntry,
-      receipt,
-      updatedSettlementStatus,
-    };
   }
 
+  private async execute(command: FinanceReconciliationCommand): Promise<FinanceReconciliationResult> {
+    command = {
+      ...command, tenantId: canonicalUuid(command.tenantId), actorId: canonicalUuid(command.actorId),
+      request: command.request.kind === 'new-payment'
+        ? { ...command.request, invoiceId: canonicalUuid(command.request.invoiceId) }
+        : { ...command.request, invoiceId: canonicalUuid(command.request.invoiceId), paymentId: canonicalUuid(command.request.paymentId) },
+    };
+    if (!command.operationKey.trim() || command.operationKey.length > 200) {
+      throw new Error('FINANCE_OPERATION_KEY_REQUIRED: Stable operation key of at most 200 characters required.');
+    }
+    const amount = command.request.kind === 'new-payment'
+      ? command.request.paymentAmount : command.request.allocationAmount;
+    // Decimal scale is checked from the supplied number, without silently rounding it.
+    if (!Number.isFinite(amount) || amount <= 0 || amount >= 10000000000000
+        || !/^\d+(?:\.\d{1,2})?$/.test(String(amount))) {
+      throw new Error('INVALID_ALLOCATION_AMOUNT_ERROR: Positive NUMERIC(15,2) amount required without rounding.');
+    }
+    if (command.request.kind === 'new-payment'
+        && !['BANK_TRANSFER', 'CASH', 'QR_CODE', 'CARD'].includes(command.request.paymentMethod)) {
+      throw new Error('INVALID_PAYMENT_METHOD_ERROR: Unsupported payment method.');
+    }
+    // Recovery validates CURRENT authority and actual canonical rows, before any
+    // mutable invoice/enrollment/guardian eligibility is considered for a new write.
+    const recovered = await this.repo.recoverAtomicReconciliation(command);
+    if (recovered) return this.verifyReceipt(recovered);
+    try {
+      return this.verifyReceipt(await this.repo.commitAtomicReconciliation(command));
+    } catch (error) {
+      // A committed RPC response can be lost, or another caller can commit after
+      // the first read. Keep the same key; never issue another payment command blindly.
+      const afterUncertainOutcome = await this.repo.recoverAtomicReconciliation(command);
+      if (afterUncertainOutcome) return this.verifyReceipt(afterUncertainOutcome);
+      throw error;
+    }
+  }
+
+  private verifyReceipt(result: FinanceReconciliationResult): FinanceReconciliationResult {
+    const fingerprint = createHash('sha256')
+      .update(canonicalJsonString(result.receipt.settlementSnapshot)).digest('hex');
+    if (fingerprint !== result.receipt.sha256Fingerprint) {
+      throw new Error('FINANCE_CANONICAL_CONFLICT: Receipt SHA-256 does not match canonical JSON.');
+    }
+    return result;
+  }
 }

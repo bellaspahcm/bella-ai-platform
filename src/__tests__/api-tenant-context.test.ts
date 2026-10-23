@@ -1,494 +1,179 @@
-/**
- * Unit tests for /api/tenant/context endpoint
- * 
- * Tests tenant context API route that provides tenant configuration
- * to the TenantContextProvider on app startup.
- */
+/** Tenant-context consumer uses installed self-profile and current-tenant contracts. */
+const mockGetUser = jest.fn();
+const mockRpc = jest.fn();
+const mockTenantSettings = jest.fn();
+const mockFrom = jest.fn(() => { throw new Error('Unexpected direct table read'); });
+
+jest.mock('next/headers', () => ({ cookies: jest.fn(async () => ({ getAll: () => [], set: jest.fn() })) }));
+jest.mock('@/services/tenant-actions', () => ({ getTenantSettings: () => mockTenantSettings() }));
+jest.mock('@supabase/ssr', () => ({
+  createServerClient: jest.fn(() => ({ auth: { getUser: mockGetUser }, rpc: mockRpc, from: mockFrom })),
+  combineChunks: jest.fn(async (key: string, retrieve: (name: string) => string | null | undefined | Promise<string | null | undefined>) => {
+    const whole = await retrieve(key);
+    if (whole) return whole;
+    const chunks: string[] = [];
+    for (let index = 0; ; index += 1) {
+      const chunk = await retrieve(`${key}.${index}`);
+      if (!chunk) break;
+      chunks.push(chunk);
+    }
+    return chunks.length ? chunks.join('') : null;
+  }),
+}));
+jest.mock('@supabase/supabase-js', () => ({
+  createClient: jest.fn(() => ({ auth: { getUser: mockGetUser }, rpc: mockRpc, from: mockFrom })),
+}));
 
 import { GET } from '@/app/api/tenant/context/route';
 import { NextRequest } from 'next/server';
 
-// Mock next/headers
-jest.mock('next/headers', () => ({
-  cookies: jest.fn(async () => ({
-    get: jest.fn(),
-    set: jest.fn(),
-    delete: jest.fn(),
-  })),
-  headers: jest.fn(async () => ({
-    get: jest.fn(),
-  })),
-}));
-
-// Mock Supabase client
-const mockFrom = jest.fn();
-const mockSelect = jest.fn();
-const mockEq = jest.fn();
-const mockSingle = jest.fn();
-const mockGetUser = jest.fn();
-
-jest.mock('@/lib/supabase-server', () => ({
-  createClient: jest.fn(() => ({
-    from: mockFrom,
-    auth: {
-      getUser: mockGetUser,
-    },
-  })),
-}));
-
-jest.mock('@supabase/ssr', () => ({
-  createServerClient: jest.fn(() => ({
-    from: mockFrom,
-    auth: {
-      getUser: mockGetUser,
-    },
-  })),
-  combineChunks: jest.fn(async (key: string, retrieveChunk: (name: string) => string | null | undefined | Promise<string | null | undefined>) => {
-    const value = await retrieveChunk(key);
-    if (value) return value;
-
-    const chunks: string[] = [];
-    for (let index = 0; ; index += 1) {
-      const chunk = await retrieveChunk(`${key}.${index}`);
-      if (!chunk) break;
-      chunks.push(chunk);
-    }
-
-    return chunks.length > 0 ? chunks.join('') : null;
-  }),
-}));
-
-jest.mock('@supabase/supabase-js', () => ({
-  createClient: jest.fn(() => ({
-    from: mockFrom,
-    auth: {
-      getUser: mockGetUser,
-    },
-  })),
-}));
+const user = { id: 'user-123', email: 'test@example.com' };
+const profile = { ...user, tenant_id: 'tenant-123', role: 'accountant', status: 'active',
+  tenant_status: 'active', full_name: null, avatar_url: null };
+const tenant = { id: profile.tenant_id, status: 'active', name: 'Test Spa', enabled_modules: ['spa', 'babycare'],
+  subscription_tier: 'professional', role_permissions: { feature_flags: { inventory_transfer: false } },
+  brand_theme: { logoUrl: 'https://example.com/logo.png', primaryColor: '#FF5733' },
+  logo_url: null, salary_config: { base_salary: 5000000 }, qr_bank_code: 'VCB',
+  qr_account_number: '1234567890', qr_account_name: 'Test Spa', contact_phone: '0123456789',
+  email: 'contact@testspa.com', address: '123 Test Street' };
+const request = () => new NextRequest('http://localhost/api/tenant/context');
 
 describe('GET /api/tenant/context', () => {
-  const mockUser = {
-    id: 'user-123',
-    email: 'test@example.com',
-  };
-
-  const mockUserProfile = {
-    tenant_id: 'tenant-123',
-  };
-
-  const mockTenant = {
-    id: 'tenant-123',
-    name: 'Test Spa',
-    enabled_modules: ['spa', 'babycare'],
-    subscription_tier: 'professional',
-    role_permissions: {
-      feature_flags: {
-        ai_salary_reconciliation: true,
-        inventory_transfer: false,
-      },
-    },
-    brand_theme: {
-      logoUrl: 'https://example.com/logo.png',
-      primaryColor: '#FF5733',
-    },
-    logo_url: 'https://example.com/logo.png',
-    salary_config: {
-      base_salary: 5000000,
-    },
-    qr_bank_code: 'VCB',
-    qr_account_number: '1234567890',
-    qr_account_name: 'Test Spa',
-    contact_phone: '0123456789',
-    email: 'contact@testspa.com',
-    address: '123 Test Street',
-  };
-
   beforeEach(() => {
     jest.clearAllMocks();
+    mockGetUser.mockReset().mockResolvedValue({ data: { user }, error: null });
+    mockRpc.mockReset().mockResolvedValue({ data: [profile], error: null });
+    mockTenantSettings.mockReset().mockResolvedValue(tenant);
     process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://project-ref.supabase.co';
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY = 'publishable-key';
     delete process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-    
-    // Setup default mock chain
-    mockGetUser.mockResolvedValue({ data: { user: mockUser }, error: null });
-    mockFrom.mockReturnValue({ select: mockSelect });
-    mockSelect.mockReturnValue({ eq: mockEq });
-    mockEq.mockReturnValue({ single: mockSingle });
   });
 
-  it('returns 401 when user is not authenticated', async () => {
+  it('returns401 before profile/configuration when anonymous', async () => {
     mockGetUser.mockResolvedValue({ data: { user: null }, error: null });
-
-    const request = new NextRequest('http://localhost:3000/api/tenant/context');
-    const response = await GET(request);
-
-    expect(response.status).toBe(401);
-    const data = await response.json();
-    expect(data.error).toContain('Unauthorized');
+    expect((await GET(request())).status).toBe(401);
+    expect(mockRpc).not.toHaveBeenCalled();
+    expect(mockTenantSettings).not.toHaveBeenCalled();
   });
 
-  it('resolves authenticated user from Supabase auth cookie when route handler SSR session is unavailable', async () => {
-    const accessToken = 'valid-cookie-access-token';
-    const cookieValue = `base64-${Buffer.from(JSON.stringify({ access_token: accessToken })).toString('base64url')}`;
-
-    mockGetUser
-      .mockResolvedValueOnce({ data: { user: null }, error: { message: 'Auth session missing' } })
-      .mockResolvedValueOnce({ data: { user: mockUser }, error: null });
-
-    mockSingle
-      .mockResolvedValueOnce({
-        data: mockUserProfile,
-        error: null,
-      })
-      .mockResolvedValueOnce({
-        data: mockTenant,
-        error: null,
-      });
-
-    const request = new NextRequest('http://localhost:3000/api/tenant/context', {
-      headers: {
-        Cookie: `sb-project-ref-auth-token=${cookieValue}`,
-      },
-    });
-    const response = await GET(request);
-
-    expect(response.status).toBe(200);
-    const { createServerClient: mockCreateServerClient } = jest.requireMock('@supabase/ssr') as {
-      createServerClient: jest.Mock;
-    };
-    expect(mockCreateServerClient).toHaveBeenCalledWith(
-      'https://project-ref.supabase.co',
-      'publishable-key',
-      expect.any(Object),
-    );
-    expect(mockGetUser).toHaveBeenNthCalledWith(2, accessToken);
-    const { createClient: mockCreateSupabaseJsClient } = jest.requireMock('@supabase/supabase-js') as {
-      createClient: jest.Mock;
-    };
-    expect(mockCreateSupabaseJsClient).toHaveBeenCalledWith(
-      'https://project-ref.supabase.co',
-      'publishable-key',
-      expect.objectContaining({
-        global: {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        },
-      }),
-    );
-    const data = await response.json();
-    expect(data.tenantId).toBe('tenant-123');
-    expect(data.tenantName).toBe('Test Spa');
-  });
-
-  it('resolves authenticated user from chunked Supabase auth cookie when route handler SSR session is unavailable', async () => {
-    const accessToken = 'valid-chunked-cookie-access-token';
-    const cookieValue = `base64-${Buffer.from(JSON.stringify({ access_token: accessToken })).toString('base64url')}`;
-    const cookieChunks = [cookieValue.slice(0, 18), cookieValue.slice(18)];
-
-    mockGetUser
-      .mockResolvedValueOnce({ data: { user: null }, error: { message: 'Auth session missing' } })
-      .mockResolvedValueOnce({ data: { user: mockUser }, error: null });
-
-    mockSingle
-      .mockResolvedValueOnce({
-        data: mockUserProfile,
-        error: null,
-      })
-      .mockResolvedValueOnce({
-        data: mockTenant,
-        error: null,
-      });
-
-    const request = new NextRequest('http://localhost:3000/api/tenant/context', {
-      headers: {
-        Cookie: [
-          `sb-project-ref-auth-token.0=${cookieChunks[0]}`,
-          `sb-project-ref-auth-token.1=${cookieChunks[1]}`,
-        ].join('; '),
-      },
-    });
-    const response = await GET(request);
-
-    expect(response.status).toBe(200);
-    expect(mockGetUser).toHaveBeenNthCalledWith(2, accessToken);
-    const data = await response.json();
-    expect(data.tenantId).toBe('tenant-123');
-  });
-
-  it('falls back to the raw Cookie header when NextRequest cookies do not expose the auth cookie', async () => {
-    const accessToken = 'valid-raw-cookie-header-access-token';
-    const cookieValue = `base64-${Buffer.from(JSON.stringify({ access_token: accessToken })).toString('base64url')}`;
-
-    mockGetUser
-      .mockResolvedValueOnce({ data: { user: null }, error: { message: 'Auth session missing' } })
-      .mockResolvedValueOnce({ data: { user: mockUser }, error: null });
-
-    mockSingle
-      .mockResolvedValueOnce({
-        data: mockUserProfile,
-        error: null,
-      })
-      .mockResolvedValueOnce({
-        data: mockTenant,
-        error: null,
-      });
-
-    const request = new NextRequest('http://localhost:3000/api/tenant/context', {
-      headers: {
-        Cookie: `sb-project-ref-auth-token=${encodeURIComponent(cookieValue)}`,
-      },
-    });
-    Object.defineProperty(request, 'cookies', {
-      value: {
-        getAll: () => [],
-      },
-    });
-
-    const response = await GET(request);
-
-    expect(response.status).toBe(200);
-    expect(mockGetUser).toHaveBeenNthCalledWith(2, accessToken);
-    const data = await response.json();
-    expect(data.tenantId).toBe('tenant-123');
-  });
-
-  it('decodes Supabase auth cookies without relying on Node Buffer at runtime', async () => {
-    const accessToken = 'valid-web-runtime-access-token';
-    const cookieValue = `base64-${Buffer.from(JSON.stringify({ access_token: accessToken })).toString('base64url')}`;
-    const originalBuffer = globalThis.Buffer;
-
-    mockGetUser
-      .mockResolvedValueOnce({ data: { user: null }, error: { message: 'Auth session missing' } })
-      .mockResolvedValueOnce({ data: { user: mockUser }, error: null });
-
-    mockSingle
-      .mockResolvedValueOnce({
-        data: mockUserProfile,
-        error: null,
-      })
-      .mockResolvedValueOnce({
-        data: mockTenant,
-        error: null,
-      });
-
-    const request = new NextRequest('http://localhost:3000/api/tenant/context', {
-      headers: {
-        Cookie: `sb-project-ref-auth-token=${cookieValue}`,
-      },
-    });
-
-    Object.defineProperty(globalThis, 'Buffer', {
-      configurable: true,
-      value: undefined,
-    });
-
+  it('does not fabricate a tenant for anonymous development requests or mock headers', async () => {
+    const previous = process.env;
+    process.env = { ...previous, NODE_ENV: 'development' };
     try {
-      const response = await GET(request);
+      mockGetUser.mockResolvedValue({ data: { user: null }, error: null });
+      expect((await GET(new NextRequest('http://localhost/api/tenant/context', {
+        headers: { 'x-mock-user-email': 'admin@medical.vn' },
+      }))).status).toBe(401);
+      expect(mockTenantSettings).not.toHaveBeenCalled();
+    } finally { process.env = previous; }
+  });
 
+  it.each(['whole', 'chunked', 'raw-header', 'web-runtime'])('keeps validated %s cookie recovery when SSR session is unavailable', async (mode) => {
+    const accessToken = 'valid-cookie-access-token';
+    const cookie = `base64-${Buffer.from(JSON.stringify({ access_token: accessToken })).toString('base64url')}`;
+    mockGetUser.mockResolvedValueOnce({ data: { user: null }, error: { message: 'Auth session missing' } })
+      .mockResolvedValueOnce({ data: { user }, error: null });
+    const header = mode === 'chunked'
+      ? `sb-project-ref-auth-token.0=${cookie.slice(0, 18)}; sb-project-ref-auth-token.1=${cookie.slice(18)}`
+      : `sb-project-ref-auth-token=${mode === 'raw-header' ? encodeURIComponent(cookie) : cookie}`;
+    const input = new NextRequest('http://localhost/api/tenant/context', { headers: { Cookie: header } });
+    if (mode === 'raw-header') Object.defineProperty(input, 'cookies', { value: { getAll: () => [] } });
+    const originalBuffer = globalThis.Buffer;
+    if (mode === 'web-runtime') Object.defineProperty(globalThis, 'Buffer', { configurable: true, value: undefined });
+    try {
+      const response = await GET(input);
       expect(response.status).toBe(200);
       expect(mockGetUser).toHaveBeenNthCalledWith(2, accessToken);
-      const data = await response.json();
-      expect(data.tenantId).toBe('tenant-123');
+      expect(mockRpc).toHaveBeenCalledWith('platform_current_actor_profile');
+      expect(await response.json()).toMatchObject({ tenantId: tenant.id, tenantName: tenant.name });
+      const { createClient } = jest.requireMock('@supabase/supabase-js') as { createClient: jest.Mock };
+      expect(createClient).toHaveBeenCalledWith('https://project-ref.supabase.co', 'publishable-key',
+        expect.objectContaining({ global: { headers: { Authorization: `Bearer ${accessToken}` } } }));
     } finally {
-      Object.defineProperty(globalThis, 'Buffer', {
-        configurable: true,
-        value: originalBuffer,
-      });
+      if (mode === 'web-runtime') Object.defineProperty(globalThis, 'Buffer', { configurable: true, value: originalBuffer });
     }
   });
 
-  it('returns 403 when user has no tenant assigned', async () => {
-    // First call for user profile - returns user with no tenant
-    mockSingle.mockResolvedValueOnce({
-      data: { tenant_id: null },
-      error: null,
-    });
+  it('does not trust a cookie token rejected by Auth', async () => {
+    mockGetUser.mockResolvedValue({ data: { user: null }, error: { message: 'invalid token' } });
+    const cookie = `base64-${Buffer.from(JSON.stringify({ access_token: 'invalid' })).toString('base64url')}`;
+    expect((await GET(new NextRequest('http://localhost/api/tenant/context', {
+      headers: { Cookie: `sb-project-ref-auth-token=${cookie}` },
+    }))).status).toBe(401);
+    expect(mockRpc).not.toHaveBeenCalled();
+    expect(mockTenantSettings).not.toHaveBeenCalled();
+  });
 
-    const request = new NextRequest('http://localhost:3000/api/tenant/context');
-    const response = await GET(request);
+  it('validates a Bearer token with Auth when no SSR cookie session is available', async () => {
+    mockGetUser.mockResolvedValueOnce({ data: { user: null }, error: { message: 'Auth session missing' } })
+      .mockResolvedValueOnce({ data: { user }, error: null });
+    expect((await GET(new NextRequest('http://localhost/api/tenant/context', {
+      headers: { Authorization: 'Bearer validated-access-token' },
+    }))).status).toBe(200);
+    expect(mockGetUser).toHaveBeenNthCalledWith(2, 'validated-access-token');
+    expect(mockRpc).toHaveBeenCalledWith('platform_current_actor_profile');
+  });
 
+  it.each([{ profiles: [] }, { profiles: [{ ...profile, tenant_id: null }] }, { profiles: [{ ...profile, id: 'foreign-user' }] },
+    { profiles: [{ ...profile, status: 'inactive' }] }, { profiles: [{ ...profile, tenant_status: 'inactive' }] }])('denies invalid current actor profile (%j)', async ({ profiles }) => {
+    mockRpc.mockResolvedValue({ data: profiles, error: null });
+    expect((await GET(request())).status).toBe(403);
+    expect(mockTenantSettings).not.toHaveBeenCalled();
+  });
+
+  it.each([['42501', 403], ['08006', 500]])('fails closed on profile error %s', async (code, status) => {
+    mockRpc.mockResolvedValue({ data: null, error: { code, message: 'profile unavailable' } });
+    expect((await GET(request())).status).toBe(status);
+    expect(mockTenantSettings).not.toHaveBeenCalled();
+  });
+
+  it.each([null, 'throw'])('fails closed if the existing settings service cannot return data (%s)', async (result) => {
+    if (result === 'throw') mockTenantSettings.mockRejectedValue(new Error('database unavailable'));
+    else mockTenantSettings.mockResolvedValue(null);
+    expect((await GET(request())).status).toBe(500);
+  });
+
+  it.each([{ ...tenant, id: 'foreign-tenant' }, { ...tenant, status: 'inactive' }])('denies configuration mismatched with current active tenant (%j)', async (result) => {
+    mockTenantSettings.mockResolvedValue(result);
+    const response = await GET(request());
     expect(response.status).toBe(403);
-    const data = await response.json();
-    expect(data.error).toContain('no tenant assigned');
+    expect(await response.json()).not.toHaveProperty('tenantName');
   });
 
-  it('returns 500 when user profile fetch fails', async () => {
-    mockSingle.mockResolvedValueOnce({
-      data: null,
-      error: { message: 'Database error' },
-    });
-
-    const request = new NextRequest('http://localhost:3000/api/tenant/context');
-    const response = await GET(request);
-
-    expect(response.status).toBe(500);
-    const data = await response.json();
-    expect(data.error).toContain('Failed to fetch user profile');
-  });
-
-  it('returns 500 when tenant fetch fails', async () => {
-    // First call for user profile - success
-    mockSingle.mockResolvedValueOnce({
-      data: mockUserProfile,
-      error: null,
-    });
-
-    // Second call for tenant - fails
-    mockSingle.mockResolvedValueOnce({
-      data: null,
-      error: { message: 'Database error' },
-    });
-
-    const request = new NextRequest('http://localhost:3000/api/tenant/context');
-    const response = await GET(request);
-
-    expect(response.status).toBe(500);
-    const data = await response.json();
-    expect(data.error).toContain('Failed to fetch tenant configuration');
-  });
-
-  it('returns 404 when tenant is not found', async () => {
-    // First call for user profile - success
-    mockSingle.mockResolvedValueOnce({
-      data: mockUserProfile,
-      error: null,
-    });
-
-    // Second call for tenant - not found
-    mockSingle.mockResolvedValueOnce({
-      data: null,
-      error: null,
-    });
-
-    const request = new NextRequest('http://localhost:3000/api/tenant/context');
-    const response = await GET(request);
-
-    expect(response.status).toBe(404);
-    const data = await response.json();
-    expect(data.error).toContain('Tenant configuration not found');
-  });
-
-  it('returns properly formatted TenantContext when successful', async () => {
-    // First call for user profile
-    mockSingle.mockResolvedValueOnce({
-      data: mockUserProfile,
-      error: null,
-    });
-
-    // Second call for tenant
-    mockSingle.mockResolvedValueOnce({
-      data: mockTenant,
-      error: null,
-    });
-
-    const request = new NextRequest('http://localhost:3000/api/tenant/context');
-    const response = await GET(request);
-
+  it('preserves TenantContext mapping without table reads or private fields', async () => {
+    mockTenantSettings.mockResolvedValue({ ...tenant, private_field: 'not-public' });
+    const response = await GET(new NextRequest('http://localhost/api/tenant/context?tenantId=foreign-tenant'));
     expect(response.status).toBe(200);
+    expect(mockRpc).toHaveBeenCalledWith('platform_current_actor_profile');
+    expect(mockTenantSettings).toHaveBeenCalledWith();
+    expect(mockFrom).not.toHaveBeenCalled();
     const data = await response.json();
-
-    // Verify TenantContext structure
-    expect(data).toMatchObject({
-      tenantId: 'tenant-123',
-      tenantName: 'Test Spa',
-      enabledModules: ['spa', 'babycare'],
-      subscriptionPlan: 'professional',
-      featureFlags: {
-        ai_salary_reconciliation: true,
-        inventory_transfer: false,
-      },
-      settings: expect.objectContaining({
-        currency: 'VND',
-        timezone: 'Asia/Ho_Chi_Minh',
-        locale: 'vi-VN',
-        logoUrl: 'https://example.com/logo.png',
-        primaryColor: '#FF5733',
-        companyName: 'Test Spa',
-      }),
-    });
-
-    // Verify settings include additional config
-    expect(data.settings.salaryConfig).toBeDefined();
-    expect(data.settings.qrPayment).toMatchObject({
-      bankCode: 'VCB',
-      accountNumber: '1234567890',
-      accountName: 'Test Spa',
-    });
-    expect(data.settings.contact).toMatchObject({
-      phone: '0123456789',
-      email: 'contact@testspa.com',
-      address: '123 Test Street',
-    });
-  });
-
-  it('uses default values when tenant has minimal configuration', async () => {
-    const minimalTenant = {
-      id: 'tenant-456',
-      name: 'Minimal Spa',
-      enabled_modules: null,
-      subscription_tier: null,
-      role_permissions: null,
-      brand_theme: null,
-      logo_url: null,
-      salary_config: null,
-      qr_bank_code: null,
-      qr_account_number: null,
-      qr_account_name: null,
-      contact_phone: null,
-      email: null,
-      address: null,
-    };
-
-    // First call for user profile
-    mockSingle.mockResolvedValueOnce({
-      data: mockUserProfile,
-      error: null,
-    });
-
-    // Second call for tenant
-    mockSingle.mockResolvedValueOnce({
-      data: minimalTenant,
-      error: null,
-    });
-
-    const request = new NextRequest('http://localhost:3000/api/tenant/context');
-    const response = await GET(request);
-
-    expect(response.status).toBe(200);
-    const data = await response.json();
-
-    // Verify defaults are applied
-    expect(data.enabledModules).toEqual(['spa']); // Default module
-    expect(data.subscriptionPlan).toBe('basic'); // Default plan
-    expect(data.featureFlags).toEqual({}); // Empty flags
-    expect(data.settings).toMatchObject({
-      currency: 'VND',
-      timezone: 'Asia/Ho_Chi_Minh',
-      locale: 'vi-VN',
-      companyName: 'Minimal Spa',
-    });
-  });
-
-  it('sets cache headers on successful response', async () => {
-    // First call for user profile
-    mockSingle.mockResolvedValueOnce({
-      data: mockUserProfile,
-      error: null,
-    });
-
-    // Second call for tenant
-    mockSingle.mockResolvedValueOnce({
-      data: mockTenant,
-      error: null,
-    });
-
-    const request = new NextRequest('http://localhost:3000/api/tenant/context');
-    const response = await GET(request);
-
-    expect(response.status).toBe(200);
-    expect(response.headers.get('Content-Type')).toBe('application/json');
+    expect(data).toMatchObject({ tenantId: tenant.id, tenantName: tenant.name, enabledModules: tenant.enabled_modules,
+      subscriptionPlan: 'professional', featureFlags: { inventory_transfer: false },
+      settings: { currency: 'VND', timezone: 'Asia/Ho_Chi_Minh', locale: 'vi-VN', companyName: tenant.name,
+        logoUrl: 'https://example.com/logo.png', primaryColor: '#FF5733', salaryConfig: tenant.salary_config,
+        qrPayment: { bankCode: 'VCB', accountNumber: '1234567890', accountName: 'Test Spa' },
+        contact: { phone: tenant.contact_phone, email: tenant.email, address: tenant.address } } });
+    expect(data).not.toHaveProperty('private_field');
     expect(response.headers.get('Cache-Control')).toBe('no-store, no-cache, must-revalidate, proxy-revalidate');
+  });
+
+  it('retains existing mapping defaults for minimal tenant configuration', async () => {
+    mockTenantSettings.mockResolvedValue({ id: tenant.id, name: tenant.name, status: 'active' });
+    const response = await GET(request());
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({ enabledModules: ['spa'], subscriptionPlan: 'basic',
+      featureFlags: {}, settings: { currency: 'VND', timezone: 'Asia/Ho_Chi_Minh', locale: 'vi-VN', companyName: tenant.name } });
+  });
+
+  it('transports canonical Product identity and only safe branding fields from the trusted tenant', async () => {
+    mockTenantSettings.mockResolvedValue({ ...tenant, product_key: 'bella_preschool',
+      enabled_modules: { babycare: true }, brand_theme: { brandName: 'Custom School', primaryColor: '#6D28D9',
+        fontHeading: 'sans', private_field: 'not-public' } });
+    const response = await GET(request());
+    expect(response.status).toBe(200);
+    const data = await response.json();
+    expect(data.settings.productKey).toBe('bella_preschool');
+    expect(data.settings.brandTheme).toEqual({ brandName: 'Custom School', primaryColor: '#6D28D9', fontHeading: 'sans' });
   });
 });

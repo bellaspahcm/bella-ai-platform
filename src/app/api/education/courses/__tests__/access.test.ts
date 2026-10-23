@@ -9,6 +9,7 @@ interface Profile {
   id: string;
   tenant_id: string | null;
   status: string;
+  role: string;
 }
 
 const mockGetUser = jest.fn<() => Promise<AuthResult>>();
@@ -18,7 +19,19 @@ const mockGetCourseTeachers = jest.fn<() => Promise<unknown[]>>();
 const mockClient = { auth: { getUser: mockGetUser }, from: mockFrom };
 
 jest.mock('@/lib/supabase-server', () => ({ createClient: () => mockClient }));
+jest.mock('@supabase/supabase-js', () => ({ createClient: () => mockClient }));
+jest.mock('@/lib/supabase-admin-env', () => ({
+  getSupabaseAdminUrl: () => 'https://courses-test.invalid',
+  getSupabaseAdminKey: () => 'courses-test-admin-placeholder',
+}));
 jest.mock('@/services/user-actions', () => ({ getCurrentUser: mockGetCurrentUser }));
+jest.mock('@/products/bella-education/services/preschool-chain.service', () => ({
+  PreschoolChainError: class extends Error {},
+  PreschoolChainService: jest.fn().mockImplementation(() => ({
+    listCourseAssignments: async () => [{ tenant_id: tenantId, course_id: courseId, branch_id: 'branch-a' }],
+    listEnrollmentAssignments: async () => [],
+  })),
+}));
 jest.mock('@/platform/education/contracts/teacher-assignment.contract.impl', () => ({
   TeacherAssignmentContractImpl: jest.fn().mockImplementation(() => ({
     getCourseTeachers: mockGetCourseTeachers,
@@ -33,7 +46,7 @@ const userId = '00000000-0000-0000-0000-000000000011';
 const tenantId = '00000000-0000-0000-0000-000000000022';
 const foreignTenantId = '00000000-0000-0000-0000-000000000033';
 const courseId = '00000000-0000-0000-0000-000000000044';
-const profile: Profile = { id: userId, tenant_id: tenantId, status: 'active' };
+const profile: Profile = { id: userId, tenant_id: tenantId, status: 'active', role: 'admin_staff' };
 const handlers: ReadonlyArray<readonly [string, (request: Request) => Promise<Response>]> = [
   ['list', (request) => listCourses(request)],
   ['detail', (request) => getCourse(request, { params: Promise.resolve({ id: courseId }) })],
@@ -146,9 +159,10 @@ describe('Courses verified session reads', () => {
       const chain = {
         select: () => chain,
         eq: (column: string, value: string) => { filters.push({ table, column, value }); return chain; },
-        in: async () => result,
+        in: () => chain,
         order: async () => result,
         single: async () => ({ data: values[table]?.[0] ?? null, error: null }),
+        then: (resolve: (value: typeof result) => unknown) => Promise.resolve(result).then(resolve),
       };
       return chain;
     });

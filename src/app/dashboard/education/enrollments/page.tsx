@@ -1,5 +1,4 @@
 'use client';
-/* eslint-disable @next/next/no-img-element */
 
 /**
  * Bella Education Preschool — Student Management Operational Workspace
@@ -59,7 +58,7 @@ export interface StudentRecord {
   readonly id: string;
   readonly name: string;
   readonly nickname: string;
-  readonly gender: 'Bé trai' | 'Bé gái';
+  readonly gender: 'Bé trai' | 'Bé gái' | 'Chưa ghi nhận';
   readonly dateOfBirth: string;
   readonly age: string;
   readonly className: string;
@@ -151,7 +150,7 @@ export interface HealthAlertChild {
   readonly className: string;
   readonly condition: string;
   readonly avatarUrl: string;
-  readonly gender?: 'Bé trai' | 'Bé gái';
+  readonly gender?: StudentRecord['gender'];
 }
 
 export interface IncompleteDocChild {
@@ -160,7 +159,7 @@ export interface IncompleteDocChild {
   readonly className: string;
   readonly missingDoc: string;
   readonly badgeClass: string;
-  readonly gender?: 'Bé trai' | 'Bé gái';
+  readonly gender?: StudentRecord['gender'];
 }
 
 export interface UpcomingBirthdayChild {
@@ -170,7 +169,7 @@ export interface UpcomingBirthdayChild {
   readonly dob: string;
   readonly daysRemaining: number;
   readonly avatarUrl: string;
-  readonly gender?: 'Bé trai' | 'Bé gái';
+  readonly gender?: StudentRecord['gender'];
 }
 
 export interface PendingAdmissionChild {
@@ -180,7 +179,7 @@ export interface PendingAdmissionChild {
   readonly statusText: 'Hồ sơ đầy đủ' | 'Chờ bổ sung hồ sơ' | 'Chờ xác nhận';
   readonly submittedDate: string;
   readonly avatarUrl: string;
-  readonly gender?: 'Bé trai' | 'Bé gái';
+  readonly gender?: StudentRecord['gender'];
 }
 
 export interface ClassroomCapacityStat {
@@ -193,7 +192,7 @@ export interface ClassroomCapacityStat {
 const DEFAULT_ADMISSION_FORM: AdmissionFormState = {
   childName: '',
   nickname: '',
-  dateOfBirth: '2023-06-15',
+  dateOfBirth: '',
   gender: 'Nam',
   guardianName: '',
   guardianPhone: '',
@@ -611,11 +610,35 @@ export default function PreschoolEnrollmentsPage() {
   const [admissionError, setAdmissionError] = useState('');
   const [admissionSuccess, setAdmissionSuccess] = useState('');
   const [isSubmittingAdmission, setIsSubmittingAdmission] = useState(false);
+  const [admissionStorageKey, setAdmissionStorageKey] = useState('');
+  const [pendingAdmissionKey, setPendingAdmissionKey] = useState('');
+  const [resumeNeedsPayload, setResumeNeedsPayload] = useState(false);
+  const admissionSubmitRef = useRef(false);
   const [isLoadingStudents, setIsLoadingStudents] = useState(false);
   const [studentLoadError, setStudentLoadError] = useState('');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const menuRef = useRef<HTMLDivElement>(null);
+
+  // Only the operation key is retained in this tab; child/guardian/medical data
+  // is recovered by the authenticated server. Never use a cross-user storage key.
+  useEffect(() => {
+    let cancelled = false;
+    fetch('/api/education/enrollments?admissionContext=1', { cache: 'no-store' })
+      .then(async (response) => {
+        const data = await response.json() as { success?: boolean; admissionContext?: { tenantId: string; actorId: string } };
+        if (!response.ok || !data.success || !data.admissionContext || cancelled) return;
+        const key = `preschool-admission:${data.admissionContext.tenantId}:${data.admissionContext.actorId}`;
+        try {
+          const pending = sessionStorage.getItem(key) || '';
+          if (pending && /^[0-9a-f-]{36}$/i.test(pending)) setPendingAdmissionKey(pending);
+          setAdmissionStorageKey(key);
+        } catch {
+          setAdmissionError('Trình duyệt không lưu được mã hồ sơ để thử lại. Vui lòng bật lưu trữ phiên.');
+        }
+      }).catch(() => { if (!cancelled) setAdmissionError('Không xác minh được quyền nhập học. Vui lòng tải lại.'); });
+    return () => { cancelled = true; };
+  }, []);
 
   // Close overflow menus on outside click
   useEffect(() => {
@@ -667,13 +690,13 @@ export default function PreschoolEnrollmentsPage() {
             return {
               id: item.id,
               name: item.name,
-              nickname: item.nickname || 'Bé ngoan',
-              gender: isFemale ? 'Bé gái' : 'Bé trai',
-              dateOfBirth: item.dateOfBirth ? formatDate(item.dateOfBirth) : '12/03/2022',
-              age: item.dateOfBirth ? formatAge(item.dateOfBirth) : '3 tuổi',
-              className: item.className || 'Lá 1',
+              nickname: item.nickname || '',
+              gender: isFemale ? 'Bé gái' : ['nam','male'].includes(item.gender.toLowerCase()) ? 'Bé trai' : 'Chưa ghi nhận',
+              dateOfBirth: item.dateOfBirth ? formatDate(item.dateOfBirth) : 'Chưa ghi nhận',
+              age: item.dateOfBirth ? formatAge(item.dateOfBirth) : 'Chưa ghi nhận',
+              className: item.className || 'Chưa xếp lớp',
               parentName: item.parentName || 'Chưa ghi nhận',
-              parentPhone: item.parentPhone || '0901 234 567',
+              parentPhone: item.parentPhone || '',
               status: statusLabel,
               statusKey,
               hasHealthAlert: item.hasHealthAlert,
@@ -713,36 +736,16 @@ export default function PreschoolEnrollmentsPage() {
     let cancelled = false;
     async function loadAdmissionOptions() {
       try {
-        const [classroomResponse, branchResponse] = await Promise.all([
-          fetch('/api/education/courses'),
-          fetch('/api/education/branches'),
-        ]);
-        const classroomData = (await classroomResponse.json()) as { success?: boolean; classrooms?: ReadonlyArray<ClassroomOption> };
-        const branchData = (await branchResponse.json()) as { success?: boolean; branches?: ReadonlyArray<BranchOption> };
-        
+        const branchResponse = await fetch('/api/education/branches');
+        const branchData = (await branchResponse.json()) as { success?:boolean;branches?:ReadonlyArray<BranchOption> };
         if (cancelled) return;
-        if (!classroomData?.success) return;
-
-        const loadedClassrooms: ReadonlyArray<ClassroomOption> = (classroomData.classrooms || []).map((item) => ({
-          id: item.id,
-          code: item.code,
-          name: item.name,
-          grade: item.grade,
-        }));
-        const loadedBranches: ReadonlyArray<BranchOption> = branchData?.success
-          ? (branchData.branches || []).map((item) => ({
-              id: item.id,
-              name: item.name,
-              code: item.code,
-            }))
-          : [];
-
-        setClassrooms(loadedClassrooms);
+        if (!branchResponse.ok || !branchData.success) throw new Error('Branch options unavailable');
+        const loadedBranches = branchData.branches ?? [];
         setBranches(loadedBranches);
         setAdmissionForm((current) => ({
           ...current,
-          courseId: current.courseId || loadedClassrooms[0]?.id || '',
-          branchId: current.branchId || loadedBranches[0]?.id || '',
+          courseId: current.courseId,
+          branchId: current.branchId,
         }));
       } catch {
         if (!cancelled) {
@@ -756,6 +759,19 @@ export default function PreschoolEnrollmentsPage() {
       cancelled = true;
     };
   }, [isAdmissionModalOpen]);
+
+  useEffect(() => {
+    setClassrooms([]);
+    if (!isAdmissionModalOpen || !admissionForm.branchId) return;
+    let cancelled = false;
+    fetch(`/api/education/courses?admissionBranchId=${encodeURIComponent(admissionForm.branchId)}`)
+      .then(async (response) => {
+        const data = await response.json() as {success?:boolean;classrooms?:ReadonlyArray<ClassroomOption>};
+        if (!response.ok || !data.success) throw new Error('Course candidates unavailable');
+        if (!cancelled) setClassrooms(data.classrooms ?? []);
+      }).catch(() => { if (!cancelled) setAdmissionError('Không tải được lớp cho cơ sở đã chọn. Vui lòng thử lại.'); });
+    return () => { cancelled = true; };
+  },[isAdmissionModalOpen,admissionForm.branchId]);
 
   // Aggregate KPI Counts — derived from canonical students state loaded from API
   const totalCount = students.length;
@@ -859,15 +875,16 @@ export default function PreschoolEnrollmentsPage() {
   }
 
   function openAdmissionModal() {
-    setAdmissionForm(DEFAULT_ADMISSION_FORM);
+    if (!pendingAdmissionKey) setAdmissionForm(DEFAULT_ADMISSION_FORM);
     setAdmissionError('');
     setAdmissionSuccess('');
-    setModalStep(1);
+    setModalStep(pendingAdmissionKey ? 2 : 1);
     setIsAdmissionModalOpen(true);
   }
 
   function updateAdmissionForm<K extends keyof AdmissionFormState>(field: K, value: AdmissionFormState[K]) {
-    setAdmissionForm((current) => ({ ...current, [field]: value }));
+    if (pendingAdmissionKey && !resumeNeedsPayload) return;
+    setAdmissionForm((current) => ({ ...current, [field]: value, ...(field==='branchId' ? {courseId:''} : {}) }));
     setAdmissionError('');
   }
 
@@ -875,25 +892,43 @@ export default function PreschoolEnrollmentsPage() {
     setAdmissionError('');
     setAdmissionSuccess('');
 
-    if (!admissionForm.childName.trim() || !admissionForm.dateOfBirth || !admissionForm.guardianName.trim() || !admissionForm.guardianPhone.trim() || !admissionForm.courseId) {
+    if (admissionSubmitRef.current) return;
+    if (!admissionStorageKey) { setAdmissionError('Không xác minh được quyền nhập học hoặc lưu trữ phiên. Vui lòng tải lại.'); return; }
+    const sendingPayload = !pendingAdmissionKey || resumeNeedsPayload;
+    if (sendingPayload && (!admissionForm.childName.trim() || !admissionForm.dateOfBirth || !admissionForm.guardianName.trim() || !admissionForm.guardianPhone.trim() || !admissionForm.courseId)) {
       setAdmissionError('Vui lòng nhập đủ thông tin bắt buộc và chọn lớp.');
       return;
     }
-    if (branches.length > 0 && !admissionForm.branchId) {
+    if (sendingPayload && (!admissionForm.branchId || !branches.some((branch) => branch.id === admissionForm.branchId))) {
       setAdmissionError('Vui lòng chọn cơ sở/chi nhánh nhập học.');
       return;
     }
 
+    admissionSubmitRef.current = true;
     setIsSubmittingAdmission(true);
     try {
+      const operationKey = pendingAdmissionKey || crypto.randomUUID();
+      // Store before sending; a network error never silently allocates a new key.
+      sessionStorage.setItem(admissionStorageKey, operationKey);
+      setPendingAdmissionKey(operationKey);
+      setResumeNeedsPayload(false);
       const response = await fetch('/api/education/enrollments', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(admissionForm),
+        body: JSON.stringify(sendingPayload ? { ...admissionForm, operationKey } : { operationKey }),
       });
       const data = (await response.json()) as AdmissionResponse;
 
-      if (!response.ok || !data.success || !data.student || !data.enrollment) {
+      if (response.status===400 && ['PRESCHOOL_ADMISSION_INVALID_PAYLOAD','PRESCHOOL_ADMISSION_INVALID_GUARDIAN_PHONE','PRESCHOOL_ADMISSION_INVALID_KEY','PRESCHOOL_ADMISSION_ACTIVE_COURSE_REQUIRED'].includes(data.error ?? '')) {
+        setResumeNeedsPayload(true); setModalStep(1); // Correct payload with the SAME operation key.
+      }
+      if (response.status === 404 && data.error === 'PRESCHOOL_ADMISSION_OPERATION_NOT_FOUND') {
+        // An earlier request could still be in flight. Re-enter with the SAME key.
+        setResumeNeedsPayload(true);
+        setModalStep(1);
+        throw new Error('Chưa tìm thấy hồ sơ. Nhập lại thông tin để tiếp tục bằng cùng mã yêu cầu.');
+      }
+      if (!response.ok || !data.success || !data.student || !data.enrollment || !data.chain) {
         throw new Error(data.error || 'Đăng ký nhập học chưa hoàn tất.');
       }
 
@@ -901,15 +936,15 @@ export default function PreschoolEnrollmentsPage() {
       const newStudent: StudentRecord = {
         id: data.student.studentCode,
         name: data.student.childName,
-        nickname: data.student.nickname || 'Bé mới',
-        gender: data.student.gender === 'female' ? 'Bé gái' : 'Bé trai',
-        dateOfBirth: formatDate(data.student.dateOfBirth),
-        age: formatAge(data.student.dateOfBirth),
-        className: data.enrollment.courseTitle || 'Mầm 1',
+        nickname: data.student.nickname || '',
+        gender: data.student.gender === 'female' ? 'Bé gái' : data.student.gender === 'male' ? 'Bé trai' : 'Chưa ghi nhận',
+        dateOfBirth: data.student.dateOfBirth ? formatDate(data.student.dateOfBirth) : 'Chưa ghi nhận',
+        age: data.student.dateOfBirth ? formatAge(data.student.dateOfBirth) : 'Chưa ghi nhận',
+        className: data.enrollment.courseTitle,
         parentName: data.student.guardianName,
         parentPhone: data.student.guardianPhone,
-        status: 'Chờ nhập học',
-        statusKey: 'pending',
+        status: data.student.medicalNote ? 'Lưu ý y tế' : data.enrollment.status === 'active' ? 'Đang học' : 'Chờ nhập học',
+        statusKey: data.student.medicalNote ? 'healthAlert' : data.enrollment.status === 'active' ? 'active' : 'pending',
         hasHealthAlert: Boolean(data.student.medicalNote),
         medicalNote: data.student.medicalNote,
         avatarUrl: data.student.gender === 'female'
@@ -917,12 +952,16 @@ export default function PreschoolEnrollmentsPage() {
           : 'https://images.unsplash.com/photo-1544717305-2782549b5136?w=150&auto=format&fit=crop&q=80',
       };
 
-      setStudents((prev) => [newStudent, ...prev]);
+      sessionStorage.removeItem(admissionStorageKey);
+      setPendingAdmissionKey('');
+      setResumeNeedsPayload(false);
+      setStudents((prev) => [newStudent, ...prev.filter((row) => row.id !== newStudent.id)]);
       setToastMessage(`Đã tạo thành công hồ sơ ${data.student.studentCode} cho bé ${data.student.childName}`);
       setIsAdmissionModalOpen(false);
     } catch (error) {
       setAdmissionError(error instanceof Error ? error.message : 'Đăng ký nhập học thất bại.');
     } finally {
+      admissionSubmitRef.current = false;
       setIsSubmittingAdmission(false);
     }
   }
@@ -1920,6 +1959,18 @@ export default function PreschoolEnrollmentsPage() {
               </p>
             </div>
 
+            {pendingAdmissionKey && (
+              <div className="rounded-2xl bg-amber-50 dark:bg-amber-950/40 p-3 text-xs text-amber-900 dark:text-amber-200 space-y-2">
+                <p>Hồ sơ trước chưa được xác nhận hoàn tất. Tiếp tục để kiểm tra và khôi phục đúng hồ sơ.</p>
+                <button type="button" disabled={isSubmittingAdmission} className="font-bold underline" onClick={() => {
+                  if (!window.confirm('Tạo một yêu cầu nhập học mới? Hồ sơ trước được giữ nguyên và có thể vẫn đang xử lý.')) return;
+                  sessionStorage.removeItem(admissionStorageKey);
+                  setPendingAdmissionKey(''); setResumeNeedsPayload(false);
+                  setAdmissionForm(DEFAULT_ADMISSION_FORM); setAdmissionError(''); setModalStep(1);
+                }}>Bắt đầu hồ sơ mới</button>
+              </div>
+            )}
+            <fieldset disabled={isSubmittingAdmission || Boolean(pendingAdmissionKey && !resumeNeedsPayload)} className="space-y-4 disabled:opacity-60">
             {/* Modal Step 1: Child Basic Info */}
             {modalStep === 1 && (
               <div className="space-y-4">
@@ -2024,41 +2075,15 @@ export default function PreschoolEnrollmentsPage() {
 
                 <div>
                   <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1.5">
-                    Lớp nhập học *
-                  </label>
-                  <select
-                    value={admissionForm.courseId}
-                    onChange={(e) => updateAdmissionForm('courseId', e.target.value)}
-                    className="w-full p-3 text-xs rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-medium focus:ring-2 focus:ring-emerald-500"
-                  >
-                    {classrooms.length === 0 ? (
-                      <>
-                        <option value="class-la1">Lớp Lá 1 (5 tuổi)</option>
-                        <option value="class-choi2">Lớp Chồi 2 (4 tuổi)</option>
-                        <option value="class-mam1">Lớp Mầm 1 (3 tuổi)</option>
-                      </>
-                    ) : (
-                      classrooms.map((classroom) => (
-                        <option key={classroom.id} value={classroom.id}>
-                          {classroom.name} • {classroom.grade}
-                        </option>
-                      ))
-                    )}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1.5">
-                    Cơ sở / chi nhánh nhập học {branches.length > 0 ? '*' : ''}
+                    Cơ sở / chi nhánh nhập học *
                   </label>
                   <select
                     value={admissionForm.branchId}
                     onChange={(e) => updateAdmissionForm('branchId', e.target.value)}
                     className="w-full p-3 text-xs rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-medium focus:ring-2 focus:ring-emerald-500 disabled:opacity-60"
                   >
-                    {branches.length === 0 ? (
-                      <option value="branch-main">Cơ sở chính (Ánh Dương Campus 1)</option>
-                    ) : (
+                    <option value="">{branches.length === 0 ? 'Chưa có cơ sở được phép truy cập' : 'Chọn cơ sở nhập học'}</option>
+                    {branches.length > 0 && (
                       branches.map((branch) => (
                         <option key={branch.id} value={branch.id}>
                           {branch.name}{branch.code ? ` • ${branch.code}` : ''}
@@ -2067,6 +2092,28 @@ export default function PreschoolEnrollmentsPage() {
                     )}
                   </select>
                 </div>
+
+                <div>
+                  <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1.5">
+                    Lớp nhập học *
+                  </label>
+                  <select
+                    value={admissionForm.courseId}
+                    onChange={(e) => updateAdmissionForm('courseId', e.target.value)}
+                    className="w-full p-3 text-xs rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-medium focus:ring-2 focus:ring-emerald-500"
+                  >
+                    <option value="">{classrooms.length === 0 ? 'Chưa tải được lớp nhập học' : 'Chọn lớp nhập học'}</option>
+                    {classrooms.length > 0 && (
+                      classrooms.map((classroom) => (
+                        <option key={classroom.id} value={classroom.id}>
+                          {classroom.name}{classroom.grade ? ` • ${classroom.grade}` : ''}
+                        </option>
+                      ))
+                    )}
+                  </select>
+                </div>
+
+
 
                 <div className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200/60 text-xs space-y-1">
                   <span className="font-bold text-emerald-800 dark:text-emerald-300 flex items-center gap-1.5">
@@ -2092,6 +2139,7 @@ export default function PreschoolEnrollmentsPage() {
               </div>
             )}
 
+            </fieldset>
             {/* Modal Navigation Buttons */}
             <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100 dark:border-slate-800">
               {modalStep > 1 && (
@@ -2115,11 +2163,11 @@ export default function PreschoolEnrollmentsPage() {
                 <button
                   type="button"
                   onClick={submitAdmission}
-                  disabled={isSubmittingAdmission}
+                  disabled={isSubmittingAdmission || !admissionStorageKey}
                   className="px-5 py-2.5 rounded-2xl bg-[#064E3B] hover:bg-[#043d2e] disabled:bg-slate-400 text-white font-bold text-xs shadow-md transition-all cursor-pointer disabled:cursor-not-allowed flex items-center gap-1.5"
                 >
                   {isSubmittingAdmission ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
-                  <span>{isSubmittingAdmission ? 'Đang ghi nhận...' : 'Hoàn Tất Đăng Ký Nhập Học'}</span>
+                  <span>{isSubmittingAdmission ? 'Đang ghi nhận...' : pendingAdmissionKey && !resumeNeedsPayload ? 'Tiếp tục hồ sơ đang xử lý' : 'Hoàn Tất Đăng Ký Nhập Học'}</span>
                 </button>
               )}
             </div>

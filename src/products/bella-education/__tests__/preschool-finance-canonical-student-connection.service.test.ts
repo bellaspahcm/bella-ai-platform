@@ -3,7 +3,7 @@ import path from 'path';
 import { PreschoolFinanceRepository } from '../finance/repositories/preschool-finance.repository';
 import { TuitionBillingService } from '../finance/services/tuition-billing.service';
 import { PaymentReconciliationService } from '../finance/services/payment-reconciliation.service';
-import { FeeStructure, Invoice, InvoiceLineItem, Payment, StudentDiscountProfile } from '../finance/domain/finance.types';
+import { FeeStructure, Invoice, InvoiceLineItem, Payment, StudentDiscountProfile, type FinanceReconciliationCommand } from '../finance/domain/finance.types';
 
 const tenantId = 'tenant-a';
 const studentPartyId = 'student-party-a';
@@ -211,7 +211,7 @@ describe('Preschool Finance canonical student Party connection', () => {
     expect(payment.unallocatedAmount).toBe(1000000);
   });
 
-  it('reconciles payment and invoice by canonical student_party_id when legacy student_id is null', async () => {
+  it('propagates the atomic repository canonical student mismatch when legacy student_id is null', async () => {
     const invoice: Invoice = {
       ...makeInvoice({
         studentPartyId,
@@ -246,11 +246,12 @@ describe('Preschool Finance canonical student Party connection', () => {
       createdBy: 'staff-a',
     };
     const repo = {
-      async getInvoiceById(): Promise<Invoice> {
-        return invoice;
-      },
-      async getPaymentById(): Promise<Payment> {
-        return wrongStudentPayment;
+      async recoverAtomicReconciliation() { return null; },
+      async commitAtomicReconciliation(command: FinanceReconciliationCommand) {
+        expect(command.request).toMatchObject({ invoiceId: invoice.id, paymentId: wrongStudentPayment.id });
+        // Canonical mismatch enforcement moved into the atomic DB capability.
+        // The opt-in actual DB suite verifies rejection with unchanged rows.
+        throw new Error('PAYMENT_INVOICE_STUDENT_MISMATCH_ERROR');
       },
     } as unknown as PreschoolFinanceRepository;
 

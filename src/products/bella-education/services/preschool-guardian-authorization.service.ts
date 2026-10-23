@@ -1,5 +1,9 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '@/types/database.types';
+import type { IPickupAuthorizationContract } from '@/platform/party/pickup-authorization.contract';
+import { PickupAuthorizationError } from '@/platform/party/pickup-authorization.contract';
+import { PickupAuthorizationContractImpl } from '@/platform/party/pickup-authorization.contract.impl';
+import { PreschoolChainError } from './preschool-chain.service';
 
 const GUARDIAN_PHONE_IDENTIFIER_TYPE = 'preschool_guardian_phone';
 const GUARDIAN_RELATIONSHIP_TYPE = 'guardian_of';
@@ -47,7 +51,60 @@ export function normalizePreschoolGuardianPhone(phone: string): string {
 }
 
 export class PreschoolGuardianAuthorizationService {
-  constructor(private readonly supabase: BellaEducationClient) {}
+  private readonly pickupAuthorizations: IPickupAuthorizationContract;
+
+  constructor(private readonly supabase: BellaEducationClient, pickupAuthorizations?: IPickupAuthorizationContract) {
+    this.pickupAuthorizations = pickupAuthorizations ?? new PickupAuthorizationContractImpl(supabase);
+  }
+
+  /** Durable admission supplies the identity from the atomic Party public contract. */
+  async establishForCanonicalGuardian(input: EstablishGuardianAuthorizationInput & {
+    readonly guardianPartyId: string;
+  }): Promise<GuardianAuthorizationResult> {
+    const normalizedPhone = normalizePreschoolGuardianPhone(input.guardianPhone);
+    const { data: parties, error } = await this.supabase.from('party_parties')
+      .select('id, display_name').eq('tenant_id', input.tenantId)
+      .in('id', [input.studentPartyId, input.guardianPartyId])
+      .eq('party_type', 'person').is('deleted_at', null);
+    if (error) throw new Error(`Failed to verify canonical Guardian/Student: ${error.message}`);
+    const guardian = parties?.find((party) => party.id === input.guardianPartyId);
+    if (!guardian || !parties?.some((party) => party.id === input.studentPartyId)
+      || input.guardianPartyId === input.studentPartyId
+      || await this.findGuardianPartyIdByPhone(input.tenantId, normalizedPhone) !== input.guardianPartyId) {
+      throw new PreschoolChainError('PRESCHOOL_GUARDIAN_CANONICAL_IDENTITY_CONFLICT');
+    }
+    const relationInput = { tenantId: input.tenantId, guardianPartyId: input.guardianPartyId, studentPartyId: input.studentPartyId };
+    const { data: priorRelationship, error: relationshipError } = await this.supabase.from('party_relationships')
+      .select('id, active_from, active_to').eq('tenant_id', input.tenantId)
+      .eq('source_party_id', input.guardianPartyId).eq('target_party_id', input.studentPartyId)
+      .eq('relationship_type', GUARDIAN_RELATIONSHIP_TYPE).maybeSingle();
+    if (relationshipError) throw new Error(`Guardian relationship read failed: ${relationshipError.message}`);
+    const today = new Date().toISOString().slice(0,10);
+    if (priorRelationship && ((priorRelationship.active_from && priorRelationship.active_from>today)
+      || (priorRelationship.active_to && priorRelationship.active_to<today))) {
+      throw new PreschoolChainError('PRESCHOOL_GUARDIAN_RELATIONSHIP_NOT_ACTIVE',403);
+    }
+    if (!priorRelationship) await this.ensureGuardianRelationship(relationInput);
+    let authorization;
+    try {
+      authorization = await this.pickupAuthorizations.authorizePickup({
+        tenantId: input.tenantId, actorId: input.actorId, studentPartyId: input.studentPartyId,
+        guardianPartyId: input.guardianPartyId, normalizedPhone,
+      });
+    } catch (error) {
+      if (error instanceof PickupAuthorizationError) throw new PreschoolChainError(error.code, error.status);
+      throw error;
+    }
+    if (authorization.tenant_id!==input.tenantId || authorization.student_party_id!==input.studentPartyId
+      || authorization.guardian_party_id!==input.guardianPartyId || authorization.status!=='authorized') {
+      throw new PreschoolChainError('PRESCHOOL_GUARDIAN_AUTHORIZATION_CANONICAL_CONFLICT');
+    }
+    return {
+      authorizationId: authorization.id, studentPartyId: input.studentPartyId,
+      guardianPartyId: input.guardianPartyId, displayName: guardian.display_name,
+      phone: normalizedPhone, status: 'authorized', normalizedPhone,
+    };
+  }
 
   async establishForEnrollment(input: EstablishGuardianAuthorizationInput): Promise<GuardianAuthorizationResult> {
     const normalizedPhone = normalizePreschoolGuardianPhone(input.guardianPhone);
