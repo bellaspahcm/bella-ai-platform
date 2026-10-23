@@ -37,6 +37,18 @@ it('returns persisted retries without changing the response contract', async () 
   command.mockResolvedValueOnce({ booking: { id: 'booking-1', booking_number: 'BA-20261015-0001' }, isDuplicate: true });
   expect(await (await bookingAllocationHttp(request(), 'auth-actor', {})).json()).toMatchObject({ success: true, isDuplicate: true });
 });
+it('stops before the booking command if transaction-local RLS cannot be enabled', async () => {
+  mockDb.query.mockImplementation(async (sql: string) => {
+    if (sql === 'set local row_security=on') throw Object.assign(new Error('RLS setup failed'), { code: '42501' });
+    return { rows: [] };
+  });
+  const response = await bookingAllocationHttp(request(), 'auth-actor', {});
+  expect(response.ok).toBe(false);
+  expect(command).not.toHaveBeenCalled();
+  expect(mockDb.query).toHaveBeenCalledWith('rollback');
+  expect(mockDb.query).not.toHaveBeenCalledWith('commit');
+  expect(mockDb.end).toHaveBeenCalledTimes(1);
+});
 it('rolls back allocation failures instead of returning booking success', async () => {
   command.mockRejectedValueOnce(new BookingAllocationError('DUPLICATE_VIN', 'Vehicle already allocated.'));
   const response = await bookingAllocationHttp(request(), 'auth-actor', {});

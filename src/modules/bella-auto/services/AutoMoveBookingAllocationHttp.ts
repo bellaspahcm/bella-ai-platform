@@ -17,6 +17,7 @@ export async function bookingAllocationHttp(request: Request, actorUserId: strin
     await db.query('begin isolation level serializable');
     await db.query("set local statement_timeout='30s'");
     await db.query('set local role authenticated');
+    await db.query('set local row_security=on');
     await db.query("select set_config('request.jwt.claim.sub',$1,true),set_config('request.jwt.claim.role','authenticated',true)", [actorUserId]);
     const result = await createAllocatedBooking(db, actorUserId, payload, request.headers.get('Idempotency-Key') ?? randomUUID());
     await db.query('commit');

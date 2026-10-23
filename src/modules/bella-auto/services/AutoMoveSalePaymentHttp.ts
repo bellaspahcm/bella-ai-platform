@@ -27,6 +27,7 @@ export async function salePaymentHttp(request: Request, bookingId: string): Prom
     await db.query("set local statement_timeout='30s'");
     await db.query("set local lock_timeout='10s'");
     await db.query('set local role authenticated');
+    await db.query('set local row_security=on');
     await db.query("select set_config('request.jwt.claim.sub',$1,true),set_config('request.jwt.claim.role','authenticated',true)", [user.id]);
     const service = new AutoMoveSalePaymentService(db, user.id);
     const result = key ? await service.collect(bookingId, key, value) : await service.state(bookingId);

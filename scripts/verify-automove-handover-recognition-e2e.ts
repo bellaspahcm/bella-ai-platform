@@ -58,6 +58,7 @@ const download: DocumentDownload = async document => {
 };
 async function context(userId: string) {
   await db.query('set local role authenticated');
+  await db.query('set local row_security=on');
   await db.query("select set_config('request.jwt.claim.sub',$1,true), set_config('request.jwt.claim.role','authenticated',true)",[userId]);
 }
 async function rejected(operation: () => Promise<unknown>, expected: RegExp | { code: string }) {
