@@ -1,4 +1,4 @@
-"""Retain a full Semgrep report; PR acceptance uses Semgrep's native Git baseline."""
+"""Retain full SARIF; PRs and main pushes use Semgrep's native Git baseline."""
 import json
 import os
 from pathlib import Path
@@ -72,20 +72,29 @@ def run_gate():
     event = os.environ.get("GITHUB_EVENT_NAME")
     head = os.environ.get("SEMGREP_HEAD_SHA", "")
     base = os.environ.get("SEMGREP_BASE_SHA", "")
-    if not re.fullmatch(r"[a-f0-9]{40}", head) or (event == "pull_request" and not re.fullmatch(r"[a-f0-9]{40}", base)):
+    main_push = event == "push" and os.environ.get("GITHUB_REF") == "refs/heads/main"
+    comparison = event == "pull_request" or main_push
+    if (not re.fullmatch(r"[a-f0-9]{40}", head)
+            or (comparison and (not re.fullmatch(r"[a-f0-9]{40}", base) or base == "0" * 40))):
         raise ValueError("INVALID_COMPARISON_REVISION")
     git = ["git", "-c", "safe.directory=" + str(Path.cwd())]
     if command(git + ["rev-parse", "HEAD"], capture=True).strip() != head:
         raise ValueError("CHECKOUT_REVISION_MISMATCH")
     # Isolate the built-in baseline from ambient configuration.
     os.environ.pop("SEMGREP_BASELINE_COMMIT", None)
-    if event == "pull_request":
+    if comparison:
         command(git + ["fetch", "--no-tags", "origin", base, head])
         command(git + ["cat-file", "-e", base + "^{commit}"])
-        merge_base = command(git + ["merge-base", base, head], capture=True).strip()
-        if not re.fullmatch(r"[a-f0-9]{40}", merge_base):
-            raise ValueError("COMPARISON_ANCESTRY_UNAVAILABLE")
-        changed_output = command(git + ["diff", "--no-renames", "--name-only", base + "..." + head], capture=True)
+        if main_push:
+            # event.before must be a real ancestor, not an unrelated force-push
+            # revision whose merge base would silently narrow the comparison.
+            command(git + ["merge-base", "--is-ancestor", base, head])
+        else:
+            merge_base = command(git + ["merge-base", base, head], capture=True).strip()
+            if not re.fullmatch(r"[a-f0-9]{40}", merge_base):
+                raise ValueError("COMPARISON_ANCESTRY_UNAVAILABLE")
+        revision_range = base + (".." if main_push else "...") + head
+        changed_output = command(git + ["diff", "--no-renames", "--name-only", revision_range], capture=True)
         changed_files = {line.replace("\\", "/") for line in changed_output.splitlines() if line}
         base_output = command(git + ["ls-tree", "-r", "--name-only", base], capture=True)
         base_files = {line.replace("\\", "/") for line in base_output.splitlines() if line}
@@ -93,7 +102,7 @@ def run_gate():
         changed_files = None
         base_files = None
     full = scan("semgrep-results.sarif", changed_files=changed_files, base_files=base_files)
-    diff = scan("semgrep-diff.sarif", base, changed_files, base_files) if event == "pull_request" else None
+    diff = scan("semgrep-diff.sarif", base, changed_files, base_files) if comparison else None
     decision = diff or full
     summary = {"head": head, "base": base if diff else None, "full": full, "diff": diff,
                "gate": "PASS" if decision["status"] == "PASS" else "FAIL_FINDINGS"}
