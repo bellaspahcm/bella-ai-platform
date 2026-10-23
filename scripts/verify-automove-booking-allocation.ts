@@ -20,6 +20,7 @@ let transaction = false;
 async function context(actor: string) {
   await db.query('reset role');
   await db.query('set local role authenticated');
+  await db.query('set local row_security=on');
   await db.query(`select set_config('request.jwt.claim.sub',$1,true),set_config('request.jwt.claim.role','authenticated',true),
     set_config('request.jwt.claims',$2,true)`, [actor, JSON.stringify({ sub: actor, role: 'authenticated' })]);
 }
@@ -29,7 +30,11 @@ async function rejected(work: () => Promise<unknown>, code: string) {
   try { await work(); } catch (caught: unknown) { error = caught; }
   await db.query('rollback to savepoint expected_rejection');
   await db.query('release savepoint expected_rejection');
-  assert.ok(error && typeof error === 'object' && 'code' in error && error.code === code, `Expected ${code}, not schema/auth/config failure.`);
+  const actualCode = error && typeof error === 'object' && 'code' in error ? error.code : undefined;
+  const diagnosticCode = typeof actualCode === 'string' && actualCode.length === 5
+    && /^[A-Z0-9]{5}$/.test(actualCode) ? actualCode : 'NON_SQLSTATE';
+  assert.ok(actualCode === code,
+    `Expected ${code}, not schema/auth/config failure (SQLSTATE ${diagnosticCode}).`);
 }
 
 async function verify() {
