@@ -5,6 +5,7 @@ import { spawnSync } from 'node:child_process';
 test('Agent Flow Node suites pass with no skipped or cancelled tests', () => {
   const result = spawnSync(process.execPath, [
     '--test', '--test-reporter=tap',
+    'scripts/test-changed-files.test.mjs',
     'scripts/agent-flow/agent-flow.test.mjs',
     'scripts/agent-flow/task-workflow.test.mjs',
     'scripts/agent-flow/filechange.test.mjs',

@@ -101,7 +101,7 @@ function parseArgs() {
   const jestJsonOutput = jsonOutputIndex === -1 ? undefined : args[jsonOutputIndex + 1];
   const changedFiles = args.filter((arg, index) => (
     arg !== '--jest-json-output'
-    && index !== jsonOutputIndex + 1
+    && (jsonOutputIndex === -1 || index !== jsonOutputIndex + 1)
   ));
 
   return { jestJsonOutput, changedFiles };
@@ -193,7 +193,7 @@ for (const file of sourceFiles) {
   console.log(`- ${file}`);
 }
 
-const jestArgs = ['jest', '--findRelatedTests', ...sourceFiles, '--runInBand', '--passWithNoTests'];
+const jestArgs = ['jest', '--findRelatedTests', ...sourceFiles, ...testFiles, '--runInBand', '--passWithNoTests'];
 for (const pattern of RELATED_TEST_EXCLUDED_PATTERNS) {
   jestArgs.push('--testPathIgnorePatterns', pattern);
 }

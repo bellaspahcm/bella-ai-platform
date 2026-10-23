@@ -118,8 +118,11 @@ test('PostgreSQL refuses wrong mode, foreign target and TLS weakening before ope
   const host = `db.${pilotProject}.supabase.co`;
   const config = { host, port: 5432, database: 'postgres', user: 'synthetic', password: 'synthetic-unused', ssl: { ca: rootCertificates[0], rejectUnauthorized: true, servername: host } };
   const environment = { ...localProxy(), FACTORY_MVP_NETWORK_MODE: 'full' };
+  // Negative input only: assert rejection before a socket opens, never connect with TLS verification disabled.
+  // nosemgrep: problem-based-packs.insecure-transport.js-node.bypass-tls-verification.bypass-tls-verification
+  const unverifiedTls = { ssl: { ...config.ssl, rejectUnauthorized: false } };
   for (const changed of [{ host: 'production.example' }, { port: 443 }, { database: 'other' }, { connectionString: 'postgresql://foreign.invalid/db' }, { stream: () => {} },
-    { ssl: { ...config.ssl, rejectUnauthorized: false } }, { ssl: { ...config.ssl, ca: '' } }, { ssl: { ...config.ssl, servername: 'foreign.invalid' } }]) {
+    unverifiedTls, { ssl: { ...config.ssl, ca: '' } }, { ssl: { ...config.ssl, servername: 'foreign.invalid' } }]) {
     await assert.rejects(openPilotDatabase({ ...config, ...changed }, environment), { message: 'POLICY_DATABASE_CONNECTION_FAILED' });
   }
   for (const changed of [{ FACTORY_MVP_NETWORK_MODE: 'limited' }, { HTTPS_PROXY: 'http://foreign.invalid:8080' }, { HTTPS_PROXY: '' , HTTP_PROXY: '' }, { HTTPS_PROXY: 'http://127.0.0.1:49688' }]) {

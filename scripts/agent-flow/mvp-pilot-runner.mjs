@@ -336,7 +336,9 @@ export async function runPilot(input = process.env) {
         browserTrust.tlsVerification !== true || browserTrust.globalTrustModified !== false || browserTrust.cleanup !== 'PROFILE_REMOVED') throw safeError('BROWSER_TRUST_PROOF_REQUIRED');
     const observations = JSON.parse(readFileSync(resolve(output, 'customer-proof.json'), 'utf8'));
     if (observations.candidate !== candidate || observations.target !== pilotProject || observations.persisted !== true || observations.reloadReadback !== true || observations.databaseReadback !== true || observations.denialNoMutation !== true || observations.invalidInputNoMutation !== true || observations.cleanup !== 'AUTH_REMOVED_TENANTS_ARCHIVED') throw safeError('PERSISTENCE_PROOF_REQUIRED');
-    Object.assign(proof, { status: 'PASS', browser: 'PASS', databaseReadback: 'PASS', deniedAccess: 'PASS', invalidInput: 'PASS', cleanup: observations.cleanup, tests: { expected: 1, unexpected: 0, flaky: 0, skipped: 0 } });
+    proof.status = 'PASS'; proof.browser = 'PASS'; proof.databaseReadback = 'PASS';
+    proof.deniedAccess = 'PASS'; proof.invalidInput = 'PASS'; proof.cleanup = 'AUTH_REMOVED_TENANTS_ARCHIVED';
+    proof.tests = { expected: 1, unexpected: 0, flaky: 0, skipped: 0 };
     return proof;
   } catch (error) {
     proof.reason = deadlineExceeded ? 'PILOT_TIMEOUT' : ['LOCAL_RUNTIME_UNAVAILABLE', 'PRODUCT_E2E_FAILED', 'PERSISTENCE_PROOF_REQUIRED', 'BROWSER_TRUST_PROOF_REQUIRED'].includes(error.code) ? error.code : 'PILOT_RUNTIME_UNCERTAIN';
