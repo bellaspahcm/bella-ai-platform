@@ -38,7 +38,7 @@ export default function CustomerJourneyPage() {
             <Activity className="h-6 w-6" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-slate-900 dark:text-white tracking-wide">Hành Trình Khách Hàng & SLA Engine</h1>
+            <h1 className="text-xl font-bold text-slate-900 dark:text-white tracking-wide">Hành Trình Khách Hàng &amp; SLA Engine</h1>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Theo dõi hành trình khách hàng và thời hạn xử lý</p>
           </div>
         </div>
@@ -48,7 +48,7 @@ export default function CustomerJourneyPage() {
           className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 disabled:opacity-60 disabled:cursor-not-allowed text-white rounded-xl font-bold text-xs shadow-md shrink-0"
         >
           <Zap className="w-4 h-4" />
-          Quét & Đồng Bộ SLA
+          Quét &amp; Đồng Bộ SLA
         </button>
       </div>
 

@@ -310,7 +310,7 @@ export default function WorkshopPage() {
           </div>
           <div>
             <h1 className="text-xl font-bold text-slate-900 dark:text-white tracking-wide">
-              Trung Tâm Dịch Vụ & Xưởng
+              Trung Tâm Dịch Vụ &amp; Xưởng
             </h1>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
               Hệ thống quản lý đặt lịch hẹn, phân bổ phiếu sửa chữa và tối ưu hóa năng suất kỹ thuật viên
