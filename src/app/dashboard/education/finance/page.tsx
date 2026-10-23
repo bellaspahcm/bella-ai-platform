@@ -1791,14 +1791,14 @@ function FinancePageContent() {
                     </span>
                     <button
                       onClick={handleCompleteTuitionServicePeriod}
-                      disabled={loading || !dataLoaded || !selectedBillingPeriod}
+                      disabled
                       className="px-2.5 py-1 rounded-lg bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 text-[11px] font-bold text-slate-700 dark:text-slate-200"
                     >
                       Xác nhận hoàn thành
                     </button>
                   </div>
                   <p className="text-[10px] text-slate-500 leading-tight">
-                    Thao tác này chỉ tạo completion evidence, không ghi nhận doanh thu.
+                    Xác nhận kỳ toàn trường chưa khả dụng trong luồng theo cơ sở.
                   </p>
                 </div>
 
