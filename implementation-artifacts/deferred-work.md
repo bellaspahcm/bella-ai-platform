@@ -1,5 +1,10 @@
 # Deferred work
 
+## AutoMove photo metadata client reuse — 2026-10-23
+
+- **Existing error handling, outside factory-only change:** TradeInPhotoService.reorderPhotos awaits PATCH but does not inspect returned error; setPrimaryPhoto ignores the first unset error; deletePhoto ignores the initial read error. These bodies are unchanged from baseline bb7007e7632c3bf7d88f760fc8239a0720d2d327. Current UI caller only reads statuses and uploads metadata. General denial propagation, multi-step atomicity and delete Storage cleanup remain NOT_PROVEN. A separate scoped repair needs owner-compatible error/transaction semantics and step-specific failure/read-back evidence; do not certify these methods from the7 global-denial tests.
+- **Independent review runtime dependency:** blind reviewer completed; edge and acceptance agents errored with usage limit before final reports. Spec remains in-review, never done. Handoff prompts preserve the required three reviewer roles for the final cumulative diff; no repeated agent execution or alternate privilege used to bypass the runtime limit.
+
 ## Tenant initial render — 2026-10-19
 
 - **Legacy automatic theme persistence (pre-existing):** dashboard startup still calls `needsThemeUpgrade` / `upgradeTheme`. Explicit pink presets may be persisted to module defaults. This task narrows its readiness guard but does not authorize changing the legacy producer/action. Assess separately before claiming all custom-color semantics are sealed.
