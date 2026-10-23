@@ -10,11 +10,13 @@ import {
 } from '@/lib/supabase-admin-env';
 import { PreschoolChainService } from '@/products/bella-education/services/preschool-chain.service';
 import type { Database } from '@/types/database.types';
+import { requireSupabasePublicEnv } from '@/lib/supabase-public-env';
 
 let supabase: SupabaseClient<Database>;
+let actorClient: SupabaseClient<Database>;
 
 jest.mock('@/lib/supabase-server', () => ({
-  createClient: () => supabase,
+  createClient: () => actorClient,
 }));
 
 jest.setTimeout(120_000);
@@ -39,7 +41,7 @@ function isRunnableDbUrl(value: string): boolean {
 function sslConfig(): { rejectUnauthorized: boolean } | undefined {
   return dbUrl.includes('localhost') || dbUrl.includes('127.0.0.1')
     ? undefined
-    : { rejectUnauthorized: false };
+    : { rejectUnauthorized: true };
 }
 
 function hasRealSupabaseAdminEnv(): boolean {
@@ -108,6 +110,7 @@ describe('Preschool Chain real DB E2E proof', () => {
     otherTenantBranch: randomUUID(),
     person: randomUUID(),
     course: randomUUID(),
+    operationKey: randomUUID(),
   };
 
   let pg: Client;
@@ -124,13 +127,18 @@ describe('Preschool Chain real DB E2E proof', () => {
     }
 
     const { url, adminKey } = requireSupabaseAdminEnv();
+    const { publicKey } = requireSupabasePublicEnv();
     supabase = createSupabaseClient<Database>(url, adminKey, {
       auth: { persistSession: false, autoRefreshToken: false },
     });
+    actorClient = createSupabaseClient<Database>(url, publicKey, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
 
+    const password = `${randomUUID()}A1!`;
     const authUser = await supabase.auth.admin.createUser({
       email: actorEmail,
-      password: `${randomUUID()}A1!`,
+      password,
       email_confirm: true,
     });
     if (authUser.error || !authUser.data.user) {
@@ -138,16 +146,15 @@ describe('Preschool Chain real DB E2E proof', () => {
     }
     authUserId = authUser.data.user.id;
     actorUserId = authUser.data.user.id;
-    const routeUser = authUser.data.user;
-    supabase.auth.getUser = async () => ({ data: { user: routeUser }, error: null });
-
     pg = new Client({
       connectionString: dbUrl,
       ssl: sslConfig(),
     });
     await pg.connect();
-    await cleanupDatabaseRows();
     await seedPreschoolChainFixture();
+    const signedIn = await actorClient.auth.signInWithPassword({ email: actorEmail, password });
+    if (signedIn.error) throw signedIn.error;
+    expect(signedIn.data.user?.id).toBe(actorUserId);
   });
 
   afterAll(async () => {
@@ -155,8 +162,13 @@ describe('Preschool Chain real DB E2E proof', () => {
     try {
       if (pg) {
         try {
-          await cleanupDatabaseRows();
-          await assertNoPreschoolChainRowsRemain();
+          // Durable admission, enrollment events and timeline history are retained.
+          // Retire only this run's actor; never delete canonical evidence to clean up.
+          if (actorUserId) {
+            await pg.query("UPDATE public.users SET status = 'inactive' WHERE id = $1 AND tenant_id = $2", [actorUserId, ids.tenant]);
+            const actor = await pg.query<{ status: string }>('SELECT status FROM public.users WHERE id = $1', [actorUserId]);
+            expect(actor.rows[0]?.status).toBe('inactive');
+          }
         } catch (error) {
           cleanupError = error;
         } finally {
@@ -164,135 +176,26 @@ describe('Preschool Chain real DB E2E proof', () => {
         }
       }
     } finally {
-      if (authUserId && supabase) {
-        const { error } = await supabase.auth.admin.deleteUser(authUserId);
+      if (authUserId && actorClient) {
+        const { error } = await actorClient.auth.signOut({ scope: 'global' });
         if (error && !error.message.toLowerCase().includes('user not found')) {
           cleanupError = cleanupError ?? error;
         }
       }
+      console.info('[Preschool Chain retained fixture] history retained; run-owned actor retired');
       if (cleanupError) {
         throw cleanupError;
       }
     }
   });
 
-  async function cleanupDatabaseRows(): Promise<void> {
-    await pg.query('SET row_security = off');
-    await pg.query(
-      `
-        DELETE FROM public.preschool_chain_enrollment_branch_assignments
-        WHERE tenant_id = ANY($1::uuid[])
-      `,
-      [[ids.tenant, ids.otherTenant]],
-    );
-    await pg.query(
-      `
-        DELETE FROM public.preschool_chain_course_branch_assignments
-        WHERE tenant_id = ANY($1::uuid[])
-      `,
-      [[ids.tenant, ids.otherTenant]],
-    );
-    await pg.query(
-      `
-        DELETE FROM public.edu_preschool_pickup_authorizations
-        WHERE tenant_id = ANY($1::uuid[])
-      `,
-      [[ids.tenant, ids.otherTenant]],
-    );
-    await pg.query(
-      `
-        DELETE FROM public.edu_enrollments
-        WHERE tenant_id = ANY($1::uuid[])
-      `,
-      [[ids.tenant, ids.otherTenant]],
-    );
-    await pg.query(
-      `
-        DELETE FROM public.students
-        WHERE tenant_id = ANY($1::uuid[])
-      `,
-      [[ids.tenant, ids.otherTenant]],
-    );
-    await pg.query(
-      `
-        DELETE FROM public.party_relationships
-        WHERE tenant_id = ANY($1::uuid[])
-      `,
-      [[ids.tenant, ids.otherTenant]],
-    );
-    await pg.query(
-      `
-        DELETE FROM public.party_identifiers
-        WHERE tenant_id = ANY($1::uuid[])
-      `,
-      [[ids.tenant, ids.otherTenant]],
-    );
-    await pg.query(
-      `
-        DELETE FROM public.edu_courses
-        WHERE tenant_id = ANY($1::uuid[])
-      `,
-      [[ids.tenant, ids.otherTenant]],
-    );
-    await pg.query(
-      `
-        DELETE FROM public.org_relationships
-        WHERE tenant_id = ANY($1::uuid[])
-      `,
-      [[ids.tenant, ids.otherTenant]],
-    );
-    await pg.query(
-      `
-        DELETE FROM public.people_directory
-        WHERE tenant_id = ANY($1::uuid[])
-      `,
-      [[ids.tenant, ids.otherTenant]],
-    );
-    if (actorUserId) {
-      await pg.query(
-        `
-          DELETE FROM public.users
-          WHERE id = $1::uuid
-        `,
-        [actorUserId],
-      );
-    }
-    await pg.query(
-      `
-        DELETE FROM public.org_units
-        WHERE tenant_id = ANY($1::uuid[])
-      `,
-      [[ids.tenant, ids.otherTenant]],
-    );
-
-    console.warn(
-      `[Preschool Chain real DB cleanup] retained tenant and Party shells because public.timeline_events is append-only and may hold tenant/party FK rows: ${ids.tenant}, ${ids.otherTenant}`,
-    );
-  }
-
-  async function assertNoPreschoolChainRowsRemain(): Promise<void> {
-    const checks = [
-      'preschool_chain_enrollment_branch_assignments',
-      'preschool_chain_course_branch_assignments',
-      'edu_enrollments',
-    ] as const;
-
-    for (const tableName of checks) {
-      const result = await pg.query<CountRow>(
-        `SELECT COUNT(*)::int AS count FROM public.${tableName} WHERE tenant_id = ANY($1::uuid[])`,
-        [[ids.tenant, ids.otherTenant]],
-      );
-      expect(result.rows[0]?.count).toBe(0);
-    }
-  }
-
   async function seedPreschoolChainFixture(): Promise<void> {
     await pg.query(
       `
         INSERT INTO public.tenants (id, name, status, product_key, enabled_modules)
         VALUES
-          ($1::uuid, $2, 'active', 'bella_education', '{"education": true}'::jsonb),
-          ($3::uuid, $4, 'active', 'bella_education', '{"education": true}'::jsonb)
+          ($1::uuid, $2, 'active', 'bella_preschool', '{"education": true}'::jsonb),
+          ($3::uuid, $4, 'active', 'bella_preschool', '{"education": true}'::jsonb)
       `,
       [
         ids.tenant,
@@ -302,23 +205,15 @@ describe('Preschool Chain real DB E2E proof', () => {
       ],
     );
 
+    // StudentContract requires the existing canonical system actor. Do not
+    // fabricate or move that shared identity into this run's tenant.
+    const systemActor = await pg.query<CountRow>('SELECT COUNT(*)::int AS count FROM public.users WHERE id = $1', [educationSystemUserId]);
+    if (systemActor.rows[0]?.count !== 1) {
+      throw new Error('PRESCHOOL_CHAIN_REAL_DB_REQUIRES_CANONICAL_EDUCATION_SYSTEM_ACTOR');
+    }
     await pg.query(
-      `
-        INSERT INTO public.users (id, tenant_id, email, full_name, role, status)
-        VALUES
-          ($1::uuid, $2::uuid, $3, $4, 'admin_staff', 'active'),
-          ($5::uuid, $2::uuid, $6, $7, 'admin_staff', 'active')
-        ON CONFLICT (id) DO NOTHING
-      `,
-      [
-        actorUserId,
-        ids.tenant,
-        actorEmail,
-        `${marker} Admission Operator`,
-        educationSystemUserId,
-        `${marker}-education-system@example.test`,
-        `${marker} Education System Actor`,
-      ],
+      "INSERT INTO public.users (id, tenant_id, email, full_name, role, status) VALUES ($1, $2, $3, $4, 'admin', 'active')",
+      [actorUserId, ids.tenant, actorEmail, `${marker} Admission Operator`],
     );
 
     await pg.query(
@@ -422,6 +317,7 @@ describe('Preschool Chain real DB E2E proof', () => {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
+        operationKey: ids.operationKey,
         tenantId: ids.tenant,
         childName: `${marker} Student`,
         nickname: 'Proof',
@@ -472,29 +368,38 @@ describe('Preschool Chain real DB E2E proof', () => {
     expect(rls.rows).toHaveLength(2);
     expect(rls.rows.every((row) => row.relrowsecurity)).toBe(true);
 
-    const policies = await pg.query<{ policyname: string }>(
+    const policies = await pg.query<{ policyname: string; cmd: string; roles: string[] }>(
       `
-        SELECT policyname
+        SELECT policyname, cmd, roles
         FROM pg_policies
         WHERE schemaname = 'public'
           AND policyname = ANY($1::text[])
         ORDER BY policyname
       `,
       [[
-        'preschool_chain_course_branch_assignments_tenant_isolation',
-        'preschool_chain_enrollment_branch_assignments_tenant_isolation',
+        'preschool_chain_course_branch_select',
+        'preschool_chain_enrollment_branch_select',
       ]],
     );
     expect(policies.rows.map((row) => row.policyname)).toEqual([
-      'preschool_chain_course_branch_assignments_tenant_isolation',
-      'preschool_chain_enrollment_branch_assignments_tenant_isolation',
+      'preschool_chain_course_branch_select',
+      'preschool_chain_enrollment_branch_select',
     ]);
+    expect(policies.rows.every((row) => row.cmd === 'SELECT' && row.roles.includes('authenticated'))).toBe(true);
+    const grants = await pg.query<{ role: string; table_name: string; can_write: boolean }>(`
+      SELECT role, table_name,
+        has_table_privilege(role, 'public.' || table_name, 'INSERT,UPDATE,DELETE,TRUNCATE') AS can_write
+      FROM unnest(ARRAY['anon', 'authenticated']) AS role
+      CROSS JOIN unnest(ARRAY['preschool_chain_course_branch_assignments', 'preschool_chain_enrollment_branch_assignments']) AS table_name
+    `);
+    expect(grants.rows).toHaveLength(4);
+    expect(grants.rows.every((row) => !row.can_write)).toBe(true);
   });
 
   it('proves admission branch assignment persists through edu_enrollments, chain tables, read-back, tenant isolation, authorization, and idempotency', async () => {
     const chainService = new PreschoolChainService(supabase);
     const accessibleBranches = await chainService.listAccessibleBranches(ids.tenant, actorUserId);
-    expect(accessibleBranches.map((branch) => branch.id)).toEqual([ids.branchA]);
+    expect(accessibleBranches.map((branch) => branch.id).sort()).toEqual([ids.branchA, ids.branchB].sort());
 
     const response = await createPreschoolEnrollment(buildAdmissionRequest());
     const body: PreschoolEnrollmentResponse = await response.json();
@@ -585,8 +490,8 @@ describe('Preschool Chain real DB E2E proof', () => {
       .resolves
       .toBeNull();
     await expect(chainService.listAccessibleBranches(ids.otherTenant, actorUserId))
-      .resolves
-      .toEqual([]);
+      .rejects
+      .toThrow('PRESCHOOL_CHAIN_ACTOR_DENIED');
 
     await expect(chainService.assignEnrollmentToBranch({
       tenantId: ids.tenant,
@@ -595,7 +500,7 @@ describe('Preschool Chain real DB E2E proof', () => {
       branchId: ids.branchB,
       actorUserId,
       requestId: randomUUID(),
-    })).rejects.toThrow('PRESCHOOL_CHAIN_BRANCH_ACCESS_DENIED');
+    })).rejects.toThrow('PRESCHOOL_CHAIN_COURSE_BRANCH_CONFLICT');
 
     await expect(chainService.assignEnrollmentToBranch({
       tenantId: ids.tenant,
@@ -621,5 +526,32 @@ describe('Preschool Chain real DB E2E proof', () => {
       [ids.tenant, body.enrollment.id],
     );
     expect(chainCount.rows[0]?.count).toBe(1);
+
+    const recoveredResponse = await createPreschoolEnrollment(buildAdmissionRequest());
+    const recovered: PreschoolEnrollmentResponse = await recoveredResponse.json();
+    expect(recoveredResponse.status).toBe(201);
+    expect(recovered.student.partyId).toBe(body.student.partyId);
+    expect(recovered.enrollment.id).toBe(body.enrollment.id);
+    const enrollmentCount = await pg.query<CountRow>('SELECT COUNT(*)::int AS count FROM public.edu_enrollments WHERE tenant_id = $1', [ids.tenant]);
+    expect(enrollmentCount.rows[0]?.count).toBe(1);
+
+    const ownAssignment = await actorClient.from('preschool_chain_enrollment_branch_assignments').select('enrollment_id').eq('tenant_id', ids.tenant);
+    expect(ownAssignment.error).toBeNull();
+    expect(ownAssignment.data).toEqual([{ enrollment_id: body.enrollment.id }]);
+    const foreignAssignment = await actorClient.from('preschool_chain_enrollment_branch_assignments').select('enrollment_id').eq('tenant_id', ids.otherTenant);
+    expect(foreignAssignment.error).toBeNull();
+    expect(foreignAssignment.data).toEqual([]);
+
+    await pg.query("UPDATE public.users SET role = 'admin_staff' WHERE id = $1 AND tenant_id = $2", [actorUserId, ids.tenant]);
+    try {
+      expect((await chainService.listAccessibleBranches(ids.tenant, actorUserId)).map((branch) => branch.id)).toEqual([ids.branchA]);
+      await expect(chainService.assertBranchAccess(ids.tenant, actorUserId, ids.branchB)).rejects.toThrow('PRESCHOOL_CHAIN_BRANCH_ACCESS_DENIED');
+      const denied = await createPreschoolEnrollment(buildAdmissionRequest());
+      expect(denied.status).toBe(403);
+      expect(await denied.json()).toEqual({ success: false, error: 'PRESCHOOL_ADMISSION_ACTOR_DENIED' });
+      expect((await pg.query<CountRow>('SELECT COUNT(*)::int AS count FROM public.edu_enrollments WHERE tenant_id = $1', [ids.tenant])).rows[0]?.count).toBe(1);
+    } finally {
+      await pg.query("UPDATE public.users SET role = 'admin' WHERE id = $1 AND tenant_id = $2", [actorUserId, ids.tenant]);
+    }
   });
 });
