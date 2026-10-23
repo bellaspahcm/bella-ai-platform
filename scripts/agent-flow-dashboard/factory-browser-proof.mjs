@@ -10,10 +10,11 @@ if(!['PASS','HELD'].includes(expected)||!path.isAbsolute(output||'')||!path.isAb
 await mkdir(output,{recursive:true});let app,browser,stage='AUTHORITY';
 try{
   app=await createDashboard({root});stage='BROWSER_STARTUP';
-  browser=await chromium.launch({headless:true});const context=await browser.newContext({viewport:{width:1500,height:1100}}),page=await context.newPage(),errors=[];
+  const dashboardOrigin=new URL(app.origin);assert.equal(dashboardOrigin.protocol,'http:');assert.equal(dashboardOrigin.hostname,'127.0.0.1');assert.equal(dashboardOrigin.origin,app.origin);
+  browser=await chromium.launch({headless:true});const context=await browser.newContext({viewport:{width:1500,height:1100},baseURL:dashboardOrigin.origin}),page=await context.newPage(),errors=[];
   page.on('pageerror',()=>errors.push('PAGE_ERROR'));
-  const dashboardUrl=new URL(app.url);assert.equal(dashboardUrl.protocol,'http:');assert.equal(dashboardUrl.hostname,'127.0.0.1');assert.equal(dashboardUrl.origin,app.origin);assert.equal(dashboardUrl.pathname,'/');assert.match(dashboardUrl.hash,/^#[a-f0-9]{64}$/);
-  stage='PACKAGE_LIST';await page.goto(dashboardUrl.href);await page.waitForFunction(()=>document.querySelector('#packages').children.length>0&&!document.querySelector('#refresh').disabled,{},{timeout:60000});
+  const dashboardUrl=new URL(app.url);assert.equal(dashboardUrl.origin,dashboardOrigin.origin);assert.equal(dashboardUrl.pathname,'/');assert.match(dashboardUrl.hash,/^#[a-f0-9]{64}$/);
+  stage='PACKAGE_LIST';await page.goto('/');await page.evaluate(hash=>{window.location.hash=hash;},dashboardUrl.hash);await page.reload();await page.waitForFunction(()=>document.querySelector('#packages').children.length>0&&!document.querySelector('#refresh').disabled,{},{timeout:60000});
   const select=async()=>{await page.getByRole('button',{name:'Run · '+id.replace('bella-agent-flow-','')}).click();await page.locator('#notice').filter({hasText:'MATCH_RETAINED_SOURCES'}).waitFor({timeout:60000});};
   stage='PACKAGE_SELECT';await select();const data=await (await page.request.get(app.origin+'/api/packages/'+id)).json();stage='RETAINED_BINDING';
   const existingFlow=data.sourceEvidence==='VERIFIED_EXISTING_FLOW_NO_PRODUCT_CHANGE';

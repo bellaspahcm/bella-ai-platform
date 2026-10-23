@@ -23,11 +23,22 @@ test('Agent Flow Node suites pass with no skipped or cancelled tests', () => {
   ], { cwd: process.cwd(), encoding: 'utf8', timeout: 60000, windowsHide: true });
 
   if (result.error || result.status !== 0) {
-    throw new Error(`Agent Flow tests failed: ${result.error?.message ?? result.status}\n${result.stdout}\n${result.stderr}`);
+    const failures = result.stdout.match(/^not ok \d+ - .+$/gm) ?? [];
+    throw new Error(`Agent Flow tests failed: exit=${result.status ?? result.error?.message ?? 'unknown'}; ${failures.join('; ') || 'no named failure emitted'}`);
   }
-  expect(result.stdout).toMatch(/^# tests [1-9]\d*$/m);
-  for (const counter of ['fail', 'cancelled', 'skipped', 'todo']) {
-    expect(result.stdout).toMatch(new RegExp(`^# ${counter} 0$`, 'm'));
-  }
-  console.log(result.stdout.split(/\r?\n/).filter(line => /^# (tests|pass|fail|cancelled|skipped|todo) /.test(line)).join('\n'));
+  const counters = Object.fromEntries(['tests', 'pass', 'fail', 'cancelled', 'skipped', 'todo'].map(counter => {
+    const match = result.stdout.match(new RegExp(`^# ${counter} (\\d+)$`, 'm'));
+    return [counter, match ? Number(match[1]) : null];
+  }));
+  expect(counters).toEqual({
+    tests: expect.any(Number),
+    pass: expect.any(Number),
+    fail: 0,
+    cancelled: 0,
+    skipped: 0,
+    todo: 0,
+  });
+  expect(counters.tests).toBeGreaterThan(0);
+  expect(counters.pass).toBe(counters.tests);
+  console.log(Object.entries(counters).map(([name, value]) => `# ${name} ${value}`).join('\n'));
 }, 70000);
