@@ -9,6 +9,7 @@ import { authorizeRepository, REPOSITORY } from './authority.mjs';
 import { normalizeNotification, normalizeHistory, normalizeHistoryTurn, reconcile, hash, DAY_MS } from './contract.mjs';
 import { createPrivateDirectory, DevelopmentStore, writeDurableJson } from './store.mjs';
 import { admitTask } from './role-validation.mjs';
+import { pilotExecution, isMvpPilot } from './mvp-pilot.mjs';
 
 const permissionFailure = code => { throw new Error(code); };
 const canonicalPath = value => process.platform === 'win32' ? resolve(value).toLowerCase() : resolve(value);
@@ -29,6 +30,7 @@ export function assertFactoryPath(path, directory = false) {
 
 export function factoryScratch(cwd, input) {
   const task = admitTask(input);
+  if (isMvpPilot(task)) permissionFailure('INVALID_FACTORY_PERMISSION_OPT_IN');
   const workspace = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
   if (resolve(cwd) !== workspace) permissionFailure('INVALID_FACTORY_PERMISSION_OPT_IN');
   assertFactoryPath(workspace, true);
@@ -104,10 +106,11 @@ export async function inspectFactoryPermission(server, execution, cwd) {
 
 export class AppServer {
   constructor(binary, cwd, onNotification = () => {}, options = {}) {
-    const execution = factoryTransport(cwd, options);
+    const execution = isMvpPilot(options?.task) ? pilotExecution(cwd, options) : factoryTransport(cwd, options);
+    this.execution = execution;
     this.experimentalApi = execution.experimentalApi;
     this.pending = new Map(); this.sequence = 0; this.buffer = ''; this.closed = false;
-    this.child = spawn(binary, execution.args, { cwd, windowsHide: true, stdio: ['pipe', 'pipe', 'pipe'], ...(execution.environment ? { env: execution.environment } : {}) });
+    this.child = spawn(binary, execution.args, { cwd, windowsHide: true, stdio: ['pipe', 'pipe', 'pipe'], ...(!isMvpPilot(options?.task) && execution.environment ? { env: execution.environment } : {}) });
     this.child.stderr.on('data', () => {}); // Never persist raw diagnostics.
     this.child.on('error', () => this.fail());
     this.child.on('exit', () => { this.closed = true; this.fail(); });

@@ -3,6 +3,7 @@ import { readFile, lstat } from 'node:fs/promises';
 import { resolve, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { hash } from './contract.mjs';
+import { isMvpPilot } from './mvp-pilot.mjs';
 import { admitTask, counters, validateHandoff, nativeMode } from './role-validation.mjs';
 export { admitTask, counters, validateHandoff } from './role-validation.mjs';
 
@@ -48,7 +49,8 @@ export async function drive(taskInput, { role, snapshot, record, now = Date.now 
     if (before.head !== after.head || changed.some(p => !task.ownedFiles.includes(p)) || (name !== 'BUILDER' && changed.length)) fail('SOURCE_SCOPE_VIOLATION');
     if (!result || result.role !== name || !result.nativeVerified || !result.binding?.threadId || receipts.some(r => r.binding.threadId === result.binding.threadId)) fail('NATIVE_ROLE_PROOF_REQUIRED');
     if (name !== 'BUILDER' && result.candidate !== before.fingerprint) fail('STALE_ROLE_RESULT');
-    if (name === 'BUILDER' && (!changed.length || !Array.isArray(result.changed) || changed.some(p => !result.changed.includes(p)) || result.changed.some(p => !task.ownedFiles.includes(p)))) fail('REAL_BUILDER_CHANGE_REQUIRED');
+    const verifiedExisting = isMvpPilot(task) && name === 'BUILDER' && result.noChange === true && result.decision === 'DONE' && changed.length === 0 && Array.isArray(result.changed) && result.changed.length === 0;
+    if (name === 'BUILDER' && !verifiedExisting && (!changed.length || !Array.isArray(result.changed) || changed.some(p => !result.changed.includes(p)) || result.changed.some(p => !task.ownedFiles.includes(p)))) fail('REAL_BUILDER_CHANGE_REQUIRED');
     const receipt = { ...result, revision, before: before.fingerprint, after: after.fingerprint, changed, elapsedMs: now() - started };
     await record(receipt); receipts.push(receipt); candidate = after.fingerprint;
     return receipt;
@@ -77,6 +79,7 @@ export async function drive(taskInput, { role, snapshot, record, now = Date.now 
         await record({ terminal: result }); return result;
       }
       if (review.decision !== 'REVISE' || !Array.isArray(review.findings) || !review.findings.length) fail('REVIEW_HELD');
+      if (isMvpPilot(task)) fail('MVP_REVIEW_HELD');
       if (revision === 1) fail('REVISION_LIMIT');
       findings = review.findings; revision++;
     }

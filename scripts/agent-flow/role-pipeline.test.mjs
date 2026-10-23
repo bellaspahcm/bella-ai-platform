@@ -270,6 +270,21 @@ test('default AppServer transport keeps legacy argv and experimental API disable
   }
 });
 
+// Exercise policy construction on both host types without starting a native
+// executor. Temporary platform/environment fixtures never represent runtime proof.
+async function withTransportPlatform(platform, run) {
+  const descriptor = Object.getOwnPropertyDescriptor(process, 'platform');
+  const values = { SystemDrive:'C:', SystemRoot:'C:/Windows', COMSPEC:'C:/Windows/System32/cmd.exe', PATH:process.env.PATH || '/fixture', PATHEXT:'.EXE', USERPROFILE:'C:/Users/fixture', APPDATA:'C:/Users/fixture/AppData/Roaming', LOCALAPPDATA:'C:/Users/fixture/AppData/Local' };
+  const previous = Object.fromEntries(Object.keys(values).map(key => [key, process.env[key]]));
+  Object.defineProperty(process, 'platform', { ...descriptor, value:platform });
+  if (descriptor.value !== 'win32' && platform === 'win32') Object.assign(process.env, values);
+  try { await run(); }
+  finally {
+    Object.defineProperty(process, 'platform', descriptor);
+    for (const [key, value] of Object.entries(previous)) { if (value === undefined) delete process.env[key]; else process.env[key] = value; }
+  }
+}
+
 async function transportFixture(run) {
   const { mkdir, rm } = await import('node:fs/promises');
   const { dirname } = await import('node:path');
@@ -282,7 +297,7 @@ async function transportFixture(run) {
   finally { assertFactoryPath(scratch, true); await rm(scratch, { recursive: true }); }
 }
 
-test('bounded transport grants Builder exact owned files and Verify only derived scratch', { skip: process.platform === 'win32' ? false : 'Windows MXC transport construction is unavailable on this platform' }, async () => {
+test('bounded transport grants Builder exact owned files and Verify only derived scratch', async () => withTransportPlatform('win32', async () => {
   const { resolve } = await import('node:path');
   const { factoryTransport } = await import('./probe.mjs');
   await transportFixture(async (input, scratch) => {
@@ -307,12 +322,12 @@ test('bounded transport grants Builder exact owned files and Verify only derived
     assert.throws(() => factoryTransport(resolve(process.cwd(), '..'), { task: input, role: 'VERIFY' }), /INVALID_FACTORY_PERMISSION_OPT_IN/);
     assert.throws(() => factoryTransport(process.cwd(), { task: input, role: 'ADMIN' }), /INVALID_FACTORY_PERMISSION_OPT_IN/);
   });
-});
+}));
 
-test('bounded transport rejects missing scratch before native start', { skip: process.platform === 'win32' ? false : 'Windows MXC transport construction is unavailable on this platform' }, async () => {
+test('bounded transport rejects missing scratch before native start', async () => withTransportPlatform('win32', async () => {
   const { factoryTransport } = await import('./probe.mjs');
   assert.throws(() => factoryTransport(process.cwd(), { task: task(), role: 'VERIFY' }), /ENOENT/);
-});
+}));
 
 test('bounded transport rejects aliased ancestor paths on the current filesystem', async () => {
   const { mkdir, writeFile, symlink, rm, mkdtemp } = await import('node:fs/promises');
@@ -343,7 +358,7 @@ test('shell environment preserves Windows startup fields but drops inherited cre
   assert.throws(() => factoryEnvironment('C:/scratch', { ...parent, SystemDrive: 'D:' }), /FACTORY_ENVIRONMENT_UNAVAILABLE/);
 });
 
-test('effective bounded policy must exactly retain permissions and filtered environment before role start', { skip: process.platform === 'win32' ? false : 'Windows MXC transport construction is unavailable on this platform' }, async () => {
+test('effective bounded policy must exactly retain permissions and filtered environment before role start', async () => withTransportPlatform('win32', async () => {
   const { factoryTransport, inspectFactoryPermission } = await import('./probe.mjs');
   await transportFixture(async (input) => {
     for (const role of ['LEAD', 'BUILDER', 'VERIFY', 'REVIEWER']) {
@@ -376,7 +391,7 @@ test('effective bounded policy must exactly retain permissions and filtered envi
       await assert.rejects(() => inspectFactoryPermission(server(config, { data: [] }), execution, process.cwd()), /FACTORY_PERMISSION_POLICY_MISMATCH/);
     }
   });
-});
+}));
 
 test('findings contract accepts strings and rejects object elements without coercion', async () => {
   const { validateRoleResult } = await import('./role-validation.mjs');
@@ -407,10 +422,10 @@ test('retained-role readback rejects malformed findings without repairing candid
   assert.throws(() => validateRetainedRole(stale, records, input, process.cwd()), /NATIVE_RESULT_MISMATCH/);
 });
 
-test('non-Windows hosts reject bounded transport without a fallback', { skip: process.platform === 'win32' ? 'Non-Windows transport rejection is not exercised by this Windows host' : false }, async () => {
+test('non-Windows hosts reject bounded transport without a fallback', async () => withTransportPlatform('linux', async () => {
   const { factoryTransport } = await import('./probe.mjs');
   assert.throws(() => factoryTransport(process.cwd(), { task: task(), role: 'VERIFY' }), /INVALID_FACTORY_PERMISSION_OPT_IN/);
-});
+}));
 
 
 test('permission file validation refuses hardlinks to unowned synthetic files', async () => {
@@ -429,7 +444,7 @@ test('permission file validation refuses hardlinks to unowned synthetic files', 
   } finally { await rm(root, { recursive: true }); }
 });
 
-test('failed preclaim setup removes only its newly created empty scratch', { skip: process.platform === 'win32' ? false : 'Windows MXC static preparation requires Windows environment' }, async () => {
+test('failed preclaim setup removes only its newly created empty scratch', async () => withTransportPlatform('win32', async () => {
   const { lstat, mkdir, writeFile, readFile, rm } = await import('node:fs/promises');
   const { dirname, join } = await import('node:path');
   const { prepareFactoryScratch, factoryScratch, assertFactoryPath } = await import('./probe.mjs');
@@ -450,4 +465,4 @@ test('failed preclaim setup removes only its newly created empty scratch', { ski
     if (previous === undefined) delete process.env.SystemDrive; else process.env.SystemDrive = previous;
     try { assertFactoryPath(scratch, true); await rm(scratch, { recursive: true }); } catch (error) { if (error.code !== 'ENOENT') throw error; }
   }
-});
+}));

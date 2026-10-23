@@ -64,7 +64,10 @@ export async function createDashboard({ root, authorize = () => authorizeReposit
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  const dashboard = await createDashboard({ root: path.join(os.homedir(), '.codex', 'agent-flow-evidence') });
+  const rootArgument = process.argv.indexOf('--root');
+  const root = rootArgument < 0 ? path.join(os.homedir(), '.codex', 'agent-flow-evidence') : process.argv[rootArgument + 1];
+  if (!root || !path.isAbsolute(root)) throw new Error('ABSOLUTE_EVIDENCE_ROOT_REQUIRED');
+  const dashboard = await createDashboard({ root });
   console.log(`Bella Development Evidence Dashboard: ${dashboard.origin} (read-only, 1 hour session)`);
   if (process.argv.includes('--open')) execFile('rundll32.exe', ['url.dll,FileProtocolHandler', dashboard.url], { windowsHide: true }, error => { if (error) console.error('BROWSER_OPEN_FAILED'); });
   else console.log('Restart with --open to authorize a browser. No capability is logged or saved.');

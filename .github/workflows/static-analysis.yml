@@ -47,11 +47,12 @@ jobs:
     container:
       image: semgrep/semgrep:latest
     steps:
-      - name: Checkout
+      - name: Checkout exact candidate
         uses: actions/checkout@v6
         with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 0
-      
+
       - name: Check if application code changed
         id: check-code
         env:
@@ -91,7 +92,7 @@ jobs:
             echo "has_code=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
-          
+
           HAS_CODE=false
           while IFS= read -r FILE; do
             case "$FILE" in
@@ -101,71 +102,43 @@ jobs:
           done <<EOF
           $CHANGED_FILES
           EOF
-          
+
           if [ "$HAS_CODE" = "true" ]; then
             echo "has_code=true" >> "$GITHUB_OUTPUT"
             echo "✅ Found application code to scan"
           else
             echo "has_code=false" >> "$GITHUB_OUTPUT"
-            echo "⏭️  Infrastructure-only PR, reducing Semgrep scope"
+            echo "Infrastructure-only scope recorded; full report remains mandatory"
             echo "All changed files are infrastructure: .github/, docs/, scripts/"
           fi
 
-      - name: Run Semgrep CE
-        id: semgrep
-        if: steps.check-code.outputs.has_code == 'true'
-        run: semgrep scan --config auto --sarif --output semgrep-results.sarif --error
-        continue-on-error: true
-      
-      - name: Run Semgrep CE (infrastructure scope)
-        id: semgrep-infra
-        if: steps.check-code.outputs.has_code == 'false'
-        run: |
-          echo "✅ Infrastructure-only PR detected"
-          echo "Running Semgrep with CI/secrets rules only (not full --config auto)"
-          
-          # Run with limited ruleset for infrastructure files
-          semgrep scan \
-            --config "p/ci" \
-            --config "p/secrets" \
-            --sarif \
-            --output semgrep-results.sarif \
-            --no-git-ignore \
-            --exclude 'node_modules' \
-            --exclude '.next' \
-            --exclude 'test-results' || EXIT_CODE=$?
-          
-          # Allow findings for infrastructure (they're for review, not block)
-          if [ -n "$EXIT_CODE" ] && [ "$EXIT_CODE" != "0" ]; then
-            echo "⚠️  Semgrep found issues in infrastructure files (for review)"
-            echo "Infrastructure PRs do not block on Semgrep findings"
-            exit 0
-          fi
-          
-          echo "✅ Semgrep infrastructure scan completed"
-        continue-on-error: false
+      - name: Verify gate failure paths
+        run: python3 scripts/test_semgrep_gate.py
 
-      - name: Upload Semgrep SARIF
+      - name: Full report and native PR baseline gate
+        env:
+          SEMGREP_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          SEMGREP_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: python3 scripts/run-semgrep-gate.py
+
+      - name: Upload full Semgrep SARIF
         if: ${{ always() && hashFiles('semgrep-results.sarif') != '' }}
         uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: semgrep-results.sarif
+          category: semgrep-full-report
 
-      - name: Archive Semgrep SARIF
-        if: ${{ always() && hashFiles('semgrep-results.sarif') != '' }}
+      - name: Archive full report, diff and gate decision
+        if: always()
         uses: actions/upload-artifact@v7
         with:
           name: semgrep-sarif
-          path: semgrep-results.sarif
+          path: |
+            semgrep-results.sarif
+            semgrep-diff.sarif
+            semgrep-gate.json
+          if-no-files-found: error
           retention-days: 14
-
-      - name: Fail on Semgrep findings
-        if: ${{ steps.semgrep.outcome == 'failure' && steps.check-code.outputs.has_code == 'true' }}
-        run: exit 1
-      
-      - name: Semgrep infrastructure scan completed
-        if: ${{ steps.check-code.outputs.has_code == 'false' }}
-        run: echo "✅ Semgrep infrastructure scan completed (workflow security only)"
 
   gitleaks:
     name: Gitleaks
