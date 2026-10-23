@@ -11,7 +11,20 @@ def command(args, *, capture=False):
     return subprocess.run(args, check=True, text=True, capture_output=capture, timeout=120).stdout
 
 
-def scan(path, baseline=None):
+def notification_path(message):
+    text = message.get("text", "") if isinstance(message, dict) else ""
+    match = re.search(r"\bat line\s+(.+?):\d+:", text)
+    if not match:
+        match = re.search(r"\bon\s+([^\s:]+)(?::\d+)?(?::|\s|$)", text)
+    if not match:
+        return None
+    source_path = match.group(1).replace("\\", "/")
+    while source_path.startswith("./"):
+        source_path = source_path[2:]
+    return source_path
+
+
+def scan(path, baseline=None, changed_files=None, base_files=None):
     # Never accept a stale report left by another invocation.
     report = Path(path)
     report.unlink(missing_ok=True)
@@ -25,6 +38,7 @@ def scan(path, baseline=None):
     if data.get("version") != "2.1.0" or not isinstance(data.get("runs"), list) or not data["runs"]:
         raise ValueError("SCANNER_REPORT_INVALID")
     count = 0
+    preexisting_warnings = 0
     for run in data["runs"]:
         if not isinstance(run.get("results"), list) or not run.get("tool", {}).get("driver", {}).get("rules"):
             raise ValueError("SCANNER_REPORT_INVALID")
@@ -32,15 +46,26 @@ def scan(path, baseline=None):
         if not isinstance(invocations, list) or not invocations:
             raise ValueError("SCANNER_INVOCATION_MISSING")
         for invocation in invocations:
-            if invocation.get("executionSuccessful") is not True or any(
-                n.get("level") in ("error", "warning") for n in invocation.get("toolExecutionNotifications", [])
-            ):
+            if invocation.get("executionSuccessful") is not True:
                 raise ValueError("SCANNER_REPORTED_ERROR")
+            for notification in invocation.get("toolExecutionNotifications", []):
+                level = notification.get("level")
+                if level == "error":
+                    raise ValueError("SCANNER_REPORTED_ERROR")
+                if level == "warning":
+                    source_path = notification_path(notification.get("message", {}))
+                    # Keep the full report truthful while allowing only warnings
+                    # tied to unchanged files. Unknown or changed paths fail closed.
+                    if (not source_path or changed_files is None or base_files is None
+                            or source_path not in base_files or source_path in changed_files):
+                        raise ValueError("SCANNER_WARNING_ON_CHANGED_OR_UNKNOWN_FILE")
+                    preexisting_warnings += 1
         # Rule-specific accepted suppressions stay visible in the full SARIF.
         count += sum(not r.get("suppressions") for r in run["results"])
     if (result.returncode == 0) != (count == 0):
         raise ValueError("SCANNER_EXIT_REPORT_MISMATCH")
-    return {"status": "PASS" if count == 0 else "FINDINGS", "findings": count, "report": path}
+    return {"status": "PASS" if count == 0 else "FINDINGS", "findings": count,
+            "preexisting_warnings": preexisting_warnings, "report": path}
 
 
 def run_gate():
@@ -60,8 +85,15 @@ def run_gate():
         merge_base = command(git + ["merge-base", base, head], capture=True).strip()
         if not re.fullmatch(r"[a-f0-9]{40}", merge_base):
             raise ValueError("COMPARISON_ANCESTRY_UNAVAILABLE")
-    full = scan("semgrep-results.sarif")
-    diff = scan("semgrep-diff.sarif", base) if event == "pull_request" else None
+        changed_output = command(git + ["diff", "--no-renames", "--name-only", base + "..." + head], capture=True)
+        changed_files = {line.replace("\\", "/") for line in changed_output.splitlines() if line}
+        base_output = command(git + ["ls-tree", "-r", "--name-only", base], capture=True)
+        base_files = {line.replace("\\", "/") for line in base_output.splitlines() if line}
+    else:
+        changed_files = None
+        base_files = None
+    full = scan("semgrep-results.sarif", changed_files=changed_files, base_files=base_files)
+    diff = scan("semgrep-diff.sarif", base, changed_files, base_files) if event == "pull_request" else None
     decision = diff or full
     summary = {"head": head, "base": base if diff else None, "full": full, "diff": diff,
                "gate": "PASS" if decision["status"] == "PASS" else "FAIL_FINDINGS"}

@@ -13,30 +13,38 @@ function select(files, status = 0, jsonOutput = false) {
     process: { argv: ['node', 'selector', ...(jsonOutput ? ['--jest-json-output', 'result.json'] : []), ...files],
       platform: 'linux', env: {}, exit(code) { exit = code; throw stopped; } },
     console: { log() {} },
-    spawnSync(command, args) { calls.push({ command, args: [...args] }); return { status }; },
+    spawnSync(command, args) {
+      calls.push({ command, args: [...args] });
+      return { status };
+    },
+    readFileSync(path) { return JSON.stringify({ testResults: [{ name: path, status: 'passed', assertionResults: [{ status: 'passed' }] }] }); },
+    unlinkSync() {},
     writeFileSync(path, value) { writes.push({ path, value: JSON.parse(value) }); },
   };
   try { runInNewContext(source, context); } catch (error) { if (error !== stopped) throw error; }
   return { calls, writes, exit };
 }
 
-test('mixed source/config and direct tests must select the changed test as well as related sources', () => {
-  const r = select(['playwright.automove-mvp-pilot.config.ts', 'src/__tests__/agent-flow-tooling.test.ts']);
-  assert.equal(r.exit, 0); assert.equal(r.calls.length, 1);
+test('mixed source/config and direct tests run in separate Jest modes', () => {
+  const r = select(['playwright.automove-mvp-pilot.config.ts', 'src/__tests__/agent-flow-tooling.test.ts'], 0, true);
+  assert.equal(r.exit, 0); assert.equal(r.calls.length, 2);
   assert.equal(r.calls[0].command, 'npx');
-  assert.deepEqual(r.calls[0].args.slice(0, 6), ['jest', '--findRelatedTests',
-    'playwright.automove-mvp-pilot.config.ts', 'src/__tests__/agent-flow-tooling.test.ts',
-    '--runInBand', '--passWithNoTests']);
+  assert.deepEqual(r.calls[0].args.slice(0, 5), ['jest', '--findRelatedTests',
+    'playwright.automove-mvp-pilot.config.ts', '--runInBand', '--passWithNoTests']);
   assert.ok(r.calls[0].args.includes('--testPathIgnorePatterns'));
+  assert.deepEqual(r.calls[1].args, ['jest', '--runInBand', '--runTestsByPath', 'src/__tests__/agent-flow-tooling.test.ts',
+    '--json', '--outputFile', 'result.json.direct.json']);
+  assert.equal(r.writes[0].path, 'result.json');
+  assert.equal(r.writes[0].value.numTotalTests, 2);
 });
 
 test('direct-test-only and source-only keep their existing invocation and failures propagate', () => {
   const direct = select(['src/__tests__/agent-flow-tooling.test.ts'], 1, true);
   assert.equal(direct.exit, 1);
-  assert.deepEqual(direct.calls[0].args, ['jest', '--runInBand', 'src/__tests__/agent-flow-tooling.test.ts', '--json', '--outputFile', 'result.json']);
+  assert.deepEqual(direct.calls[0].args, ['jest', '--runInBand', '--runTestsByPath', 'src/__tests__/agent-flow-tooling.test.ts', '--json', '--outputFile', 'result.json.direct.json']);
   const related = select(['src/example.ts'], 2, true);
   assert.equal(related.exit, 2); assert.ok(related.calls[0].args.includes('src/example.ts'));
-  assert.deepEqual(related.calls[0].args.slice(-3), ['--json', '--outputFile', 'result.json']);
+  assert.deepEqual(related.calls[0].args.slice(-3), ['--json', '--outputFile', 'result.json.related.json']);
 });
 
 test('E2E and unsupported real-DB suites remain outside the non-DB Jest selector', () => {

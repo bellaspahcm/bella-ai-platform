@@ -1,5 +1,5 @@
 import { spawnSync } from 'node:child_process';
-import { writeFileSync } from 'node:fs';
+import { readFileSync, unlinkSync, writeFileSync } from 'node:fs';
 
 const CODE_FILE_PATTERN = /\.(ts|tsx|js|jsx)$/;
 const TEST_FILE_PATTERN = /\.(test|spec)\.(ts|tsx|js|jsx)$/;
@@ -121,6 +121,73 @@ function writeEmptyJestResult(outputPath) {
   writeFileSync(outputPath, `${JSON.stringify(emptyResult)}\n`, 'utf8');
 }
 
+function mergeJestResults(outputPath, resultPaths) {
+  const suitesByName = new Map();
+  for (const resultPath of resultPaths) {
+    if (!resultPath) continue;
+    const result = JSON.parse(readFileSync(resultPath, 'utf8'));
+    if (!Array.isArray(result.testResults)) {
+      throw new Error(`Jest output is missing testResults: ${resultPath}`);
+    }
+    for (const suite of result.testResults) {
+      suitesByName.set(suite.name, suite);
+    }
+  }
+
+  const testResults = [...suitesByName.values()];
+  const assertionResults = testResults.flatMap((suite) => suite.assertionResults ?? []);
+  const counts = {
+    numFailedTests: assertionResults.filter((test) => test.status === 'failed').length,
+    numPassedTests: assertionResults.filter((test) => test.status === 'passed').length,
+    numPendingTests: assertionResults.filter((test) => test.status === 'pending').length,
+    numTodoTests: assertionResults.filter((test) => test.status === 'todo').length,
+    numFailedTestSuites: testResults.filter((suite) => suite.status === 'failed').length,
+    numPassedTestSuites: testResults.filter((suite) => suite.status === 'passed').length,
+    numPendingTestSuites: testResults.filter((suite) => suite.status === 'pending').length,
+    numRuntimeErrorTestSuites: testResults.filter((suite) => suite.status === 'failed' && !(suite.assertionResults?.length)).length,
+  };
+  writeFileSync(outputPath, `${JSON.stringify({
+    ...counts,
+    numTotalTests: assertionResults.length,
+    numTotalTestSuites: testResults.length,
+    success: counts.numFailedTests === 0 && counts.numFailedTestSuites === 0,
+    testResults,
+  })}\n`, 'utf8');
+}
+
+function runJestRuns(sourceFiles, directTestFiles, jestJsonOutput) {
+  const resultPaths = [];
+  let exitCode = 0;
+  const runs = [];
+  if (sourceFiles.length > 0) {
+    const args = ['jest', '--findRelatedTests', ...sourceFiles, '--runInBand', '--passWithNoTests'];
+    for (const pattern of RELATED_TEST_EXCLUDED_PATTERNS) {
+      args.push('--testPathIgnorePatterns', pattern);
+    }
+    runs.push({ args, suffix: 'related' });
+  }
+  if (directTestFiles.length > 0) {
+    runs.push({ args: ['jest', '--runInBand', '--runTestsByPath', ...directTestFiles], suffix: 'direct' });
+  }
+
+  for (const { args, suffix } of runs) {
+    let outputPath;
+    if (jestJsonOutput) {
+      outputPath = `${jestJsonOutput}.${suffix}.json`;
+      args.push('--json', '--outputFile', outputPath);
+      resultPaths.push(outputPath);
+    }
+    const result = run('npx', args, { stdio: 'inherit' });
+    if (result.status !== 0) exitCode = result.status ?? 1;
+  }
+
+  if (jestJsonOutput) {
+    mergeJestResults(jestJsonOutput, resultPaths);
+    for (const resultPath of resultPaths) unlinkSync(resultPath);
+  }
+  return exitCode;
+}
+
 function resolveChangedFiles(explicitChangedFiles) {
   if (explicitChangedFiles.length > 0) {
     return explicitChangedFiles;
@@ -170,15 +237,7 @@ if (sourceFiles.length === 0) {
       console.log(`- ${file}`);
     }
 
-    const jestArgs = ['jest', '--runInBand', ...testFiles];
-    if (jestJsonOutput) {
-      jestArgs.push('--json', '--outputFile', jestJsonOutput);
-    }
-
-    const jest = run('npx', jestArgs, {
-      stdio: 'inherit',
-    });
-    process.exit(jest.status ?? 1);
+    process.exit(runJestRuns([], testFiles, jestJsonOutput));
   }
 
   console.log('No changed application source files with related Jest coverage.');
@@ -192,16 +251,8 @@ console.log(`Running Jest tests related to ${sourceFiles.length} changed source 
 for (const file of sourceFiles) {
   console.log(`- ${file}`);
 }
-
-const jestArgs = ['jest', '--findRelatedTests', ...sourceFiles, ...testFiles, '--runInBand', '--passWithNoTests'];
-for (const pattern of RELATED_TEST_EXCLUDED_PATTERNS) {
-  jestArgs.push('--testPathIgnorePatterns', pattern);
+if (testFiles.length > 0) {
+  console.log(`Running ${testFiles.length} changed Jest test file(s) directly:`);
+  for (const file of testFiles) console.log(`- ${file}`);
 }
-if (jestJsonOutput) {
-  jestArgs.push('--json', '--outputFile', jestJsonOutput);
-}
-
-const jest = run('npx', jestArgs, {
-  stdio: 'inherit',
-});
-process.exit(jest.status ?? 1);
+process.exit(runJestRuns(sourceFiles, testFiles, jestJsonOutput));
