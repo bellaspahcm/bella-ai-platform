@@ -5,6 +5,107 @@ baseline_commit: bbe57b5500ea5c4c9be6542d93f3497aa1482e53
 
 # AutoMove Business-Chain Verification
 
+## Platform/OS reuse decision — 2026-10-23
+
+ARCHITECTURE_GATE = PASS_FOR_PRODUCT_CLIENT_REUSE_ONLY.
+Owner yêu cầu ưu tiên reuse Platform/OS. Tiếp tục scoped alternative local workflow
+đã được cho phép, không mở native Factory admission hoặc sửa guard.
+
+| Need | Existing owner / public path | Fit and decision |
+| --- | --- | --- |
+| Browser identity/session | Platform existing `@/lib/supabase-client` createClient | Reuse as-is in Product TradeInPhotoService; same singleton as current page |
+| Server identity/tenant | Platform `@/core/services/auth`; current Auth/profile helpers and established Product HTTP bindings | Keep server boundaries; browser service must not import server guards |
+| Customer preferences | AutoMoveManagementHttp + AutoCustomerProvider; Platform customer identity; Mobility ownership contract | Preserve supported path, no duplicate customer/vehicle identity |
+| Vehicle/allocation/handover | Mobility public exports and established AutoMove adapters | Continue reuse; do not write Kernel/internal entities directly |
+| Payment/settlement/recognition | Existing AutoMove strict contracts/services and approved policy; Finance owns journal posting | Reuse current boundary, reconciliation is not Finance posting |
+| Lead assignment/SLA | Platform LeadEngineFacade; resource engine utilities | Calculation/state capability only; in-memory registries and synthetic fallback agents are not durable AutoMove assignment; disputed Product semantics stay HELD |
+| Workshop service pricing | Platform `IServiceCatalog` v1 | Candidate contract only; no canonical AutoMove runtime implementation/pricing mapping proven; no default300000 replacement invented |
+| Document generation | Platform documentEngine | Template/lifecycle generation, not a proven authenticated photo-storage contract; do not substitute for Storage |
+
+Minimal admitted local change: Product TradeInPhotoService replaces8 independent
+read-replica client acquisitions with the existing browser factory. Only runtime
+caller found is client trade-in/page.tsx. No method signature, payload, table,
+tenant filter, Storage path, category semantic or business policy changes.
+Independent owner assessment: existing capability reuse under Constitution scoped
+autonomy; no ACL/grant/auth protocol/public-contract change. Shared Auth/RLS and
+effective DB authorization remain owners of permissions, not this consumer.
+
+Migration applicability: NOT_APPLICABLE. No Platform/Core/OS or frozen file edits.
+Verification: service boundary/session/denial tests, existing UI regression,
+focused lint/typecheck, architecture/diff checks and independent review.
+Source client divergence may close; live RLS/Storage/parent binding, whole Product
+and Go-Live remain NOT_PROVEN. Canonical RC requires committed clean inputs and
+approved Non-Production environment; no commit authority or guard bypass inferred.
+Spec: implementation-artifacts/spec-automove-platform-client-reuse.md.
+
+Local evidence checkpoint: factory-only service change implemented; actual SDK
+with synthetic transport plus retained UI unit tests2 suites/34 PASS. Strict
+scoped typecheck2 roots/450 source files0 diagnostics. These are local tests,
+not Browser/DB authorization or persistence. Seven denial tests exclude reorder;
+first-step failures of multi-request methods, atomicity and Storage cleanup are
+NOT_PROVEN. Existing method bodies remain unchanged; deferred-work.md records
+the gaps. Broad denial criterion has PARTIAL evidence, not all-AC PASS.
+Independent blind review completed with1 P2 evidence finding, addressed by
+explicit limits. Edge and acceptance final reviews errored on agent usage limit;
+their partial messages are not a completed verdict. Spec remains in-review,
+REVIEW_COMPLETION = HELD, LOCAL_BATCH = PARTIAL. Main/baseline RC evidence cannot
+close this dirty candidate. Whole MVP and Go-Live remain NOT_PROVEN.
+
+## Local truthfulness containment authority — 2026-10-23
+
+ARCHITECTURE_GATE = PASS_FOR_LOCAL_UI_TRUTHFULNESS_ONLY.
+GO_LIVE = NOT_PROVEN. PRODUCT_READINESS = NOT_READY.
+
+Owner tiếp tục giao goal Go-Live và sau báo cáo dependency cụ thể nói:
+"tự phân tích tự xử lý đi, tôi cấp quyền cho bạn làm".
+Lead áp dụng quyền mới cho scoped alternative local Product workflow theo
+Constitution Factory Intake; không sửa native admission, không tái dùng taskId
+đã consumed và không ghi claim native Factory. Không mở rộng sang mutation
+Production, role/identity, schema, permissions, protected controls hoặc release.
+
+Baseline: bb7007e7632c3bf7d88f760fc8239a0720d2d327.
+Branch: codex/automove-mvp-truthful-ui-20261023.
+Manifest: existing bella_auto, existing routes/theme/identity; không ProductRegistry change.
+Business problem: UI source báo success sau timer, hiển thị mock metrics và assignees.
+Canonical invariant: common Constitution và Operational SOP cấm false success/synthetic
+business data như dữ liệu thật. Dữ liệu chưa supported không được chuyển thành0/empty.
+
+Ownership: Product presentation owns truthful availability; lead/Journey services
+own domain rules; existing Auth/RLS own authorization; Mobility/Accounting contracts
+và frozen kernels không thay đổi. Product -> established API/service/public contracts
+-> persistence vẫn giữ nguyên.
+
+Change Map:
+| Surface | Current source | Reconciliation | Authorized minimal action |
+| --- | --- | --- | --- |
+| Leads assignment/leaderboard | MOCK_AGENTS, random/state+toast | CAPABILITY GAP / semantic conflict | Keep controls unavailable, remove fake operational claims; preserve real list |
+| Journeys/SLA | mock funnel/heatmap/timeline, timer320/4 | CAPABILITY GAP / semantic conflict | Keep visible tabs/action; explicit unavailable, no canonical SLA claim |
+| Workshop technicians | mockTechnicians rendered | CAPABILITY GAP | Explicit unavailable within technicians tab; retain real appointments/orders |
+| Experience | static parent/child metrics, timer refresh | CAPABILITY GAP | Keep tabs/refresh visible; no synthetic metrics or refresh success |
+| Trade-in create/photo status | toast development stub; initial/previous photo state presented before verified read | CAPABILITY GAP / UI lifecycle defect | Disabled create with explanation; preserve persistence calls; fence loading/error/stale reads and clear selection-specific previews |
+
+Implementation classification: EXISTING_CAPABILITY_REUSE for retained real reads;
+presentation containment for missing capability, not UI_ONLY (action/data states change).
+No backend extension or new semantics. Separate read-only review confirmed docs/user-guide
+SLA80% versus service75%, and lead algorithm differences; BUSINESS_SEMANTICS=NOT_PROVEN
+for mutation wiring. Do not invent expected business behavior from current code/tests.
+
+Migration: NOT_APPLICABLE (no schema/data contract change).
+Verification: behavior regression across5 surfaces, existing customer/management
+regression, focused lint/typecheck, architecture boundary and whitespace checks.
+No DB writes introduced; no fake unit PASS called Browser/DB/Production PASS.
+Independent final review required; preserve actual unavailable/failed review outcome.
+Spec: implementation-artifacts/spec-automove-truthful-operational-ui.md.
+Local execution closure: 5 Product UI files plus1 behavioral test; Jest17/17,
+retained Customer/Management regression14/14, focused strict typecheck0 diagnostics
+across6 roots/511 source files, lint0 errors/1 pre-existing img warning.
+Blind/edge/acceptance static re-reviews closed scoped findings, new findings0.
+This is source/unit evidence only; candidate Browser/API/Real DB remains NOT_PROVEN
+without a canonical Non-Production E2E environment. Main RC evidence is baseline-only.
+Delegated MVP scope: preserve proven sales/customer/intake flows and explicitly
+keep unsupported functions visible, unfinished. This gate authorizes containment
+only, never whole-Product COMPLETE, Production activation or Go-Live.
+
 ## Controlled Production Runtime Authority - 2026-10-16
 
 Process gate: PASS for the owner's explicit approval of controlled Production
