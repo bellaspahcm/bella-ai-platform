@@ -1,0 +1,20 @@
+{
+  "method": "bmad-code-review; read-only independent Blind Hunter, Edge Case Hunter and Acceptance Auditor",
+  "scope": "Four Product/API/test files and one new Product command migration",
+  "initialProposalSha256": "81c6401f97364eefef11591c446677739efb1fe23a7e658d54278644890bbd5e",
+  "reviewedFinalSqlSha256": "06e9058ee298220ef423b60d6a77fc6e9035d59d21edc7484de17d189cb5c830",
+  "findings": [
+    {"issue": "Current enrollment branch set can change during later waits", "classification": "patch", "resolution": "Parent Party UPDATE locks, all existing enrollment SHARE locks, existing course writer advisory locks"},
+    {"issue": "Course/enrollment assignment lock inversion", "classification": "patch", "resolution": "Explicit course-before-enrollment mapping lock order"},
+    {"issue": "Deciding aggregate omits canonical course tenant join", "classification": "patch", "resolution": "Canonical course tenant join in the authoritative branch aggregate"},
+    {"issue": "Repeatable-read snapshot can miss predecessor event after advisory wait", "classification": "patch", "resolution": "Reject non-read-committed execution"},
+    {"issue": "Incomplete second enrollment disappears from aggregation", "classification": "patch", "resolution": "LEFT JOIN completeness validation of every current active/pending enrollment; deny mismatches"}
+  ],
+  "reReview": {
+    "acceptanceAtIntermediateRevision": "NO_ACTIONABLE_FINDINGS at 8b22a5f93a54465772a46c5236706772290b67b59ace9b9f46e7b2493a677831; runtime evidence pending at review time",
+    "edgeAtFinalRevision": "Residual resolved; no directly introduced unhandled path found; static review only",
+    "blindFinalRevision": "NOT_RERUN; original race finding addressed by reviewed lock changes",
+    "leadVerification": "Final source bound to 23 unit/API adapter tests, 11 Real DB cases and three actual HTTP/browser observations"
+  },
+  "authorityLimit": "Review has no power to approve Production, change business policy or rewrite migration history. Final SQL is a reviewed technical repair within the same approved one-command E2E scope; do not claim original-byte approval."
+}

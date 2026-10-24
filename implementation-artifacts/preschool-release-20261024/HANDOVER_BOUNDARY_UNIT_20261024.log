@@ -1,0 +1,37 @@
+FAIL src/app/api/education/attendance/handover/__tests__/route.test.ts
+  ● Console
+
+    console.log
+      ◇ injected env (0) from .env.local // tip: ⌘ override existing { override: true }
+
+      at _log (D:/Antigravity/Projects/BELLA SPA ERP/node_modules/dotenv/lib/main.js:131:11)
+
+    console.log
+      [Jest Setup] SUPABASE_SERVICE_ROLE_KEY loaded: true
+
+      at Object.log (jest.setup.ts:17:9)
+
+  ● /api/education/attendance/handover route authorization › binds the injected command to the authenticated API persistence boundary
+
+    expect(jest.fn()).toHaveBeenCalledWith(...expected)
+
+    Expected: "preschool_record_handover", {"p_actor_id": "00000000-0000-0000-0000-000000000001", "p_guardian_party_id": "guardian-party-a", "p_pickup_authorization_id": "authorization-a", "p_student_party_id": "student-party-a", "p_tenant_id": "00000000-0000-0000-0000-0000000000aa"}
+
+    Number of calls: 0
+
+       99 |     expect(command).toBeDefined();
+      100 |     await command!({ tenantId, operatorUserId, studentPartyId: 'student-party-a', guardianPartyId: 'guardian-party-a', pickupAuthorizationId: 'authorization-a' });
+    > 101 |     expect(mockRpc).toHaveBeenCalledWith('preschool_record_handover', {
+          |                     ^
+      102 |       p_tenant_id: tenantId, p_actor_id: operatorUserId, p_student_party_id: 'student-party-a',
+      103 |       p_guardian_party_id: 'guardian-party-a', p_pickup_authorization_id: 'authorization-a',
+      104 |     });
+
+      at Object.toHaveBeenCalledWith (src/app/api/education/attendance/handover/__tests__/route.test.ts:101:21)
+
+Test Suites: 1 failed, 1 passed, 2 total
+Tests:       1 failed, 24 passed, 25 total
+Snapshots:   0 total
+Time:        4.2 s
+Ran all test suites within paths "src/products/bella-education/__tests__/preschool-safe-pickup-handover.service.test.ts", "src/app/api/education/attendance/handover/__tests__/route.test.ts".
+Test results written to: implementation-artifacts\preschool-release-20261024\HANDOVER_BOUNDARY_UNIT_20261024.json
