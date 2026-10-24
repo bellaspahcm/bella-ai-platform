@@ -1,0 +1,5 @@
+{
+  "originalFile": "D:\\Antigravity\\.codex-proof\\preschool-release-20261024-continuation\\ATTENDANCE_FINAL_CANDIDATE_1792830484445.log",
+  "sha256": "cf855a44eaf6aae1a7c34c405cba6b9e97413e5c66bf1285d31debbb395c44a4",
+  "rawSanitizedLog": "  console.log\n    ◇ injected env (0) from .env.local // tip: ◈ encrypted .env [www.dotenvx.com]\n\n      at _log (D:/Antigravity/Projects/BELLA SPA ERP/node_modules/dotenv/lib/main.js:131:11)\n\n  console.log\n    [Jest Setup] SUPABASE_SERVICE_ROLE_KEY loaded: true\n\n      at Object.log (jest.setup.ts:17:9)\n\n  console.info\n    [Preschool Chain retained fixture] history retained; run-owned actor retired\n\n      at Object.info (src/products/bella-education/__tests__/preschool-chain-real-db.test.ts:193:15)\n\nTest Suites: 1 passed, 1 total\nTests:       11 skipped, 16 passed, 27 total\nSnapshots:   0 total\nTime:        31.913 s\nRan all test suites within paths \"src/products/bella-education/__tests__/preschool-chain-real-db.test.ts\".\nTest results written to: D:\\Antigravity\\.codex-proof\\preschool-release-20261024-continuation\\ATTENDANCE_FINAL_CANDIDATE_1792830484445.jest.json\n"
+}

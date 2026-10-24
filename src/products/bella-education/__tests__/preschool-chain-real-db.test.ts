@@ -10,6 +10,8 @@ import {
 } from '@/lib/supabase-admin-env';
 import { PreschoolChainService } from '@/products/bella-education/services/preschool-chain.service';
 import { PreschoolSafePickupHandoverService } from '@/products/bella-education/services/preschool-safe-pickup-handover.service';
+import { AttendanceContractImpl } from '@/platform/education/contracts/attendance.contract.impl';
+import { PreschoolAttendanceCommandService } from '@/products/bella-education/services/preschool-attendance-command.service';
 import type { Database } from '@/types/database.types';
 import { requireSupabasePublicEnv } from '@/lib/supabase-public-env';
 
@@ -665,6 +667,245 @@ describe('Preschool Chain real DB E2E proof', () => {
       expect((await pg.query('SELECT to_jsonb(i) AS row FROM public.edu_fin_invoices i WHERE tenant_id=$1 ORDER BY id', [ids.tenant])).rows).toEqual(before);
     } finally { await pg.query('ROLLBACK'); }
     expect((await pg.query('SELECT id FROM public.edu_fin_billing_periods WHERE id=$1', [periodId])).rows).toEqual([]);
+  });
+
+  describe('attendance caller reconciliation CI', () => {
+    const englishTenantId = randomUUID();
+    let englishActorId = '';
+    let englishClient: SupabaseClient<Database>;
+    let schoolDay = '';
+    let rollCallTime = '';
+
+    beforeAll(async () => {
+      const email = `${marker}-english-operator@example.test`;
+      const password = `${randomUUID()}A1!`;
+      const created = await supabase.auth.admin.createUser({ email, password, email_confirm: true });
+      if (created.error || !created.data.user) throw new Error('ATTENDANCE_ENGLISH_AUTH_FIXTURE_FAILED');
+      englishActorId = created.data.user.id;
+      await pg.query("INSERT INTO public.tenants(id,name,status,product_key) VALUES($1,$2,'active','bella_english_center')",
+        [englishTenantId, `${marker} English caller`]);
+      await pg.query("INSERT INTO public.users(id,tenant_id,email,full_name,role,status) VALUES($1,$2,$3,'Controlled English operator','admin','active')",
+        [englishActorId, englishTenantId, email]);
+      const { url } = requireSupabaseAdminEnv();
+      const { publicKey } = requireSupabasePublicEnv();
+      englishClient = createSupabaseClient<Database>(url, publicKey, { auth: { persistSession: false, autoRefreshToken: false } });
+      const signedIn = await englishClient.auth.signInWithPassword({ email, password });
+      if (signedIn.error) throw new Error('ATTENDANCE_ENGLISH_SIGN_IN_FAILED');
+      const time = (await pg.query<{ school_day: string; instant: string }>(
+        "SELECT (clock_timestamp() AT TIME ZONE 'Asia/Ho_Chi_Minh')::date::text AS school_day,clock_timestamp()::text AS instant",
+      )).rows[0];
+      schoolDay = time.school_day;
+      rollCallTime = new Date(time.instant).toISOString();
+    });
+
+    afterAll(async () => {
+      if (englishActorId) await pg.query("UPDATE public.users SET status='inactive' WHERE id=$1 AND tenant_id=$2", [englishActorId, englishTenantId]);
+      if (englishClient) {
+        const { error } = await englishClient.auth.signOut({ scope: 'global' });
+        if (error) throw new Error('ATTENDANCE_ENGLISH_FIXTURE_SIGN_OUT_FAILED');
+      }
+    });
+
+    async function attendanceFixture(tenantId = ids.tenant) {
+      const row = { tenantId, courseId: randomUUID(), studentPartyId: randomUUID(), enrollmentId: randomUUID(), requestId: randomUUID() };
+      await pg.query('BEGIN');
+      try {
+        await pg.query("INSERT INTO public.party_parties(id,tenant_id,party_type,display_name) VALUES($1,$2,'person','Controlled attendance student')", [row.studentPartyId, tenantId]);
+        await pg.query(`INSERT INTO public.edu_courses(id,tenant_id,course_code,title,status,max_students,current_enrollment,prerequisite_course_codes)
+          VALUES($1,$2,$3,'Controlled attendance class','active',25,0,'{}')`, [row.courseId, tenantId, `CI-${row.courseId}`]);
+        await pg.query("INSERT INTO public.edu_enrollments(id,tenant_id,student_party_id,course_id,status,request_id) VALUES($1,$2,$3,$4,'active',$5)",
+          [row.enrollmentId, tenantId, row.studentPartyId, row.courseId, row.requestId]);
+        if (tenantId === ids.tenant) {
+          await pg.query('INSERT INTO public.preschool_chain_course_branch_assignments(tenant_id,course_id,branch_id,assigned_by) VALUES($1,$2,$3,$4)',
+            [tenantId, row.courseId, ids.branchA, actorUserId]);
+          await pg.query('INSERT INTO public.preschool_chain_enrollment_branch_assignments(tenant_id,enrollment_id,course_id,branch_id,request_id,assigned_by) VALUES($1,$2,$3,$4,$5,$6)',
+            [tenantId, row.enrollmentId, row.courseId, ids.branchA, row.requestId, actorUserId]);
+        }
+        await pg.query('COMMIT');
+        return row;
+      } catch (error) { await pg.query('ROLLBACK'); throw error; }
+    }
+
+    async function attendanceState(enrollmentId: string) {
+      const events = (await pg.query('SELECT id,tenant_id,enrollment_id,status FROM public.edu_attendance WHERE enrollment_id=$1 ORDER BY id', [enrollmentId])).rows;
+      const daily = (await pg.query('SELECT id,tenant_id,enrollment_id,status FROM public.edu_attendance_daily_state WHERE enrollment_id=$1 ORDER BY id', [enrollmentId])).rows;
+      return { events, daily };
+    }
+
+    it('uses a real signed-in English Center public adapter and returns the persisted event rather than projection ID', async () => {
+      const fixture = await attendanceFixture(englishTenantId);
+      const result = await new AttendanceContractImpl(englishClient).recordAttendance({ ...fixture, status: 'present', rollCallTime });
+      const state = await attendanceState(fixture.enrollmentId);
+      expect(state.events).toEqual([{ id: result.id, tenant_id: englishTenantId, enrollment_id: fixture.enrollmentId, status: 'present' }]);
+      expect(state.daily).toHaveLength(1);
+      expect(state.daily[0].id).not.toBe(result.id);
+    });
+
+    it('preserves the authenticated Preschool caller with canonical history readback', async () => {
+      const fixture = await attendanceFixture();
+      const result = await new AttendanceContractImpl(actorClient).recordAttendance({ ...fixture, status: 'present', rollCallTime });
+      const state = await attendanceState(fixture.enrollmentId);
+      expect(state.events).toHaveLength(1);
+      expect(state.events[0].id).toBe(result.id);
+      expect(state.daily).toHaveLength(1);
+      expect(state.daily[0].status).toBe('present');
+    });
+
+    it.each(['admin', 'admin_staff'])('preserves the actual Preschool Product scoped caller for %s', async actorRole => {
+      const fixture = await attendanceFixture();
+      try {
+        await pg.query('UPDATE public.users SET role=$1 WHERE id=$2 AND tenant_id=$3', [actorRole, actorUserId, ids.tenant]);
+        const result = await new PreschoolAttendanceCommandService(supabase).setDailyAttendance({
+          ...fixture, actorId: actorUserId, actorRole, status: 'excused', rollCallTime, schoolDay,
+        });
+        const state = await attendanceState(fixture.enrollmentId);
+        expect(state.events).toHaveLength(1);
+        expect(state.events[0].id).toBe(result.eventId);
+        expect(state.daily).toHaveLength(1);
+        expect(state.daily[0].status).toBe('excused');
+      } finally { await pg.query("UPDATE public.users SET role='admin' WHERE id=$1 AND tenant_id=$2", [actorUserId, ids.tenant]); }
+    });
+
+    it('does not elevate the canonical admin profile when a caller claims super_admin', async () => {
+      const fixture = await attendanceFixture();
+      // Current Platform returns public.users.role unchanged. HQ super-admin is
+      // role=admin plus bella_hq tenant, not permission to invent a profile role.
+      await expect(new PreschoolAttendanceCommandService(supabase).setDailyAttendance({
+        ...fixture, actorId: actorUserId, actorRole: 'super_admin', status: 'present', rollCallTime, schoolDay,
+      })).rejects.toMatchObject({ status: 403 });
+      expect(await attendanceState(fixture.enrollmentId)).toEqual({ events: [], daily: [] });
+    });
+
+    it.each(['foreign-tenant', 'wrong-role', 'wrong-branch', 'banned', 'deleted'] as const)('denies %s with no Attendance side effect', async reason => {
+      const fixture = await attendanceFixture();
+      const before = await attendanceState(fixture.enrollmentId);
+      try {
+        if (reason === 'wrong-role') await pg.query("UPDATE public.users SET role='admin_staff' WHERE id=$1 AND tenant_id=$2", [actorUserId, ids.tenant]);
+        if (reason === 'wrong-branch') await pg.query('UPDATE public.preschool_chain_course_branch_assignments SET branch_id=$1 WHERE tenant_id=$2 AND course_id=$3', [ids.branchB, ids.tenant, fixture.courseId]);
+        if (reason === 'banned') await pg.query("UPDATE auth.users SET banned_until=clock_timestamp()+interval '1 hour' WHERE id=$1", [actorUserId]);
+        if (reason === 'deleted') await pg.query('UPDATE auth.users SET deleted_at=clock_timestamp() WHERE id=$1', [actorUserId]);
+        const caller = reason === 'foreign-tenant' ? englishClient : actorClient;
+        await expect(new AttendanceContractImpl(caller).recordAttendance({ ...fixture, status: 'present', rollCallTime }))
+          .rejects.toThrow('ATTENDANCE_ACCESS_DENIED');
+        expect(await attendanceState(fixture.enrollmentId)).toEqual(before);
+      } finally {
+        await pg.query("UPDATE public.users SET role='admin' WHERE id=$1 AND tenant_id=$2", [actorUserId, ids.tenant]);
+        await pg.query('UPDATE auth.users SET banned_until=NULL,deleted_at=NULL WHERE id=$1', [actorUserId]);
+      }
+    });
+
+    it('rechecks current Auth after a real enrollment lock wait', async () => {
+      const fixture = await attendanceFixture();
+      const blocker = new Client({ connectionString: dbUrl, ssl: sslConfig() });
+      let pending: Promise<{ error?: unknown }> | undefined;
+      try {
+        await blocker.connect(); await blocker.query('BEGIN');
+        const pid = (await blocker.query<{ pid: number }>('SELECT pg_backend_pid() AS pid')).rows[0].pid;
+        await blocker.query('SELECT id FROM public.edu_enrollments WHERE id=$1 AND tenant_id=$2 FOR UPDATE', [fixture.enrollmentId, ids.tenant]);
+        pending = new AttendanceContractImpl(actorClient).recordAttendance({ ...fixture, status: 'present', rollCallTime })
+          .then(() => ({}), (error: unknown) => ({ error }));
+        let waiting = false;
+        for (let i = 0; i < 100; i++) {
+          const check = await pg.query<{ blocked: boolean }>('SELECT EXISTS(SELECT 1 FROM pg_stat_activity WHERE $1::int=ANY(pg_blocking_pids(pid))) AS blocked', [pid]);
+          if (check.rows[0].blocked) { waiting = true; break; }
+          await new Promise(resolve => setTimeout(resolve, 50));
+        }
+        expect(waiting).toBe(true);
+        await pg.query("UPDATE auth.users SET banned_until=clock_timestamp()+interval '1 hour' WHERE id=$1", [actorUserId]);
+        await blocker.query('COMMIT');
+        expect(await pending).toEqual({ error: expect.objectContaining({ message: 'Failed to set daily attendance: ATTENDANCE_ACCESS_DENIED' }) });
+        expect(await attendanceState(fixture.enrollmentId)).toEqual({ events: [], daily: [] });
+      } finally {
+        try { await blocker.query('ROLLBACK'); if (pending) await pending; }
+        finally { await blocker.end(); await pg.query('UPDATE auth.users SET banned_until=NULL WHERE id=$1', [actorUserId]); }
+      }
+    });
+
+    it('denies anonymous execution and preserves the trusted-server missing-enrollment error', async () => {
+      const fixture = await attendanceFixture();
+      const { url } = requireSupabaseAdminEnv();
+      const { publicKey } = requireSupabasePublicEnv();
+      const anonymous = createSupabaseClient<Database>(url, publicKey, { auth: { persistSession: false, autoRefreshToken: false } });
+      await expect(new AttendanceContractImpl(anonymous).recordAttendance({ ...fixture, status: 'present', rollCallTime }))
+        .rejects.toThrow('permission denied for function edu_set_daily_attendance');
+      const missing = randomUUID();
+      await expect(new AttendanceContractImpl(supabase).recordAttendance({ tenantId: ids.tenant, enrollmentId: missing, status: 'present', rollCallTime }))
+        .rejects.toThrow(`Enrollment ${missing} not found`);
+      expect(await attendanceState(fixture.enrollmentId)).toEqual({ events: [], daily: [] });
+    });
+
+    it.each(['cancel-first-write', 'cancel-second-write', 'revoke-during-upsert'] as const)('rolls back attempted history after %s without trigger/schema changes', async failure => {
+      const fixture = await attendanceFixture();
+      const worker = new Client({ connectionString: dbUrl, ssl: sslConfig() });
+      const blocker = new Client({ connectionString: dbUrl, ssl: sslConfig() });
+      let pending: Promise<{ code?: string }> | undefined;
+      try {
+        await worker.connect(); await blocker.connect();
+        await worker.query('BEGIN'); await blocker.query('BEGIN');
+        const workerPid = (await worker.query<{ pid: number }>('SELECT pg_backend_pid() AS pid')).rows[0].pid;
+        const blockerPid = (await blocker.query<{ pid: number }>('SELECT pg_backend_pid() AS pid')).rows[0].pid;
+        if (failure === 'cancel-first-write') {
+          // A first-write FK waiter; no shared table lock or schema injection.
+          await blocker.query('SELECT id FROM public.tenants WHERE id=$1 FOR UPDATE', [ids.tenant]);
+        } else {
+          // Invisible at SELECT FOR UPDATE; blocks the second write's unique key.
+          await blocker.query('INSERT INTO public.edu_attendance_daily_state(tenant_id,enrollment_id,school_day,status) VALUES($1,$2,$3,$4)',
+            [ids.tenant, fixture.enrollmentId, schoolDay, 'present']);
+        }
+        await worker.query('SET LOCAL ROLE authenticated');
+        await worker.query("SELECT set_config('request.jwt.claims',$1,true)", [JSON.stringify({ role: 'authenticated', sub: actorUserId })]);
+        pending = worker.query('SELECT * FROM public.edu_set_daily_attendance($1,$2,$3,$4,$5)',
+          [ids.tenant, fixture.enrollmentId, 'absent', rollCallTime, schoolDay])
+          .then(() => ({}), (error: { code?: string }) => error);
+        let waiting = false;
+        for (let i = 0; i < 100; i++) {
+          const check = await pg.query<{ blocked: boolean }>('SELECT $2::int=ANY(pg_blocking_pids($1::int)) AS blocked', [workerPid, blockerPid]);
+          if (check.rows[0].blocked) { waiting = true; break; }
+          await new Promise(resolve => setTimeout(resolve, 50));
+        }
+        expect(waiting).toBe(true);
+        if (failure !== 'revoke-during-upsert') {
+          const cancelled = await pg.query<{ cancelled: boolean }>('SELECT pg_cancel_backend($1) AS cancelled', [workerPid]);
+          expect(cancelled.rows[0].cancelled).toBe(true);
+          expect(await pending).toMatchObject({ code: '57014' });
+        } else {
+          await pg.query('UPDATE public.org_units SET is_active=false WHERE id=$1 AND tenant_id=$2', [ids.branchA, ids.tenant]);
+          // Release the key but discard the blocker's synthetic projection.
+          await blocker.query('ROLLBACK');
+          expect(await pending).toMatchObject({ code: '42501' });
+        }
+      } finally {
+        try {
+          await blocker.query('ROLLBACK');
+          if (pending) await pending;
+          await worker.query('ROLLBACK');
+        } finally {
+          await Promise.all([worker.end(), blocker.end()]);
+          await pg.query('UPDATE public.org_units SET is_active=true WHERE id=$1 AND tenant_id=$2', [ids.branchA, ids.tenant]);
+        }
+      }
+      expect(await attendanceState(fixture.enrollmentId)).toEqual({ events: [], daily: [] });
+    });
+
+    it('rolls back history and projection together and rejects snapshot-isolated callers', async () => {
+      const fixture = await attendanceFixture();
+      await pg.query('BEGIN');
+      try {
+        await pg.query('SET LOCAL ROLE authenticated');
+        await pg.query("SELECT set_config('request.jwt.claims',$1,true)", [JSON.stringify({ role: 'authenticated', sub: actorUserId })]);
+        const rows = await pg.query('SELECT * FROM public.edu_set_daily_attendance($1,$2,$3,$4,$5)', [ids.tenant, fixture.enrollmentId, 'present', rollCallTime, schoolDay]);
+        expect(rows.rowCount).toBe(1);
+      } finally { await pg.query('ROLLBACK'); }
+      expect(await attendanceState(fixture.enrollmentId)).toEqual({ events: [], daily: [] });
+      await pg.query('BEGIN ISOLATION LEVEL REPEATABLE READ');
+      try {
+        await pg.query('SET LOCAL ROLE authenticated');
+        await pg.query("SELECT set_config('request.jwt.claims',$1,true)", [JSON.stringify({ role: 'authenticated', sub: actorUserId })]);
+        await expect(pg.query('SELECT * FROM public.edu_set_daily_attendance($1,$2,$3,$4,$5)', [ids.tenant, fixture.enrollmentId, 'present', rollCallTime, schoolDay]))
+          .rejects.toMatchObject({ code: '40001' });
+      } finally { await pg.query('ROLLBACK'); }
+      expect(await attendanceState(fixture.enrollmentId)).toEqual({ events: [], daily: [] });
+    });
   });
 
   describe('handover atomic command CI', () => {

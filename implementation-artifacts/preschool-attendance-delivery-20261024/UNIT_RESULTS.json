@@ -1,0 +1,452 @@
+{
+  "numFailedTestSuites": 0,
+  "numFailedTests": 0,
+  "numPassedTestSuites": 1,
+  "numPassedTests": 24,
+  "numPendingTestSuites": 0,
+  "numPendingTests": 0,
+  "numRuntimeErrorTestSuites": 0,
+  "numTodoTests": 0,
+  "numTotalTestSuites": 1,
+  "numTotalTests": 24,
+  "openHandles": [],
+  "snapshot": {
+    "added": 0,
+    "didUpdate": false,
+    "failure": false,
+    "filesAdded": 0,
+    "filesRemoved": 0,
+    "filesRemovedList": [],
+    "filesUnmatched": 0,
+    "filesUpdated": 0,
+    "matched": 0,
+    "total": 0,
+    "unchecked": 0,
+    "uncheckedKeysByFile": [],
+    "unmatched": 0,
+    "updated": 0
+  },
+  "startTime": 1792805200160,
+  "success": true,
+  "testResults": [
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": [
+            "recordAttendance through the authorized atomic RPC"
+          ],
+          "duration": 42,
+          "failing": false,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "recordAttendance through the authorized atomic RPC returns persisted history identity, preserves the DTO and makes one caller RPC",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 4,
+          "retryReasons": [],
+          "startAt": 1792805201573,
+          "status": "passed",
+          "title": "returns persisted history identity, preserves the DTO and makes one caller RPC"
+        },
+        {
+          "ancestorTitles": [
+            "recordAttendance through the authorized atomic RPC"
+          ],
+          "duration": 6,
+          "failing": false,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "recordAttendance through the authorized atomic RPC uses one stable timestamp when the caller omits it",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 3,
+          "retryReasons": [],
+          "startAt": 1792805201616,
+          "status": "passed",
+          "title": "uses one stable timestamp when the caller omits it"
+        },
+        {
+          "ancestorTitles": [
+            "recordAttendance through the authorized atomic RPC"
+          ],
+          "duration": 2,
+          "failing": false,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "recordAttendance through the authorized atomic RPC preserves sub-millisecond input and reconciles PostgreSQL microsecond rounding",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 3,
+          "retryReasons": [],
+          "startAt": 1792805201623,
+          "status": "passed",
+          "title": "preserves sub-millisecond input and reconciles PostgreSQL microsecond rounding"
+        },
+        {
+          "ancestorTitles": [
+            "recordAttendance through the authorized atomic RPC"
+          ],
+          "duration": 2,
+          "failing": false,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "recordAttendance through the authorized atomic RPC keeps six-digit fractional precision on the persisted request",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 3,
+          "retryReasons": [],
+          "startAt": 1792805201625,
+          "status": "passed",
+          "title": "keeps six-digit fractional precision on the persisted request"
+        },
+        {
+          "ancestorTitles": [
+            "recordAttendance through the authorized atomic RPC"
+          ],
+          "duration": 1,
+          "failing": false,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "recordAttendance through the authorized atomic RPC uses the rounded PostgreSQL instant when a precise timestamp crosses the school-day boundary",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 2,
+          "retryReasons": [],
+          "startAt": 1792805201627,
+          "status": "passed",
+          "title": "uses the rounded PostgreSQL instant when a precise timestamp crosses the school-day boundary"
+        },
+        {
+          "ancestorTitles": [
+            "recordAttendance through the authorized atomic RPC"
+          ],
+          "duration": 2,
+          "failing": false,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "recordAttendance through the authorized atomic RPC accepts PostgreSQL-normalized UUIDs when caller UUIDs contain uppercase letters",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 3,
+          "retryReasons": [],
+          "startAt": 1792805201628,
+          "status": "passed",
+          "title": "accepts PostgreSQL-normalized UUIDs when caller UUIDs contain uppercase letters"
+        },
+        {
+          "ancestorTitles": [
+            "recordAttendance through the authorized atomic RPC"
+          ],
+          "duration": 1,
+          "failing": false,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "recordAttendance through the authorized atomic RPC preserves legacy PostgreSQL UUID identities without imposing version or variant bits",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 3,
+          "retryReasons": [],
+          "startAt": 1792805201630,
+          "status": "passed",
+          "title": "preserves legacy PostgreSQL UUID identities without imposing version or variant bits"
+        },
+        {
+          "ancestorTitles": [
+            "recordAttendance through the authorized atomic RPC"
+          ],
+          "duration": 1,
+          "failing": false,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "recordAttendance through the authorized atomic RPC accepts equivalent PostgreSQL UUID input in compact form",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 3,
+          "retryReasons": [],
+          "startAt": 1792805201632,
+          "status": "passed",
+          "title": "accepts equivalent PostgreSQL UUID input in compact form"
+        },
+        {
+          "ancestorTitles": [
+            "recordAttendance through the authorized atomic RPC"
+          ],
+          "duration": 1,
+          "failing": false,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "recordAttendance through the authorized atomic RPC accepts equivalent PostgreSQL UUID input in braced form",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 3,
+          "retryReasons": [],
+          "startAt": 1792805201633,
+          "status": "passed",
+          "title": "accepts equivalent PostgreSQL UUID input in braced form"
+        },
+        {
+          "ancestorTitles": [
+            "recordAttendance through the authorized atomic RPC"
+          ],
+          "duration": 17,
+          "failing": false,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "recordAttendance through the authorized atomic RPC propagates RPC failure 42501 without direct-write fallback",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 3,
+          "retryReasons": [],
+          "startAt": 1792805201634,
+          "status": "passed",
+          "title": "propagates RPC failure 42501 without direct-write fallback"
+        },
+        {
+          "ancestorTitles": [
+            "recordAttendance through the authorized atomic RPC"
+          ],
+          "duration": 1,
+          "failing": false,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "recordAttendance through the authorized atomic RPC propagates RPC failure 23514 without direct-write fallback",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 3,
+          "retryReasons": [],
+          "startAt": 1792805201651,
+          "status": "passed",
+          "title": "propagates RPC failure 23514 without direct-write fallback"
+        },
+        {
+          "ancestorTitles": [
+            "recordAttendance through the authorized atomic RPC"
+          ],
+          "duration": 1,
+          "failing": false,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "recordAttendance through the authorized atomic RPC propagates RPC failure PGRST202 without direct-write fallback",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 3,
+          "retryReasons": [],
+          "startAt": 1792805201652,
+          "status": "passed",
+          "title": "propagates RPC failure PGRST202 without direct-write fallback"
+        },
+        {
+          "ancestorTitles": [
+            "recordAttendance through the authorized atomic RPC"
+          ],
+          "duration": 4,
+          "failing": false,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "recordAttendance through the authorized atomic RPC propagates a rejected transport without retry or direct write",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 3,
+          "retryReasons": [],
+          "startAt": 1792805201653,
+          "status": "passed",
+          "title": "propagates a rejected transport without retry or direct write"
+        },
+        {
+          "ancestorTitles": [
+            "recordAttendance through the authorized atomic RPC"
+          ],
+          "duration": 9,
+          "failing": false,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "recordAttendance through the authorized atomic RPC preserves the existing missing-enrollment error without another read or write",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 3,
+          "retryReasons": [],
+          "startAt": 1792805201657,
+          "status": "passed",
+          "title": "preserves the existing missing-enrollment error without another read or write"
+        },
+        {
+          "ancestorTitles": [
+            "recordAttendance through the authorized atomic RPC"
+          ],
+          "duration": 2,
+          "failing": false,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "recordAttendance through the authorized atomic RPC rejects incomplete or mismatched committed response 0",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 3,
+          "retryReasons": [],
+          "startAt": 1792805201666,
+          "status": "passed",
+          "title": "rejects incomplete or mismatched committed response 0"
+        },
+        {
+          "ancestorTitles": [
+            "recordAttendance through the authorized atomic RPC"
+          ],
+          "duration": 1,
+          "failing": false,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "recordAttendance through the authorized atomic RPC rejects incomplete or mismatched committed response 1",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 3,
+          "retryReasons": [],
+          "startAt": 1792805201668,
+          "status": "passed",
+          "title": "rejects incomplete or mismatched committed response 1"
+        },
+        {
+          "ancestorTitles": [
+            "recordAttendance through the authorized atomic RPC"
+          ],
+          "duration": 2,
+          "failing": false,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "recordAttendance through the authorized atomic RPC rejects incomplete or mismatched committed response 2",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 3,
+          "retryReasons": [],
+          "startAt": 1792805201670,
+          "status": "passed",
+          "title": "rejects incomplete or mismatched committed response 2"
+        },
+        {
+          "ancestorTitles": [
+            "recordAttendance through the authorized atomic RPC"
+          ],
+          "duration": 1,
+          "failing": false,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "recordAttendance through the authorized atomic RPC rejects incomplete or mismatched committed response 3",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 3,
+          "retryReasons": [],
+          "startAt": 1792805201672,
+          "status": "passed",
+          "title": "rejects incomplete or mismatched committed response 3"
+        },
+        {
+          "ancestorTitles": [
+            "recordAttendance through the authorized atomic RPC"
+          ],
+          "duration": 2,
+          "failing": false,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "recordAttendance through the authorized atomic RPC rejects incomplete or mismatched committed response 4",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 3,
+          "retryReasons": [],
+          "startAt": 1792805201673,
+          "status": "passed",
+          "title": "rejects incomplete or mismatched committed response 4"
+        },
+        {
+          "ancestorTitles": [
+            "recordAttendance through the authorized atomic RPC"
+          ],
+          "duration": 1,
+          "failing": false,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "recordAttendance through the authorized atomic RPC rejects incomplete or mismatched committed response 5",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 3,
+          "retryReasons": [],
+          "startAt": 1792805201675,
+          "status": "passed",
+          "title": "rejects incomplete or mismatched committed response 5"
+        },
+        {
+          "ancestorTitles": [
+            "recordAttendance through the authorized atomic RPC"
+          ],
+          "duration": 1,
+          "failing": false,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "recordAttendance through the authorized atomic RPC rejects incomplete or mismatched committed response 6",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 3,
+          "retryReasons": [],
+          "startAt": 1792805201676,
+          "status": "passed",
+          "title": "rejects incomplete or mismatched committed response 6"
+        },
+        {
+          "ancestorTitles": [
+            "recordAttendance through the authorized atomic RPC"
+          ],
+          "duration": 1,
+          "failing": false,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "recordAttendance through the authorized atomic RPC rejects incomplete or mismatched committed response 7",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 3,
+          "retryReasons": [],
+          "startAt": 1792805201677,
+          "status": "passed",
+          "title": "rejects incomplete or mismatched committed response 7"
+        },
+        {
+          "ancestorTitles": [
+            "recordAttendance through the authorized atomic RPC"
+          ],
+          "duration": 1,
+          "failing": false,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "recordAttendance through the authorized atomic RPC rejects an empty RPC response without inventing a history event",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 2,
+          "retryReasons": [],
+          "startAt": 1792805201679,
+          "status": "passed",
+          "title": "rejects an empty RPC response without inventing a history event"
+        },
+        {
+          "ancestorTitles": [
+            "recordAttendance through the authorized atomic RPC"
+          ],
+          "duration": 1,
+          "failing": false,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "recordAttendance through the authorized atomic RPC rejects invalid time before any RPC",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 3,
+          "retryReasons": [],
+          "startAt": 1792805201680,
+          "status": "passed",
+          "title": "rejects invalid time before any RPC"
+        }
+      ],
+      "endTime": 1792805201684,
+      "message": "",
+      "name": "C:\\Users\\DELL\\.codex\\worktrees\\preschool-chain-release-20261024\\BELLA SPA ERP\\src\\platform\\education\\contracts\\__tests__\\attendance-record-rpc.contract.test.ts",
+      "startTime": 1792805200640,
+      "status": "passed",
+      "summary": ""
+    }
+  ],
+  "wasInterrupted": false
+}
