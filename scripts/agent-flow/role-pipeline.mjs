@@ -34,8 +34,8 @@ export function changedPaths(before, after) {
 
 // No resume entry point: a fresh invocation requires a fresh, admitted task ID.
 // role() is the native adapter in production; injected roles in tests are fixtures.
-export async function drive(taskInput, { role, snapshot, record, now = Date.now }) {
-  const task = admitTask(taskInput), started = now(), receipts = [];
+export async function drive(taskInput, { role, snapshot, record, now = Date.now, productApproval }) {
+  const task = admitTask(taskInput, productApproval), started = now(), receipts = [];
   let revision = 0, candidate, failure;
   const withinBudget = () => { if (now() - started >= task.maxSeconds * 1000) fail('BUDGET_EXHAUSTED'); };
   async function stage(name, input = {}) {
@@ -92,9 +92,8 @@ export async function drive(taskInput, { role, snapshot, record, now = Date.now 
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const [operation, input, ...options] = process.argv.slice(2);
-  let mode;
-  try { mode = operation === 'run' ? nativeMode(options) : null; } catch (error) { console.error(error.message); process.exit(1); }
-  const action = operation === 'run' ? import('./role-native.mjs').then(async m => m.runNative(JSON.parse(await readFile(resolve(input), 'utf8')), mode === 'bounded-native' ? ['--bounded-native'] : []))
+  try { if (operation === 'run') nativeMode(options); } catch (error) { console.error(error.message); process.exit(1); }
+  const action = operation === 'run' ? import('./role-native.mjs').then(async m => m.runNative(JSON.parse(await readFile(resolve(input), 'utf8')), options))
     : operation === 'read' ? import('./role-native.mjs').then(m => m.readNative(input))
     : operation === 'commit' ? import('./factory-publication.mjs').then(m => m.linkFactoryCommit(input, process.argv[4])) : Promise.reject(new Error('INVALID_OPERATION'));
   action.then(r => { console.log(JSON.stringify({ status: r.status, reason: r.reason, taskId: r.taskId, factoryRunId: r.factoryRunId, candidate: r.candidate, revisions: r.revisions, directory: r.directory, checks: r.checks, commit:r.commit })); if (!['PASS','PASS_CANDIDATE_COMMIT_CONTENT'].includes(r.status)) process.exitCode = 1; }).catch(e => { console.error(/^[A-Z_]{3,80}$/.test(e.message) ? e.message : 'PIPELINE_HELD'); process.exitCode = 1; });

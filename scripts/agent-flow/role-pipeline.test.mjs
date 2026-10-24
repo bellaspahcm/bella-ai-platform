@@ -1,13 +1,18 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
+import { resolve } from 'node:path';
 import { admitTask, counters, drive, validateHandoff } from './role-pipeline.mjs';
-import { canonicalVerifyDecision, validateRetainedRole, validateReviewCommands } from './role-validation.mjs';
+import { canonicalVerifyDecision, validateRetainedRole, validateReviewCommands, nativeMode, productApproval, productTaskHash, verificationCommand, productDependencyInventory, productDependencies, productJestConfig } from './role-validation.mjs';
 import { hash } from './contract.mjs';
 import { parseResult, exactTest, reviewReads, repositoryIdentity, terminalRecord, validateNativeBaseline } from './role-native.mjs';
 
 const task = () => ({ taskId: randomUUID(), sourceRevision: 'a'.repeat(40), goal: 'Repair a concrete final-test evidence defect.', ownedFiles: ['scripts/agent-flow/task-workflow.mjs', 'scripts/agent-flow/task-workflow.test.mjs'], testFile: 'scripts/agent-flow/task-workflow.test.mjs', acceptance: ['Only the final complete GREEN test run proves success.'], maxSeconds: 60 });
 const green = { tests: 3, pass: 3, fail: 0, cancelled: 0, skipped: 0, todo: 0 };
+const productTask = () => ({ ...task(), ownedFiles: ['src/components/bella-auto/Example.tsx', 'src/components/bella-auto/__tests__/Example.test.tsx'],
+  testFile: 'src/components/bella-auto/__tests__/Example.test.tsx', product: {
+    workspace: process.cwd(), dependencyRoot: resolve('reviewed/node_modules'), dependencyFingerprint: 'a'.repeat(64), testEnvironment: 'jsdom',
+  } });
 async function fixture({ reviews = ['PASS'], mutate, modifyRole, clock } = {}) {
   const input = task(), log = [], records = []; let generation = 0;
   const snapshot = () => ({ head: input.sourceRevision, files: [{ path: input.ownedFiles[0], sha256: String(generation) }], fingerprint: String(generation) });
@@ -31,6 +36,187 @@ async function fixture({ reviews = ['PASS'], mutate, modifyRole, clock } = {}) {
 test('strict scope admission refuses protected runtime, shell paths and budget expansion', () => {
   assert.ok(admitTask(task()));
   for (const edit of [{ ownedFiles: ['src/platform/auth.mjs'] }, { ownedFiles: ['scripts/agent-flow/role-native.mjs'] }, { maxSeconds: 1801 }, { testFile: 'x; curl remote' }, { extra: true }, { taskId: '../escape' }]) assert.throws(() => admitTask({ ...task(), ...edit }), /INVALID_TASK_SCOPE/);
+});
+
+test('Product admission is opt-in for the exact task bytes, not a caller-supplied role', () => {
+  const input = productTask(), approval = productTaskHash(input);
+  assert.deepEqual(admitTask(input, approval), input);
+  assert.throws(() => admitTask(input), /PRODUCT_APPROVAL_REQUIRED/);
+  assert.throws(() => admitTask(input, '0'.repeat(64)), /PRODUCT_APPROVAL_REQUIRED/);
+  for (const edit of [{ taskId: randomUUID() }, { sourceRevision: 'b'.repeat(40) }, { goal: 'Different owner-approved objective.' },
+    { acceptance: ['Different criteria'] }, { product: { ...input.product, workspace: resolve('other') } },
+    { product: { ...input.product, dependencyFingerprint: 'b'.repeat(64) } }, { product: { ...input.product, testEnvironment: 'node' } }]) {
+    assert.throws(() => admitTask({ ...input, ...edit }, approval), /PRODUCT_APPROVAL_REQUIRED/);
+  }
+  assert.throws(() => admitTask(task(), approval), /INVALID_PRODUCT_APPROVAL/);
+});
+
+test('Product admission rejects protected/cross-product/traversal paths even with a matching digest', () => {
+  const input = productTask();
+  for (const path of ['src/platform/education/kernel.ts', 'src/core/auth.ts', 'src/lib/auth.ts', 'src/app/api/education/route.ts',
+    'src/components/bella-auto/../../kernel.ts', 'src/components/bella-auto/auth.ts', 'src/components/bella-auto/ProductRegistry.ts',
+    'src/components/bella-auto/Example.tsx;echo PASS', 'src/components/bella-auto/.env', 'src/components/bella-auto/x*.tsx',
+    'src/products/other-product/service.ts', 'src/modules/bella-healthcare-kernel/domain/types.ts', 'src/components/common/Widget.tsx',
+    'src/components/bella-auto/permission-manager.ts']) {
+    const changed = { ...input, ownedFiles: [path, input.testFile] };
+    assert.throws(() => admitTask(changed, productTaskHash(changed)), /INVALID_TASK_SCOPE/);
+  }
+  for (const product of [{ ...input.product, workspace: '../elsewhere' }, { ...input.product, dependencyRoot: 'relative' },
+    { ...input.product, dependencyRoot: '//server/share/node_modules' },
+    { ...input.product, network: true }, { ...input.product, testEnvironment: 'custom' }, { ...input.product, dependencyFingerprint: 'bad' }]) {
+    const changed = { ...input, product };
+    assert.throws(() => admitTask(changed, productTaskHash(changed)), /INVALID_TASK_SCOPE/);
+  }
+});
+
+test('Product CLI preserves the exact digest and does not add a default dispatch route', async () => {
+  const input = productTask(), approval = productTaskHash(input);
+  const options = ['--bounded-native', '--approved-product', approval];
+  assert.equal(nativeMode(options), 'bounded-native');
+  assert.equal(productApproval(options), approval);
+  assert.equal(productApproval(['--bounded-native']), undefined);
+  for (const flags of [['--approved-product', approval], [...options, 'extra'], ['--bounded-native', '--approved-product', 'bad'],
+    ['--bounded-native', '--approved-product', approval, '--approved-product', approval]]) assert.throws(() => nativeMode(flags), /INVALID_NATIVE_MODE/);
+  const { runNative } = await import('./role-native.mjs');
+  await assert.rejects(() => runNative(input), /PRODUCT_APPROVAL_REQUIRED/);
+  await assert.rejects(() => runNative(input, ['--bounded-native']), /PRODUCT_APPROVAL_REQUIRED/);
+  await assert.rejects(() => runNative(input, ['--bounded-native', '--approved-product', '0'.repeat(64)]), /PRODUCT_APPROVAL_REQUIRED/);
+});
+
+function jestOutput(input, statuses = ['passed', 'passed']) {
+  return JSON.stringify({ wasInterrupted: false, success: !statuses.includes('failed'), numRuntimeErrorTestSuites: 0, numTotalTestSuites: 1,
+    numTotalTests: statuses.length, numPassedTests: statuses.filter(s => s === 'passed').length,
+    numFailedTests: statuses.filter(s => s === 'failed').length, numPendingTests: statuses.filter(s => s === 'pending').length,
+    numTodoTests: statuses.filter(s => s === 'todo').length,
+    testResults: [{ name: input.product.workspace + '/' + input.testFile,
+      status: statuses.includes('failed') ? 'failed' : statuses.every(s => s === 'pending') ? 'skipped' : statuses.includes('pending') ? 'focused' : 'passed',
+      assertionResults: statuses.map((status, index) => ({ fullName: 'assertion ' + index, status })) }],
+  });
+}
+
+test('Jest evidence requires one exact suite and real consistent per-assertion counts', () => {
+  const input = productTask(), output = jestOutput(input);
+  assert.deepEqual(counters(output, input), { tests: 2, pass: 2, fail: 0, skipped: 0, cancelled: 0, todo: 0 });
+  for (const mutate of [r => { r.numTotalTests++; }, r => { r.numPassedTests = 0; }, r => { r.wasInterrupted = true; },
+    r => { r.numRuntimeErrorTestSuites = 1; }, r => { r.testResults[0].testExecError = { message: 'environment failed' }; },
+    r => { r.testResults[0].name += '.other'; }, r => { r.testResults.push(r.testResults[0]); },
+    r => { r.testResults[0].assertionResults[0].status = 'unknown'; }, r => { r.numTotalTests = Number.MAX_SAFE_INTEGER + 1; },
+    r => { r.success = false; }, r => { r.testResults[0].status = 'failed'; }]) {
+    const changed = JSON.parse(output); mutate(changed); assert.equal(counters(JSON.stringify(changed), input), null);
+  }
+  assert.equal(counters(output + '\n' + output, input), null);
+  assert.equal(counters('# tests 2\n# pass 2\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0', input), null);
+  for (const status of ['failed', 'pending', 'todo']) {
+    const observed = counters(jestOutput(input, ['passed', status]), input);
+    assert.equal(canonicalVerifyDecision({ decision: 'FAIL' }, { exitCode: status === 'failed' ? 1 : 0, counters: observed }), 'FAIL');
+    assert.throws(() => canonicalVerifyDecision({ decision: 'PASS' }, { exitCode: status === 'failed' ? 1 : 0, counters: observed }), /VERIFY_DECISION_MISMATCH/);
+  }
+  for (const statuses of [['pending', 'pending'], ['todo', 'todo']]) {
+    const observed = counters(jestOutput(input, statuses), input);
+    assert.equal(observed.tests, 2);
+    assert.equal(observed.pass, 0);
+    assert.equal(canonicalVerifyDecision({ decision: 'FAIL' }, { exitCode: 0, counters: observed }), 'FAIL');
+    assert.throws(() => canonicalVerifyDecision({ decision: 'PASS' }, { exitCode: 0, counters: observed }), /VERIFY_DECISION_MISMATCH/);
+  }
+  const reporterFailure = JSON.parse(output); reporterFailure.success = false;
+  const observed = counters(JSON.stringify(reporterFailure), input, 1);
+  assert.deepEqual(observed, counters(output, input));
+  assert.equal(canonicalVerifyDecision({ decision: 'FAIL' }, { exitCode: 1, counters: observed }), 'FAIL');
+  assert.equal(counters(JSON.stringify(reporterFailure), input, 0), null);
+});
+
+test('Jest command and retained receipt stay bound to the approved task, output and native item', () => {
+  const input = productTask(), candidate = 'candidate', itemId = 'jest-item', output = jestOutput(input);
+  const command = verificationCommand(input), binding = { threadId: 'verify' };
+  assert.match(command, /^node scripts\/agent-flow\/probe\.mjs --product-jest [A-Za-z0-9+/]+=*$/);
+  assert.deepEqual(JSON.parse(Buffer.from(command.split(' ').at(-1), 'base64')), input);
+  for (const changed of [command + '; echo PASS', command.replace('--product-jest', '--product-other')]) {
+    assert.equal(exactTest(changed, process.cwd(), command, process.cwd()), false);
+  }
+  const nativeResult = { role: 'VERIFY', candidate, decision: 'PASS', findings: [] };
+  const receipt = { ...nativeResult, binding, changed: [], native: { result: nativeResult, binding, changes: [],
+    commands: [{ itemId, command, cwd: process.cwd(), status: 'completed', exitCode: 0, outputHash: hash(output) }] },
+    test: { candidate, itemId, command, exitCode: 0, counters: counters(output, input), output, outputHash: hash(output) } };
+  const records = [{ fact: { method: 'item/completed', itemType: 'commandExecution', itemId, status: 'completed', exitCode: 0 } }];
+  assert.equal(validateRetainedRole(receipt, records, input, process.cwd()), true);
+  const failure = structuredClone(receipt), failureRecords = structuredClone(records), failedReport = JSON.parse(output);
+  failedReport.success = false;
+  failure.native.result.decision = failure.decision = 'FAIL';
+  failure.test.exitCode = failure.native.commands[0].exitCode = failureRecords[0].fact.exitCode = 1;
+  failure.native.commands[0].status = failureRecords[0].fact.status = 'failed';
+  failure.test.output = JSON.stringify(failedReport);
+  failure.test.outputHash = failure.native.commands[0].outputHash = hash(failure.test.output);
+  assert.equal(validateRetainedRole(failure, failureRecords, input, process.cwd()), true);
+  for (const mutate of [r => { r.test.output = jestOutput(input, ['failed']); }, r => { r.test.counters.pass--; },
+    r => { r.test.candidate = 'stale'; }, r => { r.native.commands[0].command += ' extra'; }]) {
+    const changed = structuredClone(receipt); mutate(changed);
+    assert.throws(() => validateRetainedRole(changed, records, input, process.cwd()));
+  }
+});
+
+test('Jest configuration pins dependency versions/bytes and never loads application setup or env', async () => {
+  const { mkdtemp, mkdir, writeFile, rm, rmdir } = await import('node:fs/promises');
+  const { join } = await import('node:path');
+  const { tmpdir } = await import('node:os');
+  const root = await mkdtemp(join(tmpdir(), 'factory-jest-dependencies-'));
+  try {
+    const input = productTask(); input.product.workspace = root; input.product.dependencyRoot = join(root, 'node_modules');
+    const packages = ['jest', 'jest-cli', '@jest/core', '@jest/transform', 'jest-runner', 'jest-circus', '@jest/test-sequencer', 'next', 'jest-environment-jsdom', ...(process.platform === 'win32' ? [`@next/swc-win32-${process.arch}-msvc`] : [])];
+    for (const name of packages) {
+      await mkdir(join(root, 'node_modules', name), { recursive: true });
+      await writeFile(join(root, 'node_modules', name, 'package.json'), JSON.stringify({ name, version: '1.0.0', main: 'index.js' }));
+      await writeFile(join(root, 'node_modules', name, 'index.js'), 'module.exports = {};');
+    }
+    await mkdir(join(root, 'node_modules/jest/bin'), { recursive: true });
+    await mkdir(join(root, 'node_modules/next/dist/build/swc'), { recursive: true });
+    await writeFile(join(root, 'node_modules/jest/bin/jest.js'), '// pinned Jest fixture');
+    await writeFile(join(root, 'node_modules/jest-circus/runner.js'), '// pinned test runner fixture');
+    await writeFile(join(root, 'node_modules/next/dist/build/swc/jest-transformer.js'), '// pinned transformer fixture');
+    if (process.platform === 'win32') {
+      const selected = join(root, `node_modules/next/node_modules/@next/swc-win32-${process.arch}-msvc`);
+      await mkdir(selected, { recursive: true });
+      await writeFile(join(selected, 'package.json'), JSON.stringify({ name: `@next/swc-win32-${process.arch}-msvc`, version: '1.0.0', main: 'index.js' }));
+      await writeFile(join(selected, 'index.js'), 'module.exports = {};');
+    }
+    await writeFile(join(root, 'package-lock.json'), JSON.stringify({ packages: Object.fromEntries(packages.map(name => ['node_modules/' + name, { version: '1.0.0' }])) }));
+    input.product.dependencyFingerprint = productDependencyInventory(input, root).fingerprint;
+    const { config } = productJestConfig(input, root, join(root, 'scratch'));
+    assert.deepEqual(config.setupFiles, []); assert.deepEqual(config.setupFilesAfterEnv, []);
+    assert.equal(config.cache, false); assert.equal(config.cacheDirectory, join(root, 'scratch'));
+    assert.deepEqual(config.testMatch, [join(root, input.testFile).replaceAll('\\', '/')]);
+    assert.equal(JSON.stringify(config).includes('next/jest'), false); assert.equal(JSON.stringify(config).includes('jest.setup'), false);
+    assert.match(productDependencies(input, root).jest, /jest-cli[\\/]index\.js$/);
+    assert.equal(config.runner, join(root, 'node_modules/jest-runner/index.js'));
+    assert.equal(config.testRunner, join(root, 'node_modules/jest-circus/runner.js'));
+    assert.equal(config.testSequencer, join(root, 'node_modules/@jest/test-sequencer/index.js'));
+    await writeFile(join(root, 'node_modules/@jest/core/index.js'), '// changed implementation behind CLI');
+    assert.throws(() => productDependencies(input, root), /PRODUCT_DEPENDENCY_CHANGED/);
+    await writeFile(join(root, 'node_modules/@jest/core/index.js'), 'module.exports = {};');
+    if (process.platform === 'win32') {
+      const binding = join(root, `node_modules/next/node_modules/@next/swc-win32-${process.arch}-msvc/index.js`);
+      await writeFile(binding, '// changed native binding');
+      assert.throws(() => productDependencies(input, root), /PRODUCT_DEPENDENCY_CHANGED/);
+      await writeFile(binding, 'module.exports = {};');
+    }
+    await writeFile(join(root, 'node_modules/next/dist/build/swc/jest-transformer.js'), '// changed after approval');
+    assert.throws(() => productDependencies(input, root), /PRODUCT_DEPENDENCY_CHANGED/);
+    await writeFile(join(root, 'node_modules/next/package.json'), JSON.stringify({ name: 'next', version: '2.0.0' }));
+    assert.throws(() => productDependencies(input, root), /PRODUCT_DEPENDENCY_VERSION_MISMATCH/);
+    assert.throws(() => productDependencies(input, join(root, 'other')), /PRODUCT_ROOT_MISMATCH/);
+    await writeFile(join(root, 'node_modules/next/package.json'), JSON.stringify({ name: 'next', version: '1.0.0', main: 'index.js' }));
+    await writeFile(join(root, 'node_modules/next/dist/build/swc/jest-transformer.js'), '// pinned transformer fixture');
+    const nested = join(root, 'node_modules/jest-cli/node_modules');
+    await mkdir(nested);
+    await writeFile(join(nested, 'override.js'), '// nested dependency override');
+    assert.throws(() => productDependencies(input, root), /PRODUCT_DEPENDENCY_CHANGED/);
+    await rm(join(nested, 'override.js')); await rmdir(nested);
+    if (process.platform === 'win32') {
+      const alternate = join(root, `node_modules/@next/swc/native/next-swc.win32-${process.arch}-msvc.node`);
+      await mkdir(join(root, 'node_modules/@next/swc/native'), { recursive: true });
+      await writeFile(alternate, '// unpinned local override');
+      assert.throws(() => productDependencies(input, root), /UNSAFE_PRODUCT_DEPENDENCY/);
+    }
+  } finally { await rm(root, { recursive: true, force: true }); }
 });
 test('real adapter result format must be one unambiguous final JSON', () => {
   assert.equal(parseResult([{ phase: 'final_answer', text: 'BELLA_ROLE_RESULT={"decision":"PASS"}' }]).decision, 'PASS');
