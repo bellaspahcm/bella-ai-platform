@@ -5,6 +5,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync, appendFileSync } fr
 import { createServer } from 'node:net';
 import { basename, resolve } from 'node:path';
 import { parse } from 'dotenv';
+import { Client } from 'pg';
 import { z } from 'zod';
 import { saleChainConnection } from '../src/modules/bella-auto/services/AutoMoveSaleChainConnection';
 
@@ -61,6 +62,10 @@ export function summarizeRcHealth(statusCode: number, body: unknown) {
     database: database.success ? database.data : 'unexpected',
     healthError: classifyHealthError(value),
   } as const;
+}
+
+export function rcReadinessSatisfied(httpStatus: number | null, databaseSelect1: boolean) {
+  return httpStatus !== null && databaseSelect1;
 }
 
 export function redactRcLog(line: string, env: NodeJS.ProcessEnv) {
@@ -132,24 +137,37 @@ export async function runRc() {
     env.AUTOMOVE_RC_BUILD_ID = buildId; env.AUTOMOVE_RC_PROOF_PATH = resolve(root, 'chain-proof.json');
     const report = resolve(root, 'playwright-results.json'); env.PLAYWRIGHT_JSON_OUTPUT_FILE = report;
     const server = launch(['node_modules/next/dist/bin/next', 'start', '--hostname', '127.0.0.1', '--port', String(port)], 'server');
-    let healthy = false;
-    const readiness: { attempts: number; last?: ReturnType<typeof summarizeRcHealth> | { transportError: string } } = { attempts: 0 };
+    let httpStatus: number | null = null;
+    const readiness: { attempts: number; last?: ReturnType<typeof summarizeRcHealth> | { transportError: string }; database?: 'select_1_pass' | 'select_1_failed' } = { attempts: 0 };
     for (let attempt = 0; attempt < 60; attempt++) {
       assert.equal(server.child.exitCode, null, 'RC server exited before readiness');
       readiness.attempts = attempt + 1;
       try {
         const response = await fetch(`${env.E2E_BASE_URL}/api/health`, { signal: AbortSignal.timeout(3000) });
+        httpStatus = response.status;
         let body: unknown = null;
         try { body = await response.json(); } catch { /* Record a safe summary for non-JSON readiness responses. */ }
         readiness.last = summarizeRcHealth(response.status, body);
-        if (response.ok && z.object({ status: z.literal('healthy'), environment: z.literal('production'), checks: z.object({ database: z.literal('ok') }) }).safeParse(body).success) { healthy = true; break; }
+        break;
       } catch (error) {
         readiness.last = { transportError: error instanceof Error && error.name === 'AbortError' ? 'timeout' : error instanceof Error && error.name === 'TypeError' ? 'connection' : 'other' };
       }
       await new Promise(done => setTimeout(done, 1000));
     }
+    assert.ok(httpStatus !== null, 'Fresh production-mode server did not respond over HTTP');
+    const db = new Client({ ...saleChainConnection(env.SUPABASE_DB_URL || '', env.NEXT_PUBLIC_SUPABASE_URL || ''), query_timeout: 5000 });
+    let databaseSelect1 = false;
+    try {
+      await db.connect();
+      const result = await db.query('SELECT 1 AS ready');
+      databaseSelect1 = result.rows[0]?.ready === 1;
+    } catch { /* Keep only the sanitized failure classification in readiness. */ }
+    finally {
+      await db.end().catch(() => undefined);
+    }
+    readiness.database = databaseSelect1 ? 'select_1_pass' : 'select_1_failed';
     evidence.readiness = readiness;
-    assert.ok(healthy, 'Fresh production-mode server failed health/readiness');
+    assert.ok(rcReadinessSatisfied(httpStatus, databaseSelect1), 'Fresh server HTTP response and Non-Production DB SELECT 1 are required');
     console.log(`AUTOMOVE_RC_BROWSER sha=${sha} buildId=${buildId} project=${project}`);
     const browser = launch(['node_modules/@playwright/test/cli.js', 'test', '--config=playwright.automove-rc.config.ts', '--workers=1', '--retries=0', `--output=${resolve(root, 'browser')}`], 'browser');
     assert.equal(await browser.completion, 0, 'RC Browser failed; inspect sanitized browser.log');

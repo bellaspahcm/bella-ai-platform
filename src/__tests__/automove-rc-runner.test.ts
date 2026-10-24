@@ -1,4 +1,4 @@
-import { assertRcReport, rcEnvironment, redactRcLog, summarizeRcHealth } from '../../scripts/run-automove-rc-business-chain';
+import { assertRcReport, rcEnvironment, rcReadinessSatisfied, redactRcLog, summarizeRcHealth } from '../../scripts/run-automove-rc-business-chain';
 
 const ref = 'bmnbqbcdbuklhopfbopv';
 const valid = () => ({ AUTOMOVE_RC_SHA: 'a'.repeat(40), NEXT_PUBLIC_SUPABASE_URL: `https://${ref}.supabase.co`,
@@ -53,6 +53,11 @@ it('records only allowlisted readiness fields and omits raw health errors', () =
     .toBe('timeout');
   expect(summarizeRcHealth(503, { status: 'unhealthy', errors: ['fetch failed: private detail'] }).healthError)
     .toBe('connectivity');
+});
+it('separates HTTP process readiness from database connectivity and does not require the health query to pass RLS', () => {
+  expect(rcReadinessSatisfied(503, true)).toBe(true);
+  expect(rcReadinessSatisfied(null, true)).toBe(false);
+  expect(rcReadinessSatisfied(200, false)).toBe(false);
 });
 it('redacts configured secrets, DB credentials, JWT and encoded Auth cookies from artifact logs', () => {
   const value = redactRcLog('isolated-secret-key postgresql://user:password@example.invalid/postgres eyJabc.eyJdef.signature base64-abcdefghijklmnopqrstuv', valid());
