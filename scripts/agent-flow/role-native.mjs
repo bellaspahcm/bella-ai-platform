@@ -8,11 +8,11 @@ import { authorizeRepository, REPOSITORY } from './authority.mjs';
 import { createPrivateDirectory, DevelopmentStore, writeDurableJson, validateStorePath, enforceReviewRetention } from './store.mjs';
 import { hash, DAY_MS, normalizeNotification, normalizeHistory, normalizeHistoryTurn, reconcile, signature, verifyFileChangeRecords } from './contract.mjs';
 import { admitTask, drive, inventory, counters, validateHandoff } from './role-pipeline.mjs';
-import { exactTest, reviewReads, validateReviewCommands, nativePayloadDifferences, nativeMode, validateRoleResult, canonicalVerifyDecision } from './role-validation.mjs';
+import { exactTest, reviewReads, validateReviewCommands, nativePayloadDifferences, nativeMode, validateRoleResult, canonicalVerifyDecision, productApproval, productDependencies, verificationCommand } from './role-validation.mjs';
 export { exactTest, reviewReads, validateRoleResult } from './role-validation.mjs';
 import { persistenceDiagnostic } from './persistence-diagnostic.mjs';
 import { initializeFactory, finishFactory } from './factory-publication.mjs';
-import { isMvpPilot, pilotCommand, readPilotRule, pilotPrompt, pilotSupervisorContext, pilotNativeTurnFailure, validatePilotReceipt, checkPilotPermission, pilotNetworkProbe, assertNetworkDenial } from './mvp-pilot.mjs';
+import { isMvpPilot, readPilotRule, pilotPrompt, pilotSupervisorContext, pilotNativeTurnFailure, validatePilotReceipt, checkPilotPermission, pilotNetworkProbe, assertNetworkDenial } from './mvp-pilot.mjs';
 
 const binary = () => process.platform === 'win32' ? execFileSync('where.exe', ['codex.exe'], { encoding: 'utf8', windowsHide: true }).trim().split(/\r?\n/)[0] : 'codex';
 const project = item => item ? { id: item.id, type: item.type, status: item.status, exitCode: item.exitCode } : undefined;
@@ -99,16 +99,17 @@ function validateStored(rows, acks, binding) {
 function promptFor(name, input, expected, reviewMethod) {
   if (isMvpPilot(input.task)) return pilotPrompt(name, input, readPilotRule(process.cwd()), name === 'REVIEWER' ? reviewReads(input.task, input.verification.verificationPath) : []);
   const { task, before, revision } = input;
-  const common = `GOAL: ${task.goal}\nOWNER: human task authority; Lead plans, Builder writes, Verify tests, independent Reviewer reviews.\nSCOPE / OWNED FILES: ${task.ownedFiles.join(', ')}\nFORBIDDEN: all other paths, running pipeline/collector/store/authority, Product, kernels, DB/Auth/RLS/migration, .env, credentials, network, MCP, subagents, git write operations, commit/PR/merge/deploy. No installation or permission changes.\nDEPENDENCIES: previous stages supplied below. AUTHORITY: code/test only inside scope.\nACCEPTANCE: ${JSON.stringify(task.acceptance)}\nCandidate fingerprint: ${before.fingerprint}. Revision ${revision}/1.\nLEAD and BUILDER read relevant existing source before acting. Keep every policy-read command bounded: read the Constitution in chunks of at most 400 lines using Get-Content with Select-Object -Skip/-First, or read its applicable sections. Never print the whole Constitution in one command: a large command output was observed to differ from retained native history. All output hashes must still match; do not suppress output or weaken verification. VERIFY and REVIEWER execute only their role-specific exact commands below. VERIFY must not run pre-read, setup, inspection or additional shell commands. Do not re-run historical real proof commands. Never fabricate evidence. If blocked/ambiguous stop HELD.\nFinal response MUST be exactly one line BELLA_ROLE_RESULT=<JSON object>, no fences, with role:${JSON.stringify(name)}, candidate:${JSON.stringify(before.fingerprint)}, decision and findings:string[]. Every findings element MUST be a non-empty string of at most 2000 characters, never an object. Use [] when there are no findings.\n`;
+  const boundary = task.product ? 'Product files outside the exact owned paths' : 'Product';
+  const common = `GOAL: ${task.goal}\nOWNER: human task authority; Lead plans, Builder writes, Verify tests, independent Reviewer reviews.\nSCOPE / OWNED FILES: ${task.ownedFiles.join(', ')}\nFORBIDDEN: all other paths, running pipeline/collector/store/authority, ${boundary}, kernels, DB/Auth/RLS/migration, .env, credentials, network, MCP, subagents, git write operations, commit/PR/merge/deploy. No installation or permission changes.\nDEPENDENCIES: previous stages supplied below. AUTHORITY: code/test only inside scope.\nACCEPTANCE: ${JSON.stringify(task.acceptance)}\nCandidate fingerprint: ${before.fingerprint}. Revision ${revision}/1.\nLEAD and BUILDER read relevant existing source before acting. Keep every policy-read command bounded: read the Constitution in chunks of at most 400 lines using Get-Content with Select-Object -Skip/-First, or read its applicable sections. Never print the whole Constitution in one command: a large command output was observed to differ from retained native history. All output hashes must still match; do not suppress output or weaken verification. VERIFY and REVIEWER execute only their role-specific exact commands below. VERIFY must not run pre-read, setup, inspection or additional shell commands. Do not re-run historical real proof commands. Never fabricate evidence. If blocked/ambiguous stop HELD.\nFinal response MUST be exactly one line BELLA_ROLE_RESULT=<JSON object>, no fences, with role:${JSON.stringify(name)}, candidate:${JSON.stringify(before.fingerprint)}, decision and findings:string[]. Every findings element MUST be a non-empty string of at most 2000 characters, never an object. Use [] when there are no findings.\n`;
   if (name === 'LEAD') return common + 'Read-only Lead. Read owned files and identify root cause/minimal plan and test coverage. Return decision ACCEPT or HELD, plan:string, findings:[]. Do not code or run tests. Stop after analysis.';
   if (name === 'BUILDER') return common + `Builder is the only writer. Use native apply_patch file changes to implement the minimal fix plus meaningful regression tests. Do not modify driver or proof receipts. Verify Agent will run tests next, so do not run tests yourself.\nPLAN: ${input.plan}\nREVIEW FINDINGS TO ADDRESS: ${JSON.stringify(input.findings)}\nReturn decision DONE or HELD, findings:[], changed files list and concise summary. Actual changes will be independently observed; do not invent candidate fingerprint after edits.`;
   if (name === 'VERIFY') return common + `Read-only QA. Execute exactly once, without extra commands or wrappers/scripts: ${expected}\nNo edits, no retry, no skip, no test weakening. Return PASS only if every test passes with zero skipped/todo/cancelled; else FAIL. Do not repair. findings:[] or concise failure explanations.`;
   return common + `Independent Reviewer in a fresh thread, no Builder transcript. MUST execute each of these exact read commands separately, without appending commands, filters, output fabrication or wrappers/scripts (normal native shell wrapping is permitted):\n${reviewReads(task, input.verification.verificationPath, reviewMethod).join('\n')}\n${reviewMethod ? 'Compare the complete pinned baseline and current contents for every owned file to identify all changes; the collector verified a clean baseline before claim.' : 'Read the actual complete diff and current owned files.'} Inspect the actual Verify evidence. Every command must return complete output; if truncated or unavailable, stop HELD. Do not run tests, code or change files.\nReview all acceptance criteria, edge cases and whether test output belongs to this candidate. Verification artifact SHA256: ${input.verification.artifactHash}. The collector computes this hash and fresh-process readback checks it; you must inspect the artifact content and candidate. Do not invoke Get-FileHash or broaden sandbox permissions. Do not include reviewMethod in your result; the collector owns that field.\nReturn decision PASS with findings:[] only if complete and tests green; REVISE with actionable findings (at most one repair available), or HELD if outside authority/uncertain. Do not demand changes outside scope; do not force a revision merely to exercise the loop.`;
 }
 
-async function executeRole(name, input, workspace, pipelineDirectory, mode = 'legacy') {
+async function executeRole(name, input, workspace, pipelineDirectory, mode = 'legacy', approval) {
   const reviewMethod = name === 'REVIEWER' && mode === 'bounded-native' ? 'PINNED_BASELINE_AND_CURRENT' : undefined;
-  const transportOptions = mode === 'bounded-native' ? { role: name, task: input.task } : {};
+  const transportOptions = mode === 'bounded-native' ? { role: name, task: input.task, ...(approval ? { productApproval: approval } : {}) } : {};
   const execution = factoryTransport(workspace, transportOptions);
   const deadline = Date.now() + input.remainingMs;
   const checkBudget = () => { if (Date.now() >= deadline) stop('BUDGET_EXHAUSTED'); };
@@ -116,7 +117,7 @@ async function executeRole(name, input, workspace, pipelineDirectory, mode = 'le
   // Pilot output may use the launcher's process-local temporary volume. The
   // same private-directory ACL, binding and retention controls still apply.
   const directory = await createPrivateDirectory({ retained: !pilot });
-  const expected = pilot ? pilotCommand : `node --test --test-reporter=tap ${input.task.testFile}`;
+  const expected = verificationCommand(input.task);
   const rule = pilot ? readPilotRule(workspace) : null;
   const executionOptions = pilot ? { task:input.task, role:name, candidate:input.before.fingerprint,
     output:join(pipelineDirectory,'browser'), envFile:process.env.E2E_ENV_FILE } : {};
@@ -186,7 +187,7 @@ async function executeRole(name, input, workspace, pipelineDirectory, mode = 'le
     checkBudget();
     const model = models.data?.find(m => m.isDefault && !m.hidden)?.model;
     if (!model) stop('NO_DEFAULT_MODEL');
-    const startedThread = await writer.rpc('thread/start', { cwd: workspace, model, approvalPolicy: 'never', ...(activeExecution.thread || { sandbox: name === 'BUILDER' ? 'workspace-write' : 'read-only' }), developerInstructions: pilot ? 'Owner-approved one-task AutoMove MVP pilot. Follow the supplied exact role instructions and stage responsibilities. All roles are source-read-only; only VERIFY may invoke the one supervised Non-Production Browser/DB runner. Never read env/credentials, use MCP/subagents, edit source, install, commit/push/merge/deploy or access Production. Execute only the exact supplied commands; no unrelated policy reload or Factory redispatch. The supervisor checks pre-dispatch policy/binding; the collector validates actual native receipts after your turn. LEAD accepts a safe scoped plan and BUILDER assesses source; neither must certify later runtime gates or inspect receipts not yet generated. Keep those gates NOT_PROVEN until VERIFY/REVIEWER prove them. Missing evidence required by your own assigned stage is HELD/FAIL.' : 'Authorized Bella development tooling task. Follow the supplied role/scope exactly. No network, MCP, subagents, credentials or changes outside assigned files. Other roles are read-only. Stop if task needs broader permissions. Use only native shell and apply_patch tools. For LEAD/BUILDER policy reads, split the Constitution into at most 400 lines per command; never print the full document in one command. VERIFY runs only its exact test command; REVIEWER runs only its exact separate read commands.' });
+    const startedThread = await writer.rpc('thread/start', { cwd: workspace, model, approvalPolicy: 'never', ...(activeExecution.thread || { sandbox: name === 'BUILDER' ? 'workspace-write' : 'read-only' }), developerInstructions: pilot ? 'Owner-approved one-task AutoMove MVP pilot. Follow the supplied exact role instructions and stage responsibilities. All roles are source-read-only; only VERIFY may invoke the one supervised Non-Production Browser/DB runner. Never read env/credentials, use MCP/subagents, edit source, install, commit/push/merge/deploy or access Production. Execute only the exact supplied commands; no unrelated policy reload or Factory redispatch. The supervisor checks pre-dispatch policy/binding; the collector validates actual native receipts after your turn. LEAD accepts a safe scoped plan and BUILDER assesses source; neither must certify later runtime gates or inspect receipts not yet generated. Keep those gates NOT_PROVEN until VERIFY/REVIEWER prove them. Missing evidence required by your own assigned stage is HELD/FAIL.' : (input.task.product ? 'Authorized scoped Product task.' : 'Authorized Bella development tooling task.') + ' Follow the supplied role/scope exactly. No network, MCP, subagents, credentials or changes outside assigned files. Other roles are read-only. Stop if task needs broader permissions. Use only native shell and apply_patch tools. For LEAD/BUILDER policy reads, split the Constitution into at most 400 lines per command; never print the full document in one command. VERIFY runs only its exact test command; REVIEWER runs only its exact separate read commands.' });
     binding = { ...base, threadId: startedThread.thread.id, sessionId: startedThread.thread.sessionId || null, turnId: null };
     await writeDurableJson(join(pipelineDirectory, `dispatch-${input.revision}-${name}.json`), { role: name, threadId: binding.threadId, candidate: input.before.fingerprint, directory, dispatchedAt: now() });
     const supervisor=pilot?pilotSupervisorContext(name,input,rule,permission,binding,networkControl):null;
@@ -226,8 +227,9 @@ async function executeRole(name, input, workspace, pipelineDirectory, mode = 'le
     if (name === 'VERIFY') {
       if (native.commands.length !== 1 || !exactTest(native.commands[0].command, native.commands[0].cwd, expected, workspace)) stop('EXACT_TEST_REQUIRED');
       const item = source.entries.find(e => e.item.id === native.commands[0].itemId).item;
-      const summary = counters(item.aggregatedOutput);
-      if (!summary || !Number.isSafeInteger(item.exitCode) || item.status !== 'completed') stop('TEST_OUTPUT_INVALID');
+      const summary = counters(item.aggregatedOutput, input.task, item.exitCode);
+      const finished = item.status === 'completed' || input.task.product && item.status === 'failed' && Number.isSafeInteger(item.exitCode) && item.exitCode > 0;
+      if (!summary || !Number.isSafeInteger(item.exitCode) || !finished) stop('TEST_OUTPUT_INVALID');
       test = { candidate: input.before.fingerprint, itemId: item.id, command: expected, exitCode: item.exitCode, counters: summary, output: item.aggregatedOutput, outputHash: hash(item.aggregatedOutput) };
     }
     if (name === 'REVIEWER') {
@@ -263,13 +265,15 @@ export function validateNativeBaseline(task, before, workspace, mode) {
 
 export async function runNative(input, options = []) {
   const mode = nativeMode(options);
-  const task = admitTask(input);
+  const approval = productApproval(options);
+  const task = admitTask(input, approval);
   if (isMvpPilot(task) && mode !== 'legacy') stop('INVALID_NATIVE_MODE');
   const workspace = workspaceIdentity(resolve(process.cwd()));
+  if (task.product) productDependencies(task, workspace);
   const authority = await authorizeRepository(REPOSITORY);
   const before = await inventory(workspace);
   validateNativeBaseline(task, before, workspace, mode);
-  if (mode === 'bounded-native') await prepareFactoryScratch(workspace, task);
+  if (mode === 'bounded-native') await prepareFactoryScratch(workspace, task, approval);
   // Durable single-use claim lives in Git's common metadata, not writable task files.
   const gitCommon = execFileSync('git', ['rev-parse', '--git-common-dir'], { cwd: workspace, encoding: 'utf8', windowsHide: true }).trim();
   const claims = resolve(workspace, gitCommon, 'bella-agent-flow-task-claims'); await mkdir(claims, { recursive: true });
@@ -279,13 +283,14 @@ export async function runNative(input, options = []) {
   const directory = await createPrivateDirectory({ retained: !isMvpPilot(task) });
   try { await claim.writeFile(JSON.stringify({ taskId: task.taskId, directory, createdAt: now() })); await claim.sync(); } finally { await claim.close(); }
   await writeDurableJson(join(directory, 'context.json'), { createdAt: now(), outputReviewDeadline: new Date(Date.now() + 7 * DAY_MS).toISOString() });
-  await writeDurableJson(join(directory, 'intake.json'), { task, workspace, before, actor: authority.actor, writerPid: process.pid, mode });
+  await writeDurableJson(join(directory, 'intake.json'), { task, workspace, before, actor: authority.actor, writerPid: process.pid, mode, ...(approval ? { productApproval: approval } : {}) });
   const factoryIndex = await initializeFactory(directory, workspace, before);
   console.log(JSON.stringify({ phase: 'INTAKE_ACCEPTED', taskId: task.taskId, directory }));
   let count = 0;
   const result = await drive(task, {
+    productApproval: approval,
     snapshot: () => inventory(workspace),
-    role: async (name, data) => { console.log(JSON.stringify({ phase: name, revision: data.revision, candidate: data.before.fingerprint })); return executeRole(name, data, workspace, directory, mode); },
+    role: async (name, data) => { console.log(JSON.stringify({ phase: name, revision: data.revision, candidate: data.before.fingerprint })); return executeRole(name, data, workspace, directory, mode, approval); },
     record: receipt => writeDurableJson(join(directory, receipt.terminal ? 'terminal.json' : `receipt-${++count}.json`), receipt.terminal || receipt),
   });
   const published = await finishFactory(directory, workspace, factoryIndex, result, await inventory(workspace));
@@ -325,10 +330,15 @@ export async function readNative(input) {
   const directory = validateStorePath(input); await enforceReviewRetention(directory);
   const intake = JSON.parse(await readFile(join(directory, 'intake.json'), 'utf8'));
   workspaceIdentity(intake.workspace);
+  const task = admitTask(intake.task, intake.productApproval);
+  if (task.product) {
+    if (intake.mode !== 'bounded-native') stop('INVALID_NATIVE_MODE');
+    productDependencies(task, intake.workspace);
+  }
   if (intake.writerPid === process.pid) stop('FRESH_PROCESS_REQUIRED');
   try { process.kill(intake.writerPid, 0); stop('WRITER_STILL_RUNNING'); } catch (e) { if (e.code !== 'ESRCH') throw e; }
   const terminal = terminalRecord(JSON.parse(await readFile(join(directory, 'terminal.json'), 'utf8')));
-  if (terminal.status === 'PASS') validateHandoff(terminal, admitTask(intake.task));
+  if (terminal.status === 'PASS') validateHandoff(terminal, task);
   if ((await inventory(intake.workspace)).fingerprint !== terminal.candidate) stop('CANDIDATE_CHANGED');
   const checks = [];
   for (const receipt of terminal.receipts) {
@@ -348,7 +358,7 @@ export async function readNative(input) {
           observed.role!==receipt.role||observed.taskId!==receipt.binding.taskId||observed.candidate!==receipt.candidate||
           Object.entries(observed.binding).some(([key,value])=>receipt.binding[key]!==value)) stop('SUPERVISOR_CONTEXT_CHANGED');
     }
-    if (receipt.role === 'VERIFY' && (hash(receipt.test.output) !== receipt.test.outputHash || JSON.stringify(counters(receipt.test.output)) !== JSON.stringify(receipt.test.counters) || receipt.native.commands[0].outputHash !== receipt.test.outputHash)) stop('TEST_OUTPUT_CHANGED');
+    if (receipt.role === 'VERIFY' && (hash(receipt.test.output) !== receipt.test.outputHash || JSON.stringify(counters(receipt.test.output, task, receipt.test.exitCode)) !== JSON.stringify(receipt.test.counters) || receipt.native.commands[0].outputHash !== receipt.test.outputHash)) stop('TEST_OUTPUT_CHANGED');
     const server = new AppServer(binary(), intake.workspace);
     try {
       await server.initialize(); const source = await history(server, receipt.binding);

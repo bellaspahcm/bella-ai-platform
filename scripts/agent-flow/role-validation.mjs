@@ -1,11 +1,22 @@
-import { resolve } from 'node:path';
+import { resolve, isAbsolute, join } from 'node:path';
+import { readFileSync, readdirSync, lstatSync } from 'node:fs';
+import { createRequire } from 'node:module';
 import { hash } from './contract.mjs';
 import { isMvpPilot, pilotId, pilotCommand, pilotReviewReads } from './mvp-pilot.mjs';
 const fail = code => { throw new Error(code); };
 
 const protectedNames = new Set(['authority.mjs', 'contract.mjs', 'store.mjs', 'probe.mjs', 'role-pipeline.mjs', 'role-native.mjs', 'role-pipeline.test.mjs', 'run-evidence.mjs', 'persistence-diagnostic.mjs', 'factory-publication.mjs', 'role-validation.mjs', 'mvp-pilot.mjs', 'mvp-pilot.test.mjs', 'mvp-pilot-runner.mjs', 'mvp-pilot-runner.test.mjs']);
-export function admitTask(task) {
+export function productApproval(options = []) {
+  nativeMode(options);
+  return options.length === 3 ? options[2] : undefined;
+}
+
+// This digest pins an independently approved task. It is not human authority.
+export const productTaskHash = task => hash(JSON.stringify(task));
+export function admitTask(task, approval) {
   const keys = ['taskId', 'sourceRevision', 'goal', 'ownedFiles', 'testFile', 'acceptance', 'maxSeconds'];
+  const product = task?.product;
+  if (product !== undefined) keys.push('product');
   if (!task || Object.keys(task).sort().join() !== keys.sort().join() ||
       !/^[a-f0-9-]{36}$/.test(task.taskId) || !/^[a-f0-9]{40}$/.test(task.sourceRevision) ||
       typeof task.goal !== 'string' || task.goal.length < 20 || task.goal.length > 4000 ||
@@ -13,13 +24,26 @@ export function admitTask(task) {
       !Number.isSafeInteger(task.maxSeconds) || task.maxSeconds < 60 || task.maxSeconds > 1800 ||
       !Array.isArray(task.ownedFiles) || !task.ownedFiles.length || task.ownedFiles.length > 4 || new Set(task.ownedFiles).size !== task.ownedFiles.length ||
       (task.taskId === pilotId && !isMvpPilot(task)) ||
-      (!isMvpPilot(task) && (task.ownedFiles.some(p => typeof p !== 'string' || !/^scripts\/agent-flow\/[a-z][a-z0-9.-]*\.mjs$/.test(p) || protectedNames.has(p.split('/').at(-1))) ||
+      (!product && !isMvpPilot(task) && (task.ownedFiles.some(p => typeof p !== 'string' || !/^scripts\/agent-flow\/[a-z][a-z0-9.-]*\.mjs$/.test(p) || protectedNames.has(p.split('/').at(-1))) ||
       !/^scripts\/agent-flow\/[a-z][a-z0-9.-]*\.test\.mjs$/.test(task.testFile) || !task.ownedFiles.includes(task.testFile)))) fail('INVALID_TASK_SCOPE');
+  if (product !== undefined) {
+    const pathPattern = /^src\/(?:products|modules|components|app\/dashboard)\/([a-z][a-z0-9-]*)\/(?:[A-Za-z0-9_-]+\/)*[A-Za-z0-9_-]+(?:\.[A-Za-z0-9_-]+)*\.tsx?$/;
+    if (!product || Object.keys(product).sort().join() !== 'dependencyFingerprint,dependencyRoot,testEnvironment,workspace' ||
+        ![product.workspace, product.dependencyRoot].every(p => typeof p === 'string' && isAbsolute(p) && !/^[\\/]{2}|[\0\r\n]/.test(p)) ||
+        !['node', 'jsdom'].includes(product.testEnvironment) || !/^[a-f0-9]{64}$/.test(product.dependencyFingerprint || '') ||
+        task.taskId === pilotId || new Set(task.ownedFiles.map(p => typeof p === 'string' ? p.toLowerCase() : p)).size !== task.ownedFiles.length ||
+        task.ownedFiles.some(p => typeof p !== 'string' || !pathPattern.test(p) || /(?:^|[-/])(?:auth|security|permissions?|kernel|registry|ProductRegistry)(?:[-/.]|$)/i.test(p) ||
+          /^src\/(?:modules|components|app\/dashboard)\/(?:common|shared|core|platform|ui|providers|decision-engine)\//.test(p)) ||
+        new Set(task.ownedFiles.map(p => pathPattern.exec(p)?.[1])).size !== 1 ||
+        !/\.test\.tsx?$/.test(task.testFile) || !task.ownedFiles.includes(task.testFile)) fail('INVALID_TASK_SCOPE');
+    if (!/^[a-f0-9]{64}$/.test(approval || '') || approval !== productTaskHash(task)) fail('PRODUCT_APPROVAL_REQUIRED');
+  } else if (approval !== undefined) fail('INVALID_PRODUCT_APPROVAL');
   return structuredClone(task);
 }
 
 export function nativeMode(options = []) {
-  if (!Array.isArray(options) || (options.length && (options.length !== 1 || options[0] !== '--bounded-native'))) fail('INVALID_NATIVE_MODE');
+  if (!Array.isArray(options) || (options.length && (options[0] !== '--bounded-native' ||
+      !(options.length === 1 || options.length === 3 && options[1] === '--approved-product' && /^[a-f0-9]{64}$/.test(options[2]))))) fail('INVALID_NATIVE_MODE');
   return options.length ? 'bounded-native' : 'legacy';
 }
 
@@ -62,7 +86,107 @@ export function validateReviewCommands(commands, task, workspace, verificationPa
   return true;
 }
 
-export function counters(output) {
+export function verificationCommand(task) {
+  if (isMvpPilot(task)) return pilotCommand;
+  if (!task.product) return 'node --test --test-reporter=tap ' + task.testFile;
+  const payload = Buffer.from(JSON.stringify(task)).toString('base64');
+  return `node scripts/agent-flow/probe.mjs --product-jest ${payload}`;
+}
+
+// Resolve fixed existing packages; never load next/jest, Next config or dotenv.
+export function productDependencyInventory(task, workspace) {
+  if (!task.product || resolve(task.product.workspace) !== resolve(workspace)) fail('PRODUCT_ROOT_MISMATCH');
+  const root = task.product.dependencyRoot;
+  const require = createRequire(join(root, '__bella_resolution__.cjs'));
+  const transformer = require.resolve('next/dist/build/swc/jest-transformer');
+  const requireSwc = createRequire(transformer);
+  const lock = JSON.parse(readFileSync(join(workspace, 'package-lock.json'), 'utf8'));
+  const names = ['jest', 'jest-cli', '@jest/core', '@jest/transform', 'jest-runner', 'jest-circus', '@jest/test-sequencer', 'next', `jest-environment-${task.product.testEnvironment}`,
+    ...(process.platform === 'win32' ? [`@next/swc-win32-${process.arch}-msvc`] : [])];
+  const packages = names.map(name => {
+    const file = (name.startsWith('@next/swc-') ? requireSwc : require).resolve(name + '/package.json');
+    const bytes = readFileSync(file), version = JSON.parse(bytes).version;
+    if (!lock.packages?.['node_modules/' + name]?.version || lock.packages['node_modules/' + name].version !== version) fail('PRODUCT_DEPENDENCY_VERSION_MISMATCH');
+    const packageRoot = resolve(file, '..');
+    const implementation = name === 'next' ? join(packageRoot, 'dist/build/swc') : packageRoot;
+    const content = [];
+    const collect = directory => {
+      for (const entry of readdirSync(directory).sort()) {
+        // Include nested installs: Node may prefer them over root packages.
+        const path = join(directory, entry), info = lstatSync(path);
+        if (info.isSymbolicLink()) fail('UNSAFE_PRODUCT_DEPENDENCY');
+        if (info.isDirectory()) collect(path);
+        else if (info.isFile()) content.push({ path, sha256: hash(readFileSync(path)) });
+        else fail('UNSAFE_PRODUCT_DEPENDENCY');
+      }
+    };
+    collect(implementation);
+    return { name, version, sha256: hash(bytes), content };
+  });
+  const entries = {
+    // The API entry avoids jest/bin's import-local fallback to workspace copies.
+    jest: require.resolve('jest-cli'),
+    transformer,
+    environment: require.resolve(`jest-environment-${task.product.testEnvironment}`),
+    runner: require.resolve('jest-runner'),
+    testRunner: require.resolve('jest-circus/runner'),
+    testSequencer: require.resolve('@jest/test-sequencer'),
+  };
+  // Next prefers this local override to the locked platform package.
+  if (process.platform === 'win32') {
+    let alternate;
+    try { alternate = requireSwc.resolve(`@next/swc/native/next-swc.win32-${process.arch}-msvc.node`); }
+    catch (error) { if (error.code !== 'MODULE_NOT_FOUND') throw error; }
+    if (alternate) fail('UNSAFE_PRODUCT_DEPENDENCY');
+  }
+  const fingerprint = hash(JSON.stringify({ packages, entries: Object.entries(entries).map(([name, path]) => ({ name, path, sha256: hash(readFileSync(path)) })) }));
+  return { fingerprint, entries };
+}
+
+export function productDependencies(task, workspace) {
+  const observed = productDependencyInventory(task, workspace);
+  if (observed.fingerprint !== task.product.dependencyFingerprint) fail('PRODUCT_DEPENDENCY_CHANGED');
+  return observed.entries;
+}
+
+export function productJestConfig(task, workspace, scratch) {
+  const entries = productDependencies(task, workspace);
+  return { entries, config: {
+    rootDir: workspace, roots: [join(workspace, 'src')], testMatch: [join(workspace, task.testFile).replaceAll('\\', '/')],
+    testEnvironment: entries.environment, setupFiles: [], setupFilesAfterEnv: [],
+    runner: entries.runner, testRunner: entries.testRunner, testSequencer: entries.testSequencer,
+    moduleNameMapper: { '^@/(.*)$': '<rootDir>/src/$1' }, moduleDirectories: [task.product.dependencyRoot],
+    transform: { '^.+\\.[jt]sx?$': [entries.transformer, {}] }, transformIgnorePatterns: ['/node_modules/'],
+    cache: false, cacheDirectory: scratch, collectCoverage: false, watch: false,
+  } };
+}
+
+function jestCounters(output, task, exitCode) {
+  const reports = String(output).split(/\r?\n/).filter(line => line.startsWith('{')).flatMap(line => {
+    try { const report = JSON.parse(line); return Object.hasOwn(report, 'testResults') ? [report] : []; } catch { return []; }
+  });
+  if (reports.length !== 1) return null;
+  const r = reports[0], suites = r.testResults;
+  if (r.wasInterrupted !== false || r.numRuntimeErrorTestSuites !== 0 || r.numTotalTestSuites !== 1 || !Array.isArray(suites) || suites.length !== 1 ||
+      typeof suites[0].name !== 'string' || resolve(suites[0].name) !== resolve(task.product.workspace, task.testFile) || suites[0].testExecError ||
+      !Array.isArray(suites[0].assertionResults) || !suites[0].assertionResults.length) return null;
+  const values = { tests: r.numTotalTests, pass: r.numPassedTests, fail: r.numFailedTests, cancelled: 0, skipped: r.numPendingTests, todo: r.numTodoTests };
+  const observed = { pass: 0, fail: 0, skipped: 0, todo: 0 };
+  for (const item of suites[0].assertionResults) {
+    const key = { passed: 'pass', failed: 'fail', pending: 'skipped', skipped: 'skipped', disabled: 'skipped', todo: 'todo' }[item.status];
+    if (!key) return null;
+    observed[key]++;
+  }
+  if (Object.values(values).some(n => !Number.isSafeInteger(n) || n < 0) || values.tests !== suites[0].assertionResults.length ||
+      typeof r.success !== 'boolean' || r.success && values.fail > 0 ||
+      !r.success && values.fail === 0 && !(Number.isSafeInteger(exitCode) && exitCode > 0) ||
+      !(values.fail > 0 ? ['failed'] : values.skipped > 0 ? ['focused', ...(values.pass === 0 ? ['skipped'] : [])] : ['passed']).includes(suites[0].status) ||
+      Object.entries(observed).some(([key, value]) => values[key] !== value)) return null;
+  return values;
+}
+
+export function counters(output, task, exitCode) {
+  if (task?.product) return jestCounters(output, task, exitCode);
   const values = {};
   for (const line of String(output).split(/\r?\n/)) {
     const match = line.match(/^(?:#|ℹ)\s+(tests|pass|fail|cancelled|skipped|todo)\s+(\d+)\s*$/);
@@ -142,8 +266,9 @@ export function validateRetainedRole(r, records, task, workspace, verificationPa
   if(JSON.stringify([...new Set(r.native.changes.flatMap(c=>c.paths))].sort())!==JSON.stringify([...r.changed].sort()))fail('NATIVE_CHANGE_MISMATCH');
   if (r.role!=='BUILDER' && (!r.native.commands.length || r.native.changes.length)) fail('NATIVE_READ_REQUIRED');
   if (r.role==='VERIFY') {
-    const expected=isMvpPilot(task) ? pilotCommand : 'node --test --test-reporter=tap '+task.testFile, c=r.native.commands[0], parsed=counters(r.test?.output);
-    if (r.native.commands.length!==1 || !exactTest(c.command,c.cwd,expected,workspace) || c.status!=='completed' || r.test?.itemId!==c.itemId || r.test?.command!==expected || r.test?.exitCode!==c.exitCode || r.test?.candidate!==r.candidate || !parsed || hash(r.test.output)!==r.test.outputHash || c.outputHash!==r.test.outputHash || Object.keys(r.test.counters||{}).length!==6 || Object.entries(parsed).some(([k,v])=>r.test.counters[k]!==v)) fail('TEST_OUTPUT_MISMATCH');
+    const expected=verificationCommand(task), c=r.native.commands[0], parsed=counters(r.test?.output, task, c?.exitCode);
+    const finished = c?.status === 'completed' || task.product && c?.status === 'failed' && Number.isSafeInteger(c.exitCode) && c.exitCode > 0;
+    if (r.native.commands.length!==1 || !exactTest(c.command,c.cwd,expected,workspace) || !finished || r.test?.itemId!==c.itemId || r.test?.command!==expected || r.test?.exitCode!==c.exitCode || r.test?.candidate!==r.candidate || !parsed || hash(r.test.output)!==r.test.outputHash || c.outputHash!==r.test.outputHash || Object.keys(r.test.counters||{}).length!==6 || Object.entries(parsed).some(([k,v])=>r.test.counters[k]!==v)) fail('TEST_OUTPUT_MISMATCH');
   }
   if (r.role==='REVIEWER') validateReviewCommands(r.native.commands, task, workspace, verificationPath, r.reviewMethod);
   return true;
