@@ -1,0 +1,12 @@
+{
+  "status": "PROPOSED_NOT_EXECUTED",
+  "source": "supabase/migrations/20260926003000_education_daily_attendance_state.sql",
+  "originalStatementSha256": "cca8cb21527d0de0de35a8218c273eeb2149029edde93627bcab454e8350b2bb",
+  "proposedStatementSha256": "35ea7bb5e9cdebec8dd5903e3cda48765d846f498ec161815545db749a29e372",
+  "change": {
+    "from": "ON CONFLICT (tenant_id, enrollment_id, school_day)",
+    "to": "ON CONFLICT ON CONSTRAINT edu_attendance_daily_state_unique"
+  },
+  "targetPolicy": "No E2E/production or local function alteration is authorized by this candidate artifact",
+  "requires": "Owning additive migration approval; preserve old migration history; local verify and recovery before any remote request"
+}

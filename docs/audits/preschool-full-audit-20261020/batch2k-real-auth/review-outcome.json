@@ -1,0 +1,69 @@
+{
+  "checkedAt": "2026-10-20T23:45:08.178Z",
+  "finalHarnessSha256": "af7108743be5adcd35e6ac92ae9171193ec4d1673778610f567a7e775eb249fe",
+  "fullRealAuthHarnessSha256": "fd72e811a46f4dccdc5701c22f9cc1f5427798684df0b6d917c13e314fe87632",
+  "fullRealAuthReport": "results-2026-10-20T23-40-02-139Z.json",
+  "runtimeRootVerifiedByLead": true,
+  "reviewers": [
+    {
+      "role": "Blind hunter",
+      "task": "real_auth_blind_review",
+      "context": "diff only; no conversation",
+      "originalFindings": [
+        "Projection own-user filter masks foreign sentinel"
+      ],
+      "finalStaticVerdict": "No actionable introduced issue"
+    },
+    {
+      "role": "Edge hunter",
+      "task": "real_auth_edge_review",
+      "context": "diff and referenced source; no conversation",
+      "originalFindings": [
+        "Projection negative sentinel",
+        "Courses unexpected response downgraded",
+        "Remote fetch follows redirect",
+        "Residual profile error aborts later cleanup"
+      ],
+      "finalStaticVerdict": "[]; continuation handler confirmed"
+    },
+    {
+      "role": "Acceptance auditor",
+      "task": "real_auth_acceptance_review",
+      "context": "diff/spec/referenced contracts; no conversation",
+      "originalFindings": [
+        "Projection negative sentinel",
+        "Courses unexpected response downgrade",
+        "Report staleness after latest reruns"
+      ],
+      "finalStaticVerdict": "No new acceptance defect; reporting updated by lead"
+    }
+  ],
+  "triage": [
+    {
+      "id": "R1",
+      "classification": "patch",
+      "fix": "Explicit existing foreign admin and branch pair; actual own positive control",
+      "verification": "Corrected full realAuth run PASS all6 projection checks"
+    },
+    {
+      "id": "R2",
+      "classification": "patch",
+      "fix": "Only exact known ACL500 stays NOT_PROVEN; unexpected Courses response FAIL",
+      "verification": "Full realAuth knownACL response observed and remains NOT_PROVEN"
+    },
+    {
+      "id": "R3",
+      "classification": "patch",
+      "fix": "redirect:error after init override",
+      "verification": "static review and4 fake-fetch guard assertions; zero network in unit"
+    },
+    {
+      "id": "R4",
+      "classification": "patch",
+      "fix": "Each owned residual profile delete has own attempt",
+      "verification": "actual cleanup function unit RED before / GREEN after; full remote rerun NOT_RUN for finalone-linehandler"
+    }
+  ],
+  "outsideScope": "Missing E2E prerequisites and Product producers remain disclosed NOT_PROVEN; no new permission/schema/kernel changes",
+  "reviewersExecutedRuntime": false
+}

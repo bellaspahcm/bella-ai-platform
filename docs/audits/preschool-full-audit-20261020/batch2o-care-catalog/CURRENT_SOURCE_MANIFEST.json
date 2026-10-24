@@ -1,0 +1,26 @@
+{
+  "capturedAt": "2026-10-21T04:25:13.356Z",
+  "head": "6b031511fd37e5ee22288676b833cf855d40b43f",
+  "sourceSha256": "5f844bb80c578f76cbe4a1a2c8825be5fb4849d75c2cdc28d06b49780dfc1835",
+  "buildId": "qAvlysE_xdKbWOIEV6bda",
+  "buildOrigin": "browser-results-2026-10-21T04-09-14-018Z.json",
+  "scopedBrowserPass": "browser-results-2026-10-21T04-14-20-695Z.json",
+  "supplementalAggregateFail": "browser-results-2026-10-21T04-17-34-437Z.json",
+  "recovery": "profile-recovery.json",
+  "poststate": "poststate.json",
+  "productFiles": {
+    "src/app/dashboard/education/care/page.tsx": "9f7b0cac74d860def073923451db8f0ee0041f3e8ba7160eb8667382dcf04948",
+    "src/app/dashboard/education/care/care-save.ts": "e9cd8d4a5646092bdd086c38e6aafd978cf07788f2cabb55dd8b88876e2a897b",
+    "src/app/dashboard/education/care/__tests__/care-save.test.ts": "c65bbd6b6bfa5590db0d0b2092990ef21a839ac0861e89a56a65bd402ab84fe8",
+    "src/app/dashboard/education/care/__tests__/page.test.tsx": "f886c1e13ad37090bdeb963b9a5a46ea52a3211479548e2854bad80b2b3b0538",
+    "src/proxy.ts": "534626ffd4a808d795db57699b5a15e272b364cc2a94ffc2007bf4a2566b9189",
+    "src/platform/education/contracts/canonical-course-catalog.contract.ts": "786482c9253ae9846fdba79f5db8db7ee790de9c87743c614b65f3e0851cca18",
+    "src/platform/education/contracts/canonical-course-catalog.contract.impl.ts": "63d202f07318fe32de41145df53295283adb93f3b1d63d0f470119d07d496924",
+    "src/app/api/education/care/classes/route.ts": "e3e2a62eea5206498b3032e9d248725cbec1e075204bce093963babd121c90ea",
+    "src/app/api/education/care/classes/__tests__/access.test.ts": "b17b78a956b5bcd75f0655662daac1626e182150e4cd6a971c93eadbc071e673",
+    "src/app/api/education/care/classes/__tests__/catalog-contract.test.ts": "a0b4bc28eb3716eb52117300a5ea21084e1cc6140ffdfbacadd73f4992ecc18f"
+  },
+  "controllerSha256": "86d09c79773324323fdabd54f7ac3a1f7e189cd07eebf6157909520089d250d5",
+  "committed": false,
+  "pushed": false
+}

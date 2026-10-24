@@ -1,0 +1,201 @@
+{
+  "checkedAt": "2026-10-20T23:38:35.889Z",
+  "projectRef": "lvnvkpyxtuilhrabtlwv",
+  "scope": "Service-role SELECT LIMIT0 on approved32 only; not authenticated-user or role-regression proof",
+  "businessRowsFetched": 0,
+  "tests": [
+    {
+      "table": "edu_comm_acknowledgements",
+      "status": 200,
+      "errorCode": null,
+      "result": "PASS"
+    },
+    {
+      "table": "edu_comm_consent_responses",
+      "status": 200,
+      "errorCode": null,
+      "result": "PASS"
+    },
+    {
+      "table": "edu_comm_deliveries",
+      "status": 200,
+      "errorCode": null,
+      "result": "PASS"
+    },
+    {
+      "table": "edu_comm_delivery_attempts",
+      "status": 200,
+      "errorCode": null,
+      "result": "PASS"
+    },
+    {
+      "table": "edu_comm_exceptions",
+      "status": 200,
+      "errorCode": null,
+      "result": "PASS"
+    },
+    {
+      "table": "edu_comm_notices",
+      "status": 200,
+      "errorCode": null,
+      "result": "PASS"
+    },
+    {
+      "table": "edu_comm_responses",
+      "status": 200,
+      "errorCode": null,
+      "result": "PASS"
+    },
+    {
+      "table": "edu_comm_sent_snapshots",
+      "status": 200,
+      "errorCode": null,
+      "result": "PASS"
+    },
+    {
+      "table": "edu_comm_threads",
+      "status": 200,
+      "errorCode": null,
+      "result": "PASS"
+    },
+    {
+      "table": "edu_fac_assets",
+      "status": 200,
+      "errorCode": null,
+      "result": "PASS"
+    },
+    {
+      "table": "edu_fac_facilities",
+      "status": 200,
+      "errorCode": null,
+      "result": "PASS"
+    },
+    {
+      "table": "edu_fac_inspection_logs",
+      "status": 200,
+      "errorCode": null,
+      "result": "PASS"
+    },
+    {
+      "table": "edu_fac_inspection_schedules",
+      "status": 200,
+      "errorCode": null,
+      "result": "PASS"
+    },
+    {
+      "table": "edu_fac_maintenance_jobs",
+      "status": 200,
+      "errorCode": null,
+      "result": "PASS"
+    },
+    {
+      "table": "edu_fac_out_of_service_logs",
+      "status": 200,
+      "errorCode": null,
+      "result": "PASS"
+    },
+    {
+      "table": "edu_fac_zones",
+      "status": 200,
+      "errorCode": null,
+      "result": "PASS"
+    },
+    {
+      "table": "edu_fin_billing_periods",
+      "status": 200,
+      "errorCode": null,
+      "result": "PASS"
+    },
+    {
+      "table": "edu_fin_fee_structures",
+      "status": 200,
+      "errorCode": null,
+      "result": "PASS"
+    },
+    {
+      "table": "edu_fin_invoice_line_items",
+      "status": 200,
+      "errorCode": null,
+      "result": "PASS"
+    },
+    {
+      "table": "edu_fin_invoices",
+      "status": 200,
+      "errorCode": null,
+      "result": "PASS"
+    },
+    {
+      "table": "edu_fin_payments",
+      "status": 200,
+      "errorCode": null,
+      "result": "PASS"
+    },
+    {
+      "table": "edu_fin_receipts",
+      "status": 200,
+      "errorCode": null,
+      "result": "PASS"
+    },
+    {
+      "table": "edu_fin_reconciliation_ledger",
+      "status": 200,
+      "errorCode": null,
+      "result": "PASS"
+    },
+    {
+      "table": "edu_fin_student_discount_profiles",
+      "status": 200,
+      "errorCode": null,
+      "result": "PASS"
+    },
+    {
+      "table": "edu_sched_compliance_snapshots",
+      "status": 200,
+      "errorCode": null,
+      "result": "PASS"
+    },
+    {
+      "table": "edu_sched_leave_requests",
+      "status": 200,
+      "errorCode": null,
+      "result": "PASS"
+    },
+    {
+      "table": "edu_sched_ratio_policies",
+      "status": 200,
+      "errorCode": null,
+      "result": "PASS"
+    },
+    {
+      "table": "edu_sched_shift_assignments",
+      "status": 200,
+      "errorCode": null,
+      "result": "PASS"
+    },
+    {
+      "table": "edu_sched_shift_templates",
+      "status": 200,
+      "errorCode": null,
+      "result": "PASS"
+    },
+    {
+      "table": "edu_sched_staff_availability",
+      "status": 200,
+      "errorCode": null,
+      "result": "PASS"
+    },
+    {
+      "table": "edu_sched_substitutions",
+      "status": 200,
+      "errorCode": null,
+      "result": "PASS"
+    },
+    {
+      "table": "students",
+      "status": 200,
+      "errorCode": null,
+      "result": "PASS"
+    }
+  ],
+  "result": "PASS"
+}

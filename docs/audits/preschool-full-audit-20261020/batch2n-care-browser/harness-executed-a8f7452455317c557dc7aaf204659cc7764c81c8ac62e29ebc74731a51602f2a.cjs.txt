@@ -1,0 +1,175 @@
+/* Local production-build and browser proof against approved E2E only. Default offline. */
+'use strict';
+const fs = require('node:fs');
+const path = require('node:path');
+const Module = require('node:module');
+const crypto = require('node:crypto');
+const { spawn } = require('node:child_process');
+const ROOT = path.resolve(__dirname, '..');
+const OUTPUT = path.join(ROOT, 'docs/audits/preschool-full-audit-20261020/batch2n-care-browser');
+const STAMP = new Date().toISOString().replace(/[:.]/g, '-');
+const report = { startedAt: new Date().toISOString(), scope: 'Local production build and actual browser; E2E only, no schema change', checks: [] };
+const hash = value => crypto.createHash('sha256').update(value).digest('hex');
+const PRODUCT_FILES = ['src/app/dashboard/education/care/page.tsx', 'src/app/dashboard/education/care/care-save.ts', 'src/app/dashboard/education/care/__tests__/care-save.test.ts'];
+const productHashes = () => Object.fromEntries(PRODUCT_FILES.map(file => [file, hash(fs.readFileSync(path.join(ROOT, file)))]));
+const harnessPath = path.join(ROOT, 'scripts/verify-preschool-care-rls-e2e.cjs');
+const source = fs.readFileSync(harnessPath, 'utf8');
+if (hash(source) !== 'cf6668792ab9779d5019aa01039e259baffd681dbba7248d96f7d7e84275cbb9') throw new Error('PINNED_HARNESS_CHANGED');
+const entry = "main().catch(() => { console.error('CARE_E2E_FATAL_SANITIZED'); process.exitCode = 1; });";
+if (source.split(entry).length !== 2) throw new Error('ENTRY_MISMATCH');
+// Reuse audited primitives, without invoking its DDL preparation or recovery main.
+const compiled = new Module(harnessPath, module);
+compiled.filename = harnessPath;
+compiled.paths = Module._nodeModulePaths(path.dirname(harnessPath));
+const productionSource = source.replace("NODE_ENV: 'development'", "NODE_ENV: 'production'")
+  .replace("DEPLOYMENT_ENV: 'development'", "DEPLOYMENT_ENV: 'production'")
+  .replace("'dev', '--webpack', '--hostname'", "'start', '--hostname'")
+  .replace("nodeEnv: 'development'", "nodeEnv: 'production'");
+compiled._compile(productionSource.replace(entry, String.raw`module.exports = {
+  REF, API, TARGETS, CREATED, fixtures, owned, must, safeCode, hash, sourceState, snapshot, q,
+  seed, login, cleanFixtures, startServer, http, schoolDay, summarize,
+  get config(){return config;}, get port(){return port;}, get commonReport(){return report;},
+  async configure(output) {
+    args={approved:true,output}; config=await readConfig();
+    agentBefore=readFileSync(join(ROOT,'AGENTS.md')); must(git(['status','--porcelain','--','AGENTS.md']).trim()==='', 'AGENTS_NOT_CLEAN');
+    report.scope='Already-retained E2E fixture/browser verification; no DDL'; report.sourceBefore=sourceState();
+  },
+  async connect() {
+    db=new(require('pg').Client)({...config.pg,connectionTimeoutMillis:8000}); db.on('error',()=>{report.databaseConnectionError=true;}); await db.connect(); connected=true;
+    admin=require('@supabase/supabase-js').createClient(API,config.adminKey,{global:{fetch:remoteFetch},auth:{persistSession:false,autoRefreshToken:false}});
+  },
+  async close(){if(db)await db.end();},
+};`), harnessPath);
+const adapter = compiled.exports;
+let browser, baseline;
+
+function save() {
+  fs.mkdirSync(OUTPUT, { recursive: true });
+  fs.writeFileSync(path.join(OUTPUT, `browser-results-${STAMP}.json.tmp`), JSON.stringify(report, null, 2) + '\n', { flush: true });
+  fs.renameSync(path.join(OUTPUT, `browser-results-${STAMP}.json.tmp`), path.join(OUTPUT, `browser-results-${STAMP}.json`));
+}
+async function check(name, operation) {
+  try { const detail = await operation(); report.checks.push({ name, result: 'PASS', ...detail }); }
+  catch (error) { report.checks.push({ name, result: 'FAIL', code: adapter.safeCode(error) }); throw error; }
+  finally { save(); }
+}
+function childEnvironment() {
+  const env = {};
+  for (const key of ['PATH','Path','SystemRoot','SYSTEMROOT','WINDIR','COMSPEC','PATHEXT','TEMP','TMP','USERPROFILE','APPDATA','LOCALAPPDATA']) if(process.env[key])env[key]=process.env[key];
+  return { ...env, NODE_ENV:'production', NEXT_TELEMETRY_DISABLED:'1', DEPLOYMENT_ENV:'production',
+    NEXT_PUBLIC_SUPABASE_URL:adapter.API, SUPABASE_URL:adapter.API,
+    NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY:adapter.config.publicKey, NEXT_PUBLIC_SUPABASE_ANON_KEY:adapter.config.publicKey };
+}
+async function build() {
+  const args = [require.resolve('next/dist/bin/next'), 'build', '--webpack'];
+  const child = spawn(process.execPath, args, { cwd:ROOT, env:childEnvironment(), windowsHide:true, stdio:['ignore','pipe','pipe'] });
+  const chunks=[]; let bytes=0;
+  for(const stream of [child.stdout,child.stderr])stream.on('data',data=>{bytes+=data.length;if(bytes<4_000_000)chunks.push(data.toString());});
+  const deadline=setTimeout(()=>{try{require('node:child_process').execFileSync('taskkill.exe',['/PID',String(child.pid),'/T','/F'],{windowsHide:true,stdio:'ignore'});}catch{}},12*60_000);
+  const exit=await new Promise(resolve=>{child.once('error',()=>resolve({code:null,spawnFailure:true}));child.once('exit',(code,signal)=>resolve({code,signal}));});clearTimeout(deadline);
+  const output=chunks.join('');
+  // Build has only public config. Reject secrets before preserving diagnostics.
+  const safe=output.replaceAll(adapter.config.publicKey,'[PUBLIC_KEY_REDACTED]');
+  fs.writeFileSync(path.join(OUTPUT,`build-${STAMP}.log`),safe);
+  report.build={...exit,command:'next build --webpack',nodeEnv:'production',privilegedKeyInChild:false,outputBytes:bytes,
+    typescriptGate:'NOT_PROVEN_BUILD_CONFIG_IGNORES_TYPE_ERRORS',buildId:fs.existsSync(path.join(ROOT,'.next/BUILD_ID'))?fs.readFileSync(path.join(ROOT,'.next/BUILD_ID'),'utf8').trim():null};
+  adapter.must(exit.code===0&&!exit.spawnFailure,'PRODUCTION_BUILD_FAILED');return report.build;
+}
+function reuseBuild(name) {
+  adapter.must(/^browser-results-[0-9TZ-]+\.json$/.test(name || ''),'BUILD_RECEIPT_PATH_REJECTED');
+  const prior=JSON.parse(fs.readFileSync(path.join(OUTPUT,name),'utf8'));
+  adapter.must(prior.projectRef===adapter.REF&&prior.build?.code===0&&prior.build.nodeEnv==='production'
+    &&prior.sourceBefore.sha256===report.sourceBefore.sha256&&prior.sourceAfter.sha256===report.sourceBefore.sha256
+    &&JSON.stringify(prior.productHashesBefore)===JSON.stringify(report.productHashesBefore)
+    &&JSON.stringify(prior.productHashesAfter)===JSON.stringify(report.productHashesBefore)
+    &&prior.build.buildId===fs.readFileSync(path.join(ROOT,'.next/BUILD_ID'),'utf8').trim(),'BUILD_RECEIPT_SOURCE_MISMATCH');
+  report.build={...prior.build,reusedFrom:name};return report.build;
+}
+async function verifyBrowser() {
+  const { chromium }=require('playwright');
+  browser=await chromium.launch({headless:true});
+  const context=await browser.newContext({viewport:{width:1440,height:1000},timezoneId:'Asia/Ho_Chi_Minh',serviceWorkers:'block'});
+  const page=await context.newPage(); page.setDefaultTimeout(25_000);
+  const fixture=adapter.fixtures[0], actor=fixture.actors[0];
+  const base=`http://127.0.0.1:${adapter.port}`;
+  const receipts=[];const pending=[];
+  page.on('response',response=>{const url=new URL(response.url());if(url.origin===base&&['/api/education/courses','/api/education/care/bulk'].includes(url.pathname)){
+    const task=(async()=>{const h=await response.allHeaders();let errorKind=null;
+      if(!response.ok()){try{const body=await response.json();errorKind=typeof body.error==='string'&&body.error.includes('permission denied')?'PERMISSION_DENIED':null;}catch{}}
+      receipts.push({path:url.pathname,method:response.request().method(),status:response.status(),errorKind,private:(h['cache-control']||'').includes('private'),noStore:(h['cache-control']||'').includes('no-store')});})();pending.push(task);
+  }});
+  try {
+    await check('BROWSER_REAL_LOGIN',async()=>{
+      await page.goto(base+'/login'); await page.locator('input[type=email]').fill(actor.email);await page.locator('input[type=password]').fill(actor.password);
+      await page.getByRole('button',{name:/Đăng nhập/i}).click();await page.waitForURL(/\/dashboard/, {timeout:60_000});
+      const cookies=await context.cookies();adapter.must(cookies.some(c=>c.name.startsWith('sb-'+adapter.REF+'-auth-token'))&&!cookies.some(c=>c.name==='mock_user_email'),'BROWSER_REAL_AUTH_COOKIE_MISSING');
+      return {actualForm:true,providerCookie:true,mockCookie:false};
+    });
+    await check('BROWSER_CARE_ROSTER',async()=>{
+      await page.goto(base+'/dashboard/education/care');await page.getByRole('heading',{name:'Chăm sóc & Nuôi dưỡng',exact:true}).waitFor();
+      await page.locator('select').filter({has:page.locator(`option[value="${fixture.course}"]`)}).waitFor({timeout:60_000});
+      await page.getByText('Synthetic Care active',{exact:true}).first().waitFor({timeout:60_000});
+      adapter.must(await page.getByText('Synthetic Care pending',{exact:true}).count()===0,'PENDING_STUDENT_VISIBLE');
+      return {canonicalCourse:true,activeStudent:true,pendingExcluded:true};
+    });
+    await check('BROWSER_QUICK_SAVE_AND_READBACK',async()=>{
+      await page.getByRole('button',{name:'Ghi nhận nhanh',exact:true}).first().click();
+      await page.locator('#care-meal').selectOption('HALF');await page.locator('#care-nap').selectOption('RESTLESS');await page.locator('#care-hygiene').selectOption('DIAPER');
+      adapter.must(await page.locator('#care-health').isDisabled(),'HEALTH_EDIT_ENABLED');
+      await page.locator('#care-note').fill('Synthetic browser persistence');
+      const response=page.waitForResponse(r=>new URL(r.url()).pathname==='/api/education/care/bulk'&&r.request().method()==='POST');
+      await page.getByRole('button',{name:'Lưu Ghi Nhận',exact:true}).click();const actual=await response;
+      const payload=JSON.parse(actual.request().postData());adapter.must(payload.data.records.every(r=>!('health' in r)),'BROWSER_SENT_HELD_HEALTH');
+      const outcome=await actual.json();adapter.must(actual.status()===200&&outcome.savedCount===1&&outcome.success===true,'BROWSER_SAVE_REJECTED');
+      const rows=(await adapter.q(`select r.meal_records,r.nap_records,r.hygiene_records,r.morning_condition,r.health_checks from public.edu_daily_care_records r join public.edu_daily_care_sessions s on s.id=r.session_id where r.tenant_id=$1 and s.tenant_id=$1 and s.class_id=$2 and r.student_party_id=$3`,[fixture.tenant,fixture.course,fixture.students[0].id])).rows;
+      adapter.must(rows.length===1&&rows[0].meal_records[0]?.portion==='HALF'&&rows[0].nap_records.quality==='RESTLESS'&&rows[0].hygiene_records[0]?.type==='DIAPER'&&rows[0].morning_condition==='Synthetic browser persistence'&&JSON.stringify(rows[0].health_checks)==='{}','BROWSER_DB_READBACK_FAILED');
+      await page.reload();await page.getByText('Synthetic browser persistence',{exact:true}).first().waitFor();return {realApi:true,independentDbReadback:true,reloadPersisted:true,healthUnchanged:true};
+    });
+    await check('BROWSER_DENIED_SAVE_NO_FALSE_SUCCESS',async()=>{
+      await page.getByRole('button',{name:'Ghi nhận nhanh',exact:true}).first().click();await page.locator('#care-meal').selectOption('ALL');
+      const initial=(await adapter.q('select morning_condition,meal_records from public.edu_daily_care_records where tenant_id=$1',[fixture.tenant])).rows;
+      await adapter.q('update public.org_units set is_active=false where id=$1 and tenant_id=$2',[fixture.branch,fixture.tenant]);
+      try {
+        const pending=page.waitForResponse(r=>new URL(r.url()).pathname==='/api/education/care/bulk'&&r.request().method()==='POST');
+        await page.getByRole('button',{name:'Lưu Ghi Nhận',exact:true}).click();const denied=await pending;
+        adapter.must([403,503].includes(denied.status()),'REVOKED_BROWSER_SAVE_NOT_DENIED');
+        await page.getByRole('alert').filter({hasText:'Chưa xác nhận lưu đầy đủ'}).last().waitFor();
+        adapter.must(await page.getByRole('button',{name:'Lưu Ghi Nhận',exact:true}).isVisible(),'REJECTED_SAVE_CLOSED_EDITOR');
+        const final=(await adapter.q('select morning_condition,meal_records from public.edu_daily_care_records where tenant_id=$1',[fixture.tenant])).rows;
+        adapter.must(JSON.stringify(initial)===JSON.stringify(final),'REJECTED_SAVE_CHANGED_DB');
+        return {actualDenial:denied.status(),editorPreserved:true,independentDbUnchanged:true};
+      } finally {await adapter.q('update public.org_units set is_active=true where id=$1 and tenant_id=$2',[fixture.branch,fixture.tenant]);}
+    });
+  } finally {await Promise.allSettled(pending);report.browserReceipts=receipts;await context.close();}
+}
+async function main(){
+  if(!process.argv.includes('--execute')){console.log(JSON.stringify({mode:'OFFLINE_PLAN',target:adapter.REF,networkCalls:0,mutations:0,productionOperations:false}));return;}
+  fs.mkdirSync(OUTPUT,{recursive:true});
+  try{
+    await adapter.configure(OUTPUT);report.projectRef=adapter.REF;report.harnessSha256=hash(fs.readFileSync(__filename));report.sourceBefore=adapter.sourceState();
+    report.productHashesBefore=productHashes();
+    adapter.must([...report.sourceBefore.changed,...report.sourceBefore.untracked].every(f=>PRODUCT_FILES.includes(f))&&!report.sourceBefore.environmentFiles.length,'UNEXPECTED_RUNTIME_SOURCE');
+    const reuseIndex=process.argv.indexOf('--reuse-build');
+    await check('LOCAL_PRODUCTION_BUILD',()=>reuseIndex<0?build():reuseBuild(process.argv[reuseIndex+1]));
+    if(process.argv.includes('--build-only'))return;
+    await adapter.connect();baseline=await adapter.snapshot();adapter.must(baseline.sha256==='9afc1e07426e3c7c27bf697c3e4f1877c5affe876cc96505e471f6a08d31d5d2','RETAINED_CATALOG_DRIFT');report.catalogBefore=adapter.summarize(baseline);
+    await check('FIXTURE_SEED',adapter.seed);await check('OWN_PRODUCTION_SERVER',adapter.startServer);
+    const anon=await fetch(`http://127.0.0.1:${adapter.port}/api/education/care/bulk`);const cache=anon.headers.get('cache-control')||'';
+    report.headerObservation={status:anon.status,cacheControl:cache,environment:anon.headers.get('x-environment')};
+    try {await check('PRODUCTION_BUILD_PRIVATE_HEADER',async()=>{adapter.must(anon.status===401&&cache.includes('private')&&cache.includes('no-store'),'PRODUCTION_PRIVATE_HEADER_NOT_PROVEN');return{status:anon.status,private:true,noStore:true};});}
+    catch {report.headerGateFailed=true;}
+    await verifyBrowser();
+  }catch(error){report.primaryFailure=adapter.safeCode(error);}
+  finally{
+    if(browser)try{await browser.close();}catch{report.browserCloseFailed=true;}
+    await adapter.cleanFixtures();report.cleanup=adapter.commonReport.cleanup;report.server=adapter.commonReport.server;
+    if(baseline)try{const after=await adapter.snapshot();adapter.must(after.sha256===baseline.sha256,'CATALOG_CHANGED');report.catalogAfterSha256=after.sha256;}catch(error){report.catalogFailure=adapter.safeCode(error);}
+    try{await adapter.close();}catch{report.databaseCloseFailed=true;}
+    report.sourceAfter=adapter.sourceState();report.productHashesAfter=productHashes();
+    if(report.sourceAfter.sha256!==report.sourceBefore?.sha256||JSON.stringify(report.productHashesBefore)!==JSON.stringify(report.productHashesAfter))report.sourceChanged=true;
+    report.finishedAt=new Date().toISOString();report.result=report.primaryFailure||report.cleanup.failures.length||report.catalogFailure||report.browserCloseFailed||report.databaseCloseFailed||report.sourceChanged?'FAIL':process.argv.includes('--build-only')?'BUILD_ONLY_NOT_PROVEN':'PASS_SCOPED_BROWSER';
+    if(report.headerGateFailed)report.result='FAIL';
+    report.exitCode=report.result==='FAIL'?1:0;save();console.log(JSON.stringify({result:report.result,primaryFailure:report.primaryFailure,header:report.headerObservation,checks:report.checks.map(c=>({name:c.name,result:c.result,code:c.code})),cleanupFailures:report.cleanup.failures.length,report:`browser-results-${STAMP}.json`,exitCode:report.exitCode}));process.exitCode=report.exitCode;
+  }
+}
+main().catch(()=>{console.error('BROWSER_RUN_FATAL_SANITIZED');process.exitCode=1;});

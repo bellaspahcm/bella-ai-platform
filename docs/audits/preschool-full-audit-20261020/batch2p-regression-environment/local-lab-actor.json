@@ -1,0 +1,12 @@
+{
+  "capturedAt": "2026-10-21T05:10:28.713Z",
+  "project": "bella-preschool-regression-20261021",
+  "result": "PASS_VALID_LOCAL_ACTOR_FIXTURE",
+  "actorId": "c8b212fc-d795-4d97-84a6-c498b5fed555",
+  "role": "admin",
+  "insertedRows": 1,
+  "syntheticOnly": true,
+  "authProviderUser": false,
+  "authorizationProof": false,
+  "note": "Lab suite explicitly selects an existing public user. Its fallback practitioner role is outside canonical users_role_check; no constraint or role mapping is widened."
+}

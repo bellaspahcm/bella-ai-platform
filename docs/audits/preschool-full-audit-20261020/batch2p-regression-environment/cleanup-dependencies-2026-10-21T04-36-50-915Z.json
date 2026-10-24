@@ -1,0 +1,598 @@
+{
+  "capturedAt": "2026-10-21T04:36:50.873Z",
+  "projectRef": "bmnbqbcdbuklhopfbopv",
+  "result": "READ_ONLY_METADATA_CAPTURED",
+  "transactionReadOnly": true,
+  "mutations": 0,
+  "businessRowContentsPersisted": false,
+  "catalogBefore": "9afc1e07426e3c7c27bf697c3e4f1877c5affe876cc96505e471f6a08d31d5d2",
+  "catalogAfter": "9afc1e07426e3c7c27bf697c3e4f1877c5affe876cc96505e471f6a08d31d5d2",
+  "foreignKeys": [
+    {
+      "schema": "public",
+      "relation": "attendance",
+      "constraint_name": "attendance_ktv_id_fkey",
+      "definition": "FOREIGN KEY (ktv_id) REFERENCES users(id)",
+      "deferrable": false,
+      "deferred": false,
+      "leading_index_candidate": true
+    },
+    {
+      "schema": "public",
+      "relation": "audit_logs",
+      "constraint_name": "audit_logs_changed_by_id_fkey",
+      "definition": "FOREIGN KEY (changed_by_id) REFERENCES users(id) ON DELETE SET NULL",
+      "deferrable": false,
+      "deferred": false,
+      "leading_index_candidate": false
+    },
+    {
+      "schema": "public",
+      "relation": "auto_deposits",
+      "constraint_name": "auto_deposits_confirmed_by_fkey",
+      "definition": "FOREIGN KEY (confirmed_by) REFERENCES users(id)",
+      "deferrable": false,
+      "deferred": false,
+      "leading_index_candidate": false
+    },
+    {
+      "schema": "public",
+      "relation": "auto_deposits",
+      "constraint_name": "auto_deposits_created_by_fkey",
+      "definition": "FOREIGN KEY (created_by) REFERENCES users(id)",
+      "deferrable": false,
+      "deferred": false,
+      "leading_index_candidate": false
+    },
+    {
+      "schema": "public",
+      "relation": "auto_journey_events",
+      "constraint_name": "auto_journey_events_changed_by_user_id_fkey",
+      "definition": "FOREIGN KEY (changed_by_user_id) REFERENCES users(id)",
+      "deferrable": false,
+      "deferred": false,
+      "leading_index_candidate": false
+    },
+    {
+      "schema": "public",
+      "relation": "auto_leads",
+      "constraint_name": "auto_leads_assigned_sales_agent_id_fkey",
+      "definition": "FOREIGN KEY (assigned_sales_agent_id) REFERENCES users(id)",
+      "deferrable": false,
+      "deferred": false,
+      "leading_index_candidate": true
+    },
+    {
+      "schema": "public",
+      "relation": "auto_touchpoints",
+      "constraint_name": "auto_touchpoints_staff_id_fkey",
+      "definition": "FOREIGN KEY (staff_id) REFERENCES users(id)",
+      "deferrable": false,
+      "deferred": false,
+      "leading_index_candidate": false
+    },
+    {
+      "schema": "public",
+      "relation": "auto_vehicle_sale_financial_snapshots",
+      "constraint_name": "auto_vehicle_sale_financial_snapshots_approved_by_fkey",
+      "definition": "FOREIGN KEY (approved_by) REFERENCES users(id)",
+      "deferrable": false,
+      "deferred": false,
+      "leading_index_candidate": false
+    },
+    {
+      "schema": "public",
+      "relation": "auto_vehicle_sale_financial_snapshots",
+      "constraint_name": "auto_vehicle_sale_financial_snapshots_created_by_fkey",
+      "definition": "FOREIGN KEY (created_by) REFERENCES users(id)",
+      "deferrable": false,
+      "deferred": false,
+      "leading_index_candidate": false
+    },
+    {
+      "schema": "public",
+      "relation": "auto_vehicle_sale_payments",
+      "constraint_name": "auto_vehicle_sale_payments_received_by_fkey",
+      "definition": "FOREIGN KEY (received_by) REFERENCES users(id)",
+      "deferrable": false,
+      "deferred": false,
+      "leading_index_candidate": false
+    },
+    {
+      "schema": "public",
+      "relation": "auto_vehicle_sale_recognition_adjustments",
+      "constraint_name": "auto_vehicle_sale_recognition_adjustmen_created_by_user_id_fkey",
+      "definition": "FOREIGN KEY (created_by_user_id) REFERENCES users(id)",
+      "deferrable": false,
+      "deferred": false,
+      "leading_index_candidate": false
+    },
+    {
+      "schema": "public",
+      "relation": "auto_vehicle_sale_recognitions",
+      "constraint_name": "auto_vehicle_sale_recognitions_recognized_by_user_id_fkey",
+      "definition": "FOREIGN KEY (recognized_by_user_id) REFERENCES users(id)",
+      "deferrable": false,
+      "deferred": false,
+      "leading_index_candidate": false
+    },
+    {
+      "schema": "public",
+      "relation": "auto_vehicle_sale_settlement_actions",
+      "constraint_name": "auto_vehicle_sale_settlement_actions_created_by_fkey",
+      "definition": "FOREIGN KEY (created_by) REFERENCES users(id)",
+      "deferrable": false,
+      "deferred": false,
+      "leading_index_candidate": false
+    },
+    {
+      "schema": "public",
+      "relation": "auto_vehicle_status_logs",
+      "constraint_name": "auto_vehicle_status_logs_changed_by_user_id_fkey",
+      "definition": "FOREIGN KEY (changed_by_user_id) REFERENCES users(id)",
+      "deferrable": false,
+      "deferred": false,
+      "leading_index_candidate": false
+    },
+    {
+      "schema": "public",
+      "relation": "auto_vehicles",
+      "constraint_name": "auto_vehicles_allocated_by_user_id_fkey",
+      "definition": "FOREIGN KEY (allocated_by_user_id) REFERENCES users(id)",
+      "deferrable": false,
+      "deferred": false,
+      "leading_index_candidate": false
+    },
+    {
+      "schema": "public",
+      "relation": "booking_service_items",
+      "constraint_name": "booking_service_items_ktv_id_fkey",
+      "definition": "FOREIGN KEY (ktv_id) REFERENCES users(id) ON DELETE CASCADE",
+      "deferrable": false,
+      "deferred": false,
+      "leading_index_candidate": false
+    },
+    {
+      "schema": "public",
+      "relation": "bookings",
+      "constraint_name": "bookings_assigned_ktv_id_fkey",
+      "definition": "FOREIGN KEY (assigned_ktv_id) REFERENCES users(id)",
+      "deferrable": false,
+      "deferred": false,
+      "leading_index_candidate": false
+    },
+    {
+      "schema": "public",
+      "relation": "chat_messages",
+      "constraint_name": "chat_messages_sender_id_fkey",
+      "definition": "FOREIGN KEY (sender_id) REFERENCES users(id)",
+      "deferrable": false,
+      "deferred": false,
+      "leading_index_candidate": false
+    },
+    {
+      "schema": "public",
+      "relation": "courses",
+      "constraint_name": "courses_created_by_fkey",
+      "definition": "FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL",
+      "deferrable": false,
+      "deferred": false,
+      "leading_index_candidate": false
+    },
+    {
+      "schema": "public",
+      "relation": "customers",
+      "constraint_name": "customers_referrer_id_fkey",
+      "definition": "FOREIGN KEY (referrer_id) REFERENCES users(id)",
+      "deferrable": false,
+      "deferred": false,
+      "leading_index_candidate": false
+    },
+    {
+      "schema": "public",
+      "relation": "expenses",
+      "constraint_name": "expenses_approved_by_id_fkey",
+      "definition": "FOREIGN KEY (approved_by_id) REFERENCES users(id)",
+      "deferrable": false,
+      "deferred": false,
+      "leading_index_candidate": false
+    },
+    {
+      "schema": "public",
+      "relation": "expenses",
+      "constraint_name": "expenses_submitted_by_id_fkey",
+      "definition": "FOREIGN KEY (submitted_by_id) REFERENCES users(id)",
+      "deferrable": false,
+      "deferred": false,
+      "leading_index_candidate": false
+    },
+    {
+      "schema": "public",
+      "relation": "hospitality_maintenance_requests",
+      "constraint_name": "hospitality_maintenance_requests_assigned_to_user_id_fkey",
+      "definition": "FOREIGN KEY (assigned_to_user_id) REFERENCES users(id) ON DELETE SET NULL",
+      "deferrable": false,
+      "deferred": false,
+      "leading_index_candidate": false
+    },
+    {
+      "schema": "public",
+      "relation": "hospitality_maintenance_requests",
+      "constraint_name": "hospitality_maintenance_requests_reported_by_user_id_fkey",
+      "definition": "FOREIGN KEY (reported_by_user_id) REFERENCES users(id) ON DELETE SET NULL",
+      "deferrable": false,
+      "deferred": false,
+      "leading_index_candidate": false
+    },
+    {
+      "schema": "public",
+      "relation": "inventory_logs",
+      "constraint_name": "inventory_logs_created_by_fkey",
+      "definition": "FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL",
+      "deferrable": false,
+      "deferred": false,
+      "leading_index_candidate": false
+    },
+    {
+      "schema": "public",
+      "relation": "invoice_print_logs",
+      "constraint_name": "invoice_print_logs_printed_by_fkey",
+      "definition": "FOREIGN KEY (printed_by) REFERENCES users(id)",
+      "deferrable": false,
+      "deferred": false,
+      "leading_index_candidate": false
+    },
+    {
+      "schema": "public",
+      "relation": "invoice_print_logs",
+      "constraint_name": "invoice_print_logs_voided_by_fkey",
+      "definition": "FOREIGN KEY (voided_by) REFERENCES users(id)",
+      "deferrable": false,
+      "deferred": false,
+      "leading_index_candidate": false
+    },
+    {
+      "schema": "public",
+      "relation": "kpi_records",
+      "constraint_name": "kpi_records_ktv_id_fkey",
+      "definition": "FOREIGN KEY (ktv_id) REFERENCES users(id)",
+      "deferrable": false,
+      "deferred": false,
+      "leading_index_candidate": true
+    },
+    {
+      "schema": "public",
+      "relation": "ktv_schedule",
+      "constraint_name": "ktv_schedule_ktv_id_fkey",
+      "definition": "FOREIGN KEY (ktv_id) REFERENCES users(id)",
+      "deferrable": false,
+      "deferred": false,
+      "leading_index_candidate": true
+    },
+    {
+      "schema": "public",
+      "relation": "mobility_domain_events",
+      "constraint_name": "mobility_domain_events_recorded_by_fkey",
+      "definition": "FOREIGN KEY (recorded_by) REFERENCES users(id) ON DELETE SET NULL",
+      "deferrable": false,
+      "deferred": false,
+      "leading_index_candidate": false
+    },
+    {
+      "schema": "public",
+      "relation": "policy_registry",
+      "constraint_name": "policy_registry_created_by_users_fkey",
+      "definition": "FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL",
+      "deferrable": false,
+      "deferred": false,
+      "leading_index_candidate": false
+    },
+    {
+      "schema": "public",
+      "relation": "policy_registry",
+      "constraint_name": "policy_registry_deleted_by_users_fkey",
+      "definition": "FOREIGN KEY (deleted_by) REFERENCES users(id) ON DELETE SET NULL",
+      "deferrable": false,
+      "deferred": false,
+      "leading_index_candidate": false
+    },
+    {
+      "schema": "public",
+      "relation": "policy_registry",
+      "constraint_name": "policy_registry_published_by_users_fkey",
+      "definition": "FOREIGN KEY (published_by) REFERENCES users(id) ON DELETE SET NULL",
+      "deferrable": false,
+      "deferred": false,
+      "leading_index_candidate": false
+    },
+    {
+      "schema": "public",
+      "relation": "policy_registry",
+      "constraint_name": "policy_registry_updated_by_users_fkey",
+      "definition": "FOREIGN KEY (updated_by) REFERENCES users(id) ON DELETE SET NULL",
+      "deferrable": false,
+      "deferred": false,
+      "leading_index_candidate": false
+    },
+    {
+      "schema": "public",
+      "relation": "product_sales",
+      "constraint_name": "product_sales_ktv_id_fkey",
+      "definition": "FOREIGN KEY (ktv_id) REFERENCES users(id) ON DELETE CASCADE",
+      "deferrable": false,
+      "deferred": false,
+      "leading_index_candidate": false
+    },
+    {
+      "schema": "public",
+      "relation": "revenue",
+      "constraint_name": "revenue_recorded_by_id_fkey",
+      "definition": "FOREIGN KEY (recorded_by_id) REFERENCES users(id)",
+      "deferrable": false,
+      "deferred": false,
+      "leading_index_candidate": false
+    },
+    {
+      "schema": "public",
+      "relation": "salary_adjustments",
+      "constraint_name": "salary_adjustments_approved_by_id_fkey",
+      "definition": "FOREIGN KEY (approved_by_id) REFERENCES users(id) ON DELETE SET NULL",
+      "deferrable": false,
+      "deferred": false,
+      "leading_index_candidate": false
+    },
+    {
+      "schema": "public",
+      "relation": "salary_adjustments",
+      "constraint_name": "salary_adjustments_created_by_id_fkey",
+      "definition": "FOREIGN KEY (created_by_id) REFERENCES users(id) ON DELETE CASCADE",
+      "deferrable": false,
+      "deferred": false,
+      "leading_index_candidate": true
+    },
+    {
+      "schema": "public",
+      "relation": "salary_adjustments",
+      "constraint_name": "salary_adjustments_ktv_id_fkey",
+      "definition": "FOREIGN KEY (ktv_id) REFERENCES users(id) ON DELETE CASCADE",
+      "deferrable": false,
+      "deferred": false,
+      "leading_index_candidate": true
+    },
+    {
+      "schema": "public",
+      "relation": "salary_disputes",
+      "constraint_name": "salary_disputes_ktv_id_fkey",
+      "definition": "FOREIGN KEY (ktv_id) REFERENCES users(id)",
+      "deferrable": false,
+      "deferred": false,
+      "leading_index_candidate": true
+    },
+    {
+      "schema": "public",
+      "relation": "salary_records",
+      "constraint_name": "salary_records_ktv_id_fkey",
+      "definition": "FOREIGN KEY (ktv_id) REFERENCES users(id)",
+      "deferrable": false,
+      "deferred": false,
+      "leading_index_candidate": true
+    },
+    {
+      "schema": "public",
+      "relation": "session_logs",
+      "constraint_name": "session_logs_completed_by_ktv_id_fkey",
+      "definition": "FOREIGN KEY (completed_by_ktv_id) REFERENCES users(id)",
+      "deferrable": false,
+      "deferred": false,
+      "leading_index_candidate": false
+    },
+    {
+      "schema": "public",
+      "relation": "session_reviews",
+      "constraint_name": "session_reviews_ktv_id_fkey",
+      "definition": "FOREIGN KEY (ktv_id) REFERENCES users(id)",
+      "deferrable": false,
+      "deferred": false,
+      "leading_index_candidate": true
+    },
+    {
+      "schema": "public",
+      "relation": "shifts",
+      "constraint_name": "shifts_ktv_id_fkey",
+      "definition": "FOREIGN KEY (ktv_id) REFERENCES users(id)",
+      "deferrable": false,
+      "deferred": false,
+      "leading_index_candidate": true
+    },
+    {
+      "schema": "public",
+      "relation": "staff_leaves",
+      "constraint_name": "staff_leaves_approved_by_fkey",
+      "definition": "FOREIGN KEY (approved_by) REFERENCES users(id)",
+      "deferrable": false,
+      "deferred": false,
+      "leading_index_candidate": false
+    },
+    {
+      "schema": "public",
+      "relation": "staff_leaves",
+      "constraint_name": "staff_leaves_user_id_fkey",
+      "definition": "FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE",
+      "deferrable": false,
+      "deferred": false,
+      "leading_index_candidate": false
+    },
+    {
+      "schema": "public",
+      "relation": "student_class_attendance",
+      "constraint_name": "student_class_attendance_checked_by_fkey",
+      "definition": "FOREIGN KEY (checked_by) REFERENCES users(id) ON DELETE SET NULL",
+      "deferrable": false,
+      "deferred": false,
+      "leading_index_candidate": false
+    },
+    {
+      "schema": "public",
+      "relation": "student_tuition_payments",
+      "constraint_name": "student_tuition_payments_recorded_by_fkey",
+      "definition": "FOREIGN KEY (recorded_by) REFERENCES users(id) ON DELETE SET NULL",
+      "deferrable": false,
+      "deferred": false,
+      "leading_index_candidate": false
+    },
+    {
+      "schema": "public",
+      "relation": "students",
+      "constraint_name": "students_user_id_fkey",
+      "definition": "FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE",
+      "deferrable": false,
+      "deferred": false,
+      "leading_index_candidate": true
+    },
+    {
+      "schema": "public",
+      "relation": "tenant_subscription_overrides",
+      "constraint_name": "tenant_subscription_overrides_created_by_fkey",
+      "definition": "FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL",
+      "deferrable": false,
+      "deferred": false,
+      "leading_index_candidate": false
+    },
+    {
+      "schema": "public",
+      "relation": "tenant_subscription_overrides",
+      "constraint_name": "tenant_subscription_overrides_updated_by_fkey",
+      "definition": "FOREIGN KEY (updated_by) REFERENCES users(id) ON DELETE SET NULL",
+      "deferrable": false,
+      "deferred": false,
+      "leading_index_candidate": false
+    },
+    {
+      "schema": "public",
+      "relation": "tourism_audit_events",
+      "constraint_name": "tourism_audit_events_actor_id_fkey",
+      "definition": "FOREIGN KEY (actor_id) REFERENCES users(id) ON DELETE RESTRICT",
+      "deferrable": false,
+      "deferred": false,
+      "leading_index_candidate": false
+    },
+    {
+      "schema": "public",
+      "relation": "tourism_bookings",
+      "constraint_name": "tourism_bookings_cancelled_by_fkey",
+      "definition": "FOREIGN KEY (cancelled_by) REFERENCES users(id) ON DELETE RESTRICT",
+      "deferrable": false,
+      "deferred": false,
+      "leading_index_candidate": false
+    },
+    {
+      "schema": "public",
+      "relation": "tourism_bookings",
+      "constraint_name": "tourism_bookings_confirmed_by_fkey",
+      "definition": "FOREIGN KEY (confirmed_by) REFERENCES users(id) ON DELETE RESTRICT",
+      "deferrable": false,
+      "deferred": false,
+      "leading_index_candidate": false
+    },
+    {
+      "schema": "public",
+      "relation": "tourism_bookings",
+      "constraint_name": "tourism_bookings_created_by_fkey",
+      "definition": "FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE RESTRICT",
+      "deferrable": false,
+      "deferred": false,
+      "leading_index_candidate": false
+    },
+    {
+      "schema": "public",
+      "relation": "tourism_departures",
+      "constraint_name": "tourism_departures_opened_by_fkey",
+      "definition": "FOREIGN KEY (opened_by) REFERENCES users(id) ON DELETE RESTRICT",
+      "deferrable": false,
+      "deferred": false,
+      "leading_index_candidate": false
+    },
+    {
+      "schema": "public",
+      "relation": "tourism_itinerary_days",
+      "constraint_name": "tourism_itinerary_days_created_by_fkey",
+      "definition": "FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE RESTRICT",
+      "deferrable": false,
+      "deferred": false,
+      "leading_index_candidate": false
+    },
+    {
+      "schema": "public",
+      "relation": "tourism_itinerary_segments",
+      "constraint_name": "tourism_itinerary_segments_created_by_fkey",
+      "definition": "FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE RESTRICT",
+      "deferrable": false,
+      "deferred": false,
+      "leading_index_candidate": false
+    },
+    {
+      "schema": "public",
+      "relation": "tourism_participants",
+      "constraint_name": "tourism_participants_created_by_fkey",
+      "definition": "FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE RESTRICT",
+      "deferrable": false,
+      "deferred": false,
+      "leading_index_candidate": false
+    },
+    {
+      "schema": "public",
+      "relation": "tourism_tour_packages",
+      "constraint_name": "tourism_tour_packages_created_by_fkey",
+      "definition": "FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE RESTRICT",
+      "deferrable": false,
+      "deferred": false,
+      "leading_index_candidate": false
+    },
+    {
+      "schema": "public",
+      "relation": "tourism_tours",
+      "constraint_name": "tourism_tours_created_by_fkey",
+      "definition": "FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE RESTRICT",
+      "deferrable": false,
+      "deferred": false,
+      "leading_index_candidate": false
+    },
+    {
+      "schema": "public",
+      "relation": "training_classes",
+      "constraint_name": "training_classes_trainer_id_fkey",
+      "definition": "FOREIGN KEY (trainer_id) REFERENCES users(id) ON DELETE SET NULL",
+      "deferrable": false,
+      "deferred": false,
+      "leading_index_candidate": false
+    }
+  ],
+  "triggers": [
+    {
+      "name": "audit_users_changes",
+      "enabled": "O",
+      "function_schema": "public",
+      "function_name": "log_audit_event"
+    },
+    {
+      "name": "update_users_updated_at",
+      "enabled": "O",
+      "function_schema": "public",
+      "function_name": "update_updated_at_column"
+    }
+  ],
+  "currentWaitSummary": [
+    {
+      "wait_type": "Client",
+      "sessions": 17,
+      "blocked": 0
+    },
+    {
+      "wait_type": "Extension",
+      "sessions": 2,
+      "blocked": 0
+    }
+  ],
+  "timeoutRootCause": "NOT_PROVEN",
+  "limitation": "Current metadata and waits are not historical lock/query evidence. Index candidates do not establish runtime cause."
+}

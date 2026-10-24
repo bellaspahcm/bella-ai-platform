@@ -1,0 +1,404 @@
+{
+  "startedAt": "2026-10-20T23:23:34.577Z",
+  "projectRef": "bmnbqbcdbuklhopfbopv",
+  "baseline": "ecfaf23ab06d043c5f2caec38ea67856705b6c26",
+  "scope": "Real Auth, actual Next cookie HTTP, scoped org RLS and closed authorization guards; no Product Go-Live proof",
+  "checks": [
+    {
+      "name": "SOURCE_AND_TARGET_PREFLIGHT",
+      "result": "PASS",
+      "exactBaseline": true,
+      "projectBinding": true,
+      "productionFallback": false
+    },
+    {
+      "name": "FIXTURE_COMMITTED",
+      "result": "PASS",
+      "tenants": 2,
+      "branches": 2,
+      "actors": 6,
+      "persons": 2,
+      "relationships": 2
+    }
+  ],
+  "cleanup": {
+    "failures": [
+      {
+        "name": "DELETE_OWN_PROFILES",
+        "code": "UNCLASSIFIED_FAILURE"
+      },
+      {
+        "name": "DELETE_OWN_TENANTS",
+        "code": "XX000"
+      },
+      {
+        "name": "RESIDUAL_READBACK",
+        "code": "FIXTURE_RESIDUAL_ROWS"
+      }
+    ],
+    "residual": {
+      "auth_users": 0,
+      "public_users": 0,
+      "active_users": 0,
+      "tenants": 2,
+      "active_tenants": 0,
+      "branches": 0,
+      "persons": 0,
+      "relationships": 0
+    },
+    "result": "FAIL"
+  },
+  "sourceBefore": {
+    "head": "ecfaf23ab06d043c5f2caec38ea67856705b6c26",
+    "tree": "05651491717f10b16d2324c42dab4fde423a69fc",
+    "baselineAncestor": true,
+    "changed": [],
+    "untracked": [],
+    "sourceSha256": "0920ed219136130778192684467b8ae7f52545a1909d33650072b7b23c712cd5",
+    "trackedFiles": 3280,
+    "nextAutoEnvFiles": []
+  },
+  "harnessSha256": "d1b7422c08a4f0393de14d9a12100719cbb9162e3fab7cd9750f900f5959cf29",
+  "catalogBefore": {
+    "relations": [
+      {
+        "name": "chat_messages",
+        "present": true,
+        "rls": true,
+        "auth_select": true,
+        "auth_insert": true,
+        "tenant_column": true
+      },
+      {
+        "name": "chat_threads",
+        "present": false,
+        "rls": false,
+        "auth_select": false,
+        "auth_insert": false,
+        "tenant_column": false
+      },
+      {
+        "name": "edu_attendance_daily_state",
+        "present": false,
+        "rls": false,
+        "auth_select": false,
+        "auth_insert": false,
+        "tenant_column": false
+      },
+      {
+        "name": "edu_attendance_events",
+        "present": false,
+        "rls": false,
+        "auth_select": false,
+        "auth_insert": false,
+        "tenant_column": false
+      },
+      {
+        "name": "edu_courses",
+        "present": true,
+        "rls": true,
+        "auth_select": false,
+        "auth_insert": false,
+        "tenant_column": true
+      },
+      {
+        "name": "edu_daily_care_records",
+        "present": false,
+        "rls": false,
+        "auth_select": false,
+        "auth_insert": false,
+        "tenant_column": false
+      },
+      {
+        "name": "edu_daily_care_sessions",
+        "present": false,
+        "rls": false,
+        "auth_select": false,
+        "auth_insert": false,
+        "tenant_column": false
+      },
+      {
+        "name": "edu_daily_parent_digests",
+        "present": false,
+        "rls": false,
+        "auth_select": false,
+        "auth_insert": false,
+        "tenant_column": false
+      },
+      {
+        "name": "edu_enrollments",
+        "present": true,
+        "rls": true,
+        "auth_select": false,
+        "auth_insert": false,
+        "tenant_column": true
+      },
+      {
+        "name": "org_relationships",
+        "present": true,
+        "rls": true,
+        "auth_select": true,
+        "auth_insert": true,
+        "tenant_column": true
+      },
+      {
+        "name": "org_units",
+        "present": true,
+        "rls": true,
+        "auth_select": true,
+        "auth_insert": true,
+        "tenant_column": true
+      },
+      {
+        "name": "party_parties",
+        "present": true,
+        "rls": true,
+        "auth_select": false,
+        "auth_insert": false,
+        "tenant_column": true
+      },
+      {
+        "name": "people_directory",
+        "present": true,
+        "rls": true,
+        "auth_select": true,
+        "auth_insert": true,
+        "tenant_column": true
+      },
+      {
+        "name": "preschool_chain_course_branch_assignments",
+        "present": true,
+        "rls": true,
+        "auth_select": true,
+        "auth_insert": true,
+        "tenant_column": true
+      },
+      {
+        "name": "tenants",
+        "present": true,
+        "rls": true,
+        "auth_select": true,
+        "auth_insert": true,
+        "tenant_column": false
+      },
+      {
+        "name": "user_org_unit_access",
+        "present": true,
+        "rls": false,
+        "auth_select": true,
+        "auth_insert": false,
+        "tenant_column": true
+      },
+      {
+        "name": "users",
+        "present": true,
+        "rls": true,
+        "auth_select": true,
+        "auth_insert": false,
+        "tenant_column": true
+      }
+    ],
+    "allowedRoles": [
+      "admin",
+      "admin_staff",
+      "accountant"
+    ],
+    "controls": [
+      {
+        "proname": "get_auth_tenant_id",
+        "definition_hash": "cceebaaeaf39cd21640880d0fbdb8963"
+      },
+      {
+        "proname": "is_admin",
+        "definition_hash": "dcfaea62c9b6d656ec3c4399f7f1657b"
+      },
+      {
+        "proname": "is_hq_super_admin",
+        "definition_hash": "9a2e5fe98b16b54811858e72f34819b0"
+      }
+    ],
+    "policyDigest": "b16f2efea1e23c646af5cfca8519a493"
+  },
+  "primaryFailure": "NATURAL_CLAIMS_PRODUCER_FAILED",
+  "generatedAgents": {
+    "changed": false
+  },
+  "catalogAfter": {
+    "relations": [
+      {
+        "name": "chat_messages",
+        "present": true,
+        "rls": true,
+        "auth_select": true,
+        "auth_insert": true,
+        "tenant_column": true
+      },
+      {
+        "name": "chat_threads",
+        "present": false,
+        "rls": false,
+        "auth_select": false,
+        "auth_insert": false,
+        "tenant_column": false
+      },
+      {
+        "name": "edu_attendance_daily_state",
+        "present": false,
+        "rls": false,
+        "auth_select": false,
+        "auth_insert": false,
+        "tenant_column": false
+      },
+      {
+        "name": "edu_attendance_events",
+        "present": false,
+        "rls": false,
+        "auth_select": false,
+        "auth_insert": false,
+        "tenant_column": false
+      },
+      {
+        "name": "edu_courses",
+        "present": true,
+        "rls": true,
+        "auth_select": false,
+        "auth_insert": false,
+        "tenant_column": true
+      },
+      {
+        "name": "edu_daily_care_records",
+        "present": false,
+        "rls": false,
+        "auth_select": false,
+        "auth_insert": false,
+        "tenant_column": false
+      },
+      {
+        "name": "edu_daily_care_sessions",
+        "present": false,
+        "rls": false,
+        "auth_select": false,
+        "auth_insert": false,
+        "tenant_column": false
+      },
+      {
+        "name": "edu_daily_parent_digests",
+        "present": false,
+        "rls": false,
+        "auth_select": false,
+        "auth_insert": false,
+        "tenant_column": false
+      },
+      {
+        "name": "edu_enrollments",
+        "present": true,
+        "rls": true,
+        "auth_select": false,
+        "auth_insert": false,
+        "tenant_column": true
+      },
+      {
+        "name": "org_relationships",
+        "present": true,
+        "rls": true,
+        "auth_select": true,
+        "auth_insert": true,
+        "tenant_column": true
+      },
+      {
+        "name": "org_units",
+        "present": true,
+        "rls": true,
+        "auth_select": true,
+        "auth_insert": true,
+        "tenant_column": true
+      },
+      {
+        "name": "party_parties",
+        "present": true,
+        "rls": true,
+        "auth_select": false,
+        "auth_insert": false,
+        "tenant_column": true
+      },
+      {
+        "name": "people_directory",
+        "present": true,
+        "rls": true,
+        "auth_select": true,
+        "auth_insert": true,
+        "tenant_column": true
+      },
+      {
+        "name": "preschool_chain_course_branch_assignments",
+        "present": true,
+        "rls": true,
+        "auth_select": true,
+        "auth_insert": true,
+        "tenant_column": true
+      },
+      {
+        "name": "tenants",
+        "present": true,
+        "rls": true,
+        "auth_select": true,
+        "auth_insert": true,
+        "tenant_column": false
+      },
+      {
+        "name": "user_org_unit_access",
+        "present": true,
+        "rls": false,
+        "auth_select": true,
+        "auth_insert": false,
+        "tenant_column": true
+      },
+      {
+        "name": "users",
+        "present": true,
+        "rls": true,
+        "auth_select": true,
+        "auth_insert": false,
+        "tenant_column": true
+      }
+    ],
+    "allowedRoles": [
+      "admin",
+      "admin_staff",
+      "accountant"
+    ],
+    "controls": [
+      {
+        "proname": "get_auth_tenant_id",
+        "definition_hash": "cceebaaeaf39cd21640880d0fbdb8963"
+      },
+      {
+        "proname": "is_admin",
+        "definition_hash": "dcfaea62c9b6d656ec3c4399f7f1657b"
+      },
+      {
+        "proname": "is_hq_super_admin",
+        "definition_hash": "9a2e5fe98b16b54811858e72f34819b0"
+      }
+    ],
+    "policyDigest": "b16f2efea1e23c646af5cfca8519a493"
+  },
+  "sourceAfter": {
+    "head": "ecfaf23ab06d043c5f2caec38ea67856705b6c26",
+    "tree": "05651491717f10b16d2324c42dab4fde423a69fc",
+    "baselineAncestor": true,
+    "changed": [],
+    "untracked": [],
+    "sourceSha256": "0920ed219136130778192684467b8ae7f52545a1909d33650072b7b23c712cd5",
+    "trackedFiles": 3280,
+    "nextAutoEnvFiles": []
+  },
+  "finishedAt": "2026-10-20T23:24:24.314Z",
+  "counts": {
+    "PASS": 2,
+    "FAIL": 0,
+    "NOT_PROVEN": 0
+  },
+  "result": "FAIL",
+  "exitCode": 1
+}

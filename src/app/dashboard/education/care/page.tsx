@@ -3,15 +3,10 @@
 /**
  * Bella Education — Preschool Care & Daily Nurturing Operations Center
  *
- * DATA CANONICAL TRUTH (all live, zero hardcode):
- * - classrooms:  GET /api/education/courses           → 8 lớp từ edu_courses
- * - roster:      GET /api/education/attendance?courseId=&date=  → edu_enrollments + party_parties
- * - KPI counts:  derived useMemo from roster state (zero static numbers)
- * - Progress:    derived from how many students have care records (checked in from DB)
- * - Alerts:      derived from roster students where attendance is 'absent' or health issue
- *
- * PAGINATION: fully functional client-side pagination (PAGE_SIZE = 8)
- * STRICT TYPE SAFETY: Zero `any` and zero `unknown`
+ * Classes use /api/education/care/classes; dependency errors remain visible.
+ * Care roster and records use the authorized /api/education/care/bulk workflow.
+ * UI success requires a complete API acknowledgement and roster reload.
+ * Historical health is read-only; medication is outside Preschool operations.
  */
 
 import { useState, useRef, useEffect, useMemo, useCallback, type ChangeEvent } from 'react';
@@ -26,7 +21,6 @@ import {
   Utensils,
   Moon,
   Droplets,
-  Pill,
   Search,
   Plus,
   MoreVertical,
@@ -44,6 +38,7 @@ import {
   AlertCircle,
   Sparkles,
 } from 'lucide-react';
+import { saveCareRecords } from './care-save';
 import { getCachedTenantSettings } from '@/lib/dashboard-client-context';
 import { resolveTenantBrandIdentity } from '@/lib/business-rules/tenant-modules';
 
@@ -53,7 +48,7 @@ const PAGE_SIZE = 8;
 
 // ── Strict Types ──────────────────────────────────────────────────────────────
 
-type CareTabKey = 'overview' | 'meal' | 'nap' | 'health' | 'hygiene' | 'medication';
+type CareTabKey = 'overview' | 'meal' | 'nap' | 'health' | 'hygiene';
 type StatusLevel = 'good' | 'warning' | 'danger' | 'unrecorded';
 
 interface CourseOption {
@@ -63,7 +58,7 @@ interface CourseOption {
   readonly status: 'active' | 'inactive' | 'archived';
 }
 
-/** Shape returned by /api/education/care/bulk or /api/education/attendance */
+/** Shape returned by /api/education/care/bulk. */
 interface CareRosterEntry {
   readonly enrollmentId: string;
   readonly studentPartyId: string;
@@ -106,22 +101,6 @@ interface CareRosterEntry {
   } | null;
 }
 
-/** Legacy attendance shape for backward compatibility */
-interface AttendanceRosterEntry {
-  readonly enrollmentId: string;
-  readonly studentPartyId: string;
-  readonly name: string | null;
-  readonly studentCode: string | null;
-  readonly gender: string | null;
-  readonly dob: string | null;
-  readonly enrollmentStatus: string;
-  readonly attendance: {
-    readonly status: 'present' | 'absent' | 'excused';
-    readonly rollCallTime?: string | null;
-  } | null;
-  readonly note?: string | null;
-}
-
 /** Derived view model for care roster display */
 interface StudentCareItem {
   readonly id: string;
@@ -148,18 +127,9 @@ interface StudentCareItem {
   readonly mealNotes?: string;
   readonly napOption?: 'DEEP' | 'RESTLESS' | 'REFUSED' | null;
   readonly napNotes?: string;
-  readonly healthOption?: 'NORMAL' | 'FEVER_MILD' | 'FEVER_HIGH' | 'TIRED' | null;
   readonly temperature?: string;
   readonly hygieneOption?: 'TOILET' | 'DIAPER' | 'ABNORMAL' | null;
   readonly hygieneNotes?: string;
-}
-
-interface RecentActivityItem {
-  readonly id: string;
-  readonly time: string;
-  readonly type: 'health' | 'nap' | 'meal' | 'hygiene';
-  readonly title: string;
-  readonly description: string;
 }
 
 // ── Color palette for avatar initials ────────────────────────────────────────
@@ -179,7 +149,7 @@ function getAvatarColor(index: number): string {
   return AVATAR_COLORS[index % AVATAR_COLORS.length] ?? 'bg-slate-100 text-slate-800';
 }
 
-// ── Map DB care roster entry → care item (with attendance fallback) ───────────
+// ── Map authorized Care roster entry → care item ───────────
 function mapCareRosterEntryToCareItem(entry: CareRosterEntry, index: number): StudentCareItem {
   const attendanceStatus = entry.attendance?.status ?? null;
   const isAbsent = attendanceStatus === 'absent';
@@ -223,15 +193,6 @@ function mapCareRosterEntryToCareItem(entry: CareRosterEntry, index: number): St
     const isAlert = typeof healthItem?.isAlert === 'boolean' ? healthItem.isAlert : (isAbsent || isExcused);
     const alertReason = healthItem?.alertReason ?? (isAbsent ? 'Vắng mặt hôm nay, chưa có mặt' : isExcused ? 'Nghỉ có phép' : '');
     const healthNotes = healthItem?.notes ?? '';
-    const tempNum = temperature ? parseFloat(temperature) : NaN;
-    const healthOption: 'NORMAL' | 'FEVER_MILD' | 'FEVER_HIGH' | 'TIRED' | null =
-      healthItem
-        ? healthStatus === 'danger' || (!isNaN(tempNum) && tempNum >= 38.2)
-          ? 'FEVER_HIGH'
-          : healthStatus === 'warning' || (!isNaN(tempNum) && tempNum >= 37.5)
-            ? 'FEVER_MILD'
-            : 'NORMAL'
-        : (isAbsent ? 'FEVER_HIGH' : isExcused ? 'TIRED' : null);
 
     // 4. Hygiene
     const hygieneItem = hasHygiene ? care.hygieneRecords![0] : null;
@@ -262,7 +223,6 @@ function mapCareRosterEntryToCareItem(entry: CareRosterEntry, index: number): St
       napNotes,
       healthStatus,
       healthLabel,
-      healthOption,
       temperature,
       hygieneStatus,
       hygieneLabel,
@@ -306,7 +266,6 @@ function mapCareRosterEntryToCareItem(entry: CareRosterEntry, index: number): St
     napNotes: '',
     healthStatus,
     healthLabel,
-    healthOption: null,
     temperature: '',
     hygieneStatus,
     hygieneLabel,
@@ -318,26 +277,6 @@ function mapCareRosterEntryToCareItem(entry: CareRosterEntry, index: number): St
     hasCareRecord: false,
   };
 }
-
-function mapRosterEntryToCareItem(entry: AttendanceRosterEntry, index: number): StudentCareItem {
-  return mapCareRosterEntryToCareItem(
-    {
-      ...entry,
-      attendance: entry.attendance,
-      attendanceNote: entry.note,
-    },
-    index,
-  );
-}
-
-// ── Static recent activity reference (no API yet for care events) ─────────────
-
-const RECENT_ACTIVITIES: readonly RecentActivityItem[] = [
-  { id: 'ACT-001', time: '10:15', type: 'health', title: 'Cập nhật sức khỏe', description: 'Theo dõi nhiệt độ cho bé có dấu hiệu sốt' },
-  { id: 'ACT-002', time: '09:45', type: 'nap', title: 'Ghi nhận giấc ngủ', description: 'Ngủ đủ 120 phút' },
-  { id: 'ACT-003', time: '08:30', type: 'meal', title: 'Ghi nhận bữa ăn', description: 'Điểm danh bữa sáng hoàn tất' },
-  { id: 'ACT-004', time: '08:15', type: 'hygiene', title: 'Ghi nhận vệ sinh', description: 'Vệ sinh cá nhân buổi sáng' },
-];
 
 // ── Helper Icon Component for Care Status ─────────────────────────────────────
 
@@ -431,7 +370,7 @@ export default function CarePage() {
   const [isPreschoolTenant, setIsPreschoolTenant] = useState<boolean>(true);
   const [courses, setCourses] = useState<readonly CourseOption[]>([]);
   const [selectedCourseId, setSelectedCourseId] = useState('');
-  const [selectedDate, setSelectedDate] = useState(() => new Date().toISOString().split('T')[0] ?? '2026-10-18');
+  const [selectedDate, setSelectedDate] = useState(() => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }).format(new Date()));
   const [activeTab, setActiveTab] = useState<CareTabKey>('overview');
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'alert' | 'good'>('all');
@@ -448,8 +387,6 @@ export default function CarePage() {
   const [editMealNotes, setEditMealNotes] = useState('');
   const [editNapOption, setEditNapOption] = useState<'DEEP' | 'RESTLESS' | 'REFUSED' | null>(null);
   const [editNapNotes, setEditNapNotes] = useState('');
-  const [editHealthOption, setEditHealthOption] = useState<'NORMAL' | 'FEVER_MILD' | 'FEVER_HIGH' | 'TIRED' | null>(null);
-  const [editTemperature, setEditTemperature] = useState('');
   const [editHygieneOption, setEditHygieneOption] = useState<'TOILET' | 'DIAPER' | 'ABNORMAL' | null>(null);
   const [editHygieneNotes, setEditHygieneNotes] = useState('');
   const [editGeneralNote, setEditGeneralNote] = useState('');
@@ -458,7 +395,6 @@ export default function CarePage() {
   // Quick Record Form State
   const [quickMeal, setQuickMeal] = useState<'ALL' | 'HALF' | 'FEW' | 'NONE'>('ALL');
   const [quickNap, setQuickNap] = useState<'DEEP' | 'RESTLESS' | 'REFUSED'>('DEEP');
-  const [quickHealth, setQuickHealth] = useState<'NORMAL' | 'FEVER_MILD' | 'FEVER_HIGH' | 'TIRED'>('NORMAL');
   const [quickHygiene, setQuickHygiene] = useState<'TOILET' | 'DIAPER' | 'ABNORMAL'>('TOILET');
   const [quickNote, setQuickNote] = useState('');
   const [isSavingQuick, setIsSavingQuick] = useState(false);
@@ -469,8 +405,12 @@ export default function CarePage() {
   // Live roster from API
   const [roster, setRoster] = useState<readonly StudentCareItem[]>([]);
   const [isRosterLoading, setIsRosterLoading] = useState(false);
+  const [courseError, setCourseError] = useState<string | null>(null);
+  const [rosterError, setRosterError] = useState<string | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const menuRef = useRef<HTMLDivElement>(null);
+  const rosterRequest = useRef(0);
 
   // ── Tenant check ──────────────────────────────────────────────────────────
   useEffect(() => {
@@ -494,79 +434,54 @@ export default function CarePage() {
     void checkTenant();
   }, []);
 
-  // ── Load classroom options ─────────────────────────────────────────────────
+  // Course and roster errors stay visible; another workflow cannot supply permission.
   const loadCourses = useCallback(async () => {
     try {
-      const response = await fetch('/api/education/courses', { cache: 'no-store' });
+      const response = await fetch('/api/education/care/classes', { cache: 'no-store' });
       const payload: { success?: boolean; classrooms?: readonly CourseOption[] } = await response.json();
-      if (response.ok && payload.success && Array.isArray(payload.classrooms) && payload.classrooms.length > 0) {
-        setCourses(payload.classrooms);
-        setSelectedCourseId((curr) => curr || payload.classrooms?.[0]?.id || '');
-      } else {
-        // Fallback with typical preschool names only (no counts)
-        setCourses([
-          { id: 'mam-a1', name: 'Lớp Mầm A1 – Họa Mi', code: 'MAM-A1', status: 'active' },
-          { id: 'choi-b1', name: 'Lớp Chồi B1 – Thỏ Ngọc', code: 'CHOI-B1', status: 'active' },
-          { id: 'la-c1', name: 'Lớp Lá C1 – Vàng Anh', code: 'LA-C1', status: 'active' },
-          { id: 'nha-tre-n1', name: 'Lớp Nhà Trẻ N1 – Gấu Misa', code: 'NHA-TRE-N1', status: 'active' },
-        ]);
-        setSelectedCourseId((curr) => curr || 'mam-a1');
-      }
+      if (!response.ok || !payload.success || !Array.isArray(payload.classrooms)) throw new Error('COURSES_UNAVAILABLE');
+      setCourses(payload.classrooms);
+      setSelectedCourseId((current) => payload.classrooms?.some(course => course.id === current)
+        ? current : payload.classrooms?.[0]?.id || '');
+      setCourseError(null);
     } catch {
-      setCourses([
-        { id: 'mam-a1', name: 'Lớp Mầm A1 – Họa Mi', code: 'MAM-A1', status: 'active' },
-        { id: 'choi-b1', name: 'Lớp Chồi B1 – Thỏ Ngọc', code: 'CHOI-B1', status: 'active' },
-        { id: 'la-c1', name: 'Lớp Lá C1 – Vàng Anh', code: 'LA-C1', status: 'active' },
-        { id: 'nha-tre-n1', name: 'Lớp Nhà Trẻ N1 – Gấu Misa', code: 'NHA-TRE-N1', status: 'active' },
-      ]);
-      setSelectedCourseId((curr) => curr || 'mam-a1');
+      setCourses([]); setSelectedCourseId(''); setRoster([]);
+      setCourseError('Không tải được danh sách lớp. Vui lòng thử lại.');
     }
   }, []);
 
-  useEffect(() => {
-    void loadCourses();
-  }, [loadCourses]);
+  useEffect(() => { void loadCourses(); }, [loadCourses]);
 
-  // ── Load roster for selected class + date ──────────────────────────────────
   const loadRoster = useCallback(async (courseId: string, date: string) => {
     if (!courseId || !date) return;
-    setIsRosterLoading(true);
-    setCurrentPage(1);
+    const requestId = ++rosterRequest.current;
+    let accessDenied = false;
+    setIsRosterLoading(true); setCurrentPage(1);
     try {
-      // Primary: fetch care roster (includes DB care records)
-      const res = await fetch(
+      const response = await fetch(
         `/api/education/care/bulk?courseId=${encodeURIComponent(courseId)}&date=${encodeURIComponent(date)}`,
         { cache: 'no-store' },
       );
-      if (res.ok) {
-        const payload: { success?: boolean; roster?: readonly CareRosterEntry[] } = await res.json();
-        if (payload.success && Array.isArray(payload.roster)) {
-          setRoster(payload.roster.map((entry, idx) => mapCareRosterEntryToCareItem(entry, idx)));
-          return;
-        }
-      }
-      // Fallback: attendance API
-      const attRes = await fetch(
-        `/api/education/attendance?courseId=${encodeURIComponent(courseId)}&date=${encodeURIComponent(date)}`,
-        { cache: 'no-store' },
-      );
-      const attPayload: { success?: boolean; roster?: readonly AttendanceRosterEntry[] } = await attRes.json();
-      if (attRes.ok && attPayload.success && Array.isArray(attPayload.roster)) {
-        setRoster(attPayload.roster.map((entry, idx) => mapRosterEntryToCareItem(entry, idx)));
-      } else {
-        setRoster([]);
-      }
+      accessDenied = response.status === 401 || response.status === 403;
+      if (!response.ok) throw new Error('CARE_UNAVAILABLE');
+      const payload: { success?: boolean; roster?: readonly CareRosterEntry[] } = await response.json();
+      if (!payload.success || !Array.isArray(payload.roster)) throw new Error('CARE_UNAVAILABLE');
+      if (requestId !== rosterRequest.current) return;
+      setRoster(payload.roster.map((entry, index) => mapCareRosterEntryToCareItem(entry, index)));
+      setRosterError(null);
     } catch {
-      setRoster([]);
-    } finally {
-      setIsRosterLoading(false);
-    }
+      if (requestId !== rosterRequest.current) return;
+      if (accessDenied) setRoster([]);
+      setRosterError('Không tải được nhật ký chăm sóc trong phạm vi hiện tại.');
+      throw new Error('CARE_UNAVAILABLE');
+    } finally { if (requestId === rosterRequest.current) setIsRosterLoading(false); }
   }, []);
 
   useEffect(() => {
-    if (selectedCourseId && selectedDate) {
-      void loadRoster(selectedCourseId, selectedDate);
-    }
+    setRoster([]); setRosterError(null); setSelectedStudentIds([]); setEditingStudent(null); setSaveError(null);
+    if (selectedCourseId && selectedDate) void loadRoster(selectedCourseId, selectedDate).catch(() => {});
+    else setIsRosterLoading(false);
+    return () => { rosterRequest.current += 1; };
   }, [selectedCourseId, selectedDate, loadRoster]);
 
   // ── Close menus on outside click ──────────────────────────────────────────
@@ -654,6 +569,8 @@ export default function CarePage() {
 
   // ── Open dedicated edit modal for a student ───────────────────────────────
   const openEditStudentCare = (student: StudentCareItem) => {
+    if (isSavingCare || isSavingQuick) return;
+    setSaveError(null);
     setEditingStudent(student);
     if (student.hasCareRecord) {
       setEditMealOption(student.mealOption ?? null);
@@ -661,10 +578,6 @@ export default function CarePage() {
 
       setEditNapOption(student.napOption ?? null);
       setEditNapNotes(student.napNotes ?? '');
-
-      setEditHealthOption(student.healthOption ?? null);
-      setEditTemperature(student.temperature ?? '');
-
       setEditHygieneOption(student.hygieneOption ?? null);
       setEditHygieneNotes(student.hygieneNotes ?? '');
 
@@ -679,296 +592,63 @@ export default function CarePage() {
       setEditMealOption(null);
       setEditMealNotes('');
       setEditNapOption(null);
-      setEditNapNotes('');
-      setEditHealthOption(null);
-      setEditTemperature('');
-      setEditHygieneOption(null);
+      setEditNapNotes('');      setEditHygieneOption(null);
       setEditHygieneNotes('');
       setEditGeneralNote('');
     }
     setActiveMenuStudentId(null);
   };
 
-  // ── Save individual student care record ───────────────────────────────────
+  // A server acknowledgement precedes every persisted UI success state.
   const handleSaveStudentCare = async () => {
-    if (!editingStudent) return;
-    setIsSavingCare(true);
-
-    const hasAnySelection = Boolean(
-      editMealOption ||
-        editNapOption ||
-        editHealthOption ||
-        editHygieneOption ||
-        editTemperature.trim() ||
-        editGeneralNote.trim(),
-    );
-
-    const mealLabel =
-      editMealOption === 'ALL'
-        ? 'Ăn hết'
-        : editMealOption === 'HALF'
-          ? 'Ăn 1/2'
-          : editMealOption === 'FEW'
-            ? 'Ăn ít'
-            : editMealOption === 'NONE'
-              ? 'Không ăn'
-              : 'Chưa ghi';
-    const mealStatus: StatusLevel =
-      editMealOption === 'ALL'
-        ? 'good'
-        : editMealOption === 'NONE'
-          ? 'danger'
-          : editMealOption
-            ? 'warning'
-            : 'unrecorded';
-
-    const napLabel =
-      editNapOption === 'DEEP'
-        ? 'Ngủ đủ'
-        : editNapOption === 'RESTLESS'
-          ? 'Ngủ ít'
-          : editNapOption === 'REFUSED'
-            ? 'Khó ngủ'
-            : 'Chưa ghi';
-    const napStatus: StatusLevel =
-      editNapOption === 'DEEP'
-        ? 'good'
-        : editNapOption === 'REFUSED'
-          ? 'danger'
-          : editNapOption
-            ? 'warning'
-            : 'unrecorded';
-
-    let healthLabel = 'Chưa ghi';
-    let healthStatus: StatusLevel = 'unrecorded';
-    let isAlert = false;
-    let alertReason = '';
-
-    if (editHealthOption === 'NORMAL') {
-      healthLabel = 'Bình thường';
-      healthStatus = 'good';
-    } else if (editHealthOption === 'FEVER_HIGH') {
-      healthLabel = `Sốt cao (${editTemperature || '38.5'}°C)`;
-      healthStatus = 'danger';
-      isAlert = true;
-      alertReason = `Sốt cao ${editTemperature || '38.5'}°C - Cần y tế theo dõi`;
-    } else if (editHealthOption === 'FEVER_MILD') {
-      healthLabel = `Sốt nhẹ (${editTemperature || '37.8'}°C)`;
-      healthStatus = 'warning';
-      isAlert = true;
-      alertReason = `Sốt nhẹ ${editTemperature || '37.8'}°C`;
-    } else if (editHealthOption === 'TIRED') {
-      healthLabel = 'Mệt mỏi / Cảm';
-      healthStatus = 'warning';
-      isAlert = true;
-      alertReason = 'Bé mệt mỏi, cần theo dõi';
-    }
-
-    const hygieneLabel =
-      editHygieneOption === 'TOILET'
-        ? 'Tốt'
-        : editHygieneOption === 'DIAPER'
-          ? 'Đã thay tã'
-          : editHygieneOption === 'ABNORMAL'
-            ? 'Bất thường'
-            : 'Chưa ghi';
-    const hygieneStatus: StatusLevel =
-      editHygieneOption === 'TOILET'
-        ? 'good'
-        : editHygieneOption === 'ABNORMAL'
-          ? 'danger'
-          : editHygieneOption
-            ? 'warning'
-            : 'unrecorded';
-
-    const finalNote = editGeneralNote.trim() || (isAlert ? alertReason : hasAnySelection ? 'Bình thường' : 'Chưa ghi nhận');
-
-    // Optimistic UI update
-    setRoster((prev) =>
-      prev.map((s) =>
-        s.id === editingStudent.id
-          ? {
-              ...s,
-              mealStatus,
-              mealLabel,
-              mealOption: editMealOption,
-              mealNotes: editMealNotes,
-              napStatus,
-              napLabel,
-              napOption: editNapOption,
-              napNotes: editNapNotes,
-              healthStatus,
-              healthLabel,
-              healthOption: editHealthOption,
-              temperature: editTemperature,
-              hygieneStatus,
-              hygieneLabel,
-              hygieneOption: editHygieneOption,
-              hygieneNotes: editHygieneNotes,
-              note: finalNote,
-              isAlert,
-              alertReason,
-              hasCareRecord: hasAnySelection,
-            }
-          : s,
-      ),
-    );
-
-    // Persist to DB via unified save_care action
+    if (!editingStudent || isSavingCare || isSavingQuick) return;
+    setIsSavingCare(true); setSaveError(null); setToastMessage(null);
     try {
-      if (selectedCourseId && selectedDate) {
-        await fetch('/api/education/care/bulk', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            action: 'save_care',
-            courseId: selectedCourseId,
-            date: selectedDate,
-            data: {
-              records: [
-                {
-                  studentPartyId: editingStudent.id,
-                  meal: editMealOption ? { portion: editMealOption, notes: editMealNotes } : null,
-                  nap: editNapOption ? { quality: editNapOption, notes: editNapNotes } : null,
-                  health: editHealthOption
-                    ? {
-                        status: healthStatus,
-                        label: healthLabel,
-                        temperature: editTemperature || '36.8',
-                        isAlert,
-                        alertReason,
-                        notes: editHealthOption !== 'NORMAL' ? alertReason : '',
-                      }
-                    : null,
-                  hygiene: editHygieneOption
-                    ? {
-                        type: editHygieneOption === 'ABNORMAL' ? 'BOWEL_MOVEMENT' : editHygieneOption,
-                        notes: editHygieneNotes,
-                      }
-                    : null,
-                  note: finalNote,
-                },
-              ],
-            },
-          }),
-        });
-      }
+      await saveCareRecords(selectedCourseId, selectedDate, [{
+        studentPartyId: editingStudent.id,
+        meal: editMealOption ? { portion: editMealOption, notes: editMealNotes } : null,
+        nap: editNapOption ? { quality: editNapOption, notes: editNapNotes } : null,
+        hygiene: editHygieneOption ? { type: editHygieneOption === 'ABNORMAL' ? 'BOWEL_MOVEMENT' : editHygieneOption, notes: editHygieneNotes } : null,
+        note: editGeneralNote.trim(),
+      }]);
+      await loadRoster(selectedCourseId, selectedDate);
+      setEditingStudent(null); setSelectedStudentForDetail(null);
+      setToastMessage('Đã lưu nhật ký chăm sóc.');
     } catch {
-      // Optimistic state already committed; silently tolerate network error
-    } finally {
-      setIsSavingCare(false);
-      setEditingStudent(null);
-      setSelectedStudentForDetail(null);
-      setToastMessage(`Đã lưu nhật ký chăm sóc cho bé ${editingStudent.name} vào cơ sở dữ liệu!`);
-    }
+      setSaveError('Chưa xác nhận lưu đầy đủ. Tải lại dữ liệu trước khi thử lại.');
+    } finally { setIsSavingCare(false); }
   };
 
-  // ── Save quick record for selected / all students ─────────────────────────
   const handleSaveQuickRecord = async () => {
-    setIsSavingQuick(true);
-    const targetIds = selectedStudentIds.length > 0 ? selectedStudentIds : roster.map((s) => s.id);
-    if (targetIds.length === 0) {
-      setIsQuickRecordModalOpen(false);
-      setIsSavingQuick(false);
-      return;
-    }
-
-    const mealLabel = quickMeal === 'ALL' ? 'Ăn hết' : quickMeal === 'HALF' ? 'Ăn 1/2' : quickMeal === 'FEW' ? 'Ăn ít' : 'Không ăn';
-    const mealStatus: StatusLevel = quickMeal === 'ALL' ? 'good' : quickMeal === 'NONE' ? 'danger' : 'warning';
-
-    const napLabel = quickNap === 'DEEP' ? 'Ngủ đủ' : quickNap === 'RESTLESS' ? 'Ngủ ít' : 'Khó ngủ';
-    const napStatus: StatusLevel = quickNap === 'DEEP' ? 'good' : quickNap === 'REFUSED' ? 'danger' : 'warning';
-
-    let healthLabel = 'Bình thường';
-    let healthStatus: StatusLevel = 'good';
-    let isAlert = false;
-    let alertReason = '';
-
-    if (quickHealth === 'FEVER_HIGH') {
-      healthLabel = 'Sốt cao (>38°C)';
-      healthStatus = 'danger';
-      isAlert = true;
-      alertReason = 'Sốt cao (>38°C) - Cần theo dõi';
-    } else if (quickHealth === 'FEVER_MILD') {
-      healthLabel = 'Sốt nhẹ (37.8°C)';
-      healthStatus = 'warning';
-      isAlert = true;
-      alertReason = 'Sốt nhẹ (37.8°C)';
-    } else if (quickHealth === 'TIRED') {
-      healthLabel = 'Mệt mỏi';
-      healthStatus = 'warning';
-      isAlert = true;
-      alertReason = 'Bé mệt / có dấu hiệu cảm';
-    }
-
-    const hygieneLabel = quickHygiene === 'TOILET' ? 'Tốt' : quickHygiene === 'DIAPER' ? 'Đã thay tã' : 'Bất thường';
-    const hygieneStatus: StatusLevel = quickHygiene === 'TOILET' ? 'good' : quickHygiene === 'ABNORMAL' ? 'danger' : 'warning';
-    const finalNote = quickNote.trim() || (isAlert ? alertReason : 'Bình thường');
-
-    // Optimistic UI update
-    setRoster((prev) =>
-      prev.map((s) =>
-        targetIds.includes(s.id)
-          ? {
-              ...s,
-              mealStatus, mealLabel, mealOption: quickMeal,
-              napStatus, napLabel, napOption: quickNap,
-              healthStatus, healthLabel, healthOption: quickHealth,
-              hygieneStatus, hygieneLabel, hygieneOption: quickHygiene,
-              note: finalNote, isAlert, alertReason, hasCareRecord: true,
-            }
-          : s,
-      ),
-    );
-
-    // Persist ALL selected students in a single save_care call
+    if (isSavingQuick || isSavingCare) return;
+    setIsSavingQuick(true); setSaveError(null); setToastMessage(null);
+    const ids = selectedStudentIds.length ? selectedStudentIds : roster.map(student => student.id);
     try {
-      if (selectedCourseId && selectedDate && targetIds.length > 0) {
-        await fetch('/api/education/care/bulk', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            action: 'save_care',
-            courseId: selectedCourseId,
-            date: selectedDate,
-            data: {
-              records: targetIds.map((id) => ({
-                studentPartyId: id,
-                meal: { portion: quickMeal, notes: '' },
-                nap: { quality: quickNap, notes: '' },
-                health: {
-                  status: healthStatus,
-                  label: healthLabel,
-                  temperature: '36.8',
-                  isAlert,
-                  alertReason,
-                  notes: '',
-                },
-                hygiene: { type: quickHygiene === 'ABNORMAL' ? 'BOWEL_MOVEMENT' : quickHygiene, notes: '' },
-                note: finalNote,
-              })),
-            },
-          }),
-        });
-      }
+      await saveCareRecords(selectedCourseId, selectedDate, ids.map(studentPartyId => ({
+        studentPartyId, meal: { portion: quickMeal, notes: '' }, nap: { quality: quickNap, notes: '' },
+        hygiene: { type: quickHygiene === 'ABNORMAL' ? 'BOWEL_MOVEMENT' : quickHygiene, notes: '' }, note: quickNote.trim(),
+      })));
+      await loadRoster(selectedCourseId, selectedDate);
+      setIsQuickRecordModalOpen(false); setSelectedStudentIds([]);
+      setToastMessage(`Đã lưu chăm sóc cho ${ids.length} trẻ.`);
     } catch {
-      // Optimistic state already committed; silently tolerate
-    } finally {
-      setIsSavingQuick(false);
-      setIsQuickRecordModalOpen(false);
-      setSelectedStudentIds([]);
-      setToastMessage(`Đã lưu chăm sóc nhanh cho ${targetIds.length} trẻ vào cơ sở dữ liệu!`);
-    }
+      setSaveError('Chưa xác nhận lưu đầy đủ. Tải lại dữ liệu trước khi thử lại.');
+    } finally { setIsSavingQuick(false); }
   };
 
   if (!isPreschoolTenant) return <LegacyCareView />;
 
   // ── Date display (DD/MM/YYYY) ──────────────────────────────────────────────
   const dateDisplay = selectedDate.split('-').reverse().join('/');
+  const visibleError = courseError || rosterError || (!isQuickRecordModalOpen && !editingStudent ? saveError : null);
 
   return (
     <div className="w-full min-h-screen p-4 sm:p-6 lg:p-8 space-y-6 pb-40 sm:pb-56 bg-[#f8fafc]/50 dark:bg-slate-900/50">
 
+      {visibleError && <div role="alert" className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-800 dark:bg-rose-950 dark:text-rose-200">
+        {visibleError}
+        <button type="button" onClick={() => { setSaveError(null); void loadCourses(); if (selectedCourseId) void loadRoster(selectedCourseId, selectedDate).catch(() => {}); }} className="ml-3 underline">Tải lại dữ liệu</button>
+      </div>}
       {/* ── 1. TOP HEADER ── */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         {/* Left: Back button + Mint Heart Badge + Title & Subtitle */}
@@ -999,6 +679,8 @@ export default function CarePage() {
         <div className="flex items-center gap-2.5 flex-wrap sm:flex-nowrap">
           <div className="bg-white dark:bg-slate-800 border border-slate-200/90 dark:border-slate-700 rounded-xl px-3.5 py-2 text-xs shadow-2xs">
             <select
+              aria-label="Lớp chăm sóc"
+              disabled={isSavingCare || isSavingQuick}
               value={selectedCourseId}
               onChange={(e: ChangeEvent<HTMLSelectElement>) => setSelectedCourseId(e.target.value)}
               className="bg-transparent font-bold text-slate-800 dark:text-slate-200 outline-none cursor-pointer pr-1 text-xs"
@@ -1014,6 +696,7 @@ export default function CarePage() {
           <div className="flex items-center gap-2 bg-white dark:bg-slate-800 border border-slate-200/90 dark:border-slate-700 rounded-xl px-3.5 py-2 text-xs shadow-2xs">
             <input
               type="date"
+              disabled={isSavingCare || isSavingQuick}
               value={selectedDate}
               onChange={(e: ChangeEvent<HTMLInputElement>) => setSelectedDate(e.target.value)}
               className="bg-transparent font-bold text-slate-800 dark:text-slate-200 outline-none text-xs cursor-pointer"
@@ -1088,7 +771,6 @@ export default function CarePage() {
           { id: 'nap' as const, label: 'Giấc ngủ', icon: Moon },
           { id: 'health' as const, label: 'Sức khỏe', icon: Heart },
           { id: 'hygiene' as const, label: 'Vệ sinh', icon: Droplets },
-          { id: 'medication' as const, label: 'Thuốc', icon: Pill },
         ].map((tab) => {
           const isActive = activeTab === tab.id;
           const IconComponent = tab.icon;
@@ -1221,7 +903,8 @@ export default function CarePage() {
             {/* Quick Record CTA */}
             <button
               type="button"
-              onClick={() => setIsQuickRecordModalOpen(true)}
+              disabled={isSavingCare || isSavingQuick || !selectedCourseId || roster.length === 0 || isRosterLoading}
+              onClick={() => { setSaveError(null); setIsQuickRecordModalOpen(true); }}
               className="px-3.5 py-2 rounded-xl bg-[#0e5c43] hover:bg-[#0a4633] active:scale-95 text-white font-bold text-xs shadow-2xs transition-all flex items-center gap-1.5 cursor-pointer shrink-0"
             >
               <Plus className="w-3.5 h-3.5" />
@@ -1243,13 +926,11 @@ export default function CarePage() {
             {activeTab === 'nap'      && <Moon     className="w-4 h-4 shrink-0" />}
             {activeTab === 'health'   && <Heart    className="w-4 h-4 shrink-0" />}
             {activeTab === 'hygiene'  && <Droplets className="w-4 h-4 shrink-0" />}
-            {activeTab === 'medication' && <Pill   className="w-4 h-4 shrink-0" />}
             <span>
               {activeTab === 'meal'      && `Ăn uống — ${roster.filter(s => s.mealStatus === 'good').length}/${totalCount} trẻ ăn hết (${mealPct}%). Cột Ăn uống được đánh dấu nổi bật.`}
               {activeTab === 'nap'       && `Giấc ngủ — ${roster.filter(s => s.napStatus === 'good').length}/${totalCount} trẻ ngủ đủ giấc (${napPct}%). Cột Giấc ngủ được đánh dấu nổi bật.`}
               {activeTab === 'health'    && `Sức khỏe — ${roster.filter(s => s.healthStatus === 'good').length}/${totalCount} trẻ bình thường (${healthPct}%). ${alertCount > 0 ? alertCount + ' trẻ cần theo dõi.' : 'Không có dấu hiệu bất thường.'}`}
               {activeTab === 'hygiene'   && `Vệ sinh — ${roster.filter(s => s.hygieneStatus === 'good').length}/${totalCount} trẻ vệ sinh tốt (${hygienePct}%). Cột Vệ sinh được đánh dấu nổi bật.`}
-              {activeTab === 'medication' && 'Thuốc — Chưa có dữ liệu thuốc cho ngày hôm nay. Dùng nút Ghi nhận nhanh để cập nhật.'}
             </span>
           </div>
         )}
@@ -1292,7 +973,7 @@ export default function CarePage() {
                   ? (
                     <tr>
                       <td colSpan={9} className="py-10 text-center text-xs text-slate-400">
-                        {roster.length === 0 ? 'Chưa có dữ liệu điểm danh cho ngày này' : 'Không tìm thấy trẻ phù hợp'}
+                        {roster.length === 0 ? 'Chưa có dữ liệu chăm sóc trong phạm vi đã chọn' : 'Không tìm thấy trẻ phù hợp'}
                       </td>
                     </tr>
                   )
@@ -1574,42 +1255,9 @@ export default function CarePage() {
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-bold text-slate-900 dark:text-white">Hoạt động gần đây</h3>
-              <button
-                type="button"
-                className="text-xs font-bold text-[#0e5c43] dark:text-emerald-400 hover:underline flex items-center gap-1 cursor-pointer"
-              >
-                <span>Xem thêm</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </button>
             </div>
 
-            {/* Timeline List */}
-            <div className="space-y-3.5">
-              {RECENT_ACTIVITIES.map((activity) => (
-                <div key={activity.id} className="flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-xl bg-slate-50 dark:bg-slate-900 text-[#059669] flex items-center justify-center shrink-0 border border-slate-100">
-                    {activity.type === 'health' && <Heart className="w-3.5 h-3.5 text-rose-500" />}
-                    {activity.type === 'nap' && <Moon className="w-3.5 h-3.5 text-blue-500" />}
-                    {activity.type === 'meal' && <Utensils className="w-3.5 h-3.5 text-emerald-600" />}
-                    {activity.type === 'hygiene' && <Droplets className="w-3.5 h-3.5 text-sky-500" />}
-                  </div>
-
-                  <div className="flex-1 min-w-0 pt-0.5">
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="text-xs font-bold text-slate-900 dark:text-white truncate">
-                        {activity.title}
-                      </span>
-                      <span className="text-[11px] text-slate-400 shrink-0 font-medium">
-                        {activity.time}
-                      </span>
-                    </div>
-                    <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-                      {activity.description}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
+            <p className="text-xs text-slate-500 dark:text-slate-400">Lịch sử hoạt động chưa khả dụng.</p>
           </div>
         </div>
       </div>
@@ -1620,7 +1268,7 @@ export default function CarePage() {
       {/* ── 8. MODAL: GHI NHẬN NHANH (QUICK RECORD) ── */}
       {isQuickRecordModalOpen && (
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div role="dialog" aria-modal="true" aria-labelledby="care-quick-record-title" aria-describedby="care-draft-notice" className="w-full max-w-lg max-h-[calc(100dvh-2rem)] overflow-y-auto rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl p-6 sm:p-7 space-y-5 relative">
+          <fieldset disabled={isSavingQuick || isSavingCare} role="dialog" aria-modal="true" aria-labelledby="care-quick-record-title" aria-describedby="care-draft-notice" className="w-full max-w-lg max-h-[calc(100dvh-2rem)] overflow-y-auto rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl p-6 sm:p-7 space-y-5 relative">
             <button
               type="button"
               aria-label="Đóng ghi nhận nhanh"
@@ -1638,7 +1286,7 @@ export default function CarePage() {
                 Ghi Nhận Chăm Sóc Nhanh
               </h3>
               <p id="care-draft-notice" className="text-xs text-slate-500 dark:text-slate-400">
-                Cập nhật bữa ăn, giấc ngủ, tình trạng sức khỏe theo lớp hoặc các trẻ đã chọn
+                Cập nhật bữa ăn, giấc ngủ, vệ sinh và ghi chú theo lớp hoặc các trẻ đã chọn
               </p>
             </div>
 
@@ -1664,7 +1312,7 @@ export default function CarePage() {
                   )}
                 </div>
               </div>
-
+              {saveError && <p role="alert" className="text-rose-700 dark:text-rose-300">{saveError}</p>}
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label htmlFor="care-meal" className="font-bold text-slate-700 dark:text-slate-300 block mb-1.5">Bữa ăn</label>
@@ -1697,18 +1345,9 @@ export default function CarePage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
+                  <p id="care-health-held">Ghi nhận sức khỏe hiện chưa khả dụng. Dữ liệu lịch sử được giữ nguyên.</p>
                   <label htmlFor="care-health" className="font-bold text-slate-700 dark:text-slate-300 block mb-1.5">Thân nhiệt & Sức khỏe</label>
-                  <select
-                    id="care-health"
-                    value={quickHealth}
-                    onChange={(e) => setQuickHealth(e.target.value as 'NORMAL' | 'FEVER_MILD' | 'FEVER_HIGH' | 'TIRED')}
-                    className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 font-medium text-slate-800 dark:text-slate-200 outline-none focus:ring-2 focus:ring-[#0e5c43]"
-                  >
-                    <option value="NORMAL">Bình thường (36.5°C - 37°C)</option>
-                    <option value="FEVER_MILD">Sốt nhẹ (37.5°C - 38°C)</option>
-                    <option value="FEVER_HIGH">Sốt cao (&gt;38°C - Báo y tế)</option>
-                    <option value="TIRED">Mệt mỏi / Cảm cúm</option>
-                  </select>
+                  <input id="care-health" disabled readOnly value="Chưa khả dụng" aria-describedby="care-health-held" className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800" />
                 </div>
                 <div>
                   <label htmlFor="care-hygiene" className="font-bold text-slate-700 dark:text-slate-300 block mb-1.5">Vệ sinh cá nhân</label>
@@ -1764,7 +1403,7 @@ export default function CarePage() {
                 <span>{isSavingQuick ? 'Đang lưu...' : 'Lưu Ghi Nhận'}</span>
               </button>
             </div>
-          </div>
+          </fieldset>
         </div>
       )}
 
@@ -1837,7 +1476,7 @@ export default function CarePage() {
       {/* ── 10. MODAL: CHỈNH SỬA NỘI DUNG CHĂM SÓC CHO TỪNG BÉ (DEDICATED EDIT) ── */}
       {editingStudent && (
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className="w-full max-w-xl rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl p-6 sm:p-7 space-y-5 relative max-h-[92vh] overflow-y-auto">
+          <fieldset disabled={isSavingQuick || isSavingCare} role="dialog" aria-modal="true" aria-label="Chỉnh sửa chăm sóc" className="w-full max-w-xl rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl p-6 sm:p-7 space-y-5 relative max-h-[92vh] overflow-y-auto">
             <button
               type="button"
               onClick={() => setEditingStudent(null)}
@@ -1937,65 +1576,12 @@ export default function CarePage() {
                 />
               </div>
 
-              {/* 3. Thân nhiệt & Sức khỏe */}
-              <div className="p-3.5 rounded-xl bg-slate-50/80 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-700/60 space-y-2.5">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-slate-900 dark:text-white font-bold">
-                    <Heart className="w-4 h-4 text-rose-500" />
-                    <span>3. Thân nhiệt & Sức khỏe</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <Thermometer className="w-3.5 h-3.5 text-slate-400" />
-                    <span className="text-[11px] text-slate-500">Nhiệt độ:</span>
-                    <input
-                      type="number"
-                      step="0.1"
-                      min="35"
-                      max="41"
-                      value={editTemperature}
-                      placeholder="--.-"
-                      onChange={(e) => setEditTemperature(e.target.value)}
-                      className="w-16 px-2 py-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 font-bold text-xs text-center"
-                    />
-                    <span className="text-xs font-bold text-slate-500">°C</span>
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                  {[
-                    { key: 'NORMAL' as const, label: 'Bình thường', desc: '36.5 - 37.2°C', activeClass: 'bg-emerald-600 text-white border-emerald-600' },
-                    { key: 'FEVER_MILD' as const, label: 'Sốt nhẹ', desc: '37.5 - 38.0°C', activeClass: 'bg-amber-500 text-white border-amber-500' },
-                    { key: 'FEVER_HIGH' as const, label: 'Sốt cao', desc: '>38.0°C (Cảnh báo)', activeClass: 'bg-rose-500 text-white border-rose-500' },
-                    { key: 'TIRED' as const, label: 'Mệt mỏi / Cảm', desc: 'Có biểu hiện ốm', activeClass: 'bg-purple-600 text-white border-purple-600' },
-                  ].map((opt) => (
-                    <button
-                      key={opt.key}
-                      type="button"
-                      onClick={() => {
-                        setEditHealthOption((curr) => {
-                          if (curr === opt.key) {
-                            setEditTemperature('');
-                            return null;
-                          }
-                          if (opt.key === 'NORMAL') setEditTemperature('36.8');
-                          else if (opt.key === 'FEVER_MILD') setEditTemperature('37.8');
-                          else if (opt.key === 'FEVER_HIGH') setEditTemperature('38.5');
-                          else if (opt.key === 'TIRED') setEditTemperature('37.0');
-                          return opt.key;
-                        });
-                      }}
-                      className={`p-2.5 rounded-xl border text-center transition-all cursor-pointer ${
-                        editHealthOption === opt.key
-                          ? opt.activeClass + ' font-bold shadow-xs'
-                          : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50'
-                      }`}
-                    >
-                      <div className="font-bold text-xs">{opt.label}</div>
-                      <div className="text-[10px] opacity-80 mt-0.5">{opt.desc}</div>
-                    </button>
-                  ))}
-                </div>
+              <div className="p-3.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs text-slate-600 dark:text-slate-300">
+                <p className="font-bold">Sức khỏe: {editingStudent.healthLabel}</p>
+                <p>Ghi nhận sức khỏe hiện chưa khả dụng. Dữ liệu lịch sử được giữ nguyên.</p>
               </div>
 
+              {saveError && <p role="alert" className="text-rose-700 dark:text-rose-300">{saveError}</p>}
               {/* 4. Vệ sinh cá nhân */}
               <div className="p-3.5 rounded-xl bg-slate-50/80 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-700/60 space-y-2">
                 <div className="flex items-center gap-2 text-slate-900 dark:text-white font-bold">
@@ -2066,7 +1652,7 @@ export default function CarePage() {
                 <span>{isSavingCare ? 'Đang lưu...' : 'Lưu Thay Đổi'}</span>
               </button>
             </div>
-          </div>
+          </fieldset>
         </div>
       )}
 

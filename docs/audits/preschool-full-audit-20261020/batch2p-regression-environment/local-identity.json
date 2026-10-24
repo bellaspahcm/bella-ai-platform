@@ -1,0 +1,19 @@
+{
+  "capturedAt": "2026-10-21T04:44:43.190Z",
+  "result": "PASS_EMPTY_OWNED_LOCAL_SANDBOX",
+  "project": "bella-preschool-regression-20261021",
+  "containerId": "6c21d5c1d28cd1f4241dfdd0c4b8e6657ee449da337c9ecff7ad34325541c59a",
+  "identity": {
+    "database": "postgres",
+    "version_num": 170006
+  },
+  "apiOrigin": "http://127.0.0.1:24431",
+  "databaseHost": "127.0.0.1",
+  "databasePort": 24432,
+  "publicTables": [],
+  "automaticMigrations": false,
+  "automaticSeed": false,
+  "remoteProjectLinked": false,
+  "mutations": 0,
+  "credentialsPersisted": false
+}

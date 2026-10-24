@@ -1,0 +1,51 @@
+{
+  "result": "PASS_OFFLINE_CONTROLLER_GUARDS",
+  "networkCalls": 0,
+  "mutations": 0,
+  "cases": [
+    {
+      "name": "REJECT_.env",
+      "result": "PASS"
+    },
+    {
+      "name": "REJECT_.env.local",
+      "result": "PASS"
+    },
+    {
+      "name": "REJECT_.env.production",
+      "result": "PASS"
+    },
+    {
+      "name": "REJECT_.env.production.local",
+      "result": "PASS"
+    },
+    {
+      "name": "VALID_CARE_HEADERS",
+      "result": "PASS"
+    },
+    {
+      "name": "COLLECTION_FAILURE_CANNOT_PASS",
+      "result": "PASS"
+    },
+    {
+      "name": "MISSING_PRIVATE",
+      "result": "PASS"
+    },
+    {
+      "name": "MISSING_NO_STORE",
+      "result": "PASS"
+    },
+    {
+      "name": "NO_CLASSES_RESPONSE",
+      "result": "PASS"
+    },
+    {
+      "name": "NO_CARE_RESPONSE",
+      "result": "PASS"
+    },
+    {
+      "name": "LITERAL_CACHE_CONTRACT_REQUIRED",
+      "result": "PASS"
+    }
+  ]
+}

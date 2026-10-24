@@ -1,0 +1,341 @@
+{
+  "baseline": "6b031511f",
+  "createdAt": "2026-10-21T03:39:42.685Z",
+  "files": [
+    {
+      "path": "src/app/dashboard/education/care/page.tsx",
+      "bytes": 89970,
+      "sha256": "830409f92fd1dce9e4d04bb9bea678deaaafe80f867f43e7d1bda941742e07e6"
+    },
+    {
+      "path": ".cache/tsbuildinfo/education.diagnostics.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/audits/preschool-full-audit-20261020/batch2n-care-browser/ACR_COURSE_CATALOG_READ.md",
+      "bytes": 5683,
+      "sha256": "e9bd8385189e50602358779a7a091bf7ed2efed3b85afbcea31b6a05fc9f289a"
+    },
+    {
+      "path": "docs/audits/preschool-full-audit-20261020/batch2n-care-browser/OWNER_DECISION.md",
+      "bytes": 2526,
+      "sha256": "dfd4a955ffcd875d6ed73c6892eec770e8fdee64552279ed404d16030e2ded9c"
+    },
+    {
+      "path": "docs/audits/preschool-full-audit-20261020/batch2n-care-browser/PROPOSED_PROXY_PRIVATE.patch",
+      "bytes": 1752,
+      "sha256": "2b971406c6f0523ac98e5b9b7c393f4060ab391e0de866ca1f1d289c41ff4ce9"
+    },
+    {
+      "path": "docs/audits/preschool-full-audit-20261020/batch2n-care-browser/RUN_BROWSER.ps1",
+      "bytes": 939,
+      "sha256": "9b8daa92ccb4a44f35c6882158d536cbd7e1e45ad8320e809367f4e23880c55f"
+    },
+    {
+      "path": "docs/audits/preschool-full-audit-20261020/batch2n-care-browser/SPEC.md",
+      "bytes": 6299,
+      "sha256": "46703a02818f81a1f14aac5f257b420223b7b61dfd3c47b394f1451b77e006b3"
+    },
+    {
+      "path": "docs/audits/preschool-full-audit-20261020/batch2n-care-browser/browser-results-2026-10-21T03-07-31-288Z.json",
+      "bytes": 2050,
+      "sha256": "da702e9c042c14805170ca76df1ff049f840631d3d7115b56e6384fec96c6512"
+    },
+    {
+      "path": "docs/audits/preschool-full-audit-20261020/batch2n-care-browser/browser-results-2026-10-21T03-13-54-422Z.json",
+      "bytes": 77411,
+      "sha256": "17d6ac395eb4746c8529f00197c922e1eb8984d019f526506b121934959d3af4"
+    },
+    {
+      "path": "docs/audits/preschool-full-audit-20261020/batch2n-care-browser/browser-results-2026-10-21T03-17-56-557Z.json",
+      "bytes": 78141,
+      "sha256": "c4d70dc19b17e7e5edd6aec845f76e0696db39bccbfb3acfb40f0d61960ba1d1"
+    },
+    {
+      "path": "docs/audits/preschool-full-audit-20261020/batch2n-care-browser/browser-results-2026-10-21T03-24-49-085Z.json",
+      "bytes": 78675,
+      "sha256": "b8be8dbb33400468011c4def99f278e6ab8a67fed869dec9c5208e945d48f1ff"
+    },
+    {
+      "path": "docs/audits/preschool-full-audit-20261020/batch2n-care-browser/build-2026-10-21T03-07-31-288Z.log",
+      "bytes": 32266,
+      "sha256": "cd24c2959a12a8e36e1d71b87a9d13f0b4ef32a2e55fc3581d96c2cb931aba3c"
+    },
+    {
+      "path": "docs/audits/preschool-full-audit-20261020/batch2n-care-browser/build-2026-10-21T03-13-54-422Z.log",
+      "bytes": 31596,
+      "sha256": "e7aed23db3d4d8e506db346c4315849a4d67d7d44b7776413fce232d31790517"
+    },
+    {
+      "path": "docs/audits/preschool-full-audit-20261020/batch2n-care-browser/build-run-20261021T033804288Z.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/audits/preschool-full-audit-20261020/batch2n-care-browser/build-run-20261021T033804288Z.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/audits/preschool-full-audit-20261020/batch2n-care-browser/care-rls-progress-2026-10-21T03-13-54-427Z.json",
+      "bytes": 3797,
+      "sha256": "c68053685822c64fc41f88f352f00dfda0feb47b46b2020e738276cf01c7915a"
+    },
+    {
+      "path": "docs/audits/preschool-full-audit-20261020/batch2n-care-browser/care-rls-progress-2026-10-21T03-17-56-561Z.json",
+      "bytes": 3797,
+      "sha256": "9ab1882d11bcc9cb26c183b2abde2cc9ed8e495abce34e6f4628444ab0679778"
+    },
+    {
+      "path": "docs/audits/preschool-full-audit-20261020/batch2n-care-browser/care-rls-progress-2026-10-21T03-24-49-089Z.json",
+      "bytes": 3797,
+      "sha256": "c13369a6b8ce2b94c8dc92ca8493ca445e4bae428b6f719e11424fff8ca8803e"
+    },
+    {
+      "path": "docs/audits/preschool-full-audit-20261020/batch2n-care-browser/course-catalog-exit-attempt2.json",
+      "bytes": 125,
+      "sha256": "47a94ecc109510b8f614e379c976db899ff495114e8b3818358b914b064cf322"
+    },
+    {
+      "path": "docs/audits/preschool-full-audit-20261020/batch2n-care-browser/course-catalog-exit.json",
+      "bytes": 109,
+      "sha256": "8a8524af361362f80aeccaace2e7dd84ad0799a3d56ae59d356bff54dcb4cc99"
+    },
+    {
+      "path": "docs/audits/preschool-full-audit-20261020/batch2n-care-browser/course-prerequisite-catalog.json",
+      "bytes": 2609,
+      "sha256": "a83f8bc75573d4ce7aed2305ca78ab7bb696442dc6360dbc80e3b8ab1d5ba02e"
+    },
+    {
+      "path": "docs/audits/preschool-full-audit-20261020/batch2n-care-browser/education-verify-exit.json",
+      "bytes": 159,
+      "sha256": "14c24961e374cc5fc7d0788ac669f19d34899b0522add651f03135349f7f931d"
+    },
+    {
+      "path": "docs/audits/preschool-full-audit-20261020/batch2n-care-browser/education-verify.log",
+      "bytes": 43688,
+      "sha256": "f9a5cb2b67e2f7c1bbc0c87ce49f4d81e7d01c7a0dfac04f5bc64b856647cf08"
+    },
+    {
+      "path": "docs/audits/preschool-full-audit-20261020/batch2n-care-browser/execution-exit-20261021T031354345Z.json",
+      "bytes": 157,
+      "sha256": "7a66bf4b4c8669ab1ddf6983e684dd5be339cbbd798867e158f5e46fc863625e"
+    },
+    {
+      "path": "docs/audits/preschool-full-audit-20261020/batch2n-care-browser/execution-exit-20261021T031756472Z.json",
+      "bytes": 157,
+      "sha256": "537619ae84f9f6e65da86276b3139bec6c8e5440c4948a99bb7b63125d0ff60d"
+    },
+    {
+      "path": "docs/audits/preschool-full-audit-20261020/batch2n-care-browser/execution-exit-20261021T032449005Z.json",
+      "bytes": 157,
+      "sha256": "83ce3968ede627c91f8fba97492dc3b0b211e983126f676b101f3e3e6fc121fb"
+    },
+    {
+      "path": "docs/audits/preschool-full-audit-20261020/batch2n-care-browser/focused-complete-exit.json",
+      "bytes": 182,
+      "sha256": "52efc024b69ad44f63343533f165506e0fbe41b3aef9076b0c495ef415f93c77"
+    },
+    {
+      "path": "docs/audits/preschool-full-audit-20261020/batch2n-care-browser/focused-complete.json",
+      "bytes": 37567,
+      "sha256": "260a258fdcf008093aa77b377fb216eb653676b547e339da600c462d4154ea63"
+    },
+    {
+      "path": "docs/audits/preschool-full-audit-20261020/batch2n-care-browser/focused-complete.log",
+      "bytes": 529,
+      "sha256": "860b790f00634988e817dab3af01ec1da9d2179b2a777a0957ffcc8f2201c9d2"
+    },
+    {
+      "path": "docs/audits/preschool-full-audit-20261020/batch2n-care-browser/focused-final-exit.json",
+      "bytes": 84,
+      "sha256": "7c65abf96b1675fbaf4518e352765067cf91d54d9e4023616d2cf867f6f629a1"
+    },
+    {
+      "path": "docs/audits/preschool-full-audit-20261020/batch2n-care-browser/focused-final.json",
+      "bytes": 35438,
+      "sha256": "a28ccb14db99148e5d7d173d191c6e76757069f55cdc0b8a9112246c51afbb2f"
+    },
+    {
+      "path": "docs/audits/preschool-full-audit-20261020/batch2n-care-browser/focused-final.log",
+      "bytes": 533,
+      "sha256": "2562501ad4944285adc48db25088e9d027eb329fda1870055857161438806f8e"
+    },
+    {
+      "path": "docs/audits/preschool-full-audit-20261020/batch2n-care-browser/focused-tests-exit.json",
+      "bytes": 178,
+      "sha256": "0284306de1764327ff5012b8a5fe567a89232c3d46b2d8985ea220747bc7de43"
+    },
+    {
+      "path": "docs/audits/preschool-full-audit-20261020/batch2n-care-browser/focused-tests.json",
+      "bytes": 34914,
+      "sha256": "d08116e418b392f268bb02c3084bbba88bf9aaca2100eca8737803b115b3dd3e"
+    },
+    {
+      "path": "docs/audits/preschool-full-audit-20261020/batch2n-care-browser/harness-executed-9ab049b3ee292b7e33d774e2b0b6ff9e7f754c79501ac7a90b5405b987cf33bf.cjs.txt",
+      "bytes": 14833,
+      "sha256": "9ab049b3ee292b7e33d774e2b0b6ff9e7f754c79501ac7a90b5405b987cf33bf"
+    },
+    {
+      "path": "docs/audits/preschool-full-audit-20261020/batch2n-care-browser/harness-executed-a8f7452455317c557dc7aaf204659cc7764c81c8ac62e29ebc74731a51602f2a.cjs.txt",
+      "bytes": 16081,
+      "sha256": "a8f7452455317c557dc7aaf204659cc7764c81c8ac62e29ebc74731a51602f2a"
+    },
+    {
+      "path": "docs/audits/preschool-full-audit-20261020/batch2n-care-browser/harness-executed-bbfed03c9fb089149e84cc8af5e6acef1f1449e6442f3737400b3f6d82e0aee0.cjs.txt",
+      "bytes": 18110,
+      "sha256": "bbfed03c9fb089149e84cc8af5e6acef1f1449e6442f3737400b3f6d82e0aee0"
+    },
+    {
+      "path": "docs/audits/preschool-full-audit-20261020/batch2n-care-browser/healthcare-guard-exit.json",
+      "bytes": 126,
+      "sha256": "1273656e7d81d43a4defbb0bfcbf27ed3caa05b4058f903b60ec487c3c92de58"
+    },
+    {
+      "path": "docs/audits/preschool-full-audit-20261020/batch2n-care-browser/healthcare-guard.log",
+      "bytes": 474,
+      "sha256": "4b9e0bb3e5e85a5f66d6de2e649bff06ec3c2949c3f7862cd78f83b08b3cbcfb"
+    },
+    {
+      "path": "docs/audits/preschool-full-audit-20261020/batch2n-care-browser/healthcare-verify-exit.json",
+      "bytes": 160,
+      "sha256": "8a489fff8d23595a5582bdabf9b3a2cbe66706450df258b0d9c1cfdaea03fde5"
+    },
+    {
+      "path": "docs/audits/preschool-full-audit-20261020/batch2n-care-browser/healthcare-verify.log",
+      "bytes": 406095,
+      "sha256": "d0fd45bc65d36ab67b316474c4fd180efd511e9db27c382307e831e88477f162"
+    },
+    {
+      "path": "docs/audits/preschool-full-audit-20261020/batch2n-care-browser/inspect-course-prerequisites.cjs",
+      "bytes": 2701,
+      "sha256": "45c8d419aeddfa7026ffcdc0747e2978f92fc291615a4c1bf8c8e7befdd3ad76"
+    },
+    {
+      "path": "docs/audits/preschool-full-audit-20261020/batch2n-care-browser/lint-complete-exit.json",
+      "bytes": 84,
+      "sha256": "e01437e6133dfb06889b7443da1b678c4159eee97b7b0ccb0c8645949f6db25a"
+    },
+    {
+      "path": "docs/audits/preschool-full-audit-20261020/batch2n-care-browser/lint-complete.json",
+      "bytes": 1301,
+      "sha256": "797867507b7793a1b18a005a3fa9072d34b8725de8b28bea5a5460eba85ec03d"
+    },
+    {
+      "path": "docs/audits/preschool-full-audit-20261020/batch2n-care-browser/lint-final.json",
+      "bytes": 636,
+      "sha256": "9e37480433dfb82d4b734fa146269c2b611456d5151277f4ad0874adaa44d36f"
+    },
+    {
+      "path": "docs/audits/preschool-full-audit-20261020/batch2n-care-browser/lint-initial.json",
+      "bytes": 636,
+      "sha256": "9e37480433dfb82d4b734fa146269c2b611456d5151277f4ad0874adaa44d36f"
+    },
+    {
+      "path": "docs/audits/preschool-full-audit-20261020/batch2n-care-browser/proxy-proposal-test-exit.json",
+      "bytes": 105,
+      "sha256": "66f1657523822513526be749e6fc6d33055c17c766260b6f26bf59dfded22737"
+    },
+    {
+      "path": "docs/audits/preschool-full-audit-20261020/batch2n-care-browser/proxy-proposal-tests.json",
+      "bytes": 6678,
+      "sha256": "df9336693c84ef1200dc067154cae6903a4905fec9400d0338985c8844a89af5"
+    },
+    {
+      "path": "docs/audits/preschool-full-audit-20261020/batch2n-care-browser/run-20261021T031353835Z.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/audits/preschool-full-audit-20261020/batch2n-care-browser/run-20261021T031353835Z.stdout.log",
+      "bytes": 428,
+      "sha256": "a51c5c97b2bc7d4b97dbce28550d9fe9091ab2aa6ca6045e6a492796568c5eaa"
+    },
+    {
+      "path": "docs/audits/preschool-full-audit-20261020/batch2n-care-browser/run-20261021T031755969Z.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/audits/preschool-full-audit-20261020/batch2n-care-browser/run-20261021T031755969Z.stdout.log",
+      "bytes": 619,
+      "sha256": "0a451060d5043d6818746419694f8387da216805ee849474a00954bbf8df0f94"
+    },
+    {
+      "path": "docs/audits/preschool-full-audit-20261020/batch2n-care-browser/run-20261021T032448490Z.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/audits/preschool-full-audit-20261020/batch2n-care-browser/run-20261021T032448490Z.stdout.log",
+      "bytes": 674,
+      "sha256": "b37716855618eec008ca90d4b768f68ee2561afc61ef971e41861649707d37c3"
+    },
+    {
+      "path": "docs/audits/preschool-full-audit-20261020/batch2n-care-browser/typecheck-education-exit.json",
+      "bytes": 174,
+      "sha256": "bc2de3a93972348d00b98fa3e6e35591a403e1cb0d25469b8e8e11853747e5c4"
+    },
+    {
+      "path": "docs/audits/preschool-full-audit-20261020/batch2n-care-browser/typecheck-education.log",
+      "bytes": 307,
+      "sha256": "dfb2d2e011a7be481c91ded2280c1ebb34fdb18e2558ebb439019689fe7445d0"
+    },
+    {
+      "path": "docs/audits/preschool-full-audit-20261020/batch2n-care-browser/ui-tests-attempt1-exit.json",
+      "bytes": 84,
+      "sha256": "4bf0796558c5b1acacadfaa7c043d7713672c729474939375d27f78619a74b96"
+    },
+    {
+      "path": "docs/audits/preschool-full-audit-20261020/batch2n-care-browser/ui-tests-attempt1.json",
+      "bytes": 99509,
+      "sha256": "93b051be0442e4d5a0dfbd1f3c36bd7e207c35501db81796719c7d96208f47a3"
+    },
+    {
+      "path": "docs/audits/preschool-full-audit-20261020/batch2n-care-browser/ui-tests-attempt1.log",
+      "bytes": 31310,
+      "sha256": "f01ff67c4157a235f6d6a941611e7d86fa98bfdb65a0fcd48992d1c573e56dfd"
+    },
+    {
+      "path": "docs/audits/preschool-full-audit-20261020/batch2n-care-browser/ui-tests-attempt2-exit.json",
+      "bytes": 84,
+      "sha256": "7df6e9de8708b9a0641a83b9b2d91ebb8f0b16d80b4684bea33493227aae92d2"
+    },
+    {
+      "path": "docs/audits/preschool-full-audit-20261020/batch2n-care-browser/ui-tests-attempt2.json",
+      "bytes": 106159,
+      "sha256": "4e0f460ca4118d3651296033bd7057284b073307a17d852a718bab870b83ec4e"
+    },
+    {
+      "path": "docs/audits/preschool-full-audit-20261020/batch2n-care-browser/ui-tests-attempt2.log",
+      "bytes": 32745,
+      "sha256": "df2a305f92217433540f45c5c94841a126ea77546f664339c5bc1c1610780102"
+    },
+    {
+      "path": "docs/audits/preschool-full-audit-20261020/batch2n-care-browser/verify-proposed-proxy-header.cjs",
+      "bytes": 4551,
+      "sha256": "e6a2a678660dde0811f0eff8f154fe63f26fc48b55ca3079870cff5a9a204c42"
+    },
+    {
+      "path": "scripts/verify-preschool-care-browser-e2e.cjs",
+      "bytes": 18170,
+      "sha256": "367a6a8ef8376590b0acd2913bf3110b87135dacbb9821485b38437544b8380d"
+    },
+    {
+      "path": "src/app/dashboard/education/care/__tests__/care-save.test.ts",
+      "bytes": 2013,
+      "sha256": "c65bbd6b6bfa5590db0d0b2092990ef21a839ac0861e89a56a65bd402ab84fe8"
+    },
+    {
+      "path": "src/app/dashboard/education/care/__tests__/page.test.tsx",
+      "bytes": 5483,
+      "sha256": "86af626bddf0f32be732355d00837076e6fe959343b8d58643b4263dcfe45dc1"
+    },
+    {
+      "path": "src/app/dashboard/education/care/care-save.ts",
+      "bytes": 1379,
+      "sha256": "e9cd8d4a5646092bdd086c38e6aafd978cf07788f2cabb55dd8b88876e2a897b"
+    }
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "projectRef": "bmnbqbcdbuklhopfbopv",
+  "purpose": "Exact synthetic identities for previously approved four-Party cleanup; no credentials or business payload",
+  "sourcePriorRun": "2026-10-21T00:14:48.530Z",
+  "tenantIds": [
+    "7779217f-ced9-43c1-9802-e613f006debe",
+    "fa786ac1-4abb-4fea-b170-bd1051ea9212"
+  ],
+  "parties": [
+    {
+      "id": "ddf6b44d-11e7-4542-bc58-a054082bdbf2",
+      "tenantId": "7779217f-ced9-43c1-9802-e613f006debe",
+      "createdAt": "2026-10-21T00:15:14.243Z"
+    },
+    {
+      "id": "f94a6038-85be-462e-b012-1304cd133d07",
+      "tenantId": "7779217f-ced9-43c1-9802-e613f006debe",
+      "createdAt": "2026-10-21T00:15:14.243Z"
+    },
+    {
+      "id": "091e448e-45ef-4df1-8b43-edeeb560997a",
+      "tenantId": "fa786ac1-4abb-4fea-b170-bd1051ea9212",
+      "createdAt": "2026-10-21T00:15:14.243Z"
+    },
+    {
+      "id": "7769dd15-add2-4786-bf84-2b34108ff15b",
+      "tenantId": "fa786ac1-4abb-4fea-b170-bd1051ea9212",
+      "createdAt": "2026-10-21T00:15:14.243Z"
+    }
+  ]
+}

@@ -1,0 +1,6 @@
+{
+  "capturedAt": "2026-10-21T04:26:08.846Z",
+  "result": "PASS_PATTERNS_ONLY",
+  "findings": [],
+  "limitations": "Pattern scan is not universal secret/sensitive-data proof; producer evidence omits credentials and business-row payloads."
+}

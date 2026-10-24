@@ -1,0 +1,5 @@
+{
+  "command": "CI_SCOPE_AFFECTED_PRODUCTS=education_preschool npm run typecheck:changed",
+  "actualNativeExitCode": 0,
+  "finishedAt": "2026-10-21T03:37:15.6403842Z"
+}

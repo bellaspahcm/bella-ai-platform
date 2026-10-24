@@ -1,0 +1,34 @@
+{
+  "checkedAt": "2026-10-20T23:24:52.765Z",
+  "readOnly": true,
+  "triggers": [
+    {
+      "relname": "tenants",
+      "tgname": "audit_tenants_changes",
+      "definition": "CREATE TRIGGER audit_tenants_changes AFTER INSERT OR DELETE OR UPDATE ON public.tenants FOR EACH ROW EXECUTE FUNCTION log_audit_event()",
+      "function_definition": "CREATE OR REPLACE FUNCTION public.log_audit_event()\n RETURNS trigger\n LANGUAGE plpgsql\n SECURITY DEFINER\nAS $function$\nDECLARE\n    current_user_id UUID;\n    record_tenant_id UUID;\nBEGIN\n    BEGIN\n        current_user_id := auth.uid();\n    EXCEPTION WHEN OTHERS THEN\n        current_user_id := NULL;\n    END;\n    \n    BEGIN\n        IF TG_TABLE_NAME = 'tenants' THEN\n            IF TG_OP = 'DELETE' THEN\n                record_tenant_id := OLD.id;\n            ELSE\n                record_tenant_id := NEW.id;\n            END IF;\n        ELSE\n            IF TG_OP = 'DELETE' THEN\n                record_tenant_id := OLD.tenant_id;\n            ELSE\n                record_tenant_id := NEW.tenant_id;\n            END IF;\n        END IF;\n    EXCEPTION WHEN OTHERS THEN\n        record_tenant_id := NULL;\n    END;\n\n    BEGIN\n        INSERT INTO public.audit_logs (\n            tenant_id,\n            table_name,\n            record_id,\n            action,\n            old_data,\n            new_data,\n            changed_by_id\n        ) VALUES (\n            record_tenant_id,\n            TG_TABLE_NAME,\n            COALESCE(NEW.id, OLD.id),\n            TG_OP,\n            CASE WHEN TG_OP IN ('UPDATE', 'DELETE') THEN row_to_json(OLD)::jsonb ELSE NULL END,\n            CASE WHEN TG_OP IN ('INSERT', 'UPDATE') THEN row_to_json(NEW)::jsonb ELSE NULL END,\n            current_user_id\n        );\n    EXCEPTION WHEN OTHERS THEN\n        RAISE WARNING 'audit_log_event failed for table % op %: %', TG_TABLE_NAME, TG_OP, SQLERRM;\n    END;\n\n    IF TG_OP = 'DELETE' THEN\n        RETURN OLD;\n    ELSE\n        RETURN NEW;\n    END IF;\nEND;\n$function$\n"
+    },
+    {
+      "relname": "tenants",
+      "tgname": "update_tenants_updated_at",
+      "definition": "CREATE TRIGGER update_tenants_updated_at BEFORE UPDATE ON public.tenants FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()",
+      "function_definition": "CREATE OR REPLACE FUNCTION public.update_updated_at_column()\n RETURNS trigger\n LANGUAGE plpgsql\nAS $function$\nBEGIN\n  NEW.updated_at = now();\n  RETURN NEW;\nEND;\n$function$\n"
+    },
+    {
+      "relname": "users",
+      "tgname": "audit_users_changes",
+      "definition": "CREATE TRIGGER audit_users_changes AFTER INSERT OR DELETE OR UPDATE ON public.users FOR EACH ROW EXECUTE FUNCTION log_audit_event()",
+      "function_definition": "CREATE OR REPLACE FUNCTION public.log_audit_event()\n RETURNS trigger\n LANGUAGE plpgsql\n SECURITY DEFINER\nAS $function$\nDECLARE\n    current_user_id UUID;\n    record_tenant_id UUID;\nBEGIN\n    BEGIN\n        current_user_id := auth.uid();\n    EXCEPTION WHEN OTHERS THEN\n        current_user_id := NULL;\n    END;\n    \n    BEGIN\n        IF TG_TABLE_NAME = 'tenants' THEN\n            IF TG_OP = 'DELETE' THEN\n                record_tenant_id := OLD.id;\n            ELSE\n                record_tenant_id := NEW.id;\n            END IF;\n        ELSE\n            IF TG_OP = 'DELETE' THEN\n                record_tenant_id := OLD.tenant_id;\n            ELSE\n                record_tenant_id := NEW.tenant_id;\n            END IF;\n        END IF;\n    EXCEPTION WHEN OTHERS THEN\n        record_tenant_id := NULL;\n    END;\n\n    BEGIN\n        INSERT INTO public.audit_logs (\n            tenant_id,\n            table_name,\n            record_id,\n            action,\n            old_data,\n            new_data,\n            changed_by_id\n        ) VALUES (\n            record_tenant_id,\n            TG_TABLE_NAME,\n            COALESCE(NEW.id, OLD.id),\n            TG_OP,\n            CASE WHEN TG_OP IN ('UPDATE', 'DELETE') THEN row_to_json(OLD)::jsonb ELSE NULL END,\n            CASE WHEN TG_OP IN ('INSERT', 'UPDATE') THEN row_to_json(NEW)::jsonb ELSE NULL END,\n            current_user_id\n        );\n    EXCEPTION WHEN OTHERS THEN\n        RAISE WARNING 'audit_log_event failed for table % op %: %', TG_TABLE_NAME, TG_OP, SQLERRM;\n    END;\n\n    IF TG_OP = 'DELETE' THEN\n        RETURN OLD;\n    ELSE\n        RETURN NEW;\n    END IF;\nEND;\n$function$\n"
+    },
+    {
+      "relname": "users",
+      "tgname": "update_users_updated_at",
+      "definition": "CREATE TRIGGER update_users_updated_at BEFORE UPDATE ON public.users FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()",
+      "function_definition": "CREATE OR REPLACE FUNCTION public.update_updated_at_column()\n RETURNS trigger\n LANGUAGE plpgsql\nAS $function$\nBEGIN\n  NEW.updated_at = now();\n  RETURN NEW;\nEND;\n$function$\n"
+    }
+  ],
+  "residualCounts": {
+    "residual_tenants": 2,
+    "active_tenants": 0
+  }
+}

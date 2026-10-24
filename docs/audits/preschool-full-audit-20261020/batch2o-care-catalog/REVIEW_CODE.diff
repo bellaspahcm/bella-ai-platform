@@ -1,0 +1,607 @@
+===================================================================
+--- a/src/platform/education/contracts/canonical-course-catalog.contract.ts	before approved batch
++++ b/src/platform/education/contracts/canonical-course-catalog.contract.ts	current
+@@ -1,0 +1,12 @@
+\ No newline at end of file
++/** Minimal identity from canonical Education courses; no legacy Training projection. */
++export interface CanonicalCourseCatalogItem {
++  readonly id: string;
++  readonly tenantId: string;
++  readonly courseCode: string;
++  readonly title: string;
++  readonly status: 'draft' | 'active' | 'archived';
++}
++
++export interface ICanonicalCourseCatalogContract {
++  listCourses(tenantId: string): Promise<readonly CanonicalCourseCatalogItem[]>;
++}
+===================================================================
+--- a/src/platform/education/contracts/canonical-course-catalog.contract.impl.ts	before approved batch
++++ b/src/platform/education/contracts/canonical-course-catalog.contract.impl.ts	current
+@@ -1,0 +1,29 @@
+\ No newline at end of file
++import type { SupabaseClient } from '@supabase/supabase-js';
++import type { Database } from '@/types/database.types';
++import type { CanonicalCourseCatalogItem, ICanonicalCourseCatalogContract } from './canonical-course-catalog.contract';
++
++/** Caller-scoped read only. RLS remains authoritative; failures never become empty data. */
++export class CanonicalCourseCatalogContractImpl implements ICanonicalCourseCatalogContract {
++  constructor(private readonly client: SupabaseClient<Database>) {}
++
++  async listCourses(tenantId: string): Promise<readonly CanonicalCourseCatalogItem[]> {
++    if (!tenantId || tenantId.trim() !== tenantId) throw new Error('CANONICAL_COURSE_TENANT_REQUIRED');
++    const result = await this.client.from('edu_courses')
++      .select('id, tenant_id, course_code, title, status', { count: 'exact' })
++      .eq('tenant_id', tenantId).order('id', { ascending: true });
++    if (result.error || !Array.isArray(result.data) || result.count !== result.data.length) {
++      throw new Error('CANONICAL_COURSE_CATALOG_UNAVAILABLE');
++    }
++    const seen = new Set<string>();
++    return result.data.map(row => {
++      if (!row.id || seen.has(row.id) || row.tenant_id !== tenantId
++        || typeof row.course_code !== 'string' || typeof row.title !== 'string'
++        || !['draft', 'active', 'archived'].includes(row.status)) {
++        throw new Error('CANONICAL_COURSE_CATALOG_UNAVAILABLE');
++      }
++      seen.add(row.id);
++      return { id: row.id, tenantId, courseCode: row.course_code, title: row.title,
++        status: row.status as CanonicalCourseCatalogItem['status'] };
++    });
++  }
++}
+===================================================================
+--- a/src/app/api/education/care/classes/route.ts	before approved batch
++++ b/src/app/api/education/care/classes/route.ts	current
+@@ -1,0 +1,66 @@
+\ No newline at end of file
++import { NextResponse } from 'next/server';
++import { CanonicalCourseCatalogContractImpl } from '@/platform/education/contracts/canonical-course-catalog.contract.impl';
++import { CARE_PRIVATE_HEADERS, CareAccessError, resolveCareRequestContext } from '../bulk/request-context';
++
++export const dynamic = 'force-dynamic';
++
++export async function GET(request: Request) {
++  try {
++    const { client, tenantId, actorId } = await resolveCareRequestContext(request);
++    const allowedSelectors = new Set(['tenantId', 'tenant_id', 'actorId', 'actor_id', 'userId', 'user_id']);
++    for (const key of new URL(request.url).searchParams.keys()) {
++      if (!allowedSelectors.has(key)) throw new CareAccessError(403, 'CARE_CONTEXT_OVERRIDE_DENIED');
++    }
++    const catalog = await new CanonicalCourseCatalogContractImpl(client).listCourses(tenantId);
++    const courses = catalog.filter(course => course.status === 'active');
++    if (!courses.length) return NextResponse.json({ success: true, classrooms: [] }, { headers: CARE_PRIVATE_HEADERS });
++
++    const assignments = await client.from('preschool_chain_course_branch_assignments')
++      .select('tenant_id, course_id, branch_id', { count: 'exact' }).eq('tenant_id', tenantId).in('course_id', courses.map(course => course.id));
++    if (assignments.error || !Array.isArray(assignments.data) || assignments.count !== assignments.data.length) {
++      throw new CareAccessError(503, 'CARE_CLASS_CATALOG_UNAVAILABLE');
++    }
++    const courseIds = new Set(courses.map(course => course.id));
++    const bindings = new Map<string, string>();
++    for (const row of assignments.data) {
++      if (row.tenant_id !== tenantId || !courseIds.has(row.course_id) || !row.branch_id || bindings.has(row.course_id)) {
++        throw new CareAccessError(503, 'CARE_CLASS_CATALOG_UNAVAILABLE');
++      }
++      bindings.set(row.course_id, row.branch_id);
++    }
++    if (bindings.size !== courses.length) throw new CareAccessError(503, 'CARE_CLASS_CATALOG_UNAVAILABLE');
++
++    const branchIds = [...new Set(bindings.values())];
++    const branches = await client.from('org_units').select('id, tenant_id, unit_type, is_active', { count: 'exact' })
++      .eq('tenant_id', tenantId).in('id', branchIds);
++    const access = await client.from('user_org_unit_access').select('user_id, tenant_id, org_unit_id', { count: 'exact' })
++      .eq('tenant_id', tenantId).eq('user_id', actorId).in('org_unit_id', branchIds);
++    if (branches.error || access.error || !Array.isArray(branches.data) || !Array.isArray(access.data)
++      || branches.count !== branches.data.length || access.count !== access.data.length) {
++      throw new CareAccessError(503, 'CARE_CLASS_CATALOG_UNAVAILABLE');
++    }
++    const activeBranches = new Set<string>();
++    for (const row of branches.data) {
++      if (row.tenant_id !== tenantId || !branchIds.includes(row.id) || row.unit_type !== 'branch' || activeBranches.has(row.id)) {
++        throw new CareAccessError(503, 'CARE_CLASS_CATALOG_UNAVAILABLE');
++      }
++      if (row.is_active === true) activeBranches.add(row.id);
++    }
++    const accessible = new Set<string>();
++    for (const row of access.data) {
++      if (row.tenant_id !== tenantId || row.user_id !== actorId || !row.org_unit_id || !branchIds.includes(row.org_unit_id)) {
++        throw new CareAccessError(503, 'CARE_CLASS_CATALOG_UNAVAILABLE');
++      }
++      accessible.add(row.org_unit_id);
++    }
++    const classrooms = courses.filter(course => {
++      const branchId = bindings.get(course.id);
++      return branchId && activeBranches.has(branchId) && accessible.has(branchId);
++    }).map(course => ({ id: course.id, name: course.title, code: course.courseCode, status: course.status }));
++    return NextResponse.json({ success: true, classrooms }, { headers: CARE_PRIVATE_HEADERS });
++  } catch (error) {
++    const status = error instanceof CareAccessError ? error.status : 503;
++    const code = error instanceof CareAccessError ? error.code : 'CARE_CLASS_CATALOG_UNAVAILABLE';
++    return NextResponse.json({ success: false, error: code }, { status, headers: CARE_PRIVATE_HEADERS });
++  }
++}
+===================================================================
+--- a/src/app/api/education/care/classes/__tests__/access.test.ts	before approved batch
++++ b/src/app/api/education/care/classes/__tests__/access.test.ts	current
+@@ -1,0 +1,111 @@
+\ No newline at end of file
++import { GET } from '../route';
++
++type Row = Record<string, unknown>;
++const actor = '00000000-0000-4000-8000-000000000001';
++const tenant = '00000000-0000-4000-8000-000000000002';
++const course = '00000000-0000-4000-8000-000000000003';
++const branch = '00000000-0000-4000-8000-000000000004';
++const foreign = '00000000-0000-4000-8000-000000000005';
++let rows: Record<string, Row[]>;
++let errors: Record<string, boolean>;
++let counts: Record<string, number | null>;
++const mockAuth = jest.fn();
++const mockProfile = jest.fn();
++const mockFrom = jest.fn((table: string) => new Query(table));
++
++class Query {
++  private filters: Array<(row: Row) => boolean> = [];
++  constructor(private readonly table: string) {}
++  select() { return this; }
++  eq(key: string, value: unknown) { this.filters.push(row => row[key] === value); return this; }
++  in(key: string, values: readonly unknown[]) { this.filters.push(row => values.includes(row[key])); return this; }
++  order() { return this; }
++  private result(single = false) {
++    const data = (rows[this.table] || []).filter(row => this.filters.every(filter => filter(row)));
++    return { data: single ? data[0] || null : data, count: this.table in counts ? counts[this.table] : data.length,
++      error: errors[this.table] ? { message: 'synthetic sensitive DB detail' } : null };
++  }
++  maybeSingle() { return Promise.resolve(this.result(true)); }
++  then(resolve: (value: ReturnType<Query['result']>) => unknown, reject: (error: unknown) => unknown) {
++    return Promise.resolve(this.result()).then(resolve, reject);
++  }
++}
++jest.mock('@/lib/supabase-server', () => ({ createClient: () => ({ auth: { getUser: mockAuth }, from: mockFrom }) }));
++jest.mock('@/services/user-actions', () => ({ getCurrentUser: () => mockProfile() }));
++
++const request = (query = '', headers?: Record<string, string>) => new Request('http://localhost/api/education/care/classes' + query, { headers });
++async function outcome(status: number, code: string, query = '', headers?: Record<string, string>) {
++  const response = await GET(request(query, headers));
++  expect(response.status).toBe(status);
++  expect(response.headers.get('cache-control')).toBe('private, no-store');
++  expect(await response.json()).toEqual({ success: false, error: code });
++}
++beforeEach(() => {
++  jest.clearAllMocks(); errors = {}; counts = {};
++  mockAuth.mockResolvedValue({ data: { user: { id: actor } }, error: null });
++  mockProfile.mockResolvedValue({ id: actor, tenant_id: tenant, status: 'active', role: 'admin' });
++  rows = {
++    tenants: [{ id: tenant, status: 'active', product_key: 'bella_preschool' }],
++    edu_courses: [{ id: course, tenant_id: tenant, course_code: 'SYNTHETIC', title: 'Synthetic course', status: 'active' }],
++    preschool_chain_course_branch_assignments: [{ tenant_id: tenant, course_id: course, branch_id: branch }],
++    org_units: [{ id: branch, tenant_id: tenant, unit_type: 'branch', is_active: true }],
++    user_org_unit_access: [{ user_id: actor, tenant_id: tenant, org_unit_id: branch }],
++  };
++});
++
++test('Approved active admin sees only actual canonical class identity through its own branch access', async () => {
++  const response = await GET(request()); expect(response.status).toBe(200);
++  expect(response.headers.get('cache-control')).toBe('private, no-store');
++  expect(await response.json()).toEqual({ success: true, classrooms: [{ id: course, name: 'Synthetic course', code: 'SYNTHETIC', status: 'active' }] });
++  expect(mockFrom.mock.calls.map(([table]) => table)).not.toEqual(expect.arrayContaining(['courses', 'teacher_assignments']));
++});
++test('Anonymous spoofing stops before profile or table reads', async () => {
++  mockAuth.mockResolvedValue({ data: { user: null }, error: null });
++  await outcome(401, 'CARE_UNAUTHENTICATED', '', { 'x-mock-role': 'admin' });
++  expect(mockProfile).not.toHaveBeenCalled(); expect(mockFrom).not.toHaveBeenCalled();
++});
++test('Invalid provider session is denied', async () => {
++  mockAuth.mockResolvedValue({ data: { user: { id: actor } }, error: { message: 'invalid' } });
++  await outcome(401, 'CARE_UNAUTHENTICATED');
++});
++test.each(['parent', 'accountant', 'super_admin', 'teacher', ''])('Unapproved role %s is denied', async role => {
++  mockProfile.mockResolvedValue({ id: actor, tenant_id: tenant, status: 'active', role }); await outcome(403, 'CARE_ROLE_DENIED');
++});
++test('admin_staff identity remains held', async () => {
++  mockProfile.mockResolvedValue({ id: actor, tenant_id: tenant, status: 'active', role: 'admin_staff' });
++  await outcome(503, 'CARE_TEACHER_IDENTITY_UNAVAILABLE');
++  expect(mockFrom).not.toHaveBeenCalledWith('edu_courses');
++});
++test.each([null, { id: foreign, tenant_id: tenant, status: 'active', role: 'admin' }, { id: actor, tenant_id: tenant, status: 'inactive', role: 'admin' }])('Unbound/inactive profile denied %#', async profile => {
++  mockProfile.mockResolvedValue(profile); await outcome(403, 'CARE_ACCESS_DENIED');
++});
++test.each(['missing', 'inactive', 'wrong-product'])('Invalid tenant %s denied', async mode => {
++  if(mode === 'missing')rows.tenants = []; else if(mode === 'inactive')rows.tenants[0].status = 'suspended'; else rows.tenants[0].product_key = 'bella_training';
++  await outcome(403, 'CARE_PRODUCT_ACCESS_DENIED');
++});
++test.each([`?tenantId=${foreign}`, `?tenantId=${tenant}&tenantId=${foreign}`, '?tenant_id=', `?actorId=${foreign}`, `?courseId=${course}`, `?branch_id=${branch}`, '?role=admin'])('Selectors cannot widen scope: %s', async query => {
++  await outcome(403, 'CARE_CONTEXT_OVERRIDE_DENIED', query);
++});
++test('Header tenant override denied', async () => { await outcome(403, 'CARE_CONTEXT_OVERRIDE_DENIED', '', { 'x-tenant-id': foreign }); });
++test.each(['inactive-branch', 'no-access', 'no-courses', 'draft-course'])('Valid empty catalog: %s', async mode => {
++  if(mode === 'inactive-branch')rows.org_units[0].is_active = false;
++  if(mode === 'no-access')rows.user_org_unit_access = [];
++  if(mode === 'no-courses')rows.edu_courses = [];
++  if(mode === 'draft-course')rows.edu_courses[0].status = 'draft';
++  const response = await GET(request()); expect(response.status).toBe(200); expect(await response.json()).toEqual({ success: true, classrooms: [] });
++});
++test.each(['missing', 'duplicate', 'ambiguous'])('Invalid Course branch binding %s fails closed', async mode => {
++  if(mode === 'missing')rows.preschool_chain_course_branch_assignments = [];
++  else rows.preschool_chain_course_branch_assignments.push({ ...rows.preschool_chain_course_branch_assignments[0], branch_id: mode === 'ambiguous' ? foreign : branch });
++  await outcome(503, 'CARE_CLASS_CATALOG_UNAVAILABLE');
++});
++test.each(['edu_courses', 'preschool_chain_course_branch_assignments', 'org_units', 'user_org_unit_access'])('Lookup error in %s never returns partial data or DB details', async table => {
++  errors[table] = true; await outcome(503, 'CARE_CLASS_CATALOG_UNAVAILABLE');
++});
++test.each(['edu_courses', 'preschool_chain_course_branch_assignments', 'org_units', 'user_org_unit_access'])('Truncated %s fails closed', async table => {
++  counts[table] = 2; await outcome(503, 'CARE_CLASS_CATALOG_UNAVAILABLE');
++});
++test('Cross-tenant Course rows cannot become classrooms', async () => {
++  rows.edu_courses.push({ ...rows.edu_courses[0], id: foreign, tenant_id: foreign });
++  const response = await GET(request()); const result = await response.json(); expect(result.classrooms).toHaveLength(1); expect(result.classrooms[0].id).toBe(course);
++});
+===================================================================
+--- a/src/app/api/education/care/classes/__tests__/catalog-contract.test.ts	before approved batch
++++ b/src/app/api/education/care/classes/__tests__/catalog-contract.test.ts	current
+@@ -1,0 +1,35 @@
+\ No newline at end of file
++import type { SupabaseClient } from '@supabase/supabase-js';
++import type { Database } from '@/types/database.types';
++import { CanonicalCourseCatalogContractImpl } from '@/platform/education/contracts/canonical-course-catalog.contract.impl';
++
++const tenant = 'synthetic-tenant';
++const row = { id: 'synthetic-course', tenant_id: tenant, course_code: 'SYNTHETIC', title: 'Synthetic course', status: 'active' };
++let result: { data: unknown; count: number | null; error: unknown };
++const query = { select: jest.fn(), eq: jest.fn(), order: jest.fn() };
++const from = jest.fn(() => query);
++const client = { from } as unknown as SupabaseClient<Database>;
++beforeEach(() => {
++  jest.clearAllMocks(); result = { data: [row], count: 1, error: null };
++  query.select.mockReturnValue(query); query.eq.mockReturnValue(query); query.order.mockImplementation(() => Promise.resolve(result));
++});
++test('Reads minimal canonical fields with exact tenant and caller client', async () => {
++  expect(await new CanonicalCourseCatalogContractImpl(client).listCourses(tenant)).toEqual([{ id: row.id, tenantId: tenant, courseCode: row.course_code, title: row.title, status: 'active' }]);
++  expect(from).toHaveBeenCalledWith('edu_courses'); expect(query.eq).toHaveBeenCalledWith('tenant_id', tenant);
++  expect(query.select).toHaveBeenCalledWith('id, tenant_id, course_code, title, status', { count: 'exact' });
++});
++test('Legitimate empty query remains empty', async () => {
++  result = { data: [], count: 0, error: null }; expect(await new CanonicalCourseCatalogContractImpl(client).listCourses(tenant)).toEqual([]);
++});
++test.each(['', ' synthetic-tenant', 'synthetic-tenant '])('Tenant must be present and exact: %s', async invalid => {
++  await expect(new CanonicalCourseCatalogContractImpl(client).listCourses(invalid)).rejects.toThrow('CANONICAL_COURSE_TENANT_REQUIRED'); expect(from).not.toHaveBeenCalled();
++});
++test.each([
++  { data: null, count: 0, error: null }, { data: [], count: null, error: null },
++  { data: [row], count: 2, error: null }, { data: [row], count: 1, error: { message: 'sensitive' } },
++  { data: [{ ...row, tenant_id: 'foreign' }], count: 1, error: null },
++  { data: [{ ...row, status: 'unrecognized' }], count: 1, error: null },
++  { data: [{ ...row, title: null }], count: 1, error: null },
++  { data: [row, row], count: 2, error: null },
++])('Invalid/truncated/error query never becomes a successful list %#', async invalid => {
++  result = invalid; await expect(new CanonicalCourseCatalogContractImpl(client).listCourses(tenant)).rejects.toThrow('CANONICAL_COURSE_CATALOG_UNAVAILABLE');
++});
+===================================================================
+--- a/src/proxy.ts	before approved batch
++++ b/src/proxy.ts	current
+@@ -19,8 +19,9 @@
+   const isKtvRoute = pathname.startsWith('/ktv');
+   const isStudentRoute = pathname.startsWith('/student');
+   const isLoginRoute = pathname === '/login';
+   const isApiRoute = pathname.startsWith('/api/');
++  const isPrivateCareRoute = pathname === '/api/education/care/bulk' || pathname === '/api/education/care/classes';
+ 
+   let response = NextResponse.next({
+     request: {
+       headers: request.headers,
+@@ -42,9 +43,9 @@
+     response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate');
+   }
+   // Internal API routes - No cache (dynamic data)
+   else if (pathname.startsWith('/api/')) {
+-    response.headers.set('Cache-Control', 'no-store, must-revalidate');
++    response.headers.set('Cache-Control', isPrivateCareRoute ? 'private, no-store' : 'no-store, must-revalidate');
+   }
+ 
+   // Static assets - Long cache
+   if (pathname.startsWith('/_next/static') || pathname.match(/\.(jpg|jpeg|png|gif|ico|svg|webp|woff|woff2)$/)) {
+@@ -124,8 +125,9 @@
+             request: {
+               headers: request.headers,
+             },
+           });
++          if (isPrivateCareRoute) response.headers.set('Cache-Control', 'private, no-store');
+           response.cookies.set({ name, value, ...options });
+         },
+         remove(name: string, options: CookieOptions) {
+           request.cookies.set({ name, value: '', ...options });
+@@ -133,8 +135,9 @@
+             request: {
+               headers: request.headers,
+             },
+           });
++          if (isPrivateCareRoute) response.headers.set('Cache-Control', 'private, no-store');
+           response.cookies.set({ name, value: '', ...options });
+         },
+       },
+     }
+===================================================================
+--- a/src/app/dashboard/education/care/page.tsx	before approved batch
++++ b/src/app/dashboard/education/care/page.tsx	current
+@@ -2,9 +2,9 @@
+ 
+ /**
+  * Bella Education — Preschool Care & Daily Nurturing Operations Center
+  *
+- * Classes use /api/education/courses; dependency errors remain visible.
++ * Classes use /api/education/care/classes; dependency errors remain visible.
+  * Care roster and records use the authorized /api/education/care/bulk workflow.
+  * UI success requires a complete API acknowledgement and roster reload.
+  * Historical health is read-only; medication is outside Preschool operations.
+  */
+@@ -436,9 +436,9 @@
+ 
+   // Course and roster errors stay visible; another workflow cannot supply permission.
+   const loadCourses = useCallback(async () => {
+     try {
+-      const response = await fetch('/api/education/courses', { cache: 'no-store' });
++      const response = await fetch('/api/education/care/classes', { cache: 'no-store' });
+       const payload: { success?: boolean; classrooms?: readonly CourseOption[] } = await response.json();
+       if (!response.ok || !payload.success || !Array.isArray(payload.classrooms)) throw new Error('COURSES_UNAVAILABLE');
+       setCourses(payload.classrooms);
+       setSelectedCourseId((current) => payload.classrooms?.some(course => course.id === current)
+===================================================================
+--- a/src/app/dashboard/education/care/__tests__/page.test.tsx	before approved batch
++++ b/src/app/dashboard/education/care/__tests__/page.test.tsx	current
+@@ -1,0 +1,121 @@
+\ No newline at end of file
++/** @jest-environment jsdom */
++import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
++import CarePage from '../page';
++
++jest.mock('@/lib/dashboard-client-context', () => ({ getCachedTenantSettings: jest.fn().mockResolvedValue(null) }));
++jest.mock('next/image', () => ({ __esModule: true, default: () => null }));
++
++const originalFetch = global.fetch;
++const courses = [
++  { id: 'course-a', code: 'A', name: 'Synthetic class A', status: 'active' },
++  { id: 'course-b', code: 'B', name: 'Synthetic class B', status: 'active' },
++];
++const student = (name: string) => ({ enrollmentId: 'synthetic-enrollment', studentPartyId: 'synthetic-student', name, studentCode: null, gender: null, dob: null, care: null });
++const reply = (body: unknown, ok = true, status = ok ? 200 : 503) => ({ ok, status, json: async () => body });
++afterEach(() => { global.fetch = originalFetch; });
++
++test('A failed class dependency stays visible without invented classes, sample events or medication', async () => {
++  const request = jest.fn().mockResolvedValue(reply({ success: false }, false)); global.fetch = request;
++  render(<CarePage />);
++  expect(await screen.findByRole('alert')).toHaveTextContent('Không tải được danh sách lớp');
++  expect(within(screen.getByRole('combobox', { name: 'Lớp chăm sóc' })).queryAllByRole('option')).toHaveLength(0);
++  expect(screen.getByRole('button', { name: 'Ghi nhận nhanh' })).toBeDisabled();
++  expect(screen.getByText('Lịch sử hoạt động chưa khả dụng.')).toBeVisible();
++  expect(screen.queryByText('Theo dõi nhiệt độ cho bé có dấu hiệu sốt')).not.toBeInTheDocument();
++  expect(screen.queryByRole('button', { name: /thuốc/i })).not.toBeInTheDocument();
++  expect(request).toHaveBeenCalledTimes(1);
++});
++
++test('Care roster denial does not fall back to a different authorization workflow', async () => {
++  const request = jest.fn().mockImplementation((url: string) => Promise.resolve(url === '/api/education/care/classes'
++    ? reply({ success: true, classrooms: courses }) : reply({ success: false }, false))); global.fetch = request;
++  render(<CarePage />);
++  expect(await screen.findByRole('alert')).toHaveTextContent('Không tải được nhật ký chăm sóc');
++  expect(request.mock.calls.every(([url]) => !(url as string).includes('/attendance'))).toBe(true);
++  expect(screen.getByRole('button', { name: 'Ghi nhận nhanh' })).toBeDisabled();
++});
++
++test.each(['denied', 'partial', 'reload-failed', 'auth-revoked'] as const)('A %s save keeps the quick editor and a visible error without claiming success', async mode => {
++  let reads = 0;
++  const request = jest.fn().mockImplementation((url: string, init?: RequestInit) => {
++    if(url === '/api/education/care/classes')return Promise.resolve(reply({ success: true, classrooms: [courses[0]] }));
++    if(init?.method === 'POST')return Promise.resolve(reply({ success: mode !== 'denied', savedCount: mode === 'partial' ? 0 : 1, total: 1 }, mode !== 'denied'));
++    reads++;
++    return Promise.resolve(reads > 1 && (mode === 'reload-failed' || mode === 'auth-revoked')
++      ? reply({ success: false }, false, mode === 'auth-revoked' ? 403 : 503)
++      : reply({ success: true, roster: [student('Synthetic child')] }));
++  }); global.fetch = request;
++  render(<CarePage />);
++  await screen.findByText('Synthetic child', { exact: true });
++  fireEvent.click(screen.getByRole('button', { name: 'Ghi nhận nhanh' }));
++  const dialog = screen.getByRole('dialog', { name: 'Ghi Nhận Chăm Sóc Nhanh' });
++  expect(within(dialog).getByLabelText('Thân nhiệt & Sức khỏe')).toBeDisabled();
++  fireEvent.change(within(dialog).getByLabelText('Ghi chú cho phụ huynh / giáo viên ca sau'), { target: { value: 'Synthetic unsaved draft' } });
++  fireEvent.click(within(dialog).getByRole('button', { name: 'Lưu Ghi Nhận' }));
++  expect(await within(dialog).findByRole('alert')).toHaveTextContent('Chưa xác nhận lưu đầy đủ');
++  expect(dialog).toBeVisible();
++  expect(within(dialog).getByLabelText('Ghi chú cho phụ huynh / giáo viên ca sau')).toHaveValue('Synthetic unsaved draft');
++  expect(screen.queryByText('Đã lưu chăm sóc cho 1 trẻ.')).not.toBeInTheDocument();
++  if(mode === 'auth-revoked')expect(within(screen.getByRole('table')).queryByText('Synthetic child', { exact: true })).not.toBeInTheDocument();
++  else expect(within(screen.getByRole('table')).getByText('Synthetic child', { exact: true })).toBeVisible();
++  const body = JSON.parse(request.mock.calls.find(([, init]) => init?.method === 'POST')?.[1].body as string);
++  expect(body.data.records[0]).not.toHaveProperty('health');
++});
++
++test('A slower successful Courses retry cannot erase a Care dependency failure', async () => {
++  let resolveCourses: (value: ReturnType<typeof reply>) => void = () => { throw new Error('Retry missing'); };
++  const retry = new Promise<ReturnType<typeof reply>>(resolve => { resolveCourses = resolve; });
++  let courseReads = 0;
++  const request = jest.fn().mockImplementation((url: string) => {
++    if(url === '/api/education/care/classes')return ++courseReads === 1
++      ? Promise.resolve(reply({ success: true, classrooms: [courses[0]] })) : retry;
++    return Promise.resolve(reply({ success: false }, false));
++  }); global.fetch = request;
++  render(<CarePage />);
++  expect(await screen.findByRole('alert')).toHaveTextContent('Không tải được nhật ký chăm sóc');
++  fireEvent.click(screen.getByRole('button', { name: 'Tải lại dữ liệu' }));
++  await waitFor(() => expect(request.mock.calls.filter(([url]) => (url as string).includes('/care/bulk'))).toHaveLength(2));
++  await act(async () => { resolveCourses(reply({ success: true, classrooms: [courses[0]] })); await retry; });
++  expect(screen.getByRole('alert')).toHaveTextContent('Không tải được nhật ký chăm sóc');
++});
++
++test('A stale class response cannot replace the newly selected class roster', async () => {
++  let resolveOld: (value: ReturnType<typeof reply>) => void = () => { throw new Error('Old request missing'); };
++  const old = new Promise<ReturnType<typeof reply>>(resolve => { resolveOld = resolve; });
++  const request = jest.fn().mockImplementation((url: string) => url === '/api/education/care/classes'
++    ? Promise.resolve(reply({ success: true, classrooms: courses }))
++    : url.includes('course-a') ? old : Promise.resolve(reply({ success: true, roster: [student('New class child')] })));
++  global.fetch = request;
++  render(<CarePage />);
++  await waitFor(() => expect(request.mock.calls.some(([url]) => (url as string).includes('course-a'))).toBe(true));
++  fireEvent.change(screen.getByRole('combobox', { name: 'Lớp chăm sóc' }), { target: { value: 'course-b' } });
++  await screen.findByText('New class child', { exact: true });
++  await act(async () => { resolveOld(reply({ success: true, roster: [student('Stale class child')] })); await old; });
++  expect(screen.getByText('New class child', { exact: true })).toBeVisible();
++  expect(screen.queryByText('Stale class child', { exact: true })).not.toBeInTheDocument();
++});
++
++test('A pending save locks its draft and prevents opening a competing editor', async () => {
++  let finishSave: (value: ReturnType<typeof reply>) => void = () => { throw new Error('Save missing'); };
++  const pending = new Promise<ReturnType<typeof reply>>(resolve => { finishSave = resolve; });
++  const request = jest.fn().mockImplementation((url: string, init?: RequestInit) => init?.method === 'POST' ? pending
++    : Promise.resolve(url === '/api/education/care/classes' ? reply({ success: true, classrooms: [courses[0]] })
++      : reply({ success: true, roster: [student('Synthetic child')] })));
++  global.fetch = request;
++  render(<CarePage />);
++  await screen.findByText('Synthetic child', { exact: true });
++  fireEvent.click(screen.getByRole('button', { name: 'Ghi nhận nhanh' }));
++  const dialog = screen.getByRole('dialog', { name: 'Ghi Nhận Chăm Sóc Nhanh' });
++  const note = within(dialog).getByLabelText('Ghi chú cho phụ huynh / giáo viên ca sau');
++  fireEvent.change(note, { target: { value: 'Original pending draft' } });
++  fireEvent.click(within(dialog).getByRole('button', { name: 'Lưu Ghi Nhận' }));
++  expect(note).toBeDisabled();
++  expect(within(dialog).getByRole('button', { name: 'Đóng ghi nhận nhanh' })).toBeDisabled();
++  fireEvent.click(screen.getByTitle('Chỉnh sửa nội dung chăm sóc cho bé'));
++  expect(screen.queryByRole('dialog', { name: 'Chỉnh sửa chăm sóc' })).not.toBeInTheDocument();
++  expect(request.mock.calls.filter(([, init]) => init?.method === 'POST')).toHaveLength(1);
++  await act(async () => { finishSave(reply({ success: false }, false, 403)); await pending; });
++  expect(await within(dialog).findByRole('alert')).toHaveTextContent('Chưa xác nhận lưu đầy đủ');
++  expect(note).toBeEnabled();
++  expect(note).toHaveValue('Original pending draft');
++});
+===================================================================
+--- a/scripts/verify-preschool-care-browser-e2e.cjs	before approved batch
++++ b/scripts/verify-preschool-care-browser-e2e.cjs	current
+@@ -5,13 +5,17 @@
+ const Module = require('node:module');
+ const crypto = require('node:crypto');
+ const { spawn } = require('node:child_process');
+ const ROOT = path.resolve(__dirname, '..');
+-const OUTPUT = path.join(ROOT, 'docs/audits/preschool-full-audit-20261020/batch2n-care-browser');
++const CATALOG_APPROVED = process.argv.includes('--catalog-approved');
++const OUTPUT = path.join(ROOT, 'docs/audits/preschool-full-audit-20261020', CATALOG_APPROVED ? 'batch2o-care-catalog' : 'batch2n-care-browser');
+ const STAMP = new Date().toISOString().replace(/[:.]/g, '-');
+ const report = { startedAt: new Date().toISOString(), scope: 'Local production build and actual browser; E2E only, no schema change', checks: [] };
+ const hash = value => crypto.createHash('sha256').update(value).digest('hex');
+ const PRODUCT_FILES = ['src/app/dashboard/education/care/page.tsx', 'src/app/dashboard/education/care/care-save.ts', 'src/app/dashboard/education/care/__tests__/care-save.test.ts', 'src/app/dashboard/education/care/__tests__/page.test.tsx'];
++if(CATALOG_APPROVED)PRODUCT_FILES.push('src/proxy.ts',
++  'src/platform/education/contracts/canonical-course-catalog.contract.ts', 'src/platform/education/contracts/canonical-course-catalog.contract.impl.ts',
++  'src/app/api/education/care/classes/route.ts', 'src/app/api/education/care/classes/__tests__/access.test.ts', 'src/app/api/education/care/classes/__tests__/catalog-contract.test.ts');
+ const productHashes = () => Object.fromEntries(PRODUCT_FILES.map(file => [file, hash(fs.readFileSync(path.join(ROOT, file)))]));
+ const PRODUCTION_ENV_FILES = ['.env', '.env.local', '.env.production', '.env.production.local'];
+ const harnessPath = path.join(ROOT, 'scripts/verify-preschool-care-rls-e2e.cjs');
+ const source = fs.readFileSync(harnessPath, 'utf8');
+@@ -27,9 +31,9 @@
+   .replace("'dev', '--webpack', '--hostname'", "'start', '--hostname'")
+   .replace("nodeEnv: 'development'", "nodeEnv: 'production'");
+ compiled._compile(productionSource.replace(entry, String.raw`module.exports = {
+   REF, API, TARGETS, CREATED, fixtures, owned, must, safeCode, hash, sourceState, snapshot, q, remoteFetch,
+-  seed, login, cleanFixtures, startServer, http, schoolDay, summarize,
++  seed, login, cleanFixtures, startServer, http, schoolDay, summarize, loggedIn,
+   get config(){return config;}, get port(){return port;}, get commonReport(){return report;},
+   async configure(output) {
+     args={approved:true,output}; config=await readConfig();
+     agentBefore=readFileSync(join(ROOT,'AGENTS.md')); must(git(['status','--porcelain','--','AGENTS.md']).trim()==='', 'AGENTS_NOT_CLEAN');
+@@ -116,11 +120,51 @@
+       save();
+     }
+   } finally {await client.auth.signOut({scope:'local'});}
+ }
++async function verifyCatalogHttp() {
++  for(const fixture of adapter.fixtures)for(const actor of fixture.actors){
++    const jar=new Map();actor.jar=jar;
++    actor.client=require('@supabase/ssr').createServerClient(adapter.API,adapter.config.publicKey,{global:{fetch:adapter.remoteFetch},cookies:{
++      getAll:()=>[...jar].map(([name,value])=>({name,value})),
++      setAll:cookies=>{for(const {name,value,options}of cookies){if(options.maxAge===0)jar.delete(name);else jar.set(name,value);}},
++    }});adapter.loggedIn.push(actor);
++    const auth=await actor.client.auth.signInWithPassword({email:actor.email,password:actor.password});
++    const verified=await actor.client.auth.getUser();
++    adapter.must(!auth.error&&auth.data.user?.id===actor.id&&!verified.error&&verified.data.user?.id===actor.id,'CATALOG_REAL_AUTH_FAILED');
++  }
++  const endpoint='/api/education/care/classes';
++  const expect=async(name,actor,status,code,validate)=>check(name,async()=>{
++    const result=await adapter.http(actor,endpoint+(validate?.query||''));
++    const receipt=adapter.commonReport.httpReceipts.at(-1);
++    adapter.must(result.status===status&&(!code||result.data.error===code)&&receipt.private&&receipt.noStore,'CATALOG_HTTP_STATUS_OR_HEADERS');
++    if(validate?.body)validate.body(result.data);return{status,code:code||null,realProviderSession:Boolean(actor),private:true,noStore:true};
++  });
++  await expect('CATALOG_ANONYMOUS',null,401,'CARE_UNAUTHENTICATED');
++  for(const fixture of adapter.fixtures)for(const actor of fixture.actors){
++    if(actor.role==='admin')await expect(`CATALOG_ADMIN_${fixture.index}`,actor,200,null,{body:data=>adapter.must(data.success===true&&data.classrooms?.length===1&&data.classrooms[0].id===fixture.course&&data.classrooms[0].status==='active','CATALOG_SCOPE_LEAK')});
++    else await expect(`CATALOG_ROLE_${fixture.index}_${actor.role}`,actor,actor.role==='admin_staff'?503:403,actor.role==='admin_staff'?'CARE_TEACHER_IDENTITY_UNAVAILABLE':'CARE_ROLE_DENIED');
++  }
++  const fixture=adapter.fixtures[0],actor=fixture.actors[0],foreign=adapter.fixtures[1];
++  for(const [name,query]of [['FOREIGN_TENANT',`?tenantId=${foreign.tenant}`],['DUPLICATE_TENANT',`?tenantId=${fixture.tenant}&tenantId=${foreign.tenant}`],['BRANCH_SELECTOR',`?branchId=${foreign.branch}`]]){
++    await expect(`CATALOG_${name}`,actor,403,'CARE_CONTEXT_OVERRIDE_DENIED',{query});
++  }
++  for(const [name,sql,restore,params,status,code,body]of [
++    ['INACTIVE_BRANCH','update public.org_units set is_active=false where id=$1 and tenant_id=$2','update public.org_units set is_active=true where id=$1 and tenant_id=$2',[fixture.branch,fixture.tenant],200,null,data=>adapter.must(data.success===true&&data.classrooms?.length===0,'INACTIVE_BRANCH_VISIBLE')],
++    ['INACTIVE_PROFILE',"update public.users set status='inactive' where id=$1 and tenant_id=$2","update public.users set status='active' where id=$1 and tenant_id=$2",[actor.id,fixture.tenant],403,'CARE_ACCESS_DENIED'],
++    ['ROLE_CHANGED',"update public.users set role='accountant' where id=$1 and tenant_id=$2","update public.users set role='admin' where id=$1 and tenant_id=$2",[actor.id,fixture.tenant],403,'CARE_ROLE_DENIED'],
++    ['INACTIVE_TENANT',"update public.tenants set status='suspended' where id=$1","update public.tenants set status='active' where id=$1",[fixture.tenant],403,'CARE_PRODUCT_ACCESS_DENIED'],
++  ]){
++    await adapter.q(sql,params);
++    try{await expect(`CATALOG_${name}`,actor,status,code,{body});}finally{await adapter.q(restore,params);}
++  }
++  report.catalogHttpReceipts=adapter.commonReport.httpReceipts;
++}
+ function verifyCareHeaders(receipts, collectionFailed=false) {
+   adapter.must(!collectionFailed,'BROWSER_RECEIPT_COLLECTION_FAILED');
+-  const care=receipts.filter(receipt=>receipt.path==='/api/education/care/bulk');
++  const paths=CATALOG_APPROVED?['/api/education/care/bulk','/api/education/care/classes']:['/api/education/care/bulk'];
++  const care=receipts.filter(receipt=>paths.includes(receipt.path));
++  adapter.must(paths.every(path=>care.some(receipt=>receipt.path===path)),'AUTHENTICATED_CARE_PRIVATE_HEADERS_FAILED');
+   adapter.must(care.length>0&&care.every(receipt=>receipt.private&&receipt.noStore),'AUTHENTICATED_CARE_PRIVATE_HEADERS_FAILED');
+   return{responses:care.length,private:true,noStore:true};
+ }
+ async function verifyBrowser() {
+@@ -130,9 +174,9 @@
+   const page=await context.newPage(); page.setDefaultTimeout(25_000);
+   const fixture=adapter.fixtures[0], actor=fixture.actors[0];
+   const base=`http://127.0.0.1:${adapter.port}`;
+   const receipts=[];const pending=[];
+-  page.on('response',response=>{const url=new URL(response.url());if(url.origin===base&&['/api/education/courses','/api/education/care/bulk'].includes(url.pathname)){
++  page.on('response',response=>{const url=new URL(response.url());if(url.origin===base&&['/api/education/courses','/api/education/care/classes','/api/education/care/bulk'].includes(url.pathname)){
+     const task=(async()=>{const h=await response.allHeaders();let errorKind=null;
+       if(!response.ok()){try{const body=await response.json();errorKind=classifyError(body.error);}catch{}}
+       receipts.push({path:url.pathname,method:response.request().method(),status:response.status(),errorKind,private:(h['cache-control']||'').includes('private'),noStore:(h['cache-control']||'').includes('no-store')});})().catch(()=>{report.browserReceiptFailure='RECEIPT_COLLECTION_FAILED';});pending.push(task);
+   }});
+@@ -160,10 +204,24 @@
+       const payload=JSON.parse(actual.request().postData());adapter.must(payload.data.records.every(r=>!('health' in r)),'BROWSER_SENT_HELD_HEALTH');
+       const outcome=await actual.json();adapter.must(actual.status()===200&&outcome.savedCount===1&&outcome.success===true,'BROWSER_SAVE_REJECTED');
+       const rows=(await adapter.q(`select r.meal_records,r.nap_records,r.hygiene_records,r.morning_condition,r.health_checks from public.edu_daily_care_records r join public.edu_daily_care_sessions s on s.id=r.session_id where r.tenant_id=$1 and s.tenant_id=$1 and s.class_id=$2 and r.student_party_id=$3`,[fixture.tenant,fixture.course,fixture.students[0].id])).rows;
+       adapter.must(rows.length===1&&rows[0].meal_records[0]?.portion==='HALF'&&rows[0].nap_records.quality==='RESTLESS'&&rows[0].hygiene_records[0]?.type==='DIAPER'&&rows[0].morning_condition==='Synthetic browser persistence'&&JSON.stringify(rows[0].health_checks)==='{}','BROWSER_DB_READBACK_FAILED');
++      await page.getByRole('dialog',{name:'Ghi Nhận Chăm Sóc Nhanh'}).waitFor({state:'hidden'});
+       await page.reload();await page.getByText('Synthetic browser persistence',{exact:true}).first().waitFor();return {realApi:true,independentDbReadback:true,reloadPersisted:true,healthUnchanged:true};
+     });
++    if(CATALOG_APPROVED)await check('BROWSER_INDIVIDUAL_SAVE_AND_READBACK',async()=>{
++      await page.getByTitle('Chỉnh sửa nội dung chăm sóc cho bé').click();
++      const dialog=page.getByRole('dialog',{name:'Chỉnh sửa chăm sóc'});
++      await dialog.getByPlaceholder(/^Nhập dặn dò phụ huynh/).fill('Synthetic individual persistence');
++      const response=page.waitForResponse(r=>new URL(r.url()).pathname==='/api/education/care/bulk'&&r.request().method()==='POST');
++      await dialog.getByRole('button',{name:'Lưu Thay Đổi'}).click();const actual=await response;
++      const payload=JSON.parse(actual.request().postData()),outcome=await actual.json();
++      adapter.must(actual.status()===200&&outcome.success===true&&outcome.savedCount===1&&payload.data.records.every(r=>!('health' in r)),'BROWSER_INDIVIDUAL_SAVE_REJECTED');
++      await dialog.waitFor({state:'hidden'});
++      const rows=(await adapter.q('select morning_condition,health_checks from public.edu_daily_care_records where tenant_id=$1 and student_party_id=$2',[fixture.tenant,fixture.students[0].id])).rows;
++      adapter.must(rows.length===1&&rows[0].morning_condition==='Synthetic individual persistence'&&JSON.stringify(rows[0].health_checks)==='{}','BROWSER_INDIVIDUAL_DB_READBACK_FAILED');
++      await page.reload();await page.getByText('Synthetic individual persistence',{exact:true}).first().waitFor();return{realApi:true,independentDbReadback:true,reloadPersisted:true,healthUnchanged:true};
++    });
+     await check('BROWSER_DENIED_SAVE_NO_FALSE_SUCCESS',async()=>{
+       await page.getByRole('button',{name:'Ghi nhận nhanh',exact:true}).first().click();await page.locator('#care-meal').selectOption('ALL');
+       const initial=(await adapter.q('select morning_condition,meal_records from public.edu_daily_care_records where tenant_id=$1',[fixture.tenant])).rows;
+       await adapter.q('update public.org_units set is_active=false where id=$1 and tenant_id=$2',[fixture.branch,fixture.tenant]);
+@@ -199,9 +257,10 @@
+     const anon=await fetch(`http://127.0.0.1:${adapter.port}/api/education/care/bulk`,{signal:AbortSignal.timeout(25_000)});const cache=anon.headers.get('cache-control')||'';
+     report.headerObservation={status:anon.status,cacheControl:cache,environment:anon.headers.get('x-environment')};
+     try {await check('PRODUCTION_BUILD_PRIVATE_HEADER',async()=>{adapter.must(anon.status===401&&cache.includes('private')&&cache.includes('no-store'),'PRODUCTION_PRIVATE_HEADER_NOT_PROVEN');return{status:anon.status,private:true,noStore:true};});}
+     catch {report.headerGateFailed=true;}
+-    await check('COURSE_REAL_AUTH_DIAGNOSTIC',diagnoseCourses);
++    if(CATALOG_APPROVED)await verifyCatalogHttp();
++    else await check('COURSE_REAL_AUTH_DIAGNOSTIC',diagnoseCourses);
+     await verifyBrowser();
+     await check('BROWSER_AUTHENTICATED_CARE_PRIVATE_HEADERS',async()=>verifyCareHeaders(report.browserReceipts,Boolean(report.browserReceiptFailure)));
+   }catch(error){report.primaryFailure=adapter.safeCode(error);}
+   finally{

@@ -1,0 +1,9 @@
+{
+  "sql": "E2E_PREPARE_V3.sql",
+  "retainRequested": true,
+  "finishedAt": "2026-10-21T02:32:35.8794017Z",
+  "wrapperFailure": null,
+  "startedAt": "20261021T022607973Z",
+  "actualNativeExitCode": 0,
+  "mode": "full"
+}

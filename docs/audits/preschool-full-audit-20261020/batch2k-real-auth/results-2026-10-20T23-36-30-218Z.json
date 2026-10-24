@@ -1,0 +1,2027 @@
+{
+  "startedAt": "2026-10-20T23:36:30.218Z",
+  "projectRef": "bmnbqbcdbuklhopfbopv",
+  "baseline": "ecfaf23ab06d043c5f2caec38ea67856705b6c26",
+  "scope": "Real Auth, actual Next cookie HTTP, scoped org RLS and closed authorization guards; no Product Go-Live proof",
+  "checks": [
+    {
+      "name": "SOURCE_AND_TARGET_PREFLIGHT",
+      "result": "PASS",
+      "exactBaseline": true,
+      "projectBinding": true,
+      "productionFallback": false
+    },
+    {
+      "name": "FIXTURE_COMMITTED",
+      "result": "PASS",
+      "tenants": 2,
+      "branches": 2,
+      "actors": 6,
+      "persons": 2,
+      "relationships": 2
+    },
+    {
+      "name": "AUTH_METADATA_PRODUCER_0_admin",
+      "result": "NOT_PROVEN",
+      "reason": "DEPLOYED_CLAIMS_SYNC_UNAVAILABLE",
+      "metadataUsedAsAuthority": false
+    },
+    {
+      "name": "REAL_AUTH_0_admin",
+      "result": "PASS",
+      "verifiedSubject": true,
+      "canonicalClaims": false,
+      "cookieChunks": 1
+    },
+    {
+      "name": "AUTH_METADATA_PRODUCER_0_admin_staff",
+      "result": "NOT_PROVEN",
+      "reason": "DEPLOYED_CLAIMS_SYNC_UNAVAILABLE",
+      "metadataUsedAsAuthority": false
+    },
+    {
+      "name": "REAL_AUTH_0_admin_staff",
+      "result": "PASS",
+      "verifiedSubject": true,
+      "canonicalClaims": false,
+      "cookieChunks": 1
+    },
+    {
+      "name": "AUTH_METADATA_PRODUCER_0_accountant",
+      "result": "NOT_PROVEN",
+      "reason": "DEPLOYED_CLAIMS_SYNC_UNAVAILABLE",
+      "metadataUsedAsAuthority": false
+    },
+    {
+      "name": "REAL_AUTH_0_accountant",
+      "result": "PASS",
+      "verifiedSubject": true,
+      "canonicalClaims": false,
+      "cookieChunks": 1
+    },
+    {
+      "name": "AUTH_METADATA_PRODUCER_1_admin",
+      "result": "NOT_PROVEN",
+      "reason": "DEPLOYED_CLAIMS_SYNC_UNAVAILABLE",
+      "metadataUsedAsAuthority": false
+    },
+    {
+      "name": "REAL_AUTH_1_admin",
+      "result": "PASS",
+      "verifiedSubject": true,
+      "canonicalClaims": false,
+      "cookieChunks": 1
+    },
+    {
+      "name": "AUTH_METADATA_PRODUCER_1_admin_staff",
+      "result": "NOT_PROVEN",
+      "reason": "DEPLOYED_CLAIMS_SYNC_UNAVAILABLE",
+      "metadataUsedAsAuthority": false
+    },
+    {
+      "name": "REAL_AUTH_1_admin_staff",
+      "result": "PASS",
+      "verifiedSubject": true,
+      "canonicalClaims": false,
+      "cookieChunks": 1
+    },
+    {
+      "name": "AUTH_METADATA_PRODUCER_1_accountant",
+      "result": "NOT_PROVEN",
+      "reason": "DEPLOYED_CLAIMS_SYNC_UNAVAILABLE",
+      "metadataUsedAsAuthority": false
+    },
+    {
+      "name": "REAL_AUTH_1_accountant",
+      "result": "PASS",
+      "verifiedSubject": true,
+      "canonicalClaims": false,
+      "cookieChunks": 1
+    },
+    {
+      "name": "SELF_PROFILE_0_admin",
+      "result": "PASS",
+      "count": 1,
+      "canonicalSubject": true
+    },
+    {
+      "name": "ORG_RLS_0_admin",
+      "result": "PASS",
+      "allowedOwn": 1,
+      "forbiddenOther": 0
+    },
+    {
+      "name": "PROJECTION_RLS_0_admin",
+      "result": "PASS",
+      "allowedOwn": 1,
+      "forbiddenOther": 0,
+      "foreignActorAndBranchExplicitlyQueried": true,
+      "positiveControl": true
+    },
+    {
+      "name": "SELF_PROFILE_0_admin_staff",
+      "result": "PASS",
+      "count": 1,
+      "canonicalSubject": true
+    },
+    {
+      "name": "ORG_RLS_0_admin_staff",
+      "result": "PASS",
+      "allowedOwn": 1,
+      "forbiddenOther": 0
+    },
+    {
+      "name": "PROJECTION_RLS_0_admin_staff",
+      "result": "PASS",
+      "allowedOwn": 1,
+      "forbiddenOther": 0,
+      "foreignActorAndBranchExplicitlyQueried": true,
+      "positiveControl": true
+    },
+    {
+      "name": "SELF_PROFILE_0_accountant",
+      "result": "PASS",
+      "count": 1,
+      "canonicalSubject": true
+    },
+    {
+      "name": "ORG_RLS_0_accountant",
+      "result": "PASS",
+      "allowedOwn": 1,
+      "forbiddenOther": 0
+    },
+    {
+      "name": "PROJECTION_RLS_0_accountant",
+      "result": "PASS",
+      "allowedOwn": 0,
+      "forbiddenOther": 0,
+      "foreignActorAndBranchExplicitlyQueried": true,
+      "positiveControl": false
+    },
+    {
+      "name": "SELF_PROFILE_1_admin",
+      "result": "PASS",
+      "count": 1,
+      "canonicalSubject": true
+    },
+    {
+      "name": "ORG_RLS_1_admin",
+      "result": "PASS",
+      "allowedOwn": 1,
+      "forbiddenOther": 0
+    },
+    {
+      "name": "PROJECTION_RLS_1_admin",
+      "result": "PASS",
+      "allowedOwn": 1,
+      "forbiddenOther": 0,
+      "foreignActorAndBranchExplicitlyQueried": true,
+      "positiveControl": true
+    },
+    {
+      "name": "SELF_PROFILE_1_admin_staff",
+      "result": "PASS",
+      "count": 1,
+      "canonicalSubject": true
+    },
+    {
+      "name": "ORG_RLS_1_admin_staff",
+      "result": "PASS",
+      "allowedOwn": 1,
+      "forbiddenOther": 0
+    },
+    {
+      "name": "PROJECTION_RLS_1_admin_staff",
+      "result": "PASS",
+      "allowedOwn": 1,
+      "forbiddenOther": 0,
+      "foreignActorAndBranchExplicitlyQueried": true,
+      "positiveControl": true
+    },
+    {
+      "name": "SELF_PROFILE_1_accountant",
+      "result": "PASS",
+      "count": 1,
+      "canonicalSubject": true
+    },
+    {
+      "name": "ORG_RLS_1_accountant",
+      "result": "PASS",
+      "allowedOwn": 1,
+      "forbiddenOther": 0
+    },
+    {
+      "name": "PROJECTION_RLS_1_accountant",
+      "result": "PASS",
+      "allowedOwn": 0,
+      "forbiddenOther": 0,
+      "foreignActorAndBranchExplicitlyQueried": true,
+      "positiveControl": false
+    },
+    {
+      "name": "EDUCATION_ACL_edu_courses",
+      "result": "NOT_PROVEN",
+      "code": "42501",
+      "reason": "AUTHENTICATED_SELECT_ACL_MISSING",
+      "count": 0
+    },
+    {
+      "name": "EDUCATION_ACL_edu_enrollments",
+      "result": "NOT_PROVEN",
+      "code": "42501",
+      "reason": "AUTHENTICATED_SELECT_ACL_MISSING",
+      "count": 0
+    },
+    {
+      "name": "EDUCATION_ACL_party_parties",
+      "result": "NOT_PROVEN",
+      "code": "42501",
+      "reason": "AUTHENTICATED_SELECT_ACL_MISSING",
+      "count": 0
+    },
+    {
+      "name": "CACHE_CONTRACT_ANON_CARE",
+      "result": "NOT_PROVEN",
+      "cacheControl": "no-store, must-revalidate",
+      "literalPrivate": false,
+      "noStore": true,
+      "classification": "LOCAL_PROXY_HEADER_PRECEDENCE"
+    },
+    {
+      "name": "ANON_CARE",
+      "result": "PASS",
+      "status": 401,
+      "code": "CARE_UNAUTHENTICATED",
+      "cookieOnly": false,
+      "noStore": true,
+      "literalPrivate": false,
+      "proofScope": "AUTHORIZATION_STATUS_ERROR_SHAPE"
+    },
+    {
+      "name": "CACHE_CONTRACT_ANON_PORTAL",
+      "result": "NOT_PROVEN",
+      "cacheControl": "no-store, must-revalidate",
+      "literalPrivate": false,
+      "noStore": true,
+      "classification": "LOCAL_PROXY_HEADER_PRECEDENCE"
+    },
+    {
+      "name": "ANON_PORTAL",
+      "result": "PASS",
+      "status": 401,
+      "code": "PORTAL_UNAUTHENTICATED",
+      "cookieOnly": false,
+      "noStore": true,
+      "literalPrivate": false,
+      "proofScope": "AUTHORIZATION_STATUS_ERROR_SHAPE"
+    },
+    {
+      "name": "CACHE_CONTRACT_ANON_BROADCAST",
+      "result": "NOT_PROVEN",
+      "cacheControl": "no-store, must-revalidate",
+      "literalPrivate": false,
+      "noStore": true,
+      "classification": "LOCAL_PROXY_HEADER_PRECEDENCE"
+    },
+    {
+      "name": "ANON_BROADCAST",
+      "result": "PASS",
+      "status": 401,
+      "code": "ANNOUNCEMENT_UNAUTHENTICATED",
+      "cookieOnly": false,
+      "noStore": true,
+      "literalPrivate": false,
+      "proofScope": "AUTHORIZATION_STATUS_ERROR_SHAPE"
+    },
+    {
+      "name": "CACHE_CONTRACT_ANON_COURSES",
+      "result": "NOT_PROVEN",
+      "cacheControl": "no-store, must-revalidate",
+      "literalPrivate": false,
+      "noStore": true,
+      "classification": "LOCAL_PROXY_HEADER_PRECEDENCE"
+    },
+    {
+      "name": "ANON_COURSES",
+      "result": "PASS",
+      "status": 401,
+      "code": "COURSE_UNAUTHENTICATED",
+      "cookieOnly": false,
+      "noStore": true,
+      "literalPrivate": false,
+      "proofScope": "AUTHORIZATION_STATUS_ERROR_SHAPE"
+    },
+    {
+      "name": "HTTP_IDENTITY_0_admin",
+      "result": "PASS",
+      "status": 200,
+      "ownTenant": true,
+      "cookieOnly": true
+    },
+    {
+      "name": "HTTP_IDENTITY_0_admin_staff",
+      "result": "PASS",
+      "status": 200,
+      "ownTenant": true,
+      "cookieOnly": true
+    },
+    {
+      "name": "HTTP_IDENTITY_0_accountant",
+      "result": "PASS",
+      "status": 200,
+      "ownTenant": true,
+      "cookieOnly": true
+    },
+    {
+      "name": "CACHE_CONTRACT_CARE_ROLE_DENY_0",
+      "result": "NOT_PROVEN",
+      "cacheControl": "no-store, must-revalidate",
+      "literalPrivate": false,
+      "noStore": true,
+      "classification": "LOCAL_PROXY_HEADER_PRECEDENCE"
+    },
+    {
+      "name": "CARE_ROLE_DENY_0",
+      "result": "PASS",
+      "status": 403,
+      "code": "CARE_ROLE_DENIED",
+      "cookieOnly": true,
+      "noStore": true,
+      "literalPrivate": false,
+      "proofScope": "AUTHORIZATION_STATUS_ERROR_SHAPE"
+    },
+    {
+      "name": "CACHE_CONTRACT_CARE_TEACHER_HELD_0",
+      "result": "NOT_PROVEN",
+      "cacheControl": "no-store, must-revalidate",
+      "literalPrivate": false,
+      "noStore": true,
+      "classification": "LOCAL_PROXY_HEADER_PRECEDENCE"
+    },
+    {
+      "name": "CARE_TEACHER_HELD_0",
+      "result": "PASS",
+      "status": 503,
+      "code": "CARE_TEACHER_IDENTITY_UNAVAILABLE",
+      "cookieOnly": true,
+      "noStore": true,
+      "literalPrivate": false,
+      "proofScope": "AUTHORIZATION_STATUS_ERROR_SHAPE"
+    },
+    {
+      "name": "CACHE_CONTRACT_CARE_HISTORICAL_HELD_0",
+      "result": "NOT_PROVEN",
+      "cacheControl": "no-store, must-revalidate",
+      "literalPrivate": false,
+      "noStore": true,
+      "classification": "LOCAL_PROXY_HEADER_PRECEDENCE"
+    },
+    {
+      "name": "CARE_HISTORICAL_HELD_0",
+      "result": "PASS",
+      "status": 503,
+      "code": "CARE_HISTORICAL_SCOPE_UNAVAILABLE",
+      "cookieOnly": true,
+      "noStore": true,
+      "literalPrivate": false,
+      "proofScope": "AUTHORIZATION_STATUS_ERROR_SHAPE"
+    },
+    {
+      "name": "CACHE_CONTRACT_CARE_HEALTH_HELD_0",
+      "result": "NOT_PROVEN",
+      "cacheControl": "no-store, must-revalidate",
+      "literalPrivate": false,
+      "noStore": true,
+      "classification": "LOCAL_PROXY_HEADER_PRECEDENCE"
+    },
+    {
+      "name": "CARE_HEALTH_HELD_0",
+      "result": "PASS",
+      "status": 503,
+      "code": "CARE_HEALTH_POLICY_UNAVAILABLE",
+      "cookieOnly": true,
+      "noStore": true,
+      "literalPrivate": false,
+      "proofScope": "AUTHORIZATION_STATUS_ERROR_SHAPE"
+    },
+    {
+      "name": "CACHE_CONTRACT_PORTAL_ADMIN_HELD_0",
+      "result": "NOT_PROVEN",
+      "cacheControl": "no-store, must-revalidate",
+      "literalPrivate": false,
+      "noStore": true,
+      "classification": "LOCAL_PROXY_HEADER_PRECEDENCE"
+    },
+    {
+      "name": "PORTAL_ADMIN_HELD_0",
+      "result": "PASS",
+      "status": 503,
+      "code": "PORTAL_ISSUANCE_NOT_READY",
+      "cookieOnly": true,
+      "noStore": true,
+      "literalPrivate": false,
+      "proofScope": "AUTHORIZATION_STATUS_ERROR_SHAPE"
+    },
+    {
+      "name": "CACHE_CONTRACT_PORTAL_ROLE_DENY_0_admin_staff",
+      "result": "NOT_PROVEN",
+      "cacheControl": "no-store, must-revalidate",
+      "literalPrivate": false,
+      "noStore": true,
+      "classification": "LOCAL_PROXY_HEADER_PRECEDENCE"
+    },
+    {
+      "name": "PORTAL_ROLE_DENY_0_admin_staff",
+      "result": "PASS",
+      "status": 403,
+      "code": "PORTAL_ACCESS_DENIED",
+      "cookieOnly": true,
+      "noStore": true,
+      "literalPrivate": false,
+      "proofScope": "AUTHORIZATION_STATUS_ERROR_SHAPE"
+    },
+    {
+      "name": "CACHE_CONTRACT_PORTAL_ROLE_DENY_0_accountant",
+      "result": "NOT_PROVEN",
+      "cacheControl": "no-store, must-revalidate",
+      "literalPrivate": false,
+      "noStore": true,
+      "classification": "LOCAL_PROXY_HEADER_PRECEDENCE"
+    },
+    {
+      "name": "PORTAL_ROLE_DENY_0_accountant",
+      "result": "PASS",
+      "status": 403,
+      "code": "PORTAL_ACCESS_DENIED",
+      "cookieOnly": true,
+      "noStore": true,
+      "literalPrivate": false,
+      "proofScope": "AUTHORIZATION_STATUS_ERROR_SHAPE"
+    },
+    {
+      "name": "CACHE_CONTRACT_BROADCAST_ADMIN_HELD_0",
+      "result": "NOT_PROVEN",
+      "cacheControl": "no-store, must-revalidate",
+      "literalPrivate": false,
+      "noStore": true,
+      "classification": "LOCAL_PROXY_HEADER_PRECEDENCE"
+    },
+    {
+      "name": "BROADCAST_ADMIN_HELD_0",
+      "result": "PASS",
+      "status": 503,
+      "code": "ANNOUNCEMENT_BROADCAST_NOT_READY",
+      "cookieOnly": true,
+      "noStore": true,
+      "literalPrivate": false,
+      "proofScope": "AUTHORIZATION_STATUS_ERROR_SHAPE"
+    },
+    {
+      "name": "CACHE_CONTRACT_BROADCAST_ROLE_DENY_0_admin_staff",
+      "result": "NOT_PROVEN",
+      "cacheControl": "no-store, must-revalidate",
+      "literalPrivate": false,
+      "noStore": true,
+      "classification": "LOCAL_PROXY_HEADER_PRECEDENCE"
+    },
+    {
+      "name": "BROADCAST_ROLE_DENY_0_admin_staff",
+      "result": "PASS",
+      "status": 403,
+      "code": "ANNOUNCEMENT_ACCESS_DENIED",
+      "cookieOnly": true,
+      "noStore": true,
+      "literalPrivate": false,
+      "proofScope": "AUTHORIZATION_STATUS_ERROR_SHAPE"
+    },
+    {
+      "name": "CACHE_CONTRACT_BROADCAST_ROLE_DENY_0_accountant",
+      "result": "NOT_PROVEN",
+      "cacheControl": "no-store, must-revalidate",
+      "literalPrivate": false,
+      "noStore": true,
+      "classification": "LOCAL_PROXY_HEADER_PRECEDENCE"
+    },
+    {
+      "name": "BROADCAST_ROLE_DENY_0_accountant",
+      "result": "PASS",
+      "status": 403,
+      "code": "ANNOUNCEMENT_ACCESS_DENIED",
+      "cookieOnly": true,
+      "noStore": true,
+      "literalPrivate": false,
+      "proofScope": "AUTHORIZATION_STATUS_ERROR_SHAPE"
+    },
+    {
+      "name": "CACHE_CONTRACT_CARE_SELECTOR_0_0",
+      "result": "NOT_PROVEN",
+      "cacheControl": "no-store, must-revalidate",
+      "literalPrivate": false,
+      "noStore": true,
+      "classification": "LOCAL_PROXY_HEADER_PRECEDENCE"
+    },
+    {
+      "name": "CARE_SELECTOR_0_0",
+      "result": "PASS",
+      "status": 403,
+      "code": "CARE_CONTEXT_OVERRIDE_DENIED",
+      "cookieOnly": true,
+      "noStore": true,
+      "literalPrivate": false,
+      "proofScope": "AUTHORIZATION_STATUS_ERROR_SHAPE"
+    },
+    {
+      "name": "CACHE_CONTRACT_PORTAL_SELECTOR_0_0",
+      "result": "NOT_PROVEN",
+      "cacheControl": "no-store, must-revalidate",
+      "literalPrivate": false,
+      "noStore": true,
+      "classification": "LOCAL_PROXY_HEADER_PRECEDENCE"
+    },
+    {
+      "name": "PORTAL_SELECTOR_0_0",
+      "result": "PASS",
+      "status": 403,
+      "code": "TENANT_ISOLATION_VIOLATION",
+      "cookieOnly": true,
+      "noStore": true,
+      "literalPrivate": false,
+      "proofScope": "AUTHORIZATION_STATUS_ERROR_SHAPE"
+    },
+    {
+      "name": "CACHE_CONTRACT_BROADCAST_SELECTOR_0_0",
+      "result": "NOT_PROVEN",
+      "cacheControl": "no-store, must-revalidate",
+      "literalPrivate": false,
+      "noStore": true,
+      "classification": "LOCAL_PROXY_HEADER_PRECEDENCE"
+    },
+    {
+      "name": "BROADCAST_SELECTOR_0_0",
+      "result": "PASS",
+      "status": 403,
+      "code": "ANNOUNCEMENT_CONTEXT_OVERRIDE_DENIED",
+      "cookieOnly": true,
+      "noStore": true,
+      "literalPrivate": false,
+      "proofScope": "AUTHORIZATION_STATUS_ERROR_SHAPE"
+    },
+    {
+      "name": "CACHE_CONTRACT_CARE_SELECTOR_0_1",
+      "result": "NOT_PROVEN",
+      "cacheControl": "no-store, must-revalidate",
+      "literalPrivate": false,
+      "noStore": true,
+      "classification": "LOCAL_PROXY_HEADER_PRECEDENCE"
+    },
+    {
+      "name": "CARE_SELECTOR_0_1",
+      "result": "PASS",
+      "status": 403,
+      "code": "CARE_CONTEXT_OVERRIDE_DENIED",
+      "cookieOnly": true,
+      "noStore": true,
+      "literalPrivate": false,
+      "proofScope": "AUTHORIZATION_STATUS_ERROR_SHAPE"
+    },
+    {
+      "name": "CACHE_CONTRACT_PORTAL_SELECTOR_0_1",
+      "result": "NOT_PROVEN",
+      "cacheControl": "no-store, must-revalidate",
+      "literalPrivate": false,
+      "noStore": true,
+      "classification": "LOCAL_PROXY_HEADER_PRECEDENCE"
+    },
+    {
+      "name": "PORTAL_SELECTOR_0_1",
+      "result": "PASS",
+      "status": 403,
+      "code": "TENANT_ISOLATION_VIOLATION",
+      "cookieOnly": true,
+      "noStore": true,
+      "literalPrivate": false,
+      "proofScope": "AUTHORIZATION_STATUS_ERROR_SHAPE"
+    },
+    {
+      "name": "CACHE_CONTRACT_BROADCAST_SELECTOR_0_1",
+      "result": "NOT_PROVEN",
+      "cacheControl": "no-store, must-revalidate",
+      "literalPrivate": false,
+      "noStore": true,
+      "classification": "LOCAL_PROXY_HEADER_PRECEDENCE"
+    },
+    {
+      "name": "BROADCAST_SELECTOR_0_1",
+      "result": "PASS",
+      "status": 403,
+      "code": "ANNOUNCEMENT_CONTEXT_OVERRIDE_DENIED",
+      "cookieOnly": true,
+      "noStore": true,
+      "literalPrivate": false,
+      "proofScope": "AUTHORIZATION_STATUS_ERROR_SHAPE"
+    },
+    {
+      "name": "CACHE_CONTRACT_CARE_SELECTOR_0_2",
+      "result": "NOT_PROVEN",
+      "cacheControl": "no-store, must-revalidate",
+      "literalPrivate": false,
+      "noStore": true,
+      "classification": "LOCAL_PROXY_HEADER_PRECEDENCE"
+    },
+    {
+      "name": "CARE_SELECTOR_0_2",
+      "result": "PASS",
+      "status": 403,
+      "code": "CARE_CONTEXT_OVERRIDE_DENIED",
+      "cookieOnly": true,
+      "noStore": true,
+      "literalPrivate": false,
+      "proofScope": "AUTHORIZATION_STATUS_ERROR_SHAPE"
+    },
+    {
+      "name": "CACHE_CONTRACT_PORTAL_SELECTOR_0_2",
+      "result": "NOT_PROVEN",
+      "cacheControl": "no-store, must-revalidate",
+      "literalPrivate": false,
+      "noStore": true,
+      "classification": "LOCAL_PROXY_HEADER_PRECEDENCE"
+    },
+    {
+      "name": "PORTAL_SELECTOR_0_2",
+      "result": "PASS",
+      "status": 403,
+      "code": "TENANT_ISOLATION_VIOLATION",
+      "cookieOnly": true,
+      "noStore": true,
+      "literalPrivate": false,
+      "proofScope": "AUTHORIZATION_STATUS_ERROR_SHAPE"
+    },
+    {
+      "name": "CACHE_CONTRACT_BROADCAST_SELECTOR_0_2",
+      "result": "NOT_PROVEN",
+      "cacheControl": "no-store, must-revalidate",
+      "literalPrivate": false,
+      "noStore": true,
+      "classification": "LOCAL_PROXY_HEADER_PRECEDENCE"
+    },
+    {
+      "name": "BROADCAST_SELECTOR_0_2",
+      "result": "PASS",
+      "status": 403,
+      "code": "ANNOUNCEMENT_CONTEXT_OVERRIDE_DENIED",
+      "cookieOnly": true,
+      "noStore": true,
+      "literalPrivate": false,
+      "proofScope": "AUTHORIZATION_STATUS_ERROR_SHAPE"
+    },
+    {
+      "name": "CACHE_CONTRACT_CARE_SELECTOR_0_3",
+      "result": "NOT_PROVEN",
+      "cacheControl": "no-store, must-revalidate",
+      "literalPrivate": false,
+      "noStore": true,
+      "classification": "LOCAL_PROXY_HEADER_PRECEDENCE"
+    },
+    {
+      "name": "CARE_SELECTOR_0_3",
+      "result": "PASS",
+      "status": 403,
+      "code": "CARE_CONTEXT_OVERRIDE_DENIED",
+      "cookieOnly": true,
+      "noStore": true,
+      "literalPrivate": false,
+      "proofScope": "AUTHORIZATION_STATUS_ERROR_SHAPE"
+    },
+    {
+      "name": "CACHE_CONTRACT_PORTAL_SELECTOR_0_3",
+      "result": "NOT_PROVEN",
+      "cacheControl": "no-store, must-revalidate",
+      "literalPrivate": false,
+      "noStore": true,
+      "classification": "LOCAL_PROXY_HEADER_PRECEDENCE"
+    },
+    {
+      "name": "PORTAL_SELECTOR_0_3",
+      "result": "PASS",
+      "status": 403,
+      "code": "TENANT_ISOLATION_VIOLATION",
+      "cookieOnly": true,
+      "noStore": true,
+      "literalPrivate": false,
+      "proofScope": "AUTHORIZATION_STATUS_ERROR_SHAPE"
+    },
+    {
+      "name": "CACHE_CONTRACT_BROADCAST_SELECTOR_0_3",
+      "result": "NOT_PROVEN",
+      "cacheControl": "no-store, must-revalidate",
+      "literalPrivate": false,
+      "noStore": true,
+      "classification": "LOCAL_PROXY_HEADER_PRECEDENCE"
+    },
+    {
+      "name": "BROADCAST_SELECTOR_0_3",
+      "result": "PASS",
+      "status": 403,
+      "code": "ANNOUNCEMENT_CONTEXT_OVERRIDE_DENIED",
+      "cookieOnly": true,
+      "noStore": true,
+      "literalPrivate": false,
+      "proofScope": "AUTHORIZATION_STATUS_ERROR_SHAPE"
+    },
+    {
+      "name": "CACHE_CONTRACT_CARE_HEADER_0_x-tenant-id",
+      "result": "NOT_PROVEN",
+      "cacheControl": "no-store, must-revalidate",
+      "literalPrivate": false,
+      "noStore": true,
+      "classification": "LOCAL_PROXY_HEADER_PRECEDENCE"
+    },
+    {
+      "name": "CARE_HEADER_0_x-tenant-id",
+      "result": "PASS",
+      "status": 403,
+      "code": "CARE_CONTEXT_OVERRIDE_DENIED",
+      "cookieOnly": true,
+      "noStore": true,
+      "literalPrivate": false,
+      "proofScope": "AUTHORIZATION_STATUS_ERROR_SHAPE"
+    },
+    {
+      "name": "CACHE_CONTRACT_PORTAL_HEADER_0_x-tenant-id",
+      "result": "NOT_PROVEN",
+      "cacheControl": "no-store, must-revalidate",
+      "literalPrivate": false,
+      "noStore": true,
+      "classification": "LOCAL_PROXY_HEADER_PRECEDENCE"
+    },
+    {
+      "name": "PORTAL_HEADER_0_x-tenant-id",
+      "result": "PASS",
+      "status": 403,
+      "code": "TENANT_ISOLATION_VIOLATION",
+      "cookieOnly": true,
+      "noStore": true,
+      "literalPrivate": false,
+      "proofScope": "AUTHORIZATION_STATUS_ERROR_SHAPE"
+    },
+    {
+      "name": "CACHE_CONTRACT_BROADCAST_HEADER_0_x-tenant-id",
+      "result": "NOT_PROVEN",
+      "cacheControl": "no-store, must-revalidate",
+      "literalPrivate": false,
+      "noStore": true,
+      "classification": "LOCAL_PROXY_HEADER_PRECEDENCE"
+    },
+    {
+      "name": "BROADCAST_HEADER_0_x-tenant-id",
+      "result": "PASS",
+      "status": 403,
+      "code": "ANNOUNCEMENT_CONTEXT_OVERRIDE_DENIED",
+      "cookieOnly": true,
+      "noStore": true,
+      "literalPrivate": false,
+      "proofScope": "AUTHORIZATION_STATUS_ERROR_SHAPE"
+    },
+    {
+      "name": "CACHE_CONTRACT_CARE_HEADER_0_x-actor-id",
+      "result": "NOT_PROVEN",
+      "cacheControl": "no-store, must-revalidate",
+      "literalPrivate": false,
+      "noStore": true,
+      "classification": "LOCAL_PROXY_HEADER_PRECEDENCE"
+    },
+    {
+      "name": "CARE_HEADER_0_x-actor-id",
+      "result": "PASS",
+      "status": 403,
+      "code": "CARE_CONTEXT_OVERRIDE_DENIED",
+      "cookieOnly": true,
+      "noStore": true,
+      "literalPrivate": false,
+      "proofScope": "AUTHORIZATION_STATUS_ERROR_SHAPE"
+    },
+    {
+      "name": "CACHE_CONTRACT_PORTAL_HEADER_0_x-actor-id",
+      "result": "NOT_PROVEN",
+      "cacheControl": "no-store, must-revalidate",
+      "literalPrivate": false,
+      "noStore": true,
+      "classification": "LOCAL_PROXY_HEADER_PRECEDENCE"
+    },
+    {
+      "name": "PORTAL_HEADER_0_x-actor-id",
+      "result": "PASS",
+      "status": 403,
+      "code": "TENANT_ISOLATION_VIOLATION",
+      "cookieOnly": true,
+      "noStore": true,
+      "literalPrivate": false,
+      "proofScope": "AUTHORIZATION_STATUS_ERROR_SHAPE"
+    },
+    {
+      "name": "CACHE_CONTRACT_BROADCAST_HEADER_0_x-actor-id",
+      "result": "NOT_PROVEN",
+      "cacheControl": "no-store, must-revalidate",
+      "literalPrivate": false,
+      "noStore": true,
+      "classification": "LOCAL_PROXY_HEADER_PRECEDENCE"
+    },
+    {
+      "name": "BROADCAST_HEADER_0_x-actor-id",
+      "result": "PASS",
+      "status": 403,
+      "code": "ANNOUNCEMENT_CONTEXT_OVERRIDE_DENIED",
+      "cookieOnly": true,
+      "noStore": true,
+      "literalPrivate": false,
+      "proofScope": "AUTHORIZATION_STATUS_ERROR_SHAPE"
+    },
+    {
+      "name": "CACHE_CONTRACT_CARE_BODY_TENANT_0",
+      "result": "NOT_PROVEN",
+      "cacheControl": "no-store, must-revalidate",
+      "literalPrivate": false,
+      "noStore": true,
+      "classification": "LOCAL_PROXY_HEADER_PRECEDENCE"
+    },
+    {
+      "name": "CARE_BODY_TENANT_0",
+      "result": "PASS",
+      "status": 403,
+      "code": "CARE_CONTEXT_OVERRIDE_DENIED",
+      "cookieOnly": true,
+      "noStore": true,
+      "literalPrivate": false,
+      "proofScope": "AUTHORIZATION_STATUS_ERROR_SHAPE"
+    },
+    {
+      "name": "CACHE_CONTRACT_CARE_BODY_ROLE_0",
+      "result": "NOT_PROVEN",
+      "cacheControl": "no-store, must-revalidate",
+      "literalPrivate": false,
+      "noStore": true,
+      "classification": "LOCAL_PROXY_HEADER_PRECEDENCE"
+    },
+    {
+      "name": "CARE_BODY_ROLE_0",
+      "result": "PASS",
+      "status": 403,
+      "code": "CARE_CONTEXT_OVERRIDE_DENIED",
+      "cookieOnly": true,
+      "noStore": true,
+      "literalPrivate": false,
+      "proofScope": "AUTHORIZATION_STATUS_ERROR_SHAPE"
+    },
+    {
+      "name": "CACHE_CONTRACT_COURSE_DUPLICATE_TENANT_0",
+      "result": "NOT_PROVEN",
+      "cacheControl": "no-store, must-revalidate",
+      "literalPrivate": false,
+      "noStore": true,
+      "classification": "LOCAL_PROXY_HEADER_PRECEDENCE"
+    },
+    {
+      "name": "COURSE_DUPLICATE_TENANT_0",
+      "result": "PASS",
+      "status": 403,
+      "code": "TENANT_ISOLATION_VIOLATION",
+      "cookieOnly": true,
+      "noStore": true,
+      "literalPrivate": false,
+      "proofScope": "AUTHORIZATION_STATUS_ERROR_SHAPE"
+    },
+    {
+      "name": "COURSE_OWN_HTTP_0",
+      "result": "NOT_PROVEN",
+      "status": 500,
+      "code": "AUTHENTICATED_SELECT_ACL_MISSING"
+    },
+    {
+      "name": "HTTP_IDENTITY_1_admin",
+      "result": "PASS",
+      "status": 200,
+      "ownTenant": true,
+      "cookieOnly": true
+    },
+    {
+      "name": "HTTP_IDENTITY_1_admin_staff",
+      "result": "PASS",
+      "status": 200,
+      "ownTenant": true,
+      "cookieOnly": true
+    },
+    {
+      "name": "HTTP_IDENTITY_1_accountant",
+      "result": "PASS",
+      "status": 200,
+      "ownTenant": true,
+      "cookieOnly": true
+    },
+    {
+      "name": "CACHE_CONTRACT_CARE_ROLE_DENY_1",
+      "result": "NOT_PROVEN",
+      "cacheControl": "no-store, must-revalidate",
+      "literalPrivate": false,
+      "noStore": true,
+      "classification": "LOCAL_PROXY_HEADER_PRECEDENCE"
+    },
+    {
+      "name": "CARE_ROLE_DENY_1",
+      "result": "PASS",
+      "status": 403,
+      "code": "CARE_ROLE_DENIED",
+      "cookieOnly": true,
+      "noStore": true,
+      "literalPrivate": false,
+      "proofScope": "AUTHORIZATION_STATUS_ERROR_SHAPE"
+    },
+    {
+      "name": "CACHE_CONTRACT_CARE_TEACHER_HELD_1",
+      "result": "NOT_PROVEN",
+      "cacheControl": "no-store, must-revalidate",
+      "literalPrivate": false,
+      "noStore": true,
+      "classification": "LOCAL_PROXY_HEADER_PRECEDENCE"
+    },
+    {
+      "name": "CARE_TEACHER_HELD_1",
+      "result": "PASS",
+      "status": 503,
+      "code": "CARE_TEACHER_IDENTITY_UNAVAILABLE",
+      "cookieOnly": true,
+      "noStore": true,
+      "literalPrivate": false,
+      "proofScope": "AUTHORIZATION_STATUS_ERROR_SHAPE"
+    },
+    {
+      "name": "CACHE_CONTRACT_CARE_HISTORICAL_HELD_1",
+      "result": "NOT_PROVEN",
+      "cacheControl": "no-store, must-revalidate",
+      "literalPrivate": false,
+      "noStore": true,
+      "classification": "LOCAL_PROXY_HEADER_PRECEDENCE"
+    },
+    {
+      "name": "CARE_HISTORICAL_HELD_1",
+      "result": "PASS",
+      "status": 503,
+      "code": "CARE_HISTORICAL_SCOPE_UNAVAILABLE",
+      "cookieOnly": true,
+      "noStore": true,
+      "literalPrivate": false,
+      "proofScope": "AUTHORIZATION_STATUS_ERROR_SHAPE"
+    },
+    {
+      "name": "CACHE_CONTRACT_CARE_HEALTH_HELD_1",
+      "result": "NOT_PROVEN",
+      "cacheControl": "no-store, must-revalidate",
+      "literalPrivate": false,
+      "noStore": true,
+      "classification": "LOCAL_PROXY_HEADER_PRECEDENCE"
+    },
+    {
+      "name": "CARE_HEALTH_HELD_1",
+      "result": "PASS",
+      "status": 503,
+      "code": "CARE_HEALTH_POLICY_UNAVAILABLE",
+      "cookieOnly": true,
+      "noStore": true,
+      "literalPrivate": false,
+      "proofScope": "AUTHORIZATION_STATUS_ERROR_SHAPE"
+    },
+    {
+      "name": "CACHE_CONTRACT_PORTAL_ADMIN_HELD_1",
+      "result": "NOT_PROVEN",
+      "cacheControl": "no-store, must-revalidate",
+      "literalPrivate": false,
+      "noStore": true,
+      "classification": "LOCAL_PROXY_HEADER_PRECEDENCE"
+    },
+    {
+      "name": "PORTAL_ADMIN_HELD_1",
+      "result": "PASS",
+      "status": 503,
+      "code": "PORTAL_ISSUANCE_NOT_READY",
+      "cookieOnly": true,
+      "noStore": true,
+      "literalPrivate": false,
+      "proofScope": "AUTHORIZATION_STATUS_ERROR_SHAPE"
+    },
+    {
+      "name": "CACHE_CONTRACT_PORTAL_ROLE_DENY_1_admin_staff",
+      "result": "NOT_PROVEN",
+      "cacheControl": "no-store, must-revalidate",
+      "literalPrivate": false,
+      "noStore": true,
+      "classification": "LOCAL_PROXY_HEADER_PRECEDENCE"
+    },
+    {
+      "name": "PORTAL_ROLE_DENY_1_admin_staff",
+      "result": "PASS",
+      "status": 403,
+      "code": "PORTAL_ACCESS_DENIED",
+      "cookieOnly": true,
+      "noStore": true,
+      "literalPrivate": false,
+      "proofScope": "AUTHORIZATION_STATUS_ERROR_SHAPE"
+    },
+    {
+      "name": "CACHE_CONTRACT_PORTAL_ROLE_DENY_1_accountant",
+      "result": "NOT_PROVEN",
+      "cacheControl": "no-store, must-revalidate",
+      "literalPrivate": false,
+      "noStore": true,
+      "classification": "LOCAL_PROXY_HEADER_PRECEDENCE"
+    },
+    {
+      "name": "PORTAL_ROLE_DENY_1_accountant",
+      "result": "PASS",
+      "status": 403,
+      "code": "PORTAL_ACCESS_DENIED",
+      "cookieOnly": true,
+      "noStore": true,
+      "literalPrivate": false,
+      "proofScope": "AUTHORIZATION_STATUS_ERROR_SHAPE"
+    },
+    {
+      "name": "CACHE_CONTRACT_BROADCAST_ADMIN_HELD_1",
+      "result": "NOT_PROVEN",
+      "cacheControl": "no-store, must-revalidate",
+      "literalPrivate": false,
+      "noStore": true,
+      "classification": "LOCAL_PROXY_HEADER_PRECEDENCE"
+    },
+    {
+      "name": "BROADCAST_ADMIN_HELD_1",
+      "result": "PASS",
+      "status": 503,
+      "code": "ANNOUNCEMENT_BROADCAST_NOT_READY",
+      "cookieOnly": true,
+      "noStore": true,
+      "literalPrivate": false,
+      "proofScope": "AUTHORIZATION_STATUS_ERROR_SHAPE"
+    },
+    {
+      "name": "CACHE_CONTRACT_BROADCAST_ROLE_DENY_1_admin_staff",
+      "result": "NOT_PROVEN",
+      "cacheControl": "no-store, must-revalidate",
+      "literalPrivate": false,
+      "noStore": true,
+      "classification": "LOCAL_PROXY_HEADER_PRECEDENCE"
+    },
+    {
+      "name": "BROADCAST_ROLE_DENY_1_admin_staff",
+      "result": "PASS",
+      "status": 403,
+      "code": "ANNOUNCEMENT_ACCESS_DENIED",
+      "cookieOnly": true,
+      "noStore": true,
+      "literalPrivate": false,
+      "proofScope": "AUTHORIZATION_STATUS_ERROR_SHAPE"
+    },
+    {
+      "name": "CACHE_CONTRACT_BROADCAST_ROLE_DENY_1_accountant",
+      "result": "NOT_PROVEN",
+      "cacheControl": "no-store, must-revalidate",
+      "literalPrivate": false,
+      "noStore": true,
+      "classification": "LOCAL_PROXY_HEADER_PRECEDENCE"
+    },
+    {
+      "name": "BROADCAST_ROLE_DENY_1_accountant",
+      "result": "PASS",
+      "status": 403,
+      "code": "ANNOUNCEMENT_ACCESS_DENIED",
+      "cookieOnly": true,
+      "noStore": true,
+      "literalPrivate": false,
+      "proofScope": "AUTHORIZATION_STATUS_ERROR_SHAPE"
+    },
+    {
+      "name": "CACHE_CONTRACT_CARE_SELECTOR_1_0",
+      "result": "NOT_PROVEN",
+      "cacheControl": "no-store, must-revalidate",
+      "literalPrivate": false,
+      "noStore": true,
+      "classification": "LOCAL_PROXY_HEADER_PRECEDENCE"
+    },
+    {
+      "name": "CARE_SELECTOR_1_0",
+      "result": "PASS",
+      "status": 403,
+      "code": "CARE_CONTEXT_OVERRIDE_DENIED",
+      "cookieOnly": true,
+      "noStore": true,
+      "literalPrivate": false,
+      "proofScope": "AUTHORIZATION_STATUS_ERROR_SHAPE"
+    },
+    {
+      "name": "CACHE_CONTRACT_PORTAL_SELECTOR_1_0",
+      "result": "NOT_PROVEN",
+      "cacheControl": "no-store, must-revalidate",
+      "literalPrivate": false,
+      "noStore": true,
+      "classification": "LOCAL_PROXY_HEADER_PRECEDENCE"
+    },
+    {
+      "name": "PORTAL_SELECTOR_1_0",
+      "result": "PASS",
+      "status": 403,
+      "code": "TENANT_ISOLATION_VIOLATION",
+      "cookieOnly": true,
+      "noStore": true,
+      "literalPrivate": false,
+      "proofScope": "AUTHORIZATION_STATUS_ERROR_SHAPE"
+    },
+    {
+      "name": "CACHE_CONTRACT_BROADCAST_SELECTOR_1_0",
+      "result": "NOT_PROVEN",
+      "cacheControl": "no-store, must-revalidate",
+      "literalPrivate": false,
+      "noStore": true,
+      "classification": "LOCAL_PROXY_HEADER_PRECEDENCE"
+    },
+    {
+      "name": "BROADCAST_SELECTOR_1_0",
+      "result": "PASS",
+      "status": 403,
+      "code": "ANNOUNCEMENT_CONTEXT_OVERRIDE_DENIED",
+      "cookieOnly": true,
+      "noStore": true,
+      "literalPrivate": false,
+      "proofScope": "AUTHORIZATION_STATUS_ERROR_SHAPE"
+    },
+    {
+      "name": "CACHE_CONTRACT_CARE_SELECTOR_1_1",
+      "result": "NOT_PROVEN",
+      "cacheControl": "no-store, must-revalidate",
+      "literalPrivate": false,
+      "noStore": true,
+      "classification": "LOCAL_PROXY_HEADER_PRECEDENCE"
+    },
+    {
+      "name": "CARE_SELECTOR_1_1",
+      "result": "PASS",
+      "status": 403,
+      "code": "CARE_CONTEXT_OVERRIDE_DENIED",
+      "cookieOnly": true,
+      "noStore": true,
+      "literalPrivate": false,
+      "proofScope": "AUTHORIZATION_STATUS_ERROR_SHAPE"
+    },
+    {
+      "name": "CACHE_CONTRACT_PORTAL_SELECTOR_1_1",
+      "result": "NOT_PROVEN",
+      "cacheControl": "no-store, must-revalidate",
+      "literalPrivate": false,
+      "noStore": true,
+      "classification": "LOCAL_PROXY_HEADER_PRECEDENCE"
+    },
+    {
+      "name": "PORTAL_SELECTOR_1_1",
+      "result": "PASS",
+      "status": 403,
+      "code": "TENANT_ISOLATION_VIOLATION",
+      "cookieOnly": true,
+      "noStore": true,
+      "literalPrivate": false,
+      "proofScope": "AUTHORIZATION_STATUS_ERROR_SHAPE"
+    },
+    {
+      "name": "CACHE_CONTRACT_BROADCAST_SELECTOR_1_1",
+      "result": "NOT_PROVEN",
+      "cacheControl": "no-store, must-revalidate",
+      "literalPrivate": false,
+      "noStore": true,
+      "classification": "LOCAL_PROXY_HEADER_PRECEDENCE"
+    },
+    {
+      "name": "BROADCAST_SELECTOR_1_1",
+      "result": "PASS",
+      "status": 403,
+      "code": "ANNOUNCEMENT_CONTEXT_OVERRIDE_DENIED",
+      "cookieOnly": true,
+      "noStore": true,
+      "literalPrivate": false,
+      "proofScope": "AUTHORIZATION_STATUS_ERROR_SHAPE"
+    },
+    {
+      "name": "CACHE_CONTRACT_CARE_SELECTOR_1_2",
+      "result": "NOT_PROVEN",
+      "cacheControl": "no-store, must-revalidate",
+      "literalPrivate": false,
+      "noStore": true,
+      "classification": "LOCAL_PROXY_HEADER_PRECEDENCE"
+    },
+    {
+      "name": "CARE_SELECTOR_1_2",
+      "result": "PASS",
+      "status": 403,
+      "code": "CARE_CONTEXT_OVERRIDE_DENIED",
+      "cookieOnly": true,
+      "noStore": true,
+      "literalPrivate": false,
+      "proofScope": "AUTHORIZATION_STATUS_ERROR_SHAPE"
+    },
+    {
+      "name": "CACHE_CONTRACT_PORTAL_SELECTOR_1_2",
+      "result": "NOT_PROVEN",
+      "cacheControl": "no-store, must-revalidate",
+      "literalPrivate": false,
+      "noStore": true,
+      "classification": "LOCAL_PROXY_HEADER_PRECEDENCE"
+    },
+    {
+      "name": "PORTAL_SELECTOR_1_2",
+      "result": "PASS",
+      "status": 403,
+      "code": "TENANT_ISOLATION_VIOLATION",
+      "cookieOnly": true,
+      "noStore": true,
+      "literalPrivate": false,
+      "proofScope": "AUTHORIZATION_STATUS_ERROR_SHAPE"
+    },
+    {
+      "name": "CACHE_CONTRACT_BROADCAST_SELECTOR_1_2",
+      "result": "NOT_PROVEN",
+      "cacheControl": "no-store, must-revalidate",
+      "literalPrivate": false,
+      "noStore": true,
+      "classification": "LOCAL_PROXY_HEADER_PRECEDENCE"
+    },
+    {
+      "name": "BROADCAST_SELECTOR_1_2",
+      "result": "PASS",
+      "status": 403,
+      "code": "ANNOUNCEMENT_CONTEXT_OVERRIDE_DENIED",
+      "cookieOnly": true,
+      "noStore": true,
+      "literalPrivate": false,
+      "proofScope": "AUTHORIZATION_STATUS_ERROR_SHAPE"
+    },
+    {
+      "name": "CACHE_CONTRACT_CARE_SELECTOR_1_3",
+      "result": "NOT_PROVEN",
+      "cacheControl": "no-store, must-revalidate",
+      "literalPrivate": false,
+      "noStore": true,
+      "classification": "LOCAL_PROXY_HEADER_PRECEDENCE"
+    },
+    {
+      "name": "CARE_SELECTOR_1_3",
+      "result": "PASS",
+      "status": 403,
+      "code": "CARE_CONTEXT_OVERRIDE_DENIED",
+      "cookieOnly": true,
+      "noStore": true,
+      "literalPrivate": false,
+      "proofScope": "AUTHORIZATION_STATUS_ERROR_SHAPE"
+    },
+    {
+      "name": "CACHE_CONTRACT_PORTAL_SELECTOR_1_3",
+      "result": "NOT_PROVEN",
+      "cacheControl": "no-store, must-revalidate",
+      "literalPrivate": false,
+      "noStore": true,
+      "classification": "LOCAL_PROXY_HEADER_PRECEDENCE"
+    },
+    {
+      "name": "PORTAL_SELECTOR_1_3",
+      "result": "PASS",
+      "status": 403,
+      "code": "TENANT_ISOLATION_VIOLATION",
+      "cookieOnly": true,
+      "noStore": true,
+      "literalPrivate": false,
+      "proofScope": "AUTHORIZATION_STATUS_ERROR_SHAPE"
+    },
+    {
+      "name": "CACHE_CONTRACT_BROADCAST_SELECTOR_1_3",
+      "result": "NOT_PROVEN",
+      "cacheControl": "no-store, must-revalidate",
+      "literalPrivate": false,
+      "noStore": true,
+      "classification": "LOCAL_PROXY_HEADER_PRECEDENCE"
+    },
+    {
+      "name": "BROADCAST_SELECTOR_1_3",
+      "result": "PASS",
+      "status": 403,
+      "code": "ANNOUNCEMENT_CONTEXT_OVERRIDE_DENIED",
+      "cookieOnly": true,
+      "noStore": true,
+      "literalPrivate": false,
+      "proofScope": "AUTHORIZATION_STATUS_ERROR_SHAPE"
+    },
+    {
+      "name": "CACHE_CONTRACT_CARE_HEADER_1_x-tenant-id",
+      "result": "NOT_PROVEN",
+      "cacheControl": "no-store, must-revalidate",
+      "literalPrivate": false,
+      "noStore": true,
+      "classification": "LOCAL_PROXY_HEADER_PRECEDENCE"
+    },
+    {
+      "name": "CARE_HEADER_1_x-tenant-id",
+      "result": "PASS",
+      "status": 403,
+      "code": "CARE_CONTEXT_OVERRIDE_DENIED",
+      "cookieOnly": true,
+      "noStore": true,
+      "literalPrivate": false,
+      "proofScope": "AUTHORIZATION_STATUS_ERROR_SHAPE"
+    },
+    {
+      "name": "CACHE_CONTRACT_PORTAL_HEADER_1_x-tenant-id",
+      "result": "NOT_PROVEN",
+      "cacheControl": "no-store, must-revalidate",
+      "literalPrivate": false,
+      "noStore": true,
+      "classification": "LOCAL_PROXY_HEADER_PRECEDENCE"
+    },
+    {
+      "name": "PORTAL_HEADER_1_x-tenant-id",
+      "result": "PASS",
+      "status": 403,
+      "code": "TENANT_ISOLATION_VIOLATION",
+      "cookieOnly": true,
+      "noStore": true,
+      "literalPrivate": false,
+      "proofScope": "AUTHORIZATION_STATUS_ERROR_SHAPE"
+    },
+    {
+      "name": "CACHE_CONTRACT_BROADCAST_HEADER_1_x-tenant-id",
+      "result": "NOT_PROVEN",
+      "cacheControl": "no-store, must-revalidate",
+      "literalPrivate": false,
+      "noStore": true,
+      "classification": "LOCAL_PROXY_HEADER_PRECEDENCE"
+    },
+    {
+      "name": "BROADCAST_HEADER_1_x-tenant-id",
+      "result": "PASS",
+      "status": 403,
+      "code": "ANNOUNCEMENT_CONTEXT_OVERRIDE_DENIED",
+      "cookieOnly": true,
+      "noStore": true,
+      "literalPrivate": false,
+      "proofScope": "AUTHORIZATION_STATUS_ERROR_SHAPE"
+    },
+    {
+      "name": "CACHE_CONTRACT_CARE_HEADER_1_x-actor-id",
+      "result": "NOT_PROVEN",
+      "cacheControl": "no-store, must-revalidate",
+      "literalPrivate": false,
+      "noStore": true,
+      "classification": "LOCAL_PROXY_HEADER_PRECEDENCE"
+    },
+    {
+      "name": "CARE_HEADER_1_x-actor-id",
+      "result": "PASS",
+      "status": 403,
+      "code": "CARE_CONTEXT_OVERRIDE_DENIED",
+      "cookieOnly": true,
+      "noStore": true,
+      "literalPrivate": false,
+      "proofScope": "AUTHORIZATION_STATUS_ERROR_SHAPE"
+    },
+    {
+      "name": "CACHE_CONTRACT_PORTAL_HEADER_1_x-actor-id",
+      "result": "NOT_PROVEN",
+      "cacheControl": "no-store, must-revalidate",
+      "literalPrivate": false,
+      "noStore": true,
+      "classification": "LOCAL_PROXY_HEADER_PRECEDENCE"
+    },
+    {
+      "name": "PORTAL_HEADER_1_x-actor-id",
+      "result": "PASS",
+      "status": 403,
+      "code": "TENANT_ISOLATION_VIOLATION",
+      "cookieOnly": true,
+      "noStore": true,
+      "literalPrivate": false,
+      "proofScope": "AUTHORIZATION_STATUS_ERROR_SHAPE"
+    },
+    {
+      "name": "CACHE_CONTRACT_BROADCAST_HEADER_1_x-actor-id",
+      "result": "NOT_PROVEN",
+      "cacheControl": "no-store, must-revalidate",
+      "literalPrivate": false,
+      "noStore": true,
+      "classification": "LOCAL_PROXY_HEADER_PRECEDENCE"
+    },
+    {
+      "name": "BROADCAST_HEADER_1_x-actor-id",
+      "result": "PASS",
+      "status": 403,
+      "code": "ANNOUNCEMENT_CONTEXT_OVERRIDE_DENIED",
+      "cookieOnly": true,
+      "noStore": true,
+      "literalPrivate": false,
+      "proofScope": "AUTHORIZATION_STATUS_ERROR_SHAPE"
+    },
+    {
+      "name": "CACHE_CONTRACT_CARE_BODY_TENANT_1",
+      "result": "NOT_PROVEN",
+      "cacheControl": "no-store, must-revalidate",
+      "literalPrivate": false,
+      "noStore": true,
+      "classification": "LOCAL_PROXY_HEADER_PRECEDENCE"
+    },
+    {
+      "name": "CARE_BODY_TENANT_1",
+      "result": "PASS",
+      "status": 403,
+      "code": "CARE_CONTEXT_OVERRIDE_DENIED",
+      "cookieOnly": true,
+      "noStore": true,
+      "literalPrivate": false,
+      "proofScope": "AUTHORIZATION_STATUS_ERROR_SHAPE"
+    },
+    {
+      "name": "CACHE_CONTRACT_CARE_BODY_ROLE_1",
+      "result": "NOT_PROVEN",
+      "cacheControl": "no-store, must-revalidate",
+      "literalPrivate": false,
+      "noStore": true,
+      "classification": "LOCAL_PROXY_HEADER_PRECEDENCE"
+    },
+    {
+      "name": "CARE_BODY_ROLE_1",
+      "result": "PASS",
+      "status": 403,
+      "code": "CARE_CONTEXT_OVERRIDE_DENIED",
+      "cookieOnly": true,
+      "noStore": true,
+      "literalPrivate": false,
+      "proofScope": "AUTHORIZATION_STATUS_ERROR_SHAPE"
+    },
+    {
+      "name": "CACHE_CONTRACT_COURSE_DUPLICATE_TENANT_1",
+      "result": "NOT_PROVEN",
+      "cacheControl": "no-store, must-revalidate",
+      "literalPrivate": false,
+      "noStore": true,
+      "classification": "LOCAL_PROXY_HEADER_PRECEDENCE"
+    },
+    {
+      "name": "COURSE_DUPLICATE_TENANT_1",
+      "result": "PASS",
+      "status": 403,
+      "code": "TENANT_ISOLATION_VIOLATION",
+      "cookieOnly": true,
+      "noStore": true,
+      "literalPrivate": false,
+      "proofScope": "AUTHORIZATION_STATUS_ERROR_SHAPE"
+    },
+    {
+      "name": "COURSE_OWN_HTTP_1",
+      "result": "NOT_PROVEN",
+      "status": 500,
+      "code": "AUTHENTICATED_SELECT_ACL_MISSING"
+    },
+    {
+      "name": "CACHE_CONTRACT_MEDICATION_DISABLED_0",
+      "result": "NOT_PROVEN",
+      "cacheControl": "no-store, must-revalidate",
+      "literalPrivate": false,
+      "noStore": true,
+      "classification": "LOCAL_PROXY_HEADER_PRECEDENCE"
+    },
+    {
+      "name": "MEDICATION_DISABLED_0",
+      "result": "PASS",
+      "status": 410,
+      "code": "PRESCHOOL_MEDICATION_DISABLED",
+      "cookieOnly": false,
+      "noStore": true,
+      "literalPrivate": false,
+      "proofScope": "AUTHORIZATION_STATUS_ERROR_SHAPE"
+    },
+    {
+      "name": "CACHE_CONTRACT_MEDICATION_DISABLED_1",
+      "result": "NOT_PROVEN",
+      "cacheControl": "no-store, must-revalidate",
+      "literalPrivate": false,
+      "noStore": true,
+      "classification": "LOCAL_PROXY_HEADER_PRECEDENCE"
+    },
+    {
+      "name": "MEDICATION_DISABLED_1",
+      "result": "PASS",
+      "status": 410,
+      "code": "PRESCHOOL_MEDICATION_DISABLED",
+      "cookieOnly": true,
+      "noStore": true,
+      "literalPrivate": false,
+      "proofScope": "AUTHORIZATION_STATUS_ERROR_SHAPE"
+    },
+    {
+      "name": "CACHE_CONTRACT_MEDICATION_DISABLED_2",
+      "result": "NOT_PROVEN",
+      "cacheControl": "no-store, must-revalidate",
+      "literalPrivate": false,
+      "noStore": true,
+      "classification": "LOCAL_PROXY_HEADER_PRECEDENCE"
+    },
+    {
+      "name": "MEDICATION_DISABLED_2",
+      "result": "PASS",
+      "status": 410,
+      "code": "PRESCHOOL_MEDICATION_DISABLED",
+      "cookieOnly": true,
+      "noStore": true,
+      "literalPrivate": false,
+      "proofScope": "AUTHORIZATION_STATUS_ERROR_SHAPE"
+    },
+    {
+      "name": "CACHE_CONTRACT_MEDICATION_DISABLED_3",
+      "result": "NOT_PROVEN",
+      "cacheControl": "no-store, must-revalidate",
+      "literalPrivate": false,
+      "noStore": true,
+      "classification": "LOCAL_PROXY_HEADER_PRECEDENCE"
+    },
+    {
+      "name": "MEDICATION_DISABLED_3",
+      "result": "PASS",
+      "status": 410,
+      "code": "PRESCHOOL_MEDICATION_DISABLED",
+      "cookieOnly": true,
+      "noStore": true,
+      "literalPrivate": false,
+      "proofScope": "AUTHORIZATION_STATUS_ERROR_SHAPE"
+    },
+    {
+      "name": "CACHE_CONTRACT_INACTIVE_PROFILE",
+      "result": "NOT_PROVEN",
+      "cacheControl": "no-store, must-revalidate",
+      "literalPrivate": false,
+      "noStore": true,
+      "classification": "LOCAL_PROXY_HEADER_PRECEDENCE"
+    },
+    {
+      "name": "INACTIVE_PROFILE",
+      "result": "PASS",
+      "status": 403,
+      "code": "CARE_ACCESS_DENIED",
+      "cookieOnly": true,
+      "noStore": true,
+      "literalPrivate": false,
+      "proofScope": "AUTHORIZATION_STATUS_ERROR_SHAPE"
+    },
+    {
+      "name": "CACHE_CONTRACT_SUSPENDED_TENANT",
+      "result": "NOT_PROVEN",
+      "cacheControl": "no-store, must-revalidate",
+      "literalPrivate": false,
+      "noStore": true,
+      "classification": "LOCAL_PROXY_HEADER_PRECEDENCE"
+    },
+    {
+      "name": "SUSPENDED_TENANT",
+      "result": "PASS",
+      "status": 403,
+      "code": "CARE_ACCESS_DENIED",
+      "cookieOnly": true,
+      "noStore": true,
+      "literalPrivate": false,
+      "proofScope": "AUTHORIZATION_STATUS_ERROR_SHAPE"
+    },
+    {
+      "name": "CARE_POSITIVE_AND_MIXED_STUDENT_ACCEPTANCE",
+      "result": "NOT_PROVEN",
+      "code": "CARE_SCHEMA_AND_EDUCATION_ACL_MISSING",
+      "missingTables": [
+        "edu_daily_care_sessions",
+        "edu_daily_care_records",
+        "edu_attendance_daily_state"
+      ],
+      "writesAttempted": 0,
+      "partialWriteOrRollbackClaim": false
+    },
+    {
+      "name": "PORTAL_VALID_BEARER_AND_BROADCAST_DELIVERY",
+      "result": "NOT_PROVEN",
+      "code": "CANONICAL_COMPOSITION_HELD",
+      "probes": 0
+    },
+    {
+      "name": "DENIED_REQUEST_FIXTURE_MUTATION_COUNTS",
+      "result": "PASS",
+      "checkedRelations": 1,
+      "missingRelations": 6,
+      "zeroDelta": true,
+      "missingTableSideEffects": "NOT_PROVEN",
+      "rollbackClaim": false
+    }
+  ],
+  "cleanup": {
+    "failures": [
+      {
+        "name": "DELETE_OWN_PROFILES",
+        "code": "UNCLASSIFIED_FAILURE"
+      }
+    ],
+    "residual": {
+      "auth_users": 0,
+      "public_users": 0,
+      "active_users": 0,
+      "tenants": 2,
+      "active_tenants": 0,
+      "branches": 0,
+      "persons": 0,
+      "relationships": 0
+    },
+    "retainedTenantShells": 2,
+    "retainedReason": "IMMUTABLE_AUDIT_HISTORY_RETAINED_TERMINATED",
+    "result": "FAIL"
+  },
+  "sourceBefore": {
+    "head": "ecfaf23ab06d043c5f2caec38ea67856705b6c26",
+    "tree": "05651491717f10b16d2324c42dab4fde423a69fc",
+    "baselineAncestor": true,
+    "changed": [],
+    "untracked": [],
+    "sourceSha256": "0920ed219136130778192684467b8ae7f52545a1909d33650072b7b23c712cd5",
+    "trackedFiles": 3280,
+    "nextAutoEnvFiles": []
+  },
+  "harnessSha256": "3d474b6a644b38ec28b1270011433940ef991ed04b31fdab1808870fd7093916",
+  "catalogBefore": {
+    "relations": [
+      {
+        "name": "chat_messages",
+        "present": true,
+        "rls": true,
+        "auth_select": true,
+        "auth_insert": true,
+        "tenant_column": true
+      },
+      {
+        "name": "chat_threads",
+        "present": false,
+        "rls": false,
+        "auth_select": false,
+        "auth_insert": false,
+        "tenant_column": false
+      },
+      {
+        "name": "edu_attendance_daily_state",
+        "present": false,
+        "rls": false,
+        "auth_select": false,
+        "auth_insert": false,
+        "tenant_column": false
+      },
+      {
+        "name": "edu_attendance_events",
+        "present": false,
+        "rls": false,
+        "auth_select": false,
+        "auth_insert": false,
+        "tenant_column": false
+      },
+      {
+        "name": "edu_courses",
+        "present": true,
+        "rls": true,
+        "auth_select": false,
+        "auth_insert": false,
+        "tenant_column": true
+      },
+      {
+        "name": "edu_daily_care_records",
+        "present": false,
+        "rls": false,
+        "auth_select": false,
+        "auth_insert": false,
+        "tenant_column": false
+      },
+      {
+        "name": "edu_daily_care_sessions",
+        "present": false,
+        "rls": false,
+        "auth_select": false,
+        "auth_insert": false,
+        "tenant_column": false
+      },
+      {
+        "name": "edu_daily_parent_digests",
+        "present": false,
+        "rls": false,
+        "auth_select": false,
+        "auth_insert": false,
+        "tenant_column": false
+      },
+      {
+        "name": "edu_enrollments",
+        "present": true,
+        "rls": true,
+        "auth_select": false,
+        "auth_insert": false,
+        "tenant_column": true
+      },
+      {
+        "name": "org_relationships",
+        "present": true,
+        "rls": true,
+        "auth_select": true,
+        "auth_insert": true,
+        "tenant_column": true
+      },
+      {
+        "name": "org_units",
+        "present": true,
+        "rls": true,
+        "auth_select": true,
+        "auth_insert": true,
+        "tenant_column": true
+      },
+      {
+        "name": "party_parties",
+        "present": true,
+        "rls": true,
+        "auth_select": false,
+        "auth_insert": false,
+        "tenant_column": true
+      },
+      {
+        "name": "people_directory",
+        "present": true,
+        "rls": true,
+        "auth_select": true,
+        "auth_insert": true,
+        "tenant_column": true
+      },
+      {
+        "name": "preschool_chain_course_branch_assignments",
+        "present": true,
+        "rls": true,
+        "auth_select": true,
+        "auth_insert": true,
+        "tenant_column": true
+      },
+      {
+        "name": "tenants",
+        "present": true,
+        "rls": true,
+        "auth_select": true,
+        "auth_insert": true,
+        "tenant_column": false
+      },
+      {
+        "name": "user_org_unit_access",
+        "present": true,
+        "rls": false,
+        "auth_select": true,
+        "auth_insert": false,
+        "tenant_column": true
+      },
+      {
+        "name": "users",
+        "present": true,
+        "rls": true,
+        "auth_select": true,
+        "auth_insert": false,
+        "tenant_column": true
+      }
+    ],
+    "allowedRoles": [
+      "admin",
+      "admin_staff",
+      "accountant"
+    ],
+    "controls": [
+      {
+        "proname": "get_auth_tenant_id",
+        "definition_hash": "cceebaaeaf39cd21640880d0fbdb8963"
+      },
+      {
+        "proname": "is_admin",
+        "definition_hash": "dcfaea62c9b6d656ec3c4399f7f1657b"
+      },
+      {
+        "proname": "is_hq_super_admin",
+        "definition_hash": "9a2e5fe98b16b54811858e72f34819b0"
+      }
+    ],
+    "policyDigest": "b16f2efea1e23c646af5cfca8519a493"
+  },
+  "mutationCountsBefore": {
+    "edu_daily_care_records": null,
+    "edu_daily_care_sessions": null,
+    "edu_daily_parent_digests": null,
+    "edu_attendance_events": null,
+    "edu_attendance_daily_state": null,
+    "chat_messages": 0,
+    "chat_threads": null
+  },
+  "server": {
+    "mode": "next dev --webpack",
+    "host": "127.0.0.1",
+    "port": 58274,
+    "ownPid": 15656,
+    "nodeEnv": "development",
+    "privilegedKeyInChild": false,
+    "exit": {
+      "code": null,
+      "signal": null
+    },
+    "stdoutBytes": 11567,
+    "stderrBytes": 0,
+    "rawLogsSaved": false,
+    "listenerClosed": true
+  },
+  "mutationCountsAfter": {
+    "edu_daily_care_records": null,
+    "edu_daily_care_sessions": null,
+    "edu_daily_parent_digests": null,
+    "edu_attendance_events": null,
+    "edu_attendance_daily_state": null,
+    "chat_messages": 0,
+    "chat_threads": null
+  },
+  "generatedAgents": {
+    "changed": false
+  },
+  "catalogAfter": {
+    "relations": [
+      {
+        "name": "chat_messages",
+        "present": true,
+        "rls": true,
+        "auth_select": true,
+        "auth_insert": true,
+        "tenant_column": true
+      },
+      {
+        "name": "chat_threads",
+        "present": false,
+        "rls": false,
+        "auth_select": false,
+        "auth_insert": false,
+        "tenant_column": false
+      },
+      {
+        "name": "edu_attendance_daily_state",
+        "present": false,
+        "rls": false,
+        "auth_select": false,
+        "auth_insert": false,
+        "tenant_column": false
+      },
+      {
+        "name": "edu_attendance_events",
+        "present": false,
+        "rls": false,
+        "auth_select": false,
+        "auth_insert": false,
+        "tenant_column": false
+      },
+      {
+        "name": "edu_courses",
+        "present": true,
+        "rls": true,
+        "auth_select": false,
+        "auth_insert": false,
+        "tenant_column": true
+      },
+      {
+        "name": "edu_daily_care_records",
+        "present": false,
+        "rls": false,
+        "auth_select": false,
+        "auth_insert": false,
+        "tenant_column": false
+      },
+      {
+        "name": "edu_daily_care_sessions",
+        "present": false,
+        "rls": false,
+        "auth_select": false,
+        "auth_insert": false,
+        "tenant_column": false
+      },
+      {
+        "name": "edu_daily_parent_digests",
+        "present": false,
+        "rls": false,
+        "auth_select": false,
+        "auth_insert": false,
+        "tenant_column": false
+      },
+      {
+        "name": "edu_enrollments",
+        "present": true,
+        "rls": true,
+        "auth_select": false,
+        "auth_insert": false,
+        "tenant_column": true
+      },
+      {
+        "name": "org_relationships",
+        "present": true,
+        "rls": true,
+        "auth_select": true,
+        "auth_insert": true,
+        "tenant_column": true
+      },
+      {
+        "name": "org_units",
+        "present": true,
+        "rls": true,
+        "auth_select": true,
+        "auth_insert": true,
+        "tenant_column": true
+      },
+      {
+        "name": "party_parties",
+        "present": true,
+        "rls": true,
+        "auth_select": false,
+        "auth_insert": false,
+        "tenant_column": true
+      },
+      {
+        "name": "people_directory",
+        "present": true,
+        "rls": true,
+        "auth_select": true,
+        "auth_insert": true,
+        "tenant_column": true
+      },
+      {
+        "name": "preschool_chain_course_branch_assignments",
+        "present": true,
+        "rls": true,
+        "auth_select": true,
+        "auth_insert": true,
+        "tenant_column": true
+      },
+      {
+        "name": "tenants",
+        "present": true,
+        "rls": true,
+        "auth_select": true,
+        "auth_insert": true,
+        "tenant_column": false
+      },
+      {
+        "name": "user_org_unit_access",
+        "present": true,
+        "rls": false,
+        "auth_select": true,
+        "auth_insert": false,
+        "tenant_column": true
+      },
+      {
+        "name": "users",
+        "present": true,
+        "rls": true,
+        "auth_select": true,
+        "auth_insert": false,
+        "tenant_column": true
+      }
+    ],
+    "allowedRoles": [
+      "admin",
+      "admin_staff",
+      "accountant"
+    ],
+    "controls": [
+      {
+        "proname": "get_auth_tenant_id",
+        "definition_hash": "cceebaaeaf39cd21640880d0fbdb8963"
+      },
+      {
+        "proname": "is_admin",
+        "definition_hash": "dcfaea62c9b6d656ec3c4399f7f1657b"
+      },
+      {
+        "proname": "is_hq_super_admin",
+        "definition_hash": "9a2e5fe98b16b54811858e72f34819b0"
+      }
+    ],
+    "policyDigest": "b16f2efea1e23c646af5cfca8519a493"
+  },
+  "sourceAfter": {
+    "head": "ecfaf23ab06d043c5f2caec38ea67856705b6c26",
+    "tree": "05651491717f10b16d2324c42dab4fde423a69fc",
+    "baselineAncestor": true,
+    "changed": [],
+    "untracked": [],
+    "sourceSha256": "0920ed219136130778192684467b8ae7f52545a1909d33650072b7b23c712cd5",
+    "trackedFiles": 3280,
+    "nextAutoEnvFiles": []
+  },
+  "finishedAt": "2026-10-20T23:39:01.483Z",
+  "counts": {
+    "PASS": 105,
+    "FAIL": 0,
+    "NOT_PROVEN": 85
+  },
+  "result": "FAIL",
+  "exitCode": 1
+}
