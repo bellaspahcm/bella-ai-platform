@@ -30,7 +30,10 @@ CMTyZKG3XEu5Ghl1LEnI3QmEKsqaCLv12BnVjbkSeZsMnevJPs1Ye6TjjJwdik5P
 o/bKiIz+Fq8=
 -----END CERTIFICATE-----`;
 
-const probeTimeoutMs = 2000;
+// Cold HTTP probes have measured close to 2s across all round trips. Keep the
+// driver deadlines separate while bounding the complete operation to 3s.
+const probeTimeoutMs = 3000;
+const connectionTimeoutMs = 2000;
 const closeTimeoutMs = 500;
 const productionProjectRef = 'lvnvkpyxtuilhrabtlwv';
 
@@ -92,8 +95,8 @@ function connectionConfig(env: NodeJS.ProcessEnv): ClientConfig {
     }
     // No connectionString: it must not overwrite the verified TLS configuration.
     return { ...selected, ssl: { ca: supabaseRootCa, rejectUnauthorized: true, servername: selected.host },
-      connectionTimeoutMillis: probeTimeoutMs, query_timeout: 1500, statement_timeout: 1500,
-      idle_in_transaction_session_timeout: probeTimeoutMs, application_name: 'bella-health-readonly' };
+      connectionTimeoutMillis: connectionTimeoutMs, query_timeout: 1500, statement_timeout: 1500,
+      idle_in_transaction_session_timeout: 2000, application_name: 'bella-health-readonly' };
   } catch {
     throw new HealthDatabaseProbeError();
   }

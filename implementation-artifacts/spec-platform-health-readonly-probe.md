@@ -77,6 +77,8 @@ Source candidate: focused mocked-driver/route/runtime/RC-guard verification ran 
 
 Review clarification: retain the frozen owner intent and runtime implementation. Separate deployment-configuration validation from the existing RC execution boundary; do not represent environment flags as host attestation. A single read-only probe diagnostic against the canonical Non-Production target succeeded; it is uncommitted-source diagnostic evidence, not candidate-bound HTTP/RC/Customer44 proof.
 
+Runtime follow-up: SHA240e99b91be81ac5779f859417f8e9c484d6db82 passed the unchanged canonical RC (1 test, no failures/skips/flakes). A separate fresh-server healthy HTTP case returned503 and remains FAIL. Cold/warm timing observations measured1,915.6ms/741.2ms for the whole DB probe; the failed request did not retain phase timing, so timeout is a supported hypothesis, not a proven historical root cause. Increase only the total operation budget to3,000ms, retaining connect/idle2,000ms, per-query1,500ms and close500ms; keep fail-closed and add a bounded multi-round-trip regression. The changed candidate requires independent review, fresh exact-SHA RC and HTTP/Customer44 evidence; old RC does not transfer.
+
 ## Suggested Review Order
 
 **Entry point**
@@ -87,10 +89,10 @@ Review clarification: retain the frozen owner intent and runtime implementation.
 **Validation and lifecycle**
 
 - Validate target and TLS before opening a bounded read-only connection.
-  [database-probe.ts:45](../src/app/api/health/database-probe.ts#L45)
+  [database-probe.ts:48](../src/app/api/health/database-probe.ts#L48)
 
 - Always close the owned socket, including timed-out driver operations.
-  [database-probe.ts:115](../src/app/api/health/database-probe.ts#L115)
+  [database-probe.ts:118](../src/app/api/health/database-probe.ts#L118)
 
 **Supporting checks**
 

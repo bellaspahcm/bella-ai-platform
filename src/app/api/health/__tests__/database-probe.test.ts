@@ -207,6 +207,18 @@ it('does not report healthy when closing fails after successful SQL', async () =
   expect(destroy).toHaveBeenCalledTimes(1);
 });
 
+it('allows bounded multi-round-trip latency beyond2s without widening individual driver deadlines', async () => {
+  jest.useFakeTimers();
+  connect.mockImplementation(() => new Promise<void>(resolve => setTimeout(resolve, 1700)));
+  query.mockImplementation(() => new Promise<typeof result>(resolve => setTimeout(() => resolve(result), 200)));
+  const completed = createHealthDatabaseProbe(environment())();
+  await jest.advanceTimersByTimeAsync(2300);
+  await expect(completed).resolves.toBeUndefined();
+  expect(end).toHaveBeenCalledTimes(1);
+  expect(constructor.mock.calls[0][0]).toMatchObject({ connectionTimeoutMillis: 2000,
+    idle_in_transaction_session_timeout: 2000, query_timeout: 1500, statement_timeout: 1500 });
+});
+
 it.each(['connect', 'query'])('bounds a hung %s and prevents late SQL after cleanup', async stage => {
   jest.useFakeTimers();
   let release: (() => void) | undefined;
@@ -214,7 +226,7 @@ it.each(['connect', 'query'])('bounds a hung %s and prevents late SQL after clea
   if (stage === 'connect') connect.mockReturnValue(pending);
   else query.mockImplementation((text: string) => text === 'SELECT 1 AS healthy' ? pending : Promise.resolve(result));
   const rejected = expect(createHealthDatabaseProbe(environment())()).rejects.toEqual(new HealthDatabaseProbeError());
-  await jest.advanceTimersByTimeAsync(2000);
+  await jest.advanceTimersByTimeAsync(3000);
   await rejected;
   expect(end).toHaveBeenCalledTimes(1);
   expect(destroy).toHaveBeenCalledTimes(1);
