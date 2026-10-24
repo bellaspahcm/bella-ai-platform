@@ -275,7 +275,7 @@ jobs:
     name: Deploy to Production
     runs-on: ubuntu-latest
     needs: [quality, test, build, e2e]
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push' && vars.ENABLE_PRODUCTION_DEPLOY == 'true'
     environment:
       name: production
       url: https://yourdomain.com
