@@ -1,6 +1,6 @@
 /** @jest-environment jsdom */
 import '@testing-library/jest-dom';
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import ReportsPage from '../page';
 
 jest.mock('next/link', () => ({
@@ -85,5 +85,29 @@ describe('Reports trial truthful unavailable output', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Tổng quan' }));
     expect(screen.getByText(/Các nhận định mẫu dưới đây/)).toHaveTextContent(/chưa phải kết quả phân tích AI từ hồ sơ thật/);
     expect(screen.getByRole('link', { name: 'Quay lại Dashboard' })).toHaveAttribute('href', '/dashboard/education');
+  });
+
+  it('keeps unavailable canonical metrics unknown when the analytics request fails', async () => {
+    jest.useRealTimers();
+    const originalFetch = global.fetch;
+    Object.defineProperty(global, 'fetch', {
+      configurable: true,
+      writable: true,
+      value: jest.fn().mockRejectedValueOnce(new Error('offline')),
+    });
+
+    mountPage();
+
+    await waitFor(() => {
+      expect(screen.getAllByText('Chưa xác minh').length).toBeGreaterThan(0);
+    });
+    expect(screen.queryByText('0 / 0 trẻ')).not.toBeInTheDocument();
+    expect(screen.queryByText('0 đ')).not.toBeInTheDocument();
+
+    if (originalFetch) {
+      Object.defineProperty(global, 'fetch', { configurable: true, writable: true, value: originalFetch });
+    } else {
+      Reflect.deleteProperty(global, 'fetch');
+    }
   });
 });
