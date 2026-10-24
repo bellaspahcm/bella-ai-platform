@@ -294,8 +294,8 @@ jobs:
       
       - name: Notify deployment
         run: |
-          echo "✅ Real Estate module deployed to production"
-          echo "🔗 URL: https://yourdomain.com"
+          echo "Real Estate module deployed to production"
+          echo "URL: https://yourdomain.com"
       
       - name: Create Sentry release
         uses: getsentry/action-release@v1
@@ -331,5 +331,5 @@ jobs:
       
       - name: Check error rate (Sentry)
         run: |
-          echo "✓ Deployment verified - monitoring for 5 minutes"
-          echo "📊 Check Sentry dashboard for error spikes"
+          echo "Deployment verified - monitoring for 5 minutes"
+          echo "Check Sentry dashboard for error spikes"
