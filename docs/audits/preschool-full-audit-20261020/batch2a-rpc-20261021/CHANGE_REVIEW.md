@@ -1,0 +1,21 @@
+# Bounded change review
+
+Execution decision: **PASS**, contingent on a final exact live precondition match. Owner authority is recorded in `AUTHORITY.md`.
+
+Root cause: the 32 approved relations have direct anonymous ACLs, and the single dynamic SECURITY DEFINER `public.exec_sql(text)` has PUBLIC EXECUTE. Revoking table ACLs alone leaves privileged anonymous SQL execution.
+
+Minimum delta: revoke PUBLIC/anon EXECUTE on this one function, convert the pre-existing effective EXECUTE of 29 other current roles into explicit grants, and revoke direct anon table privileges on exactly the 32 approved relations. The three existing non-PUBLIC RPC ACL entries remain; the superuser continues to have its inherent privilege. All 33 current non-anonymous roles retain the same effective EXECUTE and grant-option state. This conversion preserves legacy rights, and does not claim those legacy authenticated rights are secure. Authenticated executor hardening is a separate RBAC/RLS decision.
+
+Authority/ownership: the owner explicitly authorized the production ACL containment and then its one-RPC blocker. No new business behavior, OS capability or Kernel change is involved. Migration applicability: explicit scoped ACL transaction only; no tables/indexes, policies, function bodies, membership, schema/default ACL or business-row writes. No new Product entry gate, runtime TypeScript or Kernel regression is applicable to an unchanged code tree. Tenant authorization is verified at the affected ACL boundary; Product authenticated RLS/Go-Live remains separate.
+
+Live evidence: the selected 32-table production fingerprint is unchanged, no anon parent-role membership exists, no dependent view exists, and the refreshed non-system dynamic SECURITY DEFINER inventory contains only exec_sql. No incoming stored-function reference to exec_sql was found. Repository consumers use a service-role client or are test/maintenance scripts; no application route imports/calls exec_sql. The original SQL setup comment says service-role migration helper only. Existing authenticated effective privileges are preserved for compatibility, not established as the intended long-term contract.
+
+Rehearsal: exact table and RPC semantic catalog reproduced on isolated PostgreSQL17.10 with no production data copy. The exact combined COMMIT artifact passed 12 table/transaction/lock/recovery cases and six RPC cases, including 33 actual non-anonymous role executions, anonymous permission denial, and full scoped ACL recovery. Raw membership grantor identity differs in the local scaffold; role identities/flags, admin/inherit/set membership options, function owner/body/ACL and effective privileges match. Production full membership grantors are independently snapshotted and must remain unchanged.
+
+Local setup errors retained: reserved built-in roles cannot be ALTERed, so built-in definitions are reused and verified unchanged. The first recovery check restored equivalent grants in a different raw ACL order; recovery now reconstructs the original order and the unchanged strict equality assertion passes. These were scaffold/recovery corrections, not weakened acceptance checks or production operations.
+
+Recovery: `RECOVERY_LOCAL_TRIAL_ONLY.sql` demonstrates restoration of the scoped ACL snapshot inside an isolated transaction and rolls back. Reopening anonymous access is not an automatic production rollback. Full disaster recovery is not proven by this ACL recovery test. User-approved containment explicitly uses scoped schema/ACL recovery without exporting production business data.
+
+Postconditions: exact expected table catalog, exact expected RPC catalog, zero effective anon table/column privileges, anon RPC denied, all non-anon table grants/policies/helpers/roles/schema/defaults unchanged. Production anonymous REST requests and service-role requests are independent postchecks. Real-user browser sessions are not substituted by SQL impersonation; absent valid test-user credentials, that regression gate stays NOT_PROVEN.
+
+Known separate gap: anonymous Courses server API uses a service-role path and may still return classrooms; no API/runtime change is authorized in this batch. Scheduling/Facilities direct anonymous clients are expected to receive permission errors; never restore their anonymous grants to mask this effect.
