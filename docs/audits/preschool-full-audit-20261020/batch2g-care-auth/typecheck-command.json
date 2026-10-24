@@ -1,0 +1,14 @@
+{
+  "startedAt": "2026-10-20T22:21:34.237Z",
+  "finishedAt": "2026-10-20T22:21:55.826Z",
+  "task": "typecheck",
+  "command": [
+    "C:\\Program Files\\nodejs\\node.exe",
+    "scripts/ci-run-typecheck.mjs",
+    "changed"
+  ],
+  "exitCode": 0,
+  "errorCode": null,
+  "signal": null,
+  "environment": "Process-scoped loopback offline endpoints, synthetic keys; no production business/model calls"
+}

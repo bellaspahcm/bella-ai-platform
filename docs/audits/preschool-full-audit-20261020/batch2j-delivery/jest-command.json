@@ -1,0 +1,29 @@
+{
+  "task": "jest",
+  "startedAt": "2026-10-20T22:46:39.140Z",
+  "finishedAt": "2026-10-20T22:46:48.653Z",
+  "sourceHead": "1fdd7edd1c6ce8c4c766f3e291d1084d08934d42",
+  "sourceMatchesReviewedGroups": true,
+  "command": [
+    "C:\\Program Files\\nodejs\\node.exe",
+    "node_modules/jest/bin/jest.js",
+    "--runInBand",
+    "--runTestsByPath",
+    "src/app/api/education/ai/copilot/__tests__/access.test.ts",
+    "src/products/bella-education/__tests__/preschool-ai-copilot.test.ts",
+    "src/products/bella-education/__tests__/preschool-admin-ai-copilot.test.ts",
+    "src/app/api/education/care/medication/__tests__/route.test.ts",
+    "src/app/api/education/care/bulk/__tests__/access.test.ts",
+    "src/products/bella-education/__tests__/preschool-parent-portal.service.test.ts",
+    "src/app/api/education/portal/token/__tests__/access.test.ts",
+    "src/app/api/education/portal/__tests__/access.test.ts",
+    "src/products/bella-education/__tests__/preschool-parent-portal-security.test.ts",
+    "src/app/api/education/announcements/__tests__/access.test.ts",
+    "--json",
+    "--outputFile=C:\\Users\\DELL\\.codex\\worktrees\\preschool-authorization-delivery-20261021\\BELLA SPA ERP\\docs\\audits\\preschool-full-audit-20261020\\batch2j-delivery\\jest-results.json"
+  ],
+  "exitCode": 0,
+  "errorCode": null,
+  "signal": null,
+  "environment": "Combined source; loopback offline DB, synthetic keys; no real Auth/DB/model operations"
+}

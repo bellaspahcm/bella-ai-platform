@@ -20,11 +20,13 @@ describe('Preschool P7 billing-period provenance', () => {
   });
 
   it('requires a tenant-scoped configured billing period for invoice compilation', () => {
-    expect(routeSource).toContain('const billingPeriodId = asString(body.billingPeriodId);');
+    expect(routeSource).toContain('billingPeriodId = asString(body.billingPeriodId);');
     expect(routeSource).toContain('FINANCE_BILLING_PERIOD_REQUIRED');
-    expect(routeSource).toContain('repo.getBillingPeriodById(actor.tenantId, billingPeriodId)');
-    expect(routeSource).toContain("billingPeriod.status !== 'ACTIVE'");
-    expect(routeSource).toContain('dueDate: billingPeriod.dueDate');
+    expect(routeSource).toContain('repo.readBranchState(actor.tenantId, actor.actorId, branchId)');
+    expect(routeSource).toContain('state.billingPeriods.find(period => period.id === billingPeriodId)');
+    expect(routeSource).toContain('FINANCE_BILLING_PERIOD_NOT_FOUND: Active tenant billing period required.');
+    expect(routeSource).toContain('dueDate: period.dueDate');
+    expect(routeSource).not.toContain('body.dueDate');
   });
 
   it('lets the UI select a real active billing period instead of sending source-code dates', () => {

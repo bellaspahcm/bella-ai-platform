@@ -1,0 +1,35 @@
+{
+  "mode": "announcements",
+  "startedAt": "2026-10-20T22:29:05.477Z",
+  "source": "Uncommitted isolated branch from30134055d",
+  "environment": "Local Next16.3.8 development webpack with offline loopback DB/synthetic keys; no real Auth/DB/model calls",
+  "cacheCriterion": "Effective Cache-Control has no-store and lacks public; dev runtime can rewrite the exact application string",
+  "tests": [
+    {
+      "method": "POST",
+      "route": "/api/education/announcements",
+      "spoof": false,
+      "status": 401,
+      "code": "ANNOUNCEMENT_UNAUTHENTICATED",
+      "cacheControl": "no-store, must-revalidate",
+      "result": "PASS"
+    },
+    {
+      "method": "POST",
+      "route": "/api/education/announcements",
+      "spoof": true,
+      "status": 401,
+      "code": "ANNOUNCEMENT_UNAUTHENTICATED",
+      "cacheControl": "private, no-store, max-age=0",
+      "result": "PASS"
+    }
+  ],
+  "initialAgentsClean": true,
+  "serverPid": 18100,
+  "port": 64977,
+  "stopExitCode": 0,
+  "listenerStopped": true,
+  "agentsRestoration": "PENDING_LEAD_INSPECTION",
+  "result": "PASS",
+  "finishedAt": "2026-10-20T22:29:30.237Z"
+}

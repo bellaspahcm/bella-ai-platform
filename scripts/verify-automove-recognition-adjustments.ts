@@ -15,7 +15,7 @@ const content = new TextEncoder().encode('Accountant approved AutoMove correctio
 const document = { bucket: 'automove-sale-documents', path: `${tenant}/correction.pdf`, sha256: createHash('sha256').update(content).digest('hex') };
 let transaction = false, header = false, assertions = 0, downloadsAvailable = true;
 const check = (value: unknown) => { assert.ok(value, `Runtime assertion ${assertions + 1} failed`); assertions++; };
-async function auth() { await db.query('set local role authenticated'); await db.query("select set_config('request.jwt.claim.sub',$1,true),set_config('request.jwt.claim.role','authenticated',true)", [actor]); }
+async function auth() { await db.query('set local role authenticated'); await db.query('set local row_security=on'); await db.query("select set_config('request.jwt.claim.sub',$1,true),set_config('request.jwt.claim.role','authenticated',true)", [actor]); }
 async function denied(operation: () => Promise<unknown>, code: string) {
   await db.query('savepoint denial'); let failure: unknown;
   try { await operation(); } catch (error: unknown) { failure = error; }

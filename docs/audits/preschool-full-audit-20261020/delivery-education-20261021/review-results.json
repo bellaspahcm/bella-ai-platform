@@ -1,0 +1,21 @@
+{
+  "checkedAt": "2026-10-20T20:30:38.458Z",
+  "initialAttempts": "All3 blocked by service quota, not review PASS",
+  "retry": "All3 completed",
+  "blind": "No introduced defect found",
+  "edge": {
+    "finding": "Unknown direct grantee could survive fixed-list migration",
+    "classification": "patch",
+    "resolution": "Fail-closed ACL precondition + maintenance-only postcheck",
+    "rereview": "[]"
+  },
+  "acceptance": {
+    "finding": "Effective privilege checked before inherited reviewed grants were all revoked",
+    "classification": "patch",
+    "resolution": "Revoke-all then verify-all; exact original-prestate replay test",
+    "rereview": "Finding closed; no additional introduced defect"
+  },
+  "openIntroducedFindings": 0,
+  "independentReviewCompleted": true,
+  "fullProductSecurity": "NOT_PROVEN"
+}

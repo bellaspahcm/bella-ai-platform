@@ -88,12 +88,31 @@ Use existing procedures below; combine applicable rows for a mixed task. Record 
 | New Product / vertical | [Entry gate](#mandatory-entry-gate-for-new-osproduct-work) and [Product process](#additional-product-process): user/workflow scope, OS reuse, ownership, contracts, Product identity, and authorized layers. |
 | New feature | [Business Semantic Gate](#business-semantic-gate), [Change Authority](#change-authority), and [continuous verification](#9-verify-continuously): proven behavior, reuse, affected workflow, and failure paths. |
 | UI redesign / maintenance | [UI reconciliation](#ui-to-contract-reconciliation) and [UI change safety](#ui-driven-backend-change-safety): data/actions/permissions trace to existing contracts. Redesign requires the entry gate; presentation maintenance may use `UI_ONLY`. |
+| Complete an existing MVP after UI redesign / connect real data / complete related features | [MVP UI-to-Database Completion](#mvp-ui-to-database-completion): inventory the scoped UI, reconcile the working MVP, reuse canonical contracts, and complete business flows with real persistence and E2E evidence. |
 | OS / shared kernel change | [OS process](#additional-os-process), owning contracts/consumers, and applicable specialized constitution. Protected changes retain the [ACR/ADR/unlock process](../architecture/FREEZE_POLICY.md#modification-process). |
 | Bug / security / migration | [Failure process](#failure-process), [tenant isolation](#30-multi-tenant-isolation-is-a-hard-invariant), and [security](#31-security-is-part-of-the-contract): root cause, minimum authorized fix, denial paths, and schema compatibility/recovery where affected. |
 | Refactor / integration / dependency upgrade | [Boundary semantics](#5-preserve-boundary-semantics), [contract drift](#contract-drift-classification), and affected consumers: behavioral preservation, compatibility, and relevant regression. Use the [baseline checkpoint](#baseline-checkpoint-before-broad-cleanup) for broad cleanup. |
 | Release readiness | [Operational Readiness SOP](OPERATIONAL_READINESS_SOP.md), applicable deployment governance, and Product-specific release criteria: real workflow evidence and a separate authorized merge/release/Go-Live decision. |
 
 For new Products, G0 Request -> G1 Read-only Discovery -> G2 Scope/Authority -> G3 Minimal Implementation -> G4 Verification -> G5 Review/Merge/Release Decision is a summary of the existing 0-10 process, not six additional gates. G5 remains subject to repository and release authority.
+
+### Factory Intake from Project Codex Chat
+
+Project Codex chat is the human entrypoint for Factory work. For an authorized coding task, the chat Lead first checks the actual admission contract in `scripts/agent-flow/role-pipeline.mjs` (`admitTask`), source revision, working-tree inventory, ownership and execution permissions. Reuse the existing Factory; do not create another dispatcher or weaken admission to fit a request.
+
+For a task admitted by that contract:
+
+1. Prepare an owner-approved task definition outside the repository, containing the goal, acceptance criteria, exact owned files, test file, source revision and time budget required by `admitTask`. Keep credentials and application data out of the definition.
+2. Dispatch through `node scripts/agent-flow/role-pipeline.mjs run <task.json>` in the isolated, verified worktree. The existing native Lead -> Builder -> Verify -> Reviewer sequence owns execution and handoffs. The chat Lead coordinates and reports; it must not substitute its own coding or review for those native stages. Already-dispatched Factory roles follow their assigned role and must not recursively launch another Factory.
+3. Preserve the actual terminal result. A failed, skipped, timed-out or uncertain stage cannot become PASS. A HELD run is not permission to resume it, retry automatically, start a replacement task or bypass the Factory with direct edits.
+4. After the writer exits, use a separate process running `node scripts/agent-flow/role-pipeline.mjs read <evidence-directory>` to verify the same candidate against canonical persistence and native history. Retain task/run/role bindings and evidence deadlines. A later source change invalidates reuse of that candidate's read-back as proof of the changed source.
+5. Use the existing Monitor reader for the same Factory package. Report execution, independent read-back, retained-source validation and any commit linkage separately. Missing events, ACKs or linkage remain missing; never reconstruct them to complete a report. The viewer is historical evidence, not proof of live orchestration.
+
+Admission currently covers bounded Agent Flow tooling, not arbitrary Product work. When a coding request is not admitted, report the exact reason and a minimal proposal to its owner. Do not silently broaden paths, change protections or fall back to direct implementation. A separately authorized alternative workflow remains separate evidence and must not be called a Factory run. Read-only questions, planning and documentation-only governance maintenance continue through the applicable Workflow Routing rows without claiming native execution.
+
+Existing explicit authority covers routine dispatch within its valid scope; do not request the same approval for each role. Unresolved permissions, business semantics, protected changes and release operations retain their own authority boundaries. A local candidate does not authorize a commit, push, PR, merge, deployment or Go-Live. If an existing commit is separately authorized and created, `role-pipeline.mjs commit <evidence-directory> <sha>` verifies content linkage; that command does not create the commit.
+
+This is an instruction route for project chat, not a new hook, OS sandbox or claim that every tool call is intercepted. Distinguish Defined/Configured instructions, tested CLI behavior and actually executed native evidence under Enforcement Evidence below. General default automation, continuous Monitor coverage and SEALED_ON_MAIN require their own current evidence.
 
 ## Fast, Correct, Evidence-Based Execution
 
@@ -1559,6 +1578,85 @@ Use scope-qualified evidence states according to the applicable Bella convention
 These are distinct findings, not an automatic promotion sequence or substitutes for stricter product readiness gates. A successful build, UI preview, or isolated test does not prove complete product readiness or Go-Live.
 
 Follow `Evidence First -> Root Cause -> Minimal Fix -> Verify -> Seal -> Stop`. Do not expand beyond authorized scope.
+
+### MVP UI-to-Database Completion
+
+**Workflow name: `BELLA MVP UI-TO-DATABASE COMPLETION`.** Apply this common Bella Software Factory procedure when an existing MVP has redesigned UI, screens that lack real data or working actions, or several related features that need completion. Reuse the working MVP; a new interface is not permission to rebuild the Product or create parallel business flows. Product-specific work supplies its business inventory and acceptance criteria, not a separate technical rule system.
+
+#### Invocation and Authority
+
+Route an explicit request using `BELLA MVP UI-TO-DATABASE COMPLETION`, or an equivalent request such as `Hoàn thiện MVP này theo quy trình Bella`, to this procedure. Identify the Product and intended scope from the request and available context; clarify only material omissions. Inventory every page/control within that scope. A request to complete the whole Product covers its redesigned UI surface; a request for one workflow does not authorize an ecosystem-wide audit. Pure color, spacing, typography, or icon maintenance retains the proportional `UI_ONLY` path.
+
+Reuse/update the applicable [entry gate](#mandatory-entry-gate-for-new-osproduct-work), [UI reconciliation](#ui-to-contract-reconciliation), and [Change Map](#mandatory-pre-code-review-and-change-map) in the existing Product work record. Apply [Scoped Autonomy and Approval](#scoped-autonomy-and-approval) to the actual authorized layers; this workflow name does not authorize schema/migrations, ACL/grants, permission changes, public-contract/Kernel changes, Production operations, or release actions. Hold only the dependent work at an unresolved business or authority boundary.
+
+Respect [Factory Intake from Project Codex Chat](#factory-intake-from-project-codex-chat). This instruction route does not expand launcher admission, activate Multi-Agent Mode, create a dispatcher, or authorize bypassing a held/native stage. Unsupported tasks need their separately authorized execution path. Documentation-only standardization does not prove that a native launcher loads or executes this workflow.
+
+#### Six-Step Completion Procedure
+
+1. **Inventory the redesigned UI.** List all scoped pages, menus, tabs, links, buttons, forms, tables, filters, charts, and loading/empty/error/success states, including relevant role-dependent controls. Give each control a traceable identity and completion state. Record missing handlers, broken destinations, and placeholder displays; do not omit them or silently remove them to make the inventory appear complete.
+2. **Reconcile with the existing MVP.** Classify each function as proven and reusable, an existing business capability needing UI wiring, a UI stub without processing, or a gap requiring new business behavior/data. Reuse supported APIs, services, contracts, and patterns before creating anything. Record the existing reconciliation conclusion (`MATCH`, `STALE UI`, `MAPPING BUG`, `CAPABILITY GAP`, or `CONTRACT CHANGE REQUIRED`) and applicable Change Map classification. A UI stub is not presentation-only `UI_ONLY` maintenance. Existing implementation proves current behavior, not intended business semantics or E2E success.
+3. **Establish the authoritative data path.** For each data/action-bound item, trace UI -> API/server action/public contract -> service -> owning persistence boundary, including canonical tables/relations, tenant, actor/role, and branch/organization scope where applicable. Resolve missing semantics before dependent implementation; never fabricate business data or hide missing evidence with synthetic values. Tracing a table does not authorize Product access to internal OS/Kernel tables: preserve Product -> Public Contract -> Kernel. Navigation/presentation controls need their supported destination/behavior checked; do not invent a DB dependency for them.
+4. **Complete a business flow per batch.** Prioritize core workflows and choose the smallest batch that can be verified end to end. Record its acceptance criteria, owned files/layers, risks, and checks, then connect UI to the canonical use case. Complete validation, truthful loading/empty/error/success feedback, and data refresh after actions while preserving supported MVP behavior. For a supported create flow, verify input -> authorize -> persist -> list -> detail -> reload/read-back; do not repair isolated buttons without their dependent workflow. Do not add unsupported CRUD operations or new abstractions to complete a checklist.
+5. **Verify real user behavior and persistence.** Use authorized users, data, and a permitted environment through the real application boundary. Browser E2E must exercise supported create/view/edit/actions and confirm persisted writes by a fresh read after reload in the correct tenant. Check consistency between affected dashboard/list/detail views, allowed and denied access, cross-tenant/role boundaries, invalid/failure paths, and honest UI states. A required denial must not mutate business data or emit downstream side effects. Read-only flows must show canonical persisted data; mocks, seeded arrangements alone, HTTP success, or build/unit-test PASS cannot establish UI-to-Database completion. Select supporting source tests, typecheck, lint, build, and wider regression by risk while retaining mandatory applicable gates. Attribute Product, configuration, environment, and fixture failures separately; use [bounded diagnosis](#bounded-test-and-environment-diagnosis), and never rewrite `TIMEOUT`, `SKIPPED`, `NOT_RUN`, or `NOT_PROVEN` as `PASS`.
+6. **Review, accept, and hand over.** Review the scoped diff, affected legacy workflow regression, inventory coverage, and retained evidence, using independent review where the common rule requires it. Hand over the control inventory, completed business flows, actual tests/evidence and limits, remaining defects/risks, and any owner decision with one minimum next action. Distinguish proven behavior, insufficient evidence, unmet readiness criteria, and an explicitly recorded acceptance decision. Test PASS alone does not mean acceptance, Production readiness, or Go-Live. When scoped acceptance and mandatory checks are satisfied, seal the evidence and stop.
+
+#### Product Progress and Completion Evidence
+
+Maintain one traceable matrix in the existing Product gate/work record; extend the existing UI reconciliation rather than creating duplicate reports. Shared flow evidence may support several controls only when it actually exercises their behavior. Every scoped control needs a state, canonical mapping where relevant, and a remaining action or evidence reference.
+
+The following is an unfilled template, not an audit result for Preschool or another Product:
+
+| Flow / route / control | UI | API/DB | E2E |
+| --- | --- | --- | --- |
+| [Item identifier] | [Observed state and evidence] | [Canonical path/owner; connection and persistence evidence] | [Actual result; run/evidence reference] |
+
+Report `NOT_PROVEN` where inspection/execution evidence is missing. Use `NOT_APPLICABLE` only with a scoped reason, such as no persistence dependency for a navigation link; credentials or environment failure do not make a required E2E check inapplicable. Keep unsupported, deferred, and unfinished controls visible. Only an explicit owner decision can revise acceptance scope; do not silently drop a required row.
+
+Report these dimensions separately, with scope, source revision, environment, actual commands/results, and evidence references as applicable:
+
+```text
+UI_COMPLETION
+API_DB_COMPLETION
+E2E_COMPLETION
+REGRESSION_STATUS
+PRODUCT_READINESS
+GO_LIVE_STATUS
+```
+
+An item is complete only when its required user behavior is demonstrated, data is correct and durable where applicable, authorization/isolation is proven, and relevant checks pass without an unresolved regression in the affected flow. Disclose unfinished scope. A single passing test cannot establish all dimensions, and missing required E2E evidence prevents UI-to-Database completion. An acceptance decision must identify its owner, scope, and evidence; it cannot waive mandatory gates. Product readiness and Go-Live retain their separate governing criteria and authority.
+
+#### Reusable Factory Task Prompt
+
+Use this template with the Product and scope filled from the user's request; do not create another copy of the common rules in each Product:
+
+```text
+Kích hoạt quy trình BELLA MVP UI-TO-DATABASE COMPLETION.
+Sản phẩm: [tên sản phẩm]
+Phạm vi: [thiết kế lại UI / kết nối dữ liệu / bổ sung tính năng / hoàn thiện toàn bộ]
+
+Follow the Constitution's MVP UI-to-Database Completion procedure and Factory Intake.
+Reuse the working MVP; establish authorized layers and acceptance criteria first.
+
+1. Inventory every scoped page/control and UI state; record missing behavior.
+2. Reconcile proven reuse, missing UI wiring, UI stubs, and business/data gaps.
+3. Prove canonical contracts, data ownership, persistence, tenant and permissions.
+4. Plan and implement the smallest complete business-flow batches; preserve MVP behavior.
+5. Verify real UI -> API/contract -> service -> Database behavior with Browser E2E,
+   fresh persistence read-back after reload, denial paths and affected regression.
+6. Review and hand over the inventory, connected flows, actual evidence, unfinished
+   scope, risks, required owner decisions and one next action or STOP.
+
+Never fabricate runtime data, bypass public contracts, expand authority, or treat build
+PASS as E2E PASS. Act within granted scope; hold only unresolved dependent work.
+Report UI_COMPLETION, API_DB_COMPLETION, E2E_COMPLETION, REGRESSION_STATUS,
+PRODUCT_READINESS and GO_LIVE_STATUS separately. Do not infer Go-Live.
+```
+
+#### Activation and Adoption Evidence
+
+Distinguish three claims under [Enforcement Evidence](#enforcement-evidence): the common procedure is defined here; entrypoint instructions route the named/natural-language request here; actual Factory execution requires separate evidence. A prompt or pointer alone proves neither native activation nor completion.
+
+For an authorized pilot, verify that the actual launcher/agent loads the applicable rule for the identified task/revision, executes the workflow through its authorized path, and retains the inventory, implementation, real E2E/read-back, and handoff evidence. Report instruction routing, native activation, Product-flow proof, and broader adoption separately. Keep missing claims `NOT_PROVEN`; do not modify admission/protections or launch a Product pilot as part of documentation-only standardization. Verify one real flow before claiming proven adoption across Products.
 
 ### Missing Capability Process
 

@@ -66,6 +66,7 @@ export async function autoMoveManagementHttp(request: Request, action: Action, c
     await db.query("set local statement_timeout='30s'");
     await db.query("set local lock_timeout='10s'");
     await db.query('set local role authenticated');
+    await db.query('set local row_security=on');
     await db.query("select set_config('request.jwt.claim.sub',$1,true),set_config('request.jwt.claim.role','authenticated',true)", [user.id]);
     const actor = (await db.query(`select u.id,u.tenant_id,u.role from public.users u join public.tenants t on t.id=u.tenant_id
       where u.id=$1 and u.status='active' and t.status='active' and u.tenant_id=$2`, [user.id, tenantId])).rows[0];

@@ -3,7 +3,10 @@ import { createClient as createSupabaseClient, type SupabaseClient } from '@supa
 import { getSupabaseAdminKey, getSupabaseAdminUrl } from '@/lib/supabase-admin-env';
 import { createClient } from '@/lib/supabase-server';
 import type { Database } from '@/types/database.types';
-import { PreschoolParentPortalService } from '@/products/bella-education/parent-portal/services/preschool-parent-portal.service';
+import { ParentPortalAccessError, PreschoolParentPortalService } from '@/products/bella-education/parent-portal/services/preschool-parent-portal.service';
+
+export const dynamic = 'force-dynamic';
+const PRIVATE_HEADERS = { 'Cache-Control': 'private, no-store' };
 
 type EducationSupabaseClient = SupabaseClient<Database>;
 
@@ -29,9 +32,14 @@ export async function POST(
     if (!token) {
       return NextResponse.json(
         { success: false, error: 'TOKEN_REQUIRED', message: 'Token phụ huynh là bắt buộc' },
-        { status: 400 }
+        { status: 401, headers: PRIVATE_HEADERS }
       );
     }
+
+    PreschoolParentPortalService.verifyPortalToken(token);
+    const supabase = await getOperationClient();
+    const service = new PreschoolParentPortalService(supabase);
+    await service.authorizePortalToken(token);
 
     const body = (await request.json()) as { message?: string };
     const message = body?.message;
@@ -39,29 +47,20 @@ export async function POST(
     if (!message || typeof message !== 'string' || !message.trim()) {
       return NextResponse.json(
         { success: false, error: 'MESSAGE_EMPTY', message: 'Nội dung tin nhắn không được để trống' },
-        { status: 400 }
+        { status: 400, headers: PRIVATE_HEADERS }
       );
     }
 
-    const supabase = await getOperationClient();
-    const service = new PreschoolParentPortalService(supabase);
     const result = await service.sendChatMessage(token, message);
 
     return NextResponse.json({
       success: true,
       message: result,
-    });
+    }, { headers: PRIVATE_HEADERS });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Lỗi gửi tin nhắn';
-    const isAuthError = message.includes('TOKEN_') || message.includes('GUARDIAN_NOT_AUTHORIZED');
-
     return NextResponse.json(
-      {
-        success: false,
-        error: message,
-        message: isAuthError ? 'Phiên truy cập không hợp lệ. Vui lòng tải lại trang.' : message,
-      },
-      { status: isAuthError ? 401 : 500 }
+      { success: false, error: error instanceof ParentPortalAccessError ? error.code : 'PORTAL_ACCESS_UNAVAILABLE' },
+      { status: error instanceof ParentPortalAccessError ? error.status : 503, headers: PRIVATE_HEADERS }
     );
   }
 }

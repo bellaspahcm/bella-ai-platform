@@ -6,18 +6,19 @@ import { join, basename } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { hash, normalizeNotification, normalizeHistory, normalizeHistoryTurn, signature, logicalKey, DAY_MS } from '../agent-flow/contract.mjs';
 import { readFactory } from './factory-reader.mjs';
+import {pilotId,pilotBase,pilotGoal,pilotFiles,pilotTest,pilotReads}from'../agent-flow/mvp-pilot.mjs';
 
 // Real filesystem/protocol fixtures, not a Codex execution or Factory proof.
-async function fixture(t, held = false) {
+async function fixture(t, held = false, existingFlow = false) {
   const root = await mkdtemp(join(tmpdir(), 'bella-factory-reader-')); t.after(() => rm(root, { recursive: true, force: true }));
   const id = 'bella-agent-flow-Index', directory = join(root, id); await mkdir(directory);
-  const now=Date.now(), taskId=randomUUID(), source='a'.repeat(40), workspace=root;
-  const files=[{path:'scripts/agent-flow/task-workflow.mjs',mode:'100644',sha256:hash('old')},{path:'scripts/agent-flow/task-workflow.test.mjs',mode:'100644',sha256:hash('test')}];
-  const a=hash(JSON.stringify({head:source,files})), b=hash(JSON.stringify({head:source,files:[{...files[0],sha256:hash('new')},files[1]]}));
+  const now=Date.now(), taskId=existingFlow?pilotId:randomUUID(), source=existingFlow?pilotBase:'a'.repeat(40), workspace=root;
+  const files=(existingFlow?pilotFiles:['scripts/agent-flow/task-workflow.mjs','scripts/agent-flow/task-workflow.test.mjs']).map((path,i)=>({path,mode:'100644',sha256:hash(i?'test':'old')}));
+  const a=hash(JSON.stringify({head:source,files})), b=existingFlow?a:hash(JSON.stringify({head:source,files:[{...files[0],sha256:hash('new')},files[1]]}));
   const put = async (dir, file, value) => { const bytes = Buffer.from(JSON.stringify(value)); await writeFile(join(dir, file), bytes); return { packageId: basename(dir), file, bytes: bytes.length, sha256: hash(bytes) }; };
   const context={createdAt:new Date(now).toISOString(),outputReviewDeadline:new Date(now+DAY_MS).toISOString()};
   await put(directory,'context.json',context);
-  const task={taskId,sourceRevision:source,goal:'Validate read-only protocol fixture.',ownedFiles:files.map(f=>f.path),testFile:files[1].path,acceptance:['An approved invariant.'],maxSeconds:60};
+  const task={taskId,sourceRevision:source,goal:existingFlow?pilotGoal:'Validate read-only protocol fixture.',ownedFiles:files.map(f=>f.path),testFile:existingFlow?pilotTest:files[1].path,acceptance:['An approved invariant.'],maxSeconds:60};
   const intake=await put(directory,'intake.json',{task,workspace,before:{head:source,files,fingerprint:a}});
   const index={format:'bella-factory-evidence',schemaVersion:1,repository:'bellaspahcm/bella-ai-platform',taskId,factoryRunId:randomUUID(),
     provenance:{auditedMainRevision:source,constitutionCandidateRevision:'b'.repeat(40),rules:[{path:'AGENTS.md',revision:source,sha256:a,sections:['Scope'],reason:'Protocol fixture scope.'}]},intake,stages:[],terminal:null,candidate:null,commit:null};
@@ -28,28 +29,30 @@ async function fixture(t, held = false) {
     const binding={repository:index.repository,taskId,runId:randomUUID(),producerInstanceId:randomUUID(),attempt:1,threadId:randomUUID(),sessionId:null,turnId:randomUUID()};
     const output='# tests 1\n# pass 1\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n';
     const verifyPath=join(root,'bella-agent-flow-VERIFY','role.json');
-    const commands=role==='VERIFY'?['node --test --test-reporter=tap '+task.testFile]:role==='REVIEWER'?[`git diff -- ${task.ownedFiles.join(' ')}`,...task.ownedFiles.map(p=>`Get-Content -LiteralPath '${p}'`),`Get-Content -LiteralPath '${verifyPath.replaceAll('\\','/')}'`]:['Get-Content -LiteralPath AGENTS.md'];
+    const commands=existingFlow?pilotReads(role,verifyPath):role==='VERIFY'?['node --test --test-reporter=tap '+task.testFile]:role==='REVIEWER'?[`git diff -- ${task.ownedFiles.join(' ')}`,...task.ownedFiles.map(p=>`Get-Content -LiteralPath '${p}'`),`Get-Content -LiteralPath '${verifyPath.replaceAll('\\','/')}'`]:['Get-Content -LiteralPath AGENTS.md'];
     const items=commands.map((command,i)=>({id:`command-${role}-${i}`,type:'commandExecution',status:'completed',exitCode:0,command,cwd:workspace}));
     const fact=(method,params)=>normalizeNotification({method,params:{threadId:binding.threadId,turnId:binding.turnId,...params}},binding,new Date(now).toISOString());
     const changeItem={id:'change-BUILDER',type:'fileChange',status:'completed'};
-    const changeFacts=role==='BUILDER'?[fact('item/started',{item:{...changeItem,status:'inProgress'}}),fact('item/completed',{item:changeItem})]:[];
-    const facts=[fact('turn/started',{turn:{id:binding.turnId,status:'inProgress'}}),...items.flatMap(item=>[fact('item/started',{item:{...item,status:'inProgress'}}),fact('item/completed',{item})]),...changeFacts,fact('turn/completed',{turn:{id:binding.turnId,status:'completed'}}),...(role==='BUILDER'?[normalizeHistory({turnId:binding.turnId,item:changeItem},binding,new Date(now).toISOString())]:[]),...items.map(item=>normalizeHistory({turnId:binding.turnId,item},binding,new Date(now).toISOString())),normalizeHistoryTurn({id:binding.turnId,status:'completed'},binding,new Date(now).toISOString())];
+    const builderChange=role==='BUILDER'&&!existingFlow;
+    const changeFacts=builderChange?[fact('item/started',{item:{...changeItem,status:'inProgress'}}),fact('item/completed',{item:changeItem})]:[];
+    const facts=[fact('turn/started',{turn:{id:binding.turnId,status:'inProgress'}}),...items.flatMap(item=>[fact('item/started',{item:{...item,status:'inProgress'}}),fact('item/completed',{item})]),...changeFacts,fact('turn/completed',{turn:{id:binding.turnId,status:'completed'}}),...(builderChange?[normalizeHistory({turnId:binding.turnId,item:changeItem},binding,new Date(now).toISOString())]:[]),...items.map(item=>normalizeHistory({turnId:binding.turnId,item},binding,new Date(now).toISOString())),normalizeHistoryTurn({id:binding.turnId,status:'completed'},binding,new Date(now).toISOString())];
     const records=facts.map(fact=>({fact,key:logicalKey(fact),digest:signature(fact),revision:1,storedAt:now,metadataExpiresAt:now+14*DAY_MS,outputExpiresAt:now+7*DAY_MS,outputState:'ABSENT'}));
     await put(dir,'facts.json',{binding,records});
     const before=role==='LEAD'||role==='BUILDER'?a:b,after=role==='LEAD'?a:b;
-    const result={role,candidate:before,decision:{LEAD:'ACCEPT',BUILDER:'DONE',VERIFY:'PASS',REVIEWER:'PASS'}[role],findings:[]};
+    const result={role,candidate:before,decision:{LEAD:'ACCEPT',BUILDER:'DONE',VERIFY:'PASS',REVIEWER:'PASS'}[role],findings:[],...(existingFlow&&role==='BUILDER'?{changed:[],noChange:true}:{})};
     const live=records.filter(r=>r.fact.sourceKind==='live_notification');
-    const r={...result,nativeVerified:true,binding,changed:role==='BUILDER'?[task.ownedFiles[0]]:[],verificationPath:join(dir,'role.json'),
-      acknowledgements:live.map((r,i)=>({sequence:i+1,digest:r.digest})),native:{binding,result,commands:items.map(item=>({itemId:item.id,command:item.command,cwd:workspace,exitCode:0,status:'completed',outputHash:hash(role==='VERIFY'?output:'')})),changes:role==='BUILDER'?[{itemId:changeItem.id,paths:[task.ownedFiles[0]]}]:[]},
-      proof:{liveFacts:live.length,historyMatches:items.length+1+(role==='BUILDER'?1:0),changes:role==='BUILDER'?1:0},
+    const r={...result,nativeVerified:true,binding,directory:dir,changed:builderChange?[task.ownedFiles[0]]:[],verificationPath:join(dir,'role.json'),
+      acknowledgements:live.map((r,i)=>({sequence:i+1,digest:r.digest})),native:{binding,result,commands:items.map(item=>({itemId:item.id,command:item.command,cwd:workspace,exitCode:0,status:'completed',outputHash:hash(role==='VERIFY'?output:'')})),changes:builderChange?[{itemId:changeItem.id,paths:[task.ownedFiles[0]]}]:[]},
+      proof:{liveFacts:live.length,historyMatches:items.length+1+(builderChange?1:0),changes:builderChange?1:0},
       ...(role==='VERIFY'?{test:{candidate:b,itemId:items[0].id,output,outputHash:hash(output),command:commands[0],exitCode:0,counters:{tests:1,pass:1,fail:0,skipped:0,cancelled:0,todo:0}}}:{})};
     const ref=await put(dir,'role.json',r);
-    index.stages.push({role,activity:{LEAD:'PLAN',BUILDER:'CODE_CHANGE',VERIFY:'TEST_EXECUTION',REVIEWER:'INDEPENDENT_REVIEW'}[role],receipt:ref,sourcePointer:''});
+    if(!(existingFlow&&role==='BUILDER'))index.stages.push({role,activity:{LEAD:'PLAN',BUILDER:'CODE_CHANGE',VERIFY:'TEST_EXECUTION',REVIEWER:'INDEPENDENT_REVIEW'}[role],receipt:ref,sourcePointer:''});
     receipts.push({...r,revision:0,before,after,artifactHash:ref.sha256});
   }
   const terminal={status:held?'HELD':'PASS',taskId,reason:held?'STORE_WRITE_FAILED':undefined,candidate:held?a:b,revisions:0,receipts};
   index.terminal=await put(directory,'terminal.json',terminal);
-  if(!held)index.candidate=await put(directory,'candidate.json',{representation:'git-clean-filtered-blob-v1',baseRevision:source,sourceFingerprint:b,coreAutocrlf:null,files:[{path:files[0].path,present:true,mode:'100644',worktreeSha256:hash('new'),blobOid:'c'.repeat(40),canonicalSha256:hash('new'),attributes:'text: unspecified'}]});
+  if(!held&&!existingFlow)index.candidate=await put(directory,'candidate.json',{representation:'git-clean-filtered-blob-v1',baseRevision:source,sourceFingerprint:b,coreAutocrlf:null,files:[{path:files[0].path,present:true,mode:'100644',worktreeSha256:hash('new'),blobOid:'c'.repeat(40),canonicalSha256:hash('new'),attributes:'text: unspecified'}]});
+  if(existingFlow)await put(directory,'verified-source.json',{kind:'VERIFIED_EXISTING_FLOW_NO_PRODUCT_CHANGE',before:{head:source,files,fingerprint:a},after:{head:source,files,fingerprint:a}});
   await put(directory,'factory-index-terminal.json',index);
   return {root,id,directory,index,now,put,terminal};
 }
@@ -67,6 +70,58 @@ test('PASS requires consistent native receipts/test output/facts and matching ca
   const f=await fixture(t), r=await readFactory(f.root,f.id,f.now);
   assert.equal(r.state,'AVAILABLE'); assert.equal(r.executionOutcome,'PASS'); assert.equal(r.stages.length,4);
   assert.equal(r.commit,null); // No commit proof manufactured from execution PASS.
+});
+
+test('existing-flow pilot displays the original no-change Builder receipt without inventing CODE_CHANGE',async t=>{
+  const f=await fixture(t,false,true),before=await readFile(join(f.directory,'factory-index-terminal.json'));
+  const r=await readFactory(f.root,f.id,f.now);
+  assert.equal(r.state,'AVAILABLE');assert.equal(r.validation,'MATCH_RETAINED_SOURCES');assert.equal(r.executionOutcome,'PASS');
+  assert.deepEqual(r.stages.map(s=>s.role),['LEAD','BUILDER','VERIFY','REVIEWER']);
+  assert.equal(r.stages[1].activity,'SOURCE_ASSESSMENT');assert.deepEqual(r.stages[1].changed,[]);
+  assert.equal(r.sourceEvidence,'VERIFIED_EXISTING_FLOW_NO_PRODUCT_CHANGE');assert.equal(r.commit,null);
+  assert.deepEqual(await readFile(join(f.directory,'factory-index-terminal.json')),before);
+  assert.equal((await readdir(f.directory)).some(n=>n.startsWith('readback-')),false);
+});
+
+test('existing-flow compatibility refuses missing Builder receipt, lifecycle facts and changed artifact bytes',async t=>{
+  for(const artifact of ['role.json','facts.json']){
+    const f=await fixture(t,false,true);await rm(join(f.root,'bella-agent-flow-BUILDER',artifact));
+    assert.equal((await readFactory(f.root,f.id,f.now)).state,'MISSING');
+  }
+  const f=await fixture(t,false,true);await writeFile(join(f.root,'bella-agent-flow-BUILDER','role.json'),'{}');
+  assert.equal((await readFactory(f.root,f.id,f.now)).state,'CORRUPT');
+});
+
+test('paired full source manifests have a bounded 4 MiB allowance without enlarging other artifact limits',async t=>{
+  const f=await fixture(t,false,true),path=join(f.directory,'verified-source.json');
+  const original=await readFile(path,'utf8');
+  await writeFile(path,original+' '.repeat(3*1024*1024-original.length));
+  assert.equal((await readFactory(f.root,f.id,f.now)).state,'AVAILABLE');
+  await writeFile(path,original+' '.repeat(4*1024*1024+1-original.length));
+  assert.equal((await readFactory(f.root,f.id,f.now)).state,'CORRUPT');
+  await writeFile(path,original);
+  const intake=await readFile(join(f.directory,'intake.json'),'utf8');
+  await writeFile(join(f.directory,'intake.json'),intake+' '.repeat(3*1024*1024-intake.length));
+  assert.equal((await readFactory(f.root,f.id,f.now)).state,'CORRUPT');
+});
+
+test('existing-flow PASS requires unchanged full source and cannot turn an assessment into release proof',async t=>{
+  for(const edit of [value=>({...value,kind:'invented'}),value=>({...value,after:{...value.after,fingerprint:'f'.repeat(64)}})]){
+    const f=await fixture(t,false,true),path=join(f.directory,'verified-source.json'),value=JSON.parse(await readFile(path,'utf8'));
+    await writeFile(path,JSON.stringify(edit(value)));assert.equal((await readFactory(f.root,f.id,f.now)).state,'CORRUPT');
+  }
+  const f=await fixture(t,false,true);await rm(join(f.directory,'verified-source.json'));
+  assert.equal((await readFactory(f.root,f.id,f.now)).state,'MISSING');
+  const g=await fixture(t,false,true);g.index.commit=g.index.terminal;await g.put(g.directory,'factory-index-terminal.json',g.index);
+  assert.equal((await readFactory(g.root,g.id,g.now)).state,'CORRUPT');
+});
+
+test('missing no-change acknowledgement or foreign receipt path never satisfies the original Builder stage',async t=>{
+  for(const edit of [r=>({...r,noChange:false}),r=>({...r,directory:join(tmpdir(),'outside-package')}),r=>({...r,changed:['src/unapproved.ts']})]){
+    const f=await fixture(t,false,true);f.terminal.receipts[1]=edit(f.terminal.receipts[1]);
+    f.index.terminal=await f.put(f.directory,'terminal.json',f.terminal);await f.put(f.directory,'factory-index-terminal.json',f.index);
+    assert.equal((await readFactory(f.root,f.id,f.now)).state,'CORRUPT');
+  }
 });
 
 test('missing artifact, corrupt bytes and expired package are distinguishable without rewriting original', async t => {

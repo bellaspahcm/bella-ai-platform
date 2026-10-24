@@ -1,0 +1,89 @@
+{
+  "mode": "portal",
+  "startedAt": "2026-10-20T22:28:38.288Z",
+  "source": "Uncommitted isolated branch from30134055d",
+  "environment": "Local Next16.3.8 development webpack with offline loopback DB/synthetic keys; no real Auth/DB/model calls",
+  "cacheCriterion": "Effective Cache-Control has no-store and lacks public; dev runtime can rewrite the exact application string",
+  "tests": [
+    {
+      "method": "POST",
+      "route": "/api/education/portal/token",
+      "spoof": false,
+      "status": 401,
+      "code": "PORTAL_UNAUTHENTICATED",
+      "cacheControl": "no-store, must-revalidate",
+      "result": "PASS"
+    },
+    {
+      "method": "POST",
+      "route": "/api/education/portal/token",
+      "spoof": true,
+      "status": 401,
+      "code": "PORTAL_UNAUTHENTICATED",
+      "cacheControl": "private, no-store, max-age=0",
+      "result": "PASS"
+    },
+    {
+      "method": "GET",
+      "route": "/api/education/portal/invalid",
+      "spoof": false,
+      "status": 401,
+      "code": "TOKEN_MALFORMED",
+      "cacheControl": "no-store, must-revalidate",
+      "result": "PASS"
+    },
+    {
+      "method": "GET",
+      "route": "/api/education/portal/invalid",
+      "spoof": true,
+      "status": 401,
+      "code": "TOKEN_MALFORMED",
+      "cacheControl": "private, no-store, max-age=0",
+      "result": "PASS"
+    },
+    {
+      "method": "POST",
+      "route": "/api/education/portal/invalid/chat",
+      "spoof": false,
+      "status": 401,
+      "code": "TOKEN_MALFORMED",
+      "cacheControl": "no-store, must-revalidate",
+      "result": "PASS"
+    },
+    {
+      "method": "POST",
+      "route": "/api/education/portal/invalid/chat",
+      "spoof": true,
+      "status": 401,
+      "code": "TOKEN_MALFORMED",
+      "cacheControl": "private, no-store, max-age=0",
+      "result": "PASS"
+    },
+    {
+      "method": "POST",
+      "route": "/api/education/portal/invalid/copilot",
+      "spoof": false,
+      "status": 401,
+      "code": "TOKEN_MALFORMED",
+      "cacheControl": "no-store, must-revalidate",
+      "result": "PASS"
+    },
+    {
+      "method": "POST",
+      "route": "/api/education/portal/invalid/copilot",
+      "spoof": true,
+      "status": 401,
+      "code": "TOKEN_MALFORMED",
+      "cacheControl": "private, no-store, max-age=0",
+      "result": "PASS"
+    }
+  ],
+  "initialAgentsClean": true,
+  "serverPid": 6396,
+  "port": 64968,
+  "stopExitCode": 0,
+  "listenerStopped": true,
+  "agentsRestoration": "PENDING_LEAD_INSPECTION",
+  "result": "PASS",
+  "finishedAt": "2026-10-20T22:29:31.462Z"
+}

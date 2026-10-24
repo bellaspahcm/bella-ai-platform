@@ -20,17 +20,27 @@ import {
 import { executePreschoolCopilot } from '../services/preschool-ai.service';
 import { POST as copilotRoute } from '@/app/api/education/ai/copilot/route';
 
+let mockProfileRole = 'CAMPUS_ADMIN';
+
+jest.mock('@/lib/supabase-server', () => ({
+  createClient: jest.fn(() => ({
+    auth: { getUser: jest.fn(async () => ({ data: { user: { id: 'user-edu-campus-admin-1' } }, error: null })) },
+  })),
+}));
+
 jest.mock('@/services/user-actions', () => ({
   getCurrentUser: jest.fn(async () => ({
     id: 'user-edu-campus-admin-1',
-    role: 'CAMPUS_ADMIN',
-    tenantId: 'ed100000-0000-0000-0000-000000000001',
+    role: mockProfileRole,
+    tenant_id: 'ed100000-0000-0000-0000-000000000001',
+    status: 'active',
     name: 'Cô Hiệu Trưởng Thảo',
     email: 'thao.principal@bellapreschool.edu.vn',
   })),
 }));
 
 describe('Bella Preschool Executive AI Copilot — School Leadership Suite', () => {
+  beforeEach(() => { mockProfileRole = 'CAMPUS_ADMIN'; });
   describe('Capability Pack Executive Tools Registration', () => {
     it('registers executive_daily_briefing and compliance_and_safety_sentinel', () => {
       const toolIds = preschoolAICapabilityPack.tools.map((t) => t.id);
@@ -56,7 +66,7 @@ describe('Bella Preschool Executive AI Copilot — School Leadership Suite', () 
       expect(res.attendanceRate).toBe(96);
       expect(res.criticalAlerts.length).toBe(0);
       expect(res.executiveSummary).toContain('115 trẻ (96% chuyên cần)');
-      expect(res.executiveSummary).toContain('Sức khỏe toàn trường ổn định');
+      expect(res.executiveSummary).toContain('Chưa ghi nhận sự cố sức khỏe/y tế');
       expect(res.actionableRecommendations.length).toBeGreaterThan(0);
     });
 
@@ -73,15 +83,55 @@ describe('Bella Preschool Executive AI Copilot — School Leadership Suite', () 
       const res = raw as unknown as ExecutiveDailyBriefingResult;
       expect(res.attendanceRate).toBe(75);
       expect(res.criticalAlerts.length).toBe(2);
-      expect(res.criticalAlerts[0]).toContain('4 ca sốt');
+      expect(res.criticalAlerts[0]).toContain('4 sự cố sức khỏe/y tế');
       expect(res.criticalAlerts[1]).toContain('75%');
-      expect(res.actionableRecommendations.some((r) => r.includes('dịch tễ'))).toBe(true);
+      expect(res.actionableRecommendations.some((r) => r.includes('hồ sơ sức khỏe/y tế'))).toBe(true);
       expect(res.actionableRecommendations.some((r) => r.includes('quá hạn'))).toBe(true);
+    });
+
+    it('preserves zero present and distinguishes unmarked attendance from absence', async () => {
+      const response = await executePreschoolCopilot({
+        action: 'executive_briefing', totalStudents: 186, presentCount: 0,
+        absentCount: 0, unmarkedAttendanceCount: 156,
+      });
+      expect(response.data.attendanceRate).toBe(0);
+      expect(response.data.executiveSummary).toContain('có mặt 0 trẻ (0%');
+      expect(response.data.executiveSummary).toContain('Đã ghi nhận vắng 0 trẻ');
+      expect(response.data.executiveSummary).toContain('Chưa điểm danh 156 trẻ');
+      expect(response.data.criticalAlerts).toEqual(expect.arrayContaining([expect.stringContaining('Chưa hoàn tất điểm danh')]));
+      expect(response.data.criticalAlerts).not.toEqual(expect.arrayContaining([expect.stringContaining('vắng mặt cao')]));
+      expect(response.data.actionableRecommendations).not.toEqual(expect.arrayContaining([expect.stringContaining('gia đình các bé ốm')]));
+    });
+
+    it.each([
+      {}, { totalStudents: 186 }, { totalStudents: 0, presentCount: 1 },
+      { totalStudents: 186, presentCount: -1 }, { totalStudents: 186, presentCount: NaN },
+      { totalStudents: 186, presentCount: 100, absentCount: 10, unmarkedAttendanceCount: 100 },
+    ])('rejects missing or inconsistent measurements instead of inventing statistics: %j', async params => {
+      await expect(briefingTool?.execute(params)).rejects.toThrow();
+    });
+
+    it('handles a measured empty school without division by zero or invented children', async () => {
+      const result = await briefingTool?.execute({ totalStudents: 0, presentCount: 0, absentCount: 0, unmarkedAttendanceCount: 0 });
+      expect(result?.attendanceRate).toBe(0);
+      expect(result?.executiveSummary).toContain('Sĩ số toàn trường 0 trẻ, có mặt 0 trẻ');
     });
   });
 
   describe('Tool 7: Compliance & Safety Sentinel (Thông tư 52/2020/TT-BGDĐT)', () => {
     const sentinelTool = preschoolAICapabilityPack.tools.find((t) => t.id === 'compliance_and_safety_sentinel');
+
+    it.each([
+      { stats: [] },
+      { stats: [{ className: 'Lớp thực tế', studentCount: 20 }] },
+      { stats: [{ className: 'Nhà trẻ', studentCount: 20, ageGroup: 'NHA_TRE' }] },
+    ])('does not certify compliance when structured age/staffing evidence is missing: %j', async ({ stats }) => {
+        const result = await sentinelTool?.execute({ classRosterStats: stats });
+        expect(result?.verificationComplete).toBe(false);
+        expect(result?.compliant).toBe(false);
+        expect(result?.warnings).not.toHaveLength(0);
+      },
+    );
 
     it('confirms 100% compliance when all classes adhere to capacity limits', async () => {
       const raw = await sentinelTool?.execute({
@@ -179,7 +229,6 @@ describe('Bella Preschool Executive AI Copilot — School Leadership Suite', () 
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-mock-role': 'CAMPUS_ADMIN',
         },
         body: JSON.stringify({
           action: 'executive_briefing',
@@ -199,11 +248,11 @@ describe('Bella Preschool Executive AI Copilot — School Leadership Suite', () 
     });
 
     it('handles POST /api/education/ai/copilot with executive_safety_audit for SUPER_ADMIN', async () => {
+      mockProfileRole = 'SUPER_ADMIN';
       const req = new Request('http://localhost/api/education/ai/copilot?tenantId=ed100000-0000-0000-0000-000000000001', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-mock-role': 'SUPER_ADMIN',
         },
         body: JSON.stringify({
           action: 'executive_safety_audit',

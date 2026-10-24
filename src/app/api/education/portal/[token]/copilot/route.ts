@@ -10,9 +10,24 @@
  */
 
 import { NextResponse } from 'next/server';
-import { PreschoolParentPortalService } from '@/products/bella-education/parent-portal/services/preschool-parent-portal.service';
+import { createClient as createSupabaseClient, type SupabaseClient } from '@supabase/supabase-js';
+import { createClient } from '@/lib/supabase-server';
+import { getSupabaseAdminKey, getSupabaseAdminUrl } from '@/lib/supabase-admin-env';
+import { ParentPortalAccessError, PreschoolParentPortalService } from '@/products/bella-education/parent-portal/services/preschool-parent-portal.service';
 import { executePreschoolCopilot } from '@/products/bella-education/services/preschool-ai.service';
 import type { PreschoolCopilotRequest } from '@/products/bella-education/services/preschool-ai.service';
+
+export const dynamic = 'force-dynamic';
+const PRIVATE_HEADERS = { 'Cache-Control': 'private, no-store' };
+
+async function getOperationClient(): Promise<SupabaseClient> {
+  const url = getSupabaseAdminUrl();
+  const key = getSupabaseAdminKey();
+  // This is the existing signed-token capability adapter, not a retry after a user-RLS denial.
+  return url && key ? createSupabaseClient(url, key, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  }) : await createClient();
+}
 
 export async function POST(
   request: Request,
@@ -23,20 +38,13 @@ export async function POST(
     if (!token) {
       return NextResponse.json(
         { success: false, error: 'TOKEN_REQUIRED', message: 'Token phụ huynh là bắt buộc' },
-        { status: 400 }
+        { status: 401, headers: PRIVATE_HEADERS }
       );
     }
 
-    // 1. Verify token — HMAC-SHA256 signature + expiry check
-    try {
-      PreschoolParentPortalService.verifyPortalToken(token);
-    } catch (verifyErr) {
-      const msg = verifyErr instanceof Error ? verifyErr.message : 'Token không hợp lệ';
-      return NextResponse.json(
-        { success: false, error: 'TOKEN_INVALID', message: msg },
-        { status: 401 }
-      );
-    }
+    PreschoolParentPortalService.verifyPortalToken(token);
+    const service = new PreschoolParentPortalService(await getOperationClient());
+    await service.authorizePortalToken(token);
 
     // 2. Parse and validate request body
     const body = (await request.json()) as Partial<PreschoolCopilotRequest> & {
@@ -44,10 +52,15 @@ export async function POST(
     };
 
     const action = body.action ?? 'ask_copilot';
+    if (action !== 'ask_copilot') {
+      return NextResponse.json({ success: false, error: 'PORTAL_ACTION_FORBIDDEN' }, {
+        status: 403, headers: PRIVATE_HEADERS,
+      });
+    }
     const studentName = typeof body.studentName === 'string' ? body.studentName : undefined;
 
     const copilotRequest: PreschoolCopilotRequest = {
-      action: action as PreschoolCopilotRequest['action'],
+      action: 'ask_copilot',
       question: typeof body.question === 'string' ? body.question : undefined,
       message: typeof body.message === 'string' ? body.message : undefined,
       studentName,
@@ -63,12 +76,11 @@ export async function POST(
       data: result.data,
       piiMasked: result.piiMasked,
       timestamp: result.timestamp,
-    });
+    }, { headers: PRIVATE_HEADERS });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Lỗi xử lý yêu cầu';
     return NextResponse.json(
-      { success: false, error: 'COPILOT_ERROR', message },
-      { status: 500 }
+      { success: false, error: error instanceof ParentPortalAccessError ? error.code : 'PORTAL_ACCESS_UNAVAILABLE' },
+      { status: error instanceof ParentPortalAccessError ? error.status : 503, headers: PRIVATE_HEADERS }
     );
   }
 }

@@ -1,0 +1,16 @@
+{
+  "group": "announcements",
+  "task": "lint",
+  "startedAt": "2026-10-20T22:27:04.269Z",
+  "finishedAt": "2026-10-20T22:27:08.574Z",
+  "command": [
+    "C:\\Program Files\\nodejs\\node.exe",
+    "node_modules/eslint/bin/eslint.js",
+    "src/app/api/education/announcements/route.ts",
+    "src/app/api/education/announcements/__tests__/access.test.ts"
+  ],
+  "exitCode": 0,
+  "errorCode": null,
+  "signal": null,
+  "environment": "Process-scoped loopback offline endpoints and synthetic keys; no production business/model calls"
+}

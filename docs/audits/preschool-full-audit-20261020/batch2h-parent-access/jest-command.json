@@ -1,0 +1,22 @@
+{
+  "group": "portal",
+  "task": "jest",
+  "startedAt": "2026-10-20T22:26:44.928Z",
+  "finishedAt": "2026-10-20T22:26:52.561Z",
+  "command": [
+    "C:\\Program Files\\nodejs\\node.exe",
+    "node_modules/jest/bin/jest.js",
+    "--runInBand",
+    "--runTestsByPath",
+    "src/products/bella-education/__tests__/preschool-parent-portal.service.test.ts",
+    "src/app/api/education/portal/token/__tests__/access.test.ts",
+    "src/app/api/education/portal/__tests__/access.test.ts",
+    "src/products/bella-education/__tests__/preschool-parent-portal-security.test.ts",
+    "--json",
+    "--outputFile=C:\\Users\\DELL\\.codex\\worktrees\\preschool-parent-access-20261021\\BELLA SPA ERP\\docs\\audits\\preschool-full-audit-20261020\\batch2h-parent-access\\jest-results.json"
+  ],
+  "exitCode": 0,
+  "errorCode": null,
+  "signal": null,
+  "environment": "Process-scoped loopback offline endpoints and synthetic keys; no production business/model calls"
+}

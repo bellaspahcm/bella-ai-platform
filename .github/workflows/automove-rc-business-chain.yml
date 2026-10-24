@@ -31,10 +31,15 @@ permissions:
 concurrency:
   group: automove-rc-${{ github.ref }}
   cancel-in-progress: false
+  queue: max
 
 jobs:
   browser:
     name: AutoMove Built RC Browser E2E
+    concurrency:
+      group: bella-e2e-bmnbqbcdbuklhopfbopv
+      cancel-in-progress: false
+      queue: max
     runs-on: ubuntu-latest
     timeout-minutes: 40
     env:

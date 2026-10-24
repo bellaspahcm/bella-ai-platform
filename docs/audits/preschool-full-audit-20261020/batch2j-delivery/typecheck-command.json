@@ -1,0 +1,16 @@
+{
+  "task": "typecheck",
+  "startedAt": "2026-10-20T22:46:39.139Z",
+  "finishedAt": "2026-10-20T22:46:55.432Z",
+  "sourceHead": "1fdd7edd1c6ce8c4c766f3e291d1084d08934d42",
+  "sourceMatchesReviewedGroups": true,
+  "command": [
+    "C:\\Program Files\\nodejs\\node.exe",
+    "scripts/ci-run-typecheck.mjs",
+    "changed"
+  ],
+  "exitCode": 0,
+  "errorCode": null,
+  "signal": null,
+  "environment": "Combined source; loopback offline DB, synthetic keys; no real Auth/DB/model operations"
+}

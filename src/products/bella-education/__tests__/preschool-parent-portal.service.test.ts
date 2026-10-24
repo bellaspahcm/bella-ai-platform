@@ -186,14 +186,28 @@ describe('PreschoolParentPortalService', () => {
 
   let fake: ReturnType<typeof createFakeClient>;
   let service: PreschoolParentPortalService;
+  const originalServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const originalAuthSecret = process.env.NEXTAUTH_SECRET;
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+    if (originalServiceKey === undefined) delete process.env.SUPABASE_SERVICE_ROLE_KEY;
+    else process.env.SUPABASE_SERVICE_ROLE_KEY = originalServiceKey;
+    if (originalAuthSecret === undefined) delete process.env.NEXTAUTH_SECRET;
+    else process.env.NEXTAUTH_SECRET = originalAuthSecret;
+  });
 
   beforeEach(() => {
+    process.env.SUPABASE_SERVICE_ROLE_KEY = 'synthetic-portal-service-signing-key';
+    delete process.env.NEXTAUTH_SECRET;
     fake = createFakeClient();
     service = new PreschoolParentPortalService(fake.client);
 
     // Seed Tenant
     fake.db.tenants.push({
       id: TENANT_ID,
+      status: 'active',
+      product_key: 'bella_preschool',
       name: 'Trường Mầm Non Ánh Dương',
       contact_phone: '1900 6868',
       address: '123 Đường Nguyễn Thị Minh Khai, Q1, TP.HCM',
@@ -201,8 +215,8 @@ describe('PreschoolParentPortalService', () => {
 
     // Seed Guardian & Student Parties
     fake.db.party_parties.push(
-      { id: GUARDIAN_PARTY_ID, tenant_id: TENANT_ID, display_name: 'Nguyễn Văn Ba (Bố)', gender: 'male' },
-      { id: STUDENT_PARTY_ID, tenant_id: TENANT_ID, display_name: 'Nguyễn Minh Anh', gender: 'female', dob: '2022-05-15' }
+      { id: GUARDIAN_PARTY_ID, tenant_id: TENANT_ID, deleted_at: null, display_name: 'Nguyễn Văn Ba (Bố)', gender: 'male' },
+      { id: STUDENT_PARTY_ID, tenant_id: TENANT_ID, deleted_at: null, display_name: 'Nguyễn Minh Anh', gender: 'female', dob: '2022-05-15' }
     );
 
     // Seed Guardian phone
@@ -225,10 +239,11 @@ describe('PreschoolParentPortalService', () => {
     fake.db.party_relationships.push({
       id: 'rel-1',
       tenant_id: TENANT_ID,
-      party_id: GUARDIAN_PARTY_ID,
+      source_party_id: GUARDIAN_PARTY_ID,
       target_party_id: STUDENT_PARTY_ID,
       relationship_type: 'guardian_of',
-      is_active: true,
+      active_from: null,
+      active_to: null,
     });
 
     // Seed Classroom & Enrollment
@@ -293,15 +308,17 @@ describe('PreschoolParentPortalService', () => {
     });
 
     it('rejects expired tokens', () => {
-      // Token expired 1 second ago
+      // Generate a permitted duration, then verify after its unchanged expiry.
       const expiredToken = PreschoolParentPortalService.generatePortalToken(
         {
           tenantId: TENANT_ID,
           guardianPartyId: GUARDIAN_PARTY_ID,
           studentPartyId: STUDENT_PARTY_ID,
         },
-        -1 // negative validity -> expired
+        1
       );
+
+      jest.spyOn(Date, 'now').mockReturnValue(Date.now() + 2 * 24 * 60 * 60 * 1000);
 
       expect(() => PreschoolParentPortalService.verifyPortalToken(expiredToken)).toThrow(
         /TOKEN_EXPIRED/

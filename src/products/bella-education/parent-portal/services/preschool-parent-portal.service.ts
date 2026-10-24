@@ -203,12 +203,16 @@ const DEFAULT_TIMETABLE: readonly ParentPortalTimetableItem[] = [
   },
 ];
 
+export class ParentPortalAccessError extends Error {
+  constructor(public readonly status: 401 | 503, public readonly code: string) {
+    super(code);
+  }
+}
+
 function getSigningSecret(): string {
-  return (
-    process.env.SUPABASE_SERVICE_ROLE_KEY ||
-    process.env.NEXTAUTH_SECRET ||
-    'bella-preschool-parent-portal-secret-key-32b'
-  );
+  const secret = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXTAUTH_SECRET;
+  if (!secret) throw new ParentPortalAccessError(503, 'PORTAL_SIGNING_UNAVAILABLE');
+  return secret;
 }
 
 function getTodayString(): string {
@@ -232,8 +236,11 @@ export class PreschoolParentPortalService {
    */
   static generatePortalToken(
     claims: { tenantId: string; guardianPartyId: string; studentPartyId: string },
-    validityDays = 60
+    validityDays = 1
   ): string {
+    if (!Number.isFinite(validityDays) || validityDays <= 0 || validityDays > 1) {
+      throw new Error('PORTAL_TOKEN_DURATION_INVALID');
+    }
     const now = Date.now();
     const tokenClaims: ParentPortalTokenClaims = {
       tenantId: claims.tenantId,
@@ -259,12 +266,12 @@ export class PreschoolParentPortalService {
    */
   static verifyPortalToken(token: string): ParentPortalTokenClaims {
     if (!token || typeof token !== 'string') {
-      throw new Error('TOKEN_INVALID: Token must be a non-empty string');
+      throw new ParentPortalAccessError(401, 'TOKEN_INVALID');
     }
 
     const parts = token.split('.');
     if (parts.length !== 2) {
-      throw new Error('TOKEN_MALFORMED: Invalid token format');
+      throw new ParentPortalAccessError(401, 'TOKEN_MALFORMED');
     }
 
     const [payloadBase64, providedSignature] = parts;
@@ -277,20 +284,37 @@ export class PreschoolParentPortalService {
     const bufExpected = Buffer.from(expectedSignature, 'utf8');
 
     if (bufProvided.length !== bufExpected.length || !crypto.timingSafeEqual(bufProvided, bufExpected)) {
-      throw new Error('TOKEN_SIGNATURE_MISMATCH: Invalid portal token signature');
+      throw new ParentPortalAccessError(401, 'TOKEN_SIGNATURE_MISMATCH');
     }
 
-    const payloadJson = Buffer.from(payloadBase64, 'base64url').toString('utf8');
-    const claims = JSON.parse(payloadJson) as ParentPortalTokenClaims;
-
-    if (!claims.tenantId || !claims.guardianPartyId || !claims.studentPartyId) {
-      throw new Error('TOKEN_CLAIMS_INCOMPLETE: Missing required claim fields');
+    let claims: Partial<ParentPortalTokenClaims> | null;
+    try {
+      claims = JSON.parse(Buffer.from(payloadBase64, 'base64url').toString('utf8')) as Partial<ParentPortalTokenClaims> | null;
+    } catch {
+      throw new ParentPortalAccessError(401, 'TOKEN_MALFORMED');
     }
-
-    if (Date.now() > claims.exp) {
-      throw new Error('TOKEN_EXPIRED: The portal token has expired');
+    if (!claims || typeof claims.tenantId !== 'string' || !claims.tenantId.trim()
+      || typeof claims.guardianPartyId !== 'string' || !claims.guardianPartyId.trim()
+      || typeof claims.studentPartyId !== 'string' || !claims.studentPartyId.trim()
+      || typeof claims.createdAt !== 'number' || !Number.isFinite(claims.createdAt)
+      || typeof claims.exp !== 'number' || !Number.isFinite(claims.exp)
+      || claims.createdAt < 0 || claims.exp <= claims.createdAt) {
+      throw new ParentPortalAccessError(401, 'TOKEN_CLAIMS_INCOMPLETE');
     }
+    if (Date.now() >= claims.exp) throw new ParentPortalAccessError(401, 'TOKEN_EXPIRED');
+    // Legacy correctly signed tokens keep their original expiry; only generation is capped.
+    return claims as ParentPortalTokenClaims;
+  }
 
+  async authorizePortalToken(token: string): Promise<ParentPortalTokenClaims> {
+    const claims = PreschoolParentPortalService.verifyPortalToken(token);
+    let relationship: { id: string } | null;
+    try {
+      relationship = await this.repo.findGuardianRelationship(claims.tenantId, claims.guardianPartyId, claims.studentPartyId);
+    } catch {
+      throw new ParentPortalAccessError(503, 'PORTAL_ACCESS_UNAVAILABLE');
+    }
+    if (!relationship) throw new ParentPortalAccessError(401, 'GUARDIAN_NOT_AUTHORIZED');
     return claims;
   }
 
@@ -298,23 +322,10 @@ export class PreschoolParentPortalService {
    * Aggregates the complete Canonical Truth for the Parent Portal
    */
   async getParentPortalPayload(token: string, targetDateStr?: string): Promise<ParentPortalPayload> {
-    const claims = PreschoolParentPortalService.verifyPortalToken(token);
+    const claims = await this.authorizePortalToken(token);
     const schoolDay = targetDateStr && /^\d{4}-\d{2}-\d{2}$/.test(targetDateStr)
       ? targetDateStr
       : getTodayString();
-
-    // 1. Assert Guardian Authorization Relationship in DB
-    const isAuthorized = await this.assertGuardianRelationship(
-      claims.tenantId,
-      claims.guardianPartyId,
-      claims.studentPartyId
-    );
-
-    if (!isAuthorized) {
-      throw new Error(
-        `GUARDIAN_NOT_AUTHORIZED: Guardian ${claims.guardianPartyId} is not linked to Student ${claims.studentPartyId} in Tenant ${claims.tenantId}`
-      );
-    }
 
     // 2. Fetch Guardian, Student, and Tenant Info in parallel
     const [guardianData, studentData, tenantData] = await Promise.all([
@@ -377,21 +388,11 @@ export class PreschoolParentPortalService {
    * Sends a chat message from guardian to school and persists to DB
    */
   async sendChatMessage(token: string, messageText: string): Promise<ParentPortalChatMessage> {
-    const claims = PreschoolParentPortalService.verifyPortalToken(token);
+    const claims = await this.authorizePortalToken(token);
     const trimmed = (messageText || '').trim();
 
     if (!trimmed) {
       throw new Error('MESSAGE_EMPTY: Message text cannot be empty');
-    }
-
-    const isAuthorized = await this.assertGuardianRelationship(
-      claims.tenantId,
-      claims.guardianPartyId,
-      claims.studentPartyId
-    );
-
-    if (!isAuthorized) {
-      throw new Error('GUARDIAN_NOT_AUTHORIZED: Guardian relationship invalid');
     }
 
     const guardian = await this.fetchGuardianProfile(claims.tenantId, claims.guardianPartyId);
@@ -429,15 +430,6 @@ export class PreschoolParentPortalService {
   }
 
   // ── PRIVATE HELPERS ─────────────────────────────────────────────────────────
-
-  private async assertGuardianRelationship(
-    tenantId: string,
-    guardianPartyId: string,
-    studentPartyId: string
-  ): Promise<boolean> {
-    const result = await this.repo.findGuardianRelationship(tenantId, guardianPartyId, studentPartyId);
-    return result !== null;
-  }
 
   private async fetchGuardianProfile(
     tenantId: string,

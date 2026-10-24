@@ -52,3 +52,21 @@ it('treats a malformed financial payload as a failure', async () => {
   expect(await screen.findAllByRole('alert')).toHaveLength(2);
   expect(screen.queryByTestId('recognized-sales-current-month')).not.toBeInTheDocument();
 });
+
+it('inventory age is unavailable after successful RPCs', async () => {
+  mockRpc.mockResolvedValue({ data: [], error: null });
+  global.fetch = jest.fn(async () => ({ ok: true, json: async () => data })) as jest.Mock;
+  render(<BellaAutoAnalyticsDashboard tenantId="tenant-a" />);
+  const ageCard = (await screen.findByText('Thời gian tồn TB')).parentElement?.parentElement;
+  expect(ageCard).toHaveTextContent('Chưa có dữ liệu');
+  expect(ageCard).not.toHaveTextContent(/\d|ngày|%|so với tháng trước/i);
+});
+
+it('inventory age is unavailable after failed RPCs', async () => {
+  mockRpc.mockRejectedValueOnce(new Error('Inventory RPC failed'));
+  global.fetch = jest.fn(async () => ({ ok: true, json: async () => data })) as jest.Mock;
+  render(<BellaAutoAnalyticsDashboard tenantId="tenant-a" />);
+  const ageCard = (await screen.findByText('Thời gian tồn TB')).parentElement?.parentElement;
+  expect(ageCard).toHaveTextContent('Chưa có dữ liệu');
+  expect(ageCard).not.toHaveTextContent(/\d|ngày|%|so với tháng trước/i);
+});

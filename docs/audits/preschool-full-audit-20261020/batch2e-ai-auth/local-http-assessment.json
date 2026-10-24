@@ -1,0 +1,13 @@
+{
+  "verifiedAt": "2026-10-20T22:12:46.0442717Z",
+  "sourceResultFile": "local-http.json",
+  "rawHarnessExitCode": 1,
+  "rawExactCacheLiteralCheck": "FAIL",
+  "applicationResponseStatusAndCode": "PASS",
+  "actualRequests": 4,
+  "allNoStore": true,
+  "listenerStopped": true,
+  "scope": "Actual local development HTTP denial and effective no-store semantics; exact header literal differs due Next development handling",
+  "privateLiteral": "Not uniformly emitted by Next development runtime",
+  "nextVersion": "16.3.8"
+}

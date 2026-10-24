@@ -19,6 +19,7 @@ let transaction = false, assertions = 0;
 function check(value: unknown, message: string) { assert.ok(value, message); assertions++; }
 async function context(user: string, role: 'authenticated' | 'anon' = 'authenticated') {
   await db.query('reset role'); await db.query(role === 'anon' ? 'set local role anon' : 'set local role authenticated');
+  await db.query('set local row_security=on');
   await db.query("select set_config('request.jwt.claim.sub',$1,true),set_config('request.jwt.claim.role',$2,true)", [user, role]);
 }
 async function denied(operation: () => Promise<unknown>, code?: string) {

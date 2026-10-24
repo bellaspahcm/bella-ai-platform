@@ -6,6 +6,7 @@ import { TradeInPhotoService, type PhotoCategory } from '@/modules/bella-auto/se
 import { Camera, Upload, CheckCircle, AlertCircle, X, Image as ImageIcon, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import type { Database } from '@/types/database.types';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 type TradeInAppraisalRow = Pick<
   Database['public']['Tables']['auto_trade_in_appraisals']['Row'],
@@ -56,10 +57,14 @@ function mapTradeInAppraisal(row: TradeInAppraisalRow): TradeInAppraisal {
 
 export default function TradeInPage() {
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [appraisals, setAppraisals] = useState<TradeInAppraisal[]>([]);
   const [selectedAppraisal, setSelectedAppraisal] = useState<string | null>(null);
+  const [photoStatusAppraisal, setPhotoStatusAppraisal] = useState<string | null>(null);
+  const [photoStatusError, setPhotoStatusError] = useState<string | null>(null);
   const [photoCategories, setPhotoCategories] = useState<(PhotoCategory & { count: number; hasPhotos: boolean; isComplete: boolean })[]>([]);
   const [uploadStatuses, setUploadStatuses] = useState<Record<string, PhotoUploadStatus>>({});
+  const uploadingPhoto = Object.values(uploadStatuses).some(status => status.uploading);
   const [completionStatus, setCompletionStatus] = useState({
     isComplete: false,
     requiredCategories: [] as string[],
@@ -76,6 +81,7 @@ export default function TradeInPage() {
         // Get current user
         const { data: { user }, error: userError } = await supabase.auth.getUser();
         if (userError || !user) {
+          setLoadError('Không thể xác thực để tải hồ sơ định giá. Vui lòng tải lại trang để thử lại.');
           toast.error('Không thể xác thực người dùng');
           return;
         }
@@ -88,15 +94,17 @@ export default function TradeInPage() {
           .single();
 
         if (profileError || !profile) {
+          setLoadError('Không thể tải hồ sơ định giá của tenant. Vui lòng tải lại trang để thử lại.');
           toast.error('Không tìm thấy thông tin tenant');
           return;
         }
         if (!profile.tenant_id) {
+          setLoadError('Tài khoản chưa được gán tenant để tải hồ sơ định giá.');
           toast.error('Tài khoản chưa được gán tenant');
           return;
         }
 
-        // Fetch trade-in appraisals (assuming table exists)
+        // Fetch trade-in appraisals
         const { data, error } = await supabase
           .from('auto_trade_in_appraisals')
           .select('id, customer_id, make, model, variant, year, color, license_plate, status')
@@ -104,13 +112,12 @@ export default function TradeInPage() {
           .order('created_at', { ascending: false });
 
         if (error) {
-          // Table might not exist yet - this is expected in Phase 1
-          console.warn('Trade-in appraisals table not found:', error);
-          setAppraisals([]);
+          throw error;
         } else {
           setAppraisals((data || []).map(mapTradeInAppraisal));
         }
       } catch (error) {
+        setLoadError('Không thể tải danh sách định giá. Vui lòng tải lại trang để thử lại.');
         console.error('Error fetching appraisals:', error);
         toast.error('Không thể tải danh sách định giá');
       } finally {
@@ -123,43 +130,50 @@ export default function TradeInPage() {
 
   // Fetch photo categories and status when appraisal selected
   useEffect(() => {
+    let cancelled = false;
+    setPhotoStatusAppraisal(null);
+    setPhotoStatusError(null);
     const fetchPhotoStatus = async () => {
       if (!selectedAppraisal) return;
 
       try {
         const supabase = createClient();
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
+        const { data: { user }, error: authError } = await supabase.auth.getUser();
+        if (authError || !user) throw new Error('Not authenticated');
 
-        const { data: profile } = await supabase
+        const { data: profile, error: profileError } = await supabase
           .from('users')
           .select('tenant_id')
           .eq('id', user.id)
           .single();
 
-        if (!profile?.tenant_id) return;
+        if (profileError || !profile?.tenant_id) throw new Error('Tenant not found');
 
         // Get photo categories with status
         const categories = await TradeInPhotoService.getPhotoCategoriesWithStatus(
           profile.tenant_id,
           selectedAppraisal
         );
-        setPhotoCategories(categories);
-
         // Get completion status
         const status = await TradeInPhotoService.checkPhotoCompletionStatus(
           profile.tenant_id,
           selectedAppraisal
         );
+        if (cancelled) return;
+        setPhotoCategories(categories);
         setCompletionStatus(status);
+        setPhotoStatusAppraisal(selectedAppraisal);
 
       } catch (error) {
+        if (cancelled) return;
+        setPhotoStatusError('Không thể tải trạng thái ảnh. Vui lòng chọn lại hồ sơ để thử lại.');
         console.error('Error fetching photo status:', error);
         toast.error('Không thể tải trạng thái ảnh');
       }
     };
 
     void fetchPhotoStatus();
+    return () => { cancelled = true; };
   }, [selectedAppraisal]);
 
   // Handle file selection
@@ -185,6 +199,7 @@ export default function TradeInPage() {
     if (!currentStatus?.file || !selectedAppraisal) return;
 
     const fileToUpload = currentStatus.file;
+    let photoPersisted = false;
 
     setUploadStatuses(prev => {
       return {
@@ -233,35 +248,40 @@ export default function TradeInPage() {
         mimeType: fileToUpload.type,
         uploadedBy: user.id,
       });
+      photoPersisted = true;
 
+      toast.success(`Đã tải lên ảnh ${TradeInPhotoService.PHOTO_CATEGORIES.find(c => c.key === category)?.label}`);
+
+      // Refresh photo status
+      setPhotoStatusAppraisal(null);
+      setPhotoStatusError(null);
+      const categories = await TradeInPhotoService.getPhotoCategoriesWithStatus(
+        profile.tenant_id,
+        selectedAppraisal
+      );
+      const completionResult = await TradeInPhotoService.checkPhotoCompletionStatus(
+        profile.tenant_id,
+        selectedAppraisal
+      );
+      setPhotoCategories(categories);
+      setCompletionStatus(completionResult);
+      setPhotoStatusAppraisal(selectedAppraisal);
       setUploadStatuses(prev => ({
         ...prev,
         [category]: { ...prev[category], uploaded: true, uploading: false },
       }));
 
-      toast.success(`Đã tải lên ảnh ${TradeInPhotoService.PHOTO_CATEGORIES.find(c => c.key === category)?.label}`);
-
-      // Refresh photo status
-      const categories = await TradeInPhotoService.getPhotoCategoriesWithStatus(
-        profile.tenant_id,
-        selectedAppraisal
-      );
-      setPhotoCategories(categories);
-
-      const completionResult = await TradeInPhotoService.checkPhotoCompletionStatus(
-        profile.tenant_id,
-        selectedAppraisal
-      );
-      setCompletionStatus(completionResult);
-
     } catch (error: unknown) {
+      if (photoPersisted) {
+        setPhotoStatusError('Ảnh đã lưu nhưng chưa tải lại được trạng thái ảnh. Vui lòng chọn lại hồ sơ.');
+      }
       console.error('Upload error:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       setUploadStatuses(prev => ({
         ...prev,
-        [category]: { ...prev[category], uploading: false, error: errorMessage },
+        [category]: { ...prev[category], uploaded: photoPersisted, uploading: false, error: errorMessage },
       }));
-      toast.error(`Lỗi tải ảnh: ${errorMessage}`);
+      toast.error(photoPersisted ? 'Ảnh đã lưu nhưng chưa tải lại được trạng thái ảnh' : `Lỗi tải ảnh: ${errorMessage}`);
     }
   }, [selectedAppraisal, uploadStatuses]);
 
@@ -280,7 +300,7 @@ export default function TradeInPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-96">
+      <div role="status" aria-label="Đang tải hồ sơ định giá" className="flex items-center justify-center h-96">
         <Loader2 className="w-8 h-8 animate-spin text-cyan-600" />
       </div>
     );
@@ -299,39 +319,56 @@ export default function TradeInPage() {
         <div className="flex items-center gap-2">
           <Camera className="w-5 h-5 text-cyan-600" />
           <span className="text-sm font-medium text-gray-700">
-            {completionStatus.totalPhotos} ảnh đã tải lên
+            {selectedAppraisal && photoStatusAppraisal === selectedAppraisal ? completionStatus.totalPhotos : '—'} ảnh đã tải lên
           </span>
         </div>
       </div>
 
       {/* Appraisal Selection */}
-      {appraisals.length === 0 ? (
+      {loadError ? (
+        <Alert variant="destructive">
+          <AlertTitle>Không tải được hồ sơ định giá</AlertTitle>
+          <AlertDescription>{loadError}</AlertDescription>
+        </Alert>
+      ) : appraisals.length === 0 ? (
         <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
           <ImageIcon className="w-16 h-16 text-gray-300 mx-auto mb-4" />
           <h3 className="text-lg font-semibold text-gray-900 mb-2">
             Chưa có hồ sơ định giá
           </h3>
           <p className="text-gray-500 mb-6">
-            Tạo hồ sơ định giá mới để bắt đầu chụp ảnh xe thu cũ
+            Chức năng tạo hồ sơ định giá chưa sẵn sàng trên màn hình này.
           </p>
           <button
-            className="px-6 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 transition-colors"
-            onClick={() => toast.info('Tính năng tạo hồ sơ định giá đang phát triển')}
+            disabled
+            aria-describedby="trade-in-create-unavailable"
+            className="px-6 py-2 bg-cyan-600 text-white rounded-lg disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
           >
             Tạo hồ sơ định giá
           </button>
+          <p id="trade-in-create-unavailable" className="mt-3 text-sm text-gray-500">Chưa thể tạo hồ sơ mới. Tính năng tải ảnh vẫn dùng được khi đã có hồ sơ định giá.</p>
         </div>
       ) : (
         <>
           {/* Appraisal Selector */}
           <div className="bg-white rounded-lg border border-gray-200 p-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="trade-in-appraisal" className="block text-sm font-medium text-gray-700 mb-2">
               Chọn hồ sơ định giá
             </label>
             <select
+              id="trade-in-appraisal"
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
               value={selectedAppraisal || ''}
-              onChange={(e) => setSelectedAppraisal(e.target.value)}
+              disabled={uploadingPhoto}
+              onChange={(e) => {
+                Object.values(uploadStatuses).forEach(status => {
+                  if (status.preview) URL.revokeObjectURL(status.preview);
+                });
+                setUploadStatuses({});
+                setPhotoStatusAppraisal(null);
+                setPhotoStatusError(null);
+                setSelectedAppraisal(e.target.value || null);
+              }}
             >
               <option value="">-- Chọn hồ sơ --</option>
               {appraisals.map(appraisal => (
@@ -343,7 +380,17 @@ export default function TradeInPage() {
           </div>
 
           {/* Completion Status */}
-          {selectedAppraisal && (
+          {selectedAppraisal && photoStatusAppraisal !== selectedAppraisal && (
+            photoStatusError ? (
+              <Alert variant="destructive">
+                <AlertTitle>Không tải được trạng thái ảnh</AlertTitle>
+                <AlertDescription>{photoStatusError}</AlertDescription>
+              </Alert>
+            ) : (
+              <div role="status" className="rounded-lg border p-4 text-gray-600">Đang tải trạng thái ảnh...</div>
+            )
+          )}
+          {selectedAppraisal && photoStatusAppraisal === selectedAppraisal && (
             <div className={`rounded-lg border p-4 ${completionStatus.isComplete ? 'bg-green-50 border-green-200' : 'bg-yellow-50 border-yellow-200'}`}>
               <div className="flex items-center gap-2">
                 {completionStatus.isComplete ? (
@@ -369,7 +416,7 @@ export default function TradeInPage() {
           )}
 
           {/* Photo Upload Grid */}
-          {selectedAppraisal && (
+          {selectedAppraisal && photoStatusAppraisal === selectedAppraisal && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {photoCategories.map(category => {
                 const status = uploadStatuses[category.key];
@@ -421,7 +468,7 @@ export default function TradeInPage() {
                         <button
                           onClick={() => handleRemovePreview(category.key)}
                           className="absolute top-2 right-2 p-1 bg-red-600 text-white rounded-full hover:bg-red-700"
-                          disabled={status.uploading}
+                          disabled={uploadingPhoto}
                         >
                           <X className="w-4 h-4" />
                         </button>
@@ -436,7 +483,7 @@ export default function TradeInPage() {
                             const file = e.target.files?.[0];
                             if (file) handleFileSelect(category.key, file);
                           }}
-                          disabled={category.count >= category.maxPhotos}
+                          disabled={uploadingPhoto || category.count >= category.maxPhotos}
                         />
                         <div className="flex flex-col items-center justify-center h-full text-gray-400">
                           <Upload className="w-8 h-8 mb-2" />
@@ -449,7 +496,7 @@ export default function TradeInPage() {
                     {status?.file && !status.uploaded && (
                       <button
                         onClick={() => handleUpload(category.key)}
-                        disabled={status.uploading}
+                        disabled={uploadingPhoto}
                         className="w-full mt-3 px-4 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
                       >
                         {status.uploading ? (

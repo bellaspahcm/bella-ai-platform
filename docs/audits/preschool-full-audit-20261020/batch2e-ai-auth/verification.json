@@ -1,0 +1,109 @@
+{
+  "capturedAt": "2026-10-20T22:31:34.338Z",
+  "group": "copilot",
+  "sourceManifest": "source-manifest.json",
+  "tests": {
+    "suites": 3,
+    "passedSuites": 3,
+    "failedSuites": 0,
+    "total": 78,
+    "passed": 78,
+    "failed": 0,
+    "pending": 0,
+    "success": true
+  },
+  "commands": {
+    "jest": {
+      "startedAt": "2026-10-20T22:11:00.253Z",
+      "finishedAt": "2026-10-20T22:11:06.803Z",
+      "task": "jest",
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "node_modules/jest/bin/jest.js",
+        "--runInBand",
+        "--runTestsByPath",
+        "src/app/api/education/ai/copilot/__tests__/access.test.ts",
+        "src/products/bella-education/__tests__/preschool-ai-copilot.test.ts",
+        "src/products/bella-education/__tests__/preschool-admin-ai-copilot.test.ts",
+        "--json",
+        "--outputFile=C:\\Users\\DELL\\.codex\\worktrees\\preschool-courses-auth-20261021\\BELLA SPA ERP\\docs\\audits\\preschool-full-audit-20261020\\batch2e-ai-auth\\jest-results.json"
+      ],
+      "exitCode": 0,
+      "errorCode": null,
+      "signal": null,
+      "environment": "Process-scoped loopback offline endpoints and synthetic keys; no production business/model calls"
+    },
+    "lint": {
+      "startedAt": "2026-10-20T22:01:57.218Z",
+      "finishedAt": "2026-10-20T22:02:00.126Z",
+      "task": "lint",
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "node_modules/eslint/bin/eslint.js",
+        "src/app/api/education/ai/copilot/route.ts",
+        "src/app/api/education/ai/copilot/__tests__/access.test.ts",
+        "src/products/bella-education/__tests__/preschool-ai-copilot.test.ts",
+        "src/products/bella-education/__tests__/preschool-admin-ai-copilot.test.ts"
+      ],
+      "exitCode": 0,
+      "errorCode": null,
+      "signal": null,
+      "environment": "Process-scoped loopback offline endpoints and synthetic keys; no production business/model calls"
+    },
+    "typecheck": {
+      "startedAt": "2026-10-20T22:11:06.897Z",
+      "finishedAt": "2026-10-20T22:11:25.393Z",
+      "task": "typecheck",
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "scripts/ci-run-typecheck.mjs",
+        "changed"
+      ],
+      "exitCode": 0,
+      "errorCode": null,
+      "signal": null,
+      "environment": "Process-scoped loopback offline endpoints and synthetic keys; no production business/model calls"
+    },
+    "secrets": {
+      "startedAt": "2026-10-20T22:00:35.879Z",
+      "finishedAt": "2026-10-20T22:00:35.954Z",
+      "task": "secrets",
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "scripts/check-secret-leaks.mjs",
+        "src/app/api/education/ai/copilot/route.ts",
+        "src/app/api/education/ai/copilot/__tests__/access.test.ts",
+        "src/products/bella-education/__tests__/preschool-ai-copilot.test.ts",
+        "src/products/bella-education/__tests__/preschool-admin-ai-copilot.test.ts"
+      ],
+      "exitCode": 0,
+      "errorCode": null,
+      "signal": null,
+      "environment": "Process-scoped loopback offline endpoints and synthetic keys; no production business/model calls"
+    }
+  },
+  "localHttp": {
+    "report": "local-http.json",
+    "rawResult": "FAIL",
+    "probes": 4,
+    "listenerStopped": true,
+    "assessment": {
+      "verifiedAt": "2026-10-20T22:12:46.0442717Z",
+      "sourceResultFile": "local-http.json",
+      "rawHarnessExitCode": 1,
+      "rawExactCacheLiteralCheck": "FAIL",
+      "applicationResponseStatusAndCode": "PASS",
+      "actualRequests": 4,
+      "allNoStore": true,
+      "listenerStopped": true,
+      "scope": "Actual local development HTTP denial and effective no-store semantics; exact header literal differs due Next development handling",
+      "privateLiteral": "Not uniformly emitted by Next development runtime",
+      "nextVersion": "16.3.8"
+    }
+  },
+  "independentReview": "COMPLETED_SOURCE_ONLY",
+  "productionSourceChange": "NOT_RUN",
+  "authenticatedDbRls": "NOT_PROVEN",
+  "fullPlatformRegression": "FAIL_ENVIRONMENT_IN_SIBLING_BATCH2E",
+  "goLive": "NOT_READY"
+}

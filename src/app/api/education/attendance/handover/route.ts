@@ -1,3 +1,4 @@
+import { PreschoolChainService, PreschoolChainError } from '@/products/bella-education/services/preschool-chain.service';
 import { NextResponse } from 'next/server';
 import { createClient as createSupabaseClient, type SupabaseClient } from '@supabase/supabase-js';
 import { PreschoolSafePickupHandoverService } from '@/products/bella-education/services/preschool-safe-pickup-handover.service';
@@ -22,8 +23,6 @@ interface RequestContext {
 const handoverGuard = new EducationSecurityGuardService();
 
 function createAdminOperationClient(): EducationAttendanceClient | null {
-  if (process.env.NODE_ENV === 'test') return null;
-
   const adminUrl = getSupabaseAdminUrl();
   const adminKey = getSupabaseAdminKey();
   if (!adminUrl || !adminKey) return null;
@@ -33,38 +32,10 @@ function createAdminOperationClient(): EducationAttendanceClient | null {
   });
 }
 
-async function resolveRequestContext(request: Request): Promise<RequestContext | null> {
-  const mockEmail = process.env.NODE_ENV === 'development'
-    ? request.headers.get('x-mock-user-email')?.trim()
-    : '';
-
-  if (mockEmail) {
-    const supabase = createClient();
-    const { data: user } = await supabase
-      .from('users')
-      .select('id, tenant_id, role')
-      .eq('email', mockEmail)
-      .maybeSingle();
-
-    if (user?.id && user.tenant_id && user.role) {
-      return {
-        tenantId: user.tenant_id,
-        operatorUserId: user.id,
-        role: user.role,
-      };
-    }
-  }
-
-  const currentUser = await getCurrentUser();
-  if (!currentUser?.id || !currentUser.tenant_id || !currentUser.role) {
-    return null;
-  }
-
-  return {
-    tenantId: currentUser.tenant_id,
-    operatorUserId: currentUser.id,
-    role: currentUser.role,
-  };
+async function resolveRequestContext(): Promise<RequestContext | null> {
+  const actor = await getCurrentUser();
+  if (!actor?.id || !actor.tenant_id || !actor.role) return null;
+  return { tenantId:actor.tenant_id,operatorUserId:actor.id,role:actor.role };
 }
 
 function mapBellaAttendanceRole(role: string): EducationRole | null {
@@ -101,7 +72,7 @@ function requireString(value: unknown, field: string): string {
 
 export async function POST(request: Request) {
   try {
-    const context = await resolveRequestContext(request);
+    const context = await resolveRequestContext();
     if (!context) {
       return NextResponse.json({ success: false, error: 'Authenticated tenant is required' }, { status: 401 });
     }
@@ -112,7 +83,8 @@ export async function POST(request: Request) {
     const guardianPartyId = requireString(body.guardianPartyId, 'guardianPartyId');
     const pickupAuthorizationId = requireString(body.pickupAuthorizationId, 'pickupAuthorizationId');
 
-    const supabase = createAdminOperationClient() ?? createClient();
+    const supabase = createAdminOperationClient() ?? await createClient();
+    await new PreschoolChainService(supabase).assertStudentAccess(context.tenantId,context.operatorUserId,studentPartyId);
     const handover = await new PreschoolSafePickupHandoverService(supabase).recordHandover({
       tenantId: context.tenantId,
       studentPartyId,
@@ -124,7 +96,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: true, handover }, { status: 201 });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
-    const status = message.endsWith(' is required') ? 400 : message.startsWith('AUTH_ROLE_PERMISSION_ERROR') ? 403 : 500;
+    const status = error instanceof PreschoolChainError ? error.status : message.endsWith(' is required') ? 400 : message.startsWith('AUTH_ROLE_PERMISSION_ERROR') ? 403 : 500;
     return NextResponse.json({ success: false, error: message }, { status });
   }
 }

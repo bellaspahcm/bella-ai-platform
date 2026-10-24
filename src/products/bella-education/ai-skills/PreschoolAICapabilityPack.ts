@@ -54,12 +54,13 @@ export interface ExecutiveDailyBriefingResult {
 
 export interface ClassRosterStat {
   readonly className: string;
-  readonly ageGroup: 'NHA_TRE' | 'MAM' | 'CHOI' | 'LA';
+  readonly ageGroup?: 'NHA_TRE' | 'MAM' | 'CHOI' | 'LA';
   readonly studentCount: number;
-  readonly teacherCount: number;
+  readonly teacherCount?: number;
 }
 
 export interface ComplianceSentinelResult {
+  readonly verificationComplete: boolean;
   readonly compliant: boolean;
   readonly complianceScore: number;
   readonly violations: readonly string[];
@@ -345,27 +346,56 @@ export const preschoolAICapabilityPack: AICapabilityPack = {
         totalStudents: { type: 'number', description: 'Tổng số trẻ toàn trường' },
         presentCount: { type: 'number', description: 'Số trẻ có mặt hôm nay' },
         absentCount: { type: 'number', description: 'Số trẻ vắng mặt hôm nay' },
+        unmarkedAttendanceCount: { type: 'number', description: 'Số trẻ chưa có bản ghi điểm danh' },
         feverCasesCount: { type: 'number', description: 'Số ca sốt hoặc sự cố y tế' },
         unpaidTuitionCount: { type: 'number', description: 'Số hồ sơ học phí chưa thanh toán' },
         pendingParentRequests: { type: 'number', description: 'Số yêu cầu dặn dò phụ huynh chờ xử lý' },
       },
       execute: async (params: Record<string, unknown>): Promise<Record<string, unknown>> => {
-        const total = typeof params.totalStudents === 'number' && params.totalStudents > 0 ? params.totalStudents : 100;
-        const present = typeof params.presentCount === 'number' ? params.presentCount : total;
+        const total = params.totalStudents;
+        const present = params.presentCount;
+        if (typeof total !== 'number' || !Number.isSafeInteger(total) || total < 0 ||
+            typeof present !== 'number' || !Number.isSafeInteger(present) || present < 0 || present > total) {
+          throw new Error('Chưa có số liệu sĩ số và điểm danh hợp lệ để tạo điểm tin. Vui lòng tải lại dữ liệu.');
+        }
+        const absent = params.absentCount;
+        const unmarked = params.unmarkedAttendanceCount;
+        for (const count of [absent, unmarked]) {
+          if (count !== undefined && (typeof count !== 'number' || !Number.isSafeInteger(count) || count < 0 || count > total)) {
+            throw new Error('Số liệu điểm danh không hợp lệ. Vui lòng tải lại dữ liệu.');
+          }
+        }
+        if (present + (typeof absent === 'number' ? absent : 0) + (typeof unmarked === 'number' ? unmarked : 0) > total) {
+          throw new Error('Số liệu điểm danh vượt sĩ số. Vui lòng tải lại dữ liệu.');
+        }
+        for (const count of [params.feverCasesCount, params.unpaidTuitionCount, params.pendingParentRequests]) {
+          if (count !== undefined && (typeof count !== 'number' || !Number.isSafeInteger(count) || count < 0)) {
+            throw new Error('Số liệu vận hành không hợp lệ. Vui lòng tải lại dữ liệu.');
+          }
+        }
         const fever = typeof params.feverCasesCount === 'number' ? params.feverCasesCount : 0;
         const unpaid = typeof params.unpaidTuitionCount === 'number' ? params.unpaidTuitionCount : 0;
         const pendingReq = typeof params.pendingParentRequests === 'number' ? params.pendingParentRequests : 0;
 
-        const rate = Math.round((present / total) * 100);
+        const rate = total > 0 ? Math.round((present / total) * 100) : 0;
+        const attendanceComplete = typeof absent === 'number' && present + absent === total &&
+          (unmarked === undefined || unmarked === 0);
         const criticalAlerts: string[] = [];
         const recommendations: string[] = [];
 
         if (fever > 0) {
-          criticalAlerts.push(`Cảnh báo dịch tễ/y tế: Toàn trường ghi nhận ${fever} ca sốt cần theo dõi lâm sàng.`);
-          recommendations.push('Giám sát dịch tễ: Chỉ đạo bộ phận y tế và bảo mẫu kiểm tra thân nhiệt tăng cường đầu giờ chiều.');
+          criticalAlerts.push(`Toàn trường ghi nhận ${fever} sự cố sức khỏe/y tế cần rà soát hồ sơ.`);
+          recommendations.push('Rà soát các hồ sơ sức khỏe/y tế đang được ghi nhận và phối hợp với bộ phận phụ trách.');
         }
 
-        if (rate < 85) {
+        if (total === 0) {
+          recommendations.push('Chưa có trẻ trong số liệu sĩ số của kỳ đang xem.');
+        } else if (!attendanceComplete) {
+          criticalAlerts.push(typeof unmarked === 'number' && unmarked > 0
+            ? `Chưa hoàn tất điểm danh: ${unmarked} trẻ chưa có bản ghi điểm danh.`
+            : 'Chưa đủ dữ liệu để kết luận chuyên cần; cần hoàn tất và đối soát điểm danh.');
+          recommendations.push('Hoàn tất điểm danh các lớp trước khi đánh giá chuyên cần; chưa điểm danh không đồng nghĩa với vắng học.');
+        } else if (rate < 85) {
           criticalAlerts.push(`Tỷ lệ chuyên cần thấp (${rate}%): Tỷ lệ vắng mặt cao hơn mức bình thường 15%.`);
           recommendations.push('Đôn đốc GVCN các lớp rà soát lý do nghỉ học và thăm hỏi gia đình các bé ốm.');
         } else {
@@ -382,7 +412,9 @@ export const preschoolAICapabilityPack: AICapabilityPack = {
 
         const summary =
           `Điểm tin điều hành: Sĩ số toàn trường ${total} trẻ, có mặt ${present} trẻ (${rate}% chuyên cần). ` +
-          (fever > 0 ? `Lưu ý an toàn: ${fever} ca sốt cần theo dõi y tế. ` : `Sức khỏe toàn trường ổn định, không có ca sốt cao. `) +
+          (typeof absent === 'number' ? `Đã ghi nhận vắng ${absent} trẻ. ` : '') +
+          (typeof unmarked === 'number' ? `Chưa điểm danh ${unmarked} trẻ. ` : '') +
+          (fever > 0 ? `Lưu ý an toàn: ${fever} sự cố sức khỏe/y tế đã ghi nhận. ` : `Chưa ghi nhận sự cố sức khỏe/y tế trong dữ liệu đang xem. `) +
           `Vận hành: ${pendingReq} dặn dò phụ huynh, ${unpaid} hồ sơ học phí cần đối soát.`;
 
         const result: ExecutiveDailyBriefingResult = {
@@ -410,11 +442,23 @@ export const preschoolAICapabilityPack: AICapabilityPack = {
 
         const violations: string[] = [];
         const warnings: string[] = [];
+        let verificationComplete = stats.length > 0;
+        if (stats.length === 0) warnings.push('Chưa có dữ liệu lớp học để rà soát TT52.');
 
         stats.forEach((c) => {
           const name = c.className || 'Lớp học';
-          const count = c.studentCount || 0;
-          const teachers = c.teacherCount || 1;
+          const count = c.studentCount;
+          const teachers = c.teacherCount;
+          if (!Number.isSafeInteger(count) || count < 0 || !['NHA_TRE', 'MAM', 'CHOI', 'LA'].includes(c.ageGroup ?? '')) {
+            verificationComplete = false;
+            warnings.push(`${name}: Chưa có sĩ số hoặc nhóm tuổi đã xác minh; chưa thể kết luận TT52.`);
+            return;
+          }
+          const staffingKnown = typeof teachers === 'number' && Number.isSafeInteger(teachers) && teachers > 0;
+          if (!staffingKnown) {
+            verificationComplete = false;
+            warnings.push(`${name}: Chưa có số giáo viên đã xác minh; chưa thể kết luận định mức giáo viên.`);
+          }
 
           // Standard limits per Thông tư 52/2020/TT-BGDĐT
           let maxCapacity = 30;
@@ -430,15 +474,16 @@ export const preschoolAICapabilityPack: AICapabilityPack = {
           }
 
           // Teacher-to-student ratio check for infant/toddler groups
-          if (c.ageGroup === 'NHA_TRE' && count > 0 && count / teachers > 12) {
+          if (c.ageGroup === 'NHA_TRE' && count > 0 && staffingKnown && count / teachers > 12) {
             violations.push(`${name} (Nhà trẻ): Tỷ lệ ${Math.round(count / teachers)} trẻ/GV vượt định mức tối đa 12 trẻ/GV.`);
           }
         });
 
-        const compliant = violations.length === 0;
+        const compliant = verificationComplete && violations.length === 0;
         const score = Math.max(0, 100 - violations.length * 20 - warnings.length * 5);
 
         const result: ComplianceSentinelResult = {
+          verificationComplete,
           compliant,
           complianceScore: score,
           violations,

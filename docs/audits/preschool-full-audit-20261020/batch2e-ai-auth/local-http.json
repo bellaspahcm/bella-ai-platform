@@ -1,0 +1,45 @@
+{
+  "checkedAt": "2026-10-20T22:11:47.963Z",
+  "mode": "copilot",
+  "source": "Uncommitted bounded source patch on isolated branch from30134055d",
+  "environment": "Local Next development runtime with webpack, loopback offline DB and synthetic keys",
+  "nextVersion": "16.3.8",
+  "productionMutation": "NOT_PERFORMED",
+  "modelCalls": "NOT_PERFORMED",
+  "realAuthSession": false,
+  "tests": [
+    {
+      "name": "anonymous",
+      "status": 401,
+      "code": "COPILOT_UNAUTHENTICATED",
+      "cacheControl": "no-store, must-revalidate",
+      "result": "FAIL"
+    },
+    {
+      "name": "forgedRoleAndTenant",
+      "status": 401,
+      "code": "COPILOT_UNAUTHENTICATED",
+      "cacheControl": "private, no-store, max-age=0",
+      "result": "FAIL"
+    },
+    {
+      "name": "conflictingTenantSelectors",
+      "status": 401,
+      "code": "COPILOT_UNAUTHENTICATED",
+      "cacheControl": "no-store, must-revalidate",
+      "result": "FAIL"
+    },
+    {
+      "name": "malformedPayload",
+      "status": 401,
+      "code": "COPILOT_UNAUTHENTICATED",
+      "cacheControl": "no-store, must-revalidate",
+      "result": "FAIL"
+    }
+  ],
+  "serverPid": 2268,
+  "port": 58218,
+  "stopExitCode": 0,
+  "listenerStopped": true,
+  "result": "FAIL"
+}

@@ -3,7 +3,10 @@ import { createClient as createSupabaseClient, type SupabaseClient } from '@supa
 import { getSupabaseAdminKey, getSupabaseAdminUrl } from '@/lib/supabase-admin-env';
 import { createClient } from '@/lib/supabase-server';
 import type { Database } from '@/types/database.types';
-import { PreschoolParentPortalService } from '@/products/bella-education/parent-portal/services/preschool-parent-portal.service';
+import { ParentPortalAccessError, PreschoolParentPortalService } from '@/products/bella-education/parent-portal/services/preschool-parent-portal.service';
+
+export const dynamic = 'force-dynamic';
+const PRIVATE_HEADERS = { 'Cache-Control': 'private, no-store' };
 
 type EducationSupabaseClient = SupabaseClient<Database>;
 
@@ -29,10 +32,12 @@ export async function GET(
     if (!token) {
       return NextResponse.json(
         { success: false, error: 'TOKEN_REQUIRED', message: 'Token phụ huynh là bắt buộc' },
-        { status: 400 }
+        { status: 401, headers: PRIVATE_HEADERS }
       );
     }
 
+    // Reject invalid bearer capabilities before constructing the existing server adapter.
+    PreschoolParentPortalService.verifyPortalToken(token);
     const { searchParams } = new URL(request.url);
     const date = searchParams.get('date') ?? undefined;
 
@@ -43,20 +48,11 @@ export async function GET(
     return NextResponse.json({
       success: true,
       data: payload,
-    });
+    }, { headers: PRIVATE_HEADERS });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Lỗi truy cập hồ sơ phụ huynh';
-    const isAuthError = message.includes('TOKEN_') || message.includes('GUARDIAN_NOT_AUTHORIZED');
-
     return NextResponse.json(
-      {
-        success: false,
-        error: message,
-        message: isAuthError
-          ? 'Liên kết truy cập không hợp lệ hoặc đã hết hạn. Vui lòng liên hệ nhà trường để nhận liên kết mới.'
-          : message,
-      },
-      { status: isAuthError ? 401 : 500 }
+      { success: false, error: error instanceof ParentPortalAccessError ? error.code : 'PORTAL_ACCESS_UNAVAILABLE' },
+      { status: error instanceof ParentPortalAccessError ? error.status : 503, headers: PRIVATE_HEADERS }
     );
   }
 }

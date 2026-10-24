@@ -21,12 +21,16 @@ jest.mock('server-only', () => ({}), { virtual: true });
 // Setup global spies and mocks
 const mockRpc = jest.fn();
 const mockFrom = jest.fn();
+const mockSessionRpc = jest.fn();
+const mockSessionFrom = jest.fn();
+const mockSignUp = jest.fn();
 const mockCheckHqAuth = jest.fn();
 jest.mock('@/lib/supabase-server', () => ({
-  createClient: () => Promise.resolve({
-    rpc: mockRpc,
-    from: mockFrom,
-  }),
+  createClient: jest.fn(() => Promise.resolve({
+    rpc: mockSessionRpc,
+    from: mockSessionFrom,
+    auth: { signUp: mockSignUp },
+  })),
 }));
 
 jest.mock('@/services/hq-actions', () => ({
@@ -73,6 +77,7 @@ import { registerNewTenant } from '../services/onboarding-actions';
 import { recordAuditLog } from '@/services/audit-actions';
 import { safeRevalidatePath } from '@/lib/revalidate';
 import { createClient as createSupabaseJsClient } from '@supabase/supabase-js';
+import { createClient as createSessionClient } from '@/lib/supabase-server';
 
 const mockRecordAuditLog = recordAuditLog as jest.Mock;
 const mockSafeRevalidatePath = safeRevalidatePath as jest.Mock;
@@ -90,6 +95,8 @@ describe('Tenant Onboarding System (Product Selection)', () => {
     // Default setup: mock service role key for bypassing email signup
     process.env.SUPABASE_SERVICE_ROLE_KEY = 'mock-service-role-key';
     process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://mock.supabase.co';
+    delete process.env.SUPABASE_SECRET_KEY;
+    delete process.env.SUPABASE_URL;
     mockCreateUser.mockResolvedValue({
       data: { user: { id: 'mock-auth-user-id' } },
       error: null,
@@ -109,6 +116,7 @@ describe('Tenant Onboarding System (Product Selection)', () => {
         },
       },
       from: mockFrom,
+      rpc: mockRpc,
     });
 
     tenantQueryMock = new MockQueryBuilder({ success: true });
@@ -129,8 +137,45 @@ describe('Tenant Onboarding System (Product Selection)', () => {
   });
 
   afterEach(() => {
+    expect(createSessionClient).not.toHaveBeenCalled();
+    expect(mockSessionRpc).not.toHaveBeenCalled();
+    expect(mockSessionFrom).not.toHaveBeenCalled();
+    expect(mockSignUp).not.toHaveBeenCalled();
     delete process.env.SUPABASE_SERVICE_ROLE_KEY;
+    delete process.env.SUPABASE_SECRET_KEY;
     delete process.env.NEXT_PUBLIC_SUPABASE_URL;
+    delete process.env.SUPABASE_URL;
+  });
+
+  it.each([
+    { missing: 'admin key', publicUrl: 'http://127.0.0.1:1', serverUrl: '', serviceKey: '' },
+    { missing: 'admin URL', publicUrl: '', serverUrl: '', serviceKey: 'mock-service-role-key' },
+    { missing: 'admin URL and key', publicUrl: '', serverUrl: '', serviceKey: '' },
+  ])('fails before provisioning when $missing is missing', async ({ publicUrl, serverUrl, serviceKey }) => {
+    process.env.NEXT_PUBLIC_SUPABASE_URL = publicUrl;
+    process.env.SUPABASE_URL = serverUrl;
+    process.env.SUPABASE_SERVICE_ROLE_KEY = serviceKey;
+
+    const result = await registerNewTenant({
+      spaName: 'BabyCare Setup Unavailable',
+      contactPhone: '0900000000',
+      address: 'Synthetic address',
+      email: 'tenant@bella.test',
+      adminName: 'Test Admin',
+      adminEmail: 'admin@bella.test',
+      productKey: 'bella_babycare',
+    });
+
+    expect(result.success).toBe(false);
+    expect(result.error).toContain('ONBOARDING_SETUP_UNAVAILABLE');
+    expect(mockCreateSupabaseJsClient).not.toHaveBeenCalled();
+    expect(mockCreateUser).not.toHaveBeenCalled();
+    expect(mockDeleteUser).not.toHaveBeenCalled();
+    expect(mockRpc).not.toHaveBeenCalled();
+    expect(mockFrom).not.toHaveBeenCalled();
+    expect(mockRecordAuditLog).not.toHaveBeenCalled();
+    expect(mockSafeRevalidatePath).not.toHaveBeenCalled();
+    expect(mockCheckHqAuth).not.toHaveBeenCalled();
   });
 
   it('should successfully onboard a BabyCare tenant with explicit product identity', async () => {

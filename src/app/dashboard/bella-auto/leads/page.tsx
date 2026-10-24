@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState, useTransition, useEffect, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useState, useEffect, useCallback } from 'react';
+import { motion } from 'framer-motion';
 import {
   Users,
   Search,
@@ -9,26 +9,15 @@ import {
   Zap,
   Phone,
   TrendingUp,
-  X,
   CheckCircle2,
   AlertCircle,
-  Target,
-  ChevronRight,
   Sparkles,
-  UserCheck,
-  Filter,
   Car,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { createClient } from '@/lib/supabase-client';
 import type { Database } from '@/types/database.types';
-
-// Mock Sales Agents
-const MOCK_AGENTS = [
-  { id: 'u1', name: 'Trần Minh Quân', initials: 'Q', conversionRate: 18, totalLeads: 24, gradient: 'from-indigo-500 to-blue-600' },
-  { id: 'u2', name: 'Lê Thùy Chi',    initials: 'C', conversionRate: 22, totalLeads: 18, gradient: 'from-violet-500 to-purple-600' },
-  { id: 'u3', name: 'Nguyễn Tiến Dũng', initials: 'D', conversionRate: 15, totalLeads: 30, gradient: 'from-pink-500 to-rose-600' },
-];
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 const SOURCE_CONFIG: Record<string, { bg: string; dot: string }> = {
   'Facebook Ads':    { bg: 'bg-blue-50 text-blue-700 dark:bg-blue-950/30 dark:text-blue-400 border-blue-100 dark:border-blue-900/30', dot: 'bg-blue-500' },
@@ -110,15 +99,16 @@ function mapLeadRow(row: LeadQueryRow): Lead {
 export default function LeadCenterPage() {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [isPending, startTransition] = useTransition();
 
   const fetchLeads = useCallback(async () => {
     try {
       setIsLoading(true);
+      setLoadError(null);
       const supabase = createClient();
-      if (!supabase) { setIsLoading(false); return; }
+      if (!supabase) throw new Error('Client unavailable');
       const { data, error } = await supabase
         .from('auto_leads')
         .select(`
@@ -134,33 +124,18 @@ export default function LeadCenterPage() {
           users(full_name)
         `)
         .order('created_at', { ascending: false });
-      if (error) { toast.error('Không thể tải danh sách lead'); setLeads([]); }
-      else { setLeads((data || []).map(mapLeadRow)); }
-    } catch { toast.error('Không thể tải danh sách lead'); setLeads([]); }
+      if (error) throw error;
+      setLeads((data || []).map(mapLeadRow));
+    } catch {
+      setLoadError('Không thể tải danh sách lead. Vui lòng tải lại trang để thử lại.');
+      toast.error('Không thể tải danh sách lead');
+    }
     finally { setIsLoading(false); }
   }, []);
 
   useEffect(() => {
     fetchLeads();
   }, [fetchLeads]);
-
-  const handleRoundRobin = (leadId: string) => {
-    startTransition(async () => {
-      await new Promise(r => setTimeout(r, 800));
-      const agent = MOCK_AGENTS[Math.floor(Math.random() * MOCK_AGENTS.length)];
-      setLeads(prev => prev.map(l => l.id === leadId ? { ...l, agentName: agent.name, status: 'contacted' } : l));
-      toast.success(`Đã phân bổ Lead thành công cho ${agent.name} (Round Robin)`);
-    });
-  };
-
-  const handleSmartAllocation = (leadId: string) => {
-    startTransition(async () => {
-      await new Promise(r => setTimeout(r, 800));
-      const agent = MOCK_AGENTS[1]; // highest conv rate
-      setLeads(prev => prev.map(l => l.id === leadId ? { ...l, agentName: agent.name, status: 'contacted' } : l));
-      toast.success(`Phân bổ thông minh: ${agent.name} nhận Lead — Conversion Rate ${agent.conversionRate}%`);
-    });
-  };
 
   const filtered = leads.filter(l => {
     const matchSearch = (l.name ?? '').toLowerCase().includes(search.toLowerCase()) || (l.phone ?? '').includes(search) || (l.variantName ?? '').toLowerCase().includes(search.toLowerCase());
@@ -178,8 +153,8 @@ export default function LeadCenterPage() {
             <Users className="h-6 w-6" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-slate-900 dark:text-white tracking-wide">Lead Center & Phân Bổ TVBH</h1>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Sales Lead Center — Quản lý dòng lead và tự động phân bổ cơ hội bán hàng cho TVBH tốt nhất</p>
+            <h1 className="text-xl font-bold text-slate-900 dark:text-white tracking-wide">Lead Center &amp; Phân Bổ TVBH</h1>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Sales Lead Center — Theo dõi lead và TVBH phụ trách</p>
           </div>
         </div>
       </div>
@@ -195,6 +170,7 @@ export default function LeadCenterPage() {
               <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors w-4 h-4" />
               <input
                 type="text"
+                aria-label="Tìm lead"
                 placeholder="Tìm tên, SĐT, dòng xe..."
                 value={search}
                 onChange={e => setSearch(e.target.value)}
@@ -202,6 +178,7 @@ export default function LeadCenterPage() {
               />
             </div>
             <select
+              aria-label="Lọc trạng thái lead"
               value={statusFilter}
               onChange={e => setStatusFilter(e.target.value)}
               className="px-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/80 rounded-xl text-xs font-bold outline-none text-slate-700 dark:text-slate-300 shadow-sm cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 transition-all"
@@ -237,6 +214,16 @@ export default function LeadCenterPage() {
                           <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
                           <p className="text-xs text-slate-400 font-semibold">Đang tải leads...</p>
                         </div>
+                      </td>
+                    </tr>
+                  ) : loadError ? (
+                    <tr>
+                      <td colSpan={6} className="p-5">
+                        <Alert variant="destructive">
+                          <AlertCircle className="h-4 w-4" />
+                          <AlertTitle>Không tải được dữ liệu lead</AlertTitle>
+                          <AlertDescription>{loadError}</AlertDescription>
+                        </Alert>
                       </td>
                     </tr>
                   ) : filtered.length > 0 ? filtered.map((l, idx) => {
@@ -293,16 +280,18 @@ export default function LeadCenterPage() {
                           {l.agentName === 'Chưa phân bổ' ? (
                             <div className="flex gap-1.5">
                               <button
-                                onClick={() => handleRoundRobin(l.id)}
-                                disabled={isPending}
+                                disabled
+                                aria-label="Phân bổ xoay vòng"
+                                aria-describedby="lead-allocation-unavailable"
                                 title="Phân bổ xoay vòng"
                                 className="p-2 bg-slate-50 hover:bg-slate-100 dark:bg-slate-900 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 rounded-xl transition-all border border-slate-100 dark:border-slate-800 shadow-sm hover:shadow-none hover:-translate-y-0.5"
                               >
                                 <RefreshCw className="w-3.5 h-3.5" />
                               </button>
                               <button
-                                onClick={() => handleSmartAllocation(l.id)}
-                                disabled={isPending}
+                                disabled
+                                aria-label="Phân bổ thông minh AI"
+                                aria-describedby="lead-allocation-unavailable"
                                 title="Phân bổ thông minh AI"
                                 className="p-2 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/30 dark:hover:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 rounded-xl transition-all border border-indigo-100/30 dark:border-indigo-900/20 shadow-sm hover:shadow-none hover:-translate-y-0.5"
                               >
@@ -341,35 +330,10 @@ export default function LeadCenterPage() {
               <h3 className="text-sm font-bold text-slate-900 dark:text-white">Bảng Hiệu Suất TVBH</h3>
             </div>
 
-            <div className="space-y-4">
-              {MOCK_AGENTS.map((agent, idx) => (
-                <div key={agent.id} className="flex items-center gap-3 p-3 rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-900/40 transition-all border border-transparent hover:border-slate-100 dark:hover:border-slate-900">
-                  <div className="relative shrink-0">
-                    <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${agent.gradient} text-white text-xs font-extrabold flex items-center justify-center shadow-sm`}>
-                      {agent.initials}
-                    </div>
-                    {idx === 0 && (
-                      <span className="absolute -top-1 -right-1 w-4 h-4 bg-amber-400 rounded-full text-[8px] flex items-center justify-center text-white font-extrabold shadow-sm">★</span>
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between mb-1">
-                      <p className="text-xs font-extrabold text-slate-800 dark:text-slate-200 truncate">{agent.name}</p>
-                      <span className="text-[10px] font-extrabold text-slate-500 dark:text-slate-400 shrink-0 ml-2">{agent.totalLeads} leads</span>
-                    </div>
-                    <div className="w-full h-1.5 bg-slate-100 dark:bg-slate-900 rounded-full overflow-hidden">
-                      <motion.div
-                        initial={{ width: 0 }}
-                        animate={{ width: `${agent.conversionRate * 4}%` }}
-                        transition={{ duration: 0.8, delay: idx * 0.1 }}
-                        className={`h-full rounded-full bg-gradient-to-r ${agent.gradient}`}
-                      />
-                    </div>
-                    <p className="text-[10px] text-slate-400 font-bold mt-1">Conversion: {agent.conversionRate}%</p>
-                  </div>
-                </div>
-              ))}
-            </div>
+            <Alert>
+              <AlertTitle>Chưa có dữ liệu hiệu suất TVBH</AlertTitle>
+              <AlertDescription>Bảng hiệu suất chưa kết nối dữ liệu vận hành.</AlertDescription>
+            </Alert>
           </div>
 
           {/* Smart Allocation info card */}
@@ -386,11 +350,10 @@ export default function LeadCenterPage() {
                 <h3 className="font-extrabold text-sm text-white tracking-wide">Smart Allocation AI</h3>
               </div>
               <p className="text-xs leading-relaxed font-medium text-slate-300">
-                Hệ thống tự động chấm điểm hiệu suất chốt đơn hàng tháng của từng TVBH. Lead mới ưu tiên cho agent có tỷ lệ chốt cao nhất với dòng xe tương ứng.
+                Chức năng phân bổ xoay vòng và phân bổ thông minh chưa sẵn sàng. Lead và TVBH hiện tại vẫn được giữ nguyên.
               </p>
               <div className="flex items-center gap-2 pt-1">
-                <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                <span className="text-[10px] font-extrabold text-emerald-400 uppercase tracking-widest">Engine đang hoạt động</span>
+                <span id="lead-allocation-unavailable" className="text-xs font-bold text-slate-300">Chưa thể phân bổ lead từ màn hình này.</span>
               </div>
             </div>
           </div>
@@ -398,12 +361,12 @@ export default function LeadCenterPage() {
           {/* Quick stats */}
           <div className="grid grid-cols-2 gap-3">
             <div className="bg-white dark:bg-slate-950 border border-slate-150 dark:border-slate-900 rounded-2xl p-4 shadow-sm text-center">
-              <div className="text-2xl font-black text-indigo-600 dark:text-indigo-400">{leads.length}</div>
+              <div className="text-2xl font-black text-indigo-600 dark:text-indigo-400">{isLoading || loadError ? '—' : leads.length}</div>
               <div className="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider mt-1">Tổng Lead</div>
             </div>
             <div className="bg-white dark:bg-slate-950 border border-slate-150 dark:border-slate-900 rounded-2xl p-4 shadow-sm text-center">
               <div className="text-2xl font-black text-emerald-600 dark:text-emerald-400">
-                {leads.filter(l => l.agentName === 'Chưa phân bổ').length}
+                {isLoading || loadError ? '—' : leads.filter(l => l.agentName === 'Chưa phân bổ').length}
               </div>
               <div className="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider mt-1">Chờ Phân Bổ</div>
             </div>

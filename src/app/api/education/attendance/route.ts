@@ -1,3 +1,7 @@
+import { PreschoolChainError } from '@/products/bella-education/services/preschool-chain.service';
+import { PreschoolAttendanceAccessService } from '@/products/bella-education/services/preschool-attendance-access.service';
+import { PreschoolAttendanceCommandService } from '@/products/bella-education/services/preschool-attendance-command.service';
+import { EducationAttendanceCommandError } from '@/platform/education/contracts/attendance-command.contract';
 import { NextResponse } from 'next/server';
 import { createClient as createSupabaseClient, type SupabaseClient } from '@supabase/supabase-js';
 import { AttendanceContractImpl } from '@/platform/education/contracts/attendance.contract.impl';
@@ -46,14 +50,7 @@ function resolveRollCallTime(schoolDay: string, explicitRollCallTime?: unknown):
   return new Date(`${schoolDay}T05:00:00.000Z`).toISOString();
 }
 
-function createDevMockClient(mockEmail: string): EducationAttendanceClient | null {
-  if (!mockEmail) return null;
-  return createAdminOperationClient();
-}
-
 function createAdminOperationClient(): EducationAttendanceClient | null {
-  if (process.env.NODE_ENV === 'test') return null;
-
   const adminUrl = getSupabaseAdminUrl();
   const adminKey = getSupabaseAdminKey();
   if (!adminUrl || !adminKey) return null;
@@ -87,49 +84,10 @@ function assertCanUseAttendanceRoster(context: RequestContext): void {
   attendanceGuard.assertCanModifyAttendanceRoster(securityContext);
 }
 
-async function resolveRequestContext(request: Request): Promise<RequestContext | null> {
-  const mockEmail = process.env.NODE_ENV === 'development'
-    ? request.headers.get('x-mock-user-email')?.trim()
-    : '';
-
-  if (mockEmail) {
-    const supabase = createClient();
-    const { data: user } = await supabase
-      .from('users')
-      .select('id, tenant_id, role')
-      .eq('email', mockEmail)
-      .maybeSingle();
-
-    if (user?.id && user.tenant_id && user.role) {
-      return {
-        tenantId: user.tenant_id,
-        userId: user.id,
-        role: user.role,
-      };
-    }
-  }
-
-  const currentUser = await getCurrentUser();
-  if (!currentUser?.id || !currentUser.tenant_id || !currentUser.role) {
-    if (process.env.NODE_ENV === 'development') {
-      return {
-        tenantId: 'ed100000-0000-0000-0000-000000000001',
-        userId: 'ed000000-0000-0000-0000-000000000001',
-        role: 'admin',
-      };
-    }
-    return null;
-  }
-
-  const effectiveTenantId = (process.env.NODE_ENV === 'development' && currentUser.tenant_id === '00000000-0000-0000-0000-000000000001')
-    ? 'ed100000-0000-0000-0000-000000000001'
-    : currentUser.tenant_id;
-
-  return {
-    tenantId: effectiveTenantId,
-    userId: currentUser.id,
-    role: currentUser.role,
-  };
+async function resolveRequestContext(): Promise<RequestContext | null> {
+  const actor = await getCurrentUser();
+  if (!actor?.id || !actor.tenant_id || !actor.role) return null;
+  return { tenantId:actor.tenant_id,userId:actor.id,role:actor.role };
 }
 
 function resolveErrorStatus(message: string): number {
@@ -143,7 +101,6 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const courseId = searchParams.get('courseId');
     const schoolDay = searchParams.get('date');
-    const mockEmail = request.headers.get('x-mock-user-email')?.trim() ?? '';
 
     if (!courseId) {
       return NextResponse.json({ success: false, error: 'courseId is required' }, { status: 400 });
@@ -152,15 +109,18 @@ export async function GET(request: Request) {
       return NextResponse.json({ success: false, error: 'date must be YYYY-MM-DD' }, { status: 400 });
     }
 
-    const context = await resolveRequestContext(request);
+    const context = await resolveRequestContext();
     if (!context) {
       return NextResponse.json({ success: false, error: 'Authenticated tenant is required' }, { status: 401 });
     }
     assertCanUseAttendanceRoster(context);
 
-    const supabase = createDevMockClient(mockEmail) ?? createAdminOperationClient() ?? createClient();
+    const supabase = createAdminOperationClient() ?? await createClient();
     const service = new AttendanceProductService(new AttendanceContractImpl(supabase));
+    const branchScope = new PreschoolAttendanceAccessService(supabase);
+    await branchScope.assertCourseAccess(context.tenantId,context.userId,courseId);
     const roster = await service.getCourseDailyAttendance({ tenantId: context.tenantId, courseId, schoolDay });
+    for (const row of roster) await branchScope.assertEnrollmentAccess(context.tenantId,context.userId,row.enrollmentId,row.studentPartyId,courseId);
     const guardianService = new PreschoolGuardianAuthorizationService(supabase);
     const guardiansByStudent = await guardianService.getAuthorizedGuardians(
       context.tenantId,
@@ -180,15 +140,14 @@ export async function GET(request: Request) {
     return NextResponse.json({ success: true, roster: rosterWithGuardians });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
-    return NextResponse.json({ success: false, error: message }, { status: resolveErrorStatus(message) });
+    return NextResponse.json({ success: false, error: message }, { status: error instanceof PreschoolChainError || error instanceof EducationAttendanceCommandError ? error.status : resolveErrorStatus(message) });
   }
 }
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const mockEmail = request.headers.get('x-mock-user-email')?.trim() ?? '';
-    const context = await resolveRequestContext(request);
+    const context = await resolveRequestContext();
     if (!context) {
       return NextResponse.json({ success: false, error: 'Authenticated tenant is required' }, { status: 401 });
     }
@@ -197,6 +156,9 @@ export async function POST(request: Request) {
     if (typeof body.enrollmentId !== 'string' || !body.enrollmentId.trim()) {
       return NextResponse.json({ success: false, error: 'enrollmentId is required' }, { status: 400 });
     }
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(body.enrollmentId)) {
+      return NextResponse.json({ success: false, error: 'enrollmentId must be a UUID' }, { status: 400 });
+    }
     if (!isAttendanceStatus(body.status)) {
       return NextResponse.json({ success: false, error: 'status must be present, absent, or excused' }, { status: 400 });
     }
@@ -204,18 +166,21 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: 'date must be YYYY-MM-DD' }, { status: 400 });
     }
 
-    const supabase = createDevMockClient(mockEmail) ?? createAdminOperationClient() ?? createClient();
-    const service = new AttendanceProductService(new AttendanceContractImpl(supabase));
+    const supabase = createAdminOperationClient() ?? await createClient();
+    const service = new PreschoolAttendanceCommandService(supabase);
     const attendance = await service.setDailyAttendance({
       tenantId: context.tenantId,
-      enrollmentId: body.enrollmentId,
+      actorId: context.userId,
+      actorRole: context.role,
+      enrollmentId: body.enrollmentId.toLowerCase(),
       status: body.status,
+      schoolDay: body.date,
       rollCallTime: resolveRollCallTime(body.date, body.rollCallTime),
     });
 
     return NextResponse.json({ success: true, attendance });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
-    return NextResponse.json({ success: false, error: message }, { status: resolveErrorStatus(message) });
+    return NextResponse.json({ success: false, error: message }, { status: error instanceof PreschoolChainError || error instanceof EducationAttendanceCommandError ? error.status : resolveErrorStatus(message) });
   }
 }
