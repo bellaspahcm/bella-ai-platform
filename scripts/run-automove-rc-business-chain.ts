@@ -36,6 +36,18 @@ export function assertRcReport(report: unknown) {
   return parsed.stats;
 }
 
+function classifyHealthError(body: Record<string, unknown>) {
+  const errors = Array.isArray(body.errors) ? body.errors : [];
+  const message = errors.find((error): error is string => typeof error === 'string') ?? (typeof body.error === 'string' ? body.error : '');
+  if (/42501|permission denied|not authorized|row.level security/i.test(message)) return 'permission';
+  if (/invalid api key|invalid jwt|unauthorized|\b401\b|\b403\b/i.test(message)) return 'auth';
+  if (/42P01|does not exist|schema cache/i.test(message)) return 'schema';
+  if (/ETIMEDOUT|timed? out|statement timeout|57014/i.test(message)) return 'timeout';
+  if (/ENOTFOUND|ECONNREFUSED|EHOSTUNREACH|fetch failed|network/i.test(message)) return 'connectivity';
+  if (/missing supabase credentials|invalid.*url|configuration/i.test(message)) return 'configuration';
+  return message ? 'other' : 'missing';
+}
+
 export function summarizeRcHealth(statusCode: number, body: unknown) {
   const value = typeof body === 'object' && body !== null ? body as Record<string, unknown> : {};
   const checks = typeof value.checks === 'object' && value.checks !== null ? value.checks as Record<string, unknown> : {};
@@ -47,6 +59,7 @@ export function summarizeRcHealth(statusCode: number, body: unknown) {
     appStatus: appStatus.success ? appStatus.data : 'unexpected',
     environment: environment.success ? environment.data : 'unexpected',
     database: database.success ? database.data : 'unexpected',
+    healthError: classifyHealthError(value),
   } as const;
 }
 
