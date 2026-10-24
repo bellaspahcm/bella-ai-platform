@@ -1,7 +1,7 @@
 import { PreschoolChainService, PreschoolChainError } from '@/products/bella-education/services/preschool-chain.service';
 import { NextResponse } from 'next/server';
 import { createClient as createSupabaseClient, type SupabaseClient } from '@supabase/supabase-js';
-import { PreschoolSafePickupHandoverService } from '@/products/bella-education/services/preschool-safe-pickup-handover.service';
+import { PreschoolHandoverError, PreschoolSafePickupHandoverService } from '@/products/bella-education/services/preschool-safe-pickup-handover.service';
 import {
   EducationSecurityGuardService,
   type EducationRole,
@@ -96,7 +96,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: true, handover }, { status: 201 });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
-    const status = error instanceof PreschoolChainError ? error.status : message.endsWith(' is required') ? 400 : message.startsWith('AUTH_ROLE_PERMISSION_ERROR') ? 403 : 500;
+    const status = error instanceof PreschoolChainError || error instanceof PreschoolHandoverError ? error.status : message.endsWith(' is required') ? 400 : message.startsWith('AUTH_ROLE_PERMISSION_ERROR') ? 403 : 500;
     return NextResponse.json({ success: false, error: message }, { status });
   }
 }

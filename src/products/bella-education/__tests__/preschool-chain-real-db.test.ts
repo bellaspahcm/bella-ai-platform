@@ -9,6 +9,7 @@ import {
   requireSupabaseAdminEnv,
 } from '@/lib/supabase-admin-env';
 import { PreschoolChainService } from '@/products/bella-education/services/preschool-chain.service';
+import { PreschoolSafePickupHandoverService } from '@/products/bella-education/services/preschool-safe-pickup-handover.service';
 import type { Database } from '@/types/database.types';
 import { requireSupabasePublicEnv } from '@/lib/supabase-public-env';
 
@@ -664,5 +665,124 @@ describe('Preschool Chain real DB E2E proof', () => {
       expect((await pg.query('SELECT to_jsonb(i) AS row FROM public.edu_fin_invoices i WHERE tenant_id=$1 ORDER BY id', [ids.tenant])).rows).toEqual(before);
     } finally { await pg.query('ROLLBACK'); }
     expect((await pg.query('SELECT id FROM public.edu_fin_billing_periods WHERE id=$1', [periodId])).rows).toEqual([]);
+  });
+
+  describe('handover atomic command CI', () => {
+    async function seedHandoverFixture() {
+      const fixture = {
+        tenantId: ids.tenant,
+        operatorUserId: actorUserId,
+        studentPartyId: randomUUID(),
+        guardianPartyId: randomUUID(),
+        pickupAuthorizationId: randomUUID(),
+        courseId: randomUUID(),
+        enrollmentId: randomUUID(),
+        requestId: randomUUID(),
+      };
+      await pg.query('BEGIN');
+      try {
+        await pg.query(`INSERT INTO public.party_parties(id,tenant_id,party_type,display_name)
+          VALUES($1,$3,'person','Controlled CI child'),($2,$3,'person','Controlled CI guardian')`,
+        [fixture.studentPartyId, fixture.guardianPartyId, ids.tenant]);
+        await pg.query(`INSERT INTO public.edu_courses(id,tenant_id,course_code,title,status,max_students,current_enrollment,prerequisite_course_codes)
+          VALUES($1,$2,$3,'Controlled CI handover class','active',25,0,'{}')`,
+        [fixture.courseId, ids.tenant, `CI-${fixture.courseId}`]);
+        await pg.query(`INSERT INTO public.edu_enrollments(id,tenant_id,student_party_id,course_id,status,request_id)
+          VALUES($1,$2,$3,$4,'active',$5)`,
+        [fixture.enrollmentId, ids.tenant, fixture.studentPartyId, fixture.courseId, fixture.requestId]);
+        await pg.query(`INSERT INTO public.preschool_chain_course_branch_assignments(tenant_id,course_id,branch_id,assigned_by)
+          VALUES($1,$2,$3,$4)`, [ids.tenant, fixture.courseId, ids.branchA, actorUserId]);
+        await pg.query(`INSERT INTO public.preschool_chain_enrollment_branch_assignments(tenant_id,enrollment_id,course_id,branch_id,request_id,assigned_by)
+          VALUES($1,$2,$3,$4,$5,$6)`,
+        [ids.tenant, fixture.enrollmentId, fixture.courseId, ids.branchA, fixture.requestId, actorUserId]);
+        await pg.query(`INSERT INTO public.edu_preschool_pickup_authorizations(id,tenant_id,student_party_id,guardian_party_id,status)
+          VALUES($1,$2,$3,$4,'authorized')`,
+        [fixture.pickupAuthorizationId, ids.tenant, fixture.studentPartyId, fixture.guardianPartyId]);
+        await pg.query('COMMIT');
+        return fixture;
+      } catch (error) {
+        await pg.query('ROLLBACK');
+        throw error;
+      }
+    }
+
+    async function readHandoverEvents(studentPartyId: string) {
+      return (await pg.query<{ id: string; handed_over_by: string }>(
+        `SELECT id,handed_over_by FROM public.edu_preschool_pickup_handover_events
+         WHERE tenant_id=$1 AND student_party_id=$2 ORDER BY id`, [ids.tenant, studentPartyId],
+      )).rows;
+    }
+
+    it('serializes concurrent calls and recovers the committed canonical handover without another event', async () => {
+      const fixture = await seedHandoverFixture();
+      const service = new PreschoolSafePickupHandoverService(supabase);
+      const [first, second] = await Promise.all([
+        service.recordHandover(fixture), service.recordHandover(fixture),
+      ]);
+      expect(first.id).toBe(second.id);
+      const recovered = await new PreschoolSafePickupHandoverService(supabase).recordHandover(fixture);
+      expect(recovered.id).toBe(first.id);
+      expect(recovered.handedOverBy).toBe(actorUserId);
+      expect(await readHandoverEvents(fixture.studentPartyId)).toEqual([
+        { id: first.id, handed_over_by: actorUserId },
+      ]);
+    });
+
+    it('denies pickup revocation committed during an actual lock wait and persists no event', async () => {
+      const fixture = await seedHandoverFixture();
+      const blocker = new Client({ connectionString: dbUrl, ssl: sslConfig() });
+      let attempt: Promise<{ ok: boolean; error?: unknown }> | undefined;
+      try {
+        await blocker.connect();
+        await blocker.query('BEGIN');
+        await blocker.query("SET LOCAL statement_timeout = '15s'");
+        const blockerPid = (await blocker.query<{ pid: number }>('SELECT pg_backend_pid() AS pid')).rows[0].pid;
+        await blocker.query('SELECT id FROM public.edu_preschool_pickup_authorizations WHERE id=$1 AND tenant_id=$2 FOR UPDATE',
+          [fixture.pickupAuthorizationId, ids.tenant]);
+        attempt = new PreschoolSafePickupHandoverService(supabase).recordHandover(fixture)
+          .then(() => ({ ok: true }), (error: unknown) => ({ ok: false, error }));
+        let waiting = false;
+        for (let i = 0; i < 100; i++) {
+          const activity = await pg.query<{ blocked: boolean }>(
+            'SELECT EXISTS(SELECT 1 FROM pg_stat_activity WHERE $1::int=ANY(pg_blocking_pids(pid))) AS blocked', [blockerPid],
+          );
+          if (activity.rows[0]?.blocked) { waiting = true; break; }
+          await new Promise(resolve => setTimeout(resolve, 50));
+        }
+        expect(waiting).toBe(true);
+        await blocker.query("UPDATE public.edu_preschool_pickup_authorizations SET status='revoked' WHERE id=$1 AND tenant_id=$2",
+          [fixture.pickupAuthorizationId, ids.tenant]);
+        await blocker.query('COMMIT');
+        expect(await attempt).toEqual({ ok: false, error: expect.objectContaining({ status: 403 }) });
+        expect(await readHandoverEvents(fixture.studentPartyId)).toEqual([]);
+      } finally {
+        try {
+          await blocker.query('ROLLBACK');
+          if (attempt) await attempt;
+        } finally { await blocker.end(); }
+      }
+    });
+
+    it('denies a foreign tenant without persisting a handover', async () => {
+      const fixture = await seedHandoverFixture();
+      await expect(new PreschoolSafePickupHandoverService(supabase).recordHandover({
+        ...fixture, tenantId: ids.otherTenant,
+      })).rejects.toMatchObject({ status: 403 });
+      expect(await readHandoverEvents(fixture.studentPartyId)).toEqual([]);
+    });
+
+    it.each(['anon', 'authenticated'] as const)('denies direct %s RPC execution without side effects', async role => {
+      const fixture = await seedHandoverFixture();
+      await pg.query('BEGIN');
+      try {
+        // Role is from the fixed tuple above, never request input.
+        await pg.query(role === 'anon' ? 'SET LOCAL ROLE anon' : 'SET LOCAL ROLE authenticated');
+        await pg.query("SELECT set_config('request.jwt.claims',$1,true)", [JSON.stringify({ role, sub: actorUserId })]);
+        await expect(pg.query('SELECT * FROM public.preschool_record_handover($1,$2,$3,$4,$5)', [
+          ids.tenant, actorUserId, fixture.studentPartyId, fixture.guardianPartyId, fixture.pickupAuthorizationId,
+        ])).rejects.toMatchObject({ code: '42501' });
+      } finally { await pg.query('ROLLBACK'); }
+      expect(await readHandoverEvents(fixture.studentPartyId)).toEqual([]);
+    });
   });
 });

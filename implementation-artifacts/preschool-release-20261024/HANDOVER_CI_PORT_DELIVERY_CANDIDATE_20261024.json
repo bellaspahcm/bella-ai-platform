@@ -1,0 +1,144 @@
+{
+  "at": "2026-10-24T00:31:11.368218+00:00",
+  "branch": "codex/preschool-chain-release-20261024",
+  "base": "291b1451e8618be0b08d490948145c9ce992fe63",
+  "observedMain": "9f7381638115b72a55a5ecf5b52b2fd12dbe7df7",
+  "source": [
+    {
+      "sha256": "b773cdb549a38e31a2c6092927953e71da961e2abfe3fcd5c08d79d314b02c23",
+      "file": "src/products/bella-education/services/preschool-safe-pickup-handover.service.ts"
+    },
+    {
+      "sha256": "221af96abc8a7c45609898da70f0cb30020adc45e4c0961ea116f17adaab9d25",
+      "file": "src/products/bella-education/__tests__/preschool-safe-pickup-handover.service.test.ts"
+    },
+    {
+      "sha256": "5004efa49ada88f826fd67658061c49f6ec2883d7eeb2da69893fd4b21015d89",
+      "file": "src/app/api/education/attendance/handover/route.ts"
+    },
+    {
+      "sha256": "0b4538a3274a5032b4a2e6058b77475c1db438b955451cfd8d225f88634f3e8f",
+      "file": "src/app/api/education/attendance/handover/__tests__/route.test.ts"
+    },
+    {
+      "sha256": "06e9058ee298220ef423b60d6a77fc6e9035d59d21edc7484de17d189cb5c830",
+      "file": "supabase/migrations/20261024010000_preschool_handover_atomic_command.sql"
+    },
+    {
+      "file": "src/products/bella-education/__tests__/preschool-chain-real-db.test.ts",
+      "sha256": "fad2eee72b4072d919b967b98f3b0074e71d3a763eb588269f9166b07cf0c118"
+    }
+  ],
+  "localCiPort": {
+    "suite": "src/products/bella-education/__tests__/preschool-chain-real-db.test.ts",
+    "passed": 5,
+    "failed": 0,
+    "intentionallySkippedPriorCases": 6,
+    "nativeExit": 0,
+    "mode": "Local execution of the existing CI-selected suite; remote CI NOT_RUN"
+  },
+  "typecheck": {
+    "nativeExit": 0,
+    "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "lint": {
+    "nativeExit": 0,
+    "logSha256": "45ce25c9424d56563b1b454cab0b490d5aa4c0c3021229476c6958ed0a1000d8",
+    "disclosure": "Existing ESLintIgnoreWarning retained"
+  },
+  "diffCheck": {
+    "nativeExit": 0
+  },
+  "preservedPriorEvidence": {
+    "sourcePaths": 5,
+    "evidencePaths": 40,
+    "mismatches": []
+  },
+  "prospectiveDeliveryFiles": [
+    "src/products/bella-education/services/preschool-safe-pickup-handover.service.ts",
+    "src/products/bella-education/__tests__/preschool-safe-pickup-handover.service.test.ts",
+    "src/app/api/education/attendance/handover/route.ts",
+    "src/app/api/education/attendance/handover/__tests__/route.test.ts",
+    "supabase/migrations/20261024010000_preschool_handover_atomic_command.sql",
+    "src/products/bella-education/__tests__/preschool-chain-real-db.test.ts",
+    "implementation-artifacts/preschool-release-20261024/HANDOVER_APPLY_1792799094296.json",
+    "implementation-artifacts/preschool-release-20261024/HANDOVER_REAL_DB_1792799373386.json",
+    "implementation-artifacts/preschool-release-20261024/HANDOVER_UNIT_RESULTS.json",
+    "implementation-artifacts/preschool-release-20261024/REVIEW_RESULT.json",
+    "implementation-artifacts/preschool-release-20261024/HANDOVER_CI_PORT_1792801685838.receipt.json",
+    "implementation-artifacts/preschool-release-20261024/HANDOVER_CI_PORT_1792801685838.jest.json",
+    "implementation-artifacts/preschool-release-20261024/HANDOVER_CI_PORT_1792801685838.log",
+    "implementation-artifacts/preschool-release-20261024/CI_PORT_TYPECHECK_20261024.log",
+    "implementation-artifacts/preschool-release-20261024/CI_PORT_LINT_20261024.log",
+    "implementation-artifacts/preschool-release-20261024/http-browser-1792799480350/HTTP_BROWSER_RESULTS.json"
+  ],
+  "evidence": [
+    {
+      "file": "implementation-artifacts/preschool-release-20261024/HANDOVER_APPLY_1792799094296.json",
+      "sha256": "4e66336695fcadcda3f09be8b1b6b42ac39c2197d22ccf7d9938b046198a2105"
+    },
+    {
+      "file": "implementation-artifacts/preschool-release-20261024/HANDOVER_REAL_DB_1792799373386.json",
+      "sha256": "675387167b0f00360f2ab45e41aa2adf0615f73c4ae3422ed9f144a669a5fb0d"
+    },
+    {
+      "file": "implementation-artifacts/preschool-release-20261024/HANDOVER_UNIT_RESULTS.json",
+      "sha256": "350766ac625c77143888c017d70b743fa29ddfe1dc4c58899f640247fcfcfaf0"
+    },
+    {
+      "file": "implementation-artifacts/preschool-release-20261024/REVIEW_RESULT.json",
+      "sha256": "9215c4fb99c04e9d98603d6e412e32ef8dd915f53734343f215a2472d6fec082"
+    },
+    {
+      "file": "implementation-artifacts/preschool-release-20261024/HANDOVER_CI_PORT_1792801685838.receipt.json",
+      "sha256": "7d7518874a7bf96cce518edcafd20013fa0f81538e6372ccaa423099ff132f57"
+    },
+    {
+      "file": "implementation-artifacts/preschool-release-20261024/HANDOVER_CI_PORT_1792801685838.jest.json",
+      "sha256": "aa59e4df2167a5d8e8ccdc594dec1ed5c9e695c240c2181143f7ac38ceac8022"
+    },
+    {
+      "file": "implementation-artifacts/preschool-release-20261024/HANDOVER_CI_PORT_1792801685838.log",
+      "sha256": "d9aa2ae8a0237bde52dcce55f6467d8a280226267597f55e44784dcf4515ab43"
+    },
+    {
+      "file": "implementation-artifacts/preschool-release-20261024/CI_PORT_TYPECHECK_20261024.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "file": "implementation-artifacts/preschool-release-20261024/CI_PORT_LINT_20261024.log",
+      "sha256": "45ce25c9424d56563b1b454cab0b490d5aa4c0c3021229476c6958ed0a1000d8"
+    },
+    {
+      "file": "implementation-artifacts/preschool-release-20261024/http-browser-1792799480350/HTTP_BROWSER_RESULTS.json",
+      "sha256": "6b7b4343f4667c4aa7f820d84acd683da74f8a3a717f439461a3660c0264ee97"
+    }
+  ],
+  "selectedContentScan": {
+    "patternsChecked": [
+      "credentialedDbUrl",
+      "jwt",
+      "supabaseSecret",
+      "githubToken",
+      "privateKey"
+    ],
+    "findings": [],
+    "limitation": "Bounded credential-pattern scan of the explicitly selected source/evidence, not an exhaustive security audit"
+  },
+  "delivery": "PENDING_NEW_CANDIDATE_APPROVAL_NO_STAGING_COMMIT_PUSH_PR_MERGE",
+  "attendance": {
+    "status": "PENDING_ACR_ADR_SCOPED_UNLOCK",
+    "sqlProposalSha256": "5aa104beb2215780ddedd5e2f0b72dc5ba389602f9546d8ce98dc28e8aee7c23",
+    "adapterProposalSha256": "efdd7dcee3258b5aea9aa01bf8ceb5ddbbba1e6d020b4c79344a7ca051c0182d",
+    "staticProposalChecks": {
+      "method": "Bounded static shape/source review only; no SQL execution or independent security PASS",
+      "defaultTransaction": "ROLLBACK",
+      "functions": 2,
+      "tableOrPolicyDdl": false,
+      "signaturePreservation": "Current two E2E signatures",
+      "remaining": "Owner approval, owning independent review, rollback rehearsal, full failure/permission readback and applicable regression required"
+    }
+  },
+  "production": "HOLD_CREDENTIAL_ROTATION_NOT_CONFIRMED",
+  "fullChainGoLive": "NOT_PROVEN"
+}

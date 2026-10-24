@@ -17,6 +17,7 @@ jest.mock('@/services/user-actions', () => ({
 }));
 
 jest.mock('@/products/bella-education/services/preschool-safe-pickup-handover.service', () => ({
+  ...jest.requireActual<typeof import('@/products/bella-education/services/preschool-safe-pickup-handover.service')>('@/products/bella-education/services/preschool-safe-pickup-handover.service'),
   PreschoolSafePickupHandoverService: jest.fn().mockImplementation(() => ({
     recordHandover: mockRecordHandover,
   })),
@@ -87,5 +88,17 @@ describe('/api/education/attendance/handover route authorization', () => {
       pickupAuthorizationId: 'authorization-a',
       operatorUserId,
     });
+  });
+
+  it.each([
+    ['ACTIVE_PICKUP_AUTHORIZATION_NOT_FOUND', 403],
+    ['STUDENT_ALREADY_HANDED_OVER_TODAY', 409],
+    ['PRESCHOOL_HANDOVER_BRANCH_MAPPING_CONFLICT', 409],
+  ])('returns current command denial %s without false success', async (code, status) => {
+    const { PreschoolHandoverError } = jest.requireActual<typeof import('@/products/bella-education/services/preschool-safe-pickup-handover.service')>('@/products/bella-education/services/preschool-safe-pickup-handover.service');
+    mockRecordHandover.mockRejectedValueOnce(new PreschoolHandoverError(code, status));
+    const response = await POST(handoverRequest());
+    expect(response.status).toBe(status);
+    expect(await response.json()).toEqual({ success: false, error: code });
   });
 });
