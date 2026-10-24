@@ -1,0 +1,40 @@
+{
+  "startedAt": "2026-10-24T01:33:16.022Z",
+  "completedAt": "2026-10-24T01:33:34.409Z",
+  "target": "bmnbqbcdbuklhopfbopv",
+  "mode": "LOCAL_RUN_OF_EXISTING_CI_TEST_FILE_NOT_REMOTE_CI",
+  "nativeExit": 0,
+  "source": [
+    {
+      "file": "src/products/bella-education/services/preschool-safe-pickup-handover.service.ts",
+      "sha256": "7d686066e05e354e324039ed9c52a186e12314da06cacf26282bd8d5a0482d5d"
+    },
+    {
+      "file": "src/products/bella-education/__tests__/preschool-safe-pickup-handover.service.test.ts",
+      "sha256": "4da7bc7e5f74638a6a990285051e075695cce68a495bcaa5c17a2020ae9e95c5"
+    },
+    {
+      "file": "src/app/api/education/attendance/handover/route.ts",
+      "sha256": "1d5af80532fa6f56ca6356b5a9910fea01b04829f05b7afdc28bb5d61341392b"
+    },
+    {
+      "file": "src/app/api/education/attendance/handover/__tests__/route.test.ts",
+      "sha256": "f62ea042cde470a2da7bb9fad1d6f0b0e8aa5ed0430f50ac078453a6ca6cdc96"
+    },
+    {
+      "file": "supabase/migrations/20261024010000_preschool_handover_atomic_command.sql",
+      "sha256": "06e9058ee298220ef423b60d6a77fc6e9035d59d21edc7484de17d189cb5c830"
+    },
+    {
+      "file": "src/products/bella-education/__tests__/preschool-chain-real-db.test.ts",
+      "sha256": "dd1c66d3fa43f4bd045d79eabf9e9afb555f991ffa190f7828a87a8ffa24b61e"
+    }
+  ],
+  "selection": "New handover tests only; previous admission/Finance cases intentionally not rerun",
+  "passed": 5,
+  "failed": 0,
+  "skipped": 22,
+  "remoteCi": "NOT_RUN",
+  "productionAccess": false,
+  "sourceDrift": []
+}

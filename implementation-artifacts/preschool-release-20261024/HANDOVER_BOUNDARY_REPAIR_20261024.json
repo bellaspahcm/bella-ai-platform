@@ -1,0 +1,66 @@
+{
+  "at": "2026-10-24T01:37:40.639079+00:00",
+  "parent": "845247d45a184037c2b05b1baa5101194a69200e",
+  "problem": "Remote Education gate blocked new direct Product RPC execution; original raw failure retained",
+  "repair": "API authenticates/action/branch checks then injects typed Product command. Product owns DTO/error reconciliation, performs no direct write/RPC and fails closed without command. Existing read-only constructors remain supported.",
+  "protectionChanged": false,
+  "kernelChanged": false,
+  "migrationChanged": false,
+  "grantsChanged": false,
+  "review": {
+    "independentReviewer": "attendance_reconcile_acceptance",
+    "result": "PASS_BOUNDED_SOURCE_NO_SECURITY_OR_CORRECTNESS_FINDINGS",
+    "verificationLimit": "Read-only static review, actual execution separate"
+  },
+  "verification": {
+    "architectureCli": "PASS, baseline248/current245, no new signatures",
+    "originalUnitAttempt": {
+      "passed": 24,
+      "failed": 1,
+      "failure": "New API callback test had incomplete client mock; original result retained"
+    },
+    "routeMockRepair": {
+      "passed": 6,
+      "failed": 0
+    },
+    "serviceSuite": "PASS19/19 in original25-test attempt; unchanged since",
+    "realDb": {
+      "passed": 5,
+      "failed": 0,
+      "intentionallyUnexecutedOtherCases": 22
+    },
+    "typecheck": "PASS exit0",
+    "lint": "PASS",
+    "typecheckLogSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "source": [
+    {
+      "file": "src/app/api/education/attendance/handover/route.ts",
+      "sha256": "b833008170183b112f682ff28140bd8044811c5807ae7a7b825f22441018c697",
+      "normalization": "Git LF"
+    },
+    {
+      "file": "src/app/api/education/attendance/handover/__tests__/route.test.ts",
+      "sha256": "ff366e5d07bdb032861801622c58bb66a6d25f6a4b0cc2a29596caa3286915b1",
+      "normalization": "Git LF"
+    },
+    {
+      "file": "src/products/bella-education/services/preschool-safe-pickup-handover.service.ts",
+      "sha256": "68abe06413991d6425ddbf1577e04293ec72297c93a725d75caa2b94b4454f6e",
+      "normalization": "Git LF"
+    },
+    {
+      "file": "src/products/bella-education/__tests__/preschool-safe-pickup-handover.service.test.ts",
+      "sha256": "4da7bc7e5f74638a6a990285051e075695cce68a495bcaa5c17a2020ae9e95c5",
+      "normalization": "Git LF"
+    },
+    {
+      "file": "src/products/bella-education/__tests__/preschool-chain-real-db.test.ts",
+      "sha256": "2f2e266714b115703b638d1da044b892d71d19c276630a142db598f62c8cf7a0",
+      "normalization": "Git LF"
+    }
+  ],
+  "attendanceWorkingDiffExcluded": true,
+  "productionAccess": false,
+  "deliveryLimit": "DraftPR/Non-ProductionCI only; no merge"
+}

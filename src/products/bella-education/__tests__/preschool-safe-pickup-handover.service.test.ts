@@ -15,7 +15,7 @@ const row = {
 function fixture(data: unknown = [row], error: { code: string; message: string } | null = null) {
   const rpc = jest.fn().mockResolvedValue({ data, error });
   const from = jest.fn(() => { throw new Error('Command must not fall back to table writes'); });
-  const service = new PreschoolSafePickupHandoverService({ rpc, from } as unknown as SupabaseClient);
+  const service = new PreschoolSafePickupHandoverService({ from } as unknown as SupabaseClient, rpc);
   return { rpc, from, service };
 }
 
@@ -26,10 +26,7 @@ describe('Preschool handover atomic Product boundary', () => {
     expect(result).toEqual({ id: row.id, tenantId: input.tenantId, studentPartyId: input.studentPartyId,
       guardianPartyId: input.guardianPartyId, pickupAuthorizationId: input.pickupAuthorizationId,
       handedOverAt: row.handed_over_at, handedOverBy: input.operatorUserId });
-    expect(rpc).toHaveBeenCalledWith('preschool_record_handover', {
-      p_tenant_id: input.tenantId, p_actor_id: input.operatorUserId, p_student_party_id: input.studentPartyId,
-      p_guardian_party_id: input.guardianPartyId, p_pickup_authorization_id: input.pickupAuthorizationId,
-    });
+    expect(rpc).toHaveBeenCalledWith(input);
     expect(from).not.toHaveBeenCalled();
   });
 
@@ -79,5 +76,12 @@ describe('Preschool handover atomic Product boundary', () => {
 
   it('keeps typed errors usable by the HTTP boundary', () => {
     expect(new PreschoolHandoverError('DENIED', 403)).toBeInstanceOf(Error);
+  });
+
+  it('requires the server command for writes while keeping read-only construction available', async () => {
+    const from = jest.fn();
+    const service = new PreschoolSafePickupHandoverService({ from } as unknown as SupabaseClient);
+    await expect(service.recordHandover(input)).rejects.toThrow('PRESCHOOL_HANDOVER_COMMAND_REQUIRED');
+    expect(from).not.toHaveBeenCalled();
   });
 });

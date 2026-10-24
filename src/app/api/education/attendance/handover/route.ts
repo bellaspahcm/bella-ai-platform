@@ -85,7 +85,12 @@ export async function POST(request: Request) {
 
     const supabase = createAdminOperationClient() ?? await createClient();
     await new PreschoolChainService(supabase).assertStudentAccess(context.tenantId,context.operatorUserId,studentPartyId);
-    const handover = await new PreschoolSafePickupHandoverService(supabase).recordHandover({
+    const commandClient: SupabaseClient = supabase;
+    const handover = await new PreschoolSafePickupHandoverService(supabase, input => commandClient.rpc('preschool_record_handover', {
+      p_tenant_id: input.tenantId, p_actor_id: input.operatorUserId,
+      p_student_party_id: input.studentPartyId, p_guardian_party_id: input.guardianPartyId,
+      p_pickup_authorization_id: input.pickupAuthorizationId,
+    })).recordHandover({
       tenantId: context.tenantId,
       studentPartyId,
       guardianPartyId,

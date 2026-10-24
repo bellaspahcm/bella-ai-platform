@@ -668,6 +668,14 @@ describe('Preschool Chain real DB E2E proof', () => {
   });
 
   describe('handover atomic command CI', () => {
+    const handoverService = () => new PreschoolSafePickupHandoverService(supabase, input => {
+      const client: SupabaseClient = supabase;
+      return client.rpc('preschool_record_handover', {
+        p_tenant_id: input.tenantId, p_actor_id: input.operatorUserId,
+        p_student_party_id: input.studentPartyId, p_guardian_party_id: input.guardianPartyId,
+        p_pickup_authorization_id: input.pickupAuthorizationId,
+      });
+    });
     async function seedHandoverFixture() {
       const fixture = {
         tenantId: ids.tenant,
@@ -715,12 +723,12 @@ describe('Preschool Chain real DB E2E proof', () => {
 
     it('serializes concurrent calls and recovers the committed canonical handover without another event', async () => {
       const fixture = await seedHandoverFixture();
-      const service = new PreschoolSafePickupHandoverService(supabase);
+      const service = handoverService();
       const [first, second] = await Promise.all([
         service.recordHandover(fixture), service.recordHandover(fixture),
       ]);
       expect(first.id).toBe(second.id);
-      const recovered = await new PreschoolSafePickupHandoverService(supabase).recordHandover(fixture);
+      const recovered = await handoverService().recordHandover(fixture);
       expect(recovered.id).toBe(first.id);
       expect(recovered.handedOverBy).toBe(actorUserId);
       expect(await readHandoverEvents(fixture.studentPartyId)).toEqual([
@@ -739,7 +747,7 @@ describe('Preschool Chain real DB E2E proof', () => {
         const blockerPid = (await blocker.query<{ pid: number }>('SELECT pg_backend_pid() AS pid')).rows[0].pid;
         await blocker.query('SELECT id FROM public.edu_preschool_pickup_authorizations WHERE id=$1 AND tenant_id=$2 FOR UPDATE',
           [fixture.pickupAuthorizationId, ids.tenant]);
-        attempt = new PreschoolSafePickupHandoverService(supabase).recordHandover(fixture)
+        attempt = handoverService().recordHandover(fixture)
           .then(() => ({ ok: true }), (error: unknown) => ({ ok: false, error }));
         let waiting = false;
         for (let i = 0; i < 100; i++) {
@@ -765,7 +773,7 @@ describe('Preschool Chain real DB E2E proof', () => {
 
     it('denies a foreign tenant without persisting a handover', async () => {
       const fixture = await seedHandoverFixture();
-      await expect(new PreschoolSafePickupHandoverService(supabase).recordHandover({
+      await expect(handoverService().recordHandover({
         ...fixture, tenantId: ids.otherTenant,
       })).rejects.toMatchObject({ status: 403 });
       expect(await readHandoverEvents(fixture.studentPartyId)).toEqual([]);

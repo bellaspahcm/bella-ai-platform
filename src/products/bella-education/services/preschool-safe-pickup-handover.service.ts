@@ -44,6 +44,11 @@ export interface RecordPreschoolHandoverInput {
   readonly operatorUserId: string;
 }
 
+export type PreschoolHandoverCommand = (input: RecordPreschoolHandoverInput) => PromiseLike<{
+  data: unknown;
+  error: { code?: string; message: string } | null;
+}>;
+
 export interface PreschoolHandoverDTO {
   readonly id: string;
   readonly tenantId: string;
@@ -62,18 +67,16 @@ export class PreschoolHandoverError extends Error {
 }
 
 export class PreschoolSafePickupHandoverService {
-  constructor(private readonly supabase: BellaEducationClient) {}
+  constructor(
+    private readonly supabase: BellaEducationClient,
+    private readonly command?: PreschoolHandoverCommand,
+  ) {}
 
   async recordHandover(input: RecordPreschoolHandoverInput): Promise<PreschoolHandoverDTO> {
     // The Product command serializes creation/recovery and rechecks current
     // authorization after DB waits. Never fall back to a direct table insert.
-    const { data, error } = await this.supabase.rpc('preschool_record_handover', {
-      p_tenant_id: input.tenantId,
-      p_actor_id: input.operatorUserId,
-      p_student_party_id: input.studentPartyId,
-      p_guardian_party_id: input.guardianPartyId,
-      p_pickup_authorization_id: input.pickupAuthorizationId,
-    });
+    if (!this.command) throw new Error('PRESCHOOL_HANDOVER_COMMAND_REQUIRED');
+    const { data, error } = await this.command(input);
     if (error) {
       const status = error.code === '42501' ? 403
         : error.code === '23505' || error.code === '40001' ? 409
