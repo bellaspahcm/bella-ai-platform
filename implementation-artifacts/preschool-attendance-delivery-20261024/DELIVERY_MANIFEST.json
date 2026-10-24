@@ -1,0 +1,112 @@
+{
+  "at": "2026-10-24T08:31:04.349054+00:00",
+  "base": "27fa803ec393ed545ed7a2846f425ff194cb3f3e",
+  "branch": "codex/preschool-attendance-reconciliation-20261024",
+  "humanAuthority": {
+    "attendanceDelivery": "Duyệt đúng phạm vi Attendance",
+    "twoHistoryEntriesAndCi": "Duyệt khôi phục đúng 2 entry và CI",
+    "merge": false,
+    "production": false
+  },
+  "factory": "Existing separately authorized implementation/review workflow; shared Education/schema outside bounded Factory admission; not a nativeFactory run",
+  "scope": [
+    {
+      "file": "src/platform/education/contracts/attendance.contract.impl.ts",
+      "approvedWorkingTreeSha256": "826bf3fc35df5c68d370f85d2b8c83fdde5801998f6f5eeeeac8926b56cd5b28",
+      "gitNormalizedSha256": "826bf3fc35df5c68d370f85d2b8c83fdde5801998f6f5eeeeac8926b56cd5b28",
+      "note": "History restoration retained the exact originally applied SQL bytes; Git line-ending normalization is recorded separately"
+    },
+    {
+      "file": "src/platform/education/contracts/__tests__/attendance-record-rpc.contract.test.ts",
+      "approvedWorkingTreeSha256": "194d36e87f18b5a4b149252aaa464b881ddd597fd5008ad6a2e169a97d7249db",
+      "gitNormalizedSha256": "194d36e87f18b5a4b149252aaa464b881ddd597fd5008ad6a2e169a97d7249db",
+      "note": "History restoration retained the exact originally applied SQL bytes; Git line-ending normalization is recorded separately"
+    },
+    {
+      "file": "src/products/bella-education/__tests__/preschool-chain-real-db.test.ts",
+      "approvedWorkingTreeSha256": "dd1c66d3fa43f4bd045d79eabf9e9afb555f991ffa190f7828a87a8ffa24b61e",
+      "gitNormalizedSha256": "ed0712b8c365dc14299b5c43c67b65d5768c87937e637ae965c3b96558739880",
+      "note": "History restoration retained the exact originally applied SQL bytes; Git line-ending normalization is recorded separately"
+    },
+    {
+      "file": "supabase/migrations/20261024020000_reconcile_education_attendance_callers.sql",
+      "approvedWorkingTreeSha256": "50b2a4c9fc6c71b66aef8f5723e4560c0a0b835855c9c10e90ab153700be91b3",
+      "gitNormalizedSha256": "50b2a4c9fc6c71b66aef8f5723e4560c0a0b835855c9c10e90ab153700be91b3",
+      "note": "History restoration retained the exact originally applied SQL bytes; Git line-ending normalization is recorded separately"
+    }
+  ],
+  "changedBehavior": "Public recordAttendance uses authorized atomic daily RPC; authenticated same-tenant/branch authorization rechecked after lock/upsert waits; history and daily projection atomic; canonical event ID and PostgreSQL precision reconciled",
+  "localVerification": {
+    "unitPassed": 24,
+    "actualDbPassed": 16,
+    "actualDbFailed": 0,
+    "actualDbSkipped": 11,
+    "scope": "Attendance describe only; other eleven existing cases intentionally not rerun in local selection; remote CI pending"
+  },
+  "historyReconciliation": {
+    "versions": [
+      "20261024010000",
+      "20261024020000"
+    ],
+    "mode": "Two INSERT metadata entries only, original SQL never executed",
+    "priorExistingHistoryAndCatalog": "UNCHANGED",
+    "causeOfMissingEntries": "NOT_PROVEN",
+    "restorationTimestamp": "2026-10-24T08:26:33.919Z"
+  },
+  "targetParity": {
+    "migrationsExpected": 25,
+    "migrationsRecorded": 25,
+    "functionBodiesExpected": 36,
+    "functionBodiesMatched": 36,
+    "tablesExpected": 28,
+    "tablesFound": 28,
+    "tablesWithRls": 28,
+    "unsafeTruncateGrants": 0
+  },
+  "independentReviewLimits": [
+    "Runtime SQL/adapter reviewed; original role fixture23514 preserved",
+    "Latest local fixture suite now16PASS; no stored super_admin identity or schema widening",
+    "No English Center browser proof",
+    "No service-scoped revocation proof against privileged noncooperating direct writer"
+  ],
+  "production": "HOLD_CREDENTIAL_NOT_ROTATED",
+  "fullChainGoLive": "NOT_PROVEN",
+  "evidence": [
+    {
+      "file": "E2E_SCOPED_PARITY.json",
+      "sha256": "d77c6734b1c7bdc52fb04716cc09bfa6ca18e608589c746a293ced6a64426301"
+    },
+    {
+      "file": "HISTORY_RECONCILIATION.json",
+      "sha256": "e69bc4c63f943dd3f4a5f7fbe16856add4f7d08769dac17e8a014d74d60bab12"
+    },
+    {
+      "file": "IMPLEMENTATION_SCOPED_UNLOCK.json",
+      "sha256": "ae5f69d4f3b76c00492c3d9f6a04cc200d2f7e8e92458aa894ba3b1259798ceb"
+    },
+    {
+      "file": "INDEPENDENT_REVIEW.json",
+      "sha256": "8d96bb892018a40fb05aadbd03d6b12cc3a0b28938c01ab5e41332465a890e4a"
+    },
+    {
+      "file": "PRIOR_FAILED_FIXTURE_RECEIPT.json",
+      "sha256": "0a08830acea62e60de86025895115a06dfd016c28e6c52954a77f828a4d36294"
+    },
+    {
+      "file": "REAL_DB_LOG.json",
+      "sha256": "411410e3ec9e8f634f7d13130bfd1c557bb6237a34a68dc0d4d64fe0582d0f3c"
+    },
+    {
+      "file": "REAL_DB_RECEIPT.json",
+      "sha256": "a9bdcbab2486acacd520a5adad099a4f2c0bb65fe83d0c1334fecf91c9066a02"
+    },
+    {
+      "file": "REAL_DB_RESULTS.json",
+      "sha256": "a73d3ba53472e1f309aa45cfd5ac2c165350dc15e309698d2bb08673ac11e00b"
+    },
+    {
+      "file": "UNIT_RESULTS.json",
+      "sha256": "09678cf37b68d2b8a0cdc38c39481385586058a62410205043852c8da845c303"
+    }
+  ]
+}

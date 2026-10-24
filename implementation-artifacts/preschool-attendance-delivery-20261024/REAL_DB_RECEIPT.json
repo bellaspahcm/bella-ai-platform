@@ -1,0 +1,32 @@
+{
+  "startedAt": "2026-10-24T08:28:04.446Z",
+  "completedAt": "2026-10-24T08:28:42.444Z",
+  "target": "bmnbqbcdbuklhopfbopv",
+  "mode": "LOCAL_RUN_OF_EXISTING_CI_TEST_FILE_NOT_REMOTE_CI",
+  "nativeExit": 0,
+  "source": [
+    {
+      "file": "src/platform/education/contracts/attendance.contract.impl.ts",
+      "sha256": "826bf3fc35df5c68d370f85d2b8c83fdde5801998f6f5eeeeac8926b56cd5b28"
+    },
+    {
+      "file": "src/platform/education/contracts/__tests__/attendance-record-rpc.contract.test.ts",
+      "sha256": "194d36e87f18b5a4b149252aaa464b881ddd597fd5008ad6a2e169a97d7249db"
+    },
+    {
+      "file": "supabase/migrations/20261024020000_reconcile_education_attendance_callers.sql",
+      "sha256": "50b2a4c9fc6c71b66aef8f5723e4560c0a0b835855c9c10e90ab153700be91b3"
+    },
+    {
+      "file": "src/products/bella-education/__tests__/preschool-chain-real-db.test.ts",
+      "sha256": "dd1c66d3fa43f4bd045d79eabf9e9afb555f991ffa190f7828a87a8ffa24b61e"
+    }
+  ],
+  "selection": "Final approved Attendance candidate after canonical-role fixture changes; Attendance describe only; historical fixture failure preserved separately",
+  "passed": 16,
+  "failed": 0,
+  "skipped": 11,
+  "remoteCi": "NOT_RUN",
+  "productionAccess": false,
+  "sourceDrift": []
+}

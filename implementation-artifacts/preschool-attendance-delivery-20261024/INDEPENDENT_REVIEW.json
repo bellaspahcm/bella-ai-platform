@@ -1,0 +1,58 @@
+{
+  "at": "2026-10-24T01:25:55.028459+00:00",
+  "method": "bmad-code-review; read-only independent Blind, Edge and Acceptance agents",
+  "reviewTarget": "Attendance two-function migration, one contract method, tests",
+  "reviewScope": "Static source review only; runtime proof pending",
+  "findings": [
+    {
+      "finding": "Missing enrollment error compatibility",
+      "resolution": "service_role gets original P0002; authenticated42501 avoids enumeration"
+    },
+    {
+      "finding": "Precision truncation/postcommit false mismatch",
+      "resolution": "forward original timestamp; compare PG microsecond-rounded milliseconds, compute school-day from same instant"
+    },
+    {
+      "finding": "Denial assertions accept unrelated errors",
+      "resolution": "assert specific auth denial; real DB side effect readback"
+    },
+    {
+      "finding": "Wrong scoped caller path in tests",
+      "resolution": "invoke actual Product service parameterized3existing roles"
+    },
+    {
+      "finding": "Unique-key wait after authority read",
+      "resolution": "repeat authenticated predicate after upsert; direct anon/auth table writes denied on actual preflight"
+    }
+  ],
+  "reviewResults": {
+    "blind": "One actionable compatibility finding, repaired",
+    "edge": "Reported precision/day boundary and absent-row wait; repaired; last agent turn ended on usage limit, no final blanket PASS",
+    "acceptance": "Latest source found no remaining blocking defect; retains first-write and service-late-wait proof limits"
+  },
+  "leadFollowup": "Added precision school-day boundary unit; first-write cancellation case; preserves limits for privileged direct writers. SQL is unchanged since independent final review.",
+  "source": [
+    {
+      "file": "supabase/migrations/20261024020000_reconcile_education_attendance_callers.sql",
+      "sha256": "50b2a4c9fc6c71b66aef8f5723e4560c0a0b835855c9c10e90ab153700be91b3"
+    },
+    {
+      "file": "src/platform/education/contracts/attendance.contract.impl.ts",
+      "sha256": "826bf3fc35df5c68d370f85d2b8c83fdde5801998f6f5eeeeac8926b56cd5b28"
+    },
+    {
+      "file": "src/platform/education/contracts/__tests__/attendance-record-rpc.contract.test.ts",
+      "sha256": "194d36e87f18b5a4b149252aaa464b881ddd597fd5008ad6a2e169a97d7249db"
+    },
+    {
+      "file": "src/products/bella-education/__tests__/preschool-chain-real-db.test.ts",
+      "sha256": "26fbc0b51441a804c5d5d038e6817de422c5fc6633d9e7efc546c8de8c6ccdc7"
+    }
+  ],
+  "preflight": "ATTENDANCE_TARGET_preflight_1792804798438.json",
+  "limits": [
+    "No actual English Center UI PASS",
+    "No service-scoped post-upsert revocation certification against trusted direct DML",
+    "No Production or Go-Live authority"
+  ]
+}
