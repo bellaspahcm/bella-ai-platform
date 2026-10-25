@@ -599,7 +599,7 @@ export default function TeachersPage() {
               <option value="all">Tất cả chức vụ</option>
               <option value="chunhiem">Chủ nhiệm</option>
               <option value="trogiang">Trợ giảng</option>
-              <option value="bomon">Năng khiếu & Ngoại ngữ</option>
+              <option value="bomon">Năng khiếu &amp; Ngoại ngữ</option>
             </select>
 
             <select
