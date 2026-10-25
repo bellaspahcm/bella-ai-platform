@@ -1,151 +1,170 @@
 /** @jest-environment jsdom */
-import '@testing-library/jest-dom/jest-globals';
-import { afterEach, describe, expect, it, jest } from '@jest/globals';
-import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
-import Student360Page from '../page';
+import { beforeEach, expect, it, jest } from '@jest/globals';
+import { useLayoutEffect } from 'react';
+import { cleanup, render, screen, waitFor } from '@testing-library/react';
 
-jest.mock('next/navigation', () => ({ useParams: () => ({ id: 'student-1' }) }));
-jest.mock('next/link', () => ({
-  __esModule: true,
-  default: ({ children, href, ...props }: React.AnchorHTMLAttributes<HTMLAnchorElement> & { href: string }) => <a href={href} {...props}>{children}</a>,
+let currentId = 'SYN-CHILD-001';
+let currentSearch = '';
+jest.mock('next/navigation', () => ({
+  useParams: () => ({ id: currentId }),
+  useSearchParams: () => new URLSearchParams(currentSearch),
 }));
+const mockGuardianSection = jest.fn<(props: { studentId: string }) => void>();
+jest.mock('../StudentGuardians', () => ({
+  __esModule: true,
+  default: (props: { studentId: string }) => {
+    mockGuardianSection(props);
+    return <div data-testid="guardian-section" />;
+  },
+}));
+const mockPortalSection = jest.fn<(props: { tenantId: string; courseId: string; studentPartyId: string }) => void>();
+jest.mock('../PortalAccessLink', () => ({
+  __esModule: true,
+  default: (props: { tenantId: string; courseId: string; studentPartyId: string }) => {
+    mockPortalSection(props);
+    return <div data-testid="portal-section" />;
+  },
+}));
+jest.mock('@/lib/user-context', () => ({ useUser: () => ({
+  user: { id: 'synthetic-admin', tenant_id: 'tenant-a' },
+  product: { productKey: 'bella_preschool' },
+  isLoading: false,
+}) }));
+const Student360Page = (require('../page') as typeof import('../page')).default;
 
-const course = { id: 'course-1', tenantId: 'tenant-1', courseCode: 'PRE-K', title: 'Lớp Mầm', status: 'active' };
-const draftCourse = { id: 'draft-1', tenantId: 'tenant-1', courseCode: 'DRAFT', title: 'Lớp nháp', status: 'draft' };
-const row = {
-  enrollmentId: 'enrollment-1', studentId: 'student-1', studentPartyId: 'party-1', studentCode: 'EDU-001',
-  name: 'Học sinh thật', gender: 'Nữ', dob: '2022-03-12', enrollmentStatus: 'active', attendance: null,
+const enrollmentId = '00000000-0000-4000-8000-000000000011';
+const courseId = '00000000-0000-4000-8000-000000000012';
+const branchId = '00000000-0000-4000-8000-000000000013';
+const eventId = '00000000-0000-4000-8000-000000000014';
+const canonicalProfile = {
+  id: 'SYN-CHILD-001',
+  studentId: '00000000-0000-4000-8000-000000000001',
+  partyId: '00000000-0000-4000-8000-000000000002',
+  name: 'Synthetic Child',
+  dob: '2022-04-10',
+  gender: 'female',
+  enrollments: [{
+    id: enrollmentId,
+    courseId,
+    courseCode: 'SYN-C01',
+    courseTitle: 'Synthetic Class',
+    branchId,
+    branchName: 'Synthetic Branch',
+    status: 'active',
+  }],
+  attendance: {
+    present: 1,
+    absent: 0,
+    excused: 0,
+    totalRecords: 1,
+    records: [{
+      id: eventId,
+      enrollmentId,
+      courseId,
+      courseTitle: 'Synthetic Class',
+      status: 'present',
+      rollCallTime: '2026-10-24T01:30:00.000Z',
+    }],
+  },
 };
-const jsonResponse = (body: unknown, status = 200): Response => ({
-  ok: status >= 200 && status < 300,
-  status,
-  json: async () => body,
-} as Response);
-const originalFetch = globalThis.fetch;
 
-afterEach(() => { cleanup(); globalThis.fetch = originalFetch; window.history.replaceState(null, '', '/'); });
+function response(status: number, body: unknown): Response {
+  return { ok: status >= 200 && status < 300, status, json: async () => body } as Response;
+}
 
-describe('Preschool student detail', () => {
-  it('renders only a student returned by the authorized class roster', async () => {
-    const fetchMock = jest.fn<typeof fetch>()
-      .mockResolvedValueOnce(jsonResponse({ success: true, courses: [draftCourse, course] }))
-      .mockImplementationOnce(async input => {
-        const query = new URL(String(input), 'http://local.test').searchParams;
-        return jsonResponse({ success: true, courseId: course.id, schoolDay: query.get('date'), roster: [row] });
-      });
-    globalThis.fetch = fetchMock;
+beforeEach(() => {
+  cleanup();
+  currentId = 'SYN-CHILD-001';
+  currentSearch = '';
+  global.fetch = jest.fn<typeof fetch>().mockResolvedValue(response(200, { success: true, profile: canonicalProfile }));
+  window.localStorage.clear();
+  mockGuardianSection.mockClear();
+  mockPortalSection.mockClear();
+});
 
-    render(<Student360Page studentId="student-1" />);
-    expect(await screen.findByRole('heading', { name: 'Học sinh thật' })).toBeInTheDocument();
-    expect(screen.getByText('Lớp Mầm')).toBeInTheDocument();
-    expect(screen.queryByRole('option', { name: /Lớp nháp/ })).not.toBeInTheDocument();
-    expect(screen.getByText('Chưa điểm danh')).toBeInTheDocument();
-    expect(screen.getByText(/Hồ sơ sức khỏe, học phí và lịch sử chưa khả dụng/)).toBeInTheDocument();
-    expect(screen.queryByText(/Nguyễn Minh An|0901 234 567|96%|WHO|đã lưu thành công/i)).not.toBeInTheDocument();
-    expect(fetchMock.mock.calls[0][0]).toBe('/api/education/courses?view=catalog');
-    expect(fetchMock.mock.calls[0][1]?.cache).toBe('no-store');
-    const rosterUrl = new URL(String(fetchMock.mock.calls[1][0]), 'http://local.test');
-    expect(rosterUrl.pathname).toBe('/api/education/attendance');
-    expect(rosterUrl.searchParams.get('view')).toBe('roster');
-    expect(rosterUrl.searchParams.get('courseId')).toBe(course.id);
-    expect(fetchMock.mock.calls[1][1]?.cache).toBe('no-store');
-  });
+it('shows only canonical identity, enrollment and raw attendance evidence', async () => {
+  render(<Student360Page />);
+  expect(await screen.findByRole('heading', { name: 'Synthetic Child' })).toBeTruthy();
+  expect(screen.getAllByText('Synthetic Class').length).toBeGreaterThan(0);
+  expect(screen.getByText(/Synthetic Branch/)).toBeTruthy();
+  expect(screen.getAllByText('Có mặt')).toHaveLength(2);
+  expect(screen.getByText(eventId)).toBeTruthy();
+  expect(screen.queryByText(/36[,.]6/)).toBeNull();
+  expect(screen.queryByText(/Face ID/i)).toBeNull();
+  expect(screen.queryByText(/NAEYC/i)).toBeNull();
+  expect(screen.queryByRole('button', { name: /lưu|chỉnh sửa|thu tiền|gửi/i })).toBeNull();
+  expect(window.localStorage.length).toBe(0);
+  expect(mockGuardianSection).toHaveBeenCalledWith({ studentId: canonicalProfile.studentId });
+  expect(mockPortalSection).toHaveBeenCalledWith({ tenantId: 'tenant-a', courseId, studentPartyId: canonicalProfile.partyId });
+  expect(global.fetch).toHaveBeenCalledWith('/api/education/enrollments/SYN-CHILD-001', expect.objectContaining({ cache: 'no-store' }));
+});
 
-  it('does not show profile data when catalog access is denied', async () => {
-    const fetchMock = jest.fn<typeof fetch>().mockResolvedValueOnce(jsonResponse({ success: false }, 403));
-    globalThis.fetch = fetchMock;
-    render(<Student360Page studentId="student-1" />);
+it('keeps an authorized active Course selected for the registry return link and Portal section', async () => {
+  currentSearch = `?courseId=${courseId}`;
+  render(<Student360Page />);
+  expect(await screen.findByRole('heading', { name: 'Synthetic Child' })).toBeTruthy();
+  expect(screen.getByRole('link', { name: 'Quay lại danh sách trẻ' })).toHaveAttribute('href', `/dashboard/education/enrollments?courseId=${courseId}`);
+  expect(mockPortalSection).toHaveBeenCalledWith({ tenantId: 'tenant-a', courseId, studentPartyId: canonicalProfile.partyId });
+});
 
-    expect(await screen.findByRole('alert')).toHaveTextContent('Hồ sơ chưa khả dụng');
-    expect(screen.queryByRole('heading', { name: 'Học sinh thật' })).not.toBeInTheDocument();
-    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
-  });
+it.each([
+  [401, 'STUDENT_PROFILE_UNAUTHENTICATED', 'Phiên đăng nhập không còn hợp lệ'],
+  [403, 'STUDENT_PROFILE_ACCESS_DENIED', 'không có quyền xem hồ sơ'],
+  [404, 'STUDENT_PROFILE_NOT_FOUND', 'Không tìm thấy trẻ'],
+  [503, 'STUDENT_PROFILE_UNAVAILABLE', 'Chưa thể tải hồ sơ đã xác minh'],
+] as const)('renders HTTP %s as an explicit failure with no fallback child', async (status, code, message) => {
+  (global.fetch as jest.MockedFunction<typeof fetch>).mockResolvedValueOnce(response(status, { success: false, error: code }));
+  render(<Student360Page />);
+  const alert = await screen.findByRole('alert');
+  expect(alert.textContent).toContain(message);
+  expect(screen.queryByText('Synthetic Child')).toBeNull();
+  expect(window.localStorage.length).toBe(0);
+});
 
-  it('fails closed when roster access is denied', async () => {
-    const fetchMock = jest.fn<typeof fetch>()
-      .mockResolvedValueOnce(jsonResponse({ success: true, courses: [course] }))
-      .mockResolvedValueOnce(jsonResponse({ success: false }, 403));
-    globalThis.fetch = fetchMock;
-    render(<Student360Page studentId="student-1" />);
+it('rejects a malformed success payload instead of displaying partial data', async () => {
+  (global.fetch as jest.MockedFunction<typeof fetch>).mockResolvedValueOnce(response(200, {
+    success: true,
+    profile: { ...canonicalProfile, attendance: { ...canonicalProfile.attendance, totalRecords: 9 } },
+  }));
+  render(<Student360Page />);
+  expect((await screen.findByRole('alert')).textContent).toContain('Chưa thể tải hồ sơ đã xác minh');
+  expect(screen.queryByText('Synthetic Child')).toBeNull();
+});
 
-    expect(await screen.findByRole('alert')).toHaveTextContent('Không thể xác minh roster');
-    expect(screen.queryByRole('heading', { name: 'Học sinh thật' })).not.toBeInTheDocument();
-  });
+it('clears the previous profile while navigating and ignores the late prior response', async () => {
+  let resolveFirst: ((value: Response) => void) | undefined;
+  const first = new Promise<Response>(resolve => { resolveFirst = resolve; });
+  const fetchMock = jest.fn<typeof fetch>()
+    .mockImplementationOnce(() => first)
+    .mockResolvedValueOnce(response(404, { success: false, error: 'STUDENT_PROFILE_NOT_FOUND' }));
+  global.fetch = fetchMock;
+  const view = render(<Student360Page />);
+  currentId = 'SYN-CHILD-002';
+  view.rerender(<Student360Page />);
+  expect((await screen.findByRole('alert')).textContent).toContain('Không tìm thấy trẻ');
+  resolveFirst?.(response(200, { success: true, profile: canonicalProfile }));
+  await waitFor(() => expect(screen.queryByText('Synthetic Child')).toBeNull());
+  expect(fetchMock).toHaveBeenNthCalledWith(2, '/api/education/enrollments/SYN-CHILD-002', expect.objectContaining({ cache: 'no-store' }));
+});
 
-  it('does not reveal a student who is absent from the authorized roster', async () => {
-    const otherStudent = { ...row, studentId: 'different-student', name: 'Học sinh ngoài lớp' };
-    const fetchMock = jest.fn<typeof fetch>()
-      .mockResolvedValueOnce(jsonResponse({ success: true, courses: [course] }))
-      .mockImplementationOnce(async input => {
-        const query = new URL(String(input), 'http://local.test').searchParams;
-        return jsonResponse({ success: true, courseId: course.id, schoolDay: query.get('date'), roster: [otherStudent] });
-      });
-    globalThis.fetch = fetchMock;
-    render(<Student360Page studentId="student-1" />);
 
-    expect(await screen.findByText('Không tìm thấy học sinh trong roster lớp được cấp quyền.')).toBeInTheDocument();
-    expect(screen.queryByText('Học sinh ngoài lớp')).not.toBeInTheDocument();
-  });
-  it('keeps the selected authorized Course on detail and the back link', async () => {
-    const second = { ...course, id: 'course-2', title: 'Lớp Chồi' };
-    window.history.replaceState(null, '', '/dashboard/education/enrollments/student-1?courseId=course-2');
-    const fetchMock = jest.fn<typeof fetch>().mockResolvedValueOnce(jsonResponse({ success: true, courses: [course, second] }))
-      .mockImplementationOnce(async input => jsonResponse({ success: true, courseId: second.id, schoolDay: new URL(String(input), 'http://local').searchParams.get('date'), roster: [row] }));
-    globalThis.fetch = fetchMock;
-    render(<Student360Page studentId="student-1" />);
-    expect(await screen.findByRole('heading', { name: 'Học sinh thật' })).toBeInTheDocument();
-    expect(screen.getByRole('combobox', { name: 'Lớp học' })).toHaveValue(second.id);
-    expect(screen.getByRole('link', { name: /Quay lại/ })).toHaveAttribute('href', '/dashboard/education/enrollments?courseId=course-2');
-    expect(new URL(String(fetchMock.mock.calls[1][0]), 'http://local').searchParams.get('courseId')).toBe(second.id);
-  });
-
-  it.each(['?courseId=foreign', '?courseId=course-1&courseId=course-2', '?courseId=draft-1', '?courseId='])('rejects an invalid Course hint with zero roster calls: %s', async query => {
-    window.history.replaceState(null, '', '/dashboard/education/enrollments/student-1' + query);
-    const fetchMock = jest.fn<typeof fetch>().mockResolvedValueOnce(jsonResponse({ success: true, courses: [course, draftCourse] }));
-    globalThis.fetch = fetchMock; render(<Student360Page studentId="student-1" />);
-    expect(await screen.findByRole('alert')).toHaveTextContent('Hồ sơ chưa khả dụng');
-    expect(fetchMock).toHaveBeenCalledTimes(1); expect(screen.queryByRole('heading', { name: 'Học sinh thật' })).not.toBeInTheDocument();
-  });
-
-  it('clears the old profile immediately on Course change and preserves that Course on reload', async () => {
-    const second = { ...course, id: 'course-2', title: 'Lớp Chồi' };
-    let resolve!: (value: Response) => void;
-    const pending = new Promise<Response>(res => { resolve = res; });
-    const fetchMock = jest.fn<typeof fetch>().mockResolvedValueOnce(jsonResponse({ success: true, courses: [course, second] }))
-      .mockImplementationOnce(async input => jsonResponse({ success: true, courseId: course.id, schoolDay: new URL(String(input), 'http://local').searchParams.get('date'), roster: [row] }))
-      .mockReturnValueOnce(pending);
-    globalThis.fetch = fetchMock; render(<Student360Page studentId="student-1" />);
-    await screen.findByRole('heading', { name: 'Học sinh thật' });
-    fireEvent.change(screen.getByRole('combobox', { name: 'Lớp học' }), { target: { value: second.id } });
-    expect(screen.queryByRole('heading', { name: 'Học sinh thật' })).not.toBeInTheDocument();
-    expect(screen.getByRole('status')).toHaveTextContent('Đang kiểm tra roster');
-    expect(new URL(window.location.href).searchParams.get('courseId')).toBe(second.id);
-    await act(async () => resolve(jsonResponse({ success: false }, 403)));
-    expect(await screen.findByRole('alert')).toHaveTextContent('Không thể xác minh roster');
-    expect(screen.queryByRole('heading', { name: 'Học sinh thật' })).not.toBeInTheDocument();
-  });
-
-  it('does not render the previous Student while another profile request is pending', async () => {
-    const fetchMock = jest.fn<typeof fetch>().mockResolvedValueOnce(jsonResponse({ success: true, courses: [course] }))
-      .mockImplementationOnce(async input => jsonResponse({ success: true, courseId: course.id, schoolDay: new URL(String(input), 'http://local').searchParams.get('date'), roster: [row] }))
-      .mockReturnValueOnce(new Promise<Response>(() => undefined));
-    globalThis.fetch = fetchMock; const { rerender } = render(<Student360Page studentId="student-1" />);
-    await screen.findByRole('heading', { name: 'Học sinh thật' }); rerender(<Student360Page studentId="student-2" />);
-    expect(screen.queryByRole('heading', { name: 'Học sinh thật' })).not.toBeInTheDocument();
-    expect(screen.getByRole('status')).toHaveTextContent('Đang kiểm tra roster');
-  });
-
-  it.each(['wrong-course', 'duplicate-row', 'invalid-date', 'transport'])('rejects malformed/failed roster without showing a profile: %s', async failure => {
-    const fetchMock = jest.fn<typeof fetch>().mockResolvedValueOnce(jsonResponse({ success: true, courses: [course] }))
-      .mockImplementationOnce(async input => {
-        if (failure === 'transport') throw Error('offline');
-        const day = new URL(String(input), 'http://local').searchParams.get('date');
-        return jsonResponse({ success: true, courseId: failure === 'wrong-course' ? 'foreign' : course.id,
-          schoolDay: failure === 'invalid-date' ? '2020-01-01' : day, roster: failure === 'duplicate-row' ? [row, row] : [row] });
-      });
-    globalThis.fetch = fetchMock; render(<Student360Page studentId="student-1" />);
-    expect(await screen.findByRole('alert')).toHaveTextContent('Không thể xác minh roster');
-    expect(screen.queryByRole('heading', { name: 'Học sinh thật' })).not.toBeInTheDocument();
-  });
-
+it('never commits old profile or Guardian section when the route selector changes', async () => {
+  const staleFrames: boolean[] = [];
+  function Frame() {
+    useLayoutEffect(() => {
+      if (currentId === 'SYN-CHILD-002') {
+        staleFrames.push(Boolean(document.querySelector('[data-testid="guardian-section"]'))
+          || (document.body.textContent?.includes('Synthetic Child') ?? false));
+      }
+    });
+    return <Student360Page />;
+  }
+  const view = render(<Frame />);
+  expect(await screen.findByRole('heading', { name: 'Synthetic Child' })).toBeTruthy();
+  (global.fetch as jest.MockedFunction<typeof fetch>).mockImplementationOnce(() => new Promise<Response>(() => {}));
+  currentId = 'SYN-CHILD-002';
+  view.rerender(<Frame />);
+  expect(staleFrames).toEqual([false]);
+  expect(screen.queryByTestId('guardian-section')).toBeNull();
+  expect(screen.queryByText('Synthetic Child')).toBeNull();
 });

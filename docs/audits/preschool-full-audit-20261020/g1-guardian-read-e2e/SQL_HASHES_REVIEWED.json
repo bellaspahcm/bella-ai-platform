@@ -1,0 +1,62 @@
+[
+  {
+    "file": "APPLY_E2E.sql",
+    "sha256": "2c0841852fc6a2ead3ff8914c2bb6b1d6fe27b8d4b7c4ad62c0f61589a527192"
+  },
+  {
+    "file": "BOTH_RECOVERY_REHEARSAL.sql",
+    "sha256": "9928a952ffb885d667f1c0c85dbbecd66297a74a780039a969fa284b0c4ac274"
+  },
+  {
+    "file": "DEFINITION_RECOVERY_REHEARSAL.sql",
+    "sha256": "7db25365da5d47b3657429122f96b3cac59fd1a98f29975bd2cc84c92217f55f"
+  },
+  {
+    "file": "FINAL_READBACK.sql",
+    "sha256": "376883ee24fb3af4bddec68cab92ffae1777cbca7fe685371b1e9d701f4012b2"
+  },
+  {
+    "file": "FINGERPRINTS.sql",
+    "sha256": "fa2e91f4596b2394a145363efcf8255d2e9abed530982e472749c33539327003"
+  },
+  {
+    "file": "FIXTURE_CLEANUP.sql",
+    "sha256": "21b9a3e222984ccfbc7dad00299fccc3bbe35619f586dedfd9c7112f5d45622b"
+  },
+  {
+    "file": "FIXTURE_INSERT.sql",
+    "sha256": "cf3f87b7f00c7aa82872bc01e800682026cc7a5f51769345acb1df89f85c3b18"
+  },
+  {
+    "file": "PREREQUISITE_FIXTURE_REHEARSAL.sql",
+    "sha256": "68742acccdd18fa777dbd0ef051571dedb1847d61759081db6e7b9cbf4f7920a"
+  },
+  {
+    "file": "RECOVER_BOTH_E2E.sql",
+    "sha256": "30d311c553ee6da6d6d65945018a1c552fd7c62d662b78c70367be0224db7d63"
+  },
+  {
+    "file": "RECOVERY.sql",
+    "sha256": "58a82d40d45696cdad62c24eca460622ed90d65610d417c2a5b77b44ffd40966"
+  },
+  {
+    "file": "REGISTRY_PREREQUISITE_E2E.sql",
+    "sha256": "1822203bfc931aa775b94a2ddbb1701a1cbb57a67add44c3f2dd82f78a4a740e"
+  },
+  {
+    "file": "REGISTRY_RECOVERY_E2E.sql",
+    "sha256": "e8e01193fb98eab71db44b70787bf61e0c1d99ccd2c02fccf213c1bfedd00a85"
+  },
+  {
+    "file": "REGISTRY_RECOVERY_REHEARSAL.sql",
+    "sha256": "2133da60b7f81c8162dfb789f10e2e56749235834a614ed9be5a1053a73b7762"
+  },
+  {
+    "file": "REHEARSAL.sql",
+    "sha256": "b4800e9948cf8eb7071627f47d3c0b710f25be1ec8e30f495dbe63a11bd05af2"
+  },
+  {
+    "file": "RETAINED_APPLY_E2E.sql",
+    "sha256": "59e1fa94d9aca5275e79888ad92a7bb851c36df4ce9f5d61f333b37b781c4f75"
+  }
+]
