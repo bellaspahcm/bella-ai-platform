@@ -1,0 +1,111 @@
+{
+  "target": "lvnvkpyxtuilhrabtlwv",
+  "status": "PROPOSED_HELD_NOT_EXECUTABLE",
+  "preparedAt": "2026-10-24T01:33:02.051Z",
+  "catalogSha256": "37b0b834d293c2b981df57340f3cbbe35bbbbbc8f4f4e43f7a5606057fbbe399",
+  "catalogReadOnlyRun": "production-preflight-2026-10-24T01-28-16-866Z",
+  "sourcePaths": 119,
+  "files": {
+    "PRODUCTION_CAPABILITIES_DRAFT.sql": "1d7b5be43163fb12d77738d8f07dc4b4eef4b8b4322bab20a14bea7f9d8b66ad",
+    "PRODUCTION_CONTAINMENT_DRAFT.sql": "e744f9ff24c21b4b1181d01a7cdd062bfdd31d8f61034f348f4460189efd6e94",
+    "PRODUCTION_BASELINE_READONLY.sql": "45fdac89293cc5c8d0c34acc78b5e6fbee055dca06a5b3b0640d89e799df7df0",
+    "SOURCE_SELECTION.json": "795ffcd7d1f8402afa318dd9daa36105ba57d788e8a5446ad75265a57ae0bd78",
+    "FUNCTION_INVENTORY.json": "57df16e3c5ec47ab1d25e32e1849422338593628ddb9b0031a9bef8da59ce09a",
+    "OPERATING_MAPPING.template.csv": "75d7f2aaa58031fce3df8499ad2e90a55d2d9b1ca7ed879f2cdeaab120142607"
+  },
+  "newTables": [
+    "preschool_chain_course_branch_assignments",
+    "preschool_school_announcements"
+  ],
+  "functions": 15,
+  "branchDependencies": [
+    "preschool_branch_access(uuid,uuid,uuid,text)",
+    "preschool_course_assignment_visible(uuid,uuid,uuid)"
+  ],
+  "containment": {
+    "anonymousRelations": [
+      "edu_attendance",
+      "edu_courses",
+      "edu_daily_care_records",
+      "edu_daily_care_sessions",
+      "edu_enrollments",
+      "party_parties",
+      "party_relationships",
+      "tenants",
+      "users"
+    ],
+    "authenticatedTruncateRelations": [
+      "edu_attendance",
+      "edu_courses",
+      "edu_daily_care_records",
+      "edu_daily_care_sessions",
+      "edu_enrollments",
+      "org_units",
+      "party_parties",
+      "party_relationships",
+      "students",
+      "tenants"
+    ],
+    "notInOld32RelationAuthority": true
+  },
+  "heldModules": [
+    "Exact existing-table scoped RLS/column-ACL reconciliation with non-Preschool/HQ compatibility",
+    "New source-base integration/build acceptance",
+    "Backup/restore proof, approved protected storage/restore destination and RPO/RTO",
+    "Owner-confirmed live Course/branch and operating identities",
+    "Production execution/publication authorization and postdeploy monitoring"
+  ],
+  "studentUnconditionalPolicyRetainedInBaseline": [
+    {
+      "relation": "students",
+      "production": {
+        "name": "students_service_role",
+        "check": null,
+        "roles": [
+          "service_role"
+        ],
+        "using": "true",
+        "command": "ALL",
+        "relation": "students",
+        "permissive": "PERMISSIVE"
+      }
+    },
+    {
+      "relation": "students",
+      "production": {
+        "name": "students_tenant_isolation",
+        "check": null,
+        "roles": [
+          "public"
+        ],
+        "using": "(tenant_id = (( SELECT (auth.jwt() ->> 'tenant_id'::text)))::uuid)",
+        "command": "ALL",
+        "relation": "students",
+        "permissive": "PERMISSIVE"
+      }
+    },
+    {
+      "relation": "students",
+      "production": {
+        "name": "tenant_isolation_students",
+        "check": null,
+        "roles": [
+          "public"
+        ],
+        "using": "true",
+        "command": "ALL",
+        "relation": "students",
+        "permissive": "PERMISSIVE"
+      }
+    }
+  ],
+  "excludedSchemaChanges": [
+    "students legacy id/contact/finance columns and PK changes",
+    "audit_logs index (not automatically needed on Production)",
+    "timeline_events foreign keys",
+    "E2E-only enrollment event worker schema/history",
+    "Healthcare/Lab/T2"
+  ],
+  "productionMutation": "NOT_RUN",
+  "commitPushMergeDeploy": "NOT_RUN"
+}

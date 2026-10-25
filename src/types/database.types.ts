@@ -34385,6 +34385,34 @@ export type Database = {
       }
       current_tenant_id: { Args: never; Returns: string }
       current_user_role: { Args: never; Returns: string }
+      edu_preschool_enrollment_candidates: {
+        Args: { p_course_id: string; p_query: string; p_limit?: number; p_cursor?: string }
+        Returns: Json
+      }
+      edu_preschool_enroll_student: {
+        Args: { p_course_id: string; p_student_party_id: string; p_guardian_party_id: string; p_request_id: string }
+        Returns: Json
+      }
+      preschool_portal_issuer_context: {
+        Args: { p_course_id: string; p_student_party_id: string; p_guardian_party_id?: string }
+        Returns: Json
+      }
+      preschool_portal_daily_read: {
+        Args: { p_tenant_id: string; p_course_id: string; p_student_party_id: string; p_guardian_party_id: string }
+        Returns: Json
+      }
+      preschool_publish_school_announcement: {
+        Args: { p_request_id: string; p_title: string; p_body_text: string }
+        Returns: Json
+      }
+      preschool_list_school_announcements: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
+      preschool_portal_school_announcements_read: {
+        Args: { p_tenant_id: string }
+        Returns: Json
+      }
       edu_enroll_student_v3: {
         Args: {
           p_course_id: string

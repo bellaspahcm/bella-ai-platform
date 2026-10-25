@@ -31,6 +31,7 @@ import { paymentIntentStorageKey, parsePaymentIntent, preparePaymentIntent, type
 import type { FinanceBranchOption } from '@/products/bella-education/finance/services/preschool-finance-branch.contract';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import { useUser } from '@/lib/user-context';
 import {
   ArrowLeft,
   CircleDollarSign,
@@ -3332,6 +3333,17 @@ function FinancePageContent() {
 }
 
 export default function FinancePage() {
+  const { user, product, isLoading } = useUser();
+  if (isLoading) return <p role="status">Đang xác minh tài khoản…</p>;
+  if (!user?.tenant_id || !product) return <p role="alert">Không có quyền mở màn hình này.</p>;
+  if (product.productKey === 'bella_preschool') return (
+    <section className="p-6 space-y-4" aria-labelledby="held-workspace-heading">
+      <h1 id="held-workspace-heading" className="text-2xl font-bold">Tài chính</h1>
+      <p role="status" className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-amber-950 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-100">Chưa mở trong MVP Preschool</p>
+      <p className="text-sm text-slate-600 dark:text-slate-300">Hóa đơn, học phí và ghi nhận thanh toán chưa mở trong MVP Preschool. Không thể tạo hóa đơn, gửi yêu cầu thu hoặc ghi nhận khoản tiền từ màn hình này.</p>
+      <Link href="/dashboard/education/courses" className="inline-block font-semibold underline">Về danh sách lớp</Link>
+    </section>
+  );
   return (
     <Suspense
       fallback={

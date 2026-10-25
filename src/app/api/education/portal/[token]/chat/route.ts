@@ -36,7 +36,8 @@ export async function POST(
       );
     }
 
-    PreschoolParentPortalService.verifyPortalToken(token);
+    const claims = PreschoolParentPortalService.verifyPortalToken(token);
+    if (claims.scope === 'daily_read_v1') throw new ParentPortalAccessError(403, 'PORTAL_READ_ONLY');
     const supabase = await getOperationClient();
     const service = new PreschoolParentPortalService(supabase);
     await service.authorizePortalToken(token);

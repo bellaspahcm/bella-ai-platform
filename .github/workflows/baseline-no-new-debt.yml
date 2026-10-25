@@ -39,6 +39,38 @@ jobs:
             echo "exists=false" >> $GITHUB_OUTPUT
             echo "⚠️  Baseline not found (bootstrap scenario)"
           fi
+
+      - name: Detect Education database suites
+        id: education_fixture
+        if: steps.baseline_check.outputs.exists == 'true'
+        run: |
+          if [ "$GITHUB_EVENT_NAME" = 'pull_request' ]; then
+            changed="$(git diff --name-only origin/main...HEAD -- \
+              src/platform/education/__tests__/verification-gates.test.ts \
+              src/platform/education/__tests__/course-contract-real-db.integration.test.ts \
+              src/platform/education/__tests__/kernel-invariants.integration.test.ts)"
+          else
+            changed="$(git diff --name-only HEAD^ HEAD -- \
+              src/platform/education/__tests__/verification-gates.test.ts \
+              src/platform/education/__tests__/course-contract-real-db.integration.test.ts \
+              src/platform/education/__tests__/kernel-invariants.integration.test.ts)"
+          fi
+          if [ -n "$changed" ]; then
+            echo 'needed=true' >> "$GITHUB_OUTPUT"
+            echo "suites=$(printf '%s\n' "$changed" | tr '\n' ',')" >> "$GITHUB_OUTPUT"
+          else
+            echo 'needed=false' >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Install Supabase CLI for disposable Education fixture
+        if: steps.education_fixture.outputs.needed == 'true'
+        uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359
+        with:
+          version: 2.115.0
+
+      - name: Prepare disposable Education database
+        if: steps.education_fixture.outputs.needed == 'true'
+        run: bash scripts/ci/preschool-t1-fixture.sh prepare
       
       - name: Download pre-collected TypeScript diagnostics
         if: steps.baseline_check.outputs.exists == 'true'
@@ -50,6 +82,9 @@ jobs:
 
       - name: Collect diagnostic artifacts (Single Producer)
         if: steps.baseline_check.outputs.exists == 'true'
+        env:
+          BELLA_T1_ENV_REQUIRED: ${{ steps.education_fixture.outputs.needed }}
+          BELLA_T1_EXPECTED_SUITES: ${{ steps.education_fixture.outputs.suites }}
         run: |
           TS_ARG=""
           if [ -f .cache/tsbuildinfo/full.diagnostics.txt ]; then
@@ -71,6 +106,28 @@ jobs:
             --artifacts-dir ./artifacts \
             --pr-base $PR_BASE_SHA \
             --pr-head $PR_HEAD_SHA
+
+      - name: Verify disposable Education fixture receipts
+        if: always() && steps.education_fixture.outputs.needed == 'true'
+        env:
+          T1_EXPECTED_SUITES: ${{ steps.education_fixture.outputs.suites }}
+        run: bash scripts/ci/preschool-t1-fixture.sh verify
+
+      - name: Dispose only the owned Education database
+        if: always() && steps.education_fixture.outputs.needed == 'true'
+        run: bash scripts/ci/preschool-t1-fixture.sh dispose
+
+      - name: Upload synthetic Education fixture receipts
+        if: always() && steps.education_fixture.outputs.needed == 'true'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: preschool-education-t1-receipts
+          path: |
+            ${{ runner.temp }}/bella-preschool-t1-20261022/receipts/*.json
+            ${{ runner.temp }}/bella-preschool-t1-20261022/fixture-manifest.json
+            ${{ runner.temp }}/bella-preschool-t1-20261022/owner-marker.json
+          if-no-files-found: warn
+          retention-days: 7
       
       - name: Skip baseline check (bootstrap)
         if: steps.baseline_check.outputs.exists == 'false'
@@ -85,7 +142,7 @@ jobs:
       
       - name: Upload comparison report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: baseline-comparison-report
           path: baseline-comparison-report.txt

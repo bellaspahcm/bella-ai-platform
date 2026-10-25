@@ -5,7 +5,7 @@
  * Verifies:
  * 1. Cryptographic Magic Token generation, verification, and tamper rejection.
  * 2. Guardian Authorization Assertion against `party_relationships`.
- * 3. 7 Canonical Pillars Aggregation (Headcount, Daily care, Menu, Routine, Tuition, Chat).
+ * 3. Canonical Parent Portal reads and honest unavailable states.
  * 4. Bidirectional Chat Message persistence to `edu_comm_responses`.
  * 5. Multi-tenant isolation invariant.
  */
@@ -43,7 +43,8 @@ class FakeQueryBuilder {
 
   constructor(
     private readonly db: FakeDb,
-    private readonly table: FakeTable
+    private readonly table: FakeTable,
+    private readonly failedTables: ReadonlySet<FakeTable>
   ) {}
 
   select(_cols?: string, options?: { count?: string; head?: boolean }): FakeQueryBuilder {
@@ -103,11 +104,13 @@ class FakeQueryBuilder {
   }
 
   async maybeSingle() {
+    if (this.failedTables.has(this.table)) return { data: null, error: { message: 'synthetic query failure' } };
     const rows = this.matchRows();
     return { data: rows[0] ?? null, error: null };
   }
 
   async single() {
+    if (this.failedTables.has(this.table)) return { data: null, error: { message: 'synthetic query failure' } };
     const rows = this.matchRows();
     return rows[0]
       ? { data: rows[0], error: null }
@@ -115,14 +118,14 @@ class FakeQueryBuilder {
   }
 
   then<TResult1 = { data: Array<Record<string, unknown>> | null; count?: number; error: null }, TResult2 = never>(
-    onfulfilled?: ((value: { data: Array<Record<string, unknown>>; count: number; error: null }) => TResult1 | PromiseLike<TResult1>) | null,
+    onfulfilled?: ((value: { data: Array<Record<string, unknown>> | null; count: number; error: { message: string } | null }) => TResult1 | PromiseLike<TResult1>) | null,
     onrejected?: ((reason: unknown) => TResult2 | PromiseLike<TResult2>) | null
   ): Promise<TResult1 | TResult2> {
     const rows = this.matchRows();
     const result = {
-      data: rows,
+      data: this.failedTables.has(this.table) ? null : rows,
       count: rows.length,
-      error: null,
+      error: this.failedTables.has(this.table) ? { message: 'synthetic query failure' } : null,
     };
     return Promise.resolve(result).then(onfulfilled, onrejected);
   }
@@ -151,7 +154,8 @@ class FakeQueryBuilder {
   }
 }
 
-function createFakeClient(): { client: SupabaseClient; db: FakeDb } {
+function createFakeClient(): { client: SupabaseClient; db: FakeDb; fail: (table: FakeTable) => void } {
+  const failedTables = new Set<FakeTable>();
   const db: FakeDb = {
     tenants: [],
     party_parties: [],
@@ -172,10 +176,10 @@ function createFakeClient(): { client: SupabaseClient; db: FakeDb } {
   };
 
   const client = {
-    from: (table: FakeTable) => new FakeQueryBuilder(db, table),
+    from: (table: FakeTable) => new FakeQueryBuilder(db, table, failedTables),
   } as unknown as SupabaseClient;
 
-  return { client, db };
+  return { client, db, fail: (table) => { failedTables.add(table); } };
 }
 
 describe('PreschoolParentPortalService', () => {
@@ -349,6 +353,8 @@ describe('PreschoolParentPortalService', () => {
       // Child's own attendance
       expect(payload.todayAttendance.status).toBe('present');
       expect(payload.todayAttendance.rollCallTime).toBe('07:35');
+      expect(payload.chatMessages).toEqual([]);
+      expect(fake.db.edu_comm_threads).toHaveLength(0);
     });
 
     it('rejects access if guardian relationship is not in DB', async () => {
@@ -364,7 +370,7 @@ describe('PreschoolParentPortalService', () => {
       );
     });
 
-    it('includes default timetable, daily care, and tuition VietQR details', async () => {
+    it('does not fabricate timetable, daily-care, menu, or tuition data when canonical rows are absent', async () => {
       const token = PreschoolParentPortalService.generatePortalToken({
         tenantId: TENANT_ID,
         guardianPartyId: GUARDIAN_PARTY_ID,
@@ -373,15 +379,13 @@ describe('PreschoolParentPortalService', () => {
 
       const payload = await service.getParentPortalPayload(token);
 
-      expect(payload.dailyTimetable.length).toBeGreaterThan(5);
-      expect(payload.dailyCare).not.toBeNull();
-      expect(payload.dailyCare?.healthChecks.temperature).toBeDefined();
-
-      expect(payload.tuition).not.toBeNull();
-      expect(payload.tuition?.vietQrPayload?.qrUrl).toContain('vietqr.io');
+      expect(payload.dailyTimetable).toEqual([]);
+      expect(payload.dailyCare).toBeNull();
+      expect(payload.weeklyMenu).toBeNull();
+      expect(payload.tuition).toBeNull();
     });
 
-    it('populates aiDailyDigest with title, digest, highlights, and moodEmoji', async () => {
+    it('does not derive a daily digest without date-bound care records', async () => {
       const token = PreschoolParentPortalService.generatePortalToken({
         tenantId: TENANT_ID,
         guardianPartyId: GUARDIAN_PARTY_ID,
@@ -390,15 +394,36 @@ describe('PreschoolParentPortalService', () => {
 
       const payload = await service.getParentPortalPayload(token);
 
-      // aiDailyDigest must be present when dailyCare is available
-      expect(payload.aiDailyDigest).not.toBeNull();
-      expect(typeof payload.aiDailyDigest?.title).toBe('string');
-      expect(payload.aiDailyDigest?.title.length).toBeGreaterThan(5);
-      expect(typeof payload.aiDailyDigest?.digest).toBe('string');
-      expect(Array.isArray(payload.aiDailyDigest?.highlights)).toBe(true);
-      expect((payload.aiDailyDigest?.highlights.length ?? 0)).toBeGreaterThanOrEqual(3);
-      expect(typeof payload.aiDailyDigest?.teacherMoodEmoji).toBe('string');
-      expect(typeof payload.aiDailyDigest?.generatedAt).toBe('string');
+      expect(payload.aiDailyDigest).toBeNull();
+    });
+
+    it('does not convert incomplete invoice amounts into a fabricated zero balance', async () => {
+      fake.db.edu_invoices.push({
+        id: 'invoice-incomplete', tenant_id: TENANT_ID, student_party_id: STUDENT_PARTY_ID,
+        invoice_code: 'INV-REAL', total_amount: null, paid_amount: null,
+      });
+      const token = PreschoolParentPortalService.generatePortalToken({
+        tenantId: TENANT_ID,
+        guardianPartyId: GUARDIAN_PARTY_ID,
+        studentPartyId: STUDENT_PARTY_ID,
+      });
+
+      await expect(service.getParentPortalPayload(token)).rejects.toMatchObject({
+        status: 503, code: 'PORTAL_INVOICE_TOTAL_UNAVAILABLE',
+      });
+    });
+
+    it('fails unavailable when a canonical read query errors and does not create a chat thread during GET', async () => {
+      fake.fail('edu_attendance_daily_state');
+      const token = PreschoolParentPortalService.generatePortalToken({
+        tenantId: TENANT_ID,
+        guardianPartyId: GUARDIAN_PARTY_ID,
+        studentPartyId: STUDENT_PARTY_ID,
+      });
+
+      await expect(service.getParentPortalPayload(token)).rejects.toThrow('PORTAL_DATA_UNAVAILABLE');
+      expect(fake.db.edu_comm_threads).toHaveLength(0);
+      expect(fake.db.edu_comm_responses).toHaveLength(0);
     });
   });
 

@@ -4,8 +4,12 @@ import React from 'react';
 import { jest } from '@jest/globals';
 import '@testing-library/jest-dom';
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
-import FinancePage, { type FinanceStateResponse, type FinanceCommandResponse, type FinanceStudentOption } from '../page';
+import type { FinanceStateResponse, FinanceCommandResponse, FinanceStudentOption } from '../page';
 import type { BillingPeriod, Invoice } from '@/products/bella-education/finance/domain/finance.types';
+
+// Existing UI regression contract for other products; Preschool containment is tested separately.
+jest.mock('@/lib/user-context', () => ({ useUser: () => ({ user: { id: 'synthetic-user', tenant_id: 'synthetic-tenant' }, product: { productKey: 'bella_english_center' }, isLoading: false }) }));
+const FinancePage = jest.requireActual<typeof import('../page')>('../page').default;
 
 // UI contract only: synthetic HTTP DTOs prove display/request behavior, never DB/auth/RLS.
 const studentA: FinanceStudentOption = { enrollmentId: 'enrollment-a', courseId: 'course-a', studentPartyId: 'party-a', studentId: 'student-a', studentCode: 'SYN-A', displayName: 'Synthetic Alpha' };

@@ -51,6 +51,7 @@ function errorStatus(error: unknown): number {
   const message = error instanceof Error ? error.message : '';
   if (message.startsWith('FINANCE_UNAUTHENTICATED')) return 401;
   if (message.startsWith('AUTH_ROLE_PERMISSION_ERROR')) return 403;
+  if (message.startsWith('PRESCHOOL_FINANCE_NOT_READY') || message.startsWith('FINANCE_PRODUCT_UNAVAILABLE')) return 503;
   if (message.startsWith('FINANCE_OPERATION_CONFLICT') || message.startsWith('FINANCE_CANONICAL_CONFLICT')
       || message.startsWith('DUPLICATE_RECONCILIATION_ERROR')) return 409;
   if (error instanceof FinanceAtomicDatabaseError) {
@@ -68,7 +69,8 @@ function jsonError(error: unknown) {
   const message = error instanceof Error ? error.message : 'Finance operation failed';
   return NextResponse.json({ success: false, error: message,
     ...(error instanceof FinanceAtomicDatabaseError && error.paymentNotCommitted ? { paymentNotCommitted: true } : {}),
-  }, { status: errorStatus(error) });
+    ...(message === 'PRESCHOOL_FINANCE_NOT_READY' ? { code: message } : {}),
+  }, { status: errorStatus(error), headers: { 'Cache-Control': 'private, no-store' } });
 }
 
 async function resolveActor(operation: PreschoolFinanceOperation) {
@@ -76,11 +78,31 @@ async function resolveActor(operation: PreschoolFinanceOperation) {
   return resolvePreschoolFinanceActor(profile, operation);
 }
 
+async function resolveCallerFinanceClient(actorId: string, tenantId: string): Promise<FinanceServerClient> {
+  const client = await createClient();
+  const { data: authData, error: authError } = await client.auth.getUser();
+  if (authError || authData.user?.id !== actorId) {
+    throw new Error('FINANCE_UNAUTHENTICATED: Auth subject does not match the finance profile.');
+  }
+
+  const { data: tenant, error: tenantError } = await client
+    .from('tenants')
+    .select('id, status, product_key')
+    .eq('id', tenantId)
+    .maybeSingle();
+  if (tenantError || !tenant || tenant.id !== tenantId || tenant.status !== 'active') {
+    throw new Error('FINANCE_PRODUCT_UNAVAILABLE: Active canonical tenant context is required.');
+  }
+  if (tenant.product_key === 'bella_preschool') throw new Error('PRESCHOOL_FINANCE_NOT_READY');
+  return client;
+}
+
 export async function GET(request?: Request) {
   try {
     const actor = await resolveActor('read');
+    const callerClient = await resolveCallerFinanceClient(actor.actorId, actor.tenantId);
     const branchId = request ? new URL(request.url).searchParams.get('branchId')?.trim() || null : null;
-    const client = createAdminOperationClient() ?? await createClient();
+    const client = createAdminOperationClient() ?? callerClient;
     const state = await new PreschoolFinanceRepository(client).readBranchState(actor.tenantId, actor.actorId, branchId);
     return NextResponse.json({ success: true, ...state });
   } catch (error) { return jsonError(error); }
@@ -93,10 +115,11 @@ export async function POST(request: Request) {
     const operation: PreschoolFinanceOperation = action === 'recordAndReconcilePayment' ? 'reconcile-payment'
       : action === 'resolveException' ? 'resolve-exception' : action === 'completeTuitionServicePeriod' ? 'complete-service-period' : 'modify-invoice';
     const actor = await resolveActor(operation);
+    const callerClient = await resolveCallerFinanceClient(actor.actorId, actor.tenantId);
     const branchId = asString(body.branchId);
     if (!branchId) throw new Error('AUTH_ROLE_PERMISSION_ERROR: Explicit Finance branch selection required.');
     if (action === 'completeTuitionServicePeriod') throw new Error('AUTH_ROLE_PERMISSION_ERROR: Tenant-wide completion is unavailable in branch Finance.');
-    const client = createAdminOperationClient() ?? await createClient();
+    const client = createAdminOperationClient() ?? callerClient;
     const repo = new PreschoolFinanceRepository(client, { tenantId: actor.tenantId, actorId: actor.actorId, branchId });
 
     if (action === 'recordAndReconcilePayment') {

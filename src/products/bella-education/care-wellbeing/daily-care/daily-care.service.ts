@@ -11,6 +11,7 @@ import {
   IRecordBulkNapCommand,
 } from './daily-care.contract';
 import { AllergySafetyService } from '../health-profile/allergy-safety.service';
+import { AttendanceContractImpl } from '@/platform/education/contracts/attendance.contract.impl';
 
 const ROSTER_ENROLLMENT_STATUSES = ['active', 'pending'] as const;
 
@@ -232,7 +233,14 @@ export class DailyCareService implements IDailyCareContract {
     date: string,
   ): Promise<readonly DailyCareRosterItem[]> {
     await this.assertCourseBelongsToTenant(tenantId, courseId);
-    const enrollmentRows = await this.getCanonicalRoster(tenantId, courseId);
+    const tenant = await this.supabase.from('tenants').select('id, product_key').eq('id', tenantId).maybeSingle();
+    if (tenant.error || !tenant.data || tenant.data.id !== tenantId) throw new Error('CARE_PRODUCT_CONTEXT_UNAVAILABLE');
+    const preschoolRoster = tenant.data.product_key === 'bella_preschool'
+      ? await new AttendanceContractImpl(this.supabase).getCourseDailyAttendance({ tenantId, courseId, schoolDay: date })
+      : null;
+    const enrollmentRows: readonly EnrollmentRow[] = preschoolRoster
+      ? preschoolRoster.map(row => ({ id: row.enrollmentId, student_party_id: row.studentPartyId, status: row.enrollmentStatus }))
+      : await this.getCanonicalRoster(tenantId, courseId);
     if (enrollmentRows.length === 0) return [];
 
     const studentPartyIds = [...new Set(enrollmentRows.map((enrollment) => enrollment.student_party_id))];
@@ -243,16 +251,20 @@ export class DailyCareService implements IDailyCareContract {
       { data: parties, error: partyError },
       { data: records, error: recordError },
     ] = await Promise.all([
-      this.supabase
-        .from('students')
-        .select('party_id, student_code')
-        .eq('tenant_id', tenantId)
-        .in('party_id', studentPartyIds),
-      this.supabase
-        .from('party_parties')
-        .select('id, display_name, gender, dob')
-        .eq('tenant_id', tenantId)
-        .in('id', studentPartyIds),
+      preschoolRoster
+        ? Promise.resolve({ data: null, error: null })
+        : this.supabase
+          .from('students')
+          .select('party_id, student_code')
+          .eq('tenant_id', tenantId)
+          .in('party_id', studentPartyIds),
+      preschoolRoster
+        ? Promise.resolve({ data: null, error: null })
+        : this.supabase
+          .from('party_parties')
+          .select('id, display_name, gender, dob')
+          .eq('tenant_id', tenantId)
+          .in('id', studentPartyIds),
       sessionId
         ? this.supabase
           .from('edu_daily_care_records')
@@ -279,6 +291,7 @@ export class DailyCareService implements IDailyCareContract {
         .map((student) => [student.party_id as string, student]),
     );
     const partyById = new Map(((parties ?? []) as PartyRow[]).map((party) => [party.id, party]));
+    const preschoolByPartyId = new Map((preschoolRoster ?? []).map(row => [row.studentPartyId, row]));
     const careByPartyId = new Map(
       ((records ?? []) as CareRecordRow[])
         .filter((record) => record.student_party_id)
@@ -286,19 +299,21 @@ export class DailyCareService implements IDailyCareContract {
     );
 
     return enrollmentRows.map((enrollment) => {
+      const preschoolStudent = preschoolByPartyId.get(enrollment.student_party_id);
       const party = partyById.get(enrollment.student_party_id);
       const student = studentByPartyId.get(enrollment.student_party_id);
-      if (!party?.display_name) {
+      const name = preschoolStudent?.name ?? party?.display_name;
+      if (!name) {
         throw new Error(`CARE_CANONICAL_ROSTER_JOIN_FAILED: ${enrollment.student_party_id}`);
       }
 
       return {
         enrollmentId: enrollment.id,
         studentPartyId: enrollment.student_party_id,
-        studentCode: student?.student_code ?? null,
-        name: party.display_name,
-        gender: party.gender,
-        dob: party.dob,
+        studentCode: preschoolStudent?.studentCode ?? student?.student_code ?? null,
+        name,
+        gender: preschoolStudent?.gender ?? party?.gender ?? null,
+        dob: preschoolStudent?.dob ?? party?.dob ?? null,
         care: careByPartyId.get(enrollment.student_party_id) ?? null,
       };
     });

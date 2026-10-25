@@ -39,6 +39,8 @@ import {
   Loader2,
   RefreshCw,
 } from 'lucide-react';
+import { useUser } from '@/lib/user-context';
+import { parseAnalyticsResponse } from '@/products/bella-education/analytics/domain/analytics-response';
 import type { ExecutiveDashboardDTO } from '@/products/bella-education/analytics/domain/preschool-analytics.types';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -80,52 +82,17 @@ interface QuickReport {
   readonly color: string;
 }
 
-// ─── Static illustrative templates (Explicitly labeled as structural layout samples) ──
+interface AnalyticsBranch { readonly id: string; readonly name: string }
 
-const ILLUSTRATIVE_ATTENDANCE_TREND: readonly AttendanceTrendPoint[] = [
-  { month: 'Tháng 4', val: 95.2 },
-  { month: 'Tháng 5', val: 96.0 },
-  { month: 'Tháng 6', val: 94.8 },
-  { month: 'Tháng 7', val: 95.5 },
-  { month: 'Tháng 8', val: 95.7 },
-  { month: 'Tháng 9', val: null },
-] as const;
-
-const ILLUSTRATIVE_FINANCE_CHART: readonly FinanceTrendPoint[] = [
-  { month: 'Tháng 4', phaiThu: 2.0,  daThu: 1.88, conNo: 0.12 },
-  { month: 'Tháng 5', phaiThu: 2.0,  daThu: 1.92, conNo: 0.08 },
-  { month: 'Tháng 6', phaiThu: 2.0,  daThu: 1.85, conNo: 0.15 },
-  { month: 'Tháng 7', phaiThu: 2.0,  daThu: 1.80, conNo: 0.20 },
-  { month: 'Tháng 8', phaiThu: 2.05, daThu: 1.89, conNo: 0.16 },
-  { month: 'Tháng 9', phaiThu: 1.95, daThu: 1.89, conNo: 0.06 },
-] as const;
-
-const MONTHLY_EVENTS: readonly MonthlyEvent[] = [
-  { id: 'e1', title: 'Ngày hội Bé vui đến trường', detail: 'Hoạt động trải nghiệm đầu năm', date: '05/09' },
-  { id: 'e2', title: 'Khám sức khỏe định kỳ', detail: 'Theo dõi thể trạng học đường', date: '12/09' },
-  { id: 'e3', title: 'Hội thảo phụ huynh', detail: 'Trao đổi phương pháp giáo dục', date: '20/09' },
-  { id: 'e4', title: 'Hoạt động Trung thu', detail: 'Chương trình rước đèn toàn trường', date: '28/09' },
-] as const;
-
-const QUICK_REPORTS: readonly QuickReport[] = [
-  { id: 'r1', title: 'Báo cáo tổng hợp tháng 09/2026', updated: 'Cập nhật 01/10/2026', type: 'pdf',   color: 'bg-red-500' },
-  { id: 'r2', title: 'Tài liệu chuyên cần',             updated: 'Cập nhật 01/10/2026', type: 'excel', color: 'bg-emerald-500' },
-  { id: 'r3', title: 'Báo cáo học phí',                 updated: 'Cập nhật 01/10/2026', type: 'pdf',   color: 'bg-red-500' },
-  { id: 'r4', title: 'Báo cáo tăng trưởng theo WHO',    updated: 'Cập nhật 01/10/2026', type: 'excel', color: 'bg-emerald-500' },
-] as const;
+// Collections remain empty until canonical monthly, event, and export contracts exist.
+const ATTENDANCE_TREND: readonly AttendanceTrendPoint[] = [];
+const FINANCE_TREND: readonly FinanceTrendPoint[] = [];
+const MONTHLY_EVENTS: readonly MonthlyEvent[] = [];
+const QUICK_REPORTS: readonly QuickReport[] = [];
 
 // ─── Currency Formatter ──────────────────────────────────────────────────────
 
-function formatMetric(value: number | null): string {
-  return value === null ? 'Chưa xác minh' : value.toLocaleString('vi-VN');
-}
-
-function formatPercentage(value: number | null): string {
-  return value === null ? 'Chưa xác minh' : `${value}%`;
-}
-
-function formatVND(amount: number | null): string {
-  if (amount === null) return 'Chưa xác minh';
+function formatVND(amount: number): string {
   if (amount >= 1_000_000_000) {
     const b = amount / 1_000_000_000;
     return `${b.toLocaleString('vi-VN', { minimumFractionDigits: 1, maximumFractionDigits: 2 })} tỷ`;
@@ -139,13 +106,10 @@ function formatVND(amount: number | null): string {
 
 // ─── Helper Components ────────────────────────────────────────────────────────
 
-function ProgressBar({ pct, color }: { pct: number | null; color: string }) {
-  const boundedPct = pct === null ? 0 : Math.min(100, Math.max(0, isNaN(pct) ? 0 : pct));
+function ProgressBar({ pct, color }: { pct: number; color: string }) {
+  const boundedPct = Math.min(100, Math.max(0, isNaN(pct) ? 0 : pct));
   return (
-    <div
-      className="w-full h-1.5 rounded-full bg-slate-100 overflow-hidden"
-      aria-label={pct === null ? 'Chưa xác minh' : `${boundedPct}%`}
-    >
+    <div className="w-full h-1.5 rounded-full bg-slate-100 overflow-hidden">
       <div
         className={`h-full rounded-full ${color} transition-all duration-700`}
         style={{ width: `${boundedPct}%` }}
@@ -315,9 +279,16 @@ function FinanceBarChart({ data }: { data: readonly FinanceTrendPoint[] }) {
 
 // ─── Main Page Component ──────────────────────────────────────────────────────
 export default function ReportsPage() {
+  const { user, product, isLoading } = useUser();
+  if (isLoading) return <p role="status">Đang xác minh tài khoản…</p>;
+  if (!user?.tenant_id || product?.productKey !== 'bella_preschool') return <p role="alert">Không có quyền xem Báo cáo Preschool.</p>;
+  return <PreschoolReports key={`${user.id}:${user.tenant_id}`} tenantId={user.tenant_id} />;
+}
+
+function PreschoolReports({ tenantId }: { tenantId: string }) {
   const [activeTab, setActiveTab] = useState<ReportTab>('overview');
-  const [selectedPeriod, setSelectedPeriod] = useState('Tháng 09/2026');
-  const [selectedDate, setSelectedDate] = useState('2026-10-19');
+  const [selectedPeriod, setSelectedPeriod] = useState('');
+  const [selectedDate, setSelectedDate] = useState(() => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }).format(new Date()));
   const [unavailableOutputs, setUnavailableOutputs] = useState<readonly string[]>([]);
   const [lastOutput, setLastOutput] = useState<{ id: string } | null>(null);
 
@@ -325,6 +296,9 @@ export default function ReportsPage() {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [apiError, setApiError] = useState<string | null>(null);
   const [dashboard, setDashboard] = useState<ExecutiveDashboardDTO | null>(null);
+  const [branches, setBranches] = useState<readonly AnalyticsBranch[]>([]);
+  const [selectedBranchId, setSelectedBranchId] = useState<string | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   // Fetch from canonical API
   useEffect(() => {
@@ -332,22 +306,24 @@ export default function ReportsPage() {
     async function fetchCanonicalAnalytics() {
       setIsLoading(true);
       setApiError(null);
+      setDashboard(null);
       try {
         if (typeof fetch === 'undefined') {
           setIsLoading(false);
           return;
         }
-        const res = await fetch(`/api/education/analytics?date=${encodeURIComponent(selectedDate)}`);
+        const params = new URLSearchParams({ date: selectedDate });
+        if (selectedBranchId) params.set('branchId', selectedBranchId);
+        const res = await fetch(`/api/education/analytics?${params.toString()}`);
         if (!res.ok) {
-          throw new Error(`HTTP_${res.status}: ${res.statusText || 'Lỗi kết nối máy chủ'}`);
+          const failure: { error?: string } = await res.json().catch(() => ({}));
+          throw new Error(failure.error || `HTTP_${res.status}: ${res.statusText || 'Lỗi kết nối máy chủ'}`);
         }
-        const body: { success?: boolean; dashboard?: ExecutiveDashboardDTO; error?: string } = await res.json();
+        const body = parseAnalyticsResponse(await res.json(), tenantId, selectedBranchId);
         if (!isMounted) return;
-        if (body.success && body.dashboard) {
-          setDashboard(body.dashboard);
-        } else {
-          throw new Error(body.error || 'Dữ liệu báo cáo không hợp lệ');
-        }
+        setBranches(body.branches);
+        setSelectedBranchId(body.selectedBranchId);
+        setDashboard(body.dashboard);
       } catch (err: unknown) {
         if (!isMounted) return;
         const msg = err instanceof Error ? err.message : String(err);
@@ -362,7 +338,7 @@ export default function ReportsPage() {
 
     fetchCanonicalAnalytics();
     return () => { isMounted = false; };
-  }, [selectedDate]);
+  }, [selectedDate, selectedBranchId, refreshKey, tenantId]);
 
   function showUnavailableOutput(id: string) {
     setUnavailableOutputs(current => current.includes(id) ? current : [...current, id]);
@@ -404,6 +380,8 @@ export default function ReportsPage() {
   const overdueCount = dashboard?.finance.overdueAccountsCount ?? null;
   const financePct = invoicedGross !== null && reconciledCollected !== null && invoicedGross > 0
     ? Math.round((reconciledCollected / invoicedGross) * 100) : null;
+  const reportValue = (value: number | null, suffix = ''): string => isLoading ? '...' : value === null ? '—' : `${value}${suffix}`;
+  const reportCurrency = (value: number | null): string => isLoading ? '...' : value === null ? '—' : formatVND(value);
 
   const classrooms = dashboard?.enrollment.classroomUtilization ?? [];
 
@@ -418,18 +396,8 @@ export default function ReportsPage() {
       count: overdueCount,
     });
   }
-  const activeIncidents = dashboard?.careAndSafety.activeHealthIncidents ?? 0;
-  if (activeIncidents > 0) {
-    operationalIssues.push({
-      id: 'issue-health',
-      level: 'Cao',
-      title: 'Sự cố y tế / sức khỏe đang theo dõi',
-      desc: 'Theo dõi y tế học đường (P4)',
-      count: activeIncidents,
-    });
-  }
-  const unmarkedCount = dashboard?.commandCenter?.unmarkedAttendanceCount ?? 0;
-  if (unmarkedCount > 0) {
+  const unmarkedCount = dashboard?.commandCenter?.unmarkedAttendanceCount ?? null;
+  if (unmarkedCount !== null && unmarkedCount > 0) {
     operationalIssues.push({
       id: 'issue-unmarked',
       level: 'Trung bình',
@@ -438,18 +406,7 @@ export default function ReportsPage() {
       count: unmarkedCount,
     });
   }
-  const unackNotices = dashboard?.parentEngagement.unacknowledgedNotices ?? 0;
-  if (unackNotices > 0) {
-    operationalIssues.push({
-      id: 'issue-notices',
-      level: 'Thấp',
-      title: 'Thông báo chưa được phụ huynh xác nhận',
-      desc: 'Yêu cầu phụ huynh phản hồi (P6)',
-      count: unackNotices,
-    });
-  }
-
-  const isTenantEmpty = dashboard !== null && totalEnrolled === 0 && invoicedGross === 0;
+  const unackNotices = dashboard?.parentEngagement.unacknowledgedNotices ?? null;
 
   return (
     <div className="preschool-ui w-full p-4 sm:p-6 lg:p-8 space-y-6 pb-16 bg-[#F5F7F9] min-h-screen">
@@ -493,23 +450,21 @@ export default function ReportsPage() {
                   type="date"
                   aria-label="Ngày báo cáo dữ liệu thực tế"
                   value={selectedDate}
-                  onChange={(e) => setSelectedDate(e.target.value)}
-                  className="bg-transparent text-xs font-bold text-emerald-900 focus:outline-none cursor-pointer"
+                  readOnly
+                  className="bg-transparent text-xs font-bold text-emerald-900 focus:outline-none"
                 />
               </div>
 
-              {/* Illustrative period selector */}
+              {/* Period report selector remains empty until a period contract exists. */}
               <div className="flex items-center gap-1.5 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-bold text-slate-700">
                 <select
-                  aria-label="Chọn kỳ minh họa"
+                  aria-label="Chọn kỳ báo cáo"
                   aria-describedby="reports-period-note"
                   value={selectedPeriod}
                   onChange={(e) => setSelectedPeriod(e.target.value)}
                   className="appearance-none bg-transparent text-xs font-bold text-slate-700 focus:outline-none cursor-pointer"
                 >
-                  <option>Tháng 09/2026</option>
-                  <option>Tháng 08/2026</option>
-                  <option>Học kỳ I (2026-2027)</option>
+              <option value="">Chưa có kỳ báo cáo</option>
                 </select>
               </div>
 
@@ -531,14 +486,14 @@ export default function ReportsPage() {
             )}
 
             <p id="reports-period-note" className="text-[11px] leading-relaxed text-slate-600 text-right">
-              Chỉ đổi lựa chọn kỳ: {selectedPeriod}; dữ liệu minh họa không được tải lại. Dữ liệu thực tế đồng bộ theo ngày: {selectedDate}.
+              {selectedPeriod ? `Kỳ báo cáo: ${selectedPeriod}. ` : ''}Số liệu hiện có chỉ lấy theo ngày: {selectedDate}; chưa có API báo cáo theo kỳ.
             </p>
           </div>
         </div>
 
         {/* Global Transparency Note */}
-        <p role="note" className="rounded-2xl border border-slate-200 bg-slate-50 p-3 text-xs leading-relaxed text-slate-900 dark:text-slate-100">
-          Dữ liệu minh họa: KPI, biểu đồ, phân tích AI, hoạt động và tài liệu chưa có nguồn chuẩn (WHO, CSAT, chuỗi tháng) là nội dung mẫu, chưa tải từ dữ liệu thật. Chỉ số chuyên cần và tài chính lũy kế kết nối API theo ngày {selectedDate}.
+            <p role="note" className="rounded-2xl border border-slate-200 bg-slate-50 p-3 text-xs leading-relaxed text-slate-900 dark:text-slate-100">
+          Chỉ số vận hành chỉ hiển thị khi API trả dữ liệu hợp lệ. Báo cáo theo tháng, danh sách hoạt động, tài liệu tải xuống, WHO/CSAT và phân tích AI chưa có nguồn dữ liệu hoặc contract xác nhận.
         </p>
 
         {/* API Error State Banner */}
@@ -548,12 +503,12 @@ export default function ReportsPage() {
             <div className="flex-1">
               <strong className="font-bold">Lỗi tải dữ liệu API:</strong> {apiError}
               <p className="text-[11px] text-rose-600 mt-0.5">
-                Vui lòng kiểm tra quyền xác thực tenant hoặc kết nối máy chủ.
+                Không có dữ liệu nào được thay thế bằng mẫu hoặc giá trị mặc định.
               </p>
             </div>
             <button
               type="button"
-              onClick={() => setSelectedDate(curr => curr)}
+              onClick={() => setRefreshKey(value => value + 1)}
               className="inline-flex items-center gap-1 text-[11px] font-bold text-rose-700 underline cursor-pointer"
             >
               <RefreshCw className="w-3 h-3" /> Thử lại
@@ -561,14 +516,17 @@ export default function ReportsPage() {
           </div>
         )}
 
-        {/* Tenant Empty State Banner */}
-        {isTenantEmpty && !isLoading && !apiError && (
-          <div role="status" className="flex items-center gap-3 p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-800 text-xs">
-            <Info className="w-4 h-4 text-amber-600 shrink-0" />
-            <div>
-              <strong className="font-bold">Tenant chưa có dữ liệu vận hành:</strong> Không tìm thấy hồ sơ ghi danh hoặc chứng từ tài chính trong kỳ này.
-            </div>
-          </div>
+        {branches.length > 1 && (
+          <label className="flex items-center gap-2 text-sm font-semibold text-slate-700">
+            Cơ sở
+            <select aria-label="Chọn cơ sở báo cáo" value={selectedBranchId ?? ''} onChange={(event) => { setDashboard(null); setSelectedBranchId(event.target.value || null); }} className="rounded-xl border border-slate-200 bg-white px-3 py-2">
+              <option value="">Chọn cơ sở</option>
+              {branches.map((branch) => <option key={branch.id} value={branch.id}>{branch.name}</option>)}
+            </select>
+          </label>
+        )}
+        {!isLoading && !apiError && branches.length > 1 && !selectedBranchId && (
+          <p role="status" className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm text-slate-700">Chọn cơ sở để xem roster và điểm danh trong phạm vi được cấp.</p>
         )}
 
         {/* ── 4 KPI CARDS ── */}
@@ -592,17 +550,17 @@ export default function ReportsPage() {
                   <span className="text-xs">Đang tải...</span>
                 </div>
               ) : (
-                <p className="text-2xl font-extrabold text-slate-900 dark:text-slate-100">{formatPercentage(attendanceRate)}</p>
+                <p className="text-2xl font-extrabold text-slate-900 dark:text-slate-100">{reportValue(attendanceRate, '%')}</p>
               )}
               <p className="text-[10px] text-slate-400 mt-0.5">Ngày ghi nhận: {selectedDate}</p>
             </div>
-            <ProgressBar pct={attendanceRate} color="bg-emerald-500" />
+            {attendanceRate !== null && <ProgressBar pct={attendanceRate} color="bg-emerald-500" />}
             <p className="text-[11px] text-slate-500">
               {isLoading ? (
                 'Đang kiểm tra sĩ số...'
               ) : (
                 <>
-                  Có mặt: <strong className="text-slate-800">{formatMetric(presentCount)} / {formatMetric(totalEnrolled)} trẻ</strong>
+                  Có mặt: <strong className="text-slate-800">{presentCount === null || totalEnrolled === null ? '—' : `${presentCount} / ${totalEnrolled} trẻ`}</strong>
                   {lateCount !== null && lateCount > 0 && <span className="text-amber-600 ml-1">({lateCount} muộn)</span>}
                   {absentCount !== null && absentCount > 0 && <span className="text-slate-400 ml-1">({absentCount} vắng)</span>}
                 </>
@@ -650,20 +608,20 @@ export default function ReportsPage() {
                 </div>
               ) : (
                 <p className="text-2xl font-extrabold text-slate-900 dark:text-slate-100">
-                  {formatVND(reconciledCollected)}
+                  {reportCurrency(reconciledCollected)}
                 </p>
               )}
               <p className="text-[10px] text-slate-400 mt-0.5">Toàn trường (chưa lọc theo tháng)</p>
             </div>
-            <ProgressBar pct={financePct} color="bg-rose-500" />
+            {financePct !== null && <ProgressBar pct={financePct} color="bg-rose-500" />}
             <p className="text-[11px] text-slate-500">
               {isLoading ? (
                 'Đang tính sổ nợ...'
               ) : (
                 <>
-                  Phải thu: <strong className="text-slate-700">{formatVND(invoicedGross)}</strong>
+                  Phải thu: <strong className="text-slate-700">{reportCurrency(invoicedGross)}</strong>
                   &nbsp;•&nbsp;
-                  <strong className="text-rose-600">Còn nợ: {formatVND(outstandingBalance)}</strong>
+                  <strong className="text-rose-600">Còn nợ: {reportCurrency(outstandingBalance)}</strong>
                 </>
               )}
             </p>
@@ -719,11 +677,11 @@ export default function ReportsPage() {
             <div className="flex items-center justify-between">
               <span className="font-extrabold text-sm text-[#172B38] flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-emerald-500" />
-                Gợi ý AI minh họa
+                Phân tích AI
               </span>
               <button
                 type="button"
-                aria-label="Xem chi tiết: Gợi ý AI minh họa"
+                aria-label="Xem chi tiết: Phân tích AI"
                 aria-describedby={unavailableOutputs.includes('reports-ai-details-status') ? 'reports-ai-details-status' : undefined}
                 onClick={() => showUnavailableOutput('reports-ai-details-status')}
                 className="inline-flex items-center gap-1 text-xs font-bold text-emerald-600 hover:text-emerald-700 transition-colors cursor-pointer">
@@ -732,66 +690,13 @@ export default function ReportsPage() {
             </div>
             {unavailableOutputs.includes('reports-ai-details-status') && (
               <p id="reports-ai-details-status" role="status" className="scroll-my-3 text-xs leading-relaxed text-slate-900 dark:text-slate-100">
-                Chưa có chi tiết AI bổ sung trong bản xem trước; các gợi ý đang hiển thị là ví dụ minh họa.
+                Chưa có kết quả phân tích AI.
               </p>
             )}
 
-            <p className="text-xs leading-relaxed text-slate-900 dark:text-slate-100">
-              Các nhận định mẫu dưới đây chưa phải kết quả phân tích AI từ hồ sơ thật; dữ liệu chuyên cần và tài chính phản ánh theo ngày báo cáo thực tế.
+            <p className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-xs text-slate-600" role="status">
+              Chưa có contract phân tích AI được duyệt. Không hiển thị nhận định suy diễn từ số liệu vận hành.
             </p>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-              {/* Insight 1: Ổn định */}
-              <div className="flex items-start gap-3 p-4 rounded-2xl bg-emerald-50/80 border border-emerald-200/60">
-                <div className="p-1.5 rounded-xl bg-emerald-100 shrink-0">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                </div>
-                <div>
-                  <p className="text-xs font-extrabold text-emerald-800 mb-1">Tình hình chuyên cần</p>
-                  <p className="text-[11px] text-emerald-700 leading-relaxed">
-                    {isLoading
-                      ? 'Đang đồng bộ số liệu điểm danh thực tế...'
-                      : totalEnrolled === null || attendanceRate === null || presentCount === null
-                      ? 'Chưa xác minh được số liệu chuyên cần cho ngày đã chọn.'
-                      : totalEnrolled > 0
-                      ? `Tỷ lệ chuyên cần ngày ${selectedDate} đạt ${attendanceRate}% (${presentCount}/${totalEnrolled} trẻ có mặt).`
-                      : 'Chưa có ghi nhận trẻ đi học trong ngày được chọn.'}
-                  </p>
-                </div>
-              </div>
-
-              {/* Insight 2: Cần theo dõi */}
-              <div className="flex items-start gap-3 p-4 rounded-2xl bg-amber-50/80 border border-amber-200/60">
-                <div className="p-1.5 rounded-xl bg-amber-100 shrink-0">
-                  <AlertCircle className="w-4 h-4 text-amber-600" />
-                </div>
-                <div>
-                  <p className="text-xs font-extrabold text-amber-800 mb-1">Theo dõi tài chính &amp; y tế</p>
-                  <p className="text-[11px] text-amber-700 leading-relaxed">
-                    {isLoading
-                      ? 'Đang kiểm tra hóa đơn quá hạn...'
-                      : overdueCount === null || outstandingBalance === null
-                      ? 'Chưa xác minh được số liệu công nợ trong hệ thống.'
-                      : overdueCount > 0
-                      ? `Có ${overdueCount} tài khoản quá hạn thanh toán. Còn nợ lũy kế: ${formatVND(outstandingBalance)}.`
-                      : 'Không có khoản nợ quá hạn ghi nhận trong hệ thống.'}
-                  </p>
-                </div>
-              </div>
-
-              {/* Insight 3: Cơ hội cải thiện */}
-              <div className="flex items-start gap-3 p-4 rounded-2xl bg-sky-50/80 border border-sky-200/60">
-                <div className="p-1.5 rounded-xl bg-sky-100 shrink-0">
-                  <Info className="w-4 h-4 text-sky-600" />
-                </div>
-                <div>
-                  <p className="text-xs font-extrabold text-sky-800 mb-1">Cơ hội cải thiện</p>
-                  <p className="text-[11px] text-sky-700 leading-relaxed">
-                    Module WHO và CSAT phụ huynh hiện chưa có dữ liệu chuẩn. Cần hoàn thiện tích hợp nghiệp vụ trước khi báo cáo kết quả tổng hợp.
-                  </p>
-                </div>
-              </div>
-            </div>
           </div>
 
           {/* Charts row (Clearly labeled as structural visual illustration) */}
@@ -803,27 +708,14 @@ export default function ReportsPage() {
                 <div>
                   <h3 className="text-sm font-extrabold text-[#172B38] flex items-center gap-2">
                     <TrendingUp className="w-4 h-4 text-emerald-500" />
-                    Xu hướng chuyên cần 6 tháng (Minh họa cấu trúc)
+                    Xu hướng chuyên cần theo tháng
                   </h3>
                   <p className="text-[10px] text-slate-400 mt-0.5">
                     API hiện tại là dữ liệu ngày; chưa có API tổng hợp chuỗi tháng
                   </p>
                 </div>
-                <span className="text-[10px] font-semibold text-slate-400 bg-slate-100 px-2 py-1 rounded-xl">
-                  Minh họa
-                </span>
               </div>
-              <AttendanceLineChart data={ILLUSTRATIVE_ATTENDANCE_TREND} />
-              <div className="flex items-center gap-4 text-[10px] font-semibold text-slate-500">
-                <span className="flex items-center gap-1.5">
-                  <span className="w-4 h-0.5 bg-emerald-500 rounded inline-block" />
-                  Mẫu tỷ lệ chuyên cần
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <span className="w-3 h-3 rounded-full border-2 border-emerald-500 border-dashed inline-block" />
-                  Chưa có dữ liệu
-                </span>
-              </div>
+              {ATTENDANCE_TREND.length ? <AttendanceLineChart data={ATTENDANCE_TREND} /> : <p role="status" className="py-10 text-center text-xs text-slate-500">Chưa có dữ liệu chuyên cần theo tháng.</p>}
             </div>
 
             {/* Finance Bar Chart */}
@@ -832,31 +724,14 @@ export default function ReportsPage() {
                 <div>
                   <h3 className="text-sm font-extrabold text-[#172B38] flex items-center gap-2">
                     <DollarSign className="w-4 h-4 text-emerald-500" />
-                    Thu học phí 6 tháng (Minh họa cấu trúc)
+                    Thu học phí theo tháng
                   </h3>
                   <p className="text-[10px] text-slate-400 mt-0.5">
                     Số liệu tài chính live là lũy kế; chưa phân bổ theo chu kỳ tháng
                   </p>
                 </div>
-                <span className="text-[10px] font-semibold text-slate-400 bg-slate-100 px-2 py-1 rounded-xl">
-                  Minh họa
-                </span>
               </div>
-              <FinanceBarChart data={ILLUSTRATIVE_FINANCE_CHART} />
-              <div className="flex items-center gap-4 text-[10px] font-semibold text-slate-500">
-                <span className="flex items-center gap-1.5">
-                  <span className="w-3 h-3 bg-slate-300 rounded inline-block" />
-                  Phải thu mẫu
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <span className="w-3 h-3 bg-emerald-500 rounded inline-block" />
-                  Đã thu mẫu
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <span className="w-3 h-3 bg-rose-500 rounded inline-block" />
-                  Còn nợ mẫu
-                </span>
-              </div>
+              {FINANCE_TREND.length ? <FinanceBarChart data={FINANCE_TREND} /> : <p role="status" className="py-10 text-center text-xs text-slate-500">Chưa có dữ liệu học phí phân bổ theo tháng.</p>}
             </div>
           </div>
 
@@ -919,8 +794,8 @@ export default function ReportsPage() {
                         <tr key={row.classId} className="hover:bg-slate-50 transition-colors">
                           <td className="py-2.5 font-bold text-[#172B38]">{row.className}</td>
                           <td className="py-2.5 text-right font-semibold text-slate-700">{row.currentEnrollment}</td>
-                          <td className="py-2.5 text-right text-slate-500">{row.maxCapacity}</td>
-                          <td className="py-2.5 text-right font-bold text-emerald-600">{row.utilizationRate}%</td>
+                          <td className="py-2.5 text-right text-slate-500">{row.maxCapacity ?? '—'}</td>
+                          <td className="py-2.5 text-right font-bold text-emerald-600">{row.utilizationRate === null ? '—' : `${row.utilizationRate}%`}</td>
                           <td className="py-2.5 text-right text-slate-400 italic">Chưa kết nối</td>
                         </tr>
                       ))
@@ -973,6 +848,8 @@ export default function ReportsPage() {
                           Đang tải các vấn đề vận hành...
                         </td>
                       </tr>
+                    ) : !dashboard ? (
+                      <tr><td colSpan={3} className="py-6 text-center text-slate-400">Chưa có dữ liệu để xác định vấn đề vận hành</td></tr>
                     ) : operationalIssues.length === 0 ? (
                       <tr>
                         <td colSpan={3} className="py-6 text-center text-slate-400">
@@ -1033,7 +910,7 @@ export default function ReportsPage() {
                 </p>
               )}
               <div className="space-y-3">
-                {MONTHLY_EVENTS.map((ev, i) => {
+                {MONTHLY_EVENTS.length === 0 ? <p role="status" className="text-xs text-slate-500">Chưa có danh sách hoạt động từ nguồn chuẩn.</p> : MONTHLY_EVENTS.map((ev, i) => {
                   const colors = ['bg-emerald-100 text-emerald-700', 'bg-sky-100 text-sky-700', 'bg-amber-100 text-amber-700', 'bg-rose-100 text-rose-700'];
                   return (
                     <div key={ev.id} className="flex items-center gap-3">
@@ -1056,18 +933,18 @@ export default function ReportsPage() {
               <div className="flex items-center justify-between">
                 <h3 className="text-sm font-extrabold text-[#172B38] flex items-center gap-2">
                   <FileSpreadsheet className="w-4 h-4 text-emerald-500" />
-                  Tài liệu &amp; Báo cáo nhanh (minh họa)
+                  Tài liệu &amp; Báo cáo nhanh
                 </h3>
                 <button
                   type="button"
-                  aria-label="Xem tất cả: Tài liệu & Báo cáo nhanh (minh họa)"
+                  aria-label="Xem tất cả: Tài liệu & Báo cáo nhanh"
                   onClick={showDetailReports}
                   className="inline-flex items-center gap-1 text-xs font-bold text-emerald-600 hover:text-emerald-700 transition-colors cursor-pointer">
                   Xem tất cả <ChevronRight className="w-3.5 h-3.5" />
                 </button>
               </div>
               <div className="space-y-3">
-                {QUICK_REPORTS.map((rep) => (
+                {QUICK_REPORTS.length === 0 ? <p role="status" className="text-xs text-slate-500">Chưa có tài liệu báo cáo được tạo.</p> : QUICK_REPORTS.map((rep) => (
                   <div key={rep.id} className="space-y-2">
                     <div className="flex items-center gap-3">
                       <div className={`w-9 h-9 rounded-2xl ${rep.color} flex items-center justify-center shrink-0 text-white`}>
@@ -1091,7 +968,7 @@ export default function ReportsPage() {
                     </div>
                     {unavailableOutputs.includes(`reports-quick-${rep.id}-status`) && (
                       <p id={`reports-quick-${rep.id}-status`} role="status" className="scroll-my-3 text-xs leading-relaxed text-slate-900 dark:text-slate-100">
-                        Chưa tải “{rep.title}”: tài liệu minh họa chưa có file tải xuống. Không có file được tạo.
+                        Chưa tải “{rep.title}”: tài liệu chưa có file tải xuống. Không có file được tạo.
                       </p>
                     )}
                   </div>
@@ -1118,41 +995,40 @@ export default function ReportsPage() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="p-5 rounded-2xl border border-slate-200 bg-slate-50 space-y-1">
               <p className="text-[11px] font-semibold text-slate-500">Tổng trẻ ghi danh</p>
-              <p className="text-2xl font-extrabold text-slate-800">{isLoading ? '...' : formatMetric(totalEnrolled)}</p>
+              <p className="text-2xl font-extrabold text-slate-800">{reportValue(totalEnrolled)}</p>
               <p className="text-[10px] text-slate-400">Từ edu_enrollments</p>
             </div>
             <div className="p-5 rounded-2xl border border-emerald-200 bg-emerald-50/60 space-y-1">
               <p className="text-[11px] font-semibold text-emerald-700">Có mặt hôm nay</p>
-              <p className="text-2xl font-extrabold text-emerald-600">{isLoading ? '...' : formatMetric(presentCount)}</p>
-              <p className="text-[10px] text-emerald-600">Trạng thái PRESENT / LATE</p>
+              <p className="text-2xl font-extrabold text-emerald-600">{reportValue(presentCount)}</p>
+              <p className="text-[10px] text-emerald-600">Trạng thái PRESENT</p>
             </div>
             <div className="p-5 rounded-2xl border border-amber-200 bg-amber-50/60 space-y-1">
               <p className="text-[11px] font-semibold text-amber-700">Đi muộn</p>
-              <p className="text-2xl font-extrabold text-amber-600">{isLoading ? '...' : formatMetric(lateCount)}</p>
-              <p className="text-[10px] text-amber-600">Trạng thái LATE</p>
+              <p className="text-2xl font-extrabold text-amber-600">{reportValue(lateCount)}</p>
+              <p className="text-[10px] text-amber-600">Chưa có trạng thái đi muộn trong contract điểm danh</p>
             </div>
             <div className="p-5 rounded-2xl border border-rose-200 bg-rose-50/60 space-y-1">
               <p className="text-[11px] font-semibold text-rose-700">Vắng mặt</p>
-              <p className="text-2xl font-extrabold text-rose-600">{isLoading ? '...' : formatMetric(absentCount)}</p>
+              <p className="text-2xl font-extrabold text-rose-600">{reportValue(absentCount)}</p>
               <p className="text-[10px] text-rose-600">Trạng thái ABSENT</p>
             </div>
           </div>
 
           <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
             <div className="flex justify-between items-center text-xs font-bold text-slate-700">
-              <span>Tỷ lệ chuyên cần chung: {formatPercentage(attendanceRate)}</span>
-              <span>{formatMetric(presentCount)} / {formatMetric(totalEnrolled)} trẻ</span>
+              <span>Tỷ lệ chuyên cần chung: {attendanceRate === null ? '—' : `${attendanceRate}%`}</span>
+              <span>{presentCount === null || totalEnrolled === null ? '—' : `${presentCount} / ${totalEnrolled} trẻ`}</span>
             </div>
-            <ProgressBar pct={attendanceRate} color="bg-emerald-500" />
+            {attendanceRate !== null && <ProgressBar pct={attendanceRate} color="bg-emerald-500" />}
             <p className="text-[11px] text-slate-500 mt-1">
               Công thức canonical: round((todayPresentCount / totalEnrolledStudents) * 100).
             </p>
           </div>
 
-          {/* Illustrative monthly chart */}
           <div className="space-y-2">
-            <h4 className="text-xs font-bold text-slate-500">Xu hướng tham chiếu lịch sử (minh họa):</h4>
-            <AttendanceLineChart data={ILLUSTRATIVE_ATTENDANCE_TREND} />
+            <h4 className="text-xs font-bold text-slate-500">Xu hướng chuyên cần theo tháng:</h4>
+            {ATTENDANCE_TREND.length ? <AttendanceLineChart data={ATTENDANCE_TREND} /> : <p role="status" className="py-6 text-center text-xs text-slate-500">Chưa có dữ liệu chuyên cần theo tháng.</p>}
           </div>
         </div>
       )}
@@ -1173,29 +1049,29 @@ export default function ReportsPage() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="p-4 rounded-2xl border border-slate-200 bg-slate-50 text-center space-y-1">
               <p className="text-[10px] font-semibold text-slate-400">Phải thu (Gross Invoiced)</p>
-              <p className="text-xl font-extrabold text-slate-700">{isLoading ? '...' : formatVND(invoicedGross)}</p>
+              <p className="text-xl font-extrabold text-slate-700">{reportCurrency(invoicedGross)}</p>
               <p className="text-[10px] text-slate-400">Hóa đơn trạng thái ISSUED</p>
             </div>
             <div className="p-4 rounded-2xl border border-emerald-200 bg-emerald-50/60 text-center space-y-1">
               <p className="text-[10px] font-semibold text-emerald-700">Đã thu qua đối soát</p>
-              <p className="text-xl font-extrabold text-emerald-600">{isLoading ? '...' : formatVND(reconciledCollected)}</p>
+              <p className="text-xl font-extrabold text-emerald-600">{reportCurrency(reconciledCollected)}</p>
               <p className="text-[10px] text-emerald-600">Sổ đối soát (Allocated)</p>
             </div>
             <div className="p-4 rounded-2xl border border-rose-200 bg-rose-50/60 text-center space-y-1">
               <p className="text-[10px] font-semibold text-rose-700">Còn nợ đọng</p>
-              <p className="text-xl font-extrabold text-rose-600">{isLoading ? '...' : formatVND(outstandingBalance)}</p>
+              <p className="text-xl font-extrabold text-rose-600">{reportCurrency(outstandingBalance)}</p>
               <p className="text-[10px] text-rose-600">Phải thu - Đã thu</p>
             </div>
             <div className="p-4 rounded-2xl border border-amber-200 bg-amber-50/60 text-center space-y-1">
               <p className="text-[10px] font-semibold text-amber-700">Hóa đơn quá hạn</p>
-              <p className="text-xl font-extrabold text-amber-600">{isLoading ? '...' : overdueCount === null ? 'Chưa xác minh' : `${overdueCount} tài khoản`}</p>
+              <p className="text-xl font-extrabold text-amber-600">{reportValue(overdueCount, ' tài khoản')}</p>
               <p className="text-[10px] text-amber-600">Hạn thanh toán &lt; {selectedDate}</p>
             </div>
           </div>
 
           <div className="space-y-2">
-            <h4 className="text-xs font-bold text-slate-500">Biểu đồ cơ cấu thu học phí các tháng (minh họa cấu trúc):</h4>
-            <FinanceBarChart data={ILLUSTRATIVE_FINANCE_CHART} />
+            <h4 className="text-xs font-bold text-slate-500">Biểu đồ cơ cấu thu học phí theo tháng:</h4>
+            {FINANCE_TREND.length ? <FinanceBarChart data={FINANCE_TREND} /> : <p role="status" className="py-6 text-center text-xs text-slate-500">Chưa có dữ liệu học phí phân bổ theo tháng.</p>}
           </div>
         </div>
       )}
@@ -1241,14 +1117,14 @@ export default function ReportsPage() {
             <div className="p-5 rounded-2xl border border-slate-200 bg-slate-50 space-y-2">
               <p className="text-[11px] font-semibold text-slate-500">Thông báo chưa đọc/xác nhận</p>
               <p className="text-2xl font-extrabold text-slate-800">
-                {isLoading ? '...' : dashboard?.parentEngagement.unacknowledgedNotices ?? 0}
+                {reportValue(dashboard?.parentEngagement.unacknowledgedNotices ?? null)}
               </p>
               <p className="text-[10px] text-slate-400">Yêu cầu xác nhận (P6)</p>
             </div>
             <div className="p-5 rounded-2xl border border-slate-200 bg-slate-50 space-y-2">
               <p className="text-[11px] font-semibold text-slate-500">Yêu cầu đồng thuận chờ xử lý</p>
               <p className="text-2xl font-extrabold text-slate-800">
-                {isLoading ? '...' : dashboard?.parentEngagement.pendingConsentRequests ?? 0}
+                {reportValue(dashboard?.parentEngagement.pendingConsentRequests ?? null)}
               </p>
               <p className="text-[10px] text-slate-400">Phiếu xin ý kiến phụ huynh (P6)</p>
             </div>
@@ -1266,10 +1142,10 @@ export default function ReportsPage() {
         <div className="rounded-3xl bg-white border border-slate-200/80 p-5 sm:p-8 shadow-sm space-y-4">
           <h3 id="reports-detail-heading" tabIndex={-1} className="text-base font-extrabold text-[#172B38] flex items-center gap-2">
             <FileSpreadsheet className="w-5 h-5 text-emerald-500" />
-            Báo Cáo Chi Tiết &amp; Tải Xuống (minh họa)
+            Báo Cáo Chi Tiết &amp; Tải Xuống
           </h3>
           <div className="space-y-3">
-            {QUICK_REPORTS.map((rep) => (
+            {QUICK_REPORTS.length === 0 ? <p role="status" className="text-xs text-slate-500">Chưa có tài liệu báo cáo được tạo.</p> : QUICK_REPORTS.map((rep) => (
               <div key={rep.id} className="space-y-2 p-4 rounded-2xl border border-slate-200 bg-slate-50 hover:bg-slate-100 transition-colors">
                 <div className="flex flex-wrap items-center gap-4">
                   <div className={`w-10 h-10 rounded-2xl ${rep.color} flex items-center justify-center shrink-0 text-white`}>
@@ -1294,7 +1170,7 @@ export default function ReportsPage() {
                 </div>
                 {unavailableOutputs.includes(`reports-detail-${rep.id}-status`) && (
                   <p id={`reports-detail-${rep.id}-status`} role="status" className="scroll-my-3 text-xs leading-relaxed text-slate-900 dark:text-slate-100">
-                    Chưa tải “{rep.title}”: tài liệu minh họa chưa có file tải xuống. Không có file được tạo.
+                    Chưa tải “{rep.title}”: tài liệu chưa có file tải xuống. Không có file được tạo.
                   </p>
                 )}
               </div>

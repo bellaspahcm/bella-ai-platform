@@ -4,7 +4,11 @@ import { useLayoutEffect } from 'react';
 import { cleanup, render, screen, waitFor } from '@testing-library/react';
 
 let currentId = 'SYN-CHILD-001';
-jest.mock('next/navigation', () => ({ useParams: () => ({ id: currentId }) }));
+let currentSearch = '';
+jest.mock('next/navigation', () => ({
+  useParams: () => ({ id: currentId }),
+  useSearchParams: () => new URLSearchParams(currentSearch),
+}));
 const mockGuardianSection = jest.fn<(props: { studentId: string }) => void>();
 jest.mock('../StudentGuardians', () => ({
   __esModule: true,
@@ -13,6 +17,19 @@ jest.mock('../StudentGuardians', () => ({
     return <div data-testid="guardian-section" />;
   },
 }));
+const mockPortalSection = jest.fn<(props: { tenantId: string; courseId: string; studentPartyId: string }) => void>();
+jest.mock('../PortalAccessLink', () => ({
+  __esModule: true,
+  default: (props: { tenantId: string; courseId: string; studentPartyId: string }) => {
+    mockPortalSection(props);
+    return <div data-testid="portal-section" />;
+  },
+}));
+jest.mock('@/lib/user-context', () => ({ useUser: () => ({
+  user: { id: 'synthetic-admin', tenant_id: 'tenant-a' },
+  product: { productKey: 'bella_preschool' },
+  isLoading: false,
+}) }));
 const Student360Page = (require('../page') as typeof import('../page')).default;
 
 const enrollmentId = '00000000-0000-4000-8000-000000000011';
@@ -58,9 +75,11 @@ function response(status: number, body: unknown): Response {
 beforeEach(() => {
   cleanup();
   currentId = 'SYN-CHILD-001';
+  currentSearch = '';
   global.fetch = jest.fn<typeof fetch>().mockResolvedValue(response(200, { success: true, profile: canonicalProfile }));
   window.localStorage.clear();
   mockGuardianSection.mockClear();
+  mockPortalSection.mockClear();
 });
 
 it('shows only canonical identity, enrollment and raw attendance evidence', async () => {
@@ -76,7 +95,16 @@ it('shows only canonical identity, enrollment and raw attendance evidence', asyn
   expect(screen.queryByRole('button', { name: /lưu|chỉnh sửa|thu tiền|gửi/i })).toBeNull();
   expect(window.localStorage.length).toBe(0);
   expect(mockGuardianSection).toHaveBeenCalledWith({ studentId: canonicalProfile.studentId });
+  expect(mockPortalSection).toHaveBeenCalledWith({ tenantId: 'tenant-a', courseId, studentPartyId: canonicalProfile.partyId });
   expect(global.fetch).toHaveBeenCalledWith('/api/education/enrollments/SYN-CHILD-001', expect.objectContaining({ cache: 'no-store' }));
+});
+
+it('keeps an authorized active Course selected for the registry return link and Portal section', async () => {
+  currentSearch = `?courseId=${courseId}`;
+  render(<Student360Page />);
+  expect(await screen.findByRole('heading', { name: 'Synthetic Child' })).toBeTruthy();
+  expect(screen.getByRole('link', { name: 'Quay lại danh sách trẻ' })).toHaveAttribute('href', `/dashboard/education/enrollments?courseId=${courseId}`);
+  expect(mockPortalSection).toHaveBeenCalledWith({ tenantId: 'tenant-a', courseId, studentPartyId: canonicalProfile.partyId });
 });
 
 it.each([

@@ -1,6 +1,19 @@
 import { withSentryConfig } from '@sentry/nextjs';
 import type { NextConfig } from "next";
 
+function developmentSupabaseConnectSource(): string {
+  if (process.env.NODE_ENV !== 'development'
+    || ['production', 'staging'].includes(process.env.DEPLOYMENT_ENV ?? '')) return '';
+  try {
+    const url = new URL(process.env.NEXT_PUBLIC_SUPABASE_URL ?? '');
+    if (url.protocol !== 'http:' || !['127.0.0.1', 'localhost'].includes(url.hostname)
+      || !url.port || url.username || url.password || url.pathname !== '/' || url.search || url.hash) return '';
+    return ` ${url.origin}`;
+  } catch {
+    return '';
+  }
+}
+
 const securityHeaders = [
   { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
   { key: 'X-Content-Type-Options', value: 'nosniff' },
@@ -18,7 +31,7 @@ const securityHeaders = [
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob: https:",
       "font-src 'self'",
-      "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://sentry.io https://o4511424569868288.ingest.us.sentry.io https://vercel.live wss://vercel.live",
+      "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://sentry.io https://o4511424569868288.ingest.us.sentry.io https://vercel.live wss://vercel.live" + developmentSupabaseConnectSource(),
       "worker-src 'self' blob:",
       "frame-ancestors 'self'",
       "manifest-src 'self'",

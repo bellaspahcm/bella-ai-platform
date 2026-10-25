@@ -26,6 +26,7 @@ import { useState, useEffect, useMemo, useRef, Suspense, type ChangeEvent } from
 import { useSearchParams } from 'next/navigation';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import Link from 'next/link';
+import { useUser } from '@/lib/user-context';
 import {
   ArrowLeft,
   GraduationCap,
@@ -1830,7 +1831,7 @@ function PreschoolDevelopmentGradesPageContent() {
             </div>
             <div>
               <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-                Học Tập & Phát Triển Mầm Non
+                Học Tập &amp; Phát Triển Mầm Non
               </h1>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                 Theo dõi sự phát triển toàn diện của trẻ theo quan sát, bằng chứng và khung NAEYC
@@ -2090,7 +2091,7 @@ function PreschoolDevelopmentGradesPageContent() {
           }`}
         >
           <Camera className="w-3.5 h-3.5" />
-          <span>Nhật ký & Bằng chứng</span>
+          <span>Nhật ký &amp; Bằng chứng</span>
         </button>
 
         <button
@@ -2648,7 +2649,7 @@ function PreschoolDevelopmentGradesPageContent() {
             <div>
               <h2 className="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
                 <Camera className="w-5 h-5 text-[#0c513f]" />
-                <span>Nhật Ký Quan Sát & Bằng Chứng Sư Phạm</span>
+                <span>Nhật Ký Quan Sát &amp; Bằng Chứng Sư Phạm</span>
               </h2>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                 Lưu trữ khách quan hình ảnh, ghi chép hành vi và sự tiến bộ từng ngày của trẻ mầm non
@@ -2663,11 +2664,11 @@ function PreschoolDevelopmentGradesPageContent() {
                 className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-bold text-slate-700 dark:text-slate-300"
               >
                 <option value="ALL">Tất cả lĩnh vực</option>
-                <option value="Thể chất & Vận động">Thể chất & Vận động</option>
-                <option value="Ngôn ngữ & Giao tiếp">Ngôn ngữ & Giao tiếp</option>
-                <option value="Nhận thức & Tư duy">Nhận thức & Tư duy</option>
-                <option value="Tình cảm & Kỹ năng xã hội">Tình cảm & Kỹ năng xã hội</option>
-                <option value="Thẩm mỹ & Sáng tạo">Thẩm mỹ & Sáng tạo</option>
+                <option value="Thể chất & Vận động">Thể chất &amp; Vận động</option>
+                <option value="Ngôn ngữ & Giao tiếp">Ngôn ngữ &amp; Giao tiếp</option>
+                <option value="Nhận thức & Tư duy">Nhận thức &amp; Tư duy</option>
+                <option value="Tình cảm & Kỹ năng xã hội">Tình cảm &amp; Kỹ năng xã hội</option>
+                <option value="Thẩm mỹ & Sáng tạo">Thẩm mỹ &amp; Sáng tạo</option>
               </select>
 
               <button
@@ -2970,7 +2971,7 @@ function PreschoolDevelopmentGradesPageContent() {
                   className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-slate-800 dark:text-slate-200 text-xs font-bold transition-all shadow-2xs"
                 >
                   <Heart className="w-3.5 h-3.5" />
-                  <span>Chăm Sóc & Dinh Dưỡng</span>
+                  <span>Chăm Sóc &amp; Dinh Dưỡng</span>
                 </Link>
               </div>
             </div>
@@ -2980,7 +2981,7 @@ function PreschoolDevelopmentGradesPageContent() {
               <div className="p-4 rounded-2xl bg-emerald-50/60 dark:bg-emerald-950/30 border border-emerald-200/60 text-xs space-y-1">
                 <div className="font-extrabold text-emerald-950 dark:text-emerald-200 flex items-center gap-2">
                   <Activity className="w-4 h-4 text-emerald-600" />
-                  <span>Chỉ Số Thể Chất & Tăng Trưởng (Tháng 09/2026):</span>
+                  <span>Chỉ Số Thể Chất &amp; Tăng Trưởng (Tháng 09/2026):</span>
                 </div>
                 <div className="text-slate-700 dark:text-slate-300">
                   Chiều cao: <strong>{selectedPortfolioStudent.physicalDetail.height}</strong> • Cân nặng:{' '}
@@ -3044,7 +3045,7 @@ function PreschoolDevelopmentGradesPageContent() {
             <div>
               <h2 className="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
                 <Award className="w-5 h-5 text-[#0c513f]" />
-                <span>Góc Khen Thưởng & Tuyên Dương Mầm Non</span>
+                <span>Góc Khen Thưởng &amp; Tuyên Dương Mầm Non</span>
               </h2>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                 Ghi nhận những tiến bộ vượt bậc, lòng nhân ái và tính tự lập của các bé
@@ -3181,7 +3182,7 @@ function PreschoolDevelopmentGradesPageContent() {
               <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/70 dark:border-slate-700/60 text-xs space-y-1">
                 <div className="font-extrabold text-slate-700 dark:text-slate-300 flex items-center gap-2">
                   <Activity className="w-4 h-4 text-emerald-600" />
-                  <span>Dữ liệu thể chất & Tăng trưởng tham chiếu:</span>
+                  <span>Dữ liệu thể chất &amp; Tăng trưởng tham chiếu:</span>
                 </div>
                 <div className="text-slate-600 dark:text-slate-400">
                   Chiều cao: <strong>{inspectedStudent.physicalDetail.height}</strong> • Cân nặng:{' '}
@@ -3360,11 +3361,11 @@ function PreschoolDevelopmentGradesPageContent() {
                     onChange={(e: ChangeEvent<HTMLSelectElement>) => updateObservationDraft({ domain: e.target.value })}
                     className="w-full p-2.5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 font-medium"
                   >
-                    <option>Thể chất & Vận động</option>
-                    <option>Ngôn Ngữ & Giao Tiếp</option>
-                    <option>Nhận Thức & Tư Duy</option>
-                    <option>Tình Cảm & Kỹ Năng Xã Hội</option>
-                    <option>Thẩm Mỹ & Sáng Tạo</option>
+                    <option>Thể chất &amp; Vận động</option>
+                    <option>Ngôn Ngữ &amp; Giao Tiếp</option>
+                    <option>Nhận Thức &amp; Tư Duy</option>
+                    <option>Tình Cảm &amp; Kỹ Năng Xã Hội</option>
+                    <option>Thẩm Mỹ &amp; Sáng Tạo</option>
                   </select>
                 </div>
 
@@ -3620,7 +3621,7 @@ function PreschoolDevelopmentGradesPageContent() {
                 className="w-full p-3 rounded-2xl border border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-3 text-left transition-colors"
               >
                 <Clock className="w-4 h-4 text-purple-600" />
-                <span>Xem Sổ Điểm Danh & Đưa Đón Của Bé</span>
+                <span>Xem Sổ Điểm Danh &amp; Đưa Đón Của Bé</span>
               </Link>
 
               <Link
@@ -3628,7 +3629,7 @@ function PreschoolDevelopmentGradesPageContent() {
                 className="w-full p-3 rounded-2xl border border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-3 text-left transition-colors"
               >
                 <Heart className="w-4 h-4 text-rose-500" />
-                <span>Chăm Sóc & Dinh Dưỡng Bữa Ăn / Giấc Ngủ</span>
+                <span>Chăm Sóc &amp; Dinh Dưỡng Bữa Ăn / Giấc Ngủ</span>
               </Link>
             </div>
           </DialogContent>
@@ -3681,10 +3682,10 @@ function PreschoolDevelopmentGradesPageContent() {
                   onChange={(e) => setNewAwardCategory(e.target.value as 'CHAM_NGOAN' | 'HOA_SI' | 'KHOE_DEP' | 'CHIA_SE' | 'TU_LAP')}
                   className="w-full p-2.5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 font-medium"
                 >
-                  <option value="CHAM_NGOAN">Bé Chăm Ngoan & Tự Giác</option>
+                  <option value="CHAM_NGOAN">Bé Chăm Ngoan &amp; Tự Giác</option>
                   <option value="HOA_SI">Họa Sĩ Nhí Sáng Tạo</option>
-                  <option value="KHOE_DEP">Bé Khỏe Đẹp & Vận Động</option>
-                  <option value="CHIA_SE">Thiên Thần Chia Sẻ & Yêu Thương</option>
+                  <option value="KHOE_DEP">Bé Khỏe Đẹp &amp; Vận Động</option>
+                  <option value="CHIA_SE">Thiên Thần Chia Sẻ &amp; Yêu Thương</option>
                   <option value="TU_LAP">Bé Tự Lập Xuất Sắc</option>
                 </select>
               </div>
@@ -3767,7 +3768,7 @@ function LegacyGradesView() {
   return (
     <div className="w-full p-6 space-y-6">
       <div className="p-6 rounded-3xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm">
-        <h2 className="text-lg font-bold text-slate-900 dark:text-white">Sổ Đánh Giá & Điểm Số — Enterprise ERP</h2>
+        <h2 className="text-lg font-bold text-slate-900 dark:text-white">Sổ Đánh Giá &amp; Điểm Số — Enterprise ERP</h2>
         <p className="text-xs text-slate-500 mt-1">
           Chế độ xem dành riêng cho trung tâm đào tạo tiêu chuẩn và trường phổ thông liên cấp.
         </p>
@@ -3777,6 +3778,17 @@ function LegacyGradesView() {
 }
 
 export default function PreschoolDevelopmentGradesPage() {
+  const { user, product, isLoading } = useUser();
+  if (isLoading) return <p role="status">Đang xác minh tài khoản…</p>;
+  if (!user?.tenant_id || !product) return <p role="alert">Không có quyền mở màn hình này.</p>;
+  if (product.productKey === 'bella_preschool') return (
+    <section className="p-6 space-y-4" aria-labelledby="held-workspace-heading">
+      <h1 id="held-workspace-heading" className="text-2xl font-bold">Học tập &amp; Hoạt động</h1>
+      <p role="status" className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-amber-950 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-100">Chưa mở trong MVP Preschool</p>
+      <p className="text-sm text-slate-600 dark:text-slate-300">Học tập, quan sát và hồ sơ phát triển chưa mở trong MVP Preschool. Không hiển thị danh sách trẻ hoặc kết quả đánh giá mẫu.</p>
+      <Link href="/dashboard/education/courses" className="inline-block font-semibold underline">Về danh sách lớp</Link>
+    </section>
+  );
   return (
     <Suspense
       fallback={

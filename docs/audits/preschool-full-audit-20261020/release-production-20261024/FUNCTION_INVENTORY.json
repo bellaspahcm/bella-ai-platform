@@ -1,0 +1,186 @@
+[
+  {
+    "signature": "preschool_branch_access(uuid,uuid,uuid,text)",
+    "operation": "CREATE",
+    "beforeMd5": null,
+    "proposedMd5": "d373c7b5db06d435209d19a38ca98085",
+    "security": "DEFINER",
+    "executeRoles": [
+      "service_role",
+      "authenticated"
+    ],
+    "dependencyOnly": true,
+    "productionExecution": "NOT_AUTHORIZED"
+  },
+  {
+    "signature": "preschool_course_assignment_visible(uuid,uuid,uuid)",
+    "operation": "CREATE",
+    "beforeMd5": null,
+    "proposedMd5": "32087a74bd90bc054c73b39d4d0e1e2d",
+    "security": "DEFINER",
+    "executeRoles": [
+      "service_role",
+      "authenticated"
+    ],
+    "dependencyOnly": true,
+    "productionExecution": "NOT_AUTHORIZED"
+  },
+  {
+    "signature": "edu_attendance_can_read_course(uuid,uuid)",
+    "operation": "CREATE",
+    "beforeMd5": null,
+    "proposedMd5": "1f332ce26724cb40a18455e9d18d6b14",
+    "security": "DEFINER",
+    "executeRoles": [
+      "authenticated"
+    ],
+    "dependencyOnly": false,
+    "productionExecution": "NOT_AUTHORIZED"
+  },
+  {
+    "signature": "edu_can_access_attendance_enrollment(uuid,uuid,date)",
+    "operation": "CREATE",
+    "beforeMd5": null,
+    "proposedMd5": "3ded7a1d68fe4cd10626af49f72ff2d6",
+    "security": "DEFINER",
+    "executeRoles": [
+      "authenticated",
+      "service_role"
+    ],
+    "dependencyOnly": false,
+    "productionExecution": "NOT_AUTHORIZED"
+  },
+  {
+    "signature": "edu_course_catalog_actor_allowed(uuid)",
+    "operation": "CREATE",
+    "beforeMd5": null,
+    "proposedMd5": "674862fe8b8416706e1304eccd1b94e0",
+    "security": "INVOKER",
+    "executeRoles": [
+      "authenticated"
+    ],
+    "dependencyOnly": false,
+    "productionExecution": "NOT_AUTHORIZED"
+  },
+  {
+    "signature": "edu_preschool_enroll_student(uuid,uuid,uuid,uuid)",
+    "operation": "CREATE",
+    "beforeMd5": null,
+    "proposedMd5": "786e3d9163b05d702b688c2a4071bd7e",
+    "security": "DEFINER",
+    "executeRoles": [
+      "authenticated"
+    ],
+    "dependencyOnly": false,
+    "productionExecution": "NOT_AUTHORIZED"
+  },
+  {
+    "signature": "edu_preschool_enrollment_candidates(uuid,text,integer,uuid)",
+    "operation": "CREATE",
+    "beforeMd5": null,
+    "proposedMd5": "c4abeb468bd01e29246230e129721c43",
+    "security": "DEFINER",
+    "executeRoles": [
+      "authenticated"
+    ],
+    "dependencyOnly": false,
+    "productionExecution": "NOT_AUTHORIZED"
+  },
+  {
+    "signature": "edu_preschool_roster_identity(uuid,date)",
+    "operation": "CREATE",
+    "beforeMd5": null,
+    "proposedMd5": "f1c5a6e873a817bba0104cf94b5912a7",
+    "security": "DEFINER",
+    "executeRoles": [
+      "authenticated"
+    ],
+    "dependencyOnly": false,
+    "productionExecution": "NOT_AUTHORIZED"
+  },
+  {
+    "signature": "edu_set_daily_attendance(uuid,uuid,text,timestamp with time zone,date)",
+    "operation": "REVIEW_REPLACE",
+    "beforeMd5": "0bd77a772ef098df2f09ba02bd58ec5e",
+    "proposedMd5": "5e47d73d163c5fdf3cc0fcba4cea91c2",
+    "security": "DEFINER",
+    "executeRoles": [
+      "authenticated",
+      "service_role"
+    ],
+    "dependencyOnly": false,
+    "productionExecution": "NOT_AUTHORIZED"
+  },
+  {
+    "signature": "preschool_list_school_announcements()",
+    "operation": "CREATE",
+    "beforeMd5": null,
+    "proposedMd5": "f8a99ff636e60d438088623f085a510a",
+    "security": "DEFINER",
+    "executeRoles": [
+      "authenticated"
+    ],
+    "dependencyOnly": false,
+    "productionExecution": "NOT_AUTHORIZED"
+  },
+  {
+    "signature": "preschool_portal_daily_read(uuid,uuid,uuid,uuid)",
+    "operation": "CREATE",
+    "beforeMd5": null,
+    "proposedMd5": "ffcde10964fd514567bbce1c3898e1a7",
+    "security": "INVOKER",
+    "executeRoles": [
+      "service_role"
+    ],
+    "dependencyOnly": false,
+    "productionExecution": "NOT_AUTHORIZED"
+  },
+  {
+    "signature": "preschool_portal_issuer_context(uuid,uuid,uuid)",
+    "operation": "CREATE",
+    "beforeMd5": null,
+    "proposedMd5": "98d272d660749f11b794b3bab9cc88c7",
+    "security": "DEFINER",
+    "executeRoles": [
+      "authenticated"
+    ],
+    "dependencyOnly": false,
+    "productionExecution": "NOT_AUTHORIZED"
+  },
+  {
+    "signature": "preschool_portal_school_announcements_read(uuid)",
+    "operation": "CREATE",
+    "beforeMd5": null,
+    "proposedMd5": "c40f1ccbe25d9e7c9c9583d3bead15aa",
+    "security": "DEFINER",
+    "executeRoles": [
+      "service_role"
+    ],
+    "dependencyOnly": false,
+    "productionExecution": "NOT_AUTHORIZED"
+  },
+  {
+    "signature": "preschool_publish_school_announcement(uuid,text,text)",
+    "operation": "CREATE",
+    "beforeMd5": null,
+    "proposedMd5": "fb44275c23f6aa98774306b7d1feb303",
+    "security": "DEFINER",
+    "executeRoles": [
+      "authenticated"
+    ],
+    "dependencyOnly": false,
+    "productionExecution": "NOT_AUTHORIZED"
+  },
+  {
+    "signature": "preschool_save_care_records(uuid,uuid,date,jsonb)",
+    "operation": "CREATE",
+    "beforeMd5": null,
+    "proposedMd5": "7cf4a5c623aaacc35248abc3c8f01109",
+    "security": "INVOKER",
+    "executeRoles": [
+      "authenticated"
+    ],
+    "dependencyOnly": false,
+    "productionExecution": "NOT_AUTHORIZED"
+  }
+]

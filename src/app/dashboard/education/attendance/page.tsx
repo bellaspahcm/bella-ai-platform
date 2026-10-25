@@ -7,6 +7,7 @@
 import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useRef, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
+import PreschoolAttendance from './preschool-attendance';
 import {
   CalendarCheck,
   ArrowLeft,
@@ -1118,7 +1119,7 @@ function PaginationControl({
     </div>
   );
 }
-export default function AttendancePage() {
+export function LegacyAttendancePage() {
   return (
     <Suspense
       fallback={
@@ -1130,4 +1131,8 @@ export default function AttendancePage() {
       <AttendancePageContent />
     </Suspense>
   );
+}
+
+export default function AttendancePage() {
+  return <PreschoolAttendance legacy={<LegacyAttendancePage />} />;
 }

@@ -14,11 +14,19 @@ const mockFrom = jest.fn(() => ({ select: () => ({ eq: () => ({ maybeSingle: moc
 const mockClient = { auth: { getUser: mockAuth }, from: mockFrom };
 const mockPrivileged = jest.fn();
 const mockSigning = jest.fn();
+const courseId = '00000000-0000-4000-8000-000000000044';
+const guardianId = '00000000-0000-4000-8000-000000000055';
+const context = { tenantId, courseId, studentPartyId: otherId, guardians: [{ guardianPartyId: guardianId, guardianLabel: 'Synthetic Guardian' }] };
+const mockRpc = jest.fn<() => Promise<{ data: unknown; error: { code: string } | null }>>();
+Object.assign(mockClient, { rpc: mockRpc });
 jest.mock('@/lib/supabase-server', () => ({ createClient: () => mockClient }));
 jest.mock('@/services/user-actions', () => ({ getCurrentUser: mockProfile }));
 jest.mock('@supabase/supabase-js', () => ({ createClient: mockPrivileged }));
-jest.mock('@/products/bella-education/parent-portal/services/preschool-parent-portal.service', () => ({ PreschoolParentPortalService: { generatePortalToken: mockSigning } }));
-const { POST } = require('../route') as typeof import('../route');
+jest.mock('@/products/bella-education/parent-portal/services/preschool-parent-portal.service', () => ({
+  ...jest.requireActual<typeof import('@/products/bella-education/parent-portal/services/preschool-parent-portal.service')>('@/products/bella-education/parent-portal/services/preschool-parent-portal.service'),
+  PreschoolParentPortalService: { generateDailyReadToken: mockSigning },
+}));
+const { POST, GET } = require('../route') as typeof import('../route');
 
 function request(query = '', headers: Record<string, string> = {}, body = '{malformed') {
   return new Request(`http://localhost/api/education/portal/token${query}`, { method: 'POST', headers, body });
@@ -37,6 +45,8 @@ beforeEach(() => {
   mockAuth.mockResolvedValue({ data: { user: { id: actorId } }, error: null });
   mockProfile.mockResolvedValue(profile);
   mockTenant.mockResolvedValue({ data: { id: tenantId, status: 'active', product_key: 'bella_preschool' }, error: null });
+  mockRpc.mockResolvedValue({ data: context, error: null });
+  mockSigning.mockReturnValue('synthetic-signed-token');
 });
 afterEach(() => { jest.restoreAllMocks(); });
 
@@ -78,10 +88,35 @@ describe('Portal issuance boundary and dependency hold', () => {
     if (dependency === 'tenant') mockTenant.mockRejectedValue(error);
     await check(request(), 503, 'PORTAL_ACCESS_UNAVAILABLE');
   });
-  it.each(['{malformed', JSON.stringify({ tenantId: otherId, guardianPartyId: otherId, validityDays: 60 })])('holds eligible admin before all issuer side effects %#', async body => {
-    mockProfile.mockResolvedValue({ ...profile, role: ' ADMIN ' });
-    await check(request(`?tenantId=${tenantId}&tenantId=${tenantId}`, { 'x-tenant-id': tenantId }, body), 503, 'PORTAL_ISSUANCE_NOT_READY');
-    expect(mockAuth.mock.invocationCallOrder[0]).toBeLessThan(mockProfile.mock.invocationCallOrder[0]);
-    expect(mockFrom).toHaveBeenCalledTimes(1); expect(mockFrom).toHaveBeenCalledWith('tenants');
+  it.each(['{malformed', 'null', '{}', JSON.stringify({ tenantId: otherId, guardianPartyId: otherId, validityDays: 60 })])('rejects malformed or unapproved body fields before capability/signing %#', async body => {
+    const response = await POST(request('', {}, body));
+    expect(response.status).toBe(400); expect(mockRpc).not.toHaveBeenCalled(); expect(mockSigning).not.toHaveBeenCalled();
+  });
+  it('reads guardian choices only through caller capability and never signs on GET', async () => {
+    const response = await GET(new Request(`http://localhost/api/education/portal/token?courseId=${courseId}&studentPartyId=${otherId}`));
+    expect(response.status).toBe(200); expect(await response.json()).toEqual({ success: true, data: context });
+    expect(mockRpc).toHaveBeenCalledWith('preschool_portal_issuer_context', { p_course_id: courseId, p_student_party_id: otherId });
+    expect(mockSigning).not.toHaveBeenCalled(); expect(mockPrivileged).not.toHaveBeenCalled();
+  });
+  const validBody = () => JSON.stringify({ courseId, studentPartyId: otherId, guardianPartyId: guardianId });
+  it('signs exact validated Course/Student/explicit guardian with no business write', async () => {
+    const response = await POST(request('', {}, validBody()));
+    expect(response.status).toBe(200); expect(await response.json()).toMatchObject({ success: true, expiresInSeconds: 86400 });
+    expect(mockSigning).toHaveBeenCalledWith({ tenantId, courseId, studentPartyId: otherId, guardianPartyId: guardianId });
+    expect(mockRpc.mock.invocationCallOrder[0]).toBeLessThan(mockSigning.mock.invocationCallOrder[0]);
+    expect(mockInsert).not.toHaveBeenCalled(); expect(mockPrivileged).not.toHaveBeenCalled();
+  });
+  it.each(['42501', 'XX000'])('does not sign or privileged-retry after capability denial %s', async code => {
+    mockRpc.mockResolvedValue({ data: null, error: { code } });
+    expect((await POST(request('', {}, validBody()))).status).toBe(code === '42501' ? 403 : 503);
+    expect(mockSigning).not.toHaveBeenCalled(); expect(mockPrivileged).not.toHaveBeenCalled();
+  });
+  it.each([null, { ...context, tenantId: actorId }, { ...context, guardians: [] }, { ...context, guardians: [{ guardianPartyId: actorId, guardianLabel: 'Wrong' }] }])('rejects malformed/mismatched capability before signing %#', async data => {
+    mockRpc.mockResolvedValue({ data, error: null });
+    expect((await POST(request('', {}, validBody()))).status).toBe(503); expect(mockSigning).not.toHaveBeenCalled();
+  });
+  it('rejects duplicate GET selectors', async () => {
+    const response = await GET(new Request(`http://localhost/api/education/portal/token?courseId=${courseId}&courseId=${courseId}&studentPartyId=${otherId}`));
+    expect(response.status).toBe(400); expect(mockRpc).not.toHaveBeenCalled();
   });
 });

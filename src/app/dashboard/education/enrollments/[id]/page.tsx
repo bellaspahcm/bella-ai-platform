@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useMemo, useState, type ReactElement } from 'react';
+import { Suspense, useEffect, useMemo, useState, type ReactElement } from 'react';
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
+import { useParams, useSearchParams } from 'next/navigation';
 import {
   ArrowLeft,
   BookOpen,
@@ -16,6 +16,8 @@ import {
   UserRound,
 } from 'lucide-react';
 import type { Student360ProfileData } from '@/app/api/education/enrollments/student-360.service';
+import { useUser } from '@/lib/user-context';
+import PortalAccessLink from './PortalAccessLink';
 import StudentGuardians from './StudentGuardians';
 
 type LoadState =
@@ -162,8 +164,11 @@ function ProfileError({ state, onRetry }: { state: Extract<LoadState, { status: 
   );
 }
 
-export default function Student360Page(): ReactElement {
+function Student360PageContent(): ReactElement {
   const params = useParams<{ id?: string | string[] }>();
+  const searchParams = useSearchParams();
+  const { user, product } = useUser();
+  const courseHint = searchParams.get('courseId')?.trim() ?? '';
   const studentCode = useMemo(() => {
     const raw = params?.id;
     return Array.isArray(raw) ? raw[0]?.trim() ?? '' : raw?.trim() ?? '';
@@ -209,12 +214,18 @@ export default function Student360Page(): ReactElement {
   if (state.status === 'error') return <ProfileError state={state} onRetry={() => setReloadToken(value => value + 1)} />;
 
   const { profile } = state;
-  const activeEnrollment = profile.enrollments.find(enrollment => enrollment.status === 'active') ?? profile.enrollments[0];
+  const activeEnrollment = profile.enrollments.find(enrollment => enrollment.status === 'active' && enrollment.courseId === courseHint)
+    ?? profile.enrollments.find(enrollment => enrollment.status === 'active')
+    ?? profile.enrollments[0];
+  const selectedCourseId = activeEnrollment?.status === 'active' ? activeEnrollment.courseId : null;
+  const registryHref = selectedCourseId
+    ? `/dashboard/education/enrollments?courseId=${encodeURIComponent(selectedCourseId)}`
+    : '/dashboard/education/enrollments';
 
   return (
     <main className="min-h-screen bg-slate-50 p-4 text-slate-900 dark:bg-slate-950 dark:text-slate-100 sm:p-6 lg:p-8">
       <div className="mx-auto max-w-7xl space-y-6">
-        <Link href="/dashboard/education/enrollments" className="inline-flex items-center gap-2 text-sm font-semibold text-emerald-800 hover:text-emerald-950 dark:text-emerald-300 dark:hover:text-emerald-200">
+        <Link href={registryHref} className="inline-flex items-center gap-2 text-sm font-semibold text-emerald-800 hover:text-emerald-950 dark:text-emerald-300 dark:hover:text-emerald-200">
           <ArrowLeft className="h-4 w-4" /> Quay lại danh sách trẻ
         </Link>
 
@@ -264,6 +275,9 @@ export default function Student360Page(): ReactElement {
         </section>
 
         <StudentGuardians studentId={profile.studentId} />
+        {selectedCourseId && user?.tenant_id && product?.productKey === 'bella_preschool' && (
+          <PortalAccessLink tenantId={user.tenant_id} courseId={selectedCourseId} studentPartyId={profile.partyId} />
+        )}
 
         <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
           <div className="flex items-center gap-3 border-b border-slate-100 p-6 dark:border-slate-800 sm:p-7"><div className="rounded-xl bg-blue-50 p-2.5 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300"><CalendarCheck className="h-5 w-5" /></div><div><h2 className="text-lg font-black">Lịch sử sự kiện điểm danh</h2><p className="text-sm text-slate-500 dark:text-slate-400">Hiển thị nguyên trạng sự kiện đã ghi nhận; không suy diễn ngày học hoặc tỷ lệ.</p></div></div>
@@ -278,4 +292,8 @@ export default function Student360Page(): ReactElement {
       </div>
     </main>
   );
+}
+
+export default function Student360Page(): ReactElement {
+  return <Suspense fallback={<ProfileLoading />}><Student360PageContent /></Suspense>;
 }

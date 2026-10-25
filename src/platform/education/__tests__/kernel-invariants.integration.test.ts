@@ -68,30 +68,21 @@ describe('Education OS — Kernel Invariants Integration Tests', () => {
     await supabase.from('tenants').delete().eq('id', TEST_TENANT);
   }
 
-  async function seedStudent(personId: string, studentCode: string, name: string): Promise<string> {
+  async function seedStudent(studentPartyId: string, studentCode: string, name: string): Promise<string> {
     const { error: err1 } = await supabase.from('party_parties').upsert({
-      id: personId,
+      id: studentPartyId,
       tenant_id: TEST_TENANT,
       party_type: 'person',
       display_name: name,
     });
     if (err1) throw new Error(`seedStudent: party_parties fail: ${err1.message}`);
 
-    const { error: err2 } = await supabase.from('persons').upsert({
-      id: personId,
-      tenant_id: TEST_TENANT,
-      first_name: name.split(' ')[0],
-      last_name: name.split(' ')[1] || 'Student',
-      date_of_birth: '2000-01-01',
-      gender: 'male',
-    });
-    if (err2) throw new Error(`seedStudent: persons fail: ${err2.message}`);
-
     const studentId = crypto.randomUUID();
     const { error: err3 } = await supabase.from('students').upsert({
       student_id: studentId,
       tenant_id: TEST_TENANT,
-      person_id: personId,
+      party_id: studentPartyId,
+      person_id: null,
       student_code: studentCode,
       academic_status: 'enrolled',
       enrollment_type: 'full_time',
