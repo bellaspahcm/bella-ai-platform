@@ -49,6 +49,12 @@ function select(files, status = 0, jsonOutput = false, options = {}) {
     path,
     spawnSync(command, args, spawnOptions) {
       calls.push({ command, args: [...args], env: spawnOptions.env });
+      if (command === 'git' && args[0] === 'fetch') {
+        return { status: options.gitFetchStatus ?? 0 };
+      }
+      if (command === 'git' && args[0] === 'diff') {
+        return { status: options.gitDiffStatus ?? 0, stdout: options.gitDiff ?? '' };
+      }
       if (args.includes('--listTests')) {
         return { status: 0, stdout: 'src/__tests__/agent-flow-tooling.test.ts\n' };
       }
@@ -139,7 +145,9 @@ test('ba bộ kiểm thử Education dùng khóa T1 riêng, các bộ khác gi�
     'src/platform/education/__tests__/course-contract-real-db.integration.test.ts',
     'src/platform/education/__tests__/kernel-invariants.integration.test.ts',
   ], 0, true, {
-    env: { CI: 'true', BELLA_T1_ENV_REQUIRED: 'true', BELLA_T1_TEST_ENV_FILE: '/tmp/t1-env.json', ...t1Values },
+    env: { CI: 'true', BELLA_T1_ENV_REQUIRED: 'true',
+      BELLA_T1_EXPECTED_SUITES: 'src/platform/education/__tests__/verification-gates.test.ts,src/platform/education/__tests__/course-contract-real-db.integration.test.ts,src/platform/education/__tests__/kernel-invariants.integration.test.ts',
+      BELLA_T1_TEST_ENV_FILE: '/tmp/t1-env.json', ...t1Values },
     t1Env: t1Values,
   });
   assert.equal(r.thrown, undefined);
@@ -177,7 +185,7 @@ test('bộ kiểm thử thường thất bại vẫn được ghi nhận và Edu
 test('CI từ chối khi thiếu khóa T1, kết quả Jest hoặc bộ kiểm thử đã chọn', () => {
   const testFile = 'src/platform/education/__tests__/verification-gates.test.ts';
   const noCredentials = select([testFile], 0, true, {
-    env: { CI: 'true', BELLA_T1_ENV_REQUIRED: 'true' },
+    env: { CI: 'true', BELLA_T1_ENV_REQUIRED: 'true', BELLA_T1_EXPECTED_SUITES: testFile },
     existingOutput: jestResult([testFile], 0),
   });
   assert.match(noCredentials.thrown.message, /T1_TEST_ENV_FILE_REQUIRED/);
@@ -201,4 +209,48 @@ test('CI khác không bật cờ T1 vẫn dùng môi trường hiện có của 
   assert.equal(r.exit, 0);
   assert.equal(r.calls.length, 1);
   assert.equal(r.calls[0].env.NEXT_PUBLIC_SUPABASE_URL, 'https://example.invalid');
+});
+
+test('PR giữ lịch sử Git đầy đủ và chạy đúng ba suite Education đã phát hiện', () => {
+  const suites = [
+    'src/platform/education/__tests__/verification-gates.test.ts',
+    'src/platform/education/__tests__/course-contract-real-db.integration.test.ts',
+    'src/platform/education/__tests__/kernel-invariants.integration.test.ts',
+  ];
+  const r = select([], 0, true, {
+    env: {
+      GITHUB_EVENT_NAME: 'pull_request', GITHUB_BASE_REF: 'main',
+      BELLA_T1_ENV_REQUIRED: 'true', BELLA_T1_EXPECTED_SUITES: `${suites.join(',')},`,
+      BELLA_T1_TEST_ENV_FILE: '/tmp/t1-env.json',
+    },
+    gitDiff: `${suites.join('\n')}\n`, t1Env: t1Values,
+  });
+  assert.equal(r.exit, 0);
+  assert.equal(r.thrown, undefined);
+  assert.deepEqual(r.calls[0].args, ['fetch', '--no-tags', 'origin', 'main']);
+  assert.deepEqual(r.calls[1].args, ['diff', '--name-only', 'origin/main...HEAD']);
+  assert.deepEqual(r.calls[2].args.slice(0, 3 + suites.length), ['jest', '--runInBand', '--runTestsByPath', ...suites]);
+  assert.equal(JSON.parse(r.storedFiles.get('result.json')).numTotalTestSuites, 3);
+});
+
+test('PR từ chối lỗi Git hoặc thiếu suite Education, không ghi kết quả Jest rỗng', () => {
+  const suite = 'src/platform/education/__tests__/verification-gates.test.ts';
+  const env = {
+    GITHUB_EVENT_NAME: 'pull_request', GITHUB_BASE_REF: 'main',
+    BELLA_T1_ENV_REQUIRED: 'true', BELLA_T1_EXPECTED_SUITES: `${suite},`,
+    BELLA_T1_TEST_ENV_FILE: '/tmp/t1-env.json',
+  };
+  const fetchFailure = select([], 0, true, { env, gitFetchStatus: 1, t1Env: t1Values });
+  assert.match(fetchFailure.thrown.message, /GIT_BASE_FETCH_FAILED/);
+  assert.equal(fetchFailure.storedFiles.has('result.json'), false);
+  const diffFailure = select([], 0, true, { env, gitDiffStatus: 1, t1Env: t1Values });
+  assert.match(diffFailure.thrown.message, /GIT_BASE_DIFF_FAILED/);
+  assert.equal(diffFailure.storedFiles.has('result.json'), false);
+  const missing = select([], 0, true, { env, gitDiff: '', t1Env: t1Values });
+  assert.match(missing.thrown.message, /T1_EXPECTED_CHANGED_SUITE_MISSING/);
+  assert.equal(missing.storedFiles.has('result.json'), false);
+  const unbound = select([], 0, true, {
+    env: { ...env, BELLA_T1_EXPECTED_SUITES: '' }, gitDiff: `${suite}\n`, t1Env: t1Values,
+  });
+  assert.match(unbound.thrown.message, /T1_EXPECTED_SUITES_INVALID/);
 });

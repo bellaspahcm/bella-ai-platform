@@ -64,7 +64,7 @@ jobs:
 
       - name: Install Supabase CLI for disposable Education fixture
         if: steps.education_fixture.outputs.needed == 'true'
-        uses: supabase/setup-cli@v3.0.1
+        uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359
         with:
           version: 2.115.0
 
@@ -84,6 +84,7 @@ jobs:
         if: steps.baseline_check.outputs.exists == 'true'
         env:
           BELLA_T1_ENV_REQUIRED: ${{ steps.education_fixture.outputs.needed }}
+          BELLA_T1_EXPECTED_SUITES: ${{ steps.education_fixture.outputs.suites }}
         run: |
           TS_ARG=""
           if [ -f .cache/tsbuildinfo/full.diagnostics.txt ]; then
@@ -118,7 +119,7 @@ jobs:
 
       - name: Upload synthetic Education fixture receipts
         if: always() && steps.education_fixture.outputs.needed == 'true'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: preschool-education-t1-receipts
           path: |
@@ -141,7 +142,7 @@ jobs:
       
       - name: Upload comparison report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: baseline-comparison-report
           path: baseline-comparison-report.txt

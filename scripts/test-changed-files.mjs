@@ -212,6 +212,17 @@ function gitOutput(args) {
   return result.stdout.trim();
 }
 
+function requiredEducationTests() {
+  if (process.env.BELLA_T1_ENV_REQUIRED !== 'true') return [];
+  const expected = (process.env.BELLA_T1_EXPECTED_SUITES ?? '')
+    .split(',').map((file) => file.trim()).filter(Boolean);
+  if (expected.length === 0 || new Set(expected).size !== expected.length
+      || expected.some((file) => !T1_EDUCATION_TEST_FILES.has(file))) {
+    throw new Error('T1_EXPECTED_SUITES_INVALID');
+  }
+  return expected;
+}
+
 function parseArgs() {
   const args = process.argv.slice(2);
   const jsonOutputIndex = args.indexOf('--jest-json-output');
@@ -308,8 +319,15 @@ function resolveChangedFiles(explicitChangedFiles) {
   const baseRef = process.env.GITHUB_BASE_REF;
 
   if (eventName === 'pull_request' && baseRef) {
-    run('git', ['fetch', '--no-tags', '--depth=1', 'origin', baseRef], { stdio: 'ignore' });
-    const diff = gitOutput(['diff', '--name-only', `origin/${baseRef}...HEAD`]);
+    const fetched = run('git', ['fetch', '--no-tags', 'origin', baseRef], { stdio: 'ignore' });
+    if (fetched.error || fetched.signal || fetched.status !== 0) {
+      throw new Error('GIT_BASE_FETCH_FAILED');
+    }
+    const changed = run('git', ['diff', '--name-only', `origin/${baseRef}...HEAD`]);
+    if (changed.error || changed.signal || changed.status !== 0) {
+      throw new Error('GIT_BASE_DIFF_FAILED');
+    }
+    const diff = changed.stdout.trim();
     return diff ? diff.split(/\r?\n/) : [];
   }
 
@@ -341,6 +359,10 @@ const testFiles = changedFiles.filter((file) => (
   TEST_FILE_PATTERN.test(file)
   && !DIRECT_TEST_EXCLUDED_PATTERNS.some((pattern) => pattern.test(file))
 ));
+const missingEducationTests = requiredEducationTests().filter((file) => !testFiles.includes(file));
+if (missingEducationTests.length > 0) {
+  throw new Error(`T1_EXPECTED_CHANGED_SUITE_MISSING:${missingEducationTests.join(',')}`);
+}
 
 if (sourceFiles.length === 0) {
   if (testFiles.length > 0) {
