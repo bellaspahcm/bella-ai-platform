@@ -1,0 +1,32 @@
+{
+  "scope": "Historical anonymous containment artifact publication only",
+  "approvedRelations": 32,
+  "executedSqlGitBlobSha256": "20e6b2e817b256b481ecefa5338ff5db0deafad8b4142cf8d818ffa79e32b027",
+  "freshProductionVerification": "NOT_RUN",
+  "records": [
+    {
+      "path": "docs/audits/preschool-full-audit-20261020/batch1/reviewed-scope.json",
+      "workingTreeSha256": "20d0d32a929ff8e9a532dd497acf92e2a9e5a5ce789686afd6e1f8e1f4a2d1b6",
+      "gitBlobSha256": "071c9dea409ff70660842b34b63f12f02b3fc755c7eb5e9ceee6a92d7442be9c",
+      "gitBlob": "12213a8da2e47ace23a75e48bb64d29108ef87a7"
+    },
+    {
+      "path": "docs/audits/preschool-full-audit-20261020/batch2a-rpc-20261021/EXECUTE_APPROVED_32_TABLE_ANON_CONTAINMENT.sql",
+      "workingTreeSha256": "52a17467d47120e2db24cc97cdaec4bd76f4916aa6c42d45af1d1890b8204396",
+      "gitBlobSha256": "20e6b2e817b256b481ecefa5338ff5db0deafad8b4142cf8d818ffa79e32b027",
+      "gitBlob": "b1d94cfa1864170d8371bc19896a99cc4c5f64ad"
+    },
+    {
+      "path": "docs/audits/preschool-full-audit-20261020/batch2a-rpc-20261021/RECOVERY_LOCAL_TRIAL_ONLY.sql",
+      "workingTreeSha256": "3532deea73c6d8d9969a0d178acf5a1593098270968fe9a4ccc5afc4242889ba",
+      "gitBlobSha256": "3864b6212460d4f044abe44ffa7f5396fe15a30efd845258acd9748820cfa805",
+      "gitBlob": "711412b9fad13e8b1783eb189241ef43a55ea152"
+    },
+    {
+      "path": "docs/audits/preschool-full-audit-20261020/batch2a-rpc-20261021/execution-manifest.json",
+      "workingTreeSha256": "14009576e240c899811cf2864491f5be25999244df4d036c764d83a2836bbd95",
+      "gitBlobSha256": "24f5b1d20c04a7bb6e97a08a1cfae6780e1afc1a92749264239ad02e759c86bf",
+      "gitBlob": "f5451ef56d947cc223605b0a93833b9c808b1d7a"
+    }
+  ]
+}
