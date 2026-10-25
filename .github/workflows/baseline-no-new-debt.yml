@@ -57,6 +57,7 @@ jobs:
           fi
           if [ -n "$changed" ]; then
             echo 'needed=true' >> "$GITHUB_OUTPUT"
+            echo "suites=$(printf '%s\n' "$changed" | tr '\n' ',')" >> "$GITHUB_OUTPUT"
           else
             echo 'needed=false' >> "$GITHUB_OUTPUT"
           fi
@@ -81,6 +82,8 @@ jobs:
 
       - name: Collect diagnostic artifacts (Single Producer)
         if: steps.baseline_check.outputs.exists == 'true'
+        env:
+          BELLA_T1_ENV_REQUIRED: ${{ steps.education_fixture.outputs.needed }}
         run: |
           TS_ARG=""
           if [ -f .cache/tsbuildinfo/full.diagnostics.txt ]; then
@@ -105,6 +108,8 @@ jobs:
 
       - name: Verify disposable Education fixture receipts
         if: always() && steps.education_fixture.outputs.needed == 'true'
+        env:
+          T1_EXPECTED_SUITES: ${{ steps.education_fixture.outputs.suites }}
         run: bash scripts/ci/preschool-t1-fixture.sh verify
 
       - name: Dispose only the owned Education database

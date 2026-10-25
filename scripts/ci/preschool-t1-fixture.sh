@@ -149,32 +149,54 @@ manifest = dict(scope='T1', project='bella-preschool-t1-20261022', projectId='be
                 expiresAt=(datetime.now(timezone.utc) + timedelta(hours=4)).isoformat())
 (directory / 'fixture-manifest.json').write_text(json.dumps(manifest, indent=2))
 PY
-  {
-    echo "NEXT_PUBLIC_SUPABASE_URL=$API_URL"
-    echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=$ANON_KEY"
-    echo "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=$ANON_KEY"
-    echo "SUPABASE_SERVICE_ROLE_KEY=$SERVICE_ROLE_KEY"
-    echo "BELLA_DISPOSABLE_FIXTURE_MANIFEST=$workdir/fixture-manifest.json"
-    echo "BELLA_FIXTURE_RECEIPT_DIR=$workdir/receipts"
-  } >> "${GITHUB_ENV:?GITHUB_ENV_REQUIRED}"
+  python3 - "$workdir" <<'PY'
+import json, os, pathlib, sys
+directory = pathlib.Path(sys.argv[1])
+env = dict(NEXT_PUBLIC_SUPABASE_URL=os.environ['API_URL'],
+           NEXT_PUBLIC_SUPABASE_ANON_KEY=os.environ['ANON_KEY'],
+           NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=os.environ['ANON_KEY'],
+           SUPABASE_SERVICE_ROLE_KEY=os.environ['SERVICE_ROLE_KEY'],
+           BELLA_DISPOSABLE_FIXTURE_MANIFEST=str(directory / 'fixture-manifest.json'),
+           BELLA_FIXTURE_RECEIPT_DIR=str(directory / 'receipts'))
+(directory / 'fixture-test-env.json').write_text(json.dumps(env))
+PY
+  chmod 600 "$workdir/fixture-test-env.json"
+  rm -f "$workdir/status.env"
+  echo "BELLA_T1_TEST_ENV_FILE=$workdir/fixture-test-env.json" >> "${GITHUB_ENV:?GITHUB_ENV_REQUIRED}"
   echo 'T1_SANDBOX_READY_30_RELATIONS'
 }
 
 verify() {
   python3 - "$workdir" "${T1_JEST_REPORT:-$root/artifacts/jest-output.json}" <<'PY'
-import json, pathlib, sys
+import json, os, pathlib, sys
 directory, report_path = map(pathlib.Path, sys.argv[1:])
 manifest = json.loads((directory / 'fixture-manifest.json').read_text())
 report = json.loads(report_path.read_text())
-for suite in ('verification-gates.test.ts', 'course-contract-real-db.integration.test.ts',
-              'kernel-invariants.integration.test.ts'):
+allowed = ('verification-gates.test.ts', 'course-contract-real-db.integration.test.ts',
+           'kernel-invariants.integration.test.ts')
+expected_paths = os.environ.get('T1_EXPECTED_SUITES', '')
+if not expected_paths and os.environ.get('GITHUB_ACTIONS') == 'true':
+    raise SystemExit('T1_EXPECTED_SUITES_MISSING')
+expected = {pathlib.PurePosixPath(path).name for path in expected_paths.split(',') if path} if expected_paths else set(allowed)
+if not expected or not expected.issubset(allowed):
+    raise SystemExit('T1_EXPECTED_SUITES_INVALID')
+selected = set()
+for suite in allowed:
     matches = [result for result in report['testResults']
                if result['name'].replace('\\', '/').endswith('/src/platform/education/__tests__/' + suite)]
+    if not matches:
+        continue
+    selected.add(suite)
     if (len(matches) != 1 or matches[0].get('status') != 'passed' or
         not matches[0].get('assertionResults') or
         any(assertion.get('status') != 'passed' for assertion in matches[0]['assertionResults'])):
         raise SystemExit('T1_SUITE_NOT_PROVEN:' + suite)
-for suite in ('verification-gates', 'course-contract-real-db'):
+if not expected.issubset(selected):
+    raise SystemExit('T1_CHANGED_SUITE_MISSING:' + ','.join(sorted(expected - selected)))
+for suite_name, suite in (('verification-gates.test.ts', 'verification-gates'),
+                          ('course-contract-real-db.integration.test.ts', 'course-contract-real-db')):
+    if suite_name not in selected:
+        continue
     receipts = list((directory / 'receipts').glob(suite + '-*.json'))
     if len(receipts) != 1:
         raise SystemExit('T1_RECEIPT_COUNT_INVALID:' + suite)
@@ -183,7 +205,7 @@ for suite in ('verification-gates', 'course-contract-real-db'):
         receipt.get('authorityReadback') != 'NO_ACTIVE_TRACKED_AUTHORITY' or
         receipt.get('target', {}).get('containerId') != manifest['containerId']):
         raise SystemExit('T1_RECEIPT_RECOVERY_FAILED:' + suite)
-print('T1_THREE_SUITES_RECEIPTS_AND_AUTHORITY_READBACK_PASS')
+print('T1_SELECTED_SUITES_RECEIPTS_AND_AUTHORITY_READBACK_PASS:' + ','.join(sorted(selected)))
 PY
 }
 
@@ -202,7 +224,7 @@ dispose() {
       echo 'T1_CONTAINER_OWNERSHIP_MISMATCH'; return 1
     fi
   fi
-  rm -f "$workdir/status.env"
+  rm -f "$workdir/status.env" "$workdir/fixture-test-env.json"
   if test -z "$(owned_containers)" && test -z "$(owned_volumes)"; then
     echo 'T1_STACK_ALREADY_ABSENT'; return
   fi
