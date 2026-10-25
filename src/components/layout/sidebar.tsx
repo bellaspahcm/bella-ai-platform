@@ -426,6 +426,7 @@ const bellaHospitalInpatientMenuItems: SidebarMenuItem[] = [
 // ─── Bella Education Preschool Module Menu (Dedicated) ───
 const bellaEducationMenuItems: SidebarMenuItem[] = [
   { icon: LayoutDashboard, label: 'Tổng quan', href: '/dashboard/education' },
+  { icon: GitFork, label: 'Quản lý chi nhánh', href: '/dashboard/education/branches' },
   { icon: Baby, label: 'Quản lý trẻ', href: '/dashboard/education/enrollments' },
   { icon: BookOpen, label: 'Quản lý lớp học', href: '/dashboard/education/courses' },
   { icon: UserCheck, label: 'Quản lý giáo viên', href: '/dashboard/education/teachers' },
@@ -636,7 +637,10 @@ export function Sidebar() {
     return { ...item, label: 'Đơn đặt lịch' };
   });
 
-  const filteredMenuItems = [...moduleAwareMenuItems];
+  const filteredMenuItems = moduleAwareMenuItems.filter((item) => {
+    if (isMenuHeader(item) || item.href !== '/dashboard/education/branches') return true;
+    return user?.role?.toLowerCase() === 'admin';
+  });
 
   // KTV gets a personal income shortcut instead
   if (user?.role?.toLowerCase() === 'ktv') {

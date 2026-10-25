@@ -49,6 +49,8 @@ type ExtendedDatabase = Database & {
   };
 };
 
+export type OrgUnitDatabase = ExtendedDatabase;
+
 type OrgUnitsRow = Database['public']['Tables']['org_units']['Row'];
 type OrgUnitsInsert = Database['public']['Tables']['org_units']['Insert'];
 type OrgUnitsUpdate = Database['public']['Tables']['org_units']['Update'];
@@ -73,7 +75,7 @@ export interface IOrgUnitRepository {
  * Supabase Org Unit Repository
  */
 export class SupabaseOrgUnitRepository implements IOrgUnitRepository {
-  constructor(private supabase: SupabaseClient<ExtendedDatabase>) {}
+  constructor(private supabase: SupabaseClient<OrgUnitDatabase>) {}
 
   /**
    * Create organization unit
@@ -340,13 +342,17 @@ export class SupabaseOrgUnitRepository implements IOrgUnitRepository {
 /**
  * Create Org Unit Repository
  * 
- * Factory function for dependency injection.
+ * Pass an authenticated caller-scoped client when the caller's RLS policies
+ * must govern the operation. Omitting it retains the existing service-role
+ * repository behavior for trusted server-side consumers.
  */
-export function createOrgUnitRepository(): IOrgUnitRepository {
+export function createOrgUnitRepository(client?: SupabaseClient<OrgUnitDatabase>): IOrgUnitRepository {
+  if (client) return new SupabaseOrgUnitRepository(client);
+
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
   const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
   
-  const supabase = createClient<ExtendedDatabase>(supabaseUrl, supabaseKey);
+  const supabase = createClient<OrgUnitDatabase>(supabaseUrl, supabaseKey);
   
   return new SupabaseOrgUnitRepository(supabase);
 }
