@@ -8,6 +8,11 @@ import { EnrollmentRecoveryContractImpl } from '@/platform/education/contracts/e
 import type { IOrgUnitContract, OrgUnit } from '@/platform/org-unit';
 import type { ITrustedActorOrgUnitAccessContract, TrustedActorOrgUnitAccessRow } from '@/platform/org-unit/trusted-actor-access.contract';
 import { TrustedActorOrgUnitAccessContractImpl } from '@/platform/org-unit/trusted-actor-access.contract.impl';
+import {
+  CURRENT_ACTOR_ORG_UNIT_ACCESS_RPC,
+  type CurrentActorOrgUnitAccessRow,
+  type PlatformActorDatabase,
+} from '@/platform/security/current-actor.contract';
 
 type PreschoolChainClient = SupabaseClient<Database>;
 type OrgRelationshipRow = Pick<
@@ -15,7 +20,8 @@ type OrgRelationshipRow = Pick<
   'to_id' | 'rel_type' | 'since' | 'until'
 >;
 type OrgUnitScope = Pick<OrgUnit, 'id' | 'unitType' | 'isActive' | 'parentId'>;
-type OrgUnitContractScope = Pick<IOrgUnitContract, 'getOrgUnit' | 'getOrgUnits'>;
+type OrgUnitContractScope = Pick<IOrgUnitContract, 'getOrgUnit' | 'getOrgUnits'>
+  & Partial<Pick<IOrgUnitContract, 'createOrgUnit'>>;
 
 function getDefaultOrgUnitContract(): OrgUnitContractScope {
   const platform = require('@/platform/org-unit') as { orgUnitEngine: OrgUnitContractScope };
@@ -44,6 +50,13 @@ export interface PreschoolChainAssignmentDTO {
 
 export interface PreschoolBranchOption {
   readonly id: string;
+  readonly name: string;
+  readonly code?: string;
+}
+
+export interface CreatePreschoolBranchInput {
+  readonly tenantId: string;
+  readonly actorUserId: string;
   readonly name: string;
   readonly code?: string;
 }
@@ -85,6 +98,66 @@ export class PreschoolChainService {
         && ['belongs_to', 'manages', 'participates_in'].includes(row.access_source))
       .map((row) => row.org_unit_id));
     return this.toBranchOptions(branches.filter((branch) => explicitlyAccessibleBranchIds.has(branch.id)));
+  }
+
+  public async listManagedBranches(
+    tenantId: string,
+    actorUserId: string,
+  ): Promise<PreschoolBranchOption[]> {
+    if (!tenantId) throw new Error('PRESCHOOL_CHAIN_TENANT_REQUIRED');
+    if (!actorUserId) throw new Error('PRESCHOOL_CHAIN_ACTOR_REQUIRED');
+    if (await this.getActiveRole(tenantId, actorUserId) !== 'admin') {
+      throw new PreschoolChainError('PRESCHOOL_CHAIN_BRANCH_MANAGEMENT_DENIED', 403);
+    }
+
+    const [branches, accessRows] = await Promise.all([this.orgUnits.getOrgUnits({
+      tenantId,
+      unitType: 'branch',
+      isActive: true,
+    }), this.listCurrentActorOrgUnitAccess(tenantId, actorUserId)]);
+    const tenantAdminBranchIds = new Set(accessRows
+      .filter((row) => row.access_source === 'tenant_admin' && row.relationship_id === null)
+      .map((row) => row.org_unit_id));
+    return this.toBranchOptions(branches.filter((branch) => tenantAdminBranchIds.has(branch.id)));
+  }
+
+  public async createBranch(input: CreatePreschoolBranchInput): Promise<PreschoolBranchOption> {
+    if (!input.tenantId) throw new Error('PRESCHOOL_CHAIN_TENANT_REQUIRED');
+    if (!input.actorUserId) throw new Error('PRESCHOOL_CHAIN_ACTOR_REQUIRED');
+    if (!input.name.trim()) throw new PreschoolChainError('PRESCHOOL_CHAIN_BRANCH_NAME_REQUIRED', 400);
+    if (await this.getActiveRole(input.tenantId, input.actorUserId) !== 'admin') {
+      throw new PreschoolChainError('PRESCHOOL_CHAIN_BRANCH_MANAGEMENT_DENIED', 403);
+    }
+    if (!this.orgUnits.createOrgUnit) {
+      throw new PreschoolChainError('PRESCHOOL_CHAIN_BRANCH_WRITER_UNAVAILABLE', 503);
+    }
+
+    try {
+      const code = input.code?.trim();
+      const branch = await this.orgUnits.createOrgUnit({
+        tenantId: input.tenantId,
+        unitType: 'branch',
+        name: input.name.trim(),
+        ...(code ? { code } : {}),
+      });
+      if (branch.tenantId !== input.tenantId || branch.unitType !== 'branch' || !branch.isActive) {
+        throw new PreschoolChainError('PRESCHOOL_CHAIN_BRANCH_CREATE_UNAVAILABLE', 503);
+      }
+      return { id: branch.id, name: branch.name, code: branch.code };
+    } catch (error) {
+      if (error instanceof PreschoolChainError) throw error;
+      if (this.hasErrorCode(error, 'ORG_UNIT_CODE_CONFLICT')) {
+        throw new PreschoolChainError('PRESCHOOL_CHAIN_BRANCH_CODE_CONFLICT', 409);
+      }
+      const message = error instanceof Error ? error.message.toLowerCase() : '';
+      if (message.includes('23505') || message.includes('duplicate key')) {
+        throw new PreschoolChainError('PRESCHOOL_CHAIN_BRANCH_CODE_CONFLICT', 409);
+      }
+      if (message.includes('42501') || message.includes('row-level security')) {
+        throw new PreschoolChainError('PRESCHOOL_CHAIN_BRANCH_MANAGEMENT_DENIED', 403);
+      }
+      throw new PreschoolChainError('PRESCHOOL_CHAIN_BRANCH_CREATE_UNAVAILABLE', 503);
+    }
   }
 
   public async preflightEnrollmentBranch(input: PreschoolChainPreflightInput): Promise<OrgUnitScope> {
@@ -309,6 +382,35 @@ export class PreschoolChainService {
       throw new PreschoolChainError('PRESCHOOL_CHAIN_BRANCH_ACCESS_DENIED', 403);
     }
     return rows;
+  }
+
+  private async listCurrentActorOrgUnitAccess(
+    tenantId: string,
+    actorUserId: string,
+  ): Promise<readonly CurrentActorOrgUnitAccessRow[]> {
+    const actorClient = this.client as unknown as SupabaseClient<PlatformActorDatabase>;
+    const { data, error } = await actorClient.rpc(CURRENT_ACTOR_ORG_UNIT_ACCESS_RPC);
+    if (error || !Array.isArray(data)) {
+      throw new PreschoolChainError('PRESCHOOL_CHAIN_BRANCH_ACCESS_LOOKUP_FAILED', 503);
+    }
+    const rows: CurrentActorOrgUnitAccessRow[] = [];
+    for (const row of data) {
+      if (row.tenant_id !== tenantId || row.user_id !== actorUserId
+        || !this.isOrgUnitAccessSource(row.access_source)) {
+        throw new PreschoolChainError('PRESCHOOL_CHAIN_BRANCH_ACCESS_DENIED', 403);
+      }
+      rows.push({ ...row, access_source: row.access_source });
+    }
+    return rows;
+  }
+
+  private isOrgUnitAccessSource(value: string): value is CurrentActorOrgUnitAccessRow['access_source'] {
+    return ['belongs_to', 'manages', 'participates_in', 'tenant_admin'].includes(value);
+  }
+
+  private hasErrorCode(error: unknown, expected: string): boolean {
+    return error !== null && typeof error === 'object' && 'code' in error
+      && error.code === expected;
   }
 
   private async getActiveRole(tenantId: string, userId: string): Promise<string> {

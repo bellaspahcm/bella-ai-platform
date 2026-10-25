@@ -27,7 +27,8 @@ import {
   OrgUnitTenantMismatchError
 } from './index';
 import type { IOrgUnitRepository } from './org-unit.repository';
-import { createOrgUnitRepository } from './org-unit.repository';
+import { createOrgUnitRepository, type OrgUnitDatabase } from './org-unit.repository';
+import type { SupabaseClient } from '@supabase/supabase-js';
 
 /**
  * Org Unit Engine
@@ -292,11 +293,15 @@ export class OrgUnitEngine implements IOrgUnitContract {
 /**
  * Create Org Unit Engine
  * 
- * Factory function with default repository.
+ * Factory for the existing trusted server-side Org Unit contract.
  */
 export function createOrgUnitEngine(): IOrgUnitContract {
-  const repository = createOrgUnitRepository();
-  return new OrgUnitEngine(repository);
+  return new OrgUnitEngine(createOrgUnitRepository());
+}
+
+/** Creates the same public contract with an authenticated caller-scoped client. */
+export function createOrgUnitEngineForClient(client: SupabaseClient<OrgUnitDatabase>): IOrgUnitContract {
+  return new OrgUnitEngine(createOrgUnitRepository(client));
 }
 
 /**
