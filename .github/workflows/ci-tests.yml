@@ -93,11 +93,66 @@ jobs:
 
       - run: npm ci
 
+      - name: Detect Education database suites
+        id: education_fixture
+        shell: bash
+        run: |
+          if [ "$GITHUB_EVENT_NAME" = 'pull_request' ]; then
+            changed="$(git diff --name-only "origin/$GITHUB_BASE_REF...HEAD")"
+          else
+            changed="$(git diff --name-only origin/main...HEAD)"
+            if [ -z "$changed" ]; then
+              changed="$(git diff --name-only HEAD^ HEAD)"
+            fi
+          fi
+          suites="$(printf '%s\n' "$changed" | grep -E '^src/platform/education/__tests__/(verification-gates\.test\.ts|course-contract-real-db\.integration\.test\.ts|kernel-invariants\.integration\.test\.ts)$' || true)"
+          if [ -n "$suites" ]; then
+            echo 'needed=true' >> "$GITHUB_OUTPUT"
+            echo "suites=$(printf '%s\n' "$suites" | tr '\n' ',')" >> "$GITHUB_OUTPUT"
+          else
+            echo 'needed=false' >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Install Supabase CLI for disposable Education fixture
+        if: steps.education_fixture.outputs.needed == 'true'
+        uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359
+        with:
+          version: 2.115.0
+
+      - name: Prepare disposable Education database
+        if: steps.education_fixture.outputs.needed == 'true'
+        run: bash scripts/ci/preschool-t1-fixture.sh prepare
+
       - name: Run related unit and integration suite
-        run: node scripts/test-changed-files.mjs
+        run: node scripts/test-changed-files.mjs --jest-json-output "$RUNNER_TEMP/affected-jest.json"
         env:
           NODE_ENV: test
           JEST_CACHE_DIRECTORY: .jest-cache
+          BELLA_T1_ENV_REQUIRED: ${{ steps.education_fixture.outputs.needed }}
+          BELLA_T1_EXPECTED_SUITES: ${{ steps.education_fixture.outputs.suites }}
+
+      - name: Verify disposable Education fixture receipts
+        if: always() && steps.education_fixture.outputs.needed == 'true'
+        env:
+          T1_EXPECTED_SUITES: ${{ steps.education_fixture.outputs.suites }}
+          T1_JEST_REPORT: ${{ runner.temp }}/affected-jest.json
+        run: bash scripts/ci/preschool-t1-fixture.sh verify
+
+      - name: Dispose only the owned Education database
+        if: always() && steps.education_fixture.outputs.needed == 'true'
+        run: bash scripts/ci/preschool-t1-fixture.sh dispose
+
+      - name: Upload synthetic Education fixture receipts
+        if: always() && steps.education_fixture.outputs.needed == 'true'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: preschool-affected-education-t1-receipts
+          path: |
+            ${{ runner.temp }}/bella-preschool-t1-20261022/receipts/*.json
+            ${{ runner.temp }}/bella-preschool-t1-20261022/fixture-manifest.json
+            ${{ runner.temp }}/bella-preschool-t1-20261022/owner-marker.json
+          if-no-files-found: warn
+          retention-days: 7
 
   real-db-e2e:
     name: Real Database Business E2E
