@@ -11,7 +11,7 @@ const t1Values = {
   NEXT_PUBLIC_SUPABASE_URL: 'http://127.0.0.1:24631',
   NEXT_PUBLIC_SUPABASE_ANON_KEY: 'synthetic-anon',
   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: 'synthetic-anon',
-  SUPABASE_SERVICE_ROLE_KEY: 'synthetic-service',
+  SUPABASE_SERVICE_ROLE_KEY: 'test-service',
   BELLA_DISPOSABLE_FIXTURE_MANIFEST: '/tmp/t1/fixture-manifest.json',
   BELLA_FIXTURE_RECEIPT_DIR: '/tmp/t1/receipts',
 };
