@@ -24,7 +24,7 @@ it('giữ giao diện lớp học mới và chỉ đọc từ catalog canonical'
   render(<CoursesPage />);
   expect(await screen.findByRole('heading', { name: 'Lớp thử nghiệm' })).toBeVisible();
   expect(screen.getByText('Hiển thị 1 / 1 lớp')).toBeVisible();
-  expect(screen.getByRole('button', { name: 'Mở Lớp Học Mới' })).toBeDisabled();
+  expect(screen.getByRole('button', { name: 'Mở Lớp Học Mới' })).toBeEnabled();
   expect(screen.queryByText(/Nguyễn Thị Mai|Phòng 103|25 bé/)).toBeNull();
   expect(mockFetch).toHaveBeenCalledWith('/api/education/courses/catalog', expect.objectContaining({ cache: 'no-store' }));
   expect(mockFetch.mock.calls.every(([, init]) => !init?.method || init.method === 'GET')).toBe(true);

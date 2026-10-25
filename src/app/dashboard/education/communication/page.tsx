@@ -781,7 +781,7 @@ function PreschoolCommunicationContent({ tenantId }: { readonly tenantId: string
             </div>
             <div>
               <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-                Trung Tâm Truyền Thông &amp; Tương Tác
+                {activeNavTab === 'announcements' ? 'Bảng tin chung' : 'Trung Tâm Truyền Thông & Tương Tác'}
               </h1>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                 Quản lý tin nhắn, thông báo, sổ liên lạc và biểu mẫu đồng ý của phụ huynh
@@ -1031,6 +1031,14 @@ function PreschoolCommunicationContent({ tenantId }: { readonly tenantId: string
           {/* Header row */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
+              <button
+                type="button"
+                aria-label="Quay lại tổng quan truyền thông"
+                onClick={() => setActiveNavTab('overview')}
+                className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"
+              >
+                <ArrowLeft className="w-3.5 h-3.5" />Quay lại
+              </button>
               <Bell className="w-4 h-4 text-[#0c513f]" />
               <h2 className="text-sm font-extrabold text-slate-900 dark:text-white">Thông báo chung của nhà trường</h2>
               <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-[#0c513f]/10 text-[#0c513f]">

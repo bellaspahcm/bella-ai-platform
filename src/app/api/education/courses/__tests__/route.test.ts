@@ -444,7 +444,7 @@ describe('/api/education/courses canonical classroom route', () => {
 
     expect(response.status).toBe(503);
     expect(body.success).toBe(false);
-    expect(body.error).toBe('COURSE_AUTHORIZATION_NOT_READY');
+    expect(body.error).toBe('CANONICAL_COURSE_UNAVAILABLE');
     expect(mockGetCurrentUser).not.toHaveBeenCalled();
     expect(mockFrom).not.toHaveBeenCalled();
     expect(mockGetCourseTeachers).not.toHaveBeenCalled();

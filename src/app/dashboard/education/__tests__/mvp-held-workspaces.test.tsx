@@ -1,6 +1,6 @@
 /** @jest-environment jsdom */
 import '@testing-library/jest-dom';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import Facilities from '../facilities/page';
 import Grades from '../grades/page';
 import Finance from '../finance/page';
@@ -20,14 +20,16 @@ it('keeps unpersisted assessment data held outside development', () => {
   expect(fetchMock).not.toHaveBeenCalled();
 });
 
-it('restores the facilities layout without loading or mutating unverified data', () => {
+it('keeps facilities read-only until verified data and APIs are available', () => {
   const fetchMock = jest.fn();
   Object.defineProperty(globalThis, 'fetch', { configurable: true, writable: true, value: fetchMock });
   render(<Facilities />);
   expect(screen.getByRole('heading', { name: 'Cơ sở vật chất & Tài sản' })).toBeInTheDocument();
-  expect(screen.getByRole('table')).toHaveTextContent('Chưa có nguồn dữ liệu đã xác minh.');
-  expect(screen.getByRole('button', { name: 'Thêm tài sản' })).toBeDisabled();
-  expect(screen.getByRole('button', { name: 'Báo cáo ngay' })).toBeDisabled();
+  expect(screen.getByText('Quản lý thiết bị, bảo trì, an toàn và kiểm định định kỳ')).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: /Khởi Tạo Cơ Sở Vật Chất Mẫu/ })).toBeDisabled();
+  expect(screen.getByRole('button', { name: /Báo Cáo Sự Cố An Toàn/ })).toBeDisabled();
+  fireEvent.click(screen.getByRole('button', { name: /Danh Mục Tài Sản/ }));
+  expect(screen.getByRole('table')).toHaveTextContent('Chưa có danh mục tài sản đã xác minh.');
   expect(fetchMock).not.toHaveBeenCalled();
 });
 

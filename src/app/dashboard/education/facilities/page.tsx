@@ -63,11 +63,11 @@ export default function FacilitiesPage() {
                 <ArrowLeft size={18} />
               </Link>
               <h1 className="preschool-brand-heading text-2xl md:text-3xl font-extrabold tracking-tight text-[var(--education-brand-ink)]">
-                P9 Preschool Facilities &amp; Asset Maintenance OS
+                Cơ sở vật chất &amp; Tài sản
               </h1>
             </div>
             <p className="text-muted-foreground text-sm mt-1 ml-11">
-              Quản lý Cấu Trúc Không Gian, Danh Mục Tài Sản Cá Thể, Kiểm Định An Toàn PCCC, Work Order &amp; Safety Invariants
+              Quản lý thiết bị, bảo trì, an toàn và kiểm định định kỳ
             </p>
           </div>
 
