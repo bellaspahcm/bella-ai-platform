@@ -1,4 +1,4 @@
-import { spawn, execFileSync } from 'node:child_process';
+import { spawn, spawnSync, execFileSync } from 'node:child_process';
 import { randomBytes, randomUUID } from 'node:crypto';
 import { StringDecoder } from 'node:string_decoder';
 import { lstatSync, realpathSync } from 'node:fs';
@@ -8,7 +8,7 @@ import { dirname, resolve, join } from 'node:path';
 import { authorizeRepository, REPOSITORY } from './authority.mjs';
 import { normalizeNotification, normalizeHistory, normalizeHistoryTurn, reconcile, hash, DAY_MS } from './contract.mjs';
 import { createPrivateDirectory, DevelopmentStore, writeDurableJson } from './store.mjs';
-import { admitTask } from './role-validation.mjs';
+import { admitTask, productTaskHash, productJestConfig } from './role-validation.mjs';
 import { pilotExecution, isMvpPilot } from './mvp-pilot.mjs';
 
 const permissionFailure = code => { throw new Error(code); };
@@ -28,25 +28,26 @@ export function assertFactoryPath(path, directory = false) {
   }
 }
 
-export function factoryScratch(cwd, input) {
-  const task = admitTask(input);
+export function factoryScratch(cwd, input, approval) {
+  const task = admitTask(input, approval);
   if (isMvpPilot(task)) permissionFailure('INVALID_FACTORY_PERMISSION_OPT_IN');
   const workspace = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
   if (resolve(cwd) !== workspace) permissionFailure('INVALID_FACTORY_PERMISSION_OPT_IN');
+  if (task.product && resolve(task.product.workspace) !== workspace) permissionFailure('PRODUCT_ROOT_MISMATCH');
   assertFactoryPath(workspace, true);
   return resolve(workspace, '..', 'scratch', task.taskId);
 }
 
 // Before the single-use claim, reject unsafe static inputs. Clean up only the
 // empty directory this call created; never remove a prior task's scratch.
-export async function prepareFactoryScratch(cwd, task) {
-  const scratch = factoryScratch(cwd, task), parent = dirname(scratch);
+export async function prepareFactoryScratch(cwd, task, approval) {
+  const scratch = factoryScratch(cwd, task, approval), parent = dirname(scratch);
   assertFactoryPath(dirname(parent), true);
   try { await mkdir(parent); } catch (error) { if (error.code !== 'EEXIST') throw error; }
   assertFactoryPath(parent, true);
   try { await mkdir(scratch); } catch (error) { if (error.code === 'EEXIST') permissionFailure('FACTORY_SCRATCH_ALREADY_EXISTS'); throw error; }
   try {
-    for (const role of ['LEAD', 'BUILDER', 'VERIFY', 'REVIEWER']) factoryTransport(cwd, { task, role });
+    for (const role of ['LEAD', 'BUILDER', 'VERIFY', 'REVIEWER']) factoryTransport(cwd, { task, role, ...(approval ? { productApproval: approval } : {}) });
   } catch (error) {
     try { assertFactoryPath(scratch, true); await rmdir(scratch); }
     catch { permissionFailure('FACTORY_SCRATCH_CLEANUP_FAILED'); }
@@ -73,8 +74,9 @@ export function factoryTransport(cwd, options = {}) {
   const base = { args: ['app-server', '--listen', 'stdio://'], experimentalApi: false };
   if (!options || typeof options !== 'object' || Array.isArray(options)) permissionFailure('INVALID_FACTORY_PERMISSION_OPT_IN');
   if (!Object.keys(options).length) return base;
-  if (Object.keys(options).sort().join() !== 'role,task' || !['LEAD', 'BUILDER', 'VERIFY', 'REVIEWER'].includes(options.role) || process.platform !== 'win32') permissionFailure('INVALID_FACTORY_PERMISSION_OPT_IN');
-  const task = admitTask(options.task), scratch = factoryScratch(cwd, task);
+  const keys = options.productApproval === undefined ? 'role,task' : 'productApproval,role,task';
+  if (Object.keys(options).sort().join() !== keys || !['LEAD', 'BUILDER', 'VERIFY', 'REVIEWER'].includes(options.role) || process.platform !== 'win32') permissionFailure('INVALID_FACTORY_PERMISSION_OPT_IN');
+  const task = admitTask(options.task, options.productApproval), scratch = factoryScratch(cwd, task, options.productApproval);
   assertFactoryPath(scratch, true);
   for (const file of task.ownedFiles) assertFactoryPath(resolve(cwd, file));
   const paths = options.role === 'BUILDER' ? [...task.ownedFiles.map(p => resolve(cwd, p)), scratch] : options.role === 'VERIFY' ? [scratch] : [];
@@ -295,7 +297,33 @@ export async function runProof({ retained = false, scenario = 'success' } = {}) 
   return { ...summary, temporaryStoreRemoved: true, childServersStopped: true };
 }
 
-if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+// Fixed one-suite Jest invocation, inside the existing Verify scratch profile.
+// The real Jest JSON is forwarded unchanged and reconciled as command output.
+export function runProductJest(args, cwd = process.cwd()) {
+  if (!Array.isArray(args) || args.length !== 2 || args[0] !== '--product-jest' ||
+      typeof args[1] !== 'string' || !/^[A-Za-z0-9+/]+={0,2}$/.test(args[1]) || Buffer.from(args[1], 'base64').toString('base64') !== args[1]) permissionFailure('INVALID_PRODUCT_JEST_COMMAND');
+  let input;
+  try { input = JSON.parse(Buffer.from(args[1], 'base64').toString('utf8')); } catch { permissionFailure('INVALID_PRODUCT_JEST_COMMAND'); }
+  const approval = productTaskHash(input), task = admitTask(input, approval);
+  if (!task.product) permissionFailure('INVALID_PRODUCT_JEST_COMMAND');
+  const scratch = factoryScratch(cwd, task, approval);
+  assertFactoryPath(scratch, true);
+  const head = execFileSync('git', ['rev-parse', 'HEAD'], { cwd, encoding: 'utf8', windowsHide: true }).trim();
+  if (head !== task.sourceRevision) permissionFailure('WRONG_SOURCE_REVISION');
+  const { entries, config } = productJestConfig(task, cwd, scratch);
+  const result = spawnSync(process.execPath, ['-e', 'require(process.argv[1]).run(process.argv.slice(2))', entries.jest, '--config', JSON.stringify(config), '--runInBand', '--no-cache', '--json', '--runTestsByPath', task.testFile], {
+    cwd, env: factoryEnvironment(scratch), encoding: 'utf8', windowsHide: true, timeout: 240000, maxBuffer: 16 * 1024 * 1024,
+  });
+  if (result.stdout) process.stdout.write(result.stdout);
+  if (result.stderr) process.stderr.write(result.stderr);
+  if (result.error || result.signal || !Number.isSafeInteger(result.status) || result.status < 0) permissionFailure('PRODUCT_JEST_UNCERTAIN');
+  return result.status;
+}
+
+if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url) && process.argv[2]?.startsWith('--product')) {
+  try { process.exitCode = runProductJest(process.argv.slice(2)); }
+  catch (error) { console.error(/^[A-Z_]{3,80}$/.test(error.message) ? error.message : 'PRODUCT_JEST_FAILED'); process.exitCode = 1; }
+} else if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const retained = process.argv.includes('--retain');
   const scenario = process.argv.includes('--failed-tool') ? 'failed-tool' : 'success';
   runProof({ retained, scenario }).then(summary => console.log(JSON.stringify(summary, null, 2))).catch(error => {

@@ -1,0 +1,26 @@
+{
+  "at": "2026-10-23T23:44:54.295Z",
+  "target": "bmnbqbcdbuklhopfbopv",
+  "version": "20261024010000",
+  "name": "preschool_handover_atomic_command",
+  "sha256": "06e9058ee298220ef423b60d6a77fc6e9035d59d21edc7484de17d189cb5c830",
+  "committed": true,
+  "acl": {
+    "anon_execute": false,
+    "authenticated_execute": false,
+    "service_execute": true
+  },
+  "historyReadback": "PASS",
+  "existingFunctionCount": 398,
+  "existingTableAndViewCount": 275,
+  "existingCatalogWithinOwnRepeatableReadTransaction": "UNCHANGED",
+  "applicationDmlStatements": 0,
+  "isolationLimit": "Own transaction changes verified; concurrent external commits are outside this snapshot proof",
+  "authority": "Human reply: Duyệt đúng scope E2E này; continued implementation authorized",
+  "reviewRevision": {
+    "originalIdentifiedProposal": "81c6401f97364eefef11591c446677739efb1fe23a7e658d54278644890bbd5e",
+    "appliedReviewedSql": "06e9058ee298220ef423b60d6a77fc6e9035d59d21edc7484de17d189cb5c830",
+    "scopeUnchanged": true,
+    "changes": "Technical lock ordering/phantom protection, canonical course-tenant predicate, fail-closed transaction isolation; no additional function, role, grant, table or Kernel change"
+  }
+}

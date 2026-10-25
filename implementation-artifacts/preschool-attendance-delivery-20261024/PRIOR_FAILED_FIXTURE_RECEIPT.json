@@ -1,0 +1,52 @@
+{
+  "startedAt": "2026-10-24T01:26:10.587Z",
+  "completedAt": "2026-10-24T01:26:35.018Z",
+  "target": "bmnbqbcdbuklhopfbopv",
+  "mode": "LOCAL_RUN_OF_EXISTING_CI_TEST_FILE_NOT_REMOTE_CI",
+  "nativeExit": 1,
+  "source": [
+    {
+      "sha256": "b773cdb549a38e31a2c6092927953e71da961e2abfe3fcd5c08d79d314b02c23",
+      "file": "src/products/bella-education/services/preschool-safe-pickup-handover.service.ts"
+    },
+    {
+      "sha256": "221af96abc8a7c45609898da70f0cb30020adc45e4c0961ea116f17adaab9d25",
+      "file": "src/products/bella-education/__tests__/preschool-safe-pickup-handover.service.test.ts"
+    },
+    {
+      "sha256": "5004efa49ada88f826fd67658061c49f6ec2883d7eeb2da69893fd4b21015d89",
+      "file": "src/app/api/education/attendance/handover/route.ts"
+    },
+    {
+      "sha256": "0b4538a3274a5032b4a2e6058b77475c1db438b955451cfd8d225f88634f3e8f",
+      "file": "src/app/api/education/attendance/handover/__tests__/route.test.ts"
+    },
+    {
+      "sha256": "06e9058ee298220ef423b60d6a77fc6e9035d59d21edc7484de17d189cb5c830",
+      "file": "supabase/migrations/20261024010000_preschool_handover_atomic_command.sql"
+    },
+    {
+      "file": "src/platform/education/contracts/attendance.contract.impl.ts",
+      "sha256": "826bf3fc35df5c68d370f85d2b8c83fdde5801998f6f5eeeeac8926b56cd5b28"
+    },
+    {
+      "file": "src/platform/education/contracts/__tests__/attendance-record-rpc.contract.test.ts",
+      "sha256": "194d36e87f18b5a4b149252aaa464b881ddd597fd5008ad6a2e169a97d7249db"
+    },
+    {
+      "file": "supabase/migrations/20261024020000_reconcile_education_attendance_callers.sql",
+      "sha256": "50b2a4c9fc6c71b66aef8f5723e4560c0a0b835855c9c10e90ab153700be91b3"
+    },
+    {
+      "file": "src/products/bella-education/__tests__/preschool-chain-real-db.test.ts",
+      "sha256": "26fbc0b51441a804c5d5d038e6817de422c5fc6633d9e7efc546c8de8c6ccdc7"
+    }
+  ],
+  "selection": "New Attendance tests only; previous admission/Finance/handover cases intentionally not rerun",
+  "passed": 15,
+  "failed": 1,
+  "skipped": 11,
+  "remoteCi": "NOT_RUN",
+  "productionAccess": false,
+  "sourceDrift": []
+}

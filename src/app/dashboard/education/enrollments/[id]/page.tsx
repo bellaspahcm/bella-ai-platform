@@ -16,10 +16,11 @@ import {
   UserRound,
 } from 'lucide-react';
 import type { Student360ProfileData } from '@/app/api/education/enrollments/student-360.service';
+import StudentGuardians from './StudentGuardians';
 
 type LoadState =
   | { status: 'loading' }
-  | { status: 'ready'; profile: Student360ProfileData }
+  | { status: 'ready'; selector: string; profile: Student360ProfileData }
   | { status: 'error'; code: string; message: string; needsLogin: boolean };
 
 const PROFILE_KEYS = ['id', 'studentId', 'partyId', 'name', 'dob', 'gender', 'enrollments', 'attendance'];
@@ -195,7 +196,7 @@ export default function Student360Page(): ReactElement {
         setState({ status: 'error', code: 'STUDENT_PROFILE_UNAVAILABLE', ...loadErrorMessage(503, 'STUDENT_PROFILE_UNAVAILABLE') });
         return;
       }
-      setState({ status: 'ready', profile: body.profile });
+      setState({ status: 'ready', selector: studentCode, profile: body.profile });
     }).catch(error => {
       if (!active || (error instanceof DOMException && error.name === 'AbortError')) return;
       setState({ status: 'error', code: 'STUDENT_PROFILE_UNAVAILABLE', ...loadErrorMessage(503, 'STUDENT_PROFILE_UNAVAILABLE') });
@@ -204,7 +205,7 @@ export default function Student360Page(): ReactElement {
     return () => { active = false; controller.abort(); };
   }, [studentCode, reloadToken]);
 
-  if (state.status === 'loading') return <ProfileLoading />;
+  if (state.status === 'loading' || (state.status === 'ready' && state.selector !== studentCode)) return <ProfileLoading />;
   if (state.status === 'error') return <ProfileError state={state} onRetry={() => setReloadToken(value => value + 1)} />;
 
   const { profile } = state;
@@ -262,6 +263,8 @@ export default function Student360Page(): ReactElement {
           </div>
         </section>
 
+        <StudentGuardians studentId={profile.studentId} />
+
         <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
           <div className="flex items-center gap-3 border-b border-slate-100 p-6 dark:border-slate-800 sm:p-7"><div className="rounded-xl bg-blue-50 p-2.5 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300"><CalendarCheck className="h-5 w-5" /></div><div><h2 className="text-lg font-black">Lịch sử sự kiện điểm danh</h2><p className="text-sm text-slate-500 dark:text-slate-400">Hiển thị nguyên trạng sự kiện đã ghi nhận; không suy diễn ngày học hoặc tỷ lệ.</p></div></div>
           {profile.attendance.records.length === 0 ? <div className="p-10 text-center text-sm text-slate-500 dark:text-slate-400">Chưa có sự kiện điểm danh được ghi nhận.</div> : (
@@ -271,7 +274,7 @@ export default function Student360Page(): ReactElement {
           )}
         </section>
 
-        <aside className="rounded-3xl border border-amber-200 bg-amber-50 p-6 text-sm text-amber-950 dark:border-amber-900/60 dark:bg-amber-950/30 dark:text-amber-100"><div className="flex gap-3"><CircleAlert className="mt-0.5 h-5 w-5 shrink-0" /><div><p className="font-bold">Một số nhóm dữ liệu chưa được hiển thị</p><p className="mt-1 leading-6">Người giám hộ, y tế, tài chính, đánh giá học tập, đưa đón và trao đổi riêng chỉ xuất hiện khi có nguồn dữ liệu được xác minh và quyền truy cập phù hợp.</p></div></div></aside>
+        <aside className="rounded-3xl border border-amber-200 bg-amber-50 p-6 text-sm text-amber-950 dark:border-amber-900/60 dark:bg-amber-950/30 dark:text-amber-100"><div className="flex gap-3"><CircleAlert className="mt-0.5 h-5 w-5 shrink-0" /><div><p className="font-bold">Một số nhóm dữ liệu chưa được hiển thị</p><p className="mt-1 leading-6">Y tế, tài chính, đánh giá học tập và trao đổi riêng chỉ xuất hiện khi có nguồn dữ liệu được xác minh và quyền truy cập phù hợp.</p></div></div></aside>
       </div>
     </main>
   );

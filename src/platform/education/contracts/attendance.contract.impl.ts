@@ -44,46 +44,55 @@ export class AttendanceContractImpl implements IEducationAttendanceContract {
   }
 
   public async recordAttendance(input: RecordAttendanceInput): Promise<EducationAttendanceDTO> {
-    const supabase = this.getClient();
-
-    const { data: enrollment, error: enrollmentError } = await supabase
-      .from('edu_enrollments')
-      .select('id, tenant_id')
-      .eq('id', input.enrollmentId)
-      .eq('tenant_id', input.tenantId)
-      .maybeSingle();
-
-    if (enrollmentError) {
-      throw new Error(`Failed to resolve enrollment ${input.enrollmentId}: ${enrollmentError.message}`);
-    }
-
-    if (!enrollment) {
-      throw new Error(`Enrollment ${input.enrollmentId} not found`);
-    }
-
     const rollCallTime = input.rollCallTime ?? new Date().toISOString();
+    let expectedMillis = Date.parse(rollCallTime);
+    if (Number.isNaN(expectedMillis)) throw new Error('INVALID_ROLL_CALL_TIME');
+    // Preserve the caller's timestamp; PostgreSQL rounds fractional seconds to
+    // microseconds, which can cross a JavaScript millisecond boundary.
+    const fraction = rollCallTime.match(/\.(\d+)(?=Z$|[+-]\d{2}(?::?\d{2})?$)/i);
+    if (fraction && fraction[1].length > 6) {
+      const micros = Number(fraction[1].slice(0, 6)) + (fraction[1][6] >= '5' ? 1 : 0);
+      const wholeSecond = rollCallTime.replace(fraction[0], '.000');
+      expectedMillis = Date.parse(wholeSecond) + Math.floor(micros / 1000);
+    }
+    const { data, error } = await this.getClient().rpc('edu_set_daily_attendance', {
+      p_tenant_id: input.tenantId,
+      p_enrollment_id: input.enrollmentId,
+      p_status: input.status,
+      p_roll_call_time: rollCallTime,
+      p_school_day: resolveSchoolDay(new Date(expectedMillis).toISOString()),
+    });
+    if (error) {
+      if (error.message === 'ATTENDANCE_ENROLLMENT_NOT_FOUND') {
+        throw new Error(`Enrollment ${input.enrollmentId} not found`);
+      }
+      throw new Error(`Failed to set daily attendance: ${error.message}`);
+    }
+    const state = data?.[0];
+    if (!state) throw new Error('Failed to set daily attendance: no state returned');
+    const attendance = {
+      eventId: state.event_id, tenantId: state.tenant_id,
+      enrollmentId: state.enrollment_id, status: state.status, rollCallTime: state.roll_call_time,
+    };
+    const storedUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    const uuidValue = (value: string): string => value.replace(/[-{}]/g, '').toLowerCase();
 
-    const { data: attendance, error: attendanceError } = await supabase
-      .from('edu_attendance')
-      .insert({
-        tenant_id: input.tenantId,
-        enrollment_id: enrollment.id,
-        status: input.status,
-        roll_call_time: rollCallTime,
-      })
-      .select('id, tenant_id, enrollment_id, status, roll_call_time')
-      .single();
-
-    if (attendanceError || !attendance) {
-      throw new Error(`Failed to record attendance: ${attendanceError?.message ?? 'Unknown error'}`);
+    if (typeof attendance.eventId !== 'string' || !storedUuid.test(attendance.eventId)
+      || typeof attendance.tenantId !== 'string' || !storedUuid.test(attendance.tenantId)
+      || typeof attendance.enrollmentId !== 'string' || !storedUuid.test(attendance.enrollmentId)
+      || uuidValue(attendance.tenantId) !== uuidValue(input.tenantId)
+      || uuidValue(attendance.enrollmentId) !== uuidValue(input.enrollmentId) || attendance.status !== input.status
+      || typeof attendance.rollCallTime !== 'string' || !Number.isFinite(Date.parse(attendance.rollCallTime))
+      || Date.parse(attendance.rollCallTime) !== expectedMillis) {
+      throw new Error('ATTENDANCE_EVENT_UNAVAILABLE');
     }
 
     return {
-      id: attendance.id,
-      tenantId: attendance.tenant_id,
-      enrollmentId: attendance.enrollment_id,
+      id: attendance.eventId,
+      tenantId: attendance.tenantId,
+      enrollmentId: attendance.enrollmentId,
       status: assertAttendanceStatus(attendance.status),
-      rollCallTime: attendance.roll_call_time,
+      rollCallTime: attendance.rollCallTime,
     };
   }
 
