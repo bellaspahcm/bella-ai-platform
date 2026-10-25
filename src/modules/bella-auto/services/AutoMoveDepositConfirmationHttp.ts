@@ -20,6 +20,7 @@ export async function depositConfirmationHttp(request: Request, actorUserId: str
     await db.query("set local statement_timeout='30s'");
     await db.query("set local lock_timeout='10s'");
     await db.query('set local role authenticated');
+    await db.query('set local row_security=on');
     await db.query("select set_config('request.jwt.claim.sub',$1,true),set_config('request.jwt.claim.role','authenticated',true)", [actorUserId]);
     const result = await confirmBookingDeposit(db, actorUserId, bookingId, key, payload);
     await db.query('commit');

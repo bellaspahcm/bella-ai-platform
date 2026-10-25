@@ -4,6 +4,12 @@ import { writeFileSync } from 'node:fs';
 const CODE_FILE_PATTERN = /\.(ts|tsx|js|jsx)$/;
 const TEST_FILE_PATTERN = /\.(test|spec)\.(ts|tsx|js|jsx)$/;
 const DIRECT_TEST_EXCLUDED_PATTERNS = [
+  // These suites provision controlled local DB fixtures and are deliberately
+  // excluded from related-test discovery below as well. Keep their target guards;
+  // they are not mockable unit coverage or evidence of CI database execution.
+  /^tests\/products\/bella-education\/finance\/p7[12]-finance-(billing|communication)\.integration\.test\.ts$/,
+  /^tests\/products\/bella-education\/finance\/preschool-finance-canonical-identity\.test\.ts$/,
+  /^src\/platform\/education\/__tests__\/enrollment-event-recovery-real-db\.test\.ts$/,
   /^e2e\//,
   /^src\/__tests__\/bella-auto-phase5-experience\.test\.ts$/,
   /^src\/__tests__\/e2e-(order-lifecycle-real|refund-full|accounting-gl-verification|payroll-month-close)\.test\.ts$/,
@@ -101,7 +107,7 @@ function parseArgs() {
   const jestJsonOutput = jsonOutputIndex === -1 ? undefined : args[jsonOutputIndex + 1];
   const changedFiles = args.filter((arg, index) => (
     arg !== '--jest-json-output'
-    && index !== jsonOutputIndex + 1
+    && (jsonOutputIndex === -1 || index !== jsonOutputIndex + 1)
   ));
 
   return { jestJsonOutput, changedFiles };
@@ -119,6 +125,33 @@ function writeEmptyJestResult(outputPath) {
   };
 
   writeFileSync(outputPath, `${JSON.stringify(emptyResult)}\n`, 'utf8');
+}
+
+function runJestRuns(sourceFiles, directTestFiles, jestJsonOutput) {
+  let relatedTestFiles = [];
+  if (sourceFiles.length > 0) {
+    const args = ['jest', '--listTests', '--findRelatedTests', ...sourceFiles];
+    for (const pattern of RELATED_TEST_EXCLUDED_PATTERNS) {
+      args.push('--testPathIgnorePatterns', pattern);
+    }
+    const result = run('npx', args);
+    if (result.status !== 0) return result.status ?? 1;
+    relatedTestFiles = (result.stdout ?? '').split(/\r?\n/).map((file) => file.trim()).filter(Boolean);
+  }
+
+  const testFiles = [...new Set([...relatedTestFiles, ...directTestFiles])];
+  if (testFiles.length === 0) {
+    if (jestJsonOutput) writeEmptyJestResult(jestJsonOutput);
+    console.log('No related or changed Jest tests were selected.');
+    return 0;
+  }
+
+  const jestArgs = ['jest', '--runInBand', '--runTestsByPath', ...testFiles];
+  if (jestJsonOutput) {
+    jestArgs.push('--json', '--outputFile', jestJsonOutput);
+  }
+  const jest = run('npx', jestArgs, { stdio: 'inherit' });
+  return jest.status ?? 1;
 }
 
 function resolveChangedFiles(explicitChangedFiles) {
@@ -170,15 +203,7 @@ if (sourceFiles.length === 0) {
       console.log(`- ${file}`);
     }
 
-    const jestArgs = ['jest', '--runInBand', ...testFiles];
-    if (jestJsonOutput) {
-      jestArgs.push('--json', '--outputFile', jestJsonOutput);
-    }
-
-    const jest = run('npx', jestArgs, {
-      stdio: 'inherit',
-    });
-    process.exit(jest.status ?? 1);
+    process.exit(runJestRuns([], testFiles, jestJsonOutput));
   }
 
   console.log('No changed application source files with related Jest coverage.');
@@ -192,16 +217,8 @@ console.log(`Running Jest tests related to ${sourceFiles.length} changed source 
 for (const file of sourceFiles) {
   console.log(`- ${file}`);
 }
-
-const jestArgs = ['jest', '--findRelatedTests', ...sourceFiles, '--runInBand', '--passWithNoTests'];
-for (const pattern of RELATED_TEST_EXCLUDED_PATTERNS) {
-  jestArgs.push('--testPathIgnorePatterns', pattern);
+if (testFiles.length > 0) {
+  console.log(`Running ${testFiles.length} changed Jest test file(s) directly:`);
+  for (const file of testFiles) console.log(`- ${file}`);
 }
-if (jestJsonOutput) {
-  jestArgs.push('--json', '--outputFile', jestJsonOutput);
-}
-
-const jest = run('npx', jestArgs, {
-  stdio: 'inherit',
-});
-process.exit(jest.status ?? 1);
+process.exit(runJestRuns(sourceFiles, testFiles, jestJsonOutput));

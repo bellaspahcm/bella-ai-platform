@@ -1,12 +1,21 @@
 import { NextResponse } from 'next/server';
+import { createClient as createSupabaseClient, type SupabaseClient } from '@supabase/supabase-js';
 import { getLocalDateString } from '@bella/shared';
-import { TeacherAssignmentContractImpl } from '@/platform/education/contracts/teacher-assignment.contract.impl';
+import { createClient } from '@/lib/supabase-server';
+import { getSupabaseAdminKey, getSupabaseAdminUrl } from '@/lib/supabase-admin-env';
 import { CourseContractImpl } from '@/platform/education/contracts/course.contract.impl';
+import { TeacherAssignmentContractImpl } from '@/platform/education/contracts/teacher-assignment.contract.impl';
 import { CourseCatalogProductService } from '@/products/bella-education/services/course-catalog.service';
+import { PreschoolChainService, PreschoolChainError } from '@/products/bella-education/services/preschool-chain.service';
 import type { Database } from '@/types/database.types';
-import { COURSE_PRIVATE_HEADERS, resolveCourseReadContext, resolveCourseCatalogReadContext, resolveCourseReadMode } from './request-context';
+import {
+  COURSE_PRIVATE_HEADERS,
+  resolveCourseCatalogReadContext,
+  resolveCourseReadContext,
+  resolveCourseReadMode,
+} from './request-context';
 
-export const dynamic = 'force-dynamic';
+type EducationCoursesClient = SupabaseClient<Database>;
 type EduCourseRow = Pick<
   Database['public']['Tables']['edu_courses']['Row'],
   'id' | 'course_code' | 'title' | 'status' | 'max_students' | 'current_enrollment' | 'created_at'
@@ -42,6 +51,16 @@ export interface ClassroomOverviewItem {
   };
 }
 
+function createAdminOperationClient(): EducationCoursesClient | null {
+  const adminUrl = getSupabaseAdminUrl();
+  const adminKey = getSupabaseAdminKey();
+  if (!adminUrl || !adminKey) return null;
+
+  return createSupabaseClient<Database>(adminUrl, adminKey, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+}
+
 function readMetadataString(metadata: CourseProjectionRow['metadata'], key: string): string {
   if (!metadata || Array.isArray(metadata) || typeof metadata !== 'object') {
     return '';
@@ -64,16 +83,32 @@ export async function GET(request: Request) {
       return NextResponse.json({ success: true, courses }, { headers: COURSE_PRIVATE_HEADERS });
     } catch {
       return NextResponse.json({ success: false, error: 'COURSE_CATALOG_UNAVAILABLE' }, {
-        status: 503, headers: COURSE_PRIVATE_HEADERS,
+        status: 503,
+        headers: COURSE_PRIVATE_HEADERS,
       });
     }
   }
   try {
     const context = await resolveCourseReadContext(request);
     if (!context.allowed) return context.response;
-    const { supabase, tenantId } = context;
+    const { tenantId, actor: currentUser } = context;
 
     const { searchParams } = new URL(request.url);
+    const explicitTenantId = searchParams.get('tenantId');
+    if (explicitTenantId !== null && explicitTenantId !== tenantId) {
+      return NextResponse.json({ success: false, error: 'Tenant access denied' }, { status: 403, headers: COURSE_PRIVATE_HEADERS });
+    }
+
+    const admissionBranchId = searchParams.get('admissionBranchId');
+    const role = currentUser.role.toLowerCase();
+    if (!['admin','super_admin','admin_staff'].includes(role) || (admissionBranchId!==null && !['admin','super_admin'].includes(role))) {
+      return NextResponse.json({success:false,error:'PRESCHOOL_CHAIN_ACTOR_DENIED'},{status:403,headers:COURSE_PRIVATE_HEADERS});
+    }
+    const supabase = createAdminOperationClient() ?? context.supabase;
+    const branchScope = new PreschoolChainService(supabase);
+    if (admissionBranchId!==null) await branchScope.assertBranchAccess(tenantId,currentUser.id,admissionBranchId);
+    const courseAssignments = admissionBranchId!==null ? [] : await branchScope.listCourseAssignments(tenantId,currentUser.id,searchParams.get('branchId') ?? undefined);
+    const enrollmentAssignments = admissionBranchId!==null ? [] : await branchScope.listEnrollmentAssignments(tenantId,currentUser.id,searchParams.get('branchId') ?? undefined);
     const targetDate = searchParams.get('date') || getLocalDateString(new Date()) || '2026-10-18';
 
     // 1. Fetch canonical Education courses used by enrollment runtime.
@@ -87,8 +122,17 @@ export async function GET(request: Request) {
       return NextResponse.json({ success: false, error: courseErr.message }, { status: 500, headers: COURSE_PRIVATE_HEADERS });
     }
 
+    if (admissionBranchId!==null) {
+      const mappings = await supabase.from('preschool_chain_course_branch_assignments').select('course_id,branch_id').eq('tenant_id',tenantId);
+      if (mappings.error) throw new Error(mappings.error.message);
+      return NextResponse.json({success:true,classrooms:(dbCourses ?? []).filter((course)=>{
+        const mapping = mappings.data?.find((row)=>row.course_id===course.id);
+        return course.status==='active' && (!mapping || mapping.branch_id===admissionBranchId);
+      }).map((course)=>({id:course.id,name:course.title}))},{ headers: COURSE_PRIVATE_HEADERS });
+    }
+
     const teacherContract = new TeacherAssignmentContractImpl(supabase);
-    const canonicalCourses = (dbCourses || []) as EduCourseRow[];
+    const canonicalCourses = ((dbCourses || []) as EduCourseRow[]).filter((course)=>courseAssignments.some((row)=>row.course_id===course.id));
     const courseIds = canonicalCourses.map((course) => course.id);
     const { data: courseProjections, error: projectionErr } = courseIds.length > 0
       ? await supabase
@@ -99,7 +143,7 @@ export async function GET(request: Request) {
       : { data: [] as CourseProjectionRow[], error: null };
 
     if (projectionErr) {
-      return NextResponse.json({ success: false, error: projectionErr.message }, { status: 500, headers: COURSE_PRIVATE_HEADERS });
+      return NextResponse.json({ success: false, error: projectionErr.message }, { status: 500 });
     }
 
     const projectionByCourseId = new Map(
@@ -122,11 +166,12 @@ export async function GET(request: Request) {
       if (teacherAssignments.length > 0) {
         // Fetch teacher party display names
         const partyIds = teacherAssignments.map(t => t.teacherPartyId);
-        const { data: parties } = await supabase
+        const { data: parties, error: partiesError } = await supabase
           .from('party_parties')
           .select('id, display_name')
           .eq('tenant_id', tenantId)
           .in('id', partyIds);
+        if (partiesError) throw new Error(partiesError.message);
 
         const partyMap = new Map((parties || []).map(p => [p.id, p.display_name]));
 
@@ -151,14 +196,17 @@ export async function GET(request: Request) {
           .join(' • ');
       }
 
-      // Count canonical active enrollments for capacity.
-      const { count: studentCount } = await supabase
+      const scopedEnrollmentIds = enrollmentAssignments.filter((row)=>row.courseId===course.id).map((row)=>row.enrollmentId);
+      // Count only canonically mapped enrollments in the accessible course branch.
+      const { error: countError } = await supabase
         .from('edu_enrollments')
         .select('*', { count: 'exact', head: true })
         .eq('course_id', course.id)
         .eq('tenant_id', tenantId)
+        .in('id', scopedEnrollmentIds)
         .in('status', [...ROSTER_ENROLLMENT_STATUSES]);
 
+      if (countError) throw new Error(countError.message);
       // Grade key mapping from course_code or course_name
       let gradeKey: 'mam' | 'choi' | 'la' | 'nursery' = 'mam';
       const codeUpper = (course.course_code || '').toUpperCase();
@@ -208,25 +256,28 @@ export async function GET(request: Request) {
 
       const maxCap = course.max_students || projection?.duration_weeks || 25;
       const today = targetDate;
-      const { data: enrollmentRows } = await supabase
+      const { data: enrollmentRows, error: enrollmentReadError } = await supabase
         .from('edu_enrollments')
         .select('id')
         .eq('course_id', course.id)
         .eq('tenant_id', tenantId)
+        .in('id', scopedEnrollmentIds)
         .in('status', [...ROSTER_ENROLLMENT_STATUSES]);
 
+      if (enrollmentReadError) throw new Error(enrollmentReadError.message);
       const enrollmentIds = (enrollmentRows || []).map((enrollment) => enrollment.id);
       const actualEnrolled = enrollmentIds.length;
-      const currentStudents = actualEnrolled > 0 ? actualEnrolled : (studentCount || course.current_enrollment || 0);
+      const currentStudents = actualEnrolled;
 
-      const { data: todayStates } = enrollmentIds.length > 0
+      const { data: todayStates, error: attendanceReadError } = enrollmentIds.length > 0
         ? await supabase
           .from('edu_attendance_daily_state')
           .select('enrollment_id, status')
           .eq('tenant_id', tenantId)
           .eq('school_day', today)
           .in('enrollment_id', enrollmentIds)
-        : { data: [] };
+        : { data: [], error: null };
+      if (attendanceReadError) throw new Error(attendanceReadError.message);
 
       // Deduplicate state per enrollment to prevent duplicate row counts
       const stateMap = new Map<string, string>();
@@ -255,7 +306,7 @@ export async function GET(request: Request) {
         name: title,
         grade: projection?.description || defaultGradeLabel,
         gradeKey,
-        room: readMetadataString(projection?.metadata ?? null, 'room') || 'Phòng 101 • Tầng 1',
+        room: readMetadataString(projection?.metadata ?? null, 'room') || 'Chưa ghi nhận phòng',
         teacher: teacherNames,
         leadTeacher: leadTeacherName,
         assistantTeacher: assistantTeacherName,
@@ -275,10 +326,10 @@ export async function GET(request: Request) {
       });
     }
 
-    return NextResponse.json({ success: true, classrooms }, { headers: COURSE_PRIVATE_HEADERS });
+    return NextResponse.json({ success: true, classrooms });
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unknown error';
-    return NextResponse.json({ success: false, error: message }, { status: 500, headers: COURSE_PRIVATE_HEADERS });
+    return NextResponse.json({ success: false, error: message }, { status: err instanceof PreschoolChainError ? err.status : 500, headers: COURSE_PRIVATE_HEADERS });
   }
 }
 

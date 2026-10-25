@@ -226,7 +226,9 @@ describe('Customer-Level Booking Conflict Detection', () => {
     supabaseServerMock.createClient.mockResolvedValue(mockSupabase);
 
     // Wire mockSupabase.from and auth after clearAllMocks
-    mockSupabase.rpc.mockResolvedValue({ data: null, error: null });
+    mockSupabase.rpc.mockImplementation(async (name: string) => name === 'platform_current_actor_profile'
+      ? { data: [{ ...testUser, email: 'admin@example.test', full_name: 'Test Admin', avatar_url: null, tenant_status: 'active' }], error: null }
+      : { data: null, error: null });
     mockSupabase.auth.getUser.mockResolvedValue({
       data: { user: { id: 'user-1' } },
       error: null,

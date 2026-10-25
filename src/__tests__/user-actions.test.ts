@@ -3,7 +3,7 @@ import { createClient as createSessionClient } from '@/lib/supabase-server';
 import { createClient as createAdminClient } from '@supabase/supabase-js';
 
 const mockFrom = jest.fn();
-const mockSelectedColumns: string[] = [];
+const mockRpc = jest.fn();
 const mockGetSession = jest.fn();
 const mockGetUser = jest.fn();
 const mockAdminFrom = jest.fn();
@@ -20,6 +20,7 @@ jest.mock('server-only', () => ({}), { virtual: true });
 jest.mock('../lib/supabase-server', () => ({
   createClient: jest.fn(() => Promise.resolve({
     from: mockFrom,
+    rpc: mockRpc,
     auth: {
       getSession: mockGetSession,
       getUser: mockGetUser,
@@ -100,8 +101,7 @@ class ScriptedQueryBuilder {
     private calls: DbCall[],
   ) {}
 
-  select(columns?: string) {
-    if (columns) mockSelectedColumns.push(columns);
+  select() {
     if (!this.op) {
       this.op = 'select';
       this.calls.push({ table: this.table, op: 'select', filters: [] });
@@ -152,7 +152,7 @@ class ScriptedQueryBuilder {
 describe('user update audit rollback', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockSelectedColumns.length = 0;
+    mockRpc.mockReset();
     process.env.SUPABASE_SERVICE_ROLE_KEY = 'test-service-role-key';
     process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://test.supabase.co';
     mockGetSession.mockResolvedValue({
@@ -191,52 +191,17 @@ describe('user update audit rollback', () => {
   }
 
   function installCurrentUser() {
-    return installScriptedSupabase([
-      {
-        table: 'users',
-        op: 'select',
-        data: {
-          id: 'admin-1',
-          email: 'admin@bella.test',
-          full_name: 'Admin User',
-          role: 'admin',
-          status: 'active',
-          tenant_id: 'tenant-1',
-          avatar_url: null,
-        },
-      },
-      { table: 'tenants', op: 'select', data: { status: 'active', name: 'Bella Test' } },
-    ]);
-  }
-
-  function currentUserScripts(): ScriptedResult[] {
-    return [
-      {
-        table: 'users',
-        op: 'select',
-        data: {
-          id: 'admin-1',
-          email: 'admin@bella.test',
-          full_name: 'Admin User',
-          role: 'admin',
-          status: 'active',
-          tenant_id: 'tenant-1',
-          avatar_url: null,
-        },
-      },
-      { table: 'tenants', op: 'select', data: { status: 'active', name: 'Bella Test' } },
-    ];
+    mockRpc.mockResolvedValue({ data: identityRows(), error: null });
+    return installScriptedSupabase([]);
   }
 
   function installTenantScopedSupabase(scripts: ScriptedResult[]) {
-    return installScriptedSupabase([
-      ...currentUserScripts(),
-      ...scripts,
-    ]);
+    installCurrentUser();
+    return installScriptedSupabase(scripts);
   }
 
   function actionCalls(calls: DbCall[]) {
-    return calls.slice(2);
+    return calls;
   }
 
   const createUserInput = {
@@ -260,64 +225,55 @@ describe('user update audit rollback', () => {
     expect(mockGetSession).not.toHaveBeenCalled();
   });
 
-  it('reads only the CurrentUser projection and current tenant status', async () => {
-    installCurrentUser();
-    expect(await getCurrentUser()).not.toBeNull();
-    expect(mockSelectedColumns).toEqual(['id, email, full_name, avatar_url, role, status, tenant_id', 'status']);
-    expect(mockSelectedColumns).not.toContain('*');
-  });
-
-  function identityScripts(profileOverrides: Record<string, unknown> = {}, tenant: unknown = { status: 'active' }): ScriptedResult[] {
-    return [
-      { table: 'users', op: 'select', data: { id: 'admin-1', email: 'admin@bella.test', role: 'admin',
-        status: 'active', tenant_id: 'tenant-1', ...profileOverrides } },
-      { table: 'tenants', op: 'select', data: tenant },
-    ];
+  function identityRows(profileOverrides: Record<string, unknown> = {}, tenant: { status: string | null } | null = { status: 'active' }) {
+    return [{ id: 'admin-1', email: 'admin@bella.test', full_name: 'Admin User', avatar_url: null,
+      role: 'admin', status: 'active', tenant_id: 'tenant-1', tenant_status: tenant?.status ?? null, ...profileOverrides }];
   }
 
   it('ignores cached profiles and rereads role and tenant on each call', async () => {
     const { getCache, setCache } = await import('../lib/redis-cache');
     jest.mocked(getCache).mockResolvedValue({ id: 'admin-1', role: 'admin', tenant_id: 'old-hq' });
-    const calls = installScriptedSupabase([
-      ...identityScripts(), ...identityScripts({ role: 'accountant', tenant_id: 'tenant-2' }),
-    ]);
+    mockRpc.mockResolvedValueOnce({ data: identityRows(), error: null })
+      .mockResolvedValueOnce({ data: identityRows({ role: 'accountant', tenant_id: 'tenant-2' }), error: null });
     expect(await getCurrentUser()).toEqual(expect.objectContaining({ role: 'admin', tenant_id: 'tenant-1' }));
     expect(await getCurrentUser()).toEqual(expect.objectContaining({ role: 'accountant', tenant_id: 'tenant-2' }));
-    expect(calls[3].filters).toEqual([{ field: 'id', value: 'tenant-2' }]);
+    expect(mockRpc.mock.calls).toEqual([['platform_current_actor_profile'], ['platform_current_actor_profile']]);
+    expect(mockFrom).not.toHaveBeenCalled();
     expect(getCache).not.toHaveBeenCalled();
     expect(setCache).not.toHaveBeenCalled();
   });
 
   it.each([{ status: 'inactive' }, { status: null }, { tenant_id: null }, { id: 'another-auth-id' }])(
     'denies noncanonical profile %j', async (overrides) => {
-      installScriptedSupabase(identityScripts(overrides));
+      mockRpc.mockResolvedValue({ data: identityRows(overrides), error: null });
       expect(await getCurrentUser()).toBeNull();
     },
   );
 
   it.each(['suspended', 'terminated', null])('denies tenant status %s', async (status) => {
-    installScriptedSupabase(identityScripts({}, { status }));
+    mockRpc.mockResolvedValue({ data: identityRows({}, { status }), error: null });
     expect(await getCurrentUser()).toBeNull();
   });
 
   it('denies a missing tenant', async () => {
-    installScriptedSupabase(identityScripts({}, null));
+    mockRpc.mockResolvedValue({ data: identityRows({}, null), error: null });
     expect(await getCurrentUser()).toBeNull();
   });
 
   it('never falls back to matching email or a placeholder profile', async () => {
-    const calls = installScriptedSupabase([{ table: 'users', op: 'select', data: null }]);
+    mockRpc.mockResolvedValue({ data: [], error: null });
     expect(await getCurrentUser()).toBeNull();
-    expect(calls).toEqual([{ table: 'users', op: 'select', filters: [{ field: 'id', value: 'admin-1' }] }]);
+    expect(mockRpc).toHaveBeenCalledWith('platform_current_actor_profile');
+    expect(mockFrom).not.toHaveBeenCalled();
   });
 
   it('maps canonical RLS denial to absent current authority', async () => {
-    installScriptedSupabase([{ table: 'users', op: 'select', error: { code: '42501', message: 'denied' } }]);
+    mockRpc.mockResolvedValue({ data: null, error: { code: '42501', message: 'denied' } });
     expect(await getCurrentUser()).toBeNull();
   });
 
   it('does not disguise database errors as an unauthenticated session', async () => {
-    installScriptedSupabase([{ table: 'users', op: 'select', error: new Error('database unavailable') }]);
+    mockRpc.mockResolvedValue({ data: null, error: new Error('database unavailable') });
     await expect(getCurrentUser()).rejects.toThrow('database unavailable');
   });
 
@@ -325,12 +281,14 @@ describe('user update audit rollback', () => {
     mockGetUser.mockResolvedValue({ data: { user: null }, error: null });
     expect(await getCurrentUser()).toBeNull();
     expect(mockFrom).not.toHaveBeenCalled();
+    expect(mockRpc).not.toHaveBeenCalled();
   });
 
   it('does not return authority when Auth validation fails even if an actor is returned', async () => {
     mockGetUser.mockResolvedValue({ data: { user: { id: 'admin-1' } }, error: new Error('invalid signature') });
     await expect(getCurrentUser()).rejects.toThrow('invalid signature');
     expect(mockFrom).not.toHaveBeenCalled();
+    expect(mockRpc).not.toHaveBeenCalled();
   });
 
   it.each([
@@ -396,21 +354,8 @@ describe('user update audit rollback', () => {
   });
 
   it('updates KTV base salary, recalculates salary, records audit, and revalidates', async () => {
-    installScriptedSupabase([
-      {
-        table: 'users',
-        op: 'select',
-        data: {
-          id: 'admin-1',
-          email: 'admin@bella.test',
-          full_name: 'Admin User',
-          role: 'admin',
-          status: 'active',
-          tenant_id: 'tenant-1',
-          avatar_url: null,
-        },
-      },
-      { table: 'tenants', op: 'select', data: { status: 'active', name: 'Bella Test' } },
+    installTenantScopedSupabase([
+
       { table: 'users', op: 'select', data: { base_salary: 6000000, role: 'ktv', tenant_id: 'tenant-1' } },
       { table: 'users', op: 'update' },
     ]);
@@ -435,21 +380,8 @@ describe('user update audit rollback', () => {
   });
 
   it('updates non-KTV base salary without salary recalculation', async () => {
-    installScriptedSupabase([
-      {
-        table: 'users',
-        op: 'select',
-        data: {
-          id: 'admin-1',
-          email: 'admin@bella.test',
-          full_name: 'Admin User',
-          role: 'admin',
-          status: 'active',
-          tenant_id: 'tenant-1',
-          avatar_url: null,
-        },
-      },
-      { table: 'tenants', op: 'select', data: { status: 'active', name: 'Bella Test' } },
+    installTenantScopedSupabase([
+
       { table: 'users', op: 'select', data: { base_salary: 7000000, role: 'manager', tenant_id: 'tenant-1' } },
       { table: 'users', op: 'update' },
     ]);
@@ -465,21 +397,8 @@ describe('user update audit rollback', () => {
   });
 
   it('rolls back KTV base salary when salary recalculation fails', async () => {
-    const calls = installScriptedSupabase([
-      {
-        table: 'users',
-        op: 'select',
-        data: {
-          id: 'admin-1',
-          email: 'admin@bella.test',
-          full_name: 'Admin User',
-          role: 'admin',
-          status: 'active',
-          tenant_id: 'tenant-1',
-          avatar_url: null,
-        },
-      },
-      { table: 'tenants', op: 'select', data: { status: 'active', name: 'Bella Test' } },
+    const calls = installTenantScopedSupabase([
+
       { table: 'users', op: 'select', data: { base_salary: 6000000, role: 'ktv', tenant_id: 'tenant-1' } },
       { table: 'users', op: 'update' },
       { table: 'users', op: 'update' },
@@ -508,21 +427,8 @@ describe('user update audit rollback', () => {
   });
 
   it('rolls back KTV base salary and recalculates old salary when audit logging fails', async () => {
-    const calls = installScriptedSupabase([
-      {
-        table: 'users',
-        op: 'select',
-        data: {
-          id: 'admin-1',
-          email: 'admin@bella.test',
-          full_name: 'Admin User',
-          role: 'admin',
-          status: 'active',
-          tenant_id: 'tenant-1',
-          avatar_url: null,
-        },
-      },
-      { table: 'tenants', op: 'select', data: { status: 'active', name: 'Bella Test' } },
+    const calls = installTenantScopedSupabase([
+
       { table: 'users', op: 'select', data: { base_salary: 6000000, role: 'ktv', tenant_id: 'tenant-1' } },
       { table: 'users', op: 'update' },
       { table: 'users', op: 'update' },

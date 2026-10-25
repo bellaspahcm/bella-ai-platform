@@ -1,4 +1,5 @@
 import type { Json } from '@/types/database.types';
+import { productResolver } from '@/platform/registry/product-resolver';
 
 export const TENANT_MODULE_KEYS = ['babycare', 'beauty_spa', 'student_training', 'industrial_cleaning', 'real_estate', 'bella_auto', 'bella_healthcare', 'bella_education'] as const;
 export const TENANT_PRIMARY_BUSINESS_MODULE_KEYS = ['babycare', 'beauty_spa', 'industrial_cleaning', 'real_estate', 'bella_auto', 'bella_healthcare', 'bella_education'] as const;
@@ -586,4 +587,57 @@ export function resolveTenantBrandIdentity(input: {
     isBeautySpa: moduleKey === 'beauty_spa',
     isHospitalInpatient,
   };
+}
+
+/** Authenticated Product identity selects presentation; capability flags never select a Product. */
+export function resolveCanonicalTenantBrand(input: Parameters<typeof resolveTenantBrandIdentity>[0] & {
+  tenantId: string;
+  productKey: unknown;
+}): ResolvedTenantBrandIdentity | null {
+  if (!input.tenantId || typeof input.productKey !== 'string') return null;
+  const resolved = productResolver.tryResolve({ id: input.tenantId, product_key: input.productKey });
+  if (!resolved) return null;
+  // Healthcare's registered OS capability is called healthcare; its existing
+  // presentation module is bella_healthcare. This changes no capability access.
+  const candidates = resolved.product.requiredModules.map(key => key === 'healthcare' ? 'bella_healthcare' : key);
+  const moduleKey = TENANT_PRIMARY_BUSINESS_MODULE_KEYS.find(key => candidates.includes(key));
+  if (!moduleKey) return null;
+  const enabledModules = Object.fromEntries(TENANT_PRIMARY_BUSINESS_MODULE_KEYS.map(key => [key, key === moduleKey]));
+  const originalModules = isPlainRecord(input.enabledModules) ? input.enabledModules : {};
+  const brand = resolveTenantBrandIdentity({ ...input, enabledModules: { ...originalModules, ...enabledModules } });
+  const source = isPlainRecord(input.brandTheme) ? input.brandTheme : {};
+  if (!cleanText(source.brandName, TEXT_LIMITS.brandName)) {
+    brand.displayName = resolved.product.displayName;
+    brand.subtitle = resolved.product.subtitle || 'Management System';
+    brand.monogram = buildMonogram(brand.displayName);
+  }
+  return brand;
+}
+
+/** One root writer shared by authenticated presentation consumers. */
+export function applyCanonicalTenantTheme(brand: Pick<ResolvedTenantBrandIdentity,
+  'moduleKey' | 'primaryColor' | 'accentColor' | 'primaryHoverColor' | 'stylePreset' |
+  'buttonStyle' | 'menuStyle' | 'radiusStyle' | 'fontHeading' | 'displayName' | 'subtitle'> | null) {
+  if (typeof document === 'undefined') return;
+  const root = document.documentElement;
+  for (const key of ['tenantBrandButton', 'tenantBrandMenu', 'tenantBrandRadius', 'tenantBrandPreset']) delete root.dataset[key];
+  for (const token of ['--background', '--foreground', '--border', '--input']) root.style.removeProperty(token);
+  if (!brand) {
+    root.dataset.tenantModule = 'pending';
+    applyThemeTokensToRoot(resolveDynamicThemeTokens({ primaryColor: '#334155', accentColor: '#64748B', stylePreset: 'slate_minimal' }));
+    root.style.setProperty('--font-heading', 'var(--font-sans), system-ui, sans-serif');
+    document.title = 'Bella EIP — Enterprise Platform';
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', '#334155');
+    return;
+  }
+  root.dataset.tenantModule = brand.moduleKey;
+  root.dataset.tenantBrandButton = brand.buttonStyle;
+  root.dataset.tenantBrandMenu = brand.menuStyle;
+  root.dataset.tenantBrandRadius = brand.radiusStyle;
+  root.dataset.tenantBrandPreset = brand.stylePreset;
+  applyThemeTokensToRoot(resolveDynamicThemeTokens(brand));
+  root.style.setProperty('--font-heading', brand.fontHeading === 'serif'
+    ? 'var(--font-serif), Georgia, serif' : 'var(--font-sans), system-ui, sans-serif');
+  document.title = `${brand.displayName} — ${brand.subtitle}`;
+  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', brand.primaryColor);
 }

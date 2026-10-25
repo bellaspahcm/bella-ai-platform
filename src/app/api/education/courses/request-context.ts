@@ -9,10 +9,25 @@ type CourseReadContext =
     allowed: true;
     supabase: Awaited<ReturnType<typeof createClient>>;
     tenantId: string;
+    actor: NonNullable<Awaited<ReturnType<typeof getCurrentUser>>>;
   }
   | { allowed: false; response: NextResponse };
 
+type CourseCatalogReadContext =
+  | { allowed: true; supabase: Awaited<ReturnType<typeof createClient>>; tenantId: string }
+  | { allowed: false; response: NextResponse };
+
 function deny(status: 400 | 401 | 403, error: string): CourseReadContext {
+  return {
+    allowed: false,
+    response: NextResponse.json({ success: false, error }, {
+      status,
+      headers: COURSE_PRIVATE_HEADERS,
+    }),
+  };
+}
+
+function denyCatalog(status: 400 | 401 | 403, error: string): CourseCatalogReadContext {
   return {
     allowed: false,
     response: NextResponse.json({ success: false, error }, {
@@ -48,36 +63,36 @@ export function resolveCourseReadMode(request: Request): CourseReadMode {
 }
 
 /** The catalog's approved C matrix uses fresh, minimal caller-visible identity. */
-export async function resolveCourseCatalogReadContext(request: Request): Promise<CourseReadContext> {
+export async function resolveCourseCatalogReadContext(request: Request): Promise<CourseCatalogReadContext> {
   const mode = resolveCourseReadMode(request);
   if (!mode.allowed) return mode;
-  if (mode.mode !== 'catalog') return deny(400, 'COURSE_INVALID_CATALOG_REQUEST');
+  if (mode.mode !== 'catalog') return denyCatalog(400, 'COURSE_INVALID_CATALOG_REQUEST');
 
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
-  if (authError || !user) return deny(401, 'COURSE_UNAUTHENTICATED');
+  if (authError || !user) return denyCatalog(401, 'COURSE_UNAUTHENTICATED');
 
   const { data: profile, error: profileError } = await supabase.from('users')
     .select('id,tenant_id,role,status').eq('id', user.id).maybeSingle();
   const tenantId = profile?.tenant_id;
   if (profileError || !profile || profile.id !== user.id || profile.status !== 'active'
     || !tenantId || tenantId.trim() !== tenantId) {
-    return deny(403, 'COURSE_ACCESS_DENIED');
+    return denyCatalog(403, 'COURSE_ACCESS_DENIED');
   }
   const requestedTenant = new URL(request.url).searchParams.get('tenantId');
   if (requestedTenant !== null && requestedTenant !== tenantId) {
-    return deny(403, 'TENANT_ISOLATION_VIOLATION');
+    return denyCatalog(403, 'TENANT_ISOLATION_VIOLATION');
   }
 
   const { data: tenant, error: tenantError } = await supabase.from('tenants')
     .select('id,status,product_key').eq('id', tenantId).maybeSingle();
   if (tenantError || !tenant || tenant.id !== tenantId || tenant.status !== 'active'
     || typeof tenant.product_key !== 'string' || !tenant.product_key.trim()) {
-    return deny(403, 'COURSE_ACCESS_DENIED');
+    return denyCatalog(403, 'COURSE_ACCESS_DENIED');
   }
   // Only this trusted current-Product result permits the existing UI compatibility branch.
-  if (tenant.product_key !== 'bella_preschool') return deny(403, 'COURSE_CATALOG_UNSUPPORTED_PRODUCT');
-  if (profile.role !== 'admin') return deny(403, 'COURSE_ACCESS_DENIED');
+  if (tenant.product_key !== 'bella_preschool') return denyCatalog(403, 'COURSE_CATALOG_UNSUPPORTED_PRODUCT');
+  if (profile.role !== 'admin') return denyCatalog(403, 'COURSE_ACCESS_DENIED');
   return { allowed: true, supabase, tenantId };
 }
 
@@ -99,5 +114,5 @@ export async function resolveCourseReadContext(request: Request): Promise<Course
   }
 
   // RLS remains authoritative for these reads; this does not establish a full role/branch matrix.
-  return { allowed: true, supabase, tenantId };
+  return { allowed: true, supabase, tenantId, actor: profile };
 }

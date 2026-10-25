@@ -3,34 +3,16 @@
 import { useState, useEffect, useCallback } from 'react';
 import { ServiceCalendar } from '@/modules/bella-auto/components/workshop/ServiceCalendar';
 import { RepairOrderBoard } from '@/modules/bella-auto/components/workshop/RepairOrderBoard';
-import { TechnicianDashboard } from '@/modules/bella-auto/components/workshop/TechnicianDashboard';
 import { AppointmentDetailModal, type ServiceAppointment } from '@/modules/bella-auto/components/workshop/AppointmentDetailModal';
 import { Wrench, Calendar, Users } from 'lucide-react';
 import { createClient } from '@/lib/supabase-client';
 import { toast } from 'sonner';
 import { mapAppointmentForCalendar, mapRepairOrderForBoard } from '@/modules/bella-auto/lib/workshop-mappers';
 import { useTenantContext } from '@/core/hooks/useTenantContext';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 type TabType = 'appointments' | 'orders' | 'technicians';
 type RepairOrderBoardItem = Parameters<typeof RepairOrderBoard>[0]['orders'][number];
-
-interface TechnicianWorkload {
-  technicianId: string;
-  technicianName: string;
-  role?: string;
-  activeOrders: number;
-  totalHoursToday: number;
-  completedToday: number;
-  efficiency?: number;
-  qualityScore?: number;
-  currentJobs: Array<{
-    orderNumber: string;
-    vehicleInfo: string;
-    status: string;
-    progress?: number;
-    estimatedCompletion?: string;
-  }>;
-}
 
 export default function WorkshopPage() {
   const { tenantId } = useTenantContext();
@@ -41,46 +23,6 @@ export default function WorkshopPage() {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [selectedAppointment, setSelectedAppointment] = useState<ServiceAppointment | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
-
-  // Mock technicians data (auto_technicians table not created yet)
-  const mockTechnicians: TechnicianWorkload[] = [
-    {
-      technicianId: '1',
-      technicianName: 'Kỹ thuật viên X',
-      role: 'Kỹ thuật viên chính',
-      activeOrders: 2,
-      totalHoursToday: 6.5,
-      completedToday: 1,
-      efficiency: 85,
-      qualityScore: 92,
-      currentJobs: [
-        { orderNumber: 'RO20260803-0001', vehicleInfo: 'Toyota Camry', status: 'in_progress', progress: 60 },
-        { orderNumber: 'RO20260803-0003', vehicleInfo: 'Mazda CX-5', status: 'diagnosed', progress: 20 },
-      ],
-    },
-    {
-      technicianId: '2',
-      technicianName: 'Kỹ thuật viên Y',
-      role: 'Kỹ thuật viên',
-      activeOrders: 1,
-      totalHoursToday: 3.0,
-      completedToday: 2,
-      efficiency: 90,
-      qualityScore: 88,
-      currentJobs: [{ orderNumber: 'RO20260803-0002', vehicleInfo: 'Honda Civic', status: 'in_progress', progress: 45 }],
-    },
-    {
-      technicianId: '3',
-      technicianName: 'Kỹ thuật viên Z',
-      role: 'Kỹ thuật viên',
-      activeOrders: 0,
-      totalHoursToday: 5.5,
-      completedToday: 3,
-      efficiency: 95,
-      qualityScore: 95,
-      currentJobs: [],
-    },
-  ];
 
   // Fetch appointments and repair orders from Supabase
   const fetchData = useCallback(async () => {
@@ -368,7 +310,7 @@ export default function WorkshopPage() {
           </div>
           <div>
             <h1 className="text-xl font-bold text-slate-900 dark:text-white tracking-wide">
-              Trung Tâm Dịch Vụ & Xưởng
+              Trung Tâm Dịch Vụ &amp; Xưởng
             </h1>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
               Hệ thống quản lý đặt lịch hẹn, phân bổ phiếu sửa chữa và tối ưu hóa năng suất kỹ thuật viên
@@ -458,12 +400,11 @@ export default function WorkshopPage() {
         )}
 
         {activeTab === 'technicians' && (
-          <TechnicianDashboard
-            technicians={mockTechnicians}
-            onTechnicianClick={(id) => {
-              console.log('Technician clicked:', id);
-            }}
-          />
+          <Alert>
+            <Users className="h-4 w-4" />
+            <AlertTitle>Dữ liệu kỹ thuật viên chưa sẵn sàng</AlertTitle>
+            <AlertDescription>Danh sách và năng suất kỹ thuật viên chưa kết nối dữ liệu vận hành. Chưa thể xác định số lượng kỹ thuật viên hoặc khối lượng công việc.</AlertDescription>
+          </Alert>
         )}
       </div>
 

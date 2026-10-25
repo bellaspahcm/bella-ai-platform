@@ -38,6 +38,33 @@ describe('recordAttendance through the authorized atomic RPC', () => {
     expect(client.from).not.toHaveBeenCalled();
   });
 
+  it('preserves sub-millisecond input and reconciles PostgreSQL microsecond rounding', async () => {
+    const { client, contract } = fixture();
+    const requested = '2026-10-22T17:30:00.0009999Z';
+    client.rpc.mockResolvedValue({ data: [{ ...state, roll_call_time: '2026-10-22T17:30:00.001Z' }], error: null });
+    await expect(contract.recordAttendance({ ...input, rollCallTime: requested }))
+      .resolves.toMatchObject({ id: eventId });
+    expect(client.rpc.mock.calls[0][1].p_roll_call_time).toBe(requested);
+    expect(client.from).not.toHaveBeenCalled();
+  });
+
+  it('keeps six-digit fractional precision on the persisted request', async () => {
+    const { client, contract } = fixture();
+    const requested = '2026-10-22T17:30:00.000999Z';
+    client.rpc.mockResolvedValue({ data: [{ ...state, roll_call_time: requested }], error: null });
+    await expect(contract.recordAttendance({ ...input, rollCallTime: requested })).resolves.toMatchObject({ id: eventId });
+    expect(client.rpc.mock.calls[0][1].p_roll_call_time).toBe(requested);
+    expect(client.from).not.toHaveBeenCalled();
+  });
+
+  it('uses the rounded PostgreSQL instant when a precise timestamp crosses the school-day boundary', async () => {
+    const { client, contract } = fixture();
+    const requested = '2026-10-22T16:59:59.9999999Z';
+    client.rpc.mockResolvedValue({ data: [{ ...state, roll_call_time: '2026-10-22T17:00:00Z' }], error: null });
+    await expect(contract.recordAttendance({ ...input, rollCallTime: requested })).resolves.toMatchObject({ id: eventId });
+    expect(client.rpc.mock.calls[0][1]).toMatchObject({ p_roll_call_time: requested, p_school_day: '2026-10-23' });
+  });
+
   it('accepts PostgreSQL-normalized UUIDs when caller UUIDs contain uppercase letters', async () => {
     const { client, contract } = fixture();
     const canonicalTenant = 'abcdef00-0000-4000-8000-000000000001';

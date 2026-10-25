@@ -14,7 +14,7 @@
 import { cookies } from 'next/headers';
 import { createServerClient as createSupabaseServerClient } from '@supabase/ssr';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
-import { Database } from '@/types/database.types';
+import type { PlatformActorDatabase as Database } from '@/platform/security/current-actor.contract';
 import type { User } from '@supabase/supabase-js';
 import { cache } from 'react';
 import { requireSupabasePublicEnv } from './supabase-public-env';

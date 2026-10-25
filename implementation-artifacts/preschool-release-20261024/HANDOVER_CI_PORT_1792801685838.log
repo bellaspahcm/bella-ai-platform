@@ -1,0 +1,21 @@
+  console.log
+    ◇ injected env (0) from .env.local // tip: ⌘ custom filepath { path: '/custom/path/.env' }
+
+      at _log (D:/Antigravity/Projects/BELLA SPA ERP/node_modules/dotenv/lib/main.js:131:11)
+
+  console.log
+    [Jest Setup] SUPABASE_SERVICE_ROLE_KEY loaded: true
+
+      at Object.log (jest.setup.ts:17:9)
+
+  console.info
+    [Preschool Chain retained fixture] history retained; run-owned actor retired
+
+      at Object.info (src/products/bella-education/__tests__/preschool-chain-real-db.test.ts:191:15)
+
+Test Suites: 1 passed, 1 total
+Tests:       6 skipped, 5 passed, 11 total
+Snapshots:   0 total
+Time:        10.634 s
+Ran all test suites within paths "src/products/bella-education/__tests__/preschool-chain-real-db.test.ts".
+Test results written to: implementation-artifacts\preschool-release-20261024\HANDOVER_CI_PORT_1792801685838.jest.json

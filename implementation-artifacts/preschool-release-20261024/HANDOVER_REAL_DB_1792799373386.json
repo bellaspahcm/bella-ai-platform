@@ -1,0 +1,222 @@
+{
+  "at": "2026-10-23T23:49:33.384Z",
+  "target": "bmnbqbcdbuklhopfbopv",
+  "ids": {
+    "run": "d6fb8e25-fd57-4f23-82a1-310ce7e8b108",
+    "tenant": "fa77ec4e-68e8-4eef-9a22-3c41fd89ca8f",
+    "foreignTenant": "5d0a1798-0c52-47bc-bb84-4cc57d687a24",
+    "branch": "36506bcb-3299-4043-bfe1-0ea824eae19f",
+    "branchB": "4c321153-86ec-4dd6-a0b0-6a86bf902bd2",
+    "person": "3ebd02d5-bc91-4577-8f84-032b8700cbc0",
+    "relationship": "b644255c-5a24-45ba-a102-894187cb86c4",
+    "actor": "9a35d4ee-2b06-4cdb-a50a-7d2295a85137"
+  },
+  "cases": [
+    {
+      "label": "concurrent",
+      "tenantId": "fa77ec4e-68e8-4eef-9a22-3c41fd89ca8f",
+      "studentPartyId": "8a06037d-ec6d-422a-b219-b289d901b154",
+      "guardianPartyId": "2841b0b8-36a2-4c9b-89fa-66d6665d8f20",
+      "pickupAuthorizationId": "aaa53eec-471d-47e3-92b4-ea7da9d06479",
+      "operatorUserId": "9a35d4ee-2b06-4cdb-a50a-7d2295a85137",
+      "course": "3573f7ee-2348-462a-b828-abbbb8cb54c2",
+      "enrollment": "f11062fe-4919-4893-b588-e62872f92d73",
+      "request": "1a5fe2bf-98fd-40d7-aa98-c07c5bfd5fd6"
+    },
+    {
+      "label": "restart",
+      "tenantId": "fa77ec4e-68e8-4eef-9a22-3c41fd89ca8f",
+      "studentPartyId": "4ef492b2-534a-4499-b565-9c78902365a8",
+      "guardianPartyId": "179c8c3a-21f8-4d10-b0fd-8b2e373e72da",
+      "pickupAuthorizationId": "5657f9a1-0339-4292-99f6-eaf2b2b51ec8",
+      "operatorUserId": "9a35d4ee-2b06-4cdb-a50a-7d2295a85137",
+      "course": "c5a04c2f-16cc-497f-b687-bb0c180ae2dd",
+      "enrollment": "47c4273a-f7a9-4cd7-bc33-5457adf431ca",
+      "request": "5b0f7468-747f-4c1c-9c92-af5fe3414d6f"
+    },
+    {
+      "label": "pickup-revoke",
+      "tenantId": "fa77ec4e-68e8-4eef-9a22-3c41fd89ca8f",
+      "studentPartyId": "a6c1f690-6f67-4e81-a540-2f05bdd78216",
+      "guardianPartyId": "eaafc6dc-c31a-4312-af03-44273da7ed80",
+      "pickupAuthorizationId": "beac96d9-aa9e-49a8-9b47-8000bbf6445e",
+      "operatorUserId": "9a35d4ee-2b06-4cdb-a50a-7d2295a85137",
+      "course": "ded6c985-34f9-44a1-bfc4-e07c3af4cf6c",
+      "enrollment": "8f4a6e09-78aa-44fb-a537-4b23974908c3",
+      "request": "cf861757-d5b5-4969-a777-8519bc733cf0"
+    },
+    {
+      "label": "actor-revoke",
+      "tenantId": "fa77ec4e-68e8-4eef-9a22-3c41fd89ca8f",
+      "studentPartyId": "4d3e656c-cba3-4f0c-88bc-3c2f32f6ede2",
+      "guardianPartyId": "b87b3860-f4ba-4aff-a034-85e7e49c4190",
+      "pickupAuthorizationId": "7c7b0029-5f4e-494b-b68e-4e013ecdbd13",
+      "operatorUserId": "9a35d4ee-2b06-4cdb-a50a-7d2295a85137",
+      "course": "ab4e8937-d5dc-4889-8939-11900a82de56",
+      "enrollment": "ee0f40db-5b4a-4aed-9e94-e70de58e47b9",
+      "request": "3577e3cb-5ef3-45a3-a2d7-d0b9d6e42a3b"
+    },
+    {
+      "label": "branch-revoke",
+      "tenantId": "fa77ec4e-68e8-4eef-9a22-3c41fd89ca8f",
+      "studentPartyId": "0e8062ea-ee16-4feb-b177-4372cb6779c8",
+      "guardianPartyId": "c88d1790-a011-481f-b2ba-504b9c059e60",
+      "pickupAuthorizationId": "9da589b9-b4f3-485d-8d5a-4b36bfa6db42",
+      "operatorUserId": "9a35d4ee-2b06-4cdb-a50a-7d2295a85137",
+      "course": "7b9deb91-e205-4e96-9f97-00430c454fda",
+      "enrollment": "bc9371de-36d8-46f8-b883-685f36da9981",
+      "request": "6e63c523-564f-4bfe-af19-3698470fd2df"
+    },
+    {
+      "label": "membership-revoke",
+      "tenantId": "fa77ec4e-68e8-4eef-9a22-3c41fd89ca8f",
+      "studentPartyId": "2d4ca32a-eaf4-426e-9222-1c3b2c7d0059",
+      "guardianPartyId": "fe5377dd-ea1c-4ed1-b1c4-d702e5f3420e",
+      "pickupAuthorizationId": "fba17e55-2e32-4b1b-9bcb-eb2aba162fde",
+      "operatorUserId": "9a35d4ee-2b06-4cdb-a50a-7d2295a85137",
+      "course": "3b67e255-5503-4daa-97bb-dd48deeed804",
+      "enrollment": "014dac9b-18a6-447d-bdd1-0c3ff1aa78d2",
+      "request": "8449e06a-cfa6-49b9-8cee-98a2347e3aa0"
+    },
+    {
+      "label": "recover-revoke",
+      "tenantId": "fa77ec4e-68e8-4eef-9a22-3c41fd89ca8f",
+      "studentPartyId": "352fc522-9a35-4727-934c-0b7a62ad7ea3",
+      "guardianPartyId": "93dc0a64-59e0-45a1-98ec-331cc949c1e6",
+      "pickupAuthorizationId": "a3558c59-b0ba-484b-9ae7-db55215216c4",
+      "operatorUserId": "9a35d4ee-2b06-4cdb-a50a-7d2295a85137",
+      "course": "4aae6bb2-6505-4a58-aafa-4cf55e578a10",
+      "enrollment": "b610ab96-48fa-4819-ad87-44259e0b7bcd",
+      "request": "a3561266-0be7-441e-a9b7-c36e872ae2f9"
+    },
+    {
+      "label": "negative",
+      "tenantId": "fa77ec4e-68e8-4eef-9a22-3c41fd89ca8f",
+      "studentPartyId": "e7dc5022-9293-4049-97a6-54367f9daab9",
+      "guardianPartyId": "e18c3ff0-b37a-4299-8387-b78b6983433d",
+      "pickupAuthorizationId": "cc9db52d-acde-4d47-b6fa-09209376ea15",
+      "operatorUserId": "9a35d4ee-2b06-4cdb-a50a-7d2295a85137",
+      "course": "d3a39023-6e72-4f72-b8f8-02d52b377713",
+      "enrollment": "4c48468f-e00a-4d37-a152-870eb95a4c52",
+      "request": "c7157fc4-9796-4c85-9fca-8399a19f9742"
+    },
+    {
+      "label": "direct-rpc",
+      "tenantId": "fa77ec4e-68e8-4eef-9a22-3c41fd89ca8f",
+      "studentPartyId": "446fde4c-2b2b-40c5-afd6-cf089891195b",
+      "guardianPartyId": "8bb4833c-543f-4d88-89bc-eb8d1baf5710",
+      "pickupAuthorizationId": "36c8772b-c633-4b27-b63f-a632ae617c5e",
+      "operatorUserId": "9a35d4ee-2b06-4cdb-a50a-7d2295a85137",
+      "course": "e08c036a-5dae-45a3-a32e-42e6e86b5cbb",
+      "enrollment": "d56ce0c8-41a2-4ad5-8592-f510eb236aa4",
+      "request": "bf187842-6db2-40ba-ae31-137137d91c7f"
+    },
+    {
+      "label": "incomplete",
+      "tenantId": "fa77ec4e-68e8-4eef-9a22-3c41fd89ca8f",
+      "studentPartyId": "b6fb257f-a483-453d-8ef7-826b89051961",
+      "guardianPartyId": "1f3fb1b9-a393-4de9-af52-99746c1f1c0a",
+      "pickupAuthorizationId": "d45af956-75f8-4c28-a49b-cc8216e96d8f",
+      "operatorUserId": "9a35d4ee-2b06-4cdb-a50a-7d2295a85137",
+      "course": "1651b147-1e54-4650-a64d-bd5b474cf603",
+      "enrollment": "033d1ff2-673e-4209-94ac-72685625581f",
+      "request": "3d4b4d7e-2d44-4c72-8a5b-bc0858f5a81c"
+    },
+    {
+      "label": "isolation",
+      "tenantId": "fa77ec4e-68e8-4eef-9a22-3c41fd89ca8f",
+      "studentPartyId": "76c96be8-200e-4f53-8373-c036acb25320",
+      "guardianPartyId": "2b1d355f-e4ac-412c-a2e5-8c737d437bd2",
+      "pickupAuthorizationId": "eadf293b-ccbb-4d5a-a330-2ffef3cfadad",
+      "operatorUserId": "9a35d4ee-2b06-4cdb-a50a-7d2295a85137",
+      "course": "11c78e1e-d50e-454e-aeaa-ebe904c75f09",
+      "enrollment": "cb7146c7-c72d-4a75-a76a-97d611654cfa",
+      "request": "f5f5e4a7-b68b-4f30-9cd2-dfb057cf5cc6"
+    }
+  ],
+  "sourceSha256": "b773cdb549a38e31a2c6092927953e71da961e2abfe3fcd5c08d79d314b02c23",
+  "observations": [
+    {
+      "name": "concurrent_same_day_one_canonical_event",
+      "result": "PASS",
+      "requests": 2,
+      "actualWaitObserved": true,
+      "canonicalId": "fe766af1-c101-45ba-8fac-954466b323ed",
+      "persistedRows": 1
+    },
+    {
+      "name": "lost_ack_new_process_recovery",
+      "result": "PASS",
+      "canonicalId": "e043d5b7-39d9-415a-b85e-4f843d83d938",
+      "independentProcess": true,
+      "persistedRows": 1,
+      "lostAckBoundary": "Committed service result deliberately discarded by simulated caller; HTTP lost response is a separate test"
+    },
+    {
+      "name": "pickup_revoked_after_actual_lock_wait",
+      "result": "PASS",
+      "actualWaitObserved": true,
+      "permissionDenied": true,
+      "noEventWritten": true
+    },
+    {
+      "name": "actor_revoked_after_actual_lock_wait",
+      "result": "PASS",
+      "actualWaitObserved": true,
+      "permissionDenied": true,
+      "noEventWritten": true
+    },
+    {
+      "name": "branch_revoked_after_actual_lock_wait",
+      "result": "PASS",
+      "actualWaitObserved": true,
+      "permissionDenied": true,
+      "noEventWritten": true
+    },
+    {
+      "name": "branch_access_revoked_while_actor_waits",
+      "result": "PASS",
+      "actualWaitObserved": true,
+      "permissionDenied": true,
+      "noEventWritten": true
+    },
+    {
+      "name": "recovery_rechecks_current_pickup_authority",
+      "result": "PASS",
+      "canonicalId": "f19193a1-6694-446c-8d18-b3dd98acdff5",
+      "recoveryDenied": true,
+      "existingHistoryUnchanged": true
+    },
+    {
+      "name": "foreign_tenant_and_wrong_action_denied",
+      "result": "PASS",
+      "foreignTenantDenied": true,
+      "accountantDenied": true,
+      "noEventWritten": true
+    },
+    {
+      "name": "anonymous_and_signed_in_direct_rpc_denied",
+      "result": "PASS",
+      "anonymousSqlstate": "42501",
+      "signedInSqlstate": "42501",
+      "noEventWritten": true
+    },
+    {
+      "name": "incomplete_second_enrollment_mapping_denied",
+      "result": "PASS",
+      "conflict": true,
+      "noEventWritten": true
+    },
+    {
+      "name": "repeatable_read_execution_rejected",
+      "result": "PASS",
+      "sqlstate": "42501",
+      "noEventWritten": true
+    }
+  ],
+  "runOwnedActorRetired": true,
+  "committedHistoryPreserved": true,
+  "syntheticFixtureOnly": true,
+  "productionAccess": false,
+  "apiBrowserCoverage": "NOT_RUN by this service/DB suite"
+}

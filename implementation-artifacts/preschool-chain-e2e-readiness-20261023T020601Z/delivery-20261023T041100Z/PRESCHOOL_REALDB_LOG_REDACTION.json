@@ -1,0 +1,9 @@
+{
+  "artifact": "PRESCHOOL_REALDB_FIXTURE_REPAIR.log",
+  "sourceCommit": "48c2124b604068b63acbadb8e9d79bceba42bcc8",
+  "reason": "Gitleaks generic-api-key false positive on generated fixture UUIDs; no credential was present.",
+  "change": "Redacted generated fixture identifiers from one console output line only; test result lines and counts remain byte-identical.",
+  "originalSha256": "81c28b153fcb802d72ee517826a3e38716a9d48fa2c4e3d478b2f356560d6b2e",
+  "sanitizedSha256": "a01f6fb376aef084422bbdda9383ee0866fe607eec9dacb561a0a5fc82d020e7",
+  "testResult": "PASS 1 suite / 2 tests; unchanged"
+}

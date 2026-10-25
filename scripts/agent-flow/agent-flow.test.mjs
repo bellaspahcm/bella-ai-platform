@@ -9,6 +9,7 @@ import { authorizeRepository, REPOSITORY } from './authority.mjs';
 import { normalizeNotification, normalizeHistory, normalizeHistoryTurn, reconcile, approvedOutput, DAY_MS } from './contract.mjs';
 import { DevelopmentStore, createPrivateDirectory, enforceReviewRetention } from './store.mjs';
 import { verifyLifecycle } from './readback.mjs';
+import { persistenceDiagnostic } from './persistence-diagnostic.mjs';
 
 // Expectations below follow approved retention, provenance and security invariants.
 // These are protocol fixtures, not claims of live Codex execution.
@@ -48,6 +49,143 @@ test('tenant role, write-only GitHub access, identity mismatch and provider fail
     await assert.rejects(authorizeRepository(REPOSITORY, async path => path === 'user' ? { login: 'operator' } : grant), /ACCESS_DENIED/);
   }
   await assert.rejects(authorizeRepository(REPOSITORY, async () => { throw new Error('sensitive diagnostics'); }), error => error.message === 'TELEMETRY_ACCESS_DENIED');
+});
+
+// Diagnostic fixtures do not reproduce the historical collector failure.
+for (const [stage, failingEndpoint] of [['ACTOR_LOOKUP', 'user'], ['GRANT_LOOKUP', 'grant']]) {
+  for (const [label, providerError, cause] of [
+    ['timeout', Object.assign(new Error('private provider timeout'), { code: 'ETIMEDOUT' }), 'PROVIDER_TIMEOUT'],
+    ['command exit', Object.assign(new Error('private command failure'), { code: 1 }), 'PROVIDER_COMMAND_FAILED'],
+    ['invalid JSON', new SyntaxError('private invalid provider JSON'), 'PROVIDER_INVALID_JSON'],
+    ['unknown failure', new Error('private unknown provider failure'), 'PROVIDER_UNAVAILABLE'],
+  ]) {
+    test(`authority retains safe ${label} classification at ${stage} without raw diagnostics`, async () => {
+      Object.assign(providerError, { stdout: 'private stdout', stderr: 'Bearer fixture-only-secret', cause: { password: 'fixture-only-password' } });
+      const calls = [];
+      await assert.rejects(authorizeRepository(REPOSITORY, async endpoint => {
+        calls.push(endpoint);
+        if (failingEndpoint === 'user' || endpoint !== 'user') throw providerError;
+        return { login: 'fixture-operator' };
+      }), error => {
+        assert.equal(error.message, 'TELEMETRY_ACCESS_DENIED');
+        assert.deepEqual(error.authorityFailure, { stage, cause });
+        assert.equal(Object.hasOwn(error, 'cause'), false);
+        for (const text of ['private', 'Bearer', 'fixture-only-secret', 'fixture-only-password', 'fixture-operator']) {
+          assert.equal(JSON.stringify(error).includes(text), false);
+        }
+        return true;
+      });
+      assert.deepEqual(calls, failingEndpoint === 'user' ? ['user'] : ['user', `repos/${REPOSITORY}/collaborators/fixture-operator/permission`]);
+    });
+  }
+}
+
+test('authority distinguishes invalid actor, grant identity and policy denials without granting access', async () => {
+  for (const user of [null, {}, { login: '' }, { login: 'not/an/actor' }, { login: 123 }]) {
+    const calls = [];
+    await assert.rejects(authorizeRepository(REPOSITORY, async endpoint => { calls.push(endpoint); return user; }), error => {
+      assert.equal(error.message, 'TELEMETRY_ACCESS_DENIED');
+      assert.deepEqual(error.authorityFailure, { stage: 'ACTOR_VALIDATION', cause: 'ACTOR_INVALID' });
+      return true;
+    });
+    assert.deepEqual(calls, ['user']);
+  }
+  for (const grant of [null, {}, { user: { login: 123 }, permission: 'admin' }, { user: { login: 'another-operator' }, permission: 'admin' }]) {
+    await assert.rejects(authorizeRepository(REPOSITORY, async endpoint => endpoint === 'user' ? { login: 'operator' } : grant), error => {
+      assert.equal(error.message, 'TELEMETRY_ACCESS_DENIED');
+      assert.deepEqual(error.authorityFailure, { stage: 'GRANT_VALIDATION', cause: 'GRANT_IDENTITY_MISMATCH' });
+      return true;
+    });
+  }
+  for (const permission of ['read', 'write', 'maintain', 'none', null, undefined]) {
+    await assert.rejects(authorizeRepository(REPOSITORY, async endpoint => endpoint === 'user'
+      ? { login: 'operator' } : { user: { login: 'operator' }, permission }), error => {
+      assert.equal(error.message, 'TELEMETRY_ACCESS_DENIED');
+      assert.deepEqual(error.authorityFailure, { stage: 'PERMISSION_CHECK', cause: 'PERMISSION_REJECTED' });
+      return true;
+    });
+  }
+});
+
+test('authority success and scope denial do not acquire failure diagnostics', async () => {
+  const result = await authorizeRepository(REPOSITORY, async endpoint => endpoint === 'user'
+    ? { login: 'Actual-Operator' } : { user: { login: 'actual-operator' }, permission: 'admin' });
+  assert.equal(result.permission, 'admin');
+  assert.equal(Object.hasOwn(result, 'authorityFailure'), false);
+  await assert.rejects(authorizeRepository('other/project', async () => assert.fail('must not query provider')), error => {
+    assert.equal(error.message, 'TELEMETRY_SCOPE_DENIED');
+    assert.equal(Object.hasOwn(error, 'authorityFailure'), false);
+    return true;
+  });
+});
+
+test('default gh adapter retains safe failures and existing command options without raw output', () => {
+  const url = pathToFileURL(join(process.cwd(), 'scripts/agent-flow/authority.mjs')).href;
+  // Isolated fixture replaces only the built-in command executor before import;
+  // it calls the real default githubApi path without starting gh or using credentials.
+  const shared = `import cp from 'node:child_process';import {syncBuiltinESMExports} from 'node:module';import {promisify} from 'node:util';const calls=[];const scenario=process.argv[1];const fake=()=>{throw Error('UNEXPECTED_CALLBACK_EXECUTION')};fake[promisify.custom]=async(command,args,options)=>{calls.push({command,args,options});if(scenario==='invalid-json')return{stdout:'private malformed payload'};if(scenario==='timeout')throw Object.assign(Error('private timeout'),{killed:true,signal:'SIGTERM',stderr:'Bearer fixture-secret'});if(scenario==='missing-command')throw Object.assign(Error('private path'),{code:'ENOENT',path:'private path'});if(scenario==='exit')throw Object.assign(Error('private exit'),{code:1,stderr:'fixture-secret'});if(scenario==='unknown')throw Error('private provider failure');return{stdout:JSON.stringify(args[1]==='user'?{login:'fixture-operator'}:{user:{login:'fixture-operator'},permission:'admin'})};};cp.execFile=fake;syncBuiltinESMExports();const {authorizeRepository,REPOSITORY}=await import(${JSON.stringify(url)});try{const r=await authorizeRepository(REPOSITORY);console.log(JSON.stringify({permission:r.permission,calls}));}catch(e){console.log(JSON.stringify({message:e.message,authorityFailure:e.authorityFailure,hasCause:Object.hasOwn(e,'cause'),calls}));}`;
+  for (const [scenario, cause] of [['timeout','PROVIDER_TIMEOUT'], ['exit','PROVIDER_COMMAND_FAILED'], ['missing-command','PROVIDER_COMMAND_FAILED'], ['invalid-json','PROVIDER_INVALID_JSON'], ['unknown','PROVIDER_UNAVAILABLE'], ['success',null]]) {
+    const child = spawnSync(process.execPath, ['--input-type=module', '-e', shared, scenario], { encoding: 'utf8', windowsHide: true });
+    assert.equal(child.status, 0, child.stderr);
+    const result = JSON.parse(child.stdout);
+    assert.equal(result.calls.length, cause ? 1 : 2);
+    for (const call of result.calls) {
+      assert.equal(call.command, 'gh');
+      assert.equal(call.args[0], 'api');
+      assert.deepEqual(call.options, { windowsHide: true, timeout: 15000, maxBuffer: 256 * 1024 });
+    }
+    assert.deepEqual(result.calls[0].args, ['api','user']);
+    if (cause) {
+      assert.equal(result.message, 'TELEMETRY_ACCESS_DENIED');
+      assert.deepEqual(result.authorityFailure, { stage: 'ACTOR_LOOKUP', cause });
+      assert.equal(result.hasCause, false);
+    } else {
+      assert.equal(result.permission, 'admin');
+      assert.deepEqual(result.calls[1].args, ['api', `repos/${REPOSITORY}/collaborators/fixture-operator/permission`]);
+    }
+    for (const text of ['private', 'Bearer', 'fixture-secret']) assert.equal(child.stdout.includes(text), false);
+  }
+});
+
+test('authority distinguishes unavailable GitHub lookups without retaining provider diagnostics', async () => {
+  for (const unavailableEndpoint of ['user', `repos/${REPOSITORY}/collaborators/operator/permission`]) {
+    const calls = [];
+    const original = Object.assign(new Error('GITHUB_AUTHORITY_UNAVAILABLE'), {
+      stderr: 'sensitive-provider-detail', cause: new Error('sensitive-provider-detail'), stack: 'sensitive-provider-detail',
+    });
+    await assert.rejects(authorizeRepository(REPOSITORY, async endpoint => {
+      calls.push(endpoint);
+      if (endpoint === unavailableEndpoint) throw original;
+      return { login: 'operator' };
+    }), error => {
+      assert.equal(error.message, 'TELEMETRY_ACCESS_DENIED');
+      assert.deepEqual(error.authorityFailure, { stage: unavailableEndpoint === 'user' ? 'ACTOR_LOOKUP' : 'GRANT_LOOKUP', cause: 'PROVIDER_UNAVAILABLE' });
+      assert.notEqual(error, original);
+      assert.deepEqual(Object.keys(error), ['authorityFailure']);
+      assert.equal(error.cause, undefined);
+      assert.equal(String(error.stack).includes('sensitive-provider-detail'), false);
+      const diagnostic = persistenceDiagnostic(error, { operation: 'facts.ingest', role: 'LEAD', binding, method: 'turn/started', observedAt: new Date(start).toISOString() });
+      assert.equal(diagnostic.causeCode, 'TELEMETRY_ACCESS_DENIED');
+      assert.deepEqual(diagnostic.authorityFailure, error.authorityFailure);
+      assert.equal(diagnostic.rawDiagnosticsRetained, false);
+      assert.equal(JSON.stringify(diagnostic).includes('sensitive-provider-detail'), false);
+      return true;
+    });
+    assert.equal(calls.at(-1), unavailableEndpoint);
+    assert.equal(calls.length, unavailableEndpoint === 'user' ? 1 : 2);
+  }
+});
+
+test('authority sanitizes unknown failures rather than accepting arbitrary provider error codes', async () => {
+  for (const failure of [null, 'sensitive-provider-detail', new Error('GITHUB_AUTHORITY_UNAVAILABLE sensitive-provider-detail'), Object.assign(new Error('sensitive-provider-detail'), { code: 'GITHUB_AUTHORITY_UNAVAILABLE' })]) {
+    await assert.rejects(authorizeRepository(REPOSITORY, async () => { throw failure; }), error => {
+      assert.equal(error.message, 'TELEMETRY_ACCESS_DENIED');
+      assert.deepEqual(Object.keys(error), ['authorityFailure']);
+      assert.equal(error.cause, undefined);
+      assert.equal(String(error.stack).includes('sensitive-provider-detail'), false);
+      return true;
+    });
+  }
 });
 
 test('normalization preserves separate identities/source timestamps and removes arguments/paths', () => {
@@ -120,10 +258,26 @@ test('scope mismatch, injected fields and unsafe output are rejected', async () 
 
 test('authorization occurs before filesystem read on every operation', async () => {
   const dir = join(tmpdir(), 'bella-agent-flow-DoesNotExist');
-  const store = new DevelopmentStore(dir, binding, { nonce, authorize: async () => { throw new Error('AUTH_DENIED'); } });
-  await assert.rejects(store.read(), /AUTH_DENIED/);
-  await assert.rejects(store.ingest(normalized()), /AUTH_DENIED/);
-  await assert.rejects(store.destroy(), /AUTH_DENIED/);
+  for (const expected of ['GITHUB_AUTHORITY_UNAVAILABLE', 'TELEMETRY_ACCESS_DENIED']) {
+    let calls = 0;
+    const store = new DevelopmentStore(dir, binding, { nonce, authorize: repository => {
+      calls++;
+      return authorizeRepository(repository, async endpoint => {
+        if (expected === 'GITHUB_AUTHORITY_UNAVAILABLE') throw new Error(expected);
+        return endpoint === 'user' ? { login: 'operator' } : { user: { login: 'operator' }, permission: 'write' };
+      });
+    } });
+    for (const operation of [() => store.read(), () => store.ingest(normalized()), () => store.destroy()]) {
+      await assert.rejects(operation(), error => {
+        assert.equal(error.message, 'TELEMETRY_ACCESS_DENIED');
+        assert.deepEqual(error.authorityFailure, expected === 'GITHUB_AUTHORITY_UNAVAILABLE'
+          ? { stage:'ACTOR_LOOKUP', cause:'PROVIDER_UNAVAILABLE' }
+          : { stage:'PERMISSION_CHECK', cause:'PERMISSION_REJECTED' });
+        return true;
+      });
+    }
+    assert.equal(calls, 3);
+  }
 });
 
 test('output expires at exactly 7 days; metadata expires at exactly 14, with physical operation-time purge', async () => {

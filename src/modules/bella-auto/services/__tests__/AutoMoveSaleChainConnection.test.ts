@@ -31,6 +31,7 @@ it.each([
   '?host=example.invalid','?user=postgres.other','?port=1234','?password=override',
   '?sslmode=no-verify','?sslmode=require','?ssl=false','?sslrootcert=untrusted.pem',
   '?sslmode=verify-full&sslmode=verify-full','?options=-c%20role=service_role',
+  '?options=-c%20row_security=off',
 ])('fails closed on driver/config overrides: %s', suffix => {
   expect(()=>saleChainConnection(url+suffix,api)).toThrow('matching database');
 });

@@ -35,45 +35,8 @@ const mockMaybeSingle = jest.fn();
 const mockInsert = jest.fn();
 const mockUpdate = jest.fn();
 
-function createSuspendedTenantQueryBuilder(table: string) {
-  const single = jest.fn(() => {
-    if (table === 'users') {
-      return Promise.resolve({
-        data: {
-          id: 'user-suspended',
-          email: 'suspended@tenant.com',
-          role: 'admin',
-          status: 'active',
-          tenant_id: 'tenant-suspended',
-          full_name: 'Suspended Admin',
-        },
-        error: null,
-      });
-    }
-    if (table === 'tenants') {
-      return Promise.resolve({
-        data: { status: 'suspended', name: 'Suspended Tenant Co' },
-        error: null,
-      });
-    }
-    return Promise.resolve({ data: null, error: null });
-  });
-
-  return {
-    select: jest.fn(() => ({
-      eq: jest.fn(() => ({
-        single,
-      })),
-    })),
-    eq: mockEq,
-    maybeSingle: mockMaybeSingle,
-    single: mockSingle,
-    insert: mockInsert,
-    update: mockUpdate,
-  };
-}
-
 const mockSupabase = {
+  rpc: jest.fn(),
   from: jest.fn((table: string) => ({
     select: mockSelect,
     eq: mockEq,
@@ -162,6 +125,7 @@ describe('Row-Level Security (RLS) & Tenant Isolation Compliance Suite', () => {
     mockSingle.mockReset();
     mockInsert.mockReset();
     mockUpdate.mockReset();
+    mockSupabase.rpc.mockReset();
 
     mockSupabase.from.mockReset();
     mockSupabase.from.mockImplementation((table: string) => ({
@@ -348,27 +312,26 @@ describe('Row-Level Security (RLS) & Tenant Isolation Compliance Suite', () => {
         data: { user: { id: 'user-suspended', email: 'suspended@tenant.com' } }
       });
 
-      // Simulate profile exists in DB
-      mockSingle.mockImplementation(() => Promise.resolve({
-        data: {
+      // Public self-profile contract owns live tenant state; callers must not
+      // fall back to direct table reads when it reports suspension.
+      mockSupabase.rpc.mockResolvedValue({
+        data: [{
           id: 'user-suspended',
           email: 'suspended@tenant.com',
           role: 'admin',
           status: 'active',
           tenant_id: 'tenant-suspended',
           full_name: 'Suspended Admin',
-        },
+          avatar_url: null,
+          tenant_status: 'suspended',
+        }],
         error: null,
-      }));
-
-      // Emulate tenants query returning status = 'suspended'
-      mockSupabase.from.mockImplementation((table: string) => {
-        return createSuspendedTenantQueryBuilder(table);
       });
 
       const profile = await getCurrentUser();
       expect(profile).toBeNull();
-      expect(mockSupabase.from).toHaveBeenCalledWith('tenants');
+      expect(mockSupabase.rpc).toHaveBeenCalledWith('platform_current_actor_profile');
+      expect(mockSupabase.from).not.toHaveBeenCalled();
     });
   });
 

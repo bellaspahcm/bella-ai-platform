@@ -1,0 +1,11 @@
+{
+  "parent": "78b710013ae8a6876b3f6c16406e9cffdb70fc4c",
+  "changedSourceFiles": 8,
+  "archive": "implementation-artifacts/preschool-chain-ci-repair-20261023-evidence.zip",
+  "sha256": "e0afea8ada97d7f12922cd880aff7e015c8605817ee655625974cc1c6b31f398",
+  "files": 61,
+  "bytes": 1599015,
+  "extractedHashesVerified": true,
+  "review": "PARTIAL_NOT_SEALED",
+  "fullChainGoLive": "NOT_PROVEN"
+}

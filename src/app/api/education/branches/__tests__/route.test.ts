@@ -1,6 +1,8 @@
 import { describe, expect, it, jest, beforeEach } from '@jest/globals';
 
 const mockGetUser = jest.fn();
+const mockGetCurrentUser=jest.fn();
+jest.mock('@/services/user-actions',()=>({getCurrentUser:mockGetCurrentUser}));
 const mockListAccessibleBranches = jest.fn();
 
 jest.mock('next/headers', () => ({
@@ -22,6 +24,7 @@ jest.mock('@/lib/supabase-admin-env', () => ({
 }));
 
 jest.mock('@/products/bella-education/services/preschool-chain.service', () => ({
+  ...jest.requireActual('@/products/bella-education/services/preschool-chain.service') as typeof import('@/products/bella-education/services/preschool-chain.service'),
   PreschoolChainService: jest.fn().mockImplementation(() => ({
     listAccessibleBranches: mockListAccessibleBranches,
   })),
@@ -32,6 +35,7 @@ const { GET } = require('../route') as typeof import('../route');
 describe('GET /api/education/branches', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockGetCurrentUser.mockResolvedValue({id:'user-1',tenant_id:'tenant-1',role:'admin_staff'});
     mockGetUser.mockResolvedValue({
       data: {
         user: {
@@ -60,7 +64,7 @@ describe('GET /api/education/branches', () => {
   });
 
   it('rejects unauthenticated requests', async () => {
-    mockGetUser.mockResolvedValueOnce({ data: { user: null }, error: new Error('no session') });
+    mockGetCurrentUser.mockResolvedValueOnce(null);
 
     const response = await GET();
     const body = await response.json();

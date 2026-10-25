@@ -301,4 +301,3 @@ Registry closeout: exact three-artifact implementation window CLOSED with `PASS_
 | `preschool-registry.contract.ts` | `8fddfb9db94f7e38b518060a15fd6eccf5d97076e043b26d68220be75de1ae8d` |
 | `preschool-registry.contract.impl.ts` | `b2a6f7c91904e6eca5ae5c8ecca5041c888a0e4bc3ace044d060881b54784b80` |
 | `__tests__/preschool-registry.contract.impl.test.ts` | `db8033e7b1568e80269142db0e052bd06b96350b8306065869636cdaf58389df` |
-

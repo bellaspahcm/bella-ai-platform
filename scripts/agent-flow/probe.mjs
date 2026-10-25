@@ -1,17 +1,118 @@
-import { spawn, execFileSync } from 'node:child_process';
+import { spawn, spawnSync, execFileSync } from 'node:child_process';
 import { randomBytes, randomUUID } from 'node:crypto';
 import { StringDecoder } from 'node:string_decoder';
-import { rm, access, readFile } from 'node:fs/promises';
+import { lstatSync, realpathSync } from 'node:fs';
+import { rm, access, readFile, mkdir, rmdir } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve, join } from 'node:path';
 import { authorizeRepository, REPOSITORY } from './authority.mjs';
 import { normalizeNotification, normalizeHistory, normalizeHistoryTurn, reconcile, hash, DAY_MS } from './contract.mjs';
 import { createPrivateDirectory, DevelopmentStore, writeDurableJson } from './store.mjs';
+import { admitTask, productTaskHash, productJestConfig } from './role-validation.mjs';
+import { pilotExecution, isMvpPilot } from './mvp-pilot.mjs';
+
+const permissionFailure = code => { throw new Error(code); };
+const canonicalPath = value => process.platform === 'win32' ? resolve(value).toLowerCase() : resolve(value);
+
+// Refuse aliases at every existing ancestor, including Windows junctions.
+export function assertFactoryPath(path, directory = false) {
+  let current = resolve(path), first = true;
+  for (;;) {
+    const info = lstatSync(current);
+    if (info.isSymbolicLink() || (first && !directory && info.nlink > 1) || canonicalPath(realpathSync(current)) !== canonicalPath(current) ||
+        (first ? (directory ? !info.isDirectory() : !info.isFile()) : !info.isDirectory())) permissionFailure('UNSAFE_FACTORY_PERMISSION_PATH');
+    first = false;
+    const parent = dirname(current);
+    if (parent === current) break;
+    current = parent;
+  }
+}
+
+export function factoryScratch(cwd, input, approval) {
+  const task = admitTask(input, approval);
+  if (isMvpPilot(task)) permissionFailure('INVALID_FACTORY_PERMISSION_OPT_IN');
+  const workspace = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
+  if (resolve(cwd) !== workspace) permissionFailure('INVALID_FACTORY_PERMISSION_OPT_IN');
+  if (task.product && resolve(task.product.workspace) !== workspace) permissionFailure('PRODUCT_ROOT_MISMATCH');
+  assertFactoryPath(workspace, true);
+  return resolve(workspace, '..', 'scratch', task.taskId);
+}
+
+// Before the single-use claim, reject unsafe static inputs. Clean up only the
+// empty directory this call created; never remove a prior task's scratch.
+export async function prepareFactoryScratch(cwd, task, approval) {
+  const scratch = factoryScratch(cwd, task, approval), parent = dirname(scratch);
+  assertFactoryPath(dirname(parent), true);
+  try { await mkdir(parent); } catch (error) { if (error.code !== 'EEXIST') throw error; }
+  assertFactoryPath(parent, true);
+  try { await mkdir(scratch); } catch (error) { if (error.code === 'EEXIST') permissionFailure('FACTORY_SCRATCH_ALREADY_EXISTS'); throw error; }
+  try {
+    for (const role of ['LEAD', 'BUILDER', 'VERIFY', 'REVIEWER']) factoryTransport(cwd, { task, role, ...(approval ? { productApproval: approval } : {}) });
+  } catch (error) {
+    try { assertFactoryPath(scratch, true); await rmdir(scratch); }
+    catch { permissionFailure('FACTORY_SCRATCH_CLEANUP_FAILED'); }
+    throw error;
+  }
+  return scratch;
+}
+
+export function factoryEnvironment(scratch, parent = process.env) {
+  const required = ['SystemDrive', 'SystemRoot', 'COMSPEC', 'PATH', 'PATHEXT', 'USERPROFILE', 'APPDATA', 'LOCALAPPDATA'];
+  if (required.some(k => typeof parent[k] !== 'string' || !parent[k].trim() || /[\0\r\n]/.test(parent[k])) ||
+      !/^[A-Za-z]:$/.test(parent.SystemDrive) || !/^[A-Za-z]:[\\/]/.test(parent.SystemRoot) ||
+      parent.SystemRoot.slice(0, 2).toLowerCase() !== parent.SystemDrive.toLowerCase()) permissionFailure('FACTORY_ENVIRONMENT_UNAVAILABLE');
+  const keys = [...required, 'WINDIR', 'ProgramData', 'ProgramFiles', 'HOMEDRIVE', 'HOMEPATH'];
+  const env = Object.fromEntries(keys.filter(k => typeof parent[k] === 'string' && parent[k].trim()).map(k => [k, parent[k]]));
+  if (Object.values(env).some(v => /[\0\r\n]/.test(v))) permissionFailure('FACTORY_ENVIRONMENT_UNAVAILABLE');
+  // Never inherit application credentials, Node injection options or browser trust.
+  return { ...env, TEMP: scratch, TMP: scratch, NODE_ENV: 'test', CI: '1', FORCE_COLOR: '0', NODE_REPL_TRUSTED_BROWSER_CLIENT_SHA256S: '' };
+}
+
+// Exact, existing tooling admission supplies the only writable source paths.
+// Default transport remains byte-for-byte equivalent in argv and capability.
+export function factoryTransport(cwd, options = {}) {
+  const base = { args: ['app-server', '--listen', 'stdio://'], experimentalApi: false };
+  if (!options || typeof options !== 'object' || Array.isArray(options)) permissionFailure('INVALID_FACTORY_PERMISSION_OPT_IN');
+  if (!Object.keys(options).length) return base;
+  const keys = options.productApproval === undefined ? 'role,task' : 'productApproval,role,task';
+  if (Object.keys(options).sort().join() !== keys || !['LEAD', 'BUILDER', 'VERIFY', 'REVIEWER'].includes(options.role) || process.platform !== 'win32') permissionFailure('INVALID_FACTORY_PERMISSION_OPT_IN');
+  const task = admitTask(options.task, options.productApproval), scratch = factoryScratch(cwd, task, options.productApproval);
+  assertFactoryPath(scratch, true);
+  for (const file of task.ownedFiles) assertFactoryPath(resolve(cwd, file));
+  const paths = options.role === 'BUILDER' ? [...task.ownedFiles.map(p => resolve(cwd, p)), scratch] : options.role === 'VERIFY' ? [scratch] : [];
+  const filesystem = Object.fromEntries(paths.map(p => [p.replaceAll('\\', '/'), 'write']));
+  const profileId = `bella_factory_${options.role.toLowerCase()}`;
+  const policy = { extends: ':read-only', filesystem, network: { enabled: false } };
+  const encoded = `{extends=":read-only",filesystem={${Object.keys(filesystem).map(p => `${JSON.stringify(p)}="write"`).join(',')}},network={enabled=false}}`;
+  const environment = factoryEnvironment(scratch);
+  const overrides = [`permissions.${profileId}=${encoded}`, 'approval_policy="never"', 'windows.sandbox="mxc"', 'analytics.enabled=false', 'shell_environment_policy.inherit="none"',
+    `shell_environment_policy.set={${Object.entries(environment).map(([k, v]) => `${JSON.stringify(k)}=${JSON.stringify(v)}`).join(',')}}`];
+  return { args: [...overrides.flatMap(v => ['-c', v]), ...base.args], experimentalApi: true, profileId, policy, scratch, environment,
+    thread: { permissions: profileId }, turn: { permissions: profileId } };
+}
+
+export async function inspectFactoryPermission(server, execution, cwd) {
+  const { config } = await server.rpc('config/read', { cwd, includeLayers: false });
+  const profiles = await server.rpc('permissionProfile/list', { cwd, limit: 100 });
+  const actual = config?.permissions?.[execution.profileId];
+  const rules = Object.entries(actual?.filesystem || {}).filter(([k, v]) => !(k === 'glob_scan_max_depth' && v === null));
+  const environment = config?.shell_environment_policy;
+  if (!execution.profileId || config?.approval_policy !== 'never' || config?.windows?.sandbox !== 'mxc' || actual?.extends !== ':read-only' || actual?.network?.enabled !== false ||
+      rules.length !== Object.keys(execution.policy.filesystem).length || rules.some(([k, v]) => execution.policy.filesystem[k] !== v) ||
+      !profiles.data?.some(p => p.id === execution.profileId && p.allowed === true) || environment?.inherit !== 'none' ||
+      Object.keys(environment?.set || {}).length !== Object.keys(execution.environment || {}).length ||
+      Object.entries(execution.environment || {}).some(([k, v]) => environment.set[k] !== v)) permissionFailure('FACTORY_PERMISSION_POLICY_MISMATCH');
+  return { profileId: execution.profileId, backend: 'mxc', approvalPolicy: 'never', networkEnabled: false, filesystem: Object.fromEntries(rules),
+    shellEnvironment: { inherit: 'none', keys: Object.keys(execution.environment).sort(), valueHashes: Object.fromEntries(Object.entries(execution.environment).map(([k, v]) => [k, hash(v)])) } };
+}
 
 export class AppServer {
-  constructor(binary, cwd, onNotification = () => {}) {
+  constructor(binary, cwd, onNotification = () => {}, options = {}) {
+    const execution = isMvpPilot(options?.task) ? pilotExecution(cwd, options) : factoryTransport(cwd, options);
+    this.execution = execution;
+    this.experimentalApi = execution.experimentalApi;
     this.pending = new Map(); this.sequence = 0; this.buffer = ''; this.closed = false;
-    this.child = spawn(binary, ['app-server', '--listen', 'stdio://'], { cwd, windowsHide: true, stdio: ['pipe', 'pipe', 'pipe'] });
+    this.child = spawn(binary, execution.args, { cwd, windowsHide: true, stdio: ['pipe', 'pipe', 'pipe'], ...(!isMvpPilot(options?.task) && execution.environment ? { env: execution.environment } : {}) });
     this.child.stderr.on('data', () => {}); // Never persist raw diagnostics.
     this.child.on('error', () => this.fail());
     this.child.on('exit', () => { this.closed = true; this.fail(); });
@@ -52,7 +153,7 @@ export class AppServer {
   }
 
   async initialize() {
-    const result = await this.rpc('initialize', { clientInfo: { name: 'bella_monitor_batch1_dev', version: '0.0.1' }, capabilities: { experimentalApi: false } });
+    const result = await this.rpc('initialize', { clientInfo: { name: 'bella_monitor_batch1_dev', version: '0.0.1' }, capabilities: { experimentalApi: this.experimentalApi } });
     this.child.stdin.write(JSON.stringify({ method: 'initialized', params: {} }) + '\n');
     return result;
   }
@@ -196,7 +297,33 @@ export async function runProof({ retained = false, scenario = 'success' } = {}) 
   return { ...summary, temporaryStoreRemoved: true, childServersStopped: true };
 }
 
-if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+// Fixed one-suite Jest invocation, inside the existing Verify scratch profile.
+// The real Jest JSON is forwarded unchanged and reconciled as command output.
+export function runProductJest(args, cwd = process.cwd()) {
+  if (!Array.isArray(args) || args.length !== 2 || args[0] !== '--product-jest' ||
+      typeof args[1] !== 'string' || !/^[A-Za-z0-9+/]+={0,2}$/.test(args[1]) || Buffer.from(args[1], 'base64').toString('base64') !== args[1]) permissionFailure('INVALID_PRODUCT_JEST_COMMAND');
+  let input;
+  try { input = JSON.parse(Buffer.from(args[1], 'base64').toString('utf8')); } catch { permissionFailure('INVALID_PRODUCT_JEST_COMMAND'); }
+  const approval = productTaskHash(input), task = admitTask(input, approval);
+  if (!task.product) permissionFailure('INVALID_PRODUCT_JEST_COMMAND');
+  const scratch = factoryScratch(cwd, task, approval);
+  assertFactoryPath(scratch, true);
+  const head = execFileSync('git', ['rev-parse', 'HEAD'], { cwd, encoding: 'utf8', windowsHide: true }).trim();
+  if (head !== task.sourceRevision) permissionFailure('WRONG_SOURCE_REVISION');
+  const { entries, config } = productJestConfig(task, cwd, scratch);
+  const result = spawnSync(process.execPath, ['-e', 'require(process.argv[1]).run(process.argv.slice(2))', entries.jest, '--config', JSON.stringify(config), '--runInBand', '--no-cache', '--json', '--runTestsByPath', task.testFile], {
+    cwd, env: factoryEnvironment(scratch), encoding: 'utf8', windowsHide: true, timeout: 240000, maxBuffer: 16 * 1024 * 1024,
+  });
+  if (result.stdout) process.stdout.write(result.stdout);
+  if (result.stderr) process.stderr.write(result.stderr);
+  if (result.error || result.signal || !Number.isSafeInteger(result.status) || result.status < 0) permissionFailure('PRODUCT_JEST_UNCERTAIN');
+  return result.status;
+}
+
+if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url) && process.argv[2]?.startsWith('--product')) {
+  try { process.exitCode = runProductJest(process.argv.slice(2)); }
+  catch (error) { console.error(/^[A-Z_]{3,80}$/.test(error.message) ? error.message : 'PRODUCT_JEST_FAILED'); process.exitCode = 1; }
+} else if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const retained = process.argv.includes('--retain');
   const scenario = process.argv.includes('--failed-tool') ? 'failed-tool' : 'success';
   runProof({ retained, scenario }).then(summary => console.log(JSON.stringify(summary, null, 2))).catch(error => {

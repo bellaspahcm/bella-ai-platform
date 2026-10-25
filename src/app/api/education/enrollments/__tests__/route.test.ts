@@ -1,155 +1,324 @@
-import { beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { describe, expect, it, jest, beforeEach } from '@jest/globals';
 
-const mockResolveContext = jest.fn();
-const mockAssertSelectors = jest.fn();
-const mockAuthorizeCourse = jest.fn();
-const mockGetStudent = jest.fn();
-const mockSearchCandidates = jest.fn();
-const mockEnrollStudent = jest.fn();
-const mockGetWorkflow = jest.fn();
+const mockGetUser = jest.fn();
+const mockGetCurrentUser = jest.fn();
+const mockAdmit = jest.fn();
+const mockAdminClient = jest.fn();
+jest.mock('@/services/user-actions', () => ({ getCurrentUser: mockGetCurrentUser }));
+jest.mock('@/lib/supabase-admin-env', () => ({ getSupabaseAdminUrl: () => 'http://configured-admin.local', getSupabaseAdminKey: () => 'controlled-admin-key' }));
+jest.mock('@supabase/supabase-js', () => ({ createClient: mockAdminClient }));
+jest.mock('@/products/bella-education/services/preschool-admission.service', () => {
+  const actual = jest.requireActual('@/products/bella-education/services/preschool-admission.service') as typeof import('@/products/bella-education/services/preschool-admission.service');
+  return { ...actual, PreschoolAdmissionService: jest.fn().mockImplementation(() => ({ admit: mockAdmit })) };
+});
 const mockFrom = jest.fn();
+const mockRegisterStudent = jest.fn();
+const mockGetStudent = jest.fn();
+const mockEnrollStudent = jest.fn();
+const mockGetEnrollment = jest.fn();
+const mockEstablishGuardianAuthorization = jest.fn();
+const mockGetAuthorizedGuardians = jest.fn();
+const mockAssignEnrollmentToBranch = jest.fn();
+const mockGetEnrollmentChain = jest.fn();
+const mockPreflightEnrollmentBranch = jest.fn<() => Promise<void>>();
 
-jest.mock('../../attendance/request-context', () => ({
-  resolveAttendanceRequestContext: mockResolveContext,
-  assertAttendanceSelectors: mockAssertSelectors,
-  authorizeAttendanceCourse: mockAuthorizeCourse,
-  AttendanceAccessError: class AttendanceAccessError extends Error {
-    constructor(readonly status: number, readonly code: string) { super(code); }
-  },
+jest.mock('@/lib/supabase-server', () => ({
+  createClient: () => ({
+    auth: {
+      getUser: mockGetUser,
+    },
+    from: mockFrom,
+  }),
 }));
+
 jest.mock('@/platform/education/contracts/student.contract.impl', () => ({
-  StudentContractImpl: class { getStudent = mockGetStudent; searchEnrollmentCandidates = mockSearchCandidates; },
+  StudentContractImpl: jest.fn().mockImplementation(() => ({
+    registerStudent: mockRegisterStudent,
+    getStudent: mockGetStudent,
+  })),
 }));
+
 jest.mock('@/platform/education/contracts/enrollment.contract.impl', () => ({
-  EnrollmentContractImpl: class { enrollPreschoolStudent = mockEnrollStudent; },
+  EnrollmentContractImpl: jest.fn().mockImplementation(() => ({
+    getEnrollment: mockGetEnrollment,
+  })),
 }));
-jest.mock('@/platform/education/contracts/workflow-registry.contract.impl', () => ({
-  WorkflowRegistryContractImpl: class { getWorkflow = mockGetWorkflow; },
+
+jest.mock('@/products/bella-education/services/enrollment.service', () => ({
+  EnrollmentProductService: jest.fn().mockImplementation(() => ({
+    enrollStudent: mockEnrollStudent,
+  })),
+}));
+
+jest.mock('@/products/bella-education/services/preschool-guardian-authorization.service', () => ({
+  normalizePreschoolGuardianPhone: (phone: string) => {
+    const digits = phone.replace(/\D/g, '');
+    if (!digits) throw new Error('GUARDIAN_PHONE_REQUIRED');
+    return digits;
+  },
+  PreschoolGuardianAuthorizationService: jest.fn().mockImplementation(() => ({
+    establishForEnrollment: mockEstablishGuardianAuthorization,
+    getAuthorizedGuardians: mockGetAuthorizedGuardians,
+  })),
+}));
+
+jest.mock('@/products/bella-education/services/preschool-chain.service', () => ({
+  ...jest.requireActual('@/products/bella-education/services/preschool-chain.service') as typeof import('@/products/bella-education/services/preschool-chain.service'),
+  PreschoolChainService: jest.fn().mockImplementation(() => ({
+    preflightEnrollmentBranch: mockPreflightEnrollmentBranch,
+    assignEnrollmentToBranch: mockAssignEnrollmentToBranch,
+    getEnrollmentChain: mockGetEnrollmentChain,
+    listEnrollmentAssignments:jest.fn(async()=>[{tenantId,courseId,enrollmentId:'enrollment-1',branchId,requestId:'request-1',assignedBy:userId}]),
+    assertEnrollmentAccess:jest.fn(async()=>undefined),
+  })),
 }));
 
 const { GET, POST } = require('../route') as typeof import('../route');
-const tenantId = '11111111-1111-4111-8111-111111111111';
-const actorId = '22222222-2222-4222-8222-222222222222';
-const courseId = '33333333-3333-4333-8333-333333333333';
-const studentPartyId = '44444444-4444-4444-8444-444444444444';
-const guardianPartyId = '55555555-5555-4555-8555-555555555555';
-const requestId = '66666666-6666-4666-8666-666666666666';
-const body = { courseId, studentPartyId, guardianPartyId, requestId };
-const context = { tenantId, actorId, productKey: 'bella_preschool', client: { from: mockFrom } };
 
-function relationshipQuery(result: { data: unknown[]; count: number | null; error: unknown }) {
-  const query = {
-    select: jest.fn(() => query), eq: jest.fn(() => query), in: jest.fn(() => query),
-    then: (resolve: (value: typeof result) => unknown, reject?: (reason: unknown) => unknown) => Promise.resolve(result).then(resolve, reject),
-  };
-  return query;
-}
-function jsonRequest(payload: unknown) {
+const tenantId = '00000000-0000-0000-0000-0000000000aa';
+const userId = '00000000-0000-0000-0000-000000000001';
+const partyId = '00000000-0000-0000-0000-0000000000bb';
+const guardianPartyId = '00000000-0000-0000-0000-0000000000dd';
+const courseId = '00000000-0000-0000-0000-0000000000cc';
+const branchId = '00000000-0000-0000-0000-0000000000ee';
+
+const insertedRows: unknown[] = [];
+const operationOrder: string[] = [];
+const queryFilters: Array<{ readonly table: string; readonly column: string; readonly value: unknown }> = [];
+
+function buildRequest(body: object): Request {
   return new Request('http://localhost/api/education/enrollments', {
-    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
   });
 }
 
-beforeEach(() => {
-  jest.clearAllMocks();
-  mockResolveContext.mockResolvedValue(context);
-  mockAssertSelectors.mockImplementation(() => undefined);
-  mockAuthorizeCourse.mockResolvedValue(undefined);
-  mockGetStudent.mockResolvedValue({ tenantId, partyId: studentPartyId, academicStatus: 'active' });
-  mockSearchCandidates.mockResolvedValue({ tenantId, courseId, candidates: [], nextCursor: null });
-  mockGetWorkflow.mockRejectedValue(new Error('workflow not registered; Education service default is active'));
-  mockFrom.mockReturnValue(relationshipQuery({
-    data: [{ id: 'rel-1', tenant_id: tenantId, source_party_id: guardianPartyId, target_party_id: studentPartyId,
-      relationship_type: 'guardian_of', active_from: null, active_to: null }], count: 1, error: null,
-  }));
-  mockEnrollStudent.mockResolvedValue({ id: 'enrollment-1', tenantId, studentPartyId, courseId, status: 'active', enrolledAt: '2026-10-22T00:00:00.000Z' });
+function setupSupabaseMocks() {
+  mockFrom.mockImplementation((table: string) => {
+    if (table === 'preschool_admission_operations') return {select:()=>({eq:()=>({in:async()=>({data:[],error:null})})})};
+    if (table === 'users') {
+      return {
+        select: () => ({
+          eq: () => ({
+            maybeSingle: async () => ({ data: { tenant_id: tenantId }, error: null }),
+          }),
+        }),
+      };
+    }
+
+    if (table === 'edu_courses') {
+      const chain = {
+        select: () => chain,
+        eq: (column: string, value: unknown) => {
+          queryFilters.push({ table, column, value });
+          return chain;
+        },
+        in: async () => ({
+          data: [{ id: courseId, title: 'Lớp Mầm A1' }],
+          error: null,
+        }),
+        maybeSingle: async () => ({ data: { id: courseId, title: 'Lớp Mầm A1' }, error: null }),
+      };
+      return chain;
+    }
+
+    if (table === 'party_parties') {
+      const selectChain = {
+        eq: (column: string, value: unknown) => {
+          queryFilters.push({ table, column, value });
+          return selectChain;
+        },
+        in: async () => ({
+          data: [{
+            id: partyId,
+            display_name: 'Lê Hoàng Nam',
+            dob: '2023-06-15',
+            gender: 'male',
+          }],
+          error: null,
+        }),
+      };
+      return {
+        insert: (row: unknown) => {
+          operationOrder.push('party-insert');
+          insertedRows.push(row);
+          return {
+            select: () => ({
+              single: async () => ({ data: { id: partyId }, error: null }),
+            }),
+          };
+        },
+        select: () => selectChain,
+      };
+    }
+
+    if (table === 'edu_enrollments') {
+      const chain = {
+        select: () => chain,
+        eq: (column: string, value: unknown) => {
+          queryFilters.push({ table, column, value });
+          return chain;
+        },
+        in: () => chain,
+        order: () => chain,
+        limit: async () => ({
+          data: [{
+            id: 'enrollment-1',
+            course_id: courseId,
+            student_party_id: partyId,
+            status: 'active',
+            request_id:'request-1',
+            enrolled_at: '2026-09-26T00:00:00.000Z',
+          }],
+          error: null,
+        }),
+      };
+      return chain;
+    }
+
+    if (table === 'students') {
+      const chain = {
+        select: () => chain,
+        eq: (column: string, value: unknown) => {
+          queryFilters.push({ table, column, value });
+          return chain;
+        },
+        in: async () => ({
+          data: [{
+            student_id: 'student-row-1',
+            party_id: partyId,
+            student_code: 'EDU-2026-123456',
+            metadata: { nickname: 'Bé Tôm', medicalNote: 'Dị ứng sữa bò' },
+          }],
+          error: null,
+        }),
+      };
+      return chain;
+    }
+
+    throw new Error(`Unexpected table access in Preschool enrollment route test: ${table}`);
+  });
+}
+
+describe('GET /api/education/enrollments', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    insertedRows.length = 0;
+    queryFilters.length = 0;
+    mockGetCurrentUser.mockResolvedValue({id:userId,tenant_id:tenantId,role:'admin'});
+    setupSupabaseMocks();
+    mockAdminClient.mockReturnValue({ from: mockFrom });
+
+    mockGetUser.mockResolvedValue({
+      data: {
+        user: {
+          id: userId,
+          user_metadata: { tenant_id: tenantId },
+        },
+      },
+      error: null,
+    });
+    mockGetAuthorizedGuardians.mockResolvedValue(new Map([
+      [partyId, [{
+        authorizationId: 'guardian-authorization-1',
+        studentPartyId: partyId,
+        guardianPartyId,
+        displayName: 'Lê Văn Thành',
+        phone: '0989112334',
+        status: 'authorized',
+      }]],
+    ]));
+  });
+
+  it('reads the student registry from canonical tenant-scoped enrollments and Party-backed student rows', async () => {
+    const response = await GET(new Request('http://localhost/api/education/enrollments'));
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.success).toBe(true);
+    expect(body.students).toEqual([expect.objectContaining({
+      id: 'EDU-2026-123456',
+      enrollmentId: 'enrollment-1',
+      studentId: 'student-row-1',
+      partyId,
+      name: 'Lê Hoàng Nam',
+      nickname: 'Bé Tôm',
+      dateOfBirth: '2023-06-15',
+      gender: 'Nam',
+      className: 'Lớp Mầm A1',
+      parentName: 'Lê Văn Thành',
+      parentPhone: '0989112334',
+      hasHealthAlert: true,
+      medicalNote: 'Dị ứng sữa bò',
+      status: 'Đang Học',
+      statusKey: 'active',
+    })]);
+    expect(mockGetAuthorizedGuardians).toHaveBeenCalledWith(tenantId, [partyId]);
+
+    expect(queryFilters).toEqual(expect.arrayContaining([
+      { table: 'edu_enrollments', column: 'tenant_id', value: tenantId },
+      { table: 'party_parties', column: 'tenant_id', value: tenantId },
+      { table: 'students', column: 'tenant_id', value: tenantId },
+      { table: 'edu_courses', column: 'tenant_id', value: tenantId },
+    ]));
+  });
 });
 
-describe('Preschool Enrollment v1 API', () => {
-  it('authorizes the Course/branch before invoking the approved caller-scoped candidate contract', async () => {
-    const request = new Request(`http://localhost/api/education/enrollments?view=candidates&courseId=${courseId}&query=An&limit=10`);
-    const response = await GET(request);
+describe('POST /api/education/enrollments canonical auth and durable request boundary', () => {
+  const operationKey = '10000000-0000-4000-8000-000000000001';
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockAdminClient.mockReturnValue({ from: mockFrom });
+    mockGetCurrentUser.mockResolvedValue({ id: userId, tenant_id: tenantId, role: 'admin' });
+    mockAdmit.mockResolvedValue({ success: true, operationKey, student: { partyId }, enrollment: { id: 'enrollment-1' }, chain: { branchId } });
+  });
+
+  it('authenticates live canonical actor before constructing the configured privileged client', async () => {
+    const response = await POST(buildRequest({ operationKey, childName: 'Child', branchId, courseId }));
+    expect(response.status).toBe(201);
+    expect(mockGetCurrentUser.mock.invocationCallOrder[0]).toBeLessThan(mockAdminClient.mock.invocationCallOrder[0]);
+    expect(mockAdmit).toHaveBeenCalledWith({ tenantId, actorId: userId, operationKey, payload: { operationKey, childName: 'Child', branchId, courseId } });
+    expect(mockGetUser).not.toHaveBeenCalled();
+  });
+
+  it.each(['admin', 'super_admin'])('allows the approved current admission role %s', async (role) => {
+    mockGetCurrentUser.mockResolvedValue({ id: userId, tenant_id: tenantId, role });
+    expect((await POST(buildRequest({ operationKey }))).status).toBe(201);
+    expect(mockAdmit).toHaveBeenCalledWith({ tenantId, actorId: userId, operationKey });
+  });
+
+  it.each(['admin_staff', 'accountant', 'parent', 'ktv', ''])('denies role %s before any operation client or recovery', async (role) => {
+    mockGetCurrentUser.mockResolvedValue({ id: userId, tenant_id: tenantId, role });
+    expect((await POST(buildRequest({ operationKey }))).status).toBe(403);
+    expect(mockAdminClient).not.toHaveBeenCalled(); expect(mockAdmit).not.toHaveBeenCalled();
+  });
+
+  it('denies anonymous before configured admin construction', async () => {
+    mockGetCurrentUser.mockResolvedValue(null);
+    expect((await POST(buildRequest({ operationKey }))).status).toBe(401);
+    expect(mockAdminClient).not.toHaveBeenCalled(); expect(mockAdmit).not.toHaveBeenCalled();
+  });
+
+  it('rejects body tenant selection and malformed/missing operation key before client construction', async () => {
+    expect((await POST(buildRequest({ operationKey, tenantId: 'foreign' }))).status).toBe(403);
+    expect((await POST(buildRequest({ childName: 'Child' }))).status).toBe(400);
+    expect(mockAdminClient).not.toHaveBeenCalled(); expect(mockAdmit).not.toHaveBeenCalled();
+  });
+
+  it('preserves a payload conflict as 409 and a missing operation as 404', async () => {
+    const { PreschoolAdmissionError } = await import('@/products/bella-education/services/preschool-admission.service');
+    mockAdmit.mockRejectedValueOnce(new PreschoolAdmissionError('PRESCHOOL_ADMISSION_PAYLOAD_CONFLICT', 409));
+    expect((await POST(buildRequest({ operationKey }))).status).toBe(409);
+    mockAdmit.mockRejectedValueOnce(new PreschoolAdmissionError('PRESCHOOL_ADMISSION_OPERATION_NOT_FOUND', 404));
+    expect((await POST(buildRequest({ operationKey }))).status).toBe(404);
+  });
+
+  it('returns only actor/tenant context for actor-scoped key storage with no privileged client', async () => {
+    const response = await GET(new Request('http://localhost/api/education/enrollments?admissionContext=1'));
     expect(response.status).toBe(200);
-    expect(response.headers.get('cache-control')).toBe('private, no-store');
-    expect(mockAuthorizeCourse).toHaveBeenCalledWith(context, request, courseId, expect.any(String));
-    expect(mockAuthorizeCourse.mock.invocationCallOrder[0]).toBeLessThan(mockSearchCandidates.mock.invocationCallOrder[0]);
-    expect(mockSearchCandidates).toHaveBeenCalledWith({ courseId, query: 'An', limit: 10, cursor: undefined });
-    expect(await response.json()).toEqual({ success: true, tenantId, courseId, candidates: [], nextCursor: null });
-    expect(mockEnrollStudent).not.toHaveBeenCalled();
-    expect(mockFrom).not.toHaveBeenCalled();
-  });
-
-  it('keeps candidate discovery unavailable on a dependency/RLS failure without returning provider details', async () => {
-    mockSearchCandidates.mockRejectedValue(new Error('42501 sensitive provider details'));
-    const response = await GET(new Request(`http://localhost/api/education/enrollments?view=candidates&courseId=${courseId}&query=An`));
-    expect(response.status).toBe(503);
-    expect(response.headers.get('cache-control')).toBe('private, no-store');
-    expect(await response.json()).toEqual({ success: false, error: 'ENROLLMENT_WORKFLOW_UNAVAILABLE' });
-  });
-
-  it.each(['query=a', 'query=**', 'query=An&limit=21', 'query=An&limit=0', 'query=An&cursor=invalid', 'query=An&query=Other', 'query=An&unknown=true'])('rejects invalid search before invoking a contract: %s', async suffix => {
-    const response = await GET(new Request(`http://localhost/api/education/enrollments?view=candidates&courseId=${courseId}&${suffix}`));
-    expect(response.status).toBe(400);
-    expect(mockAuthorizeCourse).not.toHaveBeenCalled();
-    expect(mockSearchCandidates).not.toHaveBeenCalled();
-    expect(mockEnrollStudent).not.toHaveBeenCalled();
-  });
-
-  it('does not search candidates when Course/branch authorization fails', async () => {
-    mockAuthorizeCourse.mockRejectedValueOnce(new Error('branch unavailable'));
-    const response = await GET(new Request(`http://localhost/api/education/enrollments?view=candidates&courseId=${courseId}&query=An`));
-    expect(response.status).toBe(503);
-    expect(mockSearchCandidates).not.toHaveBeenCalled();
-  });
-
-  it('authorizes Course/branch then delegates guardian and Student validation through the public mutation capability', async () => {
-    const response = await POST(jsonRequest(body));
-    expect(response.status).toBe(200); expect(response.headers.get('cache-control')).toBe('private, no-store');
-    expect(mockAuthorizeCourse).toHaveBeenCalledWith(context, expect.any(Request), courseId, expect.any(String), body);
-    expect(mockAuthorizeCourse.mock.invocationCallOrder[0]).toBeLessThan(mockEnrollStudent.mock.invocationCallOrder[0]);
-    expect(mockEnrollStudent).toHaveBeenCalledWith({ tenantId, studentPartyId, guardianPartyId, courseId, requestId });
-    expect(mockFrom).not.toHaveBeenCalled(); expect(mockGetStudent).not.toHaveBeenCalled();
-    expect(await response.json()).toMatchObject({ success: true, enrollment: { status: 'active', courseId, studentPartyId } });
-  });
-
-  it('rejects unauthenticated context before parsing or mutation', async () => {
-    const request = jsonRequest(body); const parse = jest.spyOn(request, 'json');
-    mockResolveContext.mockRejectedValue(new Error('AUTH_ROLE_PERMISSION_ERROR'));
-    expect((await POST(request)).status).toBe(503); expect(parse).not.toHaveBeenCalled(); expect(mockEnrollStudent).not.toHaveBeenCalled();
-  });
-
-  it.each(['DENIED', 'UNAVAILABLE', 'CONFLICT', 'INVALID_REQUEST'] as const)('sanitizes public capability error %s', async code => {
-    const { EducationPreschoolEnrollmentError } = await import('@/platform/education/contracts/enrollment.contract');
-    mockEnrollStudent.mockRejectedValue(new EducationPreschoolEnrollmentError(code));
-    const response = await POST(jsonRequest(body));
-    expect(response.status).toBe(code === 'DENIED' ? 403 : code === 'INVALID_REQUEST' ? 400 : 503);
-    expect(response.headers.get('cache-control')).toBe('private, no-store');
-    expect(JSON.stringify(await response.json())).not.toContain('42501');
-  });
-
-  it.each([{ ...body, student_party_id: studentPartyId }, { ...body, request_id: requestId }, { ...body, override: true }, { ...body, requestId: 'invalid' }])('rejects invalid/duplicate selectors with zero side effects: %j', async payload => {
-    expect((await POST(jsonRequest(payload))).status).toBe(400); expect(mockEnrollStudent).not.toHaveBeenCalled();
-  });
-
-  it.each([
-    ['STUDENT_DENIED', 'ENROLLMENT_STUDENT_ACCESS_DENIED'],
-    ['GUARDIAN_REQUIRED', 'ENROLLMENT_GUARDIAN_RELATIONSHIP_REQUIRED'],
-  ] as const)('preserves the HTTP v1 body for %s', async (code, error) => {
-    const { EducationPreschoolEnrollmentError } = await import('@/platform/education/contracts/enrollment.contract');
-    mockEnrollStudent.mockRejectedValue(new EducationPreschoolEnrollmentError(code));
-    const response = await POST(jsonRequest(body));
-    expect(response.status).toBe(403);
-    expect(await response.json()).toEqual({ success: false, error });
-    expect(mockFrom).not.toHaveBeenCalled();
-  });
-
-  it('never mutates when Course/branch authorization fails', async () => {
-    mockAuthorizeCourse.mockRejectedValue(new Error('denied'));
-    expect((await POST(jsonRequest(body))).status).toBe(503); expect(mockEnrollStudent).not.toHaveBeenCalled();
-  });
-
-  it.each([{ tenantId: 'foreign' }, { courseId: 'foreign' }, { studentPartyId: 'foreign' }, { status: 'pending' }])('does not report success for a mismatched public result: %j', async override => {
-    mockEnrollStudent.mockResolvedValue({ id: 'id', ...body, tenantId, status: 'active', ...override });
-    expect((await POST(jsonRequest(body))).status).toBe(503);
+    expect(await response.json()).toEqual({ success: true, admissionContext: { actorId: userId, tenantId } });
+    expect(response.headers.get('Cache-Control')).toBe('no-store');
+    expect(mockAdminClient).not.toHaveBeenCalled();
   });
 });

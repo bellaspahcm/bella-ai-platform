@@ -6,6 +6,8 @@ import { getSupabaseAdminKey, getSupabaseAdminUrl } from '@/lib/supabase-admin-e
 import { createDevelopmentBypassClient } from '@/lib/supabase-dev-bypass-server';
 import { recordAuditLog } from './audit-actions';
 import { CurrentUser, StaffRecord } from '@/types/domain';
+import { CURRENT_ACTOR_PROFILE_RPC, reconcileCurrentActorProfile, type ActiveCurrentActor } from '@/platform/security/current-actor.contract';
+import { randomBytes } from 'crypto';
 import type { Database } from '@/types/database.types';
 import { getMonthStart } from '@/lib/utils';
 import type { SupabaseClient as SupabaseJsClient } from '@supabase/supabase-js';
@@ -87,7 +89,7 @@ function assertNonMissingQueryError(error: SupabaseQueryError, context: string) 
   throw new Error(`${context}: ${error instanceof Error ? error.message : 'Unknown database error'}`);
 }
 
-export async function getCurrentUser(): Promise<CurrentUser | null> {
+export async function getCurrentUser(): Promise<ActiveCurrentActor | null> {
   const supabase = await createClient();
   const {
     data: { user },
@@ -126,7 +128,7 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
                 .eq('id', devProfile.tenant_id)
                 .single();
               if (tenant && tenant.status === 'active') {
-                return { ...devProfile, role: devProfile.role.toLowerCase() };
+                return { ...devProfile, status: 'active', role: devProfile.role.toLowerCase() };
               }
             }
           }
@@ -138,32 +140,15 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
     return null;
   }
 
-  // Authorization must reflect live canonical state, never a cached profile or email alias.
-  const { data: mainProfile, error: mainProfileError } = await supabase
-    .from('users')
-    .select('id, email, full_name, avatar_url, role, status, tenant_id')
-    .eq('id', user.id)
-    .single();
-  if (mainProfileError?.code === '42501') return null;
+  // The signed-in Platform contract reads only this Auth subject's safe profile
+  // and live tenant state. It grants no direct table read or Product action.
+  const { data: profiles, error: profileError } = await supabase.rpc(CURRENT_ACTOR_PROFILE_RPC);
+  if (profileError?.code === '42501') return null;
   assertNonMissingQueryError(
-    mainProfileError as SupabaseQueryError,
-    '[getCurrentUser] Failed to fetch profile by auth id',
+    profileError,
+    '[getCurrentUser] Failed to resolve current actor',
   );
-  
-  if (!mainProfile || mainProfile.id !== user.id || mainProfile.status !== 'active' || !mainProfile.tenant_id) {
-    return null;
-  }
-
-  const { data: tenant, error: tenantError } = await supabase
-    .from('tenants')
-    .select('status')
-    .eq('id', mainProfile.tenant_id)
-    .single();
-  if (tenantError?.code === '42501') return null;
-  assertNonMissingQueryError(tenantError, '[getCurrentUser] Failed to fetch tenant status');
-  if (!tenant || tenant.status !== 'active') return null;
-
-  return { ...mainProfile, role: mainProfile.role.toLowerCase() };
+  return reconcileCurrentActorProfile(user.id, profiles);
 }
 
 

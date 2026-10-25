@@ -73,4 +73,3 @@ export function PreschoolStudentRegistry({ refreshKey = 0 }: { refreshKey?: numb
       </>}
   </section>;
 }
-

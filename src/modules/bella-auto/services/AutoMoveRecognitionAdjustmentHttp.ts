@@ -32,6 +32,7 @@ export async function recognitionAdjustmentHttp(request: Request, bookingId: str
     await db.query("set local statement_timeout='30s'"); await db.query("set local lock_timeout='10s'");
     await db.query("set local idle_in_transaction_session_timeout='45s'");
     await db.query('set local role authenticated');
+    await db.query('set local row_security=on');
     await db.query("select set_config('request.jwt.claim.sub',$1,true),set_config('request.jwt.claim.role','authenticated',true)", [user.id]);
     const service = new AutoMoveRecognitionAdjustmentService(db, user.id, async document => {
       const { data, error: failure } = await client.storage.from(document.bucket).download(document.path);

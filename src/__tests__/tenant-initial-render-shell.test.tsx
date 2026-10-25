@@ -323,12 +323,20 @@ describe('tenant context theme ownership', () => {
   const originalFetch = global.fetch;
   afterEach(() => { global.fetch = originalFetch; });
 
-  it.each([200, 401])('preserves fetch/dev-fallback behavior (%i) without writing a dashboard module theme', async status => {
+  it.each([200, 401])('requires verified context (%i) and keeps unknown Product presentation neutral', async status => {
     window.history.replaceState({}, '', '/dashboard/education');
     document.documentElement.dataset.tenantModule = 'pending';
-    global.fetch = jest.fn().mockResolvedValue({ status, ok: status === 200, json: async () => ({ tenantId: 'context-preschool', enabledModules: ['beauty_spa'], settings: {} }) });
+    global.fetch = jest.fn().mockResolvedValue({ status, ok: status === 200, json: async () => ({
+      tenantId: 'context-preschool', tenantName: 'Controlled school', enabledModules: ['beauty_spa'],
+      subscriptionPlan: 'basic', featureFlags: {}, settings: {},
+    }) });
     render(<TenantContextProvider><ContextChild /></TenantContextProvider>);
-    expect(await screen.findByText(`Context: ${status === 200 ? 'context-preschool' : 'dev-tenant'}`)).toBeInTheDocument();
+    if (status === 200) expect(await screen.findByText('Context: context-preschool')).toBeInTheDocument();
+    else {
+      expect(await screen.findByText('Lỗi tải cấu hình')).toBeInTheDocument();
+      expect(screen.queryByText(/Context:/)).not.toBeInTheDocument();
+      expect(screen.queryByText(/dev-tenant/)).not.toBeInTheDocument();
+    }
     expect(global.fetch).toHaveBeenCalledWith('/api/tenant/context', expect.objectContaining({ credentials: 'same-origin', method: 'GET' }));
     expect(document.documentElement.dataset.tenantModule).toBe('pending');
   });
