@@ -645,7 +645,7 @@ function PreschoolDashboard({ tenantId, displayName, userRole }: { tenantId: str
                     className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-colors"
                   >
                     <BookOpen className="w-4 h-4 text-slate-500" />
-                    Quản lý Lớp học & Chương trình
+                    Quản lý Lớp học &amp; Chương trình
                   </Link>
                 </div>
 
@@ -791,7 +791,7 @@ function PreschoolDashboard({ tenantId, displayName, userRole }: { tenantId: str
                   </span>
                 </div>
                 <p className="text-xs text-violet-200/80 mt-0.5 font-medium">
-                  Điểm tin cơ sở đang chọn, rà soát tuân thủ định mức Thông tư 52 & hỏi đáp nghiệp vụ quản lý
+                  Điểm tin cơ sở đang chọn, rà soát tuân thủ định mức Thông tư 52 &amp; hỏi đáp nghiệp vụ quản lý
                 </p>
               </div>
             </div>
@@ -976,7 +976,7 @@ function PreschoolDashboard({ tenantId, displayName, userRole }: { tenantId: str
                     {complianceResult.violations.length === 0 && complianceResult.warnings.length === 0 ? (
                       <div className="flex items-center gap-2 text-xs text-emerald-300 font-medium">
                         <CheckCircle className="w-4 h-4 shrink-0" />
-                        <span>Tất cả các lớp học đều tuân thủ đúng định mức sĩ số và tỷ lệ giáo viên của Bộ GD&ĐT.</span>
+                        <span>Tất cả các lớp học đều tuân thủ đúng định mức sĩ số và tỷ lệ giáo viên của Bộ GD&amp;ĐT.</span>
                       </div>
                     ) : (
                       <div className="space-y-1.5 max-h-36 overflow-y-auto">
@@ -1857,7 +1857,7 @@ function PreschoolDashboard({ tenantId, displayName, userRole }: { tenantId: str
                   href="/dashboard/education/learning"
                   className="text-emerald-700 dark:text-emerald-400 hover:underline flex items-center gap-1"
                 >
-                  <span>Học tập & Hoạt động</span>
+                  <span>Học tập &amp; Hoạt động</span>
                   <ArrowRight className="w-3.5 h-3.5" />
                 </Link>
               </div>
@@ -2055,7 +2055,7 @@ function PreschoolDashboard({ tenantId, displayName, userRole }: { tenantId: str
                 onClick={() => setIsMenuDrawerOpen(false)}
                 className="text-emerald-700 dark:text-emerald-400 hover:underline flex items-center gap-1 font-bold"
               >
-                <span>Chuyển tới Chăm sóc & Điểm danh suất ăn</span>
+                <span>Chuyển tới Chăm sóc &amp; Điểm danh suất ăn</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </Link>
             </div>

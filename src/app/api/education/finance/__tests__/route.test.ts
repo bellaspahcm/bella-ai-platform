@@ -46,7 +46,21 @@ describe('Preschool Finance atomic API', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockGetCurrentUser.mockResolvedValue({ id: actorId, tenant_id: tenantId, role: 'admin' });
-    mockCreateClient.mockResolvedValue({ from: jest.fn(() => { throw new Error('Unexpected pre-recovery read'); }) });
+    mockCreateClient.mockResolvedValue({
+      auth: { getUser: jest.fn().mockResolvedValue({ data: { user: { id: actorId } }, error: null }) },
+      from: jest.fn((table: string) => {
+        if (table !== 'tenants') throw new Error(`Unexpected caller read: ${table}`);
+        return {
+          select: jest.fn().mockReturnValue({
+            eq: jest.fn().mockReturnValue({
+              maybeSingle: jest.fn().mockResolvedValue({
+                data: { id: tenantId, status: 'active', product_key: 'bella_education' }, error: null,
+              }),
+            }),
+          }),
+        };
+      }),
+    });
     mockAtomicCommand.mockResolvedValue({ payment: { id: 'payment-id' }, reconciliationEntry: { id: 'allocation-id' }, receipt: { id: 'receipt-id' }, updatedSettlementStatus: 'PARTIALLY_PAID' });
   });
 
@@ -79,14 +93,14 @@ describe('Preschool Finance atomic API', () => {
 
   it('rejects missing branch instead of resolving a default or tenant-wide action', async () => {
     expect((await POST(request({ ...body, branchId: undefined }))).status).toBe(403);
-    expect(mockCreateClient).not.toHaveBeenCalled();
+    expect(mockCreateClient).toHaveBeenCalledTimes(1);
     expect(mockAtomicCommand).not.toHaveBeenCalled();
   });
 
   it('does not attribute global completion to the selected branch', async () => {
     expect((await POST(request({ action: 'completeTuitionServicePeriod', branchId: body.branchId, billingPeriodId: 'period' }))).status).toBe(403);
     expect(mockAtomicCommand).not.toHaveBeenCalled();
-    expect(mockCreateClient).not.toHaveBeenCalled();
+    expect(mockCreateClient).toHaveBeenCalledTimes(1);
   });
 
   it('directory GET passes null branch to public Product read without a default', async () => {

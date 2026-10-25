@@ -487,7 +487,7 @@ function LegacyClassWorkspacePage({ params, onRefresh }: { params: Promise<{ id:
         {activeTab === 'attendance' && (
           <div className="p-8 rounded-3xl bg-slate-50 dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800 text-center space-y-3">
             <CalendarCheck className="w-8 h-8 text-emerald-500 mx-auto" />
-            <h3 className="text-base font-extrabold text-slate-900 dark:text-white">Sổ Điểm Danh & Đón Trẻ Hằng Ngày</h3>
+            <h3 className="text-base font-extrabold text-slate-900 dark:text-white">Sổ Điểm Danh &amp; Đón Trẻ Hằng Ngày</h3>
             <p className="text-xs text-slate-500 max-w-md mx-auto">
               Mở trang điểm danh để xem dữ liệu và các thao tác khả dụng.
             </p>

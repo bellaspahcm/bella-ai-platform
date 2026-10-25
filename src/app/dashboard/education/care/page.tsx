@@ -1353,7 +1353,7 @@ export default function CarePage() {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <p id="care-health-held">Ghi nhận sức khỏe hiện chưa khả dụng. Dữ liệu lịch sử được giữ nguyên.</p>
-                  <label htmlFor="care-health" className="font-bold text-slate-700 dark:text-slate-300 block mb-1.5">Thân nhiệt & Sức khỏe</label>
+                  <label htmlFor="care-health" className="font-bold text-slate-700 dark:text-slate-300 block mb-1.5">Thân nhiệt &amp; Sức khỏe</label>
                   <input id="care-health" disabled readOnly value="Chưa khả dụng" aria-describedby="care-health-held" className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800" />
                 </div>
                 <div>
