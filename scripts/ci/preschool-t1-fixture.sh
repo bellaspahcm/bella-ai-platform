@@ -91,9 +91,10 @@ PY
   test "$before" = '0' || { echo 'T1_EMPTY_PUBLIC_REQUIRED'; exit 1; }
 
   # Rehearsal chay SQL nguyen ban: transaction ket thuc bang ROLLBACK.
-  if ! { printf "SET bella.t1_full_scope = 'APPROVED_SECTION7_AB';\n"; cat "$schema"; } |
-      docker exec -i "$id" psql -X -v ON_ERROR_STOP=1 -U postgres -d postgres -f - \
-      > "$workdir/rehearsal.log" 2>&1; then
+  printf "SET bella.t1_full_scope = 'APPROVED_SECTION7_AB';\n" > "$workdir/rehearsal.sql"
+  cat "$schema" >> "$workdir/rehearsal.sql"
+  if ! docker exec -i "$id" psql -X -v ON_ERROR_STOP=1 -U postgres -d postgres -f - \
+      < "$workdir/rehearsal.sql" > "$workdir/rehearsal.log" 2>&1; then
     echo 'T1_REHEARSAL_FAILED'; exit 1
   fi
   after_rehearsal="$(docker exec "$id" psql -XAt -U postgres -d postgres -c \
@@ -108,9 +109,10 @@ if count != 1:
     raise SystemExit('T1_COMMIT_VARIANT_INVALID')
 pathlib.Path(sys.argv[2]).write_bytes(candidate)
 PY
-  if ! { printf "SET bella.t1_full_scope = 'APPROVED_SECTION7_AB';\n"; cat "$workdir/apply.sql"; } |
-      docker exec -i "$id" psql -X -v ON_ERROR_STOP=1 -U postgres -d postgres -f - \
-      > "$workdir/apply.log" 2>&1; then
+  printf "SET bella.t1_full_scope = 'APPROVED_SECTION7_AB';\n" > "$workdir/execution.sql"
+  cat "$workdir/apply.sql" >> "$workdir/execution.sql"
+  if ! docker exec -i "$id" psql -X -v ON_ERROR_STOP=1 -U postgres -d postgres -f - \
+      < "$workdir/execution.sql" > "$workdir/apply.log" 2>&1; then
     echo 'T1_APPLY_FAILED'; exit 1
   fi
   after_apply="$(docker exec "$id" psql -XAt -U postgres -d postgres -c \
