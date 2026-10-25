@@ -1,9 +1,18 @@
 /** @jest-environment jsdom */
 import { beforeEach, expect, it, jest } from '@jest/globals';
+import { useLayoutEffect } from 'react';
 import { cleanup, render, screen, waitFor } from '@testing-library/react';
 
 let currentId = 'SYN-CHILD-001';
 jest.mock('next/navigation', () => ({ useParams: () => ({ id: currentId }) }));
+const mockGuardianSection = jest.fn<(props: { studentId: string }) => void>();
+jest.mock('../StudentGuardians', () => ({
+  __esModule: true,
+  default: (props: { studentId: string }) => {
+    mockGuardianSection(props);
+    return <div data-testid="guardian-section" />;
+  },
+}));
 const Student360Page = (require('../page') as typeof import('../page')).default;
 
 const enrollmentId = '00000000-0000-4000-8000-000000000011';
@@ -51,6 +60,7 @@ beforeEach(() => {
   currentId = 'SYN-CHILD-001';
   global.fetch = jest.fn<typeof fetch>().mockResolvedValue(response(200, { success: true, profile: canonicalProfile }));
   window.localStorage.clear();
+  mockGuardianSection.mockClear();
 });
 
 it('shows only canonical identity, enrollment and raw attendance evidence', async () => {
@@ -65,6 +75,7 @@ it('shows only canonical identity, enrollment and raw attendance evidence', asyn
   expect(screen.queryByText(/NAEYC/i)).toBeNull();
   expect(screen.queryByRole('button', { name: /lưu|chỉnh sửa|thu tiền|gửi/i })).toBeNull();
   expect(window.localStorage.length).toBe(0);
+  expect(mockGuardianSection).toHaveBeenCalledWith({ studentId: canonicalProfile.studentId });
   expect(global.fetch).toHaveBeenCalledWith('/api/education/enrollments/SYN-CHILD-001', expect.objectContaining({ cache: 'no-store' }));
 });
 
@@ -106,4 +117,26 @@ it('clears the previous profile while navigating and ignores the late prior resp
   resolveFirst?.(response(200, { success: true, profile: canonicalProfile }));
   await waitFor(() => expect(screen.queryByText('Synthetic Child')).toBeNull());
   expect(fetchMock).toHaveBeenNthCalledWith(2, '/api/education/enrollments/SYN-CHILD-002', expect.objectContaining({ cache: 'no-store' }));
+});
+
+
+it('never commits old profile or Guardian section when the route selector changes', async () => {
+  const staleFrames: boolean[] = [];
+  function Frame() {
+    useLayoutEffect(() => {
+      if (currentId === 'SYN-CHILD-002') {
+        staleFrames.push(Boolean(document.querySelector('[data-testid="guardian-section"]'))
+          || (document.body.textContent?.includes('Synthetic Child') ?? false));
+      }
+    });
+    return <Student360Page />;
+  }
+  const view = render(<Frame />);
+  expect(await screen.findByRole('heading', { name: 'Synthetic Child' })).toBeTruthy();
+  (global.fetch as jest.MockedFunction<typeof fetch>).mockImplementationOnce(() => new Promise<Response>(() => {}));
+  currentId = 'SYN-CHILD-002';
+  view.rerender(<Frame />);
+  expect(staleFrames).toEqual([false]);
+  expect(screen.queryByTestId('guardian-section')).toBeNull();
+  expect(screen.queryByText('Synthetic Child')).toBeNull();
 });
