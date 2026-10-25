@@ -305,7 +305,7 @@ export default function TeacherDetailPage() {
             }`}
           >
             <ShieldCheck className="w-3.5 h-3.5" />
-            Bằng Cấp & Chứng Chỉ (—)
+            Bằng Cấp &amp; Chứng Chỉ (—)
           </button>
           <button
             onClick={() => setActiveTab('assignments')}
@@ -349,7 +349,7 @@ export default function TeacherDetailPage() {
           <div className="lg:col-span-2 rounded-3xl bg-white dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-700/80 p-6 sm:p-8 shadow-sm space-y-6">
             <h3 className="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
               <GraduationCap className="w-5 h-5 text-[var(--education-brand-ink)]" />
-              Thông Tin Trình Độ & Kinh Nghiệm Sư Phạm
+              Thông Tin Trình Độ &amp; Kinh Nghiệm Sư Phạm
             </h3>
 
             <div className="space-y-4 text-xs">
@@ -380,7 +380,7 @@ export default function TeacherDetailPage() {
           <div className="rounded-3xl bg-white dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-700/80 p-6 shadow-sm space-y-4">
             <h3 className="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
               <ShieldCheck className="w-5 h-5 text-emerald-500" />
-              Tuân Thủ Hồ Sơ & Pháp Lý
+              Tuân Thủ Hồ Sơ &amp; Pháp Lý
             </h3>
             <div className="space-y-3 text-xs">
               {['Hồ sơ nhân sự chính thức', 'Khám sức khỏe định kỳ', 'Chứng chỉ Sơ cứu y tế'].map(label => (
@@ -400,7 +400,7 @@ export default function TeacherDetailPage() {
           <div className="flex items-center justify-between">
             <h3 className="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
               <ShieldCheck className="w-5 h-5 text-[var(--education-brand-ink)]" />
-              Danh Sách Bằng Cấp & Chứng Chỉ Chuyên Môn
+              Danh Sách Bằng Cấp &amp; Chứng Chỉ Chuyên Môn
             </h3>
             <button type="button" title="Chưa có API chứng chỉ giáo viên" className="px-4 py-2 rounded-2xl bg-primary hover:bg-primary-hover text-primary-foreground text-xs font-bold transition-all cursor-pointer">
               + Thêm Chứng Chỉ Mới
@@ -528,7 +528,7 @@ export default function TeacherDetailPage() {
         <div className="rounded-3xl bg-white dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-700/80 p-6 sm:p-8 shadow-sm space-y-6">
           <h3 className="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
             <Star className="w-5 h-5 text-amber-500" />
-            Đánh Giá Sư Phạm & Nhận Xét Từ Ban Giám Hiệu
+            Đánh Giá Sư Phạm &amp; Nhận Xét Từ Ban Giám Hiệu
           </h3>
 
           <div className="space-y-4">
@@ -599,7 +599,7 @@ export default function TeacherDetailPage() {
               {/* Nhóm 1: Thông tin nhân sự & Liên hệ */}
               <div className="space-y-3">
                 <h4 className="text-xs font-extrabold uppercase tracking-wider text-[#0e5c43] dark:text-emerald-400 border-b border-slate-100 dark:border-slate-800 pb-1.5">
-                  1. Thông tin cá nhân & Liên hệ
+                  1. Thông tin cá nhân &amp; Liên hệ
                 </h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
@@ -699,7 +699,7 @@ export default function TeacherDetailPage() {
               {/* Nhóm 2: Trình độ chuyên môn & Học vị */}
               <div className="space-y-3">
                 <h4 className="text-xs font-extrabold uppercase tracking-wider text-[#0e5c43] dark:text-emerald-400 border-b border-slate-100 dark:border-slate-800 pb-1.5">
-                  2. Trình độ học vấn & Kinh nghiệm
+                  2. Trình độ học vấn &amp; Kinh nghiệm
                 </h4>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div className="sm:col-span-2">
@@ -731,7 +731,7 @@ export default function TeacherDetailPage() {
               {/* Nhóm 3: Phân công giảng dạy & Định mức tải */}
               <div className="space-y-3">
                 <h4 className="text-xs font-extrabold uppercase tracking-wider text-[#0e5c43] dark:text-emerald-400 border-b border-slate-100 dark:border-slate-800 pb-1.5">
-                  3. Phân công lớp & Định mức giờ dạy
+                  3. Phân công lớp &amp; Định mức giờ dạy
                 </h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
@@ -766,7 +766,7 @@ export default function TeacherDetailPage() {
               {/* Nhóm 4: Tuân thủ pháp lý & Chứng chỉ hành nghề */}
               <div className="space-y-3">
                 <h4 className="text-xs font-extrabold uppercase tracking-wider text-[#0e5c43] dark:text-emerald-400 border-b border-slate-100 dark:border-slate-800 pb-1.5">
-                  4. Tuân thủ hồ sơ & Pháp lý
+                  4. Tuân thủ hồ sơ &amp; Pháp lý
                 </h4>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <label className="flex items-center gap-2 p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 cursor-pointer">
@@ -824,7 +824,7 @@ export default function TeacherDetailPage() {
                   className="px-5 py-2.5 rounded-xl bg-[#0e5c43] hover:bg-[#0a4633] text-white font-bold text-xs shadow-md transition-all cursor-pointer flex items-center gap-1.5 active:scale-95"
                 >
                   <Check className="w-4 h-4" />
-                  <span>Lưu Thay Đổi & Cập Nhật Hồ Sơ</span>
+                  <span>Lưu Thay Đổi &amp; Cập Nhật Hồ Sơ</span>
                 </button>
               </div>
             </form>

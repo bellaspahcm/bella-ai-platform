@@ -719,7 +719,7 @@ export default function TeachersPage() {
               {/* Box 1: Thông tin liên hệ & Nhân sự */}
               <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-700/60 space-y-3">
                 <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 block">
-                  Thông tin liên hệ & Công tác
+                  Thông tin liên hệ &amp; Công tác
                 </span>
                 <div className="space-y-2 text-xs">
                   <div className="flex items-center justify-between">
@@ -752,7 +752,7 @@ export default function TeachersPage() {
               {/* Box 2: Trình độ chuyên môn & Học vấn */}
               <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-700/60 space-y-3">
                 <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 block">
-                  Trình độ & Bằng cấp
+                  Trình độ &amp; Bằng cấp
                 </span>
                 <div className="space-y-2 text-xs">
                   <div>
@@ -814,7 +814,7 @@ export default function TeachersPage() {
             {/* Box 4: Chứng chỉ sư phạm mầm non */}
             <div className="space-y-2">
               <span className="text-xs font-bold text-slate-700 dark:text-slate-300 block">
-                Chứng chỉ sư phạm & Giám sát chứng chỉ hành nghề:
+                Chứng chỉ sư phạm &amp; Giám sát chứng chỉ hành nghề:
               </span>
               <div className="flex flex-wrap gap-2">
                 {selectedTeacherForProfile.badges.map((badge, idx) => (
@@ -1049,7 +1049,7 @@ export default function TeachersPage() {
                   className="px-5 py-2.5 rounded-xl bg-[#0e5c43] hover:bg-[#0a4633] text-white font-bold text-xs shadow-md transition-all cursor-pointer flex items-center gap-1.5 active:scale-95"
                 >
                   <Check className="w-4 h-4" />
-                  <span>Lưu & Kích Hoạt Hồ Sơ</span>
+                  <span>Lưu &amp; Kích Hoạt Hồ Sơ</span>
                 </button>
               </div>
             </form>
