@@ -89,6 +89,12 @@ for (const [label, invoke] of handlers) {
     it('rejects a conflicting duplicate selector even when the first tenant matches', async () => {
       await expectDenied(new Request(`http://localhost/api/education/courses?tenantId=${tenantId}&tenantId=${foreignTenantId}`), 403, 'TENANT_ISOLATION_VIOLATION');
     });
+
+    it.each(['view=catalog&view=catalog', 'view=foreign', 'view=catalog&date=2026-10-22'])('rejects ambiguous modes before a legacy resolver or data read: %s', async query => {
+      await expectDenied(new Request(`http://localhost/api/education/courses?${query}`), 400, 'COURSE_INVALID_CATALOG_REQUEST');
+      expect(mockGetCurrentUser).not.toHaveBeenCalled();
+      expect(mockGetUser).not.toHaveBeenCalled();
+    });
   });
 }
 

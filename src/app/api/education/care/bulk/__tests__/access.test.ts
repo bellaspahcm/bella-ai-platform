@@ -53,15 +53,16 @@ class Query {
 const mockGetUser = jest.fn<() => Promise<{ data: { user: { id: string } | null }; error: { message: string } | null }>>();
 const mockProfile = jest.fn<() => Promise<Profile | null>>();
 const mockFrom = jest.fn((table: string) => new Query(table));
-const mockClient = { auth: { getUser: mockGetUser }, from: mockFrom };
+const mockSave = jest.fn<(...args: unknown[]) => Promise<{ data: unknown; error: unknown }>>();
+const mockClient = { auth: { getUser: mockGetUser }, from: mockFrom, rpc: mockSave };
 const mockRoster = jest.fn<() => Promise<readonly DailyCareRosterItem[]>>();
 const mockEnrollment = jest.fn<() => Promise<EducationEnrollmentDTO | null>>();
-const mockArrival = jest.fn<() => Promise<IBulkCareResult>>();
-const mockMeal = jest.fn<() => Promise<IBulkCareResult>>();
-const mockNap = jest.fn<() => Promise<IBulkCareResult>>();
-const mockHygiene = jest.fn<() => Promise<IBulkCareResult>>();
-const mockService = jest.fn(() => ({ getDailyCareRoster: mockRoster, recordBulkArrival: mockArrival, recordBulkMeals: mockMeal, recordBulkNap: mockNap, recordBulkHygiene: mockHygiene }));
-const mockEnrollmentContract = jest.fn(() => ({ getEnrollment: mockEnrollment }));
+const mockArrival = jest.fn<(...args: unknown[]) => Promise<IBulkCareResult>>();
+const mockMeal = jest.fn<(...args: unknown[]) => Promise<IBulkCareResult>>();
+const mockNap = jest.fn<(...args: unknown[]) => Promise<IBulkCareResult>>();
+const mockHygiene = jest.fn<(...args: unknown[]) => Promise<IBulkCareResult>>();
+const mockService = jest.fn((_client?: unknown) => ({ getDailyCareRoster: mockRoster, recordBulkArrival: mockArrival, recordBulkMeals: mockMeal, recordBulkNap: mockNap, recordBulkHygiene: mockHygiene }));
+const mockEnrollmentContract = jest.fn((_client?: unknown) => ({ getEnrollment: mockEnrollment }));
 const mockPrivilegedClient = jest.fn();
 
 jest.mock('@/lib/supabase-server', () => ({ createClient: () => mockClient }));
@@ -84,7 +85,7 @@ function post(action: keyof typeof actionData = 'arrival', data: unknown = actio
 function get(query = '', schoolDay = date) { return new Request(`http://localhost/api/education/care/bulk?courseId=${courseId}&date=${schoolDay}${query}`); }
 function expectNoMutation() {
   expect(writes).toEqual([]);
-  for (const fn of [mockArrival, mockMeal, mockNap, mockHygiene, mockPrivilegedClient]) expect(fn).not.toHaveBeenCalled();
+  for (const fn of [mockArrival, mockMeal, mockNap, mockHygiene, mockSave, mockPrivilegedClient]) expect(fn).not.toHaveBeenCalled();
 }
 async function denied(request: Request, status: number, error: string) {
   const response = await (request.method === 'POST' ? POST(request) : GET(request));
@@ -113,6 +114,7 @@ beforeEach(() => {
   mockRoster.mockResolvedValue([rosterItem]);
   mockEnrollment.mockResolvedValue(enrollment);
   for (const fn of [mockArrival, mockMeal, mockNap, mockHygiene]) fn.mockResolvedValue(result);
+  mockSave.mockResolvedValue({ data: { savedCount: 1, total: 1 }, error: null });
 });
 
 afterEach(() => { jest.useRealTimers(); });
@@ -240,18 +242,38 @@ describe('Care permitted operations and health-policy hold', () => {
   it('preserves historical health_checks on a nonhealth update', async () => {
     const response = await POST(post('save_care'));
     expect(response.status).toBe(200); expect(await response.json()).toEqual({ success: true, savedCount: 1, total: 1 });
-    expect(writes).toHaveLength(1); expect(writes[0].operation).toBe('update');
-    expect(writes[0].value).not.toHaveProperty('health_checks');
+    expect(writes).toHaveLength(0);
+    expect(mockSave).toHaveBeenCalledWith('preschool_save_care_records', { p_tenant_id: tenantId, p_course_id: courseId, p_day: date,
+      p_records: [{ studentPartyId: studentId, meal: { portion: 'HALF', notes: '' }, nap: null, hygiene: null, note: 'synthetic note' }] });
     expect(tables.edu_daily_care_records[0].health_checks).toEqual({ status: 'historical-observation' });
   });
   it('omits clinical results when creating a new nonhealth record', async () => {
     tables.edu_daily_care_records = [];
     const response = await POST(post('save_care'));
-    expect(response.status).toBe(200); expect(writes).toHaveLength(1);
-    expect(writes[0]).toMatchObject({ table: 'edu_daily_care_records', operation: 'insert' });
-    expect(writes[0].value).not.toHaveProperty('health_checks');
+    expect(response.status).toBe(200); expect(writes).toHaveLength(0);
+    expect(mockSave).toHaveBeenCalledTimes(1);
+    expect(mockSave.mock.calls[0][1]).toEqual(expect.objectContaining({ p_records: [expect.not.objectContaining({ health_checks: expect.anything() })] }));
   });
   it('fails an existing-record lookup instead of treating error as permission to insert', async () => {
-    errors.edu_daily_care_records = 'RLS denied'; await denied(post('save_care'), 503, 'CARE_DATA_UNAVAILABLE');
+    mockSave.mockResolvedValueOnce({ data: null, error: { code: '42501' } });
+    const response = await POST(post('save_care'));
+    expect(response.status).toBe(503); expect(await response.json()).toEqual({ success: false, error: 'CARE_WRITE_UNAVAILABLE' });
+    expect(writes).toHaveLength(0); expect(mockSave).toHaveBeenCalledTimes(1);
+  });
+  it('delegates two eligible records once, without per-record route writes or success after rejection', async () => {
+    mockRoster.mockResolvedValue([rosterItem, { ...rosterItem, enrollmentId: otherId, studentPartyId: otherId }]);
+    mockEnrollment.mockResolvedValueOnce(enrollment).mockResolvedValueOnce({ ...enrollment, id: otherId, studentPartyId: otherId });
+    mockSave.mockRejectedValueOnce(new Error('second write transaction rollback'));
+    const response = await POST(post('save_care', { records: [{ studentPartyId: studentId }, { studentPartyId: otherId }] }));
+    expect(response.status).toBe(503); expect(mockSave).toHaveBeenCalledTimes(1); expect(writes).toEqual([]);
+  });
+  it.each([{ studentPartyId: studentId, meal: { portion: 'invalid' } }, { studentPartyId: studentId, note: 42 }])('rejects malformed save record before the transaction %j', async record => {
+    await denied(post('save_care', { records: [record] }), 400, 'CARE_INVALID_RECORD');
+  });
+  it.each([null, { savedCount: 0, total: 1 }, { savedCount: 1, total: 2 }])('never confirms failed/partial atomic RPC acknowledgement %j', async data => {
+    mockSave.mockResolvedValueOnce({ data, error: null });
+    const response=await POST(post('save_care'));
+    expect(response.status).toBe(503); expect(await response.json()).toEqual({ success:false, error:'CARE_WRITE_UNAVAILABLE' });
+    expect(writes).toEqual([]);expect(mockSave).toHaveBeenCalledTimes(1);
   });
 });

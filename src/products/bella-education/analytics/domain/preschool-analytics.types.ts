@@ -10,38 +10,38 @@ export interface ClassroomUtilizationDTO {
   classId: string;
   className: string;
   currentEnrollment: number;
-  maxCapacity: number;
-  utilizationRate: number; // (currentEnrollment / maxCapacity) * 100
+  maxCapacity: number | null;
+  utilizationRate: number | null; // null when canonical capacity is unavailable
   color?: string;
 }
 
 export interface ExecutiveEnrollmentMetricsDTO {
   totalEnrolledStudents: number;
   totalClassrooms: number;
-  totalTeachers: number;
+  totalTeachers: number | null;
   classroomUtilization: ClassroomUtilizationDTO[];
 }
 
 export interface ExecutiveAttendanceMetricsDTO {
   todayPresentCount: number;
   todayAbsentCount: number;
-  todayLateCount: number;
+  todayLateCount: number | null;
   presentVsEnrolledRate: number; // (todayPresentCount / totalEnrolledStudents) * 100
 }
 
 export interface ExecutiveCareSafetyMetricsDTO {
-  activeHealthIncidents: number; // Status IN ('REPORTED', 'UNDER_OBSERVATION')
-  pendingMedicationDoses: number; // Scheduled doses today not administered
+  activeHealthIncidents: number | null; // Status IN ('REPORTED', 'UNDER_OBSERVATION')
+  pendingMedicationDoses: number | null; // Medication operations are unavailable in Preschool
 }
 
 export interface ExecutiveLearningMetricsDTO {
-  draftPortfoliosCount: number; // Portfolios in DRAFT status
-  pendingMilestoneReviews: number; // Observations awaiting teacher verification
+  draftPortfoliosCount: number | null; // Portfolios in DRAFT status
+  pendingMilestoneReviews: number | null; // Observations awaiting teacher verification
 }
 
 export interface ExecutiveParentEngagementMetricsDTO {
-  unacknowledgedNotices: number; // Deliveries with policy REQUIRES_ACK in SENT/READ
-  pendingConsentRequests: number; // Deliveries with policy REQUIRES_CONSENT awaiting decision
+  unacknowledgedNotices: number | null; // Deliveries with policy REQUIRES_ACK in SENT/READ
+  pendingConsentRequests: number | null; // Deliveries with policy REQUIRES_CONSENT awaiting decision
 }
 
 export interface ExecutiveMonthlyRevenueItemDTO {
@@ -53,32 +53,32 @@ export interface ExecutiveMonthlyRevenueItemDTO {
 }
 
 export interface ExecutiveFinanceMetricsDTO {
-  invoicedGrossTotal: number; // SUM(gross_amount) WHERE invoice_status = 'ISSUED'
-  reconciledCashCollected: number; // SUM(reconciliation_ledger allocated_amount) - PAID Truth
-  outstandingBalanceTotal: number; // SUM(gross_amount - allocated_amount) WHERE invoice_status = 'ISSUED'
-  overdueAccountsCount: number; // COUNT(invoices WHERE ISSUED AND settlement != PAID AND due_date < today)
+  invoicedGrossTotal: number | null; // null until branch-scoped finance contract exists
+  reconciledCashCollected: number | null; // null until branch-scoped finance contract exists
+  outstandingBalanceTotal: number | null; // null until branch-scoped finance contract exists
+  overdueAccountsCount: number | null; // null until branch-scoped finance contract exists
   monthlyRevenue?: ExecutiveMonthlyRevenueItemDTO[];
 }
 
 export interface ExecutiveWorkforceMetricsDTO {
-  activeStaffingViolations: number; // P8 Domain Truth (Non-compliant shift ratio / snapshot)
-  openStaffingExceptions: number; // Exception Queue (RATIO_SHORTAGE)
+  activeStaffingViolations: number | null; // P8 Domain Truth (Non-compliant shift ratio / snapshot)
+  openStaffingExceptions: number | null; // Exception Queue (RATIO_SHORTAGE)
 }
 
 export interface ExecutiveFacilitiesMetricsDTO {
-  outOfServiceAssetsCount: number; // Assets in OUT_OF_SERVICE or UNDER_INSPECTION
-  outOfServiceZonesCount: number; // Zones in OUT_OF_SERVICE
-  overdueScheduleCount: number; // P9 Schedule Truth (next_due_date < today)
-  openSafetyExceptions: number; // Exception Queue (SAFETY_DEFECT)
+  outOfServiceAssetsCount: number | null; // Assets in OUT_OF_SERVICE or UNDER_INSPECTION
+  outOfServiceZonesCount: number | null; // Zones in OUT_OF_SERVICE
+  overdueScheduleCount: number | null; // P9 Schedule Truth (next_due_date < today)
+  openSafetyExceptions: number | null; // Exception Queue (SAFETY_DEFECT)
 }
 
 export interface ExecutiveCommandCenterDTO {
   unmarkedAttendanceCount: number;
-  leaveRequestsCount: number;
-  overdueInvoicesCount: number;
-  healthIncidentsCount: number;
-  parentRequestsCount: number;
-  totalParentsCount: number;
+  leaveRequestsCount: number | null;
+  overdueInvoicesCount: number | null;
+  healthIncidentsCount: number | null;
+  parentRequestsCount: number | null;
+  totalParentsCount: number | null;
 }
 
 export type PreschoolActivityCategory = 

@@ -81,7 +81,8 @@ export function DashboardAuthLoadingShell() {
 import { useState, useEffect, useLayoutEffect } from 'react';
 
 export function DashboardAuthorizedShell({ children }: { children: React.ReactNode }) {
-  const { isLoading, user, tenantSettings, product } = useUser();
+  const { isLoading, user, tenantSettings: fullTenantSettings, tenantPresentation, product } = useUser();
+  const tenantSettings = tenantPresentation ?? fullTenantSettings;
   const presentation = tenantSettings ? resolveDashboardPresentation(tenantSettings, product) : null;
   const [isEmbedded, setIsEmbedded] = useState(false);
   const [mounted, setMounted] = useState(false);

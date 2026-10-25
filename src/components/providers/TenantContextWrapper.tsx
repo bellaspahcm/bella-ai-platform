@@ -45,6 +45,19 @@ const PUBLIC_ROUTES = [
  */
 export default function TenantContextWrapper({ children }: { children: ReactNode }) {
   const pathname = usePathname();
+  // Catalog and roll-call consume fresh identity/presentation in DashboardLayout
+  // and authorize data in their APIs. Neither consumes operational TenantContext.
+  if (/^\/dashboard\/education\/courses(?:\/[^/]+)?\/?$/.test(pathname ?? '')
+    || pathname === '/dashboard/education/attendance' || pathname === '/dashboard/education/care'
+    || pathname === '/dashboard/education/enrollments'
+    || pathname === '/dashboard/education/communication'
+    || pathname === '/dashboard/education' || pathname === '/dashboard/education/reports'
+    || pathname === '/dashboard/education/facilities'
+    || pathname === '/dashboard/education/grades' || pathname === '/dashboard/education/finance'
+    || /^\/dashboard\/education\/teachers(?:\/[^/]+)?$/.test(pathname ?? '')
+    || /^\/dashboard\/education\/enrollments\/[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(pathname ?? '')) {
+    return <>{children}</>;
+  }
   
   // Check if current route is public
   const isPublicRoute = PUBLIC_ROUTES.some(route => {

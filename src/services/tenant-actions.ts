@@ -18,6 +18,8 @@ import {
 } from '@/lib/business-rules/tenant-modules';
 
 type TenantRow = Database['public']['Tables']['tenants']['Row'];
+export type TenantPresentation = Pick<TenantRow,
+  'id' | 'name' | 'status' | 'product_key' | 'enabled_modules' | 'brand_theme' | 'logo_url'>;
 type TenantUpdate = Database['public']['Tables']['tenants']['Update'];
 type TenantSupabaseClient = Awaited<ReturnType<typeof createClient>>;
 
@@ -111,6 +113,18 @@ async function rollbackTenantSettings(
     .eq('id', tenantId);
 
   return error?.message || '';
+}
+
+// Read-only dashboard identity; never a full settings row or an authority source.
+export async function getTenantPresentation(): Promise<TenantPresentation | null> {
+  const currentUser = await getCurrentUser();
+  if (!currentUser?.tenant_id) return null;
+  const supabase = await createClient();
+  const { data, error } = await supabase.from('tenants')
+    .select('id, name, status, product_key, enabled_modules, brand_theme, logo_url')
+    .eq('id', currentUser.tenant_id).single();
+  if (error || !data || data.id !== currentUser.tenant_id || data.status !== 'active') return null;
+  return data;
 }
 
 export async function getTenantSettings(): Promise<TenantRow | null> {

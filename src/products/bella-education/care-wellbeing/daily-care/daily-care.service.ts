@@ -11,6 +11,7 @@ import {
   IRecordBulkNapCommand,
 } from './daily-care.contract';
 import { AllergySafetyService } from '../health-profile/allergy-safety.service';
+import { AttendanceContractImpl } from '@/platform/education/contracts/attendance.contract.impl';
 
 const ROSTER_ENROLLMENT_STATUSES = ['active', 'pending'] as const;
 
@@ -232,6 +233,20 @@ export class DailyCareService implements IDailyCareContract {
     date: string,
   ): Promise<readonly DailyCareRosterItem[]> {
     await this.assertCourseBelongsToTenant(tenantId, courseId);
+    const tenant = await this.supabase.from('tenants').select('id, product_key').eq('id', tenantId).maybeSingle();
+    if (tenant.error || !tenant.data || tenant.data.id !== tenantId) throw new Error('CARE_PRODUCT_CONTEXT_UNAVAILABLE');
+    if (tenant.data.product_key === 'bella_preschool') {
+      const roster = await new AttendanceContractImpl(this.supabase).getCourseDailyAttendance({ tenantId, courseId, schoolDay: date });
+      if (roster.length === 0) return [];
+      const sessionId = await this.getExistingSession(tenantId, courseId, date);
+      const records = sessionId ? await this.supabase.from('edu_daily_care_records').select('*')
+        .eq('tenant_id', tenantId).eq('session_id', sessionId).in('student_party_id', roster.map(row => row.studentPartyId))
+        : { data: [], error: null };
+      if (records.error) throw new Error('CARE_RECORDS_LOOKUP_FAILED');
+      const careByParty = new Map(((records.data ?? []) as CareRecordRow[]).map(row => [row.student_party_id, mapRecord(row)]));
+      return roster.map(row => ({ enrollmentId: row.enrollmentId, studentPartyId: row.studentPartyId,
+        studentCode: row.studentCode, name: row.name, gender: row.gender, dob: row.dob, care: careByParty.get(row.studentPartyId) ?? null }));
+    }
     const enrollmentRows = await this.getCanonicalRoster(tenantId, courseId);
     if (enrollmentRows.length === 0) return [];
 

@@ -3,6 +3,7 @@ import { createClient as createSessionClient } from '@/lib/supabase-server';
 import { createClient as createAdminClient } from '@supabase/supabase-js';
 
 const mockFrom = jest.fn();
+const mockSelectedColumns: string[] = [];
 const mockGetSession = jest.fn();
 const mockGetUser = jest.fn();
 const mockAdminFrom = jest.fn();
@@ -99,7 +100,8 @@ class ScriptedQueryBuilder {
     private calls: DbCall[],
   ) {}
 
-  select() {
+  select(columns?: string) {
+    if (columns) mockSelectedColumns.push(columns);
     if (!this.op) {
       this.op = 'select';
       this.calls.push({ table: this.table, op: 'select', filters: [] });
@@ -150,6 +152,7 @@ class ScriptedQueryBuilder {
 describe('user update audit rollback', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockSelectedColumns.length = 0;
     process.env.SUPABASE_SERVICE_ROLE_KEY = 'test-service-role-key';
     process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://test.supabase.co';
     mockGetSession.mockResolvedValue({
@@ -255,6 +258,13 @@ describe('user update audit rollback', () => {
     }));
     expect(mockGetUser).toHaveBeenCalledTimes(1);
     expect(mockGetSession).not.toHaveBeenCalled();
+  });
+
+  it('reads only the CurrentUser projection and current tenant status', async () => {
+    installCurrentUser();
+    expect(await getCurrentUser()).not.toBeNull();
+    expect(mockSelectedColumns).toEqual(['id, email, full_name, avatar_url, role, status, tenant_id', 'status']);
+    expect(mockSelectedColumns).not.toContain('*');
   });
 
   function identityScripts(profileOverrides: Record<string, unknown> = {}, tenant: unknown = { status: 'active' }): ScriptedResult[] {

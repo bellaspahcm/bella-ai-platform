@@ -15,7 +15,8 @@
  * Strict Type Invariant: ZERO use of `any` and `unknown`.
  */
 
-import { use, useEffect, useState, useTransition, type FormEvent } from 'react';
+import { use, useEffect, useRef, useState, useTransition, type FormEvent } from 'react';
+import { isParentPortalAnnouncementFeed, isParentPortalDailyRead, type ParentPortalDailyRead } from '@/products/bella-education/parent-portal/domain/parent-portal.types';
 import {
   Baby,
   Calendar,
@@ -36,7 +37,6 @@ import {
   ShieldCheck,
   Sparkles,
   Sun,
-  Thermometer,
   User,
   UserCheck,
   Users,
@@ -49,10 +49,12 @@ import {
 } from 'lucide-react';
 import type {
   ParentPortalPayload,
+  ParentPortalAnnouncement,
   ParentPortalChatMessage,
   ParentPortalWeeklyMenuDay,
 } from '@/products/bella-education/parent-portal/domain/parent-portal.types';
 
+type PortalLegacyPayload = ParentPortalPayload & { readonly announcements: readonly ParentPortalAnnouncement[] };
 type PortalTab = 'daily' | 'menu' | 'timetable' | 'tuition' | 'chat';
 
 const QUICK_MESSAGES = [
@@ -69,7 +71,10 @@ export default function PreschoolParentPortalPage({
 }) {
   const { token } = use(params);
 
-  const [portalData, setPortalData] = useState<ParentPortalPayload | null>(null);
+  const [portalData, setPortalData] = useState<PortalLegacyPayload | null>(null);
+  const [dailyRead, setDailyRead] = useState<ParentPortalDailyRead | null>(null);
+  const [loadedToken, setLoadedToken] = useState('');
+  const generation = useRef(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<PortalTab>('daily');
@@ -94,6 +99,8 @@ export default function PreschoolParentPortalPage({
 
   // Load Portal Data
   async function loadData() {
+    const requestId = ++generation.current;
+    setLoadedToken(token); setPortalData(null); setDailyRead(null);
     setLoading(true);
     setError(null);
     try {
@@ -102,7 +109,7 @@ export default function PreschoolParentPortalPage({
       });
       const json = (await res.json()) as {
         success: boolean;
-        data?: ParentPortalPayload;
+        data?: PortalLegacyPayload | ParentPortalDailyRead;
         message?: string;
       };
 
@@ -110,6 +117,15 @@ export default function PreschoolParentPortalPage({
         throw new Error(json.message || 'Không thể tải thông tin sổ liên lạc');
       }
 
+      if (requestId !== generation.current) return;
+      if ('scope' in json.data) {
+        if (!isParentPortalDailyRead(json.data)) throw new Error('Thông tin Portal chưa khả dụng');
+        setDailyRead(json.data);
+        return;
+      }
+      if (!isParentPortalAnnouncementFeed({ tenantId: json.data.tenantId, announcements: json.data.announcements })) {
+        throw new Error('Thông báo chung chưa khả dụng');
+      }
       setPortalData(json.data);
       setChatMessages(json.data.chatMessages);
 
@@ -118,14 +134,17 @@ export default function PreschoolParentPortalPage({
         setSelectedDayKey(json.data.weeklyMenu.days[0].dayKey);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Lỗi kết nối máy chủ');
+      if (requestId === generation.current) setError(err instanceof Error ? err.message : 'Lỗi kết nối máy chủ');
     } finally {
-      setLoading(false);
+      if (requestId === generation.current) setLoading(false);
     }
   }
 
+  function invalidateLoad() { generation.current++; }
+
   useEffect(() => {
     void loadData();
+    return invalidateLoad;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
@@ -207,7 +226,7 @@ export default function PreschoolParentPortalPage({
     }
   }
 
-  if (loading) {
+  if (loading || loadedToken !== token) {
     return (
       <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col items-center justify-center p-6 text-center">
         <div className="w-16 h-16 rounded-full bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 flex items-center justify-center text-[#0c513f] dark:text-emerald-400 mb-4 animate-pulse">
@@ -221,6 +240,37 @@ export default function PreschoolParentPortalPage({
         </p>
       </div>
     );
+  }
+
+  if (!error && dailyRead) {
+    const status = { present: 'Có mặt', absent: 'Vắng', excused: 'Có phép', unmarked: 'Chưa điểm danh' }[dailyRead.attendanceStatus];
+    return <main className="mx-auto min-h-screen max-w-xl space-y-6 bg-background p-6 text-foreground">
+      <header className="space-y-2"><p className="text-sm">{dailyRead.schoolName}</p><h1 className="text-2xl font-bold">Sổ liên lạc phụ huynh</h1><p>Người giám hộ: {dailyRead.guardianName}</p></header>
+      <section className="space-y-3 rounded-2xl border p-5" aria-label="Thông tin hôm nay">
+        <h2 className="text-xl font-semibold">{dailyRead.childName}</h2>
+        <p>{dailyRead.courseTitle} · {dailyRead.courseCode}</p><p>Ngày {dailyRead.schoolDay} (giờ Việt Nam)</p>
+        <dl className="space-y-2"><div><dt className="font-semibold">Điểm danh</dt><dd>{status}</dd></div>
+          <div><dt className="font-semibold">Sĩ số đang ghi danh</dt><dd>{dailyRead.totalClassSize}</dd></div>
+          <div><dt className="font-semibold">Có mặt hôm nay</dt><dd>{dailyRead.presentTodayCount}</dd></div></dl>
+        {dailyRead.attendanceUpdatedAt && <p className="text-sm">Cập nhật điểm danh: {new Date(dailyRead.attendanceUpdatedAt).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' })}</p>}
+      </section>
+      <section className="space-y-3 rounded-2xl border p-5" aria-label="Thông báo chung của nhà trường">
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="text-lg font-semibold">Thông báo chung của nhà trường</h2>
+          <span className="text-sm text-muted-foreground">{dailyRead.announcements.length} thông báo</span>
+        </div>
+        {dailyRead.announcements.length === 0 ? <p className="text-sm text-muted-foreground">Nhà trường chưa đăng thông báo chung.</p>
+          : <ul className="space-y-3">{dailyRead.announcements.map(announcement => <li key={announcement.id} className="rounded-xl border p-4">
+            <h3 className="font-semibold">{announcement.title}</h3>
+            <p className="mt-2 whitespace-pre-wrap text-sm">{announcement.bodyText}</p>
+            <time className="mt-3 block text-xs text-muted-foreground" dateTime={announcement.publishedAt}>
+              {new Date(announcement.publishedAt).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' })}
+            </time>
+          </li>)}</ul>}
+      </section>
+      <p role="note" className="rounded-xl border p-4 text-sm">Liên kết này chỉ đọc thông tin lớp, điểm danh hôm nay và thông báo chung toàn trường. Nhắn tin riêng, email, thông báo đẩy, nhật ký chăm sóc, bàn giao, học phí, thực đơn, thời khóa biểu và AI chưa khả dụng trong phạm vi này.</p>
+      <button type="button" onClick={() => void loadData()} className="rounded-xl bg-primary px-4 py-2 font-semibold text-primary-foreground">Tải lại thông tin</button>
+    </main>;
   }
 
   if (error || !portalData) {
@@ -294,6 +344,20 @@ export default function PreschoolParentPortalPage({
 
       {/* ── MAIN CONTENT CONTAINER ── */}
       <main className="max-w-2xl mx-auto p-4 sm:p-6 space-y-4">
+        <section className="rounded-2xl border border-emerald-200 bg-white p-4 shadow-xs dark:border-emerald-900 dark:bg-slate-900" aria-label="Thông báo chung của nhà trường">
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="text-base font-bold">Thông báo chung của nhà trường</h2>
+            <span className="text-xs text-slate-500 dark:text-slate-400">{portalData.announcements.length} thông báo</span>
+          </div>
+          {portalData.announcements.length === 0 ? <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">Nhà trường chưa đăng thông báo chung.</p>
+            : <ul className="mt-3 space-y-3">{portalData.announcements.map(announcement => <li key={announcement.id} className="rounded-xl border p-3">
+              <h3 className="font-semibold">{announcement.title}</h3>
+              <p className="mt-2 whitespace-pre-wrap text-sm">{announcement.bodyText}</p>
+              <time className="mt-3 block text-xs text-slate-500 dark:text-slate-400" dateTime={announcement.publishedAt}>
+                {new Date(announcement.publishedAt).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' })}
+              </time>
+            </li>)}</ul>}
+        </section>
         {/* ── HERO BANNER: CHILD & CLASSROOM OVERVIEW ── */}
         <section className="rounded-3xl bg-gradient-to-br from-[#0c513f] via-[#094132] to-[#063025] text-white p-5 sm:p-6 shadow-xl relative overflow-hidden">
           <div className="absolute right-[-20px] top-[-20px] w-48 h-48 rounded-full bg-white/5 pointer-events-none blur-2xl" />
@@ -315,7 +379,7 @@ export default function PreschoolParentPortalPage({
                   )}
                 </div>
                 <p className="text-xs text-emerald-100/90 font-semibold mt-0.5">
-                  {classroom.courseTitle} · GV: {classroom.teacherName || 'Cô Lan & Cô Mai'}
+                  {classroom.courseTitle}{classroom.teacherName ? ` · GV: ${classroom.teacherName}` : ''}
                 </p>
               </div>
             </div>
@@ -325,7 +389,7 @@ export default function PreschoolParentPortalPage({
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
               <span>
                 {todayAttendance.status === 'present'
-                  ? `Đã đến lớp (${todayAttendance.rollCallTime || '07:35'})`
+                  ? `Đã đến lớp${todayAttendance.rollCallTime ? ` (${todayAttendance.rollCallTime})` : ''}`
                   : todayAttendance.status === 'absent'
                   ? 'Nghỉ học hôm nay'
                   : todayAttendance.status === 'excused'
@@ -342,7 +406,7 @@ export default function PreschoolParentPortalPage({
                 Sĩ số lớp
               </p>
               <p className="text-base sm:text-lg font-black text-white mt-0.5">
-                {classroom.totalClassSize} <span className="text-xs font-normal text-emerald-200">trẻ</span>
+                {classroom.totalClassSize ?? '—'} <span className="text-xs font-normal text-emerald-200">trẻ</span>
               </p>
             </div>
 
@@ -351,7 +415,7 @@ export default function PreschoolParentPortalPage({
                 Có mặt hôm nay
               </p>
               <p className="text-base sm:text-lg font-black text-emerald-300 mt-0.5">
-                {classroom.presentTodayCount} <span className="text-xs font-normal text-emerald-200">bé</span>
+                {classroom.presentTodayCount ?? '—'} <span className="text-xs font-normal text-emerald-200">bé</span>
               </p>
             </div>
 
@@ -360,7 +424,7 @@ export default function PreschoolParentPortalPage({
                 Tỷ lệ đi học
               </p>
               <p className="text-base sm:text-lg font-black text-amber-300 mt-0.5">
-                {classroom.attendanceRatePercent}%
+                {classroom.attendanceRatePercent === null ? '—' : `${classroom.attendanceRatePercent}%`}
               </p>
             </div>
           </div>
@@ -478,25 +542,6 @@ export default function PreschoolParentPortalPage({
               </div>
             )}
 
-            {/* Thân nhiệt & Sức khỏe */}
-            <div className="p-4 sm:p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-3">
-              <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2.5">
-                <div className="flex items-center gap-2 text-slate-900 dark:text-white font-extrabold text-sm">
-                  <div className="w-7 h-7 rounded-xl bg-rose-50 dark:bg-rose-950 text-rose-500 flex items-center justify-center">
-                    <Thermometer className="w-4 h-4" />
-                  </div>
-                  <span>Sức khỏe & Thân nhiệt sáng</span>
-                </div>
-                <span className="text-xs font-extrabold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
-                  {dailyCare?.healthChecks.temperature || 36.6}°C — Bình thường
-                </span>
-              </div>
-
-              <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed font-medium">
-                {dailyCare?.morningCondition || 'Bé khỏe mạnh, vui vẻ vào lớp.'}
-              </p>
-            </div>
-
             {/* Bữa ăn hôm nay */}
             <div className="p-4 sm:p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-3">
               <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2.5">
@@ -507,7 +552,7 @@ export default function PreschoolParentPortalPage({
                   <span>Nhật ký bữa ăn</span>
                 </div>
                 <span className="text-[11px] font-bold text-slate-400">
-                  {dailyCare?.mealRecords.length || 3} cữ ăn
+                  {dailyCare ? `${dailyCare.mealRecords.length} cữ ăn` : 'Chưa có ghi nhận'}
                 </span>
               </div>
 
@@ -532,6 +577,9 @@ export default function PreschoolParentPortalPage({
                     </span>
                   </div>
                 ))}
+                {(!dailyCare || dailyCare.mealRecords.length === 0) && (
+                  <p className="text-xs text-slate-500 dark:text-slate-400">Chưa có ghi nhận bữa ăn cho ngày này.</p>
+                )}
               </div>
             </div>
 
@@ -547,10 +595,10 @@ export default function PreschoolParentPortalPage({
                 </div>
                 <div className="pt-1">
                   <p className="text-xs font-bold text-slate-800 dark:text-slate-200">
-                    {dailyCare?.napRecords.startTime || '11:45'} - {dailyCare?.napRecords.endTime || '14:00'}
+                    {dailyCare?.napRecords?.startTime || '—'} - {dailyCare?.napRecords?.endTime || '—'}
                   </p>
                   <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
-                    {dailyCare?.napRecords.quality || 'Bé ngủ ngoan và sâu giấc'}
+                    {dailyCare?.napRecords?.quality || 'Chưa có ghi nhận giấc ngủ.'}
                   </p>
                 </div>
               </div>
@@ -567,10 +615,10 @@ export default function PreschoolParentPortalPage({
                   {handover.handedOver ? (
                     <div>
                       <span className="inline-block px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-extrabold text-[10px]">
-                        Đã đón lúc {handover.handedOverAt || '17:00'}
+                        Đã đón{handover.handedOverAt ? ` lúc ${handover.handedOverAt}` : ''}
                       </span>
                       <p className="text-[11px] text-slate-500 mt-1">
-                        Người đón: {handover.handedOverBy || 'Gia đình'}
+                        {handover.handedOverBy ? `Người đón: ${handover.handedOverBy}` : 'Chưa có thông tin người đón.'}
                       </p>
                     </div>
                   ) : (
@@ -635,7 +683,7 @@ export default function PreschoolParentPortalPage({
                         {selectedMenuDay.dayLabel} ({selectedMenuDay.dateStr})
                       </span>
                       <span className="text-[11px] font-extrabold px-2 py-0.5 rounded-full bg-white dark:bg-slate-800 text-emerald-800 dark:text-emerald-300 shadow-2xs">
-                        ~{selectedMenuDay.caloriesKcal} Kcal/ngày
+                        {selectedMenuDay.caloriesKcal === null ? 'Chưa có số liệu năng lượng' : `~${selectedMenuDay.caloriesKcal} Kcal/ngày`}
                       </span>
                     </div>
 
@@ -661,7 +709,7 @@ export default function PreschoolParentPortalPage({
                 Khung thời gian sinh hoạt & học tập
               </h3>
               <p className="text-[11px] text-slate-500 mt-0.5">
-                Áp dụng chuẩn theo chương trình Mầm non Ánh Dương
+                Thời gian biểu do trường cung cấp
               </p>
             </div>
 
@@ -684,6 +732,9 @@ export default function PreschoolParentPortalPage({
                   </div>
                 </div>
               ))}
+              {dailyTimetable.length === 0 && (
+                <p className="text-xs text-slate-500 dark:text-slate-400">Chưa có thời gian biểu được công bố.</p>
+              )}
             </div>
           </div>
         )}
@@ -696,10 +747,10 @@ export default function PreschoolParentPortalPage({
                 <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
                   <div>
                     <h3 className="text-sm font-black text-slate-900 dark:text-white">
-                      {tuition.billingPeriodName}
+                      {tuition.billingPeriodName || 'Thông tin hóa đơn'}
                     </h3>
                     <p className="text-[11px] text-slate-500 font-mono">
-                      Mã HĐ: {tuition.invoiceCode} · Hạn đóng: {tuition.dueDate}
+                      {tuition.invoiceCode ? `Mã HĐ: ${tuition.invoiceCode}` : ''}{tuition.dueDate ? ` · Hạn đóng: ${tuition.dueDate}` : ''}
                     </p>
                   </div>
                   <span
@@ -723,6 +774,9 @@ export default function PreschoolParentPortalPage({
                       </span>
                     </div>
                   ))}
+                  {tuition.lineItems.length === 0 && (
+                    <p className="text-xs text-slate-500 dark:text-slate-400">Chưa có chi tiết khoản thu.</p>
+                  )}
 
                   <div className="border-t border-slate-100 dark:border-slate-800 pt-3 flex justify-between items-center text-sm font-black text-slate-900 dark:text-white">
                     <span>Tổng số tiền cần thanh toán</span>
@@ -962,7 +1016,7 @@ export default function PreschoolParentPortalPage({
                     Hỏi về tình trạng sức khỏe, bữa ăn, hoạt động<br/>hay bất kỳ điều gì về con hôm nay.
                   </p>
                   <div className="flex flex-wrap gap-1.5 justify-center mt-3">
-                    {['Bé có ăn ngon không?', 'Thân nhiệt bé hôm nay?', 'Bé ngủ bao lâu?'].map((q) => (
+                    {['Bé ăn uống hôm nay thế nào?', 'Có hoạt động nào của lớp không?', 'Nhà trường cần lưu ý gì?'].map((q) => (
                       <button
                         key={q}
                         type="button"

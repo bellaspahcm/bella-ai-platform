@@ -141,7 +141,7 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
   // Authorization must reflect live canonical state, never a cached profile or email alias.
   const { data: mainProfile, error: mainProfileError } = await supabase
     .from('users')
-    .select('*')
+    .select('id, email, full_name, avatar_url, role, status, tenant_id')
     .eq('id', user.id)
     .single();
   if (mainProfileError?.code === '42501') return null;

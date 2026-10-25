@@ -1,0 +1,66 @@
+{
+  "run": "de69e91d-006a-4c76-b9df-46c51428444b",
+  "reviewPatchSha256": "b1e7155c786ce61cb0eac331cbd09c343c979800e3f30b84ee47d4d4b0454264",
+  "records": [
+    {
+      "path": "src/app/dashboard/education/enrollments/page.tsx",
+      "sha256": "4a43dfe8380b00a1659c2959e33e0f7874382f14759dfc7786ece6d1ccacc443",
+      "gitBlob": "9135b60844a94bb5c1c50a444779821e23ca9085",
+      "reviewedBlobPrefix": "9135b6084"
+    },
+    {
+      "path": "src/app/dashboard/education/enrollments/__tests__/page.test.tsx",
+      "sha256": "cfb8e9f7790833de5d48f79afd2475730de324d15ec281850cb0354ac644b4e5",
+      "gitBlob": "c6ff86d8aac12c6274891adc1566d9e834abc323",
+      "reviewedBlobPrefix": "c6ff86d8a"
+    },
+    {
+      "path": "src/platform/education/contracts/preschool-registry.contract.ts",
+      "sha256": "8fddfb9db94f7e38b518060a15fd6eccf5d97076e043b26d68220be75de1ae8d",
+      "gitBlob": "e23902b04798b6ef83eb3624b12487ebe20e9a76",
+      "reviewedBlobPrefix": "e23902b04"
+    },
+    {
+      "path": "src/platform/education/contracts/preschool-registry.contract.impl.ts",
+      "sha256": "b2a6f7c91904e6eca5ae5c8ecca5041c888a0e4bc3ace044d060881b54784b80",
+      "gitBlob": "869d372e19c2ab97b39897e5369195fed4a9ab7d",
+      "reviewedBlobPrefix": "869d372e1"
+    },
+    {
+      "path": "src/platform/education/contracts/__tests__/preschool-registry.contract.impl.test.ts",
+      "sha256": "db8033e7b1568e80269142db0e052bd06b96350b8306065869636cdaf58389df",
+      "gitBlob": "4389b7f7894fef156bd90124ab90b5b9e321c3b9",
+      "reviewedBlobPrefix": "4389b7f78"
+    },
+    {
+      "path": "src/app/api/education/student-registry/route.ts",
+      "sha256": "b27654c204539a510906fa8d192cdd05eafd025dfd54ab77932d88b2baa97e9c",
+      "gitBlob": "dff2288f5085ffffdea6448ab11cabf73446d47a",
+      "reviewedBlobPrefix": "dff2288f5"
+    },
+    {
+      "path": "src/app/api/education/student-registry/__tests__/route.test.ts",
+      "sha256": "f8629f0a09ba993a89c2126b2908b43b475b79619121981036fbecbc7073f6ca",
+      "gitBlob": "e51950c5729827265cef4d4464f27ea6c7a1cc4e",
+      "reviewedBlobPrefix": "e51950c57"
+    },
+    {
+      "path": "src/app/dashboard/education/enrollments/__tests__/registry.test.tsx",
+      "sha256": "1b9381e34c74c72fea1c930b99844b471d095d709ddb35eee26f290bcbecc35c",
+      "gitBlob": "64d9af8e1d0233063eb661346ea4ea3f2c40324e",
+      "reviewedBlobPrefix": "64d9af8e1"
+    },
+    {
+      "path": "docs/audits/preschool-full-audit-20261020/release-production-20261024/REGISTRY_LOCAL_CANDIDATE.sql",
+      "sha256": "8dd7785bd34ab0a3e9f46e04ee637d012ed181bb584b1e84410214291a9fe506",
+      "gitBlob": "3194ed1d12e0243c8aecd65d246a3d1edbd65280",
+      "reviewedBlobPrefix": "3194ed1d1"
+    },
+    {
+      "path": "src/app/dashboard/education/enrollments/PreschoolStudentRegistry.tsx",
+      "sha256": "a689ab731f5a8c4bf5ca00472639a5b4501bdd49cd526a305f0573c8aafe455a",
+      "gitBlob": "1065886c4313b94cfb39e2e6f2399e80061a64cf",
+      "reviewedBlobPrefix": "1065886c4"
+    }
+  ]
+}

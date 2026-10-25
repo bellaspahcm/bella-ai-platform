@@ -1,0 +1,16 @@
+{
+  "target": "bmnbqbcdbuklhopfbopv",
+  "authority": "Owner approved release plan section9 accepted Care capability implementation/reconciliation; no new capability or permission",
+  "status": "PREPARED_NOT_EXECUTED",
+  "files": {
+    "E2E_CARE_BULK_EXECUTION.sql": "cecaf4e949b7062c3ed0d97e44d17c970c6d9d8f66c80cb7b50d4fc3d45015a5",
+    "E2E_CARE_BULK_REHEARSAL.sql": "0f7baafa3bb668fe51d976fc5cb5ab6c4aff1953d023420484bce2126fba4d5c",
+    "E2E_CARE_BULK_RECOVERY.sql": "9228be5b1cf84583eb38b00d10fd24d45f4e1461b1c8a8fada22d02d235d1d2d",
+    "E2E_CARE_BULK_POST_READONLY.sql": "85f51444530e42385fefc2c573d5c1f97095a0dc39df64f850680bc5dde84345"
+  },
+  "beforeMd5": "7c66df8ed3e542d2c3c6b3a2d41902ff",
+  "afterMd5": "7cf4a5c623aaacc35248abc3c8f01109",
+  "changedOnly": "preschool_save_care_records(uuid,uuid,date,jsonb)",
+  "securityMode": "INVOKER_UNCHANGED",
+  "policyGrantChanges": false
+}

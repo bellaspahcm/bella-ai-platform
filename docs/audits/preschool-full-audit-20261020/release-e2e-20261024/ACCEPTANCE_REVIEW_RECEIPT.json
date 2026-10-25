@@ -1,0 +1,13 @@
+{
+  "target": "bmnbqbcdbuklhopfbopv",
+  "result": "PASS_BOUNDED_ACCEPTANCE_REVIEW",
+  "reviewer": "/root/t2_atomic_security_review",
+  "reviewedReportSha256": "5aa630da874bf89e3db369c7cdb2cbc003dcf7806c3864ae609df8df444d604b",
+  "finalReportSha256": "ca1d0365eea21d104b1bedbe123d8867c8dc28df4eedad39f6d7652b4ccfbd8b",
+  "finalDocumentDelta": "Only pending-to-actual-pass status markers after independent review result",
+  "actualTerminalExitProof": "Separate e2e-final-verification.cjs final command session20919 returned exit_code0; runtime harness terminal native0 retained with logs",
+  "production": "NOT_RUN",
+  "goLive": "NOT_READY",
+  "time": "2026-10-24T01:22:11.894Z",
+  "remoteOperationsByReviewer": false
+}

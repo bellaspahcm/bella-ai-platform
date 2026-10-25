@@ -26,6 +26,7 @@ import { useState, useEffect, useMemo, useRef, Suspense, type ChangeEvent } from
 import { useSearchParams } from 'next/navigation';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import Link from 'next/link';
+import { useUser } from '@/lib/user-context';
 import {
   ArrowLeft,
   GraduationCap,
@@ -3777,6 +3778,17 @@ function LegacyGradesView() {
 }
 
 export default function PreschoolDevelopmentGradesPage() {
+  const { user, product, isLoading } = useUser();
+  if (isLoading) return <p role="status">Đang xác minh tài khoản…</p>;
+  if (!user?.tenant_id || !product) return <p role="alert">Không có quyền mở màn hình này.</p>;
+  if (product.productKey === 'bella_preschool') return (
+    <section className="p-6 space-y-4" aria-labelledby="held-workspace-heading">
+      <h1 id="held-workspace-heading" className="text-2xl font-bold">Học tập & Hoạt động</h1>
+      <p role="status" className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-amber-950 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-100">Chưa mở trong MVP Preschool</p>
+      <p className="text-sm text-slate-600 dark:text-slate-300">Học tập, quan sát và hồ sơ phát triển chưa mở trong MVP Preschool. Không hiển thị danh sách trẻ hoặc kết quả đánh giá mẫu.</p>
+      <Link href="/dashboard/education/courses" className="inline-block font-semibold underline">Về danh sách lớp</Link>
+    </section>
+  );
   return (
     <Suspense
       fallback={

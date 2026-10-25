@@ -1,7 +1,9 @@
 'use client';
 
 import { useState, useEffect, useLayoutEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
+import { getCurrentUser } from '@/services/user-actions';
+import { getTenantPresentation, type TenantPresentation } from '@/services/tenant-actions';
 import {
   DashboardAuthLoadingShell,
   DashboardAuthorizedShell,
@@ -18,7 +20,7 @@ import { isHqTenant } from '@/lib/business-rules/hq-tenant';
 const RUNTIME_BRAND_CACHE_KEY = 'bella.runtime.brand.v1';
 
 async function applyDashboardTenantBrandRuntime(
-  tenantSettings?: Awaited<ReturnType<typeof getCachedTenantSettings>>,
+  tenantSettings?: Awaited<ReturnType<typeof getCachedTenantSettings>> | TenantPresentation,
 ) {
   const tenant = tenantSettings ?? await getCachedTenantSettings();
   if (!tenant || typeof document === 'undefined') return;
@@ -50,6 +52,19 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const router = useRouter();
+  const pathname = usePathname();
+  const isCourseCatalog = /^\/dashboard\/education\/courses(?:\/[^/]+)?\/?$/.test(pathname ?? '')
+    || pathname === '/dashboard/education/attendance' || pathname === '/dashboard/education/care'
+    || pathname === '/dashboard/education/enrollments'
+    || pathname === '/dashboard/education/communication'
+    || pathname === '/dashboard/education' || pathname === '/dashboard/education/reports'
+    || pathname === '/dashboard/education/facilities'
+    || pathname === '/dashboard/education/grades' || pathname === '/dashboard/education/finance'
+    || /^\/dashboard\/education\/teachers(?:\/[^/]+)?$/.test(pathname ?? '')
+    || /^\/dashboard\/education\/enrollments\/[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(pathname ?? '');
+  const [presentationContext, setPresentationContext] = useState<{
+    user: NonNullable<Awaited<ReturnType<typeof getCurrentUser>>>; tenant: TenantPresentation;
+  } | null>(null);
   const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
   const [isSuspended, setIsSuspended] = useState<boolean>(false);
 
@@ -60,8 +75,26 @@ export default function DashboardLayout({
   }, []);
 
   useEffect(() => {
+    let active = true;
+    setPresentationContext(null);
+    setIsAuthorized(null);
     async function checkAuth() {
       try {
+        if (isCourseCatalog) {
+          const user = await getCurrentUser();
+          const tenant = user ? await getTenantPresentation() : null;
+          if (!active) return;
+          if (!user || !tenant || user.tenant_id !== tenant.id) {
+            router.replace('/login');
+            return;
+          }
+          if (tenant.product_key === 'bella_preschool') {
+            setPresentationContext({ user, tenant });
+            await applyDashboardTenantBrandRuntime(tenant);
+            if (active) setIsAuthorized(true);
+            return;
+          }
+        }
         // ── Warm-up: kick off tenant settings fetch in PARALLEL with auth check ──
         // By the time any child page mounts and calls getCachedTenantSettings(),
         // the value is already cached — eliminating a cold round-trip for every page.
@@ -137,12 +170,14 @@ export default function DashboardLayout({
         }
         setIsAuthorized(true);
       } catch (err: unknown) {
+        if (!active) return;
         console.error('[DashboardLayout] Auth check failed:', err);
         router.replace('/login');
       }
     }
     checkAuth();
-  }, [router]);
+    return () => { active = false; };
+  }, [router, isCourseCatalog]);
 
   if (isSuspended) {
     return (
@@ -184,7 +219,7 @@ export default function DashboardLayout({
   }
 
   return (
-    <UserProvider>
+    <UserProvider presentationContext={presentationContext}>
       <DashboardAuthorizedShell>
         {children}
       </DashboardAuthorizedShell>

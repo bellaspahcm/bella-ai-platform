@@ -28,6 +28,7 @@
 import React, { useState, useEffect, useCallback, useMemo, Suspense, type ChangeEvent } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import { useUser } from '@/lib/user-context';
 import {
   ArrowLeft,
   CircleDollarSign,
@@ -127,6 +128,7 @@ export interface FinanceCommandResponse {
 
 export interface TableInvoiceItem {
   readonly id: string;
+  readonly studentPartyId: string;
   readonly invoiceNumber: string;
   readonly studentName: string;
   readonly studentCode?: string;
@@ -185,25 +187,6 @@ export interface RecentPaymentItem {
   readonly note: string;
   readonly timestamp: string;
 }
-
-const STUDENT_NAME_BY_CODE: Record<string, string> = {
-  'HS0001': 'Nguyễn Minh An',
-  'STU-001': 'Nguyễn Minh An',
-  'HS0002': 'Trần Bảo Ngọc',
-  'STU-002': 'Trần Bảo Ngọc',
-  'HS0003': 'Lê Gia Huy',
-  'STU-003': 'Lê Gia Huy',
-  'HS0004': 'Phạm Khánh Linh',
-  'STU-004': 'Phạm Thảo My',
-  'HS0005': 'Hoàng Nhật Minh',
-  'STU-005': 'Hoàng Tuấn Kiệt',
-  'HS0006': 'Vũ Phương Anh',
-  'STU-006': 'Đặng Khánh Linh',
-  'HS0007': 'Vũ Gia Hân',
-  'STU-007': 'Vũ Gia Hân',
-  'HS0008': 'Ngô Nhật Minh',
-  'STU-008': 'Ngô Nhật Minh',
-};
 
 const CLASS_COLORS = [
   'bg-emerald-500',
@@ -276,6 +259,9 @@ function FinancePageContent() {
   const [filterSettlement, setFilterSettlement] = useState<string>('ALL');
   const [filterBillingPeriodId, setFilterBillingPeriodId] = useState('ALL');
   const [selectedInvoices, setSelectedInvoices] = useState<readonly string[]>([]);
+  const canonicalContextStudent = studentParam
+    ? students.find((student) => student.studentId === studentParam || student.studentCode === studentParam || student.studentPartyId === studentParam)
+    : undefined;
 
   // Modals
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState<boolean>(false);
@@ -298,26 +284,17 @@ function FinancePageContent() {
   }, [tabParam]);
 
   useEffect(() => {
-    if (!studentParam) return;
+    if (!studentParam) {
+      setStudentContextActive(false);
+      setInvoiceSearchQuery('');
+      setSelectedStudentPartyId('');
+      return;
+    }
     setActiveTab('invoices');
     setStudentContextActive(true);
-    const targetName = STUDENT_NAME_BY_CODE[studentParam] || studentParam;
-    setInvoiceSearchQuery(targetName);
-  }, [studentParam]);
-
-  useEffect(() => {
-    if (!studentParam || students.length === 0) return;
-    const targetName = (STUDENT_NAME_BY_CODE[studentParam] || studentParam).toLowerCase();
-    const matched = students.find((s) =>
-      s.studentId === studentParam ||
-      s.studentCode === studentParam ||
-      s.studentPartyId === studentParam ||
-      s.displayName.toLowerCase().includes(targetName)
-    );
-    if (matched) {
-      setSelectedStudentPartyId(matched.studentPartyId);
-    }
-  }, [studentParam, students]);
+    setInvoiceSearchQuery(canonicalContextStudent?.displayName ?? '');
+    setSelectedStudentPartyId(canonicalContextStudent?.studentPartyId ?? '');
+  }, [studentParam, canonicalContextStudent]);
 
   const selectedStudent = students.find((student) => student.studentPartyId === selectedStudentPartyId);
   const selectedBillingPeriod = billingPeriods.find((period) => period.id === selectedBillingPeriodId);
@@ -615,6 +592,7 @@ function FinancePageContent() {
       const period = billingPeriods.find((item) => item.id === inv.billingPeriodId);
       return {
         id: inv.id,
+        studentPartyId: inv.studentPartyId,
         invoiceNumber: inv.invoiceNumber,
         studentName: student?.displayName || `Party: ${inv.studentPartyId}`,
         studentCode: student?.studentCode || undefined,
@@ -636,7 +614,10 @@ function FinancePageContent() {
 
   // Filter table invoices
   const filteredInvoices = useMemo(() => {
+    if (studentContextActive && studentParam && !canonicalContextStudent) return [];
     return displayInvoices.filter((inv) => {
+      if (studentContextActive && studentParam && canonicalContextStudent
+        && inv.studentPartyId !== canonicalContextStudent.studentPartyId) return false;
       if (invoiceFilterTab === 'DRAFT' && inv.issuanceStatus !== 'DRAFT') return false;
       if (invoiceFilterTab === 'ISSUED' && inv.issuanceStatus !== 'ISSUED') return false;
 
@@ -654,7 +635,7 @@ function FinancePageContent() {
 
       return true;
     });
-  }, [displayInvoices, invoiceFilterTab, filterIssuance, filterSettlement, filterBillingPeriodId, invoiceSearchQuery]);
+  }, [displayInvoices, invoiceFilterTab, filterIssuance, filterSettlement, filterBillingPeriodId, invoiceSearchQuery, studentContextActive, studentParam, canonicalContextStudent]);
 
   const toggleSelectInvoice = (id: string) => {
     setSelectedInvoices((prev) =>
@@ -1098,12 +1079,12 @@ function FinancePageContent() {
               <p className="font-extrabold text-slate-900 dark:text-white">
                 Đang xem học phí & công nợ của học sinh:{' '}
                 <span className="text-[#0c513f] dark:text-emerald-400 font-bold">
-                  {STUDENT_NAME_BY_CODE[studentParam] || studentParam}
+                  {canonicalContextStudent?.displayName ?? 'Hồ sơ không có trong danh sách được phép'}
                 </span>{' '}
                 ({studentParam})
               </p>
               <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                Danh sách hóa đơn đã được tự động lọc theo bé. Bạn có thể kiểm tra trạng thái thanh toán, lập hóa đơn hoặc chuyển nhanh sang hồ sơ khác.
+                {canonicalContextStudent ? 'Danh sách hóa đơn đã được lọc theo hồ sơ canonical.' : 'Không tìm thấy hồ sơ trong danh sách canonical; hóa đơn không được hiển thị.'}
               </p>
             </div>
           </div>
@@ -3221,6 +3202,17 @@ function FinancePageContent() {
 }
 
 export default function FinancePage() {
+  const { user, product, isLoading } = useUser();
+  if (isLoading) return <p role="status">Đang xác minh tài khoản…</p>;
+  if (!user?.tenant_id || !product) return <p role="alert">Không có quyền mở màn hình này.</p>;
+  if (product.productKey === 'bella_preschool') return (
+    <section className="p-6 space-y-4" aria-labelledby="held-workspace-heading">
+      <h1 id="held-workspace-heading" className="text-2xl font-bold">Tài chính</h1>
+      <p role="status" className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-amber-950 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-100">Chưa mở trong MVP Preschool</p>
+      <p className="text-sm text-slate-600 dark:text-slate-300">Hóa đơn, học phí và ghi nhận thanh toán chưa mở trong MVP Preschool. Không thể tạo hóa đơn, gửi yêu cầu thu hoặc ghi nhận khoản tiền từ màn hình này.</p>
+      <Link href="/dashboard/education/courses" className="inline-block font-semibold underline">Về danh sách lớp</Link>
+    </section>
+  );
   return (
     <Suspense
       fallback={

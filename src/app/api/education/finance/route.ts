@@ -101,6 +101,7 @@ function mapPayment(row: PaymentRow): Payment {
 
 function errorStatus(error: unknown): number {
   const message = error instanceof Error ? error.message : '';
+  if (message === 'PRESCHOOL_FINANCE_NOT_READY' || message === 'FINANCE_PRODUCT_UNAVAILABLE') return 503;
   if (message.startsWith('FINANCE_UNAUTHENTICATED')) return 401;
   if (message.startsWith('AUTH_ROLE_PERMISSION_ERROR')) return 403;
   if (message.includes('TENANT_ISOLATION_VIOLATION')) return 403;
@@ -109,12 +110,22 @@ function errorStatus(error: unknown): number {
 
 function jsonError(error: unknown) {
   const message = error instanceof Error ? error.message : 'Finance operation failed';
-  return NextResponse.json({ success: false, error: message }, { status: errorStatus(error) });
+  return NextResponse.json({ success: false, error: message, ...(message === 'PRESCHOOL_FINANCE_NOT_READY' ? { code: message } : {}) }, { status: errorStatus(error), headers: { 'Cache-Control': 'private, no-store' } });
 }
 
 async function resolveActor(operation: PreschoolFinanceOperation) {
   const profile = await getCurrentUser();
-  return resolvePreschoolFinanceActor(profile, operation);
+  const actor = resolvePreschoolFinanceActor(profile, operation);
+  // The MVP hold is enforced before creating any privileged/business client.
+  const caller = await createClient();
+  const auth = await caller.auth.getUser();
+  if (auth.error || auth.data.user?.id !== actor.actorId) throw new Error('FINANCE_UNAUTHENTICATED');
+  const tenant = await caller.from('tenants').select('id, status, product_key').eq('id', actor.tenantId).maybeSingle();
+  if (tenant.error || tenant.data?.id !== actor.tenantId || tenant.data.status !== 'active' || !tenant.data.product_key) {
+    throw new Error('FINANCE_PRODUCT_UNAVAILABLE');
+  }
+  if (tenant.data.product_key === 'bella_preschool') throw new Error('PRESCHOOL_FINANCE_NOT_READY');
+  return actor;
 }
 
 async function loadFinanceStudents(

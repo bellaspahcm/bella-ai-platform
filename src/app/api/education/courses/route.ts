@@ -1,8 +1,10 @@
 import { NextResponse } from 'next/server';
 import { getLocalDateString } from '@bella/shared';
 import { TeacherAssignmentContractImpl } from '@/platform/education/contracts/teacher-assignment.contract.impl';
+import { CourseContractImpl } from '@/platform/education/contracts/course.contract.impl';
+import { CourseCatalogProductService } from '@/products/bella-education/services/course-catalog.service';
 import type { Database } from '@/types/database.types';
-import { COURSE_PRIVATE_HEADERS, resolveCourseReadContext } from './request-context';
+import { COURSE_PRIVATE_HEADERS, resolveCourseReadContext, resolveCourseCatalogReadContext, resolveCourseReadMode } from './request-context';
 
 export const dynamic = 'force-dynamic';
 type EduCourseRow = Pick<
@@ -51,6 +53,21 @@ function readMetadataString(metadata: CourseProjectionRow['metadata'], key: stri
 }
 
 export async function GET(request: Request) {
+  const mode = resolveCourseReadMode(request);
+  if (!mode.allowed) return mode.response;
+  if (mode.mode === 'catalog') {
+    try {
+      const context = await resolveCourseCatalogReadContext(request);
+      if (!context.allowed) return context.response;
+      const catalog = new CourseCatalogProductService(new CourseContractImpl(context.supabase));
+      const courses = await catalog.getCourses(context.tenantId);
+      return NextResponse.json({ success: true, courses }, { headers: COURSE_PRIVATE_HEADERS });
+    } catch {
+      return NextResponse.json({ success: false, error: 'COURSE_CATALOG_UNAVAILABLE' }, {
+        status: 503, headers: COURSE_PRIVATE_HEADERS,
+      });
+    }
+  }
   try {
     const context = await resolveCourseReadContext(request);
     if (!context.allowed) return context.response;

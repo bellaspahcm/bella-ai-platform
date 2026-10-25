@@ -1,0 +1,775 @@
+{
+  "base": "80e13ea92ee70742d26cd890a45aaa94d8fc7494",
+  "sourcePaths": 127,
+  "sourceDrift": [],
+  "notes": "Historical E2E source plus later independently accepted local Registry overlay. Not one combined runtime epoch. Raw byte hashes and normalized Git blobs are both recorded; no source file edited for publication.",
+  "records": [
+    {
+      "path": "docs/audits/preschool-full-audit-20261020/release-production-20261024/REGISTRY_LOCAL_CANDIDATE.sql",
+      "acceptedEpoch": "Registry local 2026-10-24",
+      "acceptedRawSha256": "8dd7785bd34ab0a3e9f46e04ee637d012ed181bb584b1e84410214291a9fe506",
+      "gitBlob": "3194ed1d12e0243c8aecd65d246a3d1edbd65280"
+    },
+    {
+      "path": "next.config.ts",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "81055772b95976ec3fa5d61362cb5ceb405fd3cb510c5408b81be91d12130f46",
+      "gitBlob": "d35aba51b847e6b6dc5fc0a4ed3d26f178919faa"
+    },
+    {
+      "path": "src/__tests__/catalog-bootstrap-boundary.test.tsx",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "e1bf6044dd9e5e2038cd5023d154a6fdd032a97b3c26bbd4efa822e5203ac4a8",
+      "gitBlob": "971ebd6652645465a2606f6b407a13d67fe050bf"
+    },
+    {
+      "path": "src/__tests__/local-supabase-csp.test.ts",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "c193aba4ef89d2496df21b5f22de82dffba2b74d8ca800de4fb693814fdd6a75",
+      "gitBlob": "0ef7df84ec054ac87671bf49dbb0d0f582ddc268"
+    },
+    {
+      "path": "src/__tests__/manifest-tenant-identity.test.ts",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "005d158042d0189908b794ca02c9def5cf9b61c32f7ff39b376cf14f33ae20a1",
+      "gitBlob": "2c6212594c09a94dacba90614f7b39fd89ba32d7"
+    },
+    {
+      "path": "src/__tests__/proxy-course-catalog-cache.test.ts",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "07cc1a424571c0bfa9bfca84d3c1da56fb3def5ccb0cf063305ecce958d02354",
+      "gitBlob": "053d55d921c08bd731ed3cd54d46553553f34872"
+    },
+    {
+      "path": "src/__tests__/tenant-initial-render-shell.test.tsx",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "8c1e1dc06d814d2a4627f553a1032aa4fcb5ce145986d48e74325332f6cef7f5",
+      "gitBlob": "c79411efbcc526544f91889826b979dfb6a1de8e"
+    },
+    {
+      "path": "src/__tests__/tenant-presentation-read.test.ts",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "3eb7344a7c29acfb15db116a5b99c19af03d8a5a83839c69088cd85d989a8e9b",
+      "gitBlob": "f4379d14ff6d234b1d5a9408f530bc005cbafcda"
+    },
+    {
+      "path": "src/__tests__/user-actions.test.ts",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "994ba15664c0ab8611428d3121692df9514777b7892a26c3e72e181fc7abc1db",
+      "gitBlob": "04c64a45b54a1be96bd818aa1d0c42e43d9d4c9a"
+    },
+    {
+      "path": "src/app/api/education/ai/copilot/__tests__/access.test.ts",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "0436e63752110ba9e724a9b652df07d1e9e2fb20e70b38f5db576651bb7f88fc",
+      "gitBlob": "de52ca961b27afbe9f03e5e6f5f3128dff9618d6"
+    },
+    {
+      "path": "src/app/api/education/ai/copilot/route.ts",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "57886afd25b37b5bcf759d544f3e0d81768705123f89ead9f05484ca4695db1e",
+      "gitBlob": "fd72626b54d754c51694cd55b5953b50c1178634"
+    },
+    {
+      "path": "src/app/api/education/analytics/__tests__/route.test.ts",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "c3669c7be20bf87b9ff7c4df9c9ca1d496503cddfd46e28f76973b1fdac8f96a",
+      "gitBlob": "c5afa99a469eb82cb7e998f8234a615b8d664d8e"
+    },
+    {
+      "path": "src/app/api/education/analytics/route.ts",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "3031e0fc7e762da5ac1006d4c02d5956bcda1f8a04daddc23c344a92d62f9130",
+      "gitBlob": "491b395c3a5bf1a30c8b2619f68e9f350d6ecd0b"
+    },
+    {
+      "path": "src/app/api/education/announcements/__tests__/access.test.ts",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "8dcd5ba90eb47517d23e116616e19dcc2e018ec4b86f997e921527319113f542",
+      "gitBlob": "7a9f95035e2a963946a7b1e7812a734960c0a387"
+    },
+    {
+      "path": "src/app/api/education/announcements/route.ts",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "3aa5deb74faf3365e92c53c1f7e5da2f7354484cbcaf99e6ec942b9213b9c052",
+      "gitBlob": "267e15e1a17f7577517547e9ee08b490f5c4625c"
+    },
+    {
+      "path": "src/app/api/education/attendance/__tests__/route.test.ts",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "9d01c9f4bc604d42e6bc2805b6f8d1a1a046eda30615d16fb88f0e8f2c317d61",
+      "gitBlob": "2eac9f1982afe3bd3bf807f526e9f67924141b5a"
+    },
+    {
+      "path": "src/app/api/education/attendance/request-context.ts",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "5ee8efc6e4819a02762a771690d7ec10d037dd94a4d20748f2a86025b8cf2a51",
+      "gitBlob": "8e68b5c73d55c2650897a1121f63da22ef2ef471"
+    },
+    {
+      "path": "src/app/api/education/attendance/route.ts",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "4463c1a81c4b5dd0ea4ae080f349517097d3e0f7b3936ed7c0fa59ca5a249118",
+      "gitBlob": "78348f13c9a5882dafb4df9faf74c3b47dedea59"
+    },
+    {
+      "path": "src/app/api/education/care/bulk/__tests__/access.test.ts",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "62eaff44df5aa392c56be6c57fce3e1ae7a777ad1cbe255070c6cefc1408e231",
+      "gitBlob": "5983cf948e03e3e43e39f2eaf21397373ef878a3"
+    },
+    {
+      "path": "src/app/api/education/care/bulk/route.ts",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "bcfe70ed0b71e65272a4f6717d6c16de00bc138481560c270dd581223f7bc4fd",
+      "gitBlob": "cea3dbc2c5156e7981a844aa40e2e86f0cc3af71"
+    },
+    {
+      "path": "src/app/api/education/care/classes/__tests__/access.test.ts",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "17070968a4b9c5e650dff8f866358fd92f373f1ff33d712a7895729165d3af85",
+      "gitBlob": "ed34ef6bb3c1624036aeee2f50f0a1333aba5f4f"
+    },
+    {
+      "path": "src/app/api/education/care/classes/__tests__/catalog-contract.test.ts",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "4425599baba4a6bebb4c8c3a1235e68c99a8b5a029ffc61af4a427f72230ca84",
+      "gitBlob": "db4711c83293d48acca305c37bbf7de769d91fc3"
+    },
+    {
+      "path": "src/app/api/education/care/classes/route.ts",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "219b08459438bd0999d6c70172e1d04329f7e05851c14d13c441941d1b5de598",
+      "gitBlob": "bf78d7b9407008e38d84360073d3cfd0d1f0343b"
+    },
+    {
+      "path": "src/app/api/education/courses/[id]/__tests__/route.test.ts",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "19567cede129e3a20a8d5f84c0c7504bc2a373b2f532742fa53764d582b52f84",
+      "gitBlob": "24c9ae73f44de28cdee81900592cf0af2d8ee0e5"
+    },
+    {
+      "path": "src/app/api/education/courses/[id]/route.ts",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "e40a1591f2c31fdbf3d970aed96d7a82bf5fb877f56e0b51fd78e61594ab7d63",
+      "gitBlob": "7ba73839692dce3ac1299aa06c4d4678f6eae776"
+    },
+    {
+      "path": "src/app/api/education/courses/[id]/teachers/__tests__/route.test.ts",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "75d96b7fe4f93793fde881eab60c2e37ffbbfab58b5e889490ee9b4d521b86fe",
+      "gitBlob": "7fad0fa42e622cc1f7eb1e05231ead8d08c5d65b"
+    },
+    {
+      "path": "src/app/api/education/courses/[id]/teachers/route.ts",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "9af9b11672e2baa93527f36b8de14238d0177fc6916d80e51b97f973198a1b66",
+      "gitBlob": "bb57e4771c5bd6b272e3c494b6b351c3f630e36e"
+    },
+    {
+      "path": "src/app/api/education/courses/__tests__/access.test.ts",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "9d002bc386c419f191a3fcb9222bd6077c8310b6a0d46fc894e789bb3a5f5e81",
+      "gitBlob": "f85448cc8d82202b370673bb3acbdbdc48c69915"
+    },
+    {
+      "path": "src/app/api/education/courses/__tests__/request-context.test.ts",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "6c6b04bc40d583e5404f6e7c00c5511380fb2b9267c1062e4ac4b9598e7722d5",
+      "gitBlob": "5ed7988d26e1bd02a0a32c215548d7ec6c0c6a87"
+    },
+    {
+      "path": "src/app/api/education/courses/__tests__/route.test.ts",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "e489056ee931b6243d47ee035162b55a22621634f7e7ea03af23e68b1074f759",
+      "gitBlob": "ae5871310b24f9fad7d6f3e59f35a2c82eb8198c"
+    },
+    {
+      "path": "src/app/api/education/courses/request-context.ts",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "a59868b5cea50c70cde01a46d4d3571753cd12461a10791b554711003cbbf2c5",
+      "gitBlob": "5279fad31336e4802987e6b329846bb5bac67bdb"
+    },
+    {
+      "path": "src/app/api/education/courses/route.ts",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "18df10b8a0865a93384d33e80b2a4298d39ceac45a2f70eb22bc13da0448e75b",
+      "gitBlob": "19b06b91a08b08de8afc3319c381399472e7440b"
+    },
+    {
+      "path": "src/app/api/education/enrollments/__tests__/route.test.ts",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "cc809fe40bd3c92a733a62d8e05158844ee193fae3ff86cffcb8278460fdd430",
+      "gitBlob": "bf8eedf1c557f14719ea7dd6b8ae5be12a138e6a"
+    },
+    {
+      "path": "src/app/api/education/enrollments/route.ts",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "81d330a938ec80d85187bc8188329d3427a7232e0a8e46b82ccd4469e2e63d03",
+      "gitBlob": "030ed3f1fa53db09c9c58a09043b02b1e1835bf7"
+    },
+    {
+      "path": "src/app/api/education/finance/__tests__/mvp-hold.test.ts",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "efaede9d11dab283d989e4715aa71aabcdc64ae713349df20a8a7e50bccb86ef",
+      "gitBlob": "68a7275502da2e027ff3807165babc2a0d34b732"
+    },
+    {
+      "path": "src/app/api/education/finance/route.ts",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "c016543e87b089a0c270da772e8b60908ab81a52fd2ea88a8fab9a52d6498389",
+      "gitBlob": "cdbdc472ce4dfa03a68e1af8ba2b57db9ab66e7d"
+    },
+    {
+      "path": "src/app/api/education/portal/[token]/chat/route.ts",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "0e0713562fc4d462b5965c41371fe8f41bd8d367d4da2e4a015f7e42d49b8e24",
+      "gitBlob": "e9148b847e987b9b436a3d2d7ae604b99d2ba5ad"
+    },
+    {
+      "path": "src/app/api/education/portal/[token]/copilot/route.ts",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "88558a237e14aaf8ddcc8ad4e9fe1e25dfbc0e63a7d7af94485da9e95a9d65c0",
+      "gitBlob": "62635c341bb1d0a078da3667b8c545c3a50d5a1d"
+    },
+    {
+      "path": "src/app/api/education/portal/[token]/route.ts",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "271a3873715740035bac1e3027bbeef980cfa8d2fcb97b41526ff4fd02c4fad5",
+      "gitBlob": "684f39903468f0b38e9f1c5bf24c22189d8ac040"
+    },
+    {
+      "path": "src/app/api/education/portal/__tests__/access.test.ts",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "c65e8fc83bc9ca1c633841bce711959a8f364de75c7cb580205798b83c14baa6",
+      "gitBlob": "5c5d9e22d7add3ef0640ca243dd46b94a251e513"
+    },
+    {
+      "path": "src/app/api/education/portal/token/__tests__/access.test.ts",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "e0702290df2e9358ca7258b847a117b98d3b7b5bd73072a71365c7b4d9c919d0",
+      "gitBlob": "c0026dd474ec94f7a3ead01fca60a10b3af9de44"
+    },
+    {
+      "path": "src/app/api/education/portal/token/route.ts",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "50c866b5b4c2b2789166458986823e8abe0c3332c852f619bca58729ef7e34cb",
+      "gitBlob": "252bcae9f9f1f6a5d983f90ec63d49067e5d1a9b"
+    },
+    {
+      "path": "src/app/api/education/student-registry/__tests__/route.test.ts",
+      "acceptedEpoch": "Registry local 2026-10-24",
+      "acceptedRawSha256": "f8629f0a09ba993a89c2126b2908b43b475b79619121981036fbecbc7073f6ca",
+      "gitBlob": "e51950c5729827265cef4d4464f27ea6c7a1cc4e"
+    },
+    {
+      "path": "src/app/api/education/student-registry/route.ts",
+      "acceptedEpoch": "Registry local 2026-10-24",
+      "acceptedRawSha256": "b27654c204539a510906fa8d192cdd05eafd025dfd54ab77932d88b2baa97e9c",
+      "gitBlob": "dff2288f5085ffffdea6448ab11cabf73446d47a"
+    },
+    {
+      "path": "src/app/dashboard/education/__tests__/copilot-runtime.test.tsx",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "542a132d21ee12c5f040c18d26ed8f709520a54bb9421a90e2557aab3637fbaa",
+      "gitBlob": "7edcba9fd30446d4e3ecbde6640b58f8f4ab1dfc"
+    },
+    {
+      "path": "src/app/dashboard/education/__tests__/mvp-held-workspaces.test.tsx",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "8e63878930013751bf04e526974b4ac8ff01929fbd3d3da449293ab3e59fa1e4",
+      "gitBlob": "f9b097f70dc053aa1759f56b82fddd3cd2aaf8e9"
+    },
+    {
+      "path": "src/app/dashboard/education/__tests__/page.test.tsx",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "d73ba3d1a375202bda00e96723fbc36eaab672ab639aced8c3c9c3a1753c14c7",
+      "gitBlob": "1c6223bff8d090357155cc2216cd07542a3b6f8b"
+    },
+    {
+      "path": "src/app/dashboard/education/attendance/__tests__/page.test.tsx",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "d0dd3dd6189c606939e1686ca6be190c2232c62f8939281f9cb04142dbe861fb",
+      "gitBlob": "6c00075a9c61e45726f8447d726edbd92a8b70fc"
+    },
+    {
+      "path": "src/app/dashboard/education/attendance/__tests__/preschool-attendance.test.tsx",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "88a17f7ec62fa931c1f4e6b2e341c3220b73482d8bc99f0469dc97e7ee6094ca",
+      "gitBlob": "fb8f6960c0d1ba437b0e359550ff56df31868307"
+    },
+    {
+      "path": "src/app/dashboard/education/attendance/page.tsx",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "ed24c8e79ccde36688f99b2a184c47ff71d0413a7e0ecdee864c3747746c1a21",
+      "gitBlob": "442f3a9487096c5a05f7b6bc5f773da28e6a30b9"
+    },
+    {
+      "path": "src/app/dashboard/education/attendance/preschool-attendance.tsx",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "ee12c55fab983f51cba603b688e2518700602d1b73a6d4f3ee045eddee2d4855",
+      "gitBlob": "e007cafb2d051ec70776a8bd02ad796e3e9e75d6"
+    },
+    {
+      "path": "src/app/dashboard/education/care/__tests__/care-save.test.ts",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "c9f237c43af6abb0c231db32ff3f6eecbf80bfd5d4f0eb6f841dd706aeba6a4b",
+      "gitBlob": "d6b4fb14eda4fee0c8bc54f11928aeff61b16cf5"
+    },
+    {
+      "path": "src/app/dashboard/education/care/__tests__/page.test.tsx",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "d2b13d7e7f2448c03ad3c9d9e82228401c09d5fe67ec73b26104e102ff1c0024",
+      "gitBlob": "08f173e31cb4e196a79793ef6aabecc62e6aba69"
+    },
+    {
+      "path": "src/app/dashboard/education/care/care-save.ts",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "d0a1f7498fd9cef66f6fb0ef9b2b2f7db923a25ef33d3a421500e2983bd4d2aa",
+      "gitBlob": "e1789ae1d5e3055307d858f1df872c535c6184ae"
+    },
+    {
+      "path": "src/app/dashboard/education/care/page.tsx",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "c16d5804690a291554766fdfd94f8cb5f26bca62d5c278b9eb37e78561405107",
+      "gitBlob": "c7b4848367eca1862b1433b73c1db141513224a8"
+    },
+    {
+      "path": "src/app/dashboard/education/communication/__tests__/page.test.tsx",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "ccded9eaaab97ea87f90f2ee633dff190e6ecd0ba79d870d16063d88ff0f50a7",
+      "gitBlob": "98ec9e0c49e9236f59fe30e510bb9c83b63908ff"
+    },
+    {
+      "path": "src/app/dashboard/education/communication/page.tsx",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "82f44327e4c0ece1618ff68548fd7e40810bf1ac3a58329b1dc34fe6087dbb7b",
+      "gitBlob": "f1e8760bb2e4cf7b67952ff16f8a43d87c75a732"
+    },
+    {
+      "path": "src/app/dashboard/education/courses/[id]/__tests__/page.test.tsx",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "b19408feebf714698e54ada07838ca3936c3445d50b98be30ea0802263f63820",
+      "gitBlob": "4be743e41f1ec1cfb87d14217490b3eb93e487f3"
+    },
+    {
+      "path": "src/app/dashboard/education/courses/[id]/page.tsx",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "8f92911810244b2cbcd9af9dd13a8c6e2235d867db3a52837738d1eda6b0d4ab",
+      "gitBlob": "4ded1d1cff6a19544051b81449bc94ab79716827"
+    },
+    {
+      "path": "src/app/dashboard/education/courses/__tests__/page.test.tsx",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "a23240754e43f75acbd8c6c6e9a4869263e9d799e1010db4d31d37354c88b400",
+      "gitBlob": "7761c5af9229e7829d6e240046c974114ab38418"
+    },
+    {
+      "path": "src/app/dashboard/education/courses/page.tsx",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "8a52cec89d2714e4917123c74bf696bd681d830cdc5941eb493ce11393dab3ed",
+      "gitBlob": "643b750d722d216a2badbbde627a70510820e476"
+    },
+    {
+      "path": "src/app/dashboard/education/enrollments/EnrollmentCreateForm.tsx",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "da43cf3f282a6f68490298ed388f19845ebc20f1520972fd89fba6ce7fa4acb0",
+      "gitBlob": "9149c74bba7e28bc9a3f5e8354689a8f8213e6af"
+    },
+    {
+      "path": "src/app/dashboard/education/enrollments/PreschoolStudentRegistry.tsx",
+      "acceptedEpoch": "Registry local 2026-10-24",
+      "acceptedRawSha256": "a689ab731f5a8c4bf5ca00472639a5b4501bdd49cd526a305f0573c8aafe455a",
+      "gitBlob": "1065886c4313b94cfb39e2e6f2399e80061a64cf"
+    },
+    {
+      "path": "src/app/dashboard/education/enrollments/[id]/PortalAccessLink.tsx",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "0137d154380c3446ca8da8a1f4cba96275dcd89d712156adf95c7f66c088a948",
+      "gitBlob": "577dcdce8924dc3ed2bbfc90a287c366bc7c03c5"
+    },
+    {
+      "path": "src/app/dashboard/education/enrollments/[id]/__tests__/PortalAccessLink.test.tsx",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "88ed1f050adbdd1825c5738ec5698957362538bc1a12b51d4b2288b4603879c8",
+      "gitBlob": "a6e32ec9079816b519cbaf694da28217f9fd1a59"
+    },
+    {
+      "path": "src/app/dashboard/education/enrollments/[id]/__tests__/page.test.tsx",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "0ef302e1cbcf5fe3767c3dda21024ca2a9bacb57ed1df7a18baeaa93fa7d2fc2",
+      "gitBlob": "2c40f8cc086fea59802294d8470c9cf5fc18a83e"
+    },
+    {
+      "path": "src/app/dashboard/education/enrollments/[id]/page.tsx",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "5eb2e663ac6072b8ffc7dd2f7de87bf185b6c5175d5bf2d48631072cd77e317c",
+      "gitBlob": "ad4d49e071c0b1c6e22235305a32b85eb572f062"
+    },
+    {
+      "path": "src/app/dashboard/education/enrollments/__tests__/EnrollmentCreateForm.test.tsx",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "fb941ec6081aab72e313a36607d631274fbddc6388859d079cc3585c5e04f247",
+      "gitBlob": "c4ca39ca825b1e34b17ac43c9da08a3b6f91334c"
+    },
+    {
+      "path": "src/app/dashboard/education/enrollments/__tests__/page.test.tsx",
+      "acceptedEpoch": "Registry local 2026-10-24",
+      "acceptedRawSha256": "cfb8e9f7790833de5d48f79afd2475730de324d15ec281850cb0354ac644b4e5",
+      "gitBlob": "c6ff86d8aac12c6274891adc1566d9e834abc323"
+    },
+    {
+      "path": "src/app/dashboard/education/enrollments/__tests__/registry.test.tsx",
+      "acceptedEpoch": "Registry local 2026-10-24",
+      "acceptedRawSha256": "1b9381e34c74c72fea1c930b99844b471d095d709ddb35eee26f290bcbecc35c",
+      "gitBlob": "64d9af8e1d0233063eb661346ea4ea3f2c40324e"
+    },
+    {
+      "path": "src/app/dashboard/education/enrollments/page.tsx",
+      "acceptedEpoch": "Registry local 2026-10-24",
+      "acceptedRawSha256": "4a43dfe8380b00a1659c2959e33e0f7874382f14759dfc7786ece6d1ccacc443",
+      "gitBlob": "9135b60844a94bb5c1c50a444779821e23ca9085"
+    },
+    {
+      "path": "src/app/dashboard/education/facilities/page.tsx",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "cccfb305932072167f7189cb2cd6988c4eabd8232ca06f87c0b313f7754accf3",
+      "gitBlob": "15d84317829cb0164ced7306f797f2c7c9ae765f"
+    },
+    {
+      "path": "src/app/dashboard/education/finance/__tests__/page.test.tsx",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "3d666d87d7da59f3d96a803c9ec489d387bc0ac28179e3def75d359b96ce8cf2",
+      "gitBlob": "0cd4c412e37017b7344053b77bfbbe1ca6a6912c"
+    },
+    {
+      "path": "src/app/dashboard/education/finance/page.tsx",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "0ca3b3102295fe49981ee3d88a02b86acde0583c681496e70485edcf7adbee45",
+      "gitBlob": "cbf36da4e95317e2272f008c881f526b9e58c592"
+    },
+    {
+      "path": "src/app/dashboard/education/grades/__tests__/page.test.tsx",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "059ef00ad5c9b3082f14b217f706e5746e2e628edf63a0cb5fd54bf920e009ab",
+      "gitBlob": "9a36aeb66c991bcfde26d9adda432db12795c7fe"
+    },
+    {
+      "path": "src/app/dashboard/education/grades/page.tsx",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "adfce00c16ef65b961215d9f243d700c436c875f1df4c0baa71b4385209ad11f",
+      "gitBlob": "18d45862f47779d899d0243e6c3cc367fb54a77a"
+    },
+    {
+      "path": "src/app/dashboard/education/page.tsx",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "6c3fc0238cfa8074b20366cbcac39ec6f5e31070d793d660a0421a2265dc2abf",
+      "gitBlob": "c41f7c102bd1f7323470c0e66e1138c47181d62e"
+    },
+    {
+      "path": "src/app/dashboard/education/reports/__tests__/page.test.tsx",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "0eaca9e66a4d0c847b89bb75f7fb26999092b8cfbba29d27dec180d0e959b90d",
+      "gitBlob": "3ee6c6454b045d57523a24964f5f30fd9e051f9d"
+    },
+    {
+      "path": "src/app/dashboard/education/reports/page.tsx",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "a9d44a38dedc1e5685990647083b1e9fd3dc277958c6133ff7f155e0fe9187e3",
+      "gitBlob": "8ad540936d7805390b335b421f685000e1eba55b"
+    },
+    {
+      "path": "src/app/dashboard/education/teachers/[id]/page.tsx",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "a1236a835d4e84ce65ff86136c5be8d344a695e9e73b08c8f023ae89632a7814",
+      "gitBlob": "9ae5d1d525cfefeba4b22d064c39ab04e8ae7325"
+    },
+    {
+      "path": "src/app/dashboard/education/teachers/page.tsx",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "c621c4fc3486dc7b8ffbcdd80918489081a592bdd92f0bfeac1c7b58d39b1306",
+      "gitBlob": "14b5244804c542fbf2a75feb1d6586b1bfb288ae"
+    },
+    {
+      "path": "src/app/dashboard/layout.tsx",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "796ad4dbbee92adec4e373007beec47720c50fd88390ee9c2ea992f46d277959",
+      "gitBlob": "21d74086bb7418d7048b0e82be7da4e24ad95530"
+    },
+    {
+      "path": "src/app/manifest.webmanifest/route.ts",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "43ab31fbf75cf3281297291f63cda179f2359f3df55de2c1183bead6703b0550",
+      "gitBlob": "97ef980de6d92ca3e67ba043d0c40c8d858bf8c1"
+    },
+    {
+      "path": "src/app/portal/education/[token]/__tests__/page.test.tsx",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "207ed4ddd2856583f99c9e8a1002705ff3e6d20f896806755d217887c9795be6",
+      "gitBlob": "566cd5275f439e45ec66607cfa7fd53dd693fa73"
+    },
+    {
+      "path": "src/app/portal/education/[token]/page.tsx",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "5a1d2180c33bc2936a7151f55aff1b18ab61c65067d6b2a8474a302a69b34f64",
+      "gitBlob": "084aaa7409a97027507b3e1acc9fb4d7905c4870"
+    },
+    {
+      "path": "src/components/layout/DashboardLoadingShell.tsx",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "1c0a57bd4bcd48cb7e3cc7160ddcad16abc2d01ec7c4a51cda601679be05229a",
+      "gitBlob": "37dd9ea17c93098869d6885ad42ce00aa5904fa1"
+    },
+    {
+      "path": "src/components/layout/sidebar.tsx",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "04ade96260f3b7f9d6738ad986664a6c4fbeb8e9f9ed5a09d0cf7d2e247e9d05",
+      "gitBlob": "02c2b2a84f186f41e0db16774288c839b90a7231"
+    },
+    {
+      "path": "src/components/providers/TenantContextWrapper.tsx",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "1c71225fafa90ca314aa86d49655c825f86b0ae397822323f678ad38c5116d5e",
+      "gitBlob": "3364661ce408c1ae6d95046d0dfe319924db02da"
+    },
+    {
+      "path": "src/lib/user-context.tsx",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "df8be275ae9ebd2a4dcd048d229001d939b5be2c4defb2e2ba4f8453003dfc3c",
+      "gitBlob": "c192f27f6278f6fa551ef86cfadf63b3de864b02"
+    },
+    {
+      "path": "src/platform/education/__tests__/course-contract-real-db.integration.test.ts",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "4f4e49d32519ec4bcac0e41f9283ebc2322da5f006c71681a5ed32471914a080",
+      "gitBlob": "0ca025d8f8df24609f97f2d551dd7a44b06d055b"
+    },
+    {
+      "path": "src/platform/education/__tests__/kernel-invariants.integration.test.ts",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "623bcea84ef4840899ca9558bf1cfa37a1e57f846995d1e80d8d55fc1e373237",
+      "gitBlob": "0736e83680ac8fd3b84720b0b0170b898964f6fd"
+    },
+    {
+      "path": "src/platform/education/__tests__/verification-gates.test.ts",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "29313db9e9e9080f8397ce972043f1c5b1127db6c8c2100b3f479ed91fc2114b",
+      "gitBlob": "0cb21a05cf44f7b80858406b72187abecbfe7c80"
+    },
+    {
+      "path": "src/platform/education/contracts/__tests__/attendance-record-rpc.contract.test.ts",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "0be5eeb2e0cfefdedd3662ee76d0da389e446c99d2d557b08f057b03d7e00a7b",
+      "gitBlob": "1480cdf90c4cbe06161a94d10f5bd3d9ae7b8aac"
+    },
+    {
+      "path": "src/platform/education/contracts/__tests__/preschool-enrollment.contract.test.ts",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "6682ca44847a890745d97d189ca6d2c5597670328b177be27ec9a9bd6d835e6f",
+      "gitBlob": "3e705a05004e411109a79f2903abbfca6b78dc44"
+    },
+    {
+      "path": "src/platform/education/contracts/__tests__/preschool-registry.contract.impl.test.ts",
+      "acceptedEpoch": "Registry local 2026-10-24",
+      "acceptedRawSha256": "db8033e7b1568e80269142db0e052bd06b96350b8306065869636cdaf58389df",
+      "gitBlob": "4389b7f7894fef156bd90124ab90b5b9e321c3b9"
+    },
+    {
+      "path": "src/platform/education/contracts/__tests__/preschool-roster-identity.contract.test.ts",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "86e7aa3882a89192a6a2d6155cc518ba46afacdd8f9024efc12c737c8f950991",
+      "gitBlob": "0ae246d8d3531d516ae1da571cffa55ce37d0c47"
+    },
+    {
+      "path": "src/platform/education/contracts/__tests__/student-candidate-search.contract.test.ts",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "bf2dffdbf63ec386dfdc826014b263d7d8e681e6b7c0bfc5ed838c798909cc4b",
+      "gitBlob": "2036bdd9342410bc14bb56ac1849615ccb9cfab0"
+    },
+    {
+      "path": "src/platform/education/contracts/attendance.contract.impl.ts",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "7878ba60728d98328673459bb39271a468261318ced37a51377574716b00f776",
+      "gitBlob": "20a666809383f8c87cdaf54f75c0c7cea77e2dac"
+    },
+    {
+      "path": "src/platform/education/contracts/canonical-course-catalog.contract.impl.ts",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "0b6d94c7068767a5c4fbba7d8af4b39a1f86d8491bf63df69d051ee14bb0e644",
+      "gitBlob": "47585d68b17f997dde3fa32451b908c67843b4df"
+    },
+    {
+      "path": "src/platform/education/contracts/canonical-course-catalog.contract.ts",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "be6218687296f835bdd79b638610aedeb7fd8520d1f28e5feed3f369cadaa05a",
+      "gitBlob": "dc41bb87ea82a3f208739c29d2a205c32d5a911d"
+    },
+    {
+      "path": "src/platform/education/contracts/course.contract.impl.ts",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "5085735c6551c33273ad2cd61ac398495815ab13e428140ae4658d94f3faa31c",
+      "gitBlob": "7aeed655d65c61f3d57d944692473ed8b8637074"
+    },
+    {
+      "path": "src/platform/education/contracts/enrollment.contract.impl.ts",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "2f6c2aa6dcbc252dec8a82c96410c27557e5cc067328ef1226be22a3c51063f0",
+      "gitBlob": "0b7bdc08a2bbc6685b11f2d1e445f4df7460d913"
+    },
+    {
+      "path": "src/platform/education/contracts/enrollment.contract.ts",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "a3a00d390cec54a8088d66d294e98266780a78b3dd35d0700f70f7d95b10223e",
+      "gitBlob": "6c0f67a91ae83ee04bdf0cea34d861bce1475df8"
+    },
+    {
+      "path": "src/platform/education/contracts/preschool-registry.contract.impl.ts",
+      "acceptedEpoch": "Registry local 2026-10-24",
+      "acceptedRawSha256": "b2a6f7c91904e6eca5ae5c8ecca5041c888a0e4bc3ace044d060881b54784b80",
+      "gitBlob": "869d372e19c2ab97b39897e5369195fed4a9ab7d"
+    },
+    {
+      "path": "src/platform/education/contracts/preschool-registry.contract.ts",
+      "acceptedEpoch": "Registry local 2026-10-24",
+      "acceptedRawSha256": "8fddfb9db94f7e38b518060a15fd6eccf5d97076e043b26d68220be75de1ae8d",
+      "gitBlob": "e23902b04798b6ef83eb3624b12487ebe20e9a76"
+    },
+    {
+      "path": "src/platform/education/contracts/student.contract.impl.ts",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "8ff7289a51bf7c08ba70e368591b7f413f23c2139cd5e108f0613195eeac99f8",
+      "gitBlob": "977734e6fbe8be4a83b258a9f54ad15272bd16ae"
+    },
+    {
+      "path": "src/platform/education/contracts/student.contract.ts",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "7a133954ff57ce412505c7b61fa5c0920d89c713d61d4c58c345882697ce2cd3",
+      "gitBlob": "184cee5d1d19c270846e84a62ba2bade84cc24d6"
+    },
+    {
+      "path": "src/products/bella-education/__tests__/preschool-admin-ai-copilot.test.ts",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "b4abc2fbec90fd3f7816682dd8ae168a5ca20ed571baa9e5835288fdaad21bc3",
+      "gitBlob": "f4af8f7cc5a54792c0acb3372294df282b5a7bfc"
+    },
+    {
+      "path": "src/products/bella-education/__tests__/preschool-care-atomic-save.test.ts",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "ae44df45bb9c5db625a801f37deee30e6d548b274c118e81f9e481f082020749",
+      "gitBlob": "c49e852af0b7ec3ed8fe09cf05d5ea527ce4d81f"
+    },
+    {
+      "path": "src/products/bella-education/__tests__/preschool-care-roster-contract.test.ts",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "d76eb9d2d1222a941c312b645a9baed6d43ed626a374f20333540138586dcd5d",
+      "gitBlob": "96312f0d69c5e4350e2e58ab3be6e45fe9b8c2f7"
+    },
+    {
+      "path": "src/products/bella-education/__tests__/preschool-daily-care-canonical.service.test.ts",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "ab6484de24b90bd6ee9d9955d620b0bd3183ad06533c1a87886f31cb57317ee0",
+      "gitBlob": "1393a9d83828759fa8318fd2882a9ab5d8ffb20d"
+    },
+    {
+      "path": "src/products/bella-education/__tests__/preschool-parent-portal-security.test.ts",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "926f0eb403152a7b6a455664155246f400ee0e03b5f67bb3bf2db58e70ab6c02",
+      "gitBlob": "29f42390e4d9e454b07151e4fbf82495d68c6417"
+    },
+    {
+      "path": "src/products/bella-education/__tests__/preschool-parent-portal.service.test.ts",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "a85f138f1f7ebea30e2e971ae9fc32a4bb3dc559920c157e5ae47ea04b76a20d",
+      "gitBlob": "19b2c9ab91f135aec881de400f573eb27f6dee92"
+    },
+    {
+      "path": "src/products/bella-education/ai-skills/PreschoolAICapabilityPack.ts",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "a28a1eaaf18c25bf64d084184a577f1ae0c0a2c20053824e8dbb39078fe18c43",
+      "gitBlob": "184437ece2082b5cca6bca957efc2b4b57c29130"
+    },
+    {
+      "path": "src/products/bella-education/analytics/domain/__tests__/analytics-response.test.ts",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "72753225570617b34850cdd75fa8e38a134a9e97c69bb69756380ad3bca64879",
+      "gitBlob": "d64c3a2e0d21ad8edae8b6d8c326b34d1722b3a0"
+    },
+    {
+      "path": "src/products/bella-education/analytics/domain/analytics-response.ts",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "be44938b391f0df6f2168af5e76856529dea488b1a71945fd34ff34f38045beb",
+      "gitBlob": "8cdf3b1346e118f6b93cb5aa19be1960654dd506"
+    },
+    {
+      "path": "src/products/bella-education/analytics/domain/preschool-analytics.types.ts",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "76d5532fd1f0bce162cd0744d32a37d4519af20bc6d4b18add9e27e47c91c752",
+      "gitBlob": "8d81cf94435de5a95900d427032c35a47fd3ed73"
+    },
+    {
+      "path": "src/products/bella-education/care-wellbeing/daily-care/daily-care.service.ts",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "4154ed854256df469fe38f9b0a3e62fe79bf30a67cb9b1f467d3ccfa94b4681a",
+      "gitBlob": "3523b57071fb5c37636a4bb886f914d821ddd2f8"
+    },
+    {
+      "path": "src/products/bella-education/care-wellbeing/daily-care/save-care.input.ts",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "9fcd57f9ed81be895a1c59131f2f29511551fb29274af4b8e3c02deaaee3320f",
+      "gitBlob": "2da32fc79f1d4fa9c4c4ca5e746b3eab1f0c29cb"
+    },
+    {
+      "path": "src/products/bella-education/parent-portal/domain/parent-portal.types.ts",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "ec1b4298085d19b04b18255d7e650da3d984398d0f09fa24d266e6e878afea07",
+      "gitBlob": "43e918cbfe0632cfe4ec01f81285ffcc7584587d"
+    },
+    {
+      "path": "src/products/bella-education/parent-portal/repositories/parent-portal.repository.ts",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "f41cb8a897f701656b6de115c10a17e558e972d403057784e6903b9978815a7b",
+      "gitBlob": "478bdabbb3546918c5ccbee89d149933643960b5"
+    },
+    {
+      "path": "src/products/bella-education/parent-portal/services/preschool-parent-portal.service.ts",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "a8aaa4fecb8b4cf375876e424034ff37d8c44a76807a788eb8fb43c01c240544",
+      "gitBlob": "5bbce402c7f084b3f78ebfdfacfa01a6ab2f6dd5"
+    },
+    {
+      "path": "src/products/bella-education/services/preschool-ai.service.ts",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "c659b04485d27bce3cac45ef8d1fa3c63b39a32992de6ebd07fabafdae910b32",
+      "gitBlob": "dfed7955b2af3c6f3ca7d9ea3f0b08b974dc5c3a"
+    },
+    {
+      "path": "src/proxy.ts",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "466008d64957bc9d2e4053325e30a18f323176314029d8712bb601b0d110a368",
+      "gitBlob": "8e0a07c228a621107044ff2b52820270ce01cd99"
+    },
+    {
+      "path": "src/services/tenant-actions.ts",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "60efbccaa794e23f7c322011c8556d1f63eb343573d5fa46b467f2d6e859d49b",
+      "gitBlob": "f2e89f1b537327a26170e085e0f2c5d58f2835cd"
+    },
+    {
+      "path": "src/services/user-actions.ts",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "4c552bb0647120b5e4edc93d5c29d0db3d25aa03c61e0cfad0cd41e13c0e21af",
+      "gitBlob": "5f79755cea20a6ea85dfdcd3cd51d8febf78253c"
+    },
+    {
+      "path": "src/types/database.types.ts",
+      "acceptedEpoch": "MVP E2E 2026-10-24",
+      "acceptedRawSha256": "242b31c65b1de5193b991cc187348880c83fb07c92cff8edb3bec67d9a505cfd",
+      "gitBlob": "3f2c9d06d06fe9ac5b81e16a2348670306ad7b4b"
+    }
+  ],
+  "supportingAuthorizationContract": {
+    "path": "docs/products/bella-preschool/AUTHORIZATION_CONTRACT.md",
+    "rawSha256": "7d209900f32600c0c28a15e3cfbc7e53542d0a8830268cb3a78c3491850592df",
+    "basis": "Retained direct Owner approvals: Attendance batch2r, Enrollment v1, school-wide bulletin. Later ACR-2026-021 candidate-read amendments retain their own effective scope."
+  }
+}

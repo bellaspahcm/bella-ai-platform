@@ -64,6 +64,16 @@ describe('Parent Portal signing and live resource authorization', () => {
     else process.env.NEXTAUTH_SECRET = originalAuthSecret;
   });
 
+  it('mints Course-bound read-only scope with at most 24h and explicit identity binding', () => {
+    const binding = { tenantId, guardianPartyId: guardianId, studentPartyId: studentId, courseId: '00000000-0000-4000-8000-000000000004' };
+    const token = PreschoolParentPortalService.generateDailyReadToken(binding);
+    expect(PreschoolParentPortalService.verifyPortalToken(token)).toEqual({ ...binding, scope: 'daily_read_v1', createdAt: now, exp: now + day });
+  });
+  it.each([{ scope: 'other' }, { scope: 'daily_read_v1' }, { scope: 'daily_read_v1', courseId: 'not-a-course' },
+    { scope: 'daily_read_v1', courseId: tenantId, createdAt: now + 1 }, { scope: 'daily_read_v1', courseId: tenantId, exp: now + day + 1 }])('rejects incomplete, wrong, future or oversized new scope %#', change => {
+    expect(() => PreschoolParentPortalService.verifyPortalToken(signed({ ...claims, ...change }))).toThrow(ParentPortalAccessError);
+  });
+
   it('caps only new tokens at24h and retains independently signed legacy60-day tokens', () => {
     const generated = PreschoolParentPortalService.generatePortalToken(claims);
     expect(PreschoolParentPortalService.verifyPortalToken(generated)).toEqual(claims);

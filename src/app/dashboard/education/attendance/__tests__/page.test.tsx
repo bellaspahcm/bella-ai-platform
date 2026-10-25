@@ -4,7 +4,7 @@ import React from 'react';
 import { jest } from '@jest/globals';
 import '@testing-library/jest-dom';
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
-import AttendancePage from '../page';
+import { LegacyAttendancePage as AttendancePage } from '../page';
 
 // Synthetic HTTP fixtures verify confirmed UI updates and context/ordering, never guardian authority or DB/RLS.
 type Reply = Pick<Response, 'ok' | 'json'>;

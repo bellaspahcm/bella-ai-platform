@@ -196,41 +196,45 @@ export class ParentPortalRepository {
   // ── Party & Student profiles ───────────────────────────────────────────────
 
   async findParty(tenantId: string, partyId: string): Promise<DbPartyRow | null> {
-    const { data } = await this.supabase
+    const { data, error } = await this.supabase
       .from('party_parties')
       .select('display_name, gender, dob')
       .eq('tenant_id', tenantId)
       .eq('id', partyId)
       .maybeSingle();
+    if (error) throw new Error('PORTAL_DATA_UNAVAILABLE');
     return data ?? null;
   }
 
   async findPartyIdentifier(tenantId: string, partyId: string): Promise<DbIdentifierRow | null> {
-    const { data } = await this.supabase
+    const { data, error } = await this.supabase
       .from('party_identifiers')
       .select('identifier_value')
       .eq('tenant_id', tenantId)
       .eq('party_id', partyId)
       .maybeSingle();
+    if (error) throw new Error('PORTAL_DATA_UNAVAILABLE');
     return data ?? null;
   }
 
   async findStudentByPartyId(tenantId: string, partyId: string): Promise<DbStudentRow | null> {
-    const { data } = await this.supabase
+    const { data, error } = await this.supabase
       .from('students')
       .select('student_code')
       .eq('tenant_id', tenantId)
       .eq('party_id', partyId)
       .maybeSingle();
+    if (error) throw new Error('PORTAL_DATA_UNAVAILABLE');
     return data ?? null;
   }
 
   async findTenant(tenantId: string): Promise<DbTenantRow | null> {
-    const { data } = await this.supabase
+    const { data, error } = await this.supabase
       .from('tenants')
       .select('name, logo_url, contact_phone, address')
       .eq('id', tenantId)
       .maybeSingle();
+    if (error) throw new Error('PORTAL_DATA_UNAVAILABLE');
     return data ?? null;
   }
 
@@ -240,33 +244,36 @@ export class ParentPortalRepository {
     tenantId: string,
     studentPartyId: string
   ): Promise<DbEnrollmentRow | null> {
-    const { data } = await this.supabase
+    const { data, error } = await this.supabase
       .from('edu_enrollments')
       .select('course_id')
       .eq('tenant_id', tenantId)
       .eq('student_party_id', studentPartyId)
       .eq('status', 'active')
       .maybeSingle();
+    if (error) throw new Error('PORTAL_DATA_UNAVAILABLE');
     return data ?? null;
   }
 
   async findCourse(tenantId: string, courseId: string): Promise<DbCourseRow | null> {
-    const { data } = await this.supabase
+    const { data, error } = await this.supabase
       .from('edu_courses')
       .select('course_code, title')
       .eq('tenant_id', tenantId)
       .eq('id', courseId)
       .maybeSingle();
+    if (error) throw new Error('PORTAL_DATA_UNAVAILABLE');
     return data ?? null;
   }
 
   async countActiveEnrollmentsInCourse(tenantId: string, courseId: string): Promise<number> {
-    const { count } = await this.supabase
+    const { count, error } = await this.supabase
       .from('edu_enrollments')
       .select('id', { count: 'exact', head: true })
       .eq('tenant_id', tenantId)
       .eq('course_id', courseId)
       .eq('status', 'active');
+    if (error) throw new Error('PORTAL_DATA_UNAVAILABLE');
     return count ?? 0;
   }
 
@@ -275,13 +282,14 @@ export class ParentPortalRepository {
     courseId: string,
     schoolDay: string
   ): Promise<number> {
-    const { count } = await this.supabase
+    const { count, error } = await this.supabase
       .from('edu_attendance_daily_state')
       .select('id', { count: 'exact', head: true })
       .eq('tenant_id', tenantId)
       .eq('course_id', courseId)
       .eq('school_day', schoolDay)
       .in('status', ['present', 'late']);
+    if (error) throw new Error('PORTAL_DATA_UNAVAILABLE');
     return count ?? 0;
   }
 
@@ -292,25 +300,27 @@ export class ParentPortalRepository {
     studentPartyId: string,
     schoolDay: string
   ): Promise<DbAttendanceStateRow | null> {
-    const { data } = await this.supabase
+    const { data, error } = await this.supabase
       .from('edu_attendance_daily_state')
       .select('status, updated_at')
       .eq('tenant_id', tenantId)
       .eq('student_party_id', studentPartyId)
       .eq('school_day', schoolDay)
       .maybeSingle();
+    if (error) throw new Error('PORTAL_DATA_UNAVAILABLE');
     return data ?? null;
   }
 
   // ── Daily Care ─────────────────────────────────────────────────────────────
 
   async findLatestDailyCareSession(tenantId: string): Promise<DbDailyCareSessionRow | null> {
-    const { data } = await this.supabase
+    const { data, error } = await this.supabase
       .from('edu_daily_care_sessions')
       .select('id')
       .eq('tenant_id', tenantId)
       .limit(1)
       .maybeSingle();
+    if (error) throw new Error('PORTAL_DATA_UNAVAILABLE');
     return data ?? null;
   }
 
@@ -318,7 +328,7 @@ export class ParentPortalRepository {
     tenantId: string,
     studentPartyId: string
   ): Promise<DbDailyCareRecordRow | null> {
-    const { data } = await this.supabase
+    const { data, error } = await this.supabase
       .from('edu_daily_care_records')
       .select('*')
       .eq('tenant_id', tenantId)
@@ -326,6 +336,7 @@ export class ParentPortalRepository {
       .order('created_at', { ascending: false })
       .limit(1)
       .maybeSingle();
+    if (error) throw new Error('PORTAL_DATA_UNAVAILABLE');
     return data ?? null;
   }
 
@@ -336,7 +347,7 @@ export class ParentPortalRepository {
     studentPartyId: string,
     schoolDay: string
   ): Promise<DbPickupHandoverRow | null> {
-    const { data } = await this.supabase
+    const { data, error } = await this.supabase
       .from('edu_preschool_pickup_handover_events')
       .select('id, handed_over_at, handed_over_by, guardian_party_id')
       .eq('tenant_id', tenantId)
@@ -344,6 +355,7 @@ export class ParentPortalRepository {
       .gte('handed_over_at', `${schoolDay}T00:00:00.000Z`)
       .lte('handed_over_at', `${schoolDay}T23:59:59.999Z`)
       .maybeSingle();
+    if (error) throw new Error('PORTAL_DATA_UNAVAILABLE');
     return data ?? null;
   }
 
@@ -353,13 +365,14 @@ export class ParentPortalRepository {
     tenantId: string,
     targetDateStr: string
   ): Promise<DbWeeklyMenuRow | null> {
-    const { data } = await this.supabase
+    const { data, error } = await this.supabase
       .from('edu_weekly_menus')
       .select('id, week_number, year, start_date, end_date, status, edu_weekly_menu_days(*)')
       .eq('tenant_id', tenantId)
       .lte('start_date', targetDateStr)
       .gte('end_date', targetDateStr)
       .maybeSingle();
+    if (error) throw new Error('PORTAL_DATA_UNAVAILABLE');
     return (data as DbWeeklyMenuRow | null) ?? null;
   }
 
@@ -369,7 +382,7 @@ export class ParentPortalRepository {
     tenantId: string,
     studentPartyId: string
   ): Promise<DbInvoiceRow | null> {
-    const { data } = await this.supabase
+    const { data, error } = await this.supabase
       .from('edu_invoices')
       .select('id, invoice_code, total_amount, paid_amount, status, due_date, billing_period_id')
       .eq('tenant_id', tenantId)
@@ -377,6 +390,7 @@ export class ParentPortalRepository {
       .order('created_at', { ascending: false })
       .limit(1)
       .maybeSingle();
+    if (error) throw new Error('PORTAL_DATA_UNAVAILABLE');
     return (data as DbInvoiceRow | null) ?? null;
   }
 
@@ -387,13 +401,14 @@ export class ParentPortalRepository {
     studentPartyId: string,
     guardianPartyId: string
   ): Promise<DbCommThreadRow | null> {
-    const { data } = await this.supabase
+    const { data, error } = await this.supabase
       .from('edu_comm_threads')
       .select('id')
       .eq('tenant_id', tenantId)
       .eq('student_id', studentPartyId)
       .eq('guardian_party_id', guardianPartyId)
       .maybeSingle();
+    if (error) throw new Error('PORTAL_DATA_UNAVAILABLE');
     return data ?? null;
   }
 
@@ -402,7 +417,7 @@ export class ParentPortalRepository {
     studentPartyId: string,
     guardianPartyId: string
   ): Promise<DbCommThreadRow | null> {
-    const { data } = await this.supabase
+    const { data, error } = await this.supabase
       .from('edu_comm_threads')
       .insert({
         tenant_id: tenantId,
@@ -416,6 +431,7 @@ export class ParentPortalRepository {
       })
       .select('id')
       .single();
+    if (error) throw new Error('PORTAL_DATA_UNAVAILABLE');
     return data ?? null;
   }
 
@@ -424,13 +440,14 @@ export class ParentPortalRepository {
     threadId: string,
     limit = 40
   ): Promise<readonly DbCommResponseRow[]> {
-    const { data } = await this.supabase
+    const { data, error } = await this.supabase
       .from('edu_comm_responses')
       .select('id, response_text, sender_role, created_at, sender_party_id')
       .eq('tenant_id', tenantId)
       .eq('thread_id', threadId)
       .order('created_at', { ascending: true })
       .limit(limit);
+    if (error) throw new Error('PORTAL_DATA_UNAVAILABLE');
     return data ?? [];
   }
 

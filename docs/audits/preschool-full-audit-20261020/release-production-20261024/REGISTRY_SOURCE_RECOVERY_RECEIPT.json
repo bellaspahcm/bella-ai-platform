@@ -1,0 +1,48 @@
+{
+  "result": "PASS_ISOLATED_BEFORE_AND_ARCHIVE_REAPPLY",
+  "reviewPatchContent": "PASS_NORMALIZED_TEXT",
+  "checked": [
+    {
+      "path": "src/app/dashboard/education/enrollments/page.tsx",
+      "sha256": "4a43dfe8380b00a1659c2959e33e0f7874382f14759dfc7786ece6d1ccacc443"
+    },
+    {
+      "path": "src/app/dashboard/education/enrollments/__tests__/page.test.tsx",
+      "sha256": "cfb8e9f7790833de5d48f79afd2475730de324d15ec281850cb0354ac644b4e5"
+    },
+    {
+      "path": "src/platform/education/contracts/preschool-registry.contract.ts",
+      "sha256": "8fddfb9db94f7e38b518060a15fd6eccf5d97076e043b26d68220be75de1ae8d"
+    },
+    {
+      "path": "src/platform/education/contracts/preschool-registry.contract.impl.ts",
+      "sha256": "b2a6f7c91904e6eca5ae5c8ecca5041c888a0e4bc3ace044d060881b54784b80"
+    },
+    {
+      "path": "src/platform/education/contracts/__tests__/preschool-registry.contract.impl.test.ts",
+      "sha256": "db8033e7b1568e80269142db0e052bd06b96350b8306065869636cdaf58389df"
+    },
+    {
+      "path": "src/app/api/education/student-registry/route.ts",
+      "sha256": "b27654c204539a510906fa8d192cdd05eafd025dfd54ab77932d88b2baa97e9c"
+    },
+    {
+      "path": "src/app/api/education/student-registry/__tests__/route.test.ts",
+      "sha256": "f8629f0a09ba993a89c2126b2908b43b475b79619121981036fbecbc7073f6ca"
+    },
+    {
+      "path": "src/app/dashboard/education/enrollments/__tests__/registry.test.tsx",
+      "sha256": "1b9381e34c74c72fea1c930b99844b471d095d709ddb35eee26f290bcbecc35c"
+    },
+    {
+      "path": "docs/audits/preschool-full-audit-20261020/release-production-20261024/REGISTRY_LOCAL_CANDIDATE.sql",
+      "sha256": "8dd7785bd34ab0a3e9f46e04ee637d012ed181bb584b1e84410214291a9fe506"
+    },
+    {
+      "path": "src/app/dashboard/education/enrollments/PreschoolStudentRegistry.tsx",
+      "sha256": "a689ab731f5a8c4bf5ca00472639a5b4501bdd49cd526a305f0573c8aafe455a"
+    }
+  ],
+  "activeSourceChanged": false,
+  "trial": "D:\\Antigravity\\Projects\\BELLA_PRESCHOOL_RELEASE_20261023\\.audit-local-cache\\preschool-release-integration-20261023\\registry-20261024\\source-recovery-2c992bef-5a6c-4a70-b8e5-4cca6b4dbd39"
+}

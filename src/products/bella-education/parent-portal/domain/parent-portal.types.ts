@@ -13,6 +13,86 @@ export interface ParentPortalTokenClaims {
   readonly studentPartyId: string;
   readonly createdAt: number;
   readonly exp: number;
+  readonly scope?: 'daily_read_v1';
+  readonly courseId?: string;
+}
+
+export interface PortalIssuerContext {
+  readonly tenantId: string;
+  readonly courseId: string;
+  readonly studentPartyId: string;
+  readonly guardians: readonly { readonly guardianPartyId: string; readonly guardianLabel: string }[];
+}
+
+export interface ParentPortalAnnouncement {
+  readonly id: string;
+  readonly title: string;
+  readonly bodyText: string;
+  readonly publishedAt: string;
+}
+
+export interface ParentPortalAnnouncementFeed {
+  readonly tenantId: string;
+  readonly announcements: readonly ParentPortalAnnouncement[];
+}
+
+/** Deliberately excludes unavailable care, payment, pickup and communication data. */
+export interface ParentPortalDailyRead {
+  readonly scope: 'daily_read_v1';
+  readonly tenantId: string;
+  readonly courseId: string;
+  readonly studentPartyId: string;
+  readonly guardianPartyId: string;
+  readonly schoolName: string;
+  readonly guardianName: string;
+  readonly childName: string;
+  readonly courseTitle: string;
+  readonly courseCode: string;
+  readonly schoolDay: string;
+  readonly attendanceStatus: 'present' | 'absent' | 'excused' | 'unmarked';
+  readonly attendanceUpdatedAt: string | null;
+  readonly totalClassSize: number;
+  readonly presentTodayCount: number;
+  readonly announcements: readonly ParentPortalAnnouncement[];
+  readonly serverTime: string;
+}
+
+const portalRecord = (value: unknown): value is Record<string, unknown> =>
+  value !== null && typeof value === 'object' && !Array.isArray(value);
+const portalText = (value: unknown): value is string => typeof value === 'string' && value.trim().length > 0;
+export const isPortalUuid = (value: unknown): value is string =>
+  typeof value === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+
+export function isParentPortalAnnouncementFeed(value: unknown): value is ParentPortalAnnouncementFeed {
+  return portalRecord(value) && isPortalUuid(value.tenantId) && Array.isArray(value.announcements)
+    && value.announcements.length <= 100
+    && value.announcements.every(item => portalRecord(item) && isPortalUuid(item.id)
+      && portalText(item.title) && item.title.length <= 200
+      && portalText(item.bodyText) && item.bodyText.length <= 20000
+      && typeof item.publishedAt === 'string' && Number.isFinite(Date.parse(item.publishedAt)));
+}
+
+export function isPortalIssuerContext(value: unknown): value is PortalIssuerContext {
+  return portalRecord(value) && isPortalUuid(value.tenantId) && isPortalUuid(value.courseId)
+    && isPortalUuid(value.studentPartyId) && Array.isArray(value.guardians)
+    && value.guardians.length > 0 && value.guardians.length <= 100
+    && value.guardians.every(g => portalRecord(g) && isPortalUuid(g.guardianPartyId) && portalText(g.guardianLabel))
+    && new Set(value.guardians.map(g => g.guardianPartyId)).size === value.guardians.length;
+}
+
+export function isParentPortalDailyRead(value: unknown): value is ParentPortalDailyRead {
+  if (!portalRecord(value) || value.scope !== 'daily_read_v1'
+    || !['tenantId', 'courseId', 'studentPartyId', 'guardianPartyId'].every(key => isPortalUuid(value[key]))
+    || !['schoolName', 'guardianName', 'childName', 'courseTitle', 'courseCode'].every(key => portalText(value[key]))
+    || typeof value.schoolDay !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value.schoolDay)
+    || typeof value.attendanceStatus !== 'string' || !['present', 'absent', 'excused', 'unmarked'].includes(value.attendanceStatus)
+    || !(value.attendanceUpdatedAt === null || (typeof value.attendanceUpdatedAt === 'string' && Number.isFinite(Date.parse(value.attendanceUpdatedAt))))
+    || typeof value.serverTime !== 'string' || !Number.isFinite(Date.parse(value.serverTime))
+    || typeof value.totalClassSize !== 'number' || !Number.isSafeInteger(value.totalClassSize) || value.totalClassSize < 1
+    || typeof value.presentTodayCount !== 'number' || !Number.isSafeInteger(value.presentTodayCount)
+    || value.presentTodayCount < 0 || value.presentTodayCount > value.totalClassSize
+    || !isParentPortalAnnouncementFeed({ tenantId: value.tenantId, announcements: value.announcements })) return false;
+  return true;
 }
 
 export interface ParentPortalChildProfile {
@@ -31,9 +111,9 @@ export interface ParentPortalClassroomInfo {
   readonly courseTitle: string;
   readonly teacherName?: string | null;
   readonly roomName?: string | null;
-  readonly totalClassSize: number;
-  readonly presentTodayCount: number;
-  readonly attendanceRatePercent: number;
+  readonly totalClassSize: number | null;
+  readonly presentTodayCount: number | null;
+  readonly attendanceRatePercent: number | null;
 }
 
 export interface ParentPortalAttendance {
@@ -74,8 +154,8 @@ export interface ParentPortalDailyCare {
   readonly morningCondition: string | null;
   readonly mealRecords: readonly ParentPortalMealRecord[];
   readonly hygieneRecords: readonly ParentPortalHygieneRecord[];
-  readonly napRecords: ParentPortalNapRecord;
-  readonly healthChecks: ParentPortalHealthCheck;
+  readonly napRecords: ParentPortalNapRecord | null;
+  readonly healthChecks: ParentPortalHealthCheck | null;
   readonly updatedAt: string | null;
 }
 
@@ -98,7 +178,7 @@ export interface ParentPortalWeeklyMenuDay {
   readonly dateStr: string;
   readonly badgeColor: string;
   readonly summaryDishes: string;
-  readonly caloriesKcal: number;
+  readonly caloriesKcal: number | null;
   readonly meals?: readonly ParentPortalMealDetail[];
 }
 
@@ -145,12 +225,12 @@ export interface ParentPortalVietQrPayload {
 
 export interface ParentPortalTuition {
   readonly invoiceId: string;
-  readonly invoiceCode: string;
-  readonly billingPeriodName: string;
+  readonly invoiceCode: string | null;
+  readonly billingPeriodName: string | null;
   readonly totalAmount: number;
   readonly amountPaid: number;
   readonly balanceDue: number;
-  readonly dueDate: string;
+  readonly dueDate: string | null;
   readonly status: 'UNPAID' | 'PARTIALLY_PAID' | 'PAID';
   readonly lineItems: readonly ParentPortalInvoiceLineItem[];
   readonly vietQrPayload?: ParentPortalVietQrPayload;

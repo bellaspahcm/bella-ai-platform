@@ -8,14 +8,23 @@ import type { ExecutiveDashboardDTO } from '@/products/bella-education/analytics
 jest.mock('next/navigation', () => ({ useRouter: () => ({ push: jest.fn() }) }));
 jest.mock('@/lib/supabase-client', () => ({ createClient: jest.fn() }));
 jest.mock('@/lib/dashboard-client-context', () => ({ clearDashboardClientContextCache: jest.fn() }));
+jest.mock('@/lib/user-context', () => ({ useUser: () => ({ user: { id: 'synthetic-admin', tenant_id: 'synthetic-tenant', full_name: 'Synthetic Admin', email: 'synthetic@example.invalid', role: 'admin' }, product: { productKey: 'bella_preschool' }, isLoading: false }) }));
 
-const snapshot: Partial<ExecutiveDashboardDTO> = {
+// Accepted MVP read contract: unavailable domains stay null, not fake zeroes.
+const snapshot: ExecutiveDashboardDTO = {
+  tenantId: 'synthetic-tenant', evaluatedAt: '2026-10-23T00:00:00.000Z',
   enrollment: {
-    totalEnrolledStudents: 186, totalClassrooms: 1, totalTeachers: 2,
+    totalEnrolledStudents: 186, totalClassrooms: 1, totalTeachers: null,
     classroomUtilization: [{ classId: 'synthetic-class', className: 'Lớp Lá', currentEnrollment: 186, maxCapacity: 200, utilizationRate: 93 }],
   },
-  attendance: { todayPresentCount: 0, todayAbsentCount: 0, todayLateCount: 0, presentVsEnrolledRate: 0 },
-  commandCenter: { unmarkedAttendanceCount: 156, leaveRequestsCount: 0, overdueInvoicesCount: 0, healthIncidentsCount: 0, parentRequestsCount: 0, totalParentsCount: 0 },
+  attendance: { todayPresentCount: 0, todayAbsentCount: 0, todayLateCount: null, presentVsEnrolledRate: 0 },
+  commandCenter: { unmarkedAttendanceCount: 156, leaveRequestsCount: null, overdueInvoicesCount: null, healthIncidentsCount: null, parentRequestsCount: null, totalParentsCount: null },
+  careAndSafety: { activeHealthIncidents: null, pendingMedicationDoses: null },
+  learning: { draftPortfoliosCount: null, pendingMilestoneReviews: null },
+  parentEngagement: { unacknowledgedNotices: null, pendingConsentRequests: null },
+  finance: { invoicedGrossTotal: null, reconciledCashCollected: null, outstandingBalanceTotal: null, overdueAccountsCount: null },
+  workforce: { activeStaffingViolations: null, openStaffingExceptions: null },
+  facilities: { outOfServiceAssetsCount: null, outOfServiceZonesCount: null, overdueScheduleCount: null, openSafetyExceptions: null },
 };
 
 let analyticsAvailable = true;
@@ -27,7 +36,7 @@ const mockFetch = jest.fn(async (input: RequestInfo | URL, _init?: RequestInit) 
     ok: analytics || copilotStatus === 200,
     status: analytics ? 200 : copilotStatus,
     json: async () => analytics
-      ? { success: analyticsAvailable, dashboard: analyticsAvailable ? snapshot : undefined }
+      ? { success: analyticsAvailable, branches: [{ id: 'synthetic-branch', name: 'Synthetic Branch' }], selectedBranchId: 'synthetic-branch', dashboard: analyticsAvailable ? snapshot : undefined }
       : copilotStatus === 200 ? { success: true, data: copilotData } : { error: 'FORBIDDEN' },
   } as Response;
 });
@@ -45,6 +54,7 @@ afterAll(() => { global.fetch = originalFetch; });
 async function loadPage() {
   render(<EducationDashboardPage />);
   await waitFor(() => expect(screen.getByRole('button', { name: 'Tạo điểm tin đầu ngày' })).toBeEnabled());
+  if (analyticsAvailable) await waitFor(() => expect(screen.getByLabelText('Chọn cơ sở Tổng quan')).toHaveValue('synthetic-branch'));
 }
 
 function submittedPayload(): Record<string, unknown> {
@@ -53,44 +63,56 @@ function submittedPayload(): Record<string, unknown> {
   return JSON.parse(String(call?.[1]?.body)) as Record<string, unknown>;
 }
 
-it('sends measured zero, recorded absence and unmarked values from the dashboard', async () => {
+it('preserves observed zeroes but never dispatches briefing without its canonical supporting data', async () => {
   await loadPage();
+  expect(screen.getByTestId('metric-total-kids')).toHaveTextContent('186');
+  expect(screen.getByTestId('metric-attendance-rate')).toHaveTextContent('0%');
   fireEvent.click(screen.getByRole('button', { name: 'Tạo điểm tin đầu ngày' }));
-  await screen.findByText('Có mặt 0 trẻ (0% chuyên cần).');
-  expect(submittedPayload()).toMatchObject({ action: 'executive_briefing', totalStudents: 186, presentCount: 0, absentCount: 0, unmarkedAttendanceCount: 156 });
+  await screen.findByText('Chưa đủ dữ liệu chuẩn về sức khỏe, học phí và yêu cầu phụ huynh để tạo điểm tin điều hành.');
+  expect(mockFetch.mock.calls.some(([url]) => url === '/api/education/ai/copilot')).toBe(false);
+  expect(screen.queryByText('Có mặt 0 trẻ (0% chuyên cần).')).not.toBeInTheDocument();
 });
 
 it('does not generate sample statistics when analytics failed', async () => {
   analyticsAvailable = false;
   await loadPage();
   fireEvent.click(screen.getByRole('button', { name: 'Tạo điểm tin đầu ngày' }));
-  expect(await screen.findByRole('alert')).toHaveTextContent('Chưa tải được số liệu tổng quan');
+  expect(await screen.findByRole('alert')).toHaveTextContent('Không tải được Tổng quan');
+  expect(screen.getByTestId('metric-total-kids')).toHaveTextContent('—');
   expect(mockFetch.mock.calls.some(([url]) => url === '/api/education/ai/copilot')).toBe(false);
 });
 
-it.each(['briefing', 'compliance', 'qa'])('shows authorization errors for %s instead of silently ignoring them', async tab => {
+it.each(['briefing', 'compliance'])('keeps unavailable %s at zero requests even when an endpoint would reject it', async tab => {
   copilotStatus = 403;
   await loadPage();
   if (tab === 'compliance') {
     fireEvent.click(screen.getByRole('button', { name: 'Rà soát TT52' }));
     fireEvent.click(screen.getByRole('button', { name: 'Quét an toàn & sĩ số' }));
-  } else if (tab === 'qa') {
-    fireEvent.click(screen.getByRole('button', { name: 'Hỏi đáp BGH' }));
-    fireEvent.change(screen.getByPlaceholderText(/Đặt câu hỏi điều hành/), { target: { value: 'Kiểm tra kết nối' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Gửi', exact: true }));
+    await screen.findByText('Chưa có dữ liệu độ tuổi và nhân sự chuẩn để kiểm tra định mức.');
   } else {
     fireEvent.click(screen.getByRole('button', { name: 'Tạo điểm tin đầu ngày' }));
+    await screen.findByText('Chưa đủ dữ liệu chuẩn về sức khỏe, học phí và yêu cầu phụ huynh để tạo điểm tin điều hành.');
   }
-  expect(await screen.findByRole('alert')).toHaveTextContent('Tài khoản chưa có quyền');
+  expect(mockFetch.mock.calls.some(([url]) => url === '/api/education/ai/copilot')).toBe(false);
 });
 
-it('sends actual classes without inferred ages or fabricated teachers and shows incomplete evidence', async () => {
+it('shows authorization errors for active Q&A instead of silently ignoring them', async () => {
+  copilotStatus = 403;
+  await loadPage();
+  fireEvent.click(screen.getByRole('button', { name: 'Hỏi đáp BGH' }));
+  fireEvent.change(screen.getByPlaceholderText(/Đặt câu hỏi điều hành/), { target: { value: 'Kiểm tra kết nối' } });
+  fireEvent.click(screen.getByRole('button', { name: 'Gửi', exact: true }));
+  expect(await screen.findByRole('alert')).toHaveTextContent('Tài khoản chưa có quyền');
+  expect(submittedPayload()).toMatchObject({ action: 'ask_copilot', question: 'Kiểm tra kết nối' });
+});
+
+it('withholds compliance without canonical ages and staffing and never claims a compliance score', async () => {
   copilotData = { verificationComplete: false, compliant: false, complianceScore: 100, inspectedClassesCount: 1, violations: [], warnings: ['Chưa có nhóm tuổi đã xác minh.'] };
   await loadPage();
   fireEvent.click(screen.getByRole('button', { name: 'Rà soát TT52' }));
   fireEvent.click(screen.getByRole('button', { name: 'Quét an toàn & sĩ số' }));
-  await screen.findByText('Chưa đủ dữ liệu để kết luận');
-  expect(submittedPayload().classRosterStats).toEqual([{ className: 'Lớp Lá', studentCount: 186 }]);
+  await screen.findByText('Chưa có dữ liệu độ tuổi và nhân sự chuẩn để kiểm tra định mức.');
+  expect(mockFetch.mock.calls.some(([url]) => url === '/api/education/ai/copilot')).toBe(false);
   expect(screen.queryByText('Đạt chuẩn 100%')).not.toBeInTheDocument();
   expect(screen.queryByText('/100')).not.toBeInTheDocument();
 });
