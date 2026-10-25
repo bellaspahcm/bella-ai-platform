@@ -1281,7 +1281,7 @@ export default function PreschoolEnrollmentsPage() {
             {isLoadingStudents && <p role="status" className="p-6 text-sm">Đang tải danh sách trẻ…</p>}
             {studentLoadError && <div role="alert" className="p-6 text-sm text-rose-700">
               <p>{studentLoadError}</p>
-              {registryNeedsLogin && <Link href="/login?reset=true&next=%2Fdashboard%2Feducation%2Fenrollments" className="mt-3 inline-block font-semibold underline">Đăng nhập tài khoản thật</Link>}
+              {registryNeedsLogin && <Link href={{ pathname: '/login', query: { reset: 'true', next: '/dashboard/education/enrollments' } }} className="mt-3 inline-block font-semibold underline">Đăng nhập tài khoản thật</Link>}
               {!registryNeedsLogin && <button type="button" onClick={() => setRegistryRefresh(value => value + 1)} className="mt-3 font-semibold underline">Thử tải lại</button>}
             </div>}
             {/* Empty State when no results */}

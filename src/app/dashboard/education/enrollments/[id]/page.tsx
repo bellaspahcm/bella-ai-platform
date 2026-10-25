@@ -148,7 +148,7 @@ function ProfileError({ state, onRetry }: { state: Extract<LoadState, { status: 
           <p className="mt-2 text-xs font-semibold text-slate-400 dark:text-slate-500">Mã: {state.code}</p>
           <div className="mt-6 flex flex-wrap justify-center gap-3">
             {state.needsLogin && (
-              <Link href="/login?reset=true&next=%2Fdashboard%2Feducation%2Fenrollments" className="rounded-xl bg-emerald-800 px-4 py-2 text-sm font-bold text-white hover:bg-emerald-900">
+              <Link href={{ pathname: '/login', query: { reset: 'true', next: '/dashboard/education/enrollments' } }} className="rounded-xl bg-emerald-800 px-4 py-2 text-sm font-bold text-white hover:bg-emerald-900">
                 Đăng nhập lại
               </Link>
             )}

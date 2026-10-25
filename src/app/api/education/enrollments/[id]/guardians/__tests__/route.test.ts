@@ -6,7 +6,7 @@ import type { PreschoolStudentGuardianReadPage } from '@/products/bella-educatio
 const mockReadGuardians = jest.fn<(studentId: string) => Promise<PreschoolStudentGuardianReadPage>>();
 jest.mock('@/products/bella-education/services/preschool-student-guardian-read.service', () => {
   const actual = jest.requireActual<typeof import('@/products/bella-education/services/preschool-student-guardian-read.service')>(
-    '@/products/bella-education/services/preschool-student-guardian-read.service',
+    '@/products/bella-education/services/preschool-student-guardian-read.service'
   );
   return {
     ...actual,
