@@ -75,7 +75,24 @@ export interface IOrgUnitRepository {
  * Supabase Org Unit Repository
  */
 export class SupabaseOrgUnitRepository implements IOrgUnitRepository {
-  constructor(private supabase: SupabaseClient<OrgUnitDatabase>) {}
+  private supabaseClient: SupabaseClient<OrgUnitDatabase> | undefined;
+
+  constructor(client?: SupabaseClient<OrgUnitDatabase>) {
+    this.supabaseClient = client;
+  }
+
+  private get supabase(): SupabaseClient<OrgUnitDatabase> {
+    if (this.supabaseClient) return this.supabaseClient;
+
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (!supabaseUrl || !supabaseKey) {
+      throw new Error('SUPABASE_SERVICE_ROLE_KEY is required for trusted org-unit repository access.');
+    }
+
+    this.supabaseClient = createClient<OrgUnitDatabase>(supabaseUrl, supabaseKey);
+    return this.supabaseClient;
+  }
 
   /**
    * Create organization unit
@@ -347,12 +364,5 @@ export class SupabaseOrgUnitRepository implements IOrgUnitRepository {
  * repository behavior for trusted server-side consumers.
  */
 export function createOrgUnitRepository(client?: SupabaseClient<OrgUnitDatabase>): IOrgUnitRepository {
-  if (client) return new SupabaseOrgUnitRepository(client);
-
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-  
-  const supabase = createClient<OrgUnitDatabase>(supabaseUrl, supabaseKey);
-  
-  return new SupabaseOrgUnitRepository(supabase);
+  return new SupabaseOrgUnitRepository(client);
 }
