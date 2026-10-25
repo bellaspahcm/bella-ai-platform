@@ -781,10 +781,10 @@ function PreschoolCommunicationContent({ tenantId }: { readonly tenantId: string
             </div>
             <div>
               <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-                {activeNavTab === 'announcements' ? 'Bảng tin chung' : 'Truyền thông & Phụ huynh'}
+                Trung Tâm Truyền Thông &amp; Tương Tác
               </h1>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                {activeNavTab === 'announcements' ? 'Thông báo của nhà trường dành cho phụ huynh có liên kết Portal hợp lệ.' : 'Quản lý tin nhắn, thông báo, sổ liên lạc và biểu mẫu đồng ý của phụ huynh'}
+                Quản lý tin nhắn, thông báo, sổ liên lạc và biểu mẫu đồng ý của phụ huynh
               </p>
             </div>
           </div>
@@ -815,7 +815,7 @@ function PreschoolCommunicationContent({ tenantId }: { readonly tenantId: string
             <span>Tạo link Portal Phụ huynh</span>
           </button>}
 
-          <button
+          {activeNavTab !== 'announcements' && <button
             type="button"
             onClick={() => {
               setActionNotice(null);
@@ -825,13 +825,11 @@ function PreschoolCommunicationContent({ tenantId }: { readonly tenantId: string
           >
             <Send className="w-4 h-4" />
             <span>Đăng thông báo chung</span>
-          </button>
+          </button>}
         </div>
       </div>
 
-      {activeNavTab === 'announcements' && tabParam !== 'announcements' && <button type="button" onClick={() => setActiveNavTab('overview')} className="text-sm font-semibold underline">Quay lại tổng quan truyền thông</button>}
-
-      {activeNavTab !== 'announcements' && <>
+      <>
       <p id="portal-issuance-unavailable" className="text-sm text-slate-600 dark:text-slate-300">Chưa thể cấp liên kết phụ huynh: chưa xác minh học sinh và người giám hộ từ hồ sơ thật.</p>
 
       <div role="note" className="rounded-2xl border border-amber-200 dark:border-amber-900 bg-amber-50 dark:bg-amber-950 p-4 text-sm text-amber-900 dark:text-amber-200">
@@ -882,11 +880,11 @@ function PreschoolCommunicationContent({ tenantId }: { readonly tenantId: string
           <div>
             <div className="text-xs font-bold text-slate-700 dark:text-slate-300">Tin chưa đọc</div>
             <div className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight mt-1">
-              8
+              —
             </div>
             <div className="text-[11px] font-semibold text-rose-600 dark:text-rose-400 mt-1 flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-rose-600" />
-              <span>3 cuộc quá hạn</span>
+              <span>Chưa được cung cấp</span>
             </div>
           </div>
         </div>
@@ -899,14 +897,11 @@ function PreschoolCommunicationContent({ tenantId }: { readonly tenantId: string
           <div>
             <div className="text-xs font-bold text-slate-700 dark:text-slate-300">Tỷ lệ đã đọc</div>
             <div className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight mt-1">
-              96.8%
+              —
             </div>
             <div className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-400 mt-1 flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" />
-              <span>268 / 280 phụ huynh</span>
-            </div>
-            <div className="w-full h-1.5 rounded-full bg-slate-100 dark:bg-slate-700 overflow-hidden mt-3">
-              <div className="h-full bg-emerald-500 rounded-full" style={{ width: '96.8%' }} />
+              <span>Chưa được cung cấp</span>
             </div>
           </div>
         </div>
@@ -919,14 +914,11 @@ function PreschoolCommunicationContent({ tenantId }: { readonly tenantId: string
           <div>
             <div className="text-xs font-bold text-slate-700 dark:text-slate-300">Chưa phản hồi</div>
             <div className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight mt-1">
-              25
+              —
             </div>
             <div className="text-[11px] font-semibold text-amber-700 dark:text-amber-400 mt-1 flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-amber-600" />
-              <span>Biểu mẫu đồng ý</span>
-            </div>
-            <div className="w-full h-1.5 rounded-full bg-slate-100 dark:bg-slate-700 overflow-hidden mt-3">
-              <div className="h-full bg-amber-500 rounded-full" style={{ width: '25%' }} />
+              <span>Chưa được cung cấp</span>
             </div>
           </div>
         </div>
@@ -939,18 +931,10 @@ function PreschoolCommunicationContent({ tenantId }: { readonly tenantId: string
           <div>
             <div className="text-xs font-bold text-slate-700 dark:text-slate-300">Hài lòng phụ huynh</div>
             <div className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight mt-1">
-              4.9 / 5.0
+              —
             </div>
             <div className="text-[11px] text-slate-400 mt-1 flex items-center gap-1.5">
-              <span>◆</span>
-              <span>Khảo sát tháng 9</span>
-            </div>
-            <div className="flex items-center gap-1 text-amber-400 text-xs mt-2">
-              <span>⭐</span>
-              <span>⭐</span>
-              <span>⭐</span>
-              <span>⭐</span>
-              <span>⭐</span>
+              <span>Chưa được cung cấp</span>
             </div>
           </div>
         </div>
@@ -1002,7 +986,11 @@ function PreschoolCommunicationContent({ tenantId }: { readonly tenantId: string
         <button
           type="button"
           onClick={() => setActiveNavTab('announcements')}
-          className="px-4 py-2 text-xs font-extrabold rounded-2xl transition-all whitespace-nowrap cursor-pointer flex items-center gap-2 bg-white dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50"
+          className={`px-4 py-2 text-xs font-extrabold rounded-2xl transition-all whitespace-nowrap cursor-pointer flex items-center gap-2 ${
+            activeNavTab === 'announcements'
+              ? 'bg-[#0c513f] text-white shadow-sm'
+              : 'bg-white dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50'
+          }`}
         >
           <Bell className="w-3.5 h-3.5" />
           <span>Thông báo</span>
@@ -1035,7 +1023,7 @@ function PreschoolCommunicationContent({ tenantId }: { readonly tenantId: string
         </button>
       </div>
 
-      </>}
+      </>
 
       {/* ── ANNOUNCEMENTS TAB VIEW ── */}
       {activeNavTab === 'announcements' && (
@@ -1046,7 +1034,7 @@ function PreschoolCommunicationContent({ tenantId }: { readonly tenantId: string
               <Bell className="w-4 h-4 text-[#0c513f]" />
               <h2 className="text-sm font-extrabold text-slate-900 dark:text-white">Thông báo chung của nhà trường</h2>
               <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-[#0c513f]/10 text-[#0c513f]">
-                {announcements.length} thông báo
+                {isLoadingAnnouncements || announcementLoadError ? '— thông báo' : `${announcements.length} thông báo`}
               </span>
             </div>
             <button

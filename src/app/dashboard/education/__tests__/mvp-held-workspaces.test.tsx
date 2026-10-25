@@ -2,33 +2,43 @@
 import '@testing-library/jest-dom';
 import { render, screen } from '@testing-library/react';
 import Facilities from '../facilities/page';
-import Teachers from '../teachers/page';
-import TeacherProfile from '../teachers/[id]/page';
 import Grades from '../grades/page';
 import Finance from '../finance/page';
 
-// Importing an old browser DB/mutation dependency fails this boundary test.
 jest.mock('@/lib/user-context', () => ({ useUser: () => ({ user: { id: 'synthetic-admin', tenant_id: 'synthetic-tenant' }, product: { productKey: 'bella_preschool' }, isLoading: false }) }));
 jest.mock('@/lib/dashboard-client-context', () => ({ getCachedTenantSettings: () => { throw new Error('HELD_WORKSPACE_MUST_NOT_LOAD_SETTINGS'); } }));
 jest.mock('@supabase/supabase-js', () => { throw new Error('HELD_WORKSPACE_MUST_NOT_LOAD_DB'); });
 jest.mock('@/lib/supabase-client', () => { throw new Error('HELD_WORKSPACE_MUST_NOT_LOAD_CALLER_DB'); });
 jest.mock('next/link', () => ({ __esModule: true, default: ({ children, href }: React.AnchorHTMLAttributes<HTMLAnchorElement>) => <a href={href}>{children}</a> }));
 
-it.each([
-  ['Grades', Grades, 'Học tập & Hoạt động'],
-  ['Finance', Finance, 'Tài chính'],
-  ['Facilities', Facilities, 'Cơ sở vật chất'],
-  ['Teachers', Teachers, 'Quản lý giáo viên'],
-  ['Teacher direct profile', TeacherProfile, 'Quản lý giáo viên'],
-] as const)('%s shows the held state with no data or mutation capability', (_name, Page, heading) => {
+it('keeps unpersisted assessment data held outside development', () => {
   const fetchMock = jest.fn();
   Object.defineProperty(globalThis, 'fetch', { configurable: true, writable: true, value: fetchMock });
-  render(<Page />);
-  expect(screen.getByRole('heading', { name: heading })).toBeInTheDocument();
+  render(<Grades />);
+  expect(screen.getByRole('heading', { name: 'Học tập & Hoạt động' })).toBeInTheDocument();
   expect(screen.getByRole('status')).toHaveTextContent('Chưa mở trong MVP Preschool');
-  expect(screen.getByRole('link', { name: 'Về danh sách lớp' })).toHaveAttribute('href', '/dashboard/education/courses');
-  expect(screen.queryByRole('button')).not.toBeInTheDocument();
-  expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
-  expect(screen.queryByRole('table')).not.toBeInTheDocument();
   expect(fetchMock).not.toHaveBeenCalled();
+});
+
+it('restores the facilities layout without loading or mutating unverified data', () => {
+  const fetchMock = jest.fn();
+  Object.defineProperty(globalThis, 'fetch', { configurable: true, writable: true, value: fetchMock });
+  render(<Facilities />);
+  expect(screen.getByRole('heading', { name: 'Cơ sở vật chất & Tài sản' })).toBeInTheDocument();
+  expect(screen.getByRole('table')).toHaveTextContent('Chưa có nguồn dữ liệu đã xác minh.');
+  expect(screen.getByRole('button', { name: 'Thêm tài sản' })).toBeDisabled();
+  expect(screen.getByRole('button', { name: 'Báo cáo ngay' })).toBeDisabled();
+  expect(fetchMock).not.toHaveBeenCalled();
+});
+
+it('restores the finance layout with commands disabled before a successful canonical read', () => {
+  const fetchMock = jest.fn(() => new Promise<Response>(() => undefined));
+  Object.defineProperty(globalThis, 'fetch', { configurable: true, writable: true, value: fetchMock });
+  render(<Finance />);
+  expect(screen.getByRole('heading', { name: /Tài chính & Học phí/ })).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: /Lập hóa đơn/ })).toBeDisabled();
+  expect(screen.getByRole('button', { name: /Ghi nhận thanh toán/ })).toBeDisabled();
+  expect(screen.getByText('Chưa xác minh')).toBeInTheDocument();
+  expect(screen.getByText('Chưa có dữ liệu tài chính đã xác minh để hiển thị nội dung nghiệp vụ.')).toBeInTheDocument();
+  expect(screen.queryByText('Không có công nợ tồn đọng theo lớp.')).not.toBeInTheDocument();
 });

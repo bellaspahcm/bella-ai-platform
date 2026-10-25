@@ -1,6 +1,14 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '@/types/database.types';
 import type { CanonicalCourseCatalogItem, ICanonicalCourseCatalogContract } from './canonical-course-catalog.contract';
+import {
+  CanonicalCourseCommandError,
+  type CreatedCanonicalCourse,
+  type CreateCanonicalCourseInput,
+  type ICanonicalCourseCommandContract,
+} from './canonical-course-catalog.contract';
+import { Course } from '../domain/course.entity';
+import { SupabaseEducationRepository } from '../repositories/supabase-education.repository';
 
 /** Caller-scoped read only. RLS remains authoritative; failures never become empty data. */
 export class CanonicalCourseCatalogContractImpl implements ICanonicalCourseCatalogContract {
@@ -24,6 +32,33 @@ export class CanonicalCourseCatalogContractImpl implements ICanonicalCourseCatal
       seen.add(row.id);
       return { id: row.id, tenantId, courseCode: row.course_code, title: row.title,
         status: row.status as CanonicalCourseCatalogItem['status'] };
+    });
+  }
+}
+
+/** Atomic canonical writer; persistence and retry identity stay in Education's owning repository. */
+export class CanonicalCourseCommandContractImpl implements ICanonicalCourseCommandContract {
+  constructor(private readonly client: SupabaseClient<Database>) {}
+
+  async createCourse(input: CreateCanonicalCourseInput): Promise<CreatedCanonicalCourse> {
+    const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (![input.tenantId, input.actorId, input.branchId, input.operationKey]
+      .every(value => typeof value === 'string' && uuid.test(value))
+      || typeof input.courseCode !== 'string' || !input.courseCode.trim() || input.courseCode.length > 80
+      || typeof input.title !== 'string' || !input.title.trim() || input.title.length > 200) {
+      throw new CanonicalCourseCommandError('CANONICAL_COURSE_INVALID_REQUEST', 400);
+    }
+
+    const course = Course.create({
+      tenantId: input.tenantId.toLowerCase(),
+      courseCode: input.courseCode,
+      title: input.title,
+    });
+    return new SupabaseEducationRepository(this.client).executeCreateCourseTransaction({
+      course,
+      actorId: input.actorId.toLowerCase(),
+      operationKey: input.operationKey.toLowerCase(),
+      branchId: input.branchId.toLowerCase(),
     });
   }
 }

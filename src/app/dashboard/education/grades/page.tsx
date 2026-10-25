@@ -3781,7 +3781,9 @@ export default function PreschoolDevelopmentGradesPage() {
   const { user, product, isLoading } = useUser();
   if (isLoading) return <p role="status">Đang xác minh tài khoản…</p>;
   if (!user?.tenant_id || !product) return <p role="alert">Không có quyền mở màn hình này.</p>;
-  if (product.productKey === 'bella_preschool') return (
+  // The original Grades presentation contains illustrative children and local-only drafts.
+  // Restore its visual preview in local development without publishing sample records.
+  if (product.productKey === 'bella_preschool' && process.env.NODE_ENV !== 'development') return (
     <section className="p-6 space-y-4" aria-labelledby="held-workspace-heading">
       <h1 id="held-workspace-heading" className="text-2xl font-bold">Học tập &amp; Hoạt động</h1>
       <p role="status" className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-amber-950 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-100">Chưa mở trong MVP Preschool</p>

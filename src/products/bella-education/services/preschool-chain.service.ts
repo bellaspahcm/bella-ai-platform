@@ -6,6 +6,8 @@ import { EducationPreschoolOperationsContractImpl } from '@/platform/education/c
 import { EnrollmentContractImpl } from '@/platform/education/contracts/enrollment.contract.impl';
 import { EnrollmentRecoveryContractImpl } from '@/platform/education/contracts/enrollment-recovery.contract.impl';
 import type { IOrgUnitContract, OrgUnit } from '@/platform/org-unit';
+import type { ITrustedActorOrgUnitAccessContract, TrustedActorOrgUnitAccessRow } from '@/platform/org-unit/trusted-actor-access.contract';
+import { TrustedActorOrgUnitAccessContractImpl } from '@/platform/org-unit/trusted-actor-access.contract.impl';
 
 type PreschoolChainClient = SupabaseClient<Database>;
 type OrgRelationshipRow = Pick<
@@ -52,12 +54,17 @@ export class PreschoolChainError extends Error {
 
 export class PreschoolChainService {
   private readonly operations: IEducationPreschoolOperationsContract;
+  private readonly trustedActorAccess: ITrustedActorOrgUnitAccessContract;
 
   public constructor(
     private readonly client: PreschoolChainClient,
     private readonly orgUnits: OrgUnitContractScope = getDefaultOrgUnitContract(),
     operations?: IEducationPreschoolOperationsContract,
-  ) { this.operations = operations ?? new EducationPreschoolOperationsContractImpl(client); }
+    trustedActorAccess?: ITrustedActorOrgUnitAccessContract,
+  ) {
+    this.operations = operations ?? new EducationPreschoolOperationsContractImpl(client);
+    this.trustedActorAccess = trustedActorAccess ?? new TrustedActorOrgUnitAccessContractImpl(client);
+  }
 
   public async listAccessibleBranches(
     tenantId: string,
@@ -66,27 +73,18 @@ export class PreschoolChainService {
     if (!tenantId) throw new Error('PRESCHOOL_CHAIN_TENANT_REQUIRED');
     if (!actorUserId) throw new Error('PRESCHOOL_CHAIN_ACTOR_REQUIRED');
 
-    const branches = await this.orgUnits.getOrgUnits({
+    await this.getActiveRole(tenantId, actorUserId);
+    const [branches, accessRows] = await Promise.all([this.orgUnits.getOrgUnits({
       tenantId,
       unitType: 'branch',
       isActive: true,
-    });
+    }), this.listTrustedActorAccess(tenantId, actorUserId)]);
 
-    const role = await this.getActiveRole(tenantId, actorUserId);
-    if (role === 'admin' || role === 'super_admin') {
-      return this.toBranchOptions(branches);
-    }
-
-    const person = await this.getActivePersonForUser(tenantId, actorUserId);
-    if (!person) return [];
-
-    const relationships = await this.getActiveUnitRelationships(tenantId, person.id);
-    const orgUnitScopes = await this.orgUnits.getOrgUnits({ tenantId, isActive: true });
-    const accessibleBranches = branches.filter((branch) =>
-      this.isBranchAccessible(branch.id, relationships, orgUnitScopes),
-    );
-
-    return this.toBranchOptions(accessibleBranches);
+    const explicitlyAccessibleBranchIds = new Set(accessRows
+      .filter((row) => typeof row.relationship_id === 'string' && row.relationship_id.length > 0
+        && ['belongs_to', 'manages', 'participates_in'].includes(row.access_source))
+      .map((row) => row.org_unit_id));
+    return this.toBranchOptions(branches.filter((branch) => explicitlyAccessibleBranchIds.has(branch.id)));
   }
 
   public async preflightEnrollmentBranch(input: PreschoolChainPreflightInput): Promise<OrgUnitScope> {
@@ -295,6 +293,22 @@ export class PreschoolChainService {
     if (!this.isBranchAccessible(branchId, relationships, orgUnits)) {
       throw new PreschoolChainError('PRESCHOOL_CHAIN_BRANCH_ACCESS_DENIED',403);
     }
+  }
+
+  private async listTrustedActorAccess(tenantId: string, actorUserId: string): Promise<readonly TrustedActorOrgUnitAccessRow[]> {
+    let rows: readonly TrustedActorOrgUnitAccessRow[];
+    try {
+      rows = await this.trustedActorAccess.listForActor({ p_tenant_id: tenantId, p_actor_id: actorUserId });
+    } catch (error) {
+      if (error instanceof Error && error.message === 'TRUSTED_ACTOR_ACCESS_DENIED') {
+        throw new PreschoolChainError('PRESCHOOL_CHAIN_BRANCH_ACCESS_DENIED', 403);
+      }
+      throw new Error(`PRESCHOOL_CHAIN_BRANCH_ACCESS_LOOKUP_FAILED: ${error instanceof Error ? error.message : 'Unknown access error'}`);
+    }
+    if (rows.some((row) => row.tenant_id !== tenantId || row.user_id !== actorUserId)) {
+      throw new PreschoolChainError('PRESCHOOL_CHAIN_BRANCH_ACCESS_DENIED', 403);
+    }
+    return rows;
   }
 
   private async getActiveRole(tenantId: string, userId: string): Promise<string> {

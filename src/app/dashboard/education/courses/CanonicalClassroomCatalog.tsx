@@ -1,33 +1,37 @@
 'use client';
 
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import Link from 'next/link';
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
 import { ArrowLeft, BookOpen, Calendar, CalendarCheck, GraduationCap, MapPin, PieChart, Plus, Search, RefreshCw, SlidersHorizontal, UserPlus, Users } from 'lucide-react';
 import type { CanonicalCourseCatalogItem } from '@/platform/education/contracts/canonical-course-catalog.contract';
 
 type CatalogState =
   | { kind: 'loading' | 'error' | 'unsupported' }
-  | { kind: 'ready'; courses: readonly CanonicalCourseCatalogItem[] };
+  | { kind: 'ready'; tenantId: string; courses: readonly CanonicalCourseCatalogItem[] };
 const statusLabels = { draft: 'Chưa hoạt động', active: 'Đang hoạt động', archived: 'Đã lưu trữ' };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === 'object' && !Array.isArray(value);
 }
-function parseCatalog(value: unknown): readonly CanonicalCourseCatalogItem[] {
+function parseCatalog(value: unknown): { tenantId: string; courses: readonly CanonicalCourseCatalogItem[] } {
   if (!isRecord(value) || value.success !== true || typeof value.tenantId !== 'string' || !value.tenantId
     || !Array.isArray(value.courses)) throw new Error('INVALID_CATALOG');
   const tenantId = value.tenantId;
   const seen = new Set<string>();
-  return value.courses.map((row: unknown) => {
+  const courses = value.courses.map((row: unknown) => {
+    const courseStatus = isRecord(row) ? row.status : undefined;
     if (!isRecord(row) || typeof row.id !== 'string' || !row.id || seen.has(row.id)
       || row.tenantId !== tenantId || typeof row.courseCode !== 'string'
       || typeof row.title !== 'string'
-      || (row.status !== 'draft' && row.status !== 'active' && row.status !== 'archived')) {
+      || (courseStatus !== 'draft' && courseStatus !== 'active' && courseStatus !== 'archived')) {
       throw new Error('INVALID_CATALOG');
     }
     seen.add(row.id);
-    return { id: row.id, tenantId, courseCode: row.courseCode, title: row.title, status: row.status };
+    const status = courseStatus as CanonicalCourseCatalogItem['status'];
+    return { id: row.id, tenantId, courseCode: row.courseCode, title: row.title, status };
   });
+  return { tenantId, courses };
 }
 
 export default function CanonicalClassroomCatalog({ legacy }: { legacy: ReactNode }) {
@@ -35,6 +39,20 @@ export default function CanonicalClassroomCatalog({ legacy }: { legacy: ReactNod
   const [attempt, setAttempt] = useState(0);
   const [query, setQuery] = useState('');
   const [status, setStatus] = useState('all');
+  const [createOpen, setCreateOpen] = useState(false);
+  const [operationKey, setOperationKey] = useState<string | null>(null);
+  const [branchId, setBranchId] = useState('');
+  const [code, setCode] = useState('');
+  const [title, setTitle] = useState('');
+  const [submittedPayload, setSubmittedPayload] = useState<{
+    operationKey: string; branchId: string; code: string; title: string; tenantId: string;
+  } | null>(null);
+  const [branches, setBranches] = useState<readonly { id: string; name: string }[] | null>(null);
+  const [branchError, setBranchError] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const submitLock = useRef(false);
+  const [createError, setCreateError] = useState('');
+  const [created, setCreated] = useState<CanonicalCourseCatalogItem | null>(null);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -56,7 +74,7 @@ export default function CanonicalClassroomCatalog({ legacy }: { legacy: ReactNod
           setState({ kind: 'unsupported' });
         } else {
           if (!response.ok) throw new Error('CATALOG_READ_FAILED');
-          setState({ kind: 'ready', courses: parseCatalog(body) });
+          setState({ kind: 'ready', ...parseCatalog(body) });
         }
       } catch {
         if (current) setState({ kind: 'error' });
@@ -66,6 +84,96 @@ export default function CanonicalClassroomCatalog({ legacy }: { legacy: ReactNod
     })();
     return () => { current = false; clearTimeout(timeout); controller.abort(); };
   }, [attempt]);
+
+  useEffect(() => {
+    if (!createOpen) return;
+    const controller = new AbortController();
+    let current = true;
+    setBranches(null);
+    setBranchError(false);
+    const timeout = setTimeout(() => {
+      controller.abort();
+      if (current) { current = false; setBranchError(true); }
+    }, 15_000);
+    void (async () => {
+      try {
+        const response = await fetch('/api/education/branches', { cache: 'no-store', signal: controller.signal });
+        const body: unknown = await response.json();
+        if (!response.ok || !isRecord(body) || body.success !== true || !Array.isArray(body.branches)) {
+          throw new Error('BRANCHES_UNAVAILABLE');
+        }
+        const seen = new Set<string>();
+        const options = body.branches.map((row: unknown) => {
+          if (!isRecord(row) || typeof row.id !== 'string' || !row.id || seen.has(row.id)
+            || typeof row.name !== 'string' || !row.name.trim()) throw new Error('INVALID_BRANCHES');
+          seen.add(row.id);
+          return { id: row.id, name: row.name };
+        });
+        if (current) setBranches(options);
+      } catch {
+        if (current) setBranchError(true);
+      } finally {
+        clearTimeout(timeout);
+      }
+    })();
+    return () => { current = false; clearTimeout(timeout); controller.abort(); };
+  }, [createOpen]);
+
+  async function submitCreate(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (submitLock.current || state.kind !== 'ready' || !operationKey
+      || !branches?.some(branch => branch.id === branchId)) return;
+    const payload = submittedPayload ?? { operationKey, branchId, code, title, tenantId: state.tenantId };
+    if (payload.tenantId !== state.tenantId) {
+      setCreateError('Phạm vi truy cập đã thay đổi. Tải lại danh sách lớp trước khi thử lại.');
+      return;
+    }
+
+    setSubmittedPayload(payload);
+    submitLock.current = true;
+    setSubmitting(true);
+    setCreateError('');
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 15_000);
+    let failureMessage = 'Chưa thể xác nhận tạo lớp. Thông tin được giữ lại để bạn thử lại an toàn.';
+    try {
+      const response = await fetch('/api/education/courses', {
+        method: 'POST',
+        cache: 'no-store',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ operationKey: payload.operationKey, branchId: payload.branchId, code: payload.code, title: payload.title }),
+        signal: controller.signal,
+      });
+      const body: unknown = await response.json();
+      if (!response.ok) {
+        if (response.status === 409) failureMessage = 'Mã lớp hoặc yêu cầu tạo lớp bị trùng. Kiểm tra danh sách trước khi bắt đầu yêu cầu mới.';
+        if (response.status === 401 || response.status === 403) failureMessage = 'Bạn chưa được cấp quyền tạo lớp tại chi nhánh này.';
+        throw new Error('CREATE_FAILED');
+      }
+      const row = isRecord(body) && body.success === true && isRecord(body.course) ? body.course : null;
+      if (!row || typeof row.id !== 'string' || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(row.id)
+        || row.tenantId !== payload.tenantId || row.branchId !== payload.branchId || row.operationKey !== payload.operationKey
+        || row.courseCode !== payload.code.trim().toUpperCase() || row.title !== payload.title.trim() || row.status !== 'active') {
+        failureMessage = 'Phản hồi tạo lớp chưa được xác minh. Thông tin được giữ lại để bạn thử lại an toàn.';
+        throw new Error('IDENTITY_UNCONFIRMED');
+      }
+      setCreated({ id: row.id, tenantId: payload.tenantId, courseCode: row.courseCode, title: row.title, status: 'active' });
+      setCreateOpen(false);
+      setOperationKey(null);
+      setBranchId('');
+      setCode('');
+      setTitle('');
+      setSubmittedPayload(null);
+      setState({ kind: 'loading' });
+      setAttempt(value => value + 1);
+    } catch {
+      setCreateError(failureMessage);
+    } finally {
+      clearTimeout(timeout);
+      submitLock.current = false;
+      setSubmitting(false);
+    }
+  }
 
   if (state.kind === 'unsupported') return legacy;
   const ready = state.kind === 'ready';
@@ -93,8 +201,11 @@ export default function CanonicalClassroomCatalog({ legacy }: { legacy: ReactNod
           <span className="flex items-center gap-2 bg-slate-50 dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 rounded-2xl px-3.5 py-2 text-xs text-slate-500">
             <Calendar className="w-4 h-4" />Năm học: chưa được cung cấp
           </span>
-          <button type="button" disabled title="Chưa mở chức năng tạo lớp trong phạm vi chỉ đọc"
-            className="px-4 py-2.5 rounded-2xl bg-[#075548] text-white font-bold text-xs flex items-center gap-1.5 opacity-60 cursor-not-allowed">
+          <button type="button" disabled={!ready || submitting} onClick={() => {
+            if (!operationKey) setOperationKey(crypto.randomUUID());
+            setCreateError('');
+            setCreateOpen(true);
+          }} className="px-4 py-2.5 rounded-2xl bg-[#075548] text-white font-bold text-xs flex items-center gap-1.5 disabled:opacity-60 disabled:cursor-not-allowed">
             <Plus className="w-4 h-4" />Mở Lớp Học Mới
           </button>
           <button type="button" onClick={() => { setState({ kind: 'loading' }); setAttempt(value => value + 1); }}
@@ -142,6 +253,53 @@ export default function CanonicalClassroomCatalog({ legacy }: { legacy: ReactNod
         </div>
       </section>
     </div>
+    <Dialog open={createOpen} onOpenChange={open => { if (!submitting) setCreateOpen(open); }}>
+      <DialogContent showCloseButton={!submitting}>
+        <DialogTitle>Mở lớp học mới</DialogTitle>
+        <DialogDescription>Nhập mã, tên lớp và chọn chi nhánh. Quyền tạo lớp được xác minh khi lưu.</DialogDescription>
+        <form onSubmit={submitCreate} className="mt-4 space-y-4">
+          <label className="block text-sm font-semibold">Chi nhánh
+            <select aria-label="Chi nhánh" value={branchId} disabled={!branches || submitting || !!submittedPayload}
+              onChange={event => { if (!submittedPayload) setBranchId(event.target.value); }} required
+              className="mt-1 block w-full rounded-xl border border-slate-300 bg-white p-2.5 text-sm dark:border-slate-700 dark:bg-slate-900">
+              <option value="">Chọn chi nhánh</option>
+              {branches?.map(branch => <option key={branch.id} value={branch.id}>{branch.name}</option>)}
+            </select>
+          </label>
+          {!branches && !branchError && <p role="status">Đang tải chi nhánh…</p>}
+          {branchError && <p role="alert">Không thể tải chi nhánh. Đóng rồi mở lại biểu mẫu để thử lại.</p>}
+          {branches?.length === 0 && <p role="alert">Chưa có chi nhánh trong phạm vi truy cập.</p>}
+          <label className="block text-sm font-semibold">Mã lớp
+            <input aria-label="Mã lớp" value={code} onChange={event => { if (!submittedPayload) setCode(event.target.value); }}
+              required maxLength={80} disabled={submitting || !!submittedPayload}
+              className="mt-1 block w-full rounded-xl border border-slate-300 bg-white p-2.5 text-sm dark:border-slate-700 dark:bg-slate-900" />
+          </label>
+          <label className="block text-sm font-semibold">Tên lớp
+            <input aria-label="Tên lớp" value={title} onChange={event => { if (!submittedPayload) setTitle(event.target.value); }}
+              required maxLength={200} disabled={submitting || !!submittedPayload}
+              className="mt-1 block w-full rounded-xl border border-slate-300 bg-white p-2.5 text-sm dark:border-slate-700 dark:bg-slate-900" />
+          </label>
+          {createError && <p role="alert" className="text-sm text-red-700">{createError} Thông tin được giữ lại.</p>}
+          {submittedPayload && !submitting && <div className="space-y-2 rounded-xl border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950">
+            <p>Yêu cầu trước có thể đã tạo lớp. Giữ nguyên thông tin để thử lại cùng mã yêu cầu hoặc kiểm tra danh sách trước.</p>
+            <div className="flex flex-wrap gap-2">
+              <button type="button" onClick={() => { setCreateOpen(false); setState({ kind: 'loading' }); setAttempt(value => value + 1); }} className="rounded-xl border px-3 py-2">Kiểm tra danh sách lớp</button>
+              <button type="button" onClick={() => {
+                setOperationKey(crypto.randomUUID()); setSubmittedPayload(null); setBranchId(''); setCode(''); setTitle(''); setCreateError('');
+              }} className="rounded-xl border px-3 py-2">Bắt đầu yêu cầu mới</button>
+            </div>
+          </div>}
+          <div className="flex justify-end gap-3">
+            <button type="button" disabled={submitting} onClick={() => setCreateOpen(false)} className="rounded-xl border px-4 py-2">Đóng</button>
+            <button type="submit" disabled={submitting || !branchId || !branches?.some(branch => branch.id === branchId) || !code.trim() || !title.trim()}
+              className="rounded-xl bg-[#075548] px-4 py-2 font-bold text-white disabled:opacity-60">
+              {submitting ? 'Đang tạo lớp…' : 'Tạo lớp'}
+            </button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
+    {created && state.kind === 'ready' && created.tenantId === state.tenantId && <p role="status">Đã tạo lớp {created.title}. <Link href={`/dashboard/education/courses/${encodeURIComponent(created.id)}`} className="underline">Mở lớp vừa tạo</Link></p>}
     {state.kind === 'loading' && <p role="status">Đang tải danh sách lớp…</p>}
     {state.kind === 'error' && <p role="alert" className="rounded-2xl border border-red-200 bg-red-50 p-5 text-red-800">
       Không thể tải danh sách lớp. Chưa thể xác định tổng số lớp; vui lòng tải lại.
@@ -177,8 +335,8 @@ export default function CanonicalClassroomCatalog({ legacy }: { legacy: ReactNod
                 <p className="text-[11px] text-slate-500 dark:text-slate-400">Chưa có số liệu điểm danh hoặc sức khỏe trong danh sách lớp.</p>
               </div>
               <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center gap-3">
-                <button type="button" disabled title="Chi tiết vận hành lớp chưa khả dụng."
-                  className="flex-1 py-2 px-3 rounded-xl border border-indigo-200 dark:border-indigo-900/60 bg-indigo-50/60 dark:bg-indigo-950/40 text-indigo-400 font-bold text-xs cursor-not-allowed">Vào lớp học</button>
+                <Link href={`/dashboard/education/courses/${encodeURIComponent(course.id)}`}
+                  className="flex-1 py-2 px-3 rounded-xl border border-indigo-200 dark:border-indigo-900/60 bg-indigo-50/60 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 font-bold text-xs text-center">Vào lớp học</Link>
                 <Link href="/dashboard/education/attendance" className="flex-1 py-2 px-3 rounded-xl bg-[#075548] hover:bg-[#05443a] text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-xs">
                   <CalendarCheck className="w-3.5 h-3.5" />Điểm danh
                 </Link>

@@ -1,7 +1,7 @@
 /** @jest-environment jsdom */
 import { beforeEach, expect, it, jest } from '@jest/globals';
 import { useLayoutEffect } from 'react';
-import { cleanup, render, screen, waitFor } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 
 let currentId = 'SYN-CHILD-001';
 let currentSearch = '';
@@ -85,14 +85,17 @@ beforeEach(() => {
 it('shows only canonical identity, enrollment and raw attendance evidence', async () => {
   render(<Student360Page />);
   expect(await screen.findByRole('heading', { name: 'Synthetic Child' })).toBeTruthy();
+  expect(screen.getByRole('tab', { name: 'Tổng Quan 360°' })).toHaveAttribute('aria-selected', 'true');
   expect(screen.getAllByText('Synthetic Class').length).toBeGreaterThan(0);
   expect(screen.getByText(/Synthetic Branch/)).toBeTruthy();
+  fireEvent.click(screen.getByRole('tab', { name: 'Điểm Danh & Đón Trả' }));
   expect(screen.getAllByText('Có mặt')).toHaveLength(2);
   expect(screen.getByText(eventId)).toBeTruthy();
   expect(screen.queryByText(/36[,.]6/)).toBeNull();
   expect(screen.queryByText(/Face ID/i)).toBeNull();
   expect(screen.queryByText(/NAEYC/i)).toBeNull();
-  expect(screen.queryByRole('button', { name: /lưu|chỉnh sửa|thu tiền|gửi/i })).toBeNull();
+  expect(screen.getByRole('button', { name: 'Chỉnh Sửa Hồ Sơ' })).toBeDisabled();
+  expect(screen.queryByRole('button', { name: /lưu|thu tiền|gửi/i })).toBeNull();
   expect(window.localStorage.length).toBe(0);
   expect(mockGuardianSection).toHaveBeenCalledWith({ studentId: canonicalProfile.studentId });
   expect(mockPortalSection).toHaveBeenCalledWith({ tenantId: 'tenant-a', courseId, studentPartyId: canonicalProfile.partyId });
@@ -105,6 +108,18 @@ it('keeps an authorized active Course selected for the registry return link and 
   expect(await screen.findByRole('heading', { name: 'Synthetic Child' })).toBeTruthy();
   expect(screen.getByRole('link', { name: 'Quay lại danh sách trẻ' })).toHaveAttribute('href', `/dashboard/education/enrollments?courseId=${courseId}`);
   expect(mockPortalSection).toHaveBeenCalledWith({ tenantId: 'tenant-a', courseId, studentPartyId: canonicalProfile.partyId });
+});
+
+it('keeps the old 360 tabs while unsupported records have no synthetic content or mutation', async () => {
+  render(<Student360Page />);
+  expect(await screen.findByRole('heading', { name: 'Synthetic Child' })).toBeTruthy();
+  fireEvent.click(screen.getByRole('tab', { name: 'Sức Khỏe & Dinh Dưỡng' }));
+  expect(screen.getByRole('tabpanel')).toHaveTextContent('Chưa có dữ liệu đã xác minh trong hồ sơ này');
+  expect(screen.queryByText(/nhóm máu|vắc-xin|BMI|dị ứng/i)).toBeNull();
+  fireEvent.click(screen.getByRole('tab', { name: 'Học Phí & Khoản Thu' }));
+  expect(screen.getByRole('tabpanel')).toHaveTextContent('Chưa có dữ liệu đã xác minh trong hồ sơ này');
+  expect(screen.queryByRole('button', { name: /thu tiền|lưu|gửi/i })).toBeNull();
+  expect(window.localStorage.length).toBe(0);
 });
 
 it.each([

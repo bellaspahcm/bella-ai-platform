@@ -1,0 +1,23 @@
+-- Manual-application checkpoint only; this file intentionally performs no DDL,
+-- DML, grants, policy changes, or function replacement.
+--
+-- The referenced owner-approved SQL was already applied and independently read
+-- back on its target. E2E and Production have different valid pre-change Teacher
+-- profiles, so replaying those historical scripts through one shared migration
+-- would be unsafe. This no-op checkpoint lets each target record that the
+-- verified manual application is reconciled with the local migration catalog.
+--
+-- Exact source artifacts and SHA256 values:
+--   E2E Teacher 011 + shared 020, Production Teacher 010 + shared 020:
+--     implementation-artifacts/preschool-classroom-operations/teacher-design/
+--   Production course-map service SELECT:
+--     implementation-artifacts/preschool-classroom-operations/migration-drafts/course-mapping-server-read.sql
+--   Production Attendance structural prerequisites:
+--     implementation-artifacts/preschool-classroom-operations/migration-drafts/attendance-production-prerequisites.sql
+--   Target-specific apply/read-back receipts:
+--     investigations/preschool-classroom-audit-20261025-evidence/
+--
+-- This marker is NOT yet applied or recorded. The cited SQL was applied under
+-- separate explicit owner approval; see PENDING-DECISIONS.md and RESULT.md.
+
+SELECT 1;

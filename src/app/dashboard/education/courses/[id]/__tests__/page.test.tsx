@@ -26,8 +26,23 @@ function deferred<T>() {
 }
 
 function classroom(id = 'class-a') {
-  return { id, tenantId: 'synthetic-tenant', courseCode: 'CODE-' + id,
+  return { id, tenantId: '00000000-0000-4000-8000-000000000002', courseCode: 'CODE-' + id,
     title: 'Synthetic classroom ' + id, status: 'active', prerequisites: ['PRE-1'] };
+}
+
+const classroomUuid = '00000000-0000-4000-8000-000000000001';
+function registryPayload(courseId = classroomUuid) {
+  const tenantId = '00000000-0000-4000-8000-000000000002';
+  return { success: true, registry: {
+    tenantId,
+    request: { query: '', status: 'all', courseId, branchId: null, offset: 0, limit: 20 },
+    totals: { students: 1, active: 1, pending: 0 }, filteredTotal: 1, nextOffset: null,
+    students: [{ id: '00000000-0000-4000-8000-000000000003', tenantId,
+      partyId: '00000000-0000-4000-8000-000000000004', studentCode: 'STU-001', name: 'Synthetic pupil',
+      gender: null, dob: null, enrollments: [{ id: '00000000-0000-4000-8000-000000000005', courseId,
+        courseCode: 'CODE-CLASS', courseTitle: 'Synthetic classroom', branchId: '00000000-0000-4000-8000-000000000006',
+        branchName: 'Synthetic branch', status: 'active' }] }],
+  } };
 }
 
 function reply(payload: unknown, status = 200): Reply {
@@ -100,8 +115,22 @@ describe('R1b catalog detail — retained R1a containment invariants', () => {
     expect(screen.queryByText(/36.5|Synthetic room|25 bé/)).not.toBeInTheDocument();
     expect(screen.queryByText(/Montessori|Reggio|37.8|Verified Safe|Không trùng lịch|Canonical Database|Canonical table/)).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Danh Sách Học Sinh' }));
-    expect(screen.getByRole('status')).toHaveTextContent('hiện chưa khả dụng');
+    expect(screen.getByRole('alert')).toHaveTextContent('Chưa xác định được số học sinh');
     expect(screen.queryByText(/Synthetic pupil/)).not.toBeInTheDocument();
+  });
+
+  it('loads the selected canonical class roster through the scoped registry and links attendance to that ID', async () => {
+    mockFetch.mockResolvedValueOnce(ready(classroomUuid)).mockResolvedValueOnce(reply(registryPayload()));
+    await mountPage(classroomUuid);
+    expect(screen.getByRole('heading', { name: 'Synthetic classroom ' + classroomUuid })).toBeInTheDocument();
+    expect(mockFetch.mock.calls[1][0]).toBe(`/api/education/student-registry?courseId=${classroomUuid}&offset=0&limit=20`);
+    fireEvent.click(screen.getByRole('button', { name: 'Danh Sách Học Sinh' }));
+    expect(screen.getByText('Synthetic pupil')).toBeInTheDocument();
+    expect(screen.getByText('STU-001')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Điểm danh lớp này' })).toHaveAttribute(
+      'href', `/dashboard/education/attendance?courseId=${classroomUuid}`,
+    );
+    expect(screen.queryByText(/36\.5|Chưa điểm danh hôm nay/)).not.toBeInTheDocument();
   });
 
   it.each([401, 403, 404, 503])('shows an explicit error for HTTP %i even if the body claims success', async status => {
@@ -173,7 +202,7 @@ describe('R1b catalog detail — retained R1a containment invariants', () => {
     expect(screen.getByText('Không có')).toBeInTheDocument();
     expect(screen.queryByText(/NaN|Infinity|Synthetic teacher|36.5|0 bé/)).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Danh Sách Học Sinh' }));
-    expect(screen.getByRole('status')).toHaveTextContent('hiện chưa khả dụng');
+    expect(screen.getByRole('alert')).toHaveTextContent('Không thể tải danh sách học sinh trong phạm vi được cấp quyền');
     expect(screen.queryByRole('table')).not.toBeInTheDocument();
   });
 

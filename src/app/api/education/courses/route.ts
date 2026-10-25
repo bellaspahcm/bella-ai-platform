@@ -4,8 +4,10 @@ import { getLocalDateString } from '@bella/shared';
 import { createClient } from '@/lib/supabase-server';
 import { getSupabaseAdminKey, getSupabaseAdminUrl } from '@/lib/supabase-admin-env';
 import { CourseContractImpl } from '@/platform/education/contracts/course.contract.impl';
+import { CanonicalCourseCommandContractImpl } from '@/platform/education/contracts/canonical-course-catalog.contract.impl';
+import { CanonicalCourseCommandError } from '@/platform/education/contracts/canonical-course-catalog.contract';
 import { TeacherAssignmentContractImpl } from '@/platform/education/contracts/teacher-assignment.contract.impl';
-import { CourseCatalogProductService } from '@/products/bella-education/services/course-catalog.service';
+import { CourseCatalogProductService, PreschoolClassroomCommandProductService } from '@/products/bella-education/services/course-catalog.service';
 import { PreschoolChainService, PreschoolChainError } from '@/products/bella-education/services/preschool-chain.service';
 import type { Database } from '@/types/database.types';
 import {
@@ -14,6 +16,7 @@ import {
   resolveCourseReadContext,
   resolveCourseReadMode,
 } from './request-context';
+import { CANONICAL_COURSE_HEADERS, canonicalCourseFailure, resolveCanonicalCourseContext } from './canonical-request-context';
 
 type EducationCoursesClient = SupabaseClient<Database>;
 type EduCourseRow = Pick<
@@ -333,12 +336,72 @@ export async function GET(request: Request) {
   }
 }
 
-export async function POST() {
-  console.warn('[education/courses] COURSE_AUTHORIZATION_NOT_READY');
-  // Temporary containment; does not infer permission from a mutable profile.
-  return NextResponse.json({
-    success: false,
-    error: 'COURSE_AUTHORIZATION_NOT_READY',
-    message: 'Quyền tạo lớp đang được xác minh. Vui lòng thử lại sau.',
-  }, { status: 503 });
+async function readCanonicalCreateBody(request: Request): Promise<unknown> {
+  if (!request.body || request.body.locked || request.bodyUsed) throw new SyntaxError('INVALID_BODY');
+  const reader = request.body.getReader();
+  const decoder = new TextDecoder('utf-8', { fatal: true });
+  let size = 0;
+  let text = '';
+  try {
+    while (true) {
+      const chunk = await reader.read();
+      if (chunk.done) break;
+      size += chunk.value.byteLength;
+      if (size > 8_192) throw new SyntaxError('BODY_TOO_LARGE');
+      text += decoder.decode(chunk.value, { stream: true });
+    }
+    text += decoder.decode();
+    return JSON.parse(text) as unknown;
+  } catch {
+    await reader.cancel().catch(() => undefined);
+    throw new SyntaxError('INVALID_BODY');
+  } finally {
+    reader.releaseLock();
+  }
+}
+
+export async function POST(request: Request) {
+  const context = await resolveCanonicalCourseContext(request);
+  if (!context.allowed) return context.response;
+
+  try {
+    if (!request.headers.get('content-type')?.toLowerCase().startsWith('application/json')) {
+      return canonicalCourseFailure('CANONICAL_COURSE_INVALID_REQUEST', 400);
+    }
+    const body = await readCanonicalCreateBody(request);
+    if (!body || typeof body !== 'object' || Array.isArray(body)) {
+      return canonicalCourseFailure('CANONICAL_COURSE_INVALID_REQUEST', 400);
+    }
+    const fields = body as Record<string, unknown>;
+    const allowed = ['operationKey', 'branchId', 'code', 'title'];
+    if (Object.keys(fields).length !== allowed.length || Object.keys(fields).some(key => !allowed.includes(key))
+      || allowed.some(key => typeof fields[key] !== 'string')) {
+      return canonicalCourseFailure('CANONICAL_COURSE_INVALID_REQUEST', 400);
+    }
+    const { operationKey, branchId, code, title } = fields as Record<typeof allowed[number], string>;
+    const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!uuid.test(operationKey) || !uuid.test(branchId) || !code.trim() || code.length > 80
+      || !title.trim() || title.length > 200) {
+      return canonicalCourseFailure('CANONICAL_COURSE_INVALID_REQUEST', 400);
+    }
+
+    const writer = createAdminOperationClient();
+    if (!writer) return canonicalCourseFailure('CANONICAL_COURSE_UNAVAILABLE', 503);
+    const service = new PreschoolClassroomCommandProductService(new CanonicalCourseCommandContractImpl(writer));
+    const course = await service.createCourse({
+      tenantId: context.tenantId,
+      actorId: context.actor.id,
+      operationKey,
+      branchId,
+      courseCode: code,
+      title,
+    });
+    return NextResponse.json({ success: true, course }, { status: 201, headers: CANONICAL_COURSE_HEADERS });
+  } catch (error) {
+    if (error instanceof SyntaxError) return canonicalCourseFailure('CANONICAL_COURSE_INVALID_REQUEST', 400);
+    if (error instanceof CanonicalCourseCommandError) {
+      return canonicalCourseFailure(error.code, error.status);
+    }
+    return canonicalCourseFailure('CANONICAL_COURSE_UNAVAILABLE', 503);
+  }
 }

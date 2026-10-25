@@ -1023,7 +1023,7 @@ export function Sidebar() {
                       : (isBeautySpaShell || isIndustrialCleaningShell || isBellaAutoShell || isBellaHealthcareShell)
                       ? (isActive ? "font-extrabold text-[#042f2e]" : (isBellaAutoShell || isBellaHealthcareShell) ? "font-semibold text-slate-100 group-hover:text-white" : "font-semibold text-inherit group-hover:text-white")
                       : (isActive ? "font-extrabold text-primary dark:text-[#F3F5F7]" : "font-semibold")
-                  )}>{item.label}{isPreschool && ['/dashboard/education/teachers', '/dashboard/education/facilities', '/dashboard/education/grades', '/dashboard/education/finance'].includes(item.href) && <span className="ml-1 text-[10px] opacity-70"> · Chưa mở</span>}</span>
+                  )}>{item.label}{isPreschool && process.env.NODE_ENV !== 'development' && item.href === '/dashboard/education/grades' && <span className="ml-1 text-[10px] opacity-70"> · Chưa mở</span>}</span>
 
                   {/* Active Left Vertical Accent Bar for Preschool Shell */}
                   {isActive && isBellaEducationShell && (
