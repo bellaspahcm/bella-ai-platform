@@ -177,6 +177,7 @@ export class TeacherAssignmentContractImpl implements ITeacherAssignmentContract
       .select('*')
       .eq('assignment_id', input.assignmentId)
       .eq('tenant_id', input.tenantId)
+      .not('course_id', 'is', null)
       .maybeSingle();
 
     if (fetchErr || !existing) {
@@ -210,6 +211,7 @@ export class TeacherAssignmentContractImpl implements ITeacherAssignmentContract
       })
       .eq('assignment_id', assignment.id)
       .eq('tenant_id', assignment.tenantId)
+      .not('course_id', 'is', null)
       .select('*')
       .single();
 
@@ -246,6 +248,7 @@ export class TeacherAssignmentContractImpl implements ITeacherAssignmentContract
       .select('*')
       .eq('tenant_id', tenantId)
       .eq('teacher_party_id', teacherPartyId)
+      .not('course_id', 'is', null)
       .eq('status', 'active');
 
     if (academicYear) {

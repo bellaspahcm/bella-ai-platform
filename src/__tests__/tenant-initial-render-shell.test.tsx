@@ -69,12 +69,13 @@ describe('authenticated shell and sidebar first render', () => {
     window.localStorage.setItem('bella.sidebar.brand.v3', stale);
   });
 
-  it('labels held Preschool MVP menus without changing another product', async () => {
+  it('shows restored Preschool menu routes and labels the remaining held menu', async () => {
     render(<UserProvider><DashboardAuthorizedShell><div>Product Content</div></DashboardAuthorizedShell></UserProvider>);
-    await waitFor(() => expect(screen.getByRole('link', { name: /Quản lý giáo viên.*Chưa mở/ })).toBeInTheDocument());
-    expect(screen.getByRole('link', { name: /Cơ sở vật chất.*Chưa mở/ })).toHaveAttribute('href', '/dashboard/education/facilities');
+    await waitFor(() => expect(screen.getByRole('link', { name: 'Quản lý giáo viên' })).toBeInTheDocument());
+    expect(screen.getByRole('link', { name: 'Quản lý giáo viên' })).toHaveAttribute('href', '/dashboard/education/teachers');
+    expect(screen.getByRole('link', { name: 'Cơ sở vật chất' })).toHaveAttribute('href', '/dashboard/education/facilities');
     expect(screen.getByRole('link', { name: /Học tập & Hoạt động.*Chưa mở/ })).toHaveAttribute('href', '/dashboard/education/grades');
-    expect(screen.getByRole('link', { name: /Tài chính.*Chưa mở/ })).toHaveAttribute('href', '/dashboard/education/finance');
+    expect(screen.getByRole('link', { name: 'Tài chính' })).toHaveAttribute('href', '/dashboard/education/finance');
     expect(screen.getByRole('link', { name: 'Quản lý trẻ' })).toHaveAttribute('href', '/dashboard/education/enrollments');
   });
 

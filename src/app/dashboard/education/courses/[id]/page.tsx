@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, use } from 'react';
 import Link from 'next/link';
 import type { EducationCourseDTO } from '@/platform/education/contracts/course.contract';
+import { isPreschoolRegistryPage, isRegistryUuid, type PreschoolRegistryPage } from '@/platform/education/contracts/preschool-registry.contract';
 import { 
   ArrowLeft, 
   Users, 
@@ -80,7 +81,9 @@ function isClassroomDetail(value: unknown, classId: string): value is ClassroomD
 
 type CatalogDetailState =
   | { classId: string; status: 'loading' | 'error' | 'empty' | 'legacy' }
-  | { classId: string; status: 'ready'; course: EducationCourseDTO };
+  | { classId: string; status: 'ready'; course: EducationCourseDTO; registry: PreschoolRegistryPage | null; rosterStatus: 'loading' | 'error' | 'ready' };
+
+const CLASSROOM_ROSTER_PAGE_SIZE = 20;
 
 function isCatalogCourse(value: unknown, classId: string): value is EducationCourseDTO {
   return isRecord(value) && value.id === classId
@@ -95,6 +98,7 @@ export default function ClassWorkspacePage({ params }: { params: Promise<{ id: s
   const [loadState, setLoadState] = useState<CatalogDetailState>({ classId, status: 'loading' });
   const [activeTab, setActiveTab] = useState<'overview' | 'students' | 'teachers' | 'attendance'>('overview');
   const [reloadVersion, setReloadVersion] = useState(0);
+  const [rosterOffset, setRosterOffset] = useState(0);
   const requestGeneration = useRef(0);
   const currentRequest = useRef<AbortController | null>(null);
 
@@ -124,11 +128,32 @@ export default function ClassWorkspacePage({ params }: { params: Promise<{ id: s
         const data: unknown = await response.json();
         if (!isCurrent()) return;
         if (!isRecord(data) || data.success !== true) throw new Error('Invalid catalog response');
-        if (data.course === null) setLoadState({ classId, status: 'empty' });
-        else if (isCatalogCourse(data.course, classId)) setLoadState({ classId, status: 'ready', course: data.course });
-        else throw new Error('Invalid course shape or ID');
+        if (data.course === null) {
+          setLoadState({ classId, status: 'empty' });
+          return;
+        }
+        if (!isCatalogCourse(data.course, classId)) throw new Error('Invalid course shape or ID');
+        const course = data.course;
+        if (!isRegistryUuid(classId)) {
+          setLoadState({ classId, status: 'ready', course, registry: null, rosterStatus: 'error' });
+          return;
+        }
+        setLoadState({ classId, status: 'ready', course, registry: null, rosterStatus: 'loading' });
+        const query = { query: '', status: 'all' as const, courseId: classId, branchId: null, offset: rosterOffset, limit: CLASSROOM_ROSTER_PAGE_SIZE };
+        const search = new URLSearchParams({ courseId: classId, offset: String(rosterOffset), limit: String(CLASSROOM_ROSTER_PAGE_SIZE) });
+        const rosterResponse = await fetch(`/api/education/student-registry?${search}`, {
+          signal: controller.signal,
+          cache: 'no-store',
+        });
+        const rosterPayload: unknown = await rosterResponse.json();
+        if (!isCurrent()) return;
+        if (!rosterResponse.ok || !isRecord(rosterPayload) || rosterPayload.success !== true
+          || !isPreschoolRegistryPage(rosterPayload.registry, query, course.tenantId)) throw new Error('Registry unavailable');
+        setLoadState({ classId, status: 'ready', course, registry: rosterPayload.registry, rosterStatus: 'ready' });
       } catch {
-        if (isCurrent()) setLoadState({ classId, status: 'error' });
+        if (isCurrent()) setLoadState(previous => previous.classId === classId && previous.status === 'ready'
+          ? { ...previous, registry: null, rosterStatus: 'error' }
+          : { classId, status: 'error' });
       }
     })();
     return () => {
@@ -136,7 +161,7 @@ export default function ClassWorkspacePage({ params }: { params: Promise<{ id: s
       requestGeneration.current += 1;
       if (currentRequest.current === controller) currentRequest.current = null;
     };
-  }, [classId, reloadVersion]);
+  }, [classId, reloadVersion, rosterOffset]);
 
   const reload = () => {
     currentRequest.current?.abort();
@@ -149,40 +174,98 @@ export default function ClassWorkspacePage({ params }: { params: Promise<{ id: s
 
   return (
     <div className="preschool-ui w-full p-4 sm:p-6 lg:p-8 space-y-6 pb-12">
-      <Link href="/dashboard/education/courses" className="text-sm font-bold text-[var(--education-brand-ink)]">Quay lại Danh mục khóa học</Link>
-      <div className="flex items-center justify-between gap-4">
-        <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white">{state.status === 'ready' ? state.course.title : 'Chi tiết khóa học'}</h1>
-        <button type="button" onClick={reload} className="rounded-xl bg-slate-100 dark:bg-slate-800 px-4 py-2 text-sm font-bold text-slate-700 dark:text-slate-200">Tải lại dữ liệu</button>
-      </div>
       {state.status === 'ready' ? (
         <>
-          <dl className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-6 grid gap-4 text-sm text-slate-700 dark:text-slate-200">
-            <div><dt className="font-bold">Mã khóa học</dt><dd>{state.course.courseCode}</dd></div>
-            <div><dt className="font-bold">Trạng thái</dt><dd>{state.course.status}</dd></div>
-            <div><dt className="font-bold">Điều kiện tiên quyết</dt><dd>{state.course.prerequisites.length ? state.course.prerequisites.join(', ') : 'Không có'}</dd></div>
-          </dl>
-          <nav aria-label="Thông tin khóa học" className="flex flex-wrap gap-2">
+          <div className="w-full rounded-3xl bg-white dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 p-6 sm:p-8 shadow-sm space-y-6">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-700/60 pb-5">
+              <div className="flex items-center gap-3">
+                <Link href="/dashboard/education/courses" aria-label="Quay lại Quản lý lớp học"
+                  className="p-2.5 rounded-2xl bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 transition-colors shrink-0"
+                  title="Quay lại Quản lý lớp học"><ArrowLeft className="w-4 h-4" /></Link>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[11px] font-extrabold px-3 py-0.5 rounded-full bg-primary/10 text-[var(--education-brand-ink)] border border-primary/20">Mã lớp: <span>{state.course.courseCode}</span></span>
+                    <span className="text-[11px] font-semibold text-slate-500">Phòng học: chưa được cung cấp</span>
+                  </div>
+                  <h1 className="text-xl sm:text-2xl font-extrabold text-gray-900 dark:text-white tracking-tight mt-1">{state.course.title}</h1>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Giáo viên: chưa được cung cấp</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 shrink-0">
+                <button type="button" onClick={reload} title="Tải lại dữ liệu" aria-label="Tải lại dữ liệu"
+                  className="p-2.5 rounded-2xl bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 transition-colors"><RefreshCw className="w-4 h-4" /></button>
+                <Link href={`/dashboard/education/attendance?courseId=${encodeURIComponent(classId)}`} aria-label="Điểm danh lớp này"
+                  className="px-4 py-2.5 rounded-2xl bg-primary hover:bg-primary-hover text-primary-foreground font-bold text-xs shadow-md transition-all flex items-center gap-1.5">
+                  <CalendarCheck className="w-4 h-4" />Điểm Danh Lớp</Link>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              {[
+                ['Sức chứa lớp', 'Chưa được cung cấp'],
+                ['Có mặt hôm nay', 'Chưa được cung cấp'],
+                ['Đội ngũ GVN', 'Chưa được cung cấp'],
+              ].map(([label, value]) => <div key={label} className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800">
+                <span className="text-[11px] font-semibold text-slate-500">{label}</span>
+                <div className="text-sm font-extrabold text-slate-900 dark:text-white mt-1">{value}</div>
+              </div>)}
+            </div>
+          <nav aria-label="Thông tin khóa học" className="flex flex-wrap items-center gap-2 border-b border-slate-200/80 dark:border-slate-700/80 pb-3">
             {([
               ['overview', 'Tổng Quan Lớp'], ['students', 'Danh Sách Học Sinh'],
               ['teachers', 'Đội Ngũ GVN'], ['attendance', 'Sổ Điểm Danh'],
-            ] as const).map(([tab, title]) => <button key={tab} type="button" aria-pressed={activeTab === tab} onClick={() => setActiveTab(tab)} className="rounded-xl bg-slate-100 dark:bg-slate-800 px-4 py-2 text-sm font-bold text-slate-700 dark:text-slate-200">{title}</button>)}
+            ] as const).map(([tab, title]) => <button key={tab} type="button" aria-pressed={activeTab === tab} onClick={() => setActiveTab(tab)}
+              className={`rounded-xl px-4 py-2 text-xs font-bold ${activeTab === tab ? 'bg-primary text-primary-foreground shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'}`}>{title}</button>)}
           </nav>
-          <section className="rounded-2xl border border-slate-200 dark:border-slate-700 p-6 space-y-4 text-sm text-slate-700 dark:text-slate-200">
+          </div>
+          <section className="rounded-3xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/80 p-6 space-y-4 text-sm text-slate-700 dark:text-slate-200">
             {activeTab === 'overview' && <>
-              <p>Thông tin phòng học, sức chứa, khối tuổi, năm học và nội dung vận hành hiện chưa khả dụng trong danh mục này.</p>
+              <p>Danh tính lớp học đã được xác minh từ Education. Phòng học, sức chứa, khối lớp và năm học chưa có nguồn chuẩn để hiển thị.</p>
+              <p>Điều kiện tiên quyết: <span>{state.course.prerequisites.length ? state.course.prerequisites.join(', ') : 'Không có'}</span></p>
               <button type="button" disabled aria-describedby="catalog-overview-assignment-unavailable" className="font-bold disabled:cursor-not-allowed text-slate-500 dark:text-slate-400">Phân công GVN</button>
               <p id="catalog-overview-assignment-unavailable">Phân công và chấm dứt phân công giáo viên hiện chưa khả dụng.</p>
             </>}
-            {activeTab === 'students' && <p role="status">Danh sách học sinh hiện chưa khả dụng trong danh mục này.</p>}
+            {activeTab === 'students' && <div className="space-y-4">
+              <div>
+                <h2 className="font-bold">Danh sách học sinh đăng ký lớp</h2>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Danh sách theo đăng ký lớp và mapping chi nhánh được cấp quyền; không đại diện cho số học sinh có mặt hôm nay.</p>
+              </div>
+              {state.rosterStatus === 'loading' && <p role="status">Đang tải danh sách học sinh…</p>}
+              {state.rosterStatus === 'error' && <p role="alert" className="text-red-700 dark:text-red-300">Không thể tải danh sách học sinh trong phạm vi được cấp quyền. Chưa xác định được số học sinh; vui lòng tải lại.</p>}
+              {state.registry && state.registry.filteredTotal === 0 && <p>Chưa có học sinh đăng ký trong phạm vi được cấp quyền.</p>}
+              {state.registry && state.registry.filteredTotal > 0 && <>
+                <p>Hiển thị {rosterOffset + 1}–{rosterOffset + state.registry.students.length} / {state.registry.filteredTotal} học sinh</p>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left">
+                    <thead><tr className="border-b border-slate-200 dark:border-slate-700"><th className="py-3 pr-4">Mã học sinh</th><th className="py-3 pr-4">Họ và tên</th><th className="py-3 pr-4">Đăng ký lớp</th><th className="py-3">Cơ sở</th></tr></thead>
+                    <tbody>{state.registry.students.map(student => <tr key={student.id} className="border-b border-slate-100 dark:border-slate-800">
+                      <td className="py-3 pr-4 font-mono">{student.studentCode}</td>
+                      <td className="py-3 pr-4 font-semibold">{student.name}</td>
+                      <td className="py-3 pr-4">{student.enrollments.map(enrollment => enrollment.status === 'active' ? 'Đang hoạt động' : 'Chờ xác nhận').join(', ')}</td>
+                      <td className="py-3">{[...new Set(student.enrollments.map(enrollment => enrollment.branchName))].join(', ')}</td>
+                    </tr>)}</tbody>
+                  </table>
+                </div>
+                <nav aria-label="Phân trang học sinh" className="flex gap-3">
+                  <button type="button" disabled={rosterOffset === 0} onClick={() => setRosterOffset(Math.max(0, rosterOffset - CLASSROOM_ROSTER_PAGE_SIZE))} className="rounded-xl border px-3 py-2 disabled:opacity-40">Trang trước</button>
+                  <button type="button" disabled={state.registry.nextOffset === null} onClick={() => { if (state.registry?.nextOffset !== null && state.registry?.nextOffset !== undefined) setRosterOffset(state.registry.nextOffset); }} className="rounded-xl border px-3 py-2 disabled:opacity-40">Trang sau</button>
+                </nav>
+              </>}
+            </div>}
             {activeTab === 'teachers' && <>
               <p role="status">Thông tin đội ngũ giáo viên hiện chưa khả dụng trong danh mục này.</p>
               <button type="button" disabled aria-describedby="catalog-teachers-assignment-unavailable" className="font-bold disabled:cursor-not-allowed text-slate-500 dark:text-slate-400">Phân công Giáo viên Mới</button>
               <p id="catalog-teachers-assignment-unavailable">Phân công và chấm dứt phân công giáo viên hiện chưa khả dụng.</p>
             </>}
-            {activeTab === 'attendance' && <p role="status">Dữ liệu điểm danh và sức khỏe hiện chưa khả dụng trong danh mục này.</p>}
+            {activeTab === 'attendance' && <div className="space-y-3">
+              <p role="status">Mở sổ điểm danh theo đúng lớp đã chọn. Dữ liệu ngày và thao tác điểm danh tuân theo phạm vi được cấp quyền tại trang điểm danh.</p>
+              <Link href={`/dashboard/education/attendance?courseId=${encodeURIComponent(classId)}`} className="inline-flex rounded-xl bg-primary px-4 py-2 font-bold text-primary-foreground">Mở điểm danh lớp này</Link>
+            </div>}
           </section>
         </>
-      ) : <p role={state.status === 'error' ? 'alert' : 'status'} aria-live="polite" className="rounded-2xl border border-slate-200 dark:border-slate-700 p-6 text-sm text-slate-700 dark:text-slate-200">{state.status === 'loading' ? 'Đang tải dữ liệu lớp học…' : state.status === 'empty' ? 'Chưa có dữ liệu lớp học.' : 'Không thể tải dữ liệu lớp học. Vui lòng thử lại.'}</p>}
+      ) : <><Link href="/dashboard/education/courses" className="text-sm font-bold text-[var(--education-brand-ink)]">Quay lại Quản lý lớp học</Link>
+        <h1 className="text-xl font-extrabold text-slate-900 dark:text-white">Chi tiết lớp học</h1>
+        <p role={state.status === 'error' ? 'alert' : 'status'} aria-live="polite" className="rounded-2xl border border-slate-200 dark:border-slate-700 p-6 text-sm text-slate-700 dark:text-slate-200">{state.status === 'loading' ? 'Đang tải dữ liệu lớp học…' : state.status === 'empty' ? 'Chưa có dữ liệu lớp học.' : 'Không thể tải dữ liệu lớp học. Vui lòng thử lại.'}</p>
+        <button type="button" onClick={reload} className="rounded-xl bg-slate-100 dark:bg-slate-800 px-4 py-2 text-sm font-bold text-slate-700 dark:text-slate-200">Tải lại dữ liệu</button></>}
     </div>
   );
 }

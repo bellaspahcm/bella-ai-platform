@@ -55,11 +55,11 @@ it('shows pending and genuine empty states without reference invoice rows or syn
   let resolveGet: ((value: Pick<Response, 'ok' | 'json'>) => void) | undefined;
   fetchMock.mockImplementationOnce(() => new Promise((resolve) => { resolveGet = resolve; }));
   await renderFinance();
-  expect(screen.getByRole('status')).toHaveTextContent('Đang tải');
+  expect(screen.getByText('Đang tải hoặc xử lý dữ liệu tài chính…')).toBeInTheDocument();
   expect(screen.getByTestId('btn-compile-invoice')).toBeDisabled();
-  expect(within(screen.getByTestId('invoice-workspace')).queryByText('HD0001')).not.toBeInTheDocument();
+  expect(screen.queryByTestId('invoice-workspace')).not.toBeInTheDocument();
   await act(async () => { resolveGet?.(response(state())); });
-  const table = screen.getByTestId('invoice-workspace');
+  const table = await screen.findByTestId('invoice-workspace');
   expect(await within(table).findByText('Chưa có hóa đơn.')).toBeInTheDocument();
   expect(within(table).getByRole('button', { name: 'Tất cả (0)' })).toBeInTheDocument();
   expect(within(table).getByText('Hiển thị 0 / 0 hóa đơn đã tải')).toBeInTheDocument();
@@ -76,10 +76,10 @@ it('keeps load failure distinct from empty and retries using only newly returned
   await renderFinance();
   expect(await screen.findByRole('alert')).toHaveTextContent('SYNTHETIC_LOAD_FAILURE');
   expect(screen.getByTestId('btn-compile-invoice')).toBeDisabled();
-  const table = screen.getByTestId('invoice-workspace');
-  expect(within(table).getByText('Chưa tải được danh sách hóa đơn.')).toBeInTheDocument();
-  expect(within(table).queryByText('HD0001')).not.toBeInTheDocument();
+  expect(screen.queryByTestId('invoice-workspace')).not.toBeInTheDocument();
+  expect(screen.getByText('Chưa có dữ liệu tài chính đã xác minh để hiển thị nội dung nghiệp vụ.')).toBeInTheDocument();
   fireEvent.click(screen.getByRole('button', { name: 'Thử lại' }));
+  const table = await screen.findByTestId('invoice-workspace');
   expect(await within(table).findByText('SYNTHETIC-VOID')).toBeInTheDocument();
   expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   expect(postCalls()).toHaveLength(0);
@@ -88,7 +88,7 @@ it('keeps load failure distinct from empty and retries using only newly returned
 it('retains canonical VOID/OVERPAID, actual amount/period, exact counts and working filters', async () => {
   fetchMock.mockResolvedValue(response(state({ students: [studentA], billingPeriods: [period], invoices: [invoice, { ...invoice, id: 'draft-id', invoiceNumber: 'SYNTHETIC-DRAFT', invoiceStatus: 'DRAFT', settlementStatus: 'UNPAID' }] })));
   await renderFinance();
-  const table = screen.getByTestId('invoice-workspace');
+  const table = await screen.findByTestId('invoice-workspace');
   const number = await within(table).findByText('SYNTHETIC-VOID');
   const row = number.closest('tr');
   if (!row) throw new Error('Expected invoice table row');
@@ -159,7 +159,7 @@ it('clears previously loaded rows and blocks commands when refresh fails', async
   expect(await screen.findByRole('alert')).toHaveTextContent('SYNTHETIC_OFFLINE');
   expect(screen.queryByText('SYNTHETIC-VOID')).not.toBeInTheDocument();
   expect(screen.getByTestId('btn-compile-invoice')).toBeDisabled();
-  expect(screen.getByRole('button', { name: 'Xác nhận hoàn thành' })).toBeDisabled();
+  expect(screen.queryByRole('button', { name: 'Xác nhận hoàn thành' })).not.toBeInTheDocument();
   expect(postCalls()).toHaveLength(0);
 });
 

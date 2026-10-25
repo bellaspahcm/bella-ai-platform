@@ -18,18 +18,17 @@ it('shows loading without claiming an empty catalog or operational zeroes', () =
   expect(screen.queryByText(/Chưa có lớp học/)).toBeNull();
   expect(screen.queryByText('0')).toBeNull();
 });
-it('displays actual catalog identities without invented operational metrics or links to the legacy workspace', async () => {
+it('displays actual catalog identities and enables the exact-class detail route without invented metrics', async () => {
   mount(); expect(await screen.findByRole('heading', { name: 'Synthetic class' })).toBeVisible();
   expect(screen.getByText('Hiển thị 1 / 1 lớp')).toBeVisible();
-  expect(screen.queryByRole('link', { name: 'Vào lớp học' })).toBeNull();
-  expect(screen.getByRole('button', { name: 'Vào lớp học' })).toBeDisabled();
+  expect(screen.getByRole('link', { name: 'Vào lớp học' })).toHaveAttribute('href', '/dashboard/education/courses/synthetic-course');
   expect(within(screen.getByRole('region', { name: 'Thống kê lớp học' })).getAllByText('Chưa được cung cấp')).toHaveLength(3);
   expect(mockFetch).toHaveBeenCalledWith('/api/education/courses/catalog', expect.objectContaining({ cache: 'no-store', signal: expect.any(AbortSignal) }));
 });
-it('retains the redesigned classroom workspace controls without inventing grade or enabling unapproved mutations', async () => {
+it('retains filters and only enables class creation after the canonical catalog is ready', async () => {
   mount(); await screen.findByRole('heading', { name: 'Synthetic class' });
   expect(screen.getByText('Preschool ERP Operations')).toBeVisible();
-  expect(screen.getByRole('button', { name: 'Mở Lớp Học Mới' })).toBeDisabled();
+  expect(screen.getByRole('button', { name: 'Mở Lớp Học Mới' })).toBeEnabled();
   expect(screen.getByRole('button', { name: 'Khối Mầm (—)' })).toBeDisabled();
   expect(screen.getByRole('combobox', { name: 'Khối lớp' })).toBeDisabled();
   expect(screen.getByRole('button', { name: 'Tất cả lớp (1)' })).toBeVisible();

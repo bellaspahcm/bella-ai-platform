@@ -22,6 +22,8 @@ export const bellaEducationManifest: VerticalManifest & {
   defaultRoute: '/dashboard/education',
   capabilities: [
     'course_catalog_query',
+    'preschool_classroom_create',
+    'preschool_teacher_management',
     'student_enrollment_command',
     'attendance_checkpoint_command',
     'grade_reporting_command',
@@ -29,6 +31,8 @@ export const bellaEducationManifest: VerticalManifest & {
   ],
   enabledCapabilities: [
     'course_catalog_query',
+    'preschool_classroom_create',
+    'preschool_teacher_management',
     'student_enrollment_command',
     'attendance_checkpoint_command',
     'grade_reporting_command',

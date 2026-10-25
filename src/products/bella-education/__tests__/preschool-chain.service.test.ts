@@ -2,6 +2,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { PreschoolChainService } from '../services/preschool-chain.service';
 import type { Database } from '@/types/database.types';
 import type { IOrgUnitContract, OrgUnit } from '@/platform/org-unit';
+import type { ITrustedActorOrgUnitAccessContract, TrustedActorOrgUnitAccessRow } from '@/platform/org-unit/trusted-actor-access.contract';
 import { EnrollmentContractImpl } from '@/platform/education/contracts/enrollment.contract.impl';
 import { EnrollmentRecoveryContractImpl } from '@/platform/education/contracts/enrollment-recovery.contract.impl';
 
@@ -136,10 +137,20 @@ function createOrgUnitContract(db: Db): OrgUnitContractScope {
   };
 }
 
+function createTrustedActorAccessContract(db: Db): ITrustedActorOrgUnitAccessContract {
+  return {
+    async listForActor() {
+      return (db.platform_access ?? []) as unknown as TrustedActorOrgUnitAccessRow[];
+    },
+  };
+}
+
 function createService(db: Db, orgUnits: OrgUnitContractScope = createOrgUnitContract(db)): PreschoolChainService {
   return new PreschoolChainService(
     new FakeSupabaseClient(db) as unknown as PreschoolChainClient,
     orgUnits,
+    undefined,
+    createTrustedActorAccessContract(db),
   );
 }
 
@@ -169,6 +180,10 @@ describe('PreschoolChainService', () => {
         since: null,
         until: null,
       }],
+      platform_access: [
+        { user_id: actorUserId, tenant_id: tenantId, org_unit_id: regionId, root_org_unit_id: regionId, relationship_id: 'relationship-a', access_source: 'manages' },
+        { user_id: actorUserId, tenant_id: tenantId, org_unit_id: branchId, root_org_unit_id: regionId, relationship_id: 'relationship-a', access_source: 'manages' },
+      ],
       preschool_chain_course_branch_assignments: [],
       preschool_chain_enrollment_branch_assignments: [],
     };
@@ -345,8 +360,23 @@ describe('PreschoolChainService', () => {
       { id: branchId, name: 'Bella Preschool Quận 1', code: 'Q1' },
     ]);
   });
+  it('does not treat tenant-admin provenance as explicit branch access', async () => {
+    const db = baseDb();
+    db.org_units.push({ id: 'branch-b', tenant_id: tenantId, unit_type: 'branch', name: 'Bella Preschool Quận 3', code: 'Q3', is_active: true, parent_id: null });
+    db.platform_access.push({ user_id: actorUserId, tenant_id: tenantId, org_unit_id: 'branch-b', root_org_unit_id: 'branch-b', relationship_id: null, access_source: 'tenant_admin' });
+    await expect(createService(db).listAccessibleBranches(tenantId, actorUserId)).resolves.toEqual([
+      { id: branchId, name: 'Bella Preschool Quận 1', code: 'Q1' },
+    ]);
+  });
+  it('fails closed when the trusted access contract returns another actor or tenant', async () => {
+    const db = baseDb();
+    db.platform_access[0].tenant_id = 'tenant-b';
+    await expect(createService(db).listAccessibleBranches(tenantId, actorUserId))
+      .rejects.toMatchObject({ code: 'PRESCHOOL_CHAIN_BRANCH_ACCESS_DENIED', status: 403 });
+  });
   it('does not expand access from an inactive ancestor root',async()=>{
     const db=baseDb(); db.users[0].role='admin_staff'; db.org_units[0].is_active=false;
+    db.platform_access = db.platform_access.filter((row) => row.org_unit_id !== branchId);
     expect(await createService(db).listAccessibleBranches(tenantId,actorUserId)).toEqual([]);
   });
   it('rejects stored enrollment mapping drift before invoking any writer',async()=>{
