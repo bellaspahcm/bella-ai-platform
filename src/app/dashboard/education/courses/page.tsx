@@ -25,6 +25,7 @@
 
 import { useState, useRef, useEffect, useMemo, type ChangeEvent, type MouseEvent } from 'react';
 import Link from 'next/link';
+import CanonicalClassroomCatalog from './CanonicalClassroomCatalog';
 import { 
   BookOpen, 
   Plus, 
@@ -308,6 +309,10 @@ function ClassMascot({ mascot }: { mascot: 'bird' | 'squirrel' | 'sunflower' | '
 }
 
 export default function CoursesPage() {
+  return <CanonicalClassroomCatalog legacy={<LegacyCoursesPage />} />;
+}
+
+function LegacyCoursesPage() {
   const [isPreschoolTenant, setIsPreschoolTenant] = useState<boolean>(true);
   const [selectedYear, setSelectedYear] = useState('2025-2026');
   const [selectedGrade, setSelectedGrade] = useState<string>('all');
