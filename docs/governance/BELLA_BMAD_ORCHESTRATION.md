@@ -94,7 +94,7 @@ Stop and report instead of implementing when the work requires:
 
 ## Minimal Use Guidance
 
-For project Codex chat coding requests, first apply [Factory Intake from Project Codex Chat](BELLA_AI_CODING_CONSTITUTION.md#factory-intake-from-project-codex-chat). The skills below support the admitted workflow or a separately authorized alternative; they are not an implicit direct-coding fallback when Factory admission rejects a task. Already-dispatched Factory roles execute their assigned role without recursive dispatch.
+Factory is optional for project Codex chat coding requests. Use the normal authorized workflow unless the user or a task-specific rule selects Factory. When Factory is selected, follow [Factory Intake from Project Codex Chat](BELLA_AI_CODING_CONSTITUTION.md#factory-intake-from-project-codex-chat) and its admission boundary. A direct workflow is a valid separate execution path, not Factory evidence; never edit or bypass a held Factory candidate, and already-dispatched Factory roles must not recursively dispatch another Factory.
 
 Small local fix:
 
