@@ -1,0 +1,6 @@
+COMMAND: npx.cmd supabase db query --linked --project-ref bmnbqbcdbuklhopfbopv --file REHEARSAL.sql --output json
+TARGET: E2E bmnbqbcdbuklhopfbopv
+EXIT_CODE: 1
+Initialising login role...
+[31munexpected status 400: {"message":"Failed to run sql query: ERROR:  P0001: G1_REHEARSAL_BRANCH_DENIAL_CONTEXT_MISSING\nCONTEXT:  PL/pgSQL function inline_code_block line 115 at RAISE\n"}[39m
+Try rerunning the command with --debug to troubleshoot the error.

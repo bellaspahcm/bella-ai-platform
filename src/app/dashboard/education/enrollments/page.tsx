@@ -20,6 +20,7 @@
 
 import { useState, useRef, useEffect, useMemo, type ChangeEvent } from 'react';
 import Link from 'next/link';
+import { readSchoolRegistry, RegistrySessionError } from './registry-reader';
 import { 
   Baby, 
   UserPlus, 
@@ -63,6 +64,8 @@ export interface StudentRecord {
   readonly age: string;
   readonly className: string;
   readonly branchName?: string;
+  readonly courseNames?: readonly string[];
+  readonly enrollmentStates?: readonly ('active' | 'pending')[];
   readonly parentName: string;
   readonly parentPhone: string;
   readonly status: 'Đang học' | 'Chờ nhập học' | 'Lưu ý y tế' | 'Đã nghỉ học';
@@ -614,8 +617,12 @@ export default function PreschoolEnrollmentsPage() {
   const [pendingAdmissionKey, setPendingAdmissionKey] = useState('');
   const [resumeNeedsPayload, setResumeNeedsPayload] = useState(false);
   const admissionSubmitRef = useRef(false);
-  const [isLoadingStudents, setIsLoadingStudents] = useState(false);
+  const [isLoadingStudents, setIsLoadingStudents] = useState(true);
+  const [registryReady, setRegistryReady] = useState(false);
+  const [registryTotals, setRegistryTotals] = useState({ students: 0, active: 0, pending: 0 });
+  const [registryRefresh, setRegistryRefresh] = useState(0);
   const [studentLoadError, setStudentLoadError] = useState('');
+  const [registryNeedsLogin, setRegistryNeedsLogin] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const menuRef = useRef<HTMLDivElement>(null);
@@ -658,76 +665,41 @@ export default function PreschoolEnrollmentsPage() {
     return () => clearTimeout(timer);
   }, [toastMessage]);
 
-  // Load backend students if available
+  // Publish a complete authorized registry; denied or partial pages never become a zero-child result.
   useEffect(() => {
-    let cancelled = false;
-
-    async function loadInitialStudents() {
-      setIsLoadingStudents(true);
-      try {
-        const response = await fetch('/api/education/enrollments', { method: 'GET' });
-        const data = (await response.json()) as StudentRegistryResponse;
-
-        if (!response.ok || !data.success) {
-          throw new Error(data.error || 'Không tải được danh sách học sinh.');
-        }
-
-        if (cancelled) return;
-
-        if (data.students && data.students.length > 0) {
-          const apiStudents: ReadonlyArray<StudentRecord> = data.students.map((item) => {
-            const isFemale = item.gender.toLowerCase().includes('nữ') || item.gender.toLowerCase() === 'female';
-            const statusKey: StudentRecord['statusKey'] = 
-              item.hasHealthAlert ? 'healthAlert' :
-              item.statusKey === 'pending' ? 'pending' :
-              item.statusKey === 'inactive' ? 'inactive' : 'active';
-            
-            const statusLabel: StudentRecord['status'] =
-              statusKey === 'healthAlert' ? 'Lưu ý y tế' :
-              statusKey === 'pending' ? 'Chờ nhập học' :
-              statusKey === 'inactive' ? 'Đã nghỉ học' : 'Đang học';
-
-            return {
-              id: item.id,
-              name: item.name,
-              nickname: item.nickname || '',
-              gender: isFemale ? 'Bé gái' : ['nam','male'].includes(item.gender.toLowerCase()) ? 'Bé trai' : 'Chưa ghi nhận',
-              dateOfBirth: item.dateOfBirth ? formatDate(item.dateOfBirth) : 'Chưa ghi nhận',
-              age: item.dateOfBirth ? formatAge(item.dateOfBirth) : 'Chưa ghi nhận',
-              className: item.className || 'Chưa xếp lớp',
-              parentName: item.parentName || 'Chưa ghi nhận',
-              parentPhone: item.parentPhone || '',
-              status: statusLabel,
-              statusKey,
-              hasHealthAlert: item.hasHealthAlert,
-              medicalNote: item.medicalNote || '',
-              avatarUrl: isFemale
-                ? 'https://images.unsplash.com/photo-1517677208171-0bc6725a3e60?w=150&auto=format&fit=crop&q=80'
-                : 'https://images.unsplash.com/photo-1544717305-2782549b5136?w=150&auto=format&fit=crop&q=80',
-            };
-          });
-
-          // Use API-loaded students as the only source of truth
-          setStudents(apiStudents);
-        }
-        setStudentLoadError('');
-      } catch (error) {
-        if (!cancelled) {
-          // Keep current state on error, don't overwrite with stale mock data
-          console.warn('[Preschool] Student registry load failed:', error);
-        }
-      } finally {
-        if (!cancelled) {
-          setIsLoadingStudents(false);
-        }
-      }
-    }
-
-    loadInitialStudents();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+    const controller = new AbortController(); let active = true;
+    setIsLoadingStudents(true); setRegistryReady(false); setRegistryNeedsLogin(false); setStudentLoadError(''); setStudents([]);
+    void readSchoolRegistry(controller.signal).then(result => {
+      if (!active) return;
+      setStudents(result.students.map(item => {
+        const states = [...new Set(item.enrollments.map(e => e.status))];
+        const statusKey = states.includes('active') ? 'active' as const : 'pending' as const;
+        return {
+          id: item.studentCode, name: item.name, nickname: '',
+          gender: item.gender === 'male' ? 'Bé trai' as const : item.gender === 'female' ? 'Bé gái' as const : 'Chưa ghi nhận' as const,
+          dateOfBirth: item.dob ? formatDate(item.dob) : 'Chưa ghi nhận',
+          age: item.dob ? formatAge(item.dob) : 'Chưa ghi nhận',
+          className: [...new Set(item.enrollments.map(e => e.courseTitle))].join(' · '),
+          branchName: [...new Set(item.enrollments.map(e => e.branchName))].join(' · '),
+          courseNames: item.enrollments.map(e => e.courseTitle), enrollmentStates: states,
+          parentName: 'Chưa được cung cấp trong danh sách', parentPhone: '',
+          status: states.length > 1 ? 'Đang học' as const : statusKey === 'active' ? 'Đang học' as const : 'Chờ nhập học' as const,
+          statusKey, hasHealthAlert: false, medicalNote: '',
+        };
+      }));
+      setRegistryTotals(result.totals); setStudentLoadError(''); setRegistryReady(true);
+    }).catch((error: unknown) => { if (active) {
+      setStudents([]); setRegistryReady(false);
+      const sessionError = error instanceof RegistrySessionError;
+      setRegistryNeedsLogin(sessionError && error.code === 'REGISTRY_UNAUTHENTICATED');
+      setStudentLoadError(sessionError && error.code === 'REGISTRY_UNAUTHENTICATED'
+        ? 'Phiên hiện tại chưa có đăng nhập Supabase hợp lệ. Vui lòng đăng nhập bằng tài khoản thật để xem danh sách trẻ. (REGISTRY_UNAUTHENTICATED)'
+        : sessionError ? 'Phiên hiện tại bị từ chối quyền đọc danh sách trẻ. (REGISTRY_ACCESS_DENIED)'
+        : 'Không thể tải danh sách trẻ được cấp quyền. Chưa thể xác định tổng hồ sơ; vui lòng tải lại.');
+    } })
+      .finally(() => { if (active) setIsLoadingStudents(false); });
+    return () => { active = false; controller.abort(); };
+  }, [registryRefresh]);
 
   // Load course and branch options for admission modal
   useEffect(() => {
@@ -774,18 +746,16 @@ export default function PreschoolEnrollmentsPage() {
   },[isAdmissionModalOpen,admissionForm.branchId]);
 
   // Aggregate KPI Counts — derived from canonical students state loaded from API
-  const totalCount = students.length;
-  const activeCount = students.filter((s) => s.statusKey === 'active' || s.statusKey === 'healthAlert').length;
-  const pendingCount = students.filter((s) => s.statusKey === 'pending').length;
-  const healthAlertCount = students.filter((s) => s.hasHealthAlert || s.statusKey === 'healthAlert').length;
+  const totalCount = registryTotals.students;
+  const activeCount = registryTotals.active;
+  const pendingCount = registryTotals.pending;
+
 
   // Dynamic available classes derived from student registry
   const availableClasses = useMemo(() => {
     const classSet = new Set<string>();
     students.forEach((s) => {
-      if (s.className && s.className !== 'Chưa xếp lớp') {
-        classSet.add(s.className);
-      }
+      for (const name of s.courseNames ?? [s.className]) if (name && name !== 'Chưa xếp lớp') classSet.add(name);
     });
     return Array.from(classSet).sort();
   }, [students]);
@@ -804,18 +774,18 @@ export default function PreschoolEnrollmentsPage() {
       // Status Pill Filter
       let matchesTab = true;
       if (selectedStatusTab === 'active') {
-        matchesTab = stu.statusKey === 'active' || stu.statusKey === 'healthAlert';
+        matchesTab = stu.enrollmentStates?.includes('active') ?? (stu.statusKey === 'active' || stu.statusKey === 'healthAlert');
       } else if (selectedStatusTab === 'pending') {
-        matchesTab = stu.statusKey === 'pending';
+        matchesTab = stu.enrollmentStates?.includes('pending') ?? stu.statusKey === 'pending';
       } else if (selectedStatusTab === 'healthAlert') {
         matchesTab = stu.hasHealthAlert || stu.statusKey === 'healthAlert';
       }
 
       // Dropdown Filters
-      const matchesClass = selectedClassFilter === 'all' || stu.className === selectedClassFilter;
+      const matchesClass = selectedClassFilter === 'all' || (stu.courseNames ?? [stu.className]).includes(selectedClassFilter);
       const matchesStatus = selectedStatusFilter === 'all' || 
-        (selectedStatusFilter === 'active' && stu.statusKey === 'active') ||
-        (selectedStatusFilter === 'pending' && stu.statusKey === 'pending') ||
+        (selectedStatusFilter === 'active' && (stu.enrollmentStates?.includes('active') ?? stu.statusKey === 'active')) ||
+        (selectedStatusFilter === 'pending' && (stu.enrollmentStates?.includes('pending') ?? stu.statusKey === 'pending')) ||
         (selectedStatusFilter === 'healthAlert' && (stu.hasHealthAlert || stu.statusKey === 'healthAlert'));
       const matchesAge = selectedAgeFilter === 'all' || stu.age.includes(selectedAgeFilter);
 
@@ -933,29 +903,11 @@ export default function PreschoolEnrollmentsPage() {
       }
 
       // Add to local state
-      const newStudent: StudentRecord = {
-        id: data.student.studentCode,
-        name: data.student.childName,
-        nickname: data.student.nickname || '',
-        gender: data.student.gender === 'female' ? 'Bé gái' : data.student.gender === 'male' ? 'Bé trai' : 'Chưa ghi nhận',
-        dateOfBirth: data.student.dateOfBirth ? formatDate(data.student.dateOfBirth) : 'Chưa ghi nhận',
-        age: data.student.dateOfBirth ? formatAge(data.student.dateOfBirth) : 'Chưa ghi nhận',
-        className: data.enrollment.courseTitle,
-        parentName: data.student.guardianName,
-        parentPhone: data.student.guardianPhone,
-        status: data.student.medicalNote ? 'Lưu ý y tế' : data.enrollment.status === 'active' ? 'Đang học' : 'Chờ nhập học',
-        statusKey: data.student.medicalNote ? 'healthAlert' : data.enrollment.status === 'active' ? 'active' : 'pending',
-        hasHealthAlert: Boolean(data.student.medicalNote),
-        medicalNote: data.student.medicalNote,
-        avatarUrl: data.student.gender === 'female'
-          ? 'https://images.unsplash.com/photo-1517677208171-0bc6725a3e60?w=150&auto=format&fit=crop&q=80'
-          : 'https://images.unsplash.com/photo-1544717305-2782549b5136?w=150&auto=format&fit=crop&q=80',
-      };
-
       sessionStorage.removeItem(admissionStorageKey);
       setPendingAdmissionKey('');
       setResumeNeedsPayload(false);
-      setStudents((prev) => [newStudent, ...prev.filter((row) => row.id !== newStudent.id)]);
+      setRegistryReady(false);
+      setRegistryRefresh(value => value + 1);
       setToastMessage(`Đã tạo thành công hồ sơ ${data.student.studentCode} cho bé ${data.student.childName}`);
       setIsAdmissionModalOpen(false);
     } catch (error) {
@@ -978,7 +930,7 @@ export default function PreschoolEnrollmentsPage() {
         `"${s.className}"`,
         `"${s.parentName}"`,
         `"${s.parentPhone}"`,
-        `"${s.status}"`,
+        `"${s.enrollmentStates?.map(state => state === 'active' ? 'Đang học' : 'Chờ nhập học').join(' · ') ?? s.status}"`,
         `"${s.medicalNote}"`,
       ].join(',')),
     ].join('\n');
@@ -1044,7 +996,7 @@ export default function PreschoolEnrollmentsPage() {
                 Quản Lý Trẻ
               </h1>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 font-medium">
-                Danh sách toàn bộ hồ sơ trẻ mầm non ({totalCount} trẻ), hồ sơ cá nhân, người giám hộ &amp; lịch sử học tập
+                Danh sách toàn bộ hồ sơ trẻ mầm non ({registryReady ? totalCount : '—'} trẻ), hồ sơ cá nhân, người giám hộ &amp; lịch sử học tập
               </p>
             </div>
           </div>
@@ -1083,11 +1035,11 @@ export default function PreschoolEnrollmentsPage() {
           <div className="space-y-1">
             <span className="text-xs font-bold text-slate-500 dark:text-slate-400">Tổng trẻ</span>
             <div className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
-              {totalCount}
+              {registryReady ? totalCount : '—'}
             </div>
             <div className="flex items-center gap-2 pt-0.5">
               <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
-                + 12 trẻ so với năm trước
+                Hồ sơ trong phạm vi được cấp quyền
               </span>
             </div>
           </div>
@@ -1101,10 +1053,10 @@ export default function PreschoolEnrollmentsPage() {
           <div className="space-y-1">
             <span className="text-xs font-bold text-slate-500 dark:text-slate-400">Đang học</span>
             <div className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
-              {activeCount}
+              {registryReady ? activeCount : '—'}
             </div>
             <div className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
-              86,4% <span className="text-slate-400 font-medium">tổng số trẻ</span>
+              {registryReady && totalCount > 0 ? new Intl.NumberFormat('vi-VN', { maximumFractionDigits: 1 }).format(activeCount / totalCount * 100) + '%' : '—'} <span className="text-slate-400 font-medium">tổng số trẻ</span>
             </div>
           </div>
           <div className="w-12 h-12 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
@@ -1117,10 +1069,10 @@ export default function PreschoolEnrollmentsPage() {
           <div className="space-y-1">
             <span className="text-xs font-bold text-slate-500 dark:text-slate-400">Chờ nhập học</span>
             <div className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
-              {pendingCount}
+              {registryReady ? pendingCount : '—'}
             </div>
             <div className="text-[11px] font-bold text-blue-600 dark:text-blue-400">
-              10,0% <span className="text-slate-400 font-medium">tổng số trẻ</span>
+              {registryReady && totalCount > 0 ? new Intl.NumberFormat('vi-VN', { maximumFractionDigits: 1 }).format(pendingCount / totalCount * 100) + '%' : '—'} <span className="text-slate-400 font-medium">tổng số trẻ</span>
             </div>
           </div>
           <div className="w-12 h-12 rounded-2xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
@@ -1133,10 +1085,10 @@ export default function PreschoolEnrollmentsPage() {
           <div className="space-y-1">
             <span className="text-xs font-bold text-slate-500 dark:text-slate-400">Lưu ý y tế</span>
             <div className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
-              {healthAlertCount}
+              Chưa xác minh
             </div>
             <div className="text-[11px] font-bold text-amber-600 dark:text-amber-400">
-              4,3% <span className="text-slate-400 font-medium">tổng số trẻ</span>
+              Chưa có dữ liệu y tế trong registry
             </div>
           </div>
           <div className="w-12 h-12 rounded-2xl bg-rose-50 dark:bg-rose-950/60 text-rose-500 dark:text-rose-400 flex items-center justify-center shrink-0">
@@ -1218,7 +1170,7 @@ export default function PreschoolEnrollmentsPage() {
                         : 'bg-slate-100 dark:bg-slate-700/60 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
                     }`}
                   >
-                    Tất cả trẻ ({totalCount})
+                    Tất cả trẻ ({registryReady ? totalCount : '—'})
                   </button>
                   <button
                     type="button"
@@ -1229,7 +1181,7 @@ export default function PreschoolEnrollmentsPage() {
                         : 'bg-slate-100 dark:bg-slate-700/60 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
                     }`}
                   >
-                    Đang học ({activeCount})
+                    Đang học ({registryReady ? activeCount : '—'})
                   </button>
                   <button
                     type="button"
@@ -1240,11 +1192,11 @@ export default function PreschoolEnrollmentsPage() {
                         : 'bg-slate-100 dark:bg-slate-700/60 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
                     }`}
                   >
-                    Chờ nhập học ({pendingCount})
+                    Chờ nhập học ({registryReady ? pendingCount : '—'})
                   </button>
                   <button
                     type="button"
-                    onClick={() => { setSelectedStatusTab('healthAlert'); setCurrentPage(1); }}
+                    disabled title="Chưa có dữ liệu y tế được xác minh trong registry"
                     className={`px-4 py-2 rounded-2xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${
                       selectedStatusTab === 'healthAlert'
                         ? 'bg-amber-500 text-white shadow-xs'
@@ -1252,7 +1204,7 @@ export default function PreschoolEnrollmentsPage() {
                     }`}
                   >
                     <AlertTriangle className="w-3.5 h-3.5" />
-                    <span>Lưu ý y tế ({healthAlertCount})</span>
+                    <span>Lưu ý y tế (chưa xác minh)</span>
                   </button>
                 </div>
               </div>
@@ -1267,7 +1219,7 @@ export default function PreschoolEnrollmentsPage() {
                       onChange={(e) => { setSelectedClassFilter(e.target.value); setCurrentPage(1); }}
                       className="appearance-none bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-200 rounded-xl px-3 py-1.5 pr-7 focus:outline-none cursor-pointer hover:border-slate-300"
                     >
-                      <option value="all">Tất cả lớp ({availableClasses.length > 0 ? `${availableClasses.length} lớp` : `${totalCount} trẻ`})</option>
+                      <option value="all">Tất cả lớp ({availableClasses.length > 0 ? `${availableClasses.length} lớp` : `${registryReady ? totalCount : '—'} trẻ`})</option>
                       {availableClasses.map((cls) => (
                         <option key={cls} value={cls}>{cls}</option>
                       ))}
@@ -1287,7 +1239,7 @@ export default function PreschoolEnrollmentsPage() {
                       <option value="all">Tất cả trạng thái</option>
                       <option value="active">Đang học</option>
                       <option value="pending">Chờ nhập học</option>
-                      <option value="healthAlert">Lưu ý y tế</option>
+                      <option value="healthAlert" disabled>Lưu ý y tế (chưa xác minh)</option>
                     </select>
                     <ChevronDown className="w-3 h-3 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                   </div>
@@ -1322,12 +1274,18 @@ export default function PreschoolEnrollmentsPage() {
               </div>
 
               <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
-                Kết quả: <span className="font-bold text-slate-900 dark:text-white">{filteredStudents.length} trẻ</span> phù hợp bộ lọc · Tổng hồ sơ: {totalCount}
+                Kết quả: <span className="font-bold text-slate-900 dark:text-white">{registryReady ? `${filteredStudents.length} trẻ` : 'Chưa xác định'}</span> phù hợp bộ lọc · Tổng hồ sơ: {registryReady ? totalCount : '—'}
               </p>
             </div>
 
+            {isLoadingStudents && <p role="status" className="p-6 text-sm">Đang tải danh sách trẻ…</p>}
+            {studentLoadError && <div role="alert" className="p-6 text-sm text-rose-700">
+              <p>{studentLoadError}</p>
+              {registryNeedsLogin && <Link href={{ pathname: '/login', query: { reset: 'true', next: '/dashboard/education/enrollments' } }} className="mt-3 inline-block font-semibold underline">Đăng nhập tài khoản thật</Link>}
+              {!registryNeedsLogin && <button type="button" onClick={() => setRegistryRefresh(value => value + 1)} className="mt-3 font-semibold underline">Thử tải lại</button>}
+            </div>}
             {/* Empty State when no results */}
-            {displayedStudents.length === 0 && (
+            {registryReady && displayedStudents.length === 0 && (
               <div className="p-12 text-center space-y-3">
                 <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-400 flex items-center justify-center mx-auto">
                   <Search className="w-6 h-6" />
@@ -1415,7 +1373,7 @@ export default function PreschoolEnrollmentsPage() {
                                   {stu.gender === 'Bé trai' ? (
                                     <span className="text-blue-600 dark:text-blue-400 font-bold">Bé trai</span>
                                   ) : (
-                                    <span className="text-rose-500 dark:text-rose-400 font-bold">Bé gái</span>
+                                    <span className="text-rose-500 dark:text-rose-400 font-bold">{stu.gender}</span>
                                   )}
                                 </div>
                               </div>
@@ -1443,22 +1401,22 @@ export default function PreschoolEnrollmentsPage() {
                           {/* Phụ huynh (Tên & SĐT) */}
                           <td className="py-3 px-3">
                             <div className="text-slate-800 dark:text-slate-200 font-bold">{stu.parentName}</div>
-                            <a 
+                            {stu.parentPhone && <a
                               href={`tel:${stu.parentPhone}`} 
                               className="text-[11px] text-slate-500 dark:text-slate-400 hover:text-emerald-600 font-medium"
                             >
                               {stu.parentPhone}
-                            </a>
+                            </a>}
                           </td>
 
                           {/* Trạng thái */}
                           <td className="py-3 px-3 whitespace-nowrap">
-                            {stu.statusKey === 'active' && (
+                            {(stu.enrollmentStates?.includes('active') ?? stu.statusKey === 'active') && (
                               <span className="inline-flex items-center px-3 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/70 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-900/60">
                                 Đang học
                               </span>
                             )}
-                            {stu.statusKey === 'pending' && (
+                            {(stu.enrollmentStates?.includes('pending') ?? stu.statusKey === 'pending') && (
                               <span className="inline-flex items-center px-3 py-1 rounded-full text-[11px] font-bold bg-blue-50 text-blue-700 dark:bg-blue-950/70 dark:text-blue-300 border border-blue-200/80 dark:border-blue-900/60">
                                 Chờ nhập học
                               </span>
@@ -1710,58 +1668,7 @@ export default function PreschoolEnrollmentsPage() {
             </div>
           </div>
 
-          {/* Widget 3: Trẻ có lưu ý y tế (12) */}
-          <div className="rounded-3xl bg-white dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-700/80 p-5 sm:p-6 shadow-2xs space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-slate-900 dark:text-white font-extrabold text-sm">
-                <Heart className="w-4 h-4 text-rose-500 fill-rose-500" />
-                <span>Trẻ có lưu ý y tế ({healthAlertCount})</span>
-              </div>
-              <button 
-                type="button"
-                onClick={() => {
-                  setSelectedStatusTab('healthAlert');
-                  setCurrentPage(1);
-                  menuRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }}
-                className="text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
-              >
-                Xem tất cả
-              </button>
-            </div>
-
-            <div className="space-y-3 pt-1">
-              {CANONICAL_HEALTH_ALERT_CHILDREN.map((child) => (
-                <Link
-                  key={child.id}
-                  href={`/dashboard/education/enrollments/${child.id}`}
-                  className="flex items-center justify-between p-2 rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors group cursor-pointer"
-                >
-                  <div className="flex items-center gap-3">
-                    <ChildAvatar
-                      gender={child.gender}
-                      avatarUrl={child.avatarUrl}
-                      name={child.name}
-                      sizeClass="w-9 h-9"
-                    />
-                    <div>
-                      <h4 className="text-xs font-extrabold text-slate-900 dark:text-white group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors">
-                        {child.name}
-                      </h4>
-                      <p className="text-[11px] text-slate-400 font-semibold">{child.className}</p>
-                      <div className="mt-0.5">
-                        <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-rose-700 dark:bg-rose-950/70 dark:text-rose-300 border border-rose-200/70">
-                          {child.condition}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                  <ChevronRight className="w-4 h-4 text-slate-400 group-hover:translate-x-0.5 transition-transform" />
-                </Link>
-              ))}
-            </div>
-          </div>
-
+          <section className="rounded-3xl bg-white dark:bg-slate-800/90 border p-5"><h3 className="font-bold">Lưu ý y tế</h3><p>Chưa có dữ liệu y tế được xác minh trong danh sách trẻ.</p></section>
           {/* Widget 4: Hồ sơ cần bổ sung */}
           <div className="rounded-3xl bg-white dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-700/80 p-5 sm:p-6 shadow-2xs space-y-4">
             <div className="flex items-center justify-between">
@@ -1871,7 +1778,7 @@ export default function PreschoolEnrollmentsPage() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 text-slate-900 dark:text-white font-extrabold text-sm">
               <Clock className="w-4 h-4 text-blue-600" />
-              <span>Trẻ chờ nhập học ({pendingCount})</span>
+              <span>Trẻ chờ nhập học ({registryReady ? pendingCount : '—'})</span>
             </div>
             <button 
               type="button" 

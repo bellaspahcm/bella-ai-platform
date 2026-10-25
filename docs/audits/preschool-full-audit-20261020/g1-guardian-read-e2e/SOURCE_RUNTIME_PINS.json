@@ -1,0 +1,42 @@
+[
+  {
+    "file": "src/products/bella-education/services/preschool-student-guardian-read.service.ts",
+    "sha256": "C4431558C81117D527AAB3167C8AC901CF47D77D249F6E4E415B7EC5A1E2E9B2",
+    "runtime_copy_matches": true
+  },
+  {
+    "file": "src/products/bella-education/__tests__/preschool-student-guardian-read.service.test.ts",
+    "sha256": "40E22B2AFDA639432C882BF3BE9D4A58DD58667F9FF1EDB3946D86584CF9845E",
+    "runtime_copy_matches": true
+  },
+  {
+    "file": "src/app/api/education/enrollments/[id]/guardians/route.ts",
+    "sha256": "C1D1B9521B5B502D1660E2CC888580458667741B1DB22DD1824374542EC22721",
+    "runtime_copy_matches": true
+  },
+  {
+    "file": "src/app/api/education/enrollments/[id]/guardians/__tests__/route.test.ts",
+    "sha256": "0A9691CC6DD210C4FB511CE467FD9FDE566D1A4546D7732ADBE90D9EF7F10541",
+    "runtime_copy_matches": true
+  },
+  {
+    "file": "src/app/dashboard/education/enrollments/[id]/StudentGuardians.tsx",
+    "sha256": "3FC1A19C6F76C13A10FF551E5E00C53D29A1DA903DC99B2C5217D93C88D12031",
+    "runtime_copy_matches": true
+  },
+  {
+    "file": "src/app/dashboard/education/enrollments/[id]/__tests__/StudentGuardians.test.tsx",
+    "sha256": "014BD39940A7BB45F2DD72E7A5C7AB5A55BF41899FDFB8DCC029D8D1C63C48DF",
+    "runtime_copy_matches": true
+  },
+  {
+    "file": "src/app/dashboard/education/enrollments/[id]/page.tsx",
+    "sha256": "B8118721AD5A25234301F0AB70FEA49E0B66219491C47EEB98F0414E05787C97",
+    "runtime_copy_matches": true
+  },
+  {
+    "file": "src/app/dashboard/education/enrollments/[id]/__tests__/page.test.tsx",
+    "sha256": "DAA785FE239CEC008918A6A13463112B565BCDB34D76CD7E5D116392D2C727F9",
+    "runtime_copy_matches": true
+  }
+]

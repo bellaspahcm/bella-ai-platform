@@ -116,7 +116,16 @@ const QUICK_REPORTS: readonly QuickReport[] = [
 
 // ─── Currency Formatter ──────────────────────────────────────────────────────
 
-function formatVND(amount: number): string {
+function formatMetric(value: number | null): string {
+  return value === null ? 'Chưa xác minh' : value.toLocaleString('vi-VN');
+}
+
+function formatPercentage(value: number | null): string {
+  return value === null ? 'Chưa xác minh' : `${value}%`;
+}
+
+function formatVND(amount: number | null): string {
+  if (amount === null) return 'Chưa xác minh';
   if (amount >= 1_000_000_000) {
     const b = amount / 1_000_000_000;
     return `${b.toLocaleString('vi-VN', { minimumFractionDigits: 1, maximumFractionDigits: 2 })} tỷ`;
@@ -130,10 +139,13 @@ function formatVND(amount: number): string {
 
 // ─── Helper Components ────────────────────────────────────────────────────────
 
-function ProgressBar({ pct, color }: { pct: number; color: string }) {
-  const boundedPct = Math.min(100, Math.max(0, isNaN(pct) ? 0 : pct));
+function ProgressBar({ pct, color }: { pct: number | null; color: string }) {
+  const boundedPct = pct === null ? 0 : Math.min(100, Math.max(0, isNaN(pct) ? 0 : pct));
   return (
-    <div className="w-full h-1.5 rounded-full bg-slate-100 overflow-hidden">
+    <div
+      className="w-full h-1.5 rounded-full bg-slate-100 overflow-hidden"
+      aria-label={pct === null ? 'Chưa xác minh' : `${boundedPct}%`}
+    >
       <div
         className={`h-full rounded-full ${color} transition-all duration-700`}
         style={{ width: `${boundedPct}%` }}
@@ -380,23 +392,24 @@ export default function ReportsPage() {
   ] as const;
 
   // Derived metrics from canonical DTO
-  const totalEnrolled = dashboard?.enrollment.totalEnrolledStudents ?? 0;
-  const presentCount = dashboard?.attendance.todayPresentCount ?? 0;
-  const lateCount = dashboard?.attendance.todayLateCount ?? 0;
-  const absentCount = dashboard?.attendance.todayAbsentCount ?? 0;
-  const attendanceRate = dashboard?.attendance.presentVsEnrolledRate ?? 0;
+  const totalEnrolled = dashboard?.enrollment.totalEnrolledStudents ?? null;
+  const presentCount = dashboard?.attendance.todayPresentCount ?? null;
+  const lateCount = dashboard?.attendance.todayLateCount ?? null;
+  const absentCount = dashboard?.attendance.todayAbsentCount ?? null;
+  const attendanceRate = dashboard?.attendance.presentVsEnrolledRate ?? null;
 
-  const invoicedGross = dashboard?.finance.invoicedGrossTotal ?? 0;
-  const reconciledCollected = dashboard?.finance.reconciledCashCollected ?? 0;
-  const outstandingBalance = dashboard?.finance.outstandingBalanceTotal ?? 0;
-  const overdueCount = dashboard?.finance.overdueAccountsCount ?? 0;
-  const financePct = invoicedGross > 0 ? Math.round((reconciledCollected / invoicedGross) * 100) : 0;
+  const invoicedGross = dashboard?.finance.invoicedGrossTotal ?? null;
+  const reconciledCollected = dashboard?.finance.reconciledCashCollected ?? null;
+  const outstandingBalance = dashboard?.finance.outstandingBalanceTotal ?? null;
+  const overdueCount = dashboard?.finance.overdueAccountsCount ?? null;
+  const financePct = invoicedGross !== null && reconciledCollected !== null && invoicedGross > 0
+    ? Math.round((reconciledCollected / invoicedGross) * 100) : null;
 
   const classrooms = dashboard?.enrollment.classroomUtilization ?? [];
 
   // Priority issues dynamically populated from real DTO
   const operationalIssues: IssueItem[] = [];
-  if (overdueCount > 0) {
+  if (overdueCount !== null && overdueCount > 0) {
     operationalIssues.push({
       id: 'issue-overdue',
       level: 'Cao',
@@ -579,7 +592,7 @@ export default function ReportsPage() {
                   <span className="text-xs">Đang tải...</span>
                 </div>
               ) : (
-                <p className="text-2xl font-extrabold text-slate-900 dark:text-slate-100">{attendanceRate}%</p>
+                <p className="text-2xl font-extrabold text-slate-900 dark:text-slate-100">{formatPercentage(attendanceRate)}</p>
               )}
               <p className="text-[10px] text-slate-400 mt-0.5">Ngày ghi nhận: {selectedDate}</p>
             </div>
@@ -589,9 +602,9 @@ export default function ReportsPage() {
                 'Đang kiểm tra sĩ số...'
               ) : (
                 <>
-                  Có mặt: <strong className="text-slate-800">{presentCount} / {totalEnrolled} trẻ</strong>
-                  {lateCount > 0 && <span className="text-amber-600 ml-1">({lateCount} muộn)</span>}
-                  {absentCount > 0 && <span className="text-slate-400 ml-1">({absentCount} vắng)</span>}
+                  Có mặt: <strong className="text-slate-800">{formatMetric(presentCount)} / {formatMetric(totalEnrolled)} trẻ</strong>
+                  {lateCount !== null && lateCount > 0 && <span className="text-amber-600 ml-1">({lateCount} muộn)</span>}
+                  {absentCount !== null && absentCount > 0 && <span className="text-slate-400 ml-1">({absentCount} vắng)</span>}
                 </>
               )}
             </p>
@@ -738,6 +751,8 @@ export default function ReportsPage() {
                   <p className="text-[11px] text-emerald-700 leading-relaxed">
                     {isLoading
                       ? 'Đang đồng bộ số liệu điểm danh thực tế...'
+                      : totalEnrolled === null || attendanceRate === null || presentCount === null
+                      ? 'Chưa xác minh được số liệu chuyên cần cho ngày đã chọn.'
                       : totalEnrolled > 0
                       ? `Tỷ lệ chuyên cần ngày ${selectedDate} đạt ${attendanceRate}% (${presentCount}/${totalEnrolled} trẻ có mặt).`
                       : 'Chưa có ghi nhận trẻ đi học trong ngày được chọn.'}
@@ -755,6 +770,8 @@ export default function ReportsPage() {
                   <p className="text-[11px] text-amber-700 leading-relaxed">
                     {isLoading
                       ? 'Đang kiểm tra hóa đơn quá hạn...'
+                      : overdueCount === null || outstandingBalance === null
+                      ? 'Chưa xác minh được số liệu công nợ trong hệ thống.'
                       : overdueCount > 0
                       ? `Có ${overdueCount} tài khoản quá hạn thanh toán. Còn nợ lũy kế: ${formatVND(outstandingBalance)}.`
                       : 'Không có khoản nợ quá hạn ghi nhận trong hệ thống.'}
@@ -1101,30 +1118,30 @@ export default function ReportsPage() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="p-5 rounded-2xl border border-slate-200 bg-slate-50 space-y-1">
               <p className="text-[11px] font-semibold text-slate-500">Tổng trẻ ghi danh</p>
-              <p className="text-2xl font-extrabold text-slate-800">{isLoading ? '...' : totalEnrolled}</p>
+              <p className="text-2xl font-extrabold text-slate-800">{isLoading ? '...' : formatMetric(totalEnrolled)}</p>
               <p className="text-[10px] text-slate-400">Từ edu_enrollments</p>
             </div>
             <div className="p-5 rounded-2xl border border-emerald-200 bg-emerald-50/60 space-y-1">
               <p className="text-[11px] font-semibold text-emerald-700">Có mặt hôm nay</p>
-              <p className="text-2xl font-extrabold text-emerald-600">{isLoading ? '...' : presentCount}</p>
+              <p className="text-2xl font-extrabold text-emerald-600">{isLoading ? '...' : formatMetric(presentCount)}</p>
               <p className="text-[10px] text-emerald-600">Trạng thái PRESENT / LATE</p>
             </div>
             <div className="p-5 rounded-2xl border border-amber-200 bg-amber-50/60 space-y-1">
               <p className="text-[11px] font-semibold text-amber-700">Đi muộn</p>
-              <p className="text-2xl font-extrabold text-amber-600">{isLoading ? '...' : lateCount}</p>
+              <p className="text-2xl font-extrabold text-amber-600">{isLoading ? '...' : formatMetric(lateCount)}</p>
               <p className="text-[10px] text-amber-600">Trạng thái LATE</p>
             </div>
             <div className="p-5 rounded-2xl border border-rose-200 bg-rose-50/60 space-y-1">
               <p className="text-[11px] font-semibold text-rose-700">Vắng mặt</p>
-              <p className="text-2xl font-extrabold text-rose-600">{isLoading ? '...' : absentCount}</p>
+              <p className="text-2xl font-extrabold text-rose-600">{isLoading ? '...' : formatMetric(absentCount)}</p>
               <p className="text-[10px] text-rose-600">Trạng thái ABSENT</p>
             </div>
           </div>
 
           <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
             <div className="flex justify-between items-center text-xs font-bold text-slate-700">
-              <span>Tỷ lệ chuyên cần chung: {attendanceRate}%</span>
-              <span>{presentCount} / {totalEnrolled} trẻ</span>
+              <span>Tỷ lệ chuyên cần chung: {formatPercentage(attendanceRate)}</span>
+              <span>{formatMetric(presentCount)} / {formatMetric(totalEnrolled)} trẻ</span>
             </div>
             <ProgressBar pct={attendanceRate} color="bg-emerald-500" />
             <p className="text-[11px] text-slate-500 mt-1">
@@ -1171,7 +1188,7 @@ export default function ReportsPage() {
             </div>
             <div className="p-4 rounded-2xl border border-amber-200 bg-amber-50/60 text-center space-y-1">
               <p className="text-[10px] font-semibold text-amber-700">Hóa đơn quá hạn</p>
-              <p className="text-xl font-extrabold text-amber-600">{isLoading ? '...' : `${overdueCount} tài khoản`}</p>
+              <p className="text-xl font-extrabold text-amber-600">{isLoading ? '...' : overdueCount === null ? 'Chưa xác minh' : `${overdueCount} tài khoản`}</p>
               <p className="text-[10px] text-amber-600">Hạn thanh toán &lt; {selectedDate}</p>
             </div>
           </div>
