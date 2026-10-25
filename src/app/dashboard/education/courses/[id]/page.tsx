@@ -422,7 +422,7 @@ function LegacyClassWorkspacePage({ params, onRefresh }: { params: Promise<{ id:
                 <thead className="bg-slate-50 dark:bg-slate-900 text-slate-500 font-bold border-b border-slate-200 dark:border-slate-800">
                   <tr>
                     <th className="p-3.5">Mã HS</th>
-                    <th className="p-3.5">Họ & Tên Học Sinh</th>
+                    <th className="p-3.5">Họ &amp; Tên Học Sinh</th>
                     <th className="p-3.5">Giới tính</th>
                     <th className="p-3.5">Thân nhiệt sáng</th>
                     <th className="p-3.5">Trạng thái điểm danh</th>

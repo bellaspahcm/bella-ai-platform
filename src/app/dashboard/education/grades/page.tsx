@@ -1831,7 +1831,7 @@ function PreschoolDevelopmentGradesPageContent() {
             </div>
             <div>
               <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-                Học Tập & Phát Triển Mầm Non
+                Học Tập &amp; Phát Triển Mầm Non
               </h1>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                 Theo dõi sự phát triển toàn diện của trẻ theo quan sát, bằng chứng và khung NAEYC

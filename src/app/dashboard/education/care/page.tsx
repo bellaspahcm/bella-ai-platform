@@ -674,7 +674,7 @@ export default function CarePage() {
 
           <div>
             <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
-              Chăm sóc & Nuôi dưỡng
+              Chăm sóc &amp; Nuôi dưỡng
             </h1>
             <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">
               Theo dõi ăn uống, giấc ngủ, sức khỏe và hoạt động chăm sóc trẻ hàng ngày

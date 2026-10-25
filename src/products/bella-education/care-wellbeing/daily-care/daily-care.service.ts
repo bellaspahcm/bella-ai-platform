@@ -235,19 +235,12 @@ export class DailyCareService implements IDailyCareContract {
     await this.assertCourseBelongsToTenant(tenantId, courseId);
     const tenant = await this.supabase.from('tenants').select('id, product_key').eq('id', tenantId).maybeSingle();
     if (tenant.error || !tenant.data || tenant.data.id !== tenantId) throw new Error('CARE_PRODUCT_CONTEXT_UNAVAILABLE');
-    if (tenant.data.product_key === 'bella_preschool') {
-      const roster = await new AttendanceContractImpl(this.supabase).getCourseDailyAttendance({ tenantId, courseId, schoolDay: date });
-      if (roster.length === 0) return [];
-      const sessionId = await this.getExistingSession(tenantId, courseId, date);
-      const records = sessionId ? await this.supabase.from('edu_daily_care_records').select('*')
-        .eq('tenant_id', tenantId).eq('session_id', sessionId).in('student_party_id', roster.map(row => row.studentPartyId))
-        : { data: [], error: null };
-      if (records.error) throw new Error('CARE_RECORDS_LOOKUP_FAILED');
-      const careByParty = new Map(((records.data ?? []) as CareRecordRow[]).map(row => [row.student_party_id, mapRecord(row)]));
-      return roster.map(row => ({ enrollmentId: row.enrollmentId, studentPartyId: row.studentPartyId,
-        studentCode: row.studentCode, name: row.name, gender: row.gender, dob: row.dob, care: careByParty.get(row.studentPartyId) ?? null }));
-    }
-    const enrollmentRows = await this.getCanonicalRoster(tenantId, courseId);
+    const preschoolRoster = tenant.data.product_key === 'bella_preschool'
+      ? await new AttendanceContractImpl(this.supabase).getCourseDailyAttendance({ tenantId, courseId, schoolDay: date })
+      : null;
+    const enrollmentRows: readonly EnrollmentRow[] = preschoolRoster
+      ? preschoolRoster.map(row => ({ id: row.enrollmentId, student_party_id: row.studentPartyId, status: row.enrollmentStatus }))
+      : await this.getCanonicalRoster(tenantId, courseId);
     if (enrollmentRows.length === 0) return [];
 
     const studentPartyIds = [...new Set(enrollmentRows.map((enrollment) => enrollment.student_party_id))];
@@ -258,16 +251,20 @@ export class DailyCareService implements IDailyCareContract {
       { data: parties, error: partyError },
       { data: records, error: recordError },
     ] = await Promise.all([
-      this.supabase
-        .from('students')
-        .select('party_id, student_code')
-        .eq('tenant_id', tenantId)
-        .in('party_id', studentPartyIds),
-      this.supabase
-        .from('party_parties')
-        .select('id, display_name, gender, dob')
-        .eq('tenant_id', tenantId)
-        .in('id', studentPartyIds),
+      preschoolRoster
+        ? Promise.resolve({ data: null, error: null })
+        : this.supabase
+          .from('students')
+          .select('party_id, student_code')
+          .eq('tenant_id', tenantId)
+          .in('party_id', studentPartyIds),
+      preschoolRoster
+        ? Promise.resolve({ data: null, error: null })
+        : this.supabase
+          .from('party_parties')
+          .select('id, display_name, gender, dob')
+          .eq('tenant_id', tenantId)
+          .in('id', studentPartyIds),
       sessionId
         ? this.supabase
           .from('edu_daily_care_records')
@@ -294,6 +291,7 @@ export class DailyCareService implements IDailyCareContract {
         .map((student) => [student.party_id as string, student]),
     );
     const partyById = new Map(((parties ?? []) as PartyRow[]).map((party) => [party.id, party]));
+    const preschoolByPartyId = new Map((preschoolRoster ?? []).map(row => [row.studentPartyId, row]));
     const careByPartyId = new Map(
       ((records ?? []) as CareRecordRow[])
         .filter((record) => record.student_party_id)
@@ -301,19 +299,21 @@ export class DailyCareService implements IDailyCareContract {
     );
 
     return enrollmentRows.map((enrollment) => {
+      const preschoolStudent = preschoolByPartyId.get(enrollment.student_party_id);
       const party = partyById.get(enrollment.student_party_id);
       const student = studentByPartyId.get(enrollment.student_party_id);
-      if (!party?.display_name) {
+      const name = preschoolStudent?.name ?? party?.display_name;
+      if (!name) {
         throw new Error(`CARE_CANONICAL_ROSTER_JOIN_FAILED: ${enrollment.student_party_id}`);
       }
 
       return {
         enrollmentId: enrollment.id,
         studentPartyId: enrollment.student_party_id,
-        studentCode: student?.student_code ?? null,
-        name: party.display_name,
-        gender: party.gender,
-        dob: party.dob,
+        studentCode: preschoolStudent?.studentCode ?? student?.student_code ?? null,
+        name,
+        gender: preschoolStudent?.gender ?? party?.gender ?? null,
+        dob: preschoolStudent?.dob ?? party?.dob ?? null,
         care: careByPartyId.get(enrollment.student_party_id) ?? null,
       };
     });

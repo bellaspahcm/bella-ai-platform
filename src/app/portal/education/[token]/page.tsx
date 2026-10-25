@@ -706,7 +706,7 @@ export default function PreschoolParentPortalPage({
           <div className="p-4 sm:p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-4 animate-in fade-in duration-200">
             <div className="border-b border-slate-100 dark:border-slate-800 pb-3">
               <h3 className="text-sm font-black text-slate-900 dark:text-white">
-                Khung thời gian sinh hoạt & học tập
+                Khung thời gian sinh hoạt &amp; học tập
               </h3>
               <p className="text-[11px] text-slate-500 mt-0.5">
                 Thời gian biểu do trường cung cấp

@@ -1652,7 +1652,7 @@ function LegacyCommunicationView() {
     <div className="w-full p-6 space-y-6">
       <div className="p-6 rounded-3xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm">
         <h2 className="text-lg font-bold text-slate-900 dark:text-white">
-          Trung Tâm Truyền Thông & Tương Tác — Enterprise ERP
+          Trung Tâm Truyền Thông &amp; Tương Tác — Enterprise ERP
         </h2>
         <p className="text-xs text-slate-500 mt-1">
           Chế độ xem dành riêng cho trung tâm đào tạo tiêu chuẩn và trường phổ thông liên cấp.
