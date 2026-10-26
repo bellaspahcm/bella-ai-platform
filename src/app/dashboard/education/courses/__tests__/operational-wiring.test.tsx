@@ -4,7 +4,7 @@ import { Suspense } from 'react';
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
 import type { ClassroomLiveOverview } from '../classroom-live-data';
 
-const mockLoadOverview = jest.fn<typeof import('../classroom-live-data')['loadClassroomOverview']>();
+const mockLoadOverview = jest.fn(() => Promise.resolve(new Map<string, ClassroomLiveOverview>()));
 jest.mock('../classroom-live-data', () => ({ loadClassroomOverview: mockLoadOverview }));
 jest.mock('next/link', () => ({ __esModule: true,
   default: ({ children, href, ...props }: React.AnchorHTMLAttributes<HTMLAnchorElement>) => <a href={href} {...props}>{children}</a> }));
