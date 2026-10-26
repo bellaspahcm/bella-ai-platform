@@ -9,6 +9,9 @@
 # Retain applicable specialized rules via its authority map.
 # The complete common rules live there; this entrypoint grants no additional authority.
 
+# Follow docs/governance/OPERATIONAL_RULES.md across Bella AI Platform and all current/future Products.
+# When Factory is selected, also follow docs/governance/FACTORY_RULES.md; keep rules at those sources.
+
 # Route BELLA MVP UI-TO-DATABASE COMPLETION and equivalent existing-MVP completion requests to:
 # docs/governance/BELLA_AI_CODING_CONSTITUTION.md#mvp-ui-to-database-completion
 # Apply its scoped inventory, MVP reuse, persistence/E2E evidence, authority and Factory Intake rules.
