@@ -65,6 +65,10 @@ Default: execute within delegated scope. Escalate: unresolved material business 
 | Several technical choices have no material business, ownership, compatibility, or security difference. | Choose the smallest proven, compatible, recoverable option within scope and record the reason in the existing task record. |
 | A material business rule is unresolved, or required change authority is missing. | Hold dependent implementation, provide evidence and a concrete proposal, and bundle the necessary owner decision where possible. Continue independent, authorized work. |
 
+### Autonomous Execution Within Scope
+
+Do not stop at the first environment or tooling obstacle. Inspect supported alternatives, choose the least-risk permitted path, and continue authorized work and independent checks. Do not bypass tool or policy controls, use shared or Production data outside the approved scope, or ask again for decisions already made. Stop only the dependent action when access, a material business decision, real-data risk, or an explicit tool/policy block leaves no permitted path. Report the exact blocked action, alternatives checked, completed evidence, and remaining condition. `NOT_PROVEN` is not a product failure; `PASS` is not Go-Live.
+
 Do not request approval again for an explicit decision that still applies. Scope approval can cover source implementation, tests, related repairs, and verification within existing contracts and permissions.
 
 Production operations, schema/migrations, ACL/grants or access-permission changes, public-contract/Kernel changes, and commit/push/merge/deploy actions require explicit authority for that category. If authority is missing, stop the dependent action, present the minimum concrete change and its evidence, and request the owner's decision. Continue independent, authorized work. Frozen-layer changes also retain their required ACR/ADR, approval, unlock, verification, and reseal process; task approval alone cannot bypass it. Follow the authorization already granted and the applicable repository/release process.
