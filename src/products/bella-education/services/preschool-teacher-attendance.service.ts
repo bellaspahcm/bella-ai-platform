@@ -4,17 +4,14 @@ import { PartyAuthLinkContractImpl } from '@/platform/party/auth-link.contract.i
 import { PartyAuthLinkError } from '@/platform/party/auth-link.contract';
 import { AttendanceContractImpl } from '@/platform/education/contracts/attendance.contract.impl';
 import { parseAttendanceCommandResult } from '@/platform/education/contracts/attendance-command.contract';
+import { PreschoolTeacherContractError } from '@/platform/education/contracts/teacher-assignment.contract';
+import type { PreschoolTeacherAttendanceCourse } from '@/platform/education/contracts/teacher-assignment.contract';
+import { PreschoolTeacherContractImpl } from '@/platform/education/contracts/preschool-teacher.contract.impl';
 import { AttendanceProductService } from './attendance.service';
 import { PreschoolChainError } from './preschool-chain.service';
 import type { PreschoolAttendanceCommandInput } from './preschool-attendance-command.service';
 
-export interface TeacherAttendanceCourse { courseId: string; name: string; branchId: string }
-interface TeacherCourseRpc {
-  rpc(name: 'preschool_teacher_attendance_courses', input: { p_school_day: string; p_branch_id: string | null }):
-    PromiseLike<{ data: unknown; error: { code?: string } | null }>;
-}
-const uuid = (value: unknown): value is string => typeof value === 'string'
-  && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
+export type TeacherAttendanceCourse = PreschoolTeacherAttendanceCourse;
 const denied = () => new PreschoolChainError('ATTENDANCE_TEACHER_ACCESS_DENIED', 403);
 const unavailable = () => new PreschoolChainError('ATTENDANCE_TEACHER_SCOPE_UNAVAILABLE', 503);
 
@@ -37,23 +34,15 @@ export class PreschoolTeacherAttendanceService {
 
   async listCourses(tenantId: string, actorId: string, schoolDay: string, branchId?: string): Promise<TeacherAttendanceCourse[]> {
     await this.requireIdentity(tenantId, actorId);
-    const { data, error } = await (this.client as unknown as TeacherCourseRpc)
-      .rpc('preschool_teacher_attendance_courses', { p_school_day: schoolDay, p_branch_id: branchId ?? null });
-    if (error) { if (error.code === '42501') throw denied(); throw unavailable(); }
-    if (!data || typeof data !== 'object' || Array.isArray(data)) throw unavailable();
-    const result = data as Record<string, unknown>;
-    if (result.tenantId !== tenantId || result.actorId !== actorId || result.schoolDay !== schoolDay
-      || !Array.isArray(result.courses)) throw unavailable();
-    const courses: TeacherAttendanceCourse[] = [];
-    for (const item of result.courses) {
-      if (!item || typeof item !== 'object' || Array.isArray(item)) throw unavailable();
-      const row = item as Record<string, unknown>;
-      if (!uuid(row.courseId) || !uuid(row.branchId) || typeof row.name !== 'string' || !row.name.trim()
-        || (branchId !== undefined && row.branchId !== branchId)
-        || courses.some(course => course.courseId === row.courseId)) throw unavailable();
-      courses.push({ courseId: row.courseId, name: row.name, branchId: row.branchId });
+    try {
+      const scope = await new PreschoolTeacherContractImpl(this.client).listMyAttendanceCourses(schoolDay, branchId);
+      if (scope.tenantId !== tenantId || scope.actorId !== actorId || scope.schoolDay !== schoolDay) throw unavailable();
+      return scope.courses;
+    } catch (error) {
+      if (error instanceof PreschoolChainError) throw error;
+      if (error instanceof PreschoolTeacherContractError && error.code === 'PRESCHOOL_TEACHER_ACCESS_DENIED') throw denied();
+      throw unavailable();
     }
-    return courses;
   }
 
   async setDailyAttendance(input: PreschoolAttendanceCommandInput, authorizeScope?: (course: TeacherAttendanceCourse) => void) {

@@ -63,6 +63,39 @@ describe('Preschool teacher public contract', () => {
     await expect(contract.assign(context, input)).rejects.toMatchObject({ status: 503 });
     expect(from).not.toHaveBeenCalled();
   });
+  it('lists only caller-scoped attendance courses through the public contract', async () => {
+    rpc.mockResolvedValue({ data: { tenantId, actorId, schoolDay: '2026-10-26', courses: [
+      { courseId, branchId, name: 'Assigned class' },
+    ] }, error: null });
+    await expect(contract.listMyAttendanceCourses('2026-10-26', branchId)).resolves.toEqual({
+      tenantId, actorId, schoolDay: '2026-10-26', courses: [{ courseId, branchId, name: 'Assigned class' }],
+    });
+    expect(rpc).toHaveBeenCalledWith('preschool_teacher_attendance_courses', {
+      p_school_day: '2026-10-26', p_branch_id: branchId,
+    });
+    expect(from).not.toHaveBeenCalled();
+  });
+  it.each([
+    { actorId: 'invalid' }, { tenantId: 'invalid' }, { schoolDay: '2026-10-25' },
+    { courses: [{ courseId, branchId, name: 'Assigned class' }, { courseId, branchId, name: 'Duplicate' }] },
+    { courses: [{ courseId, branchId: tenantId, name: 'Wrong branch' }] },
+    { courses: [{ courseId, branchId, name: '  ' }] },
+  ])('rejects malformed self-scope attendance result %j', async delta => {
+    rpc.mockResolvedValue({ data: { tenantId, actorId, schoolDay: '2026-10-26',
+      courses: [{ courseId, branchId, name: 'Assigned class' }], ...delta }, error: null });
+    await expect(contract.listMyAttendanceCourses('2026-10-26', branchId)).rejects.toMatchObject({ status: 503 });
+  });
+  it('rejects invalid attendance date and branch before the RPC', async () => {
+    await expect(contract.listMyAttendanceCourses('2026-02-30')).rejects.toMatchObject({ status: 400 });
+    await expect(contract.listMyAttendanceCourses('2026-10-26', 'invalid')).rejects.toMatchObject({ status: 400 });
+    expect(rpc).not.toHaveBeenCalled();
+  });
+  it('maps current-caller authorization failure to access denied', async () => {
+    rpc.mockResolvedValue({ data: null, error: { code: '42501', message: 'provider detail' } });
+    await expect(contract.listMyAttendanceCourses('2026-10-26')).rejects.toMatchObject({
+      code: 'PRESCHOOL_TEACHER_ACCESS_DENIED', status: 403,
+    });
+  });
   it.each([
     ['42501', 403], ['22023', 400], ['23505', 409], ['PGRST202', 503],
   ])('maps SQL error %s without leaking provider detail', async (code, status) => {

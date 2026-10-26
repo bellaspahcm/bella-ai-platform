@@ -115,6 +115,19 @@ export interface PreschoolCourseTeacherPage {
   readonly assignments: readonly PreschoolCanonicalTeacherAssignment[];
 }
 
+export interface PreschoolTeacherAttendanceCourse {
+  readonly courseId: string;
+  readonly name: string;
+  readonly branchId: string;
+}
+
+export interface PreschoolTeacherAttendanceCourseScope {
+  readonly tenantId: string;
+  readonly actorId: string;
+  readonly schoolDay: string;
+  readonly courses: readonly PreschoolTeacherAttendanceCourse[];
+}
+
 export interface IPreschoolTeacherContract {
   listCandidates(context: PreschoolTeacherContext, query: string, confirmedOnly: boolean,
     onDate: string, offset: number, limit: number): Promise<PreschoolTeacherCandidatePage>;
@@ -128,6 +141,7 @@ export interface IPreschoolTeacherContract {
   }): Promise<PreschoolCanonicalTeacherAssignmentReceipt>;
   listCourseTeachers(context: PreschoolTeacherContext, courseId: string, onDate: string,
     offset: number, limit: number): Promise<PreschoolCourseTeacherPage>;
+  listMyAttendanceCourses(schoolDay: string, branchId?: string): Promise<PreschoolTeacherAttendanceCourseScope>;
   terminate(context: PreschoolTeacherContext, input: {
     courseId: string; assignmentId: string; endDate: string;
   }): Promise<PreschoolCanonicalTeacherAssignmentReceipt>;

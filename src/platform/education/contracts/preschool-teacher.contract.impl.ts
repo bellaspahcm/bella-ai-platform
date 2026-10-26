@@ -8,6 +8,7 @@ import {
   type PreschoolTeacherConfirmation,
   type PreschoolTeacherCandidatePage,
   type PreschoolCourseTeacherPage,
+  type PreschoolTeacherAttendanceCourseScope,
   type PreschoolCanonicalTeacherAssignmentReceipt,
   type PreschoolCanonicalTeacherAssignment,
   type PreschoolTeacherEligibility,
@@ -90,7 +91,7 @@ function parseAssignment(value: unknown, context: PreschoolTeacherContext, cours
   };
 }
 
-/** Education-owned adapter to the six reviewed, service-only canonical Teacher RPCs. */
+/** Education-owned adapter for canonical teacher management and caller-scoped attendance contracts. */
 export class PreschoolTeacherContractImpl implements IPreschoolTeacherContract {
   private readonly rpcClient: TeacherRpcClient;
 
@@ -231,6 +232,24 @@ export class PreschoolTeacherContractImpl implements IPreschoolTeacherContract {
     });
     return { tenantId: context.tenantId, branchId: context.branchId, courseId: id, onDate,
       offset, limit, total: value.total as number, nextOffset: value.nextOffset as number | null, assignments };
+  }
+
+  async listMyAttendanceCourses(schoolDay: string, branchId?: string): Promise<PreschoolTeacherAttendanceCourseScope> {
+    if (!isDate(schoolDay) || (branchId !== undefined && !isUuid(branchId))) invalid();
+    const value = await this.rpc('preschool_teacher_attendance_courses', {
+      p_school_day: schoolDay, p_branch_id: branchId?.toLowerCase() ?? null,
+    });
+    if (!isRecord(value) || !isUuid(value.tenantId) || !isUuid(value.actorId)
+      || value.schoolDay !== schoolDay || !Array.isArray(value.courses)) unavailable();
+    const seen = new Set<string>();
+    const courses = value.courses.map((item: unknown) => {
+      if (!isRecord(item) || !isUuid(item.courseId) || !isUuid(item.branchId)
+        || !isText(item.name, 180) || (branchId !== undefined
+          && item.branchId.toLowerCase() !== branchId.toLowerCase()) || seen.has(item.courseId)) unavailable();
+      seen.add(item.courseId);
+      return { courseId: item.courseId, name: item.name, branchId: item.branchId };
+    });
+    return { tenantId: value.tenantId, actorId: value.actorId, schoolDay, courses };
   }
 
   async terminate(context: PreschoolTeacherContext, input: {
