@@ -54,4 +54,4 @@ Các thao tác phải đi qua public contract thuộc owning boundary. Không ch
 - Quy tắc liên kết một-một đang hoạt động và lưu lịch sử vẫn giữ nguyên theo quyết định đã duyệt.
 - Chỉ chuyển sang triển khai local/E2E sau khi owning boundary xác nhận contract này và các dependency bắt buộc đã được xác định.
 
-**Acceptance:** Platform Identity/Party owner xác nhận phiên bản contract cụ thể này hoặc trả lại các điểm cần sửa. Khi chưa có xác nhận, trạng thái vẫn là `PERMISSION_CONTRACT = PENDING`.
+**Acceptance:** Người dùng là decision owner duy nhất của Bella và đã chấp thuận contract v1 này cho phạm vi Local/E2E. Không cần xác nhận bổ sung từ một đầu mối Platform Identity/Party khác. Chấp thuận này không mở rộng sang Production; mọi thay đổi Production vẫn cần thẩm quyền và phê duyệt riêng.
