@@ -1,6 +1,9 @@
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 
 const mockFrom = jest.fn();
+const mockAuthUser = jest.fn();
+const mockAuthorizeCourse = jest.fn();
+const mockSessionClient = { from: mockFrom, auth: { getUser: mockAuthUser } };
 const mockGetCurrentUser = jest.fn<() => Promise<{ id: string; tenant_id: string; role: string } | null>>();
 const mockGetCourseDailyAttendance = jest.fn<() => Promise<Array<{ enrollmentId: string; studentPartyId: string }>>>();
 const mockSetDailyAttendance = jest.fn<(...input: unknown[]) => Promise<unknown>>();
@@ -15,13 +18,12 @@ jest.mock('@/products/bella-education/services/preschool-attendance-access.servi
   })),
 }));
 jest.mock('@/lib/supabase-server', () => ({
-  createClient: () => ({
-    from: mockFrom,
-  }),
+  createClient: () => mockSessionClient,
 }));
-
-jest.mock('@/services/user-actions', () => ({
-  getCurrentUser: mockGetCurrentUser,
+jest.mock('../request-context', () => ({
+  ...jest.requireActual('../request-context'),
+  authorizeAttendanceCourse: mockAuthorizeCourse,
+  assertAttendanceDay: jest.fn(),
 }));
 
 jest.mock('@/platform/education/contracts/attendance.contract.impl', () => ({
@@ -79,8 +81,22 @@ describe('/api/education/attendance route authorization', () => {
     mockGetCurrentUser.mockResolvedValue({
       id: userId,
       tenant_id: tenantId,
-      role: 'admin_staff',
+      role: 'admin',
     });
+    mockAuthUser.mockImplementation(async () => {
+      const profile = await mockGetCurrentUser();
+      return { data: { user: profile ? { id: profile.id } : null }, error: null };
+    });
+    mockFrom.mockImplementation((table: string) => {
+      const query = {
+        select: () => query, eq: () => query,
+        maybeSingle: async () => ({ data: table === 'users'
+          ? { status: 'active', ...await mockGetCurrentUser() }
+          : { id: tenantId, status: 'active', product_key: 'bella_preschool' }, error: null }),
+      };
+      return query;
+    });
+    mockAuthorizeCourse.mockResolvedValue(undefined);
     mockGetCourseDailyAttendance.mockResolvedValue([]);
     mockSetDailyAttendance.mockResolvedValue({
       id: 'attendance-state-1',
@@ -133,7 +149,7 @@ describe('/api/education/attendance route authorization', () => {
     expect(mockSetDailyAttendance).not.toHaveBeenCalled();
   });
 
-  it('allows an education staff actor to set attendance through the product service', async () => {
+  it('allows the verified Preschool admin to set attendance through the product service', async () => {
     const response = await POST(attendancePostRequest({
       enrollmentId,
       status: 'present',
@@ -146,7 +162,7 @@ describe('/api/education/attendance route authorization', () => {
     expect(mockSetDailyAttendance).toHaveBeenCalledWith({
       tenantId,
       actorId: userId,
-      actorRole: 'admin_staff',
+      actorRole: 'admin',
       enrollmentId,
       status: 'present',
       schoolDay: '2026-10-06',
@@ -154,6 +170,23 @@ describe('/api/education/attendance route authorization', () => {
     });
     expect(mockBranchCheck).toHaveBeenCalledWith(tenantId, userId, enrollmentId);
     expect(mockBranchCheck.mock.invocationCallOrder[0]).toBeLessThan(mockSetDailyAttendance.mock.invocationCallOrder[0]);
+  });
+
+  it('denies admin_staff without an Auth-to-teacher contract before read or write preflight', async () => {
+    mockGetCurrentUser.mockResolvedValue({ id: userId, tenant_id: tenantId, role: 'admin_staff' });
+    const response = await POST(attendancePostRequest({ enrollmentId, status: 'present', date: '2026-10-06' }));
+    expect(response.status).toBe(503);
+    expect(await response.json()).toMatchObject({ error: 'ATTENDANCE_TEACHER_IDENTITY_UNAVAILABLE' });
+    expect(mockBranchCheck).not.toHaveBeenCalled();
+    expect(mockSetDailyAttendance).not.toHaveBeenCalled();
+  });
+
+  it('passes the authenticated client to the roster contract before trusted pickup enrichment', async () => {
+    const { AttendanceContractImpl } = await import('@/platform/education/contracts/attendance.contract.impl');
+    const response = await GET(new Request(`http://localhost/api/education/attendance?courseId=${courseId}&date=2026-10-06`));
+    expect(response.status).toBe(200);
+    expect(AttendanceContractImpl).toHaveBeenCalledWith(mockSessionClient);
+    expect(response.headers.get('Cache-Control')).toBe('private, no-store');
   });
 
   it('denies a branch before reading the roster or guardian data', async () => {

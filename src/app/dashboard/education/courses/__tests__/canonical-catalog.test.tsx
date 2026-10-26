@@ -2,6 +2,7 @@
 import { afterEach, beforeEach, expect, it, jest } from '@jest/globals';
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import CanonicalClassroomCatalog from '../CanonicalClassroomCatalog';
+jest.mock('../classroom-live-data', () => ({ loadClassroomOverview: jest.fn(async () => new Map()) }));
 
 const mockFetch = jest.fn<typeof fetch>();
 const course = { id: 'synthetic-course', tenantId: 'synthetic-tenant', title: 'Synthetic class', courseCode: 'SYN-01', status: 'active' };
@@ -32,7 +33,7 @@ it('retains filters and only enables class creation after the canonical catalog 
   expect(screen.getByRole('button', { name: 'Khối Mầm (—)' })).toBeDisabled();
   expect(screen.getByRole('combobox', { name: 'Khối lớp' })).toBeDisabled();
   expect(screen.getByRole('button', { name: 'Tất cả lớp (1)' })).toBeVisible();
-  expect(screen.getByRole('link', { name: 'Điểm danh' })).toHaveAttribute('href', '/dashboard/education/attendance');
+  expect(screen.getByRole('link', { name: 'Điểm danh' })).toHaveAttribute('href', '/dashboard/education/attendance?courseId=synthetic-course');
   expect(screen.queryByText('Năm học 2025 - 2026')).toBeNull();
 });
 it('keeps a genuine validated empty catalog distinct from errors', async () => {

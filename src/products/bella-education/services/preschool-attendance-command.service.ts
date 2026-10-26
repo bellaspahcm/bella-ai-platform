@@ -23,7 +23,9 @@ export class PreschoolAttendanceCommandService {
   }
 
   public async setDailyAttendance(input: PreschoolAttendanceCommandInput) {
-    if (!['admin', 'super_admin', 'admin_staff'].includes(input.actorRole.trim().toLowerCase())) {
+    // Preschool has no canonical Auth-to-teacher assignment yet. Branch
+    // membership alone cannot turn a staff profile into an attendance actor.
+    if (input.actorRole !== 'admin') {
       throw new PreschoolChainError('PRESCHOOL_ATTENDANCE_ACTION_DENIED', 403);
     }
     const enrollment = await new PreschoolAttendanceAccessService(this.client)

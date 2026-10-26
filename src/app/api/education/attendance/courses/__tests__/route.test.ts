@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 
 const mockContext = jest.fn<(...args: unknown[]) => Promise<unknown>>();
 const mockAdmin = jest.fn(() => ({}));
+const mockSessionClient = {};
 const mockAccess = jest.fn<(...args: unknown[]) => Promise<unknown[]>>();
 const mockAssignments = jest.fn<(...args: unknown[]) => Promise<unknown[]>>();
 const mockCourse = jest.fn<(...args: unknown[]) => Promise<unknown>>();
@@ -41,7 +42,7 @@ const relationship = { tenant_id: 'tenant-A', user_id: 'actor-A', org_unit_id: '
 
 beforeEach(() => {
   jest.clearAllMocks();
-  mockContext.mockResolvedValue({ allowed: true, tenantId: 'tenant-A', actor: { id: 'actor-A', role: 'admin_staff' }, supabase: {} });
+  mockContext.mockResolvedValue({ allowed: true, tenantId: 'tenant-A', actor: { id: 'actor-A', role: 'admin' }, supabase: mockSessionClient });
   mockAccess.mockResolvedValue([relationship]);
   mockAssignments.mockResolvedValue([{ tenant_id: 'tenant-A', course_id: 'course-A', branch_id: 'branch-A' }]);
   mockCourse.mockResolvedValue({ id: 'course-A', title: 'Canonical Class', status: 'active' });
@@ -68,6 +69,7 @@ describe('Attendance canonical course discovery', () => {
   });
 
   it('uses canonical IDs, actual daily counts and unknown metadata', async () => {
+    const { AttendanceContractImpl } = await import('@/platform/education/contracts/attendance.contract.impl');
     const reply = await GET(request('&branchId=branch-A'));
     expect(reply.status).toBe(200);
     expect(reply.headers.get('Cache-Control')).toBe('private, no-store');
@@ -79,6 +81,14 @@ describe('Attendance canonical course discovery', () => {
     expect(mockRoster).toHaveBeenCalledWith({ tenantId: 'tenant-A', courseId: 'course-A', schoolDay: '2026-10-23' });
     expect(mockCheckEnrollment).toHaveBeenCalledWith('tenant-A', 'actor-A', 'enrollment-A', 'student-A', 'course-A');
     expect(mockCheckCourse).toHaveBeenCalledTimes(2);
+    expect(AttendanceContractImpl).toHaveBeenCalledWith(mockSessionClient);
+  });
+
+  it('holds staff discovery until a canonical teacher identity exists', async () => {
+    mockContext.mockResolvedValue({ allowed: true, tenantId: 'tenant-A', actor: { id: 'actor-A', role: 'admin_staff' } });
+    expect((await GET(request())).status).toBe(503);
+    expect(mockAdmin).not.toHaveBeenCalled();
+    expect(mockRoster).not.toHaveBeenCalled();
   });
 
   it('never treats tenant-admin provenance as explicit branch access', async () => {

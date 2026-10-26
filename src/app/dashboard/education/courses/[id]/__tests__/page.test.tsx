@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals
 import { Suspense } from 'react';
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
 import ClassWorkspacePage from '../page';
+jest.mock('../../classroom-live-data', () => ({ loadClassroomOverview: jest.fn(async () => new Map()) }));
 
 jest.mock('next/link', () => ({
   __esModule: true,

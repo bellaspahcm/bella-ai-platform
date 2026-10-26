@@ -7,7 +7,7 @@ import { PreschoolAttendanceCommandService, type PreschoolAttendanceCommandInput
 import { PreschoolChainService } from '../services/preschool-chain.service';
 
 const input: PreschoolAttendanceCommandInput = {
-  tenantId: 'tenant-a', actorId: 'actor-a', actorRole: 'admin_staff', enrollmentId: 'enrollment-a',
+  tenantId: 'tenant-a', actorId: 'actor-a', actorRole: 'admin', enrollmentId: 'enrollment-a',
   status: 'present', schoolDay: '2026-10-23', rollCallTime: '2026-10-23T05:00:00.000Z',
 };
 
@@ -43,9 +43,9 @@ it('uses the Product transaction after preflight so assignment locks remain insi
   expect(fixture.genericCommand).not.toHaveBeenCalled();
 });
 
-it('rejects an unauthorized action before looking up data or invoking either command', async () => {
+it.each(['admin_staff', 'super_admin', 'accountant'])('rejects the unproven Preschool actor role %s before data lookup or commands', async actorRole => {
   const fixture = setup();
-  await expect(fixture.service.setDailyAttendance({ ...input, actorRole: 'accountant' }))
+  await expect(fixture.service.setDailyAttendance({ ...input, actorRole }))
     .rejects.toMatchObject({ status: 403 });
   expect(fixture.access).not.toHaveBeenCalled();
   expect(fixture.productCommand).not.toHaveBeenCalled();

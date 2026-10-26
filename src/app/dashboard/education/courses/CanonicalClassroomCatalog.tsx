@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
 import { ArrowLeft, BookOpen, Calendar, CalendarCheck, GraduationCap, MapPin, PieChart, Plus, Search, RefreshCw, SlidersHorizontal, UserPlus, Users } from 'lucide-react';
 import type { CanonicalCourseCatalogItem } from '@/platform/education/contracts/canonical-course-catalog.contract';
+import { loadClassroomOverview, type ClassroomLiveOverview } from './classroom-live-data';
 
 type CatalogState =
   | { kind: 'loading' | 'error' | 'unsupported' }
@@ -53,6 +54,17 @@ export default function CanonicalClassroomCatalog({ legacy }: { legacy: ReactNod
   const submitLock = useRef(false);
   const [createError, setCreateError] = useState('');
   const [created, setCreated] = useState<CanonicalCourseCatalogItem | null>(null);
+  const [liveData, setLiveData] = useState<ReadonlyMap<string, ClassroomLiveOverview> | null>(null);
+  const currentTenantId = state.kind === 'ready' ? state.tenantId : null;
+
+  useEffect(() => {
+    const controller = new AbortController();
+    setLiveData(null);
+    if (currentTenantId) void loadClassroomOverview(currentTenantId, controller.signal)
+      .then(data => { if (!controller.signal.aborted) setLiveData(data); })
+      .catch(() => { if (!controller.signal.aborted) setLiveData(null); });
+    return () => controller.abort();
+  }, [currentTenantId, attempt]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -181,6 +193,26 @@ export default function CanonicalClassroomCatalog({ legacy }: { legacy: ReactNod
   const term = query.trim().toLocaleLowerCase('vi');
   const filtered = courses.filter(course => (status === 'all' || course.status === status)
     && `${course.title} ${course.courseCode}`.toLocaleLowerCase('vi').includes(term));
+  const activeCourses = courses.filter(course => course.status === 'active');
+  const activeLiveCourses = liveData && activeCourses.length > 0
+    ? activeCourses.map(course => {
+      const candidate = liveData.get(course.id);
+      return candidate?.tenantId === course.tenantId && candidate.code === course.courseCode
+        && candidate.name === course.title ? candidate : null;
+    })
+    : liveData && activeCourses.length === 0 ? [] : null;
+  const rosterVerified = activeLiveCourses !== null && activeLiveCourses.every(Boolean);
+  const totalStudents = rosterVerified
+    ? (activeLiveCourses ?? []).reduce((total, course) => total + (course?.students ?? 0), 0)
+    : null;
+  const capacityVerified = rosterVerified && (activeLiveCourses ?? []).every(course => course?.maxStudents !== null);
+  const totalCapacity = capacityVerified
+    ? (activeLiveCourses ?? []).reduce((total, course) => total + (course?.maxStudents ?? 0), 0)
+    : null;
+  const remainingCapacity = totalStudents !== null && totalCapacity !== null
+    ? Math.max(0, totalCapacity - totalStudents) : null;
+  const fillRate = totalStudents !== null && totalCapacity !== null && totalCapacity > 0
+    ? Math.min(100, Math.round((totalStudents / totalCapacity) * 100)) : null;
 
   return <main className="w-full p-4 sm:p-6 lg:p-8 space-y-6 pb-16 bg-[#F3F6F8]/60 dark:bg-slate-950 min-h-screen text-slate-900 dark:text-slate-100">
     <div className="w-full rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-5 sm:p-7 shadow-xs space-y-6">
@@ -217,9 +249,9 @@ export default function CanonicalClassroomCatalog({ legacy }: { legacy: ReactNod
       <section aria-label="Thống kê lớp học" className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
           { label: 'Tổng số lớp', value: ready ? String(courses.length) : '—', icon: GraduationCap, color: 'bg-emerald-100/70 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300' },
-          { label: 'Tổng học sinh', value: 'Chưa được cung cấp', icon: Users, color: 'bg-blue-100/70 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300' },
-          { label: 'Chỗ trống còn lại', value: 'Chưa được cung cấp', icon: UserPlus, color: 'bg-amber-100/70 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300' },
-          { label: 'Tỷ lệ lấp đầy', value: 'Chưa được cung cấp', icon: PieChart, color: 'bg-purple-100/70 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300' },
+          { label: 'Tổng học sinh', value: totalStudents === null ? 'Chưa được cung cấp' : String(totalStudents), icon: Users, color: 'bg-blue-100/70 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300' },
+          { label: 'Chỗ trống còn lại', value: remainingCapacity === null ? 'Chưa được cung cấp' : String(remainingCapacity), icon: UserPlus, color: 'bg-amber-100/70 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300' },
+          { label: 'Tỷ lệ lấp đầy', value: fillRate === null ? 'Chưa được cung cấp' : `${fillRate}%`, icon: PieChart, color: 'bg-purple-100/70 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300' },
         ].map(({ label, value, icon: Icon, color }, index) => <div key={label} className="p-4 rounded-2xl bg-slate-50/70 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 space-y-1">
           <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${color}`}><Icon className="w-4 h-4" /></div>
           <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 pt-1">{label}</p>
@@ -309,39 +341,49 @@ export default function CanonicalClassroomCatalog({ legacy }: { legacy: ReactNod
       {!courses.length ? <p>Chưa có lớp học trong phạm vi được cấp quyền.</p>
         : !filtered.length ? <p>Không có lớp phù hợp bộ lọc.</p>
           : <section aria-label="Danh sách lớp" className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {filtered.map(course => <article key={course.id} className="group rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-5 sm:p-6 shadow-xs hover:shadow-md transition-all flex flex-col space-y-4">
+            {filtered.map(course => {
+              const candidate = liveData?.get(course.id);
+              const live = candidate?.tenantId === course.tenantId && candidate.code === course.courseCode
+                && candidate.name === course.title ? candidate : null;
+              const remainingSeats = live?.maxStudents === null || live?.maxStudents === undefined
+                ? null : Math.max(0, live.maxStudents - live.students);
+              const fillPercent = live && live.maxStudents !== null && live.maxStudents > 0
+                ? Math.min(100, Math.round((live.students / live.maxStudents) * 100)) : null;
+              return <article key={course.id} className="group rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-5 sm:p-6 shadow-xs hover:shadow-md transition-all flex flex-col space-y-4">
               <div className="flex items-center gap-2 flex-wrap text-[11px] font-bold">
                 <span className="px-3 py-0.5 rounded-full bg-indigo-50 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300 border border-indigo-200/60">{statusLabels[course.status]}</span>
-                <span className="px-2.5 py-0.5 rounded-full border border-slate-200 dark:border-slate-700 text-slate-500">Sức chứa chưa xác minh</span>
+                <span className="px-2.5 py-0.5 rounded-full border border-slate-200 dark:border-slate-700 text-slate-500">{remainingSeats === null ? 'Sức chứa chưa xác minh' : `Còn ${remainingSeats} chỗ`}</span>
               </div>
               <div className="flex items-center gap-3.5 pt-1">
                 <div className="w-16 h-16 shrink-0 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 text-[#075548] dark:text-emerald-300 flex items-center justify-center"><BookOpen className="w-8 h-8" /></div>
                 <div className="space-y-1 min-w-0 flex-1">
                   <h2 className="text-base sm:text-lg font-extrabold tracking-tight group-hover:text-[#075548] dark:group-hover:text-emerald-300">{course.title || 'Chưa có tên lớp'}</h2>
                   <p className="text-xs text-slate-500 dark:text-slate-400">Mã lớp: {course.courseCode || 'Chưa có mã lớp'}</p>
-                  <p className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400"><Users className="w-3.5 h-3.5 shrink-0" />Giáo viên: chưa được cung cấp</p>
-                  <p className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400"><MapPin className="w-3.5 h-3.5 shrink-0" />Phòng học: chưa được cung cấp</p>
+                  <p className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400"><Users className="w-3.5 h-3.5 shrink-0" />Giáo viên: {live?.teacher ?? 'chưa được cung cấp'}</p>
+                  <p className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400"><MapPin className="w-3.5 h-3.5 shrink-0" />Phòng học: {live?.room ?? 'chưa được cung cấp'}</p>
                 </div>
               </div>
               <div className="space-y-1.5 pt-1">
-                <div className="flex items-center justify-between text-xs"><span className="font-semibold text-slate-600 dark:text-slate-400">Sức chứa hiện tại</span><span>Chưa được cung cấp</span></div>
-                <div className="w-full h-2 rounded-full bg-slate-100 dark:bg-slate-800" />
+                <div className="flex items-center justify-between text-xs"><span className="font-semibold text-slate-600 dark:text-slate-400">Sức chứa hiện tại</span><span>{live ? `${live.students} / ${live.maxStudents ?? '—'}` : 'Chưa được cung cấp'}</span></div>
+                <div className="w-full h-2 rounded-full bg-slate-100 dark:bg-slate-800">
+                  {fillPercent !== null && <div className="h-full rounded-full bg-emerald-500" style={{ width: `${fillPercent}%` }} />}
+                </div>
               </div>
               <div className="space-y-2 pt-3 border-t border-slate-100 dark:border-slate-800">
                 <p className="text-xs font-bold text-slate-700 dark:text-slate-300">Điểm danh hôm nay</p>
                 <div className="grid grid-cols-4 gap-2 text-center text-xs py-1">
-                  {['Có mặt', 'Có phép', 'Chưa báo', 'Cảnh báo SK'].map(label => <div key={label}><span className="text-[10px] text-slate-400 block font-medium">{label}</span><span className="text-base font-extrabold text-slate-400">—</span></div>)}
+                  {([['Có mặt', live?.todayStatus.present], ['Có phép', live?.todayStatus.excused], ['Chưa báo', live?.todayStatus.unmarked], ['Cảnh báo SK', null]] as const).map(([label, value]) => <div key={label}><span className="text-[10px] text-slate-400 block font-medium">{label}</span><span className="text-base font-extrabold text-slate-400">{value ?? '—'}</span></div>)}
                 </div>
-                <p className="text-[11px] text-slate-500 dark:text-slate-400">Chưa có số liệu điểm danh hoặc sức khỏe trong danh sách lớp.</p>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400">{live ? 'Dữ liệu điểm danh hôm nay; sức khỏe chưa được cung cấp.' : 'Chưa có số liệu điểm danh hoặc sức khỏe trong danh sách lớp.'}</p>
               </div>
               <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center gap-3">
                 <Link href={`/dashboard/education/courses/${encodeURIComponent(course.id)}`}
                   className="flex-1 py-2 px-3 rounded-xl border border-indigo-200 dark:border-indigo-900/60 bg-indigo-50/60 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 font-bold text-xs text-center">Vào lớp học</Link>
-                <Link href="/dashboard/education/attendance" className="flex-1 py-2 px-3 rounded-xl bg-[#075548] hover:bg-[#05443a] text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-xs">
+                <Link href={`/dashboard/education/attendance?courseId=${encodeURIComponent(course.id)}`} className="flex-1 py-2 px-3 rounded-xl bg-[#075548] hover:bg-[#05443a] text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-xs">
                   <CalendarCheck className="w-3.5 h-3.5" />Điểm danh
                 </Link>
               </div>
-            </article>)}
+            </article>; })}
           </section>}
     </>}
   </main>;

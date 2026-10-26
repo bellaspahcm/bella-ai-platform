@@ -1,10 +1,12 @@
 import { describe, expect, it, jest, beforeEach } from '@jest/globals';
 
 const mockFrom = jest.fn();
+const mockSessionFrom = jest.fn();
 const mockGetAuthUser = jest.fn<() => Promise<{ data: { user: { id: string } | null }; error: { message: string } | null }>>();
 const mockGetCurrentUser = jest.fn<() => Promise<{ id?: string; tenant_id?: string | null;role?:string } | null>>();
-const mockGetCourseTeachers = jest.fn<() => Promise<Array<{ teacherPartyId: string; role: string }>>>();
-const mockCreateSessionClient = jest.fn(() => ({ from: mockFrom, auth: { getUser: mockGetAuthUser } }));
+const mockReadRegistry = jest.fn();
+const mockListCanonicalCourseTeachers = jest.fn();
+const mockCreateSessionClient = jest.fn(() => ({ from: mockSessionFrom, auth: { getUser: mockGetAuthUser } }));
 const mockCreateAdminClient = jest.fn(() => ({ from: mockFrom }));
 const mockAdminUrl = jest.fn<() => string | undefined>(() => 'https://courses-test.invalid');
 const mockAdminKey = jest.fn<() => string | undefined>(() => 'courses-test-admin-placeholder');
@@ -30,14 +32,19 @@ jest.mock('@/services/user-actions', () => ({
   getCurrentUser: mockGetCurrentUser,
 }));
 
-jest.mock('@/platform/education/contracts/teacher-assignment.contract.impl', () => ({
-  TeacherAssignmentContractImpl: jest.fn().mockImplementation(() => ({
-    getCourseTeachers: mockGetCourseTeachers,
-    assignTeacher: jest.fn(),
+jest.mock('@/platform/education/contracts/preschool-registry.contract.impl', () => ({
+  PreschoolRegistryContractImpl: jest.fn().mockImplementation(() => ({ read: mockReadRegistry })),
+}));
+
+jest.mock('@/platform/education/contracts/preschool-teacher.contract.impl', () => ({
+  PreschoolTeacherContractImpl: jest.fn().mockImplementation(() => ({
+    listCourseTeachers: mockListCanonicalCourseTeachers,
   })),
 }));
 
 const { GET, POST } = require('../route') as typeof import('../route');
+const { PreschoolRegistryError } = require('@/platform/education/contracts/preschool-registry.contract') as typeof import('@/platform/education/contracts/preschool-registry.contract');
+const { PreschoolTeacherContractError } = require('@/platform/education/contracts/teacher-assignment.contract') as typeof import('@/platform/education/contracts/teacher-assignment.contract');
 
 const tenantId = '00000000-0000-0000-0000-0000000000aa';
 const courseId = '00000000-0000-0000-0000-0000000000cc';
@@ -47,23 +54,44 @@ describe('/api/education/courses canonical classroom route', () => {
     jest.clearAllMocks();
     mockGetAuthUser.mockResolvedValue({ data: { user: { id: 'actor-a' } }, error: null });
     mockGetCurrentUser.mockResolvedValue({ id: 'actor-a', tenant_id: tenantId,role:'admin',status:'active' });
-    mockGetCourseTeachers.mockResolvedValue([]);
+    mockReadRegistry.mockResolvedValue({ filteredTotal: 0, nextOffset: null, students: [] });
+    mockListCanonicalCourseTeachers.mockResolvedValue({ total: 0, nextOffset: null, assignments: [] });
     mockAdminUrl.mockReturnValue('https://courses-test.invalid');
     mockAdminKey.mockReturnValue('courses-test-admin-placeholder');
-    mockFrom.mockImplementation(() => ({
-      select: () => ({
+    mockFrom.mockImplementation((table: string) => table === 'courses'
+      ? { select: () => ({ eq: () => ({ in: async () => ({ data: [], error: null }) }) }) }
+      : { select: () => ({
         eq: (column: string, value: string) => {
           mockTenantFilter(column, value);
           return { order: async () => ({ data: [], error: null }) };
         },
-      }),
-    }));
+      }) });
+    mockSessionFrom.mockImplementation((table: string) => {
+      if (table === 'edu_courses') {
+        return {
+          select: () => ({
+            eq: (column: string, value: string) => {
+              mockTenantFilter(column, value);
+              return { order: async () => ({ data: [], error: null }) };
+            },
+          }),
+        };
+      }
+      if (table !== 'edu_attendance_daily_state') throw new Error(`Unexpected authenticated table access: ${table}`);
+      return {
+        select: () => ({
+          eq: () => ({ eq: () => ({ in: async () => ({ data: [], error: null }) }) }),
+        }),
+      };
+    });
   });
 
   function expectNoOperationAccess() {
     expect(mockCreateAdminClient).not.toHaveBeenCalled();
     expect(mockFrom).not.toHaveBeenCalled();
-    expect(mockGetCourseTeachers).not.toHaveBeenCalled();
+    expect(mockSessionFrom).not.toHaveBeenCalled();
+    expect(mockReadRegistry).not.toHaveBeenCalled();
+    expect(mockListCanonicalCourseTeachers).not.toHaveBeenCalled();
   }
 
   it.each(['', `?tenantId=${tenantId}`])('rejects anonymous requests before client construction: %s', async (query) => {
@@ -90,6 +118,13 @@ describe('/api/education/courses canonical classroom route', () => {
 
   it('rejects another tenant with configured admin credentials before constructing that client', async () => {
     const response = await GET(new Request('http://localhost/api/education/courses?tenantId=other-tenant'));
+    expect(response.status).toBe(403);
+    expectNoOperationAccess();
+  });
+
+  it.each(['admin_staff', 'super_admin', 'parent'])('does not substitute the legacy %s role for canonical Preschool admin authority', async role => {
+    mockGetCurrentUser.mockResolvedValue({ id: 'actor-a', tenant_id: tenantId, role, status: 'active' });
+    const response = await GET(new Request('http://localhost/api/education/courses'));
     expect(response.status).toBe(403);
     expectNoOperationAccess();
   });
@@ -145,7 +180,7 @@ describe('/api/education/courses canonical classroom route', () => {
     expect(response.status).toBe(200);
     expect(mockCreateAdminClient).not.toHaveBeenCalled();
     expect(mockCreateSessionClient).toHaveBeenCalledTimes(1);
-    expect(mockGetCurrentUser.mock.invocationCallOrder[0]).toBeLessThan(mockFrom.mock.invocationCallOrder[0]);
+    expect(mockGetCurrentUser.mock.invocationCallOrder[0]).toBeLessThan(mockSessionFrom.mock.invocationCallOrder[0]);
     expect(mockTenantFilter).toHaveBeenCalledWith('tenant_id', tenantId);
   });
 
@@ -156,13 +191,84 @@ describe('/api/education/courses canonical classroom route', () => {
     const response = await GET(new Request('http://localhost/api/education/courses'));
     expect(response.status).toBe(500);
     expect(await response.json()).toEqual({ success: false, error: 'Course query failed' });
-    expect(mockGetCourseTeachers).not.toHaveBeenCalled();
+    expect(mockListCanonicalCourseTeachers).not.toHaveBeenCalled();
   });
 
-  it('lists classrooms from canonical edu_courses and only uses courses as display projection', async () => {
+  it('returns Registry data-availability errors with their fail-closed status', async () => {
+    mockFrom.mockImplementation((table: string) => table === 'edu_courses'
+      ? { select: () => ({ eq: () => ({ order: async () => ({ data: [{
+        id: courseId, course_code: 'MAM-A1', title: 'Lớp Mầm Canonical', status: 'active',
+        max_students: 25, current_enrollment: 0, created_at: '2026-10-06T00:00:00.000Z',
+      }], error: null }) }) }) }
+      : table === 'courses' ? { select: () => ({ eq: () => ({ in: async () => ({ data: [], error: null }) }) }) }
+      : { select: () => ({ eq: () => ({ order: async () => ({ data: [], error: null }) }) }) });
+    mockReadRegistry.mockRejectedValue(new PreschoolRegistryError('REGISTRY_UNAVAILABLE', 503));
+
+    const response = await GET(new Request('http://localhost/api/education/courses'));
+
+    expect(response.status).toBe(503);
+    expect(await response.json()).toEqual({ success: false, error: 'REGISTRY_UNAVAILABLE' });
+  });
+
+  it('keeps canonical classes readable when the optional legacy display schema is absent', async () => {
+    mockFrom.mockImplementation((table: string) => table === 'edu_courses'
+      ? { select: () => ({ eq: () => ({ order: async () => ({ data: [{
+        id: courseId, course_code: 'MAM-A1', title: 'Lớp Mầm Canonical', status: 'active',
+        max_students: null, current_enrollment: 0, created_at: '2026-10-06T00:00:00.000Z',
+      }], error: null }) }) }) }
+      : { select: () => ({ eq: () => ({ in: async () => ({ data: null,
+        error: { code: '42703', message: 'column courses.course_id does not exist' } }) }) }) });
+
+    const response = await GET(new Request('http://localhost/api/education/courses'));
+
+    expect(response.status).toBe(200);
+    expect((await response.json()).classrooms).toEqual([expect.objectContaining({
+      id: courseId, name: 'Lớp Mầm Canonical', maxStudents: null, room: 'Chưa ghi nhận phòng',
+    })]);
+    expect(mockReadRegistry).toHaveBeenCalled();
+  });
+
+  it('keeps the authorized class roster readable when canonical teacher data is unavailable', async () => {
+    mockFrom.mockImplementation((table: string) => table === 'edu_courses'
+      ? { select: () => ({ eq: () => ({ order: async () => ({ data: [{
+        id: courseId, course_code: 'MAM-A1', title: 'Lớp Mầm Canonical', status: 'active',
+        max_students: 25, current_enrollment: 0, created_at: '2026-10-06T00:00:00.000Z',
+      }], error: null }) }) }) }
+      : table === 'courses' ? { select: () => ({ eq: () => ({ in: async () => ({ data: [], error: null }) }) }) }
+      : { select: () => ({ eq: () => ({ order: async () => ({ data: [], error: null }) }) }) });
+    mockListCanonicalCourseTeachers.mockRejectedValue(
+      new PreschoolTeacherContractError('PRESCHOOL_TEACHER_UNAVAILABLE', 503),
+    );
+
+    const response = await GET(new Request('http://localhost/api/education/courses'));
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.classrooms).toEqual([expect.objectContaining({ id: courseId, students: 0, teacher: 'Chưa xác minh' })]);
+    expect(mockReadRegistry).toHaveBeenCalled();
+  });
+
+  it('uses canonical class and roster records while retaining legacy display-only fields', async () => {
     const queriedTables: string[] = [];
     const tenantScopes: Array<{ table: string; column: string; value: string }> = [];
-    mockGetCourseTeachers.mockResolvedValue([{ teacherPartyId: 'teacher-a', role: 'lead_teacher' }]);
+    const attendanceEnrollmentScopes: string[][] = [];
+    mockReadRegistry.mockResolvedValue({
+      filteredTotal: 2,
+      nextOffset: null,
+      students: [
+        { id: 'student-a', tenantId, enrollments: [{ id: 'enrollment-a', courseId, branchId: 'branch-a', status: 'active' }] },
+        { id: 'student-b', tenantId, enrollments: [{ id: 'enrollment-b', courseId, branchId: 'branch-a', status: 'pending' }] },
+      ],
+    });
+    mockListCanonicalCourseTeachers.mockResolvedValue({
+      total: 1,
+      nextOffset: null,
+      assignments: [{
+        assignmentId: 'assignment-a', tenantId, branchId: 'branch-a', courseId,
+        teacherPartyId: 'teacher-a', teacherName: 'Cô An', role: 'lead_teacher',
+        effectiveOnDate: true, eligibility: 'confirmed',
+      }],
+    });
 
     mockFrom.mockImplementation((table: string) => {
       queriedTables.push(table);
@@ -194,18 +300,11 @@ describe('/api/education/courses canonical classroom route', () => {
           select: () => ({
             eq: (column: string, value: string) => {
               tenantScopes.push({ table, column, value });
-              return { in: async () => ({
-                data: [{
-                  course_id: courseId,
-                  course_code: 'MAM-A1',
-                  course_name: 'Projection Name',
-                  description: 'Khối Mầm (3 tuổi)',
-                  duration_weeks: 20,
-                  metadata: { room: 'Phòng 105' },
-                  status: 'active',
-                }],
-                error: null,
-              }) };
+              return { in: async () => ({ data: [{
+                course_id: courseId, course_code: 'LEGACY-A1', course_name: 'Tên lớp cũ',
+                description: 'Khối Mầm (3 tuổi)', duration_weeks: 80,
+                metadata: { room: 'Phòng 105' }, status: 'active',
+              }], error: null }) };
             },
           }),
         };
@@ -250,20 +349,22 @@ describe('/api/education/courses canonical classroom route', () => {
         return chain;
       }
 
-      if (table === 'edu_attendance_daily_state') {
-        return {
-          select: () => ({
-            eq: (column: string, value: string) => {
-              tenantScopes.push({ table, column, value });
-              return { eq: () => ({
-                in: async () => ({ data: [{ status: 'present' }], error: null }),
-              }) };
-            },
-          }),
-        };
-      }
-
       throw new Error(`Unexpected table access in courses GET test: ${table}`);
+    });
+    mockSessionFrom.mockImplementation((table: string) => {
+      if (table !== 'edu_attendance_daily_state') throw new Error(`Unexpected authenticated table access: ${table}`);
+      return {
+        select: () => ({
+          eq: (column: string, value: string) => {
+            tenantScopes.push({ table, column, value });
+            return { eq: () => ({ in: async (enrollmentColumn: string, enrollmentIds: string[]) => {
+              expect(enrollmentColumn).toBe('enrollment_id');
+              attendanceEnrollmentScopes.push(enrollmentIds);
+              return { data: [{ enrollment_id: 'enrollment-a', status: 'present' }], error: null };
+            } }) };
+          },
+        }),
+      };
     });
 
     const response = await GET(new Request('http://localhost/api/education/courses'));
@@ -274,7 +375,7 @@ describe('/api/education/courses canonical classroom route', () => {
     expect(body.classrooms).toEqual([expect.objectContaining({
       id: courseId,
       code: 'MAM-A1',
-      name: 'Projection Name',
+      name: 'Lớp Mầm Canonical',
       grade: 'Khối Mầm (3 tuổi)',
       gradeKey: 'mam',
       room: 'Phòng 105',
@@ -282,17 +383,23 @@ describe('/api/education/courses canonical classroom route', () => {
       maxStudents: 25,
       status: 'active',
       teacher: 'Cô An (Chủ nhiệm)',
+      todayStatus: { present: 1, absent: 0, excused: 0, unmarked: 0, healthAlerts: 0 },
     })]);
     expect(queriedTables[0]).toBe('edu_courses');
     expect(queriedTables).toContain('courses');
-    expect(mockTenantFilter).toHaveBeenCalledWith('tenant_id', tenantId);
-    expect(mockGetCourseTeachers).toHaveBeenCalledWith(tenantId, courseId);
+    expect(mockReadRegistry).toHaveBeenCalledWith(tenantId, {
+      status: 'all', courseId, branchId: 'branch-a', offset: 0, limit: 50,
+    });
+    expect(mockSessionFrom).toHaveBeenCalledWith('edu_attendance_daily_state');
+    expect(attendanceEnrollmentScopes).toEqual([['enrollment-a']]);
+    expect(queriedTables).not.toContain('edu_attendance_daily_state');
+    expect(mockEnrollmentAssignments).not.toHaveBeenCalled();
+    expect(mockListCanonicalCourseTeachers).toHaveBeenCalledWith(
+      { tenantId, actorId: 'actor-a', branchId: 'branch-a' }, courseId, expect.any(String), 0, 50,
+    );
     expect(tenantScopes).toEqual([
       { table: 'edu_courses', column: 'tenant_id', value: tenantId },
       { table: 'courses', column: 'tenant_id', value: tenantId },
-      { table: 'party_parties', column: 'tenant_id', value: tenantId },
-      { table: 'edu_enrollments', column: 'tenant_id', value: tenantId },
-      { table: 'edu_enrollments', column: 'tenant_id', value: tenantId },
       { table: 'edu_attendance_daily_state', column: 'tenant_id', value: tenantId },
     ]);
   });
@@ -320,24 +427,7 @@ describe('/api/education/courses canonical classroom route', () => {
         };
       }
       if (table === 'courses') {
-        return {
-          select: () => ({
-            eq: () => ({
-              in: async () => ({
-                data: mockEduCourses.map((c) => ({
-                  course_id: c.id,
-                  course_code: c.course_code,
-                  course_name: c.title,
-                  description: null,
-                  duration_weeks: 25,
-                  metadata: {},
-                  status: 'active',
-                })),
-                error: null,
-              }),
-            }),
-          }),
-        };
+        return { select: () => ({ eq: () => ({ in: async () => ({ data: [], error: null }) }) }) };
       }
       if (table === 'edu_enrollments') {
         return {
@@ -351,13 +441,6 @@ describe('/api/education/courses canonical classroom route', () => {
               eq: () => ({ eq: () => ({in:()=>({ in: async () => ({ data: [], error: null }) })}) }),
             };
           },
-        };
-      }
-      if (table === 'edu_attendance_daily_state') {
-        return {
-          select: () => ({
-            eq: () => ({ eq: () => ({ in: async () => ({ data: [], error: null }) }) }),
-          }),
         };
       }
       throw new Error(`Unexpected table access: ${table}`);
@@ -447,7 +530,7 @@ describe('/api/education/courses canonical classroom route', () => {
     expect(body.error).toBe('CANONICAL_COURSE_UNAVAILABLE');
     expect(mockGetCurrentUser).not.toHaveBeenCalled();
     expect(mockFrom).not.toHaveBeenCalled();
-    expect(mockGetCourseTeachers).not.toHaveBeenCalled();
+    expect(mockListCanonicalCourseTeachers).not.toHaveBeenCalled();
     expect(deletedCourseIds).toEqual([]);
   });
 });

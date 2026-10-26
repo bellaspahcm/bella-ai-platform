@@ -12,6 +12,7 @@ export interface AttendanceRequestContext {
   client: Awaited<ReturnType<typeof createClient>>;
   tenantId: string;
   actorId: string;
+  actorRole: string;
   productKey: string;
 }
 interface AttendanceTargets { courseId?: string; enrollmentId?: string; branchId?: string; date?: string }
@@ -69,7 +70,7 @@ export async function resolveAttendanceRequestContext(request: Request): Promise
   if (!tenant.data || tenant.data.id !== user.tenant_id || tenant.data.status !== 'active' || !tenant.data.product_key) {
     throw new AttendanceAccessError(403, 'ATTENDANCE_ACCESS_DENIED');
   }
-  const context = { client, actorId, tenantId: user.tenant_id, productKey: tenant.data.product_key };
+  const context = { client, actorId, actorRole: user.role, tenantId: user.tenant_id, productKey: tenant.data.product_key };
   assertAttendanceSelectors(request, context);
   if (context.productKey === 'bella_preschool') {
     if (user.role === 'admin_staff') throw new AttendanceAccessError(503, 'ATTENDANCE_TEACHER_IDENTITY_UNAVAILABLE');

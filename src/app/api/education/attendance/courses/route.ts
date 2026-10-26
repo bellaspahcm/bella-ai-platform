@@ -17,7 +17,10 @@ export async function GET(request: Request) {
     const context = await resolveCourseReadContext(request);
     if (!context.allowed) return context.response;
     const { actor, tenantId } = context;
-    if (!['admin', 'super_admin', 'admin_staff'].includes(actor.role)) {
+    if (actor.role === 'admin_staff') {
+      return reply({ success: false, error: 'ATTENDANCE_TEACHER_IDENTITY_UNAVAILABLE' }, 503);
+    }
+    if (actor.role !== 'admin') {
       return reply({ success: false, error: 'ATTENDANCE_ACTION_DENIED' }, 403);
     }
     const params = new URL(request.url).searchParams;
@@ -53,7 +56,9 @@ export async function GET(request: Request) {
     // Reuse the existing canonical read adapter; the general courses projection
     // belongs to another model and must not supply Attendance identities.
     const reader = admissionCourseReader(client);
-    const attendance = new AttendanceContractImpl(client);
+    // The identity RPC and daily-state RLS must see the authenticated caller.
+    // The trusted client above is limited to explicit actor/branch preflight.
+    const attendance = new AttendanceContractImpl(context.supabase);
     const classrooms = [];
     for (const assignment of assignments.filter(row => branches.has(row.branch_id))) {
       const courseId = assignment.course_id;
