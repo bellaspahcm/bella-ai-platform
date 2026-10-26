@@ -578,8 +578,12 @@ function PreschoolDashboard({ tenantId, displayName, userRole }: { tenantId: str
           </select>
         </label>
         <span className="text-sm text-slate-500">Dữ liệu ngày {selectedDateStr}, trong cơ sở đang chọn.</span>
-        {analyticsError && <p role="alert">Không tải được Tổng quan: {analyticsError}. <button type="button" onClick={() => setRefreshKey(value => value + 1)}>Thử lại</button></p>}
-        {branchListError && <p role="alert">{branchListError}</p>}
+        {(analyticsError || branchListError) && (
+          <div role="alert" className="space-y-1">
+            {analyticsError && <p>Không tải được Tổng quan: {analyticsError}. <button type="button" onClick={() => setRefreshKey(value => value + 1)}>Thử lại</button></p>}
+            {branchListError && <p>{branchListError}</p>}
+          </div>
+        )}
         {!loadingDashboard && !analyticsError && !selectedBranchId && <p role="status">Chọn cơ sở để xem dữ liệu được cấp quyền.</p>}
       </section>
       {copilotNotice && <p role="status" className="rounded-xl border border-amber-200 p-3 text-sm">{copilotNotice}</p>}
