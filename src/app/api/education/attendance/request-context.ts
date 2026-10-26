@@ -3,6 +3,7 @@ import { getLocalDateString as vietnamSchoolDay } from '@bella/shared';
 import { CanonicalCourseCatalogContractImpl } from '@/platform/education/contracts/canonical-course-catalog.contract.impl';
 import { EnrollmentContractImpl } from '@/platform/education/contracts/enrollment.contract.impl';
 import type { CourseDailyAttendanceRosterItem } from '@/platform/education/contracts/attendance.contract';
+import { PreschoolTeacherAttendanceService } from '@/products/bella-education/services/preschool-teacher-attendance.service';
 
 export const ATTENDANCE_PRIVATE_HEADERS = { 'Cache-Control': 'private, no-store' };
 export class AttendanceAccessError extends Error {
@@ -54,7 +55,7 @@ export function assertAttendanceSelectors(
   };
   visit(body);
 }
-export async function resolveAttendanceRequestContext(request: Request): Promise<AttendanceRequestContext> {
+export async function resolveAttendanceRequestContext(request: Request, teacherAttendance = false): Promise<AttendanceRequestContext> {
   const client = await createClient();
   const auth = await client.auth.getUser();
   if (auth.error || !auth.data.user) throw new AttendanceAccessError(401, 'ATTENDANCE_UNAUTHENTICATED');
@@ -73,8 +74,10 @@ export async function resolveAttendanceRequestContext(request: Request): Promise
   const context = { client, actorId, actorRole: user.role, tenantId: user.tenant_id, productKey: tenant.data.product_key };
   assertAttendanceSelectors(request, context);
   if (context.productKey === 'bella_preschool') {
-    if (user.role === 'admin_staff') throw new AttendanceAccessError(503, 'ATTENDANCE_TEACHER_IDENTITY_UNAVAILABLE');
-    if (user.role !== 'admin') throw new AttendanceAccessError(403, 'AUTH_ROLE_PERMISSION_ERROR');
+    if (user.role === 'admin_staff') {
+      if (!teacherAttendance) throw new AttendanceAccessError(503, 'ATTENDANCE_TEACHER_IDENTITY_UNAVAILABLE');
+      await new PreschoolTeacherAttendanceService(client).requireIdentity(context.tenantId, actorId);
+    } else if (user.role !== 'admin') throw new AttendanceAccessError(403, 'AUTH_ROLE_PERMISSION_ERROR');
   } else {
     // Preserve the existing HTTP role vocabulary outside Preschool.
     if (!['admin', 'super_admin', 'admin_staff'].includes(user.role.trim().toLowerCase())) {
@@ -110,6 +113,14 @@ export async function authorizeAttendanceCourse(
 ): Promise<void> {
   assertAttendanceDay(context, day);
   assertAttendanceSelectors(request, context, { courseId, date: day }, body);
+  if (context.productKey === 'bella_preschool' && context.actorRole === 'admin_staff') {
+    const courses = await new PreschoolTeacherAttendanceService(context.client)
+      .listCourses(context.tenantId, context.actorId, day);
+    const course = courses.find(item => item.courseId === courseId);
+    if (!course) throw new AttendanceAccessError(403, 'ATTENDANCE_COURSE_ACCESS_DENIED');
+    assertAttendanceSelectors(request, context, { courseId, branchId: course.branchId, date: day }, body);
+    return;
+  }
   const catalog = await new CanonicalCourseCatalogContractImpl(context.client).listCourses(context.tenantId);
   const course = catalog.find(item => item.id === courseId && item.tenantId === context.tenantId);
   if (!course) throw new AttendanceAccessError(403, 'ATTENDANCE_COURSE_ACCESS_DENIED');

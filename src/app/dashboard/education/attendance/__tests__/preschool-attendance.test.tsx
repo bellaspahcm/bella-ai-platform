@@ -19,7 +19,9 @@ function deferred() {
 }
 const fetchMock = jest.fn<Promise<Reply>, [RequestInfo | URL, RequestInit?]>();
 let catalogReply: Reply;
+let attendanceClassesReply: Reply;
 const gets: { url: URL; task: ReturnType<typeof deferred> }[] = [];
+const classRequests: string[] = [];
 const posts: { init: RequestInit; task: ReturnType<typeof deferred> }[] = [];
 const dateInput = () => document.querySelector<HTMLInputElement>('input[type=date]')!;
 const renderPage = () => render(<PreschoolAttendance legacy={<p>Legacy Product</p>} />);
@@ -31,17 +33,28 @@ async function complete(i: number, rows: unknown[] = [row()]) {
 function state(status = 'present') { return { id: 'state', tenantId: 'tenant', enrollmentId: 'A', schoolDay: dateInput().value,
   status, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }; }
 beforeEach(() => {
-  gets.length = 0; posts.length = 0; fetchMock.mockReset();
+  gets.length = 0; classRequests.length = 0; posts.length = 0; fetchMock.mockReset();
   catalogReply = reply({ success: true, courses });
+  attendanceClassesReply = reply({ success: true, tenantId: 'tenant', schoolDay: today(), classrooms: [
+    { id: 'A', name: 'Assigned Class A', branchId: '00000000-0000-4000-8000-000000000001' },
+  ] });
   fetchMock.mockImplementation((input, init) => {
     const url = new URL(String(input), 'http://synthetic.invalid');
     if (url.pathname === '/api/education/courses') return Promise.resolve(catalogReply);
+    if (url.pathname === '/api/education/attendance/courses') {
+      classRequests.push(url.toString());
+      return Promise.resolve(attendanceClassesReply);
+    }
     const task = deferred();
     if (init?.method === 'POST') posts.push({ init, task }); else gets.push({ url, task });
     return task.promise;
   });
   global.fetch = fetchMock as unknown as typeof fetch;
 });
+
+function today() {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
+}
 
 it('uses canonical catalog and the explicit roster-only mode, with no legacy overview request', async () => {
   await start(); await complete(0);
@@ -69,6 +82,37 @@ it.each([401, 403, 503])('does not fall back to legacy or fabricated data on cat
 it('retains legacy only after the server identifies an unsupported Product', async () => {
   catalogReply = reply({ success: false, error: 'COURSE_CATALOG_UNSUPPORTED_PRODUCT' }, 403); renderPage();
   expect(await screen.findByText('Legacy Product')).toBeVisible(); expect(gets).toHaveLength(0);
+});
+it('loads only caller-assigned classes from the attendance API when the catalog denies teacher access', async () => {
+  catalogReply = reply({ success: false, error: 'COURSE_ACCESS_DENIED' }, 403);
+  await start();
+  expect(classRequests).toHaveLength(1);
+  expect(new URL(classRequests[0]).searchParams.get('date')).toBe(today());
+  expect(gets[0].url.searchParams.get('courseId')).toBe('A');
+  await complete(0, [row('A')]);
+  expect(screen.getByRole('button', { name: 'Assigned Class A' })).toBeVisible();
+  expect(screen.queryByRole('button', { name: 'Class B · CODE-B' })).not.toBeInTheDocument();
+  expect(screen.getByText('Pupil A')).toBeVisible();
+});
+it('does not substitute a teacher class when an incoming deep link names an unassigned class', async () => {
+  catalogReply = reply({ success: false, error: 'COURSE_ACCESS_DENIED' }, 403);
+  window.history.replaceState({}, '', '/?courseId=B');
+  try {
+    renderPage();
+    await screen.findByRole('alert');
+    expect(classRequests).toHaveLength(1);
+    expect(gets).toHaveLength(0);
+    expect(screen.queryByText('Pupil A')).not.toBeInTheDocument();
+  } finally { window.history.replaceState({}, '', '/'); }
+});
+it('fails closed on malformed attendance class scope without fetching a roster', async () => {
+  catalogReply = reply({ success: false, error: 'COURSE_ACCESS_DENIED' }, 403);
+  attendanceClassesReply = reply({ success: true, tenantId: ' ', schoolDay: today(), classrooms: [
+    { id: 'A', name: 'Assigned Class A', branchId: '00000000-0000-4000-8000-000000000001' },
+  ] });
+  renderPage();
+  await screen.findByRole('alert');
+  expect(gets).toHaveLength(0);
 });
 it.each([null, [{ ...course('A'), tenantId: 'foreign' }, course('B')], [course('A'), course('A')], [{ ...course('A'), status: 'invalid' }]])('rejects malformed/mixed/duplicate catalog %j', async data => {
   catalogReply = reply({ success: true, courses: data }); renderPage();

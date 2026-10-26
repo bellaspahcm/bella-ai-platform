@@ -4,6 +4,16 @@ import { NextResponse } from 'next/server';
 const mockContext = jest.fn<(...args: unknown[]) => Promise<unknown>>();
 const mockAdmin = jest.fn(() => ({}));
 const mockSessionClient = {};
+const mockTeacherContext = jest.fn<(...args: unknown[]) => Promise<unknown>>();
+const mockTeacherCourses = jest.fn<(...args: unknown[]) => Promise<unknown[]>>();
+jest.mock('../../request-context', () => ({
+  ...jest.requireActual('../../request-context'),
+  resolveAttendanceRequestContext: mockTeacherContext,
+  assertAttendanceDay: jest.fn(),
+}));
+jest.mock('@/products/bella-education/services/preschool-teacher-attendance.service', () => ({
+  PreschoolTeacherAttendanceService: jest.fn().mockImplementation(() => ({ listCourses: mockTeacherCourses })),
+}));
 const mockAccess = jest.fn<(...args: unknown[]) => Promise<unknown[]>>();
 const mockAssignments = jest.fn<(...args: unknown[]) => Promise<unknown[]>>();
 const mockCourse = jest.fn<(...args: unknown[]) => Promise<unknown>>();
@@ -42,6 +52,9 @@ const relationship = { tenant_id: 'tenant-A', user_id: 'actor-A', org_unit_id: '
 
 beforeEach(() => {
   jest.clearAllMocks();
+  mockTeacherContext.mockResolvedValue({ client: mockSessionClient, tenantId: 'tenant-A', actorId: 'actor-A', actorRole: 'admin_staff', productKey: 'bella_preschool' });
+  mockTeacherCourses.mockReset();
+  mockTeacherCourses.mockResolvedValue([{ courseId: 'course-A', name: 'Assigned class', branchId: 'branch-A' }]);
   mockContext.mockResolvedValue({ allowed: true, tenantId: 'tenant-A', actor: { id: 'actor-A', role: 'admin' }, supabase: mockSessionClient });
   mockAccess.mockResolvedValue([relationship]);
   mockAssignments.mockResolvedValue([{ tenant_id: 'tenant-A', course_id: 'course-A', branch_id: 'branch-A' }]);
@@ -73,7 +86,9 @@ describe('Attendance canonical course discovery', () => {
     const reply = await GET(request('&branchId=branch-A'));
     expect(reply.status).toBe(200);
     expect(reply.headers.get('Cache-Control')).toBe('private, no-store');
-    expect((await reply.json()).classrooms).toEqual([{
+    const body = await reply.json();
+    expect(body.tenantId).toBe('tenant-A');
+    expect(body.classrooms).toEqual([{
       id: 'course-A', name: 'Canonical Class', branchId: 'branch-A', students: 2,
       maxStudents: null, gradeKey: null, todayStatus: { present: 1, absent: 0, excused: 0, unmarked: 1 },
     }]);
@@ -84,10 +99,31 @@ describe('Attendance canonical course discovery', () => {
     expect(AttendanceContractImpl).toHaveBeenCalledWith(mockSessionClient);
   });
 
-  it('holds staff discovery until a canonical teacher identity exists', async () => {
+  it('lists only teacher-authorized classes without a privileged catalog', async () => {
     mockContext.mockResolvedValue({ allowed: true, tenantId: 'tenant-A', actor: { id: 'actor-A', role: 'admin_staff' } });
-    expect((await GET(request())).status).toBe(503);
+    const response = await GET(request());
+    expect(response.status).toBe(200);
+    const body = await response.json();
+    expect(body.tenantId).toBe('tenant-A');
+    expect(body.classrooms).toEqual([expect.objectContaining({ id: 'course-A', name: 'Assigned class' })]);
     expect(mockAdmin).not.toHaveBeenCalled();
+    expect(mockAssignments).not.toHaveBeenCalled();
+    expect(mockCourse).not.toHaveBeenCalled();
+  });
+
+  it('fails closed on teacher discovery revocation before roster access', async () => {
+    const { PreschoolChainError } = await import('@/products/bella-education/services/preschool-chain.service');
+    mockContext.mockResolvedValue({ allowed: true, tenantId: 'tenant-A', actor: { id: 'actor-A', role: 'admin_staff' } });
+    mockTeacherCourses.mockRejectedValue(new PreschoolChainError('ATTENDANCE_TEACHER_ACCESS_DENIED', 403));
+    expect((await GET(request())).status).toBe(403);
+    expect(mockRoster).not.toHaveBeenCalled();
+    expect(mockAdmin).not.toHaveBeenCalled();
+  });
+
+  it.each([['&branch_id=foreign', 403], ['&date=2026-10-23', 400], ['&branchId=invalid', 400]])('rejects ambiguous or unsupported teacher selector %s', async (query, status) => {
+    mockContext.mockResolvedValue({ allowed: true, tenantId: 'tenant-A', actor: { id: 'actor-A', role: 'admin_staff' } });
+    expect((await GET(request(query as string))).status).toBe(status);
+    expect(mockTeacherCourses).not.toHaveBeenCalled();
     expect(mockRoster).not.toHaveBeenCalled();
   });
 

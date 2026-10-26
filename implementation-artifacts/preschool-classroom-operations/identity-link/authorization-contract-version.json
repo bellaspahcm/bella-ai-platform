@@ -1,0 +1,19 @@
+{
+  "version": "v1",
+  "path": "docs/platform/PARTY_IDENTITY_LINK_AUTHORIZATION_CONTRACT.md",
+  "sha256": "9c441525b58c2f2743def52d38b1b5417a7fb025a2dcab0876409a72a3c21329",
+  "contentApproval": "APPROVED_BY_USER",
+  "owningBoundaryAcceptance": "APPROVED_BY_USER_AS_SOLE_DECISION_OWNER",
+  "schemaApplied": true,
+  "identityJwtE2e": "VERIFIED_LOCAL_ISOLATED_48_CHECKS",
+  "recipient": "USER_SOLE_DECISION_OWNER",
+  "delivery": "ACCEPTED_IN_CURRENT_CHAT",
+  "production": "UNCHANGED",
+  "commitPush": false,
+  "acceptanceScope": "local/E2E only; trusted DB-owner grants; no UI/Production/commit/push",
+  "runtimeScope": "Local GoTrue JWT + owned no-network PostgREST/schema sandbox; not Production or full teacher Attendance",
+  "migrationSha256": "7dada3ff8dcbcc72de0cfc1c271824936ac2e910e99e2624f2b14b036182c684",
+  "independentSourceReview": "NO_REMAINING_SOURCE_FINDING_AFTER_TENANT_DRIFT_FIX",
+  "ownerAcceptedSourceSha256": "9c441525b58c2f2743def52d38b1b5417a7fb025a2dcab0876409a72a3c21329",
+  "metadataRevision": "Acceptance clause aligned with the user's decision-owner approval; Local/E2E-only scope retained; sections 1–6 unchanged byte-for-byte"
+}

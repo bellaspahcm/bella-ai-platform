@@ -1,6 +1,7 @@
 import { PreschoolChainError } from '@/products/bella-education/services/preschool-chain.service';
 import { PreschoolAttendanceAccessService } from '@/products/bella-education/services/preschool-attendance-access.service';
 import { PreschoolAttendanceCommandService } from '@/products/bella-education/services/preschool-attendance-command.service';
+import { PreschoolTeacherAttendanceService } from '@/products/bella-education/services/preschool-teacher-attendance.service';
 import { EducationAttendanceCommandError } from '@/platform/education/contracts/attendance-command.contract';
 import { NextResponse } from 'next/server';
 import { createClient as createSupabaseClient, type SupabaseClient } from '@supabase/supabase-js';
@@ -50,8 +51,15 @@ export async function GET(request: Request) {
       return NextResponse.json({ success: false, error: 'courseId is required' }, { status: 400 });
     }
     const day = requireSchoolDay(schoolDay);
-    const context = await resolveAttendanceRequestContext(request);
+    const context = await resolveAttendanceRequestContext(request, true);
     await authorizeAttendanceCourse(context, request, courseId, day);
+
+    if (context.productKey === 'bella_preschool' && context.actorRole === 'admin_staff') {
+      const roster = await new AttendanceProductService(new AttendanceContractImpl(context.client))
+        .getCourseDailyAttendance({ tenantId: context.tenantId, courseId, schoolDay: day });
+      // Teacher attendance does not grant the separate pickup/guardian capability.
+      return NextResponse.json({ success: true, courseId, schoolDay: day, roster }, { headers: ATTENDANCE_PRIVATE_HEADERS });
+    }
 
     const trusted = createAdminOperationClient() ?? context.client;
     const service = new AttendanceProductService(new AttendanceContractImpl(context.client));
@@ -90,7 +98,7 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const context = await resolveAttendanceRequestContext(request);
+    const context = await resolveAttendanceRequestContext(request, true);
     const value: unknown = await request.json();
     if (!value || typeof value !== 'object' || Array.isArray(value)) {
       throw new AttendanceAccessError(400, 'ATTENDANCE_INVALID_REQUEST');
@@ -108,13 +116,11 @@ export async function POST(request: Request) {
     }
     const day = requireSchoolDay(body.date);
     assertAttendanceDay(context, day);
-    assertAttendanceSelectors(request, context, { enrollmentId: body.enrollmentId.toLowerCase(), date: day }, {
-      ...body, enrollmentId: body.enrollmentId.toLowerCase(),
-    });
+    const normalizedBody = { ...body, enrollmentId: body.enrollmentId.toLowerCase() };
+    assertAttendanceSelectors(request, context, { enrollmentId: normalizedBody.enrollmentId, date: day }, normalizedBody);
 
-    const supabase = createAdminOperationClient() ?? await createClient();
-    const service = new PreschoolAttendanceCommandService(supabase);
-    const attendance = await service.setDailyAttendance({
+    const teacher = context.productKey === 'bella_preschool' && context.actorRole === 'admin_staff';
+    const input = {
       tenantId: context.tenantId,
       actorId: context.actorId,
       actorRole: context.actorRole,
@@ -122,7 +128,13 @@ export async function POST(request: Request) {
       status: body.status,
       schoolDay: day,
       rollCallTime: resolveAttendanceRollCallTime(day, body.rollCallTime),
-    });
+    };
+    const attendance = teacher
+      ? await new PreschoolTeacherAttendanceService(context.client).setDailyAttendance(input, course => {
+        assertAttendanceSelectors(request, context, { courseId: course.courseId, branchId: course.branchId,
+          enrollmentId: input.enrollmentId, date: day }, normalizedBody);
+      })
+      : await new PreschoolAttendanceCommandService(createAdminOperationClient() ?? await createClient()).setDailyAttendance(input);
 
     return NextResponse.json({ success: true, attendance }, { headers: ATTENDANCE_PRIVATE_HEADERS });
   } catch (error) {

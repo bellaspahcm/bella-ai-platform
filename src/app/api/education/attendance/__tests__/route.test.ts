@@ -7,6 +7,13 @@ const mockSessionClient = { from: mockFrom, auth: { getUser: mockAuthUser } };
 const mockGetCurrentUser = jest.fn<() => Promise<{ id: string; tenant_id: string; role: string } | null>>();
 const mockGetCourseDailyAttendance = jest.fn<() => Promise<Array<{ enrollmentId: string; studentPartyId: string }>>>();
 const mockSetDailyAttendance = jest.fn<(...input: unknown[]) => Promise<unknown>>();
+const mockTeacherIdentity = jest.fn<(...input: unknown[]) => Promise<void>>();
+const mockTeacherWrite = jest.fn<(...input: unknown[]) => Promise<unknown>>();
+jest.mock('@/products/bella-education/services/preschool-teacher-attendance.service', () => ({
+  PreschoolTeacherAttendanceService: jest.fn().mockImplementation(() => ({
+    requireIdentity: mockTeacherIdentity, setDailyAttendance: mockTeacherWrite,
+  })),
+}));
 const mockGetAuthorizedGuardians = jest.fn<() => Promise<Map<string, unknown>>>();
 const mockGetLatestHandovers = jest.fn<() => Promise<Map<string, unknown>>>();
 
@@ -76,6 +83,10 @@ function attendancePostRequest(body: object): Request {
 describe('/api/education/attendance route authorization', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockTeacherIdentity.mockReset();
+    const { PreschoolChainError } = require('@/products/bella-education/services/preschool-chain.service') as typeof import('@/products/bella-education/services/preschool-chain.service');
+    mockTeacherIdentity.mockRejectedValue(new PreschoolChainError('ATTENDANCE_TEACHER_ACCESS_DENIED', 403));
+    mockTeacherWrite.mockReset();
     mockBranchCheck.mockReset();
     mockBranchCheck.mockResolvedValue(undefined);
     mockGetCurrentUser.mockResolvedValue({
@@ -175,10 +186,58 @@ describe('/api/education/attendance route authorization', () => {
   it('denies admin_staff without an Auth-to-teacher contract before read or write preflight', async () => {
     mockGetCurrentUser.mockResolvedValue({ id: userId, tenant_id: tenantId, role: 'admin_staff' });
     const response = await POST(attendancePostRequest({ enrollmentId, status: 'present', date: '2026-10-06' }));
-    expect(response.status).toBe(503);
-    expect(await response.json()).toMatchObject({ error: 'ATTENDANCE_TEACHER_IDENTITY_UNAVAILABLE' });
+    expect(response.status).toBe(403);
+    expect(await response.json()).toMatchObject({ error: 'ATTENDANCE_TEACHER_ACCESS_DENIED' });
     expect(mockBranchCheck).not.toHaveBeenCalled();
     expect(mockSetDailyAttendance).not.toHaveBeenCalled();
+  });
+
+  it('uses the teacher caller client for writes and leaves the admin command untouched', async () => {
+    mockGetCurrentUser.mockResolvedValue({ id: userId, tenant_id: tenantId, role: 'admin_staff' });
+    mockTeacherIdentity.mockResolvedValue(undefined);
+    mockTeacherWrite.mockResolvedValue({ enrollmentId, status: 'present' });
+    const response = await POST(attendancePostRequest({ enrollmentId, status: 'present', date: '2026-10-06' }));
+    expect(response.status).toBe(200);
+    const { PreschoolTeacherAttendanceService } = await import('@/products/bella-education/services/preschool-teacher-attendance.service');
+    expect(PreschoolTeacherAttendanceService).toHaveBeenCalledWith(mockSessionClient);
+    expect(mockTeacherWrite).toHaveBeenCalledWith(expect.objectContaining({ actorRole: 'admin_staff', actorId: userId, tenantId }), expect.any(Function));
+    expect(mockSetDailyAttendance).not.toHaveBeenCalled();
+    expect(mockBranchCheck).not.toHaveBeenCalled();
+  });
+
+  it('reads only the authorized teacher roster without exposing pickup/guardian details', async () => {
+    mockGetCurrentUser.mockResolvedValue({ id: userId, tenant_id: tenantId, role: 'admin_staff' });
+    mockTeacherIdentity.mockResolvedValue(undefined);
+    const response = await GET(new Request(`http://localhost/api/education/attendance?courseId=${courseId}&date=2026-10-06`));
+    expect(response.status).toBe(200);
+    expect(mockAuthorizeCourse).toHaveBeenCalled();
+    expect(mockGetCourseDailyAttendance).toHaveBeenCalledWith({ tenantId, courseId, schoolDay: '2026-10-06' });
+    expect(mockGetAuthorizedGuardians).not.toHaveBeenCalled();
+    expect(mockGetLatestHandovers).not.toHaveBeenCalled();
+    expect(mockBranchCheck).not.toHaveBeenCalled();
+  });
+
+  it('rejects a teacher POST selector conflicting with the resolved classroom', async () => {
+    mockGetCurrentUser.mockResolvedValue({ id: userId, tenant_id: tenantId, role: 'admin_staff' });
+    mockTeacherIdentity.mockResolvedValue(undefined);
+    mockTeacherWrite.mockImplementationOnce(async (_input: unknown, guard: unknown) => {
+      (guard as (course: { courseId: string; branchId: string }) => void)({ courseId, branchId: tenantId });
+      return {};
+    });
+    const response = await POST(attendancePostRequest({ enrollmentId, status: 'present', date: '2026-10-06', courseId: enrollmentId }));
+    expect(response.status).toBe(403);
+    expect(mockSetDailyAttendance).not.toHaveBeenCalled();
+  });
+
+  it('keeps canonical uppercase enrollment input compatible in the teacher callback', async () => {
+    mockGetCurrentUser.mockResolvedValue({ id: userId, tenant_id: tenantId, role: 'admin_staff' });
+    mockTeacherIdentity.mockResolvedValue(undefined);
+    mockTeacherWrite.mockImplementationOnce(async (_input: unknown, guard: unknown) => {
+      (guard as (course: { courseId: string; branchId: string }) => void)({ courseId, branchId: tenantId });
+      return {};
+    });
+    const response = await POST(attendancePostRequest({ enrollmentId: enrollmentId.toUpperCase(), status: 'present', date: '2026-10-06' }));
+    expect(response.status).toBe(200);
   });
 
   it('passes the authenticated client to the roster contract before trusted pickup enrichment', async () => {
