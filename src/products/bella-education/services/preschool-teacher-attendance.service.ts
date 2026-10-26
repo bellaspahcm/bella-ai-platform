@@ -37,7 +37,7 @@ export class PreschoolTeacherAttendanceService {
     try {
       const scope = await new PreschoolTeacherContractImpl(this.client).listMyAttendanceCourses(schoolDay, branchId);
       if (scope.tenantId !== tenantId || scope.actorId !== actorId || scope.schoolDay !== schoolDay) throw unavailable();
-      return scope.courses;
+      return [...scope.courses];
     } catch (error) {
       if (error instanceof PreschoolChainError) throw error;
       if (error instanceof PreschoolTeacherContractError && error.code === 'PRESCHOOL_TEACHER_ACCESS_DENIED') throw denied();
