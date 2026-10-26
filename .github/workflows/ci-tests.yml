@@ -5,6 +5,13 @@ on:
     branches: [develop, main]
   pull_request:
     branches: [develop, main]
+  workflow_dispatch:
+    inputs:
+      run_education_t1:
+        description: Run the allowlisted Education T1 database suites on an isolated disposable fixture
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -69,7 +76,7 @@ jobs:
   tests:
     name: Affected Unit and Integration Tests
     needs: detect_changes
-    if: needs.detect_changes.outputs.needs_tests == 'true'
+    if: needs.detect_changes.outputs.needs_tests == 'true' || (github.event_name == 'workflow_dispatch' && inputs.run_education_t1 == true)
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -97,21 +104,33 @@ jobs:
         id: education_fixture
         shell: bash
         run: |
-          if [ "$GITHUB_EVENT_NAME" = 'pull_request' ]; then
-            changed="$(git diff --name-only "origin/$GITHUB_BASE_REF...HEAD")"
+          if [ "$GITHUB_EVENT_NAME" = 'workflow_dispatch' ]; then
+            if [ "$RUN_EDUCATION_T1" = 'true' ]; then
+              test "$GITHUB_REF" = 'refs/heads/main' || { echo 'T1_MANUAL_RUN_MAIN_ONLY'; exit 1; }
+              echo 'needed=true' >> "$GITHUB_OUTPUT"
+              echo 'suites=src/platform/education/__tests__/verification-gates.test.ts,src/platform/education/__tests__/course-contract-real-db.integration.test.ts,src/platform/education/__tests__/kernel-invariants.integration.test.ts' >> "$GITHUB_OUTPUT"
+            else
+              echo 'needed=false' >> "$GITHUB_OUTPUT"
+            fi
           else
-            changed="$(git diff --name-only origin/main...HEAD)"
-            if [ -z "$changed" ]; then
-              changed="$(git diff --name-only HEAD^ HEAD)"
+            if [ "$GITHUB_EVENT_NAME" = 'pull_request' ]; then
+              changed="$(git diff --name-only "origin/$GITHUB_BASE_REF...HEAD")"
+            else
+              changed="$(git diff --name-only origin/main...HEAD)"
+              if [ -z "$changed" ]; then
+                changed="$(git diff --name-only HEAD^ HEAD)"
+              fi
+            fi
+            suites="$(printf '%s\n' "$changed" | grep -E '^src/platform/education/__tests__/(verification-gates\.test\.ts|course-contract-real-db\.integration\.test\.ts|kernel-invariants\.integration\.test\.ts)$' || true)"
+            if [ -n "$suites" ]; then
+              echo 'needed=true' >> "$GITHUB_OUTPUT"
+              echo "suites=$(printf '%s\n' "$suites" | tr '\n' ',')" >> "$GITHUB_OUTPUT"
+            else
+              echo 'needed=false' >> "$GITHUB_OUTPUT"
             fi
           fi
-          suites="$(printf '%s\n' "$changed" | grep -E '^src/platform/education/__tests__/(verification-gates\.test\.ts|course-contract-real-db\.integration\.test\.ts|kernel-invariants\.integration\.test\.ts)$' || true)"
-          if [ -n "$suites" ]; then
-            echo 'needed=true' >> "$GITHUB_OUTPUT"
-            echo "suites=$(printf '%s\n' "$suites" | tr '\n' ',')" >> "$GITHUB_OUTPUT"
-          else
-            echo 'needed=false' >> "$GITHUB_OUTPUT"
-          fi
+        env:
+          RUN_EDUCATION_T1: ${{ inputs.run_education_t1 }}
 
       - name: Install Supabase CLI for disposable Education fixture
         if: steps.education_fixture.outputs.needed == 'true'
@@ -124,7 +143,14 @@ jobs:
         run: bash scripts/ci/preschool-t1-fixture.sh prepare
 
       - name: Run related unit and integration suite
-        run: node scripts/test-changed-files.mjs --jest-json-output "$RUNNER_TEMP/affected-jest.json"
+        shell: bash
+        run: |
+          if [ "$GITHUB_EVENT_NAME" = 'workflow_dispatch' ] && [ "$BELLA_T1_ENV_REQUIRED" = 'true' ]; then
+            IFS=',' read -r -a t1_suites <<< "$BELLA_T1_EXPECTED_SUITES"
+            node scripts/test-changed-files.mjs --jest-json-output "$RUNNER_TEMP/affected-jest.json" "${t1_suites[@]}"
+          else
+            node scripts/test-changed-files.mjs --jest-json-output "$RUNNER_TEMP/affected-jest.json"
+          fi
         env:
           NODE_ENV: test
           JEST_CACHE_DIRECTORY: .jest-cache
