@@ -2,6 +2,12 @@ const {
   analyzeSql,
   maskSqlLiteralsAndComments,
 } = require('../../scripts/check-zero-downtime-migrations.cjs');
+const { readFileSync } = require('node:fs');
+const { resolve } = require('node:path');
+
+const attendanceMigration = 'supabase/migrations/20261026152000_harden_education_attendance_access.sql';
+const attendanceException = '-- zero-downtime: reviewed-attendance-write-revoke';
+const reviewedRevoke = 'REVOKE INSERT,UPDATE,DELETE,TRUNCATE ON TABLE public.edu_attendance,public.edu_attendance_daily_state FROM PUBLIC,anon,authenticated;';
 
 describe('zero-downtime migration policy', () => {
   it('accepts additive schema changes and concurrent indexes', () => {
@@ -62,5 +68,45 @@ describe('zero-downtime migration policy', () => {
     ].join('\n');
 
     expect(analyzeSql(sql)).toEqual([]);
+  });
+
+  describe('reviewed attendance privilege revocation', () => {
+    const exceptionSql = [attendanceException, reviewedRevoke].join('\n');
+
+    it.each(['\n', '\r\n'])('accepts only the reviewed statement and file with %j line endings', newline => {
+      expect(analyzeSql(exceptionSql.replace(/\n/g, newline), attendanceMigration)).toEqual([]);
+    });
+
+    it('accepts the Windows path of the same reviewed migration', () => {
+      expect(analyzeSql(exceptionSql, attendanceMigration.replace(/\//g, '\\'))).toEqual([]);
+    });
+
+    it.each(['', 'supabase/migrations/20261026152001_other.sql'])('rejects the exception in an unreviewed file: %j', file => {
+      expect(analyzeSql(exceptionSql, file)).toEqual([expect.objectContaining({ code: 'truncate' })]);
+    });
+
+    it.each([
+      ['missing marker', reviewedRevoke],
+      ['changed table', exceptionSql.replace('public.edu_attendance_daily_state', 'public.other_state')],
+      ['changed grantee', exceptionSql.replace('PUBLIC,anon,authenticated', 'PUBLIC,anon')],
+      ['changed grant direction', exceptionSql.replace('REVOKE ', 'GRANT ').replace(' FROM ', ' TO ')],
+      ['actual truncation', `${attendanceException}\nTRUNCATE public.edu_attendance;`],
+    ])('does not apply to %s', (_label, sql) => {
+      expect(analyzeSql(sql, attendanceMigration).some((finding: { code: string }) => finding.code === 'truncate')).toBe(true);
+    });
+
+    it.each([
+      ['before', `TRUNCATE public.edu_attendance;\n${exceptionSql}`],
+      ['after', `${exceptionSql}\nTRUNCATE public.edu_attendance;`],
+      ['same line', `${exceptionSql} TRUNCATE public.edu_attendance;`],
+      ['procedural body', `DO $body$\nBEGIN\n${exceptionSql}\nTRUNCATE public.edu_attendance;\nEND;\n$body$;`],
+    ])('still detects an actual TRUNCATE %s the reviewed revoke', (_label, sql) => {
+      expect(analyzeSql(sql, attendanceMigration).some((finding: { code: string; statement: string }) =>
+        finding.code === 'truncate' && finding.statement === 'TRUNCATE')).toBe(true);
+    });
+
+    it('accepts the full forward package through the same analyzer used by the CLI', () => {
+      expect(analyzeSql(readFileSync(resolve(attendanceMigration), 'utf8'), attendanceMigration)).toEqual([]);
+    });
   });
 });

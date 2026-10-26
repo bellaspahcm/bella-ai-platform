@@ -101,7 +101,20 @@ function hasAllowAnnotation(sourceLines, lineIndex, code) {
   return new RegExp('--\\s*zero-downtime:\\s*allow\\s+' + code + '\\s+-\\s+\\S', 'i').test(nearby);
 }
 
-function analyzeSql(sql) {
+function isReviewedAttendanceWriteRevoke(source, offset, migrationPath) {
+  // Owner-approved exception for one reviewed revocation, not a TRUNCATE command.
+  if (migrationPath.replace(/\\/g, '/') !== 'supabase/migrations/20261026152000_harden_education_attendance_access.sql') return false;
+  const lineStart = source.lastIndexOf('\n', offset - 1) + 1;
+  const lineEnd = source.indexOf('\n', offset);
+  const statement = source.slice(lineStart, lineEnd < 0 ? source.length : lineEnd).trim();
+  if (statement !== 'REVOKE INSERT,UPDATE,DELETE,TRUNCATE ON TABLE public.edu_attendance,public.edu_attendance_daily_state FROM PUBLIC,anon,authenticated;') return false;
+  if (lineStart === 0) return false;
+  const previousLineStart = source.lastIndexOf('\n', lineStart - 2) + 1;
+  return source.slice(previousLineStart, lineStart - 1).trim() === '-- zero-downtime: reviewed-attendance-write-revoke'
+    && source.indexOf('TRUNCATE', lineStart) === offset;
+}
+
+function analyzeSql(sql, migrationPath = '') {
   const source = String(sql);
   const masked = maskSqlLiteralsAndComments(source);
   const sourceLines = source.split(/\r?\n/);
@@ -112,7 +125,9 @@ function analyzeSql(sql) {
     let match;
     while ((match = rule.pattern.exec(masked)) !== null) {
       const line = masked.slice(0, match.index).split(/\r?\n/).length;
-      if (!hasAllowAnnotation(sourceLines, line - 1, rule.code)) {
+      const reviewedRevoke = rule.code === 'truncate'
+        && isReviewedAttendanceWriteRevoke(source, match.index, migrationPath);
+      if (!reviewedRevoke && !hasAllowAnnotation(sourceLines, line - 1, rule.code)) {
         findings.push({
           code: rule.code,
           line,
@@ -175,7 +190,7 @@ function main() {
       continue;
     }
 
-    const findings = analyzeSql(readFileSync(resolve(migration.file), 'utf8'));
+    const findings = analyzeSql(readFileSync(resolve(migration.file), 'utf8'), migration.file);
     for (const finding of findings) {
       failed = true;
       console.error(migration.file + ':' + finding.line + ' [' + finding.code + '] ' + finding.statement);

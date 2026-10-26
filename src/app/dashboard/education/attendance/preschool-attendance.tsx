@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, type ReactNode } from 'react';
 import Link from 'next/link';
 import type { CourseDailyAttendanceRosterItem, EducationAttendanceStatus } from '@/platform/education/contracts/attendance.contract';
 
-type Course = { id: string; tenantId: string; courseCode: string; title: string; status: string };
+type Course = { id: string; tenantId: string; courseCode: string | null; title: string };
 type Catalog = { status: 'loading' | 'error' | 'legacy' } | { status: 'ready'; courses: Course[] };
 type Roster = { status: 'loading' | 'error'; key: string } | { status: 'ready'; key: string; rows: CourseDailyAttendanceRosterItem[] };
 const labels: Record<EducationAttendanceStatus, string> = { present: 'Có mặt', absent: 'Vắng', excused: 'Có phép' };
@@ -16,9 +16,12 @@ const isStatus = (v: unknown): v is EducationAttendanceStatus => statuses.includ
 function today() {
   return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
 }
-function isCourse(v: unknown): v is Course {
-  return record(v) && [v.id, v.tenantId, v.courseCode, v.title].every(text)
+function isCatalogCourse(v: unknown): v is Record<string, unknown> {
+  return record(v) && [v.id, v.tenantId, v.title, v.courseCode].every(text)
     && typeof v.status === 'string' && ['draft', 'active', 'archived'].includes(v.status);
+}
+function isAttendanceClass(v: unknown): v is Record<string, unknown> {
+  return record(v) && [v.id, v.name, v.branchId].every(text);
 }
 function isRow(v: unknown, courseTenant: string, day: string): v is CourseDailyAttendanceRosterItem {
   if (!record(v) || ![v.enrollmentId, v.studentId, v.studentPartyId, v.name].every(text)
@@ -62,18 +65,41 @@ export default function PreschoolAttendance({ legacy }: { legacy: ReactNode }) {
         if (response.status === 403 && record(body) && body.success === false && body.error === 'COURSE_CATALOG_UNSUPPORTED_PRODUCT') {
           setCatalog({ status: 'legacy' }); return;
         }
-        if (!response.ok || !record(body) || body.success !== true || !Array.isArray(body.courses)
-          || !body.courses.every(isCourse)) throw new Error('INVALID_CATALOG');
-        const loadedCourses = body.courses;
+        let loadedCourses: Course[];
+        if (response.ok && record(body) && body.success === true && Array.isArray(body.courses)
+          && body.courses.every(isCatalogCourse)) {
+          loadedCourses = body.courses.filter(course => course.status === 'active').map(course => ({
+            id: course.id as string, tenantId: course.tenantId as string,
+            courseCode: course.courseCode as string, title: course.title as string,
+          }));
+        } else if (response.status === 403 && record(body) && body.success === false && body.error === 'COURSE_ACCESS_DENIED') {
+          // Teacher catalog access is intentionally denied; use the attendance
+          // contract, which returns only classes assigned to the current caller.
+          const attendanceResponse = await fetch(`/api/education/attendance/courses?date=${today()}`, {
+            cache: 'no-store', signal: controller.signal,
+          });
+          const attendanceBody: unknown = await attendanceResponse.json();
+          if (!active) return;
+          if (!attendanceResponse.ok || !record(attendanceBody) || attendanceBody.success !== true
+            || !text(attendanceBody.tenantId) || attendanceBody.schoolDay !== today()
+            || !Array.isArray(attendanceBody.classrooms) || !attendanceBody.classrooms.every(isAttendanceClass)) {
+            throw new Error('INVALID_ATTENDANCE_CLASSES');
+          }
+          loadedCourses = attendanceBody.classrooms.map(classroom => ({
+            id: classroom.id as string, tenantId: attendanceBody.tenantId as string,
+            courseCode: null, title: classroom.name as string,
+          }));
+        } else {
+          throw new Error('INVALID_CATALOG');
+        }
         if (new Set(loadedCourses.map(c => c.id)).size !== loadedCourses.length
           || loadedCourses.some(c => c.tenantId !== loadedCourses[0]?.tenantId)) throw new Error('INVALID_CATALOG');
-        const courses = loadedCourses.filter(c => c.status === 'active');
         const requestedCourseId = new URLSearchParams(window.location.search).get('courseId');
-        if (requestedCourseId && !courses.some(course => course.id === requestedCourseId)) {
+        if (requestedCourseId && !loadedCourses.some(course => course.id === requestedCourseId)) {
           throw new Error('REQUESTED_COURSE_UNAVAILABLE');
         }
-        setCatalog({ status: 'ready', courses });
-        setCourseId(requestedCourseId ?? courses[0]?.id ?? '');
+        setCatalog({ status: 'ready', courses: loadedCourses });
+        setCourseId(requestedCourseId ?? loadedCourses[0]?.id ?? '');
       } catch { if (active) setCatalog({ status: 'error' }); }
     })();
     return () => { active = false; controller.abort(); };
@@ -148,7 +174,7 @@ export default function PreschoolAttendance({ legacy }: { legacy: ReactNode }) {
         <fieldset disabled={saving} className="flex flex-wrap gap-2" aria-label="Chọn khóa học">
           {catalog.courses.map(course => <button type="button" key={course.id} aria-pressed={course.id === courseId}
             className="px-4 py-2 rounded-xl border border-border bg-card aria-pressed:bg-primary aria-pressed:text-primary-foreground disabled:opacity-50"
-            onClick={() => { if (!command.current) setCourseId(course.id); }}>{course.title} · {course.courseCode}</button>)}
+            onClick={() => { if (!command.current) setCourseId(course.id); }}>{course.courseCode ? `${course.title} · ${course.courseCode}` : course.title}</button>)}
         </fieldset>
         <label className="text-sm">Ngày điểm danh<input type="date" value={day} min={today()} max={today()} disabled={saving}
           className="block rounded-lg border border-border bg-card p-2" onChange={event => { if (!command.current) setDay(event.target.value); }} /></label>

@@ -9,6 +9,8 @@ import { PreschoolChainError, PreschoolChainService } from '@/products/bella-edu
 import type { Database } from '@/types/database.types';
 import { COURSE_PRIVATE_HEADERS, resolveCourseReadContext } from '../../courses/request-context';
 import { admissionCourseReader } from '../../enrollments/admission-course-reader';
+import { PreschoolTeacherAttendanceService } from '@/products/bella-education/services/preschool-teacher-attendance.service';
+import { AttendanceAccessError, assertAttendanceDay, assertAttendanceSelectors, requireSchoolDay, resolveAttendanceRequestContext } from '../request-context';
 
 export async function GET(request: Request) {
   const reply = (body: unknown, status = 200) => NextResponse.json(body, { status, headers: COURSE_PRIVATE_HEADERS });
@@ -18,7 +20,38 @@ export async function GET(request: Request) {
     if (!context.allowed) return context.response;
     const { actor, tenantId } = context;
     if (actor.role === 'admin_staff') {
-      return reply({ success: false, error: 'ATTENDANCE_TEACHER_IDENTITY_UNAVAILABLE' }, 503);
+      const caller = await resolveAttendanceRequestContext(request, true);
+      if (caller.productKey !== 'bella_preschool' || caller.tenantId !== tenantId || caller.actorId !== actor.id) {
+        return reply({ success: false, error: 'ATTENDANCE_ACCESS_DENIED' }, 403);
+      }
+      const params = new URL(request.url).searchParams;
+      const keys = ['date', 'branchId', 'tenantId', 'tenant_id', 'userId', 'user_id', 'actorId', 'actor_id'];
+      if ([...params.keys()].some(key => !keys.includes(key))
+        || request.headers.has('x-course-id') || request.headers.has('x-enrollment-id')) {
+        return reply({ success: false, error: 'ATTENDANCE_CONTEXT_OVERRIDE_DENIED' }, 403);
+      }
+      const schoolDay = requireSchoolDay(params.get('date') ?? getLocalDateString(new Date()));
+      assertAttendanceDay(caller, schoolDay);
+      if (params.getAll('branchId').length > 1 || params.getAll('date').length > 1) {
+        return reply({ success: false, error: 'INVALID_ATTENDANCE_CONTEXT' }, 400);
+      }
+      const branchId = params.get('branchId') ?? request.headers.get('x-branch-id') ?? undefined;
+      if (branchId !== undefined && !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(branchId)) {
+        return reply({ success: false, error: 'INVALID_ATTENDANCE_CONTEXT' }, 400);
+      }
+      assertAttendanceSelectors(request, caller, { branchId, date: schoolDay });
+      const courses = await new PreschoolTeacherAttendanceService(caller.client)
+        .listCourses(tenantId, actor.id, schoolDay, branchId);
+      const attendance = new AttendanceContractImpl(caller.client);
+      const classrooms = [];
+      for (const course of courses) {
+        const roster = await attendance.getCourseDailyAttendance({ tenantId, courseId: course.courseId, schoolDay });
+        const todayStatus = { present: 0, absent: 0, excused: 0, unmarked: 0 };
+        for (const row of roster) todayStatus[row.attendance?.status ?? 'unmarked'] += 1;
+        classrooms.push({ id: course.courseId, name: course.name, branchId: course.branchId,
+          students: roster.length, maxStudents: null, gradeKey: null, todayStatus });
+      }
+      return reply({ success: true, tenantId, schoolDay, classrooms });
     }
     if (actor.role !== 'admin') {
       return reply({ success: false, error: 'ATTENDANCE_ACTION_DENIED' }, 403);
@@ -78,10 +111,10 @@ export async function GET(request: Request) {
         students: roster.length, maxStudents: null, gradeKey: null, todayStatus,
       });
     }
-    return reply({ success: true, schoolDay, classrooms });
+    return reply({ success: true, tenantId, schoolDay, classrooms });
   } catch (error) {
     const denied = error instanceof Error && error.message === 'TRUSTED_ACTOR_ACCESS_DENIED';
-    const status = error instanceof PreschoolChainError ? error.status : denied ? 403 : 500;
+    const status = error instanceof PreschoolChainError || error instanceof AttendanceAccessError ? error.status : denied ? 403 : 500;
     return reply({ success: false, error: status === 500 ? 'ATTENDANCE_COURSES_READ_FAILED'
       : error instanceof Error ? error.message : 'ATTENDANCE_ACCESS_DENIED' }, status);
   }
