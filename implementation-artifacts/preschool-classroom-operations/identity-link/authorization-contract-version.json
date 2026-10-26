@@ -1,0 +1,19 @@
+{
+  "version": "v1",
+  "path": "docs/platform/PARTY_IDENTITY_LINK_AUTHORIZATION_CONTRACT.md",
+  "sha256": "e343f2225a5714d739992eea2c46386c8471d2b071c0c44ad77bc27742d6c8de",
+  "contentApproval": "APPROVED_BY_USER",
+  "owningBoundaryAcceptance": "APPROVED_BY_USER_AS_SOLE_DECISION_OWNER",
+  "schemaApplied": true,
+  "identityJwtE2e": "VERIFIED_LOCAL_ISOLATED_48_CHECKS",
+  "recipient": "USER_SOLE_DECISION_OWNER",
+  "delivery": "ACCEPTED_IN_CURRENT_CHAT",
+  "production": "UNCHANGED",
+  "commitPush": false,
+  "acceptanceScope": "local/E2E only; trusted DB-owner grants; no UI/Production/commit/push",
+  "runtimeScope": "Local GoTrue JWT + owned no-network PostgREST/schema sandbox; not Production or full teacher Attendance",
+  "migrationSha256": "7dada3ff8dcbcc72de0cfc1c271824936ac2e910e99e2624f2b14b036182c684",
+  "independentSourceReview": "NO_REMAINING_SOURCE_FINDING_AFTER_TENANT_DRIFT_FIX",
+  "ownerAcceptedSourceSha256": "85570454b63bd5e85277f8a20b55c71e29b149bfb3061974ab1de27393acecb1",
+  "metadataRevision": "Approval status recorded and Markdown trailing spaces removed; sections 1–6 unchanged byte-for-byte"
+}
