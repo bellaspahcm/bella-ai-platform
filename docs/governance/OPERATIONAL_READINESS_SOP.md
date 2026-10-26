@@ -336,7 +336,7 @@ This example is not a product-specific checklist. It is a pattern for constructi
 
 ## Stop Conditions
 
-Stop the audit and request a decision when:
+Stop only the affected audit step or dependent action when:
 
 - a blocker requires code, schema, data, fixture, test, configuration, CI, or documentation mutation;
 - the canonical contract is unclear;
@@ -345,6 +345,8 @@ Stop the audit and request a decision when:
 - tenant isolation or permission behavior is unproven;
 - continuing would broaden scope beyond the selected workflow;
 - the audit would need to mutate the system to continue.
+
+Record the exact obstacle and continue independent, authorized read-only steps in the selected workflow under [Autonomous Execution](OPERATIONAL_RULES.md). Request only the missing decision or access; do not ask again for valid implementation authority already granted. An authorized repair remains a separate implementation phase, with fresh audit evidence afterward. Missing evidence remains `NOT_PROVEN` and does not by itself stop the entire audit or prove a product defect.
 
 ## Closure Standard
 
