@@ -99,6 +99,27 @@ async function readCopilotResponse<T>(response: Response): Promise<T> {
   return result.data;
 }
 
+type DashboardBranchOption = { readonly id: string; readonly name: string };
+
+function parseManagedBranchOptions(value: unknown): DashboardBranchOption[] | null {
+  if (value === null || typeof value !== 'object' || Array.isArray(value)) return null;
+  const payload = value as Record<string, unknown>;
+  if (payload.success !== true || !Array.isArray(payload.branches)
+    || payload.count !== payload.branches.length) return null;
+
+  const ids = new Set<string>();
+  const branches: DashboardBranchOption[] = [];
+  for (const branch of payload.branches) {
+    if (branch === null || typeof branch !== 'object' || Array.isArray(branch)) return null;
+    const record = branch as Record<string, unknown>;
+    if (typeof record.id !== 'string' || record.id.trim().length === 0
+      || typeof record.name !== 'string' || record.name.trim().length === 0 || ids.has(record.id)) return null;
+    ids.add(record.id);
+    branches.push({ id: record.id, name: record.name });
+  }
+  return branches;
+}
+
 export default function EducationDashboardPage() {
   const { user, product, isLoading } = useUser();
   if (isLoading) return <p role="status">Đang xác minh tài khoản…</p>;
@@ -181,6 +202,7 @@ function PreschoolDashboard({ tenantId, displayName, userRole }: { tenantId: str
   const [loadingDashboard, setLoadingDashboard] = useState<boolean>(true);
 
   const [branches, setBranches] = useState<{ id: string; name: string }[]>([]);
+  const [branchListError, setBranchListError] = useState<string | null>(null);
   const [selectedBranchId, setSelectedBranchId] = useState<string | null>(null);
   const [analyticsError, setAnalyticsError] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
@@ -201,10 +223,37 @@ function PreschoolDashboard({ tenantId, displayName, userRole }: { tenantId: str
         const data = parseAnalyticsResponse(await res.json(), tenantId, selectedBranchId);
         if (!active) return;
         setBranches(data.branches);
+        setBranchListError(null);
         setSelectedBranchId(data.selectedBranchId);
         setDashboardData(data.dashboard);
       } catch (error) {
-        if (active) setAnalyticsError(error instanceof Error ? error.message : 'ANALYTICS_UNAVAILABLE');
+        if (!active) return;
+        setAnalyticsError(error instanceof Error ? error.message : 'ANALYTICS_UNAVAILABLE');
+        try {
+          const branchResponse = await fetch('/api/education/branches/manage', {
+            cache: 'no-store',
+            signal: controller.signal,
+          });
+          const branchPayload: unknown = await branchResponse.json();
+          if (!branchResponse.ok) {
+            throw new Error(branchResponse.status === 401 ? 'BRANCH_LIST_UNAUTHENTICATED'
+              : branchResponse.status === 403 ? 'BRANCH_LIST_FORBIDDEN' : 'BRANCH_LIST_UNAVAILABLE');
+          }
+          const availableBranches = parseManagedBranchOptions(branchPayload);
+          if (!availableBranches) throw new Error('BRANCH_LIST_INVALID');
+          if (!active) return;
+          setBranches(availableBranches);
+          setBranchListError(null);
+          setSelectedBranchId(current => current && availableBranches.some(branch => branch.id === current) ? current : null);
+        } catch (branchError) {
+          if (active && !controller.signal.aborted) {
+            setBranchListError(branchError instanceof Error && branchError.message === 'BRANCH_LIST_UNAUTHENTICATED'
+              ? 'Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.'
+              : branchError instanceof Error && branchError.message === 'BRANCH_LIST_FORBIDDEN'
+                ? 'Tài khoản hiện tại không có quyền xem danh sách chi nhánh.'
+                : 'Không tải được danh sách chi nhánh. Vui lòng thử lại.');
+          }
+        }
       } finally {
         if (active) setLoadingDashboard(false);
       }
@@ -530,6 +579,7 @@ function PreschoolDashboard({ tenantId, displayName, userRole }: { tenantId: str
         </label>
         <span className="text-sm text-slate-500">Dữ liệu ngày {selectedDateStr}, trong cơ sở đang chọn.</span>
         {analyticsError && <p role="alert">Không tải được Tổng quan: {analyticsError}. <button type="button" onClick={() => setRefreshKey(value => value + 1)}>Thử lại</button></p>}
+        {branchListError && <p role="alert">{branchListError}</p>}
         {!loadingDashboard && !analyticsError && !selectedBranchId && <p role="status">Chọn cơ sở để xem dữ liệu được cấp quyền.</p>}
       </section>
       {copilotNotice && <p role="status" className="rounded-xl border border-amber-200 p-3 text-sm">{copilotNotice}</p>}
