@@ -15,6 +15,8 @@
 
 **Root Cause → Minimal Fix → Verify → Seal → Stop.** Prioritize the completed business outcome with the smallest safe change and sufficiently reliable evidence.
 
-For selected Factory work, apply [Factory Operating Rules](FACTORY_RULES.md). Operational readiness audits retain their [read-only SOP](OPERATIONAL_READINESS_SOP.md); implementation authority does not turn an audit into an unrecorded repair phase.
+## Routing Through Bella Orchestration
+
+Apply this execution principle through the existing [Bella BMAD Orchestration](BELLA_BMAD_ORCHESTRATION.md#outcome-based-execution), which defines role selection, delegation, recovery, integration, and task-scope closure. That orchestration document is the shared execution path for this principle. When Factory is selected, retain its optional admission and stage limits under the [Constitution](BELLA_AI_CODING_CONSTITUTION.md#factory-intake-from-project-codex-chat). Operational readiness audits retain their [read-only SOP](OPERATIONAL_READINESS_SOP.md); implementation authority does not turn an audit into an unrecorded repair phase.
 
 Keep this instruction shared. Product checklists and lessons should contain only evidence-backed Product differences, not copies of this rule. Use existing task evidence to assess necessary user interventions, avoidable stops, and completion from start to finish; documentation alone does not prove improvement or native Factory adoption, and no new CI, guard, or telemetry system is required.
