@@ -9,45 +9,19 @@ import type { EducationAttendanceStatus } from '@/platform/education/contracts/a
 import { AttendanceProductService } from '@/products/bella-education/services/attendance.service';
 import { PreschoolGuardianAuthorizationService } from '@/products/bella-education/services/preschool-guardian-authorization.service';
 import { PreschoolSafePickupHandoverService } from '@/products/bella-education/services/preschool-safe-pickup-handover.service';
-import {
-  EducationSecurityGuardService,
-  type EducationRole,
-  type SecurityUserContext,
-} from '@/products/bella-education/security/education-security-guard.service';
 import { createClient } from '@/lib/supabase-server';
 import { getSupabaseAdminKey, getSupabaseAdminUrl } from '@/lib/supabase-admin-env';
-import { getCurrentUser } from '@/services/user-actions';
 import type { Database } from '@/types/database.types';
+import {
+  ATTENDANCE_PRIVATE_HEADERS, AttendanceAccessError, authorizeAttendanceCourse,
+  assertAttendanceDay, assertAttendanceSelectors, requireSchoolDay,
+  resolveAttendanceRequestContext, resolveAttendanceRollCallTime,
+} from './request-context';
 
 type EducationAttendanceClient = SupabaseClient<Database>;
 
-interface RequestContext {
-  readonly tenantId: string;
-  readonly userId: string;
-  readonly role: string;
-}
-
-const attendanceGuard = new EducationSecurityGuardService();
-
 function isAttendanceStatus(value: unknown): value is EducationAttendanceStatus {
   return value === 'present' || value === 'absent' || value === 'excused';
-}
-
-function isSchoolDay(value: string | null): value is string {
-  return Boolean(value && /^\d{4}-\d{2}-\d{2}$/.test(value));
-}
-
-function resolveRollCallTime(schoolDay: string, explicitRollCallTime?: unknown): string {
-  if (typeof explicitRollCallTime === 'string' && explicitRollCallTime.trim()) {
-    const date = new Date(explicitRollCallTime);
-    if (Number.isNaN(date.getTime())) {
-      throw new Error('INVALID_ROLL_CALL_TIME');
-    }
-
-    return date.toISOString();
-  }
-
-  return new Date(`${schoolDay}T05:00:00.000Z`).toISOString();
 }
 
 function createAdminOperationClient(): EducationAttendanceClient | null {
@@ -58,36 +32,6 @@ function createAdminOperationClient(): EducationAttendanceClient | null {
   return createSupabaseClient<Database>(adminUrl, adminKey, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
-}
-
-function mapBellaAttendanceRole(role: string): EducationRole | null {
-  const normalizedRole = role.trim().toLowerCase();
-  if (normalizedRole === 'admin' || normalizedRole === 'super_admin') return 'PRINCIPAL';
-  if (normalizedRole === 'admin_staff') return 'TEACHER';
-  return null;
-}
-
-function assertCanUseAttendanceRoster(context: RequestContext): void {
-  const educationRole = mapBellaAttendanceRole(context.role);
-  if (!educationRole) {
-    throw new Error(
-      `AUTH_ROLE_PERMISSION_ERROR: Role '${context.role || 'unknown'}' is forbidden from modifying class attendance rosters`
-    );
-  }
-
-  const securityContext: SecurityUserContext = {
-    userId: context.userId,
-    tenantId: context.tenantId,
-    role: educationRole,
-  };
-
-  attendanceGuard.assertCanModifyAttendanceRoster(securityContext);
-}
-
-async function resolveRequestContext(): Promise<RequestContext | null> {
-  const actor = await getCurrentUser();
-  if (!actor?.id || !actor.tenant_id || !actor.role) return null;
-  return { tenantId:actor.tenant_id,userId:actor.id,role:actor.role };
 }
 
 function resolveErrorStatus(message: string): number {
@@ -105,28 +49,25 @@ export async function GET(request: Request) {
     if (!courseId) {
       return NextResponse.json({ success: false, error: 'courseId is required' }, { status: 400 });
     }
-    if (!isSchoolDay(schoolDay)) {
-      return NextResponse.json({ success: false, error: 'date must be YYYY-MM-DD' }, { status: 400 });
-    }
+    const day = requireSchoolDay(schoolDay);
+    const context = await resolveAttendanceRequestContext(request);
+    await authorizeAttendanceCourse(context, request, courseId, day);
 
-    const context = await resolveRequestContext();
-    if (!context) {
-      return NextResponse.json({ success: false, error: 'Authenticated tenant is required' }, { status: 401 });
-    }
-    assertCanUseAttendanceRoster(context);
-
-    const supabase = createAdminOperationClient() ?? await createClient();
-    const service = new AttendanceProductService(new AttendanceContractImpl(supabase));
-    const branchScope = new PreschoolAttendanceAccessService(supabase);
-    await branchScope.assertCourseAccess(context.tenantId,context.userId,courseId);
-    const roster = await service.getCourseDailyAttendance({ tenantId: context.tenantId, courseId, schoolDay });
-    for (const row of roster) await branchScope.assertEnrollmentAccess(context.tenantId,context.userId,row.enrollmentId,row.studentPartyId,courseId);
-    const guardianService = new PreschoolGuardianAuthorizationService(supabase);
+    const trusted = createAdminOperationClient() ?? context.client;
+    const service = new AttendanceProductService(new AttendanceContractImpl(context.client));
+    const branchScope = new PreschoolAttendanceAccessService(trusted);
+    await branchScope.assertCourseAccess(context.tenantId, context.actorId, courseId);
+    const roster = await service.getCourseDailyAttendance({ tenantId: context.tenantId, courseId, schoolDay: day });
+    for (const row of roster) await branchScope.assertEnrollmentAccess(context.tenantId, context.actorId, row.enrollmentId, row.studentPartyId, courseId);
+    // Pickup tables are intentionally not directly selectable by callers.
+    // Their existing trusted reader is bounded by the authorized roster and
+    // the per-enrollment branch checks above; no table grant is added.
+    const guardianService = new PreschoolGuardianAuthorizationService(trusted);
     const guardiansByStudent = await guardianService.getAuthorizedGuardians(
       context.tenantId,
       roster.map((student) => student.studentPartyId),
     );
-    const handoverService = new PreschoolSafePickupHandoverService(supabase);
+    const handoverService = new PreschoolSafePickupHandoverService(trusted);
     const handoversByStudent = await handoverService.getLatestHandovers(
       context.tenantId,
       roster.map((student) => student.studentPartyId),
@@ -137,21 +78,24 @@ export async function GET(request: Request) {
       safePickupHandover: handoversByStudent.get(student.studentPartyId) ?? null,
     }));
 
-    return NextResponse.json({ success: true, roster: rosterWithGuardians });
+    return NextResponse.json({ success: true, courseId, schoolDay: day, roster: rosterWithGuardians }, { headers: ATTENDANCE_PRIVATE_HEADERS });
   } catch (error) {
+    if (error instanceof AttendanceAccessError) {
+      return NextResponse.json({ success: false, error: error.code }, { status: error.status, headers: ATTENDANCE_PRIVATE_HEADERS });
+    }
     const message = error instanceof Error ? error.message : 'Unknown error';
-    return NextResponse.json({ success: false, error: message }, { status: error instanceof PreschoolChainError || error instanceof EducationAttendanceCommandError ? error.status : resolveErrorStatus(message) });
+    return NextResponse.json({ success: false, error: message }, { status: error instanceof PreschoolChainError || error instanceof EducationAttendanceCommandError ? error.status : resolveErrorStatus(message), headers: ATTENDANCE_PRIVATE_HEADERS });
   }
 }
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
-    const context = await resolveRequestContext();
-    if (!context) {
-      return NextResponse.json({ success: false, error: 'Authenticated tenant is required' }, { status: 401 });
+    const context = await resolveAttendanceRequestContext(request);
+    const value: unknown = await request.json();
+    if (!value || typeof value !== 'object' || Array.isArray(value)) {
+      throw new AttendanceAccessError(400, 'ATTENDANCE_INVALID_REQUEST');
     }
-    assertCanUseAttendanceRoster(context);
+    const body = value as Record<string, unknown>;
 
     if (typeof body.enrollmentId !== 'string' || !body.enrollmentId.trim()) {
       return NextResponse.json({ success: false, error: 'enrollmentId is required' }, { status: 400 });
@@ -162,25 +106,33 @@ export async function POST(request: Request) {
     if (!isAttendanceStatus(body.status)) {
       return NextResponse.json({ success: false, error: 'status must be present, absent, or excused' }, { status: 400 });
     }
-    if (!isSchoolDay(typeof body.date === 'string' ? body.date : null)) {
-      return NextResponse.json({ success: false, error: 'date must be YYYY-MM-DD' }, { status: 400 });
-    }
+    const day = requireSchoolDay(body.date);
+    assertAttendanceDay(context, day);
+    assertAttendanceSelectors(request, context, { enrollmentId: body.enrollmentId.toLowerCase(), date: day }, {
+      ...body, enrollmentId: body.enrollmentId.toLowerCase(),
+    });
 
     const supabase = createAdminOperationClient() ?? await createClient();
     const service = new PreschoolAttendanceCommandService(supabase);
     const attendance = await service.setDailyAttendance({
       tenantId: context.tenantId,
-      actorId: context.userId,
-      actorRole: context.role,
+      actorId: context.actorId,
+      actorRole: context.actorRole,
       enrollmentId: body.enrollmentId.toLowerCase(),
       status: body.status,
-      schoolDay: body.date,
-      rollCallTime: resolveRollCallTime(body.date, body.rollCallTime),
+      schoolDay: day,
+      rollCallTime: resolveAttendanceRollCallTime(day, body.rollCallTime),
     });
 
-    return NextResponse.json({ success: true, attendance });
+    return NextResponse.json({ success: true, attendance }, { headers: ATTENDANCE_PRIVATE_HEADERS });
   } catch (error) {
+    if (error instanceof AttendanceAccessError) {
+      return NextResponse.json({ success: false, error: error.code }, { status: error.status, headers: ATTENDANCE_PRIVATE_HEADERS });
+    }
+    if (error instanceof SyntaxError) {
+      return NextResponse.json({ success: false, error: 'ATTENDANCE_INVALID_REQUEST' }, { status: 400, headers: ATTENDANCE_PRIVATE_HEADERS });
+    }
     const message = error instanceof Error ? error.message : 'Unknown error';
-    return NextResponse.json({ success: false, error: message }, { status: error instanceof PreschoolChainError || error instanceof EducationAttendanceCommandError ? error.status : resolveErrorStatus(message) });
+    return NextResponse.json({ success: false, error: message }, { status: error instanceof PreschoolChainError || error instanceof EducationAttendanceCommandError ? error.status : resolveErrorStatus(message), headers: ATTENDANCE_PRIVATE_HEADERS });
   }
 }

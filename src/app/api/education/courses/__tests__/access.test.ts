@@ -16,6 +16,8 @@ const mockGetUser = jest.fn<() => Promise<AuthResult>>();
 const mockGetCurrentUser = jest.fn<() => Promise<Profile | null>>();
 const mockFrom = jest.fn<(table: string) => unknown>();
 const mockGetCourseTeachers = jest.fn<() => Promise<unknown[]>>();
+const mockReadRegistry = jest.fn();
+const mockListCanonicalCourseTeachers = jest.fn();
 const mockClient = { auth: { getUser: mockGetUser }, from: mockFrom };
 
 jest.mock('@/lib/supabase-server', () => ({ createClient: () => mockClient }));
@@ -25,6 +27,12 @@ jest.mock('@/lib/supabase-admin-env', () => ({
   getSupabaseAdminKey: () => 'courses-test-admin-placeholder',
 }));
 jest.mock('@/services/user-actions', () => ({ getCurrentUser: mockGetCurrentUser }));
+jest.mock('@/platform/education/contracts/preschool-registry.contract.impl', () => ({
+  PreschoolRegistryContractImpl: jest.fn().mockImplementation(() => ({ read: mockReadRegistry })),
+}));
+jest.mock('@/platform/education/contracts/preschool-teacher.contract.impl', () => ({
+  PreschoolTeacherContractImpl: jest.fn().mockImplementation(() => ({ listCourseTeachers: mockListCanonicalCourseTeachers })),
+}));
 jest.mock('@/products/bella-education/services/preschool-chain.service', () => ({
   PreschoolChainError: class extends Error {},
   PreschoolChainService: jest.fn().mockImplementation(() => ({
@@ -57,6 +65,8 @@ beforeEach(() => {
   mockGetUser.mockResolvedValue({ data: { user: { id: userId } }, error: null });
   mockGetCurrentUser.mockResolvedValue(profile);
   mockGetCourseTeachers.mockResolvedValue([]);
+  mockReadRegistry.mockResolvedValue({ filteredTotal: 0, nextOffset: null, students: [] });
+  mockListCanonicalCourseTeachers.mockResolvedValue({ total: 0, nextOffset: null, assignments: [] });
 });
 
 for (const [label, invoke] of handlers) {
@@ -68,6 +78,8 @@ for (const [label, invoke] of handlers) {
       expect(response.headers.get('Cache-Control')).toBe('private, no-store');
       expect(mockFrom).not.toHaveBeenCalled();
       expect(mockGetCourseTeachers).not.toHaveBeenCalled();
+      expect(mockReadRegistry).not.toHaveBeenCalled();
+      expect(mockListCanonicalCourseTeachers).not.toHaveBeenCalled();
     }
 
     it('rejects anonymous tenant and mock-role selectors before profile or classroom reads', async () => {
@@ -151,7 +163,8 @@ describe('Courses verified session reads', () => {
     expect(filters).toContainEqual({ table: 'edu_enrollments', column: 'tenant_id', value: tenantId });
   });
 
-  it('adds the verified tenant fence to teacher Party reads in both handlers', async () => {
+  it('keeps canonical classroom reads separate from the legacy detail projection', async () => {
+    mockGetCurrentUser.mockResolvedValue({ ...profile, role: 'admin' });
     mockGetCourseTeachers.mockResolvedValue([{ teacherPartyId: 'teacher-party', role: 'lead_teacher' }]);
     const filters: Array<{ table: string; column: string; value: string }> = [];
     const values: Record<string, unknown[]> = {
@@ -178,7 +191,8 @@ describe('Courses verified session reads', () => {
     expect(detail.status).toBe(200);
     expect(filters.filter((filter) => filter.table === 'party_parties')).toEqual([
       { table: 'party_parties', column: 'tenant_id', value: tenantId },
-      { table: 'party_parties', column: 'tenant_id', value: tenantId },
     ]);
+    expect(mockReadRegistry).toHaveBeenCalledTimes(1);
+    expect(mockListCanonicalCourseTeachers).toHaveBeenCalledTimes(1);
   });
 });

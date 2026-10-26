@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals
 import { Suspense } from 'react';
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
 import ClassWorkspacePage from '../page';
+jest.mock('../../classroom-live-data', () => ({ loadClassroomOverview: jest.fn(async () => new Map()) }));
 
 jest.mock('next/link', () => ({
   __esModule: true,
@@ -235,7 +236,7 @@ describe('R1b catalog detail — retained R1a containment invariants', () => {
     expect(screen.queryByRole('button', { name: /Chấm dứt|Xác nhận phân công/ })).not.toBeInTheDocument();
     expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
-    expect(mockFetch).toHaveBeenCalledTimes(1);
+    expect(mockFetch).toHaveBeenCalledWith('/api/education/courses/class-a?view=catalog', expect.objectContaining({ cache: 'no-store' }));
     expect(mockFetch.mock.calls.every(([, init]) => !init?.method || init.method === 'GET')).toBe(true);
   });
 

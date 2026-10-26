@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, use } from 'react';
 import Link from 'next/link';
+import { loadClassroomOverview, type ClassroomLiveOverview } from '../classroom-live-data';
 import type { EducationCourseDTO } from '@/platform/education/contracts/course.contract';
 import { isPreschoolRegistryPage, isRegistryUuid, type PreschoolRegistryPage } from '@/platform/education/contracts/preschool-registry.contract';
 import { 
@@ -101,6 +102,17 @@ export default function ClassWorkspacePage({ params }: { params: Promise<{ id: s
   const [rosterOffset, setRosterOffset] = useState(0);
   const requestGeneration = useRef(0);
   const currentRequest = useRef<AbortController | null>(null);
+  const [liveData, setLiveData] = useState<ClassroomLiveOverview | null>(null);
+  const currentTenantId = loadState.status === 'ready' && loadState.classId === classId ? loadState.course.tenantId : null;
+
+  useEffect(() => {
+    const controller = new AbortController();
+    setLiveData(null);
+    if (currentTenantId) void loadClassroomOverview(currentTenantId, controller.signal)
+      .then(data => { if (!controller.signal.aborted) setLiveData(data.get(classId) ?? null); })
+      .catch(() => { if (!controller.signal.aborted) setLiveData(null); });
+    return () => controller.abort();
+  }, [classId, currentTenantId, reloadVersion]);
 
   useEffect(() => {
     const generation = ++requestGeneration.current;
@@ -170,6 +182,8 @@ export default function ClassWorkspacePage({ params }: { params: Promise<{ id: s
     setReloadVersion(version => version + 1);
   };
   const state = loadState.classId === classId ? loadState : { classId, status: 'loading' as const };
+  const live = state.status === 'ready' && liveData?.id === classId && liveData.tenantId === state.course.tenantId
+    && liveData.code === state.course.courseCode && liveData.name === state.course.title ? liveData : null;
   if (state.status === 'legacy') return <LegacyClassWorkspacePage params={params} onRefresh={reload} />;
 
   return (
@@ -188,7 +202,7 @@ export default function ClassWorkspacePage({ params }: { params: Promise<{ id: s
                     <span className="text-[11px] font-semibold text-slate-500">Phòng học: chưa được cung cấp</span>
                   </div>
                   <h1 className="text-xl sm:text-2xl font-extrabold text-gray-900 dark:text-white tracking-tight mt-1">{state.course.title}</h1>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Giáo viên: chưa được cung cấp</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Giáo viên: {live?.teacher ?? 'chưa được cung cấp'}</p>
                 </div>
               </div>
               <div className="flex items-center gap-3 shrink-0">
@@ -201,9 +215,9 @@ export default function ClassWorkspacePage({ params }: { params: Promise<{ id: s
             </div>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               {[
-                ['Sức chứa lớp', 'Chưa được cung cấp'],
-                ['Có mặt hôm nay', 'Chưa được cung cấp'],
-                ['Đội ngũ GVN', 'Chưa được cung cấp'],
+                ['Sức chứa lớp', live?.maxStudents ?? 'Chưa được cung cấp'],
+                ['Có mặt hôm nay', live?.todayStatus.present ?? 'Chưa được cung cấp'],
+                ['Đội ngũ GVN', live?.teacherCount ?? 'Chưa được cung cấp'],
               ].map(([label, value]) => <div key={label} className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800">
                 <span className="text-[11px] font-semibold text-slate-500">{label}</span>
                 <div className="text-sm font-extrabold text-slate-900 dark:text-white mt-1">{value}</div>
@@ -221,8 +235,8 @@ export default function ClassWorkspacePage({ params }: { params: Promise<{ id: s
             {activeTab === 'overview' && <>
               <p>Danh tính lớp học đã được xác minh từ Education. Phòng học, sức chứa, khối lớp và năm học chưa có nguồn chuẩn để hiển thị.</p>
               <p>Điều kiện tiên quyết: <span>{state.course.prerequisites.length ? state.course.prerequisites.join(', ') : 'Không có'}</span></p>
-              <button type="button" disabled aria-describedby="catalog-overview-assignment-unavailable" className="font-bold disabled:cursor-not-allowed text-slate-500 dark:text-slate-400">Phân công GVN</button>
-              <p id="catalog-overview-assignment-unavailable">Phân công và chấm dứt phân công giáo viên hiện chưa khả dụng.</p>
+              <button type="button" disabled={!live || live.teacherCount === null} onClick={() => { window.location.href = '/dashboard/education/teachers'; }} aria-describedby="catalog-overview-assignment-unavailable" className="font-bold disabled:cursor-not-allowed text-slate-500 dark:text-slate-400">Phân công GVN</button>
+              <p id="catalog-overview-assignment-unavailable">{live && live.teacherCount !== null ? 'Quản lý phân công tại trang Quản lý giáo viên.' : 'Phân công và chấm dứt phân công giáo viên hiện chưa khả dụng.'}</p>
             </>}
             {activeTab === 'students' && <div className="space-y-4">
               <div>
@@ -252,9 +266,9 @@ export default function ClassWorkspacePage({ params }: { params: Promise<{ id: s
               </>}
             </div>}
             {activeTab === 'teachers' && <>
-              <p role="status">Thông tin đội ngũ giáo viên hiện chưa khả dụng trong danh mục này.</p>
-              <button type="button" disabled aria-describedby="catalog-teachers-assignment-unavailable" className="font-bold disabled:cursor-not-allowed text-slate-500 dark:text-slate-400">Phân công Giáo viên Mới</button>
-              <p id="catalog-teachers-assignment-unavailable">Phân công và chấm dứt phân công giáo viên hiện chưa khả dụng.</p>
+              <p role="status">{live?.teacher ?? 'Thông tin đội ngũ giáo viên hiện chưa khả dụng trong danh mục này.'}</p>
+              <button type="button" disabled={!live || live.teacherCount === null} onClick={() => { window.location.href = '/dashboard/education/teachers'; }} aria-describedby="catalog-teachers-assignment-unavailable" className="font-bold disabled:cursor-not-allowed text-slate-500 dark:text-slate-400">Phân công Giáo viên Mới</button>
+              <p id="catalog-teachers-assignment-unavailable">{live && live.teacherCount !== null ? 'Quản lý phân công tại trang Quản lý giáo viên.' : 'Phân công và chấm dứt phân công giáo viên hiện chưa khả dụng.'}</p>
             </>}
             {activeTab === 'attendance' && <div className="space-y-3">
               <p role="status">Mở sổ điểm danh theo đúng lớp đã chọn. Dữ liệu ngày và thao tác điểm danh tuân theo phạm vi được cấp quyền tại trang điểm danh.</p>

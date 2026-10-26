@@ -68,8 +68,12 @@ export default function PreschoolAttendance({ legacy }: { legacy: ReactNode }) {
         if (new Set(loadedCourses.map(c => c.id)).size !== loadedCourses.length
           || loadedCourses.some(c => c.tenantId !== loadedCourses[0]?.tenantId)) throw new Error('INVALID_CATALOG');
         const courses = loadedCourses.filter(c => c.status === 'active');
+        const requestedCourseId = new URLSearchParams(window.location.search).get('courseId');
+        if (requestedCourseId && !courses.some(course => course.id === requestedCourseId)) {
+          throw new Error('REQUESTED_COURSE_UNAVAILABLE');
+        }
         setCatalog({ status: 'ready', courses });
-        setCourseId(courses[0]?.id ?? '');
+        setCourseId(requestedCourseId ?? courses[0]?.id ?? '');
       } catch { if (active) setCatalog({ status: 'error' }); }
     })();
     return () => { active = false; controller.abort(); };

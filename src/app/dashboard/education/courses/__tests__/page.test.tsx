@@ -3,6 +3,7 @@ import '@testing-library/jest-dom/jest-globals';
 import { afterEach, beforeEach, expect, it, jest } from '@jest/globals';
 import { cleanup, render, screen } from '@testing-library/react';
 import CoursesPage from '../page';
+jest.mock('../classroom-live-data', () => ({ loadClassroomOverview: jest.fn(async () => new Map()) }));
 
 const mockFetch = jest.fn<typeof fetch>();
 const originalFetch = Object.getOwnPropertyDescriptor(globalThis, 'fetch');

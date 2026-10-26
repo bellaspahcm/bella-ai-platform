@@ -2,6 +2,7 @@
 import { afterEach, beforeEach, expect, it, jest } from '@jest/globals';
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import CanonicalClassroomCatalog from '../CanonicalClassroomCatalog';
+jest.mock('../classroom-live-data', () => ({ loadClassroomOverview: jest.fn(async () => new Map()) }));
 
 // Public wire acceptance, deliberately no local optimistic course fixture.
 const tenantId = '00000000-0000-4000-8000-000000000001';

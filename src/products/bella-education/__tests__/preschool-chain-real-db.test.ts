@@ -479,7 +479,9 @@ describe('Preschool Chain real DB E2E proof', () => {
   it('proves admission branch assignment persists through edu_enrollments, chain tables, read-back, tenant isolation, authorization, and idempotency', async () => {
     const chainService = new PreschoolChainService(supabase);
     const accessibleBranches = await chainService.listAccessibleBranches(ids.tenant, actorUserId);
-    expect(accessibleBranches.map((branch) => branch.id).sort()).toEqual([ids.branchA, ids.branchB].sort());
+    // The fixture links this actor to Branch A only. Branch B stays outside
+    // the actor's explicit Platform organization access.
+    expect(accessibleBranches.map((branch) => branch.id)).toEqual([ids.branchA]);
 
     const response = await createPreschoolEnrollment(buildAdmissionRequest());
     const body: PreschoolEnrollmentResponse = await response.json();
@@ -751,18 +753,26 @@ describe('Preschool Chain real DB E2E proof', () => {
       expect(state.daily[0].status).toBe('present');
     });
 
-    it.each(['admin', 'admin_staff'])('preserves the actual Preschool Product scoped caller for %s', async actorRole => {
+    it('records attendance for the authenticated Preschool admin', async () => {
       const fixture = await attendanceFixture();
+      const result = await new PreschoolAttendanceCommandService(supabase).setDailyAttendance({
+        ...fixture, actorId: actorUserId, actorRole: 'admin', status: 'excused', rollCallTime, schoolDay,
+      });
+      const state = await attendanceState(fixture.enrollmentId);
+      expect(state.events).toHaveLength(1);
+      expect(state.events[0].id).toBe(result.eventId);
+      expect(state.daily).toHaveLength(1);
+      expect(state.daily[0].status).toBe('excused');
+    });
+
+    it('denies admin_staff without the canonical Auth-to-teacher assignment and creates no Attendance data', async () => {
+      const fixture = await attendanceFixture();
+      await pg.query("UPDATE public.users SET role='admin_staff' WHERE id=$1 AND tenant_id=$2", [actorUserId, ids.tenant]);
       try {
-        await pg.query('UPDATE public.users SET role=$1 WHERE id=$2 AND tenant_id=$3', [actorRole, actorUserId, ids.tenant]);
-        const result = await new PreschoolAttendanceCommandService(supabase).setDailyAttendance({
-          ...fixture, actorId: actorUserId, actorRole, status: 'excused', rollCallTime, schoolDay,
-        });
-        const state = await attendanceState(fixture.enrollmentId);
-        expect(state.events).toHaveLength(1);
-        expect(state.events[0].id).toBe(result.eventId);
-        expect(state.daily).toHaveLength(1);
-        expect(state.daily[0].status).toBe('excused');
+        await expect(new PreschoolAttendanceCommandService(supabase).setDailyAttendance({
+          ...fixture, actorId: actorUserId, actorRole: 'admin_staff', status: 'excused', rollCallTime, schoolDay,
+        })).rejects.toMatchObject({ code: 'PRESCHOOL_ATTENDANCE_ACTION_DENIED', status: 403 });
+        expect(await attendanceState(fixture.enrollmentId)).toEqual({ events: [], daily: [] });
       } finally { await pg.query("UPDATE public.users SET role='admin' WHERE id=$1 AND tenant_id=$2", [actorUserId, ids.tenant]); }
     });
 

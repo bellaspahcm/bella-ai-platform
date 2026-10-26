@@ -51,6 +51,15 @@ it('uses canonical catalog and the explicit roster-only mode, with no legacy ove
   expect(screen.queryByText(/Sĩ số:/)).not.toBeInTheDocument();
   expect(fetchMock.mock.calls.some(([url]) => String(url) === '/api/education/courses')).toBe(false);
 });
+it('opens the class selected by the existing classroom link and never substitutes another class', async () => {
+  window.history.replaceState({}, '', '/?courseId=B');
+  try {
+    await start();
+    expect(gets[0].url.searchParams.get('courseId')).toBe('B');
+    await complete(0, [row('B')]);
+    expect(screen.getByText('Pupil B')).toBeVisible();
+  } finally { window.history.replaceState({}, '', '/'); }
+});
 it.each([401, 403, 503])('does not fall back to legacy or fabricated data on catalog denial %s', async status => {
   catalogReply = reply({ success: false }, status); renderPage();
   await screen.findByRole('alert');
