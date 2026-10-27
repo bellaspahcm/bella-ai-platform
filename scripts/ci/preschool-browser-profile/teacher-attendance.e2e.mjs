@@ -267,10 +267,11 @@ async function main() {
       VALUES ($1,$2,$3,'employee','Synthetic Admin A',true),($4,$5,$6,'employee','Synthetic Admin B',true),
         ($7,$2,$8,'employee','Synthetic Teacher',true)`,
     [ids.adminDirectoryA, ids.tenantA, ids.adminA, ids.adminDirectoryB, ids.tenantB, ids.adminB, ids.teacherDirectory, ids.teacher]);
+    // Access must be active at the database's CURRENT_DATE; schoolDay can be tomorrow in UTC.
     await pgClient.query(`INSERT INTO public.org_relationships(tenant_id,from_id,from_type,to_id,to_type,rel_type,since)
-      VALUES ($1,$2,'person',$3,'unit','manages',$6),($1,$2,'person',$4,'unit','manages',$6),
-        ($5,$7,'person',$8,'unit','manages',$6),($1,$9,'person',$3,'unit','belongs_to',$6)`,
-    [ids.tenantA, ids.adminDirectoryA, ids.branchA, ids.branchB, ids.tenantB, schoolDay,
+      VALUES ($1,$2,'person',$3,'unit','manages',CURRENT_DATE),($1,$2,'person',$4,'unit','manages',CURRENT_DATE),
+        ($5,$6,'person',$7,'unit','manages',CURRENT_DATE),($1,$8,'person',$3,'unit','belongs_to',CURRENT_DATE)`,
+    [ids.tenantA, ids.adminDirectoryA, ids.branchA, ids.branchB, ids.tenantB,
       ids.adminDirectoryB, ids.branchC, ids.teacherDirectory]);
 
     await pgClient.query(`INSERT INTO public.party_parties(id,tenant_id,party_type,display_name,gender,dob)
@@ -281,7 +282,7 @@ async function main() {
       await pgClient.query(`INSERT INTO public.persons(id,tenant_id,first_name,last_name,date_of_birth,gender,status)
         VALUES ($1,$2,$3,$4,'2020-01-01','other','active')`, [row.personId, row.tenantId, row.first, row.last]);
       await pgClient.query(`INSERT INTO public.students(student_id,tenant_id,person_id,student_code,academic_status,enrollment_type,program_id,enrollment_date,party_id)
-        VALUES ($1,$2,$3,$4,'enrolled','full_time','preschool',$5,$6)`, [row.studentId, row.tenantId, row.personId, row.code, schoolDay, row.partyId]);
+        VALUES ($1,$2,$3,$4,'enrolled','full_time','preschool',CURRENT_DATE,$5)`, [row.studentId, row.tenantId, row.personId, row.code, row.partyId]);
     }
 
     await pgClient.query(`INSERT INTO public.edu_courses(id,tenant_id,course_code,title,status,max_students,current_enrollment)
