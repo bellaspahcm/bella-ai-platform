@@ -277,21 +277,31 @@ jobs:
       - name: Prepare disposable Preschool schema and RLS profile
         id: preschool-prepare
         if: steps.preschool-profile.outputs.use_disposable == 'true'
-        shell: pwsh
+        shell: bash
         run: |
-          $sourceRevision = (& git rev-parse HEAD).Trim()
-          if ($LASTEXITCODE -ne 0 -or $sourceRevision -notmatch '^[a-f0-9]{40}$') {
-            throw 'PRESCHOOL_PROFILE_CHECKED_OUT_REVISION_INVALID'
+          set -euo pipefail
+          source_revision="$(git rev-parse HEAD)"
+          [[ "$source_revision" =~ ^[a-f0-9]{40}$ ]] || {
+            echo 'PRESCHOOL_PROFILE_CHECKED_OUT_REVISION_INVALID' >&2
+            exit 1
           }
-          $output = & pwsh -NoProfile -File scripts/ci/preschool-browser-profile/run.ps1 `
-            -Action Prepare -SourceRevision $sourceRevision 2>&1
-          $exitCode = $LASTEXITCODE
-          $output | ForEach-Object { Write-Output $_ }
-          if ($exitCode -ne 0) { exit $exitCode }
-          $line = $output | Where-Object { ([string] $_) -match '^PROFILE_RUN_DIRECTORY=' } | Select-Object -Last 1
-          if (!$line) { throw 'PRESCHOOL_PROFILE_RUN_DIRECTORY_NOT_RETURNED' }
-          $runDirectory = ([string] $line).Substring('PROFILE_RUN_DIRECTORY='.Length)
-          "run_directory=$runDirectory" >> $env:GITHUB_OUTPUT
+
+          set +e
+          prepare_output="$(pwsh -NoProfile -File scripts/ci/preschool-browser-profile/run.ps1 \
+            -Action Prepare -SourceRevision "$source_revision" 2>&1)"
+          prepare_status=$?
+          set -e
+          printf '%s\n' "$prepare_output"
+          if [ "$prepare_status" -ne 0 ]; then
+            exit "$prepare_status"
+          fi
+
+          run_directory="$(printf '%s\n' "$prepare_output" | sed -n 's/^PROFILE_RUN_DIRECTORY=//p' | tail -n 1)"
+          if [ -z "$run_directory" ]; then
+            echo 'PRESCHOOL_PROFILE_RUN_DIRECTORY_NOT_RETURNED' >&2
+            exit 1
+          fi
+          printf 'run_directory=%s\n' "$run_directory" >> "$GITHUB_OUTPUT"
 
       - name: Install Chromium for teacher Browser E2E
         if: steps.preschool-profile.outputs.use_disposable == 'true'
