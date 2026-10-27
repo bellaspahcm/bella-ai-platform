@@ -4,6 +4,16 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+
+function Get-CanonicalSourceSha256([string] $Path) {
+  $content = [IO.File]::ReadAllText($Path)
+  $canonicalContent = $content.Replace("`r`n", "`n").Replace("`r", "`n")
+  $bytes = [Text.UTF8Encoding]::new($false).GetBytes($canonicalContent)
+  $sha = [Security.Cryptography.SHA256]::Create()
+  try { return [Convert]::ToHexString($sha.ComputeHash($bytes)).ToLowerInvariant() }
+  finally { $sha.Dispose() }
+}
+
 $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..\..')).Path
 $profileRunner = Join-Path $PSScriptRoot 'run.ps1'
 $acceptanceScript = Join-Path $PSScriptRoot 'teacher-attendance.e2e.mjs'
@@ -52,7 +62,7 @@ foreach ($entry in $manifest.profileMigrations) {
     if (!$sourcePath.StartsWith($repoPrefix, [StringComparison]::OrdinalIgnoreCase) -or !(Test-Path -LiteralPath $sourcePath -PathType Leaf)) {
       throw 'PROFILE_MIGRATION_SOURCE_MISSING_OR_OUTSIDE_REPOSITORY'
     }
-    $sourceSha = (Get-FileHash -LiteralPath $sourcePath -Algorithm SHA256).Hash.ToLowerInvariant()
+    $sourceSha = Get-CanonicalSourceSha256 $sourcePath
     if ($sourceSha -ne $sourceEntry.sha) { throw 'PROFILE_MIGRATION_SOURCE_HASH_MISMATCH' }
   }
 }

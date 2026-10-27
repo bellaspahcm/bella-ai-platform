@@ -26,49 +26,49 @@
     {
       "profileVersion": "20260511000000",
       "source": "supabase/migrations/20260511000000_initial_schema.sql",
-      "sha256": "bac51db3da0e71479cd9bbe0d1c6297f017aed3c8d46ba65e918dcbc82a356ce"
+      "sha256": "2509adfb40627bf7e3858015eec9f7bfe41bf3e664e21ad7985dca45d5d10fdd"
     },
     {
       "profileVersion": "20260521000004",
       "source": "supabase/migrations/20260521000004_harden_rls_and_tenant.sql",
-      "sha256": "72cc70677d070434b964c6ea0fa4244a3780c3646b64cd64b4d4e6a7732bb5c2"
+      "sha256": "fb578f052455928f09bcfbaa4af1ca52cfd40f55f9c410e74a04f758071bc6cb"
     },
     {
       "profileVersion": "20260523030000",
       "source": "supabase/migrations/20260523030000_grant_service_role_schema_access.sql",
-      "sha256": "4ade11887ec2719b0bc9e206b4a5ffb12f36a2be69e1edf3ee68ec1ace1f3cf1"
+      "sha256": "64b1eb7589e393f3fe34dfaaf25fdc1af1448cd1d2b1fb74df76b9784802b687"
     },
     {
       "profileVersion": "20260523040000",
       "source": "supabase/migrations/20260523040000_fix_hq_super_admin_rls.sql",
-      "sha256": "9b0c7eea7b839491dd801912d46c63f818b6393bf206a7391124c8dd5c4853c2"
+      "sha256": "c9365050879fb7a512b1c81991d9cbe339e55d8821517ef03106472bc8d725a2"
     },
     {
       "profileVersion": "20260525000000",
       "source": "supabase/migrations/20260525000000_security_hardening.sql",
-      "sha256": "ac287b479d58798b6bc78059cc82198ebe5e61a1516a675d4bf7c2e2725df5e5"
+      "sha256": "9ba77ffba99153bd0fe92e1722d3d7ee8e01911d4f3bcc80e33c205e8db97e17"
     },
     {
       "profileVersion": "20260608104000",
       "source": "supabase/migrations/20260608104000_add_tenant_module_white_label_config.sql",
-      "sha256": "f7392796500afec732c636bb183ac56e373e6a6d4058af3628b208acb0feaf0d"
+      "sha256": "2bed31475c899ab7b0f84be3b21ddc32d32c2cfef0d3a7ac73fac5c4eb0b4265"
     },
     {
       "profileVersion": "20260801030000",
       "source": "supabase/migrations/20260801030000_foundation_org_people_schema.sql",
-      "sha256": "d8b29d14601ddaf2b8a95e8fd3b57ff57694d475da8df9ecc3948f5a458815f7"
+      "sha256": "679175d199cbb4dc9d596a1344f94c2be582b800ea0c2e9595456e158b49507e"
     },
     {
       "profileVersion": "20260806000000",
       "source": "supabase/migrations/20260806000000_blueprint_core_schema.sql",
-      "sha256": "41c7c62d4f7c9de6a0777b4d84ac79b7ad344adbe6dee07141bcdbfcde3b9ac1"
+      "sha256": "ec444780ef5e692f3e60ab9465fa068d0ae6b02f40c120384d8b598f94dab45b"
     },
     {
       "profileVersion": "20260808000012",
       "source": "scripts/ci/preschool-browser-profile/20260808000012_platform_rule_domain_projection.sql",
       "sha256": "4f5fa90544622fa27f5a89b4be575c665e1da8f8f60d1d05690009d5b198f31c",
       "sourceMigration": "supabase/migrations/20260808000012_create_rule_engine_tables.sql",
-      "sourceMigrationSha256": "60ebb0b50102abff715fb04710963e21352ddef0d889929b1f63b2beda93d979",
+      "sourceMigrationSha256": "5f7dff7c4b47022d8e0c260e2293d0a84817329760386a910b0be10518cefbb1",
       "sourceFragments": [
         "CREATE TYPE platform_rule_domain AS ENUM (",
         "'platform.system'",
@@ -80,43 +80,43 @@
     {
       "profileVersion": "20260810000001",
       "source": "supabase/migrations/20260810000001_create_persons_table.sql",
-      "sha256": "3ae4f7f40d50f0b687c6d585490718ab782f700f3cc1507aaa9a36b7400491c9"
+      "sha256": "9c75e14ce8f54f668ec40809f9110c78915832c82c34e8f4bc8c428c4d6596ad"
     },
     {
       "profileVersion": "20260810224417",
       "source": "supabase/migrations/20260810224417_create_students_table.sql",
-      "sha256": "25254dfcee27e8e5cc4ba209b6f1776ba9ae07fae349319b4f30079ce32e0c02"
+      "sha256": "2d6760ca13212084259e86daeaec1d2fb83625c691f3e4df4f9835eb1b5b1a9e"
     },
     {
       "profileVersion": "20260810224418",
       "source": "supabase/migrations/20260810224418_migrate_students_to_platform_schema.sql",
-      "sha256": "ca11e9312ca065eb6c693f9bcb0c2a858848674bd5f449aebfe519818f27c79f"
+      "sha256": "b0f3dd85b7a25886c15c2d341b682f0f9406fe2a30e3d8f77ba066b2d1c145a4"
     },
     {
       "profileVersion": "20260810231500",
       "source": "supabase/migrations/20260810231500_create_courses_and_enrollments.sql",
-      "sha256": "5654bdcbd49e4ce151997a3808771b88f0cc412ca13c54d7ad21adbff4da058f"
+      "sha256": "37291d8b1cd3ba46369ed68258299fe76001131ce4f787a11f2650c390a4c481"
     },
     {
       "profileVersion": "20260812060000",
       "source": "supabase/migrations/20260812060000_create_education_schema.sql",
-      "sha256": "191a24c28149b5a0b675ee5f64cf51fc6398ec8f61d40f4cbfcd0f06ca73fb7c"
+      "sha256": "eee26bbdf06c9645019f025cf1975c1b91b7e6cd7135ecc42abe4a0a643cc9d8"
     },
     {
       "profileVersion": "20260813000020",
       "source": "supabase/migrations/20260813000020_create_edu_attendance_and_assessment.sql",
-      "sha256": "f4a4838e4063b612d812010da7d1b6170dc176b11b3c3e182cbc7bf433e26432"
+      "sha256": "042910c68760a0b6bb5b2ca93995b8761368c9d0fab73710977defb62dd1a176"
     },
     {
       "profileVersion": "20260813000040",
       "source": "supabase/migrations/20260813000040_create_enrollment_transaction_rpc.sql",
-      "sha256": "16f2dae8e7e7fb39719968aaff5cdcd6e240e6d21a3d0480d4b5c48db389eb1d",
+      "sha256": "3997f2ed46e2815050f56c4b5af184a5d85d33c88d99005cccd12f67e41e6040",
       "dependencyReason": "Canonical owner migration that creates edu_enrollments.request_id, uniqueness, and the enrollment RPC consumed by Preschool branch security. Bootstrap starts with empty public relations and imports no rows."
     },
     {
       "profileVersion": "20260813000050",
       "source": "supabase/migrations/20260813000050_create_teacher_assignments.sql",
-      "sha256": "3be66d329187366d76ef37fcbcc8825ee7e6cd13597274baa37c0a94f0487eb0"
+      "sha256": "0dee7a5cf8c8d327380ff638c600871674dfa767b275f7a02d65f50288591314"
     },
     {
       "profileVersion": "20260912000001",
@@ -129,58 +129,58 @@
         "R3.8"
       ],
       "profileOnly": true,
-      "sourceMigrationSha256": "d45e99e83563ca72df14739e8c2f9921044c0b049f270c72fa21bc1cd6b7a42c"
+      "sourceMigrationSha256": "1a7325171e24aab8b133797701083d243f154f85379576f764a124c9b91bf0e8"
     },
     {
       "profileVersion": "20260914000000",
       "source": "supabase/migrations/20260914_create_user_org_unit_access_projection.sql",
-      "sha256": "5d2df9c2b16e77d0965665a75cc07f36f405d62a5c5614d4a77c462dab8e7e00",
+      "sha256": "54cc3431d813405ae9b635a2d7e5dc534defacb8b0c0ed0f44b495ddc81fbd6d",
       "profileVersionMapping": "Unique profile ledger version; source migration version is 20260914."
     },
     {
       "profileVersion": "20260914000001",
       "source": "supabase/migrations/20260914_repair_platform_org_people_rls.sql",
-      "sha256": "99655642b8feb971a2029bded030f6d1a1f439a91831775526c0f568509ae2b2",
+      "sha256": "bfba4ba24357a7a416dea65a1e8b7129b2f02f61d51dba0738507441cd3ed54f",
       "profileVersionMapping": "Unique profile ledger version for the second source migration version 20260914; SQL bytes are preserved."
     },
     {
       "profileVersion": "20260919030000",
       "source": "supabase/migrations/20260919030000_add_product_key_to_tenants.sql",
-      "sha256": "1a4ecbb40c0dbd009d6ed555572a482e69893f068d8a575f81615441020c06cf",
+      "sha256": "ba6b665afbafd1bde01294dffb18fe9b0225f5690e8f32e2955fecdea5ef8912",
       "dependencyReason": "Canonical Product Identity migration required by Preschool attendance branch RLS policies that scope the tenant to bella_preschool."
     },
     {
       "profileVersion": "20260926003000",
       "source": "supabase/migrations/20260926003000_education_daily_attendance_state.sql",
-      "sha256": "95d00c9a1df775500386b86c571ae8dad1dbe58e77e415ca80701ebc23491b8c"
+      "sha256": "ec55260d4ae5242d4b93fc51d3f484a3404e7b6ace73e0247222a36e5948b6c0"
     },
     {
       "profileVersion": "20260927000000",
       "source": "supabase/migrations/20260927000000_fix_edu_set_daily_attendance_column_ambiguity.sql",
-      "sha256": "fbe97d54e0014a9c01458a2b287ae845e05ec16f5743aae509c1792b86df6c3d"
+      "sha256": "c32999a499bddaec4dbfc58910c0d0de62869e2d6b23b054bb2adcdb14d4d436"
     },
     {
       "profileVersion": "20260927010000",
       "source": "supabase/migrations/20260927010000_preschool_guardian_pickup_authorizations.sql",
-      "sha256": "43a23ebd0bce1a9abfacd5d6faec459f7c7a1ede3525e1ed689be30c3828f4b7",
+      "sha256": "4556731073632908044f0ce9ffb904f0f6a9222339ed4cbfbdbe4f8ee4310164",
       "dependencyReason": "The selected 20261019030000 source migration defines a function with this table's %ROWTYPE; included so that source migration can be replayed unchanged."
     },
     {
       "profileVersion": "20260927020000",
       "source": "supabase/migrations/20260927020000_fix_course_rls_auth_tenant_helper.sql",
-      "sha256": "049b16cf8390bbab23d0b65db494ea5228d6026259e2200e005da54c239a7712"
+      "sha256": "1e0c2f73be37c8ce5d0ba3291e3126ab53afb3b5f77b7c1929f28f73232e16c4"
     },
     {
       "profileVersion": "20261006010000",
       "source": "supabase/migrations/20261006010000_preschool_chain_assignments.sql",
-      "sha256": "8340ba62e9a3f3e896936cdb6932c6dd672d5b6179a5060c7b01cf65f2c68bb8"
+      "sha256": "1ec3626f746fd10b3e7a343fa2be128ac5ea6406e68274e4422d7b6414cf501a"
     },
     {
       "profileVersion": "20261019020001",
       "source": "scripts/ci/preschool-browser-profile/20261019020001_preschool_admission_operations_projection.sql",
-      "sha256": "04566880fe65a99cee476013605e766ef78798280d8d30dd8220ed9212d0dbcc",
+      "sha256": "7126b84aee5d113b1efc4d953e19c2325e45bca27d3a1e5c0798321125f24df8",
       "sourceMigration": "supabase/migrations/20261019020000_preschool_admission_operations.sql",
-      "sourceMigrationSha256": "1190223ba0182ef500eb11924bdc6e0088c716ac9aa37ec40f71779f4113388f",
+      "sourceMigrationSha256": "35c093bac233c58cc84740d5e79f219d612b2c259d4f0dda2a8aacef86fcd5fb",
       "sourceFragments": [
         "CREATE SEQUENCE IF NOT EXISTS public.preschool_admission_student_code_seq START WITH 1000000000000;",
         "CREATE TABLE IF NOT EXISTS public.preschool_admission_operations (",
@@ -193,35 +193,35 @@
     {
       "profileVersion": "20261019030000",
       "source": "supabase/migrations/20261019030000_preschool_chain_branch_security.sql",
-      "sha256": "e0f08a5b140f6f3ce8ab7301545f2cac957fea150c75e3d4f7ea559b957fa81f"
+      "sha256": "6e76b0340ce15a5e0097b35b7cab9039046b80c32f29d0e7d83ac58144fcf41a"
     },
     {
       "profileVersion": "20261019045000",
       "source": "supabase/migrations/20261019045000_platform_trusted_actor_org_unit_access.sql",
-      "sha256": "419101ca8e36dcd4b758499043f7a3d4b01d5b339083ebba055aab3ce5bdde0c"
+      "sha256": "8c4aa1f6d38fc1633ae069ad5e8a0ca59c8f2e6fe0b2f47c239ad30601082541"
     },
     {
       "profileVersion": "20261019060000",
       "source": "supabase/migrations/20261019060000_platform_current_actor_read_contract.sql",
-      "sha256": "decea85717ae036b8f7e2a80eb9b72e9b25f22696047a7e2d506dec4b790bdec",
+      "sha256": "e390ba5769768c532915d55eb931351088feec8563693a453827e18bca2daf20",
       "dependencyReason": "The selected Auth-Party migration resolves the signed-in caller through this Platform-owned contract; replay it byte-for-byte after its org-unit access dependency."
     },
     {
       "profileVersion": "20261023040000",
       "source": "supabase/migrations/20261023040000_attendance_authorization_wait_repair.sql",
-      "sha256": "1458f33c37257416dab9ceda3a5087a2fb2bb92b76ac793841b2fd76f31831f6"
+      "sha256": "8d414c52ee20bb931e83bb447911284d2628e84092b6191178ef0248903d5c28"
     },
     {
       "profileVersion": "20261023050000",
       "source": "supabase/migrations/20261023050000_attendance_final_authority_order.sql",
-      "sha256": "e66f54750833537440fd3c28aa4d8c25791b943b149b8b45c0c45988202c3514"
+      "sha256": "6cd299be1e58d8f50e1cb6e4d89876d70d6a0c7e15338eaccc3d33091a976266"
     },
     {
       "profileVersion": "20261023120001",
       "source": "scripts/ci/preschool-browser-profile/20261023120001_preschool_chain_access_projection.sql",
-      "sha256": "ab91f89e30188ffe5378a9fb6d477cb8ed40b855e95b94067e1b922583f28a53",
+      "sha256": "fd2e44c971cbf33532577dfbd7cb4a6f4c96d738efbcab9d5a74f249d6ba7fc5",
       "sourceMigration": "supabase/migrations/20261023120000_preschool_review_authority_and_overdue.sql",
-      "sourceMigrationSha256": "b87ba9fbac8ac2f00cc57a8915eda730378f15146b0f9a16b19f8d4b055769f4",
+      "sourceMigrationSha256": "70b5f9fe174d5449e0911689b79202721b44fac6b020f91cbc765a1182ebaac2",
       "sourceFragments": [
         "CREATE OR REPLACE FUNCTION public.preschool_branch_access(",
         "CREATE OR REPLACE FUNCTION public.preschool_assign_chain(",
@@ -233,42 +233,42 @@
     {
       "profileVersion": "20261025070000",
       "source": "supabase/migrations/20261025070000_preschool_canonical_course_create.sql",
-      "sha256": "ddcbdcf962fd80b5b4afeda84cecfed62ad6fd5896f18dc9150cb79da4e4f8d0"
+      "sha256": "50b0a75b24d8968db35dda0a0ddccd3f202b2ff4cda2b29d312535069103b571"
     },
     {
       "profileVersion": "20261026100000",
       "source": "supabase/migrations/20261026100000_scope_education_attendance_state_by_branch.sql",
-      "sha256": "580695fcfc0924385508235080a07a92cee63c04d03a4d71381fec4b74da92ac"
+      "sha256": "daa2ff0688b606b1408a8d420f79f993a3269a874595658c9938491a2b63cb73"
     },
     {
       "profileVersion": "20261026130100",
       "source": "supabase/migrations/20261026130100_finalize_education_attendance_branch_read.sql",
-      "sha256": "215f04efe1e8659ca02ca201b83044e38ba72d9d997da10afebcc8fc6bba1a3c"
+      "sha256": "97d2fde76de569e80379f69360320c543e207eefa0f806c58428f5f3f103523f"
     },
     {
       "profileVersion": "20261026152000",
       "source": "supabase/migrations/20261026152000_harden_education_attendance_access.sql",
-      "sha256": "19d9054803297a531394d1a5bcf5f99b06440caec2feca3a83491043345e3dde"
+      "sha256": "a85d051fe618caac3ee89413acbce33a7909bba1fdcb9ce7632789e2589e9399"
     },
     {
       "profileVersion": "20261026170000",
       "source": "supabase/migrations/20261026170000_party_auth_identity_links.sql",
-      "sha256": "5c0172aa28618b526a60a94d5a8f82c13da829d4d5345b1bee558d95e12a8238"
+      "sha256": "7dada3ff8dcbcc72de0cfc1c271824936ac2e910e99e2624f2b14b036182c684"
     },
     {
       "profileVersion": "20261026183000",
       "source": "supabase/migrations/20261026183000_integrate_preschool_teacher_attendance.sql",
-      "sha256": "22635490ba2c972b3b67779e6163bde0b29b7ef662cab20f790483ad5797ae7f"
+      "sha256": "922e28ec5e81c1bd618b9885671fec6a7064701482e2ad4a3d7f98a8383ba447"
     },
     {
       "profileVersion": "20261027010000",
       "source": "supabase/migrations/20261027010000_preschool_teacher_assignment_legacy_profile.sql",
-      "sha256": "35798e6f5bd27d26fd0cbb9cf72cd0c702b532accc5025461443b2b68c749d26"
+      "sha256": "8957451c0bef5a77631d52d0fb74bc4569921ce66aa10288085460a363001b37"
     },
     {
       "profileVersion": "20261027010100",
       "source": "supabase/migrations/20261027010100_preschool_teacher_confirmation_and_canonical_assignment.sql",
-      "sha256": "0e49168dfb7ef11c2479535ef3d6a0cc9a702ab4095188a7fc29ecba51d4379e"
+      "sha256": "659528725606fb86dd83a6ec3a1afdf8e106360e81d7a3b392eee5b85c442d31"
     },
     {
       "profileVersion": "20261027010200",

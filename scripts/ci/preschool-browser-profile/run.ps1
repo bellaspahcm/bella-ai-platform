@@ -63,6 +63,15 @@ function Write-SafeProcessLog([string] $Path, [object[]] $Output) {
   [IO.File]::WriteAllText($Path, $text + [Environment]::NewLine, [Text.UTF8Encoding]::new($false))
 }
 
+function Get-CanonicalSourceSha256([string] $Path) {
+  $content = [IO.File]::ReadAllText($Path)
+  $canonicalContent = $content.Replace("`r`n", "`n").Replace("`r", "`n")
+  $bytes = [Text.UTF8Encoding]::new($false).GetBytes($canonicalContent)
+  $sha = [Security.Cryptography.SHA256]::Create()
+  try { return [Convert]::ToHexString($sha.ComputeHash($bytes)).ToLowerInvariant() }
+  finally { $sha.Dispose() }
+}
+
 function Invoke-LoggedCommand([string] $Name, [string] $Executable, [string[]] $Arguments, [string] $LogPath) {
   $output = @(& $Executable @Arguments 2>&1)
   $exitCode = $LASTEXITCODE
@@ -120,11 +129,11 @@ function Assert-ManifestAndSources {
     if (!$source.StartsWith($repositoryRoot, [StringComparison]::OrdinalIgnoreCase) -or !(Test-Path -LiteralPath $source -PathType Leaf)) {
       throw "PROFILE_MIGRATION_SOURCE_MISSING:$($entry.source)"
     }
-    $actual = (Get-FileHash -LiteralPath $source -Algorithm SHA256).Hash.ToLowerInvariant()
+    $actual = Get-CanonicalSourceSha256 $source
     if ($actual -ne [string] $entry.sha256) { throw "PROFILE_MIGRATION_SOURCE_HASH_MISMATCH:$($entry.source)" }
     if ($entry.source -eq 'scripts/ci/preschool-browser-profile/20260912000001_preschool_student_party_id_schema_projection.sql') {
       $r3Path = Join-Path $repositoryRoot ([string] $entry.sourceMigration)
-      if ((Get-FileHash -LiteralPath $r3Path -Algorithm SHA256).Hash.ToLowerInvariant() -ne [string] $entry.sourceMigrationSha256) {
+      if ((Get-CanonicalSourceSha256 $r3Path) -ne [string] $entry.sourceMigrationSha256) {
         throw 'R3_SOURCE_MIGRATION_HASH_MISMATCH'
       }
       $r3 = Get-Content -LiteralPath $r3Path -Raw
@@ -136,7 +145,7 @@ function Assert-ManifestAndSources {
     }
     if ($entry.source -eq 'scripts/ci/preschool-browser-profile/20260808000012_platform_rule_domain_projection.sql') {
       $sourcePath = Join-Path $repositoryRoot ([string] $entry.sourceMigration)
-      if ((Get-FileHash -LiteralPath $sourcePath -Algorithm SHA256).Hash.ToLowerInvariant() -ne [string] $entry.sourceMigrationSha256) {
+      if ((Get-CanonicalSourceSha256 $sourcePath) -ne [string] $entry.sourceMigrationSha256) {
         throw 'RULE_DOMAIN_SOURCE_MIGRATION_HASH_MISMATCH'
       }
       $sourceText = Get-Content -LiteralPath $sourcePath -Raw
@@ -149,7 +158,7 @@ function Assert-ManifestAndSources {
     }
     if ($entry.source -eq 'scripts/ci/preschool-browser-profile/20260808000012_platform_rule_domain_projection.sql') {
       $sourcePath = Join-Path $repositoryRoot ([string] $entry.sourceMigration)
-      if ((Get-FileHash -LiteralPath $sourcePath -Algorithm SHA256).Hash.ToLowerInvariant() -ne [string] $entry.sourceMigrationSha256) {
+      if ((Get-CanonicalSourceSha256 $sourcePath) -ne [string] $entry.sourceMigrationSha256) {
         throw 'RULE_DOMAIN_SOURCE_MIGRATION_HASH_MISMATCH'
       }
       $sourceText = Get-Content -LiteralPath $sourcePath -Raw
