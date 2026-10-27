@@ -281,7 +281,7 @@ async function main() {
       await pgClient.query(`INSERT INTO public.persons(id,tenant_id,first_name,last_name,date_of_birth,gender,status)
         VALUES ($1,$2,$3,$4,'2020-01-01','other','active')`, [row.personId, row.tenantId, row.first, row.last]);
       await pgClient.query(`INSERT INTO public.students(student_id,tenant_id,person_id,student_code,academic_status,enrollment_type,program_id,enrollment_date,party_id)
-        VALUES ($1,$2,$3,$4,'enrolled','full_time','preschool',$5,$6)`, [row.studentId, row.tenantId, row.personId, row.code, schoolDay, row.partyId]);
+        VALUES ($1,$2,$3,$4,'enrolled','full_time','preschool',CURRENT_DATE,$5)`, [row.studentId, row.tenantId, row.personId, row.code, row.partyId]);
     }
 
     await pgClient.query(`INSERT INTO public.edu_courses(id,tenant_id,course_code,title,status,max_students,current_enrollment)
