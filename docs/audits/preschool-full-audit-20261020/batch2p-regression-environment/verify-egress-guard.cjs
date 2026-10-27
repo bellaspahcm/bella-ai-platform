@@ -14,6 +14,8 @@ async function main(){
   for(const [name,url]of [['REMOTE_FETCH_DENIED','https://example.invalid'],['OTHER_LOCAL_FETCH_DENIED','http://127.0.0.1:24433']]){
     await assert.rejects(fetch(url),error=>error.code==='REGRESSION_NETWORK_DENIED');results.push({name,result:'PASS'});
   }
+  // Fixed credential-free local sandbox health probe; loopback-only.cjs rejects other origins.
+  // nosemgrep: typescript.react.security.react-insecure-request.react-insecure-request
   const response=await fetch('http://127.0.0.1:24431/auth/v1/health',{signal:AbortSignal.timeout(8000)});
   assert.equal(response.status,200);await response.body.cancel();
   results.push({name:'ACTUAL_SANDBOX_HEALTH_ALLOWED',result:'PASS',status:response.status});

@@ -176,11 +176,12 @@ function verifyCareHeaders(receipts, collectionFailed=false) {
 }
 async function verifyBrowser() {
   const { chromium }=require('playwright');
+  adapter.must(Number.isInteger(adapter.port)&&adapter.port>0&&adapter.port<=65535,'LOCAL_BROWSER_PORT_INVALID');
   browser=await chromium.launch({headless:true});
-  const context=await browser.newContext({viewport:{width:1440,height:1000},timezoneId:'Asia/Ho_Chi_Minh',serviceWorkers:'block'});
+  const base=`http://127.0.0.1:${adapter.port}`;
+  const context=await browser.newContext({baseURL:base,viewport:{width:1440,height:1000},timezoneId:'Asia/Ho_Chi_Minh',serviceWorkers:'block'});
   const page=await context.newPage(); page.setDefaultTimeout(25_000);
   const fixture=adapter.fixtures[0], actor=fixture.actors[0];
-  const base=`http://127.0.0.1:${adapter.port}`;
   const receipts=[];const pending=[];
   page.on('response',response=>{const url=new URL(response.url());if(url.origin===base&&['/api/education/courses','/api/education/care/classes','/api/education/care/bulk'].includes(url.pathname)){
     const task=(async()=>{const h=await response.allHeaders();let errorKind=null;
@@ -189,13 +190,13 @@ async function verifyBrowser() {
   }});
   try {
     await check('BROWSER_REAL_LOGIN',async()=>{
-      await page.goto(base+'/login'); await page.locator('input[type=email]').fill(actor.email);await page.locator('input[type=password]').fill(actor.password);
+      await page.goto('/login'); await page.locator('input[type=email]').fill(actor.email);await page.locator('input[type=password]').fill(actor.password);
       await page.getByRole('button',{name:/Đăng nhập/i}).click();await page.waitForURL(/\/dashboard/, {timeout:60_000});
       const cookies=await context.cookies();adapter.must(cookies.some(c=>c.name.startsWith('sb-'+adapter.REF+'-auth-token'))&&!cookies.some(c=>c.name==='mock_user_email'),'BROWSER_REAL_AUTH_COOKIE_MISSING');
       return {actualForm:true,providerCookie:true,mockCookie:false};
     });
     await check('BROWSER_CARE_ROSTER',async()=>{
-      await page.goto(base+'/dashboard/education/care');await page.getByRole('heading',{name:'Chăm sóc & Nuôi dưỡng',exact:true}).waitFor();
+      await page.goto('/dashboard/education/care');await page.getByRole('heading',{name:'Chăm sóc & Nuôi dưỡng',exact:true}).waitFor();
       await page.locator('select').filter({has:page.locator(`option[value="${fixture.course}"]`)}).waitFor({timeout:60_000});
       await page.getByText('Synthetic Care active',{exact:true}).first().waitFor({timeout:60_000});
       adapter.must(await page.getByText('Synthetic Care pending',{exact:true}).count()===0,'PENDING_STUDENT_VISIBLE');

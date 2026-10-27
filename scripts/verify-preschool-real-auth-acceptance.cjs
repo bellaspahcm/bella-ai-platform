@@ -69,7 +69,7 @@ function sourceState() {
   return { head, tree, baselineAncestor, changed, untracked, sourceSha256: digest.digest('hex'), trackedFiles: paths.length,
     nextAutoEnvFiles: NEXT_ENV_FILES.filter(path => existsSync(join(ROOT, path))) };
 }
-function readConfig() {
+async function readConfig() {
   // An explicit E2E file is a complete secret source, never merged with local/Production env files.
   const values = process.env.E2E_ENV_FILE
     ? require('dotenv').parse(readFileSync(resolve(process.env.E2E_ENV_FILE))) : process.env;
@@ -100,9 +100,10 @@ function readConfig() {
       must(claims.ref === REF && claims.role === role, 'KEY_PROJECT_OR_ROLE_BINDING_REJECTED');
     } else must(key.startsWith(prefix) && key.length > prefix.length, 'KEY_KIND_REJECTED');
   }
-  // The established E2E connection uses encrypted Supabase connections. No query-string SSL/file overrides survive.
-  return { publicKey, adminKey, pg: { host: parsed.host, user: parsed.user, password: parsed.password,
-    database: 'postgres', port: Number(parsed.port || 5432), ssl: { rejectUnauthorized: false },
+  // Reuse the approved vendor CA and hostname-verifying configuration after project binding.
+  const { createBdgfDatabaseConfig } = await import('./bdgf/database-connection.mjs');
+  const verified = createBdgfDatabaseConfig(dbUrl);
+  return { publicKey, adminKey, pg: { ...verified,
     connectionTimeoutMillis: 10_000, query_timeout: 20_000, statement_timeout: 15_000,
     application_name: 'preschool-real-auth-acceptance' } };
 }
@@ -527,7 +528,7 @@ async function main() {
     must(prior.projectRef === REF && prior.readOnly === true, 'ISOLATED_CATALOG_REQUIRED');
     agentClean = git(['status', '--porcelain', '--', 'AGENTS.md']).trim() === '';
     must(agentClean, 'INITIAL_AGENTS_MUST_BE_CLEAN'); agentBefore = readFileSync(join(ROOT, 'AGENTS.md'));
-    config = readConfig(); // All target/source guards precede Auth creation and database DML.
+    config = await readConfig(); // All target/source guards precede Auth creation and database DML.
     add('SOURCE_AND_TARGET_PREFLIGHT', 'PASS', { exactBaseline: true, projectBinding: true, productionFallback: false });
     db = new Client(config.pg); db.on('error', error => { report.databaseConnectionError = safeCode(error); });
     await db.connect(); connected = true; catalogBefore = await catalog(); report.catalogBefore = catalogBefore;
