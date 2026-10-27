@@ -189,7 +189,7 @@ jobs:
     needs: detect_changes
     if: needs.detect_changes.outputs.needs_real_db_e2e == 'true'
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
         with:
@@ -218,7 +218,42 @@ jobs:
           git rev-parse --verify "$base^{commit}" > /dev/null
           echo "base=$base" >> "$GITHUB_OUTPUT"
 
+      - name: Select disposable Preschool teacher profile
+        id: preschool-profile
+        env:
+          BASE_REF: ${{ steps.migration-base.outputs.base }}
+        shell: bash
+        run: |
+          changed="$(git diff --name-only "$BASE_REF...HEAD" -- supabase/migrations)"
+          teacher_profile_migration=false
+          unexpected_migration=false
+          while IFS= read -r file; do
+            [ -n "$file" ] || continue
+            case "$file" in
+              supabase/migrations/20261027010000_preschool_teacher_assignment_legacy_profile.sql|\
+              supabase/migrations/20261027010100_preschool_teacher_confirmation_and_canonical_assignment.sql|\
+              supabase/migrations/20261027010200_preschool_teacher_termination_end_date_check.sql|\
+              supabase/migrations/20261027010300_scope_attendance_state_with_authorized_helper.sql|\
+              supabase/migrations/20261027020000_platform_current_actor_tenant_presentation.sql)
+                teacher_profile_migration=true
+                ;;
+              *) unexpected_migration=true ;;
+            esac
+          done <<< "$changed"
+
+          if [ "$teacher_profile_migration" = true ] && [ "$unexpected_migration" = true ]; then
+            echo 'PRESCHOOL_PROFILE_MIXED_MIGRATION_SCOPE: split the PR or add an explicitly reviewed profile.'
+            exit 1
+          fi
+          if [ "$teacher_profile_migration" = true ]; then
+            echo 'use_disposable=true' >> "$GITHUB_OUTPUT"
+            echo 'Teacher migrations will run only on a disposable local Supabase profile.'
+          else
+            echo 'use_disposable=false' >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Require isolated E2E database credentials
+        if: steps.preschool-profile.outputs.use_disposable != 'true'
         env:
           SUPABASE_URL: ${{ secrets.E2E_SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.E2E_SUPABASE_SERVICE_ROLE_KEY }}
@@ -233,7 +268,55 @@ jobs:
           BASE_REF: ${{ steps.migration-base.outputs.base }}
         run: npm run db:migration:zero-downtime -- --base "$BASE_REF"
 
+      - name: Install Supabase CLI for disposable Preschool profile
+        if: steps.preschool-profile.outputs.use_disposable == 'true'
+        uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359
+        with:
+          version: 2.115.0
+
+      - name: Prepare disposable Preschool schema and RLS profile
+        id: preschool-prepare
+        if: steps.preschool-profile.outputs.use_disposable == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          source_revision="$(git rev-parse HEAD)"
+          [[ "$source_revision" =~ ^[a-f0-9]{40}$ ]] || {
+            echo 'PRESCHOOL_PROFILE_CHECKED_OUT_REVISION_INVALID' >&2
+            exit 1
+          }
+
+          set +e
+          prepare_output="$(pwsh -NoProfile -File scripts/ci/preschool-browser-profile/run.ps1 \
+            -Action Prepare -SourceRevision "$source_revision" 2>&1)"
+          prepare_status=$?
+          set -e
+          printf '%s\n' "$prepare_output"
+          if [ "$prepare_status" -ne 0 ]; then
+            exit "$prepare_status"
+          fi
+
+          run_directory="$(printf '%s\n' "$prepare_output" | sed -n 's/^PROFILE_RUN_DIRECTORY=//p' | tail -n 1)"
+          if [ -z "$run_directory" ]; then
+            echo 'PRESCHOOL_PROFILE_RUN_DIRECTORY_NOT_RETURNED' >&2
+            exit 1
+          fi
+          printf 'run_directory=%s\n' "$run_directory" >> "$GITHUB_OUTPUT"
+
+      - name: Install Chromium for teacher Browser E2E
+        if: steps.preschool-profile.outputs.use_disposable == 'true'
+        run: npx playwright install --with-deps chromium
+
+      - name: Run real teacher JWT, DB/RLS and Browser E2E on disposable profile
+        id: preschool-acceptance
+        if: steps.preschool-profile.outputs.use_disposable == 'true'
+        shell: pwsh
+        env:
+          PROFILE_RUN_DIRECTORY: ${{ steps.preschool-prepare.outputs.run_directory }}
+        run: pwsh -NoProfile -File scripts/ci/preschool-browser-profile/accept.ps1 -RunDirectory $env:PROFILE_RUN_DIRECTORY
+
       - name: Apply changed migrations to isolated E2E database
+        if: steps.preschool-profile.outputs.use_disposable != 'true'
         env:
           ALLOW_E2E_MIGRATION_APPLY: '1'
           BASE_REF: ${{ steps.migration-base.outputs.base }}
@@ -241,6 +324,7 @@ jobs:
         run: node scripts/apply-e2e-pr-migrations.cjs --base "$BASE_REF"
 
       - name: Run real database business E2E
+        if: steps.preschool-profile.outputs.use_disposable != 'true'
         env:
           NODE_ENV: test
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.E2E_SUPABASE_URL }}
@@ -251,6 +335,29 @@ jobs:
           E2E_SUPABASE_DB_SSL_CA: ${{ secrets.E2E_SUPABASE_DB_SSL_CA }}
           JEST_CACHE_DIRECTORY: .jest-cache
         run: node scripts/run-scoped-real-db-e2e.mjs
+
+      - name: Ensure disposable Preschool profile is cleaned
+        if: always() && steps.preschool-profile.outputs.use_disposable == 'true' && steps.preschool-prepare.outputs.run_directory != '' && steps.preschool-acceptance.outcome != 'success'
+        shell: pwsh
+        env:
+          PROFILE_RUN_DIRECTORY: ${{ steps.preschool-prepare.outputs.run_directory }}
+        run: pwsh -NoProfile -File scripts/ci/preschool-browser-profile/run.ps1 -Action Cleanup -RunDirectory $env:PROFILE_RUN_DIRECTORY
+
+      - name: Upload disposable Preschool acceptance receipt
+        if: always() && steps.preschool-profile.outputs.use_disposable == 'true'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: preschool-teacher-disposable-e2e-receipt
+          path: |
+            ${{ runner.temp }}/bella-preschool-disposable-profiles/*/manifest.snapshot.json
+            ${{ runner.temp }}/bella-preschool-disposable-profiles/*/receipt.json
+            ${{ runner.temp }}/bella-preschool-disposable-profiles/*/acceptance-receipt.json
+            ${{ runner.temp }}/bella-preschool-disposable-profiles/*/application-overlay.json
+            ${{ runner.temp }}/bella-preschool-disposable-profiles/*/migration-apply.log
+            ${{ runner.temp }}/bella-preschool-disposable-profiles/*/schema-verification.log
+            ${{ runner.temp }}/bella-preschool-disposable-profiles/*/next-dev.redacted.log
+          if-no-files-found: warn
+          retention-days: 7
 
   security:
     name: Security Gates

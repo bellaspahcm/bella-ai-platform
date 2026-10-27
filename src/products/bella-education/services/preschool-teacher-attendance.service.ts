@@ -48,7 +48,7 @@ export class PreschoolTeacherAttendanceService {
   async setDailyAttendance(input: PreschoolAttendanceCommandInput, authorizeScope?: (course: TeacherAttendanceCourse) => void) {
     if (input.actorRole !== 'admin_staff') throw denied();
     const courses = await this.listCourses(input.tenantId, input.actorId, input.schoolDay);
-    const service = new AttendanceProductService(new AttendanceContractImpl(this.client));
+    const service = new AttendanceProductService(new AttendanceContractImpl(this.client, 'bella_preschool'));
     // The self-scoped roster already joins canonical enrollment/student identity.
     // Do not widen general Enrollment RLS just to derive a teacher's target course.
     let assigned: TeacherAttendanceCourse | undefined;

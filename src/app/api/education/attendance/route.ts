@@ -55,14 +55,14 @@ export async function GET(request: Request) {
     await authorizeAttendanceCourse(context, request, courseId, day);
 
     if (context.productKey === 'bella_preschool' && context.actorRole === 'admin_staff') {
-      const roster = await new AttendanceProductService(new AttendanceContractImpl(context.client))
+      const roster = await new AttendanceProductService(new AttendanceContractImpl(context.client, context.productKey))
         .getCourseDailyAttendance({ tenantId: context.tenantId, courseId, schoolDay: day });
       // Teacher attendance does not grant the separate pickup/guardian capability.
       return NextResponse.json({ success: true, courseId, schoolDay: day, roster }, { headers: ATTENDANCE_PRIVATE_HEADERS });
     }
 
     const trusted = createAdminOperationClient() ?? context.client;
-    const service = new AttendanceProductService(new AttendanceContractImpl(context.client));
+    const service = new AttendanceProductService(new AttendanceContractImpl(context.client, context.productKey));
     const branchScope = new PreschoolAttendanceAccessService(trusted);
     await branchScope.assertCourseAccess(context.tenantId, context.actorId, courseId);
     const roster = await service.getCourseDailyAttendance({ tenantId: context.tenantId, courseId, schoolDay: day });
