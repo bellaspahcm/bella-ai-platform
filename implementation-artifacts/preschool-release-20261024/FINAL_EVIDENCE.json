@@ -1,0 +1,213 @@
+{
+  "at": "2026-10-23T23:56:57.6473632Z",
+  "branch": "codex/preschool-chain-release-20261024",
+  "base": "291b1451e8618be0b08d490948145c9ce992fe63",
+  "source": [
+    {
+      "sha256": "b773cdb549a38e31a2c6092927953e71da961e2abfe3fcd5c08d79d314b02c23",
+      "file": "src/products/bella-education/services/preschool-safe-pickup-handover.service.ts"
+    },
+    {
+      "sha256": "221af96abc8a7c45609898da70f0cb30020adc45e4c0961ea116f17adaab9d25",
+      "file": "src/products/bella-education/__tests__/preschool-safe-pickup-handover.service.test.ts"
+    },
+    {
+      "sha256": "5004efa49ada88f826fd67658061c49f6ec2883d7eeb2da69893fd4b21015d89",
+      "file": "src/app/api/education/attendance/handover/route.ts"
+    },
+    {
+      "sha256": "0b4538a3274a5032b4a2e6058b77475c1db438b955451cfd8d225f88634f3e8f",
+      "file": "src/app/api/education/attendance/handover/__tests__/route.test.ts"
+    },
+    {
+      "sha256": "06e9058ee298220ef423b60d6a77fc6e9035d59d21edc7484de17d189cb5c830",
+      "file": "supabase/migrations/20261024010000_preschool_handover_atomic_command.sql"
+    }
+  ],
+  "unit": {
+    "result": "PASS",
+    "testsPassed": 23,
+    "suitesPassed": 2
+  },
+  "realDb": {
+    "casesPassed": 11,
+    "result": "PASS",
+    "file": "HANDOVER_REAL_DB_1792799373386.json"
+  },
+  "httpBrowser": {
+    "file": "http-browser-1792799480350/HTTP_BROWSER_RESULTS.json",
+    "result": "PASS",
+    "observationsPassed": 3
+  },
+  "typecheck": "PASS_EXIT_0",
+  "lint": "PASS_EXIT_0_WITH_DISCLOSED_EXISTING_ESLINTIGNORE_WARNING",
+  "migrationSafety": "PASS_1_MIGRATION",
+  "scope": "Product handover command/API/adapter/tests only; approved E2E target",
+  "e2eMigration": "20261024010000",
+  "parity": "HOLD_EXISTING_ATTENDANCE_SOURCE_DRIFT",
+  "production": "HELD_CREDENTIAL_ROTATION_BACKUP_AND_PARITY_NOT_PROVEN",
+  "delivery": "HOLD",
+  "fullChainGoLive": "NOT_PROVEN",
+  "evidence": [
+    {
+      "sha256": "5a786d9756fff3b69687d0f04a726cb8d46f2231204d75c788c43329571368bb",
+      "file": "implementation-artifacts/preschool-release-20261024/apply-approved-handover.cjs"
+    },
+    {
+      "sha256": "4f1cebef792d61d060b9fdf4df351152b8455f0a35dcae1b51dce4af4fd3cdb0",
+      "file": "implementation-artifacts/preschool-release-20261024/ATTENDANCE_DRIFT_1792798411135.json"
+    },
+    {
+      "sha256": "a77b52ae60fe1a3ca3e29ef41113ed859a480a6fd1fb54367a81917b0d376887",
+      "file": "implementation-artifacts/preschool-release-20261024/E2E_PARITY_1792778481957.json"
+    },
+    {
+      "sha256": "3b6cb56fe1d25d8cfe69fa4a57d34f9703a0b5ca4886009b3974c1b26f7558e0",
+      "file": "implementation-artifacts/preschool-release-20261024/E2E_PARITY_1792798207893.json"
+    },
+    {
+      "sha256": "79fe332d7e14a39baff6d705eac25bd1f15f4b4048ad28e0075d39ecea4e6f73",
+      "file": "implementation-artifacts/preschool-release-20261024/E2E_PARITY_1792799613478.json"
+    },
+    {
+      "sha256": "a1ad11e9c6b75661f51bf178917a6e66701a39b53f575648adbd3bcec5abd3bf",
+      "file": "implementation-artifacts/preschool-release-20261024/e2e-env.cjs"
+    },
+    {
+      "sha256": "5407fc1a4904ad27f70b7a2b2fb3cf74bb64b48cd182e5c6b8c4bc8aaf31abfe",
+      "file": "implementation-artifacts/preschool-release-20261024/EVENT_CAPTURE_1792799575906.json"
+    },
+    {
+      "sha256": "4e66336695fcadcda3f09be8b1b6b42ac39c2197d22ccf7d9938b046198a2105",
+      "file": "implementation-artifacts/preschool-release-20261024/HANDOVER_APPLY_1792799094296.json"
+    },
+    {
+      "sha256": "81c6401f97364eefef11591c446677739efb1fe23a7e658d54278644890bbd5e",
+      "file": "implementation-artifacts/preschool-release-20261024/HANDOVER_ATOMIC_APPROVED_ORIGINAL_81c6401f.sql"
+    },
+    {
+      "sha256": "8b22a5f93a54465772a46c5236706772290b67b59ace9b9f46e7b2493a677831",
+      "file": "implementation-artifacts/preschool-release-20261024/HANDOVER_ATOMIC_REVIEW1_8b22.sql"
+    },
+    {
+      "sha256": "06e9058ee298220ef423b60d6a77fc6e9035d59d21edc7484de17d189cb5c830",
+      "file": "implementation-artifacts/preschool-release-20261024/HANDOVER_ATOMIC.proposal.sql"
+    },
+    {
+      "sha256": "675387167b0f00360f2ab45e41aa2adf0615f73c4ae3422ed9f144a669a5fb0d",
+      "file": "implementation-artifacts/preschool-release-20261024/HANDOVER_REAL_DB_1792799373386.json"
+    },
+    {
+      "sha256": "cc69ed8407fe18ebc517bebb5285c9c75f21ff4814dc8233acdef3dbf4bf00a0",
+      "file": "implementation-artifacts/preschool-release-20261024/HANDOVER_REPRO_1792778299576.json"
+    },
+    {
+      "sha256": "4bfd8edfc90202db68eea4ff0126afd6408dbf966be1674409bdd0a9f4bf40b2",
+      "file": "implementation-artifacts/preschool-release-20261024/HANDOVER_TABLE_AUTHORITY_1792799654295.json"
+    },
+    {
+      "sha256": "350766ac625c77143888c017d70b743fa29ddfe1dc4c58899f640247fcfcfaf0",
+      "file": "implementation-artifacts/preschool-release-20261024/HANDOVER_UNIT_RESULTS.json"
+    },
+    {
+      "sha256": "dba5b3cd5c53d8ee6f91ae984be2356b6cc9bbcf1f1d7144ea5f35e9e0446802",
+      "file": "implementation-artifacts/preschool-release-20261024/HANDOVER_UNIT.log"
+    },
+    {
+      "sha256": "dba4a39c512073335306b3bd9cb18fb63050ca86c3a81a9f983367274573cfd7",
+      "file": "implementation-artifacts/preschool-release-20261024/handover-recovery-worker.cjs"
+    },
+    {
+      "sha256": "83f648f87c2215534b6dde4ad9aeb03ba9b4fdda4fd45bc306bb9ac3f2bcb828",
+      "file": "implementation-artifacts/preschool-release-20261024/inspect-attendance-drift.cjs"
+    },
+    {
+      "sha256": "c209275178f434018f10eb214637985ef0d39cbafa5103e23b85629a7103c8fb",
+      "file": "implementation-artifacts/preschool-release-20261024/LINT.log"
+    },
+    {
+      "sha256": "e65177ca761193d356d713a76088c87deb6f819ddc7873dc5e98d793a389f852",
+      "file": "implementation-artifacts/preschool-release-20261024/MIGRATION_SAFETY.log"
+    },
+    {
+      "sha256": "5c3a674bcaaa70fa1db6c97866d73f5c9d3c589ad4c0e4eb5d419afa7daf7d46",
+      "file": "implementation-artifacts/preschool-release-20261024/preflight.cjs"
+    },
+    {
+      "sha256": "4957c63c037f5e278b0f828da2357773b4d45f25ceb7d41f6ba2b148611ebc75",
+      "file": "implementation-artifacts/preschool-release-20261024/production-catalog-readonly.cjs"
+    },
+    {
+      "sha256": "c4ccb71990e91eb244309c5943bc1bebac094410da6b9839f54d9f798079686d",
+      "file": "implementation-artifacts/preschool-release-20261024/RELEASE_PLAN.md"
+    },
+    {
+      "sha256": "16f5c5867280244684a8cfe5d826645f33782971747ddfabda960eb9c1914b4d",
+      "file": "implementation-artifacts/preschool-release-20261024/REMOTE_BASELINE_20261023T235531Z.json"
+    },
+    {
+      "sha256": "23cd491eb022f6f4dfd9c8198fdf8466e3bb21bc4bf559f0742ed7f9656e7229",
+      "file": "implementation-artifacts/preschool-release-20261024/reproduce-handover.cjs"
+    },
+    {
+      "sha256": "61093a0a6af90fd02c270d8e2628b40061f56f4f52b67d345c90ddc85360366b",
+      "file": "implementation-artifacts/preschool-release-20261024/RESUME_STATUS.md"
+    },
+    {
+      "sha256": "76a32b88c10183e987ddda26f80a518d9ffa0031be8099dcc38d7ffdbd5c6ec4",
+      "file": "implementation-artifacts/preschool-release-20261024/REVIEW.diff"
+    },
+    {
+      "sha256": "88077f9d92e9a2406a7bd2fe9b1fced895b61bdbcd27061896d371dcc464672d",
+      "file": "implementation-artifacts/preschool-release-20261024/SCHEMA_PREFLIGHT_1792778216874.json"
+    },
+    {
+      "sha256": "264f9653780e12349a8a0ca8b737ede41ceeeb2b013fd316e2349772cb592982",
+      "file": "implementation-artifacts/preschool-release-20261024/SENSITIVE_BOUNDARY_SCOPE.md"
+    },
+    {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "file": "implementation-artifacts/preschool-release-20261024/TYPECHECK.log"
+    },
+    {
+      "sha256": "d0ddc48c65676685e19f8feedd7afec878cbb420a1d4a8938ce281303993d8a5",
+      "file": "implementation-artifacts/preschool-release-20261024/verify-event-capture.cjs"
+    },
+    {
+      "sha256": "6241a06913b45fef8171ca2e7d369c42c86c179f81b8a0e51c2b6554820a16f9",
+      "file": "implementation-artifacts/preschool-release-20261024/verify-handover-http-browser.cjs"
+    },
+    {
+      "sha256": "d41acb99c2c1b295fb139ed0670fb99523d4be76a9d045a22f6daf526d44caa9",
+      "file": "implementation-artifacts/preschool-release-20261024/verify-handover-real-db.cjs"
+    },
+    {
+      "sha256": "8e54913c9fb0b5cf0abbc4337bef88f8ebdc5d81fbb2d88e7f7910358e86a7fa",
+      "file": "implementation-artifacts/preschool-release-20261024/verify-release-parity.cjs"
+    },
+    {
+      "sha256": "6a50bb442fca517c2feeff74de486dd4d3c9aafca7e018d5777e444b535e8b99",
+      "file": "implementation-artifacts/preschool-release-20261024/WORK_PLAN.md"
+    },
+    {
+      "sha256": "acb6d56bba060a11d021a786e5ed7911a84c1ee9c00cc29e328124957e900027",
+      "file": "implementation-artifacts/preschool-release-20261024/http-browser-1792799480350/HANDOVER_RECOVERY.png"
+    },
+    {
+      "sha256": "6b7b4343f4667c4aa7f820d84acd683da74f8a3a717f439461a3660c0264ee97",
+      "file": "implementation-artifacts/preschool-release-20261024/http-browser-1792799480350/HTTP_BROWSER_RESULTS.json"
+    },
+    {
+      "sha256": "9bb3d56045e492a791299e8384ca3bbd97ff8e54a1035c9fe2cee36deb40a17b",
+      "file": "implementation-artifacts/preschool-release-20261024/http-browser-1792799480350/NEXT_1792799489322.log"
+    },
+    {
+      "sha256": "000ae1a6bc50a2a1eb4ed23af0cfb7195fad85f7e4c5d23ec788de78cc21de1c",
+      "file": "implementation-artifacts/preschool-release-20261024/http-browser-1792799480350/NEXT_1792799570400.log"
+    },
+    {
+      "sha256": "7fb0b7726b12fa1da5d1ff6dc87190d48ee74291e8921e1700238f4ed0145cdc",
+      "file": "implementation-artifacts/preschool-release-20261024/http-browser-1792799480350/RUNTIME_SOURCE.json"
+    }
+  ]
+}

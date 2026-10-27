@@ -26,11 +26,11 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { saveTenantSettings } from "@/services/tenant-actions";
-import { resolveTenantBrandIdentity } from "@/lib/business-rules/tenant-modules";
 import { usePageRefresh } from "@/hooks/usePageRefresh";
 import { cn } from "@/lib/utils";
 import { TenantGeneralSettings } from "@/types/domain";
 import { useTenantModuleKey } from "@/hooks/useTenantModuleKey";
+import { useUser } from "@/lib/user-context";
 import {
   clearDashboardClientContextCache,
   getCachedTenantSettings,
@@ -95,8 +95,8 @@ function SettingsContent() {
   );
   const [isSaving, setIsSaving] = useState(false);
   const [isLoadingSettings, setIsLoadingSettings] = useState(true);
-  const [settingsBrandName, setSettingsBrandName] = useState("Spa ERP");
-
+  const { product } = useUser();
+  const settingsBrandName = product?.displayName ?? "Bella";
   const { tenantModuleKey } = useTenantModuleKey();
   const isHealthcare = tenantModuleKey === "bella_healthcare";
 
@@ -150,14 +150,6 @@ function SettingsContent() {
     try {
       const data = await getCachedTenantSettings(options);
       if (data) {
-        const brand = resolveTenantBrandIdentity({
-          enabledModules: data.enabled_modules,
-          brandTheme: data.brand_theme,
-          logoUrl: data.logo_url,
-          tenantName: data.name,
-          surface: "app",
-        });
-        setSettingsBrandName(brand.displayName);
         const sc = (data.salary_config ?? {}) as Record<string, unknown>;
         setGeneralSettings({
           name: data.name || "",

@@ -3,6 +3,19 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { getSupabaseAdminKey, getSupabaseAdminUrl } from '@/lib/supabase-admin-env';
 import { getSupabasePublicKey, getSupabasePublicUrl, requireSupabasePublicEnv } from '@/lib/supabase-public-env';
 
+function developmentSupabaseConnectSource(): string {
+  if (process.env.NODE_ENV !== 'development'
+    || ['production', 'staging'].includes(process.env.DEPLOYMENT_ENV ?? '')) return '';
+  try {
+    const url = new URL(getSupabasePublicUrl());
+    if (url.protocol !== 'http:' || !['127.0.0.1', 'localhost'].includes(url.hostname)
+      || !url.port || url.username || url.password || url.pathname !== '/' || url.search || url.hash) return '';
+    return ` ${url.origin}`;
+  } catch {
+    return '';
+  }
+}
+
 /**
  * Bella ERP Proxy (Next.js 16 Middleware)
  * 
@@ -21,6 +34,15 @@ export async function proxy(request: NextRequest) {
   const isLoginRoute = pathname === '/login';
   const isApiRoute = pathname.startsWith('/api/');
   const isPrivateCareRoute = pathname === '/api/education/care/bulk' || pathname === '/api/education/care/classes';
+  // Cache classification only; catalog handlers retain their own authorization.
+  const isCourseCatalogRead = request.method === 'GET'
+    && /^\/api\/education\/courses(?:\/[^/]+)?\/?$/.test(pathname)
+    && request.nextUrl.searchParams.getAll('view').includes('catalog');
+  const isPrivateReadRoute = isPrivateCareRoute || isCourseCatalogRead
+    || /^\/api\/education\/portal\/[^/]+(?:\/(?:chat|copilot))?$/.test(pathname)
+    || pathname === '/api/education/attendance' || pathname === '/api/education/enrollments'
+    || pathname === '/api/education/announcements'
+    || pathname === '/api/education/analytics' || pathname === '/api/education/finance';
 
   let response = NextResponse.next({
     request: {
@@ -44,7 +66,7 @@ export async function proxy(request: NextRequest) {
   }
   // Internal API routes - No cache (dynamic data)
   else if (pathname.startsWith('/api/')) {
-    response.headers.set('Cache-Control', isPrivateCareRoute ? 'private, no-store' : 'no-store, must-revalidate');
+    response.headers.set('Cache-Control', isPrivateReadRoute ? 'private, no-store' : 'no-store, must-revalidate');
   }
 
   // Static assets - Long cache
@@ -65,7 +87,7 @@ export async function proxy(request: NextRequest) {
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: https: blob:",
     "font-src 'self' data:",
-    "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://vercel.live wss://vercel.live",
+    "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://vercel.live wss://vercel.live" + developmentSupabaseConnectSource(),
     "worker-src 'self' blob:",
     "frame-ancestors 'self'",
   ].join('; ');
@@ -126,7 +148,7 @@ export async function proxy(request: NextRequest) {
               headers: request.headers,
             },
           });
-          if (isPrivateCareRoute) response.headers.set('Cache-Control', 'private, no-store');
+          if (isPrivateReadRoute) response.headers.set('Cache-Control', 'private, no-store');
           response.cookies.set({ name, value, ...options });
         },
         remove(name: string, options: CookieOptions) {
@@ -136,7 +158,7 @@ export async function proxy(request: NextRequest) {
               headers: request.headers,
             },
           });
-          if (isPrivateCareRoute) response.headers.set('Cache-Control', 'private, no-store');
+          if (isPrivateReadRoute) response.headers.set('Cache-Control', 'private, no-store');
           response.cookies.set({ name, value: '', ...options });
         },
       },

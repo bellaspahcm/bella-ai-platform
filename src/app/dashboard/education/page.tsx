@@ -22,6 +22,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase-client';
 import { clearDashboardClientContextCache } from '@/lib/dashboard-client-context';
+import { useUser } from '@/lib/user-context';
+import { parseAnalyticsResponse, vietnamDate } from '@/products/bella-education/analytics/domain/analytics-response';
 import type { 
   ExecutiveDashboardDTO, 
   PreschoolActivityCategory, 
@@ -82,17 +84,56 @@ function createExecutiveMessage(sender: 'user' | 'copilot', text: string) {
   };
 }
 
+async function readCopilotResponse<T>(response: Response): Promise<T> {
+  const result = await response.json().catch(() => null) as { success?: boolean; data?: T; error?: string } | null;
+  if (!response.ok || !result?.success || !result.data) {
+    const errors: Record<string, string> = {
+      COPILOT_UNAUTHENTICATED: 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại để dùng Copilot.',
+      FORBIDDEN: 'Tài khoản chưa có quyền sử dụng chức năng Copilot này.',
+      COPILOT_PRODUCT_ACCESS_DENIED: 'Chức năng điều hành yêu cầu tài khoản thuộc tenant Preschool đang hoạt động.',
+      COPILOT_IDENTITY_UNAVAILABLE: 'Chưa xác minh được tenant Preschool. Vui lòng thử lại sau.',
+      TENANT_ISOLATION_VIOLATION: 'Tenant của yêu cầu không khớp tài khoản đăng nhập. Vui lòng tải lại trang.',
+    };
+    throw new Error(errors[result?.error ?? ''] ?? 'Không thể xử lý yêu cầu Copilot. Vui lòng tải lại dữ liệu và thử lại.');
+  }
+  return result.data;
+}
+
+type DashboardBranchOption = { readonly id: string; readonly name: string };
+
+function parseManagedBranchOptions(value: unknown): DashboardBranchOption[] | null {
+  if (value === null || typeof value !== 'object' || Array.isArray(value)) return null;
+  const payload = value as Record<string, unknown>;
+  if (payload.success !== true || !Array.isArray(payload.branches)
+    || payload.count !== payload.branches.length) return null;
+
+  const ids = new Set<string>();
+  const branches: DashboardBranchOption[] = [];
+  for (const branch of payload.branches) {
+    if (branch === null || typeof branch !== 'object' || Array.isArray(branch)) return null;
+    const record = branch as Record<string, unknown>;
+    if (typeof record.id !== 'string' || record.id.trim().length === 0
+      || typeof record.name !== 'string' || record.name.trim().length === 0 || ids.has(record.id)) return null;
+    ids.add(record.id);
+    branches.push({ id: record.id, name: record.name });
+  }
+  return branches;
+}
+
 export default function EducationDashboardPage() {
+  const { user, product, isLoading } = useUser();
+  if (isLoading) return <p role="status">Đang xác minh tài khoản…</p>;
+  if (!user?.tenant_id || product?.productKey !== 'bella_preschool') return <p role="alert">Không có quyền xem Tổng quan Preschool.</p>;
+  return <PreschoolDashboard key={`${user.id}:${user.tenant_id}`} tenantId={user.tenant_id} displayName={user.full_name || user.email} userRole={user.role} />;
+}
+
+function PreschoolDashboard({ tenantId, displayName, userRole }: { tenantId: string; displayName: string; userRole: string }) {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedAcademicYear, setSelectedAcademicYear] = useState('Năm học 2026 - 2027');
-  const [selectedRevenuePeriod, setSelectedRevenuePeriod] = useState('6 tháng gần nhất');
   const [hoveredRevenueMonth, setHoveredRevenueMonth] = useState<string | null>('Tháng 10');
 
   // Interactive Header Popover & Date States
   const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
-  const [unreadCount, setUnreadCount] = useState(3);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
 
@@ -106,17 +147,12 @@ export default function EducationDashboardPage() {
   const [isMenuDrawerOpen, setIsMenuDrawerOpen] = useState(false);
 
   const profileRef = useRef<HTMLDivElement>(null);
-  const notificationRef = useRef<HTMLDivElement>(null);
   const datePickerRef = useRef<HTMLDivElement>(null);
 
   // Format date into Vietnamese display string (e.g. "Thứ Tư, 9 tháng 9, 2026")
   const formatVietnameseDate = (date: Date) => {
-    const dayNames = ['Chủ Nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'];
-    const dayName = dayNames[date.getDay()];
-    const day = date.getDate();
-    const month = date.getMonth() + 1;
-    const year = date.getFullYear();
-    return `${dayName}, ${day} tháng ${month}, ${year}`;
+    return new Intl.DateTimeFormat('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh', weekday: 'long',
+      day: 'numeric', month: 'long', year: 'numeric' }).format(date);
   };
 
   // Close popovers on outside click or Escape key
@@ -124,9 +160,6 @@ export default function EducationDashboardPage() {
     function handleClickOutside(event: MouseEvent) {
       if (profileRef.current && !profileRef.current.contains(event.target as Node)) {
         setIsProfileOpen(false);
-      }
-      if (notificationRef.current && !notificationRef.current.contains(event.target as Node)) {
-        setIsNotificationsOpen(false);
       }
       if (datePickerRef.current && !datePickerRef.current.contains(event.target as Node)) {
         setIsDatePickerOpen(false);
@@ -138,7 +171,6 @@ export default function EducationDashboardPage() {
         setSelectedNoticeModal(null);
         setIsMenuDrawerOpen(false);
         setIsProfileOpen(false);
-        setIsNotificationsOpen(false);
         setIsDatePickerOpen(false);
       }
     }
@@ -169,41 +201,74 @@ export default function EducationDashboardPage() {
   const [dashboardData, setDashboardData] = useState<ExecutiveDashboardDTO | null>(null);
   const [loadingDashboard, setLoadingDashboard] = useState<boolean>(true);
 
-  const selectedDateStr = useMemo(() => {
-    return selectedDate.toISOString().split('T')[0];
-  }, [selectedDate]);
+  const [branches, setBranches] = useState<{ id: string; name: string }[]>([]);
+  const [branchListError, setBranchListError] = useState<string | null>(null);
+  const [selectedBranchId, setSelectedBranchId] = useState<string | null>(null);
+  const [analyticsError, setAnalyticsError] = useState<string | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const selectedDateStr = vietnamDate(selectedDate);
 
   useEffect(() => {
-    let isMounted = true;
-    async function fetchAnalytics() {
+    let active = true;
+    const controller = new AbortController();
+    setLoadingDashboard(true);
+    setDashboardData(null);
+    setAnalyticsError(null);
+    const params = new URLSearchParams({ date: selectedDateStr });
+    if (selectedBranchId) params.set('branchId', selectedBranchId);
+    void (async () => {
       try {
-        setLoadingDashboard(true);
-        setDashboardData(null);
-        const res = await fetch(`/api/education/analytics?date=${selectedDateStr}`, { cache: 'no-store' });
-        if (!res.ok) return;
-        const data = await res.json();
-        if (isMounted && data.success && data.dashboard) {
-          setDashboardData(data.dashboard);
+        const res = await fetch(`/api/education/analytics?${params}`, { cache: 'no-store', signal: controller.signal });
+        if (!res.ok) throw new Error(`ANALYTICS_HTTP_${res.status}`);
+        const data = parseAnalyticsResponse(await res.json(), tenantId, selectedBranchId);
+        if (!active) return;
+        setBranches(data.branches);
+        setBranchListError(null);
+        setSelectedBranchId(data.selectedBranchId);
+        setDashboardData(data.dashboard);
+      } catch (error) {
+        if (!active) return;
+        setAnalyticsError(error instanceof Error ? error.message : 'ANALYTICS_UNAVAILABLE');
+        try {
+          const branchResponse = await fetch('/api/education/branches/manage', {
+            cache: 'no-store',
+            signal: controller.signal,
+          });
+          const branchPayload: unknown = await branchResponse.json();
+          if (!branchResponse.ok) {
+            throw new Error(branchResponse.status === 401 ? 'BRANCH_LIST_UNAUTHENTICATED'
+              : branchResponse.status === 403 ? 'BRANCH_LIST_FORBIDDEN' : 'BRANCH_LIST_UNAVAILABLE');
+          }
+          const availableBranches = parseManagedBranchOptions(branchPayload);
+          if (!availableBranches) throw new Error('BRANCH_LIST_INVALID');
+          if (!active) return;
+          setBranches(availableBranches);
+          setBranchListError(null);
+          setSelectedBranchId(current => current && availableBranches.some(branch => branch.id === current) ? current : null);
+        } catch (branchError) {
+          if (active && !controller.signal.aborted) {
+            setBranchListError(branchError instanceof Error && branchError.message === 'BRANCH_LIST_UNAUTHENTICATED'
+              ? 'Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.'
+              : branchError instanceof Error && branchError.message === 'BRANCH_LIST_FORBIDDEN'
+                ? 'Tài khoản hiện tại không có quyền xem danh sách chi nhánh.'
+                : 'Không tải được danh sách chi nhánh. Vui lòng thử lại.');
+          }
         }
-      } catch (err) {
-        console.warn('Failed to load real-time preschool analytics:', err);
       } finally {
-        if (isMounted) setLoadingDashboard(false);
+        if (active) setLoadingDashboard(false);
       }
-    }
-    fetchAnalytics();
-    return () => { isMounted = false; };
-  }, [selectedDateStr]);
+    })();
+    return () => { active = false; controller.abort(); };
+  }, [selectedDateStr, selectedBranchId, tenantId, refreshKey]);
 
-  // Derived Dynamic Metrics from live DB snapshot
-  const totalKidsCount = dashboardData?.enrollment?.classroomUtilization
-    ? dashboardData.enrollment.classroomUtilization.reduce((sum, c) => sum + c.currentEnrollment, 0)
-    : (dashboardData?.enrollment?.totalEnrolledStudents ?? 0);
-  const totalClassesCount = dashboardData?.enrollment?.totalClassrooms ?? 0;
-  const totalTeachersCount = dashboardData?.enrollment?.totalTeachers ?? 0;
-  const presentCount = dashboardData?.attendance?.todayPresentCount ?? 0;
-  const attendanceRate = dashboardData?.attendance?.presentVsEnrolledRate ?? (totalKidsCount > 0 ? Math.round((presentCount / totalKidsCount) * 100) : 0);
-  const totalParentsCount = dashboardData?.commandCenter?.totalParentsCount ?? 0;
+  // Distinct students are supplied by the canonical API; class counts can overlap.
+  const totalKidsCount = dashboardData?.enrollment.totalEnrolledStudents ?? null;
+  const totalClassesCount = dashboardData?.enrollment.totalClassrooms ?? null;
+  const totalTeachersCount = dashboardData?.enrollment.totalTeachers ?? null;
+  const presentCount = dashboardData?.attendance.todayPresentCount ?? null;
+  const attendanceRate = dashboardData?.attendance.presentVsEnrolledRate ?? null;
+  const totalParentsCount = dashboardData?.commandCenter?.totalParentsCount ?? null;
+  const metric = (value: number | null | undefined, suffix = '') => value == null ? '—' : `${value}${suffix}`;
 
   // Command Center Live Counts
   const unmarkedAttendance = dashboardData?.commandCenter?.unmarkedAttendanceCount;
@@ -211,27 +276,23 @@ export default function EducationDashboardPage() {
   const overdueInvoices = dashboardData?.commandCenter?.overdueInvoicesCount;
   const healthIncidents = dashboardData?.commandCenter?.healthIncidentsCount;
   const parentRequests = dashboardData?.commandCenter?.parentRequestsCount;
-  const totalAttentionItems = dashboardData?.commandCenter
-    ? [unmarkedAttendance, leaveRequests, overdueInvoices, healthIncidents, parentRequests].filter(count => count !== undefined && count > 0).length
-    : null;
+  const attentionCounts = [unmarkedAttendance, leaveRequests, overdueInvoices, healthIncidents, parentRequests];
+  const totalAttentionItems = attentionCounts.every(count => count != null)
+    ? attentionCounts.filter(count => count !== null && count !== undefined && count > 0).length : null;
 
   // Dynamic KPI Cards Data
   const kpiStats = [
     {
       id: 'total-kids',
       label: 'Tổng số trẻ',
-      value: String(totalKidsCount),
-      change: '+12%',
-      comparison: 'so với tháng trước',
+      value: metric(totalKidsCount),
       icon: <Users className="w-5 h-5 text-rose-500" />,
       iconBg: 'bg-rose-100 dark:bg-rose-950/50',
     },
     {
       id: 'total-classes',
       label: 'Số lớp học',
-      value: String(totalClassesCount),
-      change: '+1 lớp',
-      comparison: 'so với kỳ trước',
+      value: metric(totalClassesCount),
       icon: <Users className="w-5 h-5 text-sky-500" />,
       iconBg: 'bg-sky-100 dark:bg-sky-950/50',
     },
@@ -240,27 +301,21 @@ export default function EducationDashboardPage() {
       label: 'Tổng nhân sự',
       note: 'Gồm GV, bảo mẫu & hỗ trợ',
       tooltip: 'Bao gồm giáo viên, bảo mẫu và nhân viên hỗ trợ toàn trường',
-      value: String(totalTeachersCount),
-      change: '+2',
-      comparison: 'so với tháng trước',
+      value: metric(totalTeachersCount),
       icon: <UserCheck className="w-5 h-5 text-emerald-500" />,
       iconBg: 'bg-emerald-100 dark:bg-emerald-950/50',
     },
     {
       id: 'attendance-rate',
       label: 'Tỷ lệ chuyên cần',
-      value: `${attendanceRate}%`,
-      change: '+3%',
-      comparison: 'so với tháng trước',
+      value: metric(attendanceRate, '%'),
       icon: <CalendarCheck className="w-5 h-5 text-amber-500" />,
       iconBg: 'bg-amber-100 dark:bg-amber-950/50',
     },
     {
       id: 'total-parents',
       label: 'Phụ huynh',
-      value: String(totalParentsCount),
-      change: '+10%',
-      comparison: 'so với tháng trước',
+      value: metric(totalParentsCount),
       icon: <Heart className="w-5 h-5 text-pink-500" />,
       iconBg: 'bg-pink-100 dark:bg-pink-950/50',
     },
@@ -283,7 +338,8 @@ export default function EducationDashboardPage() {
       return 50;
     };
 
-    const sorted = [...dashboardData.enrollment.classroomUtilization].sort((a, b) => {
+    const query = searchQuery.trim().toLocaleLowerCase('vi-VN');
+    const sorted = dashboardData.enrollment.classroomUtilization.filter(item => !query || item.className.toLocaleLowerCase('vi-VN').includes(query)).sort((a, b) => {
       return getRank(a.className) - getRank(b.className);
     });
 
@@ -293,42 +349,10 @@ export default function EducationDashboardPage() {
       count: c.currentEnrollment,
       color: colorPalette[idx % colorPalette.length],
     }));
-  }, [dashboardData]);
+  }, [dashboardData, searchQuery]);
 
-  // Dynamic Age Distribution Donut Chart Data derived from actual classroom enrollments
-  const ageDistribution = useMemo(() => {
-    const classrooms = dashboardData?.enrollment?.classroomUtilization ?? [];
-    let nhaTre = 0;
-    let mam = 0;
-    let choi = 0;
-    let la = 0;
-
-    if (classrooms.length > 0) {
-      classrooms.forEach((c) => {
-        const name = c.className.toLowerCase();
-        if (name.includes('nhà trẻ')) nhaTre += c.currentEnrollment;
-        else if (name.includes('mầm')) mam += c.currentEnrollment;
-        else if (name.includes('chồi')) choi += c.currentEnrollment;
-        else if (name.includes('lá')) la += c.currentEnrollment;
-      });
-    }
-
-    const total = nhaTre + mam + choi + la;
-    if (total === 0) {
-      return [];
-    }
-    const pNhaTre = Math.round((nhaTre / total) * 100);
-    const pMam = Math.round((mam / total) * 100);
-    const pChoi = Math.round((choi / total) * 100);
-    const pLa = Math.max(0, 100 - pNhaTre - pMam - pChoi);
-
-    return [
-      { label: 'Nhà trẻ (1-2 tuổi)', count: nhaTre, percentage: pNhaTre, color: '#F97316' },
-      { label: 'Mầm non (3-4 tuổi)', count: mam,    percentage: pMam,    color: '#F59E0B' },
-      { label: 'Chồi (4-5 tuổi)',    count: choi,   percentage: pChoi,   color: '#3B82F6' },
-      { label: 'Lá (5-6 tuổi)',      count: la,     percentage: pLa,     color: '#A855F7' },
-    ];
-  }, [dashboardData]);
+  // Class names do not prove a child's age. This API has no canonical age projection.
+  const ageDistribution: { label: string; count: number; percentage: number; color: string }[] = [];
 
   // Visual Styling Mapping for Activity Feed Items
   const getActivityVisuals = (category: PreschoolActivityCategory) => {
@@ -417,17 +441,8 @@ export default function EducationDashboardPage() {
     { id: 'FINANCE', label: 'Tài chính & Học phí' },
   ];
 
-  // Monthly Revenue Chart Data dynamically fetched from P7 finance invoices in Supabase
-  const monthlyRevenue = useMemo(() => {
-    const rev = dashboardData?.finance?.monthlyRevenue;
-    if (rev && rev.length > 0) {
-      if (selectedRevenuePeriod === '12 tháng qua' && rev.length > 6) {
-        return rev;
-      }
-      return rev.slice(-6);
-    }
-    return [];
-  }, [dashboardData, selectedRevenuePeriod]);
+  // Render only the canonical projection, without claiming an unsupported period.
+  const monthlyRevenue = useMemo(() => dashboardData?.finance.monthlyRevenue ?? [], [dashboardData]);
 
   // Dynamic Weekly Nutrition Menu (P4.3) with real-time DB integration
   const weeklyMenuData: PreschoolWeeklyMenuDTO | null = useMemo(() => {
@@ -444,8 +459,8 @@ export default function EducationDashboardPage() {
   }, [dashboardData]);
 
   // ── 0. EXECUTIVE AI COPILOT STATES & HANDLERS (PHASE 4) ──
-  const [isAiBriefingLoading, setIsAiBriefingLoading] = useState(false);
-  const [executiveBriefing, setExecutiveBriefing] = useState<{
+  const [isAiBriefingLoading] = useState(false);
+  const [executiveBriefing] = useState<{
     executiveSummary: string;
     attendanceRate: number;
     criticalAlerts: readonly string[];
@@ -453,8 +468,10 @@ export default function EducationDashboardPage() {
     generatedAt: string;
   } | null>(null);
 
-  const [isComplianceAuditLoading, setIsComplianceAuditLoading] = useState(false);
-  const [complianceResult, setComplianceResult] = useState<{
+  const isComplianceAuditLoading = false;
+  const [copilotNotice, setCopilotNotice] = useState<string | null>(null);
+  const [copilotError, setCopilotError] = useState<string | null>(null);
+  const [complianceResult] = useState<{
     compliant: boolean;
     complianceScore: number;
     violations: readonly string[];
@@ -476,85 +493,40 @@ export default function EducationDashboardPage() {
     },
   ]);
 
+  const copilotScope = useRef(0);
+  useEffect(() => {
+    copilotScope.current += 1;
+    setExecutiveQnAMessages(messages => messages.slice(0, 1));
+    setExecutiveQuestion('');
+    setIsExecutiveAsking(false);
+    setCopilotNotice(null);
+    setCopilotError(null);
+  }, [selectedBranchId, selectedDateStr]);
+
   const handleGenerateBriefing = async () => {
-    try {
-      setIsAiBriefingLoading(true);
-      const res = await fetch('/api/education/ai/copilot', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'executive_briefing',
-          totalStudents: totalKidsCount || 100,
-          presentCount: presentCount || totalKidsCount || 95,
-          absentCount: Math.max(0, (totalKidsCount || 100) - (presentCount || totalKidsCount || 95)),
-          feverCasesCount: healthIncidents || 0,
-          unpaidTuitionCount: overdueInvoices || 0,
-          pendingParentRequests: parentRequests || 0,
-        }),
-      });
-      const data = await res.json();
-      if (data.success && data.data) {
-        setExecutiveBriefing(data.data);
-      }
-    } catch (e) {
-      console.error('Failed to generate AI executive briefing:', e);
-    } finally {
-      setIsAiBriefingLoading(false);
-    }
+    // The existing briefing contract requires health/finance/parent counts that
+    // this branch-scoped read does not provide. Do not substitute sample/zero data.
+    setCopilotNotice('Chưa đủ dữ liệu chuẩn về sức khỏe, học phí và yêu cầu phụ huynh để tạo điểm tin điều hành.');
   };
 
   const handleRunComplianceAudit = async () => {
-    try {
-      setIsComplianceAuditLoading(true);
-      const classrooms = dashboardData?.enrollment?.classroomUtilization || [];
-      const stats = classrooms.map((c) => {
-        const lower = c.className.toLowerCase();
-        let ageGroup: 'NHA_TRE' | 'MAM' | 'CHOI' | 'LA' = 'CHOI';
-        if (lower.includes('nhà trẻ')) ageGroup = 'NHA_TRE';
-        else if (lower.includes('mầm')) ageGroup = 'MAM';
-        else if (lower.includes('chồi')) ageGroup = 'CHOI';
-        else if (lower.includes('lá')) ageGroup = 'LA';
-
-        return {
-          className: c.className,
-          ageGroup,
-          studentCount: c.currentEnrollment,
-          teacherCount: 2,
-        };
-      });
-
-      const res = await fetch('/api/education/ai/copilot', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'executive_safety_audit',
-          classRosterStats: stats.length > 0 ? stats : [
-            { className: 'Nhà trẻ 1 (18-24T)', ageGroup: 'NHA_TRE', studentCount: 20, teacherCount: 2 },
-            { className: 'Mầm 1 (3-4T)', ageGroup: 'MAM', studentCount: 24, teacherCount: 2 },
-            { className: 'Chồi 1 (4-5T)', ageGroup: 'CHOI', studentCount: 28, teacherCount: 2 },
-            { className: 'Lá 1 (5-6T)', ageGroup: 'LA', studentCount: 30, teacherCount: 2 },
-          ],
-        }),
-      });
-      const data = await res.json();
-      if (data.success && data.data) {
-        setComplianceResult(data.data);
-      }
-    } catch (e) {
-      console.error('Failed to run compliance audit:', e);
-    } finally {
-      setIsComplianceAuditLoading(false);
-    }
+    setCopilotNotice('Chưa có dữ liệu độ tuổi và nhân sự chuẩn để kiểm tra định mức.');
   };
 
   const handleSendExecutiveQuestion = async (presetQuestion?: string) => {
     const q = (presetQuestion || executiveQuestion).trim();
     if (!q || isExecutiveAsking) return;
+    if (!dashboardData || loadingDashboard || analyticsError) {
+      setCopilotNotice('Chọn cơ sở và tải dữ liệu chuẩn trước khi hỏi trợ lý điều hành.');
+      return;
+    }
+    const requestScope = copilotScope.current;
 
     const userMsg = createExecutiveMessage('user', q);
     setExecutiveQnAMessages((prev) => [...prev, userMsg]);
     setExecutiveQuestion('');
     setIsExecutiveAsking(true);
+    setCopilotError(null);
 
     try {
       const res = await fetch('/api/education/ai/copilot', {
@@ -564,7 +536,8 @@ export default function EducationDashboardPage() {
           action: 'ask_copilot',
           question: q,
           contextData: {
-            role: 'CAMPUS_ADMIN',
+            branchId: selectedBranchId,
+            schoolDay: selectedDateStr,
             totalKidsCount,
             presentCount,
             attendanceRate,
@@ -572,28 +545,50 @@ export default function EducationDashboardPage() {
           },
         }),
       });
-      const data = await res.json();
-      const reply = data.success && data.data?.answer
-        ? String(data.data.answer)
-        : 'Hệ thống AI đang bận, Thầy Cô vui lòng thử lại sau.';
+      const data = await readCopilotResponse<{ answer: string; source: string }>(res);
+      if (requestScope !== copilotScope.current) return;
+      if (typeof data.answer !== 'string' || !data.answer.trim()) throw new Error('Chưa nhận được câu trả lời hợp lệ từ Copilot.');
+      const reply = data.source === 'preschool_ai_pack_rules'
+        ? `Hướng dẫn theo quy tắc (chưa kết nối mô hình AI):\n${data.answer}`
+        : data.answer;
 
       setExecutiveQnAMessages((prev) => [
         ...prev,
         createExecutiveMessage('copilot', reply),
       ]);
-    } catch {
-      setExecutiveQnAMessages((prev) => [
-        ...prev,
-        createExecutiveMessage('copilot', 'Có lỗi kết nối trợ lý AI.'),
-      ]);
+    } catch (error) {
+      if (requestScope !== copilotScope.current) return;
+      setCopilotError(error instanceof Error ? error.message : 'Có lỗi kết nối trợ lý AI.');
     } finally {
-      setIsExecutiveAsking(false);
+      if (requestScope === copilotScope.current) setIsExecutiveAsking(false);
     }
   };
 
   return (
     <div className="preschool-ui min-h-screen bg-background p-4 sm:p-6 lg:p-7 space-y-6 text-slate-800 dark:text-slate-100 font-sans">
       
+      <section aria-label="Phạm vi Tổng quan" className="flex flex-wrap items-center gap-3">
+        <label className="text-sm font-semibold">Cơ sở
+          <select aria-label="Chọn cơ sở Tổng quan" value={selectedBranchId ?? ''} onChange={event => {
+            setDashboardData(null); setAnalyticsError(null); setLoadingDashboard(true); setCopilotNotice(null);
+            setSelectedBranchId(event.target.value || null);
+          }} className="ml-2 rounded-xl border border-slate-200 bg-white dark:bg-slate-900 px-3 py-2">
+            <option value="">Chọn cơ sở</option>
+            {branches.map(branch => <option key={branch.id} value={branch.id}>{branch.name}</option>)}
+          </select>
+        </label>
+        <span className="text-sm text-slate-500">Dữ liệu ngày {selectedDateStr}, trong cơ sở đang chọn.</span>
+        {(analyticsError || branchListError) && (
+          <div role="alert" className="space-y-1">
+            {analyticsError && <p>Không tải được Tổng quan: {analyticsError}. <button type="button" onClick={() => setRefreshKey(value => value + 1)}>Thử lại</button></p>}
+            {branchListError && <p>{branchListError}</p>}
+          </div>
+        )}
+        {!loadingDashboard && !analyticsError && !selectedBranchId && <p role="status">Chọn cơ sở để xem dữ liệu được cấp quyền.</p>}
+      </section>
+      {copilotNotice && <p role="status" className="rounded-xl border border-amber-200 p-3 text-sm">{copilotNotice}</p>}
+      {copilotError && <p role="alert" className="rounded-xl border border-rose-200 p-3 text-sm">{copilotError}</p>}
+
       {/* ── 1. TOP VIEWPORT HEADER (Search bar + User Tools) ── */}
       <header className="flex flex-col md:flex-row items-center justify-between gap-4 bg-transparent pb-1">
         {/* Search Bar Input */}
@@ -603,7 +598,8 @@ export default function EducationDashboardPage() {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Tìm kiếm học sinh, lớp học, giáo viên, ..."
+            aria-label="Lọc lớp trong cơ sở đang chọn"
+            placeholder="Lọc lớp trong cơ sở đang chọn"
             className="w-full pl-11 pr-4 py-2.5 rounded-full bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-sm text-slate-800 dark:text-slate-100 placeholder-slate-400 shadow-sm focus:outline-none focus:ring-2 focus:ring-ring/50 transition-all"
           />
         </div>
@@ -611,96 +607,8 @@ export default function EducationDashboardPage() {
         {/* User Profile & Notification Controls */}
         <div className="flex items-center gap-3.5 self-end md:self-auto relative">
           
-          {/* ── Notification Bell with Interactive Popover ── */}
-          <div className="relative" ref={notificationRef}>
-            <button 
-              type="button"
-              onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
-              className="relative p-2.5 rounded-full bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all shadow-sm active:scale-95 cursor-pointer"
-              title="Thông báo"
-            >
-              <Bell className="w-4 h-4" />
-              {unreadCount > 0 && (
-                <span className="absolute top-0 right-0 w-4 h-4 bg-rose-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-white dark:border-slate-950">
-                  {unreadCount}
-                </span>
-              )}
-            </button>
-
-            {/* Notifications Popover Dropdown */}
-            {isNotificationsOpen && (
-              <div className="absolute right-0 mt-3 w-80 sm:w-96 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
-                <div className="p-4 bg-slate-50 dark:bg-slate-800/60 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Bell className="w-4 h-4 text-sky-500" />
-                    <h3 className="text-sm font-black text-slate-900 dark:text-white">Thông báo trường học</h3>
-                  </div>
-                  {unreadCount > 0 && (
-                    <button 
-                      onClick={() => setUnreadCount(0)}
-                      className="text-[11px] font-bold text-[var(--education-brand-ink)] hover:underline cursor-pointer"
-                    >
-                      Đánh dấu đã đọc
-                    </button>
-                  )}
-                </div>
-
-                <div className="divide-y divide-slate-100 dark:divide-slate-800/60 max-h-80 overflow-y-auto">
-                  <div className="p-3.5 hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors flex items-start gap-3 cursor-pointer">
-                    <div className="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 flex items-center justify-center shrink-0 mt-0.5">
-                      <Baby className="w-4 h-4" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-xs font-extrabold text-slate-900 dark:text-slate-100">Nguyễn Minh Anh đã đến trường</p>
-                      <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Đã được điểm danh check-in lúc 07:32 bởi Cô Lan</p>
-                      <span className="text-[10px] text-slate-400 block mt-1">10 phút trước</span>
-                    </div>
-                  </div>
-
-                  <div className="p-3.5 hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors flex items-start gap-3 cursor-pointer">
-                    <div className="w-8 h-8 rounded-full bg-amber-100 dark:bg-amber-950/60 text-amber-600 flex items-center justify-center shrink-0 mt-0.5">
-                      <CreditCard className="w-4 h-4" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-xs font-extrabold text-slate-900 dark:text-slate-100">Đóng học phí thành công</p>
-                      <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Phụ huynh Lê Hoàng đã đóng học phí Tháng 10 (3.200.000đ)</p>
-                      <span className="text-[10px] text-slate-400 block mt-1">1 giờ trước</span>
-                    </div>
-                  </div>
-
-                  <div className="p-3.5 hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors flex items-start gap-3 cursor-pointer">
-                    <div className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-950/60 text-indigo-600 flex items-center justify-center shrink-0 mt-0.5">
-                      <CalendarDays className="w-4 h-4" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-xs font-extrabold text-slate-900 dark:text-slate-100">Cập nhật thực đơn mới</p>
-                      <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Lớp Chồi 2 vừa cập nhật thực đơn dinh dưỡng tuần tới</p>
-                      <span className="text-[10px] text-slate-400 block mt-1">2 giờ trước</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="p-3 bg-slate-50 dark:bg-slate-800/40 text-center border-t border-slate-100 dark:border-slate-800">
-                  <Link 
-                    href="/dashboard/education/communication" 
-                    onClick={() => setIsNotificationsOpen(false)}
-                    className="text-xs font-extrabold text-[var(--education-brand-ink)] hover:underline inline-flex items-center gap-1"
-                  >
-                    Xem tất cả thông báo
-                    <ChevronRight className="w-3.5 h-3.5" />
-                  </Link>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* ── Chat Messages Icon (Navigates to Communication) ── */}
-          <Link 
-            href="/dashboard/education/communication"
-            className="p-2.5 rounded-full bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all shadow-sm active:scale-95"
-            title="Truyền thông & Tin nhắn"
-          >
-            <MessageSquare className="w-4 h-4" />
+          <Link href="/dashboard/education/communication?tab=announcements" title="Bảng tin chung" aria-label="Bảng tin chung" className="p-2.5 rounded-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300">
+            <Bell className="w-4 h-4" />
           </Link>
 
           {/* ── User Profile Badge with Interactive Dropdown ── */}
@@ -711,19 +619,14 @@ export default function EducationDashboardPage() {
               className="flex items-center gap-3 p-1 rounded-full hover:bg-white/80 dark:hover:bg-slate-900/80 transition-all cursor-pointer group"
             >
               <div className="relative w-9 h-9 rounded-full overflow-hidden border-2 border-sky-300 dark:border-sky-700 shrink-0 bg-sky-100 group-hover:scale-105 transition-transform">
-                <Image
-                  src="/images/preschool_banner_kid.png"
-                  alt="Nguyễn Thị Lan"
-                  fill
-                  className="object-cover"
-                />
+                <span className="flex h-full items-center justify-center font-bold text-sky-900" aria-hidden="true">{displayName.slice(0, 1).toUpperCase()}</span>
               </div>
               <div className="hidden sm:block text-left">
                 <h4 className="text-xs font-extrabold text-slate-900 dark:text-white leading-tight">
-                  Nguyễn Thị Lan
+                  {displayName}
                 </h4>
                 <p className="text-[11px] font-bold text-[var(--education-brand-ink)]">
-                  Quản trị viên
+                  {userRole}
                 </p>
               </div>
               <ChevronDown className="w-4 h-4 text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-200 transition-colors" />
@@ -736,19 +639,14 @@ export default function EducationDashboardPage() {
                 <div className="p-4 bg-gradient-to-r from-sky-50 to-indigo-50 dark:from-slate-900 dark:to-slate-850 border-b border-slate-100 dark:border-slate-800">
                   <div className="flex items-center gap-3">
                     <div className="relative w-11 h-11 rounded-full overflow-hidden border-2 border-sky-400 shrink-0 bg-sky-100">
-                      <Image
-                        src="/images/preschool_banner_kid.png"
-                        alt="Nguyễn Thị Lan"
-                        fill
-                        className="object-cover"
-                      />
+                      <span className="flex h-full items-center justify-center font-bold text-sky-900" aria-hidden="true">{displayName.slice(0, 1).toUpperCase()}</span>
                     </div>
                     <div className="min-w-0 flex-1">
                       <h4 className="text-sm font-black text-slate-900 dark:text-white truncate">
-                        Nguyễn Thị Lan
+                        {displayName}
                       </h4>
                       <p className="text-xs font-bold text-[var(--education-brand-ink)] truncate">
-                        Quản trị viên Preschool
+                        {userRole}
                       </p>
                       <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-100/80 dark:bg-emerald-950/60 px-2 py-0.5 rounded-full mt-1">
                         <CheckCircle className="w-3 h-3" /> Tài khoản hoạt động
@@ -774,7 +672,7 @@ export default function EducationDashboardPage() {
                     className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-colors"
                   >
                     <Settings className="w-4 h-4 text-slate-500" />
-                    Cài đặt hệ thống & Giao diện
+                    Cài đặt hệ thống &amp; Giao diện
                   </Link>
 
                   <Link
@@ -801,7 +699,7 @@ export default function EducationDashboardPage() {
                     className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-colors"
                   >
                     <BookOpen className="w-4 h-4 text-slate-500" />
-                    Quản lý Lớp học & Chương trình
+                    Quản lý Lớp học &amp; Chương trình
                   </Link>
                 </div>
 
@@ -858,7 +756,8 @@ export default function EducationDashboardPage() {
 
               <input
                 type="date"
-                value={selectedDate.toISOString().split('T')[0]}
+                aria-label="Ngày Tổng quan"
+                value={selectedDateStr}
                 onChange={(e) => {
                   if (e.target.value) {
                     setSelectedDate(new Date(e.target.value));
@@ -869,7 +768,7 @@ export default function EducationDashboardPage() {
               />
 
               <div className="mt-3 pt-2.5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px]">
-                <span className="text-slate-500">Đã chọn: <strong className="text-[var(--education-brand-ink)] font-bold">{selectedDate.toLocaleDateString('vi-VN')}</strong></span>
+                <span className="text-slate-500">Đã chọn: <strong className="text-[var(--education-brand-ink)] font-bold">{new Intl.DateTimeFormat('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' }).format(selectedDate)}</strong></span>
                 <button
                   onClick={() => setIsDatePickerOpen(false)}
                   className="px-3 py-1 rounded-xl bg-primary hover:bg-primary-hover text-primary-foreground font-bold text-[10px] transition-colors cursor-pointer shadow-xs"
@@ -924,42 +823,42 @@ export default function EducationDashboardPage() {
       </div>
 
       {/* ── 2.3 EXECUTIVE AI COPILOT HUB (TRỢ LÝ ĐIỀU HÀNH BAN GIÁM HIỆU) ── */}
-      <div className="rounded-3xl bg-gradient-to-br from-violet-900 via-indigo-950 to-slate-900 text-white p-5 sm:p-6 shadow-xl border border-violet-500/30 relative overflow-hidden">
+      <div className="rounded-3xl bg-[color-mix(in_srgb,var(--primary)_6%,var(--background))] text-slate-800 dark:text-slate-100 p-5 sm:p-6 shadow-xl border border-primary/20 relative overflow-hidden">
         {/* Glow Effects */}
-        <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 left-10 w-72 h-72 bg-violet-600/20 rounded-full blur-2xl pointer-events-none" />
+        <div className="absolute top-0 right-0 w-96 h-96 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 left-10 w-72 h-72 bg-primary/5 rounded-full blur-2xl pointer-events-none" />
 
         <div className="relative z-10 space-y-5">
           {/* Header Bar */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/10 pb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-primary/20 pb-4">
             <div className="flex items-center gap-3">
-              <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-violet-400 to-indigo-500 flex items-center justify-center text-white shadow-lg shrink-0">
+              <div className="w-11 h-11 rounded-2xl bg-primary flex items-center justify-center text-primary-foreground shadow-lg shrink-0">
                 <Sparkles className="w-6 h-6 animate-pulse" />
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <h2 className="text-base sm:text-lg font-black tracking-tight text-white">
+                  <h2 className="preschool-brand-heading text-base sm:text-lg font-black tracking-tight text-[var(--education-brand-ink)]">
                     Trợ lý Điều hành AI — Ban Giám Hiệu
                   </h2>
-                  <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-violet-500/30 text-violet-200 border border-violet-400/30 tracking-wide">
+                  <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-background text-[var(--education-brand-ink)] border border-primary/20 tracking-wide">
                     Executive Copilot
                   </span>
                 </div>
-                <p className="text-xs text-violet-200/80 mt-0.5 font-medium">
-                  Điểm tin toàn trường, rà soát tuân thủ định mức Thông tư 52 & hỏi đáp nghiệp vụ quản lý
+                <p className="text-xs text-[var(--color-slate-600)] dark:text-[var(--color-slate-200)] mt-0.5 font-medium">
+                  Điểm tin cơ sở đang chọn, rà soát tuân thủ định mức Thông tư 52 &amp; hỏi đáp nghiệp vụ quản lý
                 </p>
               </div>
             </div>
 
             {/* Navigation Tabs */}
-            <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-white/10 backdrop-blur-md border border-white/10 self-start sm:self-auto">
+            <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-background backdrop-blur-md border border-primary/20 self-start sm:self-auto">
               <button
                 type="button"
                 onClick={() => setActiveCopilotTab('briefing')}
                 className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                   activeCopilotTab === 'briefing'
-                    ? 'bg-white text-indigo-950 shadow-sm'
-                    : 'text-violet-200 hover:text-white hover:bg-white/10'
+                    ? 'bg-primary text-primary-foreground shadow-sm'
+                    : 'text-slate-700 dark:text-slate-200 hover:bg-primary/10'
                 }`}
               >
                 Điểm tin AI
@@ -969,8 +868,8 @@ export default function EducationDashboardPage() {
                 onClick={() => setActiveCopilotTab('compliance')}
                 className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                   activeCopilotTab === 'compliance'
-                    ? 'bg-white text-indigo-950 shadow-sm'
-                    : 'text-violet-200 hover:text-white hover:bg-white/10'
+                    ? 'bg-primary text-primary-foreground shadow-sm'
+                    : 'text-slate-700 dark:text-slate-200 hover:bg-primary/10'
                 }`}
               >
                 Rà soát TT52
@@ -980,8 +879,8 @@ export default function EducationDashboardPage() {
                 onClick={() => setActiveCopilotTab('qa')}
                 className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                   activeCopilotTab === 'qa'
-                    ? 'bg-white text-indigo-950 shadow-sm'
-                    : 'text-violet-200 hover:text-white hover:bg-white/10'
+                    ? 'bg-primary text-primary-foreground shadow-sm'
+                    : 'text-slate-700 dark:text-slate-200 hover:bg-primary/10'
                 }`}
               >
                 Hỏi đáp BGH
@@ -992,22 +891,22 @@ export default function EducationDashboardPage() {
           {/* TAB 1: EXECUTIVE BRIEFING */}
           {activeCopilotTab === 'briefing' && (
             <div className="space-y-4 animate-in fade-in duration-200">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white/5 rounded-2xl p-4 border border-white/10">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-background rounded-2xl p-4 border border-primary/20">
                 <div className="space-y-1">
-                  <p className="text-xs font-bold text-violet-200 uppercase tracking-wide">
+                  <p className="text-xs font-bold text-[var(--education-brand-ink)] uppercase tracking-wide">
                     Tình hình tổng quan hôm nay
                   </p>
-                  <p className="text-sm font-semibold text-white/90">
-                    Sĩ số toàn trường: <span className="font-black text-amber-300">{totalKidsCount}</span> trẻ • 
-                    Có mặt: <span className="font-black text-emerald-300">{presentCount}</span> trẻ ({attendanceRate}% chuyên cần) • 
-                    Ca sốt/y tế: <span className="font-black text-rose-300">{healthIncidents ?? 0}</span>
+                  <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">
+                    Sĩ số cơ sở: <span className="font-black text-[var(--education-brand-ink)]">{metric(totalKidsCount)}</span> trẻ •
+                    Có mặt: <span className="font-black text-[var(--color-emerald-700)] dark:text-[var(--color-emerald-300)]">{metric(presentCount)}</span> trẻ ({metric(attendanceRate, '%')} chuyên cần) •
+                    Ca sốt/y tế: <span className="font-black text-[var(--color-rose-700)] dark:text-[var(--color-rose-300)]">{metric(healthIncidents)}</span>
                   </p>
                 </div>
                 <button
                   type="button"
                   onClick={handleGenerateBriefing}
                   disabled={isAiBriefingLoading}
-                  className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-slate-950 font-black text-xs shadow-md transition-all active:scale-95 disabled:opacity-50 cursor-pointer shrink-0 inline-flex items-center gap-2"
+                  className="px-4 py-2.5 rounded-xl bg-primary hover:bg-primary-hover text-primary-foreground font-black text-xs shadow-md transition-all active:scale-95 disabled:opacity-50 cursor-pointer shrink-0 inline-flex items-center gap-2"
                 >
                   {isAiBriefingLoading ? (
                     <>
@@ -1026,27 +925,27 @@ export default function EducationDashboardPage() {
               {executiveBriefing && (
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {/* Summary Box */}
-                  <div className="md:col-span-2 p-4 rounded-2xl bg-white/10 border border-white/15 space-y-3">
+                  <div className="md:col-span-2 p-4 rounded-2xl bg-background border border-primary/20 space-y-3">
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-black uppercase text-amber-300 tracking-wider flex items-center gap-1.5">
+                      <span className="text-xs font-black uppercase text-[var(--education-brand-ink)] tracking-wider flex items-center gap-1.5">
                         <FileText className="w-3.5 h-3.5" />
                         Điểm tin tổng kết
                       </span>
-                      <span className="text-[10px] text-violet-300">
+                      <span className="text-[10px] text-[var(--color-slate-600)] dark:text-[var(--color-slate-200)]">
                         {new Date(executiveBriefing.generatedAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}
                       </span>
                     </div>
-                    <p className="text-xs sm:text-sm text-slate-100 leading-relaxed font-medium">
+                    <p className="text-xs sm:text-sm text-slate-700 dark:text-slate-200 leading-relaxed font-medium">
                       {executiveBriefing.executiveSummary}
                     </p>
 
                     {/* Actionable recommendations */}
                     {executiveBriefing.actionableRecommendations.length > 0 && (
-                      <div className="pt-2 border-t border-white/10 space-y-1.5">
-                        <p className="text-[11px] font-bold text-violet-200">Khuyến nghị hành động:</p>
+                      <div className="pt-2 border-t border-primary/20 space-y-1.5">
+                        <p className="text-[11px] font-bold text-[var(--education-brand-ink)]">Khuyến nghị hành động:</p>
                         {executiveBriefing.actionableRecommendations.map((rec, i) => (
-                          <div key={i} className="flex items-start gap-2 text-xs text-white/90">
-                            <span className="text-amber-400 shrink-0">▸</span>
+                          <div key={i} className="flex items-start gap-2 text-xs text-slate-700 dark:text-slate-200">
+                            <span className="text-[var(--education-brand-ink)] shrink-0">▸</span>
                             <span>{rec}</span>
                           </div>
                         ))}
@@ -1055,20 +954,20 @@ export default function EducationDashboardPage() {
                   </div>
 
                   {/* Alerts Box */}
-                  <div className="p-4 rounded-2xl bg-white/10 border border-white/15 space-y-3">
-                    <span className="text-xs font-black uppercase text-rose-300 tracking-wider flex items-center gap-1.5">
+                  <div className="p-4 rounded-2xl bg-background border border-primary/20 space-y-3">
+                    <span className="text-xs font-black uppercase text-[var(--color-rose-700)] dark:text-[var(--color-rose-300)] tracking-wider flex items-center gap-1.5">
                       <ShieldAlert className="w-3.5 h-3.5" />
                       Cảnh báo điều hành
                     </span>
                     {executiveBriefing.criticalAlerts.length === 0 ? (
-                      <div className="flex items-center gap-2 text-xs text-emerald-300 py-4">
+                      <div className="flex items-center gap-2 text-xs text-[var(--color-emerald-700)] dark:text-[var(--color-emerald-300)] py-4">
                         <CheckCircle className="w-4 h-4 shrink-0" />
                         <span>Không có cảnh báo nguy cấp. Vận hành ổn định.</span>
                       </div>
                     ) : (
                       <div className="space-y-2">
                         {executiveBriefing.criticalAlerts.map((alert, i) => (
-                          <div key={i} className="p-2.5 rounded-xl bg-rose-500/20 border border-rose-400/30 text-rose-200 text-xs font-medium leading-relaxed">
+                          <div key={i} className="p-2.5 rounded-xl bg-rose-50 dark:bg-rose-950 border border-rose-200 dark:border-rose-800 text-[var(--color-rose-700)] dark:text-[var(--color-rose-200)] text-xs font-medium leading-relaxed">
                             {alert}
                           </div>
                         ))}
@@ -1083,20 +982,20 @@ export default function EducationDashboardPage() {
           {/* TAB 2: COMPLIANCE & SAFETY SENTINEL */}
           {activeCopilotTab === 'compliance' && (
             <div className="space-y-4 animate-in fade-in duration-200">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white/5 rounded-2xl p-4 border border-white/10">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-background rounded-2xl p-4 border border-primary/20">
                 <div>
-                  <p className="text-xs font-bold text-violet-200 uppercase tracking-wide">
+                  <p className="text-xs font-bold text-[var(--education-brand-ink)] uppercase tracking-wide">
                     Kiểm định định mức mầm non (Thông tư 52/2020/TT-BGDĐT)
                   </p>
-                  <p className="text-xs text-white/80 mt-1">
-                    Chuẩn định mức: Nhà trẻ ≤ 25 trẻ (≤ 12 trẻ/GV) • Mầm ≤ 25 • Chồi ≤ 30 • Lá ≤ 35
+                  <p className="text-xs text-[var(--color-slate-600)] dark:text-[var(--color-slate-200)] mt-1">
+                    Chưa có nguồn chuẩn về độ tuổi, nhân sự và định mức để kết luận tuân thủ.
                   </p>
                 </div>
                 <button
                   type="button"
                   onClick={handleRunComplianceAudit}
                   disabled={isComplianceAuditLoading}
-                  className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-400 to-teal-500 hover:from-emerald-500 hover:to-teal-600 text-slate-950 font-black text-xs shadow-md transition-all active:scale-95 disabled:opacity-50 cursor-pointer shrink-0 inline-flex items-center gap-2"
+                  className="px-4 py-2.5 rounded-xl bg-primary hover:bg-primary-hover text-primary-foreground font-black text-xs shadow-md transition-all active:scale-95 disabled:opacity-50 cursor-pointer shrink-0 inline-flex items-center gap-2"
                 >
                   {isComplianceAuditLoading ? (
                     <>
@@ -1114,36 +1013,36 @@ export default function EducationDashboardPage() {
 
               {complianceResult && (
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <div className="p-4 rounded-2xl bg-white/10 border border-white/15 flex items-center gap-4">
-                    <div className="text-3xl font-black text-amber-300">
-                      {complianceResult.complianceScore}<span className="text-sm text-violet-200">/100</span>
+                  <div className="p-4 rounded-2xl bg-background border border-primary/20 flex items-center gap-4">
+                    <div className="text-3xl font-black text-[var(--education-brand-ink)]">
+                      {complianceResult.complianceScore}<span className="text-sm text-[var(--color-slate-600)] dark:text-[var(--color-slate-200)]">/100</span>
                     </div>
                     <div>
-                      <p className="text-xs font-black uppercase text-white">Điểm chuẩn TT52</p>
-                      <p className="text-[11px] text-violet-200 mt-0.5">
+                      <p className="text-xs font-black uppercase text-slate-800 dark:text-slate-100">Điểm chuẩn TT52</p>
+                      <p className="text-[11px] text-[var(--color-slate-600)] dark:text-[var(--color-slate-200)] mt-0.5">
                         {complianceResult.compliant ? 'Đạt chuẩn 100%' : 'Có điểm cần điều chỉnh'}
                       </p>
                     </div>
                   </div>
 
-                  <div className="sm:col-span-2 p-4 rounded-2xl bg-white/10 border border-white/15 space-y-2">
-                    <p className="text-xs font-black uppercase text-violet-200">Kết quả rà soát {complianceResult.inspectedClassesCount} lớp:</p>
+                  <div className="sm:col-span-2 p-4 rounded-2xl bg-background border border-primary/20 space-y-2">
+                    <p className="text-xs font-black uppercase text-[var(--education-brand-ink)]">Kết quả rà soát {complianceResult.inspectedClassesCount} lớp:</p>
                     {complianceResult.violations.length === 0 && complianceResult.warnings.length === 0 ? (
-                      <div className="flex items-center gap-2 text-xs text-emerald-300 font-medium">
+                      <div className="flex items-center gap-2 text-xs text-[var(--color-emerald-700)] dark:text-[var(--color-emerald-300)] font-medium">
                         <CheckCircle className="w-4 h-4 shrink-0" />
-                        <span>Tất cả các lớp học đều tuân thủ đúng định mức sĩ số và tỷ lệ giáo viên của Bộ GD&ĐT.</span>
+                        <span>Tất cả các lớp học đều tuân thủ đúng định mức sĩ số và tỷ lệ giáo viên của Bộ GD&amp;ĐT.</span>
                       </div>
                     ) : (
                       <div className="space-y-1.5 max-h-36 overflow-y-auto">
                         {complianceResult.violations.map((v, i) => (
-                          <div key={i} className="text-xs text-rose-300 font-medium flex items-start gap-1.5">
-                            <span className="text-rose-400 font-bold shrink-0">✕</span>
+                          <div key={i} className="text-xs text-[var(--color-rose-700)] dark:text-[var(--color-rose-300)] font-medium flex items-start gap-1.5">
+                            <span className="text-[var(--color-rose-700)] dark:text-[var(--color-rose-300)] font-bold shrink-0">✕</span>
                             <span>{v}</span>
                           </div>
                         ))}
                         {complianceResult.warnings.map((w, i) => (
-                          <div key={i} className="text-xs text-amber-300 font-medium flex items-start gap-1.5">
-                            <span className="text-amber-400 font-bold shrink-0">⚠</span>
+                          <div key={i} className="text-xs text-[var(--color-amber-700)] dark:text-[var(--color-amber-300)] font-medium flex items-start gap-1.5">
+                            <span className="text-[var(--color-amber-700)] dark:text-[var(--color-amber-300)] font-bold shrink-0">⚠</span>
                             <span>{w}</span>
                           </div>
                         ))}
@@ -1168,24 +1067,24 @@ export default function EducationDashboardPage() {
                     }`}
                   >
                     {msg.sender === 'copilot' && (
-                      <div className="w-7 h-7 rounded-lg bg-violet-600 flex items-center justify-center text-white shrink-0 mt-0.5 text-xs font-black">
+                      <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center text-primary-foreground shrink-0 mt-0.5 text-xs font-black">
                         AI
                       </div>
                     )}
                     <div
                       className={`max-w-[85%] rounded-2xl p-3 text-xs leading-relaxed ${
                         msg.sender === 'user'
-                          ? 'bg-amber-400 text-slate-950 font-semibold'
-                          : 'bg-white/10 text-white border border-white/10 whitespace-pre-line'
+                          ? 'bg-primary text-primary-foreground font-semibold'
+                          : 'bg-background text-slate-700 dark:text-slate-200 border border-primary/20 whitespace-pre-line'
                       }`}
                     >
                       <p>{msg.text}</p>
-                      <span className="text-[9px] opacity-60 block mt-1 text-right">{msg.time}</span>
+                      <span className="text-[9px] block mt-1 text-right">{msg.time}</span>
                     </div>
                   </div>
                 ))}
                 {isExecutiveAsking && (
-                  <div className="flex items-center gap-2 text-xs text-violet-300 p-2">
+                  <div className="flex items-center gap-2 text-xs text-[var(--color-slate-600)] dark:text-[var(--color-slate-200)] p-2">
                     <Loader2 className="w-3.5 h-3.5 animate-spin" />
                     <span>Copilot đang phân tích số liệu quản trị mầm non...</span>
                   </div>
@@ -1205,7 +1104,7 @@ export default function EducationDashboardPage() {
                     type="button"
                     onClick={() => void handleSendExecutiveQuestion(q)}
                     disabled={isExecutiveAsking}
-                    className="px-2.5 py-1 rounded-full bg-white/10 hover:bg-white/20 text-violet-200 text-[10px] font-bold border border-white/10 transition-colors cursor-pointer disabled:opacity-40"
+                    className="px-2.5 py-1 rounded-full bg-background hover:bg-primary/10 text-[var(--education-brand-ink)] text-[10px] font-bold border border-primary/20 transition-colors cursor-pointer disabled:opacity-40"
                   >
                     {q}
                   </button>
@@ -1226,12 +1125,12 @@ export default function EducationDashboardPage() {
                   onChange={(e) => setExecutiveQuestion(e.target.value)}
                   placeholder="Đặt câu hỏi điều hành (VD: Soạn thư cảm ơn phụ huynh, rà soát sĩ số lớp Chồi)..."
                   disabled={isExecutiveAsking}
-                  className="flex-1 bg-white/10 border border-white/20 rounded-xl px-3.5 py-2 text-xs text-white placeholder:text-violet-300/60 outline-none focus:border-amber-400 transition-colors"
+                  className="flex-1 bg-background border border-slate-400 dark:border-slate-500 rounded-xl px-3.5 py-2 text-xs text-slate-800 dark:text-slate-100 placeholder:text-[var(--color-slate-600)] dark:placeholder:text-[var(--color-slate-200)] outline-none focus:border-[var(--education-brand-ink)] focus:ring-2 focus:ring-[var(--education-brand-ink)] transition-colors"
                 />
                 <button
                   type="submit"
                   disabled={!executiveQuestion.trim() || isExecutiveAsking}
-                  className="px-3.5 py-2 rounded-xl bg-amber-400 text-slate-950 hover:bg-amber-500 font-bold text-xs disabled:opacity-40 transition-all cursor-pointer shrink-0 flex items-center gap-1.5"
+                  className="px-3.5 py-2 rounded-xl bg-primary text-primary-foreground hover:bg-primary-hover font-bold text-xs disabled:opacity-40 transition-all cursor-pointer shrink-0 flex items-center gap-1.5"
                 >
                   <Send className="w-3.5 h-3.5" />
                   <span>Gửi</span>
@@ -1302,7 +1201,7 @@ export default function EducationDashboardPage() {
                 <CalendarCheck className="w-4 h-4" />
               </div>
               <div className="min-w-0">
-                <p className="text-xs font-black text-amber-950 dark:text-amber-200 truncate">{unmarkedAttendance ?? 0} trẻ chưa điểm danh</p>
+                <p className="text-xs font-black text-amber-950 dark:text-amber-200 truncate">{metric(unmarkedAttendance)} trẻ chưa điểm danh</p>
                 <span className="text-[11px] font-bold text-amber-700 dark:text-amber-400 group-hover:underline">Điểm danh ngay →</span>
               </div>
             </Link>
@@ -1315,7 +1214,7 @@ export default function EducationDashboardPage() {
                 <FileText className="w-4 h-4" />
               </div>
               <div className="min-w-0">
-                <p className="text-xs font-black text-sky-950 dark:text-sky-200 truncate">{leaveRequests ?? 0} đơn nghỉ chờ duyệt</p>
+                <p className="text-xs font-black text-sky-950 dark:text-sky-200 truncate">{metric(leaveRequests)} đơn nghỉ chờ duyệt</p>
                 <span className="text-[11px] font-bold text-sky-700 dark:text-sky-400 group-hover:underline">Duyệt ngay →</span>
               </div>
             </Link>
@@ -1328,7 +1227,7 @@ export default function EducationDashboardPage() {
                 <CreditCard className="w-4 h-4" />
               </div>
               <div className="min-w-0">
-                <p className="text-xs font-black text-rose-950 dark:text-rose-200 truncate">{overdueInvoices ?? 0} học phí quá hạn</p>
+                <p className="text-xs font-black text-rose-950 dark:text-rose-200 truncate">{metric(overdueInvoices)} học phí quá hạn</p>
                 <span className="text-[11px] font-bold text-rose-700 dark:text-rose-400 group-hover:underline">Xem công nợ →</span>
               </div>
             </Link>
@@ -1341,7 +1240,7 @@ export default function EducationDashboardPage() {
                 <Heart className="w-4 h-4 animate-pulse" />
               </div>
               <div className="min-w-0">
-                <p className="text-xs font-black text-red-950 dark:text-red-200 truncate">{healthIncidents ?? 0} sự cố sức khỏe</p>
+                <p className="text-xs font-black text-red-950 dark:text-red-200 truncate">{metric(healthIncidents)} sự cố sức khỏe</p>
                 <span className="text-[11px] font-bold text-red-700 dark:text-red-400 group-hover:underline">Theo dõi bé →</span>
               </div>
             </Link>
@@ -1354,7 +1253,7 @@ export default function EducationDashboardPage() {
                 <MessageSquare className="w-4 h-4" />
               </div>
               <div className="min-w-0">
-                <p className="text-xs font-black text-purple-950 dark:text-purple-200 truncate">{parentRequests ?? 0} yêu cầu phụ huynh</p>
+                <p className="text-xs font-black text-purple-950 dark:text-purple-200 truncate">{metric(parentRequests)} yêu cầu phụ huynh</p>
                 <span className="text-[11px] font-bold text-purple-700 dark:text-purple-400 group-hover:underline">Xem yêu cầu →</span>
               </div>
             </Link>
@@ -1388,7 +1287,7 @@ export default function EducationDashboardPage() {
                 {loadingDashboard ? (
                   <div className="h-8 w-20 bg-slate-200 dark:bg-slate-800 rounded animate-pulse my-0.5" />
                 ) : (
-                  <h3 className="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+                  <h3 data-testid={`metric-${kpi.id}`} className="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">
                     {kpi.value}
                   </h3>
                 )}
@@ -1403,15 +1302,7 @@ export default function EducationDashboardPage() {
               </div>
             </div>
 
-            <div className="mt-3 flex items-center gap-1.5 text-[11px]">
-              <span className="font-bold text-emerald-600 dark:text-emerald-400 flex items-center">
-                <TrendingUp className="w-3 h-3 mr-0.5 inline" />
-                {kpi.change}
-              </span>
-              <span className="text-slate-600 dark:text-slate-300 font-semibold truncate">
-                {kpi.comparison}
-              </span>
-            </div>
+            <p className="mt-3 text-[11px] text-slate-500">Chưa có dữ liệu so sánh kỳ trước.</p>
           </div>
         ))}
       </div>
@@ -1426,18 +1317,7 @@ export default function EducationDashboardPage() {
               <span>Sĩ số học sinh theo lớp</span>
               {loadingDashboard && <Loader2 className="w-3.5 h-3.5 animate-spin text-slate-400" />}
             </h3>
-            {/* Year Selector */}
-            <div className="relative">
-              <select
-                value={selectedAcademicYear}
-                onChange={(e) => setSelectedAcademicYear(e.target.value)}
-                className="appearance-none bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-300 rounded-xl px-3 py-1.5 pr-7 focus:outline-none cursor-pointer"
-              >
-                <option>Năm học 2026 - 2027</option>
-                <option>Năm học 2025 - 2026</option>
-              </select>
-              <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
-            </div>
+            <span className="text-xs text-slate-500">Hiện tại</span>
           </div>
 
           {/* Bar Chart Graphic */}
@@ -1610,7 +1490,7 @@ export default function EducationDashboardPage() {
           ) : previewActivities.length === 0 ? (
             <div className="py-12 flex flex-col items-center justify-center text-center space-y-2">
               <Clock className="w-8 h-8 text-slate-300 dark:text-slate-700 mx-auto" />
-              <p className="text-xs text-slate-400 font-medium">Chưa có hoạt động nào được ghi nhận hôm nay</p>
+              <p className="text-xs text-slate-400 font-medium">Chưa có nguồn nhật ký hoạt động trong Tổng quan.</p>
             </div>
           ) : (
             <div className="space-y-3 pt-1">
@@ -1656,12 +1536,12 @@ export default function EducationDashboardPage() {
             {/* Period Selector */}
             <div className="relative">
               <select
-                value={selectedRevenuePeriod}
-                onChange={(e) => setSelectedRevenuePeriod(e.target.value)}
+                value=""
+                disabled
+                aria-label="Kỳ doanh thu chưa khả dụng"
                 className="appearance-none bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-700 dark:text-slate-300 rounded-xl px-3 py-1.5 pr-7 focus:outline-none cursor-pointer"
               >
-                <option>6 tháng gần nhất</option>
-                <option>12 tháng qua</option>
+                <option value="">Chưa có dữ liệu doanh thu theo kỳ</option>
               </select>
               <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
             </div>
@@ -1815,7 +1695,7 @@ export default function EducationDashboardPage() {
           ) : announcements.length === 0 ? (
             <div className="py-8 flex flex-col items-center justify-center text-center space-y-2">
               <Megaphone className="w-8 h-8 text-slate-300 dark:text-slate-700 mx-auto" />
-              <p className="text-xs text-slate-400 font-medium">Không có thông báo mới</p>
+              <p className="text-xs text-slate-400 font-medium">Xem thông báo chung tại Bảng tin nhà trường.</p>
             </div>
           ) : (
             <div className="space-y-2.5 pt-1">
@@ -2031,7 +1911,7 @@ export default function EducationDashboardPage() {
                   href="/dashboard/education/learning"
                   className="text-emerald-700 dark:text-emerald-400 hover:underline flex items-center gap-1"
                 >
-                  <span>Học tập & Hoạt động</span>
+                  <span>Học tập &amp; Hoạt động</span>
                   <ArrowRight className="w-3.5 h-3.5" />
                 </Link>
               </div>
@@ -2229,7 +2109,7 @@ export default function EducationDashboardPage() {
                 onClick={() => setIsMenuDrawerOpen(false)}
                 className="text-emerald-700 dark:text-emerald-400 hover:underline flex items-center gap-1 font-bold"
               >
-                <span>Chuyển tới Chăm sóc & Điểm danh suất ăn</span>
+                <span>Chuyển tới Chăm sóc &amp; Điểm danh suất ăn</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </Link>
             </div>

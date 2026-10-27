@@ -3,6 +3,9 @@ import '@testing-library/jest-dom';
 import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import GradesPage from '../page';
 
+// Existing UI regression contract for other products; Preschool containment is tested separately.
+jest.mock('@/lib/user-context', () => ({ useUser: () => ({ user: { id: 'synthetic-user', tenant_id: 'synthetic-tenant' }, product: { productKey: 'bella_english_center' }, isLoading: false }) }));
+
 jest.mock('@/lib/dashboard-client-context', () => ({ getCachedTenantSettings: async () => null }));
 jest.mock('next/image', () => ({
   __esModule: true,

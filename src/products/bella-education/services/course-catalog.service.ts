@@ -8,6 +8,11 @@
  */
 
 import { IEducationCourseContract, EducationCourseDTO } from '../../../platform/education/contracts/course.contract';
+import {
+  type CreateCanonicalCourseInput,
+  type CreatedCanonicalCourse,
+  type ICanonicalCourseCommandContract,
+} from '../../../platform/education/contracts/canonical-course-catalog.contract';
 import { bellaEducationManifest } from '../manifest';
 
 export class CourseCatalogProductService {
@@ -28,5 +33,17 @@ export class CourseCatalogProductService {
     if (!tenantId) throw new Error('TENANT_ISOLATION_VIOLATION: tenantId is required');
 
     return this.courseContract.listCourses(tenantId);
+  }
+}
+
+/** Preschool Product application service; it delegates writes to Education's public command. */
+export class PreschoolClassroomCommandProductService {
+  constructor(private readonly courseCommand: ICanonicalCourseCommandContract) {}
+
+  async createCourse(input: CreateCanonicalCourseInput): Promise<CreatedCanonicalCourse> {
+    if (!bellaEducationManifest.capabilities?.includes('preschool_classroom_create')) {
+      throw new Error("MANIFEST_VIOLATION: Capability 'preschool_classroom_create' is not enabled in product manifest.");
+    }
+    return this.courseCommand.createCourse(input);
   }
 }

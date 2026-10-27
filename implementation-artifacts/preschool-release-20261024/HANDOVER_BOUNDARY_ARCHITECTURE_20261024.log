@@ -1,0 +1,10 @@
+Education direct database access baseline: 248
+Education direct database access current: 245
+Education direct database access debt reduced versus baseline; allowing improvement.
+Education internal kernel import baseline: 0
+Education internal kernel import current: 0
+Education internal kernel import has zero violations.
+Education cross-vertical leakage baseline: 0
+Education cross-vertical leakage current: 0
+Education cross-vertical leakage has zero violations.
+Education architecture baseline policy: ALLOW

@@ -1,7 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 
-const AUTHORIZED_STATUS = 'authorized';
-
 type BellaEducationClient = SupabaseClient;
 
 interface HandoverEventRow {
@@ -46,6 +44,11 @@ export interface RecordPreschoolHandoverInput {
   readonly operatorUserId: string;
 }
 
+export type PreschoolHandoverCommand = (input: RecordPreschoolHandoverInput) => PromiseLike<{
+  data: unknown;
+  error: { code?: string; message: string } | null;
+}>;
+
 export interface PreschoolHandoverDTO {
   readonly id: string;
   readonly tenantId: string;
@@ -56,46 +59,42 @@ export interface PreschoolHandoverDTO {
   readonly handedOverBy: string;
 }
 
+export class PreschoolHandoverError extends Error {
+  constructor(readonly code: string, readonly status: number) {
+    super(code);
+    this.name = 'PreschoolHandoverError';
+  }
+}
+
 export class PreschoolSafePickupHandoverService {
-  constructor(private readonly supabase: BellaEducationClient) {}
+  constructor(
+    private readonly supabase: BellaEducationClient,
+    private readonly command?: PreschoolHandoverCommand,
+  ) {}
 
   async recordHandover(input: RecordPreschoolHandoverInput): Promise<PreschoolHandoverDTO> {
-    await this.assertPartyBelongsToTenant(input.tenantId, input.studentPartyId, 'Student');
-    await this.assertPartyBelongsToTenant(input.tenantId, input.guardianPartyId, 'Guardian');
-    await this.assertActiveAuthorization(input);
-
-    const existingToday = await this.findTodayHandover(input.tenantId, input.studentPartyId);
-    if (existingToday) {
-      if (
-        existingToday.guardian_party_id !== input.guardianPartyId
-        || existingToday.pickup_authorization_id !== input.pickupAuthorizationId
-      ) {
-        throw new Error('STUDENT_ALREADY_HANDED_OVER_TODAY');
-      }
-
-      return this.toDTO(existingToday);
-    }
-
-    const { data, error } = await this.supabase
-      .from('edu_preschool_pickup_handover_events')
-      .insert({
-        tenant_id: input.tenantId,
-        student_party_id: input.studentPartyId,
-        guardian_party_id: input.guardianPartyId,
-        pickup_authorization_id: input.pickupAuthorizationId,
-        handed_over_by: input.operatorUserId,
-      })
-      .select('*')
-      .single();
-
+    // The Product command serializes creation/recovery and rechecks current
+    // authorization after DB waits. Never fall back to a direct table insert.
+    if (!this.command) throw new Error('PRESCHOOL_HANDOVER_COMMAND_REQUIRED');
+    const { data, error } = await this.command(input);
     if (error) {
-      throw new Error(`Failed to record Preschool handover: ${error.message}`);
+      const status = error.code === '42501' ? 403
+        : error.code === '23505' || error.code === '40001' ? 409
+          : error.code === '22023' ? 400 : null;
+      if (status !== null) {
+        throw new PreschoolHandoverError(error.message, status);
+      }
+      throw new Error(`Failed to record Preschool handover [${error.code ?? 'UNKNOWN'}]`);
     }
-    if (!isHandoverEventRow(data)) {
-      throw new Error('Failed to read Preschool handover after insert');
+    const row: unknown = Array.isArray(data) && data.length === 1 ? data[0] : null;
+    if (!isHandoverEventRow(row) || !row.id
+      || row.tenant_id !== input.tenantId || row.student_party_id !== input.studentPartyId
+      || row.guardian_party_id !== input.guardianPartyId
+      || row.pickup_authorization_id !== input.pickupAuthorizationId
+      || !Number.isFinite(Date.parse(row.handed_over_at)) || !row.handed_over_by) {
+      throw new Error('PRESCHOOL_HANDOVER_CANONICAL_READBACK_INVALID');
     }
-
-    return this.toDTO(data);
+    return this.toDTO(row);
   }
 
   async getLatestHandovers(
@@ -131,81 +130,6 @@ export class PreschoolSafePickupHandoverService {
     }
 
     return handoversByStudent;
-  }
-
-  private async assertPartyBelongsToTenant(
-    tenantId: string,
-    partyId: string,
-    label: 'Student' | 'Guardian',
-  ): Promise<void> {
-    const { data, error } = await this.supabase
-      .from('party_parties')
-      .select('id')
-      .eq('tenant_id', tenantId)
-      .eq('id', partyId)
-      .maybeSingle();
-
-    if (error) {
-      throw new Error(`Failed to validate ${label} Party: ${error.message}`);
-    }
-    if (!data) {
-      throw new Error(`${label.toUpperCase()}_PARTY_NOT_FOUND_FOR_TENANT`);
-    }
-  }
-
-  private async assertActiveAuthorization(input: RecordPreschoolHandoverInput): Promise<void> {
-    const { data, error } = await this.supabase
-      .from('edu_preschool_pickup_authorizations')
-      .select('id')
-      .eq('id', input.pickupAuthorizationId)
-      .eq('tenant_id', input.tenantId)
-      .eq('student_party_id', input.studentPartyId)
-      .eq('guardian_party_id', input.guardianPartyId)
-      .eq('status', AUTHORIZED_STATUS)
-      .maybeSingle();
-
-    if (error) {
-      throw new Error(`Failed to validate Preschool pickup authorization: ${error.message}`);
-    }
-    if (!data) {
-      throw new Error('ACTIVE_PICKUP_AUTHORIZATION_NOT_FOUND');
-    }
-  }
-
-  private async findTodayHandover(tenantId: string, studentPartyId: string): Promise<HandoverEventRow | null> {
-    const { start, end } = this.todayHoChiMinhWindow();
-    const { data, error } = await this.supabase
-      .from('edu_preschool_pickup_handover_events')
-      .select('*')
-      .eq('tenant_id', tenantId)
-      .eq('student_party_id', studentPartyId)
-      .gte('handed_over_at', start)
-      .lt('handed_over_at', end)
-      .order('handed_over_at', { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
-    if (error) {
-      throw new Error(`Failed to read current Preschool handover state: ${error.message}`);
-    }
-
-    return isHandoverEventRow(data) ? data : null;
-  }
-
-  private todayHoChiMinhWindow(): { start: string; end: string } {
-    const today = new Intl.DateTimeFormat('en-CA', {
-      timeZone: 'Asia/Ho_Chi_Minh',
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-    }).format(new Date());
-    const start = new Date(`${today}T00:00:00+07:00`);
-    const end = new Date(start.getTime() + 24 * 60 * 60 * 1000);
-
-    return {
-      start: start.toISOString(),
-      end: end.toISOString(),
-    };
   }
 
   private toDTO(row: HandoverEventRow): PreschoolHandoverDTO {

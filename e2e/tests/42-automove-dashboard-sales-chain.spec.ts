@@ -176,7 +176,17 @@ test('AutoMove actual dashboard: login to booking, deposit and explicit recognit
     }
     const snapshotSaved = page.waitForResponse(response => response.url().endsWith('/sales-chain/snapshot') && response.request().method() === 'POST', { timeout: 60_000 });
     await sale.getByRole('button', { name: 'Lưu hồ sơ nháp', exact: true }).click();
-    expect((await snapshotSaved).status()).toBe(200);
+    const snapshotResponse = await snapshotSaved;
+    let snapshotErrorCode = 'UNKNOWN';
+    if (!snapshotResponse.ok()) {
+      try {
+        const body: unknown = await snapshotResponse.json();
+        if (body && typeof body === 'object' && 'code' in body && typeof body.code === 'string' && /^[A-Z0-9_]{1,64}$/.test(body.code)) {
+          snapshotErrorCode = body.code;
+        }
+      } catch { /* Keep diagnostics limited to the status and a validated error code. */ }
+    }
+    expect(snapshotResponse.status(), `Sale snapshot failed with HTTP ${snapshotResponse.status()} (${snapshotErrorCode}).`).toBe(200);
     await expect(sale.getByRole('status')).toHaveText('Đã lưu hồ sơ nháp.');
     await sale.getByRole('checkbox', { name: 'Tôi đã kiểm tra chứng từ và xác nhận các giá trị tài chính.' }).check();
     const approved = page.waitForResponse(response => response.url().endsWith('/sales-chain/approve') && response.request().method() === 'POST', { timeout: 60_000 });

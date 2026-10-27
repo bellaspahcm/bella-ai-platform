@@ -39,8 +39,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { saveCareRecords } from './care-save';
-import { getCachedTenantSettings } from '@/lib/dashboard-client-context';
-import { resolveTenantBrandIdentity } from '@/lib/business-rules/tenant-modules';
+import { useUser } from '@/lib/user-context';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -86,19 +85,44 @@ interface CareRosterEntry {
       readonly quality?: 'DEEP' | 'RESTLESS' | 'REFUSED';
       readonly notes?: string;
     } | null;
-    readonly healthChecks?: {
-      readonly status?: StatusLevel;
-      readonly label?: string;
-      readonly temperature?: string;
-      readonly isAlert?: boolean;
-      readonly alertReason?: string;
-      readonly notes?: string;
-    } | null;
+    readonly healthChecks?: Readonly<Record<string, unknown>> | null;
     readonly hygieneRecords?: Array<{
       readonly type?: 'TOILET' | 'DIAPER' | 'BOWEL_MOVEMENT';
       readonly notes?: string;
     }> | null;
   } | null;
+}
+
+const isCareObject = (value: unknown): value is Record<string, unknown> => !!value && typeof value === 'object' && !Array.isArray(value);
+const isCareText = (value: unknown): value is string => typeof value === 'string' && value.trim().length > 0;
+function isCareCourse(value: unknown): value is CourseOption {
+  return isCareObject(value) && [value.id, value.name, value.code].every(isCareText) && value.status === 'active';
+}
+function isCareRosterEntry(value: unknown): value is CareRosterEntry {
+  if (!isCareObject(value) || ![value.enrollmentId, value.studentPartyId, value.name].every(isCareText)) return false;
+  if (['studentCode','gender','dob','attendanceNote','note'].some(key => value[key] !== null && value[key] !== undefined && typeof value[key] !== 'string')) return false;
+  if (value.attendance !== null && value.attendance !== undefined && (!isCareObject(value.attendance)
+    || !['present','absent','excused'].includes(value.attendance.status as string))) return false;
+  const care = value.care;
+  if (care === null || care === undefined) return true;
+  if (!isCareObject(care) || !isCareText(care.id)) return false;
+  if (care.morningCondition !== null && care.morningCondition !== undefined && typeof care.morningCondition !== 'string') return false;
+  for (const [field, key, choices] of [
+    ['mealRecords', 'portion', ['ALL','HALF','FEW','NONE']],
+    ['hygieneRecords', 'type', ['TOILET','DIAPER','BOWEL_MOVEMENT']],
+  ] as const) {
+    const entries = care[field];
+    if (entries !== null && entries !== undefined && (!Array.isArray(entries)
+      || entries.some(item => !isCareObject(item) || !(choices as readonly string[]).includes(item[key] as string)
+        || (item.notes !== undefined && typeof item.notes !== 'string')))) return false;
+  }
+  const nap = care.napRecords;
+  if (nap !== null && nap !== undefined && (!isCareObject(nap)
+    || (Object.keys(nap).length > 0 && (!['DEEP','RESTLESS','REFUSED'].includes(nap.quality as string)
+      || (nap.notes !== undefined && typeof nap.notes !== 'string'))))) return false;
+  const health = care.healthChecks;
+  if (health !== null && health !== undefined && !isCareObject(health)) return false;
+  return true;
 }
 
 /** Derived view model for care roster display */
@@ -187,12 +211,14 @@ function mapCareRosterEntryToCareItem(entry: CareRosterEntry, index: number): St
 
     // 3. Health & Temperature
     const healthItem = hasHealth ? care.healthChecks : null;
-    const healthStatus: StatusLevel = (healthItem?.status ?? (isAbsent ? 'danger' : isExcused ? 'warning' : 'unrecorded')) as StatusLevel;
-    const healthLabel = healthItem?.label ?? (isAbsent ? 'Vắng mặt' : isExcused ? 'Nghỉ phép' : 'Chưa ghi');
-    const temperature = healthItem?.temperature ?? '';
+    const healthStatus: StatusLevel = typeof healthItem?.status === 'string'
+      && ['good','warning','danger','unrecorded'].includes(healthItem.status) ? healthItem.status as StatusLevel : 'unrecorded';
+    const healthLabel = typeof healthItem?.label === 'string' ? healthItem.label : 'Chưa ghi';
+    const temperature = typeof healthItem?.temperature === 'string' ? healthItem.temperature
+      : typeof healthItem?.temperature === 'number' && Number.isFinite(healthItem.temperature) ? String(healthItem.temperature) : '';
     const isAlert = typeof healthItem?.isAlert === 'boolean' ? healthItem.isAlert : (isAbsent || isExcused);
-    const alertReason = healthItem?.alertReason ?? (isAbsent ? 'Vắng mặt hôm nay, chưa có mặt' : isExcused ? 'Nghỉ có phép' : '');
-    const healthNotes = healthItem?.notes ?? '';
+    const alertReason = typeof healthItem?.alertReason === 'string' ? healthItem.alertReason : (isAbsent ? 'Vắng mặt hôm nay, chưa có mặt' : isExcused ? 'Nghỉ có phép' : '');
+    const healthNotes = typeof healthItem?.notes === 'string' ? healthItem.notes : '';
 
     // 4. Hygiene
     const hygieneItem = hasHygiene ? care.hygieneRecords![0] : null;
@@ -238,8 +264,8 @@ function mapCareRosterEntryToCareItem(entry: CareRosterEntry, index: number): St
   // Fallback when NO care record exists in DB yet
   const isAlert = isAbsent || isExcused;
   const alertReason = isAbsent ? 'Vắng mặt hôm nay, chưa có mặt' : isExcused ? 'Nghỉ có phép' : '';
-  const healthStatus: StatusLevel = isAbsent ? 'danger' : isExcused ? 'warning' : 'unrecorded';
-  const healthLabel = isAbsent ? 'Vắng mặt' : isExcused ? 'Nghỉ phép' : 'Chưa ghi';
+  const healthStatus: StatusLevel = 'unrecorded';
+  const healthLabel = 'Chưa ghi';
   const mealStatus: StatusLevel = 'unrecorded';
   const mealLabel = isAbsent ? 'Vắng' : 'Chưa ghi';
   const napStatus: StatusLevel = 'unrecorded';
@@ -367,7 +393,8 @@ function LegacyCareView() {
 // ── Main Page Component ───────────────────────────────────────────────────────
 
 export default function CarePage() {
-  const [isPreschoolTenant, setIsPreschoolTenant] = useState<boolean>(true);
+  const { product, isLoading: isIdentityLoading } = useUser();
+  const isPreschoolTenant = product?.productKey === 'bella_preschool';
   const [courses, setCourses] = useState<readonly CourseOption[]>([]);
   const [selectedCourseId, setSelectedCourseId] = useState('');
   const [selectedDate, setSelectedDate] = useState(() => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }).format(new Date()));
@@ -412,37 +439,16 @@ export default function CarePage() {
   const menuRef = useRef<HTMLDivElement>(null);
   const rosterRequest = useRef(0);
 
-  // ── Tenant check ──────────────────────────────────────────────────────────
-  useEffect(() => {
-    async function checkTenant() {
-      try {
-        const tenant = await getCachedTenantSettings();
-        if (tenant) {
-          const brand = resolveTenantBrandIdentity({
-            enabledModules: tenant.enabled_modules,
-            brandTheme: tenant.brand_theme,
-            logoUrl: tenant.logo_url,
-            tenantName: tenant.name,
-            surface: 'app',
-          });
-          setIsPreschoolTenant(brand.moduleKey === 'bella_education');
-        }
-      } catch {
-        setIsPreschoolTenant(true);
-      }
-    }
-    void checkTenant();
-  }, []);
-
   // Course and roster errors stay visible; another workflow cannot supply permission.
   const loadCourses = useCallback(async () => {
     try {
       const response = await fetch('/api/education/care/classes', { cache: 'no-store' });
-      const payload: { success?: boolean; classrooms?: readonly CourseOption[] } = await response.json();
-      if (!response.ok || !payload.success || !Array.isArray(payload.classrooms)) throw new Error('COURSES_UNAVAILABLE');
-      setCourses(payload.classrooms);
-      setSelectedCourseId((current) => payload.classrooms?.some(course => course.id === current)
-        ? current : payload.classrooms?.[0]?.id || '');
+      const payload: unknown = await response.json();
+      if (!response.ok || !isCareObject(payload) || payload.success !== true || !Array.isArray(payload.classrooms)
+        || !payload.classrooms.every(isCareCourse) || new Set(payload.classrooms.map(c => c.id)).size !== payload.classrooms.length) throw new Error('COURSES_UNAVAILABLE');
+      const classrooms = payload.classrooms;
+      setCourses(classrooms);
+      setSelectedCourseId((current) => classrooms.some(course => course.id === current) ? current : classrooms[0]?.id || '');
       setCourseError(null);
     } catch {
       setCourses([]); setSelectedCourseId(''); setRoster([]);
@@ -450,28 +456,27 @@ export default function CarePage() {
     }
   }, []);
 
-  useEffect(() => { void loadCourses(); }, [loadCourses]);
+  useEffect(() => { if (isPreschoolTenant && !isIdentityLoading) void loadCourses(); }, [loadCourses, isPreschoolTenant, isIdentityLoading]);
 
   const loadRoster = useCallback(async (courseId: string, date: string) => {
     if (!courseId || !date) return;
     const requestId = ++rosterRequest.current;
-    let accessDenied = false;
     setIsRosterLoading(true); setCurrentPage(1);
     try {
       const response = await fetch(
         `/api/education/care/bulk?courseId=${encodeURIComponent(courseId)}&date=${encodeURIComponent(date)}`,
         { cache: 'no-store' },
       );
-      accessDenied = response.status === 401 || response.status === 403;
       if (!response.ok) throw new Error('CARE_UNAVAILABLE');
-      const payload: { success?: boolean; roster?: readonly CareRosterEntry[] } = await response.json();
-      if (!payload.success || !Array.isArray(payload.roster)) throw new Error('CARE_UNAVAILABLE');
+      const payload: unknown = await response.json();
+      if (!isCareObject(payload) || payload.success !== true || !Array.isArray(payload.roster)
+        || !payload.roster.every(isCareRosterEntry) || new Set(payload.roster.map(row => row.studentPartyId)).size !== payload.roster.length) throw new Error('CARE_UNAVAILABLE');
       if (requestId !== rosterRequest.current) return;
       setRoster(payload.roster.map((entry, index) => mapCareRosterEntryToCareItem(entry, index)));
       setRosterError(null);
     } catch {
       if (requestId !== rosterRequest.current) return;
-      if (accessDenied) setRoster([]);
+      setRoster([]);
       setRosterError('Không tải được nhật ký chăm sóc trong phạm vi hiện tại.');
       throw new Error('CARE_UNAVAILABLE');
     } finally { if (requestId === rosterRequest.current) setIsRosterLoading(false); }
@@ -636,6 +641,8 @@ export default function CarePage() {
     } finally { setIsSavingQuick(false); }
   };
 
+  if (isIdentityLoading) return <p role="status" className="p-6">Đang xác minh đơn vị…</p>;
+  if (!product) return <p role="alert" className="p-6">Không xác minh được đơn vị chăm sóc.</p>;
   if (!isPreschoolTenant) return <LegacyCareView />;
 
   // ── Date display (DD/MM/YYYY) ──────────────────────────────────────────────
@@ -667,7 +674,7 @@ export default function CarePage() {
 
           <div>
             <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
-              Chăm sóc & Nuôi dưỡng
+              Chăm sóc &amp; Nuôi dưỡng
             </h1>
             <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">
               Theo dõi ăn uống, giấc ngủ, sức khỏe và hoạt động chăm sóc trẻ hàng ngày
@@ -1346,7 +1353,7 @@ export default function CarePage() {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <p id="care-health-held">Ghi nhận sức khỏe hiện chưa khả dụng. Dữ liệu lịch sử được giữ nguyên.</p>
-                  <label htmlFor="care-health" className="font-bold text-slate-700 dark:text-slate-300 block mb-1.5">Thân nhiệt & Sức khỏe</label>
+                  <label htmlFor="care-health" className="font-bold text-slate-700 dark:text-slate-300 block mb-1.5">Thân nhiệt &amp; Sức khỏe</label>
                   <input id="care-health" disabled readOnly value="Chưa khả dụng" aria-describedby="care-health-held" className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800" />
                 </div>
                 <div>

@@ -1,4 +1,4 @@
-import { assertRcReport, rcEnvironment, redactRcLog } from '../../scripts/run-automove-rc-business-chain';
+import { assertRcReport, rcEnvironment, rcReadinessSatisfied, redactRcLog, summarizeRcHealth } from '../../scripts/run-automove-rc-business-chain';
 
 const ref = 'bmnbqbcdbuklhopfbopv';
 const valid = () => ({ AUTOMOVE_RC_SHA: 'a'.repeat(40), NEXT_PUBLIC_SUPABASE_URL: `https://${ref}.supabase.co`,
@@ -35,6 +35,29 @@ it('requires exactly one successful whole-chain Browser test, not skip/flaky/par
     { expected: 1, unexpected: 0, flaky: 1, skipped: 0 }, { expected: 2, unexpected: 0, flaky: 0, skipped: 0 }]) {
     expect(() => assertRcReport({ stats })).toThrow();
   }
+});
+it('records only allowlisted readiness fields and omits raw health errors', () => {
+  expect(summarizeRcHealth(503, { status: 'unhealthy', environment: 'production', checks: { database: 'failed' }, errors: ['secret detail'] }))
+    .toEqual({ httpStatus: 503, appStatus: 'unhealthy', environment: 'production', database: 'failed', healthError: 'other' });
+  expect(summarizeRcHealth(200, { status: 'healthy', environment: 'unexpected-secret', checks: { database: 'ok' } }))
+    .toEqual({ httpStatus: 200, appStatus: 'healthy', environment: 'unexpected', database: 'ok', healthError: 'missing' });
+  expect(summarizeRcHealth(302, '<html>internal response body</html>'))
+    .toEqual({ httpStatus: 302, appStatus: 'unexpected', environment: 'unexpected', database: 'unexpected', healthError: 'missing' });
+  expect(summarizeRcHealth(503, { status: 'unhealthy', errors: ['permission denied for table tenants: private detail'] }).healthError)
+    .toBe('permission');
+  expect(summarizeRcHealth(503, { status: 'unhealthy', errors: ['Invalid API key: private detail'] }).healthError)
+    .toBe('auth');
+  expect(summarizeRcHealth(503, { status: 'unhealthy', errors: ['relation tenants does not exist: private detail'] }).healthError)
+    .toBe('schema');
+  expect(summarizeRcHealth(503, { status: 'unhealthy', errors: ['ETIMEDOUT private detail'] }).healthError)
+    .toBe('timeout');
+  expect(summarizeRcHealth(503, { status: 'unhealthy', errors: ['fetch failed: private detail'] }).healthError)
+    .toBe('connectivity');
+});
+it('separates HTTP process readiness from database connectivity and does not require the health query to pass RLS', () => {
+  expect(rcReadinessSatisfied(503, true)).toBe(true);
+  expect(rcReadinessSatisfied(null, true)).toBe(false);
+  expect(rcReadinessSatisfied(200, false)).toBe(false);
 });
 it('redacts configured secrets, DB credentials, JWT and encoded Auth cookies from artifact logs', () => {
   const value = redactRcLog('isolated-secret-key postgresql://user:password@example.invalid/postgres eyJabc.eyJdef.signature base64-abcdefghijklmnopqrstuv', valid());

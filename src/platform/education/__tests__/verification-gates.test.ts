@@ -6,6 +6,7 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
+import { createHash, randomUUID } from 'crypto';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { MemoryEventBusAdapter } from '../../core/events';
 import { CourseContractImpl } from '../contracts/course.contract.impl';
@@ -15,18 +16,126 @@ import { AttendanceContractImpl } from '../contracts/attendance.contract.impl';
 import { AssessmentContractImpl } from '../contracts/assessment.contract.impl';
 import { StudentService } from '../student/student.service';
 import { CourseService } from '../course/course.service';
-import { PersonService } from '@/platform/host/person/person.service';
 import { Course } from '../domain/course.entity';
 import { EducationEngineService } from '../education-engine.service';
 import { SupabaseEducationRepository } from '../repositories/supabase-education.repository';
+
+const FIXTURE_SOURCE_REVISION = '54e599048ebc315416e7a82e85f0af33dc25583d';
+
+function readDisposableFixtureAuthority(apiUrl: string) {
+  const manifestPath = process.env.BELLA_DISPOSABLE_FIXTURE_MANIFEST;
+  const receiptDirectory = process.env.BELLA_FIXTURE_RECEIPT_DIR;
+  if (!manifestPath || !path.isAbsolute(manifestPath) || !receiptDirectory || !path.isAbsolute(receiptDirectory)) {
+    throw new Error('DISPOSABLE_FIXTURE_MANIFEST_AND_RECEIPT_DIRECTORY_REQUIRED');
+  }
+  const manifestBytes = fs.readFileSync(manifestPath);
+  const manifest: unknown = JSON.parse(manifestBytes.toString('utf8'));
+  if (!manifest || typeof manifest !== 'object' || Array.isArray(manifest)) throw new Error('INVALID_DISPOSABLE_FIXTURE_MANIFEST');
+  const field = (name: string): unknown => Reflect.get(manifest, name);
+  const approved = field('scope') === 'T1'
+    ? { project: 'bella-preschool-t1-20261022', apiOrigin: 'http://127.0.0.1:24631', databasePort: 24632 }
+    : field('scope') === 'C'
+      ? { project: 'bella-preschool-course-20261022', apiOrigin: 'http://127.0.0.1:24531', databasePort: 24532 }
+      : undefined;
+  const target = new URL(apiUrl);
+  const containerId = field('containerId');
+  const markerPath = field('markerPath');
+  const markerSha256 = field('markerSha256');
+  const expiresAt = field('expiresAt');
+  if (!approved || field('project') !== approved.project || field('apiOrigin') !== approved.apiOrigin ||
+      field('databasePort') !== approved.databasePort || field('sourceRevision') !== FIXTURE_SOURCE_REVISION ||
+      target.origin !== approved.apiOrigin || target.pathname !== '/' || target.search || target.hash || target.username || target.password ||
+      typeof containerId !== 'string' || !/^[a-f0-9]{12,64}$/.test(containerId) ||
+      typeof markerPath !== 'string' || !path.isAbsolute(markerPath) ||
+      typeof markerSha256 !== 'string' || !/^[a-f0-9]{64}$/.test(markerSha256) ||
+      typeof expiresAt !== 'string' || !Number.isFinite(Date.parse(expiresAt)) || Date.parse(expiresAt) <= Date.now()) {
+    throw new Error('APPROVED_UNEXPIRED_DISPOSABLE_FIXTURE_TARGET_REQUIRED');
+  }
+  if (field('projectId') !== undefined && field('projectId') !== approved.project) throw new Error('FIXTURE_PROJECT_ID_MISMATCH');
+  const resolvedMarker = fs.realpathSync(markerPath);
+  if (!fs.statSync(resolvedMarker).isFile()) throw new Error('DISPOSABLE_FIXTURE_MARKER_FILE_REQUIRED');
+  const markerBytes = fs.readFileSync(resolvedMarker);
+  if (createHash('sha256').update(markerBytes).digest('hex') !== markerSha256) throw new Error('DISPOSABLE_FIXTURE_MARKER_HASH_MISMATCH');
+  const markerText = markerBytes.toString('utf8');
+  if (markerText.trimStart().startsWith('{')) {
+    const marker: unknown = JSON.parse(markerText);
+    if (!marker || typeof marker !== 'object' || Array.isArray(marker)) throw new Error('INVALID_DISPOSABLE_FIXTURE_MARKER');
+    for (const key of ['projectId', 'project', 'project_id']) {
+      if (Reflect.get(marker, key) !== undefined && Reflect.get(marker, key) !== approved.project) throw new Error('FIXTURE_MARKER_PROJECT_MISMATCH');
+    }
+    for (const key of ['containerId', 'container']) {
+      if (Reflect.get(marker, key) !== undefined && Reflect.get(marker, key) !== containerId) throw new Error('FIXTURE_MARKER_CONTAINER_MISMATCH');
+    }
+  } else {
+    const projectId = markerText.match(/^\s*project_id\s*=\s*"([^"]+)"/m)?.[1];
+    if (projectId !== undefined && projectId !== approved.project) throw new Error('FIXTURE_MARKER_PROJECT_MISMATCH');
+  }
+  const resolvedReceipts = fs.realpathSync(receiptDirectory);
+  const within = (root: string) => {
+    const relative = path.relative(root, resolvedReceipts);
+    return relative === '' || (!relative.startsWith(`..${path.sep}`) && relative !== '..' && !path.isAbsolute(relative));
+  };
+  if (!fs.statSync(resolvedReceipts).isDirectory() ||
+      (!within(path.dirname(resolvedMarker)) && !within(path.resolve(process.cwd(), 'docs/audits/preschool-full-audit-20261020')))) {
+    throw new Error('OWNED_LOCAL_FIXTURE_RECEIPT_DIRECTORY_REQUIRED');
+  }
+  return { ...approved, scope: field('scope'), containerId, markerSha256, receiptDirectory: resolvedReceipts,
+    manifestSha256: createHash('sha256').update(manifestBytes).digest('hex') };
+}
 
 describe('Education OS — 11 Automated Verification Gates', () => {
   let supabase: SupabaseClient<Record<string, unknown>>;
   let eventBus: MemoryEventBusAdapter;
   
-  const TENANT_A = '00000000-0000-0000-0000-00000000008a';
-  const TENANT_B = '00000000-0000-0000-0000-00000000008b';
-  const TEST_USER = '00000000-0000-0000-0000-000000000001';
+  const TENANT_A = randomUUID();
+  const TENANT_B = randomUUID();
+  const TEST_USER = randomUUID();
+  const fixtureTenantIds = [TENANT_A, TENANT_B];
+  const createdTenantIds: string[] = [];
+  const createdProfileIds: string[] = [];
+  const plannedProfiles = [{ id: TEST_USER, tenantId: TENANT_A }];
+  const createdStudentPartyIds: string[] = [];
+  const runId = randomUUID();
+  let authority: ReturnType<typeof readDisposableFixtureAuthority> | undefined;
+  let receiptPath: string | undefined;
+  let lifecycle = 'PLANNED';
+  const quarantineOperations: { operation: string; outcome: string }[] = [];
+  let authorityReadback = 'NOT_RUN';
+
+  function requireAuthority() {
+    const current = readDisposableFixtureAuthority(process.env.NEXT_PUBLIC_SUPABASE_URL ?? '');
+    if (authority && (current.manifestSha256 !== authority.manifestSha256 || current.receiptDirectory !== authority.receiptDirectory)) {
+      throw new Error('DISPOSABLE_FIXTURE_AUTHORITY_DRIFT');
+    }
+    return current;
+  }
+
+  const attestedFetch: typeof fetch = (input, init) => {
+    requireAuthority();
+    return fetch(input, init);
+  };
+
+  function writeReceipt(initial = false) {
+    if (!authority || !receiptPath) throw new Error('DISPOSABLE_FIXTURE_RECEIPT_NOT_INITIALIZED');
+    fs.writeFileSync(receiptPath, JSON.stringify({ runId, suite: 'verification-gates', sourceRevision: FIXTURE_SOURCE_REVISION,
+      target: authority, lifecycle, plannedTenantIds: fixtureTenantIds, createdTenantIds,
+      plannedProfileIds: plannedProfiles.map(profile => profile.id), plannedProfiles, createdProfileIds, partyIds: createdStudentPartyIds,
+      quarantineOperations, authorityReadback, retainedData: 'ALL_SYNTHETIC_ROWS_AND_IMMUTABLE_HISTORY_RETAINED',
+      disposal: 'NOT_PERFORMED_REQUIRES_ROOT_OWNED_STACK_DISPOSAL' }, null, 2), { flag: initial ? 'wx' : 'w' });
+  }
+
+  async function createStudentParty(displayName: string, dob?: string, gender?: string) {
+    requireAuthority();
+    const partyId = randomUUID();
+    createdStudentPartyIds.push(partyId);
+    writeReceipt();
+    const { error } = await supabase.from('party_parties').insert({
+      id: partyId, tenant_id: TENANT_A, party_type: 'person', display_name: displayName, dob, gender,
+    });
+    if (error) throw new Error(`STUDENT_PARTY_FIXTURE_CREATE_FAILED:${error.code}`);
+    expect(error).toBeNull();
+    return partyId;
+  }
 
   beforeAll(async () => {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -36,37 +145,109 @@ describe('Education OS — 11 Automated Verification Gates', () => {
       throw new Error('Missing Supabase credentials for integration tests');
     }
 
-    supabase = createClient(supabaseUrl, supabaseKey);
+    authority = requireAuthority();
+    receiptPath = path.join(authority.receiptDirectory, `verification-gates-${runId}.json`);
+    writeReceipt(true);
+    supabase = createClient(supabaseUrl, supabaseKey, {
+      auth: { persistSession: false, autoRefreshToken: false }, global: { fetch: attestedFetch },
+    });
     eventBus = new MemoryEventBusAdapter();
-
-    // Clean up old test data
-    await supabase.from('edu_assessments').delete().in('tenant_id', [TENANT_A, TENANT_B]);
-    await supabase.from('edu_attendance').delete().in('tenant_id', [TENANT_A, TENANT_B]);
-    await supabase.from('edu_enrollments').delete().in('tenant_id', [TENANT_A, TENANT_B]);
-    await supabase.from('edu_courses').delete().in('tenant_id', [TENANT_A, TENANT_B]);
-    await supabase.from('enrollments').delete().in('tenant_id', [TENANT_A, TENANT_B]);
-    await supabase.from('courses').delete().in('tenant_id', [TENANT_A, TENANT_B]);
-    await supabase.from('students').delete().in('tenant_id', [TENANT_A, TENANT_B]);
-    await supabase.from('persons').delete().in('tenant_id', [TENANT_A, TENANT_B]);
-    await supabase.from('tenants').delete().in('id', [TENANT_A, TENANT_B]);
-
-    // Seed tenants
-    await supabase.from('tenants').upsert([
-      { id: TENANT_A, name: 'Tenant School A', status: 'active' },
-      { id: TENANT_B, name: 'Tenant Training B', status: 'active' },
+    requireAuthority();
+    const tenants = await supabase.from('tenants').insert([
+      { id: TENANT_A, name: 'Synthetic gate School A', status: 'active', product_key: 'bella_preschool' },
+      { id: TENANT_B, name: 'Synthetic gate School B', status: 'active', product_key: 'bella_preschool' },
     ]);
+    if (tenants.error) throw new Error(`GATE_TENANT_FIXTURE_CREATE_FAILED:${tenants.error.code}`);
+    createdTenantIds.push(...fixtureTenantIds);
+    writeReceipt();
+    requireAuthority();
+    const profile = await supabase.from('users').insert({ id: TEST_USER, tenant_id: TENANT_A,
+      email: `education-gate-${runId}@example.invalid`, full_name: 'Synthetic gate actor', role: 'admin', status: 'active' });
+    if (profile.error) throw new Error(`GATE_PROFILE_FIXTURE_CREATE_FAILED:${profile.error.code}`);
+    createdProfileIds.push(TEST_USER);
+    lifecycle = 'ACTIVE';
+    writeReceipt();
   });
 
+  beforeEach(() => { requireAuthority(); });
+
   afterAll(async () => {
-    await supabase.from('edu_assessments').delete().in('tenant_id', [TENANT_A, TENANT_B]);
-    await supabase.from('edu_attendance').delete().in('tenant_id', [TENANT_A, TENANT_B]);
-    await supabase.from('edu_enrollments').delete().in('tenant_id', [TENANT_A, TENANT_B]);
-    await supabase.from('edu_courses').delete().in('tenant_id', [TENANT_A, TENANT_B]);
-    await supabase.from('enrollments').delete().in('tenant_id', [TENANT_A, TENANT_B]);
-    await supabase.from('courses').delete().in('tenant_id', [TENANT_A, TENANT_B]);
-    await supabase.from('students').delete().in('tenant_id', [TENANT_A, TENANT_B]);
-    await supabase.from('persons').delete().in('tenant_id', [TENANT_A, TENANT_B]);
-    await supabase.from('tenants').delete().in('id', [TENANT_A, TENANT_B]);
+    if (!receiptPath) return;
+    const failures: string[] = [];
+    const recordFailure = (operation: string, error: unknown) => {
+      const reason = error instanceof Error ? error.message : 'UNKNOWN_FAILURE';
+      failures.push(`${operation}:${reason}`);
+      quarantineOperations.push({ operation, outcome: reason });
+    };
+    try {
+      // Reconcile intent, including INSERTs committed before an acknowledgement was lost.
+      for (const profile of plannedProfiles) {
+        const operation = `profile:${profile.id}`;
+        try {
+          requireAuthority();
+          const existing = await supabase.from('users').select('id, tenant_id, status').eq('id', profile.id).maybeSingle();
+          if (existing.error) throw new Error(`PROFILE_RECONCILIATION_FAILED:${existing.error.code}`);
+          if (existing.data) {
+            if (existing.data.tenant_id !== profile.tenantId) throw new Error('PROFILE_AUTHORITY_MISMATCH');
+            const result = await supabase.from('users').update({ status: 'inactive' })
+              .eq('id', profile.id).eq('tenant_id', profile.tenantId);
+            if (result.error) throw new Error(`PROFILE_QUARANTINE_FAILED:${result.error.code}`);
+          }
+          quarantineOperations.push({ operation, outcome: 'RECONCILED_PENDING_FRESH_READBACK' });
+        } catch (error) {
+          recordFailure(operation, error);
+        }
+      }
+      for (const tenantId of fixtureTenantIds) {
+        const operation = `tenant:${tenantId}`;
+        try {
+          requireAuthority();
+          const existing = await supabase.from('tenants').select('id, status').eq('id', tenantId).maybeSingle();
+          if (existing.error) throw new Error(`TENANT_RECONCILIATION_FAILED:${existing.error.code}`);
+          if (existing.data) {
+            const result = await supabase.from('tenants').update({ status: 'terminated' }).eq('id', tenantId);
+            if (result.error) throw new Error(`TENANT_QUARANTINE_FAILED:${result.error.code}`);
+          }
+          quarantineOperations.push({ operation, outcome: 'RECONCILED_PENDING_FRESH_READBACK' });
+        } catch (error) {
+          recordFailure(operation, error);
+        }
+      }
+    } finally {
+      let readbackFailed = false;
+      for (const profile of plannedProfiles) {
+        const operation = `profile-readback:${profile.id}`;
+        try {
+          requireAuthority();
+          const current = await supabase.from('users').select('id, tenant_id, status').eq('id', profile.id).maybeSingle();
+          if (current.error) throw new Error(`PROFILE_FRESH_READBACK_FAILED:${current.error.code}`);
+          if (current.data && (current.data.tenant_id !== profile.tenantId || current.data.status !== 'inactive')) {
+            throw new Error('PROFILE_FRESH_READBACK_UNSAFE_AUTHORITY');
+          }
+          quarantineOperations.push({ operation, outcome: current.data ? 'INACTIVE' : 'ABSENT' });
+        } catch (error) {
+          readbackFailed = true;
+          recordFailure(operation, error);
+        }
+      }
+      for (const tenantId of fixtureTenantIds) {
+        const operation = `tenant-readback:${tenantId}`;
+        try {
+          requireAuthority();
+          const current = await supabase.from('tenants').select('id, status').eq('id', tenantId).maybeSingle();
+          if (current.error) throw new Error(`TENANT_FRESH_READBACK_FAILED:${current.error.code}`);
+          if (current.data && current.data.status !== 'terminated') throw new Error('TENANT_FRESH_READBACK_UNSAFE_AUTHORITY');
+          quarantineOperations.push({ operation, outcome: current.data ? 'TERMINATED' : 'ABSENT' });
+        } catch (error) {
+          readbackFailed = true;
+          recordFailure(operation, error);
+        }
+      }
+      authorityReadback = readbackFailed ? 'FAILED' : 'NO_ACTIVE_TRACKED_AUTHORITY';
+      lifecycle = failures.length ? 'QUARANTINE_FAILED' : 'QUARANTINED_REQUIRES_OWNED_STACK_DISPOSAL';
+      writeReceipt();
+    }
+    if (failures.length) throw new Error(failures.join(';'));
   });
 
   /**
@@ -129,25 +310,15 @@ describe('Education OS — 11 Automated Verification Gates', () => {
       expect(courseDto.id).toBeDefined();
       expect(courseDto.courseCode).toBe('CS202');
 
-      // Create a Person profile first
-      const personService = new PersonService(supabase);
-      const personRes = await personService.createPerson({
-        tenantId: TENANT_A,
-        firstName: 'Alice',
-        lastName: 'Wonderland',
-        dateOfBirth: '2000-01-01',
-        gender: 'female',
-        createdBy: TEST_USER,
-      });
-      expect(personRes.success).toBe(true);
+      const studentPartyId = await createStudentParty('Alice Wonderland', '2000-01-01', 'female');
 
       // Register Student through contract
       const studentDto = await studentContract.registerStudent({
         tenantId: TENANT_A,
-        partyId: personRes.data!.personId,
+        partyId: studentPartyId,
         studentCode: 'EDU-2026-001',
       });
-      expect(studentDto.partyId).toBe(personRes.data!.personId);
+      expect(studentDto.partyId).toBe(studentPartyId);
       expect(studentDto.studentCode).toBe('EDU-2026-001');
     });
   });
@@ -156,22 +327,23 @@ describe('Education OS — 11 Automated Verification Gates', () => {
    * Gate 3: Tenant Isolation (P0)
    * Proves absolute separation of records between tenants
    */
-  describe('Gate 3: Tenant Isolation', () => {
-    it('should completely isolate student and course records between Tenant A and Tenant B', async () => {
-      // Create course in Tenant A
-      const courseA = await CourseService.createCourse({
+  describe('Gate 3: Canonical Academic Course Tenant Isolation', () => {
+    it('should persist the academic contract roundtrip in Tenant A and return null for Tenant B', async () => {
+      // Owner-approved batch2r coverage decision: canonical academic contract, not legacy offering lifecycle.
+      // This service-identity fixture proves tenant predicates; provider Auth/RLS has a separate gate.
+      const contract = new CourseContractImpl();
+      const courseA = await contract.createCourse({
         tenantId: TENANT_A,
         courseCode: 'TETA-101',
-        courseName: 'Tenant A Course',
-        credits: 3,
-        createdBy: TEST_USER,
+        title: 'Tenant A Course',
       });
-      expect(courseA.success).toBe(true);
-
-      // Query from Tenant B should NOT find course from Tenant A
-      const queryInB = await CourseService.getCourseById(courseA.course!.courseId, TENANT_B);
-      expect(queryInB.success).toBe(false);
-      expect(queryInB.error).toContain('not found');
+      expect(courseA.status).toBe('active');
+      expect(await contract.getCourse(TENANT_A, courseA.id)).toEqual(courseA);
+      const persisted = await supabase.from('edu_courses').select('id, tenant_id, course_code, status')
+        .eq('id', courseA.id).eq('tenant_id', TENANT_A).single();
+      expect(persisted.error).toBeNull();
+      expect(persisted.data).toEqual({ id: courseA.id, tenant_id: TENANT_A, course_code: 'TETA-101', status: 'active' });
+      expect(await contract.getCourse(TENANT_B, courseA.id)).toBeNull();
     });
   });
 
@@ -245,9 +417,7 @@ describe('Education OS — 11 Automated Verification Gates', () => {
       await repository.saveCourse(course);
 
       // Insert Student Party profile in party_parties
-      await supabase.from('party_parties').upsert([
-        { id: '99999999-9999-9999-9999-99999999999a', tenant_id: TENANT_A, party_type: 'person', display_name: 'Gate 6 Student' }
-      ]);
+      const studentPartyId = await createStudentParty('Gate 6 Student');
 
       const events: any[] = [];
       eventBus.subscribe('edu.enrollment.created.v1', async (evt) => {
@@ -257,7 +427,7 @@ describe('Education OS — 11 Automated Verification Gates', () => {
       // Enroll Student
       const result = await service.enrollStudent({
         tenantId: TENANT_A,
-        studentPartyId: '99999999-9999-9999-9999-99999999999a',
+        studentPartyId,
         courseId: course.id,
         requestId: 'req-gate6',
       });
@@ -265,7 +435,7 @@ describe('Education OS — 11 Automated Verification Gates', () => {
       expect(result.success).toBe(true);
       expect(result.enrollment.id).toBeDefined();
       expect(events).toHaveLength(1);
-      expect(events[0].payload.studentPartyId).toBe('99999999-9999-9999-9999-99999999999a');
+      expect(events[0].payload.studentPartyId).toBe(studentPartyId);
     });
   });
 
@@ -303,20 +473,12 @@ describe('Education OS — 11 Automated Verification Gates', () => {
    */
   describe('Gate 8: Temporal Provenance', () => {
     it('should log academic status changes inside platform timeline primitive', async () => {
-      const personService = new PersonService(supabase);
-      const person = await personService.createPerson({
-        tenantId: TENANT_A,
-        firstName: 'Charlie',
-        lastName: 'Brown',
-        dateOfBirth: '2000-03-03',
-        gender: 'male',
-        createdBy: TEST_USER,
-      });
+      const studentPartyId = await createStudentParty('Charlie Brown', '2000-03-03', 'male');
 
       const student = await StudentService.createStudent({
         tenantId: TENANT_A,
-        partyId: person.data!.personId,
-        personId: person.data!.personId,
+        partyId: studentPartyId,
+        personId: null,
         studentCode: 'EDU-2026-999',
         academicStatus: 'enrolled',
         enrollmentType: 'full_time',

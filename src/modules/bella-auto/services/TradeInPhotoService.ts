@@ -5,7 +5,7 @@
  * @module bella-auto/services/TradeInPhotoService
  */
 
-import { getPrimaryClient } from '@/lib/database/read-replica';
+import { createClient } from '@/lib/supabase-client';
 import type { Database, Json } from '@/types/database.types';
 
 type TradeInPhoto = Database['public']['Tables']['auto_trade_in_photos']['Row'];
@@ -75,7 +75,7 @@ export class TradeInPhotoService {
    * Upload a photo for trade-in appraisal
    */
   static async uploadPhoto(data: UploadPhotoData): Promise<TradeInPhoto> {
-    const supabase = getPrimaryClient();
+    const supabase = createClient();
     const damageMarkers: Json | undefined = data.damageMarkers?.map((marker) => ({
       x: marker.x,
       y: marker.y,
@@ -122,7 +122,7 @@ export class TradeInPhotoService {
     tenantId: string,
     appraisalId: string
   ): Promise<TradeInPhoto[]> {
-    const supabase = getPrimaryClient();
+    const supabase = createClient();
 
     const { data, error } = await supabase
       .from('auto_trade_in_photos')
@@ -147,7 +147,7 @@ export class TradeInPhotoService {
     appraisalId: string,
     category: string
   ): Promise<TradeInPhoto[]> {
-    const supabase = getPrimaryClient();
+    const supabase = createClient();
 
     const { data, error } = await supabase
       .from('auto_trade_in_photos')
@@ -172,7 +172,7 @@ export class TradeInPhotoService {
     tenantId: string,
     appraisalId: string
   ): Promise<TradeInPhoto> {
-    const supabase = getPrimaryClient();
+    const supabase = createClient();
 
     // First, unset all primary photos for this appraisal
     await supabase
@@ -210,7 +210,7 @@ export class TradeInPhotoService {
       displayOrder?: number;
     }
   ): Promise<TradeInPhoto> {
-    const supabase = getPrimaryClient();
+    const supabase = createClient();
 
     const updateData: TradeInPhotoUpdate = {};
     if (metadata.description !== undefined) updateData.description = metadata.description;
@@ -240,7 +240,7 @@ export class TradeInPhotoService {
     photoId: string,
     tenantId: string
   ): Promise<void> {
-    const supabase = getPrimaryClient();
+    const supabase = createClient();
 
     // Get photo details before deletion (for storage cleanup)
     const { data: photo } = await supabase
@@ -311,7 +311,7 @@ export class TradeInPhotoService {
     tenantId: string,
     photoOrders: Array<{ photoId: string; displayOrder: number }>
   ): Promise<void> {
-    const supabase = getPrimaryClient();
+    const supabase = createClient();
 
     // Batch update
     for (const { photoId, displayOrder } of photoOrders) {
@@ -330,7 +330,7 @@ export class TradeInPhotoService {
     tenantId: string,
     appraisalId: string
   ): Promise<TradeInPhoto | null> {
-    const supabase = getPrimaryClient();
+    const supabase = createClient();
 
     const { data, error } = await supabase
       .from('auto_trade_in_photos')

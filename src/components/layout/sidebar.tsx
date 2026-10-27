@@ -426,6 +426,7 @@ const bellaHospitalInpatientMenuItems: SidebarMenuItem[] = [
 // ─── Bella Education Preschool Module Menu (Dedicated) ───
 const bellaEducationMenuItems: SidebarMenuItem[] = [
   { icon: LayoutDashboard, label: 'Tổng quan', href: '/dashboard/education' },
+  { icon: GitFork, label: 'Quản lý chi nhánh', href: '/dashboard/education/branches' },
   { icon: Baby, label: 'Quản lý trẻ', href: '/dashboard/education/enrollments' },
   { icon: BookOpen, label: 'Quản lý lớp học', href: '/dashboard/education/courses' },
   { icon: UserCheck, label: 'Quản lý giáo viên', href: '/dashboard/education/teachers' },
@@ -501,8 +502,10 @@ export function Sidebar() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const isDashboardHome = pathname?.replace(/\/+$/, '') === '/dashboard';
-  const { product, isLoading: isUserLoading, user: currentUser, tenantSettings } = useUser();
+  const { product, isLoading: isUserLoading, user: currentUser, tenantSettings: fullTenantSettings, tenantPresentation } = useUser();
+  const tenantSettings = tenantPresentation ?? fullTenantSettings;
   const isHaircut = product?.productKey === 'bella_haircut';
+  const isPreschool = product?.productKey === 'bella_preschool';
   const [user, setUser] = useState<CurrentUser | null>(null);
   const [rolePermissions, setRolePermissions] = useState<RolePermissions | null>(null);
   const [tenantBrand, setTenantBrand] = useState<TenantBrandDisplay>(NEUTRAL_SIDEBAR_BRAND);
@@ -522,9 +525,9 @@ export function Sidebar() {
     setIsTenantBrandResolved(true);
     setResolvedIdentityKey(presentation.identityKey);
     writeCachedTenantBrand(currentUser.tenant_id, resolvedBrand);
-    const perms = tenantSettings.role_permissions as Record<string, RolePermissions | undefined> | null;
+    const perms = fullTenantSettings?.role_permissions as Record<string, RolePermissions | undefined> | null | undefined;
     setRolePermissions(currentUser.role && currentUser.role !== 'admin' && currentUser.role !== 'customer' ? perms?.[currentUser.role] || null : null);
-  }, [product, isUserLoading, currentUser, tenantSettings]);
+  }, [product, isUserLoading, currentUser, tenantSettings, fullTenantSettings]);
 
   useEffect(() => {
     if (!isTenantBrandResolved || resolvedIdentityKey !== identityKey) return;
@@ -634,7 +637,10 @@ export function Sidebar() {
     return { ...item, label: 'Đơn đặt lịch' };
   });
 
-  const filteredMenuItems = [...moduleAwareMenuItems];
+  const filteredMenuItems = moduleAwareMenuItems.filter((item) => {
+    if (isMenuHeader(item) || item.href !== '/dashboard/education/branches') return true;
+    return user?.role?.toLowerCase() === 'admin';
+  });
 
   // KTV gets a personal income shortcut instead
   if (user?.role?.toLowerCase() === 'ktv') {
@@ -759,7 +765,14 @@ export function Sidebar() {
           </button>
           
           {user?.role && user.role !== 'customer' && (
-            <AdminNotificationBell position="bottom" className="shrink-0" />
+            isPreschool ? <Link
+              href="/dashboard/education/communication?tab=announcements"
+              aria-label="Bảng tin chung"
+              title="Bảng tin chung"
+              onClick={handleNavigation}
+              className="shrink-0 rounded-lg p-2 text-foreground transition-colors hover:bg-muted"
+            ><Megaphone className="h-4 w-4" /></Link>
+              : <AdminNotificationBell position="bottom" className="shrink-0" />
           )}
         </div>
       </div>
@@ -964,7 +977,8 @@ export function Sidebar() {
               : "bg-slate-700 dark:bg-slate-300";
 
             return (
-              <Link key={item.href} href={item.href} onClick={handleNavigation} aria-current={isActive ? 'page' : undefined} prefetch={false}>
+              <Link key={item.href} href={isPreschool && item.href === '/dashboard/education/communication'
+                ? '/dashboard/education/communication?tab=announcements' : item.href} onClick={handleNavigation} aria-current={isActive ? 'page' : undefined} prefetch={false}>
                 <motion.div
                   whileHover={{ x: 2 }}
                   className={cn(
@@ -1013,7 +1027,7 @@ export function Sidebar() {
                       : (isBeautySpaShell || isIndustrialCleaningShell || isBellaAutoShell || isBellaHealthcareShell)
                       ? (isActive ? "font-extrabold text-[#042f2e]" : (isBellaAutoShell || isBellaHealthcareShell) ? "font-semibold text-slate-100 group-hover:text-white" : "font-semibold text-inherit group-hover:text-white")
                       : (isActive ? "font-extrabold text-primary dark:text-[#F3F5F7]" : "font-semibold")
-                  )}>{item.label}</span>
+                  )}>{item.label}{isPreschool && process.env.NODE_ENV !== 'development' && item.href === '/dashboard/education/grades' && <span className="ml-1 text-[10px] opacity-70"> · Chưa mở</span>}</span>
 
                   {/* Active Left Vertical Accent Bar for Preschool Shell */}
                   {isActive && isBellaEducationShell && (
@@ -1090,7 +1104,14 @@ export function Sidebar() {
                </div>
                
                {user?.role && user.role !== 'customer' && !isDashboardHome && (
-                 <AdminNotificationBell position="top" className={cn("shrink-0", isBellaEducationShell ? "preschool-profile-notifications" : "scale-90")} />
+                 isPreschool ? <Link
+                   href="/dashboard/education/communication?tab=announcements"
+                   aria-label="Bảng tin chung"
+                   title="Bảng tin chung"
+                   onClick={handleNavigation}
+                   className="preschool-profile-action shrink-0 rounded-lg p-1.5 transition-colors"
+                 ><Megaphone className="h-3.5 w-3.5" /></Link>
+                   : <AdminNotificationBell position="top" className={cn("shrink-0", isBellaEducationShell ? "preschool-profile-notifications" : "scale-90")} />
                )}
 
                <button 

@@ -31,6 +31,8 @@ describe('Preschool Finance canonical Party identity Real DB E2E', () => {
   let billing: TuitionBillingService;
   let issuance: InvoiceIssuanceService;
   let reconciliation: PaymentReconciliationService;
+  let financeActorA: string;
+  let financeActorB: string;
 
   async function seedTenant(tenantId: string, name: string): Promise<void> {
     const { error } = await supabase.from('tenants').insert({ id: tenantId, name });
@@ -50,7 +52,7 @@ describe('Preschool Finance canonical Party identity Real DB E2E', () => {
   async function seedCourse(tenantId: string): Promise<string> {
     const { data, error } = await supabase.from('edu_courses').insert({
       tenant_id: tenantId,
-      course_code: `PRESCHOOL-${tenantId.slice(0, 8)}-${suffix}`,
+      course_code: `PRESCHOOL-${suffix}`,
       title: `Preschool Canonical Identity ${suffix}`,
       status: 'active',
     }).select('id').single();
@@ -60,7 +62,35 @@ describe('Preschool Finance canonical Party identity Real DB E2E', () => {
     return data!.id;
   }
 
+  async function seedFinanceActor(tenantId: string): Promise<string> {
+    const email = `controlled-d02-finance-${crypto.randomUUID()}@example.invalid`;
+    const { data, error } = await supabase.auth.admin.createUser({ email, email_confirm: true });
+    if (error || !data.user) throw new Error('D02_AUTH_FIXTURE_FAILED');
+    const { error: profileError } = await supabase.from('users').insert({
+      id: data.user.id,
+      tenant_id: tenantId,
+      email,
+      full_name: 'Controlled D02 Finance actor',
+      role: 'accountant',
+      status: 'active',
+    });
+    if (profileError) throw new Error(`D02_ACTOR_FIXTURE_FAILED: ${profileError.message}`);
+    return data.user.id;
+  }
+
+  async function financialState(tenantId: string) {
+    const [invoices, payments] = await Promise.all([
+      supabase.from('edu_fin_invoices').select('id, paid_amount, outstanding_amount, settlement_status').eq('tenant_id', tenantId).order('id'),
+      supabase.from('edu_fin_payments').select('id, allocated_amount, unallocated_amount, status').eq('tenant_id', tenantId).order('id'),
+    ]);
+    if (invoices.error || payments.error) throw new Error('D02_FINANCIAL_READBACK_FAILED');
+    return { invoices: invoices.data, payments: payments.data };
+  }
+
   beforeAll(async () => {
+    if (!['127.0.0.1', 'localhost'].includes(new URL(supabaseUrl).hostname)) {
+      throw new Error('D02_FIXTURE_REQUIRES_ISOLATED_LOCAL_DB');
+    }
     repo = new PreschoolFinanceRepository();
     billing = new TuitionBillingService(repo);
     issuance = new InvoiceIssuanceService(repo);
@@ -74,16 +104,18 @@ describe('Preschool Finance canonical Party identity Real DB E2E', () => {
     await seedParty(tenantB, studentPartyB, `Student B ${suffix}`);
     await seedParty(tenantB, payerPartyB, `Payer B ${suffix}`);
     await seedParty(tenantB, staffPartyB, `Staff B ${suffix}`);
+    financeActorA = await seedFinanceActor(tenantA);
+    financeActorB = await seedFinanceActor(tenantB);
 
-    // Seed active enrollment for studentPartyB in tenantB so payment recording is allowed
-    const courseBId = await seedCourse(tenantB);
-    await supabase.from('edu_enrollments').insert({
+    const courseB = await seedCourse(tenantB);
+    const { error: enrollmentBError } = await supabase.from('edu_enrollments').insert({
       tenant_id: tenantB,
       student_party_id: studentPartyB,
-      course_id: courseBId,
+      course_id: courseB,
       status: 'active',
-      request_id: `finance-cutover-b-${suffix}`,
+      request_id: `finance-cutover-${suffix}-b`,
     });
+    if (enrollmentBError) throw new Error(`D02_ENROLLMENT_FIXTURE_FAILED: ${enrollmentBError.message}`);
   }, 30_000);
 
   it('persists one Student Party ID across enrollment, attendance, invoice, payment, and tenant isolation checks', async () => {
@@ -128,7 +160,7 @@ describe('Preschool Finance canonical Party identity Real DB E2E', () => {
       endDate: '2026-09-30',
       dueDate: '2026-09-15',
       status: 'ACTIVE',
-      createdBy: staffPartyA,
+      createdBy: financeActorA,
     });
 
     const draft = await billing.compileDraftInvoice({
@@ -136,7 +168,7 @@ describe('Preschool Finance canonical Party identity Real DB E2E', () => {
       studentId: studentPartyA,
       billingPeriodId: period.id,
       dueDate: '2026-09-15',
-      createdBy: staffPartyA,
+      createdBy: financeActorA,
     });
 
     const issued = await issuance.issueInvoice(tenantA, draft.id);
@@ -148,13 +180,15 @@ describe('Preschool Finance canonical Party identity Real DB E2E', () => {
       .eq('tenant_id', tenantA)
       .single();
 
+    const financialBeforeDenied = await Promise.all([financialState(tenantA), financialState(tenantB)]);
+
     await expect(
       billing.compileDraftInvoice({
         tenantId: tenantB,
         studentId: studentPartyA,
         billingPeriodId: period.id,
         dueDate: '2026-09-15',
-        createdBy: staffPartyB,
+        createdBy: financeActorB,
       })
     ).rejects.toThrow(/STUDENT_PARTY_TENANT_MISMATCH/);
 
@@ -165,7 +199,7 @@ describe('Preschool Finance canonical Party identity Real DB E2E', () => {
         studentId: studentPartyA,
         paymentMethod: 'BANK_TRANSFER',
         amount: 1000,
-        createdBy: staffPartyB,
+        createdBy: financeActorB,
       })
     ).rejects.toThrow(/STUDENT_PARTY_TENANT_MISMATCH/);
 
@@ -176,9 +210,11 @@ describe('Preschool Finance canonical Party identity Real DB E2E', () => {
         studentId: studentPartyB,
         paymentMethod: 'BANK_TRANSFER',
         amount: 1000,
-        createdBy: staffPartyB,
+        createdBy: financeActorB,
       })
     ).rejects.toThrow(/PAYER_PARTY_TENANT_MISMATCH/);
+
+    expect(await Promise.all([financialState(tenantA), financialState(tenantB)])).toEqual(financialBeforeDenied);
 
     const paymentB = await reconciliation.recordInboundPayment({
       tenantId: tenantB,
@@ -186,7 +222,7 @@ describe('Preschool Finance canonical Party identity Real DB E2E', () => {
       studentId: studentPartyB,
       paymentMethod: 'BANK_TRANSFER',
       amount: 1000,
-      createdBy: staffPartyB,
+      createdBy: financeActorB,
     });
 
     await expect(
@@ -195,7 +231,7 @@ describe('Preschool Finance canonical Party identity Real DB E2E', () => {
         paymentId: paymentB.id,
         invoiceId: issued.id,
         allocationAmount: 1000,
-        reconciledByPartyId: staffPartyB,
+        reconciledByPartyId: financeActorB,
       })
     ).rejects.toThrow(/INVOICE_NOT_FOUND_ERROR/);
 
@@ -214,7 +250,7 @@ describe('Preschool Finance canonical Party identity Real DB E2E', () => {
       studentId: studentPartyA,
       paymentMethod: 'BANK_TRANSFER',
       amount: 1000,
-      createdBy: staffPartyA,
+      createdBy: financeActorA,
     });
 
     await reconciliation.reconcilePaymentToInvoice({
@@ -222,7 +258,7 @@ describe('Preschool Finance canonical Party identity Real DB E2E', () => {
       paymentId: paymentA.id,
       invoiceId: issued.id,
       allocationAmount: 1000,
-      reconciledByPartyId: staffPartyA,
+      reconciledByPartyId: financeActorA,
     });
 
     const { data: persistedInvoice, error: invoiceError } = await supabase
@@ -247,4 +283,28 @@ describe('Preschool Finance canonical Party identity Real DB E2E', () => {
     expect(persistedPayment?.payer_party_id).toBe(payerPartyA);
     expect(Number(persistedPayment?.allocated_amount)).toBe(1000);
   }, 60_000);
+
+  it('rejects same-tenant Student Party without enrollment and preserves financial rows', async () => {
+    const unenrolledParty = crypto.randomUUID();
+    await seedParty(tenantA, unenrolledParty, `Unenrolled D02 Student ${suffix}`);
+    const before = await financialState(tenantA);
+
+    await expect(billing.compileDraftInvoice({
+      tenantId: tenantA,
+      studentPartyId: unenrolledParty,
+      billingPeriodId: crypto.randomUUID(),
+      dueDate: '2026-10-31',
+      createdBy: financeActorA,
+    })).rejects.toThrow('FINANCE_STUDENT_ENROLLMENT_REQUIRED');
+    await expect(reconciliation.recordInboundPayment({
+      tenantId: tenantA,
+      studentPartyId: unenrolledParty,
+      payerPartyId: payerPartyA,
+      amount: 1000,
+      paymentMethod: 'CASH',
+      createdBy: financeActorA,
+    })).rejects.toThrow('FINANCE_STUDENT_ENROLLMENT_REQUIRED');
+
+    expect(await financialState(tenantA)).toEqual(before);
+  }, 30_000);
 });

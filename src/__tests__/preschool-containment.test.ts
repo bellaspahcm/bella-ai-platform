@@ -1,11 +1,10 @@
 /**
- * Owner-approved temporary HTTP hold, not authorization or DB/E2E proof.
+ * Parent daily temporary HTTP hold, not authorization or DB/E2E proof.
  * Expected envelopes come from the immutable containment review patches.
  */
 import { createServer, request as httpRequest } from 'node:http';
 import { NextResponse } from 'next/server';
 import { GET as parentDailyGet } from '@/app/api/education/parent-daily/route';
-import { POST as coursePost } from '@/app/api/education/courses/route';
 import { createClient } from '@/lib/supabase-server';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import { getSupabaseAdminKey, getSupabaseAdminUrl } from '@/lib/supabase-admin-env';
@@ -47,18 +46,10 @@ const heldEndpoints: Array<{
   {
     path: '/api/education/parent-daily',
     method: 'GET',
-    handle: parentDailyGet,
+    handle: (_request: Request) => parentDailyGet(),
     error: 'PARENT_ACCESS_NOT_READY',
     message: 'Quyền truy cập hồ sơ phụ huynh đang được xác minh. Vui lòng liên hệ nhà trường.',
     warning: '[education/parent-daily] PARENT_ACCESS_NOT_READY',
-  },
-  {
-    path: '/api/education/courses',
-    method: 'POST',
-    handle: coursePost,
-    error: 'COURSE_AUTHORIZATION_NOT_READY',
-    message: 'Quyền tạo lớp đang được xác minh. Vui lòng thử lại sau.',
-    warning: '[education/courses] COURSE_AUTHORIZATION_NOT_READY',
   },
 ];
 
@@ -67,7 +58,7 @@ const downstreamTripwires = [
   getCurrentUser, TeacherAssignmentContractImpl, PreschoolParentDailyExperienceService,
 ];
 
-describe('Preschool temporary HTTP containment', () => {
+describe('Preschool parent daily temporary HTTP containment', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.spyOn(console, 'warn').mockImplementation(() => undefined);
@@ -126,21 +117,7 @@ describe('Preschool temporary HTTP containment', () => {
     });
   });
 
-  test('returns 503 before consuming malformed Course JSON', async () => {
-    const request = new Request('http://localhost/api/education/courses', {
-      method: 'POST', headers: { 'content-type': 'application/json' }, body: '{malformed',
-    });
-    const parse = jest.spyOn(request, 'json');
-
-    const post: (request: Request) => Promise<Response> = coursePost;
-    const response = await post(request);
-
-    expect(response.status).toBe(503);
-    expect(parse).not.toHaveBeenCalled();
-    expect(request.bodyUsed).toBe(false);
-  });
-
-  test('serves both real handler responses over loopback HTTP', async () => {
+  test('serves the real held parent response over loopback HTTP', async () => {
     // This adapter proves response transport only; it is not Next routing/Auth/E2E evidence.
     const server = createServer((incoming, outgoing) => {
       const endpoint = heldEndpoints.find((item) => item.path === incoming.url && item.method === incoming.method);
@@ -171,12 +148,12 @@ describe('Preschool temporary HTTP containment', () => {
             response.on('error', reject);
           });
           call.on('error', reject);
-          call.end(endpoint.method === 'POST' ? '{malformed' : undefined);
+          call.end();
         });
         expect(result.status).toBe(503);
         expect(JSON.parse(result.body)).toEqual({ success: false, error: endpoint.error, message: endpoint.message });
       }
-      expect(console.warn).toHaveBeenCalledTimes(2);
+      expect(console.warn).toHaveBeenCalledTimes(1);
       for (const endpoint of heldEndpoints) expect(console.warn).toHaveBeenCalledWith(endpoint.warning);
     } finally {
       server.closeAllConnections();

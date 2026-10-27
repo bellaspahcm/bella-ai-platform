@@ -171,7 +171,7 @@ describe('Preschool tuition service period completion operation', () => {
       .toThrow('AUTH_ROLE_PERMISSION_ERROR');
   });
 
-  test('API and UI expose completion as explicit evidence only, not recognition', () => {
+  test('branch API and UI deny tenant-wide completion without inventing branch semantics', () => {
     const routeSource = fs.readFileSync(
       path.join(process.cwd(), 'src/app/api/education/finance/route.ts'),
       'utf8',
@@ -182,7 +182,7 @@ describe('Preschool tuition service period completion operation', () => {
     );
 
     expect(routeSource).toContain("action === 'completeTuitionServicePeriod'");
-    expect(routeSource).toContain('completedBy: actor.actorId');
+    expect(routeSource).toContain('Tenant-wide completion is unavailable in branch Finance.');
     expect(routeSource).toContain('tenantId: actor.tenantId');
     expect(routeSource).not.toContain('body.completedBy');
     expect(routeSource).not.toContain('body.completedAt');
@@ -195,6 +195,6 @@ describe('Preschool tuition service period completion operation', () => {
 
     expect(pageSource).toContain("financeCommand('completeTuitionServicePeriod'");
     expect(pageSource).toContain('Xác nhận hoàn thành');
-    expect(pageSource).toContain('Thao tác này chỉ tạo completion evidence, không ghi nhận doanh thu.');
+    expect(pageSource).toContain('Xác nhận kỳ toàn trường chưa khả dụng trong luồng theo cơ sở.');
   });
 });

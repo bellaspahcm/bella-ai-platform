@@ -4,11 +4,17 @@ Before changing software, architecture, or engineering controls anywhere in the 
 
 👉 **Bella AI Platform Architecture & Change Constitution:** `docs/governance/BELLA_AI_CODING_CONSTITUTION.md`
 
-Use its **Workflow Routing**, **Scoped Autonomy and Approval**, **Verification Results and Applicability**, and **Enforcement Evidence** sections. Follow its authority/applicability map and retain applicable specialized rules. The complete common rules live in that document; this entrypoint does not create a separate workflow or grant additional authority.
+Use its **[Fast, Correct, Evidence-Based Execution](docs/governance/BELLA_AI_CODING_CONSTITUTION.md#fast-correct-evidence-based-execution)**, **Workflow Routing**, **Scoped Autonomy and Approval** (including **Autonomous Execution Within Scope**), **Verification Results and Applicability**, and **Enforcement Evidence** sections. Follow its authority/applicability map and retain applicable specialized rules. The complete common rules live in that document; this entrypoint does not create a separate workflow or grant additional authority.
+
+Follow **[Autonomous Execution](docs/governance/OPERATIONAL_RULES.md)** across the entire Bella AI Platform and every current or future Product, using **[Bella BMAD Orchestration](docs/governance/BELLA_BMAD_ORCHESTRATION.md)** to select roles, delegate, integrate, and close the requested outcome. These operating instructions apply the Constitution without expanding authority.
+
+Factory is optional for coding requests received in project Codex chat. Follow the Constitution's Workflow Routing to use the normal direct workflow unless the user or a task-specific rule selects Factory. When Factory is selected, follow **Factory Intake from Project Codex Chat**; do not claim Factory evidence for direct work or bypass a held Factory run.
 
 These rules are mandatory. Do not introduce new abstractions, Platform/Core changes, or cross-scope refactors without evidence and explicit justification.
 
 For UI-driven changes, follow **UI-Driven Backend Change Safety** in the constitution: use its proportional Change Map and owner decision boundary before implementation.
+
+For `BELLA MVP UI-TO-DATABASE COMPLETION` or an equivalent request to complete an existing MVP after redesign, connect real data, or finish related features, follow **[MVP UI-to-Database Completion](docs/governance/BELLA_AI_CODING_CONSTITUTION.md#mvp-ui-to-database-completion)**. Apply its scoped inventory, MVP reuse, real persistence/E2E evidence, and authority boundaries through the normal authorized workflow; Factory is optional, and direct work does not prove native launcher activation.
 
 For multi-agent work, the default is single-agent execution unless Multi-Agent Mode is explicitly requested or authorized by the task context. Follow the **Multi-Agent Coding Protocol** in `docs/governance/BELLA_AI_CODING_CONSTITUTION.md`: one Lead, clear ownership, isolated worktrees/branches, public contracts across boundaries, QA before merge, and evidence before status.
 
@@ -102,3 +108,13 @@ These are control surfaces, not a claim that all five are enforced in every tool
 7. Update baseline and re-seal
 
 **Reference:** `docs/architecture/FREEZE_POLICY.md`
+
+<!-- BEGIN:nextjs-agent-rules -->
+
+# This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->

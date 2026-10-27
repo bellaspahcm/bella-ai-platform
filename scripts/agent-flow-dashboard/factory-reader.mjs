@@ -1,8 +1,9 @@
 import { readFile, lstat, realpath } from 'node:fs/promises';
-import { join, dirname } from 'node:path';
+import { join, dirname, basename, resolve } from 'node:path';
 import { hash, DAY_MS, validateFact, logicalKey, signature, reconcile, verifyFileChangeRecords } from '../agent-flow/contract.mjs';
 import { validateIndex, resolveArtifact, resolveStageArtifact, verifyNativeStageBinding, verifyCandidateInventory, validateReadback, validateIndexIdentity } from '../agent-flow/run-evidence.mjs';
 import { validateHandoff, validateRetainedRole } from '../agent-flow/role-validation.mjs';
+import { isMvpPilot } from '../agent-flow/mvp-pilot.mjs';
 
 // No writer/store/AppServer/retention calls. All package content is inert JSON.
 const missing = () => { const error = new Error('MISSING'); error.code = 'ENOENT'; throw error; };
@@ -24,7 +25,9 @@ export async function readFactory(root, packageId, now = Date.now()) {
         deadlines.set(id,deadline);
       }
       const path = join(directory, file), stat = await lstat(path);
-      if (!stat.isFile() || stat.isSymbolicLink() || stat.size > 2 * 1024 * 1024) throw Error('FILE_DENIED');
+      // A verified-source artifact contains both full before/after manifests.
+      const maxBytes = (file === 'verified-source.json' ? 4 : 2) * 1024 * 1024;
+      if (!stat.isFile() || stat.isSymbolicLink() || stat.size > maxBytes) throw Error('FILE_DENIED');
       const data = await readFile(path); budget += data.length; if (budget > 32 * 1024 * 1024) throw Error('READ_BUDGET_EXHAUSTED');
       seen.set(`${id}/${file}`, { packageId: id, file, bytes: data.length, sha256: hash(data) });
       return data;
@@ -46,11 +49,31 @@ export async function readFactory(root, packageId, now = Date.now()) {
     const intake = await reference(index.intake);
     if (intake.task?.taskId !== index.taskId || !intake.before?.fingerprint || intake.task.sourceRevision !== intake.before.head) throw Error('INTAKE_MISMATCH');
     Object.assign(result, { taskId: index.taskId, factoryRunId: index.factoryRunId, provenance: index.provenance, baseline: intake.before.head });
+    const terminalValue=index.terminal?await reference(index.terminal):null;
+    const terminal=terminalValue?.terminal||terminalValue;
+    const existingFlow=isMvpPilot(intake.task)&&terminal?.receipts?.some(r=>r.role==='BUILDER'&&r.noChange===true);
+    const stages=[...index.stages];
+    if(existingFlow) {
+      // This producer omitted source-only Builder assessments from its index.
+      // Read the original receipt referenced by terminal; never invent a stage
+      // event, CODE_CHANGE, or missing ACK to make an incomplete run pass.
+      for(const [position,r] of terminal.receipts.entries()) {
+        if(r.role!=='BUILDER'||r.noChange!==true)continue;
+        if(r.decision!=='DONE'||!Array.isArray(r.changed)||r.changed.length||r.before!==r.after||r.candidate!==r.before||stages.some(s=>s.role==='BUILDER'))throw Error('ASSESSMENT_MISMATCH');
+        if(typeof r.directory!=='string'||dirname(resolve(r.directory))!==canonicalRoot)throw Error('PATH_DENIED');
+        const id=basename(r.directory);
+        if(dirname(await realpath(r.directory))!==canonicalRoot)throw Error('PATH_DENIED');
+        const data=await bytes(id,'role.json');
+        const ref={packageId:id,file:'role.json',bytes:data.length,sha256:r.artifactHash};
+        resolveArtifact(ref,data);
+        stages.splice(position,0,{role:'BUILDER',activity:'SOURCE_ASSESSMENT',receipt:ref,sourcePointer:''});
+      }
+    }
     const receipts = [];
-    for (const stage of index.stages) {
+    for (const stage of stages) {
       const receiptBytes = await bytes(stage.receipt.packageId, stage.receipt.file);
       const r = resolveStageArtifact(stage, receiptBytes); verifyNativeStageBinding(index, r.binding);
-      if (r.role !== stage.role || r.nativeVerified !== true || stage.activity === 'READBACK_ONLY') throw Error('STAGE_SEMANTICS_MISMATCH');
+      if (r.role !== stage.role || r.nativeVerified !== true || stage.activity === 'READBACK_ONLY'||(stage.activity==='CODE_CHANGE'&&r.noChange===true)) throw Error('STAGE_SEMANTICS_MISMATCH');
       const data = await json(stage.receipt.packageId, 'facts.json');
       if (JSON.stringify(data.binding) !== JSON.stringify(r.binding) || !Array.isArray(data.records)) throw Error('FACT_SCOPE_MISMATCH');
       for (const row of data.records) {
@@ -75,7 +98,6 @@ export async function readFactory(root, packageId, now = Date.now()) {
         liveFacts: live.length, historyMatches: comparison.length, receipt: stage.receipt, changed: r.changed });
     }
     if (!index.terminal) return { ...result, artifacts: [...seen.values()] };
-    const terminalValue = await reference(index.terminal), terminal = terminalValue.terminal || terminalValue;
     if (!['PASS', 'HELD'].includes(terminal.status) || terminal.taskId !== index.taskId || !Array.isArray(terminal.receipts) || terminal.receipts.length !== receipts.length) throw Error('TERMINAL_MISMATCH');
     for (let i = 0; i < receipts.length; i++) {
       const original = receipts[i].receipt, augmented = terminal.receipts[i];
@@ -87,9 +109,19 @@ export async function readFactory(root, packageId, now = Date.now()) {
     result.reason = terminal.reason || null;
     if (terminal.status === 'PASS') {
       validateHandoff(terminal, intake.task);
-      if (!index.candidate) missing();
-      const candidate = await reference(index.candidate);
-      verifyCandidateInventory(candidate,intake,terminal);
+      let candidate;
+      if(existingFlow) {
+        if(index.candidate!==null||index.commit!==null)throw Error('EXISTING_FLOW_RELEASE_MISMATCH');
+        const verified=await json(packageId,'verified-source.json');
+        if(verified.kind!=='VERIFIED_EXISTING_FLOW_NO_PRODUCT_CHANGE'||JSON.stringify(verified.before)!==JSON.stringify(intake.before)||
+            JSON.stringify(verified.after)!==JSON.stringify(verified.before)||verified.after.fingerprint!==terminal.candidate||
+            hash(JSON.stringify({head:verified.before.head,files:verified.before.files}))!==terminal.candidate)throw Error('VERIFIED_SOURCE_MISMATCH');
+        result.sourceEvidence='VERIFIED_EXISTING_FLOW_NO_PRODUCT_CHANGE';
+      } else {
+        if (!index.candidate) missing();
+        candidate=await reference(index.candidate);
+        verifyCandidateInventory(candidate,intake,terminal);
+      }
       if (index.commit) {
         const commit = await reference(index.commit);
         if (commit.taskId !== index.taskId || commit.factoryRunId !== index.factoryRunId || commit.sourceFingerprint !== terminal.candidate || commit.candidate.sha256 !== index.candidate.sha256 || commit.matches !== true || !/^[a-f0-9]{40}$/.test(commit.commit)) throw Error('COMMIT_LINK_MISMATCH');

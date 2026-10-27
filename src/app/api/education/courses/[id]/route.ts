@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { TeacherAssignmentContractImpl } from '@/platform/education/contracts/teacher-assignment.contract.impl';
-import { COURSE_PRIVATE_HEADERS, resolveCourseReadContext } from '../request-context';
+import { CourseContractImpl } from '@/platform/education/contracts/course.contract.impl';
+import { COURSE_PRIVATE_HEADERS, resolveCourseReadContext, resolveCourseCatalogReadContext, resolveCourseReadMode } from '../request-context';
 
 export const dynamic = 'force-dynamic';
 const ROSTER_ENROLLMENT_STATUSES = ['active', 'pending'] as const;
@@ -9,6 +10,27 @@ export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const mode = resolveCourseReadMode(request);
+  if (!mode.allowed) return mode.response;
+  if (mode.mode === 'catalog') {
+    try {
+      const context = await resolveCourseCatalogReadContext(request);
+      if (!context.allowed) return context.response;
+      const { id } = await params;
+      if (typeof id !== 'string' || !id.trim() || id.trim() !== id) {
+        return NextResponse.json({ success: false, error: 'COURSE_NOT_FOUND' }, { status: 404, headers: COURSE_PRIVATE_HEADERS });
+      }
+      const course = await new CourseContractImpl(context.supabase).getCourse(context.tenantId, id);
+      if (!course || course.id !== id || course.tenantId !== context.tenantId) {
+        return NextResponse.json({ success: false, error: 'COURSE_NOT_FOUND' }, { status: 404, headers: COURSE_PRIVATE_HEADERS });
+      }
+      return NextResponse.json({ success: true, course }, { headers: COURSE_PRIVATE_HEADERS });
+    } catch {
+      return NextResponse.json({ success: false, error: 'COURSE_CATALOG_UNAVAILABLE' }, {
+        status: 503, headers: COURSE_PRIVATE_HEADERS,
+      });
+    }
+  }
   try {
     const context = await resolveCourseReadContext(request);
     if (!context.allowed) return context.response;

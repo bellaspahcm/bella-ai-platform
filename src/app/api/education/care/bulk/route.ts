@@ -1,8 +1,18 @@
 import { NextResponse } from 'next/server';
 import type { DailyCareAction } from '@/products/bella-education/care-wellbeing/daily-care/daily-care.contract';
+import { parseSaveCareRecords, type SaveCareRecord } from '@/products/bella-education/care-wellbeing/daily-care/save-care.input';
 import { CARE_PRIVATE_HEADERS, CareAccessError, assertCareBodyContext, assertCareStudents, authorizeCareCourse, resolveCareRequestContext } from './request-context';
 
 export const dynamic = 'force-dynamic';
+
+// Local-only RPC is not in the generated remote Database type. This narrow
+// transport shape belongs to the existing API persistence boundary; it adds no
+// Kernel capability or service identity and does not bypass the supplied RLS.
+interface CareSaveRpcClient {
+  rpc(name: 'preschool_save_care_records', args: {
+    p_tenant_id: string; p_course_id: string; p_day: string; p_records: readonly SaveCareRecord[];
+  }): PromiseLike<{ data: unknown; error: unknown }>;
+}
 
 interface CareRequestBody {
   readonly action?: unknown;
@@ -184,128 +194,16 @@ export async function POST(request: Request) {
 
     // ── Unified save_care action (single or bulk full care state) ────────────
     if (action === 'save_care') {
-      const recordsToSave = (payload.records ?? []).map((entry) => ({
-        studentPartyId: asString(entry.studentPartyId),
-        mealPortion: isMealPortion(entry.meal?.portion) ? entry.meal.portion : null,
-        mealNotes: asString(entry.meal?.notes),
-        napQuality: isNapQuality(entry.nap?.quality) ? entry.nap.quality : null,
-        napNotes: asString(entry.nap?.notes),
-        hygieneType: isHygieneType(entry.hygiene?.type) ? entry.hygiene.type : null,
-        hygieneNotes: asString(entry.hygiene?.notes),
-        note: asString(entry.note),
-      }));
-
-      // Get or create daily care session
-      let sessionId: string;
-      const { data: existingSession, error: sessionLookupError } = await client
-        .from('edu_daily_care_sessions')
-        .select('id')
-        .eq('tenant_id', tenantId)
-        .eq('class_id', courseId)
-        .eq('date', date)
-        .maybeSingle();
-
-      if (sessionLookupError) throw new CareAccessError(503, 'CARE_DATA_UNAVAILABLE');
-      if (existingSession?.id) {
-        sessionId = existingSession.id;
-      } else {
-        const { data: newSession, error: sessErr } = await client
-          .from('edu_daily_care_sessions')
-          .insert({ tenant_id: tenantId, class_id: courseId, date, status: 'OPEN' })
-          .select('id')
-          .single();
-        if (sessErr || !newSession) {
-          throw new Error(`FAILED_CREATE_CARE_SESSION: ${sessErr?.message ?? 'unknown'}`);
-        }
-        sessionId = newSession.id;
-      }
-
-      const now = new Date().toISOString();
-      let savedCount = 0;
-
-      for (const rec of recordsToSave) {
-        const mealRecords = rec.mealPortion
-          ? [
-              {
-                mealType: 'LUNCH',
-                portion: rec.mealPortion,
-                notes: rec.mealNotes,
-                recordedAt: now,
-              },
-            ]
-          : [];
-
-        const napRecords = rec.napQuality
-          ? {
-              quality: rec.napQuality,
-              notes: rec.napNotes,
-              updatedAt: now,
-            }
-          : {};
-
-        const hygieneRecords = rec.hygieneType
-          ? [
-              {
-                type: rec.hygieneType,
-                notes: rec.hygieneNotes,
-                time: now,
-              },
-            ]
-          : [];
-
-        const morningCondition = rec.note || '';
-
-        // Check if student care record exists by student_party_id
-        const { data: existingRec, error: recordLookupError } = await client
-          .from('edu_daily_care_records')
-          .select('id')
-          .eq('tenant_id', tenantId)
-          .eq('session_id', sessionId)
-          .eq('student_party_id' as 'id', rec.studentPartyId as unknown as string)
-          .maybeSingle();
-
-        if (recordLookupError) throw new CareAccessError(503, 'CARE_DATA_UNAVAILABLE');
-        if (existingRec?.id) {
-          const { error: upErr } = await client
-            .from('edu_daily_care_records')
-            .update({
-              morning_condition: morningCondition,
-              meal_records: mealRecords,
-              nap_records: napRecords,
-              hygiene_records: hygieneRecords,
-              updated_at: now,
-            })
-            .eq('tenant_id', tenantId)
-            .eq('session_id', sessionId)
-            .eq('id', existingRec.id);
-          if (upErr) throw new CareAccessError(503, 'CARE_WRITE_UNAVAILABLE');
-          savedCount++;
-        } else {
-          // Insert — student_party_id exists in DB even if TS types lag
-          const insertPayload: Record<string, unknown> = {
-            tenant_id: tenantId,
-            session_id: sessionId,
-            student_party_id: rec.studentPartyId,
-            arrival_status: 'PRESENT',
-            morning_condition: morningCondition,
-            meal_records: mealRecords,
-            nap_records: napRecords,
-            hygiene_records: hygieneRecords,
-            updated_at: now,
-          };
-          const { error: insErr } = await (client
-            .from('edu_daily_care_records') as unknown as {
-              insert: (values: Record<string, unknown>) => Promise<{ error: { message: string } | null }>;
-            }).insert(insertPayload);
-          if (insErr) {
-            throw new CareAccessError(503, 'CARE_WRITE_UNAVAILABLE');
-          } else {
-            savedCount++;
-          }
-        }
-      }
-
-      return NextResponse.json({ success: true, savedCount, total: recordsToSave.length }, { headers: CARE_PRIVATE_HEADERS });
+      let records;
+      try { records = parseSaveCareRecords(payload.records); }
+      catch { throw new CareAccessError(400, 'CARE_INVALID_RECORD'); }
+      const { data, error } = await (client as unknown as CareSaveRpcClient).rpc('preschool_save_care_records', {
+        p_tenant_id: tenantId, p_course_id: courseId, p_day: date, p_records: records,
+      });
+      if (error || !data || typeof data !== 'object' || Array.isArray(data)
+        || !('savedCount' in data) || data.savedCount !== records.length
+        || !('total' in data) || data.total !== records.length) throw new CareAccessError(503, 'CARE_WRITE_UNAVAILABLE');
+      return NextResponse.json({ success: true, savedCount: records.length, total: records.length }, { headers: CARE_PRIVATE_HEADERS });
     }
 
     if (action === 'arrival') {

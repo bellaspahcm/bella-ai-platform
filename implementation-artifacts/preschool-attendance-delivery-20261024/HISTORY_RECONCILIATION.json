@@ -1,0 +1,68 @@
+{
+  "startedAt": "2026-10-24T08:26:27.604Z",
+  "target": "bmnbqbcdbuklhopfbopv",
+  "authority": "Human approved restoring exactly two absent history records and Non-Production CI in this conversation",
+  "operation": "INSERT absent history metadata only; never execute migration SQL",
+  "originalReceiptTimes": [
+    {
+      "file": "HANDOVER_APPLY_1792799094296.json",
+      "at": "2026-10-23T23:44:54.295Z"
+    },
+    {
+      "file": "ATTENDANCE_TARGET_apply_1792805169380.json",
+      "at": "2026-10-24T01:26:07.600Z"
+    }
+  ],
+  "causeOfMissingHistory": "NOT_PROVEN; retained original and gap receipts are not replaced",
+  "productionAccess": false,
+  "applicationRowsRead": false,
+  "applicationDml": false,
+  "functionReadback": [
+    {
+      "name": "edu_set_daily_attendance",
+      "bodySha256": "a75eec5543e54b2ae376526a7521586a29c94fc48196636f7a67ace0bc8f5aab",
+      "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+      "configuration": [
+        "search_path=\"\""
+      ]
+    },
+    {
+      "name": "edu_can_access_attendance_enrollment",
+      "bodySha256": "7cafdf7e07b62b8eec708f6443db142d97531a1245907cad2d7eb637b086d9af",
+      "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+      "configuration": [
+        "search_path=pg_catalog, public"
+      ]
+    },
+    {
+      "name": "preschool_record_handover",
+      "bodySha256": "12c718b054ac2dc6ede1e6fe1a2207b7145e52952533ebf5fc96ce100b75f1f2",
+      "acl": "{postgres=X/postgres,service_role=X/postgres}",
+      "configuration": [
+        "search_path=\"\""
+      ]
+    }
+  ],
+  "beforeHistoryCount": 154,
+  "beforeHistorySha256": "9aad0e4776565f05159b6b827bf1f7549ce6cf15a72ff9db0e60a4f1d1c50d23",
+  "beforeCatalogSha256": "887838f961b35ad05f5719c5ba2bfd5a2a7ba50c31c1081b8ada7a9d2d392155",
+  "committedAt": "2026-10-24T08:26:33.919Z",
+  "afterHistoryCount": 156,
+  "restored": [
+    {
+      "version": "20261024010000",
+      "name": "preschool_handover_atomic_command",
+      "sha256": "06e9058ee298220ef423b60d6a77fc6e9035d59d21edc7484de17d189cb5c830"
+    },
+    {
+      "version": "20261024020000",
+      "name": "reconcile_education_attendance_callers",
+      "sha256": "50b2a4c9fc6c71b66aef8f5723e4560c0a0b835855c9c10e90ab153700be91b3"
+    }
+  ],
+  "result": "PASS_TWO_INSERTS_AND_INDEPENDENT_READBACK",
+  "existingHistory": "UNCHANGED",
+  "catalog": "UNCHANGED",
+  "completedAt": "2026-10-24T08:26:39.315Z",
+  "committed": true
+}

@@ -1,0 +1,50 @@
+{
+  "target": "bmnbqbcdbuklhopfbopv",
+  "time": "2026-10-24T01:18:48.436Z",
+  "result": "PASS_BOUNDED_INDEPENDENT_READONLY_VERIFICATION",
+  "sourceRevision": "80e13ea92ee70742d26cd890a45aaa94d8fc7494",
+  "sourcePinBuildId": "U935iOhDLBp_SouA622oM",
+  "testedE2EBuildId": "fUdaRHs7DypX3PUAjLJK2",
+  "acceptanceFile": "E2E_ACCEPTANCE_3dc2a571-5216-481b-b206-c6ca4119613d_RESULT.json",
+  "sourcePaths": 3324,
+  "sourceDrift": [],
+  "metadataPostconditions": [
+    {
+      "result": "CARE_POLICY_INDEPENDENT_POST_PASS",
+      "read_only": "on"
+    }
+  ],
+  "ownedFixtureRuns": 13,
+  "ownedTenantIds": 26,
+  "ownedAuthSubjects": 65,
+  "fixtureReadback": {
+    "counts": {
+      "users": 0,
+      "tenants": 0,
+      "students": 0,
+      "org_units": 0,
+      "audit_logs": 0,
+      "edu_courses": 0,
+      "party_parties": 0,
+      "edu_attendance": 0,
+      "edu_enrollments": 0,
+      "people_directory": 0,
+      "org_relationships": 0,
+      "party_relationships": 0,
+      "edu_daily_care_records": 0,
+      "edu_daily_care_sessions": 0,
+      "edu_attendance_daily_state": 0,
+      "edu_enrollment_event_records": 0,
+      "preschool_school_announcements": 0,
+      "preschool_chain_course_branch_assignments": 0
+    },
+    "readOnly": "on",
+    "ownedProbeConstraints": 0
+  },
+  "authAbsent": 65,
+  "catalogSha256": "d99a60ff8944304b0b47d3b0bd81398c5e081ae69e136256fcd59dfef1e77634",
+  "businessRowsRead": false,
+  "production": "NOT_RUN",
+  "goLive": "NOT_READY",
+  "nativeExit": 0
+}

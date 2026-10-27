@@ -9,7 +9,7 @@ after=once(after,"response.headers.set('Cache-Control', 'no-store, must-revalida
 after=once(after,"          response.cookies.set({ name, value, ...options });","          if (isPrivateCareRoute) response.headers.set('Cache-Control', 'private, no-store');\n          response.cookies.set({ name, value, ...options });");
 after=once(after,"          response.cookies.set({ name, value: '', ...options });","          if (isPrivateCareRoute) response.headers.set('Cache-Control', 'private, no-store');\n          response.cookies.set({ name, value: '', ...options });");
 function load(source,scenario) {
-  const module={exports:{}};
+  const sandboxModule={exports:{}};
   const code=require('typescript').transpileModule(source,{compilerOptions:{module:require('typescript').ModuleKind.CommonJS,target:require('typescript').ScriptTarget.ES2022}}).outputText;
   const allowed={
     'next/server':require('next/server'),
@@ -21,8 +21,8 @@ function load(source,scenario) {
     '@/lib/supabase-public-env':{getSupabasePublicUrl:()=> 'https://synthetic.invalid',getSupabasePublicKey:()=> 'synthetic-public-key',requireSupabasePublicEnv:()=>{throw Error('Unexpected missing config');}},
     '@/lib/supabase-admin-env':{getSupabaseAdminKey:()=>{throw Error('Admin forbidden');},getSupabaseAdminUrl:()=>{throw Error('Admin forbidden');}},
   };
-  vm.runInNewContext(code,{module,exports:module.exports,require:name=>{assert.ok(name in allowed,'Unexpected dependency');return allowed[name];},process:{env:{NODE_ENV:'production',DEPLOYMENT_ENV:'production'}},Headers,URL});
-  return module.exports.proxy;
+  vm.runInNewContext(code,{module:sandboxModule,exports:sandboxModule.exports,require:name=>{assert.ok(name in allowed,'Unexpected dependency');return allowed[name];},process:{env:{NODE_ENV:'production',DEPLOYMENT_ENV:'production'}},Headers,URL});
+  return sandboxModule.exports.proxy;
 }
 async function main(){
   const rows=[];

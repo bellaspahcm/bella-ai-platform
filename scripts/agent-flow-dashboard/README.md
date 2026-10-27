@@ -13,6 +13,23 @@ as READBACK_ONLY. AVAILABLE describes accessible validated evidence, including H
 it is not a Factory, merge or Go-Live verdict. No data is rewritten or purged.
 Tests: `node --test scripts/agent-flow-dashboard/dashboard.test.mjs scripts/agent-flow-dashboard/factory-reader.test.mjs`.
 
+For the approved AutoMove existing-flow pilot, the reader validates the original
+no-change Builder receipt as `SOURCE_ASSESSMENT`, together with unchanged full
+source manifests. This is execution evidence without a Product code change or a
+commit claim. Original indexes, receipts and retention deadlines remain unchanged.
+
+The CLI accepts an optional absolute evidence root; the default remains
+`%USERPROFILE%\.codex\agent-flow-evidence`. For the pilot package retained on D:
+
+```powershell
+node scripts/agent-flow-dashboard/server.mjs --root 'D:\Bella-AutoMove-Pilot-Temporary' --open
+node scripts/agent-flow-dashboard/factory-browser-proof.mjs 'D:\Bella-AutoMove-Pilot-Temporary\monitor-proof-new' bella-agent-flow-XA3GLC PASS 'D:\Bella-AutoMove-Pilot-Temporary'
+```
+
+The browser proof uses the existing GitHub authority, checks the same retained run,
+desktop/mobile layout, refresh/reload, anonymous denial and read-only methods.
+It does not dispatch Factory stages, access the business DB, or create commit proof.
+
 The sections below document the original viewer baseline and historical proof.
 
 Local, read-only viewer for retained sealed **legacy task-workflow and launcher-v2 bounded-coding** packages. Not realtime. Not the Bella tenant dashboard. No agent launcher, persistence writer, production or deployment control.

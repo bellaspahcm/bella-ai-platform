@@ -3,9 +3,19 @@
 # BEFORE CHANGING SOFTWARE, ARCHITECTURE, OR ENGINEERING CONTROLS ANYWHERE IN BELLA:
 # Read the Bella AI Platform Architecture & Change Constitution:
 # docs/governance/BELLA_AI_CODING_CONSTITUTION.md
-# Use its Workflow Routing, Scoped Autonomy and Approval, Verification Results and Applicability,
-# and Enforcement Evidence sections. Retain applicable specialized rules via its authority map.
+# Use its Fast, Correct, Evidence-Based Execution, Workflow Routing, Scoped Autonomy and Approval,
+# Verification Results and Applicability, and Enforcement Evidence sections.
+# Execution rule: docs/governance/BELLA_AI_CODING_CONSTITUTION.md#fast-correct-evidence-based-execution
+# Retain applicable specialized rules via its authority map.
 # The complete common rules live there; this entrypoint grants no additional authority.
+
+# Follow docs/governance/OPERATIONAL_RULES.md across Bella AI Platform and all current/future Products.
+# Use docs/governance/BELLA_BMAD_ORCHESTRATION.md to route roles, delegate, integrate and verify outcomes.
+
+# Route BELLA MVP UI-TO-DATABASE COMPLETION and equivalent existing-MVP completion requests to:
+# docs/governance/BELLA_AI_CODING_CONSTITUTION.md#mvp-ui-to-database-completion
+# Apply its scoped inventory, MVP reuse, persistence/E2E evidence, authority and Factory Intake rules.
+# This instruction pointer does not prove native launcher activation.
 
 # READ CONSTITUTIONS BEFORE ANY HEALTHCARE OR EDUCATION CODING:
 # Healthcare Path: docs/architecture/HEALTHCARE_VERTICAL_CODING_CONSTITUTION.md

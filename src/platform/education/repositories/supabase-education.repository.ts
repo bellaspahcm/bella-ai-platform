@@ -13,6 +13,19 @@ import { BaseSupabaseRepositoryPrimitive } from '../../core/repository';
 import { Course, CourseStatus } from '../domain/course.entity';
 import { Enrollment, EnrollmentStatus } from '../domain/enrollment.entity';
 import { IEducationRepository } from './education-repository.interface';
+import { CanonicalCourseCommandError, type CreatedCanonicalCourse } from '../contracts/canonical-course-catalog.contract';
+
+interface CanonicalCourseTransactionRpc {
+  rpc(name: 'edu_create_preschool_course', args: {
+    p_tenant_id: string;
+    p_actor_id: string;
+    p_operation_key: string;
+    p_course_id: string;
+    p_branch_id: string;
+    p_course_code: string;
+    p_title: string;
+  }): PromiseLike<{ data: unknown; error: { code?: string; message: string } | null }>;
+}
 
 /**
  * RPC Contract: edu_enroll_student_v3
@@ -35,6 +48,56 @@ interface EduEnrollStudentV3Result {
 export class SupabaseEducationRepository extends BaseSupabaseRepositoryPrimitive implements IEducationRepository {
   constructor(private readonly supabase: SupabaseClient<Database>) {
     super();
+  }
+
+  public async executeCreateCourseTransaction(input: {
+    course: Course;
+    actorId: string;
+    operationKey: string;
+    branchId: string;
+  }): Promise<CreatedCanonicalCourse> {
+    const { course, actorId, operationKey, branchId } = input;
+    let result: Awaited<ReturnType<CanonicalCourseTransactionRpc['rpc']>>;
+    try {
+      result = await (this.supabase as unknown as CanonicalCourseTransactionRpc).rpc('edu_create_preschool_course', {
+        p_tenant_id: course.tenantId,
+        p_actor_id: actorId,
+        p_operation_key: operationKey,
+        p_course_id: course.id,
+        p_branch_id: branchId,
+        p_course_code: course.courseCode,
+        p_title: course.title,
+      });
+    } catch {
+      throw new CanonicalCourseCommandError('CANONICAL_COURSE_UNAVAILABLE', 503);
+    }
+
+    if (result.error) {
+      if (result.error.code === '42501') throw new CanonicalCourseCommandError('CANONICAL_COURSE_ACCESS_DENIED', 403);
+      if (result.error.code === '23505') throw new CanonicalCourseCommandError('CANONICAL_COURSE_CONFLICT', 409);
+      if (result.error.code === '22023') throw new CanonicalCourseCommandError('CANONICAL_COURSE_INVALID_REQUEST', 400);
+      throw new CanonicalCourseCommandError('CANONICAL_COURSE_UNAVAILABLE', 503);
+    }
+
+    const value = result.data;
+    if (!value || typeof value !== 'object' || Array.isArray(value)) {
+      throw new CanonicalCourseCommandError('CANONICAL_COURSE_UNAVAILABLE', 503);
+    }
+    const row = value as Record<string, unknown>;
+    if (typeof row.id !== 'string' || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(row.id)
+      || row.tenantId !== course.tenantId || row.courseCode !== course.courseCode || row.title !== course.title
+      || row.status !== 'active' || row.branchId !== branchId || row.operationKey !== operationKey) {
+      throw new CanonicalCourseCommandError('CANONICAL_COURSE_UNAVAILABLE', 503);
+    }
+    return {
+      id: row.id,
+      tenantId: course.tenantId,
+      courseCode: course.courseCode,
+      title: course.title,
+      status: 'active',
+      branchId,
+      operationKey,
+    };
   }
 
   public async saveCourse(course: Course): Promise<void> {
@@ -130,6 +193,37 @@ export class SupabaseEducationRepository extends BaseSupabaseRepositoryPrimitive
       studentPartyId: data.student_party_id,
       courseId: data.course_id,
       status: data.status as EnrollmentStatus,
+      requestId: data.request_id,
+      enrolledAt: new Date(data.enrolled_at),
+      createdAt: new Date(data.created_at),
+      updatedAt: new Date(data.updated_at),
+    });
+  }
+
+  public async findEnrollmentByRequestId(requestId: string, tenantId: string): Promise<Enrollment | null> {
+    const { data, error } = await this.supabase
+      .from('edu_enrollments')
+      .select('*')
+      .eq('tenant_id', tenantId)
+      .eq('request_id', requestId)
+      .maybeSingle();
+
+    if (error) {
+      throw this.mapDatabaseError(error, 'Failed to recover enrollment by request');
+    }
+    if (!data) return null;
+
+    const status = data.status;
+    if (status !== 'pending' && status !== 'active' && status !== 'completed' && status !== 'cancelled') {
+      throw new Error('Invalid enrollment recovery status');
+    }
+
+    return Enrollment.reconstitute({
+      id: data.id,
+      tenantId: data.tenant_id,
+      studentPartyId: data.student_party_id,
+      courseId: data.course_id,
+      status,
       requestId: data.request_id,
       enrolledAt: new Date(data.enrolled_at),
       createdAt: new Date(data.created_at),

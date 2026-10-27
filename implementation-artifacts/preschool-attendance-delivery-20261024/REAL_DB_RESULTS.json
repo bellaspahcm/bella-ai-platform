@@ -1,0 +1,524 @@
+{
+  "numFailedTestSuites": 0,
+  "numFailedTests": 0,
+  "numPassedTestSuites": 1,
+  "numPassedTests": 16,
+  "numPendingTestSuites": 0,
+  "numPendingTests": 11,
+  "numRuntimeErrorTestSuites": 0,
+  "numTodoTests": 0,
+  "numTotalTestSuites": 1,
+  "numTotalTests": 27,
+  "openHandles": [],
+  "snapshot": {
+    "added": 0,
+    "didUpdate": false,
+    "failure": false,
+    "filesAdded": 0,
+    "filesRemoved": 0,
+    "filesRemovedList": [],
+    "filesUnmatched": 0,
+    "filesUpdated": 0,
+    "matched": 0,
+    "total": 0,
+    "unchecked": 0,
+    "uncheckedKeysByFile": [],
+    "unmatched": 0,
+    "updated": 0
+  },
+  "startTime": 1792830490389,
+  "success": true,
+  "testResults": [
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": [
+            "Preschool Chain real DB E2E proof"
+          ],
+          "duration": null,
+          "failing": false,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "Preschool Chain real DB E2E proof proves Preschool Chain migration tables, RLS, and policy surface exist in the real database",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 0,
+          "retryReasons": [],
+          "startAt": 1792830495271,
+          "status": "pending",
+          "title": "proves Preschool Chain migration tables, RLS, and policy surface exist in the real database"
+        },
+        {
+          "ancestorTitles": [
+            "Preschool Chain real DB E2E proof"
+          ],
+          "duration": null,
+          "failing": false,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "Preschool Chain real DB E2E proof denies a currently banned Auth actor without creating admission intent",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 0,
+          "retryReasons": [],
+          "startAt": 1792830495271,
+          "status": "pending",
+          "title": "denies a currently banned Auth actor without creating admission intent"
+        },
+        {
+          "ancestorTitles": [
+            "Preschool Chain real DB E2E proof"
+          ],
+          "duration": null,
+          "failing": false,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "Preschool Chain real DB E2E proof denies a currently deleted Auth actor without creating admission intent",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 0,
+          "retryReasons": [],
+          "startAt": 1792830495271,
+          "status": "pending",
+          "title": "denies a currently deleted Auth actor without creating admission intent"
+        },
+        {
+          "ancestorTitles": [
+            "Preschool Chain real DB E2E proof"
+          ],
+          "duration": null,
+          "failing": false,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "Preschool Chain real DB E2E proof rechecks Auth revocation after the course lock wait and leaves no admission intent",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 0,
+          "retryReasons": [],
+          "startAt": 1792830495271,
+          "status": "pending",
+          "title": "rechecks Auth revocation after the course lock wait and leaves no admission intent"
+        },
+        {
+          "ancestorTitles": [
+            "Preschool Chain real DB E2E proof"
+          ],
+          "duration": null,
+          "failing": false,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "Preschool Chain real DB E2E proof proves admission branch assignment persists through edu_enrollments, chain tables, read-back, tenant isolation, authorization, and idempotency",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 0,
+          "retryReasons": [],
+          "startAt": 1792830495271,
+          "status": "pending",
+          "title": "proves admission branch assignment persists through edu_enrollments, chain tables, read-back, tenant isolation, authorization, and idempotency"
+        },
+        {
+          "ancestorTitles": [
+            "Preschool Chain real DB E2E proof"
+          ],
+          "duration": null,
+          "failing": false,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "Preschool Chain real DB E2E proof scans only positive unpaid debt and leaves settled invoices without overdue exceptions",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 0,
+          "retryReasons": [],
+          "startAt": 1792830495271,
+          "status": "pending",
+          "title": "scans only positive unpaid debt and leaves settled invoices without overdue exceptions"
+        },
+        {
+          "ancestorTitles": [
+            "Preschool Chain real DB E2E proof",
+            "attendance caller reconciliation CI"
+          ],
+          "duration": 1082,
+          "failing": false,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "Preschool Chain real DB E2E proof attendance caller reconciliation CI uses a real signed-in English Center public adapter and returns the persisted event rather than projection ID",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 4,
+          "retryReasons": [],
+          "startAt": 1792830495806,
+          "status": "passed",
+          "title": "uses a real signed-in English Center public adapter and returns the persisted event rather than projection ID"
+        },
+        {
+          "ancestorTitles": [
+            "Preschool Chain real DB E2E proof",
+            "attendance caller reconciliation CI"
+          ],
+          "duration": 763,
+          "failing": false,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "Preschool Chain real DB E2E proof attendance caller reconciliation CI preserves the authenticated Preschool caller with canonical history readback",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 4,
+          "retryReasons": [],
+          "startAt": 1792830496888,
+          "status": "passed",
+          "title": "preserves the authenticated Preschool caller with canonical history readback"
+        },
+        {
+          "ancestorTitles": [
+            "Preschool Chain real DB E2E proof",
+            "attendance caller reconciliation CI"
+          ],
+          "duration": 2179,
+          "failing": false,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "Preschool Chain real DB E2E proof attendance caller reconciliation CI preserves the actual Preschool Product scoped caller for admin",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 4,
+          "retryReasons": [],
+          "startAt": 1792830497651,
+          "status": "passed",
+          "title": "preserves the actual Preschool Product scoped caller for admin"
+        },
+        {
+          "ancestorTitles": [
+            "Preschool Chain real DB E2E proof",
+            "attendance caller reconciliation CI"
+          ],
+          "duration": 3211,
+          "failing": false,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "Preschool Chain real DB E2E proof attendance caller reconciliation CI preserves the actual Preschool Product scoped caller for admin_staff",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 4,
+          "retryReasons": [],
+          "startAt": 1792830499830,
+          "status": "passed",
+          "title": "preserves the actual Preschool Product scoped caller for admin_staff"
+        },
+        {
+          "ancestorTitles": [
+            "Preschool Chain real DB E2E proof",
+            "attendance caller reconciliation CI"
+          ],
+          "duration": 4241,
+          "failing": false,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "Preschool Chain real DB E2E proof attendance caller reconciliation CI does not elevate the canonical admin profile when a caller claims super_admin",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 2,
+          "retryReasons": [],
+          "startAt": 1792830503041,
+          "status": "passed",
+          "title": "does not elevate the canonical admin profile when a caller claims super_admin"
+        },
+        {
+          "ancestorTitles": [
+            "Preschool Chain real DB E2E proof",
+            "attendance caller reconciliation CI"
+          ],
+          "duration": 1004,
+          "failing": false,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "Preschool Chain real DB E2E proof attendance caller reconciliation CI denies foreign-tenant with no Attendance side effect",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 2,
+          "retryReasons": [],
+          "startAt": 1792830507282,
+          "status": "passed",
+          "title": "denies foreign-tenant with no Attendance side effect"
+        },
+        {
+          "ancestorTitles": [
+            "Preschool Chain real DB E2E proof",
+            "attendance caller reconciliation CI"
+          ],
+          "duration": 952,
+          "failing": false,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "Preschool Chain real DB E2E proof attendance caller reconciliation CI denies wrong-role with no Attendance side effect",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 2,
+          "retryReasons": [],
+          "startAt": 1792830508286,
+          "status": "passed",
+          "title": "denies wrong-role with no Attendance side effect"
+        },
+        {
+          "ancestorTitles": [
+            "Preschool Chain real DB E2E proof",
+            "attendance caller reconciliation CI"
+          ],
+          "duration": 1010,
+          "failing": false,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "Preschool Chain real DB E2E proof attendance caller reconciliation CI denies wrong-branch with no Attendance side effect",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 2,
+          "retryReasons": [],
+          "startAt": 1792830509238,
+          "status": "passed",
+          "title": "denies wrong-branch with no Attendance side effect"
+        },
+        {
+          "ancestorTitles": [
+            "Preschool Chain real DB E2E proof",
+            "attendance caller reconciliation CI"
+          ],
+          "duration": 937,
+          "failing": false,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "Preschool Chain real DB E2E proof attendance caller reconciliation CI denies banned with no Attendance side effect",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 2,
+          "retryReasons": [],
+          "startAt": 1792830510248,
+          "status": "passed",
+          "title": "denies banned with no Attendance side effect"
+        },
+        {
+          "ancestorTitles": [
+            "Preschool Chain real DB E2E proof",
+            "attendance caller reconciliation CI"
+          ],
+          "duration": 906,
+          "failing": false,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "Preschool Chain real DB E2E proof attendance caller reconciliation CI denies deleted with no Attendance side effect",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 2,
+          "retryReasons": [],
+          "startAt": 1792830511185,
+          "status": "passed",
+          "title": "denies deleted with no Attendance side effect"
+        },
+        {
+          "ancestorTitles": [
+            "Preschool Chain real DB E2E proof",
+            "attendance caller reconciliation CI"
+          ],
+          "duration": 1398,
+          "failing": false,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "Preschool Chain real DB E2E proof attendance caller reconciliation CI rechecks current Auth after a real enrollment lock wait",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 3,
+          "retryReasons": [],
+          "startAt": 1792830512091,
+          "status": "passed",
+          "title": "rechecks current Auth after a real enrollment lock wait"
+        },
+        {
+          "ancestorTitles": [
+            "Preschool Chain real DB E2E proof",
+            "attendance caller reconciliation CI"
+          ],
+          "duration": 697,
+          "failing": false,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "Preschool Chain real DB E2E proof attendance caller reconciliation CI denies anonymous execution and preserves the trusted-server missing-enrollment error",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 3,
+          "retryReasons": [],
+          "startAt": 1792830513489,
+          "status": "passed",
+          "title": "denies anonymous execution and preserves the trusted-server missing-enrollment error"
+        },
+        {
+          "ancestorTitles": [
+            "Preschool Chain real DB E2E proof",
+            "attendance caller reconciliation CI"
+          ],
+          "duration": 1864,
+          "failing": false,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "Preschool Chain real DB E2E proof attendance caller reconciliation CI rolls back attempted history after cancel-first-write without trigger/schema changes",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 4,
+          "retryReasons": [],
+          "startAt": 1792830514186,
+          "status": "passed",
+          "title": "rolls back attempted history after cancel-first-write without trigger/schema changes"
+        },
+        {
+          "ancestorTitles": [
+            "Preschool Chain real DB E2E proof",
+            "attendance caller reconciliation CI"
+          ],
+          "duration": 2096,
+          "failing": false,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "Preschool Chain real DB E2E proof attendance caller reconciliation CI rolls back attempted history after cancel-second-write without trigger/schema changes",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 4,
+          "retryReasons": [],
+          "startAt": 1792830516050,
+          "status": "passed",
+          "title": "rolls back attempted history after cancel-second-write without trigger/schema changes"
+        },
+        {
+          "ancestorTitles": [
+            "Preschool Chain real DB E2E proof",
+            "attendance caller reconciliation CI"
+          ],
+          "duration": 1815,
+          "failing": false,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "Preschool Chain real DB E2E proof attendance caller reconciliation CI rolls back attempted history after revoke-during-upsert without trigger/schema changes",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 3,
+          "retryReasons": [],
+          "startAt": 1792830518146,
+          "status": "passed",
+          "title": "rolls back attempted history after revoke-during-upsert without trigger/schema changes"
+        },
+        {
+          "ancestorTitles": [
+            "Preschool Chain real DB E2E proof",
+            "attendance caller reconciliation CI"
+          ],
+          "duration": 1346,
+          "failing": false,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "Preschool Chain real DB E2E proof attendance caller reconciliation CI rolls back history and projection together and rejects snapshot-isolated callers",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 4,
+          "retryReasons": [],
+          "startAt": 1792830519961,
+          "status": "passed",
+          "title": "rolls back history and projection together and rejects snapshot-isolated callers"
+        },
+        {
+          "ancestorTitles": [
+            "Preschool Chain real DB E2E proof",
+            "handover atomic command CI"
+          ],
+          "duration": null,
+          "failing": false,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "Preschool Chain real DB E2E proof handover atomic command CI serializes concurrent calls and recovers the committed canonical handover without another event",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 0,
+          "retryReasons": [],
+          "startAt": 1792830521989,
+          "status": "pending",
+          "title": "serializes concurrent calls and recovers the committed canonical handover without another event"
+        },
+        {
+          "ancestorTitles": [
+            "Preschool Chain real DB E2E proof",
+            "handover atomic command CI"
+          ],
+          "duration": null,
+          "failing": false,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "Preschool Chain real DB E2E proof handover atomic command CI denies pickup revocation committed during an actual lock wait and persists no event",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 0,
+          "retryReasons": [],
+          "startAt": 1792830521989,
+          "status": "pending",
+          "title": "denies pickup revocation committed during an actual lock wait and persists no event"
+        },
+        {
+          "ancestorTitles": [
+            "Preschool Chain real DB E2E proof",
+            "handover atomic command CI"
+          ],
+          "duration": null,
+          "failing": false,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "Preschool Chain real DB E2E proof handover atomic command CI denies a foreign tenant without persisting a handover",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 0,
+          "retryReasons": [],
+          "startAt": 1792830521989,
+          "status": "pending",
+          "title": "denies a foreign tenant without persisting a handover"
+        },
+        {
+          "ancestorTitles": [
+            "Preschool Chain real DB E2E proof",
+            "handover atomic command CI"
+          ],
+          "duration": null,
+          "failing": false,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "Preschool Chain real DB E2E proof handover atomic command CI denies direct anon RPC execution without side effects",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 0,
+          "retryReasons": [],
+          "startAt": 1792830521989,
+          "status": "pending",
+          "title": "denies direct anon RPC execution without side effects"
+        },
+        {
+          "ancestorTitles": [
+            "Preschool Chain real DB E2E proof",
+            "handover atomic command CI"
+          ],
+          "duration": null,
+          "failing": false,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "Preschool Chain real DB E2E proof handover atomic command CI denies direct authenticated RPC execution without side effects",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 0,
+          "retryReasons": [],
+          "startAt": 1792830521989,
+          "status": "pending",
+          "title": "denies direct authenticated RPC execution without side effects"
+        }
+      ],
+      "endTime": 1792830522293,
+      "message": "",
+      "name": "C:\\Users\\DELL\\.codex\\worktrees\\preschool-chain-release-20261024\\BELLA SPA ERP\\src\\products\\bella-education\\__tests__\\preschool-chain-real-db.test.ts",
+      "startTime": 1792830490871,
+      "status": "focused",
+      "summary": ""
+    }
+  ],
+  "wasInterrupted": false
+}

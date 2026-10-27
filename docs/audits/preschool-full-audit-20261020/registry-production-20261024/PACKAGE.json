@@ -1,0 +1,31 @@
+{
+  "target": "lvnvkpyxtuilhrabtlwv",
+  "tenant": "ed100000-0000-0000-0000-000000000001",
+  "actor": "ad6899c2-4b9d-49af-acb3-69e2e1d11447",
+  "branchId": "341b519a-6206-4b50-94c5-9fe9ef71a1fc",
+  "directoryId": "1f6ee2f2-1a69-423a-b659-41d2639e3ec6",
+  "relationshipId": "4bff4932-38d0-4677-bcac-0d123a09ce4c",
+  "courses": [
+    "ed100000-c001-0000-0000-000000000001",
+    "ed100000-c002-0000-0000-000000000002",
+    "ed100000-c003-0000-0000-000000000003",
+    "ed100000-c004-0000-0000-000000000004",
+    "ed100000-c005-0000-0000-000000000005",
+    "ed100000-c006-0000-0000-000000000006",
+    "ed100000-c007-0000-0000-000000000007",
+    "ed100000-c008-0000-0000-000000000008"
+  ],
+  "sqlSha256": "ee250d20d47e50e096817c128fc6d1fb1aa935966badda96023bebff35103f0a",
+  "functionSourceSha256": "8dd7785bd34ab0a3e9f46e04ee637d012ed181bb584b1e84410214291a9fe506",
+  "authority": "Owner approve làm đi after concrete Production RPC/mapping integration boundary",
+  "status": "PASS_BOUNDED_REGISTRY_WITH_OWNER_CONFIRMED_CURRENT_PAGE",
+  "productionMutation": "COMMITTED_AND_INDEPENDENTLY_VERIFIED",
+  "recoverySha256": "dcbdd9180c7a1c963b2ba4623bf03f8788a17d75b555a5063e5ed4cb1a418348",
+  "ownerRestorationException": "Duyệt ngoại lệ chỉ registry với recovery riêng",
+  "executionRun": "9627d1be-b065-4c52-8e9b-1973d4d47fe8",
+  "realProductionLogin": "NOT_PROVEN",
+  "browser": "PASS_BOUNDED_OWNER_CONFIRMED_187_157_30_EIGHT_CLASSES",
+  "currentSessionApi": "OWNER_CONFIRMED_SUCCESS_TRUE",
+  "fullDatabaseRestore": "FAIL",
+  "preschoolGoLive": "NOT_READY"
+}

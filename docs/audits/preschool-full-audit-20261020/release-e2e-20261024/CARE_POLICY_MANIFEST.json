@@ -1,0 +1,17 @@
+{
+  "target": "bmnbqbcdbuklhopfbopv",
+  "status": "REHEARSED_FULL_ARTIFACT_REVIEW_PENDING",
+  "authority": "Owner release plan section9 accepted Care permission reconciliation; Care roster approval in Browser continuation23-29",
+  "changedOnly": [
+    "e2e_care_record_insert",
+    "e2e_care_record_select",
+    "e2e_care_record_update"
+  ],
+  "unchanged": "ACLs, all function bodies/modes, restrictive policies, other policies, timeouts and dependencies",
+  "files": {
+    "E2E_CARE_POLICY_REHEARSAL.sql": "9583168c9b200672c85760676bc63c0520d496a6f1916f0ed073865618ce474f",
+    "E2E_CARE_POLICY_EXECUTION.sql": "6ad79773021dfe4eb66187dd6b2f8b36c76512bf7daa6911f48e4b6e9c8d9ca8",
+    "E2E_CARE_POLICY_RECOVERY.sql": "55bff3b4525d5733158db1fc6968ecf277c07da136290e7e877e8c8bedb24bf6",
+    "E2E_CARE_POLICY_POST_READONLY.sql": "968e97d8737ad1376f0277d3e494a0576a5ed9421b510fdc7d9bfef45e71c144"
+  }
+}

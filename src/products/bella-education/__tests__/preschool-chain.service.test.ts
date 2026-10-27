@@ -2,6 +2,9 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { PreschoolChainService } from '../services/preschool-chain.service';
 import type { Database } from '@/types/database.types';
 import type { IOrgUnitContract, OrgUnit } from '@/platform/org-unit';
+import type { ITrustedActorOrgUnitAccessContract, TrustedActorOrgUnitAccessRow } from '@/platform/org-unit/trusted-actor-access.contract';
+import { EnrollmentContractImpl } from '@/platform/education/contracts/enrollment.contract.impl';
+import { EnrollmentRecoveryContractImpl } from '@/platform/education/contracts/enrollment-recovery.contract.impl';
 
 type PreschoolChainClient = SupabaseClient<Database>;
 type OrgUnitContractScope = Pick<IOrgUnitContract, 'getOrgUnit' | 'getOrgUnits'>;
@@ -12,6 +15,9 @@ type QueryResult<T = unknown> = { data: T; error: { message: string } | null };
 class FakeQueryBuilder implements PromiseLike<QueryResult<unknown>> {
   private readonly filters: Array<(row: Row) => boolean> = [];
   private upsertRow: Row | null = null;
+  private start=0;
+  private end=999;
+  private sortColumn='';
 
   public constructor(
     private readonly db: Db,
@@ -21,6 +27,8 @@ class FakeQueryBuilder implements PromiseLike<QueryResult<unknown>> {
   public select(): FakeQueryBuilder {
     return this;
   }
+  public order(column:string):FakeQueryBuilder { this.sortColumn=column;return this; }
+  public range(start:number,end:number):FakeQueryBuilder { this.start=start;this.end=end;return this; }
 
   public eq(column: string, value: unknown): FakeQueryBuilder {
     this.filters.push((row) => row[column] === value);
@@ -77,13 +85,22 @@ class FakeQueryBuilder implements PromiseLike<QueryResult<unknown>> {
 
   private filteredRows(): Row[] {
     const rows = this.db[this.table] ?? [];
-    return rows.filter((row) => this.filters.every((filter) => filter(row)));
+    const matches=rows.filter((row) => this.filters.every((filter) => filter(row)));
+    if(this.sortColumn)matches.sort((a,b)=>String(a[this.sortColumn]).localeCompare(String(b[this.sortColumn])));
+    return matches.slice(this.start,Math.min(this.end+1,this.start+1000));
   }
 }
 
 class FakeSupabaseClient {
   public constructor(private readonly db: Db) {}
 
+  public async rpc(_name:string,input:Record<string,string>) {
+    const course = {tenant_id:input.p_tenant_id,course_id:input.p_course_id,branch_id:input.p_branch_id};
+    const row = {...course,enrollment_id:input.p_enrollment_id,request_id:input.p_request_id,assigned_by:input.p_actor_id};
+    if (!this.db.preschool_chain_course_branch_assignments.length) this.db.preschool_chain_course_branch_assignments.push(course);
+    if (!this.db.preschool_chain_enrollment_branch_assignments.length) this.db.preschool_chain_enrollment_branch_assignments.push(row);
+    return {data:[row],error:null};
+  }
   public from(table: string): FakeQueryBuilder {
     return new FakeQueryBuilder(this.db, table);
   }
@@ -120,10 +137,20 @@ function createOrgUnitContract(db: Db): OrgUnitContractScope {
   };
 }
 
-function createService(db: Db): PreschoolChainService {
+function createTrustedActorAccessContract(db: Db): ITrustedActorOrgUnitAccessContract {
+  return {
+    async listForActor() {
+      return (db.platform_access ?? []) as unknown as TrustedActorOrgUnitAccessRow[];
+    },
+  };
+}
+
+function createService(db: Db, orgUnits: OrgUnitContractScope = createOrgUnitContract(db)): PreschoolChainService {
   return new PreschoolChainService(
     new FakeSupabaseClient(db) as unknown as PreschoolChainClient,
-    createOrgUnitContract(db),
+    orgUnits,
+    undefined,
+    createTrustedActorAccessContract(db),
   );
 }
 
@@ -141,7 +168,7 @@ describe('PreschoolChainService', () => {
         { id: regionId, tenant_id: tenantId, unit_type: 'region', name: 'Quận 1', is_active: true, parent_id: null },
         { id: branchId, tenant_id: tenantId, unit_type: 'branch', name: 'Bella Preschool Quận 1', code: 'Q1', is_active: true, parent_id: regionId },
       ],
-      users: [{ id: actorUserId, tenant_id: tenantId, role: 'teacher' }],
+      users: [{ id: actorUserId, tenant_id: tenantId, role: 'admin', status:'active' }],
       people_directory: [{ id: 'person-a', tenant_id: tenantId, user_id: actorUserId, is_active: true }],
       org_relationships: [{
         tenant_id: tenantId,
@@ -153,10 +180,115 @@ describe('PreschoolChainService', () => {
         since: null,
         until: null,
       }],
+      platform_access: [
+        { user_id: actorUserId, tenant_id: tenantId, org_unit_id: regionId, root_org_unit_id: regionId, relationship_id: 'relationship-a', access_source: 'manages' },
+        { user_id: actorUserId, tenant_id: tenantId, org_unit_id: branchId, root_org_unit_id: regionId, relationship_id: 'relationship-a', access_source: 'manages' },
+      ],
       preschool_chain_course_branch_assignments: [],
       preschool_chain_enrollment_branch_assignments: [],
     };
   }
+
+  const preflightInput = { tenantId, courseId, branchId, actorUserId };
+  const assignmentInput = {
+    ...preflightInput,
+    enrollmentId,
+    requestId: '11111111-1111-4111-8111-111111111111',
+  };
+
+  it('preflights an explicit valid branch without changing any database rows', async () => {
+    const db = baseDb();
+    const before = JSON.stringify(db);
+    await createService(db).preflightEnrollmentBranch(preflightInput);
+    expect(JSON.stringify(db)).toBe(before);
+  });
+
+  it.each(['missing', 'inactive', 'foreign-tenant', 'non-branch'])('rejects an explicit %s branch during preflight without writes', async (state) => {
+    const db = baseDb();
+    db.org_units = db.org_units.filter((row) => row.id !== branchId);
+    if (state !== 'missing') {
+      db.org_units.push({
+        id: branchId,
+        tenant_id: state === 'foreign-tenant' ? 'tenant-b' : tenantId,
+        unit_type: state === 'non-branch' ? 'team' : 'branch',
+        is_active: state !== 'inactive',
+        parent_id: regionId,
+      });
+    }
+    const before = JSON.stringify(db);
+    await expect(createService(db).preflightEnrollmentBranch(preflightInput))
+      .rejects.toThrow('PRESCHOOL_CHAIN_BRANCH_NOT_ACTIVE_IN_TENANT');
+    expect(JSON.stringify(db)).toBe(before);
+  });
+
+  it('rejects denied access during preflight without writes', async () => {
+    const db = baseDb();
+    db.users[0].role='admin_staff'; db.org_relationships = [];
+    const before = JSON.stringify(db);
+    await expect(createService(db).preflightEnrollmentBranch(preflightInput))
+      .rejects.toThrow('PRESCHOOL_ADMISSION_ACTOR_DENIED');
+    expect(JSON.stringify(db)).toBe(before);
+  });
+
+  it('rejects a conflicting course branch during preflight without writes', async () => {
+    const db = baseDb();
+    db.preschool_chain_course_branch_assignments.push({ tenant_id: tenantId, course_id: courseId, branch_id: 'branch-b' });
+    const before = JSON.stringify(db);
+    await expect(createService(db).preflightEnrollmentBranch(preflightInput))
+      .rejects.toThrow('PRESCHOOL_CHAIN_COURSE_BRANCH_CONFLICT');
+    expect(JSON.stringify(db)).toBe(before);
+  });
+
+  it('propagates branch lookup failure during preflight without writes', async () => {
+    const db = baseDb();
+    const orgUnits = createOrgUnitContract(db);
+    orgUnits.getOrgUnit = async () => { throw new Error('Branch lookup failed'); };
+    const before = JSON.stringify(db);
+    await expect(createService(db, orgUnits).preflightEnrollmentBranch(preflightInput))
+      .rejects.toThrow('Branch lookup failed');
+    expect(JSON.stringify(db)).toBe(before);
+  });
+
+  it('fails closed when the course mapping lookup fails during preflight', async () => {
+    const db = baseDb();
+    db.users[0].role = 'admin';
+    const before = JSON.stringify(db);
+    const lookup = jest.spyOn(FakeQueryBuilder.prototype, 'maybeSingle')
+      .mockResolvedValueOnce({ data: db.users[0], error: null })
+      .mockResolvedValueOnce({ data: db.users[0], error: null })
+      .mockResolvedValueOnce({ data: null, error: { message: 'Mapping read failed' } });
+    try {
+      await expect(createService(db).preflightEnrollmentBranch(preflightInput))
+        .rejects.toThrow('PRESCHOOL_CHAIN_COURSE_BRANCH_LOOKUP_FAILED: Mapping read failed');
+      expect(JSON.stringify(db)).toBe(before);
+    } finally {
+      lookup.mockRestore();
+    }
+  });
+
+  it.each(['access', 'mapping'])('revalidates changed %s at assignment after a successful preflight', async (changedState) => {
+    const db = baseDb();
+    const service = createService(db);
+    await service.preflightEnrollmentBranch(preflightInput);
+    if (changedState === 'access') db.users[0].role='admin_staff';
+    else db.preschool_chain_course_branch_assignments.push({ tenant_id: tenantId, course_id: courseId, branch_id: 'branch-b' });
+    const beforeAssignment = JSON.stringify(db);
+    await expect(service.assignEnrollmentToBranch(assignmentInput)).rejects.toThrow(
+      changedState === 'access' ? 'PRESCHOOL_ADMISSION_ACTOR_DENIED' : 'PRESCHOOL_CHAIN_COURSE_BRANCH_CONFLICT',
+    );
+    expect(JSON.stringify(db)).toBe(beforeAssignment);
+  });
+
+  it.each([
+    { enrollmentId: '', requestId: 'request-a', error: 'PRESCHOOL_CHAIN_ENROLLMENT_REQUIRED' },
+    { enrollmentId, requestId: '', error: 'PRESCHOOL_CHAIN_REQUEST_REQUIRED' },
+  ])('preserves assignment required input validation: $error', async ({ error, ...overrides }) => {
+    const db = baseDb();
+    await expect(createService(db).assignEnrollmentToBranch({ ...assignmentInput, ...overrides }))
+      .rejects.toThrow(error);
+    expect(db.preschool_chain_course_branch_assignments).toEqual([]);
+    expect(db.preschool_chain_enrollment_branch_assignments).toEqual([]);
+  });
 
   it('persists course and enrollment branch assignments and reads back the chain', async () => {
     const db = baseDb();
@@ -185,7 +317,7 @@ describe('PreschoolChainService', () => {
 
   it('blocks branch assignment when the actor has no branch-chain access', async () => {
     const db = baseDb();
-    db.org_relationships = [];
+    db.org_relationships = []; db.users[0].role='admin_staff';
     const service = createService(db);
 
     await expect(service.assignEnrollmentToBranch({
@@ -195,7 +327,7 @@ describe('PreschoolChainService', () => {
       branchId,
       actorUserId,
       requestId: '22222222-2222-4222-8222-222222222222',
-    })).rejects.toThrow('PRESCHOOL_CHAIN_BRANCH_ACCESS_DENIED');
+    })).rejects.toThrow('PRESCHOOL_ADMISSION_ACTOR_DENIED');
   });
 
   it('blocks course reassignment to a different branch', async () => {
@@ -220,6 +352,7 @@ describe('PreschoolChainService', () => {
 
   it('lists only branch options accessible through the actor organization chain', async () => {
     const db = baseDb();
+    db.users[0].role='admin_staff';
     db.org_units.push({ id: 'branch-b', tenant_id: tenantId, unit_type: 'branch', name: 'Bella Preschool Quận 3', code: 'Q3', is_active: true, parent_id: null });
     const service = createService(db);
 
@@ -227,4 +360,42 @@ describe('PreschoolChainService', () => {
       { id: branchId, name: 'Bella Preschool Quận 1', code: 'Q1' },
     ]);
   });
+  it('does not treat tenant-admin provenance as explicit branch access', async () => {
+    const db = baseDb();
+    db.org_units.push({ id: 'branch-b', tenant_id: tenantId, unit_type: 'branch', name: 'Bella Preschool Quận 3', code: 'Q3', is_active: true, parent_id: null });
+    db.platform_access.push({ user_id: actorUserId, tenant_id: tenantId, org_unit_id: 'branch-b', root_org_unit_id: 'branch-b', relationship_id: null, access_source: 'tenant_admin' });
+    await expect(createService(db).listAccessibleBranches(tenantId, actorUserId)).resolves.toEqual([
+      { id: branchId, name: 'Bella Preschool Quận 1', code: 'Q1' },
+    ]);
+  });
+  it('fails closed when the trusted access contract returns another actor or tenant', async () => {
+    const db = baseDb();
+    db.platform_access[0].tenant_id = 'tenant-b';
+    await expect(createService(db).listAccessibleBranches(tenantId, actorUserId))
+      .rejects.toMatchObject({ code: 'PRESCHOOL_CHAIN_BRANCH_ACCESS_DENIED', status: 403 });
+  });
+  it('does not expand access from an inactive ancestor root',async()=>{
+    const db=baseDb(); db.users[0].role='admin_staff'; db.org_units[0].is_active=false;
+    db.platform_access = db.platform_access.filter((row) => row.org_unit_id !== branchId);
+    expect(await createService(db).listAccessibleBranches(tenantId,actorUserId)).toEqual([]);
+  });
+  it('rejects stored enrollment mapping drift before invoking any writer',async()=>{
+    const db=baseDb();db.preschool_chain_enrollment_branch_assignments.push({tenant_id:tenantId,enrollment_id:enrollmentId,course_id:courseId,branch_id:branchId,request_id:'different'});
+    await expect(createService(db).assignEnrollmentToBranch(assignmentInput)).rejects.toThrow('ASSIGNMENT_CONFLICT');
+    expect(db.preschool_chain_course_branch_assignments).toEqual([]);
+  });
+  it('retains the 1001st course/enrollment mapping beyond the PostgREST default cap',async()=>{
+    const db=baseDb();
+    for(let i=0;i<1001;i++){
+      const suffix=String(i).padStart(4,'0');
+      db.preschool_chain_course_branch_assignments.push({tenant_id:tenantId,course_id:'course-'+suffix,branch_id:branchId});
+      db.preschool_chain_enrollment_branch_assignments.push({tenant_id:tenantId,course_id:'course-'+suffix,branch_id:branchId,enrollment_id:'enrollment-'+suffix,request_id:'request-'+suffix,assigned_by:actorUserId});
+    }
+    const canonical=(id:string)=>({id,tenantId,studentPartyId:'canonical-child',courseId:'course-'+id.slice(-4),status:'active' as const,enrolledAt:'2026-10-19T00:00:00Z'});
+    const enrollment=jest.spyOn(EnrollmentContractImpl.prototype,'getEnrollment').mockImplementation(async(_tenant,id)=>canonical(id));
+    const recovery=jest.spyOn(EnrollmentRecoveryContractImpl.prototype,'getEnrollmentByRequest').mockImplementation(async(input)=>canonical('enrollment-'+input.requestId.slice(-4)));
+    try{const rows=await createService(db).listEnrollmentAssignments(tenantId,actorUserId);expect(rows).toHaveLength(1001);expect(rows.at(-1)?.enrollmentId).toBe('enrollment-1000');}
+    finally{enrollment.mockRestore();recovery.mockRestore();}
+  });
+
 });

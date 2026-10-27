@@ -2,7 +2,7 @@
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import CarePage from '../page';
 
-jest.mock('@/lib/dashboard-client-context', () => ({ getCachedTenantSettings: jest.fn().mockResolvedValue(null) }));
+jest.mock('@/lib/user-context', () => ({ useUser: () => ({ product: { productKey: 'bella_preschool' }, isLoading: false }) }));
 jest.mock('next/image', () => ({ __esModule: true, default: () => null }));
 
 const originalFetch = global.fetch;
@@ -13,6 +13,12 @@ const courses = [
 const student = (name: string) => ({ enrollmentId: 'synthetic-enrollment', studentPartyId: 'synthetic-student', name, studentCode: null, gender: null, dob: null, care: null });
 const reply = (body: unknown, ok = true, status = ok ? 200 : 503) => ({ ok, status, json: async () => body });
 afterEach(() => { global.fetch = originalFetch; });
+
+test.each([{ roster: [{...student('Synthetic child'),name:null}] }, { roster: [student('Synthetic child'),student('Synthetic duplicate')] }, { roster: [{...student('Synthetic child'),care:{id:'record',mealRecords:'invalid'}}] }])('rejects malformed canonical roster without keeping actionable children: %j', async body => {
+  global.fetch=jest.fn().mockImplementation((url:string)=>Promise.resolve(url==='/api/education/care/classes'
+    ? reply({success:true,classrooms:[courses[0]]}):reply({success:true,...body})));
+  render(<CarePage />);await screen.findByRole('alert');expect(screen.getByRole('button',{name:'Ghi nhận nhanh'})).toBeDisabled();
+});
 
 test('A failed class dependency stays visible without invented classes, sample events or medication', async () => {
   const request = jest.fn().mockResolvedValue(reply({ success: false }, false)); global.fetch = request;
@@ -56,10 +62,17 @@ test.each(['denied', 'partial', 'reload-failed', 'auth-revoked'] as const)('A %s
   expect(dialog).toBeVisible();
   expect(within(dialog).getByLabelText('Ghi chú cho phụ huynh / giáo viên ca sau')).toHaveValue('Synthetic unsaved draft');
   expect(screen.queryByText('Đã lưu chăm sóc cho 1 trẻ.')).not.toBeInTheDocument();
-  if(mode === 'auth-revoked')expect(within(screen.getByRole('table')).queryByText('Synthetic child', { exact: true })).not.toBeInTheDocument();
+  if(mode === 'auth-revoked' || mode === 'reload-failed')expect(within(screen.getByRole('table')).queryByText('Synthetic child', { exact: true })).not.toBeInTheDocument();
   else expect(within(screen.getByRole('table')).getByText('Synthetic child', { exact: true })).toBeVisible();
   const body = JSON.parse(request.mock.calls.find(([, init]) => init?.method === 'POST')?.[1].body as string);
   expect(body.data.records[0]).not.toHaveProperty('health');
+});
+
+test('unknown historical health does not block nonhealth Care or become an invented clinical status', async () => {
+  global.fetch=jest.fn().mockImplementation((url:string)=>Promise.resolve(url==='/api/education/care/classes'
+    ? reply({success:true,classrooms:[courses[0]]}):reply({success:true,roster:[{...student('Historical child'),care:{id:'care',healthChecks:{status:'historical-observation',temperature:36.5}}}]})));
+  render(<CarePage />);await screen.findByText('Historical child',{exact:true});
+  expect(screen.getByRole('button',{name:'Ghi nhận nhanh'})).toBeEnabled();expect(screen.queryByRole('alert')).not.toBeInTheDocument();
 });
 
 test('A slower successful Courses retry cannot erase a Care dependency failure', async () => {

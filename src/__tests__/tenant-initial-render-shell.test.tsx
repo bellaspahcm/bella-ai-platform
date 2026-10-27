@@ -12,7 +12,10 @@ import { useLayoutEffect, type ReactNode } from 'react';
 
 const mockGetUser = jest.fn();
 const mockGetSettings = jest.fn();
+const mockGetFreshUser = jest.fn();
+const mockGetPresentation = jest.fn();
 const mockRouter = { push: jest.fn(), replace: jest.fn() };
+let mockPathname = '/dashboard';
 let mockContextOverride: ReturnType<typeof UserContextModule.useUser> | null = null;
 let mockObservedContext: ReturnType<typeof UserContextModule.useUser> | null = null;
 jest.mock('@/lib/user-context', () => {
@@ -28,12 +31,14 @@ jest.mock('@/lib/dashboard-client-context', () => ({
   getCachedTenantSettings: () => mockGetSettings(),
   clearDashboardClientContextCache: jest.fn(),
 }));
-jest.mock('next/navigation', () => ({ usePathname: () => '/dashboard', useSearchParams: () => new URLSearchParams(), useRouter: () => mockRouter }));
+jest.mock('@/services/user-actions', () => ({ getCurrentUser: () => mockGetFreshUser() }));
+jest.mock('@/services/tenant-actions', () => ({ getTenantPresentation: () => mockGetPresentation() }));
+jest.mock('next/navigation', () => ({ usePathname: () => mockPathname, useSearchParams: () => new URLSearchParams(), useRouter: () => mockRouter }));
 jest.mock('next/image', () => ({ __esModule: true, default: () => null }));
-jest.mock('next/link', () => ({ __esModule: true, default: ({ href, children }: { href: string; children: ReactNode }) => <a href={href}>{children}</a> }));
+jest.mock('next/link', () => ({ __esModule: true, default: ({ href, children, 'aria-label': ariaLabel }: { href: string; children: ReactNode; 'aria-label'?: string }) => <a href={href} aria-label={ariaLabel}>{children}</a> }));
 jest.mock('@/lib/supabase-client', () => ({ createClient: jest.fn() }));
 jest.mock('@/components/common/ThemeToggle', () => ({ __esModule: true, default: () => null }));
-jest.mock('@/components/common/AdminNotificationBell', () => ({ __esModule: true, default: () => null }));
+jest.mock('@/components/common/AdminNotificationBell', () => ({ __esModule: true, default: () => <span data-testid="session-alert-bell" /> }));
 jest.mock('@/components/layout/BeautyRuntimeBranchSelector', () => ({ BeautyRuntimeBranchSelector: () => null }));
 jest.mock('@/components/common/TenantBrandLogo', () => ({ TenantBrandLogo: ({ logoUrl }: { logoUrl: string }) => <span data-testid="brand-logo" data-logo={logoUrl} /> }));
 jest.mock('@/lib/utils/theme-upgrade', () => ({ needsThemeUpgrade: () => false }));
@@ -49,9 +54,12 @@ const user = { id: 'user', tenant_id: 'current-preschool', role: 'admin', full_n
 describe('authenticated shell and sidebar first render', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockPathname = '/dashboard';
     mockContextOverride = null;
     mockGetUser.mockResolvedValue(user);
     mockGetSettings.mockResolvedValue(preschool);
+    mockGetFreshUser.mockResolvedValue(user);
+    mockGetPresentation.mockResolvedValue({ ...preschool, status: 'active' });
     window.history.replaceState({}, '', '/dashboard');
     document.documentElement.dataset.tenantModule = 'pending';
     document.documentElement.removeAttribute('data-tenant-brand-preset');
@@ -59,6 +67,16 @@ describe('authenticated shell and sidebar first render', () => {
     const stale = JSON.stringify({ tenantId: 'old-spa', displayName: 'Wrong Spa', moduleKey: 'beauty_spa', primaryColor: '#074E44' });
     window.sessionStorage.setItem('bella.runtime.brand.v1', stale);
     window.localStorage.setItem('bella.sidebar.brand.v3', stale);
+  });
+
+  it('shows restored Preschool menu routes and labels the remaining held menu', async () => {
+    render(<UserProvider><DashboardAuthorizedShell><div>Product Content</div></DashboardAuthorizedShell></UserProvider>);
+    await waitFor(() => expect(screen.getByRole('link', { name: 'Quản lý giáo viên' })).toBeInTheDocument());
+    expect(screen.getByRole('link', { name: 'Quản lý giáo viên' })).toHaveAttribute('href', '/dashboard/education/teachers');
+    expect(screen.getByRole('link', { name: 'Cơ sở vật chất' })).toHaveAttribute('href', '/dashboard/education/facilities');
+    expect(screen.getByRole('link', { name: /Học tập & Hoạt động.*Chưa mở/ })).toHaveAttribute('href', '/dashboard/education/grades');
+    expect(screen.getByRole('link', { name: 'Tài chính' })).toHaveAttribute('href', '/dashboard/education/finance');
+    expect(screen.getByRole('link', { name: 'Quản lý trẻ' })).toHaveAttribute('href', '/dashboard/education/enrollments');
   });
 
   it('does not mount product children or menus while the live identity is delayed', async () => {
@@ -79,6 +97,36 @@ describe('authenticated shell and sidebar first render', () => {
     expect(screen.getByText('Ready Product Content')).toBeInTheDocument();
     expect(document.documentElement.dataset.tenantModule).toBe('bella_education');
     expect(screen.queryByText('Wrong Spa')).not.toBeInTheDocument();
+  });
+
+  it('uses the approved Preschool bulletin on mobile and desktop without mounting Spa session alerts', async () => {
+    mockPathname = '/dashboard/education/enrollments';
+    render(<UserProvider><DashboardAuthorizedShell><div>Preschool Page</div></DashboardAuthorizedShell></UserProvider>);
+    expect(await screen.findByText('Preschool Page')).toBeInTheDocument();
+    const links = screen.getAllByRole('link', { name: 'Bảng tin chung' });
+    expect(links).toHaveLength(2);
+    links.forEach(link => expect(link).toHaveAttribute('href', '/dashboard/education/communication?tab=announcements'));
+    expect(screen.getByRole('link', { name: 'Truyền thông' })).toHaveAttribute('href', '/dashboard/education/communication?tab=announcements');
+    expect(screen.queryByTestId('session-alert-bell')).not.toBeInTheDocument();
+  });
+
+  it('opens the exact communication page with fresh identity/presentation instead of operational settings', async () => {
+    mockPathname = '/dashboard/education/communication';
+    render(<DashboardLayout><div>Bulletin Page</div></DashboardLayout>);
+    expect(await screen.findByText('Bulletin Page')).toBeInTheDocument();
+    expect(mockGetFreshUser).toHaveBeenCalledTimes(1);
+    expect(mockGetPresentation).toHaveBeenCalledTimes(1);
+    expect(mockGetUser).not.toHaveBeenCalled();
+    expect(mockGetSettings).not.toHaveBeenCalled();
+  });
+
+  it.each(['bella_babycare', 'bella_spa', 'bella_english_center'])('preserves the existing alert component for %s', async productKey => {
+    mockPathname = '/dashboard/sessions';
+    mockGetSettings.mockResolvedValue({ ...preschool, product_key: productKey });
+    render(<UserProvider><DashboardAuthorizedShell><div>Other Product Page</div></DashboardAuthorizedShell></UserProvider>);
+    expect(await screen.findByText('Other Product Page')).toBeInTheDocument();
+    expect(screen.getAllByTestId('session-alert-bell')).toHaveLength(2);
+    expect(screen.queryByRole('link', { name: 'Bảng tin chung' })).not.toBeInTheDocument();
   });
 
   it('clears the previous root theme before delayed auth on client navigation from login', async () => {
@@ -276,12 +324,20 @@ describe('tenant context theme ownership', () => {
   const originalFetch = global.fetch;
   afterEach(() => { global.fetch = originalFetch; });
 
-  it.each([200, 401])('preserves fetch/dev-fallback behavior (%i) without writing a dashboard module theme', async status => {
+  it.each([200, 401])('requires verified context (%i) and keeps unknown Product presentation neutral', async status => {
     window.history.replaceState({}, '', '/dashboard/education');
     document.documentElement.dataset.tenantModule = 'pending';
-    global.fetch = jest.fn().mockResolvedValue({ status, ok: status === 200, json: async () => ({ tenantId: 'context-preschool', enabledModules: ['beauty_spa'], settings: {} }) });
+    global.fetch = jest.fn().mockResolvedValue({ status, ok: status === 200, json: async () => ({
+      tenantId: 'context-preschool', tenantName: 'Controlled school', enabledModules: ['beauty_spa'],
+      subscriptionPlan: 'basic', featureFlags: {}, settings: {},
+    }) });
     render(<TenantContextProvider><ContextChild /></TenantContextProvider>);
-    expect(await screen.findByText(`Context: ${status === 200 ? 'context-preschool' : 'dev-tenant'}`)).toBeInTheDocument();
+    if (status === 200) expect(await screen.findByText('Context: context-preschool')).toBeInTheDocument();
+    else {
+      expect(await screen.findByText('Lỗi tải cấu hình')).toBeInTheDocument();
+      expect(screen.queryByText(/Context:/)).not.toBeInTheDocument();
+      expect(screen.queryByText(/dev-tenant/)).not.toBeInTheDocument();
+    }
     expect(global.fetch).toHaveBeenCalledWith('/api/tenant/context', expect.objectContaining({ credentials: 'same-origin', method: 'GET' }));
     expect(document.documentElement.dataset.tenantModule).toBe('pending');
   });

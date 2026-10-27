@@ -1,0 +1,24 @@
+{
+  "summary": {
+    "phase": "before",
+    "result": "FAIL",
+    "cases": 320,
+    "measurements": 7040,
+    "failed": 784,
+    "minimumRatio": 1.2923222471321567,
+    "overflows": 0,
+    "pageErrors": [],
+    "unexpectedRequests": [],
+    "astPreservation": "PASS"
+  },
+  "sourceSha256": "bb079bdf2457b4fcf2a725702e14f6d7981c9deecdc55695add6accc8fb4b6df",
+  "globalsSha256": "505d49d406a2233f6483b36376cb9f2e12978c6d9f99b1f5325251d90e3b357b",
+  "cssSha256": "42b63f5960178b858bee1f4a68e3203865dfd27a86096bd219fdea73c28a9eda",
+  "harnessSha256": "3f0975ca0feb72aa157b83acba8dd70fd38b68bfebfc827f17e4817e0a3f32d9",
+  "limits": "Actual Copilot JSX fragment + globals.css; synthetic states/handlers; six resolved presets + two custom examples, light/dark, desktop/mobile. Arial fallback without Next font/layout. Native raster background, CSS-to-sRGB foreground, raw WCAG ratio >= 4.5 for all text sizes. No full Next route/Auth/API/DB/production proof.",
+  "details": {
+    "file": "before.details.json.gz",
+    "sha256": "5fb6a822b54b9f9cc9a4be5dfd9c82d3165d747e7ac56187d8f990de090834d2",
+    "encoding": "gzip"
+  }
+}

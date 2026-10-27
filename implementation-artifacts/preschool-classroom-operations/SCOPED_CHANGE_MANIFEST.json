@@ -1,0 +1,55 @@
+{
+  "scope": "Education canonical Preschool classroom create and open flows",
+  "status": "UNLOCKED_FOR_APPROVED_SCOPED_EDIT_ONLY",
+  "authority": "Approved ACR and subsequent exact migration approvals in current chat, 2026-10-25",
+  "sourceBase": "6fea160b344a18da369015d38d30fa3699d5c90f",
+  "businessDecisions": [
+    "Only an authenticated active bella_preschool admin may create a class.",
+    "Creation requires an explicitly accessible active branch and is atomic/idempotent.",
+    "Class identity is read from edu_courses; no capacity, academic year, age group, room, health, or attendance facts are inferred.",
+    "Roster is read through the existing branch-authorized Education registry contract, scoped to the selected course."
+  ],
+  "allowedProductArtifacts": [
+    "src/products/bella-education/manifest.ts",
+    "src/products/bella-education/__tests__/preschool-classroom-command.service.test.ts",
+    "src/products/bella-education/services/course-catalog.service.ts",
+    "src/products/bella-education/services/preschool-chain.service.ts",
+    "src/products/bella-education/__tests__/preschool-chain.service.test.ts",
+    "src/app/api/education/courses/route.ts",
+    "src/app/api/education/courses/canonical-request-context.ts",
+    "src/app/dashboard/education/courses/CanonicalClassroomCatalog.tsx",
+    "src/app/dashboard/education/courses/[id]/page.tsx",
+    "src/app/api/education/courses/__tests__/create-canonical.test.ts",
+    "src/app/dashboard/education/courses/__tests__/canonical-create.test.tsx",
+    "src/app/dashboard/education/courses/[id]/__tests__/page.test.tsx"
+  ],
+  "allowedEducationArtifacts": [
+    "src/platform/education/contracts/canonical-course-catalog.contract.ts",
+    "src/platform/education/contracts/canonical-course-catalog.contract.impl.ts",
+    "src/platform/education/repositories/supabase-education.repository.ts",
+    "src/platform/education/contracts/__tests__/canonical-course-command.test.ts"
+  ],
+  "allowedMigrations": [
+    {
+      "path": "supabase/migrations/20261025070000_preschool_canonical_course_create.sql",
+      "sha256": "50b0a75b24d8968db35dda0a0ddccd3f202b2ff4cda2b29d312535069103b571",
+      "authority": "Explicitly approved; previously applied and read back on E2E and Production"
+    },
+    {
+      "path": "supabase/migrations/20261025104453_reconcile_preschool_classroom_manual_sql_history.sql",
+      "sha256": "6c5abdaf6abcc3a9377406cb65de152f5465c937e922739c6f6eb597cf723360",
+      "authority": "Explicitly approved append-only provenance checkpoint; previously recorded on E2E and Production"
+    }
+  ],
+  "protectedUnchanged": [
+    "Healthcare H1-H12 and Logistics E7.1-E7.3 kernels",
+    "Platform auth, tenant and branch authorization contracts",
+    "legacy Course aggregate and legacy courses projection",
+    "existing RLS policies and grants beyond the exact approved migration",
+    "teacher assignment, attendance mutation, and enrollment mapping behavior",
+    "global guards and verification baselines"
+  ],
+  "migrationApplicability": "APPLICABLE: exact approved additive receipt table and service-only atomic RPC; no backfill or existing-table grant expansion. Platform branch assertion already exists in the canonical migration stream.",
+  "revalidationRequired": false,
+  "globalFreezeChanged": false
+}

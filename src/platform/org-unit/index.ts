@@ -320,6 +320,6 @@ export class OrgUnitTenantMismatchError extends OrgUnitError {
 // ENGINE EXPORT
 // ═══════════════════════════════════════════════════════════════════════════
 
-export { orgUnitEngine, createOrgUnitEngine } from './org-unit.engine';
-export type { IOrgUnitRepository } from './org-unit.repository';
+export { orgUnitEngine, createOrgUnitEngine, createOrgUnitEngineForClient } from './org-unit.engine';
+export type { IOrgUnitRepository, OrgUnitDatabase } from './org-unit.repository';
 

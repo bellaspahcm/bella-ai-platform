@@ -1,0 +1,1121 @@
+{
+  "at": "2026-10-24T08:27:42.471Z",
+  "sourceBinding": {
+    "mode": "Commit47c plus exact local approved Attendance changes; not all sealed on main",
+    "files": [
+      {
+        "file": "src/platform/education/contracts/attendance.contract.impl.ts",
+        "sha256": "826bf3fc35df5c68d370f85d2b8c83fdde5801998f6f5eeeeac8926b56cd5b28"
+      },
+      {
+        "file": "src/platform/education/contracts/__tests__/attendance-record-rpc.contract.test.ts",
+        "sha256": "194d36e87f18b5a4b149252aaa464b881ddd597fd5008ad6a2e169a97d7249db"
+      },
+      {
+        "file": "src/products/bella-education/__tests__/preschool-chain-real-db.test.ts",
+        "sha256": "dd1c66d3fa43f4bd045d79eabf9e9afb555f991ffa190f7828a87a8ffa24b61e"
+      },
+      {
+        "file": "supabase/migrations/20261024020000_reconcile_education_attendance_callers.sql",
+        "sha256": "50b2a4c9fc6c71b66aef8f5723e4560c0a0b835855c9c10e90ab153700be91b3"
+      }
+    ]
+  },
+  "source": "47c73c7eebb1e895dacc56affa42353b6f22af7e",
+  "project": "bmnbqbcdbuklhopfbopv",
+  "readOnly": true,
+  "scope": "Selected canonical migration history, actual function bodies/security metadata, Product table RLS/TRUNCATE; no application rows read",
+  "migrationChecks": [
+    {
+      "file": "20260813000020_create_edu_attendance_and_assessment.sql",
+      "sha256": "f4a4838e4063b612d812010da7d1b6170dc176b11b3c3e182cbc7bf433e26432",
+      "historyPresent": true,
+      "historyName": "create_edu_attendance_and_assessment",
+      "historyStatementHash": "01bec147aa6a0abf6700de1ab056b73c3fd1183419629bfbc9343ccb80921b86",
+      "rawHistoryMatchesCanonical": true
+    },
+    {
+      "file": "20260909000056_p61_parent_communication.sql",
+      "sha256": "897ee3798702a8da1873052f29281664f78b9a9f56a5a2b4077b907df8228944",
+      "historyPresent": true,
+      "historyName": "p61_parent_communication",
+      "historyStatementHash": "f5415d86633765256138efc175a563668e6334829ac3fa3aa4abacaf5823bcff",
+      "rawHistoryMatchesCanonical": true
+    },
+    {
+      "file": "20260909000057_p62_projection_bridges.sql",
+      "sha256": "1bd08e281172151133ad9565c5a9d8559d864c1d4c3525330e0105b2cfe193f1",
+      "historyPresent": true,
+      "historyName": "p62_projection_bridges",
+      "historyStatementHash": "611e18dfebab508529931bba929c5d85bd2e22fc990401d198a29694455b2a50",
+      "rawHistoryMatchesCanonical": true
+    },
+    {
+      "file": "20260909000058_p71_preschool_finance.sql",
+      "sha256": "5149d34f04116f5836ca1e4b7406eba61908f6e77f94bfef558a8db740910481",
+      "historyPresent": true,
+      "historyName": "p71_preschool_finance",
+      "historyStatementHash": "63cede3270d07573a0280a8ac9221ae68de1cba7aee271c56871672e986d80d4",
+      "rawHistoryMatchesCanonical": true
+    },
+    {
+      "file": "20260927010000_preschool_guardian_pickup_authorizations.sql",
+      "sha256": "43a23ebd0bce1a9abfacd5d6faec459f7c7a1ede3525e1ed689be30c3828f4b7",
+      "historyPresent": true,
+      "historyName": "preschool_guardian_pickup_authorizations",
+      "historyStatementHash": "840ebc6ed719a9d47ff88c10e5bfd4c7f47928ea42cddb61ea2a7d8eab5c6478",
+      "rawHistoryMatchesCanonical": false
+    },
+    {
+      "file": "20260927030000_preschool_safe_pickup_handover_events.sql",
+      "sha256": "17d5ca4cf8b5265fb36e4e93f4c86ca5254701a1745d039c836fb99bda066a73",
+      "historyPresent": true,
+      "historyName": "preschool_safe_pickup_handover_events",
+      "historyStatementHash": "23381fc360680c83547e412a36726c774c396377263b33fa9ef61e4f3a525ad2",
+      "rawHistoryMatchesCanonical": true
+    },
+    {
+      "file": "20260927070000_preschool_finance_canonical_student_party.sql",
+      "sha256": "84595cc48589b1628955baaa0333ea4ad925cfdc850b077bf30203961c424944",
+      "historyPresent": true,
+      "historyName": "preschool_finance_canonical_student_party",
+      "historyStatementHash": "2c8b0f177ab48e0126745075e39994f8709a9ee3e3eb71ea7f56cdb0b8e67fbd",
+      "rawHistoryMatchesCanonical": false
+    },
+    {
+      "file": "20260928000000_preschool_tuition_recognition_policy_foundation.sql",
+      "sha256": "526b2017ca302a6b8aaa73174b493644af2696dbb72dbdd8429af79dc3e1f0f3",
+      "historyPresent": true,
+      "historyName": "preschool_tuition_recognition_policy_foundation",
+      "historyStatementHash": "6214b1727c567d49cb483bc81a965aae423fb50f767aac1c7777fb1742518022",
+      "rawHistoryMatchesCanonical": true
+    },
+    {
+      "file": "20261019010000_party_registration_receipts.sql",
+      "sha256": "168d43946f4a6ee617b0cfd07933fc379f4a429800250b2282cff4cc07f9cb15",
+      "historyPresent": true,
+      "historyName": "party_registration_receipts",
+      "historyStatementHash": "4bc4866fa77af194974764f5672d5f0527bce763eca3b9d8c7dc3a3a31a54242",
+      "rawHistoryMatchesCanonical": true
+    },
+    {
+      "file": "20261019020000_preschool_admission_operations.sql",
+      "sha256": "1190223ba0182ef500eb11924bdc6e0088c716ac9aa37ec40f71779f4113388f",
+      "historyPresent": true,
+      "historyName": "preschool_admission_operations",
+      "historyStatementHash": "a730655ffb414ab2c5ee28f044a8d7effd5696a659f50c4c6bd6a0a4af0fbaae",
+      "rawHistoryMatchesCanonical": true
+    },
+    {
+      "file": "20261019030000_preschool_chain_branch_security.sql",
+      "sha256": "e0f08a5b140f6f3ce8ab7301545f2cac957fea150c75e3d4f7ea559b957fa81f",
+      "historyPresent": true,
+      "historyName": "preschool_chain_branch_security",
+      "historyStatementHash": "d5379ed85328501e0964fd49d236e5e8ab4aefbaa83d2a89084699b6615f96c3",
+      "rawHistoryMatchesCanonical": true
+    },
+    {
+      "file": "20261019040000_preschool_finance_atomic_reconciliation.sql",
+      "sha256": "f9bf231dc317e4bf7c96260d81886a9c1b4a128ff7dcd1e5ed8c0b7a61f6f974",
+      "historyPresent": true,
+      "historyName": "preschool_finance_atomic_reconciliation",
+      "historyStatementHash": "dea77126976931940d3a57832fd9866a7ad944c9c67825ef5c01fd6569b48cdc",
+      "rawHistoryMatchesCanonical": false
+    },
+    {
+      "file": "20261019045000_platform_trusted_actor_org_unit_access.sql",
+      "sha256": "419101ca8e36dcd4b758499043f7a3d4b01d5b339083ebba055aab3ce5bdde0c",
+      "historyPresent": true,
+      "historyName": "platform_trusted_actor_org_unit_access",
+      "historyStatementHash": "a863450032a2b0225496f5ba670b70e73d9b9fd108a67023f5d69caeed769121",
+      "rawHistoryMatchesCanonical": false
+    },
+    {
+      "file": "20261019050000_preschool_finance_branch_authorization.sql",
+      "sha256": "73147da6dd10c8bce9f902f274218aa6569405b20c7da7609c85ddcefaffbed1",
+      "historyPresent": true,
+      "historyName": "preschool_finance_branch_authorization",
+      "historyStatementHash": "650b6631490d1ca99a6657cc92ac5e079d2acdb1161dbf49cd6f0729e93fb020",
+      "rawHistoryMatchesCanonical": false
+    },
+    {
+      "file": "20261019060000_platform_current_actor_read_contract.sql",
+      "sha256": "decea85717ae036b8f7e2a80eb9b72e9b25f22696047a7e2d506dec4b790bdec",
+      "historyPresent": true,
+      "historyName": "platform_current_actor_read_contract",
+      "historyStatementHash": "52690205c08be8217673c952c38cc38416d3d7080e841392887e4138fff68964",
+      "rawHistoryMatchesCanonical": false
+    },
+    {
+      "file": "20261022040000_preschool_finance_branch_surface.sql",
+      "sha256": "fdc560f332c3e06e9e24efae447dcfc42078e6bb1546d7521f5360616464b29a",
+      "historyPresent": true,
+      "historyName": "preschool_finance_branch_surface",
+      "historyStatementHash": "5f99f356c2672854d6f8eac195eaa83b1c09228aa0d47e0c2992b581af0a4215",
+      "rawHistoryMatchesCanonical": false
+    },
+    {
+      "file": "20261022120000_education_attendance_authenticated_tenant_guard.sql",
+      "sha256": "df2ca14d752743b7d1d8468b1593bf14055039296e67497413a22119630137e3",
+      "historyPresent": true,
+      "historyName": "education_attendance_authenticated_tenant_guard",
+      "historyStatementHash": "09e2e46a13aaf1c643ef4c27669168612c313d2a85878836c94fc62c47588e14",
+      "rawHistoryMatchesCanonical": false
+    },
+    {
+      "file": "20261023010000_education_enrollment_event_recovery.sql",
+      "sha256": "1d0c95f0a0ef2b7fb4af89b5040337f061d1d414d92cb46e9073aae359b8cf83",
+      "historyPresent": true,
+      "historyName": "education_enrollment_event_recovery",
+      "historyStatementHash": "7e3f472961972380a4584bb0b5b60db7647c46ba7002f040c5d65468cb7484a6",
+      "rawHistoryMatchesCanonical": false
+    },
+    {
+      "file": "20261023020000_education_scoped_attendance_command.sql",
+      "sha256": "380936d44acb1f13fa5f7be9b1ee15bb28975c0b8dfbaefbedcfd05203b0cf4e",
+      "historyPresent": true,
+      "historyName": "education_scoped_attendance_command",
+      "historyStatementHash": "3d71661155bc32e21681fc20ad50e587de1fffde7ab0827616b54b348e9c246c",
+      "rawHistoryMatchesCanonical": false
+    },
+    {
+      "file": "20261023030000_preschool_scoped_attendance_command.sql",
+      "sha256": "f29cc07c31a8cf1feb0f6f4bb11d78013e5c4179f2fc45fe94cc6ff4ef1673f4",
+      "historyPresent": true,
+      "historyName": "preschool_scoped_attendance_command",
+      "historyStatementHash": "868d28158dd0597bc207ee5b87e654553f9d261c6b5b820244e59ab2d255234d",
+      "rawHistoryMatchesCanonical": false
+    },
+    {
+      "file": "20261023040000_attendance_authorization_wait_repair.sql",
+      "sha256": "1458f33c37257416dab9ceda3a5087a2fb2bb92b76ac793841b2fd76f31831f6",
+      "historyPresent": true,
+      "historyName": "attendance_authorization_wait_repair",
+      "historyStatementHash": "c474cb54ac8252b2ca7ee9b589c5cdaa9199181a2dcd79bf6dc73822abb46663",
+      "rawHistoryMatchesCanonical": false
+    },
+    {
+      "file": "20261023050000_attendance_final_authority_order.sql",
+      "sha256": "e66f54750833537440fd3c28aa4d8c25791b943b149b8b45c0c45988202c3514",
+      "historyPresent": true,
+      "historyName": "attendance_final_authority_order",
+      "historyStatementHash": "c92bb17905d9d22eab910f9603f118d91b9f404bddfb7d7c39c9f790c4b5a721",
+      "rawHistoryMatchesCanonical": false
+    },
+    {
+      "file": "20261023120000_preschool_review_authority_and_overdue.sql",
+      "sha256": "b87ba9fbac8ac2f00cc57a8915eda730378f15146b0f9a16b19f8d4b055769f4",
+      "historyPresent": true,
+      "historyName": "preschool_review_authority_and_overdue",
+      "historyStatementHash": "840ebc6ed719a9d47ff88c10e5bfd4c7f47928ea42cddb61ea2a7d8eab5c6478",
+      "rawHistoryMatchesCanonical": false
+    },
+    {
+      "file": "20261024010000_preschool_handover_atomic_command.sql",
+      "sha256": "06e9058ee298220ef423b60d6a77fc6e9035d59d21edc7484de17d189cb5c830",
+      "historyPresent": true,
+      "historyName": "preschool_handover_atomic_command",
+      "historyStatementHash": "cad766f60353c02de1a09fdfca6c15a237a79a068881c95a65d7a55d3306cb83",
+      "rawHistoryMatchesCanonical": true
+    },
+    {
+      "file": "20261024020000_reconcile_education_attendance_callers.sql",
+      "sha256": "50b2a4c9fc6c71b66aef8f5723e4560c0a0b835855c9c10e90ab153700be91b3",
+      "historyPresent": true,
+      "historyName": "reconcile_education_attendance_callers",
+      "historyStatementHash": "84f544e75912a3d3f1d2c434d60054f787ff04f2ff54a826353df19cd7af14c6",
+      "rawHistoryMatchesCanonical": true
+    }
+  ],
+  "functionChecks": [
+    {
+      "name": "fn_check_sent_snapshot_immutable",
+      "sourceFile": "20260909000056_p61_parent_communication.sql",
+      "status": "PASS",
+      "variants": [
+        {
+          "args": "",
+          "bodySha256": "bf545de00a605c06c4b40a16acc82c21c93fd68423d6ebe7fa9c59df47793c95",
+          "securityDefiner": false,
+          "configuration": null,
+          "anonExecute": true,
+          "authenticatedExecute": true,
+          "serviceExecute": true
+        }
+      ],
+      "expectedBodySha256": "bf545de00a605c06c4b40a16acc82c21c93fd68423d6ebe7fa9c59df47793c95"
+    },
+    {
+      "name": "fn_check_invoice_immutable",
+      "sourceFile": "20260927070000_preschool_finance_canonical_student_party.sql",
+      "status": "PASS",
+      "variants": [
+        {
+          "args": "",
+          "bodySha256": "5837bf40033cb54b9f3d28547613148a9ce4da3266ed437aa5b1f21841ff2a87",
+          "securityDefiner": false,
+          "configuration": null,
+          "anonExecute": true,
+          "authenticatedExecute": true,
+          "serviceExecute": true
+        }
+      ],
+      "expectedBodySha256": "5837bf40033cb54b9f3d28547613148a9ce4da3266ed437aa5b1f21841ff2a87"
+    },
+    {
+      "name": "fn_check_invoice_line_items_immutable",
+      "sourceFile": "20260909000058_p71_preschool_finance.sql",
+      "status": "PASS",
+      "variants": [
+        {
+          "args": "",
+          "bodySha256": "b0660f0053583a3f51763dbfebe35922763c34ba119d0f1f57befac2b58c9fd2",
+          "securityDefiner": false,
+          "configuration": null,
+          "anonExecute": true,
+          "authenticatedExecute": true,
+          "serviceExecute": true
+        }
+      ],
+      "expectedBodySha256": "b0660f0053583a3f51763dbfebe35922763c34ba119d0f1f57befac2b58c9fd2"
+    },
+    {
+      "name": "fn_check_edu_fin_tuition_recognition_policy_overlap",
+      "sourceFile": "20260928000000_preschool_tuition_recognition_policy_foundation.sql",
+      "status": "PASS",
+      "variants": [
+        {
+          "args": "",
+          "bodySha256": "be168b60904c04faff902fa015d05ab6ec4a9315a36cac8376a2351171eb4555",
+          "securityDefiner": false,
+          "configuration": null,
+          "anonExecute": true,
+          "authenticatedExecute": true,
+          "serviceExecute": true
+        }
+      ],
+      "expectedBodySha256": "be168b60904c04faff902fa015d05ab6ec4a9315a36cac8376a2351171eb4555"
+    },
+    {
+      "name": "party_register_or_recover",
+      "sourceFile": "20261019010000_party_registration_receipts.sql",
+      "status": "PASS",
+      "variants": [
+        {
+          "args": "p_tenant_id uuid, p_actor_id uuid, p_registration_key text, p_payload jsonb, p_reuse_identifier_type text, p_reuse_identifier_value text",
+          "bodySha256": "0bc0ca653b7021b07ca02b970832ba85cf3ae30dda2cd9d4e69f66388a2ed14a",
+          "securityDefiner": true,
+          "configuration": [
+            "search_path=pg_catalog, public, pg_temp"
+          ],
+          "anonExecute": false,
+          "authenticatedExecute": false,
+          "serviceExecute": true
+        }
+      ],
+      "expectedBodySha256": "0bc0ca653b7021b07ca02b970832ba85cf3ae30dda2cd9d4e69f66388a2ed14a"
+    },
+    {
+      "name": "preschool_open_admission",
+      "sourceFile": "20261023120000_preschool_review_authority_and_overdue.sql",
+      "status": "PASS",
+      "variants": [
+        {
+          "args": "p_tenant_id uuid, p_actor_id uuid, p_operation_key uuid, p_payload jsonb",
+          "bodySha256": "7c62da6c95e8efda1ec355cbf63f02bc94bfe8940dd8a1530dab5992ac3569f8",
+          "securityDefiner": true,
+          "configuration": [
+            "search_path=pg_catalog, public, pg_temp"
+          ],
+          "anonExecute": false,
+          "authenticatedExecute": false,
+          "serviceExecute": true
+        }
+      ],
+      "expectedBodySha256": "7c62da6c95e8efda1ec355cbf63f02bc94bfe8940dd8a1530dab5992ac3569f8"
+    },
+    {
+      "name": "preschool_branch_access",
+      "sourceFile": "20261023120000_preschool_review_authority_and_overdue.sql",
+      "status": "PASS",
+      "variants": [
+        {
+          "args": "p_tenant_id uuid, p_actor_id uuid, p_branch_id uuid, p_action text",
+          "bodySha256": "170b4f88008e4c40436256445260a36ee76a8420d0b1e5f1c9673c760af2f9d1",
+          "securityDefiner": true,
+          "configuration": [
+            "search_path=pg_catalog, public, pg_temp"
+          ],
+          "anonExecute": false,
+          "authenticatedExecute": true,
+          "serviceExecute": true
+        }
+      ],
+      "expectedBodySha256": "170b4f88008e4c40436256445260a36ee76a8420d0b1e5f1c9673c760af2f9d1"
+    },
+    {
+      "name": "preschool_course_assignment_visible",
+      "sourceFile": "20261019030000_preschool_chain_branch_security.sql",
+      "status": "PASS",
+      "variants": [
+        {
+          "args": "p_tenant_id uuid, p_course_id uuid, p_branch_id uuid",
+          "bodySha256": "d92b346b12b9d0b38a3ec0bc1fab4004336f622dc3a57329f4f5603554399d3b",
+          "securityDefiner": true,
+          "configuration": [
+            "search_path=pg_catalog, public, pg_temp"
+          ],
+          "anonExecute": false,
+          "authenticatedExecute": true,
+          "serviceExecute": true
+        }
+      ],
+      "expectedBodySha256": "d92b346b12b9d0b38a3ec0bc1fab4004336f622dc3a57329f4f5603554399d3b"
+    },
+    {
+      "name": "preschool_enrollment_assignment_visible",
+      "sourceFile": "20261019030000_preschool_chain_branch_security.sql",
+      "status": "PASS",
+      "variants": [
+        {
+          "args": "p_tenant_id uuid, p_enrollment_id uuid, p_course_id uuid, p_branch_id uuid, p_request_id uuid",
+          "bodySha256": "21448409a7d765a1cb94db5dd682af0219826120f79a8bc904cb87e2d0a9c3f0",
+          "securityDefiner": true,
+          "configuration": [
+            "search_path=pg_catalog, public, pg_temp"
+          ],
+          "anonExecute": false,
+          "authenticatedExecute": true,
+          "serviceExecute": true
+        }
+      ],
+      "expectedBodySha256": "21448409a7d765a1cb94db5dd682af0219826120f79a8bc904cb87e2d0a9c3f0"
+    },
+    {
+      "name": "preschool_assign_chain",
+      "sourceFile": "20261023120000_preschool_review_authority_and_overdue.sql",
+      "status": "PASS",
+      "variants": [
+        {
+          "args": "p_tenant_id uuid, p_actor_id uuid, p_course_id uuid, p_enrollment_id uuid, p_branch_id uuid, p_request_id uuid",
+          "bodySha256": "ec6d75f00ca83f777c179273aa500cf09b6269e1493bd5b46686a87a02c99d01",
+          "securityDefiner": true,
+          "configuration": [
+            "search_path=pg_catalog, public, pg_temp"
+          ],
+          "anonExecute": false,
+          "authenticatedExecute": false,
+          "serviceExecute": true
+        }
+      ],
+      "expectedBodySha256": "ec6d75f00ca83f777c179273aa500cf09b6269e1493bd5b46686a87a02c99d01"
+    },
+    {
+      "name": "preschool_admission_pickup",
+      "sourceFile": "20261023120000_preschool_review_authority_and_overdue.sql",
+      "status": "PASS",
+      "variants": [
+        {
+          "args": "p_tenant_id uuid, p_actor_id uuid, p_student_party_id uuid, p_guardian_party_id uuid, p_normalized_phone text",
+          "bodySha256": "e265683e484a394df032a487fd0a731d080a9106df4dc14e5461d1ad6598c742",
+          "securityDefiner": true,
+          "configuration": [
+            "search_path=pg_catalog, public, pg_temp"
+          ],
+          "anonExecute": false,
+          "authenticatedExecute": false,
+          "serviceExecute": true
+        }
+      ],
+      "expectedBodySha256": "e265683e484a394df032a487fd0a731d080a9106df4dc14e5461d1ad6598c742"
+    },
+    {
+      "name": "preschool_finance_require_actor",
+      "sourceFile": "20261019040000_preschool_finance_atomic_reconciliation.sql",
+      "status": "PASS",
+      "variants": [
+        {
+          "args": "p_tenant_id uuid, p_actor_id uuid",
+          "bodySha256": "6286cda94251ee17365d0f5b395b204b76662d9eb278d982382e62ca63aee464",
+          "securityDefiner": true,
+          "configuration": [
+            "search_path=\"\""
+          ],
+          "anonExecute": false,
+          "authenticatedExecute": false,
+          "serviceExecute": false
+        }
+      ],
+      "expectedBodySha256": "6286cda94251ee17365d0f5b395b204b76662d9eb278d982382e62ca63aee464"
+    },
+    {
+      "name": "preschool_finance_snapshot_canonical",
+      "sourceFile": "20261019040000_preschool_finance_atomic_reconciliation.sql",
+      "status": "PASS",
+      "variants": [
+        {
+          "args": "p_snapshot jsonb",
+          "bodySha256": "e8a2b24fd3c7e3de7c1a59a334d4583c8e7753846fcda78f9e7b991ca7067f4c",
+          "securityDefiner": false,
+          "configuration": [
+            "search_path=\"\""
+          ],
+          "anonExecute": false,
+          "authenticatedExecute": false,
+          "serviceExecute": false
+        }
+      ],
+      "expectedBodySha256": "e8a2b24fd3c7e3de7c1a59a334d4583c8e7753846fcda78f9e7b991ca7067f4c"
+    },
+    {
+      "name": "preschool_finance_canonical_result",
+      "sourceFile": "20261019040000_preschool_finance_atomic_reconciliation.sql",
+      "status": "PASS",
+      "variants": [
+        {
+          "args": "p_operation edu_fin_reconciliation_operations",
+          "bodySha256": "c3a14830f611ebdcfdc78bf5f2fa577e6de9fe6cf2724c2f19a22ea08b47e499",
+          "securityDefiner": true,
+          "configuration": [
+            "search_path=\"\""
+          ],
+          "anonExecute": false,
+          "authenticatedExecute": false,
+          "serviceExecute": false
+        }
+      ],
+      "expectedBodySha256": "c3a14830f611ebdcfdc78bf5f2fa577e6de9fe6cf2724c2f19a22ea08b47e499"
+    },
+    {
+      "name": "preschool_recover_finance_reconciliation",
+      "sourceFile": "20261019050000_preschool_finance_branch_authorization.sql",
+      "status": "PASS",
+      "variants": [
+        {
+          "args": "p_tenant_id uuid, p_actor_id uuid, p_operation_key text, p_request jsonb",
+          "bodySha256": "d87f7ecd451343eb40aef87981a7b46b77b15ba14e7759186f1136aaec036aab",
+          "securityDefiner": true,
+          "configuration": [
+            "search_path=\"\""
+          ],
+          "anonExecute": false,
+          "authenticatedExecute": false,
+          "serviceExecute": true
+        }
+      ],
+      "expectedBodySha256": "d87f7ecd451343eb40aef87981a7b46b77b15ba14e7759186f1136aaec036aab"
+    },
+    {
+      "name": "preschool_reconcile_finance_atomic",
+      "sourceFile": "20261019050000_preschool_finance_branch_authorization.sql",
+      "status": "PASS",
+      "variants": [
+        {
+          "args": "p_tenant_id uuid, p_actor_id uuid, p_operation_key text, p_request jsonb",
+          "bodySha256": "cda23d1adfdfc17b8901233b23c4cc2ccb51281e8346c168ccf956964ae968f3",
+          "securityDefiner": true,
+          "configuration": [
+            "search_path=\"\""
+          ],
+          "anonExecute": false,
+          "authenticatedExecute": false,
+          "serviceExecute": true
+        }
+      ],
+      "expectedBodySha256": "cda23d1adfdfc17b8901233b23c4cc2ccb51281e8346c168ccf956964ae968f3"
+    },
+    {
+      "name": "platform_org_unit_access_for_actor",
+      "sourceFile": "20261019045000_platform_trusted_actor_org_unit_access.sql",
+      "status": "PASS",
+      "variants": [
+        {
+          "args": "p_tenant_id uuid, p_actor_id uuid",
+          "bodySha256": "727dee92ca4864e4b776a42c9081e455a6d6467630f4263a0731dcad73775baf",
+          "securityDefiner": true,
+          "configuration": [
+            "search_path=\"\""
+          ],
+          "anonExecute": false,
+          "authenticatedExecute": false,
+          "serviceExecute": true
+        }
+      ],
+      "expectedBodySha256": "727dee92ca4864e4b776a42c9081e455a6d6467630f4263a0731dcad73775baf"
+    },
+    {
+      "name": "preschool_finance_require_student_branch",
+      "sourceFile": "20261019050000_preschool_finance_branch_authorization.sql",
+      "status": "PASS",
+      "variants": [
+        {
+          "args": "p_tenant_id uuid, p_actor_id uuid, p_student_party_id uuid",
+          "bodySha256": "65e7b9955637088662f1e6e6e9f76778ce1ea66ee6c1e176cc3a7b38ba4dc727",
+          "securityDefiner": true,
+          "configuration": [
+            "search_path=\"\""
+          ],
+          "anonExecute": false,
+          "authenticatedExecute": false,
+          "serviceExecute": false
+        }
+      ],
+      "expectedBodySha256": "65e7b9955637088662f1e6e6e9f76778ce1ea66ee6c1e176cc3a7b38ba4dc727"
+    },
+    {
+      "name": "preschool_finance_require_invoice_branch",
+      "sourceFile": "20261019050000_preschool_finance_branch_authorization.sql",
+      "status": "PASS",
+      "variants": [
+        {
+          "args": "p_tenant_id uuid, p_actor_id uuid, p_invoice_id uuid",
+          "bodySha256": "760173c09ddab038c9acdf78bfc252d7866a82b091c750c3f3752171ef99c95a",
+          "securityDefiner": true,
+          "configuration": [
+            "search_path=\"\""
+          ],
+          "anonExecute": false,
+          "authenticatedExecute": false,
+          "serviceExecute": false
+        }
+      ],
+      "expectedBodySha256": "760173c09ddab038c9acdf78bfc252d7866a82b091c750c3f3752171ef99c95a"
+    },
+    {
+      "name": "platform_current_actor_profile",
+      "sourceFile": "20261019060000_platform_current_actor_read_contract.sql",
+      "status": "PASS",
+      "variants": [
+        {
+          "args": "",
+          "bodySha256": "6760bd14c90df0f17b783e40e44e7a9a28739519f69dabf36af0cd482d49ede1",
+          "securityDefiner": true,
+          "configuration": [
+            "search_path=\"\""
+          ],
+          "anonExecute": false,
+          "authenticatedExecute": true,
+          "serviceExecute": false
+        }
+      ],
+      "expectedBodySha256": "6760bd14c90df0f17b783e40e44e7a9a28739519f69dabf36af0cd482d49ede1"
+    },
+    {
+      "name": "platform_current_actor_org_unit_access",
+      "sourceFile": "20261019060000_platform_current_actor_read_contract.sql",
+      "status": "PASS",
+      "variants": [
+        {
+          "args": "",
+          "bodySha256": "487fcd0c85b6d899ed3e06d66849d2cf5bce6770f761dcf4f7fbc7ccad014bc4",
+          "securityDefiner": true,
+          "configuration": [
+            "search_path=\"\""
+          ],
+          "anonExecute": false,
+          "authenticatedExecute": true,
+          "serviceExecute": false
+        }
+      ],
+      "expectedBodySha256": "487fcd0c85b6d899ed3e06d66849d2cf5bce6770f761dcf4f7fbc7ccad014bc4"
+    },
+    {
+      "name": "preschool_finance_require_branch_scope",
+      "sourceFile": "20261022040000_preschool_finance_branch_surface.sql",
+      "status": "PASS",
+      "variants": [
+        {
+          "args": "p_tenant_id uuid, p_actor_id uuid, p_branch_id uuid",
+          "bodySha256": "04149468208e8923c1d9202162d18dc47ae7de40b3d65fbe199c0ba5c62e353f",
+          "securityDefiner": true,
+          "configuration": [
+            "search_path=\"\""
+          ],
+          "anonExecute": false,
+          "authenticatedExecute": false,
+          "serviceExecute": false
+        }
+      ],
+      "expectedBodySha256": "04149468208e8923c1d9202162d18dc47ae7de40b3d65fbe199c0ba5c62e353f"
+    },
+    {
+      "name": "preschool_finance_read_branch",
+      "sourceFile": "20261022040000_preschool_finance_branch_surface.sql",
+      "status": "PASS",
+      "variants": [
+        {
+          "args": "p_tenant_id uuid, p_actor_id uuid, p_branch_id uuid",
+          "bodySha256": "b528fcc1804caa0a5dbc0f10376b87090457edce1a14358999c1a1014b117bdd",
+          "securityDefiner": true,
+          "configuration": [
+            "search_path=\"\""
+          ],
+          "anonExecute": false,
+          "authenticatedExecute": false,
+          "serviceExecute": true
+        }
+      ],
+      "expectedBodySha256": "b528fcc1804caa0a5dbc0f10376b87090457edce1a14358999c1a1014b117bdd"
+    },
+    {
+      "name": "preschool_finance_branch_command",
+      "sourceFile": "20261023120000_preschool_review_authority_and_overdue.sql",
+      "status": "PASS",
+      "variants": [
+        {
+          "args": "p_tenant_id uuid, p_actor_id uuid, p_branch_id uuid, p_action text, p_payload jsonb",
+          "bodySha256": "136a733c70e55ab000ebbc01adb93ef1ea2e66f3ac3c36a40a451007b7345a69",
+          "securityDefiner": true,
+          "configuration": [
+            "search_path=\"\""
+          ],
+          "anonExecute": false,
+          "authenticatedExecute": false,
+          "serviceExecute": true
+        }
+      ],
+      "expectedBodySha256": "136a733c70e55ab000ebbc01adb93ef1ea2e66f3ac3c36a40a451007b7345a69"
+    },
+    {
+      "name": "edu_set_daily_attendance",
+      "sourceFile": "20261024020000_reconcile_education_attendance_callers.sql",
+      "status": "PASS",
+      "variants": [
+        {
+          "args": "p_tenant_id uuid, p_enrollment_id uuid, p_status text, p_roll_call_time timestamp with time zone, p_school_day date",
+          "bodySha256": "a75eec5543e54b2ae376526a7521586a29c94fc48196636f7a67ace0bc8f5aab",
+          "securityDefiner": true,
+          "configuration": [
+            "search_path=\"\""
+          ],
+          "anonExecute": false,
+          "authenticatedExecute": true,
+          "serviceExecute": true
+        }
+      ],
+      "expectedBodySha256": "a75eec5543e54b2ae376526a7521586a29c94fc48196636f7a67ace0bc8f5aab"
+    },
+    {
+      "name": "edu_capture_enrollment_created_event",
+      "sourceFile": "20261023010000_education_enrollment_event_recovery.sql",
+      "status": "PASS",
+      "variants": [
+        {
+          "args": "",
+          "bodySha256": "21c5f693ebf6c8726542c02d14a6381916e810d4e891ab2898f52e710ea09854",
+          "securityDefiner": true,
+          "configuration": [
+            "search_path=\"\""
+          ],
+          "anonExecute": false,
+          "authenticatedExecute": false,
+          "serviceExecute": false
+        }
+      ],
+      "expectedBodySha256": "21c5f693ebf6c8726542c02d14a6381916e810d4e891ab2898f52e710ea09854"
+    },
+    {
+      "name": "edu_require_enrollment_event",
+      "sourceFile": "20261023010000_education_enrollment_event_recovery.sql",
+      "status": "PASS",
+      "variants": [
+        {
+          "args": "p_tenant_id uuid, p_request_id text, p_enrollment_id uuid, p_student_party_id uuid, p_course_id uuid",
+          "bodySha256": "bf8fdbfe06b4d46d78cafb0b23f1af60d099823ae6acd6fd6482fd99506c6ed5",
+          "securityDefiner": true,
+          "configuration": [
+            "search_path=\"\""
+          ],
+          "anonExecute": false,
+          "authenticatedExecute": false,
+          "serviceExecute": false
+        }
+      ],
+      "expectedBodySha256": "bf8fdbfe06b4d46d78cafb0b23f1af60d099823ae6acd6fd6482fd99506c6ed5"
+    },
+    {
+      "name": "edu_enrollment_event_result",
+      "sourceFile": "20261023010000_education_enrollment_event_recovery.sql",
+      "status": "PASS",
+      "variants": [
+        {
+          "args": "p_event edu_enrollment_event_records, p_replay edu_enrollment_event_replays",
+          "bodySha256": "a9cc986c70560cfa9e01c2d441da2f27493fd31f70810199c02fa3f4cc7eae73",
+          "securityDefiner": false,
+          "configuration": [
+            "search_path=\"\""
+          ],
+          "anonExecute": false,
+          "authenticatedExecute": false,
+          "serviceExecute": false
+        }
+      ],
+      "expectedBodySha256": "a9cc986c70560cfa9e01c2d441da2f27493fd31f70810199c02fa3f4cc7eae73"
+    },
+    {
+      "name": "edu_get_enrollment_created_event",
+      "sourceFile": "20261023010000_education_enrollment_event_recovery.sql",
+      "status": "PASS",
+      "variants": [
+        {
+          "args": "p_tenant_id uuid, p_request_id text, p_enrollment_id uuid, p_student_party_id uuid, p_course_id uuid",
+          "bodySha256": "b0ee72f2ca1e0bc1077b0ef634f186a724db633f2459fb49411390a45873fdaa",
+          "securityDefiner": true,
+          "configuration": [
+            "search_path=\"\""
+          ],
+          "anonExecute": false,
+          "authenticatedExecute": false,
+          "serviceExecute": true
+        }
+      ],
+      "expectedBodySha256": "b0ee72f2ca1e0bc1077b0ef634f186a724db633f2459fb49411390a45873fdaa"
+    },
+    {
+      "name": "edu_claim_enrollment_event_replay",
+      "sourceFile": "20261023010000_education_enrollment_event_recovery.sql",
+      "status": "PASS",
+      "variants": [
+        {
+          "args": "p_tenant_id uuid, p_request_id text, p_enrollment_id uuid, p_student_party_id uuid, p_course_id uuid, p_replay_key uuid",
+          "bodySha256": "6e17bd90dc927567ad938bfe459260e39e8574ad4f4d2112ef9a447558aa00aa",
+          "securityDefiner": true,
+          "configuration": [
+            "search_path=\"\""
+          ],
+          "anonExecute": false,
+          "authenticatedExecute": false,
+          "serviceExecute": true
+        }
+      ],
+      "expectedBodySha256": "6e17bd90dc927567ad938bfe459260e39e8574ad4f4d2112ef9a447558aa00aa"
+    },
+    {
+      "name": "edu_finish_enrollment_event_replay",
+      "sourceFile": "20261023010000_education_enrollment_event_recovery.sql",
+      "status": "PASS",
+      "variants": [
+        {
+          "args": "p_tenant_id uuid, p_request_id text, p_enrollment_id uuid, p_student_party_id uuid, p_course_id uuid, p_replay_key uuid, p_lease_token uuid, p_outcome text, p_error_code text",
+          "bodySha256": "4b55dd7a9ea5d331bd9c0aea1976e68c51982fe483fef2d29a7e71ad259fbfbe",
+          "securityDefiner": true,
+          "configuration": [
+            "search_path=\"\""
+          ],
+          "anonExecute": false,
+          "authenticatedExecute": false,
+          "serviceExecute": true
+        }
+      ],
+      "expectedBodySha256": "4b55dd7a9ea5d331bd9c0aea1976e68c51982fe483fef2d29a7e71ad259fbfbe"
+    },
+    {
+      "name": "edu_set_scoped_daily_attendance",
+      "sourceFile": "20261023050000_attendance_final_authority_order.sql",
+      "status": "PASS",
+      "variants": [
+        {
+          "args": "p_tenant_id uuid, p_actor_id uuid, p_expected_role text, p_branch_id uuid, p_enrollment_id uuid, p_course_id uuid, p_student_party_id uuid, p_request_id text, p_status text, p_roll_call_time timestamp with time zone, p_school_day date",
+          "bodySha256": "5b03d701da2862cbb5e16e7481faf0bec9a3d0eb3459808bbcca8a42dc88ebf5",
+          "securityDefiner": true,
+          "configuration": [
+            "search_path=\"\""
+          ],
+          "anonExecute": false,
+          "authenticatedExecute": false,
+          "serviceExecute": true
+        }
+      ],
+      "expectedBodySha256": "5b03d701da2862cbb5e16e7481faf0bec9a3d0eb3459808bbcca8a42dc88ebf5"
+    },
+    {
+      "name": "preschool_set_scoped_daily_attendance",
+      "sourceFile": "20261023030000_preschool_scoped_attendance_command.sql",
+      "status": "PASS",
+      "variants": [
+        {
+          "args": "p_tenant_id uuid, p_actor_id uuid, p_expected_role text, p_branch_id uuid, p_enrollment_id uuid, p_course_id uuid, p_student_party_id uuid, p_status text, p_roll_call_time timestamp with time zone, p_school_day date",
+          "bodySha256": "428cc2a1baf302a9f91f862ba9e0b12d642074dc4c2d184a89680bfdcabd5573",
+          "securityDefiner": true,
+          "configuration": [
+            "search_path=\"\""
+          ],
+          "anonExecute": false,
+          "authenticatedExecute": false,
+          "serviceExecute": true
+        }
+      ],
+      "expectedBodySha256": "428cc2a1baf302a9f91f862ba9e0b12d642074dc4c2d184a89680bfdcabd5573"
+    },
+    {
+      "name": "platform_assert_active_branch_for_actor",
+      "sourceFile": "20261023040000_attendance_authorization_wait_repair.sql",
+      "status": "PASS",
+      "variants": [
+        {
+          "args": "p_tenant_id uuid, p_actor_id uuid, p_branch_id uuid",
+          "bodySha256": "7463c35a0c7fe177015bb82059b17d4d2b7d869b5b88a739baf4700e3819060e",
+          "securityDefiner": true,
+          "configuration": [
+            "search_path=\"\""
+          ],
+          "anonExecute": false,
+          "authenticatedExecute": false,
+          "serviceExecute": true
+        }
+      ],
+      "expectedBodySha256": "7463c35a0c7fe177015bb82059b17d4d2b7d869b5b88a739baf4700e3819060e"
+    },
+    {
+      "name": "preschool_record_handover",
+      "sourceFile": "20261024010000_preschool_handover_atomic_command.sql",
+      "status": "PASS",
+      "variants": [
+        {
+          "args": "p_tenant_id uuid, p_actor_id uuid, p_student_party_id uuid, p_guardian_party_id uuid, p_pickup_authorization_id uuid",
+          "bodySha256": "12c718b054ac2dc6ede1e6fe1a2207b7145e52952533ebf5fc96ce100b75f1f2",
+          "securityDefiner": true,
+          "configuration": [
+            "search_path=\"\""
+          ],
+          "anonExecute": false,
+          "authenticatedExecute": false,
+          "serviceExecute": true
+        }
+      ],
+      "expectedBodySha256": "12c718b054ac2dc6ede1e6fe1a2207b7145e52952533ebf5fc96ce100b75f1f2"
+    },
+    {
+      "name": "edu_can_access_attendance_enrollment",
+      "sourceFile": "20261024020000_reconcile_education_attendance_callers.sql",
+      "status": "PASS",
+      "variants": [
+        {
+          "args": "p_tenant_id uuid, p_enrollment_id uuid, p_school_day date",
+          "bodySha256": "7cafdf7e07b62b8eec708f6443db142d97531a1245907cad2d7eb637b086d9af",
+          "securityDefiner": true,
+          "configuration": [
+            "search_path=pg_catalog, public"
+          ],
+          "anonExecute": false,
+          "authenticatedExecute": true,
+          "serviceExecute": true
+        }
+      ],
+      "expectedBodySha256": "7cafdf7e07b62b8eec708f6443db142d97531a1245907cad2d7eb637b086d9af"
+    }
+  ],
+  "tableChecks": [
+    {
+      "relname": "edu_assessments",
+      "rls": true,
+      "force_rls": false,
+      "anon_truncate": false,
+      "authenticated_truncate": false
+    },
+    {
+      "relname": "edu_attendance",
+      "rls": true,
+      "force_rls": false,
+      "anon_truncate": false,
+      "authenticated_truncate": false
+    },
+    {
+      "relname": "edu_comm_acknowledgements",
+      "rls": true,
+      "force_rls": false,
+      "anon_truncate": false,
+      "authenticated_truncate": false
+    },
+    {
+      "relname": "edu_comm_consent_responses",
+      "rls": true,
+      "force_rls": false,
+      "anon_truncate": false,
+      "authenticated_truncate": false
+    },
+    {
+      "relname": "edu_comm_deliveries",
+      "rls": true,
+      "force_rls": false,
+      "anon_truncate": false,
+      "authenticated_truncate": false
+    },
+    {
+      "relname": "edu_comm_delivery_attempts",
+      "rls": true,
+      "force_rls": false,
+      "anon_truncate": false,
+      "authenticated_truncate": false
+    },
+    {
+      "relname": "edu_comm_exceptions",
+      "rls": true,
+      "force_rls": false,
+      "anon_truncate": false,
+      "authenticated_truncate": false
+    },
+    {
+      "relname": "edu_comm_notices",
+      "rls": true,
+      "force_rls": false,
+      "anon_truncate": false,
+      "authenticated_truncate": false
+    },
+    {
+      "relname": "edu_comm_responses",
+      "rls": true,
+      "force_rls": false,
+      "anon_truncate": false,
+      "authenticated_truncate": false
+    },
+    {
+      "relname": "edu_comm_sent_snapshots",
+      "rls": true,
+      "force_rls": false,
+      "anon_truncate": false,
+      "authenticated_truncate": false
+    },
+    {
+      "relname": "edu_comm_threads",
+      "rls": true,
+      "force_rls": false,
+      "anon_truncate": false,
+      "authenticated_truncate": false
+    },
+    {
+      "relname": "edu_enrollment_event_records",
+      "rls": true,
+      "force_rls": false,
+      "anon_truncate": false,
+      "authenticated_truncate": false
+    },
+    {
+      "relname": "edu_enrollment_event_replays",
+      "rls": true,
+      "force_rls": false,
+      "anon_truncate": false,
+      "authenticated_truncate": false
+    },
+    {
+      "relname": "edu_fin_billing_periods",
+      "rls": true,
+      "force_rls": false,
+      "anon_truncate": false,
+      "authenticated_truncate": false
+    },
+    {
+      "relname": "edu_fin_fee_structures",
+      "rls": true,
+      "force_rls": false,
+      "anon_truncate": false,
+      "authenticated_truncate": false
+    },
+    {
+      "relname": "edu_fin_invoice_line_items",
+      "rls": true,
+      "force_rls": false,
+      "anon_truncate": false,
+      "authenticated_truncate": false
+    },
+    {
+      "relname": "edu_fin_invoices",
+      "rls": true,
+      "force_rls": false,
+      "anon_truncate": false,
+      "authenticated_truncate": false
+    },
+    {
+      "relname": "edu_fin_payments",
+      "rls": true,
+      "force_rls": false,
+      "anon_truncate": false,
+      "authenticated_truncate": false
+    },
+    {
+      "relname": "edu_fin_receipts",
+      "rls": true,
+      "force_rls": false,
+      "anon_truncate": false,
+      "authenticated_truncate": false
+    },
+    {
+      "relname": "edu_fin_reconciliation_ledger",
+      "rls": true,
+      "force_rls": false,
+      "anon_truncate": false,
+      "authenticated_truncate": false
+    },
+    {
+      "relname": "edu_fin_reconciliation_operations",
+      "rls": true,
+      "force_rls": false,
+      "anon_truncate": false,
+      "authenticated_truncate": false
+    },
+    {
+      "relname": "edu_fin_student_discount_profiles",
+      "rls": true,
+      "force_rls": false,
+      "anon_truncate": false,
+      "authenticated_truncate": false
+    },
+    {
+      "relname": "edu_fin_tuition_recognition_policies",
+      "rls": true,
+      "force_rls": false,
+      "anon_truncate": false,
+      "authenticated_truncate": false
+    },
+    {
+      "relname": "edu_fin_tuition_service_period_completions",
+      "rls": true,
+      "force_rls": false,
+      "anon_truncate": false,
+      "authenticated_truncate": false
+    },
+    {
+      "relname": "edu_preschool_pickup_authorizations",
+      "rls": true,
+      "force_rls": false,
+      "anon_truncate": false,
+      "authenticated_truncate": false
+    },
+    {
+      "relname": "edu_preschool_pickup_handover_events",
+      "rls": true,
+      "force_rls": false,
+      "anon_truncate": false,
+      "authenticated_truncate": false
+    },
+    {
+      "relname": "party_registration_receipts",
+      "rls": true,
+      "force_rls": false,
+      "anon_truncate": false,
+      "authenticated_truncate": false
+    },
+    {
+      "relname": "preschool_admission_operations",
+      "rls": true,
+      "force_rls": false,
+      "anon_truncate": false,
+      "authenticated_truncate": false
+    }
+  ],
+  "summary": {
+    "migrationsExpected": 25,
+    "migrationsRecorded": 25,
+    "functionBodiesExpected": 36,
+    "functionBodiesMatched": 36,
+    "tablesExpected": 28,
+    "tablesFound": 28,
+    "tablesWithRls": 28,
+    "unsafeTruncateGrants": 0
+  },
+  "limits": [
+    "E2E scoped catalog proof only; not Production parity",
+    "Raw history statement equality is reported independently; no history is repaired",
+    "Existing duplicate handover history is preserved; parity does not prove handover business safety"
+  ]
+}

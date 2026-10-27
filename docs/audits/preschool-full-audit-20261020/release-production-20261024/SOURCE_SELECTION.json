@@ -1,0 +1,554 @@
+{
+  "candidateBase": "80e13ea92ee70742d26cd890a45aaa94d8fc7494",
+  "testedE2EBuildId": "fUdaRHs7DypX3PUAjLJK2",
+  "files": [
+    {
+      "path": "next.config.ts",
+      "sha256": "81055772b95976ec3fa5d61362cb5ceb405fd3cb510c5408b81be91d12130f46"
+    },
+    {
+      "path": "src/__tests__/catalog-bootstrap-boundary.test.tsx",
+      "sha256": "e1bf6044dd9e5e2038cd5023d154a6fdd032a97b3c26bbd4efa822e5203ac4a8"
+    },
+    {
+      "path": "src/__tests__/local-supabase-csp.test.ts",
+      "sha256": "c193aba4ef89d2496df21b5f22de82dffba2b74d8ca800de4fb693814fdd6a75"
+    },
+    {
+      "path": "src/__tests__/manifest-tenant-identity.test.ts",
+      "sha256": "005d158042d0189908b794ca02c9def5cf9b61c32f7ff39b376cf14f33ae20a1"
+    },
+    {
+      "path": "src/__tests__/proxy-course-catalog-cache.test.ts",
+      "sha256": "07cc1a424571c0bfa9bfca84d3c1da56fb3def5ccb0cf063305ecce958d02354"
+    },
+    {
+      "path": "src/__tests__/tenant-initial-render-shell.test.tsx",
+      "sha256": "8c1e1dc06d814d2a4627f553a1032aa4fcb5ce145986d48e74325332f6cef7f5"
+    },
+    {
+      "path": "src/__tests__/tenant-presentation-read.test.ts",
+      "sha256": "3eb7344a7c29acfb15db116a5b99c19af03d8a5a83839c69088cd85d989a8e9b"
+    },
+    {
+      "path": "src/__tests__/user-actions.test.ts",
+      "sha256": "994ba15664c0ab8611428d3121692df9514777b7892a26c3e72e181fc7abc1db"
+    },
+    {
+      "path": "src/app/api/education/ai/copilot/__tests__/access.test.ts",
+      "sha256": "0436e63752110ba9e724a9b652df07d1e9e2fb20e70b38f5db576651bb7f88fc"
+    },
+    {
+      "path": "src/app/api/education/ai/copilot/route.ts",
+      "sha256": "57886afd25b37b5bcf759d544f3e0d81768705123f89ead9f05484ca4695db1e"
+    },
+    {
+      "path": "src/app/api/education/analytics/__tests__/route.test.ts",
+      "sha256": "c3669c7be20bf87b9ff7c4df9c9ca1d496503cddfd46e28f76973b1fdac8f96a"
+    },
+    {
+      "path": "src/app/api/education/analytics/route.ts",
+      "sha256": "3031e0fc7e762da5ac1006d4c02d5956bcda1f8a04daddc23c344a92d62f9130"
+    },
+    {
+      "path": "src/app/api/education/announcements/__tests__/access.test.ts",
+      "sha256": "8dcd5ba90eb47517d23e116616e19dcc2e018ec4b86f997e921527319113f542"
+    },
+    {
+      "path": "src/app/api/education/announcements/route.ts",
+      "sha256": "3aa5deb74faf3365e92c53c1f7e5da2f7354484cbcaf99e6ec942b9213b9c052"
+    },
+    {
+      "path": "src/app/api/education/attendance/__tests__/route.test.ts",
+      "sha256": "9d01c9f4bc604d42e6bc2805b6f8d1a1a046eda30615d16fb88f0e8f2c317d61"
+    },
+    {
+      "path": "src/app/api/education/attendance/request-context.ts",
+      "sha256": "5ee8efc6e4819a02762a771690d7ec10d037dd94a4d20748f2a86025b8cf2a51"
+    },
+    {
+      "path": "src/app/api/education/attendance/route.ts",
+      "sha256": "4463c1a81c4b5dd0ea4ae080f349517097d3e0f7b3936ed7c0fa59ca5a249118"
+    },
+    {
+      "path": "src/app/api/education/care/bulk/__tests__/access.test.ts",
+      "sha256": "62eaff44df5aa392c56be6c57fce3e1ae7a777ad1cbe255070c6cefc1408e231"
+    },
+    {
+      "path": "src/app/api/education/care/bulk/route.ts",
+      "sha256": "bcfe70ed0b71e65272a4f6717d6c16de00bc138481560c270dd581223f7bc4fd"
+    },
+    {
+      "path": "src/app/api/education/care/classes/__tests__/access.test.ts",
+      "sha256": "17070968a4b9c5e650dff8f866358fd92f373f1ff33d712a7895729165d3af85"
+    },
+    {
+      "path": "src/app/api/education/care/classes/__tests__/catalog-contract.test.ts",
+      "sha256": "4425599baba4a6bebb4c8c3a1235e68c99a8b5a029ffc61af4a427f72230ca84"
+    },
+    {
+      "path": "src/app/api/education/care/classes/route.ts",
+      "sha256": "219b08459438bd0999d6c70172e1d04329f7e05851c14d13c441941d1b5de598"
+    },
+    {
+      "path": "src/app/api/education/courses/[id]/__tests__/route.test.ts",
+      "sha256": "19567cede129e3a20a8d5f84c0c7504bc2a373b2f532742fa53764d582b52f84"
+    },
+    {
+      "path": "src/app/api/education/courses/[id]/route.ts",
+      "sha256": "e40a1591f2c31fdbf3d970aed96d7a82bf5fb877f56e0b51fd78e61594ab7d63"
+    },
+    {
+      "path": "src/app/api/education/courses/[id]/teachers/__tests__/route.test.ts",
+      "sha256": "75d96b7fe4f93793fde881eab60c2e37ffbbfab58b5e889490ee9b4d521b86fe"
+    },
+    {
+      "path": "src/app/api/education/courses/[id]/teachers/route.ts",
+      "sha256": "9af9b11672e2baa93527f36b8de14238d0177fc6916d80e51b97f973198a1b66"
+    },
+    {
+      "path": "src/app/api/education/courses/__tests__/access.test.ts",
+      "sha256": "9d002bc386c419f191a3fcb9222bd6077c8310b6a0d46fc894e789bb3a5f5e81"
+    },
+    {
+      "path": "src/app/api/education/courses/__tests__/request-context.test.ts",
+      "sha256": "6c6b04bc40d583e5404f6e7c00c5511380fb2b9267c1062e4ac4b9598e7722d5"
+    },
+    {
+      "path": "src/app/api/education/courses/__tests__/route.test.ts",
+      "sha256": "e489056ee931b6243d47ee035162b55a22621634f7e7ea03af23e68b1074f759"
+    },
+    {
+      "path": "src/app/api/education/courses/request-context.ts",
+      "sha256": "a59868b5cea50c70cde01a46d4d3571753cd12461a10791b554711003cbbf2c5"
+    },
+    {
+      "path": "src/app/api/education/courses/route.ts",
+      "sha256": "18df10b8a0865a93384d33e80b2a4298d39ceac45a2f70eb22bc13da0448e75b"
+    },
+    {
+      "path": "src/app/api/education/enrollments/__tests__/route.test.ts",
+      "sha256": "cc809fe40bd3c92a733a62d8e05158844ee193fae3ff86cffcb8278460fdd430"
+    },
+    {
+      "path": "src/app/api/education/enrollments/route.ts",
+      "sha256": "81d330a938ec80d85187bc8188329d3427a7232e0a8e46b82ccd4469e2e63d03"
+    },
+    {
+      "path": "src/app/api/education/finance/__tests__/mvp-hold.test.ts",
+      "sha256": "efaede9d11dab283d989e4715aa71aabcdc64ae713349df20a8a7e50bccb86ef"
+    },
+    {
+      "path": "src/app/api/education/finance/route.ts",
+      "sha256": "c016543e87b089a0c270da772e8b60908ab81a52fd2ea88a8fab9a52d6498389"
+    },
+    {
+      "path": "src/app/api/education/portal/[token]/chat/route.ts",
+      "sha256": "0e0713562fc4d462b5965c41371fe8f41bd8d367d4da2e4a015f7e42d49b8e24"
+    },
+    {
+      "path": "src/app/api/education/portal/[token]/copilot/route.ts",
+      "sha256": "88558a237e14aaf8ddcc8ad4e9fe1e25dfbc0e63a7d7af94485da9e95a9d65c0"
+    },
+    {
+      "path": "src/app/api/education/portal/[token]/route.ts",
+      "sha256": "271a3873715740035bac1e3027bbeef980cfa8d2fcb97b41526ff4fd02c4fad5"
+    },
+    {
+      "path": "src/app/api/education/portal/__tests__/access.test.ts",
+      "sha256": "c65e8fc83bc9ca1c633841bce711959a8f364de75c7cb580205798b83c14baa6"
+    },
+    {
+      "path": "src/app/api/education/portal/token/__tests__/access.test.ts",
+      "sha256": "e0702290df2e9358ca7258b847a117b98d3b7b5bd73072a71365c7b4d9c919d0"
+    },
+    {
+      "path": "src/app/api/education/portal/token/route.ts",
+      "sha256": "50c866b5b4c2b2789166458986823e8abe0c3332c852f619bca58729ef7e34cb"
+    },
+    {
+      "path": "src/app/dashboard/education/__tests__/copilot-runtime.test.tsx",
+      "sha256": "542a132d21ee12c5f040c18d26ed8f709520a54bb9421a90e2557aab3637fbaa"
+    },
+    {
+      "path": "src/app/dashboard/education/__tests__/mvp-held-workspaces.test.tsx",
+      "sha256": "8e63878930013751bf04e526974b4ac8ff01929fbd3d3da449293ab3e59fa1e4"
+    },
+    {
+      "path": "src/app/dashboard/education/__tests__/page.test.tsx",
+      "sha256": "d73ba3d1a375202bda00e96723fbc36eaab672ab639aced8c3c9c3a1753c14c7"
+    },
+    {
+      "path": "src/app/dashboard/education/attendance/__tests__/page.test.tsx",
+      "sha256": "d0dd3dd6189c606939e1686ca6be190c2232c62f8939281f9cb04142dbe861fb"
+    },
+    {
+      "path": "src/app/dashboard/education/attendance/__tests__/preschool-attendance.test.tsx",
+      "sha256": "88a17f7ec62fa931c1f4e6b2e341c3220b73482d8bc99f0469dc97e7ee6094ca"
+    },
+    {
+      "path": "src/app/dashboard/education/attendance/page.tsx",
+      "sha256": "ed24c8e79ccde36688f99b2a184c47ff71d0413a7e0ecdee864c3747746c1a21"
+    },
+    {
+      "path": "src/app/dashboard/education/attendance/preschool-attendance.tsx",
+      "sha256": "ee12c55fab983f51cba603b688e2518700602d1b73a6d4f3ee045eddee2d4855"
+    },
+    {
+      "path": "src/app/dashboard/education/care/__tests__/care-save.test.ts",
+      "sha256": "c9f237c43af6abb0c231db32ff3f6eecbf80bfd5d4f0eb6f841dd706aeba6a4b"
+    },
+    {
+      "path": "src/app/dashboard/education/care/__tests__/page.test.tsx",
+      "sha256": "d2b13d7e7f2448c03ad3c9d9e82228401c09d5fe67ec73b26104e102ff1c0024"
+    },
+    {
+      "path": "src/app/dashboard/education/care/care-save.ts",
+      "sha256": "d0a1f7498fd9cef66f6fb0ef9b2b2f7db923a25ef33d3a421500e2983bd4d2aa"
+    },
+    {
+      "path": "src/app/dashboard/education/care/page.tsx",
+      "sha256": "c16d5804690a291554766fdfd94f8cb5f26bca62d5c278b9eb37e78561405107"
+    },
+    {
+      "path": "src/app/dashboard/education/communication/__tests__/page.test.tsx",
+      "sha256": "ccded9eaaab97ea87f90f2ee633dff190e6ecd0ba79d870d16063d88ff0f50a7"
+    },
+    {
+      "path": "src/app/dashboard/education/communication/page.tsx",
+      "sha256": "82f44327e4c0ece1618ff68548fd7e40810bf1ac3a58329b1dc34fe6087dbb7b"
+    },
+    {
+      "path": "src/app/dashboard/education/courses/[id]/__tests__/page.test.tsx",
+      "sha256": "b19408feebf714698e54ada07838ca3936c3445d50b98be30ea0802263f63820"
+    },
+    {
+      "path": "src/app/dashboard/education/courses/[id]/page.tsx",
+      "sha256": "8f92911810244b2cbcd9af9dd13a8c6e2235d867db3a52837738d1eda6b0d4ab"
+    },
+    {
+      "path": "src/app/dashboard/education/courses/__tests__/page.test.tsx",
+      "sha256": "a23240754e43f75acbd8c6c6e9a4869263e9d799e1010db4d31d37354c88b400"
+    },
+    {
+      "path": "src/app/dashboard/education/courses/page.tsx",
+      "sha256": "8a52cec89d2714e4917123c74bf696bd681d830cdc5941eb493ce11393dab3ed"
+    },
+    {
+      "path": "src/app/dashboard/education/enrollments/EnrollmentCreateForm.tsx",
+      "sha256": "da43cf3f282a6f68490298ed388f19845ebc20f1520972fd89fba6ce7fa4acb0"
+    },
+    {
+      "path": "src/app/dashboard/education/enrollments/[id]/PortalAccessLink.tsx",
+      "sha256": "0137d154380c3446ca8da8a1f4cba96275dcd89d712156adf95c7f66c088a948"
+    },
+    {
+      "path": "src/app/dashboard/education/enrollments/[id]/__tests__/PortalAccessLink.test.tsx",
+      "sha256": "88ed1f050adbdd1825c5738ec5698957362538bc1a12b51d4b2288b4603879c8"
+    },
+    {
+      "path": "src/app/dashboard/education/enrollments/[id]/__tests__/page.test.tsx",
+      "sha256": "0ef302e1cbcf5fe3767c3dda21024ca2a9bacb57ed1df7a18baeaa93fa7d2fc2"
+    },
+    {
+      "path": "src/app/dashboard/education/enrollments/[id]/page.tsx",
+      "sha256": "5eb2e663ac6072b8ffc7dd2f7de87bf185b6c5175d5bf2d48631072cd77e317c"
+    },
+    {
+      "path": "src/app/dashboard/education/enrollments/__tests__/EnrollmentCreateForm.test.tsx",
+      "sha256": "fb941ec6081aab72e313a36607d631274fbddc6388859d079cc3585c5e04f247"
+    },
+    {
+      "path": "src/app/dashboard/education/enrollments/__tests__/page.test.tsx",
+      "sha256": "90fe5f8bdfed7ddb544a00bbfeb60922140b1dc3fcae29356a682e7bdd589b48"
+    },
+    {
+      "path": "src/app/dashboard/education/enrollments/page.tsx",
+      "sha256": "cfabc6ce835791ce2e717b314f9c9a272336c5f8d3329e49159fe5c42d86b9a0"
+    },
+    {
+      "path": "src/app/dashboard/education/facilities/page.tsx",
+      "sha256": "cccfb305932072167f7189cb2cd6988c4eabd8232ca06f87c0b313f7754accf3"
+    },
+    {
+      "path": "src/app/dashboard/education/finance/__tests__/page.test.tsx",
+      "sha256": "3d666d87d7da59f3d96a803c9ec489d387bc0ac28179e3def75d359b96ce8cf2"
+    },
+    {
+      "path": "src/app/dashboard/education/finance/page.tsx",
+      "sha256": "0ca3b3102295fe49981ee3d88a02b86acde0583c681496e70485edcf7adbee45"
+    },
+    {
+      "path": "src/app/dashboard/education/grades/__tests__/page.test.tsx",
+      "sha256": "059ef00ad5c9b3082f14b217f706e5746e2e628edf63a0cb5fd54bf920e009ab"
+    },
+    {
+      "path": "src/app/dashboard/education/grades/page.tsx",
+      "sha256": "adfce00c16ef65b961215d9f243d700c436c875f1df4c0baa71b4385209ad11f"
+    },
+    {
+      "path": "src/app/dashboard/education/page.tsx",
+      "sha256": "6c3fc0238cfa8074b20366cbcac39ec6f5e31070d793d660a0421a2265dc2abf"
+    },
+    {
+      "path": "src/app/dashboard/education/reports/__tests__/page.test.tsx",
+      "sha256": "0eaca9e66a4d0c847b89bb75f7fb26999092b8cfbba29d27dec180d0e959b90d"
+    },
+    {
+      "path": "src/app/dashboard/education/reports/page.tsx",
+      "sha256": "a9d44a38dedc1e5685990647083b1e9fd3dc277958c6133ff7f155e0fe9187e3"
+    },
+    {
+      "path": "src/app/dashboard/education/teachers/[id]/page.tsx",
+      "sha256": "a1236a835d4e84ce65ff86136c5be8d344a695e9e73b08c8f023ae89632a7814"
+    },
+    {
+      "path": "src/app/dashboard/education/teachers/page.tsx",
+      "sha256": "c621c4fc3486dc7b8ffbcdd80918489081a592bdd92f0bfeac1c7b58d39b1306"
+    },
+    {
+      "path": "src/app/dashboard/layout.tsx",
+      "sha256": "796ad4dbbee92adec4e373007beec47720c50fd88390ee9c2ea992f46d277959"
+    },
+    {
+      "path": "src/app/manifest.webmanifest/route.ts",
+      "sha256": "43ab31fbf75cf3281297291f63cda179f2359f3df55de2c1183bead6703b0550"
+    },
+    {
+      "path": "src/app/portal/education/[token]/__tests__/page.test.tsx",
+      "sha256": "207ed4ddd2856583f99c9e8a1002705ff3e6d20f896806755d217887c9795be6"
+    },
+    {
+      "path": "src/app/portal/education/[token]/page.tsx",
+      "sha256": "5a1d2180c33bc2936a7151f55aff1b18ab61c65067d6b2a8474a302a69b34f64"
+    },
+    {
+      "path": "src/components/layout/DashboardLoadingShell.tsx",
+      "sha256": "1c0a57bd4bcd48cb7e3cc7160ddcad16abc2d01ec7c4a51cda601679be05229a"
+    },
+    {
+      "path": "src/components/layout/sidebar.tsx",
+      "sha256": "04ade96260f3b7f9d6738ad986664a6c4fbeb8e9f9ed5a09d0cf7d2e247e9d05"
+    },
+    {
+      "path": "src/components/providers/TenantContextWrapper.tsx",
+      "sha256": "1c71225fafa90ca314aa86d49655c825f86b0ae397822323f678ad38c5116d5e"
+    },
+    {
+      "path": "src/lib/user-context.tsx",
+      "sha256": "df8be275ae9ebd2a4dcd048d229001d939b5be2c4defb2e2ba4f8453003dfc3c"
+    },
+    {
+      "path": "src/platform/education/__tests__/course-contract-real-db.integration.test.ts",
+      "sha256": "4f4e49d32519ec4bcac0e41f9283ebc2322da5f006c71681a5ed32471914a080"
+    },
+    {
+      "path": "src/platform/education/__tests__/kernel-invariants.integration.test.ts",
+      "sha256": "623bcea84ef4840899ca9558bf1cfa37a1e57f846995d1e80d8d55fc1e373237"
+    },
+    {
+      "path": "src/platform/education/__tests__/verification-gates.test.ts",
+      "sha256": "29313db9e9e9080f8397ce972043f1c5b1127db6c8c2100b3f479ed91fc2114b"
+    },
+    {
+      "path": "src/platform/education/contracts/__tests__/attendance-record-rpc.contract.test.ts",
+      "sha256": "0be5eeb2e0cfefdedd3662ee76d0da389e446c99d2d557b08f057b03d7e00a7b"
+    },
+    {
+      "path": "src/platform/education/contracts/__tests__/preschool-enrollment.contract.test.ts",
+      "sha256": "6682ca44847a890745d97d189ca6d2c5597670328b177be27ec9a9bd6d835e6f"
+    },
+    {
+      "path": "src/platform/education/contracts/__tests__/preschool-roster-identity.contract.test.ts",
+      "sha256": "86e7aa3882a89192a6a2d6155cc518ba46afacdd8f9024efc12c737c8f950991"
+    },
+    {
+      "path": "src/platform/education/contracts/__tests__/student-candidate-search.contract.test.ts",
+      "sha256": "bf2dffdbf63ec386dfdc826014b263d7d8e681e6b7c0bfc5ed838c798909cc4b"
+    },
+    {
+      "path": "src/platform/education/contracts/attendance.contract.impl.ts",
+      "sha256": "7878ba60728d98328673459bb39271a468261318ced37a51377574716b00f776"
+    },
+    {
+      "path": "src/platform/education/contracts/canonical-course-catalog.contract.impl.ts",
+      "sha256": "0b6d94c7068767a5c4fbba7d8af4b39a1f86d8491bf63df69d051ee14bb0e644"
+    },
+    {
+      "path": "src/platform/education/contracts/canonical-course-catalog.contract.ts",
+      "sha256": "be6218687296f835bdd79b638610aedeb7fd8520d1f28e5feed3f369cadaa05a"
+    },
+    {
+      "path": "src/platform/education/contracts/course.contract.impl.ts",
+      "sha256": "5085735c6551c33273ad2cd61ac398495815ab13e428140ae4658d94f3faa31c"
+    },
+    {
+      "path": "src/platform/education/contracts/enrollment.contract.impl.ts",
+      "sha256": "2f6c2aa6dcbc252dec8a82c96410c27557e5cc067328ef1226be22a3c51063f0"
+    },
+    {
+      "path": "src/platform/education/contracts/enrollment.contract.ts",
+      "sha256": "a3a00d390cec54a8088d66d294e98266780a78b3dd35d0700f70f7d95b10223e"
+    },
+    {
+      "path": "src/platform/education/contracts/student.contract.impl.ts",
+      "sha256": "8ff7289a51bf7c08ba70e368591b7f413f23c2139cd5e108f0613195eeac99f8"
+    },
+    {
+      "path": "src/platform/education/contracts/student.contract.ts",
+      "sha256": "7a133954ff57ce412505c7b61fa5c0920d89c713d61d4c58c345882697ce2cd3"
+    },
+    {
+      "path": "src/products/bella-education/__tests__/preschool-admin-ai-copilot.test.ts",
+      "sha256": "b4abc2fbec90fd3f7816682dd8ae168a5ca20ed571baa9e5835288fdaad21bc3"
+    },
+    {
+      "path": "src/products/bella-education/__tests__/preschool-care-atomic-save.test.ts",
+      "sha256": "ae44df45bb9c5db625a801f37deee30e6d548b274c118e81f9e481f082020749"
+    },
+    {
+      "path": "src/products/bella-education/__tests__/preschool-care-roster-contract.test.ts",
+      "sha256": "d76eb9d2d1222a941c312b645a9baed6d43ed626a374f20333540138586dcd5d"
+    },
+    {
+      "path": "src/products/bella-education/__tests__/preschool-daily-care-canonical.service.test.ts",
+      "sha256": "ab6484de24b90bd6ee9d9955d620b0bd3183ad06533c1a87886f31cb57317ee0"
+    },
+    {
+      "path": "src/products/bella-education/__tests__/preschool-parent-portal-security.test.ts",
+      "sha256": "926f0eb403152a7b6a455664155246f400ee0e03b5f67bb3bf2db58e70ab6c02"
+    },
+    {
+      "path": "src/products/bella-education/__tests__/preschool-parent-portal.service.test.ts",
+      "sha256": "a85f138f1f7ebea30e2e971ae9fc32a4bb3dc559920c157e5ae47ea04b76a20d"
+    },
+    {
+      "path": "src/products/bella-education/ai-skills/PreschoolAICapabilityPack.ts",
+      "sha256": "a28a1eaaf18c25bf64d084184a577f1ae0c0a2c20053824e8dbb39078fe18c43"
+    },
+    {
+      "path": "src/products/bella-education/analytics/domain/__tests__/analytics-response.test.ts",
+      "sha256": "72753225570617b34850cdd75fa8e38a134a9e97c69bb69756380ad3bca64879"
+    },
+    {
+      "path": "src/products/bella-education/analytics/domain/analytics-response.ts",
+      "sha256": "be44938b391f0df6f2168af5e76856529dea488b1a71945fd34ff34f38045beb"
+    },
+    {
+      "path": "src/products/bella-education/analytics/domain/preschool-analytics.types.ts",
+      "sha256": "76d5532fd1f0bce162cd0744d32a37d4519af20bc6d4b18add9e27e47c91c752"
+    },
+    {
+      "path": "src/products/bella-education/care-wellbeing/daily-care/daily-care.service.ts",
+      "sha256": "4154ed854256df469fe38f9b0a3e62fe79bf30a67cb9b1f467d3ccfa94b4681a"
+    },
+    {
+      "path": "src/products/bella-education/care-wellbeing/daily-care/save-care.input.ts",
+      "sha256": "9fcd57f9ed81be895a1c59131f2f29511551fb29274af4b8e3c02deaaee3320f"
+    },
+    {
+      "path": "src/products/bella-education/parent-portal/domain/parent-portal.types.ts",
+      "sha256": "ec1b4298085d19b04b18255d7e650da3d984398d0f09fa24d266e6e878afea07"
+    },
+    {
+      "path": "src/products/bella-education/parent-portal/repositories/parent-portal.repository.ts",
+      "sha256": "f41cb8a897f701656b6de115c10a17e558e972d403057784e6903b9978815a7b"
+    },
+    {
+      "path": "src/products/bella-education/parent-portal/services/preschool-parent-portal.service.ts",
+      "sha256": "a8aaa4fecb8b4cf375876e424034ff37d8c44a76807a788eb8fb43c01c240544"
+    },
+    {
+      "path": "src/products/bella-education/services/preschool-ai.service.ts",
+      "sha256": "c659b04485d27bce3cac45ef8d1fa3c63b39a32992de6ebd07fabafdae910b32"
+    },
+    {
+      "path": "src/proxy.ts",
+      "sha256": "466008d64957bc9d2e4053325e30a18f323176314029d8712bb601b0d110a368"
+    },
+    {
+      "path": "src/services/tenant-actions.ts",
+      "sha256": "60efbccaa794e23f7c322011c8556d1f63eb343573d5fa46b467f2d6e859d49b"
+    },
+    {
+      "path": "src/services/user-actions.ts",
+      "sha256": "4c552bb0647120b5e4edc93d5c29d0db3d25aa03c61e0cfad0cd41e13c0e21af"
+    },
+    {
+      "path": "src/types/database.types.ts",
+      "sha256": "242b31c65b1de5193b991cc187348880c83fb07c92cff8edb3bec67d9a505cfd"
+    }
+  ],
+  "latestObservedProduction": {
+    "checkedAt": "2026-10-24T01:29:15.894Z",
+    "base": "80e13ea92ee70742d26cd890a45aaa94d8fc7494",
+    "observedReadyProductionSource": "bb7007e7632c3bf7d88f760fc8239a0720d2d327",
+    "head": "80e13ea92ee70742d26cd890a45aaa94d8fc7494",
+    "changedPathsSinceBase": [
+      ".cursorrules",
+      ".github/workflows/automove-rc-business-chain.yml",
+      ".github/workflows/baseline-no-new-debt.yml",
+      ".github/workflows/ci-tests.yml",
+      ".github/workflows/static-analysis.yml",
+      "AGENTS.md",
+      "CLAUDE.md",
+      "docs/governance/BELLA_AI_CODING_CONSTITUTION.md",
+      "e2e/tests/42-automove-dashboard-sales-chain.spec.ts",
+      "e2e/tests/47-automove-customer-preferences-pilot.spec.ts",
+      "playwright.automove-mvp-pilot.config.ts",
+      "scripts/agent-flow-dashboard/README.md",
+      "scripts/agent-flow-dashboard/factory-browser-proof.mjs",
+      "scripts/agent-flow-dashboard/factory-reader.mjs",
+      "scripts/agent-flow-dashboard/factory-reader.test.mjs",
+      "scripts/agent-flow-dashboard/server.mjs",
+      "scripts/agent-flow/agent-flow.test.mjs",
+      "scripts/agent-flow/authority.mjs",
+      "scripts/agent-flow/factory-publication.mjs",
+      "scripts/agent-flow/mvp-pilot-runner.mjs",
+      "scripts/agent-flow/mvp-pilot-runner.test.mjs",
+      "scripts/agent-flow/mvp-pilot.mjs",
+      "scripts/agent-flow/mvp-pilot.test.mjs",
+      "scripts/agent-flow/persistence-diagnostic.mjs",
+      "scripts/agent-flow/persistence-diagnostic.test.mjs",
+      "scripts/agent-flow/probe.mjs",
+      "scripts/agent-flow/role-native.mjs",
+      "scripts/agent-flow/role-pipeline.mjs",
+      "scripts/agent-flow/role-pipeline.test.mjs",
+      "scripts/agent-flow/role-validation.mjs",
+      "scripts/agent-flow/task-workflow.mjs",
+      "scripts/agent-flow/task-workflow.test.mjs",
+      "scripts/ci/baseline/adapters/jest-adapter.ts",
+      "scripts/run-semgrep-gate.py",
+      "scripts/static-analysis-scope.test.mjs",
+      "scripts/test-changed-files.mjs",
+      "scripts/test-changed-files.test.mjs",
+      "scripts/test_semgrep_gate.py",
+      "scripts/verify-automove-booking-allocation.ts",
+      "scripts/verify-automove-deposit-idempotency.ts",
+      "scripts/verify-automove-handover-recognition-e2e.ts",
+      "scripts/verify-automove-management-persistence.ts",
+      "scripts/verify-automove-post-sale-payments.ts",
+      "scripts/verify-automove-recognition-adjustments.ts",
+      "scripts/verify-automove-settlement.ts",
+      "src/__tests__/agent-flow-tooling.test.ts",
+      "src/modules/bella-auto/services/AutoMoveBookingAllocationHttp.ts",
+      "src/modules/bella-auto/services/AutoMoveDepositConfirmationHttp.ts",
+      "src/modules/bella-auto/services/AutoMoveManagementHttp.ts",
+      "src/modules/bella-auto/services/AutoMoveRecognitionAdjustmentHttp.ts",
+      "src/modules/bella-auto/services/AutoMoveSaleChainHttp.ts",
+      "src/modules/bella-auto/services/AutoMoveSalePaymentHttp.ts",
+      "src/modules/bella-auto/services/AutoMoveSettlementHttp.ts",
+      "src/modules/bella-auto/services/__tests__/AutoMoveBookingAllocationHttp.test.ts",
+      "src/modules/bella-auto/services/__tests__/AutoMoveSaleChainConnection.test.ts",
+      "src/modules/bella-auto/services/__tests__/AutoMoveSaleChainHttp.test.ts"
+    ],
+    "selectedPaths": 119,
+    "overlap": [],
+    "result": "NO_SELECTED_PATH_OVERLAP_BUILD_ON_NEW_BASELINE_NOT_RUN",
+    "candidateTestReuse": "Earlier3324sourceepochdoesnotcertifynewbasecombinedtree",
+    "mutation": "NOT_RUN"
+  },
+  "publication": "NOT_AUTHORIZED",
+  "deploymentArtifact": "NOT_CREATED_ON_NEW_PRODUCTION_BASE",
+  "excluded": "Auto/Lab/T2, full dirty branch, unrelated governance/CI changes"
+}

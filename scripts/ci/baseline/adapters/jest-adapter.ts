@@ -79,11 +79,43 @@ function extractStackTrace(failureMessage: string): string | undefined {
  */
 function extractErrorMessage(failureMessage: string): string {
   const lines = failureMessage.split('\n');
+
+  const yamlError = (startIndex: number): string | undefined => {
+    const errorIndex = lines.findIndex((line, index) => index >= startIndex && /^\s+error:\s*/.test(line));
+    if (errorIndex === -1) return undefined;
+    const errorLine = lines[errorIndex].trim().replace(/^error:\s*/, '');
+    if (errorLine && !/^[|>]([-+])?$/.test(errorLine)) return errorLine.replace(/^(['"])(.*)\1$/, '$2');
+    for (const line of lines.slice(errorIndex + 1)) {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith('at ') || trimmed === '...') continue;
+      if (!line.startsWith(' ') && !line.startsWith('\t')) break;
+      return trimmed;
+    }
+    return undefined;
+  };
+
+  // Node's TAP reporter wraps failed subtests in a YAML diagnostic block.
+  // Jest preserves that block in failureMessages; prefer its actual error
+  // payload over the YAML document separator (`---`).
+  // If the aggregate runner failed, prefer its isolated one-file diagnostic;
+  // the parent TAP block often reduces a child failure to the generic text
+  // `test failed` while the isolated output carries the actual assertion.
+  const isolatedIndex = lines.findIndex(line => line.includes('ISOLATED scripts/'));
+  if (isolatedIndex !== -1) {
+    const isolatedEnd = lines.findIndex((line, index) => index > isolatedIndex && line.includes('ISOLATED scripts/'));
+    const isolatedSummary = lines.slice(isolatedIndex, isolatedEnd === -1 ? isolatedIndex + 18 : isolatedEnd)
+      .map(line => line.trim()).filter(Boolean).join(' ').slice(0, 1200);
+    const isolatedError = yamlError(isolatedIndex);
+    if (isolatedError && isolatedError !== 'test failed') return `${isolatedSummary} | ${isolatedError}`;
+    return isolatedSummary || isolatedError || lines[isolatedIndex].trim();
+  }
+  const aggregateError = yamlError(0);
+  if (aggregateError) return aggregateError;
   
   // Find first non-empty line that's not part of stack
   for (const line of lines) {
     const trimmed = line.trim();
-    if (trimmed && !trimmed.startsWith('at ') && !trimmed.startsWith('Error:')) {
+    if (trimmed && trimmed !== '---' && trimmed !== '...' && !trimmed.startsWith('at ') && !trimmed.startsWith('Error:')) {
       return trimmed;
     }
   }

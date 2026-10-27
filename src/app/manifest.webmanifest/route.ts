@@ -87,7 +87,7 @@ async function resolveTenantForCurrentUser(): Promise<TenantPwaRow | null> {
 
   const { data: tenant, error: tenantError } = await supabase
     .from('tenants')
-    .select('id, product_key, brand_theme, logo_url')
+    .select('id, product_key')
     .eq('id', userProfile.tenant_id)
     .single();
 
@@ -95,7 +95,18 @@ async function resolveTenantForCurrentUser(): Promise<TenantPwaRow | null> {
     return null;
   }
 
-  return tenant;
+  // Product identity must not depend on optional tenant branding columns/ACLs.
+  const { data: branding, error: brandingError } = await supabase
+    .from('tenants')
+    .select('brand_theme, logo_url')
+    .eq('id', tenant.id)
+    .single();
+
+  return {
+    ...tenant,
+    brand_theme: brandingError ? null : branding?.brand_theme ?? null,
+    logo_url: brandingError ? null : branding?.logo_url ?? null,
+  };
 }
 
 export async function GET() {

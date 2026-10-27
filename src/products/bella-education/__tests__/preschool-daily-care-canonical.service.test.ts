@@ -116,6 +116,7 @@ class FakeSupabase {
 
 function buildClient() {
   return new FakeSupabase({
+    tenants: [{ id: tenantId, product_key: 'bella_school' }, { id: otherTenantId, product_key: 'bella_school' }],
     edu_courses: [
       { id: courseId, tenant_id: tenantId, status: 'active' },
       { id: otherCourseId, tenant_id: otherTenantId, status: 'active' },

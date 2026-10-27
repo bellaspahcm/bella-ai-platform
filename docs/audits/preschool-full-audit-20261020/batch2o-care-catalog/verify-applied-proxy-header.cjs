@@ -5,7 +5,7 @@ const root=path.resolve(__dirname,'../../../..'),file=path.join(root,'src/proxy.
 const before=fs.readFileSync(path.join(__dirname,'src__proxy.ts.before.txt'),'utf8');
 const after=fs.readFileSync(file,'utf8');
 function load(source,scenario) {
-  const module={exports:{}};
+  const sandboxModule={exports:{}};
   const code=require('typescript').transpileModule(source,{compilerOptions:{module:require('typescript').ModuleKind.CommonJS,target:require('typescript').ScriptTarget.ES2022}}).outputText;
   const allowed={
     'next/server':require('next/server'),
@@ -17,8 +17,8 @@ function load(source,scenario) {
     '@/lib/supabase-public-env':{getSupabasePublicUrl:()=> 'https://synthetic.invalid',getSupabasePublicKey:()=> 'synthetic-public-key',requireSupabasePublicEnv:()=>{throw Error('Unexpected missing config');}},
     '@/lib/supabase-admin-env':{getSupabaseAdminKey:()=>{throw Error('Admin forbidden');},getSupabaseAdminUrl:()=>{throw Error('Admin forbidden');}},
   };
-  vm.runInNewContext(code,{module,exports:module.exports,require:name=>{assert.ok(name in allowed,'Unexpected dependency');return allowed[name];},process:{env:{NODE_ENV:'production',DEPLOYMENT_ENV:'production'}},Headers,URL});
-  return module.exports.proxy;
+  vm.runInNewContext(code,{module:sandboxModule,exports:sandboxModule.exports,require:name=>{assert.ok(name in allowed,'Unexpected dependency');return allowed[name];},process:{env:{NODE_ENV:'production',DEPLOYMENT_ENV:'production'}},Headers,URL});
+  return sandboxModule.exports.proxy;
 }
 async function main(){
   const rows=[];

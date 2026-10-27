@@ -9,16 +9,37 @@ interface Profile {
   id: string;
   tenant_id: string | null;
   status: string;
+  role: string;
 }
 
 const mockGetUser = jest.fn<() => Promise<AuthResult>>();
 const mockGetCurrentUser = jest.fn<() => Promise<Profile | null>>();
 const mockFrom = jest.fn<(table: string) => unknown>();
 const mockGetCourseTeachers = jest.fn<() => Promise<unknown[]>>();
+const mockReadRegistry = jest.fn();
+const mockListCanonicalCourseTeachers = jest.fn();
 const mockClient = { auth: { getUser: mockGetUser }, from: mockFrom };
 
 jest.mock('@/lib/supabase-server', () => ({ createClient: () => mockClient }));
+jest.mock('@supabase/supabase-js', () => ({ createClient: () => mockClient }));
+jest.mock('@/lib/supabase-admin-env', () => ({
+  getSupabaseAdminUrl: () => 'https://courses-test.invalid',
+  getSupabaseAdminKey: () => 'courses-test-admin-placeholder',
+}));
 jest.mock('@/services/user-actions', () => ({ getCurrentUser: mockGetCurrentUser }));
+jest.mock('@/platform/education/contracts/preschool-registry.contract.impl', () => ({
+  PreschoolRegistryContractImpl: jest.fn().mockImplementation(() => ({ read: mockReadRegistry })),
+}));
+jest.mock('@/platform/education/contracts/preschool-teacher.contract.impl', () => ({
+  PreschoolTeacherContractImpl: jest.fn().mockImplementation(() => ({ listCourseTeachers: mockListCanonicalCourseTeachers })),
+}));
+jest.mock('@/products/bella-education/services/preschool-chain.service', () => ({
+  PreschoolChainError: class extends Error {},
+  PreschoolChainService: jest.fn().mockImplementation(() => ({
+    listCourseAssignments: async () => [{ tenant_id: tenantId, course_id: courseId, branch_id: 'branch-a' }],
+    listEnrollmentAssignments: async () => [],
+  })),
+}));
 jest.mock('@/platform/education/contracts/teacher-assignment.contract.impl', () => ({
   TeacherAssignmentContractImpl: jest.fn().mockImplementation(() => ({
     getCourseTeachers: mockGetCourseTeachers,
@@ -33,7 +54,7 @@ const userId = '00000000-0000-0000-0000-000000000011';
 const tenantId = '00000000-0000-0000-0000-000000000022';
 const foreignTenantId = '00000000-0000-0000-0000-000000000033';
 const courseId = '00000000-0000-0000-0000-000000000044';
-const profile: Profile = { id: userId, tenant_id: tenantId, status: 'active' };
+const profile: Profile = { id: userId, tenant_id: tenantId, status: 'active', role: 'admin_staff' };
 const handlers: ReadonlyArray<readonly [string, (request: Request) => Promise<Response>]> = [
   ['list', (request) => listCourses(request)],
   ['detail', (request) => getCourse(request, { params: Promise.resolve({ id: courseId }) })],
@@ -44,6 +65,8 @@ beforeEach(() => {
   mockGetUser.mockResolvedValue({ data: { user: { id: userId } }, error: null });
   mockGetCurrentUser.mockResolvedValue(profile);
   mockGetCourseTeachers.mockResolvedValue([]);
+  mockReadRegistry.mockResolvedValue({ filteredTotal: 0, nextOffset: null, students: [] });
+  mockListCanonicalCourseTeachers.mockResolvedValue({ total: 0, nextOffset: null, assignments: [] });
 });
 
 for (const [label, invoke] of handlers) {
@@ -55,6 +78,8 @@ for (const [label, invoke] of handlers) {
       expect(response.headers.get('Cache-Control')).toBe('private, no-store');
       expect(mockFrom).not.toHaveBeenCalled();
       expect(mockGetCourseTeachers).not.toHaveBeenCalled();
+      expect(mockReadRegistry).not.toHaveBeenCalled();
+      expect(mockListCanonicalCourseTeachers).not.toHaveBeenCalled();
     }
 
     it('rejects anonymous tenant and mock-role selectors before profile or classroom reads', async () => {
@@ -88,6 +113,12 @@ for (const [label, invoke] of handlers) {
 
     it('rejects a conflicting duplicate selector even when the first tenant matches', async () => {
       await expectDenied(new Request(`http://localhost/api/education/courses?tenantId=${tenantId}&tenantId=${foreignTenantId}`), 403, 'TENANT_ISOLATION_VIOLATION');
+    });
+
+    it.each(['view=catalog&view=catalog', 'view=foreign', 'view=catalog&date=2026-10-22'])('rejects ambiguous modes before a legacy resolver or data read: %s', async query => {
+      await expectDenied(new Request(`http://localhost/api/education/courses?${query}`), 400, 'COURSE_INVALID_CATALOG_REQUEST');
+      expect(mockGetCurrentUser).not.toHaveBeenCalled();
+      expect(mockGetUser).not.toHaveBeenCalled();
     });
   });
 }
@@ -132,7 +163,8 @@ describe('Courses verified session reads', () => {
     expect(filters).toContainEqual({ table: 'edu_enrollments', column: 'tenant_id', value: tenantId });
   });
 
-  it('adds the verified tenant fence to teacher Party reads in both handlers', async () => {
+  it('keeps canonical classroom reads separate from the legacy detail projection', async () => {
+    mockGetCurrentUser.mockResolvedValue({ ...profile, role: 'admin' });
     mockGetCourseTeachers.mockResolvedValue([{ teacherPartyId: 'teacher-party', role: 'lead_teacher' }]);
     const filters: Array<{ table: string; column: string; value: string }> = [];
     const values: Record<string, unknown[]> = {
@@ -146,9 +178,10 @@ describe('Courses verified session reads', () => {
       const chain = {
         select: () => chain,
         eq: (column: string, value: string) => { filters.push({ table, column, value }); return chain; },
-        in: async () => result,
+        in: () => chain,
         order: async () => result,
         single: async () => ({ data: values[table]?.[0] ?? null, error: null }),
+        then: (resolve: (value: typeof result) => unknown) => Promise.resolve(result).then(resolve),
       };
       return chain;
     });
@@ -158,7 +191,8 @@ describe('Courses verified session reads', () => {
     expect(detail.status).toBe(200);
     expect(filters.filter((filter) => filter.table === 'party_parties')).toEqual([
       { table: 'party_parties', column: 'tenant_id', value: tenantId },
-      { table: 'party_parties', column: 'tenant_id', value: tenantId },
     ]);
+    expect(mockReadRegistry).toHaveBeenCalledTimes(1);
+    expect(mockListCanonicalCourseTeachers).toHaveBeenCalledTimes(1);
   });
 });

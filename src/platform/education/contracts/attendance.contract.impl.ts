@@ -15,6 +15,24 @@ import type { Database } from '@/types/database.types';
 
 const ROSTER_ENROLLMENT_STATUSES = ['active', 'pending'] as const;
 type EducationAttendanceClient = SupabaseClient<Database>;
+type RosterIdentity = Omit<CourseDailyAttendanceRosterItem, 'attendance'>;
+interface PreschoolRosterRpcClient {
+  rpc(name: 'edu_preschool_roster_identity', args: { p_course_id: string; p_school_day: string }):
+    PromiseLike<{ data: unknown; error: unknown }>;
+}
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  value !== null && typeof value === 'object' && !Array.isArray(value);
+const isUuid = (value: unknown): value is string => typeof value === 'string'
+  && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+
+function isRosterIdentity(value: unknown): value is RosterIdentity {
+  return isRecord(value)
+    && Object.keys(value).sort().join(',') === 'dob,enrollmentId,enrollmentStatus,gender,name,studentCode,studentId,studentPartyId'
+    && isUuid(value.enrollmentId) && isUuid(value.studentId) && isUuid(value.studentPartyId)
+    && typeof value.name === 'string' && value.name.trim().length > 0 && value.enrollmentStatus === 'active'
+    && [value.studentCode, value.gender, value.dob].every(field => field === null || typeof field === 'string');
+}
 
 function assertAttendanceStatus(status: string): EducationAttendanceStatus {
   switch (status) {
@@ -44,46 +62,55 @@ export class AttendanceContractImpl implements IEducationAttendanceContract {
   }
 
   public async recordAttendance(input: RecordAttendanceInput): Promise<EducationAttendanceDTO> {
-    const supabase = this.getClient();
-
-    const { data: enrollment, error: enrollmentError } = await supabase
-      .from('edu_enrollments')
-      .select('id, tenant_id')
-      .eq('id', input.enrollmentId)
-      .eq('tenant_id', input.tenantId)
-      .maybeSingle();
-
-    if (enrollmentError) {
-      throw new Error(`Failed to resolve enrollment ${input.enrollmentId}: ${enrollmentError.message}`);
-    }
-
-    if (!enrollment) {
-      throw new Error(`Enrollment ${input.enrollmentId} not found`);
-    }
-
     const rollCallTime = input.rollCallTime ?? new Date().toISOString();
+    let expectedMillis = Date.parse(rollCallTime);
+    if (Number.isNaN(expectedMillis)) throw new Error('INVALID_ROLL_CALL_TIME');
+    // Preserve the caller's timestamp; PostgreSQL rounds fractional seconds to
+    // microseconds, which can cross a JavaScript millisecond boundary.
+    const fraction = rollCallTime.match(/\.(\d+)(?=Z$|[+-]\d{2}(?::?\d{2})?$)/i);
+    if (fraction && fraction[1].length > 6) {
+      const micros = Number(fraction[1].slice(0, 6)) + (fraction[1][6] >= '5' ? 1 : 0);
+      const wholeSecond = rollCallTime.replace(fraction[0], '.000');
+      expectedMillis = Date.parse(wholeSecond) + Math.floor(micros / 1000);
+    }
+    const { data, error } = await this.getClient().rpc('edu_set_daily_attendance', {
+      p_tenant_id: input.tenantId,
+      p_enrollment_id: input.enrollmentId,
+      p_status: input.status,
+      p_roll_call_time: rollCallTime,
+      p_school_day: resolveSchoolDay(new Date(expectedMillis).toISOString()),
+    });
+    if (error) {
+      if (error.message === 'ATTENDANCE_ENROLLMENT_NOT_FOUND') {
+        throw new Error(`Enrollment ${input.enrollmentId} not found`);
+      }
+      throw new Error(`Failed to set daily attendance: ${error.message}`);
+    }
+    const state = data?.[0];
+    if (!state) throw new Error('Failed to set daily attendance: no state returned');
+    const attendance = {
+      eventId: state.event_id, tenantId: state.tenant_id,
+      enrollmentId: state.enrollment_id, status: state.status, rollCallTime: state.roll_call_time,
+    };
+    const storedUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    const uuidValue = (value: string): string => value.replace(/[-{}]/g, '').toLowerCase();
 
-    const { data: attendance, error: attendanceError } = await supabase
-      .from('edu_attendance')
-      .insert({
-        tenant_id: input.tenantId,
-        enrollment_id: enrollment.id,
-        status: input.status,
-        roll_call_time: rollCallTime,
-      })
-      .select('id, tenant_id, enrollment_id, status, roll_call_time')
-      .single();
-
-    if (attendanceError || !attendance) {
-      throw new Error(`Failed to record attendance: ${attendanceError?.message ?? 'Unknown error'}`);
+    if (typeof attendance.eventId !== 'string' || !storedUuid.test(attendance.eventId)
+      || typeof attendance.tenantId !== 'string' || !storedUuid.test(attendance.tenantId)
+      || typeof attendance.enrollmentId !== 'string' || !storedUuid.test(attendance.enrollmentId)
+      || uuidValue(attendance.tenantId) !== uuidValue(input.tenantId)
+      || uuidValue(attendance.enrollmentId) !== uuidValue(input.enrollmentId) || attendance.status !== input.status
+      || typeof attendance.rollCallTime !== 'string' || !Number.isFinite(Date.parse(attendance.rollCallTime))
+      || Date.parse(attendance.rollCallTime) !== expectedMillis) {
+      throw new Error('ATTENDANCE_EVENT_UNAVAILABLE');
     }
 
     return {
-      id: attendance.id,
-      tenantId: attendance.tenant_id,
-      enrollmentId: attendance.enrollment_id,
+      id: attendance.eventId,
+      tenantId: attendance.tenantId,
+      enrollmentId: attendance.enrollmentId,
       status: assertAttendanceStatus(attendance.status),
-      rollCallTime: attendance.roll_call_time,
+      rollCallTime: attendance.rollCallTime,
     };
   }
 
@@ -149,6 +176,53 @@ export class AttendanceContractImpl implements IEducationAttendanceContract {
     input: GetCourseDailyAttendanceInput,
   ): Promise<readonly CourseDailyAttendanceRosterItem[]> {
     const supabase = this.getClient();
+
+    const tenant = await supabase.from('tenants').select('id, product_key').eq('id', input.tenantId).maybeSingle();
+    if (tenant.error || !tenant.data || tenant.data.id !== input.tenantId) {
+      throw new Error('ATTENDANCE_PRODUCT_CONTEXT_UNAVAILABLE');
+    }
+    if (tenant.data.product_key === 'bella_preschool') {
+      const rpc = supabase as unknown as PreschoolRosterRpcClient;
+      const { data, error } = await rpc.rpc('edu_preschool_roster_identity', {
+        p_course_id: input.courseId,
+        p_school_day: input.schoolDay,
+      });
+      if (error || !isRecord(data) || data.tenantId !== input.tenantId || data.courseId !== input.courseId
+        || data.schoolDay !== input.schoolDay || !Array.isArray(data.roster) || !data.roster.every(isRosterIdentity)
+        || new Set(data.roster.map(row => row.enrollmentId)).size !== data.roster.length
+        || new Set(data.roster.map(row => row.studentPartyId)).size !== data.roster.length) {
+        throw new Error('ATTENDANCE_ROSTER_IDENTITY_UNAVAILABLE');
+      }
+      const identities: RosterIdentity[] = data.roster;
+      if (identities.length === 0) return [];
+      const enrollmentIds = identities.map(row => row.enrollmentId);
+      const { data: states, error: stateError } = await supabase.from('edu_attendance_daily_state')
+        .select('id, tenant_id, enrollment_id, school_day, status, created_at, updated_at')
+        .eq('tenant_id', input.tenantId)
+        .eq('school_day', input.schoolDay)
+        .in('enrollment_id', enrollmentIds);
+      if (stateError || !states || states.some(state => state.tenant_id !== input.tenantId
+        || state.school_day !== input.schoolDay || !enrollmentIds.includes(state.enrollment_id))
+        || new Set(states.map(state => state.enrollment_id)).size !== states.length) {
+        throw new Error('ATTENDANCE_DAILY_STATE_UNAVAILABLE');
+      }
+      const stateByEnrollmentId = new Map(states.map(state => [state.enrollment_id, state]));
+      return identities.map(identity => {
+        const state = stateByEnrollmentId.get(identity.enrollmentId);
+        return {
+          ...identity,
+          attendance: state ? {
+            id: state.id,
+            tenantId: state.tenant_id,
+            enrollmentId: state.enrollment_id,
+            schoolDay: state.school_day,
+            status: assertAttendanceStatus(state.status),
+            createdAt: state.created_at,
+            updatedAt: state.updated_at,
+          } : null,
+        };
+      });
+    }
 
     const { data: enrollments, error: enrollmentError } = await supabase
       .from('edu_enrollments')

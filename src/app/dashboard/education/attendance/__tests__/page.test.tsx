@@ -4,7 +4,7 @@ import React from 'react';
 import { jest } from '@jest/globals';
 import '@testing-library/jest-dom';
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
-import AttendancePage from '../page';
+import { LegacyAttendancePage as AttendancePage } from '../page';
 
 // Synthetic HTTP fixtures verify confirmed UI updates and context/ordering, never guardian authority or DB/RLS.
 type Reply = Pick<Response, 'ok' | 'json'>;
@@ -17,6 +17,7 @@ function deferred<T>() {
 }
 const courses = ['A', 'B'].map((id) => ({
   id: `course-${id}`, name: `Synthetic Class ${id}`, code: id,
+  gradeKey: id === 'A' ? 'mam' : 'choi',
   students: 1, maxStudents: 10, todayStatus: { present: 0, excused: 0, unmarked: 1, healthAlerts: 0 },
 }));
 const row = (id: string) => ({
@@ -58,7 +59,7 @@ beforeEach(() => {
   fetchMock.mockReset();
   fetchMock.mockImplementation((input, init) => {
     const url = String(input);
-    if (url === '/api/education/courses') return Promise.resolve(response({ success: true, classrooms: courses }));
+    if (url === '/api/education/attendance/courses') return Promise.resolve(response({ success: true, classrooms: courses }));
     if (!init?.method && url.startsWith('/api/education/attendance?')) {
       const task = deferred<Reply>();
       gets.push({ url, task });
@@ -117,6 +118,19 @@ it('has no actionable roster or request when there are no courses', async () => 
   await screen.findByText('Chưa có lớp đang hoạt động');
   expect(gets).toHaveLength(0);
   expect(screen.queryByRole('button', { name: 'Bàn giao' })).not.toBeInTheDocument();
+  expect(posts()).toHaveLength(0);
+});
+
+it('shows unknown class metadata and preserves an observed empty roster as zero', async () => {
+  fetchMock.mockResolvedValueOnce(response({ success: true, classrooms: [
+    { ...courses[0], gradeKey: null, maxStudents: null, students: 4 },
+  ] }));
+  await start();
+  await act(async () => gets[0].task.resolve(response({ success: true, roster: [] })));
+  const classroom = within(screen.getByRole('button', { name: /Synthetic Class A/ }));
+  expect(classroom.getByText('Chưa có dữ liệu khối tuổi')).toBeInTheDocument();
+  expect(classroom.getByText(/Chưa có dữ liệu sức chứa/)).toBeInTheDocument();
+  expect(classroom.getByText('0', { selector: 'span.font-extrabold' })).toBeInTheDocument();
   expect(posts()).toHaveLength(0);
 });
 
@@ -182,7 +196,25 @@ it('distinguishes a successful handover POST from failed readback and requires f
   expect(screen.queryByRole('alert')).not.toBeInTheDocument();
 });
 
-it('keeps POST failure honest without starting readback or reporting success', async () => {
+it('blocks grade-based course changes during a pending write and recovers the original context', async () => {
+  await start();
+  await complete(0, 'A');
+  fireEvent.click(screen.getByRole('button', { name: 'Có Mặt' }));
+  const otherGrade = screen.getByRole('button', { name: /Khối Chồi/ });
+  expect(otherGrade).toBeDisabled();
+  fireEvent.click(otherGrade);
+  expect(gets).toHaveLength(1);
+  expect(posts()).toHaveLength(1);
+  await act(async () => commands[0].task.reject(new TypeError('SYNTHETIC_LOST_ACKNOWLEDGEMENT')));
+  expect(screen.getByRole('alert')).toHaveTextContent('SYNTHETIC_LOST_ACKNOWLEDGEMENT');
+  fireEvent.click(screen.getByRole('button', { name: 'Thử tải lại danh sách' }));
+  expect(new URL(gets[1].url, 'https://synthetic.invalid').searchParams.get('courseId')).toBe('course-A');
+  await complete(1, 'FRESH');
+  expect(within(table()).getByText('Synthetic Child FRESH')).toBeInTheDocument();
+  expect(otherGrade).toBeEnabled();
+});
+
+it('keeps POST failure honest and invalidates stale actions until explicit readback', async () => {
   await start();
   await complete(0, 'A');
   fireEvent.click(screen.getByRole('button', { name: 'Có Mặt' }));
@@ -191,7 +223,31 @@ it('keeps POST failure honest without starting readback or reporting success', a
   expect(screen.queryByRole('status')).not.toBeInTheDocument();
   expect(gets).toHaveLength(1);
   expect(dateInput()).toBeEnabled();
-  expect(within(table()).getByText('Synthetic Child A')).toBeInTheDocument();
+  expect(screen.queryAllByText('Synthetic Child A')).toHaveLength(0);
+  expect(screen.queryByRole('button', { name: 'Có Mặt' })).not.toBeInTheDocument();
+  expect(screen.getByRole('button', { name: 'Thử tải lại danh sách' })).toBeEnabled();
+  expect(posts()).toHaveLength(1);
+  fireEvent.click(screen.getByRole('button', { name: 'Thử tải lại danh sách' }));
+  await complete(1, 'FRESH');
+  expect(within(table()).getByText('Synthetic Child FRESH')).toBeInTheDocument();
+  expect(posts()).toHaveLength(1);
+});
+
+it('requires canonical readback after a lost acknowledgement instead of offering a blind repeat write', async () => {
+  await start();
+  await complete(0, 'A');
+  fireEvent.click(screen.getByRole('button', { name: 'Có Mặt' }));
+  await act(async () => commands[0].task.reject(new TypeError('SYNTHETIC_LOST_ACKNOWLEDGEMENT')));
+  expect(screen.getByRole('alert')).toHaveTextContent('SYNTHETIC_LOST_ACKNOWLEDGEMENT');
+  expect(screen.queryByRole('status')).not.toBeInTheDocument();
+  expect(screen.queryByRole('button', { name: 'Có Mặt' })).not.toBeInTheDocument();
+  expect(screen.queryAllByText('Synthetic Child A')).toHaveLength(0);
+  expect(gets).toHaveLength(1);
+  expect(posts()).toHaveLength(1);
+  fireEvent.click(screen.getByRole('button', { name: 'Thử tải lại danh sách' }));
+  await complete(1, 'READBACK');
+  expect(within(table()).getByText('Synthetic Child READBACK')).toBeInTheDocument();
+  expect(posts()).toHaveLength(1);
 });
 
 it('does not issue readback after the page unmounts during a command', async () => {
@@ -272,7 +328,7 @@ it('merges only confirmed attendance, preserves other rows and pickup data, and 
 });
 
 it.each(['missing', 'null', 'wrong-enrollment', 'wrong-day', 'wrong-status', 'missing-id', 'truthy-success'] as const)(
-  'rejects %s attendance confirmation without changing cached rows or claiming success', async (kind) => {
+  'rejects %s attendance confirmation and requires canonical read-back before another command', async (kind) => {
     await start();
     await complete(0, 'A');
     const confirmed = attendanceReply();
@@ -287,25 +343,53 @@ it.each(['missing', 'null', 'wrong-enrollment', 'wrong-day', 'wrong-status', 'mi
     await act(async () => commands[0].task.resolve(response({ success: kind === 'truthy-success' ? 'true' : true, attendance })));
     expect(screen.getByRole('alert')).toBeInTheDocument();
     expect(screen.queryByRole('status')).not.toBeInTheDocument();
+    expect(within(table()).queryByText('Synthetic Child A')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Có Mặt' })).not.toBeInTheDocument();
+    expect(gets).toHaveLength(1);
+    expect(posts()).toHaveLength(1);
+    fireEvent.click(screen.getByRole('button', { name: 'Thử tải lại danh sách' }));
+    await waitFor(() => expect(gets).toHaveLength(2));
+    expect(screen.queryByRole('button', { name: 'Có Mặt' })).not.toBeInTheDocument();
+    await complete(1, 'A');
     expect(studentRow('A').getByText('Chưa điểm danh')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Chưa điểm (1)' })).toBeInTheDocument();
-    expect(gets).toHaveLength(1);
     expect(screen.getByRole('button', { name: 'Có Mặt' })).toBeEnabled();
   },
 );
 
-it('keeps the existing attendance when a later POST fails and permits retry', async () => {
+it('recovers the actual committed attendance after a lost response before permitting retry', async () => {
   await start();
   const day = dateInput().value;
   await act(async () => gets[0].task.resolve(response({ success: true, roster: [{ ...row('A'), attendance: attendanceReply('A', 'excused', day) }] })));
   fireEvent.click(screen.getByRole('button', { name: 'Có Mặt' }));
   await act(async () => commands[0].task.reject(new Error('NETWORK_FAILURE')));
   expect(screen.getByRole('alert')).toHaveTextContent('NETWORK_FAILURE');
-  expect(studentRow('A').getByText('Có Phép', { selector: 'span' })).toBeInTheDocument();
-  expect(screen.getByRole('button', { name: 'Phép (1)' })).toBeInTheDocument();
+  expect(screen.queryByRole('button', { name: 'Có Mặt' })).not.toBeInTheDocument();
+  fireEvent.click(screen.getByRole('button', { name: 'Thử tải lại danh sách' }));
+  await waitFor(() => expect(gets).toHaveLength(2));
+  await act(async () => gets[1].task.resolve(response({ success: true, roster: [{ ...row('A'), attendance: attendanceReply('A', 'present', day) }] })));
+  expect(studentRow('A').getByText('Có Mặt', { selector: 'span' })).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: 'Có mặt (1)' })).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: 'Phép (0)' })).toBeInTheDocument();
   fireEvent.click(screen.getByRole('button', { name: 'Có Mặt' }));
   await act(async () => commands[1].task.resolve(response({ success: true, attendance: attendanceReply('A', 'absent', day) })));
   expect(screen.getByRole('button', { name: 'Vắng (1)' })).toBeInTheDocument();
   expect(screen.getByRole('button', { name: 'Phép (0)' })).toBeInTheDocument();
-  expect(gets).toHaveLength(1);
+  expect(gets).toHaveLength(2);
+});
+
+it('keeps attendance and pickup commands unavailable when read-back is denied after an uncertain write', async () => {
+  await start();
+  await complete(0, 'A');
+  fireEvent.click(screen.getByRole('button', { name: 'Có Mặt' }));
+  await act(async () => commands[0].task.reject(new Error('NETWORK_FAILURE')));
+  fireEvent.click(screen.getByRole('button', { name: 'Thử tải lại danh sách' }));
+  await waitFor(() => expect(gets).toHaveLength(2));
+  await act(async () => gets[1].task.resolve(response({ success: false, error: 'CURRENT_BRANCH_ACCESS_DENIED' }, false)));
+  expect(screen.getByRole('alert')).toHaveTextContent('CURRENT_BRANCH_ACCESS_DENIED');
+  expect(within(table()).queryByText('Synthetic Child A')).not.toBeInTheDocument();
+  expect(screen.queryByRole('button', { name: 'Có Mặt' })).not.toBeInTheDocument();
+  expect(screen.queryByRole('button', { name: 'Bàn giao' })).not.toBeInTheDocument();
+  expect(screen.queryByRole('status')).not.toBeInTheDocument();
+  expect(posts()).toHaveLength(1);
 });

@@ -120,6 +120,19 @@ it('does not misclassify a non-permission database failure as forbidden',async()
   expect(query).toHaveBeenCalledWith('rollback');
 });
 
+it('stops before actor and financial reads if transaction-local RLS cannot be enabled',async()=>{
+  query.mockImplementation(async(sql:string)=>{
+    if(sql==='set local row_security=on')throw Object.assign(new Error('RLS setup failed'),{code:'42501'});
+    return {rows:[]};
+  });
+  const response=await saleChainHttp(request({snapshotId}),'approve');
+  expect(response.status).toBe(403);
+  expect(query).not.toHaveBeenCalledWith(expect.stringContaining('from public.users'),expect.anything());
+  expect(query).toHaveBeenCalledWith('rollback');
+  expect(query).not.toHaveBeenCalledWith('commit');
+  expect(db.end).toHaveBeenCalled();
+});
+
 it('does not connect when the Production runtime flag is off',async()=>{
   process.env.VERCEL_ENV='production';
   process.env.NEXT_PUBLIC_SUPABASE_URL='https://lvnvkpyxtuilhrabtlwv.supabase.co';

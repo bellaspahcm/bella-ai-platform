@@ -1,0 +1,25 @@
+{
+  "at": "2026-10-24T01:16:44.899999+00:00",
+  "decisionSource": "Human follow-up in this same conversation after two concrete scoped questions and NEXT_SCOPED_DECISION.md",
+  "humanReply": "làm tiếp đi",
+  "interpretationAnnouncedToHuman": "Proceed with A Attendance E2E reconciliation and B handover draft PR/CI; Production and merge remain HOLD",
+  "approvedProposal": {
+    "file": "NEXT_SCOPED_DECISION.md",
+    "sha256": "3544494e4e72736a40c9eee7facfd5928e8e1bd29d67659392c2bc6d1a27e189",
+    "sections": [
+      "A — Education ACR/ADR decision and scoped unlock",
+      "B — Separate handover delivery authority"
+    ]
+  },
+  "productionAccess": false,
+  "mergeAuthorized": false,
+  "architectureAuthority": "Records the human task-owner instruction within the explicitly presented scope; no AI self-approval",
+  "allowlist": [
+    "supabase/migrations/20261024020000_reconcile_education_attendance_callers.sql",
+    "src/platform/education/contracts/attendance.contract.impl.ts#recordAttendance",
+    "src/platform/education/contracts/__tests__/attendance-record-rpc.contract.test.ts",
+    "src/products/bella-education/__tests__/preschool-chain-real-db.test.ts",
+    "scoped ACR/ADR/unlock and evidence only"
+  ],
+  "deliveryLimit": "Commit/push/draft PR/CI Non-Production for the six-path handover candidate only; no Production and no merge"
+}

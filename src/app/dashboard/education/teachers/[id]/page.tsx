@@ -1,21 +1,12 @@
 'use client';
 
-/**
- * Bella Education — Teacher 360° Workspace & Workforce Governance Detail Page
- * 
- * Deep Domain Features:
- * - Teacher 360° Profile Header (Identity, Tenure, Current Assignment, Workload Status)
- * - Tabbed Operational Workspace:
- *   1. Tổng Quan & Hồ Sơ (Overview & Contact)
- *   2. Bằng Cấp & Chứng Chỉ Lifecycle (Certifications, Expiry Warnings & Issuers)
- *   3. Lịch Sử Phân Công (Class Assignment Lifecycle History with Effective Dates)
- *   4. Lịch Giảng Dạy & Tải Công Việc (Weekly Schedule & 32/40h Workload Analysis)
- *   5. Đánh Giá & Năng Lực Sư Phạm (Evaluations, Reviews & Governance Metrics)
- */
+/** Original Preschool teacher 360 presentation with canonical confirmed identity and assignments. */
 
 import { useState, useEffect, type FormEvent } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
+import { loadAllClassAssignments, loadAllConfirmedTeachers, loadTeacherBranches,
+  loadTeacherClasses, localDate } from '../teacher-live-data';
 import {
   ArrowLeft,
   Users,
@@ -104,438 +95,66 @@ interface TeacherDetail {
   readonly evaluations: readonly EvaluationItem[];
 }
 
-const TEACHER_DETAILS_MAP: Record<string, TeacherDetail> = {
-  'TEA-001': {
-    id: 'TEA-001',
-    name: 'Cô Nguyễn Thị Mai',
-    role: 'Giáo viên Chủ nhiệm Lớp Mầm A1',
-    status: 'Đang Giảng Dạy',
-    avatarBg: 'bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300',
-    joinedDate: '01/08/2022 (4 năm làm việc tại Bella)',
-    totalExperience: '8 năm kinh nghiệm chuyên môn',
-    phone: '0982 111 222',
-    email: 'mai.nguyen@bellapreschool.edu.vn',
-    address: 'Q. Cầu Giấy, Thành phố Hà Nội',
-    currentClass: 'Lớp Mầm A1 — Họa Mi',
-    workloadHours: 32,
-    maxWorkloadHours: 40,
-    degree: 'Cử nhân Sư phạm Mầm non - Đại học Quốc Gia Hà Nội (Tốt nghiệp loại Ưu)',
-    compliance: { officialRecords: true, healthCheck: true, firstAidWarning: true },
-    certifications: [
-      {
-        id: 'CERT-01',
-        title: 'Chứng chỉ Phương pháp Giáo dục Montessori International',
-        issuer: 'Association Montessori Internationale (AMI)',
-        issuedDate: '15/12/2021',
-        expiryDate: '15/12/2028',
-        status: 'Valid',
-        isExpiringSoon: false,
-      },
-      {
-        id: 'CERT-02',
-        title: 'Chứng chỉ Sơ cứu & Y tế Cấp cứu Trẻ em Mầm non',
-        issuer: 'Hội Chữ Thập Đỏ Việt Nam',
-        issuedDate: '10/10/2024',
-        expiryDate: '10/10/2026',
-        status: 'Expiring Soon',
-        isExpiringSoon: true,
-      },
-      {
-        id: 'CERT-03',
-        title: 'Chứng chỉ Tiền Tiểu học & Phát triển Ngôn ngữ Trẻ mầm non',
-        issuer: 'Viện Khoa học Giáo dục Việt Nam',
-        issuedDate: '20/05/2023',
-        expiryDate: 'Vĩnh viễn',
-        status: 'Valid',
-        isExpiringSoon: false,
-      },
-    ],
-    assignmentHistory: [
-      {
-        academicYear: '2026 - 2027',
-        classroom: 'Lớp Mầm A1 — Họa Mi',
-        role: 'Giáo viên Chủ nhiệm',
-        startDate: '01/08/2026',
-        endDate: '31/05/2027',
-        workload: '32h/tuần',
-        status: 'Đang Phụ Trách',
-      },
-      {
-        academicYear: '2025 - 2026',
-        classroom: 'Lớp Mầm A2 — Sơn Ca',
-        role: 'Giáo viên Chủ nhiệm',
-        startDate: '01/08/2025',
-        endDate: '31/05/2026',
-        workload: '34h/tuần',
-        status: 'Hoàn Thành',
-      },
-    ],
-    schedule: [
-      { day: 'Thứ Hai', shift: 'Sáng (07:30 - 11:30)', activity: 'Đón trẻ, Thể dục sáng & Hoạt động Montessori Lớp Mầm A1' },
-      { day: 'Thứ Hai', shift: 'Chiều (14:00 - 17:00)', activity: 'Hoạt động Nhóm, Trả trẻ & Trao đổi Phụ huynh' },
-      { day: 'Thứ Ba', shift: 'Sáng (07:30 - 11:30)', activity: 'Lớp Sáng tạo Nghệ thuật & Kể chuyện theo chủ đề' },
-      { day: 'Thứ Ba', shift: 'Chiều (14:00 - 17:00)', activity: 'Sinh hoạt chuyên môn Khối Mầm' },
-      { day: 'Thứ Tư', shift: 'Sáng (07:30 - 11:30)', activity: 'Hoạt động Ngoài trời & Trải nghiệm Giác quan' },
-      { day: 'Thứ Năm', shift: 'Sáng (07:30 - 11:30)', activity: 'Khám phá Khoa học Mầm non & Montessori' },
-      { day: 'Thứ Sáu', shift: 'Sáng (07:30 - 11:30)', activity: 'Tổng kết tuần, Nêu gương bé ngoan & Trả trẻ' },
-    ],
-    evaluations: [
-      {
-        period: 'Học kỳ I (2025-2026)',
-        rating: 'Xuất sắc (A+)',
-        evaluator: 'Ban Giám Hiệu - Cô Hiệu Trưởng Trịnh Thu Hà',
-        feedback: 'Cô Mai có năng lực chuyên môn vững vàng, luôn tận tụy với trẻ. Phương pháp Montessori được áp dụng sinh động, phụ huynh đánh giá rất cao.',
-        score: 96,
-      },
-    ],
-  },
-  'TEA-002': {
-    id: 'TEA-002',
-    name: 'Cô Trần Ngọc Anh',
-    role: 'Giáo viên Chủ nhiệm Lớp Chồi B1',
-    status: 'Đang Giảng Dạy',
-    avatarBg: 'bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300',
-    joinedDate: '01/08/2020 (6 năm làm việc tại Bella)',
-    totalExperience: '10 năm kinh nghiệm chuyên môn',
-    phone: '0915 222 333',
-    email: 'ngocanh.tran@bellapreschool.edu.vn',
-    address: 'Q. Ba Đình, Thành phố Hà Nội',
-    currentClass: 'Lớp Chồi B1 — Thỏ Ngọc',
-    workloadHours: 36,
-    maxWorkloadHours: 40,
-    degree: 'Thạc sĩ Tâm lý Học Mầm non - Đại học Sư Phạm Hà Nội',
-    compliance: { officialRecords: true, healthCheck: true, firstAidWarning: false },
-    certifications: [
-      {
-        id: 'CERT-04',
-        title: 'Chứng chỉ Chuyên gia Reggio Emilia Approach',
-        issuer: 'Reggio Children Foundation',
-        issuedDate: '10/06/2022',
-        expiryDate: '10/06/2029',
-        status: 'Valid',
-        isExpiringSoon: false,
-      },
-      {
-        id: 'CERT-05',
-        title: 'Chứng chỉ Năng lực Tiếng Anh C1 Quốc tế',
-        issuer: 'Cambridge Assessment English',
-        issuedDate: '18/03/2023',
-        expiryDate: 'Vĩnh viễn',
-        status: 'Valid',
-        isExpiringSoon: false,
-      },
-    ],
-    assignmentHistory: [
-      {
-        academicYear: '2026 - 2027',
-        classroom: 'Lớp Chồi B1 — Thỏ Ngọc',
-        role: 'Giáo viên Chủ nhiệm',
-        startDate: '01/08/2026',
-        endDate: '31/05/2027',
-        workload: '36h/tuần',
-        status: 'Đang Phụ Trách',
-      },
-    ],
-    schedule: [
-      { day: 'Thứ Hai', shift: 'Sáng (07:30 - 11:30)', activity: 'Đón trẻ, Thể dục sáng & Hoạt động Reggio Emilia' },
-      { day: 'Thứ Hai', shift: 'Chiều (14:00 - 17:00)', activity: 'Dự án sáng tạo & Trả trẻ' },
-      { day: 'Thứ Ba', shift: 'Sáng (07:30 - 11:30)', activity: 'Tiếng Anh giao tiếp mầm non & Kể chuyện' },
-    ],
-    evaluations: [
-      {
-        period: 'Học kỳ I (2025-2026)',
-        rating: 'Xuất sắc (A+)',
-        evaluator: 'Ban Giám Hiệu',
-        feedback: 'Cô Ngọc Anh có năng lực quản lý lớp xuất sắc, sáng tạo trong việc tổ chức các góc hoạt động Reggio Emilia.',
-        score: 97,
-      },
-    ],
-  },
-  'TEA-003': {
-    id: 'TEA-003',
-    name: 'Cô Đặng Thùy Linh',
-    role: 'Giáo viên Chủ nhiệm Lớp Lá C1',
-    status: 'Đang Giảng Dạy',
-    avatarBg: 'bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300',
-    joinedDate: '01/09/2023 (3 năm làm việc tại Bella)',
-    totalExperience: '6 năm kinh nghiệm chuyên môn',
-    phone: '0973 444 555',
-    email: 'thuylinh.dang@bellapreschool.edu.vn',
-    address: 'Q. Đống Đa, Thành phố Hà Nội',
-    currentClass: 'Lớp Lá C1 — Vàng Anh',
-    workloadHours: 28,
-    maxWorkloadHours: 40,
-    degree: 'Cử nhân Ngôn ngữ Anh & GD Mầm non - Đại học Ngoại Ngữ',
-    compliance: { officialRecords: true, healthCheck: true, firstAidWarning: false },
-    certifications: [
-      {
-        id: 'CERT-06',
-        title: 'Chứng chỉ Chuẩn Bị Tiền Tiểu Học Chuẩn Quốc Gia',
-        issuer: 'Viện Khoa học Giáo dục Việt Nam',
-        issuedDate: '12/04/2024',
-        expiryDate: '12/04/2030',
-        status: 'Valid',
-        isExpiringSoon: false,
-      },
-    ],
-    assignmentHistory: [
-      {
-        academicYear: '2026 - 2027',
-        classroom: 'Lớp Lá C1 — Vàng Anh',
-        role: 'Giáo viên Chủ nhiệm',
-        startDate: '01/08/2026',
-        endDate: '31/05/2027',
-        workload: '28h/tuần',
-        status: 'Đang Phụ Trách',
-      },
-    ],
-    schedule: [
-      { day: 'Thứ Hai', shift: 'Sáng (07:30 - 11:30)', activity: 'Làm quen chữ cái, toán tư duy & Tiền tiểu học' },
-    ],
-    evaluations: [
-      {
-        period: 'Học kỳ I (2025-2026)',
-        rating: 'Tốt (A)',
-        evaluator: 'Tổ trưởng Khối Lá',
-        feedback: 'Cô Linh hướng dẫn các bé chuẩn bị tâm lý và kỹ năng vào lớp 1 rất chu đáo.',
-        score: 93,
-      },
-    ],
-  },
-  'TEA-004': {
-    id: 'TEA-004',
-    name: 'Cô Hoàng Bích Ngọc',
-    role: 'Giáo viên Chủ nhiệm Lớp Nhà Trẻ N1',
-    status: 'Đang Giảng Dạy',
-    avatarBg: 'bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300',
-    joinedDate: '15/01/2024 (2 năm làm việc tại Bella)',
-    totalExperience: '5 năm kinh nghiệm chuyên môn',
-    phone: '0904 666 777',
-    email: 'bichngoc.hoang@bellapreschool.edu.vn',
-    address: 'Q. Thanh Xuân, Thành phố Hà Nội',
-    currentClass: 'Lớp Nhà Trẻ N1 — Gấu Misa',
-    workloadHours: 30,
-    maxWorkloadHours: 40,
-    degree: 'Cử nhân Giáo dục Đặc biệt - ĐH Sư Phạm TP.HCM',
-    compliance: { officialRecords: true, healthCheck: true, firstAidWarning: true },
-    certifications: [
-      {
-        id: 'CERT-07',
-        title: 'Chăm sóc Trẻ sơ sinh & Nhà trẻ Chuyên sâu',
-        issuer: 'Bệnh viện Nhi Trung Ương',
-        issuedDate: '15/03/2023',
-        expiryDate: '15/03/2027',
-        status: 'Valid',
-        isExpiringSoon: false,
-      },
-      {
-        id: 'CERT-08',
-        title: 'Dinh dưỡng Nhi khoa & Vệ sinh An toàn',
-        issuer: 'Viện Dinh Dưỡng Quốc Gia',
-        issuedDate: '10/09/2024',
-        expiryDate: '10/09/2026',
-        status: 'Expiring Soon',
-        isExpiringSoon: true,
-      },
-    ],
-    assignmentHistory: [
-      {
-        academicYear: '2026 - 2027',
-        classroom: 'Lớp Nhà Trẻ N1 — Gấu Misa',
-        role: 'Giáo viên Chủ nhiệm',
-        startDate: '01/08/2026',
-        endDate: '31/05/2027',
-        workload: '30h/tuần',
-        status: 'Đang Phụ Trách',
-      },
-    ],
-    schedule: [
-      { day: 'Thứ Hai', shift: 'Sáng (07:30 - 11:30)', activity: 'Đón trẻ, rèn luyện kỹ năng tự lập, bữa ăn dinh dưỡng' },
-    ],
-    evaluations: [
-      {
-        period: 'Học kỳ I (2025-2026)',
-        rating: 'Xuất sắc (A+)',
-        evaluator: 'Ban Giám Hiệu',
-        feedback: 'Cô Ngọc rất kiên nhẫn, chăm sóc các bé nhỏ chu đáo như người mẹ thứ hai.',
-        score: 95,
-      },
-    ],
-  },
-  'TEA-005': {
-    id: 'TEA-005',
-    name: 'Cô Lê Minh Tâm',
-    role: 'Giáo viên Trợ giảng Lớp Mầm A2',
-    status: 'Đang Giảng Dạy',
-    avatarBg: 'bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300',
-    joinedDate: '01/03/2023 (3 năm làm việc tại Bella)',
-    totalExperience: '4 năm kinh nghiệm chuyên môn',
-    phone: '0938 888 999',
-    email: 'minhtam.le@bellapreschool.edu.vn',
-    address: 'Q. Tây Hồ, Thành phố Hà Nội',
-    currentClass: 'Lớp Mầm A2 — Sơn Ca',
-    workloadHours: 20,
-    maxWorkloadHours: 40,
-    degree: 'Cao đẳng Sư phạm Mầm non - CĐ Sư Phạm T.Ư',
-    compliance: { officialRecords: true, healthCheck: true, firstAidWarning: false },
-    certifications: [
-      {
-        id: 'CERT-09',
-        title: 'Kỹ năng Giáo dục sớm Mầm non',
-        issuer: 'Học viện Giáo dục Sớm',
-        issuedDate: '15/08/2023',
-        expiryDate: '15/08/2028',
-        status: 'Valid',
-        isExpiringSoon: false,
-      },
-    ],
-    assignmentHistory: [
-      {
-        academicYear: '2026 - 2027',
-        classroom: 'Lớp Mầm A2 — Sơn Ca',
-        role: 'Giáo viên Trợ giảng',
-        startDate: '01/08/2026',
-        endDate: '31/05/2027',
-        workload: '20h/tuần',
-        status: 'Đang Phụ Trách',
-      },
-    ],
-    schedule: [
-      { day: 'Thứ Hai', shift: 'Sáng (07:30 - 11:30)', activity: 'Hỗ trợ giáo viên chính đón trẻ, phát triển kỹ năng vận động' },
-    ],
-    evaluations: [
-      {
-        period: 'Học kỳ I (2025-2026)',
-        rating: 'Tốt (A)',
-        evaluator: 'Tổ Chuyên Môn',
-        feedback: 'Nhiệt tình, phối hợp ăn ý với giáo viên chủ nhiệm trong mọi hoạt động.',
-        score: 91,
-      },
-    ],
-  },
-  'TEA-006': {
-    id: 'TEA-006',
-    name: 'Cô Phạm Thị Trang',
-    role: 'Giáo viên Năng khiếu Âm nhạc & Nghệ thuật',
-    status: 'Đang Giảng Dạy',
-    avatarBg: 'bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300',
-    joinedDate: '10/08/2021 (5 năm làm việc tại Bella)',
-    totalExperience: '7 năm kinh nghiệm chuyên môn',
-    phone: '0945 777 888',
-    email: 'trang.pham@bellapreschool.edu.vn',
-    address: 'Q. Hai Bà Trưng, Thành phố Hà Nội',
-    currentClass: 'Âm nhạc — Nghệ thuật',
-    workloadHours: 24,
-    maxWorkloadHours: 40,
-    degree: 'Cử nhân Âm nhạc - Giáo dục Nghệ thuật Mầm non',
-    compliance: { officialRecords: true, healthCheck: true, firstAidWarning: false },
-    certifications: [
-      {
-        id: 'CERT-10',
-        title: 'Phương pháp Cảm thụ Âm nhạc Orff-Schulwerk',
-        issuer: 'Hiệp hội Orff Quốc tế',
-        issuedDate: '12/11/2022',
-        expiryDate: '12/11/2029',
-        status: 'Valid',
-        isExpiringSoon: false,
-      },
-    ],
-    assignmentHistory: [
-      {
-        academicYear: '2026 - 2027',
-        classroom: 'Âm nhạc — Nghệ thuật',
-        role: 'Giáo viên Năng khiếu',
-        startDate: '01/08/2026',
-        endDate: '31/05/2027',
-        workload: '24h/tuần',
-        status: 'Đang Phụ Trách',
-      },
-    ],
-    schedule: [
-      { day: 'Thứ Hai', shift: 'Sáng (07:30 - 11:30)', activity: 'Giờ cảm thụ âm nhạc Khối Mầm và Khối Chồi' },
-    ],
-    evaluations: [
-      {
-        period: 'Học kỳ I (2025-2026)',
-        rating: 'Xuất sắc (A+)',
-        evaluator: 'Ban Giám Hiệu',
-        feedback: 'Các tiết học âm nhạc của cô Trang luôn tràn đầy tiếng cười và kích thích trí sáng tạo của trẻ.',
-        score: 96,
-      },
-    ],
-  },
-};
-
-function getTeacherData(id: string): TeacherDetail {
-  if (TEACHER_DETAILS_MAP[id]) {
-    return TEACHER_DETAILS_MAP[id];
-  }
+function emptyTeacher(id: string): TeacherDetail {
   return {
-    id,
-    name: 'Cô Giáo Viên Mầm Non',
-    role: 'Giáo viên Chủ nhiệm',
-    status: 'Đang Giảng Dạy',
+    id, name: 'Đang tải hồ sơ giáo viên…', role: 'Chưa phân công', status: 'Chưa xác minh',
     avatarBg: 'bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300',
-    joinedDate: '01/08/2024',
-    totalExperience: '3 năm kinh nghiệm chuyên môn',
-    phone: '0988 888 999',
-    email: 'giaovien@bellapreschool.edu.vn',
-    address: 'Thành phố Hà Nội',
-    currentClass: 'Lớp Mầm A1 — Họa Mi',
-    workloadHours: 30,
-    maxWorkloadHours: 40,
-    degree: 'Cử nhân Sư phạm Mầm non',
-    compliance: { officialRecords: true, healthCheck: true, firstAidWarning: false },
-    certifications: [
-      {
-        id: 'CERT-01',
-        title: 'Chứng chỉ Phương pháp Giáo dục Mầm non',
-        issuer: 'ĐH Sư Phạm',
-        issuedDate: '15/05/2024',
-        expiryDate: '15/05/2029',
-        status: 'Valid',
-        isExpiringSoon: false,
-      },
-    ],
-    assignmentHistory: [
-      {
-        academicYear: '2026 - 2027',
-        classroom: 'Lớp Mầm A1 — Họa Mi',
-        role: 'Giáo viên Chủ nhiệm',
-        startDate: '01/08/2026',
-        endDate: '31/05/2027',
-        workload: '30h/tuần',
-        status: 'Đang Phụ Trách',
-      },
-    ],
-    schedule: [
-      { day: 'Thứ Hai', shift: 'Sáng (07:30 - 11:30)', activity: 'Đón trẻ và sinh hoạt nề nếp' },
-    ],
-    evaluations: [
-      {
-        period: 'Học kỳ I (2025-2026)',
-        rating: 'Tốt (A)',
-        evaluator: 'Ban Giám Hiệu',
-        feedback: 'Hoàn thành tốt nhiệm vụ giảng dạy và chăm sóc học sinh.',
-        score: 90,
-      },
-    ],
+    joinedDate: 'Chưa được cung cấp', totalExperience: 'Chưa được cung cấp', phone: '', email: '',
+    address: 'Chưa được cung cấp', currentClass: 'Chưa phân công lớp', workloadHours: 0,
+    maxWorkloadHours: 0, degree: 'Chưa được cung cấp',
+    compliance: { officialRecords: false, healthCheck: false, firstAidWarning: false },
+    certifications: [], assignmentHistory: [], schedule: [], evaluations: [],
   };
 }
 
 export default function TeacherDetailPage() {
   const params = useParams();
-  const teacherId = (params?.id as string) || 'TEA-001';
+  const teacherId = (params?.id as string) || '';
 
   const [activeTab, setActiveTab] = useState<'overview' | 'certifications' | 'assignments' | 'schedule' | 'evaluations'>('overview');
   const [selectedYear, setSelectedYear] = useState('2026 - 2027');
-  const [teacher, setTeacher] = useState<TeacherDetail>(() => getTeacherData(teacherId));
+  const [teacher, setTeacher] = useState<TeacherDetail>(() => emptyTeacher(teacherId));
+  const [loadError, setLoadError] = useState('');
+  const [saveError, setSaveError] = useState('');
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  // Sync when teacherId changes
+  // Resolve only confirmed Party identities and mapped class assignments in authorized branches.
   useEffect(() => {
-    setTeacher(getTeacherData(teacherId));
+    const controller = new AbortController();
+    setTeacher(emptyTeacher(teacherId));
+    setLoadError('');
+    void (async () => {
+      const branches = await loadTeacherBranches(controller.signal);
+      const matches = await Promise.all(branches.map(async branch => ({ branch,
+        people: await loadAllConfirmedTeachers(branch.id, localDate(), controller.signal),
+      })));
+      const owner = matches.find(item => item.people.some(person => person.partyId === teacherId));
+      if (!owner) { if (!controller.signal.aborted) setLoadError('Không tìm thấy giáo viên đã xác nhận trong các chi nhánh được phân quyền.'); return; }
+      const person = owner.people.find(item => item.partyId === teacherId);
+      if (!person) return;
+      const classes = await loadTeacherClasses(owner.branch.id, controller.signal);
+      const assignments = await Promise.all(classes.map(item => loadAllClassAssignments(
+        owner.branch.id, item.id, localDate(), controller.signal)));
+      if (controller.signal.aborted) return;
+      const history = assignments.flat().filter(item => item.teacherPartyId === teacherId);
+      const current = history.find(item => item.status === 'active' && item.effectiveOnDate && item.eligibility === 'confirmed');
+      const role = current?.role === 'lead_teacher' ? 'Giáo viên chủ nhiệm'
+        : current?.role === 'co_teacher' ? 'Giáo viên cùng lớp'
+        : current?.role === 'assistant' ? 'Giáo viên trợ giảng'
+        : current?.role === 'substitute' ? 'Giáo viên thay thế' : 'Chưa phân công';
+      const detail = emptyTeacher(teacherId);
+      setTeacher({ ...detail, name: person.displayName, status: 'Đã xác nhận', role,
+        currentClass: current ? classes.find(item => item.id === current.courseId)?.title || 'Lớp không khả dụng' : 'Chưa phân công lớp',
+        assignmentHistory: history.map(item => ({ academicYear: item.academicYear,
+          classroom: classes.find(course => course.id === item.courseId)?.title || 'Lớp không khả dụng',
+          role: item.role, startDate: item.effectiveStartDate,
+          endDate: item.effectiveEndDate || 'Chưa kết thúc', workload: 'Chưa được cung cấp',
+          status: item.status === 'active' && item.effectiveOnDate ? 'Đang Phụ Trách' : item.status,
+        })),
+      });
+    })().catch(() => { if (!controller.signal.aborted) setLoadError('Không tải được hồ sơ giáo viên.'); });
+    return () => controller.abort();
   }, [teacherId]);
 
   // Auto-dismiss toast
@@ -547,6 +166,7 @@ export default function TeacherDetailPage() {
 
   return (
     <div className="preschool-ui w-full p-4 sm:p-6 lg:p-8 space-y-6 pb-12">
+      {loadError && <p role="alert" className="text-xs font-semibold text-red-700">{loadError}</p>}
       {/* Top Header Navigation */}
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-3">
@@ -612,14 +232,14 @@ export default function TeacherDetailPage() {
               <div className="flex items-center gap-4 text-xs text-slate-500 dark:text-slate-400 pt-1 flex-wrap">
                 <span className="flex items-center gap-1">
                   <Phone className="w-3.5 h-3.5 text-slate-400" />
-                  <a href={`tel:${teacher.phone}`} className="hover:text-emerald-600 transition-colors">
-                    {teacher.phone}
+                  <a href={teacher.phone ? `tel:${teacher.phone}` : undefined} className="hover:text-emerald-600 transition-colors">
+                    {teacher.phone || 'Chưa được cung cấp'}
                   </a>
                 </span>
                 <span className="flex items-center gap-1">
                   <Mail className="w-3.5 h-3.5 text-slate-400" />
-                  <a href={`mailto:${teacher.email}`} className="hover:text-emerald-600 transition-colors">
-                    {teacher.email}
+                  <a href={teacher.email ? `mailto:${teacher.email}` : undefined} className="hover:text-emerald-600 transition-colors">
+                    {teacher.email || 'Chưa được cung cấp'}
                   </a>
                 </span>
                 <span className="flex items-center gap-1">
@@ -637,7 +257,9 @@ export default function TeacherDetailPage() {
                 <Clock className="w-4 h-4 text-[#0e5c43] dark:text-emerald-400" />
                 Định Mức Tải Công Việc:
               </span>
-              {teacher.workloadHours >= 36 ? (
+              {teacher.maxWorkloadHours === 0 ? (
+                <span className="text-xs font-extrabold text-slate-600 px-2.5 py-0.5 rounded-full bg-slate-100 border border-slate-200">● Chưa xác minh</span>
+              ) : teacher.workloadHours >= 36 ? (
                 <span className="text-xs font-extrabold text-amber-700 dark:text-amber-400 px-2.5 py-0.5 rounded-full bg-amber-50 dark:bg-amber-950 border border-amber-200/60">
                   ● Đủ Tải
                 </span>
@@ -648,15 +270,15 @@ export default function TeacherDetailPage() {
               )}
             </div>
             <div className="flex items-center justify-between text-xs font-bold text-slate-600 dark:text-slate-300">
-              <span>{teacher.workloadHours} / {teacher.maxWorkloadHours} giờ/tuần</span>
-              <span>{Math.round((teacher.workloadHours / teacher.maxWorkloadHours) * 100)}% tải</span>
+              <span>{teacher.maxWorkloadHours ? `${teacher.workloadHours} / ${teacher.maxWorkloadHours} giờ/tuần` : 'Chưa được cung cấp'}</span>
+              <span>{teacher.maxWorkloadHours ? `${Math.round((teacher.workloadHours / teacher.maxWorkloadHours) * 100)}% tải` : '—'}</span>
             </div>
             <div className="w-full h-2 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
               <div
                 className={`h-full rounded-full transition-all duration-500 ${
                   teacher.workloadHours >= 36 ? 'bg-amber-500' : 'bg-emerald-500'
                 }`}
-                style={{ width: `${Math.min(100, (teacher.workloadHours / teacher.maxWorkloadHours) * 100)}%` }}
+                style={{ width: teacher.maxWorkloadHours ? `${Math.min(100, (teacher.workloadHours / teacher.maxWorkloadHours) * 100)}%` : '0%' }}
               />
             </div>
           </div>
@@ -672,7 +294,7 @@ export default function TeacherDetailPage() {
                 : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
             }`}
           >
-            Tổng Quan & Hồ Sơ
+            Tổng Quan &amp; Hồ Sơ
           </button>
           <button
             onClick={() => setActiveTab('certifications')}
@@ -683,7 +305,7 @@ export default function TeacherDetailPage() {
             }`}
           >
             <ShieldCheck className="w-3.5 h-3.5" />
-            Bằng Cấp & Chứng Chỉ ({teacher.certifications.length})
+            Bằng Cấp &amp; Chứng Chỉ (—)
           </button>
           <button
             onClick={() => setActiveTab('assignments')}
@@ -727,7 +349,7 @@ export default function TeacherDetailPage() {
           <div className="lg:col-span-2 rounded-3xl bg-white dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-700/80 p-6 sm:p-8 shadow-sm space-y-6">
             <h3 className="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
               <GraduationCap className="w-5 h-5 text-[var(--education-brand-ink)]" />
-              Thông Tin Trình Độ & Kinh Nghiệm Sư Phạm
+              Thông Tin Trình Độ &amp; Kinh Nghiệm Sư Phạm
             </h3>
 
             <div className="space-y-4 text-xs">
@@ -748,7 +370,7 @@ export default function TeacherDetailPage() {
               </div>
 
               <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-100 dark:border-slate-700/60 space-y-1">
-                <span className="text-slate-400 font-medium block">Lớp phụ trách hiện tại (Năm học 2026-2027):</span>
+                <span className="text-slate-400 font-medium block">Lớp phụ trách hiện tại:</span>
                 <span className="font-extrabold text-emerald-600 dark:text-emerald-400 text-sm">{teacher.currentClass}</span>
               </div>
             </div>
@@ -758,45 +380,15 @@ export default function TeacherDetailPage() {
           <div className="rounded-3xl bg-white dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-700/80 p-6 shadow-sm space-y-4">
             <h3 className="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
               <ShieldCheck className="w-5 h-5 text-emerald-500" />
-              Tuân Thủ Hồ Sơ & Pháp Lý
+              Tuân Thủ Hồ Sơ &amp; Pháp Lý
             </h3>
             <div className="space-y-3 text-xs">
-              <div className={`flex items-center justify-between p-3 rounded-2xl border font-bold ${
-                teacher.compliance.officialRecords
-                  ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200/60 text-emerald-800 dark:text-emerald-300'
-                  : 'bg-amber-50 dark:bg-amber-950/40 border-amber-200/60 text-amber-800 dark:text-amber-300'
-              }`}>
-                <span>Hồ sơ nhân sự chính thức</span>
-                {teacher.compliance.officialRecords ? (
-                  <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-                ) : (
-                  <AlertCircle className="w-4 h-4 text-amber-500" />
-                )}
-              </div>
-              <div className={`flex items-center justify-between p-3 rounded-2xl border font-bold ${
-                teacher.compliance.healthCheck
-                  ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200/60 text-emerald-800 dark:text-emerald-300'
-                  : 'bg-amber-50 dark:bg-amber-950/40 border-amber-200/60 text-amber-800 dark:text-amber-300'
-              }`}>
-                <span>Khám sức khỏe định kỳ năm 2026</span>
-                {teacher.compliance.healthCheck ? (
-                  <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-                ) : (
-                  <AlertCircle className="w-4 h-4 text-amber-500" />
-                )}
-              </div>
-              <div className={`flex items-center justify-between p-3 rounded-2xl border font-bold ${
-                teacher.compliance.firstAidWarning
-                  ? 'bg-amber-50 dark:bg-amber-950/40 border-amber-200/60 text-amber-800 dark:text-amber-300'
-                  : 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200/60 text-emerald-800 dark:text-emerald-300'
-              }`}>
-                <span>{teacher.compliance.firstAidWarning ? 'Gia hạn chứng chỉ Sơ cứu y tế' : 'Chứng chỉ Sơ cứu y tế hợp lệ'}</span>
-                {teacher.compliance.firstAidWarning ? (
-                  <AlertCircle className="w-4 h-4 text-amber-500" />
-                ) : (
-                  <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-                )}
-              </div>
+              {['Hồ sơ nhân sự chính thức', 'Khám sức khỏe định kỳ', 'Chứng chỉ Sơ cứu y tế'].map(label => (
+                <div key={label} className="flex items-center justify-between p-3 rounded-2xl border font-bold bg-slate-50 border-slate-200 text-slate-600">
+                  <span>{label}</span>
+                  <span>Chưa có dữ liệu</span>
+                </div>
+              ))}
             </div>
           </div>
         </div>
@@ -808,14 +400,15 @@ export default function TeacherDetailPage() {
           <div className="flex items-center justify-between">
             <h3 className="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
               <ShieldCheck className="w-5 h-5 text-[var(--education-brand-ink)]" />
-              Danh Sách Bằng Cấp & Chứng Chỉ Chuyên Môn
+              Danh Sách Bằng Cấp &amp; Chứng Chỉ Chuyên Môn
             </h3>
-            <button className="px-4 py-2 rounded-2xl bg-primary hover:bg-primary-hover text-primary-foreground text-xs font-bold transition-all cursor-pointer">
+            <button type="button" title="Chưa có API chứng chỉ giáo viên" className="px-4 py-2 rounded-2xl bg-primary hover:bg-primary-hover text-primary-foreground text-xs font-bold transition-all cursor-pointer">
               + Thêm Chứng Chỉ Mới
             </button>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <p className="text-xs text-slate-500">Chưa có API chứng chỉ giáo viên.</p>
             {teacher.certifications.map((c) => (
               <div
                 key={c.id}
@@ -880,6 +473,7 @@ export default function TeacherDetailPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                {teacher.assignmentHistory.length === 0 && <tr><td colSpan={6} className="p-4 text-slate-500">Chưa có phân công được lưu.</td></tr>}
                 {teacher.assignmentHistory.map((item, idx) => (
                   <tr key={idx} className="hover:bg-slate-50/50 dark:hover:bg-slate-900/40">
                     <td className="p-3.5 font-bold text-slate-900 dark:text-white">{item.academicYear}</td>
@@ -889,8 +483,8 @@ export default function TeacherDetailPage() {
                     <td className="p-3.5 font-bold text-slate-800 dark:text-slate-200">{item.workload}</td>
                     <td className="p-3.5">
                       <span className={`px-2.5 py-1 rounded-full text-[11px] font-extrabold ${
-                        item.status === 'Đang Phụ Trách' 
-                          ? 'bg-rose-50 dark:bg-rose-950 text-rose-700 dark:text-rose-300 border border-rose-200' 
+                        item.status === 'Đang Phụ Trách'
+                          ? 'bg-rose-50 dark:bg-rose-950 text-rose-700 dark:text-rose-300 border border-rose-200'
                           : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
                       }`}>
                         {item.status}
@@ -913,6 +507,7 @@ export default function TeacherDetailPage() {
           </h3>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <p className="text-xs text-slate-500">Chưa có API thời khóa biểu giáo viên.</p>
             {teacher.schedule.map((s, idx) => (
               <div key={idx} className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-100 dark:border-slate-700/60 space-y-1.5 text-xs">
                 <div className="flex items-center justify-between">
@@ -933,10 +528,11 @@ export default function TeacherDetailPage() {
         <div className="rounded-3xl bg-white dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-700/80 p-6 sm:p-8 shadow-sm space-y-6">
           <h3 className="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
             <Star className="w-5 h-5 text-amber-500" />
-            Đánh Giá Sư Phạm & Nhận Xét Từ Ban Giám Hiệu
+            Đánh Giá Sư Phạm &amp; Nhận Xét Từ Ban Giám Hiệu
           </h3>
 
           <div className="space-y-4">
+            <p className="text-xs text-slate-500">Chưa có API đánh giá giáo viên.</p>
             {teacher.evaluations.map((ev, idx) => (
               <div key={idx} className="p-6 rounded-3xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-700/80 space-y-3 text-xs">
                 <div className="flex items-center justify-between">
@@ -992,58 +588,18 @@ export default function TeacherDetailPage() {
                 Cập Nhật Hồ Sơ: {teacher.name}
               </h3>
               <p className="text-xs text-slate-500 dark:text-slate-400">
-                Chỉnh sửa thông tin nhân sự, học vị, định mức giờ dạy & hồ sơ tuân thủ pháp lý
+                Chưa có API lưu hồ sơ chi tiết; các trường này hiện chưa thể cập nhật.
               </p>
             </div>
 
             <form
-              onSubmit={(e: FormEvent<HTMLFormElement>) => {
-                e.preventDefault();
-                const fd = new FormData(e.currentTarget);
-                const name = (fd.get('name') as string)?.trim() || teacher.name;
-                const role = (fd.get('role') as string)?.trim() || teacher.role;
-                const status = (fd.get('status') as string)?.trim() || teacher.status;
-                const phone = (fd.get('phone') as string)?.trim() || teacher.phone;
-                const email = (fd.get('email') as string)?.trim() || teacher.email;
-                const address = (fd.get('address') as string)?.trim() || teacher.address;
-                const joinedDate = (fd.get('joinedDate') as string)?.trim() || teacher.joinedDate;
-                const degree = (fd.get('degree') as string)?.trim() || teacher.degree;
-                const totalExperience = (fd.get('totalExperience') as string)?.trim() || teacher.totalExperience;
-                const currentClass = (fd.get('currentClass') as string)?.trim() || teacher.currentClass;
-                const workloadHours = Math.min(45, Math.max(0, Number(fd.get('workloadHours')) || teacher.workloadHours));
-                const officialRecords = fd.get('officialRecords') === 'on';
-                const healthCheck = fd.get('healthCheck') === 'on';
-                const firstAidWarning = fd.get('firstAidWarning') === 'warning';
-
-                setTeacher((prev) => ({
-                  ...prev,
-                  name,
-                  role,
-                  status,
-                  phone,
-                  email,
-                  address,
-                  joinedDate,
-                  degree,
-                  totalExperience,
-                  currentClass,
-                  workloadHours,
-                  compliance: {
-                    officialRecords,
-                    healthCheck,
-                    firstAidWarning,
-                  },
-                }));
-
-                setIsEditModalOpen(false);
-                setToastMessage(`Đã cập nhật thành công hồ sơ của ${name}!`);
-              }}
+              onSubmit={(e: FormEvent<HTMLFormElement>) => { e.preventDefault(); setSaveError('Chưa có API lưu hồ sơ chi tiết giáo viên. Thông tin chưa được thay đổi.'); }}
               className="space-y-5"
             >
               {/* Nhóm 1: Thông tin nhân sự & Liên hệ */}
               <div className="space-y-3">
                 <h4 className="text-xs font-extrabold uppercase tracking-wider text-[#0e5c43] dark:text-emerald-400 border-b border-slate-100 dark:border-slate-800 pb-1.5">
-                  1. Thông tin cá nhân & Liên hệ
+                  1. Thông tin cá nhân &amp; Liên hệ
                 </h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
@@ -1143,7 +699,7 @@ export default function TeacherDetailPage() {
               {/* Nhóm 2: Trình độ chuyên môn & Học vị */}
               <div className="space-y-3">
                 <h4 className="text-xs font-extrabold uppercase tracking-wider text-[#0e5c43] dark:text-emerald-400 border-b border-slate-100 dark:border-slate-800 pb-1.5">
-                  2. Trình độ học vấn & Kinh nghiệm
+                  2. Trình độ học vấn &amp; Kinh nghiệm
                 </h4>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div className="sm:col-span-2">
@@ -1175,7 +731,7 @@ export default function TeacherDetailPage() {
               {/* Nhóm 3: Phân công giảng dạy & Định mức tải */}
               <div className="space-y-3">
                 <h4 className="text-xs font-extrabold uppercase tracking-wider text-[#0e5c43] dark:text-emerald-400 border-b border-slate-100 dark:border-slate-800 pb-1.5">
-                  3. Phân công lớp & Định mức giờ dạy
+                  3. Phân công lớp &amp; Định mức giờ dạy
                 </h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
@@ -1187,12 +743,7 @@ export default function TeacherDetailPage() {
                       defaultValue={teacher.currentClass}
                       className="w-full p-3 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-[#0e5c43]"
                     >
-                      <option>Lớp Mầm A1 — Họa Mi</option>
-                      <option>Lớp Chồi B1 — Thỏ Ngọc</option>
-                      <option>Lớp Lá C1 — Vàng Anh</option>
-                      <option>Lớp Nhà Trẻ N1 — Gấu Misa</option>
-                      <option>Lớp Mầm A2 — Sơn Ca</option>
-                      <option>Âm nhạc — Nghệ thuật</option>
+                      <option>{teacher.currentClass}</option>
                     </select>
                   </div>
 
@@ -1205,7 +756,7 @@ export default function TeacherDetailPage() {
                       name="workloadHours"
                       min={10}
                       max={40}
-                      defaultValue={teacher.workloadHours}
+                      defaultValue={teacher.maxWorkloadHours ? teacher.workloadHours : undefined}
                       className="w-full p-3 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-[#0e5c43]"
                     />
                   </div>
@@ -1215,7 +766,7 @@ export default function TeacherDetailPage() {
               {/* Nhóm 4: Tuân thủ pháp lý & Chứng chỉ hành nghề */}
               <div className="space-y-3">
                 <h4 className="text-xs font-extrabold uppercase tracking-wider text-[#0e5c43] dark:text-emerald-400 border-b border-slate-100 dark:border-slate-800 pb-1.5">
-                  4. Tuân thủ hồ sơ & Pháp lý
+                  4. Tuân thủ hồ sơ &amp; Pháp lý
                 </h4>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <label className="flex items-center gap-2 p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 cursor-pointer">
@@ -1248,9 +799,10 @@ export default function TeacherDetailPage() {
                     </label>
                     <select
                       name="firstAidWarning"
-                      defaultValue={teacher.compliance.firstAidWarning ? 'warning' : 'valid'}
+                      defaultValue="unknown"
                       className="w-full p-2.5 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-[#0e5c43]"
                     >
+                      <option value="unknown">Chưa có dữ liệu</option>
                       <option value="valid">Đã gia hạn (Hợp lệ)</option>
                       <option value="warning">Cần gia hạn (Cảnh báo)</option>
                     </select>
@@ -1258,6 +810,7 @@ export default function TeacherDetailPage() {
                 </div>
               </div>
 
+              {saveError && <p role="alert" className="text-xs text-red-700">{saveError}</p>}
               <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
                 <button
                   type="button"
@@ -1271,7 +824,7 @@ export default function TeacherDetailPage() {
                   className="px-5 py-2.5 rounded-xl bg-[#0e5c43] hover:bg-[#0a4633] text-white font-bold text-xs shadow-md transition-all cursor-pointer flex items-center gap-1.5 active:scale-95"
                 >
                   <Check className="w-4 h-4" />
-                  <span>Lưu Thay Đổi & Cập Nhật Hồ Sơ</span>
+                  <span>Lưu Thay Đổi &amp; Cập Nhật Hồ Sơ</span>
                 </button>
               </div>
             </form>

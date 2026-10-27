@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getPrimaryClient } from '@/lib/database/read-replica';
+import { createHealthDatabaseProbe, HealthDatabaseProbeError } from './database-probe';
 import { getHealthRuntimeEnvironment } from './runtime-environment';
 
 /**
@@ -17,8 +17,8 @@ import { getHealthRuntimeEnvironment } from './runtime-environment';
  * Server-Timing instrumentation (Bước 2.5 — K6-2 → K6-3 transition):
  * Breaks down TTFB into segments so we can see inside the 129ms black-box:
  *   next_handler    → time from function entry to first await
- *   db_client_init  → time to obtain Supabase client singleton
- *   db_query        → time for Supabase JS → PostgREST → PostgreSQL → RLS → response
+ *   db_client_init  → time to validate the private DB probe configuration
+ *   db_query        → bounded PostgreSQL read-only connectivity and cleanup
  *   serialization   → time to build and serialize the JSON response
  *
  * Visible in:
@@ -29,48 +29,23 @@ import { getHealthRuntimeEnvironment } from './runtime-environment';
 export async function GET() {
   // ── Segment: next_handler ─────────────────────────────────────────────────
   const t_handler_start = performance.now();
+  let t_client_ms = 0;
+  let t_query_ms = 0;
+  let t_client_start = t_handler_start;
+  let t_query_start: number | undefined;
 
   try {
     // ── Segment: db_client_init ───────────────────────────────────────────
-    const t_client_start = performance.now();
-    const db = getPrimaryClient();
-    const t_client_ms = performance.now() - t_client_start;
+    t_client_start = performance.now();
+    const checkDatabase = createHealthDatabaseProbe();
+    t_client_ms = performance.now() - t_client_start;
 
     // ── Segment: db_query ─────────────────────────────────────────────────
-    const t_query_start = performance.now();
-    const { error } = await db.from('tenants').select('id').limit(1);
-    const t_query_ms = performance.now() - t_query_start;
+    t_query_start = performance.now();
+    await checkDatabase();
+    t_query_ms = performance.now() - t_query_start;
 
     const t_handler_ms = performance.now() - t_handler_start;
-
-    if (error) {
-      const serverTiming = [
-        `next_handler;dur=${t_handler_ms.toFixed(1)}`,
-        `db_client_init;dur=${t_client_ms.toFixed(1)}`,
-        `db_query;dur=${t_query_ms.toFixed(1)}`,
-      ].join(', ');
-
-      return NextResponse.json(
-        {
-          status: 'unhealthy',
-          timestamp: new Date().toISOString(),
-          checks: { database: 'failed' },
-          errors: [`Database: ${error.message}`],
-          _timing: {
-            next_handler_ms: parseFloat(t_handler_ms.toFixed(1)),
-            db_client_init_ms: parseFloat(t_client_ms.toFixed(1)),
-            db_query_ms: parseFloat(t_query_ms.toFixed(1)),
-          },
-        },
-        {
-          status: 503,
-          headers: {
-            'Cache-Control': 'no-store, must-revalidate',
-            'Server-Timing': serverTiming,
-          },
-        }
-      );
-    }
 
     // ── Segment: serialization ────────────────────────────────────────────
     const t_serial_start = performance.now();
@@ -103,13 +78,36 @@ export async function GET() {
       },
     });
   } catch (error) {
+    if (error instanceof HealthDatabaseProbeError) {
+      if (t_query_start === undefined) t_client_ms = performance.now() - t_client_start;
+      else t_query_ms = performance.now() - t_query_start;
+      const t_handler_ms = performance.now() - t_handler_start;
+      return NextResponse.json(
+        {
+          status: 'unhealthy',
+          timestamp: new Date().toISOString(),
+          checks: { database: 'failed' },
+          errors: [`Database: ${error.message}`],
+          _timing: {
+            next_handler_ms: parseFloat(t_handler_ms.toFixed(1)),
+            db_client_init_ms: parseFloat(t_client_ms.toFixed(1)),
+            db_query_ms: parseFloat(t_query_ms.toFixed(1)),
+          },
+        },
+        { status: 503, headers: {
+          'Cache-Control': 'no-store, must-revalidate',
+          'Server-Timing': [`next_handler;dur=${t_handler_ms.toFixed(1)}`,
+            `db_client_init;dur=${t_client_ms.toFixed(1)}`, `db_query;dur=${t_query_ms.toFixed(1)}`].join(', '),
+        } }
+      );
+    }
     return NextResponse.json(
       {
         status: 'error',
         timestamp: new Date().toISOString(),
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: 'Health check failed',
       },
-      { status: 500 }
+      { status: 500, headers: { 'Cache-Control': 'no-store, must-revalidate' } }
     );
   }
 }

@@ -1,0 +1,45 @@
+{
+  "at": "2026-10-23T23:53:37.099Z",
+  "target": "bmnbqbcdbuklhopfbopv",
+  "actor": "445cfacb-ad46-4755-a3c0-9ddaf3f5e471",
+  "ids": {
+    "tenant": "28aa6488-344e-4e7c-8d59-07c1cd1579fe",
+    "branch": "74663da5-a16a-4472-b757-d21b1a24c524",
+    "person": "f1b6c8f4-0612-4ac2-be40-02abea00137f",
+    "relationship": "40640f63-1e8c-4312-bc42-62b735b50a78",
+    "course": "6841fc94-c83f-4a95-8a85-59df4f0dee39",
+    "student": "8e3aa37c-d53a-4263-ac61-6a006d0e44ee",
+    "guardian": "0f10ab37-a35e-411f-b0d9-e30b2d91a6d5",
+    "authorization": "b60d2fca-eee2-47f4-b00b-54308ac5fd9f",
+    "enrollment": "7fd1802c-fac2-48fe-a5d5-0858105de3fc",
+    "request": "a2005511-d4cb-4b67-bb12-e9a24ccee9c5"
+  },
+  "observations": [
+    {
+      "name": "real_http_authenticated_roster_and_anonymous_deny",
+      "result": "PASS",
+      "rosterStudents": 1,
+      "canonicalMapping": true
+    },
+    {
+      "name": "real_browser_commit_lost_http_response_restart_retry_readback",
+      "result": "PASS",
+      "canonicalEventId": "896d24cb-aecc-46d0-9ebe-c4e6b6df71e7",
+      "actualResponseDiscarded": true,
+      "nextProcessRestarted": true,
+      "oneEvent": true,
+      "browserReadback": true
+    },
+    {
+      "name": "real_http_recovery_denied_after_pickup_revocation",
+      "result": "PASS",
+      "status": 403,
+      "historyUnchanged": true
+    }
+  ],
+  "syntheticFixtureOnly": true,
+  "actorRetired": true,
+  "historyPreserved": true,
+  "runtimeManifest": "RUNTIME_SOURCE.json",
+  "productionAccess": false
+}

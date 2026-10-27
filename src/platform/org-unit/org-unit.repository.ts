@@ -49,6 +49,8 @@ type ExtendedDatabase = Database & {
   };
 };
 
+export type OrgUnitDatabase = ExtendedDatabase;
+
 type OrgUnitsRow = Database['public']['Tables']['org_units']['Row'];
 type OrgUnitsInsert = Database['public']['Tables']['org_units']['Insert'];
 type OrgUnitsUpdate = Database['public']['Tables']['org_units']['Update'];
@@ -73,7 +75,24 @@ export interface IOrgUnitRepository {
  * Supabase Org Unit Repository
  */
 export class SupabaseOrgUnitRepository implements IOrgUnitRepository {
-  constructor(private supabase: SupabaseClient<ExtendedDatabase>) {}
+  private supabaseClient: SupabaseClient<OrgUnitDatabase> | undefined;
+
+  constructor(client?: SupabaseClient<OrgUnitDatabase>) {
+    this.supabaseClient = client;
+  }
+
+  private get supabase(): SupabaseClient<OrgUnitDatabase> {
+    if (this.supabaseClient) return this.supabaseClient;
+
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (!supabaseUrl || !supabaseKey) {
+      throw new Error('SUPABASE_SERVICE_ROLE_KEY is required for trusted org-unit repository access.');
+    }
+
+    this.supabaseClient = createClient<OrgUnitDatabase>(supabaseUrl, supabaseKey);
+    return this.supabaseClient;
+  }
 
   /**
    * Create organization unit
@@ -340,13 +359,10 @@ export class SupabaseOrgUnitRepository implements IOrgUnitRepository {
 /**
  * Create Org Unit Repository
  * 
- * Factory function for dependency injection.
+ * Pass an authenticated caller-scoped client when the caller's RLS policies
+ * must govern the operation. Omitting it retains the existing service-role
+ * repository behavior for trusted server-side consumers.
  */
-export function createOrgUnitRepository(): IOrgUnitRepository {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-  
-  const supabase = createClient<ExtendedDatabase>(supabaseUrl, supabaseKey);
-  
-  return new SupabaseOrgUnitRepository(supabase);
+export function createOrgUnitRepository(client?: SupabaseClient<OrgUnitDatabase>): IOrgUnitRepository {
+  return new SupabaseOrgUnitRepository(client);
 }

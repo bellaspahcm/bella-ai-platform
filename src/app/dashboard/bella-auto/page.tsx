@@ -22,22 +22,22 @@ export default async function BellaAutoPage() {
   let monogram = 'BA';
   let errorMsg = null;
 
+  console.log('[BellaAutoPage] Starting render...');
+  const supabase = await createClient();
+
+  console.log('[BellaAutoPage] Getting user...');
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    console.log('[BellaAutoPage] No user, redirecting to login');
+    redirect('/login');
+  }
+
+  console.log('[BellaAutoPage] User authenticated:', user.id);
+
   try {
-    console.log('[BellaAutoPage] Starting render...');
-    const supabase = await createClient();
-
-    console.log('[BellaAutoPage] Getting user...');
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      console.log('[BellaAutoPage] No user, redirecting to login');
-      redirect('/login');
-    }
-
-    console.log('[BellaAutoPage] User authenticated:', user.id);
-
     // Get tenant and user profile
     const { data: profileData } = await supabase
       .from('users')

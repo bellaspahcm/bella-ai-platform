@@ -1,38 +1,6 @@
 'use client';
 
-/**
- * Bella Education — Teacher & Faculty Workforce Management
- *
- * Designed to exactly match Reference Design (Image 3):
- * - Scoped exclusively to Preschool tenants (`bella_education`)
- * - Color scheme: Primary Deep Green #0e5c43
- * - Top Navigation: Back button + Pink group icon badge + Title & Subtitle + Year selector + "+ Thêm Giáo Viên Mới" button
- * - 4 Stat Cards:
- *     1. Mint card: Tổng số giáo viên (32)
- *     2. Blue card: Giáo viên chủ nhiệm (12)
- *     3. Amber card: Giáo viên trợ giảng (14)
- *     4. Purple card: Giáo viên năng khiếu (6)
- * - Filter & Search Toolbar:
- *     - Row 1: Search input ("Tìm tên cô giáo, trình độ, lớp dạy..."), "Tất cả chức vụ", "Tất cả khối lớp", "Bộ lọc" button
- *     - Row 2: Pill tabs: Tất cả (32), Chủ nhiệm (12), Trợ giảng (14), Năng khiếu & Ngoại ngữ (6)
- * - 2-Column Grid of 6 Teacher Cards matching Image 3:
- *     1. Cô Nguyễn Thị Mai
- *     2. Cô Trần Ngọc Anh
- *     3. Cô Đặng Thùy Linh
- *     4. Cô Hoàng Bích Ngọc
- *     5. Cô Lê Minh Tâm
- *     6. Cô Phạm Thị Trang
- * - Card Content:
- *     - Photo avatar with fallback initials
- *     - Name, Role, Class Assigned (in emerald green)
- *     - Status badge & More options menu
- *     - 3 Info items with icons: Degree + Univ, Experience, Class
- *     - Workload bar: Hours, Percentage, and "Còn lịch trống" / "Đủ tải" pill
- *     - Certificate badges with shield icon
- *     - 2 Action buttons: "Xem Hồ Sơ" (outline) & "Phân Công Lớp" (solid deep green)
- * - Non-preschool fallback: Preserves standard view if tenant is not preschool
- * - STRICT TYPE SAFETY: Zero `any` and zero `unknown`
- */
+/** Bella Preschool teacher list: original presentation, canonical branch and teacher reads. */
 
 import { useState, useRef, useEffect, useMemo, type ChangeEvent, type FormEvent } from 'react';
 import Link from 'next/link';
@@ -60,13 +28,13 @@ import {
   ExternalLink,
   Baby,
 } from 'lucide-react';
-import { getCachedTenantSettings } from '@/lib/dashboard-client-context';
-import { resolveTenantBrandIdentity } from '@/lib/business-rules/tenant-modules';
+import { loadAllClassAssignments, loadAllConfirmedTeachers, loadTeacherBranches,
+  loadTeacherClasses, localDate, type TeacherBranch, type TeacherClass } from './teacher-live-data';
 
 // ── Strict Types ──────────────────────────────────────────────────────────────
 
-type RoleKey = 'chunhiem' | 'trogiang' | 'bomon';
-type TeacherStatus = 'Đang Giảng Dạy' | 'Tạm Nghỉ' | 'Chờ Phân Công';
+type RoleKey = 'chunhiem' | 'trogiang' | 'bomon' | 'all';
+type TeacherStatus = 'Đã xác nhận';
 type GradeLevel = 'all' | 'nhatre' | 'mam' | 'choi' | 'la';
 
 interface TeacherBadge {
@@ -76,6 +44,9 @@ interface TeacherBadge {
 
 interface TeacherItem {
   readonly id: string;
+  readonly branchId: string;
+  readonly confirmationId: string;
+  readonly classId: string | null;
   readonly name: string;
   readonly role: string;
   readonly roleKey: RoleKey;
@@ -97,165 +68,6 @@ interface TeacherItem {
   readonly avatarFallbackBg: string;
   readonly badges: readonly TeacherBadge[];
 }
-
-const TEACHERS_LIST: readonly TeacherItem[] = [
-  {
-    id: 'TEA-001',
-    name: 'Cô Nguyễn Thị Mai',
-    role: 'Giáo viên chủ nhiệm',
-    roleKey: 'chunhiem',
-    classAssigned: 'Lớp Mầm A1 — Họa Mi',
-    gradeLevel: 'mam',
-    degree: 'Cử nhân Sư phạm Mầm non',
-    university: 'ĐH Quốc Gia',
-    experience: '8 năm kinh nghiệm',
-    joinedYear: '08/2022',
-    phone: '0982 111 222',
-    email: 'mai.nguyen@bellapreschool.edu.vn',
-    workloadHours: 32,
-    maxWorkloadHours: 40,
-    loadPercent: 80,
-    workloadStatus: 'Còn lịch trống',
-    status: 'Đang Giảng Dạy',
-    statusColorClass: 'bg-rose-50 text-rose-600 border-rose-100',
-    avatarUrl: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=160&auto=format&fit=crop&q=80',
-    avatarFallbackBg: 'bg-rose-100 text-rose-700',
-    badges: [
-      { title: 'Montessori International', isWarning: false },
-      { title: 'Sơ cứu Y tế Trẻ em (Hết hạn 10/2026)', isWarning: true },
-    ],
-  },
-  {
-    id: 'TEA-002',
-    name: 'Cô Trần Ngọc Anh',
-    role: 'Giáo viên chủ nhiệm',
-    roleKey: 'chunhiem',
-    classAssigned: 'Lớp Chồi B1 — Thỏ Ngọc',
-    gradeLevel: 'choi',
-    degree: 'Thạc sĩ Tâm lý Học Mầm non',
-    university: 'ĐH Sư Phạm',
-    experience: '10 năm kinh nghiệm',
-    joinedYear: '08/2020',
-    phone: '0915 222 333',
-    email: 'ngocanh.tran@bellapreschool.edu.vn',
-    workloadHours: 36,
-    maxWorkloadHours: 40,
-    loadPercent: 90,
-    workloadStatus: 'Đủ tải',
-    status: 'Đang Giảng Dạy',
-    statusColorClass: 'bg-indigo-50 text-indigo-600 border-indigo-100',
-    avatarUrl: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=160&auto=format&fit=crop&q=80',
-    avatarFallbackBg: 'bg-indigo-100 text-indigo-700',
-    badges: [
-      { title: 'Reggio Emilia Expert', isWarning: false },
-      { title: 'Chứng chỉ Tiếng Anh C1', isWarning: false },
-    ],
-  },
-  {
-    id: 'TEA-003',
-    name: 'Cô Đặng Thùy Linh',
-    role: 'Giáo viên chủ nhiệm',
-    roleKey: 'chunhiem',
-    classAssigned: 'Lớp Lá C1 — Vàng Anh',
-    gradeLevel: 'la',
-    degree: 'Cử nhân Ngôn ngữ Anh & GD Mầm non',
-    university: 'ĐH Ngoại Ngữ',
-    experience: '6 năm kinh nghiệm',
-    joinedYear: '09/2023',
-    phone: '0973 444 555',
-    email: 'thuylinh.dang@bellapreschool.edu.vn',
-    workloadHours: 28,
-    maxWorkloadHours: 40,
-    loadPercent: 70,
-    workloadStatus: 'Còn lịch trống',
-    status: 'Đang Giảng Dạy',
-    statusColorClass: 'bg-emerald-50 text-emerald-600 border-emerald-100',
-    avatarUrl: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=160&auto=format&fit=crop&q=80',
-    avatarFallbackBg: 'bg-emerald-100 text-emerald-700',
-    badges: [
-      { title: 'Tiền Tiểu học Chuẩn Quốc gia', isWarning: false },
-      { title: 'Tốt nghiệp loại Ưu', isWarning: false },
-    ],
-  },
-  {
-    id: 'TEA-004',
-    name: 'Cô Hoàng Bích Ngọc',
-    role: 'Giáo viên chủ nhiệm',
-    roleKey: 'chunhiem',
-    classAssigned: 'Lớp Nhà Trẻ N1 — Gấu Misa',
-    gradeLevel: 'nhatre',
-    degree: 'Cử nhân Giáo dục Đặc biệt',
-    university: 'ĐH Sư Phạm TP.HCM',
-    experience: '5 năm kinh nghiệm',
-    joinedYear: '01/2024',
-    phone: '0904 666 777',
-    email: 'bichngoc.hoang@bellapreschool.edu.vn',
-    workloadHours: 30,
-    maxWorkloadHours: 40,
-    loadPercent: 75,
-    workloadStatus: 'Còn lịch trống',
-    status: 'Đang Giảng Dạy',
-    statusColorClass: 'bg-amber-50 text-amber-600 border-amber-100',
-    avatarUrl: 'https://images.unsplash.com/photo-1567532939604-b6b5b0db2604?w=160&auto=format&fit=crop&q=80',
-    avatarFallbackBg: 'bg-amber-100 text-amber-700',
-    badges: [
-      { title: 'Chăm sóc Trẻ sơ sinh & Nhà trẻ', isWarning: false },
-      { title: 'Dinh dưỡng Nhi khoa (Hết hạn 09/2026)', isWarning: true },
-    ],
-  },
-  {
-    id: 'TEA-005',
-    name: 'Cô Lê Minh Tâm',
-    role: 'Giáo viên trợ giảng',
-    roleKey: 'trogiang',
-    classAssigned: 'Lớp Mầm A2 — Sơn Ca',
-    gradeLevel: 'mam',
-    degree: 'Cao đẳng Sư phạm Mầm non',
-    university: 'CĐ Sư Phạm T.Ư',
-    experience: '4 năm kinh nghiệm',
-    joinedYear: '03/2023',
-    phone: '0938 888 999',
-    email: 'minhtam.le@bellapreschool.edu.vn',
-    workloadHours: 20,
-    maxWorkloadHours: 40,
-    loadPercent: 50,
-    workloadStatus: 'Còn lịch trống',
-    status: 'Đang Giảng Dạy',
-    statusColorClass: 'bg-indigo-50 text-indigo-600 border-indigo-100',
-    avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=160&auto=format&fit=crop&q=80',
-    avatarFallbackBg: 'bg-indigo-100 text-indigo-700',
-    badges: [
-      { title: 'Kỹ năng Giáo dục sớm', isWarning: false },
-      { title: 'An toàn trường học', isWarning: false },
-    ],
-  },
-  {
-    id: 'TEA-006',
-    name: 'Cô Phạm Thị Trang',
-    role: 'Giáo viên năng khiếu',
-    roleKey: 'bomon',
-    classAssigned: 'Âm nhạc — Nghệ thuật',
-    gradeLevel: 'all',
-    degree: 'Cử nhân Âm nhạc',
-    university: 'Giáo dục Nghệ thuật Mầm non',
-    experience: '7 năm kinh nghiệm',
-    joinedYear: '08/2021',
-    phone: '0945 777 888',
-    email: 'trang.pham@bellapreschool.edu.vn',
-    workloadHours: 24,
-    maxWorkloadHours: 40,
-    loadPercent: 60,
-    workloadStatus: 'Còn lịch trống',
-    status: 'Đang Giảng Dạy',
-    statusColorClass: 'bg-amber-50 text-amber-600 border-amber-100',
-    avatarUrl: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=160&auto=format&fit=crop&q=80',
-    avatarFallbackBg: 'bg-amber-100 text-amber-700',
-    badges: [
-      { title: 'Phương pháp Orff', isWarning: false },
-      { title: 'Nghệ thuật sáng tạo', isWarning: false },
-    ],
-  },
-];
 
 // ── Preschool Teacher Card Component ──────────────────────────────────────────
 
@@ -332,18 +144,18 @@ function TeacherCard({ teacher, isMenuOpen, onMenuToggle, onAssignClass, onOpenP
                 </button>
                 <div className="border-t border-slate-100 dark:border-slate-800 pt-1 space-y-0.5">
                   <a
-                    href={`tel:${teacher.phone}`}
+                    href={teacher.phone ? `tel:${teacher.phone}` : undefined}
                     className="flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
                   >
                     <Phone className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                    <span>Gọi Điện ({teacher.phone})</span>
+                    <span>{teacher.phone ? `Gọi Điện (${teacher.phone})` : 'Điện thoại: chưa được cung cấp'}</span>
                   </a>
                   <a
-                    href={`mailto:${teacher.email}`}
+                    href={teacher.email ? `mailto:${teacher.email}` : undefined}
                     className="flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
                   >
                     <Mail className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
-                    <span>Gửi Email</span>
+                    <span>{teacher.email ? 'Gửi Email' : 'Email: chưa được cung cấp'}</span>
                   </a>
                 </div>
               </div>
@@ -388,7 +200,7 @@ function TeacherCard({ teacher, isMenuOpen, onMenuToggle, onAssignClass, onOpenP
             Định mức giảng dạy
           </span>
           <span className="font-bold text-slate-900 dark:text-white">
-            {teacher.workloadHours} / {teacher.maxWorkloadHours} giờ
+            {teacher.maxWorkloadHours ? `${teacher.workloadHours} / ${teacher.maxWorkloadHours} giờ` : 'Chưa được cung cấp'}
           </span>
         </div>
 
@@ -402,7 +214,9 @@ function TeacherCard({ teacher, isMenuOpen, onMenuToggle, onAssignClass, onOpenP
         </div>
 
         <div className="flex items-center justify-between pt-0.5">
-          {teacher.workloadStatus === 'Đủ tải' ? (
+          {teacher.maxWorkloadHours === 0 ? (
+            <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-xs font-semibold bg-[#f1f5f9] text-slate-600 border border-slate-200">Chưa xác minh</span>
+          ) : teacher.workloadStatus === 'Đủ tải' ? (
             <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-xs font-semibold bg-[#fffbeb] text-[#d97706] border border-amber-200/60">
               <span className="w-1.5 h-1.5 rounded-full bg-[#d97706]" />
               Đủ tải
@@ -414,7 +228,7 @@ function TeacherCard({ teacher, isMenuOpen, onMenuToggle, onAssignClass, onOpenP
             </span>
           )}
           <span className="text-[11px] text-slate-400 dark:text-slate-500 font-medium">
-            {teacher.loadPercent}%
+            {teacher.maxWorkloadHours ? `${teacher.loadPercent}%` : '—'}
           </span>
         </div>
       </div>
@@ -446,9 +260,9 @@ function TeacherCard({ teacher, isMenuOpen, onMenuToggle, onAssignClass, onOpenP
           <FileText className="w-4 h-4" />
           <span>Xem Hồ Sơ</span>
         </button>
-        {teacher.roleKey === 'chunhiem' ? (
+        {teacher.roleKey === 'chunhiem' && teacher.classId ? (
           <Link
-            href="/dashboard/education/my-class"
+            href={`/dashboard/education/courses/${teacher.classId}`}
             className="inline-flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-lg text-xs font-bold bg-[#0e5c43] hover:bg-[#0a4633] text-white shadow-2xs transition-all active:scale-95 cursor-pointer"
           >
             <Baby className="w-4 h-4" />
@@ -469,89 +283,26 @@ function TeacherCard({ teacher, isMenuOpen, onMenuToggle, onAssignClass, onOpenP
   );
 }
 
-// ── Legacy (Non-Preschool) View ───────────────────────────────────────────────
-
-function LegacyTeacherView() {
-  const [selectedRoleTab, setSelectedRoleTab] = useState<'all' | RoleKey>('all');
-  const [searchQuery, setSearchQuery] = useState('');
-
-  const filtered = TEACHERS_LIST.filter((t) => {
-    const q = searchQuery.toLowerCase();
-    const match = t.name.toLowerCase().includes(q) || t.role.toLowerCase().includes(q);
-    if (selectedRoleTab === 'all') return match;
-    return match && t.roleKey === selectedRoleTab;
-  });
-
-  return (
-    <div className="preschool-ui w-full p-4 sm:p-6 lg:p-8 space-y-6 pb-36 sm:pb-48">
-      <div className="w-full rounded-2xl bg-white dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 p-6 shadow-sm space-y-6">
-        <div className="flex items-center gap-3">
-          <Link
-            href="/dashboard/education"
-            className="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 transition-colors shrink-0"
-          >
-            <ArrowLeft className="w-4 h-4" />
-          </Link>
-          <div>
-            <h1 className="text-xl font-bold text-gray-900 dark:text-white">Đội Ngũ Giáo Viên Mầm Non</h1>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Quản lý giáo viên, phân công giảng dạy & định mức tải công việc</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2 overflow-x-auto pb-1">
-          {(['all', 'chunhiem', 'trogiang', 'bomon'] as const).map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setSelectedRoleTab(tab)}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition-colors whitespace-nowrap cursor-pointer ${
-                selectedRoleTab === tab ? 'bg-[#0e5c43] text-white' : 'bg-slate-100 dark:bg-slate-700/60 text-slate-600 dark:text-slate-300'
-              }`}
-            >
-              {tab === 'all' ? 'Tất Cả' : tab === 'chunhiem' ? 'Chủ Nhiệm' : tab === 'trogiang' ? 'Trợ Giảng' : 'Bộ Môn'}
-            </button>
-          ))}
-        </div>
-        <div className="relative">
-          <Search className="w-4 h-4 absolute left-3.5 top-3 text-gray-400" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Tìm tên cô giáo..."
-            className="w-full pl-10 pr-4 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#0e5c43]"
-          />
-        </div>
-      </div>
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {filtered.map((t) => (
-          <div key={t.id} className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-5 shadow-sm">
-            <div className="flex items-center gap-3 mb-3">
-              <div className={`w-10 h-10 rounded-full ${t.avatarFallbackBg} flex items-center justify-center font-bold text-sm`}>
-                {t.name.split(' ').pop()?.[0]}
-              </div>
-              <div>
-                <p className="text-sm font-bold text-slate-900 dark:text-white">{t.name}</p>
-                <p className="text-xs text-slate-500 dark:text-slate-400">{t.role}</p>
-              </div>
-            </div>
-            <p className="text-xs text-slate-600 dark:text-slate-300">{t.classAssigned}</p>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 // ── Main Page Component ───────────────────────────────────────────────────────
 
 export default function TeachersPage() {
-  const [isPreschoolTenant, setIsPreschoolTenant] = useState<boolean>(true);
   const [selectedYear, setSelectedYear] = useState('2026-2027');
   const [roleFilter, setRoleFilter] = useState<'all' | RoleKey>('all');
   const [gradeFilter, setGradeFilter] = useState<GradeLevel>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
   const [selectedTeacherForAssign, setSelectedTeacherForAssign] = useState<TeacherItem | null>(null);
-  const [teachers, setTeachers] = useState<readonly TeacherItem[]>(TEACHERS_LIST);
+  const [teachers, setTeachers] = useState<readonly TeacherItem[]>([]);
+  const [branches, setBranches] = useState<readonly TeacherBranch[]>([]);
+  const [branchId, setBranchId] = useState('');
+  const [classes, setClasses] = useState<readonly TeacherClass[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
+  const [revision, setRevision] = useState(0);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState('');
+  const saveLock = useRef(false);
+  const pendingAssignment = useRef<Record<string, unknown> | null>(null);
   const [selectedTeacherForProfile, setSelectedTeacherForProfile] = useState<TeacherItem | null>(null);
   const [isAddTeacherOpen, setIsAddTeacherOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -569,29 +320,103 @@ export default function TeachersPage() {
   const totalTeachers = teachers.length;
   const countChunhiem = teachers.filter((t) => t.roleKey === 'chunhiem').length;
   const countTrogiang = teachers.filter((t) => t.roleKey === 'trogiang').length;
-  const countBomon = teachers.filter((t) => t.roleKey === 'bomon').length;
+  const countBomon = '—'; // The approved teacher roles do not establish a specialty category.
 
-  // Detect preschool tenant scoping
+  // Use the authorized branch list; never combine teachers across an inferred branch.
   useEffect(() => {
-    async function checkTenantScope() {
-      try {
-        const tenant = await getCachedTenantSettings();
-        if (tenant) {
-          const brand = resolveTenantBrandIdentity({
-            enabledModules: tenant.enabled_modules,
-            brandTheme: tenant.brand_theme,
-            logoUrl: tenant.logo_url,
-            tenantName: tenant.name,
-            surface: 'app',
-          });
-          setIsPreschoolTenant(brand.moduleKey === 'bella_education');
-        }
-      } catch {
-        setIsPreschoolTenant(true);
-      }
+    const controller = new AbortController();
+    void loadTeacherBranches(controller.signal).then(items => {
+      if (controller.signal.aborted) return;
+      setBranches(items);
+      setBranchId(current => items.some(item => item.id === current) ? current : items.length === 1 ? items[0].id : '');
+      setLoadError('');
+      if (items.length !== 1) setLoading(false);
+    }).catch(() => { if (!controller.signal.aborted) { setLoadError('Không tải được chi nhánh được phân quyền.'); setLoading(false); } });
+    return () => controller.abort();
+  }, [revision]);
+
+  useEffect(() => {
+    if (!branchId) { setTeachers([]); setClasses([]); return; }
+    const controller = new AbortController();
+    setLoading(true);
+    setLoadError('');
+    void (async () => {
+      const [people, mappedClasses] = await Promise.all([
+        loadAllConfirmedTeachers(branchId, localDate(), controller.signal),
+        loadTeacherClasses(branchId, controller.signal),
+      ]);
+      const assignments = await Promise.all(mappedClasses.map(item =>
+        loadAllClassAssignments(branchId, item.id, localDate(), controller.signal)));
+      if (controller.signal.aborted) return;
+      setClasses(mappedClasses);
+      setTeachers(people.map(person => {
+        const current = assignments.flat().filter(item => item.teacherPartyId === person.partyId
+          && item.status === 'active' && item.effectiveOnDate && item.eligibility === 'confirmed');
+        const first = current[0];
+        const roleKey: RoleKey = first?.role === 'lead_teacher' ? 'chunhiem'
+          : first?.role === 'assistant' ? 'trogiang' : 'all';
+        const role = first?.role === 'lead_teacher' ? 'Giáo viên chủ nhiệm'
+          : first?.role === 'assistant' ? 'Giáo viên trợ giảng'
+          : first?.role === 'co_teacher' ? 'Giáo viên cùng lớp'
+          : first?.role === 'substitute' ? 'Giáo viên thay thế' : 'Chưa phân công';
+        const classAssigned = current.length ? current.map(item =>
+          mappedClasses.find(course => course.id === item.courseId)?.title || 'Lớp không khả dụng').join(', ')
+          : 'Chưa phân công lớp';
+        return { id: person.partyId, branchId, confirmationId: person.confirmations[0]?.confirmationId ?? '',
+          classId: first?.courseId ?? null,
+          name: person.displayName, role, roleKey, classAssigned, gradeLevel: 'all' as const,
+          degree: 'Chưa được cung cấp', university: 'Chưa được cung cấp', experience: 'Chưa được cung cấp',
+          joinedYear: 'Chưa được cung cấp', phone: '', email: '', workloadHours: 0, maxWorkloadHours: 0,
+          loadPercent: 0, workloadStatus: 'Còn lịch trống' as const, status: 'Đã xác nhận' as const,
+          statusColorClass: 'bg-emerald-50 text-emerald-600 border-emerald-100', avatarUrl: '',
+          avatarFallbackBg: 'bg-emerald-100 text-emerald-700', badges: [] };
+      }));
+      setLoading(false);
+    })().catch(() => { if (!controller.signal.aborted) { setLoadError('Không tải được dữ liệu giáo viên hoặc phân công.'); setLoading(false); } });
+    return () => controller.abort();
+  }, [branchId, revision]);
+
+  async function submitAssignment(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!selectedTeacherForAssign || !branchId || saveLock.current) return;
+    const form = new FormData(event.currentTarget);
+    const courseId = String(form.get('classAssigned') ?? '');
+    const role = String(form.get('role') ?? '');
+    const startDate = String(form.get('effectiveStartDate') ?? '');
+    if (!classes.some(item => item.id === courseId) || !selectedTeacherForAssign.confirmationId
+      || !startDate || !['lead_teacher', 'co_teacher', 'assistant', 'substitute'].includes(role)) {
+      setSaveError('Chọn lớp, vai trò và ngày hiệu lực hợp lệ.');
+      return;
     }
-    checkTenantScope();
-  }, []);
+    const payload = pendingAssignment.current ?? {
+      action: 'assign', branchId, operationKey: crypto.randomUUID(), courseId,
+      confirmationId: selectedTeacherForAssign.confirmationId,
+      teacherPartyId: selectedTeacherForAssign.id, role, academicYear: selectedYear,
+      effectiveStartDate: startDate, effectiveEndDate: null,
+    };
+    pendingAssignment.current = payload;
+    saveLock.current = true;
+    setSaving(true);
+    setSaveError('');
+    try {
+      const response = await fetch('/api/education/teachers', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
+      });
+      const body: unknown = await response.json();
+      if (!response.ok || body === null || typeof body !== 'object' || !('success' in body) || body.success !== true) {
+        throw new Error('ASSIGN_FAILED');
+      }
+      pendingAssignment.current = null;
+      setSelectedTeacherForAssign(null);
+      setToastMessage(`Đã lưu phân công cho ${selectedTeacherForAssign.name}.`);
+      setRevision(value => value + 1);
+    } catch {
+      setSaveError('Không lưu được phân công. Có thể thử lại cùng yêu cầu hoặc đóng để nhập lại.');
+    } finally {
+      saveLock.current = false;
+      setSaving(false);
+    }
+  }
 
   // Close menus on outside click
   useEffect(() => {
@@ -618,16 +443,17 @@ export default function TeachersPage() {
         t.classAssigned.toLowerCase().includes(q);
 
       const matchRole = roleFilter === 'all' || t.roleKey === roleFilter;
-      const matchGrade = gradeFilter === 'all' || t.gradeLevel === gradeFilter || t.gradeLevel === 'all';
+      const matchGrade = gradeFilter === 'all' || t.gradeLevel === gradeFilter;
 
       return matchSearch && matchRole && matchGrade;
     });
   }, [teachers, searchQuery, roleFilter, gradeFilter]);
 
-  if (!isPreschoolTenant) return <LegacyTeacherView />;
-
   return (
     <div className="w-full min-h-screen p-4 sm:p-6 lg:p-8 space-y-6 pb-40 sm:pb-56 bg-[#f8fafc]/50 dark:bg-slate-900/50">
+
+      {loadError && <p role="alert" className="text-xs font-semibold text-red-700">{loadError}</p>}
+      {!branchId && !loading && !loadError && branches.length > 1 && <p role="status" className="text-xs font-semibold text-slate-600">Có nhiều chi nhánh được phân quyền; cần chọn chi nhánh trước khi xem giáo viên.</p>}
 
       {/* ── TOAST NOTIFICATION ── */}
       {toastMessage && (
@@ -685,7 +511,7 @@ export default function TeachersPage() {
 
           <button
             type="button"
-            onClick={() => setIsAddTeacherOpen(true)}
+            onClick={() => { setSaveError(''); setIsAddTeacherOpen(true); }}
             className="px-4 py-2.5 rounded-lg bg-[#0e5c43] hover:bg-[#0a4633] active:scale-95 text-white font-bold text-xs shadow-xs transition-all flex items-center gap-1.5 cursor-pointer shrink-0"
           >
             <UserPlus className="w-4 h-4" />
@@ -773,7 +599,7 @@ export default function TeachersPage() {
               <option value="all">Tất cả chức vụ</option>
               <option value="chunhiem">Chủ nhiệm</option>
               <option value="trogiang">Trợ giảng</option>
-              <option value="bomon">Năng khiếu & Ngoại ngữ</option>
+              <option value="bomon">Năng khiếu &amp; Ngoại ngữ</option>
             </select>
 
             <select
@@ -833,8 +659,8 @@ export default function TeachersPage() {
             <div className="w-16 h-16 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-4">
               <RefreshCw className="w-7 h-7 text-slate-400" />
             </div>
-            <p className="text-sm font-bold text-slate-700 dark:text-slate-300">Không tìm thấy giáo viên nào</p>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm</p>
+            <p className="text-sm font-bold text-slate-700 dark:text-slate-300">{loading ? 'Đang tải giáo viên…' : loadError || !branchId ? 'Chưa xác định được chi nhánh' : roleFilter === 'bomon' ? 'Chưa có nguồn dữ liệu giáo viên năng khiếu' : gradeFilter !== 'all' ? 'Chưa có nguồn dữ liệu khối lớp của giáo viên' : totalTeachers === 0 ? 'Chưa có giáo viên được xác nhận' : 'Không tìm thấy giáo viên nào'}</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{loading ? 'Đang đọc dữ liệu của chi nhánh' : loadError || !branchId ? 'Chưa thể hiển thị danh sách giáo viên.' : totalTeachers === 0 ? 'Danh sách chỉ hiển thị người đã xác nhận tại chi nhánh.' : 'Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm'}</p>
           </div>
         ) : (
           filteredTeachers.map((teacher) => (
@@ -843,7 +669,7 @@ export default function TeachersPage() {
               teacher={teacher}
               isMenuOpen={activeMenuId === teacher.id}
               onMenuToggle={() => setActiveMenuId(activeMenuId === teacher.id ? null : teacher.id)}
-              onAssignClass={() => { setSelectedTeacherForAssign(teacher); setActiveMenuId(null); }}
+              onAssignClass={() => { pendingAssignment.current = null; setSaveError(''); setSelectedTeacherForAssign(teacher); setActiveMenuId(null); }}
               onOpenProfile={() => { setSelectedTeacherForProfile(teacher); setActiveMenuId(null); }}
             />
           ))
@@ -893,19 +719,19 @@ export default function TeachersPage() {
               {/* Box 1: Thông tin liên hệ & Nhân sự */}
               <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-700/60 space-y-3">
                 <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 block">
-                  Thông tin liên hệ & Công tác
+                  Thông tin liên hệ &amp; Công tác
                 </span>
                 <div className="space-y-2 text-xs">
                   <div className="flex items-center justify-between">
                     <span className="text-slate-500">Số điện thoại:</span>
-                    <a href={`tel:${selectedTeacherForProfile.phone}`} className="font-bold text-emerald-600 hover:underline">
-                      {selectedTeacherForProfile.phone}
+                    <a href={selectedTeacherForProfile.phone ? `tel:${selectedTeacherForProfile.phone}` : undefined} className="font-bold text-emerald-600 hover:underline">
+                      {selectedTeacherForProfile.phone || 'Chưa được cung cấp'}
                     </a>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-slate-500">Email:</span>
-                    <a href={`mailto:${selectedTeacherForProfile.email}`} className="font-semibold text-slate-800 dark:text-slate-200 hover:underline truncate max-w-[180px]">
-                      {selectedTeacherForProfile.email}
+                    <a href={selectedTeacherForProfile.email ? `mailto:${selectedTeacherForProfile.email}` : undefined} className="font-semibold text-slate-800 dark:text-slate-200 hover:underline truncate max-w-[180px]">
+                      {selectedTeacherForProfile.email || 'Chưa được cung cấp'}
                     </a>
                   </div>
                   <div className="flex items-center justify-between">
@@ -917,7 +743,7 @@ export default function TeachersPage() {
                   <div className="flex items-center justify-between">
                     <span className="text-slate-500">Khối phụ trách:</span>
                     <span className="font-bold text-[#0e5c43] dark:text-emerald-400 uppercase">
-                      {selectedTeacherForProfile.gradeLevel === 'all' ? 'Toàn trường' : `Khối ${selectedTeacherForProfile.gradeLevel}`}
+                      {selectedTeacherForProfile.gradeLevel === 'all' ? 'Chưa được cung cấp' : `Khối ${selectedTeacherForProfile.gradeLevel}`}
                     </span>
                   </div>
                 </div>
@@ -926,7 +752,7 @@ export default function TeachersPage() {
               {/* Box 2: Trình độ chuyên môn & Học vấn */}
               <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-700/60 space-y-3">
                 <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 block">
-                  Trình độ & Bằng cấp
+                  Trình độ &amp; Bằng cấp
                 </span>
                 <div className="space-y-2 text-xs">
                   <div>
@@ -958,7 +784,7 @@ export default function TeachersPage() {
                   Định mức giảng dạy trong tuần
                 </span>
                 <span className="text-xs font-black text-slate-900 dark:text-white">
-                  {selectedTeacherForProfile.workloadHours} / {selectedTeacherForProfile.maxWorkloadHours} giờ ({selectedTeacherForProfile.loadPercent}%)
+                  {selectedTeacherForProfile.maxWorkloadHours ? `${selectedTeacherForProfile.workloadHours} / ${selectedTeacherForProfile.maxWorkloadHours} giờ (${selectedTeacherForProfile.loadPercent}%)` : 'Chưa được cung cấp'}
                 </span>
               </div>
               <div className="w-full h-2.5 rounded-full bg-slate-100 dark:bg-slate-700 overflow-hidden">
@@ -971,7 +797,7 @@ export default function TeachersPage() {
               </div>
               <div className="flex items-center justify-between text-xs">
                 <span className="text-slate-500">
-                  {selectedTeacherForProfile.workloadStatus === 'Đủ tải'
+                  {selectedTeacherForProfile.maxWorkloadHours === 0 ? 'Chưa có dữ liệu tải công việc' : selectedTeacherForProfile.workloadStatus === 'Đủ tải'
                     ? 'Đã đạt định mức giảng dạy quy định'
                     : `Còn trống ${selectedTeacherForProfile.maxWorkloadHours - selectedTeacherForProfile.workloadHours} giờ phân công`}
                 </span>
@@ -980,7 +806,7 @@ export default function TeachersPage() {
                     ? 'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300'
                     : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300'
                 }`}>
-                  {selectedTeacherForProfile.workloadStatus}
+                  {selectedTeacherForProfile.maxWorkloadHours ? selectedTeacherForProfile.workloadStatus : 'Chưa xác minh'}
                 </span>
               </div>
             </div>
@@ -988,7 +814,7 @@ export default function TeachersPage() {
             {/* Box 4: Chứng chỉ sư phạm mầm non */}
             <div className="space-y-2">
               <span className="text-xs font-bold text-slate-700 dark:text-slate-300 block">
-                Chứng chỉ sư phạm & Giám sát chứng chỉ hành nghề:
+                Chứng chỉ sư phạm &amp; Giám sát chứng chỉ hành nghề:
               </span>
               <div className="flex flex-wrap gap-2">
                 {selectedTeacherForProfile.badges.map((badge, idx) => (
@@ -1063,69 +889,12 @@ export default function TeachersPage() {
                 + Thêm Giáo Viên Mới
               </h3>
               <p className="text-xs text-slate-500 dark:text-slate-400">
-                Nhập thông tin nhân sự, chức danh, phân công lớp và chứng chỉ chuyên môn
+                Chưa có API lưu hồ sơ chi tiết giáo viên; biểu mẫu này hiện chưa thể kích hoạt.
               </p>
             </div>
 
             <form
-              onSubmit={(e: FormEvent<HTMLFormElement>) => {
-                e.preventDefault();
-                const formData = new FormData(e.currentTarget);
-                const name = (formData.get('name') as string)?.trim() || 'Cô Giáo Viên Mới';
-                const roleKey = (formData.get('roleKey') as RoleKey) || 'chunhiem';
-                const gradeLevel = (formData.get('gradeLevel') as GradeLevel) || 'mam';
-                const classAssigned = (formData.get('classAssigned') as string)?.trim() || 'Chờ phân công lớp';
-                const degree = (formData.get('degree') as string)?.trim() || 'Cử nhân Sư phạm Mầm non';
-                const university = (formData.get('university') as string)?.trim() || 'ĐH Sư Phạm';
-                const experience = (formData.get('experience') as string)?.trim() || '2 năm kinh nghiệm';
-                const phone = (formData.get('phone') as string)?.trim() || '0900 123 456';
-                const email = (formData.get('email') as string)?.trim() || 'giaovien@bellapreschool.edu.vn';
-                const workloadHours = Math.min(45, Math.max(0, Number(formData.get('workloadHours')) || 30));
-                const certsStr = (formData.get('certs') as string)?.trim() || 'Sơ cứu Y tế Trẻ em, Giáo dục sớm';
-
-                const roleName =
-                  roleKey === 'chunhiem'
-                    ? 'Giáo viên chủ nhiệm'
-                    : roleKey === 'trogiang'
-                    ? 'Giáo viên trợ giảng'
-                    : 'Giáo viên năng khiếu';
-
-                const loadPercent = Math.min(100, Math.round((workloadHours / 40) * 100));
-                const workloadStatus = workloadHours >= 36 ? 'Đủ tải' : 'Còn lịch trống';
-
-                const badges: TeacherBadge[] = certsStr.split(',').map((c) => ({
-                  title: c.trim(),
-                  isWarning: false,
-                }));
-
-                const newTeacher: TeacherItem = {
-                  id: `TEA-${String(teachers.length + 1).padStart(3, '0')}`,
-                  name,
-                  role: roleName,
-                  roleKey,
-                  classAssigned,
-                  gradeLevel,
-                  degree,
-                  university,
-                  experience,
-                  joinedYear: '10/2026',
-                  phone,
-                  email,
-                  workloadHours,
-                  maxWorkloadHours: 40,
-                  loadPercent,
-                  workloadStatus,
-                  status: 'Đang Giảng Dạy',
-                  statusColorClass: 'bg-emerald-50 text-emerald-600 border-emerald-100',
-                  avatarUrl: '',
-                  avatarFallbackBg: 'bg-emerald-100 text-emerald-700',
-                  badges,
-                };
-
-                setTeachers((prev) => [newTeacher, ...prev]);
-                setIsAddTeacherOpen(false);
-                setToastMessage(`Đã thêm thành công hồ sơ giáo viên: ${name}!`);
-              }}
+              onSubmit={(e: FormEvent<HTMLFormElement>) => { e.preventDefault(); setSaveError('Chưa có API tạo hồ sơ giáo viên. Thông tin chưa được lưu.'); }}
               className="space-y-4"
             >
               <div>
@@ -1181,12 +950,7 @@ export default function TeachersPage() {
                     name="classAssigned"
                     className="w-full p-3 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-[#0e5c43]"
                   >
-                    <option>Lớp Mầm A1 — Họa Mi</option>
-                    <option>Lớp Mầm A2 — Sơn Ca</option>
-                    <option>Lớp Chồi B1 — Thỏ Ngọc</option>
-                    <option>Lớp Lá C1 — Vàng Anh</option>
-                    <option>Lớp Nhà Trẻ N1 — Gấu Misa</option>
-                    <option>Âm nhạc — Nghệ thuật</option>
+                    <option>Chưa có API tạo hồ sơ</option>
                   </select>
                 </div>
 
@@ -1197,7 +961,7 @@ export default function TeachersPage() {
                   <input
                     type="number"
                     name="workloadHours"
-                    defaultValue={30}
+                    defaultValue={undefined}
                     min={10}
                     max={40}
                     className="w-full p-3 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-[#0e5c43]"
@@ -1213,7 +977,7 @@ export default function TeachersPage() {
                   <input
                     type="text"
                     name="degree"
-                    defaultValue="Cử nhân Sư phạm Mầm non"
+                    defaultValue=""
                     className="w-full p-3 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-[#0e5c43]"
                   />
                 </div>
@@ -1225,7 +989,7 @@ export default function TeachersPage() {
                   <input
                     type="text"
                     name="university"
-                    defaultValue="Đại học Sư Phạm"
+                    defaultValue=""
                     className="w-full p-3 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-[#0e5c43]"
                   />
                 </div>
@@ -1239,7 +1003,7 @@ export default function TeachersPage() {
                   <input
                     type="text"
                     name="experience"
-                    defaultValue="3 năm kinh nghiệm"
+                    defaultValue=""
                     className="w-full p-3 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-[#0e5c43]"
                   />
                 </div>
@@ -1251,7 +1015,7 @@ export default function TeachersPage() {
                   <input
                     type="text"
                     name="phone"
-                    defaultValue="0988 123 456"
+                    defaultValue=""
                     className="w-full p-3 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-[#0e5c43]"
                   />
                 </div>
@@ -1264,11 +1028,12 @@ export default function TeachersPage() {
                 <input
                   type="text"
                   name="certs"
-                  defaultValue="Montessori Quốc Tế, Sơ cứu Y tế Trẻ em"
+                  defaultValue=""
                   className="w-full p-3 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-[#0e5c43]"
                 />
               </div>
 
+              {saveError && <p role="alert" className="text-xs text-red-700">{saveError}</p>}
               <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100 dark:border-slate-800">
                 <button
                   type="button"
@@ -1279,10 +1044,12 @@ export default function TeachersPage() {
                 </button>
                 <button
                   type="submit"
+                  aria-disabled="true"
+                  onClick={() => setSaveError('Chưa có API tạo hồ sơ giáo viên. Thông tin chưa được lưu.')}
                   className="px-5 py-2.5 rounded-xl bg-[#0e5c43] hover:bg-[#0a4633] text-white font-bold text-xs shadow-md transition-all cursor-pointer flex items-center gap-1.5 active:scale-95"
                 >
                   <Check className="w-4 h-4" />
-                  <span>Lưu & Kích Hoạt Hồ Sơ</span>
+                  <span>Lưu &amp; Kích Hoạt Hồ Sơ</span>
                 </button>
               </div>
             </form>
@@ -1296,7 +1063,7 @@ export default function TeachersPage() {
           <div className="w-full max-w-xl rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl p-6 sm:p-8 space-y-6 relative">
             <button
               type="button"
-              onClick={() => setSelectedTeacherForAssign(null)}
+              onClick={() => { if (!saving) { pendingAssignment.current = null; setSelectedTeacherForAssign(null); } }}
               className="absolute top-5 right-5 p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer"
             >
               <X className="w-4 h-4" />
@@ -1310,33 +1077,12 @@ export default function TeachersPage() {
                 Phân Công Lớp: {selectedTeacherForAssign.name}
               </h3>
               <p className="text-xs text-slate-500 dark:text-slate-400">
-                Thiết lập bối cảnh năm học, vai trò phụ trách & tự động kiểm tra xung đột thời khóa biểu
+                Thiết lập năm học, lớp, vai trò và ngày hiệu lực theo xác nhận giáo viên hiện có
               </p>
             </div>
 
             <form
-              onSubmit={(e: FormEvent<HTMLFormElement>) => {
-                e.preventDefault();
-                const formData = new FormData(e.currentTarget);
-                const newClass = (formData.get('classAssigned') as string) || selectedTeacherForAssign.classAssigned;
-                const newRole = (formData.get('role') as string) || selectedTeacherForAssign.role;
-
-                setTeachers((prev) =>
-                  prev.map((t) => {
-                    if (t.id === selectedTeacherForAssign.id) {
-                      return {
-                        ...t,
-                        classAssigned: newClass,
-                        role: newRole,
-                      };
-                    }
-                    return t;
-                  })
-                );
-
-                setToastMessage(`Đã cập nhật phân công giảng dạy cho ${selectedTeacherForAssign.name}!`);
-                setSelectedTeacherForAssign(null);
-              }}
+              onSubmit={submitAssignment}
               className="space-y-4"
             >
               <div className="grid grid-cols-2 gap-4">
@@ -1353,15 +1099,11 @@ export default function TeachersPage() {
                   <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1.5">Lớp phân công</label>
                   <select
                     name="classAssigned"
-                    defaultValue={selectedTeacherForAssign.classAssigned}
+                    defaultValue=""
                     className="w-full p-3 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-medium focus:ring-2 focus:ring-[#0e5c43] outline-none"
                   >
-                    <option>Lớp Mầm A1 — Họa Mi</option>
-                    <option>Lớp Chồi B1 — Thỏ Ngọc</option>
-                    <option>Lớp Lá C1 — Vàng Anh</option>
-                    <option>Lớp Nhà Trẻ N1 — Gấu Misa</option>
-                    <option>Lớp Mầm A2 — Sơn Ca</option>
-                    <option>Âm nhạc — Nghệ thuật</option>
+                    <option value="">Chọn lớp</option>
+                    {classes.map(item => <option key={item.id} value={item.id}>{item.title} ({item.code})</option>)}
                   </select>
                 </div>
               </div>
@@ -1371,19 +1113,21 @@ export default function TeachersPage() {
                   <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1.5">Vai trò phụ trách</label>
                   <select
                     name="role"
-                    defaultValue={selectedTeacherForAssign.role}
+                    defaultValue="lead_teacher"
                     className="w-full p-3 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-medium focus:ring-2 focus:ring-[#0e5c43] outline-none"
                   >
-                    <option>Giáo viên chủ nhiệm</option>
-                    <option>Giáo viên trợ giảng</option>
-                    <option>Giáo viên năng khiếu</option>
+                    <option value="lead_teacher">Giáo viên chủ nhiệm</option>
+                    <option value="co_teacher">Giáo viên cùng lớp</option>
+                    <option value="assistant">Giáo viên trợ giảng</option>
+                    <option value="substitute">Giáo viên thay thế</option>
                   </select>
                 </div>
                 <div>
                   <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1.5">Hiệu lực phân công</label>
                   <input
-                    type="text"
-                    defaultValue="01/08/2026 ➔ 31/05/2027"
+                    type="date"
+                    name="effectiveStartDate"
+                    defaultValue={localDate()}
                     className="w-full p-3 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-medium focus:ring-2 focus:ring-[#0e5c43] outline-none"
                   />
                 </div>
@@ -1392,25 +1136,25 @@ export default function TeachersPage() {
               <div className="p-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200/60 dark:border-emerald-800/50 text-xs space-y-1.5">
                 <span className="font-bold text-emerald-800 dark:text-emerald-300 flex items-center gap-1.5">
                   <ShieldCheck className="w-4 h-4 text-emerald-500" />
-                  Kiểm duyệt quy tắc vận hành (Business Rule Engine):
+                  Phân công theo xác nhận giáo viên và phạm vi chi nhánh:
                 </span>
                 <p className="text-emerald-700 dark:text-emerald-400 text-[11px] leading-relaxed">
-                  ✓ Bằng cấp Sư phạm Mầm non phù hợp với khối phân công.<br />
-                  ✓ Tải công việc sau phân công: <strong>{selectedTeacherForAssign.workloadHours}/{selectedTeacherForAssign.maxWorkloadHours} giờ/tuần</strong> (Trong hạn mức an toàn).<br />
-                  ✓ Không trùng lịch giảng dạy với các lớp khác.
+                  Giáo viên đã được xác nhận. Bằng cấp, tải công việc và thời khóa biểu chưa có nguồn dữ liệu kiểm chứng. Hệ thống sẽ kiểm tra quyền và ràng buộc phân công khi lưu.
                 </p>
               </div>
 
+              {saveError && <p role="alert" className="text-xs text-red-700">{saveError}</p>}
               <div className="flex items-center justify-end gap-3 pt-2 border-t border-slate-100 dark:border-slate-800">
                 <button
                   type="button"
-                  onClick={() => setSelectedTeacherForAssign(null)}
+                  onClick={() => { if (!saving) { pendingAssignment.current = null; setSelectedTeacherForAssign(null); } }}
                   className="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-xs hover:bg-slate-200 transition-colors cursor-pointer"
                 >
                   Hủy bỏ
                 </button>
                 <button
                   type="submit"
+                  disabled={saving}
                   className="px-5 py-2.5 rounded-xl bg-[#0e5c43] hover:bg-[#0a4633] text-white font-bold text-xs shadow-md transition-all cursor-pointer flex items-center gap-1.5 active:scale-95"
                 >
                   <Check className="w-4 h-4" />

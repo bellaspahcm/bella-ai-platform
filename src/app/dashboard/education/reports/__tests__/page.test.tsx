@@ -1,89 +1,98 @@
 /** @jest-environment jsdom */
 import '@testing-library/jest-dom';
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import ReportsPage from '../page';
+import type { ExecutiveDashboardDTO } from '@/products/bella-education/analytics/domain/preschool-analytics.types';
 
 jest.mock('next/link', () => ({
   __esModule: true,
   default: ({ children, href, ...props }: React.AnchorHTMLAttributes<HTMLAnchorElement>) => <a href={href} {...props}>{children}</a>,
 }));
 
-const documents = [
-  'Báo cáo tổng hợp tháng 09/2026',
-  'Tài liệu chuyên cần',
-  'Báo cáo học phí',
-  'Báo cáo tăng trưởng theo WHO',
-];
+jest.mock('@/lib/user-context', () => ({ useUser: () => ({ user: { id: 'admin', tenant_id: 'tenant-a' }, product: { productKey: 'bella_preschool' }, isLoading: false }) }));
 
-function mountPage() { render(<ReportsPage />); }
+const fetchMock = jest.fn<typeof fetch>();
+beforeEach(() => {
+  fetchMock.mockReset();
+  Object.defineProperty(globalThis, 'fetch', { configurable: true, writable: true, value: fetchMock });
+  fetchMock.mockResolvedValue({
+    ok: false,
+    status: 503,
+    statusText: 'Service Unavailable',
+    json: async () => ({ success: false, error: 'ANALYTICS_BRANCH_SCOPE_NOT_READY' }),
+  } as Response);
+});
 
-function expectNoFakeOutput() {
+it('shows unavailable metrics and no substituted sample data when analytics is held', async () => {
+  render(<ReportsPage />);
+  expect(await screen.findByRole('alert')).toHaveTextContent('ANALYTICS_BRANCH_SCOPE_NOT_READY');
+  expect(screen.queryByText(/95\.2|96\.0|2\.05|Bé vui đến trường|Báo cáo tổng hợp tháng 09\/2026/)).not.toBeInTheDocument();
+  expect(screen.getByText('Chưa có dữ liệu chuyên cần theo tháng.')).toBeInTheDocument();
+  expect(screen.getByText('Chưa có dữ liệu học phí phân bổ theo tháng.')).toBeInTheDocument();
+  expect(screen.getByText('Chưa có danh sách hoạt động từ nguồn chuẩn.')).toBeInTheDocument();
+  expect(screen.getByText('Chưa có tài liệu báo cáo được tạo.')).toBeInTheDocument();
+  expect(screen.getAllByText('—').length).toBeGreaterThan(0);
+});
+
+it('does not claim AI analysis or provide period options without their contracts', async () => {
+  render(<ReportsPage />);
+  await screen.findByRole('alert');
+  expect(screen.getByText(/Chưa có contract phân tích AI/)).toHaveAttribute('role', 'status');
+  expect(screen.getByLabelText('Chọn kỳ báo cáo')).toHaveValue('');
+  expect(screen.getByLabelText('Chọn kỳ báo cáo').querySelectorAll('option')).toHaveLength(1);
+});
+
+it('keeps export unavailable and reports that no file was created', async () => {
+  render(<ReportsPage />);
+  await screen.findByRole('alert');
+  fireEvent.click(screen.getByRole('button', { name: 'Xuất báo cáo' }));
+  await waitFor(() => expect(screen.getAllByRole('status').some((item) => item.textContent?.includes('Không có file được tạo'))).toBe(true));
   expect(document.querySelector('a[download]')).toBeNull();
-  for (const status of screen.getAllByRole('status')) {
-    expect(status).toHaveTextContent(/Chưa (xuất|tải)/);
-    expect(status).toHaveTextContent(/Không có file được tạo/);
-    expect(status).not.toHaveTextContent(/Đang xuất|Đang tải|thành công/);
-  }
-}
+});
 
-describe('Reports trial truthful unavailable output', () => {
-  beforeEach(() => jest.useFakeTimers());
-  afterEach(() => jest.useRealTimers());
 
-  it('shows persistent unavailable feedback when header export is requested twice', () => {
-    mountPage();
-    fireEvent.click(screen.getByRole('button', { name: 'Xuất báo cáo' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Xuất báo cáo' }));
-    act(() => jest.advanceTimersByTime(6000));
-    expect(screen.getByRole('status')).toHaveTextContent(/Chưa xuất báo cáo/);
-    expectNoFakeOutput();
-  });
+const branchDashboard: ExecutiveDashboardDTO = {
+  tenantId: 'tenant-a', evaluatedAt: '2026-10-22T03:00:00.000Z',
+  enrollment: { totalEnrolledStudents: 2, totalClassrooms: 1, totalTeachers: null,
+    classroomUtilization: [{ classId: 'course-a', className: 'Lớp A', currentEnrollment: 2, maxCapacity: null, utilizationRate: null }] },
+  attendance: { todayPresentCount: 1, todayAbsentCount: 0, todayLateCount: null, presentVsEnrolledRate: 50 },
+  careAndSafety: { activeHealthIncidents: null, pendingMedicationDoses: null },
+  learning: { draftPortfoliosCount: null, pendingMilestoneReviews: null },
+  parentEngagement: { unacknowledgedNotices: null, pendingConsentRequests: null },
+  finance: { invoicedGrossTotal: null, reconciledCashCollected: null, outstandingBalanceTotal: null, overdueAccountsCount: null },
+  workforce: { activeStaffingViolations: null, openStaffingExceptions: null },
+  facilities: { outOfServiceAssetsCount: null, outOfServiceZonesCount: null, overdueScheduleCount: null, openSafetyExceptions: null },
+  commandCenter: { unmarkedAttendanceCount: 1, leaveRequestsCount: null, overdueInvoicesCount: null,
+    healthIncidentsCount: null, parentRequestsCount: null, totalParentsCount: null },
+};
+const jsonReply = (payload: unknown): Response => ({ ok: true, status: 200, json: async () => payload }) as Response;
 
-  it.each(documents)('identifies unavailable quick document: %s', title => {
-    mountPage();
-    const button = screen.getByRole('button', { name: `Tải báo cáo nhanh: ${title}` });
-    fireEvent.click(button);
-    act(() => jest.advanceTimersByTime(6000));
-    expect(screen.getByRole('status')).toHaveTextContent(title);
-    expect(button).toHaveAccessibleDescription(/Chưa tải/);
-    expectNoFakeOutput();
-  });
+it('requires a branch choice and fetches only the selected branch', async () => {
+  fetchMock.mockReset();
+  fetchMock.mockResolvedValueOnce(jsonReply({ success: true, branches: [
+    { id: 'branch-a', name: 'Cơ sở A' }, { id: 'branch-b', name: 'Cơ sở B' },
+  ], selectedBranchId: null, dashboard: null }));
+  fetchMock.mockResolvedValueOnce(jsonReply({ success: true, branches: [
+    { id: 'branch-a', name: 'Cơ sở A' }, { id: 'branch-b', name: 'Cơ sở B' },
+  ], selectedBranchId: 'branch-b', dashboard: branchDashboard }));
+  render(<ReportsPage />);
+  expect(await screen.findByText('Chọn cơ sở để xem roster và điểm danh trong phạm vi được cấp.')).toBeInTheDocument();
+  fireEvent.change(screen.getByLabelText('Chọn cơ sở báo cáo'), { target: { value: 'branch-b' } });
+  expect(await screen.findByText('Lớp A')).toBeInTheDocument();
+  const secondRequest = new URL(String(fetchMock.mock.calls[1][0]), 'http://localhost');
+  expect(secondRequest.searchParams.get('branchId')).toBe('branch-b');
+  expect(screen.getAllByText('—').length).toBeGreaterThan(0);
+  expect(screen.getByText('1 / 2 trẻ')).toBeInTheDocument();
+  expect(screen.queryByText('0 tài khoản')).not.toBeInTheDocument();
+});
 
-  it.each(documents)('identifies unavailable detail document: %s', title => {
-    mountPage();
-    fireEvent.click(screen.getByRole('button', { name: 'Báo cáo chi tiết' }));
-    const button = screen.getByRole('button', { name: `Tải báo cáo chi tiết: ${title}` });
-    fireEvent.click(button);
-    fireEvent.click(button);
-    expect(screen.getByRole('status')).toHaveTextContent(title);
-    expect(button).toHaveAccessibleDescription(/Chưa tải/);
-    expectNoFakeOutput();
-  });
 
-  it('keeps output feedback across period selection and tab changes without claiming refresh', () => {
-    mountPage();
-    fireEvent.click(screen.getByRole('button', { name: 'Xuất báo cáo' }));
-    fireEvent.click(screen.getByRole('button', { name: `Tải báo cáo nhanh: ${documents[0]}` }));
-    fireEvent.change(screen.getByRole('combobox', { name: 'Chọn kỳ minh họa' }), { target: { value: 'Tháng 08/2026' } });
-    expect(screen.getByText(/Chỉ đổi lựa chọn kỳ/)).toHaveTextContent(/Tháng 08\/2026/);
-    expect(screen.getByText(/Chỉ đổi lựa chọn kỳ/)).toHaveTextContent(/không được tải lại/);
-    fireEvent.click(screen.getByRole('button', { name: 'Chuyên cần' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Tổng quan' }));
-    expect(screen.getAllByRole('status')).toHaveLength(2);
-    expectNoFakeOutput();
-  });
-
-  it('clearly labels every view as sample content and AI as no real analysis', () => {
-    mountPage();
-    const tabs = ['Tổng quan', 'Chuyên cần', 'Tài chính', 'Tăng trưởng', 'Phụ huynh', 'Báo cáo chi tiết'];
-    for (const tab of tabs) {
-      fireEvent.click(screen.getByRole('button', { name: tab }));
-      expect(screen.getByRole('note')).toHaveTextContent(/Dữ liệu minh họa/);
-      expect(screen.getByRole('note')).toHaveTextContent(/KPI, biểu đồ, phân tích AI, hoạt động và tài liệu/);
-      expect(screen.getByRole('note')).toHaveTextContent(/chưa tải từ dữ liệu thật/);
-    }
-    fireEvent.click(screen.getByRole('button', { name: 'Tổng quan' }));
-    expect(screen.getByText(/Các nhận định mẫu dưới đây/)).toHaveTextContent(/chưa phải kết quả phân tích AI từ hồ sơ thật/);
-    expect(screen.getByRole('link', { name: 'Quay lại Dashboard' })).toHaveAttribute('href', '/dashboard/education');
-  });
+it.each([
+  { ...branchDashboard, tenantId: 'foreign-tenant' },
+  { tenantId: 'tenant-a' },
+])('rejects foreign or malformed dashboard data without rendering metrics', async dashboard => {
+  fetchMock.mockResolvedValue(jsonReply({ success: true, branches: [{ id: 'branch-a', name: 'A' }], selectedBranchId: 'branch-a', dashboard }));
+  render(<ReportsPage />);
+  expect(await screen.findByRole('alert')).toHaveTextContent(/ANALYTICS_RESPONSE/);
+  expect(screen.queryByText('1 / 2 trẻ')).not.toBeInTheDocument();
 });
