@@ -1,0 +1,96 @@
+{
+  "checkedAtUtc": "2026-10-27T05:27:07.6095772Z",
+  "primaryProjectRef": "lvnvkpyxtuilhrabtlwv",
+  "checks": [
+    {
+      "check": "parent-update-role",
+      "command": "supabase --output-format json db query --linked --project-ref lvnvkpyxtuilhrabtlwv --file docs/audits/platform-risk-20261027/containment-auto-parent-role-usage-readonly.sql",
+      "sqlSha256": "532f34eaef51e2d8e8654904895454043952a44b7b672f8e56701f2a193624c8",
+      "startedUtc": "2026-10-27T05:21:16.9981735Z",
+      "endedUtc": "2026-10-27T05:21:21.4042418Z",
+      "exitCode": 0,
+      "outputFile": "containment-review-parent-update-role-live.stdout.log",
+      "stderrFile": "containment-review-parent-update-role-live.stderr.log",
+      "readOnlyTransaction": true
+    },
+    {
+      "check": "table-acl",
+      "command": "supabase --output-format json db query --linked --project-ref lvnvkpyxtuilhrabtlwv --file docs/audits/platform-risk-20261027/containment-post-change-table-acl-readonly.sql",
+      "sqlSha256": "398b1c87a0e6fd4ac70849f07bf57cc717d02898d9e8b8507002c5a61c7bc153",
+      "startedUtc": "2026-10-27T05:21:21.4272396Z",
+      "endedUtc": "2026-10-27T05:21:24.0335049Z",
+      "exitCode": 0,
+      "outputFile": "containment-review-table-acl-live.stdout.log",
+      "stderrFile": "containment-review-table-acl-live.stderr.log",
+      "readOnlyTransaction": true
+    },
+    {
+      "check": "function-acl",
+      "command": "supabase --output-format json db query --linked --project-ref lvnvkpyxtuilhrabtlwv --file docs/audits/platform-risk-20261027/containment-post-change-function-acl-readonly.sql",
+      "sqlSha256": "79689a6e79c986d6ced36aff2907fe558bd9ffae44b69a1b53c0a0d56014109e",
+      "startedUtc": "2026-10-27T05:21:24.0360290Z",
+      "endedUtc": "2026-10-27T05:21:26.3566289Z",
+      "exitCode": 0,
+      "outputFile": "containment-review-function-acl-live.stdout.log",
+      "stderrFile": "containment-review-function-acl-live.stderr.log",
+      "readOnlyTransaction": true
+    },
+    {
+      "check": "policies",
+      "command": "supabase --output-format json db query --linked --project-ref lvnvkpyxtuilhrabtlwv --file docs/audits/platform-risk-20261027/containment-post-change-policies-readonly.sql",
+      "sqlSha256": "cba255b7f81a5814ad15830c82e300bb6ef487d7e1237bcab76189736894e91e",
+      "startedUtc": "2026-10-27T05:21:26.3574814Z",
+      "endedUtc": "2026-10-27T05:21:28.8546407Z",
+      "exitCode": 0,
+      "outputFile": "containment-review-policies-live.stdout.log",
+      "stderrFile": "containment-review-policies-live.stderr.log",
+      "readOnlyTransaction": true
+    },
+    {
+      "check": "trigger-catalog",
+      "command": "supabase --output-format json db query --linked --project-ref lvnvkpyxtuilhrabtlwv --file docs/audits/platform-risk-20261027/containment-post-change-catalog-readonly.sql",
+      "sqlSha256": "f7648d05d5f06868e952fc999725a0b7fb9c1ba453acc34ea59db12f63483f6a",
+      "startedUtc": "2026-10-27T05:21:28.8553607Z",
+      "endedUtc": "2026-10-27T05:21:31.1960618Z",
+      "exitCode": 0,
+      "outputFile": "containment-review-trigger-catalog-live.stdout.log",
+      "stderrFile": "containment-review-trigger-catalog-live.stderr.log",
+      "readOnlyTransaction": true
+    },
+    {
+      "check": "function-contract",
+      "command": "supabase --output-format json db query --linked --project-ref lvnvkpyxtuilhrabtlwv --file docs/audits/platform-risk-20261027/containment-review-function-contract-readonly.sql",
+      "sqlSha256": "e95a75e2def29ff0654356489b4daea443fb4f823d1cc5bc5c7ea47b76c1c477",
+      "startedUtc": "2026-10-27T05:21:31.1967466Z",
+      "endedUtc": "2026-10-27T05:21:33.6035803Z",
+      "exitCode": 0,
+      "outputFile": "containment-review-function-contract-live.stdout.log",
+      "stderrFile": "containment-review-function-contract-live.stderr.log",
+      "readOnlyTransaction": true
+    },
+    {
+      "check": "journey-parent-acl-policy",
+      "command": "supabase --output-format json db query --linked --project-ref lvnvkpyxtuilhrabtlwv --file docs/audits/platform-risk-20261027/containment-review-journey-parent-readonly.sql",
+      "sqlSha256": "a1c7a8ad6cec28595c65d31fbb80eea07bed144444670f99ffe930a7b077cf7c",
+      "startedUtc": "2026-10-27T05:25:40.4430091Z",
+      "endedUtc": "2026-10-27T05:25:43.1620131Z",
+      "exitCode": 0,
+      "outputFile": "containment-review-journey-parent-live.stdout.log",
+      "stderrFile": "containment-review-journey-parent-live.stderr.log",
+      "readOnlyTransaction": true
+    },
+    {
+      "check": "database-role-exception",
+      "command": "supabase --output-format json db query --linked --project-ref lvnvkpyxtuilhrabtlwv --file docs/audits/platform-risk-20261027/containment-post-change-role-membership-readonly.sql",
+      "sqlSha256": "cde07d26693698ccecb16112b2c141331993ad6b4d8da6c29c0736e6dda44e65",
+      "startedUtc": "2026-10-27T05:27:04.6871141Z",
+      "endedUtc": "2026-10-27T05:27:07.6095772Z",
+      "exitCode": 0,
+      "outputFile": "containment-review-role-membership-live.stdout.log",
+      "stderrFile": "containment-review-role-membership-live.stderr.log",
+      "readOnlyTransaction": true
+    }
+  ],
+  "healthcareFixtureDns": "healthcare-fixture-dns-followup.json",
+  "result": "READ_ONLY_CHECKS_PASS"
+}

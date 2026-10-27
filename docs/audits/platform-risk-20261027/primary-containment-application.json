@@ -1,0 +1,15 @@
+{
+  "projectRef": "lvnvkpyxtuilhrabtlwv",
+  "migrationFile": "supabase/migrations/20261027120000_temporal_history_tenant_containment.sql",
+  "command": "supabase db query --linked --project-ref lvnvkpyxtuilhrabtlwv --file supabase/migrations/20261027120000_temporal_history_tenant_containment.sql -o json",
+  "dryRunTransaction": "ROLLBACK",
+  "dryRunExitCode": 0,
+  "applyExitCode": 0,
+  "appliedDirectly": true,
+  "migrationLedgerChanged": false,
+  "migrationSyncRun": false,
+  "databaseResetRun": false,
+  "broadProductDeployRun": false,
+  "migrationSha256": "08d2b6a10abe263b60ab515da0565e894feb7131f7ddfce141997dbafc5af03a",
+  "executionTimestampPrecision": "tool result captured; shell timestamp not recorded"
+}

@@ -6,7 +6,7 @@
 
 **Current DATABASE_URL:**
 ```
-postgresql://postgres:Qu%40ngNguyen18121986@db.lvnvkpyxtuilhrabtlwv.supabase.co:5432/postgres
+${DATABASE_ADMIN_URL}
 ```
 
 **Connection details:**
@@ -36,9 +36,9 @@ DATABASE_URL=postgresql://bella_developer:<PASSWORD_FROM_STEP_1>@db.lvnvkpyxtuil
   - `&` → `%26`
   - `/` → `%2F`
 
-**Example (if password is `MyP@ss123!`):**
+**Example (replace with a secret-manager value):**
 ```env
-DATABASE_URL=postgresql://bella_developer:MyP%40ss123%21@db.lvnvkpyxtuilhrabtlwv.supabase.co:5432/postgres
+DATABASE_URL="<DATABASE_URL from secret manager>"
 ```
 
 ---

@@ -1,0 +1,8 @@
+{
+  "command": "npm ci --ignore-scripts --no-audit --no-fund",
+  "startedUtc": "2026-10-27T04:00:57.9453877Z",
+  "endedUtc": "2026-10-27T04:03:00.6901421Z",
+  "exitCode": 0,
+  "sourceRevision": "a69bab6c3244d34723b5600b646f48d0e48400ee",
+  "lockfileSha256": "2cae548c90b14606d78a5ff182e8a6d7841ffe0a9230a59a2b1958e82234c98e"
+}

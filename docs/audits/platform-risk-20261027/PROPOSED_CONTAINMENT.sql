@@ -1,0 +1,10 @@
+-- NO EXECUTABLE CONTAINMENT SQL IS APPROVED OR READY.
+--
+-- The initial table-only candidate was preserved as
+-- PRELIMINARY_CONTAINMENT_SUPERSEDED.sql after the refreshed read-only catalog
+-- found active invoker triggers and publicly executable RPCs that would be
+-- affected or would keep exposing data. Do not execute that superseded file.
+--
+-- See CONTAINMENT_DECISION_REQUIRED.md. A new exact plan requires the owner's
+-- explicit Production ACL authority and a decision on the verified Auto write
+-- trigger and temporal-query effects. No database mutation was run.

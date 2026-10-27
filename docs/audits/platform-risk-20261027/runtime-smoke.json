@@ -1,0 +1,78 @@
+{
+  "command": "node docs/audits/platform-risk-20261027/runtime-smoke.cjs <existing E2E env file>",
+  "sourceRevision": "a69bab6c3244d34723b5600b646f48d0e48400ee",
+  "startedUtc": "2026-10-27T04:09:07.143Z",
+  "endedUtc": "2026-10-27T04:09:09.798Z",
+  "environment": "Local production build with process-only E2E Supabase config",
+  "serverPid": 12372,
+  "serverExit": {
+    "code": null,
+    "signal": "SIGTERM"
+  },
+  "portReleased": true,
+  "executionError": null,
+  "results": [
+    {
+      "route": "/login",
+      "method": "GET",
+      "expected": 200,
+      "actual": 200,
+      "location": null,
+      "securityHeaders": {
+        "contentTypeOptions": "nosniff",
+        "frameOptions": "SAMEORIGIN",
+        "hasCsp": true
+      },
+      "responseBytes": 19526,
+      "bodyRetained": false,
+      "result": "PASS"
+    },
+    {
+      "route": "/dashboard",
+      "method": "GET",
+      "expected": 307,
+      "actual": 307,
+      "location": "/login?next=%2Fdashboard",
+      "securityHeaders": {
+        "contentTypeOptions": "nosniff",
+        "frameOptions": "SAMEORIGIN",
+        "hasCsp": true
+      },
+      "responseBytes": 24,
+      "bodyRetained": false,
+      "result": "PASS"
+    },
+    {
+      "route": "/api/education/care/classes",
+      "method": "GET",
+      "expected": 401,
+      "actual": 401,
+      "location": null,
+      "securityHeaders": {
+        "contentTypeOptions": "nosniff",
+        "frameOptions": "SAMEORIGIN",
+        "hasCsp": true
+      },
+      "responseBytes": 48,
+      "bodyRetained": false,
+      "result": "PASS"
+    },
+    {
+      "route": "/api/education/finance",
+      "method": "GET",
+      "expected": 401,
+      "actual": 401,
+      "location": null,
+      "securityHeaders": {
+        "contentTypeOptions": "nosniff",
+        "frameOptions": "SAMEORIGIN",
+        "hasCsp": true
+      },
+      "responseBytes": 108,
+      "bodyRetained": false,
+      "result": "PASS"
+    }
+  ],
+  "result": "PASS",
+  "scope": "Unauthenticated HTTP render/denial only. Not Browser E2E, business mutation, or Product Go-Live evidence."
+}
