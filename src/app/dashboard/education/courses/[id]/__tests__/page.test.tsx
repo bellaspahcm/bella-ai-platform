@@ -221,21 +221,16 @@ describe('R1b catalog detail — retained R1a containment invariants', () => {
     expect(screen.getByRole('heading', { name: /Synthetic classroom class\/a/ })).toBeInTheDocument();
   });
 
-  it('keeps assignment visibly unavailable and issues no mutation from either teacher view', async () => {
+  it('keeps teacher assignment navigation available when overview metrics are unavailable', async () => {
     mockFetch.mockResolvedValueOnce(ready());
     await mountPage();
-    const overviewButton = screen.getByRole('button', { name: 'Phân công GVN' });
-    expect(overviewButton).toBeDisabled();
-    expect(overviewButton).toHaveAccessibleDescription(/hiện chưa khả dụng/);
-    fireEvent.click(overviewButton);
+    const overviewLink = screen.getByRole('link', { name: 'Phân công GVN' });
+    expect(overviewLink).toHaveAttribute('href', '/dashboard/education/teachers');
+    expect(overviewLink).toHaveAccessibleDescription(/chọn chi nhánh và phân công lớp/);
     fireEvent.click(screen.getByRole('button', { name: 'Đội Ngũ GVN' }));
-    const teachersButton = screen.getByRole('button', { name: 'Phân công Giáo viên Mới' });
-    expect(teachersButton).toBeDisabled();
-    expect(teachersButton).toHaveAccessibleDescription(/hiện chưa khả dụng/);
-    fireEvent.click(teachersButton);
-    expect(screen.queryByRole('button', { name: /Chấm dứt|Xác nhận phân công/ })).not.toBeInTheDocument();
-    expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    const teachersLink = screen.getByRole('link', { name: 'Phân công Giáo viên Mới' });
+    expect(teachersLink).toHaveAttribute('href', '/dashboard/education/teachers');
+    expect(teachersLink).toHaveAccessibleDescription(/chọn chi nhánh và phân công lớp/);
     expect(mockFetch).toHaveBeenCalledWith('/api/education/courses/class-a?view=catalog', expect.objectContaining({ cache: 'no-store' }));
     expect(mockFetch.mock.calls.every(([, init]) => !init?.method || init.method === 'GET')).toBe(true);
   });
