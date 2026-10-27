@@ -10,6 +10,7 @@ import type { Database } from '@/types/database.types';
 import { COURSE_PRIVATE_HEADERS, resolveCourseReadContext } from '../../courses/request-context';
 import { admissionCourseReader } from '../../enrollments/admission-course-reader';
 import { PreschoolTeacherAttendanceService } from '@/products/bella-education/services/preschool-teacher-attendance.service';
+import { getTenantPresentation } from '@/services/tenant-actions';
 import { AttendanceAccessError, assertAttendanceDay, assertAttendanceSelectors, requireSchoolDay, resolveAttendanceRequestContext } from '../request-context';
 
 export async function GET(request: Request) {
@@ -42,7 +43,7 @@ export async function GET(request: Request) {
       assertAttendanceSelectors(request, caller, { branchId, date: schoolDay });
       const courses = await new PreschoolTeacherAttendanceService(caller.client)
         .listCourses(tenantId, actor.id, schoolDay, branchId);
-      const attendance = new AttendanceContractImpl(caller.client);
+      const attendance = new AttendanceContractImpl(caller.client, caller.productKey);
       const classrooms = [];
       for (const course of courses) {
         const roster = await attendance.getCourseDailyAttendance({ tenantId, courseId: course.courseId, schoolDay });
@@ -91,7 +92,9 @@ export async function GET(request: Request) {
     const reader = admissionCourseReader(client);
     // The identity RPC and daily-state RLS must see the authenticated caller.
     // The trusted client above is limited to explicit actor/branch preflight.
-    const attendance = new AttendanceContractImpl(context.supabase);
+    const tenant = await getTenantPresentation();
+    if (!tenant || tenant.id !== tenantId) return reply({ success: false, error: 'ATTENDANCE_IDENTITY_UNAVAILABLE' }, 503);
+    const attendance = new AttendanceContractImpl(context.supabase, tenant.product_key);
     const classrooms = [];
     for (const assignment of assignments.filter(row => branches.has(row.branch_id))) {
       const courseId = assignment.course_id;

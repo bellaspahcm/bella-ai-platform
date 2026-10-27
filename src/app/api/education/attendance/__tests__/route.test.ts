@@ -4,7 +4,17 @@ const mockFrom = jest.fn();
 const mockAuthUser = jest.fn();
 const mockAuthorizeCourse = jest.fn();
 const mockSessionClient = { from: mockFrom, auth: { getUser: mockAuthUser } };
-const mockGetCurrentUser = jest.fn<() => Promise<{ id: string; tenant_id: string; role: string } | null>>();
+const mockGetCurrentUser = jest.fn<() => Promise<{ id: string; tenant_id: string; role: string; status?: string } | null>>();
+const mockGetTenantPresentation = jest.fn();
+jest.mock('@/services/user-actions', () => ({
+  getCurrentUser: async () => {
+    const user = await mockGetCurrentUser();
+    return user ? { ...user, status: user.status ?? 'active' } : null;
+  },
+}));
+jest.mock('@/services/tenant-actions', () => ({
+  getTenantPresentation: mockGetTenantPresentation,
+}));
 const mockGetCourseDailyAttendance = jest.fn<() => Promise<Array<{ enrollmentId: string; studentPartyId: string }>>>();
 const mockSetDailyAttendance = jest.fn<(...input: unknown[]) => Promise<unknown>>();
 const mockTeacherIdentity = jest.fn<(...input: unknown[]) => Promise<void>>();
@@ -93,6 +103,11 @@ describe('/api/education/attendance route authorization', () => {
       id: userId,
       tenant_id: tenantId,
       role: 'admin',
+    });
+    mockGetTenantPresentation.mockResolvedValue({
+      id: tenantId,
+      status: 'active',
+      product_key: 'bella_preschool',
     });
     mockAuthUser.mockImplementation(async () => {
       const profile = await mockGetCurrentUser();
@@ -244,7 +259,7 @@ describe('/api/education/attendance route authorization', () => {
     const { AttendanceContractImpl } = await import('@/platform/education/contracts/attendance.contract.impl');
     const response = await GET(new Request(`http://localhost/api/education/attendance?courseId=${courseId}&date=2026-10-06`));
     expect(response.status).toBe(200);
-    expect(AttendanceContractImpl).toHaveBeenCalledWith(mockSessionClient);
+    expect(AttendanceContractImpl).toHaveBeenCalledWith(mockSessionClient, 'bella_preschool');
     expect(response.headers.get('Cache-Control')).toBe('private, no-store');
   });
 

@@ -6,6 +6,7 @@ const mockAdmin = jest.fn(() => ({}));
 const mockSessionClient = {};
 const mockTeacherContext = jest.fn<(...args: unknown[]) => Promise<unknown>>();
 const mockTeacherCourses = jest.fn<(...args: unknown[]) => Promise<unknown[]>>();
+const mockTenantPresentation = jest.fn<() => Promise<unknown>>();
 jest.mock('../../request-context', () => ({
   ...jest.requireActual('../../request-context'),
   resolveAttendanceRequestContext: mockTeacherContext,
@@ -14,6 +15,7 @@ jest.mock('../../request-context', () => ({
 jest.mock('@/products/bella-education/services/preschool-teacher-attendance.service', () => ({
   PreschoolTeacherAttendanceService: jest.fn().mockImplementation(() => ({ listCourses: mockTeacherCourses })),
 }));
+jest.mock('@/services/tenant-actions', () => ({ getTenantPresentation: () => mockTenantPresentation() }));
 const mockAccess = jest.fn<(...args: unknown[]) => Promise<unknown[]>>();
 const mockAssignments = jest.fn<(...args: unknown[]) => Promise<unknown[]>>();
 const mockCourse = jest.fn<(...args: unknown[]) => Promise<unknown>>();
@@ -56,6 +58,7 @@ beforeEach(() => {
   mockTeacherCourses.mockReset();
   mockTeacherCourses.mockResolvedValue([{ courseId: 'course-A', name: 'Assigned class', branchId: 'branch-A' }]);
   mockContext.mockResolvedValue({ allowed: true, tenantId: 'tenant-A', actor: { id: 'actor-A', role: 'admin' }, supabase: mockSessionClient });
+  mockTenantPresentation.mockResolvedValue({ id: 'tenant-A', product_key: 'bella_preschool', status: 'active' });
   mockAccess.mockResolvedValue([relationship]);
   mockAssignments.mockResolvedValue([{ tenant_id: 'tenant-A', course_id: 'course-A', branch_id: 'branch-A' }]);
   mockCourse.mockResolvedValue({ id: 'course-A', title: 'Canonical Class', status: 'active' });
@@ -96,7 +99,7 @@ describe('Attendance canonical course discovery', () => {
     expect(mockRoster).toHaveBeenCalledWith({ tenantId: 'tenant-A', courseId: 'course-A', schoolDay: '2026-10-23' });
     expect(mockCheckEnrollment).toHaveBeenCalledWith('tenant-A', 'actor-A', 'enrollment-A', 'student-A', 'course-A');
     expect(mockCheckCourse).toHaveBeenCalledTimes(2);
-    expect(AttendanceContractImpl).toHaveBeenCalledWith(mockSessionClient);
+    expect(AttendanceContractImpl).toHaveBeenCalledWith(mockSessionClient, 'bella_preschool');
   });
 
   it('lists only teacher-authorized classes without a privileged catalog', async () => {
