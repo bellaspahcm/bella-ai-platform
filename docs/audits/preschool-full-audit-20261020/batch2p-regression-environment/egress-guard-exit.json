@@ -1,0 +1,5 @@
+{
+  "command": "node verify-egress-guard.cjs",
+  "actualNativeExitCode": 0,
+  "finishedAt": "2026-10-21T05:06:05.6501302Z"
+}

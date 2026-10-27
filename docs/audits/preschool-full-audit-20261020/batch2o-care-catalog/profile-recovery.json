@@ -1,0 +1,29 @@
+{
+  "result": "PASS_EXACT_OWNED_PROFILE_RECOVERY",
+  "projectRef": "bmnbqbcdbuklhopfbopv",
+  "sourceFailure": "browser-results-2026-10-21T04-17-34-437Z.json",
+  "pinnedActorIds": [
+    "7573aa24-a48c-496e-8ca6-f9e217a7c654",
+    "56657450-8cfd-403f-9e59-5293884eccd7",
+    "300461a0-7a0b-461d-9fdf-1c4cc398ac47",
+    "86617502-b953-49ee-98b4-92db95c5e444",
+    "0fc97139-2ff7-4103-81ae-623cf4ed7d2d",
+    "4cbaa825-0bf5-4d40-bfcb-4b159482104c"
+  ],
+  "pinnedTenantIds": [
+    "2b4c13be-8bb0-4e48-974c-541d00ad4597",
+    "b639b5d1-ea03-44d6-99ce-5b88036046f4"
+  ],
+  "profilesBefore": 1,
+  "authBefore": 0,
+  "deletedProfiles": 1,
+  "residual": {
+    "profiles": 0,
+    "auth": 0
+  },
+  "catalogBefore": "9afc1e07426e3c7c27bf697c3e4f1877c5affe876cc96505e471f6a08d31d5d2",
+  "catalogAfter": "9afc1e07426e3c7c27bf697c3e4f1877c5affe876cc96505e471f6a08d31d5d2",
+  "retainedTerminatedShells": 2,
+  "statementTimeoutMs": 30000,
+  "lockTimeoutMs": 5000
+}

@@ -1,0 +1,11 @@
+{
+  "humanDecision": "Duyệt đúng FK E2E, giữ sửa đổi nếu PASS",
+  "recordedAt": "2026-10-21T01:20:05.127Z",
+  "projectRef": "bmnbqbcdbuklhopfbopv",
+  "relation": "public.timeline_events",
+  "constraint": "timeline_events_primary_party_id_fkey",
+  "change": "ON DELETE CASCADE -> RESTRICT",
+  "productionAuthorized": false,
+  "originalSixRelationScopeStillApplies": true,
+  "keepOnlyIfFunctionalDenialCleanupPass": true
+}

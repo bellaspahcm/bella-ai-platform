@@ -1,0 +1,20 @@
+{
+  "initialBuildOnlySnapshot": "NOT_PRESERVED_HASH_METADATA_ONLY",
+  "initialHarnessSha256": "528cef0f5a672ba32173bec0a9b2d6d17fc789fb0559c1315d5f0420c4c38f61",
+  "fullRuns": "Copied exact current bytes with matching report hash",
+  "reconstructedBuildSnapshots": [
+    {
+      "receipts": [
+        "browser-results-2026-10-21T03-38-04-868Z.json",
+        "browser-results-2026-10-21T03-40-28-522Z.json"
+      ],
+      "method": "Preserved previous controller plus exact one-line Product file allowlist addition; receipt SHA matched",
+      "sha256": "367a6a8ef8376590b0acd2913bf3110b87135dacbb9821485b38437544b8380d"
+    },
+    {
+      "receipt": "browser-results-2026-10-21T03-48-47-658Z.json",
+      "method": "Current controller minus exact subsequent receipt-collector catch/gate edits; receipt SHA matched",
+      "sha256": "78795cf0276f74f7ab3e6f64d9cd3af6c7b80de18ec990adb526055d71bb7c4b"
+    }
+  ]
+}

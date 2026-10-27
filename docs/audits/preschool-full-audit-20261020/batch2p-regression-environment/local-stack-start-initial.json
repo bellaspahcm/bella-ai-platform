@@ -1,0 +1,21 @@
+{
+  "startedAt": "2026-10-21T04:42:03.019Z",
+  "project": "bella-preschool-regression-20261021",
+  "sandbox": "C:\\Users\\DELL\\AppData\\Local\\Temp\\bella-preschool-regression-20261021",
+  "cliVersion": "2.115.0",
+  "migrationAutoEnabled": false,
+  "demoSeedEnabled": false,
+  "remoteProjectLinked": false,
+  "runtimeSourceChanges": false,
+  "configSha256": "a6e720db824029c0b05462a388f1f9f390a9eae14192cd5e010cf9a637156ad9",
+  "dockerServer": "29.7.2",
+  "containersBefore": [
+    "a9929c8258ab supabase_rest_bella-preschool-proof-20261019",
+    "7726cccd8d41 supabase_auth_bella-preschool-proof-20261019",
+    "c3078034b1a6 supabase_kong_bella-preschool-proof-20261019",
+    "f9a43026f1ee supabase_db_bella-preschool-proof-20261019"
+  ],
+  "result": "LOCAL_STACK_PREFLIGHT_FAILED",
+  "errorCode": "SANDBOX_PORT_NOT_FREE",
+  "finishedAt": "2026-10-21T04:42:03.441Z"
+}

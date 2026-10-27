@@ -1,0 +1,76 @@
+{
+  "scope": "Approved catalog/private headers and Care Browser against E2E only",
+  "gateCount": 11,
+  "overall": "PARTIAL_HELD_RESEAL",
+  "rawMainBrowser": "PASS_SCOPED_BROWSER",
+  "rawSupplementalBrowser": "FAIL_CLEANUP_TIMEOUT",
+  "recovery": "PASS",
+  "gates": [
+    {
+      "id": "Gate0",
+      "name": "Tenant isolation",
+      "result": "PASS",
+      "evidence": "Both real Auth tenants, foreign/duplicate selectors and changed live profile tenant rejected old selector"
+    },
+    {
+      "id": "Gate1",
+      "name": "Exact frozen scope",
+      "result": "PASS",
+      "evidence": "332 existing files unchanged; exactly2 approved new Education paths; manual exception only"
+    },
+    {
+      "id": "Gate2",
+      "name": "Public contract boundary",
+      "result": "PASS",
+      "evidence": "Product catalog uses canonical contract; no legacy/teacher query in new workflow"
+    },
+    {
+      "id": "Gate3",
+      "name": "Typed canonical DTO",
+      "result": "PASS",
+      "evidence": "Focused contract tests plus runtime scoped typecheck0"
+    },
+    {
+      "id": "Gate4",
+      "name": "Read-only semantics",
+      "result": "PASS",
+      "evidence": "No API mutations, schema/ACL/helper/default-role change; fingerprint unchanged"
+    },
+    {
+      "id": "Gate5",
+      "name": "Allowed/denied authorization",
+      "result": "PASS",
+      "evidence": "Real provider actor roles/admin_staff hold/anonymous and active boundaries"
+    },
+    {
+      "id": "Gate6",
+      "name": "Live context changes",
+      "result": "PASS",
+      "evidence": "Same-provider session profile/tenant/branch/role changes and restoration"
+    },
+    {
+      "id": "Gate7",
+      "name": "API/DB persistence",
+      "result": "PASS",
+      "evidence": "Actual quick+individual POST200 and independent DB readbacks, held health untouched"
+    },
+    {
+      "id": "Gate8",
+      "name": "Browser/errors/headers",
+      "result": "PASS",
+      "evidence": "Actual form/roster/reload, denied POST403 editor retention, exact11 headers"
+    },
+    {
+      "id": "Gate9",
+      "name": "Cleanup/recovery/catalog",
+      "result": "PASS_WITH_RECOVERY",
+      "evidence": "Raw expanded aggregateFAIL retained; exact1-profile recovery plus independent all3-runs counts0/ACL12/catalog PASS"
+    },
+    {
+      "id": "Gate10",
+      "name": "Mandatory full regression/readiness",
+      "result": "BLOCKED",
+      "evidence": "Education broad command native1 mock DB failures; full regression PASS/reseal/merge readiness NOT_PROVEN"
+    }
+  ]
+}

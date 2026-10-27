@@ -7,6 +7,20 @@
 870d6edd04bd9a3aaf57db81c690ba9caa6a8b59:src/modules/bella-auto/services/__tests__/AutoMoveBookingAllocationHttp.test.ts:generic-api-key:12
 870d6edd04bd9a3aaf57db81c690ba9caa6a8b59:src/components/bella-auto/__tests__/BookingListTable.deposit-retry.test.tsx:generic-api-key:20
 870d6edd04bd9a3aaf57db81c690ba9caa6a8b59:src/modules/bella-auto/services/__tests__/AutoMoveDepositConfirmationHttp.test.ts:generic-api-key:10
+
+# PR #410: nine verified SHA-256 evidence values and one literal review sentence.
+# Exact historical findings only; no path, rule or whole-commit exemption.
+3fddef00c26772ed3190a7d06f7bed9382aa9d97:docs/audits/preschool-full-audit-20261020/batch2o-care-catalog/CURRENT_SOURCE_MANIFEST.json:generic-api-key:20
+3fddef00c26772ed3190a7d06f7bed9382aa9d97:docs/audits/preschool-full-audit-20261020/batch2o-care-catalog/REVIEW_SOURCE.json:generic-api-key:8
+3fddef00c26772ed3190a7d06f7bed9382aa9d97:docs/audits/preschool-full-audit-20261020/batch2o-care-catalog/VERIFICATION_GATES.json:generic-api-key:13
+3fddef00c26772ed3190a7d06f7bed9382aa9d97:docs/audits/preschool-full-audit-20261020/batch2o-care-catalog/browser-results-2026-10-21T04-14-20-695Z.json:generic-api-key:236
+3fddef00c26772ed3190a7d06f7bed9382aa9d97:docs/audits/preschool-full-audit-20261020/batch2o-care-catalog/browser-results-2026-10-21T04-14-20-695Z.json:generic-api-key:2694
+3fddef00c26772ed3190a7d06f7bed9382aa9d97:docs/audits/preschool-full-audit-20261020/batch2o-care-catalog/browser-results-2026-10-21T04-09-14-018Z.json:generic-api-key:187
+3fddef00c26772ed3190a7d06f7bed9382aa9d97:docs/audits/preschool-full-audit-20261020/batch2o-care-catalog/browser-results-2026-10-21T04-09-14-018Z.json:generic-api-key:2402
+3fddef00c26772ed3190a7d06f7bed9382aa9d97:docs/audits/preschool-full-audit-20261020/batch2o-care-catalog/browser-results-2026-10-21T04-17-34-437Z.json:generic-api-key:254
+3fddef00c26772ed3190a7d06f7bed9382aa9d97:docs/audits/preschool-full-audit-20261020/batch2o-care-catalog/browser-results-2026-10-21T04-17-34-437Z.json:generic-api-key:2741
+4a7a855e3472dcfd86649b18f27671ccbe7188a1:docs/audits/preschool-full-audit-20261020/batch2k-real-auth/review-outcome.json:generic-api-key:4
+
 # PR #448: exact non-secret fingerprints only (function MD5s, token SHA-256 digests, catalog table identifiers, and a public source commit SHA).
 # No rule-wide, path-wide, or whole-commit suppression.
 e39ef131b0613b7fd7b25106ae498a2c5a2b111f:docs/audits/platform-risk-20261027/actor-contract-body-readonly.sql:generic-api-key:4

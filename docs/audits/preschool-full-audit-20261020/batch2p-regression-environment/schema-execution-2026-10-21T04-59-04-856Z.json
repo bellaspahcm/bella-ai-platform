@@ -1,0 +1,24 @@
+{
+  "startedAt": "2026-10-21T04:59:04.857Z",
+  "project": "bella-preschool-regression-20261021",
+  "stage": "HEALTHCARE_PREREQUISITES_ONLY",
+  "committed": false,
+  "statementsExecuted": 82,
+  "productionAccess": false,
+  "e2eAccess": false,
+  "containerId": "cf07712c436a1ec8f3a175a6a1fec369085705a436e2ccbfbd7e9423c22a5157",
+  "publicTablesBefore": 25,
+  "manifestSha256": "1b1e78f19a4dddf750de252cba973b26d59b135c18e270613d60d337430ecf93",
+  "sqlSha256": "c37bc62f412eda983906b99aee0c98526a8e3c74460e2471bae3aa9b263f9ab5",
+  "currentStatement": {
+    "index": 82,
+    "source": "supabase/migrations/20260806050000_healthcare_platform_extended_schema.sql",
+    "line": 70,
+    "sha256": "651be240ecdec378162b272ee65af5790fc49bee8074501e8e16dbb5c9879b3f"
+  },
+  "rollback": "ACKNOWLEDGED",
+  "result": "FAIL_LOCAL_SCHEMA_ROLLED_BACK",
+  "code": "42P01",
+  "position": null,
+  "finishedAt": "2026-10-21T04:59:07.897Z"
+}

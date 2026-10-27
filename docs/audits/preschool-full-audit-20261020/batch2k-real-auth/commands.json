@@ -1,0 +1,112 @@
+{
+  "checkedAt": "2026-10-20T23:45:08.183Z",
+  "credentialsOrCommandPayloadsSaved": false,
+  "commands": [
+    {
+      "command": "npm run prepare",
+      "nativeExitCode": 0
+    },
+    {
+      "command": "Supabase catalog production query without --linked",
+      "nativeExitCode": 1,
+      "result": "CLI rejected before SQL"
+    },
+    {
+      "command": "Supabase catalog production READ ONLY query with --linked --project-ref",
+      "nativeExitCode": 0
+    },
+    {
+      "command": "node production407-readonly.cjs",
+      "nativeExitCode": 0,
+      "result": "22/22"
+    },
+    {
+      "command": "node production-anon32-readonly.cjs",
+      "nativeExitCode": 0,
+      "result": "96/96;32 tables"
+    },
+    {
+      "command": "node production-rpc-readonly.cjs",
+      "nativeExitCode": 0,
+      "result": "anon denied;service SELECT1 allowed"
+    },
+    {
+      "command": "Node stdin production service32 LIMIT0",
+      "nativeExitCode": 0,
+      "result": "32/32"
+    },
+    {
+      "command": "Node stdin final Vercel production target",
+      "nativeExitCode": 0,
+      "result": "READY exact407 merge; Vercel CLI native0"
+    },
+    {
+      "command": "node scripts/verify-preschool-real-auth-acceptance.cjs (explicit E2E_ENV_FILE, memory-only credentials)",
+      "artifact": "results-2026-10-20T23-23-34-577Z.json",
+      "nativeExitCode": 1,
+      "result": "FAIL",
+      "harnessSha256": "d1b7422c08a4f0393de14d9a12100719cbb9162e3fab7cd9750f900f5959cf29"
+    },
+    {
+      "command": "node scripts/verify-preschool-real-auth-acceptance.cjs (explicit E2E_ENV_FILE, memory-only credentials)",
+      "artifact": "results-2026-10-20T23-25-34-690Z.json",
+      "nativeExitCode": 1,
+      "result": "FAIL",
+      "harnessSha256": "7cf78f4460b1a70aacfb2b436b7bd1a91f0e44a7bdaf0e7a171ea21cab36a617"
+    },
+    {
+      "command": "node scripts/verify-preschool-real-auth-acceptance.cjs (explicit E2E_ENV_FILE, memory-only credentials)",
+      "artifact": "results-2026-10-20T23-29-58-907Z.json",
+      "nativeExitCode": 0,
+      "result": "PARTIAL_NOT_PROVEN",
+      "harnessSha256": "d14ecb89b7c9c53444a59169dd5a313f6c241ddd84cbfd7e36cc11b7d25de0e6"
+    },
+    {
+      "command": "node scripts/verify-preschool-real-auth-acceptance.cjs (explicit E2E_ENV_FILE, memory-only credentials)",
+      "artifact": "results-2026-10-20T23-36-30-218Z.json",
+      "nativeExitCode": 1,
+      "result": "FAIL",
+      "harnessSha256": "3d474b6a644b38ec28b1270011433940ef991ed04b31fdab1808870fd7093916"
+    },
+    {
+      "command": "node scripts/verify-preschool-real-auth-acceptance.cjs (explicit E2E_ENV_FILE, memory-only credentials)",
+      "artifact": "results-2026-10-20T23-40-02-139Z.json",
+      "nativeExitCode": 0,
+      "result": "PARTIAL_NOT_PROVEN",
+      "harnessSha256": "fd72e811a46f4dccdc5701c22f9cc1f5427798684df0b6d917c13e314fe87632"
+    },
+    {
+      "command": "node --check scripts/verify-preschool-real-auth-acceptance.cjs",
+      "nativeExitCode": 0
+    },
+    {
+      "command": "cleanup-continuation-unit.cjs initial wrong relative root",
+      "nativeExitCode": 1,
+      "result": "ENOENT; no network, no test proof"
+    },
+    {
+      "command": "cleanup-continuation-unit.cjs before handler fix",
+      "nativeExitCode": 1,
+      "result": "RED"
+    },
+    {
+      "command": "cleanup-continuation-unit.cjs after handler fix",
+      "nativeExitCode": 0,
+      "result": "GREEN; zero network"
+    },
+    {
+      "command": "Node stdin transport guard unit",
+      "nativeExitCode": 0,
+      "result": "4/4; zero network"
+    },
+    {
+      "command": "git diff --check before staging",
+      "nativeExitCode": 0
+    },
+    {
+      "command": "git diff --cached --check initial stage",
+      "nativeExitCode": 2,
+      "result": "SPEC extra blank EOF; repaired formatting only"
+    }
+  ]
+}

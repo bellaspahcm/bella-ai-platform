@@ -1,0 +1,27 @@
+{
+  "baseline": "ecfaf23ab06d043c5f2caec38ea67856705b6c26",
+  "files": [
+    "docs/audits/preschool-full-audit-20261020/batch2k-real-auth/FINAL_REPORT.md",
+    "docs/audits/preschool-full-audit-20261020/batch2k-real-auth/PRODUCTION_VERIFICATION.md",
+    "docs/audits/preschool-full-audit-20261020/batch2k-real-auth/SPEC.md",
+    "docs/audits/preschool-full-audit-20261020/batch2k-real-auth/catalog-before.json",
+    "docs/audits/preschool-full-audit-20261020/batch2k-real-auth/catalog-production-cli.json",
+    "docs/audits/preschool-full-audit-20261020/batch2k-real-auth/catalog-production-readonly.sql",
+    "docs/audits/preschool-full-audit-20261020/batch2k-real-auth/failure-classification.json",
+    "docs/audits/preschool-full-audit-20261020/batch2k-real-auth/fixture-trigger-catalog.json",
+    "docs/audits/preschool-full-audit-20261020/batch2k-real-auth/production-anon32-2026-10-20T23-11-15-603Z.json",
+    "docs/audits/preschool-full-audit-20261020/batch2k-real-auth/production-anon32-readonly.cjs",
+    "docs/audits/preschool-full-audit-20261020/batch2k-real-auth/production-rpc-2026-10-20T23-14-12-912Z.json",
+    "docs/audits/preschool-full-audit-20261020/batch2k-real-auth/production-rpc-readonly.cjs",
+    "docs/audits/preschool-full-audit-20261020/batch2k-real-auth/production407-2026-10-20T23-10-26-384Z.json",
+    "docs/audits/preschool-full-audit-20261020/batch2k-real-auth/production407-latest.json",
+    "docs/audits/preschool-full-audit-20261020/batch2k-real-auth/production407-readonly.cjs",
+    "docs/audits/preschool-full-audit-20261020/batch2k-real-auth/results-2026-10-20T23-23-34-577Z.json",
+    "docs/audits/preschool-full-audit-20261020/batch2k-real-auth/results-2026-10-20T23-25-34-690Z.json",
+    "docs/audits/preschool-full-audit-20261020/batch2k-real-auth/results-2026-10-20T23-29-58-907Z.json",
+    "scripts/verify-preschool-real-auth-acceptance.cjs"
+  ],
+  "diffSha256": "07a33d33ebeed4871995e76c80a9ce977c09705caacae7459e3df2ed76ac01c5",
+  "trackedChanges": "",
+  "stagedByReview": false
+}

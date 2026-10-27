@@ -1,0 +1,139 @@
+{
+  "startedAt": "2026-10-21T04:54:01.217Z",
+  "project": "bella-preschool-regression-20261021",
+  "command": "node node_modules/jest/bin/jest.js --runTestsByPath [exact 3 failing Education suites] --runInBand --json",
+  "runtimeSourceChanges": false,
+  "rawLogsPersisted": false,
+  "credentialsPersisted": false,
+  "businessRowsPersisted": false,
+  "schemaBeforeSha256": "712fd1a300eef21252ebfaf69f8ec71c6ab67d532fa0244754a70dd5ecea79f2",
+  "containerId": "cf07712c436a1ec8f3a175a6a1fec369085705a436e2ccbfbd7e9423c22a5157",
+  "executedCounts": {
+    "suites": 3,
+    "failedSuites": 3,
+    "tests": 23,
+    "failedTests": 7,
+    "passedTests": 16,
+    "pendingTests": 0
+  },
+  "failedAssertions": [
+    {
+      "file": "src/platform/education/__tests__/kernel-invariants.integration.test.ts",
+      "name": "Education OS — Kernel Invariants Integration Tests Prerequisite Checks with Versioned Grading Rules should validate prerequisite under Vietnamese 10-point scale: 4.5 -> BLOCK, 5.0 -> ALLOW",
+      "status": "failed",
+      "diagnostics": [
+        "Error: Prerequisite check failed. Missing prerequisite courses: PREREQ-V10-A"
+      ],
+      "scalarMismatch": false
+    },
+    {
+      "file": "src/platform/education/__tests__/kernel-invariants.integration.test.ts",
+      "name": "Education OS — Kernel Invariants Integration Tests Prerequisite Checks with Versioned Grading Rules should validate prerequisite under Percentage scale: 69 -> BLOCK, 70 -> ALLOW",
+      "status": "failed",
+      "diagnostics": [
+        "Error: Prerequisite check failed. Missing prerequisite courses: PREREQ-P100-A"
+      ],
+      "scalarMismatch": false
+    },
+    {
+      "file": "src/platform/education/__tests__/verification-gates.test.ts",
+      "name": "Education OS — 11 Automated Verification Gates Gate 2: Contract Boundary Compliance should retrieve course and register student using Public Contract implementation classes",
+      "status": "failed",
+      "diagnostics": [
+        "Error: Failed to create course: new row for relation \"courses\" violates check constraint \"courses_status_check\""
+      ],
+      "scalarMismatch": false
+    },
+    {
+      "file": "src/platform/education/__tests__/verification-gates.test.ts",
+      "name": "Education OS — 11 Automated Verification Gates Gate 3: Tenant Isolation should completely isolate student and course records between Tenant A and Tenant B",
+      "status": "failed",
+      "diagnostics": [
+        "Error: expect(received).toBe(expected) // Object.is equality",
+        "Expected: true",
+        "Received: false"
+      ],
+      "scalarMismatch": true
+    },
+    {
+      "file": "src/platform/education/__tests__/verification-gates.test.ts",
+      "name": "Education OS — 11 Automated Verification Gates Gate 8: Temporal Provenance should log academic status changes inside platform timeline primitive",
+      "status": "failed",
+      "diagnostics": [
+        "Error: Person Party with ID [SYNTHETIC_ID] does not exist"
+      ],
+      "scalarMismatch": false
+    },
+    {
+      "file": "src/platform/education/__tests__/attendance-contract-real-db.integration.test.ts",
+      "name": "Education Attendance Contract — canonical real DB chain upserts one daily state while preserving additive attendance events",
+      "status": "failed",
+      "diagnostics": [
+        "Error: Failed to set daily attendance: column reference \"tenant_id\" is ambiguous"
+      ],
+      "scalarMismatch": false
+    },
+    {
+      "file": "src/platform/education/__tests__/attendance-contract-real-db.integration.test.ts",
+      "name": "Education Attendance Contract — canonical real DB chain loads daily course roster through party identity without requiring person_id",
+      "status": "failed",
+      "diagnostics": [
+        "Error: Failed to set daily attendance: column reference \"tenant_id\" is ambiguous"
+      ],
+      "scalarMismatch": false
+    }
+  ],
+  "actualNativeExitCode": 1,
+  "signal": null,
+  "timedOut": false,
+  "outputBytes": 42932,
+  "earlyFailureLines": [],
+  "summaries": [
+    "Test Suites: 3 failed, 3 total",
+    "Tests:       7 failed, 16 passed, 23 total"
+  ],
+  "failureCategories": {
+    "missingRelation": true,
+    "missingColumn": false,
+    "foreignKey": false,
+    "notNull": false,
+    "checkConstraint": true,
+    "appendOnly": false,
+    "mockDns": false,
+    "networkDenied": false
+  },
+  "safeDiagnostics": [
+    "    Failed to create course: new row for relation \"courses\" violates check constraint \"courses_status_check\""
+  ],
+  "schemaAfterSha256": "712fd1a300eef21252ebfaf69f8ec71c6ab67d532fa0244754a70dd5ecea79f2",
+  "schemaUnchanged": true,
+  "localResidualCounts": {
+    "assessment_results": 0,
+    "assessments": 0,
+    "attendances": 0,
+    "courses": 12,
+    "edu_assessments": 0,
+    "edu_attendance": 0,
+    "edu_attendance_daily_state": 0,
+    "edu_courses": 0,
+    "edu_enrollments": 0,
+    "enrollments": 0,
+    "journey_journeys": 0,
+    "journey_milestones": 0,
+    "journey_sub_journeys": 0,
+    "party_identifiers": 0,
+    "party_parties": 18,
+    "party_relationships": 0,
+    "party_roles": 0,
+    "persons": 0,
+    "platform_business_rules": 0,
+    "platform_rule_evaluation_log": 0,
+    "students": 0,
+    "teacher_assignments": 0,
+    "tenants": 5,
+    "timeline_events": 0,
+    "users": 0
+  },
+  "result": "FAIL_EXACT_COMMAND_LOCAL_ENVIRONMENT",
+  "finishedAt": "2026-10-21T04:54:09.683Z"
+}
