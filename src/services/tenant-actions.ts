@@ -5,6 +5,11 @@ import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import { getSupabaseAdminKey, getSupabaseAdminUrl } from '@/lib/supabase-admin-env';
 import { getAuthorizedTenantUser } from '@/core/services/auth';
 import { getCurrentUser } from './user-actions';
+import {
+  CURRENT_ACTOR_TENANT_PRESENTATION_RPC,
+  reconcileCurrentActorTenantPresentation,
+} from '@/platform/security/current-actor.contract';
+import type { PlatformActorDatabase } from '@/platform/security/current-actor.contract';
 import { recordAuditLog } from './audit-actions';
 import { revalidatePath } from 'next/cache';
 import type { Database, Json } from '@/types/database.types';
@@ -120,11 +125,10 @@ export async function getTenantPresentation(): Promise<TenantPresentation | null
   const currentUser = await getCurrentUser();
   if (!currentUser?.tenant_id) return null;
   const supabase = await createClient();
-  const { data, error } = await supabase.from('tenants')
-    .select('id, name, status, product_key, enabled_modules, brand_theme, logo_url')
-    .eq('id', currentUser.tenant_id).single();
-  if (error || !data || data.id !== currentUser.tenant_id || data.status !== 'active') return null;
-  return data;
+  const actorClient = supabase as unknown as import('@supabase/supabase-js').SupabaseClient<PlatformActorDatabase>;
+  const { data, error } = await actorClient.rpc(CURRENT_ACTOR_TENANT_PRESENTATION_RPC);
+  if (error) return null;
+  return reconcileCurrentActorTenantPresentation(currentUser.tenant_id, data);
 }
 
 export async function getTenantSettings(): Promise<TenantRow | null> {

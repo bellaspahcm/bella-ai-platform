@@ -60,7 +60,7 @@ export class AttendanceContractImpl implements IEducationAttendanceContract {
     // Server callers may provide the product key resolved from the current
     // actor's tenant contract. This avoids asking authenticated callers to
     // SELECT public.tenants, which is intentionally not granted by RLS/ACL.
-    private readonly trustedTenantProductKey?: string,
+    private readonly trustedTenantProductKey?: string | null,
   ) {}
 
   private getClient(): EducationAttendanceClient {

@@ -41,6 +41,13 @@ describe('approved Preschool roster identity capability', () => {
     expect(c.rpc).toHaveBeenCalledWith('edu_preschool_roster_identity', { p_course_id: courseId, p_school_day: schoolDay });
     expect(c.from.mock.calls.map(([table]) => table)).toEqual(['edu_attendance_daily_state']);
   });
+  it('keeps an explicit unclassified product key distinct from missing context', async () => {
+    const c = client();
+    const contract = new AttendanceContractImpl(c as never, null);
+    await contract.getCourseDailyAttendance({ tenantId, courseId, schoolDay });
+    expect(c.from.mock.calls.map(([table]) => table)).not.toContain('tenants');
+    expect(c.rpc).not.toHaveBeenCalled();
+  });
   it('retains existing generic pending roster path outside Preschool', async () => {
     const c = client('bella_english_center');
     expect(await read(c)).toEqual([expect.objectContaining({ name: 'Legacy child', enrollmentStatus: 'pending' })]);
