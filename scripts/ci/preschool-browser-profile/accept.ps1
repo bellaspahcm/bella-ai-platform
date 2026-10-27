@@ -14,7 +14,11 @@ function Get-CanonicalSourceSha256([string] $Path) {
   finally { $sha.Dispose() }
 }
 
-$repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..\..')).Path
+$scriptRepoPath = Join-Path $PSScriptRoot '..\..\..'
+$repoRoot = (& git -C $scriptRepoPath rev-parse --show-toplevel 2>$null).Trim()
+if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($repoRoot)) {
+  throw 'PROFILE_GIT_REPOSITORY_ROOT_UNAVAILABLE'
+}
 $profileRunner = Join-Path $PSScriptRoot 'run.ps1'
 $acceptanceScript = Join-Path $PSScriptRoot 'teacher-attendance.e2e.mjs'
 $resolvedRun = (Resolve-Path -LiteralPath $RunDirectory).Path

@@ -29,7 +29,8 @@ import {
   Baby,
 } from 'lucide-react';
 import { loadAllClassAssignments, loadAllConfirmedTeachers, loadTeacherBranches,
-  loadTeacherClasses, localDate, type TeacherBranch, type TeacherClass } from './teacher-live-data';
+  loadTeacherCandidates, loadTeacherClasses, localDate, type TeacherBranch, type TeacherClass } from './teacher-live-data';
+import type { PreschoolTeacherCandidate } from '@/platform/education/contracts/teacher-assignment.contract';
 
 // ── Strict Types ──────────────────────────────────────────────────────────────
 
@@ -303,6 +304,17 @@ export default function TeachersPage() {
   const [saveError, setSaveError] = useState('');
   const saveLock = useRef(false);
   const pendingAssignment = useRef<Record<string, unknown> | null>(null);
+  const [candidateQuery, setCandidateQuery] = useState('');
+  const [candidateResults, setCandidateResults] = useState<readonly PreschoolTeacherCandidate[]>([]);
+  const [candidateResultsHaveMore, setCandidateResultsHaveMore] = useState(false);
+  const [candidateSearchLoading, setCandidateSearchLoading] = useState(false);
+  const [candidateSearchDone, setCandidateSearchDone] = useState(false);
+  const [selectedCandidatePartyId, setSelectedCandidatePartyId] = useState('');
+  const [confirmationValidFrom, setConfirmationValidFrom] = useState(localDate());
+  const [confirmationAttested, setConfirmationAttested] = useState(false);
+  const [confirmationSaving, setConfirmationSaving] = useState(false);
+  const confirmationLock = useRef(false);
+  const pendingConfirmation = useRef<Record<string, unknown> | null>(null);
   const [selectedTeacherForProfile, setSelectedTeacherForProfile] = useState<TeacherItem | null>(null);
   const [isAddTeacherOpen, setIsAddTeacherOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -418,6 +430,86 @@ export default function TeachersPage() {
     }
   }
 
+  function openTeacherConfirmation() {
+    setSaveError('');
+    setCandidateQuery('');
+    setCandidateResults([]);
+    setCandidateResultsHaveMore(false);
+    setCandidateSearchDone(false);
+    setSelectedCandidatePartyId('');
+    setConfirmationValidFrom(localDate());
+    setConfirmationAttested(false);
+    pendingConfirmation.current = null;
+    setIsAddTeacherOpen(true);
+  }
+
+  function closeTeacherConfirmation() {
+    if (confirmationSaving) return;
+    pendingConfirmation.current = null;
+    setIsAddTeacherOpen(false);
+  }
+
+  async function searchTeacherCandidates() {
+    if (!branchId || candidateSearchLoading) return;
+    setCandidateSearchLoading(true);
+    setSaveError('');
+    setCandidateSearchDone(false);
+    setCandidateResults([]);
+    setCandidateResultsHaveMore(false);
+    setSelectedCandidatePartyId('');
+    pendingConfirmation.current = null;
+    try {
+      const page = await loadTeacherCandidates(branchId, localDate(), candidateQuery.trim(), false, 0);
+      setCandidateResults(page.parties);
+      setCandidateResultsHaveMore(page.nextOffset !== null);
+      setCandidateSearchDone(true);
+    } catch {
+      setSaveError('Không tải được hồ sơ Người trong phạm vi chi nhánh được phân quyền.');
+    } finally {
+      setCandidateSearchLoading(false);
+    }
+  }
+
+  async function submitTeacherConfirmation(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!branchId || !selectedCandidatePartyId || !confirmationValidFrom || !confirmationAttested
+      || confirmationLock.current) return;
+    const candidate = candidateResults.find(item => item.partyId === selectedCandidatePartyId);
+    if (!candidate || candidate.confirmations.length > 0) {
+      setSaveError('Hồ sơ đã có xác nhận hiệu lực hoặc không còn trong kết quả tìm kiếm. Hãy tải lại danh sách.');
+      return;
+    }
+    const payload = pendingConfirmation.current ?? {
+      action: 'confirm', branchId, operationKey: crypto.randomUUID(), teacherPartyId: candidate.partyId,
+      validFrom: confirmationValidFrom, validTo: null,
+      attestation: 'Quản trị viên xác nhận hồ sơ Party này thuộc người thật được xác nhận làm giáo viên tại chi nhánh đã chọn.',
+    };
+    pendingConfirmation.current = payload;
+    confirmationLock.current = true;
+    setConfirmationSaving(true);
+    setSaveError('');
+    try {
+      const response = await fetch('/api/education/teachers', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
+      });
+      const body: unknown = await response.json();
+      if (!response.ok || body === null || typeof body !== 'object' || !('success' in body) || body.success !== true) {
+        throw new Error(response.status === 409 ? 'CONFIRM_CONFLICT' : 'CONFIRM_FAILED');
+      }
+      pendingConfirmation.current = null;
+      setIsAddTeacherOpen(false);
+      setToastMessage(`Đã xác nhận ${candidate.displayName} là giáo viên tại chi nhánh này.`);
+      setRevision(value => value + 1);
+    } catch (error) {
+      setSaveError(error instanceof Error && error.message === 'CONFIRM_CONFLICT'
+        ? 'Hồ sơ vừa được xác nhận hoặc thay đổi. Hãy tải lại danh sách trước khi tiếp tục.'
+        : 'Không lưu được xác nhận giáo viên. Có thể thử lại cùng yêu cầu.');
+    } finally {
+      confirmationLock.current = false;
+      setConfirmationSaving(false);
+    }
+  }
+
   // Close menus on outside click
   useEffect(() => {
     function handleClickOutside(event: globalThis.MouseEvent) {
@@ -511,7 +603,7 @@ export default function TeachersPage() {
 
           <button
             type="button"
-            onClick={() => { setSaveError(''); setIsAddTeacherOpen(true); }}
+            onClick={openTeacherConfirmation}
             className="px-4 py-2.5 rounded-lg bg-[#0e5c43] hover:bg-[#0a4633] active:scale-95 text-white font-bold text-xs shadow-xs transition-all flex items-center gap-1.5 cursor-pointer shrink-0"
           >
             <UserPlus className="w-4 h-4" />
@@ -869,13 +961,14 @@ export default function TeachersPage() {
         </div>
       )}
 
-      {/* ── 6. ADD NEW TEACHER MODAL ── */}
+      {/* ── 6. CONFIRM AN EXISTING PARTY AS A TEACHER ── */}
       {isAddTeacherOpen && (
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
           <div className="w-full max-w-xl max-h-[92vh] overflow-y-auto rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl p-6 sm:p-8 space-y-6 relative">
             <button
               type="button"
-              onClick={() => setIsAddTeacherOpen(false)}
+              onClick={closeTeacherConfirmation}
+              disabled={confirmationSaving}
               className="absolute top-5 right-5 p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer"
             >
               <X className="w-4 h-4" />
@@ -883,173 +976,129 @@ export default function TeachersPage() {
 
             <div className="space-y-1">
               <span className="text-[11px] font-extrabold uppercase tracking-wider text-[#0e5c43] dark:text-emerald-400">
-                Khai báo hồ sơ nhân sự sư phạm mầm non
+                Xác nhận từ danh mục Người hiện có
               </span>
               <h3 className="text-xl font-extrabold text-slate-900 dark:text-white">
                 + Thêm Giáo Viên Mới
               </h3>
               <p className="text-xs text-slate-500 dark:text-slate-400">
-                Chưa có API lưu hồ sơ chi tiết giáo viên; biểu mẫu này hiện chưa thể kích hoạt.
+                Chọn đúng hồ sơ Party của người thật và xác nhận họ là giáo viên tại chi nhánh đang chọn. Trang này không tạo hồ sơ Người mới.
               </p>
             </div>
 
             <form
-              onSubmit={(e: FormEvent<HTMLFormElement>) => { e.preventDefault(); setSaveError('Chưa có API tạo hồ sơ giáo viên. Thông tin chưa được lưu.'); }}
+              onSubmit={submitTeacherConfirmation}
               className="space-y-4"
             >
               <div>
                 <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">
-                  Họ và tên cô giáo <span className="text-rose-500">*</span>
+                  Tìm hồ sơ Người theo tên <span className="text-rose-500">*</span>
                 </label>
-                <input
-                  type="text"
-                  name="name"
-                  required
-                  placeholder="Ví dụ: Cô Vũ Hoàng Lan"
-                  className="w-full p-3 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-[#0e5c43]"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">
-                    Chức vụ / Vai trò <span className="text-rose-500">*</span>
-                  </label>
-                  <select
-                    name="roleKey"
-                    className="w-full p-3 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-[#0e5c43]"
+                <div className="flex gap-2">
+                  <input
+                    type="search"
+                    value={candidateQuery}
+                    onChange={event => setCandidateQuery(event.target.value)}
+                    placeholder="Nhập tên hồ sơ đã có trong hệ thống"
+                    className="min-w-0 flex-1 p-3 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-[#0e5c43]"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => void searchTeacherCandidates()}
+                    disabled={candidateSearchLoading || candidateQuery.trim().length < 2}
+                    className="px-4 py-2.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-[#0e5c43] dark:text-emerald-400 font-bold text-xs disabled:cursor-not-allowed disabled:opacity-50"
                   >
-                    <option value="chunhiem">Giáo viên chủ nhiệm</option>
-                    <option value="trogiang">Giáo viên trợ giảng</option>
-                    <option value="bomon">Giáo viên năng khiếu</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">
-                    Khối mầm non <span className="text-rose-500">*</span>
-                  </label>
-                  <select
-                    name="gradeLevel"
-                    className="w-full p-3 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-[#0e5c43]"
-                  >
-                    <option value="mam">Khối Mầm (3 - 4 tuổi)</option>
-                    <option value="choi">Khối Chồi (4 - 5 tuổi)</option>
-                    <option value="la">Khối Lá (5 - 6 tuổi)</option>
-                    <option value="nhatre">Khối Nhà Trẻ (18 - 36 tháng)</option>
-                  </select>
+                    <Search className="inline w-4 h-4 mr-1" />
+                    {candidateSearchLoading ? 'Đang tìm' : 'Tìm hồ sơ'}
+                  </button>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">
-                    Lớp phân công
-                  </label>
-                  <select
-                    name="classAssigned"
-                    className="w-full p-3 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-[#0e5c43]"
-                  >
-                    <option>Chưa có API tạo hồ sơ</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">
-                    Định mức giờ/tuần (Max 40h)
-                  </label>
-                  <input
-                    type="number"
-                    name="workloadHours"
-                    defaultValue={undefined}
-                    min={10}
-                    max={40}
-                    className="w-full p-3 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-[#0e5c43]"
-                  />
-                </div>
+              <div className="space-y-2" aria-live="polite">
+                {candidateSearchDone && candidateResults.length === 0 && (
+                  <p className="rounded-xl bg-slate-50 dark:bg-slate-800 p-3 text-xs text-slate-600 dark:text-slate-300">
+                    Không tìm thấy hồ sơ phù hợp. Người cần xác nhận phải có hồ sơ Party trong cùng tenant trước.
+                  </p>
+                )}
+                {candidateResultsHaveMore && (
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    Còn kết quả khác; hãy nhập thêm ký tự để thu hẹp tên cần tìm.
+                  </p>
+                )}
+                {candidateResults.map(candidate => {
+                  const alreadyConfirmed = candidate.confirmations.length > 0;
+                  const selected = selectedCandidatePartyId === candidate.partyId;
+                  return (
+                    <button
+                      key={candidate.partyId}
+                      type="button"
+                      disabled={alreadyConfirmed || candidateSearchLoading}
+                      aria-pressed={selected}
+                      onClick={() => {
+                        pendingConfirmation.current = null;
+                        setSelectedCandidatePartyId(candidate.partyId);
+                        setConfirmationAttested(false);
+                        setSaveError('');
+                      }}
+                      className={`w-full rounded-xl border p-3 text-left text-xs ${selected
+                        ? 'border-[#0e5c43] bg-emerald-50 dark:bg-emerald-950/30'
+                        : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900'} disabled:cursor-not-allowed disabled:opacity-60`}
+                    >
+                      <span className="font-bold text-slate-900 dark:text-white">{candidate.displayName}</span>
+                      <span className="block mt-1 text-slate-500 dark:text-slate-400">
+                        {alreadyConfirmed ? 'Đã có xác nhận hiệu lực tại chi nhánh này.' : 'Hồ sơ hiện chưa được xác nhận làm giáo viên.'}
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">
-                    Trình độ bằng cấp
+              {selectedCandidatePartyId && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label htmlFor="teacher-confirmation-valid-from" className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">
+                      Ngày bắt đầu hiệu lực
+                    </label>
+                    <input
+                      id="teacher-confirmation-valid-from"
+                      type="date"
+                      required
+                      value={confirmationValidFrom}
+                      onChange={event => {
+                        pendingConfirmation.current = null;
+                        setConfirmationValidFrom(event.target.value);
+                      }}
+                      className="w-full p-3 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-[#0e5c43]"
+                    />
+                  </div>
+                  <label className="flex items-center gap-2 rounded-xl border border-emerald-200 dark:border-emerald-900 p-3 text-xs text-slate-700 dark:text-slate-300">
+                    <input
+                      type="checkbox"
+                      checked={confirmationAttested}
+                      onChange={event => setConfirmationAttested(event.target.checked)}
+                    />
+                    Tôi xác nhận đây là người thật đang làm giáo viên tại chi nhánh đã chọn.
                   </label>
-                  <input
-                    type="text"
-                    name="degree"
-                    defaultValue=""
-                    className="w-full p-3 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-[#0e5c43]"
-                  />
                 </div>
-
-                <div>
-                  <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">
-                    Trường đào tạo
-                  </label>
-                  <input
-                    type="text"
-                    name="university"
-                    defaultValue=""
-                    className="w-full p-3 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-[#0e5c43]"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">
-                    Số năm kinh nghiệm
-                  </label>
-                  <input
-                    type="text"
-                    name="experience"
-                    defaultValue=""
-                    className="w-full p-3 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-[#0e5c43]"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">
-                    Số điện thoại
-                  </label>
-                  <input
-                    type="text"
-                    name="phone"
-                    defaultValue=""
-                    className="w-full p-3 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-[#0e5c43]"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">
-                  Chứng chỉ chuyên môn (cách nhau bởi dấu phẩy)
-                </label>
-                <input
-                  type="text"
-                  name="certs"
-                  defaultValue=""
-                  className="w-full p-3 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-[#0e5c43]"
-                />
-              </div>
+              )}
 
               {saveError && <p role="alert" className="text-xs text-red-700">{saveError}</p>}
               <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100 dark:border-slate-800">
                 <button
                   type="button"
-                  onClick={() => setIsAddTeacherOpen(false)}
+                  onClick={closeTeacherConfirmation}
+                  disabled={confirmationSaving}
                   className="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-xs hover:bg-slate-200 transition-colors cursor-pointer"
                 >
                   Hủy bỏ
                 </button>
                 <button
                   type="submit"
-                  aria-disabled="true"
-                  onClick={() => setSaveError('Chưa có API tạo hồ sơ giáo viên. Thông tin chưa được lưu.')}
-                  className="px-5 py-2.5 rounded-xl bg-[#0e5c43] hover:bg-[#0a4633] text-white font-bold text-xs shadow-md transition-all cursor-pointer flex items-center gap-1.5 active:scale-95"
+                  disabled={confirmationSaving || candidateSearchLoading || !selectedCandidatePartyId || !confirmationAttested}
+                  className="px-5 py-2.5 rounded-xl bg-[#0e5c43] hover:bg-[#0a4633] text-white font-bold text-xs shadow-md transition-all cursor-pointer flex items-center gap-1.5 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <Check className="w-4 h-4" />
-                  <span>Lưu &amp; Kích Hoạt Hồ Sơ</span>
+                  <span>{confirmationSaving ? 'Đang lưu' : 'Xác Nhận Giáo Viên'}</span>
                 </button>
               </div>
             </form>
