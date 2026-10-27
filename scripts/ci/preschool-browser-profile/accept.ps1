@@ -93,8 +93,11 @@ $appParent = Split-Path (Split-Path $repoRoot -Parent) -Parent
 $appWorktree = Join-Path $appParent ('.preschool-profile-' + $receipt.projectId + '-app')
 $appWorktree = [IO.Path]::GetFullPath($appWorktree)
 if (Test-Path -LiteralPath $appWorktree) { throw 'APP_WORKTREE_PATH_ALREADY_EXISTS' }
-$appParentFull = [IO.Path]::GetFullPath($appParent).TrimEnd('\') + '\'
-if (!$appWorktree.StartsWith($appParentFull, [StringComparison]::OrdinalIgnoreCase)) {
+$appParentFull = [IO.Path]::GetFullPath($appParent).TrimEnd([char]'\', [char]'/')
+$relativeAppWorktree = [IO.Path]::GetRelativePath($appParentFull, $appWorktree)
+$parentPrefix = '..' + [IO.Path]::DirectorySeparatorChar
+if ([IO.Path]::IsPathRooted($relativeAppWorktree) -or $relativeAppWorktree -eq '..' -or
+  $relativeAppWorktree.StartsWith($parentPrefix, [StringComparison]::Ordinal)) {
   throw 'APP_WORKTREE_PATH_OUTSIDE_TEMP_ROOT'
 }
 
