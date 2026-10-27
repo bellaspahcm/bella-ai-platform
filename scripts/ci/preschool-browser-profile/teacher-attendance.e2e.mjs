@@ -267,10 +267,11 @@ async function main() {
       VALUES ($1,$2,$3,'employee','Synthetic Admin A',true),($4,$5,$6,'employee','Synthetic Admin B',true),
         ($7,$2,$8,'employee','Synthetic Teacher',true)`,
     [ids.adminDirectoryA, ids.tenantA, ids.adminA, ids.adminDirectoryB, ids.tenantB, ids.adminB, ids.teacherDirectory, ids.teacher]);
+    // Access must be active at the database's CURRENT_DATE; schoolDay can be tomorrow in UTC.
     await pgClient.query(`INSERT INTO public.org_relationships(tenant_id,from_id,from_type,to_id,to_type,rel_type,since)
-      VALUES ($1,$2,'person',$3,'unit','manages',$6),($1,$2,'person',$4,'unit','manages',$6),
-        ($5,$7,'person',$8,'unit','manages',$6),($1,$9,'person',$3,'unit','belongs_to',$6)`,
-    [ids.tenantA, ids.adminDirectoryA, ids.branchA, ids.branchB, ids.tenantB, schoolDay,
+      VALUES ($1,$2,'person',$3,'unit','manages',CURRENT_DATE),($1,$2,'person',$4,'unit','manages',CURRENT_DATE),
+        ($5,$6,'person',$7,'unit','manages',CURRENT_DATE),($1,$8,'person',$3,'unit','belongs_to',CURRENT_DATE)`,
+    [ids.tenantA, ids.adminDirectoryA, ids.branchA, ids.branchB, ids.tenantB,
       ids.adminDirectoryB, ids.branchC, ids.teacherDirectory]);
 
     await pgClient.query(`INSERT INTO public.party_parties(id,tenant_id,party_type,display_name,gender,dob)
