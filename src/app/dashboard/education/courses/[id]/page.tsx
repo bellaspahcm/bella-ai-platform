@@ -235,8 +235,8 @@ export default function ClassWorkspacePage({ params }: { params: Promise<{ id: s
             {activeTab === 'overview' && <>
               <p>Danh tính lớp học đã được xác minh từ Education. Phòng học, sức chứa, khối lớp và năm học chưa có nguồn chuẩn để hiển thị.</p>
               <p>Điều kiện tiên quyết: <span>{state.course.prerequisites.length ? state.course.prerequisites.join(', ') : 'Không có'}</span></p>
-              <button type="button" disabled={!live || live.teacherCount === null} onClick={() => { window.location.href = '/dashboard/education/teachers'; }} aria-describedby="catalog-overview-assignment-unavailable" className="font-bold disabled:cursor-not-allowed text-slate-500 dark:text-slate-400">Phân công GVN</button>
-              <p id="catalog-overview-assignment-unavailable">{live && live.teacherCount !== null ? 'Quản lý phân công tại trang Quản lý giáo viên.' : 'Phân công và chấm dứt phân công giáo viên hiện chưa khả dụng.'}</p>
+              <Link href="/dashboard/education/teachers" aria-describedby="catalog-overview-assignment-unavailable" className="font-bold text-slate-500 dark:text-slate-400">Phân công GVN</Link>
+              <p id="catalog-overview-assignment-unavailable">Mở trang Quản lý giáo viên để chọn chi nhánh và phân công lớp.</p>
             </>}
             {activeTab === 'students' && <div className="space-y-4">
               <div>
@@ -267,8 +267,8 @@ export default function ClassWorkspacePage({ params }: { params: Promise<{ id: s
             </div>}
             {activeTab === 'teachers' && <>
               <p role="status">{live?.teacher ?? 'Thông tin đội ngũ giáo viên hiện chưa khả dụng trong danh mục này.'}</p>
-              <button type="button" disabled={!live || live.teacherCount === null} onClick={() => { window.location.href = '/dashboard/education/teachers'; }} aria-describedby="catalog-teachers-assignment-unavailable" className="font-bold disabled:cursor-not-allowed text-slate-500 dark:text-slate-400">Phân công Giáo viên Mới</button>
-              <p id="catalog-teachers-assignment-unavailable">{live && live.teacherCount !== null ? 'Quản lý phân công tại trang Quản lý giáo viên.' : 'Phân công và chấm dứt phân công giáo viên hiện chưa khả dụng.'}</p>
+              <Link href="/dashboard/education/teachers" aria-describedby="catalog-teachers-assignment-unavailable" className="font-bold text-slate-500 dark:text-slate-400">Phân công Giáo viên Mới</Link>
+              <p id="catalog-teachers-assignment-unavailable">Mở trang Quản lý giáo viên để chọn chi nhánh và phân công lớp.</p>
             </>}
             {activeTab === 'attendance' && <div className="space-y-3">
               <p role="status">Mở sổ điểm danh theo đúng lớp đã chọn. Dữ liệu ngày và thao tác điểm danh tuân theo phạm vi được cấp quyền tại trang điểm danh.</p>
