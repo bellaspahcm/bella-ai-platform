@@ -1,0 +1,14 @@
+{
+  "checkedAtUtc": "2026-10-27T04:58:00.4746041Z",
+  "missingPaths": [],
+  "missingLinks": [],
+  "jsonErrors": [],
+  "trailingWhitespace": [],
+  "gitDiffCheckExit": 0,
+  "gitDiffCheckOutput": "",
+  "anonymousHttpDenials": true,
+  "rollbackBehavioralAssertions": true,
+  "migrationHashMatchesExecutionRecord": true,
+  "healthcareVerifyExit": 1,
+  "result": "PASS_P0_CONTAINMENT_ARTIFACTS"
+}

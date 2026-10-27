@@ -1,0 +1,10 @@
+{
+  "command": "supabase db query --linked --project-ref lvnvkpyxtuilhrabtlwv --file docs/audits/platform-risk-20261027/containment-consumer-preflight-readonly.sql -o json",
+  "startedUtc": "2026-10-27T11:22:00.7621281+07:00",
+  "endedUtc": "2026-10-27T11:22:03.1871368+07:00",
+  "exitCode": 1,
+  "sourceRevision": "a69bab6c3244d34723b5600b646f48d0e48400ee",
+  "querySha256": "f1ed7e97f61173f3629effdc632991c33eb5cc6cb59aa3dc7985d91f9fdb52ff",
+  "archivedQueryFile": "containment-function-preflight-attempt1-readonly.sql",
+  "attemptResult": "Read-only SQL rejected because pg_get_functiondef was evaluated against aggregate avg; no database mutation"
+}

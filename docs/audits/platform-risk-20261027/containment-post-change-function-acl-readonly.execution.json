@@ -1,0 +1,8 @@
+{
+  "command": "supabase db query --linked --project-ref lvnvkpyxtuilhrabtlwv --file docs/audits/platform-risk-20261027/containment-post-change-function-acl-readonly.sql -o json",
+  "startedUtc": "2026-10-27T04:55:13.5847939Z",
+  "endedUtc": "2026-10-27T04:55:15.6930955Z",
+  "exitCode": 0,
+  "querySha256": "79689a6e79c986d6ced36aff2907fe558bd9ffae44b69a1b53c0a0d56014109e",
+  "outputFile": "containment-post-change-function-acl-readonly.stdout.log"
+}

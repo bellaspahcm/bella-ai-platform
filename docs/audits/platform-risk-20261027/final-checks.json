@@ -1,0 +1,17 @@
+{
+  "checkedAt": "2026-10-27T04:14:53.877Z",
+  "evidenceFiles": 78,
+  "exactConfiguredSecretMatches": [],
+  "patternCounts": {
+    "jwt": 0,
+    "privateKey": 0,
+    "passwordDbUrl": 0
+  },
+  "jsonErrors": [],
+  "linkErrors": [],
+  "candidatePackageHashesMatchExecutedEvidence": true,
+  "gitDiffCheckExit": 0,
+  "gitDiffCheckOutput": "",
+  "result": "PASS",
+  "scope": "Finite evidence/package scan using configured values and token patterns; not exhaustive secret certification"
+}

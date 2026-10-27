@@ -1,0 +1,165 @@
+{
+  "checkedAtUtc": "2026-10-27T05:51:57Z",
+  "scope": "Read-only primary database role, object grants, runtime activity, migration credential references, and tracked credential-source review",
+  "result": "PRIVILEGED_ACCESS_CONFIRMED; CREDENTIAL_VALIDITY_NOT_PROVEN; NO_PERMISSION_OR_PRODUCTION_CHANGE",
+  "primaryProjectRef": "lvnvkpyxtuilhrabtlwv",
+  "readOnlyQueries": [
+    "privileged-role-primary-readonly.execution.json",
+    "privileged-role-runtime-readonly.execution.json",
+    "privileged-role-function-definitions-readonly.execution.json",
+    "privileged-role-tenant-context-readonly.execution.json"
+  ],
+  "inspectionSession": {
+    "databaseCurrentUser": "postgres",
+    "databaseSessionUser": "postgres",
+    "currentProcessVariableNames": ["SUPABASE_ACCESS_TOKEN"],
+    "rootEnvironmentFiles": [".env.example"],
+    "databaseSecretValuesRead": false,
+    "databaseExecutorCredentialWasUsedForThisReview": false
+  },
+  "executorRole": {
+    "name": "bella_migration_executor",
+    "canLogin": true,
+    "bypassRls": true,
+    "superuser": false,
+    "createRole": false,
+    "createDatabase": false,
+    "inherit": true,
+    "connectionLimit": -1,
+    "validUntil": null,
+    "databasePrivileges": {
+      "connect": true,
+      "createDatabase": false,
+      "temporary": true
+    },
+    "schemasWithCreate": ["migration_governance", "public"],
+    "membershipEdges": [
+      {
+        "member": "postgres",
+        "grantedRole": "bella_migration_executor",
+        "adminOption": true,
+        "grantor": "supabase_admin"
+      }
+    ],
+    "roleIsMemberOfAnotherRole": false
+  },
+  "effectiveRelationAccess": {
+    "relationsWithSelect": 530,
+    "relationsWithInsert": 524,
+    "relationsWithUpdate": 523,
+    "relationsWithDelete": 524,
+    "tenantKeyRelations": 480,
+    "tenantKeyRelationKinds": {
+      "ordinaryTables": 460,
+      "partitionedTables": 1,
+      "materializedViews": 12,
+      "views": 7
+    },
+    "baseTenantRelationsWithSelect": 461,
+    "baseTenantRelationsWithInsert": 461,
+    "baseTenantRelationsWithUpdate": 461,
+    "baseTenantRelationsWithDelete": 461,
+    "baseTenantRelationsWithTruncate": 461,
+    "baseTenantRelationsWithRlsEnabled": 438,
+    "baseTenantRelationsWithRlsForced": 0,
+    "baseTenantRelationsWithRlsDisabled": 23,
+    "ownedRelationsCount": 12,
+    "ownedRelations": [
+      "public.auto_repair_orders",
+      "public.auto_service_appointments",
+      "public.bella_recovery_actions",
+      "public.bella_security_incidents",
+      "public.identity_migration_mapping",
+      "public.retail_customers",
+      "public.retail_inventory_movements",
+      "public.retail_product_batches",
+      "public.retail_product_variants",
+      "public.retail_products",
+      "public.retail_sale_items",
+      "public.retail_sales"
+    ],
+    "roleHasFullDmlOnFuturePublicTablesByDefault": true,
+    "roleHasFullDmlOnFutureMigrationGovernanceTablesByDefault": true,
+    "roleReceivesFutureSequencePrivilegesInThoseSchemas": true,
+    "interpretation": "BYPASSRLS plus effective table privileges means RLS does not bound this role's rows on RLS-enabled relations. Existing table ownership and non-RLS tables also remain relevant if BYPASSRLS is later removed. No tenant row contents were read."
+  },
+  "privilegedFunctions": {
+    "executableSecurityDefinerFunctions": 200,
+    "execSql": {
+      "identity": "public.exec_sql(sql_query text)",
+      "owner": "postgres",
+      "securityDefiner": true,
+      "executorCanExecute": true,
+      "publicCanExecute": false,
+      "bodyBehavior": "EXECUTE sql_query without an internal approval/token check",
+      "interpretation": "The executor credential can call a postgres-owned arbitrary-SQL SECURITY DEFINER function directly, bypassing the wrapper's application-level gate if the credential is obtained."
+    },
+    "setTenantContext": {
+      "identity": "public.set_tenant_context(tenant_id uuid)",
+      "owner": "bella_migration_executor",
+      "securityDefiner": true,
+      "publicCanExecute": true,
+      "anonCanExecute": true,
+      "authenticatedCanExecute": true,
+      "bodyBehavior": "Sets app.current_tenant_id to the caller-supplied tenant id without validating tenant membership",
+      "currentRlsPoliciesReferencingThisGuc": 100,
+      "crossRequestOrCrossTenantImpact": "NOT_PROVEN; no function invocation or API behavior probe was run"
+    }
+  },
+  "runtimeUseEvidence": {
+    "activeExecutorSessionsAtSnapshot": 0,
+    "pgStatStatementsTrackingMode": "top",
+    "pgStatStatementsTrackUtility": "on",
+    "executorStatementsInAvailableWindow": 0,
+    "pgStatStatementsResetAt": "2026-10-19T13:28:49.060113+07:00",
+    "interpretation": "No active executor connection or statement row was observed in this snapshot/window. This does not prove the credential was never used or is unused outside the retained statistics window."
+  },
+  "credentialSource": {
+    "intendedExecutorSecret": "GitHub Actions secret DATABASE_EXECUTOR_URL, referenced by the protected BDGF Production workflows",
+    "workflowReferences": [
+      ".github/workflows/bdgf-bella-auto-workshop-rls-production.yml",
+      ".github/workflows/bdgf-bella-auto-workshop-security-closure.yml"
+    ],
+    "documentedPurpose": "BDGF-approved migration execution after owner approval and gate-token validation",
+    "secretValueOrUsernameInspected": false,
+    "separateProductionDatabaseSecret": "PRODUCTION_SUPABASE_DB_URL is also referenced for preflight and, conditionally, migration-history repair; its actual database role is not proven here",
+    "trackedAdminCredentialFinding": {
+      "file": "scripts/bdgf/grant-bypassrls.mjs",
+      "line": 5,
+      "trackedInGit": true,
+      "commit": "39d70165aec43927228a639fbdcc461c470b356d",
+      "commitDate": "2026-08-22T05:35:15+07:00",
+      "containedByRemoteRefs": ["origin/main", "platform/main"],
+      "databaseUsername": "postgres",
+      "passwordLiteralPresent": true,
+      "passwordValueStoredInThisArtifact": false,
+      "scriptPurpose": "Opens a database connection and issues ALTER ROLE bella_migration_executor WITH BYPASSRLS, then records a schema_migrations row",
+      "currentCredentialValidity": "NOT_PROVEN",
+      "assessment": "Treat as potentially exposed until the database owner verifies and rotates/revokes the credential through the managed secret process."
+    },
+    "currentShellOrRepoEnvSource": "No DATABASE_EXECUTOR_URL or DATABASE_URL process variable and no root .env file were found; only .env.example is present."
+  },
+  "migrationCompatibility": {
+    "bdgfWrapperChecksApprovalAndGateToken": true,
+    "bdgfWrapperExecutesMigrationByDirectDbQuery": true,
+    "bdgfWrapperCallsExecSql": false,
+    "executorCredentialAlsoHasDirectExecSqlAccess": true,
+    "otherExecSqlCallersExistInRepository": true,
+    "whetherRevokingExecutorExecSqlWouldBreakEveryLegacyCaller": "NOT_PROVEN",
+    "whetherNobypassrlsWouldPreserveAllMigrationBackfills": "NOT_PROVEN"
+  },
+  "recommendationWithoutExecution": [
+    "Treat the tracked postgres credential as potentially compromised; map its managed-secret consumers, rotate/invalidate it under owner control, and replace the source literal. No credential was used or rotated in this review.",
+    "Preserve the DATABASE_EXECUTOR_URL/BDGF migration path. The protected wrapper uses direct db.query and does not call exec_sql; evaluate revoking EXECUTE on public.exec_sql from bella_migration_executor only after classifying the remaining maintenance callers.",
+    "Do not apply NOBYPASSRLS alone: the role owns tenant tables, 23 tenant-key base tables lack RLS, no tenant-key base table forces RLS, default ACLs regrant broad privileges, and exec_sql supplies a postgres-owned arbitrary-SQL path.",
+    "Before changing BYPASSRLS or ownership/default ACLs, rehearse representative DDL and cross-tenant data-backfill migrations in the isolated migration environment and verify the protected workflow end to end.",
+    "Review set_tenant_context separately; its PUBLIC grant and the 100 GUC-based policies are confirmed, but tenant escape behavior was not exercised."
+  ],
+  "actionsThisReview": {
+    "databaseMutations": 0,
+    "privilegeChanges": 0,
+    "secretChanges": 0,
+    "migrationsRun": 0,
+    "testsRun": 0
+  }
+}

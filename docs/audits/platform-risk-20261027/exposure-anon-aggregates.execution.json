@@ -1,0 +1,8 @@
+{
+  "command": "supabase db query --linked --project-ref lvnvkpyxtuilhrabtlwv --file docs/audits/platform-risk-20261027/exposure-aggregate-readonly.sql -o json",
+  "startedUtc": "2026-10-27T04:03:11.9582277Z",
+  "endedUtc": "2026-10-27T04:03:14.7076071Z",
+  "exitCode": 0,
+  "sourceRevision": "a69bab6c3244d34723b5600b646f48d0e48400ee",
+  "querySha256": "0a9c19f231673806ac0c9e81ef851914ea0a1a979bde4e4bc7e8f9a4f407a44e"
+}
