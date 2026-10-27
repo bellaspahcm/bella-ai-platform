@@ -121,11 +121,11 @@ jobs:
           SEMGREP_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         run: python3 scripts/run-semgrep-gate.py
 
-      - name: Upload full Semgrep SARIF
-        if: ${{ always() && hashFiles('semgrep-results.sarif') != '' }}
+      - name: Upload Semgrep Code Scanning SARIF
+        if: ${{ always() && hashFiles('semgrep-upload.sarif') != '' }}
         uses: github/codeql-action/upload-sarif@v4
         with:
-          sarif_file: semgrep-results.sarif
+          sarif_file: semgrep-upload.sarif
           category: semgrep-full-report
 
       - name: Archive full report, diff and gate decision
@@ -135,6 +135,7 @@ jobs:
           name: semgrep-sarif
           path: |
             semgrep-results.sarif
+            semgrep-upload.sarif
             semgrep-diff.sarif
             semgrep-gate.json
           if-no-files-found: error

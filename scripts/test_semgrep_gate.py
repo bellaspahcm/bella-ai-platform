@@ -14,10 +14,10 @@ SPEC.loader.exec_module(gate)
 HEAD, BASE = "a" * 40, "b" * 40
 
 
-def sarif(findings=0, successful=True, notifications=None):
+def sarif(findings=0, successful=True, notifications=None, results=None):
     return {"version": "2.1.0", "runs": [{"tool": {"driver": {"rules": [{"id": "test-rule"}]}},
         "invocations": [{"executionSuccessful": successful, "toolExecutionNotifications": notifications or []}],
-        "results": [{"ruleId": "test-rule"}] * findings}]}
+        "results": results if results is not None else [{"ruleId": "test-rule"}] * findings}]}
 
 
 def warning(message, level="warning"):
@@ -55,6 +55,13 @@ class GateTest(unittest.TestCase):
                                     "SEMGREP_HEAD_SHA": HEAD, "SEMGREP_BASE_SHA": base}, clear=True), patch.object(gate.subprocess, "run", side_effect=child):
             return gate.run_gate()
 
+    def test_workflow_uploads_filtered_sarif_and_archives_full_report(self):
+        workflow = (Path(__file__).resolve().parents[1] / ".github" / "workflows" / "static-analysis.yml").read_text(encoding="utf-8")
+        self.assertIn("- name: Upload Semgrep Code Scanning SARIF", workflow)
+        self.assertIn("hashFiles('semgrep-upload.sarif')", workflow)
+        self.assertIn("sarif_file: semgrep-upload.sarif", workflow)
+        self.assertIn("            semgrep-results.sarif\n            semgrep-upload.sarif\n            semgrep-diff.sarif", workflow)
+
     def test_old_findings_retained_and_native_baseline_passes(self):
         old_warning = warning("Syntax error at line unchanged.py:12: parse failure")
         self.assertEqual(self.execute([(1, sarif(3, notifications=[old_warning])), (0, sarif())]), 0)
@@ -91,11 +98,88 @@ class GateTest(unittest.TestCase):
         self.assertEqual(summary["full"]["findings"], 3)
         self.assertEqual(summary["full"]["preexisting_warnings"], 1)
         self.assertEqual(json.loads(Path("semgrep-results.sarif").read_text()), full)
+        self.assertEqual(json.loads(Path("semgrep-upload.sarif").read_text()), full)
         self.assertEqual(summary["diff"]["findings"], 0)
         self.assertIn(["--baseline-commit", BASE], [c[-2:] for c in self.calls])
         self.assertTrue(any("--is-ancestor" in c and c[-2:] == [BASE, HEAD] for c in self.calls))
         self.assertTrue(any("diff" in c and c[-1] == BASE + ".." + HEAD for c in self.calls))
         self.assertNotIn("--baseline-commit", self.calls[-2])
+
+    def test_upload_excludes_only_the_approved_source_suppression_and_preserves_full_report(self):
+        approved = {
+            "ruleId": gate.APPROVED_CODE_SCANNING_SUPPRESSION[1],
+            "suppressions": [{"kind": "inSource"}],
+            "locations": [{"physicalLocation": {
+                "artifactLocation": {"uri": gate.APPROVED_CODE_SCANNING_SUPPRESSION[0]},
+                "region": {"startLine": 19, "snippet": {"text": gate.APPROVED_CODE_SCANNING_SUPPRESSION[3]}},
+            }}],
+        }
+        other_path = {
+            **approved,
+            "locations": [{"physicalLocation": {
+                "artifactLocation": {"uri": "scripts/other.cjs"}, "region": {"startLine": 19},
+            }}],
+        }
+        other_line = {
+            **approved,
+            "locations": [{"physicalLocation": {
+                "artifactLocation": {"uri": gate.APPROVED_CODE_SCANNING_SUPPRESSION[0]},
+                "region": {"startLine": 20, "snippet": {"text": gate.APPROVED_CODE_SCANNING_SUPPRESSION[3]}},
+            }}],
+        }
+        changed_snippet = {
+            **approved,
+            "locations": [{"physicalLocation": {
+                "artifactLocation": {"uri": gate.APPROVED_CODE_SCANNING_SUPPRESSION[0]},
+                "region": {"startLine": 19, "snippet": {"text": "  const response=await fetch('http://127.0.0.1:24432/auth/v1/health',{signal:AbortSignal.timeout(8000)});"}},
+            }}],
+        }
+        same_location_unsuppressed = {**approved, "suppressions": []}
+        unsuppressed = {"ruleId": "another-rule"}
+        full = sarif(results=[approved, other_path, other_line, changed_snippet, same_location_unsuppressed, unsuppressed])
+        Path("semgrep-results.sarif").write_text(json.dumps(full), encoding="utf-8")
+
+        self.assertEqual(gate.write_code_scanning_sarif("semgrep-results.sarif", "semgrep-upload.sarif"), 1)
+
+        self.assertEqual(json.loads(Path("semgrep-results.sarif").read_text()), full)
+        uploaded = json.loads(Path("semgrep-upload.sarif").read_text())
+        self.assertEqual(uploaded["runs"][0]["results"], [other_path, other_line, changed_snippet, same_location_unsuppressed, unsuppressed])
+
+    def test_ambiguous_approved_suppression_fails_closed(self):
+        approved = {
+            "ruleId": gate.APPROVED_CODE_SCANNING_SUPPRESSION[1],
+            "suppressions": [{"kind": "inSource"}],
+            "locations": [{"physicalLocation": {
+                "artifactLocation": {"uri": gate.APPROVED_CODE_SCANNING_SUPPRESSION[0]},
+                "region": {"startLine": 19, "snippet": {"text": gate.APPROVED_CODE_SCANNING_SUPPRESSION[3]}},
+            }}],
+        }
+        Path("semgrep-results.sarif").write_text(json.dumps(sarif(results=[approved, approved])), encoding="utf-8")
+        Path("semgrep-upload.sarif").write_text("stale upload", encoding="utf-8")
+        with self.assertRaisesRegex(ValueError, "APPROVED_SUPPRESSION_AMBIGUOUS"):
+            gate.write_code_scanning_sarif("semgrep-results.sarif", "semgrep-upload.sarif")
+        self.assertFalse(Path("semgrep-upload.sarif").exists())
+
+    def test_unsuppressed_new_finding_still_fails_gate_and_remains_in_upload(self):
+        approved = {
+            "ruleId": gate.APPROVED_CODE_SCANNING_SUPPRESSION[1],
+            "suppressions": [{"kind": "inSource"}],
+            "locations": [{"physicalLocation": {
+                "artifactLocation": {"uri": gate.APPROVED_CODE_SCANNING_SUPPRESSION[0]},
+                "region": {"startLine": 19, "snippet": {"text": gate.APPROVED_CODE_SCANNING_SUPPRESSION[3]}},
+            }}],
+        }
+        unsuppressed = {"ruleId": "test-rule"}
+        full = sarif(results=[approved, unsuppressed])
+        diff = sarif(results=[unsuppressed])
+
+        self.assertEqual(self.execute([(1, full), (1, diff)]), 1)
+
+        summary = json.loads(Path("semgrep-gate.json").read_text())
+        self.assertEqual(summary["gate"], "FAIL_FINDINGS")
+        self.assertEqual(summary["code_scanning_upload"]["approved_source_suppressions_excluded"], 1)
+        self.assertEqual(json.loads(Path("semgrep-results.sarif").read_text()), full)
+        self.assertEqual(json.loads(Path("semgrep-upload.sarif").read_text())["runs"][0]["results"], [unsuppressed])
 
     def test_main_push_blocks_new_findings(self):
         self.assertEqual(self.execute([(1, sarif(3)), (1, sarif(1))], event="push"), 1)
