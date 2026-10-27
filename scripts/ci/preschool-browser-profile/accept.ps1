@@ -57,9 +57,16 @@ if ($LASTEXITCODE -ne 0 -or $currentHead -notmatch '^[a-f0-9]{40}$' -or
 foreach ($entry in $manifest.profileMigrations) {
   foreach ($sourceEntry in @(@{ path = $entry.source; sha = $entry.sha256 }, @{ path = $entry.sourceMigration; sha = $entry.sourceMigrationSha256 })) {
     if (!$sourceEntry.path -or !$sourceEntry.sha) { continue }
-    $sourcePath = [IO.Path]::GetFullPath((Join-Path $repoRoot ($sourceEntry.path -replace '/', '\')))
-    $repoPrefix = [IO.Path]::GetFullPath($repoRoot).TrimEnd('\') + '\'
-    if (!$sourcePath.StartsWith($repoPrefix, [StringComparison]::OrdinalIgnoreCase) -or !(Test-Path -LiteralPath $sourcePath -PathType Leaf)) {
+    if ([IO.Path]::IsPathRooted([string] $sourceEntry.path)) {
+      throw 'PROFILE_MIGRATION_SOURCE_MISSING_OR_OUTSIDE_REPOSITORY'
+    }
+    $repoRootFull = [IO.Path]::GetFullPath($repoRoot)
+    $sourcePath = [IO.Path]::GetFullPath((Join-Path $repoRootFull ([string] $sourceEntry.path)))
+    $relativeSource = [IO.Path]::GetRelativePath($repoRootFull, $sourcePath)
+    $parentPrefix = '..' + [IO.Path]::DirectorySeparatorChar
+    if ([IO.Path]::IsPathRooted($relativeSource) -or $relativeSource -eq '..' -or
+      $relativeSource.StartsWith($parentPrefix, [StringComparison]::Ordinal) -or
+      !(Test-Path -LiteralPath $sourcePath -PathType Leaf)) {
       throw 'PROFILE_MIGRATION_SOURCE_MISSING_OR_OUTSIDE_REPOSITORY'
     }
     $sourceSha = Get-CanonicalSourceSha256 $sourcePath

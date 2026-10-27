@@ -225,6 +225,7 @@ jobs:
         shell: bash
         run: |
           changed="$(git diff --name-only "$BASE_REF...HEAD" -- supabase/migrations)"
+          acceptance_control_changed="$(git diff --name-only "$BASE_REF...HEAD" -- scripts/ci/preschool-browser-profile/accept.ps1)"
           teacher_profile_migration=false
           unexpected_migration=false
           while IFS= read -r file; do
@@ -241,13 +242,13 @@ jobs:
             esac
           done <<< "$changed"
 
-          if [ "$teacher_profile_migration" = true ] && [ "$unexpected_migration" = true ]; then
+          if { [ "$teacher_profile_migration" = true ] || [ -n "$acceptance_control_changed" ]; } && [ "$unexpected_migration" = true ]; then
             echo 'PRESCHOOL_PROFILE_MIXED_MIGRATION_SCOPE: split the PR or add an explicitly reviewed profile.'
             exit 1
           fi
-          if [ "$teacher_profile_migration" = true ]; then
+          if [ "$teacher_profile_migration" = true ] || [ -n "$acceptance_control_changed" ]; then
             echo 'use_disposable=true' >> "$GITHUB_OUTPUT"
-            echo 'Teacher migrations will run only on a disposable local Supabase profile.'
+            echo 'Preschool profile acceptance will run only on a disposable local Supabase profile.'
           else
             echo 'use_disposable=false' >> "$GITHUB_OUTPUT"
           fi
