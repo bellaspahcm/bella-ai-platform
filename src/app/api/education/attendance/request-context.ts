@@ -4,6 +4,8 @@ import { CanonicalCourseCatalogContractImpl } from '@/platform/education/contrac
 import { EnrollmentContractImpl } from '@/platform/education/contracts/enrollment.contract.impl';
 import type { CourseDailyAttendanceRosterItem } from '@/platform/education/contracts/attendance.contract';
 import { PreschoolTeacherAttendanceService } from '@/products/bella-education/services/preschool-teacher-attendance.service';
+import { getCurrentUser } from '@/services/user-actions';
+import { getTenantPresentation } from '@/services/tenant-actions';
 
 export const ATTENDANCE_PRIVATE_HEADERS = { 'Cache-Control': 'private, no-store' };
 export class AttendanceAccessError extends Error {
@@ -60,18 +62,15 @@ export async function resolveAttendanceRequestContext(request: Request, teacherA
   const auth = await client.auth.getUser();
   if (auth.error || !auth.data.user) throw new AttendanceAccessError(401, 'ATTENDANCE_UNAUTHENTICATED');
   const actorId = auth.data.user.id;
-  const profile = await client.from('users').select('id, tenant_id, role, status').eq('id', actorId).maybeSingle();
-  if (profile.error) throw new AttendanceAccessError(503, 'ATTENDANCE_IDENTITY_UNAVAILABLE');
-  const user = profile.data;
+  const user = await getCurrentUser();
   if (!user || user.id !== actorId || user.status !== 'active' || !user.tenant_id || !user.role) {
     throw new AttendanceAccessError(403, 'ATTENDANCE_ACCESS_DENIED');
   }
-  const tenant = await client.from('tenants').select('id, status, product_key').eq('id', user.tenant_id).maybeSingle();
-  if (tenant.error) throw new AttendanceAccessError(503, 'ATTENDANCE_IDENTITY_UNAVAILABLE');
-  if (!tenant.data || tenant.data.id !== user.tenant_id || tenant.data.status !== 'active' || !tenant.data.product_key) {
-    throw new AttendanceAccessError(403, 'ATTENDANCE_ACCESS_DENIED');
+  const tenant = await getTenantPresentation();
+  if (!tenant || tenant.id !== user.tenant_id || tenant.status !== 'active' || !tenant.product_key) {
+    throw new AttendanceAccessError(503, 'ATTENDANCE_IDENTITY_UNAVAILABLE');
   }
-  const context = { client, actorId, actorRole: user.role, tenantId: user.tenant_id, productKey: tenant.data.product_key };
+  const context = { client, actorId, actorRole: user.role, tenantId: user.tenant_id, productKey: tenant.product_key };
   assertAttendanceSelectors(request, context);
   if (context.productKey === 'bella_preschool') {
     if (user.role === 'admin_staff') {

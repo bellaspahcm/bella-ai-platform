@@ -1,0 +1,8 @@
+{
+  "command": "supabase db query --linked --project-ref bmnbqbcdbuklhopfbopv --file docs/audits/platform-risk-20261027/catalog-readonly.sql -o json",
+  "startedUtc": "2026-10-27T03:59:21.0390534Z",
+  "endedUtc": "2026-10-27T03:59:25.3436153Z",
+  "exitCode": 0,
+  "sourceRevision": "a69bab6c3244d34723b5600b646f48d0e48400ee",
+  "querySha256": "970fe7c183f61785a51f47aeed213fbc3ef3d23ff631f87552a6f58e9e5850e7"
+}

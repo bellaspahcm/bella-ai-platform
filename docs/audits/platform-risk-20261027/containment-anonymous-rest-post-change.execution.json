@@ -1,0 +1,9 @@
+{
+  "command": "pwsh -NoProfile -File docs/audits/platform-risk-20261027/probe-anonymous-rest.ps1",
+  "startedUtc": "2026-10-27T04:52:31.4800110Z",
+  "endedUtc": "2026-10-27T04:52:33.5853421Z",
+  "exitCode": 0,
+  "scriptSha256": "a1a16f97b929b36c67286e7bf53211ce7ded591dd17a6e42abc6b21db99c089d",
+  "resultFile": "containment-anonymous-rest-post-change.json",
+  "credentialsRetained": false
+}

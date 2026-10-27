@@ -20,3 +20,24 @@
 3fddef00c26772ed3190a7d06f7bed9382aa9d97:docs/audits/preschool-full-audit-20261020/batch2o-care-catalog/browser-results-2026-10-21T04-17-34-437Z.json:generic-api-key:254
 3fddef00c26772ed3190a7d06f7bed9382aa9d97:docs/audits/preschool-full-audit-20261020/batch2o-care-catalog/browser-results-2026-10-21T04-17-34-437Z.json:generic-api-key:2741
 4a7a855e3472dcfd86649b18f27671ccbe7188a1:docs/audits/preschool-full-audit-20261020/batch2k-real-auth/review-outcome.json:generic-api-key:4
+
+# PR #448: exact non-secret fingerprints only (function MD5s, token SHA-256 digests, catalog table identifiers, and a public source commit SHA).
+# No rule-wide, path-wide, or whole-commit suppression.
+e39ef131b0613b7fd7b25106ae498a2c5a2b111f:docs/audits/platform-risk-20261027/actor-contract-body-readonly.sql:generic-api-key:4
+e39ef131b0613b7fd7b25106ae498a2c5a2b111f:docs/audits/platform-risk-20261027/actor-contract-body-readonly.sql:generic-api-key:6
+cee1cf145620a8a7d9b41c59f8c913a86ca3cb4f:docs/audits/platform-risk-20261027/POST_PUSH_REVISION_REPORT.md:generic-api-key:17
+e39ef131b0613b7fd7b25106ae498a2c5a2b111f:docs/audits/platform-risk-20261027/actor-contract-token-comparison.json:generic-api-key:16
+e39ef131b0613b7fd7b25106ae498a2c5a2b111f:docs/audits/platform-risk-20261027/actor-contract-token-comparison.json:generic-api-key:17
+e39ef131b0613b7fd7b25106ae498a2c5a2b111f:docs/audits/platform-risk-20261027/actor-contract-token-comparison.json:generic-api-key:25
+e39ef131b0613b7fd7b25106ae498a2c5a2b111f:docs/audits/platform-risk-20261027/actor-contract-token-comparison.json:generic-api-key:26
+e39ef131b0613b7fd7b25106ae498a2c5a2b111f:docs/audits/platform-risk-20261027/actor-contract-token-comparison.json:generic-api-key:34
+e39ef131b0613b7fd7b25106ae498a2c5a2b111f:docs/audits/platform-risk-20261027/actor-contract-token-comparison.json:generic-api-key:35
+e39ef131b0613b7fd7b25106ae498a2c5a2b111f:docs/audits/platform-risk-20261027/actor-contract-token-comparison.json:generic-api-key:55
+e39ef131b0613b7fd7b25106ae498a2c5a2b111f:docs/audits/platform-risk-20261027/actor-contract-token-comparison.json:generic-api-key:56
+e39ef131b0613b7fd7b25106ae498a2c5a2b111f:docs/audits/platform-risk-20261027/actor-contract-token-comparison.json:generic-api-key:64
+e39ef131b0613b7fd7b25106ae498a2c5a2b111f:docs/audits/platform-risk-20261027/actor-contract-token-comparison.json:generic-api-key:65
+e39ef131b0613b7fd7b25106ae498a2c5a2b111f:docs/audits/platform-risk-20261027/actor-contract-token-comparison.json:generic-api-key:73
+e39ef131b0613b7fd7b25106ae498a2c5a2b111f:docs/audits/platform-risk-20261027/actor-contract-token-comparison.json:generic-api-key:74
+e39ef131b0613b7fd7b25106ae498a2c5a2b111f:docs/audits/platform-risk-20261027/catalog-environment-differences.json:generic-api-key:20221
+e39ef131b0613b7fd7b25106ae498a2c5a2b111f:docs/audits/platform-risk-20261027/catalog-environment-differences.json:generic-api-key:20374
+e39ef131b0613b7fd7b25106ae498a2c5a2b111f:docs/audits/platform-risk-20261027/catalog-environment-differences.json:generic-api-key:20477

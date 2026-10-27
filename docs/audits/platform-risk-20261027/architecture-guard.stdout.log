@@ -1,0 +1,16 @@
+
+> bella-spa-erp@0.1.0 arch:guard
+> npx tsx scripts/architecture/architecture-guard.ts
+
+🔒 BELLA ARCHITECTURE GUARD
+   Enforcing frozen boundaries for E7.1, E7.2, E7.3
+
+📋 Check 1: Frozen file integrity...
+   ✅ All frozen files present
+
+🔗 Check 3: Dependency boundary enforcement...
+   ✅ No forbidden imports detected
+
+
+✅ ARCHITECTURE GUARD — ALL CHECKS PASSED
+

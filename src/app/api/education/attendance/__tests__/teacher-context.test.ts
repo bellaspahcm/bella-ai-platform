@@ -1,5 +1,7 @@
 const mockIdentity = jest.fn();
 const mockCourses = jest.fn();
+const mockCurrentActor = jest.fn();
+const mockTenantPresentation = jest.fn();
 let mockRole = 'admin_staff';
 const tenantId = '10000000-0000-4000-8000-000000000001';
 const actorId = '10000000-0000-4000-8000-000000000002';
@@ -15,6 +17,8 @@ const mockClient = {
   }),
 };
 jest.mock('@/lib/supabase-server', () => ({ createClient: () => mockClient }));
+jest.mock('@/services/user-actions', () => ({ getCurrentUser: () => mockCurrentActor() }));
+jest.mock('@/services/tenant-actions', () => ({ getTenantPresentation: () => mockTenantPresentation() }));
 jest.mock('@/products/bella-education/services/preschool-teacher-attendance.service', () => ({
   PreschoolTeacherAttendanceService: jest.fn().mockImplementation(() => ({ requireIdentity: mockIdentity, listCourses: mockCourses })),
 }));
@@ -24,6 +28,8 @@ beforeEach(() => {
   jest.clearAllMocks(); mockRole = 'admin_staff';
   jest.useFakeTimers().setSystemTime(new Date('2026-10-26T05:00:00.000Z'));
   mockIdentity.mockResolvedValue(undefined); mockCourses.mockResolvedValue([{ courseId, branchId, name: 'Assigned' }]);
+  mockCurrentActor.mockResolvedValue({ id: actorId, tenant_id: tenantId, role: mockRole, status: 'active' });
+  mockTenantPresentation.mockResolvedValue({ id: tenantId, status: 'active', product_key: 'bella_preschool' });
 });
 afterEach(() => jest.useRealTimers());
 it('keeps staff held by default for Analytics/admission consumers', async () => {
@@ -53,6 +59,7 @@ it('rejects a branch selector that conflicts with the teacher assignment', async
 });
 it('does not make non-teacher roles eligible via opt-in', async () => {
   mockRole = 'accountant';
+  mockCurrentActor.mockResolvedValue({ id: actorId, tenant_id: tenantId, role: mockRole, status: 'active' });
   await expect(resolveAttendanceRequestContext(request(), true)).rejects.toMatchObject({ status: 403 });
   expect(mockIdentity).not.toHaveBeenCalled();
 });

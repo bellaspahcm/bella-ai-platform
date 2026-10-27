@@ -1,0 +1,80 @@
+[
+  {
+    "environment": "primary",
+    "projectRef": "lvnvkpyxtuilhrabtlwv",
+    "startedUtc": "2026-10-27T04:11:10.196Z",
+    "endedUtc": "2026-10-27T04:11:12.328Z",
+    "exitCode": 0,
+    "readOnly": true,
+    "bodyRetention": "Remote function bodies used only in memory, not retained",
+    "comparison": "Token comparison removes SQL comments and whitespace, folds bare identifiers to lowercase, preserves quoted SQL literals. It does not prove replay/full-schema equivalence.",
+    "functions": [
+      {
+        "name": "platform_current_actor_org_unit_access",
+        "expectedTokens": 62,
+        "actualTokens": 62,
+        "expectedTokenSha256": "7e185919042dc07d0e3c1aea9c71c2eff5b2dcfb145cc70c606ab534900ed69a",
+        "actualTokenSha256": "7e185919042dc07d0e3c1aea9c71c2eff5b2dcfb145cc70c606ab534900ed69a",
+        "tokensMatch": true,
+        "firstDifferentToken": -1
+      },
+      {
+        "name": "platform_current_actor_profile",
+        "expectedTokens": 177,
+        "actualTokens": 177,
+        "expectedTokenSha256": "1bc217c3e7eec3ac4dfe24a4e4b2a8a940004948235ca03fdee68d29b36deb42",
+        "actualTokenSha256": "1bc217c3e7eec3ac4dfe24a4e4b2a8a940004948235ca03fdee68d29b36deb42",
+        "tokensMatch": true,
+        "firstDifferentToken": -1
+      },
+      {
+        "name": "platform_org_unit_access_for_actor",
+        "expectedTokens": 538,
+        "actualTokens": 538,
+        "expectedTokenSha256": "753d93207a11ea779039505ec77b7c66cd6c79b76a3fafb495b76e020856f348",
+        "actualTokenSha256": "753d93207a11ea779039505ec77b7c66cd6c79b76a3fafb495b76e020856f348",
+        "tokensMatch": true,
+        "firstDifferentToken": -1
+      }
+    ]
+  },
+  {
+    "environment": "e2e",
+    "projectRef": "bmnbqbcdbuklhopfbopv",
+    "startedUtc": "2026-10-27T04:11:12.330Z",
+    "endedUtc": "2026-10-27T04:11:14.524Z",
+    "exitCode": 0,
+    "readOnly": true,
+    "bodyRetention": "Remote function bodies used only in memory, not retained",
+    "comparison": "Token comparison removes SQL comments and whitespace, folds bare identifiers to lowercase, preserves quoted SQL literals. It does not prove replay/full-schema equivalence.",
+    "functions": [
+      {
+        "name": "platform_current_actor_org_unit_access",
+        "expectedTokens": 62,
+        "actualTokens": 62,
+        "expectedTokenSha256": "7e185919042dc07d0e3c1aea9c71c2eff5b2dcfb145cc70c606ab534900ed69a",
+        "actualTokenSha256": "7e185919042dc07d0e3c1aea9c71c2eff5b2dcfb145cc70c606ab534900ed69a",
+        "tokensMatch": true,
+        "firstDifferentToken": -1
+      },
+      {
+        "name": "platform_current_actor_profile",
+        "expectedTokens": 177,
+        "actualTokens": 177,
+        "expectedTokenSha256": "1bc217c3e7eec3ac4dfe24a4e4b2a8a940004948235ca03fdee68d29b36deb42",
+        "actualTokenSha256": "1bc217c3e7eec3ac4dfe24a4e4b2a8a940004948235ca03fdee68d29b36deb42",
+        "tokensMatch": true,
+        "firstDifferentToken": -1
+      },
+      {
+        "name": "platform_org_unit_access_for_actor",
+        "expectedTokens": 538,
+        "actualTokens": 538,
+        "expectedTokenSha256": "753d93207a11ea779039505ec77b7c66cd6c79b76a3fafb495b76e020856f348",
+        "actualTokenSha256": "753d93207a11ea779039505ec77b7c66cd6c79b76a3fafb495b76e020856f348",
+        "tokensMatch": true,
+        "firstDifferentToken": -1
+      }
+    ]
+  }
+]

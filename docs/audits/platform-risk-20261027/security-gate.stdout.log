@@ -1,0 +1,5 @@
+
+> bella-spa-erp@0.1.0 security:audit
+> node scripts/audit-production.mjs
+
+Production dependency audit passed: no unallowlisted high/critical advisories.

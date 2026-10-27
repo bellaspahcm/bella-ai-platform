@@ -1,0 +1,10 @@
+{
+  "command": "supabase db query --linked --project-ref lvnvkpyxtuilhrabtlwv --file docs/audits/platform-risk-20261027/containment-consumer-preflight-readonly.sql -o json",
+  "startedUtc": "2026-10-27T11:22:27.0927087+07:00",
+  "endedUtc": "2026-10-27T11:22:29.7368338+07:00",
+  "exitCode": 0,
+  "sourceRevision": "a69bab6c3244d34723b5600b646f48d0e48400ee",
+  "querySha256": "a35443c73a5b3b127f3bc467754d11f5e2cede2f0fa73340871e38729f8f0d93",
+  "archivedQueryFile": "containment-function-preflight-readonly.sql",
+  "resultScope": "Successful final result set contains function metadata; the preceding table query was re-run separately and is retained in containment-table-preflight.json"
+}

@@ -1,0 +1,3019 @@
+{
+  "sourceRevision": "a69bab6c3244d34723b5600b646f48d0e48400ee",
+  "environment": "primary",
+  "observedAt": "2026-10-27T03:59:24.368624+00:00",
+  "transactionReadOnly": "on",
+  "tenantRowCount": 5271,
+  "tenantIsolationBehavior": "NOT_PROVEN: catalog and aggregate count are not role/tenant adversarial tests",
+  "localSqlFiles": 594,
+  "recognizedMigrationFiles": 594,
+  "uniqueNormalizedLocalVersions": 582,
+  "uniqueRawLocalVersions": 584,
+  "versionComparisonMethod": "Existing checker convention: pad 8-digit versions with 000000. Raw versions are also retained; normalization is not migration identity or SQL equivalence.",
+  "invalidMigrationFilenames": [],
+  "duplicateVersions": [
+    {
+      "version": "20260622000000",
+      "files": [
+        "20260622_create_tenant_payroll_config.sql",
+        "20260622_insert_default_payroll_configs.sql"
+      ]
+    },
+    {
+      "version": "20260819040000",
+      "files": [
+        "20260819040000_fix_legacy_spa_rls_policies.sql",
+        "20260819040000_runtime_migration_e1_gate_schema_safe.sql"
+      ]
+    },
+    {
+      "version": "20260820000000",
+      "files": [
+        "20260820000000_f5_fx_integrity.sql",
+        "20260820_r4_3_gate_tokens.sql",
+        "20260820_r4_4_monitoring_audit.sql",
+        "20260820_r4_approval_contract.sql"
+      ]
+    },
+    {
+      "version": "20260820110000",
+      "files": [
+        "20260820110000_database_role_separation.sql",
+        "20260820110000_database_role_separation_v2.sql"
+      ]
+    },
+    {
+      "version": "20260821000000",
+      "files": [
+        "20260821000000_fix_healthcare_rls_tenant_isolation.sql",
+        "20260821_create_accessorial_rates_table.sql",
+        "20260821_create_carrier_rates_table.sql",
+        "20260821_create_discrepancies_table.sql",
+        "20260821_create_freight_audit_tables.sql"
+      ]
+    },
+    {
+      "version": "20260914000000",
+      "files": [
+        "20260914_create_user_org_unit_access_projection.sql",
+        "20260914_repair_platform_org_people_rls.sql"
+      ]
+    },
+    {
+      "version": "20261002010000",
+      "files": [
+        "20261002010000_beauty_h8_resource_overlap_concurrency.sql",
+        "20261002010000_restore_f5_ar_reconciliation_rpc.sql"
+      ]
+    }
+  ],
+  "duplicateRawVersions": [
+    {
+      "version": "20260622",
+      "files": [
+        "20260622_create_tenant_payroll_config.sql",
+        "20260622_insert_default_payroll_configs.sql"
+      ]
+    },
+    {
+      "version": "20260819040000",
+      "files": [
+        "20260819040000_fix_legacy_spa_rls_policies.sql",
+        "20260819040000_runtime_migration_e1_gate_schema_safe.sql"
+      ]
+    },
+    {
+      "version": "20260820110000",
+      "files": [
+        "20260820110000_database_role_separation.sql",
+        "20260820110000_database_role_separation_v2.sql"
+      ]
+    },
+    {
+      "version": "20260820",
+      "files": [
+        "20260820_r4_3_gate_tokens.sql",
+        "20260820_r4_4_monitoring_audit.sql",
+        "20260820_r4_approval_contract.sql"
+      ]
+    },
+    {
+      "version": "20260821",
+      "files": [
+        "20260821_create_accessorial_rates_table.sql",
+        "20260821_create_carrier_rates_table.sql",
+        "20260821_create_discrepancies_table.sql",
+        "20260821_create_freight_audit_tables.sql"
+      ]
+    },
+    {
+      "version": "20260914",
+      "files": [
+        "20260914_create_user_org_unit_access_projection.sql",
+        "20260914_repair_platform_org_people_rls.sql"
+      ]
+    },
+    {
+      "version": "20261002010000",
+      "files": [
+        "20261002010000_beauty_h8_resource_overlap_concurrency.sql",
+        "20261002010000_restore_f5_ar_reconciliation_rpc.sql"
+      ]
+    }
+  ],
+  "remoteMigrationRows": 443,
+  "pendingLocalFileCount": 143,
+  "pendingLocalVersionCount": 141,
+  "remoteOnlyCount": 2,
+  "pendingLocal": [
+    {
+      "file": "20260511500000_create_inventory_items.sql",
+      "version": "20260511500000",
+      "normalized": "20260511500000"
+    },
+    {
+      "file": "20260514900000_create_packages_table.sql",
+      "version": "20260514900000",
+      "normalized": "20260514900000"
+    },
+    {
+      "file": "20260622_create_tenant_payroll_config.sql",
+      "version": "20260622",
+      "normalized": "20260622000000"
+    },
+    {
+      "file": "20260622_insert_default_payroll_configs.sql",
+      "version": "20260622",
+      "normalized": "20260622000000"
+    },
+    {
+      "file": "20260909000051_p41_safety_critical.sql",
+      "version": "20260909000051",
+      "normalized": "20260909000051"
+    },
+    {
+      "file": "20260909000052_p42_daily_care_operations.sql",
+      "version": "20260909000052",
+      "normalized": "20260909000052"
+    },
+    {
+      "file": "20260909000053_p51_framework_observation_evidence.sql",
+      "version": "20260909000053",
+      "normalized": "20260909000053"
+    },
+    {
+      "file": "20260909000054_p52_milestone_progress_next_steps.sql",
+      "version": "20260909000054",
+      "normalized": "20260909000054"
+    },
+    {
+      "file": "20260909000055_p53_portfolio_workspace.sql",
+      "version": "20260909000055",
+      "normalized": "20260909000055"
+    },
+    {
+      "file": "20260909000056_p61_parent_communication.sql",
+      "version": "20260909000056",
+      "normalized": "20260909000056"
+    },
+    {
+      "file": "20260909000057_p62_projection_bridges.sql",
+      "version": "20260909000057",
+      "normalized": "20260909000057"
+    },
+    {
+      "file": "20260909000058_p71_preschool_finance.sql",
+      "version": "20260909000058",
+      "normalized": "20260909000058"
+    },
+    {
+      "file": "20260909000059_p73_finance_rls_grant.sql",
+      "version": "20260909000059",
+      "normalized": "20260909000059"
+    },
+    {
+      "file": "20260909000060_p8_staff_scheduling_schema.sql",
+      "version": "20260909000060",
+      "normalized": "20260909000060"
+    },
+    {
+      "file": "20260909000061_p82_nullable_exception_notice_id.sql",
+      "version": "20260909000061",
+      "normalized": "20260909000061"
+    },
+    {
+      "file": "20260909000062_p9_facilities_asset_schema.sql",
+      "version": "20260909000062",
+      "normalized": "20260909000062"
+    },
+    {
+      "file": "20260909000063_p92_nullable_exception_guardian_id.sql",
+      "version": "20260909000063",
+      "normalized": "20260909000063"
+    },
+    {
+      "file": "20260909000064_p93_facilities_rls_grant.sql",
+      "version": "20260909000064",
+      "normalized": "20260909000064"
+    },
+    {
+      "file": "20260913010000_create_english_center_program_course_class.sql",
+      "version": "20260913010000",
+      "normalized": "20260913010000"
+    },
+    {
+      "file": "20260913010100_index_english_center_programs_tenant.sql",
+      "version": "20260913010100",
+      "normalized": "20260913010100"
+    },
+    {
+      "file": "20260913010200_index_english_center_programs_code.sql",
+      "version": "20260913010200",
+      "normalized": "20260913010200"
+    },
+    {
+      "file": "20260913010300_index_english_center_programs_status.sql",
+      "version": "20260913010300",
+      "normalized": "20260913010300"
+    },
+    {
+      "file": "20260913010400_index_english_center_courses_tenant.sql",
+      "version": "20260913010400",
+      "normalized": "20260913010400"
+    },
+    {
+      "file": "20260913010500_index_english_center_courses_program.sql",
+      "version": "20260913010500",
+      "normalized": "20260913010500"
+    },
+    {
+      "file": "20260913010600_index_english_center_courses_status.sql",
+      "version": "20260913010600",
+      "normalized": "20260913010600"
+    },
+    {
+      "file": "20260913010700_index_english_center_classes_tenant.sql",
+      "version": "20260913010700",
+      "normalized": "20260913010700"
+    },
+    {
+      "file": "20260913010800_index_english_center_classes_branch.sql",
+      "version": "20260913010800",
+      "normalized": "20260913010800"
+    },
+    {
+      "file": "20260913010900_index_english_center_classes_course.sql",
+      "version": "20260913010900",
+      "normalized": "20260913010900"
+    },
+    {
+      "file": "20260913011000_index_english_center_classes_teacher.sql",
+      "version": "20260913011000",
+      "normalized": "20260913011000"
+    },
+    {
+      "file": "20260913011100_index_english_center_classes_status.sql",
+      "version": "20260913011100",
+      "normalized": "20260913011100"
+    },
+    {
+      "file": "20260913011200_index_english_center_classes_dates.sql",
+      "version": "20260913011200",
+      "normalized": "20260913011200"
+    },
+    {
+      "file": "20260913020000_create_english_center_enrollments.sql",
+      "version": "20260913020000",
+      "normalized": "20260913020000"
+    },
+    {
+      "file": "20260913020100_index_english_center_enrollments_tenant.sql",
+      "version": "20260913020100",
+      "normalized": "20260913020100"
+    },
+    {
+      "file": "20260913020200_index_english_center_enrollments_branch.sql",
+      "version": "20260913020200",
+      "normalized": "20260913020200"
+    },
+    {
+      "file": "20260913020300_index_english_center_enrollments_canonical.sql",
+      "version": "20260913020300",
+      "normalized": "20260913020300"
+    },
+    {
+      "file": "20260913020400_index_english_center_enrollments_program.sql",
+      "version": "20260913020400",
+      "normalized": "20260913020400"
+    },
+    {
+      "file": "20260913020500_index_english_center_enrollments_class.sql",
+      "version": "20260913020500",
+      "normalized": "20260913020500"
+    },
+    {
+      "file": "20260913030000_create_english_center_teachers.sql",
+      "version": "20260913030000",
+      "normalized": "20260913030000"
+    },
+    {
+      "file": "20260913030100_index_english_center_teachers_tenant.sql",
+      "version": "20260913030100",
+      "normalized": "20260913030100"
+    },
+    {
+      "file": "20260913030200_index_english_center_teachers_party.sql",
+      "version": "20260913030200",
+      "normalized": "20260913030200"
+    },
+    {
+      "file": "20260913030300_index_english_center_teachers_status.sql",
+      "version": "20260913030300",
+      "normalized": "20260913030300"
+    },
+    {
+      "file": "20260913030400_index_english_center_teacher_branches_tenant.sql",
+      "version": "20260913030400",
+      "normalized": "20260913030400"
+    },
+    {
+      "file": "20260913030500_index_english_center_teacher_branches_teacher.sql",
+      "version": "20260913030500",
+      "normalized": "20260913030500"
+    },
+    {
+      "file": "20260913030600_index_english_center_teacher_branches_branch.sql",
+      "version": "20260913030600",
+      "normalized": "20260913030600"
+    },
+    {
+      "file": "20260914200000_repair_english_center_branch_rls.sql",
+      "version": "20260914200000",
+      "normalized": "20260914200000"
+    },
+    {
+      "file": "20260914_create_user_org_unit_access_projection.sql",
+      "version": "20260914",
+      "normalized": "20260914000000"
+    },
+    {
+      "file": "20260914_repair_platform_org_people_rls.sql",
+      "version": "20260914",
+      "normalized": "20260914000000"
+    },
+    {
+      "file": "20260919030000_add_product_key_to_tenants.sql",
+      "version": "20260919030000",
+      "normalized": "20260919030000"
+    },
+    {
+      "file": "20260926000000_r3_student_identity_resolver.sql",
+      "version": "20260926000000",
+      "normalized": "20260926000000"
+    },
+    {
+      "file": "20260926001000_bdgf_owner_operated_approval_mode.sql",
+      "version": "20260926001000",
+      "normalized": "20260926001000"
+    },
+    {
+      "file": "20260926002000_r3_student_create_side_nullable_person_id.sql",
+      "version": "20260926002000",
+      "normalized": "20260926002000"
+    },
+    {
+      "file": "20260926003000_education_daily_attendance_state.sql",
+      "version": "20260926003000",
+      "normalized": "20260926003000"
+    },
+    {
+      "file": "20260927000000_fix_edu_set_daily_attendance_column_ambiguity.sql",
+      "version": "20260927000000",
+      "normalized": "20260927000000"
+    },
+    {
+      "file": "20260927010000_preschool_guardian_pickup_authorizations.sql",
+      "version": "20260927010000",
+      "normalized": "20260927010000"
+    },
+    {
+      "file": "20260927020000_fix_course_rls_auth_tenant_helper.sql",
+      "version": "20260927020000",
+      "normalized": "20260927020000"
+    },
+    {
+      "file": "20260927030000_preschool_safe_pickup_handover_events.sql",
+      "version": "20260927030000",
+      "normalized": "20260927030000"
+    },
+    {
+      "file": "20260927040000_preschool_daily_care_canonical_student_party.sql",
+      "version": "20260927040000",
+      "normalized": "20260927040000"
+    },
+    {
+      "file": "20260927050000_preschool_parent_digest_canonical_student_party.sql",
+      "version": "20260927050000",
+      "normalized": "20260927050000"
+    },
+    {
+      "file": "20260927060000_enable_parent_user_role.sql",
+      "version": "20260927060000",
+      "normalized": "20260927060000"
+    },
+    {
+      "file": "20260927070000_preschool_finance_canonical_student_party.sql",
+      "version": "20260927070000",
+      "normalized": "20260927070000"
+    },
+    {
+      "file": "20260927080000_finance_tt99_slice1_accounting_activation.sql",
+      "version": "20260927080000",
+      "normalized": "20260927080000"
+    },
+    {
+      "file": "20260927081000_finance_drop_legacy_semantic_gl_text_overload.sql",
+      "version": "20260927081000",
+      "normalized": "20260927081000"
+    },
+    {
+      "file": "20260928000000_preschool_tuition_recognition_policy_foundation.sql",
+      "version": "20260928000000",
+      "normalized": "20260928000000"
+    },
+    {
+      "file": "20260928183000_haircut_salary_payment_locked_transition.sql",
+      "version": "20260928183000",
+      "normalized": "20260928183000"
+    },
+    {
+      "file": "20260929010000_haircut_exact_coa_bootstrap.sql",
+      "version": "20260929010000",
+      "normalized": "20260929010000"
+    },
+    {
+      "file": "20260930093000_add_bookings_metadata_contract_column.sql",
+      "version": "20260930093000",
+      "normalized": "20260930093000"
+    },
+    {
+      "file": "20261001000000_restore_finance_f3_ar_privilege_boundary.sql",
+      "version": "20261001000000",
+      "normalized": "20261001000000"
+    },
+    {
+      "file": "20261001000001_restore_finance_f2_cash_positions_privilege_boundary.sql",
+      "version": "20261001000001",
+      "normalized": "20261001000001"
+    },
+    {
+      "file": "20261001970000_restore_f5_control_schema.sql",
+      "version": "20261001970000",
+      "normalized": "20261001970000"
+    },
+    {
+      "file": "20261001980000_restore_f5_read_contracts.sql",
+      "version": "20261001980000",
+      "normalized": "20261001980000"
+    },
+    {
+      "file": "20261001990000_restore_f5_reconstruction_engine.sql",
+      "version": "20261001990000",
+      "normalized": "20261001990000"
+    },
+    {
+      "file": "20261002000000_restore_f5_reconciliation_rpc.sql",
+      "version": "20261002000000",
+      "normalized": "20261002000000"
+    },
+    {
+      "file": "20261002020000_reapply_f5_ar_reconciliation_rpc.sql",
+      "version": "20261002020000",
+      "normalized": "20261002020000"
+    },
+    {
+      "file": "20261002030000_reapply_f5_f1_read_contract_source_id_cast.sql",
+      "version": "20261002030000",
+      "normalized": "20261002030000"
+    },
+    {
+      "file": "20261004010000_add_branch_id_to_attendance.sql",
+      "version": "20261004010000",
+      "normalized": "20261004010000"
+    },
+    {
+      "file": "20261004020000_add_branch_id_to_salary_records.sql",
+      "version": "20261004020000",
+      "normalized": "20261004020000"
+    },
+    {
+      "file": "20261004030000_add_branch_id_to_commission_sources.sql",
+      "version": "20261004030000",
+      "normalized": "20261004030000"
+    },
+    {
+      "file": "20261006010000_preschool_chain_assignments.sql",
+      "version": "20261006010000",
+      "normalized": "20261006010000"
+    },
+    {
+      "file": "20261007090000_platform_logistics_runtime_privileges.sql",
+      "version": "20261007090000",
+      "normalized": "20261007090000"
+    },
+    {
+      "file": "20261008010000_repair_healthcare_lab_order_rls_policies.sql",
+      "version": "20261008010000",
+      "normalized": "20261008010000"
+    },
+    {
+      "file": "20261008011000_repair_healthcare_imaging_order_rls_policies.sql",
+      "version": "20261008011000",
+      "normalized": "20261008011000"
+    },
+    {
+      "file": "20261008012000_repair_healthcare_pharmacy_mar_rls_policies.sql",
+      "version": "20261008012000",
+      "normalized": "20261008012000"
+    },
+    {
+      "file": "20261009010000_create_hospitality_housekeeping_foundation.sql",
+      "version": "20261009010000",
+      "normalized": "20261009010000"
+    },
+    {
+      "file": "20261009020000_fix_hospitality_housekeeping_scope_triggers.sql",
+      "version": "20261009020000",
+      "normalized": "20261009020000"
+    },
+    {
+      "file": "20261009030000_create_hospitality_maintenance_foundation.sql",
+      "version": "20261009030000",
+      "normalized": "20261009030000"
+    },
+    {
+      "file": "20261009120000_add_tenants_metadata_contract_column.sql",
+      "version": "20261009120000",
+      "normalized": "20261009120000"
+    },
+    {
+      "file": "20261010010000_create_manufacturing_slice1_foundation.sql",
+      "version": "20261010010000",
+      "normalized": "20261010010000"
+    },
+    {
+      "file": "20261010020000_create_logistics_stock_out_idempotency.sql",
+      "version": "20261010020000",
+      "normalized": "20261010020000"
+    },
+    {
+      "file": "20261010030000_create_logistics_stock_in_idempotency.sql",
+      "version": "20261010030000",
+      "normalized": "20261010030000"
+    },
+    {
+      "file": "20261010040000_create_manufacturing_execution_completion.sql",
+      "version": "20261010040000",
+      "normalized": "20261010040000"
+    },
+    {
+      "file": "20261010050000_create_manufacturing_quality_dispositions.sql",
+      "version": "20261010050000",
+      "normalized": "20261010050000"
+    },
+    {
+      "file": "20261011010000_create_manufacturing_routing_progress.sql",
+      "version": "20261011010000",
+      "normalized": "20261011010000"
+    },
+    {
+      "file": "20261011020000_bind_manufacturing_operation_progress_evidence.sql",
+      "version": "20261011020000",
+      "normalized": "20261011020000"
+    },
+    {
+      "file": "20261011030000_bind_manufacturing_lot_genealogy_evidence.sql",
+      "version": "20261011030000",
+      "normalized": "20261011030000"
+    },
+    {
+      "file": "20261011050000_create_manufacturing_production_plan_mvp.sql",
+      "version": "20261011050000",
+      "normalized": "20261011050000"
+    },
+    {
+      "file": "20261011193000_fix_runtime_submit_financial_intent_schema.sql",
+      "version": "20261011193000",
+      "normalized": "20261011193000"
+    },
+    {
+      "file": "20261012010000_create_retail_sale_pos_mvp.sql",
+      "version": "20261012010000",
+      "normalized": "20261012010000"
+    },
+    {
+      "file": "20261012020000_create_tourism_os_foundation.sql",
+      "version": "20261012020000",
+      "normalized": "20261012020000"
+    },
+    {
+      "file": "20261012030000_create_agriculture_os_foundation.sql",
+      "version": "20261012030000",
+      "normalized": "20261012030000"
+    },
+    {
+      "file": "20261013010000_create_construction_foundation_mvp.sql",
+      "version": "20261013010000",
+      "normalized": "20261013010000"
+    },
+    {
+      "file": "20261013120000_create_mobility_os_foundation_contract.sql",
+      "version": "20261013120000",
+      "normalized": "20261013120000"
+    },
+    {
+      "file": "20261014010000_create_automove_vehicle_sale_recognition_ledgers.sql",
+      "version": "20261014010000",
+      "normalized": "20261014010000"
+    },
+    {
+      "file": "20261014020000_create_policy_registry_user_identity_forward.sql",
+      "version": "20261014020000",
+      "normalized": "20261014020000"
+    },
+    {
+      "file": "20261014020100_harden_policy_registry_rls_profile_references.sql",
+      "version": "20261014020100",
+      "normalized": "20261014020100"
+    },
+    {
+      "file": "20261014020200_harden_automove_sales_chain_rls_grants.sql",
+      "version": "20261014020200",
+      "normalized": "20261014020200"
+    },
+    {
+      "file": "20261014030000_create_automove_approved_financial_snapshots.sql",
+      "version": "20261014030000",
+      "normalized": "20261014030000"
+    },
+    {
+      "file": "20261014030100_restrict_automove_snapshot_accountant_authority.sql",
+      "version": "20261014030100",
+      "normalized": "20261014030100"
+    },
+    {
+      "file": "20261014030200_allow_automove_server_draft_correction.sql",
+      "version": "20261014030200",
+      "normalized": "20261014030200"
+    },
+    {
+      "file": "20261015010000_authorize_automove_catalog_tenant_reads.sql",
+      "version": "20261015010000",
+      "normalized": "20261015010000"
+    },
+    {
+      "file": "20261015020000_create_automove_post_sale_receipts.sql",
+      "version": "20261015020000",
+      "normalized": "20261015020000"
+    },
+    {
+      "file": "20261015020100_guard_automove_combined_collection_cap.sql",
+      "version": "20261015020100",
+      "normalized": "20261015020100"
+    },
+    {
+      "file": "20261015030000_guard_automove_active_identity_access.sql",
+      "version": "20261015030000",
+      "normalized": "20261015030000"
+    },
+    {
+      "file": "20261015040000_align_platform_identity_hq_authority.sql",
+      "version": "20261015040000",
+      "normalized": "20261015040000"
+    },
+    {
+      "file": "20261015040100_preserve_explicit_active_hq_tenant_management.sql",
+      "version": "20261015040100",
+      "normalized": "20261015040100"
+    },
+    {
+      "file": "20261015050000_authorize_automove_customer_profile_management.sql",
+      "version": "20261015050000",
+      "normalized": "20261015050000"
+    },
+    {
+      "file": "20261015050100_limit_automove_profile_preference_columns.sql",
+      "version": "20261015050100",
+      "normalized": "20261015050100"
+    },
+    {
+      "file": "20261015060000_record_automove_refunds_and_cancellations.sql",
+      "version": "20261015060000",
+      "normalized": "20261015060000"
+    },
+    {
+      "file": "20261016010000_align_automove_catalog_read_acl.sql",
+      "version": "20261016010000",
+      "normalized": "20261016010000"
+    },
+    {
+      "file": "20261019010000_party_registration_receipts.sql",
+      "version": "20261019010000",
+      "normalized": "20261019010000"
+    },
+    {
+      "file": "20261019020000_preschool_admission_operations.sql",
+      "version": "20261019020000",
+      "normalized": "20261019020000"
+    },
+    {
+      "file": "20261019030000_preschool_chain_branch_security.sql",
+      "version": "20261019030000",
+      "normalized": "20261019030000"
+    },
+    {
+      "file": "20261019040000_preschool_finance_atomic_reconciliation.sql",
+      "version": "20261019040000",
+      "normalized": "20261019040000"
+    },
+    {
+      "file": "20261019045000_platform_trusted_actor_org_unit_access.sql",
+      "version": "20261019045000",
+      "normalized": "20261019045000"
+    },
+    {
+      "file": "20261019050000_preschool_finance_branch_authorization.sql",
+      "version": "20261019050000",
+      "normalized": "20261019050000"
+    },
+    {
+      "file": "20261019060000_platform_current_actor_read_contract.sql",
+      "version": "20261019060000",
+      "normalized": "20261019060000"
+    },
+    {
+      "file": "20261020110000_p43_preschool_weekly_menu.sql",
+      "version": "20261020110000",
+      "normalized": "20261020110000"
+    },
+    {
+      "file": "20261021030000_restrict_exec_sql_client_execution.sql",
+      "version": "20261021030000",
+      "normalized": "20261021030000"
+    },
+    {
+      "file": "20261021050000_contain_shared_identity_client_writes.sql",
+      "version": "20261021050000",
+      "normalized": "20261021050000"
+    },
+    {
+      "file": "20261022040000_preschool_finance_branch_surface.sql",
+      "version": "20261022040000",
+      "normalized": "20261022040000"
+    },
+    {
+      "file": "20261022120000_education_attendance_authenticated_tenant_guard.sql",
+      "version": "20261022120000",
+      "normalized": "20261022120000"
+    },
+    {
+      "file": "20261023010000_education_enrollment_event_recovery.sql",
+      "version": "20261023010000",
+      "normalized": "20261023010000"
+    },
+    {
+      "file": "20261023020000_education_scoped_attendance_command.sql",
+      "version": "20261023020000",
+      "normalized": "20261023020000"
+    },
+    {
+      "file": "20261023030000_preschool_scoped_attendance_command.sql",
+      "version": "20261023030000",
+      "normalized": "20261023030000"
+    },
+    {
+      "file": "20261023040000_attendance_authorization_wait_repair.sql",
+      "version": "20261023040000",
+      "normalized": "20261023040000"
+    },
+    {
+      "file": "20261023050000_attendance_final_authority_order.sql",
+      "version": "20261023050000",
+      "normalized": "20261023050000"
+    },
+    {
+      "file": "20261023120000_preschool_review_authority_and_overdue.sql",
+      "version": "20261023120000",
+      "normalized": "20261023120000"
+    },
+    {
+      "file": "20261024010000_preschool_handover_atomic_command.sql",
+      "version": "20261024010000",
+      "normalized": "20261024010000"
+    },
+    {
+      "file": "20261024020000_reconcile_education_attendance_callers.sql",
+      "version": "20261024020000",
+      "normalized": "20261024020000"
+    },
+    {
+      "file": "20261026100000_scope_education_attendance_state_by_branch.sql",
+      "version": "20261026100000",
+      "normalized": "20261026100000"
+    },
+    {
+      "file": "20261026130100_finalize_education_attendance_branch_read.sql",
+      "version": "20261026130100",
+      "normalized": "20261026130100"
+    },
+    {
+      "file": "20261026152000_harden_education_attendance_access.sql",
+      "version": "20261026152000",
+      "normalized": "20261026152000"
+    },
+    {
+      "file": "20261026170000_party_auth_identity_links.sql",
+      "version": "20261026170000",
+      "normalized": "20261026170000"
+    },
+    {
+      "file": "20261026183000_integrate_preschool_teacher_attendance.sql",
+      "version": "20261026183000",
+      "normalized": "20261026183000"
+    }
+  ],
+  "remoteOnly": [
+    {
+      "name": "platform_current_actor_read_contract",
+      "statement_count": 1,
+      "statements_md5": "c9062ea8f0b3791dedcca4899583a01e",
+      "version": "20261024073425"
+    },
+    {
+      "name": "platform_trusted_actor_org_unit_access",
+      "statement_count": 1,
+      "statements_md5": "9afdd93b04becfeba617313f47601795",
+      "version": "20261024073501"
+    }
+  ],
+  "rawPendingLocal": [
+    {
+      "file": "20260511500000_create_inventory_items.sql",
+      "version": "20260511500000",
+      "normalized": "20260511500000"
+    },
+    {
+      "file": "20260514900000_create_packages_table.sql",
+      "version": "20260514900000",
+      "normalized": "20260514900000"
+    },
+    {
+      "file": "20260622_create_tenant_payroll_config.sql",
+      "version": "20260622",
+      "normalized": "20260622000000"
+    },
+    {
+      "file": "20260622_insert_default_payroll_configs.sql",
+      "version": "20260622",
+      "normalized": "20260622000000"
+    },
+    {
+      "file": "20260820_r4_3_gate_tokens.sql",
+      "version": "20260820",
+      "normalized": "20260820000000"
+    },
+    {
+      "file": "20260820_r4_4_monitoring_audit.sql",
+      "version": "20260820",
+      "normalized": "20260820000000"
+    },
+    {
+      "file": "20260820_r4_approval_contract.sql",
+      "version": "20260820",
+      "normalized": "20260820000000"
+    },
+    {
+      "file": "20260821_create_accessorial_rates_table.sql",
+      "version": "20260821",
+      "normalized": "20260821000000"
+    },
+    {
+      "file": "20260821_create_carrier_rates_table.sql",
+      "version": "20260821",
+      "normalized": "20260821000000"
+    },
+    {
+      "file": "20260821_create_discrepancies_table.sql",
+      "version": "20260821",
+      "normalized": "20260821000000"
+    },
+    {
+      "file": "20260821_create_freight_audit_tables.sql",
+      "version": "20260821",
+      "normalized": "20260821000000"
+    },
+    {
+      "file": "20260909000051_p41_safety_critical.sql",
+      "version": "20260909000051",
+      "normalized": "20260909000051"
+    },
+    {
+      "file": "20260909000052_p42_daily_care_operations.sql",
+      "version": "20260909000052",
+      "normalized": "20260909000052"
+    },
+    {
+      "file": "20260909000053_p51_framework_observation_evidence.sql",
+      "version": "20260909000053",
+      "normalized": "20260909000053"
+    },
+    {
+      "file": "20260909000054_p52_milestone_progress_next_steps.sql",
+      "version": "20260909000054",
+      "normalized": "20260909000054"
+    },
+    {
+      "file": "20260909000055_p53_portfolio_workspace.sql",
+      "version": "20260909000055",
+      "normalized": "20260909000055"
+    },
+    {
+      "file": "20260909000056_p61_parent_communication.sql",
+      "version": "20260909000056",
+      "normalized": "20260909000056"
+    },
+    {
+      "file": "20260909000057_p62_projection_bridges.sql",
+      "version": "20260909000057",
+      "normalized": "20260909000057"
+    },
+    {
+      "file": "20260909000058_p71_preschool_finance.sql",
+      "version": "20260909000058",
+      "normalized": "20260909000058"
+    },
+    {
+      "file": "20260909000059_p73_finance_rls_grant.sql",
+      "version": "20260909000059",
+      "normalized": "20260909000059"
+    },
+    {
+      "file": "20260909000060_p8_staff_scheduling_schema.sql",
+      "version": "20260909000060",
+      "normalized": "20260909000060"
+    },
+    {
+      "file": "20260909000061_p82_nullable_exception_notice_id.sql",
+      "version": "20260909000061",
+      "normalized": "20260909000061"
+    },
+    {
+      "file": "20260909000062_p9_facilities_asset_schema.sql",
+      "version": "20260909000062",
+      "normalized": "20260909000062"
+    },
+    {
+      "file": "20260909000063_p92_nullable_exception_guardian_id.sql",
+      "version": "20260909000063",
+      "normalized": "20260909000063"
+    },
+    {
+      "file": "20260909000064_p93_facilities_rls_grant.sql",
+      "version": "20260909000064",
+      "normalized": "20260909000064"
+    },
+    {
+      "file": "20260913010000_create_english_center_program_course_class.sql",
+      "version": "20260913010000",
+      "normalized": "20260913010000"
+    },
+    {
+      "file": "20260913010100_index_english_center_programs_tenant.sql",
+      "version": "20260913010100",
+      "normalized": "20260913010100"
+    },
+    {
+      "file": "20260913010200_index_english_center_programs_code.sql",
+      "version": "20260913010200",
+      "normalized": "20260913010200"
+    },
+    {
+      "file": "20260913010300_index_english_center_programs_status.sql",
+      "version": "20260913010300",
+      "normalized": "20260913010300"
+    },
+    {
+      "file": "20260913010400_index_english_center_courses_tenant.sql",
+      "version": "20260913010400",
+      "normalized": "20260913010400"
+    },
+    {
+      "file": "20260913010500_index_english_center_courses_program.sql",
+      "version": "20260913010500",
+      "normalized": "20260913010500"
+    },
+    {
+      "file": "20260913010600_index_english_center_courses_status.sql",
+      "version": "20260913010600",
+      "normalized": "20260913010600"
+    },
+    {
+      "file": "20260913010700_index_english_center_classes_tenant.sql",
+      "version": "20260913010700",
+      "normalized": "20260913010700"
+    },
+    {
+      "file": "20260913010800_index_english_center_classes_branch.sql",
+      "version": "20260913010800",
+      "normalized": "20260913010800"
+    },
+    {
+      "file": "20260913010900_index_english_center_classes_course.sql",
+      "version": "20260913010900",
+      "normalized": "20260913010900"
+    },
+    {
+      "file": "20260913011000_index_english_center_classes_teacher.sql",
+      "version": "20260913011000",
+      "normalized": "20260913011000"
+    },
+    {
+      "file": "20260913011100_index_english_center_classes_status.sql",
+      "version": "20260913011100",
+      "normalized": "20260913011100"
+    },
+    {
+      "file": "20260913011200_index_english_center_classes_dates.sql",
+      "version": "20260913011200",
+      "normalized": "20260913011200"
+    },
+    {
+      "file": "20260913020000_create_english_center_enrollments.sql",
+      "version": "20260913020000",
+      "normalized": "20260913020000"
+    },
+    {
+      "file": "20260913020100_index_english_center_enrollments_tenant.sql",
+      "version": "20260913020100",
+      "normalized": "20260913020100"
+    },
+    {
+      "file": "20260913020200_index_english_center_enrollments_branch.sql",
+      "version": "20260913020200",
+      "normalized": "20260913020200"
+    },
+    {
+      "file": "20260913020300_index_english_center_enrollments_canonical.sql",
+      "version": "20260913020300",
+      "normalized": "20260913020300"
+    },
+    {
+      "file": "20260913020400_index_english_center_enrollments_program.sql",
+      "version": "20260913020400",
+      "normalized": "20260913020400"
+    },
+    {
+      "file": "20260913020500_index_english_center_enrollments_class.sql",
+      "version": "20260913020500",
+      "normalized": "20260913020500"
+    },
+    {
+      "file": "20260913030000_create_english_center_teachers.sql",
+      "version": "20260913030000",
+      "normalized": "20260913030000"
+    },
+    {
+      "file": "20260913030100_index_english_center_teachers_tenant.sql",
+      "version": "20260913030100",
+      "normalized": "20260913030100"
+    },
+    {
+      "file": "20260913030200_index_english_center_teachers_party.sql",
+      "version": "20260913030200",
+      "normalized": "20260913030200"
+    },
+    {
+      "file": "20260913030300_index_english_center_teachers_status.sql",
+      "version": "20260913030300",
+      "normalized": "20260913030300"
+    },
+    {
+      "file": "20260913030400_index_english_center_teacher_branches_tenant.sql",
+      "version": "20260913030400",
+      "normalized": "20260913030400"
+    },
+    {
+      "file": "20260913030500_index_english_center_teacher_branches_teacher.sql",
+      "version": "20260913030500",
+      "normalized": "20260913030500"
+    },
+    {
+      "file": "20260913030600_index_english_center_teacher_branches_branch.sql",
+      "version": "20260913030600",
+      "normalized": "20260913030600"
+    },
+    {
+      "file": "20260914200000_repair_english_center_branch_rls.sql",
+      "version": "20260914200000",
+      "normalized": "20260914200000"
+    },
+    {
+      "file": "20260914_create_user_org_unit_access_projection.sql",
+      "version": "20260914",
+      "normalized": "20260914000000"
+    },
+    {
+      "file": "20260914_repair_platform_org_people_rls.sql",
+      "version": "20260914",
+      "normalized": "20260914000000"
+    },
+    {
+      "file": "20260919030000_add_product_key_to_tenants.sql",
+      "version": "20260919030000",
+      "normalized": "20260919030000"
+    },
+    {
+      "file": "20260926000000_r3_student_identity_resolver.sql",
+      "version": "20260926000000",
+      "normalized": "20260926000000"
+    },
+    {
+      "file": "20260926001000_bdgf_owner_operated_approval_mode.sql",
+      "version": "20260926001000",
+      "normalized": "20260926001000"
+    },
+    {
+      "file": "20260926002000_r3_student_create_side_nullable_person_id.sql",
+      "version": "20260926002000",
+      "normalized": "20260926002000"
+    },
+    {
+      "file": "20260926003000_education_daily_attendance_state.sql",
+      "version": "20260926003000",
+      "normalized": "20260926003000"
+    },
+    {
+      "file": "20260927000000_fix_edu_set_daily_attendance_column_ambiguity.sql",
+      "version": "20260927000000",
+      "normalized": "20260927000000"
+    },
+    {
+      "file": "20260927010000_preschool_guardian_pickup_authorizations.sql",
+      "version": "20260927010000",
+      "normalized": "20260927010000"
+    },
+    {
+      "file": "20260927020000_fix_course_rls_auth_tenant_helper.sql",
+      "version": "20260927020000",
+      "normalized": "20260927020000"
+    },
+    {
+      "file": "20260927030000_preschool_safe_pickup_handover_events.sql",
+      "version": "20260927030000",
+      "normalized": "20260927030000"
+    },
+    {
+      "file": "20260927040000_preschool_daily_care_canonical_student_party.sql",
+      "version": "20260927040000",
+      "normalized": "20260927040000"
+    },
+    {
+      "file": "20260927050000_preschool_parent_digest_canonical_student_party.sql",
+      "version": "20260927050000",
+      "normalized": "20260927050000"
+    },
+    {
+      "file": "20260927060000_enable_parent_user_role.sql",
+      "version": "20260927060000",
+      "normalized": "20260927060000"
+    },
+    {
+      "file": "20260927070000_preschool_finance_canonical_student_party.sql",
+      "version": "20260927070000",
+      "normalized": "20260927070000"
+    },
+    {
+      "file": "20260927080000_finance_tt99_slice1_accounting_activation.sql",
+      "version": "20260927080000",
+      "normalized": "20260927080000"
+    },
+    {
+      "file": "20260927081000_finance_drop_legacy_semantic_gl_text_overload.sql",
+      "version": "20260927081000",
+      "normalized": "20260927081000"
+    },
+    {
+      "file": "20260928000000_preschool_tuition_recognition_policy_foundation.sql",
+      "version": "20260928000000",
+      "normalized": "20260928000000"
+    },
+    {
+      "file": "20260928183000_haircut_salary_payment_locked_transition.sql",
+      "version": "20260928183000",
+      "normalized": "20260928183000"
+    },
+    {
+      "file": "20260929010000_haircut_exact_coa_bootstrap.sql",
+      "version": "20260929010000",
+      "normalized": "20260929010000"
+    },
+    {
+      "file": "20260930093000_add_bookings_metadata_contract_column.sql",
+      "version": "20260930093000",
+      "normalized": "20260930093000"
+    },
+    {
+      "file": "20261001000000_restore_finance_f3_ar_privilege_boundary.sql",
+      "version": "20261001000000",
+      "normalized": "20261001000000"
+    },
+    {
+      "file": "20261001000001_restore_finance_f2_cash_positions_privilege_boundary.sql",
+      "version": "20261001000001",
+      "normalized": "20261001000001"
+    },
+    {
+      "file": "20261001970000_restore_f5_control_schema.sql",
+      "version": "20261001970000",
+      "normalized": "20261001970000"
+    },
+    {
+      "file": "20261001980000_restore_f5_read_contracts.sql",
+      "version": "20261001980000",
+      "normalized": "20261001980000"
+    },
+    {
+      "file": "20261001990000_restore_f5_reconstruction_engine.sql",
+      "version": "20261001990000",
+      "normalized": "20261001990000"
+    },
+    {
+      "file": "20261002000000_restore_f5_reconciliation_rpc.sql",
+      "version": "20261002000000",
+      "normalized": "20261002000000"
+    },
+    {
+      "file": "20261002020000_reapply_f5_ar_reconciliation_rpc.sql",
+      "version": "20261002020000",
+      "normalized": "20261002020000"
+    },
+    {
+      "file": "20261002030000_reapply_f5_f1_read_contract_source_id_cast.sql",
+      "version": "20261002030000",
+      "normalized": "20261002030000"
+    },
+    {
+      "file": "20261004010000_add_branch_id_to_attendance.sql",
+      "version": "20261004010000",
+      "normalized": "20261004010000"
+    },
+    {
+      "file": "20261004020000_add_branch_id_to_salary_records.sql",
+      "version": "20261004020000",
+      "normalized": "20261004020000"
+    },
+    {
+      "file": "20261004030000_add_branch_id_to_commission_sources.sql",
+      "version": "20261004030000",
+      "normalized": "20261004030000"
+    },
+    {
+      "file": "20261006010000_preschool_chain_assignments.sql",
+      "version": "20261006010000",
+      "normalized": "20261006010000"
+    },
+    {
+      "file": "20261007090000_platform_logistics_runtime_privileges.sql",
+      "version": "20261007090000",
+      "normalized": "20261007090000"
+    },
+    {
+      "file": "20261008010000_repair_healthcare_lab_order_rls_policies.sql",
+      "version": "20261008010000",
+      "normalized": "20261008010000"
+    },
+    {
+      "file": "20261008011000_repair_healthcare_imaging_order_rls_policies.sql",
+      "version": "20261008011000",
+      "normalized": "20261008011000"
+    },
+    {
+      "file": "20261008012000_repair_healthcare_pharmacy_mar_rls_policies.sql",
+      "version": "20261008012000",
+      "normalized": "20261008012000"
+    },
+    {
+      "file": "20261009010000_create_hospitality_housekeeping_foundation.sql",
+      "version": "20261009010000",
+      "normalized": "20261009010000"
+    },
+    {
+      "file": "20261009020000_fix_hospitality_housekeeping_scope_triggers.sql",
+      "version": "20261009020000",
+      "normalized": "20261009020000"
+    },
+    {
+      "file": "20261009030000_create_hospitality_maintenance_foundation.sql",
+      "version": "20261009030000",
+      "normalized": "20261009030000"
+    },
+    {
+      "file": "20261009120000_add_tenants_metadata_contract_column.sql",
+      "version": "20261009120000",
+      "normalized": "20261009120000"
+    },
+    {
+      "file": "20261010010000_create_manufacturing_slice1_foundation.sql",
+      "version": "20261010010000",
+      "normalized": "20261010010000"
+    },
+    {
+      "file": "20261010020000_create_logistics_stock_out_idempotency.sql",
+      "version": "20261010020000",
+      "normalized": "20261010020000"
+    },
+    {
+      "file": "20261010030000_create_logistics_stock_in_idempotency.sql",
+      "version": "20261010030000",
+      "normalized": "20261010030000"
+    },
+    {
+      "file": "20261010040000_create_manufacturing_execution_completion.sql",
+      "version": "20261010040000",
+      "normalized": "20261010040000"
+    },
+    {
+      "file": "20261010050000_create_manufacturing_quality_dispositions.sql",
+      "version": "20261010050000",
+      "normalized": "20261010050000"
+    },
+    {
+      "file": "20261011010000_create_manufacturing_routing_progress.sql",
+      "version": "20261011010000",
+      "normalized": "20261011010000"
+    },
+    {
+      "file": "20261011020000_bind_manufacturing_operation_progress_evidence.sql",
+      "version": "20261011020000",
+      "normalized": "20261011020000"
+    },
+    {
+      "file": "20261011030000_bind_manufacturing_lot_genealogy_evidence.sql",
+      "version": "20261011030000",
+      "normalized": "20261011030000"
+    },
+    {
+      "file": "20261011050000_create_manufacturing_production_plan_mvp.sql",
+      "version": "20261011050000",
+      "normalized": "20261011050000"
+    },
+    {
+      "file": "20261011193000_fix_runtime_submit_financial_intent_schema.sql",
+      "version": "20261011193000",
+      "normalized": "20261011193000"
+    },
+    {
+      "file": "20261012010000_create_retail_sale_pos_mvp.sql",
+      "version": "20261012010000",
+      "normalized": "20261012010000"
+    },
+    {
+      "file": "20261012020000_create_tourism_os_foundation.sql",
+      "version": "20261012020000",
+      "normalized": "20261012020000"
+    },
+    {
+      "file": "20261012030000_create_agriculture_os_foundation.sql",
+      "version": "20261012030000",
+      "normalized": "20261012030000"
+    },
+    {
+      "file": "20261013010000_create_construction_foundation_mvp.sql",
+      "version": "20261013010000",
+      "normalized": "20261013010000"
+    },
+    {
+      "file": "20261013120000_create_mobility_os_foundation_contract.sql",
+      "version": "20261013120000",
+      "normalized": "20261013120000"
+    },
+    {
+      "file": "20261014010000_create_automove_vehicle_sale_recognition_ledgers.sql",
+      "version": "20261014010000",
+      "normalized": "20261014010000"
+    },
+    {
+      "file": "20261014020000_create_policy_registry_user_identity_forward.sql",
+      "version": "20261014020000",
+      "normalized": "20261014020000"
+    },
+    {
+      "file": "20261014020100_harden_policy_registry_rls_profile_references.sql",
+      "version": "20261014020100",
+      "normalized": "20261014020100"
+    },
+    {
+      "file": "20261014020200_harden_automove_sales_chain_rls_grants.sql",
+      "version": "20261014020200",
+      "normalized": "20261014020200"
+    },
+    {
+      "file": "20261014030000_create_automove_approved_financial_snapshots.sql",
+      "version": "20261014030000",
+      "normalized": "20261014030000"
+    },
+    {
+      "file": "20261014030100_restrict_automove_snapshot_accountant_authority.sql",
+      "version": "20261014030100",
+      "normalized": "20261014030100"
+    },
+    {
+      "file": "20261014030200_allow_automove_server_draft_correction.sql",
+      "version": "20261014030200",
+      "normalized": "20261014030200"
+    },
+    {
+      "file": "20261015010000_authorize_automove_catalog_tenant_reads.sql",
+      "version": "20261015010000",
+      "normalized": "20261015010000"
+    },
+    {
+      "file": "20261015020000_create_automove_post_sale_receipts.sql",
+      "version": "20261015020000",
+      "normalized": "20261015020000"
+    },
+    {
+      "file": "20261015020100_guard_automove_combined_collection_cap.sql",
+      "version": "20261015020100",
+      "normalized": "20261015020100"
+    },
+    {
+      "file": "20261015030000_guard_automove_active_identity_access.sql",
+      "version": "20261015030000",
+      "normalized": "20261015030000"
+    },
+    {
+      "file": "20261015040000_align_platform_identity_hq_authority.sql",
+      "version": "20261015040000",
+      "normalized": "20261015040000"
+    },
+    {
+      "file": "20261015040100_preserve_explicit_active_hq_tenant_management.sql",
+      "version": "20261015040100",
+      "normalized": "20261015040100"
+    },
+    {
+      "file": "20261015050000_authorize_automove_customer_profile_management.sql",
+      "version": "20261015050000",
+      "normalized": "20261015050000"
+    },
+    {
+      "file": "20261015050100_limit_automove_profile_preference_columns.sql",
+      "version": "20261015050100",
+      "normalized": "20261015050100"
+    },
+    {
+      "file": "20261015060000_record_automove_refunds_and_cancellations.sql",
+      "version": "20261015060000",
+      "normalized": "20261015060000"
+    },
+    {
+      "file": "20261016010000_align_automove_catalog_read_acl.sql",
+      "version": "20261016010000",
+      "normalized": "20261016010000"
+    },
+    {
+      "file": "20261019010000_party_registration_receipts.sql",
+      "version": "20261019010000",
+      "normalized": "20261019010000"
+    },
+    {
+      "file": "20261019020000_preschool_admission_operations.sql",
+      "version": "20261019020000",
+      "normalized": "20261019020000"
+    },
+    {
+      "file": "20261019030000_preschool_chain_branch_security.sql",
+      "version": "20261019030000",
+      "normalized": "20261019030000"
+    },
+    {
+      "file": "20261019040000_preschool_finance_atomic_reconciliation.sql",
+      "version": "20261019040000",
+      "normalized": "20261019040000"
+    },
+    {
+      "file": "20261019045000_platform_trusted_actor_org_unit_access.sql",
+      "version": "20261019045000",
+      "normalized": "20261019045000"
+    },
+    {
+      "file": "20261019050000_preschool_finance_branch_authorization.sql",
+      "version": "20261019050000",
+      "normalized": "20261019050000"
+    },
+    {
+      "file": "20261019060000_platform_current_actor_read_contract.sql",
+      "version": "20261019060000",
+      "normalized": "20261019060000"
+    },
+    {
+      "file": "20261020110000_p43_preschool_weekly_menu.sql",
+      "version": "20261020110000",
+      "normalized": "20261020110000"
+    },
+    {
+      "file": "20261021030000_restrict_exec_sql_client_execution.sql",
+      "version": "20261021030000",
+      "normalized": "20261021030000"
+    },
+    {
+      "file": "20261021050000_contain_shared_identity_client_writes.sql",
+      "version": "20261021050000",
+      "normalized": "20261021050000"
+    },
+    {
+      "file": "20261022040000_preschool_finance_branch_surface.sql",
+      "version": "20261022040000",
+      "normalized": "20261022040000"
+    },
+    {
+      "file": "20261022120000_education_attendance_authenticated_tenant_guard.sql",
+      "version": "20261022120000",
+      "normalized": "20261022120000"
+    },
+    {
+      "file": "20261023010000_education_enrollment_event_recovery.sql",
+      "version": "20261023010000",
+      "normalized": "20261023010000"
+    },
+    {
+      "file": "20261023020000_education_scoped_attendance_command.sql",
+      "version": "20261023020000",
+      "normalized": "20261023020000"
+    },
+    {
+      "file": "20261023030000_preschool_scoped_attendance_command.sql",
+      "version": "20261023030000",
+      "normalized": "20261023030000"
+    },
+    {
+      "file": "20261023040000_attendance_authorization_wait_repair.sql",
+      "version": "20261023040000",
+      "normalized": "20261023040000"
+    },
+    {
+      "file": "20261023050000_attendance_final_authority_order.sql",
+      "version": "20261023050000",
+      "normalized": "20261023050000"
+    },
+    {
+      "file": "20261023120000_preschool_review_authority_and_overdue.sql",
+      "version": "20261023120000",
+      "normalized": "20261023120000"
+    },
+    {
+      "file": "20261024010000_preschool_handover_atomic_command.sql",
+      "version": "20261024010000",
+      "normalized": "20261024010000"
+    },
+    {
+      "file": "20261024020000_reconcile_education_attendance_callers.sql",
+      "version": "20261024020000",
+      "normalized": "20261024020000"
+    },
+    {
+      "file": "20261026100000_scope_education_attendance_state_by_branch.sql",
+      "version": "20261026100000",
+      "normalized": "20261026100000"
+    },
+    {
+      "file": "20261026130100_finalize_education_attendance_branch_read.sql",
+      "version": "20261026130100",
+      "normalized": "20261026130100"
+    },
+    {
+      "file": "20261026152000_harden_education_attendance_access.sql",
+      "version": "20261026152000",
+      "normalized": "20261026152000"
+    },
+    {
+      "file": "20261026170000_party_auth_identity_links.sql",
+      "version": "20261026170000",
+      "normalized": "20261026170000"
+    },
+    {
+      "file": "20261026183000_integrate_preschool_teacher_attendance.sql",
+      "version": "20261026183000",
+      "normalized": "20261026183000"
+    }
+  ],
+  "rawRemoteOnly": [
+    {
+      "name": "platform_current_actor_read_contract",
+      "statement_count": 1,
+      "statements_md5": "c9062ea8f0b3791dedcca4899583a01e",
+      "version": "20261024073425"
+    },
+    {
+      "name": "platform_trusted_actor_org_unit_access",
+      "statement_count": 1,
+      "statements_md5": "9afdd93b04becfeba617313f47601795",
+      "version": "20261024073501"
+    }
+  ],
+  "remoteOnlyLocalNameCounterparts": [
+    {
+      "remoteVersion": "20261024073425",
+      "name": "platform_current_actor_read_contract",
+      "localFiles": [
+        {
+          "file": "20261019060000_platform_current_actor_read_contract.sql",
+          "version": "20261019060000",
+          "normalized": "20261019060000"
+        }
+      ],
+      "statementEquivalence": "NOT_PROVEN: matching name and signature do not establish identical applied statements"
+    },
+    {
+      "remoteVersion": "20261024073501",
+      "name": "platform_trusted_actor_org_unit_access",
+      "localFiles": [
+        {
+          "file": "20261019045000_platform_trusted_actor_org_unit_access.sql",
+          "version": "20261019045000",
+          "normalized": "20261019045000"
+        }
+      ],
+      "statementEquivalence": "NOT_PROVEN: matching name and signature do not establish identical applied statements"
+    }
+  ],
+  "tables": 500,
+  "rlsEnabled": 465,
+  "rlsDisabled": [
+    {
+      "name": "auto_bookings_history",
+      "anonSelect": true,
+      "authenticatedSelect": true
+    },
+    {
+      "name": "auto_customer_journeys_history",
+      "anonSelect": true,
+      "authenticatedSelect": true
+    },
+    {
+      "name": "auto_vehicles_history",
+      "anonSelect": true,
+      "authenticatedSelect": true
+    },
+    {
+      "name": "bella_recovery_actions",
+      "anonSelect": false,
+      "authenticatedSelect": false
+    },
+    {
+      "name": "bella_security_incidents",
+      "anonSelect": false,
+      "authenticatedSelect": false
+    },
+    {
+      "name": "dr_manifest",
+      "anonSelect": true,
+      "authenticatedSelect": true
+    },
+    {
+      "name": "hc_clinical_audit_ledger",
+      "anonSelect": true,
+      "authenticatedSelect": true
+    },
+    {
+      "name": "hc_clinical_calculations",
+      "anonSelect": true,
+      "authenticatedSelect": true
+    },
+    {
+      "name": "hc_clinical_evidence_packages",
+      "anonSelect": true,
+      "authenticatedSelect": true
+    },
+    {
+      "name": "hc_compliance_exceptions",
+      "anonSelect": true,
+      "authenticatedSelect": true
+    },
+    {
+      "name": "hc_drugs",
+      "anonSelect": true,
+      "authenticatedSelect": true
+    },
+    {
+      "name": "hc_governed_clinical_rules",
+      "anonSelect": true,
+      "authenticatedSelect": true
+    },
+    {
+      "name": "hc_rule_governance_audit",
+      "anonSelect": true,
+      "authenticatedSelect": true
+    },
+    {
+      "name": "hc_temporal_events",
+      "anonSelect": true,
+      "authenticatedSelect": true
+    },
+    {
+      "name": "hc_temporal_snapshots",
+      "anonSelect": true,
+      "authenticatedSelect": true
+    },
+    {
+      "name": "identity_migration_mapping",
+      "anonSelect": false,
+      "authenticatedSelect": false
+    },
+    {
+      "name": "log_idempotency_keys",
+      "anonSelect": true,
+      "authenticatedSelect": true
+    },
+    {
+      "name": "platform_enterprise_metric_definitions",
+      "anonSelect": true,
+      "authenticatedSelect": true
+    },
+    {
+      "name": "platform_enterprise_rollups",
+      "anonSelect": true,
+      "authenticatedSelect": true
+    },
+    {
+      "name": "platform_metric_events_2026_08",
+      "anonSelect": true,
+      "authenticatedSelect": true
+    },
+    {
+      "name": "platform_metric_events_2026_09",
+      "anonSelect": true,
+      "authenticatedSelect": true
+    },
+    {
+      "name": "platform_metric_events_2026_10",
+      "anonSelect": true,
+      "authenticatedSelect": true
+    },
+    {
+      "name": "platform_metric_events_2026_11",
+      "anonSelect": true,
+      "authenticatedSelect": true
+    },
+    {
+      "name": "platform_metric_events_2026_12",
+      "anonSelect": true,
+      "authenticatedSelect": true
+    },
+    {
+      "name": "platform_metric_events_2027_01",
+      "anonSelect": true,
+      "authenticatedSelect": true
+    },
+    {
+      "name": "tmp_f3_proof_allocations",
+      "anonSelect": true,
+      "authenticatedSelect": true
+    },
+    {
+      "name": "tmp_f3_proof_invoices",
+      "anonSelect": true,
+      "authenticatedSelect": true
+    },
+    {
+      "name": "tmp_f3_proof_receivable_ledger",
+      "anonSelect": true,
+      "authenticatedSelect": true
+    },
+    {
+      "name": "tmp_f3_proof_receivable_positions",
+      "anonSelect": true,
+      "authenticatedSelect": true
+    },
+    {
+      "name": "tmp_f4_proof_allocations",
+      "anonSelect": true,
+      "authenticatedSelect": true
+    },
+    {
+      "name": "tmp_f4_proof_bills",
+      "anonSelect": true,
+      "authenticatedSelect": true
+    },
+    {
+      "name": "tmp_f4_proof_payable_ledger",
+      "anonSelect": true,
+      "authenticatedSelect": true
+    },
+    {
+      "name": "tmp_f4_proof_payable_positions",
+      "anonSelect": true,
+      "authenticatedSelect": true
+    },
+    {
+      "name": "tmp_f4_proof_prepayment_facts",
+      "anonSelect": true,
+      "authenticatedSelect": true
+    },
+    {
+      "name": "verification_evidence",
+      "anonSelect": true,
+      "authenticatedSelect": true
+    }
+  ],
+  "tablesWithTenantId": 460,
+  "tenantTablesWithoutRls": [
+    "auto_bookings_history",
+    "auto_customer_journeys_history",
+    "auto_vehicles_history",
+    "dr_manifest",
+    "hc_clinical_audit_ledger",
+    "hc_clinical_calculations",
+    "hc_clinical_evidence_packages",
+    "hc_compliance_exceptions",
+    "hc_governed_clinical_rules",
+    "hc_rule_governance_audit",
+    "hc_temporal_events",
+    "hc_temporal_snapshots",
+    "identity_migration_mapping",
+    "platform_metric_events_2026_08",
+    "platform_metric_events_2026_09",
+    "platform_metric_events_2026_10",
+    "platform_metric_events_2026_11",
+    "platform_metric_events_2026_12",
+    "platform_metric_events_2027_01",
+    "tmp_f3_proof_allocations",
+    "tmp_f3_proof_invoices",
+    "tmp_f3_proof_receivable_ledger",
+    "tmp_f3_proof_receivable_positions",
+    "tmp_f4_proof_allocations",
+    "tmp_f4_proof_bills",
+    "tmp_f4_proof_payable_ledger",
+    "tmp_f4_proof_payable_positions",
+    "tmp_f4_proof_prepayment_facts"
+  ],
+  "rlsTablesWithoutPolicies": [
+    "accounting_accounts",
+    "accounting_event_templates",
+    "accounting_outbox",
+    "accounting_periods",
+    "accounting_review_queue",
+    "accounting_worker_runs",
+    "asset_assets",
+    "auto_approval_instances",
+    "auto_approval_workflows",
+    "auto_business_rules",
+    "auto_customer_journeys",
+    "auto_journey_events",
+    "auto_journey_stages",
+    "auto_rule_execution_log",
+    "auto_touchpoints",
+    "beds",
+    "bella_migration_approval",
+    "contract_contracts",
+    "course_modules",
+    "den_odontograms",
+    "equipment",
+    "forecast_results",
+    "hc_anesthesia_medications",
+    "hc_anesthesia_observations",
+    "hc_anesthesia_records",
+    "hc_appointments",
+    "hc_blood_crossmatch_records",
+    "hc_blood_units",
+    "hc_cds_processed_events",
+    "hc_cds_rules",
+    "hc_clinical_context_snapshots",
+    "hc_clinical_decisions",
+    "hc_clinical_safety_profiles",
+    "hc_cssd_cycle_items",
+    "hc_cssd_cycles",
+    "hc_decision_overrides",
+    "hc_drug_profiles",
+    "hc_emergency_visits",
+    "hc_equipment",
+    "hc_icu_beds",
+    "hc_icu_observations",
+    "hc_idempotency_keys",
+    "hc_implants",
+    "hc_operating_rooms",
+    "hc_or_equipment_usage",
+    "hc_or_schedules",
+    "hc_order_cds_overrides",
+    "hc_pacu_admissions",
+    "hc_patient_allergies",
+    "hc_patient_queues",
+    "hc_specimens",
+    "hc_surgical_cases",
+    "hc_surgical_safety_checklists",
+    "hc_surgical_teams",
+    "hc_tenant_cds_policies",
+    "hc_transfusion_records",
+    "hc_transfusion_verifications",
+    "hc_triage_assessments",
+    "hc_ventilator_records",
+    "hc_ventilator_safety_policies",
+    "hr_contracts",
+    "hr_departments",
+    "hr_employee_profiles",
+    "journal_entries",
+    "journal_lines",
+    "journey_journeys",
+    "journey_milestones",
+    "journey_sub_journeys",
+    "knowledge_entries",
+    "knowledge_graph_edges",
+    "knowledge_inference_rules",
+    "lead_activity_log",
+    "lessons",
+    "marketing_meta_ad_account_tokens",
+    "marketing_meta_ad_accounts",
+    "marketing_meta_ads_insights_daily",
+    "marketing_meta_ads_sync_runs",
+    "party_identifiers",
+    "party_parties",
+    "party_relationships",
+    "party_roles",
+    "patient_profiles",
+    "preschool_chain_course_branch_assignments",
+    "preschool_chain_enrollment_branch_assignments",
+    "preschool_course_create_receipts",
+    "preschool_teacher_branch_confirmations",
+    "re_bookings",
+    "re_commissions",
+    "re_contracts",
+    "re_leads",
+    "re_project_checkins",
+    "re_sales_kpi_targets",
+    "re_tasks",
+    "re_transactions",
+    "recommendation_cache",
+    "resource_skills",
+    "rooms",
+    "student_class_attendance",
+    "student_lesson_progress",
+    "student_tuition_payments",
+    "subscription_invoices",
+    "timeline_events",
+    "training_classes",
+    "workflow_instances"
+  ],
+  "policies": 564,
+  "unconditionalPolicyCandidates": [
+    {
+      "cmd": "INSERT",
+      "permissive": "PERMISSIVE",
+      "policyname": "System insert notifications",
+      "qual": null,
+      "roles": [
+        "authenticated"
+      ],
+      "schemaname": "public",
+      "tablename": "Notification",
+      "with_check": "true"
+    },
+    {
+      "cmd": "SELECT",
+      "permissive": "PERMISSIVE",
+      "policyname": "Public Select",
+      "qual": "true",
+      "roles": [
+        "public"
+      ],
+      "schemaname": "public",
+      "tablename": "_prisma_migrations",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "api_partners_service_role_access",
+      "qual": "true",
+      "roles": [
+        "service_role"
+      ],
+      "schemaname": "public",
+      "tablename": "api_partners",
+      "with_check": "true"
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "api_rate_limit_counters_service_role_access",
+      "qual": "true",
+      "roles": [
+        "service_role"
+      ],
+      "schemaname": "public",
+      "tablename": "api_rate_limit_counters",
+      "with_check": "true"
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "api_request_logs_service_role_access",
+      "qual": "true",
+      "roles": [
+        "service_role"
+      ],
+      "schemaname": "public",
+      "tablename": "api_request_logs",
+      "with_check": "true"
+    },
+    {
+      "cmd": "INSERT",
+      "permissive": "PERMISSIVE",
+      "policyname": "Anon can insert audit logs",
+      "qual": null,
+      "roles": [
+        "anon"
+      ],
+      "schemaname": "public",
+      "tablename": "audit_logs",
+      "with_check": "true"
+    },
+    {
+      "cmd": "INSERT",
+      "permissive": "PERMISSIVE",
+      "policyname": "System can insert audit logs",
+      "qual": null,
+      "roles": [
+        "authenticated"
+      ],
+      "schemaname": "public",
+      "tablename": "audit_logs",
+      "with_check": "true"
+    },
+    {
+      "cmd": "SELECT",
+      "permissive": "PERMISSIVE",
+      "policyname": "public_access_auto_rule_templates",
+      "qual": "true",
+      "roles": [
+        "authenticated"
+      ],
+      "schemaname": "public",
+      "tablename": "auto_rule_templates",
+      "with_check": null
+    },
+    {
+      "cmd": "SELECT",
+      "permissive": "PERMISSIVE",
+      "policyname": "execution_audit_read_all",
+      "qual": "true",
+      "roles": [
+        "public"
+      ],
+      "schemaname": "public",
+      "tablename": "bella_execution_audit",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "Service role full access to decision_engine_metrics",
+      "qual": "true",
+      "roles": [
+        "service_role"
+      ],
+      "schemaname": "public",
+      "tablename": "decision_engine_metrics",
+      "with_check": "true"
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "edu_allergens_service_role",
+      "qual": "true",
+      "roles": [
+        "service_role"
+      ],
+      "schemaname": "public",
+      "tablename": "edu_allergens",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "edu_child_allergies_service_role",
+      "qual": "true",
+      "roles": [
+        "service_role"
+      ],
+      "schemaname": "public",
+      "tablename": "edu_child_allergies",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "tenant_isolation_edu_comm_acknowledgements",
+      "qual": "true",
+      "roles": [
+        "public"
+      ],
+      "schemaname": "public",
+      "tablename": "edu_comm_acknowledgements",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "tenant_isolation_edu_comm_consent_responses",
+      "qual": "true",
+      "roles": [
+        "public"
+      ],
+      "schemaname": "public",
+      "tablename": "edu_comm_consent_responses",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "tenant_isolation_edu_comm_deliveries",
+      "qual": "true",
+      "roles": [
+        "public"
+      ],
+      "schemaname": "public",
+      "tablename": "edu_comm_deliveries",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "tenant_isolation_edu_comm_delivery_attempts",
+      "qual": "true",
+      "roles": [
+        "public"
+      ],
+      "schemaname": "public",
+      "tablename": "edu_comm_delivery_attempts",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "tenant_isolation_edu_comm_exceptions",
+      "qual": "true",
+      "roles": [
+        "public"
+      ],
+      "schemaname": "public",
+      "tablename": "edu_comm_exceptions",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "tenant_isolation_edu_comm_notices",
+      "qual": "true",
+      "roles": [
+        "public"
+      ],
+      "schemaname": "public",
+      "tablename": "edu_comm_notices",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "tenant_isolation_edu_comm_responses",
+      "qual": "true",
+      "roles": [
+        "public"
+      ],
+      "schemaname": "public",
+      "tablename": "edu_comm_responses",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "tenant_isolation_edu_comm_sent_snapshots",
+      "qual": "true",
+      "roles": [
+        "public"
+      ],
+      "schemaname": "public",
+      "tablename": "edu_comm_sent_snapshots",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "tenant_isolation_edu_comm_threads",
+      "qual": "true",
+      "roles": [
+        "public"
+      ],
+      "schemaname": "public",
+      "tablename": "edu_comm_threads",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "edu_daily_care_records_service_role",
+      "qual": "true",
+      "roles": [
+        "service_role"
+      ],
+      "schemaname": "public",
+      "tablename": "edu_daily_care_records",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "edu_daily_care_sessions_service_role",
+      "qual": "true",
+      "roles": [
+        "service_role"
+      ],
+      "schemaname": "public",
+      "tablename": "edu_daily_care_sessions",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "edu_daily_parent_digests_service_role",
+      "qual": "true",
+      "roles": [
+        "service_role"
+      ],
+      "schemaname": "public",
+      "tablename": "edu_daily_parent_digests",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "edu_fac_assets_policy",
+      "qual": "true",
+      "roles": [
+        "public"
+      ],
+      "schemaname": "public",
+      "tablename": "edu_fac_assets",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "edu_fac_facilities_policy",
+      "qual": "true",
+      "roles": [
+        "public"
+      ],
+      "schemaname": "public",
+      "tablename": "edu_fac_facilities",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "edu_fac_inspection_logs_policy",
+      "qual": "true",
+      "roles": [
+        "public"
+      ],
+      "schemaname": "public",
+      "tablename": "edu_fac_inspection_logs",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "edu_fac_inspection_schedules_policy",
+      "qual": "true",
+      "roles": [
+        "public"
+      ],
+      "schemaname": "public",
+      "tablename": "edu_fac_inspection_schedules",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "edu_fac_maintenance_jobs_policy",
+      "qual": "true",
+      "roles": [
+        "public"
+      ],
+      "schemaname": "public",
+      "tablename": "edu_fac_maintenance_jobs",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "edu_fac_out_of_service_logs_policy",
+      "qual": "true",
+      "roles": [
+        "public"
+      ],
+      "schemaname": "public",
+      "tablename": "edu_fac_out_of_service_logs",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "edu_fac_zones_policy",
+      "qual": "true",
+      "roles": [
+        "public"
+      ],
+      "schemaname": "public",
+      "tablename": "edu_fac_zones",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "tenant_isolation_edu_fin_billing_periods",
+      "qual": "true",
+      "roles": [
+        "public"
+      ],
+      "schemaname": "public",
+      "tablename": "edu_fin_billing_periods",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "tenant_isolation_edu_fin_fee_structures",
+      "qual": "true",
+      "roles": [
+        "public"
+      ],
+      "schemaname": "public",
+      "tablename": "edu_fin_fee_structures",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "tenant_isolation_edu_fin_invoice_line_items",
+      "qual": "true",
+      "roles": [
+        "public"
+      ],
+      "schemaname": "public",
+      "tablename": "edu_fin_invoice_line_items",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "tenant_isolation_edu_fin_invoices",
+      "qual": "true",
+      "roles": [
+        "public"
+      ],
+      "schemaname": "public",
+      "tablename": "edu_fin_invoices",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "tenant_isolation_edu_fin_payments",
+      "qual": "true",
+      "roles": [
+        "public"
+      ],
+      "schemaname": "public",
+      "tablename": "edu_fin_payments",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "tenant_isolation_edu_fin_receipts",
+      "qual": "true",
+      "roles": [
+        "public"
+      ],
+      "schemaname": "public",
+      "tablename": "edu_fin_receipts",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "tenant_isolation_edu_fin_reconciliation_ledger",
+      "qual": "true",
+      "roles": [
+        "public"
+      ],
+      "schemaname": "public",
+      "tablename": "edu_fin_reconciliation_ledger",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "tenant_isolation_edu_fin_student_discount_profiles",
+      "qual": "true",
+      "roles": [
+        "public"
+      ],
+      "schemaname": "public",
+      "tablename": "edu_fin_student_discount_profiles",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "edu_food_ingredients_service_role",
+      "qual": "true",
+      "roles": [
+        "service_role"
+      ],
+      "schemaname": "public",
+      "tablename": "edu_food_ingredients",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "edu_health_incidents_service_role",
+      "qual": "true",
+      "roles": [
+        "service_role"
+      ],
+      "schemaname": "public",
+      "tablename": "edu_health_incidents",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "edu_ingredient_allergens_service_role",
+      "qual": "true",
+      "roles": [
+        "service_role"
+      ],
+      "schemaname": "public",
+      "tablename": "edu_ingredient_allergens",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "edu_meal_item_ingredients_service_role",
+      "qual": "true",
+      "roles": [
+        "service_role"
+      ],
+      "schemaname": "public",
+      "tablename": "edu_meal_item_ingredients",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "edu_meal_items_service_role",
+      "qual": "true",
+      "roles": [
+        "service_role"
+      ],
+      "schemaname": "public",
+      "tablename": "edu_meal_items",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "edu_medication_authorizations_service_role",
+      "qual": "true",
+      "roles": [
+        "service_role"
+      ],
+      "schemaname": "public",
+      "tablename": "edu_medication_authorizations",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "edu_medication_dose_occurrences_service_role",
+      "qual": "true",
+      "roles": [
+        "service_role"
+      ],
+      "schemaname": "public",
+      "tablename": "edu_medication_dose_occurrences",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "edu_medication_logs_service_role",
+      "qual": "true",
+      "roles": [
+        "service_role"
+      ],
+      "schemaname": "public",
+      "tablename": "edu_medication_logs",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "external_ads_data_allow_all_temp",
+      "qual": "true",
+      "roles": [
+        "authenticated"
+      ],
+      "schemaname": "public",
+      "tablename": "external_ads_data",
+      "with_check": "true"
+    },
+    {
+      "cmd": "SELECT",
+      "permissive": "PERMISSIVE",
+      "policyname": "Anyone can read feature flags",
+      "qual": "true",
+      "roles": [
+        "authenticated"
+      ],
+      "schemaname": "public",
+      "tablename": "feature_flags",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "Service role can manage feature flags",
+      "qual": "true",
+      "roles": [
+        "service_role"
+      ],
+      "schemaname": "public",
+      "tablename": "feature_flags",
+      "with_check": "true"
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "Service role full access",
+      "qual": "true",
+      "roles": [
+        "service_role"
+      ],
+      "schemaname": "public",
+      "tablename": "finance_event_idempotency",
+      "with_check": "true"
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "Service role full access",
+      "qual": "true",
+      "roles": [
+        "service_role"
+      ],
+      "schemaname": "public",
+      "tablename": "finance_transaction_metadata",
+      "with_check": "true"
+    },
+    {
+      "cmd": "INSERT",
+      "permissive": "PERMISSIVE",
+      "policyname": "Service role can insert Gate 3 snapshots",
+      "qual": null,
+      "roles": [
+        "public"
+      ],
+      "schemaname": "public",
+      "tablename": "gate3_monitoring_snapshots",
+      "with_check": "true"
+    },
+    {
+      "cmd": "SELECT",
+      "permissive": "PERMISSIVE",
+      "policyname": "global_kb_read_all_protocols",
+      "qual": "true",
+      "roles": [
+        "authenticated"
+      ],
+      "schemaname": "public",
+      "tablename": "hc_clinical_protocols",
+      "with_check": null
+    },
+    {
+      "cmd": "SELECT",
+      "permissive": "PERMISSIVE",
+      "policyname": "global_kb_read_all_ddi",
+      "qual": "true",
+      "roles": [
+        "authenticated"
+      ],
+      "schemaname": "public",
+      "tablename": "hc_drug_interactions",
+      "with_check": null
+    },
+    {
+      "cmd": "SELECT",
+      "permissive": "PERMISSIVE",
+      "policyname": "hc_registries_read_global",
+      "qual": "true",
+      "roles": [
+        "authenticated",
+        "service_role"
+      ],
+      "schemaname": "public",
+      "tablename": "hc_enterprise_registries",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "Service role has full access to leave_requests",
+      "qual": "true",
+      "roles": [
+        "service_role"
+      ],
+      "schemaname": "public",
+      "tablename": "leave_requests",
+      "with_check": "true"
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "marketing_campaigns_allow_all_temp",
+      "qual": "true",
+      "roles": [
+        "authenticated"
+      ],
+      "schemaname": "public",
+      "tablename": "marketing_campaigns",
+      "with_check": "true"
+    },
+    {
+      "cmd": "INSERT",
+      "permissive": "PERMISSIVE",
+      "policyname": "Authenticated can insert logs",
+      "qual": null,
+      "roles": [
+        "authenticated"
+      ],
+      "schemaname": "public",
+      "tablename": "partner_application_logs",
+      "with_check": "true"
+    },
+    {
+      "cmd": "SELECT",
+      "permissive": "PERMISSIVE",
+      "policyname": "Authenticated can read logs",
+      "qual": "true",
+      "roles": [
+        "authenticated"
+      ],
+      "schemaname": "public",
+      "tablename": "partner_application_logs",
+      "with_check": null
+    },
+    {
+      "cmd": "INSERT",
+      "permissive": "PERMISSIVE",
+      "policyname": "Authenticated users can insert logs",
+      "qual": null,
+      "roles": [
+        "authenticated"
+      ],
+      "schemaname": "public",
+      "tablename": "partner_application_logs",
+      "with_check": "true"
+    },
+    {
+      "cmd": "SELECT",
+      "permissive": "PERMISSIVE",
+      "policyname": "Authenticated users can view logs",
+      "qual": "true",
+      "roles": [
+        "authenticated"
+      ],
+      "schemaname": "public",
+      "tablename": "partner_application_logs",
+      "with_check": null
+    },
+    {
+      "cmd": "SELECT",
+      "permissive": "PERMISSIVE",
+      "policyname": "Authenticated can read all applications",
+      "qual": "true",
+      "roles": [
+        "authenticated"
+      ],
+      "schemaname": "public",
+      "tablename": "partner_applications",
+      "with_check": null
+    },
+    {
+      "cmd": "UPDATE",
+      "permissive": "PERMISSIVE",
+      "policyname": "Authenticated can update applications",
+      "qual": "true",
+      "roles": [
+        "authenticated"
+      ],
+      "schemaname": "public",
+      "tablename": "partner_applications",
+      "with_check": null
+    },
+    {
+      "cmd": "INSERT",
+      "permissive": "PERMISSIVE",
+      "policyname": "Authenticated users can insert applications",
+      "qual": null,
+      "roles": [
+        "authenticated"
+      ],
+      "schemaname": "public",
+      "tablename": "partner_applications",
+      "with_check": "true"
+    },
+    {
+      "cmd": "UPDATE",
+      "permissive": "PERMISSIVE",
+      "policyname": "Authenticated users can update applications",
+      "qual": "true",
+      "roles": [
+        "authenticated"
+      ],
+      "schemaname": "public",
+      "tablename": "partner_applications",
+      "with_check": null
+    },
+    {
+      "cmd": "SELECT",
+      "permissive": "PERMISSIVE",
+      "policyname": "Authenticated users can view applications",
+      "qual": "true",
+      "roles": [
+        "authenticated"
+      ],
+      "schemaname": "public",
+      "tablename": "partner_applications",
+      "with_check": null
+    },
+    {
+      "cmd": "INSERT",
+      "permissive": "PERMISSIVE",
+      "policyname": "Public can insert applications",
+      "qual": null,
+      "roles": [
+        "public"
+      ],
+      "schemaname": "public",
+      "tablename": "partner_applications",
+      "with_check": "true"
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "persons_service_role",
+      "qual": "true",
+      "roles": [
+        "service_role"
+      ],
+      "schemaname": "public",
+      "tablename": "persons",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "tenant_isolation_persons",
+      "qual": "true",
+      "roles": [
+        "public"
+      ],
+      "schemaname": "public",
+      "tablename": "persons",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "Tenant users can manage promotions",
+      "qual": "true",
+      "roles": [
+        "authenticated"
+      ],
+      "schemaname": "public",
+      "tablename": "promotions",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "recruitment_candidates_service_role",
+      "qual": "true",
+      "roles": [
+        "service_role"
+      ],
+      "schemaname": "public",
+      "tablename": "recruitment_candidates",
+      "with_check": "true"
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "recruitment_interviews_service_role",
+      "qual": "true",
+      "roles": [
+        "service_role"
+      ],
+      "schemaname": "public",
+      "tablename": "recruitment_interviews",
+      "with_check": "true"
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "recruitment_pipelines_service_role",
+      "qual": "true",
+      "roles": [
+        "service_role"
+      ],
+      "schemaname": "public",
+      "tablename": "recruitment_pipelines",
+      "with_check": "true"
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "recruitment_positions_service_role",
+      "qual": "true",
+      "roles": [
+        "service_role"
+      ],
+      "schemaname": "public",
+      "tablename": "recruitment_positions",
+      "with_check": "true"
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "Service role full access - inventory movements",
+      "qual": "true",
+      "roles": [
+        "service_role"
+      ],
+      "schemaname": "public",
+      "tablename": "retail_inventory_movements",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "Service role full access - product batches",
+      "qual": "true",
+      "roles": [
+        "service_role"
+      ],
+      "schemaname": "public",
+      "tablename": "retail_product_batches",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "Service role full access - product variants",
+      "qual": "true",
+      "roles": [
+        "service_role"
+      ],
+      "schemaname": "public",
+      "tablename": "retail_product_variants",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "Service role full access - retail products",
+      "qual": "true",
+      "roles": [
+        "service_role"
+      ],
+      "schemaname": "public",
+      "tablename": "retail_products",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "rule_approvals_service_role",
+      "qual": "true",
+      "roles": [
+        "service_role"
+      ],
+      "schemaname": "public",
+      "tablename": "rule_approvals",
+      "with_check": "true"
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "rule_test_results_service_role",
+      "qual": "true",
+      "roles": [
+        "service_role"
+      ],
+      "schemaname": "public",
+      "tablename": "rule_test_results",
+      "with_check": "true"
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "rule_versions_service_role",
+      "qual": "true",
+      "roles": [
+        "service_role"
+      ],
+      "schemaname": "public",
+      "tablename": "rule_versions",
+      "with_check": "true"
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "rules_service_role",
+      "qual": "true",
+      "roles": [
+        "service_role"
+      ],
+      "schemaname": "public",
+      "tablename": "rules",
+      "with_check": "true"
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "students_service_role",
+      "qual": "true",
+      "roles": [
+        "service_role"
+      ],
+      "schemaname": "public",
+      "tablename": "students",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "tenant_isolation_students",
+      "qual": "true",
+      "roles": [
+        "public"
+      ],
+      "schemaname": "public",
+      "tablename": "students",
+      "with_check": null
+    },
+    {
+      "cmd": "SELECT",
+      "permissive": "PERMISSIVE",
+      "policyname": "Authenticated users can view all roles",
+      "qual": "true",
+      "roles": [
+        "authenticated"
+      ],
+      "schemaname": "public",
+      "tablename": "user_roles",
+      "with_check": null
+    },
+    {
+      "cmd": "SELECT",
+      "permissive": "PERMISSIVE",
+      "policyname": "Users can view all roles",
+      "qual": "true",
+      "roles": [
+        "authenticated"
+      ],
+      "schemaname": "public",
+      "tablename": "user_roles",
+      "with_check": null
+    }
+  ],
+  "functions": 631,
+  "securityDefinerFunctions": 220,
+  "anonExecutableSecurityDefinerCount": 178,
+  "schemaMatchWithGit": "NOT_PROVEN: history and live catalog do not establish full replay equivalence"
+}

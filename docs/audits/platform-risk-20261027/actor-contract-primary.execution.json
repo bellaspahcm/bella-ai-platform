@@ -1,0 +1,8 @@
+{
+  "command": "supabase db query --linked --project-ref lvnvkpyxtuilhrabtlwv --file docs/audits/platform-risk-20261027/actor-contract-body-readonly.sql -o json",
+  "startedUtc": "2026-10-27T04:08:02.9727703Z",
+  "endedUtc": "2026-10-27T04:08:05.3226557Z",
+  "exitCode": 0,
+  "sourceRevision": "a69bab6c3244d34723b5600b646f48d0e48400ee",
+  "querySha256": "58296e9f72af0464a5a22a8242d1e3144794bc9f8cf371d1ee95cc8e074cb099"
+}

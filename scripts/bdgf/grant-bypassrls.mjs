@@ -2,7 +2,10 @@
 import pkg from 'pg';
 const { Client } = pkg;
 
-const postgresUrl = "postgresql://postgres:Qu%40ngNguyen18121986@db.lvnvkpyxtuilhrabtlwv.supabase.co:5432/postgres";
+const postgresUrl = process.env.DATABASE_ADMIN_URL;
+if (!postgresUrl) {
+  throw new Error('DATABASE_ADMIN_URL must be configured through an approved secret manager.');
+}
 
 const c = new Client({connectionString: postgresUrl});
 await c.connect();

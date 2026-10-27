@@ -1,0 +1,22 @@
+▲ Next.js 16.4.1
+- Local:         http://127.0.0.1:3127
+- Network:       http://127.0.0.1:3127
+✓ Ready in 181ms
+✓ Running next.config.ts took 679ms
+[ModuleRegistry] Registered adapter: Bella Spa & Babycare (spa)
+[SpaModule] ✅ Registered adapter for module: spa (Baby Care Spa)
+[ModuleRegistry] Registered adapter: Beauty Spa Module (beauty_spa)
+[SpaModule] ✅ Registered adapter for module: beauty_spa (Beauty Spa with resources)
+[SpaModule] ✅ Both spa and beauty_spa modules registered successfully
+[ModuleRegistry] Registered adapter: Real Estate Management (real_estate)
+[RealEstateModule] ✅ Registered adapter for module: real_estate (Real Estate Management)
+[SpaModule] ✅ Both spa and beauty_spa modules registered successfully
+[ProductRegistry] Registered product: Bella Haircut Shop (bella_haircut)
+[ProductRegistry] Registered product: Bella Mommy Baby Care (bella_babycare)
+[ProductRegistry] Registered product: Bella Nail Shop (bella_nail)
+[ProductRegistry] Registered product: Bella Beauty Spa v2 (bella_spa)
+[ProductRegistry] Registered product: Bella Preschool (bella_preschool)
+[ProductRegistry] Registered product: Bella English Center (bella_english_center)
+[ProductRegistry] Registered product: Bella Hospital (bella_hospital)
+[ProductRegistry] Registered product: Bella Hospitality (bella_hospitality)
+[ProductRegistry] Registered product: Bella Manufacturing (bella_manufacturing)

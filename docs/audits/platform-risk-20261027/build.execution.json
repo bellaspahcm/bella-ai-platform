@@ -1,0 +1,11 @@
+{
+  "command": "npm run build",
+  "startedUtc": "2026-10-27T04:04:31.272Z",
+  "endedUtc": "2026-10-27T04:07:07.751Z",
+  "exitCode": 0,
+  "signal": null,
+  "sourceRevision": "a69bab6c3244d34723b5600b646f48d0e48400ee",
+  "lockfileSha256": "2cae548c90b14606d78a5ff182e8a6d7841ffe0a9230a59a2b1958e82234c98e",
+  "environment": "E2E Supabase, production build, DEPLOYMENT_ENV=staging; process-only configuration; no .env copy",
+  "retainedOutput": "Original command output with any configured secret values redacted"
+}

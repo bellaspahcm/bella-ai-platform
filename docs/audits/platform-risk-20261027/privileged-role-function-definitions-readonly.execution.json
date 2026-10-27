@@ -1,0 +1,10 @@
+{
+  "command": "supabase --output-format json db query --linked --project-ref lvnvkpyxtuilhrabtlwv --file docs/audits/platform-risk-20261027/privileged-role-function-definitions-readonly.sql",
+  "readOnlyTransaction": true,
+  "querySha256": "c8de5381a0a5d09b2cb7754e80715b0352447d0a0effa0708d7e1ba840577070",
+  "outputFile": "privileged-role-function-definitions-readonly.stdout.log",
+  "exitCode": 0,
+  "stderrFile": "privileged-role-function-definitions-readonly.stderr.log",
+  "endedUtc": "2026-10-27T05:48:32.7007369+00:00",
+  "startedUtc": "2026-10-27T05:48:29.6269027+00:00"
+}

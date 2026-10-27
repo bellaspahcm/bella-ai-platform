@@ -1,5 +1,7 @@
-// Generated from actual isolated public schema; complete function members selected by TypeScript AST.
-// Full actual schema SHA256 e4542aaed6ea728e22fd8b0798da263ac08058594632a282788bbca137f3b824
+// Generated from the actual disposable public schema after applying the pinned Preschool profile migrations.
+// Complete function members are selected from Supabase's generated TypeScript output by contract ownership.
+import type { Json } from '@/types/database.types';
+
 export type PlatformCurrentActorReadDatabase = { public: {
   Tables: { [_ in never]: never };
   Views: { [_ in never]: never };
@@ -13,6 +15,18 @@ platform_current_actor_profile: {
           id: string
           role: string
           status: string
+          tenant_id: string
+          tenant_status: string
+        }[]
+      }
+platform_current_actor_tenant_presentation: {
+        Args: never
+        Returns: {
+          brand_theme: Json
+          enabled_modules: Json
+          logo_url: string | null
+          name: string
+          product_key: string | null
           tenant_id: string
           tenant_status: string
         }[]

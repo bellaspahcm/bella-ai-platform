@@ -55,7 +55,13 @@ function resolveSchoolDay(rollCallTime: string): string {
 }
 
 export class AttendanceContractImpl implements IEducationAttendanceContract {
-  public constructor(private readonly client?: EducationAttendanceClient) {}
+  public constructor(
+    private readonly client?: EducationAttendanceClient,
+    // Server callers may provide the product key resolved from the current
+    // actor's tenant contract. This avoids asking authenticated callers to
+    // SELECT public.tenants, which is intentionally not granted by RLS/ACL.
+    private readonly trustedTenantProductKey?: string | null,
+  ) {}
 
   private getClient(): EducationAttendanceClient {
     return this.client ?? createClient();
@@ -177,11 +183,15 @@ export class AttendanceContractImpl implements IEducationAttendanceContract {
   ): Promise<readonly CourseDailyAttendanceRosterItem[]> {
     const supabase = this.getClient();
 
-    const tenant = await supabase.from('tenants').select('id, product_key').eq('id', input.tenantId).maybeSingle();
-    if (tenant.error || !tenant.data || tenant.data.id !== input.tenantId) {
-      throw new Error('ATTENDANCE_PRODUCT_CONTEXT_UNAVAILABLE');
+    let productKey = this.trustedTenantProductKey;
+    if (productKey === undefined) {
+      const tenant = await supabase.from('tenants').select('id, product_key').eq('id', input.tenantId).maybeSingle();
+      if (tenant.error || !tenant.data || tenant.data.id !== input.tenantId) {
+        throw new Error('ATTENDANCE_PRODUCT_CONTEXT_UNAVAILABLE');
+      }
+      productKey = tenant.data.product_key;
     }
-    if (tenant.data.product_key === 'bella_preschool') {
+    if (productKey === 'bella_preschool') {
       const rpc = supabase as unknown as PreschoolRosterRpcClient;
       const { data, error } = await rpc.rpc('edu_preschool_roster_identity', {
         p_course_id: input.courseId,

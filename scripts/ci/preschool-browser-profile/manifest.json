@@ -1,0 +1,332 @@
+{
+  "schemaVersion": 1,
+  "profileId": "preschool-teacher-browser-acceptance-v1",
+  "status": "SCOPED_DISPOSABLE_PROFILE",
+  "scope": "local/E2E only; schema bootstrap and acceptance preparation",
+  "sourceRevisionRequired": null,
+  "notAFullReplay": true,
+  "isolation": {
+    "derivedFrom": "scripts/ci/preschool-t1-fixture.sh",
+    "freshProjectAndVolumes": true,
+    "repositoryMigrationsDuringStart": false,
+    "repositorySeed": false,
+    "explicitProfileMigrationApply": true,
+    "ownershipMarkerRequiredForCleanup": true
+  },
+  "targetContract": {
+    "courseProfile": "legacy public.courses(course_id), plus canonical public.edu_courses(id)",
+    "enrollmentRequestIdentity": "public.edu_enrollments.request_id text NOT NULL, unique with tenant_id, from source migration 20260813000040",
+    "studentPartyProfile": "public.students.party_id uuid nullable; FK to party_parties(id) ON DELETE RESTRICT; index idx_students_party_id",
+    "studentPartyProjection": "R3 schema DDL only; R3 data backfill/preflight is not applied or represented as applied",
+    "studentTrainingCoursesIdProfile": "excluded",
+    "fabricatedR3IdentityMappings": false,
+    "businessRowsImported": false
+  },
+  "profileMigrations": [
+    {
+      "profileVersion": "20260511000000",
+      "source": "supabase/migrations/20260511000000_initial_schema.sql",
+      "sha256": "2509adfb40627bf7e3858015eec9f7bfe41bf3e664e21ad7985dca45d5d10fdd"
+    },
+    {
+      "profileVersion": "20260521000004",
+      "source": "supabase/migrations/20260521000004_harden_rls_and_tenant.sql",
+      "sha256": "fb578f052455928f09bcfbaa4af1ca52cfd40f55f9c410e74a04f758071bc6cb"
+    },
+    {
+      "profileVersion": "20260523030000",
+      "source": "supabase/migrations/20260523030000_grant_service_role_schema_access.sql",
+      "sha256": "64b1eb7589e393f3fe34dfaaf25fdc1af1448cd1d2b1fb74df76b9784802b687"
+    },
+    {
+      "profileVersion": "20260523040000",
+      "source": "supabase/migrations/20260523040000_fix_hq_super_admin_rls.sql",
+      "sha256": "c9365050879fb7a512b1c81991d9cbe339e55d8821517ef03106472bc8d725a2"
+    },
+    {
+      "profileVersion": "20260525000000",
+      "source": "supabase/migrations/20260525000000_security_hardening.sql",
+      "sha256": "9ba77ffba99153bd0fe92e1722d3d7ee8e01911d4f3bcc80e33c205e8db97e17"
+    },
+    {
+      "profileVersion": "20260608104000",
+      "source": "supabase/migrations/20260608104000_add_tenant_module_white_label_config.sql",
+      "sha256": "2bed31475c899ab7b0f84be3b21ddc32d32c2cfef0d3a7ac73fac5c4eb0b4265"
+    },
+    {
+      "profileVersion": "20260801030000",
+      "source": "supabase/migrations/20260801030000_foundation_org_people_schema.sql",
+      "sha256": "679175d199cbb4dc9d596a1344f94c2be582b800ea0c2e9595456e158b49507e"
+    },
+    {
+      "profileVersion": "20260806000000",
+      "source": "supabase/migrations/20260806000000_blueprint_core_schema.sql",
+      "sha256": "ec444780ef5e692f3e60ab9465fa068d0ae6b02f40c120384d8b598f94dab45b"
+    },
+    {
+      "profileVersion": "20260808000012",
+      "source": "scripts/ci/preschool-browser-profile/20260808000012_platform_rule_domain_projection.sql",
+      "sha256": "4f5fa90544622fa27f5a89b4be575c665e1da8f8f60d1d05690009d5b198f31c",
+      "sourceMigration": "supabase/migrations/20260808000012_create_rule_engine_tables.sql",
+      "sourceMigrationSha256": "5f7dff7c4b47022d8e0c260e2293d0a84817329760386a910b0be10518cefbb1",
+      "sourceFragments": [
+        "CREATE TYPE platform_rule_domain AS ENUM (",
+        "'platform.system'",
+        "EXCEPTION WHEN duplicate_object THEN NULL; END $$;"
+      ],
+      "profileOnly": true,
+      "dependencyReason": "The canonical Education migration 20260813000040 only consumes this enum. The complete Rule Engine migration also writes feature_flags.metadata, which has no active source migration in this checkout; unrelated Rule Engine tables and seeds are excluded rather than backfilled with invented DDL."
+    },
+    {
+      "profileVersion": "20260810000001",
+      "source": "supabase/migrations/20260810000001_create_persons_table.sql",
+      "sha256": "9c75e14ce8f54f668ec40809f9110c78915832c82c34e8f4bc8c428c4d6596ad"
+    },
+    {
+      "profileVersion": "20260810224417",
+      "source": "supabase/migrations/20260810224417_create_students_table.sql",
+      "sha256": "2d6760ca13212084259e86daeaec1d2fb83625c691f3e4df4f9835eb1b5b1a9e"
+    },
+    {
+      "profileVersion": "20260810224418",
+      "source": "supabase/migrations/20260810224418_migrate_students_to_platform_schema.sql",
+      "sha256": "b0f3dd85b7a25886c15c2d341b682f0f9406fe2a30e3d8f77ba066b2d1c145a4"
+    },
+    {
+      "profileVersion": "20260810231500",
+      "source": "supabase/migrations/20260810231500_create_courses_and_enrollments.sql",
+      "sha256": "37291d8b1cd3ba46369ed68258299fe76001131ce4f787a11f2650c390a4c481"
+    },
+    {
+      "profileVersion": "20260812060000",
+      "source": "supabase/migrations/20260812060000_create_education_schema.sql",
+      "sha256": "eee26bbdf06c9645019f025cf1975c1b91b7e6cd7135ecc42abe4a0a643cc9d8"
+    },
+    {
+      "profileVersion": "20260813000020",
+      "source": "supabase/migrations/20260813000020_create_edu_attendance_and_assessment.sql",
+      "sha256": "042910c68760a0b6bb5b2ca93995b8761368c9d0fab73710977defb62dd1a176"
+    },
+    {
+      "profileVersion": "20260813000040",
+      "source": "supabase/migrations/20260813000040_create_enrollment_transaction_rpc.sql",
+      "sha256": "3997f2ed46e2815050f56c4b5af184a5d85d33c88d99005cccd12f67e41e6040",
+      "dependencyReason": "Canonical owner migration that creates edu_enrollments.request_id, uniqueness, and the enrollment RPC consumed by Preschool branch security. Bootstrap starts with empty public relations and imports no rows."
+    },
+    {
+      "profileVersion": "20260813000050",
+      "source": "supabase/migrations/20260813000050_create_teacher_assignments.sql",
+      "sha256": "0dee7a5cf8c8d327380ff638c600871674dfa767b275f7a02d65f50288591314"
+    },
+    {
+      "profileVersion": "20260912000001",
+      "source": "scripts/ci/preschool-browser-profile/20260912000001_preschool_student_party_id_schema_projection.sql",
+      "sha256": "a72c5e4940ab5ed22c7f9435882d104e3d088eb97c6e882e9b8e04c3521d57f7",
+      "sourceMigration": "supabase/migrations/20260912000000_r3_education_identity_cutover.sql",
+      "sourceSections": [
+        "R3.1",
+        "R3.4",
+        "R3.8"
+      ],
+      "profileOnly": true,
+      "sourceMigrationSha256": "1a7325171e24aab8b133797701083d243f154f85379576f764a124c9b91bf0e8"
+    },
+    {
+      "profileVersion": "20260914000000",
+      "source": "supabase/migrations/20260914_create_user_org_unit_access_projection.sql",
+      "sha256": "54cc3431d813405ae9b635a2d7e5dc534defacb8b0c0ed0f44b495ddc81fbd6d",
+      "profileVersionMapping": "Unique profile ledger version; source migration version is 20260914."
+    },
+    {
+      "profileVersion": "20260914000001",
+      "source": "supabase/migrations/20260914_repair_platform_org_people_rls.sql",
+      "sha256": "bfba4ba24357a7a416dea65a1e8b7129b2f02f61d51dba0738507441cd3ed54f",
+      "profileVersionMapping": "Unique profile ledger version for the second source migration version 20260914; SQL bytes are preserved."
+    },
+    {
+      "profileVersion": "20260919030000",
+      "source": "supabase/migrations/20260919030000_add_product_key_to_tenants.sql",
+      "sha256": "ba6b665afbafd1bde01294dffb18fe9b0225f5690e8f32e2955fecdea5ef8912",
+      "dependencyReason": "Canonical Product Identity migration required by Preschool attendance branch RLS policies that scope the tenant to bella_preschool."
+    },
+    {
+      "profileVersion": "20260926003000",
+      "source": "supabase/migrations/20260926003000_education_daily_attendance_state.sql",
+      "sha256": "ec55260d4ae5242d4b93fc51d3f484a3404e7b6ace73e0247222a36e5948b6c0"
+    },
+    {
+      "profileVersion": "20260927000000",
+      "source": "supabase/migrations/20260927000000_fix_edu_set_daily_attendance_column_ambiguity.sql",
+      "sha256": "c32999a499bddaec4dbfc58910c0d0de62869e2d6b23b054bb2adcdb14d4d436"
+    },
+    {
+      "profileVersion": "20260927010000",
+      "source": "supabase/migrations/20260927010000_preschool_guardian_pickup_authorizations.sql",
+      "sha256": "4556731073632908044f0ce9ffb904f0f6a9222339ed4cbfbdbe4f8ee4310164",
+      "dependencyReason": "The selected 20261019030000 source migration defines a function with this table's %ROWTYPE; included so that source migration can be replayed unchanged."
+    },
+    {
+      "profileVersion": "20260927020000",
+      "source": "supabase/migrations/20260927020000_fix_course_rls_auth_tenant_helper.sql",
+      "sha256": "1e0c2f73be37c8ce5d0ba3291e3126ab53afb3b5f77b7c1929f28f73232e16c4"
+    },
+    {
+      "profileVersion": "20261006010000",
+      "source": "supabase/migrations/20261006010000_preschool_chain_assignments.sql",
+      "sha256": "1ec3626f746fd10b3e7a343fa2be128ac5ea6406e68274e4422d7b6414cf501a"
+    },
+    {
+      "profileVersion": "20261019020001",
+      "source": "scripts/ci/preschool-browser-profile/20261019020001_preschool_admission_operations_projection.sql",
+      "sha256": "7126b84aee5d113b1efc4d953e19c2325e45bca27d3a1e5c0798321125f24df8",
+      "sourceMigration": "supabase/migrations/20261019020000_preschool_admission_operations.sql",
+      "sourceMigrationSha256": "35c093bac233c58cc84740d5e79f219d612b2c259d4f0dda2a8aacef86fcd5fb",
+      "sourceFragments": [
+        "CREATE SEQUENCE IF NOT EXISTS public.preschool_admission_student_code_seq START WITH 1000000000000;",
+        "CREATE TABLE IF NOT EXISTS public.preschool_admission_operations (",
+        "ALTER TABLE public.preschool_admission_operations ENABLE ROW LEVEL SECURITY;",
+        "COMMENT ON TABLE public.preschool_admission_operations IS"
+      ],
+      "profileOnly": true,
+      "dependencyReason": "The current canonical preschool_assign_chain reads the immutable admission-operation table to reject cross-branch course assignments. This projection carries only the source-defined sequence, table, RLS and ACL; the admission RPC in the mixed source migration is outside this acceptance flow."
+    },
+    {
+      "profileVersion": "20261019030000",
+      "source": "supabase/migrations/20261019030000_preschool_chain_branch_security.sql",
+      "sha256": "6e76b0340ce15a5e0097b35b7cab9039046b80c32f29d0e7d83ac58144fcf41a"
+    },
+    {
+      "profileVersion": "20261019045000",
+      "source": "supabase/migrations/20261019045000_platform_trusted_actor_org_unit_access.sql",
+      "sha256": "8c4aa1f6d38fc1633ae069ad5e8a0ca59c8f2e6fe0b2f47c239ad30601082541"
+    },
+    {
+      "profileVersion": "20261019060000",
+      "source": "supabase/migrations/20261019060000_platform_current_actor_read_contract.sql",
+      "sha256": "e390ba5769768c532915d55eb931351088feec8563693a453827e18bca2daf20",
+      "dependencyReason": "The selected Auth-Party migration resolves the signed-in caller through this Platform-owned contract; replay it byte-for-byte after its org-unit access dependency."
+    },
+    {
+      "profileVersion": "20261023040000",
+      "source": "supabase/migrations/20261023040000_attendance_authorization_wait_repair.sql",
+      "sha256": "8d414c52ee20bb931e83bb447911284d2628e84092b6191178ef0248903d5c28"
+    },
+    {
+      "profileVersion": "20261023050000",
+      "source": "supabase/migrations/20261023050000_attendance_final_authority_order.sql",
+      "sha256": "6cd299be1e58d8f50e1cb6e4d89876d70d6a0c7e15338eaccc3d33091a976266"
+    },
+    {
+      "profileVersion": "20261023120001",
+      "source": "scripts/ci/preschool-browser-profile/20261023120001_preschool_chain_access_projection.sql",
+      "sha256": "fd2e44c971cbf33532577dfbd7cb4a6f4c96d738efbcab9d5a74f249d6ba7fc5",
+      "sourceMigration": "supabase/migrations/20261023120000_preschool_review_authority_and_overdue.sql",
+      "sourceMigrationSha256": "70b5f9fe174d5449e0911689b79202721b44fac6b020f91cbc765a1182ebaac2",
+      "sourceFragments": [
+        "CREATE OR REPLACE FUNCTION public.preschool_branch_access(",
+        "CREATE OR REPLACE FUNCTION public.preschool_assign_chain(",
+        "public.preschool_admission_operations WHERE tenant_id=p_tenant_id"
+      ],
+      "profileOnly": true,
+      "dependencyReason": "The latest selected chain-assignment contract is defined in this mixed migration and reads preschool_admission_operations. Both complete functions are copied byte-for-byte; unrelated admission, pickup and Finance routines in the source migration remain excluded."
+    },
+    {
+      "profileVersion": "20261025070000",
+      "source": "supabase/migrations/20261025070000_preschool_canonical_course_create.sql",
+      "sha256": "50b0a75b24d8968db35dda0a0ddccd3f202b2ff4cda2b29d312535069103b571"
+    },
+    {
+      "profileVersion": "20261026100000",
+      "source": "supabase/migrations/20261026100000_scope_education_attendance_state_by_branch.sql",
+      "sha256": "daa2ff0688b606b1408a8d420f79f993a3269a874595658c9938491a2b63cb73"
+    },
+    {
+      "profileVersion": "20261026130100",
+      "source": "supabase/migrations/20261026130100_finalize_education_attendance_branch_read.sql",
+      "sha256": "97d2fde76de569e80379f69360320c543e207eefa0f806c58428f5f3f103523f"
+    },
+    {
+      "profileVersion": "20261026152000",
+      "source": "supabase/migrations/20261026152000_harden_education_attendance_access.sql",
+      "sha256": "a85d051fe618caac3ee89413acbce33a7909bba1fdcb9ce7632789e2589e9399"
+    },
+    {
+      "profileVersion": "20261026170000",
+      "source": "supabase/migrations/20261026170000_party_auth_identity_links.sql",
+      "sha256": "7dada3ff8dcbcc72de0cfc1c271824936ac2e910e99e2624f2b14b036182c684"
+    },
+    {
+      "profileVersion": "20261026183000",
+      "source": "supabase/migrations/20261026183000_integrate_preschool_teacher_attendance.sql",
+      "sha256": "922e28ec5e81c1bd618b9885671fec6a7064701482e2ad4a3d7f98a8383ba447"
+    },
+    {
+      "profileVersion": "20261027010000",
+      "source": "supabase/migrations/20261027010000_preschool_teacher_assignment_legacy_profile.sql",
+      "sha256": "8957451c0bef5a77631d52d0fb74bc4569921ce66aa10288085460a363001b37"
+    },
+    {
+      "profileVersion": "20261027010100",
+      "source": "supabase/migrations/20261027010100_preschool_teacher_confirmation_and_canonical_assignment.sql",
+      "sha256": "659528725606fb86dd83a6ec3a1afdf8e106360e81d7a3b392eee5b85c442d31"
+    },
+    {
+      "profileVersion": "20261027010200",
+      "source": "supabase/migrations/20261027010200_preschool_teacher_termination_end_date_check.sql",
+      "sha256": "f711a242099ba953b8e637a39ee6f3483a496ae5a7b17fc0e2107d138c507bd0"
+    },
+    {
+      "profileVersion": "20261027010300",
+      "source": "supabase/migrations/20261027010300_scope_attendance_state_with_authorized_helper.sql",
+      "sha256": "e685a675a13e0783128dc1f59a32eb0526cd51bd25e0042e2455b015c46e8551"
+    },
+    {
+      "profileVersion": "20261027020000",
+      "source": "supabase/migrations/20261027020000_platform_current_actor_tenant_presentation.sql",
+      "sha256": "44971a66d6de39bd5e18431ef6564d8bf1d1ef3aa449f8ffb1de08a21b3925f2"
+    }
+  ],
+  "explicitExclusions": [
+    {
+      "source": "supabase/migrations/20260808000012_create_rule_engine_tables.sql",
+      "reason": "The full Platform Rule Engine migration is incompatible with the active feature_flags table source because its seed requires feature_flags.metadata, with no canonical active migration adding that column. Only its exact platform_rule_domain enum block is projected for the Education enrollment migration; no Rule Engine tables or seeds are applied."
+    },
+    {
+      "source": "supabase/migrations/20260516000003_fix_chat_rpc_ambiguous.sql",
+      "reason": "Unrelated historical chat migration with known SQLSTATE 42601; this profile is not a full-history replay or a workaround for that failure."
+    },
+    {
+      "source": "supabase/migrations/20260613100000_create_student_training_foundation.sql",
+      "reason": "Competing public.courses(id) profile; Preschool legacy target is public.courses(course_id)."
+    },
+    {
+      "source": "supabase/migrations/20260912000000_r3_education_identity_cutover.sql",
+      "reason": "Its data preflight requires 848 sealed identity mappings. Only the source-traced schema fragments R3.1/R3.4/R3.8 are projected in a separately named profile migration; no backfill or claim that R3 ran."
+    },
+    {
+      "source": "supabase/migrations/20260926000000_r3_student_identity_resolver.sql",
+      "reason": "Outside the mapped current Preschool caller dependency closure."
+    },
+    {
+      "source": "supabase/migrations/20261024010000_preschool_handover_atomic_command.sql",
+      "reason": "Handover domain is not a caller or migration dependency of the selected classroom/teacher/attendance acceptance path."
+    },
+    {
+      "source": "supabase/migrations/20261023120000_preschool_review_authority_and_overdue.sql",
+      "reason": "The source file also defines admission review, pickup and Finance-overdue operations outside this acceptance dependency closure. Only the source-exact current branch_access and assign_chain functions are represented by a profile-only migration."
+    },
+    {
+      "source": "supabase/seed.sql",
+      "reason": "Bella Spa demo/business seed; profile seed is disabled."
+    }
+  ],
+  "acceptanceBeforeJwtOrBrowser": [
+    "Profile migration ledger contains exactly the manifest profile versions and no root-history claim.",
+    "public.courses has course_id and has no id; public.edu_courses has canonical id.",
+    "students.party_id is nullable uuid with the source-derived FK and index; no identity mapping rows are created.",
+    "Legacy teacher assignment FK remains pointed at courses.course_id; canonical FK and confirmation schema match candidates.",
+    "Auth/Party, branch-map, roster and attendance objects, RLS and ACL assertions pass from verify-bootstrap.sql.",
+    "No JWT, fixture user, Browser E2E, or business-row write runs before the schema receipt records PASS."
+  ],
+  "nextStage": "Only after schema verification passes: create synthetic local Auth/Party/branch/course/teacher/enrollment fixtures, then verify JWT/RLS, and only then Browser E2E."
+}
