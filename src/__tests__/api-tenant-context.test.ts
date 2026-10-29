@@ -51,7 +51,8 @@ describe('GET /api/tenant/context', () => {
 
   it('returns401 before profile/configuration when anonymous', async () => {
     mockGetUser.mockResolvedValue({ data: { user: null }, error: null });
-    expect((await GET(request())).status).toBe(401);
+    const response = await GET(request());
+    expect(response.status).toBe(401);
     expect(mockRpc).not.toHaveBeenCalled();
     expect(mockTenantSettings).not.toHaveBeenCalled();
   });
