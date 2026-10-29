@@ -1,0 +1,26 @@
+# Audit evidence and verification artifacts (not runtime code)
+docs/audits/
+
+# Test fixtures and mock data
+**/__fixtures__/
+**/__mocks__/
+**/fixtures/
+**/mocks/
+
+# Build outputs
+dist/
+build/
+.next/
+out/
+
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Generated files
+*.generated.*
+**/*.gen.ts
+**/*.gen.js
+
+# Configuration snapshots
+.cursorrules.snapshot
