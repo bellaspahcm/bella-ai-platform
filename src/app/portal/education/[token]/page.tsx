@@ -476,32 +476,9 @@ export default function PreschoolParentPortalPage({
     return (
       <div className="min-h-screen bg-[#f1f5f9] flex justify-center py-0 sm:py-6 text-slate-800 font-sans selection:bg-amber-100 selection:text-amber-900">
         <main className="w-full max-w-md bg-[#f8fafc] min-h-screen sm:min-h-0 sm:rounded-[36px] shadow-2xl sm:border border-slate-200/80 overflow-hidden flex flex-col relative pb-8">
-          {/* ── TOP STATUS BAR (Demo Mobile Header) ── */}
-          <div className="flex items-center justify-between px-6 pt-3 pb-1 text-slate-800 text-xs font-semibold select-none">
-            <span>9:41</span>
-            <div className="flex items-center gap-1.5">
-              <div className="flex items-end gap-0.5 h-2.5">
-                <span className="w-0.5 h-1 bg-slate-800 rounded-full" />
-                <span className="w-0.5 h-1.5 bg-slate-800 rounded-full" />
-                <span className="w-0.5 h-2 bg-slate-800 rounded-full" />
-                <span className="w-0.5 h-2.5 bg-slate-800 rounded-full" />
-              </div>
-              <svg className="w-3.5 h-3.5 text-slate-800" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M5 13a10 10 0 0 1 14 0" />
-                <path d="M8.5 16.5a5 5 0 0 1 7 0" />
-                <circle cx="12" cy="20" r="1" fill="currentColor" />
-              </svg>
-              <div className="flex items-center">
-                <div className="w-5 h-2.5 border border-slate-800 rounded-[3px] p-[1px] flex items-center">
-                  <div className="w-full h-full bg-slate-800 rounded-[1.5px]" />
-                </div>
-                <div className="w-0.5 h-1 bg-slate-800 rounded-r-[1px] -ml-[0.5px]" />
-              </div>
-            </div>
-          </div>
 
           {/* ── SCHOOL BRAND HEADER ── */}
-          <header className="px-5 py-2.5 flex items-center justify-between">
+          <header className="px-5 pt-4 pb-2.5 flex items-center justify-between">
             <div className="flex items-center gap-2.5">
               <PreschoolLogoIcon />
               <div>
