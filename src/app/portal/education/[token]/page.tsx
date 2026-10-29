@@ -503,7 +503,7 @@ export default function PreschoolParentPortalPage({
               </div>
               <div
                 onClick={() => setIsUserMenuOpen(true)}
-                title="Thông tin phụ huynh & học sinh"
+                title="Thông tin phụ huynh và học sinh"
                 className="w-8 h-8 rounded-full bg-sky-100 hover:bg-sky-200 text-sky-600 font-bold text-xs flex items-center justify-center border border-sky-200/60 shadow-2xs cursor-pointer active:scale-95 transition-all"
                 aria-label="Thông tin tài khoản phụ huynh"
               >
@@ -532,6 +532,7 @@ export default function PreschoolParentPortalPage({
           <section className="mx-4 mt-2 bg-white rounded-3xl p-4 shadow-xs border border-slate-100/90 flex items-center gap-3.5" aria-label="Thông tin học sinh">
             <div className="relative w-16 h-16 rounded-full overflow-hidden shrink-0 ring-4 ring-slate-50 shadow-xs bg-amber-50">
               {!childImgFailed ? (
+                // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src="/images/preschool_banner_kid.png"
                   alt={dailyRead.childName}
@@ -802,7 +803,7 @@ export default function PreschoolParentPortalPage({
                     <div className="flex items-center gap-2.5">
                       <Phone className="w-4 h-4 text-emerald-600" />
                       <div>
-                        <p className="font-bold text-slate-900">Hotline Tuyển sinh & Hỗ trợ</p>
+                        <p className="font-bold text-slate-900">Hotline Tuyển sinh &amp; Hỗ trợ</p>
                         <p className="text-[11px] text-slate-500">028 7300 6868 (Giờ hành chính)</p>
                       </div>
                     </div>

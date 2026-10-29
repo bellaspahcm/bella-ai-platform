@@ -275,6 +275,7 @@ function PreschoolDashboard({ tenantId, displayName, userRole }: { tenantId: str
       }
     })();
     return () => { active = false; controller.abort(); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedDateStr, selectedBranchId, tenantId, refreshKey]);
 
   // Realtime Supabase Channel Subscription for Live Attendance & Enrollment Changes
