@@ -133,12 +133,13 @@ type DashboardPresentationTenant = {
 export function resolveDashboardPresentation(
   tenant: DashboardPresentationTenant,
   product: ProductDefinition | null | undefined,
+  pathname: string = '/dashboard',
 ) {
   if (product) {
     return {
       identityKey: `${tenant.id}:product:${product.productKey}`,
       brand: resolveProductBrandPresentation({ ...tenant, brand_theme: tenant.brand_theme }, product),
-      defaultRoute: getDashboardProductDestination(product, '/dashboard'),
+      defaultRoute: getDashboardProductDestination(product, pathname),
     };
   }
   // An explicit unknown identity must not inherit a module's presentation.
