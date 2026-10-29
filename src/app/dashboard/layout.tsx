@@ -21,14 +21,12 @@ const RUNTIME_BRAND_CACHE_KEY = 'bella.runtime.brand.v1';
 
 async function applyDashboardTenantBrandRuntime(
   tenantSettings?: Awaited<ReturnType<typeof getCachedTenantSettings>> | TenantPresentation,
-  currentPathname?: string,
 ) {
   const tenant = tenantSettings ?? await getCachedTenantSettings();
   if (!tenant || typeof document === 'undefined') return;
 
   const resolved = productResolver.tryResolve({ id: tenant.id, product_key: tenant.product_key ?? null });
-  const pathname = currentPathname ?? (typeof window !== 'undefined' ? window.location.pathname : '/dashboard');
-  const presentation = resolveDashboardPresentation(tenant, resolved?.product, pathname);
+  const presentation = resolveDashboardPresentation(tenant, resolved?.product);
   if (!presentation) return;
   const brand = presentation.brand;
   applyDashboardProductBrand(brand);
@@ -92,7 +90,7 @@ export default function DashboardLayout({
           }
           if (tenant.product_key === 'bella_preschool') {
             setPresentationContext({ user, tenant });
-            await applyDashboardTenantBrandRuntime(tenant, pathname);
+            await applyDashboardTenantBrandRuntime(tenant);
             if (active) setIsAuthorized(true);
             return;
           }
@@ -115,11 +113,10 @@ export default function DashboardLayout({
           setIsAuthorized(false);
           return;
         }
-        // REMOVED: Redirect logic moved to page components
-        // if (user.role?.toLowerCase() === 'ktv') {
-        //   router.replace('/ktv/dashboard');
-        //   return;
-        // }
+        if (user.role?.toLowerCase() === 'ktv') {
+          router.replace('/ktv/dashboard');
+          return;
+        }
         try {
           // Reuse the already-in-flight tenant settings promise (no extra fetch)
           const tenant = await tenantWarmupPromise;
@@ -160,12 +157,12 @@ export default function DashboardLayout({
                 // Force reload tenant settings to get updated theme
                 clearDashboardClientContextCache();
                 const updatedTenant = await getCachedTenantSettings({ force: true }).catch(() => tenant);
-                await applyDashboardTenantBrandRuntime(updatedTenant ?? undefined, pathname);
+                await applyDashboardTenantBrandRuntime(updatedTenant ?? undefined);
               } else {
-                await applyDashboardTenantBrandRuntime(tenant, pathname);
+                await applyDashboardTenantBrandRuntime(tenant);
               }
             } else {
-              await applyDashboardTenantBrandRuntime(tenant, pathname);
+              await applyDashboardTenantBrandRuntime(tenant);
             }
           }
         } catch (brandError) {

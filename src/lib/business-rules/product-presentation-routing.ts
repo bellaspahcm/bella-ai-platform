@@ -114,9 +114,7 @@ export function getDashboardProductDestination(product: ProductDefinition, pathn
   if (product.productKey === 'bella_spa' || product.productKey === 'bella_nail') return null;
   const currentPath = pathname.replace(/\/+$/, '') || '/';
   const defaultPath = product.defaultRoute.replace(/\/+$/, '') || '/';
-  const result = currentPath === defaultPath ? null : product.defaultRoute;
-  console.log('[getDashboardProductDestination]', { productKey: product.productKey, pathname, currentPath, defaultPath, defaultRoute: product.defaultRoute, result });
-  return result;
+  return currentPath === defaultPath ? null : product.defaultRoute;
 }
 
 
@@ -135,13 +133,12 @@ type DashboardPresentationTenant = {
 export function resolveDashboardPresentation(
   tenant: DashboardPresentationTenant,
   product: ProductDefinition | null | undefined,
-  pathname: string = '/dashboard',
 ) {
   if (product) {
     return {
       identityKey: `${tenant.id}:product:${product.productKey}`,
       brand: resolveProductBrandPresentation({ ...tenant, brand_theme: tenant.brand_theme }, product),
-      defaultRoute: getDashboardProductDestination(product, pathname),
+      defaultRoute: getDashboardProductDestination(product, '/dashboard'),
     };
   }
   // An explicit unknown identity must not inherit a module's presentation.

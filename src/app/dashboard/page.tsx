@@ -1090,25 +1090,12 @@ export default function DashboardPage() {
   const pathname = usePathname();
   const { product, user, tenantSettings, isLoading } = useUser();
   const isHaircut = isHaircutProductPresentation(product);
-  const presentation = tenantSettings ? resolveDashboardPresentation(tenantSettings, product, pathname) : null;
+  const presentation = tenantSettings ? resolveDashboardPresentation(tenantSettings, product) : null;
   const isIdentityReady = !isLoading && Boolean(presentation && tenantSettings && user?.tenant_id === tenantSettings.id);
-  
-  // Only redirect if we're at the root dashboard path and have a different default route
-  const isAtRootDashboard = pathname.replace(/\/+$/, '') === '/dashboard';
-  const destination = isIdentityReady && presentation?.defaultRoute && isAtRootDashboard
+  const destination = isIdentityReady && presentation?.defaultRoute && pathname.replace(/\/+$/, '') !== presentation.defaultRoute.replace(/\/+$/, '')
     ? presentation.defaultRoute
     : null;
   const hasProductDestination = Boolean(presentation?.defaultRoute);
-
-  // DEBUG: Log redirect logic
-  console.log('[DashboardPage] Debug:', {
-    pathname,
-    isAtRootDashboard,
-    defaultRoute: presentation?.defaultRoute,
-    destination,
-    productKey: product?.productKey,
-    isIdentityReady,
-  });
 
   useEffect(() => {
     // A product switch leaves the root dashboard. Replace the document so a
@@ -1118,7 +1105,7 @@ export default function DashboardPage() {
 
   // Keep the outgoing root neutral even if pathname updates before this page
   // unmounts; only the destination page should mount that product's actions.
-  if (isLoading || destination) return <DashboardRouteLoading />;
+  if (isLoading || (isIdentityReady && hasProductDestination)) return <DashboardRouteLoading />;
   if (!isIdentityReady) {
     return <div role="alert" className="flex-1 bg-background p-8 text-foreground">Không thể xác định sản phẩm của chi nhánh.</div>;
   }
