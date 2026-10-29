@@ -1,0 +1,7279 @@
+[
+  {
+    "file": "src/app/dashboard/education/attendance/page.tsx",
+    "lines": 1124,
+    "imports": [
+      {
+        "line": 7,
+        "module": "next/link"
+      },
+      {
+        "line": 8,
+        "module": "react"
+      },
+      {
+        "line": 9,
+        "module": "next/navigation"
+      },
+      {
+        "line": 10,
+        "module": "lucide-react"
+      }
+    ],
+    "calls": [
+      {
+        "line": 109,
+        "call": "new Intl.DateTimeFormat('en-CA', {\r\n    timeZone: 'Asia/Ho_Chi_Minh',\r\n    year: 'numeric',\r\n    month: '2-digit',\r\n    day: '2-digit',\r\n  }).format",
+        "arguments": [
+          "new Date()"
+        ]
+      },
+      {
+        "line": 199,
+        "call": "student.authorizedGuardians?.some",
+        "arguments": [
+          "(g) =>\r\n          g.displayName.toLowerCase().includes(query) ||\r\n          g.phone.toLowerCase().includes(query)"
+        ]
+      },
+      {
+        "line": 288,
+        "call": "fetch",
+        "arguments": [
+          "'/api/education/courses'",
+          "{ cache: 'no-store' }"
+        ]
+      },
+      {
+        "line": 324,
+        "call": "fetch",
+        "arguments": [
+          "`/api/education/attendance?${params.toString()}`",
+          "{ cache: 'no-store' }"
+        ]
+      },
+      {
+        "line": 357,
+        "call": "fetch",
+        "arguments": [
+          "'/api/education/attendance'",
+          "{\r\n        method: 'POST',\r\n        headers: { 'Content-Type': 'application/json' },\r\n        body: JSON.stringify({ enrollmentId, status, date: schoolDay }),\r\n      }"
+        ]
+      },
+      {
+        "line": 389,
+        "call": "currentRow.authorizedGuardians?.some",
+        "arguments": [
+          "(item) => item.authorizationId === guardian.authorizationId && item.guardianPartyId === guardian.guardianPartyId"
+        ]
+      },
+      {
+        "line": 396,
+        "call": "fetch",
+        "arguments": [
+          "'/api/education/attendance/handover'",
+          "{\r\n        method: 'POST',\r\n        headers: { 'Content-Type': 'application/json' },\r\n        body: JSON.stringify({\r\n          studentPartyId: row.studentPartyId,\r\n          guard"
+        ]
+      },
+      {
+        "line": 425,
+        "call": "new Intl.DateTimeFormat('vi-VN', {\r\n      timeZone: 'Asia/Ho_Chi_Minh',\r\n      hour: '2-digit',\r\n      minute: '2-digit',\r\n      day: '2-digit',\r\n      month: '2-digit',\r\n      year: 'numeric',\r\n    }).format",
+        "arguments": [
+          "new Date(value)"
+        ]
+      },
+      {
+        "line": 1024,
+        "call": "Array.from",
+        "arguments": [
+          "{ length: totalPages }",
+          "(_, i) => i + 1"
+        ]
+      }
+    ],
+    "constants": []
+  },
+  {
+    "file": "src/app/dashboard/education/care/page.tsx",
+    "lines": 2090,
+    "imports": [
+      {
+        "line": 17,
+        "module": "react"
+      },
+      {
+        "line": 18,
+        "module": "next/link"
+      },
+      {
+        "line": 19,
+        "module": "next/image"
+      },
+      {
+        "line": 20,
+        "module": "lucide-react"
+      },
+      {
+        "line": 47,
+        "module": "@/lib/dashboard-client-context"
+      },
+      {
+        "line": 48,
+        "module": "@/lib/business-rules/tenant-modules"
+      }
+    ],
+    "calls": [
+      {
+        "line": 434,
+        "call": "new Date().toISOString().split",
+        "arguments": [
+          "'T'"
+        ]
+      },
+      {
+        "line": 434,
+        "call": "new Date().toISOString",
+        "arguments": []
+      },
+      {
+        "line": 500,
+        "call": "fetch",
+        "arguments": [
+          "'/api/education/courses'",
+          "{ cache: 'no-store' }"
+        ]
+      },
+      {
+        "line": 537,
+        "call": "fetch",
+        "arguments": [
+          "`/api/education/care/bulk?courseId=${encodeURIComponent(courseId)}&date=${encodeURIComponent(date)}`",
+          "{ cache: 'no-store' }"
+        ]
+      },
+      {
+        "line": 549,
+        "call": "fetch",
+        "arguments": [
+          "`/api/education/attendance?courseId=${encodeURIComponent(courseId)}&date=${encodeURIComponent(date)}`",
+          "{ cache: 'no-store' }"
+        ]
+      },
+      {
+        "line": 820,
+        "call": "fetch",
+        "arguments": [
+          "'/api/education/care/bulk'",
+          "{\r\n          method: 'POST',\r\n          headers: { 'Content-Type': 'application/json' },\r\n          body: JSON.stringify({\r\n            action: 'save_care',\r\n            courseId: "
+        ]
+      },
+      {
+        "line": 927,
+        "call": "fetch",
+        "arguments": [
+          "'/api/education/care/bulk'",
+          "{\r\n          method: 'POST',\r\n          headers: { 'Content-Type': 'application/json' },\r\n          body: JSON.stringify({\r\n            action: 'save_care',\r\n            courseId: "
+        ]
+      },
+      {
+        "line": 1290,
+        "call": "Array.from",
+        "arguments": [
+          "{ length: PAGE_SIZE }"
+        ]
+      },
+      {
+        "line": 1476,
+        "call": "Array.from",
+        "arguments": [
+          "{ length: totalPages }"
+        ]
+      }
+    ],
+    "constants": []
+  },
+  {
+    "file": "src/app/dashboard/education/communication/page.tsx",
+    "lines": 1880,
+    "imports": [
+      {
+        "line": 28,
+        "module": "react"
+      },
+      {
+        "line": 29,
+        "module": "next/link"
+      },
+      {
+        "line": 30,
+        "module": "next/navigation"
+      },
+      {
+        "line": 31,
+        "module": "lucide-react"
+      },
+      {
+        "line": 66,
+        "module": "@/lib/dashboard-client-context"
+      },
+      {
+        "line": 67,
+        "module": "@/lib/business-rules/tenant-modules"
+      }
+    ],
+    "calls": [
+      {
+        "line": 720,
+        "call": "fetch",
+        "arguments": [
+          "'/api/education/ai/copilot'",
+          "{\r\n        method: 'POST',\r\n        headers: { 'Content-Type': 'application/json' },\r\n        body: JSON.stringify({\r\n          action: 'classify_intent',\r\n          message: lastP"
+        ]
+      },
+      {
+        "line": 811,
+        "call": "fetch",
+        "arguments": [
+          "'/api/education/portal/token'",
+          "{\r\n        method: 'POST',\r\n        headers: { 'Content-Type': 'application/json' },\r\n        body: JSON.stringify({ studentPartyId: studentId }),\r\n      }"
+        ]
+      },
+      {
+        "line": 1147,
+        "call": "new Date(notice.published_at).toLocaleDateString",
+        "arguments": [
+          "'vi-VN'",
+          "{\r\n                day: '2-digit', month: '2-digit', year: 'numeric',\r\n              }"
+        ]
+      }
+    ],
+    "constants": []
+  },
+  {
+    "file": "src/app/dashboard/education/courses/page.tsx",
+    "lines": 1151,
+    "imports": [
+      {
+        "line": 26,
+        "module": "react"
+      },
+      {
+        "line": 27,
+        "module": "next/link"
+      },
+      {
+        "line": 28,
+        "module": "lucide-react"
+      },
+      {
+        "line": 53,
+        "module": "@/lib/dashboard-client-context"
+      },
+      {
+        "line": 54,
+        "module": "@/lib/business-rules/tenant-modules"
+      }
+    ],
+    "calls": [
+      {
+        "line": 363,
+        "call": "fetch",
+        "arguments": [
+          "'/api/education/courses'"
+        ]
+      },
+      {
+        "line": 453,
+        "call": "fetch",
+        "arguments": [
+          "'/api/education/courses'",
+          "{\r\n        method: 'POST',\r\n        headers: { 'Content-Type': 'application/json' },\r\n        body: JSON.stringify({\r\n          courseCode: formCode,\r\n          courseName: formNam"
+        ]
+      }
+    ],
+    "constants": [
+      {
+        "line": 112,
+        "name": "DEFAULT_CHILD_AVATARS",
+        "value": "[\r\n  'https://images.unsplash.com/photo-1543332164-6e82f355badc?w=100&h=100&fit=crop&crop=faces',\r\n  'https://images.unsplash.com/photo-1595"
+      }
+    ]
+  },
+  {
+    "file": "src/app/dashboard/education/courses/[id]/page.tsx",
+    "lines": 530,
+    "imports": [
+      {
+        "line": 12,
+        "module": "react"
+      },
+      {
+        "line": 13,
+        "module": "next/link"
+      },
+      {
+        "line": 14,
+        "module": "lucide-react"
+      }
+    ],
+    "calls": [
+      {
+        "line": 122,
+        "call": "fetch",
+        "arguments": [
+          "`/api/education/courses/${classId}`"
+        ]
+      },
+      {
+        "line": 142,
+        "call": "fetch",
+        "arguments": [
+          "`/api/education/courses/${classId}/teachers`",
+          "{\r\n        method: 'POST',\r\n        headers: { 'Content-Type': 'application/json' },\r\n        body: JSON.stringify({\r\n          teacherPartyId: selectedTeacherId,\r\n          role: "
+        ]
+      },
+      {
+        "line": 173,
+        "call": "fetch",
+        "arguments": [
+          "`/api/education/courses/${classId}/teachers?assignmentId=${assignmentId}`",
+          "{\r\n        method: 'DELETE',\r\n      }"
+        ]
+      }
+    ],
+    "constants": [
+      {
+        "line": 66,
+        "name": "DEFAULT_WORKSPACE",
+        "value": "{\r\n  id: 'mam-a1',\r\n  code: 'MAM-A1',\r\n  name: 'Lớp Mầm A1 — Họa Mi',\r\n  grade: 'Khối Mầm (3 tuổi)',\r\n  room: 'Phòng 101 • Tầng 1',\r\n  maxSt"
+      }
+    ]
+  },
+  {
+    "file": "src/app/dashboard/education/enrollments/page.tsx",
+    "lines": 2132,
+    "imports": [
+      {
+        "line": 22,
+        "module": "react"
+      },
+      {
+        "line": 23,
+        "module": "next/link"
+      },
+      {
+        "line": 24,
+        "module": "lucide-react"
+      }
+    ],
+    "calls": [
+      {
+        "line": 645,
+        "call": "fetch",
+        "arguments": [
+          "'/api/education/enrollments'",
+          "{ method: 'GET' }"
+        ]
+      },
+      {
+        "line": 717,
+        "call": "fetch",
+        "arguments": [
+          "'/api/education/courses'"
+        ]
+      },
+      {
+        "line": 718,
+        "call": "fetch",
+        "arguments": [
+          "'/api/education/branches'"
+        ]
+      },
+      {
+        "line": 774,
+        "call": "Array.from",
+        "arguments": [
+          "classSet"
+        ]
+      },
+      {
+        "line": 814,
+        "call": "[...new Set([1, boundedPage - 1, boundedPage, boundedPage + 1, totalPages])]\r\n    .filter((page) => page >= 1 && page <= totalPages)\r\n    .sort",
+        "arguments": [
+          "(a, b) => a - b"
+        ]
+      },
+      {
+        "line": 814,
+        "call": "[...new Set([1, boundedPage - 1, boundedPage, boundedPage + 1, totalPages])]\r\n    .filter",
+        "arguments": [
+          "(page) => page >= 1 && page <= totalPages"
+        ]
+      },
+      {
+        "line": 889,
+        "call": "fetch",
+        "arguments": [
+          "'/api/education/enrollments'",
+          "{\r\n        method: 'POST',\r\n        headers: { 'Content-Type': 'application/json' },\r\n        body: JSON.stringify(admissionForm),\r\n      }"
+        ]
+      },
+      {
+        "line": 951,
+        "call": "new Date().toISOString().slice",
+        "arguments": [
+          "0",
+          "10"
+        ]
+      },
+      {
+        "line": 951,
+        "call": "new Date().toISOString",
+        "arguments": []
+      },
+      {
+        "line": 1743,
+        "call": "CANONICAL_INCOMPLETE_DOC_CHILDREN.map",
+        "arguments": [
+          "(child) => (\r\n                <Link\r\n                  key={child.id}\r\n                  href={`/dashboard/education/enrollments/${child.id}`}\r\n                  className=\"flex it"
+        ]
+      }
+    ],
+    "constants": [
+      {
+        "line": 193,
+        "name": "DEFAULT_ADMISSION_FORM",
+        "value": "{\r\n  childName: '',\r\n  nickname: '',\r\n  dateOfBirth: '2023-06-15',\r\n  gender: 'Nam',\r\n  guardianName: '',\r\n  guardianPhone: '',\r\n  medicalNo"
+      }
+    ]
+  },
+  {
+    "file": "src/app/dashboard/education/enrollments/[id]/page.tsx",
+    "lines": 2661,
+    "imports": [
+      {
+        "line": 14,
+        "module": "react"
+      },
+      {
+        "line": 15,
+        "module": "next/link"
+      },
+      {
+        "line": 16,
+        "module": "next/navigation"
+      },
+      {
+        "line": 17,
+        "module": "lucide-react"
+      }
+    ],
+    "calls": [],
+    "constants": []
+  },
+  {
+    "file": "src/app/dashboard/education/facilities/page.tsx",
+    "lines": 1890,
+    "imports": [
+      {
+        "line": 32,
+        "module": "react"
+      },
+      {
+        "line": 33,
+        "module": "next/link"
+      },
+      {
+        "line": 34,
+        "module": "@supabase/supabase-js"
+      },
+      {
+        "line": 35,
+        "module": "lucide-react"
+      },
+      {
+        "line": 68,
+        "module": "@/products/bella-education/facilities/repositories/preschool-facilities.repository"
+      },
+      {
+        "line": 69,
+        "module": "@/products/bella-education/facilities/services/facility-zone.service"
+      },
+      {
+        "line": 70,
+        "module": "@/products/bella-education/facilities/services/safety-inspection.service"
+      },
+      {
+        "line": 71,
+        "module": "@/products/bella-education/facilities/services/maintenance-job.service"
+      },
+      {
+        "line": 72,
+        "module": "@/products/bella-education/facilities/bridges/facilities-projection.bridge"
+      },
+      {
+        "line": 73,
+        "module": "@/products/bella-education/parent-engagement/repositories/parent-communication.repository"
+      },
+      {
+        "line": 74,
+        "module": "@/products/bella-education/parent-engagement/services/communication-exception.service"
+      },
+      {
+        "line": 75,
+        "module": "@/products/bella-education/parent-engagement/domain/communication.types"
+      },
+      {
+        "line": 76,
+        "module": "@/products/bella-education/facilities/domain/facilities.types"
+      }
+    ],
+    "calls": [
+      {
+        "line": 270,
+        "call": "supabase.from",
+        "arguments": [
+          "'edu_fac_maintenance_jobs'"
+        ]
+      },
+      {
+        "line": 271,
+        "call": "supabase.from",
+        "arguments": [
+          "'edu_fac_inspection_logs'"
+        ]
+      },
+      {
+        "line": 272,
+        "call": "supabase.from",
+        "arguments": [
+          "'edu_fac_out_of_service_logs'"
+        ]
+      },
+      {
+        "line": 273,
+        "call": "supabase.from",
+        "arguments": [
+          "'edu_comm_exceptions'"
+        ]
+      },
+      {
+        "line": 316,
+        "call": "new Date().toISOString",
+        "arguments": []
+      },
+      {
+        "line": 320,
+        "call": "setShowSeedModal",
+        "arguments": [
+          "false"
+        ]
+      },
+      {
+        "line": 337,
+        "call": "handleSeedFacility",
+        "arguments": []
+      },
+      {
+        "line": 354,
+        "call": "new Date().toISOString().split",
+        "arguments": [
+          "'T'"
+        ]
+      },
+      {
+        "line": 354,
+        "call": "new Date().toISOString",
+        "arguments": []
+      },
+      {
+        "line": 393,
+        "call": "maintenanceService.completeJob",
+        "arguments": [
+          "DEFAULT_TENANT_ID",
+          "job.id",
+          "maintenanceNotes || 'Đã thay mới linh kiện và hàn gia cố chịu lực 500kg'"
+        ]
+      },
+      {
+        "line": 428,
+        "call": "new Date().toISOString().split",
+        "arguments": [
+          "'T'"
+        ]
+      },
+      {
+        "line": 428,
+        "call": "new Date().toISOString",
+        "arguments": []
+      }
+    ],
+    "constants": [
+      {
+        "line": 89,
+        "name": "DEFAULT_TENANT_ID",
+        "value": "'00000000-0000-0000-0000-000000000001'"
+      },
+      {
+        "line": 90,
+        "name": "DEFAULT_INSPECTOR_ID",
+        "value": "'00000000-0000-0000-0000-000000000071'"
+      },
+      {
+        "line": 112,
+        "name": "INITIAL_DEMO_ASSETS",
+        "value": "[\n  {\n    id: 'ast-001',\n    code: 'TS-001',\n    name: 'Máy lạnh',\n    group: 'Phòng học',\n    location: 'Mầm A1',\n    status: 'OPERATIONAL'"
+      }
+    ]
+  },
+  {
+    "file": "src/app/dashboard/education/finance/page.tsx",
+    "lines": 3236,
+    "imports": [
+      {
+        "line": 28,
+        "module": "react"
+      },
+      {
+        "line": 29,
+        "module": "next/navigation"
+      },
+      {
+        "line": 30,
+        "module": "next/link"
+      },
+      {
+        "line": 31,
+        "module": "lucide-react"
+      },
+      {
+        "line": 68,
+        "module": "@/products/bella-education/finance/domain/finance.types"
+      }
+    ],
+    "calls": [
+      {
+        "line": 344,
+        "call": "fetch",
+        "arguments": [
+          "'/api/education/finance'",
+          "{ cache: 'no-store' }"
+        ]
+      },
+      {
+        "line": 380,
+        "call": "fetch",
+        "arguments": [
+          "'/api/education/finance'",
+          "{\n      method: 'POST',\n      headers: { 'Content-Type': 'application/json' },\n      body: JSON.stringify({ action, ...payload }),\n    }"
+        ]
+      },
+      {
+        "line": 832,
+        "call": "calculateOverdueDays",
+        "arguments": [
+          "inv.dueDate"
+        ]
+      },
+      {
+        "line": 930,
+        "call": "new Date().toISOString().slice",
+        "arguments": [
+          "0",
+          "10"
+        ]
+      },
+      {
+        "line": 930,
+        "call": "new Date().toISOString",
+        "arguments": []
+      },
+      {
+        "line": 1858,
+        "call": "Array.from(new Map(displayInvoices.map((invoice) => [invoice.billingPeriodId, invoice.billingPeriodDisplay]))).map",
+        "arguments": [
+          "([id, label]) => (\n                      <option key={id} value={id}>\n                        {label}\n                      </option>\n                    )"
+        ]
+      },
+      {
+        "line": 1858,
+        "call": "Array.from",
+        "arguments": [
+          "new Map(displayInvoices.map((invoice) => [invoice.billingPeriodId, invoice.billingPeriodDisplay]))"
+        ]
+      }
+    ],
+    "constants": []
+  },
+  {
+    "file": "src/app/dashboard/education/grades/page.tsx",
+    "lines": 3792,
+    "imports": [
+      {
+        "line": 25,
+        "module": "react"
+      },
+      {
+        "line": 26,
+        "module": "next/navigation"
+      },
+      {
+        "line": 27,
+        "module": "@/components/ui/dialog"
+      },
+      {
+        "line": 28,
+        "module": "next/link"
+      },
+      {
+        "line": 29,
+        "module": "lucide-react"
+      },
+      {
+        "line": 69,
+        "module": "@/lib/dashboard-client-context"
+      },
+      {
+        "line": 70,
+        "module": "@/lib/business-rules/tenant-modules"
+      }
+    ],
+    "calls": [
+      {
+        "line": 2484,
+        "call": "Array.from",
+        "arguments": [
+          "{ length: totalPages }"
+        ]
+      },
+      {
+        "line": 3744,
+        "call": "new Date().toLocaleDateString",
+        "arguments": [
+          "'vi-VN'"
+        ]
+      }
+    ],
+    "constants": []
+  },
+  {
+    "file": "src/app/dashboard/education/learning/page.tsx",
+    "lines": 417,
+    "imports": [
+      {
+        "line": 14,
+        "module": "react"
+      },
+      {
+        "line": 15,
+        "module": "next/link"
+      },
+      {
+        "line": 16,
+        "module": "lucide-react"
+      }
+    ],
+    "calls": [],
+    "constants": []
+  },
+  {
+    "file": "src/app/dashboard/education/my-class/page.tsx",
+    "lines": 2685,
+    "imports": [
+      {
+        "line": 22,
+        "module": "react"
+      },
+      {
+        "line": 23,
+        "module": "next/link"
+      },
+      {
+        "line": 24,
+        "module": "lucide-react"
+      }
+    ],
+    "calls": [
+      {
+        "line": 719,
+        "call": "new Date().toLocaleTimeString",
+        "arguments": [
+          "'vi-VN'",
+          "{ hour: '2-digit', minute: '2-digit' }"
+        ]
+      },
+      {
+        "line": 747,
+        "call": "new Date().toLocaleTimeString",
+        "arguments": [
+          "'vi-VN'",
+          "{ hour: '2-digit', minute: '2-digit' }"
+        ]
+      },
+      {
+        "line": 761,
+        "call": "fetch",
+        "arguments": [
+          "'/api/education/ai/copilot'",
+          "{\r\n        method: 'POST',\r\n        headers: { 'Content-Type': 'application/json' },\r\n        body: JSON.stringify({\r\n          action: 'ask_copilot',\r\n          question: `Tóm tắt"
+        ]
+      },
+      {
+        "line": 793,
+        "call": "fetch",
+        "arguments": [
+          "'/api/education/ai/copilot'",
+          "{\r\n        method: 'POST',\r\n        headers: { 'Content-Type': 'application/json' },\r\n        body: JSON.stringify({\r\n          action: 'check_allergy',\r\n          menuDishes: dish"
+        ]
+      },
+      {
+        "line": 841,
+        "call": "fetch",
+        "arguments": [
+          "'/api/education/ai/copilot'",
+          "{\r\n        method: 'POST',\r\n        headers: { 'Content-Type': 'application/json' },\r\n        body: JSON.stringify({\r\n          action: 'generate_digest',\r\n          studentName: s"
+        ]
+      },
+      {
+        "line": 882,
+        "call": "new Date().toLocaleTimeString",
+        "arguments": [
+          "'vi-VN'",
+          "{ hour: '2-digit', minute: '2-digit' }"
+        ]
+      },
+      {
+        "line": 890,
+        "call": "fetch",
+        "arguments": [
+          "'/api/education/ai/copilot'",
+          "{\r\n        method: 'POST',\r\n        headers: { 'Content-Type': 'application/json' },\r\n        body: JSON.stringify({\r\n          action: 'ask_copilot',\r\n          question,\r\n       "
+        ]
+      },
+      {
+        "line": 908,
+        "call": "new Date().toLocaleTimeString",
+        "arguments": [
+          "'vi-VN'",
+          "{ hour: '2-digit', minute: '2-digit' }"
+        ]
+      },
+      {
+        "line": 918,
+        "call": "new Date().toLocaleTimeString",
+        "arguments": [
+          "'vi-VN'",
+          "{ hour: '2-digit', minute: '2-digit' }"
+        ]
+      },
+      {
+        "line": 929,
+        "call": "new Date().toLocaleTimeString",
+        "arguments": [
+          "'vi-VN'",
+          "{ hour: '2-digit', minute: '2-digit' }"
+        ]
+      },
+      {
+        "line": 1401,
+        "call": "new Date().toLocaleDateString",
+        "arguments": [
+          "'vi-VN'"
+        ]
+      },
+      {
+        "line": 2128,
+        "call": "new Date().toLocaleDateString",
+        "arguments": [
+          "'vi-VN'"
+        ]
+      }
+    ],
+    "constants": []
+  },
+  {
+    "file": "src/app/dashboard/education/page.tsx",
+    "lines": 2243,
+    "imports": [
+      {
+        "line": 19,
+        "module": "react"
+      },
+      {
+        "line": 20,
+        "module": "next/image"
+      },
+      {
+        "line": 21,
+        "module": "next/link"
+      },
+      {
+        "line": 22,
+        "module": "next/navigation"
+      },
+      {
+        "line": 23,
+        "module": "@/lib/supabase-client"
+      },
+      {
+        "line": 24,
+        "module": "@/lib/dashboard-client-context"
+      },
+      {
+        "line": 25,
+        "module": "@/products/bella-education/analytics/domain/preschool-analytics.types"
+      },
+      {
+        "line": 33,
+        "module": "lucide-react"
+      }
+    ],
+    "calls": [
+      {
+        "line": 182,
+        "call": "fetch",
+        "arguments": [
+          "`/api/education/analytics?date=${selectedDateStr}`",
+          "{ cache: 'no-store' }"
+        ]
+      },
+      {
+        "line": 482,
+        "call": "fetch",
+        "arguments": [
+          "'/api/education/ai/copilot'",
+          "{\r\n        method: 'POST',\r\n        headers: { 'Content-Type': 'application/json' },\r\n        body: JSON.stringify({\r\n          action: 'executive_briefing',\r\n          totalStuden"
+        ]
+      },
+      {
+        "line": 526,
+        "call": "fetch",
+        "arguments": [
+          "'/api/education/ai/copilot'",
+          "{\r\n        method: 'POST',\r\n        headers: { 'Content-Type': 'application/json' },\r\n        body: JSON.stringify({\r\n          action: 'executive_safety_audit',\r\n          classRo"
+        ]
+      },
+      {
+        "line": 560,
+        "call": "fetch",
+        "arguments": [
+          "'/api/education/ai/copilot'",
+          "{\r\n        method: 'POST',\r\n        headers: { 'Content-Type': 'application/json' },\r\n        body: JSON.stringify({\r\n          action: 'ask_copilot',\r\n          question: q,\r\n    "
+        ]
+      },
+      {
+        "line": 1036,
+        "call": "new Date(executiveBriefing.generatedAt).toLocaleTimeString",
+        "arguments": [
+          "'vi-VN'",
+          "{ hour: '2-digit', minute: '2-digit' }"
+        ]
+      }
+    ],
+    "constants": []
+  },
+  {
+    "file": "src/app/dashboard/education/parent-inbox/page.tsx",
+    "lines": 315,
+    "imports": [
+      {
+        "line": 3,
+        "module": "react"
+      },
+      {
+        "line": 4,
+        "module": "next/link"
+      },
+      {
+        "line": 5,
+        "module": "lucide-react"
+      }
+    ],
+    "calls": [
+      {
+        "line": 68,
+        "call": "new Intl.DateTimeFormat('en-CA', {\r\n    timeZone: 'Asia/Ho_Chi_Minh',\r\n    year: 'numeric',\r\n    month: '2-digit',\r\n    day: '2-digit',\r\n  }).format",
+        "arguments": [
+          "new Date()"
+        ]
+      },
+      {
+        "line": 123,
+        "call": "fetch",
+        "arguments": [
+          "`/api/education/parent-daily?date=${encodeURIComponent(targetDay)}`",
+          "{\r\n        cache: 'no-store',\r\n      }"
+        ]
+      }
+    ],
+    "constants": []
+  },
+  {
+    "file": "src/app/dashboard/education/reports/page.tsx",
+    "lines": 1291,
+    "imports": [
+      {
+        "line": 17,
+        "module": "react"
+      },
+      {
+        "line": 18,
+        "module": "next/link"
+      },
+      {
+        "line": 19,
+        "module": "lucide-react"
+      },
+      {
+        "line": 42,
+        "module": "@/products/bella-education/analytics/domain/preschool-analytics.types"
+      }
+    ],
+    "calls": [
+      {
+        "line": 150,
+        "call": "Array.from",
+        "arguments": [
+          "{ length: 5 }",
+          "(_, i) => {\r\n        if (disabled) {\r\n          return <Star key={i} className=\"w-4 h-4 text-slate-200\" />;\r\n        }\r\n        if (i < full) {\r\n          return <Star key={i} clas"
+        ]
+      },
+      {
+        "line": 328,
+        "call": "fetch",
+        "arguments": [
+          "`/api/education/analytics?date=${encodeURIComponent(selectedDate)}`"
+        ]
+      }
+    ],
+    "constants": []
+  },
+  {
+    "file": "src/app/dashboard/education/scheduling/page.tsx",
+    "lines": 786,
+    "imports": [
+      {
+        "line": 12,
+        "module": "react"
+      },
+      {
+        "line": 13,
+        "module": "next/link"
+      },
+      {
+        "line": 14,
+        "module": "@supabase/supabase-js"
+      },
+      {
+        "line": 15,
+        "module": "lucide-react"
+      },
+      {
+        "line": 36,
+        "module": "@/products/bella-education/scheduling/repositories/preschool-scheduling.repository"
+      },
+      {
+        "line": 37,
+        "module": "@/products/bella-education/scheduling/services/staff-roster.service"
+      },
+      {
+        "line": 38,
+        "module": "@/products/bella-education/scheduling/services/ratio-compliance.service"
+      },
+      {
+        "line": 39,
+        "module": "@/products/bella-education/scheduling/services/leave-substitution.service"
+      },
+      {
+        "line": 40,
+        "module": "@/products/bella-education/scheduling/bridges/scheduling-projection.bridge"
+      },
+      {
+        "line": 41,
+        "module": "@/products/bella-education/parent-engagement/repositories/parent-communication.repository"
+      },
+      {
+        "line": 42,
+        "module": "@/products/bella-education/parent-engagement/services/communication-exception.service"
+      },
+      {
+        "line": 43,
+        "module": "@/products/bella-education/scheduling/domain/scheduling.types"
+      },
+      {
+        "line": 44,
+        "module": "@/products/bella-education/parent-engagement/domain/communication.types"
+      },
+      {
+        "line": 45,
+        "module": "@/types/database.types"
+      }
+    ],
+    "calls": [
+      {
+        "line": 131,
+        "call": "supabase\r\n        .from",
+        "arguments": [
+          "'edu_sched_leave_requests'"
+        ]
+      },
+      {
+        "line": 139,
+        "call": "supabase\r\n        .from",
+        "arguments": [
+          "'edu_sched_substitutions'"
+        ]
+      },
+      {
+        "line": 166,
+        "call": "supabase\r\n        .from",
+        "arguments": [
+          "'edu_sched_shift_assignments'"
+        ]
+      },
+      {
+        "line": 171,
+        "call": "supabase\r\n        .from",
+        "arguments": [
+          "'edu_sched_leave_requests'"
+        ]
+      },
+      {
+        "line": 176,
+        "call": "supabase\r\n        .from",
+        "arguments": [
+          "'edu_sched_substitutions'"
+        ]
+      },
+      {
+        "line": 181,
+        "call": "supabase\r\n        .from",
+        "arguments": [
+          "'edu_comm_exceptions'"
+        ]
+      },
+      {
+        "line": 227,
+        "call": "complianceService.calculateAndRecordCompliance",
+        "arguments": [
+          "{\r\n        tenantId: DEFAULT_TENANT_ID,\r\n        classroomId: selectedClassroom,\r\n        snapshotDate: selectedDate,\r\n        shiftTemplateId: templateId,\r\n        ageGroup: 'TODD"
+        ]
+      },
+      {
+        "line": 272,
+        "call": "leaveService.approveLeave",
+        "arguments": [
+          "{\r\n        tenantId: DEFAULT_TENANT_ID,\r\n        leaveRequestId: leaveId,\r\n        approvedByPartyId: DEFAULT_MANAGER_ID,\r\n      }"
+        ]
+      },
+      {
+        "line": 684,
+        "call": "handleApproveLeave",
+        "arguments": [
+          "l.id"
+        ]
+      }
+    ],
+    "constants": [
+      {
+        "line": 51,
+        "name": "DEFAULT_TENANT_ID",
+        "value": "'00000000-0000-0000-0000-000000000001'"
+      },
+      {
+        "line": 52,
+        "name": "DEFAULT_MANAGER_ID",
+        "value": "'00000000-0000-0000-0000-000000000003'"
+      },
+      {
+        "line": 53,
+        "name": "DEFAULT_TEACHER1_ID",
+        "value": "'00000000-0000-0000-0000-000000000081'"
+      },
+      {
+        "line": 54,
+        "name": "DEFAULT_TEACHER2_ID",
+        "value": "'00000000-0000-0000-0000-000000000082'"
+      },
+      {
+        "line": 55,
+        "name": "DEFAULT_CAREGIVER1_ID",
+        "value": "'00000000-0000-0000-0000-000000000083'"
+      },
+      {
+        "line": 56,
+        "name": "DEFAULT_CLASSROOM_ID",
+        "value": "'00000000-0000-0000-0000-000000000091'"
+      }
+    ]
+  },
+  {
+    "file": "src/app/dashboard/education/teachers/page.tsx",
+    "lines": 1426,
+    "imports": [
+      {
+        "line": 37,
+        "module": "react"
+      },
+      {
+        "line": 38,
+        "module": "next/link"
+      },
+      {
+        "line": 39,
+        "module": "lucide-react"
+      },
+      {
+        "line": 63,
+        "module": "@/lib/dashboard-client-context"
+      },
+      {
+        "line": 64,
+        "module": "@/lib/business-rules/tenant-modules"
+      }
+    ],
+    "calls": [],
+    "constants": []
+  },
+  {
+    "file": "src/app/dashboard/education/teachers/[id]/page.tsx",
+    "lines": 1284,
+    "imports": [
+      {
+        "line": 16,
+        "module": "react"
+      },
+      {
+        "line": 17,
+        "module": "next/link"
+      },
+      {
+        "line": 18,
+        "module": "next/navigation"
+      },
+      {
+        "line": 19,
+        "module": "lucide-react"
+      }
+    ],
+    "calls": [],
+    "constants": []
+  },
+  {
+    "file": "src/app/dashboard/education/work-queue/page.tsx",
+    "lines": 182,
+    "imports": [
+      {
+        "line": 3,
+        "module": "react"
+      },
+      {
+        "line": 4,
+        "module": "next/link"
+      },
+      {
+        "line": 5,
+        "module": "next/navigation"
+      },
+      {
+        "line": 6,
+        "module": "lucide-react"
+      },
+      {
+        "line": 7,
+        "module": "@/components/ui/button"
+      },
+      {
+        "line": 8,
+        "module": "@/products/bella-education/work-queue/work-queue.types"
+      }
+    ],
+    "calls": [
+      {
+        "line": 60,
+        "call": "fetch(`/api/education/work-queue?view=${view}&status=${status}&page=${page}`, { cache: 'no-store', signal: controller.signal })\r\n      .then(async response => {\r\n        const payload: Reply = await response.json();\r\n        if (!response.ok || !payload.success || !payload.items || payload.total === undefined || payload.page === undefined\r\n          || payload.pages === undefined || payload.pageSize === undefined) throw new Error(payload.error ?? 'Không thể tải danh sách.');\r\n        if (current) {\r\n          setData({ items: payload.items, total: payload.total, page: payload.page, pages: payload.pages, pageSize: payload.pageSize });\r\n          setRequiresReload(false); setSaveError('');\r\n        }\r\n      })\r\n      .catch((reason: unknown) => { if (current) setError(reason instanceof Error ? reason.message : 'Không thể tải danh sách.'); })\r\n      .finally",
+        "arguments": [
+          "() => { if (current) setLoading(false); }"
+        ]
+      },
+      {
+        "line": 60,
+        "call": "fetch(`/api/education/work-queue?view=${view}&status=${status}&page=${page}`, { cache: 'no-store', signal: controller.signal })\r\n      .then(async response => {\r\n        const payload: Reply = await response.json();\r\n        if (!response.ok || !payload.success || !payload.items || payload.total === undefined || payload.page === undefined\r\n          || payload.pages === undefined || payload.pageSize === undefined) throw new Error(payload.error ?? 'Không thể tải danh sách.');\r\n        if (current) {\r\n          setData({ items: payload.items, total: payload.total, page: payload.page, pages: payload.pages, pageSize: payload.pageSize });\r\n          setRequiresReload(false); setSaveError('');\r\n        }\r\n      })\r\n      .catch",
+        "arguments": [
+          "(reason: unknown) => { if (current) setError(reason instanceof Error ? reason.message : 'Không thể tải danh sách.'); }"
+        ]
+      },
+      {
+        "line": 60,
+        "call": "fetch",
+        "arguments": [
+          "`/api/education/work-queue?view=${view}&status=${status}&page=${page}`",
+          "{ cache: 'no-store', signal: controller.signal }"
+        ]
+      },
+      {
+        "line": 82,
+        "call": "fetch",
+        "arguments": [
+          "'/api/education/work-queue'",
+          "{ method: 'POST', headers: { 'Content-Type': 'application/json' },\r\n        body: JSON.stringify({ view: item.view, id: item.id, action, note, expectedUpdatedAt: item.updatedAt }) "
+        ]
+      }
+    ],
+    "constants": []
+  },
+  {
+    "file": "src/app/portal/education/[token]/page.tsx",
+    "lines": 1028,
+    "imports": [
+      {
+        "line": 18,
+        "module": "react"
+      },
+      {
+        "line": 19,
+        "module": "lucide-react"
+      },
+      {
+        "line": 50,
+        "module": "@/products/bella-education/parent-portal/domain/parent-portal.types"
+      }
+    ],
+    "calls": [
+      {
+        "line": 100,
+        "call": "fetch",
+        "arguments": [
+          "`/api/education/portal/${encodeURIComponent(token)}`",
+          "{\n        cache: 'no-store',\n      }"
+        ]
+      },
+      {
+        "line": 142,
+        "call": "fetch",
+        "arguments": [
+          "`/api/education/portal/${encodeURIComponent(token)}/chat`",
+          "{\n        method: 'POST',\n        headers: { 'Content-Type': 'application/json' },\n        body: JSON.stringify({ message: textToSend }),\n      }"
+        ]
+      },
+      {
+        "line": 182,
+        "call": "fetch",
+        "arguments": [
+          "`/api/education/portal/${encodeURIComponent(token)}/copilot`",
+          "{\n        method: 'POST',\n        headers: { 'Content-Type': 'application/json' },\n        body: JSON.stringify({\n          action: 'ask_copilot',\n          question: q,\n          "
+        ]
+      },
+      {
+        "line": 289,
+        "call": "new Date().toLocaleDateString",
+        "arguments": [
+          "'vi-VN'",
+          "{ weekday: 'short', day: '2-digit', month: '2-digit' }"
+        ]
+      }
+    ],
+    "constants": []
+  },
+  {
+    "file": "src/app/api/education/ai/copilot/route.ts",
+    "lines": 179,
+    "imports": [
+      {
+        "line": 16,
+        "module": "next/server"
+      },
+      {
+        "line": 17,
+        "module": "@/services/user-actions"
+      },
+      {
+        "line": 18,
+        "module": "@/lib/business-rules/permissions"
+      },
+      {
+        "line": 19,
+        "module": "@/products/bella-education/services/preschool-ai.service"
+      }
+    ],
+    "calls": [
+      {
+        "line": 77,
+        "call": "canUseEducationAiCopilotRole",
+        "arguments": [
+          "effectiveRole"
+        ]
+      }
+    ],
+    "constants": []
+  },
+  {
+    "file": "src/app/api/education/analytics/route.ts",
+    "lines": 73,
+    "imports": [
+      {
+        "line": 1,
+        "module": "next/server"
+      },
+      {
+        "line": 2,
+        "module": "@supabase/supabase-js"
+      },
+      {
+        "line": 3,
+        "module": "@/lib/supabase-server"
+      },
+      {
+        "line": 4,
+        "module": "@/lib/supabase-admin-env"
+      },
+      {
+        "line": 5,
+        "module": "@/services/user-actions"
+      },
+      {
+        "line": 6,
+        "module": "@/types/database.types"
+      },
+      {
+        "line": 7,
+        "module": "@/products/bella-education/analytics/repositories/preschool-analytics.repository"
+      },
+      {
+        "line": 8,
+        "module": "@/products/bella-education/analytics/services/preschool-analytics.service"
+      }
+    ],
+    "calls": [
+      {
+        "line": 36,
+        "call": "new Date().toISOString().split",
+        "arguments": [
+          "'T'"
+        ]
+      },
+      {
+        "line": 36,
+        "call": "new Date().toISOString",
+        "arguments": []
+      },
+      {
+        "line": 44,
+        "call": "adminClient.from",
+        "arguments": [
+          "'users'"
+        ]
+      }
+    ],
+    "constants": []
+  },
+  {
+    "file": "src/app/api/education/announcements/route.ts",
+    "lines": 115,
+    "imports": [
+      {
+        "line": 1,
+        "module": "next/server"
+      },
+      {
+        "line": 2,
+        "module": "@supabase/supabase-js"
+      },
+      {
+        "line": 3,
+        "module": "@/lib/supabase-admin-env"
+      },
+      {
+        "line": 4,
+        "module": "@/lib/supabase-server"
+      },
+      {
+        "line": 5,
+        "module": "@/services/user-actions"
+      },
+      {
+        "line": 6,
+        "module": "@/types/database.types"
+      }
+    ],
+    "calls": [
+      {
+        "line": 58,
+        "call": "supabase\n      .from",
+        "arguments": [
+          "'edu_comm_threads'"
+        ]
+      },
+      {
+        "line": 65,
+        "call": "supabase.from",
+        "arguments": [
+          "'edu_comm_threads'"
+        ]
+      },
+      {
+        "line": 78,
+        "call": "supabase\n      .from",
+        "arguments": [
+          "'edu_comm_notices'"
+        ]
+      }
+    ],
+    "constants": []
+  },
+  {
+    "file": "src/app/api/education/attendance/handover/route.ts",
+    "lines": 131,
+    "imports": [
+      {
+        "line": 1,
+        "module": "next/server"
+      },
+      {
+        "line": 2,
+        "module": "@supabase/supabase-js"
+      },
+      {
+        "line": 3,
+        "module": "@/products/bella-education/services/preschool-safe-pickup-handover.service"
+      },
+      {
+        "line": 4,
+        "module": "@/products/bella-education/security/education-security-guard.service"
+      },
+      {
+        "line": 9,
+        "module": "@/lib/supabase-server"
+      },
+      {
+        "line": 10,
+        "module": "@/lib/supabase-admin-env"
+      },
+      {
+        "line": 11,
+        "module": "@/services/user-actions"
+      },
+      {
+        "line": 12,
+        "module": "@/types/database.types"
+      }
+    ],
+    "calls": [
+      {
+        "line": 43,
+        "call": "supabase\r\n      .from",
+        "arguments": [
+          "'users'"
+        ]
+      },
+      {
+        "line": 91,
+        "call": "handoverGuard.assertCanModifyAttendanceRoster",
+        "arguments": [
+          "securityContext"
+        ]
+      },
+      {
+        "line": 108,
+        "call": "assertCanRecordHandover",
+        "arguments": [
+          "context"
+        ]
+      },
+      {
+        "line": 116,
+        "call": "new PreschoolSafePickupHandoverService(supabase).recordHandover",
+        "arguments": [
+          "{\r\n      tenantId: context.tenantId,\r\n      studentPartyId,\r\n      guardianPartyId,\r\n      pickupAuthorizationId,\r\n      operatorUserId: context.operatorUserId,\r\n    }"
+        ]
+      }
+    ],
+    "constants": []
+  },
+  {
+    "file": "src/app/api/education/attendance/route.ts",
+    "lines": 222,
+    "imports": [
+      {
+        "line": 1,
+        "module": "next/server"
+      },
+      {
+        "line": 2,
+        "module": "@supabase/supabase-js"
+      },
+      {
+        "line": 3,
+        "module": "@/platform/education/contracts/attendance.contract.impl"
+      },
+      {
+        "line": 4,
+        "module": "@/platform/education/contracts/attendance.contract"
+      },
+      {
+        "line": 5,
+        "module": "@/products/bella-education/services/attendance.service"
+      },
+      {
+        "line": 6,
+        "module": "@/products/bella-education/services/preschool-guardian-authorization.service"
+      },
+      {
+        "line": 7,
+        "module": "@/products/bella-education/services/preschool-safe-pickup-handover.service"
+      },
+      {
+        "line": 8,
+        "module": "@/products/bella-education/security/education-security-guard.service"
+      },
+      {
+        "line": 13,
+        "module": "@/lib/supabase-server"
+      },
+      {
+        "line": 14,
+        "module": "@/lib/supabase-admin-env"
+      },
+      {
+        "line": 15,
+        "module": "@/services/user-actions"
+      },
+      {
+        "line": 16,
+        "module": "@/types/database.types"
+      }
+    ],
+    "calls": [
+      {
+        "line": 46,
+        "call": "new Date(`${schoolDay}T05:00:00.000Z`).toISOString",
+        "arguments": []
+      },
+      {
+        "line": 87,
+        "call": "attendanceGuard.assertCanModifyAttendanceRoster",
+        "arguments": [
+          "securityContext"
+        ]
+      },
+      {
+        "line": 97,
+        "call": "supabase\r\n      .from",
+        "arguments": [
+          "'users'"
+        ]
+      },
+      {
+        "line": 159,
+        "call": "assertCanUseAttendanceRoster",
+        "arguments": [
+          "context"
+        ]
+      },
+      {
+        "line": 165,
+        "call": "guardianService.getAuthorizedGuardians",
+        "arguments": [
+          "context.tenantId",
+          "roster.map((student) => student.studentPartyId)"
+        ]
+      },
+      {
+        "line": 195,
+        "call": "assertCanUseAttendanceRoster",
+        "arguments": [
+          "context"
+        ]
+      }
+    ],
+    "constants": []
+  },
+  {
+    "file": "src/app/api/education/branches/route.ts",
+    "lines": 107,
+    "imports": [
+      {
+        "line": 1,
+        "module": "next/server"
+      },
+      {
+        "line": 2,
+        "module": "@supabase/supabase-js"
+      },
+      {
+        "line": 3,
+        "module": "next/headers"
+      },
+      {
+        "line": 4,
+        "module": "@/lib/supabase-server"
+      },
+      {
+        "line": 5,
+        "module": "@/lib/supabase-admin-env"
+      },
+      {
+        "line": 6,
+        "module": "@/products/bella-education/services/preschool-chain.service"
+      },
+      {
+        "line": 7,
+        "module": "@/types/database.types"
+      }
+    ],
+    "calls": [
+      {
+        "line": 30,
+        "call": "supabase\r\n    .from",
+        "arguments": [
+          "'users'"
+        ]
+      },
+      {
+        "line": 50,
+        "call": "adminClient\r\n    .from",
+        "arguments": [
+          "'users'"
+        ]
+      },
+      {
+        "line": 94,
+        "call": "new PreschoolChainService(context.supabase)\r\n      .listAccessibleBranches",
+        "arguments": [
+          "context.tenantId",
+          "context.userId"
+        ]
+      }
+    ],
+    "constants": []
+  },
+  {
+    "file": "src/app/api/education/care/bulk/route.ts",
+    "lines": 438,
+    "imports": [
+      {
+        "line": 1,
+        "module": "next/server"
+      },
+      {
+        "line": 2,
+        "module": "@supabase/supabase-js"
+      },
+      {
+        "line": 3,
+        "module": "@/lib/supabase-server"
+      },
+      {
+        "line": 4,
+        "module": "@/lib/supabase-admin-env"
+      },
+      {
+        "line": 5,
+        "module": "@/services/user-actions"
+      },
+      {
+        "line": 6,
+        "module": "@/products/bella-education/care-wellbeing/daily-care/daily-care.service"
+      },
+      {
+        "line": 7,
+        "module": "@/products/bella-education/care-wellbeing/daily-care/daily-care.contract"
+      },
+      {
+        "line": 8,
+        "module": "@/types/database.types"
+      }
+    ],
+    "calls": [
+      {
+        "line": 90,
+        "call": "supabase\r\n      .from",
+        "arguments": [
+          "'users'"
+        ]
+      },
+      {
+        "line": 184,
+        "call": "client\r\n        .from",
+        "arguments": [
+          "'edu_attendance_daily_state'"
+        ]
+      },
+      {
+        "line": 265,
+        "call": "client\r\n        .from",
+        "arguments": [
+          "'edu_daily_care_sessions'"
+        ]
+      },
+      {
+        "line": 276,
+        "call": "client\r\n          .from",
+        "arguments": [
+          "'edu_daily_care_sessions'"
+        ]
+      },
+      {
+        "line": 287,
+        "call": "new Date().toISOString",
+        "arguments": []
+      },
+      {
+        "line": 335,
+        "call": "client\r\n          .from",
+        "arguments": [
+          "'edu_daily_care_records'"
+        ]
+      },
+      {
+        "line": 343,
+        "call": "client\r\n            .from",
+        "arguments": [
+          "'edu_daily_care_records'"
+        ]
+      },
+      {
+        "line": 369,
+        "call": "client\r\n            .from",
+        "arguments": [
+          "'edu_daily_care_records'"
+        ]
+      }
+    ],
+    "constants": []
+  },
+  {
+    "file": "src/app/api/education/care/digest/route.ts",
+    "lines": 176,
+    "imports": [
+      {
+        "line": 1,
+        "module": "next/server"
+      },
+      {
+        "line": 2,
+        "module": "@supabase/supabase-js"
+      },
+      {
+        "line": 3,
+        "module": "@/lib/supabase-server"
+      },
+      {
+        "line": 4,
+        "module": "@/lib/supabase-admin-env"
+      },
+      {
+        "line": 5,
+        "module": "@/services/user-actions"
+      },
+      {
+        "line": 6,
+        "module": "@/products/bella-education/care-wellbeing/daily-care/daily-care.service"
+      },
+      {
+        "line": 7,
+        "module": "@/products/bella-education/services/preschool-parent-daily-experience.service"
+      },
+      {
+        "line": 8,
+        "module": "@/types/database.types"
+      }
+    ],
+    "calls": [
+      {
+        "line": 39,
+        "call": "client\r\n    .from",
+        "arguments": [
+          "'users'"
+        ]
+      },
+      {
+        "line": 76,
+        "call": "new PreschoolParentDailyExperienceService(supabase).assertGuardianCanViewStudent",
+        "arguments": [
+          "{\r\n      user: context,\r\n      studentPartyId,\r\n      schoolDay: new Date().toISOString().slice(0, 10),\r\n    }"
+        ]
+      },
+      {
+        "line": 79,
+        "call": "new Date().toISOString().slice",
+        "arguments": [
+          "0",
+          "10"
+        ]
+      },
+      {
+        "line": 79,
+        "call": "new Date().toISOString",
+        "arguments": []
+      },
+      {
+        "line": 82,
+        "call": "supabase\r\n      .from",
+        "arguments": [
+          "'edu_daily_parent_digests'"
+        ]
+      },
+      {
+        "line": 132,
+        "call": "new PreschoolParentDailyExperienceService(supabase).assertGuardianCanViewStudent",
+        "arguments": [
+          "{\r\n        user: context,\r\n        studentPartyId,\r\n        schoolDay: date,\r\n      }"
+        ]
+      },
+      {
+        "line": 145,
+        "call": "supabase\r\n        .from",
+        "arguments": [
+          "'edu_daily_parent_digests'"
+        ]
+      },
+      {
+        "line": 159,
+        "call": "new PreschoolParentDailyExperienceService(supabase).assertGuardianCanViewStudent",
+        "arguments": [
+          "{\r\n        user: context,\r\n        studentPartyId: existingDigest.student_party_id,\r\n        schoolDay: existingDigest.date,\r\n      }"
+        ]
+      }
+    ],
+    "constants": []
+  },
+  {
+    "file": "src/app/api/education/care/medication/route.ts",
+    "lines": 49,
+    "imports": [
+      {
+        "line": 1,
+        "module": "next/server"
+      },
+      {
+        "line": 2,
+        "module": "@supabase/supabase-js"
+      },
+      {
+        "line": 3,
+        "module": "@/products/bella-education/care-wellbeing/medication/medication-safety.service"
+      }
+    ],
+    "calls": [],
+    "constants": []
+  },
+  {
+    "file": "src/app/api/education/courses/route.ts",
+    "lines": 324,
+    "imports": [
+      {
+        "line": 1,
+        "module": "next/server"
+      },
+      {
+        "line": 2,
+        "module": "@supabase/supabase-js"
+      },
+      {
+        "line": 3,
+        "module": "@bella/shared"
+      },
+      {
+        "line": 4,
+        "module": "@/lib/supabase-server"
+      },
+      {
+        "line": 5,
+        "module": "@/lib/supabase-admin-env"
+      },
+      {
+        "line": 6,
+        "module": "@/platform/education/contracts/teacher-assignment.contract.impl"
+      },
+      {
+        "line": 7,
+        "module": "@/services/user-actions"
+      },
+      {
+        "line": 8,
+        "module": "@/types/database.types"
+      }
+    ],
+    "calls": [
+      {
+        "line": 82,
+        "call": "supabase\r\n      .from",
+        "arguments": [
+          "'users'"
+        ]
+      },
+      {
+        "line": 111,
+        "call": "supabase\r\n      .from",
+        "arguments": [
+          "'edu_courses'"
+        ]
+      },
+      {
+        "line": 125,
+        "call": "supabase\r\n        .from",
+        "arguments": [
+          "'courses'"
+        ]
+      },
+      {
+        "line": 146,
+        "call": "teacherContract.getCourseTeachers",
+        "arguments": [
+          "tenantId",
+          "course.id"
+        ]
+      },
+      {
+        "line": 156,
+        "call": "supabase\r\n          .from",
+        "arguments": [
+          "'party_parties'"
+        ]
+      },
+      {
+        "line": 185,
+        "call": "supabase\r\n        .from",
+        "arguments": [
+          "'edu_enrollments'"
+        ]
+      },
+      {
+        "line": 241,
+        "call": "supabase\r\n        .from",
+        "arguments": [
+          "'edu_enrollments'"
+        ]
+      },
+      {
+        "line": 253,
+        "call": "supabase\r\n          .from",
+        "arguments": [
+          "'edu_attendance_daily_state'"
+        ]
+      }
+    ],
+    "constants": []
+  },
+  {
+    "file": "src/app/api/education/courses/[id]/route.ts",
+    "lines": 181,
+    "imports": [
+      {
+        "line": 1,
+        "module": "next/server"
+      },
+      {
+        "line": 2,
+        "module": "@supabase/supabase-js"
+      },
+      {
+        "line": 3,
+        "module": "@/lib/supabase-server"
+      },
+      {
+        "line": 4,
+        "module": "@/lib/supabase-admin-env"
+      },
+      {
+        "line": 5,
+        "module": "@/platform/education/contracts/teacher-assignment.contract.impl"
+      },
+      {
+        "line": 6,
+        "module": "@/services/user-actions"
+      },
+      {
+        "line": 7,
+        "module": "@/types/database.types"
+      }
+    ],
+    "calls": [
+      {
+        "line": 38,
+        "call": "supabase\r\n      .from",
+        "arguments": [
+          "'users'"
+        ]
+      },
+      {
+        "line": 60,
+        "call": "supabase\r\n      .from",
+        "arguments": [
+          "'courses'"
+        ]
+      },
+      {
+        "line": 73,
+        "call": "teacherContract.getCourseTeachers",
+        "arguments": [
+          "tenantId",
+          "courseId"
+        ]
+      },
+      {
+        "line": 78,
+        "call": "supabase\r\n        .from",
+        "arguments": [
+          "'party_parties'"
+        ]
+      },
+      {
+        "line": 99,
+        "call": "supabase\r\n      .from",
+        "arguments": [
+          "'edu_enrollments'"
+        ]
+      },
+      {
+        "line": 114,
+        "call": "supabase\r\n          .from",
+        "arguments": [
+          "'students'"
+        ]
+      },
+      {
+        "line": 119,
+        "call": "supabase\r\n          .from",
+        "arguments": [
+          "'party_parties'"
+        ]
+      }
+    ],
+    "constants": []
+  },
+  {
+    "file": "src/app/api/education/courses/[id]/teachers/route.ts",
+    "lines": 89,
+    "imports": [
+      {
+        "line": 1,
+        "module": "next/server"
+      },
+      {
+        "line": 2,
+        "module": "@/lib/supabase-server"
+      },
+      {
+        "line": 3,
+        "module": "@/platform/education/contracts/teacher-assignment.contract.impl"
+      },
+      {
+        "line": 4,
+        "module": "@/platform/education/domain/teacher-assignment.entity"
+      }
+    ],
+    "calls": [
+      {
+        "line": 28,
+        "call": "teacherContract.assignTeacher",
+        "arguments": [
+          "{\r\n        tenantId,\r\n        courseId,\r\n        teacherPartyId,\r\n        role,\r\n        academicYear,\r\n      }"
+        ]
+      },
+      {
+        "line": 74,
+        "call": "teacherContract.terminateAssignment",
+        "arguments": [
+          "{\r\n      tenantId,\r\n      assignmentId,\r\n    }"
+        ]
+      }
+    ],
+    "constants": []
+  },
+  {
+    "file": "src/app/api/education/enrollments/route.ts",
+    "lines": 504,
+    "imports": [
+      {
+        "line": 1,
+        "module": "next/server"
+      },
+      {
+        "line": 2,
+        "module": "@supabase/supabase-js"
+      },
+      {
+        "line": 3,
+        "module": "@/lib/supabase-server"
+      },
+      {
+        "line": 4,
+        "module": "@/lib/supabase-admin-env"
+      },
+      {
+        "line": 5,
+        "module": "@/types/database.types"
+      },
+      {
+        "line": 6,
+        "module": "@/platform/education/contracts/student.contract.impl"
+      },
+      {
+        "line": 7,
+        "module": "@/platform/education/contracts/enrollment.contract.impl"
+      },
+      {
+        "line": 8,
+        "module": "@/products/bella-education/services/enrollment.service"
+      },
+      {
+        "line": 9,
+        "module": "@/products/bella-education/services/preschool-chain.service"
+      },
+      {
+        "line": 10,
+        "module": "@/products/bella-education/services/preschool-guardian-authorization.service"
+      },
+      {
+        "line": 15,
+        "module": "@/platform/accounting/contracts/accounting.contract"
+      }
+    ],
+    "calls": [
+      {
+        "line": 93,
+        "call": "new Date().getUTCFullYear",
+        "arguments": []
+      },
+      {
+        "line": 139,
+        "call": "supabase\r\n    .from",
+        "arguments": [
+          "'users'"
+        ]
+      },
+      {
+        "line": 158,
+        "call": "supabase\r\n      .from",
+        "arguments": [
+          "'users'"
+        ]
+      },
+      {
+        "line": 217,
+        "call": "supabase\r\n    .from",
+        "arguments": [
+          "'party_parties'"
+        ]
+      },
+      {
+        "line": 235,
+        "call": "supabase\r\n    .from",
+        "arguments": [
+          "'edu_courses'"
+        ]
+      },
+      {
+        "line": 257,
+        "call": "supabase\r\n    .from",
+        "arguments": [
+          "'edu_enrollments'"
+        ]
+      },
+      {
+        "line": 283,
+        "call": "supabase\r\n      .from",
+        "arguments": [
+          "'party_parties'"
+        ]
+      },
+      {
+        "line": 288,
+        "call": "supabase\r\n      .from",
+        "arguments": [
+          "'students'"
+        ]
+      },
+      {
+        "line": 294,
+        "call": "supabase\r\n        .from",
+        "arguments": [
+          "'edu_courses'"
+        ]
+      },
+      {
+        "line": 300,
+        "call": "new PreschoolGuardianAuthorizationService(supabase).getAuthorizedGuardians",
+        "arguments": [
+          "tenantId",
+          "studentPartyIds"
+        ]
+      },
+      {
+        "line": 410,
+        "call": "new PreschoolGuardianAuthorizationService(operationSupabase)\r\n      .establishForEnrollment",
+        "arguments": [
+          "{\r\n        tenantId,\r\n        studentPartyId,\r\n        guardianName,\r\n        guardianPhone,\r\n        actorId: userId,\r\n      }"
+        ]
+      },
+      {
+        "line": 421,
+        "call": "studentContract.registerStudent",
+        "arguments": [
+          "{\r\n      tenantId,\r\n      partyId: studentPartyId,\r\n      studentCode,\r\n      guardianPartyId: guardianAuthorization.guardianPartyId,\r\n    }"
+        ]
+      },
+      {
+        "line": 451,
+        "call": "studentContract.getStudent",
+        "arguments": [
+          "tenantId",
+          "student.partyId"
+        ]
+      },
+      {
+        "line": 452,
+        "call": "enrollmentContract.getEnrollment",
+        "arguments": [
+          "tenantId",
+          "enrollment.id"
+        ]
+      }
+    ],
+    "constants": []
+  },
+  {
+    "file": "src/app/api/education/finance/route.ts",
+    "lines": 405,
+    "imports": [
+      {
+        "line": 1,
+        "module": "next/server"
+      },
+      {
+        "line": 2,
+        "module": "@supabase/supabase-js"
+      },
+      {
+        "line": 3,
+        "module": "@/lib/supabase-server"
+      },
+      {
+        "line": 4,
+        "module": "@/lib/supabase-admin-env"
+      },
+      {
+        "line": 5,
+        "module": "@/services/user-actions"
+      },
+      {
+        "line": 6,
+        "module": "@/types/database.types"
+      },
+      {
+        "line": 7,
+        "module": "@/products/bella-education/finance/repositories/preschool-finance.repository"
+      },
+      {
+        "line": 8,
+        "module": "@/products/bella-education/finance/services/tuition-billing.service"
+      },
+      {
+        "line": 9,
+        "module": "@/products/bella-education/finance/services/invoice-issuance.service"
+      },
+      {
+        "line": 10,
+        "module": "@/products/bella-education/finance/services/tuition-service-period-completion.service"
+      },
+      {
+        "line": 11,
+        "module": "@/products/bella-education/finance/services/payment-reconciliation.service"
+      },
+      {
+        "line": 12,
+        "module": "@/products/bella-education/finance/services/overdue-payment-scanner.service"
+      },
+      {
+        "line": 13,
+        "module": "@/products/bella-education/parent-engagement/bridges/finance-projection.bridge"
+      },
+      {
+        "line": 14,
+        "module": "@/products/bella-education/parent-engagement/services/communication-delivery.service"
+      },
+      {
+        "line": 15,
+        "module": "@/products/bella-education/parent-engagement/repositories/parent-communication.repository"
+      },
+      {
+        "line": 16,
+        "module": "@/products/bella-education/parent-engagement/services/communication-exception.service"
+      },
+      {
+        "line": 17,
+        "module": "@/products/bella-education/finance/domain/finance.types"
+      },
+      {
+        "line": 18,
+        "module": "@/products/bella-education/finance/services/preschool-finance-authorization.service"
+      }
+    ],
+    "calls": [
+      {
+        "line": 124,
+        "call": "client\n    .from",
+        "arguments": [
+          "'edu_enrollments'"
+        ]
+      },
+      {
+        "line": 141,
+        "call": "client\n      .from",
+        "arguments": [
+          "'party_parties'"
+        ]
+      },
+      {
+        "line": 146,
+        "call": "client\n      .from",
+        "arguments": [
+          "'students'"
+        ]
+      },
+      {
+        "line": 177,
+        "call": "client\n    .from",
+        "arguments": [
+          "'edu_fin_payments'"
+        ]
+      },
+      {
+        "line": 188,
+        "call": "client\n    .from",
+        "arguments": [
+          "'edu_comm_exceptions'"
+        ]
+      },
+      {
+        "line": 216,
+        "call": "client\n    .from",
+        "arguments": [
+          "'party_relationships'"
+        ]
+      },
+      {
+        "line": 320,
+        "call": "completionService.completePeriod",
+        "arguments": [
+          "{\n        tenantId: actor.tenantId,\n        billingPeriodId,\n        completedBy: actor.actorId,\n      }"
+        ]
+      }
+    ],
+    "constants": []
+  },
+  {
+    "file": "src/app/api/education/parent-daily/route.ts",
+    "lines": 12,
+    "imports": [
+      {
+        "line": 1,
+        "module": "next/server"
+      }
+    ],
+    "calls": [],
+    "constants": []
+  },
+  {
+    "file": "src/app/api/education/portal/token/route.ts",
+    "lines": 88,
+    "imports": [
+      {
+        "line": 1,
+        "module": "next/server"
+      },
+      {
+        "line": 2,
+        "module": "@supabase/supabase-js"
+      },
+      {
+        "line": 3,
+        "module": "@/lib/supabase-admin-env"
+      },
+      {
+        "line": 4,
+        "module": "@/lib/supabase-server"
+      },
+      {
+        "line": 5,
+        "module": "@/services/user-actions"
+      },
+      {
+        "line": 6,
+        "module": "@/types/database.types"
+      },
+      {
+        "line": 7,
+        "module": "@/products/bella-education/parent-portal/services/preschool-parent-portal.service"
+      }
+    ],
+    "calls": [
+      {
+        "line": 48,
+        "call": "supabase\n        .from",
+        "arguments": [
+          "'party_relationships'"
+        ]
+      }
+    ],
+    "constants": []
+  },
+  {
+    "file": "src/app/api/education/portal/[token]/chat/route.ts",
+    "lines": 68,
+    "imports": [
+      {
+        "line": 1,
+        "module": "next/server"
+      },
+      {
+        "line": 2,
+        "module": "@supabase/supabase-js"
+      },
+      {
+        "line": 3,
+        "module": "@/lib/supabase-admin-env"
+      },
+      {
+        "line": 4,
+        "module": "@/lib/supabase-server"
+      },
+      {
+        "line": 5,
+        "module": "@/types/database.types"
+      },
+      {
+        "line": 6,
+        "module": "@/products/bella-education/parent-portal/services/preschool-parent-portal.service"
+      }
+    ],
+    "calls": [],
+    "constants": []
+  },
+  {
+    "file": "src/app/api/education/portal/[token]/copilot/route.ts",
+    "lines": 75,
+    "imports": [
+      {
+        "line": 12,
+        "module": "next/server"
+      },
+      {
+        "line": 13,
+        "module": "@/products/bella-education/parent-portal/services/preschool-parent-portal.service"
+      },
+      {
+        "line": 14,
+        "module": "@/products/bella-education/services/preschool-ai.service"
+      },
+      {
+        "line": 15,
+        "module": "@/products/bella-education/services/preschool-ai.service"
+      }
+    ],
+    "calls": [],
+    "constants": []
+  },
+  {
+    "file": "src/app/api/education/portal/[token]/route.ts",
+    "lines": 63,
+    "imports": [
+      {
+        "line": 1,
+        "module": "next/server"
+      },
+      {
+        "line": 2,
+        "module": "@supabase/supabase-js"
+      },
+      {
+        "line": 3,
+        "module": "@/lib/supabase-admin-env"
+      },
+      {
+        "line": 4,
+        "module": "@/lib/supabase-server"
+      },
+      {
+        "line": 5,
+        "module": "@/types/database.types"
+      },
+      {
+        "line": 6,
+        "module": "@/products/bella-education/parent-portal/services/preschool-parent-portal.service"
+      }
+    ],
+    "calls": [],
+    "constants": []
+  },
+  {
+    "file": "src/app/api/education/work-queue/identity.persistence.ts",
+    "lines": 27,
+    "imports": [
+      {
+        "line": 1,
+        "module": "@supabase/supabase-js"
+      },
+      {
+        "line": 2,
+        "module": "@/types/database.types"
+      },
+      {
+        "line": 3,
+        "module": "@/products/bella-education/work-queue/work-queue.service"
+      },
+      {
+        "line": 4,
+        "module": "@/products/bella-education/work-queue/work-queue.types"
+      }
+    ],
+    "calls": [
+      {
+        "line": 10,
+        "call": "this.db.from",
+        "arguments": [
+          "'students'"
+        ]
+      },
+      {
+        "line": 15,
+        "call": "this.db.from",
+        "arguments": [
+          "'party_parties'"
+        ]
+      }
+    ],
+    "constants": []
+  },
+  {
+    "file": "src/app/api/education/work-queue/incident-queue.persistence.ts",
+    "lines": 32,
+    "imports": [
+      {
+        "line": 1,
+        "module": "@supabase/supabase-js"
+      },
+      {
+        "line": 2,
+        "module": "@/types/database.types"
+      },
+      {
+        "line": 3,
+        "module": "@/products/bella-education/work-queue/work-queue.types"
+      },
+      {
+        "line": 4,
+        "module": "@/products/bella-education/care-wellbeing/incidents/incident-queue.repository"
+      }
+    ],
+    "calls": [
+      {
+        "line": 10,
+        "call": "this.db.from",
+        "arguments": [
+          "'edu_health_incidents'"
+        ]
+      },
+      {
+        "line": 26,
+        "call": "this.db.from",
+        "arguments": [
+          "'edu_health_incidents'"
+        ]
+      }
+    ],
+    "constants": []
+  },
+  {
+    "file": "src/app/api/education/work-queue/request-review.persistence.ts",
+    "lines": 54,
+    "imports": [
+      {
+        "line": 1,
+        "module": "@supabase/supabase-js"
+      },
+      {
+        "line": 2,
+        "module": "@/types/database.types"
+      },
+      {
+        "line": 3,
+        "module": "@/products/bella-education/work-queue/work-queue.types"
+      },
+      {
+        "line": 4,
+        "module": "@/products/bella-education/parent-engagement/repositories/request-review.repository"
+      }
+    ],
+    "calls": [
+      {
+        "line": 13,
+        "call": "this.db.from",
+        "arguments": [
+          "'edu_comm_exceptions'"
+        ]
+      },
+      {
+        "line": 33,
+        "call": "this.db.from",
+        "arguments": [
+          "'edu_comm_exceptions'"
+        ]
+      },
+      {
+        "line": 40,
+        "call": "this.db.from",
+        "arguments": [
+          "'edu_comm_exceptions'"
+        ]
+      },
+      {
+        "line": 49,
+        "call": "this.db.from",
+        "arguments": [
+          "'edu_comm_notices'"
+        ]
+      }
+    ],
+    "constants": []
+  },
+  {
+    "file": "src/app/api/education/work-queue/route.ts",
+    "lines": 97,
+    "imports": [
+      {
+        "line": 1,
+        "module": "next/server"
+      },
+      {
+        "line": 2,
+        "module": "@supabase/supabase-js"
+      },
+      {
+        "line": 3,
+        "module": "@/lib/supabase-server"
+      },
+      {
+        "line": 4,
+        "module": "@/lib/supabase-admin-env"
+      },
+      {
+        "line": 5,
+        "module": "@/services/user-actions"
+      },
+      {
+        "line": 6,
+        "module": "@/types/database.types"
+      },
+      {
+        "line": 7,
+        "module": "@/products/bella-education/security/education-security-guard.service"
+      },
+      {
+        "line": 8,
+        "module": "@/products/bella-education/care-wellbeing/incidents/incident-safety.service"
+      },
+      {
+        "line": 9,
+        "module": "@/products/bella-education/work-queue/work-queue.service"
+      },
+      {
+        "line": 10,
+        "module": "@/products/bella-education/work-queue/work-queue.types"
+      },
+      {
+        "line": 11,
+        "module": "./request-review.persistence"
+      },
+      {
+        "line": 12,
+        "module": "./incident-queue.persistence"
+      },
+      {
+        "line": 13,
+        "module": "./identity.persistence"
+      }
+    ],
+    "calls": [
+      {
+        "line": 55,
+        "call": "new EducationSecurityGuardService().assertCanResolveStaffWorkQueue",
+        "arguments": [
+          "{ userId: user.id, tenantId: user.tenant_id, role: 'PRINCIPAL' }"
+        ]
+      },
+      {
+        "line": 60,
+        "call": "sessionClient.from",
+        "arguments": [
+          "'tenants'"
+        ]
+      }
+    ],
+    "constants": []
+  },
+  {
+    "file": "src/products/bella-education/ai-skills/PreschoolAICapabilityPack.ts",
+    "lines": 454,
+    "imports": [
+      {
+        "line": 15,
+        "module": "@/core/plugins/ai-capability-pack"
+      }
+    ],
+    "calls": [
+      {
+        "line": 336,
+        "call": "new Date().toISOString",
+        "arguments": []
+      },
+      {
+        "line": 393,
+        "call": "new Date().toISOString",
+        "arguments": []
+      }
+    ],
+    "constants": []
+  },
+  {
+    "file": "src/products/bella-education/analytics/domain/preschool-analytics.types.ts",
+    "lines": 159,
+    "imports": [],
+    "calls": [],
+    "constants": []
+  },
+  {
+    "file": "src/products/bella-education/analytics/events/preschool-analytics-events.ts",
+    "lines": 35,
+    "imports": [],
+    "calls": [],
+    "constants": []
+  },
+  {
+    "file": "src/products/bella-education/analytics/repositories/preschool-analytics.repository.ts",
+    "lines": 652,
+    "imports": [
+      {
+        "line": 9,
+        "module": "@supabase/supabase-js"
+      },
+      {
+        "line": 10,
+        "module": "../domain/preschool-analytics.types"
+      }
+    ],
+    "calls": [
+      {
+        "line": 65,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "'edu_enrollments'"
+        ]
+      },
+      {
+        "line": 74,
+        "call": "this.supabase\r\n        .from",
+        "arguments": [
+          "'students'"
+        ]
+      },
+      {
+        "line": 82,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "'edu_courses'"
+        ]
+      },
+      {
+        "line": 95,
+        "call": "this.supabase\r\n        .from",
+        "arguments": [
+          "'preschool_classrooms'"
+        ]
+      },
+      {
+        "line": 110,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "'edu_attendance_daily_state'"
+        ]
+      },
+      {
+        "line": 124,
+        "call": "this.supabase\r\n        .from",
+        "arguments": [
+          "'edu_daily_care_records'"
+        ]
+      },
+      {
+        "line": 138,
+        "call": "this.supabase.from",
+        "arguments": [
+          "'edu_care_health_incidents'"
+        ]
+      },
+      {
+        "line": 139,
+        "call": "this.supabase.from",
+        "arguments": [
+          "'edu_care_medication_logs'"
+        ]
+      },
+      {
+        "line": 151,
+        "call": "this.supabase.from",
+        "arguments": [
+          "'edu_dev_portfolio_versions'"
+        ]
+      },
+      {
+        "line": 152,
+        "call": "this.supabase.from",
+        "arguments": [
+          "'edu_dev_observations'"
+        ]
+      },
+      {
+        "line": 163,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "'edu_comm_deliveries'"
+        ]
+      },
+      {
+        "line": 183,
+        "call": "this.supabase.from",
+        "arguments": [
+          "'edu_fin_invoices'"
+        ]
+      },
+      {
+        "line": 184,
+        "call": "this.supabase.from",
+        "arguments": [
+          "'edu_fin_reconciliation_ledger'"
+        ]
+      },
+      {
+        "line": 196,
+        "call": "this.supabase.from",
+        "arguments": [
+          "'edu_sched_compliance_snapshots'"
+        ]
+      },
+      {
+        "line": 197,
+        "call": "this.supabase.from",
+        "arguments": [
+          "'edu_comm_exceptions'"
+        ]
+      },
+      {
+        "line": 209,
+        "call": "this.supabase.from",
+        "arguments": [
+          "'edu_fac_assets'"
+        ]
+      },
+      {
+        "line": 210,
+        "call": "this.supabase.from",
+        "arguments": [
+          "'edu_fac_zones'"
+        ]
+      },
+      {
+        "line": 211,
+        "call": "this.supabase.from",
+        "arguments": [
+          "'edu_fac_inspection_schedules'"
+        ]
+      },
+      {
+        "line": 212,
+        "call": "this.supabase.from",
+        "arguments": [
+          "'edu_comm_exceptions'"
+        ]
+      },
+      {
+        "line": 225,
+        "call": "this.supabase.from",
+        "arguments": [
+          "'edu_comm_exceptions'"
+        ]
+      },
+      {
+        "line": 231,
+        "call": "this.supabase.from",
+        "arguments": [
+          "'edu_health_incidents'"
+        ]
+      },
+      {
+        "line": 233,
+        "call": "this.supabase.from",
+        "arguments": [
+          "'edu_fin_invoices'"
+        ]
+      },
+      {
+        "line": 235,
+        "call": "this.supabase.from",
+        "arguments": [
+          "'edu_attendance_daily_state'"
+        ]
+      },
+      {
+        "line": 237,
+        "call": "this.supabase.from",
+        "arguments": [
+          "'edu_enrollments'"
+        ]
+      },
+      {
+        "line": 239,
+        "call": "this.supabase.from",
+        "arguments": [
+          "'party_identifiers'"
+        ]
+      },
+      {
+        "line": 277,
+        "call": "this.supabase\r\n          .from('edu_preschool_pickup_handover_events')\r\n          .select('id, student_id, handover_time, handover_type, authorized_person_name, notes, created_at')\r\n          .eq('tenant_id', tenantId)\r\n          .order('created_at', { ascending: false })\r\n          .limit",
+        "arguments": [
+          "10"
+        ]
+      },
+      {
+        "line": 277,
+        "call": "this.supabase\r\n          .from('edu_preschool_pickup_handover_events')\r\n          .select('id, student_id, handover_time, handover_type, authorized_person_name, notes, created_at')\r\n          .eq('tenant_id', tenantId)\r\n          .order",
+        "arguments": [
+          "'created_at'",
+          "{ ascending: false }"
+        ]
+      },
+      {
+        "line": 277,
+        "call": "this.supabase\r\n          .from('edu_preschool_pickup_handover_events')\r\n          .select('id, student_id, handover_time, handover_type, authorized_person_name, notes, created_at')\r\n          .eq",
+        "arguments": [
+          "'tenant_id'",
+          "tenantId"
+        ]
+      },
+      {
+        "line": 277,
+        "call": "this.supabase\r\n          .from",
+        "arguments": [
+          "'edu_preschool_pickup_handover_events'"
+        ]
+      },
+      {
+        "line": 283,
+        "call": "this.supabase\r\n          .from",
+        "arguments": [
+          "'edu_dev_activities'"
+        ]
+      },
+      {
+        "line": 289,
+        "call": "this.supabase\r\n          .from",
+        "arguments": [
+          "'edu_dev_observations'"
+        ]
+      },
+      {
+        "line": 295,
+        "call": "this.supabase\r\n          .from",
+        "arguments": [
+          "'edu_comm_exceptions'"
+        ]
+      },
+      {
+        "line": 301,
+        "call": "this.supabase\r\n          .from",
+        "arguments": [
+          "'edu_comm_notices'"
+        ]
+      },
+      {
+        "line": 307,
+        "call": "this.supabase\r\n          .from",
+        "arguments": [
+          "'edu_fin_invoices'"
+        ]
+      },
+      {
+        "line": 313,
+        "call": "this.supabase\r\n          .from",
+        "arguments": [
+          "'edu_care_health_incidents'"
+        ]
+      },
+      {
+        "line": 319,
+        "call": "this.supabase\r\n          .from",
+        "arguments": [
+          "'party_parties'"
+        ]
+      },
+      {
+        "line": 324,
+        "call": "this.supabase\r\n          .from",
+        "arguments": [
+          "'edu_courses'"
+        ]
+      },
+      {
+        "line": 365,
+        "call": "new Date().toISOString",
+        "arguments": []
+      },
+      {
+        "line": 389,
+        "call": "new Date().toISOString",
+        "arguments": []
+      },
+      {
+        "line": 413,
+        "call": "new Date().toISOString",
+        "arguments": []
+      },
+      {
+        "line": 437,
+        "call": "new Date().toISOString",
+        "arguments": []
+      },
+      {
+        "line": 458,
+        "call": "new Date().toISOString",
+        "arguments": []
+      },
+      {
+        "line": 484,
+        "call": "new Date().toISOString",
+        "arguments": []
+      },
+      {
+        "line": 507,
+        "call": "new Date().toISOString",
+        "arguments": []
+      },
+      {
+        "line": 519,
+        "call": "new Date(b.timestamp).getTime",
+        "arguments": []
+      },
+      {
+        "line": 519,
+        "call": "new Date(a.timestamp).getTime",
+        "arguments": []
+      },
+      {
+        "line": 533,
+        "call": "this.supabase\r\n        .from",
+        "arguments": [
+          "'edu_comm_notices'"
+        ]
+      },
+      {
+        "line": 587,
+        "call": "this.supabase\r\n        .from",
+        "arguments": [
+          "'edu_weekly_menus'"
+        ]
+      }
+    ],
+    "constants": []
+  },
+  {
+    "file": "src/products/bella-education/analytics/services/preschool-analytics.service.ts",
+    "lines": 226,
+    "imports": [
+      {
+        "line": 10,
+        "module": "../repositories/preschool-analytics.repository"
+      },
+      {
+        "line": 11,
+        "module": "../domain/preschool-analytics.types"
+      },
+      {
+        "line": 16,
+        "module": "../events/preschool-analytics-events"
+      }
+    ],
+    "calls": [
+      {
+        "line": 54,
+        "call": "new Date().toISOString().split",
+        "arguments": [
+          "'T'"
+        ]
+      },
+      {
+        "line": 54,
+        "call": "new Date().toISOString",
+        "arguments": []
+      },
+      {
+        "line": 177,
+        "call": "new Date().toISOString",
+        "arguments": []
+      }
+    ],
+    "constants": []
+  },
+  {
+    "file": "src/products/bella-education/care-wellbeing/daily-care/daily-care.contract.ts",
+    "lines": 113,
+    "imports": [],
+    "calls": [],
+    "constants": []
+  },
+  {
+    "file": "src/products/bella-education/care-wellbeing/daily-care/daily-care.service.ts",
+    "lines": 659,
+    "imports": [
+      {
+        "line": 1,
+        "module": "@supabase/supabase-js"
+      },
+      {
+        "line": 2,
+        "module": "./daily-care.contract"
+      },
+      {
+        "line": 13,
+        "module": "../health-profile/allergy-safety.service"
+      }
+    ],
+    "calls": [
+      {
+        "line": 99,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "'edu_courses'"
+        ]
+      },
+      {
+        "line": 116,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "'edu_enrollments'"
+        ]
+      },
+      {
+        "line": 144,
+        "call": "this.assertCourseBelongsToTenant",
+        "arguments": [
+          "tenantId",
+          "courseId"
+        ]
+      },
+      {
+        "line": 146,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "'edu_daily_care_sessions'"
+        ]
+      },
+      {
+        "line": 158,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "'edu_daily_care_sessions'"
+        ]
+      },
+      {
+        "line": 172,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "'edu_daily_care_sessions'"
+        ]
+      },
+      {
+        "line": 193,
+        "call": "this.assertStudentInCourse",
+        "arguments": [
+          "tenantId",
+          "courseId",
+          "studentPartyId"
+        ]
+      },
+      {
+        "line": 195,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "'edu_daily_care_records'"
+        ]
+      },
+      {
+        "line": 216,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "'edu_daily_care_records'"
+        ]
+      },
+      {
+        "line": 234,
+        "call": "this.assertCourseBelongsToTenant",
+        "arguments": [
+          "tenantId",
+          "courseId"
+        ]
+      },
+      {
+        "line": 246,
+        "call": "this.supabase\r\n        .from",
+        "arguments": [
+          "'students'"
+        ]
+      },
+      {
+        "line": 251,
+        "call": "this.supabase\r\n        .from",
+        "arguments": [
+          "'party_parties'"
+        ]
+      },
+      {
+        "line": 257,
+        "call": "this.supabase\r\n          .from",
+        "arguments": [
+          "'edu_daily_care_records'"
+        ]
+      },
+      {
+        "line": 326,
+        "call": "this.supabase\r\n          .from('edu_daily_care_records')\r\n          .update({\r\n            arrival_status: arrival.status,\r\n            arrival_time: arrival.arrivalTime?.toISOString() ?? new Date().toISOString(),\r\n            morning_condition: arrival.condition ?? 'GOOD',\r\n            updated_at: new Date().toISOString(),\r\n          })\r\n          .eq",
+        "arguments": [
+          "'id'",
+          "record.id"
+        ]
+      },
+      {
+        "line": 326,
+        "call": "this.supabase\r\n          .from",
+        "arguments": [
+          "'edu_daily_care_records'"
+        ]
+      },
+      {
+        "line": 330,
+        "call": "new Date().toISOString",
+        "arguments": []
+      },
+      {
+        "line": 332,
+        "call": "new Date().toISOString",
+        "arguments": []
+      },
+      {
+        "line": 386,
+        "call": "new Date().toISOString",
+        "arguments": []
+      },
+      {
+        "line": 389,
+        "call": "this.supabase\r\n          .from('edu_daily_care_records')\r\n          .update({\r\n            meal_records: [...record.mealRecords, newMealEntry],\r\n            updated_at: new Date().toISOString(),\r\n          })\r\n          .eq",
+        "arguments": [
+          "'id'",
+          "record.id"
+        ]
+      },
+      {
+        "line": 389,
+        "call": "this.supabase\r\n          .from",
+        "arguments": [
+          "'edu_daily_care_records'"
+        ]
+      },
+      {
+        "line": 393,
+        "call": "new Date().toISOString",
+        "arguments": []
+      },
+      {
+        "line": 436,
+        "call": "new Date().toISOString",
+        "arguments": []
+      },
+      {
+        "line": 440,
+        "call": "this.supabase\r\n          .from('edu_daily_care_records')\r\n          .update({\r\n            hygiene_records: [...record.hygieneRecords, newHygieneEntry],\r\n            updated_at: new Date().toISOString(),\r\n          })\r\n          .eq",
+        "arguments": [
+          "'id'",
+          "record.id"
+        ]
+      },
+      {
+        "line": 440,
+        "call": "this.supabase\r\n          .from",
+        "arguments": [
+          "'edu_daily_care_records'"
+        ]
+      },
+      {
+        "line": 444,
+        "call": "new Date().toISOString",
+        "arguments": []
+      },
+      {
+        "line": 490,
+        "call": "new Date().toISOString",
+        "arguments": []
+      },
+      {
+        "line": 493,
+        "call": "this.supabase\r\n          .from('edu_daily_care_records')\r\n          .update({\r\n            nap_records: napData,\r\n            updated_at: new Date().toISOString(),\r\n          })\r\n          .eq",
+        "arguments": [
+          "'id'",
+          "record.id"
+        ]
+      },
+      {
+        "line": 493,
+        "call": "this.supabase\r\n          .from",
+        "arguments": [
+          "'edu_daily_care_records'"
+        ]
+      },
+      {
+        "line": 497,
+        "call": "new Date().toISOString",
+        "arguments": []
+      },
+      {
+        "line": 522,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "'edu_daily_care_records'"
+        ]
+      },
+      {
+        "line": 533,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "'edu_daily_parent_digests'"
+        ]
+      },
+      {
+        "line": 554,
+        "call": "new Date().toISOString",
+        "arguments": []
+      },
+      {
+        "line": 558,
+        "call": "this.supabase\r\n        .from('edu_daily_parent_digests')\r\n        .update({\r\n          status: 'GENERATED',\r\n          digest_payload: payload,\r\n          updated_at: new Date().toISOString(),\r\n        })\r\n        .eq('id', existingDigest.id)\r\n        .select('*')\r\n        .single",
+        "arguments": []
+      },
+      {
+        "line": 558,
+        "call": "this.supabase\r\n        .from('edu_daily_parent_digests')\r\n        .update({\r\n          status: 'GENERATED',\r\n          digest_payload: payload,\r\n          updated_at: new Date().toISOString(),\r\n        })\r\n        .eq('id', existingDigest.id)\r\n        .select",
+        "arguments": [
+          "'*'"
+        ]
+      },
+      {
+        "line": 558,
+        "call": "this.supabase\r\n        .from('edu_daily_parent_digests')\r\n        .update({\r\n          status: 'GENERATED',\r\n          digest_payload: payload,\r\n          updated_at: new Date().toISOString(),\r\n        })\r\n        .eq",
+        "arguments": [
+          "'id'",
+          "existingDigest.id"
+        ]
+      },
+      {
+        "line": 558,
+        "call": "this.supabase\r\n        .from",
+        "arguments": [
+          "'edu_daily_parent_digests'"
+        ]
+      },
+      {
+        "line": 563,
+        "call": "new Date().toISOString",
+        "arguments": []
+      },
+      {
+        "line": 582,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "'edu_daily_parent_digests'"
+        ]
+      },
+      {
+        "line": 610,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "'edu_daily_parent_digests'"
+        ]
+      },
+      {
+        "line": 634,
+        "call": "this.supabase\r\n      .from('edu_daily_parent_digests')\r\n      .update({\r\n        status: 'PUBLISHED',\r\n        published_at: new Date().toISOString(),\r\n        updated_at: new Date().toISOString(),\r\n      })\r\n      .eq('id', digestId)\r\n      .select('*')\r\n      .single",
+        "arguments": []
+      },
+      {
+        "line": 634,
+        "call": "this.supabase\r\n      .from('edu_daily_parent_digests')\r\n      .update({\r\n        status: 'PUBLISHED',\r\n        published_at: new Date().toISOString(),\r\n        updated_at: new Date().toISOString(),\r\n      })\r\n      .eq('id', digestId)\r\n      .select",
+        "arguments": [
+          "'*'"
+        ]
+      },
+      {
+        "line": 634,
+        "call": "this.supabase\r\n      .from('edu_daily_parent_digests')\r\n      .update({\r\n        status: 'PUBLISHED',\r\n        published_at: new Date().toISOString(),\r\n        updated_at: new Date().toISOString(),\r\n      })\r\n      .eq",
+        "arguments": [
+          "'id'",
+          "digestId"
+        ]
+      },
+      {
+        "line": 634,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "'edu_daily_parent_digests'"
+        ]
+      },
+      {
+        "line": 638,
+        "call": "new Date().toISOString",
+        "arguments": []
+      },
+      {
+        "line": 639,
+        "call": "new Date().toISOString",
+        "arguments": []
+      }
+    ],
+    "constants": []
+  },
+  {
+    "file": "src/products/bella-education/care-wellbeing/health-profile/allergy-safety.contract.ts",
+    "lines": 28,
+    "imports": [],
+    "calls": [],
+    "constants": []
+  },
+  {
+    "file": "src/products/bella-education/care-wellbeing/health-profile/allergy-safety.service.ts",
+    "lines": 103,
+    "imports": [
+      {
+        "line": 1,
+        "module": "@supabase/supabase-js"
+      },
+      {
+        "line": 2,
+        "module": "./allergy-safety.contract"
+      }
+    ],
+    "calls": [
+      {
+        "line": 30,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "\"edu_child_allergies\""
+        ]
+      },
+      {
+        "line": 49,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "\"edu_meal_item_ingredients\""
+        ]
+      }
+    ],
+    "constants": []
+  },
+  {
+    "file": "src/products/bella-education/care-wellbeing/incidents/incident-queue.repository.ts",
+    "lines": 9,
+    "imports": [
+      {
+        "line": 1,
+        "module": "@/types/database.types"
+      },
+      {
+        "line": 2,
+        "module": "../../work-queue/work-queue.types"
+      }
+    ],
+    "calls": [],
+    "constants": []
+  },
+  {
+    "file": "src/products/bella-education/care-wellbeing/incidents/incident-safety.contract.ts",
+    "lines": 49,
+    "imports": [],
+    "calls": [],
+    "constants": []
+  },
+  {
+    "file": "src/products/bella-education/care-wellbeing/incidents/incident-safety.service.ts",
+    "lines": 121,
+    "imports": [
+      {
+        "line": 1,
+        "module": "@supabase/supabase-js"
+      },
+      {
+        "line": 2,
+        "module": "@/types/database.types"
+      },
+      {
+        "line": 3,
+        "module": "./incident-safety.contract"
+      }
+    ],
+    "calls": [
+      {
+        "line": 20,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "\"edu_health_incidents\""
+        ]
+      },
+      {
+        "line": 48,
+        "call": "this.supabase\r\n      .from(\"edu_health_incidents\")\r\n      .update({\r\n        parent_notified_at: command.notifiedAt.toISOString(),\r\n        updated_at: new Date().toISOString(),\r\n      })\r\n      .eq(\"id\", command.incidentId)\r\n      .eq",
+        "arguments": [
+          "\"tenant_id\"",
+          "command.tenantId"
+        ]
+      },
+      {
+        "line": 48,
+        "call": "this.supabase\r\n      .from(\"edu_health_incidents\")\r\n      .update({\r\n        parent_notified_at: command.notifiedAt.toISOString(),\r\n        updated_at: new Date().toISOString(),\r\n      })\r\n      .eq",
+        "arguments": [
+          "\"id\"",
+          "command.incidentId"
+        ]
+      },
+      {
+        "line": 48,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "\"edu_health_incidents\""
+        ]
+      },
+      {
+        "line": 52,
+        "call": "new Date().toISOString",
+        "arguments": []
+      },
+      {
+        "line": 64,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "\"edu_health_incidents\""
+        ]
+      },
+      {
+        "line": 89,
+        "call": "new Date().toISOString",
+        "arguments": []
+      },
+      {
+        "line": 97,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "\"edu_health_incidents\""
+        ]
+      }
+    ],
+    "constants": []
+  },
+  {
+    "file": "src/products/bella-education/care-wellbeing/medication/medication-safety.contract.ts",
+    "lines": 56,
+    "imports": [],
+    "calls": [],
+    "constants": []
+  },
+  {
+    "file": "src/products/bella-education/care-wellbeing/medication/medication-safety.service.ts",
+    "lines": 90,
+    "imports": [
+      {
+        "line": 1,
+        "module": "@supabase/supabase-js"
+      },
+      {
+        "line": 2,
+        "module": "./medication-safety.contract"
+      }
+    ],
+    "calls": [
+      {
+        "line": 14,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "\"edu_medication_dose_occurrences\""
+        ]
+      },
+      {
+        "line": 58,
+        "call": "this.supabase\r\n      .from(\"edu_medication_logs\")\r\n      .insert({\r\n        tenant_id: command.tenantId,\r\n        dose_occurrence_id: command.doseOccurrenceId,\r\n        administered_at: command.administeredAt.toISOString(),\r\n        dose_given: command.doseGiven,\r\n        actor_id: command.actorId,\r\n        status: \"COMPLETED\",\r\n        notes: command.notes,\r\n      })\r\n      .select(\"id\")\r\n      .single",
+        "arguments": []
+      },
+      {
+        "line": 58,
+        "call": "this.supabase\r\n      .from(\"edu_medication_logs\")\r\n      .insert({\r\n        tenant_id: command.tenantId,\r\n        dose_occurrence_id: command.doseOccurrenceId,\r\n        administered_at: command.administeredAt.toISOString(),\r\n        dose_given: command.doseGiven,\r\n        actor_id: command.actorId,\r\n        status: \"COMPLETED\",\r\n        notes: command.notes,\r\n      })\r\n      .select",
+        "arguments": [
+          "\"id\""
+        ]
+      },
+      {
+        "line": 58,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "\"edu_medication_logs\""
+        ]
+      },
+      {
+        "line": 82,
+        "call": "this.supabase\r\n      .from(\"edu_medication_dose_occurrences\")\r\n      .update({ status: \"COMPLETED\" })\r\n      .eq",
+        "arguments": [
+          "\"id\"",
+          "command.doseOccurrenceId"
+        ]
+      },
+      {
+        "line": 82,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "\"edu_medication_dose_occurrences\""
+        ]
+      }
+    ],
+    "constants": []
+  },
+  {
+    "file": "src/products/bella-education/facilities/bridges/facilities-projection.bridge.ts",
+    "lines": 78,
+    "imports": [
+      {
+        "line": 12,
+        "module": "@/products/bella-education/parent-engagement/services/communication-exception.service"
+      },
+      {
+        "line": 13,
+        "module": "@/products/bella-education/parent-engagement/repositories/parent-communication.repository"
+      },
+      {
+        "line": 14,
+        "module": "@/products/bella-education/parent-engagement/domain/communication.types"
+      }
+    ],
+    "calls": [],
+    "constants": []
+  },
+  {
+    "file": "src/products/bella-education/facilities/domain/facilities.types.ts",
+    "lines": 126,
+    "imports": [],
+    "calls": [],
+    "constants": []
+  },
+  {
+    "file": "src/products/bella-education/facilities/repositories/preschool-facilities.repository.ts",
+    "lines": 585,
+    "imports": [
+      {
+        "line": 6,
+        "module": "@supabase/supabase-js"
+      },
+      {
+        "line": 7,
+        "module": "@/types/database.types"
+      },
+      {
+        "line": 8,
+        "module": "../domain/facilities.types"
+      }
+    ],
+    "calls": [
+      {
+        "line": 74,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "'edu_fac_facilities'"
+        ]
+      },
+      {
+        "line": 93,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "'edu_fac_facilities'"
+        ]
+      },
+      {
+        "line": 105,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "'edu_fac_zones'"
+        ]
+      },
+      {
+        "line": 127,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "'edu_fac_zones'"
+        ]
+      },
+      {
+        "line": 138,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "'edu_fac_zones'"
+        ]
+      },
+      {
+        "line": 158,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "'edu_fac_assets'"
+        ]
+      },
+      {
+        "line": 181,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "'edu_fac_assets'"
+        ]
+      },
+      {
+        "line": 200,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "'edu_fac_assets'"
+        ]
+      },
+      {
+        "line": 217,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "'edu_fac_inspection_schedules'"
+        ]
+      },
+      {
+        "line": 239,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "'edu_fac_inspection_logs'"
+        ]
+      },
+      {
+        "line": 264,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "'edu_fac_inspection_logs'"
+        ]
+      },
+      {
+        "line": 276,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "'edu_fac_out_of_service_logs'"
+        ]
+      },
+      {
+        "line": 297,
+        "call": "this.supabase\r\n      .from('edu_fac_out_of_service_logs')\r\n      .update({\r\n        restored_by_party_id: restoredByPartyId,\r\n        restored_at: new Date().toISOString(),\r\n      })\r\n      .eq('tenant_id', tenantId)\r\n      .eq('id', logId)\r\n      .select('*')\r\n      .single",
+        "arguments": []
+      },
+      {
+        "line": 297,
+        "call": "this.supabase\r\n      .from('edu_fac_out_of_service_logs')\r\n      .update({\r\n        restored_by_party_id: restoredByPartyId,\r\n        restored_at: new Date().toISOString(),\r\n      })\r\n      .eq('tenant_id', tenantId)\r\n      .eq('id', logId)\r\n      .select",
+        "arguments": [
+          "'*'"
+        ]
+      },
+      {
+        "line": 297,
+        "call": "this.supabase\r\n      .from('edu_fac_out_of_service_logs')\r\n      .update({\r\n        restored_by_party_id: restoredByPartyId,\r\n        restored_at: new Date().toISOString(),\r\n      })\r\n      .eq('tenant_id', tenantId)\r\n      .eq",
+        "arguments": [
+          "'id'",
+          "logId"
+        ]
+      },
+      {
+        "line": 297,
+        "call": "this.supabase\r\n      .from('edu_fac_out_of_service_logs')\r\n      .update({\r\n        restored_by_party_id: restoredByPartyId,\r\n        restored_at: new Date().toISOString(),\r\n      })\r\n      .eq",
+        "arguments": [
+          "'tenant_id'",
+          "tenantId"
+        ]
+      },
+      {
+        "line": 297,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "'edu_fac_out_of_service_logs'"
+        ]
+      },
+      {
+        "line": 301,
+        "call": "new Date().toISOString",
+        "arguments": []
+      },
+      {
+        "line": 316,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "'edu_fac_out_of_service_logs'"
+        ]
+      },
+      {
+        "line": 331,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "'edu_fac_facilities'"
+        ]
+      },
+      {
+        "line": 341,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "'edu_fac_zones'"
+        ]
+      },
+      {
+        "line": 355,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "'edu_fac_assets'"
+        ]
+      },
+      {
+        "line": 369,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "'edu_fac_maintenance_jobs'"
+        ]
+      },
+      {
+        "line": 390,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "'edu_fac_maintenance_jobs'"
+        ]
+      },
+      {
+        "line": 419,
+        "call": "new Date().toISOString",
+        "arguments": []
+      },
+      {
+        "line": 431,
+        "call": "new Date().toISOString",
+        "arguments": []
+      },
+      {
+        "line": 443,
+        "call": "new Date().toISOString",
+        "arguments": []
+      },
+      {
+        "line": 448,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "'edu_fac_maintenance_jobs'"
+        ]
+      },
+      {
+        "line": 464,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "'edu_fac_maintenance_jobs'"
+        ]
+      }
+    ],
+    "constants": []
+  },
+  {
+    "file": "src/products/bella-education/facilities/services/facility-zone.service.ts",
+    "lines": 151,
+    "imports": [
+      {
+        "line": 9,
+        "module": "../repositories/preschool-facilities.repository"
+      },
+      {
+        "line": 10,
+        "module": "../domain/facilities.types"
+      }
+    ],
+    "calls": [
+      {
+        "line": 107,
+        "call": "new Date().toISOString",
+        "arguments": []
+      },
+      {
+        "line": 147,
+        "call": "new Date().toISOString",
+        "arguments": []
+      }
+    ],
+    "constants": []
+  },
+  {
+    "file": "src/products/bella-education/facilities/services/maintenance-job.service.ts",
+    "lines": 54,
+    "imports": [
+      {
+        "line": 13,
+        "module": "../repositories/preschool-facilities.repository"
+      },
+      {
+        "line": 14,
+        "module": "../domain/facilities.types"
+      }
+    ],
+    "calls": [
+      {
+        "line": 39,
+        "call": "this.repo.completeMaintenanceJob",
+        "arguments": [
+          "tenantId",
+          "jobId",
+          "completionNotes"
+        ]
+      }
+    ],
+    "constants": []
+  },
+  {
+    "file": "src/products/bella-education/facilities/services/safety-inspection.service.ts",
+    "lines": 133,
+    "imports": [
+      {
+        "line": 9,
+        "module": "../repositories/preschool-facilities.repository"
+      },
+      {
+        "line": 10,
+        "module": "./facility-zone.service"
+      },
+      {
+        "line": 11,
+        "module": "../bridges/facilities-projection.bridge"
+      },
+      {
+        "line": 12,
+        "module": "../domain/facilities.types"
+      }
+    ],
+    "calls": [],
+    "constants": []
+  },
+  {
+    "file": "src/products/bella-education/finance/domain/finance.types.ts",
+    "lines": 182,
+    "imports": [],
+    "calls": [],
+    "constants": []
+  },
+  {
+    "file": "src/products/bella-education/finance/repositories/preschool-finance.repository.ts",
+    "lines": 830,
+    "imports": [
+      {
+        "line": 8,
+        "module": "@supabase/supabase-js"
+      },
+      {
+        "line": 9,
+        "module": "@/types/database.types"
+      },
+      {
+        "line": 10,
+        "module": "../domain/finance.types"
+      }
+    ],
+    "calls": [
+      {
+        "line": 107,
+        "call": "this.client\r\n      .from",
+        "arguments": [
+          "'edu_enrollments'"
+        ]
+      },
+      {
+        "line": 141,
+        "call": "this.client\n      .from",
+        "arguments": [
+          "'party_parties'"
+        ]
+      },
+      {
+        "line": 172,
+        "call": "this.client\r\n      .from",
+        "arguments": [
+          "'edu_fin_fee_structures'"
+        ]
+      },
+      {
+        "line": 196,
+        "call": "this.client\r\n      .from",
+        "arguments": [
+          "'edu_fin_fee_structures'"
+        ]
+      },
+      {
+        "line": 209,
+        "call": "this.client\r\n      .from",
+        "arguments": [
+          "'edu_fin_billing_periods'"
+        ]
+      },
+      {
+        "line": 231,
+        "call": "this.client\r\n      .from",
+        "arguments": [
+          "'edu_fin_billing_periods'"
+        ]
+      },
+      {
+        "line": 242,
+        "call": "this.client\r\n      .from",
+        "arguments": [
+          "'edu_fin_billing_periods'"
+        ]
+      },
+      {
+        "line": 259,
+        "call": "this.untypedClient()\r\n      .from",
+        "arguments": [
+          "'edu_fin_tuition_recognition_policies'"
+        ]
+      },
+      {
+        "line": 284,
+        "call": "this.untypedClient()\r\n      .from",
+        "arguments": [
+          "'edu_fin_tuition_recognition_policies'"
+        ]
+      },
+      {
+        "line": 302,
+        "call": "this.untypedClient()\r\n      .from('edu_fin_tuition_service_period_completions')\r\n      .insert({\r\n        tenant_id: data.tenantId,\r\n        billing_period_id: data.billingPeriodId,\r\n        completed_at: data.completedAt,\r\n        completed_by: data.completedBy,\r\n      })\r\n      .select()\r\n      .single",
+        "arguments": []
+      },
+      {
+        "line": 302,
+        "call": "this.untypedClient()\r\n      .from('edu_fin_tuition_service_period_completions')\r\n      .insert({\r\n        tenant_id: data.tenantId,\r\n        billing_period_id: data.billingPeriodId,\r\n        completed_at: data.completedAt,\r\n        completed_by: data.completedBy,\r\n      })\r\n      .select",
+        "arguments": []
+      },
+      {
+        "line": 302,
+        "call": "this.untypedClient()\r\n      .from",
+        "arguments": [
+          "'edu_fin_tuition_service_period_completions'"
+        ]
+      },
+      {
+        "line": 324,
+        "call": "this.untypedClient()\r\n      .from",
+        "arguments": [
+          "'edu_fin_tuition_service_period_completions'"
+        ]
+      },
+      {
+        "line": 341,
+        "call": "this.untypedClient()\r\n      .from",
+        "arguments": [
+          "'edu_fin_tuition_service_period_completions'"
+        ]
+      },
+      {
+        "line": 355,
+        "call": "this.client\r\n      .from",
+        "arguments": [
+          "'edu_fin_student_discount_profiles'"
+        ]
+      },
+      {
+        "line": 381,
+        "call": "this.client\r\n      .from",
+        "arguments": [
+          "'edu_fin_student_discount_profiles'"
+        ]
+      },
+      {
+        "line": 398,
+        "call": "this.client\r\n      .from",
+        "arguments": [
+          "'edu_fin_invoices'"
+        ]
+      },
+      {
+        "line": 443,
+        "call": "this.client\r\n      .from",
+        "arguments": [
+          "'edu_fin_invoice_line_items'"
+        ]
+      },
+      {
+        "line": 465,
+        "call": "this.client.from",
+        "arguments": [
+          "'edu_fin_invoices'"
+        ]
+      },
+      {
+        "line": 475,
+        "call": "this.client\r\n      .from",
+        "arguments": [
+          "'edu_fin_invoices'"
+        ]
+      },
+      {
+        "line": 484,
+        "call": "this.client\r\n      .from",
+        "arguments": [
+          "'edu_fin_invoice_line_items'"
+        ]
+      },
+      {
+        "line": 511,
+        "call": "new Date().toISOString",
+        "arguments": []
+      },
+      {
+        "line": 522,
+        "call": "this.client\r\n      .from",
+        "arguments": [
+          "'edu_fin_invoices'"
+        ]
+      },
+      {
+        "line": 542,
+        "call": "this.client\r\n      .from",
+        "arguments": [
+          "'edu_fin_payments'"
+        ]
+      },
+      {
+        "line": 570,
+        "call": "this.client\r\n      .from",
+        "arguments": [
+          "'edu_fin_payments'"
+        ]
+      },
+      {
+        "line": 587,
+        "call": "this.client\r\n      .from",
+        "arguments": [
+          "'edu_fin_payments'"
+        ]
+      },
+      {
+        "line": 599,
+        "call": "this.client\r\n      .from",
+        "arguments": [
+          "'edu_fin_reconciliation_ledger'"
+        ]
+      },
+      {
+        "line": 624,
+        "call": "this.client\r\n      .from",
+        "arguments": [
+          "'edu_fin_reconciliation_ledger'"
+        ]
+      },
+      {
+        "line": 636,
+        "call": "this.client\r\n      .from",
+        "arguments": [
+          "'edu_fin_receipts'"
+        ]
+      }
+    ],
+    "constants": []
+  },
+  {
+    "file": "src/products/bella-education/finance/services/invoice-issuance.service.ts",
+    "lines": 104,
+    "imports": [
+      {
+        "line": 11,
+        "module": "crypto"
+      },
+      {
+        "line": 12,
+        "module": "../repositories/preschool-finance.repository"
+      },
+      {
+        "line": 13,
+        "module": "../domain/finance.types"
+      }
+    ],
+    "calls": [
+      {
+        "line": 70,
+        "call": "new Date().toISOString",
+        "arguments": []
+      }
+    ],
+    "constants": []
+  },
+  {
+    "file": "src/products/bella-education/finance/services/overdue-payment-scanner.service.ts",
+    "lines": 141,
+    "imports": [
+      {
+        "line": 13,
+        "module": "@supabase/supabase-js"
+      },
+      {
+        "line": 14,
+        "module": "@/types/database.types"
+      }
+    ],
+    "calls": [
+      {
+        "line": 39,
+        "call": "new Date().toISOString().split",
+        "arguments": [
+          "'T'"
+        ]
+      },
+      {
+        "line": 39,
+        "call": "new Date().toISOString",
+        "arguments": []
+      },
+      {
+        "line": 42,
+        "call": "this.client\n      .from",
+        "arguments": [
+          "'edu_fin_invoices'"
+        ]
+      },
+      {
+        "line": 59,
+        "call": "this.client\n        .from",
+        "arguments": [
+          "'party_relationships'"
+        ]
+      },
+      {
+        "line": 74,
+        "call": "this.client\n        .from",
+        "arguments": [
+          "'edu_comm_notices'"
+        ]
+      },
+      {
+        "line": 86,
+        "call": "this.client\n        .from",
+        "arguments": [
+          "'edu_comm_exceptions'"
+        ]
+      },
+      {
+        "line": 105,
+        "call": "this.client\n        .from",
+        "arguments": [
+          "'edu_comm_exceptions'"
+        ]
+      }
+    ],
+    "constants": []
+  },
+  {
+    "file": "src/products/bella-education/finance/services/payment-reconciliation.service.ts",
+    "lines": 203,
+    "imports": [
+      {
+        "line": 12,
+        "module": "crypto"
+      },
+      {
+        "line": 13,
+        "module": "../repositories/preschool-finance.repository"
+      },
+      {
+        "line": 14,
+        "module": "./invoice-issuance.service"
+      },
+      {
+        "line": 15,
+        "module": "../domain/finance.types"
+      }
+    ],
+    "calls": [
+      {
+        "line": 53,
+        "call": "this.repo.assertStudentPartyBelongsToTenant",
+        "arguments": [
+          "tenantId",
+          "studentPartyId"
+        ]
+      },
+      {
+        "line": 54,
+        "call": "this.repo.assertPayerPartyBelongsToTenant",
+        "arguments": [
+          "tenantId",
+          "payerPartyId"
+        ]
+      },
+      {
+        "line": 74,
+        "call": "new Date().toISOString",
+        "arguments": []
+      },
+      {
+        "line": 136,
+        "call": "new Date().toISOString",
+        "arguments": []
+      },
+      {
+        "line": 167,
+        "call": "new Date().toISOString",
+        "arguments": []
+      }
+    ],
+    "constants": []
+  },
+  {
+    "file": "src/products/bella-education/finance/services/preschool-finance-authorization.service.ts",
+    "lines": 73,
+    "imports": [
+      {
+        "line": 1,
+        "module": "../../security/education-security-guard.service"
+      }
+    ],
+    "calls": [
+      {
+        "line": 59,
+        "call": "guard.assertCanReconcilePayment",
+        "arguments": [
+          "securityContext"
+        ]
+      },
+      {
+        "line": 61,
+        "call": "guard.assertCanResolveStaffWorkQueue",
+        "arguments": [
+          "securityContext"
+        ]
+      },
+      {
+        "line": 63,
+        "call": "guard.assertCanModifyInvoice",
+        "arguments": [
+          "securityContext"
+        ]
+      }
+    ],
+    "constants": []
+  },
+  {
+    "file": "src/products/bella-education/finance/services/tuition-billing.service.ts",
+    "lines": 183,
+    "imports": [
+      {
+        "line": 11,
+        "module": "../repositories/preschool-finance.repository"
+      },
+      {
+        "line": 12,
+        "module": "../domain/finance.types"
+      }
+    ],
+    "calls": [
+      {
+        "line": 51,
+        "call": "this.repo.assertStudentPartyBelongsToTenant",
+        "arguments": [
+          "tenantId",
+          "studentPartyId"
+        ]
+      }
+    ],
+    "constants": []
+  },
+  {
+    "file": "src/products/bella-education/finance/services/tuition-recognition.service.ts",
+    "lines": 151,
+    "imports": [
+      {
+        "line": 1,
+        "module": "@/platform/finance/contracts"
+      },
+      {
+        "line": 5,
+        "module": "../repositories/preschool-finance.repository"
+      },
+      {
+        "line": 6,
+        "module": "../domain/finance.types"
+      }
+    ],
+    "calls": [
+      {
+        "line": 42,
+        "call": "this.assertCanonicalStudent",
+        "arguments": [
+          "invoice"
+        ]
+      },
+      {
+        "line": 48,
+        "call": "this.assertPeriodCompletionPolicy",
+        "arguments": [
+          "policy"
+        ]
+      }
+    ],
+    "constants": []
+  },
+  {
+    "file": "src/products/bella-education/finance/services/tuition-service-period-completion.service.ts",
+    "lines": 65,
+    "imports": [
+      {
+        "line": 1,
+        "module": "../repositories/preschool-finance.repository"
+      },
+      {
+        "line": 2,
+        "module": "../domain/finance.types"
+      }
+    ],
+    "calls": [],
+    "constants": []
+  },
+  {
+    "file": "src/products/bella-education/index.ts",
+    "lines": 12,
+    "imports": [],
+    "calls": [],
+    "constants": []
+  },
+  {
+    "file": "src/products/bella-education/learning-development/activity.service.ts",
+    "lines": 86,
+    "imports": [
+      {
+        "line": 1,
+        "module": "@supabase/supabase-js"
+      }
+    ],
+    "calls": [
+      {
+        "line": 30,
+        "call": "this.supabase\r\n      .from(\"edu_dev_activities\")\r\n      .insert({\r\n        tenant_id: dto.tenantId,\r\n        class_id: dto.classId,\r\n        title: dto.title,\r\n        description: dto.description ?? null,\r\n        planned_date: dto.plannedDate ?? new Date().toISOString().split(\"T\")[0],\r\n        status: \"PLANNED\",\r\n        created_by: dto.createdBy ?? null,\r\n      })\r\n      .select(\"*\")\r\n      .single",
+        "arguments": []
+      },
+      {
+        "line": 30,
+        "call": "this.supabase\r\n      .from(\"edu_dev_activities\")\r\n      .insert({\r\n        tenant_id: dto.tenantId,\r\n        class_id: dto.classId,\r\n        title: dto.title,\r\n        description: dto.description ?? null,\r\n        planned_date: dto.plannedDate ?? new Date().toISOString().split(\"T\")[0],\r\n        status: \"PLANNED\",\r\n        created_by: dto.createdBy ?? null,\r\n      })\r\n      .select",
+        "arguments": [
+          "\"*\""
+        ]
+      },
+      {
+        "line": 30,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "\"edu_dev_activities\""
+        ]
+      },
+      {
+        "line": 37,
+        "call": "new Date().toISOString().split",
+        "arguments": [
+          "\"T\""
+        ]
+      },
+      {
+        "line": 37,
+        "call": "new Date().toISOString",
+        "arguments": []
+      },
+      {
+        "line": 52,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "\"edu_dev_activities\""
+        ]
+      },
+      {
+        "line": 68,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "\"edu_dev_activities\""
+        ]
+      }
+    ],
+    "constants": []
+  },
+  {
+    "file": "src/products/bella-education/learning-development/framework-registry.service.ts",
+    "lines": 199,
+    "imports": [
+      {
+        "line": 1,
+        "module": "@supabase/supabase-js"
+      }
+    ],
+    "calls": [
+      {
+        "line": 85,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "\"edu_dev_frameworks\""
+        ]
+      },
+      {
+        "line": 104,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "\"edu_dev_framework_versions\""
+        ]
+      },
+      {
+        "line": 123,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "\"edu_dev_framework_domains\""
+        ]
+      },
+      {
+        "line": 143,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "\"edu_dev_milestones\""
+        ]
+      },
+      {
+        "line": 167,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "\"edu_dev_framework_versions\""
+        ]
+      },
+      {
+        "line": 186,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "\"edu_dev_milestones\""
+        ]
+      }
+    ],
+    "constants": []
+  },
+  {
+    "file": "src/products/bella-education/learning-development/learning-workspace.service.ts",
+    "lines": 79,
+    "imports": [
+      {
+        "line": 1,
+        "module": "@supabase/supabase-js"
+      }
+    ],
+    "calls": [
+      {
+        "line": 18,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "\"students\""
+        ]
+      },
+      {
+        "line": 35,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "\"edu_dev_observation_students\""
+        ]
+      },
+      {
+        "line": 45,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "\"edu_dev_milestone_progress\""
+        ]
+      },
+      {
+        "line": 53,
+        "call": "new Date().toISOString().split",
+        "arguments": [
+          "\"T\""
+        ]
+      },
+      {
+        "line": 53,
+        "call": "new Date().toISOString",
+        "arguments": []
+      },
+      {
+        "line": 54,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "\"edu_dev_next_steps\""
+        ]
+      },
+      {
+        "line": 62,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "\"edu_dev_portfolio_versions\""
+        ]
+      }
+    ],
+    "constants": []
+  },
+  {
+    "file": "src/products/bella-education/learning-development/milestone-progress.service.ts",
+    "lines": 234,
+    "imports": [
+      {
+        "line": 1,
+        "module": "@supabase/supabase-js"
+      }
+    ],
+    "calls": [
+      {
+        "line": 63,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "\"edu_dev_evidence\""
+        ]
+      },
+      {
+        "line": 86,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "\"edu_dev_milestones\""
+        ]
+      },
+      {
+        "line": 102,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "\"edu_dev_milestone_progress\""
+        ]
+      },
+      {
+        "line": 127,
+        "call": "this.supabase\r\n        .from",
+        "arguments": [
+          "\"edu_dev_progress_evidence_links\""
+        ]
+      },
+      {
+        "line": 147,
+        "call": "this.supabase\r\n      .from(\"edu_dev_milestone_progress\")\r\n      .update({\r\n        is_confirmed: true,\r\n        interpreted_by: teacherId,\r\n        interpreted_at: new Date().toISOString(),\r\n      })\r\n      .eq(\"id\", progressId)\r\n      .eq(\"tenant_id\", tenantId)\r\n      .select(\"*\")\r\n      .single",
+        "arguments": []
+      },
+      {
+        "line": 147,
+        "call": "this.supabase\r\n      .from(\"edu_dev_milestone_progress\")\r\n      .update({\r\n        is_confirmed: true,\r\n        interpreted_by: teacherId,\r\n        interpreted_at: new Date().toISOString(),\r\n      })\r\n      .eq(\"id\", progressId)\r\n      .eq(\"tenant_id\", tenantId)\r\n      .select",
+        "arguments": [
+          "\"*\""
+        ]
+      },
+      {
+        "line": 147,
+        "call": "this.supabase\r\n      .from(\"edu_dev_milestone_progress\")\r\n      .update({\r\n        is_confirmed: true,\r\n        interpreted_by: teacherId,\r\n        interpreted_at: new Date().toISOString(),\r\n      })\r\n      .eq(\"id\", progressId)\r\n      .eq",
+        "arguments": [
+          "\"tenant_id\"",
+          "tenantId"
+        ]
+      },
+      {
+        "line": 147,
+        "call": "this.supabase\r\n      .from(\"edu_dev_milestone_progress\")\r\n      .update({\r\n        is_confirmed: true,\r\n        interpreted_by: teacherId,\r\n        interpreted_at: new Date().toISOString(),\r\n      })\r\n      .eq",
+        "arguments": [
+          "\"id\"",
+          "progressId"
+        ]
+      },
+      {
+        "line": 147,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "\"edu_dev_milestone_progress\""
+        ]
+      },
+      {
+        "line": 152,
+        "call": "new Date().toISOString",
+        "arguments": []
+      },
+      {
+        "line": 172,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "\"edu_dev_milestone_progress\""
+        ]
+      },
+      {
+        "line": 184,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "\"edu_dev_milestone_progress\""
+        ]
+      },
+      {
+        "line": 204,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "\"edu_dev_milestone_progress\""
+        ]
+      },
+      {
+        "line": 219,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "\"edu_dev_milestone_progress\""
+        ]
+      }
+    ],
+    "constants": []
+  },
+  {
+    "file": "src/products/bella-education/learning-development/next-steps.service.ts",
+    "lines": 111,
+    "imports": [
+      {
+        "line": 1,
+        "module": "@supabase/supabase-js"
+      }
+    ],
+    "calls": [
+      {
+        "line": 39,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "\"students\""
+        ]
+      },
+      {
+        "line": 51,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "\"edu_dev_next_steps\""
+        ]
+      },
+      {
+        "line": 76,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "\"edu_dev_next_steps\""
+        ]
+      },
+      {
+        "line": 92,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "\"edu_dev_next_steps\""
+        ]
+      }
+    ],
+    "constants": []
+  },
+  {
+    "file": "src/products/bella-education/learning-development/observation.service.ts",
+    "lines": 350,
+    "imports": [
+      {
+        "line": 1,
+        "module": "@supabase/supabase-js"
+      }
+    ],
+    "calls": [
+      {
+        "line": 99,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "\"edu_dev_observations\""
+        ]
+      },
+      {
+        "line": 123,
+        "call": "this.supabase\r\n          .from",
+        "arguments": [
+          "\"edu_dev_evidence\""
+        ]
+      },
+      {
+        "line": 149,
+        "call": "this.supabase\r\n        .from",
+        "arguments": [
+          "\"students\""
+        ]
+      },
+      {
+        "line": 160,
+        "call": "this.supabase\r\n        .from",
+        "arguments": [
+          "\"edu_dev_observation_students\""
+        ]
+      },
+      {
+        "line": 185,
+        "call": "this.supabase\r\n            .from",
+        "arguments": [
+          "\"edu_dev_observation_milestones\""
+        ]
+      },
+      {
+        "line": 206,
+        "call": "this.supabase\r\n            .from",
+        "arguments": [
+          "\"edu_dev_evidence\""
+        ]
+      },
+      {
+        "line": 248,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "\"edu_dev_observations\""
+        ]
+      },
+      {
+        "line": 264,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "\"edu_dev_observations\""
+        ]
+      },
+      {
+        "line": 275,
+        "call": "this.supabase\r\n      .from(\"edu_dev_observations\")\r\n      .insert({\r\n        tenant_id: tenantId,\r\n        activity_id: orig.activity_id,\r\n        observer_id: orig.observer_id,\r\n        status: \"RECORDED\",\r\n        supersedes_observation_id: originalObservationId,\r\n        observation_text: dto.newObservationText,\r\n        amended_at: new Date().toISOString(),\r\n        amended_by: dto.amendedBy,\r\n        amendment_reason: dto.amendmentReason,\r\n      })\r\n      .select(\"*\")\r\n      .single",
+        "arguments": []
+      },
+      {
+        "line": 275,
+        "call": "this.supabase\r\n      .from(\"edu_dev_observations\")\r\n      .insert({\r\n        tenant_id: tenantId,\r\n        activity_id: orig.activity_id,\r\n        observer_id: orig.observer_id,\r\n        status: \"RECORDED\",\r\n        supersedes_observation_id: originalObservationId,\r\n        observation_text: dto.newObservationText,\r\n        amended_at: new Date().toISOString(),\r\n        amended_by: dto.amendedBy,\r\n        amendment_reason: dto.amendmentReason,\r\n      })\r\n      .select",
+        "arguments": [
+          "\"*\""
+        ]
+      },
+      {
+        "line": 275,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "\"edu_dev_observations\""
+        ]
+      },
+      {
+        "line": 284,
+        "call": "new Date().toISOString",
+        "arguments": []
+      },
+      {
+        "line": 300,
+        "call": "this.supabase\r\n        .from",
+        "arguments": [
+          "\"edu_dev_observation_students\""
+        ]
+      },
+      {
+        "line": 329,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "\"edu_dev_evidence\""
+        ]
+      }
+    ],
+    "constants": []
+  },
+  {
+    "file": "src/products/bella-education/learning-development/portfolio.service.ts",
+    "lines": 369,
+    "imports": [
+      {
+        "line": 1,
+        "module": "@supabase/supabase-js"
+      },
+      {
+        "line": 2,
+        "module": "crypto"
+      }
+    ],
+    "calls": [
+      {
+        "line": 66,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "\"edu_dev_portfolios\""
+        ]
+      },
+      {
+        "line": 77,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "\"edu_dev_portfolios\""
+        ]
+      },
+      {
+        "line": 101,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "\"edu_dev_portfolio_versions\""
+        ]
+      },
+      {
+        "line": 112,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "\"edu_dev_portfolio_versions\""
+        ]
+      },
+      {
+        "line": 138,
+        "call": "this.supabase\r\n          .from",
+        "arguments": [
+          "\"edu_dev_evidence\""
+        ]
+      },
+      {
+        "line": 160,
+        "call": "this.supabase\r\n        .from",
+        "arguments": [
+          "\"edu_dev_portfolio_items\""
+        ]
+      },
+      {
+        "line": 185,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "\"edu_dev_portfolio_versions\""
+        ]
+      },
+      {
+        "line": 206,
+        "call": "this.supabase\r\n          .from",
+        "arguments": [
+          "\"edu_dev_evidence\""
+        ]
+      },
+      {
+        "line": 223,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "\"edu_dev_portfolio_versions\""
+        ]
+      },
+      {
+        "line": 239,
+        "call": "new Date().toISOString",
+        "arguments": []
+      },
+      {
+        "line": 244,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "\"edu_dev_portfolio_publications\""
+        ]
+      },
+      {
+        "line": 274,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "\"edu_dev_portfolios\""
+        ]
+      },
+      {
+        "line": 286,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "\"edu_dev_portfolio_versions\""
+        ]
+      },
+      {
+        "line": 303,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "\"edu_dev_portfolio_publications\""
+        ]
+      },
+      {
+        "line": 319,
+        "call": "this.supabase.from",
+        "arguments": [
+          "\"edu_dev_evidence\""
+        ]
+      },
+      {
+        "line": 329,
+        "call": "this.supabase.from",
+        "arguments": [
+          "\"edu_dev_milestone_progress\""
+        ]
+      },
+      {
+        "line": 339,
+        "call": "this.supabase.from",
+        "arguments": [
+          "\"edu_dev_next_steps\""
+        ]
+      },
+      {
+        "line": 349,
+        "call": "this.supabase.from",
+        "arguments": [
+          "\"edu_dev_observations\""
+        ]
+      }
+    ],
+    "constants": []
+  },
+  {
+    "file": "src/products/bella-education/manifest.ts",
+    "lines": 54,
+    "imports": [
+      {
+        "line": 10,
+        "module": "@/platform/registry/vertical-registry"
+      }
+    ],
+    "calls": [],
+    "constants": []
+  },
+  {
+    "file": "src/products/bella-education/parent-engagement/bridges/care-projection.bridge.ts",
+    "lines": 192,
+    "imports": [
+      {
+        "line": 6,
+        "module": "@supabase/supabase-js"
+      },
+      {
+        "line": 7,
+        "module": "../services/communication-delivery.service"
+      },
+      {
+        "line": 8,
+        "module": "../repositories/parent-communication.repository"
+      },
+      {
+        "line": 9,
+        "module": "../domain/communication.types"
+      }
+    ],
+    "calls": [
+      {
+        "line": 50,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "'edu_comm_notices'"
+        ]
+      },
+      {
+        "line": 61,
+        "call": "this.supabase\r\n        .from",
+        "arguments": [
+          "'edu_comm_deliveries'"
+        ]
+      },
+      {
+        "line": 75,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "'students'"
+        ]
+      },
+      {
+        "line": 129,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "'edu_comm_notices'"
+        ]
+      },
+      {
+        "line": 140,
+        "call": "this.supabase\r\n        .from",
+        "arguments": [
+          "'edu_comm_deliveries'"
+        ]
+      }
+    ],
+    "constants": []
+  },
+  {
+    "file": "src/products/bella-education/parent-engagement/bridges/classroom-projection.bridge.ts",
+    "lines": 89,
+    "imports": [
+      {
+        "line": 6,
+        "module": "@supabase/supabase-js"
+      },
+      {
+        "line": 7,
+        "module": "../services/communication-delivery.service"
+      },
+      {
+        "line": 8,
+        "module": "../domain/communication.types"
+      }
+    ],
+    "calls": [
+      {
+        "line": 32,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "'edu_comm_notices'"
+        ]
+      },
+      {
+        "line": 43,
+        "call": "this.supabase\r\n        .from",
+        "arguments": [
+          "'edu_comm_deliveries'"
+        ]
+      }
+    ],
+    "constants": []
+  },
+  {
+    "file": "src/products/bella-education/parent-engagement/bridges/finance-projection.bridge.ts",
+    "lines": 126,
+    "imports": [
+      {
+        "line": 6,
+        "module": "@supabase/supabase-js"
+      },
+      {
+        "line": 7,
+        "module": "../services/communication-delivery.service"
+      },
+      {
+        "line": 8,
+        "module": "../repositories/parent-communication.repository"
+      },
+      {
+        "line": 9,
+        "module": "../domain/communication.types"
+      }
+    ],
+    "calls": [
+      {
+        "line": 45,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "'edu_comm_notices'"
+        ]
+      },
+      {
+        "line": 56,
+        "call": "this.supabase\r\n        .from",
+        "arguments": [
+          "'edu_comm_deliveries'"
+        ]
+      },
+      {
+        "line": 75,
+        "call": "this.supabase\n      .from",
+        "arguments": [
+          "'party_parties'"
+        ]
+      },
+      {
+        "line": 114,
+        "call": "new Date(dto.dueDate).toISOString",
+        "arguments": []
+      }
+    ],
+    "constants": []
+  },
+  {
+    "file": "src/products/bella-education/parent-engagement/bridges/learning-projection.bridge.ts",
+    "lines": 114,
+    "imports": [
+      {
+        "line": 6,
+        "module": "@supabase/supabase-js"
+      },
+      {
+        "line": 7,
+        "module": "../services/communication-delivery.service"
+      },
+      {
+        "line": 8,
+        "module": "../domain/communication.types"
+      }
+    ],
+    "calls": [
+      {
+        "line": 31,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "'edu_dev_portfolio_versions'"
+        ]
+      },
+      {
+        "line": 50,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "'edu_comm_notices'"
+        ]
+      },
+      {
+        "line": 61,
+        "call": "this.supabase\r\n        .from",
+        "arguments": [
+          "'edu_comm_deliveries'"
+        ]
+      }
+    ],
+    "constants": []
+  },
+  {
+    "file": "src/products/bella-education/parent-engagement/domain/communication.types.ts",
+    "lines": 200,
+    "imports": [],
+    "calls": [],
+    "constants": []
+  },
+  {
+    "file": "src/products/bella-education/parent-engagement/domain/request-review.ts",
+    "lines": 35,
+    "imports": [],
+    "calls": [
+      {
+        "line": 19,
+        "call": "['APPROVED', 'DECLINED', 'HANDLED', 'CLOSED'].includes",
+        "arguments": [
+          "String(value.outcome)"
+        ]
+      }
+    ],
+    "constants": []
+  },
+  {
+    "file": "src/products/bella-education/parent-engagement/index.ts",
+    "lines": 17,
+    "imports": [],
+    "calls": [],
+    "constants": []
+  },
+  {
+    "file": "src/products/bella-education/parent-engagement/repositories/parent-communication.repository.ts",
+    "lines": 523,
+    "imports": [
+      {
+        "line": 6,
+        "module": "@supabase/supabase-js"
+      },
+      {
+        "line": 7,
+        "module": "../domain/communication.types"
+      }
+    ],
+    "calls": [
+      {
+        "line": 39,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "'party_relationships'"
+        ]
+      },
+      {
+        "line": 57,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "'students'"
+        ]
+      },
+      {
+        "line": 77,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "'student_guardians'"
+        ]
+      },
+      {
+        "line": 90,
+        "call": "this.supabase\r\n      .from('edu_comm_threads')\r\n      .insert({\r\n        tenant_id: data.tenant_id,\r\n        student_id: data.student_id,\r\n        guardian_party_id: data.guardian_party_id,\r\n        thread_type: data.thread_type,\r\n        title: data.title,\r\n        status: data.status ?? 'ACTIVE',\r\n        last_activity_at: data.last_activity_at ?? new Date().toISOString(),\r\n        created_by: data.created_by,\r\n      })\r\n      .select('*')\r\n      .single",
+        "arguments": []
+      },
+      {
+        "line": 90,
+        "call": "this.supabase\r\n      .from('edu_comm_threads')\r\n      .insert({\r\n        tenant_id: data.tenant_id,\r\n        student_id: data.student_id,\r\n        guardian_party_id: data.guardian_party_id,\r\n        thread_type: data.thread_type,\r\n        title: data.title,\r\n        status: data.status ?? 'ACTIVE',\r\n        last_activity_at: data.last_activity_at ?? new Date().toISOString(),\r\n        created_by: data.created_by,\r\n      })\r\n      .select",
+        "arguments": [
+          "'*'"
+        ]
+      },
+      {
+        "line": 90,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "'edu_comm_threads'"
+        ]
+      },
+      {
+        "line": 99,
+        "call": "new Date().toISOString",
+        "arguments": []
+      },
+      {
+        "line": 112,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "'edu_comm_threads'"
+        ]
+      },
+      {
+        "line": 127,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "'edu_comm_notices'"
+        ]
+      },
+      {
+        "line": 158,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "'edu_comm_notices'"
+        ]
+      },
+      {
+        "line": 173,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "'edu_comm_deliveries'"
+        ]
+      },
+      {
+        "line": 200,
+        "call": "this.supabase\r\n      .from('edu_comm_deliveries')\r\n      .update({\r\n        ...updates,\r\n        updated_at: new Date().toISOString(),\r\n      })\r\n      .eq('id', deliveryId)\r\n      .eq('tenant_id', tenantId)\r\n      .select('*')\r\n      .single",
+        "arguments": []
+      },
+      {
+        "line": 200,
+        "call": "this.supabase\r\n      .from('edu_comm_deliveries')\r\n      .update({\r\n        ...updates,\r\n        updated_at: new Date().toISOString(),\r\n      })\r\n      .eq('id', deliveryId)\r\n      .eq('tenant_id', tenantId)\r\n      .select",
+        "arguments": [
+          "'*'"
+        ]
+      },
+      {
+        "line": 200,
+        "call": "this.supabase\r\n      .from('edu_comm_deliveries')\r\n      .update({\r\n        ...updates,\r\n        updated_at: new Date().toISOString(),\r\n      })\r\n      .eq('id', deliveryId)\r\n      .eq",
+        "arguments": [
+          "'tenant_id'",
+          "tenantId"
+        ]
+      },
+      {
+        "line": 200,
+        "call": "this.supabase\r\n      .from('edu_comm_deliveries')\r\n      .update({\r\n        ...updates,\r\n        updated_at: new Date().toISOString(),\r\n      })\r\n      .eq",
+        "arguments": [
+          "'id'",
+          "deliveryId"
+        ]
+      },
+      {
+        "line": 200,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "'edu_comm_deliveries'"
+        ]
+      },
+      {
+        "line": 204,
+        "call": "new Date().toISOString",
+        "arguments": []
+      },
+      {
+        "line": 218,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "'edu_comm_deliveries'"
+        ]
+      },
+      {
+        "line": 236,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "'edu_comm_deliveries'"
+        ]
+      },
+      {
+        "line": 251,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "'edu_comm_delivery_attempts'"
+        ]
+      },
+      {
+        "line": 273,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "'edu_comm_delivery_attempts'"
+        ]
+      },
+      {
+        "line": 288,
+        "call": "this.supabase\r\n      .from('edu_comm_acknowledgements')\r\n      .insert({\r\n        tenant_id: data.tenant_id,\r\n        notice_id: data.notice_id,\r\n        guardian_party_id: data.guardian_party_id,\r\n        acknowledgement_type: data.acknowledgement_type ?? 'ACKNOWLEDGED',\r\n        status: data.status ?? 'ACKNOWLEDGED',\r\n        acknowledged_at: data.acknowledged_at ?? new Date().toISOString(),\r\n        signature_note: data.signature_note ?? null,\r\n        ip_hash: data.ip_hash ?? null,\r\n      })\r\n      .select('*')\r\n      .single",
+        "arguments": []
+      },
+      {
+        "line": 288,
+        "call": "this.supabase\r\n      .from('edu_comm_acknowledgements')\r\n      .insert({\r\n        tenant_id: data.tenant_id,\r\n        notice_id: data.notice_id,\r\n        guardian_party_id: data.guardian_party_id,\r\n        acknowledgement_type: data.acknowledgement_type ?? 'ACKNOWLEDGED',\r\n        status: data.status ?? 'ACKNOWLEDGED',\r\n        acknowledged_at: data.acknowledged_at ?? new Date().toISOString(),\r\n        signature_note: data.signature_note ?? null,\r\n        ip_hash: data.ip_hash ?? null,\r\n      })\r\n      .select",
+        "arguments": [
+          "'*'"
+        ]
+      },
+      {
+        "line": 288,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "'edu_comm_acknowledgements'"
+        ]
+      },
+      {
+        "line": 296,
+        "call": "new Date().toISOString",
+        "arguments": []
+      },
+      {
+        "line": 310,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "'edu_comm_acknowledgements'"
+        ]
+      },
+      {
+        "line": 326,
+        "call": "this.supabase\r\n      .from('edu_comm_consent_responses')\r\n      .insert({\r\n        tenant_id: data.tenant_id,\r\n        notice_id: data.notice_id,\r\n        guardian_party_id: data.guardian_party_id,\r\n        consent_scope: data.consent_scope,\r\n        decision: data.decision,\r\n        decision_at: data.decision_at ?? new Date().toISOString(),\r\n        valid_from: data.valid_from ?? null,\r\n        valid_until: data.valid_until ?? null,\r\n        conditions: data.conditions ?? null,\r\n        revoked_at: data.revoked_at ?? null,\r\n        revoked_by: data.revoked_by ?? null,\r\n        revocation_reason: data.revocation_reason ?? null,\r\n      })\r\n      .select('*')\r\n      .single",
+        "arguments": []
+      },
+      {
+        "line": 326,
+        "call": "this.supabase\r\n      .from('edu_comm_consent_responses')\r\n      .insert({\r\n        tenant_id: data.tenant_id,\r\n        notice_id: data.notice_id,\r\n        guardian_party_id: data.guardian_party_id,\r\n        consent_scope: data.consent_scope,\r\n        decision: data.decision,\r\n        decision_at: data.decision_at ?? new Date().toISOString(),\r\n        valid_from: data.valid_from ?? null,\r\n        valid_until: data.valid_until ?? null,\r\n        conditions: data.conditions ?? null,\r\n        revoked_at: data.revoked_at ?? null,\r\n        revoked_by: data.revoked_by ?? null,\r\n        revocation_reason: data.revocation_reason ?? null,\r\n      })\r\n      .select",
+        "arguments": [
+          "'*'"
+        ]
+      },
+      {
+        "line": 326,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "'edu_comm_consent_responses'"
+        ]
+      },
+      {
+        "line": 334,
+        "call": "new Date().toISOString",
+        "arguments": []
+      },
+      {
+        "line": 352,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "'edu_comm_consent_responses'"
+        ]
+      },
+      {
+        "line": 371,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "'edu_comm_consent_responses'"
+        ]
+      },
+      {
+        "line": 387,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "'edu_comm_responses'"
+        ]
+      },
+      {
+        "line": 408,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "'edu_comm_responses'"
+        ]
+      },
+      {
+        "line": 423,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "'edu_comm_exceptions'"
+        ]
+      },
+      {
+        "line": 452,
+        "call": "this.supabase\r\n      .from('edu_comm_exceptions')\r\n      .update({\r\n        ...updates,\r\n        updated_at: new Date().toISOString(),\r\n      })\r\n      .eq('id', exceptionId)\r\n      .eq('tenant_id', tenantId)\r\n      .select('*')\r\n      .single",
+        "arguments": []
+      },
+      {
+        "line": 452,
+        "call": "this.supabase\r\n      .from('edu_comm_exceptions')\r\n      .update({\r\n        ...updates,\r\n        updated_at: new Date().toISOString(),\r\n      })\r\n      .eq('id', exceptionId)\r\n      .eq('tenant_id', tenantId)\r\n      .select",
+        "arguments": [
+          "'*'"
+        ]
+      },
+      {
+        "line": 452,
+        "call": "this.supabase\r\n      .from('edu_comm_exceptions')\r\n      .update({\r\n        ...updates,\r\n        updated_at: new Date().toISOString(),\r\n      })\r\n      .eq('id', exceptionId)\r\n      .eq",
+        "arguments": [
+          "'tenant_id'",
+          "tenantId"
+        ]
+      },
+      {
+        "line": 452,
+        "call": "this.supabase\r\n      .from('edu_comm_exceptions')\r\n      .update({\r\n        ...updates,\r\n        updated_at: new Date().toISOString(),\r\n      })\r\n      .eq",
+        "arguments": [
+          "'id'",
+          "exceptionId"
+        ]
+      },
+      {
+        "line": 452,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "'edu_comm_exceptions'"
+        ]
+      },
+      {
+        "line": 456,
+        "call": "new Date().toISOString",
+        "arguments": []
+      },
+      {
+        "line": 470,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "'edu_comm_exceptions'"
+        ]
+      },
+      {
+        "line": 488,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "'edu_comm_sent_snapshots'"
+        ]
+      },
+      {
+        "line": 509,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "'edu_comm_sent_snapshots'"
+        ]
+      }
+    ],
+    "constants": []
+  },
+  {
+    "file": "src/products/bella-education/parent-engagement/repositories/request-review.repository.ts",
+    "lines": 12,
+    "imports": [
+      {
+        "line": 1,
+        "module": "@/types/database.types"
+      },
+      {
+        "line": 2,
+        "module": "../../work-queue/work-queue.types"
+      }
+    ],
+    "calls": [],
+    "constants": []
+  },
+  {
+    "file": "src/products/bella-education/parent-engagement/services/acknowledgement.service.ts",
+    "lines": 90,
+    "imports": [
+      {
+        "line": 6,
+        "module": "../repositories/parent-communication.repository"
+      },
+      {
+        "line": 7,
+        "module": "../domain/communication.types"
+      }
+    ],
+    "calls": [
+      {
+        "line": 61,
+        "call": "new Date().toISOString",
+        "arguments": []
+      }
+    ],
+    "constants": []
+  },
+  {
+    "file": "src/products/bella-education/parent-engagement/services/communication-delivery.service.ts",
+    "lines": 236,
+    "imports": [
+      {
+        "line": 6,
+        "module": "crypto"
+      },
+      {
+        "line": 7,
+        "module": "../repositories/parent-communication.repository"
+      },
+      {
+        "line": 8,
+        "module": "./sent-snapshot.service"
+      },
+      {
+        "line": 9,
+        "module": "../domain/communication.types"
+      }
+    ],
+    "calls": [
+      {
+        "line": 83,
+        "call": "new Date().toISOString",
+        "arguments": []
+      },
+      {
+        "line": 165,
+        "call": "new Date().toISOString",
+        "arguments": []
+      },
+      {
+        "line": 229,
+        "call": "new Date().toISOString",
+        "arguments": []
+      }
+    ],
+    "constants": []
+  },
+  {
+    "file": "src/products/bella-education/parent-engagement/services/communication-exception.service.ts",
+    "lines": 56,
+    "imports": [
+      {
+        "line": 6,
+        "module": "../repositories/parent-communication.repository"
+      },
+      {
+        "line": 7,
+        "module": "../domain/communication.types"
+      }
+    ],
+    "calls": [
+      {
+        "line": 43,
+        "call": "new Date().toISOString",
+        "arguments": []
+      }
+    ],
+    "constants": []
+  },
+  {
+    "file": "src/products/bella-education/parent-engagement/services/consent.service.ts",
+    "lines": 114,
+    "imports": [
+      {
+        "line": 6,
+        "module": "../repositories/parent-communication.repository"
+      },
+      {
+        "line": 7,
+        "module": "../domain/communication.types"
+      }
+    ],
+    "calls": [
+      {
+        "line": 63,
+        "call": "new Date().toISOString",
+        "arguments": []
+      },
+      {
+        "line": 105,
+        "call": "new Date().toISOString",
+        "arguments": []
+      }
+    ],
+    "constants": []
+  },
+  {
+    "file": "src/products/bella-education/parent-engagement/services/parent-response.service.ts",
+    "lines": 55,
+    "imports": [
+      {
+        "line": 6,
+        "module": "../repositories/parent-communication.repository"
+      },
+      {
+        "line": 7,
+        "module": "../domain/communication.types"
+      }
+    ],
+    "calls": [],
+    "constants": []
+  },
+  {
+    "file": "src/products/bella-education/parent-engagement/services/request-review.service.ts",
+    "lines": 32,
+    "imports": [
+      {
+        "line": 1,
+        "module": "../domain/request-review"
+      },
+      {
+        "line": 2,
+        "module": "../repositories/request-review.repository"
+      },
+      {
+        "line": 3,
+        "module": "../../work-queue/work-queue.types"
+      }
+    ],
+    "calls": [
+      {
+        "line": 19,
+        "call": "new Date().toISOString",
+        "arguments": []
+      }
+    ],
+    "constants": []
+  },
+  {
+    "file": "src/products/bella-education/parent-engagement/services/sent-snapshot.service.ts",
+    "lines": 67,
+    "imports": [
+      {
+        "line": 6,
+        "module": "crypto"
+      },
+      {
+        "line": 7,
+        "module": "../repositories/parent-communication.repository"
+      },
+      {
+        "line": 8,
+        "module": "../domain/communication.types"
+      }
+    ],
+    "calls": [],
+    "constants": []
+  },
+  {
+    "file": "src/products/bella-education/parent-portal/domain/parent-portal.types.ts",
+    "lines": 196,
+    "imports": [],
+    "calls": [],
+    "constants": []
+  },
+  {
+    "file": "src/products/bella-education/parent-portal/repositories/parent-portal.repository.ts",
+    "lines": 432,
+    "imports": [
+      {
+        "line": 12,
+        "module": "@supabase/supabase-js"
+      },
+      {
+        "line": 13,
+        "module": "@/types/database.types"
+      }
+    ],
+    "calls": [
+      {
+        "line": 136,
+        "call": "this.supabase\n      .from",
+        "arguments": [
+          "'party_relationships'"
+        ]
+      },
+      {
+        "line": 147,
+        "call": "this.supabase\n        .from",
+        "arguments": [
+          "'party_relationships'"
+        ]
+      },
+      {
+        "line": 163,
+        "call": "this.supabase\n      .from",
+        "arguments": [
+          "'party_parties'"
+        ]
+      },
+      {
+        "line": 173,
+        "call": "this.supabase\n      .from",
+        "arguments": [
+          "'party_identifiers'"
+        ]
+      },
+      {
+        "line": 183,
+        "call": "this.supabase\n      .from",
+        "arguments": [
+          "'students'"
+        ]
+      },
+      {
+        "line": 193,
+        "call": "this.supabase\n      .from",
+        "arguments": [
+          "'tenants'"
+        ]
+      },
+      {
+        "line": 207,
+        "call": "this.supabase\n      .from",
+        "arguments": [
+          "'edu_enrollments'"
+        ]
+      },
+      {
+        "line": 218,
+        "call": "this.supabase\n      .from",
+        "arguments": [
+          "'edu_courses'"
+        ]
+      },
+      {
+        "line": 228,
+        "call": "this.supabase\n      .from",
+        "arguments": [
+          "'edu_enrollments'"
+        ]
+      },
+      {
+        "line": 242,
+        "call": "this.supabase\n      .from",
+        "arguments": [
+          "'edu_attendance_daily_state'"
+        ]
+      },
+      {
+        "line": 259,
+        "call": "this.supabase\n      .from",
+        "arguments": [
+          "'edu_attendance_daily_state'"
+        ]
+      },
+      {
+        "line": 272,
+        "call": "this.supabase\n      .from",
+        "arguments": [
+          "'edu_daily_care_sessions'"
+        ]
+      },
+      {
+        "line": 285,
+        "call": "this.supabase\n      .from",
+        "arguments": [
+          "'edu_daily_care_records'"
+        ]
+      },
+      {
+        "line": 303,
+        "call": "this.supabase\n      .from",
+        "arguments": [
+          "'edu_preschool_pickup_handover_events'"
+        ]
+      },
+      {
+        "line": 320,
+        "call": "this.supabase\n      .from",
+        "arguments": [
+          "'edu_weekly_menus'"
+        ]
+      },
+      {
+        "line": 336,
+        "call": "this.supabase\n      .from",
+        "arguments": [
+          "'edu_invoices'"
+        ]
+      },
+      {
+        "line": 354,
+        "call": "this.supabase\n      .from",
+        "arguments": [
+          "'edu_comm_threads'"
+        ]
+      },
+      {
+        "line": 369,
+        "call": "this.supabase\n      .from('edu_comm_threads')\n      .insert({\n        tenant_id: tenantId,\n        student_id: studentPartyId,\n        guardian_party_id: guardianPartyId,\n        created_by: guardianPartyId,\n        title: 'Trao đổi Phụ huynh & Nhà trường',\n        thread_type: 'GENERAL',\n        status: 'ACTIVE',\n        last_activity_at: new Date().toISOString(),\n      })\n      .select('id')\n      .single",
+        "arguments": []
+      },
+      {
+        "line": 369,
+        "call": "this.supabase\n      .from('edu_comm_threads')\n      .insert({\n        tenant_id: tenantId,\n        student_id: studentPartyId,\n        guardian_party_id: guardianPartyId,\n        created_by: guardianPartyId,\n        title: 'Trao đổi Phụ huynh & Nhà trường',\n        thread_type: 'GENERAL',\n        status: 'ACTIVE',\n        last_activity_at: new Date().toISOString(),\n      })\n      .select",
+        "arguments": [
+          "'id'"
+        ]
+      },
+      {
+        "line": 369,
+        "call": "this.supabase\n      .from",
+        "arguments": [
+          "'edu_comm_threads'"
+        ]
+      },
+      {
+        "line": 379,
+        "call": "new Date().toISOString",
+        "arguments": []
+      },
+      {
+        "line": 391,
+        "call": "this.supabase\n      .from",
+        "arguments": [
+          "'edu_comm_responses'"
+        ]
+      },
+      {
+        "line": 408,
+        "call": "this.supabase\n      .from",
+        "arguments": [
+          "'edu_comm_responses'"
+        ]
+      },
+      {
+        "line": 425,
+        "call": "this.supabase\n      .from('edu_comm_threads')\n      .update({ last_activity_at: new Date().toISOString() })\n      .eq('id', threadId)\n      .eq",
+        "arguments": [
+          "'tenant_id'",
+          "tenantId"
+        ]
+      },
+      {
+        "line": 425,
+        "call": "this.supabase\n      .from('edu_comm_threads')\n      .update({ last_activity_at: new Date().toISOString() })\n      .eq",
+        "arguments": [
+          "'id'",
+          "threadId"
+        ]
+      },
+      {
+        "line": 425,
+        "call": "this.supabase\n      .from",
+        "arguments": [
+          "'edu_comm_threads'"
+        ]
+      },
+      {
+        "line": 427,
+        "call": "new Date().toISOString",
+        "arguments": []
+      }
+    ],
+    "constants": []
+  },
+  {
+    "file": "src/products/bella-education/parent-portal/services/preschool-parent-portal.service.ts",
+    "lines": 955,
+    "imports": [
+      {
+        "line": 17,
+        "module": "node:crypto"
+      },
+      {
+        "line": 18,
+        "module": "@supabase/supabase-js"
+      },
+      {
+        "line": 19,
+        "module": "@/types/database.types"
+      },
+      {
+        "line": 20,
+        "module": "../repositories/parent-portal.repository"
+      },
+      {
+        "line": 21,
+        "module": "../domain/parent-portal.types"
+      }
+    ],
+    "calls": [
+      {
+        "line": 215,
+        "call": "new Intl.DateTimeFormat('en-CA', {\n    timeZone: 'Asia/Ho_Chi_Minh',\n    year: 'numeric',\n    month: '2-digit',\n    day: '2-digit',\n  }).format",
+        "arguments": [
+          "new Date()"
+        ]
+      },
+      {
+        "line": 247,
+        "call": "Buffer.from",
+        "arguments": [
+          "payloadJson",
+          "'utf8'"
+        ]
+      },
+      {
+        "line": 276,
+        "call": "Buffer.from",
+        "arguments": [
+          "providedSignature",
+          "'utf8'"
+        ]
+      },
+      {
+        "line": 277,
+        "call": "Buffer.from",
+        "arguments": [
+          "expectedSignature",
+          "'utf8'"
+        ]
+      },
+      {
+        "line": 283,
+        "call": "Buffer.from",
+        "arguments": [
+          "payloadBase64",
+          "'base64url'"
+        ]
+      },
+      {
+        "line": 307,
+        "call": "this.assertGuardianRelationship",
+        "arguments": [
+          "claims.tenantId",
+          "claims.guardianPartyId",
+          "claims.studentPartyId"
+        ]
+      },
+      {
+        "line": 372,
+        "call": "new Date().toISOString",
+        "arguments": []
+      },
+      {
+        "line": 387,
+        "call": "this.assertGuardianRelationship",
+        "arguments": [
+          "claims.tenantId",
+          "claims.guardianPartyId",
+          "claims.studentPartyId"
+        ]
+      },
+      {
+        "line": 599,
+        "call": "new Date().toISOString",
+        "arguments": []
+      },
+      {
+        "line": 623,
+        "call": "new Date().toISOString",
+        "arguments": []
+      },
+      {
+        "line": 825,
+        "call": "new Date(Date.now() - 3600000).toISOString",
+        "arguments": []
+      },
+      {
+        "line": 951,
+        "call": "new Date().toISOString",
+        "arguments": []
+      }
+    ],
+    "constants": [
+      {
+        "line": 140,
+        "name": "DEFAULT_TIMETABLE",
+        "value": "[\n  {\n    id: 'tt-1',\n    timeSlot: '07:15 - 08:00',\n    activityTitle: 'Đón trẻ & Điểm danh buổi sáng',\n    description: 'Cô giáo đón bé tạ"
+      }
+    ]
+  },
+  {
+    "file": "src/products/bella-education/scheduling/bridges/scheduling-projection.bridge.ts",
+    "lines": 75,
+    "imports": [
+      {
+        "line": 13,
+        "module": "../../parent-engagement/repositories/parent-communication.repository"
+      },
+      {
+        "line": 14,
+        "module": "../../parent-engagement/services/communication-exception.service"
+      },
+      {
+        "line": 15,
+        "module": "../domain/scheduling.types"
+      },
+      {
+        "line": 16,
+        "module": "../../parent-engagement/domain/communication.types"
+      }
+    ],
+    "calls": [],
+    "constants": []
+  },
+  {
+    "file": "src/products/bella-education/scheduling/domain/scheduling.types.ts",
+    "lines": 106,
+    "imports": [],
+    "calls": [],
+    "constants": []
+  },
+  {
+    "file": "src/products/bella-education/scheduling/repositories/preschool-scheduling.repository.ts",
+    "lines": 527,
+    "imports": [
+      {
+        "line": 7,
+        "module": "@supabase/supabase-js"
+      },
+      {
+        "line": 8,
+        "module": "@/types/database.types"
+      },
+      {
+        "line": 9,
+        "module": "../domain/scheduling.types"
+      }
+    ],
+    "calls": [
+      {
+        "line": 47,
+        "call": "this.client\r\n      .from",
+        "arguments": [
+          "'edu_sched_shift_templates'"
+        ]
+      },
+      {
+        "line": 75,
+        "call": "this.client\r\n      .from",
+        "arguments": [
+          "'edu_sched_shift_templates'"
+        ]
+      },
+      {
+        "line": 101,
+        "call": "this.client\r\n      .from",
+        "arguments": [
+          "'edu_sched_ratio_policies'"
+        ]
+      },
+      {
+        "line": 136,
+        "call": "this.client\r\n      .from",
+        "arguments": [
+          "'edu_sched_ratio_policies'"
+        ]
+      },
+      {
+        "line": 164,
+        "call": "this.client\r\n      .from",
+        "arguments": [
+          "'edu_sched_staff_availability'"
+        ]
+      },
+      {
+        "line": 192,
+        "call": "this.client\r\n      .from",
+        "arguments": [
+          "'edu_sched_staff_availability'"
+        ]
+      },
+      {
+        "line": 212,
+        "call": "this.client\r\n      .from",
+        "arguments": [
+          "'edu_sched_shift_assignments'"
+        ]
+      },
+      {
+        "line": 235,
+        "call": "this.client\r\n      .from",
+        "arguments": [
+          "'edu_sched_shift_assignments'"
+        ]
+      },
+      {
+        "line": 250,
+        "call": "this.client\r\n      .from",
+        "arguments": [
+          "'edu_sched_shift_assignments'"
+        ]
+      },
+      {
+        "line": 275,
+        "call": "this.client\r\n      .from('edu_sched_shift_assignments')\r\n      .update({ status: 'REPLACED', updated_at: new Date().toISOString() })\r\n      .eq('tenant_id', tenantId)\r\n      .eq",
+        "arguments": [
+          "'id'",
+          "existingAssignmentId"
+        ]
+      },
+      {
+        "line": 275,
+        "call": "this.client\r\n      .from('edu_sched_shift_assignments')\r\n      .update({ status: 'REPLACED', updated_at: new Date().toISOString() })\r\n      .eq",
+        "arguments": [
+          "'tenant_id'",
+          "tenantId"
+        ]
+      },
+      {
+        "line": 275,
+        "call": "this.client\r\n      .from",
+        "arguments": [
+          "'edu_sched_shift_assignments'"
+        ]
+      },
+      {
+        "line": 277,
+        "call": "new Date().toISOString",
+        "arguments": []
+      },
+      {
+        "line": 282,
+        "call": "this.client\r\n      .from",
+        "arguments": [
+          "'edu_sched_shift_assignments'"
+        ]
+      },
+      {
+        "line": 310,
+        "call": "this.client\r\n      .from('edu_sched_shift_assignments')\r\n      .update({ status, updated_at: new Date().toISOString() })\r\n      .eq('tenant_id', tenantId)\r\n      .eq('id', assignmentId)\r\n      .select()\r\n      .single",
+        "arguments": []
+      },
+      {
+        "line": 310,
+        "call": "this.client\r\n      .from('edu_sched_shift_assignments')\r\n      .update({ status, updated_at: new Date().toISOString() })\r\n      .eq('tenant_id', tenantId)\r\n      .eq('id', assignmentId)\r\n      .select",
+        "arguments": []
+      },
+      {
+        "line": 310,
+        "call": "this.client\r\n      .from('edu_sched_shift_assignments')\r\n      .update({ status, updated_at: new Date().toISOString() })\r\n      .eq('tenant_id', tenantId)\r\n      .eq",
+        "arguments": [
+          "'id'",
+          "assignmentId"
+        ]
+      },
+      {
+        "line": 310,
+        "call": "this.client\r\n      .from('edu_sched_shift_assignments')\r\n      .update({ status, updated_at: new Date().toISOString() })\r\n      .eq",
+        "arguments": [
+          "'tenant_id'",
+          "tenantId"
+        ]
+      },
+      {
+        "line": 310,
+        "call": "this.client\r\n      .from",
+        "arguments": [
+          "'edu_sched_shift_assignments'"
+        ]
+      },
+      {
+        "line": 312,
+        "call": "new Date().toISOString",
+        "arguments": []
+      },
+      {
+        "line": 334,
+        "call": "this.client\r\n      .from",
+        "arguments": [
+          "'edu_sched_leave_requests'"
+        ]
+      },
+      {
+        "line": 360,
+        "call": "this.client\r\n      .from('edu_sched_leave_requests')\r\n      .update({\r\n        status: 'APPROVED',\r\n        approved_by_party_id: input.approvedByPartyId,\r\n        approved_at: new Date().toISOString(),\r\n      })\r\n      .eq('tenant_id', input.tenantId)\r\n      .eq('id', input.leaveRequestId)\r\n      .select()\r\n      .single",
+        "arguments": []
+      },
+      {
+        "line": 360,
+        "call": "this.client\r\n      .from('edu_sched_leave_requests')\r\n      .update({\r\n        status: 'APPROVED',\r\n        approved_by_party_id: input.approvedByPartyId,\r\n        approved_at: new Date().toISOString(),\r\n      })\r\n      .eq('tenant_id', input.tenantId)\r\n      .eq('id', input.leaveRequestId)\r\n      .select",
+        "arguments": []
+      },
+      {
+        "line": 360,
+        "call": "this.client\r\n      .from('edu_sched_leave_requests')\r\n      .update({\r\n        status: 'APPROVED',\r\n        approved_by_party_id: input.approvedByPartyId,\r\n        approved_at: new Date().toISOString(),\r\n      })\r\n      .eq('tenant_id', input.tenantId)\r\n      .eq",
+        "arguments": [
+          "'id'",
+          "input.leaveRequestId"
+        ]
+      },
+      {
+        "line": 360,
+        "call": "this.client\r\n      .from('edu_sched_leave_requests')\r\n      .update({\r\n        status: 'APPROVED',\r\n        approved_by_party_id: input.approvedByPartyId,\r\n        approved_at: new Date().toISOString(),\r\n      })\r\n      .eq",
+        "arguments": [
+          "'tenant_id'",
+          "input.tenantId"
+        ]
+      },
+      {
+        "line": 360,
+        "call": "this.client\r\n      .from",
+        "arguments": [
+          "'edu_sched_leave_requests'"
+        ]
+      },
+      {
+        "line": 365,
+        "call": "new Date().toISOString",
+        "arguments": []
+      },
+      {
+        "line": 385,
+        "call": "this.client\r\n      .from",
+        "arguments": [
+          "'edu_sched_shift_assignments'"
+        ]
+      },
+      {
+        "line": 404,
+        "call": "this.client\r\n      .from",
+        "arguments": [
+          "'edu_sched_substitutions'"
+        ]
+      },
+      {
+        "line": 438,
+        "call": "this.client\r\n      .from",
+        "arguments": [
+          "'edu_sched_compliance_snapshots'"
+        ]
+      },
+      {
+        "line": 482,
+        "call": "this.client\r\n      .from",
+        "arguments": [
+          "'edu_sched_compliance_snapshots'"
+        ]
+      }
+    ],
+    "constants": []
+  },
+  {
+    "file": "src/products/bella-education/scheduling/services/leave-substitution.service.ts",
+    "lines": 161,
+    "imports": [
+      {
+        "line": 8,
+        "module": "../repositories/preschool-scheduling.repository"
+      },
+      {
+        "line": 9,
+        "module": "./staff-roster.service"
+      },
+      {
+        "line": 10,
+        "module": "./ratio-compliance.service"
+      },
+      {
+        "line": 11,
+        "module": "../bridges/scheduling-projection.bridge"
+      },
+      {
+        "line": 12,
+        "module": "../domain/scheduling.types"
+      }
+    ],
+    "calls": [
+      {
+        "line": 66,
+        "call": "this.repo.approveLeaveRequest",
+        "arguments": [
+          "input"
+        ]
+      },
+      {
+        "line": 86,
+        "call": "this.complianceService.calculateAndRecordCompliance",
+        "arguments": [
+          "{\r\n          tenantId: input.tenantId,\r\n          classroomId: assign.classroomId,\r\n          snapshotDate: assign.assignmentDate,\r\n          shiftTemplateId: assign.shiftTemplateI"
+        ]
+      },
+      {
+        "line": 145,
+        "call": "this.complianceService.calculateAndRecordCompliance",
+        "arguments": [
+          "{\r\n      tenantId: input.tenantId,\r\n      classroomId: original.classroomId,\r\n      snapshotDate: original.assignmentDate,\r\n      shiftTemplateId: original.shiftTemplateId,\r\n      "
+        ]
+      }
+    ],
+    "constants": []
+  },
+  {
+    "file": "src/products/bella-education/scheduling/services/ratio-compliance.service.ts",
+    "lines": 93,
+    "imports": [
+      {
+        "line": 8,
+        "module": "../repositories/preschool-scheduling.repository"
+      },
+      {
+        "line": 9,
+        "module": "../domain/scheduling.types"
+      }
+    ],
+    "calls": [],
+    "constants": []
+  },
+  {
+    "file": "src/products/bella-education/scheduling/services/staff-roster.service.ts",
+    "lines": 90,
+    "imports": [
+      {
+        "line": 8,
+        "module": "../repositories/preschool-scheduling.repository"
+      },
+      {
+        "line": 9,
+        "module": "../domain/scheduling.types"
+      }
+    ],
+    "calls": [],
+    "constants": []
+  },
+  {
+    "file": "src/products/bella-education/security/education-security-guard.service.ts",
+    "lines": 122,
+    "imports": [],
+    "calls": [],
+    "constants": []
+  },
+  {
+    "file": "src/products/bella-education/services/assessment.service.ts",
+    "lines": 70,
+    "imports": [
+      {
+        "line": 10,
+        "module": "../../../platform/education/contracts/assessment.contract"
+      },
+      {
+        "line": 11,
+        "module": "../manifest"
+      }
+    ],
+    "calls": [
+      {
+        "line": 43,
+        "call": "this.assertCapability",
+        "arguments": [
+          "'grade_reporting_command'"
+        ]
+      },
+      {
+        "line": 44,
+        "call": "this.assertWorkflow",
+        "arguments": [
+          "'student_academic_lifecycle'"
+        ]
+      },
+      {
+        "line": 49,
+        "call": "this.assessmentContract.recordScore",
+        "arguments": [
+          "{\r\n      tenantId: dto.tenantId,\r\n      enrollmentId: dto.enrollmentId,\r\n      scoreType: dto.scoreType,\r\n      grade: dto.grade,\r\n      weight: dto.weight,\r\n      occurredAt: dto."
+        ]
+      },
+      {
+        "line": 63,
+        "call": "this.assertCapability",
+        "arguments": [
+          "'grade_reporting_command'"
+        ]
+      },
+      {
+        "line": 67,
+        "call": "this.assessmentContract.calculateGpa",
+        "arguments": [
+          "tenantId",
+          "enrollmentId"
+        ]
+      }
+    ],
+    "constants": []
+  },
+  {
+    "file": "src/products/bella-education/services/attendance.service.ts",
+    "lines": 109,
+    "imports": [
+      {
+        "line": 10,
+        "module": "../../../platform/education/contracts/attendance.contract"
+      },
+      {
+        "line": 16,
+        "module": "../manifest"
+      }
+    ],
+    "calls": [
+      {
+        "line": 52,
+        "call": "this.assertCapability",
+        "arguments": [
+          "'attendance_checkpoint_command'"
+        ]
+      },
+      {
+        "line": 53,
+        "call": "this.assertWorkflow",
+        "arguments": [
+          "'student_academic_lifecycle'"
+        ]
+      },
+      {
+        "line": 58,
+        "call": "this.attendanceContract.recordAttendance",
+        "arguments": [
+          "{\r\n      tenantId: dto.tenantId,\r\n      enrollmentId: dto.enrollmentId,\r\n      status: dto.status,\r\n      rollCallTime: dto.rollCallTime\r\n    }"
+        ]
+      },
+      {
+        "line": 70,
+        "call": "this.assertCapability",
+        "arguments": [
+          "'attendance_checkpoint_command'"
+        ]
+      },
+      {
+        "line": 74,
+        "call": "this.attendanceContract.getAttendanceHistory",
+        "arguments": [
+          "tenantId",
+          "enrollmentId"
+        ]
+      },
+      {
+        "line": 81,
+        "call": "this.assertCapability",
+        "arguments": [
+          "'attendance_checkpoint_command'"
+        ]
+      },
+      {
+        "line": 82,
+        "call": "this.assertWorkflow",
+        "arguments": [
+          "'student_academic_lifecycle'"
+        ]
+      },
+      {
+        "line": 87,
+        "call": "this.attendanceContract.setDailyAttendance",
+        "arguments": [
+          "{\r\n      tenantId: dto.tenantId,\r\n      enrollmentId: dto.enrollmentId,\r\n      status: dto.status,\r\n      rollCallTime: dto.rollCallTime,\r\n    }"
+        ]
+      },
+      {
+        "line": 99,
+        "call": "this.assertCapability",
+        "arguments": [
+          "'attendance_checkpoint_command'"
+        ]
+      },
+      {
+        "line": 100,
+        "call": "this.assertWorkflow",
+        "arguments": [
+          "'student_academic_lifecycle'"
+        ]
+      },
+      {
+        "line": 106,
+        "call": "this.attendanceContract.getCourseDailyAttendance",
+        "arguments": [
+          "dto"
+        ]
+      }
+    ],
+    "constants": []
+  },
+  {
+    "file": "src/products/bella-education/services/course-catalog.service.ts",
+    "lines": 33,
+    "imports": [
+      {
+        "line": 10,
+        "module": "../../../platform/education/contracts/course.contract"
+      },
+      {
+        "line": 11,
+        "module": "../manifest"
+      }
+    ],
+    "calls": [
+      {
+        "line": 27,
+        "call": "this.assertCapability",
+        "arguments": [
+          "'course_catalog_query'"
+        ]
+      },
+      {
+        "line": 30,
+        "call": "this.courseContract.listCourses",
+        "arguments": [
+          "tenantId"
+        ]
+      }
+    ],
+    "constants": []
+  },
+  {
+    "file": "src/products/bella-education/services/enrollment.service.ts",
+    "lines": 85,
+    "imports": [
+      {
+        "line": 11,
+        "module": "../../../platform/education/contracts/enrollment.contract"
+      },
+      {
+        "line": 12,
+        "module": "../../../platform/accounting/contracts/accounting.contract"
+      },
+      {
+        "line": 13,
+        "module": "../manifest"
+      }
+    ],
+    "calls": [
+      {
+        "line": 48,
+        "call": "this.assertCapability",
+        "arguments": [
+          "'student_enrollment_command'"
+        ]
+      },
+      {
+        "line": 49,
+        "call": "this.assertWorkflow",
+        "arguments": [
+          "'student_academic_lifecycle'"
+        ]
+      },
+      {
+        "line": 56,
+        "call": "this.enrollmentContract.enrollStudent",
+        "arguments": [
+          "{\r\n      tenantId: dto.tenantId,\r\n      studentPartyId: dto.studentPartyId,\r\n      courseId: dto.courseId,\r\n      requestId: dto.requestId,\r\n      overrideJustification: dto.overri"
+        ]
+      },
+      {
+        "line": 66,
+        "call": "this.accountingContract.postJournalEntry",
+        "arguments": [
+          "{\r\n        tenantId: dto.tenantId,\r\n        description: `Thu học phí môn học cho đăng ký ID ${enrollment.id}`,\r\n        referenceType: 'enrollment',\r\n        referenceId: enrollme"
+        ]
+      }
+    ],
+    "constants": []
+  },
+  {
+    "file": "src/products/bella-education/services/preschool-ai.service.ts",
+    "lines": 377,
+    "imports": [
+      {
+        "line": 15,
+        "module": "../ai-skills/PreschoolAICapabilityPack"
+      }
+    ],
+    "calls": [
+      {
+        "line": 147,
+        "call": "new Date().toISOString",
+        "arguments": []
+      },
+      {
+        "line": 304,
+        "call": "fetch",
+        "arguments": [
+          "`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`",
+          "{\r\n              method: 'POST',\r\n              headers: { 'Content-Type': 'application/json' },\r\n              body: JSON.stringify({\r\n                contents: [{ parts: [{ text:"
+        ]
+      }
+    ],
+    "constants": []
+  },
+  {
+    "file": "src/products/bella-education/services/preschool-chain.service.ts",
+    "lines": 301,
+    "imports": [
+      {
+        "line": 1,
+        "module": "@supabase/supabase-js"
+      },
+      {
+        "line": 2,
+        "module": "@/types/database.types"
+      },
+      {
+        "line": 3,
+        "module": "@/platform/org-unit"
+      }
+    ],
+    "calls": [
+      {
+        "line": 45,
+        "call": "getDefaultOrgUnitContract",
+        "arguments": []
+      },
+      {
+        "line": 78,
+        "call": "this.assertRequired",
+        "arguments": [
+          "input"
+        ]
+      },
+      {
+        "line": 81,
+        "call": "this.assertUserCanAccessBranch",
+        "arguments": [
+          "input.tenantId",
+          "input.actorUserId",
+          "branch.id"
+        ]
+      },
+      {
+        "line": 82,
+        "call": "this.assertNoConflictingCourseBranch",
+        "arguments": [
+          "input.tenantId",
+          "input.courseId",
+          "branch.id"
+        ]
+      },
+      {
+        "line": 89,
+        "call": "new Date().toISOString",
+        "arguments": []
+      },
+      {
+        "line": 91,
+        "call": "this.client\r\n      .from",
+        "arguments": [
+          "'preschool_chain_course_branch_assignments'"
+        ]
+      },
+      {
+        "line": 106,
+        "call": "new Date().toISOString",
+        "arguments": []
+      },
+      {
+        "line": 108,
+        "call": "this.client\r\n      .from",
+        "arguments": [
+          "'preschool_chain_enrollment_branch_assignments'"
+        ]
+      },
+      {
+        "line": 132,
+        "call": "this.client\r\n      .from",
+        "arguments": [
+          "'preschool_chain_enrollment_branch_assignments'"
+        ]
+      },
+      {
+        "line": 176,
+        "call": "this.client\r\n      .from",
+        "arguments": [
+          "'preschool_chain_course_branch_assignments'"
+        ]
+      },
+      {
+        "line": 212,
+        "call": "this.client\r\n      .from",
+        "arguments": [
+          "'users'"
+        ]
+      },
+      {
+        "line": 228,
+        "call": "this.client\r\n      .from",
+        "arguments": [
+          "'people_directory'"
+        ]
+      },
+      {
+        "line": 244,
+        "call": "this.client\r\n      .from",
+        "arguments": [
+          "'org_relationships'"
+        ]
+      },
+      {
+        "line": 257,
+        "call": "new Date().toISOString().slice",
+        "arguments": [
+          "0",
+          "10"
+        ]
+      },
+      {
+        "line": 257,
+        "call": "new Date().toISOString",
+        "arguments": []
+      }
+    ],
+    "constants": []
+  },
+  {
+    "file": "src/products/bella-education/services/preschool-guardian-authorization.service.ts",
+    "lines": 343,
+    "imports": [
+      {
+        "line": 1,
+        "module": "@supabase/supabase-js"
+      },
+      {
+        "line": 2,
+        "module": "@/types/database.types"
+      }
+    ],
+    "calls": [
+      {
+        "line": 88,
+        "call": "[...new Set(studentPartyIds)].filter",
+        "arguments": [
+          "Boolean"
+        ]
+      },
+      {
+        "line": 95,
+        "call": "this.supabase\r\n      .from('edu_preschool_pickup_authorizations')\r\n      .select('id, tenant_id, student_party_id, guardian_party_id, status')\r\n      .eq('tenant_id', tenantId)\r\n      .eq('status', AUTHORIZED_STATUS)\r\n      .in",
+        "arguments": [
+          "'student_party_id'",
+          "uniqueStudentPartyIds"
+        ]
+      },
+      {
+        "line": 95,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "'edu_preschool_pickup_authorizations'"
+        ]
+      },
+      {
+        "line": 153,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "'party_parties'"
+        ]
+      },
+      {
+        "line": 170,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "'party_identifiers'"
+        ]
+      },
+      {
+        "line": 193,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "'party_identifiers'"
+        ]
+      },
+      {
+        "line": 213,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "'party_relationships'"
+        ]
+      },
+      {
+        "line": 229,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "'party_relationships'"
+        ]
+      },
+      {
+        "line": 254,
+        "call": "this.supabase\r\n      .from('edu_preschool_pickup_authorizations')\r\n      .insert({\r\n        tenant_id: input.tenantId,\r\n        student_party_id: input.studentPartyId,\r\n        guardian_party_id: input.guardianPartyId,\r\n        status: AUTHORIZED_STATUS,\r\n      })\r\n      .select('*')\r\n      .single",
+        "arguments": []
+      },
+      {
+        "line": 254,
+        "call": "this.supabase\r\n      .from('edu_preschool_pickup_authorizations')\r\n      .insert({\r\n        tenant_id: input.tenantId,\r\n        student_party_id: input.studentPartyId,\r\n        guardian_party_id: input.guardianPartyId,\r\n        status: AUTHORIZED_STATUS,\r\n      })\r\n      .select",
+        "arguments": [
+          "'*'"
+        ]
+      },
+      {
+        "line": 254,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "'edu_preschool_pickup_authorizations'"
+        ]
+      },
+      {
+        "line": 286,
+        "call": "this.supabase\r\n      .from('edu_preschool_pickup_authorizations')\r\n      .select('*')\r\n      .eq('tenant_id', input.tenantId)\r\n      .eq('student_party_id', input.studentPartyId)\r\n      .eq('guardian_party_id', input.guardianPartyId)\r\n      .eq('status', AUTHORIZED_STATUS)\r\n      .maybeSingle",
+        "arguments": []
+      },
+      {
+        "line": 286,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "'edu_preschool_pickup_authorizations'"
+        ]
+      },
+      {
+        "line": 306,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "'party_parties'"
+        ]
+      },
+      {
+        "line": 323,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "'party_identifiers'"
+        ]
+      }
+    ],
+    "constants": []
+  },
+  {
+    "file": "src/products/bella-education/services/preschool-parent-daily-experience.service.ts",
+    "lines": 444,
+    "imports": [
+      {
+        "line": 1,
+        "module": "@supabase/supabase-js"
+      },
+      {
+        "line": 2,
+        "module": "./preschool-guardian-authorization.service"
+      },
+      {
+        "line": 3,
+        "module": "./preschool-safe-pickup-handover.service"
+      },
+      {
+        "line": 4,
+        "module": "./preschool-safe-pickup-handover.service"
+      }
+    ],
+    "calls": [
+      {
+        "line": 199,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "'party_identifiers'"
+        ]
+      },
+      {
+        "line": 222,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "'party_relationships'"
+        ]
+      },
+      {
+        "line": 250,
+        "call": "this.supabase\r\n        .from",
+        "arguments": [
+          "'party_parties'"
+        ]
+      },
+      {
+        "line": 255,
+        "call": "this.supabase\r\n        .from",
+        "arguments": [
+          "'students'"
+        ]
+      },
+      {
+        "line": 260,
+        "call": "this.supabase\r\n        .from",
+        "arguments": [
+          "'edu_enrollments'"
+        ]
+      },
+      {
+        "line": 292,
+        "call": "new PreschoolSafePickupHandoverService(this.supabase).getLatestHandovers",
+        "arguments": [
+          "input.tenantId",
+          "input.studentPartyIds"
+        ]
+      },
+      {
+        "line": 335,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "'edu_courses'"
+        ]
+      },
+      {
+        "line": 355,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "'edu_attendance_daily_state'"
+        ]
+      },
+      {
+        "line": 378,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "'edu_daily_care_sessions'"
+        ]
+      },
+      {
+        "line": 392,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "'edu_daily_care_records'"
+        ]
+      }
+    ],
+    "constants": []
+  },
+  {
+    "file": "src/products/bella-education/services/preschool-safe-pickup-handover.service.ts",
+    "lines": 223,
+    "imports": [
+      {
+        "line": 1,
+        "module": "@supabase/supabase-js"
+      }
+    ],
+    "calls": [
+      {
+        "line": 63,
+        "call": "this.assertPartyBelongsToTenant",
+        "arguments": [
+          "input.tenantId",
+          "input.studentPartyId",
+          "'Student'"
+        ]
+      },
+      {
+        "line": 64,
+        "call": "this.assertPartyBelongsToTenant",
+        "arguments": [
+          "input.tenantId",
+          "input.guardianPartyId",
+          "'Guardian'"
+        ]
+      },
+      {
+        "line": 65,
+        "call": "this.assertActiveAuthorization",
+        "arguments": [
+          "input"
+        ]
+      },
+      {
+        "line": 79,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "'edu_preschool_pickup_handover_events'"
+        ]
+      },
+      {
+        "line": 105,
+        "call": "[...new Set(studentPartyIds)].filter",
+        "arguments": [
+          "Boolean"
+        ]
+      },
+      {
+        "line": 112,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "'edu_preschool_pickup_handover_events'"
+        ]
+      },
+      {
+        "line": 141,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "'party_parties'"
+        ]
+      },
+      {
+        "line": 157,
+        "call": "this.supabase\r\n      .from('edu_preschool_pickup_authorizations')\r\n      .select('id')\r\n      .eq('id', input.pickupAuthorizationId)\r\n      .eq('tenant_id', input.tenantId)\r\n      .eq('student_party_id', input.studentPartyId)\r\n      .eq('guardian_party_id', input.guardianPartyId)\r\n      .eq('status', AUTHORIZED_STATUS)\r\n      .maybeSingle",
+        "arguments": []
+      },
+      {
+        "line": 157,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "'edu_preschool_pickup_authorizations'"
+        ]
+      },
+      {
+        "line": 177,
+        "call": "this.supabase\r\n      .from",
+        "arguments": [
+          "'edu_preschool_pickup_handover_events'"
+        ]
+      },
+      {
+        "line": 196,
+        "call": "new Intl.DateTimeFormat('en-CA', {\r\n      timeZone: 'Asia/Ho_Chi_Minh',\r\n      year: 'numeric',\r\n      month: '2-digit',\r\n      day: '2-digit',\r\n    }).format",
+        "arguments": [
+          "new Date()"
+        ]
+      }
+    ],
+    "constants": []
+  },
+  {
+    "file": "src/products/bella-education/work-queue/work-queue.service.ts",
+    "lines": 81,
+    "imports": [
+      {
+        "line": 1,
+        "module": "../parent-engagement/repositories/request-review.repository"
+      },
+      {
+        "line": 2,
+        "module": "../parent-engagement/services/request-review.service"
+      },
+      {
+        "line": 3,
+        "module": "../parent-engagement/domain/request-review"
+      },
+      {
+        "line": 4,
+        "module": "../care-wellbeing/incidents/incident-queue.repository"
+      },
+      {
+        "line": 5,
+        "module": "../care-wellbeing/incidents/incident-safety.contract"
+      },
+      {
+        "line": 6,
+        "module": "./work-queue.types"
+      }
+    ],
+    "calls": [
+      {
+        "line": 56,
+        "call": "new RequestReviewService(this.requests).review",
+        "arguments": [
+          "tenantId",
+          "actorId",
+          "command"
+        ]
+      },
+      {
+        "line": 67,
+        "call": "new Date().toISOString",
+        "arguments": []
+      }
+    ],
+    "constants": []
+  },
+  {
+    "file": "src/products/bella-education/work-queue/work-queue.types.ts",
+    "lines": 42,
+    "imports": [
+      {
+        "line": 1,
+        "module": "../parent-engagement/domain/request-review"
+      }
+    ],
+    "calls": [],
+    "constants": []
+  }
+]

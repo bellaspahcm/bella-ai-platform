@@ -1,0 +1,42 @@
+Build Verification	Build application	﻿2026-10-20T21:07:08.2743014Z ##[group]Run npm run build
+Build Verification	Build application	2026-10-20T21:07:08.2743291Z ^[[36;1mnpm run build^[[0m
+Build Verification	Build application	2026-10-20T21:07:08.2794649Z shell: /usr/bin/bash -e {0}
+Build Verification	Build application	2026-10-20T21:07:08.2794807Z env:
+Build Verification	Build application	2026-10-20T21:07:08.2794927Z   NEXT_PUBLIC_SUPABASE_URL: 
+Build Verification	Build application	2026-10-20T21:07:08.2795073Z   NEXT_PUBLIC_SUPABASE_ANON_KEY: 
+Build Verification	Build application	2026-10-20T21:07:08.2795221Z ##[endgroup]
+Build Verification	Build application	2026-10-20T21:07:08.3560092Z 
+Build Verification	Build application	2026-10-20T21:07:08.3560440Z > bella-spa-erp@0.1.0 build
+Build Verification	Build application	2026-10-20T21:07:08.3560680Z > next build --webpack
+Build Verification	Build application	2026-10-20T21:07:08.3560770Z 
+Build Verification	Build application	2026-10-20T21:07:08.5793109Z ▲ Next.js 16.3.8 (webpack)
+Build Verification	Build application	2026-10-20T21:07:08.7906478Z ✓ Running next.config.ts took 211ms
+Build Verification	Build application	2026-10-20T21:07:08.7907459Z ⚠ No build cache found. Please configure build caching for faster rebuilds. Read more: https://nextjs.org/docs/messages/no-cache
+Build Verification	Build application	2026-10-20T21:07:08.8742921Z Attention: Next.js now collects completely anonymous telemetry regarding usage.
+Build Verification	Build application	2026-10-20T21:07:08.8743711Z This information is used to shape Next.js' roadmap and prioritize features.
+Build Verification	Build application	2026-10-20T21:07:08.8744997Z You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+Build Verification	Build application	2026-10-20T21:07:08.8745609Z https://nextjs.org/telemetry
+Build Verification	Build application	2026-10-20T21:07:08.8745812Z 
+Build Verification	Build application	2026-10-20T21:07:08.8873746Z - Experiments (use with caution):
+Build Verification	Build application	2026-10-20T21:07:08.8874532Z   · clientTraceMetadata
+Build Verification	Build application	2026-10-20T21:07:08.8874801Z   · optimizePackageImports
+Build Verification	Build application	2026-10-20T21:07:08.8878215Z 
+Build Verification	Build application	2026-10-20T21:07:08.9643152Z   Creating an optimized production build ...
+Build Verification	Build application	2026-10-20T21:07:09.7150895Z [@sentry/nextjs] It seems like you don't have a global error handler set up. It is recommended that you add a 'global-error.js' file with Sentry instrumentation so that React rendering errors are reported to Sentry. Read more: https://docs.sentry.io/platforms/javascript/guides/nextjs/manual-setup/#react-render-errors-in-app-router (you can suppress this warning by setting SENTRY_SUPPRESS_GLOBAL_ERROR_HANDLER_FILE_WARNING=1 as environment variable)
+Build Verification	Build application	2026-10-20T21:08:15.3855843Z Failed to compile.
+Build Verification	Build application	2026-10-20T21:08:15.3856310Z 
+Build Verification	Build application	2026-10-20T21:08:15.3856549Z src/app/layout.tsx
+Build Verification	Build application	2026-10-20T21:08:15.3856826Z An error occurred in `next/font`.
+Build Verification	Build application	2026-10-20T21:08:15.3857043Z 
+Build Verification	Build application	2026-10-20T21:08:15.3857290Z TypeError: Cannot read properties of null (reading '1')
+Build Verification	Build application	2026-10-20T21:08:15.3858048Z     at /home/runner/work/bella-ai-platform/bella-ai-platform/node_modules/next/dist/compiled/@next/font/dist/google/loader.js:122:78
+Build Verification	Build application	2026-10-20T21:08:15.3858822Z     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Build Verification	Build application	2026-10-20T21:08:15.3859211Z     at async Promise.all (index 6)
+Build Verification	Build application	2026-10-20T21:08:15.3861770Z     at async nextFontGoogleFontLoader (/home/runner/work/bella-ai-platform/bella-ai-platform/node_modules/next/dist/compiled/@next/font/dist/google/loader.js:104:33)
+Build Verification	Build application	2026-10-20T21:08:15.3862641Z     at async Span.traceAsyncFn (/home/runner/work/bella-ai-platform/bella-ai-platform/node_modules/next/dist/trace/trace.js:164:20)
+Build Verification	Build application	2026-10-20T21:08:15.3863444Z     at async /home/runner/work/bella-ai-platform/bella-ai-platform/node_modules/next/dist/build/webpack/loaders/next-font-loader/index.js:90:87
+Build Verification	Build application	2026-10-20T21:08:15.3864279Z     at async Span.traceAsyncFn (/home/runner/work/bella-ai-platform/bella-ai-platform/node_modules/next/dist/trace/trace.js:164:20)
+Build Verification	Build application	2026-10-20T21:08:15.3864670Z 
+Build Verification	Build application	2026-10-20T21:08:15.5572795Z 
+Build Verification	Build application	2026-10-20T21:08:15.5575548Z > Build failed because of webpack errors
+Build Verification	Build application	2026-10-20T21:08:15.9546410Z ##[error]Process completed with exit code 1.

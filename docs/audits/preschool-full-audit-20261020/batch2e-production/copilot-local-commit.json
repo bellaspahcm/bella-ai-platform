@@ -1,0 +1,43 @@
+{
+  "group": "copilot",
+  "startedAt": "2026-10-20T22:33:34.679Z",
+  "finishedAt": "2026-10-20T22:33:35.786Z",
+  "command": [
+    "git",
+    "commit",
+    "-m",
+    "fix(preschool): bind Copilot permissions to verified identity"
+  ],
+  "exitCode": 0,
+  "root": "C:\\Users\\DELL\\.codex\\worktrees\\preschool-courses-auth-20261021\\BELLA SPA ERP",
+  "branch": "codex/preschool-api-identity-20261021",
+  "files": [
+    "docs/audits/preschool-full-audit-20261020/batch2e-ai-auth/ARCHITECTURE_GATE_RESULT.md",
+    "docs/audits/preschool-full-audit-20261020/batch2e-ai-auth/FINAL_REPORT.md",
+    "docs/audits/preschool-full-audit-20261020/batch2e-ai-auth/SPEC.md",
+    "docs/audits/preschool-full-audit-20261020/batch2e-ai-auth/education-command.json",
+    "docs/audits/preschool-full-audit-20261020/batch2e-ai-auth/healthcare-command.json",
+    "docs/audits/preschool-full-audit-20261020/batch2e-ai-auth/jest-command.json",
+    "docs/audits/preschool-full-audit-20261020/batch2e-ai-auth/jest-results.json",
+    "docs/audits/preschool-full-audit-20261020/batch2e-ai-auth/lint-command.json",
+    "docs/audits/preschool-full-audit-20261020/batch2e-ai-auth/local-http-assessment.json",
+    "docs/audits/preschool-full-audit-20261020/batch2e-ai-auth/local-http.json",
+    "docs/audits/preschool-full-audit-20261020/batch2e-ai-auth/review-results.json",
+    "docs/audits/preschool-full-audit-20261020/batch2e-ai-auth/run-check.cjs",
+    "docs/audits/preschool-full-audit-20261020/batch2e-ai-auth/secrets-command.json",
+    "docs/audits/preschool-full-audit-20261020/batch2e-ai-auth/source-manifest.json",
+    "docs/audits/preschool-full-audit-20261020/batch2e-ai-auth/typecheck-command.json",
+    "docs/audits/preschool-full-audit-20261020/batch2e-ai-auth/verification.json",
+    "docs/products/bella-preschool/AUTHORIZATION_CONTRACT.md",
+    "src/app/api/education/ai/copilot/__tests__/access.test.ts",
+    "src/app/api/education/ai/copilot/route.ts",
+    "src/products/bella-education/__tests__/preschool-admin-ai-copilot.test.ts",
+    "src/products/bella-education/__tests__/preschool-ai-copilot.test.ts"
+  ],
+  "commit": "88314bacf7c85ff73d02b00f0c57570c47135d3c",
+  "push": "NOT_RUN",
+  "merge": "NOT_RUN",
+  "productionRollout": "NOT_RUN",
+  "fullRegression": "FAIL_ENVIRONMENT",
+  "authenticatedRls": "NOT_PROVEN"
+}

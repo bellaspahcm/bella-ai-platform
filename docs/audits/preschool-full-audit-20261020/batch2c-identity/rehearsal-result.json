@@ -1,0 +1,117 @@
+{
+  "checkedAt": "2026-10-20T20:43:30.309Z",
+  "result": "PASS",
+  "testsPassed": 20,
+  "tests": [
+    {
+      "name": "exactUsersSchemaConstraintsIndexesPoliciesTriggerHelperAndAclBaseline",
+      "result": "PASS"
+    },
+    {
+      "name": "prestateSelfRoleTenantMutationActuallyReproducedThenRolledBack",
+      "result": "PASS"
+    },
+    {
+      "name": "failureBeforeAnyChange",
+      "result": "PASS"
+    },
+    {
+      "name": "failureAfterUsersRevoke",
+      "result": "PASS"
+    },
+    {
+      "name": "failureAfterAllRevokes",
+      "result": "PASS"
+    },
+    {
+      "name": "executionLogicWithOnlyOutsideFingerprintAdaptedCommits",
+      "result": "PASS"
+    },
+    {
+      "name": "allTableAndColumnMutationEffectivePrivilegesDenied",
+      "result": "PASS"
+    },
+    {
+      "name": "actualDmlTruncateReferencesTriggerAndColumnWritesDenied",
+      "result": "PASS"
+    },
+    {
+      "name": "all30NonmaintenanceRolesDeniedBothStoredWriterCalls",
+      "result": "PASS"
+    },
+    {
+      "name": "authenticatedOwnProfileSelectRetainedAndAuthorityUnchanged",
+      "result": "PASS"
+    },
+    {
+      "name": "maintenanceSyntheticPersistReadClaimsAuditAndRollback",
+      "result": "PASS"
+    },
+    {
+      "name": "exactScopedAclRecoveryThenRollback",
+      "result": "PASS"
+    },
+    {
+      "name": "executionRejectsLateWritableViewAndRollsBack",
+      "result": "PASS"
+    },
+    {
+      "name": "durableMigrationReplayPoststateTwiceAndOriginalPrestate",
+      "result": "PASS"
+    },
+    {
+      "name": "migrationRejectsUnknownDirectTableGrantee",
+      "result": "PASS"
+    },
+    {
+      "name": "migrationRejectsUnknownWriterGrantee",
+      "result": "PASS"
+    },
+    {
+      "name": "migrationRejectsClientColumnUpdate",
+      "result": "PASS"
+    },
+    {
+      "name": "migrationRejectsInheritedServiceWriter",
+      "result": "PASS"
+    },
+    {
+      "name": "migrationRejectsOtherRoleInheritedServiceWriter",
+      "result": "PASS"
+    },
+    {
+      "name": "migrationRejectsMissingWriter",
+      "result": "PASS"
+    }
+  ],
+  "actualDeniedTableColumnStatements": 16,
+  "actualDeniedRpcCalls": 60,
+  "rolesWithPreservedWriterExecute": [
+    "bella_migration_executor",
+    "postgres",
+    "service_role",
+    "supabase_admin"
+  ],
+  "schema": {
+    "columns": 16,
+    "constraints": 5,
+    "indexes": 7,
+    "policies": 5,
+    "triggers": 3,
+    "helperDefinitions": 10,
+    "writerDefinitions": 2
+  },
+  "artifactSha256": "629ea0f719081a9f8195ccecb8d683d9f0c37b53dc96467168e31270ff3f4f1b",
+  "productionBusinessRowsCopied": 0,
+  "productionChanges": 0,
+  "scaffold": "Exact scoped users schema and functions. Minimal synthetic tenants/Auth/audit prerequisites; no full onboarding business workflow tested.",
+  "productionArtifactSha256": "629ea0f719081a9f8195ccecb8d683d9f0c37b53dc96467168e31270ff3f4f1b",
+  "executedFixtureArtifactSha256": "07cf78d291e89c18e005055715a5320d0c0ac45ce5f3b75e767b372410b9f778",
+  "mutationSha256": "b4e0f5b618e07619a0bf71767df9bfe4476f144493531fdf95f91da2f9c408cd",
+  "fixtureAdaptation": "Only the frozen outside catalog JSON literal differs. Exact users core pre/post catalog, SQL logic, revokes, guard and recovery behavior are unchanged; production catalog not cloned.",
+  "command": {
+    "command": "node rehearse.cjs preschool_users_acl_rehearsal_v3",
+    "exitCode": 0,
+    "observedFrom": "exec_command actual native process result"
+  }
+}

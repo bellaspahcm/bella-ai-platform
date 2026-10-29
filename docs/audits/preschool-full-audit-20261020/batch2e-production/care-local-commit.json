@@ -1,0 +1,39 @@
+{
+  "group": "care",
+  "startedAt": "2026-10-20T22:41:01.098Z",
+  "finishedAt": "2026-10-20T22:41:02.151Z",
+  "command": [
+    "git",
+    "commit",
+    "-m",
+    "fix(preschool): authorize Care targets before bulk writes"
+  ],
+  "exitCode": 0,
+  "root": "C:\\Users\\DELL\\.codex\\worktrees\\preschool-care-authorization-20261021\\BELLA SPA ERP",
+  "branch": "codex/preschool-care-auth-20261021",
+  "files": [
+    "docs/audits/preschool-full-audit-20261020/batch2g-care-auth/ARCHITECTURE_GATE_RESULT.md",
+    "docs/audits/preschool-full-audit-20261020/batch2g-care-auth/FINAL_REPORT.md",
+    "docs/audits/preschool-full-audit-20261020/batch2g-care-auth/SPEC.md",
+    "docs/audits/preschool-full-audit-20261020/batch2g-care-auth/jest-command.json",
+    "docs/audits/preschool-full-audit-20261020/batch2g-care-auth/jest-results.json",
+    "docs/audits/preschool-full-audit-20261020/batch2g-care-auth/lint-command.json",
+    "docs/audits/preschool-full-audit-20261020/batch2g-care-auth/local-http.json",
+    "docs/audits/preschool-full-audit-20261020/batch2g-care-auth/review-results.json",
+    "docs/audits/preschool-full-audit-20261020/batch2g-care-auth/run-check.cjs",
+    "docs/audits/preschool-full-audit-20261020/batch2g-care-auth/secrets-command.json",
+    "docs/audits/preschool-full-audit-20261020/batch2g-care-auth/source-manifest.json",
+    "docs/audits/preschool-full-audit-20261020/batch2g-care-auth/typecheck-command.json",
+    "docs/audits/preschool-full-audit-20261020/batch2g-care-auth/verification.json",
+    "docs/products/bella-preschool/AUTHORIZATION_CONTRACT.md",
+    "src/app/api/education/care/bulk/__tests__/access.test.ts",
+    "src/app/api/education/care/bulk/request-context.ts",
+    "src/app/api/education/care/bulk/route.ts"
+  ],
+  "commit": "7012ca82f6cc216fc8c4d549f284e2a0f4594a99",
+  "push": "NOT_RUN",
+  "merge": "NOT_RUN",
+  "productionRollout": "NOT_RUN",
+  "fullRegression": "FAIL_ENVIRONMENT",
+  "authenticatedRls": "NOT_PROVEN"
+}

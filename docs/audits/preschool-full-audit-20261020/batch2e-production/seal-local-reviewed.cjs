@@ -1,0 +1,33 @@
+const fs = require('node:fs'), path = require('node:path'), cp = require('node:child_process'), crypto = require('node:crypto');
+const group = process.argv[2];
+if (!['copilot', 'medication', 'care', 'portal', 'announcements'].includes(group)) throw Error('Unknown bounded group');
+const summary = JSON.parse(fs.readFileSync(path.join(__dirname, 'source-groups-summary.json')));
+const item = summary.groups.find(entry => entry.group === group);
+if (item.independentReview !== 'COMPLETED_SOURCE_ONLY') throw Error('Independent review is incomplete');
+const folder = { copilot: 'batch2e-ai-auth', medication: 'batch2f-disable-medication', care: 'batch2g-care-auth', portal: 'batch2h-parent-access', announcements: 'batch2i-announcements' }[group];
+const relative = 'docs/audits/preschool-full-audit-20261020/' + folder;
+const names = ['ARCHITECTURE_GATE_RESULT.md', 'SPEC.md', 'FINAL_REPORT.md', 'verification.json', 'source-manifest.json', 'review-results.json', 'jest-command.json', 'jest-results.json', 'lint-command.json', 'typecheck-command.json', 'secrets-command.json', 'local-http.json', 'local-http-assessment.json'];
+if (group === 'copilot') names.push('education-command.json', 'healthcare-command.json', 'run-check.cjs');
+if (group === 'care') names.push('run-check.cjs');
+if (!['copilot', 'medication'].includes(group)) names.splice(names.indexOf('local-http-assessment.json'), 1);
+const files = [...item.files.map(entry => entry.file), ...names.map(name => relative + '/' + name)];
+if (group !== 'medication') files.push('docs/products/bella-preschool/AUTHORIZATION_CONTRACT.md');
+function git(args) {
+  return cp.spawnSync('git', ['--literal-pathspecs', ...args], { cwd: item.root, encoding: 'utf8', windowsHide: true, maxBuffer: 10000000 });
+}
+const before = git(['diff', '--cached', '--name-only']);
+const resumingSameIndex = process.argv[3] === 'resume-staged' && JSON.stringify(before.stdout.trim().split(/\r?\n/).sort()) === JSON.stringify([...files].sort());
+if (before.status !== 0 || before.stdout.trim() && !resumingSameIndex) throw Error('Index must be empty or the exact previous bounded scope on explicit retry');
+for (const file of item.files) if (crypto.createHash('sha256').update(fs.readFileSync(path.join(item.root, file.file))).digest('hex') !== file.sha256) throw Error('Reviewed source drifted');
+for (const file of files) if (!fs.existsSync(path.join(item.root, file))) throw Error('Missing sealed file');
+const stage = git(['add', '--', ...files]); if (stage.status !== 0) throw Error('Staging failed');
+const staged = git(['diff', '--cached', '--name-only']).stdout.trim().split(/\r?\n/).sort();
+if (JSON.stringify(staged) !== JSON.stringify([...files].sort())) throw Error('Unexpected staged scope');
+const check = git(['diff', '--cached', '--check']); if (check.status !== 0) throw Error('Staged whitespace check failed');
+const message = { copilot: 'fix(preschool): bind Copilot permissions to verified identity', medication: 'fix(preschool): retire medication mutation endpoint', care: 'fix(preschool): authorize Care targets before bulk writes', portal: 'fix(preschool): bind parent access to live guardian relationships', announcements: 'fix(preschool): contain ungoverned broadcast publication' }[group];
+const startedAt = new Date().toISOString(); const commit = git(['commit', '-m', message]);
+fs.writeFileSync(path.join(__dirname, group + '-local-commit.log'), (commit.stdout || '') + (commit.stderr || ''));
+const report = { group, startedAt, finishedAt: new Date().toISOString(), command: ['git', 'commit', '-m', message], exitCode: commit.status, root: item.root, branch: item.branch, files: staged, commit: commit.status === 0 ? git(['rev-parse', 'HEAD']).stdout.trim() : null, push: 'NOT_RUN', merge: 'NOT_RUN', productionRollout: 'NOT_RUN', fullRegression: 'FAIL_ENVIRONMENT', authenticatedRls: 'NOT_PROVEN' };
+fs.writeFileSync(path.join(__dirname, group + '-local-commit.json'), JSON.stringify(report, null, 2) + '\n');
+console.log(JSON.stringify(report)); console.log(((commit.stdout || '') + (commit.stderr || '')).slice(-2400));
+if (commit.status !== 0) process.exitCode = 1;

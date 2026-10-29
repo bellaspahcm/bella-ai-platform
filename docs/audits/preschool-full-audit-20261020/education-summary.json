@@ -1,0 +1,136 @@
+{
+  "mode": "education",
+  "startedAt": "2026-10-20T15:30:45.168Z",
+  "finishedAt": "2026-10-20T15:33:45.020Z",
+  "command": [
+    "node",
+    "node_modules/jest/bin/jest.js",
+    "--runInBand",
+    "--runTestsByPath",
+    "src\\products\\bella-education\\__tests__\\bella-education-architecture.test.ts",
+    "src\\products\\bella-education\\__tests__\\bella-education-conformance.integration.test.ts",
+    "src\\products\\bella-education\\__tests__\\bella-education-customization-architecture.test.ts",
+    "src\\products\\bella-education\\__tests__\\bella-education-customization-conformance.integration.test.ts",
+    "src\\products\\bella-education\\__tests__\\bella-education-extension-conformance.integration.test.ts",
+    "src\\products\\bella-education\\__tests__\\bella-education-extension-sandbox.test.ts",
+    "src\\products\\bella-education\\__tests__\\child-pii-shield-security.test.ts",
+    "src\\products\\bella-education\\__tests__\\p32-classroom-field-e2e.integration.test.ts",
+    "src\\products\\bella-education\\__tests__\\preschool-activity-feed-aggregator.test.ts",
+    "src\\products\\bella-education\\__tests__\\preschool-admin-ai-copilot.test.ts",
+    "src\\products\\bella-education\\__tests__\\preschool-ai-copilot.test.ts",
+    "src\\products\\bella-education\\__tests__\\preschool-analytics-canonical-readback.service.test.ts",
+    "src\\products\\bella-education\\__tests__\\preschool-chain.service.test.ts",
+    "src\\products\\bella-education\\__tests__\\preschool-daily-care-canonical.service.test.ts",
+    "src\\products\\bella-education\\__tests__\\preschool-enrollment-operational.integration.test.ts",
+    "src\\products\\bella-education\\__tests__\\preschool-finance-billing-period-provenance.test.ts",
+    "src\\products\\bella-education\\__tests__\\preschool-finance-canonical-student-connection.service.test.ts",
+    "src\\products\\bella-education\\__tests__\\preschool-finance-period-completion-operation.test.ts",
+    "src\\products\\bella-education\\__tests__\\preschool-finance-tenant-actor-authorization.service.test.ts",
+    "src\\products\\bella-education\\__tests__\\preschool-finance-tt99-recognition.service.test.ts",
+    "src\\products\\bella-education\\__tests__\\preschool-guardian-authorization.service.test.ts",
+    "src\\products\\bella-education\\__tests__\\preschool-parent-daily-experience.service.test.ts",
+    "src\\products\\bella-education\\__tests__\\preschool-parent-portal.service.test.ts",
+    "src\\products\\bella-education\\__tests__\\preschool-parent-user-role-migration.test.ts",
+    "src\\products\\bella-education\\__tests__\\preschool-safe-pickup-handover.service.test.ts",
+    "src\\platform\\education\\assessment\\__tests__\\assessment.aggregate.test.ts",
+    "src\\platform\\education\\attendance\\__tests__\\attendance.aggregate.test.ts",
+    "src\\platform\\education\\course\\__tests__\\course.aggregate.test.ts",
+    "src\\platform\\education\\course\\__tests__\\course.integration.test.ts",
+    "src\\platform\\education\\domain\\__tests__\\course-enrollment.domain.test.ts",
+    "src\\platform\\education\\enrollment\\__tests__\\enrollment.aggregate.test.ts",
+    "src\\platform\\education\\enrollment\\__tests__\\enrollment.integration.test.ts",
+    "src\\platform\\education\\student\\__tests__\\student.aggregate.test.ts",
+    "src\\platform\\education\\student\\__tests__\\student.integration.test.ts",
+    "src\\platform\\education\\__tests__\\capacity-concurrency.integration.test.ts",
+    "src\\platform\\education\\__tests__\\education-engine.integration.test.ts",
+    "src\\platform\\education\\__tests__\\kernel-invariants.integration.test.ts",
+    "src\\platform\\education\\__tests__\\r3-student-identity-query.test.ts",
+    "src\\platform\\education\\__tests__\\teacher-assignment.integration.test.ts",
+    "src\\platform\\education\\__tests__\\verification-gates.test.ts",
+    "src\\app\\api\\education\\analytics\\__tests__\\route.test.ts",
+    "src\\app\\api\\education\\attendance\\handover\\__tests__\\route.test.ts",
+    "src\\app\\api\\education\\attendance\\__tests__\\route.test.ts",
+    "src\\app\\api\\education\\branches\\__tests__\\route.test.ts",
+    "src\\app\\api\\education\\courses\\__tests__\\route.test.ts",
+    "src\\app\\api\\education\\enrollments\\__tests__\\route.test.ts",
+    "src\\app\\api\\education\\parent-daily\\__tests__\\route.test.ts",
+    "src\\app\\api\\education\\work-queue\\__tests__\\route.test.ts",
+    "src\\app\\dashboard\\education\\attendance\\__tests__\\page.test.tsx",
+    "src\\app\\dashboard\\education\\communication\\__tests__\\page.test.tsx",
+    "src\\app\\dashboard\\education\\finance\\__tests__\\page.test.tsx",
+    "src\\app\\dashboard\\education\\grades\\__tests__\\page.test.tsx",
+    "src\\app\\dashboard\\education\\learning\\__tests__\\page.test.tsx",
+    "src\\app\\dashboard\\education\\reports\\__tests__\\page.test.tsx",
+    "src\\app\\dashboard\\education\\work-queue\\__tests__\\page.test.tsx",
+    "--json",
+    "--outputFile=D:\\Antigravity\\Projects\\BELLA SPA ERP\\docs\\audits\\preschool-full-audit-20261020\\education-jest.json"
+  ],
+  "exitCode": 1,
+  "signal": null,
+  "testFiles": 55,
+  "environment": "Offline/mock Supabase; real DB suites excluded; no production credentials passed",
+  "suites": {
+    "total": 55,
+    "passed": 45,
+    "failed": 10,
+    "pending": 0
+  },
+  "tests": {
+    "total": 534,
+    "passed": 450,
+    "failed": 84,
+    "pending": 0
+  },
+  "failures": [
+    {
+      "file": "src\\platform\\education\\course\\__tests__\\course.integration.test.ts",
+      "status": "failed",
+      "message": "  ● Course Integration Tests › CRUD Operations › should create course\n\n    thrown: \"Exceeded timeout of 5000 ms for a test.\n    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout.\"\n\n      25 |\n      26 |   describe('CRUD Operations', () => {\n    > 27 |     it('should create course', async () => {\n         |     ^\n      28 |       const request: CreateCourseRequest = {\n      29 |         tenantId,\n      30 |         courseCode: 'CS101',\n\n      at it (src/platform/education/course/__tests__/course.integration.test.ts:27:5)\n      at describe (src/platform/education/course/__tests__/course.integration.test.ts:26:3)\n      at Object.describe (src/platform/education/course/__tests__/course.integration.test.ts:16:1)\n\n  ● Course Integration Tests › CRUD Operations › should reject duplicate course code in same tenant\n\n    thrown: \"Exceeded timeout of 5000 ms for a test.\n    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout.\"\n\n      50 |     });\n      51 |\n    > 52 |     it('should reject duplicate course code in same tenant', async () => {\n         |     ^\n      53 |       const request: CreateCourseRequest = {\n      54 |         tenantId,\n      55 |         courseCode: 'CS101', // Duplicate\n\n      at it (src/platform/education/course/__tests__/course.integration.test.ts:52:5)\n      at describe (src/platform/education/course/__tests__/course.integration.test.ts:26:3)\n      at Object.describe (src/platform/education/course/__tests__/course.integration.test.ts:16:1)\n\n  ● Course Integration Tests › CRUD Operations › should get course by ID\n\n    thrown: \"Exceeded timeout of 5000 ms for a test.\n    Add a ti"
+    },
+    {
+      "file": "src\\platform\\education\\__tests__\\kernel-invariants.integration.test.ts",
+      "status": "failed",
+      "message": "  ● Education OS — Kernel Invariants Integration Tests › Prerequisite Checks with Versioned Grading Rules › should validate prerequisite under Vietnamese 10-point scale: 4.5 -> BLOCK, 5.0 -> ALLOW\n\n    Failed to seed grading rule: TypeError: fetch failed\n\n      206 |\n      207 |     if (error) {\n    > 208 |       throw new Error(`Failed to seed grading rule: ${error.message}`);\n          |             ^\n      209 |     }\n      210 |     return data;\n      211 |   }\n\n      at seedGradingRule (src/platform/education/__tests__/kernel-invariants.integration.test.ts:208:13)\n      at Object.<anonymous> (src/platform/education/__tests__/kernel-invariants.integration.test.ts:216:7)\n\n  ● Education OS — Kernel Invariants Integration Tests › Prerequisite Checks with Versioned Grading Rules › should validate prerequisite under Percentage scale: 69 -> BLOCK, 70 -> ALLOW\n\n    Failed to seed grading rule: TypeError: fetch failed\n\n      206 |\n      207 |     if (error) {\n    > 208 |       throw new Error(`Failed to seed grading rule: ${error.message}`);\n          |             ^\n      209 |     }\n      210 |     return data;\n      211 |   }\n\n      at seedGradingRule (src/platform/education/__tests__/kernel-invariants.integration.test.ts:208:13)\n      at Object.<anonymous> (src/platform/education/__tests__/kernel-invariants.integration.test.ts:277:7)\n\n  ● Education OS — Kernel Invariants Integration Tests › Governed Override Invariants › should bypass prerequisite check when valid OverrideRequest payload is supplied\n\n    Failed to seed grading rule: TypeError: fetch failed\n\n      206 |\n      207 |     if (error) {\n    > 208 |       throw new Error(`Failed to seed grading rule: ${error.message}`);\n          |             ^\n      209 |     }\n      210 |     return data;\n      211 |   }\n\n "
+    },
+    {
+      "file": "src\\platform\\education\\student\\__tests__\\student.integration.test.ts",
+      "status": "failed",
+      "message": "  ● Student Integration Tests › R3 Student Identity › should persist and read back new canonical Party student without transitional Person mapping\n\n    Failed to create test tenant 1: TypeError: fetch failed\n\n      37 |       });\n      38 |     if (tenant1Error) {\n    > 39 |       throw new Error(`Failed to create test tenant 1: ${tenant1Error.message}`);\n         |             ^\n      40 |     }\n      41 |\n      42 |     const { error: tenant2Error } = await supabase\n\n      at Object.<anonymous> (src/platform/education/student/__tests__/student.integration.test.ts:39:13)\n\n  ● Student Integration Tests › R3 Student Identity › should read back created student through canonical partyId\n\n    Failed to create test tenant 1: TypeError: fetch failed\n\n      37 |       });\n      38 |     if (tenant1Error) {\n    > 39 |       throw new Error(`Failed to create test tenant 1: ${tenant1Error.message}`);\n         |             ^\n      40 |     }\n      41 |\n      42 |     const { error: tenant2Error } = await supabase\n\n      at Object.<anonymous> (src/platform/education/student/__tests__/student.integration.test.ts:39:13)\n\n  ● Student Integration Tests › R3 Student Identity › should reject student creation if Party does not exist\n\n    Failed to create test tenant 1: TypeError: fetch failed\n\n      37 |       });\n      38 |     if (tenant1Error) {\n    > 39 |       throw new Error(`Failed to create test tenant 1: ${tenant1Error.message}`);\n         |             ^\n      40 |     }\n      41 |\n      42 |     const { error: tenant2Error } = await supabase\n\n      at Object.<anonymous> (src/platform/education/student/__tests__/student.integration.test.ts:39:13)\n\n  ● Student Integration Tests › R3 Student Identity › should reject duplicate student code in same tenant\n\n    Failed to create test"
+    },
+    {
+      "file": "src\\products\\bella-education\\__tests__\\p32-classroom-field-e2e.integration.test.ts",
+      "status": "failed",
+      "message": "  ● BELLA EDUCATION V1 — P3.2 CLASSROOM FIELD E2E INTEGRATION › Step 1: Create Class Workflow — should create classroom with lead teacher and write to PostgreSQL courses & teacher_assignments\n\n    expect(received).toBe(expected) // Object.is equality\n\n    Expected: 200\n    Received: 503\n\n      111 |     const data = await res.json();\n      112 |\n    > 113 |     expect(res.status).toBe(200);\n          |                        ^\n      114 |     expect(data.success).toBe(true);\n      115 |     expect(data.course).toBeDefined();\n      116 |     expect(data.course.course_code).toBe('E2E-MAM-01');\n\n      at Object.toBe (src/products/bella-education/__tests__/p32-classroom-field-e2e.integration.test.ts:113:24)\n\n  ● BELLA EDUCATION V1 — P3.2 CLASSROOM FIELD E2E INTEGRATION › Step 2: Critical Negative Path — attempting to assign same Lead Teacher to 2nd classroom in same academic year returns HTTP 409 Conflict\n\n    expect(received).toBe(expected) // Object.is equality\n\n    Expected: 200\n    Received: 503\n\n      160 |     const createRes = await createCourse(createReq);\n      161 |     const createData = await createRes.json();\n    > 162 |     expect(createRes.status).toBe(200);\n          |                              ^\n      163 |\n      164 |     const class2Id = createData.course.course_id;\n      165 |     secondaryCourseId = class2Id;\n\n      at Object.toBe (src/products/bella-education/__tests__/p32-classroom-field-e2e.integration.test.ts:162:30)\n\n  ● BELLA EDUCATION V1 — P3.2 CLASSROOM FIELD E2E INTEGRATION › Step 3: Classroom 360° Workspace — GET course detail returns canonical roster and classroom metadata\n\n    expect(received).toBe(expected) // Object.is equality\n\n    Expected: 200\n    Received: 404\n\n      297 |     const detailData = await detailRes.json();\n      298 |\n "
+    },
+    {
+      "file": "src\\platform\\education\\enrollment\\__tests__\\enrollment.integration.test.ts",
+      "status": "failed",
+      "message": "  ● Enrollment Integration Tests › FK Validation › should create enrollment with valid Student and Course\n\n    Person creation failed: Failed to save person: TypeError: fetch failed\n\n      35 |     if (!personResult.success) {\n      36 |       console.error('Person creation error:', personResult.error);\n    > 37 |       throw new Error(`Person creation failed: ${personResult.error?.message || 'Unknown error'}`);\n         |             ^\n      38 |     }\n      39 |     if (!personResult.data) {\n      40 |       throw new Error('Person creation returned no data');\n\n      at Object.<anonymous> (src/platform/education/enrollment/__tests__/enrollment.integration.test.ts:37:13)\n\n  ● Enrollment Integration Tests › FK Validation › should reject enrollment if Student does not exist\n\n    Person creation failed: Failed to save person: TypeError: fetch failed\n\n      35 |     if (!personResult.success) {\n      36 |       console.error('Person creation error:', personResult.error);\n    > 37 |       throw new Error(`Person creation failed: ${personResult.error?.message || 'Unknown error'}`);\n         |             ^\n      38 |     }\n      39 |     if (!personResult.data) {\n      40 |       throw new Error('Person creation returned no data');\n\n      at Object.<anonymous> (src/platform/education/enrollment/__tests__/enrollment.integration.test.ts:37:13)\n\n  ● Enrollment Integration Tests › FK Validation › should reject enrollment if Course does not exist\n\n    Person creation failed: Failed to save person: TypeError: fetch failed\n\n      35 |     if (!personResult.success) {\n      36 |       console.error('Person creation error:', personResult.error);\n    > 37 |       throw new Error(`Person creation failed: ${personResult.error?.message || 'Unknown error'}`);\n         |             ^\n    "
+    },
+    {
+      "file": "src\\platform\\education\\__tests__\\verification-gates.test.ts",
+      "status": "failed",
+      "message": "  ● Education OS — 11 Automated Verification Gates › Gate 2: Contract Boundary Compliance › should retrieve course and register student using Public Contract implementation classes\n\n    thrown: \"Exceeded timeout of 5000 ms for a test.\n    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout.\"\n\n      117 |    */\n      118 |   describe('Gate 2: Contract Boundary Compliance', () => {\n    > 119 |     it('should retrieve course and register student using Public Contract implementation classes', async () => {\n          |     ^\n      120 |       const courseContract = new CourseContractImpl();\n      121 |       const studentContract = new StudentContractImpl();\n      122 |\n\n      at it (src/platform/education/__tests__/verification-gates.test.ts:119:5)\n      at describe (src/platform/education/__tests__/verification-gates.test.ts:118:3)\n      at Object.describe (src/platform/education/__tests__/verification-gates.test.ts:23:1)\n\n  ● Education OS — 11 Automated Verification Gates › Gate 3: Tenant Isolation › should completely isolate student and course records between Tenant A and Tenant B\n\n    thrown: \"Exceeded timeout of 5000 ms for a test.\n    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout.\"\n\n      158 |    */\n      159 |   describe('Gate 3: Tenant Isolation', () => {\n    > 160 |     it('should completely isolate student and course records between Tenant A and Tenant B', async () => {\n          |     ^\n      161 |       // Create course in Tenant A\n      162 |       const courseA = await CourseService.createCourse({\n      163 |         tenantId: TENANT_A,\n\n      at it (src/platform/education/__tes"
+    },
+    {
+      "file": "src\\products\\bella-education\\__tests__\\preschool-enrollment-operational.integration.test.ts",
+      "status": "failed",
+      "message": "  ● Preschool New Student Enrollment Operational Path › creates Party, Student, edu_enrollment, and reads back canonical party identity\n\n    expect(received).toBe(expected) // Object.is equality\n\n    Expected: 201\n    Received: 500\n\n       95 |     const body = await response.json();\n       96 |\n    >  97 |     expect(response.status).toBe(201);\n          |                             ^\n       98 |     expect(body.success).toBe(true);\n       99 |     expect(body.student.partyId).toEqual(expect.any(String));\n      100 |     expect(body.student.guardianPartyId).toEqual(expect.any(String));\n\n      at Object.toBe (src/products/bella-education/__tests__/preschool-enrollment-operational.integration.test.ts:97:29)\n"
+    },
+    {
+      "file": "src\\platform\\education\\__tests__\\education-engine.integration.test.ts",
+      "status": "failed",
+      "message": "  ● Education OS — Integration Tests (Common Core Reuse Proof) › Student Role & Party Validation Invariants › should reject enrollment if student party does not exist\n\n    PlatformError: Failed to save course f11bd029-ddb6-468c-8e72-ec204fdbae33: TypeError: fetch failed\n\n      35 |     }\n      36 |\n    > 37 |     return new PlatformError(`${prefix}${message}`, code || 'DATABASE_ERROR', { rawError: error });\n         |            ^\n      38 |   }\n      39 |\n      40 |   public static checkOptimisticLock(affectedRows: number, expectedVersion?: number, entityId?: string): void {\n\n      at ExceptionMapper.mapDatabaseError (src/platform/core/errors/exception-mapper.ts:37:12)\n      at SupabaseEducationRepository.mapDatabaseError (src/platform/core/repository/base-supabase-repository.primitive.ts:25:28)\n      at SupabaseEducationRepository.mapDatabaseError [as saveCourse] (src/platform/education/repositories/supabase-education.repository.ts:59:18)\n      at Object.<anonymous> (src/platform/education/__tests__/education-engine.integration.test.ts:72:7)\n\n  ● Education OS — Integration Tests (Common Core Reuse Proof) › Student Role & Party Validation Invariants › should reject enrollment if party is an organization (not a person)\n\n    PlatformError: Failed to save course dbf7debb-23f0-49ec-a1b4-090a90719d43: TypeError: fetch failed\n\n      35 |     }\n      36 |\n    > 37 |     return new PlatformError(`${prefix}${message}`, code || 'DATABASE_ERROR', { rawError: error });\n         |            ^\n      38 |   }\n      39 |\n      40 |   public static checkOptimisticLock(affectedRows: number, expectedVersion?: number, entityId?: string): void {\n\n      at ExceptionMapper.mapDatabaseError (src/platform/core/errors/exception-mapper.ts:37:12)\n      at SupabaseEducationRepository.mapDatabaseE"
+    },
+    {
+      "file": "src\\platform\\education\\__tests__\\capacity-concurrency.integration.test.ts",
+      "status": "failed",
+      "message": "  ● Education OS — Capacity Concurrency Invariant Bounded Check › should enforce 25/25 full course concurrency: 2 concurrent requests on full course MUST BOTH FAIL without over-subscribing\n\n    PlatformError: Failed to save course 0a5ac63e-2c3c-4eb9-9bab-2982768a4b4d: TypeError: fetch failed\n\n      35 |     }\n      36 |\n    > 37 |     return new PlatformError(`${prefix}${message}`, code || 'DATABASE_ERROR', { rawError: error });\n         |            ^\n      38 |   }\n      39 |\n      40 |   public static checkOptimisticLock(affectedRows: number, expectedVersion?: number, entityId?: string): void {\n\n      at ExceptionMapper.mapDatabaseError (src/platform/core/errors/exception-mapper.ts:37:12)\n      at SupabaseEducationRepository.mapDatabaseError (src/platform/core/repository/base-supabase-repository.primitive.ts:25:28)\n      at SupabaseEducationRepository.mapDatabaseError [as saveCourse] (src/platform/education/repositories/supabase-education.repository.ts:59:18)\n      at seedCourse (src/platform/education/__tests__/capacity-concurrency.integration.test.ts:116:5)\n      at Object.<anonymous> (src/platform/education/__tests__/capacity-concurrency.integration.test.ts:133:20)\n\n  ● Education OS — Capacity Concurrency Invariant Bounded Check › should enforce 24/25 single-slot concurrency: 2 concurrent requests on 24/25 course -> EXACTLY 1 succeeds, EXACTLY 1 fails\n\n    PlatformError: Failed to save course 61e502fc-451e-44f4-b7cc-8347fa3eb04a: TypeError: fetch failed\n\n      35 |     }\n      36 |\n    > 37 |     return new PlatformError(`${prefix}${message}`, code || 'DATABASE_ERROR', { rawError: error });\n         |            ^\n      38 |   }\n      39 |\n      40 |   public static checkOptimisticLock(affectedRows: number, expectedVersion?: number, entityId?: string): void {\n\n   "
+    },
+    {
+      "file": "src\\platform\\education\\__tests__\\teacher-assignment.integration.test.ts",
+      "status": "failed",
+      "message": "  ● Education OS — Teacher Assignment Bounded Check › should assign primary lead teacher to course for Academic Year 2025-2026\n\n    Failed to seed course: TypeError: fetch failed\n\n      54 |       status: 'active',\n      55 |     });\n    > 56 |     if (courseErr) throw new Error(`Failed to seed course: ${courseErr.message}`);\n         |                          ^\n      57 |\n      58 |     // 3. Seed teacher parties in party_parties + persons\n      59 |     teacherPartyA = crypto.randomUUID();\n\n      at Object.<anonymous> (src/platform/education/__tests__/teacher-assignment.integration.test.ts:56:26)\n\n  ● Education OS — Teacher Assignment Bounded Check › should enforce hard invariant: attempting to assign second lead teacher for same course and academic year throws TEACHER_ASSIGNMENT_CONFLICT\n\n    Failed to seed course: TypeError: fetch failed\n\n      54 |       status: 'active',\n      55 |     });\n    > 56 |     if (courseErr) throw new Error(`Failed to seed course: ${courseErr.message}`);\n         |                          ^\n      57 |\n      58 |     // 3. Seed teacher parties in party_parties + persons\n      59 |     teacherPartyA = crypto.randomUUID();\n\n      at Object.<anonymous> (src/platform/education/__tests__/teacher-assignment.integration.test.ts:56:26)\n\n  ● Education OS — Teacher Assignment Bounded Check › should allow assigning co-teacher alongside active lead teacher for same course & academic year\n\n    Failed to seed course: TypeError: fetch failed\n\n      54 |       status: 'active',\n      55 |     });\n    > 56 |     if (courseErr) throw new Error(`Failed to seed course: ${courseErr.message}`);\n         |                          ^\n      57 |\n      58 |     // 3. Seed teacher parties in party_parties + persons\n      59 |     teacherPartyA = crypto.randomUUI"
+    }
+  ]
+}

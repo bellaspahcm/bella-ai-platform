@@ -1,0 +1,25 @@
+{
+  "run": 39499824002,
+  "job": 118894189360,
+  "nativeDownloadExitCode": 0,
+  "status": "PASS",
+  "sha": "f973dd7e56542aa7847b98c2a4236da86f1eabc3",
+  "project": "bmnbqbcdbuklhopfbopv",
+  "runtime": "next build -> next start",
+  "productionMutation": "NOT_PERFORMED",
+  "buildManifestSha256": "9f99df6c8e0d7fe0361b4b7df7bdf5914ff5087f0070d2658b7272aa3bda7644",
+  "tests": {
+    "expected": 1,
+    "unexpected": 0,
+    "flaky": 0,
+    "skipped": 0
+  },
+  "finalSale": 0,
+  "finalCash": 0,
+  "finalOutstanding": 0,
+  "originalUnchanged": true,
+  "reconciliation": "MATCHED",
+  "cleanup": "PARTIAL_HISTORY_RETAINED",
+  "sourceArtifactSha256": "83a6722a1565366f1a1afc95e81aea8bf9e3538414c9c024ca4f109661ecca31",
+  "businessRowContentsSaved": false
+}

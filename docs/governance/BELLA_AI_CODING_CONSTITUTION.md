@@ -52,7 +52,21 @@ Ownership, canonical truth, public contracts, change authority, tenant isolation
 
 Use DDD, aggregates, new bounded contexts, repository interfaces, domain events, Clean Architecture layouts, and expand/migrate/contract only when the actual workflow, risk, or an applicable approved rule requires them. Preserve established approved module structure. A CRUD screen using an existing API does not, by itself, justify creating these abstractions.
 
-This proportional rule does not waive an existing mandate. For example, applicable Healthcare/Education 11-gate requirements and approved event/aggregate constraints remain in force until changed through their owning approval process. Protect boundaries; add architecture only with evidence and authority.
+This proportional rule does not waive an existing mandate. Apply the Healthcare 11-gate requirements and the Education Constitution's gate applicability rules within their respective scopes. Approved event/aggregate constraints and freeze rules remain in force. Protect boundaries; add architecture only with evidence and authority.
+
+### Three Control Levels
+
+The owner's governance direction of 2026-10-29 authorizes the procedural amendments in this Constitution and the linked deployment, operational-readiness, and Education rules. This is governance-maintenance authority, independent of any Product fix; it grants no runtime, Production, permission, or frozen-layer mutation authority.
+
+These controls and the Goal -> Execute -> Verify -> Fix -> Seal loop apply across all Bella Products, as well as the other scopes of this Constitution. Preschool is an initial application and example, not a prerequisite or a restriction on adoption by other Products. Apply relevant specialized constitutions, required checks and release criteria to each scope.
+
+| Level | Controls | Execution rule |
+| --- | --- | --- |
+| 1 — Mandatory protection | Customer data/privacy, tenant and branch isolation, authentication/authorization/RLS, data and audit integrity, destructive-change safety and recoverability, ownership/public contracts, frozen boundaries. | Preserve the invariant and its applicable evidence/authority. Hold the dependent action when it cannot be performed safely. |
+| 2 — Flexible execution | Factory/BDGF tools, Test DB or disposable environments, review arrangements, intermediate checks and evidence collection. | Choose the shortest authorized route that preserves Level 1. Use existing evidence and controls; a tool's unavailability alone does not block the goal. A required CI check remains binding until its owner changes it. |
+| 3 — Optional work | Factory demonstrations, extra reports/rehearsals, repeated review of still-valid proof, unrelated audits/refactors. | Do not make these Product completion conditions unless the user explicitly includes them or concrete risk makes the specific check necessary. |
+
+Classify by purpose and impact. A Test DB may be necessary to test destructive behavior safely; runtime audit integrity is Level 1 even when an extra audit report is Level 3. The classification never authorizes disabling a guard, weakening a test, or declaring missing proof to be PASS.
 
 ## Scoped Autonomy and Approval
 
@@ -65,15 +79,11 @@ Default: execute within delegated scope. Escalate: unresolved material business 
 | Several technical choices have no material business, ownership, compatibility, or security difference. | Choose the smallest proven, compatible, recoverable option within scope and record the reason in the existing task record. |
 | A material business rule is unresolved, or required change authority is missing. | Hold dependent implementation, provide evidence and a concrete proposal, and bundle the necessary owner decision where possible. Continue independent, authorized work. |
 
-### Autonomous Execution Within Scope
-
-Do not stop at the first environment or tooling obstacle. Inspect supported alternatives, choose the least-risk permitted path, and continue authorized work and independent checks. Do not bypass tool or policy controls, use shared or Production data outside the approved scope, or ask again for decisions already made. Stop only the dependent action when access, a material business decision, real-data risk, or an explicit tool/policy block leaves no permitted path. Report the exact blocked action, alternatives checked, completed evidence, and remaining condition. `NOT_PROVEN` is not a product failure; `PASS` is not Go-Live.
-
 Do not request approval again for an explicit decision that still applies. Scope approval can cover source implementation, tests, related repairs, and verification within existing contracts and permissions.
 
 Production operations, schema/migrations, ACL/grants or access-permission changes, public-contract/Kernel changes, and commit/push/merge/deploy actions require explicit authority for that category. If authority is missing, stop the dependent action, present the minimum concrete change and its evidence, and request the owner's decision. Continue independent, authorized work. Frozen-layer changes also retain their required ACR/ADR, approval, unlock, verification, and reseal process; task approval alone cannot bypass it. Follow the authorization already granted and the applicable repository/release process.
 
-Reuse already-read rules and verified evidence while their source revision, scope, and effective conditions remain valid. Refresh affected sources when these change; do not repeatedly restart discovery or produce duplicate reports for an unchanged decision.
+Reuse already-read rules and verified evidence under [Evidence Reuse and Invalidation](#evidence-reuse-and-invalidation). Refresh affected sources when their dependencies or effective conditions change; do not repeatedly restart discovery or produce duplicate reports for an unchanged decision.
 
 AI cannot grant itself authority. Calling an agent Architect or Reviewer does not create approval rights. Missing semantic evidence still triggers the Business Semantic Gate; independent tests must not invent the unresolved business expectation. Do not report a complete feature while a required dependency remains held.
 
@@ -102,17 +112,21 @@ For new Products, G0 Request -> G1 Read-only Discovery -> G2 Scope/Authority -> 
 
 ### Factory Intake from Project Codex Chat
 
-Factory is an optional execution path for coding requests received in project Codex chat. It is not a prerequisite for starting or completing authorized work. Use the normal direct execution workflow routed by this Constitution unless the user explicitly selects Factory or a task-specific rule explicitly requires it. Before either path, the Lead checks the source revision, working-tree inventory, ownership, scope and execution permissions. Reuse the existing Factory when selected; do not create another dispatcher or weaken admission to fit a request.
+Project Codex chat is the human entrypoint for authorized engineering work. Select the route by the goal, risk, ownership and execution permissions. Native Factory execution is required when the user explicitly requests it or an applicable task contract requires it; it is not a universal prerequisite for Product coding. For native dispatch, check `admitTask` exported by `scripts/agent-flow/role-pipeline.mjs` and implemented in `role-validation.mjs`, the source revision and working-tree inventory. Reuse that Factory; do not create another dispatcher or weaken admission to fit a request.
 
-For a task selected for Factory and admitted by its contract:
+For a task selected for native Factory execution and admitted by that contract:
 
 1. Prepare an owner-approved task definition outside the repository, containing the goal, acceptance criteria, exact owned files, test file, source revision and time budget required by `admitTask`. Keep credentials and application data out of the definition.
 2. Dispatch through `node scripts/agent-flow/role-pipeline.mjs run <task.json>` in the isolated, verified worktree. The existing native Lead -> Builder -> Verify -> Reviewer sequence owns execution and handoffs. The chat Lead coordinates and reports; it must not substitute its own coding or review for those native stages. Already-dispatched Factory roles follow their assigned role and must not recursively launch another Factory.
-3. Preserve the actual terminal result. A failed, skipped, timed-out or uncertain stage cannot become PASS. A HELD run cannot be resumed, retried automatically, or replaced within that Factory run; never edit its candidate or reuse its uncertain evidence. This does not make Factory mandatory for other authorized work.
+3. Preserve the actual terminal result. A failed, skipped, timed-out or uncertain stage cannot become PASS. A HELD run is not permission to resume or retry it automatically. Classify the obstacle before considering a different route under the rule below; keep its evidence and any safety findings intact.
 4. After the writer exits, use a separate process running `node scripts/agent-flow/role-pipeline.mjs read <evidence-directory>` to verify the same candidate against canonical persistence and native history. Retain task/run/role bindings and evidence deadlines. A later source change invalidates reuse of that candidate's read-back as proof of the changed source.
 5. Use the existing Monitor reader for the same Factory package. Report execution, independent read-back, retained-source validation and any commit linkage separately. Missing events, ACKs or linkage remain missing; never reconstruct them to complete a report. The viewer is historical evidence, not proof of live orchestration.
 
-Factory admission currently covers bounded Agent Flow tooling and selected Product scopes, not every Product task. When a request is not admitted, report the exact reason; do not silently broaden Factory paths or change protections. Continue through the normal direct workflow when the user's request authorizes the work and applicable ownership, business, security and verification gates permit it. Direct execution is separate evidence and must never be called a Factory run. If the user explicitly requires Factory, hold the unadmitted work and report the smallest scope proposal. Read-only questions, planning and documentation-only governance maintenance continue through the applicable Workflow Routing rows without claiming native execution.
+Admission covers bounded Agent Flow tooling and an exact approved AutoMove pilot, not general Product work. For ordinary authorized Product work outside those capabilities, use direct single-agent execution through Workflow Routing and the common execution loop. Existing goal authority covers this route within its approved layers; no second approval or deliberately rejected dispatch is required merely to demonstrate unsupported admission. Record the route and reason briefly. Never reinterpret an authority, protected-path or safety rejection as a tool limitation.
+
+If a selected Factory run fails for an orchestration/tooling reason, direct execution may continue within existing goal authority after confirming all native writers have exited and reconciling the candidate/diff and outstanding findings. Preserve the failed run and record the route change; direct evidence cannot complete or relabel the native run. If native execution is itself an acceptance criterion, that criterion remains incomplete until an authorized native run proves it. Security, integrity, ownership, frozen-boundary or permission failures still hold their dependent work regardless of route. Already-dispatched roles must not recursively dispatch or switch routes on their own.
+
+Read-only questions, planning and documentation-only governance maintenance use Workflow Routing without claiming native execution. Factory demonstration, Monitor coverage and publication linkage are evidence requirements for Factory claims, not additional Product completion gates.
 
 Existing explicit authority covers routine dispatch within its valid scope; do not request the same approval for each role. Unresolved permissions, business semantics, protected changes and release operations retain their own authority boundaries. A local candidate does not authorize a commit, push, PR, merge, deployment or Go-Live. If an existing commit is separately authorized and created, `role-pipeline.mjs commit <evidence-directory> <sha>` verifies content linkage; that command does not create the commit.
 
@@ -125,6 +139,8 @@ This is the common execution rule for existing-product bug fixes, feature improv
 Optimize in this order: **business correctness -> completion speed -> sufficiently reliable evidence**. Complete the requested business outcome with the smallest safe change and fewest useful iterations. Test counts, report counts, agent counts, and architectural complexity are not delivery goals.
 
 ### Default Execution Loop
+
+**Goal -> Execute -> Verify -> Fix -> Seal.** Define acceptance and authority once, execute the smallest safe step, verify its behavior, repair the proven cause if needed, and seal the scoped result. Planning and safeguards support this loop; they are not additional approval queues. Continue to the next flow already included in the goal without requesting the same authority again.
 
 1. **Define the task.** Identify current behavior, expected behavior, acceptance criteria, and the smallest reproduction. For new work, identify the first core business workflow and how to verify it. Establish the authoritative source, public contract, owning boundary, and affected files/modules. Do not audit the whole system without evidence that the task requires it.
 2. **Find the root cause.** Read the relevant code and run the smallest check that can reproduce the issue. Distinguish Product logic, data, configuration, environment, and test/fixture failures. Once evidence is sufficient for a safe fix, stop investigating unrelated branches and implement within authority.
@@ -196,6 +212,20 @@ List required and risk-related checks in the existing verification plan. Run eve
 | Schema / migration | Migration safety, existing data compatibility, and rollback or forward recovery as appropriate. |
 
 These are selection categories, not a requirement to run every test category for every PR. Existing wider mandatory gates remain mandatory. A documentation-only change does not acquire a runtime test requirement from this table alone.
+
+### Evidence Reuse and Invalidation
+
+Use one traceable evidence reference for each claim; the same run may support several claims only if it exercised them. Keep its source revision and affected file/contract dependencies, environment/target, role/tenant scope, command/result and effective conditions in the existing task record. Do not create another evidence registry or report.
+
+Reuse that evidence when those dependencies and conditions still hold. A different date, agent, chat, unrelated commit or documentation change alone does not invalidate it. For reuse across revisions, identify the prior run and inspect the relevant diff/dependencies; never claim the old command ran on the new revision. Refresh only the affected checks after relevant source/schema/ACL/configuration/fixture changes, expiry, contradictory results or a known unresolved concern. Native Factory candidate hashes and explicit CI/release freshness requirements retain their exact binding.
+
+Before a Production mutation, refresh volatile target identity, actual executor authority, affected schema/function/ACL state, preconditions and recovery availability as required by [Deployment Governance](BELLA_DEPLOYMENT_GOVERNANCE_FRAMEWORK.md#execution-routes-and-proportional-verification). Historical approval applies only to its exact scope and still-valid conditions. Keep earlier failed/held evidence and explain what changed; a later pass does not erase it.
+
+### Environment and Execution Route Selection
+
+Use an existing authorized environment that can prove the required property with acceptable impact. Local/source checks suffice for presentation-only maintenance; persistence requires real storage/read-back, and authorization changes require allowed and denied paths through the actual boundary. Shared test environments may use bounded fixtures, concurrency isolation and cleanup without rebuilding a disposable database. Mocks alone do not prove DB/RLS behavior.
+
+Use a disposable environment when destructive tests, failure injection, incompatible schema work or fixture interference require isolation. Do not create Test DBs or replay all migrations by default for every repair. Never run destructive or denial/failure-injection experiments against customer Production data to avoid an isolated setup. Direct Production administration requires the same Level 1 safeguards and explicit operation authority described in Deployment Governance; a broken BDGF login is not permission to bypass authentication or grant more privileges.
 
 Keep decision contexts separate: the entry gate below still uses `PASS` / `BLOCKED` / `DEFER` to decide implementation permission; the Operational Readiness SOP retains its own workflow statuses. `NOT_STARTED` describes task progress. `PROVEN`, `HELD`, `NOT_READY`, `SEALED_ON_MAIN`, and Go-Live labels retain their scoped meanings. None automatically converts into a gate result, merge authority, or release approval.
 
@@ -1023,7 +1053,7 @@ Do not expand this into extra governance phases unless repeated evidence proves 
 
 When a product moves from implementation correctness toward real customer operation, use `docs/governance/OPERATIONAL_READINESS_SOP.md`.
 
-Operational readiness work is read-only first and must audit real business workflows rather than source folders, modules, or cleanup opportunities. The SOP defines operational statuses, workflow evidence chains, the `NOT_PROVEN` vs `BLOCKED` distinction, and the rule that operational audit must stop at the decision boundary before any implementation.
+Operational readiness work is read-only first and evaluates real business workflows rather than source folders, modules, or cleanup opportunities. Use the SOP's evidence chain and `NOT_PROVEN` vs `BLOCKED` distinction. An audit-only task stops before mutations; an already-authorized delivery task may move from recorded observation to an in-scope fix without requesting the same authority again. An incomplete unrelated audit does not block scoped delivery.
 
 ### Evidence and Boundary Leaf Controls
 
@@ -1593,7 +1623,7 @@ Route an explicit request using `BELLA MVP UI-TO-DATABASE COMPLETION`, or an equ
 
 Reuse/update the applicable [entry gate](#mandatory-entry-gate-for-new-osproduct-work), [UI reconciliation](#ui-to-contract-reconciliation), and [Change Map](#mandatory-pre-code-review-and-change-map) in the existing Product work record. Apply [Scoped Autonomy and Approval](#scoped-autonomy-and-approval) to the actual authorized layers; this workflow name does not authorize schema/migrations, ACL/grants, permission changes, public-contract/Kernel changes, Production operations, or release actions. Hold only the dependent work at an unresolved business or authority boundary.
 
-Use [Factory Intake from Project Codex Chat](#factory-intake-from-project-codex-chat) only when Factory is selected or explicitly required. This instruction route does not expand launcher admission, activate Multi-Agent Mode, create a dispatcher, or authorize bypassing a held/native stage. A task outside Factory admission may use the normal direct workflow when authorized under the usual scope and safety rules; it must not claim native Factory evidence. Documentation-only standardization does not prove that a native launcher loads or executes this workflow.
+Respect [Factory Intake from Project Codex Chat](#factory-intake-from-project-codex-chat), including its authorized direct route for ordinary Product work. This instruction route does not expand launcher admission, activate Multi-Agent Mode, create a dispatcher, or convert a held native run into PASS. Documentation-only standardization does not prove native activation. Preschool uses its [delivery workflow](../products/bella-preschool/DELIVERY_WORKFLOW.md) and approved Product contracts; do not route Preschool through this MVP procedure unless the owner explicitly changes that decision.
 
 #### Six-Step Completion Procedure
 
@@ -2297,7 +2327,7 @@ Closure requires current evidence for the acceptance criteria, affected behavior
 
 Run full typecheck, build, or broader regression when impact, CI, freeze/security policy, a specialized constitution, or the approved verification plan requires it. Do not infer a universal full-suite requirement for every small bug or documentation change, and do not repeat passed checks without a relevant change, failure, or unresolved concern.
 
-Reuse evidence only while its source revision, working-tree scope, environment, and effective conditions remain valid. Refresh affected evidence when these change. Stale cache or old artifacts cannot establish current closure.
+Apply [Evidence Reuse and Invalidation](#evidence-reuse-and-invalidation): retain the original revision and verify unchanged affected dependencies and effective conditions. Refresh affected evidence on material drift; unrelated changes alone do not require rerunning proven checks. Stale cache or artifacts whose relevant conditions no longer hold cannot establish current closure.
 
 ## 27. Easy + Proven + Local First
 
@@ -2497,8 +2527,9 @@ Residual cleanup crosses a classified residual-boundary record
 UI requires an unverified status, action, KPI, or workflow
 New business semantics would need to be invented
 Business semantic proof is insufficient or only derived from implementation/tests
-Execution environment cannot satisfy the test contract
-Verification evidence is stale or unavailable
+No authorized safe route exists for the dependent action
 ```
+
+An environment/tool failure or missing/stale evidence holds only the action or completion claim that depends on it. Select another authorized route or refresh affected proof while continuing safe in-scope work. Do not promote missing evidence to PASS or let an unrelated audit stop the whole goal.
 
 Report the implementation decision separately from [verification results](#verification-results-and-applicability). Use the applicable decision/finding label, such as `DEFER`, `HELD`, `HOTSPOT`, or `UNVERIFIED`; identify any `BLOCKED` or `NOT_PROVEN` verification and its cause. Do not claim PASS without executed evidence.

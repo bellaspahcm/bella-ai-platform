@@ -1,0 +1,11 @@
+{
+  "mode": "lint",
+  "command": "C:\\Program Files\\nodejs\\node.exe node_modules/eslint/bin/eslint.js src/app/api/education/courses/route.ts src/app/api/education/courses/[id]/route.ts src/app/api/education/courses/request-context.ts src/app/api/education/courses/__tests__/route.test.ts src/app/api/education/courses/__tests__/access.test.ts",
+  "startedAt": "2026-10-20T20:23:47.215Z",
+  "finishedAt": "2026-10-20T20:23:50.555Z",
+  "exitCode": 0,
+  "signal": null,
+  "errorCode": null,
+  "networkConfig": "Process-scoped offline localhost endpoint and synthetic keys; no production DB business tests",
+  "rawLog": "lint.log"
+}

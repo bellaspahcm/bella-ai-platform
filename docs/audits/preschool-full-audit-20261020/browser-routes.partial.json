@@ -1,0 +1,1750 @@
+{
+  "authMode": "Development mock_user_email cookie; not real Auth",
+  "routes": [
+    {
+      "route": "/dashboard/education/attendance",
+      "status": 200,
+      "finalPath": "/dashboard/education/attendance",
+      "heading": [
+        "Điểm Danh & Đưa Đón Bé An Toàn"
+      ],
+      "tabs": [],
+      "loginForm": false,
+      "mainPresent": true,
+      "overflow": false,
+      "buttonCount": 13,
+      "truthNotices": [],
+      "educationResponses": [],
+      "errors": [],
+      "blockedMutations": [
+        {
+          "path": "/monitoring",
+          "method": "POST",
+          "action": "unknown"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST",
+          "action": "unknown"
+        },
+        {
+          "path": "/dashboard/education/attendance",
+          "method": "POST",
+          "action": "getDashboardWidgetAlerts"
+        },
+        {
+          "path": "/dashboard/education/attendance",
+          "method": "POST",
+          "action": "getDashboardWidgetAlerts"
+        },
+        {
+          "path": "/dashboard/education/attendance",
+          "method": "POST",
+          "action": "getDashboardWidgetAlerts"
+        },
+        {
+          "path": "/dashboard/education/attendance",
+          "method": "POST",
+          "action": "getDashboardWidgetAlerts"
+        }
+      ]
+    },
+    {
+      "route": "/dashboard/education/care",
+      "status": 200,
+      "finalPath": "/dashboard/education/care",
+      "heading": [
+        "Chăm sóc & Nuôi dưỡng"
+      ],
+      "tabs": [],
+      "loginForm": false,
+      "mainPresent": true,
+      "overflow": false,
+      "buttonCount": 18,
+      "truthNotices": [],
+      "educationResponses": [],
+      "errors": [],
+      "blockedMutations": [
+        {
+          "path": "/monitoring",
+          "method": "POST",
+          "action": "unknown"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST",
+          "action": "unknown"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST",
+          "action": "unknown"
+        },
+        {
+          "path": "/dashboard/education/care",
+          "method": "POST",
+          "action": "getDashboardWidgetAlerts"
+        },
+        {
+          "path": "/dashboard/education/care",
+          "method": "POST",
+          "action": "getDashboardWidgetAlerts"
+        },
+        {
+          "path": "/dashboard/education/care",
+          "method": "POST",
+          "action": "getDashboardWidgetAlerts"
+        },
+        {
+          "path": "/dashboard/education/care",
+          "method": "POST",
+          "action": "getDashboardWidgetAlerts"
+        }
+      ]
+    },
+    {
+      "route": "/dashboard/education/communication",
+      "status": 200,
+      "finalPath": "/dashboard/education/communication",
+      "heading": [
+        "Truyền thông & Phụ huynh"
+      ],
+      "tabs": [],
+      "loginForm": false,
+      "mainPresent": true,
+      "overflow": false,
+      "buttonCount": 41,
+      "truthNotices": [],
+      "educationResponses": [],
+      "errors": [],
+      "blockedMutations": [
+        {
+          "path": "/monitoring",
+          "method": "POST",
+          "action": "unknown"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST",
+          "action": "unknown"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST",
+          "action": "unknown"
+        },
+        {
+          "path": "/dashboard/education/communication",
+          "method": "POST",
+          "action": "getDashboardWidgetAlerts"
+        },
+        {
+          "path": "/dashboard/education/communication",
+          "method": "POST",
+          "action": "getDashboardWidgetAlerts"
+        },
+        {
+          "path": "/dashboard/education/communication",
+          "method": "POST",
+          "action": "getDashboardWidgetAlerts"
+        },
+        {
+          "path": "/dashboard/education/communication",
+          "method": "POST",
+          "action": "getDashboardWidgetAlerts"
+        }
+      ]
+    },
+    {
+      "route": "/dashboard/education/courses",
+      "status": 200,
+      "finalPath": "/dashboard/education/courses",
+      "heading": [
+        "Quản lý lớp học"
+      ],
+      "tabs": [],
+      "loginForm": false,
+      "mainPresent": true,
+      "overflow": false,
+      "buttonCount": 16,
+      "truthNotices": [],
+      "educationResponses": [],
+      "errors": [],
+      "blockedMutations": [
+        {
+          "path": "/monitoring",
+          "method": "POST",
+          "action": "unknown"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST",
+          "action": "unknown"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST",
+          "action": "unknown"
+        },
+        {
+          "path": "/dashboard/education/courses",
+          "method": "POST",
+          "action": "getDashboardWidgetAlerts"
+        },
+        {
+          "path": "/dashboard/education/courses",
+          "method": "POST",
+          "action": "getDashboardWidgetAlerts"
+        },
+        {
+          "path": "/dashboard/education/courses",
+          "method": "POST",
+          "action": "getDashboardWidgetAlerts"
+        },
+        {
+          "path": "/dashboard/education/courses",
+          "method": "POST",
+          "action": "getDashboardWidgetAlerts"
+        }
+      ]
+    },
+    {
+      "route": "/dashboard/education/courses/00000000-0000-4000-8000-000000000099",
+      "status": 200,
+      "finalPath": "/dashboard/education/courses/00000000-0000-4000-8000-000000000099",
+      "heading": [
+        "Lớp Mầm A1 — Họa Mi — Workspace 360°"
+      ],
+      "tabs": [],
+      "loginForm": false,
+      "mainPresent": true,
+      "overflow": false,
+      "buttonCount": 14,
+      "truthNotices": [],
+      "educationResponses": [
+        {
+          "path": "/api/education/courses/00000000-0000-4000-8000-000000000099",
+          "status": 404
+        },
+        {
+          "path": "/api/education/courses/00000000-0000-4000-8000-000000000099",
+          "status": 404
+        }
+      ],
+      "errors": [],
+      "blockedMutations": [
+        {
+          "path": "/monitoring",
+          "method": "POST",
+          "action": "unknown"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST",
+          "action": "unknown"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST",
+          "action": "unknown"
+        },
+        {
+          "path": "/dashboard/education/courses/00000000-0000-4000-8000-000000000099",
+          "method": "POST",
+          "action": "getDashboardWidgetAlerts"
+        },
+        {
+          "path": "/dashboard/education/courses/00000000-0000-4000-8000-000000000099",
+          "method": "POST",
+          "action": "getDashboardWidgetAlerts"
+        },
+        {
+          "path": "/dashboard/education/courses/00000000-0000-4000-8000-000000000099",
+          "method": "POST",
+          "action": "getDashboardWidgetAlerts"
+        },
+        {
+          "path": "/dashboard/education/courses/00000000-0000-4000-8000-000000000099",
+          "method": "POST",
+          "action": "getDashboardWidgetAlerts"
+        }
+      ]
+    },
+    {
+      "route": "/dashboard/education/enrollments",
+      "status": 200,
+      "finalPath": "/dashboard/education/enrollments",
+      "heading": [
+        "Quản Lý Trẻ"
+      ],
+      "tabs": [],
+      "loginForm": false,
+      "mainPresent": true,
+      "overflow": false,
+      "buttonCount": 41,
+      "truthNotices": [],
+      "educationResponses": [
+        {
+          "path": "/api/education/enrollments",
+          "status": 200
+        },
+        {
+          "path": "/api/education/enrollments",
+          "status": 200
+        }
+      ],
+      "errors": [],
+      "blockedMutations": [
+        {
+          "path": "/monitoring",
+          "method": "POST",
+          "action": "unknown"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST",
+          "action": "unknown"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST",
+          "action": "unknown"
+        },
+        {
+          "path": "/dashboard/education/enrollments",
+          "method": "POST",
+          "action": "getDashboardWidgetAlerts"
+        },
+        {
+          "path": "/dashboard/education/enrollments",
+          "method": "POST",
+          "action": "getDashboardWidgetAlerts"
+        },
+        {
+          "path": "/dashboard/education/enrollments",
+          "method": "POST",
+          "action": "getDashboardWidgetAlerts"
+        },
+        {
+          "path": "/dashboard/education/enrollments",
+          "method": "POST",
+          "action": "getDashboardWidgetAlerts"
+        }
+      ]
+    },
+    {
+      "route": "/dashboard/education/enrollments/00000000-0000-4000-8000-000000000099",
+      "status": 200,
+      "finalPath": "/dashboard/education/enrollments/00000000-0000-4000-8000-000000000099",
+      "heading": [
+        "Học sinh 00000000-0000-4000-8000-000000000099"
+      ],
+      "tabs": [],
+      "loginForm": false,
+      "mainPresent": true,
+      "overflow": false,
+      "buttonCount": 24,
+      "truthNotices": [],
+      "educationResponses": [],
+      "errors": [],
+      "blockedMutations": [
+        {
+          "path": "/monitoring",
+          "method": "POST",
+          "action": "unknown"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST",
+          "action": "unknown"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST",
+          "action": "unknown"
+        },
+        {
+          "path": "/dashboard/education/enrollments/00000000-0000-4000-8000-000000000099",
+          "method": "POST",
+          "action": "getDashboardWidgetAlerts"
+        },
+        {
+          "path": "/dashboard/education/enrollments/00000000-0000-4000-8000-000000000099",
+          "method": "POST",
+          "action": "getDashboardWidgetAlerts"
+        },
+        {
+          "path": "/dashboard/education/enrollments/00000000-0000-4000-8000-000000000099",
+          "method": "POST",
+          "action": "getDashboardWidgetAlerts"
+        },
+        {
+          "path": "/dashboard/education/enrollments/00000000-0000-4000-8000-000000000099",
+          "method": "POST",
+          "action": "getDashboardWidgetAlerts"
+        }
+      ]
+    },
+    {
+      "route": "/dashboard/education/facilities",
+      "status": 200,
+      "finalPath": "/dashboard/education/facilities",
+      "heading": [
+        "Cơ sở vật chất & Tài sảnP9 Preschool Facilities & Asset Maintenance OS"
+      ],
+      "tabs": [],
+      "loginForm": false,
+      "mainPresent": true,
+      "overflow": false,
+      "buttonCount": 44,
+      "truthNotices": [],
+      "educationResponses": [],
+      "errors": [],
+      "blockedMutations": [
+        {
+          "path": "/monitoring",
+          "method": "POST",
+          "action": "unknown"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST",
+          "action": "unknown"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST",
+          "action": "unknown"
+        },
+        {
+          "path": "/dashboard/education/facilities",
+          "method": "POST",
+          "action": "getDashboardWidgetAlerts"
+        },
+        {
+          "path": "/dashboard/education/facilities",
+          "method": "POST",
+          "action": "getDashboardWidgetAlerts"
+        },
+        {
+          "path": "/dashboard/education/facilities",
+          "method": "POST",
+          "action": "getDashboardWidgetAlerts"
+        },
+        {
+          "path": "/dashboard/education/facilities",
+          "method": "POST",
+          "action": "getDashboardWidgetAlerts"
+        }
+      ]
+    },
+    {
+      "route": "/dashboard/education/finance",
+      "status": 200,
+      "finalPath": "/dashboard/education/finance",
+      "heading": [
+        "Tài chính & Học phíPreschool Finance Operating Kernel (P7)"
+      ],
+      "tabs": [],
+      "loginForm": false,
+      "mainPresent": true,
+      "overflow": false,
+      "buttonCount": 85,
+      "truthNotices": [],
+      "educationResponses": [
+        {
+          "path": "/api/education/finance",
+          "status": 200
+        },
+        {
+          "path": "/api/education/finance",
+          "status": 200
+        }
+      ],
+      "errors": [],
+      "blockedMutations": [
+        {
+          "path": "/monitoring",
+          "method": "POST",
+          "action": "unknown"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST",
+          "action": "unknown"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST",
+          "action": "unknown"
+        },
+        {
+          "path": "/dashboard/education/finance",
+          "method": "POST",
+          "action": "getDashboardWidgetAlerts"
+        },
+        {
+          "path": "/dashboard/education/finance",
+          "method": "POST",
+          "action": "getDashboardWidgetAlerts"
+        },
+        {
+          "path": "/dashboard/education/finance",
+          "method": "POST",
+          "action": "getDashboardWidgetAlerts"
+        },
+        {
+          "path": "/dashboard/education/finance",
+          "method": "POST",
+          "action": "getDashboardWidgetAlerts"
+        }
+      ]
+    },
+    {
+      "route": "/dashboard/education/grades",
+      "status": 200,
+      "finalPath": "/dashboard/education/grades",
+      "heading": [
+        "Học Tập & Phát Triển Mầm Non"
+      ],
+      "tabs": [],
+      "loginForm": false,
+      "mainPresent": true,
+      "overflow": false,
+      "buttonCount": 38,
+      "truthNotices": [],
+      "educationResponses": [],
+      "errors": [],
+      "blockedMutations": [
+        {
+          "path": "/monitoring",
+          "method": "POST",
+          "action": "unknown"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST",
+          "action": "unknown"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST",
+          "action": "unknown"
+        },
+        {
+          "path": "/dashboard/education/grades",
+          "method": "POST",
+          "action": "getDashboardWidgetAlerts"
+        },
+        {
+          "path": "/dashboard/education/grades",
+          "method": "POST",
+          "action": "getDashboardWidgetAlerts"
+        },
+        {
+          "path": "/dashboard/education/grades",
+          "method": "POST",
+          "action": "getDashboardWidgetAlerts"
+        },
+        {
+          "path": "/dashboard/education/grades",
+          "method": "POST",
+          "action": "getDashboardWidgetAlerts"
+        }
+      ]
+    },
+    {
+      "route": "/dashboard/education/learning",
+      "status": 200,
+      "finalPath": "/dashboard/education/learning",
+      "heading": [
+        "Learning Command Center — Lớp Mầm A"
+      ],
+      "tabs": [],
+      "loginForm": false,
+      "mainPresent": true,
+      "overflow": false,
+      "buttonCount": 15,
+      "truthNotices": [],
+      "educationResponses": [],
+      "errors": [],
+      "blockedMutations": [
+        {
+          "path": "/monitoring",
+          "method": "POST",
+          "action": "unknown"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST",
+          "action": "unknown"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST",
+          "action": "unknown"
+        },
+        {
+          "path": "/dashboard/education/learning",
+          "method": "POST",
+          "action": "getDashboardWidgetAlerts"
+        },
+        {
+          "path": "/dashboard/education/learning",
+          "method": "POST",
+          "action": "getDashboardWidgetAlerts"
+        },
+        {
+          "path": "/dashboard/education/learning",
+          "method": "POST",
+          "action": "getDashboardWidgetAlerts"
+        },
+        {
+          "path": "/dashboard/education/learning",
+          "method": "POST",
+          "action": "getDashboardWidgetAlerts"
+        }
+      ]
+    },
+    {
+      "route": "/dashboard/education/my-class",
+      "status": 200,
+      "finalPath": "/dashboard/education/my-class",
+      "heading": [
+        "Chào buổi sáng, Cô Nguyễn Thị Mai!"
+      ],
+      "tabs": [],
+      "loginForm": false,
+      "mainPresent": true,
+      "overflow": false,
+      "buttonCount": 43,
+      "truthNotices": [],
+      "educationResponses": [],
+      "errors": [],
+      "blockedMutations": [
+        {
+          "path": "/monitoring",
+          "method": "POST",
+          "action": "unknown"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST",
+          "action": "unknown"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST",
+          "action": "unknown"
+        },
+        {
+          "path": "/dashboard/education/my-class",
+          "method": "POST",
+          "action": "getDashboardWidgetAlerts"
+        },
+        {
+          "path": "/dashboard/education/my-class",
+          "method": "POST",
+          "action": "getDashboardWidgetAlerts"
+        },
+        {
+          "path": "/dashboard/education/my-class",
+          "method": "POST",
+          "action": "getDashboardWidgetAlerts"
+        },
+        {
+          "path": "/dashboard/education/my-class",
+          "method": "POST",
+          "action": "getDashboardWidgetAlerts"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST",
+          "action": "unknown"
+        }
+      ]
+    },
+    {
+      "route": "/dashboard/education",
+      "status": 200,
+      "finalPath": "/dashboard/education",
+      "heading": [
+        "Chào mừng bạn trở lại!"
+      ],
+      "tabs": [],
+      "loginForm": false,
+      "mainPresent": true,
+      "overflow": false,
+      "buttonCount": 17,
+      "truthNotices": [],
+      "educationResponses": [],
+      "errors": [],
+      "blockedMutations": [
+        {
+          "path": "/monitoring",
+          "method": "POST",
+          "action": "unknown"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST",
+          "action": "unknown"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST",
+          "action": "unknown"
+        },
+        {
+          "path": "/dashboard/education",
+          "method": "POST",
+          "action": "getDashboardWidgetAlerts"
+        },
+        {
+          "path": "/dashboard/education",
+          "method": "POST",
+          "action": "getDashboardWidgetAlerts"
+        },
+        {
+          "path": "/dashboard/education",
+          "method": "POST",
+          "action": "getDashboardWidgetAlerts"
+        },
+        {
+          "path": "/dashboard/education",
+          "method": "POST",
+          "action": "getDashboardWidgetAlerts"
+        }
+      ]
+    },
+    {
+      "route": "/dashboard/education/parent-inbox",
+      "status": 200,
+      "finalPath": "/dashboard/education/parent-inbox",
+      "heading": [
+        "Parent Daily Experience - Nhật Ký Hôm Nay"
+      ],
+      "tabs": [],
+      "loginForm": false,
+      "mainPresent": true,
+      "overflow": false,
+      "buttonCount": 9,
+      "truthNotices": [],
+      "educationResponses": [
+        {
+          "path": "/api/education/analytics",
+          "status": 200
+        },
+        {
+          "path": "/api/education/analytics",
+          "status": 200
+        },
+        {
+          "path": "/api/education/parent-daily",
+          "status": 503
+        },
+        {
+          "path": "/api/education/parent-daily",
+          "status": 503
+        }
+      ],
+      "errors": [],
+      "blockedMutations": [
+        {
+          "path": "/monitoring",
+          "method": "POST",
+          "action": "unknown"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST",
+          "action": "unknown"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST",
+          "action": "unknown"
+        },
+        {
+          "path": "/dashboard/education/parent-inbox",
+          "method": "POST",
+          "action": "getDashboardWidgetAlerts"
+        },
+        {
+          "path": "/dashboard/education/parent-inbox",
+          "method": "POST",
+          "action": "getDashboardWidgetAlerts"
+        },
+        {
+          "path": "/dashboard/education/parent-inbox",
+          "method": "POST",
+          "action": "getDashboardWidgetAlerts"
+        },
+        {
+          "path": "/dashboard/education/parent-inbox",
+          "method": "POST",
+          "action": "getDashboardWidgetAlerts"
+        }
+      ]
+    },
+    {
+      "route": "/dashboard/education/reports",
+      "status": 200,
+      "finalPath": "/dashboard/education/reports",
+      "heading": [
+        "Báo cáo & Phân tích điều hành"
+      ],
+      "tabs": [],
+      "loginForm": false,
+      "mainPresent": true,
+      "overflow": false,
+      "buttonCount": 24,
+      "truthNotices": [],
+      "educationResponses": [],
+      "errors": [],
+      "blockedMutations": [
+        {
+          "path": "/monitoring",
+          "method": "POST",
+          "action": "unknown"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST",
+          "action": "unknown"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST",
+          "action": "unknown"
+        },
+        {
+          "path": "/dashboard/education/reports",
+          "method": "POST",
+          "action": "getDashboardWidgetAlerts"
+        },
+        {
+          "path": "/dashboard/education/reports",
+          "method": "POST",
+          "action": "getDashboardWidgetAlerts"
+        },
+        {
+          "path": "/dashboard/education/reports",
+          "method": "POST",
+          "action": "getDashboardWidgetAlerts"
+        },
+        {
+          "path": "/dashboard/education/reports",
+          "method": "POST",
+          "action": "getDashboardWidgetAlerts"
+        }
+      ]
+    },
+    {
+      "route": "/dashboard/education/scheduling",
+      "status": 200,
+      "finalPath": "/dashboard/education/scheduling",
+      "heading": [
+        "P8 Preschool Staff Scheduling & Shift Management"
+      ],
+      "tabs": [],
+      "loginForm": false,
+      "mainPresent": true,
+      "overflow": false,
+      "buttonCount": 13,
+      "truthNotices": [],
+      "educationResponses": [
+        {
+          "path": "/api/education/analytics",
+          "status": 200
+        },
+        {
+          "path": "/api/education/analytics",
+          "status": 200
+        }
+      ],
+      "errors": [],
+      "blockedMutations": [
+        {
+          "path": "/monitoring",
+          "method": "POST",
+          "action": "unknown"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST",
+          "action": "unknown"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST",
+          "action": "unknown"
+        },
+        {
+          "path": "/dashboard/education/scheduling",
+          "method": "POST",
+          "action": "getDashboardWidgetAlerts"
+        },
+        {
+          "path": "/dashboard/education/scheduling",
+          "method": "POST",
+          "action": "getDashboardWidgetAlerts"
+        },
+        {
+          "path": "/dashboard/education/scheduling",
+          "method": "POST",
+          "action": "getDashboardWidgetAlerts"
+        },
+        {
+          "path": "/dashboard/education/scheduling",
+          "method": "POST",
+          "action": "getDashboardWidgetAlerts"
+        }
+      ]
+    },
+    {
+      "route": "/dashboard/education/teachers",
+      "status": 200,
+      "finalPath": "/dashboard/education/teachers",
+      "heading": [
+        "Đội Ngũ Giáo Viên Mầm Non"
+      ],
+      "tabs": [],
+      "loginForm": false,
+      "mainPresent": true,
+      "overflow": false,
+      "buttonCount": 28,
+      "truthNotices": [],
+      "educationResponses": [],
+      "errors": [],
+      "blockedMutations": [
+        {
+          "path": "/monitoring",
+          "method": "POST",
+          "action": "unknown"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST",
+          "action": "unknown"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST",
+          "action": "unknown"
+        },
+        {
+          "path": "/dashboard/education/teachers",
+          "method": "POST",
+          "action": "getDashboardWidgetAlerts"
+        },
+        {
+          "path": "/dashboard/education/teachers",
+          "method": "POST",
+          "action": "getDashboardWidgetAlerts"
+        },
+        {
+          "path": "/dashboard/education/teachers",
+          "method": "POST",
+          "action": "getDashboardWidgetAlerts"
+        },
+        {
+          "path": "/dashboard/education/teachers",
+          "method": "POST",
+          "action": "getDashboardWidgetAlerts"
+        }
+      ]
+    },
+    {
+      "route": "/dashboard/education/teachers/00000000-0000-4000-8000-000000000099",
+      "status": 200,
+      "finalPath": "/dashboard/education/teachers/00000000-0000-4000-8000-000000000099",
+      "heading": [
+        "Cô Giáo Viên Mầm Non"
+      ],
+      "tabs": [],
+      "loginForm": false,
+      "mainPresent": true,
+      "overflow": false,
+      "buttonCount": 15,
+      "truthNotices": [],
+      "educationResponses": [],
+      "errors": [],
+      "blockedMutations": [
+        {
+          "path": "/monitoring",
+          "method": "POST",
+          "action": "unknown"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST",
+          "action": "unknown"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST",
+          "action": "unknown"
+        },
+        {
+          "path": "/dashboard/education/teachers/00000000-0000-4000-8000-000000000099",
+          "method": "POST",
+          "action": "getDashboardWidgetAlerts"
+        },
+        {
+          "path": "/dashboard/education/teachers/00000000-0000-4000-8000-000000000099",
+          "method": "POST",
+          "action": "getDashboardWidgetAlerts"
+        },
+        {
+          "path": "/dashboard/education/teachers/00000000-0000-4000-8000-000000000099",
+          "method": "POST",
+          "action": "getDashboardWidgetAlerts"
+        },
+        {
+          "path": "/dashboard/education/teachers/00000000-0000-4000-8000-000000000099",
+          "method": "POST",
+          "action": "getDashboardWidgetAlerts"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST",
+          "action": "unknown"
+        }
+      ]
+    },
+    {
+      "route": "/dashboard/education/work-queue",
+      "status": 200,
+      "finalPath": "/dashboard/education/work-queue",
+      "heading": [
+        "Xử lý yêu cầu và sự cố"
+      ],
+      "tabs": [],
+      "loginForm": false,
+      "mainPresent": true,
+      "overflow": false,
+      "buttonCount": 10,
+      "truthNotices": [
+        "Workspace này chỉ dành cho Preschool đang hoạt động."
+      ],
+      "educationResponses": [
+        {
+          "path": "/api/education/work-queue",
+          "status": 403
+        }
+      ],
+      "errors": [],
+      "blockedMutations": [
+        {
+          "path": "/monitoring",
+          "method": "POST",
+          "action": "unknown"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST",
+          "action": "unknown"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST",
+          "action": "unknown"
+        },
+        {
+          "path": "/dashboard/education/work-queue",
+          "method": "POST",
+          "action": "getDashboardWidgetAlerts"
+        },
+        {
+          "path": "/dashboard/education/work-queue",
+          "method": "POST",
+          "action": "getDashboardWidgetAlerts"
+        },
+        {
+          "path": "/dashboard/education/work-queue",
+          "method": "POST",
+          "action": "getDashboardWidgetAlerts"
+        },
+        {
+          "path": "/dashboard/education/work-queue",
+          "method": "POST",
+          "action": "getDashboardWidgetAlerts"
+        }
+      ]
+    }
+  ],
+  "blocked": [
+    {
+      "path": "/monitoring",
+      "method": "POST",
+      "action": "unknown"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST",
+      "action": "unknown"
+    },
+    {
+      "path": "/dashboard/education/attendance",
+      "method": "POST",
+      "action": "getDashboardWidgetAlerts"
+    },
+    {
+      "path": "/dashboard/education/attendance",
+      "method": "POST",
+      "action": "getDashboardWidgetAlerts"
+    },
+    {
+      "path": "/dashboard/education/attendance",
+      "method": "POST",
+      "action": "getDashboardWidgetAlerts"
+    },
+    {
+      "path": "/dashboard/education/attendance",
+      "method": "POST",
+      "action": "getDashboardWidgetAlerts"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST",
+      "action": "unknown"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST",
+      "action": "unknown"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST",
+      "action": "unknown"
+    },
+    {
+      "path": "/dashboard/education/care",
+      "method": "POST",
+      "action": "getDashboardWidgetAlerts"
+    },
+    {
+      "path": "/dashboard/education/care",
+      "method": "POST",
+      "action": "getDashboardWidgetAlerts"
+    },
+    {
+      "path": "/dashboard/education/care",
+      "method": "POST",
+      "action": "getDashboardWidgetAlerts"
+    },
+    {
+      "path": "/dashboard/education/care",
+      "method": "POST",
+      "action": "getDashboardWidgetAlerts"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST",
+      "action": "unknown"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST",
+      "action": "unknown"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST",
+      "action": "unknown"
+    },
+    {
+      "path": "/dashboard/education/communication",
+      "method": "POST",
+      "action": "getDashboardWidgetAlerts"
+    },
+    {
+      "path": "/dashboard/education/communication",
+      "method": "POST",
+      "action": "getDashboardWidgetAlerts"
+    },
+    {
+      "path": "/dashboard/education/communication",
+      "method": "POST",
+      "action": "getDashboardWidgetAlerts"
+    },
+    {
+      "path": "/dashboard/education/communication",
+      "method": "POST",
+      "action": "getDashboardWidgetAlerts"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST",
+      "action": "unknown"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST",
+      "action": "unknown"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST",
+      "action": "unknown"
+    },
+    {
+      "path": "/dashboard/education/courses",
+      "method": "POST",
+      "action": "getDashboardWidgetAlerts"
+    },
+    {
+      "path": "/dashboard/education/courses",
+      "method": "POST",
+      "action": "getDashboardWidgetAlerts"
+    },
+    {
+      "path": "/dashboard/education/courses",
+      "method": "POST",
+      "action": "getDashboardWidgetAlerts"
+    },
+    {
+      "path": "/dashboard/education/courses",
+      "method": "POST",
+      "action": "getDashboardWidgetAlerts"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST",
+      "action": "unknown"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST",
+      "action": "unknown"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST",
+      "action": "unknown"
+    },
+    {
+      "path": "/dashboard/education/courses/00000000-0000-4000-8000-000000000099",
+      "method": "POST",
+      "action": "getDashboardWidgetAlerts"
+    },
+    {
+      "path": "/dashboard/education/courses/00000000-0000-4000-8000-000000000099",
+      "method": "POST",
+      "action": "getDashboardWidgetAlerts"
+    },
+    {
+      "path": "/dashboard/education/courses/00000000-0000-4000-8000-000000000099",
+      "method": "POST",
+      "action": "getDashboardWidgetAlerts"
+    },
+    {
+      "path": "/dashboard/education/courses/00000000-0000-4000-8000-000000000099",
+      "method": "POST",
+      "action": "getDashboardWidgetAlerts"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST",
+      "action": "unknown"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST",
+      "action": "unknown"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST",
+      "action": "unknown"
+    },
+    {
+      "path": "/dashboard/education/enrollments",
+      "method": "POST",
+      "action": "getDashboardWidgetAlerts"
+    },
+    {
+      "path": "/dashboard/education/enrollments",
+      "method": "POST",
+      "action": "getDashboardWidgetAlerts"
+    },
+    {
+      "path": "/dashboard/education/enrollments",
+      "method": "POST",
+      "action": "getDashboardWidgetAlerts"
+    },
+    {
+      "path": "/dashboard/education/enrollments",
+      "method": "POST",
+      "action": "getDashboardWidgetAlerts"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST",
+      "action": "unknown"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST",
+      "action": "unknown"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST",
+      "action": "unknown"
+    },
+    {
+      "path": "/dashboard/education/enrollments/00000000-0000-4000-8000-000000000099",
+      "method": "POST",
+      "action": "getDashboardWidgetAlerts"
+    },
+    {
+      "path": "/dashboard/education/enrollments/00000000-0000-4000-8000-000000000099",
+      "method": "POST",
+      "action": "getDashboardWidgetAlerts"
+    },
+    {
+      "path": "/dashboard/education/enrollments/00000000-0000-4000-8000-000000000099",
+      "method": "POST",
+      "action": "getDashboardWidgetAlerts"
+    },
+    {
+      "path": "/dashboard/education/enrollments/00000000-0000-4000-8000-000000000099",
+      "method": "POST",
+      "action": "getDashboardWidgetAlerts"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST",
+      "action": "unknown"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST",
+      "action": "unknown"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST",
+      "action": "unknown"
+    },
+    {
+      "path": "/dashboard/education/facilities",
+      "method": "POST",
+      "action": "getDashboardWidgetAlerts"
+    },
+    {
+      "path": "/dashboard/education/facilities",
+      "method": "POST",
+      "action": "getDashboardWidgetAlerts"
+    },
+    {
+      "path": "/dashboard/education/facilities",
+      "method": "POST",
+      "action": "getDashboardWidgetAlerts"
+    },
+    {
+      "path": "/dashboard/education/facilities",
+      "method": "POST",
+      "action": "getDashboardWidgetAlerts"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST",
+      "action": "unknown"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST",
+      "action": "unknown"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST",
+      "action": "unknown"
+    },
+    {
+      "path": "/dashboard/education/finance",
+      "method": "POST",
+      "action": "getDashboardWidgetAlerts"
+    },
+    {
+      "path": "/dashboard/education/finance",
+      "method": "POST",
+      "action": "getDashboardWidgetAlerts"
+    },
+    {
+      "path": "/dashboard/education/finance",
+      "method": "POST",
+      "action": "getDashboardWidgetAlerts"
+    },
+    {
+      "path": "/dashboard/education/finance",
+      "method": "POST",
+      "action": "getDashboardWidgetAlerts"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST",
+      "action": "unknown"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST",
+      "action": "unknown"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST",
+      "action": "unknown"
+    },
+    {
+      "path": "/dashboard/education/grades",
+      "method": "POST",
+      "action": "getDashboardWidgetAlerts"
+    },
+    {
+      "path": "/dashboard/education/grades",
+      "method": "POST",
+      "action": "getDashboardWidgetAlerts"
+    },
+    {
+      "path": "/dashboard/education/grades",
+      "method": "POST",
+      "action": "getDashboardWidgetAlerts"
+    },
+    {
+      "path": "/dashboard/education/grades",
+      "method": "POST",
+      "action": "getDashboardWidgetAlerts"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST",
+      "action": "unknown"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST",
+      "action": "unknown"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST",
+      "action": "unknown"
+    },
+    {
+      "path": "/dashboard/education/learning",
+      "method": "POST",
+      "action": "getDashboardWidgetAlerts"
+    },
+    {
+      "path": "/dashboard/education/learning",
+      "method": "POST",
+      "action": "getDashboardWidgetAlerts"
+    },
+    {
+      "path": "/dashboard/education/learning",
+      "method": "POST",
+      "action": "getDashboardWidgetAlerts"
+    },
+    {
+      "path": "/dashboard/education/learning",
+      "method": "POST",
+      "action": "getDashboardWidgetAlerts"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST",
+      "action": "unknown"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST",
+      "action": "unknown"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST",
+      "action": "unknown"
+    },
+    {
+      "path": "/dashboard/education/my-class",
+      "method": "POST",
+      "action": "getDashboardWidgetAlerts"
+    },
+    {
+      "path": "/dashboard/education/my-class",
+      "method": "POST",
+      "action": "getDashboardWidgetAlerts"
+    },
+    {
+      "path": "/dashboard/education/my-class",
+      "method": "POST",
+      "action": "getDashboardWidgetAlerts"
+    },
+    {
+      "path": "/dashboard/education/my-class",
+      "method": "POST",
+      "action": "getDashboardWidgetAlerts"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST",
+      "action": "unknown"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST",
+      "action": "unknown"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST",
+      "action": "unknown"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST",
+      "action": "unknown"
+    },
+    {
+      "path": "/dashboard/education",
+      "method": "POST",
+      "action": "getDashboardWidgetAlerts"
+    },
+    {
+      "path": "/dashboard/education",
+      "method": "POST",
+      "action": "getDashboardWidgetAlerts"
+    },
+    {
+      "path": "/dashboard/education",
+      "method": "POST",
+      "action": "getDashboardWidgetAlerts"
+    },
+    {
+      "path": "/dashboard/education",
+      "method": "POST",
+      "action": "getDashboardWidgetAlerts"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST",
+      "action": "unknown"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST",
+      "action": "unknown"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST",
+      "action": "unknown"
+    },
+    {
+      "path": "/dashboard/education/parent-inbox",
+      "method": "POST",
+      "action": "getDashboardWidgetAlerts"
+    },
+    {
+      "path": "/dashboard/education/parent-inbox",
+      "method": "POST",
+      "action": "getDashboardWidgetAlerts"
+    },
+    {
+      "path": "/dashboard/education/parent-inbox",
+      "method": "POST",
+      "action": "getDashboardWidgetAlerts"
+    },
+    {
+      "path": "/dashboard/education/parent-inbox",
+      "method": "POST",
+      "action": "getDashboardWidgetAlerts"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST",
+      "action": "unknown"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST",
+      "action": "unknown"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST",
+      "action": "unknown"
+    },
+    {
+      "path": "/dashboard/education/reports",
+      "method": "POST",
+      "action": "getDashboardWidgetAlerts"
+    },
+    {
+      "path": "/dashboard/education/reports",
+      "method": "POST",
+      "action": "getDashboardWidgetAlerts"
+    },
+    {
+      "path": "/dashboard/education/reports",
+      "method": "POST",
+      "action": "getDashboardWidgetAlerts"
+    },
+    {
+      "path": "/dashboard/education/reports",
+      "method": "POST",
+      "action": "getDashboardWidgetAlerts"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST",
+      "action": "unknown"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST",
+      "action": "unknown"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST",
+      "action": "unknown"
+    },
+    {
+      "path": "/dashboard/education/scheduling",
+      "method": "POST",
+      "action": "getDashboardWidgetAlerts"
+    },
+    {
+      "path": "/dashboard/education/scheduling",
+      "method": "POST",
+      "action": "getDashboardWidgetAlerts"
+    },
+    {
+      "path": "/dashboard/education/scheduling",
+      "method": "POST",
+      "action": "getDashboardWidgetAlerts"
+    },
+    {
+      "path": "/dashboard/education/scheduling",
+      "method": "POST",
+      "action": "getDashboardWidgetAlerts"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST",
+      "action": "unknown"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST",
+      "action": "unknown"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST",
+      "action": "unknown"
+    },
+    {
+      "path": "/dashboard/education/teachers",
+      "method": "POST",
+      "action": "getDashboardWidgetAlerts"
+    },
+    {
+      "path": "/dashboard/education/teachers",
+      "method": "POST",
+      "action": "getDashboardWidgetAlerts"
+    },
+    {
+      "path": "/dashboard/education/teachers",
+      "method": "POST",
+      "action": "getDashboardWidgetAlerts"
+    },
+    {
+      "path": "/dashboard/education/teachers",
+      "method": "POST",
+      "action": "getDashboardWidgetAlerts"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST",
+      "action": "unknown"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST",
+      "action": "unknown"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST",
+      "action": "unknown"
+    },
+    {
+      "path": "/dashboard/education/teachers/00000000-0000-4000-8000-000000000099",
+      "method": "POST",
+      "action": "getDashboardWidgetAlerts"
+    },
+    {
+      "path": "/dashboard/education/teachers/00000000-0000-4000-8000-000000000099",
+      "method": "POST",
+      "action": "getDashboardWidgetAlerts"
+    },
+    {
+      "path": "/dashboard/education/teachers/00000000-0000-4000-8000-000000000099",
+      "method": "POST",
+      "action": "getDashboardWidgetAlerts"
+    },
+    {
+      "path": "/dashboard/education/teachers/00000000-0000-4000-8000-000000000099",
+      "method": "POST",
+      "action": "getDashboardWidgetAlerts"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST",
+      "action": "unknown"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST",
+      "action": "unknown"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST",
+      "action": "unknown"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST",
+      "action": "unknown"
+    },
+    {
+      "path": "/dashboard/education/work-queue",
+      "method": "POST",
+      "action": "getDashboardWidgetAlerts"
+    },
+    {
+      "path": "/dashboard/education/work-queue",
+      "method": "POST",
+      "action": "getDashboardWidgetAlerts"
+    },
+    {
+      "path": "/dashboard/education/work-queue",
+      "method": "POST",
+      "action": "getDashboardWidgetAlerts"
+    },
+    {
+      "path": "/dashboard/education/work-queue",
+      "method": "POST",
+      "action": "getDashboardWidgetAlerts"
+    }
+  ],
+  "errors": []
+}

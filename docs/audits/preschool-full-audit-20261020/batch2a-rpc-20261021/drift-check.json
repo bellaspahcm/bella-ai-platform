@@ -1,0 +1,9 @@
+{
+  "checkedAt": "2026-10-20T17:11:28.722Z",
+  "exact32TableFingerprintUnchanged": true,
+  "anonymousParentMemberships": 0,
+  "anonymousDynamicExecutors": [
+    "public.exec_sql(text)"
+  ],
+  "incomingRpcReferences": 0
+}

@@ -1,0 +1,26 @@
+{
+  "checkedAt": "2026-10-20T16:00:04.265Z",
+  "transport": "Authenticated Vercel CLI GET project metadata; only public URL keys inspected",
+  "environment": [
+    {
+      "key": "NEXT_PUBLIC_SUPABASE_URL",
+      "target": [
+        "preview"
+      ],
+      "type": "sensitive",
+      "valueIsUrl": false,
+      "origin": null,
+      "id": "0OqBtyYaOZSeJtjC"
+    },
+    {
+      "key": "NEXT_PUBLIC_SUPABASE_URL",
+      "target": [
+        "production"
+      ],
+      "type": "encrypted",
+      "valueIsUrl": false,
+      "origin": null,
+      "id": "rczhKsQvqaLA7zfg"
+    }
+  ]
+}

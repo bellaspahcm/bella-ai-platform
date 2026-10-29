@@ -1,0 +1,9 @@
+{
+  "command": "node node_modules/eslint/bin/eslint.js src/services/user-actions.ts src/services/onboarding-actions.ts src/__tests__/user-actions.test.ts src/__tests__/onboarding.test.ts",
+  "startedAt": "2026-10-20T20:44:14.612Z",
+  "finishedAt": "2026-10-20T20:44:23.897Z",
+  "exitCode": 0,
+  "signal": null,
+  "errorCode": null,
+  "environment": "Process-scoped offline localhost + synthetic keys. No production credentials/network in business tests."
+}

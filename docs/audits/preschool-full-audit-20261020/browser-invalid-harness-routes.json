@@ -1,0 +1,1572 @@
+{
+  "checkedAt": "2026-10-20T15:39:57.613Z",
+  "base": "http://localhost:3000",
+  "authMode": "Development mock_user_email cookie; not a real Auth session",
+  "mutationPolicy": "All non-GET/HEAD/OPTIONS browser requests blocked",
+  "routes": [
+    {
+      "route": "/dashboard/education/attendance",
+      "status": 200,
+      "finalPath": "/dashboard",
+      "heading": [],
+      "tabs": [],
+      "loginForm": false,
+      "mainPresent": true,
+      "overflow": false,
+      "buttonCount": 0,
+      "truthNotices": [],
+      "educationResponses": [],
+      "errors": [],
+      "blockedMutations": [
+        {
+          "path": "/monitoring",
+          "method": "POST"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST"
+        },
+        {
+          "path": "/dashboard/education/attendance",
+          "method": "POST"
+        },
+        {
+          "path": "/dashboard/education/attendance",
+          "method": "POST"
+        },
+        {
+          "path": "/__nextjs_original-stack-frames",
+          "method": "POST"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST"
+        }
+      ]
+    },
+    {
+      "route": "/dashboard/education/care",
+      "status": 200,
+      "finalPath": "/dashboard",
+      "heading": [],
+      "tabs": [],
+      "loginForm": false,
+      "mainPresent": true,
+      "overflow": false,
+      "buttonCount": 0,
+      "truthNotices": [],
+      "educationResponses": [],
+      "errors": [],
+      "blockedMutations": [
+        {
+          "path": "/monitoring",
+          "method": "POST"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST"
+        },
+        {
+          "path": "/dashboard/education/care",
+          "method": "POST"
+        },
+        {
+          "path": "/dashboard/education/care",
+          "method": "POST"
+        },
+        {
+          "path": "/__nextjs_original-stack-frames",
+          "method": "POST"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST"
+        }
+      ]
+    },
+    {
+      "route": "/dashboard/education/communication",
+      "status": 200,
+      "finalPath": "/dashboard",
+      "heading": [],
+      "tabs": [],
+      "loginForm": false,
+      "mainPresent": true,
+      "overflow": false,
+      "buttonCount": 0,
+      "truthNotices": [],
+      "educationResponses": [],
+      "errors": [],
+      "blockedMutations": [
+        {
+          "path": "/monitoring",
+          "method": "POST"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST"
+        },
+        {
+          "path": "/dashboard/education/communication",
+          "method": "POST"
+        },
+        {
+          "path": "/dashboard/education/communication",
+          "method": "POST"
+        },
+        {
+          "path": "/__nextjs_original-stack-frames",
+          "method": "POST"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST"
+        }
+      ]
+    },
+    {
+      "route": "/dashboard/education/courses",
+      "status": 200,
+      "finalPath": "/dashboard",
+      "heading": [],
+      "tabs": [],
+      "loginForm": false,
+      "mainPresent": true,
+      "overflow": false,
+      "buttonCount": 0,
+      "truthNotices": [],
+      "educationResponses": [],
+      "errors": [],
+      "blockedMutations": [
+        {
+          "path": "/monitoring",
+          "method": "POST"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST"
+        },
+        {
+          "path": "/dashboard/education/courses",
+          "method": "POST"
+        },
+        {
+          "path": "/dashboard/education/courses",
+          "method": "POST"
+        },
+        {
+          "path": "/__nextjs_original-stack-frames",
+          "method": "POST"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST"
+        }
+      ]
+    },
+    {
+      "route": "/dashboard/education/courses/00000000-0000-4000-8000-000000000099",
+      "status": 200,
+      "finalPath": "/dashboard",
+      "heading": [],
+      "tabs": [],
+      "loginForm": false,
+      "mainPresent": true,
+      "overflow": false,
+      "buttonCount": 0,
+      "truthNotices": [],
+      "educationResponses": [],
+      "errors": [],
+      "blockedMutations": [
+        {
+          "path": "/monitoring",
+          "method": "POST"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST"
+        },
+        {
+          "path": "/dashboard/education/courses/00000000-0000-4000-8000-000000000099",
+          "method": "POST"
+        },
+        {
+          "path": "/dashboard/education/courses/00000000-0000-4000-8000-000000000099",
+          "method": "POST"
+        },
+        {
+          "path": "/__nextjs_original-stack-frames",
+          "method": "POST"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST"
+        }
+      ]
+    },
+    {
+      "route": "/dashboard/education/enrollments",
+      "status": 200,
+      "finalPath": "/dashboard",
+      "heading": [],
+      "tabs": [],
+      "loginForm": false,
+      "mainPresent": true,
+      "overflow": false,
+      "buttonCount": 0,
+      "truthNotices": [],
+      "educationResponses": [],
+      "errors": [],
+      "blockedMutations": [
+        {
+          "path": "/monitoring",
+          "method": "POST"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST"
+        },
+        {
+          "path": "/dashboard/education/enrollments",
+          "method": "POST"
+        },
+        {
+          "path": "/dashboard/education/enrollments",
+          "method": "POST"
+        },
+        {
+          "path": "/__nextjs_original-stack-frames",
+          "method": "POST"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST"
+        }
+      ]
+    },
+    {
+      "route": "/dashboard/education/enrollments/00000000-0000-4000-8000-000000000099",
+      "status": 200,
+      "finalPath": "/dashboard",
+      "heading": [],
+      "tabs": [],
+      "loginForm": false,
+      "mainPresent": true,
+      "overflow": false,
+      "buttonCount": 0,
+      "truthNotices": [],
+      "educationResponses": [],
+      "errors": [],
+      "blockedMutations": [
+        {
+          "path": "/monitoring",
+          "method": "POST"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST"
+        },
+        {
+          "path": "/dashboard/education/enrollments/00000000-0000-4000-8000-000000000099",
+          "method": "POST"
+        },
+        {
+          "path": "/dashboard/education/enrollments/00000000-0000-4000-8000-000000000099",
+          "method": "POST"
+        },
+        {
+          "path": "/__nextjs_original-stack-frames",
+          "method": "POST"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST"
+        }
+      ]
+    },
+    {
+      "route": "/dashboard/education/facilities",
+      "status": 200,
+      "finalPath": "/dashboard",
+      "heading": [],
+      "tabs": [],
+      "loginForm": false,
+      "mainPresent": true,
+      "overflow": false,
+      "buttonCount": 0,
+      "truthNotices": [],
+      "educationResponses": [],
+      "errors": [],
+      "blockedMutations": [
+        {
+          "path": "/monitoring",
+          "method": "POST"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST"
+        },
+        {
+          "path": "/dashboard/education/facilities",
+          "method": "POST"
+        },
+        {
+          "path": "/dashboard/education/facilities",
+          "method": "POST"
+        },
+        {
+          "path": "/__nextjs_original-stack-frames",
+          "method": "POST"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST"
+        }
+      ]
+    },
+    {
+      "route": "/dashboard/education/finance",
+      "status": 200,
+      "finalPath": "/dashboard",
+      "heading": [],
+      "tabs": [],
+      "loginForm": false,
+      "mainPresent": true,
+      "overflow": false,
+      "buttonCount": 0,
+      "truthNotices": [],
+      "educationResponses": [],
+      "errors": [],
+      "blockedMutations": [
+        {
+          "path": "/monitoring",
+          "method": "POST"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST"
+        },
+        {
+          "path": "/dashboard/education/finance",
+          "method": "POST"
+        },
+        {
+          "path": "/dashboard/education/finance",
+          "method": "POST"
+        },
+        {
+          "path": "/__nextjs_original-stack-frames",
+          "method": "POST"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST"
+        }
+      ]
+    },
+    {
+      "route": "/dashboard/education/grades",
+      "status": 200,
+      "finalPath": "/dashboard",
+      "heading": [],
+      "tabs": [],
+      "loginForm": false,
+      "mainPresent": true,
+      "overflow": false,
+      "buttonCount": 0,
+      "truthNotices": [],
+      "educationResponses": [],
+      "errors": [],
+      "blockedMutations": [
+        {
+          "path": "/monitoring",
+          "method": "POST"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST"
+        },
+        {
+          "path": "/dashboard/education/grades",
+          "method": "POST"
+        },
+        {
+          "path": "/dashboard/education/grades",
+          "method": "POST"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST"
+        },
+        {
+          "path": "/__nextjs_original-stack-frames",
+          "method": "POST"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST"
+        }
+      ]
+    },
+    {
+      "route": "/dashboard/education/learning",
+      "status": 200,
+      "finalPath": "/dashboard",
+      "heading": [],
+      "tabs": [],
+      "loginForm": false,
+      "mainPresent": true,
+      "overflow": false,
+      "buttonCount": 0,
+      "truthNotices": [],
+      "educationResponses": [],
+      "errors": [],
+      "blockedMutations": [
+        {
+          "path": "/monitoring",
+          "method": "POST"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST"
+        },
+        {
+          "path": "/dashboard/education/learning",
+          "method": "POST"
+        },
+        {
+          "path": "/dashboard/education/learning",
+          "method": "POST"
+        },
+        {
+          "path": "/__nextjs_original-stack-frames",
+          "method": "POST"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST"
+        }
+      ]
+    },
+    {
+      "route": "/dashboard/education/my-class",
+      "status": 200,
+      "finalPath": "/dashboard",
+      "heading": [],
+      "tabs": [],
+      "loginForm": false,
+      "mainPresent": true,
+      "overflow": false,
+      "buttonCount": 0,
+      "truthNotices": [],
+      "educationResponses": [],
+      "errors": [],
+      "blockedMutations": [
+        {
+          "path": "/monitoring",
+          "method": "POST"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST"
+        },
+        {
+          "path": "/dashboard/education/my-class",
+          "method": "POST"
+        },
+        {
+          "path": "/dashboard/education/my-class",
+          "method": "POST"
+        },
+        {
+          "path": "/__nextjs_original-stack-frames",
+          "method": "POST"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST"
+        }
+      ]
+    },
+    {
+      "route": "/dashboard/education",
+      "status": 200,
+      "finalPath": "/dashboard",
+      "heading": [],
+      "tabs": [],
+      "loginForm": false,
+      "mainPresent": true,
+      "overflow": false,
+      "buttonCount": 0,
+      "truthNotices": [],
+      "educationResponses": [],
+      "errors": [],
+      "blockedMutations": [
+        {
+          "path": "/monitoring",
+          "method": "POST"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST"
+        },
+        {
+          "path": "/dashboard/education",
+          "method": "POST"
+        },
+        {
+          "path": "/dashboard/education",
+          "method": "POST"
+        },
+        {
+          "path": "/__nextjs_original-stack-frames",
+          "method": "POST"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST"
+        }
+      ]
+    },
+    {
+      "route": "/dashboard/education/parent-inbox",
+      "status": 200,
+      "finalPath": "/dashboard",
+      "heading": [],
+      "tabs": [],
+      "loginForm": false,
+      "mainPresent": true,
+      "overflow": false,
+      "buttonCount": 0,
+      "truthNotices": [],
+      "educationResponses": [],
+      "errors": [],
+      "blockedMutations": [
+        {
+          "path": "/monitoring",
+          "method": "POST"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST"
+        },
+        {
+          "path": "/dashboard/education/parent-inbox",
+          "method": "POST"
+        },
+        {
+          "path": "/dashboard/education/parent-inbox",
+          "method": "POST"
+        },
+        {
+          "path": "/__nextjs_original-stack-frames",
+          "method": "POST"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST"
+        }
+      ]
+    },
+    {
+      "route": "/dashboard/education/reports",
+      "status": 200,
+      "finalPath": "/dashboard",
+      "heading": [],
+      "tabs": [],
+      "loginForm": false,
+      "mainPresent": true,
+      "overflow": false,
+      "buttonCount": 0,
+      "truthNotices": [],
+      "educationResponses": [],
+      "errors": [],
+      "blockedMutations": [
+        {
+          "path": "/monitoring",
+          "method": "POST"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST"
+        },
+        {
+          "path": "/dashboard/education/reports",
+          "method": "POST"
+        },
+        {
+          "path": "/dashboard/education/reports",
+          "method": "POST"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST"
+        },
+        {
+          "path": "/__nextjs_original-stack-frames",
+          "method": "POST"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST"
+        }
+      ]
+    },
+    {
+      "route": "/dashboard/education/scheduling",
+      "status": 200,
+      "finalPath": "/dashboard",
+      "heading": [],
+      "tabs": [],
+      "loginForm": false,
+      "mainPresent": true,
+      "overflow": false,
+      "buttonCount": 0,
+      "truthNotices": [],
+      "educationResponses": [],
+      "errors": [],
+      "blockedMutations": [
+        {
+          "path": "/monitoring",
+          "method": "POST"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST"
+        },
+        {
+          "path": "/dashboard/education/scheduling",
+          "method": "POST"
+        },
+        {
+          "path": "/dashboard/education/scheduling",
+          "method": "POST"
+        },
+        {
+          "path": "/__nextjs_original-stack-frames",
+          "method": "POST"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST"
+        }
+      ]
+    },
+    {
+      "route": "/dashboard/education/teachers",
+      "status": 200,
+      "finalPath": "/dashboard",
+      "heading": [],
+      "tabs": [],
+      "loginForm": false,
+      "mainPresent": true,
+      "overflow": false,
+      "buttonCount": 0,
+      "truthNotices": [],
+      "educationResponses": [],
+      "errors": [],
+      "blockedMutations": [
+        {
+          "path": "/monitoring",
+          "method": "POST"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST"
+        },
+        {
+          "path": "/dashboard/education/teachers",
+          "method": "POST"
+        },
+        {
+          "path": "/dashboard/education/teachers",
+          "method": "POST"
+        },
+        {
+          "path": "/__nextjs_original-stack-frames",
+          "method": "POST"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST"
+        }
+      ]
+    },
+    {
+      "route": "/dashboard/education/teachers/00000000-0000-4000-8000-000000000099",
+      "status": 200,
+      "finalPath": "/dashboard",
+      "heading": [],
+      "tabs": [],
+      "loginForm": false,
+      "mainPresent": true,
+      "overflow": false,
+      "buttonCount": 0,
+      "truthNotices": [],
+      "educationResponses": [],
+      "errors": [],
+      "blockedMutations": [
+        {
+          "path": "/monitoring",
+          "method": "POST"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST"
+        },
+        {
+          "path": "/dashboard/education/teachers/00000000-0000-4000-8000-000000000099",
+          "method": "POST"
+        },
+        {
+          "path": "/dashboard/education/teachers/00000000-0000-4000-8000-000000000099",
+          "method": "POST"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST"
+        },
+        {
+          "path": "/__nextjs_original-stack-frames",
+          "method": "POST"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST"
+        }
+      ]
+    },
+    {
+      "route": "/dashboard/education/work-queue",
+      "status": 200,
+      "finalPath": "/dashboard",
+      "heading": [],
+      "tabs": [],
+      "loginForm": false,
+      "mainPresent": true,
+      "overflow": false,
+      "buttonCount": 0,
+      "truthNotices": [],
+      "educationResponses": [],
+      "errors": [],
+      "blockedMutations": [
+        {
+          "path": "/monitoring",
+          "method": "POST"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST"
+        },
+        {
+          "path": "/dashboard/education/work-queue",
+          "method": "POST"
+        },
+        {
+          "path": "/dashboard/education/work-queue",
+          "method": "POST"
+        },
+        {
+          "path": "/__nextjs_original-stack-frames",
+          "method": "POST"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST"
+        },
+        {
+          "path": "/monitoring",
+          "method": "POST"
+        }
+      ]
+    }
+  ],
+  "blocked": [
+    {
+      "path": "/monitoring",
+      "method": "POST"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST"
+    },
+    {
+      "path": "/dashboard/education/attendance",
+      "method": "POST"
+    },
+    {
+      "path": "/dashboard/education/attendance",
+      "method": "POST"
+    },
+    {
+      "path": "/__nextjs_original-stack-frames",
+      "method": "POST"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST"
+    },
+    {
+      "path": "/dashboard/education/care",
+      "method": "POST"
+    },
+    {
+      "path": "/dashboard/education/care",
+      "method": "POST"
+    },
+    {
+      "path": "/__nextjs_original-stack-frames",
+      "method": "POST"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST"
+    },
+    {
+      "path": "/dashboard/education/communication",
+      "method": "POST"
+    },
+    {
+      "path": "/dashboard/education/communication",
+      "method": "POST"
+    },
+    {
+      "path": "/__nextjs_original-stack-frames",
+      "method": "POST"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST"
+    },
+    {
+      "path": "/dashboard/education/courses",
+      "method": "POST"
+    },
+    {
+      "path": "/dashboard/education/courses",
+      "method": "POST"
+    },
+    {
+      "path": "/__nextjs_original-stack-frames",
+      "method": "POST"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST"
+    },
+    {
+      "path": "/dashboard/education/courses/00000000-0000-4000-8000-000000000099",
+      "method": "POST"
+    },
+    {
+      "path": "/dashboard/education/courses/00000000-0000-4000-8000-000000000099",
+      "method": "POST"
+    },
+    {
+      "path": "/__nextjs_original-stack-frames",
+      "method": "POST"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST"
+    },
+    {
+      "path": "/dashboard/education/enrollments",
+      "method": "POST"
+    },
+    {
+      "path": "/dashboard/education/enrollments",
+      "method": "POST"
+    },
+    {
+      "path": "/__nextjs_original-stack-frames",
+      "method": "POST"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST"
+    },
+    {
+      "path": "/dashboard/education/enrollments/00000000-0000-4000-8000-000000000099",
+      "method": "POST"
+    },
+    {
+      "path": "/dashboard/education/enrollments/00000000-0000-4000-8000-000000000099",
+      "method": "POST"
+    },
+    {
+      "path": "/__nextjs_original-stack-frames",
+      "method": "POST"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST"
+    },
+    {
+      "path": "/dashboard/education/facilities",
+      "method": "POST"
+    },
+    {
+      "path": "/dashboard/education/facilities",
+      "method": "POST"
+    },
+    {
+      "path": "/__nextjs_original-stack-frames",
+      "method": "POST"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST"
+    },
+    {
+      "path": "/dashboard/education/finance",
+      "method": "POST"
+    },
+    {
+      "path": "/dashboard/education/finance",
+      "method": "POST"
+    },
+    {
+      "path": "/__nextjs_original-stack-frames",
+      "method": "POST"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST"
+    },
+    {
+      "path": "/dashboard/education/grades",
+      "method": "POST"
+    },
+    {
+      "path": "/dashboard/education/grades",
+      "method": "POST"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST"
+    },
+    {
+      "path": "/__nextjs_original-stack-frames",
+      "method": "POST"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST"
+    },
+    {
+      "path": "/dashboard/education/learning",
+      "method": "POST"
+    },
+    {
+      "path": "/dashboard/education/learning",
+      "method": "POST"
+    },
+    {
+      "path": "/__nextjs_original-stack-frames",
+      "method": "POST"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST"
+    },
+    {
+      "path": "/dashboard/education/my-class",
+      "method": "POST"
+    },
+    {
+      "path": "/dashboard/education/my-class",
+      "method": "POST"
+    },
+    {
+      "path": "/__nextjs_original-stack-frames",
+      "method": "POST"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST"
+    },
+    {
+      "path": "/dashboard/education",
+      "method": "POST"
+    },
+    {
+      "path": "/dashboard/education",
+      "method": "POST"
+    },
+    {
+      "path": "/__nextjs_original-stack-frames",
+      "method": "POST"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST"
+    },
+    {
+      "path": "/dashboard/education/parent-inbox",
+      "method": "POST"
+    },
+    {
+      "path": "/dashboard/education/parent-inbox",
+      "method": "POST"
+    },
+    {
+      "path": "/__nextjs_original-stack-frames",
+      "method": "POST"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST"
+    },
+    {
+      "path": "/dashboard/education/reports",
+      "method": "POST"
+    },
+    {
+      "path": "/dashboard/education/reports",
+      "method": "POST"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST"
+    },
+    {
+      "path": "/__nextjs_original-stack-frames",
+      "method": "POST"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST"
+    },
+    {
+      "path": "/dashboard/education/scheduling",
+      "method": "POST"
+    },
+    {
+      "path": "/dashboard/education/scheduling",
+      "method": "POST"
+    },
+    {
+      "path": "/__nextjs_original-stack-frames",
+      "method": "POST"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST"
+    },
+    {
+      "path": "/dashboard/education/teachers",
+      "method": "POST"
+    },
+    {
+      "path": "/dashboard/education/teachers",
+      "method": "POST"
+    },
+    {
+      "path": "/__nextjs_original-stack-frames",
+      "method": "POST"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST"
+    },
+    {
+      "path": "/dashboard/education/teachers/00000000-0000-4000-8000-000000000099",
+      "method": "POST"
+    },
+    {
+      "path": "/dashboard/education/teachers/00000000-0000-4000-8000-000000000099",
+      "method": "POST"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST"
+    },
+    {
+      "path": "/__nextjs_original-stack-frames",
+      "method": "POST"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST"
+    },
+    {
+      "path": "/dashboard/education/work-queue",
+      "method": "POST"
+    },
+    {
+      "path": "/dashboard/education/work-queue",
+      "method": "POST"
+    },
+    {
+      "path": "/__nextjs_original-stack-frames",
+      "method": "POST"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST"
+    }
+  ],
+  "errors": [],
+  "caveat": "Read-only route rendering only. Does not prove write-to-DB, Auth, RBAC, RLS or Go-Live. Dynamic detail routes intentionally use nonexistent UUID to test identity/error handling."
+}

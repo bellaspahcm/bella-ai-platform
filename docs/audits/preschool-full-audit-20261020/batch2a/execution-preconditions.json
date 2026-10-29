@@ -1,0 +1,15 @@
+{
+  "checkedAt": "2026-10-20T16:23:29.203Z",
+  "artifactHash": "eef5f1876c28361dc3265436f43705b38648bf4f739e4db05863108aa88a11bd",
+  "rehearsal": "PASS",
+  "source": "339c89250d87964ba8d58860a5ecdbc0bdde4956",
+  "production": {
+    "deploymentId": "dpl_9FQrTej4gajN95v6MwLJ31f3pUTQ",
+    "gitSha": "f973dd7e56542aa7847b98c2a4236da86f1eabc3",
+    "readyState": "READY",
+    "apiOrigin": "https://lvnvkpyxtuilhrabtlwv.supabase.co"
+  },
+  "target": "lvnvkpyxtuilhrabtlwv",
+  "ownerApproval": "Explicit execute instruction 2026-10-20",
+  "secretsSaved": false
+}

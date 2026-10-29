@@ -1,0 +1,15 @@
+exactUsersSchemaConstraintsIndexesPoliciesTriggerHelperAndAclBaseline: PASS
+prestateSelfRoleTenantMutationActuallyReproducedThenRolledBack: PASS
+failureBeforeAnyChange: PASS
+failureAfterUsersRevoke: PASS
+failureAfterAllRevokes: PASS
+exactExecutionArtifactCommitsAndOutsideCatalogUnchanged: PASS
+AssertionError [ERR_ASSERTION]: anon: CREATE TEMP TABLE denied_fk(x uuid REFERENCES public.users(id))
+
+'42P16' !== '42501'
+
+    at denied (D:\Antigravity\Projects\BELLA SPA ERP\docs\audits\preschool-full-audit-20261020\batch2c-identity\rehearse.cjs:8:216)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async D:\Antigravity\Projects\BELLA SPA ERP\docs\audits\preschool-full-audit-20261020\batch2c-identity\rehearse.cjs:26:739
+    at async proof (D:\Antigravity\Projects\BELLA SPA ERP\docs\audits\preschool-full-audit-20261020\batch2c-identity\rehearse.cjs:5:31)
+    at async main (D:\Antigravity\Projects\BELLA SPA ERP\docs\audits\preschool-full-audit-20261020\batch2c-identity\rehearse.cjs:26:2)

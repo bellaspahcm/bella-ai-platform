@@ -1,0 +1,19 @@
+{
+  "target": "loopback-only PostgreSQL17.10 :56329",
+  "sourceProject": "lvnvkpyxtuilhrabtlwv",
+  "approvedTables": 32,
+  "columns": 365,
+  "constraints": 137,
+  "policies": 34,
+  "functions": 12,
+  "triggers": 4,
+  "prerequisiteTables": [
+    "tenants(id,status,product_key)",
+    "users(id,tenant_id,status,role)",
+    "party_parties(id)",
+    "persons(id)"
+  ],
+  "productionBusinessRowsCopied": 0,
+  "exactSelectedFingerprintMatch": true,
+  "differentGroups": []
+}

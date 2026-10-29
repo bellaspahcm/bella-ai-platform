@@ -1,0 +1,8 @@
+exactCombinedRpcPostcondition: PASS
+anonymousRpcActuallyDenied: PASS
+all33NonAnonymousRolesActuallyExecuteConstantSelect: PASS
+fullOriginalRpcAnd32TableAclRecoveryDemonstrated: PASS
+failureAfterRpcAnd16TableRevokesRollsBack: PASS
+nonAnonymousRightsGrantOptionsRoleFlagsMembershipsBodyPreserved: PASS
+{"checkedAt":"2026-10-20T17:14:44.248Z","result":"PASS","testsPassed":6,"tests":[{"name":"exactCombinedRpcPostcondition","result":"PASS"},{"name":"anonymousRpcActuallyDenied","result":"PASS"},{"name":"all33NonAnonymousRolesActuallyExecuteConstantSelect","result":"PASS"},{"name":"fullOriginalRpcAnd32TableAclRecoveryDemonstrated","result":"PASS"},{"name":"failureAfterRpcAnd16TableRevokesRollsBack","result":"PASS"},{"name":"nonAnonymousRightsGrantOptionsRoleFlagsMembershipsBodyPreserved","result":"PASS"}],"anonymousDeniedSqlState":"42501","actualNonAnonymousRoleExecutions":33,"productionMutations":0}
+COMMAND_EXIT_CODE=0

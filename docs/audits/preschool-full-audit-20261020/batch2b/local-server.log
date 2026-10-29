@@ -1,0 +1,17 @@
+▲ Next.js 16.2.11 (webpack)
+- Local:         http://127.0.0.1:3137
+- Network:       http://127.0.0.1:3137
+- Environments: .env.local, .env
+✓ Ready in 2.9s
+[@sentry/nextjs] It seems like you don't have a global error handler set up. It is recommended that you add a 'global-error.js' file with Sentry instrumentation so that React rendering errors are reported to Sentry. Read more: https://docs.sentry.io/platforms/javascript/guides/nextjs/manual-setup/#react-render-errors-in-app-router (you can suppress this warning by setting SENTRY_SUPPRESS_GLOBAL_ERROR_HANDLER_FILE_WARNING=1 as environment variable)
+- Experiments (use with caution):
+  · clientTraceMetadata
+  · optimizePackageImports
+
+○ Compiling proxy ...
+○ Compiling /api/education/courses ...
+ GET /api/education/courses?tenantId=ed100000-0000-0000-0000-000000000001 401 in 9.6s (next.js: 8.8s, proxy.ts: 731ms, application-code: 45ms)
+ GET /api/education/courses?tenantId=ed100000-0000-0000-0000-000000000001 401 in 284ms (next.js: 5ms, proxy.ts: 270ms, application-code: 10ms)
+○ Compiling /api/education/courses/[id] ...
+ GET /api/education/courses/00000000-0000-4000-8000-000000000099?tenantId=ed100000-0000-0000-0000-000000000001 401 in 5.2s (next.js: 5.1s, proxy.ts: 8ms, application-code: 23ms)
+ GET /api/education/courses/00000000-0000-4000-8000-000000000099?tenantId=ed100000-0000-0000-0000-000000000001 401 in 42ms (next.js: 16ms, proxy.ts: 6ms, application-code: 19ms)

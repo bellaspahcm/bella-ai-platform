@@ -1,0 +1,16 @@
+{
+  "checkedAt": "2026-10-20T20:19:12.817Z",
+  "result": "PASS_FOR_REPRODUCTION",
+  "environment": "Isolated local PostgreSQL17.10, synthetic identity only",
+  "productionBusinessRowsCopied": 0,
+  "productionWrites": 0,
+  "exactDeployedSelfPolicyPredicate": true,
+  "exactThreeDeployedTriggerBodies": true,
+  "otherProductionPoliciesAndConstraintsNotRecreated": true,
+  "authenticatedSelfUpdateRoleTenantEmail": true,
+  "authenticatedSelfUpdateStatus": true,
+  "canonicalTenantHelperChangesToSyntheticOtherTenant": true,
+  "changedAuthorityCopiedToSyntheticAuthClaims": true,
+  "mutationsRolledBack": true,
+  "interpretation": "Demonstrates the deployed self-policy/trigger mechanism in isolation. No production self-escalation or real Auth session attempted; full production exploit NOT_RUN."
+}

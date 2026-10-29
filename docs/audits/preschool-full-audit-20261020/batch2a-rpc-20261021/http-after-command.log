@@ -1,0 +1,2 @@
+{"phase":"after","anonymousRequests":96,"allDirectReadsDenied":true,"anonRpcStatus":401,"serviceReadsAllowed":true,"serviceRpcStatus":204,"coursesApi":{"status":200,"classroomCount":8,"source":"Existing server service-role API; separate Batch2B authorization gap"}}
+COMMAND_EXIT_CODE=0

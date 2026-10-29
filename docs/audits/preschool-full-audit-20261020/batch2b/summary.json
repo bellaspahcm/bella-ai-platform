@@ -1,0 +1,40 @@
+{
+  "checkedAt": "2026-10-20T20:30:39.230Z",
+  "target": "lvnvkpyxtuilhrabtlwv",
+  "source": "339c89250d87964ba8d58860a5ecdbc0bdde4956",
+  "PRODUCTION_CHANGE": "PASS",
+  "productionChangeScope": "One RPC EXECUTE ACL only",
+  "ANONYMOUS_CONTAINMENT": "PASS",
+  "anonymousScope": "Exact32 tables and RPC; not all API paths",
+  "AUTHENTICATED_ACCESS_REGRESSION": "NOT_PROVEN",
+  "BATCH2B_RBAC_RLS": "IN_PROGRESS",
+  "PRESCHOOL_GO_LIVE": "NOT_READY",
+  "rpcUntrustedRolesDenied": 30,
+  "rpcAllowedPrincipals": [
+    "bella_migration_executor",
+    "postgres",
+    "service_role",
+    "supabase_admin"
+  ],
+  "rpcRehearsalTestsPassed": 9,
+  "coursesUnitTests": {
+    "suites": 2,
+    "passed": 24,
+    "failed": 0
+  },
+  "coursesLocalHttpDenied": 4,
+  "lint": "PASS",
+  "educationTypecheck": "PASS_ZERO_DIAGNOSTICS",
+  "educationVerify": "FAIL_OFFLINE_DB_DEPENDENCIES",
+  "healthcareVerify": "FAIL_OFFLINE_DB_DEPENDENCIES",
+  "independentReview": "COMPLETED_TWO_FINDINGS_FIXED_AND_CLOSED",
+  "coursesProductionDeployment": "NOT_RUN",
+  "coursesProductionAnonymousStatus": 200,
+  "coursesProductionClassrooms": 8,
+  "sharedIdentity": "MUTABLE_LIVE_CATALOG_AND_ISOLATED_MECHANISM_CONFIRMED",
+  "sharedIdentityProductionFix": "NOT_RUN_OUTSIDE32_AUTHORITY",
+  "productionBusinessWrites": 0,
+  "commitPushDeployMerge": "NOT_RUN",
+  "report": "FINAL_REPORT.md",
+  "preparedScopeExpansion": "SHARED_IDENTITY_NEXT_CHANGE.md"
+}

@@ -1,0 +1,49 @@
+{
+  "capturedAt": "2026-10-20T22:36:06.019777Z",
+  "dependencies": [
+    {
+      "group": "copilot",
+      "path": "C:\\Users\\DELL\\.codex\\worktrees\\preschool-courses-auth-20261021\\BELLA SPA ERP\\node_modules",
+      "linkType": "Junction",
+      "target": "C:\\Users\\DELL\\.codex\\worktrees\\preschool-care-authorization-20261021\\BELLA SPA ERP\\node_modules",
+      "nextVersion": "16.3.8"
+    },
+    {
+      "group": "medication",
+      "path": "C:\\Users\\DELL\\.codex\\worktrees\\shared-identity-containment-20261021\\BELLA SPA ERP\\node_modules",
+      "linkType": "Junction",
+      "target": "C:\\Users\\DELL\\.codex\\worktrees\\preschool-care-authorization-20261021\\BELLA SPA ERP\\node_modules",
+      "nextVersion": "16.3.8"
+    },
+    {
+      "group": "care",
+      "path": "C:\\Users\\DELL\\.codex\\worktrees\\preschool-care-authorization-20261021\\BELLA SPA ERP\\node_modules",
+      "linkType": null,
+      "target": null,
+      "nextVersion": "16.3.8"
+    },
+    {
+      "group": "portal",
+      "path": "C:\\Users\\DELL\\.codex\\worktrees\\preschool-parent-access-20261021\\BELLA SPA ERP\\node_modules",
+      "linkType": "Junction",
+      "target": "C:\\Users\\DELL\\.codex\\worktrees\\preschool-care-authorization-20261021\\BELLA SPA ERP\\node_modules",
+      "nextVersion": "16.3.8"
+    },
+    {
+      "group": "announcements",
+      "path": "C:\\Users\\DELL\\.codex\\worktrees\\preschool-announcement-auth-20261021\\BELLA SPA ERP\\node_modules",
+      "linkType": "Junction",
+      "target": "C:\\Users\\DELL\\.codex\\worktrees\\preschool-care-authorization-20261021\\BELLA SPA ERP\\node_modules",
+      "nextVersion": "16.3.8"
+    },
+    {
+      "group": "delivery",
+      "path": "C:\\Users\\DELL\\.codex\\worktrees\\preschool-authorization-delivery-20261021\\BELLA SPA ERP\\node_modules",
+      "linkType": "Junction",
+      "target": "C:\\Users\\DELL\\.codex\\worktrees\\preschool-care-authorization-20261021\\BELLA SPA ERP\\node_modules",
+      "nextVersion": "16.3.8"
+    }
+  ],
+  "cleanupRequirement": "Do not archive Care or remove its physical node_modules while five sibling junctions refer to it",
+  "originalDDependencies": "Preserved, not upgraded or deleted"
+}

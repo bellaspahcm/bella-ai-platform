@@ -1,0 +1,5 @@
+chore: reconcile security delivery ancestry with main
+
+Merge the squash-merged Phase3/4 main history without changing the branch tree
+or reviewed source blobs. This removes unrelated historical paths from the PR
+diff and keeps the original bounded security fix intact. No force push.

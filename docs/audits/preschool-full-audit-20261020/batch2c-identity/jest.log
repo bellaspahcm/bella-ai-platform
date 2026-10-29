@@ -1,0 +1,9 @@
+
+Test Suites: 4 passed, 4 total
+Tests:       76 passed, 76 total
+Snapshots:   0 total
+Time:        2.871 s
+Ran all test suites matching src/__tests__/user-actions.test.ts|src/__tests__/onboarding.test.ts|src/app/api/education/courses/__tests__/route.test.ts|src/app/api/education/courses/__tests__/access.test.ts.
+Test results written to: docs\audits\preschool-full-audit-20261020\batch2c-identity\jest-results.json
+
+COMMAND_EXIT_CODE=0

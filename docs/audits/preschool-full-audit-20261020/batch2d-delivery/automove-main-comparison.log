@@ -1,0 +1,664 @@
+AutoMove Built RC Browser E2E	Set up job	﻿2026-10-20T21:22:34.7036744Z Current runner version: '2.338.0'
+AutoMove Built RC Browser E2E	Set up job	2026-10-20T21:22:34.7062163Z ##[group]Runner Image Provisioner
+AutoMove Built RC Browser E2E	Set up job	2026-10-20T21:22:34.7063170Z Hosted Compute Agent
+AutoMove Built RC Browser E2E	Set up job	2026-10-20T21:22:34.7063784Z Version: 20261015.610
+AutoMove Built RC Browser E2E	Set up job	2026-10-20T21:22:34.7064536Z Commit: 267fdb4e8bbec4ab5ea31367f3a00d5c480c7656
+AutoMove Built RC Browser E2E	Set up job	2026-10-20T21:22:34.7065315Z Build Date: 2026-10-14T17:06:54Z
+AutoMove Built RC Browser E2E	Set up job	2026-10-20T21:22:34.7066045Z Worker ID: {6aac3f4a-c88b-497e-9f09-93f55270fcf5}
+AutoMove Built RC Browser E2E	Set up job	2026-10-20T21:22:34.7066804Z Region: westus2
+AutoMove Built RC Browser E2E	Set up job	2026-10-20T21:22:34.7067408Z Cloud: Azure
+AutoMove Built RC Browser E2E	Set up job	2026-10-20T21:22:34.7068027Z ##[endgroup]
+AutoMove Built RC Browser E2E	Set up job	2026-10-20T21:22:34.7069670Z ##[group]Operating System
+AutoMove Built RC Browser E2E	Set up job	2026-10-20T21:22:34.7070383Z Ubuntu
+AutoMove Built RC Browser E2E	Set up job	2026-10-20T21:22:34.7070953Z 24.04.5
+AutoMove Built RC Browser E2E	Set up job	2026-10-20T21:22:34.7071517Z LTS
+AutoMove Built RC Browser E2E	Set up job	2026-10-20T21:22:34.7072116Z ##[endgroup]
+AutoMove Built RC Browser E2E	Set up job	2026-10-20T21:22:34.7072687Z ##[group]Runner Image
+AutoMove Built RC Browser E2E	Set up job	2026-10-20T21:22:34.7073721Z Image: ubuntu-24.04
+AutoMove Built RC Browser E2E	Set up job	2026-10-20T21:22:34.7074370Z Version: 20261018.339.1
+AutoMove Built RC Browser E2E	Set up job	2026-10-20T21:22:34.7075435Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20261018.339/images/ubuntu/Ubuntu2404-Readme.md
+AutoMove Built RC Browser E2E	Set up job	2026-10-20T21:22:34.7077196Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20261018.339
+AutoMove Built RC Browser E2E	Set up job	2026-10-20T21:22:34.7078199Z ##[endgroup]
+AutoMove Built RC Browser E2E	Set up job	2026-10-20T21:22:34.7079735Z ##[group]GITHUB_TOKEN Permissions
+AutoMove Built RC Browser E2E	Set up job	2026-10-20T21:22:34.7082151Z Contents: read
+AutoMove Built RC Browser E2E	Set up job	2026-10-20T21:22:34.7082819Z Metadata: read
+AutoMove Built RC Browser E2E	Set up job	2026-10-20T21:22:34.7083406Z ##[endgroup]
+AutoMove Built RC Browser E2E	Set up job	2026-10-20T21:22:34.7085494Z Secret source: Actions
+AutoMove Built RC Browser E2E	Set up job	2026-10-20T21:22:34.7086444Z Cache mode: write
+AutoMove Built RC Browser E2E	Set up job	2026-10-20T21:22:34.7087345Z Prepare workflow directory
+AutoMove Built RC Browser E2E	Set up job	2026-10-20T21:22:34.7634281Z Prepare all required actions
+AutoMove Built RC Browser E2E	Set up job	2026-10-20T21:22:34.7691946Z Getting action download info
+AutoMove Built RC Browser E2E	Set up job	2026-10-20T21:22:35.1322808Z Download action repository 'actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803' (SHA:d23441a48e516b6c34aea4fa41551a30e30af803)
+AutoMove Built RC Browser E2E	Set up job	2026-10-20T21:22:35.2467630Z Download action repository 'actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38' (SHA:249970729cb0ef3589644e2896645e5dc5ba9c38)
+AutoMove Built RC Browser E2E	Set up job	2026-10-20T21:22:35.4439278Z Download action repository 'actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a' (SHA:043fb46d1a93c77aae656e7c1c64a875d1fc6a0a)
+AutoMove Built RC Browser E2E	Set up job	2026-10-20T21:22:35.6214982Z Complete job name: AutoMove Built RC Browser E2E
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	﻿2026-10-20T21:22:35.6904239Z ##[group]Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:35.6905365Z with:
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:35.6905989Z   ref: f973dd7e56542aa7847b98c2a4236da86f1eabc3
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:35.6906696Z   fetch-depth: 0
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:35.6907321Z   repository: bellaspahcm/bella-ai-platform
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:35.6911534Z   token: ***
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:35.6912114Z   ssh-strict: true
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:35.6912712Z   ssh-user: git
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:35.6913267Z   persist-credentials: true
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:35.6913898Z   clean: true
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:35.6914436Z   sparse-checkout-cone-mode: true
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:35.6915112Z   fetch-tags: false
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:35.6915688Z   show-progress: true
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:35.6916265Z   lfs: false
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:35.6916804Z   submodules: false
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:35.6917496Z   set-safe-directory: true
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:35.6918133Z   allow-unsafe-pr-checkout: false
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:35.6919325Z env:
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:35.6919983Z   AUTOMOVE_RC_SHA: f973dd7e56542aa7847b98c2a4236da86f1eabc3
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:35.6921037Z   NEXT_PUBLIC_SUPABASE_URL: ***
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:35.6921992Z   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ***
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:35.6922670Z   NEXT_PUBLIC_SUPABASE_ANON_KEY: 
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:35.6923447Z   SUPABASE_URL: ***
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:35.6925778Z   SUPABASE_SERVICE_ROLE_KEY: ***
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:35.6927086Z   SUPABASE_DB_URL: ***
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:35.6927754Z ##[endgroup]
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:35.7955799Z Syncing repository: bellaspahcm/bella-ai-platform
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:35.7959421Z ##[group]Getting Git version info
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:35.7960946Z Working directory is '/home/runner/work/bella-ai-platform/bella-ai-platform'
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:35.7962894Z [command]/usr/bin/git version
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:35.8129208Z git version 2.55.0
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:35.8139428Z ##[endgroup]
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:35.8147789Z Temporarily overriding HOME='/home/runner/work/_temp/d5f99d6a-6abf-473f-bd58-59ceee6430de' before making global git config changes
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:35.8150738Z Adding repository directory to the temporary git global config as a safe directory
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:35.8153109Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/bella-ai-platform/bella-ai-platform
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:35.8207503Z Deleting the contents of '/home/runner/work/bella-ai-platform/bella-ai-platform'
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:35.8212999Z ##[group]Determining repository object format
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:35.8225115Z ##[endgroup]
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:35.8228670Z ##[group]Initializing the repository
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:35.8230159Z [command]/usr/bin/git init /home/runner/work/bella-ai-platform/bella-ai-platform
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:35.8336035Z hint: Using 'master' as the name for the initial branch. This default branch name
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:35.8338590Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:35.8340941Z hint: to use in all of your new repositories, which will suppress this warning,
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:35.8342989Z hint: call:
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:35.8344029Z hint:
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:35.8345061Z hint: 	git config --global init.defaultBranch <name>
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:35.8346095Z hint:
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:35.8347049Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:35.8348795Z hint: 'development'. The just-created branch can be renamed via this command:
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:35.8350032Z hint:
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:35.8350652Z hint: 	git branch -m <name>
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:35.8351263Z hint:
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:35.8352013Z hint: Disable this message with "git config set advice.defaultBranchName false"
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:35.8353262Z Initialized empty Git repository in /home/runner/work/bella-ai-platform/bella-ai-platform/.git/
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:35.8359759Z [command]/usr/bin/git remote add origin https://github.com/bellaspahcm/bella-ai-platform
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:35.8411890Z ##[endgroup]
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:35.8413026Z ##[group]Disabling automatic garbage collection
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:35.8415895Z [command]/usr/bin/git config --local gc.auto 0
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:35.8450911Z ##[endgroup]
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:35.8452829Z ##[group]Setting up auth
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:35.8454041Z Removing SSH command configuration
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:35.8456114Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:35.8487024Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:35.8844317Z Removing HTTP extra header
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:35.8846015Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:35.8883833Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:35.9087397Z Removing includeIf entries pointing to credentials config files
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:35.9094978Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:35.9127653Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:35.9325462Z [command]/usr/bin/git config --file /home/runner/work/_temp/git-credentials-3fdfadae-7a54-4e9d-b20e-d958b9d384ee.config http.https://github.com/.extraheader AUTHORIZATION: basic ***
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:35.9364271Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/bella-ai-platform/bella-ai-platform/.git.path /home/runner/work/_temp/git-credentials-3fdfadae-7a54-4e9d-b20e-d958b9d384ee.config
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:35.9400417Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/bella-ai-platform/bella-ai-platform/.git/worktrees/*.path /home/runner/work/_temp/git-credentials-3fdfadae-7a54-4e9d-b20e-d958b9d384ee.config
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:35.9441692Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git.path /github/runner_temp/git-credentials-3fdfadae-7a54-4e9d-b20e-d958b9d384ee.config
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:35.9478818Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git/worktrees/*.path /github/runner_temp/git-credentials-3fdfadae-7a54-4e9d-b20e-d958b9d384ee.config
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:35.9544640Z ##[endgroup]
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:35.9545669Z ##[group]Fetching the repository
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:35.9552776Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules origin +refs/heads/*:refs/remotes/origin/* +refs/tags/*:refs/tags/*
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:40.8793593Z From https://github.com/bellaspahcm/bella-ai-platform
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:40.8798869Z  * [new branch]          audit/haircut-salary-payment-field-verification -> origin/audit/haircut-salary-payment-field-verification
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:40.8804206Z  * [new branch]          codex/accounting-health-preflight -> origin/codex/accounting-health-preflight
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:40.8808970Z  * [new branch]          codex/automove-sales-settlement-readiness -> origin/codex/automove-sales-settlement-readiness
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:40.8813804Z  * [new branch]          codex/bella-engineering-rules-v2 -> origin/codex/bella-engineering-rules-v2
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:40.8818732Z  * [new branch]          codex/f4-prepayment-posting-policy -> origin/codex/f4-prepayment-posting-policy
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:40.8822314Z  * [new branch]          codex/global-lint-baseline  -> origin/codex/global-lint-baseline
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:40.8825444Z  * [new branch]          codex/haircut-payment-f3-ar-allocation-check -> origin/codex/haircut-payment-f3-ar-allocation-check
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:40.8830364Z  * [new branch]          codex/harden-accounting-worker-idempotency -> origin/codex/harden-accounting-worker-idempotency
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:40.8834332Z  * [new branch]          codex/harden-payment-webhook-idempotency -> origin/codex/harden-payment-webhook-idempotency
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:40.8839213Z  * [new branch]          codex/hospitality-housekeeping-builder -> origin/codex/hospitality-housekeeping-builder
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:40.8845053Z  * [new branch]          codex/normalize-finance-refund-outbox -> origin/codex/normalize-finance-refund-outbox
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:40.8850248Z  * [new branch]          codex/pr170-real-db-diagnostic -> origin/codex/pr170-real-db-diagnostic
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:40.8854664Z  * [new branch]          codex/preschool-care-preview-flow -> origin/codex/preschool-care-preview-flow
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:40.8859807Z  * [new branch]          codex/preschool-courses-auth-20261021 -> origin/codex/preschool-courses-auth-20261021
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:40.8863452Z  * [new branch]          codex/preschool-dialog-journey-flow -> origin/codex/preschool-dialog-journey-flow
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:40.8867955Z  * [new branch]          codex/preschool-enrollment-pagination -> origin/codex/preschool-enrollment-pagination
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:40.8871573Z  * [new branch]          codex/preschool-grades-trial -> origin/codex/preschool-grades-trial
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:40.8874527Z  * [new branch]          codex/preschool-list-viewport-ui -> origin/codex/preschool-list-viewport-ui
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:40.8878069Z  * [new branch]          codex/preschool-observation-drafts-flow -> origin/codex/preschool-observation-drafts-flow
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:40.8881902Z  * [new branch]          codex/preschool-report-actions-flow -> origin/codex/preschool-report-actions-flow
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:40.8885157Z  * [new branch]          codex/preschool-report-kpi-flow -> origin/codex/preschool-report-kpi-flow
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:40.8888579Z  * [new branch]          codex/preschool-report-titles-flow -> origin/codex/preschool-report-titles-flow
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:40.8891744Z  * [new branch]          codex/preschool-reports-trial -> origin/codex/preschool-reports-trial
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:40.8894979Z  * [new branch]          codex/preschool-roster-journey-flow -> origin/codex/preschool-roster-journey-flow
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:40.8899112Z  * [new branch]          codex/shared-identity-containment-20261021 -> origin/codex/shared-identity-containment-20261021
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:40.8902741Z  * [new branch]          codex/student-training-admin-crud -> origin/codex/student-training-admin-crud
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:40.8906338Z  * [new branch]          codex/student-training-class-schedule -> origin/codex/student-training-class-schedule
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:40.8911798Z  * [new branch]          codex/student-training-enrollment-admin -> origin/codex/student-training-enrollment-admin
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:40.8917334Z  * [new branch]          codex/student-training-lesson-progress -> origin/codex/student-training-lesson-progress
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:40.8922817Z  * [new branch]          codex/student-training-portal-readonly -> origin/codex/student-training-portal-readonly
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:40.8927058Z  * [new branch]          codex/tt133-accounting-full-audit -> origin/codex/tt133-accounting-full-audit
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:40.8930429Z  * [new branch]          core-platform-lab           -> origin/core-platform-lab
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:40.8933772Z  * [new branch]          docs/step-1-certificate     -> origin/docs/step-1-certificate
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:40.8936472Z  * [new branch]          docs/step-1-handoff-clean   -> origin/docs/step-1-handoff-clean
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:40.8939652Z  * [new branch]          docs/step-1-validation-handoff -> origin/docs/step-1-validation-handoff
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:40.8943083Z  * [new branch]          feat/bella-land-field-reconciliation -> origin/feat/bella-land-field-reconciliation
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:40.8947574Z  * [new branch]          feat/bella-land-p2-3-production-create-ui -> origin/feat/bella-land-p2-3-production-create-ui
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:40.8953344Z  * [new branch]          feat/bi-analytics-reports-ui-refinement -> origin/feat/bi-analytics-reports-ui-refinement
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:40.8959117Z  * [new branch]          feat/contracts-collection-workspace-redesign -> origin/feat/contracts-collection-workspace-redesign
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:40.8964007Z  * [new branch]          feat/cskh-support-redesign  -> origin/feat/cskh-support-redesign
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:40.8966949Z  * [new branch]          feat/e1-chain-management-clean -> origin/feat/e1-chain-management-clean
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:40.8971102Z  * [new branch]          feat/education-menu-fix-v2  -> origin/feat/education-menu-fix-v2
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:40.8973836Z  * [new branch]          feat/education-ui-redesign  -> origin/feat/education-ui-redesign
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:40.8976953Z  * [new branch]          feat/legal-documents-workspace-redesign -> origin/feat/legal-documents-workspace-redesign
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:40.8980480Z  * [new branch]          feat/preschool-care-operations -> origin/feat/preschool-care-operations
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:40.8983652Z  * [new branch]          feat/preschool-daily-care-persistence -> origin/feat/preschool-daily-care-persistence
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:40.8987324Z  * [new branch]          feat/preschool-dashboard-notices-weekly-menu -> origin/feat/preschool-dashboard-notices-weekly-menu
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:40.8991354Z  * [new branch]          feat/preschool-executive-analytics-center -> origin/feat/preschool-executive-analytics-center
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:40.8995145Z  * [new branch]          feat/preschool-facilities-safety-control -> origin/feat/preschool-facilities-safety-control
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:40.8998849Z  * [new branch]          feat/preschool-learning-development -> origin/feat/preschool-learning-development
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:40.9002288Z  * [new branch]          feat/preschool-parent-communication-hub -> origin/feat/preschool-parent-communication-hub
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:40.9005522Z  * [new branch]          feat/preschool-sidebar-redesign -> origin/feat/preschool-sidebar-redesign
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:40.9008689Z  * [new branch]          feat/real-estate-lead-sla-redesign -> origin/feat/real-estate-lead-sla-redesign
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:40.9012275Z  * [new branch]          feat/register-education-in-vertical-registry -> origin/feat/register-education-in-vertical-registry
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:40.9015668Z  * [new branch]          feature/investor-docs-sync  -> origin/feature/investor-docs-sync
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:40.9018446Z  * [new branch]          feature/legitimate-change   -> origin/feature/legitimate-change
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:40.9021191Z  * [new branch]          feature/policy-registry-v2  -> origin/feature/policy-registry-v2
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:40.9023825Z  * [new branch]          fix/compact-sidebar-layout  -> origin/fix/compact-sidebar-layout
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:40.9026553Z  * [new branch]          fix/cskh-light-banner-contrast -> origin/fix/cskh-light-banner-contrast
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:40.9029479Z  * [new branch]          fix/education-dashboard-links -> origin/fix/education-dashboard-links
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:40.9032954Z  * [new branch]          fix/receipt-service-syntax-errors -> origin/fix/receipt-service-syntax-errors
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:40.9036085Z  * [new branch]          hardening/platform-stability-20260916 -> origin/hardening/platform-stability-20260916
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:40.9039607Z  * [new branch]          hardening/typescript-zero-debt-phase2 -> origin/hardening/typescript-zero-debt-phase2
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:40.9042613Z  * [new branch]          infra/identity-aware-baseline -> origin/infra/identity-aware-baseline
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:40.9044963Z  * [new branch]          main                        -> origin/main
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:40.9047243Z  * [new branch]          p0.3-phase4a-secret-injection -> origin/p0.3-phase4a-secret-injection
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:40.9050225Z  * [new branch]          p0.3-phase4b.1-change-detection -> origin/p0.3-phase4b.1-change-detection
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:40.9052938Z  * [new branch]          p0.3-phase4b.1-harness-clean -> origin/p0.3-phase4b.1-harness-clean
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:40.9056038Z  * [new branch]          platform/product-identity-haircut-ui-fixes -> origin/platform/product-identity-haircut-ui-fixes
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:40.9059553Z  * [new branch]          product/english-center-test-t2-final -> origin/product/english-center-test-t2-final
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:40.9062396Z  * [new branch]          test/frozen-violation       -> origin/test/frozen-violation
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:40.9064876Z  * [new tag]             bdgf-automove-adoption-20261016 -> bdgf-automove-adoption-20261016
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:40.9067440Z  * [new tag]             bdgf-key-check-20261016     -> bdgf-key-check-20261016
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:40.9069711Z  * [new tag]             factory-test-4-baseline     -> factory-test-4-baseline
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:40.9071929Z  * [new tag]             mobile-week1-checkpoint1    -> mobile-week1-checkpoint1
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:40.9074187Z  * [new tag]             mobile-week1-checkpoint2    -> mobile-week1-checkpoint2
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:40.9076307Z  * [new tag]             mobile-week1-complete       -> mobile-week1-complete
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:40.9078677Z  * [new tag]             mobile-week2-complete       -> mobile-week2-complete
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:40.9080979Z  * [new tag]             mobile-week2-constants-migrated -> mobile-week2-constants-migrated
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:40.9083660Z  * [new tag]             mobile-week2-permissions-migrated -> mobile-week2-permissions-migrated
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:40.9086090Z  * [new tag]             mobile-week2-types-migrated -> mobile-week2-types-migrated
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:40.9088467Z  * [new tag]             mobile-week2-utils-migrated -> mobile-week2-utils-migrated
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:40.9090654Z  * [new tag]             perf-gate-v1                -> perf-gate-v1
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:40.9092555Z  * [new tag]             phase-3-complete            -> phase-3-complete
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:40.9095073Z  * [new tag]             pre-core-platform-baseline-2026-06-03 -> pre-core-platform-baseline-2026-06-03
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:40.9097640Z  * [new tag]             v1.2.0-refactoring-complete -> v1.2.0-refactoring-complete
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:40.9102017Z [command]/usr/bin/git rev-parse --verify --quiet f973dd7e56542aa7847b98c2a4236da86f1eabc3^{object}
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:40.9104465Z f973dd7e56542aa7847b98c2a4236da86f1eabc3
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:40.9107909Z ##[endgroup]
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:40.9109791Z ##[group]Determining the checkout info
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:40.9111742Z ##[endgroup]
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:40.9112842Z [command]/usr/bin/git sparse-checkout disable
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:40.9115889Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:40.9120007Z ##[group]Checking out the ref
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:40.9121880Z [command]/usr/bin/git checkout --progress --force f973dd7e56542aa7847b98c2a4236da86f1eabc3
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:41.9101218Z Updating files:  93% (7783/8327)
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:41.9141848Z Updating files:  94% (7828/8327)
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:41.9183190Z Updating files:  95% (7911/8327)
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:41.9225261Z Updating files:  96% (7994/8327)
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:41.9259046Z Updating files:  97% (8078/8327)
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:41.9387121Z Updating files:  98% (8161/8327)
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:41.9465418Z Updating files:  99% (8244/8327)
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:41.9466448Z Updating files: 100% (8327/8327)
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:41.9466924Z Updating files: 100% (8327/8327), done.
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:41.9571202Z Note: switching to 'f973dd7e56542aa7847b98c2a4236da86f1eabc3'.
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:41.9571709Z 
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:41.9572070Z You are in 'detached HEAD' state. You can look around, make experimental
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:41.9572777Z changes and commit them, and you can discard any commits you make in this
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:41.9574076Z state without impacting any branches by switching back to a branch.
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:41.9574472Z 
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:41.9574861Z If you want to create a new branch to retain commits you create, you may
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:41.9575661Z do so (now or later) by using -c with the switch command. Example:
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:41.9576010Z 
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:41.9576251Z   git switch -c <new-branch-name>
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:41.9576538Z 
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:41.9576851Z Or undo this operation with:
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:41.9577090Z 
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:41.9577292Z   git switch -
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:41.9577675Z 
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:41.9578096Z Turn off this advice by setting config variable advice.detachedHead to false
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:41.9578900Z 
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:41.9579398Z HEAD is now at f973dd7e5 feat(preschool-ai): Phase 4 - Executive AI Copilot Hub for School Leadership & Admin (#404)
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:41.9606068Z ##[endgroup]
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:41.9653111Z [command]/usr/bin/git log -1 --format=%H
+AutoMove Built RC Browser E2E	Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:22:41.9678541Z f973dd7e56542aa7847b98c2a4236da86f1eabc3
+AutoMove Built RC Browser E2E	Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38	﻿2026-10-20T21:22:41.9944843Z ##[group]Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+AutoMove Built RC Browser E2E	Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38	2026-10-20T21:22:41.9945455Z with:
+AutoMove Built RC Browser E2E	Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38	2026-10-20T21:22:41.9945891Z   node-version: 24
+AutoMove Built RC Browser E2E	Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38	2026-10-20T21:22:41.9946280Z   cache: npm
+AutoMove Built RC Browser E2E	Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38	2026-10-20T21:22:41.9946751Z   check-latest: false
+AutoMove Built RC Browser E2E	Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38	2026-10-20T21:22:41.9949351Z   token: ***
+AutoMove Built RC Browser E2E	Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38	2026-10-20T21:22:41.9949779Z   package-manager-cache: true
+AutoMove Built RC Browser E2E	Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38	2026-10-20T21:22:41.9950257Z env:
+AutoMove Built RC Browser E2E	Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38	2026-10-20T21:22:41.9950745Z   AUTOMOVE_RC_SHA: f973dd7e56542aa7847b98c2a4236da86f1eabc3
+AutoMove Built RC Browser E2E	Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38	2026-10-20T21:22:41.9951428Z   NEXT_PUBLIC_SUPABASE_URL: ***
+AutoMove Built RC Browser E2E	Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38	2026-10-20T21:22:41.9952068Z   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ***
+AutoMove Built RC Browser E2E	Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38	2026-10-20T21:22:41.9952581Z   NEXT_PUBLIC_SUPABASE_ANON_KEY: 
+AutoMove Built RC Browser E2E	Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38	2026-10-20T21:22:41.9953137Z   SUPABASE_URL: ***
+AutoMove Built RC Browser E2E	Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38	2026-10-20T21:22:41.9954602Z   SUPABASE_SERVICE_ROLE_KEY: ***
+AutoMove Built RC Browser E2E	Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38	2026-10-20T21:22:41.9955473Z   SUPABASE_DB_URL: ***
+AutoMove Built RC Browser E2E	Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38	2026-10-20T21:22:41.9955906Z ##[endgroup]
+AutoMove Built RC Browser E2E	Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38	2026-10-20T21:22:42.1392980Z Found in cache @ /opt/hostedtoolcache/node/24.22.0/x64
+AutoMove Built RC Browser E2E	Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38	2026-10-20T21:22:42.1395187Z ##[group]Environment details
+AutoMove Built RC Browser E2E	Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38	2026-10-20T21:22:44.9997819Z node: v24.22.0
+AutoMove Built RC Browser E2E	Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38	2026-10-20T21:22:44.9998635Z npm: 11.19.1
+AutoMove Built RC Browser E2E	Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38	2026-10-20T21:22:44.9999069Z yarn: 1.22.22
+AutoMove Built RC Browser E2E	Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38	2026-10-20T21:22:45.0000476Z ##[endgroup]
+AutoMove Built RC Browser E2E	Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38	2026-10-20T21:22:45.0023991Z [command]/opt/hostedtoolcache/node/24.22.0/x64/bin/npm config get cache
+AutoMove Built RC Browser E2E	Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38	2026-10-20T21:22:45.3685877Z /home/runner/.npm
+AutoMove Built RC Browser E2E	Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38	2026-10-20T21:22:45.6492929Z Cache hit for: node-cache-Linux-x64-npm-83d02762d04a2dfba7519940e7235de599af29f0d465018e6e41f7283f4bed68
+AutoMove Built RC Browser E2E	Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38	2026-10-20T21:22:46.5094214Z Received 676 of 676 (100.0%), 0.0 MBs/sec
+AutoMove Built RC Browser E2E	Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38	2026-10-20T21:22:46.5094836Z Cache Size: ~0 MB (676 B)
+AutoMove Built RC Browser E2E	Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38	2026-10-20T21:22:46.5120647Z [command]/usr/bin/tar -xf /home/runner/work/_temp/a84a4578-ea7a-4758-858e-4e21f62e3ebb/cache.tzst -P -C /home/runner/work/bella-ai-platform/bella-ai-platform --use-compress-program unzstd
+AutoMove Built RC Browser E2E	Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38	2026-10-20T21:22:46.5185757Z Cache restored successfully
+AutoMove Built RC Browser E2E	Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38	2026-10-20T21:22:46.5190555Z Cache restored from key: node-cache-Linux-x64-npm-83d02762d04a2dfba7519940e7235de599af29f0d465018e6e41f7283f4bed68
+AutoMove Built RC Browser E2E	Run npm ci	﻿2026-10-20T21:22:46.5347740Z ##[group]Run npm ci
+AutoMove Built RC Browser E2E	Run npm ci	2026-10-20T21:22:46.5348262Z ^[[36;1mnpm ci^[[0m
+AutoMove Built RC Browser E2E	Run npm ci	2026-10-20T21:22:46.5598849Z shell: /usr/bin/bash -e {0}
+AutoMove Built RC Browser E2E	Run npm ci	2026-10-20T21:22:46.5599399Z env:
+AutoMove Built RC Browser E2E	Run npm ci	2026-10-20T21:22:46.5599884Z   AUTOMOVE_RC_SHA: f973dd7e56542aa7847b98c2a4236da86f1eabc3
+AutoMove Built RC Browser E2E	Run npm ci	2026-10-20T21:22:46.5600791Z   NEXT_PUBLIC_SUPABASE_URL: ***
+AutoMove Built RC Browser E2E	Run npm ci	2026-10-20T21:22:46.5601432Z   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ***
+AutoMove Built RC Browser E2E	Run npm ci	2026-10-20T21:22:46.5601888Z   NEXT_PUBLIC_SUPABASE_ANON_KEY: 
+AutoMove Built RC Browser E2E	Run npm ci	2026-10-20T21:22:46.5602439Z   SUPABASE_URL: ***
+AutoMove Built RC Browser E2E	Run npm ci	2026-10-20T21:22:46.5603956Z   SUPABASE_SERVICE_ROLE_KEY: ***
+AutoMove Built RC Browser E2E	Run npm ci	2026-10-20T21:22:46.5604799Z   SUPABASE_DB_URL: ***
+AutoMove Built RC Browser E2E	Run npm ci	2026-10-20T21:22:46.5605235Z ##[endgroup]
+AutoMove Built RC Browser E2E	Run npm ci	2026-10-20T21:22:50.5628994Z npm warn deprecated whatwg-encoding@3.1.1: Use @exodus/bytes instead for a more spec-conformant and faster implementation
+AutoMove Built RC Browser E2E	Run npm ci	2026-10-20T21:22:52.2159176Z npm warn deprecated inflight@1.0.6: This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you want a good and tested way to coalesce async requests by a key value, which is much more comprehensive and powerful.
+AutoMove Built RC Browser E2E	Run npm ci	2026-10-20T21:22:55.5727899Z npm warn deprecated glob@7.2.3: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
+AutoMove Built RC Browser E2E	Run npm ci	2026-10-20T21:22:58.2385666Z npm warn deprecated glob@10.5.0: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
+AutoMove Built RC Browser E2E	Run npm ci	2026-10-20T21:23:25.0200570Z 
+AutoMove Built RC Browser E2E	Run npm ci	2026-10-20T21:23:25.0201660Z > bella-spa-erp@0.1.0 prepare
+AutoMove Built RC Browser E2E	Run npm ci	2026-10-20T21:23:25.0202351Z > husky
+AutoMove Built RC Browser E2E	Run npm ci	2026-10-20T21:23:25.0202535Z 
+AutoMove Built RC Browser E2E	Run npm ci	2026-10-20T21:23:25.1665072Z 
+AutoMove Built RC Browser E2E	Run npm ci	2026-10-20T21:23:25.1666574Z added 1410 packages, and audited 1413 packages in 39s
+AutoMove Built RC Browser E2E	Run npm ci	2026-10-20T21:23:25.1667348Z 
+AutoMove Built RC Browser E2E	Run npm ci	2026-10-20T21:23:25.1667946Z 308 packages are looking for funding
+AutoMove Built RC Browser E2E	Run npm ci	2026-10-20T21:23:25.1669193Z   run `npm fund` for details
+AutoMove Built RC Browser E2E	Run npm ci	2026-10-20T21:23:25.2229989Z 
+AutoMove Built RC Browser E2E	Run npm ci	2026-10-20T21:23:25.2231300Z 26 vulnerabilities (9 moderate, 17 high)
+AutoMove Built RC Browser E2E	Run npm ci	2026-10-20T21:23:25.2231612Z 
+AutoMove Built RC Browser E2E	Run npm ci	2026-10-20T21:23:25.2232271Z To address issues that do not require attention, run:
+AutoMove Built RC Browser E2E	Run npm ci	2026-10-20T21:23:25.2232851Z   npm audit fix
+AutoMove Built RC Browser E2E	Run npm ci	2026-10-20T21:23:25.2233049Z 
+AutoMove Built RC Browser E2E	Run npm ci	2026-10-20T21:23:25.2233436Z To address all issues possible (including breaking changes), run:
+AutoMove Built RC Browser E2E	Run npm ci	2026-10-20T21:23:25.2233931Z   npm audit fix --force
+AutoMove Built RC Browser E2E	Run npm ci	2026-10-20T21:23:25.2234159Z 
+AutoMove Built RC Browser E2E	Run npm ci	2026-10-20T21:23:25.2234428Z Some issues need review, and may require choosing
+AutoMove Built RC Browser E2E	Run npm ci	2026-10-20T21:23:25.2234912Z a different dependency.
+AutoMove Built RC Browser E2E	Run npm ci	2026-10-20T21:23:25.2235166Z 
+AutoMove Built RC Browser E2E	Run npm ci	2026-10-20T21:23:25.2235356Z Run `npm audit` for details.
+AutoMove Built RC Browser E2E	Run npm ci	2026-10-20T21:23:25.2247067Z npm warn install-scripts 4 packages have install scripts not yet covered by allowScripts:
+AutoMove Built RC Browser E2E	Run npm ci	2026-10-20T21:23:25.2248465Z npm warn install-scripts   @sentry/cli@2.58.5 (postinstall: node ./scripts/install.js)
+AutoMove Built RC Browser E2E	Run npm ci	2026-10-20T21:23:25.2249494Z npm warn install-scripts   esbuild@0.28.1 (postinstall: node install.js)
+AutoMove Built RC Browser E2E	Run npm ci	2026-10-20T21:23:25.2250234Z npm warn install-scripts   puppeteer@25.0.2 (postinstall: node install.mjs)
+AutoMove Built RC Browser E2E	Run npm ci	2026-10-20T21:23:25.2251090Z npm warn install-scripts   unrs-resolver@1.11.1 (postinstall: napi-postinstall unrs-resolver 1.11.1 check)
+AutoMove Built RC Browser E2E	Run npm ci	2026-10-20T21:23:25.2251737Z npm warn install-scripts
+AutoMove Built RC Browser E2E	Run npm ci	2026-10-20T21:23:25.2252452Z npm warn install-scripts Run `npm install-scripts ls` to review, or `npm install-scripts approve <pkg>` to allow.
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	﻿2026-10-20T21:23:25.2838917Z ##[group]Run npx playwright install --with-deps chromium
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:25.2839708Z ^[[36;1mnpx playwright install --with-deps chromium^[[0m
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:25.2880520Z shell: /usr/bin/bash -e {0}
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:25.2881086Z env:
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:25.2881522Z   AUTOMOVE_RC_SHA: f973dd7e56542aa7847b98c2a4236da86f1eabc3
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:25.2882313Z   NEXT_PUBLIC_SUPABASE_URL: ***
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:25.2882883Z   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ***
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:25.2883300Z   NEXT_PUBLIC_SUPABASE_ANON_KEY: 
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:25.2883834Z   SUPABASE_URL: ***
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:25.2885287Z   SUPABASE_SERVICE_ROLE_KEY: ***
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:25.2886101Z   SUPABASE_DB_URL: ***
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:25.2886425Z ##[endgroup]
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:26.0075293Z Installing dependencies...
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:26.0151829Z Switching to root user to install dependencies...
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:26.0990377Z Get:1 file:/etc/apt/apt-mirrors.txt Mirrorlist [144 B]
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:26.1410319Z Hit:2 http://azure.archive.ubuntu.com/ubuntu noble InRelease
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:26.1415774Z Get:6 https://packages.microsoft.com/ubuntu/24.04/prod noble InRelease [3600 B]
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:26.1439429Z Get:3 http://azure.archive.ubuntu.com/ubuntu noble-updates InRelease [126 kB]
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:26.1468074Z Get:4 http://azure.archive.ubuntu.com/ubuntu noble-backports InRelease [126 kB]
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:26.1508726Z Get:5 http://azure.archive.ubuntu.com/ubuntu noble-security InRelease [126 kB]
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:26.2513745Z Get:7 https://packages.microsoft.com/ubuntu/24.04/prod noble/main arm64 Packages [565 kB]
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:26.2810511Z Get:8 https://packages.microsoft.com/ubuntu/24.04/prod noble/main amd64 Packages [626 kB]
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:26.2942832Z Get:9 http://azure.archive.ubuntu.com/ubuntu noble-updates/main amd64 Packages [1397 kB]
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:26.3017070Z Get:10 http://azure.archive.ubuntu.com/ubuntu noble-updates/universe amd64 Packages [1704 kB]
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:26.3850674Z Get:11 http://azure.archive.ubuntu.com/ubuntu noble-security/main amd64 Packages [1145 kB]
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:26.3906155Z Get:12 http://azure.archive.ubuntu.com/ubuntu noble-security/main Translation-en [231 kB]
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:26.3930445Z Get:13 http://azure.archive.ubuntu.com/ubuntu noble-security/universe amd64 Packages [1222 kB]
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:29.2333815Z Fetched 7272 kB in 1s (8733 kB/s)
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:30.2539399Z Reading package lists...
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:30.2908199Z Reading package lists...
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:30.5114384Z Building dependency tree...
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:30.5120937Z Reading state information...
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:30.6952913Z libasound2t64 is already the newest version (1.2.11-1ubuntu0.3).
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:30.6953782Z libasound2t64 set to manually installed.
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:30.6954592Z libatk-bridge2.0-0t64 is already the newest version (2.52.0-1build1).
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:30.6955427Z libatk-bridge2.0-0t64 set to manually installed.
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:30.6956318Z libatk1.0-0t64 is already the newest version (2.52.0-1build1).
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:30.6956961Z libatk1.0-0t64 set to manually installed.
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:30.6957800Z libatspi2.0-0t64 is already the newest version (2.52.0-1build1).
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:30.6958672Z libatspi2.0-0t64 set to manually installed.
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:30.6959588Z libcairo2 is already the newest version (1.18.0-3build1).
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:30.6960116Z libcairo2 set to manually installed.
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:30.6960656Z libcups2t64 is already the newest version (2.4.7-1.2ubuntu7.14).
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:30.6961240Z libcups2t64 set to manually installed.
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:30.6962097Z libdbus-1-3 is already the newest version (1.14.10-4ubuntu4.1).
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:30.6962915Z libdbus-1-3 set to manually installed.
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:30.6963643Z libdrm2 is already the newest version (2.4.125-1ubuntu0.1~24.04.2).
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:30.6964331Z libdrm2 set to manually installed.
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:30.6965119Z libgbm1 is already the newest version (25.2.8-0ubuntu0.24.04.4).
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:30.6965875Z libgbm1 set to manually installed.
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:30.6966565Z libglib2.0-0t64 is already the newest version (2.80.0-6ubuntu3.9).
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:30.6968059Z libglib2.0-0t64 set to manually installed.
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:30.6968823Z libnspr4 is already the newest version (2:4.35-1.1build1).
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:30.6969563Z libnspr4 set to manually installed.
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:30.6970319Z libnss3 is already the newest version (2:3.98-1ubuntu0.2).
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:30.6970956Z libnss3 set to manually installed.
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:30.6971758Z libpango-1.0-0 is already the newest version (1.52.1+ds-1build1).
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:30.6972540Z libpango-1.0-0 set to manually installed.
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:30.6973341Z libx11-6 is already the newest version (2:1.8.7-1ubuntu0.1).
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:30.6973857Z libx11-6 set to manually installed.
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:30.6974519Z libxcb1 is already the newest version (1.15-1ubuntu2).
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:30.6975234Z libxcb1 set to manually installed.
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:30.6975933Z libxcomposite1 is already the newest version (1:0.4.5-1build3).
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:30.6976500Z libxcomposite1 set to manually installed.
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:30.6977114Z libxdamage1 is already the newest version (1:1.1.6-1build1).
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:30.6977871Z libxdamage1 set to manually installed.
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:30.6978801Z libxext6 is already the newest version (2:1.3.4-1build2).
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:30.6979316Z libxext6 set to manually installed.
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:30.6979849Z libxfixes3 is already the newest version (1:6.0.0-2build1).
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:30.6980430Z libxfixes3 set to manually installed.
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:30.6981178Z libxkbcommon0 is already the newest version (1.6.0-1build1).
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:30.6981834Z libxkbcommon0 set to manually installed.
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:30.6982340Z libxrandr2 is already the newest version (2:1.5.2-2build1).
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:30.6982863Z libxrandr2 set to manually installed.
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:30.6983529Z fonts-noto-color-emoji is already the newest version (2.047-0ubuntu0.24.04.1).
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:30.6984160Z libfontconfig1 is already the newest version (2.15.0-1.1ubuntu2).
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:30.6984744Z libfontconfig1 set to manually installed.
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:30.6985317Z libfreetype6 is already the newest version (2.13.2+dfsg-1ubuntu0.2).
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:30.6985872Z libfreetype6 set to manually installed.
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:30.6986444Z fonts-liberation is already the newest version (1:2.1.5-3).
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:30.6986959Z fonts-liberation set to manually installed.
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:30.6987498Z The following additional packages will be installed:
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:30.6988052Z   xfonts-encodings xfonts-utils xserver-common
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:30.6988685Z Recommended packages:
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:30.6989161Z   fonts-ipafont-mincho fonts-tlwg-loma xfonts-base
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:30.7257145Z The following NEW packages will be installed:
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:30.7258396Z   fonts-freefont-ttf fonts-ipafont-gothic fonts-tlwg-loma-otf fonts-unifont
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:30.7270077Z   fonts-wqy-zenhei xfonts-cyrillic xfonts-encodings xfonts-scalable
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:30.7289764Z   xfonts-utils
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:30.7290671Z The following packages will be upgraded:
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:30.7291400Z   xserver-common xvfb
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:30.7453743Z 2 upgraded, 9 newly installed, 0 to remove and 41 not upgraded.
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:30.7454549Z Need to get 22.0 MB of archives.
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:30.7455390Z After this operation, 79.5 MB of additional disk space will be used.
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:30.7457851Z Get:1 file:/etc/apt/apt-mirrors.txt Mirrorlist [144 B]
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:30.8438834Z Get:2 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 fonts-ipafont-gothic all 00303-21ubuntu1 [3513 kB]
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:30.9991223Z Get:3 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 fonts-freefont-ttf all 20211204+svn4273-2 [5641 kB]
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:31.1584509Z Get:4 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 fonts-tlwg-loma-otf all 1:0.7.3-1 [107 kB]
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:31.2383972Z Get:5 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 fonts-unifont all 1:15.1.01-1build1 [2993 kB]
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:31.3763584Z Get:6 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 fonts-wqy-zenhei all 0.9.45-8 [7472 kB]
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:31.6169515Z Get:7 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 xfonts-encodings all 1:1.0.5-0ubuntu2 [578 kB]
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:31.6975325Z Get:8 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 xfonts-utils amd64 1:7.7+6build3 [94.4 kB]
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:31.7856206Z Get:9 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 xfonts-cyrillic all 1:1.0.5+nmu1 [384 kB]
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:31.8662077Z Get:10 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 xfonts-scalable all 1:1.0.3-1.3 [304 kB]
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:31.9870803Z Get:11 http://azure.archive.ubuntu.com/ubuntu noble-updates/main amd64 xserver-common all 2:21.1.12-1ubuntu1.9 [35.0 kB]
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:32.0669893Z Get:12 http://azure.archive.ubuntu.com/ubuntu noble-updates/universe amd64 xvfb amd64 2:21.1.12-1ubuntu1.9 [877 kB]
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:32.3910858Z Fetched 22.0 MB in 1s (16.3 MB/s)
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:32.6877211Z Selecting previously unselected package fonts-ipafont-gothic.
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:32.7184579Z (Reading database ... 
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:32.7186059Z (Reading database ... 5%
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:32.7186461Z (Reading database ... 10%
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:32.7186899Z (Reading database ... 15%
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:32.7187292Z (Reading database ... 20%
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:32.7187696Z (Reading database ... 25%
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:32.7188076Z (Reading database ... 30%
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:32.7188684Z (Reading database ... 35%
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:32.7189176Z (Reading database ... 40%
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:32.7189541Z (Reading database ... 45%
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:32.7189955Z (Reading database ... 50%
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:32.7379771Z (Reading database ... 55%
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:32.8899728Z (Reading database ... 60%
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:33.0730566Z (Reading database ... 65%
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:33.1950584Z (Reading database ... 70%
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:33.3311270Z (Reading database ... 75%
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:33.5195869Z (Reading database ... 80%
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:33.7265292Z (Reading database ... 85%
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:34.3297681Z (Reading database ... 90%
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:34.6660380Z (Reading database ... 95%
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:34.6661085Z (Reading database ... 100%
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:34.6662178Z (Reading database ... 214410 files and directories currently installed.)
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:34.6709201Z Preparing to unpack .../00-fonts-ipafont-gothic_00303-21ubuntu1_all.deb ...
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:34.7325080Z Unpacking fonts-ipafont-gothic (00303-21ubuntu1) ...
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:35.4066468Z Selecting previously unselected package fonts-freefont-ttf.
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:35.4208744Z Preparing to unpack .../01-fonts-freefont-ttf_20211204+svn4273-2_all.deb ...
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:35.5988139Z Unpacking fonts-freefont-ttf (20211204+svn4273-2) ...
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:35.7113924Z Selecting previously unselected package fonts-tlwg-loma-otf.
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:35.7248427Z Preparing to unpack .../02-fonts-tlwg-loma-otf_1%3a0.7.3-1_all.deb ...
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:35.7260480Z Unpacking fonts-tlwg-loma-otf (1:0.7.3-1) ...
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:35.7459050Z Selecting previously unselected package fonts-unifont.
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:35.7594327Z Preparing to unpack .../03-fonts-unifont_1%3a15.1.01-1build1_all.deb ...
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:35.7605967Z Unpacking fonts-unifont (1:15.1.01-1build1) ...
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:35.9939753Z Selecting previously unselected package fonts-wqy-zenhei.
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:36.0076510Z Preparing to unpack .../04-fonts-wqy-zenhei_0.9.45-8_all.deb ...
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:36.0172649Z Unpacking fonts-wqy-zenhei (0.9.45-8) ...
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:36.6416890Z Selecting previously unselected package xfonts-encodings.
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:36.6549399Z Preparing to unpack .../05-xfonts-encodings_1%3a1.0.5-0ubuntu2_all.deb ...
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:36.6560016Z Unpacking xfonts-encodings (1:1.0.5-0ubuntu2) ...
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:36.6803452Z Selecting previously unselected package xfonts-utils.
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:36.6940173Z Preparing to unpack .../06-xfonts-utils_1%3a7.7+6build3_amd64.deb ...
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:36.6951372Z Unpacking xfonts-utils (1:7.7+6build3) ...
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:36.7287966Z Selecting previously unselected package xfonts-cyrillic.
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:36.7422948Z Preparing to unpack .../07-xfonts-cyrillic_1%3a1.0.5+nmu1_all.deb ...
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:36.7433975Z Unpacking xfonts-cyrillic (1:1.0.5+nmu1) ...
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:36.7695116Z Selecting previously unselected package xfonts-scalable.
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:36.7830100Z Preparing to unpack .../08-xfonts-scalable_1%3a1.0.3-1.3_all.deb ...
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:36.7839938Z Unpacking xfonts-scalable (1:1.0.3-1.3) ...
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:36.8175866Z Preparing to unpack .../09-xserver-common_2%3a21.1.12-1ubuntu1.9_all.deb ...
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:36.8197763Z Unpacking xserver-common (2:21.1.12-1ubuntu1.9) over (2:21.1.12-1ubuntu1.8) ...
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:36.9057543Z Preparing to unpack .../10-xvfb_2%3a21.1.12-1ubuntu1.9_amd64.deb ...
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:36.9080207Z Unpacking xvfb (2:21.1.12-1ubuntu1.9) over (2:21.1.12-1ubuntu1.8) ...
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:36.9750272Z Setting up fonts-wqy-zenhei (0.9.45-8) ...
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:36.9862089Z Setting up fonts-freefont-ttf (20211204+svn4273-2) ...
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:36.9883247Z Setting up fonts-tlwg-loma-otf (1:0.7.3-1) ...
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:36.9904346Z Setting up xfonts-encodings (1:1.0.5-0ubuntu2) ...
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:36.9924905Z Setting up fonts-ipafont-gothic (00303-21ubuntu1) ...
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:36.9984619Z update-alternatives: using /usr/share/fonts/opentype/ipafont-gothic/ipag.ttf to provide /usr/share/fonts/truetype/fonts-japanese-gothic.ttf (fonts-japanese-gothic.ttf) in auto mode
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:37.0001775Z Setting up xserver-common (2:21.1.12-1ubuntu1.9) ...
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:37.0022382Z Setting up fonts-unifont (1:15.1.01-1build1) ...
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:37.0043132Z Setting up xvfb (2:21.1.12-1ubuntu1.9) ...
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:37.0067731Z Setting up xfonts-utils (1:7.7+6build3) ...
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:37.0109378Z Setting up xfonts-cyrillic (1:1.0.5+nmu1) ...
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:37.0389749Z Setting up xfonts-scalable (1:1.0.3-1.3) ...
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:37.0630918Z Processing triggers for man-db (2.12.0-4build2) ...
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:37.0654001Z Not building database; man-db/auto-update is not 'true'.
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:37.0670144Z Processing triggers for fontconfig (2.15.0-1.1ubuntu2) ...
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:37.7554254Z 
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:37.7555437Z Running kernel seems to be up-to-date.
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:37.7555866Z 
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:37.7556254Z No services need to be restarted.
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:37.7556501Z 
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:37.7556789Z No containers need to be restarted.
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:37.7557051Z 
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:37.7557298Z No user sessions are running outdated binaries.
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:37.7557633Z 
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:37.7557987Z No VM guests are running outdated hypervisor (qemu) binaries on this host.
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:38.7346604Z Downloading Chrome for Testing 148.0.7778.96 (playwright chromium v1223) from https://cdn.playwright.dev/builds/cft/148.0.7778.96/linux64/chrome-linux64.zip
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:39.7359330Z |                                                                                |   0% of 175.4 MiB
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:39.8801601Z |■■■■■■■■                                                                        |  10% of 175.4 MiB
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:39.9728619Z |■■■■■■■■■■■■■■■■                                                                |  20% of 175.4 MiB
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:40.0933872Z |■■■■■■■■■■■■■■■■■■■■■■■■                                                        |  30% of 175.4 MiB
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:40.2118571Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                                |  40% of 175.4 MiB
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:40.2812901Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                        |  50% of 175.4 MiB
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:40.4071926Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                |  60% of 175.4 MiB
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:40.5030430Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                        |  70% of 175.4 MiB
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:40.6196578Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                |  80% of 175.4 MiB
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:40.7281532Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■        |  90% of 175.4 MiB
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:40.7964989Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■| 100% of 175.4 MiB
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:44.0898006Z Chrome for Testing 148.0.7778.96 (playwright chromium v1223) downloaded to /home/runner/.cache/ms-playwright/chromium-1223
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:44.0903107Z Downloading FFmpeg (playwright ffmpeg v1011) from https://cdn.playwright.dev/dbazure/download/playwright/builds/ffmpeg/1011/ffmpeg-linux.zip
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:47.0098498Z |                                                                                |   0% of 2.3 MiB
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:47.1089584Z |■■■■■■■■                                                                        |  10% of 2.3 MiB
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:47.2109287Z |■■■■■■■■■■■■■■■■                                                                |  20% of 2.3 MiB
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:47.4565771Z |■■■■■■■■■■■■■■■■■■■■■■■■                                                        |  30% of 2.3 MiB
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:47.6103005Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                                |  40% of 2.3 MiB
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:47.7916629Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                        |  50% of 2.3 MiB
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:47.9629347Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                |  60% of 2.3 MiB
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:48.1263167Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                        |  70% of 2.3 MiB
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:48.2812765Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                |  80% of 2.3 MiB
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:48.5562674Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■        |  90% of 2.3 MiB
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:48.7630358Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■| 100% of 2.3 MiB
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:48.8210094Z FFmpeg (playwright ffmpeg v1011) downloaded to /home/runner/.cache/ms-playwright/ffmpeg-1011
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:48.8213904Z Downloading Chrome Headless Shell 148.0.7778.96 (playwright chromium-headless-shell v1223) from https://cdn.playwright.dev/builds/cft/148.0.7778.96/linux64/chrome-headless-shell-linux64.zip
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:49.8350409Z |                                                                                |   0% of 113.2 MiB
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:49.9754161Z |■■■■■■■■                                                                        |  10% of 113.2 MiB
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:50.0115715Z |■■■■■■■■■■■■■■■■                                                                |  20% of 113.2 MiB
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:50.0533920Z |■■■■■■■■■■■■■■■■■■■■■■■■                                                        |  30% of 113.2 MiB
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:50.1101216Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                                |  40% of 113.2 MiB
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:50.1374016Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                        |  50% of 113.2 MiB
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:50.1672411Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                |  60% of 113.2 MiB
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:50.2213946Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                        |  70% of 113.2 MiB
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:50.2474417Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                |  80% of 113.2 MiB
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:50.2736767Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■        |  90% of 113.2 MiB
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:50.3203500Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■| 100% of 113.2 MiB
+AutoMove Built RC Browser E2E	Run npx playwright install --with-deps chromium	2026-10-20T21:23:52.6380709Z Chrome Headless Shell 148.0.7778.96 (playwright chromium-headless-shell v1223) downloaded to /home/runner/.cache/ms-playwright/chromium_headless_shell-1223
+AutoMove Built RC Browser E2E	Runner fail-closed regression	﻿2026-10-20T21:23:52.6696332Z ##[group]Run npx jest --runInBand --runTestsByPath src/__tests__/automove-rc-runner.test.ts
+AutoMove Built RC Browser E2E	Runner fail-closed regression	2026-10-20T21:23:52.6697254Z ^[[36;1mnpx jest --runInBand --runTestsByPath src/__tests__/automove-rc-runner.test.ts^[[0m
+AutoMove Built RC Browser E2E	Runner fail-closed regression	2026-10-20T21:23:52.6732361Z shell: /usr/bin/bash -e {0}
+AutoMove Built RC Browser E2E	Runner fail-closed regression	2026-10-20T21:23:52.6732867Z env:
+AutoMove Built RC Browser E2E	Runner fail-closed regression	2026-10-20T21:23:52.6733319Z   AUTOMOVE_RC_SHA: f973dd7e56542aa7847b98c2a4236da86f1eabc3
+AutoMove Built RC Browser E2E	Runner fail-closed regression	2026-10-20T21:23:52.6734067Z   NEXT_PUBLIC_SUPABASE_URL: ***
+AutoMove Built RC Browser E2E	Runner fail-closed regression	2026-10-20T21:23:52.6734625Z   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ***
+AutoMove Built RC Browser E2E	Runner fail-closed regression	2026-10-20T21:23:52.6735085Z   NEXT_PUBLIC_SUPABASE_ANON_KEY: 
+AutoMove Built RC Browser E2E	Runner fail-closed regression	2026-10-20T21:23:52.6735620Z   SUPABASE_URL: ***
+AutoMove Built RC Browser E2E	Runner fail-closed regression	2026-10-20T21:23:52.6737080Z   SUPABASE_SERVICE_ROLE_KEY: ***
+AutoMove Built RC Browser E2E	Runner fail-closed regression	2026-10-20T21:23:52.6737843Z   SUPABASE_DB_URL: ***
+AutoMove Built RC Browser E2E	Runner fail-closed regression	2026-10-20T21:23:52.6738198Z ##[endgroup]
+AutoMove Built RC Browser E2E	Runner fail-closed regression	2026-10-20T21:23:54.7778122Z   console.log
+AutoMove Built RC Browser E2E	Runner fail-closed regression	2026-10-20T21:23:54.7779612Z     ◇ injected env (0) from .env.local // tip: ⌘ override existing { override: true }
+AutoMove Built RC Browser E2E	Runner fail-closed regression	2026-10-20T21:23:54.7780405Z 
+AutoMove Built RC Browser E2E	Runner fail-closed regression	2026-10-20T21:23:54.7780714Z       at _log (node_modules/dotenv/lib/main.js:131:11)
+AutoMove Built RC Browser E2E	Runner fail-closed regression	2026-10-20T21:23:54.7781179Z 
+AutoMove Built RC Browser E2E	Runner fail-closed regression	2026-10-20T21:23:54.7789989Z   console.log
+AutoMove Built RC Browser E2E	Runner fail-closed regression	2026-10-20T21:23:54.7790612Z     [Jest Setup] SUPABASE_SERVICE_ROLE_KEY loaded: true
+AutoMove Built RC Browser E2E	Runner fail-closed regression	2026-10-20T21:23:54.7790971Z 
+AutoMove Built RC Browser E2E	Runner fail-closed regression	2026-10-20T21:23:54.7791180Z       at Object.log (jest.setup.ts:17:9)
+AutoMove Built RC Browser E2E	Runner fail-closed regression	2026-10-20T21:23:54.7791504Z 
+AutoMove Built RC Browser E2E	Runner fail-closed regression	2026-10-20T21:23:54.8816770Z PASS src/__tests__/automove-rc-runner.test.ts
+AutoMove Built RC Browser E2E	Runner fail-closed regression	2026-10-20T21:23:54.8820451Z   ✓ resolves explicit isolated targets and production-mode runtime without Production credentials (3 ms)
+AutoMove Built RC Browser E2E	Runner fail-closed regression	2026-10-20T21:23:54.8821794Z   ✓ pins fallback Auth aliases and disables inherited read replicas for isolated verification (1 ms)
+AutoMove Built RC Browser E2E	Runner fail-closed regression	2026-10-20T21:23:54.8822997Z   ✓ fails closed before build/start on invalid or conflicting configuration: {"AUTOMOVE_RC_SHA":"short"} (7 ms)
+AutoMove Built RC Browser E2E	Runner fail-closed regression	2026-10-20T21:23:54.8824220Z   ✓ fails closed before build/start on invalid or conflicting configuration: {"E2E_BASE_URL":"http://localhost:3000"} (1 ms)
+AutoMove Built RC Browser E2E	Runner fail-closed regression	2026-10-20T21:23:54.8825390Z   ✓ fails closed before build/start on invalid or conflicting configuration: {"NEXT_PUBLIC_SUPABASE_URL":"https://lvnvkpyxtuilhrabtlwv.supabase.co"} (1 ms)
+AutoMove Built RC Browser E2E	Runner fail-closed regression	2026-10-20T21:23:54.8827069Z   ✓ fails closed before build/start on invalid or conflicting configuration: {"NEXT_PUBLIC_SUPABASE_URL":"http://bmnbqbcdbuklhopfbopv.supabase.co"} (1 ms)
+AutoMove Built RC Browser E2E	Runner fail-closed regression	2026-10-20T21:23:54.8828423Z   ✓ fails closed before build/start on invalid or conflicting configuration: {"SUPABASE_URL":"https://aaaaaaaaaaaaaaaaaaaa.supabase.co"}
+AutoMove Built RC Browser E2E	Runner fail-closed regression	2026-10-20T21:23:54.8829957Z   ✓ fails closed before build/start on invalid or conflicting configuration: {"DATABASE_URL":"postgresql://postgres.lvnvkpyxtuilhrabtlwv@aws-1-ap-southeast-1.pooler.supabase.com:5432/postgres"} (11 ms)
+AutoMove Built RC Browser E2E	Runner fail-closed regression	2026-10-20T21:23:54.8831835Z   ✓ fails closed before build/start on invalid or conflicting configuration: {"DB_URL":"postgresql://postgres.bmnbqbcdbuklhopfbopv@aws-1-ap-southeast-1.pooler.supabase.com:5432/postgres?host=example.invalid"} (1 ms)
+AutoMove Built RC Browser E2E	Runner fail-closed regression	2026-10-20T21:23:54.8833094Z   ✓ fails closed before build/start on invalid or conflicting configuration: {"SUPABASE_DB_URL":""}
+AutoMove Built RC Browser E2E	Runner fail-closed regression	2026-10-20T21:23:54.8834007Z   ✓ fails closed before build/start on invalid or conflicting configuration: {"SUPABASE_SERVICE_ROLE_KEY":""} (1 ms)
+AutoMove Built RC Browser E2E	Runner fail-closed regression	2026-10-20T21:23:54.8835194Z   ✓ fails closed before build/start on invalid or conflicting configuration: {"NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY":""} (1 ms)
+AutoMove Built RC Browser E2E	Runner fail-closed regression	2026-10-20T21:23:54.8836254Z   ✓ requires exactly one successful whole-chain Browser test, not skip/flaky/partial evidence (7 ms)
+AutoMove Built RC Browser E2E	Runner fail-closed regression	2026-10-20T21:23:54.8837142Z   ✓ redacts configured secrets, DB credentials, JWT and encoded Auth cookies from artifact logs (1 ms)
+AutoMove Built RC Browser E2E	Runner fail-closed regression	2026-10-20T21:23:54.8837589Z 
+AutoMove Built RC Browser E2E	Runner fail-closed regression	2026-10-20T21:23:54.8858867Z Test Suites: 1 passed, 1 total
+AutoMove Built RC Browser E2E	Runner fail-closed regression	2026-10-20T21:23:54.8859825Z Tests:       14 passed, 14 total
+AutoMove Built RC Browser E2E	Runner fail-closed regression	2026-10-20T21:23:54.8860262Z Snapshots:   0 total
+AutoMove Built RC Browser E2E	Runner fail-closed regression	2026-10-20T21:23:54.8860648Z Time:        0.425 s
+AutoMove Built RC Browser E2E	Runner fail-closed regression	2026-10-20T21:23:54.8861338Z Ran all test suites within paths "src/__tests__/automove-rc-runner.test.ts".
+AutoMove Built RC Browser E2E	Build exact candidate and verify real business chain	﻿2026-10-20T21:23:54.9280073Z ##[group]Run npx tsx scripts/run-automove-rc-business-chain.ts
+AutoMove Built RC Browser E2E	Build exact candidate and verify real business chain	2026-10-20T21:23:54.9280765Z ^[[36;1mnpx tsx scripts/run-automove-rc-business-chain.ts^[[0m
+AutoMove Built RC Browser E2E	Build exact candidate and verify real business chain	2026-10-20T21:23:54.9315715Z shell: /usr/bin/bash -e {0}
+AutoMove Built RC Browser E2E	Build exact candidate and verify real business chain	2026-10-20T21:23:54.9316155Z env:
+AutoMove Built RC Browser E2E	Build exact candidate and verify real business chain	2026-10-20T21:23:54.9316594Z   AUTOMOVE_RC_SHA: f973dd7e56542aa7847b98c2a4236da86f1eabc3
+AutoMove Built RC Browser E2E	Build exact candidate and verify real business chain	2026-10-20T21:23:54.9317533Z   NEXT_PUBLIC_SUPABASE_URL: ***
+AutoMove Built RC Browser E2E	Build exact candidate and verify real business chain	2026-10-20T21:23:54.9318052Z   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ***
+AutoMove Built RC Browser E2E	Build exact candidate and verify real business chain	2026-10-20T21:23:54.9318695Z   NEXT_PUBLIC_SUPABASE_ANON_KEY: 
+AutoMove Built RC Browser E2E	Build exact candidate and verify real business chain	2026-10-20T21:23:54.9319201Z   SUPABASE_URL: ***
+AutoMove Built RC Browser E2E	Build exact candidate and verify real business chain	2026-10-20T21:23:54.9320673Z   SUPABASE_SERVICE_ROLE_KEY: ***
+AutoMove Built RC Browser E2E	Build exact candidate and verify real business chain	2026-10-20T21:23:54.9321449Z   SUPABASE_DB_URL: ***
+AutoMove Built RC Browser E2E	Build exact candidate and verify real business chain	2026-10-20T21:23:54.9321839Z ##[endgroup]
+AutoMove Built RC Browser E2E	Build exact candidate and verify real business chain	2026-10-20T21:23:56.0899571Z AUTOMOVE_RC_BUILD sha=f973dd7e56542aa7847b98c2a4236da86f1eabc3
+AutoMove Built RC Browser E2E	Build exact candidate and verify real business chain	2026-10-20T21:26:22.2471503Z AUTOMOVE_RC_BROWSER sha=f973dd7e56542aa7847b98c2a4236da86f1eabc3 buildId=2RWcl0cpXfeBSmC4rhaPy project=bmnbqbcdbuklhopfbopv
+AutoMove Built RC Browser E2E	Build exact candidate and verify real business chain	2026-10-20T21:34:28.9204500Z AUTOMOVE_RC_RESULT=PASS evidence=/home/runner/work/bella-ai-platform/bella-ai-platform/.cache/automove-rc/f973dd7e56542aa7847b98c2a4236da86f1eabc3/2026-10-20T21-23-56-088Z/evidence.json
+AutoMove Built RC Browser E2E	Publish sanitized RC evidence	﻿2026-10-20T21:34:33.9379232Z ##[group]Run actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+AutoMove Built RC Browser E2E	Publish sanitized RC evidence	2026-10-20T21:34:33.9379838Z with:
+AutoMove Built RC Browser E2E	Publish sanitized RC evidence	2026-10-20T21:34:33.9380357Z   name: automove-rc-f973dd7e56542aa7847b98c2a4236da86f1eabc3
+AutoMove Built RC Browser E2E	Publish sanitized RC evidence	2026-10-20T21:34:33.9381107Z   path: .cache/automove-rc/**/evidence.json
+AutoMove Built RC Browser E2E	Publish sanitized RC evidence	.cache/automove-rc/**/chain-proof.json
+AutoMove Built RC Browser E2E	Publish sanitized RC evidence	.cache/automove-rc/**/*.log
+AutoMove Built RC Browser E2E	Publish sanitized RC evidence	.cache/automove-rc/**/*.png
+AutoMove Built RC Browser E2E	Publish sanitized RC evidence	
+AutoMove Built RC Browser E2E	Publish sanitized RC evidence	2026-10-20T21:34:33.9382416Z   include-hidden-files: true
+AutoMove Built RC Browser E2E	Publish sanitized RC evidence	2026-10-20T21:34:33.9382794Z   if-no-files-found: warn
+AutoMove Built RC Browser E2E	Publish sanitized RC evidence	2026-10-20T21:34:33.9383207Z   retention-days: 7
+AutoMove Built RC Browser E2E	Publish sanitized RC evidence	2026-10-20T21:34:33.9383556Z   compression-level: 6
+AutoMove Built RC Browser E2E	Publish sanitized RC evidence	2026-10-20T21:34:33.9383914Z   overwrite: false
+AutoMove Built RC Browser E2E	Publish sanitized RC evidence	2026-10-20T21:34:33.9384274Z   archive: true
+AutoMove Built RC Browser E2E	Publish sanitized RC evidence	2026-10-20T21:34:33.9384617Z env:
+AutoMove Built RC Browser E2E	Publish sanitized RC evidence	2026-10-20T21:34:33.9385030Z   AUTOMOVE_RC_SHA: f973dd7e56542aa7847b98c2a4236da86f1eabc3
+AutoMove Built RC Browser E2E	Publish sanitized RC evidence	2026-10-20T21:34:33.9385792Z   NEXT_PUBLIC_SUPABASE_URL: ***
+AutoMove Built RC Browser E2E	Publish sanitized RC evidence	2026-10-20T21:34:33.9387127Z   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ***
+AutoMove Built RC Browser E2E	Publish sanitized RC evidence	2026-10-20T21:34:33.9387738Z   NEXT_PUBLIC_SUPABASE_ANON_KEY: 
+AutoMove Built RC Browser E2E	Publish sanitized RC evidence	2026-10-20T21:34:33.9388589Z   SUPABASE_URL: ***
+AutoMove Built RC Browser E2E	Publish sanitized RC evidence	2026-10-20T21:34:33.9390080Z   SUPABASE_SERVICE_ROLE_KEY: ***
+AutoMove Built RC Browser E2E	Publish sanitized RC evidence	2026-10-20T21:34:33.9390891Z   SUPABASE_DB_URL: ***
+AutoMove Built RC Browser E2E	Publish sanitized RC evidence	2026-10-20T21:34:33.9391254Z ##[endgroup]
+AutoMove Built RC Browser E2E	Publish sanitized RC evidence	2026-10-20T21:34:34.0893924Z With the provided path, there will be 11 files uploaded
+AutoMove Built RC Browser E2E	Publish sanitized RC evidence	2026-10-20T21:34:34.0900729Z Artifact name is valid!
+AutoMove Built RC Browser E2E	Publish sanitized RC evidence	2026-10-20T21:34:34.0901666Z Root directory input is valid!
+AutoMove Built RC Browser E2E	Publish sanitized RC evidence	2026-10-20T21:34:34.4753802Z Uploading artifact: automove-rc-f973dd7e56542aa7847b98c2a4236da86f1eabc3.zip
+AutoMove Built RC Browser E2E	Publish sanitized RC evidence	2026-10-20T21:34:34.4790777Z Beginning upload of artifact content to blob storage
+AutoMove Built RC Browser E2E	Publish sanitized RC evidence	2026-10-20T21:34:35.2135950Z Uploaded bytes 807851
+AutoMove Built RC Browser E2E	Publish sanitized RC evidence	2026-10-20T21:34:35.2974149Z Finished uploading artifact content to blob storage!
+AutoMove Built RC Browser E2E	Publish sanitized RC evidence	2026-10-20T21:34:35.2976180Z SHA256 digest of uploaded artifact is b4b05f04535a37911f9d3cb2a44bea26387b9dff09603f2622edf358848f3afc
+AutoMove Built RC Browser E2E	Publish sanitized RC evidence	2026-10-20T21:34:35.2977168Z Finalizing artifact upload
+AutoMove Built RC Browser E2E	Publish sanitized RC evidence	2026-10-20T21:34:35.7222314Z Artifact automove-rc-f973dd7e56542aa7847b98c2a4236da86f1eabc3 successfully finalized. Artifact ID 12301760390
+AutoMove Built RC Browser E2E	Publish sanitized RC evidence	2026-10-20T21:34:35.7224065Z Artifact automove-rc-f973dd7e56542aa7847b98c2a4236da86f1eabc3 has been successfully uploaded! Final size is 807851 bytes. Artifact ID is 12301760390
+AutoMove Built RC Browser E2E	Publish sanitized RC evidence	2026-10-20T21:34:35.7226107Z Artifact download URL: https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39499824002/artifacts/12301760390
+AutoMove Built RC Browser E2E	Post Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38	﻿2026-10-20T21:34:35.7409516Z Post job cleanup.
+AutoMove Built RC Browser E2E	Post Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38	2026-10-20T21:34:35.8609777Z Cache hit occurred on the primary key node-cache-Linux-x64-npm-83d02762d04a2dfba7519940e7235de599af29f0d465018e6e41f7283f4bed68, not saving cache.
+AutoMove Built RC Browser E2E	Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	﻿2026-10-20T21:34:35.8753830Z Post job cleanup.
+AutoMove Built RC Browser E2E	Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:34:35.9592924Z [command]/usr/bin/git version
+AutoMove Built RC Browser E2E	Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:34:35.9633695Z git version 2.55.0
+AutoMove Built RC Browser E2E	Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:34:35.9669184Z Temporarily overriding HOME='/home/runner/work/_temp/725b33e9-e060-4f36-a40f-a0163742c10a' before making global git config changes
+AutoMove Built RC Browser E2E	Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:34:35.9670888Z Adding repository directory to the temporary git global config as a safe directory
+AutoMove Built RC Browser E2E	Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:34:35.9674603Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/bella-ai-platform/bella-ai-platform
+AutoMove Built RC Browser E2E	Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:34:35.9707228Z Removing SSH command configuration
+AutoMove Built RC Browser E2E	Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:34:35.9714703Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+AutoMove Built RC Browser E2E	Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:34:35.9751256Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+AutoMove Built RC Browser E2E	Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:34:35.9986374Z Removing HTTP extra header
+AutoMove Built RC Browser E2E	Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:34:35.9992162Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+AutoMove Built RC Browser E2E	Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:34:36.0024802Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+AutoMove Built RC Browser E2E	Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:34:36.0239733Z Removing includeIf entries pointing to credentials config files
+AutoMove Built RC Browser E2E	Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:34:36.0248425Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+AutoMove Built RC Browser E2E	Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:34:36.0279924Z includeif.gitdir:/home/runner/work/bella-ai-platform/bella-ai-platform/.git.path
+AutoMove Built RC Browser E2E	Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:34:36.0281526Z includeif.gitdir:/home/runner/work/bella-ai-platform/bella-ai-platform/.git/worktrees/*.path
+AutoMove Built RC Browser E2E	Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:34:36.0282515Z includeif.gitdir:/github/workspace/.git.path
+AutoMove Built RC Browser E2E	Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:34:36.0283564Z includeif.gitdir:/github/workspace/.git/worktrees/*.path
+AutoMove Built RC Browser E2E	Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:34:36.0289977Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/bella-ai-platform/bella-ai-platform/.git.path
+AutoMove Built RC Browser E2E	Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:34:36.0314484Z /home/runner/work/_temp/git-credentials-3fdfadae-7a54-4e9d-b20e-d958b9d384ee.config
+AutoMove Built RC Browser E2E	Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:34:36.0335504Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/bella-ai-platform/bella-ai-platform/.git.path /home/runner/work/_temp/git-credentials-3fdfadae-7a54-4e9d-b20e-d958b9d384ee.config
+AutoMove Built RC Browser E2E	Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:34:36.0390169Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/bella-ai-platform/bella-ai-platform/.git/worktrees/*.path
+AutoMove Built RC Browser E2E	Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:34:36.0420663Z /home/runner/work/_temp/git-credentials-3fdfadae-7a54-4e9d-b20e-d958b9d384ee.config
+AutoMove Built RC Browser E2E	Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:34:36.0434528Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/bella-ai-platform/bella-ai-platform/.git/worktrees/*.path /home/runner/work/_temp/git-credentials-3fdfadae-7a54-4e9d-b20e-d958b9d384ee.config
+AutoMove Built RC Browser E2E	Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:34:36.0522315Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git.path
+AutoMove Built RC Browser E2E	Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:34:36.0539546Z /github/runner_temp/git-credentials-3fdfadae-7a54-4e9d-b20e-d958b9d384ee.config
+AutoMove Built RC Browser E2E	Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:34:36.0553245Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git.path /github/runner_temp/git-credentials-3fdfadae-7a54-4e9d-b20e-d958b9d384ee.config
+AutoMove Built RC Browser E2E	Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:34:36.0603030Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git/worktrees/*.path
+AutoMove Built RC Browser E2E	Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:34:36.0637896Z /github/runner_temp/git-credentials-3fdfadae-7a54-4e9d-b20e-d958b9d384ee.config
+AutoMove Built RC Browser E2E	Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:34:36.0650380Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git/worktrees/*.path /github/runner_temp/git-credentials-3fdfadae-7a54-4e9d-b20e-d958b9d384ee.config
+AutoMove Built RC Browser E2E	Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:34:36.0707354Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+AutoMove Built RC Browser E2E	Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803	2026-10-20T21:34:36.0965701Z Removing credentials config '/home/runner/work/_temp/git-credentials-3fdfadae-7a54-4e9d-b20e-d958b9d384ee.config'
+AutoMove Built RC Browser E2E	Complete job	﻿2026-10-20T21:34:36.1122674Z Cleaning up orphan processes

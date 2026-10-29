@@ -1,0 +1,7 @@
+{
+  "checkedAt": "2026-10-20T21:57:28.2385703Z",
+  "project": "lvnvkpyxtuilhrabtlwv",
+  "exitCode": 0,
+  "querySha256": "8e0537cd17d7cc54f196b0216ecaaee92d8bac0ccbbb94b8d4187dbb60269714",
+  "mode": "READ ONLY; EXPLAIN without ANALYZE; client RPC rejected before writer bodies; no real user JWT or business mutation"
+}

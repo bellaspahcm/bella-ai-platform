@@ -1,0 +1,9 @@
+{
+  "command": "node node_modules/jest/bin/jest.js src/__tests__/user-actions.test.ts src/__tests__/onboarding.test.ts src/app/api/education/courses/__tests__/route.test.ts src/app/api/education/courses/__tests__/access.test.ts --runInBand --json --outputFile=D:\\Antigravity\\Projects\\BELLA SPA ERP\\docs\\audits\\preschool-full-audit-20261020\\batch2c-identity\\jest-results.json",
+  "startedAt": "2026-10-20T20:44:14.628Z",
+  "finishedAt": "2026-10-20T20:44:23.566Z",
+  "exitCode": 0,
+  "signal": null,
+  "errorCode": null,
+  "environment": "Process-scoped offline localhost + synthetic keys. No production credentials/network in business tests."
+}

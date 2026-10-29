@@ -26,10 +26,12 @@ Use these before inventing anything new:
 - QA must verify the root failure, not aggregate cascade failures.
 - QA must not treat `TIMEOUT`, `SKIP`, `NOT_RUN`, or `ASSUMED` as `PASS`.
 - QA must not weaken tests, bypass RLS, disable assertions, or mock away behavior under test.
+- Select checks and environment by affected behavior/risk under the Constitution. Use existing suites and valid evidence; do not create a Test DB, rerun unrelated regression, add review layers or repeat an unchanged check merely to fill a process stage.
+- A real DB/Auth/RLS claim still needs the actual enforcement boundary and persistence/denial evidence. Isolated fixtures in an existing safe authorized environment can suffice without a disposable database. Keep required CI/freeze/security checks binding.
 
 ## Verification Packet
 
-For every QA pass, produce:
+Record the relevant fields in the existing task response/work record; reuse evidence references and do not create a duplicate QA report:
 
 ```text
 SCOPE:

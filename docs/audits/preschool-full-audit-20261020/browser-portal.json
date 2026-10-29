@@ -1,0 +1,32 @@
+{
+  "checkedAt": "2026-10-20T15:39:16.814Z",
+  "route": "/portal/education/[invalid-token]",
+  "httpStatus": 200,
+  "ui": {
+    "headings": [
+      "Liên kết không hợp lệ hoặc đã hết hạn"
+    ],
+    "errorVisible": true
+  },
+  "api": [
+    {
+      "status": 401,
+      "path": "/api/education/portal/[invalid-token]"
+    }
+  ],
+  "directInvalidToken": {
+    "status": 401,
+    "errorCategory": "TOKEN_MALFORMED"
+  },
+  "blocked": [
+    {
+      "path": "/monitoring",
+      "method": "POST"
+    },
+    {
+      "path": "/monitoring",
+      "method": "POST"
+    }
+  ],
+  "scope": "Invalid token only; no valid portal payload GET because the service can create a chat thread during aggregation; no token issued, business data fetched or changed"
+}

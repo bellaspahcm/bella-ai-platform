@@ -1,0 +1,13 @@
+{
+  "mode": "healthcare",
+  "startedAt": "2026-10-20T15:30:45.172Z",
+  "finishedAt": "2026-10-20T15:32:11.246Z",
+  "command": [
+    "npm",
+    "run",
+    "healthcare:verify"
+  ],
+  "exitCode": 1,
+  "signal": null,
+  "environment": "Offline/mock Supabase; real DB suites excluded; no production credentials passed"
+}

@@ -1,0 +1,37 @@
+{
+  "group": "medication",
+  "startedAt": "2026-10-20T22:33:44.149Z",
+  "finishedAt": "2026-10-20T22:33:45.233Z",
+  "command": [
+    "git",
+    "commit",
+    "-m",
+    "fix(preschool): retire medication mutation endpoint"
+  ],
+  "exitCode": 0,
+  "root": "C:\\Users\\DELL\\.codex\\worktrees\\shared-identity-containment-20261021\\BELLA SPA ERP",
+  "branch": "codex/preschool-disable-medication-20261021",
+  "files": [
+    "docs/audits/preschool-full-audit-20261020/batch2f-disable-medication/ARCHITECTURE_GATE_RESULT.md",
+    "docs/audits/preschool-full-audit-20261020/batch2f-disable-medication/FINAL_REPORT.md",
+    "docs/audits/preschool-full-audit-20261020/batch2f-disable-medication/SPEC.md",
+    "docs/audits/preschool-full-audit-20261020/batch2f-disable-medication/jest-command.json",
+    "docs/audits/preschool-full-audit-20261020/batch2f-disable-medication/jest-results.json",
+    "docs/audits/preschool-full-audit-20261020/batch2f-disable-medication/lint-command.json",
+    "docs/audits/preschool-full-audit-20261020/batch2f-disable-medication/local-http-assessment.json",
+    "docs/audits/preschool-full-audit-20261020/batch2f-disable-medication/local-http.json",
+    "docs/audits/preschool-full-audit-20261020/batch2f-disable-medication/review-results.json",
+    "docs/audits/preschool-full-audit-20261020/batch2f-disable-medication/secrets-command.json",
+    "docs/audits/preschool-full-audit-20261020/batch2f-disable-medication/source-manifest.json",
+    "docs/audits/preschool-full-audit-20261020/batch2f-disable-medication/typecheck-command.json",
+    "docs/audits/preschool-full-audit-20261020/batch2f-disable-medication/verification.json",
+    "src/app/api/education/care/medication/__tests__/route.test.ts",
+    "src/app/api/education/care/medication/route.ts"
+  ],
+  "commit": "4269492fbc41bdfb745b2c43062f11762803a252",
+  "push": "NOT_RUN",
+  "merge": "NOT_RUN",
+  "productionRollout": "NOT_RUN",
+  "fullRegression": "FAIL_ENVIRONMENT",
+  "authenticatedRls": "NOT_PROVEN"
+}

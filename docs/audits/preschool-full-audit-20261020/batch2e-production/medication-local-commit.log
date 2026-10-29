@@ -1,0 +1,23 @@
+[codex/preschool-disable-medication-20261021 4269492fb] fix(preschool): retire medication mutation endpoint
+ 15 files changed, 413 insertions(+), 45 deletions(-)
+ create mode 100644 docs/audits/preschool-full-audit-20261020/batch2f-disable-medication/ARCHITECTURE_GATE_RESULT.md
+ create mode 100644 docs/audits/preschool-full-audit-20261020/batch2f-disable-medication/FINAL_REPORT.md
+ create mode 100644 docs/audits/preschool-full-audit-20261020/batch2f-disable-medication/SPEC.md
+ create mode 100644 docs/audits/preschool-full-audit-20261020/batch2f-disable-medication/jest-command.json
+ create mode 100644 docs/audits/preschool-full-audit-20261020/batch2f-disable-medication/jest-results.json
+ create mode 100644 docs/audits/preschool-full-audit-20261020/batch2f-disable-medication/lint-command.json
+ create mode 100644 docs/audits/preschool-full-audit-20261020/batch2f-disable-medication/local-http-assessment.json
+ create mode 100644 docs/audits/preschool-full-audit-20261020/batch2f-disable-medication/local-http.json
+ create mode 100644 docs/audits/preschool-full-audit-20261020/batch2f-disable-medication/review-results.json
+ create mode 100644 docs/audits/preschool-full-audit-20261020/batch2f-disable-medication/secrets-command.json
+ create mode 100644 docs/audits/preschool-full-audit-20261020/batch2f-disable-medication/source-manifest.json
+ create mode 100644 docs/audits/preschool-full-audit-20261020/batch2f-disable-medication/typecheck-command.json
+ create mode 100644 docs/audits/preschool-full-audit-20261020/batch2f-disable-medication/verification.json
+ create mode 100644 src/app/api/education/care/medication/__tests__/route.test.ts
+🔒 Architecture Guard — Git Pre-Commit Hook
+   Checking staged files for frozen kernel modifications...
+
+   ✅ Checked 15 staged file(s)
+   ✅ No frozen files modified
+   ✅ Commit allowed
+

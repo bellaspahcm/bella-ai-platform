@@ -1,0 +1,102 @@
+{
+  "checkedAt": "2026-10-20T15:59:03.262Z",
+  "origin": "https://bella-spa-erp.vercel.app",
+  "loginStatus": 200,
+  "finalUrl": "https://bella-spa-erp.vercel.app/login",
+  "deploymentId": "dpl_9FQrTej4gajN95v6MwLJ31f3pUTQ",
+  "loginHtmlSha256": "f6a29d84b649c5dfafdcfe72256ba37025a2fcd5bcc2a853a742f67fb4d39fe2",
+  "scripts": [
+    {
+      "path": "/_next/static/chunks/4a7b0c69-1e40447ea72e6af5.js",
+      "status": 200,
+      "sha256": "91bab3a68b1a952a5b417b6a93e5701ec6a4667b13495e5a79864b8f4158416b",
+      "supabaseOrigins": []
+    },
+    {
+      "path": "/_next/static/chunks/5d015edf-1f2965de5377ac19.js",
+      "status": 200,
+      "sha256": "45c51d0c9c12d3c37937564d74e8c2d1e4842bea5eb0eaeb8d6aae293d2eeb5e",
+      "supabaseOrigins": []
+    },
+    {
+      "path": "/_next/static/chunks/4bd1b696-f98826e3ee970624.js",
+      "status": 200,
+      "sha256": "7180fb414db0027e55c9d1933574b9e2c61a82a3d1c15d11f64a3251da45c984",
+      "supabaseOrigins": []
+    },
+    {
+      "path": "/_next/static/chunks/52089-c6ddc29b06e1cc04.js",
+      "status": 200,
+      "sha256": "72717190544505f088f7c4717a889de311fdc2d3f9c06e7ab17f8cff37887287",
+      "supabaseOrigins": []
+    },
+    {
+      "path": "/_next/static/chunks/main-app-c8d4ef27f30add02.js",
+      "status": 200,
+      "sha256": "f188a9db871c14d88413f571bc644c1af35eedb2dc100f33527e0047d5f55bcd",
+      "supabaseOrigins": []
+    },
+    {
+      "path": "/_next/static/chunks/5772-ba6bd8136be07bcf.js",
+      "status": 200,
+      "sha256": "1667ea54cf30ba7a36eb62c4a27fbe5bdb76b6fa6d47d34c8126cb10c8d6e57a",
+      "supabaseOrigins": []
+    },
+    {
+      "path": "/_next/static/chunks/app/(auth)/login/page-1b4c9769ecb41dc1.js",
+      "status": 200,
+      "sha256": "1572ae481232f170922a84ceebcac46d5f820e6798b59cfd7fed0062c2b1a6c6",
+      "supabaseOrigins": []
+    },
+    {
+      "path": "/_next/static/chunks/66609-2fb2550375237514.js",
+      "status": 200,
+      "sha256": "a5d5c64614d3372e35fb4b2e3dad8d41bbacef7f2a1e5131e4c7af4424023059",
+      "supabaseOrigins": []
+    },
+    {
+      "path": "/_next/static/chunks/23929-99511b2ddacc8b2b.js",
+      "status": 200,
+      "sha256": "811b83ec6d1cdd53b07985ec544631fc892ecdf84397c92a707503768b34fce6",
+      "supabaseOrigins": []
+    },
+    {
+      "path": "/_next/static/chunks/89148-6c6a6ad8eb382cc4.js",
+      "status": 200,
+      "sha256": "0e2f10b3567e2f590cbbd88296528064e6c3cc98a565527acaf324bb8e3e5329",
+      "supabaseOrigins": []
+    },
+    {
+      "path": "/_next/static/chunks/92024-8c1e072238383cd4.js",
+      "status": 200,
+      "sha256": "ad9d20b43382f07d29c7d9f9f651b40491f8e8d86fa525b02aad711391c761cb",
+      "supabaseOrigins": []
+    },
+    {
+      "path": "/_next/static/chunks/89980-639ba37307ac024e.js",
+      "status": 200,
+      "sha256": "3dd50f6ead28ce30658792a8873b3d2e6348ec636cba97c60ce5aa202f0ca851",
+      "supabaseOrigins": []
+    },
+    {
+      "path": "/_next/static/chunks/app/layout-699fd395f61aca05.js",
+      "status": 200,
+      "sha256": "eaf9f3193c65e0b9aa26ade65c5a52072e4a758ce3b260eb4eaac10c4b4d8552",
+      "supabaseOrigins": []
+    },
+    {
+      "path": "/_next/static/chunks/polyfills-42372ed130431b0a.js",
+      "status": 200,
+      "sha256": "0973c1d64c88adc8e3c950410cb58b288f72118d5965b78049438deb8f2f9683",
+      "supabaseOrigins": []
+    },
+    {
+      "path": "/_next/static/chunks/webpack-271f85303bb44d59.js",
+      "status": 200,
+      "sha256": "422c0ddc0650ace1f8205468fe147da7dd99a1d3986b56032dd361938756db74",
+      "supabaseOrigins": []
+    }
+  ],
+  "supabaseOrigins": [],
+  "notes": "Public GETs of login HTML and referenced JavaScript only. No raw bundles, credentials, cookies or env values persisted. Embedded API origins are public configuration; bundle matches alone do not prove every server-side integration target."
+}

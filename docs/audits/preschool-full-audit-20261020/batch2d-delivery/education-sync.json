@@ -1,0 +1,45 @@
+{
+  "startedAt": "2026-10-20T21:04:04.984Z",
+  "workspace": "C:/Users/DELL/.codex/worktrees/preschool-courses-auth-20261021/BELLA SPA ERP",
+  "branch": "codex/preschool-courses-auth-20261021",
+  "prior": "2522f6db2d0a19e6ec9ddc9f775bc8cd669d72c8",
+  "main": "f973dd7e56542aa7847b98c2a4236da86f1eabc3",
+  "beforeTree": "b910ccd9330ff6a5f9f7ebf39a6fc0e373d4cef7",
+  "beforePrFiles": 36,
+  "expectedFinalFiles": 22,
+  "forced": false,
+  "source": [
+    {
+      "path": "src/app/api/education/courses/route.ts",
+      "blob": "67c5eb7db50f217eff7094e6af54a762851bb556"
+    },
+    {
+      "path": "src/app/api/education/courses/[id]/route.ts",
+      "blob": "cf4ed022652c2b2adc24fd05d4c138eb494a740f"
+    },
+    {
+      "path": "src/app/api/education/courses/request-context.ts",
+      "blob": "f904187629b54dbc211472403f6c0a5d38b0b269"
+    },
+    {
+      "path": "src/app/api/education/courses/__tests__/route.test.ts",
+      "blob": "827b42d30f701779526a541419c88e02eb968163"
+    },
+    {
+      "path": "src/app/api/education/courses/__tests__/access.test.ts",
+      "blob": "d7f669dc29c707234a0e5908f5ea61aa2385e241"
+    }
+  ],
+  "mergeExitCode": 0,
+  "commitExitCode": 0,
+  "head": "9dd287ce8b9d5128dc638fc554ccfb5d9a9d8e33",
+  "afterTree": "b910ccd9330ff6a5f9f7ebf39a6fc0e373d4cef7",
+  "pushExitCode": 0,
+  "remoteSha": "9dd287ce8b9d5128dc638fc554ccfb5d9a9d8e33",
+  "finishedAt": "2026-10-20T21:04:14.646Z",
+  "treeUnchanged": true,
+  "sourceBlobsUnchanged": true,
+  "afterPrFiles": 22,
+  "onlyApprovedScope": true,
+  "worktreeClean": true
+}

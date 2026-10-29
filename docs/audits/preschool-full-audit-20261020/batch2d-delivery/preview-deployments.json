@@ -1,0 +1,35 @@
+{
+  "checkedAt": "2026-10-20T21:19:36.921Z",
+  "project": "prj_Rgncynqz8ptznREGggMxPfjwoikW",
+  "production": {
+    "id": "dpl_9FQrTej4gajN95v6MwLJ31f3pUTQ",
+    "gitSha": "f973dd7e56542aa7847b98c2a4236da86f1eabc3"
+  },
+  "deployments": [
+    {
+      "mode": "platform",
+      "branch": "codex/shared-identity-containment-20261021",
+      "head": "9b4ec3c3f2f044ad2dae5ffc6d9693afdf626179",
+      "id": "dpl_HK6r9iyFfW5n8pxC87oDkmchUMns",
+      "url": "https://bella-spa-ozfrj4p9i-bella-spa-s-projects.vercel.app",
+      "readyState": "READY",
+      "target": null,
+      "createdAt": 1792530247249,
+      "buildErrorCode": null
+    },
+    {
+      "mode": "education",
+      "branch": "codex/preschool-courses-auth-20261021",
+      "head": "9dd287ce8b9d5128dc638fc554ccfb5d9a9d8e33",
+      "id": "dpl_ESwcX2gQJ8eWiWmCgMTyvp1g1B2G",
+      "url": "https://bella-spa-g6v1yhb6d-bella-spa-s-projects.vercel.app",
+      "readyState": "READY",
+      "target": null,
+      "createdAt": 1792530258381,
+      "buildErrorCode": null
+    }
+  ],
+  "productionDeploymentInitiated": false,
+  "existingPreviewProtectionAccess": true,
+  "previewProtectionConfigurationChanged": false
+}

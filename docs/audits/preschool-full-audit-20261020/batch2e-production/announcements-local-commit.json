@@ -1,0 +1,37 @@
+{
+  "group": "announcements",
+  "startedAt": "2026-10-20T22:43:39.922Z",
+  "finishedAt": "2026-10-20T22:43:40.955Z",
+  "command": [
+    "git",
+    "commit",
+    "-m",
+    "fix(preschool): contain ungoverned broadcast publication"
+  ],
+  "exitCode": 0,
+  "root": "C:\\Users\\DELL\\.codex\\worktrees\\preschool-announcement-auth-20261021\\BELLA SPA ERP",
+  "branch": "codex/preschool-announcement-auth-20261021",
+  "files": [
+    "docs/audits/preschool-full-audit-20261020/batch2i-announcements/ARCHITECTURE_GATE_RESULT.md",
+    "docs/audits/preschool-full-audit-20261020/batch2i-announcements/FINAL_REPORT.md",
+    "docs/audits/preschool-full-audit-20261020/batch2i-announcements/SPEC.md",
+    "docs/audits/preschool-full-audit-20261020/batch2i-announcements/jest-command.json",
+    "docs/audits/preschool-full-audit-20261020/batch2i-announcements/jest-results.json",
+    "docs/audits/preschool-full-audit-20261020/batch2i-announcements/lint-command.json",
+    "docs/audits/preschool-full-audit-20261020/batch2i-announcements/local-http.json",
+    "docs/audits/preschool-full-audit-20261020/batch2i-announcements/review-results.json",
+    "docs/audits/preschool-full-audit-20261020/batch2i-announcements/secrets-command.json",
+    "docs/audits/preschool-full-audit-20261020/batch2i-announcements/source-manifest.json",
+    "docs/audits/preschool-full-audit-20261020/batch2i-announcements/typecheck-command.json",
+    "docs/audits/preschool-full-audit-20261020/batch2i-announcements/verification.json",
+    "docs/products/bella-preschool/AUTHORIZATION_CONTRACT.md",
+    "src/app/api/education/announcements/__tests__/access.test.ts",
+    "src/app/api/education/announcements/route.ts"
+  ],
+  "commit": "65adcebab8402ba1d777bf292d0388cde4270bb1",
+  "push": "NOT_RUN",
+  "merge": "NOT_RUN",
+  "productionRollout": "NOT_RUN",
+  "fullRegression": "FAIL_ENVIRONMENT",
+  "authenticatedRls": "NOT_PROVEN"
+}

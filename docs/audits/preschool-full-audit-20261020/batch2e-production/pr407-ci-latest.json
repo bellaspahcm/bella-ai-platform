@@ -1,0 +1,311 @@
+{
+  "checkedAt": "2026-10-20T22:54:54.898Z",
+  "url": "https://github.com/bellaspahcm/bella-ai-platform/pull/407",
+  "source": "b85722f6eab1aedc3d9bd977bd3deee19e5684e5",
+  "branch": "codex/preschool-authorization-matrix-20261021",
+  "draft": true,
+  "state": "OPEN",
+  "mergeStateStatus": "CLEAN",
+  "checks": [
+    {
+      "name": "Frozen File Check",
+      "workflow": "Architecture Gate",
+      "state": "COMPLETED",
+      "conclusion": "SUCCESS",
+      "url": "https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815383/job/118931083744"
+    },
+    {
+      "name": "Detect Changed Scope",
+      "workflow": "Architecture Guard",
+      "state": "COMPLETED",
+      "conclusion": "SUCCESS",
+      "url": "https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815441/job/118931083655"
+    },
+    {
+      "name": "Detect Changed Scope",
+      "workflow": "CI - Quality Gates",
+      "state": "COMPLETED",
+      "conclusion": "SUCCESS",
+      "url": "https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815379/job/118931084429"
+    },
+    {
+      "name": "Baseline Comparison",
+      "workflow": "Identity-Aware No-New-Debt Baseline",
+      "state": "COMPLETED",
+      "conclusion": "SUCCESS",
+      "url": "https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815387/job/118931083191"
+    },
+    {
+      "name": "Detect Changed Scope",
+      "workflow": "Quality and Security",
+      "state": "COMPLETED",
+      "conclusion": "SUCCESS",
+      "url": "https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815374/job/118931083268"
+    },
+    {
+      "name": "CodeQL",
+      "workflow": "Static Analysis Security Suite",
+      "state": "COMPLETED",
+      "conclusion": "SUCCESS",
+      "url": "https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815392/job/118931083448"
+    },
+    {
+      "name": "Detect Changed Scope",
+      "workflow": "Type Check",
+      "state": "COMPLETED",
+      "conclusion": "SUCCESS",
+      "url": "https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815418/job/118931083583"
+    },
+    {
+      "name": "Validate PR Scope",
+      "workflow": "Validate PR Scope",
+      "state": "COMPLETED",
+      "conclusion": "SUCCESS",
+      "url": "https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815469/job/118931083352"
+    },
+    {
+      "name": "Architecture Guard Verification",
+      "workflow": "Architecture Gate",
+      "state": "COMPLETED",
+      "conclusion": "SUCCESS",
+      "url": "https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815383/job/118931083307"
+    },
+    {
+      "name": "Healthcare Constitution Enforcement",
+      "workflow": "Architecture Guard",
+      "state": "COMPLETED",
+      "conclusion": "SUCCESS",
+      "url": "https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815441/job/118931167680"
+    },
+    {
+      "name": "Changed-file Lint",
+      "workflow": "CI - Quality Gates",
+      "state": "COMPLETED",
+      "conclusion": "SUCCESS",
+      "url": "https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815379/job/118931158727"
+    },
+    {
+      "name": "quality-security",
+      "workflow": "Quality and Security",
+      "state": "COMPLETED",
+      "conclusion": "SUCCESS",
+      "url": "https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815374/job/118931178873"
+    },
+    {
+      "name": "Semgrep CE",
+      "workflow": "Static Analysis Security Suite",
+      "state": "COMPLETED",
+      "conclusion": "SUCCESS",
+      "url": "https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815392/job/118931083447"
+    },
+    {
+      "name": "Type Check (changed)",
+      "workflow": "Type Check",
+      "state": "COMPLETED",
+      "conclusion": "SUCCESS",
+      "url": "https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815418/job/118931182803"
+    },
+    {
+      "name": "Type Check Skipped",
+      "workflow": "Type Check",
+      "state": "COMPLETED",
+      "conclusion": "SKIPPED",
+      "url": "https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815418/job/118931185561"
+    },
+    {
+      "name": "Dependency Boundary Check",
+      "workflow": "Architecture Gate",
+      "state": "COMPLETED",
+      "conclusion": "SUCCESS",
+      "url": "https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815383/job/118931083673"
+    },
+    {
+      "name": "Education Constitution Enforcement",
+      "workflow": "Architecture Guard",
+      "state": "COMPLETED",
+      "conclusion": "SUCCESS",
+      "url": "https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815441/job/118931167561"
+    },
+    {
+      "name": "Affected Unit and Integration Tests",
+      "workflow": "CI - Quality Gates",
+      "state": "COMPLETED",
+      "conclusion": "SUCCESS",
+      "url": "https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815379/job/118931158758"
+    },
+    {
+      "name": "Gitleaks",
+      "workflow": "Static Analysis Security Suite",
+      "state": "COMPLETED",
+      "conclusion": "SUCCESS",
+      "url": "https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815392/job/118931083437"
+    },
+    {
+      "name": "Core Freeze Verification",
+      "workflow": "Architecture Guard",
+      "state": "COMPLETED",
+      "conclusion": "SKIPPED",
+      "url": "https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815441/job/118931168943"
+    },
+    {
+      "name": "Real Database Business E2E",
+      "workflow": "CI - Quality Gates",
+      "state": "COMPLETED",
+      "conclusion": "SKIPPED",
+      "url": "https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815379/job/118931159912"
+    },
+    {
+      "name": "Logistics Kernel Regression",
+      "workflow": "Architecture Gate",
+      "state": "COMPLETED",
+      "conclusion": "SUCCESS",
+      "url": "https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815383/job/118931083603"
+    },
+    {
+      "name": "Trivy filesystem",
+      "workflow": "Static Analysis Security Suite",
+      "state": "COMPLETED",
+      "conclusion": "SUCCESS",
+      "url": "https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815392/job/118931083165"
+    },
+    {
+      "name": "Architecture Guard Summary",
+      "workflow": "Architecture Guard",
+      "state": "COMPLETED",
+      "conclusion": "SKIPPED",
+      "url": "https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815441/job/118931231158"
+    },
+    {
+      "name": "Security Gates",
+      "workflow": "CI - Quality Gates",
+      "state": "COMPLETED",
+      "conclusion": "SUCCESS",
+      "url": "https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815379/job/118931158642"
+    },
+    {
+      "name": "SonarQube",
+      "workflow": "Static Analysis Security Suite",
+      "state": "COMPLETED",
+      "conclusion": "SUCCESS",
+      "url": "https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815392/job/118931083645"
+    },
+    {
+      "name": "Relevant App Build",
+      "workflow": "CI - Quality Gates",
+      "state": "COMPLETED",
+      "conclusion": "SUCCESS",
+      "url": "https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815379/job/118931158750"
+    },
+    {
+      "name": "Migration Gates",
+      "workflow": "CI - Quality Gates",
+      "state": "COMPLETED",
+      "conclusion": "SKIPPED",
+      "url": "https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815379/job/118931161279"
+    },
+    {
+      "name": "All Required Gates Passed",
+      "workflow": "CI - Quality Gates",
+      "state": "COMPLETED",
+      "conclusion": "SUCCESS",
+      "url": "https://github.com/bellaspahcm/bella-ai-platform/actions/runs/39510815379/job/118932521961"
+    },
+    {
+      "name": "CodeQL",
+      "workflow": null,
+      "state": "COMPLETED",
+      "conclusion": "SUCCESS",
+      "url": "https://github.com/bellaspahcm/bella-ai-platform/runs/118932069243"
+    },
+    {
+      "name": "Semgrep OSS",
+      "workflow": null,
+      "state": "COMPLETED",
+      "conclusion": "SUCCESS",
+      "url": "https://github.com/bellaspahcm/bella-ai-platform/runs/118931637334"
+    },
+    {
+      "name": "Vercel",
+      "workflow": null,
+      "state": "SUCCESS",
+      "conclusion": null,
+      "url": "https://vercel.com/bella-spa-s-projects/bella-spa-erp/CxwkgfbVR889YBdj26dfqvmmsb79"
+    },
+    {
+      "name": "Vercel Preview Comments",
+      "workflow": null,
+      "state": "COMPLETED",
+      "conclusion": "SUCCESS",
+      "url": "https://vercel.com/github"
+    }
+  ],
+  "counts": [
+    {
+      "kind": "affected-unit",
+      "jobId": "118931158758",
+      "summaries": [
+        "Test Suites: 10 passed, 10 total",
+        "Tests:       286 passed, 286 total"
+      ],
+      "rawBusinessOutputSaved": false
+    },
+    {
+      "kind": "logistics-kernel",
+      "jobId": "118931083603",
+      "summaries": [
+        "Test Suites: 15 passed, 15 total",
+        "Tests:       547 passed, 547 total"
+      ],
+      "rawBusinessOutputSaved": false
+    }
+  ],
+  "commands": [
+    {
+      "command": [
+        "gh",
+        "pr",
+        "view",
+        "407",
+        "--json",
+        "number,url,state,isDraft,headRefName,headRefOid,baseRefName,mergeStateStatus,statusCheckRollup"
+      ],
+      "exitCode": 0
+    },
+    {
+      "command": [
+        "gh",
+        "run",
+        "view",
+        "--job",
+        "118931158758",
+        "--log"
+      ],
+      "exitCode": 0
+    },
+    {
+      "command": [
+        "gh",
+        "run",
+        "view",
+        "--job",
+        "118931083603",
+        "--log"
+      ],
+      "exitCode": 0
+    }
+  ],
+  "failed": [],
+  "pending": [],
+  "skipped": [
+    "Type Check Skipped",
+    "Core Freeze Verification",
+    "Real Database Business E2E",
+    "Architecture Guard Summary",
+    "Migration Gates"
+  ],
+  "result": "EMITTED_CHECKS_COMPLETED_WITHOUT_FAILURE",
+  "realAuthenticatedRls": "NOT_PROVEN",
+  "fullProductGoLive": "NOT_READY",
+  "mergePerformed": false,
+  "productionSourceRollout": "NOT_RUN"
+}
