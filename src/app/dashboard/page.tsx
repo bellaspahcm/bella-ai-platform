@@ -1100,6 +1100,16 @@ export default function DashboardPage() {
     : null;
   const hasProductDestination = Boolean(presentation?.defaultRoute);
 
+  // DEBUG: Log redirect logic
+  console.log('[DashboardPage] Debug:', {
+    pathname,
+    isAtRootDashboard,
+    defaultRoute: presentation?.defaultRoute,
+    destination,
+    productKey: product?.productKey,
+    isIdentityReady,
+  });
+
   useEffect(() => {
     // A product switch leaves the root dashboard. Replace the document so a
     // pending App Router transition cannot keep the outgoing skeleton mounted.

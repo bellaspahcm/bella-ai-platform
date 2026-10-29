@@ -114,7 +114,9 @@ export function getDashboardProductDestination(product: ProductDefinition, pathn
   if (product.productKey === 'bella_spa' || product.productKey === 'bella_nail') return null;
   const currentPath = pathname.replace(/\/+$/, '') || '/';
   const defaultPath = product.defaultRoute.replace(/\/+$/, '') || '/';
-  return currentPath === defaultPath ? null : product.defaultRoute;
+  const result = currentPath === defaultPath ? null : product.defaultRoute;
+  console.log('[getDashboardProductDestination]', { productKey: product.productKey, pathname, currentPath, defaultPath, defaultRoute: product.defaultRoute, result });
+  return result;
 }
 
 

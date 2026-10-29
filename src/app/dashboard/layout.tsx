@@ -21,12 +21,14 @@ const RUNTIME_BRAND_CACHE_KEY = 'bella.runtime.brand.v1';
 
 async function applyDashboardTenantBrandRuntime(
   tenantSettings?: Awaited<ReturnType<typeof getCachedTenantSettings>> | TenantPresentation,
+  currentPathname?: string,
 ) {
   const tenant = tenantSettings ?? await getCachedTenantSettings();
   if (!tenant || typeof document === 'undefined') return;
 
   const resolved = productResolver.tryResolve({ id: tenant.id, product_key: tenant.product_key ?? null });
-  const presentation = resolveDashboardPresentation(tenant, resolved?.product);
+  const pathname = currentPathname ?? (typeof window !== 'undefined' ? window.location.pathname : '/dashboard');
+  const presentation = resolveDashboardPresentation(tenant, resolved?.product, pathname);
   if (!presentation) return;
   const brand = presentation.brand;
   applyDashboardProductBrand(brand);
@@ -90,7 +92,7 @@ export default function DashboardLayout({
           }
           if (tenant.product_key === 'bella_preschool') {
             setPresentationContext({ user, tenant });
-            await applyDashboardTenantBrandRuntime(tenant);
+            await applyDashboardTenantBrandRuntime(tenant, pathname);
             if (active) setIsAuthorized(true);
             return;
           }
@@ -157,12 +159,12 @@ export default function DashboardLayout({
                 // Force reload tenant settings to get updated theme
                 clearDashboardClientContextCache();
                 const updatedTenant = await getCachedTenantSettings({ force: true }).catch(() => tenant);
-                await applyDashboardTenantBrandRuntime(updatedTenant ?? undefined);
+                await applyDashboardTenantBrandRuntime(updatedTenant ?? undefined, pathname);
               } else {
-                await applyDashboardTenantBrandRuntime(tenant);
+                await applyDashboardTenantBrandRuntime(tenant, pathname);
               }
             } else {
-              await applyDashboardTenantBrandRuntime(tenant);
+              await applyDashboardTenantBrandRuntime(tenant, pathname);
             }
           }
         } catch (brandError) {
