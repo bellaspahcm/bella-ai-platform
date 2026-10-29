@@ -1,0 +1,22 @@
+{
+  "checkedAt": "2026-10-20T20:20:51.095Z",
+  "exactRpcExpectedState": true,
+  "all32TablesUnchanged": true,
+  "outsideRelationsAndAllPoliciesRolesMembershipsOtherFunctionsSchemaDefaultsUnchanged": true,
+  "anonAndAuthenticatedExecute": false,
+  "rolesAllowed": [
+    "bella_migration_executor",
+    "postgres",
+    "service_role",
+    "supabase_admin"
+  ],
+  "roleProbeResult": {
+    "anon_rpc": "42501",
+    "authenticated_rpc": "42501",
+    "business_writes": 0,
+    "result": "ACTUAL_ROLE_PROBES_PASS",
+    "service_role_rpc": "SELECT1_PASS",
+    "user_jwt": false
+  },
+  "productionBusinessWrites": 0
+}

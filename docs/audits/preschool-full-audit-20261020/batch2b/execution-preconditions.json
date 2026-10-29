@@ -1,0 +1,11 @@
+{
+  "checkedAt": "2026-10-20T20:20:23.572Z",
+  "target": "lvnvkpyxtuilhrabtlwv",
+  "source": "339c89250d87964ba8d58860a5ecdbc0bdde4956",
+  "artifactSha256": "68ab41b7fc4088914012d5781f982f07aeefe7296ead54ea6a5ded3f155a7d7e",
+  "isolatedTestsPassed": 9,
+  "exactCurrentCatalogMatch": true,
+  "independentReview": "BLOCKED_SERVICE_LIMIT",
+  "leadSelfReview": "Completed; user instructed continue",
+  "authority": "Owner fix chuẩn đi 2026-10-21; RPC EXECUTE boundary already separately approved"
+}

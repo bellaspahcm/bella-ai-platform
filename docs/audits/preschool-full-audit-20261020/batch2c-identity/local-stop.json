@@ -1,0 +1,7 @@
+{
+  "action": "stop owned isolated local PostgreSQL cluster",
+  "target": "D:\\Antigravity\\Projects\\BELLA SPA ERP\\.audit-local-cache\\preschool-anon-containment-20261020\\data-rpc-20261021",
+  "exitCode": 0,
+  "error": null,
+  "port": 56329
+}

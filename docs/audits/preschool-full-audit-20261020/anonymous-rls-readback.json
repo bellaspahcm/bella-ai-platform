@@ -1,0 +1,99 @@
+{
+  "checkedAt": "2026-10-20T15:37:03.903Z",
+  "environment": ".env.local configured remote; active production identity not proven",
+  "publicKeyRole": "anon",
+  "adminKeyRole": "service_role",
+  "publicEqualsAdmin": false,
+  "userJwt": false,
+  "cookies": false,
+  "reads": [
+    {
+      "table": "students",
+      "status": 206,
+      "contentRange": "0-0/186",
+      "rowCount": 1,
+      "matchesRequestedTenant": true,
+      "distinctTenantsInSample": 1
+    },
+    {
+      "table": "edu_fin_invoices",
+      "status": 206,
+      "contentRange": "0-0/28",
+      "rowCount": 1,
+      "matchesRequestedTenant": true,
+      "distinctTenantsInSample": 1
+    },
+    {
+      "table": "edu_fac_assets",
+      "status": 206,
+      "contentRange": "0-0/7",
+      "rowCount": 1,
+      "matchesRequestedTenant": true,
+      "distinctTenantsInSample": 1
+    },
+    {
+      "table": "edu_courses",
+      "status": 401,
+      "contentRange": null,
+      "errorCode": "42501"
+    },
+    {
+      "table": "edu_attendance_daily_state",
+      "status": 401,
+      "contentRange": null,
+      "errorCode": "42501"
+    }
+  ],
+  "crossTenant": [
+    {
+      "table": "students",
+      "status": 206,
+      "contentRange": "0-99/1098",
+      "rowCount": 100,
+      "distinctTenantsInSample": 1
+    },
+    {
+      "table": "edu_fin_invoices",
+      "status": 206,
+      "contentRange": "0-99/626",
+      "rowCount": 100,
+      "distinctTenantsInSample": 61
+    },
+    {
+      "table": "edu_fac_assets",
+      "status": 206,
+      "contentRange": "0-99/122",
+      "rowCount": 100,
+      "distinctTenantsInSample": 100
+    }
+  ],
+  "schema": [
+    {
+      "table": "preschool_chain_course_branch_assignments",
+      "status": 404,
+      "errorCode": "PGRST205"
+    },
+    {
+      "table": "preschool_chain_enrollment_branch_assignments",
+      "status": 404,
+      "errorCode": "PGRST205"
+    },
+    {
+      "table": "user_org_unit_access",
+      "status": 200
+    },
+    {
+      "table": "edu_daily_care_records",
+      "status": 200
+    },
+    {
+      "table": "edu_comm_notices",
+      "status": 200
+    },
+    {
+      "table": "edu_fin_tuition_service_period_completions",
+      "status": 200
+    }
+  ],
+  "notes": "GET only; sampled tenant identifiers were summarized without saving row values. This proves observed anonymous SELECT behavior, not exact deployed policy text or write permissions."
+}

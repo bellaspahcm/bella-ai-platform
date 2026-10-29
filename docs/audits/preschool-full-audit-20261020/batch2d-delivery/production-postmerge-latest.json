@@ -1,0 +1,74 @@
+{
+  "checkedAt": "2026-10-20T21:53:41.698Z",
+  "project": "prj_Rgncynqz8ptznREGggMxPfjwoikW",
+  "expectedSource": "30134055d1ff5b846584e57833816f076034cdea",
+  "productionMutation": "NOT_PERFORMED",
+  "deploymentInitiated": false,
+  "protectionConfigurationChanged": false,
+  "authCredentialsUsed": false,
+  "businessRowContentsSaved": false,
+  "result": "PASS",
+  "commands": [
+    {
+      "route": "/v9/projects/prj_Rgncynqz8ptznREGggMxPfjwoikW",
+      "method": "GET",
+      "exitCode": 0
+    },
+    {
+      "route": "/v13/deployments/dpl_G4DUXNTkNq8sEk2q7p6FRDydhsom",
+      "method": "GET",
+      "exitCode": 0
+    },
+    {
+      "route": "/v9/projects/prj_Rgncynqz8ptznREGggMxPfjwoikW",
+      "method": "GET",
+      "exitCode": 0
+    }
+  ],
+  "production": {
+    "id": "dpl_G4DUXNTkNq8sEk2q7p6FRDydhsom",
+    "source": "30134055d1ff5b846584e57833816f076034cdea",
+    "readyState": "READY",
+    "target": "production",
+    "canonicalAliasAssigned": true
+  },
+  "tests": [
+    {
+      "name": "anonymousList",
+      "status": 401,
+      "applicationDenial": true,
+      "errorCode": "COURSE_UNAUTHENTICATED",
+      "returnedClassroomCount": 0,
+      "cacheControl": "private, no-store",
+      "result": "PASS"
+    },
+    {
+      "name": "forgedList",
+      "status": 401,
+      "applicationDenial": true,
+      "errorCode": "COURSE_UNAUTHENTICATED",
+      "returnedClassroomCount": 0,
+      "cacheControl": "private, no-store",
+      "result": "PASS"
+    },
+    {
+      "name": "anonymousDetail",
+      "status": 401,
+      "applicationDenial": true,
+      "errorCode": "COURSE_UNAUTHENTICATED",
+      "returnedClassroomCount": 0,
+      "cacheControl": "private, no-store",
+      "result": "PASS"
+    },
+    {
+      "name": "forgedDetail",
+      "status": 401,
+      "applicationDenial": true,
+      "errorCode": "COURSE_UNAUTHENTICATED",
+      "returnedClassroomCount": 0,
+      "cacheControl": "private, no-store",
+      "result": "PASS"
+    }
+  ],
+  "productionTargetStableDuringProbes": true
+}

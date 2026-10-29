@@ -89,7 +89,7 @@ We define exactly **5 core Bounded Contexts** within the Education Kernel. Any c
 7. **Law 7: Zero-Tolerance Tenant Isolation (Gate 0 / P0).** All queries must filter by `tenant_id` and have active RLS.
 8. **Law 8: Academic Safety Routing.** All grading calculations and enrollment eligibility checks must route through the `Rule Governance` platform engine.
 9. **Law 9: Full Auditability & Evidence.** All exam grading and enrollment completions must issue an Audit Evidence package with SHA-256 Fingerprint.
-10. **Law 10: Mandatory 11 Verification Gates.** Every new feature requires a dedicated 11 Verification Gates integration test suite.
+10. **Law 10: Risk-Based Verification Across 11 Gates.** Assess the 11 gate categories in section VII for each feature; execute every applicable check and reuse valid evidence for unchanged dependencies. Extend existing tests only where coverage is missing. A dedicated new 11-gate suite, full Test DB replay or unrelated industry regression is not required for every fix. Security/data-integrity checks remain mandatory where affected; missing execution evidence cannot be classified as not applicable.
 11. **Law 11: Architectural Gap Reporting.** If a product vertical requires a missing Kernel capability, AI must report `ARCHITECTURAL GAP DETECTED`.
 12. **Law 12: Enrollment/Academic Record Aggregate Boundary Enforcement.** All student mutations must align with the `Enrollment/Academic Record` aggregate root.
 13. **Law 13: Bitemporal Provenance Preservation.** Timeline snapshots must map through the platform timeline events.
@@ -114,10 +114,10 @@ Add the following strict instructions to `.cursorrules`:
 1. EDUCATION OS KERNEL IS FROZEN. NEVER MODIFY THE KERNEL DIRECTORY (src/platform/education/) SILENTLY.
 2. NO CROSS-INDUSTRY IMPORT. REJECT ANY CODE FROM platform/healthcare/ INSIDE platform/education/ OR products/bella-school/.
 3. CALL PUBLIC CONTRACTS ONLY (src/platform/education/contracts/).
-4. EXECUTE FULL VERIFICATION FLOW:
+4. SELECT VERIFICATION BY IMPACT (section VII):
    a. Check local vertical boundaries & no cross-imports.
-   b. Run education validation tests.
-   c. Run 'npm run healthcare:verify' to ensure zero healthcare regression.
+   b. Run affected Education validation and real workflow/security checks; reuse still-valid evidence.
+   c. Run 'npm run healthcare:verify' when shared changes affect Healthcare consumers or an applicable CI/freeze rule requires it. Education-only maintenance does not acquire a Healthcare full-regression requirement from this template.
 ```
 
 ---
@@ -137,7 +137,11 @@ We select **2 Reference Products** to validate the Education Kernel:
 
 ## VII. DEFINITION OF THE 11 AUTOMATED VERIFICATION GATES
 
-Every education vertical feature must pass the following 11 automated verification tests:
+**Procedural amendment — 2026-10-29:** Apply the owner's delivery-simplification direction through the common Constitution's [three control levels](../governance/BELLA_AI_CODING_CONSTITUTION.md#three-control-levels), evidence reuse and environment selection. This changes verification procedure only; Education invariants, Kernel freeze, public contracts, authorization/RLS and Production operation authority remain mandatory.
+
+These 11 categories define coverage, not eleven new suites or approval stages per change. In the existing task record, identify applicable categories and evidence; briefly justify exclusions by impact. Existing suites may cover several gates. For new verticals, sensitive workflows or shared changes, retain all applicable architecture/security/integrity/regression checks. Presentation-only maintenance with unchanged data/actions/permissions uses the common `UI_ONLY` route. An unavailable environment or missing credentials is never a reason for `NOT_APPLICABLE`.
+
+For persisted student/attendance/academic mutations, tenant isolation and authorization (Gates 3–4), real persistence/read-back and relevant failure/side-effect behavior are mandatory. Use real Auth and the actual enforcement boundary; mocks cannot establish RLS. Select a safe permitted environment; isolated fixtures in an existing suitable environment can suffice without a disposable full-database clone. Preserve all configured required CI and freeze checks.
 
 | Gate # | Test Gate | Verification Focus |
 | :---: | :--- | :--- |
@@ -145,10 +149,12 @@ Every education vertical feature must pass the following 11 automated verificati
 | **Gate 2** | **Contract Boundary** | Verifies interactions go strictly through public contracts, not direct DB calls. |
 | **Gate 3** | **Tenant Isolation (P0)** | Proves data isolation between Tenant A and Tenant B. |
 | **Gate 4** | **RLS & Authorization** | Proves role authorization rules (Student vs Instructor vs Admin). |
-| **Gate 5** | **Database Migration Safety** | Confirms all SQL migrations are additive only. |
+| **Gate 5** | **Database Migration Safety** | When schema/migrations change: additive safety, compatibility, dependencies and recovery. No migration change: explain non-applicability. |
 | **Gate 6** | **Event-After-Persistence** | Verifies events are sent only after DB transaction commits. |
 | **Gate 7** | **Academic Safety Routing** | Proves assessment calculations route through the rule platform engine. |
 | **Gate 8** | **Temporal Provenance** | Reconstructs historical academic states at time T. |
 | **Gate 9** | **Rule Governance** | Validates grading scales match governed rule checksums. |
 | **Gate 10** | **Audit Evidence Integrity** | Verifies SHA-256 Fingerprint generation on transcript exports. |
-| **Gate 11** | **Platform Regression** | Ensures all platform/healthcare tests remain 100% GREEN. |
+| **Gate 11** | **Platform Regression** | Verify affected Education/shared consumers and transitive impact. Run full Healthcare regression when Healthcare/shared consumer impact or an applicable CI/freeze rule requires it; do not run it by default for Education-only maintenance. Report actual executed suites/tests. |
+
+Gates 6–10 apply to their actual event, academic-rule, history or required audit/export paths. Do not invent new events, grading rules or audit packages to populate an unrelated UI fix's checklist. When those paths change, their applicable invariants and failure checks remain required. Reuse supporting evidence only while its dependencies and effective conditions remain valid; do not relabel prior failures as PASS.

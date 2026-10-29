@@ -1,0 +1,56 @@
+{
+  "checkedAt": "2026-10-20T20:59:24.355Z",
+  "PUSH": "PASS",
+  "ownerAuthority": "push",
+  "remote": "https://github.com/bellaspahcm/bella-spa-erp.git",
+  "deliveries": [
+    {
+      "branch": "codex/shared-identity-containment-20261021",
+      "commit": "790caf5ee89cdf91020b48491ed37eae22ef581f",
+      "remoteSha": "790caf5ee89cdf91020b48491ed37eae22ef581f",
+      "remoteVerified": true,
+      "worktree": "C:/Users/DELL/.codex/worktrees/shared-identity-containment-20261021/BELLA SPA ERP",
+      "worktreeClean": true,
+      "sourceFiles": 6,
+      "totalCommittedFiles": 32,
+      "tests": {
+        "suites": 3,
+        "passed": 56,
+        "failed": 0,
+        "skipped": 0
+      },
+      "lint": 0,
+      "typecheck": 0,
+      "secrets": 0,
+      "preCommitHook": "Architecture Guard actually ran; no frozen files",
+      "pushExitCode": 0
+    },
+    {
+      "branch": "codex/preschool-courses-auth-20261021",
+      "commit": "2522f6db2d0a19e6ec9ddc9f775bc8cd669d72c8",
+      "remoteSha": "2522f6db2d0a19e6ec9ddc9f775bc8cd669d72c8",
+      "remoteVerified": true,
+      "worktree": "C:/Users/DELL/.codex/worktrees/preschool-courses-auth-20261021/BELLA SPA ERP",
+      "worktreeClean": true,
+      "sourceFiles": 5,
+      "totalCommittedFiles": 22,
+      "tests": {
+        "suites": 2,
+        "passed": 24,
+        "failed": 0,
+        "skipped": 0
+      },
+      "lint": 0,
+      "typecheck": 0,
+      "secrets": 0,
+      "preCommitHook": "Architecture Guard actually ran; no frozen files",
+      "pushExitCode": 0
+    }
+  ],
+  "originalWorkingSourcePreserved": true,
+  "prCreated": false,
+  "merged": false,
+  "sourceDeploymentPerformed": false,
+  "productionDbChangesThisTurn": 0,
+  "productionSecurityStatus": "Unchanged by source push; Courses API exposure and full RBAC/RLS/Go-Live still unresolved"
+}

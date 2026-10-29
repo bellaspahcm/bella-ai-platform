@@ -1,0 +1,16 @@
+{
+  "checkedAt": "2026-10-20T17:18:47.545Z",
+  "result": "PASS",
+  "target": "lvnvkpyxtuilhrabtlwv",
+  "source": "339c89250d87964ba8d58860a5ecdbc0bdde4956",
+  "artifactSha256": "20e6b2e817b256b481ecefa5338ff5db0deafad8b4142cf8d818ffa79e32b027",
+  "exactTableAndRpcLiveBaselineMatch": true,
+  "rehearsalTestsPassed": 18,
+  "scopeCount": 32,
+  "rpc": "public.exec_sql(text)",
+  "ownerApprovalDates": [
+    "2026-10-20",
+    "2026-10-21"
+  ],
+  "identityCheckedAt": "2026-10-20T17:11:41.874Z"
+}

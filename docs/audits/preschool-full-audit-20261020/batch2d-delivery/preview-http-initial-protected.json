@@ -1,0 +1,47 @@
+{
+  "checkedAt": "2026-10-20T21:10:58.250Z",
+  "deploymentId": "dpl_ESwcX2gQJ8eWiWmCgMTyvp1g1B2G",
+  "source": "9dd287ce8b9d5128dc638fc554ccfb5d9a9d8e33",
+  "environment": "Vercel preview built from exact Education PR head; no Auth JWT/production writes",
+  "result": "NOT_PROVEN",
+  "tests": [
+    {
+      "name": "anonymousList",
+      "status": 302,
+      "errorCode": null,
+      "bodyIsApplicationDenial": false,
+      "returnedClassroomCount": 0,
+      "cacheControl": "no-store, max-age=0",
+      "result": "NOT_PROVEN"
+    },
+    {
+      "name": "forgedList",
+      "status": 302,
+      "errorCode": null,
+      "bodyIsApplicationDenial": false,
+      "returnedClassroomCount": 0,
+      "cacheControl": "no-store, max-age=0",
+      "result": "NOT_PROVEN"
+    },
+    {
+      "name": "anonymousDetail",
+      "status": 302,
+      "errorCode": null,
+      "bodyIsApplicationDenial": false,
+      "returnedClassroomCount": 0,
+      "cacheControl": "no-store, max-age=0",
+      "result": "NOT_PROVEN"
+    },
+    {
+      "name": "forgedDetail",
+      "status": 302,
+      "errorCode": null,
+      "bodyIsApplicationDenial": false,
+      "returnedClassroomCount": 0,
+      "cacheControl": "no-store, max-age=0",
+      "result": "NOT_PROVEN"
+    }
+  ],
+  "businessRowContentsSaved": false,
+  "realAuthenticatedWorkflow": "NOT_PROVEN"
+}

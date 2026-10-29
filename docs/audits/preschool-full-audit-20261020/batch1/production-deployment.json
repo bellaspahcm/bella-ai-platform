@@ -1,0 +1,41 @@
+{
+  "checkedAt": "2026-10-20T15:59:37.004Z",
+  "transport": "Authenticated Vercel CLI GET",
+  "project": {
+    "id": "prj_Rgncynqz8ptznREGggMxPfjwoikW",
+    "name": "bella-spa-erp",
+    "accountId": "team_kg7CifjtXEyimzm7HFU5xiYZ"
+  },
+  "production": {
+    "id": "dpl_9FQrTej4gajN95v6MwLJ31f3pUTQ",
+    "url": "bella-spa-a1viucl92-bella-spa-s-projects.vercel.app",
+    "target": "production",
+    "readyState": "READY",
+    "gitSha": "f973dd7e56542aa7847b98c2a4236da86f1eabc3",
+    "gitRef": "main",
+    "aliases": [
+      "bella-spa-erp.vercel.app",
+      "bella-spa-erp-bella-spa-s-projects.vercel.app",
+      "bella-spa-erp-git-main-bella-spa-s-projects.vercel.app"
+    ],
+    "publicSupabaseOrigin": null
+  },
+  "environmentMetadata": [
+    {
+      "id": "0OqBtyYaOZSeJtjC",
+      "key": "NEXT_PUBLIC_SUPABASE_URL",
+      "target": [
+        "preview"
+      ],
+      "type": "sensitive"
+    },
+    {
+      "id": "rczhKsQvqaLA7zfg",
+      "key": "NEXT_PUBLIC_SUPABASE_URL",
+      "target": [
+        "production"
+      ],
+      "type": "encrypted"
+    }
+  ]
+}

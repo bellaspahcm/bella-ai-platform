@@ -1,0 +1,11 @@
+{
+  "mode": "education",
+  "command": "npm.cmd run education:verify",
+  "startedAt": "2026-10-20T20:18:10.831Z",
+  "finishedAt": "2026-10-20T20:19:26.085Z",
+  "exitCode": 1,
+  "signal": null,
+  "errorCode": null,
+  "networkConfig": "Process-scoped offline localhost endpoint and synthetic keys; no production DB business tests",
+  "rawLog": "education.log"
+}

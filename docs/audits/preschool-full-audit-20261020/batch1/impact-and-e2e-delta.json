@@ -1,0 +1,548 @@
+{
+  "checkedAt": "2026-10-20T16:01:12.660Z",
+  "productionRef": "lvnvkpyxtuilhrabtlwv",
+  "e2eRef": "bmnbqbcdbuklhopfbopv",
+  "productionCatalog": {
+    "tables": 86,
+    "policies": 110,
+    "transactionReadOnly": "on"
+  },
+  "e2eCatalog": {
+    "tables": 17,
+    "policies": 32,
+    "transactionReadOnly": "on"
+  },
+  "openReadTables": [
+    "edu_comm_acknowledgements",
+    "edu_comm_consent_responses",
+    "edu_comm_deliveries",
+    "edu_comm_delivery_attempts",
+    "edu_comm_exceptions",
+    "edu_comm_notices",
+    "edu_comm_responses",
+    "edu_comm_sent_snapshots",
+    "edu_comm_threads",
+    "edu_fac_assets",
+    "edu_fac_facilities",
+    "edu_fac_inspection_logs",
+    "edu_fac_inspection_schedules",
+    "edu_fac_maintenance_jobs",
+    "edu_fac_out_of_service_logs",
+    "edu_fac_zones",
+    "edu_fin_billing_periods",
+    "edu_fin_fee_structures",
+    "edu_fin_invoice_line_items",
+    "edu_fin_invoices",
+    "edu_fin_payments",
+    "edu_fin_receipts",
+    "edu_fin_reconciliation_ledger",
+    "edu_fin_student_discount_profiles",
+    "edu_sched_compliance_snapshots",
+    "edu_sched_leave_requests",
+    "edu_sched_ratio_policies",
+    "edu_sched_shift_assignments",
+    "edu_sched_shift_templates",
+    "edu_sched_staff_availability",
+    "edu_sched_substitutions",
+    "students"
+  ],
+  "openReadPolicies": [
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "tenant_isolation_edu_comm_acknowledgements",
+      "qual": "true",
+      "roles": [
+        "public"
+      ],
+      "schemaname": "public",
+      "tablename": "edu_comm_acknowledgements",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "tenant_isolation_edu_comm_consent_responses",
+      "qual": "true",
+      "roles": [
+        "public"
+      ],
+      "schemaname": "public",
+      "tablename": "edu_comm_consent_responses",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "tenant_isolation_edu_comm_deliveries",
+      "qual": "true",
+      "roles": [
+        "public"
+      ],
+      "schemaname": "public",
+      "tablename": "edu_comm_deliveries",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "tenant_isolation_edu_comm_delivery_attempts",
+      "qual": "true",
+      "roles": [
+        "public"
+      ],
+      "schemaname": "public",
+      "tablename": "edu_comm_delivery_attempts",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "tenant_isolation_edu_comm_exceptions",
+      "qual": "true",
+      "roles": [
+        "public"
+      ],
+      "schemaname": "public",
+      "tablename": "edu_comm_exceptions",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "tenant_isolation_edu_comm_notices",
+      "qual": "true",
+      "roles": [
+        "public"
+      ],
+      "schemaname": "public",
+      "tablename": "edu_comm_notices",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "tenant_isolation_edu_comm_responses",
+      "qual": "true",
+      "roles": [
+        "public"
+      ],
+      "schemaname": "public",
+      "tablename": "edu_comm_responses",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "tenant_isolation_edu_comm_sent_snapshots",
+      "qual": "true",
+      "roles": [
+        "public"
+      ],
+      "schemaname": "public",
+      "tablename": "edu_comm_sent_snapshots",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "tenant_isolation_edu_comm_threads",
+      "qual": "true",
+      "roles": [
+        "public"
+      ],
+      "schemaname": "public",
+      "tablename": "edu_comm_threads",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "edu_fac_assets_policy",
+      "qual": "true",
+      "roles": [
+        "public"
+      ],
+      "schemaname": "public",
+      "tablename": "edu_fac_assets",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "edu_fac_facilities_policy",
+      "qual": "true",
+      "roles": [
+        "public"
+      ],
+      "schemaname": "public",
+      "tablename": "edu_fac_facilities",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "edu_fac_inspection_logs_policy",
+      "qual": "true",
+      "roles": [
+        "public"
+      ],
+      "schemaname": "public",
+      "tablename": "edu_fac_inspection_logs",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "edu_fac_inspection_schedules_policy",
+      "qual": "true",
+      "roles": [
+        "public"
+      ],
+      "schemaname": "public",
+      "tablename": "edu_fac_inspection_schedules",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "edu_fac_maintenance_jobs_policy",
+      "qual": "true",
+      "roles": [
+        "public"
+      ],
+      "schemaname": "public",
+      "tablename": "edu_fac_maintenance_jobs",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "edu_fac_out_of_service_logs_policy",
+      "qual": "true",
+      "roles": [
+        "public"
+      ],
+      "schemaname": "public",
+      "tablename": "edu_fac_out_of_service_logs",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "edu_fac_zones_policy",
+      "qual": "true",
+      "roles": [
+        "public"
+      ],
+      "schemaname": "public",
+      "tablename": "edu_fac_zones",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "tenant_isolation_edu_fin_billing_periods",
+      "qual": "true",
+      "roles": [
+        "public"
+      ],
+      "schemaname": "public",
+      "tablename": "edu_fin_billing_periods",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "tenant_isolation_edu_fin_fee_structures",
+      "qual": "true",
+      "roles": [
+        "public"
+      ],
+      "schemaname": "public",
+      "tablename": "edu_fin_fee_structures",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "tenant_isolation_edu_fin_invoice_line_items",
+      "qual": "true",
+      "roles": [
+        "public"
+      ],
+      "schemaname": "public",
+      "tablename": "edu_fin_invoice_line_items",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "tenant_isolation_edu_fin_invoices",
+      "qual": "true",
+      "roles": [
+        "public"
+      ],
+      "schemaname": "public",
+      "tablename": "edu_fin_invoices",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "tenant_isolation_edu_fin_payments",
+      "qual": "true",
+      "roles": [
+        "public"
+      ],
+      "schemaname": "public",
+      "tablename": "edu_fin_payments",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "tenant_isolation_edu_fin_receipts",
+      "qual": "true",
+      "roles": [
+        "public"
+      ],
+      "schemaname": "public",
+      "tablename": "edu_fin_receipts",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "tenant_isolation_edu_fin_reconciliation_ledger",
+      "qual": "true",
+      "roles": [
+        "public"
+      ],
+      "schemaname": "public",
+      "tablename": "edu_fin_reconciliation_ledger",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "tenant_isolation_edu_fin_student_discount_profiles",
+      "qual": "true",
+      "roles": [
+        "public"
+      ],
+      "schemaname": "public",
+      "tablename": "edu_fin_student_discount_profiles",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "edu_sched_compliance_snapshots_tenant_isolation",
+      "qual": "(tenant_id IS NOT NULL)",
+      "roles": [
+        "public"
+      ],
+      "schemaname": "public",
+      "tablename": "edu_sched_compliance_snapshots",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "edu_sched_leave_requests_tenant_isolation",
+      "qual": "(tenant_id IS NOT NULL)",
+      "roles": [
+        "public"
+      ],
+      "schemaname": "public",
+      "tablename": "edu_sched_leave_requests",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "edu_sched_ratio_policies_tenant_isolation",
+      "qual": "(tenant_id IS NOT NULL)",
+      "roles": [
+        "public"
+      ],
+      "schemaname": "public",
+      "tablename": "edu_sched_ratio_policies",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "edu_sched_shift_assignments_tenant_isolation",
+      "qual": "(tenant_id IS NOT NULL)",
+      "roles": [
+        "public"
+      ],
+      "schemaname": "public",
+      "tablename": "edu_sched_shift_assignments",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "edu_sched_shift_templates_tenant_isolation",
+      "qual": "(tenant_id IS NOT NULL)",
+      "roles": [
+        "public"
+      ],
+      "schemaname": "public",
+      "tablename": "edu_sched_shift_templates",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "edu_sched_staff_availability_tenant_isolation",
+      "qual": "(tenant_id IS NOT NULL)",
+      "roles": [
+        "public"
+      ],
+      "schemaname": "public",
+      "tablename": "edu_sched_staff_availability",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "edu_sched_substitutions_tenant_isolation",
+      "qual": "(tenant_id IS NOT NULL)",
+      "roles": [
+        "public"
+      ],
+      "schemaname": "public",
+      "tablename": "edu_sched_substitutions",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "tenant_isolation_students",
+      "qual": "true",
+      "roles": [
+        "public"
+      ],
+      "schemaname": "public",
+      "tablename": "students",
+      "with_check": null
+    }
+  ],
+  "missingOnE2e": [
+    "edu_comm_acknowledgements",
+    "edu_comm_consent_responses",
+    "edu_comm_deliveries",
+    "edu_comm_delivery_attempts",
+    "edu_comm_exceptions",
+    "edu_comm_notices",
+    "edu_comm_responses",
+    "edu_comm_sent_snapshots",
+    "edu_comm_threads",
+    "edu_fac_assets",
+    "edu_fac_facilities",
+    "edu_fac_inspection_logs",
+    "edu_fac_inspection_schedules",
+    "edu_fac_maintenance_jobs",
+    "edu_fac_out_of_service_logs",
+    "edu_fac_zones",
+    "edu_fin_billing_periods",
+    "edu_fin_fee_structures",
+    "edu_fin_invoice_line_items",
+    "edu_fin_invoices",
+    "edu_fin_payments",
+    "edu_fin_receipts",
+    "edu_fin_reconciliation_ledger",
+    "edu_fin_student_discount_profiles",
+    "edu_sched_compliance_snapshots",
+    "edu_sched_leave_requests",
+    "edu_sched_ratio_policies",
+    "edu_sched_shift_assignments",
+    "edu_sched_shift_templates",
+    "edu_sched_staff_availability",
+    "edu_sched_substitutions"
+  ],
+  "anonymousTruncateTables": [
+    "courses",
+    "edu_allergens",
+    "edu_assessments",
+    "edu_attendance",
+    "edu_child_allergies",
+    "edu_comm_acknowledgements",
+    "edu_comm_consent_responses",
+    "edu_comm_deliveries",
+    "edu_comm_delivery_attempts",
+    "edu_comm_exceptions",
+    "edu_comm_notices",
+    "edu_comm_responses",
+    "edu_comm_sent_snapshots",
+    "edu_comm_threads",
+    "edu_courses",
+    "edu_daily_care_records",
+    "edu_daily_care_sessions",
+    "edu_daily_parent_digests",
+    "edu_dev_activities",
+    "edu_dev_evidence",
+    "edu_dev_framework_domains",
+    "edu_dev_framework_versions",
+    "edu_dev_frameworks",
+    "edu_dev_milestone_progress",
+    "edu_dev_milestones",
+    "edu_dev_next_steps",
+    "edu_dev_observation_milestones",
+    "edu_dev_observation_students",
+    "edu_dev_observations",
+    "edu_dev_portfolio_items",
+    "edu_dev_portfolio_publications",
+    "edu_dev_portfolio_versions",
+    "edu_dev_portfolios",
+    "edu_dev_progress_evidence_links",
+    "edu_enrollments",
+    "edu_fac_assets",
+    "edu_fac_facilities",
+    "edu_fac_inspection_logs",
+    "edu_fac_inspection_schedules",
+    "edu_fac_maintenance_jobs",
+    "edu_fac_out_of_service_logs",
+    "edu_fac_zones",
+    "edu_fin_billing_periods",
+    "edu_fin_fee_structures",
+    "edu_fin_invoice_line_items",
+    "edu_fin_invoices",
+    "edu_fin_payments",
+    "edu_fin_receipts",
+    "edu_fin_reconciliation_ledger",
+    "edu_fin_student_discount_profiles",
+    "edu_food_ingredients",
+    "edu_health_incidents",
+    "edu_ingredient_allergens",
+    "edu_meal_item_ingredients",
+    "edu_meal_items",
+    "edu_medication_authorizations",
+    "edu_medication_dose_occurrences",
+    "edu_medication_logs",
+    "edu_sched_compliance_snapshots",
+    "edu_sched_leave_requests",
+    "edu_sched_ratio_policies",
+    "edu_sched_shift_assignments",
+    "edu_sched_shift_templates",
+    "edu_sched_staff_availability",
+    "edu_sched_substitutions",
+    "party_parties",
+    "party_relationships",
+    "preschool_attendance",
+    "preschool_classrooms",
+    "preschool_enrollments",
+    "preschool_student_guardians",
+    "preschool_students",
+    "students",
+    "tenants",
+    "users"
+  ],
+  "focusAclNoPublicGrant": true,
+  "focusColumnAcl": [],
+  "directAnonRoleBypass": false
+}

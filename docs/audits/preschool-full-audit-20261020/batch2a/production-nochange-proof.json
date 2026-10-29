@@ -1,0 +1,39 @@
+{
+  "checkedAt": "2026-10-20T16:26:29.274Z",
+  "productionChange": "NOT_RUN",
+  "reason": "Owner stop condition: unaccounted anonymous SECURITY DEFINER SQL-execution RPC outside32-table authority",
+  "groupsUnchanged": {
+    "column_grants": true,
+    "default_acl": true,
+    "helpers": true,
+    "policies": true,
+    "role_memberships": true,
+    "roles": true,
+    "schema_grants": true,
+    "table_grants": true,
+    "tables": true,
+    "views": true
+  },
+  "allSelectedCatalogUnchanged": true,
+  "blocker": {
+    "function": {
+      "anon_execute": true,
+      "arguments": "sql_query text",
+      "authenticated_execute": true,
+      "configuration": null,
+      "definition": "CREATE OR REPLACE FUNCTION public.exec_sql(sql_query text)\n RETURNS void\n LANGUAGE plpgsql\n SECURITY DEFINER\nAS $function$\r\nBEGIN\r\n  EXECUTE sql_query;\r\nEND;\r\n$function$\n",
+      "name": "exec_sql",
+      "owner": "postgres",
+      "owner_bypass_rls": true,
+      "raw_acl": "{=X/postgres,postgres=X/postgres,service_role=X/postgres,bella_migration_executor=X/postgres}",
+      "schema": "public",
+      "security_definer": true,
+      "service_role_execute": true
+    },
+    "project_role": "postgres",
+    "transaction_read_only": "on"
+  },
+  "productionBusinessWrites": 0,
+  "productionRevokeStatementsExecuted": 0,
+  "productionArtifactExecuted": false
+}

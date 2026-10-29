@@ -1,0 +1,72 @@
+{
+  "workspace": "C:/Users/DELL/.codex/worktrees/shared-identity-containment-20261021/BELLA SPA ERP",
+  "branch": "codex/shared-identity-containment-20261021",
+  "evidence": [
+    "AUTHORITY.md",
+    "ARCHITECTURE_GATE_RESULT.md",
+    "execution-manifest.json",
+    "production-execution.json",
+    "production-execution-cli.json",
+    "production-identity.json",
+    "post-verification.json",
+    "role-probes-cli.json",
+    "http-after.json",
+    "rehearsal-result.json",
+    "review-results.json",
+    "EXECUTE_IDENTITY_CONTAINMENT.sql",
+    "RECOVERY_LOCAL_ONLY.sql"
+  ],
+  "mode": "platform",
+  "evidenceDir": "docs/audits/preschool-full-audit-20261020/delivery-platform-20261021",
+  "base": "339c89250d87964ba8d58860a5ecdbc0bdde4956",
+  "files": [
+    "src/services/user-actions.ts",
+    "src/services/onboarding-actions.ts",
+    "src/__tests__/user-actions.test.ts",
+    "src/__tests__/onboarding.test.ts",
+    "supabase/migrations/20261021030000_restrict_exec_sql_client_execution.sql",
+    "supabase/migrations/20261021050000_contain_shared_identity_client_writes.sql",
+    "docs/audits/preschool-full-audit-20261020/delivery-platform-20261021/AUTHORITY.md",
+    "docs/audits/preschool-full-audit-20261020/delivery-platform-20261021/ARCHITECTURE_GATE_RESULT.md",
+    "docs/audits/preschool-full-audit-20261020/delivery-platform-20261021/execution-manifest.json",
+    "docs/audits/preschool-full-audit-20261020/delivery-platform-20261021/production-execution.json",
+    "docs/audits/preschool-full-audit-20261020/delivery-platform-20261021/production-execution-cli.json",
+    "docs/audits/preschool-full-audit-20261020/delivery-platform-20261021/production-identity.json",
+    "docs/audits/preschool-full-audit-20261020/delivery-platform-20261021/post-verification.json",
+    "docs/audits/preschool-full-audit-20261020/delivery-platform-20261021/role-probes-cli.json",
+    "docs/audits/preschool-full-audit-20261020/delivery-platform-20261021/http-after.json",
+    "docs/audits/preschool-full-audit-20261020/delivery-platform-20261021/rehearsal-result.json",
+    "docs/audits/preschool-full-audit-20261020/delivery-platform-20261021/review-results.json",
+    "docs/audits/preschool-full-audit-20261020/delivery-platform-20261021/EXECUTE_IDENTITY_CONTAINMENT.sql",
+    "docs/audits/preschool-full-audit-20261020/delivery-platform-20261021/RECOVERY_LOCAL_ONLY.sql",
+    "docs/audits/preschool-full-audit-20261020/delivery-platform-20261021/source-manifest.json",
+    "docs/audits/preschool-full-audit-20261020/delivery-platform-20261021/DELIVERY_EVIDENCE.md"
+  ],
+  "sourceFiles": [
+    {
+      "path": "src/services/user-actions.ts",
+      "sha256": "91d9c9d37a9aa9999c99246aac843207eed22fc2268e2ef82bb8c51b4ce18f3a"
+    },
+    {
+      "path": "src/services/onboarding-actions.ts",
+      "sha256": "24d26a654315ae4f9a0da9857bc5a70357ce6e10a001001559eca23b5fe4890f"
+    },
+    {
+      "path": "src/__tests__/user-actions.test.ts",
+      "sha256": "bfa9faa8a92e59fb2ff201cfaa939953bb0e13931b114849b904b07f41e7f6b9"
+    },
+    {
+      "path": "src/__tests__/onboarding.test.ts",
+      "sha256": "8382c0b678f65be69c0b65633b7142a9ce4dbc3e5a1bab89ad8cdb0efe05b40b"
+    },
+    {
+      "path": "supabase/migrations/20261021030000_restrict_exec_sql_client_execution.sql",
+      "sha256": "842ab47b0a880f366dba0921e7f418d2c5bf32edaf2d975d91faa408dfe5593e"
+    },
+    {
+      "path": "supabase/migrations/20261021050000_contain_shared_identity_client_writes.sql",
+      "sha256": "1bba114a86db0d0a7fa79b5a6f0fd6af8a26d8d02125387f2403851b0604110f"
+    }
+  ],
+  "preparedAt": "2026-10-20T20:55:21.951Z"
+}

@@ -39,6 +39,8 @@ Assess whether the task affects:
 
 ## Reliability Rules
 
+- Apply the Constitution's three control levels, evidence reuse and environment selection; tool failure alone does not block independent safe work. An authorized direct administrative route retains the same security, operation authority and recovery requirements as BDGF.
+
 - Distinguish local proof, CI proof, Real DB proof, Browser E2E proof, production integrity, and Go-Live.
 - PR checks passing do not prove main, production, or Go-Live.
 - A timeout is not a pass.
@@ -47,7 +49,7 @@ Assess whether the task affects:
 
 ## Verification Packet
 
-Return:
+Keep applicable fields in the existing task response/work record; no additional report is required:
 
 ```text
 SCOPE:
@@ -63,11 +65,11 @@ STOP CONDITIONS:
 
 ## Stop Conditions
 
-Stop and report `BLOCKED` or `NOT_PROVEN` when:
+Hold only the dependent unsafe/unauthorized action and report the actual finding. Continue independent authorized work. Use `NOT_PROVEN` for missing proof and `BLOCKED` for an identified execution obstacle; these are not interchangeable. Boundaries include:
 
 - Auth/RLS semantics are unclear.
-- Runtime environment is unknown.
-- Production behavior is unverified.
+- The target/executor or runtime environment for a sensitive operation cannot be verified safely.
+- Required Production preconditions, operation authority, impact or recovery cannot be established. Missing Production evidence does not stop an independent local fix or establish Go-Live.
 - The fix would require weakening security.
 - The work requires credentials that are not available through approved process.
 - The task requires a public contract or ProductRegistry change outside approved scope.

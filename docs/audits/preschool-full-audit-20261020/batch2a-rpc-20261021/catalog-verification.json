@@ -1,0 +1,10 @@
+{
+  "checkedAt": "2026-10-20T17:19:39.014Z",
+  "exact32TablePostcondition": true,
+  "exactRpcPostcondition": true,
+  "anonymousRpcEffectiveExecute": false,
+  "nonAnonymousRolesEffectiveExecutePreserved": 33,
+  "outsideDifferentGroups": [],
+  "outsideCatalogUnchanged": true,
+  "roleValidUntilExcludedFromHash": "Supabase Management CLI refreshes its transient login expiry; flags/memberships/grants remain covered"
+}

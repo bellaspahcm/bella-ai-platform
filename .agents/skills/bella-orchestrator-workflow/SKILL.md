@@ -31,7 +31,7 @@ When Healthcare or Education code may be touched, also read the relevant vertica
 ## Workflow
 
 1. Establish the user goal.
-   Factory is optional. Use the normal authorized workflow unless the user or a task-specific rule selects Factory. When selected, follow **Factory Intake from Project Codex Chat** in the Constitution and use its existing CLI and admission boundary; do not create a parallel dispatcher, claim Factory evidence for direct work, or bypass a held Factory run.
+   Apply **Goal -> Execute -> Verify -> Fix -> Seal**, the Constitution's **Three Control Levels** and **Factory Intake from Project Codex Chat**. Ordinary authorized Product work may use its direct single-agent route without a second approval solely for route selection. Preserve the admission boundary and failed-run evidence; do not create a dispatcher, recursively dispatch, or route around a safety/authority failure. Confirm native writers have exited before a tooling-related route change.
 2. Identify Truth, Source of Truth, Canonical Contract, Ownership, Boundary, and Change Authority.
 3. Classify the task:
    - `SINGLE_AGENT`
@@ -40,15 +40,15 @@ When Healthcare or Education code may be touched, also read the relevant vertica
    - `BLOCKED`
 4. Use `bella-agent-role-map` to choose the smallest role set.
 5. Create or update an architecture gate when Bella rules require it.
-6. For each workstream, produce a handoff packet.
+6. For actual delegation/handoff, keep the relevant packet fields in the existing work record. Single-agent delivery needs no additional packet/report.
 7. Run implementation only inside the authorized boundary.
-8. Run QA and security/reliability verification appropriate to the scope.
+8. Select QA/security verification and a safe authorized environment by impact; reuse evidence under **Evidence Reuse and Invalidation**. A Test DB, additional audit or repeated review is not a default prerequisite.
 9. Record evidence using Bella evidence states.
-10. Seal only when required evidence is fresh and sufficient.
+10. Seal when scoped acceptance and applicable safeguards have sufficient valid evidence. Continue the next flow already authorized in the goal; do not add optional proof or request the same approval again.
 
 ## Handoff Packet
 
-Every delegated or staged workstream must include:
+Actual delegated workstreams/handoffs include these fields in the existing record; omit inapplicable fields and do not create a separate report for single-agent work:
 
 ```text
 GOAL:
@@ -67,7 +67,7 @@ RESULT:
 
 ## Stop Conditions
 
-Stop and report `STOPPED_AT_BOUNDARY`, `BLOCKED`, or `NOT_PROVEN` when:
+Hold the dependent action at a real authority, business or safety boundary; report its actual scoped finding (`STOPPED_AT_BOUNDARY`, `BLOCKED`, or `NOT_PROVEN`) and continue independent authorized work when:
 
 - Ownership is unclear.
 - The canonical contract is missing or contradictory.
@@ -77,6 +77,8 @@ Stop and report `STOPPED_AT_BOUNDARY`, `BLOCKED`, or `NOT_PROVEN` when:
 - RLS/auth/security would need weakening.
 - Business semantics are not proven.
 - Two active workstreams need the same shared file without Lead decision.
+
+Missing proof alone is `NOT_PROVEN`, not a global execution stop. Use another permitted tool/environment when only the execution method fails; refresh the affected evidence. Production administration still needs its exact authority, preconditions, impact and recovery checks under Deployment Governance.
 
 ## Output
 

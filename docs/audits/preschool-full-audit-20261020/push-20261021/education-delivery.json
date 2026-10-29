@@ -1,0 +1,49 @@
+{
+  "workspace": "C:/Users/DELL/.codex/worktrees/preschool-courses-auth-20261021/BELLA SPA ERP",
+  "branch": "codex/preschool-courses-auth-20261021",
+  "evidence": [
+    "../batch2b/ARCHITECTURE_GATE_RESULT.md",
+    "../batch2b/courses-tests.json",
+    "../batch2b/local-http.json",
+    "../batch2b/review-results.json"
+  ],
+  "mode": "education",
+  "evidenceDir": "docs/audits/preschool-full-audit-20261020/delivery-education-20261021",
+  "base": "339c89250d87964ba8d58860a5ecdbc0bdde4956",
+  "files": [
+    "src/app/api/education/courses/route.ts",
+    "src/app/api/education/courses/[id]/route.ts",
+    "src/app/api/education/courses/request-context.ts",
+    "src/app/api/education/courses/__tests__/route.test.ts",
+    "src/app/api/education/courses/__tests__/access.test.ts",
+    "docs/audits/preschool-full-audit-20261020/delivery-education-20261021/ARCHITECTURE_GATE_RESULT.md",
+    "docs/audits/preschool-full-audit-20261020/delivery-education-20261021/courses-tests.json",
+    "docs/audits/preschool-full-audit-20261020/delivery-education-20261021/local-http.json",
+    "docs/audits/preschool-full-audit-20261020/delivery-education-20261021/review-results.json",
+    "docs/audits/preschool-full-audit-20261020/delivery-education-20261021/source-manifest.json",
+    "docs/audits/preschool-full-audit-20261020/delivery-education-20261021/DELIVERY_EVIDENCE.md"
+  ],
+  "sourceFiles": [
+    {
+      "path": "src/app/api/education/courses/route.ts",
+      "sha256": "b73d28b95afd13f5d4065ef6bd9a7d9091a4ae1e5ea38260f4a4153d4b810b65"
+    },
+    {
+      "path": "src/app/api/education/courses/[id]/route.ts",
+      "sha256": "87bed08b20d381680b2df33ad84a65fafabb8c56d13f08939c0338bfbf293436"
+    },
+    {
+      "path": "src/app/api/education/courses/request-context.ts",
+      "sha256": "1003e15e4f001f1772754cd9a041468f30d093e39c692987c4964e08e170c6f9"
+    },
+    {
+      "path": "src/app/api/education/courses/__tests__/route.test.ts",
+      "sha256": "66af8bfd3ef4e610017f8bb6a492a7d6b72dfcab7f0fa524be11cd8811e80ad3"
+    },
+    {
+      "path": "src/app/api/education/courses/__tests__/access.test.ts",
+      "sha256": "3a1610f43e419f977ed9e17c987f04dce019fb713185c185dcf4dd22cd6f14f7"
+    }
+  ],
+  "preparedAt": "2026-10-20T20:55:23.377Z"
+}

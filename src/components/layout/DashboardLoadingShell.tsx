@@ -126,8 +126,25 @@ export function DashboardAuthorizedShell({ children }: { children: React.ReactNo
 
   if (!user || !tenantSettings || user.tenant_id !== tenantSettings.id || !presentation) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-background p-6 text-foreground" role="alert">
-        Không thể xác định cấu hình sản phẩm của chi nhánh. Vui lòng tải lại trang.
+      <main className="flex min-h-screen flex-col items-center justify-center bg-background p-6 text-foreground gap-4 text-center" role="alert">
+        <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+          Không thể xác định cấu hình sản phẩm của chi nhánh. Vui lòng tải lại trang hoặc đăng nhập lại đúng tài khoản chi nhánh.
+        </p>
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-xs font-bold transition-colors cursor-pointer"
+          >
+            Tải lại trang
+          </button>
+          <a
+            href="/login?logout=true"
+            className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-colors cursor-pointer"
+          >
+            Đăng nhập lại
+          </a>
+        </div>
       </main>
     );
   }

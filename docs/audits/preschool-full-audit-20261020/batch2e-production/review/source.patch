@@ -1,0 +1,600 @@
+diff --git a/src/app/api/education/ai/copilot/route.ts b/src/app/api/education/ai/copilot/route.ts
+index 509c9bf0d..f3d721dbf 100644
+--- a/src/app/api/education/ai/copilot/route.ts
++++ b/src/app/api/education/ai/copilot/route.ts
+@@ -14,6 +14,7 @@
+  */
+ 
+ import { NextResponse } from 'next/server';
++import { createClient } from '@/lib/supabase-server';
+ import { getCurrentUser } from '@/services/user-actions';
+ import { canUseEducationAiCopilotRole } from '@/lib/business-rules/permissions';
+ import {
+@@ -21,6 +22,14 @@ import {
+   type PreschoolCopilotRequest,
+ } from '@/products/bella-education/services/preschool-ai.service';
+ 
++export const dynamic = 'force-dynamic';
++
++const PRIVATE_HEADERS = { 'Cache-Control': 'private, no-store' };
++// Approved Phase4 leadership contract; general Copilot access is broader.
++const EXECUTIVE_ROLES = new Set([
++  'super_admin', 'campus_admin', 'program_director', 'education_head', 'academic_admin',
++]);
++
+ interface CopilotRequestBody {
+   readonly action?: unknown;
+   readonly message?: unknown;
+@@ -59,19 +68,31 @@ function getErrorMessage(error: unknown): string {
+ 
+ export async function POST(request: Request) {
+   try {
+-    // 1. Resolve Current User & Role
+-    let user = null;
+-    try {
+-      user = await getCurrentUser();
+-    } catch {
+-      user = null;
++    // Verify Auth before a profile resolver that also has a development mock path.
++    const supabase = await createClient();
++    const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
++    if (authError || !authUser) {
++      return NextResponse.json({ error: 'COPILOT_UNAUTHENTICATED' }, {
++        status: 401, headers: PRIVATE_HEADERS,
++      });
+     }
+ 
+-    const mockRoleHeader = request.headers.get('x-mock-role')?.trim();
+-    const effectiveRole =
+-      mockRoleHeader !== undefined && mockRoleHeader !== ''
+-        ? mockRoleHeader
+-        : user?.role || (process.env.NODE_ENV === 'test' ? 'education_teacher' : '');
++    const user = await getCurrentUser();
++    const tenantId = user?.tenant_id?.trim();
++    if (!user || user.id !== authUser.id || !('status' in user) || user.status !== 'active' || !tenantId) {
++      return NextResponse.json({ error: 'FORBIDDEN' }, {
++        status: 403, headers: PRIVATE_HEADERS,
++      });
++    }
++
++    const requestedTenants = new URL(request.url).searchParams.getAll('tenantId');
++    if (requestedTenants.some(requestedTenant => requestedTenant !== tenantId)) {
++      return NextResponse.json({ error: 'TENANT_ISOLATION_VIOLATION' }, {
++        status: 403, headers: PRIVATE_HEADERS,
++      });
++    }
++
++    const effectiveRole = user.role?.trim().toLowerCase() || '';
+ 
+     // 2. Validate Role Permission
+     if (!canUseEducationAiCopilotRole(effectiveRole)) {
+@@ -80,23 +101,7 @@ export async function POST(request: Request) {
+           error: 'FORBIDDEN',
+           message: 'Quyền hạn không hợp lệ. Chỉ có Giáo viên và Ban giám hiệu mới có quyền sử dụng Trợ lý AI Mầm non.',
+         },
+-        { status: 403 }
+-      );
+-    }
+-
+-    // 3. Resolve Tenant Context
+-    const { searchParams } = new URL(request.url);
+-    const tenantId =
+-      searchParams.get('tenantId') ||
+-      user?.tenant_id ||
+-      (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test'
+-        ? 'ed100000-0000-0000-0000-000000000001'
+-        : null);
+-
+-    if (!tenantId) {
+-      return NextResponse.json(
+-        { error: 'TENANT_REQUIRED', message: 'Thiếu định danh trường mầm non (tenant_id).' },
+-        { status: 400 }
++        { status: 403, headers: PRIVATE_HEADERS }
+       );
+     }
+ 
+@@ -121,10 +126,16 @@ export async function POST(request: Request) {
+           error: 'INVALID_ACTION',
+           message: `Hành động AI '${action}' không được hỗ trợ. Các hành động hợp lệ: ${validActions.join(', ')}`,
+         },
+-        { status: 400 }
++        { status: 400, headers: PRIVATE_HEADERS }
+       );
+     }
+ 
++    if ((action === 'executive_briefing' || action === 'executive_safety_audit') && !EXECUTIVE_ROLES.has(effectiveRole)) {
++      return NextResponse.json({ error: 'FORBIDDEN' }, {
++        status: 403, headers: PRIVATE_HEADERS,
++      });
++    }
++
+     const typedRequest: PreschoolCopilotRequest = {
+       action: action as PreschoolCopilotRequest['action'],
+       message: typeof body.message === 'string' ? body.message : undefined,
+@@ -164,7 +175,7 @@ export async function POST(request: Request) {
+     return NextResponse.json({
+       ...result,
+       tenantId,
+-    });
++    }, { headers: PRIVATE_HEADERS });
+   } catch (err: unknown) {
+     const errorMsg = getErrorMessage(err);
+     return NextResponse.json(
+@@ -172,7 +183,7 @@ export async function POST(request: Request) {
+         error: 'INTERNAL_ERROR',
+         message: errorMsg,
+       },
+-      { status: 500 }
++      { status: 500, headers: PRIVATE_HEADERS }
+     );
+   }
+ }
+diff --git a/src/products/bella-education/__tests__/preschool-admin-ai-copilot.test.ts b/src/products/bella-education/__tests__/preschool-admin-ai-copilot.test.ts
+index 45fadd433..d53c17217 100644
+--- a/src/products/bella-education/__tests__/preschool-admin-ai-copilot.test.ts
++++ b/src/products/bella-education/__tests__/preschool-admin-ai-copilot.test.ts
+@@ -20,17 +20,27 @@ import {
+ import { executePreschoolCopilot } from '../services/preschool-ai.service';
+ import { POST as copilotRoute } from '@/app/api/education/ai/copilot/route';
+ 
++let mockProfileRole = 'CAMPUS_ADMIN';
++
++jest.mock('@/lib/supabase-server', () => ({
++  createClient: jest.fn(() => ({
++    auth: { getUser: jest.fn(async () => ({ data: { user: { id: 'user-edu-campus-admin-1' } }, error: null })) },
++  })),
++}));
++
+ jest.mock('@/services/user-actions', () => ({
+   getCurrentUser: jest.fn(async () => ({
+     id: 'user-edu-campus-admin-1',
+-    role: 'CAMPUS_ADMIN',
+-    tenantId: 'ed100000-0000-0000-0000-000000000001',
++    role: mockProfileRole,
++    tenant_id: 'ed100000-0000-0000-0000-000000000001',
++    status: 'active',
+     name: 'Cô Hiệu Trưởng Thảo',
+     email: 'thao.principal@bellapreschool.edu.vn',
+   })),
+ }));
+ 
+ describe('Bella Preschool Executive AI Copilot — School Leadership Suite', () => {
++  beforeEach(() => { mockProfileRole = 'CAMPUS_ADMIN'; });
+   describe('Capability Pack Executive Tools Registration', () => {
+     it('registers executive_daily_briefing and compliance_and_safety_sentinel', () => {
+       const toolIds = preschoolAICapabilityPack.tools.map((t) => t.id);
+@@ -179,7 +189,6 @@ describe('Bella Preschool Executive AI Copilot — School Leadership Suite', ()
+         method: 'POST',
+         headers: {
+           'Content-Type': 'application/json',
+-          'x-mock-role': 'CAMPUS_ADMIN',
+         },
+         body: JSON.stringify({
+           action: 'executive_briefing',
+@@ -199,11 +208,11 @@ describe('Bella Preschool Executive AI Copilot — School Leadership Suite', ()
+     });
+ 
+     it('handles POST /api/education/ai/copilot with executive_safety_audit for SUPER_ADMIN', async () => {
++      mockProfileRole = 'SUPER_ADMIN';
+       const req = new Request('http://localhost/api/education/ai/copilot?tenantId=ed100000-0000-0000-0000-000000000001', {
+         method: 'POST',
+         headers: {
+           'Content-Type': 'application/json',
+-          'x-mock-role': 'SUPER_ADMIN',
+         },
+         body: JSON.stringify({
+           action: 'executive_safety_audit',
+diff --git a/src/products/bella-education/__tests__/preschool-ai-copilot.test.ts b/src/products/bella-education/__tests__/preschool-ai-copilot.test.ts
+index ca435d49c..2e3e7b1f0 100644
+--- a/src/products/bella-education/__tests__/preschool-ai-copilot.test.ts
++++ b/src/products/bella-education/__tests__/preschool-ai-copilot.test.ts
+@@ -16,11 +16,18 @@ import {
+ import { POST as copilotApiPost } from '@/app/api/education/ai/copilot/route';
+ import { canUseEducationAiCopilotRole } from '@/lib/business-rules/permissions';
+ 
++jest.mock('@/lib/supabase-server', () => ({
++  createClient: jest.fn(() => ({
++    auth: { getUser: jest.fn(async () => ({ data: { user: { id: 'user-edu-teacher-1' } }, error: null })) },
++  })),
++}));
++
+ jest.mock('@/services/user-actions', () => ({
+   getCurrentUser: jest.fn(async () => ({
+     id: 'user-edu-teacher-1',
+     role: 'education_teacher',
+-    tenantId: 'ed100000-0000-0000-0000-000000000001',
++    tenant_id: 'ed100000-0000-0000-0000-000000000001',
++    status: 'active',
+     name: 'Cô Mai',
+     email: 'mai.teacher@bellapreschool.edu.vn',
+   })),
+diff --git a/src/app/api/education/ai/copilot/__tests__/access.test.ts b/src/app/api/education/ai/copilot/__tests__/access.test.ts
+new file mode 100644
+index 000000000..15ee9d9c7
+--- /dev/null
++++ b/src/app/api/education/ai/copilot/__tests__/access.test.ts
+@@ -0,0 +1,167 @@
++import { beforeEach, describe, expect, it, jest } from '@jest/globals';
++
++interface AuthResult {
++  data: { user: { id: string } | null };
++  error: { message: string } | null;
++}
++
++interface Profile {
++  id: string;
++  tenant_id: string | null;
++  status?: string;
++  role?: string;
++}
++
++const mockGetUser = jest.fn<() => Promise<AuthResult>>();
++const mockGetCurrentUser = jest.fn<() => Promise<Profile | null>>();
++const mockExecute = jest.fn<() => Promise<{ success: boolean; action: string }>>();
++const mockClient = { auth: { getUser: mockGetUser } };
++const mockCreateClient = jest.fn<() => typeof mockClient>();
++
++jest.mock('@/lib/supabase-server', () => ({ createClient: mockCreateClient }));
++jest.mock('@/services/user-actions', () => ({ getCurrentUser: mockGetCurrentUser }));
++jest.mock('@/products/bella-education/services/preschool-ai.service', () => ({
++  executePreschoolCopilot: mockExecute,
++}));
++
++const { POST } = require('../route') as typeof import('../route');
++const userId = '00000000-0000-4000-8000-000000000011';
++const tenantId = '00000000-0000-4000-8000-000000000022';
++const foreignTenant = '00000000-0000-4000-8000-000000000033';
++const profile: Profile = { id: userId, tenant_id: tenantId, status: 'active', role: 'education_teacher' };
++const executiveActions = ['executive_briefing', 'executive_safety_audit'] as const;
++// Approved Phase4 gate, section1 item3; this list is independent from the route implementation.
++const approvedExecutiveRoles = ['SUPER_ADMIN', 'CAMPUS_ADMIN', 'PROGRAM_DIRECTOR', 'EDUCATION_HEAD', 'ACADEMIC_ADMIN'] as const;
++
++function request(body: Record<string, unknown> = { action: 'classify_intent', message: 'synthetic' }, query = '', headers: Record<string, string> = {}) {
++  return new Request(`http://localhost/api/education/ai/copilot${query}`, {
++    method: 'POST', headers: { 'Content-Type': 'application/json', ...headers }, body: JSON.stringify(body),
++  });
++}
++
++async function expectDenied(req: Request, status: number, error: string) {
++  const response = await POST(req);
++  expect(response.status).toBe(status);
++  expect(await response.json()).toMatchObject({ error });
++  expect(response.headers.get('Cache-Control')).toBe('private, no-store');
++  expect(mockExecute).not.toHaveBeenCalled();
++}
++
++beforeEach(() => {
++  jest.resetAllMocks();
++  mockCreateClient.mockReturnValue(mockClient);
++  mockGetUser.mockResolvedValue({ data: { user: { id: userId } }, error: null });
++  mockGetCurrentUser.mockResolvedValue(profile);
++  mockExecute.mockResolvedValue({ success: true, action: 'classify_intent' });
++});
++
++describe('Copilot verified request boundary', () => {
++  it('denies anonymous requests despite tenant, role, email and cookie assertions before profile or payload', async () => {
++    mockGetUser.mockResolvedValue({ data: { user: null }, error: null });
++    const req = request({ action: 'executive_briefing', role: 'SUPER_ADMIN' }, `?tenantId=${tenantId}`, {
++      'x-mock-role': 'SUPER_ADMIN', 'x-mock-user-email': 'synthetic@example.invalid',
++      Cookie: 'mock_user_email=synthetic@example.invalid',
++    });
++    const payloadRead = jest.spyOn(req, 'json');
++    await expectDenied(req, 401, 'COPILOT_UNAUTHENTICATED');
++    expect(mockGetCurrentUser).not.toHaveBeenCalled();
++    expect(payloadRead).not.toHaveBeenCalled();
++  });
++
++  it('denies an invalid Auth response even if it contains a user', async () => {
++    mockGetUser.mockResolvedValue({ data: { user: { id: userId } }, error: { message: 'invalid token' } });
++    await expectDenied(request(), 401, 'COPILOT_UNAUTHENTICATED');
++    expect(mockGetCurrentUser).not.toHaveBeenCalled();
++  });
++
++  it.each([
++    ['missing profile', null],
++    ['different Auth subject', { ...profile, id: foreignTenant }],
++    ['inactive profile', { ...profile, status: 'inactive' }],
++    ['missing status', { ...profile, status: undefined }],
++    ['missing tenant', { ...profile, tenant_id: null }],
++    ['empty tenant', { ...profile, tenant_id: '' }],
++    ['blank tenant', { ...profile, tenant_id: '   ' }],
++  ] as const)('denies %s without executing', async (_label, invalidProfile) => {
++    mockGetCurrentUser.mockResolvedValue(invalidProfile);
++    await expectDenied(request(), 403, 'FORBIDDEN');
++  });
++
++  it.each([
++    ['foreign', `?tenantId=${foreignTenant}`],
++    ['empty', '?tenantId='],
++    ['matching then foreign', `?tenantId=${tenantId}&tenantId=${foreignTenant}`],
++    ['foreign then matching', `?tenantId=${foreignTenant}&tenantId=${tenantId}`],
++    ['matching then empty', `?tenantId=${tenantId}&tenantId=`],
++  ])('denies %s tenant selectors before payload or AI', async (_label, selector) => {
++    const req = request(undefined, selector);
++    const payloadRead = jest.spyOn(req, 'json');
++    await expectDenied(req, 403, 'TENANT_ISOLATION_VIOLATION');
++    expect(payloadRead).not.toHaveBeenCalled();
++  });
++
++  it('does not let a forged leadership header override a forbidden live role', async () => {
++    mockGetCurrentUser.mockResolvedValue({ ...profile, role: 'customer' });
++    await expectDenied(request(undefined, '', { 'x-mock-role': 'SUPER_ADMIN' }), 403, 'FORBIDDEN');
++  });
++
++  it('denies a profile without an eligible role instead of applying a test default', async () => {
++    mockGetCurrentUser.mockResolvedValue({ ...profile, role: undefined });
++    await expectDenied(request(), 403, 'FORBIDDEN');
++  });
++
++  it.each(['', `?tenantId=${tenantId}`, `?tenantId=${tenantId}&tenantId=${tenantId}`])(
++    'executes an authorized general action with a bound selector %s', async selector => {
++      const response = await POST(request({ action: 'classify_intent', message: 'synthetic', tenantId: foreignTenant, role: 'SUPER_ADMIN' }, selector));
++      expect(response.status).toBe(200);
++      expect(await response.json()).toMatchObject({ success: true, tenantId });
++      expect(response.headers.get('Cache-Control')).toBe('private, no-store');
++      expect(mockExecute).toHaveBeenCalledTimes(1);
++      expect(mockExecute).toHaveBeenCalledWith(expect.objectContaining({ action: 'classify_intent', message: 'synthetic' }));
++      expect(mockExecute).toHaveBeenCalledWith(expect.not.objectContaining({ tenantId: foreignTenant, role: 'SUPER_ADMIN' }));
++      expect(mockGetUser.mock.invocationCallOrder[0]).toBeLessThan(mockGetCurrentUser.mock.invocationCallOrder[0]);
++    },
++  );
++
++  it('keeps invalid action behavior for a verified eligible profile', async () => {
++    await expectDenied(request({ action: 'invalid_action' }), 400, 'INVALID_ACTION');
++  });
++
++  it.each(['client construction', 'Auth provider', 'profile provider'])(
++    'fails closed if %s throws', async failure => {
++      if (failure === 'client construction') mockCreateClient.mockImplementation(() => { throw new Error('unavailable'); });
++      else if (failure === 'Auth provider') mockGetUser.mockRejectedValue(new Error('unavailable'));
++      else mockGetCurrentUser.mockRejectedValue(new Error('unavailable'));
++      await expectDenied(request(), 500, 'INTERNAL_ERROR');
++    },
++  );
++});
++
++describe('Copilot executive action authorization from approved Phase4 contract', () => {
++  for (const action of executiveActions) {
++    it.each(approvedExecutiveRoles)(`permits %s to execute ${action}`, async role => {
++      mockGetCurrentUser.mockResolvedValue({ ...profile, role });
++      mockExecute.mockResolvedValue({ success: true, action });
++      const response = await POST(request({ action }));
++      expect(response.status).toBe(200);
++      expect(await response.json()).toMatchObject({ success: true, action, tenantId });
++      expect(response.headers.get('Cache-Control')).toBe('private, no-store');
++      expect(mockExecute).toHaveBeenCalledTimes(1);
++      expect(mockExecute).toHaveBeenCalledWith(expect.objectContaining({ action }));
++    });
++
++    it.each(['education_teacher', 'homeroom_teacher', 'teacher', 'education_staff', 'principal', 'director', 'admin'])(
++      `denies general role %s for ${action} even with a forged admin header`, async role => {
++        mockGetCurrentUser.mockResolvedValue({ ...profile, role });
++        await expectDenied(request({ action }, '', { 'x-mock-role': 'SUPER_ADMIN' }), 403, 'FORBIDDEN');
++      },
++    );
++  }
++
++  it('normalizes the verified executive role without accepting header authority', async () => {
++    mockGetCurrentUser.mockResolvedValue({ ...profile, role: '  Campus_Admin  ' });
++    const response = await POST(request({ action: 'executive_briefing' }, '', { 'x-mock-role': 'customer' }));
++    expect(response.status).toBe(200);
++    expect(mockExecute).toHaveBeenCalledTimes(1);
++  });
++});
+diff --git a/docs/products/bella-preschool/AUTHORIZATION_CONTRACT.md b/docs/products/bella-preschool/AUTHORIZATION_CONTRACT.md
+new file mode 100644
+index 000000000..ca5694f1b
+--- /dev/null
++++ b/docs/products/bella-preschool/AUTHORIZATION_CONTRACT.md
+@@ -0,0 +1,80 @@
++# Bella Preschool — Contract phân quyền thao tác v1
++
++**Trạng thái: APPROVED — owner duyệt matrix ngày21-10-2026 và yêu cầu triển khai từng nhóm. Contract có thẩm quyền cho implementation; chưa chứng nhận runtime hay production đã đáp ứng.**
++
++**Quyết định đã được owner chốt ngày21-10-2026:** khóa API thuốc, đưa nghiệp vụ cho thuốc khỏi hoạt động Preschool. Quyết định này có hiệu lực độc lập với phần đề xuất còn lại.
++
++Tài liệu này là nguồn chuẩn cho bốn nhóm thao tác đã phát hiện trong audit: Care bulk, phát hành link Portal, Announcements và API thuốc đã ngừng hỗ trợ. Owner đã chọn “Duyệt matrix đề xuất, triển khai từng nhóm”. Implementation và tests phải tham chiếu contract này; UI, policy cũ, dữ liệu mẫu và tên role không tự tạo quyền. Contract không chứng nhận implementation hiện tại hay production đã đáp ứng.
++
++## 1. Ownership và giới hạn
++
++- Platform sở hữu Auth, user, tenant, Party identity và dữ liệu quyền đơn vị tổ chức.
++- Education sở hữu course, enrollment và teacher assignment qua public contract.
++- Preschool sở hữu authorization cho workflow Care, parent communication và Portal.
++- Healthcare Kernel không tham gia. Không thêm capability Healthcare, role y tế, bảng hay grant mới bằng tài liệu này.
++- Contract Copilot đã duyệt ở `docs/audits/preschool-ai-copilot/ARCHITECTURE_GATE_RESULT.md` và `ARCHITECTURE_GATE_RESULT_PHASE_4.md` tiếp tục có phạm vi riêng; không dùng matrix dưới đây để thay quyền Copilot.
++
++## 2. Context bắt buộc cho mọi thao tác đang hoạt động
++
++Backend xác minh session bằng Auth provider, rồi đọc user và tenant hiện tại. User phải active, tenant active, profile ID trùng Auth subject và tenant đúng Product Preschool. Query/body/header/cookie không được chọn actor, role hay tenant thay session. Mọi tenant selector khác context, kể cả query parameter lặp, bị từ chối.
++
++Quyền hiệu lực là giao của role được phép, tenant, branch, classroom, resource relationship và RLS. Thiếu một điều kiện thì từ chối. Không có ngoại lệ xuyên tenant mặc định cho `admin`/`super_admin`, không dùng service-role để vượt lỗi RLS. Background job chỉ được dùng service identity theo contract worker riêng, không tái sử dụng endpoint người dùng để bypass.
++
++User ID, Person ID, Party ID, student ID và student Party ID là các identity khác nhau. Backend phải resolve mapping bằng producer/public contract có thẩm quyền; không coi UUID trùng kiểu hoặc relationship bất kỳ là bằng chứng mapping.
++
++Mọi kiểm tra phải hoàn tất trước tạo care session, ghi record, tạo thread, ký token, gửi thông báo hay gọi side effect. Mapping thiếu/không rõ, catalog không khớp hoặc lookup lỗi thì fail closed; không fallback sang ID mẫu hoặc mở rộng kết quả.
++
++## 3. Role mapping được duyệt
++
++Đây là mapping **Product-local được owner duyệt**, không thay global roles hay `users.role` constraint:
++
++| Role nguồn | Quyền ứng viên trong Preschool |
++| --- | --- |
++| `admin` | Quản trị Preschool trong đúng tenant và các branch đã được cấp |
++| `admin_staff` | Giáo viên vận hành chỉ khi resolve được teacher Party và có phân công lớp còn hiệu lực |
++| `parent`, `student`, `accountant`, `hr`, `ktv`, `ktv_lead` | Không được thực hiện staff mutation, mint Portal token hoặc broadcast trong contract này |
++| Role khác, thiếu role, alias chưa được duyệt | Từ chối; không map theo tên hiển thị UI |
++
++Authority của mapping là quyết định owner trong lượt này. Mapper tương tự trong Attendance chỉ là bằng chứng hành vi cũ, không phải căn cứ để mở rộng thêm role/alias cho Care/Portal/Announcements.
++
++## 4. Matrix thao tác được duyệt
++
++| Thao tác | `admin` | `admin_staff` có assignment | Role khác |
++| --- | --- | --- | --- |
++| Care GET roster/records | Cho phép trong branch được cấp | Chỉ lớp được phân công | Từ chối |
++| Care POST arrival/meal/nap/hygiene | Trong branch được cấp | Chỉ lớp được phân công | Từ chối |
++| Care POST `save_care` phần meal/nap/hygiene/note | Trong branch được cấp | Chỉ lớp được phân công | Từ chối |
++| Care POST chứa derived health status/isAlert/alertReason từ UI | Chưa cho phép tới khi có governed care policy | Như admin | Từ chối |
++| Phát hành Portal token | Cho phép khi đủ binding mục5 | Từ chối | Từ chối |
++| Phát hành Announcements toàn trường | Cho phép khi có quyền trên toàn bộ tập branch nhận tin | Từ chối | Từ chối |
++| Announcements theo lớp | Chưa hỗ trợ trong v1 | Chưa hỗ trợ trong v1 | Từ chối |
++| API thuốc | **Đã bị owner vô hiệu hóa cho mọi caller** | **Vô hiệu hóa** | **Vô hiệu hóa** |
++
++Care: course phải thuộc tenant, branch xác định được và nằm trong Platform access projection của actor. Teacher assignment phải active và có hiệu lực tại ngày nghiệp vụ. Mọi student trong payload phải có **active enrollment** vào đúng lớp/ngày. Chấp nhận enrollment `pending` là thay đổi khác, không tự suy từ service hiện có. Không vì một student hợp lệ mà cho phép cả bulk; một resource trái quyền làm toàn request thất bại trước ghi.
++
++Phần derived health phải được backend tính từ policy được phê duyệt. Khi chưa có policy, payload có phần health phải nhận trạng thái unavailable rõ ràng và không ghi một phần âm thầm. Contract này không định nghĩa ngưỡng sốt, liều thuốc, diễn giải sức khỏe hay quyền tư vấn y tế.
++
++## 5. Portal và Announcements
++
++Portal issuance chỉ dành cho admin trong scope được cấp. Student và guardian phải tồn tại đúng tenant; student có active enrollment trong branch hợp lệ. Relationship phải là `guardian_of`/`parent_of` đúng chiều guardian→student, còn hiệu lực theo ngày bắt đầu/kết thúc. Không chọn guardian mặc định; nếu request không chỉ định và có nhiều guardian hợp lệ thì yêu cầu chọn rõ, không lấy hàng đầu tiên.
++
++Token phải bind tenant + student Party + guardian Party, ký bằng secret cấu hình server; thiếu secret thì unavailable, không fallback hardcoded. **Token phát hành mới có TTL tối đa24 giờ**, không tự refresh; không tự xoay secret hoặc thay expiry của token đã ký. Mỗi lần đọc phải kiểm tra lại relationship và tenant hiện tại; expiry không thay thế quyền. Khả năng thu hồi từng token chưa được chứng minh, nên không tuyên bố có immediate revocation. Parent dùng token được cấp không đồng nghĩa có quyền tự mint token.
++
++Announcements phải resolve tập người nhận trên server từ guardian/student/enrollment hợp lệ trong tenant và scope admin. Dùng communication lifecycle theo từng student/guardian; không global thread ID, không student/guardian UUID giả. Việc phát hành phải idempotent và có trạng thái phản ánh lỗi từng recipient theo contract producer. Nếu chưa có producer đảm bảo việc này, giữ thao tác unavailable; không tự tạo schema hoặc gửi fanout dở dang để đáp ứng UI.
++
++## 6. Error và kiểm chứng bắt buộc
++
++- Không có Auth hợp lệ:401. Role/resource không được phép:403. Selector không được chuyển tenant/actor:403.
++- Dependency/policy/identity mapping chưa đủ:503 với code ổn định, không lộ chi tiết DB; không trả success hoặc dùng dữ liệu mẫu.
++- API thuốc ngừng hỗ trợ:410 `PRESCHOOL_MEDICATION_DISABLED` cho mọi POST, trước đọc payload/DB/service. Giữ lịch sử dữ liệu.
++- Response chứa dữ liệu/quyền riêng tư phải `private, no-store`.
++
++Tests phải có allowed actor; role bị cấm; active/inactive user/tenant; cùng Auth session đổi tenant/branch/course/student/guardian; duplicate selector; bulk có một resource trái quyền; relationship hết hạn; thiếu mapping/policy; lỗi RLS; bảo đảm không side effect trước authorize và không partial write. Cần real Auth + isolated fixtures + independent DB read-back để chứng minh runtime. Unit mock, source gate, preview hay merge không thay thế Real DB/RLS/Browser/production proof.
++
++## 7. Dependency chưa được cấp quyền sửa
++
++Platform `user_org_unit_access` là dữ liệu quyền branch cần reuse; `getUserAccessibleUnits()` hiện trả toàn bộ active unit không đủ làm authorization. Teacher assignment public contract đã có nhưng Auth→teacher Party mapping và effective dates phải được chứng minh trước enable.
++
++Guardian repository hiện có lookup/fallback không đáp ứng predicate ở mục5; không được coi nó là trusted contract chỉ vì test cũ PASS. Communication broadcast fanout/idempotency và token revocation chưa được chứng minh. Viết tài liệu không tự tạo những capability đó hoặc mở authority sửa Platform/Kernel/schema.
++
++**Owner decision đã chốt:** mapping `admin`/`admin_staff`, active-enrollment-only, giữ derived health unavailable, Portal admin-only/TTL24h, broadcast admin-only và giữ class broadcast unavailable. Mỗi nhóm vẫn cần kiểm chứng producer/mapping và thực tế thực thi. Quyết định khóa API thuốc được owner chốt riêng trước matrix; không cần duyệt lại.diff --git a/src/app/api/education/care/medication/route.ts b/src/app/api/education/care/medication/route.ts
+index dd7a5cb6d..40a32c7eb 100644
+--- a/src/app/api/education/care/medication/route.ts
++++ b/src/app/api/education/care/medication/route.ts
+@@ -1,48 +1,13 @@
+ import { NextResponse } from 'next/server';
+-import { createClient } from '@supabase/supabase-js';
+-import { MedicationSafetyService } from '@/products/bella-education/care-wellbeing/medication/medication-safety.service';
+ 
+-function getErrorMessage(error: unknown): string | undefined {
+-  if (typeof error === 'object' && error !== null && 'message' in error) {
+-    const message = (error as { message?: unknown }).message;
+-    return typeof message === 'string' ? message : String(message);
+-  }
+-
+-  return undefined;
+-}
+-
+-export async function POST(request: Request) {
+-  try {
+-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'http://127.0.0.1:54321';
+-    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+-
+-    if (!supabaseKey) {
+-      return NextResponse.json({ error: 'Supabase key not configured' }, { status: 500 });
+-    }
+-
+-    const supabase = createClient(supabaseUrl, supabaseKey);
+-    const medService = new MedicationSafetyService(supabase);
+-
+-    const body = await request.json();
+-    const { tenantId, studentId, doseOccurrenceId, doseGiven, actorId, notes } = body;
+-
+-    if (!tenantId || !studentId || !doseOccurrenceId || !actorId) {
+-      return NextResponse.json({ error: 'Missing required parameters' }, { status: 400 });
+-    }
+-
+-    const result = await medService.administerDose({
+-      tenantId,
+-      studentId,
+-      doseOccurrenceId,
+-      administeredAt: new Date(),
+-      doseGiven: doseGiven || 'Standard Dose',
+-      actorId,
+-      notes,
+-    });
+-
+-    return NextResponse.json({ success: true, result });
+-  } catch (error) {
+-    console.error('Medication Admin API Error:', error);
+-    return NextResponse.json({ error: getErrorMessage(error) || 'Internal Server Error' }, { status: 500 });
+-  }
++// Medication administration is outside the active Preschool Product scope.
++export async function POST(_request: Request) {
++  return NextResponse.json({
++    success: false,
++    error: 'PRESCHOOL_MEDICATION_DISABLED',
++    message: 'Chức năng ghi nhận dùng thuốc đã được tắt và không thuộc phạm vi hoạt động của Bella Preschool.',
++  }, {
++    status: 410,
++    headers: { 'Cache-Control': 'private, no-store' },
++  });
+ }
+diff --git a/src/app/api/education/care/medication/__tests__/route.test.ts b/src/app/api/education/care/medication/__tests__/route.test.ts
+new file mode 100644
+index 000000000..c52c57dad
+--- /dev/null
++++ b/src/app/api/education/care/medication/__tests__/route.test.ts
+@@ -0,0 +1,63 @@
++import { beforeEach, describe, expect, it, jest } from '@jest/globals';
++
++const mockCreateDatabaseClient = jest.fn();
++const mockCreateSessionClient = jest.fn();
++const mockGetCurrentUser = jest.fn();
++const mockAdministerDose = jest.fn();
++const mockMedicationService = jest.fn(() => ({ administerDose: mockAdministerDose }));
++
++jest.mock('@supabase/supabase-js', () => ({ createClient: mockCreateDatabaseClient }));
++jest.mock('@/lib/supabase-server', () => ({ createClient: mockCreateSessionClient }));
++jest.mock('@/services/user-actions', () => ({ getCurrentUser: mockGetCurrentUser }));
++jest.mock('@/products/bella-education/care-wellbeing/medication/medication-safety.service', () => ({
++  MedicationSafetyService: mockMedicationService,
++}));
++
++const { POST } = require('../route') as typeof import('../route');
++const payload = {
++  tenantId: '00000000-0000-4000-8000-000000000011',
++  studentId: '00000000-0000-4000-8000-000000000022',
++  doseOccurrenceId: '00000000-0000-4000-8000-000000000033',
++  actorId: '00000000-0000-4000-8000-000000000044',
++  doseGiven: 'synthetic test input',
++};
++
++beforeEach(() => { jest.clearAllMocks(); });
++
++describe('Retired Preschool medication endpoint', () => {
++  it.each([
++    { name: 'anonymous empty request', body: '', headers: {} },
++    { name: 'valid-looking signed-in payload', body: JSON.stringify(payload), headers: { Authorization: 'Bearer synthetic-session' } },
++    { name: 'forged privileged actor and tenant', body: JSON.stringify(payload), headers: {
++      'x-mock-role': 'SUPER_ADMIN', 'x-mock-user-email': 'synthetic@example.invalid',
++      Cookie: 'mock_user_email=synthetic@example.invalid',
++    } },
++    { name: 'malformed JSON', body: '{invalid-json', headers: {} },
++    { name: 'JSON null', body: 'null', headers: {} },
++  ])('returns the same410 for $name before reading any identity or body', async ({ body, headers }) => {
++    const request = new Request(`http://localhost/api/education/care/medication?tenantId=${payload.tenantId}`, {
++      method: 'POST', headers: { 'Content-Type': 'application/json', ...headers }, body,
++    });
++    const jsonRead = jest.spyOn(request, 'json');
++    const textRead = jest.spyOn(request, 'text');
++    const formRead = jest.spyOn(request, 'formData');
++    const response = await POST(request);
++
++    expect(response.status).toBe(410);
++    expect(response.headers.get('Cache-Control')).toBe('private, no-store');
++    expect(await response.json()).toEqual({
++      success: false,
++      error: 'PRESCHOOL_MEDICATION_DISABLED',
++      message: 'Chức năng ghi nhận dùng thuốc đã được tắt và không thuộc phạm vi hoạt động của Bella Preschool.',
++    });
++    expect(jsonRead).not.toHaveBeenCalled();
++    expect(textRead).not.toHaveBeenCalled();
++    expect(formRead).not.toHaveBeenCalled();
++    expect(request.bodyUsed).toBe(false);
++    expect(mockCreateDatabaseClient).not.toHaveBeenCalled();
++    expect(mockCreateSessionClient).not.toHaveBeenCalled();
++    expect(mockGetCurrentUser).not.toHaveBeenCalled();
++    expect(mockMedicationService).not.toHaveBeenCalled();
++    expect(mockAdministerDose).not.toHaveBeenCalled();
++  });
++});

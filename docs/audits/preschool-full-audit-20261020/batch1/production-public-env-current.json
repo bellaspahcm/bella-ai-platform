@@ -1,0 +1,12 @@
+{
+  "checkedAt": "2026-10-20T16:01:15.707Z",
+  "transport": "Authenticated Vercel CLI GET getProjectEnv for only NEXT_PUBLIC_SUPABASE_URL",
+  "key": "NEXT_PUBLIC_SUPABASE_URL",
+  "target": [
+    "production"
+  ],
+  "type": "encrypted",
+  "apiOrigin": "https://lvnvkpyxtuilhrabtlwv.supabase.co",
+  "createdAt": 1791096639768,
+  "updatedAt": 1791098923230
+}

@@ -1,0 +1,79 @@
+{
+  "checkedAt": "2026-10-20T22:44:58.195Z",
+  "purpose": "Current source byte/seal/scope integrity only; no authorization/RLS/release PASS",
+  "checks": [
+    {
+      "group": "copilot",
+      "root": "C:\\Users\\DELL\\.codex\\worktrees\\preschool-courses-auth-20261021\\BELLA SPA ERP",
+      "branch": "codex/preschool-api-identity-20261021",
+      "head": "88314bacf7c85ff73d02b00f0c57570c47135d3c",
+      "sourceFilesMatchManifest": true,
+      "protectedSurfaceDiffEmpty": true,
+      "indexEmpty": true,
+      "trackedWhitespaceExit": 0,
+      "approvedContractSha256": "8a0a6925b3cce32e88df1f016fa8e984276e217cdae57f6e4c51be2148e2ba39",
+      "localCommit": "88314bacf7c85ff73d02b00f0c57570c47135d3c",
+      "sourceDelivery": "LOCAL_COMMIT_ONLY",
+      "result": "PASS"
+    },
+    {
+      "group": "medication",
+      "root": "C:\\Users\\DELL\\.codex\\worktrees\\shared-identity-containment-20261021\\BELLA SPA ERP",
+      "branch": "codex/preschool-disable-medication-20261021",
+      "head": "4269492fbc41bdfb745b2c43062f11762803a252",
+      "sourceFilesMatchManifest": true,
+      "protectedSurfaceDiffEmpty": true,
+      "indexEmpty": true,
+      "trackedWhitespaceExit": 0,
+      "approvedContractSha256": null,
+      "localCommit": "4269492fbc41bdfb745b2c43062f11762803a252",
+      "sourceDelivery": "LOCAL_COMMIT_ONLY",
+      "result": "PASS"
+    },
+    {
+      "group": "care",
+      "root": "C:\\Users\\DELL\\.codex\\worktrees\\preschool-care-authorization-20261021\\BELLA SPA ERP",
+      "branch": "codex/preschool-care-auth-20261021",
+      "head": "7012ca82f6cc216fc8c4d549f284e2a0f4594a99",
+      "sourceFilesMatchManifest": true,
+      "protectedSurfaceDiffEmpty": true,
+      "indexEmpty": true,
+      "trackedWhitespaceExit": 0,
+      "approvedContractSha256": "8a0a6925b3cce32e88df1f016fa8e984276e217cdae57f6e4c51be2148e2ba39",
+      "localCommit": "7012ca82f6cc216fc8c4d549f284e2a0f4594a99",
+      "sourceDelivery": "LOCAL_COMMIT_ONLY",
+      "result": "PASS"
+    },
+    {
+      "group": "portal",
+      "root": "C:\\Users\\DELL\\.codex\\worktrees\\preschool-parent-access-20261021\\BELLA SPA ERP",
+      "branch": "codex/preschool-parent-access-20261021",
+      "head": "daf358e7a579f042a7417a7055e4f10fd02c2826",
+      "sourceFilesMatchManifest": true,
+      "protectedSurfaceDiffEmpty": true,
+      "indexEmpty": true,
+      "trackedWhitespaceExit": 0,
+      "approvedContractSha256": "8a0a6925b3cce32e88df1f016fa8e984276e217cdae57f6e4c51be2148e2ba39",
+      "localCommit": "daf358e7a579f042a7417a7055e4f10fd02c2826",
+      "sourceDelivery": "LOCAL_COMMIT_ONLY",
+      "result": "PASS"
+    },
+    {
+      "group": "announcements",
+      "root": "C:\\Users\\DELL\\.codex\\worktrees\\preschool-announcement-auth-20261021\\BELLA SPA ERP",
+      "branch": "codex/preschool-announcement-auth-20261021",
+      "head": "65adcebab8402ba1d777bf292d0388cde4270bb1",
+      "sourceFilesMatchManifest": true,
+      "protectedSurfaceDiffEmpty": true,
+      "indexEmpty": true,
+      "trackedWhitespaceExit": 0,
+      "approvedContractSha256": "8a0a6925b3cce32e88df1f016fa8e984276e217cdae57f6e4c51be2148e2ba39",
+      "localCommit": "65adcebab8402ba1d777bf292d0388cde4270bb1",
+      "sourceDelivery": "LOCAL_COMMIT_ONLY",
+      "result": "PASS"
+    }
+  ],
+  "totalFocusedSuites": 10,
+  "totalFocusedTests": 286,
+  "result": "PASS"
+}

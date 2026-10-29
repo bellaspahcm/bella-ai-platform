@@ -1,0 +1,1112 @@
+{
+  "columns": [
+    {
+      "acl": null,
+      "attgenerated": "",
+      "attidentity": "",
+      "attnum": 1,
+      "default_expression": "uuid_generate_v4()",
+      "name": "id",
+      "not_null": true,
+      "type": "uuid"
+    },
+    {
+      "acl": null,
+      "attgenerated": "",
+      "attidentity": "",
+      "attnum": 2,
+      "default_expression": null,
+      "name": "email",
+      "not_null": true,
+      "type": "text"
+    },
+    {
+      "acl": null,
+      "attgenerated": "",
+      "attidentity": "",
+      "attnum": 4,
+      "default_expression": null,
+      "name": "full_name",
+      "not_null": true,
+      "type": "text"
+    },
+    {
+      "acl": null,
+      "attgenerated": "",
+      "attidentity": "",
+      "attnum": 5,
+      "default_expression": null,
+      "name": "phone",
+      "not_null": false,
+      "type": "text"
+    },
+    {
+      "acl": null,
+      "attgenerated": "",
+      "attidentity": "",
+      "attnum": 6,
+      "default_expression": null,
+      "name": "role",
+      "not_null": true,
+      "type": "text"
+    },
+    {
+      "acl": null,
+      "attgenerated": "",
+      "attidentity": "",
+      "attnum": 7,
+      "default_expression": null,
+      "name": "avatar_url",
+      "not_null": false,
+      "type": "text"
+    },
+    {
+      "acl": null,
+      "attgenerated": "",
+      "attidentity": "",
+      "attnum": 8,
+      "default_expression": "'active'::text",
+      "name": "status",
+      "not_null": false,
+      "type": "text"
+    },
+    {
+      "acl": null,
+      "attgenerated": "",
+      "attidentity": "",
+      "attnum": 9,
+      "default_expression": null,
+      "name": "tenant_id",
+      "not_null": false,
+      "type": "uuid"
+    },
+    {
+      "acl": null,
+      "attgenerated": "",
+      "attidentity": "",
+      "attnum": 10,
+      "default_expression": "now()",
+      "name": "created_at",
+      "not_null": false,
+      "type": "timestamp with time zone"
+    },
+    {
+      "acl": null,
+      "attgenerated": "",
+      "attidentity": "",
+      "attnum": 11,
+      "default_expression": "now()",
+      "name": "updated_at",
+      "not_null": false,
+      "type": "timestamp with time zone"
+    },
+    {
+      "acl": null,
+      "attgenerated": "",
+      "attidentity": "",
+      "attnum": 12,
+      "default_expression": "6000000",
+      "name": "base_salary",
+      "not_null": false,
+      "type": "numeric"
+    },
+    {
+      "acl": null,
+      "attgenerated": "",
+      "attidentity": "",
+      "attnum": 13,
+      "default_expression": null,
+      "name": "hire_date",
+      "not_null": false,
+      "type": "date"
+    },
+    {
+      "acl": null,
+      "attgenerated": "",
+      "attidentity": "",
+      "attnum": 14,
+      "default_expression": null,
+      "name": "resignation_date",
+      "not_null": false,
+      "type": "date"
+    },
+    {
+      "acl": null,
+      "attgenerated": "",
+      "attidentity": "",
+      "attnum": 15,
+      "default_expression": "'{}'::jsonb",
+      "name": "metadata",
+      "not_null": false,
+      "type": "jsonb"
+    },
+    {
+      "acl": null,
+      "attgenerated": "",
+      "attidentity": "",
+      "attnum": 16,
+      "default_expression": "'junior'::text",
+      "name": "position_tier",
+      "not_null": true,
+      "type": "text"
+    },
+    {
+      "acl": null,
+      "attgenerated": "",
+      "attidentity": "",
+      "attnum": 17,
+      "default_expression": "12",
+      "name": "leave_balance",
+      "not_null": false,
+      "type": "integer"
+    }
+  ],
+  "constraints": [
+    {
+      "definition": "UNIQUE (email)",
+      "name": "users_email_key",
+      "type": "u"
+    },
+    {
+      "definition": "PRIMARY KEY (id)",
+      "name": "users_pkey",
+      "type": "p"
+    },
+    {
+      "definition": "CHECK (position_tier = ANY (ARRAY['junior'::text, 'senior'::text, 'lead'::text]))",
+      "name": "users_position_tier_check",
+      "type": "c"
+    },
+    {
+      "definition": "CHECK (role = ANY (ARRAY['admin'::text, 'ktv_lead'::text, 'ktv'::text, 'admin_staff'::text, 'accountant'::text, 'hr'::text, 'student'::text, 'parent'::text]))",
+      "name": "users_role_check",
+      "type": "c"
+    },
+    {
+      "definition": "FOREIGN KEY (tenant_id) REFERENCES tenants(id)",
+      "name": "users_tenant_id_fkey",
+      "type": "f"
+    }
+  ],
+  "defaults": [
+    {
+      "acl": "{service_role=rwU/postgres,bella_migration_executor=rwU/postgres}",
+      "namespace": "public",
+      "owner": "postgres",
+      "type": "S"
+    },
+    {
+      "acl": "{service_role=X/postgres}",
+      "namespace": "public",
+      "owner": "postgres",
+      "type": "f"
+    },
+    {
+      "acl": "{service_role=arwdDxtm/postgres,bella_developer=r/postgres,bella_migration_executor=arwdDxtm/postgres,verification_executor=r/postgres}",
+      "namespace": "public",
+      "owner": "postgres",
+      "type": "r"
+    }
+  ],
+  "functions": [
+    {
+      "acl": "{=X/supabase_auth_admin,postgres=X/supabase_auth_admin,supabase_auth_admin=X/supabase_auth_admin,dashboard_user=X/supabase_auth_admin}",
+      "arguments": "",
+      "definition": "CREATE OR REPLACE FUNCTION auth.jwt()\n RETURNS jsonb\n LANGUAGE sql\n STABLE\nAS $function$\n  select \n    coalesce(\n        nullif(current_setting('request.jwt.claim', true), ''),\n        nullif(current_setting('request.jwt.claims', true), '')\n    )::jsonb\n$function$\n",
+      "name": "jwt",
+      "owner": "supabase_auth_admin",
+      "proconfig": null,
+      "schema": "auth",
+      "security_definer": false
+    },
+    {
+      "acl": "{=X/supabase_auth_admin,supabase_auth_admin=X/supabase_auth_admin,dashboard_user=X/supabase_auth_admin}",
+      "arguments": "",
+      "definition": "CREATE OR REPLACE FUNCTION auth.uid()\n RETURNS uuid\n LANGUAGE sql\n STABLE\nAS $function$\n  select \n  coalesce(\n    nullif(current_setting('request.jwt.claim.sub', true), ''),\n    (nullif(current_setting('request.jwt.claims', true), '')::jsonb ->> 'sub')\n  )::uuid\n$function$\n",
+      "name": "uid",
+      "owner": "supabase_auth_admin",
+      "proconfig": null,
+      "schema": "auth",
+      "security_definer": false
+    },
+    {
+      "acl": "{=X/postgres,postgres=X/postgres,service_role=X/postgres,bella_migration_executor=X/postgres}",
+      "arguments": "",
+      "definition": "CREATE OR REPLACE FUNCTION public.current_tenant_id()\n RETURNS uuid\n LANGUAGE sql\n STABLE SECURITY DEFINER\nAS $function$\n  SELECT tenant_id FROM public.users WHERE id = auth.uid();\n$function$\n",
+      "name": "current_tenant_id",
+      "owner": "postgres",
+      "proconfig": null,
+      "schema": "public",
+      "security_definer": true
+    },
+    {
+      "acl": "{=X/postgres,postgres=X/postgres,service_role=X/postgres,bella_migration_executor=X/postgres}",
+      "arguments": "",
+      "definition": "CREATE OR REPLACE FUNCTION public.current_user_role()\n RETURNS text\n LANGUAGE sql\n STABLE SECURITY DEFINER\nAS $function$\n  SELECT role FROM public.users WHERE id = auth.uid();\n$function$\n",
+      "name": "current_user_role",
+      "owner": "postgres",
+      "proconfig": null,
+      "schema": "public",
+      "security_definer": true
+    },
+    {
+      "acl": "{=X/postgres,postgres=X/postgres,service_role=X/postgres,bella_migration_executor=X/postgres}",
+      "arguments": "",
+      "definition": "CREATE OR REPLACE FUNCTION public.get_auth_tenant_id()\n RETURNS uuid\n LANGUAGE plpgsql\n STABLE SECURITY DEFINER\n SET search_path TO 'pg_catalog', 'public'\nAS $function$\nDECLARE\n  v_tenant_id uuid;\nBEGIN\n  SELECT u.tenant_id INTO v_tenant_id\n  FROM public.users AS u\n  JOIN public.tenants AS t ON t.id = u.tenant_id\n  WHERE u.id = auth.uid() AND u.status = 'active' AND t.status = 'active';\n\n  -- NULL would enable legacy policies using NULL as an unrestricted HQ sentinel.\n  IF v_tenant_id IS NULL THEN\n    RAISE EXCEPTION 'Active canonical identity and tenant required' USING ERRCODE = '42501';\n  END IF;\n  RETURN v_tenant_id;\nEND;\n$function$\n",
+      "name": "get_auth_tenant_id",
+      "owner": "postgres",
+      "proconfig": [
+        "search_path=pg_catalog, public"
+      ],
+      "schema": "public",
+      "security_definer": true
+    },
+    {
+      "acl": "{=X/postgres,postgres=X/postgres,service_role=X/postgres,bella_migration_executor=X/postgres}",
+      "arguments": "",
+      "definition": "CREATE OR REPLACE FUNCTION public.is_admin()\n RETURNS boolean\n LANGUAGE sql\n STABLE SECURITY DEFINER\n SET search_path TO 'pg_catalog', 'public'\nAS $function$\n  SELECT EXISTS (\n    SELECT 1 FROM public.users AS u JOIN public.tenants AS t ON t.id = u.tenant_id\n    WHERE u.id = auth.uid() AND u.status = 'active' AND t.status = 'active' AND u.role = 'admin'\n  );\n$function$\n",
+      "name": "is_admin",
+      "owner": "postgres",
+      "proconfig": [
+        "search_path=pg_catalog, public"
+      ],
+      "schema": "public",
+      "security_definer": true
+    },
+    {
+      "acl": "{=X/postgres,postgres=X/postgres,service_role=X/postgres,bella_migration_executor=X/postgres}",
+      "arguments": "",
+      "definition": "CREATE OR REPLACE FUNCTION public.is_hq_super_admin()\n RETURNS boolean\n LANGUAGE sql\n STABLE SECURITY DEFINER\n SET search_path TO 'pg_catalog', 'public'\nAS $function$\n  SELECT EXISTS (\n    SELECT 1 FROM public.users AS u JOIN public.tenants AS t ON t.id = u.tenant_id\n    WHERE u.id = auth.uid() AND u.status = 'active' AND t.status = 'active'\n      AND u.role = 'admin' AND t.product_key = 'bella_hq'\n  );\n$function$\n",
+      "name": "is_hq_super_admin",
+      "owner": "postgres",
+      "proconfig": [
+        "search_path=pg_catalog, public"
+      ],
+      "schema": "public",
+      "security_definer": true
+    },
+    {
+      "acl": "{=X/postgres,postgres=X/postgres,service_role=X/postgres,bella_migration_executor=X/postgres}",
+      "arguments": "",
+      "definition": "CREATE OR REPLACE FUNCTION public.log_audit_event()\n RETURNS trigger\n LANGUAGE plpgsql\n SECURITY DEFINER\nAS $function$\nDECLARE\n    current_user_id UUID;\n    record_tenant_id UUID;\nBEGIN\n    BEGIN\n        current_user_id := auth.uid();\n    EXCEPTION WHEN OTHERS THEN\n        current_user_id := NULL;\n    END;\n    \n    BEGIN\n        IF TG_TABLE_NAME = 'tenants' THEN\n            IF TG_OP = 'DELETE' THEN\n                record_tenant_id := OLD.id;\n            ELSE\n                record_tenant_id := NEW.id;\n            END IF;\n        ELSE\n            IF TG_OP = 'DELETE' THEN\n                record_tenant_id := OLD.tenant_id;\n            ELSE\n                record_tenant_id := NEW.tenant_id;\n            END IF;\n        END IF;\n    EXCEPTION WHEN OTHERS THEN\n        record_tenant_id := NULL;\n    END;\n\n    BEGIN\n        INSERT INTO public.audit_logs (\n            tenant_id,\n            table_name,\n            record_id,\n            action,\n            old_data,\n            new_data,\n            changed_by_id\n        ) VALUES (\n            record_tenant_id,\n            TG_TABLE_NAME,\n            COALESCE(NEW.id, OLD.id),\n            TG_OP,\n            CASE WHEN TG_OP IN ('UPDATE', 'DELETE') THEN row_to_json(OLD)::jsonb ELSE NULL END,\n            CASE WHEN TG_OP IN ('INSERT', 'UPDATE') THEN row_to_json(NEW)::jsonb ELSE NULL END,\n            current_user_id\n        );\n    EXCEPTION WHEN OTHERS THEN\n        RAISE WARNING 'audit_log_event failed for table % op %: %', TG_TABLE_NAME, TG_OP, SQLERRM;\n    END;\n\n    IF TG_OP = 'DELETE' THEN\n        RETURN OLD;\n    ELSE\n        RETURN NEW;\n    END IF;\nEND;\n$function$\n",
+      "name": "log_audit_event",
+      "owner": "postgres",
+      "proconfig": null,
+      "schema": "public",
+      "security_definer": true
+    },
+    {
+      "acl": "{=X/postgres,postgres=X/postgres,service_role=X/postgres,bella_migration_executor=X/postgres}",
+      "arguments": "",
+      "definition": "CREATE OR REPLACE FUNCTION public.sync_user_claims_to_auth()\n RETURNS trigger\n LANGUAGE plpgsql\n SECURITY DEFINER\nAS $function$\nBEGIN\n  UPDATE auth.users\n  SET raw_app_meta_data = \n    coalesce(raw_app_meta_data, '{}'::jsonb) || \n    jsonb_build_object(\n      'role', NEW.role,\n      'tenant_id', NEW.tenant_id\n    )\n  WHERE id = NEW.id;\n  RETURN NEW;\nEND;\n$function$\n",
+      "name": "sync_user_claims_to_auth",
+      "owner": "postgres",
+      "proconfig": null,
+      "schema": "public",
+      "security_definer": true
+    },
+    {
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres,bella_migration_executor=X/postgres}",
+      "arguments": "",
+      "definition": "CREATE OR REPLACE FUNCTION public.update_updated_at_column()\n RETURNS trigger\n LANGUAGE plpgsql\nAS $function$\r\nBEGIN\r\n  NEW.updated_at = NOW();\r\n  RETURN NEW;\r\nEND;\r\n$function$\n",
+      "name": "update_updated_at_column",
+      "owner": "postgres",
+      "proconfig": null,
+      "schema": "public",
+      "security_definer": false
+    }
+  ],
+  "grants": [
+    {
+      "grantable": false,
+      "grantee": "anon",
+      "grantor": "postgres",
+      "privilege": "DELETE"
+    },
+    {
+      "grantable": false,
+      "grantee": "anon",
+      "grantor": "postgres",
+      "privilege": "INSERT"
+    },
+    {
+      "grantable": false,
+      "grantee": "anon",
+      "grantor": "postgres",
+      "privilege": "MAINTAIN"
+    },
+    {
+      "grantable": false,
+      "grantee": "anon",
+      "grantor": "postgres",
+      "privilege": "REFERENCES"
+    },
+    {
+      "grantable": false,
+      "grantee": "anon",
+      "grantor": "postgres",
+      "privilege": "SELECT"
+    },
+    {
+      "grantable": false,
+      "grantee": "anon",
+      "grantor": "postgres",
+      "privilege": "TRIGGER"
+    },
+    {
+      "grantable": false,
+      "grantee": "anon",
+      "grantor": "postgres",
+      "privilege": "TRUNCATE"
+    },
+    {
+      "grantable": false,
+      "grantee": "anon",
+      "grantor": "postgres",
+      "privilege": "UPDATE"
+    },
+    {
+      "grantable": false,
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "privilege": "DELETE"
+    },
+    {
+      "grantable": false,
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "privilege": "INSERT"
+    },
+    {
+      "grantable": false,
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "privilege": "MAINTAIN"
+    },
+    {
+      "grantable": false,
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "privilege": "REFERENCES"
+    },
+    {
+      "grantable": false,
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "privilege": "SELECT"
+    },
+    {
+      "grantable": false,
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "privilege": "TRIGGER"
+    },
+    {
+      "grantable": false,
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "privilege": "TRUNCATE"
+    },
+    {
+      "grantable": false,
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "privilege": "UPDATE"
+    },
+    {
+      "grantable": false,
+      "grantee": "bella_developer",
+      "grantor": "postgres",
+      "privilege": "SELECT"
+    },
+    {
+      "grantable": false,
+      "grantee": "bella_migration_executor",
+      "grantor": "postgres",
+      "privilege": "DELETE"
+    },
+    {
+      "grantable": false,
+      "grantee": "bella_migration_executor",
+      "grantor": "postgres",
+      "privilege": "INSERT"
+    },
+    {
+      "grantable": false,
+      "grantee": "bella_migration_executor",
+      "grantor": "postgres",
+      "privilege": "MAINTAIN"
+    },
+    {
+      "grantable": false,
+      "grantee": "bella_migration_executor",
+      "grantor": "postgres",
+      "privilege": "REFERENCES"
+    },
+    {
+      "grantable": false,
+      "grantee": "bella_migration_executor",
+      "grantor": "postgres",
+      "privilege": "SELECT"
+    },
+    {
+      "grantable": false,
+      "grantee": "bella_migration_executor",
+      "grantor": "postgres",
+      "privilege": "TRIGGER"
+    },
+    {
+      "grantable": false,
+      "grantee": "bella_migration_executor",
+      "grantor": "postgres",
+      "privilege": "TRUNCATE"
+    },
+    {
+      "grantable": false,
+      "grantee": "bella_migration_executor",
+      "grantor": "postgres",
+      "privilege": "UPDATE"
+    },
+    {
+      "grantable": false,
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "privilege": "DELETE"
+    },
+    {
+      "grantable": false,
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "privilege": "INSERT"
+    },
+    {
+      "grantable": false,
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "privilege": "MAINTAIN"
+    },
+    {
+      "grantable": false,
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "privilege": "REFERENCES"
+    },
+    {
+      "grantable": false,
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "privilege": "SELECT"
+    },
+    {
+      "grantable": false,
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "privilege": "TRIGGER"
+    },
+    {
+      "grantable": false,
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "privilege": "TRUNCATE"
+    },
+    {
+      "grantable": false,
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "privilege": "UPDATE"
+    },
+    {
+      "grantable": false,
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "privilege": "DELETE"
+    },
+    {
+      "grantable": false,
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "privilege": "INSERT"
+    },
+    {
+      "grantable": false,
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "privilege": "MAINTAIN"
+    },
+    {
+      "grantable": false,
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "privilege": "REFERENCES"
+    },
+    {
+      "grantable": false,
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "privilege": "SELECT"
+    },
+    {
+      "grantable": false,
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "privilege": "TRIGGER"
+    },
+    {
+      "grantable": false,
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "privilege": "TRUNCATE"
+    },
+    {
+      "grantable": false,
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "privilege": "UPDATE"
+    },
+    {
+      "grantable": false,
+      "grantee": "verification_executor",
+      "grantor": "postgres",
+      "privilege": "SELECT"
+    }
+  ],
+  "indexes": [
+    {
+      "definition": "CREATE INDEX idx_users_email ON public.users USING btree (email)",
+      "name": "idx_users_email"
+    },
+    {
+      "definition": "CREATE INDEX idx_users_hire_date ON public.users USING btree (tenant_id, hire_date) WHERE (hire_date IS NOT NULL)",
+      "name": "idx_users_hire_date"
+    },
+    {
+      "definition": "CREATE INDEX idx_users_id ON public.users USING btree (id)",
+      "name": "idx_users_id"
+    },
+    {
+      "definition": "CREATE INDEX idx_users_position_tier ON public.users USING btree (tenant_id, position_tier) WHERE (position_tier IS NOT NULL)",
+      "name": "idx_users_position_tier"
+    },
+    {
+      "definition": "CREATE INDEX idx_users_tenant ON public.users USING btree (tenant_id)",
+      "name": "idx_users_tenant"
+    },
+    {
+      "definition": "CREATE UNIQUE INDEX users_email_key ON public.users USING btree (email)",
+      "name": "users_email_key"
+    },
+    {
+      "definition": "CREATE UNIQUE INDEX users_pkey ON public.users USING btree (id)",
+      "name": "users_pkey"
+    }
+  ],
+  "memberships": [],
+  "policies": [
+    {
+      "cmd": "SELECT",
+      "permissive": "PERMISSIVE",
+      "policyname": "Admins can view all users in tenant",
+      "qual": "((current_user_role() = 'admin'::text) AND (tenant_id = current_tenant_id()))",
+      "roles": [
+        "public"
+      ],
+      "schemaname": "public",
+      "tablename": "users",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "Admins manage tenant users",
+      "qual": "((current_user_role() = 'admin'::text) AND (tenant_id = current_tenant_id()))",
+      "roles": [
+        "public"
+      ],
+      "schemaname": "public",
+      "tablename": "users",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "User tự xem và sửa chính mình",
+      "qual": "(id = auth.uid())",
+      "roles": [
+        "authenticated"
+      ],
+      "schemaname": "public",
+      "tablename": "users",
+      "with_check": null
+    },
+    {
+      "cmd": "SELECT",
+      "permissive": "PERMISSIVE",
+      "policyname": "Users can view own profile",
+      "qual": "(auth.uid() = id)",
+      "roles": [
+        "public"
+      ],
+      "schemaname": "public",
+      "tablename": "users",
+      "with_check": null
+    },
+    {
+      "cmd": "SELECT",
+      "permissive": "PERMISSIVE",
+      "policyname": "Users can view their own profile",
+      "qual": "(auth.uid() = id)",
+      "roles": [
+        "public"
+      ],
+      "schemaname": "public",
+      "tablename": "users",
+      "with_check": null
+    }
+  ],
+  "roles": [
+    {
+      "bypass_rls": false,
+      "can_login": false,
+      "inherit": true,
+      "name": "anon",
+      "superuser": false
+    },
+    {
+      "bypass_rls": false,
+      "can_login": false,
+      "inherit": true,
+      "name": "authenticated",
+      "superuser": false
+    },
+    {
+      "bypass_rls": true,
+      "can_login": true,
+      "inherit": true,
+      "name": "postgres",
+      "superuser": false
+    },
+    {
+      "bypass_rls": true,
+      "can_login": false,
+      "inherit": true,
+      "name": "service_role",
+      "superuser": false
+    }
+  ],
+  "schema_grants": [
+    {
+      "create": false,
+      "role": "anon",
+      "usage": true
+    },
+    {
+      "create": false,
+      "role": "authenticated",
+      "usage": true
+    },
+    {
+      "create": false,
+      "role": "service_role",
+      "usage": true
+    }
+  ],
+  "table": {
+    "acl": "{postgres=arwdDxtm/postgres,anon=arwdDxtm/postgres,authenticated=arwdDxtm/postgres,service_role=arwdDxtm/postgres,bella_developer=r/postgres,bella_migration_executor=arwdDxtm/postgres,verification_executor=r/postgres}",
+    "force_rls": false,
+    "kind": "r",
+    "name": "users",
+    "owner": "postgres",
+    "rls": true
+  },
+  "triggers": [
+    {
+      "definition": "CREATE TRIGGER audit_users_changes AFTER INSERT OR DELETE OR UPDATE ON users FOR EACH ROW EXECUTE FUNCTION log_audit_event()",
+      "enabled": "O",
+      "name": "audit_users_changes"
+    },
+    {
+      "definition": "CREATE TRIGGER tr_sync_user_claims AFTER INSERT OR UPDATE OF role, tenant_id ON users FOR EACH ROW EXECUTE FUNCTION sync_user_claims_to_auth()",
+      "enabled": "O",
+      "name": "tr_sync_user_claims"
+    },
+    {
+      "definition": "CREATE TRIGGER update_users_updated_at BEFORE UPDATE ON users FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()",
+      "enabled": "O",
+      "name": "update_users_updated_at"
+    }
+  ],
+  "user_referring_definers": [
+    {
+      "acl": "{=X/postgres,postgres=X/postgres,service_role=X/postgres,authenticated=X/postgres,bella_migration_executor=X/postgres}",
+      "anon_execute": true,
+      "arguments": "p_month_year date, p_tenant_id uuid",
+      "authenticated_execute": true,
+      "definition": "CREATE OR REPLACE FUNCTION public.calculate_ktv_salary_sheet(p_month_year date, p_tenant_id uuid DEFAULT NULL::uuid)\n RETURNS TABLE(ktv_id uuid, ktv_name text, base_salary numeric, session_bonus numeric, rating_bonus numeric, kpi_bonus numeric, deductions numeric, advances numeric, product_sales_commission numeric, total_salary numeric, total_sessions numeric, status text)\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\n#variable_conflict use_column\nDECLARE\n    v_tenant_id UUID;\n    v_bonus_5_star NUMERIC;\n    v_bonus_4_5_star NUMERIC;\n    v_bonus_4_star NUMERIC;\n    v_penalty_late NUMERIC;\n    v_penalty_absent NUMERIC;\nBEGIN\n    -- 1. Bảo mật: Cho phép service_role HOẶC (người dùng authenticated phải là admin/accountant/hr)\n    IF auth.role() <> 'service_role' THEN\n        IF NOT EXISTS (\n            SELECT 1 FROM public.users\n            WHERE users.id = auth.uid()\n              AND users.role IN ('admin', 'accountant', 'hr')\n        ) THEN\n            RAISE EXCEPTION 'Quyền hạn không hợp lệ. Bạn không có quyền truy cập dữ liệu tính lương.';\n        END IF;\n    END IF;\n\n    -- Lấy tenant_id của ngữ cảnh hiện tại\n    IF p_tenant_id IS NOT NULL THEN\n        v_tenant_id := p_tenant_id;\n    ELSIF auth.role() = 'service_role' THEN\n        v_tenant_id := COALESCE(\n            NULLIF(current_setting('app.current_tenant_id', true), '')::UUID,\n            (SELECT id FROM public.tenants LIMIT 1)\n        );\n    ELSE\n        v_tenant_id := public.get_my_tenant_id();\n        IF v_tenant_id IS NULL THEN\n            RAISE EXCEPTION 'Tài khoản không liên kết với chi nhánh hợp lệ.';\n        END IF;\n    END IF;\n\n    SELECT\n        COALESCE((tenants.salary_config->>'bonus_5_star')::NUMERIC, 50000),\n        COALESCE((tenants.salary_config->>'bonus_4_5_star')::NUMERIC, 30000),\n        COALESCE((tenants.salary_config->>'bonus_4_star')::NUMERIC, 10000),\n        COALESCE((tenants.salary_config->>'penalty_late_per_day')::NUMERIC, 50000),\n        COALESCE((tenants.salary_config->>'penalty_absent_per_day')::NUMERIC, 200000)\n    INTO\n        v_bonus_5_star,\n        v_bonus_4_5_star,\n        v_bonus_4_star,\n        v_penalty_late,\n        v_penalty_absent\n    FROM public.tenants\n    WHERE tenants.id = v_tenant_id;\n\n    RETURN QUERY\n    WITH ktv_users AS (\n        SELECT users.id, users.full_name,\n               COALESCE(users.base_salary, 6000000) AS raw_base_salary\n        FROM public.users\n        WHERE users.role = 'ktv'\n          AND users.tenant_id = v_tenant_id\n    ),\n    actual_work_days AS (\n        SELECT attendance.ktv_id,\n               SUM(CASE\n                   WHEN attendance.status IN ('present', 'late') THEN 1.0\n                   WHEN attendance.status = 'half_day' THEN 0.5\n                   ELSE 0.0\n               END)::NUMERIC AS work_days,\n               COUNT(*) FILTER (WHERE attendance.status = 'late')::NUMERIC AS late_days,\n               COUNT(*) FILTER (WHERE attendance.status = 'absent')::NUMERIC AS absent_days\n        FROM public.attendance\n        WHERE attendance.tenant_id = v_tenant_id\n          AND date_trunc('month', attendance.date) = date_trunc('month', p_month_year)\n        GROUP BY attendance.ktv_id\n    ),\n    completed_sessions AS (\n        SELECT s.completed_by_ktv_id AS ktv_id,\n               SUM(COALESCE(p.session_multiplier, 1.0))::NUMERIC AS sessions_count,\n               SUM(COALESCE(b.ktv_commission, 150000))::NUMERIC AS total_commissions,\n               AVG(approved_reviews.rating)::NUMERIC AS average_rating\n        FROM public.session_logs s\n        LEFT JOIN public.bookings b ON s.booking_id = b.id\n        LEFT JOIN public.packages p ON b.package_name = p.name AND b.tenant_id = p.tenant_id\n        LEFT JOIN LATERAL (\n            SELECT sr.rating\n            FROM public.session_reviews sr\n            WHERE sr.session_log_id = s.id\n              AND sr.status = 'approved'\n            LIMIT 1\n        ) approved_reviews ON TRUE\n        WHERE s.tenant_id = v_tenant_id\n          AND s.status = 'completed'\n          AND date_trunc('month', s.completed_date) = date_trunc('month', p_month_year)\n        GROUP BY s.completed_by_ktv_id\n    ),\n    kpi_stats AS (\n        SELECT kpi_records.ktv_id,\n               COALESCE(SUM(kpi_records.bonus_amount), 0)::NUMERIC AS kpi_bonus\n        FROM public.kpi_records\n        WHERE kpi_records.tenant_id = v_tenant_id\n          AND date_trunc('month', kpi_records.month_year) = date_trunc('month', p_month_year)\n        GROUP BY kpi_records.ktv_id\n    ),\n    product_sales_commissions AS (\n        SELECT ps.ktv_id,\n               COALESCE(SUM(ps.calculated_commission), 0)::NUMERIC AS total_product_commission\n        FROM public.product_sales ps\n        WHERE ps.tenant_id = v_tenant_id\n          AND ps.status IN ('completed', 'pending')\n          AND date_trunc('month', ps.sale_date) = date_trunc('month', p_month_year)\n        GROUP BY ps.ktv_id\n    ),\n    leaderboard AS (\n        SELECT *\n        FROM public.get_ktv_leaderboard(v_tenant_id, p_month_year)\n    ),\n    existing_salary_records AS (\n        SELECT r.ktv_id,\n               r.base_salary AS saved_base_salary,\n               r.kpi_bonus AS saved_kpi_bonus,\n               r.violations_deduction AS saved_deductions,\n               r.service_percentage_bonus AS saved_advances,\n               r.session_bonus AS saved_session_bonus,\n               r.rating_bonus AS saved_rating_bonus,\n               r.total_sessions AS saved_total_sessions,\n               r.total_salary AS saved_total_salary,\n               r.product_sales_commission AS saved_product_commission,\n               r.status AS record_status,\n               (COALESCE(r.status, 'draft') <> 'draft') AS is_saved_financial_record\n        FROM public.salary_records r\n        WHERE r.tenant_id = v_tenant_id\n          AND date_trunc('month', r.month_year) = date_trunc('month', p_month_year)\n    ),\n    calculated AS (\n        SELECT\n            u.id AS ktv_id,\n            u.full_name AS ktv_name,\n            COALESCE(er.record_status, 'draft') AS status,\n            COALESCE(cs.sessions_count, 0)::NUMERIC AS live_total_sessions,\n            COALESCE(cs.total_commissions, 0)::NUMERIC AS live_session_bonus,\n            COALESCE(\n                CASE\n                    WHEN lb.average_rating = 5.0 THEN COALESCE(cs.sessions_count, 0) * v_bonus_5_star\n                    WHEN lb.average_rating >= 4.5 THEN COALESCE(cs.sessions_count, 0) * v_bonus_4_5_star\n                    WHEN lb.average_rating >= 4.0 THEN COALESCE(cs.sessions_count, 0) * v_bonus_4_star\n                    ELSE 0\n                END,\n                0\n            )::NUMERIC AS live_rating_bonus,\n            COALESCE(kpi.kpi_bonus, 0)::NUMERIC AS live_kpi_bonus,\n            COALESCE(lb.late_days, aw.late_days, 0) * v_penalty_late + COALESCE(lb.absent_days, aw.absent_days, 0) * v_penalty_absent AS live_deductions,\n            ROUND((u.raw_base_salary / 26.0) * COALESCE(aw.work_days, 0.0))::NUMERIC AS live_base_salary,\n            COALESCE(er.saved_advances, 0)::NUMERIC AS advances,\n            COALESCE(psc.total_product_commission, 0)::NUMERIC AS live_product_commission,\n            er.saved_base_salary,\n            er.saved_session_bonus,\n            er.saved_rating_bonus,\n            er.saved_kpi_bonus,\n            er.saved_deductions,\n            er.saved_total_sessions,\n            er.saved_total_salary,\n            er.saved_product_commission,\n            COALESCE(er.is_saved_financial_record, FALSE) AS is_saved_financial_record\n        FROM ktv_users u\n        LEFT JOIN actual_work_days aw ON u.id = aw.ktv_id\n        LEFT JOIN completed_sessions cs ON u.id = cs.ktv_id\n        LEFT JOIN kpi_stats kpi ON u.id = kpi.ktv_id\n        LEFT JOIN product_sales_commissions psc ON u.id = psc.ktv_id\n        LEFT JOIN leaderboard lb ON u.id = lb.ktv_id\n        LEFT JOIN existing_salary_records er ON u.id = er.ktv_id\n    ),\n    resolved AS (\n        SELECT\n            calculated.ktv_id,\n            calculated.ktv_name,\n            CASE\n                WHEN calculated.is_saved_financial_record AND calculated.saved_base_salary IS NOT NULL THEN calculated.saved_base_salary::NUMERIC\n                ELSE calculated.live_base_salary\n            END AS base_salary,\n            CASE\n                WHEN calculated.is_saved_financial_record AND calculated.saved_session_bonus IS NOT NULL THEN calculated.saved_session_bonus::NUMERIC\n                ELSE calculated.live_session_bonus\n            END AS session_bonus,\n            CASE\n                WHEN calculated.is_saved_financial_record AND calculated.saved_rating_bonus IS NOT NULL THEN calculated.saved_rating_bonus::NUMERIC\n                ELSE calculated.live_rating_bonus\n            END AS rating_bonus,\n            CASE\n                WHEN calculated.is_saved_financial_record AND calculated.saved_kpi_bonus IS NOT NULL THEN calculated.saved_kpi_bonus::NUMERIC\n                ELSE calculated.live_kpi_bonus\n            END AS kpi_bonus,\n            CASE\n                WHEN calculated.is_saved_financial_record AND calculated.saved_deductions IS NOT NULL THEN calculated.saved_deductions::NUMERIC\n                ELSE calculated.live_deductions\n            END AS deductions,\n            calculated.advances,\n            CASE\n                WHEN calculated.is_saved_financial_record AND calculated.saved_product_commission IS NOT NULL THEN calculated.saved_product_commission::NUMERIC\n                ELSE calculated.live_product_commission\n            END AS product_sales_commission,\n            CASE\n                WHEN calculated.is_saved_financial_record AND calculated.saved_total_sessions IS NOT NULL THEN calculated.saved_total_sessions::NUMERIC\n                ELSE calculated.live_total_sessions\n            END AS total_sessions,\n            calculated.saved_total_salary,\n            calculated.is_saved_financial_record,\n            calculated.status\n        FROM calculated\n    )\n    SELECT\n        resolved.ktv_id,\n        resolved.ktv_name,\n        resolved.base_salary,\n        resolved.session_bonus,\n        resolved.rating_bonus,\n        resolved.kpi_bonus,\n        resolved.deductions,\n        resolved.advances,\n        resolved.product_sales_commission,\n        CASE\n            WHEN resolved.is_saved_financial_record AND resolved.saved_total_salary IS NOT NULL THEN resolved.saved_total_salary::NUMERIC\n            ELSE GREATEST(\n                resolved.base_salary\n                + resolved.session_bonus\n                + resolved.rating_bonus\n                + resolved.kpi_bonus\n                + resolved.product_sales_commission\n                - resolved.deductions\n                - resolved.advances,\n                0\n            )::NUMERIC\n        END AS total_salary,\n        resolved.total_sessions,\n        resolved.status\n    FROM resolved\n    ORDER BY resolved.ktv_name;\nEND;\n$function$\n",
+      "name": "calculate_ktv_salary_sheet",
+      "owner": "postgres",
+      "schema": "public"
+    },
+    {
+      "acl": "{=X/postgres,postgres=X/postgres,service_role=X/postgres,bella_migration_executor=X/postgres}",
+      "anon_execute": true,
+      "arguments": "p_month_year date",
+      "authenticated_execute": true,
+      "definition": "CREATE OR REPLACE FUNCTION public.calculate_ktv_salary_sheet_test(p_month_year date)\n RETURNS TABLE(ktv_id uuid, ktv_name text, base_salary numeric, session_bonus numeric, rating_bonus numeric, kpi_bonus numeric, product_sales_commission numeric, deductions numeric, advances numeric, total_salary numeric, total_sessions integer, status text)\n LANGUAGE plpgsql\n SECURITY DEFINER\nAS $function$\r\nDECLARE\r\n    v_tenant_id UUID;\r\n    v_bonus_5_star NUMERIC;\r\n    v_bonus_4_5_star NUMERIC;\r\n    v_bonus_4_star NUMERIC;\r\n    v_kpi_target_sessions INTEGER;\r\n    v_kpi_bonus_amount NUMERIC;\r\nBEGIN\r\n    -- Get Beauty Spa Franchise Demo - TEST tenant for testing\r\n    SELECT id INTO v_tenant_id \r\n    FROM public.tenants \r\n    WHERE name = 'Beauty Spa Franchise Demo - TEST' \r\n    LIMIT 1;\r\n    \r\n    -- Raise error if tenant not found\r\n    IF v_tenant_id IS NULL THEN\r\n        RAISE EXCEPTION 'Không tìm thấy tenant \"Beauty Spa Franchise Demo - TEST\"';\r\n    END IF;\r\n\r\n    -- Read salary config\r\n    SELECT \r\n        COALESCE((tenants.salary_config->>'bonus_5_star')::NUMERIC, 50000),\r\n        COALESCE((tenants.salary_config->>'bonus_4_5_star')::NUMERIC, 30000),\r\n        COALESCE((tenants.salary_config->>'bonus_4_star')::NUMERIC, 10000),\r\n        COALESCE((tenants.salary_config->>'kpi_target_sessions')::INTEGER, 30),\r\n        COALESCE((tenants.salary_config->>'kpi_bonus_amount')::NUMERIC, 1000000)\r\n    INTO \r\n        v_bonus_5_star,\r\n        v_bonus_4_5_star,\r\n        v_bonus_4_star,\r\n        v_kpi_target_sessions,\r\n        v_kpi_bonus_amount\r\n    FROM public.tenants\r\n    WHERE tenants.id = v_tenant_id;\r\n\r\n    RETURN QUERY\r\n    WITH ktv_users AS (\r\n        SELECT \r\n            users.id, \r\n            users.full_name, \r\n            COALESCE(users.base_salary, 6000000) AS raw_base_salary\r\n        FROM public.users\r\n        WHERE users.role = 'ktv'\r\n          AND users.tenant_id = v_tenant_id\r\n    ),\r\n    actual_work_days AS (\r\n        SELECT \r\n            attendance.ktv_id,\r\n            SUM(\r\n                CASE \r\n                    WHEN attendance.status IN ('present', 'late') THEN 1.0\r\n                    WHEN attendance.status = 'half_day' THEN 0.5\r\n                    ELSE 0.0\r\n                END\r\n            ) AS work_days\r\n        FROM public.attendance\r\n        WHERE attendance.tenant_id = v_tenant_id\r\n          AND date_trunc('month', attendance.date) = date_trunc('month', p_month_year)\r\n        GROUP BY attendance.ktv_id\r\n    ),\r\n    completed_sessions AS (\r\n        SELECT \r\n            s.completed_by_ktv_id AS ktv_id,\r\n            COUNT(s.id)::INTEGER AS sessions_count,\r\n            SUM(COALESCE(b.ktv_commission, 150000)) AS total_commissions,\r\n            AVG(\r\n                COALESCE(\r\n                    (SELECT sr.rating FROM public.session_reviews sr WHERE sr.session_log_id = s.id AND sr.status = 'approved' LIMIT 1),\r\n                    s.rating,\r\n                    5.0\r\n                )\r\n            ) AS average_rating\r\n        FROM public.session_logs s\r\n        LEFT JOIN public.bookings b ON s.booking_id = b.id\r\n        WHERE s.tenant_id = v_tenant_id\r\n          AND s.status = 'completed'\r\n          AND date_trunc('month', s.completed_date) = date_trunc('month', p_month_year)\r\n        GROUP BY s.completed_by_ktv_id\r\n    ),\r\n    product_sales_commissions AS (\r\n        SELECT\r\n            ps.ktv_id,\r\n            SUM(COALESCE(ps.calculated_commission, 0)) AS total_product_commission\r\n        FROM public.product_sales ps\r\n        WHERE ps.tenant_id = v_tenant_id\r\n          AND ps.status = 'completed'\r\n          AND date_trunc('month', ps.sale_date) = date_trunc('month', p_month_year)\r\n        GROUP BY ps.ktv_id\r\n    ),\r\n    existing_salary_records AS (\r\n        SELECT \r\n            r.ktv_id,\r\n            r.base_salary AS saved_base_salary,\r\n            r.session_bonus AS saved_session_bonus,\r\n            r.rating_bonus AS saved_rating_bonus,\r\n            r.kpi_bonus AS saved_kpi_bonus,\r\n            r.product_sales_commission AS saved_product_sales_commission,\r\n            r.violations_deduction AS saved_deductions,\r\n            r.service_percentage_bonus AS saved_advances,\r\n            r.status AS record_status\r\n        FROM public.salary_records r\r\n        WHERE r.tenant_id = v_tenant_id\r\n          AND date_trunc('month', r.month_year) = date_trunc('month', p_month_year)\r\n    )\r\n    SELECT \r\n        u.id AS ktv_id,\r\n        u.full_name AS ktv_name,\r\n        COALESCE(\r\n            er.saved_base_salary::NUMERIC,\r\n            ROUND((u.raw_base_salary / 26.0) * COALESCE(aw.work_days, 0))::NUMERIC\r\n        ) AS base_salary,\r\n        COALESCE(er.saved_session_bonus::NUMERIC, cs.total_commissions, 0)::NUMERIC AS session_bonus,\r\n        COALESCE(\r\n            er.saved_rating_bonus::NUMERIC,\r\n            CASE \r\n                WHEN cs.average_rating = 5.0 THEN cs.sessions_count * v_bonus_5_star\r\n                WHEN cs.average_rating >= 4.5 THEN cs.sessions_count * v_bonus_4_5_star\r\n                WHEN cs.average_rating >= 4.0 THEN cs.sessions_count * v_bonus_4_star\r\n                ELSE 0\r\n            END,\r\n            0\r\n        )::NUMERIC AS rating_bonus,\r\n        COALESCE(\r\n            er.saved_kpi_bonus::NUMERIC,\r\n            CASE \r\n                WHEN COALESCE(cs.sessions_count, 0) > v_kpi_target_sessions THEN v_kpi_bonus_amount\r\n                ELSE 0\r\n            END::NUMERIC\r\n        ) AS kpi_bonus,\r\n        COALESCE(\r\n            er.saved_product_sales_commission::NUMERIC,\r\n            psc.total_product_commission,\r\n            0\r\n        )::NUMERIC AS product_sales_commission,\r\n        COALESCE(er.saved_deductions, 0)::NUMERIC AS deductions,\r\n        COALESCE(er.saved_advances, 0)::NUMERIC AS advances,\r\n        (\r\n            COALESCE(er.saved_base_salary::NUMERIC, ROUND((u.raw_base_salary / 26.0) * COALESCE(aw.work_days, 0))::NUMERIC) +\r\n            COALESCE(er.saved_session_bonus::NUMERIC, cs.total_commissions, 0)::NUMERIC +\r\n            COALESCE(\r\n                er.saved_rating_bonus::NUMERIC,\r\n                CASE \r\n                    WHEN cs.average_rating = 5.0 THEN cs.sessions_count * v_bonus_5_star\r\n                    WHEN cs.average_rating >= 4.5 THEN cs.sessions_count * v_bonus_4_5_star\r\n                    WHEN cs.average_rating >= 4.0 THEN cs.sessions_count * v_bonus_4_star\r\n                    ELSE 0\r\n                END,\r\n                0\r\n            )::NUMERIC +\r\n            COALESCE(er.saved_kpi_bonus::NUMERIC, CASE WHEN COALESCE(cs.sessions_count, 0) > v_kpi_target_sessions THEN v_kpi_bonus_amount ELSE 0 END::NUMERIC) +\r\n            COALESCE(er.saved_product_sales_commission::NUMERIC, psc.total_product_commission, 0)::NUMERIC -\r\n            COALESCE(er.saved_deductions, 0)::NUMERIC -\r\n            COALESCE(er.saved_advances, 0)::NUMERIC\r\n        ) AS total_salary,\r\n        COALESCE(cs.sessions_count, 0)::INTEGER AS total_sessions,\r\n        COALESCE(er.record_status, 'draft') AS status\r\n    FROM ktv_users u\r\n    LEFT JOIN actual_work_days aw ON u.id = aw.ktv_id\r\n    LEFT JOIN completed_sessions cs ON u.id = cs.ktv_id\r\n    LEFT JOIN product_sales_commissions psc ON u.id = psc.ktv_id\r\n    LEFT JOIN existing_salary_records er ON u.id = er.ktv_id\r\n    ORDER BY u.full_name;\r\nEND;\r\n$function$\n",
+      "name": "calculate_ktv_salary_sheet_test",
+      "owner": "postgres",
+      "schema": "public"
+    },
+    {
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres,bella_migration_executor=X/postgres}",
+      "anon_execute": true,
+      "arguments": "p_email text, p_password text, p_full_name text",
+      "authenticated_execute": true,
+      "definition": "CREATE OR REPLACE FUNCTION public.create_onboarding_user(p_email text, p_password text, p_full_name text)\n RETURNS uuid\n LANGUAGE plpgsql\n SECURITY DEFINER\nAS $function$\nDECLARE\n  v_user_id UUID;\n  v_encrypted_password TEXT;\nBEGIN\n  -- Check if user already exists\n  SELECT id INTO v_user_id FROM auth.users WHERE email = p_email;\n  IF v_user_id IS NOT NULL THEN\n    RETURN v_user_id;\n  END IF;\n\n  -- Generate user ID\n  v_user_id := gen_random_uuid();\n  \n  -- Encrypt password with bcrypt\n  v_encrypted_password := crypt(p_password, gen_salt('bf', 10));\n\n  -- Insert into auth.users (excluding confirmed_at)\n  INSERT INTO auth.users (\n    instance_id,\n    id,\n    aud,\n    role,\n    email,\n    encrypted_password,\n    email_confirmed_at,\n    raw_app_meta_data,\n    raw_user_meta_data,\n    created_at,\n    updated_at\n  ) VALUES (\n    '00000000-0000-0000-0000-000000000000'::uuid,\n    v_user_id,\n    'authenticated',\n    'authenticated',\n    p_email,\n    v_encrypted_password,\n    NOW(),\n    '{\"provider\": \"email\", \"providers\": [\"email\"]}'::jsonb,\n    jsonb_build_object('full_name', p_full_name, 'email_verified', true),\n    NOW(),\n    NOW()\n  );\n\n  -- Insert into auth.identities (excluding email)\n  INSERT INTO auth.identities (\n    id,\n    provider_id,\n    user_id,\n    identity_data,\n    provider,\n    last_sign_in_at,\n    created_at,\n    updated_at\n  ) VALUES (\n    gen_random_uuid(),\n    v_user_id::text,\n    v_user_id,\n    jsonb_build_object('sub', v_user_id::text, 'email', p_email, 'email_verified', true, 'phone_verified', false),\n    'email',\n    NOW(),\n    NOW(),\n    NOW()\n  );\n\n  RETURN v_user_id;\nEND;\n$function$\n",
+      "name": "create_onboarding_user",
+      "owner": "postgres",
+      "schema": "public"
+    },
+    {
+      "acl": "{=X/postgres,postgres=X/postgres,service_role=X/postgres,bella_migration_executor=X/postgres}",
+      "anon_execute": true,
+      "arguments": "",
+      "authenticated_execute": true,
+      "definition": "CREATE OR REPLACE FUNCTION public.current_tenant_id()\n RETURNS uuid\n LANGUAGE sql\n STABLE SECURITY DEFINER\nAS $function$\n  SELECT tenant_id FROM public.users WHERE id = auth.uid();\n$function$\n",
+      "name": "current_tenant_id",
+      "owner": "postgres",
+      "schema": "public"
+    },
+    {
+      "acl": "{=X/postgres,postgres=X/postgres,service_role=X/postgres,bella_migration_executor=X/postgres}",
+      "anon_execute": true,
+      "arguments": "",
+      "authenticated_execute": true,
+      "definition": "CREATE OR REPLACE FUNCTION public.current_user_role()\n RETURNS text\n LANGUAGE sql\n STABLE SECURITY DEFINER\nAS $function$\n  SELECT role FROM public.users WHERE id = auth.uid();\n$function$\n",
+      "name": "current_user_role",
+      "owner": "postgres",
+      "schema": "public"
+    },
+    {
+      "acl": "{postgres=X/postgres,service_role=X/postgres,bella_migration_executor=X/postgres}",
+      "anon_execute": false,
+      "arguments": "sql_query text",
+      "authenticated_execute": false,
+      "definition": "CREATE OR REPLACE FUNCTION public.exec_sql(sql_query text)\n RETURNS void\n LANGUAGE plpgsql\n SECURITY DEFINER\nAS $function$\r\nBEGIN\r\n  EXECUTE sql_query;\r\nEND;\r\n$function$\n",
+      "name": "exec_sql",
+      "owner": "postgres",
+      "schema": "public"
+    },
+    {
+      "acl": "{=X/postgres,postgres=X/postgres,service_role=X/postgres,authenticated=X/postgres,bella_migration_executor=X/postgres}",
+      "anon_execute": true,
+      "arguments": "p_month_year date",
+      "authenticated_execute": true,
+      "definition": "CREATE OR REPLACE FUNCTION public.get_ai_attendance_kpis(p_month_year date)\n RETURNS TABLE(ktv_id uuid, ktv_name text, total_shifts bigint, present_count bigint, late_count bigint, absent_count bigint, gps_anomaly_count bigint)\n LANGUAGE plpgsql\n SECURITY DEFINER\nAS $function$\n#variable_conflict use_column\nDECLARE\n    v_tenant_id UUID;\n    v_lat DOUBLE PRECISION;\n    v_lon DOUBLE PRECISION;\n    v_threshold_deg DOUBLE PRECISION;  -- Ngưỡng độ bình phương (cho chi nhánh)\nBEGIN\n    -- Authorization: service_role HOẶC admin/accountant/hr authenticated\n    IF auth.role() <> 'service_role' THEN\n        IF NOT EXISTS (\n            SELECT 1 FROM public.users\n            WHERE users.id = auth.uid()\n              AND users.role IN ('admin', 'accountant', 'hr')\n        ) THEN\n            RAISE EXCEPTION 'Quyền hạn không hợp lệ. Bạn không có quyền truy cập dữ liệu nhân sự.';\n        END IF;\n    END IF;\n\n    -- Lấy tenant_id từ context\n    IF auth.role() = 'service_role' THEN\n        v_tenant_id := NULLIF(current_setting('app.current_tenant_id', true), '')::UUID;\n        IF v_tenant_id IS NULL THEN\n            RAISE EXCEPTION 'Service role context error: must call set_session_tenant(tenant_id) before this RPC. Cross-tenant data leak protection.';\n        END IF;\n    ELSE\n        v_tenant_id := get_my_tenant_id();\n        IF v_tenant_id IS NULL THEN\n            RAISE EXCEPTION 'Tài khoản không liên kết với chi nhánh hợp lệ.';\n        END IF;\n    END IF;\n\n    -- Lấy tọa độ và ngưỡng sai số của chi nhánh\n    SELECT tenant_lat, tenant_lon,\n           POWER(COALESCE(gps_threshold_m, 200) / 111000.0, 2)  -- Đổi m → độ bình phương, 1° ≈ 111km\n    INTO v_lat, v_lon, v_threshold_deg\n    FROM public.tenants\n    WHERE id = v_tenant_id;\n\n    -- Nếu tenant chưa cấu hình tọa độ → tắt kiểm tra GPS dự phòng cho chi nhánh\n    IF v_lat IS NULL OR v_lon IS NULL THEN\n        v_threshold_deg := NULL;\n    END IF;\n\n    RETURN QUERY\n    WITH ktv_list AS (\n        SELECT users.id, users.full_name, users.tenant_id\n        FROM public.users\n        WHERE users.role = 'ktv'\n          AND users.tenant_id = v_tenant_id\n    ),\n    att_stats AS (\n        SELECT\n            attendance.ktv_id,\n            COUNT(attendance.id) FILTER (WHERE attendance.status = 'present') AS present_c,\n            COUNT(attendance.id) FILTER (WHERE attendance.status = 'late') AS late_c,\n            COUNT(attendance.id) FILTER (WHERE attendance.status = 'absent') AS absent_c\n        FROM public.attendance\n        WHERE attendance.tenant_id = v_tenant_id\n          AND date_trunc('month', attendance.date) = date_trunc('month', p_month_year)\n        GROUP BY attendance.ktv_id\n    ),\n    shift_stats AS (\n        -- Lấy dữ liệu ca hoàn thành thực tế từ session_logs và đối chiếu tọa độ\n        SELECT\n            s.completed_by_ktv_id AS ktv_id,\n            COUNT(s.id) AS total_s,\n            COUNT(s.id) FILTER (\n                WHERE s.status = 'completed'\n                  AND s.checkin_lat IS NOT NULL\n                  AND s.checkin_lon IS NOT NULL\n                  AND (\n                      CASE\n                          -- Nếu khách hàng đã có tọa độ GPS chuẩn → So khớp với tọa độ khách hàng (ngưỡng gps_threshold_m, mặc định 200m)\n                          WHEN c.latitude IS NOT NULL AND c.longitude IS NOT NULL THEN\n                              (\n                                  (s.checkin_lat::double precision - c.latitude) * (s.checkin_lat::double precision - c.latitude)\n                                + (s.checkin_lon::double precision - c.longitude) * (s.checkin_lon::double precision - c.longitude)\n                              ) > POWER(COALESCE(t.gps_threshold_m, 200) / 111000.0, 2)\n                          -- Fallback: So khớp với chi nhánh nếu chưa cấu hình tọa độ khách hàng\n                          ELSE\n                              v_threshold_deg IS NOT NULL AND (\n                                  (s.checkin_lat::double precision - v_lat) * (s.checkin_lat::double precision - v_lat)\n                                + (s.checkin_lon::double precision - v_lon) * (s.checkin_lon::double precision - v_lon)\n                              ) > v_threshold_deg\n                      END\n                  )\n            ) AS gps_anom\n        FROM public.session_logs s\n        LEFT JOIN public.bookings b ON s.booking_id = b.id\n        LEFT JOIN public.customers c ON b.customer_id = c.id\n        LEFT JOIN public.tenants t ON s.tenant_id = t.id\n        WHERE s.tenant_id = v_tenant_id\n          AND date_trunc('month', s.completed_date) = date_trunc('month', p_month_year)\n        GROUP BY s.completed_by_ktv_id\n    )\n    SELECT\n        k.id AS ktv_id,\n        k.full_name AS ktv_name,\n        COALESCE(\n            NULLIF(s.total_s, 0),\n            COALESCE(a.present_c, 0) + COALESCE(a.late_c, 0) + COALESCE(a.absent_c, 0),\n            0\n        )::BIGINT AS total_shifts,\n        COALESCE(a.present_c, 0)::BIGINT AS present_count,\n        COALESCE(a.late_c, 0)::BIGINT AS late_count,\n        COALESCE(a.absent_c, 0)::BIGINT AS absent_count,\n        COALESCE(s.gps_anom, 0)::BIGINT AS gps_anomaly_count\n    FROM ktv_list k\n    LEFT JOIN att_stats a ON k.id = a.ktv_id\n    LEFT JOIN shift_stats s ON k.id = s.ktv_id\n    ORDER BY k.full_name;\nEND;\n$function$\n",
+      "name": "get_ai_attendance_kpis",
+      "owner": "postgres",
+      "schema": "public"
+    },
+    {
+      "acl": "{=X/postgres,postgres=X/postgres,service_role=X/postgres,bella_migration_executor=X/postgres}",
+      "anon_execute": true,
+      "arguments": "",
+      "authenticated_execute": true,
+      "definition": "CREATE OR REPLACE FUNCTION public.get_auth_tenant_id()\n RETURNS uuid\n LANGUAGE plpgsql\n STABLE SECURITY DEFINER\n SET search_path TO 'pg_catalog', 'public'\nAS $function$\nDECLARE\n  v_tenant_id uuid;\nBEGIN\n  SELECT u.tenant_id INTO v_tenant_id\n  FROM public.users AS u\n  JOIN public.tenants AS t ON t.id = u.tenant_id\n  WHERE u.id = auth.uid() AND u.status = 'active' AND t.status = 'active';\n\n  -- NULL would enable legacy policies using NULL as an unrestricted HQ sentinel.\n  IF v_tenant_id IS NULL THEN\n    RAISE EXCEPTION 'Active canonical identity and tenant required' USING ERRCODE = '42501';\n  END IF;\n  RETURN v_tenant_id;\nEND;\n$function$\n",
+      "name": "get_auth_tenant_id",
+      "owner": "postgres",
+      "schema": "public"
+    },
+    {
+      "acl": "{=X/postgres,postgres=X/postgres,service_role=X/postgres,bella_migration_executor=X/postgres}",
+      "anon_execute": true,
+      "arguments": "p_tenant_id uuid, p_date date, p_time_slot text",
+      "authenticated_execute": true,
+      "definition": "CREATE OR REPLACE FUNCTION public.get_available_capacity(p_tenant_id uuid, p_date date, p_time_slot text)\n RETURNS TABLE(total_capacity integer, booked_capacity integer, available_capacity integer, buffer_reserved integer, utilization_rate numeric)\n LANGUAGE plpgsql\n STABLE SECURITY DEFINER\nAS $function$\r\nDECLARE\r\n  v_total INT;\r\n  v_booked INT;\r\n  v_buffer INT;\r\n  v_available INT;\r\n  v_utilization NUMERIC;\r\nBEGIN\r\n  -- Count total KTVs from users table (role = 'ktv')\r\n  SELECT COUNT(*) INTO v_total\r\n  FROM users\r\n  WHERE \r\n    tenant_id = p_tenant_id\r\n    AND role = 'ktv'\r\n    AND status = 'active';\r\n  \r\n  -- Fallback to default if no KTVs found\r\n  IF v_total = 0 THEN\r\n    v_total := 10;\r\n  END IF;\r\n  \r\n  -- Count booked (existing bookings for this slot)\r\n  SELECT COUNT(DISTINCT assigned_ktv_id) INTO v_booked\r\n  FROM bookings\r\n  WHERE \r\n    tenant_id = p_tenant_id\r\n    AND start_date = p_date\r\n    AND status IN ('booked', 'in_progress')\r\n    AND assigned_ktv_id IS NOT NULL;\r\n  \r\n  -- Calculate buffer (10% of total)\r\n  v_buffer := CEIL(v_total * 0.1);\r\n  \r\n  -- Calculate available\r\n  v_available := GREATEST(0, v_total - v_booked - v_buffer);\r\n  \r\n  -- Calculate utilization\r\n  v_utilization := CASE WHEN v_total > 0 \r\n    THEN ROUND((v_booked::NUMERIC / v_total) * 100, 2)\r\n    ELSE 0\r\n  END;\r\n  \r\n  RETURN QUERY SELECT v_total, v_booked, v_available, v_buffer, v_utilization;\r\nEND;\r\n$function$\n",
+      "name": "get_available_capacity",
+      "owner": "postgres",
+      "schema": "public"
+    },
+    {
+      "acl": "{=X/postgres,postgres=X/postgres,service_role=X/postgres,authenticated=X/postgres,bella_migration_executor=X/postgres}",
+      "anon_execute": true,
+      "arguments": "",
+      "authenticated_execute": true,
+      "definition": "CREATE OR REPLACE FUNCTION public.get_chat_customers()\n RETURNS TABLE(id uuid, full_name text, phone text, customer_level text, created_at timestamp with time zone, last_package_name text, total_spent bigint, unread_count bigint)\n LANGUAGE plpgsql\n SECURITY DEFINER\nAS $function$\nDECLARE\n    v_tenant_id UUID;\nBEGIN\n    -- Get tenant_id from the authenticated user\n    SELECT tenant_id INTO v_tenant_id FROM public.users WHERE public.users.id = auth.uid();\n    \n    RETURN QUERY\n    SELECT \n        c.id,\n        c.name_mother::TEXT as full_name,\n        c.phone,\n        COALESCE(c.gender_baby, 'Thành viên')::TEXT as customer_level,\n        c.created_at,\n        (SELECT b.package_name FROM public.bookings b WHERE b.customer_id = c.id ORDER BY b.created_at DESC LIMIT 1) as last_package_name,\n        (SELECT COALESCE(SUM(r.amount), 0) FROM public.revenue r WHERE r.booking_id IN (SELECT b.id FROM public.bookings b WHERE b.customer_id = c.id))::BIGINT as total_spent,\n        (SELECT COUNT(*) FROM public.chat_messages m WHERE m.customer_id = c.id AND m.is_read = false AND m.sender_type = 'customer')::BIGINT as unread_count\n    FROM public.customers c\n    WHERE c.tenant_id = v_tenant_id\n    ORDER BY (SELECT MAX(m.created_at) FROM public.chat_messages m WHERE m.customer_id = c.id) DESC NULLS LAST, c.created_at DESC;\nEND;\n$function$\n",
+      "name": "get_chat_customers",
+      "owner": "postgres",
+      "schema": "public"
+    },
+    {
+      "acl": "{=X/postgres,postgres=X/postgres,service_role=X/postgres,authenticated=X/postgres,bella_migration_executor=X/postgres}",
+      "anon_execute": true,
+      "arguments": "p_entity_type text, p_entity_id uuid",
+      "authenticated_execute": true,
+      "definition": "CREATE OR REPLACE FUNCTION public.get_entity_rollback_history(p_entity_type text, p_entity_id uuid)\n RETURNS TABLE(transaction_id uuid, transaction_type auto_business_transaction_type, status auto_business_transaction_status, rollback_reason text, rolled_back_at timestamp with time zone, rolled_back_by_email text, steps_count integer)\n LANGUAGE plpgsql\n STABLE SECURITY DEFINER\nAS $function$\nBEGIN\n  RETURN QUERY\n  SELECT\n    t.id,\n    t.transaction_type,\n    t.status,\n    t.rollback_reason,\n    t.rolled_back_at,\n    u.email,\n    (\n      SELECT COUNT(*)::INT\n      FROM auto_transaction_steps s\n      WHERE s.transaction_id = t.id\n    ) AS steps_count\n  FROM auto_business_transactions t\n  LEFT JOIN users u ON u.id = t.rolled_back_by\n  WHERE t.entity_type = p_entity_type\n    AND t.entity_id = p_entity_id\n    AND t.tenant_id = (auth.jwt() ->> 'tenant_id')::uuid\n    AND t.status = 'rolled_back'\n  ORDER BY t.rolled_back_at DESC;\nEND;\n$function$\n",
+      "name": "get_entity_rollback_history",
+      "owner": "postgres",
+      "schema": "public"
+    },
+    {
+      "acl": "{=X/postgres,postgres=X/postgres,service_role=X/postgres,authenticated=X/postgres,bella_migration_executor=X/postgres}",
+      "anon_execute": true,
+      "arguments": "p_tenant_id uuid, p_status text",
+      "authenticated_execute": true,
+      "definition": "CREATE OR REPLACE FUNCTION public.get_hr_employee_summary(p_tenant_id uuid, p_status text DEFAULT NULL::text)\n RETURNS TABLE(person_id uuid, display_name text, person_type text, position_title text, employment_type text, employment_status text, department_name text, hire_date date, base_salary numeric)\n LANGUAGE plpgsql\n STABLE SECURITY DEFINER\nAS $function$\nBEGIN\n  IF auth.role() <> 'service_role' THEN\n    IF NOT EXISTS (\n      SELECT 1 FROM public.users u\n      WHERE u.id = auth.uid()\n        AND lower(u.role) IN ('admin','hr','accountant','super_admin')\n    ) THEN\n      RAISE EXCEPTION 'HR access denied: admin, hr, or accountant role required.';\n    END IF;\n  END IF;\n  RETURN QUERY\n  SELECT pd.id, pd.display_name, pd.person_type, ep.position_title, ep.employment_type, ep.employment_status, d.name, ep.hire_date, ep.base_salary\n  FROM public.people_directory pd\n  JOIN public.hr_employee_profiles ep ON ep.person_id = pd.id\n  LEFT JOIN public.hr_departments d ON d.id = ep.department_id\n  WHERE pd.tenant_id = p_tenant_id AND pd.is_active = TRUE AND (p_status IS NULL OR ep.employment_status = p_status)\n  ORDER BY d.name NULLS LAST, pd.display_name;\nEND;\n$function$\n",
+      "name": "get_hr_employee_summary",
+      "owner": "postgres",
+      "schema": "public"
+    },
+    {
+      "acl": "{=X/postgres,postgres=X/postgres,service_role=X/postgres,authenticated=X/postgres,bella_migration_executor=X/postgres}",
+      "anon_execute": true,
+      "arguments": "p_tenant_id uuid, p_month date",
+      "authenticated_execute": true,
+      "definition": "CREATE OR REPLACE FUNCTION public.get_ktv_leaderboard(p_tenant_id uuid, p_month date)\n RETURNS TABLE(ktv_id uuid, full_name text, sessions bigint, average_rating numeric, customer_rating numeric, discipline_score numeric, late_days integer, absent_days integer, max_late_streak integer, commissions numeric, total_kpi_bonus numeric, rank bigint)\n LANGUAGE plpgsql\n SECURITY DEFINER\nAS $function$\r\nDECLARE\r\n  v_start_date DATE := date_trunc('month', p_month)::date;\r\n  v_end_date   DATE := (date_trunc('month', p_month) + interval '1 month' - interval '1 day')::date;\r\nBEGIN\r\n  RETURN QUERY\r\n  WITH\r\n  ktv_sessions AS (\r\n    SELECT\r\n      u.id AS ktv_id,\r\n      u.full_name,\r\n      COUNT(sl.id) AS sessions_count,\r\n      AVG(sr.rating)::numeric AS customer_rating_raw,\r\n      COALESCE(SUM(b.ktv_commission), 0) AS commissions_total\r\n    FROM public.users u\r\n    LEFT JOIN public.session_logs sl\r\n           ON sl.completed_by_ktv_id = u.id\r\n          AND sl.status = 'completed'\r\n          AND sl.completed_date BETWEEN v_start_date AND v_end_date\r\n    LEFT JOIN public.session_reviews sr\r\n           ON sr.session_log_id = sl.id\r\n          AND sr.status = 'approved'\r\n    LEFT JOIN public.bookings b ON sl.booking_id = b.id\r\n    WHERE u.tenant_id = p_tenant_id AND u.role = 'ktv'\r\n    GROUP BY u.id, u.full_name\r\n  ),\r\n  ktv_attendance AS (\r\n    SELECT\r\n      a.ktv_id,\r\n      COUNT(*) AS total_records,\r\n      COUNT(*) FILTER (WHERE a.status = 'late')   AS late_days,\r\n      COUNT(*) FILTER (WHERE a.status = 'absent') AS absent_days\r\n    FROM public.attendance a\r\n    WHERE a.tenant_id = p_tenant_id\r\n      AND a.date BETWEEN v_start_date AND v_end_date\r\n    GROUP BY a.ktv_id\r\n  ),\r\n  late_runs AS (\r\n    SELECT\r\n      ranked.ktv_id AS lr_ktv_id,\r\n      (ranked.rn_all - ranked.rn_late) AS run_id\r\n    FROM (\r\n      SELECT\r\n        a.ktv_id,\r\n        a.date,\r\n        a.status,\r\n        ROW_NUMBER() OVER (PARTITION BY a.ktv_id ORDER BY a.date) AS rn_all,\r\n        ROW_NUMBER() OVER (PARTITION BY a.ktv_id, (a.status = 'late') ORDER BY a.date) AS rn_late\r\n      FROM public.attendance a\r\n      WHERE a.tenant_id = p_tenant_id\r\n        AND a.date BETWEEN v_start_date AND v_end_date\r\n    ) ranked\r\n    WHERE ranked.status = 'late'\r\n  ),\r\n  late_streaks AS (\r\n    SELECT lr.lr_ktv_id AS ls_ktv_id, COUNT(*) AS streak_len\r\n    FROM late_runs lr\r\n    GROUP BY lr.lr_ktv_id, lr.run_id\r\n  ),\r\n  ktv_late_streak AS (\r\n    SELECT ls.ls_ktv_id AS kls_ktv_id, MAX(ls.streak_len) AS max_late_streak\r\n    FROM late_streaks ls\r\n    GROUP BY ls.ls_ktv_id\r\n  ),\r\n  ktv_discipline AS (\r\n    SELECT\r\n      ks.ktv_id,\r\n      COALESCE(ka.late_days,        0) AS late_days,\r\n      COALESCE(ka.absent_days,      0) AS absent_days,\r\n      COALESCE(kls.max_late_streak, 0) AS max_late_streak,\r\n      COALESCE(ka.total_records,    0) AS total_records,\r\n      GREATEST(\r\n        5.0\r\n        - CASE\r\n            WHEN COALESCE(kls.max_late_streak, 0) >= 4 THEN 2.0\r\n            WHEN kls.max_late_streak = 3               THEN 1.3\r\n            WHEN kls.max_late_streak = 2               THEN 0.7\r\n            WHEN kls.max_late_streak = 1               THEN 0.3\r\n            ELSE 0\r\n          END\r\n        - (GREATEST(COALESCE(ka.late_days, 0) - COALESCE(kls.max_late_streak, 0), 0) * 0.2)\r\n        - (COALESCE(ka.absent_days, 0) * 1.0),\r\n        1.0\r\n      )::numeric AS discipline_raw\r\n    FROM ktv_sessions ks\r\n    LEFT JOIN ktv_attendance  ka  ON ka.ktv_id      = ks.ktv_id\r\n    LEFT JOIN ktv_late_streak kls ON kls.kls_ktv_id = ks.ktv_id\r\n  ),\r\n  kpi_stats AS (\r\n    SELECT k.ktv_id, COALESCE(SUM(k.bonus_amount), 0) AS kpi_bonus\r\n    FROM public.kpi_records k\r\n    WHERE k.tenant_id = p_tenant_id\r\n      AND k.month_year = v_start_date\r\n    GROUP BY k.ktv_id\r\n  ),\r\n  ktv_composite AS (\r\n    SELECT\r\n      ks.ktv_id,\r\n      ks.full_name,\r\n      ks.sessions_count,\r\n      ks.customer_rating_raw,\r\n      kd.discipline_raw,\r\n      kd.late_days,\r\n      kd.absent_days,\r\n      kd.max_late_streak,\r\n      ks.commissions_total,\r\n      kd.total_records,\r\n      CASE\r\n        WHEN ks.sessions_count = 0 AND kd.total_records = 0 THEN NULL\r\n        WHEN ks.customer_rating_raw IS NULL                  THEN kd.discipline_raw\r\n        ELSE ROUND(0.6 * ks.customer_rating_raw + 0.4 * kd.discipline_raw, 2)\r\n      END AS composite_rating\r\n    FROM ktv_sessions ks\r\n    LEFT JOIN ktv_discipline kd ON kd.ktv_id = ks.ktv_id\r\n  )\r\n  SELECT\r\n    kc.ktv_id,\r\n    kc.full_name,\r\n    kc.sessions_count                     AS sessions,\r\n    kc.composite_rating                   AS average_rating,\r\n    ROUND(kc.customer_rating_raw, 2)      AS customer_rating,\r\n    ROUND(kc.discipline_raw, 2)           AS discipline_score,\r\n    kc.late_days::int                     AS late_days,\r\n    kc.absent_days::int                   AS absent_days,\r\n    kc.max_late_streak::int               AS max_late_streak,\r\n    kc.commissions_total::numeric         AS commissions,\r\n    COALESCE(kps.kpi_bonus, 0)::numeric   AS total_kpi_bonus,\r\n    RANK() OVER (\r\n      ORDER BY\r\n        kc.composite_rating DESC NULLS LAST,\r\n        kc.sessions_count DESC,\r\n        kc.commissions_total DESC\r\n    ) AS rank\r\n  FROM ktv_composite kc\r\n  LEFT JOIN kpi_stats kps ON kc.ktv_id = kps.ktv_id\r\n  ORDER BY rank ASC;\r\nEND;\r\n$function$\n",
+      "name": "get_ktv_leaderboard",
+      "owner": "postgres",
+      "schema": "public"
+    },
+    {
+      "acl": "{=X/postgres,postgres=X/postgres,service_role=X/postgres,authenticated=X/postgres,bella_migration_executor=X/postgres}",
+      "anon_execute": true,
+      "arguments": "p_tenant_id uuid",
+      "authenticated_execute": true,
+      "definition": "CREATE OR REPLACE FUNCTION public.get_pending_rule_approvals(p_tenant_id uuid)\n RETURNS TABLE(approval_id uuid, rule_id uuid, rule_name text, rule_provider text, requested_by_name text, requested_at timestamp with time zone, reviewer_name text, status text, comments text)\n LANGUAGE plpgsql\n SECURITY DEFINER\nAS $function$\r\nBEGIN\r\n  RETURN QUERY\r\n  SELECT\r\n    ra.id,\r\n    r.id,\r\n    r.name,\r\n    r.provider,\r\n    u1.full_name AS requested_by_name, -- FIXED: u1.name → u1.full_name\r\n    ra.requested_at,\r\n    u2.full_name AS reviewer_name,    -- FIXED: u2.name → u2.full_name\r\n    ra.status,\r\n    ra.comments\r\n  FROM rule_approvals ra\r\n  JOIN rules r ON r.id = ra.rule_id\r\n  LEFT JOIN users u1 ON u1.id = ra.requested_by\r\n  LEFT JOIN users u2 ON u2.id = ra.reviewer_id\r\n  WHERE ra.tenant_id = p_tenant_id\r\n    AND ra.status = 'pending'\r\n  ORDER BY ra.requested_at DESC;\r\nEND;\r\n$function$\n",
+      "name": "get_pending_rule_approvals",
+      "owner": "postgres",
+      "schema": "public"
+    },
+    {
+      "acl": "{=X/postgres,postgres=X/postgres,service_role=X/postgres,authenticated=X/postgres,bella_migration_executor=X/postgres}",
+      "anon_execute": true,
+      "arguments": "p_rule_id uuid",
+      "authenticated_execute": true,
+      "definition": "CREATE OR REPLACE FUNCTION public.get_rule_with_history(p_rule_id uuid)\n RETURNS TABLE(rule_id uuid, rule_name text, rule_description text, rule_provider text, rule_category text, rule_conditions jsonb, rule_actions jsonb, rule_priority integer, rule_status text, rule_version integer, version_history jsonb)\n LANGUAGE plpgsql\n SECURITY DEFINER\nAS $function$\r\nBEGIN\r\n  RETURN QUERY\r\n  SELECT\r\n    r.id,\r\n    r.name,\r\n    r.description,\r\n    r.provider,\r\n    r.category,\r\n    r.conditions,\r\n    r.actions,\r\n    r.priority,\r\n    r.status,\r\n    r.version,\r\n    -- Aggregate version history as JSONB array\r\n    COALESCE(\r\n      jsonb_agg(\r\n        jsonb_build_object(\r\n          'version', rv.version,\r\n          'changeType', rv.change_type,\r\n          'changeSummary', rv.change_summary,\r\n          'changedBy', u.full_name, -- FIXED: u.name → u.full_name\r\n          'changedAt', rv.changed_at\r\n        )\r\n        ORDER BY rv.version DESC\r\n      ) FILTER (WHERE rv.id IS NOT NULL),\r\n      '[]'::jsonb\r\n    ) AS version_history\r\n  FROM rules r\r\n  LEFT JOIN rule_versions rv ON rv.rule_id = r.id\r\n  LEFT JOIN users u ON u.id = rv.changed_by\r\n  WHERE r.id = p_rule_id\r\n  GROUP BY r.id;\r\nEND;\r\n$function$\n",
+      "name": "get_rule_with_history",
+      "owner": "postgres",
+      "schema": "public"
+    },
+    {
+      "acl": "{=X/postgres,postgres=X/postgres,service_role=X/postgres,authenticated=X/postgres,bella_migration_executor=X/postgres}",
+      "anon_execute": true,
+      "arguments": "p_month_year date",
+      "authenticated_execute": true,
+      "definition": "CREATE OR REPLACE FUNCTION public.get_salary_reconciliation(p_month_year date)\n RETURNS TABLE(ktv_id uuid, ktv_name text, legacy_total numeric, ai_total numeric, diff_amount numeric, diff_percent numeric, status text, legacy_status text, has_legacy_record boolean)\n LANGUAGE plpgsql\n STABLE SECURITY DEFINER\nAS $function$\n#variable_conflict use_column\nDECLARE\n    v_tenant_id UUID;\nBEGIN\n    -- Bảo mật: cho phép admin / accountant / hr / super_admin\n    IF NOT EXISTS (\n        SELECT 1 FROM public.users\n        WHERE users.id = auth.uid()\n          AND users.role IN ('admin', 'accountant', 'hr', 'super_admin')\n    ) THEN\n        RAISE EXCEPTION 'Quyền hạn không hợp lệ. Chỉ Admin / Kế toán / Nhân sự được xem báo cáo đối soát lương.';\n    END IF;\n\n    v_tenant_id := public.get_my_tenant_id();\n\n    RETURN QUERY\n    WITH\n    legacy AS (\n        SELECT\n            r.ktv_id,\n            COALESCE(r.total_salary, \n                (\n                    COALESCE(r.base_salary,               0) +\n                    COALESCE(r.session_bonus,             0) +\n                    COALESCE(r.kpi_bonus,                 0) +\n                    COALESCE(r.rating_bonus,              0) -\n                    COALESCE(r.violations_deduction,      0) -\n                    COALESCE(r.service_percentage_bonus,  0)\n                )\n            )::NUMERIC                      AS total_legacy,\n            r.status                        AS rec_status\n        FROM public.salary_records r\n        WHERE r.tenant_id = v_tenant_id\n          AND date_trunc('month', r.month_year) = date_trunc('month', p_month_year)\n    ),\n    ai_calc AS (\n        SELECT\n            s.ktv_id,\n            s.ktv_name,\n            s.total_salary::NUMERIC AS total_ai\n        FROM public.calculate_ktv_salary_sheet(p_month_year) s\n    )\n    SELECT\n        ac.ktv_id,\n        ac.ktv_name,\n        COALESCE(lg.total_legacy, 0)                                AS legacy_total,\n        ac.total_ai                                                 AS ai_total,\n        (ac.total_ai - COALESCE(lg.total_legacy, 0))                AS diff_amount,\n        CASE\n            WHEN lg.total_legacy IS NULL OR lg.total_legacy = 0 THEN NULL\n            ELSE ROUND(\n                ABS(ac.total_ai - lg.total_legacy) / lg.total_legacy * 100,\n                2\n            )\n        END                                                         AS diff_percent,\n        CASE\n            WHEN lg.total_legacy IS NULL                            THEN 'NO_LEGACY'\n            WHEN ABS(ac.total_ai - lg.total_legacy) < 5000\n              OR (lg.total_legacy > 0\n                  AND ABS(ac.total_ai - lg.total_legacy) / lg.total_legacy * 100 < 1)\n                                                                    THEN 'MATCH'\n            WHEN lg.total_legacy > 0\n              AND ABS(ac.total_ai - lg.total_legacy) / lg.total_legacy * 100 < 5\n                                                                    THEN 'MINOR_DIFF'\n            ELSE                                                         'MAJOR_DIFF'\n        END                                                         AS status,\n        COALESCE(lg.rec_status, 'none')                             AS legacy_status,\n        (lg.ktv_id IS NOT NULL)                                     AS has_legacy_record\n    FROM ai_calc ac\n    LEFT JOIN legacy lg ON lg.ktv_id = ac.ktv_id\n    ORDER BY\n        CASE\n            WHEN lg.total_legacy IS NULL OR lg.total_legacy = 0 THEN NULL\n            ELSE ABS(ac.total_ai - lg.total_legacy) / lg.total_legacy * 100\n        END DESC NULLS FIRST,\n        ac.ktv_name;\nEND;\n$function$\n",
+      "name": "get_salary_reconciliation",
+      "owner": "postgres",
+      "schema": "public"
+    },
+    {
+      "acl": "{=X/postgres,postgres=X/postgres,service_role=X/postgres,bella_migration_executor=X/postgres}",
+      "anon_execute": true,
+      "arguments": "p_email text",
+      "authenticated_execute": true,
+      "definition": "CREATE OR REPLACE FUNCTION public.get_user_by_email_v1(p_email text)\n RETURNS TABLE(id uuid, email text, full_name text, role text, status text, tenant_id uuid, created_at timestamp with time zone, avatar_url text)\n LANGUAGE plpgsql\n SECURITY DEFINER\nAS $function$\r\nBEGIN\r\n    -- Chỉ admin (bao gồm HQ admin) mới được tra cứu user theo email\r\n    IF NOT public.is_admin() THEN\r\n        RAISE EXCEPTION 'Unauthorized: chỉ admin mới được tra cứu thông tin nhân viên.';\r\n    END IF;\r\n\r\n    RETURN QUERY\r\n    SELECT u.id, u.email, u.full_name, u.role, u.status, u.tenant_id, u.created_at, u.avatar_url\r\n    FROM public.users u\r\n    WHERE u.email = p_email;\r\nEND;\r\n$function$\n",
+      "name": "get_user_by_email_v1",
+      "owner": "postgres",
+      "schema": "public"
+    },
+    {
+      "acl": "{postgres=X/postgres,service_role=X/postgres}",
+      "anon_execute": false,
+      "arguments": "",
+      "authenticated_execute": false,
+      "definition": "CREATE OR REPLACE FUNCTION public.guard_automove_financial_snapshot()\n RETURNS trigger\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public', 'pg_temp'\nAS $function$\nDECLARE\n  actor_row RECORD;\n  booking_row RECORD;\nBEGIN\n  IF TG_OP = 'DELETE' THEN\n    RAISE EXCEPTION 'Financial source snapshots cannot be deleted.';\n  END IF;\n  IF TG_OP = 'UPDATE' THEN\n    IF OLD.status <> 'draft' THEN\n      RAISE EXCEPTION 'Approved financial snapshots are immutable.';\n    END IF;\n    IF current_setting('role', true) <> 'service_role' THEN\n      RAISE EXCEPTION 'Snapshot changes require the server action.';\n    END IF;\n    IF NEW.status = 'draft' THEN\n      IF (to_jsonb(NEW) - ARRAY['sale_price','discount_amount','cost_basis','sale_document','cost_document']) IS DISTINCT FROM\n         (to_jsonb(OLD) - ARRAY['sale_price','discount_amount','cost_basis','sale_document','cost_document']) THEN\n        RAISE EXCEPTION 'Draft correction can change only financial values and source documents.';\n      END IF;\n    ELSIF NEW.status = 'approved' THEN\n      IF (to_jsonb(NEW) - ARRAY['status','approved_by','approved_at']) IS DISTINCT FROM\n         (to_jsonb(OLD) - ARRAY['status','approved_by','approved_at']) THEN\n        RAISE EXCEPTION 'Approval cannot change financial values or source documents.';\n      END IF;\n      IF NEW.approved_by IS DISTINCT FROM auth.uid() THEN\n        RAISE EXCEPTION 'Approval actor must match authenticated identity.';\n      END IF;\n    ELSE\n      RAISE EXCEPTION 'Invalid financial snapshot state transition.';\n    END IF;\n    SELECT tenant_id, role, status INTO actor_row FROM public.users WHERE id = auth.uid();\n  ELSE\n    IF NEW.status <> 'draft' OR NEW.approved_by IS NOT NULL OR NEW.approved_at IS NOT NULL THEN\n      RAISE EXCEPTION 'New snapshots must be unapproved drafts.';\n    END IF;\n    IF NEW.created_by IS DISTINCT FROM auth.uid() THEN\n      RAISE EXCEPTION 'Snapshot creator must match authenticated identity.';\n    END IF;\n    SELECT tenant_id, role, status INTO actor_row FROM public.users WHERE id = NEW.created_by;\n  END IF;\n  IF actor_row.tenant_id IS DISTINCT FROM NEW.tenant_id OR\n     actor_row.status IS DISTINCT FROM 'active' OR actor_row.role IS DISTINCT FROM 'accountant' THEN\n    RAISE EXCEPTION 'An active tenant accountant is required.';\n  END IF;\n  SELECT tenant_id, customer_id, vehicle_id, status, payment_status INTO booking_row\n    FROM public.auto_bookings WHERE id = NEW.booking_id;\n  IF booking_row.tenant_id IS DISTINCT FROM NEW.tenant_id OR\n     booking_row.customer_id IS DISTINCT FROM NEW.customer_id OR\n     booking_row.vehicle_id IS DISTINCT FROM NEW.vehicle_id OR\n     booking_row.status = 'cancelled' OR booking_row.payment_status = 'refunded' OR\n     NOT EXISTS (SELECT 1 FROM public.auto_vehicles WHERE id = NEW.vehicle_id AND tenant_id = NEW.tenant_id) OR\n     NOT EXISTS (SELECT 1 FROM public.customers WHERE id = NEW.customer_id AND tenant_id = NEW.tenant_id) THEN\n    RAISE EXCEPTION 'Snapshot business references are invalid.';\n  END IF;\n  RETURN NEW;\nEND;\n$function$\n",
+      "name": "guard_automove_financial_snapshot",
+      "owner": "postgres",
+      "schema": "public"
+    },
+    {
+      "acl": "{postgres=X/postgres,service_role=X/postgres}",
+      "anon_execute": false,
+      "arguments": "",
+      "authenticated_execute": false,
+      "definition": "CREATE OR REPLACE FUNCTION public.guard_automove_post_sale_receipt()\n RETURNS trigger\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public', 'pg_temp'\nAS $function$\nDECLARE\n  booking_row RECORD;\n  recognition_row RECORD;\n  deposit_total NUMERIC;\n  payment_total NUMERIC;\n  refund_total NUMERIC;\n  price_delta NUMERIC;\nBEGIN\n  IF TG_OP <> 'INSERT' THEN RAISE EXCEPTION 'AutoMove sale receipts are append-only.'; END IF;\n  IF NEW.received_by IS DISTINCT FROM auth.uid() OR NOT EXISTS (\n    SELECT 1 FROM public.users u JOIN public.tenants t ON t.id=u.tenant_id\n    WHERE u.id=auth.uid() AND u.status='active' AND u.role='accountant'\n      AND u.tenant_id=NEW.tenant_id AND t.status='active'\n  ) THEN RAISE EXCEPTION 'An active tenant accountant must record the receipt.'; END IF;\n  SELECT * INTO booking_row FROM public.auto_bookings WHERE id=NEW.booking_id AND tenant_id=NEW.tenant_id FOR UPDATE;\n  IF booking_row.id IS NULL OR booking_row.status='cancelled' OR booking_row.payment_status='refunded' THEN\n    RAISE EXCEPTION 'Booking is unavailable for collection.';\n  END IF;\n  SELECT * INTO recognition_row FROM public.auto_vehicle_sale_recognitions\n    WHERE id=NEW.recognition_id AND tenant_id=NEW.tenant_id AND booking_id=NEW.booking_id;\n  IF recognition_row.id IS NULL OR recognition_row.customer_id IS DISTINCT FROM booking_row.customer_id OR\n     recognition_row.vehicle_id IS DISTINCT FROM booking_row.vehicle_id OR\n     (SELECT count(*) FROM public.auto_vehicle_sale_recognitions WHERE tenant_id=NEW.tenant_id AND booking_id=NEW.booking_id) <> 1 THEN\n    RAISE EXCEPTION 'Receipt must reference the canonical sale for this booking.';\n  END IF;\n  IF EXISTS (SELECT 1 FROM public.auto_vehicle_sale_recognition_adjustments\n    WHERE tenant_id=NEW.tenant_id AND recognition_id=NEW.recognition_id AND\n      (refund_amount<>0 OR receivable_delta<>sale_price_delta OR adjustment_type IN ('refund_recorded','sale_revenue_reversed'))) THEN\n    RAISE EXCEPTION 'Settlement requires resolution of refund/reversal adjustments.';\n  END IF;\n  SELECT coalesce(sum(amount),0) INTO deposit_total FROM public.auto_deposits\n    WHERE tenant_id=NEW.tenant_id AND booking_id=NEW.booking_id AND status='confirmed';\n  IF deposit_total IS DISTINCT FROM booking_row.deposit_paid OR\n     recognition_row.payment_received_total <> recognition_row.deposit_received_total OR\n     recognition_row.receivable_amount_at_recognition <> recognition_row.sale_price_recognized-recognition_row.payment_received_total OR\n     deposit_total < recognition_row.deposit_received_total THEN\n    RAISE EXCEPTION 'Receipt/deposit reconciliation mismatch.';\n  END IF;\n  SELECT coalesce(sum(sale_price_delta),0) INTO price_delta FROM public.auto_vehicle_sale_recognition_adjustments\n    WHERE tenant_id=NEW.tenant_id AND recognition_id=NEW.recognition_id;\n  SELECT coalesce(sum(amount),0) INTO payment_total FROM public.auto_vehicle_sale_payments\n    WHERE tenant_id=NEW.tenant_id AND booking_id=NEW.booking_id;\n  SELECT coalesce(sum(amount),0) INTO refund_total FROM public.auto_vehicle_sale_settlement_actions\n    WHERE tenant_id=NEW.tenant_id AND booking_id=NEW.booking_id AND action_type='refund';\n  IF deposit_total+payment_total-refund_total+NEW.amount > recognition_row.sale_price_recognized+price_delta THEN\n    RAISE EXCEPTION 'Receipt exceeds the remaining recognized sale amount.';\n  END IF;\n  NEW.received_at := statement_timestamp();\n  RETURN NEW;\nEND;\n$function$\n",
+      "name": "guard_automove_post_sale_receipt",
+      "owner": "postgres",
+      "schema": "public"
+    },
+    {
+      "acl": "{postgres=X/postgres,service_role=X/postgres}",
+      "anon_execute": false,
+      "arguments": "",
+      "authenticated_execute": false,
+      "definition": "CREATE OR REPLACE FUNCTION public.guard_automove_settlement_action()\n RETURNS trigger\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public', 'pg_temp'\nAS $function$\nDECLARE\n  original_amount NUMERIC;\n  returned_amount NUMERIC;\nBEGIN\n  IF TG_OP <> 'INSERT' THEN RAISE EXCEPTION 'Settlement actions are append-only.'; END IF;\n  IF NEW.created_by IS DISTINCT FROM auth.uid() OR NOT EXISTS (\n    SELECT 1 FROM public.users u JOIN public.tenants t ON t.id=u.tenant_id\n    WHERE u.id=auth.uid() AND u.role='accountant' AND u.status='active'\n      AND u.tenant_id=NEW.tenant_id AND t.status='active'\n  ) THEN RAISE EXCEPTION 'An active tenant accountant is required.'; END IF;\n  PERFORM id FROM public.auto_bookings WHERE id=NEW.booking_id AND tenant_id=NEW.tenant_id FOR UPDATE;\n  IF NOT FOUND THEN RAISE EXCEPTION 'Settlement booking is outside the actor tenant.'; END IF;\n  IF NEW.source_document->>'bucket' IS DISTINCT FROM 'automove-sale-documents' OR\n    split_part(NEW.source_document->>'path','/',1) IS DISTINCT FROM NEW.tenant_id::text OR\n    coalesce(NEW.source_document->>'sha256','') !~ '^[a-f0-9]{64}$' THEN\n    RAISE EXCEPTION 'Tenant source document and checksum are required.';\n  END IF;\n  IF NEW.action_type='refund' THEN\n    IF NEW.source_deposit_id IS NOT NULL THEN\n      SELECT amount INTO original_amount FROM public.auto_deposits\n        WHERE id=NEW.source_deposit_id AND booking_id=NEW.booking_id AND tenant_id=NEW.tenant_id AND status='confirmed';\n    ELSE\n      SELECT amount INTO original_amount FROM public.auto_vehicle_sale_payments\n        WHERE id=NEW.source_payment_id AND booking_id=NEW.booking_id AND tenant_id=NEW.tenant_id;\n    END IF;\n    IF original_amount IS NULL THEN RAISE EXCEPTION 'Confirmed original receipt is required.'; END IF;\n    SELECT coalesce(sum(amount),0) INTO returned_amount FROM public.auto_vehicle_sale_settlement_actions\n      WHERE tenant_id=NEW.tenant_id AND action_type='refund' AND\n        (source_deposit_id=NEW.source_deposit_id OR source_payment_id=NEW.source_payment_id);\n    IF returned_amount+NEW.amount > original_amount THEN RAISE EXCEPTION 'Refund exceeds the unrefunded original receipt.'; END IF;\n  END IF;\n  NEW.created_at := statement_timestamp();\n  RETURN NEW;\nEND;\n$function$\n",
+      "name": "guard_automove_settlement_action",
+      "owner": "postgres",
+      "schema": "public"
+    },
+    {
+      "acl": "{=X/postgres,postgres=X/postgres,service_role=X/postgres,bella_migration_executor=X/postgres}",
+      "anon_execute": true,
+      "arguments": "",
+      "authenticated_execute": true,
+      "definition": "CREATE OR REPLACE FUNCTION public.is_accountant()\n RETURNS boolean\n LANGUAGE sql\n STABLE SECURITY DEFINER\n SET search_path TO 'pg_catalog', 'public'\nAS $function$\n  SELECT EXISTS (\n    SELECT 1 FROM public.users AS u JOIN public.tenants AS t ON t.id = u.tenant_id\n    WHERE u.id = auth.uid() AND u.status = 'active' AND t.status = 'active' AND u.role = 'accountant'\n  );\n$function$\n",
+      "name": "is_accountant",
+      "owner": "postgres",
+      "schema": "public"
+    },
+    {
+      "acl": "{=X/postgres,postgres=X/postgres,service_role=X/postgres,bella_migration_executor=X/postgres}",
+      "anon_execute": true,
+      "arguments": "",
+      "authenticated_execute": true,
+      "definition": "CREATE OR REPLACE FUNCTION public.is_admin()\n RETURNS boolean\n LANGUAGE sql\n STABLE SECURITY DEFINER\n SET search_path TO 'pg_catalog', 'public'\nAS $function$\n  SELECT EXISTS (\n    SELECT 1 FROM public.users AS u JOIN public.tenants AS t ON t.id = u.tenant_id\n    WHERE u.id = auth.uid() AND u.status = 'active' AND t.status = 'active' AND u.role = 'admin'\n  );\n$function$\n",
+      "name": "is_admin",
+      "owner": "postgres",
+      "schema": "public"
+    },
+    {
+      "acl": "{=X/postgres,postgres=X/postgres,service_role=X/postgres,bella_migration_executor=X/postgres}",
+      "anon_execute": true,
+      "arguments": "",
+      "authenticated_execute": true,
+      "definition": "CREATE OR REPLACE FUNCTION public.is_hq_super_admin()\n RETURNS boolean\n LANGUAGE sql\n STABLE SECURITY DEFINER\n SET search_path TO 'pg_catalog', 'public'\nAS $function$\n  SELECT EXISTS (\n    SELECT 1 FROM public.users AS u JOIN public.tenants AS t ON t.id = u.tenant_id\n    WHERE u.id = auth.uid() AND u.status = 'active' AND t.status = 'active'\n      AND u.role = 'admin' AND t.product_key = 'bella_hq'\n  );\n$function$\n",
+      "name": "is_hq_super_admin",
+      "owner": "postgres",
+      "schema": "public"
+    },
+    {
+      "acl": "{=X/postgres,postgres=X/postgres,service_role=X/postgres,bella_migration_executor=X/postgres}",
+      "anon_execute": true,
+      "arguments": "",
+      "authenticated_execute": true,
+      "definition": "CREATE OR REPLACE FUNCTION public.is_hr()\n RETURNS boolean\n LANGUAGE sql\n STABLE SECURITY DEFINER\n SET search_path TO 'pg_catalog', 'public'\nAS $function$\n  SELECT EXISTS (\n    SELECT 1 FROM public.users AS u JOIN public.tenants AS t ON t.id = u.tenant_id\n    WHERE u.id = auth.uid() AND u.status = 'active' AND t.status = 'active' AND u.role = 'hr'\n  );\n$function$\n",
+      "name": "is_hr",
+      "owner": "postgres",
+      "schema": "public"
+    },
+    {
+      "acl": "{=X/postgres,postgres=X/postgres,service_role=X/postgres,bella_migration_executor=X/postgres}",
+      "anon_execute": true,
+      "arguments": "p_spa_name text, p_contact_phone text, p_address text, p_email text, p_admin_id uuid, p_admin_email text, p_admin_name text",
+      "authenticated_execute": true,
+      "definition": "CREATE OR REPLACE FUNCTION public.onboard_tenant(p_spa_name text, p_contact_phone text, p_address text, p_email text, p_admin_id uuid, p_admin_email text, p_admin_name text)\n RETURNS uuid\n LANGUAGE plpgsql\n SECURITY DEFINER\nAS $function$\nDECLARE\n    v_tenant_id UUID;\n    v_package_id UUID;\n    v_ktv_id UUID;\n    v_customer_id UUID;\n    v_booking_id UUID;\n    v_role_permissions JSONB;\n    v_salary_config JSONB;\n    v_coa_count INTEGER;\nBEGIN\n    -- 1. Check email duplicate\n    IF EXISTS (SELECT 1 FROM public.users WHERE email = p_admin_email) THEN\n        RAISE EXCEPTION 'Email % đã tồn tại trong hệ thống.', p_admin_email;\n    END IF;\n\n    -- 2. Default configs (Updated to include ktv_lead, admin_staff, accountant, and hr)\n    v_role_permissions := '{\"ktv_lead\": {\"dashboard\": true, \"customers\": false, \"bookings\": true, \"sessions\": true, \"chat\": true, \"crm\": true, \"services\": true, \"finance\": false, \"reconciliation\": false, \"inventory\": false, \"salary\": false, \"audit\": false, \"settings\": false},\n                            \"admin_staff\": {\"dashboard\": true, \"customers\": true, \"bookings\": true, \"sessions\": true, \"chat\": true, \"crm\": true, \"services\": true, \"inventory\": true, \"finance\": true, \"reconciliation\": false, \"salary\": false, \"audit\": false, \"settings\": false},\n                            \"accountant\": {\"dashboard\": true, \"customers\": false, \"bookings\": false, \"sessions\": false, \"chat\": false, \"crm\": false, \"services\": true, \"inventory\": true, \"finance\": true, \"reconciliation\": true, \"salary\": true, \"audit\": false, \"settings\": false},\n                            \"hr\": {\"dashboard\": true, \"customers\": false, \"bookings\": false, \"sessions\": true, \"chat\": false, \"crm\": false, \"services\": false, \"inventory\": false, \"finance\": false, \"reconciliation\": false, \"salary\": true, \"audit\": false, \"settings\": false}}'::jsonb;\n    v_salary_config := '{\"bonus_5_star\": 50000, \"bonus_4_5_star\": 30000, \"bonus_4_star\": 10000, \"kpi_target_sessions\": 30, \"kpi_bonus_amount\": 1000000}'::jsonb;\n\n    -- 3. Create tenant\n    INSERT INTO public.tenants (\n        name, contact_phone, address, email, status, role_permissions, salary_config\n    )\n    VALUES (\n        p_spa_name, p_contact_phone, p_address, p_email, 'active', v_role_permissions, v_salary_config\n    )\n    RETURNING id INTO v_tenant_id;\n\n    -- 4. Create admin user\n    INSERT INTO public.users (id, email, full_name, role, status, tenant_id)\n    VALUES (p_admin_id, p_admin_email, p_admin_name, 'admin', 'active', v_tenant_id);\n\n    -- 5. Seed sample package\n    INSERT INTO public.packages (\n        name, description, price, full_price, duration, total_sessions, ktv_commission, status, tenant_id\n    )\n    VALUES (\n        'Massage Bầu VIP Nhật Bản',\n        'Gói chăm sóc massage bầu cao cấp theo liệu trình Nhật Bản giúp thư giãn cơ thể và giảm stress cho mẹ.',\n        1200000, 1200000, '90 phút/buổi', 10, 150000, 'active', v_tenant_id\n    )\n    RETURNING id INTO v_package_id;\n\n    -- 6. Seed sample KTV\n    v_ktv_id := uuid_generate_v4();\n    INSERT INTO public.users (id, email, full_name, role, status, tenant_id)\n    VALUES (\n        v_ktv_id,\n        'ktv.mau.' || substring(v_tenant_id::text from 1 for 8) || '@bellaspa.com.vn',\n        'Trần Thị Mai (KTV Mẫu)', 'ktv', 'active', v_tenant_id\n    );\n\n    -- 7. Seed sample customer\n    INSERT INTO public.customers (phone, name_mother, name_baby, dob_baby, address, status, tenant_id)\n    VALUES (\n        '0987' || substring(v_tenant_id::text from 1 for 6),\n        'Phạm Thu Hương (Khách Mẫu)', 'Bé Bơ',\n        CURRENT_DATE - INTERVAL '10 days', p_address, 'active', v_tenant_id\n    )\n    RETURNING id INTO v_customer_id;\n\n    -- 8. Seed sample booking\n    INSERT INTO public.bookings (\n        booking_number, customer_id, package_id, status, deposit_amount, full_price,\n        start_date, end_date, total_sessions, completed_sessions, contract_signed,\n        assigned_ktv_id, tenant_id\n    )\n    VALUES (\n        'BK-' || UPPER(substring(v_tenant_id::text from 1 for 5)),\n        v_customer_id, v_package_id, 'booked', 200000, 1200000,\n        CURRENT_DATE, CURRENT_DATE + INTERVAL '10 days', 10, 0, TRUE,\n        v_ktv_id, v_tenant_id\n    )\n    RETURNING id INTO v_booking_id;\n\n    -- 9. Seed default Chart of Accounts (Thông tư 133)\n    BEGIN\n        v_coa_count := public.seed_default_coa(v_tenant_id);\n        RAISE NOTICE '[onboard_tenant] Seeded % accounting accounts for tenant %', v_coa_count, v_tenant_id;\n    EXCEPTION WHEN OTHERS THEN\n        RAISE WARNING '[onboard_tenant] Failed to seed COA for tenant %: %', v_tenant_id, SQLERRM;\n    END;\n\n    -- 10. Auto-create accounting period cho tháng hiện tại\n    BEGIN\n        PERFORM public.ensure_open_period(v_tenant_id, CURRENT_DATE);\n    EXCEPTION WHEN OTHERS THEN\n        RAISE WARNING '[onboard_tenant] Failed to create accounting period for tenant %: %', v_tenant_id, SQLERRM;\n    END;\n\n    RETURN v_tenant_id;\nEND;\n$function$\n",
+      "name": "onboard_tenant",
+      "owner": "postgres",
+      "schema": "public"
+    },
+    {
+      "acl": "{=X/postgres,postgres=X/postgres,service_role=X/postgres,authenticated=X/postgres,bella_migration_executor=X/postgres}",
+      "anon_execute": true,
+      "arguments": "p_tenant_id uuid, p_today date, p_ktv_id uuid",
+      "authenticated_execute": true,
+      "definition": "CREATE OR REPLACE FUNCTION public.rpc_mobile_today_sessions(p_tenant_id uuid, p_today date, p_ktv_id uuid DEFAULT NULL::uuid)\n RETURNS TABLE(session_id uuid, booking_id uuid, status text, assigned_time text, customer_name text, baby_name text, ktv_name text, package_name text, completed_sessions integer, total_sessions integer)\n LANGUAGE sql\n STABLE SECURITY DEFINER\nAS $function$\r\n  SELECT\r\n    sl.id AS session_id,\r\n    sl.booking_id,\r\n    sl.status,\r\n    sl.assigned_time,\r\n    c.name_mother AS customer_name,\r\n    c.name_baby AS baby_name,\r\n    u.full_name AS ktv_name,\r\n    b.package_name,\r\n    b.completed_sessions,\r\n    b.total_sessions\r\n  FROM session_logs sl\r\n  JOIN bookings b ON b.id = sl.booking_id\r\n  JOIN customers c ON c.id = b.customer_id\r\n  LEFT JOIN users u ON u.id = b.assigned_ktv_id\r\n  WHERE\r\n    sl.tenant_id = p_tenant_id\r\n    AND sl.assigned_date = p_today\r\n    AND sl.status != 'completed'\r\n    AND (p_ktv_id IS NULL OR b.assigned_ktv_id = p_ktv_id)\r\n  ORDER BY sl.assigned_time ASC NULLS LAST;\r\n$function$\n",
+      "name": "rpc_mobile_today_sessions",
+      "owner": "postgres",
+      "schema": "public"
+    },
+    {
+      "acl": "{=X/postgres,postgres=X/postgres,service_role=X/postgres,bella_migration_executor=X/postgres}",
+      "anon_execute": true,
+      "arguments": "",
+      "authenticated_execute": true,
+      "definition": "CREATE OR REPLACE FUNCTION public.sync_user_claims_to_auth()\n RETURNS trigger\n LANGUAGE plpgsql\n SECURITY DEFINER\nAS $function$\nBEGIN\n  UPDATE auth.users\n  SET raw_app_meta_data = \n    coalesce(raw_app_meta_data, '{}'::jsonb) || \n    jsonb_build_object(\n      'role', NEW.role,\n      'tenant_id', NEW.tenant_id\n    )\n  WHERE id = NEW.id;\n  RETURN NEW;\nEND;\n$function$\n",
+      "name": "sync_user_claims_to_auth",
+      "owner": "postgres",
+      "schema": "public"
+    },
+    {
+      "acl": "{=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "anon_execute": true,
+      "arguments": "",
+      "authenticated_execute": true,
+      "definition": "CREATE OR REPLACE FUNCTION public.validate_auto_vehicle_sale_adjustment_tenant()\n RETURNS trigger\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public', 'pg_temp'\nAS $function$\nDECLARE\n  recognition_tenant_id UUID;\n  actor_tenant_id UUID;\n  policy_exists BOOLEAN;\nBEGIN\n  IF to_regclass('public.policy_registry') IS NULL THEN\n    RAISE EXCEPTION 'Vehicle sale recognition adjustment requires policy_registry before inserts are allowed.';\n  END IF;\n\n  SELECT EXISTS (\n    SELECT 1\n      FROM public.policy_registry\n     WHERE policy_id = NEW.accounting_policy_id\n       AND version = NEW.accounting_policy_version\n  )\n    INTO policy_exists;\n\n  IF NOT policy_exists THEN\n    RAISE EXCEPTION 'Vehicle sale recognition adjustment references an unregistered accounting policy version.';\n  END IF;\n\n  SELECT tenant_id\n    INTO recognition_tenant_id\n    FROM public.auto_vehicle_sale_recognitions\n   WHERE id = NEW.recognition_id;\n\n  IF recognition_tenant_id IS NULL OR recognition_tenant_id <> NEW.tenant_id THEN\n    RAISE EXCEPTION 'Vehicle sale recognition adjustment references a recognition outside the adjustment tenant.';\n  END IF;\n\n  IF NEW.created_by_user_id IS NOT NULL THEN\n    SELECT tenant_id\n      INTO actor_tenant_id\n      FROM public.users\n     WHERE id = NEW.created_by_user_id;\n\n    IF actor_tenant_id IS DISTINCT FROM NEW.tenant_id THEN\n      RAISE EXCEPTION 'Vehicle sale recognition adjustment actor is outside the adjustment tenant.';\n    END IF;\n  END IF;\n\n  RETURN NEW;\nEND;\n$function$\n",
+      "name": "validate_auto_vehicle_sale_adjustment_tenant",
+      "owner": "postgres",
+      "schema": "public"
+    },
+    {
+      "acl": "{=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "anon_execute": true,
+      "arguments": "",
+      "authenticated_execute": true,
+      "definition": "CREATE OR REPLACE FUNCTION public.validate_auto_vehicle_sale_recognition_tenant()\n RETURNS trigger\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public', 'pg_temp'\nAS $function$\nDECLARE\n  vehicle_tenant_id UUID;\n  customer_tenant_id UUID;\n  actor_tenant_id UUID;\n  policy_exists BOOLEAN;\n  booking_row RECORD;\nBEGIN\n  IF to_regclass('public.policy_registry') IS NULL THEN\n    RAISE EXCEPTION 'Vehicle sale recognition requires policy_registry before inserts are allowed.';\n  END IF;\n\n  SELECT EXISTS (\n    SELECT 1\n      FROM public.policy_registry\n     WHERE policy_id = NEW.accounting_policy_id\n       AND version = NEW.accounting_policy_version\n  )\n    INTO policy_exists;\n\n  IF NOT policy_exists THEN\n    RAISE EXCEPTION 'Vehicle sale recognition references an unregistered accounting policy version.';\n  END IF;\n\n  SELECT tenant_id\n    INTO vehicle_tenant_id\n    FROM public.auto_vehicles\n   WHERE id = NEW.vehicle_id;\n\n  IF vehicle_tenant_id IS NULL OR vehicle_tenant_id <> NEW.tenant_id THEN\n    RAISE EXCEPTION 'Vehicle sale recognition references a vehicle outside the recognition tenant.';\n  END IF;\n\n  SELECT tenant_id\n    INTO customer_tenant_id\n    FROM public.customers\n   WHERE id = NEW.customer_id;\n\n  IF customer_tenant_id IS NULL OR customer_tenant_id <> NEW.tenant_id THEN\n    RAISE EXCEPTION 'Vehicle sale recognition references a customer outside the recognition tenant.';\n  END IF;\n\n  IF NEW.booking_id IS NOT NULL THEN\n    IF to_regclass('public.auto_bookings') IS NULL THEN\n      RAISE EXCEPTION 'Vehicle sale recognition booking evidence cannot be validated because auto_bookings is unavailable.';\n    END IF;\n\n    SELECT tenant_id, customer_id, vehicle_id\n      INTO booking_row\n      FROM public.auto_bookings\n     WHERE id = NEW.booking_id;\n\n    IF booking_row.tenant_id IS NULL OR booking_row.tenant_id <> NEW.tenant_id THEN\n      RAISE EXCEPTION 'Vehicle sale recognition references a booking outside the recognition tenant.';\n    END IF;\n\n    IF booking_row.customer_id <> NEW.customer_id THEN\n      RAISE EXCEPTION 'Vehicle sale recognition customer does not match the booking customer.';\n    END IF;\n\n    IF booking_row.vehicle_id IS NOT NULL AND booking_row.vehicle_id <> NEW.vehicle_id THEN\n      RAISE EXCEPTION 'Vehicle sale recognition vehicle does not match the booking vehicle.';\n    END IF;\n  END IF;\n\n  IF NEW.recognized_by_user_id IS NOT NULL THEN\n    SELECT tenant_id\n      INTO actor_tenant_id\n      FROM public.users\n     WHERE id = NEW.recognized_by_user_id;\n\n    IF actor_tenant_id IS DISTINCT FROM NEW.tenant_id THEN\n      RAISE EXCEPTION 'Vehicle sale recognition actor is outside the recognition tenant.';\n    END IF;\n  END IF;\n\n  RETURN NEW;\nEND;\n$function$\n",
+      "name": "validate_auto_vehicle_sale_recognition_tenant",
+      "owner": "postgres",
+      "schema": "public"
+    }
+  ],
+  "views": [
+    {
+      "anon_delete": true,
+      "anon_insert": true,
+      "anon_update": true,
+      "authenticated_delete": true,
+      "authenticated_insert": true,
+      "authenticated_update": true,
+      "definition": " WITH monthly_attendance AS (\n         SELECT a.tenant_id,\n            date_trunc('month'::text, a.date::timestamp with time zone)::date AS month,\n            a.ktv_id,\n            u.full_name AS ktv_name,\n            u.role AS ktv_role,\n            count(*) AS total_days,\n            count(*) FILTER (WHERE a.status = 'present'::text) AS days_present,\n            count(*) FILTER (WHERE a.status = 'absent'::text) AS days_absent,\n            count(*) FILTER (WHERE a.status = 'late'::text) AS days_late,\n            count(*) FILTER (WHERE a.status = 'half_day'::text) AS days_half_day,\n            count(*) FILTER (WHERE a.status = ANY (ARRAY['present'::text, 'late'::text, 'half_day'::text])) AS working_days,\n            round(count(*) FILTER (WHERE a.status = 'present'::text)::numeric / NULLIF(count(*) FILTER (WHERE a.status = ANY (ARRAY['present'::text, 'late'::text])), 0)::numeric * 100::numeric, 2) AS on_time_rate_pct,\n            round(count(*) FILTER (WHERE a.status = ANY (ARRAY['present'::text, 'late'::text, 'half_day'::text]))::numeric / NULLIF(count(*), 0)::numeric * 100::numeric, 2) AS attendance_rate_pct,\n            avg(EXTRACT(epoch FROM a.checkin_time::time without time zone - '08:30:00'::time without time zone) / 60::numeric) FILTER (WHERE a.status = 'late'::text) AS avg_late_minutes\n           FROM attendance a\n             JOIN users u ON u.id = a.ktv_id\n          WHERE a.date IS NOT NULL\n          GROUP BY a.tenant_id, (date_trunc('month'::text, a.date::timestamp with time zone)::date), a.ktv_id, u.full_name, u.role\n        ), ktv_performance_scores AS (\n         SELECT ma.tenant_id,\n            ma.month,\n            ma.ktv_id,\n            ma.ktv_name,\n            ma.ktv_role,\n            ma.total_days,\n            ma.days_present,\n            ma.days_absent,\n            ma.days_late,\n            ma.days_half_day,\n            ma.working_days,\n            ma.on_time_rate_pct,\n            ma.attendance_rate_pct,\n            ma.avg_late_minutes,\n            round(COALESCE(ma.attendance_rate_pct, 0::numeric) * 0.7 + COALESCE(ma.on_time_rate_pct, 0::numeric) * 0.3, 2) AS attendance_performance_score,\n            rank() OVER (PARTITION BY ma.tenant_id, ma.month ORDER BY (COALESCE(ma.attendance_rate_pct, 0::numeric) * 0.7 + COALESCE(ma.on_time_rate_pct, 0::numeric) * 0.3) DESC) AS performance_rank\n           FROM monthly_attendance ma\n        )\n SELECT tenant_id,\n    month,\n    ktv_id,\n    ktv_name,\n    ktv_role,\n    total_days,\n    days_present,\n    days_absent,\n    days_late,\n    days_half_day,\n    working_days,\n    on_time_rate_pct,\n    attendance_rate_pct,\n    avg_late_minutes,\n    attendance_performance_score,\n    performance_rank,\n        CASE\n            WHEN attendance_rate_pct >= 95::numeric THEN 'excellent'::text\n            WHEN attendance_rate_pct >= 85::numeric THEN 'good'::text\n            WHEN attendance_rate_pct >= 75::numeric THEN 'fair'::text\n            ELSE 'poor'::text\n        END AS attendance_status,\n    now() AS computed_at\n   FROM ktv_performance_scores\n  ORDER BY tenant_id, month DESC, performance_rank;",
+      "name": "mv_attendance_summary",
+      "owner": "postgres",
+      "reloptions": null,
+      "schema": "public"
+    },
+    {
+      "anon_delete": true,
+      "anon_insert": true,
+      "anon_update": true,
+      "authenticated_delete": true,
+      "authenticated_insert": true,
+      "authenticated_update": true,
+      "definition": " WITH monthly_sessions AS (\n         SELECT b.tenant_id,\n            date_trunc('month'::text, sl.completed_date::timestamp with time zone)::date AS month,\n            sl.completed_by_ktv_id AS ktv_id,\n            count(DISTINCT sl.id) AS total_sessions_completed,\n            count(DISTINCT b.id) AS total_bookings_served,\n            round(avg(sl.rating) FILTER (WHERE sl.rating IS NOT NULL), 2) AS avg_star_rating,\n            count(*) FILTER (WHERE sl.rating IS NOT NULL) AS ratings_count,\n            count(*) FILTER (WHERE sl.rating = 5) AS five_star_count,\n            count(*) FILTER (WHERE sl.rating = 4) AS four_star_count,\n            count(*) FILTER (WHERE sl.rating <= 3) AS below_four_count\n           FROM session_logs sl\n             JOIN bookings b ON b.id = sl.booking_id\n          WHERE sl.status = 'completed'::text AND sl.completed_date IS NOT NULL AND sl.completed_by_ktv_id IS NOT NULL\n          GROUP BY b.tenant_id, (date_trunc('month'::text, sl.completed_date::timestamp with time zone)::date), sl.completed_by_ktv_id\n        ), monthly_kpi AS (\n         SELECT kpi_records.tenant_id,\n            kpi_records.month_year AS month,\n            kpi_records.ktv_id,\n            COALESCE(kpi_records.kpi_achievement_rate, 0::numeric) AS kpi_score,\n            COALESCE(kpi_records.bonus_amount, 0::numeric) AS kpi_amount,\n            COALESCE(kpi_records.sessions_completed, 0) AS kpi_sessions,\n            COALESCE(kpi_records.customer_satisfaction, 0::numeric) AS customer_satisfaction_score\n           FROM kpi_records\n          WHERE kpi_records.month_year IS NOT NULL AND kpi_records.ktv_id IS NOT NULL\n        ), monthly_revenue_contribution AS (\n         SELECT b.tenant_id,\n            date_trunc('month'::text, r.received_date::timestamp with time zone)::date AS month,\n            b.assigned_ktv_id AS ktv_id,\n            sum(r.amount) FILTER (WHERE r.status = 'confirmed'::text) AS total_revenue_contributed,\n            count(DISTINCT r.id) FILTER (WHERE r.status = 'confirmed'::text) AS revenue_transaction_count\n           FROM revenue r\n             JOIN bookings b ON b.id = r.booking_id\n          WHERE r.received_date IS NOT NULL AND b.assigned_ktv_id IS NOT NULL\n          GROUP BY b.tenant_id, (date_trunc('month'::text, r.received_date::timestamp with time zone)::date), b.assigned_ktv_id\n        ), monthly_attendance_metrics AS (\n         SELECT attendance.tenant_id,\n            date_trunc('month'::text, attendance.date::timestamp with time zone)::date AS month,\n            attendance.ktv_id,\n            count(*) FILTER (WHERE attendance.status = ANY (ARRAY['present'::text, 'late'::text, 'half_day'::text])) AS working_days,\n            count(*) FILTER (WHERE attendance.status = 'present'::text) AS on_time_days,\n            count(*) FILTER (WHERE attendance.status = 'absent'::text) AS absent_days\n           FROM attendance\n          WHERE attendance.date IS NOT NULL\n          GROUP BY attendance.tenant_id, (date_trunc('month'::text, attendance.date::timestamp with time zone)::date), attendance.ktv_id\n        ), ktv_performance_combined AS (\n         SELECT COALESCE(ms.tenant_id, mk.tenant_id, mrc.tenant_id, mam.tenant_id) AS tenant_id,\n            COALESCE(ms.month, mk.month, mrc.month, mam.month) AS month,\n            COALESCE(ms.ktv_id, mk.ktv_id, mrc.ktv_id, mam.ktv_id) AS ktv_id,\n            u.full_name AS ktv_name,\n            u.role AS ktv_role,\n            u.phone AS ktv_phone,\n            COALESCE(u.status = 'active'::text, false) AS is_active,\n            COALESCE(ms.total_sessions_completed, 0::bigint) AS total_sessions_completed,\n            COALESCE(ms.total_bookings_served, 0::bigint) AS total_bookings_served,\n            COALESCE(ms.avg_star_rating, 0::numeric) AS avg_star_rating,\n            COALESCE(ms.ratings_count, 0::bigint) AS ratings_count,\n            COALESCE(ms.five_star_count, 0::bigint) AS five_star_count,\n            COALESCE(ms.four_star_count, 0::bigint) AS four_star_count,\n            COALESCE(ms.below_four_count, 0::bigint) AS below_four_count,\n            COALESCE(mk.kpi_score, 0::numeric) AS kpi_score,\n            COALESCE(mk.kpi_amount, 0::numeric) AS kpi_amount,\n            COALESCE(mk.customer_satisfaction_score, 0::numeric) AS customer_satisfaction_score,\n            COALESCE(mrc.total_revenue_contributed, 0::numeric) AS total_revenue_contributed,\n            COALESCE(mrc.revenue_transaction_count, 0::bigint) AS revenue_transaction_count,\n            COALESCE(mam.working_days, 0::bigint) AS working_days,\n            COALESCE(mam.on_time_days, 0::bigint) AS on_time_days,\n            COALESCE(mam.absent_days, 0::bigint) AS absent_days,\n                CASE\n                    WHEN COALESCE(ms.total_sessions_completed, 0::bigint) > 0 THEN round(COALESCE(mrc.total_revenue_contributed, 0::numeric) / NULLIF(ms.total_sessions_completed, 0)::numeric, 2)\n                    ELSE 0::numeric\n                END AS revenue_per_session,\n                CASE\n                    WHEN COALESCE(mam.working_days, 0::bigint) > 0 THEN round(COALESCE(ms.total_sessions_completed, 0::bigint)::numeric / NULLIF(mam.working_days, 0)::numeric, 2)\n                    ELSE 0::numeric\n                END AS sessions_per_working_day,\n            round(COALESCE(mk.kpi_score, 0::numeric) * 0.4 + COALESCE(ms.avg_star_rating, 0::numeric) * 20::numeric * 0.3 + LEAST(COALESCE(ms.total_sessions_completed, 0::bigint) / NULLIF(COALESCE(mam.working_days, 1::bigint), 0) * 10, 100::bigint)::numeric * 0.3, 2) AS overall_performance_score,\n            rank() OVER (PARTITION BY (COALESCE(ms.tenant_id, mk.tenant_id, mrc.tenant_id, mam.tenant_id)), (COALESCE(ms.month, mk.month, mrc.month, mam.month)) ORDER BY (COALESCE(mk.kpi_score, 0::numeric) * 0.4 + COALESCE(ms.avg_star_rating, 0::numeric) * 20::numeric * 0.3 + LEAST(COALESCE(ms.total_sessions_completed, 0::bigint) / NULLIF(COALESCE(mam.working_days, 1::bigint), 0) * 10, 100::bigint)::numeric * 0.3) DESC) AS performance_rank\n           FROM monthly_sessions ms\n             FULL JOIN monthly_kpi mk ON mk.tenant_id = ms.tenant_id AND mk.month = ms.month AND mk.ktv_id = ms.ktv_id\n             FULL JOIN monthly_revenue_contribution mrc ON mrc.tenant_id = COALESCE(ms.tenant_id, mk.tenant_id) AND mrc.month = COALESCE(ms.month, mk.month) AND mrc.ktv_id = COALESCE(ms.ktv_id, mk.ktv_id)\n             FULL JOIN monthly_attendance_metrics mam ON mam.tenant_id = COALESCE(ms.tenant_id, mk.tenant_id, mrc.tenant_id) AND mam.month = COALESCE(ms.month, mk.month, mrc.month) AND mam.ktv_id = COALESCE(ms.ktv_id, mk.ktv_id, mrc.ktv_id)\n             LEFT JOIN users u ON u.id = COALESCE(ms.ktv_id, mk.ktv_id, mrc.ktv_id, mam.ktv_id)\n          WHERE COALESCE(ms.tenant_id, mk.tenant_id, mrc.tenant_id, mam.tenant_id) IS NOT NULL\n        )\n SELECT tenant_id,\n    month,\n    ktv_id,\n    ktv_name,\n    ktv_role,\n    ktv_phone,\n    is_active,\n    total_sessions_completed,\n    total_bookings_served,\n    avg_star_rating,\n    ratings_count,\n    five_star_count,\n    four_star_count,\n    below_four_count,\n    kpi_score,\n    kpi_amount,\n    customer_satisfaction_score,\n    total_revenue_contributed,\n    revenue_transaction_count,\n    working_days,\n    on_time_days,\n    absent_days,\n    revenue_per_session,\n    sessions_per_working_day,\n    overall_performance_score,\n    performance_rank,\n        CASE\n            WHEN performance_rank::numeric <= (0.1 * count(*) OVER (PARTITION BY tenant_id, month)::numeric) THEN 'top_10'::text\n            WHEN performance_rank::numeric <= (0.25 * count(*) OVER (PARTITION BY tenant_id, month)::numeric) THEN 'top_25'::text\n            WHEN performance_rank::numeric <= (0.5 * count(*) OVER (PARTITION BY tenant_id, month)::numeric) THEN 'top_50'::text\n            ELSE 'below_50'::text\n        END AS performance_tier,\n    now() AS computed_at\n   FROM ktv_performance_combined\n  ORDER BY tenant_id, month DESC, performance_rank;",
+      "name": "mv_employee_performance",
+      "owner": "postgres",
+      "reloptions": null,
+      "schema": "public"
+    },
+    {
+      "anon_delete": true,
+      "anon_insert": true,
+      "anon_update": true,
+      "authenticated_delete": true,
+      "authenticated_insert": true,
+      "authenticated_update": true,
+      "definition": " SELECT u.id AS ktv_id,\n    u.tenant_id,\n    u.full_name AS ktv_name,\n    u.email AS ktv_email,\n    u.phone AS ktv_phone,\n    date_trunc('month'::text, COALESCE(sl.assigned_date, CURRENT_DATE)::timestamp with time zone)::date AS month,\n    count(DISTINCT sl.id) FILTER (WHERE sl.status = 'completed'::text) AS total_sessions_completed,\n    count(DISTINCT sl.id) FILTER (WHERE sl.status = 'cancelled'::text) AS total_sessions_cancelled,\n    count(DISTINCT sl.id) FILTER (WHERE sl.status = 'no_show'::text) AS total_sessions_no_show,\n    count(DISTINCT sl.id) AS total_sessions_all,\n    round(COALESCE(count(DISTINCT sl.id) FILTER (WHERE sl.status = 'completed'::text)::numeric / NULLIF(count(DISTINCT sl.id), 0)::numeric * 100::numeric, 0::numeric), 2) AS completion_rate_pct,\n    round(COALESCE(avg(sl.rating) FILTER (WHERE sl.rating IS NOT NULL), 0::numeric), 2) AS avg_rating,\n    count(DISTINCT sl.id) FILTER (WHERE sl.rating >= 4) AS high_ratings_count,\n    count(DISTINCT sl.id) FILTER (WHERE sl.rating <= 2) AS low_ratings_count,\n    count(DISTINCT sl.id) FILTER (WHERE sl.rating IS NOT NULL) AS total_ratings_count,\n    COALESCE(sum(b.full_price) FILTER (WHERE sl.status = 'completed'::text), 0::numeric) AS total_revenue,\n    COALESCE(avg(b.full_price) FILTER (WHERE sl.status = 'completed'::text), 0::numeric) AS avg_revenue_per_session,\n    COALESCE(sum(sr.service_commission) FILTER (WHERE sr.month_year = date_trunc('month'::text, sl.assigned_date::timestamp with time zone)::date), 0::numeric) AS total_service_commission,\n    COALESCE(sum(sr.session_bonus) FILTER (WHERE sr.month_year = date_trunc('month'::text, sl.assigned_date::timestamp with time zone)::date), 0::numeric) AS total_session_bonus,\n    count(DISTINCT a.id) FILTER (WHERE a.status = 'present'::text) AS days_present,\n    count(DISTINCT a.id) FILTER (WHERE a.status = 'absent'::text) AS days_absent,\n    count(DISTINCT a.id) FILTER (WHERE a.status = 'late'::text) AS days_late,\n    count(DISTINCT a.id) AS total_attendance_days,\n    round(COALESCE(count(DISTINCT a.id) FILTER (WHERE a.status = 'present'::text)::numeric / NULLIF(count(DISTINCT a.id), 0)::numeric * 100::numeric, 0::numeric), 2) AS attendance_rate_pct,\n    max(sl.completed_date) AS last_session_date,\n    count(DISTINCT b.customer_id) AS unique_customers_served,\n    now() AS computed_at\n   FROM users u\n     LEFT JOIN session_logs sl ON sl.completed_by_ktv_id = u.id\n     LEFT JOIN bookings b ON b.id = sl.booking_id\n     LEFT JOIN attendance a ON a.ktv_id = u.id AND date_trunc('month'::text, a.date::timestamp with time zone) = date_trunc('month'::text, COALESCE(sl.assigned_date, CURRENT_DATE)::timestamp with time zone)\n     LEFT JOIN salary_records sr ON sr.ktv_id = u.id AND sr.month_year = date_trunc('month'::text, COALESCE(sl.assigned_date, CURRENT_DATE)::timestamp with time zone)::date\n  WHERE u.role = 'ktv'::text AND u.tenant_id IS NOT NULL\n  GROUP BY u.id, u.tenant_id, u.full_name, u.email, u.phone, (date_trunc('month'::text, COALESCE(sl.assigned_date, CURRENT_DATE)::timestamp with time zone)::date);",
+      "name": "mv_ktv_performance_summary",
+      "owner": "postgres",
+      "reloptions": null,
+      "schema": "public"
+    },
+    {
+      "anon_delete": true,
+      "anon_insert": true,
+      "anon_update": true,
+      "authenticated_delete": true,
+      "authenticated_insert": true,
+      "authenticated_update": true,
+      "definition": " WITH monthly_payroll AS (\n         SELECT sr.tenant_id,\n            sr.month_year AS month,\n            sr.ktv_id,\n            u.full_name AS ktv_name,\n            u.role AS ktv_role,\n            COALESCE(sr.base_salary, 0::numeric) AS base_salary,\n            COALESCE(sr.session_bonus, 0::numeric) AS session_bonus,\n            COALESCE(sr.kpi_bonus, 0::numeric) AS kpi_bonus,\n            COALESCE(sr.rating_bonus, 0::numeric) AS rating_bonus,\n            COALESCE(sr.service_percentage_bonus, 0::numeric) AS service_percentage_bonus,\n            COALESCE(sr.violations_deduction, 0::numeric) AS violations_deduction,\n            COALESCE(sr.manual_adjustments, 0::numeric) AS other_adjustments,\n            COALESCE(sr.total_salary, 0::numeric) AS total_salary,\n            COALESCE(sr.total_sessions, 0::numeric) AS total_sessions,\n            sr.status AS payroll_status,\n            sr.published_at,\n            sr.ktv_confirmed_at AS confirmed_at\n           FROM salary_records sr\n             JOIN users u ON u.id = sr.ktv_id\n          WHERE sr.month_year IS NOT NULL\n        ), payroll_aggregates AS (\n         SELECT monthly_payroll.tenant_id,\n            monthly_payroll.month,\n            count(DISTINCT monthly_payroll.ktv_id) AS total_ktvs,\n            count(DISTINCT monthly_payroll.ktv_id) FILTER (WHERE monthly_payroll.payroll_status = ANY (ARRAY['published'::text, 'confirmed'::text, 'finalized'::text])) AS ktvs_paid,\n            count(DISTINCT monthly_payroll.ktv_id) FILTER (WHERE monthly_payroll.payroll_status = 'draft'::text) AS ktvs_draft,\n            sum(monthly_payroll.base_salary) AS total_base_salary,\n            sum(monthly_payroll.session_bonus) AS total_session_bonus,\n            sum(monthly_payroll.kpi_bonus) AS total_kpi_bonus,\n            sum(monthly_payroll.rating_bonus) AS total_rating_bonus,\n            sum(monthly_payroll.service_percentage_bonus) AS total_service_percentage_bonus,\n            sum(monthly_payroll.violations_deduction) AS total_violations_deduction,\n            sum(monthly_payroll.other_adjustments) AS total_other_adjustments,\n            sum(monthly_payroll.total_salary) AS total_payroll_cost,\n            sum(monthly_payroll.total_sessions) AS total_sessions_all_ktvs,\n            round(avg(monthly_payroll.base_salary), 2) AS avg_base_salary,\n            round(avg(monthly_payroll.total_salary), 2) AS avg_total_salary,\n            round(avg(monthly_payroll.total_sessions), 2) AS avg_sessions_per_ktv,\n                CASE\n                    WHEN sum(monthly_payroll.total_sessions) > 0::numeric THEN round(sum(monthly_payroll.total_salary) / NULLIF(sum(monthly_payroll.total_sessions), 0::numeric), 2)\n                    ELSE 0::numeric\n                END AS avg_salary_per_session\n           FROM monthly_payroll\n          GROUP BY monthly_payroll.tenant_id, monthly_payroll.month\n        ), ktv_payroll_details AS (\n         SELECT mp.tenant_id,\n            mp.month,\n            mp.ktv_id,\n            mp.ktv_name,\n            mp.ktv_role,\n            mp.base_salary,\n            mp.session_bonus,\n            mp.kpi_bonus,\n            mp.rating_bonus,\n            mp.service_percentage_bonus,\n            mp.violations_deduction,\n            mp.other_adjustments,\n            mp.total_salary,\n            mp.total_sessions,\n            mp.payroll_status,\n            mp.published_at,\n            mp.confirmed_at,\n            rank() OVER (PARTITION BY mp.tenant_id, mp.month ORDER BY mp.total_salary DESC) AS salary_rank,\n            round(mp.total_salary / NULLIF(sum(mp.total_salary) OVER (PARTITION BY mp.tenant_id, mp.month), 0::numeric) * 100::numeric, 2) AS payroll_share_pct,\n                CASE\n                    WHEN mp.base_salary > 0::numeric THEN round((mp.session_bonus + mp.kpi_bonus + mp.rating_bonus + mp.service_percentage_bonus) / mp.base_salary * 100::numeric, 2)\n                    ELSE 0::numeric\n                END AS bonus_to_base_pct,\n            mp.total_salary - mp.violations_deduction AS net_salary\n           FROM monthly_payroll mp\n        )\n SELECT kpd.tenant_id,\n    kpd.month,\n    kpd.ktv_id,\n    kpd.ktv_name,\n    kpd.ktv_role,\n    kpd.base_salary,\n    kpd.session_bonus,\n    kpd.kpi_bonus,\n    kpd.rating_bonus,\n    kpd.service_percentage_bonus,\n    kpd.violations_deduction,\n    kpd.other_adjustments,\n    kpd.total_salary,\n    kpd.net_salary,\n    kpd.total_sessions,\n    kpd.salary_rank,\n    kpd.payroll_share_pct,\n    kpd.bonus_to_base_pct,\n    kpd.payroll_status,\n    kpd.published_at,\n    kpd.confirmed_at,\n    pa.total_ktvs,\n    pa.ktvs_paid,\n    pa.ktvs_draft,\n    pa.total_base_salary,\n    pa.total_session_bonus,\n    pa.total_kpi_bonus,\n    pa.total_rating_bonus,\n    pa.total_service_percentage_bonus,\n    pa.total_violations_deduction,\n    pa.total_other_adjustments,\n    pa.total_payroll_cost,\n    pa.total_sessions_all_ktvs,\n    pa.avg_base_salary,\n    pa.avg_total_salary,\n    pa.avg_sessions_per_ktv,\n    pa.avg_salary_per_session,\n    now() AS computed_at\n   FROM ktv_payroll_details kpd\n     JOIN payroll_aggregates pa ON pa.tenant_id = kpd.tenant_id AND pa.month = kpd.month\n  ORDER BY kpd.tenant_id, kpd.month DESC, kpd.salary_rank;",
+      "name": "mv_payroll_summary",
+      "owner": "postgres",
+      "reloptions": null,
+      "schema": "public"
+    },
+    {
+      "anon_delete": true,
+      "anon_insert": true,
+      "anon_update": true,
+      "authenticated_delete": true,
+      "authenticated_insert": true,
+      "authenticated_update": true,
+      "definition": " WITH monthly_headcount AS (\n         SELECT users.tenant_id,\n            date_trunc('month'::text, users.created_at)::date AS month,\n            users.role,\n            count(DISTINCT users.id) AS new_hires,\n            count(DISTINCT users.id) FILTER (WHERE users.status = 'active'::text) AS active_count\n           FROM users\n          WHERE users.role = ANY (ARRAY['ktv'::text, 'manager'::text, 'admin'::text])\n          GROUP BY users.tenant_id, (date_trunc('month'::text, users.created_at)::date), users.role\n        ), monthly_terminations AS (\n         SELECT users.tenant_id,\n            date_trunc('month'::text, users.updated_at)::date AS month,\n            users.role,\n            count(DISTINCT users.id) AS termination_count\n           FROM users\n          WHERE (users.role = ANY (ARRAY['ktv'::text, 'manager'::text, 'admin'::text])) AND users.status <> 'active'::text AND users.updated_at IS NOT NULL\n          GROUP BY users.tenant_id, (date_trunc('month'::text, users.updated_at)::date), users.role\n        ), current_headcount AS (\n         SELECT users.tenant_id,\n            users.role,\n            count(DISTINCT users.id) FILTER (WHERE users.status = 'active'::text) AS current_active_count,\n            count(DISTINCT users.id) AS total_ever_hired,\n            avg(EXTRACT(year FROM age(now(), users.created_at)) * 12::numeric + EXTRACT(month FROM age(now(), users.created_at))) AS avg_tenure_months\n           FROM users\n          WHERE users.role = ANY (ARRAY['ktv'::text, 'manager'::text, 'admin'::text])\n          GROUP BY users.tenant_id, users.role\n        ), role_distribution AS (\n         SELECT users.tenant_id,\n            users.role,\n            count(DISTINCT users.id) FILTER (WHERE users.status = 'active'::text) AS active_count,\n            round(count(DISTINCT users.id) FILTER (WHERE users.status = 'active'::text)::numeric / NULLIF(sum(count(DISTINCT users.id) FILTER (WHERE users.status = 'active'::text)) OVER (PARTITION BY users.tenant_id), 0::numeric) * 100::numeric, 2) AS role_percentage\n           FROM users\n          WHERE users.role = ANY (ARRAY['ktv'::text, 'manager'::text, 'admin'::text])\n          GROUP BY users.tenant_id, users.role\n        )\n SELECT COALESCE(mh.tenant_id, mt.tenant_id, ch.tenant_id, rd.tenant_id) AS tenant_id,\n    COALESCE(mh.month, mt.month, date_trunc('month'::text, now())::date) AS month,\n    COALESCE(mh.role, mt.role, ch.role, rd.role) AS role,\n    COALESCE(mh.new_hires, 0::bigint) AS new_hires,\n    COALESCE(mt.termination_count, 0::bigint) AS terminations,\n    COALESCE(ch.current_active_count, 0::bigint) AS current_headcount,\n    COALESCE(ch.total_ever_hired, 0::bigint) AS total_ever_hired,\n        CASE\n            WHEN COALESCE(ch.current_active_count, 0::bigint) > 0 THEN round(COALESCE(mt.termination_count, 0::bigint)::numeric / COALESCE(ch.current_active_count, 1::bigint)::numeric * 100::numeric, 2)\n            ELSE 0::numeric\n        END AS turnover_rate_pct,\n    COALESCE(ch.avg_tenure_months, 0::numeric) AS avg_tenure_months,\n    COALESCE(rd.role_percentage, 0::numeric) AS role_distribution_pct,\n    now() AS computed_at\n   FROM monthly_headcount mh\n     FULL JOIN monthly_terminations mt ON mt.tenant_id = mh.tenant_id AND mt.month = mh.month AND mt.role = mh.role\n     FULL JOIN current_headcount ch ON ch.tenant_id = COALESCE(mh.tenant_id, mt.tenant_id) AND ch.role = COALESCE(mh.role, mt.role)\n     FULL JOIN role_distribution rd ON rd.tenant_id = COALESCE(mh.tenant_id, mt.tenant_id, ch.tenant_id) AND rd.role = COALESCE(mh.role, mt.role, ch.role)\n  WHERE COALESCE(mh.tenant_id, mt.tenant_id, ch.tenant_id, rd.tenant_id) IS NOT NULL;",
+      "name": "mv_workforce_analytics",
+      "owner": "postgres",
+      "reloptions": null,
+      "schema": "public"
+    },
+    {
+      "anon_delete": false,
+      "anon_insert": false,
+      "anon_update": false,
+      "authenticated_delete": false,
+      "authenticated_insert": false,
+      "authenticated_update": false,
+      "definition": " WITH RECURSIVE current_context AS (\n         SELECT COALESCE(auth.uid(), NULLIF(current_setting('app.current_user_id'::text, true), ''::text)::uuid) AS user_id,\n            COALESCE(get_auth_tenant_id(), NULLIF(current_setting('app.current_tenant_id'::text, true), ''::text)::uuid) AS tenant_id\n        ), direct_access AS (\n         SELECT pd.user_id,\n            rel.tenant_id,\n            rel.to_id AS org_unit_id,\n            rel.to_id AS root_org_unit_id,\n            rel.id AS relationship_id,\n            rel.rel_type AS access_source\n           FROM current_context ctx\n             JOIN people_directory pd ON pd.user_id = ctx.user_id AND pd.tenant_id = ctx.tenant_id AND pd.is_active = true\n             JOIN org_relationships rel ON rel.tenant_id = pd.tenant_id AND rel.from_id = pd.id AND rel.from_type = 'person'::text AND rel.to_type = 'unit'::text AND (rel.rel_type = ANY (ARRAY['belongs_to'::text, 'manages'::text, 'participates_in'::text])) AND (rel.since IS NULL OR rel.since <= CURRENT_DATE) AND (rel.until IS NULL OR rel.until >= CURRENT_DATE)\n             JOIN org_units ou ON ou.id = rel.to_id AND ou.tenant_id = rel.tenant_id AND ou.is_active = true\n        ), expanded_access AS (\n         SELECT direct_access.user_id,\n            direct_access.tenant_id,\n            direct_access.org_unit_id,\n            direct_access.root_org_unit_id,\n            direct_access.relationship_id,\n            direct_access.access_source\n           FROM direct_access\n        UNION\n         SELECT ea.user_id,\n            child.tenant_id,\n            child.id AS org_unit_id,\n            ea.root_org_unit_id,\n            ea.relationship_id,\n            ea.access_source\n           FROM expanded_access ea\n             JOIN org_units child ON child.parent_id = ea.org_unit_id AND child.tenant_id = ea.tenant_id AND child.is_active = true\n        ), admin_access AS (\n         SELECT u.id AS user_id,\n            ou.tenant_id,\n            ou.id AS org_unit_id,\n            ou.id AS root_org_unit_id,\n            NULL::uuid AS relationship_id,\n            'tenant_admin'::text AS access_source\n           FROM current_context ctx\n             JOIN users u ON u.id = ctx.user_id AND u.tenant_id = ctx.tenant_id AND (lower(u.role) = ANY (ARRAY['admin'::text, 'super_admin'::text]))\n             JOIN org_units ou ON ou.tenant_id = u.tenant_id AND ou.is_active = true\n        )\n SELECT DISTINCT expanded_access.user_id,\n    expanded_access.tenant_id,\n    expanded_access.org_unit_id,\n    expanded_access.root_org_unit_id,\n    expanded_access.relationship_id,\n    expanded_access.access_source\n   FROM expanded_access\nUNION\n SELECT DISTINCT admin_access.user_id,\n    admin_access.tenant_id,\n    admin_access.org_unit_id,\n    admin_access.root_org_unit_id,\n    admin_access.relationship_id,\n    admin_access.access_source\n   FROM admin_access;",
+      "name": "user_org_unit_access",
+      "owner": "postgres",
+      "reloptions": [
+        "security_invoker=true"
+      ],
+      "schema": "public"
+    }
+  ]
+}

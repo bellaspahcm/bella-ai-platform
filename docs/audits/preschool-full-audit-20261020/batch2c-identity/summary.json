@@ -1,0 +1,39 @@
+{
+  "checkedAt": "2026-10-20T20:54:36.409Z",
+  "target": "lvnvkpyxtuilhrabtlwv",
+  "source": "339c89250d87964ba8d58860a5ecdbc0bdde4956",
+  "branch": "codex/preschool-full-audit-20261020",
+  "PRODUCTION_CHANGE": "PASS",
+  "productionScope": "users client mutation ACL +2 related onboarding writer EXECUTE ACL; earlier32-table/exec_sql containment retained",
+  "DIRECT_DB_RPC_CONTAINMENT": "PASS",
+  "ANONYMOUS_CONTAINMENT": "FAIL",
+  "anonymousGap": "Courses old production service-role API remains until source deployment",
+  "AUTHENTICATED_ACCESS_REGRESSION": "NOT_PROVEN",
+  "BATCH2B_RBAC_RLS": "IN_PROGRESS",
+  "PRESCHOOL_GO_LIVE": "NOT_READY",
+  "nativePostgresTests": 20,
+  "jest": {
+    "suites": 5,
+    "passed": 80,
+    "failed": 0,
+    "skipped": 0
+  },
+  "lint": "PASS",
+  "educationTypecheck": "PASS_ZERO_DIAGNOSTICS",
+  "broadEducationHealthcare": "Prior offline DB-dependent failures retained; NOT_PASS",
+  "anonymous32TableRequests": {
+    "denied": 96,
+    "total": 96
+  },
+  "service32ReadsAllowed": 32,
+  "liveUsersDmlPlanDenials": 6,
+  "liveWriterRpcCallDenials": 4,
+  "realAuthenticatedJwtTested": false,
+  "productionBusinessRowsMutated": 0,
+  "otherRelationsUnchanged": 2673,
+  "coursesProductionAnonymousStatus": 200,
+  "coursesProductionClassrooms": 8,
+  "commitPushMergeDeploy": "NOT_RUN",
+  "codeReleasePacket": "SOURCE_RELEASE_PACKET.md",
+  "report": "FINAL_REPORT.md"
+}

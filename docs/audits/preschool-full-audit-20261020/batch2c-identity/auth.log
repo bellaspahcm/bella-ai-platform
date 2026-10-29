@@ -1,0 +1,18 @@
+  console.log
+    ◇ injected env (0) from .env.test // tip: ⌘ override existing { override: true }
+
+      at _log (node_modules/dotenv/lib/main.js:131:11)
+
+  console.log
+    [Jest Setup] SUPABASE_SERVICE_ROLE_KEY loaded: true
+
+      at Object.log (jest.setup.ts:17:9)
+
+Test Suites: 1 passed, 1 total
+Tests:       4 passed, 4 total
+Snapshots:   0 total
+Time:        0.63 s, estimated 1 s
+Ran all test suites matching src/__tests__/auth-guards.test.ts.
+Test results written to: docs\audits\preschool-full-audit-20261020\batch2c-identity\auth-results.json
+
+COMMAND_EXIT_CODE=0

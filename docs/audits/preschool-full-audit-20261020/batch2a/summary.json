@@ -1,0 +1,34 @@
+{
+  "target": "lvnvkpyxtuilhrabtlwv",
+  "branch": "codex/preschool-full-audit-20261020",
+  "sourceRevision": "339c89250d87964ba8d58860a5ecdbc0bdde4956",
+  "approvedRelationCount": 32,
+  "PRODUCTION_CHANGE": "NOT_RUN",
+  "ANONYMOUS_CONTAINMENT": "FAIL",
+  "AUTHENTICATED_ACCESS_REGRESSION": "NOT_PROVEN",
+  "BATCH2B_RBAC_RLS": "NOT_STARTED",
+  "PRESCHOOL_GO_LIVE": "NOT_READY",
+  "rehearsal": {
+    "result": "PASS",
+    "testsPassed": 12,
+    "commandExitCode": 0,
+    "anonymousDeniedSqlStatements": 160,
+    "productionBusinessRowsCopied": 0
+  },
+  "blocker": {
+    "function": "public.exec_sql(text)",
+    "securityDefiner": true,
+    "owner": "postgres",
+    "ownerBypassRls": true,
+    "anonymousEffectiveExecute": true,
+    "anonymousConstantSelectProbeStatus": 204,
+    "probeMutationStatements": 0,
+    "outsideApprovedTableOnlyDelta": true,
+    "ownerExplicitStopConditionApplies": true
+  },
+  "productionArtifactExecuted": false,
+  "productionRevokeStatementsExecuted": 0,
+  "selectedProductionCatalogUnchanged": true,
+  "localRehearsalServerStopped": true,
+  "report": "FINAL_REPORT.md"
+}

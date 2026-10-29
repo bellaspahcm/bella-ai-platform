@@ -1,0 +1,10 @@
+fix(education): require verified sessions for course reads
+
+Validate Auth before profile/data access, bind active profile to the Auth subject
+and tenant, and reject foreign or duplicate tenant overrides. Use the session RLS
+client instead of service-role/mock/default tenant fallback; fence teacher reads.
+Keep classroom payload mapping and the existing POST containment unchanged.
+
+Verification on this isolated branch:24 tests in2 suites, lint, Education scoped
+TypeScript and secret guard pass. Preserve prior4 local HTTP denial checks.
+No source deployment, full RBAC/RLS or Go-Live claim is made by this source push.

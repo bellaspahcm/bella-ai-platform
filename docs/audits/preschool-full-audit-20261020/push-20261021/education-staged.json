@@ -1,0 +1,61 @@
+{
+  "checkedAt": "2026-10-20T20:57:22.905Z",
+  "workspace": "C:\\Users\\DELL\\.codex\\worktrees\\preschool-courses-auth-20261021\\BELLA SPA ERP",
+  "branch": "codex/preschool-courses-auth-20261021",
+  "files": [
+    "docs/audits/preschool-full-audit-20261020/delivery-education-20261021/ARCHITECTURE_GATE_RESULT.md",
+    "docs/audits/preschool-full-audit-20261020/delivery-education-20261021/DELIVERY_EVIDENCE.md",
+    "docs/audits/preschool-full-audit-20261020/delivery-education-20261021/check-results.json",
+    "docs/audits/preschool-full-audit-20261020/delivery-education-20261021/courses-tests.json",
+    "docs/audits/preschool-full-audit-20261020/delivery-education-20261021/fresh-jest-results.json",
+    "docs/audits/preschool-full-audit-20261020/delivery-education-20261021/jest-command.json",
+    "docs/audits/preschool-full-audit-20261020/delivery-education-20261021/jest.log",
+    "docs/audits/preschool-full-audit-20261020/delivery-education-20261021/lint-command.json",
+    "docs/audits/preschool-full-audit-20261020/delivery-education-20261021/lint.log",
+    "docs/audits/preschool-full-audit-20261020/delivery-education-20261021/local-http.json",
+    "docs/audits/preschool-full-audit-20261020/delivery-education-20261021/review-results.json",
+    "docs/audits/preschool-full-audit-20261020/delivery-education-20261021/secrets-command.json",
+    "docs/audits/preschool-full-audit-20261020/delivery-education-20261021/secrets.log",
+    "docs/audits/preschool-full-audit-20261020/delivery-education-20261021/source-manifest.json",
+    "docs/audits/preschool-full-audit-20261020/delivery-education-20261021/typecheck-command.json",
+    "docs/audits/preschool-full-audit-20261020/delivery-education-20261021/typecheck.diagnostics.txt",
+    "docs/audits/preschool-full-audit-20261020/delivery-education-20261021/typecheck.log",
+    "src/app/api/education/courses/[id]/route.ts",
+    "src/app/api/education/courses/__tests__/access.test.ts",
+    "src/app/api/education/courses/__tests__/route.test.ts",
+    "src/app/api/education/courses/request-context.ts",
+    "src/app/api/education/courses/route.ts"
+  ],
+  "sourceBlobs": [
+    {
+      "path": "src/app/api/education/courses/route.ts",
+      "expectedBlob": "67c5eb7db50f217eff7094e6af54a762851bb556",
+      "stagedBlob": "67c5eb7db50f217eff7094e6af54a762851bb556"
+    },
+    {
+      "path": "src/app/api/education/courses/[id]/route.ts",
+      "expectedBlob": "cf4ed022652c2b2adc24fd05d4c138eb494a740f",
+      "stagedBlob": "cf4ed022652c2b2adc24fd05d4c138eb494a740f"
+    },
+    {
+      "path": "src/app/api/education/courses/request-context.ts",
+      "expectedBlob": "f904187629b54dbc211472403f6c0a5d38b0b269",
+      "stagedBlob": "f904187629b54dbc211472403f6c0a5d38b0b269"
+    },
+    {
+      "path": "src/app/api/education/courses/__tests__/route.test.ts",
+      "expectedBlob": "827b42d30f701779526a541419c88e02eb968163",
+      "stagedBlob": "827b42d30f701779526a541419c88e02eb968163"
+    },
+    {
+      "path": "src/app/api/education/courses/__tests__/access.test.ts",
+      "expectedBlob": "d7f669dc29c707234a0e5908f5ea61aa2385e241",
+      "stagedBlob": "d7f669dc29c707234a0e5908f5ea61aa2385e241"
+    }
+  ],
+  "sourceFiles": 5,
+  "totalFiles": 22,
+  "testsPassed": 24,
+  "secretsFound": 0,
+  "stagedDiffCheckExitCode": 0
+}

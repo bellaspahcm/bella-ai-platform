@@ -1,0 +1,18 @@
+[codex/preschool-parent-access-20261021 daf358e7a] fix(preschool): bind parent access to live guardian relationships
+ 23 files changed, 1123 insertions(+), 193 deletions(-)
+ create mode 100644 docs/audits/preschool-full-audit-20261020/batch2h-parent-access/ARCHITECTURE_GATE_RESULT.md
+ create mode 100644 docs/audits/preschool-full-audit-20261020/batch2h-parent-access/FINAL_REPORT.md
+ create mode 100644 docs/audits/preschool-full-audit-20261020/batch2h-parent-access/SPEC.md
+ create mode 100644 docs/audits/preschool-full-audit-20261020/batch2h-parent-access/jest-command.json
+ create mode 100644 docs/audits/preschool-full-audit-20261020/batch2h-parent-access/jest-results.json
+ create mode 100644 docs/audits/preschool-full-audit-20261020/batch2h-parent-access/lint-command.json
+ create mode 100644 docs/audits/preschool-full-audit-20261020/batch2h-parent-access/local-http.json
+ create mode 100644 docs/audits/preschool-full-audit-20261020/batch2h-parent-access/review-results.json
+ create mode 100644 docs/audits/preschool-full-audit-20261020/batch2h-parent-access/secrets-command.json
+ create mode 100644 docs/audits/preschool-full-audit-20261020/batch2h-parent-access/source-manifest.json
+ create mode 100644 docs/audits/preschool-full-audit-20261020/batch2h-parent-access/typecheck-command.json
+ create mode 100644 docs/audits/preschool-full-audit-20261020/batch2h-parent-access/verification.json
+ create mode 100644 docs/products/bella-preschool/AUTHORIZATION_CONTRACT.md
+ create mode 100644 src/app/api/education/portal/__tests__/access.test.ts
+ create mode 100644 src/app/api/education/portal/token/__tests__/access.test.ts
+ create mode 100644 src/products/bella-education/__tests__/preschool-parent-portal-security.test.ts

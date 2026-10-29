@@ -1,0 +1,26 @@
+{
+  "runtime": "Local development server",
+  "session": "No user session or Authorization header",
+  "mutationSafety": "Empty invalid payload; routes return before writes or AI execution",
+  "cases": [
+    {
+      "name": "copilot-anonymous",
+      "path": "/api/education/ai/copilot",
+      "status": 403,
+      "error": "FORBIDDEN"
+    },
+    {
+      "name": "copilot-client-role",
+      "path": "/api/education/ai/copilot",
+      "status": 400,
+      "error": "INVALID_ACTION"
+    },
+    {
+      "name": "announcements-invalid-payload",
+      "path": "/api/education/announcements",
+      "status": 400,
+      "error": "TITLE_REQUIRED",
+      "success": false
+    }
+  ]
+}

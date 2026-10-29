@@ -1,0 +1,763 @@
+{
+  "files": 118,
+  "pages": [
+    {
+      "file": "src/app/dashboard/education/attendance/page.tsx",
+      "lines": 1124,
+      "imports": [],
+      "dataCalls": [
+        {
+          "line": 288,
+          "call": "fetch",
+          "arguments": [
+            "'/api/education/courses'",
+            "{ cache: 'no-store' }"
+          ]
+        },
+        {
+          "line": 324,
+          "call": "fetch",
+          "arguments": [
+            "`/api/education/attendance?${params.toString()}`",
+            "{ cache: 'no-store' }"
+          ]
+        },
+        {
+          "line": 357,
+          "call": "fetch",
+          "arguments": [
+            "'/api/education/attendance'",
+            "{\r\n        method: 'POST',\r\n        headers: { 'Content-Type': 'application/json' },\r\n        body: JSON.stringify({ enrollmentId, status, date: schoolDay }),\r\n      }"
+          ]
+        },
+        {
+          "line": 396,
+          "call": "fetch",
+          "arguments": [
+            "'/api/education/attendance/handover'",
+            "{\r\n        method: 'POST',\r\n        headers: { 'Content-Type': 'application/json' },\r\n        body: JSON.stringify({\r\n          studentPartyId: row.studentPartyId,\r\n          guard"
+          ]
+        },
+        {
+          "line": 1024,
+          "call": "Array.from",
+          "arguments": [
+            "{ length: totalPages }",
+            "(_, i) => i + 1"
+          ]
+        }
+      ],
+      "constants": []
+    },
+    {
+      "file": "src/app/dashboard/education/care/page.tsx",
+      "lines": 2090,
+      "imports": [],
+      "dataCalls": [
+        {
+          "line": 500,
+          "call": "fetch",
+          "arguments": [
+            "'/api/education/courses'",
+            "{ cache: 'no-store' }"
+          ]
+        },
+        {
+          "line": 537,
+          "call": "fetch",
+          "arguments": [
+            "`/api/education/care/bulk?courseId=${encodeURIComponent(courseId)}&date=${encodeURIComponent(date)}`",
+            "{ cache: 'no-store' }"
+          ]
+        },
+        {
+          "line": 549,
+          "call": "fetch",
+          "arguments": [
+            "`/api/education/attendance?courseId=${encodeURIComponent(courseId)}&date=${encodeURIComponent(date)}`",
+            "{ cache: 'no-store' }"
+          ]
+        },
+        {
+          "line": 820,
+          "call": "fetch",
+          "arguments": [
+            "'/api/education/care/bulk'",
+            "{\r\n          method: 'POST',\r\n          headers: { 'Content-Type': 'application/json' },\r\n          body: JSON.stringify({\r\n            action: 'save_care',\r\n            courseId: "
+          ]
+        },
+        {
+          "line": 927,
+          "call": "fetch",
+          "arguments": [
+            "'/api/education/care/bulk'",
+            "{\r\n          method: 'POST',\r\n          headers: { 'Content-Type': 'application/json' },\r\n          body: JSON.stringify({\r\n            action: 'save_care',\r\n            courseId: "
+          ]
+        },
+        {
+          "line": 1290,
+          "call": "Array.from",
+          "arguments": [
+            "{ length: PAGE_SIZE }"
+          ]
+        },
+        {
+          "line": 1476,
+          "call": "Array.from",
+          "arguments": [
+            "{ length: totalPages }"
+          ]
+        }
+      ],
+      "constants": []
+    },
+    {
+      "file": "src/app/dashboard/education/communication/page.tsx",
+      "lines": 1880,
+      "imports": [],
+      "dataCalls": [
+        {
+          "line": 720,
+          "call": "fetch",
+          "arguments": [
+            "'/api/education/ai/copilot'",
+            "{\r\n        method: 'POST',\r\n        headers: { 'Content-Type': 'application/json' },\r\n        body: JSON.stringify({\r\n          action: 'classify_intent',\r\n          message: lastP"
+          ]
+        },
+        {
+          "line": 811,
+          "call": "fetch",
+          "arguments": [
+            "'/api/education/portal/token'",
+            "{\r\n        method: 'POST',\r\n        headers: { 'Content-Type': 'application/json' },\r\n        body: JSON.stringify({ studentPartyId: studentId }),\r\n      }"
+          ]
+        }
+      ],
+      "constants": []
+    },
+    {
+      "file": "src/app/dashboard/education/courses/page.tsx",
+      "lines": 1151,
+      "imports": [],
+      "dataCalls": [
+        {
+          "line": 363,
+          "call": "fetch",
+          "arguments": [
+            "'/api/education/courses'"
+          ]
+        },
+        {
+          "line": 453,
+          "call": "fetch",
+          "arguments": [
+            "'/api/education/courses'",
+            "{\r\n        method: 'POST',\r\n        headers: { 'Content-Type': 'application/json' },\r\n        body: JSON.stringify({\r\n          courseCode: formCode,\r\n          courseName: formNam"
+          ]
+        }
+      ],
+      "constants": [
+        {
+          "line": 112,
+          "name": "DEFAULT_CHILD_AVATARS",
+          "value": "[\r\n  'https://images.unsplash.com/photo-1543332164-6e82f355badc?w=100&h=100&fit=crop&crop=faces',\r\n  'https://images.unsplash.com/photo-1595"
+        }
+      ]
+    },
+    {
+      "file": "src/app/dashboard/education/courses/[id]/page.tsx",
+      "lines": 530,
+      "imports": [],
+      "dataCalls": [
+        {
+          "line": 122,
+          "call": "fetch",
+          "arguments": [
+            "`/api/education/courses/${classId}`"
+          ]
+        },
+        {
+          "line": 142,
+          "call": "fetch",
+          "arguments": [
+            "`/api/education/courses/${classId}/teachers`",
+            "{\r\n        method: 'POST',\r\n        headers: { 'Content-Type': 'application/json' },\r\n        body: JSON.stringify({\r\n          teacherPartyId: selectedTeacherId,\r\n          role: "
+          ]
+        },
+        {
+          "line": 173,
+          "call": "fetch",
+          "arguments": [
+            "`/api/education/courses/${classId}/teachers?assignmentId=${assignmentId}`",
+            "{\r\n        method: 'DELETE',\r\n      }"
+          ]
+        }
+      ],
+      "constants": [
+        {
+          "line": 66,
+          "name": "DEFAULT_WORKSPACE",
+          "value": "{\r\n  id: 'mam-a1',\r\n  code: 'MAM-A1',\r\n  name: 'Lớp Mầm A1 — Họa Mi',\r\n  grade: 'Khối Mầm (3 tuổi)',\r\n  room: 'Phòng 101 • Tầng 1',\r\n  maxSt"
+        }
+      ]
+    },
+    {
+      "file": "src/app/dashboard/education/enrollments/page.tsx",
+      "lines": 2132,
+      "imports": [],
+      "dataCalls": [
+        {
+          "line": 645,
+          "call": "fetch",
+          "arguments": [
+            "'/api/education/enrollments'",
+            "{ method: 'GET' }"
+          ]
+        },
+        {
+          "line": 717,
+          "call": "fetch",
+          "arguments": [
+            "'/api/education/courses'"
+          ]
+        },
+        {
+          "line": 718,
+          "call": "fetch",
+          "arguments": [
+            "'/api/education/branches'"
+          ]
+        },
+        {
+          "line": 774,
+          "call": "Array.from",
+          "arguments": [
+            "classSet"
+          ]
+        },
+        {
+          "line": 889,
+          "call": "fetch",
+          "arguments": [
+            "'/api/education/enrollments'",
+            "{\r\n        method: 'POST',\r\n        headers: { 'Content-Type': 'application/json' },\r\n        body: JSON.stringify(admissionForm),\r\n      }"
+          ]
+        }
+      ],
+      "constants": [
+        {
+          "line": 193,
+          "name": "DEFAULT_ADMISSION_FORM",
+          "value": "{\r\n  childName: '',\r\n  nickname: '',\r\n  dateOfBirth: '2023-06-15',\r\n  gender: 'Nam',\r\n  guardianName: '',\r\n  guardianPhone: '',\r\n  medicalNo"
+        }
+      ]
+    },
+    {
+      "file": "src/app/dashboard/education/enrollments/[id]/page.tsx",
+      "lines": 2661,
+      "imports": [],
+      "dataCalls": [],
+      "constants": []
+    },
+    {
+      "file": "src/app/dashboard/education/facilities/page.tsx",
+      "lines": 1890,
+      "imports": [
+        {
+          "line": 34,
+          "module": "@supabase/supabase-js"
+        },
+        {
+          "line": 68,
+          "module": "@/products/bella-education/facilities/repositories/preschool-facilities.repository"
+        },
+        {
+          "line": 69,
+          "module": "@/products/bella-education/facilities/services/facility-zone.service"
+        },
+        {
+          "line": 70,
+          "module": "@/products/bella-education/facilities/services/safety-inspection.service"
+        },
+        {
+          "line": 71,
+          "module": "@/products/bella-education/facilities/services/maintenance-job.service"
+        },
+        {
+          "line": 72,
+          "module": "@/products/bella-education/facilities/bridges/facilities-projection.bridge"
+        },
+        {
+          "line": 73,
+          "module": "@/products/bella-education/parent-engagement/repositories/parent-communication.repository"
+        },
+        {
+          "line": 74,
+          "module": "@/products/bella-education/parent-engagement/services/communication-exception.service"
+        },
+        {
+          "line": 75,
+          "module": "@/products/bella-education/parent-engagement/domain/communication.types"
+        },
+        {
+          "line": 76,
+          "module": "@/products/bella-education/facilities/domain/facilities.types"
+        }
+      ],
+      "dataCalls": [
+        {
+          "line": 270,
+          "call": "supabase.from",
+          "arguments": [
+            "'edu_fac_maintenance_jobs'"
+          ]
+        },
+        {
+          "line": 271,
+          "call": "supabase.from",
+          "arguments": [
+            "'edu_fac_inspection_logs'"
+          ]
+        },
+        {
+          "line": 272,
+          "call": "supabase.from",
+          "arguments": [
+            "'edu_fac_out_of_service_logs'"
+          ]
+        },
+        {
+          "line": 273,
+          "call": "supabase.from",
+          "arguments": [
+            "'edu_comm_exceptions'"
+          ]
+        }
+      ],
+      "constants": [
+        {
+          "line": 89,
+          "name": "DEFAULT_TENANT_ID",
+          "value": "'00000000-0000-0000-0000-000000000001'"
+        },
+        {
+          "line": 90,
+          "name": "DEFAULT_INSPECTOR_ID",
+          "value": "'00000000-0000-0000-0000-000000000071'"
+        },
+        {
+          "line": 112,
+          "name": "INITIAL_DEMO_ASSETS",
+          "value": "[\n  {\n    id: 'ast-001',\n    code: 'TS-001',\n    name: 'Máy lạnh',\n    group: 'Phòng học',\n    location: 'Mầm A1',\n    status: 'OPERATIONAL'"
+        }
+      ]
+    },
+    {
+      "file": "src/app/dashboard/education/finance/page.tsx",
+      "lines": 3236,
+      "imports": [
+        {
+          "line": 68,
+          "module": "@/products/bella-education/finance/domain/finance.types"
+        }
+      ],
+      "dataCalls": [
+        {
+          "line": 344,
+          "call": "fetch",
+          "arguments": [
+            "'/api/education/finance'",
+            "{ cache: 'no-store' }"
+          ]
+        },
+        {
+          "line": 380,
+          "call": "fetch",
+          "arguments": [
+            "'/api/education/finance'",
+            "{\n      method: 'POST',\n      headers: { 'Content-Type': 'application/json' },\n      body: JSON.stringify({ action, ...payload }),\n    }"
+          ]
+        },
+        {
+          "line": 1858,
+          "call": "Array.from",
+          "arguments": [
+            "new Map(displayInvoices.map((invoice) => [invoice.billingPeriodId, invoice.billingPeriodDisplay]))"
+          ]
+        }
+      ],
+      "constants": []
+    },
+    {
+      "file": "src/app/dashboard/education/grades/page.tsx",
+      "lines": 3792,
+      "imports": [],
+      "dataCalls": [
+        {
+          "line": 2484,
+          "call": "Array.from",
+          "arguments": [
+            "{ length: totalPages }"
+          ]
+        }
+      ],
+      "constants": []
+    },
+    {
+      "file": "src/app/dashboard/education/learning/page.tsx",
+      "lines": 417,
+      "imports": [],
+      "dataCalls": [],
+      "constants": []
+    },
+    {
+      "file": "src/app/dashboard/education/my-class/page.tsx",
+      "lines": 2685,
+      "imports": [],
+      "dataCalls": [
+        {
+          "line": 761,
+          "call": "fetch",
+          "arguments": [
+            "'/api/education/ai/copilot'",
+            "{\r\n        method: 'POST',\r\n        headers: { 'Content-Type': 'application/json' },\r\n        body: JSON.stringify({\r\n          action: 'ask_copilot',\r\n          question: `Tóm tắt"
+          ]
+        },
+        {
+          "line": 793,
+          "call": "fetch",
+          "arguments": [
+            "'/api/education/ai/copilot'",
+            "{\r\n        method: 'POST',\r\n        headers: { 'Content-Type': 'application/json' },\r\n        body: JSON.stringify({\r\n          action: 'check_allergy',\r\n          menuDishes: dish"
+          ]
+        },
+        {
+          "line": 841,
+          "call": "fetch",
+          "arguments": [
+            "'/api/education/ai/copilot'",
+            "{\r\n        method: 'POST',\r\n        headers: { 'Content-Type': 'application/json' },\r\n        body: JSON.stringify({\r\n          action: 'generate_digest',\r\n          studentName: s"
+          ]
+        },
+        {
+          "line": 890,
+          "call": "fetch",
+          "arguments": [
+            "'/api/education/ai/copilot'",
+            "{\r\n        method: 'POST',\r\n        headers: { 'Content-Type': 'application/json' },\r\n        body: JSON.stringify({\r\n          action: 'ask_copilot',\r\n          question,\r\n       "
+          ]
+        }
+      ],
+      "constants": []
+    },
+    {
+      "file": "src/app/dashboard/education/page.tsx",
+      "lines": 2243,
+      "imports": [
+        {
+          "line": 23,
+          "module": "@/lib/supabase-client"
+        },
+        {
+          "line": 25,
+          "module": "@/products/bella-education/analytics/domain/preschool-analytics.types"
+        }
+      ],
+      "dataCalls": [
+        {
+          "line": 182,
+          "call": "fetch",
+          "arguments": [
+            "`/api/education/analytics?date=${selectedDateStr}`",
+            "{ cache: 'no-store' }"
+          ]
+        },
+        {
+          "line": 482,
+          "call": "fetch",
+          "arguments": [
+            "'/api/education/ai/copilot'",
+            "{\r\n        method: 'POST',\r\n        headers: { 'Content-Type': 'application/json' },\r\n        body: JSON.stringify({\r\n          action: 'executive_briefing',\r\n          totalStuden"
+          ]
+        },
+        {
+          "line": 526,
+          "call": "fetch",
+          "arguments": [
+            "'/api/education/ai/copilot'",
+            "{\r\n        method: 'POST',\r\n        headers: { 'Content-Type': 'application/json' },\r\n        body: JSON.stringify({\r\n          action: 'executive_safety_audit',\r\n          classRo"
+          ]
+        },
+        {
+          "line": 560,
+          "call": "fetch",
+          "arguments": [
+            "'/api/education/ai/copilot'",
+            "{\r\n        method: 'POST',\r\n        headers: { 'Content-Type': 'application/json' },\r\n        body: JSON.stringify({\r\n          action: 'ask_copilot',\r\n          question: q,\r\n    "
+          ]
+        }
+      ],
+      "constants": []
+    },
+    {
+      "file": "src/app/dashboard/education/parent-inbox/page.tsx",
+      "lines": 315,
+      "imports": [],
+      "dataCalls": [
+        {
+          "line": 123,
+          "call": "fetch",
+          "arguments": [
+            "`/api/education/parent-daily?date=${encodeURIComponent(targetDay)}`",
+            "{\r\n        cache: 'no-store',\r\n      }"
+          ]
+        }
+      ],
+      "constants": []
+    },
+    {
+      "file": "src/app/dashboard/education/reports/page.tsx",
+      "lines": 1291,
+      "imports": [
+        {
+          "line": 42,
+          "module": "@/products/bella-education/analytics/domain/preschool-analytics.types"
+        }
+      ],
+      "dataCalls": [
+        {
+          "line": 150,
+          "call": "Array.from",
+          "arguments": [
+            "{ length: 5 }",
+            "(_, i) => {\r\n        if (disabled) {\r\n          return <Star key={i} className=\"w-4 h-4 text-slate-200\" />;\r\n        }\r\n        if (i < full) {\r\n          return <Star key={i} clas"
+          ]
+        },
+        {
+          "line": 328,
+          "call": "fetch",
+          "arguments": [
+            "`/api/education/analytics?date=${encodeURIComponent(selectedDate)}`"
+          ]
+        }
+      ],
+      "constants": []
+    },
+    {
+      "file": "src/app/dashboard/education/scheduling/page.tsx",
+      "lines": 786,
+      "imports": [
+        {
+          "line": 14,
+          "module": "@supabase/supabase-js"
+        },
+        {
+          "line": 36,
+          "module": "@/products/bella-education/scheduling/repositories/preschool-scheduling.repository"
+        },
+        {
+          "line": 37,
+          "module": "@/products/bella-education/scheduling/services/staff-roster.service"
+        },
+        {
+          "line": 38,
+          "module": "@/products/bella-education/scheduling/services/ratio-compliance.service"
+        },
+        {
+          "line": 39,
+          "module": "@/products/bella-education/scheduling/services/leave-substitution.service"
+        },
+        {
+          "line": 40,
+          "module": "@/products/bella-education/scheduling/bridges/scheduling-projection.bridge"
+        },
+        {
+          "line": 41,
+          "module": "@/products/bella-education/parent-engagement/repositories/parent-communication.repository"
+        },
+        {
+          "line": 42,
+          "module": "@/products/bella-education/parent-engagement/services/communication-exception.service"
+        },
+        {
+          "line": 43,
+          "module": "@/products/bella-education/scheduling/domain/scheduling.types"
+        },
+        {
+          "line": 44,
+          "module": "@/products/bella-education/parent-engagement/domain/communication.types"
+        }
+      ],
+      "dataCalls": [
+        {
+          "line": 131,
+          "call": "supabase\r\n        .from",
+          "arguments": [
+            "'edu_sched_leave_requests'"
+          ]
+        },
+        {
+          "line": 139,
+          "call": "supabase\r\n        .from",
+          "arguments": [
+            "'edu_sched_substitutions'"
+          ]
+        },
+        {
+          "line": 166,
+          "call": "supabase\r\n        .from",
+          "arguments": [
+            "'edu_sched_shift_assignments'"
+          ]
+        },
+        {
+          "line": 171,
+          "call": "supabase\r\n        .from",
+          "arguments": [
+            "'edu_sched_leave_requests'"
+          ]
+        },
+        {
+          "line": 176,
+          "call": "supabase\r\n        .from",
+          "arguments": [
+            "'edu_sched_substitutions'"
+          ]
+        },
+        {
+          "line": 181,
+          "call": "supabase\r\n        .from",
+          "arguments": [
+            "'edu_comm_exceptions'"
+          ]
+        }
+      ],
+      "constants": [
+        {
+          "line": 51,
+          "name": "DEFAULT_TENANT_ID",
+          "value": "'00000000-0000-0000-0000-000000000001'"
+        },
+        {
+          "line": 52,
+          "name": "DEFAULT_MANAGER_ID",
+          "value": "'00000000-0000-0000-0000-000000000003'"
+        },
+        {
+          "line": 53,
+          "name": "DEFAULT_TEACHER1_ID",
+          "value": "'00000000-0000-0000-0000-000000000081'"
+        },
+        {
+          "line": 54,
+          "name": "DEFAULT_TEACHER2_ID",
+          "value": "'00000000-0000-0000-0000-000000000082'"
+        },
+        {
+          "line": 55,
+          "name": "DEFAULT_CAREGIVER1_ID",
+          "value": "'00000000-0000-0000-0000-000000000083'"
+        },
+        {
+          "line": 56,
+          "name": "DEFAULT_CLASSROOM_ID",
+          "value": "'00000000-0000-0000-0000-000000000091'"
+        }
+      ]
+    },
+    {
+      "file": "src/app/dashboard/education/teachers/page.tsx",
+      "lines": 1426,
+      "imports": [],
+      "dataCalls": [],
+      "constants": []
+    },
+    {
+      "file": "src/app/dashboard/education/teachers/[id]/page.tsx",
+      "lines": 1284,
+      "imports": [],
+      "dataCalls": [],
+      "constants": []
+    },
+    {
+      "file": "src/app/dashboard/education/work-queue/page.tsx",
+      "lines": 182,
+      "imports": [
+        {
+          "line": 8,
+          "module": "@/products/bella-education/work-queue/work-queue.types"
+        }
+      ],
+      "dataCalls": [
+        {
+          "line": 60,
+          "call": "fetch(`/api/education/work-queue?view=${view}&status=${status}&page=${page}`, { cache: 'no-store', signal: controller.signal })\r\n      .then(async response => {\r\n        const payload: Reply = await response.json();\r\n        if (!response.ok || !payload.success || !payload.items || payload.total === undefined || payload.page === undefined\r\n          || payload.pages === undefined || payload.pageSize === undefined) throw new Error(payload.error ?? 'Không thể tải danh sách.');\r\n        if (current) {\r\n          setData({ items: payload.items, total: payload.total, page: payload.page, pages: payload.pages, pageSize: payload.pageSize });\r\n          setRequiresReload(false); setSaveError('');\r\n        }\r\n      })\r\n      .catch((reason: unknown) => { if (current) setError(reason instanceof Error ? reason.message : 'Không thể tải danh sách.'); })\r\n      .finally",
+          "arguments": [
+            "() => { if (current) setLoading(false); }"
+          ]
+        },
+        {
+          "line": 60,
+          "call": "fetch(`/api/education/work-queue?view=${view}&status=${status}&page=${page}`, { cache: 'no-store', signal: controller.signal })\r\n      .then(async response => {\r\n        const payload: Reply = await response.json();\r\n        if (!response.ok || !payload.success || !payload.items || payload.total === undefined || payload.page === undefined\r\n          || payload.pages === undefined || payload.pageSize === undefined) throw new Error(payload.error ?? 'Không thể tải danh sách.');\r\n        if (current) {\r\n          setData({ items: payload.items, total: payload.total, page: payload.page, pages: payload.pages, pageSize: payload.pageSize });\r\n          setRequiresReload(false); setSaveError('');\r\n        }\r\n      })\r\n      .catch",
+          "arguments": [
+            "(reason: unknown) => { if (current) setError(reason instanceof Error ? reason.message : 'Không thể tải danh sách.'); }"
+          ]
+        },
+        {
+          "line": 60,
+          "call": "fetch",
+          "arguments": [
+            "`/api/education/work-queue?view=${view}&status=${status}&page=${page}`",
+            "{ cache: 'no-store', signal: controller.signal }"
+          ]
+        },
+        {
+          "line": 82,
+          "call": "fetch",
+          "arguments": [
+            "'/api/education/work-queue'",
+            "{ method: 'POST', headers: { 'Content-Type': 'application/json' },\r\n        body: JSON.stringify({ view: item.view, id: item.id, action, note, expectedUpdatedAt: item.updatedAt }) "
+          ]
+        }
+      ],
+      "constants": []
+    },
+    {
+      "file": "src/app/portal/education/[token]/page.tsx",
+      "lines": 1028,
+      "imports": [
+        {
+          "line": 50,
+          "module": "@/products/bella-education/parent-portal/domain/parent-portal.types"
+        }
+      ],
+      "dataCalls": [
+        {
+          "line": 100,
+          "call": "fetch",
+          "arguments": [
+            "`/api/education/portal/${encodeURIComponent(token)}`",
+            "{\n        cache: 'no-store',\n      }"
+          ]
+        },
+        {
+          "line": 142,
+          "call": "fetch",
+          "arguments": [
+            "`/api/education/portal/${encodeURIComponent(token)}/chat`",
+            "{\n        method: 'POST',\n        headers: { 'Content-Type': 'application/json' },\n        body: JSON.stringify({ message: textToSend }),\n      }"
+          ]
+        },
+        {
+          "line": 182,
+          "call": "fetch",
+          "arguments": [
+            "`/api/education/portal/${encodeURIComponent(token)}/copilot`",
+            "{\n        method: 'POST',\n        headers: { 'Content-Type': 'application/json' },\n        body: JSON.stringify({\n          action: 'ask_copilot',\n          question: q,\n          "
+          ]
+        }
+      ],
+      "constants": []
+    }
+  ]
+}

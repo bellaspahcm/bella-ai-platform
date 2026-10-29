@@ -1,0 +1,1956 @@
+{
+  "client_column_privileges": [
+    {
+      "column": "id",
+      "effective": false,
+      "privilege": "INSERT",
+      "role": "anon"
+    },
+    {
+      "column": "id",
+      "effective": false,
+      "privilege": "REFERENCES",
+      "role": "anon"
+    },
+    {
+      "column": "id",
+      "effective": true,
+      "privilege": "SELECT",
+      "role": "anon"
+    },
+    {
+      "column": "id",
+      "effective": false,
+      "privilege": "UPDATE",
+      "role": "anon"
+    },
+    {
+      "column": "email",
+      "effective": false,
+      "privilege": "INSERT",
+      "role": "anon"
+    },
+    {
+      "column": "email",
+      "effective": false,
+      "privilege": "REFERENCES",
+      "role": "anon"
+    },
+    {
+      "column": "email",
+      "effective": true,
+      "privilege": "SELECT",
+      "role": "anon"
+    },
+    {
+      "column": "email",
+      "effective": false,
+      "privilege": "UPDATE",
+      "role": "anon"
+    },
+    {
+      "column": "full_name",
+      "effective": false,
+      "privilege": "INSERT",
+      "role": "anon"
+    },
+    {
+      "column": "full_name",
+      "effective": false,
+      "privilege": "REFERENCES",
+      "role": "anon"
+    },
+    {
+      "column": "full_name",
+      "effective": true,
+      "privilege": "SELECT",
+      "role": "anon"
+    },
+    {
+      "column": "full_name",
+      "effective": false,
+      "privilege": "UPDATE",
+      "role": "anon"
+    },
+    {
+      "column": "phone",
+      "effective": false,
+      "privilege": "INSERT",
+      "role": "anon"
+    },
+    {
+      "column": "phone",
+      "effective": false,
+      "privilege": "REFERENCES",
+      "role": "anon"
+    },
+    {
+      "column": "phone",
+      "effective": true,
+      "privilege": "SELECT",
+      "role": "anon"
+    },
+    {
+      "column": "phone",
+      "effective": false,
+      "privilege": "UPDATE",
+      "role": "anon"
+    },
+    {
+      "column": "role",
+      "effective": false,
+      "privilege": "INSERT",
+      "role": "anon"
+    },
+    {
+      "column": "role",
+      "effective": false,
+      "privilege": "REFERENCES",
+      "role": "anon"
+    },
+    {
+      "column": "role",
+      "effective": true,
+      "privilege": "SELECT",
+      "role": "anon"
+    },
+    {
+      "column": "role",
+      "effective": false,
+      "privilege": "UPDATE",
+      "role": "anon"
+    },
+    {
+      "column": "avatar_url",
+      "effective": false,
+      "privilege": "INSERT",
+      "role": "anon"
+    },
+    {
+      "column": "avatar_url",
+      "effective": false,
+      "privilege": "REFERENCES",
+      "role": "anon"
+    },
+    {
+      "column": "avatar_url",
+      "effective": true,
+      "privilege": "SELECT",
+      "role": "anon"
+    },
+    {
+      "column": "avatar_url",
+      "effective": false,
+      "privilege": "UPDATE",
+      "role": "anon"
+    },
+    {
+      "column": "status",
+      "effective": false,
+      "privilege": "INSERT",
+      "role": "anon"
+    },
+    {
+      "column": "status",
+      "effective": false,
+      "privilege": "REFERENCES",
+      "role": "anon"
+    },
+    {
+      "column": "status",
+      "effective": true,
+      "privilege": "SELECT",
+      "role": "anon"
+    },
+    {
+      "column": "status",
+      "effective": false,
+      "privilege": "UPDATE",
+      "role": "anon"
+    },
+    {
+      "column": "tenant_id",
+      "effective": false,
+      "privilege": "INSERT",
+      "role": "anon"
+    },
+    {
+      "column": "tenant_id",
+      "effective": false,
+      "privilege": "REFERENCES",
+      "role": "anon"
+    },
+    {
+      "column": "tenant_id",
+      "effective": true,
+      "privilege": "SELECT",
+      "role": "anon"
+    },
+    {
+      "column": "tenant_id",
+      "effective": false,
+      "privilege": "UPDATE",
+      "role": "anon"
+    },
+    {
+      "column": "created_at",
+      "effective": false,
+      "privilege": "INSERT",
+      "role": "anon"
+    },
+    {
+      "column": "created_at",
+      "effective": false,
+      "privilege": "REFERENCES",
+      "role": "anon"
+    },
+    {
+      "column": "created_at",
+      "effective": true,
+      "privilege": "SELECT",
+      "role": "anon"
+    },
+    {
+      "column": "created_at",
+      "effective": false,
+      "privilege": "UPDATE",
+      "role": "anon"
+    },
+    {
+      "column": "updated_at",
+      "effective": false,
+      "privilege": "INSERT",
+      "role": "anon"
+    },
+    {
+      "column": "updated_at",
+      "effective": false,
+      "privilege": "REFERENCES",
+      "role": "anon"
+    },
+    {
+      "column": "updated_at",
+      "effective": true,
+      "privilege": "SELECT",
+      "role": "anon"
+    },
+    {
+      "column": "updated_at",
+      "effective": false,
+      "privilege": "UPDATE",
+      "role": "anon"
+    },
+    {
+      "column": "base_salary",
+      "effective": false,
+      "privilege": "INSERT",
+      "role": "anon"
+    },
+    {
+      "column": "base_salary",
+      "effective": false,
+      "privilege": "REFERENCES",
+      "role": "anon"
+    },
+    {
+      "column": "base_salary",
+      "effective": true,
+      "privilege": "SELECT",
+      "role": "anon"
+    },
+    {
+      "column": "base_salary",
+      "effective": false,
+      "privilege": "UPDATE",
+      "role": "anon"
+    },
+    {
+      "column": "hire_date",
+      "effective": false,
+      "privilege": "INSERT",
+      "role": "anon"
+    },
+    {
+      "column": "hire_date",
+      "effective": false,
+      "privilege": "REFERENCES",
+      "role": "anon"
+    },
+    {
+      "column": "hire_date",
+      "effective": true,
+      "privilege": "SELECT",
+      "role": "anon"
+    },
+    {
+      "column": "hire_date",
+      "effective": false,
+      "privilege": "UPDATE",
+      "role": "anon"
+    },
+    {
+      "column": "resignation_date",
+      "effective": false,
+      "privilege": "INSERT",
+      "role": "anon"
+    },
+    {
+      "column": "resignation_date",
+      "effective": false,
+      "privilege": "REFERENCES",
+      "role": "anon"
+    },
+    {
+      "column": "resignation_date",
+      "effective": true,
+      "privilege": "SELECT",
+      "role": "anon"
+    },
+    {
+      "column": "resignation_date",
+      "effective": false,
+      "privilege": "UPDATE",
+      "role": "anon"
+    },
+    {
+      "column": "metadata",
+      "effective": false,
+      "privilege": "INSERT",
+      "role": "anon"
+    },
+    {
+      "column": "metadata",
+      "effective": false,
+      "privilege": "REFERENCES",
+      "role": "anon"
+    },
+    {
+      "column": "metadata",
+      "effective": true,
+      "privilege": "SELECT",
+      "role": "anon"
+    },
+    {
+      "column": "metadata",
+      "effective": false,
+      "privilege": "UPDATE",
+      "role": "anon"
+    },
+    {
+      "column": "position_tier",
+      "effective": false,
+      "privilege": "INSERT",
+      "role": "anon"
+    },
+    {
+      "column": "position_tier",
+      "effective": false,
+      "privilege": "REFERENCES",
+      "role": "anon"
+    },
+    {
+      "column": "position_tier",
+      "effective": true,
+      "privilege": "SELECT",
+      "role": "anon"
+    },
+    {
+      "column": "position_tier",
+      "effective": false,
+      "privilege": "UPDATE",
+      "role": "anon"
+    },
+    {
+      "column": "leave_balance",
+      "effective": false,
+      "privilege": "INSERT",
+      "role": "anon"
+    },
+    {
+      "column": "leave_balance",
+      "effective": false,
+      "privilege": "REFERENCES",
+      "role": "anon"
+    },
+    {
+      "column": "leave_balance",
+      "effective": true,
+      "privilege": "SELECT",
+      "role": "anon"
+    },
+    {
+      "column": "leave_balance",
+      "effective": false,
+      "privilege": "UPDATE",
+      "role": "anon"
+    },
+    {
+      "column": "id",
+      "effective": false,
+      "privilege": "INSERT",
+      "role": "authenticated"
+    },
+    {
+      "column": "id",
+      "effective": false,
+      "privilege": "REFERENCES",
+      "role": "authenticated"
+    },
+    {
+      "column": "id",
+      "effective": true,
+      "privilege": "SELECT",
+      "role": "authenticated"
+    },
+    {
+      "column": "id",
+      "effective": false,
+      "privilege": "UPDATE",
+      "role": "authenticated"
+    },
+    {
+      "column": "email",
+      "effective": false,
+      "privilege": "INSERT",
+      "role": "authenticated"
+    },
+    {
+      "column": "email",
+      "effective": false,
+      "privilege": "REFERENCES",
+      "role": "authenticated"
+    },
+    {
+      "column": "email",
+      "effective": true,
+      "privilege": "SELECT",
+      "role": "authenticated"
+    },
+    {
+      "column": "email",
+      "effective": false,
+      "privilege": "UPDATE",
+      "role": "authenticated"
+    },
+    {
+      "column": "full_name",
+      "effective": false,
+      "privilege": "INSERT",
+      "role": "authenticated"
+    },
+    {
+      "column": "full_name",
+      "effective": false,
+      "privilege": "REFERENCES",
+      "role": "authenticated"
+    },
+    {
+      "column": "full_name",
+      "effective": true,
+      "privilege": "SELECT",
+      "role": "authenticated"
+    },
+    {
+      "column": "full_name",
+      "effective": false,
+      "privilege": "UPDATE",
+      "role": "authenticated"
+    },
+    {
+      "column": "phone",
+      "effective": false,
+      "privilege": "INSERT",
+      "role": "authenticated"
+    },
+    {
+      "column": "phone",
+      "effective": false,
+      "privilege": "REFERENCES",
+      "role": "authenticated"
+    },
+    {
+      "column": "phone",
+      "effective": true,
+      "privilege": "SELECT",
+      "role": "authenticated"
+    },
+    {
+      "column": "phone",
+      "effective": false,
+      "privilege": "UPDATE",
+      "role": "authenticated"
+    },
+    {
+      "column": "role",
+      "effective": false,
+      "privilege": "INSERT",
+      "role": "authenticated"
+    },
+    {
+      "column": "role",
+      "effective": false,
+      "privilege": "REFERENCES",
+      "role": "authenticated"
+    },
+    {
+      "column": "role",
+      "effective": true,
+      "privilege": "SELECT",
+      "role": "authenticated"
+    },
+    {
+      "column": "role",
+      "effective": false,
+      "privilege": "UPDATE",
+      "role": "authenticated"
+    },
+    {
+      "column": "avatar_url",
+      "effective": false,
+      "privilege": "INSERT",
+      "role": "authenticated"
+    },
+    {
+      "column": "avatar_url",
+      "effective": false,
+      "privilege": "REFERENCES",
+      "role": "authenticated"
+    },
+    {
+      "column": "avatar_url",
+      "effective": true,
+      "privilege": "SELECT",
+      "role": "authenticated"
+    },
+    {
+      "column": "avatar_url",
+      "effective": false,
+      "privilege": "UPDATE",
+      "role": "authenticated"
+    },
+    {
+      "column": "status",
+      "effective": false,
+      "privilege": "INSERT",
+      "role": "authenticated"
+    },
+    {
+      "column": "status",
+      "effective": false,
+      "privilege": "REFERENCES",
+      "role": "authenticated"
+    },
+    {
+      "column": "status",
+      "effective": true,
+      "privilege": "SELECT",
+      "role": "authenticated"
+    },
+    {
+      "column": "status",
+      "effective": false,
+      "privilege": "UPDATE",
+      "role": "authenticated"
+    },
+    {
+      "column": "tenant_id",
+      "effective": false,
+      "privilege": "INSERT",
+      "role": "authenticated"
+    },
+    {
+      "column": "tenant_id",
+      "effective": false,
+      "privilege": "REFERENCES",
+      "role": "authenticated"
+    },
+    {
+      "column": "tenant_id",
+      "effective": true,
+      "privilege": "SELECT",
+      "role": "authenticated"
+    },
+    {
+      "column": "tenant_id",
+      "effective": false,
+      "privilege": "UPDATE",
+      "role": "authenticated"
+    },
+    {
+      "column": "created_at",
+      "effective": false,
+      "privilege": "INSERT",
+      "role": "authenticated"
+    },
+    {
+      "column": "created_at",
+      "effective": false,
+      "privilege": "REFERENCES",
+      "role": "authenticated"
+    },
+    {
+      "column": "created_at",
+      "effective": true,
+      "privilege": "SELECT",
+      "role": "authenticated"
+    },
+    {
+      "column": "created_at",
+      "effective": false,
+      "privilege": "UPDATE",
+      "role": "authenticated"
+    },
+    {
+      "column": "updated_at",
+      "effective": false,
+      "privilege": "INSERT",
+      "role": "authenticated"
+    },
+    {
+      "column": "updated_at",
+      "effective": false,
+      "privilege": "REFERENCES",
+      "role": "authenticated"
+    },
+    {
+      "column": "updated_at",
+      "effective": true,
+      "privilege": "SELECT",
+      "role": "authenticated"
+    },
+    {
+      "column": "updated_at",
+      "effective": false,
+      "privilege": "UPDATE",
+      "role": "authenticated"
+    },
+    {
+      "column": "base_salary",
+      "effective": false,
+      "privilege": "INSERT",
+      "role": "authenticated"
+    },
+    {
+      "column": "base_salary",
+      "effective": false,
+      "privilege": "REFERENCES",
+      "role": "authenticated"
+    },
+    {
+      "column": "base_salary",
+      "effective": true,
+      "privilege": "SELECT",
+      "role": "authenticated"
+    },
+    {
+      "column": "base_salary",
+      "effective": false,
+      "privilege": "UPDATE",
+      "role": "authenticated"
+    },
+    {
+      "column": "hire_date",
+      "effective": false,
+      "privilege": "INSERT",
+      "role": "authenticated"
+    },
+    {
+      "column": "hire_date",
+      "effective": false,
+      "privilege": "REFERENCES",
+      "role": "authenticated"
+    },
+    {
+      "column": "hire_date",
+      "effective": true,
+      "privilege": "SELECT",
+      "role": "authenticated"
+    },
+    {
+      "column": "hire_date",
+      "effective": false,
+      "privilege": "UPDATE",
+      "role": "authenticated"
+    },
+    {
+      "column": "resignation_date",
+      "effective": false,
+      "privilege": "INSERT",
+      "role": "authenticated"
+    },
+    {
+      "column": "resignation_date",
+      "effective": false,
+      "privilege": "REFERENCES",
+      "role": "authenticated"
+    },
+    {
+      "column": "resignation_date",
+      "effective": true,
+      "privilege": "SELECT",
+      "role": "authenticated"
+    },
+    {
+      "column": "resignation_date",
+      "effective": false,
+      "privilege": "UPDATE",
+      "role": "authenticated"
+    },
+    {
+      "column": "metadata",
+      "effective": false,
+      "privilege": "INSERT",
+      "role": "authenticated"
+    },
+    {
+      "column": "metadata",
+      "effective": false,
+      "privilege": "REFERENCES",
+      "role": "authenticated"
+    },
+    {
+      "column": "metadata",
+      "effective": true,
+      "privilege": "SELECT",
+      "role": "authenticated"
+    },
+    {
+      "column": "metadata",
+      "effective": false,
+      "privilege": "UPDATE",
+      "role": "authenticated"
+    },
+    {
+      "column": "position_tier",
+      "effective": false,
+      "privilege": "INSERT",
+      "role": "authenticated"
+    },
+    {
+      "column": "position_tier",
+      "effective": false,
+      "privilege": "REFERENCES",
+      "role": "authenticated"
+    },
+    {
+      "column": "position_tier",
+      "effective": true,
+      "privilege": "SELECT",
+      "role": "authenticated"
+    },
+    {
+      "column": "position_tier",
+      "effective": false,
+      "privilege": "UPDATE",
+      "role": "authenticated"
+    },
+    {
+      "column": "leave_balance",
+      "effective": false,
+      "privilege": "INSERT",
+      "role": "authenticated"
+    },
+    {
+      "column": "leave_balance",
+      "effective": false,
+      "privilege": "REFERENCES",
+      "role": "authenticated"
+    },
+    {
+      "column": "leave_balance",
+      "effective": true,
+      "privilege": "SELECT",
+      "role": "authenticated"
+    },
+    {
+      "column": "leave_balance",
+      "effective": false,
+      "privilege": "UPDATE",
+      "role": "authenticated"
+    }
+  ],
+  "client_privileges": [
+    {
+      "effective": false,
+      "privilege": "DELETE",
+      "role": "anon"
+    },
+    {
+      "effective": false,
+      "privilege": "INSERT",
+      "role": "anon"
+    },
+    {
+      "effective": false,
+      "privilege": "MAINTAIN",
+      "role": "anon"
+    },
+    {
+      "effective": false,
+      "privilege": "REFERENCES",
+      "role": "anon"
+    },
+    {
+      "effective": true,
+      "privilege": "SELECT",
+      "role": "anon"
+    },
+    {
+      "effective": false,
+      "privilege": "TRIGGER",
+      "role": "anon"
+    },
+    {
+      "effective": false,
+      "privilege": "TRUNCATE",
+      "role": "anon"
+    },
+    {
+      "effective": false,
+      "privilege": "UPDATE",
+      "role": "anon"
+    },
+    {
+      "effective": false,
+      "privilege": "DELETE",
+      "role": "authenticated"
+    },
+    {
+      "effective": false,
+      "privilege": "INSERT",
+      "role": "authenticated"
+    },
+    {
+      "effective": false,
+      "privilege": "MAINTAIN",
+      "role": "authenticated"
+    },
+    {
+      "effective": false,
+      "privilege": "REFERENCES",
+      "role": "authenticated"
+    },
+    {
+      "effective": true,
+      "privilege": "SELECT",
+      "role": "authenticated"
+    },
+    {
+      "effective": false,
+      "privilege": "TRIGGER",
+      "role": "authenticated"
+    },
+    {
+      "effective": false,
+      "privilege": "TRUNCATE",
+      "role": "authenticated"
+    },
+    {
+      "effective": false,
+      "privilege": "UPDATE",
+      "role": "authenticated"
+    }
+  ],
+  "columns": [
+    {
+      "acl": null,
+      "attgenerated": "",
+      "attidentity": "",
+      "attnum": 1,
+      "default_expression": "uuid_generate_v4()",
+      "name": "id",
+      "not_null": true,
+      "type": "uuid"
+    },
+    {
+      "acl": null,
+      "attgenerated": "",
+      "attidentity": "",
+      "attnum": 2,
+      "default_expression": null,
+      "name": "email",
+      "not_null": true,
+      "type": "text"
+    },
+    {
+      "acl": null,
+      "attgenerated": "",
+      "attidentity": "",
+      "attnum": 4,
+      "default_expression": null,
+      "name": "full_name",
+      "not_null": true,
+      "type": "text"
+    },
+    {
+      "acl": null,
+      "attgenerated": "",
+      "attidentity": "",
+      "attnum": 5,
+      "default_expression": null,
+      "name": "phone",
+      "not_null": false,
+      "type": "text"
+    },
+    {
+      "acl": null,
+      "attgenerated": "",
+      "attidentity": "",
+      "attnum": 6,
+      "default_expression": null,
+      "name": "role",
+      "not_null": true,
+      "type": "text"
+    },
+    {
+      "acl": null,
+      "attgenerated": "",
+      "attidentity": "",
+      "attnum": 7,
+      "default_expression": null,
+      "name": "avatar_url",
+      "not_null": false,
+      "type": "text"
+    },
+    {
+      "acl": null,
+      "attgenerated": "",
+      "attidentity": "",
+      "attnum": 8,
+      "default_expression": "'active'::text",
+      "name": "status",
+      "not_null": false,
+      "type": "text"
+    },
+    {
+      "acl": null,
+      "attgenerated": "",
+      "attidentity": "",
+      "attnum": 9,
+      "default_expression": null,
+      "name": "tenant_id",
+      "not_null": false,
+      "type": "uuid"
+    },
+    {
+      "acl": null,
+      "attgenerated": "",
+      "attidentity": "",
+      "attnum": 10,
+      "default_expression": "now()",
+      "name": "created_at",
+      "not_null": false,
+      "type": "timestamp with time zone"
+    },
+    {
+      "acl": null,
+      "attgenerated": "",
+      "attidentity": "",
+      "attnum": 11,
+      "default_expression": "now()",
+      "name": "updated_at",
+      "not_null": false,
+      "type": "timestamp with time zone"
+    },
+    {
+      "acl": null,
+      "attgenerated": "",
+      "attidentity": "",
+      "attnum": 12,
+      "default_expression": "6000000",
+      "name": "base_salary",
+      "not_null": false,
+      "type": "numeric"
+    },
+    {
+      "acl": null,
+      "attgenerated": "",
+      "attidentity": "",
+      "attnum": 13,
+      "default_expression": null,
+      "name": "hire_date",
+      "not_null": false,
+      "type": "date"
+    },
+    {
+      "acl": null,
+      "attgenerated": "",
+      "attidentity": "",
+      "attnum": 14,
+      "default_expression": null,
+      "name": "resignation_date",
+      "not_null": false,
+      "type": "date"
+    },
+    {
+      "acl": null,
+      "attgenerated": "",
+      "attidentity": "",
+      "attnum": 15,
+      "default_expression": "'{}'::jsonb",
+      "name": "metadata",
+      "not_null": false,
+      "type": "jsonb"
+    },
+    {
+      "acl": null,
+      "attgenerated": "",
+      "attidentity": "",
+      "attnum": 16,
+      "default_expression": "'junior'::text",
+      "name": "position_tier",
+      "not_null": true,
+      "type": "text"
+    },
+    {
+      "acl": null,
+      "attgenerated": "",
+      "attidentity": "",
+      "attnum": 17,
+      "default_expression": "12",
+      "name": "leave_balance",
+      "not_null": false,
+      "type": "integer"
+    }
+  ],
+  "constraints": [
+    {
+      "definition": "UNIQUE (email)",
+      "name": "users_email_key",
+      "type": "u"
+    },
+    {
+      "definition": "PRIMARY KEY (id)",
+      "name": "users_pkey",
+      "type": "p"
+    },
+    {
+      "definition": "CHECK (position_tier = ANY (ARRAY['junior'::text, 'senior'::text, 'lead'::text]))",
+      "name": "users_position_tier_check",
+      "type": "c"
+    },
+    {
+      "definition": "CHECK (role = ANY (ARRAY['admin'::text, 'ktv_lead'::text, 'ktv'::text, 'admin_staff'::text, 'accountant'::text, 'hr'::text, 'student'::text, 'parent'::text]))",
+      "name": "users_role_check",
+      "type": "c"
+    },
+    {
+      "definition": "FOREIGN KEY (tenant_id) REFERENCES tenants(id)",
+      "name": "users_tenant_id_fkey",
+      "type": "f"
+    }
+  ],
+  "functions": [
+    {
+      "acl": "{=X/supabase_auth_admin,postgres=X/supabase_auth_admin,supabase_auth_admin=X/supabase_auth_admin,dashboard_user=X/supabase_auth_admin}",
+      "arguments": "",
+      "definition": "CREATE OR REPLACE FUNCTION auth.jwt()\n RETURNS jsonb\n LANGUAGE sql\n STABLE\nAS $function$\n  select \n    coalesce(\n        nullif(current_setting('request.jwt.claim', true), ''),\n        nullif(current_setting('request.jwt.claims', true), '')\n    )::jsonb\n$function$\n",
+      "name": "jwt",
+      "owner": "supabase_auth_admin",
+      "proconfig": null,
+      "schema": "auth",
+      "security_definer": false
+    },
+    {
+      "acl": "{=X/supabase_auth_admin,supabase_auth_admin=X/supabase_auth_admin,dashboard_user=X/supabase_auth_admin}",
+      "arguments": "",
+      "definition": "CREATE OR REPLACE FUNCTION auth.uid()\n RETURNS uuid\n LANGUAGE sql\n STABLE\nAS $function$\n  select \n  coalesce(\n    nullif(current_setting('request.jwt.claim.sub', true), ''),\n    (nullif(current_setting('request.jwt.claims', true), '')::jsonb ->> 'sub')\n  )::uuid\n$function$\n",
+      "name": "uid",
+      "owner": "supabase_auth_admin",
+      "proconfig": null,
+      "schema": "auth",
+      "security_definer": false
+    },
+    {
+      "acl": "{=X/postgres,postgres=X/postgres,service_role=X/postgres,bella_migration_executor=X/postgres}",
+      "arguments": "",
+      "definition": "CREATE OR REPLACE FUNCTION public.current_tenant_id()\n RETURNS uuid\n LANGUAGE sql\n STABLE SECURITY DEFINER\nAS $function$\n  SELECT tenant_id FROM public.users WHERE id = auth.uid();\n$function$\n",
+      "name": "current_tenant_id",
+      "owner": "postgres",
+      "proconfig": null,
+      "schema": "public",
+      "security_definer": true
+    },
+    {
+      "acl": "{=X/postgres,postgres=X/postgres,service_role=X/postgres,bella_migration_executor=X/postgres}",
+      "arguments": "",
+      "definition": "CREATE OR REPLACE FUNCTION public.current_user_role()\n RETURNS text\n LANGUAGE sql\n STABLE SECURITY DEFINER\nAS $function$\n  SELECT role FROM public.users WHERE id = auth.uid();\n$function$\n",
+      "name": "current_user_role",
+      "owner": "postgres",
+      "proconfig": null,
+      "schema": "public",
+      "security_definer": true
+    },
+    {
+      "acl": "{=X/postgres,postgres=X/postgres,service_role=X/postgres,bella_migration_executor=X/postgres}",
+      "arguments": "",
+      "definition": "CREATE OR REPLACE FUNCTION public.get_auth_tenant_id()\n RETURNS uuid\n LANGUAGE plpgsql\n STABLE SECURITY DEFINER\n SET search_path TO 'pg_catalog', 'public'\nAS $function$\nDECLARE\n  v_tenant_id uuid;\nBEGIN\n  SELECT u.tenant_id INTO v_tenant_id\n  FROM public.users AS u\n  JOIN public.tenants AS t ON t.id = u.tenant_id\n  WHERE u.id = auth.uid() AND u.status = 'active' AND t.status = 'active';\n\n  -- NULL would enable legacy policies using NULL as an unrestricted HQ sentinel.\n  IF v_tenant_id IS NULL THEN\n    RAISE EXCEPTION 'Active canonical identity and tenant required' USING ERRCODE = '42501';\n  END IF;\n  RETURN v_tenant_id;\nEND;\n$function$\n",
+      "name": "get_auth_tenant_id",
+      "owner": "postgres",
+      "proconfig": [
+        "search_path=pg_catalog, public"
+      ],
+      "schema": "public",
+      "security_definer": true
+    },
+    {
+      "acl": "{=X/postgres,postgres=X/postgres,service_role=X/postgres,bella_migration_executor=X/postgres}",
+      "arguments": "",
+      "definition": "CREATE OR REPLACE FUNCTION public.is_admin()\n RETURNS boolean\n LANGUAGE sql\n STABLE SECURITY DEFINER\n SET search_path TO 'pg_catalog', 'public'\nAS $function$\n  SELECT EXISTS (\n    SELECT 1 FROM public.users AS u JOIN public.tenants AS t ON t.id = u.tenant_id\n    WHERE u.id = auth.uid() AND u.status = 'active' AND t.status = 'active' AND u.role = 'admin'\n  );\n$function$\n",
+      "name": "is_admin",
+      "owner": "postgres",
+      "proconfig": [
+        "search_path=pg_catalog, public"
+      ],
+      "schema": "public",
+      "security_definer": true
+    },
+    {
+      "acl": "{=X/postgres,postgres=X/postgres,service_role=X/postgres,bella_migration_executor=X/postgres}",
+      "arguments": "",
+      "definition": "CREATE OR REPLACE FUNCTION public.is_hq_super_admin()\n RETURNS boolean\n LANGUAGE sql\n STABLE SECURITY DEFINER\n SET search_path TO 'pg_catalog', 'public'\nAS $function$\n  SELECT EXISTS (\n    SELECT 1 FROM public.users AS u JOIN public.tenants AS t ON t.id = u.tenant_id\n    WHERE u.id = auth.uid() AND u.status = 'active' AND t.status = 'active'\n      AND u.role = 'admin' AND t.product_key = 'bella_hq'\n  );\n$function$\n",
+      "name": "is_hq_super_admin",
+      "owner": "postgres",
+      "proconfig": [
+        "search_path=pg_catalog, public"
+      ],
+      "schema": "public",
+      "security_definer": true
+    },
+    {
+      "acl": "{=X/postgres,postgres=X/postgres,service_role=X/postgres,bella_migration_executor=X/postgres}",
+      "arguments": "",
+      "definition": "CREATE OR REPLACE FUNCTION public.log_audit_event()\n RETURNS trigger\n LANGUAGE plpgsql\n SECURITY DEFINER\nAS $function$\nDECLARE\n    current_user_id UUID;\n    record_tenant_id UUID;\nBEGIN\n    BEGIN\n        current_user_id := auth.uid();\n    EXCEPTION WHEN OTHERS THEN\n        current_user_id := NULL;\n    END;\n    \n    BEGIN\n        IF TG_TABLE_NAME = 'tenants' THEN\n            IF TG_OP = 'DELETE' THEN\n                record_tenant_id := OLD.id;\n            ELSE\n                record_tenant_id := NEW.id;\n            END IF;\n        ELSE\n            IF TG_OP = 'DELETE' THEN\n                record_tenant_id := OLD.tenant_id;\n            ELSE\n                record_tenant_id := NEW.tenant_id;\n            END IF;\n        END IF;\n    EXCEPTION WHEN OTHERS THEN\n        record_tenant_id := NULL;\n    END;\n\n    BEGIN\n        INSERT INTO public.audit_logs (\n            tenant_id,\n            table_name,\n            record_id,\n            action,\n            old_data,\n            new_data,\n            changed_by_id\n        ) VALUES (\n            record_tenant_id,\n            TG_TABLE_NAME,\n            COALESCE(NEW.id, OLD.id),\n            TG_OP,\n            CASE WHEN TG_OP IN ('UPDATE', 'DELETE') THEN row_to_json(OLD)::jsonb ELSE NULL END,\n            CASE WHEN TG_OP IN ('INSERT', 'UPDATE') THEN row_to_json(NEW)::jsonb ELSE NULL END,\n            current_user_id\n        );\n    EXCEPTION WHEN OTHERS THEN\n        RAISE WARNING 'audit_log_event failed for table % op %: %', TG_TABLE_NAME, TG_OP, SQLERRM;\n    END;\n\n    IF TG_OP = 'DELETE' THEN\n        RETURN OLD;\n    ELSE\n        RETURN NEW;\n    END IF;\nEND;\n$function$\n",
+      "name": "log_audit_event",
+      "owner": "postgres",
+      "proconfig": null,
+      "schema": "public",
+      "security_definer": true
+    },
+    {
+      "acl": "{=X/postgres,postgres=X/postgres,service_role=X/postgres,bella_migration_executor=X/postgres}",
+      "arguments": "",
+      "definition": "CREATE OR REPLACE FUNCTION public.sync_user_claims_to_auth()\n RETURNS trigger\n LANGUAGE plpgsql\n SECURITY DEFINER\nAS $function$\nBEGIN\n  UPDATE auth.users\n  SET raw_app_meta_data = \n    coalesce(raw_app_meta_data, '{}'::jsonb) || \n    jsonb_build_object(\n      'role', NEW.role,\n      'tenant_id', NEW.tenant_id\n    )\n  WHERE id = NEW.id;\n  RETURN NEW;\nEND;\n$function$\n",
+      "name": "sync_user_claims_to_auth",
+      "owner": "postgres",
+      "proconfig": null,
+      "schema": "public",
+      "security_definer": true
+    },
+    {
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres,bella_migration_executor=X/postgres}",
+      "arguments": "",
+      "definition": "CREATE OR REPLACE FUNCTION public.update_updated_at_column()\n RETURNS trigger\n LANGUAGE plpgsql\nAS $function$\r\nBEGIN\r\n  NEW.updated_at = NOW();\r\n  RETURN NEW;\r\nEND;\r\n$function$\n",
+      "name": "update_updated_at_column",
+      "owner": "postgres",
+      "proconfig": null,
+      "schema": "public",
+      "security_definer": false
+    }
+  ],
+  "grants": [
+    {
+      "grantable": false,
+      "grantee": "anon",
+      "grantor": "postgres",
+      "privilege": "SELECT"
+    },
+    {
+      "grantable": false,
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "privilege": "SELECT"
+    },
+    {
+      "grantable": false,
+      "grantee": "bella_developer",
+      "grantor": "postgres",
+      "privilege": "SELECT"
+    },
+    {
+      "grantable": false,
+      "grantee": "bella_migration_executor",
+      "grantor": "postgres",
+      "privilege": "DELETE"
+    },
+    {
+      "grantable": false,
+      "grantee": "bella_migration_executor",
+      "grantor": "postgres",
+      "privilege": "INSERT"
+    },
+    {
+      "grantable": false,
+      "grantee": "bella_migration_executor",
+      "grantor": "postgres",
+      "privilege": "MAINTAIN"
+    },
+    {
+      "grantable": false,
+      "grantee": "bella_migration_executor",
+      "grantor": "postgres",
+      "privilege": "REFERENCES"
+    },
+    {
+      "grantable": false,
+      "grantee": "bella_migration_executor",
+      "grantor": "postgres",
+      "privilege": "SELECT"
+    },
+    {
+      "grantable": false,
+      "grantee": "bella_migration_executor",
+      "grantor": "postgres",
+      "privilege": "TRIGGER"
+    },
+    {
+      "grantable": false,
+      "grantee": "bella_migration_executor",
+      "grantor": "postgres",
+      "privilege": "TRUNCATE"
+    },
+    {
+      "grantable": false,
+      "grantee": "bella_migration_executor",
+      "grantor": "postgres",
+      "privilege": "UPDATE"
+    },
+    {
+      "grantable": false,
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "privilege": "DELETE"
+    },
+    {
+      "grantable": false,
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "privilege": "INSERT"
+    },
+    {
+      "grantable": false,
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "privilege": "MAINTAIN"
+    },
+    {
+      "grantable": false,
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "privilege": "REFERENCES"
+    },
+    {
+      "grantable": false,
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "privilege": "SELECT"
+    },
+    {
+      "grantable": false,
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "privilege": "TRIGGER"
+    },
+    {
+      "grantable": false,
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "privilege": "TRUNCATE"
+    },
+    {
+      "grantable": false,
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "privilege": "UPDATE"
+    },
+    {
+      "grantable": false,
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "privilege": "DELETE"
+    },
+    {
+      "grantable": false,
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "privilege": "INSERT"
+    },
+    {
+      "grantable": false,
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "privilege": "MAINTAIN"
+    },
+    {
+      "grantable": false,
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "privilege": "REFERENCES"
+    },
+    {
+      "grantable": false,
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "privilege": "SELECT"
+    },
+    {
+      "grantable": false,
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "privilege": "TRIGGER"
+    },
+    {
+      "grantable": false,
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "privilege": "TRUNCATE"
+    },
+    {
+      "grantable": false,
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "privilege": "UPDATE"
+    },
+    {
+      "grantable": false,
+      "grantee": "verification_executor",
+      "grantor": "postgres",
+      "privilege": "SELECT"
+    }
+  ],
+  "indexes": [
+    {
+      "definition": "CREATE INDEX idx_users_email ON public.users USING btree (email)",
+      "name": "idx_users_email"
+    },
+    {
+      "definition": "CREATE INDEX idx_users_hire_date ON public.users USING btree (tenant_id, hire_date) WHERE (hire_date IS NOT NULL)",
+      "name": "idx_users_hire_date"
+    },
+    {
+      "definition": "CREATE INDEX idx_users_id ON public.users USING btree (id)",
+      "name": "idx_users_id"
+    },
+    {
+      "definition": "CREATE INDEX idx_users_position_tier ON public.users USING btree (tenant_id, position_tier) WHERE (position_tier IS NOT NULL)",
+      "name": "idx_users_position_tier"
+    },
+    {
+      "definition": "CREATE INDEX idx_users_tenant ON public.users USING btree (tenant_id)",
+      "name": "idx_users_tenant"
+    },
+    {
+      "definition": "CREATE UNIQUE INDEX users_email_key ON public.users USING btree (email)",
+      "name": "users_email_key"
+    },
+    {
+      "definition": "CREATE UNIQUE INDEX users_pkey ON public.users USING btree (id)",
+      "name": "users_pkey"
+    }
+  ],
+  "memberships": [],
+  "policies": [
+    {
+      "cmd": "SELECT",
+      "permissive": "PERMISSIVE",
+      "policyname": "Admins can view all users in tenant",
+      "qual": "((current_user_role() = 'admin'::text) AND (tenant_id = current_tenant_id()))",
+      "roles": [
+        "public"
+      ],
+      "schemaname": "public",
+      "tablename": "users",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "Admins manage tenant users",
+      "qual": "((current_user_role() = 'admin'::text) AND (tenant_id = current_tenant_id()))",
+      "roles": [
+        "public"
+      ],
+      "schemaname": "public",
+      "tablename": "users",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "User tự xem và sửa chính mình",
+      "qual": "(id = auth.uid())",
+      "roles": [
+        "authenticated"
+      ],
+      "schemaname": "public",
+      "tablename": "users",
+      "with_check": null
+    },
+    {
+      "cmd": "SELECT",
+      "permissive": "PERMISSIVE",
+      "policyname": "Users can view own profile",
+      "qual": "(auth.uid() = id)",
+      "roles": [
+        "public"
+      ],
+      "schemaname": "public",
+      "tablename": "users",
+      "with_check": null
+    },
+    {
+      "cmd": "SELECT",
+      "permissive": "PERMISSIVE",
+      "policyname": "Users can view their own profile",
+      "qual": "(auth.uid() = id)",
+      "roles": [
+        "public"
+      ],
+      "schemaname": "public",
+      "tablename": "users",
+      "with_check": null
+    }
+  ],
+  "roles": [
+    {
+      "bypass_rls": false,
+      "can_login": false,
+      "inherit": true,
+      "name": "anon",
+      "superuser": false
+    },
+    {
+      "bypass_rls": false,
+      "can_login": false,
+      "inherit": true,
+      "name": "authenticated",
+      "superuser": false
+    },
+    {
+      "bypass_rls": true,
+      "can_login": true,
+      "inherit": true,
+      "name": "postgres",
+      "superuser": false
+    },
+    {
+      "bypass_rls": true,
+      "can_login": false,
+      "inherit": true,
+      "name": "service_role",
+      "superuser": false
+    }
+  ],
+  "schema_grants": [
+    {
+      "create": false,
+      "role": "anon",
+      "usage": true
+    },
+    {
+      "create": false,
+      "role": "authenticated",
+      "usage": true
+    },
+    {
+      "create": false,
+      "role": "service_role",
+      "usage": true
+    }
+  ],
+  "table": {
+    "acl": "{postgres=arwdDxtm/postgres,anon=r/postgres,authenticated=r/postgres,service_role=arwdDxtm/postgres,bella_developer=r/postgres,bella_migration_executor=arwdDxtm/postgres,verification_executor=r/postgres}",
+    "force_rls": false,
+    "kind": "r",
+    "name": "users",
+    "owner": "postgres",
+    "rls": true
+  },
+  "triggers": [
+    {
+      "definition": "CREATE TRIGGER audit_users_changes AFTER INSERT OR DELETE OR UPDATE ON users FOR EACH ROW EXECUTE FUNCTION log_audit_event()",
+      "enabled": "O",
+      "name": "audit_users_changes"
+    },
+    {
+      "definition": "CREATE TRIGGER tr_sync_user_claims AFTER INSERT OR UPDATE OF role, tenant_id ON users FOR EACH ROW EXECUTE FUNCTION sync_user_claims_to_auth()",
+      "enabled": "O",
+      "name": "tr_sync_user_claims"
+    },
+    {
+      "definition": "CREATE TRIGGER update_users_updated_at BEFORE UPDATE ON users FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()",
+      "enabled": "O",
+      "name": "update_users_updated_at"
+    }
+  ],
+  "writers": [
+    {
+      "acl": "{postgres=X/postgres,service_role=X/postgres,bella_migration_executor=X/postgres}",
+      "config": null,
+      "definition": "CREATE OR REPLACE FUNCTION public.create_onboarding_user(p_email text, p_password text, p_full_name text)\n RETURNS uuid\n LANGUAGE plpgsql\n SECURITY DEFINER\nAS $function$\nDECLARE\n  v_user_id UUID;\n  v_encrypted_password TEXT;\nBEGIN\n  -- Check if user already exists\n  SELECT id INTO v_user_id FROM auth.users WHERE email = p_email;\n  IF v_user_id IS NOT NULL THEN\n    RETURN v_user_id;\n  END IF;\n\n  -- Generate user ID\n  v_user_id := gen_random_uuid();\n  \n  -- Encrypt password with bcrypt\n  v_encrypted_password := crypt(p_password, gen_salt('bf', 10));\n\n  -- Insert into auth.users (excluding confirmed_at)\n  INSERT INTO auth.users (\n    instance_id,\n    id,\n    aud,\n    role,\n    email,\n    encrypted_password,\n    email_confirmed_at,\n    raw_app_meta_data,\n    raw_user_meta_data,\n    created_at,\n    updated_at\n  ) VALUES (\n    '00000000-0000-0000-0000-000000000000'::uuid,\n    v_user_id,\n    'authenticated',\n    'authenticated',\n    p_email,\n    v_encrypted_password,\n    NOW(),\n    '{\"provider\": \"email\", \"providers\": [\"email\"]}'::jsonb,\n    jsonb_build_object('full_name', p_full_name, 'email_verified', true),\n    NOW(),\n    NOW()\n  );\n\n  -- Insert into auth.identities (excluding email)\n  INSERT INTO auth.identities (\n    id,\n    provider_id,\n    user_id,\n    identity_data,\n    provider,\n    last_sign_in_at,\n    created_at,\n    updated_at\n  ) VALUES (\n    gen_random_uuid(),\n    v_user_id::text,\n    v_user_id,\n    jsonb_build_object('sub', v_user_id::text, 'email', p_email, 'email_verified', true, 'phone_verified', false),\n    'email',\n    NOW(),\n    NOW(),\n    NOW()\n  );\n\n  RETURN v_user_id;\nEND;\n$function$\n",
+      "grants": [
+        {
+          "grantable": false,
+          "grantee": "bella_migration_executor",
+          "grantor": "postgres",
+          "privilege": "EXECUTE"
+        },
+        {
+          "grantable": false,
+          "grantee": "postgres",
+          "grantor": "postgres",
+          "privilege": "EXECUTE"
+        },
+        {
+          "grantable": false,
+          "grantee": "service_role",
+          "grantor": "postgres",
+          "privilege": "EXECUTE"
+        }
+      ],
+      "owner": "postgres",
+      "roles": [
+        {
+          "execute": false,
+          "grant_option": false,
+          "name": "anon",
+          "superuser": false
+        },
+        {
+          "execute": false,
+          "grant_option": false,
+          "name": "authenticated",
+          "superuser": false
+        },
+        {
+          "execute": false,
+          "grant_option": false,
+          "name": "authenticator",
+          "superuser": false
+        },
+        {
+          "execute": false,
+          "grant_option": false,
+          "name": "bella_developer",
+          "superuser": false
+        },
+        {
+          "execute": true,
+          "grant_option": false,
+          "name": "bella_migration_executor",
+          "superuser": false
+        },
+        {
+          "execute": false,
+          "grant_option": false,
+          "name": "cli_login_postgres",
+          "superuser": false
+        },
+        {
+          "execute": false,
+          "grant_option": false,
+          "name": "dashboard_user",
+          "superuser": false
+        },
+        {
+          "execute": false,
+          "grant_option": false,
+          "name": "pg_checkpoint",
+          "superuser": false
+        },
+        {
+          "execute": false,
+          "grant_option": false,
+          "name": "pg_create_subscription",
+          "superuser": false
+        },
+        {
+          "execute": false,
+          "grant_option": false,
+          "name": "pg_database_owner",
+          "superuser": false
+        },
+        {
+          "execute": false,
+          "grant_option": false,
+          "name": "pg_execute_server_program",
+          "superuser": false
+        },
+        {
+          "execute": false,
+          "grant_option": false,
+          "name": "pg_maintain",
+          "superuser": false
+        },
+        {
+          "execute": false,
+          "grant_option": false,
+          "name": "pg_monitor",
+          "superuser": false
+        },
+        {
+          "execute": false,
+          "grant_option": false,
+          "name": "pg_read_all_data",
+          "superuser": false
+        },
+        {
+          "execute": false,
+          "grant_option": false,
+          "name": "pg_read_all_settings",
+          "superuser": false
+        },
+        {
+          "execute": false,
+          "grant_option": false,
+          "name": "pg_read_all_stats",
+          "superuser": false
+        },
+        {
+          "execute": false,
+          "grant_option": false,
+          "name": "pg_read_server_files",
+          "superuser": false
+        },
+        {
+          "execute": false,
+          "grant_option": false,
+          "name": "pg_signal_backend",
+          "superuser": false
+        },
+        {
+          "execute": false,
+          "grant_option": false,
+          "name": "pg_stat_scan_tables",
+          "superuser": false
+        },
+        {
+          "execute": false,
+          "grant_option": false,
+          "name": "pg_use_reserved_connections",
+          "superuser": false
+        },
+        {
+          "execute": false,
+          "grant_option": false,
+          "name": "pg_write_all_data",
+          "superuser": false
+        },
+        {
+          "execute": false,
+          "grant_option": false,
+          "name": "pg_write_server_files",
+          "superuser": false
+        },
+        {
+          "execute": false,
+          "grant_option": false,
+          "name": "pgbouncer",
+          "superuser": false
+        },
+        {
+          "execute": true,
+          "grant_option": true,
+          "name": "postgres",
+          "superuser": false
+        },
+        {
+          "execute": true,
+          "grant_option": false,
+          "name": "service_role",
+          "superuser": false
+        },
+        {
+          "execute": true,
+          "grant_option": true,
+          "name": "supabase_admin",
+          "superuser": true
+        },
+        {
+          "execute": false,
+          "grant_option": false,
+          "name": "supabase_auth_admin",
+          "superuser": false
+        },
+        {
+          "execute": false,
+          "grant_option": false,
+          "name": "supabase_etl_admin",
+          "superuser": false
+        },
+        {
+          "execute": false,
+          "grant_option": false,
+          "name": "supabase_privileged_role",
+          "superuser": false
+        },
+        {
+          "execute": false,
+          "grant_option": false,
+          "name": "supabase_read_only_user",
+          "superuser": false
+        },
+        {
+          "execute": false,
+          "grant_option": false,
+          "name": "supabase_realtime_admin",
+          "superuser": false
+        },
+        {
+          "execute": false,
+          "grant_option": false,
+          "name": "supabase_replication_admin",
+          "superuser": false
+        },
+        {
+          "execute": false,
+          "grant_option": false,
+          "name": "supabase_storage_admin",
+          "superuser": false
+        },
+        {
+          "execute": false,
+          "grant_option": false,
+          "name": "verification_executor",
+          "superuser": false
+        }
+      ],
+      "security_definer": true,
+      "signature": "create_onboarding_user(text,text,text)"
+    },
+    {
+      "acl": "{postgres=X/postgres,service_role=X/postgres,bella_migration_executor=X/postgres}",
+      "config": null,
+      "definition": "CREATE OR REPLACE FUNCTION public.onboard_tenant(p_spa_name text, p_contact_phone text, p_address text, p_email text, p_admin_id uuid, p_admin_email text, p_admin_name text)\n RETURNS uuid\n LANGUAGE plpgsql\n SECURITY DEFINER\nAS $function$\nDECLARE\n    v_tenant_id UUID;\n    v_package_id UUID;\n    v_ktv_id UUID;\n    v_customer_id UUID;\n    v_booking_id UUID;\n    v_role_permissions JSONB;\n    v_salary_config JSONB;\n    v_coa_count INTEGER;\nBEGIN\n    -- 1. Check email duplicate\n    IF EXISTS (SELECT 1 FROM public.users WHERE email = p_admin_email) THEN\n        RAISE EXCEPTION 'Email % đã tồn tại trong hệ thống.', p_admin_email;\n    END IF;\n\n    -- 2. Default configs (Updated to include ktv_lead, admin_staff, accountant, and hr)\n    v_role_permissions := '{\"ktv_lead\": {\"dashboard\": true, \"customers\": false, \"bookings\": true, \"sessions\": true, \"chat\": true, \"crm\": true, \"services\": true, \"finance\": false, \"reconciliation\": false, \"inventory\": false, \"salary\": false, \"audit\": false, \"settings\": false},\n                            \"admin_staff\": {\"dashboard\": true, \"customers\": true, \"bookings\": true, \"sessions\": true, \"chat\": true, \"crm\": true, \"services\": true, \"inventory\": true, \"finance\": true, \"reconciliation\": false, \"salary\": false, \"audit\": false, \"settings\": false},\n                            \"accountant\": {\"dashboard\": true, \"customers\": false, \"bookings\": false, \"sessions\": false, \"chat\": false, \"crm\": false, \"services\": true, \"inventory\": true, \"finance\": true, \"reconciliation\": true, \"salary\": true, \"audit\": false, \"settings\": false},\n                            \"hr\": {\"dashboard\": true, \"customers\": false, \"bookings\": false, \"sessions\": true, \"chat\": false, \"crm\": false, \"services\": false, \"inventory\": false, \"finance\": false, \"reconciliation\": false, \"salary\": true, \"audit\": false, \"settings\": false}}'::jsonb;\n    v_salary_config := '{\"bonus_5_star\": 50000, \"bonus_4_5_star\": 30000, \"bonus_4_star\": 10000, \"kpi_target_sessions\": 30, \"kpi_bonus_amount\": 1000000}'::jsonb;\n\n    -- 3. Create tenant\n    INSERT INTO public.tenants (\n        name, contact_phone, address, email, status, role_permissions, salary_config\n    )\n    VALUES (\n        p_spa_name, p_contact_phone, p_address, p_email, 'active', v_role_permissions, v_salary_config\n    )\n    RETURNING id INTO v_tenant_id;\n\n    -- 4. Create admin user\n    INSERT INTO public.users (id, email, full_name, role, status, tenant_id)\n    VALUES (p_admin_id, p_admin_email, p_admin_name, 'admin', 'active', v_tenant_id);\n\n    -- 5. Seed sample package\n    INSERT INTO public.packages (\n        name, description, price, full_price, duration, total_sessions, ktv_commission, status, tenant_id\n    )\n    VALUES (\n        'Massage Bầu VIP Nhật Bản',\n        'Gói chăm sóc massage bầu cao cấp theo liệu trình Nhật Bản giúp thư giãn cơ thể và giảm stress cho mẹ.',\n        1200000, 1200000, '90 phút/buổi', 10, 150000, 'active', v_tenant_id\n    )\n    RETURNING id INTO v_package_id;\n\n    -- 6. Seed sample KTV\n    v_ktv_id := uuid_generate_v4();\n    INSERT INTO public.users (id, email, full_name, role, status, tenant_id)\n    VALUES (\n        v_ktv_id,\n        'ktv.mau.' || substring(v_tenant_id::text from 1 for 8) || '@bellaspa.com.vn',\n        'Trần Thị Mai (KTV Mẫu)', 'ktv', 'active', v_tenant_id\n    );\n\n    -- 7. Seed sample customer\n    INSERT INTO public.customers (phone, name_mother, name_baby, dob_baby, address, status, tenant_id)\n    VALUES (\n        '0987' || substring(v_tenant_id::text from 1 for 6),\n        'Phạm Thu Hương (Khách Mẫu)', 'Bé Bơ',\n        CURRENT_DATE - INTERVAL '10 days', p_address, 'active', v_tenant_id\n    )\n    RETURNING id INTO v_customer_id;\n\n    -- 8. Seed sample booking\n    INSERT INTO public.bookings (\n        booking_number, customer_id, package_id, status, deposit_amount, full_price,\n        start_date, end_date, total_sessions, completed_sessions, contract_signed,\n        assigned_ktv_id, tenant_id\n    )\n    VALUES (\n        'BK-' || UPPER(substring(v_tenant_id::text from 1 for 5)),\n        v_customer_id, v_package_id, 'booked', 200000, 1200000,\n        CURRENT_DATE, CURRENT_DATE + INTERVAL '10 days', 10, 0, TRUE,\n        v_ktv_id, v_tenant_id\n    )\n    RETURNING id INTO v_booking_id;\n\n    -- 9. Seed default Chart of Accounts (Thông tư 133)\n    BEGIN\n        v_coa_count := public.seed_default_coa(v_tenant_id);\n        RAISE NOTICE '[onboard_tenant] Seeded % accounting accounts for tenant %', v_coa_count, v_tenant_id;\n    EXCEPTION WHEN OTHERS THEN\n        RAISE WARNING '[onboard_tenant] Failed to seed COA for tenant %: %', v_tenant_id, SQLERRM;\n    END;\n\n    -- 10. Auto-create accounting period cho tháng hiện tại\n    BEGIN\n        PERFORM public.ensure_open_period(v_tenant_id, CURRENT_DATE);\n    EXCEPTION WHEN OTHERS THEN\n        RAISE WARNING '[onboard_tenant] Failed to create accounting period for tenant %: %', v_tenant_id, SQLERRM;\n    END;\n\n    RETURN v_tenant_id;\nEND;\n$function$\n",
+      "grants": [
+        {
+          "grantable": false,
+          "grantee": "bella_migration_executor",
+          "grantor": "postgres",
+          "privilege": "EXECUTE"
+        },
+        {
+          "grantable": false,
+          "grantee": "postgres",
+          "grantor": "postgres",
+          "privilege": "EXECUTE"
+        },
+        {
+          "grantable": false,
+          "grantee": "service_role",
+          "grantor": "postgres",
+          "privilege": "EXECUTE"
+        }
+      ],
+      "owner": "postgres",
+      "roles": [
+        {
+          "execute": false,
+          "grant_option": false,
+          "name": "anon",
+          "superuser": false
+        },
+        {
+          "execute": false,
+          "grant_option": false,
+          "name": "authenticated",
+          "superuser": false
+        },
+        {
+          "execute": false,
+          "grant_option": false,
+          "name": "authenticator",
+          "superuser": false
+        },
+        {
+          "execute": false,
+          "grant_option": false,
+          "name": "bella_developer",
+          "superuser": false
+        },
+        {
+          "execute": true,
+          "grant_option": false,
+          "name": "bella_migration_executor",
+          "superuser": false
+        },
+        {
+          "execute": false,
+          "grant_option": false,
+          "name": "cli_login_postgres",
+          "superuser": false
+        },
+        {
+          "execute": false,
+          "grant_option": false,
+          "name": "dashboard_user",
+          "superuser": false
+        },
+        {
+          "execute": false,
+          "grant_option": false,
+          "name": "pg_checkpoint",
+          "superuser": false
+        },
+        {
+          "execute": false,
+          "grant_option": false,
+          "name": "pg_create_subscription",
+          "superuser": false
+        },
+        {
+          "execute": false,
+          "grant_option": false,
+          "name": "pg_database_owner",
+          "superuser": false
+        },
+        {
+          "execute": false,
+          "grant_option": false,
+          "name": "pg_execute_server_program",
+          "superuser": false
+        },
+        {
+          "execute": false,
+          "grant_option": false,
+          "name": "pg_maintain",
+          "superuser": false
+        },
+        {
+          "execute": false,
+          "grant_option": false,
+          "name": "pg_monitor",
+          "superuser": false
+        },
+        {
+          "execute": false,
+          "grant_option": false,
+          "name": "pg_read_all_data",
+          "superuser": false
+        },
+        {
+          "execute": false,
+          "grant_option": false,
+          "name": "pg_read_all_settings",
+          "superuser": false
+        },
+        {
+          "execute": false,
+          "grant_option": false,
+          "name": "pg_read_all_stats",
+          "superuser": false
+        },
+        {
+          "execute": false,
+          "grant_option": false,
+          "name": "pg_read_server_files",
+          "superuser": false
+        },
+        {
+          "execute": false,
+          "grant_option": false,
+          "name": "pg_signal_backend",
+          "superuser": false
+        },
+        {
+          "execute": false,
+          "grant_option": false,
+          "name": "pg_stat_scan_tables",
+          "superuser": false
+        },
+        {
+          "execute": false,
+          "grant_option": false,
+          "name": "pg_use_reserved_connections",
+          "superuser": false
+        },
+        {
+          "execute": false,
+          "grant_option": false,
+          "name": "pg_write_all_data",
+          "superuser": false
+        },
+        {
+          "execute": false,
+          "grant_option": false,
+          "name": "pg_write_server_files",
+          "superuser": false
+        },
+        {
+          "execute": false,
+          "grant_option": false,
+          "name": "pgbouncer",
+          "superuser": false
+        },
+        {
+          "execute": true,
+          "grant_option": true,
+          "name": "postgres",
+          "superuser": false
+        },
+        {
+          "execute": true,
+          "grant_option": false,
+          "name": "service_role",
+          "superuser": false
+        },
+        {
+          "execute": true,
+          "grant_option": true,
+          "name": "supabase_admin",
+          "superuser": true
+        },
+        {
+          "execute": false,
+          "grant_option": false,
+          "name": "supabase_auth_admin",
+          "superuser": false
+        },
+        {
+          "execute": false,
+          "grant_option": false,
+          "name": "supabase_etl_admin",
+          "superuser": false
+        },
+        {
+          "execute": false,
+          "grant_option": false,
+          "name": "supabase_privileged_role",
+          "superuser": false
+        },
+        {
+          "execute": false,
+          "grant_option": false,
+          "name": "supabase_read_only_user",
+          "superuser": false
+        },
+        {
+          "execute": false,
+          "grant_option": false,
+          "name": "supabase_realtime_admin",
+          "superuser": false
+        },
+        {
+          "execute": false,
+          "grant_option": false,
+          "name": "supabase_replication_admin",
+          "superuser": false
+        },
+        {
+          "execute": false,
+          "grant_option": false,
+          "name": "supabase_storage_admin",
+          "superuser": false
+        },
+        {
+          "execute": false,
+          "grant_option": false,
+          "name": "verification_executor",
+          "superuser": false
+        }
+      ],
+      "security_definer": true,
+      "signature": "onboard_tenant(text,text,text,text,uuid,text,text)"
+    }
+  ]
+}
