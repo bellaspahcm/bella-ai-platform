@@ -125,6 +125,26 @@ async function rollbackTenantSettings(
 export async function getTenantPresentation(): Promise<TenantPresentation | null> {
   const currentUser = await getCurrentUser();
   if (!currentUser?.tenant_id) return null;
+
+  if (process.env.NODE_ENV === 'development') {
+    try {
+      const tenant = await getTenantSettings();
+      if (tenant && tenant.id === currentUser.tenant_id && tenant.status === 'active') {
+        return {
+          id: tenant.id,
+          name: tenant.name,
+          status: 'active',
+          product_key: tenant.product_key,
+          enabled_modules: tenant.enabled_modules,
+          brand_theme: tenant.brand_theme,
+          logo_url: tenant.logo_url,
+        };
+      }
+    } catch {
+      // Development fallback only
+    }
+  }
+
   const supabase = await createClient();
   const actorClient = supabase as unknown as import('@supabase/supabase-js').SupabaseClient<PlatformActorDatabase>;
   const { data, error } = await actorClient.rpc(CURRENT_ACTOR_TENANT_PRESENTATION_RPC);
