@@ -207,6 +207,19 @@ export async function proxy(request: NextRequest) {
   }
 
   // 4. Kiểm tra phân quyền và điều hướng an toàn (Server-side Redirect)
+  
+  // DEBUG: Log middleware redirect logic
+  if (isDashboardRoute || isKtvRoute || isStudentRoute) {
+    console.log('[Proxy Middleware]', {
+      pathname,
+      role,
+      isDashboardRoute,
+      isKtvRoute,
+      isStudentRoute,
+      userEmail: user?.email || mockUserEmail,
+    });
+  }
+  
   if (isDashboardRoute) {
     if (role === 'student') {
       const studentDashboardUrl = new URL('/student/dashboard', request.url);
