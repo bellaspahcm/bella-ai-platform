@@ -52,9 +52,19 @@ describe('GET /api/tenant/context', () => {
   it('returns401 before profile/configuration when anonymous', async () => {
     mockGetUser.mockResolvedValue({ data: { user: null }, error: null });
     const response = await GET(request());
+    
+    // Explicit assertions with detailed error messages for CI debugging
+    expect(response).toBeDefined();
     expect(response.status).toBe(401);
+    
+    // Verify auth short-circuit: profile/config should never be queried for anonymous
     expect(mockRpc).not.toHaveBeenCalled();
     expect(mockTenantSettings).not.toHaveBeenCalled();
+    
+    // Verify response body contains auth error
+    const body = await response.json();
+    expect(body).toHaveProperty('error');
+    expect(body.error).toContain('Unauthorized');
   });
 
   it('does not fabricate a tenant for anonymous development requests or mock headers', async () => {
