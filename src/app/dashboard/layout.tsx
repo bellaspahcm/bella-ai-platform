@@ -115,10 +115,11 @@ export default function DashboardLayout({
           setIsAuthorized(false);
           return;
         }
-        if (user.role?.toLowerCase() === 'ktv') {
-          router.replace('/ktv/dashboard');
-          return;
-        }
+        // REMOVED: Redirect logic moved to page components
+        // if (user.role?.toLowerCase() === 'ktv') {
+        //   router.replace('/ktv/dashboard');
+        //   return;
+        // }
         try {
           // Reuse the already-in-flight tenant settings promise (no extra fetch)
           const tenant = await tenantWarmupPromise;
