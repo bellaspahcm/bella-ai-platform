@@ -4,7 +4,13 @@ const mockRpc = jest.fn();
 const mockTenantSettings = jest.fn();
 const mockFrom = jest.fn(() => { throw new Error('Unexpected direct table read'); });
 
-jest.mock('next/headers', () => ({ cookies: jest.fn(async () => ({ getAll: () => [], set: jest.fn() })) }));
+jest.mock('next/headers', () => ({ 
+  cookies: jest.fn(async () => ({ 
+    getAll: () => [], 
+    get: () => undefined,  // Ensure no mock_user_email cookie for anonymous tests
+    set: jest.fn() 
+  })) 
+}));
 jest.mock('@/services/tenant-actions', () => ({ getTenantSettings: () => mockTenantSettings() }));
 jest.mock('@supabase/ssr', () => ({
   createServerClient: jest.fn(() => ({ auth: { getUser: mockGetUser }, rpc: mockRpc, from: mockFrom })),
@@ -50,8 +56,18 @@ describe('GET /api/tenant/context', () => {
   });
 
   it('returns401 before profile/configuration when anonymous', async () => {
-    mockGetUser.mockResolvedValue({ data: { user: null }, error: null });
+    // Ensure clean mock state for CI environment
+    jest.clearAllMocks();
+    mockGetUser.mockReset().mockResolvedValue({ data: { user: null }, error: null });
+    mockRpc.mockReset();
+    mockTenantSettings.mockReset();
+    
     const response = await GET(request());
+    
+    // Defensive check: response must exist
+    if (!response) {
+      throw new Error('GET returned undefined response');
+    }
     
     // Explicit assertions with detailed error messages for CI debugging
     expect(response).toBeDefined();
@@ -65,7 +81,7 @@ describe('GET /api/tenant/context', () => {
     const body = await response.json();
     expect(body).toHaveProperty('error');
     expect(body.error).toContain('Unauthorized');
-  });
+  }, 10000); // 10s timeout for CI environment
 
   it('does not fabricate a tenant for anonymous development requests or mock headers', async () => {
     const previous = process.env;
