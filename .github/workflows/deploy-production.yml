@@ -36,7 +36,6 @@ jobs:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ vars.VERCEL_PRODUCTION_PROJECT_ID }}
-          PRODUCTION_SUPABASE_DB_URL: ${{ secrets.PRODUCTION_SUPABASE_DB_URL }}
           BYPASS_SECRET: ${{ secrets.E2E_VERCEL_AUTOMATION_BYPASS_SECRET }}
           E2E_ADMIN_EMAIL: ${{ secrets.PRODUCTION_E2E_ADMIN_EMAIL || secrets.E2E_ADMIN_EMAIL }}
           E2E_ADMIN_PASSWORD: ${{ secrets.PRODUCTION_E2E_ADMIN_PASSWORD || secrets.E2E_ADMIN_PASSWORD }}
@@ -44,7 +43,6 @@ jobs:
           test -n "$VERCEL_TOKEN"
           test -n "$VERCEL_ORG_ID"
           test -n "$VERCEL_PROJECT_ID"
-          test -n "$PRODUCTION_SUPABASE_DB_URL"
           test -n "$BYPASS_SECRET"
           test -n "$E2E_ADMIN_EMAIL"
           test -n "$E2E_ADMIN_PASSWORD"
@@ -54,18 +52,45 @@ jobs:
       - run: npm run security:secrets
       - run: npm run docs:api:versioning
       - run: npm run db:migration:zero-downtime -- --base HEAD^
-      - run: npm run db:migration:check
-        env:
-          BASE_REF: HEAD^
-          SUPABASE_DB_URL: ${{ secrets.PRODUCTION_SUPABASE_DB_URL }}
       - run: npm run build
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.PRODUCTION_SUPABASE_URL || vars.NEXT_PUBLIC_SUPABASE_URL }}
-          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.PRODUCTION_SUPABASE_PUBLISHABLE_KEY || vars.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.PRODUCTION_SUPABASE_PUBLISHABLE_KEY || vars.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || secrets.PRODUCTION_SUPABASE_ANON_KEY || vars.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+
+  migrate:
+    name: Apply Health Probe Migration
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: Production
+    permissions:
+      contents: read
+    steps:
+      - name: Require main branch
+        run: test "$GITHUB_REF" = refs/heads/main
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - name: Apply only the reviewed health migration
+        run: node scripts/apply-platform-health-probe-migration.cjs
+        env:
+          PRODUCTION_SUPABASE_DB_URL: ${{ secrets.PRODUCTION_SUPABASE_DB_URL }}
+      - name: Verify Production migration ledger
+        run: npm run db:migration:check
+        env:
+          BASE_REF: HEAD^
+          SUPABASE_DB_URL: ${{ secrets.PRODUCTION_SUPABASE_DB_URL }}
 
   preview:
     name: Build Immutable Preview
-    needs: validate
+    needs: migrate
     runs-on: ubuntu-latest
     timeout-minutes: 30
     outputs:
@@ -88,7 +113,7 @@ jobs:
       - run: npx vercel build --prod --token="$VERCEL_TOKEN"
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.PRODUCTION_SUPABASE_URL || vars.NEXT_PUBLIC_SUPABASE_URL }}
-          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.PRODUCTION_SUPABASE_PUBLISHABLE_KEY || vars.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.PRODUCTION_SUPABASE_PUBLISHABLE_KEY || vars.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || secrets.PRODUCTION_SUPABASE_ANON_KEY || vars.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
       - name: Deploy exact build without promotion
         id: deploy
         run: |
