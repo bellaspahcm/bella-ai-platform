@@ -295,6 +295,9 @@ export default function PreschoolParentPortalPage({
   const [activeTab, setActiveTab] = useState<PortalTab>('daily');
   const [selectedDayKey, setSelectedDayKey] = useState<string>('T2');
   const [childImgFailed, setChildImgFailed] = useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
+  const [isNoticeHighlight, setIsNoticeHighlight] = useState(false);
 
   // Chat State
   const [chatInput, setChatInput] = useState('');
@@ -401,6 +404,15 @@ export default function PreschoolParentPortalPage({
     }
   }
 
+  function handleBellClick() {
+    const el = document.getElementById('school-announcements-section');
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      setIsNoticeHighlight(true);
+      setTimeout(() => setIsNoticeHighlight(false), 2500);
+    }
+  }
+
   function handleCopy(text: string) {
     void navigator.clipboard.writeText(text);
     setCopiedBankInfo(true);
@@ -503,11 +515,21 @@ export default function PreschoolParentPortalPage({
             </div>
 
             <div className="flex items-center gap-2">
-              <div className="relative p-1.5 text-slate-700 cursor-pointer" aria-hidden="true">
-                <Bell className="w-5 h-5 text-slate-700" />
+              <div
+                onClick={handleBellClick}
+                title="Xem thông báo nhà trường"
+                className="relative p-1.5 text-slate-700 hover:text-slate-900 active:scale-95 transition-all cursor-pointer rounded-full hover:bg-slate-100"
+                aria-label="Xem thông báo nhà trường"
+              >
+                <Bell className="w-5 h-5" />
                 <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-rose-500 ring-2 ring-white" />
               </div>
-              <div className="w-8 h-8 rounded-full bg-sky-100 text-sky-600 font-bold text-xs flex items-center justify-center border border-sky-200/60 shadow-2xs">
+              <div
+                onClick={() => setIsUserMenuOpen(true)}
+                title="Thông tin phụ huynh & học sinh"
+                className="w-8 h-8 rounded-full bg-sky-100 hover:bg-sky-200 text-sky-600 font-bold text-xs flex items-center justify-center border border-sky-200/60 shadow-2xs cursor-pointer active:scale-95 transition-all"
+                aria-label="Thông tin tài khoản phụ huynh"
+              >
                 {getGuardianInitials(dailyRead.guardianName)}
               </div>
             </div>
@@ -620,7 +642,7 @@ export default function PreschoolParentPortalPage({
           </section>
 
           {/* ── CARD 3: SCHOOL ANNOUNCEMENTS ── */}
-          <section className="mx-4 mt-3 bg-white rounded-3xl p-5 shadow-xs border border-slate-100" aria-label="Thông báo chung của nhà trường">
+          <section id="school-announcements-section" className={`mx-4 mt-3 bg-white rounded-3xl p-5 shadow-xs border transition-all duration-500 ${isNoticeHighlight ? 'ring-2 ring-amber-400 border-amber-300 bg-amber-50/20' : 'border-slate-100'}`} aria-label="Thông báo chung của nhà trường">
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-xl bg-rose-50 text-rose-500 flex items-center justify-center shrink-0">
@@ -708,10 +730,129 @@ export default function PreschoolParentPortalPage({
           </div>
 
           {/* ── BOTTOM HELP LINK ── */}
-          <div className="mx-4 mt-4 text-center text-xs text-slate-500 flex items-center justify-center gap-1.5 cursor-pointer hover:text-slate-700">
+          <div
+            onClick={() => setIsHelpModalOpen(true)}
+            className="mx-4 mt-4 text-center text-xs text-slate-500 flex items-center justify-center gap-1.5 cursor-pointer hover:text-slate-800 active:scale-98 transition-all"
+          >
             <Headphones className="w-3.5 h-3.5 text-slate-400 shrink-0" />
             <span>Nếu cần hỗ trợ, vui lòng liên hệ nhà trường qua số điện thoại hoặc Zalo. &gt;</span>
           </div>
+
+          {/* ── USER MENU MODAL (Guardian & Child Info) ── */}
+          {isUserMenuOpen && (
+            <div
+              className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200"
+              onClick={() => setIsUserMenuOpen(false)}
+            >
+              <div
+                className="w-full max-w-sm bg-white rounded-t-3xl sm:rounded-3xl p-5 shadow-2xl border border-slate-100 space-y-4"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-10 h-10 rounded-full bg-sky-100 text-sky-600 font-extrabold text-sm flex items-center justify-center border border-sky-200">
+                      {getGuardianInitials(dailyRead.guardianName)}
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-slate-900">{dailyRead.guardianName}</p>
+                      <p className="text-[11px] text-emerald-600 font-medium">Người giám hộ hợp pháp</p>
+                    </div>
+                  </div>
+                  <div
+                    onClick={() => setIsUserMenuOpen(false)}
+                    className="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 cursor-pointer"
+                  >
+                    <X className="w-4 h-4" />
+                  </div>
+                </div>
+
+                <div className="space-y-2 text-xs text-slate-600">
+                  <div className="bg-slate-50 rounded-2xl p-3 border border-slate-100 space-y-1.5">
+                    <div className="flex justify-between"><span className="text-slate-400">Học sinh:</span><span className="font-bold text-slate-800">{dailyRead.childName}</span></div>
+                    <div className="flex justify-between"><span className="text-slate-400">Lớp:</span><span className="font-semibold text-slate-700">{dailyRead.courseTitle} ({dailyRead.courseCode})</span></div>
+                    <div className="flex justify-between"><span className="text-slate-400">Trường:</span><span className="font-semibold text-slate-700">{dailyRead.schoolName}</span></div>
+                    <div className="flex justify-between"><span className="text-slate-400">Trạng thái:</span><span className="text-sky-600 font-bold">Đang học</span></div>
+                  </div>
+
+                  <div className="bg-sky-50/60 rounded-2xl p-3 border border-sky-100 text-[11px] text-sky-800">
+                    <p className="font-semibold">Bảo mật liên kết:</p>
+                    <p className="mt-0.5 text-slate-500 leading-relaxed">
+                      Sổ liên lạc hoạt động theo cơ chế xác thực Magic Link an toàn dành riêng cho phụ huynh.
+                    </p>
+                  </div>
+                </div>
+
+                <div
+                  onClick={() => setIsUserMenuOpen(false)}
+                  className="w-full text-center py-2.5 rounded-full bg-slate-900 text-white font-semibold text-xs cursor-pointer hover:bg-slate-800 transition"
+                >
+                  Đóng
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ── HELP & SUPPORT MODAL ── */}
+          {isHelpModalOpen && (
+            <div
+              className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200"
+              onClick={() => setIsHelpModalOpen(false)}
+            >
+              <div
+                className="w-full max-w-sm bg-white rounded-t-3xl sm:rounded-3xl p-5 shadow-2xl border border-slate-100 space-y-4"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                      <Headphones className="w-4 h-4 text-emerald-600" />
+                    </div>
+                    <p className="text-sm font-bold text-slate-900">Liên hệ Nhà trường</p>
+                  </div>
+                  <div
+                    onClick={() => setIsHelpModalOpen(false)}
+                    className="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 cursor-pointer"
+                  >
+                    <X className="w-4 h-4" />
+                  </div>
+                </div>
+
+                <div className="space-y-2.5 text-xs">
+                  <a
+                    href="tel:02873006868"
+                    className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 hover:bg-slate-100 border border-slate-100 transition text-slate-800"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <Phone className="w-4 h-4 text-emerald-600" />
+                      <div>
+                        <p className="font-bold text-slate-900">Hotline Tuyển sinh & Hỗ trợ</p>
+                        <p className="text-[11px] text-slate-500">028 7300 6868 (Giờ hành chính)</p>
+                      </div>
+                    </div>
+                    <span className="text-emerald-600 font-bold text-xs">Gọi ngay</span>
+                  </a>
+
+                  <div className="p-3 rounded-2xl bg-sky-50/70 border border-sky-100 flex items-center justify-between text-slate-800">
+                    <div className="flex items-center gap-2.5">
+                      <MessageSquare className="w-4 h-4 text-sky-600" />
+                      <div>
+                        <p className="font-bold text-slate-900">Kênh Zalo Official</p>
+                        <p className="text-[11px] text-slate-500">Mầm non Ánh Dương Care</p>
+                      </div>
+                    </div>
+                    <span className="text-sky-600 font-bold text-xs">Kết nối</span>
+                  </div>
+                </div>
+
+                <div
+                  onClick={() => setIsHelpModalOpen(false)}
+                  className="w-full text-center py-2.5 rounded-full bg-slate-900 text-white font-semibold text-xs cursor-pointer hover:bg-slate-800 transition"
+                >
+                  Đóng
+                </div>
+              </div>
+            </div>
+          )}
         </main>
       </div>
     );
