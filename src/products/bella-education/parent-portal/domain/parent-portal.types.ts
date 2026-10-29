@@ -61,7 +61,7 @@ const portalRecord = (value: unknown): value is Record<string, unknown> =>
   value !== null && typeof value === 'object' && !Array.isArray(value);
 const portalText = (value: unknown): value is string => typeof value === 'string' && value.trim().length > 0;
 export const isPortalUuid = (value: unknown): value is string =>
-  typeof value === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+  typeof value === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
 
 export function isParentPortalAnnouncementFeed(value: unknown): value is ParentPortalAnnouncementFeed {
   return portalRecord(value) && isPortalUuid(value.tenantId) && Array.isArray(value.announcements)

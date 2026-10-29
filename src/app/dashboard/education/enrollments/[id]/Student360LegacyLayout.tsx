@@ -9,6 +9,7 @@ import {
 import type { Student360ProfileData } from '@/app/api/education/enrollments/student-360.service';
 import PortalAccessLink from './PortalAccessLink';
 import StudentGuardians from './StudentGuardians';
+import StudentEditModal from './StudentEditModal';
 
 type ProfileTab = 'overview' | 'communication' | 'attendance' | 'grades'
   | 'finance' | 'guardians' | 'health' | 'enrollments';
@@ -63,14 +64,17 @@ function UnavailablePanel({ title }: { title: string }) {
 }
 
 export default function Student360LegacyLayout({
-  profile, registryHref, selectedCourseId, tenantId,
+  profile, registryHref, selectedCourseId, tenantId, isAdmin = false, onProfileUpdated,
 }: {
   profile: Student360ProfileData;
   registryHref: string;
   selectedCourseId: string | null;
   tenantId: string | null;
+  isAdmin?: boolean;
+  onProfileUpdated?: (updated: Student360ProfileData) => void;
 }) {
   const [activeTab, setActiveTab] = useState<ProfileTab>('overview');
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const activeEnrollment = profile.enrollments.find(enrollment => enrollment.status === 'active' && enrollment.courseId === selectedCourseId)
     ?? profile.enrollments.find(enrollment => enrollment.status === 'active')
     ?? profile.enrollments[0];
@@ -109,8 +113,13 @@ export default function Student360LegacyLayout({
             </div>
           </div>
           <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap shrink-0">
-            <button type="button" disabled title="Chưa có API chỉnh sửa hồ sơ được phê duyệt"
-              className="inline-flex items-center justify-center gap-1.5 rounded-2xl bg-emerald-600 text-white px-4 py-2.5 text-xs font-extrabold shadow-md disabled:opacity-60">
+            <button
+              type="button"
+              disabled={!isAdmin}
+              onClick={() => setIsEditModalOpen(true)}
+              title={isAdmin ? 'Chỉnh sửa hồ sơ trẻ' : 'Chỉ Quản trị viên (Admin) mới có quyền chỉnh sửa hồ sơ trẻ'}
+              className="inline-flex items-center justify-center gap-1.5 rounded-2xl bg-emerald-600 text-white px-4 py-2.5 text-xs font-extrabold shadow-md hover:bg-emerald-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
+            >
               <Edit3 className="w-4 h-4" />Chỉnh Sửa Hồ Sơ
             </button>
             {tabs.filter(tab => ['communication', 'attendance', 'grades', 'finance'].includes(tab.id)).map(tab => {
@@ -233,6 +242,7 @@ export default function Student360LegacyLayout({
       {activeTab === 'finance' && <UnavailablePanel title="Học Phí & Khoản Thu" />}
       {activeTab === 'health' && <UnavailablePanel title="Sức Khỏe & Dinh Dưỡng" />}
       <p className="text-xs text-slate-500 flex items-center gap-2"><ShieldCheck className="w-4 h-4" />Hồ sơ hiển thị dữ liệu được API xác minh; các mục chưa kết nối không có dữ liệu mẫu.</p>
+      <StudentEditModal profile={profile} isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} onSaved={updated => onProfileUpdated?.(updated)} />
     </main>
   );
 }
