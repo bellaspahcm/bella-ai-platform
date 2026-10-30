@@ -10,6 +10,10 @@ import type { Student360ProfileData } from '@/app/api/education/enrollments/stud
 import PortalAccessLink from './PortalAccessLink';
 import StudentGuardians from './StudentGuardians';
 import StudentEditModal from './StudentEditModal';
+import StudentHealth from './StudentHealth';
+import StudentDevelopment from './StudentDevelopment';
+import StudentFinance from './StudentFinance';
+import StudentCommunication from './StudentCommunication';
 
 type ProfileTab = 'overview' | 'communication' | 'attendance' | 'grades'
   | 'finance' | 'guardians' | 'health' | 'enrollments';
@@ -197,42 +201,22 @@ export default function Student360LegacyLayout({
           </article>)}
       </section>}
 
-      {activeTab === 'communication' && <div role="tabpanel" className="space-y-5">
-        <section className="rounded-3xl bg-white dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 p-5 sm:p-6 shadow-sm">
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 flex items-center justify-center">
-              <MessageSquare className="w-5 h-5" />
-            </div>
-            <div>
-              <h2 className="text-base font-extrabold text-slate-900 dark:text-white">Sổ Liên Lạc Điện Tử — {profile.name}</h2>
-              <p className="text-xs text-slate-500 dark:text-slate-400">Thông tin sinh hoạt và trao đổi của trẻ được hiển thị khi có nguồn dữ liệu được cấp quyền.</p>
-            </div>
-          </div>
-        </section>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-          <section className="rounded-3xl bg-white dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 p-5 sm:p-6 shadow-sm space-y-4">
-            <div className="flex items-center justify-between gap-3">
-              <h3 className="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2"><Clock className="w-4 h-4 text-amber-500" />Nhật Ký Sinh Hoạt Trong Ngày</h3>
-              <span className="text-[11px] font-semibold text-slate-500">Chưa có dữ liệu</span>
-            </div>
-            <p className="rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-700 p-4 text-sm text-slate-600 dark:text-slate-300">
-              Nhật ký ăn uống, giấc ngủ và hoạt động trong ngày chưa được cung cấp bởi API có quyền truy cập cho hồ sơ này.
-            </p>
-          </section>
-          <section className="rounded-3xl bg-white dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 p-5 sm:p-6 shadow-sm space-y-4">
-            <div className="flex items-center justify-between gap-3">
-              <h3 className="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2"><MessageSquare className="w-4 h-4 text-emerald-600" />Trao Đổi Trực Tiếp Với Phụ Huynh</h3>
-              <span className="text-[11px] font-semibold text-slate-500">Chưa kết nối</span>
-            </div>
-            <p className="rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-700 p-4 text-sm text-slate-600 dark:text-slate-300">
-              Chưa có contract/API tin nhắn được xác minh cho trang hồ sơ trẻ. Nội dung trao đổi sẽ xuất hiện sau khi nguồn dữ liệu và quyền truy cập được kết nối.
-            </p>
-          </section>
-        </div>
-      </div>}
-      {activeTab === 'grades' && <UnavailablePanel title="Đánh Giá Phát Triển" />}
-      {activeTab === 'finance' && <UnavailablePanel title="Học Phí & Khoản Thu" />}
-      {activeTab === 'health' && <UnavailablePanel title="Sức Khỏe & Dinh Dưỡng" />}
+      {activeTab === 'communication' && (
+        <StudentCommunication studentId={profile.studentId} studentName={profile.name} />
+      )}
+      {activeTab === 'grades' && (
+        <StudentDevelopment
+          studentId={profile.studentId}
+          enrollmentId={activeEnrollment?.id}
+          studentName={profile.name}
+        />
+      )}
+      {activeTab === 'finance' && (
+        <StudentFinance studentId={profile.studentId} studentName={profile.name} />
+      )}
+      {activeTab === 'health' && (
+        <StudentHealth studentId={profile.studentId} studentName={profile.name} />
+      )}
       <p className="text-xs text-slate-500 flex items-center gap-2"><ShieldCheck className="w-4 h-4" />Hồ sơ hiển thị dữ liệu được API xác minh; các mục chưa kết nối không có dữ liệu mẫu.</p>
       <StudentEditModal profile={profile} isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} onSaved={updated => onProfileUpdated?.(updated)} />
     </main>
