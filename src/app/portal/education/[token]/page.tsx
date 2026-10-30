@@ -16,7 +16,7 @@
  */
 
 import { use, useEffect, useRef, useState, useTransition, type FormEvent } from 'react';
-import { isParentPortalAnnouncementFeed, isParentPortalDailyRead, type ParentPortalDailyRead, type PortalTuitionSummary } from '@/products/bella-education/parent-portal/domain/parent-portal.types';
+import { isParentPortalAnnouncementFeed, isParentPortalDailyRead, type ParentPortalDailyRead, type PortalTuitionSummary, type PortalAttendanceSummary } from '@/products/bella-education/parent-portal/domain/parent-portal.types';
 import {
   Baby,
   Calendar,
@@ -424,6 +424,7 @@ export default function PreschoolParentPortalPage({
   const [activeTab, setActiveTab] = useState<PortalTab>('daily');
   const [dailyTab, setDailyTab] = useState<DailyTab>('overview');
   const [tuitionSummary, setTuitionSummary] = useState<PortalTuitionSummary | null>(null);
+  const [attendanceSummary, setAttendanceSummary] = useState<PortalAttendanceSummary | null>(null);
   const [dailyMenuDay, setDailyMenuDay] = useState<'T2' | 'T3' | 'T4' | 'T5' | 'T6'>('T6');
   const [copiedDailyField, setCopiedDailyField] = useState<string | null>(null);
   const [selectedDayKey, setSelectedDayKey] = useState<string>('T2');
@@ -452,7 +453,7 @@ export default function PreschoolParentPortalPage({
   // Load Portal Data
   async function loadData() {
     const requestId = ++generation.current;
-    setLoadedToken(token); setPortalData(null); setDailyRead(null); setTuitionSummary(null);
+    setLoadedToken(token); setPortalData(null); setDailyRead(null); setTuitionSummary(null); setAttendanceSummary(null);
     setLoading(true);
     setError(null);
     try {
@@ -1068,7 +1069,7 @@ export default function PreschoolParentPortalPage({
           {/* ── TAB 3: ATTENDANCE (LỊCH SỬ ĐIỂM DANH) ── */}
           {dailyTab === 'attendance' && (
             <div className="mx-4 mt-1 space-y-3">
-              {/* Thẻ hôm nay */}
+              {/* Thẻ hôm nay từ dữ liệu thực */}
               <div className="bg-[#fffdf5] border border-[#fef3c7] rounded-3xl p-5 shadow-2xs">
                 <div className="flex items-center justify-between">
                   <div>
@@ -1084,50 +1085,57 @@ export default function PreschoolParentPortalPage({
                   </div>
                 </div>
                 <p className="text-xs text-slate-500 mt-2 leading-relaxed">
-                  Bé đã có mặt tại lớp lúc 07:40 sáng. Tình trạng sức khỏe đầu giờ tốt, thân nhiệt 36.6°C.
+                  {attendanceInfo.description}
                 </p>
               </div>
 
-              {/* Lịch sử tuần */}
+              {/* Lịch sử điểm danh thực tế từ hệ thống */}
               <div className="bg-white rounded-3xl p-5 shadow-xs border border-slate-100 space-y-4">
                 <div className="flex items-center justify-between">
                   <h4 className="font-extrabold text-slate-900 text-sm flex items-center gap-1.5">
                     <CalendarDays className="w-4 h-4 text-emerald-600" />
-                    <span>Lịch sử điểm danh tuần này</span>
+                    <span>Lịch sử điểm danh thực tế</span>
                   </h4>
-                  <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-100">
-                    Chuyên cần 100%
-                  </span>
+                  {attendanceSummary && attendanceSummary.attendanceRatePercent !== null && (
+                    <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-100">
+                      Chuyên cần {attendanceSummary.attendanceRatePercent}%
+                    </span>
+                  )}
                 </div>
 
                 <div className="space-y-2.5 text-xs">
-                  {[
-                    { day: 'Thứ 2 (26/10)', checkin: '07:45', checkout: '17:15', status: 'Có mặt', receiver: 'Mẹ đón', color: 'emerald' },
-                    { day: 'Thứ 3 (27/10)', checkin: '07:48', checkout: '17:10', status: 'Có mặt', receiver: 'Ba đón', color: 'emerald' },
-                    { day: 'Thứ 4 (28/10)', checkin: '07:42', checkout: '17:20', status: 'Có mặt', receiver: 'Mẹ đón', color: 'emerald' },
-                    { day: 'Thứ 5 (29/10)', checkin: '07:50', checkout: '17:05', status: 'Có mặt', receiver: 'Mẹ đón', color: 'emerald' },
-                    { day: 'Thứ 6 (30/10)', checkin: '07:40', checkout: 'Đang học', status: 'Có mặt', receiver: 'Tại lớp', color: 'amber' },
-                  ].map((row, i) => (
-                    <div key={i} className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 border border-slate-100">
-                      <div>
-                        <p className="font-bold text-slate-800">{row.day}</p>
-                        <p className="text-[11px] text-slate-500 mt-0.5">
-                          Đến lớp: {row.checkin} · {row.checkout} ({row.receiver})
-                        </p>
+                  {attendanceSummary && attendanceSummary.history.length > 0 ? (
+                    attendanceSummary.history.map((row) => (
+                      <div key={row.id} className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 border border-slate-100">
+                        <div>
+                          <p className="font-bold text-slate-800">{row.dayLabel}</p>
+                          <p className="text-[11px] text-slate-500 mt-0.5">
+                            {row.rollCallTime ? `Giờ điểm danh: ${row.rollCallTime}` : 'Đã ghi nhận điểm danh'}
+                          </p>
+                        </div>
+                        <span className={`px-2.5 py-1 rounded-full text-[11px] font-extrabold ${
+                          row.status === 'present' ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'
+                        }`}>
+                          {row.statusLabel}
+                        </span>
                       </div>
-                      <span className={`px-2.5 py-1 rounded-full text-[11px] font-extrabold ${
-                        row.color === 'emerald' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
-                      }`}>
-                        {row.status}
-                      </span>
+                    ))
+                  ) : (
+                    <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 text-center text-slate-500">
+                      <p className="font-medium text-xs">Chưa có lịch sử các ngày trước đó.</p>
+                      <p className="text-[11px] text-slate-400 mt-1">Hôm nay là buổi điểm danh đầu tiên của bé tại trường.</p>
                     </div>
-                  ))}
+                  )}
                 </div>
 
-                <div className="p-3 bg-slate-50 rounded-2xl border border-slate-100 text-[11px] text-slate-600 flex items-center justify-between">
-                  <span>Tổng số ngày đi học trong tháng:</span>
-                  <span className="font-black text-slate-900">25 / 26 buổi (96.2%)</span>
-                </div>
+                {attendanceSummary && attendanceSummary.totalMarked > 0 && (
+                  <div className="p-3 bg-slate-50 rounded-2xl border border-slate-100 text-[11px] text-slate-600 flex items-center justify-between">
+                    <span>Tổng số buổi đã điểm danh:</span>
+                    <span className="font-black text-slate-900">
+                      {attendanceSummary.presentCount} / {attendanceSummary.totalMarked} buổi ({attendanceSummary.attendanceRatePercent ?? 100}%)
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
           )}
