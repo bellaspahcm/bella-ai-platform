@@ -273,3 +273,25 @@ export interface ParentPortalPayload {
   readonly aiDailyDigest?: ParentPortalDailyDigest | null;
   readonly serverTime: string;
 }
+
+export interface PortalTuitionInvoice {
+  readonly id: string;
+  readonly invoiceNumber: string;
+  readonly billingPeriodName: string | null;
+  readonly netAmount: number;
+  readonly paidAmount: number;
+  readonly outstandingAmount: number;
+  readonly settlementStatus: 'PAID' | 'UNPAID' | 'PARTIALLY_PAID';
+  readonly invoiceStatus: string;
+  readonly issuedAt: string;
+  readonly dueDate: string | null;
+}
+
+export interface PortalTuitionSummary {
+  readonly invoices: readonly PortalTuitionInvoice[];
+  readonly latestInvoice: PortalTuitionInvoice | null;
+  readonly totalDue: number;
+  readonly totalPaid: number;
+  readonly totalOutstanding: number;
+  readonly vietQrPayload?: ParentPortalVietQrPayload;
+}
