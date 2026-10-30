@@ -311,3 +311,54 @@ export interface PortalAttendanceSummary {
   readonly presentCount: number;
   readonly attendanceRatePercent: number | null;
 }
+
+export interface PortalCareMealItem {
+  readonly mealName: string;
+  readonly foodName?: string | null;
+  readonly portion: string;
+  readonly note?: string | null;
+  readonly time?: string | null;
+}
+
+export interface PortalCareNapDetails {
+  readonly timeRange?: string | null;
+  readonly durationText?: string | null;
+  readonly quality: string;
+  readonly note?: string | null;
+}
+
+export interface PortalCareHealthDetails {
+  readonly temperature?: number | string | null;
+  readonly condition?: string | null;
+  readonly checkedAt?: string | null;
+  readonly note?: string | null;
+}
+
+export interface PortalCareHygieneItem {
+  readonly type: string;
+  readonly detail: string;
+  readonly note?: string | null;
+}
+
+export interface PortalCareDayRecord {
+  readonly id: string;
+  readonly date: string;
+  readonly dayLabel: string;
+  readonly morningCondition?: string | null;
+  readonly meals: readonly PortalCareMealItem[];
+  readonly nap: PortalCareNapDetails | null;
+  readonly health: PortalCareHealthDetails | null;
+  readonly hygiene: readonly PortalCareHygieneItem[];
+}
+
+export interface PortalCareSummary {
+  readonly today: string;
+  readonly selectedDate: string;
+  readonly hasTodayRecord: boolean;
+  readonly currentRecord: PortalCareDayRecord | null;
+  readonly latestRecord: PortalCareDayRecord | null;
+  readonly availableDates: readonly string[];
+  readonly overviewMealText: string;
+  readonly overviewNapText: string;
+  readonly overviewHealthText: string;
+}

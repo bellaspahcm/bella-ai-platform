@@ -16,7 +16,7 @@
  */
 
 import { use, useEffect, useRef, useState, useTransition, type FormEvent } from 'react';
-import { isParentPortalAnnouncementFeed, isParentPortalDailyRead, type ParentPortalDailyRead, type PortalTuitionSummary, type PortalAttendanceSummary } from '@/products/bella-education/parent-portal/domain/parent-portal.types';
+import { isParentPortalAnnouncementFeed, isParentPortalDailyRead, type ParentPortalDailyRead, type PortalTuitionSummary, type PortalAttendanceSummary, type PortalCareSummary } from '@/products/bella-education/parent-portal/domain/parent-portal.types';
 import {
   Baby,
   Calendar,
@@ -425,6 +425,7 @@ export default function PreschoolParentPortalPage({
   const [dailyTab, setDailyTab] = useState<DailyTab>('overview');
   const [tuitionSummary, setTuitionSummary] = useState<PortalTuitionSummary | null>(null);
   const [attendanceSummary, setAttendanceSummary] = useState<PortalAttendanceSummary | null>(null);
+  const [careSummary, setCareSummary] = useState<PortalCareSummary | null>(null);
   const [dailyMenuDay, setDailyMenuDay] = useState<'T2' | 'T3' | 'T4' | 'T5' | 'T6'>('T6');
   const [copiedDailyField, setCopiedDailyField] = useState<string | null>(null);
   const [selectedDayKey, setSelectedDayKey] = useState<string>('T2');
@@ -453,7 +454,7 @@ export default function PreschoolParentPortalPage({
   // Load Portal Data
   async function loadData() {
     const requestId = ++generation.current;
-    setLoadedToken(token); setPortalData(null); setDailyRead(null); setTuitionSummary(null); setAttendanceSummary(null);
+    setLoadedToken(token); setPortalData(null); setDailyRead(null); setTuitionSummary(null); setAttendanceSummary(null); setCareSummary(null);
     setLoading(true);
     setError(null);
     try {
@@ -481,6 +482,30 @@ export default function PreschoolParentPortalPage({
             const tJson = (await tRes.json()) as { success: boolean; data?: PortalTuitionSummary };
             if (tJson.success && tJson.data && requestId === generation.current) {
               setTuitionSummary(tJson.data);
+            }
+          }
+        } catch {
+          // Graceful fallback
+        }
+        // Load real attendance from edu_attendance_daily_state
+        try {
+          const aRes = await fetch(`/api/education/portal/${encodeURIComponent(token)}/attendance`, { cache: 'no-store' });
+          if (aRes.ok) {
+            const aJson = (await aRes.json()) as { success: boolean; data?: PortalAttendanceSummary };
+            if (aJson.success && aJson.data && requestId === generation.current) {
+              setAttendanceSummary(aJson.data);
+            }
+          }
+        } catch {
+          // Graceful fallback
+        }
+        // Load real care & nutrition from edu_daily_care_records
+        try {
+          const cRes = await fetch(`/api/education/portal/${encodeURIComponent(token)}/care`, { cache: 'no-store' });
+          if (cRes.ok) {
+            const cJson = (await cRes.json()) as { success: boolean; data?: PortalCareSummary };
+            if (cJson.success && cJson.data && requestId === generation.current) {
+              setCareSummary(cJson.data);
             }
           }
         } catch {
@@ -900,17 +925,23 @@ export default function PreschoolParentPortalPage({
                   <div className="bg-amber-50/60 border border-amber-100 rounded-2xl p-2.5">
                     <Utensils className="w-4 h-4 text-amber-600 mx-auto mb-1" />
                     <p className="text-[10px] text-slate-500">Bữa ăn</p>
-                    <p className="font-extrabold text-slate-800 text-[11px] mt-0.5">Ăn hết suất</p>
+                    <p className="font-extrabold text-slate-800 text-[11px] mt-0.5">
+                      {careSummary?.overviewMealText ?? 'Ấn hết suất'}
+                    </p>
                   </div>
                   <div className="bg-indigo-50/60 border border-indigo-100 rounded-2xl p-2.5">
                     <Sun className="w-4 h-4 text-indigo-600 mx-auto mb-1" />
                     <p className="text-[10px] text-slate-500">Ngủ trưa</p>
-                    <p className="font-extrabold text-slate-800 text-[11px] mt-0.5">2h30 (Sâu giấc)</p>
+                    <p className="font-extrabold text-slate-800 text-[11px] mt-0.5">
+                      {careSummary?.overviewNapText ?? 'Chưa cập nhật'}
+                    </p>
                   </div>
                   <div className="bg-emerald-50/60 border border-emerald-100 rounded-2xl p-2.5">
                     <Sparkles className="w-4 h-4 text-emerald-600 mx-auto mb-1" />
                     <p className="text-[10px] text-slate-500">Thân nhiệt</p>
-                    <p className="font-extrabold text-slate-800 text-[11px] mt-0.5">36.6°C (Khỏe)</p>
+                    <p className="font-extrabold text-slate-800 text-[11px] mt-0.5">
+                      {careSummary?.overviewHealthText ?? 'Chưa cập nhật'}
+                    </p>
                   </div>
                 </div>
               </section>
@@ -1156,49 +1187,29 @@ export default function PreschoolParentPortalPage({
                     </div>
                   </div>
                   <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
-                    Ăn giỏi
+                    {(careSummary?.currentRecord?.meals?.length ?? 0) > 0 ? 'Ăn giỏi' : 'Chờ cập nhật'}
                   </span>
                 </div>
 
                 <div className="space-y-2.5 text-xs">
-                  <div className="p-3 rounded-2xl bg-amber-50/50 border border-amber-100 flex items-center justify-between">
-                    <div>
-                      <div className="flex items-center gap-1.5">
-                        <span className="font-extrabold text-slate-900">Bữa sáng (08:00)</span>
-                        <span className="text-[10px] text-slate-500">· Phở bò Hà Nội, sữa chua Probi</span>
+                  {careSummary?.currentRecord?.meals && careSummary.currentRecord.meals.length > 0 ? (
+                    careSummary.currentRecord.meals.map((meal, i) => (
+                      <div key={i} className="p-3 rounded-2xl bg-amber-50/50 border border-amber-100 flex items-center justify-between">
+                        <div>
+                          <div className="flex items-center gap-1.5">
+                            <span className="font-extrabold text-slate-900">{meal.mealName}</span>
+                            {meal.foodName && <span className="text-[10px] text-slate-500">· {meal.foodName}</span>}
+                          </div>
+                          {meal.note && <p className="text-[11px] text-slate-600 mt-1">{meal.note}</p>}
+                        </div>
+                        <span className="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 font-extrabold text-[11px] shrink-0">
+                          {meal.portion}
+                        </span>
                       </div>
-                      <p className="text-[11px] text-slate-600 mt-1">Bé tự xúc ăn rất nhanh và ngoan, không làm rơi vãi.</p>
-                    </div>
-                    <span className="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 font-extrabold text-[11px] shrink-0">
-                      Hết 100%
-                    </span>
-                  </div>
-
-                  <div className="p-3 rounded-2xl bg-emerald-50/50 border border-emerald-100 flex items-center justify-between">
-                    <div>
-                      <div className="flex items-center gap-1.5">
-                        <span className="font-extrabold text-slate-900">Bữa trưa (11:15)</span>
-                        <span className="text-[10px] text-slate-500">· Cơm tấm sườn ram, canh cua rau đay</span>
-                      </div>
-                      <p className="text-[11px] text-slate-600 mt-1">Ăn hết cơm và thịt, uống hết 1 bát canh rau mồng tơi.</p>
-                    </div>
-                    <span className="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 font-extrabold text-[11px] shrink-0">
-                      Hết 100%
-                    </span>
-                  </div>
-
-                  <div className="p-3 rounded-2xl bg-sky-50/50 border border-sky-100 flex items-center justify-between">
-                    <div>
-                      <div className="flex items-center gap-1.5">
-                        <span className="font-extrabold text-slate-900">Bữa xế (14:30)</span>
-                        <span className="text-[10px] text-slate-500">· Chè sen long nhãn, sữa hạt óc chó</span>
-                      </div>
-                      <p className="text-[11px] text-slate-600 mt-1">Uống hết hộp sữa 180ml, ăn hết phần chè sen thanh mát.</p>
-                    </div>
-                    <span className="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 font-extrabold text-[11px] shrink-0">
-                      Hết 100%
-                    </span>
-                  </div>
+                    ))
+                  ) : (
+                    <div className="text-xs text-slate-400 text-center p-3">Chưa có dữ liệu bữa ăn hôm nay</div>
+                  )}
                 </div>
               </div>
 
@@ -1210,9 +1221,23 @@ export default function PreschoolParentPortalPage({
                     <span>Giấc ngủ trưa</span>
                   </div>
                   <div>
-                    <p className="text-base font-black text-slate-900">11:45 - 14:15</p>
-                    <p className="text-[11px] text-slate-500 mt-0.5">Thời lượng: 2 tiếng 30 phút</p>
-                    <p className="text-[11px] text-emerald-700 font-semibold mt-1">Ngủ ngon, tròn giấc</p>
+                    {careSummary?.currentRecord?.nap ? (
+                      <>
+                        <p className="text-base font-black text-slate-900">
+                          {careSummary.currentRecord.nap.timeRange ?? 'Chờ cập nhật'}
+                        </p>
+                        {careSummary.currentRecord.nap.durationText && (
+                          <p className="text-[11px] text-slate-500 mt-0.5">
+                            Thời lượng: {careSummary.currentRecord.nap.durationText}
+                          </p>
+                        )}
+                        <p className="text-[11px] text-emerald-700 font-semibold mt-1">
+                          {careSummary.currentRecord.nap.quality}
+                        </p>
+                      </>
+                    ) : (
+                      <p className="text-slate-400 text-[11px]">Chưa ghi nhận</p>
+                    )}
                   </div>
                 </div>
 
@@ -1222,9 +1247,18 @@ export default function PreschoolParentPortalPage({
                     <span>Thân nhiệt &amp; Sức khỏe</span>
                   </div>
                   <div>
-                    <p className="text-base font-black text-slate-900">36.6°C (Bình thường)</p>
-                    <p className="text-[11px] text-slate-500 mt-0.5">Kiểm tra lúc: 07:45 sáng</p>
-                    <p className="text-[11px] text-emerald-700 font-semibold mt-1">Hoạt bát, vui vẻ</p>
+                    {careSummary?.currentRecord?.health ? (
+                      <>
+                        <p className="text-base font-black text-slate-900">
+                          {careSummary.currentRecord.health.temperature}°C (Bình thường)
+                        </p>
+                        <p className="text-[11px] text-emerald-700 font-semibold mt-1">
+                          {careSummary.currentRecord.health.condition ?? 'Hoạt bát, vui vẻ'}
+                        </p>
+                      </>
+                    ) : (
+                      <p className="text-slate-400 text-[11px]">Chưa ghi nhận</p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -1238,7 +1272,7 @@ export default function PreschoolParentPortalPage({
                 <div className="space-y-2 text-[11px] text-slate-600">
                   <div className="flex justify-between">
                     <span className="text-slate-400">Vệ sinh cá nhân:</span>
-                    <span className="font-semibold text-slate-800">Rửa tay sát khuẩn 4 lần, vệ sinh 3 lần bình thường</span>
+                    <span className="font-semibold text-slate-800">{careSummary?.currentRecord?.hygiene && careSummary.currentRecord.hygiene.length > 0 ? careSummary.currentRecord.hygiene.map(h => `${h.type}: ${h.detail}`).join(', ') : 'Quy trình chuẩn'}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-slate-400">Khung giờ trả trẻ:</span>
