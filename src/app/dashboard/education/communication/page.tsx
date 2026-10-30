@@ -30,6 +30,8 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import {
   ArrowLeft,
+  ArrowRight,
+  GraduationCap,
   MessageSquare,
   Calendar,
   Send,
@@ -430,6 +432,35 @@ const CONVERSATIONS_DATA: readonly ConversationItem[] = [
   },
 ];
 
+export function normalizeStudentCode(identifier: string): string {
+  const stuMatch = /^STU-0*([1-9]\d*)$/i.exec(identifier);
+  if (stuMatch) {
+    const num = stuMatch[1].padStart(4, '0');
+    return `HS${num}`;
+  }
+  const hsYearMatch = /^HS-\d{4}-0*([1-9]\d*)$/i.exec(identifier);
+  if (hsYearMatch) {
+    const num = hsYearMatch[1].padStart(4, '0');
+    return `HS${num}`;
+  }
+  return identifier;
+}
+
+export function getCanonicalStudentSlug(identifier: string): string {
+  return normalizeStudentCode(identifier);
+}
+
+const CONV_TO_STUDENT_CODE: Record<string, string> = {
+  'CONV-001': 'HS0001',
+  'CONV-002': 'HS0002',
+  'CONV-003': 'HS0003',
+  'CONV-004': 'HS0004',
+  'CONV-005': 'HS0005',
+  'CONV-006': 'HS0006',
+  'CONV-007': 'HS0007',
+  'CONV-008': 'HS0008',
+};
+
 const STUDENT_TO_CONV_MAP: Record<string, { convId: string; studentName: string }> = {
   'HS0001': { convId: 'CONV-001', studentName: 'Nguyễn Minh An' },
   'STU-001': { convId: 'CONV-001', studentName: 'Nguyễn Minh An' },
@@ -507,10 +538,11 @@ function PreschoolCommunicationContent({ tenantId }: { readonly tenantId: string
   // Auto-focus on student when query param ?student=... is provided
   useEffect(() => {
     if (!studentParam || tabParam === 'announcements') return;
-    const lookup = STUDENT_TO_CONV_MAP[studentParam];
+    const normalized = normalizeStudentCode(studentParam);
+    const lookup = STUDENT_TO_CONV_MAP[normalized] || STUDENT_TO_CONV_MAP[studentParam];
     if (lookup) {
       setSelectedConversationId(lookup.convId);
-      setSelectedStudentContext({ id: studentParam, name: lookup.studentName });
+      setSelectedStudentContext({ id: normalized, name: lookup.studentName });
       setActiveNavTab('daily');
     } else {
       const found = CONVERSATIONS_DATA.find((c) =>
@@ -518,10 +550,10 @@ function PreschoolCommunicationContent({ tenantId }: { readonly tenantId: string
       );
       if (found) {
         setSelectedConversationId(found.id);
-        setSelectedStudentContext({ id: studentParam, name: found.studentName });
+        setSelectedStudentContext({ id: normalized, name: found.studentName });
         setActiveNavTab('daily');
       } else {
-        setSelectedStudentContext({ id: studentParam, name: `Học sinh ${studentParam}` });
+        setSelectedStudentContext({ id: normalized, name: `Học sinh ${normalized}` });
         setActiveNavTab('daily');
       }
     }
@@ -839,32 +871,50 @@ function PreschoolCommunicationContent({ tenantId }: { readonly tenantId: string
       )}
 
       {/* ── Active Student Context Banner (From Child Popup Action) ── */}
-      {selectedStudentContext && (
-        <div className="p-4 rounded-3xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200/90 dark:border-emerald-800 text-xs text-emerald-900 dark:text-emerald-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs animate-in fade-in duration-200">
+      {activeNavTab !== 'announcements' && selectedStudentContext && (
+        <div className="p-4 rounded-3xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200/90 dark:border-emerald-800 text-xs text-emerald-900 dark:text-emerald-200 flex flex-col md:flex-row md:items-center justify-between gap-3 shadow-xs animate-in fade-in duration-200">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-2xl bg-emerald-100 dark:bg-emerald-900 text-emerald-800 dark:text-emerald-300 flex items-center justify-center font-bold shrink-0">
               <BookOpen className="w-4 h-4" />
             </div>
             <div>
               <p className="font-extrabold text-sm text-slate-900 dark:text-white">
-                Đang mở sổ liên lạc điện tử: <span className="text-emerald-700 dark:text-emerald-400">{selectedStudentContext.name} ({selectedStudentContext.id})</span>
+                Đang mở sổ liên lạc điện tử: <span className="text-emerald-700 dark:text-emerald-400">{selectedStudentContext.name} ({getCanonicalStudentSlug(selectedStudentContext.id)})</span>
               </p>
               <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
                 Hiển thị trao đổi phụ huynh, phản hồi chăm sóc và dặn dò hàng ngày của bé.
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex items-center gap-2 shrink-0 flex-wrap">
             <Link
-              href={`/dashboard/education/enrollments/${selectedStudentContext.id}`}
-              className="px-3 py-1.5 rounded-xl border border-emerald-300 dark:border-emerald-700 text-emerald-800 dark:text-emerald-300 font-bold hover:bg-emerald-100/60 transition-colors"
+              href={`/dashboard/education/enrollments/${getCanonicalStudentSlug(selectedStudentContext.id)}`}
+              className="px-3 py-1.5 rounded-xl border border-emerald-300 dark:border-emerald-700 text-emerald-800 dark:text-emerald-300 font-bold hover:bg-emerald-100/60 transition-colors shadow-2xs"
             >
               Xem Hồ Sơ 360°
+            </Link>
+            <Link
+              href={`/dashboard/education/grades?student=${getCanonicalStudentSlug(selectedStudentContext.id)}`}
+              className="px-3 py-1.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 font-bold hover:bg-slate-50 dark:hover:bg-slate-750 transition-colors shadow-2xs"
+            >
+              Học Tập &amp; Hoạt Động
+            </Link>
+            <Link
+              href={`/dashboard/education/care?student=${getCanonicalStudentSlug(selectedStudentContext.id)}`}
+              className="px-3 py-1.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 font-bold hover:bg-slate-50 dark:hover:bg-slate-750 transition-colors shadow-2xs"
+            >
+              Chăm Sóc &amp; Nuôi Dưỡng
+            </Link>
+            <Link
+              href={`/dashboard/education/attendance?student=${getCanonicalStudentSlug(selectedStudentContext.id)}`}
+              className="px-3 py-1.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 font-bold hover:bg-slate-50 dark:hover:bg-slate-750 transition-colors shadow-2xs"
+            >
+              Điểm Danh &amp; Đón Trả
             </Link>
             <button
               type="button"
               onClick={() => setSelectedStudentContext(null)}
-              className="text-xs font-bold text-slate-600 dark:text-slate-300 hover:text-slate-900 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 transition-colors"
+              className="text-xs font-bold text-white bg-[#0c513f] hover:bg-[#083b2e] px-3 py-1.5 rounded-xl transition-colors shadow-2xs cursor-pointer"
             >
               Xem tất cả
             </button>
@@ -1257,9 +1307,19 @@ function PreschoolCommunicationContent({ tenantId }: { readonly tenantId: string
                 {activeConversation.avatarInitial}
               </div>
               <div>
-                <h3 className="text-sm font-extrabold text-slate-900 dark:text-white">
-                  {activeConversation.parentName}
-                </h3>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-sm font-extrabold text-slate-900 dark:text-white">
+                    {activeConversation.parentName}
+                  </h3>
+                  <Link
+                    href={`/dashboard/education/enrollments/${CONV_TO_STUDENT_CODE[activeConversation.id] || getCanonicalStudentSlug(activeConversation.id)}`}
+                    className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 dark:text-emerald-400 hover:underline"
+                    title="Mở Hồ Sơ 360° của bé"
+                  >
+                    <span>Hồ Sơ 360°</span>
+                    <ArrowRight className="w-3 h-3" />
+                  </Link>
+                </div>
                 <p className="text-xs text-slate-500 font-medium">
                   {activeConversation.studentName} • Lớp {activeConversation.className}
                 </p>
@@ -1323,6 +1383,234 @@ function PreschoolCommunicationContent({ tenantId }: { readonly tenantId: string
             </button>
           </div>
 
+          {detailSubTab === 'info' && (
+            <div className="space-y-4 py-1 text-xs">
+              <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-750 border border-slate-200/80 dark:border-slate-700/80 space-y-3">
+                <div className="flex items-center gap-3">
+                  <div className={`w-10 h-10 rounded-full font-bold flex items-center justify-center text-sm shrink-0 ${activeConversation.avatarBg}`}>
+                    {activeConversation.avatarInitial}
+                  </div>
+                  <div>
+                    <h4 className="font-extrabold text-sm text-slate-900 dark:text-white">
+                      {activeConversation.studentName}
+                    </h4>
+                    <p className="text-slate-500 font-medium">
+                      Mã học sinh: <span className="font-mono font-bold text-slate-700 dark:text-slate-200">{CONV_TO_STUDENT_CODE[activeConversation.id] || getCanonicalStudentSlug(activeConversation.id)}</span> • Lớp: <span className="font-bold text-emerald-700 dark:text-emerald-400">{activeConversation.className}</span>
+                    </p>
+                  </div>
+                </div>
+
+                <div className="pt-2 border-t border-slate-200/60 dark:border-slate-700/60 space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-500 font-medium">Người giám hộ chính:</span>
+                    <span className="font-bold text-slate-800 dark:text-slate-200">{activeConversation.parentName}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-500 font-medium">Trạng thái trao đổi:</span>
+                    <span className="font-bold text-emerald-700 dark:text-emerald-400">Đang hoạt động</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-500 font-medium">Giáo viên phụ trách lớp:</span>
+                    <span className="font-bold text-slate-800 dark:text-slate-200">Cô Nguyễn Thị Mai</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <span className="text-[11px] font-bold text-slate-500 block">Điều hướng nghiệp vụ liên quan:</span>
+                <div className="space-y-2">
+                  <Link
+                    href={`/dashboard/education/enrollments/${CONV_TO_STUDENT_CODE[activeConversation.id] || getCanonicalStudentSlug(activeConversation.id)}`}
+                    className="w-full p-3 rounded-2xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50 flex items-center justify-between transition-colors group"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <div className="p-2 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400">
+                        <Users className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <div className="font-bold text-slate-800 dark:text-slate-200 group-hover:text-primary transition-colors">
+                          Hồ Sơ 360° Phát Triển Trẻ
+                        </div>
+                        <div className="text-[10px] text-slate-400">Xem hồ sơ nhân thân, sức khỏe và mốc năng lực</div>
+                      </div>
+                    </div>
+                    <ChevronRight className="w-4 h-4 text-slate-400 group-hover:translate-x-0.5 transition-transform" />
+                  </Link>
+
+                  <Link
+                    href={`/dashboard/education/care?student=${CONV_TO_STUDENT_CODE[activeConversation.id] || getCanonicalStudentSlug(activeConversation.id)}`}
+                    className="w-full p-3 rounded-2xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50 flex items-center justify-between transition-colors group"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <div className="p-2 rounded-xl bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400">
+                        <Heart className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <div className="font-bold text-slate-800 dark:text-slate-200 group-hover:text-[#0c513f] transition-colors">
+                          Chăm Sóc &amp; Nuôi Dưỡng
+                        </div>
+                        <div className="text-[10px] text-slate-400">Xem bữa ăn, giấc ngủ trưa và kiểm tra thân nhiệt</div>
+                      </div>
+                    </div>
+                    <ChevronRight className="w-4 h-4 text-slate-400 group-hover:translate-x-0.5 transition-transform" />
+                  </Link>
+
+                  <Link
+                    href={`/dashboard/education/attendance?student=${CONV_TO_STUDENT_CODE[activeConversation.id] || getCanonicalStudentSlug(activeConversation.id)}`}
+                    className="w-full p-3 rounded-2xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50 flex items-center justify-between transition-colors group"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <div className="p-2 rounded-xl bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400">
+                        <Clock className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <div className="font-bold text-slate-800 dark:text-slate-200 group-hover:text-purple-600 transition-colors">
+                          Điểm Danh &amp; Đón Trả
+                        </div>
+                        <div className="text-[10px] text-slate-400">Xem lịch sử check-in, giờ đón và người đưa đón</div>
+                      </div>
+                    </div>
+                    <ChevronRight className="w-4 h-4 text-slate-400 group-hover:translate-x-0.5 transition-transform" />
+                  </Link>
+
+                  <Link
+                    href={`/dashboard/education/grades?student=${CONV_TO_STUDENT_CODE[activeConversation.id] || getCanonicalStudentSlug(activeConversation.id)}`}
+                    className="w-full p-3 rounded-2xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50 flex items-center justify-between transition-colors group"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <div className="p-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400">
+                        <GraduationCap className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <div className="font-bold text-slate-800 dark:text-slate-200 group-hover:text-emerald-700 transition-colors">
+                          Học Tập &amp; Hoạt Động NAEYC
+                        </div>
+                        <div className="text-[10px] text-slate-400">Đánh giá 5 lĩnh vực phát triển và sản phẩm của bé</div>
+                      </div>
+                    </div>
+                    <ChevronRight className="w-4 h-4 text-slate-400 group-hover:translate-x-0.5 transition-transform" />
+                  </Link>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {detailSubTab === 'logs' && (
+            <div className="space-y-4 py-1 text-xs">
+              <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-750 border border-slate-200/80 dark:border-slate-700/80 space-y-3">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-extrabold text-xs text-slate-900 dark:text-white flex items-center gap-1.5">
+                    <BookOpen className="w-3.5 h-3.5 text-[#0c513f]" />
+                    <span>Dặn dò gần nhất từ phụ huynh</span>
+                  </h4>
+                  <span className="text-[10px] text-slate-400">{activeConversation.timestamp}</span>
+                </div>
+                <p className="text-slate-700 dark:text-slate-300 italic bg-white dark:bg-slate-800 p-3 rounded-xl border border-slate-100 dark:border-slate-700 leading-relaxed">
+                  &ldquo;{activeConversation.snippet}&rdquo;
+                </p>
+                <div className="flex items-center justify-between text-[11px] text-slate-500 pt-1 border-t border-slate-200/60 dark:border-slate-700/60">
+                  <span>Phân loại yêu cầu:</span>
+                  <span className="font-bold">{activeConversation.tagLabel}</span>
+                </div>
+              </div>
+
+              {activeConversation.linkedCareNote && (
+                <div className="p-4 rounded-2xl bg-[#fffbeb] dark:bg-amber-950/40 border border-[#fef3c7] dark:border-amber-900/60 space-y-2">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-extrabold text-amber-900 dark:text-amber-200 flex items-center gap-1.5">
+                      <ClipboardList className="w-3.5 h-3.5 text-amber-600" />
+                      <span>Ghi chú chăm sóc của giáo viên</span>
+                    </span>
+                    <span className="text-[10px] text-amber-700 dark:text-amber-300">{activeConversation.linkedCareNote.dateString}</span>
+                  </div>
+                  <p className="text-xs text-[#92400e] dark:text-amber-200 leading-relaxed font-medium">
+                    &ldquo;{activeConversation.linkedCareNote.text}&rdquo;
+                  </p>
+                  <p className="text-[11px] text-amber-700 dark:text-amber-300 pt-1 border-t border-[#fde68a]/50">
+                    Phụ trách: <strong>{activeConversation.linkedCareNote.teacherName}</strong>
+                  </p>
+                </div>
+              )}
+
+              <div className="pt-2">
+                <Link
+                  href={`/dashboard/education/care?student=${CONV_TO_STUDENT_CODE[activeConversation.id] || getCanonicalStudentSlug(activeConversation.id)}`}
+                  className="w-full py-2.5 px-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200/80 dark:border-emerald-800 text-[#0c513f] dark:text-emerald-300 font-bold text-center block hover:bg-emerald-100 transition-colors"
+                >
+                  Mở Trung Tâm Chăm Sóc &amp; Nuôi Dưỡng →
+                </Link>
+              </div>
+            </div>
+          )}
+
+          {detailSubTab === 'related' && (
+            <div className="space-y-3 py-1 text-xs">
+              <p className="text-[11px] text-slate-500 font-medium">
+                Dữ liệu đa phân hệ liên thông của học sinh <strong>{activeConversation.studentName}</strong> ({CONV_TO_STUDENT_CODE[activeConversation.id] || getCanonicalStudentSlug(activeConversation.id)}):
+              </p>
+
+              <div className="grid grid-cols-1 gap-2.5">
+                <Link
+                  href={`/dashboard/education/enrollments/${CONV_TO_STUDENT_CODE[activeConversation.id] || getCanonicalStudentSlug(activeConversation.id)}`}
+                  className="p-3.5 rounded-2xl border border-slate-200 dark:border-slate-700 hover:border-emerald-500/50 bg-white dark:bg-slate-800 transition-all block group"
+                >
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="font-extrabold text-slate-900 dark:text-white flex items-center gap-1.5">
+                      <Users className="w-3.5 h-3.5 text-blue-500" />
+                      Hồ Sơ 360° Toàn Diện
+                    </span>
+                    <span className="text-[10px] text-blue-600 font-bold">Xem hồ sơ →</span>
+                  </div>
+                  <p className="text-[11px] text-slate-500">Thông tin gia đình, sức khỏe, học tập và tài chính tập trung</p>
+                </Link>
+
+                <Link
+                  href={`/dashboard/education/grades?student=${CONV_TO_STUDENT_CODE[activeConversation.id] || getCanonicalStudentSlug(activeConversation.id)}`}
+                  className="p-3.5 rounded-2xl border border-slate-200 dark:border-slate-700 hover:border-emerald-500/50 bg-white dark:bg-slate-800 transition-all block group"
+                >
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="font-extrabold text-slate-900 dark:text-white flex items-center gap-1.5">
+                      <GraduationCap className="w-3.5 h-3.5 text-emerald-500" />
+                      Học Tập &amp; Hoạt Động NAEYC
+                    </span>
+                    <span className="text-[10px] text-emerald-600 font-bold">Xem đánh giá →</span>
+                  </div>
+                  <p className="text-[11px] text-slate-500">Tiến trình năng lực 5 lĩnh vực, nhật ký quan sát và khen thưởng</p>
+                </Link>
+
+                <Link
+                  href={`/dashboard/education/care?student=${CONV_TO_STUDENT_CODE[activeConversation.id] || getCanonicalStudentSlug(activeConversation.id)}`}
+                  className="p-3.5 rounded-2xl border border-slate-200 dark:border-slate-700 hover:border-emerald-500/50 bg-white dark:bg-slate-800 transition-all block group"
+                >
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="font-extrabold text-slate-900 dark:text-white flex items-center gap-1.5">
+                      <Heart className="w-3.5 h-3.5 text-rose-500" />
+                      Chăm Sóc &amp; Nuôi Dưỡng
+                    </span>
+                    <span className="text-[10px] text-rose-600 font-bold">Xem chăm sóc →</span>
+                  </div>
+                  <p className="text-[11px] text-slate-500">Khẩu phần ăn 3 bữa, giấc ngủ trưa và kiểm tra thân nhiệt hàng ngày</p>
+                </Link>
+
+                <Link
+                  href={`/dashboard/education/attendance?student=${CONV_TO_STUDENT_CODE[activeConversation.id] || getCanonicalStudentSlug(activeConversation.id)}`}
+                  className="p-3.5 rounded-2xl border border-slate-200 dark:border-slate-700 hover:border-emerald-500/50 bg-white dark:bg-slate-800 transition-all block group"
+                >
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="font-extrabold text-slate-900 dark:text-white flex items-center gap-1.5">
+                      <Clock className="w-3.5 h-3.5 text-purple-500" />
+                      Điểm Danh &amp; Đón Trả
+                    </span>
+                    <span className="text-[10px] text-purple-600 font-bold">Xem điểm danh →</span>
+                  </div>
+                  <p className="text-[11px] text-slate-500">Trạng thái có mặt trong ngày, giờ đưa đón và phân quyền đưa đón</p>
+                </Link>
+              </div>
+            </div>
+          )}
+
+          {detailSubTab === 'chat' && (
+            <>
           {/* Chat Messages Timeline */}
           <div className="space-y-3.5 py-1 max-h-[300px] overflow-y-auto pr-1">
             {activeConversation.thread.map((msg) => {
@@ -1534,6 +1822,8 @@ function PreschoolCommunicationContent({ tenantId }: { readonly tenantId: string
               </button>
             </div>
           </div>
+          </>
+          )}
         </div>
       </div>
       )}

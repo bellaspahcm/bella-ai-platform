@@ -11,12 +11,13 @@ jest.mock('@supabase/supabase-js', () => { throw new Error('HELD_WORKSPACE_MUST_
 jest.mock('@/lib/supabase-client', () => { throw new Error('HELD_WORKSPACE_MUST_NOT_LOAD_CALLER_DB'); });
 jest.mock('next/link', () => ({ __esModule: true, default: ({ children, href }: React.AnchorHTMLAttributes<HTMLAnchorElement>) => <a href={href}>{children}</a> }));
 
-it('keeps unpersisted assessment data held outside development', () => {
+it('renders learning workspace with sample-data disclaimer and no real API calls', () => {
   const fetchMock = jest.fn();
   Object.defineProperty(globalThis, 'fetch', { configurable: true, writable: true, value: fetchMock });
   render(<Grades />);
-  expect(screen.getByRole('heading', { name: 'Học tập & Hoạt động' })).toBeInTheDocument();
-  expect(screen.getByRole('status')).toHaveTextContent('Chưa mở trong MVP Preschool');
+  expect(screen.getByRole('heading', { name: 'Học Tập & Phát Triển Mầm Non' })).toBeInTheDocument();
+  expect(screen.getByRole('note')).toHaveTextContent(/Dữ liệu minh họa/);
+  expect(screen.getByRole('note')).toHaveTextContent(/chưa được tải từ hồ sơ thật/);
   expect(fetchMock).not.toHaveBeenCalled();
 });
 
