@@ -192,7 +192,8 @@ describe('Care branch and active enrollment resource boundary', () => {
     else if (state === 'foreign branch') tables.org_units[0].tenant_id = otherId;
     else if (state === 'not branch') tables.org_units[0].unit_type = 'department';
     else tables.user_org_unit_access = [];
-    await denied(post(), 403, 'CARE_BRANCH_ACCESS_DENIED'); expect(mockRoster).not.toHaveBeenCalled();
+    await denied(post(), 403, 'CARE_BRANCH_ACCESS_DENIED');
+    expect(mockRoster).not.toHaveBeenCalled();
   });
   it.each(['preschool_chain_course_branch_assignments', 'org_units', 'user_org_unit_access'])('holds failing lookup %s', async table => {
     errors[table] = 'RLS/schema synthetic denial'; await denied(post(), 503, 'CARE_BRANCH_SCOPE_UNAVAILABLE');
