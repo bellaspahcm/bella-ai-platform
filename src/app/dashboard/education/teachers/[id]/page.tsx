@@ -31,6 +31,7 @@ import {
   Star,
   Check,
   X,
+  Loader2,
 } from 'lucide-react';
 
 interface CertificationItem {
@@ -70,7 +71,7 @@ interface EvaluationItem {
 interface ComplianceItem {
   readonly officialRecords: boolean;
   readonly healthCheck: boolean;
-  readonly firstAidWarning: boolean;
+  readonly firstAidWarning: 'unknown' | 'valid' | 'warning';
 }
 
 interface TeacherDetail {
@@ -102,7 +103,7 @@ function emptyTeacher(id: string): TeacherDetail {
     joinedDate: 'Chưa được cung cấp', totalExperience: 'Chưa được cung cấp', phone: '', email: '',
     address: 'Chưa được cung cấp', currentClass: 'Chưa phân công lớp', workloadHours: 0,
     maxWorkloadHours: 0, degree: 'Chưa được cung cấp',
-    compliance: { officialRecords: false, healthCheck: false, firstAidWarning: false },
+    compliance: { officialRecords: false, healthCheck: false, firstAidWarning: 'unknown' },
     certifications: [], assignmentHistory: [], schedule: [], evaluations: [],
   };
 }
@@ -118,6 +119,7 @@ export default function TeacherDetailPage() {
   const [saveError, setSaveError] = useState('');
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
 
   // Resolve only confirmed Party identities and mapped class assignments in authorized branches.
   useEffect(() => {
@@ -143,7 +145,41 @@ export default function TeacherDetailPage() {
         : current?.role === 'co_teacher' ? 'Giáo viên cùng lớp'
         : current?.role === 'assistant' ? 'Giáo viên trợ giảng'
         : current?.role === 'substitute' ? 'Giáo viên thay thế' : 'Chưa phân công';
-      const detail = emptyTeacher(teacherId);
+            const detail = emptyTeacher(teacherId);
+
+      // Load detailed 360 profile from backend API
+      let profileDetail: Partial<TeacherDetail> = {};
+      try {
+        const res = await fetch(`/api/education/teachers/${teacherId}`, { signal: controller.signal });
+        if (res.ok) {
+          const body = (await res.json()) as { success?: boolean; profile?: Record<string, unknown> };
+          if (body.success && body.profile) {
+            const p = body.profile;
+            const comp = (p.compliance as Record<string, unknown>) || {};
+            profileDetail = {
+              phone: typeof p.phone === 'string' ? p.phone : '',
+              email: typeof p.email === 'string' ? p.email : '',
+              address: typeof p.address === 'string' ? p.address : 'Chưa được cung cấp',
+              joinedDate: typeof p.joinedDate === 'string' ? p.joinedDate : 'Chưa được cung cấp',
+              degree: typeof p.degree === 'string' ? p.degree : 'Chưa được cung cấp',
+              totalExperience: typeof p.totalExperience === 'string' ? p.totalExperience : 'Chưa được cung cấp',
+              workloadHours: typeof p.workloadHours === 'number' ? p.workloadHours : 0,
+              maxWorkloadHours: typeof p.maxWorkloadHours === 'number' ? p.maxWorkloadHours : 40,
+              compliance: {
+                officialRecords: Boolean(comp.officialRecords),
+                healthCheck: Boolean(comp.healthCheck),
+                firstAidWarning:
+                  comp.firstAidWarning === 'valid' || comp.firstAidWarning === 'warning'
+                    ? comp.firstAidWarning
+                    : 'unknown',
+              },
+            };
+          }
+        }
+      } catch {
+        // Fallback gracefully to default if 360 endpoint has transient error
+      }
+
       setTeacher({ ...detail, name: person.displayName, status: 'Đã xác nhận', role,
         currentClass: current ? classes.find(item => item.id === current.courseId)?.title || 'Lớp không khả dụng' : 'Chưa phân công lớp',
         assignmentHistory: history.map(item => ({ academicYear: item.academicYear,
@@ -152,10 +188,94 @@ export default function TeacherDetailPage() {
           endDate: item.effectiveEndDate || 'Chưa kết thúc', workload: 'Chưa được cung cấp',
           status: item.status === 'active' && item.effectiveOnDate ? 'Đang Phụ Trách' : item.status,
         })),
+        ...profileDetail,
       });
     })().catch(() => { if (!controller.signal.aborted) setLoadError('Không tải được hồ sơ giáo viên.'); });
     return () => controller.abort();
   }, [teacherId]);
+
+    const handleSubmitProfile = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setSaveError('');
+    setIsSaving(true);
+    try {
+      const form = e.currentTarget;
+      const formData = new FormData(form);
+      const name = String(formData.get('name') || '').trim();
+      const phone = String(formData.get('phone') || '').trim();
+      const email = String(formData.get('email') || '').trim();
+      const address = String(formData.get('address') || '').trim();
+      const joinedDate = String(formData.get('joinedDate') || '').trim();
+      const degree = String(formData.get('degree') || '').trim();
+      const totalExperience = String(formData.get('totalExperience') || '').trim();
+      const workloadHours = Number(formData.get('workloadHours') || 0);
+      const officialRecords = formData.get('officialRecords') === 'on';
+      const healthCheck = formData.get('healthCheck') === 'on';
+      const firstAid = formData.get('firstAidWarning');
+      const firstAidWarning = firstAid === 'valid' || firstAid === 'warning' ? firstAid : 'unknown';
+
+      const res = await fetch(`/api/education/teachers/${teacherId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name,
+          phone,
+          email,
+          address,
+          joinedDate,
+          degree,
+          totalExperience,
+          workloadHours,
+          compliance: {
+            officialRecords,
+            healthCheck,
+            firstAidWarning,
+          },
+        }),
+      });
+
+      const data = (await res.json()) as {
+        success?: boolean;
+        profile?: Record<string, unknown>;
+        code?: string;
+        error?: { message?: string };
+      };
+
+      if (!res.ok || !data.success || !data.profile) {
+        setSaveError(data.error?.message || data.code || 'Không thể lưu hồ sơ giáo viên.');
+        return;
+      }
+
+      const p = data.profile;
+      const comp = (p.compliance as Record<string, unknown>) || {};
+      setTeacher(prev => ({
+        ...prev,
+        name: typeof p.name === 'string' ? p.name : prev.name,
+        phone: typeof p.phone === 'string' ? p.phone : prev.phone,
+        email: typeof p.email === 'string' ? p.email : prev.email,
+        address: typeof p.address === 'string' ? p.address : prev.address,
+        joinedDate: typeof p.joinedDate === 'string' ? p.joinedDate : prev.joinedDate,
+        degree: typeof p.degree === 'string' ? p.degree : prev.degree,
+        totalExperience: typeof p.totalExperience === 'string' ? p.totalExperience : prev.totalExperience,
+        workloadHours: typeof p.workloadHours === 'number' ? p.workloadHours : prev.workloadHours,
+        maxWorkloadHours: typeof p.maxWorkloadHours === 'number' ? p.maxWorkloadHours : prev.maxWorkloadHours,
+        compliance: {
+          officialRecords: Boolean(comp.officialRecords),
+          healthCheck: Boolean(comp.healthCheck),
+          firstAidWarning:
+            comp.firstAidWarning === 'valid' || comp.firstAidWarning === 'warning'
+              ? comp.firstAidWarning
+              : 'unknown',
+        },
+      }));
+      setIsEditModalOpen(false);
+      setToastMessage('Cập nhật hồ sơ giáo viên thành công!');
+    } catch {
+      setSaveError('Đã xảy ra lỗi kết nối khi lưu hồ sơ giáo viên.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   // Auto-dismiss toast
   useEffect(() => {
@@ -588,12 +708,13 @@ export default function TeacherDetailPage() {
                 Cập Nhật Hồ Sơ: {teacher.name}
               </h3>
               <p className="text-xs text-slate-500 dark:text-slate-400">
-                Chưa có API lưu hồ sơ chi tiết; các trường này hiện chưa thể cập nhật.
+                Cập nhật thông tin sư phạm, trình độ học vấn và hồ sơ tuân thủ pháp lý của giáo viên.
               </p>
             </div>
 
             <form
-              onSubmit={(e: FormEvent<HTMLFormElement>) => { e.preventDefault(); setSaveError('Chưa có API lưu hồ sơ chi tiết giáo viên. Thông tin chưa được thay đổi.'); }}
+              key={`${teacher.id}-${isEditModalOpen}`}
+              onSubmit={handleSubmitProfile}
               className="space-y-5"
             >
               {/* Nhóm 1: Thông tin nhân sự & Liên hệ */}
@@ -622,8 +743,10 @@ export default function TeacherDetailPage() {
                     <input
                       type="text"
                       name="role"
-                      defaultValue={teacher.role}
-                      className="w-full p-3 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-[#0e5c43]"
+                      readOnly
+                      disabled
+                      value={teacher.role}
+                      className="w-full p-3 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-slate-400 outline-none cursor-not-allowed"
                     />
                   </div>
                 </div>
@@ -635,10 +758,12 @@ export default function TeacherDetailPage() {
                     </label>
                     <select
                       name="status"
-                      defaultValue={teacher.status}
-                      className="w-full p-3 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-[#0e5c43]"
+                      disabled
+                      value={teacher.status}
+                      className="w-full p-3 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-slate-400 outline-none cursor-not-allowed"
                     >
                       <option value="Đang Giảng Dạy">Đang Giảng Dạy</option>
+                      <option value="Đã xác nhận">Đã xác nhận</option>
                       <option value="Tạm Nghỉ">Tạm Nghỉ</option>
                       <option value="Chờ Phân Công">Chờ Phân Công</option>
                     </select>
@@ -740,8 +865,9 @@ export default function TeacherDetailPage() {
                     </label>
                     <select
                       name="currentClass"
-                      defaultValue={teacher.currentClass}
-                      className="w-full p-3 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-[#0e5c43]"
+                      disabled
+                      value={teacher.currentClass}
+                      className="w-full p-3 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-slate-400 outline-none cursor-not-allowed"
                     >
                       <option>{teacher.currentClass}</option>
                     </select>
@@ -799,7 +925,7 @@ export default function TeacherDetailPage() {
                     </label>
                     <select
                       name="firstAidWarning"
-                      defaultValue="unknown"
+                      defaultValue={teacher.compliance.firstAidWarning}
                       className="w-full p-2.5 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-[#0e5c43]"
                     >
                       <option value="unknown">Chưa có dữ liệu</option>
@@ -821,10 +947,11 @@ export default function TeacherDetailPage() {
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2.5 rounded-xl bg-[#0e5c43] hover:bg-[#0a4633] text-white font-bold text-xs shadow-md transition-all cursor-pointer flex items-center gap-1.5 active:scale-95"
+                  disabled={isSaving}
+                  className="px-5 py-2.5 rounded-xl bg-[#0e5c43] hover:bg-[#0a4633] text-white font-bold text-xs shadow-md transition-all cursor-pointer flex items-center gap-1.5 active:scale-95 disabled:opacity-50"
                 >
-                  <Check className="w-4 h-4" />
-                  <span>Lưu Thay Đổi &amp; Cập Nhật Hồ Sơ</span>
+                  {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+                  <span>{isSaving ? 'Đang lưu…' : 'Lưu Thay Đổi & Cập Nhật Hồ Sơ'}</span>
                 </button>
               </div>
             </form>
