@@ -529,12 +529,24 @@ function AttendancePageContent() {
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-2 shrink-0">
+            <div className="flex items-center gap-2 shrink-0 flex-wrap">
               <Link
                 href={`/dashboard/education/enrollments/${studentParam}`}
                 className="px-3 py-1.5 rounded-xl text-[11px] font-bold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-750 transition-all shadow-2xs"
               >
                 Xem Hồ Sơ 360°
+              </Link>
+              <Link
+                href={`/dashboard/education/grades?student=${studentParam}`}
+                className="px-3 py-1.5 rounded-xl text-[11px] font-bold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-750 transition-all shadow-2xs"
+              >
+                Học Tập &amp; Hoạt Động
+              </Link>
+              <Link
+                href={`/dashboard/education/care?student=${studentParam}`}
+                className="px-3 py-1.5 rounded-xl text-[11px] font-bold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-750 transition-all shadow-2xs"
+              >
+                Chăm Sóc &amp; Nuôi Dưỡng
               </Link>
               <button
                 type="button"

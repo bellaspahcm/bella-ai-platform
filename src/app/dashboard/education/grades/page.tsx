@@ -1477,6 +1477,23 @@ export const INITIAL_AWARDS_LIST: readonly PreschoolAwardItem[] = [
   },
 ];
 
+export function getCanonicalStudentSlug(student: { id: string; code?: string }): string {
+  const stuMatch = /^STU-0*([1-9]\d*)$/i.exec(student.id);
+  if (stuMatch) {
+    const num = stuMatch[1].padStart(4, '0');
+    return `HS${num}`;
+  }
+  if (student.code) {
+    const hsMatch = /^HS-\d{4}-0*([1-9]\d*)$/i.exec(student.code);
+    if (hsMatch) {
+      const num = hsMatch[1].padStart(4, '0');
+      return `HS${num}`;
+    }
+    return student.code;
+  }
+  return student.id;
+}
+
 const STUDENT_TO_ROSTER_ID_MAP: Record<string, string> = {
   'HS0001': 'STU-001',
   'STU-001': 'STU-001',
@@ -1891,19 +1908,19 @@ function PreschoolDevelopmentGradesPageContent() {
           </div>
           <div className="flex items-center gap-2 shrink-0">
             <Link
-              href={`/dashboard/education/enrollments/${studentParam}`}
+              href={`/dashboard/education/enrollments/${studentParam ? getCanonicalStudentSlug({ id: studentParam }) : ''}`}
               className="px-3 py-1.5 rounded-xl text-[11px] font-bold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-750 transition-all shadow-2xs"
             >
               Hồ Sơ 360°
             </Link>
             <Link
-              href={`/dashboard/education/attendance?student=${studentParam}`}
+              href={`/dashboard/education/attendance?student=${studentParam ? getCanonicalStudentSlug({ id: studentParam }) : ''}`}
               className="px-3 py-1.5 rounded-xl text-[11px] font-bold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-750 transition-all shadow-2xs"
             >
               Điểm Danh
             </Link>
             <Link
-              href={`/dashboard/education/care?student=${studentParam}`}
+              href={`/dashboard/education/care?student=${studentParam ? getCanonicalStudentSlug({ id: studentParam }) : ''}`}
               className="px-3 py-1.5 rounded-xl text-[11px] font-bold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-750 transition-all shadow-2xs"
             >
               Chăm Sóc
@@ -2953,21 +2970,21 @@ function PreschoolDevelopmentGradesPageContent() {
 
               <div className="flex flex-wrap items-center gap-2">
                 <Link
-                  href={`/dashboard/education/enrollments/${selectedPortfolioStudent.id}`}
+                  href={`/dashboard/education/enrollments/${getCanonicalStudentSlug(selectedPortfolioStudent)}`}
                   className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-slate-800 dark:text-slate-200 text-xs font-bold transition-all shadow-2xs"
                 >
                   <ExternalLink className="w-3.5 h-3.5" />
                   <span>Hồ Sơ Quản Lý Trẻ</span>
                 </Link>
                 <Link
-                  href={`/dashboard/education/attendance?student=${selectedPortfolioStudent.id}`}
+                  href={`/dashboard/education/attendance?student=${getCanonicalStudentSlug(selectedPortfolioStudent)}`}
                   className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-slate-800 dark:text-slate-200 text-xs font-bold transition-all shadow-2xs"
                 >
                   <Clock className="w-3.5 h-3.5" />
                   <span>Xem Điểm Danh</span>
                 </Link>
                 <Link
-                  href={`/dashboard/education/care?student=${selectedPortfolioStudent.id}`}
+                  href={`/dashboard/education/care?student=${getCanonicalStudentSlug(selectedPortfolioStudent)}`}
                   className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-slate-800 dark:text-slate-200 text-xs font-bold transition-all shadow-2xs"
                 >
                   <Heart className="w-3.5 h-3.5" />
@@ -3609,7 +3626,7 @@ function PreschoolDevelopmentGradesPageContent() {
               </button>
 
               <Link
-                href={`/dashboard/education/enrollments/${quickActionStudent.id}`}
+                href={`/dashboard/education/enrollments/${getCanonicalStudentSlug(quickActionStudent)}`}
                 className="w-full p-3 rounded-2xl border border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-3 text-left transition-colors"
               >
                 <ExternalLink className="w-4 h-4 text-blue-600" />
@@ -3617,7 +3634,7 @@ function PreschoolDevelopmentGradesPageContent() {
               </Link>
 
               <Link
-                href={`/dashboard/education/attendance?student=${quickActionStudent.id}`}
+                href={`/dashboard/education/attendance?student=${getCanonicalStudentSlug(quickActionStudent)}`}
                 className="w-full p-3 rounded-2xl border border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-3 text-left transition-colors"
               >
                 <Clock className="w-4 h-4 text-purple-600" />
@@ -3625,7 +3642,7 @@ function PreschoolDevelopmentGradesPageContent() {
               </Link>
 
               <Link
-                href={`/dashboard/education/care?student=${quickActionStudent.id}`}
+                href={`/dashboard/education/care?student=${getCanonicalStudentSlug(quickActionStudent)}`}
                 className="w-full p-3 rounded-2xl border border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-3 text-left transition-colors"
               >
                 <Heart className="w-4 h-4 text-rose-500" />
@@ -3781,16 +3798,7 @@ export default function PreschoolDevelopmentGradesPage() {
   const { user, product, isLoading } = useUser();
   if (isLoading) return <p role="status">Đang xác minh tài khoản…</p>;
   if (!user?.tenant_id || !product) return <p role="alert">Không có quyền mở màn hình này.</p>;
-  // The original Grades presentation contains illustrative children and local-only drafts.
-  // Restore its visual preview in local development without publishing sample records.
-  if (product.productKey === 'bella_preschool' && process.env.NODE_ENV !== 'development') return (
-    <section className="p-6 space-y-4" aria-labelledby="held-workspace-heading">
-      <h1 id="held-workspace-heading" className="text-2xl font-bold">Học tập &amp; Hoạt động</h1>
-      <p role="status" className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-amber-950 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-100">Chưa mở trong MVP Preschool</p>
-      <p className="text-sm text-slate-600 dark:text-slate-300">Học tập, quan sát và hồ sơ phát triển chưa mở trong MVP Preschool. Không hiển thị danh sách trẻ hoặc kết quả đánh giá mẫu.</p>
-      <Link href="/dashboard/education/courses" className="inline-block font-semibold underline">Về danh sách lớp</Link>
-    </section>
-  );
+  // Learning & Development Workspace is enabled across preschool tenants.
   return (
     <Suspense
       fallback={
