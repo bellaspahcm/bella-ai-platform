@@ -216,19 +216,143 @@ function formatSchoolDay(dayStr: string): string {
   return dayStr;
 }
 
+// --- Male / Female detection for guardian role ---------------------------------
+const MALE_LAST_NAMES_VI = new Set([
+  'quang', 'tuấn', 'tuan', 'hùng', 'hung', 'dũng', 'dung', 'huy', 'nam', 'long',
+  'phong', 'khoa', 'khánh', 'khanh', 'thịnh', 'thinh', 'minh', 'thành', 'thanh',
+  'hải', 'hai', 'bình', 'binh', 'mạnh', 'manh', 'cường', 'cuong', 'khôi', 'khoi',
+  'đức', 'duc', 'trung', 'kiên', 'kien', 'toàn', 'toan', 'vinh', 'vĩnh',
+  'hoàng', 'hoang', 'phúc', 'phuc', 'sơn', 'son', 'tân', 'tan', 'nhân', 'nhan',
+]);
+
+function getGuardianRole(guardianName: string): { role: string; vocative: string } {
+  if (!guardianName) return { role: 'Phụ huynh', vocative: 'phụ huynh' };
+  const lower = guardianName.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D').toLowerCase();
+  const words = lower.trim().split(/\s+/);
+  const lastName = words[words.length - 1];
+  if (MALE_LAST_NAMES_VI.has(lastName)) return { role: 'Ba', vocative: 'ba' };
+  return { role: 'Mẹ', vocative: 'mẹ' };
+}
+
+function toNonAccentUpper(str: string): string {
+  if (!str) return '';
+  return str
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/đ/g, 'd')
+    .replace(/Đ/g, 'D')
+    .replace(/[^a-zA-Z0-9\s]/g, '')
+    .trim()
+    .toUpperCase();
+}
+
+function getChildShortName(fullName: string): string {
+  if (!fullName) return 'bé';
+  const words = fullName.trim().split(/\s+/);
+  return words[words.length - 1] || fullName;
+}
+
+// --- Class–teacher lookup map (seeded from teacher_assignments DB) -------------
+interface ClassTeacherProfile {
+  readonly name: string;
+  readonly shortName: string;
+  readonly initial: string;
+  readonly phone?: string;
+  readonly exp: string;
+  readonly note: string;
+  readonly roleTitle?: string;
+}
+interface ClassTeacherInfo {
+  readonly room: string;
+  readonly leadTeacher: ClassTeacherProfile;
+  readonly nannyTeacher: ClassTeacherProfile;
+  readonly assistantTeacher: ClassTeacherProfile;
+}
+
+function _normalizeClassCode(s: string): string {
+  return (s || '').toLowerCase().replace(/[-_\s]/g, '');
+}
+
+function getClassTeacherInfo(courseCode: string, courseTitle: string): ClassTeacherInfo {
+  const code = _normalizeClassCode(courseCode);
+  const title = (courseTitle || '').toLowerCase();
+
+  if (code === 'choi2' || title.includes('chồi 2') || title.includes('thỏ ngọc')) {
+    return {
+      room: 'Phòng 104 — Tầng 1',
+      leadTeacher: { name: 'Cô Trần Ngọc Anh', shortName: 'Cô Ngọc Anh', initial: 'A', phone: '0912 345 678', exp: '8 năm kinh nghiệm giáo dục mầm non', note: 'Phụ trách quản lý học tập, rèn luyện nề nếp sinh hoạt và là cầu nối chính trao đổi hàng ngày cùng phụ huynh bé.' },
+      nannyTeacher: { name: 'Cô Dương Diễm My', shortName: 'Cô Diễm My', initial: 'M', phone: '0934 567 890', roleTitle: 'Cô Bảo mẫu & Chăm sóc', exp: 'Chuyên viên Chăm sóc & Dinh dưỡng', note: 'Chăm sóc từng cữ ăn, giấc ngủ, vệ sinh cá nhân và đồng hành theo dõi sự an toàn của trẻ trong suốt ngày học.' },
+      assistantTeacher: { name: 'Cô Vũ Thị Thảo', shortName: 'Cô Thảo', initial: 'T', roleTitle: 'GV Phụ tá', exp: 'Giáo viên Âm nhạc & Vận động', note: 'Hỗ trợ tổ chức hoạt động ngoài trời, rèn luyện kỹ năng vận động và các tiết học năng khiếu sáng tạo.' },
+    };
+  }
+  if (code === 'choi1' || title.includes('chồi 1') || title.includes('sóc nhí')) {
+    return {
+      room: 'Phòng 103 — Tầng 1',
+      leadTeacher: { name: 'Cô Phạm Thu Hương', shortName: 'Cô Hương', initial: 'H', phone: '0910 789 012', exp: '7 năm kinh nghiệm giảng dạy lứa tuổi 4-5 tuổi', note: 'Tập trung phát triển ngôn ngữ biểu đạt, khả năng tương tác xã hội và sáng tạo nghệ thuật.' },
+      nannyTeacher: { name: 'Cô Đoàn Ngọc Trâm', shortName: 'Cô Trâm', initial: 'T', phone: '0914 556 677', roleTitle: 'Cô Bảo mẫu & Chăm sóc', exp: 'Chuyên viên Dinh dưỡng học đường', note: 'Theo dõi chặt chẽ khẩu phần ăn, rèn luyện bé thói quen tự xúc ăn và uống đủ nước.' },
+      assistantTeacher: { name: 'Cô Dương Diễm My', shortName: 'Cô My', initial: 'M', roleTitle: 'GV Phụ tá', exp: 'Giáo viên Âm nhạc & Múa', note: 'Dẫn dắt các bài thể dục nhịp điệu buổi sáng và tiết biểu diễn văn nghệ.' },
+    };
+  }
+  if (code === 'mamnon2' || code === 'mam2' || title.includes('mầm non 2') || title.includes('sơn ca')) {
+    return {
+      room: 'Phòng 102 — Tầng 1',
+      leadTeacher: { name: 'Cô Lê Minh Tâm', shortName: 'Cô Tâm', initial: 'T', phone: '0905 234 567', exp: '7 năm kinh nghiệm giáo dục mầm non', note: 'Phụ trách quản lý học tập, phát triển kỹ năng ngôn ngữ và tương tác hàng ngày cùng phụ huynh.' },
+      nannyTeacher: { name: 'Cô Phan Thị Tuyết', shortName: 'Cô Tuyết', initial: 'T', phone: '0908 765 432', roleTitle: 'Cô Bảo mẫu & Chăm sóc', exp: 'Chuyên viên Dinh dưỡng & Vệ sinh mầm non', note: 'Chăm sóc từng bữa ăn, theo dõi giấc ngủ và đảm bảo an toàn tuyệt đối cho trẻ trong lớp.' },
+      assistantTeacher: { name: 'Cô Hoàng Bích Ngọc', shortName: 'Cô Ngọc', initial: 'N', roleTitle: 'GV Phụ tá', exp: 'Giáo viên Mỹ thuật mầm non', note: 'Hướng dẫn tạo hình, vẽ tranh và các trò chơi vận động phối hợp.' },
+    };
+  }
+  if (code === 'nhatre1' || code === 'nt1' || title.includes('nhà trẻ 1') || title.includes('gấu misa')) {
+    return {
+      room: 'Phòng 001 — Tầng Trệt',
+      leadTeacher: { name: 'Cô Hoàng Bích Ngọc', shortName: 'Cô Ngọc', initial: 'N', phone: '0906 345 678', exp: '6 năm kinh nghiệm chăm sóc lứa tuổi nhà trẻ', note: 'Đặc biệt quan tâm chăm sóc tâm lý tiếp xúc ban đầu, rèn luyện kỹ năng vận động sớm cho bé.' },
+      nannyTeacher: { name: 'Cô Đỗ Kim Yến', shortName: 'Cô Yến', initial: 'Y', phone: '0909 876 543', roleTitle: 'Cô Bảo mẫu & Chăm sóc', exp: 'Chuyên viên Dinh dưỡng & Chăm sóc sơ sinh/nhà trẻ', note: 'Chăm lo dinh dưỡng các cữ cháo/sữa và giấc ngủ trưa chu đáo cho bé.' },
+      assistantTeacher: { name: 'Cô Vũ Phương Thảo', shortName: 'Cô Thảo', initial: 'T', roleTitle: 'GV Phụ tá', exp: 'Cử nhân Giáo dục mầm non', note: 'Tổ chức trò chơi phát triển giác quan và âm nhạc kích thích trí não.' },
+    };
+  }
+  if (code === 'nhatre2' || code === 'nt2' || title.includes('nhà trẻ 2') || title.includes('thỏ trắng')) {
+    return {
+      room: 'Phòng 002 — Tầng Trệt',
+      leadTeacher: { name: 'Cô Vũ Phương Thảo', shortName: 'Cô Thảo', initial: 'T', phone: '0907 456 789', exp: '5 năm kinh nghiệm mầm non', note: 'Theo dõi sát sao từng bước phát triển đầu đời của trẻ, hướng dẫn trẻ tự lập cơ bản.' },
+      nannyTeacher: { name: 'Cô Trịnh Quỳnh Nga', shortName: 'Cô Nga', initial: 'N', phone: '0911 223 344', roleTitle: 'Cô Bảo mẫu & Chăm sóc', exp: 'Chăm sóc dinh dưỡng và vệ sinh chuẩn quốc gia', note: 'Tận tâm chăm chút từng bữa ăn, vệ sinh thân thể sạch sẽ và giấc ngủ êm dịu.' },
+      assistantTeacher: { name: 'Cô Lâm Mỹ Duyên', shortName: 'Cô Duyên', initial: 'D', roleTitle: 'GV Phụ tá', exp: 'Giáo viên Thể chất mầm non', note: 'Đồng hành rèn luyện thể chất dẻo dai và phản xạ nhanh nhạy cho bé.' },
+    };
+  }
+  if (code === 'la1' || title.includes('lớp lá 1') || title.includes('vàng anh')) {
+    return {
+      room: 'Phòng 201 — Tầng 2',
+      leadTeacher: { name: 'Cô Đặng Thùy Linh', shortName: 'Cô Linh', initial: 'L', phone: '0908 567 890', exp: '9 năm kinh nghiệm chuẩn bị hành trang vào Lớp 1', note: 'Chủ nhiệm rèn luyện tư duy logic, làm quen chữ cái và số học tiền tiểu học.' },
+      nannyTeacher: { name: 'Cô Lâm Mỹ Duyên', shortName: 'Cô Duyên', initial: 'D', phone: '0912 334 455', roleTitle: 'Cô Bảo mẫu & Chăm sóc', exp: 'Chuyên gia Y tế & Dinh dưỡng học đường', note: 'Quản lý chế độ ăn uống khoa học và nề nếp sinh hoạt tự giác của trẻ.' },
+      assistantTeacher: { name: 'Cô Võ Thanh Trúc', shortName: 'Cô Trúc', initial: 'T', roleTitle: 'GV Phụ tá', exp: 'Giáo viên Tiếng Anh mầm non', note: 'Hỗ trợ học tiếng Anh giao tiếp và các tiết học khoa học STEM nhí.' },
+    };
+  }
+  if (code === 'la2' || title.includes('lớp lá 2') || title.includes('bồ câu')) {
+    return {
+      room: 'Phòng 202 — Tầng 2',
+      leadTeacher: { name: 'Cô Nguyễn Bích Hạnh', shortName: 'Cô Hạnh', initial: 'H', phone: '0909 678 901', exp: '10 năm kinh nghiệm giáo dục mầm non chuẩn quốc gia', note: 'Dạy bé kỹ năng sống, chuẩn bị tâm lý tự tin và nền tảng kiến thức vững chắc vào lớp 1.' },
+      nannyTeacher: { name: 'Cô Võ Thanh Trúc', shortName: 'Cô Trúc', initial: 'T', phone: '0913 445 566', roleTitle: 'Cô Bảo mẫu & Chăm sóc', exp: 'Chuyên viên Chăm sóc thể chất mầm non', note: 'Đảm bảo chế độ ăn uống đủ vi chất, theo dõi chỉ số chiều cao cân nặng định kỳ.' },
+      assistantTeacher: { name: 'Cô Đoàn Ngọc Trâm', shortName: 'Cô Trâm', initial: 'T', roleTitle: 'GV Phụ tá', exp: 'Giáo viên Kỹ năng mềm', note: 'Rèn luyện sự tập trung, kỹ năng lắng nghe và làm việc nhóm.' },
+    };
+  }
+  // Default → Lớp Mầm non 1 — Họa Mi (MAM-NON-1)
+  return {
+    room: 'Phòng 101 — Tầng 1',
+    leadTeacher: { name: 'Cô Nguyễn Thị Mai', shortName: 'Cô Mai', initial: 'M', phone: '0903 123 456', exp: '8 năm kinh nghiệm giáo dục mầm non', note: 'Phụ trách quản lý học tập, rèn luyện nề nếp sinh hoạt và là cầu nối chính trao đổi hàng ngày cùng phụ huynh bé.' },
+    nannyTeacher: { name: 'Cô Bùi Thị Hồng', shortName: 'Cô Hồng', initial: 'H', phone: '0908 654 321', roleTitle: 'Cô Bảo mẫu & Chăm sóc', exp: 'Chuyên viên Chăm sóc & Dinh dưỡng', note: 'Chăm sóc từng cữ ăn, giấc ngủ, vệ sinh cá nhân và đồng hành theo dõi sự an toàn của trẻ trong suốt ngày học.' },
+    assistantTeacher: { name: 'Cô Phan Thị Tuyết', shortName: 'Cô Tuyết', initial: 'T', roleTitle: 'GV Phụ tá', exp: 'Giáo viên Âm nhạc & Vận động', note: 'Hỗ trợ tổ chức hoạt động ngoài trời, rèn luyện kỹ năng vận động và các tiết học năng khiếu sáng tạo.' },
+  };
+}
+
 function getGuardianGreeting(guardianName: string): string {
   if (!guardianName) return 'Xin chào phụ huynh!';
+  const role = getGuardianRole(guardianName);
   const words = guardianName.trim().split(/\s+/);
   const lastName = words[words.length - 1];
-  if (lastName.toLowerCase() === 'quang') {
-    return 'Xin chào anh Quang!';
-  }
-  return `Xin chào ${guardianName}!`;
+  const salutation = role.role === 'Ba' ? 'anh' : role.role === 'Mẹ' ? 'chị' : 'phụ huynh';
+  return `Xin chào ${salutation} ${lastName}!`;
 }
 
 function getGuardianInitials(guardianName: string): string {
-  if (!guardianName) return 'QM';
-  if (guardianName.includes('Minh Quang')) return 'QM';
+  if (!guardianName) return 'PH';
   const words = guardianName.trim().split(/\s+/);
   if (words.length >= 2) {
     const first = words[0][0]?.toUpperCase() || '';
@@ -486,6 +610,11 @@ export default function PreschoolParentPortalPage({
 
   if (!error && dailyRead) {
     const attendanceInfo = ATTENDANCE_MAP[dailyRead.attendanceStatus] || ATTENDANCE_MAP.unmarked;
+    const currentTeacher = getClassTeacherInfo(dailyRead.courseCode, dailyRead.courseTitle);
+    const guardianRole = getGuardianRole(dailyRead.guardianName);
+    const childShortName = getChildShortName(dailyRead.childName);
+    const childUpper = toNonAccentUpper(dailyRead.childName);
+    const tuitionMemo = `HOCPHI ${childUpper}`;
 
     return (
       <div className="min-h-screen bg-[#f1f5f9] flex justify-center py-0 sm:py-6 text-slate-800 font-sans selection:bg-amber-100 selection:text-amber-900">
@@ -696,38 +825,42 @@ export default function PreschoolParentPortalPage({
                   <div className="flex items-center justify-between p-2.5 rounded-2xl bg-slate-50 border border-slate-100 text-xs">
                     <div className="flex items-center gap-2.5">
                       <div className="w-9 h-9 rounded-full bg-indigo-100 text-indigo-700 font-bold flex items-center justify-center shrink-0">
-                        Y
+                        {currentTeacher.leadTeacher.initial}
                       </div>
                       <div>
-                        <p className="font-extrabold text-slate-900">Cô Nguyễn Hoàng Yến</p>
+                        <p className="font-extrabold text-slate-900">{currentTeacher.leadTeacher.name}</p>
                         <p className="text-[11px] text-slate-500">Giáo viên Chủ nhiệm</p>
                       </div>
                     </div>
-                    <a
-                      href="tel:0903123456"
-                      className="px-2.5 py-1 rounded-xl bg-emerald-50 text-emerald-700 font-bold text-[11px] flex items-center gap-1 border border-emerald-200 hover:bg-emerald-100"
-                    >
-                      <Phone className="w-3 h-3" />
-                      <span>Gọi cô</span>
-                    </a>
+                    {currentTeacher.leadTeacher.phone && (
+                      <a
+                        href={`tel:${currentTeacher.leadTeacher.phone.replace(/\s/g, '')}`}
+                        className="px-2.5 py-1 rounded-xl bg-emerald-50 text-emerald-700 font-bold text-[11px] flex items-center gap-1 border border-emerald-200 hover:bg-emerald-100"
+                      >
+                        <Phone className="w-3 h-3" />
+                        <span>Gọi cô</span>
+                      </a>
+                    )}
                   </div>
                   <div className="flex items-center justify-between p-2.5 rounded-2xl bg-slate-50 border border-slate-100 text-xs">
                     <div className="flex items-center gap-2.5">
                       <div className="w-9 h-9 rounded-full bg-amber-100 text-amber-700 font-bold flex items-center justify-center shrink-0">
-                        M
+                        {currentTeacher.nannyTeacher.initial}
                       </div>
                       <div>
-                        <p className="font-extrabold text-slate-900">Cô Lê Thị Mai</p>
+                        <p className="font-extrabold text-slate-900">{currentTeacher.nannyTeacher.name}</p>
                         <p className="text-[11px] text-slate-500">Cô Bảo mẫu &amp; Chăm sóc</p>
                       </div>
                     </div>
-                    <a
-                      href="tel:0908654321"
-                      className="px-2.5 py-1 rounded-xl bg-amber-50 text-amber-700 font-bold text-[11px] flex items-center gap-1 border border-amber-200 hover:bg-amber-100"
-                    >
-                      <Phone className="w-3 h-3" />
-                      <span>Gọi cô</span>
-                    </a>
+                    {currentTeacher.nannyTeacher.phone && (
+                      <a
+                        href={`tel:${currentTeacher.nannyTeacher.phone.replace(/\s/g, '')}`}
+                        className="px-2.5 py-1 rounded-xl bg-amber-50 text-amber-700 font-bold text-[11px] flex items-center gap-1 border border-amber-200 hover:bg-amber-100"
+                      >
+                        <Phone className="w-3 h-3" />
+                        <span>Gọi cô</span>
+                      </a>
+                    )}
                   </div>
                 </div>
               </section>
@@ -811,7 +944,7 @@ export default function PreschoolParentPortalPage({
                     {dailyRead.courseTitle} ({dailyRead.courseCode})
                   </h3>
                   <p className="text-xs text-slate-500 mt-0.5">
-                    Phòng học: Phòng 102 — Tầng 1 (Khu Mầm non Ánh Dương)
+                    Phòng học: {currentTeacher.room} (Khu Mầm non Ánh Dương)
                   </p>
                 </div>
 
@@ -821,29 +954,31 @@ export default function PreschoolParentPortalPage({
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <div className="w-12 h-12 rounded-2xl bg-indigo-600 text-white font-black text-lg flex items-center justify-center shadow-xs">
-                          Y
+                          {currentTeacher.leadTeacher.initial}
                         </div>
                         <div>
                           <div className="flex items-center gap-1.5">
-                            <h4 className="font-extrabold text-slate-900 text-sm">Cô Nguyễn Hoàng Yến</h4>
+                            <h4 className="font-extrabold text-slate-900 text-sm">{currentTeacher.leadTeacher.name}</h4>
                             <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-800">
                               Chủ nhiệm
                             </span>
                           </div>
-                          <p className="text-[11px] text-slate-500 mt-0.5">8 năm kinh nghiệm giáo dục mầm non</p>
+                          <p className="text-[11px] text-slate-500 mt-0.5">{currentTeacher.leadTeacher.exp}</p>
                         </div>
                       </div>
                     </div>
                     <p className="text-xs text-slate-600 leading-relaxed bg-white/80 p-2.5 rounded-xl border border-indigo-50">
-                      Phụ trách quản lý học tập, rèn luyện nề nếp sinh hoạt và là cầu nối chính trao đổi hàng ngày cùng phụ huynh bé.
+                      {currentTeacher.leadTeacher.note}
                     </p>
-                    <div className="flex items-center justify-between pt-1 text-xs">
-                      <span className="text-slate-500">SĐT / Zalo: 0903 123 456</span>
-                      <a href="tel:0903123456" className="text-indigo-700 font-bold flex items-center gap-1 hover:underline">
-                        <Phone className="w-3.5 h-3.5" />
-                        <span>Gọi trực tiếp</span>
-                      </a>
-                    </div>
+                    {currentTeacher.leadTeacher.phone && (
+                      <div className="flex items-center justify-between pt-1 text-xs">
+                        <span className="text-slate-500">SĐT / Zalo: {currentTeacher.leadTeacher.phone}</span>
+                        <a href={`tel:${currentTeacher.leadTeacher.phone.replace(/\s/g, '')}`} className="text-indigo-700 font-bold flex items-center gap-1 hover:underline">
+                          <Phone className="w-3.5 h-3.5" />
+                          <span>Gọi trực tiếp</span>
+                        </a>
+                      </div>
+                    )}
                   </div>
 
                   {/* Cô bảo mẫu */}
@@ -851,49 +986,51 @@ export default function PreschoolParentPortalPage({
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <div className="w-12 h-12 rounded-2xl bg-amber-500 text-white font-black text-lg flex items-center justify-center shadow-xs">
-                          M
+                          {currentTeacher.nannyTeacher.initial}
                         </div>
                         <div>
                           <div className="flex items-center gap-1.5">
-                            <h4 className="font-extrabold text-slate-900 text-sm">Cô Lê Thị Mai</h4>
+                            <h4 className="font-extrabold text-slate-900 text-sm">{currentTeacher.nannyTeacher.name}</h4>
                             <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800">
                               Bảo mẫu
                             </span>
                           </div>
-                          <p className="text-[11px] text-slate-500 mt-0.5">Chuyên viên Chăm sóc &amp; Dinh dưỡng</p>
+                          <p className="text-[11px] text-slate-500 mt-0.5">{currentTeacher.nannyTeacher.exp}</p>
                         </div>
                       </div>
                     </div>
                     <p className="text-xs text-slate-600 leading-relaxed bg-white/80 p-2.5 rounded-xl border border-amber-50">
-                      Chăm sóc từng cữ ăn, giấc ngủ, vệ sinh cá nhân và đồng hành theo dõi sự an toàn của trẻ trong suốt ngày học.
+                      {currentTeacher.nannyTeacher.note}
                     </p>
-                    <div className="flex items-center justify-between pt-1 text-xs">
-                      <span className="text-slate-500">SĐT: 0908 654 321</span>
-                      <a href="tel:0908654321" className="text-amber-700 font-bold flex items-center gap-1 hover:underline">
-                        <Phone className="w-3.5 h-3.5" />
-                        <span>Gọi trực tiếp</span>
-                      </a>
-                    </div>
+                    {currentTeacher.nannyTeacher.phone && (
+                      <div className="flex items-center justify-between pt-1 text-xs">
+                        <span className="text-slate-500">SĐT: {currentTeacher.nannyTeacher.phone}</span>
+                        <a href={`tel:${currentTeacher.nannyTeacher.phone.replace(/\s/g, '')}`} className="text-amber-700 font-bold flex items-center gap-1 hover:underline">
+                          <Phone className="w-3.5 h-3.5" />
+                          <span>Gọi trực tiếp</span>
+                        </a>
+                      </div>
+                    )}
                   </div>
 
                   {/* Giáo viên phụ */}
                   <div className="p-3.5 rounded-2xl bg-emerald-50/50 border border-emerald-100 space-y-2">
                     <div className="flex items-center gap-3">
                       <div className="w-12 h-12 rounded-2xl bg-emerald-600 text-white font-black text-lg flex items-center justify-center shadow-xs">
-                        C
+                        {currentTeacher.assistantTeacher.initial}
                       </div>
                       <div>
                         <div className="flex items-center gap-1.5">
-                          <h4 className="font-extrabold text-slate-900 text-sm">Cô Phan Thu Cúc</h4>
+                          <h4 className="font-extrabold text-slate-900 text-sm">{currentTeacher.assistantTeacher.name}</h4>
                           <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
-                            GV Phụ tá
+                            {currentTeacher.assistantTeacher.roleTitle ?? 'GV Phụ tá'}
                           </span>
                         </div>
-                        <p className="text-[11px] text-slate-500 mt-0.5">Giáo viên Âm nhạc &amp; Vận động</p>
+                        <p className="text-[11px] text-slate-500 mt-0.5">{currentTeacher.assistantTeacher.exp}</p>
                       </div>
                     </div>
                     <p className="text-xs text-slate-600 leading-relaxed bg-white/80 p-2.5 rounded-xl border border-emerald-50">
-                      Hỗ trợ tổ chức hoạt động ngoài trời, rèn luyện kỹ năng vận động và các tiết học năng khiếu sáng tạo.
+                      {currentTeacher.assistantTeacher.note}
                     </p>
                   </div>
                 </div>
@@ -1074,7 +1211,7 @@ export default function PreschoolParentPortalPage({
                   </div>
                   <div className="flex justify-between">
                     <span className="text-slate-400">Người đón đăng ký:</span>
-                    <span className="font-semibold text-emerald-700">Mẹ ({dailyRead.guardianName}) / Ba</span>
+                    <span className="font-semibold text-emerald-700">{guardianRole.role} ({dailyRead.guardianName})</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-slate-400">Trạng thái hiện tại:</span>
@@ -1244,7 +1381,7 @@ export default function PreschoolParentPortalPage({
                   <div className="p-3 bg-white rounded-3xl shadow-md border-2 border-emerald-100 inline-block">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
-                      src="https://img.vietqr.io/image/MB-190365701493-compact.png?amount=6620000&addInfo=HOCPHI%20TRAN%20BAO%20NGOC&accountName=TRUONG%20MAM%20NON%20ANH%20DUONG"
+                      src={`https://img.vietqr.io/image/MB-190365701493-compact.png?amount=6620000&addInfo=${encodeURIComponent(tuitionMemo)}&accountName=TRUONG%20MAM%20NON%20ANH%20DUONG`}
                       alt="VietQR Học phí"
                       className="w-48 h-48 object-contain mx-auto"
                     />
@@ -1284,10 +1421,10 @@ export default function PreschoolParentPortalPage({
                   <div className="flex justify-between items-center pt-1 border-t border-slate-100">
                     <div>
                       <p className="text-[10px] text-slate-400">Nội dung chuyển khoản:</p>
-                      <p className="font-black text-[#0c513f] font-mono">HOCPHI TRAN BAO NGOC</p>
+                      <p className="font-black text-[#0c513f] font-mono">{tuitionMemo}</p>
                     </div>
                     <div
-                      onClick={() => copyDailyField('HOCPHI TRAN BAO NGOC', 'noidung')}
+                      onClick={() => copyDailyField(tuitionMemo, 'noidung')}
                       className="px-2.5 py-1 rounded-xl bg-white border border-slate-200 text-slate-700 font-bold text-[11px] flex items-center gap-1 cursor-pointer hover:bg-slate-50 active:scale-95"
                     >
                       {copiedDailyField === 'noidung' ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3 text-slate-500" />}
@@ -1318,14 +1455,14 @@ export default function PreschoolParentPortalPage({
 
                 <div className="space-y-2">
                   <a
-                    href="tel:0903123456"
+                    href={currentTeacher.leadTeacher.phone ? `tel:${currentTeacher.leadTeacher.phone.replace(/\s/g, '')}` : '#'}
                     className="flex items-center justify-between p-3 rounded-2xl bg-indigo-50/60 border border-indigo-100 text-slate-800 hover:bg-indigo-100/60 transition"
                   >
                     <div className="flex items-center gap-2.5">
                       <Phone className="w-4 h-4 text-indigo-600" />
                       <div>
-                        <p className="font-bold text-slate-900 text-xs">Cô Chủ nhiệm: Cô Nguyễn Hoàng Yến</p>
-                        <p className="text-[11px] text-slate-500">0903 123 456 (Zalo / Gọi điện)</p>
+                        <p className="font-bold text-slate-900 text-xs">Cô Chủ nhiệm: {currentTeacher.leadTeacher.name}</p>
+                        <p className="text-[11px] text-slate-500">{currentTeacher.leadTeacher.phone ?? ''} (Zalo / Gọi điện)</p>
                       </div>
                     </div>
                     <span className="text-indigo-700 font-bold text-xs">Gọi ngay</span>
@@ -1374,23 +1511,23 @@ export default function PreschoolParentPortalPage({
                   </p>
                   <div className="space-y-2 text-xs">
                     <div className="p-3 rounded-2xl bg-sky-50 text-sky-950 border border-sky-100 ml-6">
-                      <p className="text-[10px] font-bold text-sky-700">Mẹ ({dailyRead.guardianName}) · 07:45</p>
+                      <p className="text-[10px] font-bold text-sky-700">{guardianRole.role} ({dailyRead.guardianName}) · 07:45</p>
                       <p className="mt-1 text-[11px] leading-relaxed">
-                        Chào cô Yến, hôm nay mẹ gửi bé hơi sớm một chút, nhờ cô cho bé ăn sáng giúp mẹ nhé.
+                        Chào {currentTeacher.leadTeacher.shortName}, hôm nay {guardianRole.vocative} gửi bé hơi sớm một chút, nhờ cô cho bé ăn sáng giúp {guardianRole.vocative} nhé.
                       </p>
                     </div>
 
                     <div className="p-3 rounded-2xl bg-slate-50 text-slate-800 border border-slate-100 mr-6">
-                      <p className="text-[10px] font-bold text-indigo-700">Cô Yến (Chủ nhiệm) · 07:50</p>
+                      <p className="text-[10px] font-bold text-indigo-700">{currentTeacher.leadTeacher.shortName} (Chủ nhiệm) · 07:50</p>
                       <p className="mt-1 text-[11px] leading-relaxed">
-                        Dạ vâng mẹ, bé Bảo Ngọc đã vào lớp an toàn và ăn sáng rất ngon miệng ạ! Mẹ yên tâm công tác nhé.
+                        Dạ vâng {guardianRole.vocative}, bé {childShortName} đã vào lớp an toàn và ăn sáng rất ngon miệng ạ! {guardianRole.role} yên tâm công tác nhé.
                       </p>
                     </div>
 
                     <div className="p-3 rounded-2xl bg-slate-50 text-slate-800 border border-slate-100 mr-6">
-                      <p className="text-[10px] font-bold text-indigo-700">Cô Yến (Chủ nhiệm) · 12:00</p>
+                      <p className="text-[10px] font-bold text-indigo-700">{currentTeacher.leadTeacher.shortName} (Chủ nhiệm) · 12:00</p>
                       <p className="mt-1 text-[11px] leading-relaxed">
-                        Bé Ngọc hôm nay ăn hết suất trưa và đã đi ngủ rất ngoan rồi mẹ nhé.
+                        Bé {childShortName} hôm nay ăn hết suất trưa và đã đi ngủ rất ngoan rồi {guardianRole.vocative} nhé.
                       </p>
                     </div>
                   </div>
