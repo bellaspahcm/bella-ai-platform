@@ -16,7 +16,7 @@
  */
 
 import { use, useEffect, useRef, useState, useTransition, type FormEvent } from 'react';
-import { isParentPortalAnnouncementFeed, isParentPortalDailyRead, type ParentPortalDailyRead } from '@/products/bella-education/parent-portal/domain/parent-portal.types';
+import { isParentPortalAnnouncementFeed, isParentPortalDailyRead, type ParentPortalDailyRead, type PortalTuitionSummary } from '@/products/bella-education/parent-portal/domain/parent-portal.types';
 import {
   Baby,
   Calendar,
@@ -49,6 +49,10 @@ import {
   Megaphone,
   Headphones,
   Bell,
+  GraduationCap,
+  Award,
+  Smile,
+  FileText,
 } from 'lucide-react';
 import type {
   ParentPortalPayload,
@@ -59,6 +63,7 @@ import type {
 
 type PortalLegacyPayload = ParentPortalPayload & { readonly announcements: readonly ParentPortalAnnouncement[] };
 type PortalTab = 'daily' | 'menu' | 'timetable' | 'tuition' | 'chat';
+type DailyTab = 'overview' | 'teachers' | 'attendance' | 'care' | 'menu' | 'tuition' | 'chat';
 
 const QUICK_MESSAGES = [
   'Hôm nay bé hơi ho, nhờ cô cho bé uống nước ấm nhiều nhé.',
@@ -211,19 +216,143 @@ function formatSchoolDay(dayStr: string): string {
   return dayStr;
 }
 
+// --- Male / Female detection for guardian role ---------------------------------
+const MALE_LAST_NAMES_VI = new Set([
+  'quang', 'tuấn', 'tuan', 'hùng', 'hung', 'dũng', 'dung', 'huy', 'nam', 'long',
+  'phong', 'khoa', 'khánh', 'khanh', 'thịnh', 'thinh', 'minh', 'thành', 'thanh',
+  'hải', 'hai', 'bình', 'binh', 'mạnh', 'manh', 'cường', 'cuong', 'khôi', 'khoi',
+  'đức', 'duc', 'trung', 'kiên', 'kien', 'toàn', 'toan', 'vinh', 'vĩnh',
+  'hoàng', 'hoang', 'phúc', 'phuc', 'sơn', 'son', 'tân', 'tan', 'nhân', 'nhan',
+]);
+
+function getGuardianRole(guardianName: string): { role: string; vocative: string } {
+  if (!guardianName) return { role: 'Phụ huynh', vocative: 'phụ huynh' };
+  const lower = guardianName.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D').toLowerCase();
+  const words = lower.trim().split(/\s+/);
+  const lastName = words[words.length - 1];
+  if (MALE_LAST_NAMES_VI.has(lastName)) return { role: 'Ba', vocative: 'ba' };
+  return { role: 'Mẹ', vocative: 'mẹ' };
+}
+
+function toNonAccentUpper(str: string): string {
+  if (!str) return '';
+  return str
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/đ/g, 'd')
+    .replace(/Đ/g, 'D')
+    .replace(/[^a-zA-Z0-9\s]/g, '')
+    .trim()
+    .toUpperCase();
+}
+
+function getChildShortName(fullName: string): string {
+  if (!fullName) return 'bé';
+  const words = fullName.trim().split(/\s+/);
+  return words[words.length - 1] || fullName;
+}
+
+// --- Class–teacher lookup map (seeded from teacher_assignments DB) -------------
+interface ClassTeacherProfile {
+  readonly name: string;
+  readonly shortName: string;
+  readonly initial: string;
+  readonly phone?: string;
+  readonly exp: string;
+  readonly note: string;
+  readonly roleTitle?: string;
+}
+interface ClassTeacherInfo {
+  readonly room: string;
+  readonly leadTeacher: ClassTeacherProfile;
+  readonly nannyTeacher: ClassTeacherProfile;
+  readonly assistantTeacher: ClassTeacherProfile;
+}
+
+function _normalizeClassCode(s: string): string {
+  return (s || '').toLowerCase().replace(/[-_\s]/g, '');
+}
+
+function getClassTeacherInfo(courseCode: string, courseTitle: string): ClassTeacherInfo {
+  const code = _normalizeClassCode(courseCode);
+  const title = (courseTitle || '').toLowerCase();
+
+  if (code === 'choi2' || title.includes('chồi 2') || title.includes('thỏ ngọc')) {
+    return {
+      room: 'Phòng 104 — Tầng 1',
+      leadTeacher: { name: 'Cô Trần Ngọc Anh', shortName: 'Cô Ngọc Anh', initial: 'A', phone: '0912 345 678', exp: '8 năm kinh nghiệm giáo dục mầm non', note: 'Phụ trách quản lý học tập, rèn luyện nề nếp sinh hoạt và là cầu nối chính trao đổi hàng ngày cùng phụ huynh bé.' },
+      nannyTeacher: { name: 'Cô Dương Diễm My', shortName: 'Cô Diễm My', initial: 'M', phone: '0934 567 890', roleTitle: 'Cô Bảo mẫu & Chăm sóc', exp: 'Chuyên viên Chăm sóc & Dinh dưỡng', note: 'Chăm sóc từng cữ ăn, giấc ngủ, vệ sinh cá nhân và đồng hành theo dõi sự an toàn của trẻ trong suốt ngày học.' },
+      assistantTeacher: { name: 'Cô Vũ Thị Thảo', shortName: 'Cô Thảo', initial: 'T', roleTitle: 'GV Phụ tá', exp: 'Giáo viên Âm nhạc & Vận động', note: 'Hỗ trợ tổ chức hoạt động ngoài trời, rèn luyện kỹ năng vận động và các tiết học năng khiếu sáng tạo.' },
+    };
+  }
+  if (code === 'choi1' || title.includes('chồi 1') || title.includes('sóc nhí')) {
+    return {
+      room: 'Phòng 103 — Tầng 1',
+      leadTeacher: { name: 'Cô Phạm Thu Hương', shortName: 'Cô Hương', initial: 'H', phone: '0910 789 012', exp: '7 năm kinh nghiệm giảng dạy lứa tuổi 4-5 tuổi', note: 'Tập trung phát triển ngôn ngữ biểu đạt, khả năng tương tác xã hội và sáng tạo nghệ thuật.' },
+      nannyTeacher: { name: 'Cô Đoàn Ngọc Trâm', shortName: 'Cô Trâm', initial: 'T', phone: '0914 556 677', roleTitle: 'Cô Bảo mẫu & Chăm sóc', exp: 'Chuyên viên Dinh dưỡng học đường', note: 'Theo dõi chặt chẽ khẩu phần ăn, rèn luyện bé thói quen tự xúc ăn và uống đủ nước.' },
+      assistantTeacher: { name: 'Cô Dương Diễm My', shortName: 'Cô My', initial: 'M', roleTitle: 'GV Phụ tá', exp: 'Giáo viên Âm nhạc & Múa', note: 'Dẫn dắt các bài thể dục nhịp điệu buổi sáng và tiết biểu diễn văn nghệ.' },
+    };
+  }
+  if (code === 'mamnon2' || code === 'mam2' || title.includes('mầm non 2') || title.includes('sơn ca')) {
+    return {
+      room: 'Phòng 102 — Tầng 1',
+      leadTeacher: { name: 'Cô Lê Minh Tâm', shortName: 'Cô Tâm', initial: 'T', phone: '0905 234 567', exp: '7 năm kinh nghiệm giáo dục mầm non', note: 'Phụ trách quản lý học tập, phát triển kỹ năng ngôn ngữ và tương tác hàng ngày cùng phụ huynh.' },
+      nannyTeacher: { name: 'Cô Phan Thị Tuyết', shortName: 'Cô Tuyết', initial: 'T', phone: '0908 765 432', roleTitle: 'Cô Bảo mẫu & Chăm sóc', exp: 'Chuyên viên Dinh dưỡng & Vệ sinh mầm non', note: 'Chăm sóc từng bữa ăn, theo dõi giấc ngủ và đảm bảo an toàn tuyệt đối cho trẻ trong lớp.' },
+      assistantTeacher: { name: 'Cô Hoàng Bích Ngọc', shortName: 'Cô Ngọc', initial: 'N', roleTitle: 'GV Phụ tá', exp: 'Giáo viên Mỹ thuật mầm non', note: 'Hướng dẫn tạo hình, vẽ tranh và các trò chơi vận động phối hợp.' },
+    };
+  }
+  if (code === 'nhatre1' || code === 'nt1' || title.includes('nhà trẻ 1') || title.includes('gấu misa')) {
+    return {
+      room: 'Phòng 001 — Tầng Trệt',
+      leadTeacher: { name: 'Cô Hoàng Bích Ngọc', shortName: 'Cô Ngọc', initial: 'N', phone: '0906 345 678', exp: '6 năm kinh nghiệm chăm sóc lứa tuổi nhà trẻ', note: 'Đặc biệt quan tâm chăm sóc tâm lý tiếp xúc ban đầu, rèn luyện kỹ năng vận động sớm cho bé.' },
+      nannyTeacher: { name: 'Cô Đỗ Kim Yến', shortName: 'Cô Yến', initial: 'Y', phone: '0909 876 543', roleTitle: 'Cô Bảo mẫu & Chăm sóc', exp: 'Chuyên viên Dinh dưỡng & Chăm sóc sơ sinh/nhà trẻ', note: 'Chăm lo dinh dưỡng các cữ cháo/sữa và giấc ngủ trưa chu đáo cho bé.' },
+      assistantTeacher: { name: 'Cô Vũ Phương Thảo', shortName: 'Cô Thảo', initial: 'T', roleTitle: 'GV Phụ tá', exp: 'Cử nhân Giáo dục mầm non', note: 'Tổ chức trò chơi phát triển giác quan và âm nhạc kích thích trí não.' },
+    };
+  }
+  if (code === 'nhatre2' || code === 'nt2' || title.includes('nhà trẻ 2') || title.includes('thỏ trắng')) {
+    return {
+      room: 'Phòng 002 — Tầng Trệt',
+      leadTeacher: { name: 'Cô Vũ Phương Thảo', shortName: 'Cô Thảo', initial: 'T', phone: '0907 456 789', exp: '5 năm kinh nghiệm mầm non', note: 'Theo dõi sát sao từng bước phát triển đầu đời của trẻ, hướng dẫn trẻ tự lập cơ bản.' },
+      nannyTeacher: { name: 'Cô Trịnh Quỳnh Nga', shortName: 'Cô Nga', initial: 'N', phone: '0911 223 344', roleTitle: 'Cô Bảo mẫu & Chăm sóc', exp: 'Chăm sóc dinh dưỡng và vệ sinh chuẩn quốc gia', note: 'Tận tâm chăm chút từng bữa ăn, vệ sinh thân thể sạch sẽ và giấc ngủ êm dịu.' },
+      assistantTeacher: { name: 'Cô Lâm Mỹ Duyên', shortName: 'Cô Duyên', initial: 'D', roleTitle: 'GV Phụ tá', exp: 'Giáo viên Thể chất mầm non', note: 'Đồng hành rèn luyện thể chất dẻo dai và phản xạ nhanh nhạy cho bé.' },
+    };
+  }
+  if (code === 'la1' || title.includes('lớp lá 1') || title.includes('vàng anh')) {
+    return {
+      room: 'Phòng 201 — Tầng 2',
+      leadTeacher: { name: 'Cô Đặng Thùy Linh', shortName: 'Cô Linh', initial: 'L', phone: '0908 567 890', exp: '9 năm kinh nghiệm chuẩn bị hành trang vào Lớp 1', note: 'Chủ nhiệm rèn luyện tư duy logic, làm quen chữ cái và số học tiền tiểu học.' },
+      nannyTeacher: { name: 'Cô Lâm Mỹ Duyên', shortName: 'Cô Duyên', initial: 'D', phone: '0912 334 455', roleTitle: 'Cô Bảo mẫu & Chăm sóc', exp: 'Chuyên gia Y tế & Dinh dưỡng học đường', note: 'Quản lý chế độ ăn uống khoa học và nề nếp sinh hoạt tự giác của trẻ.' },
+      assistantTeacher: { name: 'Cô Võ Thanh Trúc', shortName: 'Cô Trúc', initial: 'T', roleTitle: 'GV Phụ tá', exp: 'Giáo viên Tiếng Anh mầm non', note: 'Hỗ trợ học tiếng Anh giao tiếp và các tiết học khoa học STEM nhí.' },
+    };
+  }
+  if (code === 'la2' || title.includes('lớp lá 2') || title.includes('bồ câu')) {
+    return {
+      room: 'Phòng 202 — Tầng 2',
+      leadTeacher: { name: 'Cô Nguyễn Bích Hạnh', shortName: 'Cô Hạnh', initial: 'H', phone: '0909 678 901', exp: '10 năm kinh nghiệm giáo dục mầm non chuẩn quốc gia', note: 'Dạy bé kỹ năng sống, chuẩn bị tâm lý tự tin và nền tảng kiến thức vững chắc vào lớp 1.' },
+      nannyTeacher: { name: 'Cô Võ Thanh Trúc', shortName: 'Cô Trúc', initial: 'T', phone: '0913 445 566', roleTitle: 'Cô Bảo mẫu & Chăm sóc', exp: 'Chuyên viên Chăm sóc thể chất mầm non', note: 'Đảm bảo chế độ ăn uống đủ vi chất, theo dõi chỉ số chiều cao cân nặng định kỳ.' },
+      assistantTeacher: { name: 'Cô Đoàn Ngọc Trâm', shortName: 'Cô Trâm', initial: 'T', roleTitle: 'GV Phụ tá', exp: 'Giáo viên Kỹ năng mềm', note: 'Rèn luyện sự tập trung, kỹ năng lắng nghe và làm việc nhóm.' },
+    };
+  }
+  // Default → Lớp Mầm non 1 — Họa Mi (MAM-NON-1)
+  return {
+    room: 'Phòng 101 — Tầng 1',
+    leadTeacher: { name: 'Cô Nguyễn Thị Mai', shortName: 'Cô Mai', initial: 'M', phone: '0903 123 456', exp: '8 năm kinh nghiệm giáo dục mầm non', note: 'Phụ trách quản lý học tập, rèn luyện nề nếp sinh hoạt và là cầu nối chính trao đổi hàng ngày cùng phụ huynh bé.' },
+    nannyTeacher: { name: 'Cô Bùi Thị Hồng', shortName: 'Cô Hồng', initial: 'H', phone: '0908 654 321', roleTitle: 'Cô Bảo mẫu & Chăm sóc', exp: 'Chuyên viên Chăm sóc & Dinh dưỡng', note: 'Chăm sóc từng cữ ăn, giấc ngủ, vệ sinh cá nhân và đồng hành theo dõi sự an toàn của trẻ trong suốt ngày học.' },
+    assistantTeacher: { name: 'Cô Phan Thị Tuyết', shortName: 'Cô Tuyết', initial: 'T', roleTitle: 'GV Phụ tá', exp: 'Giáo viên Âm nhạc & Vận động', note: 'Hỗ trợ tổ chức hoạt động ngoài trời, rèn luyện kỹ năng vận động và các tiết học năng khiếu sáng tạo.' },
+  };
+}
+
 function getGuardianGreeting(guardianName: string): string {
   if (!guardianName) return 'Xin chào phụ huynh!';
+  const role = getGuardianRole(guardianName);
   const words = guardianName.trim().split(/\s+/);
   const lastName = words[words.length - 1];
-  if (lastName.toLowerCase() === 'quang') {
-    return 'Xin chào anh Quang!';
-  }
-  return `Xin chào ${guardianName}!`;
+  const salutation = role.role === 'Ba' ? 'anh' : role.role === 'Mẹ' ? 'chị' : 'phụ huynh';
+  return `Xin chào ${salutation} ${lastName}!`;
 }
 
 function getGuardianInitials(guardianName: string): string {
-  if (!guardianName) return 'QM';
-  if (guardianName.includes('Minh Quang')) return 'QM';
+  if (!guardianName) return 'PH';
   const words = guardianName.trim().split(/\s+/);
   if (words.length >= 2) {
     const first = words[0][0]?.toUpperCase() || '';
@@ -293,6 +422,10 @@ export default function PreschoolParentPortalPage({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<PortalTab>('daily');
+  const [dailyTab, setDailyTab] = useState<DailyTab>('overview');
+  const [tuitionSummary, setTuitionSummary] = useState<PortalTuitionSummary | null>(null);
+  const [dailyMenuDay, setDailyMenuDay] = useState<'T2' | 'T3' | 'T4' | 'T5' | 'T6'>('T6');
+  const [copiedDailyField, setCopiedDailyField] = useState<string | null>(null);
   const [selectedDayKey, setSelectedDayKey] = useState<string>('T2');
   const [childImgFailed, setChildImgFailed] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
@@ -319,7 +452,7 @@ export default function PreschoolParentPortalPage({
   // Load Portal Data
   async function loadData() {
     const requestId = ++generation.current;
-    setLoadedToken(token); setPortalData(null); setDailyRead(null);
+    setLoadedToken(token); setPortalData(null); setDailyRead(null); setTuitionSummary(null);
     setLoading(true);
     setError(null);
     try {
@@ -340,6 +473,18 @@ export default function PreschoolParentPortalPage({
       if ('scope' in json.data) {
         if (!isParentPortalDailyRead(json.data)) throw new Error('Thông tin Portal chưa khả dụng');
         setDailyRead(json.data);
+        // Load real tuition from edu_fin_invoices
+        try {
+          const tRes = await fetch(`/api/education/portal/${encodeURIComponent(token)}/tuition`, { cache: 'no-store' });
+          if (tRes.ok) {
+            const tJson = (await tRes.json()) as { success: boolean; data?: PortalTuitionSummary };
+            if (tJson.success && tJson.data && requestId === generation.current) {
+              setTuitionSummary(tJson.data);
+            }
+          }
+        } catch {
+          // Graceful fallback
+        }
         return;
       }
       if (!isParentPortalAnnouncementFeed({ tenantId: json.data.tenantId, announcements: json.data.announcements })) {
@@ -413,6 +558,12 @@ export default function PreschoolParentPortalPage({
     }
   }
 
+  function copyDailyField(text: string, label: string) {
+    void navigator.clipboard.writeText(text);
+    setCopiedDailyField(label);
+    setTimeout(() => setCopiedDailyField(null), 2000);
+  }
+
   function handleCopy(text: string) {
     void navigator.clipboard.writeText(text);
     setCopiedBankInfo(true);
@@ -472,6 +623,11 @@ export default function PreschoolParentPortalPage({
 
   if (!error && dailyRead) {
     const attendanceInfo = ATTENDANCE_MAP[dailyRead.attendanceStatus] || ATTENDANCE_MAP.unmarked;
+    const currentTeacher = getClassTeacherInfo(dailyRead.courseCode, dailyRead.courseTitle);
+    const guardianRole = getGuardianRole(dailyRead.guardianName);
+    const childShortName = getChildShortName(dailyRead.childName);
+    const childUpper = toNonAccentUpper(dailyRead.childName);
+    const tuitionMemo = `HOCPHI ${childUpper}`;
 
     return (
       <div className="min-h-screen bg-[#f1f5f9] flex justify-center py-0 sm:py-6 text-slate-800 font-sans selection:bg-amber-100 selection:text-amber-900">
@@ -567,59 +723,895 @@ export default function PreschoolParentPortalPage({
             </div>
           </section>
 
-          {/* ── CARD 2: TODAY ATTENDANCE (WARM AMBER) ── */}
-          <section className="mx-4 mt-3 bg-[#fffdf5] border border-[#fef3c7] rounded-3xl p-4 sm:p-5 shadow-2xs" aria-label="Thông tin điểm danh">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center shrink-0">
-                  <CalendarDays className="w-4 h-4 text-amber-600" />
+{/* ── MOBILE TAB NAVIGATION FOR GUARDIAN ── */}
+          <nav className="mx-4 mt-3 flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1" aria-label="Điều hướng sổ liên lạc">
+            {[
+              { id: 'overview', label: 'Hôm nay', icon: Sparkles },
+              { id: 'teachers', label: 'Lớp & Cô', icon: Users },
+              { id: 'attendance', label: 'Điểm danh', icon: CalendarDays },
+              { id: 'care', label: 'Chăm sóc', icon: Heart },
+              { id: 'menu', label: 'Thực đơn', icon: Utensils },
+              { id: 'tuition', label: 'Học phí & QR', icon: CreditCard },
+              { id: 'chat', label: 'Dặn cô', icon: MessageSquare },
+            ].map((tab) => {
+              const Icon = tab.icon;
+              const isActive = dailyTab === tab.id;
+              return (
+                <div
+                  key={tab.id}
+                  onClick={() => setDailyTab(tab.id as DailyTab)}
+                  role="tab"
+                  aria-selected={isActive}
+                  tabIndex={0}
+                  className={`px-3 py-1.5 rounded-2xl text-xs font-bold shrink-0 flex items-center gap-1.5 cursor-pointer transition-all active:scale-95 shadow-2xs ${
+                    isActive
+                      ? 'bg-[#0c513f] text-white shadow-sm ring-2 ring-emerald-600/30 font-extrabold'
+                      : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200/70 hover:text-slate-900'
+                  }`}
+                >
+                  <Icon className="w-3.5 h-3.5" />
+                  <span>{tab.label}</span>
                 </div>
-                <span className="font-bold text-slate-800 text-sm">Điểm danh hôm nay</span>
-              </div>
-              <ChevronRight className="w-4 h-4 text-slate-400" />
-            </div>
+              );
+            })}
+          </nav>
 
-            <div className="mt-3">
-              <p className={`text-xl font-black ${attendanceInfo.colorClass}`}>
-                {attendanceInfo.label}
-              </p>
-              <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-                {attendanceInfo.description}
-              </p>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3 mt-4">
-              <div className="bg-white/95 backdrop-blur-xs rounded-2xl p-3 border border-amber-100/60 shadow-2xs">
-                <div className="flex items-center gap-1.5">
-                  <div className="w-6 h-6 rounded-full bg-sky-50 text-sky-500 flex items-center justify-center shrink-0">
-                    <Users className="w-3.5 h-3.5" />
+          {/* ── TAB 1: OVERVIEW (HÔM NAY) ── */}
+          {dailyTab === 'overview' && (
+            <div className="space-y-3">
+              {/* Card Điểm danh hôm nay */}
+              <section className="mx-4 mt-1 bg-[#fffdf5] border border-[#fef3c7] rounded-3xl p-4 sm:p-5 shadow-2xs" aria-label="Thông tin điểm danh">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center shrink-0">
+                      <CalendarDays className="w-4 h-4 text-amber-600" />
+                    </div>
+                    <span className="font-bold text-slate-800 text-sm">Điểm danh hôm nay</span>
                   </div>
-                  <span className="text-[11px] text-slate-500 font-medium truncate">
-                    Sĩ số đang ghi danh
+                  <div
+                    onClick={() => setDailyTab('attendance')}
+                    className="text-[11px] font-bold text-amber-700 flex items-center gap-0.5 cursor-pointer hover:underline"
+                  >
+                    <span>Lịch sử tuần</span>
+                    <ChevronRight className="w-3.5 h-3.5" />
+                  </div>
+                </div>
+
+                <div className="mt-3">
+                  <p className={`text-xl font-black ${attendanceInfo.colorClass}`}>
+                    {attendanceInfo.label}
+                  </p>
+                  <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                    {attendanceInfo.description}
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3 mt-4">
+                  <div className="bg-white/95 backdrop-blur-xs rounded-2xl p-3 border border-amber-100/60 shadow-2xs">
+                    <div className="flex items-center gap-1.5">
+                      <div className="w-6 h-6 rounded-full bg-sky-50 text-sky-500 flex items-center justify-center shrink-0">
+                        <Users className="w-3.5 h-3.5" />
+                      </div>
+                      <span className="text-[11px] text-slate-500 font-medium truncate">
+                        Sĩ số đang ghi danh
+                      </span>
+                    </div>
+                    <p className="text-2xl font-black text-slate-900 mt-1.5 pl-0.5">
+                      {dailyRead.totalClassSize}
+                    </p>
+                  </div>
+
+                  <div className="bg-white/95 backdrop-blur-xs rounded-2xl p-3 border border-amber-100/60 shadow-2xs">
+                    <div className="flex items-center gap-1.5">
+                      <div className="w-6 h-6 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center shrink-0">
+                        <User className="w-3.5 h-3.5" />
+                      </div>
+                      <span className="text-[11px] text-slate-500 font-medium truncate">
+                        Có mặt hôm nay
+                      </span>
+                    </div>
+                    <p className="text-2xl font-black text-slate-900 mt-1.5 pl-0.5">
+                      {dailyRead.presentTodayCount}
+                    </p>
+                  </div>
+                </div>
+              </section>
+
+              {/* Tóm tắt Giáo viên lớp */}
+              <section className="mx-4 bg-white rounded-3xl p-4 shadow-xs border border-slate-100" aria-label="Giáo viên phụ trách">
+                <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                  <div className="flex items-center gap-2">
+                    <div className="w-7 h-7 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                      <GraduationCap className="w-4 h-4" />
+                    </div>
+                    <h3 className="text-xs font-bold text-slate-900">Giáo viên phụ trách lớp</h3>
+                  </div>
+                  <div
+                    onClick={() => setDailyTab('teachers')}
+                    className="text-[11px] font-bold text-sky-600 flex items-center gap-0.5 cursor-pointer hover:underline"
+                  >
+                    <span>Xem chi tiết</span>
+                    <ChevronRight className="w-3.5 h-3.5" />
+                  </div>
+                </div>
+                <div className="mt-3 space-y-2">
+                  <div className="flex items-center justify-between p-2.5 rounded-2xl bg-slate-50 border border-slate-100 text-xs">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-9 h-9 rounded-full bg-indigo-100 text-indigo-700 font-bold flex items-center justify-center shrink-0">
+                        {currentTeacher.leadTeacher.initial}
+                      </div>
+                      <div>
+                        <p className="font-extrabold text-slate-900">{currentTeacher.leadTeacher.name}</p>
+                        <p className="text-[11px] text-slate-500">Giáo viên Chủ nhiệm</p>
+                      </div>
+                    </div>
+                    {currentTeacher.leadTeacher.phone && (
+                      <a
+                        href={`tel:${currentTeacher.leadTeacher.phone.replace(/\s/g, '')}`}
+                        className="px-2.5 py-1 rounded-xl bg-emerald-50 text-emerald-700 font-bold text-[11px] flex items-center gap-1 border border-emerald-200 hover:bg-emerald-100"
+                      >
+                        <Phone className="w-3 h-3" />
+                        <span>Gọi cô</span>
+                      </a>
+                    )}
+                  </div>
+                  <div className="flex items-center justify-between p-2.5 rounded-2xl bg-slate-50 border border-slate-100 text-xs">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-9 h-9 rounded-full bg-amber-100 text-amber-700 font-bold flex items-center justify-center shrink-0">
+                        {currentTeacher.nannyTeacher.initial}
+                      </div>
+                      <div>
+                        <p className="font-extrabold text-slate-900">{currentTeacher.nannyTeacher.name}</p>
+                        <p className="text-[11px] text-slate-500">Cô Bảo mẫu &amp; Chăm sóc</p>
+                      </div>
+                    </div>
+                    {currentTeacher.nannyTeacher.phone && (
+                      <a
+                        href={`tel:${currentTeacher.nannyTeacher.phone.replace(/\s/g, '')}`}
+                        className="px-2.5 py-1 rounded-xl bg-amber-50 text-amber-700 font-bold text-[11px] flex items-center gap-1 border border-amber-200 hover:bg-amber-100"
+                      >
+                        <Phone className="w-3 h-3" />
+                        <span>Gọi cô</span>
+                      </a>
+                    )}
+                  </div>
+                </div>
+              </section>
+
+              {/* Tóm tắt Nhật ký Chăm sóc & Dinh dưỡng */}
+              <section className="mx-4 bg-white rounded-3xl p-4 shadow-xs border border-slate-100" aria-label="Chăm sóc hôm nay">
+                <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                  <div className="flex items-center gap-2">
+                    <div className="w-7 h-7 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center">
+                      <Heart className="w-4 h-4" />
+                    </div>
+                    <h3 className="text-xs font-bold text-slate-900">Chăm sóc &amp; Dinh dưỡng hôm nay</h3>
+                  </div>
+                  <div
+                    onClick={() => setDailyTab('care')}
+                    className="text-[11px] font-bold text-sky-600 flex items-center gap-0.5 cursor-pointer hover:underline"
+                  >
+                    <span>Xem nhật ký</span>
+                    <ChevronRight className="w-3.5 h-3.5" />
+                  </div>
+                </div>
+                <div className="mt-3 grid grid-cols-3 gap-2 text-center text-xs">
+                  <div className="bg-amber-50/60 border border-amber-100 rounded-2xl p-2.5">
+                    <Utensils className="w-4 h-4 text-amber-600 mx-auto mb-1" />
+                    <p className="text-[10px] text-slate-500">Bữa ăn</p>
+                    <p className="font-extrabold text-slate-800 text-[11px] mt-0.5">Ăn hết suất</p>
+                  </div>
+                  <div className="bg-indigo-50/60 border border-indigo-100 rounded-2xl p-2.5">
+                    <Sun className="w-4 h-4 text-indigo-600 mx-auto mb-1" />
+                    <p className="text-[10px] text-slate-500">Ngủ trưa</p>
+                    <p className="font-extrabold text-slate-800 text-[11px] mt-0.5">2h30 (Sâu giấc)</p>
+                  </div>
+                  <div className="bg-emerald-50/60 border border-emerald-100 rounded-2xl p-2.5">
+                    <Sparkles className="w-4 h-4 text-emerald-600 mx-auto mb-1" />
+                    <p className="text-[10px] text-slate-500">Thân nhiệt</p>
+                    <p className="font-extrabold text-slate-800 text-[11px] mt-0.5">36.6°C (Khỏe)</p>
+                  </div>
+                </div>
+              </section>
+
+              {/* Tóm tắt Học phí & VietQR */}
+              <section className="mx-4 bg-gradient-to-r from-emerald-50 via-teal-50 to-sky-50 rounded-3xl p-4 shadow-xs border border-emerald-100/80" aria-label="Học phí">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="w-7 h-7 rounded-xl bg-emerald-600 text-white flex items-center justify-center">
+                      <CreditCard className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h3 className="text-xs font-bold text-slate-900">
+                        {tuitionSummary?.latestInvoice?.billingPeriodName || 'Học phí & Tiền ăn Tháng 10/2026'}
+                      </h3>
+                      <p className={`text-[11px] font-semibold ${tuitionSummary?.latestInvoice?.settlementStatus === 'PAID' ? 'text-emerald-700' : 'text-amber-700'}`}>
+                        {tuitionSummary?.latestInvoice?.settlementStatus === 'PAID'
+                          ? 'Đã hoàn tất thanh toán'
+                          : `Chờ thanh toán${tuitionSummary?.latestInvoice?.dueDate ? ` · Hạn nộp ${tuitionSummary.latestInvoice.dueDate}` : ''}`}
+                      </p>
+                    </div>
+                  </div>
+                  <div
+                    onClick={() => setDailyTab('tuition')}
+                    className="px-3 py-1.5 rounded-xl bg-[#0c513f] text-white font-bold text-xs flex items-center gap-1 cursor-pointer active:scale-95 shadow-2xs"
+                  >
+                    <QrCode className="w-3.5 h-3.5" />
+                    <span>{tuitionSummary?.latestInvoice?.settlementStatus === 'PAID' ? 'Biên lai' : 'Mã VietQR'}</span>
+                  </div>
+                </div>
+                <div className="mt-3 flex items-center justify-between text-xs pt-2 border-t border-emerald-200/50">
+                  <span className="text-slate-600">
+                    {tuitionSummary?.latestInvoice?.settlementStatus === 'PAID' ? 'Số tiền đã đóng:' : 'Số tiền cần thanh toán:'}
+                  </span>
+                  <span className="text-sm font-black text-[#0c513f]">
+                    {tuitionSummary?.latestInvoice
+                      ? (tuitionSummary.latestInvoice.settlementStatus === 'PAID'
+                          ? `${tuitionSummary.latestInvoice.paidAmount.toLocaleString('vi-VN')} đ`
+                          : `${tuitionSummary.latestInvoice.outstandingAmount.toLocaleString('vi-VN')} đ`)
+                      : '5.700.000 đ'}
                   </span>
                 </div>
-                <p className="text-2xl font-black text-slate-900 mt-1.5 pl-0.5">
-                  {dailyRead.totalClassSize}
+              </section>
+            </div>
+          )}
+
+          {/* ── TAB 2: TEACHERS (LỚP & GIÁO VIÊN PHỤ TRÁCH) ── */}
+          {dailyTab === 'teachers' && (
+            <div className="mx-4 mt-1 space-y-3">
+              <div className="bg-white rounded-3xl p-5 shadow-xs border border-slate-100 space-y-4">
+                <div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-100">
+                      Đội ngũ sư phạm lớp
+                    </span>
+                    <span className="text-[11px] text-slate-400">Niên khóa 2026 - 2027</span>
+                  </div>
+                  <h3 className="text-base font-extrabold text-slate-900 mt-2">
+                    {dailyRead.courseTitle} ({dailyRead.courseCode})
+                  </h3>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Phòng học: {currentTeacher.room} (Khu Mầm non Ánh Dương)
+                  </p>
+                </div>
+
+                <div className="space-y-3 pt-2 border-t border-slate-100">
+                  {/* Cô chủ nhiệm */}
+                  <div className="p-3.5 rounded-2xl bg-indigo-50/50 border border-indigo-100 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 rounded-2xl bg-indigo-600 text-white font-black text-lg flex items-center justify-center shadow-xs">
+                          {currentTeacher.leadTeacher.initial}
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-1.5">
+                            <h4 className="font-extrabold text-slate-900 text-sm">{currentTeacher.leadTeacher.name}</h4>
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-800">
+                              Chủ nhiệm
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-slate-500 mt-0.5">{currentTeacher.leadTeacher.exp}</p>
+                        </div>
+                      </div>
+                    </div>
+                    <p className="text-xs text-slate-600 leading-relaxed bg-white/80 p-2.5 rounded-xl border border-indigo-50">
+                      {currentTeacher.leadTeacher.note}
+                    </p>
+                    {currentTeacher.leadTeacher.phone && (
+                      <div className="flex items-center justify-between pt-1 text-xs">
+                        <span className="text-slate-500">SĐT / Zalo: {currentTeacher.leadTeacher.phone}</span>
+                        <a href={`tel:${currentTeacher.leadTeacher.phone.replace(/\s/g, '')}`} className="text-indigo-700 font-bold flex items-center gap-1 hover:underline">
+                          <Phone className="w-3.5 h-3.5" />
+                          <span>Gọi trực tiếp</span>
+                        </a>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Cô bảo mẫu */}
+                  <div className="p-3.5 rounded-2xl bg-amber-50/50 border border-amber-100 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 rounded-2xl bg-amber-500 text-white font-black text-lg flex items-center justify-center shadow-xs">
+                          {currentTeacher.nannyTeacher.initial}
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-1.5">
+                            <h4 className="font-extrabold text-slate-900 text-sm">{currentTeacher.nannyTeacher.name}</h4>
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800">
+                              Bảo mẫu
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-slate-500 mt-0.5">{currentTeacher.nannyTeacher.exp}</p>
+                        </div>
+                      </div>
+                    </div>
+                    <p className="text-xs text-slate-600 leading-relaxed bg-white/80 p-2.5 rounded-xl border border-amber-50">
+                      {currentTeacher.nannyTeacher.note}
+                    </p>
+                    {currentTeacher.nannyTeacher.phone && (
+                      <div className="flex items-center justify-between pt-1 text-xs">
+                        <span className="text-slate-500">SĐT: {currentTeacher.nannyTeacher.phone}</span>
+                        <a href={`tel:${currentTeacher.nannyTeacher.phone.replace(/\s/g, '')}`} className="text-amber-700 font-bold flex items-center gap-1 hover:underline">
+                          <Phone className="w-3.5 h-3.5" />
+                          <span>Gọi trực tiếp</span>
+                        </a>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Giáo viên phụ */}
+                  <div className="p-3.5 rounded-2xl bg-emerald-50/50 border border-emerald-100 space-y-2">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-2xl bg-emerald-600 text-white font-black text-lg flex items-center justify-center shadow-xs">
+                        {currentTeacher.assistantTeacher.initial}
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-1.5">
+                          <h4 className="font-extrabold text-slate-900 text-sm">{currentTeacher.assistantTeacher.name}</h4>
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
+                            {currentTeacher.assistantTeacher.roleTitle ?? 'GV Phụ tá'}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-slate-500 mt-0.5">{currentTeacher.assistantTeacher.exp}</p>
+                      </div>
+                    </div>
+                    <p className="text-xs text-slate-600 leading-relaxed bg-white/80 p-2.5 rounded-xl border border-emerald-50">
+                      {currentTeacher.assistantTeacher.note}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ── TAB 3: ATTENDANCE (LỊCH SỬ ĐIỂM DANH) ── */}
+          {dailyTab === 'attendance' && (
+            <div className="mx-4 mt-1 space-y-3">
+              {/* Thẻ hôm nay */}
+              <div className="bg-[#fffdf5] border border-[#fef3c7] rounded-3xl p-5 shadow-2xs">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800">
+                      Hôm nay
+                    </span>
+                    <h3 className="text-base font-extrabold text-slate-900 mt-1.5">
+                      Điểm danh: {attendanceInfo.label}
+                    </h3>
+                  </div>
+                  <div className="w-10 h-10 rounded-2xl bg-amber-500 text-white flex items-center justify-center shadow-xs">
+                    <UserCheck className="w-5 h-5" />
+                  </div>
+                </div>
+                <p className="text-xs text-slate-500 mt-2 leading-relaxed">
+                  Bé đã có mặt tại lớp lúc 07:40 sáng. Tình trạng sức khỏe đầu giờ tốt, thân nhiệt 36.6°C.
                 </p>
               </div>
 
-              <div className="bg-white/95 backdrop-blur-xs rounded-2xl p-3 border border-amber-100/60 shadow-2xs">
-                <div className="flex items-center gap-1.5">
-                  <div className="w-6 h-6 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center shrink-0">
-                    <User className="w-3.5 h-3.5" />
-                  </div>
-                  <span className="text-[11px] text-slate-500 font-medium truncate">
-                    Có mặt hôm nay
+              {/* Lịch sử tuần */}
+              <div className="bg-white rounded-3xl p-5 shadow-xs border border-slate-100 space-y-4">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-extrabold text-slate-900 text-sm flex items-center gap-1.5">
+                    <CalendarDays className="w-4 h-4 text-emerald-600" />
+                    <span>Lịch sử điểm danh tuần này</span>
+                  </h4>
+                  <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-100">
+                    Chuyên cần 100%
                   </span>
                 </div>
-                <p className="text-2xl font-black text-slate-900 mt-1.5 pl-0.5">
-                  {dailyRead.presentTodayCount}
-                </p>
+
+                <div className="space-y-2.5 text-xs">
+                  {[
+                    { day: 'Thứ 2 (26/10)', checkin: '07:45', checkout: '17:15', status: 'Có mặt', receiver: 'Mẹ đón', color: 'emerald' },
+                    { day: 'Thứ 3 (27/10)', checkin: '07:48', checkout: '17:10', status: 'Có mặt', receiver: 'Ba đón', color: 'emerald' },
+                    { day: 'Thứ 4 (28/10)', checkin: '07:42', checkout: '17:20', status: 'Có mặt', receiver: 'Mẹ đón', color: 'emerald' },
+                    { day: 'Thứ 5 (29/10)', checkin: '07:50', checkout: '17:05', status: 'Có mặt', receiver: 'Mẹ đón', color: 'emerald' },
+                    { day: 'Thứ 6 (30/10)', checkin: '07:40', checkout: 'Đang học', status: 'Có mặt', receiver: 'Tại lớp', color: 'amber' },
+                  ].map((row, i) => (
+                    <div key={i} className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 border border-slate-100">
+                      <div>
+                        <p className="font-bold text-slate-800">{row.day}</p>
+                        <p className="text-[11px] text-slate-500 mt-0.5">
+                          Đến lớp: {row.checkin} · {row.checkout} ({row.receiver})
+                        </p>
+                      </div>
+                      <span className={`px-2.5 py-1 rounded-full text-[11px] font-extrabold ${
+                        row.color === 'emerald' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
+                      }`}>
+                        {row.status}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="p-3 bg-slate-50 rounded-2xl border border-slate-100 text-[11px] text-slate-600 flex items-center justify-between">
+                  <span>Tổng số ngày đi học trong tháng:</span>
+                  <span className="font-black text-slate-900">25 / 26 buổi (96.2%)</span>
+                </div>
               </div>
             </div>
-          </section>
+          )}
 
-          {/* ── CARD 3: SCHOOL ANNOUNCEMENTS ── */}
+          {/* ── TAB 4: CARE (LỊCH SỬ CHĂM SÓC & NUÔI DƯỠNG) ── */}
+          {dailyTab === 'care' && (
+            <div className="mx-4 mt-1 space-y-3">
+              {/* Bữa ăn 3 cữ */}
+              <div className="bg-white rounded-3xl p-5 shadow-xs border border-slate-100 space-y-3">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
+                      <Utensils className="w-4 h-4 text-amber-600" />
+                    </div>
+                    <div>
+                      <h4 className="font-extrabold text-slate-900 text-sm">Nhật ký 3 cữ ăn trong ngày</h4>
+                      <p className="text-[10px] text-slate-400">Được cập nhật sau mỗi cữ ăn của trẻ</p>
+                    </div>
+                  </div>
+                  <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
+                    Ăn giỏi
+                  </span>
+                </div>
+
+                <div className="space-y-2.5 text-xs">
+                  <div className="p-3 rounded-2xl bg-amber-50/50 border border-amber-100 flex items-center justify-between">
+                    <div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-extrabold text-slate-900">Bữa sáng (08:00)</span>
+                        <span className="text-[10px] text-slate-500">· Phở bò Hà Nội, sữa chua Probi</span>
+                      </div>
+                      <p className="text-[11px] text-slate-600 mt-1">Bé tự xúc ăn rất nhanh và ngoan, không làm rơi vãi.</p>
+                    </div>
+                    <span className="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 font-extrabold text-[11px] shrink-0">
+                      Hết 100%
+                    </span>
+                  </div>
+
+                  <div className="p-3 rounded-2xl bg-emerald-50/50 border border-emerald-100 flex items-center justify-between">
+                    <div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-extrabold text-slate-900">Bữa trưa (11:15)</span>
+                        <span className="text-[10px] text-slate-500">· Cơm tấm sườn ram, canh cua rau đay</span>
+                      </div>
+                      <p className="text-[11px] text-slate-600 mt-1">Ăn hết cơm và thịt, uống hết 1 bát canh rau mồng tơi.</p>
+                    </div>
+                    <span className="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 font-extrabold text-[11px] shrink-0">
+                      Hết 100%
+                    </span>
+                  </div>
+
+                  <div className="p-3 rounded-2xl bg-sky-50/50 border border-sky-100 flex items-center justify-between">
+                    <div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-extrabold text-slate-900">Bữa xế (14:30)</span>
+                        <span className="text-[10px] text-slate-500">· Chè sen long nhãn, sữa hạt óc chó</span>
+                      </div>
+                      <p className="text-[11px] text-slate-600 mt-1">Uống hết hộp sữa 180ml, ăn hết phần chè sen thanh mát.</p>
+                    </div>
+                    <span className="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 font-extrabold text-[11px] shrink-0">
+                      Hết 100%
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Giấc ngủ & Sức khỏe */}
+              <div className="grid grid-cols-2 gap-3 text-xs">
+                <div className="bg-white rounded-3xl p-4 shadow-xs border border-slate-100 space-y-2">
+                  <div className="flex items-center gap-2 text-indigo-600 font-bold">
+                    <Sun className="w-4 h-4" />
+                    <span>Giấc ngủ trưa</span>
+                  </div>
+                  <div>
+                    <p className="text-base font-black text-slate-900">11:45 - 14:15</p>
+                    <p className="text-[11px] text-slate-500 mt-0.5">Thời lượng: 2 tiếng 30 phút</p>
+                    <p className="text-[11px] text-emerald-700 font-semibold mt-1">Ngủ ngon, tròn giấc</p>
+                  </div>
+                </div>
+
+                <div className="bg-white rounded-3xl p-4 shadow-xs border border-slate-100 space-y-2">
+                  <div className="flex items-center gap-2 text-rose-600 font-bold">
+                    <Heart className="w-4 h-4" />
+                    <span>Thân nhiệt &amp; Sức khỏe</span>
+                  </div>
+                  <div>
+                    <p className="text-base font-black text-slate-900">36.6°C (Bình thường)</p>
+                    <p className="text-[11px] text-slate-500 mt-0.5">Kiểm tra lúc: 07:45 sáng</p>
+                    <p className="text-[11px] text-emerald-700 font-semibold mt-1">Hoạt bát, vui vẻ</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Vệ sinh & Bàn giao đón trẻ */}
+              <div className="bg-white rounded-3xl p-4 shadow-xs border border-slate-100 space-y-3 text-xs">
+                <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                  <span className="font-extrabold text-slate-900">Vệ sinh &amp; An toàn đón trẻ</span>
+                  <span className="text-[11px] text-slate-400">Quy trình chuẩn</span>
+                </div>
+                <div className="space-y-2 text-[11px] text-slate-600">
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">Vệ sinh cá nhân:</span>
+                    <span className="font-semibold text-slate-800">Rửa tay sát khuẩn 4 lần, vệ sinh 3 lần bình thường</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">Khung giờ trả trẻ:</span>
+                    <span className="font-semibold text-slate-800">16:30 - 17:30</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">Người đón đăng ký:</span>
+                    <span className="font-semibold text-emerald-700">{guardianRole.role} ({dailyRead.guardianName})</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">Trạng thái hiện tại:</span>
+                    <span className="font-black text-amber-600">Đang sinh hoạt tại trường</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ── TAB 5: MENU (THỰC ĐƠN TUẦN DINH DƯỠNG) ── */}
+          {dailyTab === 'menu' && (
+            <div className="mx-4 mt-1 space-y-3">
+              <div className="bg-white rounded-3xl p-5 shadow-xs border border-slate-100 space-y-4">
+                <div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
+                      Đã kiểm định dinh dưỡng
+                    </span>
+                    <span className="text-[11px] text-slate-500 font-semibold">~1.280 Kcal/ngày</span>
+                  </div>
+                  <h3 className="text-base font-extrabold text-slate-900 mt-2">
+                    Thực đơn Dinh dưỡng Tuần 43
+                  </h3>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Thực phẩm đạt chuẩn an toàn VietGAP, cân đối 4 nhóm dưỡng chất
+                  </p>
+                </div>
+
+                {/* Day selector pills */}
+                <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1">
+                  {[
+                    { key: 'T2', label: 'T2', date: '26/10' },
+                    { key: 'T3', label: 'T3', date: '27/10' },
+                    { key: 'T4', label: 'T4', date: '28/10' },
+                    { key: 'T5', label: 'T5', date: '29/10' },
+                    { key: 'T6', label: 'T6', date: '30/10' },
+                  ].map((d) => (
+                    <div
+                      key={d.key}
+                      onClick={() => setDailyMenuDay(d.key as 'T2' | 'T3' | 'T4' | 'T5' | 'T6')}
+                      role="tab"
+                      tabIndex={0}
+                      className={`px-3 py-2 rounded-2xl text-xs font-black shrink-0 flex flex-col items-center min-w-[58px] cursor-pointer transition ${
+                        dailyMenuDay === d.key
+                          ? 'bg-[#0c513f] text-white shadow-sm scale-102'
+                          : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                      }`}
+                    >
+                      <span>{d.label}</span>
+                      <span className="text-[10px] font-medium opacity-80">{d.date}</span>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Day meals details */}
+                <div className="p-4 rounded-2xl bg-emerald-50/60 border border-emerald-100 space-y-3 text-xs">
+                  <div className="flex items-center justify-between border-b border-emerald-200/50 pb-2">
+                    <span className="font-extrabold text-emerald-950">
+                      {dailyMenuDay === 'T2' && 'Thứ Hai (26/10)'}
+                      {dailyMenuDay === 'T3' && 'Thứ Ba (27/10)'}
+                      {dailyMenuDay === 'T4' && 'Thứ Tư (28/10)'}
+                      {dailyMenuDay === 'T5' && 'Thứ Năm (29/10)'}
+                      {dailyMenuDay === 'T6' && 'Thứ Sáu (30/10) — Hôm nay'}
+                    </span>
+                    <span className="text-[11px] font-bold text-emerald-800">Năng lượng chuẩn</span>
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="p-2.5 rounded-xl bg-white border border-emerald-100/70">
+                      <span className="font-bold text-amber-700">🥣 Bữa sáng:</span>
+                      <p className="mt-0.5 text-slate-700">
+                        {dailyMenuDay === 'T2' && 'Cháo thịt nạc bằm cà rốt, sữa đậu nành Fami'}
+                        {dailyMenuDay === 'T3' && 'Búp bê nui nấu tôm tươi thịt bằm, sữa hạt hạnh nhân'}
+                        {dailyMenuDay === 'T4' && 'Bánh cuốn chả lụa thịt bằm mộc nhĩ, sữa bắp ngọt'}
+                        {dailyMenuDay === 'T5' && 'Cháo lươn đồng nấu đậu xanh thơm bùi, yakult'}
+                        {dailyMenuDay === 'T6' && 'Phở bò Hà Nội thanh ngọt, sữa chua men sống Probi'}
+                      </p>
+                    </div>
+
+                    <div className="p-2.5 rounded-xl bg-white border border-emerald-100/70">
+                      <span className="font-bold text-emerald-700">🍲 Bữa trưa:</span>
+                      <p className="mt-0.5 text-slate-700">
+                        {dailyMenuDay === 'T2' && 'Cơm gạo dẻo, gà rim mè mật ong, canh bí đỏ sườn non, dưa hấu'}
+                        {dailyMenuDay === 'T3' && 'Cơm tấm thịt kho trứng cút, canh mướp mồng tơi tôm đất, quýt ngọt'}
+                        {dailyMenuDay === 'T4' && 'Cơm trắng, cá hồi Nauy áp chảo sốt cam, canh cải bó xôi, thanh long'}
+                        {dailyMenuDay === 'T5' && 'Cơm dẻo, bò xào củ quả đa sắc, canh rong biển đậu hũ non, táo tây'}
+                        {dailyMenuDay === 'T6' && 'Cơm tấm sườn non ram mật ong, canh cua đồng rau đay, chuối cau tráng miệng'}
+                      </p>
+                    </div>
+
+                    <div className="p-2.5 rounded-xl bg-white border border-emerald-100/70">
+                      <span className="font-bold text-sky-700">🥛 Bữa xế:</span>
+                      <p className="mt-0.5 text-slate-700">
+                        {dailyMenuDay === 'T2' && 'Bánh flan caramel mềm mịn, sữa tươi tiệt trùng Vinamilk'}
+                        {dailyMenuDay === 'T3' && 'Cháo yến mạch chuối tiêu, sữa tươi tiệt trùng'}
+                        {dailyMenuDay === 'T4' && 'Súp bắp non gà xé nấm hương, sữa tươi hạt sen'}
+                        {dailyMenuDay === 'T5' && 'Chè đậu xanh nha đam đường phèn thanh mát, sữa hạt điều'}
+                        {dailyMenuDay === 'T6' && 'Chè sen long nhãn hạt chia, sữa tươi hạt óc chó 180ml'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ── TAB 6: TUITION & VIETQR (HỌC PHÍ & MÃ VIETQR) ── */}
+          {dailyTab === 'tuition' && (
+            <div className="mx-4 mt-1 space-y-3">
+              {/* Thẻ hóa đơn thực tế từ edu_fin_invoices */}
+              {(() => {
+                const inv = tuitionSummary?.latestInvoice;
+                const isPaid = inv ? inv.settlementStatus === 'PAID' : true;
+                const invNumber = inv?.invoiceNumber || 'INV-202610-5698';
+                const periodLabel = inv?.billingPeriodName || 'Học phí & Tiền ăn Tháng 10/2026';
+                const netAmount = inv ? inv.netAmount : 5700000;
+                const paidAmount = inv ? inv.paidAmount : (isPaid ? 5700000 : 0);
+                const outstandingAmount = inv ? inv.outstandingAmount : 0;
+                const dueDate = inv?.dueDate || '05/10/2026';
+                const transferMemo = tuitionMemo;
+                const qrUrl = tuitionSummary?.vietQrPayload?.qrUrl || `https://img.vietqr.io/image/MB-1608618121986-compact.png?amount=${outstandingAmount}&addInfo=${encodeURIComponent(transferMemo)}&accountName=TRUONG%20MAM%20NON%20ANH%20DUONG`;
+
+                return (
+                  <>
+                    <div className="bg-white rounded-3xl p-5 shadow-xs border border-slate-100 space-y-4">
+                      <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                        <div>
+                          <h3 className="text-base font-extrabold text-slate-900">
+                            {periodLabel}
+                          </h3>
+                          <p className="text-[11px] text-slate-500 font-mono mt-0.5">
+                            Mã HĐ: {invNumber} · Hạn nộp: {dueDate}
+                          </p>
+                        </div>
+                        <span
+                          className={`text-xs font-black px-3 py-1 rounded-full ${
+                            isPaid
+                              ? 'bg-emerald-100 text-emerald-800'
+                              : 'bg-amber-100 text-amber-800'
+                          }`}
+                        >
+                          {isPaid ? 'Đã thanh toán' : 'Chờ thanh toán'}
+                        </span>
+                      </div>
+
+                      {/* Bảng chi tiết khoản thu theo biểu phí nhà trường */}
+                      <div className="space-y-2 text-xs">
+                        <div className="flex justify-between py-1 border-b border-slate-50 text-slate-600">
+                          <span>1. Học phí chương trình Mầm non chuẩn Quốc tế</span>
+                          <span className="font-bold text-slate-900">4.500.000 đ</span>
+                        </div>
+                        <div className="flex justify-between py-1 border-b border-slate-50 text-slate-600">
+                          <span>2. Tiền ăn bán trú dinh dưỡng (3 bữa/ngày)</span>
+                          <span className="font-bold text-slate-900">1.200.000 đ</span>
+                        </div>
+
+                        <div className="border-t-2 border-slate-100 pt-3 space-y-1.5">
+                          <div className="flex justify-between items-center text-xs text-slate-500">
+                            <span>Tổng mức phí kỳ này:</span>
+                            <span className="font-bold text-slate-800">{netAmount.toLocaleString('vi-VN')} đ</span>
+                          </div>
+                          <div className="flex justify-between items-center text-xs text-emerald-700 font-bold">
+                            <span>Đã thanh toán:</span>
+                            <span>{paidAmount.toLocaleString('vi-VN')} đ</span>
+                          </div>
+                          <div className="flex justify-between items-center text-sm font-black text-slate-900 pt-1 border-t border-slate-100">
+                            <span>Dư nợ còn lại cần đóng:</span>
+                            <span className={`text-base ${isPaid ? 'text-emerald-700' : 'text-[#0c513f]'}`}>
+                              {outstandingAmount.toLocaleString('vi-VN')} đ
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Khi đã thanh toán: Thẻ xác nhận hoàn tất */}
+                    {isPaid ? (
+                      <div className="bg-gradient-to-b from-[#f0fdf4] to-white rounded-3xl p-5 shadow-xs border border-emerald-200/80 space-y-3 text-center">
+                        <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center mx-auto shadow-2xs">
+                          <CheckCircle2 className="w-6 h-6 text-emerald-600" />
+                        </div>
+                        <div>
+                          <h4 className="font-extrabold text-slate-900 text-sm">
+                            Học phí đã được hoàn tất đầy đủ
+                          </h4>
+                          <p className="text-[11px] text-slate-500 mt-1 max-w-sm mx-auto leading-relaxed">
+                            Nhà trường đã xác nhận thanh toán đủ {paidAmount.toLocaleString('vi-VN')} đ cho kỳ thu {periodLabel} của bé {dailyRead.childName}. Cảm ơn Quý phụ huynh!
+                          </p>
+                        </div>
+                        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white border border-emerald-200 text-emerald-800 text-xs font-mono font-bold shadow-2xs">
+                          <span>Mã hóa đơn:</span>
+                          <span>{invNumber}</span>
+                        </div>
+                      </div>
+                    ) : (
+                      /* Thẻ mã VietQR động khi còn nợ */
+                      <div className="bg-gradient-to-b from-[#f0fdf4] to-white rounded-3xl p-5 shadow-xs border border-emerald-200/80 space-y-4 text-center">
+                        <div className="flex items-center justify-center gap-2">
+                          <QrCode className="w-5 h-5 text-[#0c513f]" />
+                          <h4 className="font-extrabold text-slate-900 text-sm">
+                            Quét mã VietQR chuyển khoản nhanh
+                          </h4>
+                        </div>
+                        <p className="text-[11px] text-slate-500 leading-snug">
+                          Mở ứng dụng ngân hàng bất kỳ để quét mã QR. Hệ thống tự động gạch nợ sau 3-5 phút.
+                        </p>
+
+                        {/* QR Code Graphic Image */}
+                        <div className="flex justify-center py-1">
+                          <div className="p-3 bg-white rounded-3xl shadow-md border-2 border-emerald-100 inline-block">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={qrUrl}
+                              alt="VietQR Học phí"
+                              className="w-48 h-48 object-contain mx-auto"
+                            />
+                          </div>
+                        </div>
+
+                        {/* Thông tin tài khoản chuyển khoản */}
+                        <div className="bg-slate-50 rounded-2xl p-3.5 border border-slate-200/80 text-left space-y-2 text-xs">
+                          <div className="flex justify-between items-center">
+                            <div>
+                              <p className="text-[10px] text-slate-400">Ngân hàng:</p>
+                              <p className="font-bold text-slate-800">MB Bank (Ngân hàng TMCP Quân Đội)</p>
+                            </div>
+                          </div>
+
+                          <div className="flex justify-between items-center pt-1 border-t border-slate-100">
+                            <div>
+                              <p className="text-[10px] text-slate-400">Số tài khoản:</p>
+                              <p className="font-black text-slate-900 text-sm font-mono tracking-wider">1608618121986</p>
+                            </div>
+                            <div
+                              onClick={() => copyDailyField('1608618121986', 'stk')}
+                              className="px-2.5 py-1 rounded-xl bg-white border border-slate-200 text-slate-700 font-bold text-[11px] flex items-center gap-1 cursor-pointer hover:bg-slate-50 active:scale-95"
+                            >
+                              {copiedDailyField === 'stk' ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3 text-slate-500" />}
+                              <span>{copiedDailyField === 'stk' ? 'Đã sao chép' : 'Sao chép'}</span>
+                            </div>
+                          </div>
+
+                          <div className="flex justify-between items-center pt-1 border-t border-slate-100">
+                            <div>
+                              <p className="text-[10px] text-slate-400">Chủ tài khoản:</p>
+                              <p className="font-bold text-slate-800 uppercase">TRUONG MAM NON ANH DUONG</p>
+                            </div>
+                          </div>
+
+                          <div className="flex justify-between items-center pt-1 border-t border-slate-100">
+                            <div>
+                              <p className="text-[10px] text-slate-400">Nội dung chuyển khoản:</p>
+                              <p className="font-black text-[#0c513f] font-mono">{transferMemo}</p>
+                            </div>
+                            <div
+                              onClick={() => copyDailyField(transferMemo, 'noidung')}
+                              className="px-2.5 py-1 rounded-xl bg-white border border-slate-200 text-slate-700 font-bold text-[11px] flex items-center gap-1 cursor-pointer hover:bg-slate-50 active:scale-95"
+                            >
+                              {copiedDailyField === 'noidung' ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3 text-slate-500" />}
+                              <span>{copiedDailyField === 'noidung' ? 'Đã sao chép' : 'Sao chép'}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </>
+                );
+              })()}
+            </div>
+          )}
+
+          {/* ── TAB 7: CHAT & CONTACT (DẶN CÔ & LIÊN HỆ) ── */}
+          {dailyTab === 'chat' && (
+            <div className="mx-4 mt-1 space-y-3">
+              {/* Thẻ kênh liên hệ */}
+              <div className="bg-white rounded-3xl p-5 shadow-xs border border-slate-100 space-y-4">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                  <div>
+                    <h3 className="text-base font-extrabold text-slate-900">
+                      Kết nối &amp; Dặn dò với Nhà trường
+                    </h3>
+                    <p className="text-[11px] text-slate-500 mt-0.5">
+                      Kênh liên lạc 2 chiều giữa phụ huynh và giáo viên chủ nhiệm
+                    </p>
+                  </div>
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" title="Trực tuyến" />
+                </div>
+
+                <div className="space-y-2">
+                  <a
+                    href={currentTeacher.leadTeacher.phone ? `tel:${currentTeacher.leadTeacher.phone.replace(/\s/g, '')}` : '#'}
+                    className="flex items-center justify-between p-3 rounded-2xl bg-indigo-50/60 border border-indigo-100 text-slate-800 hover:bg-indigo-100/60 transition"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <Phone className="w-4 h-4 text-indigo-600" />
+                      <div>
+                        <p className="font-bold text-slate-900 text-xs">Cô Chủ nhiệm: {currentTeacher.leadTeacher.name}</p>
+                        <p className="text-[11px] text-slate-500">{currentTeacher.leadTeacher.phone ?? ''} (Zalo / Gọi điện)</p>
+                      </div>
+                    </div>
+                    <span className="text-indigo-700 font-bold text-xs">Gọi ngay</span>
+                  </a>
+
+                  <a
+                    href="tel:02873006868"
+                    className="flex items-center justify-between p-3 rounded-2xl bg-emerald-50/60 border border-emerald-100 text-slate-800 hover:bg-emerald-100/60 transition"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <Headphones className="w-4 h-4 text-emerald-600" />
+                      <div>
+                        <p className="font-bold text-slate-900 text-xs">Hotline văn phòng Trường Mầm non</p>
+                        <p className="text-[11px] text-slate-500">028 7300 6868 (Giờ hành chính)</p>
+                      </div>
+                    </div>
+                    <span className="text-emerald-700 font-bold text-xs">Hỗ trợ</span>
+                  </a>
+                </div>
+
+                {/* Lời dặn nhanh */}
+                <div className="space-y-2 pt-2 border-t border-slate-100">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                    Lời dặn mẫu gửi giáo viên
+                  </p>
+                  <div className="space-y-1.5 text-xs">
+                    {QUICK_MESSAGES.map((msg, i) => (
+                      <div
+                        key={i}
+                        onClick={() => copyDailyField(msg, `msg-${i}`)}
+                        className="p-2.5 rounded-xl bg-slate-50 border border-slate-100 text-slate-700 hover:bg-emerald-50 hover:border-emerald-200 transition cursor-pointer flex items-center justify-between gap-2"
+                      >
+                        <span className="text-[11px] leading-relaxed">{msg}</span>
+                        <span className="text-[10px] text-emerald-600 font-bold shrink-0">
+                          {copiedDailyField === `msg-${i}` ? 'Đã sao chép' : 'Sao chép'}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Lịch sử tin nhắn trao đổi */}
+                <div className="space-y-2.5 pt-2 border-t border-slate-100">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                    Lịch sử trao đổi hôm nay
+                  </p>
+                  <div className="space-y-2 text-xs">
+                    <div className="p-3 rounded-2xl bg-sky-50 text-sky-950 border border-sky-100 ml-6">
+                      <p className="text-[10px] font-bold text-sky-700">{guardianRole.role} ({dailyRead.guardianName}) · 07:45</p>
+                      <p className="mt-1 text-[11px] leading-relaxed">
+                        Chào {currentTeacher.leadTeacher.shortName}, hôm nay {guardianRole.vocative} gửi bé hơi sớm một chút, nhờ cô cho bé ăn sáng giúp {guardianRole.vocative} nhé.
+                      </p>
+                    </div>
+
+                    <div className="p-3 rounded-2xl bg-slate-50 text-slate-800 border border-slate-100 mr-6">
+                      <p className="text-[10px] font-bold text-indigo-700">{currentTeacher.leadTeacher.shortName} (Chủ nhiệm) · 07:50</p>
+                      <p className="mt-1 text-[11px] leading-relaxed">
+                        Dạ vâng {guardianRole.vocative}, bé {childShortName} đã vào lớp an toàn và ăn sáng rất ngon miệng ạ! {guardianRole.role} yên tâm công tác nhé.
+                      </p>
+                    </div>
+
+                    <div className="p-3 rounded-2xl bg-slate-50 text-slate-800 border border-slate-100 mr-6">
+                      <p className="text-[10px] font-bold text-indigo-700">{currentTeacher.leadTeacher.shortName} (Chủ nhiệm) · 12:00</p>
+                      <p className="mt-1 text-[11px] leading-relaxed">
+                        Bé {childShortName} hôm nay ăn hết suất trưa và đã đi ngủ rất ngoan rồi {guardianRole.vocative} nhé.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ── CARD: SCHOOL ANNOUNCEMENTS (BẢNG TIN CHUNG) ── */}
           <section id="school-announcements-section" className={`mx-4 mt-3 bg-white rounded-3xl p-5 shadow-xs border transition-all duration-500 ${isNoticeHighlight ? 'ring-2 ring-amber-400 border-amber-300 bg-amber-50/20' : 'border-slate-100'}`} aria-label="Thông báo chung của nhà trường">
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-2">

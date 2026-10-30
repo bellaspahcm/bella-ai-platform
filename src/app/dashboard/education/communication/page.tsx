@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 /**
  * Bella Education — Parent Communication & Engagement Workspace
@@ -63,6 +63,12 @@ import {
   RefreshCw,
   UserCheck,
   Sparkles,
+  Share2,
+  Download,
+  ThumbsUp,
+  Eye,
+  Activity,
+  CheckCircle2,
 } from 'lucide-react';
 import { useUser } from '@/lib/user-context';
 import { isParentPortalAnnouncementFeed, type ParentPortalAnnouncement } from '@/products/bella-education/parent-portal/domain/parent-portal.types';
@@ -490,6 +496,325 @@ const STUDENT_TO_CONV_MAP: Record<string, { convId: string; studentName: string 
   'STU-008': { convId: 'CONV-008', studentName: 'Ngô Nhật Minh' },
 };
 
+// ── Domain Data Structures for Sổ Liên Lạc, Biểu Mẫu Đồng Ý & Hoạt Động ────────
+
+export interface DailyContactEntry {
+  readonly id: string;
+  readonly studentCode: string;
+  readonly studentName: string;
+  readonly className: string;
+  readonly parentName: string;
+  readonly avatarInitial: string;
+  readonly avatarBg: string;
+  readonly attendanceTime: string;
+  readonly temperature: string;
+  readonly mealStatus: string;
+  readonly napTime: string;
+  readonly hygieneStatus: string;
+  readonly parentNote: string;
+  readonly noteTime: string;
+  readonly noteTag: string;
+  readonly noteTagColor: string;
+  readonly teacherReply: string;
+  readonly teacherName: string;
+  readonly replyTime: string;
+  readonly hasPendingAction: boolean;
+}
+
+export const DAILY_CONTACT_DATA: readonly DailyContactEntry[] = [
+  {
+    id: 'DC-001',
+    studentCode: 'HS0001',
+    studentName: 'Nguyễn Minh An',
+    className: 'Mầm A1',
+    parentName: 'Mẹ bé Minh An',
+    avatarInitial: 'A',
+    avatarBg: 'bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300',
+    attendanceTime: '07:45 (Đã đến lớp)',
+    temperature: '36.6°C',
+    mealStatus: 'Bữa sáng 100% • Bữa trưa 100% • Bữa xế đã uống sữa',
+    napTime: '12:00 – 14:00 (Ngủ sâu giấc, không giật mình)',
+    hygieneStatus: 'Đi tiêu 1 lần bình thường, đi tiểu 4 lần',
+    parentNote: 'Cô ơi hôm nay bé bị sụt sịt mũi, nhờ cô cho bé mặc thêm áo khoác và theo dõi giúp em ạ!',
+    noteTime: '08:15',
+    noteTag: '🔔 Lưu ý sức khỏe',
+    noteTagColor: 'bg-rose-50 text-rose-700 border-rose-200',
+    teacherReply: 'Dạ cô đã kiểm tra, bé hơi sổ mũi nhẹ và vẫn ăn uống bình thường ạ. Cô đã cho bé mặc thêm áo khoác và tiếp tục theo dõi trong ngày. Có gì bất thường cô sẽ báo lại cho mẹ ạ.',
+    teacherName: 'Cô Nguyễn Thị Mai',
+    replyTime: '08:28',
+    hasPendingAction: true,
+  },
+  {
+    id: 'DC-002',
+    studentCode: 'HS0002',
+    studentName: 'Trần Bảo Ngọc',
+    className: 'Chồi B1',
+    parentName: 'Bố bé Bảo Ngọc',
+    avatarInitial: 'N',
+    avatarBg: 'bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300',
+    attendanceTime: '07:40 (Đã đến lớp)',
+    temperature: '36.5°C',
+    mealStatus: 'Bữa sáng 100% • Bữa trưa 95% • Đã ăn hoa quả xế',
+    napTime: '12:15 – 13:50 (Ngủ đúng giờ)',
+    hygieneStatus: 'Bình thường',
+    parentNote: 'Cô ơi chiều nay gia đình xin phép đón bé sớm lúc 15h30 để đi khám răng định kỳ ạ.',
+    noteTime: '4 giờ trước',
+    noteTag: '⏰ Đón sớm 15:30',
+    noteTagColor: 'bg-amber-50 text-amber-700 border-amber-200',
+    teacherReply: 'Dạ cô đã ghi nhận lịch đón sớm lúc 15h30 của bé Bảo Ngọc để chuẩn bị đồ đạc sẵn cho gia đình ạ.',
+    teacherName: 'Cô Trần Ngọc Anh',
+    replyTime: '09:00',
+    hasPendingAction: true,
+  },
+  {
+    id: 'DC-003',
+    studentCode: 'HS0003',
+    studentName: 'Lê Hoàng Nam',
+    className: 'Lá C1',
+    parentName: 'Mẹ bé Hoàng Nam',
+    avatarInitial: 'H',
+    avatarBg: 'bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300',
+    attendanceTime: '07:35 (Đã đến lớp)',
+    temperature: '36.7°C',
+    mealStatus: 'Bữa sáng 100% • Bữa trưa 100% (hết suất cơm và canh)',
+    napTime: '12:00 – 14:15 (Ngủ ngon giấc)',
+    hygieneStatus: 'Bình thường',
+    parentNote: 'Cô Linh cho em hỏi lịch đóng học phí tháng 10 hạn chót là ngày nào ạ?',
+    noteTime: 'Thứ Ba, 09:12',
+    noteTag: '💳 Dặn dò học vụ',
+    noteTagColor: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+    teacherReply: 'Dạ hạn đóng học phí tháng 10 là ngày 15/10 mẹ nhé. Nhà trường đã gửi thông báo chi tiết qua Portal ạ.',
+    teacherName: 'Cô Lê Thu Hà',
+    replyTime: '10:00',
+    hasPendingAction: false,
+  },
+  {
+    id: 'DC-004',
+    studentCode: 'HS0004',
+    studentName: 'Phạm Thảo My',
+    className: 'Chồi B1',
+    parentName: 'Mẹ bé Phạm Thảo My',
+    avatarInitial: 'M',
+    avatarBg: 'bg-pink-100 dark:bg-pink-950 text-pink-700 dark:text-pink-300',
+    attendanceTime: '07:50 (Đã đến lớp)',
+    temperature: '36.5°C',
+    mealStatus: 'Bữa sáng 100% • Bữa trưa 100% • Bé tự xúc ăn nhanh',
+    napTime: '12:10 – 14:00 (Ngủ ngoan, tự cất gối)',
+    hygieneStatus: 'Bình thường',
+    parentNote: 'Em cảm ơn cô đã gửi hình hoạt động hôm nay ạ! Con về nhà kể rất hào hứng với tiết học làm bánh.',
+    noteTime: 'Thứ Ba, 16:45',
+    noteTag: '✔ Phản hồi tích cực',
+    noteTagColor: 'bg-pink-50 text-pink-700 border-pink-200',
+    teacherReply: 'Dạ bé Thảo My rất khéo tay và biết chia sẻ nguyên liệu cùng bạn mẹ nhé!',
+    teacherName: 'Cô Trần Ngọc Anh',
+    replyTime: '17:02',
+    hasPendingAction: false,
+  },
+  {
+    id: 'DC-005',
+    studentCode: 'HS0005',
+    studentName: 'Hoàng Tuấn Kiệt',
+    className: 'Mầm A1',
+    parentName: 'Bố bé Hoàng Tuấn Kiệt',
+    avatarInitial: 'K',
+    avatarBg: 'bg-teal-100 dark:bg-teal-950 text-teal-700 dark:text-teal-300',
+    attendanceTime: '07:55 (Đã đến lớp)',
+    temperature: '36.6°C',
+    mealStatus: 'Bữa sáng 90% • Bữa trưa 100% • Uống sữa đầy đủ',
+    napTime: '12:05 – 13:55 (Ngủ ngon)',
+    hygieneStatus: 'Bình thường',
+    parentNote: 'Tuần tới bé có tham gia dã ngoại không ạ? Nhà em chưa nhận được form đăng ký qua app.',
+    noteTime: 'Thứ Hai, 14:10',
+    noteTag: '📝 Biểu mẫu dã ngoại',
+    noteTagColor: 'bg-purple-50 text-purple-700 border-purple-200',
+    teacherReply: 'Dạ cô đã gửi lại form đăng ký dã ngoại Nông Trại Xanh vào tài khoản Portal của bố rồi ạ!',
+    teacherName: 'Cô Nguyễn Thị Mai',
+    replyTime: '14:30',
+    hasPendingAction: true,
+  },
+  {
+    id: 'DC-006',
+    studentCode: 'HS0006',
+    studentName: 'Đặng Khánh Linh',
+    className: 'Chồi B1',
+    parentName: 'Mẹ bé Đặng Khánh Linh',
+    avatarInitial: 'Đ',
+    avatarBg: 'bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300',
+    attendanceTime: '07:45 (Đã đến lớp)',
+    temperature: '36.4°C',
+    mealStatus: 'Bữa sáng 100% • Bữa trưa xin thêm 1 bát súp bí đỏ',
+    napTime: '12:10 – 14:05 (Ngủ ngoan)',
+    hygieneStatus: 'Bình thường',
+    parentNote: 'Bé hôm nay ăn tốt hơn, cảm ơn cô nhiều ạ! Bé khoe được cô khen ăn nhanh nhất bàn.',
+    noteTime: '01/09, 18:20',
+    noteTag: '🍲 Chia sẻ dinh dưỡng',
+    noteTagColor: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+    teacherReply: 'Dạ cô luôn động viên để bé hào hứng với bữa ăn, mẹ yên tâm nhé!',
+    teacherName: 'Cô Trần Ngọc Anh',
+    replyTime: '18:40',
+    hasPendingAction: false,
+  },
+];
+
+export interface ConsentFormItem {
+  readonly id: string;
+  readonly title: string;
+  readonly scope: string;
+  readonly deadline: string;
+  readonly status: 'collecting' | 'active' | 'completed';
+  readonly statusLabel: string;
+  readonly statusColor: string;
+  readonly agreedCount: number;
+  readonly declinedCount: number;
+  readonly pendingCount: number;
+  readonly totalTarget: number;
+  readonly description: string;
+  readonly category: string;
+}
+
+export const CONSENT_FORMS_DATA: readonly ConsentFormItem[] = [
+  {
+    id: 'CF-001',
+    title: 'Phiếu đăng ký & Đồng ý tham gia dã ngoại Nông Trại Xanh (Tháng 10/2026)',
+    scope: 'Toàn trường (Khối Mầm, Chồi, Lá)',
+    deadline: '05/10/2026',
+    status: 'collecting',
+    statusLabel: 'Đang thu thập phản hồi',
+    statusColor: 'bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300 border-amber-200',
+    agreedCount: 247,
+    declinedCount: 8,
+    pendingCount: 25,
+    totalTarget: 280,
+    description: 'Chương trình dã ngoại thực tế trải nghiệm nông nghiệp sinh thái và chăm sóc vật nuôi tại Nông Trại Xanh (Củ Chi). Xe đưa đón tiêu chuẩn 45 chỗ, có y tá học đường đi kèm.',
+    category: '🚌 Dã ngoại trải nghiệm',
+  },
+  {
+    id: 'CF-002',
+    title: 'Biểu mẫu ủy quyền sử dụng hình ảnh & video học tập của bé (Năm học 2026-2027)',
+    scope: 'Toàn bộ 280 học sinh ghi danh',
+    deadline: '30/09/2026',
+    status: 'active',
+    statusLabel: 'Đang hiệu lực',
+    statusColor: 'bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 border-emerald-200',
+    agreedCount: 272,
+    declinedCount: 3,
+    pendingCount: 5,
+    totalTarget: 280,
+    description: 'Ủy quyền cho phép nhà trường ghi hình, chụp ảnh các khoảnh khắc học tập, hoạt động phát triển STEAM và lễ hội để đăng tải độc quyền trên Portal phụ huynh và ấn phẩm trường.',
+    category: '📷 Bản quyền hình ảnh & Truyền thông',
+  },
+  {
+    id: 'CF-003',
+    title: 'Phiếu ủy quyền cho uống thuốc & chăm sóc y tế tại trường mầm non',
+    scope: 'Học sinh có chỉ định y tế theo đơn',
+    deadline: 'Theo dõi hàng ngày',
+    status: 'active',
+    statusLabel: 'Đang áp dụng',
+    statusColor: 'bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 border-blue-200',
+    agreedCount: 18,
+    declinedCount: 0,
+    pendingCount: 2,
+    totalTarget: 20,
+    description: 'Ủy quyền cho giáo viên phụ trách và nhân viên y tế trường cho bé uống thuốc theo đơn bác sĩ kèm theo liều lượng và thời gian cụ thể.',
+    category: '🩺 Y tế học đường & Dược',
+  },
+  {
+    id: 'CF-004',
+    title: 'Khảo sát chất lượng bán trú, thực đơn dinh dưỡng & đưa đón Tháng 09/2026',
+    scope: 'Toàn bộ phụ huynh có con ăn bán trú',
+    deadline: '25/09/2026 (Đã chốt)',
+    status: 'completed',
+    statusLabel: 'Đã hoàn tất',
+    statusColor: 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200',
+    agreedCount: 215,
+    declinedCount: 0,
+    pendingCount: 0,
+    totalTarget: 280,
+    description: 'Khảo sát định kỳ đánh giá độ ngon miệng của thực đơn, vệ sinh an toàn thực phẩm, thời lượng giấc ngủ và sự chu đáo của đội ngũ giáo viên bán trú. Điểm số: 4.9/5.0.',
+    category: '📊 Khảo sát định kỳ',
+  },
+];
+
+export interface MediaActivityAlbum {
+  readonly id: string;
+  readonly title: string;
+  readonly className: string;
+  readonly dateString: string;
+  readonly teacherName: string;
+  readonly photoCount: number;
+  readonly videoCount: number;
+  readonly sharedParentCount: number;
+  readonly likesCount: number;
+  readonly commentsCount: number;
+  readonly tags: readonly string[];
+  readonly description: string;
+  readonly colorAccent: string;
+}
+
+export const MEDIA_ACTIVITIES_DATA: readonly MediaActivityAlbum[] = [
+  {
+    id: 'ALB-001',
+    title: 'Tiết học STEAM: Bé làm bánh trung thu dẻo mini',
+    className: 'Chồi B1',
+    dateString: 'Thứ Ba, 16/09/2026',
+    teacherName: 'Cô Trần Ngọc Anh',
+    photoCount: 24,
+    videoCount: 2,
+    sharedParentCount: 28,
+    likesCount: 18,
+    commentsCount: 6,
+    tags: ['STEAM', 'Ẩm thực', 'Khéo tay', 'Trung Thu'],
+    description: 'Các bé lớp Chồi B1 tự tay nhào bột nếp, ép khuôn hoa cúc và đóng gói những chiếc bánh dẻo xinh xắn mang về tặng ba mẹ. Tiết học rèn luyện sự tập trung và vận động tinh khéo léo.',
+    colorAccent: 'from-amber-500/20 to-orange-500/20 border-amber-300/60',
+  },
+  {
+    id: 'ALB-002',
+    title: 'Hoạt động phát triển thể chất: Vận động liên hoàn ngoài sân cỏ',
+    className: 'Mầm A1',
+    dateString: 'Thứ Hai, 15/09/2026',
+    teacherName: 'Cô Nguyễn Thị Mai',
+    photoCount: 16,
+    videoCount: 1,
+    sharedParentCount: 25,
+    likesCount: 22,
+    commentsCount: 4,
+    tags: ['Thể chất', 'Vận động thô', 'Sân cỏ', 'Năng động'],
+    description: 'Buổi sáng năng động với các bài tập giữ thăng bằng trên cầu gỗ mầm non, nhảy qua chướng ngại vật xốp mềm và trò chơi kéo co vui nhộn dưới sự hướng dẫn an toàn của giáo viên thể chất.',
+    colorAccent: 'from-emerald-500/20 to-teal-500/20 border-emerald-300/60',
+  },
+  {
+    id: 'ALB-003',
+    title: 'Góc nghệ thuật sáng tạo: Bé vẽ tranh sắc màu tặng mẹ',
+    className: 'Lá C1',
+    dateString: 'Thứ Sáu, 12/09/2026',
+    teacherName: 'Cô Lê Thu Hà',
+    photoCount: 32,
+    videoCount: 0,
+    sharedParentCount: 30,
+    likesCount: 27,
+    commentsCount: 8,
+    tags: ['Mỹ thuật', 'Màu nước', 'Sáng tạo', 'Tình cảm'],
+    description: 'Tiết học vẽ tự do với màu nước tự nhiên không độc hại. Mỗi bức tranh là một câu chuyện đáng yêu về gia đình được các anh chị lớp Lá thể hiện đầy ngây ngô và sinh động.',
+    colorAccent: 'from-rose-500/20 to-pink-500/20 border-rose-300/60',
+  },
+  {
+    id: 'ALB-004',
+    title: 'Đêm hội Trăng Rằm: Rước đèn ông sao & Múa lân rước hội',
+    className: 'Toàn trường',
+    dateString: 'Thứ Tư, 10/09/2026',
+    teacherName: 'Ban Giám Hiệu & Giáo viên',
+    photoCount: 48,
+    videoCount: 3,
+    sharedParentCount: 280,
+    likesCount: 145,
+    commentsCount: 32,
+    tags: ['Sự kiện toàn trường', 'Lễ hội Trung Thu', 'Múa lân'],
+    description: 'Đêm hội rực rỡ sắc màu với màn múa lân sư rồng sôi động, chú Cuội và chị Hằng Nga cùng các bé rước đèn ông sao quanh sân trường trong tiếng cười rộn rã của hơn 280 phụ huynh.',
+    colorAccent: 'from-purple-500/20 to-indigo-500/20 border-purple-300/60',
+  },
+];
+
+
 async function readAnnouncementFeed(tenantId: string): Promise<readonly ParentPortalAnnouncement[]> {
   const response = await fetch('/api/education/announcements', { cache: 'no-store' });
   const result: unknown = await response.json();
@@ -536,6 +861,43 @@ function PreschoolCommunicationContent({ tenantId }: { readonly tenantId: string
   const [announcements, setAnnouncements] = useState<readonly ParentPortalAnnouncement[]>([]);
   const [isLoadingAnnouncements, setIsLoadingAnnouncements] = useState<boolean>(false);
   const [announcementLoadError, setAnnouncementLoadError] = useState<string | null>(null);
+  // Daily Contact Book State
+  const [selectedDailyStudentId, setSelectedDailyStudentId] = useState<string>('DC-001');
+  const [dailyClassFilter, setDailyClassFilter] = useState<'ALL' | 'Mầm A1' | 'Chồi B1' | 'Lá C1'>('ALL');
+  const [dailyReplyDraft, setDailyReplyDraft] = useState<string>('');
+
+  // Consent Forms State
+  const [consentFilter, setConsentFilter] = useState<'ALL' | 'collecting' | 'active' | 'completed'>('ALL');
+
+  // Media Activities State
+  const [mediaClassFilter, setMediaClassFilter] = useState<'ALL' | 'Chồi B1' | 'Mầm A1' | 'Lá C1' | 'Toàn trường'>('ALL');
+
+  // Computed data for the tabs
+  const filteredDailyStudents = useMemo(() => {
+    return DAILY_CONTACT_DATA.filter((item) => {
+      if (dailyClassFilter !== 'ALL' && item.className !== dailyClassFilter) return false;
+      return true;
+    });
+  }, [dailyClassFilter]);
+
+  const selectedDailyStudent = useMemo(() => {
+    return DAILY_CONTACT_DATA.find((item) => item.id === selectedDailyStudentId) || DAILY_CONTACT_DATA[0];
+  }, [selectedDailyStudentId]);
+
+  const filteredConsentForms = useMemo(() => {
+    return CONSENT_FORMS_DATA.filter((item) => {
+      if (consentFilter !== 'ALL' && item.status !== consentFilter) return false;
+      return true;
+    });
+  }, [consentFilter]);
+
+  const filteredMediaAlbums = useMemo(() => {
+    return MEDIA_ACTIVITIES_DATA.filter((item) => {
+      if (mediaClassFilter !== 'ALL' && item.className !== mediaClassFilter) return false;
+      return true;
+    });
+  }, [mediaClassFilter]);
+
 
   // Real-time AI Intent & Smart Replies State
   const [realtimeAiIntents, setRealtimeAiIntents] = useState<Record<string, ConversationItem['aiIntent']>>({});
@@ -918,7 +1280,7 @@ function PreschoolCommunicationContent({ tenantId }: { readonly tenantId: string
             </div>
             <div>
               <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-                {activeNavTab === 'announcements' ? 'Bảng tin chung' : 'Trung Tâm Truyền Thông & Tương Tác'}
+                {activeNavTab === 'announcements' ? 'Bảng tin chung' : activeNavTab === 'daily' ? 'Sổ Liên Lạc Điện Tử' : activeNavTab === 'consent' ? 'Biểu Mẫu Đồng Ý & Khảo Sát' : activeNavTab === 'media' ? 'Hoạt Động & Album Hình Ảnh' : 'Trung Tâm Truyền Thông & Tương Tác'}
               </h1>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                 Quản lý tin nhắn, thông báo, sổ liên lạc và biểu mẫu đồng ý của phụ huynh
@@ -1240,8 +1602,588 @@ function PreschoolCommunicationContent({ tenantId }: { readonly tenantId: string
         </div>
       )}
 
+      
+      {/* ── SỔ LIÊN LẠC ĐIỆN TỬ (DAILY CONTACT BOOK) TAB VIEW ── */}
+      {activeNavTab === 'daily' && (
+        <div className="space-y-6 animate-in fade-in duration-200">
+          {/* Header row */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h2 className="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+                <BookOpen className="w-5 h-5 text-[#0c513f]" />
+                Sổ Liên Lạc Điện Tử &amp; Dặn Dò Chăm Sóc 2 Chiều
+              </h2>
+              <p className="text-xs text-slate-500 mt-1">
+                Nhật ký ăn ngủ, điểm danh, dặn dò sức khỏe và phản hồi trực tiếp giữa cô giáo và phụ huynh theo thời gian thực.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => {
+                setActionNotice('Chức năng nhập dặn dò tập trung cho giáo viên đang mở.');
+                setTimeout(() => setActionNotice(null), 3000);
+              }}
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-2xl bg-[#0c513f] hover:bg-[#083b2e] text-white text-xs font-bold shadow-sm transition-all active:scale-95 cursor-pointer self-start sm:self-auto"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>Ghi chú dặn dò mới</span>
+            </button>
+          </div>
+
+          {/* Class filter pills */}
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+            {(['ALL', 'Mầm A1', 'Chồi B1', 'Lá C1'] as const).map((cls) => (
+              <button
+                key={cls}
+                type="button"
+                onClick={() => setDailyClassFilter(cls)}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                  dailyClassFilter === cls
+                    ? 'bg-[#0c513f] text-white shadow-xs'
+                    : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50'
+                }`}
+              >
+                {cls === 'ALL' ? 'Tất cả lớp (46 bé)' : `Lớp ${cls}`}
+              </button>
+            ))}
+          </div>
+
+          {/* 2-Column Sổ Liên Lạc Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            {/* Left Column: Student List (5 cols) */}
+            <div className="lg:col-span-5 rounded-3xl bg-white dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-700/80 shadow-sm p-5 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                  Danh sách sổ liên lạc ({filteredDailyStudents.length} học sinh)
+                </span>
+                <span className="text-[11px] text-emerald-600 font-bold">● Đã đồng bộ hôm nay</span>
+              </div>
+
+              <div className="space-y-2.5 max-h-[720px] overflow-y-auto pr-1">
+                {filteredDailyStudents.map((item) => {
+                  const isSelected = item.id === selectedDailyStudentId;
+                  return (
+                    <div
+                      key={item.id}
+                      onClick={() => setSelectedDailyStudentId(item.id)}
+                      className={`p-3.5 rounded-2xl border transition-all cursor-pointer space-y-2 ${
+                        isSelected
+                          ? 'bg-emerald-50/50 dark:bg-emerald-950/30 border-[#0c513f]/40 shadow-xs ring-1 ring-[#0c513f]/30'
+                          : 'border-slate-100 dark:border-slate-700/60 hover:bg-slate-50/60 dark:hover:bg-slate-700/30'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2.5">
+                          <div className={`w-8 h-8 rounded-full font-bold text-xs flex items-center justify-center shrink-0 ${item.avatarBg}`}>
+                            {item.avatarInitial}
+                          </div>
+                          <div>
+                            <div className="font-extrabold text-xs text-slate-900 dark:text-white">
+                              {item.studentName}
+                            </div>
+                            <div className="text-[11px] text-slate-500">
+                              {item.className} • {item.parentName}
+                            </div>
+                          </div>
+                        </div>
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-lg border ${item.noteTagColor}`}>
+                          {item.noteTag}
+                        </span>
+                      </div>
+
+                      <div className="text-xs text-slate-600 dark:text-slate-300 line-clamp-2 bg-slate-50 dark:bg-slate-900/40 p-2 rounded-xl">
+                        &quot;{item.parentNote}&quot;
+                      </div>
+
+                      <div className="flex items-center justify-between text-[11px] text-slate-400 pt-1 border-t border-slate-100 dark:border-slate-800">
+                        <span>{item.attendanceTime}</span>
+                        <span className="font-semibold text-emerald-700 dark:text-emerald-400">Nhiệt độ: {item.temperature}</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Right Column: Detailed Contact Book View (7 cols) */}
+            <div className="lg:col-span-7 rounded-3xl bg-white dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-700/80 shadow-sm p-6 space-y-5">
+              {selectedDailyStudent && (
+                <>
+                  {/* Header of selected child */}
+                  <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-700 pb-4">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-11 h-11 rounded-2xl font-black text-base flex items-center justify-center ${selectedDailyStudent.avatarBg}`}>
+                        {selectedDailyStudent.avatarInitial}
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h3 className="text-base font-extrabold text-slate-900 dark:text-white">
+                            {selectedDailyStudent.studentName}
+                          </h3>
+                          <span className="px-2 py-0.5 rounded-md text-[11px] font-bold bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300">
+                            {selectedDailyStudent.studentCode}
+                          </span>
+                          <span className="px-2 py-0.5 rounded-md text-[11px] font-bold bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300">
+                            {selectedDailyStudent.className}
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-500 mt-0.5">
+                          Phụ huynh đại diện: <strong className="text-slate-700 dark:text-slate-300">{selectedDailyStudent.parentName}</strong>
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <Link
+                        href={`/dashboard/education/enrollments/${selectedDailyStudent.studentCode}`}
+                        className="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 transition-colors"
+                      >
+                        Hồ sơ 360°
+                      </Link>
+                      <Link
+                        href={`/dashboard/education/care?student=${selectedDailyStudent.studentCode}`}
+                        className="px-3 py-1.5 rounded-xl bg-[#0c513f] hover:bg-[#083b2e] text-xs font-bold text-white transition-all shadow-xs"
+                      >
+                        Chăm sóc
+                      </Link>
+                    </div>
+                  </div>
+
+                  {/* Daily Operational Status Grid */}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                    <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800">
+                      <span className="text-[11px] text-slate-400 block font-semibold">Điểm danh</span>
+                      <span className="font-extrabold text-slate-800 dark:text-slate-200 mt-1 block">✓ Có mặt 07:45</span>
+                      <span className="text-[10px] text-slate-500">Nhiệt độ: {selectedDailyStudent.temperature}</span>
+                    </div>
+                    <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800">
+                      <span className="text-[11px] text-slate-400 block font-semibold">Bữa ăn</span>
+                      <span className="font-extrabold text-emerald-700 dark:text-emerald-400 mt-1 block">Ăn 100% suất</span>
+                      <span className="text-[10px] text-slate-500">Tự xúc ăn tốt</span>
+                    </div>
+                    <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800">
+                      <span className="text-[11px] text-slate-400 block font-semibold">Giấc ngủ trưa</span>
+                      <span className="font-extrabold text-indigo-700 dark:text-indigo-400 mt-1 block">12:00 – 14:00</span>
+                      <span className="text-[10px] text-slate-500">Ngủ sâu giấc</span>
+                    </div>
+                    <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800">
+                      <span className="text-[11px] text-slate-400 block font-semibold">Vệ sinh</span>
+                      <span className="font-extrabold text-slate-800 dark:text-slate-200 mt-1 block">Bình thường</span>
+                      <span className="text-[10px] text-slate-500">Đã rửa tay sạch</span>
+                    </div>
+                  </div>
+
+                  {/* Parent Note & Interaction Block */}
+                  <div className="p-4 rounded-2xl bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-900/50 space-y-2">
+                    <div className="flex items-center justify-between text-xs">
+                      <div className="flex items-center gap-1.5 font-bold text-amber-900 dark:text-amber-200">
+                        <Heart className="w-3.5 h-3.5 text-amber-600" />
+                        <span>Dặn dò từ phụ huynh ({selectedDailyStudent.parentName} • {selectedDailyStudent.noteTime})</span>
+                      </div>
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-lg border ${selectedDailyStudent.noteTagColor}`}>
+                        {selectedDailyStudent.noteTag}
+                      </span>
+                    </div>
+                    <p className="text-xs text-amber-950 dark:text-amber-100 font-medium leading-relaxed">
+                      &quot;{selectedDailyStudent.parentNote}&quot;
+                    </p>
+                  </div>
+
+                  {/* Teacher Reply Block */}
+                  <div className="p-4 rounded-2xl bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-200/80 dark:border-emerald-900/50 space-y-2">
+                    <div className="flex items-center justify-between text-xs">
+                      <div className="flex items-center gap-1.5 font-bold text-emerald-900 dark:text-emerald-200">
+                        <CheckCheck className="w-3.5 h-3.5 text-emerald-600" />
+                        <span>Phản hồi từ cô giáo ({selectedDailyStudent.teacherName} • {selectedDailyStudent.replyTime})</span>
+                      </div>
+                      <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold">
+                        Đã chuyển đến phụ huynh
+                      </span>
+                    </div>
+                    <p className="text-xs text-emerald-950 dark:text-emerald-100 font-medium leading-relaxed">
+                      {selectedDailyStudent.teacherReply}
+                    </p>
+                  </div>
+
+                  {/* Send New Contact Note */}
+                  <div className="space-y-3 pt-2 border-t border-slate-100 dark:border-slate-700">
+                    <label htmlFor="daily-reply-input" className="text-xs font-bold text-slate-700 dark:text-slate-300 block">
+                      Gửi phản hồi / Dặn dò bổ sung vào sổ liên lạc điện tử của bé
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        id="daily-reply-input"
+                        type="text"
+                        value={dailyReplyDraft}
+                        onChange={(e) => setDailyReplyDraft(e.target.value)}
+                        placeholder={`Nhắn gửi lời dặn đến ${selectedDailyStudent.parentName}...`}
+                        className="flex-1 p-2.5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-xs text-slate-800 dark:text-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#0c513f]/20"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (!dailyReplyDraft.trim()) return;
+                          setActionNotice(`Đã cập nhật sổ liên lạc điện tử và gửi dặn dò đến ${selectedDailyStudent.parentName} thành công!`);
+                          setDailyReplyDraft('');
+                          setTimeout(() => setActionNotice(null), 3500);
+                        }}
+                        disabled={!dailyReplyDraft.trim()}
+                        className="px-4 py-2.5 rounded-2xl bg-[#0c513f] hover:bg-[#083b2e] text-white text-xs font-bold transition-all disabled:opacity-50 flex items-center gap-1.5 cursor-pointer"
+                      >
+                        <Send className="w-3.5 h-3.5" />
+                        <span>Gửi dặn dò</span>
+                      </button>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+
+      
+      {/* ── BIỂU MẪU ĐỒNG Ý (CONSENT FORMS ENGINE) TAB VIEW ── */}
+      {activeNavTab === 'consent' && (
+        <div className="space-y-6 animate-in fade-in duration-200">
+          {/* Header row */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h2 className="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+                <ClipboardList className="w-5 h-5 text-[#0c513f]" />
+                Quản Trị Biểu Mẫu Đồng Ý &amp; Khảo Sát Phụ Huynh (Consent Engine)
+              </h2>
+              <p className="text-xs text-slate-500 mt-1">
+                Theo dõi tỷ lệ đồng ý dã ngoại, ủy quyền hình ảnh, chăm sóc y tế và khảo sát trực tuyến qua Portal.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => {
+                setActionNotice('Chức năng tạo biểu mẫu đồng ý mới đang được chuẩn bị.');
+                setTimeout(() => setActionNotice(null), 3000);
+              }}
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-2xl bg-[#0c513f] hover:bg-[#083b2e] text-white text-xs font-bold shadow-sm transition-all active:scale-95 cursor-pointer self-start sm:self-auto"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>Tạo biểu mẫu mới</span>
+            </button>
+          </div>
+
+          {/* 3 Summary Metric Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="p-4 rounded-3xl bg-white dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 shadow-xs flex items-center gap-3.5">
+              <div className="w-10 h-10 rounded-2xl bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 flex items-center justify-center font-bold shrink-0">
+                <FileText className="w-5 h-5" />
+              </div>
+              <div>
+                <span className="text-[11px] text-slate-500 block font-semibold">Tổng biểu mẫu phát hành</span>
+                <span className="text-xl font-black text-slate-900 dark:text-white">4 biểu mẫu</span>
+                <span className="text-[10px] text-slate-400">2 đang thu thập • 1 hiệu lực • 1 kết thúc</span>
+              </div>
+            </div>
+
+            <div className="p-4 rounded-3xl bg-white dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 shadow-xs flex items-center gap-3.5">
+              <div className="w-10 h-10 rounded-2xl bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 flex items-center justify-center font-bold shrink-0">
+                <CheckCheck className="w-5 h-5" />
+              </div>
+              <div>
+                <span className="text-[11px] text-slate-500 block font-semibold">Tỷ lệ đồng ý trung bình</span>
+                <span className="text-xl font-black text-emerald-700 dark:text-emerald-400">91.1%</span>
+                <span className="text-[10px] text-slate-400">255 / 280 phụ huynh toàn trường</span>
+              </div>
+            </div>
+
+            <div className="p-4 rounded-3xl bg-white dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 shadow-xs flex items-center gap-3.5">
+              <div className="w-10 h-10 rounded-2xl bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300 flex items-center justify-center font-bold shrink-0">
+                <Clock className="w-5 h-5" />
+              </div>
+              <div>
+                <span className="text-[11px] text-slate-500 block font-semibold">Chưa phản hồi (Cần nhắc)</span>
+                <span className="text-xl font-black text-amber-700 dark:text-amber-400">25 phụ huynh</span>
+                <span className="text-[10px] text-amber-600 font-semibold">Khớp chỉ số KPI trang chủ</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Filter Tabs */}
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+            {([
+              { key: 'ALL', label: 'Tất cả biểu mẫu (4)' },
+              { key: 'collecting', label: 'Đang thu thập phản hồi (1)' },
+              { key: 'active', label: 'Đang hiệu lực (2)' },
+              { key: 'completed', label: 'Đã hoàn tất (1)' },
+            ] as const).map((tab) => (
+              <button
+                key={tab.key}
+                type="button"
+                onClick={() => setConsentFilter(tab.key)}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                  consentFilter === tab.key
+                    ? 'bg-[#0c513f] text-white shadow-xs'
+                    : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50'
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+
+          {/* List of Consent Forms */}
+          <div className="space-y-4">
+            {filteredConsentForms.map((form) => {
+              const percentAgreed = Math.round((form.agreedCount / form.totalTarget) * 100);
+              return (
+                <div
+                  key={form.id}
+                  className="rounded-3xl bg-white dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-700/80 shadow-sm p-6 space-y-4"
+                >
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-700 pb-3">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-xs font-bold text-slate-500">{form.category}</span>
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${form.statusColor}`}>
+                          {form.statusLabel}
+                        </span>
+                      </div>
+                      <h3 className="text-sm font-extrabold text-slate-900 dark:text-white">
+                        {form.title}
+                      </h3>
+                    </div>
+
+                    <div className="text-left sm:text-right shrink-0">
+                      <span className="text-[11px] text-slate-400 block">Hạn chót tiếp nhận</span>
+                      <span className="text-xs font-extrabold text-slate-700 dark:text-slate-300">{form.deadline}</span>
+                    </div>
+                  </div>
+
+                  <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                    {form.description}
+                  </p>
+
+                  {/* Progress and Stats */}
+                  <div className="space-y-2 bg-slate-50 dark:bg-slate-900/40 p-4 rounded-2xl border border-slate-100 dark:border-slate-800">
+                    <div className="flex items-center justify-between text-xs font-bold">
+                      <span className="text-emerald-700 dark:text-emerald-400 flex items-center gap-1.5">
+                        <CheckCheck className="w-3.5 h-3.5" />
+                        Đã đồng ý: {form.agreedCount} / {form.totalTarget} ({percentAgreed}%)
+                      </span>
+                      {form.pendingCount > 0 && (
+                        <span className="text-amber-600 dark:text-amber-400">
+                          Chưa phản hồi: {form.pendingCount} phụ huynh
+                        </span>
+                      )}
+                      {form.declinedCount > 0 && (
+                        <span className="text-rose-600 text-[11px]">
+                          Từ chối: {form.declinedCount}
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="w-full h-2 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
+                      <div
+                        className="h-full bg-[#0c513f] rounded-full transition-all duration-500"
+                        style={{ width: `${percentAgreed}%` }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Action buttons */}
+                  <div className="flex items-center justify-between gap-3 pt-1 flex-wrap">
+                    <span className="text-[11px] text-slate-400 font-medium">
+                      Phạm vi: {form.scope}
+                    </span>
+
+                    <div className="flex items-center gap-2">
+                      {form.pendingCount > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setActionNotice(`Đã gửi thông báo nhắc nhở nộp biểu mẫu đến ${form.pendingCount} phụ huynh qua Portal!`);
+                            setTimeout(() => setActionNotice(null), 3500);
+                          }}
+                          className="px-3.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold transition-all shadow-xs cursor-pointer flex items-center gap-1"
+                        >
+                          <Bell className="w-3.5 h-3.5" />
+                          <span>Nhắc nhở ({form.pendingCount})</span>
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setActionNotice(`Đang xuất danh sách phản hồi cho biểu mẫu: ${form.title}`);
+                          setTimeout(() => setActionNotice(null), 3000);
+                        }}
+                        className="px-3.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 transition-colors cursor-pointer flex items-center gap-1"
+                      >
+                        <Download className="w-3.5 h-3.5" />
+                        <span>Xuất danh sách</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+
+      
+      {/* ── HOẠT ĐỘNG & ALBUM HÌNH ẢNH (MEDIA ACTIVITIES) TAB VIEW ── */}
+      {activeNavTab === 'media' && (
+        <div className="space-y-6 animate-in fade-in duration-200">
+          {/* Header row */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h2 className="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+                <Camera className="w-5 h-5 text-[#0c513f]" />
+                Thư Viện Hình Ảnh &amp; Hoạt Động Trải Nghiệm Lớp Học
+              </h2>
+              <p className="text-xs text-slate-500 mt-1">
+                Kho ảnh và video ghi lại khoảnh khắc học tập, vận động STEAM và sinh hoạt hàng ngày được bảo mật gửi đến phụ huynh.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => {
+                setActionNotice('Chức năng tải lên album ảnh lớp mới đang mở.');
+                setTimeout(() => setActionNotice(null), 3000);
+              }}
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-2xl bg-[#0c513f] hover:bg-[#083b2e] text-white text-xs font-bold shadow-sm transition-all active:scale-95 cursor-pointer self-start sm:self-auto"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>Đăng album mới</span>
+            </button>
+          </div>
+
+          {/* Class filter pills */}
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+            {(['ALL', 'Chồi B1', 'Mầm A1', 'Lá C1', 'Toàn trường'] as const).map((cls) => (
+              <button
+                key={cls}
+                type="button"
+                onClick={() => setMediaClassFilter(cls)}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                  mediaClassFilter === cls
+                    ? 'bg-[#0c513f] text-white shadow-xs'
+                    : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50'
+                }`}
+              >
+                {cls === 'ALL' ? 'Tất cả album (4)' : cls === 'Toàn trường' ? 'Toàn trường' : `Lớp ${cls}`}
+              </button>
+            ))}
+          </div>
+
+          {/* Media Albums Grid (2 cols on tablet/desktop) */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {filteredMediaAlbums.map((album) => (
+              <div
+                key={album.id}
+                className="rounded-3xl bg-white dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-700/80 shadow-sm p-5 space-y-4 flex flex-col justify-between"
+              >
+                <div className="space-y-3">
+                  {/* Album header */}
+                  <div className="flex items-center justify-between">
+                    <span className="px-2.5 py-1 rounded-xl text-[11px] font-bold bg-[#0c513f]/10 text-[#0c513f]">
+                      {album.className}
+                    </span>
+                    <span className="text-[11px] text-slate-400 font-medium">
+                      {album.dateString}
+                    </span>
+                  </div>
+
+                  <h3 className="text-sm font-extrabold text-slate-900 dark:text-white leading-snug">
+                    {album.title}
+                  </h3>
+
+                  <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed line-clamp-3">
+                    {album.description}
+                  </p>
+
+                  {/* Photo Preview Mock Collage */}
+                  <div className={`p-4 rounded-2xl bg-gradient-to-br ${album.colorAccent} border flex items-center justify-center gap-3 min-h-[140px]`}>
+                    <div className="flex items-center gap-3 text-slate-600 dark:text-slate-300 text-xs font-bold">
+                      <div className="flex items-center gap-1 bg-white/80 dark:bg-slate-900/80 px-3 py-1.5 rounded-xl shadow-xs">
+                        <ImageIcon className="w-4 h-4 text-[#0c513f]" />
+                        <span>{album.photoCount} hình ảnh</span>
+                      </div>
+                      {album.videoCount > 0 && (
+                        <div className="flex items-center gap-1 bg-white/80 dark:bg-slate-900/80 px-3 py-1.5 rounded-xl shadow-xs">
+                          <Camera className="w-4 h-4 text-rose-600" />
+                          <span>{album.videoCount} video clip</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Tags */}
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    {album.tags.map((tag) => (
+                      <span
+                        key={tag}
+                        className="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300"
+                      >
+                        #{tag}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Album Footer */}
+                <div className="pt-3 border-t border-slate-100 dark:border-slate-700 flex items-center justify-between gap-2 flex-wrap">
+                  <div className="flex items-center gap-3 text-xs text-slate-500">
+                    <span className="flex items-center gap-1 text-rose-600 font-bold">
+                      <Heart className="w-3.5 h-3.5 fill-rose-600 text-rose-600" />
+                      {album.likesCount}
+                    </span>
+                    <span className="flex items-center gap-1 font-medium">
+                      <MessageSquare className="w-3.5 h-3.5" />
+                      {album.commentsCount}
+                    </span>
+                    <span className="text-[11px] text-slate-400">
+                      • {album.teacherName}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setActionNotice(`Đã chia sẻ album "${album.title}" đến ${album.sharedParentCount} phụ huynh qua Portal!`);
+                        setTimeout(() => setActionNotice(null), 3000);
+                      }}
+                      className="px-3 py-1.5 rounded-xl bg-[#0c513f] hover:bg-[#083b2e] text-white text-xs font-bold transition-all shadow-xs flex items-center gap-1 cursor-pointer"
+                    >
+                      <Share2 className="w-3 h-3" />
+                      <span>Chia sẻ Portal</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setActionNotice(`Đang nén và tải về ${album.photoCount} ảnh của album "${album.title}"...`);
+                        setTimeout(() => setActionNotice(null), 3000);
+                      }}
+                      className="p-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 transition-colors cursor-pointer"
+                      title="Tải về album"
+                    >
+                      <Download className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+
       {/* ── TWO-COLUMN SPLIT INBOX WORKSPACE MATCHING IMAGE 3 ── */}
-      {activeNavTab !== 'announcements' && (
+      {(activeNavTab === 'overview' || activeNavTab === 'messages') && (
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* ── LEFT COLUMN: CONVERSATION LIST (7 COLUMNS / ~58%) ── */}
         <div className="lg:col-span-7 rounded-3xl bg-white dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-700/80 shadow-sm p-5 sm:p-6 space-y-4">
