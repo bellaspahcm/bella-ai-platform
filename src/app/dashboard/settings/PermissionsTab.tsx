@@ -1,42 +1,39 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { toast } from "sonner";
 import { Lock, Save, ShieldAlert, Check, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase-client";
 import { getTenantSettings, saveTenantSettings } from "@/services/tenant-actions";
 import { clearDashboardClientContextCache } from "@/lib/dashboard-client-context";
+import { useTenantModuleKey } from "@/hooks/useTenantModuleKey";
 
-const MODULES = [
+// ── SPA / Standard Roles & Modules ──
+const SPA_MODULES = [
   { id: "dashboard", label: "Tổng quan (Dashboard)" },
   { id: "customers", label: "Khách hàng" },
   { id: "bookings", label: "Lịch hẹn" },
   { id: "sessions", label: "Thẻ liệu trình / Ca làm" },
   { id: "crm", label: "Chăm sóc khách hàng" },
-  { id: "services", label: "Dịch vụ & Sản phẩm" },
+  { id: "services", label: "Dịch vụ và Sản phẩm" },
   { id: "marketing_ads", label: "Meta Ads" },
   { id: "inventory", label: "Kho hàng" },
-  { id: "finance", label: "Tài chính & Thu chi" },
+  { id: "finance", label: "Tài chính và Thu chi" },
   { id: "reconciliation", label: "Đối soát Tài chính" },
   { id: "salary", label: "Bảng lương" },
   { id: "audit", label: "Nhật ký hệ thống" },
   { id: "settings", label: "Cài đặt" }
 ] as const;
 
-const ROLES = [
+const SPA_ROLES = [
   { id: "ktv_lead", label: "KTV Trưởng" },
   { id: "admin_staff", label: "Lễ tân / Staff" },
   { id: "accountant", label: "Kế toán" },
   { id: "hr", label: "Nhân sự (HR)" },
 ] as const;
 
-type ModuleId = (typeof MODULES)[number]["id"];
-type RoleId = (typeof ROLES)[number]["id"];
-type RolePermissions = Record<ModuleId, boolean> & { [moduleId: string]: boolean };
-type PermissionsState = Record<RoleId, RolePermissions> & { [roleId: string]: RolePermissions };
-
-const DEFAULT_PERMISSIONS: PermissionsState = {
+const DEFAULT_SPA_PERMISSIONS: Record<string, Record<string, boolean>> = {
   ktv_lead: {
     dashboard: true,
     customers: false,
@@ -99,28 +96,150 @@ const DEFAULT_PERMISSIONS: PermissionsState = {
   }
 };
 
+// ── Education / Preschool Dedicated Roles & Modules ──
+const EDUCATION_MODULES = [
+  { id: "dashboard", label: "Tổng quan (Dashboard)" },
+  { id: "branches", label: "Quản lý chi nhánh" },
+  { id: "students", label: "Quản lý trẻ và Học sinh" },
+  { id: "classes", label: "Quản lý lớp học" },
+  { id: "teachers", label: "Quản lý giáo viên" },
+  { id: "care", label: "Chăm sóc và Nuôi dưỡng" },
+  { id: "activities", label: "Học tập và Hoạt động" },
+  { id: "communication", label: "Truyền thông và Sổ liên lạc" },
+  { id: "finance", label: "Tài chính và Học phí" },
+  { id: "facilities", label: "Cơ sở vật chất" },
+  { id: "reports", label: "Báo cáo thống kê" },
+  { id: "settings", label: "Cài đặt hệ thống" }
+] as const;
+
+const EDUCATION_ROLES = [
+  { id: "campus_admin", label: "Quản lý cơ sở / Hiệu phó" },
+  { id: "lead_teacher", label: "Tổ trưởng chuyên môn" },
+  { id: "teacher", label: "Giáo viên mầm non" },
+  { id: "caretaker", label: "Bảo mẫu / Chăm sóc" },
+  { id: "accountant", label: "Kế toán trường" },
+  { id: "admin_staff", label: "Giáo vụ / Nhân viên" },
+] as const;
+
+const DEFAULT_EDUCATION_PERMISSIONS: Record<string, Record<string, boolean>> = {
+  campus_admin: {
+    dashboard: true,
+    branches: true,
+    students: true,
+    classes: true,
+    teachers: true,
+    care: true,
+    activities: true,
+    communication: true,
+    finance: true,
+    facilities: true,
+    reports: true,
+    settings: false,
+  },
+  lead_teacher: {
+    dashboard: true,
+    branches: false,
+    students: true,
+    classes: true,
+    teachers: true,
+    care: true,
+    activities: true,
+    communication: true,
+    finance: false,
+    facilities: false,
+    reports: true,
+    settings: false,
+  },
+  teacher: {
+    dashboard: true,
+    branches: false,
+    students: true,
+    classes: true,
+    teachers: false,
+    care: true,
+    activities: true,
+    communication: true,
+    finance: false,
+    facilities: false,
+    reports: false,
+    settings: false,
+  },
+  caretaker: {
+    dashboard: true,
+    branches: false,
+    students: true,
+    classes: false,
+    teachers: false,
+    care: true,
+    activities: false,
+    communication: true,
+    finance: false,
+    facilities: false,
+    reports: false,
+    settings: false,
+  },
+  accountant: {
+    dashboard: true,
+    branches: false,
+    students: true,
+    classes: false,
+    teachers: false,
+    care: false,
+    activities: false,
+    communication: false,
+    finance: true,
+    facilities: true,
+    reports: true,
+    settings: false,
+  },
+  admin_staff: {
+    dashboard: true,
+    branches: false,
+    students: true,
+    classes: true,
+    teachers: false,
+    care: true,
+    activities: true,
+    communication: true,
+    finance: false,
+    facilities: true,
+    reports: false,
+    settings: false,
+  },
+};
+
+type PermissionsState = Record<string, Record<string, boolean>>;
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
 function clonePermissions(source: PermissionsState): PermissionsState {
-  return {
-    ktv_lead: { ...source.ktv_lead },
-    admin_staff: { ...source.admin_staff },
-    accountant: { ...source.accountant },
-    hr: { ...source.hr }
-  };
+  const result: PermissionsState = {};
+  for (const [rId, rPerms] of Object.entries(source)) {
+    result[rId] = { ...rPerms };
+  }
+  return result;
 }
 
-function mergePersistedPermissions(current: PermissionsState, persisted: unknown): PermissionsState {
+function mergePersistedPermissions(
+  current: PermissionsState,
+  persisted: unknown,
+  roles: readonly { id: string; label: string }[],
+  modules: readonly { id: string; label: string }[]
+): PermissionsState {
   if (!isRecord(persisted)) return current;
 
   const next = clonePermissions(current);
-  for (const role of ROLES) {
+  for (const role of roles) {
     const rolePermissions = persisted[role.id];
     if (!isRecord(rolePermissions)) continue;
 
-    for (const permissionModule of MODULES) {
+    if (!next[role.id]) {
+      next[role.id] = {};
+    }
+
+    for (const permissionModule of modules) {
       const enabled = rolePermissions[permissionModule.id];
       if (typeof enabled === "boolean") {
         next[role.id][permissionModule.id] = enabled;
@@ -132,13 +251,23 @@ function mergePersistedPermissions(current: PermissionsState, persisted: unknown
 }
 
 export default function PermissionsTab() {
+  const { tenantModuleKey } = useTenantModuleKey();
+  const isEducation = tenantModuleKey === 'bella_education';
+
+  const roles = useMemo(() => (isEducation ? EDUCATION_ROLES : SPA_ROLES), [isEducation]);
+  const modules = useMemo(() => (isEducation ? EDUCATION_MODULES : SPA_MODULES), [isEducation]);
+  const defaultPermissions = useMemo(
+    () => (isEducation ? DEFAULT_EDUCATION_PERMISSIONS : DEFAULT_SPA_PERMISSIONS),
+    [isEducation]
+  );
+
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState("");
   const [isAuthenticating, setIsAuthenticating] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   
-  const [permissions, setPermissions] = useState<PermissionsState>(DEFAULT_PERMISSIONS);
+  const [permissions, setPermissions] = useState<PermissionsState>(defaultPermissions);
 
   const supabase = createClient();
 
@@ -147,7 +276,7 @@ export default function PermissionsTab() {
     try {
       const data = await getTenantSettings();
       if (data?.role_permissions) {
-        setPermissions((prev) => mergePersistedPermissions(prev, data.role_permissions));
+        setPermissions((prev) => mergePersistedPermissions(prev, data.role_permissions, roles, modules));
       }
     } catch (error) {
       console.error("Error loading permissions", error);
@@ -192,12 +321,12 @@ export default function PermissionsTab() {
     }
   };
 
-  const handleTogglePermission = (roleId: RoleId, moduleId: ModuleId) => {
+  const handleTogglePermission = (roleId: string, moduleId: string) => {
     setPermissions((prev) => ({
       ...prev,
       [roleId]: {
-        ...prev[roleId],
-        [moduleId]: !prev[roleId][moduleId]
+        ...(prev[roleId] || {}),
+        [moduleId]: !prev[roleId]?.[moduleId]
       }
     }));
   };
@@ -268,7 +397,7 @@ export default function PermissionsTab() {
               Phân quyền truy cập
             </h2>
             <p className="text-sm text-muted-foreground font-semibold">
-              Tùy chỉnh quyền xem các module cho từng chức vụ
+              Tùy chỉnh quyền xem các module cho từng chức vụ {isEducation ? "trường mầm non" : ""}
             </p>
           </div>
         </div>
@@ -291,7 +420,7 @@ export default function PermissionsTab() {
                 <th className="px-6 py-5 text-xs font-black text-slate-400 uppercase tracking-[0.2em] bg-slate-50/50 w-1/3">
                   Module / Tính năng
                 </th>
-                {ROLES.map(role => (
+                {roles.map(role => (
                   <th key={role.id} className="px-6 py-5 text-xs font-black text-slate-400 uppercase tracking-[0.2em] text-center border-l border-white/50">
                     {role.label}
                   </th>
@@ -301,22 +430,22 @@ export default function PermissionsTab() {
             <tbody className="divide-y divide-white/20">
               {isLoading ? (
                 <tr>
-                  <td colSpan={ROLES.length + 1} className="py-20 text-center">
+                  <td colSpan={roles.length + 1} className="py-20 text-center">
                     <div className="w-10 h-10 border-4 border-primary/20 border-t-primary rounded-full animate-spin mx-auto mb-4" />
                   </td>
                 </tr>
               ) : (
-                MODULES.map(module => (
-                  <tr key={module.id} className="hover:bg-white/60 transition-colors">
+                modules.map(mod => (
+                  <tr key={mod.id} className="hover:bg-white/60 transition-colors">
                     <td className="px-6 py-4 font-bold text-slate-700 bg-slate-50/30">
-                      {module.label}
+                      {mod.label}
                     </td>
-                    {ROLES.map(role => {
-                      const hasPermission = permissions[role.id]?.[module.id] ?? false;
+                    {roles.map(role => {
+                      const hasPermission = permissions[role.id]?.[mod.id] ?? false;
                       return (
-                        <td key={`${role.id}-${module.id}`} className="px-6 py-4 text-center border-l border-white/50">
+                        <td key={`${role.id}-${mod.id}`} className="px-6 py-4 text-center border-l border-white/50">
                           <button
-                            onClick={() => handleTogglePermission(role.id, module.id)}
+                            onClick={() => handleTogglePermission(role.id, mod.id)}
                             className={cn(
                               "w-12 h-6 rounded-full p-1 transition-all mx-auto cursor-pointer flex items-center relative",
                               hasPermission ? "bg-emerald-500" : "bg-slate-200"
@@ -346,10 +475,18 @@ export default function PermissionsTab() {
         <ShieldAlert className="w-6 h-6 text-amber-500 shrink-0" />
         <div>
           <h4 className="font-bold text-amber-800">Lưu ý về phân quyền</h4>
-          <p className="text-sm text-amber-700/80 mt-1 font-medium leading-relaxed">
-            - <strong>Quản trị viên (Admin)</strong> luôn có toàn quyền truy cập tất cả các module.<br/>
-            - <strong>Kỹ thuật viên (KTV)</strong> mặc định chỉ được truy cập Dashboard, Lịch hẹn và Thẻ liệu trình của cá nhân.
-          </p>
+          {isEducation ? (
+            <p className="text-sm text-amber-700/80 mt-1 font-medium leading-relaxed">
+              - <strong>Hiệu trưởng / Chủ trường (Super Admin)</strong> luôn có toàn quyền truy cập tất cả các cơ sở và tính năng.<br/>
+              - <strong>Giáo viên mầm non</strong> mặc định chỉ được truy cập Lớp học, Điểm danh, Chăm sóc và Sổ liên lạc của lớp phụ trách, không xem Tài chính hoặc Quản lý chi nhánh.<br/>
+              - <strong>Admin chi nhánh / Quản lý cơ sở</strong> chỉ xem và điều hành dữ liệu thuộc cơ sở được phân quyền quản lý.
+            </p>
+          ) : (
+            <p className="text-sm text-amber-700/80 mt-1 font-medium leading-relaxed">
+              - <strong>Quản trị viên (Admin)</strong> luôn có toàn quyền truy cập tất cả các module.<br/>
+              - <strong>Kỹ thuật viên (KTV)</strong> mặc định chỉ được truy cập Dashboard, Lịch hẹn và Thẻ liệu trình của cá nhân.
+            </p>
+          )}
         </div>
       </div>
     </div>

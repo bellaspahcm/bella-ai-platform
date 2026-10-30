@@ -12,6 +12,7 @@ updateUserStatus,
 } from "@/services/user-actions";
 import type { StaffRecord } from "@/modules/spa/types/employee";
 import { useModuleVocabulary } from "@/hooks/useModuleVocabulary";
+import { useTenantModuleKey } from "@/hooks/useTenantModuleKey";
 import { AnimatePresence,motion } from "framer-motion";
 import {
   Check,
@@ -31,8 +32,56 @@ import {
 import React,{ useEffect,useState } from "react";
 import { toast } from "sonner";
 
+function getRoleBadge(role: string | null | undefined, isEdu: boolean, workerVocab: { singular: string; role: string }) {
+  const normalized = role?.toLowerCase() || "";
+  if (isEdu) {
+    if (normalized === "admin" || normalized === "super_admin" || normalized === "owner") {
+      return { label: "Hiệu trưởng / Quản trị viên", color: "bg-rose-50 text-rose-600 border-rose-100" };
+    }
+    if (normalized === "principal") {
+      return { label: "Hiệu trưởng", color: "bg-rose-50 text-rose-600 border-rose-100" };
+    }
+    if (normalized === "campus_admin" || normalized === "manager") {
+      return { label: "Quản lý cơ sở / Hiệu phó", color: "bg-indigo-50 text-indigo-600 border-indigo-100" };
+    }
+    if (normalized === "lead_teacher" || normalized === "teacher_lead" || normalized === "ktv_lead") {
+      return { label: "Tổ trưởng chuyên môn", color: "bg-amber-50 text-amber-600 border-amber-100" };
+    }
+    if (normalized === "teacher" || normalized === "ktv") {
+      return { label: "Giáo viên mầm non", color: "bg-blue-50 text-blue-600 border-blue-100" };
+    }
+    if (normalized === "caretaker" || normalized === "nanny") {
+      return { label: "Bảo mẫu / Chăm sóc", color: "bg-purple-50 text-purple-600 border-purple-100" };
+    }
+    if (normalized === "accountant") {
+      return { label: "Kế toán trường", color: "bg-emerald-50 text-emerald-600 border-emerald-100" };
+    }
+    if (normalized === "nurse") {
+      return { label: "Nhân viên Y tế", color: "bg-teal-50 text-teal-600 border-teal-100" };
+    }
+    if (normalized === "admin_staff" || normalized === "staff" || normalized === "education_staff") {
+      return { label: "Giáo vụ / Nhân viên", color: "bg-slate-50 text-slate-600 border-slate-100" };
+    }
+    if (normalized === "hr") {
+      return { label: "Hành chính nhân sự", color: "bg-violet-50 text-violet-600 border-violet-100" };
+    }
+    return { label: role || "Giáo viên", color: "bg-blue-50 text-blue-600 border-blue-100" };
+  }
+
+  // SPA roles
+  if (normalized === "admin") return { label: "Quản trị viên", color: "bg-rose-50 text-rose-600 border-rose-100" };
+  if (normalized === "ktv") return { label: workerVocab.singular, color: "bg-blue-50 text-blue-600 border-blue-100" };
+  if (normalized === "ktv_lead") return { label: `${workerVocab.role} Trưởng`, color: "bg-amber-50 text-amber-600 border-amber-100" };
+  if (normalized === "admin_staff") return { label: "Lễ tân / Staff", color: "bg-slate-50 text-slate-600 border-slate-100" };
+  if (normalized === "accountant") return { label: "Kế toán", color: "bg-emerald-50 text-emerald-600 border-emerald-100" };
+  if (normalized === "hr") return { label: "Nhân sự", color: "bg-violet-50 text-violet-600 border-violet-100" };
+  return { label: role || "Nhân viên", color: "bg-slate-50 text-slate-600 border-slate-100" };
+}
+
 export default function StaffManagementTab() {
   const vocab = useModuleVocabulary();
+  const { tenantModuleKey } = useTenantModuleKey();
+  const isEducation = tenantModuleKey === "bella_education";
   const [users, setUsers] = useState<StaffRecord[]>([]);
   const [isLoadingUsers, setIsLoadingUsers] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -269,7 +318,7 @@ export default function StaffManagementTab() {
           </div>
           <div>
             <h2 className="text-2xl font-bold text-foreground">
-              Nhân sự & Quyền
+              Nhân sự {'&'} Quyền
             </h2>
             <p className="text-sm text-muted-foreground font-semibold">
               Quản lý danh sách nhân viên và phân quyền hệ thống
@@ -296,7 +345,7 @@ export default function StaffManagementTab() {
                   Vai trò
                 </th>
                 <th className="px-8 py-5 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">
-                  Hiệu suất
+                  {isEducation ? "Chuyên môn / Đứng lớp" : "Hiệu suất"}
                 </th>
                 <th className="px-8 py-5 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">
                   Email
@@ -346,46 +395,51 @@ export default function StaffManagementTab() {
                       </div>
                     </td>
                     <td className="px-8 py-6">
-                      <span
-                        className={cn(
-                          "px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border",
-                          user.role?.toLowerCase() === "admin"
-                            ? "bg-rose-50 text-rose-600 border-rose-100"
-                            : user.role?.toLowerCase() === "ktv"
-                              ? "bg-blue-50 text-blue-600 border-blue-100"
-                              : user.role?.toLowerCase() === "accountant"
-                                ? "bg-emerald-50 text-emerald-600 border-emerald-100"
-                                : user.role?.toLowerCase() === "hr"
-                                  ? "bg-violet-50 text-violet-600 border-violet-100"
-                                  : user.role?.toLowerCase() === "ktv_lead"
-                                    ? "bg-amber-50 text-amber-600 border-amber-100"
-                                    : "bg-slate-50 text-slate-600 border-slate-100",
-                        )}
-                      >
-                        {user.role === 'admin' ? 'Quản trị viên'
-                          : user.role === 'ktv' ? vocab.worker.singular
-                          : user.role === 'ktv_lead' ? `${vocab.worker.role} Trưởng`
-                          : user.role === 'admin_staff' ? 'Lễ tân / Staff'
-                          : user.role === 'accountant' ? 'Kế toán'
-                          : user.role === 'hr' ? 'Nhân sự'
-                          : user.role}
-                      </span>
+                      {(() => {
+                        const badge = getRoleBadge(user.role, isEducation, vocab.worker);
+                        return (
+                          <span
+                            className={cn(
+                              "px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border",
+                              badge.color
+                            )}
+                          >
+                            {badge.label}
+                          </span>
+                        );
+                      })()}
                     </td>
                     <td className="px-8 py-6">
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          <Zap className="w-3 h-3 text-amber-500 fill-amber-500" />
-                          <span className="text-xs font-black text-slate-700">
-                            {user.sessions_count || 0} buổi
-                          </span>
+                      {isEducation ? (
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-100">
+                              Đang đứng lớp
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Star className="w-3 h-3 text-amber-400 fill-amber-400" />
+                            <span className="text-xs font-black text-slate-700">
+                              {user.avg_rating || "5.0"}
+                            </span>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <Star className="w-3 h-3 text-rose-400 fill-rose-400" />
-                          <span className="text-xs font-black text-slate-700">
-                            {user.avg_rating || "5.0"}
-                          </span>
+                      ) : (
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            <Zap className="w-3 h-3 text-amber-500 fill-amber-500" />
+                            <span className="text-xs font-black text-slate-700">
+                              {user.sessions_count || 0} buổi
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Star className="w-3 h-3 text-rose-400 fill-rose-400" />
+                            <span className="text-xs font-black text-slate-700">
+                              {user.avg_rating || "5.0"}
+                            </span>
+                          </div>
                         </div>
-                      </div>
+                      )}
                     </td>
                     <td className="px-8 py-6 font-bold text-slate-500 text-sm italic">
                       {user.email}
@@ -484,7 +538,7 @@ export default function StaffManagementTab() {
                       Thêm nhân sự mới
                     </h2>
                     <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">
-                      Thiết lập tài khoản & vai trò
+                      Thiết lập tài khoản {'&'} vai trò
                     </p>
                   </div>
                 </div>
@@ -531,19 +585,29 @@ export default function StaffManagementTab() {
 
                 <div className="space-y-4">
                   <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                    <ShieldAlert className="w-3.5 h-3.5" /> Vai trò & Quyền hạn
+                    <ShieldAlert className="w-3.5 h-3.5" /> Vai trò {'&'} Quyền hạn
                   </label>
                   <PremiumSelect
                     value={newStaff.role}
                     onChange={(val) => setNewStaff({ ...newStaff, role: val })}
-                    options={[
-                      { value: "ktv", label: vocab.worker.singular },
-                      { value: "ktv_lead", label: `${vocab.worker.role} Trưởng (Tổ trưởng)` },
-                      { value: "admin_staff", label: "Lễ tân / Nhân viên" },
-                      { value: "accountant", label: "Kế toán" },
-                      { value: "hr", label: "Nhân sự (HR)" },
-                      { value: "admin", label: "Quản trị viên (Admin)" },
-                    ]}
+                    options={
+                      isEducation
+                        ? [
+                            { value: "ktv", label: "Giáo viên mầm non" },
+                            { value: "ktv_lead", label: "Tổ trưởng chuyên môn" },
+                            { value: "admin_staff", label: "Giáo vụ / Nhân viên" },
+                            { value: "accountant", label: "Kế toán trường" },
+                            { value: "admin", label: "Quản trị viên / Hiệu trưởng" },
+                          ]
+                        : [
+                            { value: "ktv", label: vocab.worker.singular },
+                            { value: "ktv_lead", label: `${vocab.worker.role} Trưởng (Tổ trưởng)` },
+                            { value: "admin_staff", label: "Lễ tân / Nhân viên" },
+                            { value: "accountant", label: "Kế toán" },
+                            { value: "hr", label: "Nhân sự (HR)" },
+                            { value: "admin", label: "Quản trị viên (Admin)" },
+                          ]
+                    }
                     placeholder="Chọn vai trò..."
                   />
                 </div>
@@ -643,25 +707,35 @@ export default function StaffManagementTab() {
 
                 <div className="space-y-4">
                   <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                    <ShieldAlert className="w-3.5 h-3.5" /> Vai trò & Quyền hạn
+                    <ShieldAlert className="w-3.5 h-3.5" /> Vai trò {'&'} Quyền hạn
                   </label>
                   <PremiumSelect
                     value={editingStaff.role}
                     onChange={(val) => setEditingStaff({ ...editingStaff, role: val })}
-                    options={[
-                      { value: "ktv", label: vocab.worker.singular },
-                      { value: "ktv_lead", label: `${vocab.worker.role} Trưởng (Tổ trưởng)` },
-                      { value: "admin_staff", label: "Lễ tân / Nhân viên" },
-                      { value: "accountant", label: "Kế toán" },
-                      { value: "hr", label: "Nhân sự (HR)" },
-                      { value: "admin", label: "Quản trị viên (Admin)" },
-                    ]}
+                    options={
+                      isEducation
+                        ? [
+                            { value: "ktv", label: "Giáo viên mầm non" },
+                            { value: "ktv_lead", label: "Tổ trưởng chuyên môn" },
+                            { value: "admin_staff", label: "Giáo vụ / Nhân viên" },
+                            { value: "accountant", label: "Kế toán trường" },
+                            { value: "admin", label: "Quản trị viên / Hiệu trưởng" },
+                          ]
+                        : [
+                            { value: "ktv", label: vocab.worker.singular },
+                            { value: "ktv_lead", label: `${vocab.worker.role} Trưởng (Tổ trưởng)` },
+                            { value: "admin_staff", label: "Lễ tân / Nhân viên" },
+                            { value: "accountant", label: "Kế toán" },
+                            { value: "hr", label: "Nhân sự (HR)" },
+                            { value: "admin", label: "Quản trị viên (Admin)" },
+                          ]
+                    }
                     placeholder="Chọn vai trò..."
                   />
                 </div>
 
                 {/* Position Tier - Only for KTV roles */}
-                {(editingStaff.role === 'ktv' || editingStaff.role === 'ktv_lead') && (
+                {(editingStaff.role === 'ktv' || editingStaff.role === 'ktv_lead') && !isEducation && (
                   <div className="space-y-4">
                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
                       <Zap className="w-3.5 h-3.5" /> Cấp bậc (Position Tier)
@@ -876,7 +950,7 @@ export default function StaffManagementTab() {
                 onClick={() => setCreatedStaffResult(null)}
                 className="w-full bg-primary text-primary-foreground py-4 rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-primary-hover transition-all active:scale-95 cursor-pointer"
               >
-                Hoàn tất & Đóng
+                Hoàn tất {'&'} Đóng
               </button>
             </motion.div>
           </div>
