@@ -186,8 +186,8 @@ function Student360PageContent(): ReactElement {
     : '/dashboard/education/enrollments';
 
   const userRole = (user?.role ?? '').trim().toLowerCase();
-  const isAdmin = userRole === 'admin';
-  const canViewFinance = userRole !== 'teacher' && (userRole === 'admin' || userRole === 'accountant' || !userRole);
+  const isAdmin = userRole === 'admin' || userRole === 'super_admin' || userRole === 'owner';
+  const canViewFinance = userRole !== 'teacher' && (userRole === 'admin' || userRole === 'super_admin' || userRole === 'owner' || userRole === 'accountant' || !userRole);
 
   return <Student360LegacyLayout
     profile={profile}
