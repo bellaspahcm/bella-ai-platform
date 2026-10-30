@@ -13,6 +13,16 @@ import { PreschoolTeacherAttendanceService } from '@/products/bella-education/se
 import { getTenantPresentation } from '@/services/tenant-actions';
 import { AttendanceAccessError, assertAttendanceDay, assertAttendanceSelectors, requireSchoolDay, resolveAttendanceRequestContext } from '../request-context';
 
+/** Derive grade key from course code (e.g. MAM-NON-1 → 'mam', NHA-TRE-1 → 'nursery'). */
+function deriveGradeKey(courseCode: string | null | undefined, title: string): 'mam' | 'choi' | 'la' | 'nursery' | null {
+  const code = (courseCode ?? '').toUpperCase();
+  if (code.startsWith('MAM') || title.toLowerCase().includes('mầm')) return 'mam';
+  if (code.startsWith('NHA') || title.toLowerCase().includes('nhà trẻ')) return 'nursery';
+  if (code.startsWith('CHOI') || title.toLowerCase().includes('chồi')) return 'choi';
+  if (code.startsWith('LA') || title.toLowerCase().includes('lá')) return 'la';
+  return null;
+}
+
 export async function GET(request: Request) {
   const reply = (body: unknown, status = 200) => NextResponse.json(body, { status, headers: COURSE_PRIVATE_HEADERS });
   try {
@@ -49,8 +59,11 @@ export async function GET(request: Request) {
         const roster = await attendance.getCourseDailyAttendance({ tenantId, courseId: course.courseId, schoolDay });
         const todayStatus = { present: 0, absent: 0, excused: 0, unmarked: 0 };
         for (const row of roster) todayStatus[row.attendance?.status ?? 'unmarked'] += 1;
-        classrooms.push({ id: course.courseId, name: course.name, branchId: course.branchId,
-          students: roster.length, maxStudents: null, gradeKey: null, todayStatus });
+        classrooms.push({
+          id: course.courseId, name: course.name, branchId: course.branchId,
+          students: roster.length, maxStudents: null,
+          gradeKey: deriveGradeKey(null, course.name), todayStatus,
+        });
       }
       return reply({ success: true, tenantId, schoolDay, classrooms });
     }
@@ -109,9 +122,15 @@ export async function GET(request: Request) {
         todayStatus[row.attendance?.status ?? 'unmarked'] += 1;
       }
       await scope.assertCourseAccess(tenantId, actor.id, courseId);
+      // Enrich gradeKey and maxStudents from canonical course_code / max_students fields.
+      const courseCode = (course as { course_code?: string | null }).course_code ?? null;
+      const maxStudents = (course as { max_students?: number | null }).max_students ?? null;
       classrooms.push({
         id: courseId, name: course.title, branchId: assignment.branch_id,
-        students: roster.length, maxStudents: null, gradeKey: null, todayStatus,
+        students: roster.length,
+        maxStudents,
+        gradeKey: deriveGradeKey(courseCode, course.title),
+        todayStatus,
       });
     }
     return reply({ success: true, tenantId, schoolDay, classrooms });

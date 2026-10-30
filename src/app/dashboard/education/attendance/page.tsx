@@ -1119,6 +1119,7 @@ function PaginationControl({
     </div>
   );
 }
+// Named export preserved for unit test compatibility.
 export function LegacyAttendancePage() {
   return (
     <Suspense
@@ -1133,6 +1134,17 @@ export function LegacyAttendancePage() {
   );
 }
 
+// Default export: full modern Preschool Attendance dashboard.
 export default function AttendancePage() {
-  return <PreschoolAttendance legacy={<LegacyAttendancePage />} />;
+  return (
+    <Suspense
+      fallback={
+        <div className="p-8 flex items-center justify-center min-h-[400px]">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      }
+    >
+      <AttendancePageContent />
+    </Suspense>
+  );
 }
