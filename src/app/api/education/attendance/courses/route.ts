@@ -54,18 +54,17 @@ export async function GET(request: Request) {
       const courses = await new PreschoolTeacherAttendanceService(caller.client)
         .listCourses(tenantId, actor.id, schoolDay, branchId);
       const attendance = new AttendanceContractImpl(caller.client, caller.productKey);
-      const classrooms = [];
-      for (const course of courses) {
+      const classrooms = await Promise.all(courses.map(async (course) => {
         const roster = await attendance.getCourseDailyAttendance({ tenantId, courseId: course.courseId, schoolDay });
         const todayStatus = { present: 0, absent: 0, excused: 0, unmarked: 0 };
         for (const row of roster) todayStatus[row.attendance?.status ?? 'unmarked'] += 1;
-        classrooms.push({
+        return {
           id: course.courseId, name: course.name, branchId: course.branchId,
           students: roster.length, maxStudents: null,
           gradeKey: deriveGradeKey(null, course.name), todayStatus,
-        });
-      }
-      return reply({ success: true, tenantId, schoolDay, classrooms });
+        };
+      }));
+      return reply({ success: true, tenantId, schoolDay, classrooms, role: 'teacher' });
     }
     if (actor.role !== 'admin') {
       return reply({ success: false, error: 'ATTENDANCE_ACTION_DENIED' }, 403);
@@ -108,32 +107,35 @@ export async function GET(request: Request) {
     const tenant = await getTenantPresentation();
     if (!tenant || tenant.id !== tenantId) return reply({ success: false, error: 'ATTENDANCE_IDENTITY_UNAVAILABLE' }, 503);
     const attendance = new AttendanceContractImpl(context.supabase, tenant.product_key);
-    const classrooms = [];
-    for (const assignment of assignments.filter(row => branches.has(row.branch_id))) {
+    const filteredAssignments = assignments.filter(row => branches.has(row.branch_id));
+    const rawClassrooms = await Promise.all(filteredAssignments.map(async (assignment) => {
       const courseId = assignment.course_id;
       await scope.assertCourseAccess(tenantId, actor.id, courseId);
       const course = await reader.readCourse(tenantId, courseId);
       if (!course || course.id !== courseId) throw new PreschoolChainError('PRESCHOOL_CHAIN_CANONICAL_CONFLICT');
-      if (course.status !== 'active') continue;
+      if (course.status !== 'active') return null;
       const roster = await attendance.getCourseDailyAttendance({ tenantId, courseId, schoolDay });
+      await Promise.all(roster.map(row =>
+        scope.assertEnrollmentAccess(tenantId, actor.id, row.enrollmentId, row.studentPartyId, courseId)
+      ));
       const todayStatus = { present: 0, absent: 0, excused: 0, unmarked: 0 };
       for (const row of roster) {
-        await scope.assertEnrollmentAccess(tenantId, actor.id, row.enrollmentId, row.studentPartyId, courseId);
         todayStatus[row.attendance?.status ?? 'unmarked'] += 1;
       }
       await scope.assertCourseAccess(tenantId, actor.id, courseId);
       // Enrich gradeKey and maxStudents from canonical course_code / max_students fields.
       const courseCode = (course as { course_code?: string | null }).course_code ?? null;
       const maxStudents = (course as { max_students?: number | null }).max_students ?? null;
-      classrooms.push({
+      return {
         id: courseId, name: course.title, branchId: assignment.branch_id,
         students: roster.length,
         maxStudents,
         gradeKey: deriveGradeKey(courseCode, course.title),
         todayStatus,
-      });
-    }
-    return reply({ success: true, tenantId, schoolDay, classrooms });
+      };
+    }));
+    const classrooms = rawClassrooms.filter((c): c is NonNullable<typeof c> => c !== null);
+    return reply({ success: true, tenantId, schoolDay, classrooms, role: 'admin' });
   } catch (error) {
     const denied = error instanceof Error && error.message === 'TRUSTED_ACTOR_ACCESS_DENIED';
     const status = error instanceof PreschoolChainError || error instanceof AttendanceAccessError ? error.status : denied ? 403 : 500;
