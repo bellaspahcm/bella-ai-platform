@@ -548,6 +548,12 @@ function AttendancePageContent() {
               >
                 Chăm Sóc &amp; Nuôi Dưỡng
               </Link>
+              <Link
+                href={`/dashboard/education/communication?student=${studentParam}`}
+                className="px-3 py-1.5 rounded-xl text-[11px] font-bold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-750 transition-all shadow-2xs"
+              >
+                Sổ Liên Lạc &amp; Trao Đổi
+              </Link>
               <button
                 type="button"
                 onClick={() => {

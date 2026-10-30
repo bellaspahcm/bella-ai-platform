@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState, useCallback } from 'react';
+import Link from 'next/link';
 import { BookOpen, Utensils, Moon, MessageSquare, RefreshCw, AlertCircle, CheckCircle2 } from 'lucide-react';
 
 interface MealItem {
@@ -108,19 +109,45 @@ export default function StudentCommunication({ studentId, studentName }: Student
       )}
 
       {!loading && !error && isEmpty && (
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-8 text-center">
-          <CheckCircle2 className="w-10 h-10 mx-auto text-emerald-500 mb-3" />
-          <h4 className="text-base font-semibold text-slate-800 dark:text-slate-100 mb-1">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-8 text-center space-y-3">
+          <CheckCircle2 className="w-10 h-10 mx-auto text-emerald-500 mb-2" />
+          <h4 className="text-base font-semibold text-slate-800 dark:text-slate-100">
             Chưa có ghi nhận nhật ký chăm sóc
           </h4>
           <p className="text-xs text-slate-500 dark:text-slate-400 max-w-md mx-auto">
             Học sinh chưa có nhật ký sinh hoạt (ăn uống, ngủ trưa, vệ sinh) hoặc yêu cầu dặn dò gửi từ phụ huynh.
           </p>
+          <div className="pt-2">
+            <Link
+              href={`/dashboard/education/communication?student=${studentId}`}
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#0e5c43] hover:bg-[#0a4633] text-white font-bold text-xs transition-all shadow-2xs"
+            >
+              <MessageSquare className="w-3.5 h-3.5" />
+              <span>Mở Trung Tâm Truyền Thông &amp; Tương Tác</span>
+            </Link>
+          </div>
         </div>
       )}
 
       {!loading && !error && !isEmpty && (
         <div className="space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 rounded-2xl bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-200/70 dark:border-emerald-800/50">
+            <div>
+              <h4 className="text-xs font-bold text-slate-900 dark:text-white">
+                Trung Tâm Truyền Thông &amp; Tương Tác Phụ Huynh
+              </h4>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                Quản lý tin nhắn trao đổi, sổ liên lạc điện tử và lưu ý dặn dò trực tiếp với phụ huynh của bé.
+              </p>
+            </div>
+            <Link
+              href={`/dashboard/education/communication?student=${studentId}`}
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#0e5c43] hover:bg-[#0a4633] text-white font-bold text-xs transition-all shadow-2xs shrink-0 active:scale-95"
+            >
+              <MessageSquare className="w-3.5 h-3.5" />
+              <span>Mở Trung Tâm Trao Đổi</span>
+            </Link>
+          </div>
           {/* 1. Nhật ký sinh hoạt gần nhất */}
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm">
             <div className="flex items-center gap-2.5 mb-4 pb-3 border-b border-slate-100 dark:border-slate-800">
