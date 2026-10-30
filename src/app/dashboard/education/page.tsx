@@ -69,6 +69,7 @@ import {
   Activity,
   Filter,
   Loader2,
+  RefreshCw,
 } from 'lucide-react';
 
 let executiveMessageSequence = 0;
@@ -206,13 +207,25 @@ function PreschoolDashboard({ tenantId, displayName, userRole }: { tenantId: str
   const [selectedBranchId, setSelectedBranchId] = useState<string | null>(null);
   const [analyticsError, setAnalyticsError] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [isRealtimeConnected, setIsRealtimeConnected] = useState(false);
+  const [isRealtimeSyncing, setIsRealtimeSyncing] = useState(false);
+  const prevBranchIdRef = useRef(selectedBranchId);
+  const prevDateRef = useRef(vietnamDate(selectedDate));
   const selectedDateStr = vietnamDate(selectedDate);
 
   useEffect(() => {
     let active = true;
     const controller = new AbortController();
-    setLoadingDashboard(true);
-    setDashboardData(null);
+    const isSelectionChange = prevBranchIdRef.current !== selectedBranchId || prevDateRef.current !== selectedDateStr;
+    prevBranchIdRef.current = selectedBranchId;
+    prevDateRef.current = selectedDateStr;
+
+    if (isSelectionChange || !dashboardData) {
+      setLoadingDashboard(true);
+      setDashboardData(null);
+    } else {
+      setIsRealtimeSyncing(true);
+    }
     setAnalyticsError(null);
     const params = new URLSearchParams({ date: selectedDateStr });
     if (selectedBranchId) params.set('branchId', selectedBranchId);
@@ -255,11 +268,73 @@ function PreschoolDashboard({ tenantId, displayName, userRole }: { tenantId: str
           }
         }
       } finally {
-        if (active) setLoadingDashboard(false);
+        if (active) {
+          setLoadingDashboard(false);
+          setIsRealtimeSyncing(false);
+        }
       }
     })();
     return () => { active = false; controller.abort(); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedDateStr, selectedBranchId, tenantId, refreshKey]);
+
+  // Realtime Supabase Channel Subscription for Live Attendance & Enrollment Changes
+  useEffect(() => {
+    if (!tenantId) return;
+    let refreshTimer: ReturnType<typeof setTimeout> | null = null;
+    const scheduleRefresh = () => {
+      if (refreshTimer) clearTimeout(refreshTimer);
+      refreshTimer = setTimeout(() => {
+        setRefreshKey((k) => k + 1);
+      }, 500);
+    };
+
+    let channel: ReturnType<NonNullable<ReturnType<typeof createClient>['channel']>> | null = null;
+    try {
+      const supabase = createClient();
+      if (supabase && typeof supabase.channel === 'function') {
+        channel = supabase
+          .channel(`education-dashboard-realtime-${tenantId}`)
+          .on(
+            'postgres_changes',
+            { event: '*', schema: 'public', table: 'edu_attendance_daily_state', filter: `tenant_id=eq.${tenantId}` },
+            () => scheduleRefresh()
+          )
+          .on(
+            'postgres_changes',
+            { event: '*', schema: 'public', table: 'edu_enrollments', filter: `tenant_id=eq.${tenantId}` },
+            () => scheduleRefresh()
+          )
+          .on(
+            'postgres_changes',
+            { event: '*', schema: 'public', table: 'edu_courses', filter: `tenant_id=eq.${tenantId}` },
+            () => scheduleRefresh()
+          )
+          .subscribe((status) => {
+            if (status === 'SUBSCRIBED') {
+              setIsRealtimeConnected(true);
+            } else if (status === 'CLOSED' || status === 'CHANNEL_ERROR') {
+              setIsRealtimeConnected(false);
+            }
+          });
+      }
+    } catch {
+      // Non-fatal if Supabase client does not support channels in mock/test environment
+    }
+
+    return () => {
+      if (refreshTimer) clearTimeout(refreshTimer);
+      setIsRealtimeConnected(false);
+      if (channel) {
+        try {
+          const supabase = createClient();
+          supabase?.removeChannel?.(channel);
+        } catch {
+          // Cleanup error ignored
+        }
+      }
+    };
+  }, [tenantId]);
 
   // Distinct students are supplied by the canonical API; class counts can overlap.
   const totalKidsCount = dashboardData?.enrollment.totalEnrolledStudents ?? null;
@@ -1165,18 +1240,35 @@ function PreschoolDashboard({ tenantId, displayName, userRole }: { tenantId: str
               </span>
             </h2>
           </div>
-          <span className="text-xs font-semibold text-slate-600 dark:text-slate-300 hidden sm:inline-flex items-center gap-1.5">
+          <div className="hidden sm:inline-flex items-center gap-2 text-xs font-semibold">
             {loadingDashboard ? (
-              <>
+              <span className="inline-flex items-center gap-1.5 text-slate-600 dark:text-slate-300">
                 <Loader2 className="w-3.5 h-3.5 animate-spin text-slate-400" />
                 <span>Đang tải số liệu</span>
-              </>
+              </span>
+            ) : isRealtimeConnected ? (
+              <span className="inline-flex items-center gap-1.5 text-emerald-700 dark:text-emerald-400 font-medium" title="Đang đồng bộ trực tiếp từ Database">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+                </span>
+                <span>Trực tiếp (Realtime)</span>
+                {isRealtimeSyncing && <Loader2 className="w-3 h-3 animate-spin text-emerald-600 ml-0.5" />}
+              </span>
             ) : dashboardData?.commandCenter ? (
-              'Dữ liệu tại lần tải gần nhất'
+              <span className="text-slate-600 dark:text-slate-300">Dữ liệu tại lần tải gần nhất</span>
             ) : (
-              'Không tải được số liệu cảnh báo'
+              <span className="text-slate-600 dark:text-slate-300">Không tải được số liệu cảnh báo</span>
             )}
-          </span>
+            <button
+              type="button"
+              onClick={() => setRefreshKey((k) => k + 1)}
+              title="Làm mới dữ liệu"
+              className="p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${isRealtimeSyncing || loadingDashboard ? 'animate-spin' : ''}`} />
+            </button>
+          </div>
         </div>
 
         {loadingDashboard ? (

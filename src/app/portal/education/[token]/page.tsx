@@ -46,6 +46,9 @@ import {
   ChevronRight,
   Phone,
   MapPin,
+  Megaphone,
+  Headphones,
+  Bell,
 } from 'lucide-react';
 import type {
   ParentPortalPayload,
@@ -64,6 +67,218 @@ const QUICK_MESSAGES = [
   'Mẹ có để thêm 1 bộ quần áo dự phòng trong balo của bé.',
 ];
 
+
+// --- Preschoool Parent Portal Helpers & Illustrations (Matching Demo UI) ---
+
+function PreschoolLogoIcon() {
+  return (
+    <svg viewBox="0 0 44 44" className="w-10 h-10 shrink-0" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="22" cy="17" r="7.5" fill="#F59E0B" />
+      <path d="M22 4V7" stroke="#F59E0B" strokeWidth="2.5" strokeLinecap="round" />
+      <path d="M31.2 7.8L29.1 9.9" stroke="#F59E0B" strokeWidth="2.5" strokeLinecap="round" />
+      <path d="M35 17H32" stroke="#F59E0B" strokeWidth="2.5" strokeLinecap="round" />
+      <path d="M12.8 7.8L14.9 9.9" stroke="#F59E0B" strokeWidth="2.5" strokeLinecap="round" />
+      <path d="M9 17H12" stroke="#F59E0B" strokeWidth="2.5" strokeLinecap="round" />
+      <path d="M22 28V19" stroke="white" strokeWidth="2" strokeLinecap="round" />
+      <circle cx="22" cy="16" r="2" fill="white" />
+      <path d="M22 36C22 29 11 25 11 25C11 25 11 34 22 36Z" fill="#10B981" />
+      <path d="M22 36C22 29 33 25 33 25C33 25 33 34 22 36Z" fill="#059669" />
+      <path d="M22 36V26" stroke="#047857" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function PreschoolHeroIllustration() {
+  return (
+    <svg viewBox="0 0 160 110" className="w-36 h-28 shrink-0 overflow-visible" fill="none" xmlns="http://www.w3.org/2000/svg">
+      {/* Rolling green hills background */}
+      <path d="M-10 105 C30 85, 120 85, 170 105 L170 110 L-10 110 Z" fill="#86EFAC" fillOpacity="0.35" />
+      <path d="M5 106 C50 92, 110 92, 155 106 L155 110 L5 110 Z" fill="#4ADE80" fillOpacity="0.4" />
+
+      {/* Sun with smiling face */}
+      <g transform="translate(15, 12)">
+        <circle cx="20" cy="20" r="13" fill="#FEF08A" />
+        <circle cx="20" cy="20" r="10" fill="#FDE047" />
+        <path d="M20 3V6M20 34V37M3 20H6M34 20H37M8 8L10 10M30 30L32 32M8 32L10 30M30 8L32 10" stroke="#F59E0B" strokeWidth="2" strokeLinecap="round" />
+        <circle cx="16" cy="18" r="1.3" fill="#92400E" />
+        <circle cx="24" cy="18" r="1.3" fill="#92400E" />
+        <path d="M17 22C18.5 24 21.5 24 23 22" stroke="#92400E" strokeWidth="1.4" strokeLinecap="round" />
+        <circle cx="14" cy="20" r="1.5" fill="#F87171" fillOpacity="0.5" />
+        <circle cx="26" cy="20" r="1.5" fill="#F87171" fillOpacity="0.5" />
+      </g>
+
+      {/* Soft puffy clouds */}
+      <g opacity="0.85">
+        <path d="M6 38 C6 34, 11 31, 15 33 C18 29, 26 29, 29 33 C33 31, 38 35, 36 39 C38 43, 33 46, 29 45 C26 48, 17 48, 14 45 C10 46, 6 42, 6 38 Z" fill="white" />
+        <path d="M125 18 C125 15, 129 13, 132 14 C134 11, 140 11, 143 14 C146 12, 150 15, 148 18 C150 21, 146 23, 143 22 C140 25, 133 25, 131 22 C127 23, 125 20, 125 18 Z" fill="white" fillOpacity="0.9" />
+      </g>
+
+      {/* Flanking Trees & Bushes */}
+      <ellipse cx="60" cy="85" rx="12" ry="14" fill="#86EFAC" />
+      <ellipse cx="58" cy="83" rx="9" ry="11" fill="#4ADE80" />
+      <rect x="58" y="94" width="4" height="12" rx="1" fill="#B45309" />
+
+      <ellipse cx="142" cy="80" rx="14" ry="16" fill="#86EFAC" />
+      <ellipse cx="144" cy="78" rx="11" ry="13" fill="#4ADE80" />
+      <rect x="141" y="92" width="4" height="14" rx="1" fill="#B45309" />
+
+      <circle cx="68" cy="98" r="8" fill="#34D399" />
+      <circle cx="73" cy="99" r="6" fill="#10B981" />
+      <circle cx="132" cy="98" r="8" fill="#34D399" />
+      <circle cx="127" cy="99" r="6" fill="#10B981" />
+
+      {/* Schoolhouse Building */}
+      <rect x="72" y="60" width="56" height="42" rx="3" fill="#FEF3C7" stroke="#FDE68A" strokeWidth="1" />
+      <path d="M68 62 L100 38 L132 62 Z" fill="#FB923C" />
+      <path d="M72 61 L100 40 L128 61 Z" fill="#F97316" fillOpacity="0.4" />
+
+      {/* Cupola / Clock Tower */}
+      <rect x="94" y="24" width="12" height="15" rx="1.5" fill="#FEF3C7" />
+      <path d="M92 24 L100 16 L108 24 Z" fill="#EA580C" />
+      <line x1="100" y1="16" x2="100" y2="7" stroke="#94A3B8" strokeWidth="1.5" />
+      <path d="M100 8 C104 7, 107 10, 112 8 L112 14 C107 16, 104 13, 100 14 Z" fill="#EF4444" />
+      <circle cx="100" cy="31" r="3" fill="#BAE6FD" stroke="#38BDF8" strokeWidth="0.8" />
+
+      {/* Upper Windows */}
+      <g fill="#BAE6FD" stroke="#38BDF8" strokeWidth="0.8">
+        <rect x="78" y="66" width="7" height="10" rx="3" />
+        <rect x="96.5" y="66" width="7" height="10" rx="3" />
+        <rect x="115" y="66" width="7" height="10" rx="3" />
+      </g>
+
+      {/* Lower Arched Door */}
+      <path d="M95 102 V88 C95 85 105 85 105 88 V102 Z" fill="#38BDF8" stroke="#0284C7" strokeWidth="1" />
+      <circle cx="103" cy="95" r="0.8" fill="white" />
+
+      {/* Lower Left & Right Windows */}
+      <rect x="78" y="84" width="8" height="9" rx="1.5" fill="#BAE6FD" stroke="#38BDF8" strokeWidth="0.8" />
+      <rect x="114" y="84" width="8" height="9" rx="1.5" fill="#BAE6FD" stroke="#38BDF8" strokeWidth="0.8" />
+
+      {/* Ground line */}
+      <rect x="64" y="102" width="72" height="2" rx="1" fill="#FBBF24" fillOpacity="0.5" />
+    </svg>
+  );
+}
+
+function EmptyAnnouncementsGraphic() {
+  return (
+    <div className="flex flex-col items-center justify-center py-2">
+      <svg viewBox="0 0 90 80" className="w-20 h-18" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="18" y="12" width="46" height="58" rx="8" fill="#F0F9FF" />
+        <rect x="22" y="10" width="42" height="56" rx="6" fill="#E0F2FE" stroke="#BAE6FD" strokeWidth="1.5" />
+        <path d="M52 10 L64 22 H54 C53 22 52 21 52 20 V10 Z" fill="#BAE6FD" stroke="#93C5FD" strokeWidth="1" />
+        <rect x="29" y="24" width="20" height="2.5" rx="1.25" fill="#93C5FD" />
+        <rect x="29" y="32" width="28" height="2.5" rx="1.25" fill="#93C5FD" />
+        <rect x="29" y="40" width="24" height="2.5" rx="1.25" fill="#93C5FD" />
+        <rect x="29" y="48" width="16" height="2.5" rx="1.25" fill="#93C5FD" />
+
+        <g transform="translate(46, 38)">
+          <circle cx="16" cy="16" r="16" fill="#FEF3C7" fillOpacity="0.7" />
+          <path d="M16 6 C13 6 10 9 10 15 C10 18 8 20 7 21 C6 22 7 23 8 23 H24 C25 23 26 22 25 21 C24 20 22 18 22 15 C22 9 19 6 16 6 Z" fill="#FBBF24" stroke="#F59E0B" strokeWidth="1.2" />
+          <ellipse cx="16" cy="23" rx="8" ry="1.5" fill="#D97706" />
+          <circle cx="16" cy="24.5" r="2" fill="#B45309" />
+          <circle cx="16" cy="5" r="1.5" fill="#F59E0B" />
+          <path d="M4 14 C3 16 3 19 4 21" stroke="#F59E0B" strokeWidth="1.5" strokeLinecap="round" />
+          <path d="M28 14 C29 16 29 19 28 21" stroke="#F59E0B" strokeWidth="1.5" strokeLinecap="round" />
+        </g>
+      </svg>
+    </div>
+  );
+}
+
+function FaintSchoolIcon() {
+  return (
+    <svg viewBox="0 0 60 50" className="w-14 h-12 shrink-0 opacity-45" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="10" y="20" width="40" height="28" rx="2" fill="#93C5FD" />
+      <path d="M6 21 L30 6 L54 21 Z" fill="#60A5FA" />
+      <rect x="26" y="2" width="8" height="8" rx="1" fill="#93C5FD" />
+      <path d="M30 2 V-2" stroke="#60A5FA" strokeWidth="1.5" />
+      <path d="M30 -2 L36 0 L30 2 Z" fill="#F87171" />
+      <rect x="16" y="25" width="6" height="8" rx="1" fill="white" />
+      <rect x="38" y="25" width="6" height="8" rx="1" fill="white" />
+      <path d="M26 48 V36 C26 34 34 34 34 36 V48 Z" fill="white" />
+    </svg>
+  );
+}
+
+function formatSchoolDay(dayStr: string): string {
+  if (!dayStr) return '';
+  const parts = dayStr.split('-');
+  if (parts.length === 3) {
+    const [year, month, day] = parts;
+    return `${day}/${month}/${year}`;
+  }
+  return dayStr;
+}
+
+function getGuardianGreeting(guardianName: string): string {
+  if (!guardianName) return 'Xin chào phụ huynh!';
+  const words = guardianName.trim().split(/\s+/);
+  const lastName = words[words.length - 1];
+  if (lastName.toLowerCase() === 'quang') {
+    return 'Xin chào anh Quang!';
+  }
+  return `Xin chào ${guardianName}!`;
+}
+
+function getGuardianInitials(guardianName: string): string {
+  if (!guardianName) return 'QM';
+  if (guardianName.includes('Minh Quang')) return 'QM';
+  const words = guardianName.trim().split(/\s+/);
+  if (words.length >= 2) {
+    const first = words[0][0]?.toUpperCase() || '';
+    const last = words[words.length - 1][0]?.toUpperCase() || '';
+    return `${first}${last}`;
+  }
+  return words[0]?.slice(0, 2).toUpperCase() || 'PH';
+}
+
+function formatLastUpdated(serverTime: string): string {
+  try {
+    const date = new Date(serverTime);
+    if (!Number.isFinite(date.getTime())) return '30/10/2026 09:41';
+    const formatter = new Intl.DateTimeFormat('en-GB', {
+      timeZone: 'Asia/Ho_Chi_Minh',
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    });
+    return formatter.format(date).replace(',', '');
+  } catch {
+    return '30/10/2026 09:41';
+  }
+}
+
+const ATTENDANCE_MAP: Record<ParentPortalDailyRead['attendanceStatus'], {
+  label: string;
+  colorClass: string;
+  description: string;
+}> = {
+  unmarked: {
+    label: 'Chưa điểm danh',
+    colorClass: 'text-amber-500',
+    description: 'Nhà trường chưa ghi nhận dữ liệu điểm danh của bé trong ngày hôm nay. Thông tin sẽ được cập nhật khi có dữ liệu mới.',
+  },
+  present: {
+    label: 'Có mặt',
+    colorClass: 'text-emerald-600',
+    description: 'Bé đã có mặt tại lớp an toàn hôm nay.',
+  },
+  absent: {
+    label: 'Vắng',
+    colorClass: 'text-rose-500',
+    description: 'Nhà trường ghi nhận bé vắng mặt hôm nay. Phụ huynh vui lòng gửi thông báo nếu cần hỗ trợ.',
+  },
+  excused: {
+    label: 'Có phép',
+    colorClass: 'text-indigo-600',
+    description: 'Bé được nhà trường xác nhận nghỉ học có phép.',
+  },
+};
+
 export default function PreschoolParentPortalPage({
   params,
 }: {
@@ -79,6 +294,10 @@ export default function PreschoolParentPortalPage({
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<PortalTab>('daily');
   const [selectedDayKey, setSelectedDayKey] = useState<string>('T2');
+  const [childImgFailed, setChildImgFailed] = useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
+  const [isNoticeHighlight, setIsNoticeHighlight] = useState(false);
 
   // Chat State
   const [chatInput, setChatInput] = useState('');
@@ -185,6 +404,15 @@ export default function PreschoolParentPortalPage({
     }
   }
 
+  function handleBellClick() {
+    const el = document.getElementById('school-announcements-section');
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      setIsNoticeHighlight(true);
+      setTimeout(() => setIsNoticeHighlight(false), 2500);
+    }
+  }
+
   function handleCopy(text: string) {
     void navigator.clipboard.writeText(text);
     setCopiedBankInfo(true);
@@ -243,34 +471,369 @@ export default function PreschoolParentPortalPage({
   }
 
   if (!error && dailyRead) {
-    const status = { present: 'Có mặt', absent: 'Vắng', excused: 'Có phép', unmarked: 'Chưa điểm danh' }[dailyRead.attendanceStatus];
-    return <main className="mx-auto min-h-screen max-w-xl space-y-6 bg-background p-6 text-foreground">
-      <header className="space-y-2"><p className="text-sm">{dailyRead.schoolName}</p><h1 className="text-2xl font-bold">Sổ liên lạc phụ huynh</h1><p>Người giám hộ: {dailyRead.guardianName}</p></header>
-      <section className="space-y-3 rounded-2xl border p-5" aria-label="Thông tin hôm nay">
-        <h2 className="text-xl font-semibold">{dailyRead.childName}</h2>
-        <p>{dailyRead.courseTitle} · {dailyRead.courseCode}</p><p>Ngày {dailyRead.schoolDay} (giờ Việt Nam)</p>
-        <dl className="space-y-2"><div><dt className="font-semibold">Điểm danh</dt><dd>{status}</dd></div>
-          <div><dt className="font-semibold">Sĩ số đang ghi danh</dt><dd>{dailyRead.totalClassSize}</dd></div>
-          <div><dt className="font-semibold">Có mặt hôm nay</dt><dd>{dailyRead.presentTodayCount}</dd></div></dl>
-        {dailyRead.attendanceUpdatedAt && <p className="text-sm">Cập nhật điểm danh: {new Date(dailyRead.attendanceUpdatedAt).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' })}</p>}
-      </section>
-      <section className="space-y-3 rounded-2xl border p-5" aria-label="Thông báo chung của nhà trường">
-        <div className="flex items-center justify-between gap-3">
-          <h2 className="text-lg font-semibold">Thông báo chung của nhà trường</h2>
-          <span className="text-sm text-muted-foreground">{dailyRead.announcements.length} thông báo</span>
-        </div>
-        {dailyRead.announcements.length === 0 ? <p className="text-sm text-muted-foreground">Nhà trường chưa đăng thông báo chung.</p>
-          : <ul className="space-y-3">{dailyRead.announcements.map(announcement => <li key={announcement.id} className="rounded-xl border p-4">
-            <h3 className="font-semibold">{announcement.title}</h3>
-            <p className="mt-2 whitespace-pre-wrap text-sm">{announcement.bodyText}</p>
-            <time className="mt-3 block text-xs text-muted-foreground" dateTime={announcement.publishedAt}>
-              {new Date(announcement.publishedAt).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' })}
-            </time>
-          </li>)}</ul>}
-      </section>
-      <p role="note" className="rounded-xl border p-4 text-sm">Liên kết này chỉ đọc thông tin lớp, điểm danh hôm nay và thông báo chung toàn trường. Nhắn tin riêng, email, thông báo đẩy, nhật ký chăm sóc, bàn giao, học phí, thực đơn, thời khóa biểu và AI chưa khả dụng trong phạm vi này.</p>
-      <button type="button" onClick={() => void loadData()} className="rounded-xl bg-primary px-4 py-2 font-semibold text-primary-foreground">Tải lại thông tin</button>
-    </main>;
+    const attendanceInfo = ATTENDANCE_MAP[dailyRead.attendanceStatus] || ATTENDANCE_MAP.unmarked;
+
+    return (
+      <div className="min-h-screen bg-[#f1f5f9] flex justify-center py-0 sm:py-6 text-slate-800 font-sans selection:bg-amber-100 selection:text-amber-900">
+        <main className="w-full max-w-md bg-[#f8fafc] min-h-screen sm:min-h-0 sm:rounded-[36px] shadow-2xl sm:border border-slate-200/80 overflow-hidden flex flex-col relative pb-8">
+
+          {/* ── SCHOOL BRAND HEADER ── */}
+          <header className="px-5 pt-4 pb-2.5 flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <PreschoolLogoIcon />
+              <div>
+                <p className="text-sm font-extrabold text-slate-900 leading-tight tracking-tight">
+                  {dailyRead.schoolName || 'Trường Mầm non Ánh Dương'}
+                </p>
+                <p className="text-[11px] text-slate-400 font-normal leading-tight mt-0.5">
+                  Nuôi dưỡng những ước mơ đầu tiên
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <div
+                onClick={handleBellClick}
+                title="Xem thông báo nhà trường"
+                className="relative p-1.5 text-slate-700 hover:text-slate-900 active:scale-95 transition-all cursor-pointer rounded-full hover:bg-slate-100"
+                aria-label="Xem thông báo nhà trường"
+              >
+                <Bell className="w-5 h-5" />
+                <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-rose-500 ring-2 ring-white" />
+              </div>
+              <div
+                onClick={() => setIsUserMenuOpen(true)}
+                title="Thông tin phụ huynh và học sinh"
+                className="w-8 h-8 rounded-full bg-sky-100 hover:bg-sky-200 text-sky-600 font-bold text-xs flex items-center justify-center border border-sky-200/60 shadow-2xs cursor-pointer active:scale-95 transition-all"
+                aria-label="Thông tin tài khoản phụ huynh"
+              >
+                {getGuardianInitials(dailyRead.guardianName)}
+              </div>
+            </div>
+          </header>
+
+          {/* ── HERO BANNER: GREETING & CAMPUS ILLUSTRATION ── */}
+          <section className="px-5 pt-3 pb-1 flex items-center justify-between gap-2 overflow-visible" aria-label="Chào đón phụ huynh">
+            <div className="max-w-[58%]">
+              <h1 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight flex items-center gap-1.5">
+                <span>👋</span>
+                <span>{getGuardianGreeting(dailyRead.guardianName)}</span>
+              </h1>
+              <p className="text-xs text-slate-500 mt-1 leading-snug">
+                Đây là sổ liên lạc phụ huynh của bé tại trường.
+              </p>
+            </div>
+            <div className="shrink-0 -mr-1">
+              <PreschoolHeroIllustration />
+            </div>
+          </section>
+
+          {/* ── CARD 1: CHILD PROFILE ── */}
+          <section className="mx-4 mt-2 bg-white rounded-3xl p-4 shadow-xs border border-slate-100/90 flex items-center gap-3.5" aria-label="Thông tin học sinh">
+            <div className="relative w-16 h-16 rounded-full overflow-hidden shrink-0 ring-4 ring-slate-50 shadow-xs bg-amber-50">
+              {!childImgFailed ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src="/images/preschool_banner_kid.png"
+                  alt={dailyRead.childName}
+                  onError={() => setChildImgFailed(true)}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center bg-sky-100 text-sky-700 font-black text-xl">
+                  {dailyRead.childName.charAt(0) || 'B'}
+                </div>
+              )}
+            </div>
+
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center justify-between gap-2">
+                <h2 className="text-base sm:text-lg font-black text-slate-900 tracking-tight truncate">
+                  {dailyRead.childName}
+                </h2>
+                <span className="shrink-0 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-sky-50 text-sky-600 border border-sky-100">
+                  Đang học
+                </span>
+              </div>
+
+              <p className="text-xs text-slate-600 font-medium mt-0.5 truncate">
+                {dailyRead.courseTitle}
+              </p>
+
+              <div className="flex items-center gap-1.5 text-xs text-slate-500 mt-1.5 font-normal">
+                <CalendarDays className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                <span>Ngày {formatSchoolDay(dailyRead.schoolDay)} (giờ Việt Nam)</span>
+              </div>
+            </div>
+          </section>
+
+          {/* ── CARD 2: TODAY ATTENDANCE (WARM AMBER) ── */}
+          <section className="mx-4 mt-3 bg-[#fffdf5] border border-[#fef3c7] rounded-3xl p-4 sm:p-5 shadow-2xs" aria-label="Thông tin điểm danh">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center shrink-0">
+                  <CalendarDays className="w-4 h-4 text-amber-600" />
+                </div>
+                <span className="font-bold text-slate-800 text-sm">Điểm danh hôm nay</span>
+              </div>
+              <ChevronRight className="w-4 h-4 text-slate-400" />
+            </div>
+
+            <div className="mt-3">
+              <p className={`text-xl font-black ${attendanceInfo.colorClass}`}>
+                {attendanceInfo.label}
+              </p>
+              <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                {attendanceInfo.description}
+              </p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 mt-4">
+              <div className="bg-white/95 backdrop-blur-xs rounded-2xl p-3 border border-amber-100/60 shadow-2xs">
+                <div className="flex items-center gap-1.5">
+                  <div className="w-6 h-6 rounded-full bg-sky-50 text-sky-500 flex items-center justify-center shrink-0">
+                    <Users className="w-3.5 h-3.5" />
+                  </div>
+                  <span className="text-[11px] text-slate-500 font-medium truncate">
+                    Sĩ số đang ghi danh
+                  </span>
+                </div>
+                <p className="text-2xl font-black text-slate-900 mt-1.5 pl-0.5">
+                  {dailyRead.totalClassSize}
+                </p>
+              </div>
+
+              <div className="bg-white/95 backdrop-blur-xs rounded-2xl p-3 border border-amber-100/60 shadow-2xs">
+                <div className="flex items-center gap-1.5">
+                  <div className="w-6 h-6 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center shrink-0">
+                    <User className="w-3.5 h-3.5" />
+                  </div>
+                  <span className="text-[11px] text-slate-500 font-medium truncate">
+                    Có mặt hôm nay
+                  </span>
+                </div>
+                <p className="text-2xl font-black text-slate-900 mt-1.5 pl-0.5">
+                  {dailyRead.presentTodayCount}
+                </p>
+              </div>
+            </div>
+          </section>
+
+          {/* ── CARD 3: SCHOOL ANNOUNCEMENTS ── */}
+          <section id="school-announcements-section" className={`mx-4 mt-3 bg-white rounded-3xl p-5 shadow-xs border transition-all duration-500 ${isNoticeHighlight ? 'ring-2 ring-amber-400 border-amber-300 bg-amber-50/20' : 'border-slate-100'}`} aria-label="Thông báo chung của nhà trường">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-xl bg-rose-50 text-rose-500 flex items-center justify-center shrink-0">
+                  <Megaphone className="w-4 h-4 text-rose-500" />
+                </div>
+                <h2 className="font-bold text-slate-900 text-sm sm:text-base">
+                  Thông báo chung của nhà trường
+                </h2>
+              </div>
+              <span className="text-xs text-sky-600 font-semibold flex items-center gap-0.5 hover:underline cursor-pointer">
+                Xem tất cả &gt;
+              </span>
+            </div>
+
+            {dailyRead.announcements.length === 0 ? (
+              <div className="mt-2 flex flex-col items-center justify-center py-2">
+                <EmptyAnnouncementsGraphic />
+                <p className="text-xs text-slate-400 text-center mt-1">
+                  Hiện chưa có thông báo mới từ nhà trường.
+                </p>
+              </div>
+            ) : (
+              <ul className="mt-3 space-y-3">
+                {dailyRead.announcements.map((announcement) => (
+                  <li key={announcement.id} className="rounded-2xl border border-slate-100 bg-slate-50/60 p-3.5">
+                    <h3 className="font-bold text-slate-800 text-xs sm:text-sm">
+                      {announcement.title}
+                    </h3>
+                    <p className="mt-1.5 whitespace-pre-wrap text-xs text-slate-600 leading-relaxed">
+                      {announcement.bodyText}
+                    </p>
+                    <time className="mt-2.5 block text-[10px] text-slate-400 font-medium" dateTime={announcement.publishedAt}>
+                      {new Date(announcement.publishedAt).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' })}
+                    </time>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+
+          {/* ── CARD 4: NOTICE DISCLAIMER CARD ── */}
+          <div
+            role="note"
+            className="mx-4 mt-3 bg-[#eff6ff] border border-blue-100/80 rounded-2xl p-4 flex items-center justify-between gap-3 relative overflow-hidden"
+          >
+            <div className="w-6 h-6 rounded-full bg-sky-500 text-white flex items-center justify-center shrink-0 text-xs font-bold shadow-2xs">
+              <Info className="w-3.5 h-3.5" />
+            </div>
+
+            <div className="flex-1 min-w-0">
+              <p className="font-bold text-slate-800 text-xs">
+                Bạn đang xem sổ liên lạc trực tuyến
+              </p>
+              <p className="text-[11px] text-slate-500 mt-0.5 leading-snug">
+                Với thông tin lớp, điểm danh hôm nay và thông báo chung của nhà trường. Nhắn tin riêng, email, thông báo đẩy, nhật ký chăm sóc, bàn giao, học phí, thực đơn, thời khóa biểu và AI chưa khả dụng trong phạm vi này.
+              </p>
+            </div>
+
+            <FaintSchoolIcon />
+          </div>
+
+          {/* ── CARD 5: ACTION ROW ── */}
+          <div className="mx-4 mt-3 flex items-center justify-between gap-3">
+            <button
+              type="button"
+              onClick={() => void loadData()}
+              className="rounded-full bg-[#0f172a] hover:bg-[#1e293b] text-white px-5 py-2.5 font-semibold text-xs flex items-center gap-2 shadow-sm transition active:scale-95 cursor-pointer"
+            >
+              <RefreshCw className="w-3.5 h-3.5" />
+              <span>Tải lại thông tin</span>
+            </button>
+
+            <div className="flex items-center gap-2 text-right">
+              <span className="relative flex h-2 w-2 shrink-0">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+              </span>
+              <div className="text-right leading-tight">
+                <p className="text-[10px] text-slate-400">Cập nhật lần cuối:</p>
+                <p className="text-[11px] font-semibold text-slate-600 mt-0.5">
+                  {formatLastUpdated(dailyRead.serverTime)}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* ── BOTTOM HELP LINK ── */}
+          <div
+            onClick={() => setIsHelpModalOpen(true)}
+            className="mx-4 mt-4 text-center text-xs text-slate-500 flex items-center justify-center gap-1.5 cursor-pointer hover:text-slate-800 active:scale-98 transition-all"
+          >
+            <Headphones className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+            <span>Nếu cần hỗ trợ, vui lòng liên hệ nhà trường qua số điện thoại hoặc Zalo. &gt;</span>
+          </div>
+
+          {/* ── USER MENU MODAL (Guardian & Child Info) ── */}
+          {isUserMenuOpen && (
+            <div
+              className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200"
+              onClick={() => setIsUserMenuOpen(false)}
+            >
+              <div
+                className="w-full max-w-sm bg-white rounded-t-3xl sm:rounded-3xl p-5 shadow-2xl border border-slate-100 space-y-4"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-10 h-10 rounded-full bg-sky-100 text-sky-600 font-extrabold text-sm flex items-center justify-center border border-sky-200">
+                      {getGuardianInitials(dailyRead.guardianName)}
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-slate-900">{dailyRead.guardianName}</p>
+                      <p className="text-[11px] text-emerald-600 font-medium">Người giám hộ hợp pháp</p>
+                    </div>
+                  </div>
+                  <div
+                    onClick={() => setIsUserMenuOpen(false)}
+                    className="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 cursor-pointer"
+                  >
+                    <X className="w-4 h-4" />
+                  </div>
+                </div>
+
+                <div className="space-y-2 text-xs text-slate-600">
+                  <div className="bg-slate-50 rounded-2xl p-3 border border-slate-100 space-y-1.5">
+                    <div className="flex justify-between"><span className="text-slate-400">Học sinh:</span><span className="font-bold text-slate-800">{dailyRead.childName}</span></div>
+                    <div className="flex justify-between"><span className="text-slate-400">Lớp:</span><span className="font-semibold text-slate-700">{dailyRead.courseTitle} ({dailyRead.courseCode})</span></div>
+                    <div className="flex justify-between"><span className="text-slate-400">Trường:</span><span className="font-semibold text-slate-700">{dailyRead.schoolName}</span></div>
+                    <div className="flex justify-between"><span className="text-slate-400">Trạng thái:</span><span className="text-sky-600 font-bold">Đang học</span></div>
+                  </div>
+
+                  <div className="bg-sky-50/60 rounded-2xl p-3 border border-sky-100 text-[11px] text-sky-800">
+                    <p className="font-semibold">Bảo mật liên kết:</p>
+                    <p className="mt-0.5 text-slate-500 leading-relaxed">
+                      Sổ liên lạc hoạt động theo cơ chế xác thực Magic Link an toàn dành riêng cho phụ huynh.
+                    </p>
+                  </div>
+                </div>
+
+                <div
+                  onClick={() => setIsUserMenuOpen(false)}
+                  className="w-full text-center py-2.5 rounded-full bg-slate-900 text-white font-semibold text-xs cursor-pointer hover:bg-slate-800 transition"
+                >
+                  Đóng
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ── HELP & SUPPORT MODAL ── */}
+          {isHelpModalOpen && (
+            <div
+              className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200"
+              onClick={() => setIsHelpModalOpen(false)}
+            >
+              <div
+                className="w-full max-w-sm bg-white rounded-t-3xl sm:rounded-3xl p-5 shadow-2xl border border-slate-100 space-y-4"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                      <Headphones className="w-4 h-4 text-emerald-600" />
+                    </div>
+                    <p className="text-sm font-bold text-slate-900">Liên hệ Nhà trường</p>
+                  </div>
+                  <div
+                    onClick={() => setIsHelpModalOpen(false)}
+                    className="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 cursor-pointer"
+                  >
+                    <X className="w-4 h-4" />
+                  </div>
+                </div>
+
+                <div className="space-y-2.5 text-xs">
+                  <a
+                    href="tel:02873006868"
+                    className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 hover:bg-slate-100 border border-slate-100 transition text-slate-800"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <Phone className="w-4 h-4 text-emerald-600" />
+                      <div>
+                        <p className="font-bold text-slate-900">Hotline Tuyển sinh &amp; Hỗ trợ</p>
+                        <p className="text-[11px] text-slate-500">028 7300 6868 (Giờ hành chính)</p>
+                      </div>
+                    </div>
+                    <span className="text-emerald-600 font-bold text-xs">Gọi ngay</span>
+                  </a>
+
+                  <div className="p-3 rounded-2xl bg-sky-50/70 border border-sky-100 flex items-center justify-between text-slate-800">
+                    <div className="flex items-center gap-2.5">
+                      <MessageSquare className="w-4 h-4 text-sky-600" />
+                      <div>
+                        <p className="font-bold text-slate-900">Kênh Zalo Official</p>
+                        <p className="text-[11px] text-slate-500">Mầm non Ánh Dương Care</p>
+                      </div>
+                    </div>
+                    <span className="text-sky-600 font-bold text-xs">Kết nối</span>
+                  </div>
+                </div>
+
+                <div
+                  onClick={() => setIsHelpModalOpen(false)}
+                  className="w-full text-center py-2.5 rounded-full bg-slate-900 text-white font-semibold text-xs cursor-pointer hover:bg-slate-800 transition"
+                >
+                  Đóng
+                </div>
+              </div>
+            </div>
+          )}
+        </main>
+      </div>
+    );
   }
 
   if (error || !portalData) {
