@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS public.edu_announcements (
 );
 
 -- Indexes
-CREATE INDEX IF NOT EXISTS idx_edu_announcements_tenant_published
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_edu_announcements_tenant_published -- zero-downtime: allow blocking-index - new table with zero rows at migration time; CONCURRENTLY used
   ON public.edu_announcements (tenant_id, published_at DESC);
 
 -- ─── RLS ──────────────────────────────────────────────────────────────────────

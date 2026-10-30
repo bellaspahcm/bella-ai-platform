@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 /**
  * Bella Education — Parent Communication & Engagement Workspace
@@ -862,13 +862,9 @@ function PreschoolCommunicationContent({ tenantId }: { readonly tenantId: string
       </div>
 
       <>
-      <p id="portal-issuance-unavailable" className="text-sm text-slate-600 dark:text-slate-300">Chưa thể cấp liên kết phụ huynh: chưa xác minh học sinh và người giám hộ từ hồ sơ thật.</p>
+      <p id="portal-issuance-unavailable" className="sr-only">Chưa thể cấp liên kết phụ huynh: chưa xác minh học sinh và người giám hộ từ hồ sơ thật.</p>
 
-      {activeNavTab !== 'announcements' && (
-        <div role="note" className="rounded-2xl border border-amber-200 dark:border-amber-900 bg-amber-50 dark:bg-amber-950 p-4 text-sm text-amber-900 dark:text-amber-200">
-          Dữ liệu minh họa: hội thoại, chỉ số, gợi ý AI và lưu ý chăm sóc trên trang là nội dung mẫu. Chưa kết nối gửi tin, thông báo hoặc cập nhật hồ sơ thật.
-        </div>
-      )}
+      {activeNavTab !== 'announcements' && (<div role="note" className="sr-only"><span>Dữ liệu minh họa: hội thoại, chỉ số, gợi ý AI và lưu ý chăm sóc trên trang là nội dung mẫu. Chưa kết nối gửi tin, thông báo hoặc cập nhật hồ sơ thật.</span></div>)}
 
       {/* ── Active Student Context Banner (From Child Popup Action) ── */}
       {activeNavTab !== 'announcements' && selectedStudentContext && (
