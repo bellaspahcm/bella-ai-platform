@@ -295,3 +295,19 @@ export interface PortalTuitionSummary {
   readonly totalOutstanding: number;
   readonly vietQrPayload?: ParentPortalVietQrPayload;
 }
+
+export interface PortalAttendanceHistoryItem {
+  readonly id: string;
+  readonly schoolDay: string;
+  readonly dayLabel: string;
+  readonly status: 'present' | 'absent' | 'excused' | 'late';
+  readonly statusLabel: string;
+  readonly rollCallTime: string | null;
+}
+
+export interface PortalAttendanceSummary {
+  readonly history: readonly PortalAttendanceHistoryItem[];
+  readonly totalMarked: number;
+  readonly presentCount: number;
+  readonly attendanceRatePercent: number | null;
+}
