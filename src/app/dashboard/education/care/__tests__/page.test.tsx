@@ -2,6 +2,10 @@
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import CarePage from '../page';
 
+let currentSearchParams = new URLSearchParams();
+jest.mock('next/navigation', () => ({
+  useSearchParams: () => currentSearchParams,
+}));
 jest.mock('@/lib/user-context', () => ({ useUser: () => ({ product: { productKey: 'bella_preschool' }, isLoading: false }) }));
 jest.mock('next/image', () => ({ __esModule: true, default: () => null }));
 
@@ -12,7 +16,7 @@ const courses = [
 ];
 const student = (name: string) => ({ enrollmentId: 'synthetic-enrollment', studentPartyId: 'synthetic-student', name, studentCode: null, gender: null, dob: null, care: null });
 const reply = (body: unknown, ok = true, status = ok ? 200 : 503) => ({ ok, status, json: async () => body });
-afterEach(() => { global.fetch = originalFetch; });
+afterEach(() => { global.fetch = originalFetch; currentSearchParams = new URLSearchParams(); });
 
 test.each([{ roster: [{...student('Synthetic child'),name:null}] }, { roster: [student('Synthetic child'),student('Synthetic duplicate')] }, { roster: [{...student('Synthetic child'),care:{id:'record',mealRecords:'invalid'}}] }])('rejects malformed canonical roster without keeping actionable children: %j', async body => {
   global.fetch=jest.fn().mockImplementation((url:string)=>Promise.resolve(url==='/api/education/care/classes'
@@ -131,4 +135,25 @@ test('A pending save locks its draft and prevents opening a competing editor', a
   expect(await within(dialog).findByRole('alert')).toHaveTextContent('Chưa xác nhận lưu đầy đủ');
   expect(note).toBeEnabled();
   expect(note).toHaveValue('Original pending draft');
+});
+
+test('renders cross-module student context banner and links when student param is present', async () => {
+  currentSearchParams = new URLSearchParams('student=HS0001');
+  const request = jest.fn().mockImplementation((url: string) => Promise.resolve(url === '/api/education/care/classes'
+    ? reply({ success: true, classrooms: [courses[0]] })
+    : reply({ success: true, roster: [student('Nguyễn Minh An')] })));
+  global.fetch = request;
+
+  render(<CarePage />);
+  expect(await screen.findByText('Nguyễn Minh An', { exact: true })).toBeVisible();
+  expect(screen.getByText(/Đang lọc nhật ký chăm sóc theo học sinh:/)).toBeInTheDocument();
+  expect(screen.getByRole('link', { name: 'Xem Hồ Sơ 360°' })).toHaveAttribute('href', '/dashboard/education/enrollments/HS0001');
+  expect(screen.getByRole('link', { name: 'Học Tập & Hoạt Động' })).toHaveAttribute('href', '/dashboard/education/grades?student=HS0001');
+  expect(screen.getByRole('link', { name: 'Điểm Danh & Đón Trả' })).toHaveAttribute('href', '/dashboard/education/attendance?student=HS0001');
+
+  // Clicking "Xem tất cả trẻ" resets search query and hides banner
+  await act(async () => {
+    fireEvent.click(screen.getByRole('button', { name: 'Xem tất cả trẻ' }));
+  });
+  expect(screen.queryByText(/Đang lọc nhật ký chăm sóc theo học sinh:/)).not.toBeInTheDocument();
 });

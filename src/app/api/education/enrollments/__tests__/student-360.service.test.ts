@@ -69,6 +69,14 @@ describe('Student 360 caller-authorized public contract composition', () => {
     expect(mockHistory).not.toHaveBeenCalled();
   });
 
+  it.each(['STU-001', 'HS-2026-001'])('resolves alias %s to canonical student code HS0001', async alias => {
+    const s = { ...student(), studentCode: 'HS0001' };
+    mockRegistryRead.mockResolvedValueOnce(page([s]));
+    const profile = await loadStudent360Profile(callerClient, tenantId, alias);
+    expect(profile?.id).toBe('HS0001');
+    expect(profile?.studentId).toBe(s.id);
+  });
+
   it('returns not found only after a complete authorized empty registry', async () => {
     mockRegistryRead.mockResolvedValueOnce(page([]));
     expect(await loadStudent360Profile(callerClient, tenantId, student().id)).toBeNull();

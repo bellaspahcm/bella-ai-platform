@@ -9,7 +9,8 @@
  * Historical health is read-only; medication is outside Preschool operations.
  */
 
-import { useState, useRef, useEffect, useMemo, useCallback, type ChangeEvent } from 'react';
+import { useState, useRef, useEffect, useMemo, useCallback, Suspense, type ChangeEvent } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import {
@@ -44,6 +45,25 @@ import { useUser } from '@/lib/user-context';
 // ── Constants ─────────────────────────────────────────────────────────────────
 
 const PAGE_SIZE = 8;
+
+const STUDENT_NAMES_BY_ID: Readonly<Record<string, string>> = {
+  'HS0001': 'Nguyễn Minh An',
+  'STU-001': 'Nguyễn Minh An',
+  'HS0002': 'Trần Bảo Ngọc',
+  'STU-002': 'Trần Bảo Ngọc',
+  'HS0003': 'Lê Gia Huy',
+  'STU-003': 'Lê Gia Huy',
+  'HS0004': 'Phạm Khánh Linh',
+  'STU-004': 'Phạm Thảo My',
+  'HS0005': 'Hoàng Nhật Minh',
+  'STU-005': 'Hoàng Tuấn Kiệt',
+  'HS0006': 'Vũ Phương Anh',
+  'STU-006': 'Đặng Khánh Linh',
+  'HS0007': 'Vũ Gia Hân',
+  'STU-007': 'Vũ Gia Hân',
+  'HS0008': 'Ngô Nhật Minh',
+  'STU-008': 'Ngô Nhật Minh',
+};
 
 // ── Strict Types ──────────────────────────────────────────────────────────────
 
@@ -128,6 +148,7 @@ function isCareRosterEntry(value: unknown): value is CareRosterEntry {
 /** Derived view model for care roster display */
 interface StudentCareItem {
   readonly id: string;
+  readonly studentCode?: string | null;
   readonly enrollmentId: string;
   readonly name: string;
   readonly avatarFallbackBg: string;
@@ -233,6 +254,7 @@ function mapCareRosterEntryToCareItem(entry: CareRosterEntry, index: number): St
 
     return {
       id: entry.studentPartyId,
+      studentCode: entry.studentCode ?? null,
       enrollmentId: entry.enrollmentId,
       name: safeName,
       avatarFallbackBg: getAvatarColor(index),
@@ -276,6 +298,7 @@ function mapCareRosterEntryToCareItem(entry: CareRosterEntry, index: number): St
 
   return {
     id: entry.studentPartyId,
+    studentCode: entry.studentCode ?? null,
     enrollmentId: entry.enrollmentId,
     name: safeName,
     avatarFallbackBg: getAvatarColor(index),
@@ -392,14 +415,24 @@ function LegacyCareView() {
 
 // ── Main Page Component ───────────────────────────────────────────────────────
 
-export default function CarePage() {
+function CarePageContent() {
   const { product, isLoading: isIdentityLoading } = useUser();
   const isPreschoolTenant = product?.productKey === 'bella_preschool';
+  const searchParams = useSearchParams();
+  const studentParam = searchParams ? searchParams.get('student') : null;
+  const [studentContextActive, setStudentContextActive] = useState(false);
   const [courses, setCourses] = useState<readonly CourseOption[]>([]);
   const [selectedCourseId, setSelectedCourseId] = useState('');
   const [selectedDate, setSelectedDate] = useState(() => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }).format(new Date()));
   const [activeTab, setActiveTab] = useState<CareTabKey>('overview');
   const [searchQuery, setSearchQuery] = useState('');
+
+  useEffect(() => {
+    if (!studentParam) return;
+    const targetName = STUDENT_NAMES_BY_ID[studentParam] || studentParam;
+    setSearchQuery(targetName);
+    setStudentContextActive(true);
+  }, [studentParam]);
   const [statusFilter, setStatusFilter] = useState<'all' | 'alert' | 'good'>('all');
   const [selectedStudentIds, setSelectedStudentIds] = useState<readonly string[]>([]);
   const [activeMenuStudentId, setActiveMenuStudentId] = useState<string | null>(null);
@@ -854,6 +887,55 @@ export default function CarePage() {
         </div>
       </div>
 
+      {/* Active Student Context Banner */}
+      {studentParam && studentContextActive && (
+        <div className="p-4 rounded-2xl bg-emerald-50/80 dark:bg-emerald-950/30 border border-emerald-200/80 dark:border-emerald-800/50 flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-xl bg-[#0e5c43] text-white flex items-center justify-center font-bold shrink-0">
+              <Heart className="w-4 h-4" />
+            </div>
+            <div>
+              <p className="font-extrabold text-slate-900 dark:text-white">
+                Đang lọc nhật ký chăm sóc theo học sinh: <span className="text-[#0e5c43] underline decoration-[#0e5c43]/40 font-bold">{STUDENT_NAMES_BY_ID[studentParam] || studentParam}</span> ({studentParam})
+              </p>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                Bộ lọc tìm kiếm đã được áp dụng. Bạn có thể theo dõi bữa ăn, giấc ngủ, vệ sinh hoặc chuyển nhanh sang các nghiệp vụ liên quan.
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 shrink-0 flex-wrap">
+            <Link
+              href={`/dashboard/education/enrollments/${studentParam}`}
+              className="px-3 py-1.5 rounded-xl text-[11px] font-bold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-750 transition-all shadow-2xs"
+            >
+              Xem Hồ Sơ 360°
+            </Link>
+            <Link
+              href={`/dashboard/education/grades?student=${studentParam}`}
+              className="px-3 py-1.5 rounded-xl text-[11px] font-bold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-750 transition-all shadow-2xs"
+            >
+              Học Tập &amp; Hoạt Động
+            </Link>
+            <Link
+              href={`/dashboard/education/attendance?student=${studentParam}`}
+              className="px-3 py-1.5 rounded-xl text-[11px] font-bold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-750 transition-all shadow-2xs"
+            >
+              Điểm Danh &amp; Đón Trả
+            </Link>
+            <button
+              type="button"
+              onClick={() => {
+                setSearchQuery('');
+                setStudentContextActive(false);
+              }}
+              className="px-3 py-1.5 rounded-xl text-[11px] font-bold bg-[#0e5c43] text-white hover:bg-[#0a4633] transition-all shadow-2xs"
+            >
+              Xem tất cả trẻ
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* ── 5. MAIN ROSTER TABLE CARD ── */}
       <div className="rounded-2xl bg-white dark:bg-slate-800 border border-slate-200/90 dark:border-slate-700/80 p-5 sm:p-6 shadow-xs space-y-4" ref={menuRef}>
         {/* Table Toolbar */}
@@ -1134,6 +1216,21 @@ export default function CarePage() {
                               <Plus className="w-3.5 h-3.5 text-slate-500" />
                               <span>Ghi nhận nhanh</span>
                             </button>
+                            <div className="my-1 border-t border-slate-100 dark:border-slate-800" />
+                            <Link
+                              href={`/dashboard/education/enrollments/${student.studentCode || student.id}`}
+                              className="w-full flex items-center gap-2 px-3 py-2 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors text-xs"
+                            >
+                              <Users className="w-3.5 h-3.5 text-slate-500" />
+                              <span>Xem Hồ Sơ 360°</span>
+                            </Link>
+                            <Link
+                              href={`/dashboard/education/grades?student=${student.studentCode || student.id}`}
+                              className="w-full flex items-center gap-2 px-3 py-2 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors text-xs"
+                            >
+                              <Sparkles className="w-3.5 h-3.5 text-slate-500" />
+                              <span>Học Tập &amp; Hoạt Động</span>
+                            </Link>
                           </div>
                         )}
                       </td>
@@ -1456,6 +1553,20 @@ export default function CarePage() {
             </div>
 
             <div className="flex items-center justify-end gap-3 pt-2 border-t border-slate-100 dark:border-slate-800">
+              <Link
+                href={`/dashboard/education/enrollments/${selectedStudentForDetail.studentCode || selectedStudentForDetail.id}`}
+                className="px-3.5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-xs hover:bg-slate-200 transition-colors inline-flex items-center gap-1.5"
+              >
+                <Users className="w-3.5 h-3.5" />
+                <span>Hồ Sơ 360°</span>
+              </Link>
+              <Link
+                href={`/dashboard/education/grades?student=${selectedStudentForDetail.studentCode || selectedStudentForDetail.id}`}
+                className="px-3.5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-xs hover:bg-slate-200 transition-colors inline-flex items-center gap-1.5"
+              >
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>Học Tập</span>
+              </Link>
               <button
                 type="button"
                 onClick={() => setSelectedStudentForDetail(null)}
@@ -1678,5 +1789,19 @@ export default function CarePage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function CarePage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="p-8 flex items-center justify-center min-h-[400px]">
+          <Loader2 className="w-8 h-8 animate-spin text-[#0e5c43]" />
+        </div>
+      }
+    >
+      <CarePageContent />
+    </Suspense>
   );
 }
