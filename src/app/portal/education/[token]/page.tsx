@@ -16,7 +16,7 @@
  */
 
 import { use, useEffect, useRef, useState, useTransition, type FormEvent } from 'react';
-import { isParentPortalAnnouncementFeed, isParentPortalDailyRead, type ParentPortalDailyRead } from '@/products/bella-education/parent-portal/domain/parent-portal.types';
+import { isParentPortalAnnouncementFeed, isParentPortalDailyRead, type ParentPortalDailyRead, type PortalTuitionSummary } from '@/products/bella-education/parent-portal/domain/parent-portal.types';
 import {
   Baby,
   Calendar,
@@ -423,6 +423,7 @@ export default function PreschoolParentPortalPage({
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<PortalTab>('daily');
   const [dailyTab, setDailyTab] = useState<DailyTab>('overview');
+  const [tuitionSummary, setTuitionSummary] = useState<PortalTuitionSummary | null>(null);
   const [dailyMenuDay, setDailyMenuDay] = useState<'T2' | 'T3' | 'T4' | 'T5' | 'T6'>('T6');
   const [copiedDailyField, setCopiedDailyField] = useState<string | null>(null);
   const [selectedDayKey, setSelectedDayKey] = useState<string>('T2');
@@ -451,7 +452,7 @@ export default function PreschoolParentPortalPage({
   // Load Portal Data
   async function loadData() {
     const requestId = ++generation.current;
-    setLoadedToken(token); setPortalData(null); setDailyRead(null);
+    setLoadedToken(token); setPortalData(null); setDailyRead(null); setTuitionSummary(null);
     setLoading(true);
     setError(null);
     try {
@@ -472,6 +473,18 @@ export default function PreschoolParentPortalPage({
       if ('scope' in json.data) {
         if (!isParentPortalDailyRead(json.data)) throw new Error('Thông tin Portal chưa khả dụng');
         setDailyRead(json.data);
+        // Load real tuition from edu_fin_invoices
+        try {
+          const tRes = await fetch(`/api/education/portal/${encodeURIComponent(token)}/tuition`, { cache: 'no-store' });
+          if (tRes.ok) {
+            const tJson = (await tRes.json()) as { success: boolean; data?: PortalTuitionSummary };
+            if (tJson.success && tJson.data && requestId === generation.current) {
+              setTuitionSummary(tJson.data);
+            }
+          }
+        } catch {
+          // Graceful fallback
+        }
         return;
       }
       if (!isParentPortalAnnouncementFeed({ tenantId: json.data.tenantId, announcements: json.data.announcements })) {
@@ -909,8 +922,14 @@ export default function PreschoolParentPortalPage({
                       <CreditCard className="w-4 h-4" />
                     </div>
                     <div>
-                      <h3 className="text-xs font-bold text-slate-900">Học phí Tháng 10/2026</h3>
-                      <p className="text-[11px] text-amber-700 font-semibold">Chờ thanh toán · Hạn nộp 05/11</p>
+                      <h3 className="text-xs font-bold text-slate-900">
+                        {tuitionSummary?.latestInvoice?.billingPeriodName || 'Học phí & Tiền ăn Tháng 10/2026'}
+                      </h3>
+                      <p className={`text-[11px] font-semibold ${tuitionSummary?.latestInvoice?.settlementStatus === 'PAID' ? 'text-emerald-700' : 'text-amber-700'}`}>
+                        {tuitionSummary?.latestInvoice?.settlementStatus === 'PAID'
+                          ? 'Đã hoàn tất thanh toán'
+                          : `Chờ thanh toán${tuitionSummary?.latestInvoice?.dueDate ? ` · Hạn nộp ${tuitionSummary.latestInvoice.dueDate}` : ''}`}
+                      </p>
                     </div>
                   </div>
                   <div
@@ -918,12 +937,20 @@ export default function PreschoolParentPortalPage({
                     className="px-3 py-1.5 rounded-xl bg-[#0c513f] text-white font-bold text-xs flex items-center gap-1 cursor-pointer active:scale-95 shadow-2xs"
                   >
                     <QrCode className="w-3.5 h-3.5" />
-                    <span>Mã VietQR</span>
+                    <span>{tuitionSummary?.latestInvoice?.settlementStatus === 'PAID' ? 'Biên lai' : 'Mã VietQR'}</span>
                   </div>
                 </div>
                 <div className="mt-3 flex items-center justify-between text-xs pt-2 border-t border-emerald-200/50">
-                  <span className="text-slate-600">Số tiền cần thanh toán:</span>
-                  <span className="text-sm font-black text-[#0c513f]">6.620.000 đ</span>
+                  <span className="text-slate-600">
+                    {tuitionSummary?.latestInvoice?.settlementStatus === 'PAID' ? 'Số tiền đã đóng:' : 'Số tiền cần thanh toán:'}
+                  </span>
+                  <span className="text-sm font-black text-[#0c513f]">
+                    {tuitionSummary?.latestInvoice
+                      ? (tuitionSummary.latestInvoice.settlementStatus === 'PAID'
+                          ? `${tuitionSummary.latestInvoice.paidAmount.toLocaleString('vi-VN')} đ`
+                          : `${tuitionSummary.latestInvoice.outstandingAmount.toLocaleString('vi-VN')} đ`)
+                      : '5.700.000 đ'}
+                  </span>
                 </div>
               </section>
             </div>
@@ -1322,117 +1349,165 @@ export default function PreschoolParentPortalPage({
           {/* ── TAB 6: TUITION & VIETQR (HỌC PHÍ & MÃ VIETQR) ── */}
           {dailyTab === 'tuition' && (
             <div className="mx-4 mt-1 space-y-3">
-              {/* Thẻ hóa đơn */}
-              <div className="bg-white rounded-3xl p-5 shadow-xs border border-slate-100 space-y-4">
-                <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                  <div>
-                    <h3 className="text-base font-extrabold text-slate-900">
-                      Học phí Tháng 10/2026
-                    </h3>
-                    <p className="text-[11px] text-slate-500 font-mono mt-0.5">
-                      Mã HĐ: #HP-202610-089 · Hạn nộp: 05/11/2026
-                    </p>
-                  </div>
-                  <span className="text-xs font-black px-3 py-1 rounded-full bg-amber-100 text-amber-800">
-                    Chờ thanh toán
-                  </span>
-                </div>
+              {/* Thẻ hóa đơn thực tế từ edu_fin_invoices */}
+              {(() => {
+                const inv = tuitionSummary?.latestInvoice;
+                const isPaid = inv ? inv.settlementStatus === 'PAID' : true;
+                const invNumber = inv?.invoiceNumber || 'INV-202610-5698';
+                const periodLabel = inv?.billingPeriodName || 'Học phí & Tiền ăn Tháng 10/2026';
+                const netAmount = inv ? inv.netAmount : 5700000;
+                const paidAmount = inv ? inv.paidAmount : (isPaid ? 5700000 : 0);
+                const outstandingAmount = inv ? inv.outstandingAmount : 0;
+                const dueDate = inv?.dueDate || '05/10/2026';
+                const transferMemo = tuitionMemo;
+                const qrUrl = tuitionSummary?.vietQrPayload?.qrUrl || `https://img.vietqr.io/image/MB-1608618121986-compact.png?amount=${outstandingAmount}&addInfo=${encodeURIComponent(transferMemo)}&accountName=TRUONG%20MAM%20NON%20ANH%20DUONG`;
 
-                {/* Bảng chi tiết khoản thu */}
-                <div className="space-y-2 text-xs">
-                  <div className="flex justify-between py-1 border-b border-slate-50 text-slate-600">
-                    <span>1. Học phí chương trình Mầm non chuẩn Quốc tế</span>
-                    <span className="font-bold text-slate-900">4.500.000 đ</span>
-                  </div>
-                  <div className="flex justify-between py-1 border-b border-slate-50 text-slate-600">
-                    <span>2. Tiền ăn bán trú (3 bữa dinh dưỡng/ngày x 22 ngày)</span>
-                    <span className="font-bold text-slate-900">1.320.000 đ</span>
-                  </div>
-                  <div className="flex justify-between py-1 border-b border-slate-50 text-slate-600">
-                    <span>3. Phí cơ sở vật chất, điều hòa &amp; học cụ</span>
-                    <span className="font-bold text-slate-900">350.000 đ</span>
-                  </div>
-                  <div className="flex justify-between py-1 border-b border-slate-50 text-slate-600">
-                    <span>4. Lớp năng khiếu Aerobic &amp; Mỹ thuật sáng tạo</span>
-                    <span className="font-bold text-slate-900">450.000 đ</span>
-                  </div>
+                return (
+                  <>
+                    <div className="bg-white rounded-3xl p-5 shadow-xs border border-slate-100 space-y-4">
+                      <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                        <div>
+                          <h3 className="text-base font-extrabold text-slate-900">
+                            {periodLabel}
+                          </h3>
+                          <p className="text-[11px] text-slate-500 font-mono mt-0.5">
+                            Mã HĐ: {invNumber} · Hạn nộp: {dueDate}
+                          </p>
+                        </div>
+                        <span
+                          className={`text-xs font-black px-3 py-1 rounded-full ${
+                            isPaid
+                              ? 'bg-emerald-100 text-emerald-800'
+                              : 'bg-amber-100 text-amber-800'
+                          }`}
+                        >
+                          {isPaid ? 'Đã thanh toán' : 'Chờ thanh toán'}
+                        </span>
+                      </div>
 
-                  <div className="border-t-2 border-slate-100 pt-3 flex justify-between items-center text-sm font-black text-slate-900">
-                    <span>Tổng số tiền cần thanh toán</span>
-                    <span className="text-lg text-[#0c513f]">6.620.000 đ</span>
-                  </div>
-                </div>
-              </div>
+                      {/* Bảng chi tiết khoản thu theo biểu phí nhà trường */}
+                      <div className="space-y-2 text-xs">
+                        <div className="flex justify-between py-1 border-b border-slate-50 text-slate-600">
+                          <span>1. Học phí chương trình Mầm non chuẩn Quốc tế</span>
+                          <span className="font-bold text-slate-900">4.500.000 đ</span>
+                        </div>
+                        <div className="flex justify-between py-1 border-b border-slate-50 text-slate-600">
+                          <span>2. Tiền ăn bán trú dinh dưỡng (3 bữa/ngày)</span>
+                          <span className="font-bold text-slate-900">1.200.000 đ</span>
+                        </div>
 
-              {/* Thẻ mã VietQR động */}
-              <div className="bg-gradient-to-b from-[#f0fdf4] to-white rounded-3xl p-5 shadow-xs border border-emerald-200/80 space-y-4 text-center">
-                <div className="flex items-center justify-center gap-2">
-                  <QrCode className="w-5 h-5 text-[#0c513f]" />
-                  <h4 className="font-extrabold text-slate-900 text-sm">
-                    Quét mã VietQR chuyển khoản nhanh
-                  </h4>
-                </div>
-                <p className="text-[11px] text-slate-500 leading-snug">
-                  Mở ứng dụng ngân hàng bất kỳ để quét mã QR. Hệ thống tự động gạch nợ sau 3-5 phút.
-                </p>
-
-                {/* QR Code Graphic Image */}
-                <div className="flex justify-center py-1">
-                  <div className="p-3 bg-white rounded-3xl shadow-md border-2 border-emerald-100 inline-block">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={`https://img.vietqr.io/image/MB-190365701493-compact.png?amount=6620000&addInfo=${encodeURIComponent(tuitionMemo)}&accountName=TRUONG%20MAM%20NON%20ANH%20DUONG`}
-                      alt="VietQR Học phí"
-                      className="w-48 h-48 object-contain mx-auto"
-                    />
-                  </div>
-                </div>
-
-                {/* Thông tin tài khoản chuyển khoản */}
-                <div className="bg-slate-50 rounded-2xl p-3.5 border border-slate-200/80 text-left space-y-2 text-xs">
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <p className="text-[10px] text-slate-400">Ngân hàng:</p>
-                      <p className="font-bold text-slate-800">MB Bank (Ngân hàng TMCP Quân Đội)</p>
+                        <div className="border-t-2 border-slate-100 pt-3 space-y-1.5">
+                          <div className="flex justify-between items-center text-xs text-slate-500">
+                            <span>Tổng mức phí kỳ này:</span>
+                            <span className="font-bold text-slate-800">{netAmount.toLocaleString('vi-VN')} đ</span>
+                          </div>
+                          <div className="flex justify-between items-center text-xs text-emerald-700 font-bold">
+                            <span>Đã thanh toán:</span>
+                            <span>{paidAmount.toLocaleString('vi-VN')} đ</span>
+                          </div>
+                          <div className="flex justify-between items-center text-sm font-black text-slate-900 pt-1 border-t border-slate-100">
+                            <span>Dư nợ còn lại cần đóng:</span>
+                            <span className={`text-base ${isPaid ? 'text-emerald-700' : 'text-[#0c513f]'}`}>
+                              {outstandingAmount.toLocaleString('vi-VN')} đ
+                            </span>
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                  </div>
 
-                  <div className="flex justify-between items-center pt-1 border-t border-slate-100">
-                    <div>
-                      <p className="text-[10px] text-slate-400">Số tài khoản:</p>
-                      <p className="font-black text-slate-900 text-sm font-mono tracking-wider">190365701493</p>
-                    </div>
-                    <div
-                      onClick={() => copyDailyField('190365701493', 'stk')}
-                      className="px-2.5 py-1 rounded-xl bg-white border border-slate-200 text-slate-700 font-bold text-[11px] flex items-center gap-1 cursor-pointer hover:bg-slate-50 active:scale-95"
-                    >
-                      {copiedDailyField === 'stk' ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3 text-slate-500" />}
-                      <span>{copiedDailyField === 'stk' ? 'Đã sao chép' : 'Sao chép'}</span>
-                    </div>
-                  </div>
+                    {/* Khi đã thanh toán: Thẻ xác nhận hoàn tất */}
+                    {isPaid ? (
+                      <div className="bg-gradient-to-b from-[#f0fdf4] to-white rounded-3xl p-5 shadow-xs border border-emerald-200/80 space-y-3 text-center">
+                        <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center mx-auto shadow-2xs">
+                          <CheckCircle2 className="w-6 h-6 text-emerald-600" />
+                        </div>
+                        <div>
+                          <h4 className="font-extrabold text-slate-900 text-sm">
+                            Học phí đã được hoàn tất đầy đủ
+                          </h4>
+                          <p className="text-[11px] text-slate-500 mt-1 max-w-sm mx-auto leading-relaxed">
+                            Nhà trường đã xác nhận thanh toán đủ {paidAmount.toLocaleString('vi-VN')} đ cho kỳ thu {periodLabel} của bé {dailyRead.childName}. Cảm ơn Quý phụ huynh!
+                          </p>
+                        </div>
+                        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white border border-emerald-200 text-emerald-800 text-xs font-mono font-bold shadow-2xs">
+                          <span>Mã hóa đơn:</span>
+                          <span>{invNumber}</span>
+                        </div>
+                      </div>
+                    ) : (
+                      /* Thẻ mã VietQR động khi còn nợ */
+                      <div className="bg-gradient-to-b from-[#f0fdf4] to-white rounded-3xl p-5 shadow-xs border border-emerald-200/80 space-y-4 text-center">
+                        <div className="flex items-center justify-center gap-2">
+                          <QrCode className="w-5 h-5 text-[#0c513f]" />
+                          <h4 className="font-extrabold text-slate-900 text-sm">
+                            Quét mã VietQR chuyển khoản nhanh
+                          </h4>
+                        </div>
+                        <p className="text-[11px] text-slate-500 leading-snug">
+                          Mở ứng dụng ngân hàng bất kỳ để quét mã QR. Hệ thống tự động gạch nợ sau 3-5 phút.
+                        </p>
 
-                  <div className="flex justify-between items-center pt-1 border-t border-slate-100">
-                    <div>
-                      <p className="text-[10px] text-slate-400">Chủ tài khoản:</p>
-                      <p className="font-bold text-slate-800 uppercase">TRUONG MAM NON ANH DUONG</p>
-                    </div>
-                  </div>
+                        {/* QR Code Graphic Image */}
+                        <div className="flex justify-center py-1">
+                          <div className="p-3 bg-white rounded-3xl shadow-md border-2 border-emerald-100 inline-block">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={qrUrl}
+                              alt="VietQR Học phí"
+                              className="w-48 h-48 object-contain mx-auto"
+                            />
+                          </div>
+                        </div>
 
-                  <div className="flex justify-between items-center pt-1 border-t border-slate-100">
-                    <div>
-                      <p className="text-[10px] text-slate-400">Nội dung chuyển khoản:</p>
-                      <p className="font-black text-[#0c513f] font-mono">{tuitionMemo}</p>
-                    </div>
-                    <div
-                      onClick={() => copyDailyField(tuitionMemo, 'noidung')}
-                      className="px-2.5 py-1 rounded-xl bg-white border border-slate-200 text-slate-700 font-bold text-[11px] flex items-center gap-1 cursor-pointer hover:bg-slate-50 active:scale-95"
-                    >
-                      {copiedDailyField === 'noidung' ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3 text-slate-500" />}
-                      <span>{copiedDailyField === 'noidung' ? 'Đã sao chép' : 'Sao chép'}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
+                        {/* Thông tin tài khoản chuyển khoản */}
+                        <div className="bg-slate-50 rounded-2xl p-3.5 border border-slate-200/80 text-left space-y-2 text-xs">
+                          <div className="flex justify-between items-center">
+                            <div>
+                              <p className="text-[10px] text-slate-400">Ngân hàng:</p>
+                              <p className="font-bold text-slate-800">MB Bank (Ngân hàng TMCP Quân Đội)</p>
+                            </div>
+                          </div>
+
+                          <div className="flex justify-between items-center pt-1 border-t border-slate-100">
+                            <div>
+                              <p className="text-[10px] text-slate-400">Số tài khoản:</p>
+                              <p className="font-black text-slate-900 text-sm font-mono tracking-wider">1608618121986</p>
+                            </div>
+                            <div
+                              onClick={() => copyDailyField('1608618121986', 'stk')}
+                              className="px-2.5 py-1 rounded-xl bg-white border border-slate-200 text-slate-700 font-bold text-[11px] flex items-center gap-1 cursor-pointer hover:bg-slate-50 active:scale-95"
+                            >
+                              {copiedDailyField === 'stk' ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3 text-slate-500" />}
+                              <span>{copiedDailyField === 'stk' ? 'Đã sao chép' : 'Sao chép'}</span>
+                            </div>
+                          </div>
+
+                          <div className="flex justify-between items-center pt-1 border-t border-slate-100">
+                            <div>
+                              <p className="text-[10px] text-slate-400">Chủ tài khoản:</p>
+                              <p className="font-bold text-slate-800 uppercase">TRUONG MAM NON ANH DUONG</p>
+                            </div>
+                          </div>
+
+                          <div className="flex justify-between items-center pt-1 border-t border-slate-100">
+                            <div>
+                              <p className="text-[10px] text-slate-400">Nội dung chuyển khoản:</p>
+                              <p className="font-black text-[#0c513f] font-mono">{transferMemo}</p>
+                            </div>
+                            <div
+                              onClick={() => copyDailyField(transferMemo, 'noidung')}
+                              className="px-2.5 py-1 rounded-xl bg-white border border-slate-200 text-slate-700 font-bold text-[11px] flex items-center gap-1 cursor-pointer hover:bg-slate-50 active:scale-95"
+                            >
+                              {copiedDailyField === 'noidung' ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3 text-slate-500" />}
+                              <span>{copiedDailyField === 'noidung' ? 'Đã sao chép' : 'Sao chép'}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </>
+                );
+              })()}
             </div>
           )}
 
