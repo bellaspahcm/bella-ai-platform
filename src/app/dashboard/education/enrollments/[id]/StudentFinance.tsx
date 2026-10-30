@@ -72,7 +72,7 @@ export default function StudentFinance({ studentId, studentName }: StudentFinanc
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-8 text-center">
           <RefreshCw className="w-8 h-8 mx-auto text-emerald-600 animate-spin mb-3" />
           <p className="text-sm font-medium text-slate-600 dark:text-slate-300">
-            Đang tải dữ liệu học phí & khoản thu...
+            Đang tải dữ liệu học phí {'&'} khoản thu...
           </p>
         </div>
       )}
@@ -147,7 +147,7 @@ export default function StudentFinance({ studentId, studentName }: StudentFinanc
               </div>
               <div>
                 <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">
-                  Danh Sách Hóa Đơn & Kỳ Thu ({invoices.length})
+                  Danh Sách Hóa Đơn {'&'} Kỳ Thu ({invoices.length})
                 </h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400">
                   Hóa đơn học phí, tiền ăn bán trú và các khoản phí dịch vụ mầm non

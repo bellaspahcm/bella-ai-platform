@@ -223,7 +223,7 @@ export default function StudentHealth({ studentId, studentName }: StudentHealthP
               </div>
               <div>
                 <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">
-                  Nhật Ký Sức Khỏe & Sự Cố Y Tế ({incidents.length})
+                  Nhật Ký Sức Khỏe {'&'} Sự Cố Y Tế ({incidents.length})
                 </h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400">
                   Ghi nhận xử lý sơ cấp cứu hoặc theo dõi triệu chứng tại trường

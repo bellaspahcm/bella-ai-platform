@@ -132,7 +132,7 @@ export default function StudentDevelopment({
                   Mốc Phát Triển Theo Lứa Tuổi ({milestones.length})
                 </h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Chuẩn phát triển năng lực mầm non: Thể chất, nhận thức, ngôn ngữ & cảm xúc xã hội
+                  Chuẩn phát triển năng lực mầm non: Thể chất, nhận thức, ngôn ngữ {'&'} cảm xúc xã hội
                 </p>
               </div>
             </div>
@@ -188,7 +188,7 @@ export default function StudentDevelopment({
               </div>
               <div>
                 <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">
-                  Đánh Giá Hoạt Động & Điểm Số ({assessments.length})
+                  Đánh Giá Hoạt Động {'&'} Điểm Số ({assessments.length})
                 </h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400">
                   Bảng tổng hợp kết quả học tập, hoạt động trải nghiệm định kỳ
