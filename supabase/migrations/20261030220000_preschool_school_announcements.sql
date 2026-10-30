@@ -35,14 +35,17 @@ BEGIN
   ) THEN
     CREATE POLICY tenant_isolation_edu_announcements
       ON public.edu_announcements FOR ALL
-      USING (tenant_id = public.current_actor_tenant_id());
+      USING (
+        tenant_id = (current_setting('app.current_tenant_id'::text, true))::uuid
+        OR current_setting('role', true) = 'service_role'
+      );
   END IF;
 END;
 $$;
 
 -- ─── RPC: list announcements ───────────────────────────────────────────────
 -- Returns { tenantId, announcements[] } for the caller's tenant.
--- Caller must be authenticated; tenant isolation enforced by RLS + explicit check.
+-- Caller must be authenticated; tenant isolation enforced by get_auth_tenant_id() + RLS.
 CREATE OR REPLACE FUNCTION public.preschool_list_school_announcements()
 RETURNS jsonb
 LANGUAGE plpgsql
@@ -53,11 +56,7 @@ DECLARE
   v_tenant_id UUID;
   v_rows      jsonb;
 BEGIN
-  -- Resolve tenant from the authenticated session helper
-  v_tenant_id := public.current_actor_tenant_id();
-  IF v_tenant_id IS NULL THEN
-    RAISE EXCEPTION 'ANNOUNCEMENT_ACCESS_DENIED' USING ERRCODE = '42501';
-  END IF;
+  v_tenant_id := public.get_auth_tenant_id();
 
   SELECT jsonb_agg(
     jsonb_build_object(
@@ -96,10 +95,7 @@ DECLARE
   v_row       public.edu_announcements%ROWTYPE;
   v_duplicate BOOLEAN := FALSE;
 BEGIN
-  v_tenant_id := public.current_actor_tenant_id();
-  IF v_tenant_id IS NULL THEN
-    RAISE EXCEPTION 'ANNOUNCEMENT_ACCESS_DENIED' USING ERRCODE = '42501';
-  END IF;
+  v_tenant_id := public.get_auth_tenant_id();
 
   -- Validate inputs (mirrors route.ts checks; DB is the final enforcement layer)
   IF p_request_id IS NULL THEN
@@ -138,8 +134,7 @@ $$;
 -- ─── Grants ───────────────────────────────────────────────────────────────────
 -- anon/authenticated users access through RLS + RPC (SECURITY INVOKER)
 GRANT SELECT, INSERT ON public.edu_announcements TO authenticated;
-GRANT EXECUTE ON FUNCTION public.preschool_list_school_announcements()              TO authenticated;
+GRANT EXECUTE ON FUNCTION public.preschool_list_school_announcements()                   TO authenticated;
 GRANT EXECUTE ON FUNCTION public.preschool_publish_school_announcement(UUID, TEXT, TEXT) TO authenticated;
 
 COMMIT;
-
