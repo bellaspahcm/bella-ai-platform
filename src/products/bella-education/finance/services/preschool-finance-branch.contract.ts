@@ -23,6 +23,19 @@ export interface FinanceBranchStudent {
   readonly displayName: string;
 }
 
+export interface FinanceBranchBreakdown {
+  readonly branchId: string;
+  readonly branchName: string;
+  readonly branchCode: string | null;
+  readonly studentCount: number;
+  readonly invoiceCount: number;
+  readonly totalGross: number;
+  readonly totalPaid: number;
+  readonly totalDebt: number;
+  readonly collectionRate: number;
+  readonly overdueCount: number;
+}
+
 // The server-only RPC owns role/branch/mapping checks and final writes after
 // locks. Directory reads never select a branch, even when there is only one.
 // Tenant billing-period configuration is a catalog, not branch assignment.
