@@ -122,15 +122,7 @@ export default function Student360LegacyLayout({
             >
               <Edit3 className="w-4 h-4" />Chỉnh Sửa Hồ Sơ
             </button>
-            {tabs.filter(tab => ['communication', 'attendance', 'grades', 'finance'].includes(tab.id)).map(tab => {
-              const Icon = tab.icon;
-              return <button key={tab.id} type="button" onClick={() => setActiveTab(tab.id)}
-                className={`inline-flex items-center justify-center gap-2 rounded-2xl px-4 py-2.5 text-xs font-bold transition-all ${activeTab === tab.id
-                  ? 'bg-[#064E3B] text-white shadow-md'
-                  : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 text-slate-700 dark:text-slate-200'}`}>
-                <Icon className="w-4 h-4" />{tab.id === 'communication' ? 'Sổ Liên Lạc' : tab.id === 'attendance' ? 'Điểm Danh' : tab.id === 'grades' ? 'Đánh Giá PT' : 'Học Phí'}
-              </button>;
-            })}
+
           </div>
         </div>
         <div role="tablist" aria-label="Hồ sơ 360°" className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
