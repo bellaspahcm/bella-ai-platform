@@ -73,7 +73,8 @@ export async function GET(request: Request, { params }: RouteContext): Promise<N
 
     const actor = reconcileCurrentActorProfile(auth.data.user.id, profileResult.data);
     const actorRole = (actor?.role ?? '').trim().toLowerCase();
-    if (!actor?.tenant_id || (actorRole !== 'admin' && actorRole !== 'accountant')) {
+    const isAuthorizedRole = actorRole === 'admin' || actorRole === 'accountant' || actorRole === 'super_admin' || actorRole === 'owner';
+    if (!actor?.tenant_id || !isAuthorizedRole) {
       return failure('STUDENT_FINANCE_ACCESS_DENIED', 403);
     }
 

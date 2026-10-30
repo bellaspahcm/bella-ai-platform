@@ -140,6 +140,17 @@ describe('Student Finance Summary Authenticated Read-Only Route', () => {
     expect(body.success).toBe(true);
   });
 
+  it('allows super_admin role to view finance summary', async () => {
+    mockRpc.mockResolvedValueOnce({
+      data: [{ ...activeActor, role: 'super_admin' }],
+      error: null,
+    });
+    const res = await GET(request(), context());
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.success).toBe(true);
+  });
+
   it('rejects teacher role with 403 forbidden', async () => {
     mockRpc.mockResolvedValueOnce({
       data: [{ ...activeActor, role: 'teacher' }],
