@@ -1,15 +1,21 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import {
-  ArrowLeft, Baby, BookOpen, CalendarCheck, Clock, CreditCard, Edit3,
+  AlertCircle,
+  ArrowLeft, Baby, BookOpen, CalendarCheck, CheckCircle2, Clock, CreditCard, Edit3,
   GraduationCap, Heart, MessageSquare, ShieldCheck, Users,
 } from 'lucide-react';
 import type { Student360ProfileData } from '@/app/api/education/enrollments/student-360.service';
+import AdmissionConfirmModal from '@/app/dashboard/education/components/AdmissionConfirmModal';
 import PortalAccessLink from './PortalAccessLink';
 import StudentGuardians from './StudentGuardians';
 import StudentEditModal from './StudentEditModal';
+import StudentHealth from './StudentHealth';
+import StudentDevelopment from './StudentDevelopment';
+import StudentFinance from './StudentFinance';
+import StudentCommunication from './StudentCommunication';
 
 type ProfileTab = 'overview' | 'communication' | 'attendance' | 'grades'
   | 'finance' | 'guardians' | 'health' | 'enrollments';
@@ -64,17 +70,20 @@ function UnavailablePanel({ title }: { title: string }) {
 }
 
 export default function Student360LegacyLayout({
-  profile, registryHref, selectedCourseId, tenantId, isAdmin = false, onProfileUpdated,
+  profile, registryHref, selectedCourseId, tenantId, isAdmin = false, canViewFinance = true, onProfileUpdated,
 }: {
   profile: Student360ProfileData;
   registryHref: string;
   selectedCourseId: string | null;
   tenantId: string | null;
   isAdmin?: boolean;
+  canViewFinance?: boolean;
   onProfileUpdated?: (updated: Student360ProfileData) => void;
 }) {
   const [activeTab, setActiveTab] = useState<ProfileTab>('overview');
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const visibleTabs = useMemo(() => tabs.filter(tab => tab.id !== 'finance' || canViewFinance), [canViewFinance]);
   const activeEnrollment = profile.enrollments.find(enrollment => enrollment.status === 'active' && enrollment.courseId === selectedCourseId)
     ?? profile.enrollments.find(enrollment => enrollment.status === 'active')
     ?? profile.enrollments[0];
@@ -113,6 +122,15 @@ export default function Student360LegacyLayout({
             </div>
           </div>
           <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap shrink-0">
+            {isAdmin && activeEnrollment?.status === 'pending' && (
+              <button
+                type="button"
+                onClick={() => setIsConfirmModalOpen(true)}
+                className="inline-flex items-center justify-center gap-1.5 rounded-2xl bg-amber-600 text-white px-4 py-2.5 text-xs font-extrabold shadow-md hover:bg-amber-700 transition-colors cursor-pointer"
+              >
+                <CheckCircle2 className="w-4 h-4" />Xác Nhận Nhập Học
+              </button>
+            )}
             <button
               type="button"
               disabled={!isAdmin}
@@ -122,11 +140,29 @@ export default function Student360LegacyLayout({
             >
               <Edit3 className="w-4 h-4" />Chỉnh Sửa Hồ Sơ
             </button>
-
           </div>
         </div>
+
+        {activeEnrollment?.status === 'pending' && (
+          <div className="flex items-center justify-between gap-3 p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-amber-900 dark:text-amber-200">
+            <div className="flex items-center gap-2 text-xs font-semibold">
+              <AlertCircle className="w-5 h-5 text-amber-600 shrink-0" />
+              <span>Trẻ đang ở trạng thái <strong>Chờ xác nhận nhập học</strong>. Cần xác nhận thu học phí hoặc ghi nhận công nợ để chính thức kích hoạt trạng thái đang học.</span>
+            </div>
+            {isAdmin && (
+              <button
+                type="button"
+                onClick={() => setIsConfirmModalOpen(true)}
+                className="px-3 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold shrink-0 transition-colors shadow-sm"
+              >
+                Xác nhận ngay
+              </button>
+            )}
+          </div>
+        )}
+
         <div role="tablist" aria-label="Hồ sơ 360°" className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
-          {tabs.map(tab => <button key={tab.id} type="button" role="tab" aria-selected={activeTab === tab.id}
+          {visibleTabs.map(tab => <button key={tab.id} type="button" role="tab" aria-selected={activeTab === tab.id}
             onClick={() => setActiveTab(tab.id)}
             className={`px-4 py-2.5 rounded-2xl text-xs font-bold transition-colors whitespace-nowrap ${activeTab === tab.id
               ? 'bg-[#064E3B] text-white shadow-sm'
@@ -197,44 +233,46 @@ export default function Student360LegacyLayout({
           </article>)}
       </section>}
 
-      {activeTab === 'communication' && <div role="tabpanel" className="space-y-5">
-        <section className="rounded-3xl bg-white dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 p-5 sm:p-6 shadow-sm">
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 flex items-center justify-center">
-              <MessageSquare className="w-5 h-5" />
-            </div>
-            <div>
-              <h2 className="text-base font-extrabold text-slate-900 dark:text-white">Sổ Liên Lạc Điện Tử — {profile.name}</h2>
-              <p className="text-xs text-slate-500 dark:text-slate-400">Thông tin sinh hoạt và trao đổi của trẻ được hiển thị khi có nguồn dữ liệu được cấp quyền.</p>
-            </div>
-          </div>
-        </section>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-          <section className="rounded-3xl bg-white dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 p-5 sm:p-6 shadow-sm space-y-4">
-            <div className="flex items-center justify-between gap-3">
-              <h3 className="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2"><Clock className="w-4 h-4 text-amber-500" />Nhật Ký Sinh Hoạt Trong Ngày</h3>
-              <span className="text-[11px] font-semibold text-slate-500">Chưa có dữ liệu</span>
-            </div>
-            <p className="rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-700 p-4 text-sm text-slate-600 dark:text-slate-300">
-              Nhật ký ăn uống, giấc ngủ và hoạt động trong ngày chưa được cung cấp bởi API có quyền truy cập cho hồ sơ này.
-            </p>
-          </section>
-          <section className="rounded-3xl bg-white dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 p-5 sm:p-6 shadow-sm space-y-4">
-            <div className="flex items-center justify-between gap-3">
-              <h3 className="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2"><MessageSquare className="w-4 h-4 text-emerald-600" />Trao Đổi Trực Tiếp Với Phụ Huynh</h3>
-              <span className="text-[11px] font-semibold text-slate-500">Chưa kết nối</span>
-            </div>
-            <p className="rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-700 p-4 text-sm text-slate-600 dark:text-slate-300">
-              Chưa có contract/API tin nhắn được xác minh cho trang hồ sơ trẻ. Nội dung trao đổi sẽ xuất hiện sau khi nguồn dữ liệu và quyền truy cập được kết nối.
-            </p>
-          </section>
-        </div>
-      </div>}
-      {activeTab === 'grades' && <UnavailablePanel title="Đánh Giá Phát Triển" />}
-      {activeTab === 'finance' && <UnavailablePanel title="Học Phí & Khoản Thu" />}
-      {activeTab === 'health' && <UnavailablePanel title="Sức Khỏe & Dinh Dưỡng" />}
+      {activeTab === 'communication' && (
+        <StudentCommunication studentId={profile.studentId} studentName={profile.name} />
+      )}
+      {activeTab === 'grades' && (
+        <StudentDevelopment
+          studentId={profile.studentId}
+          enrollmentId={activeEnrollment?.id}
+          studentName={profile.name}
+        />
+      )}
+      {activeTab === 'finance' && canViewFinance && (
+        <StudentFinance studentId={profile.studentId} studentName={profile.name} />
+      )}
+      {activeTab === 'finance' && !canViewFinance && (
+        <UnavailablePanel title="Không có quyền truy cập thông tin tài chính" />
+      )}
+      {activeTab === 'health' && (
+        <StudentHealth studentId={profile.studentId} studentName={profile.name} />
+      )}
       <p className="text-xs text-slate-500 flex items-center gap-2"><ShieldCheck className="w-4 h-4" />Hồ sơ hiển thị dữ liệu được API xác minh; các mục chưa kết nối không có dữ liệu mẫu.</p>
       <StudentEditModal profile={profile} isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} onSaved={updated => onProfileUpdated?.(updated)} />
+      {isConfirmModalOpen && activeEnrollment && (
+        <AdmissionConfirmModal
+          isOpen={isConfirmModalOpen}
+          onClose={() => setIsConfirmModalOpen(false)}
+          enrollmentId={activeEnrollment.id}
+          studentName={profile.name}
+          studentCode={profile.id}
+          className={activeEnrollment.courseTitle}
+          onConfirmed={() => {
+            const updatedEnrollments = profile.enrollments.map(enr =>
+              enr.id === activeEnrollment.id ? { ...enr, status: 'active' as const } : enr
+            );
+            onProfileUpdated?.({
+              ...profile,
+              enrollments: updatedEnrollments,
+            });
+          }}
+        />
+      )}
     </main>
   );
 }

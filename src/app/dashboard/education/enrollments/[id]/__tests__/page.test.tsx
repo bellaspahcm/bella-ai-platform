@@ -25,8 +25,42 @@ jest.mock('../PortalAccessLink', () => ({
     return <div data-testid="portal-section" />;
   },
 }));
+const mockHealthSection = jest.fn<(props: { studentId: string; studentName?: string }) => void>();
+jest.mock('../StudentHealth', () => ({
+  __esModule: true,
+  default: (props: { studentId: string; studentName?: string }) => {
+    mockHealthSection(props);
+    return <div role="tabpanel" data-testid="health-section" aria-label={`Health for ${props.studentId}`} />;
+  },
+}));
+const mockDevSection = jest.fn<(props: { studentId: string; enrollmentId?: string; studentName?: string }) => void>();
+jest.mock('../StudentDevelopment', () => ({
+  __esModule: true,
+  default: (props: { studentId: string; enrollmentId?: string; studentName?: string }) => {
+    mockDevSection(props);
+    return <div role="tabpanel" data-testid="development-section" aria-label={`Dev for ${props.studentId}`} />;
+  },
+}));
+const mockFinanceSection = jest.fn<(props: { studentId: string; studentName?: string }) => void>();
+jest.mock('../StudentFinance', () => ({
+  __esModule: true,
+  default: (props: { studentId: string; studentName?: string }) => {
+    mockFinanceSection(props);
+    return <div role="tabpanel" data-testid="finance-section" aria-label={`Finance for ${props.studentId}`} />;
+  },
+}));
+const mockCommSection = jest.fn<(props: { studentId: string; studentName?: string }) => void>();
+jest.mock('../StudentCommunication', () => ({
+  __esModule: true,
+  default: (props: { studentId: string; studentName?: string }) => {
+    mockCommSection(props);
+    return <div role="tabpanel" data-testid="communication-section" aria-label={`Comm for ${props.studentId}`} />;
+  },
+}));
+
+let mockUserRole: string | null = null;
 jest.mock('@/lib/user-context', () => ({ useUser: () => ({
-  user: { id: 'synthetic-admin', tenant_id: 'tenant-a' },
+  user: { id: 'synthetic-user', tenant_id: 'tenant-a', role: mockUserRole },
   product: { productKey: 'bella_preschool' },
   isLoading: false,
 }) }));
@@ -74,12 +108,17 @@ function response(status: number, body: unknown): Response {
 
 beforeEach(() => {
   cleanup();
+  mockUserRole = null;
   currentId = 'SYN-CHILD-001';
   currentSearch = '';
   global.fetch = jest.fn<typeof fetch>().mockResolvedValue(response(200, { success: true, profile: canonicalProfile }));
   window.localStorage.clear();
   mockGuardianSection.mockClear();
   mockPortalSection.mockClear();
+  mockHealthSection.mockClear();
+  mockDevSection.mockClear();
+  mockFinanceSection.mockClear();
+  mockCommSection.mockClear();
 });
 
 it('shows only canonical identity, enrollment and raw attendance evidence', async () => {
@@ -110,14 +149,16 @@ it('keeps an authorized active Course selected for the registry return link and 
   expect(mockPortalSection).toHaveBeenCalledWith({ tenantId: 'tenant-a', courseId, studentPartyId: canonicalProfile.partyId });
 });
 
-it('keeps the old 360 tabs while unsupported records have no synthetic content or mutation', async () => {
+it('keeps the 360 tabs connected to dedicated authenticated sections with no synthetic mutation buttons', async () => {
   render(<Student360Page />);
   expect(await screen.findByRole('heading', { name: 'Synthetic Child' })).toBeTruthy();
   fireEvent.click(screen.getByRole('tab', { name: 'Sức Khỏe & Dinh Dưỡng' }));
-  expect(screen.getByRole('tabpanel')).toHaveTextContent('Chưa có dữ liệu đã xác minh trong hồ sơ này');
-  expect(screen.queryByText(/nhóm máu|vắc-xin|BMI|dị ứng/i)).toBeNull();
+  expect(screen.getByTestId('health-section')).toBeInTheDocument();
+  expect(mockHealthSection).toHaveBeenCalledWith(expect.objectContaining({ studentId: canonicalProfile.studentId }));
+  expect(screen.queryByText(/nhóm máu|vắc-xin|BMI/i)).toBeNull();
   fireEvent.click(screen.getByRole('tab', { name: 'Học Phí & Khoản Thu' }));
-  expect(screen.getByRole('tabpanel')).toHaveTextContent('Chưa có dữ liệu đã xác minh trong hồ sơ này');
+  expect(screen.getByTestId('finance-section')).toBeInTheDocument();
+  expect(mockFinanceSection).toHaveBeenCalledWith(expect.objectContaining({ studentId: canonicalProfile.studentId }));
   expect(screen.queryByRole('button', { name: /thu tiền|lưu|gửi/i })).toBeNull();
   expect(window.localStorage.length).toBe(0);
 });
@@ -162,7 +203,6 @@ it('clears the previous profile while navigating and ignores the late prior resp
   expect(fetchMock).toHaveBeenNthCalledWith(2, '/api/education/enrollments/SYN-CHILD-002', expect.objectContaining({ cache: 'no-store' }));
 });
 
-
 it('never commits old profile or Guardian section when the route selector changes', async () => {
   const staleFrames: boolean[] = [];
   function Frame() {
@@ -182,4 +222,12 @@ it('never commits old profile or Guardian section when the route selector change
   expect(staleFrames).toEqual([false]);
   expect(screen.queryByTestId('guardian-section')).toBeNull();
   expect(screen.queryByText('Synthetic Child')).toBeNull();
+});
+
+it('hides the finance tab for teachers strictly adhering to RBAC', async () => {
+  mockUserRole = 'teacher';
+  render(<Student360Page />);
+  expect(await screen.findByRole('heading', { name: 'Synthetic Child' })).toBeTruthy();
+  expect(screen.queryByRole('tab', { name: 'Học Phí & Khoản Thu' })).toBeNull();
+  expect(screen.getByRole('tab', { name: 'Sức Khỏe & Dinh Dưỡng' })).toBeInTheDocument();
 });

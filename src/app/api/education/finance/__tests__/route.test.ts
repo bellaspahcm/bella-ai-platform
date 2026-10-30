@@ -49,6 +49,7 @@ describe('Preschool Finance atomic API', () => {
     mockCreateClient.mockResolvedValue({
       auth: { getUser: jest.fn().mockResolvedValue({ data: { user: { id: actorId } }, error: null }) },
       from: jest.fn((table: string) => {
+        if (table === 'user_org_unit_access') return { select: jest.fn().mockReturnValue({ eq: jest.fn().mockReturnValue({ eq: jest.fn().mockReturnValue({ not: jest.fn().mockResolvedValue({ data: [], error: null }) }) }) }) };
         if (table !== 'tenants') throw new Error(`Unexpected caller read: ${table}`);
         return {
           select: jest.fn().mockReturnValue({
@@ -71,14 +72,14 @@ describe('Preschool Finance atomic API', () => {
     expect(mockAtomicCommand).not.toHaveBeenCalled();
   });
 
-  it.each(['admin_staff', 'ktv', 'super_admin'])('denies unapproved Finance role %s before operation client', async (role) => {
+  it.each(['admin_staff', 'ktv', 'teacher'])('denies unapproved Finance role %s before operation client', async (role) => {
     mockGetCurrentUser.mockResolvedValue({ id: actorId, tenant_id: tenantId, role });
     expect((await POST(request())).status).toBe(403);
     expect(mockCreateClient).not.toHaveBeenCalled();
     expect(mockAtomicCommand).not.toHaveBeenCalled();
   });
 
-  it.each(['admin', 'accountant'])('runs one atomic command for current %s using trusted tenant/actor', async (role) => {
+  it.each(['admin', 'accountant', 'super_admin'])('runs one atomic command for current %s using trusted tenant/actor', async (role) => {
     mockGetCurrentUser.mockResolvedValue({ id: actorId, tenant_id: tenantId, role });
     const response = await POST(request({ ...body, tenantId: 'untrusted-tenant', actorId: 'untrusted-actor' }));
     expect(response.status).toBe(200);

@@ -31,6 +31,7 @@ import type {
   ParentPortalMealDetail,
   ParentPortalTimetableItem,
   ParentPortalTuition,
+  ParentPortalVietQrPayload,
   ParentPortalChatMessage,
 } from '../domain/parent-portal.types';
 
@@ -484,7 +485,10 @@ export class PreschoolParentPortalService {
     tenantId: string,
     studentPartyId: string
   ): Promise<ParentPortalTuition | null> {
-    const invoice = await this.repo.findLatestInvoice(tenantId, studentPartyId);
+    const [invoice, tenant] = await Promise.all([
+      this.repo.findLatestInvoice(tenantId, studentPartyId),
+      this.repo.findTenant(tenantId),
+    ]);
 
     if (!invoice) return null;
 
@@ -498,6 +502,27 @@ export class PreschoolParentPortalService {
     const status: ParentPortalTuition['status'] =
       balance === 0 ? 'PAID' : paid > 0 ? 'PARTIALLY_PAID' : 'UNPAID';
 
+    const lineItems = await this.repo.findInvoiceLineItems(tenantId, invoice.id).catch(() => []);
+
+    let vietQrPayload: ParentPortalVietQrPayload | undefined;
+    if (status !== 'PAID' && balance > 0) {
+      const bankCode = tenant?.qr_bank_code?.trim() || 'MB';
+      const accountNumber = tenant?.qr_account_number?.trim() || '190365701493';
+      const accountName = tenant?.qr_account_name?.trim() || tenant?.name?.trim() || 'TRUONG MAM NON ANH DUONG';
+      const invoiceRef = (invoice.invoice_code?.trim() || invoice.id.slice(0, 8)).toUpperCase();
+      const transferMemo = `HOCPHI ${invoiceRef}`;
+      const qrUrl = `https://img.vietqr.io/image/${bankCode}-${accountNumber}-compact.png?amount=${balance}&addInfo=${encodeURIComponent(transferMemo)}&accountName=${encodeURIComponent(accountName)}`;
+
+      vietQrPayload = {
+        bankCode,
+        accountNumber,
+        accountName,
+        amount: balance,
+        description: transferMemo,
+        qrUrl,
+      };
+    }
+
     return {
       invoiceId: invoice.id,
       invoiceCode: invoice.invoice_code ?? null,
@@ -507,7 +532,8 @@ export class PreschoolParentPortalService {
       balanceDue: balance,
       dueDate: invoice.due_date ? invoice.due_date.slice(0, 10) : null,
       status,
-      lineItems: [],
+      lineItems,
+      vietQrPayload,
     };
   }
 

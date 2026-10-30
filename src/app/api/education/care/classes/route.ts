@@ -39,6 +39,7 @@ export async function GET(request: Request) {
       || branches.count !== branches.data.length || access.count !== access.data.length) {
       throw new CareAccessError(503, 'CARE_CLASS_CATALOG_UNAVAILABLE');
     }
+
     const activeBranches = new Set<string>();
     for (const row of branches.data) {
       if (row.tenant_id !== tenantId || !branchIds.includes(row.id) || row.unit_type !== 'branch' || activeBranches.has(row.id)) {

@@ -17,6 +17,12 @@ export class PreschoolAttendanceAccessService {
   private readonly chain: ChainAccess;
   private readonly trustedActorAccess: ITrustedActorOrgUnitAccessContract;
 
+  // Request-scoped memoization to eliminate hundreds of redundant round-trips
+  // during batch classroom/student attendance reads.
+  private readonly courseBranchCache = new Map<string, Promise<string>>();
+  private readonly actorAccessCache = new Map<string, Promise<readonly TrustedActorOrgUnitAccessRow[]>>();
+  private readonly branchAccessCache = new Map<string, Promise<void>>();
+
   public constructor(
     private readonly client: SupabaseClient<Database>,
     chain?: ChainAccess,
@@ -67,6 +73,16 @@ export class PreschoolAttendanceAccessService {
     if (!tenantId || !actorId || !courseId) {
       throw new PreschoolChainError('PRESCHOOL_CHAIN_COURSE_ACCESS_DENIED', 403);
     }
+    const key = `${tenantId}:${actorId}:${courseId}`;
+    let task = this.courseBranchCache.get(key);
+    if (!task) {
+      task = this.resolveCourseBranch(tenantId, actorId, courseId);
+      this.courseBranchCache.set(key, task);
+    }
+    return task;
+  }
+
+  private async resolveCourseBranch(tenantId: string, actorId: string, courseId: string): Promise<string> {
     const { data, error } = await this.client
       .from('preschool_chain_course_branch_assignments')
       .select('tenant_id, course_id, branch_id')
@@ -80,18 +96,32 @@ export class PreschoolAttendanceAccessService {
       throw new PreschoolChainError('PRESCHOOL_CHAIN_CANONICAL_CONFLICT');
     }
 
-    // The existing public method retains action-role and active/type/tenant
-    // checks. Its tenant-admin allowance alone is insufficient for Attendance.
-    await this.chain.assertBranchAccess(tenantId, actorId, data.branch_id);
-    let rows: readonly TrustedActorOrgUnitAccessRow[];
-    try {
-      rows = await this.trustedActorAccess.listForActor({ p_tenant_id: tenantId, p_actor_id: actorId });
-    } catch (error) {
-      if (error instanceof Error && error.message === 'TRUSTED_ACTOR_ACCESS_DENIED') {
-        throw new PreschoolChainError('PRESCHOOL_CHAIN_BRANCH_ACCESS_DENIED', 403);
-      }
-      this.throwDatabaseError({ message: error instanceof Error ? error.message : 'Unknown access contract error' });
+    // Branch access verification with per-instance caching
+    const branchKey = `${tenantId}:${actorId}:${data.branch_id}`;
+    let branchTask = this.branchAccessCache.get(branchKey);
+    if (!branchTask) {
+      branchTask = this.chain.assertBranchAccess(tenantId, actorId, data.branch_id);
+      this.branchAccessCache.set(branchKey, branchTask);
     }
+    await branchTask;
+
+    // Trusted actor relationship verification with per-instance caching
+    const accessKey = `${tenantId}:${actorId}`;
+    let accessTask = this.actorAccessCache.get(accessKey);
+    if (!accessTask) {
+      accessTask = (async () => {
+        try {
+          return await this.trustedActorAccess.listForActor({ p_tenant_id: tenantId, p_actor_id: actorId });
+        } catch (contractError) {
+          if (contractError instanceof Error && contractError.message === 'TRUSTED_ACTOR_ACCESS_DENIED') {
+            throw new PreschoolChainError('PRESCHOOL_CHAIN_BRANCH_ACCESS_DENIED', 403);
+          }
+          this.throwDatabaseError({ message: contractError instanceof Error ? contractError.message : 'Unknown access contract error' });
+        }
+      })();
+      this.actorAccessCache.set(accessKey, accessTask);
+    }
+    const rows = await accessTask;
     if (rows.some((row) => row.tenant_id !== tenantId || row.user_id !== actorId)) {
       throw new PreschoolChainError('PRESCHOOL_CHAIN_BRANCH_ACCESS_DENIED', 403);
     }

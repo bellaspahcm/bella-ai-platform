@@ -20,14 +20,15 @@ export interface PreschoolFinanceUserProfile {
 export interface PreschoolFinanceActorContext {
   tenantId: string;
   actorId: string;
-  role: 'admin' | 'accountant';
+  role: 'admin' | 'accountant' | 'super_admin' | 'owner';
   educationRole: Extract<EducationRole, 'PRINCIPAL' | 'ACCOUNTANT'>;
+  isSuperAdmin: boolean;
 }
 
 const guard = new EducationSecurityGuardService();
 
 function mapBellaRole(role: string): PreschoolFinanceActorContext['educationRole'] | null {
-  if (role === 'admin') return 'PRINCIPAL';
+  if (role === 'admin' || role === 'super_admin' || role === 'owner') return 'PRINCIPAL';
   if (role === 'accountant') return 'ACCOUNTANT';
   return null;
 }
@@ -45,9 +46,11 @@ export function resolvePreschoolFinanceActor(
   }
 
   const educationRole = mapBellaRole(role);
-  if (!educationRole || (role !== 'admin' && role !== 'accountant')) {
+  if (!educationRole || (role !== 'admin' && role !== 'accountant' && role !== 'super_admin' && role !== 'owner')) {
     throw new Error(`AUTH_ROLE_PERMISSION_ERROR: Role '${role || 'unknown'}' is not authorized for Preschool Finance operations.`);
   }
+
+  const isSuperAdmin = role === 'super_admin' || role === 'owner';
 
   const securityContext: SecurityUserContext = {
     userId: actorId,
@@ -66,7 +69,8 @@ export function resolvePreschoolFinanceActor(
   return {
     tenantId,
     actorId,
-    role,
+    role: role as PreschoolFinanceActorContext['role'],
     educationRole,
+    isSuperAdmin,
   };
 }

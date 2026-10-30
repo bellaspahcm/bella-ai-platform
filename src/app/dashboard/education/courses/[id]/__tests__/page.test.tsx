@@ -5,6 +5,13 @@ import { Suspense } from 'react';
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
 import ClassWorkspacePage from '../page';
 jest.mock('../../classroom-live-data', () => ({ loadClassroomOverview: jest.fn(async () => new Map()) }));
+jest.mock('@/lib/user-context', () => ({
+  useUser: () => ({
+    user: { id: 'synthetic-admin', tenant_id: '00000000-0000-4000-8000-000000000002', role: 'admin' },
+    product: { productKey: 'bella_preschool' },
+    isLoading: false,
+  }),
+}));
 
 jest.mock('next/link', () => ({
   __esModule: true,
