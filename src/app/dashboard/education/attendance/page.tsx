@@ -324,7 +324,7 @@ function AttendancePageContent() {
 
     void loadClassrooms();
     return () => { active = false; };
-  }, []);
+  }, [courseParam]);
 
   const refreshRoster = useCallback(async (): Promise<boolean> => {
     const requestVersion = ++rosterRequestVersion.current;
@@ -1193,3 +1193,4 @@ export default function AttendancePage() {
     </Suspense>
   );
 }
+
