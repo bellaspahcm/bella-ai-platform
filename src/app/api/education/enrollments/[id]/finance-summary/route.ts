@@ -72,7 +72,10 @@ export async function GET(request: Request, { params }: RouteContext): Promise<N
     }
 
     const actor = reconcileCurrentActorProfile(auth.data.user.id, profileResult.data);
-    if (!actor?.tenant_id || actor.role !== 'admin') return failure('STUDENT_FINANCE_ACCESS_DENIED', 403);
+    const actorRole = (actor?.role ?? '').trim().toLowerCase();
+    if (!actor?.tenant_id || (actorRole !== 'admin' && actorRole !== 'accountant')) {
+      return failure('STUDENT_FINANCE_ACCESS_DENIED', 403);
+    }
 
     const adminClient = createAdminClient();
     const queryClient = adminClient ?? client;

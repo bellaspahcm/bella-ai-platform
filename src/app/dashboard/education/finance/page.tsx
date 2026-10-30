@@ -3341,6 +3341,22 @@ export default function FinancePage() {
   const { user, product, isLoading } = useUser();
   if (isLoading) return <p role="status">Đang xác minh tài khoản…</p>;
   if (!user?.tenant_id || !product) return <p role="alert">Không có quyền mở màn hình này.</p>;
+  const role = (user.role ?? '').trim().toLowerCase();
+  if (role === 'teacher' || (Boolean(role) && role !== 'admin' && role !== 'accountant')) {
+    return (
+      <div className="p-8 text-center space-y-3">
+        <p role="alert" className="font-bold text-rose-600">
+          Bạn không có quyền truy cập thông tin tài chính &amp; học phí.
+        </p>
+        <p className="text-sm text-slate-500">
+          Chức năng này chỉ dành cho Quản trị viên (Admin) và Kế toán. Giáo viên không được cấp quyền truy cập.
+        </p>
+        <Link href="/dashboard/education" className="inline-block mt-4 px-4 py-2 bg-[#0c513f] text-white rounded-xl text-sm font-semibold">
+          Quay về Trang tổng quan
+        </Link>
+      </div>
+    );
+  }
   return (
     <Suspense
       fallback={

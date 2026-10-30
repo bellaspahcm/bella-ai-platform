@@ -638,8 +638,15 @@ export function Sidebar() {
   });
 
   const filteredMenuItems = moduleAwareMenuItems.filter((item) => {
-    if (isMenuHeader(item) || item.href !== '/dashboard/education/branches') return true;
-    return user?.role?.toLowerCase() === 'admin';
+    if (isMenuHeader(item)) return true;
+    const role = user?.role?.toLowerCase();
+    if (item.href === '/dashboard/education/branches') {
+      return role === 'admin';
+    }
+    if (item.href === '/dashboard/education/finance') {
+      return role === 'admin' || role === 'accountant';
+    }
+    return true;
   });
 
   // KTV gets a personal income shortcut instead

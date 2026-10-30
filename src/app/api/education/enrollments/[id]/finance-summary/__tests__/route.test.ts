@@ -129,6 +129,28 @@ describe('Student Finance Summary Authenticated Read-Only Route', () => {
     expect(body.invoices[0].invoice_number).toBe('INV-202610-5698');
   });
 
+  it('allows accountant role to view finance summary', async () => {
+    mockRpc.mockResolvedValueOnce({
+      data: [{ ...activeActor, role: 'accountant' }],
+      error: null,
+    });
+    const res = await GET(request(), context());
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.success).toBe(true);
+  });
+
+  it('rejects teacher role with 403 forbidden', async () => {
+    mockRpc.mockResolvedValueOnce({
+      data: [{ ...activeActor, role: 'teacher' }],
+      error: null,
+    });
+    const res = await GET(request(), context());
+    expect(res.status).toBe(403);
+    const body = await res.json();
+    expect(body).toEqual({ success: false, error: 'STUDENT_FINANCE_ACCESS_DENIED' });
+  });
+
   it('returns 405 for unsupported HTTP methods', async () => {
     expect((await POST()).status).toBe(405);
     expect((await PUT()).status).toBe(405);

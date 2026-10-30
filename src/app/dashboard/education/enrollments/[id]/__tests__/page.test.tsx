@@ -58,8 +58,9 @@ jest.mock('../StudentCommunication', () => ({
   },
 }));
 
+let mockUserRole: string | null = null;
 jest.mock('@/lib/user-context', () => ({ useUser: () => ({
-  user: { id: 'synthetic-admin', tenant_id: 'tenant-a' },
+  user: { id: 'synthetic-user', tenant_id: 'tenant-a', role: mockUserRole },
   product: { productKey: 'bella_preschool' },
   isLoading: false,
 }) }));
@@ -107,6 +108,7 @@ function response(status: number, body: unknown): Response {
 
 beforeEach(() => {
   cleanup();
+  mockUserRole = null;
   currentId = 'SYN-CHILD-001';
   currentSearch = '';
   global.fetch = jest.fn<typeof fetch>().mockResolvedValue(response(200, { success: true, profile: canonicalProfile }));
@@ -220,4 +222,12 @@ it('never commits old profile or Guardian section when the route selector change
   expect(staleFrames).toEqual([false]);
   expect(screen.queryByTestId('guardian-section')).toBeNull();
   expect(screen.queryByText('Synthetic Child')).toBeNull();
+});
+
+it('hides the finance tab for teachers strictly adhering to RBAC', async () => {
+  mockUserRole = 'teacher';
+  render(<Student360Page />);
+  expect(await screen.findByRole('heading', { name: 'Synthetic Child' })).toBeTruthy();
+  expect(screen.queryByRole('tab', { name: 'Học Phí & Khoản Thu' })).toBeNull();
+  expect(screen.getByRole('tab', { name: 'Sức Khỏe & Dinh Dưỡng' })).toBeInTheDocument();
 });

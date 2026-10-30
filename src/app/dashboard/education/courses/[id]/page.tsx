@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useRef, use } from 'react';
 import Link from 'next/link';
+import { useOptionalUser } from '@/lib/user-context';
+import AdmissionConfirmModal from '@/app/dashboard/education/components/AdmissionConfirmModal';
 import { loadClassroomOverview, type ClassroomLiveOverview } from '../classroom-live-data';
 import type { EducationCourseDTO } from '@/platform/education/contracts/course.contract';
 import { isPreschoolRegistryPage, isRegistryUuid, type PreschoolRegistryPage } from '@/platform/education/contracts/preschool-registry.contract';
@@ -96,10 +98,18 @@ function isCatalogCourse(value: unknown, classId: string): value is EducationCou
 export default function ClassWorkspacePage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
   const classId = typeof resolvedParams?.id === 'string' ? resolvedParams.id : '';
+  const userContext = useOptionalUser();
+  const isAdmin = (userContext?.user?.role ?? '').trim().toLowerCase() === 'admin';
   const [loadState, setLoadState] = useState<CatalogDetailState>({ classId, status: 'loading' });
   const [activeTab, setActiveTab] = useState<'overview' | 'students' | 'teachers' | 'attendance'>('overview');
   const [reloadVersion, setReloadVersion] = useState(0);
   const [rosterOffset, setRosterOffset] = useState(0);
+  const [pendingConfirmStudent, setPendingConfirmStudent] = useState<{
+    studentName: string;
+    studentCode: string;
+    className: string;
+    enrollmentId: string;
+  } | null>(null);
   const requestGeneration = useRef(0);
   const currentRequest = useRef<AbortController | null>(null);
   const [liveData, setLiveData] = useState<ClassroomLiveOverview | null>(null);
@@ -250,13 +260,44 @@ export default function ClassWorkspacePage({ params }: { params: Promise<{ id: s
                 <p>Hiển thị {rosterOffset + 1}–{rosterOffset + state.registry.students.length} / {state.registry.filteredTotal} học sinh</p>
                 <div className="overflow-x-auto">
                   <table className="w-full text-left">
-                    <thead><tr className="border-b border-slate-200 dark:border-slate-700"><th className="py-3 pr-4">Mã học sinh</th><th className="py-3 pr-4">Họ và tên</th><th className="py-3 pr-4">Đăng ký lớp</th><th className="py-3">Cơ sở</th></tr></thead>
-                    <tbody>{state.registry.students.map(student => <tr key={student.id} className="border-b border-slate-100 dark:border-slate-800">
-                      <td className="py-3 pr-4 font-mono">{student.studentCode}</td>
-                      <td className="py-3 pr-4 font-semibold">{student.name}</td>
-                      <td className="py-3 pr-4">{student.enrollments.map(enrollment => enrollment.status === 'active' ? 'Đang hoạt động' : 'Chờ xác nhận').join(', ')}</td>
-                      <td className="py-3">{[...new Set(student.enrollments.map(enrollment => enrollment.branchName))].join(', ')}</td>
-                    </tr>)}</tbody>
+                    <thead><tr className="border-b border-slate-200 dark:border-slate-700"><th className="py-3 pr-4">Mã học sinh</th><th className="py-3 pr-4">Họ và tên</th><th className="py-3 pr-4">Đăng ký lớp</th><th className="py-3 pr-4">Cơ sở</th><th className="py-3 text-right">Thao tác</th></tr></thead>
+                    <tbody>{state.registry.students.map(student => {
+                      const pendingEnrollment = student.enrollments.find(e => e.status === 'pending');
+                      return (
+                        <tr key={student.id} className="border-b border-slate-100 dark:border-slate-800">
+                          <td className="py-3 pr-4 font-mono">{student.studentCode}</td>
+                          <td className="py-3 pr-4 font-semibold">{student.name}</td>
+                          <td className="py-3 pr-4">
+                            {student.enrollments.map(enrollment => (
+                              <span key={enrollment.id} className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${
+                                enrollment.status === 'active'
+                                  ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300'
+                                  : 'bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300'
+                              }`}>
+                                {enrollment.status === 'active' ? 'Đang hoạt động' : 'Chờ xác nhận'}
+                              </span>
+                            ))}
+                          </td>
+                          <td className="py-3 pr-4">{[...new Set(student.enrollments.map(enrollment => enrollment.branchName))].join(', ')}</td>
+                          <td className="py-3 text-right">
+                            {isAdmin && pendingEnrollment && (
+                              <button
+                                type="button"
+                                onClick={() => setPendingConfirmStudent({
+                                  studentName: student.name,
+                                  studentCode: student.studentCode,
+                                  className: pendingEnrollment.courseTitle,
+                                  enrollmentId: pendingEnrollment.id,
+                                })}
+                                className="px-3 py-1.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold shadow-xs transition-all active:scale-95 cursor-pointer inline-flex items-center gap-1"
+                              >
+                                Xác nhận nhập học
+                              </button>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}</tbody>
                   </table>
                 </div>
                 <nav aria-label="Phân trang học sinh" className="flex gap-3">
@@ -280,6 +321,20 @@ export default function ClassWorkspacePage({ params }: { params: Promise<{ id: s
         <h1 className="text-xl font-extrabold text-slate-900 dark:text-white">Chi tiết lớp học</h1>
         <p role={state.status === 'error' ? 'alert' : 'status'} aria-live="polite" className="rounded-2xl border border-slate-200 dark:border-slate-700 p-6 text-sm text-slate-700 dark:text-slate-200">{state.status === 'loading' ? 'Đang tải dữ liệu lớp học…' : state.status === 'empty' ? 'Chưa có dữ liệu lớp học.' : 'Không thể tải dữ liệu lớp học. Vui lòng thử lại.'}</p>
         <button type="button" onClick={reload} className="rounded-xl bg-slate-100 dark:bg-slate-800 px-4 py-2 text-sm font-bold text-slate-700 dark:text-slate-200">Tải lại dữ liệu</button></>}
+
+      {pendingConfirmStudent && (
+        <AdmissionConfirmModal
+          isOpen={Boolean(pendingConfirmStudent)}
+          onClose={() => setPendingConfirmStudent(null)}
+          studentName={pendingConfirmStudent.studentName}
+          studentCode={pendingConfirmStudent.studentCode}
+          className={pendingConfirmStudent.className}
+          enrollmentId={pendingConfirmStudent.enrollmentId}
+          onConfirmed={() => {
+            setReloadVersion(v => v + 1);
+          }}
+        />
+      )}
     </div>
   );
 }

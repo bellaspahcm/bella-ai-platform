@@ -1,12 +1,14 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import {
-  ArrowLeft, Baby, BookOpen, CalendarCheck, Clock, CreditCard, Edit3,
+  AlertCircle,
+  ArrowLeft, Baby, BookOpen, CalendarCheck, CheckCircle2, Clock, CreditCard, Edit3,
   GraduationCap, Heart, MessageSquare, ShieldCheck, Users,
 } from 'lucide-react';
 import type { Student360ProfileData } from '@/app/api/education/enrollments/student-360.service';
+import AdmissionConfirmModal from '@/app/dashboard/education/components/AdmissionConfirmModal';
 import PortalAccessLink from './PortalAccessLink';
 import StudentGuardians from './StudentGuardians';
 import StudentEditModal from './StudentEditModal';
@@ -68,17 +70,20 @@ function UnavailablePanel({ title }: { title: string }) {
 }
 
 export default function Student360LegacyLayout({
-  profile, registryHref, selectedCourseId, tenantId, isAdmin = false, onProfileUpdated,
+  profile, registryHref, selectedCourseId, tenantId, isAdmin = false, canViewFinance = true, onProfileUpdated,
 }: {
   profile: Student360ProfileData;
   registryHref: string;
   selectedCourseId: string | null;
   tenantId: string | null;
   isAdmin?: boolean;
+  canViewFinance?: boolean;
   onProfileUpdated?: (updated: Student360ProfileData) => void;
 }) {
   const [activeTab, setActiveTab] = useState<ProfileTab>('overview');
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const visibleTabs = useMemo(() => tabs.filter(tab => tab.id !== 'finance' || canViewFinance), [canViewFinance]);
   const activeEnrollment = profile.enrollments.find(enrollment => enrollment.status === 'active' && enrollment.courseId === selectedCourseId)
     ?? profile.enrollments.find(enrollment => enrollment.status === 'active')
     ?? profile.enrollments[0];
@@ -117,6 +122,15 @@ export default function Student360LegacyLayout({
             </div>
           </div>
           <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap shrink-0">
+            {isAdmin && activeEnrollment?.status === 'pending' && (
+              <button
+                type="button"
+                onClick={() => setIsConfirmModalOpen(true)}
+                className="inline-flex items-center justify-center gap-1.5 rounded-2xl bg-amber-600 text-white px-4 py-2.5 text-xs font-extrabold shadow-md hover:bg-amber-700 transition-colors cursor-pointer"
+              >
+                <CheckCircle2 className="w-4 h-4" />Xác Nhận Nhập Học
+              </button>
+            )}
             <button
               type="button"
               disabled={!isAdmin}
@@ -126,11 +140,29 @@ export default function Student360LegacyLayout({
             >
               <Edit3 className="w-4 h-4" />Chỉnh Sửa Hồ Sơ
             </button>
-
           </div>
         </div>
+
+        {activeEnrollment?.status === 'pending' && (
+          <div className="flex items-center justify-between gap-3 p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-amber-900 dark:text-amber-200">
+            <div className="flex items-center gap-2 text-xs font-semibold">
+              <AlertCircle className="w-5 h-5 text-amber-600 shrink-0" />
+              <span>Trẻ đang ở trạng thái <strong>Chờ xác nhận nhập học</strong>. Cần xác nhận thu học phí hoặc ghi nhận công nợ để chính thức kích hoạt trạng thái đang học.</span>
+            </div>
+            {isAdmin && (
+              <button
+                type="button"
+                onClick={() => setIsConfirmModalOpen(true)}
+                className="px-3 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold shrink-0 transition-colors shadow-sm"
+              >
+                Xác nhận ngay
+              </button>
+            )}
+          </div>
+        )}
+
         <div role="tablist" aria-label="Hồ sơ 360°" className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
-          {tabs.map(tab => <button key={tab.id} type="button" role="tab" aria-selected={activeTab === tab.id}
+          {visibleTabs.map(tab => <button key={tab.id} type="button" role="tab" aria-selected={activeTab === tab.id}
             onClick={() => setActiveTab(tab.id)}
             className={`px-4 py-2.5 rounded-2xl text-xs font-bold transition-colors whitespace-nowrap ${activeTab === tab.id
               ? 'bg-[#064E3B] text-white shadow-sm'
@@ -211,14 +243,36 @@ export default function Student360LegacyLayout({
           studentName={profile.name}
         />
       )}
-      {activeTab === 'finance' && (
+      {activeTab === 'finance' && canViewFinance && (
         <StudentFinance studentId={profile.studentId} studentName={profile.name} />
+      )}
+      {activeTab === 'finance' && !canViewFinance && (
+        <UnavailablePanel title="Không có quyền truy cập thông tin tài chính" />
       )}
       {activeTab === 'health' && (
         <StudentHealth studentId={profile.studentId} studentName={profile.name} />
       )}
       <p className="text-xs text-slate-500 flex items-center gap-2"><ShieldCheck className="w-4 h-4" />Hồ sơ hiển thị dữ liệu được API xác minh; các mục chưa kết nối không có dữ liệu mẫu.</p>
       <StudentEditModal profile={profile} isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} onSaved={updated => onProfileUpdated?.(updated)} />
+      {isConfirmModalOpen && activeEnrollment && (
+        <AdmissionConfirmModal
+          isOpen={isConfirmModalOpen}
+          onClose={() => setIsConfirmModalOpen(false)}
+          enrollmentId={activeEnrollment.id}
+          studentName={profile.name}
+          studentCode={profile.id}
+          className={activeEnrollment.courseTitle}
+          onConfirmed={() => {
+            const updatedEnrollments = profile.enrollments.map(enr =>
+              enr.id === activeEnrollment.id ? { ...enr, status: 'active' as const } : enr
+            );
+            onProfileUpdated?.({
+              ...profile,
+              enrollments: updatedEnrollments,
+            });
+          }}
+        />
+      )}
     </main>
   );
 }
