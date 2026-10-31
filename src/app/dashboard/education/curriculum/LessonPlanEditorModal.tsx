@@ -509,7 +509,7 @@ export default function LessonPlanEditorModal({
               className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg shadow-sm transition-all shrink-0 active:scale-95"
             >
               <Sparkles className="w-4 h-4" />
-              Nạp giáo án mẫu chuẩn Bộ GD&ĐT
+              Nạp giáo án mẫu chuẩn Bộ GD{'&'}ĐT
             </button>
           </div>
 
@@ -532,7 +532,7 @@ export default function LessonPlanEditorModal({
           <div className="space-y-4">
             <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2 border-b border-slate-100 pb-2">
               <Calendar className="w-4 h-4 text-emerald-600" />
-              1. Thông Tin Kế Hoạch & Lớp Học
+              1. Thông Tin Kế Hoạch {'&'} Lớp Học
             </h3>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
@@ -713,7 +713,7 @@ export default function LessonPlanEditorModal({
           <div className="space-y-2">
             <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2 border-b border-slate-100 pb-2">
               <Layers className="w-4 h-4 text-emerald-600" />
-              3. Chuẩn Bị Đồ Dùng & Học Cụ
+              3. Chuẩn Bị Đồ Dùng {'&'} Học Cụ
             </h3>
             <textarea
               rows={3}

@@ -424,7 +424,7 @@ function CurriculumManagementContent() {
               {isLoading ? '...' : `${curriculums.length || 3} chương trình`}
             </div>
             <span className="text-[11px] text-amber-700 font-semibold">
-              Bộ GD&ĐT, Montessori, STEAM
+              Bộ GD{'&'}ĐT, Montessori, STEAM
             </span>
           </div>
         </div>
@@ -471,7 +471,7 @@ function CurriculumManagementContent() {
           }`}
         >
           <Layers className="w-4 h-4" />
-          Môn Học & Lĩnh Vực Phát Triển (5 Nhánh Chuẩn)
+          Môn Học {'&'} Lĩnh Vực Phát Triển (5 Nhánh Chuẩn)
         </button>
       </div>
 
@@ -541,11 +541,11 @@ function CurriculumManagementContent() {
                 onChange={(e: ChangeEvent<HTMLSelectElement>) => setSelectedDomain(e.target.value)}
               >
                 <option value="ALL">Tất cả các lĩnh vực</option>
-                <option value="NHAN_THUC">Nhận Thức & Toán</option>
+                <option value="NHAN_THUC">Nhận Thức {'&'} Toán</option>
                 <option value="THE_CHAT">Phát Triển Thể Chất</option>
-                <option value="NGON_NGU">Ngôn Ngữ & Văn Học</option>
-                <option value="THAM_MY">Thẩm Mỹ & Nghệ Thuật</option>
-                <option value="TINH_CAM_XH">Tình Cảm & KN Xã Hội</option>
+                <option value="NGON_NGU">Ngôn Ngữ {'&'} Văn Học</option>
+                <option value="THAM_MY">Thẩm Mỹ {'&'} Nghệ Thuật</option>
+                <option value="TINH_CAM_XH">Tình Cảm {'&'} KN Xã Hội</option>
                 <option value="TIENG_ANH">Tiếng Anh Mầm Non</option>
                 <option value="STEAM">STEAM Trải Nghiệm</option>
               </PreschoolSelect>
@@ -593,7 +593,7 @@ function CurriculumManagementContent() {
       {isLoading ? (
         <div className="p-16 flex flex-col items-center justify-center bg-white border border-slate-200 rounded-2xl shadow-sm text-slate-500 space-y-3">
           <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
-          <span className="text-sm font-semibold">Đang tải dữ liệu giáo trình & giáo án...</span>
+          <span className="text-sm font-semibold">Đang tải dữ liệu giáo trình {'&'} giáo án...</span>
         </div>
       ) : error ? (
         <div className="p-8 flex flex-col items-center justify-center bg-white border border-rose-200 rounded-2xl shadow-sm text-rose-600 space-y-2">
@@ -621,7 +621,7 @@ function CurriculumManagementContent() {
                   </h3>
                   <p className="text-xs text-slate-500 max-w-md mx-auto">
                     Kế hoạch bài giảng cho tuần học này chưa được khởi tạo. Hãy bấm nút dưới đây để
-                    soạn giáo án mới hoặc nạp giáo án mẫu chuẩn Bộ GD&ĐT.
+                    soạn giáo án mới hoặc nạp giáo án mẫu chuẩn Bộ GD{'&'}ĐT.
                   </p>
                   <button
                     onClick={handleOpenCreateModal}
@@ -776,7 +776,7 @@ function CurriculumManagementContent() {
                             {plan.materials && (
                               <div className="p-3 bg-amber-50/70 border border-amber-200/80 rounded-xl space-y-1">
                                 <span className="text-xs font-bold text-amber-900 uppercase tracking-wide">
-                                  Học cụ & Đồ dùng chuẩn bị:
+                                  Học cụ {'&'} Đồ dùng chuẩn bị:
                                 </span>
                                 <p className="text-xs text-amber-900/90 whitespace-pre-line">
                                   {plan.materials}
@@ -883,7 +883,7 @@ function CurriculumManagementContent() {
                         </span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-slate-500">Số môn & Lĩnh vực:</span>
+                        <span className="text-slate-500">Số môn {'&'} Lĩnh vực:</span>
                         <span className="font-semibold text-slate-800">
                           {curr.subjects.length} bộ môn
                         </span>
@@ -933,7 +933,7 @@ function CurriculumManagementContent() {
               <div className="p-4 bg-gradient-to-r from-emerald-50 via-teal-50 to-blue-50 border border-emerald-200 rounded-2xl">
                 <h3 className="text-sm font-bold text-emerald-900 flex items-center gap-2">
                   <BookMarked className="w-4 h-4 text-emerald-700" />
-                  Chuẩn 5 Lĩnh Vực Phát Triển Toàn Diện Theo Thông Tư Bộ GD&ĐT
+                  Chuẩn 5 Lĩnh Vực Phát Triển Toàn Diện Theo Thông Tư Bộ GD{'&'}ĐT
                 </h3>
                 <p className="text-xs text-emerald-800 mt-1 leading-relaxed">
                   Chương trình Giáo dục Mầm non mới hướng tới sự phát triển toàn diện của trẻ về thể
