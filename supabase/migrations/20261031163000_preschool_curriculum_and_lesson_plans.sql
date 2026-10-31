@@ -53,12 +53,15 @@ CREATE TABLE IF NOT EXISTS public.edu_lesson_plans (
 );
 
 -- 3. Performance Indexes
+-- zero-downtime: allow blocking-index - New table created in this same migration; no existing data or concurrent writes at migration time
 CREATE INDEX IF NOT EXISTS idx_edu_curriculums_lookup
     ON public.edu_curriculums(tenant_id, status, academic_year);
 
+-- zero-downtime: allow blocking-index - New table created in this same migration; no existing data or concurrent writes at migration time
 CREATE INDEX IF NOT EXISTS idx_edu_lesson_plans_lookup
     ON public.edu_lesson_plans(tenant_id, year, week_number, status);
 
+-- zero-downtime: allow blocking-index - New table created in this same migration; no existing data or concurrent writes at migration time
 CREATE INDEX IF NOT EXISTS idx_edu_lesson_plans_class_date
     ON public.edu_lesson_plans(tenant_id, course_id, planned_date);
 
