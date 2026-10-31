@@ -375,7 +375,7 @@ export default function ClassWorkspacePage({ params }: { params: Promise<{ id: s
                   <div className="p-5 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800 space-y-3">
                     <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-500 flex items-center gap-2">
                       <MapPin className="w-4 h-4 text-primary" />
-                      Thông tin Lớp học & Phòng học
+                      Thông tin Lớp học &amp; Phòng học
                     </h3>
                     <div className="space-y-2 text-xs">
                       <div className="flex justify-between py-1 border-b border-slate-200/60 dark:border-slate-800">
@@ -410,7 +410,7 @@ export default function ClassWorkspacePage({ params }: { params: Promise<{ id: s
                   <div className="p-5 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800 space-y-3">
                     <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-500 flex items-center gap-2">
                       <CalendarCheck className="w-4 h-4 text-emerald-600" />
-                      Sĩ số & Điểm danh Hôm nay
+                      Sĩ số &amp; Điểm danh Hôm nay
                     </h3>
                     <div className="space-y-3">
                       <div>

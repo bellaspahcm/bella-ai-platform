@@ -352,11 +352,11 @@ export default function SchedulingPage() {
                 <ArrowLeft size={18} />
               </Link>
               <h1 className="preschool-brand-heading text-3xl font-extrabold tracking-tight text-[var(--education-brand-ink)]">
-                P8 Preschool Staff Scheduling & Shift Management
+                P8 Preschool Staff Scheduling &amp; Shift Management
               </h1>
             </div>
             <p className="text-muted-foreground text-sm mt-1 ml-11">
-              Hệ thống Xếp Ca Giảng Dạy, Kiểm Toán Tỷ Lệ Giáo Viên / Trẻ (Caregiver Ratio), Nghỉ Phép & Dạy Thay Tuân Thủ Quy Chuẩn
+              Hệ thống Xếp Ca Giảng Dạy, Kiểm Toán Tỷ Lệ Giáo Viên / Trẻ (Caregiver Ratio), Nghỉ Phép &amp; Dạy Thay Tuân Thủ Quy Chuẩn
             </p>
           </div>
 
@@ -450,7 +450,7 @@ export default function SchedulingPage() {
                 : 'border-transparent text-muted-foreground hover:text-foreground'
             }`}
           >
-            <Calendar size={16} /> Lịch Roster & Tỷ Lệ Bảo Mẫu
+            <Calendar size={16} /> Lịch Roster &amp; Tỷ Lệ Bảo Mẫu
           </button>
           <button
             data-testid="tab-leave"
@@ -461,7 +461,7 @@ export default function SchedulingPage() {
                 : 'border-transparent text-muted-foreground hover:text-foreground'
             }`}
           >
-            <UserX size={16} /> Quản Lý Nghỉ Phép & Phân Công Dạy Thay
+            <UserX size={16} /> Quản Lý Nghỉ Phép &amp; Phân Công Dạy Thay
             {leaveRequests.filter(l => l.status === 'PENDING').length > 0 && (
               <span className="px-2 py-0.5 text-xs rounded-full bg-amber-900 text-amber-200 font-bold">
                 {leaveRequests.filter(l => l.status === 'PENDING').length}
@@ -652,7 +652,7 @@ export default function SchedulingPage() {
             <div className="lg:col-span-2 space-y-6">
               <div className="bg-background border border-border rounded-2xl overflow-hidden">
                 <div className="p-4 border-b border-border font-semibold text-sm text-foreground">
-                  Danh Sách Đơn Xin Nghỉ Phép & Phân Công Dạy Thay
+                  Danh Sách Đơn Xin Nghỉ Phép &amp; Phân Công Dạy Thay
                 </div>
                 <div className="divide-y divide-slate-800/60">
                   {leaveRequests.length === 0 ? (
