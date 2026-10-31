@@ -38,6 +38,8 @@ jest.mock('@/products/bella-education/learning-development/curriculum/curriculum
 }));
 
 const { GET, POST, DELETE } = require('../route') as typeof import('../route');
+// Test-only local URL; not a real HTTP call. nosemgrep: typescript.react.security.react-insecure-request.react-insecure-request
+const TEST_BASE_URL = 'http://localhost/api/education/curriculum';
 
 describe('Curriculum & Lesson Plan API Route (/api/education/curriculum)', () => {
   const actorId = '00000000-0000-4000-8000-000000000001';
@@ -51,7 +53,7 @@ describe('Curriculum & Lesson Plan API Route (/api/education/curriculum)', () =>
     it('returns 401 when unauthenticated', async () => {
       mockGetUser.mockResolvedValueOnce({ data: { user: null }, error: { message: 'No session' } } as never);
 
-      const request = new Request('http://localhost/api/education/curriculum');
+      const request = new Request(TEST_BASE_URL);
       const response = await GET(request);
 
       expect(response.status).toBe(401);
@@ -66,7 +68,7 @@ describe('Curriculum & Lesson Plan API Route (/api/education/curriculum)', () =>
       mockListCurriculums.mockResolvedValueOnce([{ id: 'curr-1', name: 'Curriculum 1' }] as never);
       mockListLessonPlans.mockResolvedValueOnce([{ id: 'plan-1', title: 'Lesson 1' }] as never);
 
-      const request = new Request('http://localhost/api/education/curriculum');
+      const request = new Request(TEST_BASE_URL);
       const response = await GET(request);
 
       expect(response.status).toBe(200);
@@ -81,7 +83,7 @@ describe('Curriculum & Lesson Plan API Route (/api/education/curriculum)', () =>
       mockGetCurrentUser.mockResolvedValueOnce({ id: actorId, tenant_id: tenantId, role: 'admin' } as never);
       mockListLessonPlans.mockResolvedValueOnce([{ id: 'plan-1', title: 'Lesson 1' }] as never);
 
-      const request = new Request('http://localhost/api/education/curriculum?type=lessons&weekNumber=44');
+      const request = new Request(TEST_BASE_URL + "?type=lessons&weekNumber=44");
       const response = await GET(request);
 
       expect(response.status).toBe(200);
@@ -109,7 +111,7 @@ describe('Curriculum & Lesson Plan API Route (/api/education/curriculum)', () =>
       mockGetUser.mockResolvedValueOnce({ data: { user: { id: actorId } }, error: null } as never);
       mockGetCurrentUser.mockResolvedValueOnce({ id: actorId, tenant_id: tenantId, role: 'parent' } as never);
 
-      const request = new Request('http://localhost/api/education/curriculum', {
+      const request = new Request(TEST_BASE_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(validLesson),
@@ -124,7 +126,7 @@ describe('Curriculum & Lesson Plan API Route (/api/education/curriculum)', () =>
       mockGetCurrentUser.mockResolvedValueOnce({ id: actorId, tenant_id: tenantId, role: 'admin' } as never);
       mockSaveLessonPlan.mockResolvedValueOnce({ success: true, id: 'saved-plan-1' } as never);
 
-      const request = new Request('http://localhost/api/education/curriculum', {
+      const request = new Request(TEST_BASE_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(validLesson),
@@ -144,7 +146,7 @@ describe('Curriculum & Lesson Plan API Route (/api/education/curriculum)', () =>
       mockGetCurrentUser.mockResolvedValueOnce({ id: actorId, tenant_id: tenantId, role: 'admin' } as never);
       mockDeleteLessonPlan.mockResolvedValueOnce({ success: true, id: 'plan-to-del' } as never);
 
-      const request = new Request('http://localhost/api/education/curriculum?id=plan-to-del', {
+      const request = new Request(TEST_BASE_URL + "?id=plan-to-del", {
         method: 'DELETE',
       });
 
