@@ -473,7 +473,7 @@ export default function LessonPlanEditorModal({
                 {initialPlan ? 'Cập Nhật Giáo Án Giảng Dạy' : 'Soạn Kế Hoạch Giáo Án Mầm Non'}
               </h2>
               <p className="text-xs text-emerald-200/90">
-                Tuân thủ khung sư phạm chuẩn Bộ GD&ĐT (Kiến thức - Kỹ năng - Thái độ)
+                Tuân thủ khung sư phạm chuẩn Bộ GD{'&'}ĐT (Kiến thức - Kỹ năng - Thái độ)
               </p>
             </div>
           </div>

@@ -325,11 +325,11 @@ function CurriculumManagementContent() {
                 BELLA EDUCATION OS
               </span>
               <span className="text-xs text-slate-400">/</span>
-              <span className="text-xs font-semibold text-slate-600">Học Tập & Giảng Dạy</span>
+              <span className="text-xs font-semibold text-slate-600">Học Tập {'&'} Giảng Dạy</span>
             </div>
             <h1 className="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2 mt-0.5">
               <BookOpen className="w-7 h-7 text-emerald-600" />
-              Quản Lý Giáo Trình & Giáo Án
+              Quản Lý Giáo Trình {'&'} Giáo Án
             </h1>
           </div>
         </div>
