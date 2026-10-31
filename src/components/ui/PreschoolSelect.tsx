@@ -284,11 +284,11 @@ export const PreschoolSelect = React.forwardRef<
                     Không có tùy chọn
                   </div>
                 ) : (
-                  options.map((opt) => {
+                  options.map((opt, idx) => {
                     const isSelected = opt.value === currentValue;
                     return (
                       <button
-                        key={opt.value}
+                        key={`${opt.value || 'empty'}-${idx}`}
                         type="button"
                         role="option"
                         aria-selected={isSelected}
