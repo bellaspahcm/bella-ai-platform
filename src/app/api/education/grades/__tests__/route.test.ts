@@ -93,10 +93,19 @@ it('fetches live learning workspace data with classes and students', async () =>
   const response = await GET(new Request('http://test/api/education/grades?month=2026-09'));
   expect(response.status).toBe(200);
   expect(response.headers.get('cache-control')).toBe('private, no-store');
-  const payload = (await response.json()) as { success: boolean; classrooms: unknown[]; studentsCount: number };
+  const payload = (await response.json()) as {
+    success: boolean;
+    classrooms: unknown[];
+    studentsCount: number;
+    students: Array<{ id: string; name: string; physical: string; status: string }>;
+  };
   expect(payload.success).toBe(true);
   expect(payload.classrooms.length).toBeGreaterThanOrEqual(1);
   expect(payload.studentsCount).toBe(1);
+  expect(Array.isArray(payload.students)).toBe(true);
+  expect(payload.students.length).toBe(1);
+  expect(payload.students[0].name).toBe('Nguyễn Minh An');
+  expect(payload.students[0].physical).toBe('dat');
 });
 
 it('rejects identity spoofing headers with 403', async () => {

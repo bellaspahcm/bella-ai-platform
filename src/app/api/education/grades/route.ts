@@ -58,21 +58,18 @@ export async function GET(request: Request): Promise<NextResponse> {
 
     const client = await createClient();
     const authorization = request.headers.get('authorization');
-    let accessToken: string;
+    let userId: string;
     if (authorization !== null) {
       const bearer = /^Bearer ([^\s]+)$/i.exec(authorization);
       if (!bearer) return failure('GRADES_UNAUTHENTICATED', 401);
-      accessToken = bearer[1];
+      const auth = await client.auth.getUser(bearer[1]);
+      if (auth.error || !auth.data.user) return failure('GRADES_UNAUTHENTICATED', 401);
+      userId = auth.data.user.id;
     } else {
-      const session = await client.auth.getSession();
-      if (session.error || !session.data.session?.access_token) {
-        return failure('GRADES_UNAUTHENTICATED', 401);
-      }
-      accessToken = session.data.session.access_token;
+      const auth = await client.auth.getUser();
+      if (auth.error || !auth.data.user) return failure('GRADES_UNAUTHENTICATED', 401);
+      userId = auth.data.user.id;
     }
-
-    const auth = await client.auth.getUser(accessToken);
-    if (auth.error || !auth.data.user) return failure('GRADES_UNAUTHENTICATED', 401);
 
     const profileResult = await client.rpc(CURRENT_ACTOR_PROFILE_RPC);
     if (profileResult.error) {
@@ -82,7 +79,7 @@ export async function GET(request: Request): Promise<NextResponse> {
       );
     }
 
-    const actor = reconcileCurrentActorProfile(auth.data.user.id, profileResult.data);
+    const actor = reconcileCurrentActorProfile(userId, profileResult.data);
     if (!actor?.tenant_id || (actor.role !== 'admin' && actor.role !== 'admin_staff' && actor.role !== 'teacher')) {
       return failure('GRADES_ACCESS_DENIED', 403);
     }
@@ -129,6 +126,7 @@ export async function GET(request: Request): Promise<NextResponse> {
       const registryResult = await registryContract.read(actor.tenant_id, {
         status: 'all',
         branchId: branchIdParam ?? null,
+        courseId: courseIdParam && courseIdParam !== 'ALL' && UUID_PATTERN.test(courseIdParam) ? courseIdParam : null,
         limit: 50,
       });
       if (registryResult?.students) {
@@ -148,6 +146,190 @@ export async function GET(request: Request): Promise<NextResponse> {
 
     const observationsData = observationsRes.data ?? [];
 
+    // 4. Fetch NAEYC domain scores from milestone_progress for all registry students
+    type DomainScore = 'dat' | 'tot' | 'theodoi' | 'canhotro';
+    type DomainKey = 'physical' | 'cognitive' | 'language' | 'socialEmotional' | 'motor';
+    type DomainScoreMap = Record<DomainKey, DomainScore>;
+
+    const domainScoresByStudent = new Map<string, Partial<DomainScoreMap>>();
+
+    if (registryStudents.length > 0) {
+      try {
+        const studentIds = registryStudents.map((s) => s.id);
+        const progressRes = await queryClient
+          .from('edu_dev_milestone_progress')
+          .select(`
+            student_id,
+            status,
+            milestone:edu_dev_milestones!edu_dev_milestone_progress_milestone_id_fkey(
+              framework_domain_id,
+              edu_dev_framework_domains!edu_dev_milestones_framework_domain_id_fkey(code, name)
+            )
+          `)
+          .eq('tenant_id', actor.tenant_id)
+          .in('student_id', studentIds)
+          .order('interpreted_at', { ascending: false });
+
+        const progressRows = progressRes.data ?? [];
+
+        // Map DB status string → DomainScore
+        function toDomainScore(dbStatus: string): DomainScore {
+          const s = dbStatus.toLowerCase();
+          if (s === 'achieved' || s === 'dat' || s === 'completed') return 'dat';
+          if (s === 'good' || s === 'tot') return 'tot';
+          if (s === 'monitor' || s === 'theodoi' || s === 'monitoring') return 'theodoi';
+          if (s === 'needs_support' || s === 'canhotro' || s === 'support') return 'canhotro';
+          return 'dat';
+        }
+
+        // Map domain name/code → DomainKey via keyword matching (NAEYC 5 domains)
+        function toDomainKey(code: string, name: string): DomainKey | null {
+          const combined = `${code} ${name}`.toLowerCase();
+          if (combined.match(/physical|the.chat|body|gross.motor.domain|health/)) return 'physical';
+          if (combined.match(/cognitive|nhan.thuc|cognitive|thinking|problem.solv/)) return 'cognitive';
+          if (combined.match(/language|ngon.ngu|literacy|communication|language.lit/)) return 'language';
+          if (combined.match(/social|tinh.cam|emotion|se-domain|social.emot/)) return 'socialEmotional';
+          if (combined.match(/motor|van.dong|fine.motor|movement|physical.motor/)) return 'motor';
+          // fallback by position in common NAEYC ordering
+          return null;
+        }
+
+        for (const row of progressRows) {
+          if (!row.student_id || !row.status) continue;
+          const milestone = row.milestone as {
+            framework_domain_id: string;
+            edu_dev_framework_domains: { code: string; name: string } | null;
+          } | null;
+          if (!milestone?.edu_dev_framework_domains) continue;
+          const domain = milestone.edu_dev_framework_domains;
+          const domainKey = toDomainKey(domain.code, domain.name);
+          if (!domainKey) continue;
+          const score = toDomainScore(row.status);
+          if (!domainScoresByStudent.has(row.student_id)) {
+            domainScoresByStudent.set(row.student_id, {});
+          }
+          const existing = domainScoresByStudent.get(row.student_id)!;
+          // Only set if not already set (first row is latest due to order)
+          if (!existing[domainKey]) {
+            existing[domainKey] = score;
+          }
+        }
+      } catch {
+        // silent fallback — students will get default domain scores
+      }
+    }
+
+    // 5. Build course code → class info lookup
+    const KNOWN_CLASS_KEYS: Record<string, { classKey: string; className: string }> = {
+      MAM_A1: { classKey: 'MAM_A1', className: 'Mầm A1' },
+      MAM_A2: { classKey: 'MAM_A1', className: 'Mầm A2' },
+      CHOI_B1: { classKey: 'CHOI_B1', className: 'Chồi B1' },
+      CHOI_B2: { classKey: 'CHOI_B1', className: 'Chồi B2' },
+      LA_C1: { classKey: 'CHOI_B1', className: 'Lá C1' },
+    };
+
+    function deriveClassInfo(enrollments: Array<{ courseCode: string; courseTitle: string }>): {
+      classKey: 'MAM_A1' | 'CHOI_B1';
+      className: string;
+    } {
+      for (const e of enrollments) {
+        const code = e.courseCode.toUpperCase().replace(/-/g, '_');
+        if (KNOWN_CLASS_KEYS[code]) {
+          return KNOWN_CLASS_KEYS[code] as { classKey: 'MAM_A1' | 'CHOI_B1'; className: string };
+        }
+      }
+      // Fallback: use first enrollment title
+      const title = enrollments[0]?.courseTitle ?? 'Mầm A1';
+      return { classKey: 'MAM_A1', className: title };
+    }
+
+    const AVATAR_BG_OPTIONS = [
+      'bg-emerald-100 text-emerald-800',
+      'bg-blue-100 text-blue-800',
+      'bg-violet-100 text-violet-800',
+      'bg-amber-100 text-amber-800',
+      'bg-rose-100 text-rose-800',
+      'bg-teal-100 text-teal-800',
+      'bg-orange-100 text-orange-800',
+      'bg-sky-100 text-sky-800',
+    ];
+
+    function pickAvatarBg(name: string): string {
+      let hash = 0;
+      for (let i = 0; i < name.length; i++) hash = (hash * 31 + name.charCodeAt(i)) & 0xffff;
+      return AVATAR_BG_OPTIONS[hash % AVATAR_BG_OPTIONS.length];
+    }
+
+    function deriveStudentStatus(scores: Partial<DomainScoreMap>): {
+      status: 'completed' | 'supplement' | 'attention';
+      statusLabel: string;
+      attentionReason?: string;
+    } {
+      const vals = Object.values(scores) as DomainScore[];
+      if (vals.length === 0) return { status: 'supplement', statusLabel: 'Chưa đánh giá' };
+      if (vals.some((v) => v === 'canhotro')) {
+        const badDomains = Object.entries(scores)
+          .filter(([, v]) => v === 'canhotro')
+          .map(([k]) => {
+            if (k === 'physical') return 'Thể chất';
+            if (k === 'cognitive') return 'Nhận thức';
+            if (k === 'language') return 'Ngôn ngữ';
+            if (k === 'socialEmotional') return 'Tình cảm XH';
+            return 'Vận động';
+          });
+        return { status: 'attention', statusLabel: 'Cần chú ý', attentionReason: badDomains.join(', ') };
+      }
+      if (vals.some((v) => v === 'theodoi')) return { status: 'supplement', statusLabel: 'Cần theo dõi' };
+      return { status: 'completed', statusLabel: 'Đã đầy đủ' };
+    }
+
+    // 6. Assemble students response array
+    type StudentStatus = 'completed' | 'supplement' | 'attention';
+    interface StudentResponseItem {
+      id: string;
+      code: string;
+      orderNumber: number;
+      name: string;
+      className: string;
+      classKey: 'MAM_A1' | 'CHOI_B1';
+      courseId?: string;
+      avatarUrl: string;
+      avatarFallbackBg: string;
+      physical: DomainScore;
+      cognitive: DomainScore;
+      language: DomainScore;
+      socialEmotional: DomainScore;
+      motor: DomainScore;
+      status: StudentStatus;
+      statusLabel: string;
+      attentionReason?: string;
+    }
+
+    const studentsResponse: StudentResponseItem[] = registryStudents.map((s, idx) => {
+      const scores = domainScoresByStudent.get(s.id) ?? {};
+      const { status, statusLabel, attentionReason } = deriveStudentStatus(scores);
+      const classInfo = deriveClassInfo(s.enrollments);
+      return {
+        id: s.id,
+        code: s.studentCode,
+        orderNumber: idx + 1,
+        name: s.name,
+        className: classInfo.className,
+        classKey: classInfo.classKey,
+        courseId: s.enrollments[0]?.courseId,
+        avatarUrl: '',
+        avatarFallbackBg: pickAvatarBg(s.name),
+        physical: scores.physical ?? 'dat',
+        cognitive: scores.cognitive ?? 'dat',
+        language: scores.language ?? 'dat',
+        socialEmotional: scores.socialEmotional ?? 'dat',
+        motor: scores.motor ?? 'dat',
+        status,
+        statusLabel,
+        ...(attentionReason ? { attentionReason } : {}),
+      };
+    });
+
     return NextResponse.json(
       {
         success: true,
@@ -155,6 +337,7 @@ export async function GET(request: Request): Promise<NextResponse> {
         month: monthParam ?? '2026-09',
         classrooms: courses,
         studentsCount: registryStudents.length,
+        students: studentsResponse,
         hasLiveRegistry: registryStudents.length > 0,
         observationsCount: observationsData.length,
       },
@@ -174,21 +357,18 @@ export async function POST(request: Request): Promise<NextResponse> {
 
     const client = await createClient();
     const authorization = request.headers.get('authorization');
-    let accessToken: string;
+    let userId: string;
     if (authorization !== null) {
       const bearer = /^Bearer ([^\s]+)$/i.exec(authorization);
       if (!bearer) return failure('GRADES_UNAUTHENTICATED', 401);
-      accessToken = bearer[1];
+      const auth = await client.auth.getUser(bearer[1]);
+      if (auth.error || !auth.data.user) return failure('GRADES_UNAUTHENTICATED', 401);
+      userId = auth.data.user.id;
     } else {
-      const session = await client.auth.getSession();
-      if (session.error || !session.data.session?.access_token) {
-        return failure('GRADES_UNAUTHENTICATED', 401);
-      }
-      accessToken = session.data.session.access_token;
+      const auth = await client.auth.getUser();
+      if (auth.error || !auth.data.user) return failure('GRADES_UNAUTHENTICATED', 401);
+      userId = auth.data.user.id;
     }
-
-    const auth = await client.auth.getUser(accessToken);
-    if (auth.error || !auth.data.user) return failure('GRADES_UNAUTHENTICATED', 401);
 
     const profileResult = await client.rpc(CURRENT_ACTOR_PROFILE_RPC);
     if (profileResult.error) {
@@ -198,7 +378,7 @@ export async function POST(request: Request): Promise<NextResponse> {
       );
     }
 
-    const actor = reconcileCurrentActorProfile(auth.data.user.id, profileResult.data);
+    const actor = reconcileCurrentActorProfile(userId, profileResult.data);
     if (!actor?.tenant_id || (actor.role !== 'admin' && actor.role !== 'admin_staff' && actor.role !== 'teacher')) {
       return failure('GRADES_ACCESS_DENIED', 403);
     }
@@ -239,7 +419,7 @@ export async function POST(request: Request): Promise<NextResponse> {
           .from('edu_dev_observations')
           .insert({
             tenant_id: actor.tenant_id,
-            observer_id: auth.data.user.id,
+            observer_id: userId,
             observation_text: note ? `${skill} — ${note}` : skill,
             status: 'RECORDED',
           })

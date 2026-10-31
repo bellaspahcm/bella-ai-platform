@@ -89,6 +89,7 @@ export interface ChildDevelopmentRosterItem {
   readonly nickname?: string;
   readonly className: string;
   readonly classKey: 'MAM_A1' | 'CHOI_B1';
+  readonly courseId?: string;
   readonly avatarUrl: string;
   readonly avatarFallbackBg: string;
   readonly physical: DomainScore;
@@ -1591,20 +1592,28 @@ function PreschoolDevelopmentGradesPageContent() {
   useEffect(() => {
     if (!studentParam) return;
     const targetId = STUDENT_TO_ROSTER_ID_MAP[studentParam] || studentParam;
-    const matched = ROSTER_STUDENTS.find(
-      (s) =>
-        s.id === targetId ||
-        s.id === studentParam ||
-        s.code === studentParam ||
-        s.code.replace(/[^0-9]/g, '') === studentParam.replace(/[^0-9]/g, '')
-    );
+    const matched =
+      rosterStudents.find(
+        (s) =>
+          s.id === targetId ||
+          s.id === studentParam ||
+          s.code === studentParam ||
+          s.code.replace(/[^0-9]/g, '') === studentParam.replace(/[^0-9]/g, '')
+      ) ||
+      ROSTER_STUDENTS.find(
+        (s) =>
+          s.id === targetId ||
+          s.id === studentParam ||
+          s.code === studentParam ||
+          s.code.replace(/[^0-9]/g, '') === studentParam.replace(/[^0-9]/g, '')
+      );
     if (matched) {
       setSearchQuery(matched.name);
       setInspectedStudent(matched);
       setPortfolioSelectedStudentId(matched.id);
       setStudentContextActive(true);
     }
-  }, [studentParam]);
+  }, [studentParam, rosterStudents]);
 
   // Tenant detection
   useEffect(() => {
@@ -1761,26 +1770,37 @@ function PreschoolDevelopmentGradesPageContent() {
   const [newAwardReason, setNewAwardReason] = useState<string>('Biết tự dọn đồ chơi và giúp đỡ cô giáo cùng các bạn.');
 
   // Dynamic Canonical KPI Derivations
-  const totalChildrenCount = rosterStudents.length; // 46
-  const evaluatedChildrenCount = rosterStudents.filter((s) => s.status === 'completed').length; // 38
-  const unEvaluatedChildrenCount = totalChildrenCount - evaluatedChildrenCount; // 8
-  const evaluatedPercentage = Math.round((evaluatedChildrenCount / totalChildrenCount) * 100); // 83%
-  const unEvaluatedPercentage = Math.round((unEvaluatedChildrenCount / totalChildrenCount) * 100); // 17%
+  const totalChildrenCount = rosterStudents.length;
+  const evaluatedChildrenCount = rosterStudents.filter((s) => s.status === 'completed').length;
+  const unEvaluatedChildrenCount = Math.max(0, totalChildrenCount - evaluatedChildrenCount);
+  const evaluatedPercentage = totalChildrenCount > 0 ? Math.round((evaluatedChildrenCount / totalChildrenCount) * 100) : 0;
+  const unEvaluatedPercentage = totalChildrenCount > 0 ? Math.round((unEvaluatedChildrenCount / totalChildrenCount) * 100) : 0;
   const newObservationsCount = 12; // In month
 
-  const mamA1Total = rosterStudents.filter((s) => s.classKey === 'MAM_A1').length; // 24
-  const mamA1Evaluated = rosterStudents.filter((s) => s.classKey === 'MAM_A1' && s.status === 'completed').length; // 18
-  const mamA1Pct = Math.round((mamA1Evaluated / mamA1Total) * 100); // 75%
+  const mamA1Total = rosterStudents.filter((s) => s.classKey === 'MAM_A1').length;
+  const mamA1Evaluated = rosterStudents.filter((s) => s.classKey === 'MAM_A1' && s.status === 'completed').length;
+  const mamA1Pct = mamA1Total > 0 ? Math.round((mamA1Evaluated / mamA1Total) * 100) : 0;
 
-  const choiB1Total = rosterStudents.filter((s) => s.classKey === 'CHOI_B1').length; // 22
-  const choiB1Evaluated = rosterStudents.filter((s) => s.classKey === 'CHOI_B1' && s.status === 'completed').length; // 20
-  const choiB1Pct = Math.floor((choiB1Evaluated / choiB1Total) * 100); // 90%
+  const choiB1Total = rosterStudents.filter((s) => s.classKey === 'CHOI_B1').length;
+  const choiB1Evaluated = rosterStudents.filter((s) => s.classKey === 'CHOI_B1' && s.status === 'completed').length;
+  const choiB1Pct = choiB1Total > 0 ? Math.floor((choiB1Evaluated / choiB1Total) * 100) : 0;
+
+  const attentionChildren = useMemo(() => {
+    return rosterStudents.filter((s) => s.status === 'attention');
+  }, [rosterStudents]);
+  const attentionCount = attentionChildren.length;
 
   // Filtered Roster
   const filteredStudents = useMemo(() => {
     return rosterStudents.filter((item) => {
-      if (selectedClass !== 'ALL' && item.classKey !== selectedClass) {
-        return false;
+      if (selectedClass !== 'ALL') {
+        const matchesClass =
+          item.classKey === selectedClass ||
+          item.className === selectedClass ||
+          (item.courseId && item.courseId === selectedClass);
+        if (!matchesClass) {
+          return false;
+        }
       }
       if (selectedStatus === 'COMPLETED' && item.status !== 'completed') {
         return false;
@@ -1804,7 +1824,7 @@ function PreschoolDevelopmentGradesPageContent() {
       }
       return true;
     });
-  }, [selectedClass, selectedStatus, searchQuery]);
+  }, [rosterStudents, selectedClass, selectedStatus, searchQuery]);
 
   // Reset page when filter changes
   useEffect(() => {
@@ -1915,7 +1935,7 @@ function PreschoolDevelopmentGradesPageContent() {
   // Selected Student for Portfolio View
   const selectedPortfolioStudent = useMemo(() => {
     return rosterStudents.find((s) => s.id === portfolioSelectedStudentId) || rosterStudents[0];
-  }, [portfolioSelectedStudentId]);
+  }, [portfolioSelectedStudentId, rosterStudents]);
 
   if (!isPreschoolTenant) {
     return <LegacyGradesView />;
@@ -2013,7 +2033,8 @@ function PreschoolDevelopmentGradesPageContent() {
               <p className="font-extrabold text-slate-900 dark:text-white">
                 Đang xem đánh giá phát triển của bé:{' '}
                 <span className="text-[#0c513f] dark:text-emerald-400 font-bold">
-                  {ROSTER_STUDENTS.find((s) => s.id === (STUDENT_TO_ROSTER_ID_MAP[studentParam] || studentParam))?.name ||
+                  {rosterStudents.find((s) => s.id === (STUDENT_TO_ROSTER_ID_MAP[studentParam] || studentParam))?.name ||
+                    ROSTER_STUDENTS.find((s) => s.id === (STUDENT_TO_ROSTER_ID_MAP[studentParam] || studentParam))?.name ||
                     studentParam}
                 </span>{' '}
                 ({studentParam})
@@ -2075,7 +2096,9 @@ function PreschoolDevelopmentGradesPageContent() {
               {totalChildrenCount}
             </div>
             <div className="text-xs font-bold text-slate-700 dark:text-slate-300 mt-1">Tổng số trẻ</div>
-            <div className="text-[11px] text-slate-400 mt-0.5">(2 lớp)</div>
+            <div className="text-[11px] text-slate-400 mt-0.5">
+              ({availableClasses.length > 1 ? `${availableClasses.length - 1} lớp` : '2 lớp'})
+            </div>
           </div>
         </div>
 
@@ -2292,7 +2315,7 @@ function PreschoolDevelopmentGradesPageContent() {
                   !
                 </div>
                 <div>
-                  <div className="text-xs font-extrabold text-rose-950 dark:text-rose-100">8 trẻ cần chú ý</div>
+                  <div className="text-xs font-extrabold text-rose-950 dark:text-rose-100">{attentionCount} trẻ cần chú ý</div>
                   <div className="text-[11px] font-medium text-rose-700 dark:text-rose-300 mt-0.5">
                     Cần thêm quan sát ở một số lĩnh vực phát triển
                   </div>
@@ -2313,10 +2336,10 @@ function PreschoolDevelopmentGradesPageContent() {
                 </div>
                 <div>
                   <div className="text-xs font-extrabold text-blue-950 dark:text-blue-100">
-                    Gợi ý AI sư phạm minh họa
+                    {isLiveLoaded ? 'Gợi ý AI sư phạm thực tế' : 'Gợi ý AI sư phạm minh họa'}
                   </div>
                   <div className="text-[11px] font-medium text-blue-700 dark:text-blue-300 mt-0.5">
-                    Nội dung mẫu, chưa phân tích hồ sơ thật
+                    {isLiveLoaded ? 'Phân tích tự động từ hồ sơ NAEYC của trẻ' : 'Nội dung mẫu, chưa phân tích hồ sơ thật'}
                   </div>
                 </div>
               </div>
@@ -2611,7 +2634,7 @@ function PreschoolDevelopmentGradesPageContent() {
               <div className="text-slate-500 font-medium">
                 Hiển thị <span className="font-bold text-slate-800 dark:text-slate-200">{paginatedStudents.length}</span>{' '}
                 trên tổng số <span className="font-bold text-slate-800 dark:text-slate-200">{filteredStudents.length}</span>{' '}
-                trẻ ({ROSTER_STUDENTS.length} toàn trường)
+                trẻ ({rosterStudents.length} toàn trường)
               </div>
 
               {totalPages > 1 && (
@@ -2671,7 +2694,7 @@ function PreschoolDevelopmentGradesPageContent() {
                     Trẻ cần chú ý trong tháng 9
                   </h2>
                   <span className="w-5 h-5 rounded-full bg-rose-600 text-white font-extrabold text-[11px] flex items-center justify-center">
-                    {ATTENTION_CHILDREN.length}
+                    {attentionCount}
                   </span>
                 </div>
                 <button
@@ -2685,11 +2708,23 @@ function PreschoolDevelopmentGradesPageContent() {
               </div>
 
               <div className="space-y-3">
-                {ATTENTION_CHILDREN.map((item) => (
+                {(attentionChildren.length > 0
+                  ? attentionChildren.map((item) => ({
+                      id: item.id,
+                      name: item.name,
+                      className: item.className,
+                      avatarUrl: item.avatarUrl,
+                      avatarFallbackBg: item.avatarFallbackBg,
+                      note: item.attentionReason || 'Cần theo dõi thêm tiến trình phát triển',
+                      badgeType: (item.status === 'attention' ? 'canhotro' : 'theodoi') as 'canhotro' | 'theodoi',
+                      badgeLabel: item.statusLabel,
+                    }))
+                  : ATTENTION_CHILDREN
+                ).map((item) => (
                   <div
                     key={item.id}
                     onClick={() => {
-                      const target = ROSTER_STUDENTS.find((s) => s.name === item.name);
+                      const target = rosterStudents.find((s) => s.name === item.name || s.id === item.id) || ROSTER_STUDENTS.find((s) => s.name === item.name);
                       if (target) setInspectedStudent(target);
                     }}
                     className="p-3.5 rounded-2xl border border-slate-100 dark:border-slate-700/60 hover:bg-slate-50 dark:hover:bg-slate-700/40 transition-all flex items-center justify-between gap-3 cursor-pointer"
@@ -3062,7 +3097,7 @@ function PreschoolDevelopmentGradesPageContent() {
                 wrapperClassName="min-w-[180px]"
                 className="py-2 px-3 text-xs font-bold"
               >
-                {ROSTER_STUDENTS.map((s) => (
+                {rosterStudents.map((s) => (
                   <option key={s.id} value={s.id}>
                     {s.name} ({s.className})
                   </option>
@@ -3486,7 +3521,7 @@ function PreschoolDevelopmentGradesPageContent() {
                   onChange={(e) => selectObservationChild(e.target.value)}
                   className="py-2.5 font-medium"
                 >
-                  {ROSTER_STUDENTS.map((s) => (
+                  {rosterStudents.map((s) => (
                     <option key={s.id} value={s.id}>
                       {s.name} ({s.className})
                     </option>
@@ -3816,7 +3851,7 @@ function PreschoolDevelopmentGradesPageContent() {
                   onChange={(e) => setNewAwardStudentId(e.target.value)}
                   className="py-2.5 font-medium"
                 >
-                  {ROSTER_STUDENTS.map((s) => (
+                  {rosterStudents.map((s) => (
                     <option key={s.id} value={s.id}>
                       {s.name} ({s.className})
                     </option>
@@ -3872,7 +3907,7 @@ function PreschoolDevelopmentGradesPageContent() {
               <button
                 type="button"
                 onClick={() => {
-                  const targetChild = ROSTER_STUDENTS.find((s) => s.id === newAwardStudentId) || ROSTER_STUDENTS[0];
+                  const targetChild = rosterStudents.find((s) => s.id === newAwardStudentId) || ROSTER_STUDENTS.find((s) => s.id === newAwardStudentId) || rosterStudents[0];
                   const newAwd: PreschoolAwardItem = {
                     id: `AWD-${Date.now()}`,
                     studentId: targetChild.id,
