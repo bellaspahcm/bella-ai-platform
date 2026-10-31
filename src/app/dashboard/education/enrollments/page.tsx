@@ -1004,17 +1004,15 @@ export default function PreschoolEnrollmentsPage() {
 
           <div className="flex items-center gap-3 shrink-0 self-end md:self-auto">
             {/* Academic Year Selector */}
-            <div className="relative">
-              <select
-                value={selectedYear}
-                onChange={(e) => setSelectedYear(e.target.value)}
-                className="appearance-none bg-slate-100/80 dark:bg-slate-700/80 border border-slate-200 dark:border-slate-600 text-xs font-bold text-slate-700 dark:text-slate-200 rounded-2xl px-4 py-2.5 pr-8 focus:outline-none cursor-pointer hover:bg-slate-200/80 transition-colors"
-              >
-                <option>Năm học 2026 - 2027</option>
-                <option>Năm học 2025 - 2026</option>
-              </select>
-              <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-            </div>
+            <PreschoolSelect
+              value={selectedYear}
+              onChange={(e) => setSelectedYear(e.target.value)}
+              wrapperClassName="min-w-40"
+              className="py-2.5 text-xs font-bold"
+            >
+              <option>Năm học 2026 - 2027</option>
+              <option>Năm học 2025 - 2026</option>
+            </PreschoolSelect>
 
             {/* Primary Workflow CTA */}
             <button 

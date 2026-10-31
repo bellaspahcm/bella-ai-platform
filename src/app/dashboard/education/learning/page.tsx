@@ -13,6 +13,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import PreschoolSelect from '@/components/ui/PreschoolSelect';
 import {
   BookOpen,
   ArrowLeft,
@@ -254,15 +255,15 @@ export default function LearningWorkspacePage() {
             <div className="space-y-4">
               <div>
                 <label htmlFor="select-child" className="block text-xs font-semibold text-muted-foreground mb-1">Chọn Trẻ Được Quan Sát</label>
-                <select
+                <PreschoolSelect
                   id="select-child"
                   value={selectedStudentId}
                   onChange={(e) => setSelectedStudentId(e.target.value)}
-                  className="w-full bg-background border border-border rounded-lg p-2.5 text-sm text-foreground"
+                  className="py-2.5 text-sm font-semibold"
                 >
                   <option value="00000000-0000-0000-0000-000000000100">Bé Nguyễn Minh Anh (E2E-S00)</option>
                   <option value="00000000-0000-0000-0000-000000000101">Bé Trần Bảo Nam (E2E-S01)</option>
-                </select>
+                </PreschoolSelect>
               </div>
 
               <div>
@@ -295,7 +296,7 @@ export default function LearningWorkspacePage() {
 
               <div>
                 <label htmlFor="select-visibility" className="block text-xs font-semibold text-muted-foreground mb-1">Quyền Hiển Thị Minh Chứng (Visibility Scope)</label>
-                <select
+                <PreschoolSelect
                   id="select-visibility"
                   value={evidenceVisibility}
                   onChange={(e) => {
@@ -303,16 +304,16 @@ export default function LearningWorkspacePage() {
                       setEvidenceVisibility(e.target.value);
                     }
                   }}
-                  className="w-full bg-muted border border-border rounded-lg p-2.5 text-sm text-foreground"
+                  className="py-2.5 text-sm font-semibold"
                 >
                   <option value="PARENT_SHARED">PARENT_SHARED — Phụ huynh được xem trong Portfolio</option>
                   <option value="INTERNAL_TEACHER">INTERNAL_TEACHER — Chỉ giáo viên xem nội bộ (Bảo mật)</option>
-                </select>
+                </PreschoolSelect>
               </div>
 
               <div>
                 <label htmlFor="select-consent" className="block text-xs font-semibold text-muted-foreground mb-1">Xác Nhận Consent Của Phụ Huynh (Consent Scope)</label>
-                <select
+                <PreschoolSelect
                   id="select-consent"
                   value={consentScope}
                   onChange={(e) => {
@@ -320,11 +321,11 @@ export default function LearningWorkspacePage() {
                       setConsentScope(e.target.value);
                     }
                   }}
-                  className="w-full bg-muted border border-border rounded-lg p-2.5 text-sm text-foreground"
+                  className="py-2.5 text-sm font-semibold"
                 >
                   <option value="CONSENT_VERIFIED">CONSENT_VERIFIED — Phụ huynh đã đồng ý chia sẻ hình ảnh</option>
                   <option value="OPT_OUT">OPT_OUT — Phụ huynh từ chối chia sẻ hình ảnh (Chặn xuất bản)</option>
-                </select>
+                </PreschoolSelect>
               </div>
 
               <div className="pt-2">

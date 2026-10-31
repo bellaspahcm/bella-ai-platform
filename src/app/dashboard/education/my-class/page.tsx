@@ -21,6 +21,7 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
+import PreschoolSelect from '@/components/ui/PreschoolSelect';
 import {
   Users,
   Baby,
@@ -979,17 +980,19 @@ export default function HomeroomTeacherWorkspacePage() {
               {/* Teacher Persona Switcher */}
               <div className="flex items-center gap-1.5 bg-black/20 p-1 rounded-xl border border-white/10 text-xs">
                 <span className="text-emerald-200 px-2 font-medium hidden sm:inline">Tài khoản GVCN:</span>
-                <select
+                <PreschoolSelect
+                  aria-label="Tài khoản GVCN"
                   value={selectedTeacherId}
                   onChange={(e) => setSelectedTeacherId(e.target.value)}
-                  className="bg-[#075548] text-white border border-emerald-600/50 rounded-lg px-2.5 py-1 font-medium focus:outline-none focus:ring-1 focus:ring-emerald-300 text-xs"
+                  wrapperClassName="min-w-[180px]"
+                  className="py-1 px-2.5 text-xs font-semibold bg-[#075548] text-white border-emerald-600/50"
                 >
                   {HOMEROOM_TEACHERS.map((t) => (
                     <option key={t.id} value={t.id}>
                       {t.name} — {t.className}
                     </option>
                   ))}
-                </select>
+                </PreschoolSelect>
               </div>
 
               {/* PWA Badge Indicator */}
@@ -2238,17 +2241,19 @@ export default function HomeroomTeacherWorkspacePage() {
 
                 <div className="space-y-3">
                   <div className="flex items-center gap-2">
-                    <select
+                    <PreschoolSelect
+                      aria-label="Chọn bé tóm tắt"
                       value={selectedStudentForDigest}
                       onChange={(e) => setSelectedStudentForDigest(e.target.value)}
-                      className="flex-1 px-3 py-2 rounded-xl border border-slate-200 text-xs text-slate-700 font-medium focus:outline-none focus:ring-1 focus:ring-emerald-500 bg-white"
+                      wrapperClassName="w-full flex-1"
+                      className="py-2 text-xs font-semibold"
                     >
                       {students.map((s) => (
                         <option key={s.id} value={s.id}>
                           {s.fullName} ({s.nickName})
                         </option>
                       ))}
-                    </select>
+                    </PreschoolSelect>
                   </div>
 
                   <button
@@ -2611,17 +2616,18 @@ export default function HomeroomTeacherWorkspacePage() {
 
               <div>
                 <label className="font-bold text-slate-800 block mb-1">Chọn Người đón trẻ:</label>
-                <select
+                <PreschoolSelect
+                  aria-label="Chọn Người đón trẻ"
                   value={selectedGuardianToHandover}
                   onChange={(e) => setSelectedGuardianToHandover(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:outline-none focus:ring-1 focus:ring-emerald-500 bg-white"
+                  className="py-2 text-xs font-semibold"
                 >
                   {confirmHandoverStudent.guardians.map((g) => (
                     <option key={g.id} value={`${g.relation}: ${g.name}`}>
                       {g.relation}: {g.name} ({g.phone})
                     </option>
                   ))}
-                </select>
+                </PreschoolSelect>
               </div>
 
               <div>

@@ -43,7 +43,8 @@ function parseChildren(children: React.ReactNode): OptionEntry[] {
 
 export interface PreschoolSelectProps {
   /** Current selected value */
-  value: string | number;
+  value?: string | number;
+  defaultValue?: string | number;
   /** Called with a synthetic ChangeEvent so existing code works unchanged */
   onChange?: (event: ChangeEvent<HTMLSelectElement>) => void;
   /** <option> children — parsed into the custom dropdown */
@@ -52,6 +53,7 @@ export interface PreschoolSelectProps {
   'aria-label'?: string;
   /** HTML id for <label htmlFor=…> */
   id?: string;
+  name?: string;
   disabled?: boolean;
   /** CSS class applied to the trigger button */
   className?: string;
@@ -78,10 +80,12 @@ export const PreschoolSelect = React.forwardRef<
   (
     {
       value,
+      defaultValue,
       onChange,
       children,
       'aria-label': ariaLabel,
       id,
+      name,
       disabled = false,
       className,
       wrapperClassName,
@@ -89,14 +93,25 @@ export const PreschoolSelect = React.forwardRef<
     },
     ref,
   ) => {
+    const isControlled = value !== undefined;
+    const [internalValue, setInternalValue] = useState(
+      isControlled ? String(value ?? '') : String(defaultValue ?? '')
+    );
+    const currentValue = isControlled ? String(value ?? '') : internalValue;
+
+    useEffect(() => {
+      if (isControlled) {
+        setInternalValue(String(value ?? ''));
+      }
+    }, [isControlled, value]);
+
     const [isOpen, setIsOpen] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
     const hiddenSelectRef = useRef<HTMLSelectElement>(null);
     const listboxId = useId();
 
     const options = parseChildren(children);
-    const stringValue = String(value ?? '');
-    const selected = options.find((o) => o.value === stringValue);
+    const selected = options.find((o) => o.value === currentValue);
 
     // Combine external ref with internal ref
     const mergeRef = (node: HTMLSelectElement | null) => {
@@ -130,7 +145,7 @@ export const PreschoolSelect = React.forwardRef<
     }, [isOpen]);
 
     const handleSelect = (optionValue: string) => {
-      if (!onChange) return;
+      if (!isControlled) setInternalValue(optionValue);
       // Build a synthetic ChangeEvent targeting the hidden select
       const nativeSelect = hiddenSelectRef.current;
       if (nativeSelect) {
@@ -180,10 +195,15 @@ export const PreschoolSelect = React.forwardRef<
         <select
           ref={mergeRef}
           id={id}
+          name={name}
           aria-label={ariaLabel}
-          value={stringValue}
+          value={isControlled ? currentValue : undefined}
+          defaultValue={!isControlled ? internalValue : undefined}
           disabled={disabled}
-          onChange={(e) => onChange?.(e)}
+          onChange={(e) => {
+            if (!isControlled) setInternalValue(e.target.value);
+            onChange?.(e);
+          }}
           tabIndex={-1}
           aria-hidden={false}
           className="sr-only pointer-events-none absolute opacity-0 w-px h-px overflow-hidden"
@@ -199,8 +219,7 @@ export const PreschoolSelect = React.forwardRef<
           aria-expanded={isOpen}
           aria-haspopup="listbox"
           aria-controls={listboxId}
-          aria-label={ariaLabel ? `Mở dropdown ${ariaLabel}` : undefined}
-          onClick={() => !disabled && setIsOpen((prev) => !prev)}
+                    onClick={() => !disabled && setIsOpen((prev) => !prev)}
           className={cn(
             'w-full min-w-0 max-w-full flex items-center justify-between gap-2',
             'px-4 rounded-2xl border transition-all duration-300 overflow-hidden',
@@ -266,7 +285,7 @@ export const PreschoolSelect = React.forwardRef<
                   </div>
                 ) : (
                   options.map((opt) => {
-                    const isSelected = opt.value === stringValue;
+                    const isSelected = opt.value === currentValue;
                     return (
                       <button
                         key={opt.value}

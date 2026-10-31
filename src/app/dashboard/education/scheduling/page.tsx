@@ -11,6 +11,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import PreschoolSelect from '@/components/ui/PreschoolSelect';
 import { createClient } from '@supabase/supabase-js';
 import { 
   Users, 
@@ -586,15 +587,16 @@ export default function SchedulingPage() {
               </h3>
               <div>
                 <label className="text-xs text-muted-foreground block mb-1">Mã Nhân Viên</label>
-                <select
+                <PreschoolSelect
+                  aria-label="Mã Nhân Viên"
                   value={leaveStaffId}
                   onChange={(e) => setLeaveStaffId(e.target.value)}
-                  className="w-full bg-background border border-border rounded-lg p-2.5 text-sm text-foreground focus:outline-none focus:border-ring"
+                  className="py-2.5 text-sm font-semibold"
                 >
                   <option value={DEFAULT_TEACHER1_ID}>Giáo viên 1 (Teacher Lead 1)</option>
                   <option value={DEFAULT_TEACHER2_ID}>Giáo viên 2 (Teacher Lead 2)</option>
                   <option value={DEFAULT_CAREGIVER1_ID}>Bảo mẫu 1 (Caregiver 1)</option>
-                </select>
+                </PreschoolSelect>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
@@ -620,19 +622,20 @@ export default function SchedulingPage() {
 
               <div>
                 <label className="text-xs text-muted-foreground block mb-1">Loại Nghỉ Phép</label>
-                <select
+                <PreschoolSelect
+                  aria-label="Loại Nghỉ Phép"
                   value={leaveType}
                   onChange={(e) => {
                     if (isLeaveType(e.target.value)) {
                       setLeaveType(e.target.value);
                     }
                   }}
-                  className="w-full bg-background border border-border rounded-lg p-2.5 text-sm text-foreground"
+                  className="py-2.5 text-sm font-semibold"
                 >
                   <option value="SICK_LEAVE">Sick Leave (Nghỉ Bệnh)</option>
                   <option value="ANNUAL_LEAVE">Annual Leave (Nghỉ Phép Năm)</option>
                   <option value="EMERGENCY_LEAVE">Emergency Leave (Nghỉ Đột Xuất)</option>
-                </select>
+                </PreschoolSelect>
               </div>
 
               <button
@@ -691,14 +694,16 @@ export default function SchedulingPage() {
 
                           {l.status === 'APPROVED' && (
                             <div className="flex items-center gap-2">
-                              <select
+                              <PreschoolSelect
+                                aria-label="Giáo viên thay thế"
                                 value={substituteStaffId}
                                 onChange={(e) => setSubstituteStaffId(e.target.value)}
-                                className="bg-background border border-border rounded px-2 py-1 text-xs text-foreground"
+                                wrapperClassName="min-w-[170px]"
+                                className="py-1.5 px-2.5 text-xs font-semibold"
                               >
                                 <option value={DEFAULT_TEACHER2_ID}>Giáo viên 2 (Teacher 2)</option>
                                 <option value={DEFAULT_CAREGIVER1_ID}>Bảo mẫu 1 (Caregiver 1)</option>
-                              </select>
+                              </PreschoolSelect>
                               <button
                                 data-testid="btn-assign-substitute"
                                 onClick={() => handleAssignSubstitute(l.id)}

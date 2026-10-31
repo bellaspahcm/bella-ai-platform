@@ -4,6 +4,7 @@
 
 import { useState, useEffect, type FormEvent } from 'react';
 import Link from 'next/link';
+import PreschoolSelect from '@/components/ui/PreschoolSelect';
 import { useParams } from 'next/navigation';
 import { loadAllClassAssignments, loadAllConfirmedTeachers, loadTeacherBranches,
   loadTeacherClasses, localDate } from '../teacher-live-data';
@@ -756,17 +757,18 @@ export default function TeacherDetailPage() {
                     <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">
                       Trạng thái hoạt động
                     </label>
-                    <select
+                    <PreschoolSelect
                       name="status"
+                      aria-label="Trạng thái hoạt động"
                       disabled
                       value={teacher.status}
-                      className="w-full p-3 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-slate-400 outline-none cursor-not-allowed"
+                      className="py-2.5 text-xs font-semibold"
                     >
                       <option value="Đang Giảng Dạy">Đang Giảng Dạy</option>
                       <option value="Đã xác nhận">Đã xác nhận</option>
                       <option value="Tạm Nghỉ">Tạm Nghỉ</option>
                       <option value="Chờ Phân Công">Chờ Phân Công</option>
-                    </select>
+                    </PreschoolSelect>
                   </div>
 
                   <div>
@@ -863,14 +865,15 @@ export default function TeacherDetailPage() {
                     <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">
                       Lớp phụ trách hiện tại
                     </label>
-                    <select
+                    <PreschoolSelect
                       name="currentClass"
+                      aria-label="Lớp phụ trách hiện tại"
                       disabled
                       value={teacher.currentClass}
-                      className="w-full p-3 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-slate-400 outline-none cursor-not-allowed"
+                      className="py-2.5 text-xs font-semibold"
                     >
-                      <option>{teacher.currentClass}</option>
-                    </select>
+                      <option value={teacher.currentClass}>{teacher.currentClass}</option>
+                    </PreschoolSelect>
                   </div>
 
                   <div>
@@ -923,15 +926,16 @@ export default function TeacherDetailPage() {
                     <label className="text-[11px] font-bold text-slate-500 block mb-1">
                       Chứng chỉ Sơ cứu y tế
                     </label>
-                    <select
+                    <PreschoolSelect
                       name="firstAidWarning"
+                      aria-label="Chứng chỉ Sơ cứu y tế"
                       defaultValue={teacher.compliance.firstAidWarning}
-                      className="w-full p-2.5 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-[#0e5c43]"
+                      className="py-2.5 text-xs font-semibold"
                     >
                       <option value="unknown">Chưa có dữ liệu</option>
                       <option value="valid">Đã gia hạn (Hợp lệ)</option>
                       <option value="warning">Cần gia hạn (Cảnh báo)</option>
-                    </select>
+                    </PreschoolSelect>
                   </div>
                 </div>
               </div>

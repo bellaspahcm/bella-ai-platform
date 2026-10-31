@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 /**
  * Bella Education — Preschool Dashboard Page
@@ -644,14 +644,20 @@ function PreschoolDashboard({ tenantId, displayName, userRole }: { tenantId: str
     <div className="preschool-ui min-h-screen bg-background p-4 sm:p-6 lg:p-7 space-y-6 text-slate-800 dark:text-slate-100 font-sans">
       
       <section aria-label="Phạm vi Tổng quan" className="flex flex-wrap items-center gap-3">
-        <label className="text-sm font-semibold">Cơ sở
-          <select aria-label="Chọn cơ sở Tổng quan" value={selectedBranchId ?? ''} onChange={event => {
-            setDashboardData(null); setAnalyticsError(null); setLoadingDashboard(true); setCopilotNotice(null);
-            setSelectedBranchId(event.target.value || null);
-          }} className="ml-2 rounded-xl border border-slate-200 bg-white dark:bg-slate-900 px-3 py-2">
+        <label className="text-sm font-semibold flex items-center gap-2">Cơ sở
+          <PreschoolSelect
+            aria-label="Chọn cơ sở Tổng quan"
+            value={selectedBranchId ?? ''}
+            onChange={event => {
+              setDashboardData(null); setAnalyticsError(null); setLoadingDashboard(true); setCopilotNotice(null);
+              setSelectedBranchId(event.target.value || null);
+            }}
+            wrapperClassName="min-w-44"
+            className="py-2 text-xs"
+          >
             <option value="">Chọn cơ sở</option>
             {branches.map(branch => <option key={branch.id} value={branch.id}>{branch.name}</option>)}
-          </select>
+          </PreschoolSelect>
         </label>
         <span className="text-sm text-slate-500">Dữ liệu ngày {selectedDateStr}, trong cơ sở đang chọn.</span>
         {(analyticsError || branchListError) && (
@@ -1627,17 +1633,14 @@ function PreschoolDashboard({ tenantId, displayName, userRole }: { tenantId: str
               {loadingDashboard && <Loader2 className="w-3.5 h-3.5 animate-spin text-slate-400" />}
             </h3>
             {/* Period Selector */}
-            <div className="relative">
-              <select
-                value=""
-                disabled
-                aria-label="Kỳ doanh thu chưa khả dụng"
-                className="appearance-none bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-700 dark:text-slate-300 rounded-xl px-3 py-1.5 pr-7 focus:outline-none cursor-pointer"
-              >
-                <option value="">Chưa có dữ liệu doanh thu theo kỳ</option>
-              </select>
-              <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
-            </div>
+            <PreschoolSelect
+              aria-label="Kỳ doanh thu chưa khả dụng"
+              value=""
+              disabled
+              className="py-1.5 text-xs font-medium"
+            >
+              <option value="">Chưa có dữ liệu doanh thu theo kỳ</option>
+            </PreschoolSelect>
           </div>
 
           {loadingDashboard ? (

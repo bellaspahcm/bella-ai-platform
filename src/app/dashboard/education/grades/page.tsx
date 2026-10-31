@@ -26,6 +26,7 @@ import { useState, useEffect, useMemo, useRef, Suspense, type ChangeEvent } from
 import { useSearchParams } from 'next/navigation';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import Link from 'next/link';
+import PreschoolSelect from '@/components/ui/PreschoolSelect';
 import { useUser } from '@/lib/user-context';
 import {
   ArrowLeft,
@@ -1858,19 +1859,18 @@ function PreschoolDevelopmentGradesPageContent() {
         </div>
 
         <div className="flex flex-wrap items-center gap-3 self-end md:self-auto">
-          <div className="relative">
-            <select
-              value={selectedMonth}
-              onChange={(e: ChangeEvent<HTMLSelectElement>) => setSelectedMonth(e.target.value)}
-              aria-label="Chọn tháng đánh giá"
-              className="appearance-none bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-700 dark:text-slate-200 rounded-2xl pl-4 pr-9 py-2.5 shadow-sm cursor-pointer hover:border-slate-300 focus:outline-none"
-            >
-              <option>Tháng 09/2026</option>
-              <option>Tháng 10/2026</option>
-              <option>Tháng 11/2026</option>
-            </select>
-            <Calendar className="w-4 h-4 text-slate-400 absolute right-3 top-3 pointer-events-none" />
-          </div>
+          <PreschoolSelect
+            value={selectedMonth}
+            onChange={(e) => setSelectedMonth(e.target.value)}
+            aria-label="Chọn tháng đánh giá"
+            icon={<Calendar className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />}
+            wrapperClassName="min-w-[170px]"
+            className="py-2.5 px-3.5 text-xs font-bold"
+          >
+            <option value="Tháng 09/2026">Tháng 09/2026</option>
+            <option value="Tháng 10/2026">Tháng 10/2026</option>
+            <option value="Tháng 11/2026">Tháng 11/2026</option>
+          </PreschoolSelect>
 
           <button
             type="button"
@@ -2220,38 +2220,34 @@ function PreschoolDevelopmentGradesPageContent() {
             </div>
 
             <div className="flex items-center gap-3 shrink-0">
-              <div className="relative">
-                <select
-                  value={selectedClass}
-                  onChange={(e: ChangeEvent<HTMLSelectElement>) =>
-                    setSelectedClass(e.target.value as 'ALL' | 'MAM_A1' | 'CHOI_B1')
-                  }
-                  aria-label="Lọc theo lớp học"
-                  className="appearance-none bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-700 dark:text-slate-200 rounded-2xl pl-4 pr-8 py-2.5 shadow-sm cursor-pointer"
-                >
-                  <option value="ALL">Tất cả lớp</option>
-                  <option value="MAM_A1">Lớp Mầm A1</option>
-                  <option value="CHOI_B1">Lớp Chồi B1</option>
-                </select>
-                <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-3 top-3.5 pointer-events-none" />
-              </div>
+              <PreschoolSelect
+                value={selectedClass}
+                onChange={(e) =>
+                  setSelectedClass(e.target.value as 'ALL' | 'MAM_A1' | 'CHOI_B1')
+                }
+                aria-label="Lọc theo lớp học"
+                wrapperClassName="min-w-[170px]"
+                className="py-2.5 px-3.5 text-xs font-bold"
+              >
+                <option value="ALL">Tất cả lớp</option>
+                <option value="MAM_A1">Lớp Mầm A1</option>
+                <option value="CHOI_B1">Lớp Chồi B1</option>
+              </PreschoolSelect>
 
-              <div className="relative">
-                <select
-                  value={selectedStatus}
-                  onChange={(e: ChangeEvent<HTMLSelectElement>) =>
-                    setSelectedStatus(e.target.value as 'ALL' | 'COMPLETED' | 'SUPPLEMENT' | 'ATTENTION')
-                  }
-                  aria-label="Lọc theo trạng thái hồ sơ"
-                  className="appearance-none bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-700 dark:text-slate-200 rounded-2xl pl-4 pr-8 py-2.5 shadow-sm cursor-pointer"
-                >
-                  <option value="ALL">Tất cả trạng thái</option>
-                  <option value="COMPLETED">Đã đầy đủ</option>
-                  <option value="SUPPLEMENT">Cần bổ sung</option>
-                  <option value="ATTENTION">Cần chú ý</option>
-                </select>
-                <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-3 top-3.5 pointer-events-none" />
-              </div>
+              <PreschoolSelect
+                value={selectedStatus}
+                onChange={(e) =>
+                  setSelectedStatus(e.target.value as 'ALL' | 'COMPLETED' | 'SUPPLEMENT' | 'ATTENTION')
+                }
+                aria-label="Lọc theo trạng thái hồ sơ"
+                wrapperClassName="min-w-[170px]"
+                className="py-2.5 px-3.5 text-xs font-bold"
+              >
+                <option value="ALL">Tất cả trạng thái</option>
+                <option value="COMPLETED">Đã đầy đủ</option>
+                <option value="SUPPLEMENT">Cần bổ sung</option>
+                <option value="ATTENTION">Cần chú ý</option>
+              </PreschoolSelect>
 
               <button
                 type="button"
@@ -2680,11 +2676,12 @@ function PreschoolDevelopmentGradesPageContent() {
             </div>
 
             <div className="flex items-center gap-3">
-              <select
+              <PreschoolSelect
                 value={obsDomainFilter}
                 onChange={(e) => setObsDomainFilter(e.target.value)}
                 aria-label="Lọc theo lĩnh vực quan sát"
-                className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-bold text-slate-700 dark:text-slate-300"
+                wrapperClassName="min-w-[180px]"
+                className="py-2 px-3 text-xs font-bold"
               >
                 <option value="ALL">Tất cả lĩnh vực</option>
                 <option value="Thể chất & Vận động">Thể chất &amp; Vận động</option>
@@ -2692,7 +2689,7 @@ function PreschoolDevelopmentGradesPageContent() {
                 <option value="Nhận thức & Tư duy">Nhận thức &amp; Tư duy</option>
                 <option value="Tình cảm & Kỹ năng xã hội">Tình cảm &amp; Kỹ năng xã hội</option>
                 <option value="Thẩm mỹ & Sáng tạo">Thẩm mỹ &amp; Sáng tạo</option>
-              </select>
+              </PreschoolSelect>
 
               <button
                 type="button"
@@ -2933,18 +2930,19 @@ function PreschoolDevelopmentGradesPageContent() {
               <label htmlFor="portfolio-select" className="text-xs font-bold text-slate-600 dark:text-slate-300">
                 Chọn học sinh:
               </label>
-              <select
+              <PreschoolSelect
                 id="portfolio-select"
                 value={portfolioSelectedStudentId}
                 onChange={(e) => setPortfolioSelectedStudentId(e.target.value)}
-                className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-bold text-slate-900 dark:text-slate-100"
+                wrapperClassName="min-w-[180px]"
+                className="py-2 px-3 text-xs font-bold"
               >
                 {ROSTER_STUDENTS.map((s) => (
                   <option key={s.id} value={s.id}>
                     {s.name} ({s.className})
                   </option>
                 ))}
-              </select>
+              </PreschoolSelect>
             </div>
           </div>
 
@@ -3076,11 +3074,12 @@ function PreschoolDevelopmentGradesPageContent() {
             </div>
 
             <div className="flex items-center gap-3">
-              <select
+              <PreschoolSelect
                 value={awardCategoryFilter}
                 onChange={(e) => setAwardCategoryFilter(e.target.value)}
                 aria-label="Lọc theo loại khen thưởng"
-                className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-bold text-slate-700 dark:text-slate-300"
+                wrapperClassName="min-w-[180px]"
+                className="py-2 px-3 text-xs font-bold"
               >
                 <option value="ALL">Tất cả danh hiệu</option>
                 <option value="CHAM_NGOAN">Bé Chăm Ngoan</option>
@@ -3088,7 +3087,7 @@ function PreschoolDevelopmentGradesPageContent() {
                 <option value="CHIA_SE">Thiên Thần Chia Sẻ</option>
                 <option value="KHOE_DEP">Bé Khỏe Đẹp</option>
                 <option value="TU_LAP">Bé Tự Lập</option>
-              </select>
+              </PreschoolSelect>
 
               <button
                 type="button"
@@ -3356,18 +3355,18 @@ function PreschoolDevelopmentGradesPageContent() {
                 >
                   Chọn trẻ
                 </label>
-                <select
+                <PreschoolSelect
                   id="new-observation-student"
                   value={newObsStudentId}
-                  onChange={(e: ChangeEvent<HTMLSelectElement>) => selectObservationChild(e.target.value)}
-                  className="w-full p-2.5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 font-medium"
+                  onChange={(e) => selectObservationChild(e.target.value)}
+                  className="py-2.5 font-medium"
                 >
                   {ROSTER_STUDENTS.map((s) => (
                     <option key={s.id} value={s.id}>
                       {s.name} ({s.className})
                     </option>
                   ))}
-                </select>
+                </PreschoolSelect>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
@@ -3378,18 +3377,18 @@ function PreschoolDevelopmentGradesPageContent() {
                   >
                     Lĩnh vực NAEYC
                   </label>
-                  <select
+                  <PreschoolSelect
                     id="new-observation-domain"
                     value={newObsDomain}
-                    onChange={(e: ChangeEvent<HTMLSelectElement>) => updateObservationDraft({ domain: e.target.value })}
-                    className="w-full p-2.5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 font-medium"
+                    onChange={(e) => updateObservationDraft({ domain: e.target.value })}
+                    className="py-2.5 font-medium"
                   >
-                    <option>Thể chất &amp; Vận động</option>
-                    <option>Ngôn Ngữ &amp; Giao Tiếp</option>
-                    <option>Nhận Thức &amp; Tư Duy</option>
-                    <option>Tình Cảm &amp; Kỹ Năng Xã Hội</option>
-                    <option>Thẩm Mỹ &amp; Sáng Tạo</option>
-                  </select>
+                    <option value="Thể chất &amp; Vận động">Thể chất &amp; Vận động</option>
+                    <option value="Ngôn Ngữ &amp; Giao Tiếp">Ngôn Ngữ &amp; Giao Tiếp</option>
+                    <option value="Nhận Thức &amp; Tư Duy">Nhận Thức &amp; Tư Duy</option>
+                    <option value="Tình Cảm &amp; Kỹ Năng Xã Hội">Tình Cảm &amp; Kỹ Năng Xã Hội</option>
+                    <option value="Thẩm Mỹ &amp; Sáng Tạo">Thẩm Mỹ &amp; Sáng Tạo</option>
+                  </PreschoolSelect>
                 </div>
 
                 <div>
@@ -3399,19 +3398,19 @@ function PreschoolDevelopmentGradesPageContent() {
                   >
                     Mức độ tiến trình
                   </label>
-                  <select
+                  <PreschoolSelect
                     id="new-observation-progression"
                     value={newObsProgression}
-                    onChange={(e: ChangeEvent<HTMLSelectElement>) =>
+                    onChange={(e) =>
                       updateObservationDraft({ progression: e.target.value })
                     }
-                    className="w-full p-2.5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 font-medium"
+                    className="py-2.5 font-medium"
                   >
-                    <option>Đang làm quen</option>
-                    <option>Đang phát triển</option>
-                    <option>Đạt kỳ vọng</option>
-                    <option>Thành thạo</option>
-                  </select>
+                    <option value="Đang làm quen">Đang làm quen</option>
+                    <option value="Đang phát triển">Đang phát triển</option>
+                    <option value="Đạt kỳ vọng">Đạt kỳ vọng</option>
+                    <option value="Thành thạo">Thành thạo</option>
+                  </PreschoolSelect>
                 </div>
               </div>
 
@@ -3685,32 +3684,34 @@ function PreschoolDevelopmentGradesPageContent() {
             <div className="space-y-3 text-xs">
               <div>
                 <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">Chọn bé</label>
-                <select
+                <PreschoolSelect
+                  aria-label="Chọn bé khen thưởng"
                   value={newAwardStudentId}
                   onChange={(e) => setNewAwardStudentId(e.target.value)}
-                  className="w-full p-2.5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 font-medium"
+                  className="py-2.5 font-medium"
                 >
                   {ROSTER_STUDENTS.map((s) => (
                     <option key={s.id} value={s.id}>
                       {s.name} ({s.className})
                     </option>
                   ))}
-                </select>
+                </PreschoolSelect>
               </div>
 
               <div>
                 <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">Danh hiệu tuyên dương</label>
-                <select
+                <PreschoolSelect
+                  aria-label="Danh hiệu tuyên dương"
                   value={newAwardCategory}
                   onChange={(e) => setNewAwardCategory(e.target.value as 'CHAM_NGOAN' | 'HOA_SI' | 'KHOE_DEP' | 'CHIA_SE' | 'TU_LAP')}
-                  className="w-full p-2.5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 font-medium"
+                  className="py-2.5 font-medium"
                 >
                   <option value="CHAM_NGOAN">Bé Chăm Ngoan &amp; Tự Giác</option>
                   <option value="HOA_SI">Họa Sĩ Nhí Sáng Tạo</option>
                   <option value="KHOE_DEP">Bé Khỏe Đẹp &amp; Vận Động</option>
                   <option value="CHIA_SE">Thiên Thần Chia Sẻ &amp; Yêu Thương</option>
                   <option value="TU_LAP">Bé Tự Lập Xuất Sắc</option>
-                </select>
+                </PreschoolSelect>
               </div>
 
               <div>
