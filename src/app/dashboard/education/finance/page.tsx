@@ -1194,7 +1194,7 @@ function FinancePageContent() {
         <div className="flex flex-wrap items-center gap-2.5">
           {/* Interactive Billing Period Selector */}
           <div className="relative">
-            <select
+            <PreschoolSelect
               aria-label="Chọn kỳ thu hoạt động"
               value={selectedBillingPeriodId}
               onChange={(e: ChangeEvent<HTMLSelectElement>) => {
@@ -1202,7 +1202,8 @@ function FinancePageContent() {
                 setSelectedBillingPeriodId(val);
                 setFilterBillingPeriodId(val ? val : 'ALL');
               }}
-              className="appearance-none pl-3.5 pr-8 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-bold text-slate-700 dark:text-slate-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-[#0c513f]/20 cursor-pointer"
+              wrapperClassName="min-w-44"
+              className="py-2 text-xs font-bold"
             >
               <option value="">Chưa chọn kỳ thu</option>
               {billingPeriods.map((period) => (
@@ -1210,8 +1211,7 @@ function FinancePageContent() {
                   {period.periodName} ({period.status === 'ACTIVE' ? 'Đang thu' : period.status})
                 </option>
               ))}
-            </select>
-            <Calendar className="w-4 h-4 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            </PreschoolSelect>
           </div>
 
           <button
@@ -1950,12 +1950,14 @@ function FinancePageContent() {
                   </div>
 
                   {/* Student Dropdown */}
-                  <select
+                  <PreschoolSelect
+                    aria-label="Học sinh"
                     id="finance-student"
                     disabled={loading || !dataLoaded}
                     value={selectedStudentPartyId}
                     onChange={(e: ChangeEvent<HTMLSelectElement>) => setSelectedStudentPartyId(e.target.value)}
-                    className="w-full p-2.5 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#0c513f]/20"
+                    wrapperClassName="w-full"
+                    className="py-2.5 text-xs"
                   >
                     <option value="">{students.length === 0 ? 'Chưa có học sinh đã ghi danh' : 'Chọn học sinh'}</option>
                     {selectedStudentPartyId && !selectedStudent && (
@@ -1973,7 +1975,7 @@ function FinancePageContent() {
                         {st.displayName} {st.studentCode ? `(${st.studentCode})` : ''}{st.className ? ` - ${st.className}` : ''}
                       </option>
                     ))}
-                  </select>
+                  </PreschoolSelect>
                 </div>
 
                 {/* Billing Period Selector */}
@@ -1982,12 +1984,14 @@ function FinancePageContent() {
                     <span>Kỳ thu</span>
                     <span className="text-rose-500">*</span>
                   </label>
-                  <select
+                  <PreschoolSelect
+                    aria-label="Kỳ thu"
                     id="finance-billing-period"
                     disabled={loading || !dataLoaded}
                     value={selectedBillingPeriodId}
                     onChange={(e: ChangeEvent<HTMLSelectElement>) => setSelectedBillingPeriodId(e.target.value)}
-                    className="w-full p-2.5 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#0c513f]/20"
+                    wrapperClassName="w-full"
+                    className="py-2.5 text-xs"
                   >
                     <option value="">{billingPeriods.length === 0 ? 'Chưa có kỳ thu khả dụng' : 'Chọn kỳ thu'}</option>
                     {selectedBillingPeriodId && !selectedBillingPeriod && (
@@ -2000,7 +2004,7 @@ function FinancePageContent() {
                         {period.periodName} ({period.dueDate})
                       </option>
                     ))}
-                  </select>
+                  </PreschoolSelect>
                 </div>
 
                 {/* Service completion action confirmation preserved for compliance */}
@@ -2140,11 +2144,12 @@ function FinancePageContent() {
                 </div>
 
                 <div className="sm:col-span-2">
-                  <select
+                  <PreschoolSelect
                     aria-label="Lọc kỳ thu"
                     value={filterBillingPeriodId}
                     onChange={(event) => setFilterBillingPeriodId(event.target.value)}
-                    className="w-full py-2 px-2.5 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-[#0c513f]/20"
+                    wrapperClassName="w-full"
+                    className="py-2 text-xs"
                   >
                     <option value="ALL">Tất cả kỳ thu</option>
                     {Array.from(new Map(displayInvoices.map((invoice) => [invoice.billingPeriodId, invoice.billingPeriodDisplay]))).map(([id, label]) => (
@@ -2152,36 +2157,38 @@ function FinancePageContent() {
                         {label}
                       </option>
                     ))}
-                  </select>
+                  </PreschoolSelect>
                 </div>
 
                 <div className="sm:col-span-2">
-                  <select
+                  <PreschoolSelect
                     aria-label="Lọc trạng thái phát hành"
                     value={filterIssuance}
                     onChange={(e: ChangeEvent<HTMLSelectElement>) => setFilterIssuance(e.target.value)}
-                    className="w-full py-2 px-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-[#0c513f]/20"
+                    wrapperClassName="w-full"
+                    className="py-2 text-xs"
                   >
                     <option value="ALL">Trạng thái phát hành ▾</option>
                     <option value="ISSUED">Đã phát hành</option>
                     <option value="DRAFT">Bản nháp</option>
                     <option value="VOID">Đã hủy</option>
-                  </select>
+                  </PreschoolSelect>
                 </div>
 
                 <div className="sm:col-span-3">
-                  <select
+                  <PreschoolSelect
                     aria-label="Lọc trạng thái thanh toán"
                     value={filterSettlement}
                     onChange={(e: ChangeEvent<HTMLSelectElement>) => setFilterSettlement(e.target.value)}
-                    className="w-full py-2 px-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-[#0c513f]/20"
+                    wrapperClassName="w-full"
+                    className="py-2 text-xs"
                   >
                     <option value="ALL">Trạng thái thanh toán ▾</option>
                     <option value="PAID">Đã thanh toán</option>
                     <option value="PARTIALLY_PAID">Một phần</option>
                     <option value="UNPAID">Chưa thanh toán</option>
                     <option value="OVERPAID">Thanh toán thừa</option>
-                  </select>
+                  </PreschoolSelect>
                 </div>
               </div>
 
@@ -2569,30 +2576,32 @@ function FinancePageContent() {
               </div>
 
               <div className="sm:col-span-3">
-                <select
-                  value={filterIssuance}
-                  onChange={(e: ChangeEvent<HTMLSelectElement>) => setFilterIssuance(e.target.value)}
-                  className="w-full py-2 px-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-200"
-                >
+                <PreschoolSelect
+                value={filterIssuance}
+                onChange={(e: ChangeEvent<HTMLSelectElement>) => setFilterIssuance(e.target.value)}
+                wrapperClassName="w-full"
+                className="py-2 text-xs"
+              >
                   <option value="ALL">Tất cả trạng thái phát hành</option>
                   <option value="ISSUED">Đã phát hành</option>
                   <option value="DRAFT">Bản nháp</option>
                   <option value="VOID">Đã hủy</option>
-                </select>
+              </PreschoolSelect>
               </div>
 
               <div className="sm:col-span-3">
-                <select
+                <PreschoolSelect
                   value={filterSettlement}
                   onChange={(e: ChangeEvent<HTMLSelectElement>) => setFilterSettlement(e.target.value)}
-                  className="w-full py-2 px-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-200"
+                  wrapperClassName="w-full"
+                  className="py-2 text-xs"
                 >
                   <option value="ALL">Tất cả trạng thái thanh toán</option>
                   <option value="PAID">Đã thanh toán</option>
                   <option value="PARTIALLY_PAID">Một phần</option>
                   <option value="UNPAID">Chưa thanh toán</option>
                   <option value="OVERPAID">Thanh toán thừa</option>
-                </select>
+                </PreschoolSelect>
               </div>
             </div>
 
@@ -3288,7 +3297,7 @@ function FinancePageContent() {
                 <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
                   Chọn hóa đơn cần thanh toán *
                 </label>
-                <select
+                <PreschoolSelect
                   value={paymentTargetInvoice?.id || ''}
                   onChange={(e) => {
                     const found = displayInvoices.find((inv) => inv.id === e.target.value);
@@ -3297,7 +3306,8 @@ function FinancePageContent() {
                       setPaymentAmountInput(String(found.outstandingAmount > 0 ? found.outstandingAmount : found.amount));
                     }
                   }}
-                  className="w-full p-2.5 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#0c513f]/20"
+                  wrapperClassName="w-full"
+                  className="py-2.5 text-xs"
                 >
                   <option value="">Chọn hóa đơn cần nộp</option>
                   {displayInvoices
@@ -3307,7 +3317,7 @@ function FinancePageContent() {
                         {inv.invoiceNumber} — {inv.studentName} ({formatCurrency(inv.outstandingAmount > 0 ? inv.outstandingAmount : inv.amount)})
                       </option>
                     ))}
-                </select>
+                </PreschoolSelect>
               </div>
 
               {/* Amount Input */}
