@@ -41,6 +41,15 @@ jest.mock('@/platform/education/contracts/preschool-registry.contract.impl', () 
   },
 }));
 
+// Prevent createAdminClient() from attempting a real Supabase connection in CI
+jest.mock('@/lib/supabase-admin-env', () => ({
+  getSupabaseAdminUrl: () => null,
+  getSupabaseAdminKey: () => null,
+}));
+
+// CI runners can be slow on first module load — extend timeout for route integration tests
+jest.setTimeout(15_000);
+
 const { GET, POST } = require('../route') as typeof import('../route');
 const actorId = '00000000-0000-0000-0000-000000000001';
 const tenantId = '00000000-0000-0000-0000-000000000002';
