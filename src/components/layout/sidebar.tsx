@@ -96,6 +96,8 @@ type MenuLink = {
   icon: LucideIcon;
   label: string;
   href: string;
+  /** Optional badge text shown next to the label (e.g. 'Chưa mở', 'Mới') */
+  badge?: string;
   type?: never;
 };
 
@@ -434,7 +436,7 @@ const bellaEducationMenuItems: SidebarMenuItem[] = [
   { icon: Heart, label: 'Chăm sóc & Nuôi dưỡng', href: '/dashboard/education/care' },
   { icon: Utensils, label: 'Thực đơn & Dinh dưỡng', href: '/dashboard/education/nutrition' },
   { icon: BookOpenCheck, label: 'Giáo trình & Giáo án', href: '/dashboard/education/curriculum' },
-  { icon: GraduationCap, label: 'Học tập & Hoạt động', href: '/dashboard/education/grades' },
+  { icon: GraduationCap, label: 'Học tập & Hoạt động', href: '/dashboard/education/grades', badge: 'Chưa mở' },
   { icon: MessageSquare, label: 'Truyền thông', href: '/dashboard/education/communication' },
   { icon: CircleDollarSign, label: 'Tài chính', href: '/dashboard/education/finance' },
   { icon: Building2, label: 'Cơ sở vật chất', href: '/dashboard/education/facilities' },
@@ -1039,6 +1041,13 @@ export function Sidebar() {
                       ? (isActive ? "font-extrabold text-[#042f2e]" : (isBellaAutoShell || isBellaHealthcareShell) ? "font-semibold text-slate-100 group-hover:text-white" : "font-semibold text-inherit group-hover:text-white")
                       : (isActive ? "font-extrabold text-primary dark:text-[#F3F5F7]" : "font-semibold")
                   )}>{item.label}</span>
+
+                  {/* Badge for menu items (e.g. 'Chưa mở') */}
+                  {item.badge && (
+                    <span className="ml-auto shrink-0 text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-slate-200/80 dark:bg-slate-700/80 text-slate-500 dark:text-slate-400 leading-none">
+                      {item.badge}
+                    </span>
+                  )}
 
                   {/* Active Left Vertical Accent Bar for Preschool Shell */}
                   {isActive && isBellaEducationShell && (

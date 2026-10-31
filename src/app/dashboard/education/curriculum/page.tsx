@@ -1007,3 +1007,4 @@ export default function CurriculumManagementPage() {
     </Suspense>
   );
 }
+

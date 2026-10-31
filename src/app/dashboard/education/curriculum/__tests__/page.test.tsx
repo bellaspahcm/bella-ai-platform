@@ -208,3 +208,4 @@ describe('CurriculumManagementPage Component (/dashboard/education/curriculum)',
     });
   });
 });
+
