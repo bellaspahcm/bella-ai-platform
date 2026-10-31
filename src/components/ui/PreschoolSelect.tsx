@@ -181,7 +181,7 @@ export const PreschoolSelect = React.forwardRef<
           type: 'change',
           timeStamp: Date.now(),
         } as unknown as ChangeEvent<HTMLSelectElement>;
-        onChange(syntheticEvent);
+        onChange?.(syntheticEvent);
       }
       setIsOpen(false);
     };
