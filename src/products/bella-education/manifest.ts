@@ -27,7 +27,8 @@ export const bellaEducationManifest: VerticalManifest & {
     'student_enrollment_command',
     'attendance_checkpoint_command',
     'grade_reporting_command',
-    'preschool_ai_copilot'
+    'preschool_ai_copilot',
+    'preschool_nutrition_management'
   ],
   enabledCapabilities: [
     'course_catalog_query',
@@ -47,6 +48,7 @@ export const bellaEducationManifest: VerticalManifest & {
     { id: 'classes', label: 'Quản lý lớp học', href: '/dashboard/education/courses', icon: 'BookOpen' },
     { id: 'teachers', label: 'Quản lý giáo viên', href: '/dashboard/education/teachers', icon: 'UserCheck' },
     { id: 'care', label: 'Chăm sóc & Nuôi dưỡng', href: '/dashboard/education/care', icon: 'Heart' },
+    { id: 'nutrition', label: 'Thực đơn & Dinh dưỡng', href: '/dashboard/education/nutrition', icon: 'Utensils' },
     { id: 'learning', label: 'Học tập & Hoạt động', href: '/dashboard/education/grades', icon: 'GraduationCap' },
     { id: 'communication', label: 'Truyền thông', href: '/dashboard/education/communication', icon: 'MessageSquare' },
     { id: 'finance', label: 'Tài chính', href: '/dashboard/education/finance', icon: 'CircleDollarSign' },

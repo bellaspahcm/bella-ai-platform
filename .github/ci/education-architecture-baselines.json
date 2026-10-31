@@ -257,7 +257,13 @@
       "services/preschool-parent-daily-experience.service.ts:L356 - Direct database query targeting '.from('edu_' is prohibited in the Product layer.": 1,
       "services/preschool-parent-daily-experience.service.ts:L379 - Direct database query targeting '.from('edu_' is prohibited in the Product layer.": 1,
       "services/preschool-parent-daily-experience.service.ts:L393 - Direct database query targeting '.from('edu_' is prohibited in the Product layer.": 1,
-      "services/preschool-safe-pickup-handover.service.ts:L112 - Direct database query targeting '.from('edu_' is prohibited in the Product layer.": 1
+      "services/preschool-safe-pickup-handover.service.ts:L112 - Direct database query targeting '.from('edu_' is prohibited in the Product layer.": 1,
+      "care-wellbeing/nutrition/weekly-menu.service.ts:L129 - Direct database query targeting '.from('edu_' is prohibited in the Product layer.": 1,
+      "care-wellbeing/nutrition/weekly-menu.service.ts:L206 - Direct database query targeting '.from('edu_' is prohibited in the Product layer.": 1,
+      "care-wellbeing/nutrition/weekly-menu.service.ts:L291 - Direct database query targeting '.from('edu_' is prohibited in the Product layer.": 1,
+      "care-wellbeing/nutrition/weekly-menu.service.ts:L322 - Direct database query targeting '.from('edu_' is prohibited in the Product layer.": 1,
+      "care-wellbeing/nutrition/weekly-menu.service.ts:L332 - Direct database query targeting '.from('edu_' is prohibited in the Product layer.": 1,
+      "care-wellbeing/nutrition/weekly-menu.service.ts:L363 - Direct database query targeting '.from('edu_' is prohibited in the Product layer.": 1
     }
   },
   "internalKernelImports": {

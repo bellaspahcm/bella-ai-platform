@@ -137,6 +137,10 @@ export interface PreschoolWeeklyMenuDTO {
   endDate: string;
   status: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
   days: PreschoolWeeklyMenuDayDTO[];
+  title?: string;
+  ageGroup?: string;
+  notes?: string | null;
+  academicYear?: string;
 }
 
 export interface ExecutiveDashboardDTO {

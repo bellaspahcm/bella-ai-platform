@@ -40,6 +40,8 @@ import {
   AlertCircle,
   Sparkles,
 } from 'lucide-react';
+import WeeklyMenuEditorModal from './WeeklyMenuEditorModal';
+import type { PreschoolWeeklyMenuDTO } from '@/products/bella-education/analytics/domain/preschool-analytics.types';
 import { saveCareRecords } from './care-save';
 import { useUser } from '@/lib/user-context';
 
@@ -462,6 +464,37 @@ function CarePageContent() {
 
   // Feedback Toast state
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  // Weekly Nutrition Menu Management
+  const [isWeeklyMenuModalOpen, setIsWeeklyMenuModalOpen] = useState(false);
+  const [currentWeeklyMenu, setCurrentWeeklyMenu] = useState<PreschoolWeeklyMenuDTO | null>(null);
+
+  const fetchWeeklyMenu = useCallback(async (targetDate: string) => {
+    try {
+      const res = await fetch(`/api/education/nutrition/weekly-menu?date=${targetDate}`, { cache: 'no-store' });
+      if (res.ok) {
+        const data: unknown = await res.json();
+        if (data && typeof data === 'object' && 'success' in data && data.success && 'menu' in data) {
+          setCurrentWeeklyMenu((data as { menu: PreschoolWeeklyMenuDTO | null }).menu);
+        }
+      }
+    } catch {
+      // Ignore network noise
+    }
+  }, []);
+
+  useEffect(() => {
+    if (activeTab === 'meal' && selectedCourseId) {
+      void fetchWeeklyMenu(selectedDate);
+    }
+  }, [activeTab, selectedCourseId, selectedDate, fetchWeeklyMenu]);
+
+  const todayMenuDay = useMemo(() => {
+    if (!currentWeeklyMenu?.days) return null;
+    const parts = selectedDate.split('-');
+    const targetFormatted = parts.length === 3 ? `${parts[2]}/${parts[1]}/${parts[0]}` : '';
+    return currentWeeklyMenu.days.find((d) => d.dateStr === targetFormatted) || null;
+  }, [currentWeeklyMenu, selectedDate]);
 
   // Live roster from API
   const [roster, setRoster] = useState<readonly StudentCareItem[]>([]);
@@ -999,6 +1032,17 @@ function CarePageContent() {
               <option value="good">Bình thường</option>
             </PreschoolSelect>
 
+            {/* Weekly Menu CTA */}
+            <button
+              type="button"
+              onClick={() => setIsWeeklyMenuModalOpen(true)}
+              className="px-3.5 py-2 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs shadow-2xs transition-all flex items-center gap-1.5 cursor-pointer shrink-0"
+              title="Thiết lập và xem thực đơn tuần"
+            >
+              <Utensils className="w-3.5 h-3.5 text-[#0e5c43] dark:text-emerald-400" />
+              <span>Quản lý thực đơn</span>
+            </button>
+
             {/* Quick Record CTA */}
             <button
               type="button"
@@ -1011,6 +1055,51 @@ function CarePageContent() {
             </button>
           </div>
         </div>
+
+        {/* Nutrition Menu Banner Card (shown in meal tab) */}
+        {activeTab === 'meal' && (
+          <div className="p-4 rounded-2xl bg-emerald-50/70 dark:bg-emerald-950/20 border border-emerald-200/80 dark:border-emerald-800/40 flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs">
+            <div className="flex items-start sm:items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-[#0e5c43] text-white flex items-center justify-center font-bold shrink-0 shadow-2xs">
+                <Utensils className="w-5 h-5" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="font-black text-slate-900 dark:text-white">
+                    {todayMenuDay ? `Thực đơn hôm nay (${todayMenuDay.dayLabel})` : 'Thực đơn tuần này'}
+                  </span>
+                  {currentWeeklyMenu && (
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-300">
+                      {currentWeeklyMenu.status === 'PUBLISHED' ? 'Đã ban hành' : 'Dự thảo'} • Tuần {currentWeeklyMenu.weekNumber}
+                    </span>
+                  )}
+                  {todayMenuDay?.caloriesKcal && (
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-900/60 dark:text-amber-300">
+                      {todayMenuDay.caloriesKcal} Kcal
+                    </span>
+                  )}
+                </div>
+                <p className="text-[11px] text-slate-600 dark:text-slate-300 mt-1 line-clamp-1">
+                  {todayMenuDay
+                    ? `Món chính: ${todayMenuDay.summaryDishes}`
+                    : currentWeeklyMenu
+                    ? `Đã thiết lập thực đơn tuần (${currentWeeklyMenu.startDate} → ${currentWeeklyMenu.endDate}). Chọn xem chi tiết.`
+                    : 'Chưa có thực đơn tuần cho khoảng thời gian này. Bấm để thiết lập và công bố cho phụ huynh.'}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                type="button"
+                onClick={() => setIsWeeklyMenuModalOpen(true)}
+                className="px-3.5 py-1.5 rounded-xl bg-[#0e5c43] hover:bg-[#0a4633] text-white font-bold text-xs shadow-2xs transition-all flex items-center gap-1.5 cursor-pointer"
+              >
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>{currentWeeklyMenu ? 'Quản lý thực đơn tuần' : 'Thiết lập thực đơn ngay'}</span>
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Tab-specific context banner (shown for non-overview tabs) */}
         {activeTab !== 'overview' && (
@@ -1786,6 +1875,17 @@ function CarePageContent() {
           </fieldset>
         </div>
       )}
+
+      {/* ── 12. WEEKLY NUTRITION MENU EDITOR MODAL ── */}
+      <WeeklyMenuEditorModal
+        isOpen={isWeeklyMenuModalOpen}
+        onClose={() => setIsWeeklyMenuModalOpen(false)}
+        initialDate={selectedDate}
+        onSaved={(savedMenu) => {
+          setCurrentWeeklyMenu(savedMenu);
+          setToastMessage('Thực đơn dinh dưỡng tuần đã được cập nhật thành công!');
+        }}
+      />
 
       {/* ── 11. FLOATING TOAST NOTIFICATION ── */}
       {toastMessage && (
