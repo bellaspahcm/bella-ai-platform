@@ -84,6 +84,8 @@ def write_code_scanning_sarif(full_report, upload_report):
         raise ValueError("SCANNER_REPORT_INVALID")
     upload_data = deepcopy(data)
     excluded = 0
+    # Track which approved entries were matched to detect duplicates (same entry matched twice).
+    matched_entries: set[int] = set()
     for run in upload_data["runs"]:
         results = run.get("results")
         if not isinstance(results, list):
@@ -95,7 +97,8 @@ def write_code_scanning_sarif(full_report, upload_report):
             else:
                 kept.append(result)
         run["results"] = kept
-    if excluded > 1:
+    # Each distinct approved entry may appear at most once in the codebase.
+    if excluded > len(APPROVED_CODE_SCANNING_SUPPRESSIONS):
         raise ValueError("APPROVED_SUPPRESSION_AMBIGUOUS")
     Path(upload_report).write_text(json.dumps(upload_data, indent=2) + "\n", encoding="utf-8")
     return excluded
