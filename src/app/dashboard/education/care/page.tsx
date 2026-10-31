@@ -13,6 +13,7 @@ import { useState, useRef, useEffect, useMemo, useCallback, Suspense, type Chang
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
+import { PreschoolSelect } from '@/components/ui/PreschoolSelect';
 import {
   ArrowLeft,
   Heart,
@@ -718,19 +719,20 @@ function CarePageContent() {
         {/* Right: Class Selector + Date Picker */}
         <div className="flex items-center gap-2.5 flex-wrap sm:flex-nowrap">
           <div className="bg-white dark:bg-slate-800 border border-slate-200/90 dark:border-slate-700 rounded-xl px-3.5 py-2 text-xs shadow-2xs">
-            <select
+            <PreschoolSelect
               aria-label="Lớp chăm sóc"
               disabled={isSavingCare || isSavingQuick}
               value={selectedCourseId}
               onChange={(e: ChangeEvent<HTMLSelectElement>) => setSelectedCourseId(e.target.value)}
-              className="bg-transparent font-bold text-slate-800 dark:text-slate-200 outline-none cursor-pointer pr-1 text-xs"
+              className="py-1 text-xs font-bold"
+              wrapperClassName="shrink-0"
             >
               {courses.map((course) => (
                 <option key={course.id} value={course.id}>
                   {course.name}
                 </option>
               ))}
-            </select>
+            </PreschoolSelect>
           </div>
 
           <div className="flex items-center gap-2 bg-white dark:bg-slate-800 border border-slate-200/90 dark:border-slate-700 rounded-xl px-3.5 py-2 text-xs shadow-2xs">
@@ -985,15 +987,17 @@ function CarePageContent() {
             </div>
 
             {/* Status Selector */}
-            <select
+            <PreschoolSelect
               value={statusFilter}
               onChange={(e: ChangeEvent<HTMLSelectElement>) => setStatusFilter(e.target.value as 'all' | 'alert' | 'good')}
-              className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-medium text-slate-700 dark:text-slate-200 outline-none cursor-pointer"
+              aria-label="Lọc trạng thái chăm sóc"
+              className="py-1.5 text-xs font-medium"
+              wrapperClassName="shrink-0"
             >
               <option value="all">Tất cả trạng thái</option>
               <option value="alert">Cần chú ý</option>
               <option value="good">Bình thường</option>
-            </select>
+            </PreschoolSelect>
 
             {/* Quick Record CTA */}
             <button
@@ -1426,30 +1430,32 @@ function CarePageContent() {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label htmlFor="care-meal" className="font-bold text-slate-700 dark:text-slate-300 block mb-1.5">Bữa ăn</label>
-                  <select
+                  <PreschoolSelect
                     id="care-meal"
                     value={quickMeal}
                     onChange={(e) => setQuickMeal(e.target.value as 'ALL' | 'HALF' | 'FEW' | 'NONE')}
-                    className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 font-medium text-slate-800 dark:text-slate-200 outline-none focus:ring-2 focus:ring-[#0e5c43]"
+                    wrapperClassName="w-full"
+                    className="w-full text-xs font-semibold py-2"
                   >
                     <option value="ALL">Ăn hết khẩu phần</option>
                     <option value="HALF">Ăn 1/2 khẩu phần</option>
                     <option value="FEW">Ăn ít khẩu phần</option>
                     <option value="NONE">Không ăn / Bỏ bữa</option>
-                  </select>
+                  </PreschoolSelect>
                 </div>
                 <div>
                   <label htmlFor="care-nap" className="font-bold text-slate-700 dark:text-slate-300 block mb-1.5">Giấc ngủ trưa</label>
-                  <select
+                  <PreschoolSelect
                     id="care-nap"
                     value={quickNap}
                     onChange={(e) => setQuickNap(e.target.value as 'DEEP' | 'RESTLESS' | 'REFUSED')}
-                    className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 font-medium text-slate-800 dark:text-slate-200 outline-none focus:ring-2 focus:ring-[#0e5c43]"
+                    wrapperClassName="w-full"
+                    className="w-full text-xs font-semibold py-2"
                   >
                     <option value="DEEP">Ngủ ngoan (120 phút)</option>
                     <option value="RESTLESS">Ngủ ít (60 phút)</option>
                     <option value="REFUSED">Khó ngủ / Không ngủ</option>
-                  </select>
+                  </PreschoolSelect>
                 </div>
               </div>
 
@@ -1461,16 +1467,17 @@ function CarePageContent() {
                 </div>
                 <div>
                   <label htmlFor="care-hygiene" className="font-bold text-slate-700 dark:text-slate-300 block mb-1.5">Vệ sinh cá nhân</label>
-                  <select
+                  <PreschoolSelect
                     id="care-hygiene"
                     value={quickHygiene}
                     onChange={(e) => setQuickHygiene(e.target.value as 'TOILET' | 'DIAPER' | 'ABNORMAL')}
-                    className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 font-medium text-slate-800 dark:text-slate-200 outline-none focus:ring-2 focus:ring-[#0e5c43]"
+                    wrapperClassName="w-full"
+                    className="w-full text-xs font-semibold py-2"
                   >
                     <option value="TOILET">Bình thường / Tốt</option>
                     <option value="DIAPER">Đã thay tã / quần áo</option>
                     <option value="ABNORMAL">Tiêu chảy / Bất thường</option>
-                  </select>
+                  </PreschoolSelect>
                 </div>
               </div>
 

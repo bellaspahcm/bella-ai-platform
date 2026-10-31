@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import Link from 'next/link';
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
-import { ArrowLeft, BookOpen, Calendar, CalendarCheck, GraduationCap, MapPin, PieChart, Plus, Search, RefreshCw, SlidersHorizontal, UserPlus, Users } from 'lucide-react';
+import { ArrowLeft, BookOpen, Calendar, CalendarCheck, GraduationCap, MapPin, PieChart, Plus, Search, RefreshCw, SlidersHorizontal, UserPlus, Users, Loader2 } from 'lucide-react';
 import type { CanonicalCourseCatalogItem } from '@/platform/education/contracts/canonical-course-catalog.contract';
 import { loadClassroomOverview, type ClassroomLiveOverview } from './classroom-live-data';
 
@@ -332,7 +332,12 @@ export default function CanonicalClassroomCatalog({ legacy }: { legacy: ReactNod
       </DialogContent>
     </Dialog>
     {created && state.kind === 'ready' && created.tenantId === state.tenantId && <p role="status">Đã tạo lớp {created.title}. <Link href={`/dashboard/education/courses/${encodeURIComponent(created.id)}`} className="underline">Mở lớp vừa tạo</Link></p>}
-    {state.kind === 'loading' && <p role="status">Đang tải danh sách lớp…</p>}
+    {state.kind === 'loading' && (
+      <div className="flex flex-col items-center justify-center p-12 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 gap-3">
+        <Loader2 className="w-7 h-7 animate-spin text-[#075548]" />
+        <p role="status" className="text-xs font-semibold text-slate-600 dark:text-slate-400">Đang tải danh sách lớp…</p>
+      </div>
+    )}
     {state.kind === 'error' && <p role="alert" className="rounded-2xl border border-red-200 bg-red-50 p-5 text-red-800">
       Không thể tải danh sách lớp. Chưa thể xác định tổng số lớp; vui lòng tải lại.
     </p>}

@@ -27,6 +27,7 @@
 
 import React, { useState, useEffect, useCallback, useMemo, useRef, Suspense, type ChangeEvent } from 'react';
 import { PremiumSelect } from '@/components/ui/PremiumSelect';
+import { PreschoolSelect } from '@/components/ui/PreschoolSelect';
 import { paymentIntentStorageKey, parsePaymentIntent, preparePaymentIntent, type FinancePaymentIntent } from '@/products/bella-education/finance/services/preschool-finance-payment-intent';
 import type { FinanceBranchOption, FinanceBranchBreakdown } from '@/products/bella-education/finance/services/preschool-finance-branch.contract';
 import { useSearchParams } from 'next/navigation';
@@ -1282,7 +1283,12 @@ function FinancePageContent() {
 
       {/* ── ACCESSIBILITY STATUS & ERROR ALERTS ── */}
       <div aria-live="polite" className="text-sm text-slate-700 dark:text-slate-200">
-        {loading && <p role="status">Đang tải hoặc xử lý dữ liệu tài chính…</p>}
+        {loading && (
+    <div className="flex items-center gap-2 p-4 text-xs font-semibold text-slate-500 bg-slate-50 dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800">
+      <RefreshCw className="w-4 h-4 animate-spin text-primary" />
+      <p role="status">Đang tải hoặc xử lý dữ liệu tài chính…</p>
+    </div>
+  )}
         {loadError && (
           <div role="alert" className="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 text-rose-800 dark:text-rose-200 space-y-2">
             <div className="flex items-center gap-2 font-bold text-xs">

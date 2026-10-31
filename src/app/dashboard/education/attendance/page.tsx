@@ -8,6 +8,7 @@ import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useRef, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import PreschoolAttendance from './preschool-attendance';
+import { PreschoolSelect } from '@/components/ui/PreschoolSelect';
 import {
   CalendarCheck,
   ArrowLeft,
@@ -776,16 +777,17 @@ function AttendancePageContent() {
             </button>
 
             {/* Handover filter */}
-            <select
+            <PreschoolSelect
               value={handoverFilter}
               aria-label="Lọc đưa đón"
               onChange={(e) => setHandoverFilter(e.target.value as typeof handoverFilter)}
-              className="px-2.5 py-1.5 rounded-xl text-[11px] font-bold border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 focus:outline-none"
+              className="py-1.5 text-[11px]"
+              wrapperClassName="shrink-0"
             >
               <option value="all">Đưa đón: Tất cả</option>
               <option value="handed_over">Đã bàn giao</option>
               <option value="pending">Chưa bàn giao</option>
-            </select>
+            </PreschoolSelect>
 
             {(search || statusFilter !== 'all' || handoverFilter !== 'all') && (
               <button
@@ -1113,21 +1115,22 @@ function PaginationControl({
           <strong className="text-slate-700 dark:text-slate-200">{startItem}–{endItem}</strong> / <strong className="text-slate-700 dark:text-slate-200">{totalItems}</strong> {itemLabel}
         </span>
         {onPageSizeChange && totalItems > 0 && (
-          <select
-            value={pageSize}
-            aria-label="Số lượng mỗi trang"
-            onChange={(e) => {
-              onPageSizeChange(Number(e.target.value));
-              onPageChange(1);
-            }}
-            className="ml-1 px-2 py-0.5 text-[11px] font-bold rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 focus:outline-none"
-          >
-            {pageSizeOptions.map((opt) => (
-              <option key={opt} value={opt}>
-                {opt >= 50 ? 'Tất cả' : `${opt}/trang`}
-              </option>
-            ))}
-          </select>
+          <PreschoolSelect
+              value={pageSize}
+              aria-label="Số lượng mỗi trang"
+              onChange={(e) => {
+                onPageSizeChange(Number(e.target.value));
+                onPageChange(1);
+              }}
+              className="py-1 text-[11px]"
+              wrapperClassName="ml-1 shrink-0"
+            >
+              {pageSizeOptions.map((opt) => (
+                <option key={opt} value={opt}>
+                  {opt >= 50 ? 'Tất cả' : `${opt}/trang`}
+                </option>
+              ))}
+            </PreschoolSelect>
         )}
       </div>
 

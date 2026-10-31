@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import Link from 'next/link';
+import { Loader2 } from 'lucide-react';
+import { PreschoolSelect } from '@/components/ui/PreschoolSelect';
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
 import type { PreschoolTeacherCandidatePage, PreschoolCourseTeacherPage } from '@/platform/education/contracts/teacher-assignment.contract';
 
@@ -172,10 +174,13 @@ export default function TeacherWorkspace() {
         <div className="mt-4 flex items-center justify-between gap-4"><div><p className="text-sm font-semibold text-emerald-700">Bella Preschool</p>
           <h1 className="text-3xl font-bold">Quản lý giáo viên</h1><p className="mt-1 text-sm text-slate-600">Xác nhận người thật và phân công vào lớp đã liên kết.</p></div>
           <button type="button" onClick={() => setRevision(value => value + 1)} className="rounded-xl border px-4 py-2 font-semibold">Tải lại</button></div>
-        <div className="mt-5 flex flex-wrap gap-4"><label className="text-sm">Chi nhánh<select aria-label="Chi nhánh" value={branchId}
-          onChange={event => { setBranchId(event.target.value); setCourseId(''); setCandidateOffset(0); setAssignmentOffset(0); }}
-          className="mt-1 block min-w-60 rounded-xl border bg-white p-2.5"><option value="">Chọn chi nhánh</option>
-          {branches.status === 'ready' && branches.data.map(branch => <option key={branch.id} value={branch.id}>{branch.name}</option>)}</select></label>
+        <div className="mt-5 flex flex-wrap gap-4"><label className="text-sm flex flex-col gap-1.5 font-semibold">Chi nhánh
+          <PreschoolSelect aria-label="Chi nhánh" value={branchId}
+            onChange={event => { setBranchId(event.target.value); setCourseId(''); setCandidateOffset(0); setAssignmentOffset(0); }}
+            className="text-sm font-semibold py-2" wrapperClassName="min-w-60">
+            <option value="">Chọn chi nhánh</option>
+            {branches.status === 'ready' && branches.data.map(branch => <option key={branch.id} value={branch.id}>{branch.name}</option>)}
+          </PreschoolSelect></label>
           <label className="text-sm">Ngày xem hiệu lực<input aria-label="Ngày xem hiệu lực" type="date" value={onDate}
             onChange={event => { setOnDate(event.target.value); setCandidateOffset(0); setAssignmentOffset(0); }} className="mt-1 block rounded-xl border p-2.5" /></label></div>
         {branches.status === 'error' && <p role="alert" className="mt-3 text-red-700">Không tải được chi nhánh có quyền truy cập.</p>}
@@ -189,7 +194,12 @@ export default function TeacherWorkspace() {
             <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={confirmedOnly}
               onChange={event => { setConfirmedOnly(event.target.checked); setCandidateOffset(0); }} /> Chỉ đã xác nhận</label></div>
           {!confirmedOnly && query.trim().length < 2 && <p className="mt-5 text-sm text-slate-600">Nhập ít nhất 2 ký tự tên người cần xác nhận.</p>}
-          {(confirmedOnly || query.trim().length >= 2) && candidates.status === 'loading' && <p role="status" className="mt-5">Đang tải…</p>}
+          {(confirmedOnly || query.trim().length >= 2) && candidates.status === 'loading' && (
+            <div className="mt-5 flex items-center gap-2 text-sm text-slate-500">
+              <Loader2 className="w-4 h-4 animate-spin text-emerald-700" />
+              <p role="status">Đang tải…</p>
+            </div>
+          )}
           {(confirmedOnly || query.trim().length >= 2) && candidates.status === 'error' && <p role="alert" className="mt-5 text-red-700">Không tải được người của chi nhánh.</p>}
           {(confirmedOnly || query.trim().length >= 2) && candidates.status === 'ready' && <><p className="mt-4 text-sm text-slate-600">{candidates.data.filteredTotal} người phù hợp</p>
             {candidates.data.parties.length === 0 && confirmedOnly && <p className="mt-3 text-sm text-slate-600">Chưa có giáo viên được xác nhận tại chi nhánh vào ngày này.</p>}
@@ -210,13 +220,22 @@ export default function TeacherWorkspace() {
           </>}
         </section>
         <section className="rounded-3xl border bg-white p-6 shadow-sm"><h2 className="text-xl font-bold">Phân công theo lớp</h2>
-          <label className="mt-4 block text-sm">Lớp đã liên kết chi nhánh<select aria-label="Lớp" value={courseId}
-            onChange={event => { setCourseId(event.target.value); setAssignmentOffset(0); }} className="mt-1 block w-full rounded-xl border bg-white p-2.5">
-            <option value="">Chọn lớp</option>{courses.status === 'ready' && courses.data.map(course => <option key={course.id} value={course.id}>{course.title} ({course.code})</option>)}</select></label>
+          <label className="mt-4 block text-sm font-semibold">Lớp đã liên kết chi nhánh
+          <PreschoolSelect aria-label="Lớp" value={courseId}
+            onChange={event => { setCourseId(event.target.value); setAssignmentOffset(0); }}
+            className="w-full text-sm font-semibold py-2" wrapperClassName="w-full mt-1.5">
+            <option value="">Chọn lớp</option>
+            {courses.status === 'ready' && courses.data.map(course => <option key={course.id} value={course.id}>{course.title} ({course.code})</option>)}
+          </PreschoolSelect></label>
           {courses.status === 'error' && <p role="alert" className="mt-4 text-red-700">Không tải được lớp đã liên kết.</p>}
           {courses.status === 'ready' && courses.data.length === 0 && <p className="mt-4 text-sm">Chưa có lớp được liên kết tại chi nhánh.</p>}
           {chosen && <div className="mt-5"><p className="text-sm text-slate-600">Chọn người đã xác nhận ở danh sách bên trái để phân công.</p>
-            {assignments.status === 'loading' && <p role="status" className="mt-4">Đang tải phân công…</p>}
+            {assignments.status === 'loading' && (
+              <div className="mt-4 flex items-center gap-2 text-sm text-slate-500">
+                <Loader2 className="w-4 h-4 animate-spin text-emerald-700" />
+                <p role="status">Đang tải phân công…</p>
+              </div>
+            )}
             {assignments.status === 'error' && <p role="alert" className="mt-4 text-red-700">Không tải được phân công.</p>}
             {assignments.status === 'ready' && <><p className="mt-4 text-sm text-slate-600">{assignments.data.total} phân công được lưu</p>
               <div className="divide-y">{assignments.data.assignments.map(item => <article key={item.assignmentId} className="flex justify-between gap-3 py-4">
@@ -243,7 +262,14 @@ export default function TeacherWorkspace() {
           {(action?.kind === 'confirm' || action?.kind === 'assign') && <label className="block text-sm">Ngày kết thúc (nếu có)<input type="date" min={startDate} value={finishDate} disabled={!!pending} onChange={event => setFinishDate(event.target.value)} className="mt-1 block w-full rounded-lg border p-2" /></label>}
           {action?.kind === 'confirm' && <label className="block text-sm">Căn cứ xác nhận là giáo viên tại chi nhánh<textarea required maxLength={500} value={attestation} disabled={!!pending} onChange={event => setAttestation(event.target.value)} className="mt-1 block w-full rounded-lg border p-2" /></label>}
           {action?.kind === 'assign' && <><label className="block text-sm">Năm học<input required maxLength={80} value={academicYear} disabled={!!pending} onChange={event => setAcademicYear(event.target.value)} className="mt-1 block w-full rounded-lg border p-2" /></label>
-            <label className="block text-sm">Vai trò<select value={role} disabled={!!pending} onChange={event => setRole(event.target.value)} className="mt-1 block w-full rounded-lg border p-2"><option value="lead_teacher">Giáo viên chủ nhiệm</option><option value="co_teacher">Giáo viên đồng phụ trách</option><option value="assistant">Trợ giảng</option><option value="substitute">Giáo viên thay thế</option></select></label></>}
+            <label className="block text-sm font-semibold">Vai trò
+            <PreschoolSelect value={role} disabled={!!pending} onChange={event => setRole(event.target.value)}
+              className="w-full text-sm font-semibold py-2" wrapperClassName="w-full mt-1.5">
+              <option value="lead_teacher">Giáo viên chủ nhiệm</option>
+              <option value="co_teacher">Giáo viên đồng phụ trách</option>
+              <option value="assistant">Trợ giảng</option>
+              <option value="substitute">Giáo viên thay thế</option>
+            </PreschoolSelect></label></>}
           {action?.kind === 'revoke' && <label className="block text-sm">Lý do thu hồi<input required maxLength={500} value={reason} disabled={!!pending} onChange={event => setReason(event.target.value)} className="mt-1 block w-full rounded-lg border p-2" /></label>}
           {saveError && <p role="alert" className="text-sm text-red-700">{saveError}</p>}
           {pending && saveError && <p className="text-xs text-slate-600">Thử lại gửi đúng yêu cầu cũ. Tải lại trang để nhập yêu cầu mới.</p>}
