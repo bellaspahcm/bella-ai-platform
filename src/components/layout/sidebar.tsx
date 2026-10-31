@@ -431,6 +431,7 @@ const bellaEducationMenuItems: SidebarMenuItem[] = [
   { icon: BookOpen, label: 'Quản lý lớp học', href: '/dashboard/education/courses' },
   { icon: UserCheck, label: 'Quản lý giáo viên', href: '/dashboard/education/teachers' },
   { icon: Heart, label: 'Chăm sóc & Nuôi dưỡng', href: '/dashboard/education/care' },
+  { icon: Utensils, label: 'Thực đơn & Dinh dưỡng', href: '/dashboard/education/nutrition' },
   { icon: GraduationCap, label: 'Học tập & Hoạt động', href: '/dashboard/education/grades' },
   { icon: MessageSquare, label: 'Truyền thông', href: '/dashboard/education/communication' },
   { icon: CircleDollarSign, label: 'Tài chính', href: '/dashboard/education/finance' },
