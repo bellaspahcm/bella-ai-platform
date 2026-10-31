@@ -3,7 +3,8 @@
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import Link from 'next/link';
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
-import { ArrowLeft, BookOpen, Calendar, CalendarCheck, GraduationCap, MapPin, PieChart, Plus, Search, RefreshCw, SlidersHorizontal, UserPlus, Users } from 'lucide-react';
+import { ArrowLeft, BookOpen, Calendar, CalendarCheck, GraduationCap, MapPin, PieChart, Plus, Search, RefreshCw, SlidersHorizontal, UserPlus, Users, Loader2 } from 'lucide-react';
+import { PreschoolSelect } from '@/components/ui/PreschoolSelect';
 import type { CanonicalCourseCatalogItem } from '@/platform/education/contracts/canonical-course-catalog.contract';
 import { loadClassroomOverview, type ClassroomLiveOverview } from './classroom-live-data';
 
@@ -265,14 +266,14 @@ export default function CanonicalClassroomCatalog({ legacy }: { legacy: ReactNod
             <input aria-label="Tìm tên hoặc mã lớp" value={query} onChange={event => setQuery(event.target.value)} disabled={!ready}
               placeholder="Tìm tên hoặc mã lớp…" className="w-full pl-9 pr-4 py-2.5 text-xs rounded-2xl border border-slate-200/90 dark:border-slate-700 bg-slate-50/80 dark:bg-slate-800 outline-none focus:ring-2 focus:ring-[#075548]" />
           </label>
-          <select aria-label="Khối lớp" disabled className="rounded-2xl border border-slate-200/90 dark:border-slate-700 bg-slate-50/80 dark:bg-slate-800 px-3 py-2.5 text-xs text-slate-500 cursor-not-allowed">
-            <option>Khối lớp chưa được cung cấp</option>
-          </select>
-          <select aria-label="Trạng thái lớp" value={status} onChange={event => setStatus(event.target.value)} disabled={!ready}
-            className="rounded-2xl border border-slate-200/90 dark:border-slate-700 bg-slate-50/80 dark:bg-slate-800 px-3 py-2.5 text-xs font-semibold">
+          <PreschoolSelect aria-label="Khối lớp" value="" disabled className="py-2.5 text-xs">
+            <option value="">Khối lớp chưa được cung cấp</option>
+          </PreschoolSelect>
+          <PreschoolSelect aria-label="Trạng thái lớp" value={status} onChange={event => setStatus(event.target.value)} disabled={!ready}
+            className="py-2.5 text-xs font-semibold">
             <option value="all">Tất cả trạng thái</option>
             {Object.entries(statusLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
-          </select>
+          </PreschoolSelect>
           <button type="button" title="Đặt lại bộ lọc" onClick={() => { setQuery(''); setStatus('all'); }}
             className="p-2.5 rounded-2xl border border-slate-200/90 dark:border-slate-700 bg-slate-50/80 dark:bg-slate-800 text-slate-500">
             <SlidersHorizontal className="w-4 h-4" />
@@ -291,12 +292,12 @@ export default function CanonicalClassroomCatalog({ legacy }: { legacy: ReactNod
         <DialogDescription>Nhập mã, tên lớp và chọn chi nhánh. Quyền tạo lớp được xác minh khi lưu.</DialogDescription>
         <form onSubmit={submitCreate} className="mt-4 space-y-4">
           <label className="block text-sm font-semibold">Chi nhánh
-            <select aria-label="Chi nhánh" value={branchId} disabled={!branches || submitting || !!submittedPayload}
-              onChange={event => { if (!submittedPayload) setBranchId(event.target.value); }} required
-              className="mt-1 block w-full rounded-xl border border-slate-300 bg-white p-2.5 text-sm dark:border-slate-700 dark:bg-slate-900">
+            <PreschoolSelect aria-label="Chi nhánh" value={branchId} disabled={!branches || submitting || !!submittedPayload}
+              onChange={event => { if (!submittedPayload) setBranchId(event.target.value); }}
+              wrapperClassName="w-full mt-1" className="py-2.5 text-sm">
               <option value="">Chọn chi nhánh</option>
               {branches?.map(branch => <option key={branch.id} value={branch.id}>{branch.name}</option>)}
-            </select>
+            </PreschoolSelect>
           </label>
           {!branches && !branchError && <p role="status">Đang tải chi nhánh…</p>}
           {branchError && <p role="alert">Không thể tải chi nhánh. Đóng rồi mở lại biểu mẫu để thử lại.</p>}
@@ -332,7 +333,12 @@ export default function CanonicalClassroomCatalog({ legacy }: { legacy: ReactNod
       </DialogContent>
     </Dialog>
     {created && state.kind === 'ready' && created.tenantId === state.tenantId && <p role="status">Đã tạo lớp {created.title}. <Link href={`/dashboard/education/courses/${encodeURIComponent(created.id)}`} className="underline">Mở lớp vừa tạo</Link></p>}
-    {state.kind === 'loading' && <p role="status">Đang tải danh sách lớp…</p>}
+    {state.kind === 'loading' && (
+      <div className="flex flex-col items-center justify-center p-12 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 gap-3">
+        <Loader2 className="w-7 h-7 animate-spin text-[#075548]" />
+        <p role="status" className="text-xs font-semibold text-slate-600 dark:text-slate-400">Đang tải danh sách lớp…</p>
+      </div>
+    )}
     {state.kind === 'error' && <p role="alert" className="rounded-2xl border border-red-200 bg-red-50 p-5 text-red-800">
       Không thể tải danh sách lớp. Chưa thể xác định tổng số lớp; vui lòng tải lại.
     </p>}

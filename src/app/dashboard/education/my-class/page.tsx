@@ -21,6 +21,7 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
+import PreschoolSelect from '@/components/ui/PreschoolSelect';
 import {
   Users,
   Baby,
@@ -979,17 +980,19 @@ export default function HomeroomTeacherWorkspacePage() {
               {/* Teacher Persona Switcher */}
               <div className="flex items-center gap-1.5 bg-black/20 p-1 rounded-xl border border-white/10 text-xs">
                 <span className="text-emerald-200 px-2 font-medium hidden sm:inline">Tài khoản GVCN:</span>
-                <select
+                <PreschoolSelect
+                  aria-label="Tài khoản GVCN"
                   value={selectedTeacherId}
                   onChange={(e) => setSelectedTeacherId(e.target.value)}
-                  className="bg-[#075548] text-white border border-emerald-600/50 rounded-lg px-2.5 py-1 font-medium focus:outline-none focus:ring-1 focus:ring-emerald-300 text-xs"
+                  wrapperClassName="min-w-[180px]"
+                  className="py-1 px-2.5 text-xs font-semibold bg-[#075548] text-white border-emerald-600/50"
                 >
                   {HOMEROOM_TEACHERS.map((t) => (
                     <option key={t.id} value={t.id}>
                       {t.name} — {t.className}
                     </option>
                   ))}
-                </select>
+                </PreschoolSelect>
               </div>
 
               {/* PWA Badge Indicator */}
@@ -1038,7 +1041,7 @@ export default function HomeroomTeacherWorkspacePage() {
                 }`}
               >
                 <CheckCircle2 className="w-4 h-4" />
-                <span>Điểm danh & Thân nhiệt</span>
+                <span>Điểm danh &amp; Thân nhiệt</span>
                 <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-emerald-700 text-emerald-100 font-bold">
                   {headcountStats.presentCount}/{headcountStats.totalEnrolled}
                 </span>
@@ -1053,7 +1056,7 @@ export default function HomeroomTeacherWorkspacePage() {
                 }`}
               >
                 <Heart className="w-4 h-4" />
-                <span>Chăm sóc & Thể trạng</span>
+                <span>Chăm sóc &amp; Thể trạng</span>
               </button>
 
               <button
@@ -1257,7 +1260,7 @@ export default function HomeroomTeacherWorkspacePage() {
                     className="px-4 py-2 rounded-xl bg-emerald-700/80 hover:bg-emerald-700 text-white font-semibold text-xs transition-colors border border-emerald-500/30 flex items-center gap-1.5"
                   >
                     <Heart className="w-4 h-4 text-rose-300" />
-                    <span>Ghi nhận Bữa ăn & Giấc ngủ</span>
+                    <span>Ghi nhận Bữa ăn &amp; Giấc ngủ</span>
                   </button>
                 </div>
               </div>
@@ -1398,7 +1401,7 @@ export default function HomeroomTeacherWorkspacePage() {
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
                 <div>
                   <h2 className="text-lg font-bold text-slate-900">
-                    Bảng Điểm Danh & Đo Thân Nhiệt Sáng ({new Date().toLocaleDateString('vi-VN')})
+                    Bảng Điểm Danh &amp; Đo Thân Nhiệt Sáng ({new Date().toLocaleDateString('vi-VN')})
                   </h2>
                   <p className="text-xs text-slate-500 mt-0.5">
                     Thực hiện điểm danh và kiểm tra thân nhiệt đầu ngày khi đón bé tại cửa lớp.
@@ -1422,7 +1425,7 @@ export default function HomeroomTeacherWorkspacePage() {
                     <tr className="border-b border-slate-200 text-slate-500 bg-slate-50/50">
                       <th className="py-3 px-3 font-semibold">Học sinh</th>
                       <th className="py-3 px-3 font-semibold">Trạng thái Điểm danh</th>
-                      <th className="py-3 px-3 font-semibold">Giờ đến & Người đưa</th>
+                      <th className="py-3 px-3 font-semibold">Giờ đến &amp; Người đưa</th>
                       <th className="py-3 px-3 font-semibold">Thân nhiệt (°C)</th>
                       <th className="py-3 px-3 font-semibold">Tình trạng buổi sáng</th>
                       <th className="py-3 px-3 font-semibold text-right">Chi tiết</th>
@@ -1556,7 +1559,7 @@ export default function HomeroomTeacherWorkspacePage() {
 
                 <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-100 space-y-2">
                   <div className="flex justify-between text-xs font-semibold text-slate-700">
-                    <span>Bữa sáng & Bữa trưa</span>
+                    <span>Bữa sáng &amp; Bữa trưa</span>
                     <span className="text-emerald-700">100% hoàn thành</span>
                   </div>
                   <div className="w-full bg-slate-200 rounded-full h-2">
@@ -1573,13 +1576,13 @@ export default function HomeroomTeacherWorkspacePage() {
                   <div className="w-full bg-slate-200 rounded-full h-2">
                     <div className="bg-sky-500 h-2 rounded-full w-3/4" />
                   </div>
-                  <p className="text-[11px] text-slate-500">Cô Mai & Cô Linh đang túc trực theo dõi nhiệt độ phòng ngủ.</p>
+                  <p className="text-[11px] text-slate-500">Cô Mai &amp; Cô Linh đang túc trực theo dõi nhiệt độ phòng ngủ.</p>
                 </div>
 
                 <div className="p-3.5 rounded-2xl bg-amber-50/60 border border-amber-200/60 space-y-1.5">
                   <div className="flex items-center gap-2 text-amber-800 font-bold text-xs">
                     <AlertTriangle className="w-4 h-4 text-amber-600" />
-                    <span>Lưu ý Dị ứng & Thuốc</span>
+                    <span>Lưu ý Dị ứng &amp; Thuốc</span>
                   </div>
                   <ul className="text-[11px] text-amber-900 space-y-1 list-disc pl-4">
                     <li>Bé Minh Khôi: Dị ứng tôm biển (Kiểm tra bữa chiều).</li>
@@ -1660,7 +1663,7 @@ export default function HomeroomTeacherWorkspacePage() {
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
                 <div>
                   <h2 className="text-lg font-bold text-slate-900">
-                    Chu Trình Sinh Hoạt & Thời Khóa Biểu — {currentTeacher.className}
+                    Chu Trình Sinh Hoạt &amp; Thời Khóa Biểu — {currentTeacher.className}
                   </h2>
                   <p className="text-xs text-slate-500 mt-0.5">
                     Khung thời gian biểu chuẩn hóa theo Phương pháp Giáo dục Mầm non chất lượng cao.
@@ -1780,7 +1783,7 @@ export default function HomeroomTeacherWorkspacePage() {
                   <div className="p-3 rounded-xl bg-white border border-slate-200 flex items-center justify-between">
                     <div>
                       <span className="font-bold text-slate-900">Nguyễn Minh Khôi (Bơ)</span>
-                      <p className="text-[11px] text-rose-600 font-semibold mt-0.5">Dị ứng Tôm & Hải sản có vỏ</p>
+                      <p className="text-[11px] text-rose-600 font-semibold mt-0.5">Dị ứng Tôm &amp; Hải sản có vỏ</p>
                     </div>
                     <span className="px-2 py-1 rounded bg-rose-100 text-rose-700 text-[10px] font-bold">Nghiêm ngặt</span>
                   </div>
@@ -1804,7 +1807,7 @@ export default function HomeroomTeacherWorkspacePage() {
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
                 <div>
                   <h2 className="text-lg font-bold text-slate-900">
-                    Cổng Bàn Giao & Trả Trẻ Buổi Chiều (16:30 - 17:30)
+                    Cổng Bàn Giao &amp; Trả Trẻ Buổi Chiều (16:30 - 17:30)
                   </h2>
                   <p className="text-xs text-slate-500 mt-0.5">
                     Xác nhận danh tính người đón được ủy quyền của phụ huynh trước khi bàn giao trẻ ra về.
@@ -2015,7 +2018,7 @@ export default function HomeroomTeacherWorkspacePage() {
                   onClick={() => handleSendChatMessage('Dạ hôm nay con ăn hết phần cơm và ngủ trưa rất ngoan ba mẹ nhé!')}
                   className="px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 shrink-0 transition-colors"
                 >
-                  Bé ăn ngoan & ngủ tốt
+                  Bé ăn ngoan &amp; ngủ tốt
                 </button>
                 <button
                   onClick={() => handleSendChatMessage('Dạ cô đã cho bé uống thuốc đúng giờ và đo lại thân nhiệt cho con rồi ạ.')}
@@ -2238,17 +2241,19 @@ export default function HomeroomTeacherWorkspacePage() {
 
                 <div className="space-y-3">
                   <div className="flex items-center gap-2">
-                    <select
+                    <PreschoolSelect
+                      aria-label="Chọn bé tóm tắt"
                       value={selectedStudentForDigest}
                       onChange={(e) => setSelectedStudentForDigest(e.target.value)}
-                      className="flex-1 px-3 py-2 rounded-xl border border-slate-200 text-xs text-slate-700 font-medium focus:outline-none focus:ring-1 focus:ring-emerald-500 bg-white"
+                      wrapperClassName="w-full flex-1"
+                      className="py-2 text-xs font-semibold"
                     >
                       {students.map((s) => (
                         <option key={s.id} value={s.id}>
                           {s.fullName} ({s.nickName})
                         </option>
                       ))}
-                    </select>
+                    </PreschoolSelect>
                   </div>
 
                   <button
@@ -2309,7 +2314,7 @@ export default function HomeroomTeacherWorkspacePage() {
                   </div>
                   <div>
                     <h3 className="font-bold text-slate-900 text-sm flex items-center gap-2">
-                      <span>Tư vấn Sư phạm & Tình huống Trẻ Mầm non</span>
+                      <span>Tư vấn Sư phạm &amp; Tình huống Trẻ Mầm non</span>
                       <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
                         Copilot Live
                       </span>
@@ -2450,7 +2455,7 @@ export default function HomeroomTeacherWorkspacePage() {
               <div className="p-4 rounded-2xl bg-emerald-50/40 border border-emerald-100 space-y-3">
                 <h4 className="font-bold text-emerald-900 text-sm flex items-center gap-1.5">
                   <Activity className="w-4 h-4 text-emerald-700" />
-                  <span>Thể trạng & Chỉ số Tăng trưởng Chuẩn WHO</span>
+                  <span>Thể trạng &amp; Chỉ số Tăng trưởng Chuẩn WHO</span>
                 </h4>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
                   <div className="p-2.5 rounded-xl bg-white border border-slate-200">
@@ -2491,7 +2496,7 @@ export default function HomeroomTeacherWorkspacePage() {
               <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
                 <h4 className="font-bold text-slate-900 text-sm flex items-center gap-1.5">
                   <ShieldCheck className="w-4 h-4 text-indigo-600" />
-                  <span>Danh sách Người Giám Hộ & Đón Trẻ Hợp Pháp</span>
+                  <span>Danh sách Người Giám Hộ &amp; Đón Trẻ Hợp Pháp</span>
                 </h4>
                 <div className="space-y-2">
                   {selectedStudentFor360.guardians.map((g) => (
@@ -2545,7 +2550,7 @@ export default function HomeroomTeacherWorkspacePage() {
                     <p className="text-slate-500 mt-0.5">Nói câu trọn vẹn, diễn đạt rõ ràng nhu cầu của mình.</p>
                   </div>
                   <div className="p-2.5 rounded-xl bg-white border border-slate-200">
-                    <span className="font-bold text-slate-800">4. Tình cảm & Kỹ năng xã hội:</span>
+                    <span className="font-bold text-slate-800">4. Tình cảm &amp; Kỹ năng xã hội:</span>
                     <p className="text-slate-500 mt-0.5">Biết chia sẻ đồ chơi cùng bạn, chào hỏi lễ phép.</p>
                   </div>
                 </div>
@@ -2611,17 +2616,18 @@ export default function HomeroomTeacherWorkspacePage() {
 
               <div>
                 <label className="font-bold text-slate-800 block mb-1">Chọn Người đón trẻ:</label>
-                <select
+                <PreschoolSelect
+                  aria-label="Chọn Người đón trẻ"
                   value={selectedGuardianToHandover}
                   onChange={(e) => setSelectedGuardianToHandover(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:outline-none focus:ring-1 focus:ring-emerald-500 bg-white"
+                  className="py-2 text-xs font-semibold"
                 >
                   {confirmHandoverStudent.guardians.map((g) => (
                     <option key={g.id} value={`${g.relation}: ${g.name}`}>
                       {g.relation}: {g.name} ({g.phone})
                     </option>
                   ))}
-                </select>
+                </PreschoolSelect>
               </div>
 
               <div>

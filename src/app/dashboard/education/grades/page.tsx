@@ -22,10 +22,11 @@
  * - STRICT TYPE SAFETY: Zero `any` and zero `unknown`
  */
 
-import { useState, useEffect, useMemo, useRef, Suspense, type ChangeEvent } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback, Suspense, type ChangeEvent } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import Link from 'next/link';
+import PreschoolSelect from '@/components/ui/PreschoolSelect';
 import { useUser } from '@/lib/user-context';
 import {
   ArrowLeft,
@@ -66,6 +67,8 @@ import {
   Printer,
   Share2,
   Eye,
+  Loader2,
+  RefreshCw,
 } from 'lucide-react';
 import { getCachedTenantSettings } from '@/lib/dashboard-client-context';
 import { resolveTenantBrandIdentity } from '@/lib/business-rules/tenant-modules';
@@ -86,6 +89,7 @@ export interface ChildDevelopmentRosterItem {
   readonly nickname?: string;
   readonly className: string;
   readonly classKey: 'MAM_A1' | 'CHOI_B1';
+  readonly courseId?: string;
   readonly avatarUrl: string;
   readonly avatarFallbackBg: string;
   readonly physical: DomainScore;
@@ -1533,9 +1537,20 @@ function PreschoolDevelopmentGradesPageContent() {
   const [activeTab, setActiveTab] = useState<DevelopmentTabKey>('overview');
   const [selectedMonth, setSelectedMonth] = useState<string>('Tháng 09/2026');
 
+  // Live data loading & persistence state
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isSavingObservation, setIsSavingObservation] = useState<boolean>(false);
+  const [isLiveLoaded, setIsLiveLoaded] = useState<boolean>(false);
+  const [availableClasses, setAvailableClasses] = useState<readonly { id: string; name: string }[]>([
+    { id: 'ALL', name: 'Tất cả lớp' },
+    { id: 'MAM_A1', name: 'Lớp Mầm A1' },
+    { id: 'CHOI_B1', name: 'Lớp Chồi B1' },
+  ]);
+  const [rosterStudents, setRosterStudents] = useState<readonly ChildDevelopmentRosterItem[]>(ROSTER_STUDENTS);
+
   // Filter & Search states
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [selectedClass, setSelectedClass] = useState<'ALL' | 'MAM_A1' | 'CHOI_B1'>('ALL');
+  const [selectedClass, setSelectedClass] = useState<string>('ALL');
   const [selectedStatus, setSelectedStatus] = useState<'ALL' | 'COMPLETED' | 'SUPPLEMENT' | 'ATTENTION'>('ALL');
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
   const [selectedStudentIds, setSelectedStudentIds] = useState<readonly string[]>([]);
@@ -1577,20 +1592,28 @@ function PreschoolDevelopmentGradesPageContent() {
   useEffect(() => {
     if (!studentParam) return;
     const targetId = STUDENT_TO_ROSTER_ID_MAP[studentParam] || studentParam;
-    const matched = ROSTER_STUDENTS.find(
-      (s) =>
-        s.id === targetId ||
-        s.id === studentParam ||
-        s.code === studentParam ||
-        s.code.replace(/[^0-9]/g, '') === studentParam.replace(/[^0-9]/g, '')
-    );
+    const matched =
+      rosterStudents.find(
+        (s) =>
+          s.id === targetId ||
+          s.id === studentParam ||
+          s.code === studentParam ||
+          s.code.replace(/[^0-9]/g, '') === studentParam.replace(/[^0-9]/g, '')
+      ) ||
+      ROSTER_STUDENTS.find(
+        (s) =>
+          s.id === targetId ||
+          s.id === studentParam ||
+          s.code === studentParam ||
+          s.code.replace(/[^0-9]/g, '') === studentParam.replace(/[^0-9]/g, '')
+      );
     if (matched) {
       setSearchQuery(matched.name);
       setInspectedStudent(matched);
       setPortfolioSelectedStudentId(matched.id);
       setStudentContextActive(true);
     }
-  }, [studentParam]);
+  }, [studentParam, rosterStudents]);
 
   // Tenant detection
   useEffect(() => {
@@ -1654,6 +1677,92 @@ function PreschoolDevelopmentGradesPageContent() {
     setObservationNotice(null);
   };
 
+  // Live Grades Data Fetching
+  const loadGradesData = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const res = await fetch(
+        `/api/education/grades?month=${encodeURIComponent(selectedMonth)}&courseId=${encodeURIComponent(selectedClass)}`,
+        { cache: 'no-store' }
+      );
+      if (res.ok) {
+        const data = (await res.json()) as {
+          success?: boolean;
+          classrooms?: Array<{ id: string; name: string; code: string }>;
+          students?: ChildDevelopmentRosterItem[];
+          observations?: PedagogicalObservationFeedItem[];
+        };
+        if (data.success) {
+          setIsLiveLoaded(true);
+          if (data.classrooms && data.classrooms.length > 0) {
+            setAvailableClasses([
+              { id: 'ALL', name: 'Tất cả lớp' },
+              ...data.classrooms.map((c) => ({ id: c.id, name: c.name })),
+            ]);
+          }
+          if (data.students && data.students.length > 0) {
+            setRosterStudents(data.students);
+          }
+          if (data.observations && data.observations.length > 0) {
+            setObservationFeed(data.observations);
+          }
+        }
+      }
+    } catch {
+      // Graceful offline fallback
+    } finally {
+      setIsLoading(false);
+    }
+  }, [selectedMonth, selectedClass]);
+
+  useEffect(() => {
+    void loadGradesData();
+  }, [loadGradesData]);
+
+  const handleSaveObservation = async () => {
+    if (!newObsSkill.trim()) {
+      setObservationNotice('Vui lòng nhập kỹ năng quan sát cụ thể.');
+      return;
+    }
+    setIsSavingObservation(true);
+    setObservationNotice(null);
+    try {
+      const res = await fetch('/api/education/grades', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'save_observation',
+          studentId: newObsStudentId,
+          domain: newObsDomain,
+          skill: newObsSkill,
+          progression: newObsProgression,
+          note: newObsNote,
+          photosCount: newObsPhotosCount,
+        }),
+      });
+      const data = (await res.json()) as { success?: boolean; observation?: PedagogicalObservationFeedItem; error?: string };
+      if (res.ok && data.success) {
+        setObservationNotice('Đã lưu quan sát sư phạm thành công vào hồ sơ học sinh!');
+        if (data.observation) {
+          setObservationFeed((prev) => [data.observation!, ...prev]);
+        }
+        updateObservationDraft({ skill: '', note: '' });
+        setTimeout(() => {
+          setIsNewObservationModalOpen(false);
+          setObservationNotice(null);
+        }, 1200);
+      } else {
+        setObservationNotice(
+          data.error ? `Chưa lưu quan sát: ${data.error}` : 'Chưa lưu quan sát: máy chủ từ chối yêu cầu.'
+        );
+      }
+    } catch {
+      setObservationNotice('Chưa lưu quan sát: không thể kết nối máy chủ.');
+    } finally {
+      setIsSavingObservation(false);
+    }
+  };
+
   // Award Modal Form State
   const [newAwardStudentId, setNewAwardStudentId] = useState<string>('STU-001');
   const [newAwardCategory, setNewAwardCategory] = useState<'CHAM_NGOAN' | 'HOA_SI' | 'KHOE_DEP' | 'CHIA_SE' | 'TU_LAP'>('CHAM_NGOAN');
@@ -1661,26 +1770,37 @@ function PreschoolDevelopmentGradesPageContent() {
   const [newAwardReason, setNewAwardReason] = useState<string>('Biết tự dọn đồ chơi và giúp đỡ cô giáo cùng các bạn.');
 
   // Dynamic Canonical KPI Derivations
-  const totalChildrenCount = ROSTER_STUDENTS.length; // 46
-  const evaluatedChildrenCount = ROSTER_STUDENTS.filter((s) => s.status === 'completed').length; // 38
-  const unEvaluatedChildrenCount = totalChildrenCount - evaluatedChildrenCount; // 8
-  const evaluatedPercentage = Math.round((evaluatedChildrenCount / totalChildrenCount) * 100); // 83%
-  const unEvaluatedPercentage = Math.round((unEvaluatedChildrenCount / totalChildrenCount) * 100); // 17%
+  const totalChildrenCount = rosterStudents.length;
+  const evaluatedChildrenCount = rosterStudents.filter((s) => s.status === 'completed').length;
+  const unEvaluatedChildrenCount = Math.max(0, totalChildrenCount - evaluatedChildrenCount);
+  const evaluatedPercentage = totalChildrenCount > 0 ? Math.round((evaluatedChildrenCount / totalChildrenCount) * 100) : 0;
+  const unEvaluatedPercentage = totalChildrenCount > 0 ? Math.round((unEvaluatedChildrenCount / totalChildrenCount) * 100) : 0;
   const newObservationsCount = 12; // In month
 
-  const mamA1Total = ROSTER_STUDENTS.filter((s) => s.classKey === 'MAM_A1').length; // 24
-  const mamA1Evaluated = ROSTER_STUDENTS.filter((s) => s.classKey === 'MAM_A1' && s.status === 'completed').length; // 18
-  const mamA1Pct = Math.round((mamA1Evaluated / mamA1Total) * 100); // 75%
+  const mamA1Total = rosterStudents.filter((s) => s.classKey === 'MAM_A1').length;
+  const mamA1Evaluated = rosterStudents.filter((s) => s.classKey === 'MAM_A1' && s.status === 'completed').length;
+  const mamA1Pct = mamA1Total > 0 ? Math.round((mamA1Evaluated / mamA1Total) * 100) : 0;
 
-  const choiB1Total = ROSTER_STUDENTS.filter((s) => s.classKey === 'CHOI_B1').length; // 22
-  const choiB1Evaluated = ROSTER_STUDENTS.filter((s) => s.classKey === 'CHOI_B1' && s.status === 'completed').length; // 20
-  const choiB1Pct = Math.floor((choiB1Evaluated / choiB1Total) * 100); // 90%
+  const choiB1Total = rosterStudents.filter((s) => s.classKey === 'CHOI_B1').length;
+  const choiB1Evaluated = rosterStudents.filter((s) => s.classKey === 'CHOI_B1' && s.status === 'completed').length;
+  const choiB1Pct = choiB1Total > 0 ? Math.floor((choiB1Evaluated / choiB1Total) * 100) : 0;
+
+  const attentionChildren = useMemo(() => {
+    return rosterStudents.filter((s) => s.status === 'attention');
+  }, [rosterStudents]);
+  const attentionCount = attentionChildren.length;
 
   // Filtered Roster
   const filteredStudents = useMemo(() => {
-    return ROSTER_STUDENTS.filter((item) => {
-      if (selectedClass !== 'ALL' && item.classKey !== selectedClass) {
-        return false;
+    return rosterStudents.filter((item) => {
+      if (selectedClass !== 'ALL') {
+        const matchesClass =
+          item.classKey === selectedClass ||
+          item.className === selectedClass ||
+          (item.courseId && item.courseId === selectedClass);
+        if (!matchesClass) {
+          return false;
+        }
       }
       if (selectedStatus === 'COMPLETED' && item.status !== 'completed') {
         return false;
@@ -1704,7 +1824,7 @@ function PreschoolDevelopmentGradesPageContent() {
       }
       return true;
     });
-  }, [selectedClass, selectedStatus, searchQuery]);
+  }, [rosterStudents, selectedClass, selectedStatus, searchQuery]);
 
   // Reset page when filter changes
   useEffect(() => {
@@ -1814,8 +1934,8 @@ function PreschoolDevelopmentGradesPageContent() {
 
   // Selected Student for Portfolio View
   const selectedPortfolioStudent = useMemo(() => {
-    return ROSTER_STUDENTS.find((s) => s.id === portfolioSelectedStudentId) || ROSTER_STUDENTS[0];
-  }, [portfolioSelectedStudentId]);
+    return rosterStudents.find((s) => s.id === portfolioSelectedStudentId) || rosterStudents[0];
+  }, [portfolioSelectedStudentId, rosterStudents]);
 
   if (!isPreschoolTenant) {
     return <LegacyGradesView />;
@@ -1824,13 +1944,32 @@ function PreschoolDevelopmentGradesPageContent() {
   return (
     <div className="preschool-grades-workspace w-full p-4 sm:p-6 lg:p-8 space-y-6 pb-36 sm:pb-48">
       {/* ── TOP AUDIT COMPLIANCE BANNER ── */}
-      <p
-        role="note"
-        className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-xs leading-relaxed text-amber-950 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-100"
-      >
-        Dữ liệu minh họa: danh sách trẻ, chỉ số, tiến độ và lịch sử bên dưới chưa được tải từ hồ sơ thật. Đây là bản
-        thử giao diện; nhập liệu chỉ giữ tạm trong màn hình, chưa lưu hoặc xuất báo cáo.
-      </p>
+      {isLiveLoaded ? (
+        <div className="rounded-2xl border border-emerald-200 bg-emerald-50/80 p-3.5 text-xs leading-relaxed text-emerald-950 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-100 flex items-center justify-between gap-3 shadow-2xs">
+          <div className="flex items-center gap-2.5">
+            <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+            <span>
+              <strong>Dữ liệu thực tế:</strong> Hồ sơ phát triển, chỉ số KPI và nhật ký quan sát sư phạm được đồng bộ trực tiếp từ máy chủ mầm non.
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={() => void loadGradesData()}
+            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-white dark:bg-slate-800 text-emerald-700 dark:text-emerald-300 font-bold border border-emerald-300 dark:border-emerald-700 hover:bg-emerald-100/50 transition-all shrink-0 text-[11px]"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
+            <span>Làm mới</span>
+          </button>
+        </div>
+      ) : (
+        <p
+          role="note"
+          className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-xs leading-relaxed text-amber-950 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-100"
+        >
+          Dữ liệu minh họa: danh sách trẻ, chỉ số, tiến độ và lịch sử bên dưới chưa được tải từ hồ sơ thật. Đây là bản
+          thử giao diện; nhập liệu chỉ giữ tạm trong màn hình, chưa lưu hoặc xuất báo cáo.
+        </p>
+      )}
 
       {/* ── UNIFIED HEADER MATCHING IMAGE 3 ── */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -1858,19 +1997,18 @@ function PreschoolDevelopmentGradesPageContent() {
         </div>
 
         <div className="flex flex-wrap items-center gap-3 self-end md:self-auto">
-          <div className="relative">
-            <select
-              value={selectedMonth}
-              onChange={(e: ChangeEvent<HTMLSelectElement>) => setSelectedMonth(e.target.value)}
-              aria-label="Chọn tháng đánh giá"
-              className="appearance-none bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-700 dark:text-slate-200 rounded-2xl pl-4 pr-9 py-2.5 shadow-sm cursor-pointer hover:border-slate-300 focus:outline-none"
-            >
-              <option>Tháng 09/2026</option>
-              <option>Tháng 10/2026</option>
-              <option>Tháng 11/2026</option>
-            </select>
-            <Calendar className="w-4 h-4 text-slate-400 absolute right-3 top-3 pointer-events-none" />
-          </div>
+          <PreschoolSelect
+            value={selectedMonth}
+            onChange={(e) => setSelectedMonth(e.target.value)}
+            aria-label="Chọn tháng đánh giá"
+            icon={<Calendar className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />}
+            wrapperClassName="min-w-[170px]"
+            className="py-2.5 px-3.5 text-xs font-bold"
+          >
+            <option value="Tháng 09/2026">Tháng 09/2026</option>
+            <option value="Tháng 10/2026">Tháng 10/2026</option>
+            <option value="Tháng 11/2026">Tháng 11/2026</option>
+          </PreschoolSelect>
 
           <button
             type="button"
@@ -1895,7 +2033,8 @@ function PreschoolDevelopmentGradesPageContent() {
               <p className="font-extrabold text-slate-900 dark:text-white">
                 Đang xem đánh giá phát triển của bé:{' '}
                 <span className="text-[#0c513f] dark:text-emerald-400 font-bold">
-                  {ROSTER_STUDENTS.find((s) => s.id === (STUDENT_TO_ROSTER_ID_MAP[studentParam] || studentParam))?.name ||
+                  {rosterStudents.find((s) => s.id === (STUDENT_TO_ROSTER_ID_MAP[studentParam] || studentParam))?.name ||
+                    ROSTER_STUDENTS.find((s) => s.id === (STUDENT_TO_ROSTER_ID_MAP[studentParam] || studentParam))?.name ||
                     studentParam}
                 </span>{' '}
                 ({studentParam})
@@ -1957,7 +2096,9 @@ function PreschoolDevelopmentGradesPageContent() {
               {totalChildrenCount}
             </div>
             <div className="text-xs font-bold text-slate-700 dark:text-slate-300 mt-1">Tổng số trẻ</div>
-            <div className="text-[11px] text-slate-400 mt-0.5">(2 lớp)</div>
+            <div className="text-[11px] text-slate-400 mt-0.5">
+              ({availableClasses.length > 1 ? `${availableClasses.length - 1} lớp` : '2 lớp'})
+            </div>
           </div>
         </div>
 
@@ -2174,7 +2315,7 @@ function PreschoolDevelopmentGradesPageContent() {
                   !
                 </div>
                 <div>
-                  <div className="text-xs font-extrabold text-rose-950 dark:text-rose-100">8 trẻ cần chú ý</div>
+                  <div className="text-xs font-extrabold text-rose-950 dark:text-rose-100">{attentionCount} trẻ cần chú ý</div>
                   <div className="text-[11px] font-medium text-rose-700 dark:text-rose-300 mt-0.5">
                     Cần thêm quan sát ở một số lĩnh vực phát triển
                   </div>
@@ -2195,10 +2336,10 @@ function PreschoolDevelopmentGradesPageContent() {
                 </div>
                 <div>
                   <div className="text-xs font-extrabold text-blue-950 dark:text-blue-100">
-                    Gợi ý AI sư phạm minh họa
+                    {isLiveLoaded ? 'Gợi ý AI sư phạm thực tế' : 'Gợi ý AI sư phạm minh họa'}
                   </div>
                   <div className="text-[11px] font-medium text-blue-700 dark:text-blue-300 mt-0.5">
-                    Nội dung mẫu, chưa phân tích hồ sơ thật
+                    {isLiveLoaded ? 'Phân tích tự động từ hồ sơ NAEYC của trẻ' : 'Nội dung mẫu, chưa phân tích hồ sơ thật'}
                   </div>
                 </div>
               </div>
@@ -2220,38 +2361,34 @@ function PreschoolDevelopmentGradesPageContent() {
             </div>
 
             <div className="flex items-center gap-3 shrink-0">
-              <div className="relative">
-                <select
-                  value={selectedClass}
-                  onChange={(e: ChangeEvent<HTMLSelectElement>) =>
-                    setSelectedClass(e.target.value as 'ALL' | 'MAM_A1' | 'CHOI_B1')
-                  }
-                  aria-label="Lọc theo lớp học"
-                  className="appearance-none bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-700 dark:text-slate-200 rounded-2xl pl-4 pr-8 py-2.5 shadow-sm cursor-pointer"
-                >
-                  <option value="ALL">Tất cả lớp</option>
-                  <option value="MAM_A1">Lớp Mầm A1</option>
-                  <option value="CHOI_B1">Lớp Chồi B1</option>
-                </select>
-                <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-3 top-3.5 pointer-events-none" />
-              </div>
+              <PreschoolSelect
+                value={selectedClass}
+                onChange={(e) => setSelectedClass(e.target.value)}
+                aria-label="Lọc theo lớp học"
+                wrapperClassName="min-w-[170px]"
+                className="py-2.5 px-3.5 text-xs font-bold"
+              >
+                {availableClasses.map((cls) => (
+                  <option key={cls.id} value={cls.id}>
+                    {cls.name}
+                  </option>
+                ))}
+              </PreschoolSelect>
 
-              <div className="relative">
-                <select
-                  value={selectedStatus}
-                  onChange={(e: ChangeEvent<HTMLSelectElement>) =>
-                    setSelectedStatus(e.target.value as 'ALL' | 'COMPLETED' | 'SUPPLEMENT' | 'ATTENTION')
-                  }
-                  aria-label="Lọc theo trạng thái hồ sơ"
-                  className="appearance-none bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-700 dark:text-slate-200 rounded-2xl pl-4 pr-8 py-2.5 shadow-sm cursor-pointer"
-                >
-                  <option value="ALL">Tất cả trạng thái</option>
-                  <option value="COMPLETED">Đã đầy đủ</option>
-                  <option value="SUPPLEMENT">Cần bổ sung</option>
-                  <option value="ATTENTION">Cần chú ý</option>
-                </select>
-                <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-3 top-3.5 pointer-events-none" />
-              </div>
+              <PreschoolSelect
+                value={selectedStatus}
+                onChange={(e) =>
+                  setSelectedStatus(e.target.value as 'ALL' | 'COMPLETED' | 'SUPPLEMENT' | 'ATTENTION')
+                }
+                aria-label="Lọc theo trạng thái hồ sơ"
+                wrapperClassName="min-w-[170px]"
+                className="py-2.5 px-3.5 text-xs font-bold"
+              >
+                <option value="ALL">Tất cả trạng thái</option>
+                <option value="COMPLETED">Đã đầy đủ</option>
+                <option value="SUPPLEMENT">Cần bổ sung</option>
+                <option value="ATTENTION">Cần chú ý</option>
+              </PreschoolSelect>
 
               <button
                 type="button"
@@ -2329,7 +2466,14 @@ function PreschoolDevelopmentGradesPageContent() {
             )}
 
             {/* View Mode: List Table or Grid Cards */}
-            {filteredStudents.length === 0 ? (
+            {isLoading ? (
+              <div className="py-20 flex flex-col items-center justify-center gap-3 text-center" role="status" aria-label="Đang tải dữ liệu hồ sơ">
+                <Loader2 className="w-8 h-8 animate-spin text-[#0c513f] dark:text-emerald-400" />
+                <p className="text-xs font-semibold text-slate-600 dark:text-slate-300">
+                  Đang đồng bộ dữ liệu hồ sơ trẻ từ hệ thống...
+                </p>
+              </div>
+            ) : filteredStudents.length === 0 ? (
               <p role="status" className="p-8 text-center text-xs text-slate-500 dark:text-slate-400">
                 Không tìm thấy hồ sơ trẻ phù hợp với bộ lọc hiện tại. Hãy điều chỉnh hoặc xóa bộ lọc để xem toàn bộ danh sách.
               </p>
@@ -2490,7 +2634,7 @@ function PreschoolDevelopmentGradesPageContent() {
               <div className="text-slate-500 font-medium">
                 Hiển thị <span className="font-bold text-slate-800 dark:text-slate-200">{paginatedStudents.length}</span>{' '}
                 trên tổng số <span className="font-bold text-slate-800 dark:text-slate-200">{filteredStudents.length}</span>{' '}
-                trẻ ({ROSTER_STUDENTS.length} toàn trường)
+                trẻ ({rosterStudents.length} toàn trường)
               </div>
 
               {totalPages > 1 && (
@@ -2550,7 +2694,7 @@ function PreschoolDevelopmentGradesPageContent() {
                     Trẻ cần chú ý trong tháng 9
                   </h2>
                   <span className="w-5 h-5 rounded-full bg-rose-600 text-white font-extrabold text-[11px] flex items-center justify-center">
-                    {ATTENTION_CHILDREN.length}
+                    {attentionCount}
                   </span>
                 </div>
                 <button
@@ -2564,11 +2708,23 @@ function PreschoolDevelopmentGradesPageContent() {
               </div>
 
               <div className="space-y-3">
-                {ATTENTION_CHILDREN.map((item) => (
+                {(attentionChildren.length > 0
+                  ? attentionChildren.map((item) => ({
+                      id: item.id,
+                      name: item.name,
+                      className: item.className,
+                      avatarUrl: item.avatarUrl,
+                      avatarFallbackBg: item.avatarFallbackBg,
+                      note: item.attentionReason || 'Cần theo dõi thêm tiến trình phát triển',
+                      badgeType: (item.status === 'attention' ? 'canhotro' : 'theodoi') as 'canhotro' | 'theodoi',
+                      badgeLabel: item.statusLabel,
+                    }))
+                  : ATTENTION_CHILDREN
+                ).map((item) => (
                   <div
                     key={item.id}
                     onClick={() => {
-                      const target = ROSTER_STUDENTS.find((s) => s.name === item.name);
+                      const target = rosterStudents.find((s) => s.name === item.name || s.id === item.id) || ROSTER_STUDENTS.find((s) => s.name === item.name);
                       if (target) setInspectedStudent(target);
                     }}
                     className="p-3.5 rounded-2xl border border-slate-100 dark:border-slate-700/60 hover:bg-slate-50 dark:hover:bg-slate-700/40 transition-all flex items-center justify-between gap-3 cursor-pointer"
@@ -2680,11 +2836,12 @@ function PreschoolDevelopmentGradesPageContent() {
             </div>
 
             <div className="flex items-center gap-3">
-              <select
+              <PreschoolSelect
                 value={obsDomainFilter}
                 onChange={(e) => setObsDomainFilter(e.target.value)}
                 aria-label="Lọc theo lĩnh vực quan sát"
-                className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-bold text-slate-700 dark:text-slate-300"
+                wrapperClassName="min-w-[180px]"
+                className="py-2 px-3 text-xs font-bold"
               >
                 <option value="ALL">Tất cả lĩnh vực</option>
                 <option value="Thể chất & Vận động">Thể chất &amp; Vận động</option>
@@ -2692,7 +2849,7 @@ function PreschoolDevelopmentGradesPageContent() {
                 <option value="Nhận thức & Tư duy">Nhận thức &amp; Tư duy</option>
                 <option value="Tình cảm & Kỹ năng xã hội">Tình cảm &amp; Kỹ năng xã hội</option>
                 <option value="Thẩm mỹ & Sáng tạo">Thẩm mỹ &amp; Sáng tạo</option>
-              </select>
+              </PreschoolSelect>
 
               <button
                 type="button"
@@ -2933,18 +3090,19 @@ function PreschoolDevelopmentGradesPageContent() {
               <label htmlFor="portfolio-select" className="text-xs font-bold text-slate-600 dark:text-slate-300">
                 Chọn học sinh:
               </label>
-              <select
+              <PreschoolSelect
                 id="portfolio-select"
                 value={portfolioSelectedStudentId}
                 onChange={(e) => setPortfolioSelectedStudentId(e.target.value)}
-                className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-bold text-slate-900 dark:text-slate-100"
+                wrapperClassName="min-w-[180px]"
+                className="py-2 px-3 text-xs font-bold"
               >
-                {ROSTER_STUDENTS.map((s) => (
+                {rosterStudents.map((s) => (
                   <option key={s.id} value={s.id}>
                     {s.name} ({s.className})
                   </option>
                 ))}
-              </select>
+              </PreschoolSelect>
             </div>
           </div>
 
@@ -3076,11 +3234,12 @@ function PreschoolDevelopmentGradesPageContent() {
             </div>
 
             <div className="flex items-center gap-3">
-              <select
+              <PreschoolSelect
                 value={awardCategoryFilter}
                 onChange={(e) => setAwardCategoryFilter(e.target.value)}
                 aria-label="Lọc theo loại khen thưởng"
-                className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-bold text-slate-700 dark:text-slate-300"
+                wrapperClassName="min-w-[180px]"
+                className="py-2 px-3 text-xs font-bold"
               >
                 <option value="ALL">Tất cả danh hiệu</option>
                 <option value="CHAM_NGOAN">Bé Chăm Ngoan</option>
@@ -3088,7 +3247,7 @@ function PreschoolDevelopmentGradesPageContent() {
                 <option value="CHIA_SE">Thiên Thần Chia Sẻ</option>
                 <option value="KHOE_DEP">Bé Khỏe Đẹp</option>
                 <option value="TU_LAP">Bé Tự Lập</option>
-              </select>
+              </PreschoolSelect>
 
               <button
                 type="button"
@@ -3356,18 +3515,18 @@ function PreschoolDevelopmentGradesPageContent() {
                 >
                   Chọn trẻ
                 </label>
-                <select
+                <PreschoolSelect
                   id="new-observation-student"
                   value={newObsStudentId}
-                  onChange={(e: ChangeEvent<HTMLSelectElement>) => selectObservationChild(e.target.value)}
-                  className="w-full p-2.5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 font-medium"
+                  onChange={(e) => selectObservationChild(e.target.value)}
+                  className="py-2.5 font-medium"
                 >
-                  {ROSTER_STUDENTS.map((s) => (
+                  {rosterStudents.map((s) => (
                     <option key={s.id} value={s.id}>
                       {s.name} ({s.className})
                     </option>
                   ))}
-                </select>
+                </PreschoolSelect>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
@@ -3378,18 +3537,18 @@ function PreschoolDevelopmentGradesPageContent() {
                   >
                     Lĩnh vực NAEYC
                   </label>
-                  <select
+                  <PreschoolSelect
                     id="new-observation-domain"
                     value={newObsDomain}
-                    onChange={(e: ChangeEvent<HTMLSelectElement>) => updateObservationDraft({ domain: e.target.value })}
-                    className="w-full p-2.5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 font-medium"
+                    onChange={(e) => updateObservationDraft({ domain: e.target.value })}
+                    className="py-2.5 font-medium"
                   >
-                    <option>Thể chất &amp; Vận động</option>
-                    <option>Ngôn Ngữ &amp; Giao Tiếp</option>
-                    <option>Nhận Thức &amp; Tư Duy</option>
-                    <option>Tình Cảm &amp; Kỹ Năng Xã Hội</option>
-                    <option>Thẩm Mỹ &amp; Sáng Tạo</option>
-                  </select>
+                    <option value="Thể chất &amp; Vận động">Thể chất &amp; Vận động</option>
+                    <option value="Ngôn Ngữ &amp; Giao Tiếp">Ngôn Ngữ &amp; Giao Tiếp</option>
+                    <option value="Nhận Thức &amp; Tư Duy">Nhận Thức &amp; Tư Duy</option>
+                    <option value="Tình Cảm &amp; Kỹ Năng Xã Hội">Tình Cảm &amp; Kỹ Năng Xã Hội</option>
+                    <option value="Thẩm Mỹ &amp; Sáng Tạo">Thẩm Mỹ &amp; Sáng Tạo</option>
+                  </PreschoolSelect>
                 </div>
 
                 <div>
@@ -3399,19 +3558,19 @@ function PreschoolDevelopmentGradesPageContent() {
                   >
                     Mức độ tiến trình
                   </label>
-                  <select
+                  <PreschoolSelect
                     id="new-observation-progression"
                     value={newObsProgression}
-                    onChange={(e: ChangeEvent<HTMLSelectElement>) =>
+                    onChange={(e) =>
                       updateObservationDraft({ progression: e.target.value })
                     }
-                    className="w-full p-2.5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 font-medium"
+                    className="py-2.5 font-medium"
                   >
-                    <option>Đang làm quen</option>
-                    <option>Đang phát triển</option>
-                    <option>Đạt kỳ vọng</option>
-                    <option>Thành thạo</option>
-                  </select>
+                    <option value="Đang làm quen">Đang làm quen</option>
+                    <option value="Đang phát triển">Đang phát triển</option>
+                    <option value="Đạt kỳ vọng">Đạt kỳ vọng</option>
+                    <option value="Thành thạo">Thành thạo</option>
+                  </PreschoolSelect>
                 </div>
               </div>
 
@@ -3480,15 +3639,16 @@ function PreschoolDevelopmentGradesPageContent() {
               </button>
               <button
                 type="button"
-                onClick={() => {
-                  setObservationNotice(
-                    'Chưa lưu quan sát: chức năng lưu chưa khả dụng trong bản thử giao diện này. Bản nháp vẫn được giữ trong màn hình, chưa có hồ sơ mới được tạo.'
-                  );
-                }}
-                className="px-5 py-2.5 rounded-2xl bg-[#0c513f] hover:bg-[#083b2e] text-white font-bold text-xs shadow-md transition-all flex items-center gap-1.5"
+                disabled={isSavingObservation}
+                onClick={() => void handleSaveObservation()}
+                className="px-5 py-2.5 rounded-2xl bg-[#0c513f] hover:bg-[#083b2e] text-white font-bold text-xs shadow-md transition-all flex items-center gap-1.5 disabled:opacity-60"
               >
-                <Check className="w-4 h-4" />
-                <span>Lưu quan sát</span>
+                {isSavingObservation ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Check className="w-4 h-4" />
+                )}
+                <span>{isSavingObservation ? 'Đang lưu...' : 'Lưu quan sát'}</span>
               </button>
             </div>
           </DialogContent>
@@ -3685,32 +3845,34 @@ function PreschoolDevelopmentGradesPageContent() {
             <div className="space-y-3 text-xs">
               <div>
                 <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">Chọn bé</label>
-                <select
+                <PreschoolSelect
+                  aria-label="Chọn bé khen thưởng"
                   value={newAwardStudentId}
                   onChange={(e) => setNewAwardStudentId(e.target.value)}
-                  className="w-full p-2.5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 font-medium"
+                  className="py-2.5 font-medium"
                 >
-                  {ROSTER_STUDENTS.map((s) => (
+                  {rosterStudents.map((s) => (
                     <option key={s.id} value={s.id}>
                       {s.name} ({s.className})
                     </option>
                   ))}
-                </select>
+                </PreschoolSelect>
               </div>
 
               <div>
                 <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">Danh hiệu tuyên dương</label>
-                <select
+                <PreschoolSelect
+                  aria-label="Danh hiệu tuyên dương"
                   value={newAwardCategory}
                   onChange={(e) => setNewAwardCategory(e.target.value as 'CHAM_NGOAN' | 'HOA_SI' | 'KHOE_DEP' | 'CHIA_SE' | 'TU_LAP')}
-                  className="w-full p-2.5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 font-medium"
+                  className="py-2.5 font-medium"
                 >
                   <option value="CHAM_NGOAN">Bé Chăm Ngoan &amp; Tự Giác</option>
                   <option value="HOA_SI">Họa Sĩ Nhí Sáng Tạo</option>
                   <option value="KHOE_DEP">Bé Khỏe Đẹp &amp; Vận Động</option>
                   <option value="CHIA_SE">Thiên Thần Chia Sẻ &amp; Yêu Thương</option>
                   <option value="TU_LAP">Bé Tự Lập Xuất Sắc</option>
-                </select>
+                </PreschoolSelect>
               </div>
 
               <div>
@@ -3745,7 +3907,7 @@ function PreschoolDevelopmentGradesPageContent() {
               <button
                 type="button"
                 onClick={() => {
-                  const targetChild = ROSTER_STUDENTS.find((s) => s.id === newAwardStudentId) || ROSTER_STUDENTS[0];
+                  const targetChild = rosterStudents.find((s) => s.id === newAwardStudentId) || ROSTER_STUDENTS.find((s) => s.id === newAwardStudentId) || rosterStudents[0];
                   const newAwd: PreschoolAwardItem = {
                     id: `AWD-${Date.now()}`,
                     studentId: targetChild.id,

@@ -11,14 +11,21 @@ jest.mock('@supabase/supabase-js', () => { throw new Error('HELD_WORKSPACE_MUST_
 jest.mock('@/lib/supabase-client', () => { throw new Error('HELD_WORKSPACE_MUST_NOT_LOAD_CALLER_DB'); });
 jest.mock('next/link', () => ({ __esModule: true, default: ({ children, href }: React.AnchorHTMLAttributes<HTMLAnchorElement>) => <a href={href}>{children}</a> }));
 
-it('renders learning workspace with sample-data disclaimer and no real API calls', () => {
-  const fetchMock = jest.fn();
+it('renders learning workspace with sample-data disclaimer; live fetch is attempted but UI stays in demo mode on failure', () => {
+  // Grades page now calls /api/education/grades on mount (live data integration).
+  // The fetch mock rejects — isLiveLoaded stays false → demo banner persists.
+  const fetchMock = jest.fn(() => Promise.reject(new Error('NETWORK_UNAVAILABLE_IN_TEST')));
   Object.defineProperty(globalThis, 'fetch', { configurable: true, writable: true, value: fetchMock });
   render(<Grades />);
   expect(screen.getByRole('heading', { name: 'Học Tập & Phát Triển Mầm Non' })).toBeInTheDocument();
   expect(screen.getByRole('note')).toHaveTextContent(/Dữ liệu minh họa/);
   expect(screen.getByRole('note')).toHaveTextContent(/chưa được tải từ hồ sơ thật/);
-  expect(fetchMock).not.toHaveBeenCalled();
+  // loadGradesData() is called on mount — one fetch call is expected.
+  expect(fetchMock).toHaveBeenCalledTimes(1);
+  expect(fetchMock).toHaveBeenCalledWith(
+    expect.stringContaining('/api/education/grades'),
+    expect.objectContaining({ cache: 'no-store' }),
+  );
 });
 
 it('keeps facilities read-only until verified data and APIs are available', () => {

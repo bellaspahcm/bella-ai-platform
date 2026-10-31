@@ -27,6 +27,7 @@
 
 import { useState, useEffect, useMemo, Suspense, type ChangeEvent } from 'react';
 import Link from 'next/link';
+import PreschoolSelect from '@/components/ui/PreschoolSelect';
 import { useSearchParams } from 'next/navigation';
 import {
   ArrowLeft,
@@ -1290,19 +1291,20 @@ function PreschoolCommunicationContent({ tenantId }: { readonly tenantId: string
         </div>
 
         <div className="flex items-center gap-3 self-end md:self-auto shrink-0">
-          {activeNavTab !== 'announcements' && <div className="relative">
-            <select
+          {activeNavTab !== 'announcements' && (
+            <PreschoolSelect
               value={selectedMonth}
-              onChange={(e: ChangeEvent<HTMLSelectElement>) => setSelectedMonth(e.target.value)}
+              onChange={(e) => setSelectedMonth(e.target.value)}
               aria-label="Chọn tháng làm việc"
-              className="appearance-none bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-700 dark:text-slate-200 rounded-2xl pl-4 pr-9 py-2.5 shadow-sm cursor-pointer hover:border-slate-300 focus:outline-none"
+              icon={<Calendar className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />}
+              className="py-2.5 px-3.5 text-xs font-bold"
+              wrapperClassName="min-w-[170px]"
             >
-              <option>Tháng 09/2026</option>
-              <option>Tháng 10/2026</option>
-              <option>Tháng 11/2026</option>
-            </select>
-            <Calendar className="w-4 h-4 text-slate-400 absolute right-3 top-3 pointer-events-none" />
-          </div>}
+              <option value="Tháng 09/2026">Tháng 09/2026</option>
+              <option value="Tháng 10/2026">Tháng 10/2026</option>
+              <option value="Tháng 11/2026">Tháng 11/2026</option>
+            </PreschoolSelect>
+          )}
 
           {activeNavTab !== 'announcements' && <button
             type="button"

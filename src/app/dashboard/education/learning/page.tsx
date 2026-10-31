@@ -13,6 +13,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import PreschoolSelect from '@/components/ui/PreschoolSelect';
 import {
   BookOpen,
   ArrowLeft,
@@ -102,13 +103,13 @@ export default function LearningWorkspacePage() {
             </h1>
           </div>
           <p className="text-muted-foreground text-sm mt-1 ml-11">
-            Không điểm số hóa trẻ · Quản lý quan sát, minh chứng, tiến trình phát triển & hồ sơ xuất bản cho phụ huynh
+            Không điểm số hóa trẻ · Quản lý quan sát, minh chứng, tiến trình phát triển &amp; hồ sơ xuất bản cho phụ huynh
           </p>
         </div>
 
         <div className="flex items-center gap-2">
           <span className="px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 flex items-center gap-1.5">
-            <ShieldCheck className="w-4 h-4" /> P5 Learning & Development
+            <ShieldCheck className="w-4 h-4" /> P5 Learning &amp; Development
           </span>
           <span className="px-3 py-1.5 rounded-full text-xs font-semibold bg-primary/10 text-[var(--education-brand-ink)] border border-primary/20">
             25 Bé Đang Học
@@ -181,7 +182,7 @@ export default function LearningWorkspacePage() {
             activeTab === 'OBSERVATION' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-muted'
           }`}
         >
-          <Plus className="w-4 h-4" /> Ghi Nhận Quan Sát & Minh Chứng
+          <Plus className="w-4 h-4" /> Ghi Nhận Quan Sát &amp; Minh Chứng
         </button>
         <button
           id="tab-portfolio"
@@ -190,7 +191,7 @@ export default function LearningWorkspacePage() {
             activeTab === 'PORTFOLIO' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-muted'
           }`}
         >
-          <Award className="w-4 h-4" /> Hồ Sơ Portfolio & Xuất Bản
+          <Award className="w-4 h-4" /> Hồ Sơ Portfolio &amp; Xuất Bản
         </button>
         <button
           id="tab-parent-view"
@@ -254,15 +255,15 @@ export default function LearningWorkspacePage() {
             <div className="space-y-4">
               <div>
                 <label htmlFor="select-child" className="block text-xs font-semibold text-muted-foreground mb-1">Chọn Trẻ Được Quan Sát</label>
-                <select
+                <PreschoolSelect
                   id="select-child"
                   value={selectedStudentId}
                   onChange={(e) => setSelectedStudentId(e.target.value)}
-                  className="w-full bg-background border border-border rounded-lg p-2.5 text-sm text-foreground"
+                  className="py-2.5 text-sm font-semibold"
                 >
                   <option value="00000000-0000-0000-0000-000000000100">Bé Nguyễn Minh Anh (E2E-S00)</option>
                   <option value="00000000-0000-0000-0000-000000000101">Bé Trần Bảo Nam (E2E-S01)</option>
-                </select>
+                </PreschoolSelect>
               </div>
 
               <div>
@@ -290,12 +291,12 @@ export default function LearningWorkspacePage() {
 
             <div className="space-y-4 bg-background p-5 rounded-xl border border-border">
               <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
-                <Lock className="w-4 h-4 text-amber-700 dark:text-amber-400" /> Bằng Chứng Đa Phương Tiện & Quyền Riêng Tư (Privacy & Consent)
+                <Lock className="w-4 h-4 text-amber-700 dark:text-amber-400" /> Bằng Chứng Đa Phương Tiện &amp; Quyền Riêng Tư (Privacy &amp; Consent)
               </h3>
 
               <div>
                 <label htmlFor="select-visibility" className="block text-xs font-semibold text-muted-foreground mb-1">Quyền Hiển Thị Minh Chứng (Visibility Scope)</label>
-                <select
+                <PreschoolSelect
                   id="select-visibility"
                   value={evidenceVisibility}
                   onChange={(e) => {
@@ -303,16 +304,16 @@ export default function LearningWorkspacePage() {
                       setEvidenceVisibility(e.target.value);
                     }
                   }}
-                  className="w-full bg-muted border border-border rounded-lg p-2.5 text-sm text-foreground"
+                  className="py-2.5 text-sm font-semibold"
                 >
                   <option value="PARENT_SHARED">PARENT_SHARED — Phụ huynh được xem trong Portfolio</option>
                   <option value="INTERNAL_TEACHER">INTERNAL_TEACHER — Chỉ giáo viên xem nội bộ (Bảo mật)</option>
-                </select>
+                </PreschoolSelect>
               </div>
 
               <div>
                 <label htmlFor="select-consent" className="block text-xs font-semibold text-muted-foreground mb-1">Xác Nhận Consent Của Phụ Huynh (Consent Scope)</label>
-                <select
+                <PreschoolSelect
                   id="select-consent"
                   value={consentScope}
                   onChange={(e) => {
@@ -320,11 +321,11 @@ export default function LearningWorkspacePage() {
                       setConsentScope(e.target.value);
                     }
                   }}
-                  className="w-full bg-muted border border-border rounded-lg p-2.5 text-sm text-foreground"
+                  className="py-2.5 text-sm font-semibold"
                 >
                   <option value="CONSENT_VERIFIED">CONSENT_VERIFIED — Phụ huynh đã đồng ý chia sẻ hình ảnh</option>
                   <option value="OPT_OUT">OPT_OUT — Phụ huynh từ chối chia sẻ hình ảnh (Chặn xuất bản)</option>
-                </select>
+                </PreschoolSelect>
               </div>
 
               <div className="pt-2">
@@ -333,7 +334,7 @@ export default function LearningWorkspacePage() {
                   onClick={handleSaveObservation}
                   className="w-full py-2.5 bg-primary hover:bg-primary-hover font-semibold text-primary-foreground rounded-lg transition text-sm flex items-center justify-center gap-2"
                 >
-                  <Check className="w-4 h-4" /> Lưu Quan Sát & Minh Chứng
+                  <Check className="w-4 h-4" /> Lưu Quan Sát &amp; Minh Chứng
                 </button>
               </div>
             </div>
@@ -347,7 +348,7 @@ export default function LearningWorkspacePage() {
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
               <Award className="w-5 h-5 text-purple-700 dark:text-purple-400" />
-              Tổng Hợp & Xuất Bản Portfolio Phát Triển (Học Kỳ 1 2026)
+              Tổng Hợp &amp; Xuất Bản Portfolio Phát Triển (Học Kỳ 1 2026)
             </h2>
 
             <span className="px-3 py-1 rounded-full text-xs font-bold bg-amber-500/20 text-amber-900 dark:text-amber-200 border border-amber-500/30">
@@ -362,7 +363,7 @@ export default function LearningWorkspacePage() {
           )}
 
           <div className="border border-border rounded-xl p-5 bg-background space-y-4">
-            <div className="font-semibold text-foreground">Danh Sách Bằng Chứng & Đánh Giá Tổng Hợp:</div>
+            <div className="font-semibold text-foreground">Danh Sách Bằng Chứng &amp; Đánh Giá Tổng Hợp:</div>
             <ul className="text-xs text-foreground space-y-2">
               <li className="flex items-center gap-2">
                 <Check className="w-4 h-4 text-emerald-700 dark:text-emerald-400" /> [EVIDENCE] Ảnh xếp hình khối màu sắc (Visibility: {evidenceVisibility}, Consent: {consentScope})

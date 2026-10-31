@@ -16,6 +16,7 @@ import {
   Sparkles, 
   UserCheck,
   RefreshCw,
+  Loader2,
 } from 'lucide-react';
 
 interface StudentRosterItem {
@@ -145,14 +146,22 @@ export default function ClassWorkspacePage({ params }: { params: Promise<{ id: s
   const requestGeneration = useRef(0);
   const currentRequest = useRef<AbortController | null>(null);
   const [liveData, setLiveData] = useState<ClassroomLiveOverview | null>(null);
+  const [isLiveLoading, setIsLiveLoading] = useState(true);
+  const [isTeachersLoading, setIsTeachersLoading] = useState(true);
   const currentTenantId = loadState.status === 'ready' && loadState.classId === classId ? loadState.course.tenantId : null;
 
   useEffect(() => {
     const controller = new AbortController();
     setLiveData(null);
-    if (currentTenantId) void loadClassroomOverview(currentTenantId, controller.signal)
-      .then(data => { if (!controller.signal.aborted) setLiveData(data.get(classId) ?? null); })
-      .catch(() => { if (!controller.signal.aborted) setLiveData(null); });
+    setIsLiveLoading(true);
+    if (currentTenantId) {
+      void loadClassroomOverview(currentTenantId, controller.signal)
+        .then(data => { if (!controller.signal.aborted) setLiveData(data.get(classId) ?? null); })
+        .catch(() => { if (!controller.signal.aborted) setLiveData(null); })
+        .finally(() => { if (!controller.signal.aborted) setIsLiveLoading(false); });
+    } else {
+      setIsLiveLoading(false);
+    }
     return () => controller.abort();
   }, [classId, currentTenantId, reloadVersion]);
 
@@ -224,8 +233,7 @@ export default function ClassWorkspacePage({ params }: { params: Promise<{ id: s
     setReloadVersion(version => version + 1);
   };
   const state = loadState.classId === classId ? loadState : { classId, status: 'loading' as const };
-  const live = state.status === 'ready' && liveData?.id === classId && liveData.tenantId === state.course.tenantId
-    && liveData.code === state.course.courseCode && liveData.name === state.course.title ? liveData : null;
+  const live = state.status === 'ready' && liveData?.id === classId && liveData.tenantId === state.course.tenantId ? liveData : null;
 
   const [assignedTeachers, setAssignedTeachers] = useState<TeacherItem[]>([]);
 
@@ -236,9 +244,11 @@ export default function ClassWorkspacePage({ params }: { params: Promise<{ id: s
       } else {
         setAssignedTeachers([]);
       }
+      setIsTeachersLoading(false);
       return;
     }
     const controller = new AbortController();
+    setIsTeachersLoading(true);
     const date = getLocalDateString(new Date());
     const search = new URLSearchParams({
       view: 'assignments',
@@ -288,6 +298,8 @@ export default function ClassWorkspacePage({ params }: { params: Promise<{ id: s
         if (!controller.signal.aborted && live?.teacher) {
           setAssignedTeachers(parseTeacherSummary(live.teacher));
         }
+      } finally {
+        if (!controller.signal.aborted) setIsTeachersLoading(false);
       }
     })();
     return () => controller.abort();
@@ -307,11 +319,27 @@ export default function ClassWorkspacePage({ params }: { params: Promise<{ id: s
                 <div>
                   <div className="flex items-center gap-2">
                     <span className="text-[11px] font-extrabold px-3 py-0.5 rounded-full bg-primary/10 text-[var(--education-brand-ink)] border border-primary/20">Mã lớp: <span>{state.course.courseCode}</span></span>
-                    <span className="text-[11px] font-semibold text-slate-500">Phòng học: {live?.room && live.room.trim() ? live.room : 'chưa được cung cấp'}</span>
+                    <span className="text-[11px] font-semibold text-slate-500 inline-flex items-center gap-1.5">
+                      Phòng học: {isLiveLoading ? (
+                        <span className="inline-flex items-center gap-1 text-slate-400 font-normal">
+                          <Loader2 className="w-3 h-3 animate-spin text-primary" /> Đang tải...
+                        </span>
+                      ) : (
+                        <span>{live?.room && live.room.trim() ? live.room : 'chưa được cung cấp'}</span>
+                      )}
+                    </span>
                     {live?.grade && <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300">{live.grade}</span>}
                   </div>
                   <h1 className="text-xl sm:text-2xl font-extrabold text-gray-900 dark:text-white tracking-tight mt-1">{state.course.title}</h1>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Giáo viên: {live?.teacher ?? 'chưa được cung cấp'}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                    {isLiveLoading || isTeachersLoading ? (
+                      <span className="inline-flex items-center gap-1 text-slate-400 font-normal">
+                        Giáo viên: <Loader2 className="w-3 h-3 animate-spin text-primary" /> đang cập nhật...
+                      </span>
+                    ) : (
+                      `Giáo viên: ${live?.teacher ?? (assignedTeachers.length > 0 ? assignedTeachers.map(t => `${t.name} (${t.roleDisplay})`).join(' • ') : 'chưa được cung cấp')}`
+                    )}
+                  </p>
                 </div>
               </div>
               <div className="flex items-center gap-3 shrink-0">
@@ -347,24 +375,24 @@ export default function ClassWorkspacePage({ params }: { params: Promise<{ id: s
                   <div className="p-5 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800 space-y-3">
                     <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-500 flex items-center gap-2">
                       <MapPin className="w-4 h-4 text-primary" />
-                      Thông tin Lớp học & Phòng học
+                      Thông tin Lớp học &amp; Phòng học
                     </h3>
                     <div className="space-y-2 text-xs">
                       <div className="flex justify-between py-1 border-b border-slate-200/60 dark:border-slate-800">
                         <span className="text-slate-500">Khối lớp:</span>
-                        <span className="font-bold text-slate-900 dark:text-white">{live?.grade ?? 'Khối Mầm non'}</span>
+                        <span className="font-bold text-slate-900 dark:text-white">{isLiveLoading ? <Loader2 className="w-3 h-3 animate-spin text-primary inline-block" /> : (live?.grade ?? 'Khối Mầm non')}</span>
                       </div>
                       <div className="flex justify-between py-1 border-b border-slate-200/60 dark:border-slate-800">
                         <span className="text-slate-500">Phòng học:</span>
-                        <span className="font-bold text-slate-900 dark:text-white">{live?.room && live.room.trim() ? live.room : 'Chưa ghi nhận phòng'}</span>
+                        <span className="font-bold text-slate-900 dark:text-white">{isLiveLoading ? <Loader2 className="w-3 h-3 animate-spin text-primary inline-block" /> : (live?.room && live.room.trim() ? live.room : 'Chưa ghi nhận phòng')}</span>
                       </div>
                       <div className="flex justify-between py-1 border-b border-slate-200/60 dark:border-slate-800">
                         <span className="text-slate-500">Niên học:</span>
-                        <span className="font-bold text-slate-900 dark:text-white">{live?.academicYear ?? '2026 - 2027'}</span>
+                        <span className="font-bold text-slate-900 dark:text-white">{isLiveLoading ? <Loader2 className="w-3 h-3 animate-spin text-primary inline-block" /> : (live?.academicYear ?? '2026 - 2027')}</span>
                       </div>
                       <div className="flex justify-between py-1 border-b border-slate-200/60 dark:border-slate-800">
                         <span className="text-slate-500">Mục tiêu phát triển:</span>
-                        <span className="font-bold text-slate-900 dark:text-white text-right max-w-[240px] truncate">{live?.focus ?? 'Phát triển toàn diện theo chương trình chuẩn'}</span>
+                        <span className="font-bold text-slate-900 dark:text-white text-right max-w-[240px] truncate">{isLiveLoading ? <Loader2 className="w-3 h-3 animate-spin text-primary inline-block" /> : (live?.focus ?? 'Phát triển toàn diện theo chương trình chuẩn')}</span>
                       </div>
                       <div className="flex justify-between py-1 border-b border-slate-200/60 dark:border-slate-800">
                         <span className="text-slate-500">Trạng thái lớp:</span>
@@ -382,7 +410,7 @@ export default function ClassWorkspacePage({ params }: { params: Promise<{ id: s
                   <div className="p-5 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800 space-y-3">
                     <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-500 flex items-center gap-2">
                       <CalendarCheck className="w-4 h-4 text-emerald-600" />
-                      Sĩ số & Điểm danh Hôm nay
+                      Sĩ số &amp; Điểm danh Hôm nay
                     </h3>
                     <div className="space-y-3">
                       <div>
@@ -409,15 +437,15 @@ export default function ClassWorkspacePage({ params }: { params: Promise<{ id: s
                       <div className="grid grid-cols-3 gap-2 pt-1 text-center">
                         <div className="p-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700">
                           <div className="text-[11px] text-slate-500">Có mặt</div>
-                          <div className="text-base font-extrabold text-emerald-600">{live?.todayStatus.present ?? 0}</div>
+                          <div className="text-base font-extrabold text-emerald-600">{isLiveLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin text-primary mx-auto my-0.5" /> : (live?.todayStatus.present ?? 0)}</div>
                         </div>
                         <div className="p-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700">
                           <div className="text-[11px] text-slate-500">Nghỉ phép</div>
-                          <div className="text-base font-extrabold text-amber-600">{live?.todayStatus.excused ?? 0}</div>
+                          <div className="text-base font-extrabold text-amber-600">{isLiveLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin text-primary mx-auto my-0.5" /> : (live?.todayStatus.excused ?? 0)}</div>
                         </div>
                         <div className="p-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700">
                           <div className="text-[11px] text-slate-500">Chưa điểm danh</div>
-                          <div className="text-base font-extrabold text-slate-600 dark:text-slate-300">{live?.todayStatus.unmarked ?? 0}</div>
+                          <div className="text-base font-extrabold text-slate-600 dark:text-slate-300">{isLiveLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin text-primary mx-auto my-0.5" /> : (live?.todayStatus.unmarked ?? 0)}</div>
                         </div>
                       </div>
                     </div>
@@ -582,15 +610,15 @@ export default function ClassWorkspacePage({ params }: { params: Promise<{ id: s
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
                 <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200/60 dark:border-slate-700">
                   <span className="text-xs text-slate-500">Có mặt hôm nay</span>
-                  <div className="text-lg font-extrabold text-emerald-600 mt-0.5">{live?.todayStatus ? `${live.todayStatus.present} học sinh` : 'Chưa có dữ liệu'}</div>
+                  <div className="text-lg font-extrabold text-emerald-600 mt-0.5">{isLiveLoading ? <Loader2 className="w-4 h-4 animate-spin text-primary" /> : (live?.todayStatus ? `${live.todayStatus.present} học sinh` : 'Chưa có dữ liệu')}</div>
                 </div>
                 <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200/60 dark:border-slate-700">
                   <span className="text-xs text-slate-500">Nghỉ có phép</span>
-                  <div className="text-lg font-extrabold text-amber-600 mt-0.5">{live?.todayStatus ? `${live.todayStatus.excused} học sinh` : 'Chưa có dữ liệu'}</div>
+                  <div className="text-lg font-extrabold text-amber-600 mt-0.5">{isLiveLoading ? <Loader2 className="w-4 h-4 animate-spin text-primary" /> : (live?.todayStatus ? `${live.todayStatus.excused} học sinh` : 'Chưa có dữ liệu')}</div>
                 </div>
                 <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200/60 dark:border-slate-700">
                   <span className="text-xs text-slate-500">Chưa điểm danh</span>
-                  <div className="text-lg font-extrabold text-slate-600 dark:text-slate-300 mt-0.5">{live?.todayStatus ? `${live.todayStatus.unmarked} học sinh` : 'Chưa có dữ liệu'}</div>
+                  <div className="text-lg font-extrabold text-slate-600 dark:text-slate-300 mt-0.5">{isLiveLoading ? <Loader2 className="w-4 h-4 animate-spin text-primary" /> : (live?.todayStatus ? `${live.todayStatus.unmarked} học sinh` : 'Chưa có dữ liệu')}</div>
                 </div>
               </div>
             </div>}

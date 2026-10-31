@@ -4,6 +4,7 @@
 
 import { useState, useRef, useEffect, useMemo, type ChangeEvent, type FormEvent } from 'react';
 import Link from 'next/link';
+import PreschoolSelect from '@/components/ui/PreschoolSelect';
 import {
   Users,
   UserPlus,
@@ -590,16 +591,16 @@ export default function TeachersPage() {
 
         {/* Right: Year selector + "+ Thêm Giáo Viên Mới" */}
         <div className="flex items-center gap-3 flex-wrap sm:flex-nowrap">
-          <div className="flex items-center gap-2 bg-white dark:bg-slate-800 border border-slate-200/90 dark:border-slate-700 rounded-lg px-3.5 py-2 text-xs shadow-2xs">
-            <select
-              value={selectedYear}
-              onChange={(e: ChangeEvent<HTMLSelectElement>) => setSelectedYear(e.target.value)}
-              className="bg-transparent font-medium text-slate-700 dark:text-slate-200 outline-none cursor-pointer pr-1 text-xs"
-            >
-              <option value="2026-2027">Năm học 2026 - 2027</option>
-              <option value="2025-2026">Năm học 2025 - 2026</option>
-            </select>
-          </div>
+          <PreschoolSelect
+            aria-label="Chọn năm học"
+            value={selectedYear}
+            onChange={(e) => setSelectedYear(e.target.value)}
+            wrapperClassName="min-w-[170px]"
+            className="py-2 px-3 text-xs font-semibold"
+          >
+            <option value="2026-2027">Năm học 2026 - 2027</option>
+            <option value="2025-2026">Năm học 2025 - 2026</option>
+          </PreschoolSelect>
 
           <button
             type="button"
@@ -683,28 +684,32 @@ export default function TeachersPage() {
           </div>
 
           <div className="flex items-center gap-2 w-full sm:w-auto">
-            <select
+            <PreschoolSelect
+              aria-label="Lọc theo chức vụ"
               value={roleFilter}
-              onChange={(e: ChangeEvent<HTMLSelectElement>) => setRoleFilter(e.target.value as 'all' | RoleKey)}
-              className="w-full sm:w-auto bg-[#f8fafc] dark:bg-slate-900 border border-slate-200/90 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-700 dark:text-slate-200 outline-none cursor-pointer"
+              onChange={(e) => setRoleFilter(e.target.value as 'all' | RoleKey)}
+              wrapperClassName="w-full sm:w-[160px]"
+              className="py-2 text-xs font-semibold"
             >
               <option value="all">Tất cả chức vụ</option>
               <option value="chunhiem">Chủ nhiệm</option>
               <option value="trogiang">Trợ giảng</option>
               <option value="bomon">Năng khiếu &amp; Ngoại ngữ</option>
-            </select>
+            </PreschoolSelect>
 
-            <select
+            <PreschoolSelect
+              aria-label="Lọc theo khối lớp"
               value={gradeFilter}
-              onChange={(e: ChangeEvent<HTMLSelectElement>) => setGradeFilter(e.target.value as GradeLevel)}
-              className="w-full sm:w-auto bg-[#f8fafc] dark:bg-slate-900 border border-slate-200/90 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-700 dark:text-slate-200 outline-none cursor-pointer"
+              onChange={(e) => setGradeFilter(e.target.value as GradeLevel)}
+              wrapperClassName="w-full sm:w-[150px]"
+              className="py-2 text-xs font-semibold"
             >
               <option value="all">Tất cả khối lớp</option>
               <option value="nhatre">Khối Nhà Trẻ</option>
               <option value="mam">Khối Mầm</option>
               <option value="choi">Khối Chồi</option>
               <option value="la">Khối Lá</option>
-            </select>
+            </PreschoolSelect>
 
             <button
               type="button"
@@ -1146,30 +1151,32 @@ export default function TeachersPage() {
                 </div>
                 <div>
                   <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1.5">Lớp phân công</label>
-                  <select
+                  <PreschoolSelect
                     name="classAssigned"
+                    aria-label="Lớp phân công"
                     defaultValue=""
-                    className="w-full p-3 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-medium focus:ring-2 focus:ring-[#0e5c43] outline-none"
+                    className="py-2.5 text-xs font-medium"
                   >
                     <option value="">Chọn lớp</option>
                     {classes.map(item => <option key={item.id} value={item.id}>{item.title} ({item.code})</option>)}
-                  </select>
+                  </PreschoolSelect>
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1.5">Vai trò phụ trách</label>
-                  <select
+                  <PreschoolSelect
                     name="role"
+                    aria-label="Vai trò phụ trách"
                     defaultValue="lead_teacher"
-                    className="w-full p-3 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-medium focus:ring-2 focus:ring-[#0e5c43] outline-none"
+                    className="py-2.5 text-xs font-medium"
                   >
                     <option value="lead_teacher">Giáo viên chủ nhiệm</option>
                     <option value="co_teacher">Giáo viên cùng lớp</option>
                     <option value="assistant">Giáo viên trợ giảng</option>
                     <option value="substitute">Giáo viên thay thế</option>
-                  </select>
+                  </PreschoolSelect>
                 </div>
                 <div>
                   <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1.5">Hiệu lực phân công</label>
