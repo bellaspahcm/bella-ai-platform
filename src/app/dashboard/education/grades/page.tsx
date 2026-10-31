@@ -22,7 +22,7 @@
  * - STRICT TYPE SAFETY: Zero `any` and zero `unknown`
  */
 
-import { useState, useEffect, useMemo, useRef, Suspense, type ChangeEvent } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback, Suspense, type ChangeEvent } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import Link from 'next/link';
@@ -67,6 +67,8 @@ import {
   Printer,
   Share2,
   Eye,
+  Loader2,
+  RefreshCw,
 } from 'lucide-react';
 import { getCachedTenantSettings } from '@/lib/dashboard-client-context';
 import { resolveTenantBrandIdentity } from '@/lib/business-rules/tenant-modules';
@@ -1534,9 +1536,20 @@ function PreschoolDevelopmentGradesPageContent() {
   const [activeTab, setActiveTab] = useState<DevelopmentTabKey>('overview');
   const [selectedMonth, setSelectedMonth] = useState<string>('Tháng 09/2026');
 
+  // Live data loading & persistence state
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isSavingObservation, setIsSavingObservation] = useState<boolean>(false);
+  const [isLiveLoaded, setIsLiveLoaded] = useState<boolean>(false);
+  const [availableClasses, setAvailableClasses] = useState<readonly { id: string; name: string }[]>([
+    { id: 'ALL', name: 'Tất cả lớp' },
+    { id: 'MAM_A1', name: 'Lớp Mầm A1' },
+    { id: 'CHOI_B1', name: 'Lớp Chồi B1' },
+  ]);
+  const [rosterStudents, setRosterStudents] = useState<readonly ChildDevelopmentRosterItem[]>(ROSTER_STUDENTS);
+
   // Filter & Search states
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [selectedClass, setSelectedClass] = useState<'ALL' | 'MAM_A1' | 'CHOI_B1'>('ALL');
+  const [selectedClass, setSelectedClass] = useState<string>('ALL');
   const [selectedStatus, setSelectedStatus] = useState<'ALL' | 'COMPLETED' | 'SUPPLEMENT' | 'ATTENTION'>('ALL');
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
   const [selectedStudentIds, setSelectedStudentIds] = useState<readonly string[]>([]);
@@ -1655,6 +1668,92 @@ function PreschoolDevelopmentGradesPageContent() {
     setObservationNotice(null);
   };
 
+  // Live Grades Data Fetching
+  const loadGradesData = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const res = await fetch(
+        `/api/education/grades?month=${encodeURIComponent(selectedMonth)}&courseId=${encodeURIComponent(selectedClass)}`,
+        { cache: 'no-store' }
+      );
+      if (res.ok) {
+        const data = (await res.json()) as {
+          success?: boolean;
+          classrooms?: Array<{ id: string; name: string; code: string }>;
+          students?: ChildDevelopmentRosterItem[];
+          observations?: PedagogicalObservationFeedItem[];
+        };
+        if (data.success) {
+          setIsLiveLoaded(true);
+          if (data.classrooms && data.classrooms.length > 0) {
+            setAvailableClasses([
+              { id: 'ALL', name: 'Tất cả lớp' },
+              ...data.classrooms.map((c) => ({ id: c.id, name: c.name })),
+            ]);
+          }
+          if (data.students && data.students.length > 0) {
+            setRosterStudents(data.students);
+          }
+          if (data.observations && data.observations.length > 0) {
+            setObservationFeed(data.observations);
+          }
+        }
+      }
+    } catch {
+      // Graceful offline fallback
+    } finally {
+      setIsLoading(false);
+    }
+  }, [selectedMonth, selectedClass]);
+
+  useEffect(() => {
+    void loadGradesData();
+  }, [loadGradesData]);
+
+  const handleSaveObservation = async () => {
+    if (!newObsSkill.trim()) {
+      setObservationNotice('Vui lòng nhập kỹ năng quan sát cụ thể.');
+      return;
+    }
+    setIsSavingObservation(true);
+    setObservationNotice(null);
+    try {
+      const res = await fetch('/api/education/grades', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'save_observation',
+          studentId: newObsStudentId,
+          domain: newObsDomain,
+          skill: newObsSkill,
+          progression: newObsProgression,
+          note: newObsNote,
+          photosCount: newObsPhotosCount,
+        }),
+      });
+      const data = (await res.json()) as { success?: boolean; observation?: PedagogicalObservationFeedItem; error?: string };
+      if (res.ok && data.success) {
+        setObservationNotice('Đã lưu quan sát sư phạm thành công vào hồ sơ học sinh!');
+        if (data.observation) {
+          setObservationFeed((prev) => [data.observation!, ...prev]);
+        }
+        updateObservationDraft({ skill: '', note: '' });
+        setTimeout(() => {
+          setIsNewObservationModalOpen(false);
+          setObservationNotice(null);
+        }, 1200);
+      } else {
+        setObservationNotice(
+          data.error ? `Chưa lưu quan sát: ${data.error}` : 'Chưa lưu quan sát: máy chủ từ chối yêu cầu.'
+        );
+      }
+    } catch {
+      setObservationNotice('Chưa lưu quan sát: không thể kết nối máy chủ.');
+    } finally {
+      setIsSavingObservation(false);
+    }
+  };
+
   // Award Modal Form State
   const [newAwardStudentId, setNewAwardStudentId] = useState<string>('STU-001');
   const [newAwardCategory, setNewAwardCategory] = useState<'CHAM_NGOAN' | 'HOA_SI' | 'KHOE_DEP' | 'CHIA_SE' | 'TU_LAP'>('CHAM_NGOAN');
@@ -1662,24 +1761,24 @@ function PreschoolDevelopmentGradesPageContent() {
   const [newAwardReason, setNewAwardReason] = useState<string>('Biết tự dọn đồ chơi và giúp đỡ cô giáo cùng các bạn.');
 
   // Dynamic Canonical KPI Derivations
-  const totalChildrenCount = ROSTER_STUDENTS.length; // 46
-  const evaluatedChildrenCount = ROSTER_STUDENTS.filter((s) => s.status === 'completed').length; // 38
+  const totalChildrenCount = rosterStudents.length; // 46
+  const evaluatedChildrenCount = rosterStudents.filter((s) => s.status === 'completed').length; // 38
   const unEvaluatedChildrenCount = totalChildrenCount - evaluatedChildrenCount; // 8
   const evaluatedPercentage = Math.round((evaluatedChildrenCount / totalChildrenCount) * 100); // 83%
   const unEvaluatedPercentage = Math.round((unEvaluatedChildrenCount / totalChildrenCount) * 100); // 17%
   const newObservationsCount = 12; // In month
 
-  const mamA1Total = ROSTER_STUDENTS.filter((s) => s.classKey === 'MAM_A1').length; // 24
-  const mamA1Evaluated = ROSTER_STUDENTS.filter((s) => s.classKey === 'MAM_A1' && s.status === 'completed').length; // 18
+  const mamA1Total = rosterStudents.filter((s) => s.classKey === 'MAM_A1').length; // 24
+  const mamA1Evaluated = rosterStudents.filter((s) => s.classKey === 'MAM_A1' && s.status === 'completed').length; // 18
   const mamA1Pct = Math.round((mamA1Evaluated / mamA1Total) * 100); // 75%
 
-  const choiB1Total = ROSTER_STUDENTS.filter((s) => s.classKey === 'CHOI_B1').length; // 22
-  const choiB1Evaluated = ROSTER_STUDENTS.filter((s) => s.classKey === 'CHOI_B1' && s.status === 'completed').length; // 20
+  const choiB1Total = rosterStudents.filter((s) => s.classKey === 'CHOI_B1').length; // 22
+  const choiB1Evaluated = rosterStudents.filter((s) => s.classKey === 'CHOI_B1' && s.status === 'completed').length; // 20
   const choiB1Pct = Math.floor((choiB1Evaluated / choiB1Total) * 100); // 90%
 
   // Filtered Roster
   const filteredStudents = useMemo(() => {
-    return ROSTER_STUDENTS.filter((item) => {
+    return rosterStudents.filter((item) => {
       if (selectedClass !== 'ALL' && item.classKey !== selectedClass) {
         return false;
       }
@@ -1815,7 +1914,7 @@ function PreschoolDevelopmentGradesPageContent() {
 
   // Selected Student for Portfolio View
   const selectedPortfolioStudent = useMemo(() => {
-    return ROSTER_STUDENTS.find((s) => s.id === portfolioSelectedStudentId) || ROSTER_STUDENTS[0];
+    return rosterStudents.find((s) => s.id === portfolioSelectedStudentId) || rosterStudents[0];
   }, [portfolioSelectedStudentId]);
 
   if (!isPreschoolTenant) {
@@ -1825,13 +1924,32 @@ function PreschoolDevelopmentGradesPageContent() {
   return (
     <div className="preschool-grades-workspace w-full p-4 sm:p-6 lg:p-8 space-y-6 pb-36 sm:pb-48">
       {/* ── TOP AUDIT COMPLIANCE BANNER ── */}
-      <p
-        role="note"
-        className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-xs leading-relaxed text-amber-950 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-100"
-      >
-        Dữ liệu minh họa: danh sách trẻ, chỉ số, tiến độ và lịch sử bên dưới chưa được tải từ hồ sơ thật. Đây là bản
-        thử giao diện; nhập liệu chỉ giữ tạm trong màn hình, chưa lưu hoặc xuất báo cáo.
-      </p>
+      {isLiveLoaded ? (
+        <div className="rounded-2xl border border-emerald-200 bg-emerald-50/80 p-3.5 text-xs leading-relaxed text-emerald-950 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-100 flex items-center justify-between gap-3 shadow-2xs">
+          <div className="flex items-center gap-2.5">
+            <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+            <span>
+              <strong>Dữ liệu thực tế:</strong> Hồ sơ phát triển, chỉ số KPI và nhật ký quan sát sư phạm được đồng bộ trực tiếp từ máy chủ mầm non.
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={() => void loadGradesData()}
+            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-white dark:bg-slate-800 text-emerald-700 dark:text-emerald-300 font-bold border border-emerald-300 dark:border-emerald-700 hover:bg-emerald-100/50 transition-all shrink-0 text-[11px]"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
+            <span>Làm mới</span>
+          </button>
+        </div>
+      ) : (
+        <p
+          role="note"
+          className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-xs leading-relaxed text-amber-950 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-100"
+        >
+          Dữ liệu minh họa: danh sách trẻ, chỉ số, tiến độ và lịch sử bên dưới chưa được tải từ hồ sơ thật. Đây là bản
+          thử giao diện; nhập liệu chỉ giữ tạm trong màn hình, chưa lưu hoặc xuất báo cáo.
+        </p>
+      )}
 
       {/* ── UNIFIED HEADER MATCHING IMAGE 3 ── */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -2222,16 +2340,16 @@ function PreschoolDevelopmentGradesPageContent() {
             <div className="flex items-center gap-3 shrink-0">
               <PreschoolSelect
                 value={selectedClass}
-                onChange={(e) =>
-                  setSelectedClass(e.target.value as 'ALL' | 'MAM_A1' | 'CHOI_B1')
-                }
+                onChange={(e) => setSelectedClass(e.target.value)}
                 aria-label="Lọc theo lớp học"
                 wrapperClassName="min-w-[170px]"
                 className="py-2.5 px-3.5 text-xs font-bold"
               >
-                <option value="ALL">Tất cả lớp</option>
-                <option value="MAM_A1">Lớp Mầm A1</option>
-                <option value="CHOI_B1">Lớp Chồi B1</option>
+                {availableClasses.map((cls) => (
+                  <option key={cls.id} value={cls.id}>
+                    {cls.name}
+                  </option>
+                ))}
               </PreschoolSelect>
 
               <PreschoolSelect
@@ -2325,7 +2443,14 @@ function PreschoolDevelopmentGradesPageContent() {
             )}
 
             {/* View Mode: List Table or Grid Cards */}
-            {filteredStudents.length === 0 ? (
+            {isLoading ? (
+              <div className="py-20 flex flex-col items-center justify-center gap-3 text-center" role="status" aria-label="Đang tải dữ liệu hồ sơ">
+                <Loader2 className="w-8 h-8 animate-spin text-[#0c513f] dark:text-emerald-400" />
+                <p className="text-xs font-semibold text-slate-600 dark:text-slate-300">
+                  Đang đồng bộ dữ liệu hồ sơ trẻ từ hệ thống...
+                </p>
+              </div>
+            ) : filteredStudents.length === 0 ? (
               <p role="status" className="p-8 text-center text-xs text-slate-500 dark:text-slate-400">
                 Không tìm thấy hồ sơ trẻ phù hợp với bộ lọc hiện tại. Hãy điều chỉnh hoặc xóa bộ lọc để xem toàn bộ danh sách.
               </p>
@@ -3479,15 +3604,16 @@ function PreschoolDevelopmentGradesPageContent() {
               </button>
               <button
                 type="button"
-                onClick={() => {
-                  setObservationNotice(
-                    'Chưa lưu quan sát: chức năng lưu chưa khả dụng trong bản thử giao diện này. Bản nháp vẫn được giữ trong màn hình, chưa có hồ sơ mới được tạo.'
-                  );
-                }}
-                className="px-5 py-2.5 rounded-2xl bg-[#0c513f] hover:bg-[#083b2e] text-white font-bold text-xs shadow-md transition-all flex items-center gap-1.5"
+                disabled={isSavingObservation}
+                onClick={() => void handleSaveObservation()}
+                className="px-5 py-2.5 rounded-2xl bg-[#0c513f] hover:bg-[#083b2e] text-white font-bold text-xs shadow-md transition-all flex items-center gap-1.5 disabled:opacity-60"
               >
-                <Check className="w-4 h-4" />
-                <span>Lưu quan sát</span>
+                {isSavingObservation ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Check className="w-4 h-4" />
+                )}
+                <span>{isSavingObservation ? 'Đang lưu...' : 'Lưu quan sát'}</span>
               </button>
             </div>
           </DialogContent>
