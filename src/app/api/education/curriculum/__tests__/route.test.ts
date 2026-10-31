@@ -38,8 +38,7 @@ jest.mock('@/products/bella-education/learning-development/curriculum/curriculum
 }));
 
 const { GET, POST, DELETE } = require('../route') as typeof import('../route');
-// Test-only local URL; not a real HTTP call. nosemgrep: typescript.react.security.react-insecure-request.react-insecure-request
-const TEST_BASE_URL = 'http://localhost/api/education/curriculum';
+const TEST_BASE_URL = 'http://localhost/api/education/curriculum'; // nosemgrep: typescript.react.security.react-insecure-request.react-insecure-request
 
 describe('Curriculum & Lesson Plan API Route (/api/education/curriculum)', () => {
   const actorId = '00000000-0000-4000-8000-000000000001';
