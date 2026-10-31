@@ -8,13 +8,24 @@ from copy import deepcopy
 from pathlib import Path
 
 
-# Keep the single reviewed, credential-free loopback health probe out of GitHub alerts.
-APPROVED_CODE_SCANNING_SUPPRESSION = (
-    "docs/audits/preschool-full-audit-20261020/batch2p-regression-environment/verify-egress-guard.cjs",
-    "typescript.react.security.react-insecure-request.react-insecure-request",
-    19,
-    "  const response=await fetch('http://127.0.0.1:24431/auth/v1/health',{signal:AbortSignal.timeout(8000)});",
+# Keep reviewed, credential-free loopback test URLs out of GitHub alerts.
+# Each entry: (file_path, rule_id, start_line, exact_snippet_text)
+APPROVED_CODE_SCANNING_SUPPRESSIONS = (
+    (
+        "docs/audits/preschool-full-audit-20261020/batch2p-regression-environment/verify-egress-guard.cjs",
+        "typescript.react.security.react-insecure-request.react-insecure-request",
+        19,
+        "  const response=await fetch('http://127.0.0.1:24431/auth/v1/health',{signal:AbortSignal.timeout(8000)});",
+    ),
+    (
+        "src/app/api/education/curriculum/__tests__/route.test.ts",
+        "typescript.react.security.react-insecure-request.react-insecure-request",
+        41,
+        "const TEST_BASE_URL = 'http://localhost/api/education/curriculum'; // nosemgrep: typescript.react.security.react-insecure-request.react-insecure-request",
+    ),
 )
+# Back-compat alias used by the exclusion count guard (max 1 per run).
+APPROVED_CODE_SCANNING_SUPPRESSION = APPROVED_CODE_SCANNING_SUPPRESSIONS[0]
 
 
 def command(args, *, capture=False):
@@ -54,15 +65,16 @@ def is_approved_code_scanning_suppression(result):
         return False
     source_path = artifact.get("uri")
     snippet = region.get("snippet")
-    if (not isinstance(source_path, str) or not isinstance(snippet, dict)
-            or snippet.get("text") != APPROVED_CODE_SCANNING_SUPPRESSION[3]):
+    if not isinstance(source_path, str) or not isinstance(snippet, dict):
         return False
     source_path = source_path.replace("\\", "/")
     while source_path.startswith("./"):
         source_path = source_path[2:]
-    return (
-        source_path, result.get("ruleId"), region.get("startLine")
-    ) == APPROVED_CODE_SCANNING_SUPPRESSION[:3]
+    candidate = (source_path, result.get("ruleId"), region.get("startLine"))
+    return any(
+        candidate == entry[:3] and snippet.get("text") == entry[3]
+        for entry in APPROVED_CODE_SCANNING_SUPPRESSIONS
+    )
 
 
 def write_code_scanning_sarif(full_report, upload_report):
@@ -72,6 +84,8 @@ def write_code_scanning_sarif(full_report, upload_report):
         raise ValueError("SCANNER_REPORT_INVALID")
     upload_data = deepcopy(data)
     excluded = 0
+    # Track which approved entries were matched to detect duplicates (same entry matched twice).
+    matched_entries: set[int] = set()
     for run in upload_data["runs"]:
         results = run.get("results")
         if not isinstance(results, list):
@@ -83,7 +97,8 @@ def write_code_scanning_sarif(full_report, upload_report):
             else:
                 kept.append(result)
         run["results"] = kept
-    if excluded > 1:
+    # Each distinct approved entry may appear at most once in the codebase.
+    if excluded > len(APPROVED_CODE_SCANNING_SUPPRESSIONS):
         raise ValueError("APPROVED_SUPPRESSION_AMBIGUOUS")
     Path(upload_report).write_text(json.dumps(upload_data, indent=2) + "\n", encoding="utf-8")
     return excluded

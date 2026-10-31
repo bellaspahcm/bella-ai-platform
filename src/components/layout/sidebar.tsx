@@ -63,6 +63,7 @@ import {
   Baby,
   Heart,
   Utensils,
+  BookOpenCheck,
   Award,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
@@ -434,6 +435,7 @@ const bellaEducationMenuItems: SidebarMenuItem[] = [
   { icon: UserCheck, label: 'Quản lý giáo viên', href: '/dashboard/education/teachers' },
   { icon: Heart, label: 'Chăm sóc & Nuôi dưỡng', href: '/dashboard/education/care' },
   { icon: Utensils, label: 'Thực đơn & Dinh dưỡng', href: '/dashboard/education/nutrition' },
+  { icon: BookOpenCheck, label: 'Giáo trình & Giáo án', href: '/dashboard/education/curriculum' },
   { icon: GraduationCap, label: 'Học tập & Hoạt động', href: '/dashboard/education/grades', badge: 'Chưa mở' },
   { icon: MessageSquare, label: 'Truyền thông', href: '/dashboard/education/communication' },
   { icon: CircleDollarSign, label: 'Tài chính', href: '/dashboard/education/finance' },
@@ -496,6 +498,7 @@ const LUCIDE_ICONS_MAP: Record<string, LucideIcon> = {
   Baby,
   Heart,
   Utensils,
+  BookOpenCheck,
   Award,
 };
 
