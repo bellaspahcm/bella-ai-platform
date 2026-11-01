@@ -234,7 +234,7 @@
   },
   "overrides": {
     "@modelcontextprotocol/sdk": "^1.31.0",
-    "follow-redirects": "1.16.1",
+    "follow-redirects": "1.16.2",
     "postcss": "^8.5.28",
     "proxy-addr": "^2.0.8",
     "sharp": "^0.35.5",
