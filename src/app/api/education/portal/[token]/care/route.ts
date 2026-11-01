@@ -279,7 +279,7 @@ export async function GET(
       );
     }
 
-    const claims = PreschoolParentPortalService.verifyPortalToken(token);
+    PreschoolParentPortalService.verifyPortalToken(token);
     const { searchParams } = new URL(request.url);
     const requestedDate = searchParams.get('date');
 
@@ -289,6 +289,8 @@ export async function GET(
       : today;
 
     const client = await getOperationClient();
+    // A valid signature does not replace the current guardian/tenant binding check.
+    const claims = await new PreschoolParentPortalService(client).authorizePortalToken(token);
 
     // 1. Fetch active enrollment to get course_id
     const { data: enrollment } = await client

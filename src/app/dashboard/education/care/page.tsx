@@ -49,25 +49,6 @@ import { useUser } from '@/lib/user-context';
 
 const PAGE_SIZE = 8;
 
-const STUDENT_NAMES_BY_ID: Readonly<Record<string, string>> = {
-  'HS0001': 'Nguyễn Minh An',
-  'STU-001': 'Nguyễn Minh An',
-  'HS0002': 'Trần Bảo Ngọc',
-  'STU-002': 'Trần Bảo Ngọc',
-  'HS0003': 'Lê Gia Huy',
-  'STU-003': 'Lê Gia Huy',
-  'HS0004': 'Phạm Khánh Linh',
-  'STU-004': 'Phạm Thảo My',
-  'HS0005': 'Hoàng Nhật Minh',
-  'STU-005': 'Hoàng Tuấn Kiệt',
-  'HS0006': 'Vũ Phương Anh',
-  'STU-006': 'Đặng Khánh Linh',
-  'HS0007': 'Vũ Gia Hân',
-  'STU-007': 'Vũ Gia Hân',
-  'HS0008': 'Ngô Nhật Minh',
-  'STU-008': 'Ngô Nhật Minh',
-};
-
 // ── Strict Types ──────────────────────────────────────────────────────────────
 
 type CareTabKey = 'overview' | 'meal' | 'nap' | 'health' | 'hygiene';
@@ -429,13 +410,8 @@ function CarePageContent() {
   const [selectedDate, setSelectedDate] = useState(() => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }).format(new Date()));
   const [activeTab, setActiveTab] = useState<CareTabKey>('overview');
   const [searchQuery, setSearchQuery] = useState('');
+  const studentContextGeneration = useRef(0);
 
-  useEffect(() => {
-    if (!studentParam) return;
-    const targetName = STUDENT_NAMES_BY_ID[studentParam] || studentParam;
-    setSearchQuery(targetName);
-    setStudentContextActive(true);
-  }, [studentParam]);
   const [statusFilter, setStatusFilter] = useState<'all' | 'alert' | 'good'>('all');
   const [selectedStudentIds, setSelectedStudentIds] = useState<readonly string[]>([]);
   const [activeMenuStudentId, setActiveMenuStudentId] = useState<string | null>(null);
@@ -461,6 +437,21 @@ function CarePageContent() {
   const [quickHygiene, setQuickHygiene] = useState<'TOILET' | 'DIAPER' | 'ABNORMAL'>('TOILET');
   const [quickNote, setQuickNote] = useState('');
   const [isSavingQuick, setIsSavingQuick] = useState(false);
+
+  useEffect(() => {
+    studentContextGeneration.current += 1;
+    setSearchQuery(studentParam?.trim() ?? '');
+    setStudentContextActive(Boolean(studentParam?.trim()));
+    setSelectedStudentIds([]);
+    setActiveMenuStudentId(null);
+    setEditingStudent(null);
+    setSelectedStudentForDetail(null);
+    setIsQuickRecordModalOpen(false);
+    setQuickMeal('ALL');
+    setQuickNap('DEEP');
+    setQuickHygiene('TOILET');
+    setQuickNote('');
+  }, [studentParam]);
 
   // Feedback Toast state
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -585,9 +576,22 @@ function CarePageContent() {
   const hygienePct = totalCount > 0 ? Math.round((roster.filter((s) => s.hygieneStatus === 'good').length / totalCount) * 100) : 0;
 
   // ── Filter roster ──────────────────────────────────────────────────────────
+  const studentContextMatches = useMemo(() => {
+    const selector = studentParam?.trim().toLowerCase();
+    if (!selector) return [];
+    const partyMatch = roster.find(student => student.id.toLowerCase() === selector);
+    if (partyMatch) return [partyMatch];
+    const codeMatches = roster.filter(student => student.studentCode?.toLowerCase() === selector);
+    return codeMatches.length === 1 ? codeMatches : [];
+  }, [roster, studentParam]);
+  const studentContextLabel = studentContextMatches.length === 1
+    ? studentContextMatches[0].name : studentParam ?? '';
+
   const filteredStudents = useMemo(() => {
-    const q = searchQuery.toLowerCase().trim();
-    return roster.filter((s) => {
+    const inStudentContext = studentContextActive && Boolean(studentParam?.trim());
+    const q = inStudentContext ? '' : searchQuery.toLowerCase().trim();
+    const candidates = inStudentContext ? studentContextMatches : roster;
+    return candidates.filter((s) => {
       const matchesSearch =
         !q ||
         s.name.toLowerCase().includes(q) ||
@@ -598,7 +602,7 @@ function CarePageContent() {
         (statusFilter === 'good' && !s.isAlert);
       return matchesSearch && matchesStatus;
     });
-  }, [roster, searchQuery, statusFilter]);
+  }, [roster, searchQuery, statusFilter, studentContextActive, studentParam, studentContextMatches]);
 
   // ── Pagination ─────────────────────────────────────────────────────────────
   const totalPages = Math.max(1, Math.ceil(filteredStudents.length / PAGE_SIZE));
@@ -674,6 +678,7 @@ function CarePageContent() {
   // A server acknowledgement precedes every persisted UI success state.
   const handleSaveStudentCare = async () => {
     if (!editingStudent || isSavingCare || isSavingQuick) return;
+    const contextGeneration = studentContextGeneration.current;
     setIsSavingCare(true); setSaveError(null); setToastMessage(null);
     try {
       await saveCareRecords(selectedCourseId, selectedDate, [{
@@ -684,15 +689,17 @@ function CarePageContent() {
         note: editGeneralNote.trim(),
       }]);
       await loadRoster(selectedCourseId, selectedDate);
+      if (contextGeneration !== studentContextGeneration.current) return;
       setEditingStudent(null); setSelectedStudentForDetail(null);
       setToastMessage('Đã lưu nhật ký chăm sóc.');
     } catch {
-      setSaveError('Chưa xác nhận lưu đầy đủ. Tải lại dữ liệu trước khi thử lại.');
+      if (contextGeneration === studentContextGeneration.current) setSaveError('Chưa xác nhận lưu đầy đủ. Tải lại dữ liệu trước khi thử lại.');
     } finally { setIsSavingCare(false); }
   };
 
   const handleSaveQuickRecord = async () => {
     if (isSavingQuick || isSavingCare) return;
+    const contextGeneration = studentContextGeneration.current;
     setIsSavingQuick(true); setSaveError(null); setToastMessage(null);
     const ids = selectedStudentIds.length ? selectedStudentIds : roster.map(student => student.id);
     try {
@@ -701,10 +708,11 @@ function CarePageContent() {
         hygiene: { type: quickHygiene === 'ABNORMAL' ? 'BOWEL_MOVEMENT' : quickHygiene, notes: '' }, note: quickNote.trim(),
       })));
       await loadRoster(selectedCourseId, selectedDate);
+      if (contextGeneration !== studentContextGeneration.current) return;
       setIsQuickRecordModalOpen(false); setSelectedStudentIds([]);
       setToastMessage(`Đã lưu chăm sóc cho ${ids.length} trẻ.`);
     } catch {
-      setSaveError('Chưa xác nhận lưu đầy đủ. Tải lại dữ liệu trước khi thử lại.');
+      if (contextGeneration === studentContextGeneration.current) setSaveError('Chưa xác nhận lưu đầy đủ. Tải lại dữ liệu trước khi thử lại.');
     } finally { setIsSavingQuick(false); }
   };
 
@@ -931,7 +939,7 @@ function CarePageContent() {
             </div>
             <div>
               <p className="font-extrabold text-slate-900 dark:text-white">
-                Đang lọc nhật ký chăm sóc theo học sinh: <span className="text-[#0e5c43] underline decoration-[#0e5c43]/40 font-bold">{STUDENT_NAMES_BY_ID[studentParam] || studentParam}</span> ({studentParam})
+                Đang lọc nhật ký chăm sóc theo học sinh: <span className="text-[#0e5c43] underline decoration-[#0e5c43]/40 font-bold">{studentContextLabel}</span> ({studentParam})
               </p>
               <p className="text-[11px] text-slate-500 dark:text-slate-400">
                 Bộ lọc tìm kiếm đã được áp dụng. Bạn có thể theo dõi bữa ăn, giấc ngủ, vệ sinh hoặc chuyển nhanh sang các nghiệp vụ liên quan.
@@ -1013,8 +1021,8 @@ function CarePageContent() {
               <input
                 type="text"
                 placeholder="Tìm tên trẻ..."
-                value={searchQuery}
-                onChange={(e: ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
+                value={studentContextActive ? studentContextLabel : searchQuery}
+                onChange={(e: ChangeEvent<HTMLInputElement>) => { setSearchQuery(e.target.value); setStudentContextActive(false); }}
                 className="w-full pl-8 pr-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-[#f8fafc] dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-[#0e5c43]"
               />
             </div>

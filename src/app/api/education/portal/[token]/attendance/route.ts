@@ -83,8 +83,9 @@ export async function GET(
       );
     }
 
-    const claims = PreschoolParentPortalService.verifyPortalToken(token);
+    PreschoolParentPortalService.verifyPortalToken(token);
     const supabase = await getOperationClient();
+    const claims = await new PreschoolParentPortalService(supabase).authorizePortalToken(token);
 
     // 1. Get active enrollment for the student
     const { data: enrollmentData, error: enrError } = await supabase
@@ -95,7 +96,8 @@ export async function GET(
       .eq('status', 'active')
       .maybeSingle();
 
-    if (enrError || !enrollmentData) {
+    if (enrError) throw new ParentPortalAccessError(503, 'PORTAL_ATTENDANCE_UNAVAILABLE');
+    if (!enrollmentData) {
       const emptySummary: PortalAttendanceSummary = {
         history: [],
         totalMarked: 0,
@@ -125,6 +127,9 @@ export async function GET(
         .limit(30),
     ]);
 
+    if (dailyResult.error || rollCallResult.error) {
+      throw new ParentPortalAccessError(503, 'PORTAL_ATTENDANCE_UNAVAILABLE');
+    }
     const dailyRows = (dailyResult.data ?? []) as unknown as readonly RawAttendanceDailyRow[];
     const rollCallRows = (rollCallResult.data ?? []) as unknown as readonly RawRollCallRow[];
 
