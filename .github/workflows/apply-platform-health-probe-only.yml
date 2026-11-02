@@ -42,6 +42,7 @@ jobs:
         env:
           PRODUCTION_SUPABASE_DB_URL: ${{ secrets.PRODUCTION_SUPABASE_DB_URL }}
           HEALTH_RUN_MODE: ${{ inputs.mode }}
+          NODE_EXTRA_CA_CERTS: ${{ github.workspace }}/scripts/certificates/supabase-root-2021.crt
         run: |
           case "$HEALTH_RUN_MODE" in
             preflight) node scripts/apply-platform-health-probe-only.cjs --preflight ;;
