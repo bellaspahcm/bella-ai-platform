@@ -34,8 +34,13 @@ test('requires protected runner context and an unchanged exact main revision', (
 });
 
 test('pins the project and requires TLS certificate verification', () => {
+  const { Client } = require('pg');
   const url = 'postgresql://postgres:test@db.lvnvkpyxtuilhrabtlwv.supabase.co:5432/postgres?sslmode=verify-full';
   expect(productionClientConfig(url).ssl.rejectUnauthorized).toBe(true);
+  for (const suffix of ['', '?sslmode=require', '?sslmode=verify-full']) {
+    const target = url.split('?')[0] + suffix;
+    expect(new Client(productionClientConfig(target)).connectionParameters.ssl.rejectUnauthorized).toBe(true);
+  }
   expect(() => productionClientConfig(url, '0')).toThrow(/Secure production/);
   expect(() => productionClientConfig(url.replace('lvnvkpyxtuilhrabtlwv', 'aaaaaaaaaaaaaaaaaaaa'))).toThrow(/does not match/);
   expect(() => productionClientConfig(url.replace('verify-full', 'disable'))).toThrow(/does not match/);

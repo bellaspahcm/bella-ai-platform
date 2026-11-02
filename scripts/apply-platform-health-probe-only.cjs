@@ -106,7 +106,11 @@ function assertExactMain(sha, head, remote) {
 function productionClientConfig(url, tlsSetting) {
   if (!url || tlsSetting === '0') throw new Error('Secure production database configuration required');
   assertProductionTarget(url);
-  return { connectionString: url, ssl: { rejectUnauthorized: true }, connectionTimeoutMillis: 10000 };
+  // pg parses sslmode from the URL after options and otherwise replaces the
+  // explicit SSL object. Target validation permits no other URL parameters.
+  const target = new URL(url);
+  target.searchParams.delete('sslmode');
+  return { connectionString: target.toString(), ssl: { rejectUnauthorized: true }, connectionTimeoutMillis: 10000 };
 }
 
 async function main() {
