@@ -142,6 +142,10 @@ export async function POST(request: Request): Promise<NextResponse> {
     const service = new CurriculumService(opClient);
 
     if (payloadObj.type === 'curriculum') {
+      // F05 Security: Only administrators can create or modify school-wide curriculum frameworks
+      if (role === 'teacher') {
+        return failure('CURRICULUM_PERMISSION_DENIED', 403);
+      }
       if (!isCurriculumInput(payloadObj.data || payloadObj)) {
         return failure('INVALID_CURRICULUM_PAYLOAD', 400);
       }
@@ -153,7 +157,30 @@ export async function POST(request: Request): Promise<NextResponse> {
       if (!isLessonPlanInput(lessonData)) {
         return failure('INVALID_LESSON_PLAN_PAYLOAD', 400);
       }
-      const result = await service.saveLessonPlan(tenantId, user.id, lessonData);
+
+      // F05 Security: Only administrators have authority to approve lesson plans
+      const isApprover = role === 'admin';
+      if (lessonData.status === 'APPROVED' && !isApprover) {
+        return failure('LESSON_PLAN_APPROVAL_FORBIDDEN', 403);
+      }
+
+      // F05 Security: If teacher specifies a courseId, verify teacher has an active assignment to that course
+      if (role === 'teacher' && lessonData.courseId) {
+        const { data: assignment, error: assignErr } = await opClient
+          .from('teacher_assignments')
+          .select('assignment_id')
+          .eq('tenant_id', tenantId)
+          .eq('course_id', lessonData.courseId)
+          .eq('status', 'active')
+          .or(`teacher_party_id.eq.${user.id}`)
+          .maybeSingle();
+
+        if (assignErr || !assignment) {
+          return failure('TEACHER_NOT_ASSIGNED_TO_COURSE', 403);
+        }
+      }
+
+      const result = await service.saveLessonPlan(tenantId, user.id, lessonData, { isApprover });
       if (!result.success) return failure(result.error || 'SAVE_LESSON_PLAN_FAILED', 400);
       return NextResponse.json(result, { headers: PRIVATE_HEADERS });
     }
@@ -191,7 +218,11 @@ export async function DELETE(request: Request): Promise<NextResponse> {
     const opClient = createOperationClient() ?? client;
     const service = new CurriculumService(opClient);
 
-    const result = await service.deleteLessonPlan(tenantId, id);
+    const isApprover = role === 'admin';
+    const result = await service.deleteLessonPlan(tenantId, id, {
+      actorId: user.id,
+      isApprover,
+    });
     if (!result.success) return failure(result.error || 'DELETE_FAILED', 400);
 
     return NextResponse.json(result, { headers: PRIVATE_HEADERS });

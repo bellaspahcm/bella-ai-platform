@@ -214,6 +214,45 @@ describe('WeeklyMenuService', () => {
       expect(menuQuery.update).toHaveBeenCalledTimes(1);
       expect(mockDaysUpsert).not.toHaveBeenCalled();
     });
+
+    it('F09: performs compensating rollback when daily breakdown upsert fails', async () => {
+      const mockDelete = jest.fn().mockReturnThis();
+      const mockEq = jest.fn().mockReturnThis();
+      const mockFrom = jest.fn((table: string) => {
+        if (table === 'edu_weekly_menus') {
+          return {
+            select: jest.fn().mockReturnThis(),
+            eq: mockEq,
+            maybeSingle: jest.fn<() => Promise<{ data: null; error: null }>>().mockResolvedValue({ data: null, error: null }),
+            insert: jest.fn().mockReturnValue({
+              select: jest.fn().mockReturnValue({
+                single: jest.fn<() => Promise<{ data: { id: string }; error: null }>>().mockResolvedValue({
+                  data: { id: 'created-menu-uuid' },
+                  error: null,
+                }),
+              }),
+            }),
+            delete: mockDelete,
+          };
+        }
+        if (table === 'edu_weekly_menu_days') {
+          return {
+            upsert: jest.fn<() => Promise<{ error: { message: string } }>>().mockResolvedValue({
+              error: { message: 'synthetic failure on days' },
+            }),
+          };
+        }
+        return {};
+      });
+
+      mockSupabase = { from: mockFrom };
+      service = new WeeklyMenuService(mockSupabase as never);
+
+      const result = await service.saveWeeklyMenu(tenantId, actorId, validInput);
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('DAYS_UPSERT_FAILED');
+      expect(mockDelete).toHaveBeenCalledTimes(1);
+    });
   });
 });
 

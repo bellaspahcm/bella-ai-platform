@@ -145,13 +145,19 @@ export async function POST(request: Request): Promise<NextResponse> {
     }
 
     const role = profile.role?.trim().toLowerCase();
-    if (role !== 'admin' && role !== 'admin_staff' && role !== 'teacher') {
+    // F05 Security: Teachers only have read access to weekly menus; cannot author or publish school-wide menu
+    if (role !== 'admin' && role !== 'admin_staff') {
       return failure('NUTRITION_ROLE_DENIED', 403);
     }
 
     const body: unknown = await request.json();
     if (!isSaveMenuInput(body)) {
       return failure('INVALID_MENU_PAYLOAD', 400);
+    }
+
+    // F05 Security: Only administrators have authority to publish the school-wide weekly menu
+    if (body.status === 'PUBLISHED' && role !== 'admin') {
+      return failure('NUTRITION_PUBLISH_FORBIDDEN', 403);
     }
 
     const opClient = createOperationClient() ?? client;

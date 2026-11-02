@@ -285,11 +285,13 @@ export class WeeklyMenuService {
       // 2. Upsert Master Weekly Menu Record
       // Check existing by id OR by (tenant_id, year, week_number, age_group)
       let menuId = input.menuId?.trim();
+      let isNew = false;
+      let previousMaster: Record<string, unknown> | null = null;
 
       if (!menuId) {
         const { data: existing } = await this.supabase
           .from('edu_weekly_menus')
-          .select('id')
+          .select('*')
           .eq('tenant_id', tenantId)
           .eq('year', input.year)
           .eq('week_number', input.weekNumber)
@@ -298,6 +300,17 @@ export class WeeklyMenuService {
 
         if (existing && typeof existing === 'object' && 'id' in existing && typeof existing.id === 'string') {
           menuId = existing.id;
+          previousMaster = existing as Record<string, unknown>;
+        }
+      } else {
+        const { data: existing } = await this.supabase
+          .from('edu_weekly_menus')
+          .select('*')
+          .eq('id', menuId)
+          .eq('tenant_id', tenantId)
+          .maybeSingle();
+        if (existing && typeof existing === 'object') {
+          previousMaster = existing as Record<string, unknown>;
         }
       }
 
@@ -331,6 +344,7 @@ export class WeeklyMenuService {
         }
         if (!updated) return { success: false, menuId: '', error: 'MENU_NOT_FOUND' };
       } else {
+        isNew = true;
         const { data: inserted, error: insertErr } = await this.supabase
           .from('edu_weekly_menus')
           .insert({
@@ -366,8 +380,43 @@ export class WeeklyMenuService {
         .from('edu_weekly_menu_days')
         .upsert(daysRows, { onConflict: 'tenant_id,menu_id,day_of_week' });
 
+      // F09: Compensating Rollback if daily breakdown fails
       if (daysErr) {
+        try {
+          if (isNew) {
+            await this.supabase
+              .from('edu_weekly_menus')
+              .delete()
+              .eq('id', menuId)
+              .eq('tenant_id', tenantId);
+          } else if (previousMaster) {
+            await this.supabase
+              .from('edu_weekly_menus')
+              .update(previousMaster)
+              .eq('id', menuId)
+              .eq('tenant_id', tenantId);
+          }
+        } catch (rollbackErr) {
+          console.error('[WeeklyMenuService] Compensating rollback error:', rollbackErr);
+        }
         return { success: false, menuId, error: `DAYS_UPSERT_FAILED: ${daysErr.message}` };
+      }
+
+      // F09: Clean up omitted days so stale meal items don't leak into updated menu
+      const validDays = input.days.map((d) => d.dayOfWeek);
+      if (validDays.length > 0) {
+        try {
+          const deleteQuery = this.supabase
+            .from('edu_weekly_menu_days')
+            .delete()
+            .eq('tenant_id', tenantId)
+            .eq('menu_id', menuId);
+          if (typeof deleteQuery.not === 'function') {
+            await deleteQuery.not('day_of_week', 'in', `(${validDays.map((d) => `'${d}'`).join(',')})`);
+          }
+        } catch {
+          // Non-blocking cleanup
+        }
       }
 
       return {

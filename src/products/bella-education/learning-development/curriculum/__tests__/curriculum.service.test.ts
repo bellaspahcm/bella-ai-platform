@@ -185,6 +185,29 @@ describe('CurriculumService', () => {
       const result = await service.deleteLessonPlan(tenantId, 'missing-plan');
       expect(result).toMatchObject({ success: false, id: 'missing-plan', error: 'RECORD_NOT_FOUND' });
     });
+
+    it('F05: rejects lesson plan approval when caller is not an authorized approver', async () => {
+      service = new CurriculumService({} as never);
+      const res = await service.saveLessonPlan(tenantId, actorId, { ...validPlan, status: 'APPROVED' }, { isApprover: false });
+      expect(res.success).toBe(false);
+      expect(res.error).toBe('APPROVAL_UNAUTHORIZED');
+    });
+
+    it('F05: scopes non-approver deletion to own DRAFT plans only', async () => {
+      const query = {
+        delete: jest.fn().mockReturnThis(),
+        eq: jest.fn().mockReturnThis(),
+        select: jest.fn().mockReturnThis(),
+        maybeSingle: jest.fn<() => Promise<{ data: { id: string }; error: null }>>().mockResolvedValue({ data: { id: 'own-draft' }, error: null }),
+      };
+      mockSupabase = { from: jest.fn().mockReturnValue(query) };
+      service = new CurriculumService(mockSupabase as never);
+
+      const result = await service.deleteLessonPlan(tenantId, 'own-draft', { actorId, isApprover: false });
+      expect(result.success).toBe(true);
+      expect(query.eq).toHaveBeenCalledWith('created_by', actorId);
+      expect(query.eq).toHaveBeenCalledWith('status', 'DRAFT');
+    });
   });
 });
 

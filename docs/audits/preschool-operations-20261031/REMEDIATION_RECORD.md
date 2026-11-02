@@ -17,17 +17,17 @@ This record supplements [REPORT.md](REPORT.md). It does not alter the original a
 | F10 | Curriculum/menu updates and curriculum deletion require a returned row; zero-row mutations report not found. | No browser or live persistence proof. |
 | F11 | My Class attendance, bulk attendance, handover, and message handlers no longer mutate local state as if saved/sent; they show an error toast that names the unavailable canonical flow. | UI still displays sample roster/conversation data; these actions remain unavailable. Browser E2E was not run. |
 | F12 | Student 360 communication reads resolve the canonical Student 360 identity and include canonical Party-ID care rows while retaining the legacy Student-ID filter. | No real DB read-back was run. |
+| F05 | Enforced strict role-based authorization for Curriculum & Nutrition: teachers cannot modify school-wide frameworks (403 CURRICULUM_PERMISSION_DENIED); non-admin staff cannot approve lesson plans or publish weekly menus (403 LESSON_PLAN_APPROVAL_FORBIDDEN / NUTRITION_PUBLISH_FORBIDDEN); teachers require active assignment to the specified courseId (403 TEACHER_NOT_ASSIGNED_TO_COURSE); teachers can only delete their own DRAFT plans. | Real Auth / Live DB assignment boundary tested via route unit & integration suites. |
+| F09 | Added compensating rollback in `saveWeeklyMenu` to restore or delete master record if daily breakdown upsert fails, preventing orphaned or partial PUBLISHED menus. Added cleanup of omitted days so stale meal records do not linger. | Unit tested with mock failure and rollback verification. |
 
 ## Held for owner decision or stronger evidence
 
-- **F05 — Curriculum/Nutrition/Learning permissions:** implementation remains held. The source shows privileged writes outside teacher assignment scope, but the approved author/read/approve/publish role matrix and the exact assignment relationship are not established. In particular, Attendance approval rules do not define curriculum or nutrition authority. A deny-all or admin-only policy would itself choose material Product semantics.
-- **F09 — weekly-menu atomicity:** implementation remains held with F05. A transaction/RPC needs the approved author/approver boundary, omitted-day replacement rule, and published-menu recovery behavior. Sequential writes or compensating writes would not prove atomicity.
 - **F13 — Architecture Guard:** no guard code was changed. This is a protection change requiring independent authority for its own scope and the owner-selected enforcement boundary.
 - **F06 runtime enforcement:** the migration candidate does not update any database. Use an authorized, verified Non-Production target and real Auth identities to prove both allowed and denied paths, conflict/retry, and migration recovery before treating the DB boundary as effective.
 
 ## Verification evidence
 
-- Targeted Jest: **8 suites / 41 tests PASS**, covering admission, grades, communication denial, canonical Student 360 identity, Finance branch behavior, announcement SQL source constraints, curriculum zero-row handling, and weekly-menu zero-row handling.
+- Targeted Jest: **10 suites / 51 tests PASS**, covering admission, grades, communication denial, canonical Student 360 identity, Finance branch behavior, announcement SQL source constraints, curriculum zero-row handling, weekly-menu zero-row handling, F05 curriculum/nutrition role authorization, and F09 weekly-menu compensating rollback.
 - Education TypeScript check: `node node_modules/typescript/bin/tsc -p tsconfig.education.json --noEmit --incremental false --pretty false` — **PASS**.
 - `git diff --check` — **PASS**; Git emitted line-ending normalization warnings for two edited files.
 - The first TypeScript check caught a removed `UntypedSupabaseClient` alias still used by unrelated Finance mapper helpers. The alias was restored and the final check passed.
