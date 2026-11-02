@@ -2,9 +2,6 @@ name: Vercel Staging Credential Diagnostic
 
 on:
   workflow_dispatch:
-  push:
-    branches: [codex/preschool-main-hardening-20261101]
-    paths: [.github/workflows/vercel-staging-diagnostic.yml]
 
 permissions:
   contents: read
