@@ -77,3 +77,11 @@ test('a lost COMMIT response is not retried or reported as rollback', async () =
   expect(calls.filter(call => call === 'COMMIT')).toHaveLength(1);
   expect(calls).not.toContain('ROLLBACK');
 });
+
+test('a failed post-COMMIT read-back is reported without claiming rollback', async () => {
+  const client = fakeClient();
+  await expect(applyHealthOnly(client, reviewedBytes())).rejects.toThrow(/COMMIT acknowledged but read-back failed/);
+  const calls = client.query.mock.calls.map(call => call[0]);
+  expect(calls.filter(call => call === 'COMMIT')).toHaveLength(1);
+  expect(calls).not.toContain('ROLLBACK');
+});
