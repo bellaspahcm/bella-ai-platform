@@ -1,0 +1,47 @@
+{
+  "started": "2026-10-31T12:02:58.404Z",
+  "finished": "2026-10-31T12:03:09.638Z",
+  "exitCode": 1,
+  "signal": null,
+  "command": "node docs/audits/preschool-operations-20261031/audit-local.cjs --run --security",
+  "environment": "Local Jest; synthetic Supabase configuration; external/Real DB suites excluded",
+  "selectedTests": 6,
+  "numTotalTestSuites": 6,
+  "numPassedTestSuites": 4,
+  "numFailedTestSuites": 2,
+  "numPendingTestSuites": 0,
+  "numTotalTests": 60,
+  "numPassedTests": 58,
+  "numFailedTests": 2,
+  "numPendingTests": 0,
+  "numTodoTests": 0,
+  "success": false,
+  "failures": [
+    {
+      "file": "src\\__tests__\\preschool-containment.test.ts",
+      "status": "failed",
+      "assertions": [
+        {
+          "title": "Preschool parent daily temporary HTTP containment serves the real held parent response over loopback HTTP",
+          "failureMessages": [
+            "Error: connect EACCES 127.0.0.1:54525\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1705:16)"
+          ]
+        }
+      ],
+      "message": "  ● Preschool parent daily temporary HTTP containment › serves the real held parent response over loopback HTTP\n\n    connect EACCES 127.0.0.1:54525\n\n"
+    },
+    {
+      "file": "src\\platform\\security\\__tests__\\current-actor-contract.test.ts",
+      "status": "failed",
+      "assertions": [
+        {
+          "title": "Platform signed-in actor public contract declares zero-argument self-read public surfaces with explicit trust grants and no table grants",
+          "failureMessages": [
+            "Error: expect(received).toContain(expected) // indexOf\n\nExpected substring: \"REVOKE ALL ON FUNCTION public.platform_current_actor_tenant_presentation()\n  FROM PUBLIC, anon, authenticated, service_role\"\nReceived string:    \"BEGIN;···\n-- A separate, zero-argument contract keeps the existing actor-profile return·\n-- shape stable; that contract is consumed by other Platform functions.·\n-- The caller can only receive the presentation projection for auth.uid()'s·\n-- active tenant. This does not grant table access or confer Product authority.·\nCREATE FUNCTION public.platform_current_actor_tenant_presentation()·\nRETURNS TABLE (·\n  tenant_id uuid,·\n  tenant_status text,·\n  name text,·\n  product_key text,·\n  enabled_modules jsonb,·\n  brand_theme jsonb,·\n  logo_url text·\n)·\nLANGUAGE plpgsql·\nSTABLE·\nSECURITY DEFINER·\nSET search_path = ''·\nAS $$·\nBEGIN·\n  IF auth.uid() IS NULL OR auth.role() IS DISTINCT FROM 'authenticated' THEN·\n    RAISE EXCEPTION 'PLATFORM_CURRENT_ACTOR_TENANT_PRESENTATION_DENIED: Signed-in actor required.'·\n      USING ERRCODE = '42501';·\n  END IF;···\n  RETURN QUERY·\n    SELECT t.id, t.status::text, t.name::text, t.product_key::text,·\n      t.enabled_modules, t.brand_theme, t.logo_url::text·\n    FROM auth.users a·\n    JOIN public.users u ON u.id = a.id·\n    JOIN public.tenants t ON t.id = u.tenant_id·\n    WHERE a.id = auth.uid()·\n      AND a.deleted_at IS NULL·\n      AND (a.banned_until IS NULL OR a.banned_until <= now())·\n      AND u.status = 'active'·\n      AND t.status = 'active';···\n  IF NOT FOUND THEN·\n    RAISE EXCEPTION 'PLATFORM_CURRENT_ACTOR_TENANT_PRESENTATION_DENIED: Active identity and tenant required.'·\n      USING ERRCODE = '42501';·\n  END IF;·\nEND;·\n$$;···\nREVOKE ALL ON FUNCTION public.platform_current_actor_tenant_presentation()·\n  FROM PUBLIC, anon, authenticated, service_role;·\nGRANT EXECUTE ON FUNCTION public.platform_current_actor_tenant_presentation()·\n  TO authenticated;···\nCOMMENT ON FUNCTION public.platform_current_actor_tenant_presentation() IS·\n  'Platform signed-in self tenant presentation: fixed display/routing fields for auth.uid() active tenant only; no tenant input, direct table grant, or Product action authority.';···\nCOMMIT;·\n\"\n    at Object.<anonymous> (D:\\Antigravity\\Projects\\BELLA SPA ERP\\src\\platform\\security\\__tests__\\current-actor-contract.test.ts:164:27)\n    at Promise.finally.completed (D:\\Antigravity\\Projects\\BELLA SPA ERP\\node_modules\\jest-circus\\build\\jestAdapterInit.js:1561:28)\n    at new Promise (<anonymous>)\n    at callAsyncCircusFn (D:\\Antigravity\\Projects\\BELLA SPA ERP\\node_modules\\jest-circus\\build\\jestAdapterInit.js:1501:10)\n    at _callCircusTest (D:\\Antigravity\\Projects\\BELLA SPA ERP\\node_modules\\jest-circus\\build\\jestAdapterInit.js:1011:40)\n    at _runTest (D:\\Antigravity\\Projects\\BELLA SPA ERP\\node_modules\\jest-circus\\build\\jestAdapterInit.js:951:3)\n    at D:\\Antigravity\\Projects\\BELLA SPA ERP\\node_modules\\jest-circus\\build\\jestAdapterInit.js:853:7\n    at _runTestsForDescribeBlock (D:\\Antigravity\\Projects\\BELLA SPA ERP\\node_modules\\jest-circus\\build\\jestAdapterInit.js:866:11)\n    at _runTestsForDescribeBlock (D:\\Antigravity\\Projects\\BELLA SPA ERP\\node_modules\\jest-circus\\build\\jestAdapterInit.js:861:11)\n    at run (D:\\Antigravity\\Projects\\BELLA SPA ERP\\node_modules\\jest-circus\\build\\jestAdapterInit.js:765:3)\n    at runAndTransformResultsToJestFormat (D:\\Antigravity\\Projects\\BELLA SPA ERP\\node_modules\\jest-circus\\build\\jestAdapterInit.js:1993:21)\n    at jestAdapter (D:\\Antigravity\\Projects\\BELLA SPA ERP\\node_modules\\jest-circus\\build\\runner.js:111:19)\n    at runTestInternal (D:\\Antigravity\\Projects\\BELLA SPA ERP\\node_modules\\jest-runner\\build\\index.js:276:16)\n    at runTest (D:\\Antigravity\\Projects\\BELLA SPA ERP\\node_modules\\jest-runner\\build\\index.js:344:7)"
+          ]
+        }
+      ],
+      "message": "  ● Platform signed-in actor public contract › declares zero-argument self-read public surfaces with explicit trust grants and no table grants\n\n    expect(received).toContain(expected) // indexOf\n\n    Expected substring: \"REVOKE ALL ON FUNCTION public.platform_current_actor_tenant_presentation()\n      FROM PUBLIC, anon, authenticated, service_role\"\n    Received string:    \"BEGIN;···\n    -- A separate, zero-argument contract keeps the existing actor-profile return·\n    -- shape stable; that contract is consumed by other Platform functions.·\n    -- The caller can only receive the presentation projection for auth.uid()'s·\n    -- active tenant. This does not grant table access or confer Product authority.·\n    CREATE FUNCTION public.platform_current_actor_tenant_presentation()·\n    RETURNS TABLE (·\n      tenant_id uuid,·\n      tenant_status text,·\n      name text,·\n      product_key text,·\n      enabled_modules jsonb,·\n      brand_theme jsonb,·\n      logo_url text·\n    )·\n    LANGUAGE plpgsql·\n    STABLE·\n    SECURITY DEFINER·\n    SET search_path = ''·\n    AS $$·\n    BEGIN·\n      IF auth.uid() IS NULL OR auth.role() IS DISTINCT FROM 'authenticated' THEN·\n        RAISE EXCEPTION 'PLATFORM_CURRENT_ACTOR_TENANT_PRESENTATION_DENIED: Signed-in actor required.'·\n          USING ERRCODE = '42501';·\n      END IF;···\n      RETURN QUERY·\n        SELECT t.id, t.status::text, t.name::text, t.product_key::text,·\n          t.enabled_modules, t.brand_theme, t.logo_url::text·\n        FROM auth.users a·\n        JOIN public.users u ON u.id = a.id·\n        JOIN public.tenants t ON t.id = u.tenant_id·\n        WHERE a.id = auth.uid()·\n          AND a.deleted_at IS NULL·\n          AND (a.banned_until IS NULL OR a.banned_until <= now())·\n          AND u.status = 'active'·\n          AND t.status = 'active';···\n      IF NOT FOUND THEN·\n        RAISE EXCEPTION 'PLATFORM_CURRENT_ACTOR_TENANT_PRESENTATION_DENIED: Active identity and tenant required.'·\n          USING ERRCODE = '42501';·\n      END IF;·\n    END;·\n    $$;···\n    REVOKE ALL ON FUNCTION public.platform_current_actor_tenant_presentation()·\n      FROM PUBLIC, anon, authenticated, service_role;·\n    GRANT EXECUTE ON FUNCTION public.platform_current_actor_tenant_presentation()·\n      TO authenticated;···\n    COMMENT ON FUNCTION public.platform_current_actor_tenant_presentation() IS·\n      'Platform signed-in self tenant presentation: fixed display/routing fields for auth.uid() active tenant only; no tenant input, direct table grant, or Product action authority.';···\n    COMMIT;·\n    \"\n\n\n\n      at Object.<anonymous> (src/platform/security/__tests__/current-actor-contract.test.ts:164:27)\n"
+    }
+  ]
+}

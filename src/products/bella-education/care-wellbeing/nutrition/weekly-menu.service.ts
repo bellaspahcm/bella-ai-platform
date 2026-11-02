@@ -318,15 +318,18 @@ export class WeeklyMenuService {
       };
 
       if (menuId) {
-        const { error: updateErr } = await this.supabase
+        const { data: updated, error: updateErr } = await this.supabase
           .from('edu_weekly_menus')
           .update(masterPayload)
           .eq('id', menuId)
-          .eq('tenant_id', tenantId);
+          .eq('tenant_id', tenantId)
+          .select('id')
+          .maybeSingle();
 
         if (updateErr) {
           return { success: false, menuId: '', error: `UPDATE_FAILED: ${updateErr.message}` };
         }
+        if (!updated) return { success: false, menuId: '', error: 'MENU_NOT_FOUND' };
       } else {
         const { data: inserted, error: insertErr } = await this.supabase
           .from('edu_weekly_menus')

@@ -139,21 +139,19 @@ describe('POST /api/education/enrollments/confirm-admission', () => {
     expect(body.error).toBe('INVALID_ENROLLMENT_ID');
   });
 
-  it('successfully confirms admission with PAID mode', async () => {
+  it('fails closed for PAID until canonical enrollment and finance persistence are available', async () => {
     const res = await POST(postRequest({ enrollmentId, admissionMode: 'PAID' }));
-    expect(res.status).toBe(200);
+    expect(res.status).toBe(503);
     const body = await res.json();
-    expect(body.success).toBe(true);
-    expect(body.enrollment.status).toBe('active');
-    expect(body.admissionMode).toBe('PAID');
+    expect(body).toMatchObject({ success: false, error: 'ADMISSION_CONFIRMATION_UNAVAILABLE' });
+    expect(mockAdminFrom).not.toHaveBeenCalled();
   });
 
-  it('successfully confirms admission with DEBT mode', async () => {
+  it('fails closed for DEBT without any financial or enrollment writes', async () => {
     const res = await POST(postRequest({ enrollmentId, admissionMode: 'DEBT' }));
-    expect(res.status).toBe(200);
+    expect(res.status).toBe(503);
     const body = await res.json();
-    expect(body.success).toBe(true);
-    expect(body.enrollment.status).toBe('active');
-    expect(body.admissionMode).toBe('DEBT');
+    expect(body).toMatchObject({ success: false, error: 'ADMISSION_CONFIRMATION_UNAVAILABLE' });
+    expect(mockAdminFrom).not.toHaveBeenCalled();
   });
 });

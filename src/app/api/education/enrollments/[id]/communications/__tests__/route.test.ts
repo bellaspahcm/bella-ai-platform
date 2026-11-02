@@ -29,11 +29,13 @@ jest.mock('@/lib/supabase-admin-env', () => ({
 }));
 
 const mockAdminFrom = jest.fn();
+const mockLoadStudent360Profile = jest.fn();
 jest.mock('@supabase/supabase-js', () => ({
   createClient: jest.fn(() => ({
     from: mockAdminFrom,
   })),
 }));
+jest.mock('../../../student-360.service', () => ({ loadStudent360Profile: mockLoadStudent360Profile }));
 
 const { GET, POST, PUT, PATCH, DELETE } = require('../route') as typeof import('../route');
 
@@ -67,12 +69,14 @@ describe('Student Communication Authenticated Read-Only Route', () => {
     });
     mockGetUser.mockResolvedValue({ data: { user: { id: actorId } }, error: null });
     mockRpc.mockResolvedValue({ data: [activeActor], error: null });
+    mockLoadStudent360Profile.mockResolvedValue({ studentId, partyId: 'party-student-1' });
 
     mockAdminFrom.mockImplementation((tableName: string) => {
       const createBuilder = (resolvedData: unknown[]) => {
         const chain: Record<string, unknown> = {};
         chain.select = jest.fn().mockReturnValue(chain);
         chain.eq = jest.fn().mockReturnValue(chain);
+        chain.or = jest.fn().mockReturnValue(chain);
         chain.order = jest.fn().mockReturnValue(chain);
         chain.limit = jest.fn().mockReturnValue(chain);
         chain.then = (resolve: (val: unknown) => void) =>
@@ -120,6 +124,21 @@ describe('Student Communication Authenticated Read-Only Route', () => {
     expect(body.studentId).toBe(studentId);
     expect(body.dailyCareRecords).toHaveLength(1);
     expect(body.exceptions).toHaveLength(1);
+    expect(mockLoadStudent360Profile).toHaveBeenCalledWith(callerClient, tenantId, studentId);
+  });
+
+  it('filters daily care by canonical Student Party identity while retaining legacy rows', async () => {
+    const res = await GET(request(), context());
+    expect(res.status).toBe(200);
+    const careBuilder = mockAdminFrom.mock.results[0]?.value as { or: jest.Mock };
+    expect(careBuilder.or).toHaveBeenCalledWith(`student_party_id.eq.party-student-1,student_id.eq.${studentId}`);
+  });
+
+  it('returns not found when the canonical registry cannot resolve the Student', async () => {
+    mockLoadStudent360Profile.mockResolvedValueOnce(null);
+    const res = await GET(request(), context());
+    expect(res.status).toBe(404);
+    expect(mockAdminFrom).not.toHaveBeenCalled();
   });
 
   it('returns 405 for unsupported HTTP methods', async () => {

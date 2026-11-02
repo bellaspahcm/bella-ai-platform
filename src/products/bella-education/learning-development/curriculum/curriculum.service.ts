@@ -170,13 +170,16 @@ export class CurriculumService {
       };
 
       if (input.id) {
-        const { error } = await this.supabase
+        const { data, error } = await this.supabase
           .from('edu_curriculums')
           .update(payload)
           .eq('id', input.id)
-          .eq('tenant_id', tenantId);
+          .eq('tenant_id', tenantId)
+          .select('id')
+          .maybeSingle();
 
         if (error) return { success: false, id: '', error: error.message };
+        if (!data) return { success: false, id: '', error: 'RECORD_NOT_FOUND' };
         return { success: true, id: input.id, message: 'Cập nhật khung giáo trình thành công.' };
       } else {
         const { data, error } = await this.supabase
@@ -290,13 +293,16 @@ export class CurriculumService {
       };
 
       if (input.id) {
-        const { error } = await this.supabase
+        const { data, error } = await this.supabase
           .from('edu_lesson_plans')
           .update(payload)
           .eq('id', input.id)
-          .eq('tenant_id', tenantId);
+          .eq('tenant_id', tenantId)
+          .select('id')
+          .maybeSingle();
 
         if (error) return { success: false, id: '', error: error.message };
+        if (!data) return { success: false, id: '', error: 'RECORD_NOT_FOUND' };
         return { success: true, id: input.id, message: 'Cập nhật giáo án thành công.' };
       } else {
         const { data, error } = await this.supabase
@@ -319,13 +325,16 @@ export class CurriculumService {
 
   async deleteLessonPlan(tenantId: string, id: string): Promise<SaveResult> {
     try {
-      const { error } = await this.supabase
+      const { data, error } = await this.supabase
         .from('edu_lesson_plans')
         .delete()
         .eq('id', id)
-        .eq('tenant_id', tenantId);
+        .eq('tenant_id', tenantId)
+        .select('id')
+        .maybeSingle();
 
       if (error) return { success: false, id, error: error.message };
+      if (!data) return { success: false, id, error: 'RECORD_NOT_FOUND' };
       return { success: true, id, message: 'Đã xóa giáo án thành công.' };
     } catch (err) {
       return { success: false, id, error: err instanceof Error ? err.message : 'DELETE_FAILED' };
