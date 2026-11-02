@@ -5,19 +5,21 @@ const mockPrivileged = jest.fn(() => { throw new Error('PRIVILEGED_CLIENT_MUST_N
 const mockTenant = jest.fn();
 const mockAuth = jest.fn();
 const mockFrom = jest.fn();
+const mockRpc = jest.fn();
 jest.mock('@/services/user-actions', () => ({ getCurrentUser: () => mockProfile() }));
 jest.mock('@/lib/supabase-admin-env', () => ({ getSupabaseAdminKey: () => mockPrivileged(), getSupabaseAdminUrl: () => mockPrivileged() }));
 jest.mock('@supabase/supabase-js', () => ({ createClient: () => mockPrivileged() }));
 jest.mock('@/lib/supabase-server', () => ({ createClient: async () => ({
   auth: { getUser: () => mockAuth() },
   from: (table: string) => mockFrom(table),
-  rpc: () => Promise.resolve({ data: null, error: { code: 'PGRST202', message: 'Could not find the function' } }),
+  rpc: (...args: unknown[]) => mockRpc(...args),
 }) }));
 
 beforeEach(() => {
   jest.clearAllMocks();
   mockProfile.mockResolvedValue({ id: 'actor', tenant_id: 'tenant', role: 'admin', status: 'active' });
   mockAuth.mockResolvedValue({ error: null, data: { user: { id: 'actor' } } });
+  mockRpc.mockResolvedValue({ data: { branches: [], selectedBranchId: null, students: [], billingPeriods: [], invoices: [], payments: [], exceptions: [] }, error: null });
   mockTenant.mockResolvedValue({ error: null, data: { id: 'tenant', status: 'active', product_key: 'bella_preschool' } });
   mockFrom.mockImplementation((table: string) => {
     if (table === 'tenants') {
@@ -39,6 +41,16 @@ it('reads canonical preschool finance state for active tenant', async () => {
   expect(response.status).toBe(200);
   expect((await response.json()).success).toBe(true);
   expect(response.headers.get('Cache-Control')).toBe('private, no-store');
+  expect(mockRpc).toHaveBeenCalledWith('preschool_finance_read_branch', { p_tenant_id: 'tenant', p_actor_id: 'actor' });
+  expect(mockPrivileged).not.toHaveBeenCalled();
+});
+
+it('fails closed when the canonical finance RPC is unavailable', async () => {
+  mockRpc.mockResolvedValue({ data: null, error: { code: 'PGRST202', message: 'Could not find the function' } });
+  const response = await GET();
+  expect(response.status).toBe(500);
+  expect((await response.json()).success).toBe(false);
+  expect(mockFrom).not.toHaveBeenCalledWith('edu_fin_invoices');
   expect(mockPrivileged).not.toHaveBeenCalled();
 });
 

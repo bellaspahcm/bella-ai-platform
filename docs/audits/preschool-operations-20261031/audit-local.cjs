@@ -15,7 +15,7 @@ const tests = files.filter(file => /\.test\.tsx?$/.test(file));
 const probeMode = process.argv.includes('--probes');
 const securityMode = process.argv.includes('--security');
 const conformanceMode = process.argv.includes('--conformance');
-const selected = probeMode ? ['docs/audits/preschool-operations-20261031/behavior-probes.test.ts']
+const selected = probeMode ? ['docs/audits/preschool-operations-20261031/behavior-probes.probe.ts']
   : conformanceMode ? ['src/products/bella-education/__tests__/bella-education-conformance.integration.test.ts',
     'src/products/bella-education/__tests__/bella-education-customization-conformance.integration.test.ts',
     'src/products/bella-education/__tests__/bella-education-extension-conformance.integration.test.ts']
@@ -67,7 +67,7 @@ const prefix = probeMode ? 'probe' : securityMode ? 'security' : conformanceMode
 const log = fs.openSync(path.join(out, prefix + '-tests.log'), 'w');
 const args = ['node_modules/jest/bin/jest.js', '--runInBand', '--runTestsByPath', ...selected,
   '--json', '--outputFile=' + path.join(out, prefix + '-tests.json'), '--silent',
-  ...(probeMode ? ['--testMatch=**/docs/audits/preschool-operations-20261031/behavior-probes.test.ts'] : [])];
+  ...(probeMode ? ['--testMatch=**/docs/audits/preschool-operations-20261031/behavior-probes.probe.ts'] : [])];
 const started = new Date().toISOString();
 const result = spawnSync(process.execPath, args, { stdio: ['ignore', log, log], windowsHide: true,
   env: { ...process.env, NEXT_PUBLIC_SUPABASE_URL: 'https://mock.supabase.co',
