@@ -1,5 +1,5 @@
 const { spawnSync, execFileSync } = require('node:child_process');
-const { applyHealthOnly, checkedMigration, assertRunnerContext, assertExactMain, productionClientConfig } = require('../../../../../scripts/apply-platform-health-probe-only.cjs');
+const { applyHealthOnly, preflightHealthOnly, checkedMigration, assertRunnerContext, assertExactMain, productionClientConfig, safeErrorCode } = require('../../../../../scripts/apply-platform-health-probe-only.cjs');
 const { decideMigrationAction } = require('../../../../../scripts/apply-platform-health-probe-migration.cjs');
 
 test('rejects a modified artifact before any database call', async () => {
@@ -44,6 +44,28 @@ test('pins the project and requires TLS certificate verification', () => {
   expect(() => productionClientConfig(url, '0')).toThrow(/Secure production/);
   expect(() => productionClientConfig(url.replace('lvnvkpyxtuilhrabtlwv', 'aaaaaaaaaaaaaaaaaaaa'))).toThrow(/does not match/);
   expect(() => productionClientConfig(url.replace('verify-full', 'disable'))).toThrow(/does not match/);
+});
+
+test('logs only sanitized error codes', () => {
+  expect(safeErrorCode({ code: 'ENETUNREACH' })).toBe('ENETUNREACH');
+  expect(safeErrorCode({ code: '42501' })).toBe('42501');
+  expect(safeErrorCode({ code: 'potential secret://value' })).toBe('UNCLASSIFIED');
+  expect(safeErrorCode({})).toBe('UNCLASSIFIED');
+});
+
+test('read-only preflight rejects an existing health version and rolls back', async () => {
+  const client = { query: jest.fn(async sql => sql.includes("AS read_only") ? { rows: [{ read_only: 'on', executor: 'owner', session: 'owner', database_owner: 'owner', schema_create: true, anon_schema_usage: true, ledger_read: true, ledger_insert: true, ledger_lock: true, ledger_exists: true, function_exists: false, unexpected_anon_inheritor: false, unexpected_default_execute: false }] } : { rows: [] }) };
+  await expect(preflightHealthOnly(client)).rejects.toThrow(/preflight rejected/);
+  expect(client.query.mock.calls.map(call => call[0])).toEqual(expect.arrayContaining(['BEGIN READ ONLY', 'ROLLBACK']));
+  expect(client.query.mock.calls.some(call => /^\s*(INSERT|CREATE FUNCTION|COMMIT)\b/.test(call[0]))).toBe(false);
+});
+
+test.each(['anon_schema_usage', 'ledger_lock'])('read-only preflight rejects missing %s', async key => {
+  const state = { read_only: 'on', executor: 'owner', session: 'owner', database_owner: 'owner', schema_create: true, anon_schema_usage: true, ledger_read: true, ledger_insert: true, ledger_lock: true, ledger_exists: false, function_exists: false, unexpected_anon_inheritor: false, unexpected_default_execute: false };
+  state[key] = false;
+  const client = { query: jest.fn(async sql => sql.includes('AS read_only') ? { rows: [state] } : { rows: [] }) };
+  await expect(preflightHealthOnly(client)).rejects.toThrow(/preflight rejected/);
+  expect(client.query).toHaveBeenCalledWith('ROLLBACK');
 });
 
 function fakeClient(failure) {

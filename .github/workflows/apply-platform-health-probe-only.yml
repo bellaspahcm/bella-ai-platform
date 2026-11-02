@@ -2,6 +2,15 @@ name: Apply Platform Health Probe Only
 
 on:
   workflow_dispatch:
+    inputs:
+      mode:
+        description: 'Read-only diagnosis or approved health migration'
+        type: choice
+        required: true
+        default: preflight
+        options:
+          - preflight
+          - apply
 
 permissions:
   contents: read
@@ -30,10 +39,17 @@ jobs:
           cache: npm
       - run: npm ci
       - name: Apply exactly the reviewed health artifact
-        run: node scripts/apply-platform-health-probe-only.cjs
         env:
           PRODUCTION_SUPABASE_DB_URL: ${{ secrets.PRODUCTION_SUPABASE_DB_URL }}
+          HEALTH_RUN_MODE: ${{ inputs.mode }}
+        run: |
+          case "$HEALTH_RUN_MODE" in
+            preflight) node scripts/apply-platform-health-probe-only.cjs --preflight ;;
+            apply) node scripts/apply-platform-health-probe-only.cjs ;;
+            *) echo 'Invalid health run mode'; exit 1 ;;
+          esac
       - name: Check Production health
+        if: inputs.mode == 'apply'
         run: |
           body_file="$(mktemp)"
           trap 'rm -f "$body_file"' EXIT
