@@ -1,0 +1,46 @@
+name: Apply Platform Health Probe Only
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
+
+jobs:
+  health-probe:
+    name: Apply reviewed health probe only
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: Production
+    steps:
+      - name: Require main branch
+        run: test "$GITHUB_REF" = refs/heads/main
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - name: Apply exactly the reviewed health artifact
+        run: node scripts/apply-platform-health-probe-only.cjs
+        env:
+          PRODUCTION_SUPABASE_DB_URL: ${{ secrets.PRODUCTION_SUPABASE_DB_URL }}
+      - name: Check Production health
+        run: |
+          body_file="$(mktemp)"
+          trap 'rm -f "$body_file"' EXIT
+          for attempt in 1 2 3 4 5 6 7 8; do
+            if status="$(curl --silent --output "$body_file" --write-out '%{http_code}' --max-time 10 'https://bella-spa-erp.vercel.app/api/health')" &&
+              [ "$status" = 200 ] && jq -e '.status == "healthy" and .environment == "production" and .checks.database == "ok"' "$body_file" >/dev/null 2>&1; then exit 0; fi
+            echo "Health attempt $attempt did not return the required Production health response"
+            sleep 15
+          done
+          exit 1
