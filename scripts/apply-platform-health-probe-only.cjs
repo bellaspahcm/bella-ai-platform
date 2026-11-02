@@ -9,6 +9,11 @@ const { execFileSync } = require('node:child_process');
 const { EXPECTED_SHA256, EXPECTED_VERSION, assertProductionTarget } = require('./apply-platform-health-probe-migration.cjs');
 
 const MIGRATION_NAME = 'platform_health_rest_database_probe';
+let executionStage = 'runner';
+
+function safeErrorCode(error) {
+  return typeof error?.code === 'string' && /^[A-Z0-9_]{1,48}$/.test(error.code) ? error.code : 'UNCLASSIFIED';
+}
 
 function checkedMigration(bytes) {
   if (createHash('sha256').update(bytes).digest('hex').toUpperCase() !== EXPECTED_SHA256) {
@@ -113,20 +118,71 @@ function productionClientConfig(url, tlsSetting) {
   return { connectionString: target.toString(), ssl: { rejectUnauthorized: true }, connectionTimeoutMillis: 10000 };
 }
 
+async function preflightHealthOnly(client) {
+  await client.query('BEGIN READ ONLY');
+  try {
+    const result = await client.query(`SELECT current_setting('transaction_read_only') AS read_only,
+      current_user AS executor, session_user AS session, pg_get_userbyid(d.datdba) AS database_owner,
+      has_schema_privilege(current_user,'public','CREATE') AS schema_create,
+      has_schema_privilege('anon','public','USAGE') AS anon_schema_usage,
+      has_table_privilege(current_user,'supabase_migrations.schema_migrations','SELECT') AS ledger_read,
+      has_table_privilege(current_user,'supabase_migrations.schema_migrations','INSERT') AS ledger_insert,
+      (has_table_privilege(current_user,'supabase_migrations.schema_migrations','UPDATE') OR
+       has_table_privilege(current_user,'supabase_migrations.schema_migrations','DELETE') OR
+       has_table_privilege(current_user,'supabase_migrations.schema_migrations','TRUNCATE')) AS ledger_lock,
+      EXISTS(SELECT 1 FROM supabase_migrations.schema_migrations WHERE version=$1) AS ledger_exists,
+      EXISTS(SELECT 1 FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace
+        WHERE n.nspname='public' AND p.proname='platform_health_database_probe') AS function_exists,
+      EXISTS(SELECT 1 FROM pg_roles r WHERE r.oid<>d.datdba AND r.rolname<>'anon'
+        AND NOT r.rolsuper AND pg_has_role(r.oid,'anon','USAGE')) AS unexpected_anon_inheritor,
+      EXISTS(SELECT 1 FROM pg_default_acl a CROSS JOIN LATERAL aclexplode(a.defaclacl) g
+        WHERE a.defaclrole=d.datdba AND a.defaclobjtype='f'
+          AND a.defaclnamespace IN (0, (SELECT oid FROM pg_namespace WHERE nspname='public'))
+          AND g.privilege_type='EXECUTE' AND g.grantee NOT IN (0,d.datdba,
+            (SELECT oid FROM pg_roles WHERE rolname='anon'),
+            (SELECT oid FROM pg_roles WHERE rolname='authenticated'),
+            (SELECT oid FROM pg_roles WHERE rolname='service_role'))) AS unexpected_default_execute
+      FROM pg_database d WHERE d.datname=current_database()`, [EXPECTED_VERSION]);
+    const r = result.rows[0];
+    if (result.rows.length === 1) console.log(JSON.stringify({
+      readOnly: r.read_only === 'on', ownerMatches: r.executor === r.session && r.executor === r.database_owner,
+      schemaCreate: r.schema_create, anonSchemaUsage: r.anon_schema_usage,
+      ledgerRead: r.ledger_read, ledgerInsert: r.ledger_insert, ledgerLock: r.ledger_lock,
+      ledgerExists: r.ledger_exists, functionExists: r.function_exists,
+      unexpectedAnonInheritor: r.unexpected_anon_inheritor, unexpectedDefaultExecute: r.unexpected_default_execute,
+    }));
+    if (result.rows.length !== 1 || r.read_only !== 'on' || r.executor !== r.session || r.executor !== r.database_owner ||
+        !r.schema_create || !r.anon_schema_usage || !r.ledger_read || !r.ledger_insert || !r.ledger_lock || r.ledger_exists || r.function_exists ||
+        r.unexpected_anon_inheritor || r.unexpected_default_execute) throw new Error('Health preflight rejected target state or privileges');
+  } finally { await client.query('ROLLBACK'); }
+}
+
 async function main() {
+  const args = process.argv.slice(2);
+  if (args.length > 1 || (args.length && args[0] !== '--preflight')) throw new Error('Invalid executor mode');
   assertRunnerContext(process.platform, process.env.GITHUB_ACTIONS, process.env.GITHUB_REF);
+  executionStage = 'git-main';
   const sha = process.env.GITHUB_SHA || '';
   if (!/^[a-f0-9]{40}$/.test(sha)) throw new Error('Invalid GitHub SHA');
   const head = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
   const remote = execFileSync('git', ['ls-remote', 'origin', 'refs/heads/main'], { encoding: 'utf8' }).trim().split(/\s+/)[0];
   assertExactMain(sha, head, remote);
+  executionStage = 'target-config';
   const config = productionClientConfig(process.env.PRODUCTION_SUPABASE_DB_URL, process.env.NODE_TLS_REJECT_UNAUTHORIZED);
   const bytes = readFileSync(join(process.cwd(), 'supabase', 'migrations', `${EXPECTED_VERSION}_${MIGRATION_NAME}.sql`));
   checkedMigration(bytes);
   const { Client } = require('pg');
   const client = new Client(config);
   try {
+    executionStage = 'database-connect';
     await client.connect();
+    if (args[0] === '--preflight') {
+      executionStage = 'database-read-only-preflight';
+      await preflightHealthOnly(client);
+      console.log('Health preflight PASS: read-only target, principal and catalog checks. No DDL or ledger write.');
+      return;
+    }
+    executionStage = 'database-transaction';
     await applyHealthOnly(client, bytes);
     console.log(`Health migration ${EXPECTED_VERSION} applied and recorded. Other ledger differences remain unresolved.`);
   } finally { await client.end().catch(() => {}); }
@@ -135,10 +191,11 @@ async function main() {
 if (require.main === module) {
   main().catch(error => {
     // Never print raw database/network errors: they can include credentials.
-    const known = /^(Reviewed migration hash mismatch|Unexpected transaction wrapper|Database executor identity or privileges rejected|Health function or ledger version already exists; inspect before retry|Health function or ACL verification failed|Health ledger verification failed|COMMIT outcome unknown; inspect catalog and ledger before any retry|COMMIT acknowledged but read-back failed; inspect catalog and ledger before retry|Requires the protected GitHub Linux runner on main|Invalid GitHub SHA|Main changed; refuse migration|Secure production database configuration required|Production database target.*)$/;
-    console.error(known.test(error.message) ? error.message : 'Health migration failed; inspect catalog and ledger before retry.');
+    const known = /^(Reviewed migration hash mismatch|Unexpected transaction wrapper|Invalid executor mode|Health preflight rejected target state or privileges|Database executor identity or privileges rejected|Health function or ledger version already exists; inspect before retry|Health function or ACL verification failed|Health ledger verification failed|COMMIT outcome unknown; inspect catalog and ledger before any retry|COMMIT acknowledged but read-back failed; inspect catalog and ledger before retry|Requires the protected GitHub Linux runner on main|Invalid GitHub SHA|Main changed; refuse migration|Secure production database configuration required|Production database target.*)$/;
+    const message = known.test(error.message) ? error.message : 'Health executor failed; inspect catalog and ledger before retry.';
+    console.error(`${message} stage=${executionStage} code=${safeErrorCode(error)}`);
     process.exitCode = 1;
   });
 }
 
-module.exports = { checkedMigration, applyHealthOnly, assertRunnerContext, assertExactMain, productionClientConfig, MIGRATION_NAME };
+module.exports = { checkedMigration, applyHealthOnly, preflightHealthOnly, assertRunnerContext, assertExactMain, productionClientConfig, safeErrorCode, MIGRATION_NAME };
