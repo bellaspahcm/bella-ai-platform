@@ -1,6 +1,12 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase-server';
-import { CURRENT_ACTOR_PROFILE_RPC, reconcileCurrentActorProfile } from '@/platform/security/current-actor.contract';
+import {
+  CURRENT_ACTOR_PROFILE_RPC,
+  CURRENT_ACTOR_TENANT_PRESENTATION_RPC,
+  reconcileCurrentActorProfile,
+  reconcileCurrentActorTenantPresentation,
+  type CurrentActorTenantPresentationRow,
+} from '@/platform/security/current-actor.contract';
 
 export const TEACHER_PRIVATE_HEADERS = { 'Cache-Control': 'private, no-store' };
 
@@ -37,14 +43,16 @@ export async function resolvePreschoolTeacherContext(request: Request) {
     if (!actor?.tenant_id || actor.role !== 'admin') {
       return { allowed: false as const, response: teacherFailure('PRESCHOOL_TEACHER_ACCESS_DENIED', 403) };
     }
-    const tenantResult = await client.from('tenants').select('id,status,product_key')
-      .eq('id', actor.tenant_id).maybeSingle();
-    if (tenantResult.error) {
-      return { allowed: false as const, response: teacherFailure('PRESCHOOL_TEACHER_UNAVAILABLE', 503) };
-    }
-    const tenant = tenantResult.data;
-    if (!tenant || tenant.id !== actor.tenant_id || tenant.status !== 'active'
-      || tenant.product_key !== 'bella_preschool') {
+    const tenantResult = await client.rpc(CURRENT_ACTOR_TENANT_PRESENTATION_RPC);
+    if (tenantResult.error) return { allowed: false as const, response: teacherFailure(
+      tenantResult.error.code === '42501' ? 'PRESCHOOL_TEACHER_ACCESS_DENIED' : 'PRESCHOOL_TEACHER_UNAVAILABLE',
+      tenantResult.error.code === '42501' ? 403 : 503,
+    ) };
+    const tenant = reconcileCurrentActorTenantPresentation(
+      actor.tenant_id,
+      tenantResult.data as CurrentActorTenantPresentationRow[] | null,
+    );
+    if (!tenant || tenant.product_key !== 'bella_preschool') {
       return { allowed: false as const, response: teacherFailure('PRESCHOOL_TEACHER_ACCESS_DENIED', 403) };
     }
     return { allowed: true as const, actor, tenantId: actor.tenant_id, client };

@@ -1088,10 +1088,11 @@ function StandardDashboardPage() {
 
 export default function DashboardPage() {
   const pathname = usePathname();
-  const { product, user, tenantSettings, isLoading } = useUser();
+  const { product, user, tenantSettings, tenantPresentation, isLoading } = useUser();
+  const dashboardTenant = tenantPresentation ?? tenantSettings;
   const isHaircut = isHaircutProductPresentation(product);
-  const presentation = tenantSettings ? resolveDashboardPresentation(tenantSettings, product) : null;
-  const isIdentityReady = !isLoading && Boolean(presentation && tenantSettings && user?.tenant_id === tenantSettings.id);
+  const presentation = dashboardTenant ? resolveDashboardPresentation(dashboardTenant, product) : null;
+  const isIdentityReady = !isLoading && Boolean(presentation && dashboardTenant && user?.tenant_id === dashboardTenant.id);
   const destination = isIdentityReady && presentation?.defaultRoute && pathname.replace(/\/+$/, '') !== presentation.defaultRoute.replace(/\/+$/, '')
     ? presentation.defaultRoute
     : null;

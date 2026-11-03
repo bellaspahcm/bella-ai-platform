@@ -1,5 +1,12 @@
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
-import type { CurrentActorProfileRow } from '@/platform/security/current-actor.contract';
+import type {
+  CurrentActorProfileRow,
+  CurrentActorTenantPresentationRow,
+} from '@/platform/security/current-actor.contract';
+import {
+  CURRENT_ACTOR_PROFILE_RPC,
+  CURRENT_ACTOR_TENANT_PRESENTATION_RPC,
+} from '@/platform/security/current-actor.contract';
 
 const tenantId = '00000000-0000-4000-8000-000000000001';
 const actorId = '00000000-0000-4000-8000-000000000002';
@@ -8,11 +15,16 @@ const teacherPartyId = '00000000-0000-4000-8000-000000000004';
 const confirmationId = '00000000-0000-4000-8000-000000000005';
 const actor: CurrentActorProfileRow = { id: actorId, tenant_id: tenantId, email: 'synthetic@example.invalid',
   full_name: null, avatar_url: null, role: 'admin', status: 'active', tenant_status: 'active' };
+const tenantPresentation: CurrentActorTenantPresentationRow = {
+  tenant_id: tenantId, tenant_status: 'active', name: 'Synthetic Preschool', product_key: 'bella_preschool',
+  enabled_modules: {}, brand_theme: {}, logo_url: null,
+};
 const auth = jest.fn<() => Promise<{ data: { user: { id: string } | null }; error: null }>>();
-const profile = jest.fn<() => Promise<{ data: CurrentActorProfileRow[] | null; error: null }>>();
-const tenant = jest.fn<() => Promise<{ data: { id: string; status: string; product_key: string }; error: null }>>();
-const readerFrom = jest.fn(() => ({ select: () => ({ eq: () => ({ maybeSingle: tenant }) }) }));
-const reader = jest.fn(() => ({ auth: { getUser: auth }, rpc: profile, from: readerFrom }));
+const readerRpc = jest.fn<(name: string, args?: unknown) => Promise<{
+  data: unknown; error: { code?: string; message: string } | null;
+}>>();
+const readerFrom = jest.fn(() => { throw new Error('Direct tenant reads are forbidden'); });
+const reader = jest.fn(() => ({ auth: { getUser: auth }, rpc: readerRpc, from: readerFrom }));
 const writerRpc = jest.fn<(...args: unknown[]) => Promise<{ data: unknown; error: { code: string; message: string } | null }>>();
 const writer = jest.fn(() => ({ rpc: writerRpc }));
 const adminKey = jest.fn<() => string | undefined>();
@@ -34,11 +46,22 @@ const post = (body: unknown = confirmBody, suffix = '', headers: Record<string, 
 const get = (suffix: string, headers: Record<string, string> = {}) =>
   new Request(`http://localhost/api/education/teachers${suffix}`, { headers });
 const candidateQuery = `?view=candidates&branchId=${branchId}&query=&confirmedOnly=false&onDate=2026-10-25&offset=0&limit=20`;
+let currentProfile: CurrentActorProfileRow[] | null;
+let currentTenant: CurrentActorTenantPresentationRow[] | null;
+let profileError: { code?: string; message: string } | null;
+let tenantError: { code?: string; message: string } | null;
 beforeEach(() => {
   jest.clearAllMocks(); adminKey.mockReturnValue('synthetic-key');
   auth.mockResolvedValue({ data: { user: { id: actorId } }, error: null });
-  profile.mockResolvedValue({ data: [actor], error: null });
-  tenant.mockResolvedValue({ data: { id: tenantId, status: 'active', product_key: 'bella_preschool' }, error: null });
+  currentProfile = [actor];
+  currentTenant = [tenantPresentation];
+  profileError = null;
+  tenantError = null;
+  readerRpc.mockImplementation(async name => {
+    if (name === CURRENT_ACTOR_PROFILE_RPC) return { data: currentProfile, error: profileError };
+    if (name === CURRENT_ACTOR_TENANT_PRESENTATION_RPC) return { data: currentTenant, error: tenantError };
+    throw new Error(`Unexpected caller RPC ${name}`);
+  });
   writerRpc.mockResolvedValue({ data: candidatePage, error: null });
 });
 
@@ -51,6 +74,10 @@ describe('Preschool teacher API boundary', () => {
     expect(writerRpc).toHaveBeenCalledWith('preschool_teacher_candidates', expect.objectContaining({
       p_tenant_id: tenantId, p_actor_id: actorId, p_branch_id: branchId,
     }));
+    expect(readerRpc.mock.calls.map(([name]) => name)).toEqual([
+      CURRENT_ACTOR_PROFILE_RPC, CURRENT_ACTOR_TENANT_PRESENTATION_RPC,
+    ]);
+    expect(readerFrom).not.toHaveBeenCalled();
   });
   it('confirms existing Party through one idempotent RPC', async () => {
     writerRpc.mockResolvedValue({ data: confirmation, error: null });
@@ -69,12 +96,26 @@ describe('Preschool teacher API boundary', () => {
     expect(writer).not.toHaveBeenCalled();
   });
   it('denies other Product and non-admin before privileged client creation', async () => {
-    profile.mockResolvedValue({ data: [{ ...actor, role: 'teacher' }], error: null });
+    currentProfile = [{ ...actor, role: 'teacher' }];
     expect((await POST(post())).status).toBe(403);
     expect(writer).not.toHaveBeenCalled();
-    profile.mockResolvedValue({ data: [actor], error: null });
-    tenant.mockResolvedValue({ data: { id: tenantId, status: 'active', product_key: 'bella_english_center' }, error: null });
+    currentProfile = [actor];
+    currentTenant = [{ ...tenantPresentation, product_key: 'bella_english_center' }];
     expect((await POST(post())).status).toBe(403);
+    expect(writer).not.toHaveBeenCalled();
+  });
+  it('fails closed when current tenant presentation is missing or unavailable', async () => {
+    currentTenant = [];
+    expect((await GET(get(candidateQuery))).status).toBe(403);
+    expect(writer).not.toHaveBeenCalled();
+    currentTenant = [tenantPresentation];
+    tenantError = { code: '42501', message: 'private permission detail' };
+    expect((await GET(get(candidateQuery))).status).toBe(403);
+    expect(writer).not.toHaveBeenCalled();
+    tenantError = { code: 'XX000', message: 'private database detail' };
+    const unavailable = await GET(get(candidateQuery));
+    expect(unavailable.status).toBe(503);
+    expect(JSON.stringify(await unavailable.json())).not.toContain('private database detail');
     expect(writer).not.toHaveBeenCalled();
   });
   it('rejects forged actor fields and unbounded queries', async () => {

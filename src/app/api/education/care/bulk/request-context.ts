@@ -1,8 +1,11 @@
 import { createClient } from '@/lib/supabase-server';
 import { getCurrentUser } from '@/services/user-actions';
-import { EnrollmentContractImpl } from '@/platform/education/contracts/enrollment.contract.impl';
+import { getTenantPresentation } from '@/services/tenant-actions';
+import { PreschoolAdminBranchCatalogContractImpl } from '@/platform/education/contracts/preschool-admin-branch-catalog.contract.impl';
 import { DailyCareService } from '@/products/bella-education/care-wellbeing/daily-care/daily-care.service';
 import type { DailyCareRosterItem } from '@/products/bella-education/care-wellbeing/daily-care/daily-care.contract';
+import { PreschoolTeacherAttendanceService } from '@/products/bella-education/services/preschool-teacher-attendance.service';
+import { PreschoolChainError } from '@/products/bella-education/services/preschool-chain.service';
 
 export const CARE_PRIVATE_HEADERS = { 'Cache-Control': 'private, no-store' };
 
@@ -14,13 +17,20 @@ export interface CareRequestContext {
   client: Awaited<ReturnType<typeof createClient>>;
   tenantId: string;
   actorId: string;
+  actorRole: 'admin' | 'admin_staff';
+}
+
+interface CareEnrollmentAccessClient {
+  rpc(name: 'preschool_daily_care_access_allowed', args: {
+    p_tenant_id: string; p_course_id: string; p_student_party_id: string; p_school_day: string;
+  }): PromiseLike<{ data: boolean | null; error: unknown }>;
 }
 
 function assertSelector(value: unknown, expected: string): void {
   if (value !== expected) throw new CareAccessError(403, 'CARE_CONTEXT_OVERRIDE_DENIED');
 }
 
-export function assertCareBodyContext(value: unknown, context: CareRequestContext, branchId?: string): void {
+export function assertCareBodyContext(value: unknown, context: CareRequestContext, branchId?: string, courseId?: string): void {
   if (!value || typeof value !== 'object') return;
   if (Array.isArray(value)) {
     for (const child of value) assertCareBodyContext(child, context, branchId);
@@ -30,8 +40,9 @@ export function assertCareBodyContext(value: unknown, context: CareRequestContex
     if (key === 'tenantId' || key === 'tenant_id') assertSelector(child, context.tenantId);
     else if (['actorId', 'actor_id', 'userId', 'user_id'].includes(key)) assertSelector(child, context.actorId);
     else if (branchId && (key === 'branchId' || key === 'branch_id')) assertSelector(child, branchId);
+    else if (courseId && (key === 'courseId' || key === 'course_id')) assertSelector(child, courseId);
     else if (key === 'role') throw new CareAccessError(403, 'CARE_CONTEXT_OVERRIDE_DENIED');
-    else assertCareBodyContext(child, context, branchId);
+    else assertCareBodyContext(child, context, branchId, courseId);
   }
 }
 
@@ -45,7 +56,9 @@ export async function resolveCareRequestContext(request: Request): Promise<CareR
   if (!profile || profile.id !== user.id || !('status' in profile) || profile.status !== 'active' || !tenantId) {
     throw new CareAccessError(403, 'CARE_ACCESS_DENIED');
   }
-  const context = { client, actorId: user.id, tenantId };
+  const role = profile.role?.trim().toLowerCase();
+  if (role !== 'admin' && role !== 'admin_staff') throw new CareAccessError(403, 'CARE_ROLE_DENIED');
+  const context: CareRequestContext = { client, actorId: user.id, tenantId, actorRole: role };
   const query = new URL(request.url).searchParams;
   for (const key of ['tenantId', 'tenant_id']) for (const value of query.getAll(key)) assertSelector(value, tenantId);
   for (const key of ['actorId', 'actor_id', 'userId', 'user_id']) for (const value of query.getAll(key)) assertSelector(value, user.id);
@@ -53,16 +66,32 @@ export async function resolveCareRequestContext(request: Request): Promise<CareR
     if (request.headers.has(header)) assertSelector(request.headers.get(header), expected);
   }
 
-  const role = profile.role?.trim().toLowerCase();
-  if (role !== 'admin' && role !== 'admin_staff') throw new CareAccessError(403, 'CARE_ROLE_DENIED');
-  const tenantResult = await client.from('tenants').select('id, status, product_key').eq('id', tenantId).maybeSingle();
-  if (tenantResult.error) throw new CareAccessError(503, 'CARE_IDENTITY_UNAVAILABLE');
-  if (!tenantResult.data || tenantResult.data.id !== tenantId || tenantResult.data.status !== 'active' || tenantResult.data.product_key !== 'bella_preschool') {
+  let tenant: Awaited<ReturnType<typeof getTenantPresentation>>;
+  try {
+    tenant = await getTenantPresentation();
+  } catch {
+    throw new CareAccessError(503, 'CARE_IDENTITY_UNAVAILABLE');
+  }
+  if (!tenant) throw new CareAccessError(503, 'CARE_IDENTITY_UNAVAILABLE');
+  if (tenant.id !== tenantId || tenant.status !== 'active' || tenant.product_key !== 'bella_preschool') {
     throw new CareAccessError(403, 'CARE_PRODUCT_ACCESS_DENIED');
   }
-  // Auth User, Person and Party IDs are not interchangeable; no mapping producer is proven yet.
-  if (role === 'admin_staff') throw new CareAccessError(503, 'CARE_TEACHER_IDENTITY_UNAVAILABLE');
   return context;
+}
+
+async function listAssignedTeacherCourses(
+  context: CareRequestContext,
+  date: string,
+): Promise<Awaited<ReturnType<PreschoolTeacherAttendanceService['listCourses']>>> {
+  try {
+    return await new PreschoolTeacherAttendanceService(context.client)
+      .listCourses(context.tenantId, context.actorId, date);
+  } catch (error) {
+    if (error instanceof PreschoolChainError && error.status === 403) {
+      throw new CareAccessError(403, 'CARE_TEACHER_ACCESS_DENIED');
+    }
+    throw new CareAccessError(503, 'CARE_TEACHER_SCOPE_UNAVAILABLE');
+  }
 }
 
 export async function authorizeCareCourse(
@@ -75,45 +104,58 @@ export async function authorizeCareCourse(
   // The current Enrollment DTO has no effective-status history producer.
   // Keep other school days unavailable rather than infer past or future access.
   if (date !== today) throw new CareAccessError(503, 'CARE_HISTORICAL_SCOPE_UNAVAILABLE');
-  const { client, tenantId, actorId } = context;
-  const assignment = await client.from('preschool_chain_course_branch_assignments')
-    .select('tenant_id, course_id, branch_id').eq('tenant_id', tenantId).eq('course_id', courseId);
-  if (assignment.error || !assignment.data || assignment.data.length !== 1) {
-    throw new CareAccessError(503, 'CARE_BRANCH_SCOPE_UNAVAILABLE');
+  const { client, tenantId } = context;
+  const params = new URL(request.url).searchParams;
+  const courseSelectors = params.getAll('courseId');
+  const dateSelectors = params.getAll('date');
+  if ((request.method === 'GET' && (courseSelectors.length !== 1 || dateSelectors.length !== 1))
+    || courseSelectors.some(value => value !== courseId) || dateSelectors.some(value => value !== date)) {
+    throw new CareAccessError(403, 'CARE_CONTEXT_OVERRIDE_DENIED');
   }
-  const target = assignment.data[0];
-  if (target.tenant_id !== tenantId || target.course_id !== courseId || !target.branch_id) {
-    throw new CareAccessError(403, 'CARE_BRANCH_ACCESS_DENIED');
+  let branchId: string;
+  if (context.actorRole === 'admin_staff') {
+    const courses = await listAssignedTeacherCourses(context, date);
+    const assigned = courses.filter(course => course.courseId === courseId);
+    if (assigned.length !== 1) throw new CareAccessError(403, 'CARE_COURSE_ACCESS_DENIED');
+    branchId = assigned[0].branchId;
+  } else {
+    const assignment = await client.from('preschool_chain_course_branch_assignments')
+      .select('tenant_id, course_id, branch_id').eq('tenant_id', tenantId).eq('course_id', courseId);
+    if (assignment.error || !assignment.data || assignment.data.length !== 1) {
+      throw new CareAccessError(503, 'CARE_BRANCH_SCOPE_UNAVAILABLE');
+    }
+    const target = assignment.data[0];
+    if (target.tenant_id !== tenantId || target.course_id !== courseId || !target.branch_id) {
+      throw new CareAccessError(403, 'CARE_BRANCH_ACCESS_DENIED');
+    }
+    branchId = target.branch_id;
   }
-  const branchId = target.branch_id;
   for (const key of ['branchId', 'branch_id']) {
     for (const value of new URL(request.url).searchParams.getAll(key)) assertSelector(value, branchId);
   }
-  assertCareBodyContext(body, context, branchId);
+  assertCareBodyContext(body, context, branchId, courseId);
 
-  const branch = await client.from('org_units').select('id, tenant_id, unit_type, is_active')
-    .eq('tenant_id', tenantId).eq('id', branchId).maybeSingle();
-  if (branch.error) throw new CareAccessError(503, 'CARE_BRANCH_SCOPE_UNAVAILABLE');
-  if (!branch.data || branch.data.id !== branchId || branch.data.tenant_id !== tenantId || branch.data.unit_type !== 'branch' || branch.data.is_active !== true) {
-    throw new CareAccessError(403, 'CARE_BRANCH_ACCESS_DENIED');
-  }
-  const access = await client.from('user_org_unit_access').select('user_id, tenant_id, org_unit_id')
-    .eq('tenant_id', tenantId).eq('user_id', actorId).eq('org_unit_id', branchId);
-  if (access.error) throw new CareAccessError(503, 'CARE_BRANCH_SCOPE_UNAVAILABLE');
-  if (!access.data?.some(row => row.user_id === actorId && row.tenant_id === tenantId && row.org_unit_id === branchId)) {
-    throw new CareAccessError(403, 'CARE_BRANCH_ACCESS_DENIED');
+  if (context.actorRole === 'admin') {
+    let branches: Awaited<ReturnType<PreschoolAdminBranchCatalogContractImpl['listCurrentPreschoolAdminBranches']>>;
+    try {
+      branches = await new PreschoolAdminBranchCatalogContractImpl(client).listCurrentPreschoolAdminBranches();
+    } catch {
+      throw new CareAccessError(503, 'CARE_BRANCH_SCOPE_UNAVAILABLE');
+    }
+    if (!branches.some(branch => branch.id === branchId)) {
+      throw new CareAccessError(403, 'CARE_BRANCH_ACCESS_DENIED');
+    }
   }
 
-  const service = new DailyCareService(client);
+  const service = new DailyCareService(client, 'bella_preschool');
   try {
-    const roster = await service.getDailyCareRoster(tenantId, courseId, date);
-    const enrollments = new EnrollmentContractImpl(client);
+    const roster = await service.getDailyCareRoster(tenantId, courseId, date, 'bella_preschool');
     const eligible = await Promise.all(roster.map(async item => {
-      const enrollment = await enrollments.getEnrollment(tenantId, item.enrollmentId);
-      const enrolledAt = enrollment ? Date.parse(enrollment.enrolledAt) : NaN;
-      return enrollment?.id === item.enrollmentId && enrollment.tenantId === tenantId && enrollment.courseId === courseId
-        && enrollment.studentPartyId === item.studentPartyId && enrollment.status === 'active'
-        && Number.isFinite(enrolledAt) && enrolledAt <= Date.parse(`${date}T23:59:59.999+07:00`) ? item : null;
+      const { data, error } = await (client as unknown as CareEnrollmentAccessClient).rpc('preschool_daily_care_access_allowed', {
+        p_tenant_id: tenantId, p_course_id: courseId, p_student_party_id: item.studentPartyId, p_school_day: date,
+      });
+      if (error || typeof data !== 'boolean') throw new Error('CARE_ENROLLMENT_ACCESS_UNAVAILABLE');
+      return data ? item : null;
     }));
     return { branchId, service, roster: eligible.filter((item): item is DailyCareRosterItem => item !== null) };
   } catch (error) {

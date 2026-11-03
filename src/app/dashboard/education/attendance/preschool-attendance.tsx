@@ -72,9 +72,13 @@ export default function PreschoolAttendance({ legacy }: { legacy: ReactNode }) {
             id: course.id as string, tenantId: course.tenantId as string,
             courseCode: course.courseCode as string, title: course.title as string,
           }));
-        } else if (response.status === 403 && record(body) && body.success === false && body.error === 'COURSE_ACCESS_DENIED') {
-          // Teacher catalog access is intentionally denied; use the attendance
-          // contract, which returns only classes assigned to the current caller.
+        } else if (record(body) && body.success === false && (
+          (response.status === 403 && body.error === 'COURSE_ACCESS_DENIED')
+          || (response.status === 503 && body.error === 'COURSE_CATALOG_UNAVAILABLE')
+        )) {
+          // The attendance contract is the authorized source when the catalog
+          // is denied to teachers or unavailable for this request. It returns
+          // only classes the current caller may use for attendance.
           const attendanceResponse = await fetch(`/api/education/attendance/courses?date=${today()}`, {
             cache: 'no-store', signal: controller.signal,
           });

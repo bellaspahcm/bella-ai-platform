@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { AttendanceContractImpl } from '@/platform/education/contracts/attendance.contract.impl';
 import type { DailyCareAction } from '@/products/bella-education/care-wellbeing/daily-care/daily-care.contract';
 import { parseSaveCareRecords, type SaveCareRecord } from '@/products/bella-education/care-wellbeing/daily-care/save-care.input';
 import { CARE_PRIVATE_HEADERS, CareAccessError, assertCareBodyContext, assertCareStudents, authorizeCareCourse, resolveCareRequestContext } from './request-context';
@@ -121,24 +122,15 @@ export async function GET(request: Request) {
 
     const { roster } = await authorizeCareCourse(context, request, courseId, date);
 
-    // Preserve the attendance projection only after the active roster is authorized.
-    // edu_attendance_daily_state links via enrollment_id, so we join through edu_enrollments.
-    const { data: enrollmentAttRows, error: attendanceError } = await client
-        .from('edu_attendance_daily_state')
-        .select('id, status, school_day, enrollment_id, edu_enrollments!inner(id, student_party_id)')
-        .eq('tenant_id', tenantId)
-        .eq('school_day', date)
-        .eq('edu_enrollments.course_id', courseId);
-    if (attendanceError) throw new CareAccessError(503, 'CARE_DATA_UNAVAILABLE');
-
-    // Build map: studentPartyId -> attendance status
+    // Read attendance through its authorized current-caller contract.
+    const attendanceRoster = await new AttendanceContractImpl(client, 'bella_preschool')
+      .getCourseDailyAttendance({ tenantId, courseId, schoolDay: date });
     const attendanceByPartyId = new Map<string, { status: string; rollCallTime: string | null; note: string | null }>();
-    for (const row of enrollmentAttRows ?? []) {
-      const enrollment = Array.isArray(row.edu_enrollments) ? row.edu_enrollments[0] : row.edu_enrollments;
-      const partyId = (enrollment as { student_party_id?: string } | null)?.student_party_id;
-      if (partyId) {
-        attendanceByPartyId.set(partyId, { status: row.status, rollCallTime: null, note: null });
-      }
+    for (const item of roster) {
+      const matches = attendanceRoster.filter(row => row.enrollmentId === item.enrollmentId && row.studentPartyId === item.studentPartyId);
+      if (matches.length !== 1) throw new CareAccessError(503, 'CARE_DATA_UNAVAILABLE');
+      const state = matches[0].attendance;
+      if (state) attendanceByPartyId.set(item.studentPartyId, { status: state.status, rollCallTime: state.rollCallTime ?? null, note: null });
     }
 
     const mergedRoster = roster.map((item) => {

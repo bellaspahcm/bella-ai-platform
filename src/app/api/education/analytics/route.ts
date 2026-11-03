@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getLocalDateString } from '@bella/shared';
 import { CanonicalCourseCatalogContractImpl } from '@/platform/education/contracts/canonical-course-catalog.contract.impl';
 import { AttendanceContractImpl } from '@/platform/education/contracts/attendance.contract.impl';
+import { PreschoolAdminBranchCatalogContractImpl } from '@/platform/education/contracts/preschool-admin-branch-catalog.contract.impl';
 import type { ExecutiveDashboardDTO } from '@/products/bella-education/analytics/domain/preschool-analytics.types';
 import { assertAttendanceDay, assertAttendanceSelectors, resolveAttendanceRequestContext, requireSchoolDay, AttendanceAccessError } from '../attendance/request-context';
 
@@ -34,43 +35,25 @@ export async function GET(request: Request) {
     const requestedBranchId = query.get('branchId') ?? query.get('branch_id') ?? undefined;
     assertAttendanceSelectors(request, context, { branchId: requestedBranchId, date });
 
-    const { client, tenantId, actorId } = context;
-    const access = await client.from('user_org_unit_access')
-      .select('user_id, tenant_id, org_unit_id, relationship_id', { count: 'exact' })
-      .eq('tenant_id', tenantId).eq('user_id', actorId).not('relationship_id', 'is', null);
-    if (access.error || !Array.isArray(access.data) || access.count !== access.data.length) return unavailable();
-    const accessibleUnitIds = new Set<string>();
-    for (const row of access.data) {
-      if (row.tenant_id !== tenantId || row.user_id !== actorId || !row.org_unit_id
-        || !row.relationship_id || accessibleUnitIds.has(row.org_unit_id)) return unavailable();
-      accessibleUnitIds.add(row.org_unit_id);
-    }
-    if (accessibleUnitIds.size === 0) throw new AttendanceAccessError(403, 'ANALYTICS_BRANCH_ACCESS_DENIED');
+    const { client, tenantId } = context;
+    const branches = await new PreschoolAdminBranchCatalogContractImpl(client)
+      .listCurrentPreschoolAdminBranches();
+    if (branches.length === 0) throw new AttendanceAccessError(403, 'ANALYTICS_BRANCH_ACCESS_DENIED');
+    const accessibleBranchIds = new Set(branches.map((branch) => branch.id));
 
-    const units = await client.from('org_units')
-      .select('id, tenant_id, unit_type, name, is_active', { count: 'exact' })
-      .eq('tenant_id', tenantId).in('id', [...accessibleUnitIds]);
-    if (units.error || !Array.isArray(units.data) || units.count !== units.data.length
-      || units.data.length !== accessibleUnitIds.size) return unavailable();
-    const branches = units.data.filter((unit) => {
-      if (unit.tenant_id !== tenantId || !accessibleUnitIds.has(unit.id)) return false;
-      return unit.unit_type === 'branch' && unit.is_active === true;
-    }).map((unit) => ({ id: unit.id, name: unit.name }));
-
-    const catalog = await new CanonicalCourseCatalogContractImpl(client).listCourses(tenantId);
+    const catalog = await new CanonicalCourseCatalogContractImpl(client).listPreschoolAdminCourses(tenantId);
     const activeCourseIds = catalog.filter((course) => course.status === 'active').map((course) => course.id);
     const assignmentResult = activeCourseIds.length && branches.length
       ? await client.from('preschool_chain_course_branch_assignments')
         .select('tenant_id, course_id, branch_id', { count: 'exact' })
-        .eq('tenant_id', tenantId).in('course_id', activeCourseIds).in('branch_id', branches.map((branch) => branch.id))
+        .eq('tenant_id', tenantId).in('course_id', activeCourseIds).in('branch_id', [...accessibleBranchIds])
       : { data: [], error: null, count: 0 };
     if (assignmentResult.error || !Array.isArray(assignmentResult.data) || assignmentResult.count !== assignmentResult.data.length) return unavailable();
 
     const activeCourseIdsSet = new Set(activeCourseIds);
-    const branchIds = new Set(branches.map((branch) => branch.id));
     const branchByCourse = new Map<string, string>();
     for (const row of assignmentResult.data) {
-      if (row.tenant_id !== tenantId || !activeCourseIdsSet.has(row.course_id) || !branchIds.has(row.branch_id)
+      if (row.tenant_id !== tenantId || !activeCourseIdsSet.has(row.course_id) || !accessibleBranchIds.has(row.branch_id)
         || branchByCourse.has(row.course_id)) return unavailable();
       branchByCourse.set(row.course_id, row.branch_id);
     }
@@ -88,7 +71,7 @@ export async function GET(request: Request) {
       .filter(([, branchId]) => branchId === selectedBranchId)
       .map(([courseId]) => courseId);
     const coursesById = new Map(catalog.filter((course) => selectedCourseIds.includes(course.id)).map((course) => [course.id, course]));
-    const attendance = new AttendanceContractImpl(client);
+    const attendance = new AttendanceContractImpl(client, context.productKey);
     const courseRosters = await Promise.all(selectedCourseIds.map((courseId) =>
       attendance.getCourseDailyAttendance({ tenantId, courseId, schoolDay: date })
     ));

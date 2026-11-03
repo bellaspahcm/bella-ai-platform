@@ -25,19 +25,10 @@ import dotenv from 'dotenv';
 import pg from 'pg';
 import { createBdgfDatabaseConfig } from './database-connection.mjs';
 import { assertExecutionIdentity } from './execution-identity.mjs';
+import { auditMigrationEvent } from './audit-event.mjs';
 
 const { Client } = pg;
 dotenv.config();
-
-// ============================================================================
-// AUDIT HELPER
-// ============================================================================
-
-async function auditEvent(event, data) {
-  // TODO: Implement proper audit using bella_execution_audit schema
-  // For now, skip audit in tests to focus on core execution flow
-  return;
-}
 
 // ============================================================================
 // EXECUTE MIGRATION WITH AUTHORIZATION
@@ -89,12 +80,6 @@ export async function executeMigrationWithAuthorization(params) {
   
   console.log('🔍 STEP 1: Verifying approval...\n');
   
-  await auditEvent('APPROVAL_VERIFICATION_STARTED', {
-    approval_id,
-    target_environment,
-    target_schema
-  });
-  
   let verification;
   try {
     verification = await verifyApproval({
@@ -107,12 +92,6 @@ export async function executeMigrationWithAuthorization(params) {
     console.log(`❌ Approval verification failed with exception: ${error.message}\n`);
     console.log(`   Stack: ${error.stack}\n`);
     
-    await auditEvent('APPROVAL_VERIFICATION_FAILED', {
-      approval_id,
-      error: error.message,
-      execution_time_ms: Date.now() - startTime
-    });
-    
     throw new Error(`Approval verification failed: ${error.message}`);
   }
   
@@ -120,21 +99,10 @@ export async function executeMigrationWithAuthorization(params) {
     console.log('❌ Approval NOT valid\n');
     console.log(`   Reason: ${verification?.reason || 'Unknown'}\n`);
     
-    await auditEvent('APPROVAL_REJECTED', {
-      approval_id,
-      reason: verification?.reason,
-      evidence: verification?.evidence
-    });
-    
     throw new Error(`Approval rejected: ${verification?.reason || 'Verification failed'}`);
   }
   
   console.log('✅ Approval verified\n');
-  
-  await auditEvent('APPROVAL_VERIFIED', {
-    approval_id,
-    approval_evidence: verification.evidence
-  });
   
   // ========================================================================
   // STEP 2: ISSUE GATE TOKEN
@@ -160,6 +128,19 @@ export async function executeMigrationWithAuthorization(params) {
     // Import computeHash from verifier
     const { computeHash } = await import('./r4-verify-approval.mjs');
     const migration_hash = computeHash(migration_content);
+
+    await auditMigrationEvent(db, {
+      event: 'APPROVAL_VERIFIED',
+      approval_id,
+      migration_id: approval_id,
+      migration_hash,
+      target_environment,
+      target_schema,
+      gate_decision: 'PASS',
+      executor_identity,
+      created_by: executor_identity,
+      metadata: {}
+    });
     
     // Issue gate token
     token = await issueGateToken({
@@ -176,11 +157,18 @@ export async function executeMigrationWithAuthorization(params) {
     console.log(`   Nonce: ${token.payload.nonce.substring(0, 16)}...`);
     console.log(`   Expires: ${new Date(token.payload.expires_at).toISOString()}\n`);
     
-    await auditEvent('GATE_TOKEN_ISSUED', {
-      approval_id,
+    await auditMigrationEvent(db, {
+      event: 'GATE_TOKEN_ISSUED',
       token_id: token.token_id,
-      token_nonce: token.payload.nonce.substring(0, 16) + '...',
-      expires_at: token.payload.expires_at
+      approval_id,
+      migration_id: approval_id,
+      migration_hash,
+      target_environment,
+      target_schema,
+      gate_decision: 'PASS',
+      executor_identity,
+      created_by: executor_identity,
+      metadata: {}
     });
     
     // ========================================================================
@@ -200,25 +188,8 @@ export async function executeMigrationWithAuthorization(params) {
       
       console.log('✅ Migration execution completed successfully\n');
       
-      await auditEvent('WRAPPER_EXECUTION_SUCCESS', {
-        approval_id,
-        token_id: token.token_id,
-        rows_affected: executionResult.rows_affected,
-        total_execution_time_ms: Date.now() - startTime
-      });
-      
     } catch (executionError) {
       console.log(`❌ Migration execution failed: ${executionError.message}\n`);
-      
-      await auditEvent('WRAPPER_EXECUTION_FAILED', {
-        approval_id,
-        token_id: token.token_id,
-        error: executionError.message,
-        blocked: executionError.blocked || false,
-        failed: executionError.failed || false,
-        total_execution_time_ms: Date.now() - startTime
-      });
-      
       throw executionError;
     }
     

@@ -53,7 +53,8 @@ export default function DashboardLayout({
 }) {
   const router = useRouter();
   const pathname = usePathname();
-  const isCourseCatalog = /^\/dashboard\/education\/courses(?:\/[^/]+)?\/?$/.test(pathname ?? '')
+  const usesTenantPresentation = pathname === '/dashboard'
+    || /^\/dashboard\/education\/courses(?:\/[^/]+)?\/?$/.test(pathname ?? '')
     || pathname === '/dashboard/education/attendance' || pathname === '/dashboard/education/care'
     || pathname === '/dashboard/education/enrollments'
     || pathname === '/dashboard/education/communication'
@@ -80,7 +81,7 @@ export default function DashboardLayout({
     setIsAuthorized(null);
     async function checkAuth() {
       try {
-        if (isCourseCatalog) {
+        if (usesTenantPresentation) {
           const user = await getCurrentUser();
           const tenant = user ? await getTenantPresentation() : null;
           if (!active) return;
@@ -177,7 +178,7 @@ export default function DashboardLayout({
     }
     checkAuth();
     return () => { active = false; };
-  }, [router, isCourseCatalog]);
+  }, [router, usesTenantPresentation]);
 
   if (isSuspended) {
     return (

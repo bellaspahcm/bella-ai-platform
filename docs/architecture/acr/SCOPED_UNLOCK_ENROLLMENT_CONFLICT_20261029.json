@@ -1,0 +1,38 @@
+{
+  "acr": "ACR-2026-021-preschool-enrollment-candidate-read",
+  "adr": "ADR-026-preschool-enrollment-candidate-read",
+  "status": "OPEN_LOCAL_DISPOSABLE",
+  "approvedAt": "2026-10-29",
+  "approvalSource": "Direct user reply: Duyệt mở khóa local/disposable",
+  "baseCommit": "bf1ac7030eb740c7c8b59e8e4c4321f53acded04",
+  "branch": "codex/preschool-admission-disposable-runner-20261028",
+  "exactPaths": [
+    "src/platform/education/contracts/enrollment.contract.impl.ts",
+    "src/platform/education/contracts/__tests__/preschool-enrollment.contract.test.ts"
+  ],
+  "exactSha256AtUnlock": {
+    "src/platform/education/contracts/enrollment.contract.impl.ts": "defaae850997110e984405519f4ca1de9e136d29c8fe4e4cb7890cfb0e63edea",
+    "src/platform/education/contracts/__tests__/preschool-enrollment.contract.test.ts": "6682ca44847a890745d97d189ca6d2c5597670328b177be27ec9a9bd6d835e6f"
+  },
+  "allowedOperations": [
+    "REPLACE_DIRECT_USERS_READ_WITH_EXISTING_PLATFORM_CURRENT_ACTOR_PROFILE_RPC",
+    "VERIFY_AUTH_SUBJECT_ACTIVE_ADMIN_AND_TENANT_MATCH_BEFORE_ENROLLMENT_MUTATION",
+    "RUN_FOCUSED_CONTRACT_AND_API_TESTS",
+    "RUN_ONE_FRESH_SYNTHETIC_DISPOSABLE_BROWSER_JWT_DB_ACCEPTANCE"
+  ],
+  "supportingPaths": [
+    "src/app/api/education/enrollments/route.ts",
+    "src/app/api/education/enrollments/__tests__/candidate-route.test.ts",
+    "scripts/ci/preschool-browser-profile/manifest.json",
+    "scripts/ci/preschool-browser-profile/preschool-admission.e2e.mjs"
+  ],
+  "forbidden": [
+    "new public contract or migration",
+    "ACL or grant changes",
+    "shared database or Production",
+    "UI changes",
+    "commit, push, merge, deploy"
+  ],
+  "implementationWindowClosed": false,
+  "fullEducationKernelReseal": "HELD"
+}

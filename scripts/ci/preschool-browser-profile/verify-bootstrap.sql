@@ -172,6 +172,8 @@ BEGIN
     OR to_regprocedure('public.edu_can_access_attendance_enrollment(uuid,uuid,date)') IS NULL
     OR to_regprocedure('public.edu_preschool_roster_identity(uuid,date)') IS NULL
     OR to_regprocedure('public.edu_set_daily_attendance(uuid,uuid,text,timestamp with time zone,date)') IS NULL
+    OR to_regprocedure('public.edu_preschool_enroll_student(uuid,uuid,uuid,uuid)') IS NULL
+    OR to_regprocedure('public.edu_preschool_enrollment_single_active_class_guard()') IS NULL
     OR to_regprocedure('public.platform_assert_active_branch_for_actor(uuid,uuid,uuid)') IS NULL THEN
     RAISE EXCEPTION 'PRESCHOOL_PROFILE_REQUIRED_RPC_MISSING';
   END IF;
@@ -183,8 +185,37 @@ BEGIN
     OR NOT has_function_privilege('authenticated','public.edu_preschool_roster_identity(uuid,date)','EXECUTE')
     OR NOT has_function_privilege('authenticated','public.edu_can_access_attendance_enrollment(uuid,uuid,date)','EXECUTE')
     OR NOT has_function_privilege('authenticated','public.edu_set_daily_attendance(uuid,uuid,text,timestamp with time zone,date)','EXECUTE')
+    OR NOT has_function_privilege('authenticated','public.edu_preschool_enroll_student(uuid,uuid,uuid,uuid)','EXECUTE')
+    OR has_function_privilege('anon','public.edu_preschool_enroll_student(uuid,uuid,uuid,uuid)','EXECUTE')
+    OR has_function_privilege('service_role','public.edu_preschool_enroll_student(uuid,uuid,uuid,uuid)','EXECUTE')
+    OR has_function_privilege('anon','public.edu_preschool_enrollment_single_active_class_guard()','EXECUTE')
+    OR has_function_privilege('authenticated','public.edu_preschool_enrollment_single_active_class_guard()','EXECUTE')
+    OR has_function_privilege('service_role','public.edu_preschool_enrollment_single_active_class_guard()','EXECUTE')
     OR has_function_privilege('authenticated','public.platform_assert_active_branch_for_actor(uuid,uuid,uuid)','EXECUTE') THEN
     RAISE EXCEPTION 'PRESCHOOL_PROFILE_RPC_ACL_MISMATCH';
+  END IF;
+
+  IF NOT EXISTS (
+      SELECT 1 FROM pg_proc p
+      WHERE p.oid='public.edu_preschool_enroll_student(uuid,uuid,uuid,uuid)'::regprocedure
+        AND p.prosecdef
+        AND p.proconfig @> ARRAY['search_path=pg_catalog','statement_timeout=10s','lock_timeout=5s']::text[]
+        AND position('ENROLLMENT_ALREADY_IN_ANOTHER_CLASS' IN pg_get_functiondef(p.oid)) > 0
+    )
+    OR NOT EXISTS (
+      SELECT 1 FROM pg_proc p
+      WHERE p.oid='public.edu_preschool_enrollment_single_active_class_guard()'::regprocedure
+        AND p.prosecdef AND p.proconfig @> ARRAY['search_path=pg_catalog','lock_timeout=5s']::text[]
+        AND position('ENROLLMENT_ALREADY_IN_ANOTHER_CLASS' IN pg_get_functiondef(p.oid)) > 0
+    )
+    OR NOT EXISTS (
+      SELECT 1 FROM pg_trigger t
+      WHERE t.tgrelid='public.edu_enrollments'::regclass
+        AND t.tgfoid='public.edu_preschool_enrollment_single_active_class_guard()'::regprocedure
+        AND NOT t.tgisinternal AND t.tgenabled IN ('O','A')
+        AND pg_get_triggerdef(t.oid) LIKE '%BEFORE INSERT OR UPDATE%'
+    ) THEN
+    RAISE EXCEPTION 'PRESCHOOL_PROFILE_SINGLE_ACTIVE_CLASS_GUARD_MISMATCH';
   END IF;
 
   IF has_function_privilege('authenticated','public.preschool_assign_chain(uuid,uuid,uuid,uuid,uuid,uuid)','EXECUTE')

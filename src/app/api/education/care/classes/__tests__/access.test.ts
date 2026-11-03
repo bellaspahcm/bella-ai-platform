@@ -11,6 +11,10 @@ let errors: Record<string, boolean>;
 let counts: Record<string, number | null>;
 const mockAuth = jest.fn();
 const mockProfile = jest.fn();
+const mockTenant = jest.fn();
+const mockCourseCatalog = jest.fn();
+const mockBranchCatalog = jest.fn();
+const mockTeacherCourses = jest.fn();
 const mockFrom = jest.fn((table: string) => new Query(table));
 
 class Query {
@@ -32,6 +36,16 @@ class Query {
 }
 jest.mock('@/lib/supabase-server', () => ({ createClient: () => ({ auth: { getUser: mockAuth }, from: mockFrom }) }));
 jest.mock('@/services/user-actions', () => ({ getCurrentUser: () => mockProfile() }));
+jest.mock('@/services/tenant-actions', () => ({ getTenantPresentation: () => mockTenant() }));
+jest.mock('@/platform/education/contracts/canonical-course-catalog.contract.impl', () => ({
+  CanonicalCourseCatalogContractImpl: class { listPreschoolAdminCourses = mockCourseCatalog; },
+}));
+jest.mock('@/platform/education/contracts/preschool-admin-branch-catalog.contract.impl', () => ({
+  PreschoolAdminBranchCatalogContractImpl: class { listCurrentPreschoolAdminBranches = mockBranchCatalog; },
+}));
+jest.mock('@/products/bella-education/services/preschool-teacher-attendance.service', () => ({
+  PreschoolTeacherAttendanceService: class { listCourses = mockTeacherCourses; },
+}));
 
 const request = (query = '', headers?: Record<string, string>) => new Request('http://localhost/api/education/care/classes' + query, { headers });
 async function outcome(status: number, code: string, query = '', headers?: Record<string, string>) {
@@ -44,6 +58,8 @@ beforeEach(() => {
   jest.clearAllMocks(); errors = {}; counts = {};
   mockAuth.mockResolvedValue({ data: { user: { id: actor } }, error: null });
   mockProfile.mockResolvedValue({ id: actor, tenant_id: tenant, status: 'active', role: 'admin' });
+  mockTenant.mockResolvedValue({ id: tenant, status: 'active', product_key: 'bella_preschool' });
+  mockTeacherCourses.mockResolvedValue([{ courseId: course, name: 'Synthetic course', branchId: branch }]);
   rows = {
     tenants: [{ id: tenant, status: 'active', product_key: 'bella_preschool' }],
     edu_courses: [{ id: course, tenant_id: tenant, course_code: 'SYNTHETIC', title: 'Synthetic course', status: 'active' }],
@@ -51,13 +67,30 @@ beforeEach(() => {
     org_units: [{ id: branch, tenant_id: tenant, unit_type: 'branch', is_active: true }],
     user_org_unit_access: [{ user_id: actor, tenant_id: tenant, org_unit_id: branch }],
   };
+  mockCourseCatalog.mockImplementation(async () => {
+    const courses = rows.edu_courses.filter(row => row.tenant_id === tenant);
+    if (errors.edu_courses || ('edu_courses' in counts && counts.edu_courses !== courses.length)) throw new Error('catalog unavailable');
+    return courses.map(row => ({ id: row.id, tenantId: row.tenant_id, courseCode: row.course_code, title: row.title, status: row.status }));
+  });
+  mockBranchCatalog.mockImplementation(async () => {
+    const units = rows.org_units;
+    const access = rows.user_org_unit_access;
+    if (errors.org_units || errors.user_org_unit_access
+      || ('org_units' in counts && counts.org_units !== units.length)
+      || ('user_org_unit_access' in counts && counts.user_org_unit_access !== access.length)) throw new Error('branch catalog unavailable');
+    return units.filter(unit => unit.tenant_id === tenant && unit.unit_type === 'branch' && unit.is_active === true
+      && access.some(row => row.tenant_id === tenant && row.user_id === actor && row.org_unit_id === unit.id))
+      .map(unit => ({ id: unit.id, name: 'Synthetic branch' }));
+  });
 });
 
 test('Approved active admin sees only actual canonical class identity through its own branch access', async () => {
   const response = await GET(request()); expect(response.status).toBe(200);
   expect(response.headers.get('cache-control')).toBe('private, no-store');
   expect(await response.json()).toEqual({ success: true, classrooms: [{ id: course, name: 'Synthetic course', code: 'SYNTHETIC', status: 'active' }] });
-  expect(mockFrom.mock.calls.map(([table]) => table)).not.toEqual(expect.arrayContaining(['courses', 'teacher_assignments']));
+  expect(mockCourseCatalog).toHaveBeenCalledWith(tenant);
+  expect(mockBranchCatalog).toHaveBeenCalledTimes(1);
+  expect(mockFrom.mock.calls.map(([table]) => table)).not.toEqual(expect.arrayContaining(['edu_courses', 'org_units', 'user_org_unit_access', 'teacher_assignments']));
 });
 test('Anonymous spoofing stops before profile or table reads', async () => {
   mockAuth.mockResolvedValue({ data: { user: null }, error: null });
@@ -71,17 +104,36 @@ test('Invalid provider session is denied', async () => {
 test.each(['parent', 'accountant', 'super_admin', 'teacher', ''])('Unapproved role %s is denied', async role => {
   mockProfile.mockResolvedValue({ id: actor, tenant_id: tenant, status: 'active', role }); await outcome(403, 'CARE_ROLE_DENIED');
 });
-test('admin_staff identity remains held', async () => {
+test('admin_staff sees only assigned Preschool classes through the existing Attendance contract', async () => {
   mockProfile.mockResolvedValue({ id: actor, tenant_id: tenant, status: 'active', role: 'admin_staff' });
-  await outcome(503, 'CARE_TEACHER_IDENTITY_UNAVAILABLE');
+  const response = await GET(request());
+  expect(response.status).toBe(200);
+  expect(await response.json()).toEqual({ success: true, classrooms: [{ id: course, name: 'Synthetic course', code: course, status: 'active' }] });
+  expect(mockTeacherCourses).toHaveBeenCalledWith(tenant, actor, expect.any(String));
+  expect(mockCourseCatalog).not.toHaveBeenCalled();
+  expect(mockBranchCatalog).not.toHaveBeenCalled();
   expect(mockFrom).not.toHaveBeenCalledWith('edu_courses');
+});
+test('admin_staff does not receive classes when the assigned-course contract returns none', async () => {
+  mockProfile.mockResolvedValue({ id: actor, tenant_id: tenant, status: 'active', role: 'admin_staff' });
+  mockTeacherCourses.mockResolvedValue([]);
+  const response = await GET(request());
+  expect(response.status).toBe(200);
+  expect(await response.json()).toEqual({ success: true, classrooms: [] });
+  expect(mockCourseCatalog).not.toHaveBeenCalled();
 });
 test.each([null, { id: foreign, tenant_id: tenant, status: 'active', role: 'admin' }, { id: actor, tenant_id: tenant, status: 'inactive', role: 'admin' }])('Unbound/inactive profile denied %#', async profile => {
   mockProfile.mockResolvedValue(profile); await outcome(403, 'CARE_ACCESS_DENIED');
 });
-test.each(['missing', 'inactive', 'wrong-product'])('Invalid tenant %s denied', async mode => {
-  if(mode === 'missing')rows.tenants = []; else if(mode === 'inactive')rows.tenants[0].status = 'suspended'; else rows.tenants[0].product_key = 'bella_training';
-  await outcome(403, 'CARE_PRODUCT_ACCESS_DENIED');
+test.each(['missing', 'inactive', 'wrong-product', 'foreign-tenant'])('Invalid tenant %s denied', async mode => {
+  if (mode === 'missing') mockTenant.mockResolvedValue(null);
+  else mockTenant.mockResolvedValue({ id: mode === 'foreign-tenant' ? foreign : tenant, status: mode === 'inactive' ? 'suspended' : 'active', product_key: mode === 'wrong-product' ? 'bella_training' : 'bella_preschool' });
+  await outcome(mode === 'missing' ? 503 : 403, mode === 'missing' ? 'CARE_IDENTITY_UNAVAILABLE' : 'CARE_PRODUCT_ACCESS_DENIED');
+});
+test('Tenant presentation failure is unavailable without direct tenant reads', async () => {
+  mockTenant.mockRejectedValue(new Error('synthetic failure'));
+  await outcome(503, 'CARE_IDENTITY_UNAVAILABLE');
+  expect(mockFrom).not.toHaveBeenCalledWith('tenants');
 });
 test.each([`?tenantId=${foreign}`, `?tenantId=${tenant}&tenantId=${foreign}`, '?tenant_id=', `?actorId=${foreign}`, `?courseId=${course}`, `?branch_id=${branch}`, '?role=admin'])('Selectors cannot widen scope: %s', async query => {
   await outcome(403, 'CARE_CONTEXT_OVERRIDE_DENIED', query);

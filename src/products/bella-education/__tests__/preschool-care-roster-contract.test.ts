@@ -30,4 +30,21 @@ describe('Preschool Care reuses the public Attendance roster', () => {
     await expect(new DailyCareService(c as never).getDailyCareRoster('tenant', 'course', '2026-10-23')).rejects.toThrow('DENIED');
     expect(c.from.mock.calls.map(([table]) => table)).toEqual(['edu_courses', 'tenants']);
   });
+  it('uses the current-caller Attendance contract as the Preschool course and roster authority', async () => {
+    jest.spyOn(AttendanceContractImpl.prototype, 'getCourseDailyAttendance').mockResolvedValue([
+      { enrollmentId: 'enrollment', studentId: 'student', studentPartyId: 'party', studentCode: null, name: 'Child', gender: null, dob: null, enrollmentStatus: 'active', attendance: null },
+    ]);
+    const c = client();
+    const roster = await new DailyCareService(c as never).getDailyCareRoster('tenant', 'course', '2026-10-23', 'bella_preschool');
+    expect(roster).toHaveLength(1);
+    expect(c.from.mock.calls.map(([table]) => table)).toEqual(['edu_daily_care_sessions']);
+  });
+  it('propagates an Attendance authorization denial without admin-catalog fallback', async () => {
+    const attendance = jest.spyOn(AttendanceContractImpl.prototype, 'getCourseDailyAttendance').mockRejectedValue(new Error('DENIED'));
+    const c = client();
+    await expect(new DailyCareService(c as never).getDailyCareRoster('tenant', 'course', '2026-10-23', 'bella_preschool'))
+      .rejects.toThrow('DENIED');
+    expect(attendance).toHaveBeenCalledTimes(1);
+    expect(c.from).not.toHaveBeenCalled();
+  });
 });
