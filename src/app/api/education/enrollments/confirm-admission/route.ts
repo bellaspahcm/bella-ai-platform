@@ -14,11 +14,27 @@ function failure(error: string, status: number, message = error): NextResponse {
 interface ConfirmAdmissionPayload {
   enrollmentId?: unknown;
   admissionMode?: unknown;
+  paymentConfirmation?: unknown;
+}
+
+function isObject(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === 'object' && !Array.isArray(value);
+}
+
+function hasManualPaymentEvidence(value: unknown): boolean {
+  if (!isObject(value) || (value.method !== 'CASH' && value.method !== 'BANK_TRANSFER_MANUAL')) return false;
+  if (['actorId', 'actorUserId', 'actorPartyId', 'actorRole', 'tenantId', 'collectorId',
+    'actor_id', 'actor_user_id', 'actor_party_id', 'actor_role', 'tenant_id', 'collector_id'].some(key => key in value)) return false;
+  if (typeof value.amount !== 'number' || !Number.isFinite(value.amount) || value.amount <= 0) return false;
+  if (typeof value.receivedAt !== 'string' || !/^\d{4}-\d{2}-\d{2}T.*(?:Z|[+-]\d{2}:\d{2})$/.test(value.receivedAt)
+      || !Number.isFinite(Date.parse(value.receivedAt))) return false;
+  return value.method !== 'BANK_TRANSFER_MANUAL'
+    || (typeof value.transactionId === 'string' && value.transactionId.trim().length > 0);
 }
 
 /**
- * Existing-enrollment activation plus tuition settlement has no authorized
- * atomic Product contract. Keep this legacy endpoint closed until that
+ * Existing-enrollment activation plus tuition settlement has no verified
+ * atomic Product contract. Keep this endpoint closed until that
  * workflow has a canonical persistence and recovery boundary.
  */
 export async function POST(request: Request): Promise<NextResponse> {
@@ -46,7 +62,9 @@ export async function POST(request: Request): Promise<NextResponse> {
 
     let body: ConfirmAdmissionPayload;
     try {
-      body = (await request.json()) as ConfirmAdmissionPayload;
+      const parsed: unknown = await request.json();
+      if (!isObject(parsed)) return failure('INVALID_PAYLOAD', 400, 'Dữ liệu yêu cầu không hợp lệ.');
+      body = parsed as ConfirmAdmissionPayload;
     } catch {
       return failure('INVALID_PAYLOAD', 400, 'Dữ liệu yêu cầu không hợp lệ.');
     }
@@ -57,6 +75,16 @@ export async function POST(request: Request): Promise<NextResponse> {
     }
     if (body.admissionMode !== undefined && body.admissionMode !== 'PAID' && body.admissionMode !== 'DEBT') {
       return failure('INVALID_ADMISSION_MODE', 400, 'Phương thức xác nhận không hợp lệ.');
+    }
+    if ((body.admissionMode ?? 'DEBT') === 'PAID') {
+      if (isObject(body.paymentConfirmation) && body.paymentConfirmation.method === 'BANK_TRANSFER_AUTO') {
+        return failure('AUTOMATED_RECONCILIATION_ONLY', 403, 'Giao dịch đối soát tự động phải được xác nhận bởi hệ thống.');
+      }
+      if (!hasManualPaymentEvidence(body.paymentConfirmation)) {
+        return failure('PAYMENT_EVIDENCE_REQUIRED', 400, 'Cần phương thức, số tiền, thời điểm nhận và mã giao dịch khi chuyển khoản.');
+      }
+    } else if (body.paymentConfirmation !== undefined) {
+      return failure('UNEXPECTED_PAYMENT_EVIDENCE', 400, 'Xác nhận công nợ không ghi nhận thanh toán.');
     }
 
     return failure(

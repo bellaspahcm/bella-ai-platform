@@ -131,6 +131,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
       
+      - name: Test Education architecture scanner
+        run: node scripts/test-ci-weekly-menu-boundary.mjs
+
       - name: Run Education Architecture Tests
         run: npm run education:architecture:ci
       

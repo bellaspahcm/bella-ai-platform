@@ -57,14 +57,17 @@ interface DayFormState {
   caloriesKcal: number;
 }
 
-const DEFAULT_WEEKDAY_CONFIG: ReadonlyArray<{ code: WeeklyMenuDayCode; label: string; key: 'T2' | 'T3' | 'T4' | 'T5' | 'T6' | 'T7'; offset: number }> = [
+type DayConfig = { code: WeeklyMenuDayCode; label: string; key: 'T2' | 'T3' | 'T4' | 'T5' | 'T6' | 'T7'; offset: number };
+
+const DEFAULT_WEEKDAY_CONFIG: ReadonlyArray<DayConfig> = [
   { code: 'MON', label: 'Thứ Hai', key: 'T2', offset: 0 },
   { code: 'TUE', label: 'Thứ Ba', key: 'T3', offset: 1 },
   { code: 'WED', label: 'Thứ Tư', key: 'T4', offset: 2 },
   { code: 'THU', label: 'Thứ Năm', key: 'T5', offset: 3 },
   { code: 'FRI', label: 'Thứ Sáu', key: 'T6', offset: 4 },
-  { code: 'SAT', label: 'Thứ Bảy', key: 'T7', offset: 5 },
 ];
+
+const OPTIONAL_SATURDAY_CONFIG: DayConfig = { code: 'SAT', label: 'Thứ Bảy', key: 'T7', offset: 5 };
 
 /** Standard preschool sample menu recommendations from National Institute of Nutrition */
 const STANDARD_SAMPLE_MENUS: Readonly<Record<WeeklyMenuDayCode, { breakfast: string; morningSnack: string; lunch: string; afternoonSnack: string; kcal: number }>> = {
@@ -119,6 +122,21 @@ const STANDARD_SAMPLE_MENUS: Readonly<Record<WeeklyMenuDayCode, { breakfast: str
   },
 };
 
+function createDayFormState(config: DayConfig, menuDate: string): DayFormState {
+  const sample = STANDARD_SAMPLE_MENUS[config.code] || STANDARD_SAMPLE_MENUS.MON;
+  return {
+    dayOfWeek: config.code,
+    dayLabel: config.label,
+    dayKey: config.key,
+    menuDate,
+    breakfastDishes: sample.breakfast,
+    morningSnackDishes: sample.morningSnack,
+    lunchDishes: sample.lunch,
+    afternoonSnackDishes: sample.afternoonSnack,
+    caloriesKcal: sample.kcal,
+  };
+}
+
 function getWeekNumber(d: Date): number {
   const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
   date.setUTCDate(date.getUTCDate() + 4 - (date.getUTCDay() || 7));
@@ -161,6 +179,7 @@ export default function WeeklyMenuEditorModal({
   const [menuStatus, setMenuStatus] = useState<WeeklyMenuStatus>('PUBLISHED');
   const [notes, setNotes] = useState<string>('Thực đơn đạt chuẩn 650 - 720 Kcal cho trẻ mầm non.');
   const [menuId, setMenuId] = useState<string | undefined>(undefined);
+  const [expectedUpdatedAt, setExpectedUpdatedAt] = useState<string | undefined>(undefined);
 
   // Active day tab
   const [activeDayCode, setActiveDayCode] = useState<WeeklyMenuDayCode>('MON');
@@ -170,18 +189,7 @@ export default function WeeklyMenuEditorModal({
     return DEFAULT_WEEKDAY_CONFIG.map((cfg) => {
       const d = new Date(defaultMonday);
       d.setDate(d.getDate() + cfg.offset);
-      const sample = STANDARD_SAMPLE_MENUS[cfg.code] || STANDARD_SAMPLE_MENUS.MON;
-      return {
-        dayOfWeek: cfg.code,
-        dayLabel: cfg.label,
-        dayKey: cfg.key,
-        menuDate: formatDateIso(d),
-        breakfastDishes: sample.breakfast,
-        morningSnackDishes: sample.morningSnack,
-        lunchDishes: sample.lunch,
-        afternoonSnackDishes: sample.afternoonSnack,
-        caloriesKcal: sample.kcal,
-      };
+      return createDayFormState(cfg, formatDateIso(d));
     });
   });
 
@@ -190,27 +198,30 @@ export default function WeeklyMenuEditorModal({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  // Calculate Monday & Friday dates based on selectedWeek and selectedYear
+  const includesSaturday = days.some((day) => day.dayOfWeek === 'SAT');
+
+  // The school week ends Friday by default; Saturday is included only when added.
   const { startDate, endDate } = useMemo(() => {
     // Simple 4th Jan ISO week calculation
     const jan4 = new Date(selectedYear, 0, 4);
     const dayOfWeek = jan4.getDay() || 7;
     const mondayWeek1 = new Date(jan4.getTime() - (dayOfWeek - 1) * 86400000);
     const targetMonday = new Date(mondayWeek1.getTime() + (selectedWeek - 1) * 7 * 86400000);
-    const targetFriday = new Date(targetMonday.getTime() + 4 * 86400000);
+    const targetEndDate = new Date(targetMonday.getTime() + (includesSaturday ? 5 : 4) * 86400000);
     return {
       startDate: formatDateIso(targetMonday),
-      endDate: formatDateIso(targetFriday),
+      endDate: formatDateIso(targetEndDate),
     };
-  }, [selectedWeek, selectedYear]);
+  }, [selectedWeek, selectedYear, includesSaturday]);
 
   // Update dates of days whenever week/year changes
   const updateDaysDates = useCallback((startMondayIso: string) => {
     const monday = new Date(startMondayIso);
     setDays((prev) =>
-      prev.map((item, index) => {
+      prev.map((item) => {
         const itemDate = new Date(monday);
-        itemDate.setDate(itemDate.getDate() + index);
+        const config = item.dayOfWeek === 'SAT' ? OPTIONAL_SATURDAY_CONFIG : DEFAULT_WEEKDAY_CONFIG.find((day) => day.code === item.dayOfWeek);
+        itemDate.setDate(itemDate.getDate() + (config?.offset ?? 0));
         return {
           ...item,
           menuDate: formatDateIso(itemDate),
@@ -232,13 +243,23 @@ export default function WeeklyMenuEditorModal({
       if (data.success && data.menu) {
         const existing: PreschoolWeeklyMenuDTO = data.menu;
         setMenuId(existing.menuId);
+        setExpectedUpdatedAt(existing.updatedAt);
         if (existing.title) setTitle(existing.title);
         setMenuStatus(existing.status);
         if (existing.notes) setNotes(existing.notes);
 
         if (Array.isArray(existing.days) && existing.days.length > 0) {
-          setDays((prev) =>
-            prev.map((dayItem) => {
+          const hasStoredSaturday = existing.days.some((day) => day.dayKey === 'T7');
+          if (!hasStoredSaturday) setActiveDayCode((current) => current === 'SAT' ? 'FRI' : current);
+          setDays((prev) => {
+            const nextDays = prev.filter((dayItem) => dayItem.dayOfWeek !== 'SAT');
+            if (hasStoredSaturday) {
+              const storedSaturday = existing.days.find((day) => day.dayKey === 'T7');
+              if (storedSaturday) {
+                nextDays.push(createDayFormState(OPTIONAL_SATURDAY_CONFIG, storedSaturday.dateStr.split('/').reverse().join('-')));
+              }
+            }
+            return nextDays.map((dayItem) => {
               const matched = existing.days.find((d) => d.dayKey === dayItem.dayKey);
               if (matched) {
                 const breakfast = matched.meals?.find((m) => m.mealType === 'BREAKFAST')?.dishes.join(', ') || '';
@@ -253,15 +274,19 @@ export default function WeeklyMenuEditorModal({
                   lunchDishes: lunch || dayItem.lunchDishes,
                   afternoonSnackDishes: afternoonSnack || dayItem.afternoonSnackDishes,
                   caloriesKcal: matched.caloriesKcal || dayItem.caloriesKcal,
+                  menuDate: matched.dateStr.split('/').reverse().join('-'),
                 };
               }
               return dayItem;
-            })
-          );
+            });
+          });
         }
       } else {
         // No menu yet, reset id and update default title
         setMenuId(undefined);
+        setExpectedUpdatedAt(undefined);
+        setDays((prev) => prev.filter((day) => day.dayOfWeek !== 'SAT'));
+        setActiveDayCode((current) => current === 'SAT' ? 'FRI' : current);
         setTitle(`Thực đơn tuần ${week} — Đảm bảo dinh dưỡng học đường`);
       }
     } catch {
@@ -304,6 +329,21 @@ export default function WeeklyMenuEditorModal({
     setDays((prev) =>
       prev.map((d) => (d.dayOfWeek === activeDayCode ? { ...d, [field]: value } : d))
     );
+  };
+
+  const addSaturday = () => {
+    setDays((prev) => {
+      if (prev.some((day) => day.dayOfWeek === 'SAT')) return prev;
+      const saturday = new Date(startDate);
+      saturday.setDate(saturday.getDate() + OPTIONAL_SATURDAY_CONFIG.offset);
+      return [...prev, createDayFormState(OPTIONAL_SATURDAY_CONFIG, formatDateIso(saturday))];
+    });
+    setActiveDayCode('SAT');
+  };
+
+  const removeSaturday = () => {
+    setDays((prev) => prev.filter((day) => day.dayOfWeek !== 'SAT'));
+    setActiveDayCode((current) => current === 'SAT' ? 'FRI' : current);
   };
 
   const currentDayState = useMemo(() => {
@@ -358,6 +398,7 @@ export default function WeeklyMenuEditorModal({
 
       const payload: SaveWeeklyMenuInput = {
         menuId,
+        expectedUpdatedAt,
         academicYear: '2026-2027',
         weekNumber: selectedWeek,
         year: selectedYear,
@@ -382,6 +423,7 @@ export default function WeeklyMenuEditorModal({
       }
 
       setMenuId(resJson.menuId);
+      setExpectedUpdatedAt(resJson.updatedAt);
       setMenuStatus(statusToSave);
       setSuccessMessage(
         statusToSave === 'PUBLISHED'
@@ -561,7 +603,7 @@ export default function WeeklyMenuEditorModal({
             </div>
           </div>
 
-          {/* Weekday Selector Tabs (T2 - T7) */}
+          {/* Weekdays are Monday–Friday; Saturday is an optional exception. */}
           <div className="border-b border-slate-200 dark:border-slate-800">
             <div className="flex items-center gap-2 overflow-x-auto pb-2">
               {days.map((d) => {
@@ -585,6 +627,25 @@ export default function WeeklyMenuEditorModal({
                   </button>
                 );
               })}
+              {includesSaturday ? (
+                <button
+                  type="button"
+                  onClick={removeSaturday}
+                  aria-label="Bỏ thứ Bảy khỏi thực đơn tuần này"
+                  className="px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-300 text-xs font-semibold hover:bg-slate-50 dark:hover:bg-slate-800"
+                >
+                  Bỏ thứ Bảy
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={addSaturday}
+                  aria-label="Thêm thứ Bảy tùy chọn"
+                  className="px-3 py-2 rounded-xl border border-dashed border-slate-300 dark:border-slate-600 text-slate-500 dark:text-slate-300 text-xs font-semibold hover:bg-slate-50 dark:hover:bg-slate-800"
+                >
+                  + Thêm thứ Bảy (nếu có tổ chức)
+                </button>
+              )}
             </div>
           </div>
 

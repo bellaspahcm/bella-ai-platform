@@ -56,8 +56,13 @@ type FinanceTransactionRow = Pick<
   'id'
 >;
 
+export type FinanceReceivableChargeExecutionMode = 'authenticated' | 'service_role';
+
 export class SupabaseReceivableChargeGateway implements FinanceReceivableChargeGateway {
-  constructor(private readonly client: SupabaseClient<Database>) {}
+  constructor(
+    private readonly client: SupabaseClient<Database>,
+    private readonly executionMode: FinanceReceivableChargeExecutionMode,
+  ) {}
 
   async resolveSemanticAccount(input: {
     readonly tenantId: string;
@@ -108,14 +113,23 @@ export class SupabaseReceivableChargeGateway implements FinanceReceivableChargeG
     readonly issueDate: string;
     readonly dueDate: string;
   }): Promise<string> {
-    const { data, error } = await this.client.rpc('finance_create_draft_invoice', {
-      p_tenant_id: input.tenantId,
-      p_customer_id: input.customerId,
-      p_invoice_number: input.invoiceNumber,
-      p_currency: input.currency,
-      p_issue_date: input.issueDate,
-      p_due_date: input.dueDate,
-    });
+    const { data, error } = this.executionMode === 'authenticated'
+      ? await this.client.rpc('finance_authenticated_create_draft_invoice', {
+        p_tenant_id: input.tenantId,
+        p_customer_id: input.customerId,
+        p_invoice_number: input.invoiceNumber,
+        p_currency: input.currency,
+        p_issue_date: input.issueDate,
+        p_due_date: input.dueDate,
+      })
+      : await this.client.rpc('finance_create_draft_invoice', {
+        p_tenant_id: input.tenantId,
+        p_customer_id: input.customerId,
+        p_invoice_number: input.invoiceNumber,
+        p_currency: input.currency,
+        p_issue_date: input.issueDate,
+        p_due_date: input.dueDate,
+      });
     if (error) throw new Error(error.message);
     return data;
   }
@@ -157,16 +171,27 @@ export class SupabaseReceivableChargeGateway implements FinanceReceivableChargeG
     readonly taxRate: number;
     readonly revenueAccountCode: string;
   }): Promise<string> {
-    const { data, error } = await this.client.rpc('finance_add_invoice_line', {
-      p_tenant_id: input.tenantId,
-      p_invoice_id: input.invoiceId,
-      p_service_id: input.serviceId,
-      p_description: input.description,
-      p_quantity: input.quantity,
-      p_unit_price_minor: input.unitPriceMinor,
-      p_tax_rate: input.taxRate,
-      p_revenue_account_code: input.revenueAccountCode,
-    });
+    const { data, error } = this.executionMode === 'authenticated'
+      ? await this.client.rpc('finance_authenticated_add_invoice_line', {
+        p_tenant_id: input.tenantId,
+        p_invoice_id: input.invoiceId,
+        p_service_id: input.serviceId,
+        p_description: input.description,
+        p_quantity: input.quantity,
+        p_unit_price_minor: input.unitPriceMinor,
+        p_tax_rate: input.taxRate,
+        p_revenue_account_code: input.revenueAccountCode,
+      })
+      : await this.client.rpc('finance_add_invoice_line', {
+        p_tenant_id: input.tenantId,
+        p_invoice_id: input.invoiceId,
+        p_service_id: input.serviceId,
+        p_description: input.description,
+        p_quantity: input.quantity,
+        p_unit_price_minor: input.unitPriceMinor,
+        p_tax_rate: input.taxRate,
+        p_revenue_account_code: input.revenueAccountCode,
+      });
     if (error) throw new Error(error.message);
     return data;
   }
@@ -178,13 +203,21 @@ export class SupabaseReceivableChargeGateway implements FinanceReceivableChargeG
     readonly requestHash: string;
     readonly lines: readonly FinancePostingLine[];
   }): Promise<{ readonly transactionId: string; readonly duplicate: boolean }> {
-    const { data, error } = await this.client.rpc('finance_finalize_invoice', {
-      p_tenant_id: input.tenantId,
-      p_invoice_id: input.invoiceId,
-      p_idempotency_key: input.idempotencyKey,
-      p_request_hash: input.requestHash,
-      p_lines_jsonb: input.lines as unknown as Json,
-    });
+    const { data, error } = this.executionMode === 'authenticated'
+      ? await this.client.rpc('finance_authenticated_finalize_invoice', {
+        p_tenant_id: input.tenantId,
+        p_invoice_id: input.invoiceId,
+        p_idempotency_key: input.idempotencyKey,
+        p_request_hash: input.requestHash,
+        p_lines_jsonb: input.lines as unknown as Json,
+      })
+      : await this.client.rpc('finance_finalize_invoice', {
+        p_tenant_id: input.tenantId,
+        p_invoice_id: input.invoiceId,
+        p_idempotency_key: input.idempotencyKey,
+        p_request_hash: input.requestHash,
+        p_lines_jsonb: input.lines as unknown as Json,
+      });
     if (error) throw new Error(error.message);
     if (!this.isFinalizeResult(data)) {
       throw new Error('Invalid finance_finalize_invoice response.');
@@ -221,15 +254,25 @@ export class SupabaseReceivableChargeGateway implements FinanceReceivableChargeG
   }
 
   async allocatePayment(input: PaymentReceivableAllocationInput): Promise<PaymentReceivableAllocationResult> {
-    const { data, error } = await this.client.rpc('finance_allocate_payment', {
-      p_tenant_id: input.tenantId,
-      p_invoice_id: input.invoiceId,
-      p_cash_movement_id: input.cashMovementId,
-      p_allocated_amount_minor: input.allocatedAmountMinor,
-      p_exchange_rate: input.exchangeRate,
-      p_rate_source: input.rateSource,
-      p_rate_timestamp: input.rateTimestamp,
-    });
+    const { data, error } = this.executionMode === 'authenticated'
+      ? await this.client.rpc('finance_authenticated_allocate_payment', {
+        p_tenant_id: input.tenantId,
+        p_invoice_id: input.invoiceId,
+        p_cash_movement_id: input.cashMovementId,
+        p_allocated_amount_minor: input.allocatedAmountMinor,
+        p_exchange_rate: input.exchangeRate,
+        p_rate_source: input.rateSource,
+        p_rate_timestamp: input.rateTimestamp,
+      })
+      : await this.client.rpc('finance_allocate_payment', {
+        p_tenant_id: input.tenantId,
+        p_invoice_id: input.invoiceId,
+        p_cash_movement_id: input.cashMovementId,
+        p_allocated_amount_minor: input.allocatedAmountMinor,
+        p_exchange_rate: input.exchangeRate,
+        p_rate_source: input.rateSource,
+        p_rate_timestamp: input.rateTimestamp,
+      });
     if (error) throw new Error(error.message);
     return { allocationId: data };
   }

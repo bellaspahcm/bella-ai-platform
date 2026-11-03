@@ -3,6 +3,7 @@ import { beforeEach, expect, it, jest, describe } from '@jest/globals';
 
 const mockGetUser = jest.fn<() => Promise<unknown>>();
 const mockGetCurrentUser = jest.fn<() => Promise<unknown>>();
+const mockRpc = jest.fn<() => Promise<unknown>>();
 
 const mockFrom = jest.fn((table: string) => {
   const query: Record<string, unknown> = {};
@@ -33,6 +34,7 @@ jest.mock('@/lib/supabase-server', () => ({
   createClient: async () => ({
     auth: { getUser: mockGetUser },
     from: mockFrom,
+    rpc: mockRpc,
   }),
 }));
 
@@ -73,6 +75,7 @@ describe('Weekly Menu Nutrition API Security & Authorization (F05)', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockGetUser.mockResolvedValue({ data: { user: { id: actorId } }, error: null });
+    mockRpc.mockResolvedValue({ data: { menuId: 'menu-1', updatedAt: '2026-11-02T00:00:00Z' }, error: null });
   });
 
   it('F05: rejects teacher attempting to create or edit school-wide weekly menu', async () => {
@@ -98,7 +101,8 @@ describe('Weekly Menu Nutrition API Security & Authorization (F05)', () => {
     const res = await POST(req);
     expect(res.status).toBe(403);
     const body = (await res.json()) as { error: string };
-    expect(body.error).toBe('NUTRITION_PUBLISH_FORBIDDEN');
+    expect(body.error).toBe('NUTRITION_ROLE_DENIED');
+    expect(mockRpc).not.toHaveBeenCalled();
   });
 
   it('F05: allows admin to publish school-wide weekly menu', async () => {
@@ -112,5 +116,16 @@ describe('Weekly Menu Nutrition API Security & Authorization (F05)', () => {
     expect(res.status).toBe(200);
     const body = (await res.json()) as { success: boolean };
     expect(body.success).toBe(true);
+  });
+
+  it('returns a conflict when another edit has already changed the menu', async () => {
+    mockGetCurrentUser.mockResolvedValue({ id: actorId, tenant_id: tenantId, role: 'admin' });
+    mockRpc.mockResolvedValue({ data: null, error: { code: '40001' } });
+    const res = await POST(new Request('http://localhost/api/education/nutrition/weekly-menu', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...validMenuPayload, menuId: 'existing', expectedUpdatedAt: '2026-11-02T00:00:00Z' }),
+    }));
+    expect(res.status).toBe(409);
+    expect(await res.json()).toEqual({ success: false, error: 'WEEKLY_MENU_CONFLICT' });
   });
 });

@@ -520,7 +520,7 @@ async function recognizeHaircutSessionReceivable(
   const recognitionDate = toDateOnly(session.completed_date ?? session.created_at, 'completed_date');
   const description = readRequiredString(payload, 'description');
   const financeReceivable = new SemanticReceivableChargeService(
-    new SupabaseReceivableChargeGateway(supabase),
+    new SupabaseReceivableChargeGateway(supabase, 'service_role'),
   );
 
   await financeReceivable.recognizeServiceReceivable({
@@ -573,7 +573,7 @@ async function recognizeBeautySessionReceivable(
   const description = readRequiredString(payload, 'description');
   const performerId = readOptionalString(payload, 'performerId') ?? readOptionalString(payload, 'ktvId') ?? session.actual_performer_id;
   const financeReceivable = new SemanticReceivableChargeService(
-    new SupabaseReceivableChargeGateway(supabase),
+    new SupabaseReceivableChargeGateway(supabase, 'service_role'),
   );
 
   await financeReceivable.recognizeServiceReceivable({

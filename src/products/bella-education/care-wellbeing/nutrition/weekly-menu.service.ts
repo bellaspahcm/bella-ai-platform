@@ -10,6 +10,7 @@
  */
 
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { persistWeeklyMenu } from './weekly-menu.persistence';
 import type {
   PreschoolWeeklyMenuDTO,
   PreschoolWeeklyMenuDayDTO,
@@ -102,12 +103,6 @@ function formatDateToVn(dateStr: string): string {
   return `${String(dateObj.getDate()).padStart(2, '0')}/${String(dateObj.getMonth() + 1).padStart(2, '0')}/${dateObj.getFullYear()}`;
 }
 
-function deriveSummaryDishes(meals: readonly PreschoolWeeklyMenuMealItemDTO[]): string {
-  const allDishes = meals.flatMap((m) => m.dishes || []).filter((d) => typeof d === 'string' && d.trim().length > 0);
-  if (allDishes.length === 0) return 'Thực đơn tiêu chuẩn trường';
-  return allDishes.slice(0, 4).join(', ');
-}
-
 export class WeeklyMenuService {
   constructor(private readonly supabase: SupabaseClient) {}
 
@@ -148,7 +143,8 @@ export class WeeklyMenuService {
 
       const { data, error } = await query.maybeSingle();
 
-      if (error || !data) {
+      if (error) throw new Error('WEEKLY_MENU_READ_FAILED');
+      if (!data) {
         return null;
       }
 
@@ -173,6 +169,7 @@ export class WeeklyMenuService {
 
       return {
         menuId: menuRow.id,
+        updatedAt: menuRow.updated_at,
         weekNumber: menuRow.week_number,
         year: menuRow.year,
         startDate: menuRow.start_date,
@@ -186,7 +183,7 @@ export class WeeklyMenuService {
       };
     } catch (err) {
       console.warn('[WeeklyMenuService] Failed to load weekly menu:', err);
-      return null;
+      throw err;
     }
   }
 
@@ -219,7 +216,8 @@ export class WeeklyMenuService {
       }
 
       const { data, error } = await query;
-      if (error || !data) {
+      if (error) throw new Error('WEEKLY_MENU_LIST_FAILED');
+      if (!data) {
         return [];
       }
 
@@ -248,7 +246,7 @@ export class WeeklyMenuService {
       }));
     } catch (err) {
       console.warn('[WeeklyMenuService] Failed to list weekly menus:', err);
-      return [];
+      throw err;
     }
   }
 
@@ -278,150 +276,16 @@ export class WeeklyMenuService {
       return { success: false, menuId: '', error: 'DAYS_REQUIRED' };
     }
 
-    const ageGroup = input.ageGroup || 'ALL';
-    const academicYear = input.academicYear || '2026-2027';
+    if (input.menuId && !input.expectedUpdatedAt) {
+      return { success: false, menuId: '', error: 'WEEKLY_MENU_VERSION_REQUIRED' };
+    }
 
     try {
-      // 2. Upsert Master Weekly Menu Record
-      // Check existing by id OR by (tenant_id, year, week_number, age_group)
-      let menuId = input.menuId?.trim();
-      let isNew = false;
-      let previousMaster: Record<string, unknown> | null = null;
-
-      if (!menuId) {
-        const { data: existing } = await this.supabase
-          .from('edu_weekly_menus')
-          .select('*')
-          .eq('tenant_id', tenantId)
-          .eq('year', input.year)
-          .eq('week_number', input.weekNumber)
-          .eq('age_group', ageGroup)
-          .maybeSingle();
-
-        if (existing && typeof existing === 'object' && 'id' in existing && typeof existing.id === 'string') {
-          menuId = existing.id;
-          previousMaster = existing as Record<string, unknown>;
-        }
-      } else {
-        const { data: existing } = await this.supabase
-          .from('edu_weekly_menus')
-          .select('*')
-          .eq('id', menuId)
-          .eq('tenant_id', tenantId)
-          .maybeSingle();
-        if (existing && typeof existing === 'object') {
-          previousMaster = existing as Record<string, unknown>;
-        }
-      }
-
-      const nowIso = new Date().toISOString();
-      const masterPayload = {
-        tenant_id: tenantId,
-        academic_year: academicYear,
-        week_number: input.weekNumber,
-        year: input.year,
-        start_date: input.startDate,
-        end_date: input.endDate,
-        age_group: ageGroup,
-        title: input.title.trim(),
-        status: input.status,
-        notes: input.notes ?? null,
-        updated_at: nowIso,
-        approved_by: input.status === 'PUBLISHED' ? actorId : null,
-      };
-
-      if (menuId) {
-        const { data: updated, error: updateErr } = await this.supabase
-          .from('edu_weekly_menus')
-          .update(masterPayload)
-          .eq('id', menuId)
-          .eq('tenant_id', tenantId)
-          .select('id')
-          .maybeSingle();
-
-        if (updateErr) {
-          return { success: false, menuId: '', error: `UPDATE_FAILED: ${updateErr.message}` };
-        }
-        if (!updated) return { success: false, menuId: '', error: 'MENU_NOT_FOUND' };
-      } else {
-        isNew = true;
-        const { data: inserted, error: insertErr } = await this.supabase
-          .from('edu_weekly_menus')
-          .insert({
-            ...masterPayload,
-            created_by: actorId,
-            created_at: nowIso,
-          })
-          .select('id')
-          .single();
-
-        if (insertErr || !inserted) {
-          return { success: false, menuId: '', error: `INSERT_FAILED: ${insertErr?.message || 'UNKNOWN'}` };
-        }
-        menuId = (inserted as { id: string }).id;
-      }
-
-      // 3. Upsert Granular Daily Breakdown
-      const daysRows = input.days.map((d) => {
-        const summary = d.summaryDishes?.trim() || deriveSummaryDishes(d.mealsPayload);
-        return {
-          tenant_id: tenantId,
-          menu_id: menuId,
-          day_of_week: d.dayOfWeek,
-          menu_date: d.menuDate,
-          summary_dishes: summary,
-          calories_kcal: d.caloriesKcal ?? 680,
-          meals_payload: d.mealsPayload,
-        };
-      });
-
-      // Upsert on unique constraint (tenant_id, menu_id, day_of_week)
-      const { error: daysErr } = await this.supabase
-        .from('edu_weekly_menu_days')
-        .upsert(daysRows, { onConflict: 'tenant_id,menu_id,day_of_week' });
-
-      // F09: Compensating Rollback if daily breakdown fails
-      if (daysErr) {
-        try {
-          if (isNew) {
-            await this.supabase
-              .from('edu_weekly_menus')
-              .delete()
-              .eq('id', menuId)
-              .eq('tenant_id', tenantId);
-          } else if (previousMaster) {
-            await this.supabase
-              .from('edu_weekly_menus')
-              .update(previousMaster)
-              .eq('id', menuId)
-              .eq('tenant_id', tenantId);
-          }
-        } catch (rollbackErr) {
-          console.error('[WeeklyMenuService] Compensating rollback error:', rollbackErr);
-        }
-        return { success: false, menuId, error: `DAYS_UPSERT_FAILED: ${daysErr.message}` };
-      }
-
-      // F09: Clean up omitted days so stale meal items don't leak into updated menu
-      const validDays = input.days.map((d) => d.dayOfWeek);
-      if (validDays.length > 0) {
-        try {
-          const deleteQuery = this.supabase
-            .from('edu_weekly_menu_days')
-            .delete()
-            .eq('tenant_id', tenantId)
-            .eq('menu_id', menuId);
-          if (typeof deleteQuery.not === 'function') {
-            await deleteQuery.not('day_of_week', 'in', `(${validDays.map((d) => `'${d}'`).join(',')})`);
-          }
-        } catch {
-          // Non-blocking cleanup
-        }
-      }
-
+      const saved = await persistWeeklyMenu(this.supabase, tenantId, actorId, input);
       return {
         success: true,
-        menuId,
+        menuId: saved.menuId,
+        updatedAt: saved.updatedAt,
         message: input.status === 'PUBLISHED' ? 'Thực đơn tuần đã được ban hành thành công.' : 'Lưu dự thảo thực đơn tuần thành công.',
       };
     } catch (err) {

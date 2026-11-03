@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { CheckCircle2, AlertTriangle, CreditCard, DollarSign, X, Loader2 } from 'lucide-react';
 
 interface AdmissionConfirmModalProps {
@@ -22,9 +22,24 @@ export default function AdmissionConfirmModal({
   enrollmentId,
   onConfirmed,
 }: AdmissionConfirmModalProps) {
-  const [mode, setMode] = useState<'PAID' | 'DEBT'>('PAID');
+  const [mode, setMode] = useState<'PAID' | 'DEBT'>('DEBT');
+  const [paymentMethod, setPaymentMethod] = useState<'CASH' | 'BANK_TRANSFER_MANUAL'>('CASH');
+  const [paymentAmount, setPaymentAmount] = useState('');
+  const [receivedAt, setReceivedAt] = useState('');
+  const [transactionId, setTransactionId] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!isOpen) {
+      setMode('DEBT');
+      setPaymentMethod('CASH');
+      setPaymentAmount('');
+      setReceivedAt('');
+      setTransactionId('');
+      setError(null);
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -32,12 +47,24 @@ export default function AdmissionConfirmModal({
     setSubmitting(true);
     setError(null);
     try {
+      let paymentConfirmation: { method: 'CASH' | 'BANK_TRANSFER_MANUAL'; amount: number; receivedAt: string; transactionId?: string } | undefined;
+      if (mode === 'PAID') {
+        const amount = Number(paymentAmount);
+        const received = new Date(receivedAt);
+        if (!Number.isFinite(amount) || amount <= 0 || !receivedAt || !Number.isFinite(received.getTime())
+            || (paymentMethod === 'BANK_TRANSFER_MANUAL' && !transactionId.trim())) {
+          throw new Error('Vui lòng nhập số tiền, thời điểm nhận và mã giao dịch khi chuyển khoản.');
+        }
+        paymentConfirmation = { method: paymentMethod, amount, receivedAt: received.toISOString(),
+          ...(paymentMethod === 'BANK_TRANSFER_MANUAL' ? { transactionId: transactionId.trim() } : {}) };
+      }
       const res = await fetch('/api/education/enrollments/confirm-admission', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           enrollmentId,
           admissionMode: mode,
+          ...(paymentConfirmation ? { paymentConfirmation } : {}),
         }),
       });
 
@@ -101,12 +128,9 @@ export default function AdmissionConfirmModal({
             <span className="font-bold text-emerald-700 dark:text-emerald-400">{className}</span>
           </div>
           <div className="border-t border-slate-200/60 dark:border-slate-700/60 pt-2 flex justify-between items-center">
-            <span className="text-slate-500">Khoản thu nhập học tiêu chuẩn:</span>
-            <span className="font-black text-slate-900 dark:text-white">5.700.000 đ</span>
+            <span className="text-slate-500">Khoản thu nhập học:</span>
+            <span className="font-semibold text-slate-700 dark:text-slate-300">Chưa có thông tin phí được xác nhận</span>
           </div>
-          <p className="text-[11px] text-slate-400">
-            (Bao gồm: Học phí mầm non 4.500.000 đ + Tiền ăn bán trú 1.200.000 đ)
-          </p>
         </div>
 
         {/* Admission Mode Options */}
@@ -132,7 +156,7 @@ export default function AdmissionConfirmModal({
                 <span className="font-bold text-xs text-slate-900 dark:text-white">Đã nộp học phí</span>
               </div>
               <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
-                Phụ huynh đã thanh toán đủ học phí đầu vào. Tạo hóa đơn <strong>ĐÃ THANH TOÁN</strong>, công nợ = 0.
+                Xác nhận tiền đã nhận bằng chứng từ thu tiền mặt hoặc chuyển khoản.
               </p>
             </button>
 
@@ -153,11 +177,45 @@ export default function AdmissionConfirmModal({
                 <span className="font-bold text-xs text-slate-900 dark:text-white">Nhập học nợ phí</span>
               </div>
               <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
-                Cho phép trẻ vào học trước. Ghi nhận <strong>CÔNG NỢ</strong>, đồng bộ mã VietQR động lên Portal phụ huynh.
+                Ghi nhận khoản phí chưa thanh toán theo cấu hình của trường.
               </p>
             </button>
           </div>
         </div>
+
+        {mode === 'PAID' && (
+          <div className="space-y-3 text-xs">
+            <label className="block font-semibold text-slate-700 dark:text-slate-300">
+              Phương thức thu tiền
+              <select aria-label="Phương thức thu tiền" value={paymentMethod} disabled={submitting}
+                onChange={event => setPaymentMethod(event.target.value === 'BANK_TRANSFER_MANUAL' ? 'BANK_TRANSFER_MANUAL' : 'CASH')}
+                className="mt-1 block w-full rounded-xl border border-slate-300 bg-white p-2 text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-white">
+                <option value="CASH">Tiền mặt</option>
+                <option value="BANK_TRANSFER_MANUAL">Chuyển khoản thủ công</option>
+              </select>
+            </label>
+            <label className="block font-semibold text-slate-700 dark:text-slate-300">
+              Số tiền đã nhận
+              <input aria-label="Số tiền đã nhận" type="number" min="0" step="any" value={paymentAmount} disabled={submitting}
+                onChange={event => setPaymentAmount(event.target.value)}
+                className="mt-1 block w-full rounded-xl border border-slate-300 bg-white p-2 text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-white" />
+            </label>
+            <label className="block font-semibold text-slate-700 dark:text-slate-300">
+              Thời điểm nhận tiền
+              <input aria-label="Thời điểm nhận tiền" type="datetime-local" value={receivedAt} disabled={submitting}
+                onChange={event => setReceivedAt(event.target.value)}
+                className="mt-1 block w-full rounded-xl border border-slate-300 bg-white p-2 text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-white" />
+            </label>
+            {paymentMethod === 'BANK_TRANSFER_MANUAL' && (
+              <label className="block font-semibold text-slate-700 dark:text-slate-300">
+                Mã giao dịch chuyển khoản
+                <input aria-label="Mã giao dịch chuyển khoản" value={transactionId} disabled={submitting}
+                  onChange={event => setTransactionId(event.target.value)}
+                  className="mt-1 block w-full rounded-xl border border-slate-300 bg-white p-2 text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-white" />
+              </label>
+            )}
+          </div>
+        )}
 
         {error && (
           <div className="p-3 rounded-2xl bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 text-xs font-semibold flex items-center gap-2">
