@@ -84,11 +84,11 @@ function isAttendanceRecord(value: unknown, tenantId: string, enrollmentId: stri
 }
 
 /** Only caller-authorized Registry records may supply Student 360 identities. */
-export async function loadStudent360Profile(
+export async function loadStudent360Identity(
   client: SupabaseClient<Database>,
   tenantId: string,
   rawIdentifier: string,
-): Promise<Student360ProfileData | null> {
+): Promise<PreschoolRegistryStudent | null> {
   const identifier = rawIdentifier.trim();
   if (!identifier || identifier.length > 80 || /[\u0000-\u001f\u007f]/.test(identifier)) {
     throw new Student360ReadError('INVALID_STUDENT_ID', 400);
@@ -141,6 +141,15 @@ export async function loadStudent360Profile(
   }
 
   if (!complete) unavailable();
+  return student;
+}
+
+export async function loadStudent360Profile(
+  client: SupabaseClient<Database>,
+  tenantId: string,
+  rawIdentifier: string,
+): Promise<Student360ProfileData | null> {
+  const student = await loadStudent360Identity(client, tenantId, rawIdentifier);
   if (!student) return null;
 
   const attendance = new AttendanceContractImpl(client);

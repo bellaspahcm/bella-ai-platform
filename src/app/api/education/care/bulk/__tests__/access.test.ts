@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 import type { DailyCareRosterItem, IBulkCareResult } from '@/products/bella-education/care-wellbeing/daily-care/daily-care.contract';
 import type { EducationEnrollmentDTO } from '@/platform/education/contracts/enrollment.contract';
+import { AttendanceContractImpl } from '@/platform/education/contracts/attendance.contract.impl';
 
 type Row = Record<string, unknown>;
 interface Profile { id: string; tenant_id: string | null; status: string; role: string; }
@@ -23,16 +24,19 @@ let writes: Array<{ table: string; operation: string; value: Row }>;
 
 class Query {
   private filters: Array<readonly [string, unknown]> = [];
+  private inFilters: Array<readonly [string, readonly unknown[]]> = [];
   private operation = 'read';
   private value: Row = {};
   constructor(private table: string) {}
   select() { return this; }
   eq(key: string, value: unknown) { this.filters.push([key, value]); return this; }
+  in(key: string, values: readonly unknown[]) { this.inFilters.push([key, values]); return this; }
   insert(value: Row) { this.operation = 'insert'; this.value = value; return this; }
   update(value: Row) { this.operation = 'update'; this.value = value; return this; }
   private execute(single: boolean): Result {
     if (errors[this.table]) return { data: null, error: { message: errors[this.table] } };
-    const rows = (tables[this.table] ?? []).filter(row => this.filters.every(([key, value]) => row[key] === value));
+    const rows = (tables[this.table] ?? []).filter(row => this.filters.every(([key, value]) => row[key] === value)
+      && this.inFilters.every(([key, values]) => values.includes(row[key])));
     if (this.operation !== 'read') {
       writes.push({ table: this.table, operation: this.operation, value: this.value });
       if (this.operation === 'insert') {
@@ -225,6 +229,97 @@ describe('Care branch and active enrollment resource boundary', () => {
     expect(response.status).toBe(200); expect(await response.json()).toEqual({ success: true, roster: [{ ...rosterItem, attendance: null, attendanceNote: null }] });
     expect(mockService).toHaveBeenCalledWith(mockClient); expect(mockEnrollmentContract).toHaveBeenCalledWith(mockClient);
     expect(response.headers.get('Cache-Control')).toBe('private, no-store'); expectNoMutation();
+  });
+});
+
+describe('M005 current projection semantics — source characterization only', () => {
+  function state(status: string, id = enrollmentId, relationship: Row | Row[] = { student_party_id: studentId }) {
+    return { id: `state-${id}`, tenant_id: tenantId, school_day: date, enrollment_id: id, status,
+      created_at: `${date}T00:00:00Z`, updated_at: `${date}T00:00:00Z`,
+      'edu_enrollments.course_id': courseId, edu_enrollments: relationship };
+  }
+  function readContract() {
+    mockSave.mockResolvedValue({ data: { tenantId, courseId, schoolDay: date, roster: [{
+      enrollmentId, studentId: otherId, studentPartyId: studentId, studentCode: 'SYNTHETIC',
+      name: rosterItem.name, gender: null, dob: null, enrollmentStatus: 'active',
+    }] }, error: null });
+    return new AttendanceContractImpl(mockClient as never).getCourseDailyAttendance({ tenantId, courseId, schoolDay: date });
+  }
+  function expectOnlyRosterRead() {
+    expect(writes).toEqual([]);
+    expect(mockSave).toHaveBeenCalledTimes(1);
+    expect(mockSave).toHaveBeenCalledWith('edu_preschool_roster_identity', { p_course_id: courseId, p_school_day: date });
+    for (const fn of [mockArrival, mockMeal, mockNap, mockHygiene, mockPrivilegedClient]) expect(fn).not.toHaveBeenCalled();
+  }
+
+  it.each(['present', 'absent', 'excused'])('preserves the current %s projection and null time/note', async status => {
+    tables.edu_attendance_daily_state = [state(status)];
+    const response = await GET(get());
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ success: true, roster: [{
+      ...rosterItem, attendance: { status, rollCallTime: null }, attendanceNote: null,
+    }] });
+    expectNoMutation();
+  });
+
+  it('accepts the current array-shaped enrollment relationship', async () => {
+    tables.edu_attendance_daily_state = [state('present', enrollmentId, [{ student_party_id: studentId }])];
+    const response = await GET(get());
+    expect(response.status).toBe(200);
+    expect((await response.json()).roster[0].attendance).toEqual({ status: 'present', rollCallTime: null });
+    expectNoMutation();
+  });
+
+  it('differs from the contract if another caller-visible enrollment shares the authorized Party', async () => {
+    tables.edu_attendance_daily_state = [state('present'), state('absent', otherId)];
+    const canonical = await readContract();
+    const response = await GET(get());
+    expect(response.status).toBe(200);
+    expect(canonical[0].attendance?.status).toBe('present');
+    expect((await response.json()).roster[0].attendance).toEqual({ status: 'absent', rollCallTime: null });
+    expectOnlyRosterRead();
+  });
+
+  it('reads a later status than the DTO previously consumed by the Care roster', async () => {
+    tables.edu_attendance_daily_state = [state('present')];
+    let previouslyReadStatus: string | undefined;
+    mockRoster.mockImplementationOnce(async () => {
+      const canonical = await readContract();
+      previouslyReadStatus = canonical[0].attendance?.status;
+      tables.edu_attendance_daily_state = [state('absent')];
+      return [rosterItem];
+    });
+    const response = await GET(get());
+    expect(response.status).toBe(200);
+    expect(previouslyReadStatus).toBe('present');
+    expect((await response.json()).roster[0].attendance).toEqual({ status: 'absent', rollCallTime: null });
+    expectOnlyRosterRead();
+  });
+
+  it('retains its separate projection failure code after an authorized roster', async () => {
+    mockRoster.mockImplementationOnce(async () => {
+      await readContract();
+      errors.edu_attendance_daily_state = 'synthetic projection failure after roster read';
+      return [rosterItem];
+    });
+    const response = await GET(get());
+    expect(response.status).toBe(503);
+    expect(await response.json()).toEqual({ success: false, error: 'CARE_DATA_UNAVAILABLE' });
+    expect(mockRoster).toHaveBeenCalledTimes(1);
+    expectOnlyRosterRead();
+  });
+
+  it('maps a contract failure during roster authorization to the existing scope error', async () => {
+    errors.edu_attendance_daily_state = 'synthetic failure in the earlier contract read';
+    mockRoster.mockImplementationOnce(async () => {
+      await readContract();
+      return [rosterItem];
+    });
+    const response = await GET(get());
+    expect(response.status).toBe(503);
+    expect(await response.json()).toEqual({ success: false, error: 'CARE_ENROLLMENT_SCOPE_UNAVAILABLE' });
+    expect(mockEnrollment).not.toHaveBeenCalled();
+    expectOnlyRosterRead();
   });
 });
 

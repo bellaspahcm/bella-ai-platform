@@ -1,0 +1,101 @@
+{
+  "scope": "Real upstream linking helpers, no mocked parser, no Mobile UI/Auth/Device E2E claim",
+  "before": {
+    "core": "7.21.2",
+    "routers": "7.6.0"
+  },
+  "after": {
+    "core": "7.23.0",
+    "routers": "7.6.4"
+  },
+  "isolatedInstalls": "PASS",
+  "checks": [
+    {
+      "input": "/login",
+      "pass": false,
+      "error": "Found conflicting screens with the same pattern. The pattern '' resolves to both '(auth)' and '(app)'. Patterns must be unique and cannot resolve to more than one screen."
+    },
+    {
+      "input": "/home",
+      "pass": false,
+      "error": "Found conflicting screens with the same pattern. The pattern '' resolves to both '(auth)' and '(app)'. Patterns must be unique and cannot resolve to more than one screen."
+    },
+    {
+      "input": "/schedule",
+      "pass": false,
+      "error": "Found conflicting screens with the same pattern. The pattern '' resolves to both '(auth)' and '(app)'. Patterns must be unique and cannot resolve to more than one screen."
+    },
+    {
+      "input": "/profile",
+      "pass": false,
+      "error": "Found conflicting screens with the same pattern. The pattern '' resolves to both '(auth)' and '(app)'. Patterns must be unique and cannot resolve to more than one screen."
+    },
+    {
+      "input": "/home/",
+      "pass": false,
+      "error": "Found conflicting screens with the same pattern. The pattern '' resolves to both '(auth)' and '(app)'. Patterns must be unique and cannot resolve to more than one screen."
+    },
+    {
+      "input": "/schedule?date=2026-11-02",
+      "pass": false,
+      "error": "Found conflicting screens with the same pattern. The pattern '' resolves to both '(auth)' and '(app)'. Patterns must be unique and cannot resolve to more than one screen."
+    },
+    {
+      "input": "/login?returnTo=%2Fhome",
+      "pass": false,
+      "error": "Found conflicting screens with the same pattern. The pattern '' resolves to both '(auth)' and '(app)'. Patterns must be unique and cannot resolve to more than one screen."
+    },
+    {
+      "input": "/profile?name=Ch%C3%A0o%20b%C3%A9",
+      "pass": false,
+      "error": "Found conflicting screens with the same pattern. The pattern '' resolves to both '(auth)' and '(app)'. Patterns must be unique and cannot resolve to more than one screen."
+    },
+    {
+      "input": "/home?space=a+b&plus=a%2Bb",
+      "pass": false,
+      "error": "Found conflicting screens with the same pattern. The pattern '' resolves to both '(auth)' and '(app)'. Patterns must be unique and cannot resolve to more than one screen."
+    },
+    {
+      "input": "/home?empty=&flag",
+      "pass": false,
+      "error": "Found conflicting screens with the same pattern. The pattern '' resolves to both '(auth)' and '(app)'. Patterns must be unique and cannot resolve to more than one screen."
+    },
+    {
+      "input": "/home?tag=one&tag=two",
+      "pass": false,
+      "error": "Found conflicting screens with the same pattern. The pattern '' resolves to both '(auth)' and '(app)'. Patterns must be unique and cannot resolve to more than one screen."
+    },
+    {
+      "input": "/profile?email=synthetic%40example.test",
+      "pass": false,
+      "error": "Found conflicting screens with the same pattern. The pattern '' resolves to both '(auth)' and '(app)'. Patterns must be unique and cannot resolve to more than one screen."
+    },
+    {
+      "input": "/home?next=%2Fprofile%3Fx%3D1",
+      "pass": false,
+      "error": "Found conflicting screens with the same pattern. The pattern '' resolves to both '(auth)' and '(app)'. Patterns must be unique and cannot resolve to more than one screen."
+    },
+    {
+      "input": "/home?hash=x%23y",
+      "pass": false,
+      "error": "Found conflicting screens with the same pattern. The pattern '' resolves to both '(auth)' and '(app)'. Patterns must be unique and cannot resolve to more than one screen."
+    },
+    {
+      "input": "/home?null=null&false=false&zero=0",
+      "pass": false,
+      "error": "Found conflicting screens with the same pattern. The pattern '' resolves to both '(auth)' and '(app)'. Patterns must be unique and cannot resolve to more than one screen."
+    },
+    {
+      "input": "/home?value=%E0%A4%A",
+      "pass": false,
+      "error": "Found conflicting screens with the same pattern. The pattern '' resolves to both '(auth)' and '(app)'. Patterns must be unique and cannot resolve to more than one screen."
+    },
+    {
+      "input": "/unknown",
+      "pass": false,
+      "error": "Found conflicting screens with the same pattern. The pattern '' resolves to both '(auth)' and '(app)'. Patterns must be unique and cannot resolve to more than one screen."
+    }
+  ],
+  "passed": 0,
+  "failed": 17
+}

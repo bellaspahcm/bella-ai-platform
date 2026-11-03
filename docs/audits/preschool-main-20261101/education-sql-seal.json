@@ -1,0 +1,159 @@
+{
+  "capturedAt": "2026-11-01T05:13:24.592Z",
+  "sourceBase": "f1299e3138f3700062a1ed84271db315737b0071",
+  "branch": "codex/preschool-main-technical-20261101",
+  "status": "LOCAL_CLEANUP_VERIFIED_F13_STILL_BLOCK",
+  "scope": {
+    "reviewedEducationSql": 26,
+    "removed": [
+      "M016",
+      "M017"
+    ],
+    "remainingBlocked": 24
+  },
+  "gate": {
+    "status": "BLOCK",
+    "ciExitCode": 1,
+    "recognizedHistoricalDebt": 265,
+    "recognizedApprovedTuples": 7,
+    "rawLegacyMatches": 340,
+    "effectiveLegacyMatches": 333,
+    "newLegacyOccurrences": 68,
+    "newLegacySignatures": 30,
+    "exactBlocked": 88,
+    "unresolved": 20,
+    "policyConfigurationErrors": 0
+  },
+  "verification": {
+    "api": {
+      "suitesPassed": 3,
+      "testsPassed": 57,
+      "testsFailed": 0
+    },
+    "architecture": {
+      "testsPassed": 8,
+      "testsFailed": 2,
+      "failures": [
+        "Bella Education V1 — Static Architecture Guard Law 3: exact resource access stays within bounded debt and approved contract paths",
+        "Bella Education V1 — Static Architecture Guard Law 3: legacy database matches stay within reviewed debt after exact contract dispositions"
+      ]
+    },
+    "focusedTypecheck": "PASS",
+    "diffCheck": "PASS",
+    "f10F12": "SEALED_SOURCE_AND_EVIDENCE_UNCHANGED_NOT_RERUN",
+    "oldWipUnchanged": true,
+    "latestEffectiveSourceUnchanged": true
+  },
+  "sourceFiles": [
+    {
+      "file": "src/app/api/education/courses/route.ts",
+      "sha256": "6fbf445ac7440a5da947b454b39a8d1ceac714fbd602032be2b54fc2bf7b31ce"
+    },
+    {
+      "file": "src/app/api/education/courses/__tests__/route.test.ts",
+      "sha256": "6f84400c3d03f233cbe2359c71416fdff4bc71583bc0c94c24f35605c6ea5181"
+    }
+  ],
+  "artifacts": [
+    {
+      "file": "education-sql-after-jest.json",
+      "sha256": "0aa79119d27fac824d71292853be3ed8750fcc36d67cc60975fef3f4d46f1f0d"
+    },
+    {
+      "file": "education-sql-after-jest.log",
+      "sha256": "987ad75cce563c53b05139a3c5d35e288a7c51438f06e8b2d773f40d4a5fd81a"
+    },
+    {
+      "file": "education-sql-architecture-jest.json",
+      "sha256": "b5bc3a72d4ed5be6dee142647bbae20784688dff363567f1823045e2522c2733"
+    },
+    {
+      "file": "education-sql-architecture-jest.log",
+      "sha256": "046f777ccf7dd77e41f5d50de720eab385aa7634305cf1fc7408a5c4561edaac"
+    },
+    {
+      "file": "education-sql-baseline-typecheck.json",
+      "sha256": "bc5c80fcfcdbe674743534622dcca0b7b5fa4d1e2ccc8abfddad26e95c9f7c8c"
+    },
+    {
+      "file": "education-sql-before-jest.json",
+      "sha256": "0fba45c84a0ac9442129ae2005c894b7bc7b07552082dff435857eb2feedc314"
+    },
+    {
+      "file": "education-sql-before-jest.log",
+      "sha256": "731c3ec906f1345ccf04f534cdeebb71f17f091593218fd4ef2b86a66da113f1"
+    },
+    {
+      "file": "education-sql-before.json",
+      "sha256": "8dec3234337eb294a3c18b18fd4cc0fbc3550f018cc9a996f8757b7b027a303b"
+    },
+    {
+      "file": "education-sql-ci.log",
+      "sha256": "06923e7fbfbfccf6541a56b18a8a1b039a75fe32dc11046eafc2e49367f601a1"
+    },
+    {
+      "file": "education-sql-final-jest.json",
+      "sha256": "ea3da845af1c1efa39c36d290eb1c2ea420bde2fdc19125f53faa262376eacd3"
+    },
+    {
+      "file": "education-sql-final-jest.log",
+      "sha256": "89132ef6095fb858f72688904ec4af04e9549c9e9b45843ea0c0a35756bcb08b"
+    },
+    {
+      "file": "education-sql-gate.json",
+      "sha256": "cb8ab089099bd72bfa851f4e1b99ea256878e56ba927067d4081b5aff1685fee"
+    },
+    {
+      "file": "education-sql-preservation-final.json",
+      "sha256": "ef0c002e920b5f919ceec6b150c1c339398a460605d5eb3399e3ce8aa4615c3a"
+    },
+    {
+      "file": "education-sql-preservation.json",
+      "sha256": "e295028f27601cfe8d290abd1b8ddff84ae830b897eb725ebadc32772468f2f7"
+    },
+    {
+      "file": "education-sql-reconciliation.json",
+      "sha256": "e576a162949505a946beefe1853b314990a5f4ad753d5a053e6330078bca7fd5"
+    },
+    {
+      "file": "education-sql-typecheck-final.json",
+      "sha256": "e2b9e5e7b8234f289996c89a81dd44fd267414c6b75fea5b8ca4f957b293eb50"
+    },
+    {
+      "file": "education-sql-typecheck-final.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "file": "education-sql-typecheck.json",
+      "sha256": "237b68177123a9b0f9b44f21eb49cd3e80502a231c21db058bfa496c83854c2c"
+    },
+    {
+      "file": "education-sql-typecheck.log",
+      "sha256": "e9109b8f9e9fdb8365e9cb2d30b3b11959f66ae755e0b07c02e483504c065e7c"
+    },
+    {
+      "file": "education-sql.patch",
+      "sha256": "fb883df05488364162924d69444ab476a21f4132ed24ad51603ee66438330d07"
+    },
+    {
+      "file": "EDUCATION_SQL_CHANGE_MAP.md",
+      "sha256": "725fb2b1f8af63012527d74c3b41b2855bb6cd75e6a5b746c5106e6385f9d624"
+    }
+  ],
+  "notProven": [
+    "Real Auth/RLS",
+    "Browser E2E",
+    "Production"
+  ],
+  "actionsNotPerformed": [
+    "UI/business/permission changes",
+    "Kernel/public-contract changes",
+    "DB/schema/migration changes",
+    "WIP port",
+    "commit",
+    "push",
+    "merge",
+    "build",
+    "deploy"
+  ]
+}

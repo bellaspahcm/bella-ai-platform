@@ -1,0 +1,7 @@
+
+Test Suites: 12 passed, 12 total
+Tests:       273 passed, 273 total
+Snapshots:   0 total
+Time:        13.479 s
+Ran all test suites within paths "src/app/dashboard/education/care/__tests__/page.test.tsx", "src/products/bella-education/__tests__/preschool-daily-care-canonical.service.test.ts", "src/app/api/education/care/bulk/__tests__/access.test.ts", "src/app/api/education/portal/[token]/care/__tests__/route.test.ts", "src/products/bella-education/__tests__/preschool-parent-portal.service.test.ts", "src/app/portal/education/[token]/__tests__/page.test.tsx", "src/app/api/education/portal/[token]/attendance/__tests__/route.test.ts", "src/app/api/education/portal/[token]/tuition/__tests__/route.test.ts", "src/app/api/education/portal/__tests__/access.test.ts", "src/app/api/education/portal/token/__tests__/access.test.ts", "src/products/bella-education/__tests__/preschool-parent-portal-security.test.ts", "src/app/api/education/parent-daily/__tests__/route.test.ts".
+Test results written to: ..\..\preschool-main-audit-20261101\BELLA SPA ERP\docs\audits\preschool-main-20261101\sealed-release-20261102-jest.json

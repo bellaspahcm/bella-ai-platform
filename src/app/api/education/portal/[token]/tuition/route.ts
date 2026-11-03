@@ -74,8 +74,9 @@ export async function GET(
       );
     }
 
-    const claims = PreschoolParentPortalService.verifyPortalToken(token);
+    PreschoolParentPortalService.verifyPortalToken(token);
     const supabase = await getOperationClient();
+    const claims = await new PreschoolParentPortalService(supabase).authorizePortalToken(token);
 
     // Query real invoices for this student
     const [invoicesResult, tenantResult] = await Promise.all([

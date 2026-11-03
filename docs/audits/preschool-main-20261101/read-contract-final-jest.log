@@ -1,0 +1,7 @@
+
+Test Suites: 2 passed, 2 total
+Tests:       17 passed, 17 total
+Snapshots:   0 total
+Time:        1.688 s
+Ran all test suites within paths "src/app/api/education/enrollments/[id]/development/__tests__/route.test.ts", "src/app/api/education/enrollments/[id]/finance-summary/__tests__/route.test.ts".
+Test results written to: docs\audits\preschool-main-20261101\read-contract-final-jest.json

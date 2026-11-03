@@ -1,0 +1,826 @@
+diff --git a/scripts/ci-run-education-architecture.mjs b/scripts/ci-run-education-architecture.mjs
+index b55f50cd7..33212b590 100644
+--- a/scripts/ci-run-education-architecture.mjs
++++ b/scripts/ci-run-education-architecture.mjs
+@@ -1,17 +1,20 @@
+-import { existsSync, readFileSync } from 'node:fs';
++import { existsSync, readFileSync, realpathSync } from 'node:fs';
+ import { readdir, readFile } from 'node:fs/promises';
+ import path from 'node:path';
++import { pathToFileURL } from 'node:url';
++import ts from 'typescript';
+ 
+ const baselinePath =
+   process.env.CI_EDUCATION_ARCHITECTURE_BASELINES ||
+   '.github/ci/education-architecture-baselines.json';
+ const root = path.resolve('src/products/bella-education');
++const sourceRoots = [root, path.resolve('src/app/api/education'), path.resolve('src/app/dashboard/education')];
+ 
+ function normalizePath(filePath) {
+   return filePath.replace(/\\/g, '/').replace(/^\.\//, '');
+ }
+ 
+-async function getAllTsFiles(dir) {
++export async function getAllTsFiles(dir) {
+   const results = [];
+   if (!existsSync(dir)) return results;
+ 
+@@ -20,7 +23,7 @@ async function getAllTsFiles(dir) {
+     if (entry.isDirectory()) {
+       if (filePath.includes('__tests__') || filePath.includes('node_modules')) continue;
+       results.push(...await getAllTsFiles(filePath));
+-    } else if (entry.name.endsWith('.ts') && !entry.name.endsWith('.d.ts')) {
++    } else if (/\.tsx?$/.test(entry.name) && !entry.name.endsWith('.d.ts')) {
+       results.push(filePath);
+     }
+   }
+@@ -45,7 +48,7 @@ function normalizeViolationCounts(counts) {
+   return normalized;
+ }
+ 
+-function compareBaseline(baseline, current) {
++export function compareBaseline(baseline, current) {
+   const stableBaseline = normalizeViolationCounts(baseline);
+   const stableCurrent = normalizeViolationCounts(current);
+   const added = [];
+@@ -76,41 +79,25 @@ function compareBaseline(baseline, current) {
+   };
+ }
+ 
+-async function scanViolations() {
+-  const files = await getAllTsFiles(root);
++export async function scanViolations(roots = sourceRoots, relativeRoot = root) {
++  const files = (await Promise.all(roots.map(getAllTsFiles))).flat();
+   const violations = {
+     directDatabaseAccess: {},
+     internalKernelImports: {},
+     crossVerticalLeakage: {},
++    explicitAny: {},
+   };
+ 
+   for (const file of files) {
+     const content = await readFile(file, 'utf8');
+     const lines = content.split('\n');
+-    const relativeFile = normalizePath(path.relative(root, file));
++    const relativeFile = normalizePath(path.relative(relativeRoot, file));
+ 
+     lines.forEach((line, index) => {
+       const trimmed = line.trim();
+       if (trimmed.startsWith('//') || trimmed.startsWith('*')) return;
+ 
+       const lineNumber = index + 1;
+-      const tablePattern = /\.from\s*\(\s*['"`](edu_|students|assessment_|attendance_|journal_)/;
+-      const tableMatch = line.match(tablePattern);
+-      if (tableMatch) {
+-        addCount(
+-          violations.directDatabaseAccess,
+-          `${relativeFile}:L${lineNumber} - Direct database query targeting '${tableMatch[0]}' is prohibited in the Product layer.`
+-        );
+-      }
+-
+-      const rpcPattern = /\.rpc\s*\(\s*['"`]/;
+-      if (rpcPattern.test(line)) {
+-        addCount(
+-          violations.directDatabaseAccess,
+-          `${relativeFile}:L${lineNumber} - Direct RPC database execution is prohibited in the Product layer.`
+-        );
+-      }
+-
+       const internalKernelPattern =
+         /import\s+.*\s+from\s+['"].*(platform\/(education|accounting)\/(engines|repositories|domain))\b/;
+       if (internalKernelPattern.test(line)) {
+@@ -129,11 +116,207 @@ async function scanViolations() {
+         );
+       }
+     });
++
++    for (const access of collectDatabaseAccesses(file, content, relativeRoot)) {
++      if (!access.legacyMatch) continue;
++      const message = access.method === 'rpc'
++        ? 'Direct RPC database execution is prohibited in the Product layer.'
++        : `Direct database query targeting '${access.legacyMatch}' is prohibited in the Product layer.`;
++      addCount(violations.directDatabaseAccess, `${relativeFile}:L${access.line} - ${message}`);
++    }
++
++    const source = ts.createSourceFile(file, content, ts.ScriptTarget.Latest, true);
++    const visit = (node) => {
++      if (node.kind === ts.SyntaxKind.AnyKeyword) {
++        const lineNumber = source.getLineAndCharacterOfPosition(node.getStart(source)).line + 1;
++        addCount(violations.explicitAny,
++          `${relativeFile}:L${lineNumber} - Explicit any type is prohibited.`);
++      }
++      ts.forEachChild(node, visit);
++    };
++    visit(source);
+   }
+ 
+   return violations;
+ }
+ 
++function memberName(expression) {
++  if (ts.isPropertyAccessExpression(expression)) return expression.name.text;
++  if (ts.isElementAccessExpression(expression) && expression.argumentExpression
++    && (ts.isStringLiteral(expression.argumentExpression) || ts.isNoSubstitutionTemplateLiteral(expression.argumentExpression))) {
++    return expression.argumentExpression.text;
++  }
++  return null;
++}
++
++function databaseOperation(call, method) {
++  if (method === 'rpc') return 'execute';
++  const operations = [];
++  let current = call;
++  while (current.parent) {
++    const parent = current.parent;
++    if (ts.isParenthesizedExpression(parent) || ts.isAsExpression(parent)
++      || ts.isTypeAssertionExpression(parent) || ts.isNonNullExpression(parent)) {
++      current = parent;
++    } else if ((ts.isPropertyAccessExpression(parent) || ts.isElementAccessExpression(parent))
++      && parent.expression === current && ts.isCallExpression(parent.parent)
++      && parent.parent.expression === parent) {
++      const name = memberName(parent);
++      if (['select', 'insert', 'update', 'upsert', 'delete'].includes(name)) operations.push(name);
++      current = parent.parent;
++    } else break;
++  }
++  const writes = operations.filter(name => name !== 'select');
++  if (writes.length > 1) return null;
++  return writes[0] ?? (operations.includes('select') ? 'select' : null);
++}
++
++function callerScope(node, source) {
++  const scopes = [];
++  for (let current = node.parent; current; current = current.parent) {
++    if (ts.isFunctionLike(current) && current.body) {
++      let name = current.name?.getText(source);
++      if (!name && (ts.isVariableDeclaration(current.parent) || ts.isPropertyAssignment(current.parent)
++        || ts.isPropertyDeclaration(current.parent))) name = current.parent.name.getText(source);
++      scopes.unshift(name ?? '<callback>');
++    } else if ((ts.isClassDeclaration(current) || ts.isClassExpression(current)) && current.name) {
++      scopes.unshift(current.name.text);
++    }
++  }
++  return scopes.length ? scopes.join('/') : '<module>';
++}
++
++function explicitSchema(expression) {
++  let current = expression;
++  while (current) {
++    if (ts.isParenthesizedExpression(current) || ts.isAsExpression(current)
++      || ts.isTypeAssertionExpression(current) || ts.isNonNullExpression(current)) {
++      current = current.expression;
++    } else if (ts.isCallExpression(current)
++      && (ts.isPropertyAccessExpression(current.expression) || ts.isElementAccessExpression(current.expression))) {
++      if (memberName(current.expression) === 'schema') {
++        const value = current.arguments[0];
++        return value && (ts.isStringLiteral(value) || ts.isNoSubstitutionTemplateLiteral(value)) ? value.text : null;
++      }
++      current = current.expression.expression;
++    } else break;
++  }
++  // The configured client's default is not asserted to be public.
++  return '<client-default>';
++}
++
++// Syntactic inventory, not proof of ownership/permission. The resource check
++// below never turns the historical prefix baseline into exact exceptions.
++export async function scanDatabaseAccesses(roots = sourceRoots, repositoryRoot = process.cwd()) {
++  const files = (await Promise.all(roots.map(getAllTsFiles))).flat();
++  const accesses = [];
++  for (const file of files) {
++    const content = await readFile(file, 'utf8');
++    accesses.push(...collectDatabaseAccesses(file, content, repositoryRoot));
++  }
++  return accesses.sort((a, b) => a.file.localeCompare(b.file) || a.line - b.line || a.column - b.column);
++}
++
++function collectDatabaseAccesses(file, content, repositoryRoot) {
++    const accesses = [];
++    const source = ts.createSourceFile(file, content, ts.ScriptTarget.Latest, true);
++    if (source.parseDiagnostics.length) throw new Error(`Cannot parse Education source: ${file}`);
++    const shadowedConversions = new Set();
++    const findBindings = node => {
++      if ((ts.isVariableDeclaration(node) || ts.isParameter(node) || ts.isFunctionDeclaration(node)
++        || ts.isClassDeclaration(node) || ts.isImportSpecifier(node) || ts.isImportClause(node)
++        || ts.isNamespaceImport(node) || ts.isBindingElement(node))
++        && node.name && ts.isIdentifier(node.name)) shadowedConversions.add(node.name.text);
++      if (ts.isBinaryExpression(node) && node.operatorToken.kind === ts.SyntaxKind.EqualsToken
++        && ts.isIdentifier(node.left)) shadowedConversions.add(node.left.text);
++      ts.forEachChild(node, findBindings);
++    };
++    findBindings(source);
++    const recordMember = (expression, node, argument, form) => {
++      const method = memberName(expression);
++      const receiver = expression.expression.getText(source);
++      const conversion = method === 'from' && (receiver === 'Array' || receiver === 'Buffer')
++        && !shadowedConversions.has(receiver);
++      if (conversion) return;
++      const literal = form === 'call' && method && argument
++        && (ts.isStringLiteral(argument) || ts.isNoSubstitutionTemplateLiteral(argument));
++      const member = ts.isPropertyAccessExpression(expression) ? expression.name : expression.argumentExpression;
++      const position = source.getLineAndCharacterOfPosition(member.getStart(source));
++      // Retain old count/signature spelling only for real executable AST calls.
++      // Never scan string examples or comment text to manufacture legacy debt.
++      const tail = source.text.slice(member.getStart(source) - 1, node.end);
++      const pattern = method === 'rpc' ? /^\.rpc\s*\(\s*['"`]/
++        : /^\.from\s*\(\s*['"`](edu_|students|assessment_|attendance_|journal_)/;
++      const legacyMatch = literal && ts.isPropertyAccessExpression(expression) ? tail.match(pattern)?.[0] ?? null : null;
++      accesses.push({
++        file: normalizePath(path.relative(repositoryRoot, file)),
++        line: position.line + 1, column: position.character + 1,
++        method: method ?? '<computed>', form,
++        operation: form === 'call' && method ? databaseOperation(node, method) : null,
++        caller: callerScope(node, source), schema: explicitSchema(expression.expression), receiver,
++        target: literal ? argument.text : null,
++        targetExpression: argument?.getText(source) ?? expression.getText(source), legacyMatch,
++      });
++    };
++    const visit = (node) => {
++      if (ts.isCallExpression(node)
++        && (ts.isPropertyAccessExpression(node.expression) || ts.isElementAccessExpression(node.expression))) {
++        const method = memberName(node.expression);
++        if (method === 'from' || method === 'rpc' || method === null) {
++          recordMember(node.expression, node, node.arguments[0], method === null ? 'computed' : 'call');
++        }
++      } else if ((ts.isPropertyAccessExpression(node) || ts.isElementAccessExpression(node))
++        && !(ts.isCallExpression(node.parent) && node.parent.expression === node)
++        && ['from', 'rpc'].includes(memberName(node))) {
++        // Extracted/bound/call/apply methods must not disappear into aliases.
++        recordMember(node, node, null, 'reference');
++      } else if (ts.isBindingElement(node) && ts.isObjectBindingPattern(node.parent)) {
++        const property = node.propertyName ?? node.name;
++        const name = ts.isIdentifier(property) || ts.isStringLiteral(property) ? property.text : null;
++        if (name === 'from' || name === 'rpc' || ts.isComputedPropertyName(property)) {
++          const position = source.getLineAndCharacterOfPosition(property.getStart(source));
++          accesses.push({ file: normalizePath(path.relative(repositoryRoot, file)),
++            line: position.line + 1, column: position.character + 1,
++            method: name ?? '<computed>', form: 'binding', operation: null,
++            caller: callerScope(node, source), schema: null, receiver: '<binding>',
++            target: null, targetExpression: property.getText(source), legacyMatch: null });
++        }
++      }
++      ts.forEachChild(node, visit);
++    };
++    visit(source);
++    return accesses;
++}
++
++export function resourceAccessSignature(access) {
++  // JSON avoids ambiguous separators; no line-number normalization is applied
++  // inside paths or literal resource names. Returning SELECT after a mutation
++  // is identified by its write operation, not read permission.
++  return `resource:${JSON.stringify([normalizePath(access.file), access.caller ?? null, access.method, access.schema ?? null, access.target, access.operation])}`;
++}
++
++export function compareResourceAccesses(approved, accesses) {
++  const relevant = accesses.filter(access => access.method === 'rpc' || !access.target
++    || /^(edu_|students$|assessment_|attendance_|journal_)/.test(access.target));
++  const current = {};
++  for (const access of relevant) addCount(current, resourceAccessSignature(access));
++  const exact = Object.fromEntries(Object.entries(approved).filter(([key]) => key.startsWith('resource:')));
++  const invalidReviewedCounts = Object.entries(exact).filter(([, count]) => !Number.isSafeInteger(count) || count < 1);
++  const added = [];
++  for (const [signature, count] of Object.entries(current).sort()) {
++    const reviewedCount = Number.isSafeInteger(exact[signature]) && exact[signature] > 0 ? exact[signature] : 0;
++    if (count > reviewedCount) added.push({ signature, baselineCount: reviewedCount, currentCount: count, delta: count - reviewedCount });
++  }
++  const unresolved = relevant.filter(access => !access.target || !access.operation || !access.caller || !access.schema);
++  return {
++    status: added.length || unresolved.length || invalidReviewedCounts.length ? 'BLOCK' : 'ALLOW',
++    legacyBaselineTotal: Object.entries(approved).filter(([key]) => !key.startsWith('resource:'))
++      .reduce((sum, [, count]) => sum + count, 0),
++    exactBaselineTotal: Object.values(exact).filter(count => Number.isSafeInteger(count) && count > 0).reduce((sum, count) => sum + count, 0),
++    currentTotal: relevant.length, added, unresolved, invalidReviewedCounts,
++  };
++}
++
+ function loadBaselines() {
+   try {
+     return JSON.parse(readFileSync(baselinePath, 'utf8'));
+@@ -165,26 +348,41 @@ function printComparison(name, comparison) {
+   }
+ }
+ 
+-const current = await scanViolations();
+-const baselines = loadBaselines();
+-const categories = [
+-  ['directDatabaseAccess', 'Education direct database access'],
+-  ['internalKernelImports', 'Education internal kernel import'],
+-  ['crossVerticalLeakage', 'Education cross-vertical leakage'],
+-];
+-
+-let blocked = false;
+-for (const [key, label] of categories) {
+-  const comparison = compareBaseline(baselines[key]?.violations ?? {}, current[key]);
+-  printComparison(label, comparison);
+-  if (comparison.status === 'BLOCK') {
+-    blocked = true;
++export async function runArchitectureGuard() {
++  const current = await scanViolations();
++  const baselines = loadBaselines();
++  const inventory = await scanDatabaseAccesses();
++  const resources = compareResourceAccesses(baselines.directDatabaseAccess?.violations ?? {}, inventory);
++  const categories = [
++    ['internalKernelImports', 'Education internal kernel import'],
++    ['crossVerticalLeakage', 'Education cross-vertical leakage'],
++    ['explicitAny', 'Education explicit any'],
++  ];
++
++  // Keep the original 265-count comparison visible as historical diagnostics.
++  // It cannot grant resource-level approval: its signatures omit the target.
++  const legacyDatabase = compareBaseline(baselines.directDatabaseAccess?.violations ?? {}, current.directDatabaseAccess);
++  printComparison('Education legacy database matches', legacyDatabase);
++  console.log(`Education exact-resource baseline: ${resources.exactBaselineTotal}; historical prefix baseline: ${resources.legacyBaselineTotal}`);
++  console.log(`Education exact-resource candidates: ${resources.currentTotal}; unresolved: ${resources.unresolved.length}`);
++  for (const item of resources.added.slice(0, 10)) console.error(`Unreviewed resource +${item.delta} ${item.signature}`);
++  let blocked = resources.status === 'BLOCK' || legacyDatabase.status === 'BLOCK';
++  for (const [key, label] of categories) {
++    const comparison = compareBaseline(baselines[key]?.violations ?? {}, current[key]);
++    printComparison(label, comparison);
++    if (comparison.status === 'BLOCK') {
++      blocked = true;
++    }
+   }
+-}
+ 
+-if (blocked) {
+-  console.error('Education architecture baseline policy: BLOCK');
+-  process.exit(1);
++  if (blocked) {
++    console.error('Education architecture baseline policy: BLOCK');
++    return 1;
++  }
++  console.log('Education architecture baseline policy: ALLOW');
++  return 0;
+ }
+ 
+-console.log('Education architecture baseline policy: ALLOW');
++if (process.argv[1] && pathToFileURL(realpathSync(process.argv[1])).href === import.meta.url) {
++  process.exitCode = await runArchitectureGuard();
++}
+diff --git a/scripts/test-ci-education-architecture.mjs b/scripts/test-ci-education-architecture.mjs
+index 8b920365e..52919dfd0 100644
+--- a/scripts/test-ci-education-architecture.mjs
++++ b/scripts/test-ci-education-architecture.mjs
+@@ -1,28 +1,11 @@
+ import assert from 'node:assert/strict';
+-
+-function compareBaseline(baseline, current) {
+-  const added = [];
+-  const reduced = [];
+-  const signatures = new Set([...Object.keys(baseline), ...Object.keys(current)]);
+-
+-  for (const signature of [...signatures].sort()) {
+-    const baselineCount = baseline[signature] ?? 0;
+-    const currentCount = current[signature] ?? 0;
+-    const delta = currentCount - baselineCount;
+-
+-    if (delta > 0) {
+-      added.push({ signature, baselineCount, currentCount, delta });
+-    } else if (delta < 0) {
+-      reduced.push({ signature, baselineCount, currentCount, delta });
+-    }
+-  }
+-
+-  return {
+-    status: added.length > 0 ? 'BLOCK' : 'ALLOW',
+-    added,
+-    reduced,
+-  };
+-}
++import { mkdtemp, mkdir, writeFile, rm } from 'node:fs/promises';
++import os from 'node:os';
++import path from 'node:path';
++import test from 'node:test';
++import { spawnSync } from 'node:child_process';
++import { fileURLToPath } from 'node:url';
++import { compareBaseline, getAllTsFiles, scanViolations, scanDatabaseAccesses, compareResourceAccesses, resourceAccessSignature } from './ci-run-education-architecture.mjs';
+ 
+ const reviewed = {
+   "scheduling/repositories/preschool-scheduling.repository.ts:L42 - Direct database query targeting '.from('edu_' is prohibited in the Product layer.": 1,
+@@ -46,3 +29,252 @@ const reduced = compareBaseline(reviewed, {});
+ assert.equal(reduced.status, 'ALLOW');
+ assert.equal(reduced.reduced.length, 1);
+ console.log('PASS EDUCATION ARCH DEBT REDUCTION = ALLOW');
++
++test('line movement is allowed but increasing an existing signature count blocks', () => {
++  const signature = Object.keys(reviewed)[0];
++  const movedSignature = signature.replace(':L42', ':L90');
++  assert.equal(compareBaseline(reviewed, { [movedSignature]: 1 }).status, 'ALLOW');
++  const comparison = compareBaseline(reviewed, { [movedSignature]: 2 });
++  assert.equal(comparison.status, 'BLOCK');
++  assert.equal(comparison.added[0].delta, 1);
++});
++
++async function fixture(t, files) {
++  const fixtureRoot = await mkdtemp(path.join(os.tmpdir(), 'bella-education-guard-'));
++  t.after(async () => {
++    const resolved = path.resolve(fixtureRoot);
++    if (path.dirname(resolved) !== path.resolve(os.tmpdir())
++      || !path.basename(resolved).startsWith('bella-education-guard-')) {
++      throw new Error('Unexpected fixture cleanup path');
++    }
++    await rm(resolved, { recursive: true, force: true });
++  });
++  for (const [name, content] of Object.entries(files)) {
++    const file = path.join(fixtureRoot, name);
++    await mkdir(path.dirname(file), { recursive: true });
++    await writeFile(file, content);
++  }
++  return fixtureRoot;
++}
++
++test('the real scanner covers Product TSX, API, UI, and repeated calls on one line', async t => {
++  const root = await fixture(t, {
++    'product/read.ts': "client.from('edu_courses');",
++    'product/panel.tsx': 'type Event<T = any> = { payload: T }; const view = <div/>;',
++    'api/route.ts': "import { Student } from '@/platform/education/domain/student'; client.from('students');",
++    'api/route.tsx': "client.rpc('read_students');",
++    'ui/page.tsx': "import { Patient } from '@/products/bella-medical/patient'; client.from('students'); client.from('students'); const view = <div/>;",
++    'product/__tests__/ignored.tsx': "client.rpc('ignored');",
++    'product/ignored.d.ts': 'type Ignored = any;',
++  });
++  const roots = ['product', 'api', 'ui'].map(name => path.join(root, name));
++  const files = (await Promise.all(roots.map(getAllTsFiles))).flat();
++  assert.equal(files.length, 5);
++  const result = await scanViolations(roots);
++  assert.equal(Object.values(result.directDatabaseAccess).reduce((sum, count) => sum + count, 0), 5);
++  assert.ok(Object.keys(result.directDatabaseAccess).some(key => key.includes('route.tsx')));
++  assert.ok(Object.values(result.directDatabaseAccess).includes(2));
++  assert.equal(Object.keys(result.internalKernelImports).length, 1);
++  assert.equal(Object.keys(result.crossVerticalLeakage).length, 1);
++  assert.equal(Object.keys(result.explicitAny).length, 1);
++});
++
++test('public contracts, unknown, comments, and literal any text remain allowed', async t => {
++  const root = await fixture(t, {
++    'page.tsx': "import type { StudentDTO } from '@/platform/education/contracts/student.contract'; const value: unknown = 'any'; // any\nconst view = <div>any</div>;",
++  });
++  const result = await scanViolations([root]);
++  for (const category of Object.values(result)) assert.deepEqual(category, {});
++});
++
++test('resource inventory separates mixed ownership without approving a baseline exception', async t => {
++  const root = await fixture(t, {
++    'route.tsx': [
++      "client.from('edu_courses'); client.from('edu_fin_invoices');",
++      'client.rpc(\n  `preschool_save_care_records`\n);',
++      "client.from(tableName); client.rpc(`command_${suffix}`);",
++      "// client.from('edu_comment_only');",
++      'const example = "client.rpc(\'string_only\')";',
++      "/* client.from('edu_block_comment'); */",
++      'Array.from({ length: 2 }); Buffer.from(payload);',
++    ].join('\n'),
++  });
++  const inventory = await scanDatabaseAccesses([root]);
++  assert.deepEqual(inventory.map(item => [item.method, item.target]), [
++    ['from', 'edu_courses'], ['from', 'edu_fin_invoices'],
++    ['rpc', 'preschool_save_care_records'], ['from', null], ['rpc', null],
++  ]);
++  assert.equal(inventory[2].line, 2);
++  assert.equal(inventory[4].targetExpression, '`command_${suffix}`');
++  const raw = await scanViolations([root]);
++  assert.equal(compareBaseline({}, raw.directDatabaseAccess).status, 'BLOCK');
++});
++
++test('resource enforcement blocks target substitution hidden by the legacy prefix signature', async t => {
++  const root = await fixture(t, { 'route.ts': "client.from('edu_fin_invoices').select('*');" });
++  const before = await scanDatabaseAccesses([root]);
++  const beforeRaw = await scanViolations([root]);
++  const exact = { [resourceAccessSignature(before[0])]: 1 };
++  assert.equal(compareResourceAccesses(exact, before).status, 'ALLOW');
++  await writeFile(path.join(root, 'route.ts'), "client.from('edu_enrollments').select('*');");
++  const after = await scanDatabaseAccesses([root]);
++  const afterRaw = await scanViolations([root]);
++  assert.deepEqual(beforeRaw.directDatabaseAccess, afterRaw.directDatabaseAccess);
++  assert.equal(compareBaseline(beforeRaw.directDatabaseAccess, afterRaw.directDatabaseAccess).status, 'ALLOW');
++  assert.notEqual(before[0].target, after[0].target);
++  assert.equal(compareResourceAccesses(exact, after).status, 'BLOCK');
++  assert.equal(compareResourceAccesses(beforeRaw.directDatabaseAccess, before).status, 'BLOCK');
++});
++
++test('mixed ownership needs separate exact caller/resource/operation counts', async t => {
++  const root = await fixture(t, {
++    'route.ts': "client.from('edu_fin_invoices').select('*'); client.from('edu_enrollments').select('*');",
++  });
++  const accesses = await scanDatabaseAccesses([root]);
++  const approved = { [resourceAccessSignature(accesses[0])]: 1 };
++  assert.equal(compareResourceAccesses(approved, accesses.slice(0, 1)).status, 'ALLOW');
++  const mixed = compareResourceAccesses(approved, accesses);
++  assert.equal(mixed.status, 'BLOCK');
++  assert.equal(mixed.added.length, 1);
++  assert.match(mixed.added[0].signature, /edu_enrollments/);
++  assert.equal(compareResourceAccesses(approved, [accesses[0], accesses[0]]).status, 'BLOCK');
++  assert.equal(compareResourceAccesses(approved, [{ ...accesses[0], file: 'other.ts' }]).status, 'BLOCK');
++  assert.equal(compareResourceAccesses(approved, [{ ...accesses[0], line: 999 }]).status, 'ALLOW');
++});
++
++test('SQL write/returning, bracket calls and multiline literals retain the actual operation', async t => {
++  const root = await fixture(t, {
++    'route.ts': [
++      "client.from('edu_fin_invoices').update({}).eq('id', id).select('id');",
++      "client['from'](\n 'edu_fin_invoices'\n)['delete']().eq('id', id).select('id');",
++      "client.from('edu_fin_invoices').upsert([]).select('id');",
++      "client.from('edu_fin_invoices').insert({}).select('id');",
++      "client['rpc']('preschool_save_care_records', {});",
++    ].join('\n'),
++  });
++  const accesses = await scanDatabaseAccesses([root]);
++  assert.deepEqual(accesses.map(x => x.operation), ['update', 'delete', 'upsert', 'insert', 'execute']);
++  const approvedRead = { [resourceAccessSignature({ ...accesses[0], operation: 'select' })]: 1 };
++  assert.equal(compareResourceAccesses(approvedRead, accesses.slice(0, 1)).status, 'BLOCK');
++});
++
++test('unknown target/operation cannot be approved by a wildcard or even its own unresolved key', async t => {
++  const root = await fixture(t, {
++    'route.ts': "client.from(tableName).select('*'); client.rpc(RPC_NAME); client.from('edu_courses'); client.rpc(`rpc_${name}`);",
++  });
++  const accesses = await scanDatabaseAccesses([root]);
++  const fakeApproval = Object.fromEntries(accesses.map(x => [resourceAccessSignature(x), 1]));
++  const comparison = compareResourceAccesses(fakeApproval, accesses);
++  assert.equal(comparison.status, 'BLOCK');
++  assert.equal(comparison.unresolved.length, 4);
++});
++
++test('malformed source fails closed and shadowed conversion names do not hide client calls', async t => {
++  const root = await fixture(t, { 'route.ts': "const Array = client; Array.from(tableName);" });
++  const accesses = await scanDatabaseAccesses([root]);
++  assert.equal(accesses.length, 1);
++  assert.equal(compareResourceAccesses({}, accesses).status, 'BLOCK');
++  await writeFile(path.join(root, 'route.ts'), 'const broken = ;');
++  await assert.rejects(scanDatabaseAccesses([root]), /Cannot parse Education source/);
++});
++
++test('resource identity preserves literal line-like text and rejects invalid reviewed counts', () => {
++  const access = { file: 'route.ts', caller: 'GET', method: 'rpc', schema: '<client-default>', target: 'command:L10', operation: 'execute' };
++  const key = resourceAccessSignature(access);
++  const approved = { [key]: 1 };
++  assert.equal(compareResourceAccesses(approved, [access]).status, 'ALLOW');
++  assert.equal(compareResourceAccesses(approved, [{ ...access, target: 'command:L20' }]).status, 'BLOCK');
++  for (const value of [0, -1, 1.5, '1', NaN]) {
++    assert.equal(compareResourceAccesses({ [key]: value }, [access]).status, 'BLOCK');
++  }
++});
++
++test('the actual CLI allows contract-only code and blocks a call hidden inside matching legacy debt', async t => {
++  const legacy = "service.ts:L1 - Direct database query targeting '.from('edu_' is prohibited in the Product layer.";
++  const root = await fixture(t, {
++    '.github/ci/education-architecture-baselines.json': JSON.stringify({ directDatabaseAccess: { violations: { [legacy]: 1 } } }),
++    'src/products/bella-education/service.ts': "import type { StudentDTO } from '@/platform/education/contracts/student.contract';",
++  });
++  const command = fileURLToPath(new URL('./ci-run-education-architecture.mjs', import.meta.url));
++  const options = { cwd: root, encoding: 'utf8', env: { ...process.env, CI_EDUCATION_ARCHITECTURE_BASELINES: '.github/ci/education-architecture-baselines.json' } };
++  const allowed = spawnSync(process.execPath, [command], options);
++  assert.equal(allowed.status, 0, allowed.stderr);
++  await writeFile(path.join(root, 'src/products/bella-education/service.ts'), "client.from('edu_fin_invoices').select('*');");
++  const denied = spawnSync(process.execPath, [command], options);
++  assert.equal(denied.status, 1, denied.stderr);
++  assert.match(denied.stdout, /matches reviewed baseline/);
++  assert.match(denied.stderr, /Unreviewed resource/);
++  assert.match(denied.stderr, /baseline policy: BLOCK/);
++  await writeFile(path.join(root, 'src/products/bella-education/service.ts'), 'const invoke = client.rpc.bind(client);');
++  const aliasDenied = spawnSync(process.execPath, [command], options);
++  assert.equal(aliasDenied.status, 1, aliasDenied.stderr);
++  assert.match(aliasDenied.stderr, /Unreviewed resource/);
++  await writeFile(path.join(root, 'src/products/bella-education/service.ts'), 'const example = "client.rpc(\'read_feed\')"; /* client.from(\'edu_courses\') */');
++  const exampleAllowed = spawnSync(process.execPath, [command], options);
++  assert.equal(exampleAllowed.status, 0, exampleAllowed.stderr);
++});
++
++test('a multiline receiver keeps the member location used by frozen occurrence evidence', async t => {
++  const root = await fixture(t, { 'route.ts': "const result = client\n  .from(\n    'edu_courses'\n  ).select('*');" });
++  const [access] = await scanDatabaseAccesses([root]);
++  assert.equal(access.line, 2);
++  assert.equal(access.column, 4);
++  assert.equal(access.target, 'edu_courses');
++  assert.equal(access.operation, 'select');
++});
++
++test('same-file handler substitution is a different caller and never inherits an exact exception', async t => {
++  const root = await fixture(t, {
++    'route.ts': "export async function GET() { return client.rpc('read_feed'); }\nexport async function POST() { return client.rpc('read_feed'); }",
++  });
++  const accesses = await scanDatabaseAccesses([root]);
++  assert.deepEqual(accesses.map(x => x.caller), ['GET', 'POST']);
++  const approved = { [resourceAccessSignature(accesses[0])]: 1 };
++  assert.equal(compareResourceAccesses(approved, accesses.slice(0, 1)).status, 'ALLOW');
++  assert.equal(compareResourceAccesses(approved, accesses.slice(1)).status, 'BLOCK');
++});
++
++test('an explicit schema substitution changes resource identity and an unknown schema stays blocked', async t => {
++  const root = await fixture(t, {
++    'route.ts': "client.schema('public').from('edu_courses').select('*'); client.schema('private').from('edu_courses').select('*'); client.schema(SCHEMA).from('edu_courses').select('*');",
++  });
++  const accesses = await scanDatabaseAccesses([root]);
++  assert.deepEqual(accesses.map(x => x.schema), ['public', 'private', null]);
++  const approved = { [resourceAccessSignature(accesses[0])]: 1, [resourceAccessSignature(accesses[2])]: 1 };
++  assert.equal(compareResourceAccesses(approved, accesses.slice(0, 1)).status, 'ALLOW');
++  assert.equal(compareResourceAccesses(approved, accesses.slice(1, 2)).status, 'BLOCK');
++  assert.equal(compareResourceAccesses(approved, accesses.slice(2)).status, 'BLOCK');
++});
++
++test('bound, extracted, destructured and computed member calls remain unresolved and block', async t => {
++  const root = await fixture(t, {
++    'route.ts': [
++      "const bound = client.rpc.bind(client); bound('read_feed');",
++      "const extracted = client.from; extracted('edu_courses');",
++      "const { rpc: invoke } = client; invoke('read_feed');",
++      "client[methodName]('read_feed');",
++      "client['r' + 'pc']('read_feed');",
++      "client.rpc.call(client, 'read_feed');",
++    ].join('\n'),
++  });
++  const accesses = await scanDatabaseAccesses([root]);
++  assert.equal(accesses.length, 6);
++  assert.deepEqual(accesses.map(x => x.form), ['reference', 'reference', 'binding', 'computed', 'computed', 'reference']);
++  const comparison = compareResourceAccesses({}, accesses);
++  assert.equal(comparison.status, 'BLOCK');
++  assert.equal(comparison.unresolved.length, 6);
++});
++
++test('neither database gate treats quoted examples or inline block comments as executable calls', async t => {
++  const root = await fixture(t, {
++    'route.tsx': [
++      'const sqlExample = "client.from(\'edu_courses\')";',
++      'const rpcExample = "client.rpc(\'read_feed\')";',
++      "/* client.rpc('read_feed'); client.from('edu_courses'); */ const view = <div/>;",
++      "const ignored = 1; /* client.from('students') */",
++    ].join('\n'),
++  });
++  const inventory = await scanDatabaseAccesses([root]);
++  assert.deepEqual(inventory, []);
++  assert.deepEqual((await scanViolations([root])).directDatabaseAccess, {});
++});
+diff --git a/src/products/bella-education/__tests__/bella-education-architecture.test.ts b/src/products/bella-education/__tests__/bella-education-architecture.test.ts
+index d3f7bf496..04bddf22d 100644
+--- a/src/products/bella-education/__tests__/bella-education-architecture.test.ts
++++ b/src/products/bella-education/__tests__/bella-education-architecture.test.ts
+@@ -11,9 +11,17 @@
+ 
+ import * as fs from 'fs';
+ import * as path from 'path';
++import ts from 'typescript';
++import { execFileSync } from 'node:child_process';
++import { pathToFileURL } from 'node:url';
+ import { bellaEducationManifest } from '../manifest';
+ 
+ const BELLA_EDUCATION_ROOT = path.resolve(__dirname, '..');
++const EDUCATION_SOURCE_ROOTS = [
++  BELLA_EDUCATION_ROOT,
++  path.resolve(__dirname, '../../../app/api/education'),
++  path.resolve(__dirname, '../../../app/dashboard/education'),
++];
+ 
+ function getAllTsFiles(dir: string): string[] {
+   let results: string[] = [];
+@@ -26,43 +34,74 @@ function getAllTsFiles(dir: string): string[] {
+       if (!filePath.includes('__tests__') && !filePath.includes('node_modules')) {
+         results = results.concat(getAllTsFiles(filePath));
+       }
+-    } else if (file.endsWith('.ts') && !file.endsWith('.d.ts')) {
++    } else if (/\.tsx?$/.test(file) && !file.endsWith('.d.ts')) {
+       results.push(filePath);
+     }
+   });
+   return results;
+ }
+ 
+-describe('Bella Education V1 — Static Architecture Guard', () => {
+-  const sourceFiles = getAllTsFiles(BELLA_EDUCATION_ROOT);
++function findUnapprovedViolations(violations: readonly string[], approved: Record<string, number>): string[] {
++  const normalize = (signature: string) => signature.replace(/\\/g, '/').replace(/:L\d+\b/g, ':L*');
++  const remaining = new Map<string, number>();
++  for (const [signature, count] of Object.entries(approved)) {
++    const stable = normalize(signature);
++    remaining.set(stable, (remaining.get(stable) ?? 0) + count);
++  }
++  return violations.filter(signature => {
++    const stable = normalize(signature);
++    const count = remaining.get(stable) ?? 0;
++    if (count <= 0) return true;
++    remaining.set(stable, count - 1);
++    return false;
++  });
++}
+ 
+-  it('Law 3: Zero Direct Kernel Database Access (edu_*, students, assessment_*, attendance_*, journal_*)', () => {
+-    const violations: string[] = [];
++function explicitAnyViolations(file: string, content: string): string[] {
++  const source = ts.createSourceFile(file, content, ts.ScriptTarget.Latest, true);
++  const violations: string[] = [];
++  const visit = (node: ts.Node): void => {
++    if (node.kind === ts.SyntaxKind.AnyKeyword) {
++      const line = source.getLineAndCharacterOfPosition(node.getStart(source)).line + 1;
++      violations.push(`${path.relative(BELLA_EDUCATION_ROOT, file)}:L${line} - Explicit any type is prohibited.`);
++    }
++    ts.forEachChild(node, visit);
++  };
++  visit(source);
++  return violations;
++}
+ 
+-    sourceFiles.forEach((file) => {
+-      const content = fs.readFileSync(file, 'utf-8');
+-      const lines = content.split('\n');
++type DatabaseScanResult = { resources: { status: 'ALLOW' | 'BLOCK' }; legacy: Record<string, number> };
++let databaseScanResult: DatabaseScanResult | undefined;
++function scanDatabaseControls(): DatabaseScanResult {
++  if (databaseScanResult) return databaseScanResult;
++  const repositoryRoot = path.resolve(__dirname, '../../../..');
++  const scanner = pathToFileURL(path.join(repositoryRoot, 'scripts/ci-run-education-architecture.mjs')).href;
++  const code = [
++    `import { scanViolations, scanDatabaseAccesses, compareResourceAccesses } from ${JSON.stringify(scanner)};`,
++    "import { readFileSync } from 'node:fs';",
++    "const baseline = JSON.parse(readFileSync('.github/ci/education-architecture-baselines.json', 'utf8'));",
++    'const accesses = await scanDatabaseAccesses();',
++    'const legacy = (await scanViolations()).directDatabaseAccess;',
++    'const resources = compareResourceAccesses(baseline.directDatabaseAccess.violations, accesses);',
++    'process.stdout.write(JSON.stringify({ resources, legacy }));',
++  ].join('\n');
++  databaseScanResult = JSON.parse(execFileSync(process.execPath, ['--input-type=module', '-e', code], {
++    cwd: repositoryRoot, encoding: 'utf8', maxBuffer: 4 * 1024 * 1024,
++  })) as DatabaseScanResult;
++  return databaseScanResult;
++}
+ 
+-      lines.forEach((line, index) => {
+-        if (line.trim().startsWith('//') || line.trim().startsWith('*')) return;
++describe('Bella Education V1 — Static Architecture Guard', () => {
++  const sourceFiles = EDUCATION_SOURCE_ROOTS.flatMap(getAllTsFiles);
+ 
+-        // Check for direct table query access to edu_*, students, assessment_*, attendance_*, journal_*
+-        const tablePattern = /\.from\s*\(\s*['"`](edu_|students|assessment_|attendance_|journal_)/;
+-        if (tablePattern.test(line)) {
+-          violations.push(
+-            `${path.relative(BELLA_EDUCATION_ROOT, file)}:L${index + 1} - Direct database query targeting '${line.match(tablePattern)?.[0]}' is prohibited in the Product layer.`
+-          );
+-        }
++  it('Law 3: exact caller, resource and operation require reviewed evidence; prefix debt grants no exception', () => {
++    expect(scanDatabaseControls().resources.status).toBe('ALLOW');
++  });
+ 
+-        // Check for direct RPC database client calls
+-        const rpcPattern = /\.rpc\s*\(\s*['"`]/;
+-        if (rpcPattern.test(line)) {
+-          violations.push(
+-            `${path.relative(BELLA_EDUCATION_ROOT, file)}:L${index + 1} - Direct RPC database execution is prohibited in the Product layer.`
+-          );
+-        }
+-      });
+-    });
++  it('Law 3: Zero Direct Kernel Database Access (edu_*, students, assessment_*, attendance_*, journal_*)', () => {
++    const violations = Object.entries(scanDatabaseControls().legacy)
++      .flatMap(([signature, count]) => Array.from({ length: count }, () => signature));
+ 
+     // Load approved baseline from .github/ci/education-architecture-baselines.json
+     const baselineFile = path.resolve(__dirname, '../../../../.github/ci/education-architecture-baselines.json');
+@@ -76,21 +115,15 @@ describe('Bella Education V1 — Static Architecture Guard', () => {
+       }
+     }
+ 
+-    const normalizeViolationSignature = (sig: string) => sig.replace(/\\/g, '/').replace(/:L\d+\b/g, ':L*');
+-    const stableBaseline: Record<string, number> = {};
+-    for (const [sig, count] of Object.entries(approvedViolations)) {
+-      const stable = normalizeViolationSignature(sig);
+-      stableBaseline[stable] = (stableBaseline[stable] ?? 0) + count;
+-    }
+-
+-    const unapprovedViolations = violations.filter((v) => {
+-      const stable = normalizeViolationSignature(v);
+-      return !(stable in stableBaseline);
+-    });
++    const unapprovedViolations = findUnapprovedViolations(violations, approvedViolations);
+ 
+     expect(unapprovedViolations).toEqual([]);
+   });
+ 
++  it('Strict Typing: Zero Explicit Any Types', () => {
++    expect(sourceFiles.flatMap(file => explicitAnyViolations(file, fs.readFileSync(file, 'utf8')))).toEqual([]);
++  });
++
+   it('Law 3: Zero Internal Kernel Imports (only contracts allowed)', () => {
+     const violations: string[] = [];
+ 
+@@ -145,3 +178,22 @@ describe('Bella Education V1 — Static Architecture Guard', () => {
+     expect(bellaEducationManifest.capabilities).toContain('grade_reporting_command');
+   });
+ });
++
++describe('Education guard regression controls', () => {
++  const approved = { 'service.ts:L10 - Direct RPC': 1 };
++  it('allows line movement and reductions within the reviewed count', () => {
++    expect(findUnapprovedViolations(['service.ts:L50 - Direct RPC'], approved)).toEqual([]);
++    expect(findUnapprovedViolations([], approved)).toEqual([]);
++  });
++  it('rejects an extra occurrence of an existing signature', () => {
++    expect(findUnapprovedViolations(['service.ts:L50 - Direct RPC', 'service.ts:L60 - Direct RPC'], approved))
++      .toEqual(['service.ts:L60 - Direct RPC']);
++  });
++  it('rejects a new signature', () => {
++    expect(findUnapprovedViolations(['other.ts:L10 - Direct RPC'], approved)).toHaveLength(1);
++  });
++  it('distinguishes actual any types from comments and strings in TSX', () => {
++    expect(explicitAnyViolations('fixture.tsx', 'const label = "any"; // any\nconst view = <div>any</div>;')).toEqual([]);
++    expect(explicitAnyViolations('fixture.tsx', 'type Event<T = any> = { payload: T };')).toHaveLength(1);
++  });
++});

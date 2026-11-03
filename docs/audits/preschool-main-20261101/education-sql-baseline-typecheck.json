@@ -1,0 +1,100 @@
+{
+  "scope": [
+    "src/app/api/education/courses/route.ts",
+    "src/app/api/education/courses/__tests__/route.test.ts"
+  ],
+  "source": "HEAD for these two files; transitive dependencies unchanged working tree",
+  "diagnostics": [
+    {
+      "code": 2353,
+      "file": "src/app/api/education/courses/__tests__/route.test.ts",
+      "message": "Object literal may only specify known properties, and 'status' does not exist in type '{ id?: string | undefined; tenant_id?: string | null | undefined; role?: string | undefined; }'."
+    },
+    {
+      "code": 2345,
+      "file": "src/app/api/education/courses/__tests__/route.test.ts",
+      "message": "Argument of type '{ filteredTotal: number; nextOffset: null; students: never[]; }' is not assignable to parameter of type 'never'."
+    },
+    {
+      "code": 2345,
+      "file": "src/app/api/education/courses/__tests__/route.test.ts",
+      "message": "Argument of type '{ total: number; nextOffset: null; assignments: never[]; }' is not assignable to parameter of type 'never'."
+    },
+    {
+      "code": 2345,
+      "file": "src/app/api/education/courses/__tests__/route.test.ts",
+      "message": "Argument of type '(table: string) => { select: () => { eq: () => { in: () => Promise<{ data: never[]; error: null; }>; }; }; } | { select: () => { eq: (column: string, value: string) => { order: () => Promise<{ data: never[]; error: null; }>; }; }; }' is not assignable to parameter of type 'UnknownFunction'.\n  Types of parameters 'table' and 'args' are incompatible.\n    Type 'unknown' is not assignable to type 'string'."
+    },
+    {
+      "code": 2345,
+      "file": "src/app/api/education/courses/__tests__/route.test.ts",
+      "message": "Argument of type '(table: string) => { select: () => { eq: (column: string, value: string) => { order: () => Promise<{ data: never[]; error: null; }>; }; }; } | { select: () => { eq: () => { eq: () => { in: () => Promise<{ data: never[]; error: null; }>; }; }; }; }' is not assignable to parameter of type 'UnknownFunction'.\n  Types of parameters 'table' and 'args' are incompatible.\n    Type 'unknown' is not assignable to type 'string'."
+    },
+    {
+      "code": 2353,
+      "file": "src/app/api/education/courses/__tests__/route.test.ts",
+      "message": "Object literal may only specify known properties, and 'status' does not exist in type '{ id?: string | undefined; tenant_id?: string | null | undefined; role?: string | undefined; }'."
+    },
+    {
+      "code": 2554,
+      "file": "src/app/api/education/courses/__tests__/route.test.ts",
+      "message": "Expected 0 arguments, but got 3."
+    },
+    {
+      "code": 2345,
+      "file": "src/app/api/education/courses/__tests__/route.test.ts",
+      "message": "Argument of type '(table: string) => { select: () => { eq: () => { order: () => Promise<{ data: { id: string; course_code: string; title: string; status: string; max_students: number; current_enrollment: number; created_at: string; }[]; error: null; }>; }; }; } | { ...; }' is not assignable to parameter of type 'UnknownFunction'.\n  Types of parameters 'table' and 'args' are incompatible.\n    Type 'unknown' is not assignable to type 'string'."
+    },
+    {
+      "code": 2345,
+      "file": "src/app/api/education/courses/__tests__/route.test.ts",
+      "message": "Argument of type 'PreschoolRegistryError' is not assignable to parameter of type 'never'."
+    },
+    {
+      "code": 2345,
+      "file": "src/app/api/education/courses/__tests__/route.test.ts",
+      "message": "Argument of type '(table: string) => { select: () => { eq: () => { order: () => Promise<{ data: { id: string; course_code: string; title: string; status: string; max_students: null; current_enrollment: number; created_at: string; }[]; error: null; }>; }; }; } | { ...; }' is not assignable to parameter of type 'UnknownFunction'.\n  Types of parameters 'table' and 'args' are incompatible.\n    Type 'unknown' is not assignable to type 'string'."
+    },
+    {
+      "code": 2345,
+      "file": "src/app/api/education/courses/__tests__/route.test.ts",
+      "message": "Argument of type '(table: string) => { select: () => { eq: () => { order: () => Promise<{ data: { id: string; course_code: string; title: string; status: string; max_students: number; current_enrollment: number; created_at: string; }[]; error: null; }>; }; }; } | { ...; }' is not assignable to parameter of type 'UnknownFunction'.\n  Types of parameters 'table' and 'args' are incompatible.\n    Type 'unknown' is not assignable to type 'string'."
+    },
+    {
+      "code": 2345,
+      "file": "src/app/api/education/courses/__tests__/route.test.ts",
+      "message": "Argument of type 'PreschoolTeacherContractError' is not assignable to parameter of type 'never'."
+    },
+    {
+      "code": 2345,
+      "file": "src/app/api/education/courses/__tests__/route.test.ts",
+      "message": "Argument of type '{ filteredTotal: number; nextOffset: null; students: { id: string; tenantId: string; enrollments: { id: string; courseId: string; branchId: string; status: string; }[]; }[]; }' is not assignable to parameter of type 'never'."
+    },
+    {
+      "code": 2345,
+      "file": "src/app/api/education/courses/__tests__/route.test.ts",
+      "message": "Argument of type '{ total: number; nextOffset: null; assignments: { assignmentId: string; tenantId: string; branchId: string; courseId: string; teacherPartyId: string; teacherName: string; role: string; effectiveOnDate: boolean; eligibility: string; }[]; }' is not assignable to parameter of type 'never'."
+    },
+    {
+      "code": 2345,
+      "file": "src/app/api/education/courses/__tests__/route.test.ts",
+      "message": "Argument of type '(table: string) => { select: (columns: string, options?: { count?: string; head?: boolean; }) => { eq: () => { eq: (column: string, value: string) => { in: () => { in: () => Promise<{ count: number; error: null; }>; }; }; }; } | { ...; }; } | { ...; } | { ...; } | { ...; }' is not assignable to parameter of type 'UnknownFunction'.\n  Types of parameters 'table' and 'args' are incompatible.\n    Type 'unknown' is not assignable to type 'string'."
+    },
+    {
+      "code": 2345,
+      "file": "src/app/api/education/courses/__tests__/route.test.ts",
+      "message": "Argument of type '(table: string) => { select: () => { eq: (column: string, value: string) => { eq: () => { in: (enrollmentColumn: string, enrollmentIds: string[]) => Promise<{ data: { enrollment_id: string; status: string; }[]; error: null; }>; }; }; }; }' is not assignable to parameter of type 'UnknownFunction'.\n  Types of parameters 'table' and 'args' are incompatible.\n    Type 'unknown' is not assignable to type 'string'."
+    },
+    {
+      "code": 2345,
+      "file": "src/app/api/education/courses/__tests__/route.test.ts",
+      "message": "Argument of type '(table: string) => { select: () => { eq: () => { order: () => Promise<{ data: { id: string; course_code: string; title: string; status: string; max_students: number; current_enrollment: number; created_at: string; }[]; error: null; }>; }; }; } | { ...; } | { ...; }' is not assignable to parameter of type 'UnknownFunction'.\n  Types of parameters 'table' and 'args' are incompatible.\n    Type 'unknown' is not assignable to type 'string'."
+    },
+    {
+      "code": 2345,
+      "file": "src/app/api/education/courses/__tests__/route.test.ts",
+      "message": "Argument of type '(table: string) => { select: () => { eq: () => { eq: () => { maybeSingle: () => Promise<{ data: null; error: null; }>; }; }; }; insert: () => { select: () => { single: () => Promise<{ data: { course_id: string; tenant_id: string; ... 5 more ...; status: string; }; error: null; }>; }; }; delete: () => { ...; }; } | {...' is not assignable to parameter of type 'UnknownFunction'.\n  Types of parameters 'table' and 'args' are incompatible.\n    Type 'unknown' is not assignable to type 'string'."
+    }
+  ],
+  "exitCode": 1
+}

@@ -137,9 +137,29 @@ describe('Curriculum & Lesson Plan API Route (/api/education/curriculum)', () =>
       expect(json.success).toBe(true);
       expect(json.id).toBe('saved-plan-1');
     });
+
+    it('uses the existing 400 error envelope for a zero-row update', async () => {
+      mockGetUser.mockResolvedValueOnce({ data: { user: { id: actorId } }, error: null } as never);
+      mockGetCurrentUser.mockResolvedValueOnce({ id: actorId, tenant_id: tenantId, role: 'admin' } as never);
+      mockSaveLessonPlan.mockResolvedValueOnce({ success: false, id: '', error: 'RECORD_NOT_FOUND' } as never);
+      const response = await POST(new Request(TEST_BASE_URL, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...validLesson, id: 'missing-plan' }),
+      }));
+      expect(response.status).toBe(400);
+      expect(await response.json()).toEqual({ success: false, error: 'RECORD_NOT_FOUND' });
+      expect(response.headers.get('Cache-Control')).toBe('private, no-store');
+    });
   });
 
   describe('DELETE', () => {
+    it('uses the existing 400 error envelope for a zero-row deletion', async () => {
+      mockGetUser.mockResolvedValueOnce({ data: { user: { id: actorId } }, error: null } as never);
+      mockGetCurrentUser.mockResolvedValueOnce({ id: actorId, tenant_id: tenantId, role: 'admin' } as never);
+      mockDeleteLessonPlan.mockResolvedValueOnce({ success: false, id: 'missing-plan', error: 'RECORD_NOT_FOUND' } as never);
+      const response = await DELETE(new Request(TEST_BASE_URL + '?id=missing-plan', { method: 'DELETE' }));
+      expect(response.status).toBe(400);
+      expect(await response.json()).toEqual({ success: false, error: 'RECORD_NOT_FOUND' });
+    });
     it('returns 200 when deleting lesson plan by id', async () => {
       mockGetUser.mockResolvedValueOnce({ data: { user: { id: actorId } }, error: null } as never);
       mockGetCurrentUser.mockResolvedValueOnce({ id: actorId, tenant_id: tenantId, role: 'admin' } as never);

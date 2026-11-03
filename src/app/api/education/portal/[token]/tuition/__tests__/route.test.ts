@@ -1,5 +1,15 @@
 /** @jest-environment node */
 import { GET } from '../route';
+import { ParentPortalAccessError, PreschoolParentPortalService } from '@/products/bella-education/parent-portal/services/preschool-parent-portal.service';
+
+const mockAuthorizePortalToken = jest.fn();
+const mockDataRead = jest.fn();
+const claims = {
+  tenantId: 'ed100000-0000-0000-0000-000000000001',
+  studentPartyId: 'be938bc0-8815-41b8-8609-e2c05ede085d',
+  guardianPartyId: 'ed100000-0002-0000-0000-000000000001',
+  createdAt: Date.now(), exp: Date.now() + 86_400_000,
+};
 
 jest.mock('@/lib/supabase-admin-env', () => ({
   getSupabaseAdminUrl: () => 'https://mock.supabase.co',
@@ -30,13 +40,15 @@ const mockTenant = {
 };
 
 jest.mock('@/products/bella-education/parent-portal/services/preschool-parent-portal.service', () => ({
-  PreschoolParentPortalService: {
+  PreschoolParentPortalService: Object.assign(jest.fn().mockImplementation(() => ({
+    authorizePortalToken: (token: string) => mockAuthorizePortalToken(token),
+  })), {
     verifyPortalToken: jest.fn().mockReturnValue({
       tenantId: 'ed100000-0000-0000-0000-000000000001',
       studentPartyId: 'be938bc0-8815-41b8-8609-e2c05ede085d',
       guardianPartyId: 'ed100000-0002-0000-0000-000000000001',
     }),
-  },
+  }),
   ParentPortalAccessError: class extends Error {
     constructor(public status: number, public code: string) {
       super(code);
@@ -47,6 +59,7 @@ jest.mock('@/products/bella-education/parent-portal/services/preschool-parent-po
 jest.mock('@supabase/supabase-js', () => ({
   createClient: () => ({
     from: (table: string) => {
+      mockDataRead(table);
       if (table === 'edu_fin_invoices') {
         return {
           select: () => ({
@@ -77,6 +90,12 @@ jest.mock('@supabase/supabase-js', () => ({
 }));
 
 describe('GET /api/education/portal/[token]/tuition', () => {
+  beforeEach(() => {
+    mockAuthorizePortalToken.mockReset().mockResolvedValue(claims);
+    mockDataRead.mockClear();
+    jest.mocked(PreschoolParentPortalService.verifyPortalToken).mockReset().mockReturnValue(claims);
+  });
+
   it('returns tuition invoices and summary for a verified token', async () => {
     const request = new Request('http://localhost/api/education/portal/valid-token/tuition');
     const response = await GET(request, { params: Promise.resolve({ token: 'valid-token' }) });
@@ -108,5 +127,46 @@ describe('GET /api/education/portal/[token]/tuition', () => {
     expect(body.data.invoices[0].settlementStatus).toBe('PAID');
     expect(body.data.invoices[0].billingPeriodName).toBe('Học phí & Tiền ăn Tháng 10/2026');
     expect(body.data.totalOutstanding).toBe(0);
+    expect(mockAuthorizePortalToken).toHaveBeenCalledWith('valid-token');
+  });
+
+  it.each([
+    { status: 401, code: 'GUARDIAN_NOT_AUTHORIZED' },
+    { status: 503, code: 'PORTAL_ACCESS_UNAVAILABLE' },
+  ] as const)('does not read invoices or banking metadata when authorization returns $code', async ({ status, code }) => {
+    mockAuthorizePortalToken.mockRejectedValue(new ParentPortalAccessError(status, code));
+    const response = await GET(new Request('http://localhost/api/education/portal/valid-token/tuition'), {
+      params: Promise.resolve({ token: 'valid-token' }),
+    });
+    expect(response.status).toBe(status);
+    expect(await response.json()).toEqual({ success: false, error: code });
+    expect(response.headers.get('Cache-Control')).toBe('private, no-store');
+    expect(mockDataRead).not.toHaveBeenCalled();
+  });
+
+  it('waits for current guardian authorization before invoice or tenant reads', async () => {
+    let release: (value: typeof claims) => void = () => { throw new Error('Authorization not initialized'); };
+    mockAuthorizePortalToken.mockReturnValue(new Promise<typeof claims>(resolve => { release = resolve; }));
+    const responsePromise = GET(new Request('http://localhost/api/education/portal/valid-token/tuition'), {
+      params: Promise.resolve({ token: 'valid-token' }),
+    });
+    try {
+      await new Promise<void>(resolve => setImmediate(resolve));
+      expect(mockAuthorizePortalToken).toHaveBeenCalledWith('valid-token');
+      expect(mockDataRead).not.toHaveBeenCalled();
+    } finally { release(claims); }
+    expect((await responsePromise).status).toBe(200);
+  });
+
+  it('rejects an invalid signature before guardian lookup or private reads', async () => {
+    jest.mocked(PreschoolParentPortalService.verifyPortalToken).mockImplementation(() => {
+      throw new ParentPortalAccessError(401, 'TOKEN_SIGNATURE_MISMATCH');
+    });
+    const response = await GET(new Request('http://localhost/api/education/portal/invalid-token/tuition'), {
+      params: Promise.resolve({ token: 'invalid-token' }),
+    });
+    expect(response.status).toBe(401);
+    expect(mockAuthorizePortalToken).not.toHaveBeenCalled();
+    expect(mockDataRead).not.toHaveBeenCalled();
   });
 });

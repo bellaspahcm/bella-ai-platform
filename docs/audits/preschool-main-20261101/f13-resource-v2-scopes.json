@@ -1,0 +1,167 @@
+{
+  "capturedAt": "2026-11-01T03:49:40.170Z",
+  "mainSourceSha": "f1299e3138f3700062a1ed84271db315737b0071",
+  "remoteMain": "Separate read-only git ls-remote receipt; scans use the pinned SHA, not remote-tracking cache.",
+  "baselineChanged": false,
+  "wipUnchanged": true,
+  "wipBefore": {
+    "head": "f1299e3138f3700062a1ed84271db315737b0071",
+    "branch": "codex/preschool-main-hardening-20261101",
+    "statusSha256": "edd38044e21c183afa1fd4d6224f4b685239801813e83fd77658c6f544de7a1e",
+    "trackedDiffSha256": "f3761f5e986611283e29d0ca5c59e36e229ae0ac4ebea93758ccaed2f2e24990",
+    "untrackedCount": 28,
+    "untrackedSha256": "42b05b2a26dd5ed499cf685f1fb060d02288a121352762299a030823357c952c"
+  },
+  "wipAfter": {
+    "head": "f1299e3138f3700062a1ed84271db315737b0071",
+    "branch": "codex/preschool-main-hardening-20261101",
+    "statusSha256": "edd38044e21c183afa1fd4d6224f4b685239801813e83fd77658c6f544de7a1e",
+    "trackedDiffSha256": "f3761f5e986611283e29d0ca5c59e36e229ae0ac4ebea93758ccaed2f2e24990",
+    "untrackedCount": 28,
+    "untrackedSha256": "42b05b2a26dd5ed499cf685f1fb060d02288a121352762299a030823357c952c"
+  },
+  "frozenOccurrencesAccountedFor": 77,
+  "scopes": [
+    {
+      "label": "main",
+      "status": "BLOCK",
+      "scopeFiles": {
+        "src/products/bella-education": 89,
+        "src/app/api/education": 53,
+        "src/app/dashboard/education": 43
+      },
+      "categories": {
+        "directDatabaseAccess": {
+          "status": "BLOCK",
+          "baseline": 265,
+          "current": 342,
+          "newSignatures": 33,
+          "addedOccurrences": 77
+        },
+        "internalKernelImports": {
+          "status": "ALLOW",
+          "baseline": 0,
+          "current": 0,
+          "newSignatures": 0,
+          "addedOccurrences": 0
+        },
+        "crossVerticalLeakage": {
+          "status": "ALLOW",
+          "baseline": 0,
+          "current": 0,
+          "newSignatures": 0,
+          "addedOccurrences": 0
+        },
+        "explicitAny": {
+          "status": "BLOCK",
+          "baseline": 0,
+          "current": 1,
+          "newSignatures": 1,
+          "addedOccurrences": 1
+        }
+      },
+      "resources": {
+        "status": "BLOCK",
+        "current": 362,
+        "exactBaseline": 0,
+        "unresolved": 20
+      },
+      "resourceCalls": 438,
+      "unresolvedTargets": 20
+    },
+    {
+      "label": "technical",
+      "status": "BLOCK",
+      "scopeFiles": {
+        "src/products/bella-education": 89,
+        "src/app/api/education": 53,
+        "src/app/dashboard/education": 43
+      },
+      "categories": {
+        "directDatabaseAccess": {
+          "status": "BLOCK",
+          "baseline": 265,
+          "current": 342,
+          "newSignatures": 33,
+          "addedOccurrences": 77
+        },
+        "internalKernelImports": {
+          "status": "ALLOW",
+          "baseline": 0,
+          "current": 0,
+          "newSignatures": 0,
+          "addedOccurrences": 0
+        },
+        "crossVerticalLeakage": {
+          "status": "ALLOW",
+          "baseline": 0,
+          "current": 0,
+          "newSignatures": 0,
+          "addedOccurrences": 0
+        },
+        "explicitAny": {
+          "status": "ALLOW",
+          "baseline": 0,
+          "current": 0,
+          "newSignatures": 0,
+          "addedOccurrences": 0
+        }
+      },
+      "resources": {
+        "status": "BLOCK",
+        "current": 362,
+        "exactBaseline": 0,
+        "unresolved": 20
+      },
+      "resourceCalls": 438,
+      "unresolvedTargets": 20
+    },
+    {
+      "label": "wip",
+      "status": "BLOCK",
+      "scopeFiles": {
+        "src/products/bella-education": 89,
+        "src/app/api/education": 53,
+        "src/app/dashboard/education": 43
+      },
+      "categories": {
+        "directDatabaseAccess": {
+          "status": "BLOCK",
+          "baseline": 265,
+          "current": 314,
+          "newSignatures": 29,
+          "addedOccurrences": 54
+        },
+        "internalKernelImports": {
+          "status": "ALLOW",
+          "baseline": 0,
+          "current": 0,
+          "newSignatures": 0,
+          "addedOccurrences": 0
+        },
+        "crossVerticalLeakage": {
+          "status": "ALLOW",
+          "baseline": 0,
+          "current": 0,
+          "newSignatures": 0,
+          "addedOccurrences": 0
+        },
+        "explicitAny": {
+          "status": "BLOCK",
+          "baseline": 0,
+          "current": 1,
+          "newSignatures": 1,
+          "addedOccurrences": 1
+        }
+      },
+      "resources": {
+        "status": "BLOCK",
+        "current": 334,
+        "exactBaseline": 0,
+        "unresolved": 20
+      },
+      "resourceCalls": 407,
+      "unresolvedTargets": 20
+    }
+  ]
+}

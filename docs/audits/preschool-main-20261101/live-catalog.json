@@ -1,0 +1,3972 @@
+{
+    "columns": [
+        {
+            "type": "uuid",
+            "column": "course_id",
+            "nullable": false,
+            "relation": "courses"
+        },
+        {
+            "type": "uuid",
+            "column": "tenant_id",
+            "nullable": false,
+            "relation": "courses"
+        },
+        {
+            "type": "text",
+            "column": "course_code",
+            "nullable": false,
+            "relation": "courses"
+        },
+        {
+            "type": "text",
+            "column": "course_name",
+            "nullable": false,
+            "relation": "courses"
+        },
+        {
+            "type": "text",
+            "column": "description",
+            "nullable": true,
+            "relation": "courses"
+        },
+        {
+            "type": "integer",
+            "column": "credits",
+            "nullable": false,
+            "relation": "courses"
+        },
+        {
+            "type": "integer",
+            "column": "duration_weeks",
+            "nullable": true,
+            "relation": "courses"
+        },
+        {
+            "type": "text",
+            "column": "status",
+            "nullable": false,
+            "relation": "courses"
+        },
+        {
+            "type": "jsonb",
+            "column": "metadata",
+            "nullable": true,
+            "relation": "courses"
+        },
+        {
+            "type": "timestamp with time zone",
+            "column": "created_at",
+            "nullable": false,
+            "relation": "courses"
+        },
+        {
+            "type": "timestamp with time zone",
+            "column": "updated_at",
+            "nullable": false,
+            "relation": "courses"
+        },
+        {
+            "type": "uuid",
+            "column": "created_by",
+            "nullable": true,
+            "relation": "courses"
+        },
+        {
+            "type": "uuid",
+            "column": "updated_by",
+            "nullable": true,
+            "relation": "courses"
+        },
+        {
+            "type": "uuid",
+            "column": "branch_id",
+            "nullable": true,
+            "relation": "courses"
+        },
+        {
+            "type": "uuid",
+            "column": "id",
+            "nullable": false,
+            "relation": "edu_courses"
+        },
+        {
+            "type": "uuid",
+            "column": "tenant_id",
+            "nullable": false,
+            "relation": "edu_courses"
+        },
+        {
+            "type": "text",
+            "column": "course_code",
+            "nullable": false,
+            "relation": "edu_courses"
+        },
+        {
+            "type": "text",
+            "column": "title",
+            "nullable": false,
+            "relation": "edu_courses"
+        },
+        {
+            "type": "text",
+            "column": "status",
+            "nullable": false,
+            "relation": "edu_courses"
+        },
+        {
+            "type": "timestamp with time zone",
+            "column": "created_at",
+            "nullable": false,
+            "relation": "edu_courses"
+        },
+        {
+            "type": "timestamp with time zone",
+            "column": "updated_at",
+            "nullable": false,
+            "relation": "edu_courses"
+        },
+        {
+            "type": "integer",
+            "column": "max_students",
+            "nullable": true,
+            "relation": "edu_courses"
+        },
+        {
+            "type": "integer",
+            "column": "current_enrollment",
+            "nullable": true,
+            "relation": "edu_courses"
+        },
+        {
+            "type": "text[]",
+            "column": "prerequisite_course_codes",
+            "nullable": true,
+            "relation": "edu_courses"
+        },
+        {
+            "type": "uuid",
+            "column": "id",
+            "nullable": false,
+            "relation": "edu_curriculums"
+        },
+        {
+            "type": "uuid",
+            "column": "tenant_id",
+            "nullable": false,
+            "relation": "edu_curriculums"
+        },
+        {
+            "type": "character varying(50)",
+            "column": "code",
+            "nullable": false,
+            "relation": "edu_curriculums"
+        },
+        {
+            "type": "character varying(255)",
+            "column": "name",
+            "nullable": false,
+            "relation": "edu_curriculums"
+        },
+        {
+            "type": "text",
+            "column": "description",
+            "nullable": true,
+            "relation": "edu_curriculums"
+        },
+        {
+            "type": "character varying(50)",
+            "column": "age_group",
+            "nullable": false,
+            "relation": "edu_curriculums"
+        },
+        {
+            "type": "character varying(20)",
+            "column": "academic_year",
+            "nullable": false,
+            "relation": "edu_curriculums"
+        },
+        {
+            "type": "integer",
+            "column": "total_weeks",
+            "nullable": false,
+            "relation": "edu_curriculums"
+        },
+        {
+            "type": "character varying(20)",
+            "column": "status",
+            "nullable": false,
+            "relation": "edu_curriculums"
+        },
+        {
+            "type": "jsonb",
+            "column": "subjects_payload",
+            "nullable": true,
+            "relation": "edu_curriculums"
+        },
+        {
+            "type": "timestamp with time zone",
+            "column": "created_at",
+            "nullable": false,
+            "relation": "edu_curriculums"
+        },
+        {
+            "type": "timestamp with time zone",
+            "column": "updated_at",
+            "nullable": false,
+            "relation": "edu_curriculums"
+        },
+        {
+            "type": "uuid",
+            "column": "id",
+            "nullable": false,
+            "relation": "edu_dev_milestone_progress"
+        },
+        {
+            "type": "uuid",
+            "column": "tenant_id",
+            "nullable": false,
+            "relation": "edu_dev_milestone_progress"
+        },
+        {
+            "type": "uuid",
+            "column": "student_id",
+            "nullable": false,
+            "relation": "edu_dev_milestone_progress"
+        },
+        {
+            "type": "uuid",
+            "column": "framework_version_id",
+            "nullable": false,
+            "relation": "edu_dev_milestone_progress"
+        },
+        {
+            "type": "uuid",
+            "column": "milestone_id",
+            "nullable": false,
+            "relation": "edu_dev_milestone_progress"
+        },
+        {
+            "type": "character varying(30)",
+            "column": "status",
+            "nullable": false,
+            "relation": "edu_dev_milestone_progress"
+        },
+        {
+            "type": "uuid",
+            "column": "interpreted_by",
+            "nullable": false,
+            "relation": "edu_dev_milestone_progress"
+        },
+        {
+            "type": "timestamp with time zone",
+            "column": "interpreted_at",
+            "nullable": false,
+            "relation": "edu_dev_milestone_progress"
+        },
+        {
+            "type": "text",
+            "column": "rationale",
+            "nullable": false,
+            "relation": "edu_dev_milestone_progress"
+        },
+        {
+            "type": "boolean",
+            "column": "is_confirmed",
+            "nullable": false,
+            "relation": "edu_dev_milestone_progress"
+        },
+        {
+            "type": "character varying(20)",
+            "column": "status_lifecycle",
+            "nullable": false,
+            "relation": "edu_dev_milestone_progress"
+        },
+        {
+            "type": "uuid",
+            "column": "supersedes_progress_id",
+            "nullable": true,
+            "relation": "edu_dev_milestone_progress"
+        },
+        {
+            "type": "timestamp with time zone",
+            "column": "created_at",
+            "nullable": false,
+            "relation": "edu_dev_milestone_progress"
+        },
+        {
+            "type": "uuid",
+            "column": "id",
+            "nullable": false,
+            "relation": "edu_dev_observation_students"
+        },
+        {
+            "type": "uuid",
+            "column": "tenant_id",
+            "nullable": false,
+            "relation": "edu_dev_observation_students"
+        },
+        {
+            "type": "uuid",
+            "column": "observation_id",
+            "nullable": false,
+            "relation": "edu_dev_observation_students"
+        },
+        {
+            "type": "uuid",
+            "column": "student_id",
+            "nullable": false,
+            "relation": "edu_dev_observation_students"
+        },
+        {
+            "type": "text",
+            "column": "notes",
+            "nullable": true,
+            "relation": "edu_dev_observation_students"
+        },
+        {
+            "type": "timestamp with time zone",
+            "column": "created_at",
+            "nullable": false,
+            "relation": "edu_dev_observation_students"
+        },
+        {
+            "type": "uuid",
+            "column": "id",
+            "nullable": false,
+            "relation": "edu_dev_observations"
+        },
+        {
+            "type": "uuid",
+            "column": "tenant_id",
+            "nullable": false,
+            "relation": "edu_dev_observations"
+        },
+        {
+            "type": "uuid",
+            "column": "activity_id",
+            "nullable": true,
+            "relation": "edu_dev_observations"
+        },
+        {
+            "type": "uuid",
+            "column": "observer_id",
+            "nullable": false,
+            "relation": "edu_dev_observations"
+        },
+        {
+            "type": "character varying(20)",
+            "column": "status",
+            "nullable": false,
+            "relation": "edu_dev_observations"
+        },
+        {
+            "type": "uuid",
+            "column": "supersedes_observation_id",
+            "nullable": true,
+            "relation": "edu_dev_observations"
+        },
+        {
+            "type": "text",
+            "column": "observation_text",
+            "nullable": false,
+            "relation": "edu_dev_observations"
+        },
+        {
+            "type": "timestamp with time zone",
+            "column": "amended_at",
+            "nullable": true,
+            "relation": "edu_dev_observations"
+        },
+        {
+            "type": "uuid",
+            "column": "amended_by",
+            "nullable": true,
+            "relation": "edu_dev_observations"
+        },
+        {
+            "type": "text",
+            "column": "amendment_reason",
+            "nullable": true,
+            "relation": "edu_dev_observations"
+        },
+        {
+            "type": "timestamp with time zone",
+            "column": "created_at",
+            "nullable": false,
+            "relation": "edu_dev_observations"
+        },
+        {
+            "type": "uuid",
+            "column": "id",
+            "nullable": false,
+            "relation": "edu_lesson_plans"
+        },
+        {
+            "type": "uuid",
+            "column": "tenant_id",
+            "nullable": false,
+            "relation": "edu_lesson_plans"
+        },
+        {
+            "type": "uuid",
+            "column": "curriculum_id",
+            "nullable": true,
+            "relation": "edu_lesson_plans"
+        },
+        {
+            "type": "uuid",
+            "column": "course_id",
+            "nullable": true,
+            "relation": "edu_lesson_plans"
+        },
+        {
+            "type": "character varying(20)",
+            "column": "academic_year",
+            "nullable": false,
+            "relation": "edu_lesson_plans"
+        },
+        {
+            "type": "integer",
+            "column": "week_number",
+            "nullable": false,
+            "relation": "edu_lesson_plans"
+        },
+        {
+            "type": "integer",
+            "column": "year",
+            "nullable": false,
+            "relation": "edu_lesson_plans"
+        },
+        {
+            "type": "character varying(50)",
+            "column": "age_group",
+            "nullable": false,
+            "relation": "edu_lesson_plans"
+        },
+        {
+            "type": "character varying(255)",
+            "column": "theme",
+            "nullable": false,
+            "relation": "edu_lesson_plans"
+        },
+        {
+            "type": "character varying(100)",
+            "column": "subject_domain",
+            "nullable": false,
+            "relation": "edu_lesson_plans"
+        },
+        {
+            "type": "character varying(255)",
+            "column": "title",
+            "nullable": false,
+            "relation": "edu_lesson_plans"
+        },
+        {
+            "type": "date",
+            "column": "planned_date",
+            "nullable": false,
+            "relation": "edu_lesson_plans"
+        },
+        {
+            "type": "character varying(20)",
+            "column": "status",
+            "nullable": false,
+            "relation": "edu_lesson_plans"
+        },
+        {
+            "type": "jsonb",
+            "column": "objectives_payload",
+            "nullable": true,
+            "relation": "edu_lesson_plans"
+        },
+        {
+            "type": "text",
+            "column": "materials",
+            "nullable": true,
+            "relation": "edu_lesson_plans"
+        },
+        {
+            "type": "jsonb",
+            "column": "activity_steps_payload",
+            "nullable": true,
+            "relation": "edu_lesson_plans"
+        },
+        {
+            "type": "text",
+            "column": "teacher_notes",
+            "nullable": true,
+            "relation": "edu_lesson_plans"
+        },
+        {
+            "type": "uuid",
+            "column": "created_by",
+            "nullable": true,
+            "relation": "edu_lesson_plans"
+        },
+        {
+            "type": "uuid",
+            "column": "approved_by",
+            "nullable": true,
+            "relation": "edu_lesson_plans"
+        },
+        {
+            "type": "timestamp with time zone",
+            "column": "created_at",
+            "nullable": false,
+            "relation": "edu_lesson_plans"
+        },
+        {
+            "type": "timestamp with time zone",
+            "column": "updated_at",
+            "nullable": false,
+            "relation": "edu_lesson_plans"
+        },
+        {
+            "type": "uuid",
+            "column": "id",
+            "nullable": false,
+            "relation": "edu_weekly_menu_days"
+        },
+        {
+            "type": "uuid",
+            "column": "tenant_id",
+            "nullable": false,
+            "relation": "edu_weekly_menu_days"
+        },
+        {
+            "type": "uuid",
+            "column": "menu_id",
+            "nullable": false,
+            "relation": "edu_weekly_menu_days"
+        },
+        {
+            "type": "character varying(10)",
+            "column": "day_of_week",
+            "nullable": false,
+            "relation": "edu_weekly_menu_days"
+        },
+        {
+            "type": "date",
+            "column": "menu_date",
+            "nullable": false,
+            "relation": "edu_weekly_menu_days"
+        },
+        {
+            "type": "text",
+            "column": "summary_dishes",
+            "nullable": false,
+            "relation": "edu_weekly_menu_days"
+        },
+        {
+            "type": "integer",
+            "column": "calories_kcal",
+            "nullable": true,
+            "relation": "edu_weekly_menu_days"
+        },
+        {
+            "type": "jsonb",
+            "column": "meals_payload",
+            "nullable": true,
+            "relation": "edu_weekly_menu_days"
+        },
+        {
+            "type": "timestamp with time zone",
+            "column": "created_at",
+            "nullable": false,
+            "relation": "edu_weekly_menu_days"
+        },
+        {
+            "type": "uuid",
+            "column": "id",
+            "nullable": false,
+            "relation": "edu_weekly_menus"
+        },
+        {
+            "type": "uuid",
+            "column": "tenant_id",
+            "nullable": false,
+            "relation": "edu_weekly_menus"
+        },
+        {
+            "type": "character varying(20)",
+            "column": "academic_year",
+            "nullable": false,
+            "relation": "edu_weekly_menus"
+        },
+        {
+            "type": "integer",
+            "column": "week_number",
+            "nullable": false,
+            "relation": "edu_weekly_menus"
+        },
+        {
+            "type": "integer",
+            "column": "year",
+            "nullable": false,
+            "relation": "edu_weekly_menus"
+        },
+        {
+            "type": "date",
+            "column": "start_date",
+            "nullable": false,
+            "relation": "edu_weekly_menus"
+        },
+        {
+            "type": "date",
+            "column": "end_date",
+            "nullable": false,
+            "relation": "edu_weekly_menus"
+        },
+        {
+            "type": "character varying(50)",
+            "column": "age_group",
+            "nullable": false,
+            "relation": "edu_weekly_menus"
+        },
+        {
+            "type": "character varying(255)",
+            "column": "title",
+            "nullable": false,
+            "relation": "edu_weekly_menus"
+        },
+        {
+            "type": "character varying(20)",
+            "column": "status",
+            "nullable": false,
+            "relation": "edu_weekly_menus"
+        },
+        {
+            "type": "text",
+            "column": "notes",
+            "nullable": true,
+            "relation": "edu_weekly_menus"
+        },
+        {
+            "type": "uuid",
+            "column": "created_by",
+            "nullable": true,
+            "relation": "edu_weekly_menus"
+        },
+        {
+            "type": "uuid",
+            "column": "approved_by",
+            "nullable": true,
+            "relation": "edu_weekly_menus"
+        },
+        {
+            "type": "timestamp with time zone",
+            "column": "created_at",
+            "nullable": false,
+            "relation": "edu_weekly_menus"
+        },
+        {
+            "type": "timestamp with time zone",
+            "column": "updated_at",
+            "nullable": false,
+            "relation": "edu_weekly_menus"
+        },
+        {
+            "type": "uuid",
+            "column": "id",
+            "nullable": false,
+            "relation": "org_relationships"
+        },
+        {
+            "type": "uuid",
+            "column": "tenant_id",
+            "nullable": false,
+            "relation": "org_relationships"
+        },
+        {
+            "type": "uuid",
+            "column": "from_id",
+            "nullable": false,
+            "relation": "org_relationships"
+        },
+        {
+            "type": "text",
+            "column": "from_type",
+            "nullable": false,
+            "relation": "org_relationships"
+        },
+        {
+            "type": "uuid",
+            "column": "to_id",
+            "nullable": false,
+            "relation": "org_relationships"
+        },
+        {
+            "type": "text",
+            "column": "to_type",
+            "nullable": false,
+            "relation": "org_relationships"
+        },
+        {
+            "type": "text",
+            "column": "rel_type",
+            "nullable": false,
+            "relation": "org_relationships"
+        },
+        {
+            "type": "text",
+            "column": "role",
+            "nullable": true,
+            "relation": "org_relationships"
+        },
+        {
+            "type": "date",
+            "column": "since",
+            "nullable": true,
+            "relation": "org_relationships"
+        },
+        {
+            "type": "date",
+            "column": "until",
+            "nullable": true,
+            "relation": "org_relationships"
+        },
+        {
+            "type": "jsonb",
+            "column": "metadata",
+            "nullable": false,
+            "relation": "org_relationships"
+        },
+        {
+            "type": "timestamp with time zone",
+            "column": "created_at",
+            "nullable": false,
+            "relation": "org_relationships"
+        },
+        {
+            "type": "uuid",
+            "column": "id",
+            "nullable": false,
+            "relation": "org_units"
+        },
+        {
+            "type": "uuid",
+            "column": "tenant_id",
+            "nullable": false,
+            "relation": "org_units"
+        },
+        {
+            "type": "text",
+            "column": "unit_type",
+            "nullable": false,
+            "relation": "org_units"
+        },
+        {
+            "type": "text",
+            "column": "name",
+            "nullable": false,
+            "relation": "org_units"
+        },
+        {
+            "type": "text",
+            "column": "code",
+            "nullable": true,
+            "relation": "org_units"
+        },
+        {
+            "type": "uuid",
+            "column": "parent_id",
+            "nullable": true,
+            "relation": "org_units"
+        },
+        {
+            "type": "boolean",
+            "column": "is_active",
+            "nullable": false,
+            "relation": "org_units"
+        },
+        {
+            "type": "jsonb",
+            "column": "metadata",
+            "nullable": false,
+            "relation": "org_units"
+        },
+        {
+            "type": "timestamp with time zone",
+            "column": "created_at",
+            "nullable": false,
+            "relation": "org_units"
+        },
+        {
+            "type": "timestamp with time zone",
+            "column": "updated_at",
+            "nullable": false,
+            "relation": "org_units"
+        },
+        {
+            "type": "uuid",
+            "column": "id",
+            "nullable": false,
+            "relation": "party_auth_links"
+        },
+        {
+            "type": "uuid",
+            "column": "tenant_id",
+            "nullable": false,
+            "relation": "party_auth_links"
+        },
+        {
+            "type": "uuid",
+            "column": "auth_user_id",
+            "nullable": false,
+            "relation": "party_auth_links"
+        },
+        {
+            "type": "uuid",
+            "column": "party_id",
+            "nullable": false,
+            "relation": "party_auth_links"
+        },
+        {
+            "type": "timestamp with time zone",
+            "column": "valid_from",
+            "nullable": false,
+            "relation": "party_auth_links"
+        },
+        {
+            "type": "timestamp with time zone",
+            "column": "valid_until",
+            "nullable": true,
+            "relation": "party_auth_links"
+        },
+        {
+            "type": "uuid",
+            "column": "confirmed_by",
+            "nullable": false,
+            "relation": "party_auth_links"
+        },
+        {
+            "type": "timestamp with time zone",
+            "column": "confirmed_at",
+            "nullable": false,
+            "relation": "party_auth_links"
+        },
+        {
+            "type": "text",
+            "column": "attestation",
+            "nullable": false,
+            "relation": "party_auth_links"
+        },
+        {
+            "type": "timestamp with time zone",
+            "column": "revoked_at",
+            "nullable": true,
+            "relation": "party_auth_links"
+        },
+        {
+            "type": "uuid",
+            "column": "revoked_by",
+            "nullable": true,
+            "relation": "party_auth_links"
+        },
+        {
+            "type": "text",
+            "column": "revocation_reason",
+            "nullable": true,
+            "relation": "party_auth_links"
+        },
+        {
+            "type": "uuid",
+            "column": "id",
+            "nullable": false,
+            "relation": "party_identity_link_managers"
+        },
+        {
+            "type": "uuid",
+            "column": "tenant_id",
+            "nullable": false,
+            "relation": "party_identity_link_managers"
+        },
+        {
+            "type": "uuid",
+            "column": "auth_user_id",
+            "nullable": false,
+            "relation": "party_identity_link_managers"
+        },
+        {
+            "type": "timestamp with time zone",
+            "column": "valid_from",
+            "nullable": false,
+            "relation": "party_identity_link_managers"
+        },
+        {
+            "type": "timestamp with time zone",
+            "column": "valid_until",
+            "nullable": true,
+            "relation": "party_identity_link_managers"
+        },
+        {
+            "type": "uuid",
+            "column": "granted_by",
+            "nullable": false,
+            "relation": "party_identity_link_managers"
+        },
+        {
+            "type": "timestamp with time zone",
+            "column": "granted_at",
+            "nullable": false,
+            "relation": "party_identity_link_managers"
+        },
+        {
+            "type": "text",
+            "column": "reference",
+            "nullable": false,
+            "relation": "party_identity_link_managers"
+        },
+        {
+            "type": "timestamp with time zone",
+            "column": "revoked_at",
+            "nullable": true,
+            "relation": "party_identity_link_managers"
+        },
+        {
+            "type": "uuid",
+            "column": "revoked_by",
+            "nullable": true,
+            "relation": "party_identity_link_managers"
+        },
+        {
+            "type": "text",
+            "column": "revocation_reason",
+            "nullable": true,
+            "relation": "party_identity_link_managers"
+        },
+        {
+            "type": "uuid",
+            "column": "id",
+            "nullable": false,
+            "relation": "people_directory"
+        },
+        {
+            "type": "uuid",
+            "column": "tenant_id",
+            "nullable": false,
+            "relation": "people_directory"
+        },
+        {
+            "type": "uuid",
+            "column": "user_id",
+            "nullable": true,
+            "relation": "people_directory"
+        },
+        {
+            "type": "text",
+            "column": "person_type",
+            "nullable": false,
+            "relation": "people_directory"
+        },
+        {
+            "type": "text",
+            "column": "display_name",
+            "nullable": false,
+            "relation": "people_directory"
+        },
+        {
+            "type": "boolean",
+            "column": "is_active",
+            "nullable": false,
+            "relation": "people_directory"
+        },
+        {
+            "type": "jsonb",
+            "column": "metadata",
+            "nullable": false,
+            "relation": "people_directory"
+        },
+        {
+            "type": "timestamp with time zone",
+            "column": "created_at",
+            "nullable": false,
+            "relation": "people_directory"
+        },
+        {
+            "type": "timestamp with time zone",
+            "column": "updated_at",
+            "nullable": false,
+            "relation": "people_directory"
+        },
+        {
+            "type": "uuid",
+            "column": "id",
+            "nullable": false,
+            "relation": "preschool_chain_course_branch_assignments"
+        },
+        {
+            "type": "uuid",
+            "column": "tenant_id",
+            "nullable": false,
+            "relation": "preschool_chain_course_branch_assignments"
+        },
+        {
+            "type": "uuid",
+            "column": "course_id",
+            "nullable": false,
+            "relation": "preschool_chain_course_branch_assignments"
+        },
+        {
+            "type": "uuid",
+            "column": "branch_id",
+            "nullable": false,
+            "relation": "preschool_chain_course_branch_assignments"
+        },
+        {
+            "type": "uuid",
+            "column": "assigned_by",
+            "nullable": true,
+            "relation": "preschool_chain_course_branch_assignments"
+        },
+        {
+            "type": "timestamp with time zone",
+            "column": "created_at",
+            "nullable": false,
+            "relation": "preschool_chain_course_branch_assignments"
+        },
+        {
+            "type": "timestamp with time zone",
+            "column": "updated_at",
+            "nullable": false,
+            "relation": "preschool_chain_course_branch_assignments"
+        },
+        {
+            "type": "uuid",
+            "column": "id",
+            "nullable": false,
+            "relation": "preschool_teacher_branch_confirmations"
+        },
+        {
+            "type": "uuid",
+            "column": "tenant_id",
+            "nullable": false,
+            "relation": "preschool_teacher_branch_confirmations"
+        },
+        {
+            "type": "uuid",
+            "column": "branch_id",
+            "nullable": false,
+            "relation": "preschool_teacher_branch_confirmations"
+        },
+        {
+            "type": "uuid",
+            "column": "teacher_party_id",
+            "nullable": false,
+            "relation": "preschool_teacher_branch_confirmations"
+        },
+        {
+            "type": "date",
+            "column": "valid_from",
+            "nullable": false,
+            "relation": "preschool_teacher_branch_confirmations"
+        },
+        {
+            "type": "date",
+            "column": "valid_to",
+            "nullable": true,
+            "relation": "preschool_teacher_branch_confirmations"
+        },
+        {
+            "type": "text",
+            "column": "attestation",
+            "nullable": false,
+            "relation": "preschool_teacher_branch_confirmations"
+        },
+        {
+            "type": "uuid",
+            "column": "confirmed_by",
+            "nullable": false,
+            "relation": "preschool_teacher_branch_confirmations"
+        },
+        {
+            "type": "timestamp with time zone",
+            "column": "confirmed_at",
+            "nullable": false,
+            "relation": "preschool_teacher_branch_confirmations"
+        },
+        {
+            "type": "timestamp with time zone",
+            "column": "revoked_at",
+            "nullable": true,
+            "relation": "preschool_teacher_branch_confirmations"
+        },
+        {
+            "type": "uuid",
+            "column": "revoked_by",
+            "nullable": true,
+            "relation": "preschool_teacher_branch_confirmations"
+        },
+        {
+            "type": "text",
+            "column": "revocation_reason",
+            "nullable": true,
+            "relation": "preschool_teacher_branch_confirmations"
+        },
+        {
+            "type": "uuid",
+            "column": "assignment_id",
+            "nullable": false,
+            "relation": "teacher_assignments"
+        },
+        {
+            "type": "uuid",
+            "column": "tenant_id",
+            "nullable": false,
+            "relation": "teacher_assignments"
+        },
+        {
+            "type": "uuid",
+            "column": "course_id",
+            "nullable": true,
+            "relation": "teacher_assignments"
+        },
+        {
+            "type": "uuid",
+            "column": "teacher_party_id",
+            "nullable": false,
+            "relation": "teacher_assignments"
+        },
+        {
+            "type": "text",
+            "column": "role",
+            "nullable": false,
+            "relation": "teacher_assignments"
+        },
+        {
+            "type": "text",
+            "column": "academic_year",
+            "nullable": false,
+            "relation": "teacher_assignments"
+        },
+        {
+            "type": "date",
+            "column": "effective_start_date",
+            "nullable": false,
+            "relation": "teacher_assignments"
+        },
+        {
+            "type": "date",
+            "column": "effective_end_date",
+            "nullable": true,
+            "relation": "teacher_assignments"
+        },
+        {
+            "type": "text",
+            "column": "status",
+            "nullable": false,
+            "relation": "teacher_assignments"
+        },
+        {
+            "type": "timestamp with time zone",
+            "column": "created_at",
+            "nullable": false,
+            "relation": "teacher_assignments"
+        },
+        {
+            "type": "timestamp with time zone",
+            "column": "updated_at",
+            "nullable": false,
+            "relation": "teacher_assignments"
+        },
+        {
+            "type": "uuid",
+            "column": "created_by",
+            "nullable": true,
+            "relation": "teacher_assignments"
+        },
+        {
+            "type": "uuid",
+            "column": "updated_by",
+            "nullable": true,
+            "relation": "teacher_assignments"
+        },
+        {
+            "type": "uuid",
+            "column": "canonical_course_id",
+            "nullable": true,
+            "relation": "teacher_assignments"
+        },
+        {
+            "type": "uuid",
+            "column": "canonical_teacher_confirmation_id",
+            "nullable": true,
+            "relation": "teacher_assignments"
+        },
+        {
+            "type": "uuid",
+            "column": "id",
+            "nullable": false,
+            "relation": "tenants"
+        },
+        {
+            "type": "text",
+            "column": "name",
+            "nullable": false,
+            "relation": "tenants"
+        },
+        {
+            "type": "uuid",
+            "column": "parent_tenant_id",
+            "nullable": true,
+            "relation": "tenants"
+        },
+        {
+            "type": "date",
+            "column": "franchise_agreement_date",
+            "nullable": true,
+            "relation": "tenants"
+        },
+        {
+            "type": "numeric",
+            "column": "royalty_rate",
+            "nullable": true,
+            "relation": "tenants"
+        },
+        {
+            "type": "text",
+            "column": "contact_name",
+            "nullable": true,
+            "relation": "tenants"
+        },
+        {
+            "type": "text",
+            "column": "contact_phone",
+            "nullable": true,
+            "relation": "tenants"
+        },
+        {
+            "type": "text",
+            "column": "address",
+            "nullable": true,
+            "relation": "tenants"
+        },
+        {
+            "type": "text",
+            "column": "status",
+            "nullable": true,
+            "relation": "tenants"
+        },
+        {
+            "type": "timestamp with time zone",
+            "column": "created_at",
+            "nullable": true,
+            "relation": "tenants"
+        },
+        {
+            "type": "timestamp with time zone",
+            "column": "updated_at",
+            "nullable": true,
+            "relation": "tenants"
+        },
+        {
+            "type": "text",
+            "column": "zalo_app_id",
+            "nullable": true,
+            "relation": "tenants"
+        },
+        {
+            "type": "text",
+            "column": "zalo_secret_key",
+            "nullable": true,
+            "relation": "tenants"
+        },
+        {
+            "type": "text",
+            "column": "zalo_oa_id",
+            "nullable": true,
+            "relation": "tenants"
+        },
+        {
+            "type": "text",
+            "column": "zalo_access_token",
+            "nullable": true,
+            "relation": "tenants"
+        },
+        {
+            "type": "text",
+            "column": "zalo_refresh_token",
+            "nullable": true,
+            "relation": "tenants"
+        },
+        {
+            "type": "timestamp with time zone",
+            "column": "zalo_token_expires_at",
+            "nullable": true,
+            "relation": "tenants"
+        },
+        {
+            "type": "text",
+            "column": "zalo_template_reminder_id",
+            "nullable": true,
+            "relation": "tenants"
+        },
+        {
+            "type": "text",
+            "column": "zalo_template_birthday_id",
+            "nullable": true,
+            "relation": "tenants"
+        },
+        {
+            "type": "boolean",
+            "column": "zalo_auto_scan",
+            "nullable": true,
+            "relation": "tenants"
+        },
+        {
+            "type": "text",
+            "column": "email",
+            "nullable": true,
+            "relation": "tenants"
+        },
+        {
+            "type": "text",
+            "column": "qr_bank_code",
+            "nullable": true,
+            "relation": "tenants"
+        },
+        {
+            "type": "text",
+            "column": "qr_account_number",
+            "nullable": true,
+            "relation": "tenants"
+        },
+        {
+            "type": "text",
+            "column": "qr_account_name",
+            "nullable": true,
+            "relation": "tenants"
+        },
+        {
+            "type": "jsonb",
+            "column": "salary_config",
+            "nullable": true,
+            "relation": "tenants"
+        },
+        {
+            "type": "character varying(50)",
+            "column": "subscription_tier",
+            "nullable": true,
+            "relation": "tenants"
+        },
+        {
+            "type": "timestamp with time zone",
+            "column": "subscription_expires_at",
+            "nullable": true,
+            "relation": "tenants"
+        },
+        {
+            "type": "integer",
+            "column": "sms_allotment_used",
+            "nullable": true,
+            "relation": "tenants"
+        },
+        {
+            "type": "jsonb",
+            "column": "role_permissions",
+            "nullable": true,
+            "relation": "tenants"
+        },
+        {
+            "type": "character varying(20)",
+            "column": "royalty_type",
+            "nullable": true,
+            "relation": "tenants"
+        },
+        {
+            "type": "numeric(12,2)",
+            "column": "royalty_fixed_amount",
+            "nullable": true,
+            "relation": "tenants"
+        },
+        {
+            "type": "numeric(12,2)",
+            "column": "internal_clearing_rate",
+            "nullable": true,
+            "relation": "tenants"
+        },
+        {
+            "type": "double precision",
+            "column": "tenant_lat",
+            "nullable": true,
+            "relation": "tenants"
+        },
+        {
+            "type": "double precision",
+            "column": "tenant_lon",
+            "nullable": true,
+            "relation": "tenants"
+        },
+        {
+            "type": "integer",
+            "column": "gps_threshold_m",
+            "nullable": true,
+            "relation": "tenants"
+        },
+        {
+            "type": "text",
+            "column": "accounting_mode",
+            "nullable": true,
+            "relation": "tenants"
+        },
+        {
+            "type": "text",
+            "column": "logo_url",
+            "nullable": true,
+            "relation": "tenants"
+        },
+        {
+            "type": "jsonb",
+            "column": "enabled_modules",
+            "nullable": false,
+            "relation": "tenants"
+        },
+        {
+            "type": "jsonb",
+            "column": "brand_theme",
+            "nullable": false,
+            "relation": "tenants"
+        },
+        {
+            "type": "jsonb",
+            "column": "metadata",
+            "nullable": true,
+            "relation": "tenants"
+        },
+        {
+            "type": "jsonb",
+            "column": "commission_config",
+            "nullable": true,
+            "relation": "tenants"
+        },
+        {
+            "type": "text",
+            "column": "product_key",
+            "nullable": true,
+            "relation": "tenants"
+        },
+        {
+            "type": "uuid",
+            "column": "user_id",
+            "nullable": true,
+            "relation": "user_org_unit_access"
+        },
+        {
+            "type": "uuid",
+            "column": "tenant_id",
+            "nullable": true,
+            "relation": "user_org_unit_access"
+        },
+        {
+            "type": "uuid",
+            "column": "org_unit_id",
+            "nullable": true,
+            "relation": "user_org_unit_access"
+        },
+        {
+            "type": "uuid",
+            "column": "root_org_unit_id",
+            "nullable": true,
+            "relation": "user_org_unit_access"
+        },
+        {
+            "type": "uuid",
+            "column": "relationship_id",
+            "nullable": true,
+            "relation": "user_org_unit_access"
+        },
+        {
+            "type": "text",
+            "column": "access_source",
+            "nullable": true,
+            "relation": "user_org_unit_access"
+        },
+        {
+            "type": "uuid",
+            "column": "id",
+            "nullable": false,
+            "relation": "users"
+        },
+        {
+            "type": "text",
+            "column": "email",
+            "nullable": false,
+            "relation": "users"
+        },
+        {
+            "type": "text",
+            "column": "full_name",
+            "nullable": false,
+            "relation": "users"
+        },
+        {
+            "type": "text",
+            "column": "phone",
+            "nullable": true,
+            "relation": "users"
+        },
+        {
+            "type": "text",
+            "column": "role",
+            "nullable": false,
+            "relation": "users"
+        },
+        {
+            "type": "text",
+            "column": "avatar_url",
+            "nullable": true,
+            "relation": "users"
+        },
+        {
+            "type": "text",
+            "column": "status",
+            "nullable": true,
+            "relation": "users"
+        },
+        {
+            "type": "uuid",
+            "column": "tenant_id",
+            "nullable": true,
+            "relation": "users"
+        },
+        {
+            "type": "timestamp with time zone",
+            "column": "created_at",
+            "nullable": true,
+            "relation": "users"
+        },
+        {
+            "type": "timestamp with time zone",
+            "column": "updated_at",
+            "nullable": true,
+            "relation": "users"
+        },
+        {
+            "type": "numeric",
+            "column": "base_salary",
+            "nullable": true,
+            "relation": "users"
+        },
+        {
+            "type": "date",
+            "column": "hire_date",
+            "nullable": true,
+            "relation": "users"
+        },
+        {
+            "type": "date",
+            "column": "resignation_date",
+            "nullable": true,
+            "relation": "users"
+        },
+        {
+            "type": "jsonb",
+            "column": "metadata",
+            "nullable": true,
+            "relation": "users"
+        },
+        {
+            "type": "text",
+            "column": "position_tier",
+            "nullable": false,
+            "relation": "users"
+        },
+        {
+            "type": "integer",
+            "column": "leave_balance",
+            "nullable": true,
+            "relation": "users"
+        }
+    ],
+    "database": "postgres",
+    "executor": "postgres",
+    "policies": [
+        {
+            "name": "courses_tenant_isolation",
+            "roles": [
+                "public"
+            ],
+            "using": "(tenant_id = get_auth_tenant_id())",
+            "command": "ALL",
+            "relation": "courses",
+            "withCheck": "(tenant_id = get_auth_tenant_id())",
+            "permissive": "PERMISSIVE"
+        },
+        {
+            "name": "edu_courses_tenant_isolation",
+            "roles": [
+                "public"
+            ],
+            "using": "(tenant_id = get_auth_tenant_id())",
+            "command": "ALL",
+            "relation": "edu_courses",
+            "withCheck": "(tenant_id = get_auth_tenant_id())",
+            "permissive": "PERMISSIVE"
+        },
+        {
+            "name": "tenant_isolation_edu_curriculums",
+            "roles": [
+                "public"
+            ],
+            "using": "((tenant_id = get_auth_tenant_id()) OR (tenant_id = (current_setting('app.current_tenant_id'::text, true))::uuid) OR (current_setting('role'::text, true) = 'service_role'::text))",
+            "command": "ALL",
+            "relation": "edu_curriculums",
+            "withCheck": "((tenant_id = get_auth_tenant_id()) OR (tenant_id = (current_setting('app.current_tenant_id'::text, true))::uuid) OR (current_setting('role'::text, true) = 'service_role'::text))",
+            "permissive": "PERMISSIVE"
+        },
+        {
+            "name": "edu_dev_milestone_progress_tenant_policy",
+            "roles": [
+                "public"
+            ],
+            "using": "(tenant_id = ((auth.jwt() ->> 'tenant_id'::text))::uuid)",
+            "command": "ALL",
+            "relation": "edu_dev_milestone_progress",
+            "withCheck": null,
+            "permissive": "PERMISSIVE"
+        },
+        {
+            "name": "edu_dev_observation_students_tenant_policy",
+            "roles": [
+                "public"
+            ],
+            "using": "(tenant_id = ((auth.jwt() ->> 'tenant_id'::text))::uuid)",
+            "command": "ALL",
+            "relation": "edu_dev_observation_students",
+            "withCheck": null,
+            "permissive": "PERMISSIVE"
+        },
+        {
+            "name": "edu_dev_observations_tenant_policy",
+            "roles": [
+                "public"
+            ],
+            "using": "(tenant_id = ((auth.jwt() ->> 'tenant_id'::text))::uuid)",
+            "command": "ALL",
+            "relation": "edu_dev_observations",
+            "withCheck": null,
+            "permissive": "PERMISSIVE"
+        },
+        {
+            "name": "tenant_isolation_edu_lesson_plans",
+            "roles": [
+                "public"
+            ],
+            "using": "((tenant_id = get_auth_tenant_id()) OR (tenant_id = (current_setting('app.current_tenant_id'::text, true))::uuid) OR (current_setting('role'::text, true) = 'service_role'::text))",
+            "command": "ALL",
+            "relation": "edu_lesson_plans",
+            "withCheck": "((tenant_id = get_auth_tenant_id()) OR (tenant_id = (current_setting('app.current_tenant_id'::text, true))::uuid) OR (current_setting('role'::text, true) = 'service_role'::text))",
+            "permissive": "PERMISSIVE"
+        },
+        {
+            "name": "tenant_isolation_edu_weekly_menu_days",
+            "roles": [
+                "public"
+            ],
+            "using": "((tenant_id = get_auth_tenant_id()) OR (tenant_id = (current_setting('app.current_tenant_id'::text, true))::uuid) OR (current_setting('role'::text, true) = 'service_role'::text))",
+            "command": "ALL",
+            "relation": "edu_weekly_menu_days",
+            "withCheck": "((tenant_id = get_auth_tenant_id()) OR (tenant_id = (current_setting('app.current_tenant_id'::text, true))::uuid) OR (current_setting('role'::text, true) = 'service_role'::text))",
+            "permissive": "PERMISSIVE"
+        },
+        {
+            "name": "tenant_isolation_edu_weekly_menus",
+            "roles": [
+                "public"
+            ],
+            "using": "((tenant_id = get_auth_tenant_id()) OR (tenant_id = (current_setting('app.current_tenant_id'::text, true))::uuid) OR (current_setting('role'::text, true) = 'service_role'::text))",
+            "command": "ALL",
+            "relation": "edu_weekly_menus",
+            "withCheck": "((tenant_id = get_auth_tenant_id()) OR (tenant_id = (current_setting('app.current_tenant_id'::text, true))::uuid) OR (current_setting('role'::text, true) = 'service_role'::text))",
+            "permissive": "PERMISSIVE"
+        },
+        {
+            "name": "org_relationships_admin_write",
+            "roles": [
+                "authenticated"
+            ],
+            "using": "(is_hq_super_admin() OR ((tenant_id = get_auth_tenant_id()) AND (EXISTS ( SELECT 1\n   FROM users u\n  WHERE ((u.id = auth.uid()) AND (lower(u.role) = ANY (ARRAY['admin'::text, 'super_admin'::text])))))))",
+            "command": "ALL",
+            "relation": "org_relationships",
+            "withCheck": "(is_hq_super_admin() OR ((tenant_id = get_auth_tenant_id()) AND (EXISTS ( SELECT 1\n   FROM users u\n  WHERE ((u.id = auth.uid()) AND (lower(u.role) = ANY (ARRAY['admin'::text, 'super_admin'::text])))))))",
+            "permissive": "PERMISSIVE"
+        },
+        {
+            "name": "org_relationships_tenant_read",
+            "roles": [
+                "authenticated"
+            ],
+            "using": "(is_hq_super_admin() OR (tenant_id = get_auth_tenant_id()))",
+            "command": "SELECT",
+            "relation": "org_relationships",
+            "withCheck": null,
+            "permissive": "PERMISSIVE"
+        },
+        {
+            "name": "org_units_admin_write",
+            "roles": [
+                "authenticated"
+            ],
+            "using": "(is_hq_super_admin() OR ((tenant_id = get_auth_tenant_id()) AND (EXISTS ( SELECT 1\n   FROM users u\n  WHERE ((u.id = auth.uid()) AND (lower(u.role) = ANY (ARRAY['admin'::text, 'super_admin'::text])))))))",
+            "command": "ALL",
+            "relation": "org_units",
+            "withCheck": "(is_hq_super_admin() OR ((tenant_id = get_auth_tenant_id()) AND (EXISTS ( SELECT 1\n   FROM users u\n  WHERE ((u.id = auth.uid()) AND (lower(u.role) = ANY (ARRAY['admin'::text, 'super_admin'::text])))))))",
+            "permissive": "PERMISSIVE"
+        },
+        {
+            "name": "org_units_tenant_read",
+            "roles": [
+                "authenticated"
+            ],
+            "using": "(is_hq_super_admin() OR (tenant_id = get_auth_tenant_id()))",
+            "command": "SELECT",
+            "relation": "org_units",
+            "withCheck": null,
+            "permissive": "PERMISSIVE"
+        },
+        {
+            "name": "people_directory_admin_write",
+            "roles": [
+                "authenticated"
+            ],
+            "using": "(is_hq_super_admin() OR ((tenant_id = get_auth_tenant_id()) AND (EXISTS ( SELECT 1\n   FROM users u\n  WHERE ((u.id = auth.uid()) AND (lower(u.role) = ANY (ARRAY['admin'::text, 'super_admin'::text])))))))",
+            "command": "ALL",
+            "relation": "people_directory",
+            "withCheck": "(is_hq_super_admin() OR ((tenant_id = get_auth_tenant_id()) AND (EXISTS ( SELECT 1\n   FROM users u\n  WHERE ((u.id = auth.uid()) AND (lower(u.role) = ANY (ARRAY['admin'::text, 'super_admin'::text])))))))",
+            "permissive": "PERMISSIVE"
+        },
+        {
+            "name": "people_directory_tenant_read",
+            "roles": [
+                "authenticated"
+            ],
+            "using": "(is_hq_super_admin() OR (tenant_id = get_auth_tenant_id()))",
+            "command": "SELECT",
+            "relation": "people_directory",
+            "withCheck": null,
+            "permissive": "PERMISSIVE"
+        },
+        {
+            "name": "preschool_chain_course_branch_select",
+            "roles": [
+                "authenticated"
+            ],
+            "using": "preschool_course_assignment_visible(tenant_id, course_id, branch_id)",
+            "command": "SELECT",
+            "relation": "preschool_chain_course_branch_assignments",
+            "withCheck": null,
+            "permissive": "PERMISSIVE"
+        },
+        {
+            "name": "teacher_assignments_canonical_private",
+            "roles": [
+                "public"
+            ],
+            "using": "(canonical_course_id IS NULL)",
+            "command": "ALL",
+            "relation": "teacher_assignments",
+            "withCheck": "(canonical_course_id IS NULL)",
+            "permissive": "RESTRICTIVE"
+        },
+        {
+            "name": "teacher_assignments_tenant_isolation",
+            "roles": [
+                "public"
+            ],
+            "using": "((tenant_id = (( SELECT (auth.jwt() ->> 'tenant_id'::text)))::uuid) OR (tenant_id = (current_setting('app.current_tenant_id'::text, true))::uuid))",
+            "command": "ALL",
+            "relation": "teacher_assignments",
+            "withCheck": null,
+            "permissive": "PERMISSIVE"
+        },
+        {
+            "name": "Admin can update their own tenant",
+            "roles": [
+                "authenticated"
+            ],
+            "using": "(id = ( SELECT users.tenant_id\n   FROM users\n  WHERE ((users.id = auth.uid()) AND (users.role = 'admin'::text))))",
+            "command": "UPDATE",
+            "relation": "tenants",
+            "withCheck": "(id = ( SELECT users.tenant_id\n   FROM users\n  WHERE ((users.id = auth.uid()) AND (users.role = 'admin'::text))))",
+            "permissive": "PERMISSIVE"
+        },
+        {
+            "name": "Tenant read tenants",
+            "roles": [
+                "authenticated"
+            ],
+            "using": "((get_auth_tenant_id() IS NULL) OR (id = get_auth_tenant_id()))",
+            "command": "SELECT",
+            "relation": "tenants",
+            "withCheck": null,
+            "permissive": "PERMISSIVE"
+        },
+        {
+            "name": "block_rest_api_access",
+            "roles": [
+                "public"
+            ],
+            "using": "false",
+            "command": "ALL",
+            "relation": "tenants",
+            "withCheck": "false",
+            "permissive": "PERMISSIVE"
+        },
+        {
+            "name": "platform_active_hq_tenant_select",
+            "roles": [
+                "authenticated"
+            ],
+            "using": "is_hq_super_admin()",
+            "command": "SELECT",
+            "relation": "tenants",
+            "withCheck": null,
+            "permissive": "PERMISSIVE"
+        },
+        {
+            "name": "platform_active_hq_tenant_update",
+            "roles": [
+                "authenticated"
+            ],
+            "using": "is_hq_super_admin()",
+            "command": "UPDATE",
+            "relation": "tenants",
+            "withCheck": "is_hq_super_admin()",
+            "permissive": "PERMISSIVE"
+        },
+        {
+            "name": "Admins can view all users in tenant",
+            "roles": [
+                "public"
+            ],
+            "using": "((current_user_role() = 'admin'::text) AND (tenant_id = current_tenant_id()))",
+            "command": "SELECT",
+            "relation": "users",
+            "withCheck": null,
+            "permissive": "PERMISSIVE"
+        },
+        {
+            "name": "Admins manage tenant users",
+            "roles": [
+                "public"
+            ],
+            "using": "((current_user_role() = 'admin'::text) AND (tenant_id = current_tenant_id()))",
+            "command": "ALL",
+            "relation": "users",
+            "withCheck": null,
+            "permissive": "PERMISSIVE"
+        },
+        {
+            "name": "User tự xem và sửa chính mình",
+            "roles": [
+                "authenticated"
+            ],
+            "using": "(id = auth.uid())",
+            "command": "ALL",
+            "relation": "users",
+            "withCheck": null,
+            "permissive": "PERMISSIVE"
+        },
+        {
+            "name": "Users can view own profile",
+            "roles": [
+                "public"
+            ],
+            "using": "(auth.uid() = id)",
+            "command": "SELECT",
+            "relation": "users",
+            "withCheck": null,
+            "permissive": "PERMISSIVE"
+        },
+        {
+            "name": "Users can view their own profile",
+            "roles": [
+                "public"
+            ],
+            "using": "(auth.uid() = id)",
+            "command": "SELECT",
+            "relation": "users",
+            "withCheck": null,
+            "permissive": "PERMISSIVE"
+        }
+    ],
+    "presence": [
+        {
+            "name": "courses",
+            "exists": true
+        },
+        {
+            "name": "edu_courses",
+            "exists": true
+        },
+        {
+            "name": "edu_curriculums",
+            "exists": true
+        },
+        {
+            "name": "edu_dev_milestone_progress",
+            "exists": true
+        },
+        {
+            "name": "edu_dev_observation_students",
+            "exists": true
+        },
+        {
+            "name": "edu_dev_observations",
+            "exists": true
+        },
+        {
+            "name": "edu_lesson_plans",
+            "exists": true
+        },
+        {
+            "name": "edu_weekly_menu_days",
+            "exists": true
+        },
+        {
+            "name": "edu_weekly_menus",
+            "exists": true
+        },
+        {
+            "name": "org_relationships",
+            "exists": true
+        },
+        {
+            "name": "org_units",
+            "exists": true
+        },
+        {
+            "name": "party_auth_links",
+            "exists": true
+        },
+        {
+            "name": "party_identity_link_managers",
+            "exists": true
+        },
+        {
+            "name": "people_directory",
+            "exists": true
+        },
+        {
+            "name": "preschool_chain_course_branch_assignments",
+            "exists": true
+        },
+        {
+            "name": "preschool_teacher_branch_confirmations",
+            "exists": true
+        },
+        {
+            "name": "teacher_assignments",
+            "exists": true
+        },
+        {
+            "name": "tenants",
+            "exists": true
+        },
+        {
+            "name": "user_org_unit_access",
+            "exists": true
+        },
+        {
+            "name": "users",
+            "exists": true
+        }
+    ],
+    "functions": [
+        {
+            "acl": "{postgres=X/postgres,service_role=X/postgres}",
+            "owner": "postgres",
+            "config": [
+                "search_path=\"\"",
+                "statement_timeout=10s",
+                "lock_timeout=2s"
+            ],
+            "signature": "edu_assign_preschool_teacher(uuid,uuid,uuid,uuid,uuid,uuid,uuid,text,text,date,date)",
+            "definition": "CREATE OR REPLACE FUNCTION public.edu_assign_preschool_teacher(p_tenant_id uuid, p_actor_id uuid, p_branch_id uuid, p_operation_key uuid, p_course_id uuid, p_confirmation_id uuid, p_teacher_party_id uuid, p_role text, p_academic_year text, p_effective_start_date date, p_effective_end_date date)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\n SET statement_timeout TO '10s'\n SET lock_timeout TO '2s'\nAS $function$\nDECLARE v_row public.teacher_assignments%ROWTYPE; v_confirmation public.preschool_teacher_branch_confirmations%ROWTYPE;\nBEGIN\n  PERFORM public.preschool_teacher_assert_admin(p_tenant_id,p_actor_id,p_branch_id,p_course_id);\n  IF p_operation_key IS NULL OR p_course_id IS NULL OR p_confirmation_id IS NULL OR p_teacher_party_id IS NULL\n    OR p_role IS NULL OR p_role NOT IN('lead_teacher','co_teacher','assistant','substitute')\n    OR p_academic_year IS NULL OR length(p_academic_year) NOT BETWEEN 1 AND 80\n    OR p_academic_year<>btrim(p_academic_year) OR p_academic_year ~ '[[:cntrl:]]'\n    OR p_effective_start_date IS NULL OR NOT isfinite(p_effective_start_date)\n    OR (p_effective_end_date IS NOT NULL AND (NOT isfinite(p_effective_end_date) OR p_effective_end_date<p_effective_start_date))\n  THEN RAISE EXCEPTION 'PRESCHOOL_TEACHER_INVALID_REQUEST' USING ERRCODE='22023'; END IF;\n  PERFORM pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtextextended('preschool-teacher-assign:'||p_operation_key::text,0));\n  PERFORM public.preschool_teacher_assert_admin(p_tenant_id,p_actor_id,p_branch_id,p_course_id);\n  -- Recover an exact prior active operation before applying creation-only eligibility.\n  -- Revocation, Party soft deletion or course archival cannot erase prior success.\n  SELECT * INTO v_row FROM public.teacher_assignments\n    WHERE assignment_id=p_operation_key AND tenant_id=p_tenant_id FOR UPDATE;\n  IF FOUND THEN\n    IF v_row.tenant_id<>p_tenant_id OR v_row.canonical_course_id IS DISTINCT FROM p_course_id OR v_row.course_id IS NOT NULL\n      OR v_row.teacher_party_id<>p_teacher_party_id OR v_row.canonical_teacher_confirmation_id IS DISTINCT FROM p_confirmation_id\n      OR v_row.role<>p_role OR v_row.academic_year<>p_academic_year OR v_row.created_by IS DISTINCT FROM p_actor_id\n      OR v_row.effective_start_date<>p_effective_start_date OR v_row.effective_end_date IS DISTINCT FROM p_effective_end_date\n      OR v_row.status<>'active'\n    THEN RAISE EXCEPTION 'PRESCHOOL_TEACHER_OPERATION_CONFLICT' USING ERRCODE='23505'; END IF;\n    -- Retain immutable tenant/Party/branch proof binding without demanding that\n    -- the confirmation still grants new-assignment eligibility at replay time.\n    PERFORM 1 FROM public.preschool_teacher_branch_confirmations\n      WHERE id=p_confirmation_id AND tenant_id=p_tenant_id AND branch_id=p_branch_id\n        AND teacher_party_id=p_teacher_party_id FOR SHARE;\n    IF NOT FOUND THEN RAISE EXCEPTION 'PRESCHOOL_TEACHER_CONFIRMATION_DENIED' USING ERRCODE='42501'; END IF;\n    PERFORM public.preschool_teacher_assert_admin(p_tenant_id,p_actor_id,p_branch_id,p_course_id);\n    RETURN to_jsonb(v_row);\n  END IF;\n  SELECT * INTO v_confirmation FROM public.preschool_teacher_branch_confirmations\n    WHERE id=p_confirmation_id AND tenant_id=p_tenant_id AND branch_id=p_branch_id AND teacher_party_id=p_teacher_party_id FOR SHARE;\n  IF NOT FOUND THEN RAISE EXCEPTION 'PRESCHOOL_TEACHER_CONFIRMATION_DENIED' USING ERRCODE='42501'; END IF;\n  IF v_confirmation.revoked_at IS NOT NULL OR p_effective_start_date<v_confirmation.valid_from\n    OR (v_confirmation.valid_to IS NOT NULL AND (p_effective_end_date IS NULL OR p_effective_end_date>v_confirmation.valid_to))\n  THEN RAISE EXCEPTION 'PRESCHOOL_TEACHER_CONFIRMATION_DENIED' USING ERRCODE='42501'; END IF;\n  PERFORM 1 FROM public.party_parties p WHERE p.id=p_teacher_party_id AND p.tenant_id=p_tenant_id\n    AND p.party_type='person' AND p.deleted_at IS NULL AND btrim(p.display_name)<>'' FOR SHARE;\n  IF NOT FOUND THEN RAISE EXCEPTION 'PRESCHOOL_TEACHER_PARTY_DENIED' USING ERRCODE='42501'; END IF;\n  IF NOT EXISTS (SELECT 1 FROM public.edu_courses WHERE id=p_course_id AND tenant_id=p_tenant_id AND status='active')\n  THEN RAISE EXCEPTION 'PRESCHOOL_TEACHER_COURSE_DENIED' USING ERRCODE='42501'; END IF;\n  INSERT INTO public.teacher_assignments(assignment_id,tenant_id,course_id,canonical_course_id,teacher_party_id,\n    canonical_teacher_confirmation_id,role,academic_year,effective_start_date,effective_end_date,status,created_by,updated_by)\n    VALUES(p_operation_key,p_tenant_id,NULL,p_course_id,p_teacher_party_id,p_confirmation_id,p_role,p_academic_year,\n      p_effective_start_date,p_effective_end_date,'active',p_actor_id,p_actor_id) RETURNING * INTO v_row;\n  PERFORM public.preschool_teacher_assert_admin(p_tenant_id,p_actor_id,p_branch_id,p_course_id);\n  -- Confirmation/Party rows are SHARE-locked through commit, including any unique-index wait.\n  RETURN to_jsonb(v_row);\nEND $function$\n",
+            "securityDefiner": true
+        },
+        {
+            "acl": "{postgres=X/postgres,service_role=X/postgres}",
+            "owner": "postgres",
+            "config": [
+                "search_path=\"\"",
+                "statement_timeout=10s",
+                "lock_timeout=2s"
+            ],
+            "signature": "edu_get_preschool_course_teachers(uuid,uuid,uuid,uuid,date,integer,integer)",
+            "definition": "CREATE OR REPLACE FUNCTION public.edu_get_preschool_course_teachers(p_tenant_id uuid, p_actor_id uuid, p_branch_id uuid, p_course_id uuid, p_on_date date, p_offset integer DEFAULT 0, p_limit integer DEFAULT 20)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\n SET statement_timeout TO '10s'\n SET lock_timeout TO '2s'\nAS $function$\nDECLARE v_result jsonb;\nBEGIN\n  PERFORM public.preschool_teacher_assert_admin(p_tenant_id,p_actor_id,p_branch_id,p_course_id);\n  IF p_course_id IS NULL OR p_on_date IS NULL OR NOT isfinite(p_on_date)\n    OR p_offset IS NULL OR p_offset<0 OR p_offset>100000 OR p_limit IS NULL OR p_limit<1 OR p_limit>50\n  THEN RAISE EXCEPTION 'PRESCHOOL_TEACHER_INVALID_REQUEST' USING ERRCODE='22023'; END IF;\n  -- A remap/mismatched proof must not masquerade as an empty valid roster.\n  IF EXISTS (SELECT 1 FROM public.teacher_assignments a\n    LEFT JOIN public.preschool_teacher_branch_confirmations c ON c.id=a.canonical_teacher_confirmation_id\n    WHERE a.tenant_id=p_tenant_id AND a.canonical_course_id=p_course_id\n      AND (c.id IS NULL OR c.tenant_id<>a.tenant_id OR c.branch_id<>p_branch_id OR c.teacher_party_id<>a.teacher_party_id))\n  THEN RAISE EXCEPTION 'PRESCHOOL_TEACHER_CONFIGURATION_UNAVAILABLE' USING ERRCODE='55000'; END IF;\n  WITH assignments AS (\n    SELECT a.assignment_id,to_jsonb(a)||jsonb_build_object('branchId',p_branch_id,\n      'teacherName',CASE WHEN p.party_type='person' AND p.deleted_at IS NULL\n        AND coalesce(btrim(p.display_name),'')<>'' THEN p.display_name ELSE NULL END,\n      'effectiveOnDate',a.status='active' AND a.effective_start_date<=p_on_date\n        AND (a.effective_end_date IS NULL OR a.effective_end_date>=p_on_date),\n      'eligibility',CASE WHEN p.id IS NULL OR p.party_type<>'person' OR p.deleted_at IS NOT NULL\n        OR coalesce(btrim(p.display_name),'')='' THEN 'identity_unavailable'\n        WHEN c.revoked_at IS NOT NULL THEN 'confirmation_revoked'\n        WHEN c.valid_from>p_on_date OR (c.valid_to IS NOT NULL AND c.valid_to<p_on_date) THEN 'outside_confirmation_dates'\n        ELSE 'confirmed' END) data\n    FROM public.teacher_assignments a JOIN public.preschool_teacher_branch_confirmations c ON c.id=a.canonical_teacher_confirmation_id\n    LEFT JOIN public.party_parties p ON p.id=a.teacher_party_id AND p.tenant_id=a.tenant_id\n    WHERE a.tenant_id=p_tenant_id AND a.canonical_course_id=p_course_id AND a.course_id IS NULL\n  ), page AS (SELECT * FROM assignments ORDER BY assignment_id OFFSET p_offset LIMIT p_limit)\n  SELECT jsonb_build_object('tenantId',p_tenant_id,'branchId',p_branch_id,'courseId',p_course_id,'onDate',p_on_date,\n    'offset',p_offset,'limit',p_limit,'total',(SELECT count(*) FROM assignments),\n    'nextOffset',CASE WHEN p_offset::bigint+p_limit<(SELECT count(*) FROM assignments) AND p_offset+p_limit<=100000\n      THEN p_offset+p_limit ELSE NULL END,\n    'assignments',(SELECT coalesce(jsonb_agg(data ORDER BY assignment_id),'[]'::jsonb) FROM page)) INTO v_result;\n  PERFORM public.preschool_teacher_assert_admin(p_tenant_id,p_actor_id,p_branch_id,p_course_id);\n  RETURN v_result;\nEND $function$\n",
+            "securityDefiner": true
+        },
+        {
+            "acl": "{=X/postgres,postgres=X/postgres,service_role=X/postgres,bella_migration_executor=X/postgres}",
+            "owner": "postgres",
+            "config": [
+                "search_path=pg_catalog, public"
+            ],
+            "signature": "get_auth_tenant_id()",
+            "definition": "CREATE OR REPLACE FUNCTION public.get_auth_tenant_id()\n RETURNS uuid\n LANGUAGE plpgsql\n STABLE SECURITY DEFINER\n SET search_path TO 'pg_catalog', 'public'\nAS $function$\nDECLARE\n  v_tenant_id uuid;\nBEGIN\n  SELECT u.tenant_id INTO v_tenant_id\n  FROM public.users AS u\n  JOIN public.tenants AS t ON t.id = u.tenant_id\n  WHERE u.id = auth.uid() AND u.status = 'active' AND t.status = 'active';\n\n  -- NULL would enable legacy policies using NULL as an unrestricted HQ sentinel.\n  IF v_tenant_id IS NULL THEN\n    RAISE EXCEPTION 'Active canonical identity and tenant required' USING ERRCODE = '42501';\n  END IF;\n  RETURN v_tenant_id;\nEND;\n$function$\n",
+            "securityDefiner": true
+        },
+        {
+            "acl": "{postgres=X/postgres,authenticated=X/postgres}",
+            "owner": "postgres",
+            "config": [
+                "search_path=pg_catalog"
+            ],
+            "signature": "party_resolve_current_auth_link()",
+            "definition": "CREATE OR REPLACE FUNCTION public.party_resolve_current_auth_link()\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'pg_catalog'\nAS $function$\nDECLARE c record; r public.party_auth_links%ROWTYPE;\nBEGIN\n  SELECT * INTO c FROM public.party_auth_link_context(false,false);\n  SELECT l.* INTO r FROM public.party_auth_links l JOIN public.party_parties p ON p.id=l.party_id AND p.tenant_id=l.tenant_id\n    WHERE l.auth_user_id=c.actor_id AND l.tenant_id=c.tenant_id AND l.revoked_at IS NULL\n      AND l.valid_from<=clock_timestamp() AND (l.valid_until IS NULL OR l.valid_until>clock_timestamp())\n      AND p.party_type='person' AND p.deleted_at IS NULL AND btrim(p.display_name)<>'';\n  IF NOT FOUND THEN RETURN NULL; END IF;\n  RETURN jsonb_build_object('id',r.id,'tenantId',r.tenant_id,'authUserId',r.auth_user_id,\n    'partyId',r.party_id,'validFrom',r.valid_from,'validUntil',r.valid_until);\nEND;\n$function$\n",
+            "securityDefiner": true
+        },
+        {
+            "acl": "{postgres=X/postgres,service_role=X/postgres}",
+            "owner": "postgres",
+            "config": [
+                "search_path=\"\""
+            ],
+            "signature": "platform_assert_active_branch_for_actor(uuid,uuid,uuid)",
+            "definition": "CREATE OR REPLACE FUNCTION public.platform_assert_active_branch_for_actor(p_tenant_id uuid, p_actor_id uuid, p_branch_id uuid)\n RETURNS void\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\r\nBEGIN\r\n  IF auth.role() IS DISTINCT FROM 'service_role' OR p_tenant_id IS NULL OR p_actor_id IS NULL OR p_branch_id IS NULL\r\n    OR (auth.uid() IS NOT NULL AND auth.uid() IS DISTINCT FROM p_actor_id) THEN\r\n    RAISE EXCEPTION 'PLATFORM_BRANCH_ACTOR_DENIED' USING ERRCODE='42501';\r\n  END IF;\r\n  PERFORM 1 FROM public.org_units ou WHERE ou.id=p_branch_id AND ou.tenant_id=p_tenant_id\r\n    AND ou.unit_type='branch' AND ou.is_active=true FOR SHARE;\r\n  IF NOT FOUND THEN RAISE EXCEPTION 'PLATFORM_ACTIVE_BRANCH_REQUIRED' USING ERRCODE='42501'; END IF;\r\n  IF NOT EXISTS(SELECT 1 FROM public.platform_org_unit_access_for_actor(p_tenant_id,p_actor_id) a\r\n    WHERE a.user_id=p_actor_id AND a.tenant_id=p_tenant_id AND a.org_unit_id=p_branch_id\r\n      AND a.relationship_id IS NOT NULL AND a.access_source IN ('belongs_to','manages','participates_in')) THEN\r\n    RAISE EXCEPTION 'PLATFORM_EXPLICIT_BRANCH_ACCESS_DENIED' USING ERRCODE='42501';\r\n  END IF;\r\nEND;\r\n$function$\n",
+            "securityDefiner": true
+        },
+        {
+            "acl": "{postgres=X/postgres,authenticated=X/postgres}",
+            "owner": "postgres",
+            "config": [
+                "search_path=\"\""
+            ],
+            "signature": "platform_current_actor_org_unit_access()",
+            "definition": "CREATE OR REPLACE FUNCTION public.platform_current_actor_org_unit_access()\n RETURNS TABLE(user_id uuid, tenant_id uuid, org_unit_id uuid, root_org_unit_id uuid, relationship_id uuid, access_source text)\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\nDECLARE v_tenant_id uuid;\nBEGIN\n  SELECT p.tenant_id INTO v_tenant_id FROM public.platform_current_actor_profile() p;\n  RETURN QUERY\n    SELECT a.user_id, a.tenant_id, a.org_unit_id, a.root_org_unit_id,\n      a.relationship_id, a.access_source\n    FROM public.platform_org_unit_access_for_actor(v_tenant_id, auth.uid()) a;\nEND;\n$function$\n",
+            "securityDefiner": true
+        },
+        {
+            "acl": "{postgres=X/postgres,authenticated=X/postgres}",
+            "owner": "postgres",
+            "config": [
+                "search_path=\"\""
+            ],
+            "signature": "platform_current_actor_profile()",
+            "definition": "CREATE OR REPLACE FUNCTION public.platform_current_actor_profile()\n RETURNS TABLE(id uuid, email text, full_name text, role text, avatar_url text, tenant_id uuid, status text, tenant_status text)\n LANGUAGE plpgsql\n STABLE SECURITY DEFINER\n SET search_path TO ''\nAS $function$\nBEGIN\n  IF auth.uid() IS NULL OR auth.role() IS DISTINCT FROM 'authenticated' THEN\n    RAISE EXCEPTION 'PLATFORM_CURRENT_ACTOR_DENIED: Signed-in actor required.' USING ERRCODE = '42501';\n  END IF;\n  RETURN QUERY\n    SELECT u.id, u.email::text, u.full_name::text, u.role::text, u.avatar_url::text,\n      u.tenant_id, u.status::text, t.status::text\n    FROM auth.users a\n    JOIN public.users u ON u.id = a.id\n    JOIN public.tenants t ON t.id = u.tenant_id\n    WHERE a.id = auth.uid() AND a.deleted_at IS NULL\n      AND (a.banned_until IS NULL OR a.banned_until <= now())\n      AND u.status = 'active' AND t.status = 'active';\n  IF NOT FOUND THEN\n    RAISE EXCEPTION 'PLATFORM_CURRENT_ACTOR_DENIED: Current active identity and tenant required.' USING ERRCODE = '42501';\n  END IF;\nEND;\n$function$\n",
+            "securityDefiner": true
+        },
+        {
+            "acl": "{postgres=X/postgres,service_role=X/postgres}",
+            "owner": "postgres",
+            "config": [
+                "search_path=\"\""
+            ],
+            "signature": "platform_org_unit_access_for_actor(uuid,uuid)",
+            "definition": "CREATE OR REPLACE FUNCTION public.platform_org_unit_access_for_actor(p_tenant_id uuid, p_actor_id uuid)\n RETURNS TABLE(user_id uuid, tenant_id uuid, org_unit_id uuid, root_org_unit_id uuid, relationship_id uuid, access_source text)\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\nBEGIN\n    IF p_tenant_id IS NULL OR p_actor_id IS NULL\n       OR (auth.uid() IS NOT NULL AND auth.uid() IS DISTINCT FROM p_actor_id) THEN\n        RAISE EXCEPTION 'PLATFORM_ACTOR_ACCESS_DENIED: Trusted actor context required.' USING ERRCODE = '42501';\n    END IF;\n\n    PERFORM 1 FROM auth.users a\n      JOIN public.users u ON u.id = a.id\n      JOIN public.tenants t ON t.id = u.tenant_id\n    WHERE a.id = p_actor_id AND a.deleted_at IS NULL\n      AND (a.banned_until IS NULL OR a.banned_until <= now())\n      AND u.tenant_id = p_tenant_id AND u.status = 'active' AND t.status = 'active';\n    IF NOT FOUND THEN\n        RAISE EXCEPTION 'PLATFORM_ACTOR_ACCESS_DENIED: Current active Auth-backed actor and tenant required.' USING ERRCODE = '42501';\n    END IF;\n\n    RETURN QUERY\n    WITH RECURSIVE direct_access AS (\n      SELECT pd.user_id, rel.tenant_id, rel.to_id AS org_unit_id,\n        rel.to_id AS root_org_unit_id, rel.id AS relationship_id,\n        rel.rel_type AS access_source\n      FROM public.people_directory pd\n      JOIN public.org_relationships rel ON rel.tenant_id = pd.tenant_id\n        AND rel.from_id = pd.id AND rel.from_type = 'person' AND rel.to_type = 'unit'\n        AND rel.rel_type IN ('belongs_to', 'manages', 'participates_in')\n        AND (rel.since IS NULL OR rel.since <= CURRENT_DATE)\n        AND (rel.until IS NULL OR rel.until >= CURRENT_DATE)\n      JOIN public.org_units ou ON ou.id = rel.to_id\n        AND ou.tenant_id = rel.tenant_id AND ou.is_active = TRUE\n      WHERE pd.user_id = p_actor_id AND pd.tenant_id = p_tenant_id AND pd.is_active = TRUE\n    ), expanded_access AS (\n      SELECT da.user_id, da.tenant_id, da.org_unit_id, da.root_org_unit_id,\n        da.relationship_id, da.access_source FROM direct_access da\n      UNION\n      SELECT ea.user_id, child.tenant_id, child.id, ea.root_org_unit_id,\n        ea.relationship_id, ea.access_source\n      FROM expanded_access ea\n      JOIN public.org_units child ON child.parent_id = ea.org_unit_id\n        AND child.tenant_id = ea.tenant_id AND child.is_active = TRUE\n    ), admin_access AS (\n      SELECT u.id AS user_id, ou.tenant_id, ou.id AS org_unit_id,\n        ou.id AS root_org_unit_id, NULL::uuid AS relationship_id,\n        'tenant_admin'::text AS access_source\n      FROM public.users u\n      JOIN public.org_units ou ON ou.tenant_id = u.tenant_id AND ou.is_active = TRUE\n      WHERE u.id = p_actor_id AND u.tenant_id = p_tenant_id\n        AND lower(u.role) IN ('admin', 'super_admin')\n    )\n    SELECT ea.user_id, ea.tenant_id, ea.org_unit_id, ea.root_org_unit_id,\n      ea.relationship_id, ea.access_source FROM expanded_access ea\n    UNION\n    SELECT aa.user_id, aa.tenant_id, aa.org_unit_id, aa.root_org_unit_id,\n      aa.relationship_id, aa.access_source FROM admin_access aa;\nEND;\n$function$\n",
+            "securityDefiner": true
+        },
+        {
+            "acl": "{postgres=X/postgres,service_role=X/postgres}",
+            "owner": "postgres",
+            "config": [
+                "search_path=\"\"",
+                "statement_timeout=10s",
+                "lock_timeout=2s"
+            ],
+            "signature": "preschool_confirm_teacher(uuid,uuid,uuid,uuid,uuid,date,date,text)",
+            "definition": "CREATE OR REPLACE FUNCTION public.preschool_confirm_teacher(p_tenant_id uuid, p_actor_id uuid, p_branch_id uuid, p_operation_key uuid, p_teacher_party_id uuid, p_valid_from date, p_valid_to date, p_attestation text)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\n SET statement_timeout TO '10s'\n SET lock_timeout TO '2s'\nAS $function$\nDECLARE v_row public.preschool_teacher_branch_confirmations%ROWTYPE;\nBEGIN\n  PERFORM public.preschool_teacher_assert_admin(p_tenant_id,p_actor_id,p_branch_id);\n  IF p_operation_key IS NULL OR p_teacher_party_id IS NULL OR p_valid_from IS NULL OR NOT isfinite(p_valid_from)\n    OR (p_valid_to IS NOT NULL AND (NOT isfinite(p_valid_to) OR p_valid_to<p_valid_from))\n    OR p_attestation IS NULL OR length(p_attestation) NOT BETWEEN 1 AND 500\n    OR p_attestation<>btrim(p_attestation) OR p_attestation ~ '[[:cntrl:]]'\n  THEN RAISE EXCEPTION 'PRESCHOOL_TEACHER_INVALID_REQUEST' USING ERRCODE='22023'; END IF;\n  PERFORM pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtextextended('preschool-teacher-confirm:'||p_operation_key::text,0));\n  PERFORM public.preschool_teacher_assert_admin(p_tenant_id,p_actor_id,p_branch_id);\n  SELECT * INTO v_row FROM public.preschool_teacher_branch_confirmations\n    WHERE id=p_operation_key AND tenant_id=p_tenant_id FOR UPDATE;\n  IF FOUND THEN\n    IF v_row.tenant_id<>p_tenant_id OR v_row.branch_id<>p_branch_id OR v_row.teacher_party_id<>p_teacher_party_id\n      OR v_row.confirmed_by<>p_actor_id OR v_row.valid_from<>p_valid_from OR v_row.valid_to IS DISTINCT FROM p_valid_to\n      OR v_row.attestation<>p_attestation\n    THEN RAISE EXCEPTION 'PRESCHOOL_TEACHER_OPERATION_CONFLICT' USING ERRCODE='23505'; END IF;\n  ELSE\n    INSERT INTO public.preschool_teacher_branch_confirmations\n      (id,tenant_id,branch_id,teacher_party_id,valid_from,valid_to,attestation,confirmed_by)\n      VALUES(p_operation_key,p_tenant_id,p_branch_id,p_teacher_party_id,p_valid_from,p_valid_to,p_attestation,p_actor_id)\n      RETURNING * INTO v_row;\n  END IF;\n  PERFORM public.preschool_teacher_assert_admin(p_tenant_id,p_actor_id,p_branch_id);\n  -- Replay reads current lifecycle: a revoked receipt never restores eligibility.\n  RETURN to_jsonb(v_row);\nEND $function$\n",
+            "securityDefiner": true
+        },
+        {
+            "acl": "{postgres=X/postgres}",
+            "owner": "postgres",
+            "config": [
+                "search_path=\"\""
+            ],
+            "signature": "preschool_teacher_assert_admin(uuid,uuid,uuid,uuid)",
+            "definition": "CREATE OR REPLACE FUNCTION public.preschool_teacher_assert_admin(p_tenant_id uuid, p_actor_id uuid, p_branch_id uuid, p_course_id uuid DEFAULT NULL::uuid)\n RETURNS void\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\nBEGIN\n  IF auth.role() IS DISTINCT FROM 'service_role' OR p_tenant_id IS NULL OR p_actor_id IS NULL\n    OR p_branch_id IS NULL OR (auth.uid() IS NOT NULL AND auth.uid() IS DISTINCT FROM p_actor_id)\n  THEN RAISE EXCEPTION 'PRESCHOOL_TEACHER_ACCESS_DENIED' USING ERRCODE='42501'; END IF;\n  IF current_setting('transaction_isolation')<>'read committed'\n  THEN RAISE EXCEPTION 'PRESCHOOL_TEACHER_READ_COMMITTED_REQUIRED' USING ERRCODE='40001'; END IF;\n  PERFORM 1 FROM public.users u JOIN auth.users a ON a.id=u.id\n    JOIN public.tenants t ON t.id=u.tenant_id\n    WHERE u.id=p_actor_id AND u.tenant_id=p_tenant_id AND u.status='active' AND u.role='admin'\n      AND t.status='active' AND t.product_key='bella_preschool' AND a.deleted_at IS NULL\n      AND (a.banned_until IS NULL OR a.banned_until<=clock_timestamp()) FOR SHARE OF u,a,t;\n  IF NOT FOUND THEN RAISE EXCEPTION 'PRESCHOOL_TEACHER_ACCESS_DENIED' USING ERRCODE='42501'; END IF;\n  PERFORM public.platform_assert_active_branch_for_actor(p_tenant_id,p_actor_id,p_branch_id);\n  IF p_course_id IS NOT NULL THEN\n    PERFORM 1 FROM public.edu_courses c JOIN public.preschool_chain_course_branch_assignments m\n      ON m.course_id=c.id AND m.tenant_id=c.tenant_id\n      WHERE c.id=p_course_id AND c.tenant_id=p_tenant_id AND m.branch_id=p_branch_id FOR SHARE OF c,m;\n    IF NOT FOUND THEN RAISE EXCEPTION 'PRESCHOOL_TEACHER_COURSE_DENIED' USING ERRCODE='42501'; END IF;\n  END IF;\nEND $function$\n",
+            "securityDefiner": true
+        }
+    ],
+    "relations": [
+        {
+            "acl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres,bella_developer=r/postgres,bella_migration_executor=arwdDxtm/postgres,verification_executor=r/postgres,anon=arwdDxtm/postgres,authenticated=arwdDxtm/postgres}",
+            "kind": "r",
+            "name": "courses",
+            "owner": "postgres",
+            "rlsForced": false,
+            "rlsEnabled": true,
+            "viewDefinition": null
+        },
+        {
+            "acl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres,bella_developer=r/postgres,bella_migration_executor=arwdDxtm/postgres,verification_executor=r/postgres,anon=arwdDxtm/postgres,authenticated=arwdDxtm/postgres}",
+            "kind": "r",
+            "name": "edu_courses",
+            "owner": "postgres",
+            "rlsForced": false,
+            "rlsEnabled": true,
+            "viewDefinition": null
+        },
+        {
+            "acl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres,bella_developer=r/postgres,bella_migration_executor=arwdDxtm/postgres,verification_executor=r/postgres}",
+            "kind": "r",
+            "name": "edu_curriculums",
+            "owner": "postgres",
+            "rlsForced": false,
+            "rlsEnabled": true,
+            "viewDefinition": null
+        },
+        {
+            "acl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres,bella_developer=r/postgres,bella_migration_executor=arwdDxtm/postgres,verification_executor=r/postgres,anon=arwdDxtm/postgres,authenticated=arwdDxtm/postgres}",
+            "kind": "r",
+            "name": "edu_dev_milestone_progress",
+            "owner": "postgres",
+            "rlsForced": false,
+            "rlsEnabled": true,
+            "viewDefinition": null
+        },
+        {
+            "acl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres,bella_developer=r/postgres,bella_migration_executor=arwdDxtm/postgres,verification_executor=r/postgres,anon=arwdDxtm/postgres,authenticated=arwdDxtm/postgres}",
+            "kind": "r",
+            "name": "edu_dev_observation_students",
+            "owner": "postgres",
+            "rlsForced": false,
+            "rlsEnabled": true,
+            "viewDefinition": null
+        },
+        {
+            "acl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres,bella_developer=r/postgres,bella_migration_executor=arwdDxtm/postgres,verification_executor=r/postgres,anon=arwdDxtm/postgres,authenticated=arwdDxtm/postgres}",
+            "kind": "r",
+            "name": "edu_dev_observations",
+            "owner": "postgres",
+            "rlsForced": false,
+            "rlsEnabled": true,
+            "viewDefinition": null
+        },
+        {
+            "acl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres,bella_developer=r/postgres,bella_migration_executor=arwdDxtm/postgres,verification_executor=r/postgres}",
+            "kind": "r",
+            "name": "edu_lesson_plans",
+            "owner": "postgres",
+            "rlsForced": false,
+            "rlsEnabled": true,
+            "viewDefinition": null
+        },
+        {
+            "acl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres,bella_developer=r/postgres,bella_migration_executor=arwdDxtm/postgres,verification_executor=r/postgres}",
+            "kind": "r",
+            "name": "edu_weekly_menu_days",
+            "owner": "postgres",
+            "rlsForced": false,
+            "rlsEnabled": true,
+            "viewDefinition": null
+        },
+        {
+            "acl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres,bella_developer=r/postgres,bella_migration_executor=arwdDxtm/postgres,verification_executor=r/postgres}",
+            "kind": "r",
+            "name": "edu_weekly_menus",
+            "owner": "postgres",
+            "rlsForced": false,
+            "rlsEnabled": true,
+            "viewDefinition": null
+        },
+        {
+            "acl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres,authenticated=arwdDxtm/postgres,bella_developer=r/postgres,bella_migration_executor=arwdDxtm/postgres,verification_executor=r/postgres}",
+            "kind": "r",
+            "name": "org_relationships",
+            "owner": "postgres",
+            "rlsForced": false,
+            "rlsEnabled": true,
+            "viewDefinition": null
+        },
+        {
+            "acl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres,authenticated=arwdDxtm/postgres,bella_developer=r/postgres,bella_migration_executor=arwdDxtm/postgres,verification_executor=r/postgres}",
+            "kind": "r",
+            "name": "org_units",
+            "owner": "postgres",
+            "rlsForced": false,
+            "rlsEnabled": true,
+            "viewDefinition": null
+        },
+        {
+            "acl": "{postgres=arwdDxtm/postgres,bella_developer=r/postgres,bella_migration_executor=arwdDxtm/postgres,verification_executor=r/postgres}",
+            "kind": "r",
+            "name": "party_auth_links",
+            "owner": "postgres",
+            "rlsForced": false,
+            "rlsEnabled": true,
+            "viewDefinition": null
+        },
+        {
+            "acl": "{postgres=arwdDxtm/postgres,bella_developer=r/postgres,bella_migration_executor=arwdDxtm/postgres,verification_executor=r/postgres}",
+            "kind": "r",
+            "name": "party_identity_link_managers",
+            "owner": "postgres",
+            "rlsForced": false,
+            "rlsEnabled": true,
+            "viewDefinition": null
+        },
+        {
+            "acl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres,authenticated=arwdDxtm/postgres,bella_developer=r/postgres,bella_migration_executor=arwdDxtm/postgres,verification_executor=r/postgres}",
+            "kind": "r",
+            "name": "people_directory",
+            "owner": "postgres",
+            "rlsForced": false,
+            "rlsEnabled": true,
+            "viewDefinition": null
+        },
+        {
+            "acl": "{postgres=arwdDxtm/postgres,bella_developer=r/postgres,bella_migration_executor=arwdDxtm/postgres,verification_executor=r/postgres,service_role=r/postgres,authenticated=r/postgres}",
+            "kind": "r",
+            "name": "preschool_chain_course_branch_assignments",
+            "owner": "postgres",
+            "rlsForced": false,
+            "rlsEnabled": true,
+            "viewDefinition": null
+        },
+        {
+            "acl": "{postgres=arwdDxtm/postgres,bella_developer=r/postgres,bella_migration_executor=arwdDxtm/postgres,verification_executor=r/postgres}",
+            "kind": "r",
+            "name": "preschool_teacher_branch_confirmations",
+            "owner": "postgres",
+            "rlsForced": false,
+            "rlsEnabled": true,
+            "viewDefinition": null
+        },
+        {
+            "acl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres,bella_developer=r/postgres,bella_migration_executor=arwdDxtm/postgres,verification_executor=r/postgres,anon=arwdDxtm/postgres,authenticated=arwdDxtm/postgres}",
+            "kind": "r",
+            "name": "teacher_assignments",
+            "owner": "postgres",
+            "rlsForced": false,
+            "rlsEnabled": true,
+            "viewDefinition": null
+        },
+        {
+            "acl": "{postgres=arwdDxtm/postgres,anon=arwdDxtm/postgres,authenticated=arwdDxtm/postgres,service_role=arwdDxtm/postgres,bella_developer=r/postgres,bella_migration_executor=arwdDxtm/postgres,verification_executor=r/postgres}",
+            "kind": "r",
+            "name": "tenants",
+            "owner": "postgres",
+            "rlsForced": false,
+            "rlsEnabled": true,
+            "viewDefinition": null
+        },
+        {
+            "acl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres,bella_developer=r/postgres,bella_migration_executor=arwdDxtm/postgres,verification_executor=r/postgres,authenticated=r/postgres}",
+            "kind": "v",
+            "name": "user_org_unit_access",
+            "owner": "postgres",
+            "rlsForced": false,
+            "rlsEnabled": false,
+            "viewDefinition": " WITH RECURSIVE current_context AS (\n         SELECT COALESCE(auth.uid(), NULLIF(current_setting('app.current_user_id'::text, true), ''::text)::uuid) AS user_id,\n            COALESCE(get_auth_tenant_id(), NULLIF(current_setting('app.current_tenant_id'::text, true), ''::text)::uuid) AS tenant_id\n        ), direct_access AS (\n         SELECT pd.user_id,\n            rel.tenant_id,\n            rel.to_id AS org_unit_id,\n            rel.to_id AS root_org_unit_id,\n            rel.id AS relationship_id,\n            rel.rel_type AS access_source\n           FROM current_context ctx\n             JOIN people_directory pd ON pd.user_id = ctx.user_id AND pd.tenant_id = ctx.tenant_id AND pd.is_active = true\n             JOIN org_relationships rel ON rel.tenant_id = pd.tenant_id AND rel.from_id = pd.id AND rel.from_type = 'person'::text AND rel.to_type = 'unit'::text AND (rel.rel_type = ANY (ARRAY['belongs_to'::text, 'manages'::text, 'participates_in'::text])) AND (rel.since IS NULL OR rel.since <= CURRENT_DATE) AND (rel.until IS NULL OR rel.until >= CURRENT_DATE)\n             JOIN org_units ou ON ou.id = rel.to_id AND ou.tenant_id = rel.tenant_id AND ou.is_active = true\n        ), expanded_access AS (\n         SELECT direct_access.user_id,\n            direct_access.tenant_id,\n            direct_access.org_unit_id,\n            direct_access.root_org_unit_id,\n            direct_access.relationship_id,\n            direct_access.access_source\n           FROM direct_access\n        UNION\n         SELECT ea.user_id,\n            child.tenant_id,\n            child.id AS org_unit_id,\n            ea.root_org_unit_id,\n            ea.relationship_id,\n            ea.access_source\n           FROM expanded_access ea\n             JOIN org_units child ON child.parent_id = ea.org_unit_id AND child.tenant_id = ea.tenant_id AND child.is_active = true\n        ), admin_access AS (\n         SELECT u.id AS user_id,\n            ou.tenant_id,\n            ou.id AS org_unit_id,\n            ou.id AS root_org_unit_id,\n            NULL::uuid AS relationship_id,\n            'tenant_admin'::text AS access_source\n           FROM current_context ctx\n             JOIN users u ON u.id = ctx.user_id AND u.tenant_id = ctx.tenant_id AND (lower(u.role) = ANY (ARRAY['admin'::text, 'super_admin'::text]))\n             JOIN org_units ou ON ou.tenant_id = u.tenant_id AND ou.is_active = true\n        )\n SELECT DISTINCT expanded_access.user_id,\n    expanded_access.tenant_id,\n    expanded_access.org_unit_id,\n    expanded_access.root_org_unit_id,\n    expanded_access.relationship_id,\n    expanded_access.access_source\n   FROM expanded_access\nUNION\n SELECT DISTINCT admin_access.user_id,\n    admin_access.tenant_id,\n    admin_access.org_unit_id,\n    admin_access.root_org_unit_id,\n    admin_access.relationship_id,\n    admin_access.access_source\n   FROM admin_access;"
+        },
+        {
+            "acl": "{postgres=arwdDxtm/postgres,anon=r/postgres,authenticated=r/postgres,service_role=arwdDxtm/postgres,bella_developer=r/postgres,bella_migration_executor=arwdDxtm/postgres,verification_executor=r/postgres}",
+            "kind": "r",
+            "name": "users",
+            "owner": "postgres",
+            "rlsForced": false,
+            "rlsEnabled": true,
+            "viewDefinition": null
+        }
+    ],
+    "capturedAt": "2026-11-01T00:33:01.726914+00:00",
+    "constraints": [
+        {
+            "name": "courses_branch_fk",
+            "type": "f",
+            "relation": "courses",
+            "validated": true,
+            "definition": "FOREIGN KEY (branch_id) REFERENCES org_units(id) ON DELETE RESTRICT"
+        },
+        {
+            "name": "courses_course_code_unique",
+            "type": "u",
+            "relation": "courses",
+            "validated": true,
+            "definition": "UNIQUE (tenant_id, course_code)"
+        },
+        {
+            "name": "courses_credits_check",
+            "type": "c",
+            "relation": "courses",
+            "validated": true,
+            "definition": "CHECK (credits > 0)"
+        },
+        {
+            "name": "courses_pkey",
+            "type": "p",
+            "relation": "courses",
+            "validated": true,
+            "definition": "PRIMARY KEY (course_id)"
+        },
+        {
+            "name": "courses_status_check",
+            "type": "c",
+            "relation": "courses",
+            "validated": true,
+            "definition": "CHECK (status = ANY (ARRAY['draft'::text, 'active'::text, 'full'::text, 'in_progress'::text, 'completed'::text, 'cancelled'::text, 'archived'::text]))"
+        },
+        {
+            "name": "courses_tenant_fk",
+            "type": "f",
+            "relation": "courses",
+            "validated": true,
+            "definition": "FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE"
+        },
+        {
+            "name": "chk_edu_courses_capacity",
+            "type": "c",
+            "relation": "edu_courses",
+            "validated": true,
+            "definition": "CHECK (max_students IS NULL OR current_enrollment <= max_students)"
+        },
+        {
+            "name": "chk_edu_courses_current_enrollment",
+            "type": "c",
+            "relation": "edu_courses",
+            "validated": true,
+            "definition": "CHECK (current_enrollment >= 0)"
+        },
+        {
+            "name": "chk_edu_courses_max_students",
+            "type": "c",
+            "relation": "edu_courses",
+            "validated": true,
+            "definition": "CHECK (max_students IS NULL OR max_students > 0)"
+        },
+        {
+            "name": "edu_courses_pkey",
+            "type": "p",
+            "relation": "edu_courses",
+            "validated": true,
+            "definition": "PRIMARY KEY (id)"
+        },
+        {
+            "name": "edu_courses_status_check",
+            "type": "c",
+            "relation": "edu_courses",
+            "validated": true,
+            "definition": "CHECK (status = ANY (ARRAY['draft'::text, 'active'::text, 'archived'::text]))"
+        },
+        {
+            "name": "edu_courses_tenant_id_fkey",
+            "type": "f",
+            "relation": "edu_courses",
+            "validated": true,
+            "definition": "FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE RESTRICT"
+        },
+        {
+            "name": "uq_edu_courses_code",
+            "type": "u",
+            "relation": "edu_courses",
+            "validated": true,
+            "definition": "UNIQUE (tenant_id, course_code)"
+        },
+        {
+            "name": "edu_curriculums_pkey",
+            "type": "p",
+            "relation": "edu_curriculums",
+            "validated": true,
+            "definition": "PRIMARY KEY (id)"
+        },
+        {
+            "name": "edu_curriculums_status_check",
+            "type": "c",
+            "relation": "edu_curriculums",
+            "validated": true,
+            "definition": "CHECK (status::text = ANY (ARRAY['DRAFT'::character varying, 'ACTIVE'::character varying, 'ARCHIVED'::character varying]::text[]))"
+        },
+        {
+            "name": "edu_curriculums_tenant_id_fkey",
+            "type": "f",
+            "relation": "edu_curriculums",
+            "validated": true,
+            "definition": "FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE"
+        },
+        {
+            "name": "uq_tenant_curriculum_code",
+            "type": "u",
+            "relation": "edu_curriculums",
+            "validated": true,
+            "definition": "UNIQUE (tenant_id, code)"
+        },
+        {
+            "name": "edu_dev_milestone_progress_framework_version_id_fkey",
+            "type": "f",
+            "relation": "edu_dev_milestone_progress",
+            "validated": true,
+            "definition": "FOREIGN KEY (framework_version_id) REFERENCES edu_dev_framework_versions(id) ON DELETE CASCADE"
+        },
+        {
+            "name": "edu_dev_milestone_progress_milestone_id_fkey",
+            "type": "f",
+            "relation": "edu_dev_milestone_progress",
+            "validated": true,
+            "definition": "FOREIGN KEY (milestone_id) REFERENCES edu_dev_milestones(id) ON DELETE CASCADE"
+        },
+        {
+            "name": "edu_dev_milestone_progress_pkey",
+            "type": "p",
+            "relation": "edu_dev_milestone_progress",
+            "validated": true,
+            "definition": "PRIMARY KEY (id)"
+        },
+        {
+            "name": "edu_dev_milestone_progress_status_lifecycle_check",
+            "type": "c",
+            "relation": "edu_dev_milestone_progress",
+            "validated": true,
+            "definition": "CHECK (status_lifecycle::text = ANY (ARRAY['ACTIVE'::character varying, 'SUPERSEDED'::character varying]::text[]))"
+        },
+        {
+            "name": "edu_dev_milestone_progress_student_id_fkey",
+            "type": "f",
+            "relation": "edu_dev_milestone_progress",
+            "validated": true,
+            "definition": "FOREIGN KEY (student_id) REFERENCES students(student_id) ON DELETE CASCADE"
+        },
+        {
+            "name": "edu_dev_milestone_progress_supersedes_progress_id_fkey",
+            "type": "f",
+            "relation": "edu_dev_milestone_progress",
+            "validated": true,
+            "definition": "FOREIGN KEY (supersedes_progress_id) REFERENCES edu_dev_milestone_progress(id)"
+        },
+        {
+            "name": "edu_dev_observation_students_observation_id_fkey",
+            "type": "f",
+            "relation": "edu_dev_observation_students",
+            "validated": true,
+            "definition": "FOREIGN KEY (observation_id) REFERENCES edu_dev_observations(id) ON DELETE CASCADE"
+        },
+        {
+            "name": "edu_dev_observation_students_pkey",
+            "type": "p",
+            "relation": "edu_dev_observation_students",
+            "validated": true,
+            "definition": "PRIMARY KEY (id)"
+        },
+        {
+            "name": "edu_dev_observation_students_student_id_fkey",
+            "type": "f",
+            "relation": "edu_dev_observation_students",
+            "validated": true,
+            "definition": "FOREIGN KEY (student_id) REFERENCES students(student_id) ON DELETE CASCADE"
+        },
+        {
+            "name": "uq_edu_dev_obs_student",
+            "type": "u",
+            "relation": "edu_dev_observation_students",
+            "validated": true,
+            "definition": "UNIQUE (observation_id, student_id)"
+        },
+        {
+            "name": "edu_dev_observations_activity_id_fkey",
+            "type": "f",
+            "relation": "edu_dev_observations",
+            "validated": true,
+            "definition": "FOREIGN KEY (activity_id) REFERENCES edu_dev_activities(id) ON DELETE SET NULL"
+        },
+        {
+            "name": "edu_dev_observations_pkey",
+            "type": "p",
+            "relation": "edu_dev_observations",
+            "validated": true,
+            "definition": "PRIMARY KEY (id)"
+        },
+        {
+            "name": "edu_dev_observations_status_check",
+            "type": "c",
+            "relation": "edu_dev_observations",
+            "validated": true,
+            "definition": "CHECK (status::text = ANY (ARRAY['DRAFT'::character varying, 'RECORDED'::character varying, 'SUPERSEDED'::character varying]::text[]))"
+        },
+        {
+            "name": "edu_dev_observations_supersedes_observation_id_fkey",
+            "type": "f",
+            "relation": "edu_dev_observations",
+            "validated": true,
+            "definition": "FOREIGN KEY (supersedes_observation_id) REFERENCES edu_dev_observations(id)"
+        },
+        {
+            "name": "edu_lesson_plans_course_id_fkey",
+            "type": "f",
+            "relation": "edu_lesson_plans",
+            "validated": true,
+            "definition": "FOREIGN KEY (course_id) REFERENCES edu_courses(id) ON DELETE SET NULL"
+        },
+        {
+            "name": "edu_lesson_plans_curriculum_id_fkey",
+            "type": "f",
+            "relation": "edu_lesson_plans",
+            "validated": true,
+            "definition": "FOREIGN KEY (curriculum_id) REFERENCES edu_curriculums(id) ON DELETE SET NULL"
+        },
+        {
+            "name": "edu_lesson_plans_pkey",
+            "type": "p",
+            "relation": "edu_lesson_plans",
+            "validated": true,
+            "definition": "PRIMARY KEY (id)"
+        },
+        {
+            "name": "edu_lesson_plans_status_check",
+            "type": "c",
+            "relation": "edu_lesson_plans",
+            "validated": true,
+            "definition": "CHECK (status::text = ANY (ARRAY['DRAFT'::character varying, 'PENDING_APPROVAL'::character varying, 'APPROVED'::character varying, 'ACTIVE'::character varying, 'COMPLETED'::character varying, 'ARCHIVED'::character varying]::text[]))"
+        },
+        {
+            "name": "edu_lesson_plans_tenant_id_fkey",
+            "type": "f",
+            "relation": "edu_lesson_plans",
+            "validated": true,
+            "definition": "FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE"
+        },
+        {
+            "name": "edu_weekly_menu_days_day_of_week_check",
+            "type": "c",
+            "relation": "edu_weekly_menu_days",
+            "validated": true,
+            "definition": "CHECK (day_of_week::text = ANY (ARRAY['MON'::character varying, 'TUE'::character varying, 'WED'::character varying, 'THU'::character varying, 'FRI'::character varying, 'SAT'::character varying, 'SUN'::character varying]::text[]))"
+        },
+        {
+            "name": "edu_weekly_menu_days_menu_id_fkey",
+            "type": "f",
+            "relation": "edu_weekly_menu_days",
+            "validated": true,
+            "definition": "FOREIGN KEY (menu_id) REFERENCES edu_weekly_menus(id) ON DELETE CASCADE"
+        },
+        {
+            "name": "edu_weekly_menu_days_pkey",
+            "type": "p",
+            "relation": "edu_weekly_menu_days",
+            "validated": true,
+            "definition": "PRIMARY KEY (id)"
+        },
+        {
+            "name": "edu_weekly_menu_days_tenant_id_fkey",
+            "type": "f",
+            "relation": "edu_weekly_menu_days",
+            "validated": true,
+            "definition": "FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE"
+        },
+        {
+            "name": "uq_tenant_menu_day",
+            "type": "u",
+            "relation": "edu_weekly_menu_days",
+            "validated": true,
+            "definition": "UNIQUE (tenant_id, menu_id, day_of_week)"
+        },
+        {
+            "name": "edu_weekly_menus_pkey",
+            "type": "p",
+            "relation": "edu_weekly_menus",
+            "validated": true,
+            "definition": "PRIMARY KEY (id)"
+        },
+        {
+            "name": "edu_weekly_menus_status_check",
+            "type": "c",
+            "relation": "edu_weekly_menus",
+            "validated": true,
+            "definition": "CHECK (status::text = ANY (ARRAY['DRAFT'::character varying, 'PUBLISHED'::character varying, 'ARCHIVED'::character varying]::text[]))"
+        },
+        {
+            "name": "edu_weekly_menus_tenant_id_fkey",
+            "type": "f",
+            "relation": "edu_weekly_menus",
+            "validated": true,
+            "definition": "FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE"
+        },
+        {
+            "name": "uq_tenant_weekly_menu",
+            "type": "u",
+            "relation": "edu_weekly_menus",
+            "validated": true,
+            "definition": "UNIQUE (tenant_id, year, week_number, age_group)"
+        },
+        {
+            "name": "org_relationships_from_type_check",
+            "type": "c",
+            "relation": "org_relationships",
+            "validated": true,
+            "definition": "CHECK (from_type = ANY (ARRAY['unit'::text, 'person'::text]))"
+        },
+        {
+            "name": "org_relationships_pkey",
+            "type": "p",
+            "relation": "org_relationships",
+            "validated": true,
+            "definition": "PRIMARY KEY (id)"
+        },
+        {
+            "name": "org_relationships_rel_type_check",
+            "type": "c",
+            "relation": "org_relationships",
+            "validated": true,
+            "definition": "CHECK (rel_type = ANY (ARRAY['belongs_to'::text, 'manages'::text, 'participates_in'::text, 'reports_to'::text, 'collaborates_with'::text]))"
+        },
+        {
+            "name": "org_relationships_tenant_id_fkey",
+            "type": "f",
+            "relation": "org_relationships",
+            "validated": true,
+            "definition": "FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE"
+        },
+        {
+            "name": "org_relationships_to_type_check",
+            "type": "c",
+            "relation": "org_relationships",
+            "validated": true,
+            "definition": "CHECK (to_type = ANY (ARRAY['unit'::text, 'person'::text]))"
+        },
+        {
+            "name": "uq_org_relationship",
+            "type": "u",
+            "relation": "org_relationships",
+            "validated": true,
+            "definition": "UNIQUE (tenant_id, from_id, to_id, rel_type)"
+        },
+        {
+            "name": "org_units_parent_id_fkey",
+            "type": "f",
+            "relation": "org_units",
+            "validated": true,
+            "definition": "FOREIGN KEY (parent_id) REFERENCES org_units(id) ON DELETE SET NULL"
+        },
+        {
+            "name": "org_units_pkey",
+            "type": "p",
+            "relation": "org_units",
+            "validated": true,
+            "definition": "PRIMARY KEY (id)"
+        },
+        {
+            "name": "org_units_tenant_id_fkey",
+            "type": "f",
+            "relation": "org_units",
+            "validated": true,
+            "definition": "FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE"
+        },
+        {
+            "name": "org_units_unit_type_check",
+            "type": "c",
+            "relation": "org_units",
+            "validated": true,
+            "definition": "CHECK (unit_type = ANY (ARRAY['company'::text, 'region'::text, 'branch'::text, 'department'::text, 'team'::text, 'project'::text, 'task_force'::text, 'committee'::text]))"
+        },
+        {
+            "name": "uq_org_unit_code",
+            "type": "u",
+            "relation": "org_units",
+            "validated": true,
+            "definition": "UNIQUE (tenant_id, code)"
+        },
+        {
+            "name": "party_auth_links_attestation_check",
+            "type": "c",
+            "relation": "party_auth_links",
+            "validated": true,
+            "definition": "CHECK (length(attestation) >= 1 AND length(attestation) <= 500 AND attestation = btrim(attestation) AND attestation !~ '[[:cntrl:]]'::text)"
+        },
+        {
+            "name": "party_auth_links_auth_user_id_fkey",
+            "type": "f",
+            "relation": "party_auth_links",
+            "validated": true,
+            "definition": "FOREIGN KEY (auth_user_id) REFERENCES auth.users(id) ON DELETE RESTRICT"
+        },
+        {
+            "name": "party_auth_links_check",
+            "type": "c",
+            "relation": "party_auth_links",
+            "validated": true,
+            "definition": "CHECK (valid_until IS NULL OR isfinite(valid_until) AND valid_until > valid_from)"
+        },
+        {
+            "name": "party_auth_links_check1",
+            "type": "c",
+            "relation": "party_auth_links",
+            "validated": true,
+            "definition": "CHECK (revoked_at IS NULL AND revoked_by IS NULL AND revocation_reason IS NULL OR revoked_at IS NOT NULL AND isfinite(revoked_at) AND revoked_by IS NOT NULL AND revocation_reason IS NOT NULL AND length(revocation_reason) >= 1 AND length(revocation_reason) <= 500 AND revocation_reason = btrim(revocation_reason) AND revocation_reason !~ '[[:cntrl:]]'::text)"
+        },
+        {
+            "name": "party_auth_links_confirmed_by_fkey",
+            "type": "f",
+            "relation": "party_auth_links",
+            "validated": true,
+            "definition": "FOREIGN KEY (confirmed_by) REFERENCES auth.users(id) ON DELETE RESTRICT"
+        },
+        {
+            "name": "party_auth_links_party_id_fkey",
+            "type": "f",
+            "relation": "party_auth_links",
+            "validated": true,
+            "definition": "FOREIGN KEY (party_id) REFERENCES party_parties(id) ON DELETE RESTRICT"
+        },
+        {
+            "name": "party_auth_links_pkey",
+            "type": "p",
+            "relation": "party_auth_links",
+            "validated": true,
+            "definition": "PRIMARY KEY (id)"
+        },
+        {
+            "name": "party_auth_links_revoked_by_fkey",
+            "type": "f",
+            "relation": "party_auth_links",
+            "validated": true,
+            "definition": "FOREIGN KEY (revoked_by) REFERENCES auth.users(id) ON DELETE RESTRICT"
+        },
+        {
+            "name": "party_auth_links_tenant_id_fkey",
+            "type": "f",
+            "relation": "party_auth_links",
+            "validated": true,
+            "definition": "FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE RESTRICT"
+        },
+        {
+            "name": "party_auth_links_valid_from_check",
+            "type": "c",
+            "relation": "party_auth_links",
+            "validated": true,
+            "definition": "CHECK (isfinite(valid_from))"
+        },
+        {
+            "name": "party_identity_link_managers_auth_user_id_fkey",
+            "type": "f",
+            "relation": "party_identity_link_managers",
+            "validated": true,
+            "definition": "FOREIGN KEY (auth_user_id) REFERENCES auth.users(id) ON DELETE RESTRICT"
+        },
+        {
+            "name": "party_identity_link_managers_check",
+            "type": "c",
+            "relation": "party_identity_link_managers",
+            "validated": true,
+            "definition": "CHECK (valid_until IS NULL OR isfinite(valid_until) AND valid_until > valid_from)"
+        },
+        {
+            "name": "party_identity_link_managers_check1",
+            "type": "c",
+            "relation": "party_identity_link_managers",
+            "validated": true,
+            "definition": "CHECK (revoked_at IS NULL AND revoked_by IS NULL AND revocation_reason IS NULL OR revoked_at IS NOT NULL AND isfinite(revoked_at) AND revoked_by IS NOT NULL AND revocation_reason IS NOT NULL AND length(revocation_reason) >= 1 AND length(revocation_reason) <= 500 AND revocation_reason = btrim(revocation_reason) AND revocation_reason !~ '[[:cntrl:]]'::text)"
+        },
+        {
+            "name": "party_identity_link_managers_granted_by_fkey",
+            "type": "f",
+            "relation": "party_identity_link_managers",
+            "validated": true,
+            "definition": "FOREIGN KEY (granted_by) REFERENCES auth.users(id) ON DELETE RESTRICT"
+        },
+        {
+            "name": "party_identity_link_managers_pkey",
+            "type": "p",
+            "relation": "party_identity_link_managers",
+            "validated": true,
+            "definition": "PRIMARY KEY (id)"
+        },
+        {
+            "name": "party_identity_link_managers_reference_check",
+            "type": "c",
+            "relation": "party_identity_link_managers",
+            "validated": true,
+            "definition": "CHECK (length(reference) >= 1 AND length(reference) <= 500 AND reference = btrim(reference) AND reference !~ '[[:cntrl:]]'::text)"
+        },
+        {
+            "name": "party_identity_link_managers_revoked_by_fkey",
+            "type": "f",
+            "relation": "party_identity_link_managers",
+            "validated": true,
+            "definition": "FOREIGN KEY (revoked_by) REFERENCES auth.users(id) ON DELETE RESTRICT"
+        },
+        {
+            "name": "party_identity_link_managers_tenant_id_fkey",
+            "type": "f",
+            "relation": "party_identity_link_managers",
+            "validated": true,
+            "definition": "FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE RESTRICT"
+        },
+        {
+            "name": "party_identity_link_managers_valid_from_check",
+            "type": "c",
+            "relation": "party_identity_link_managers",
+            "validated": true,
+            "definition": "CHECK (isfinite(valid_from))"
+        },
+        {
+            "name": "people_directory_person_type_check",
+            "type": "c",
+            "relation": "people_directory",
+            "validated": true,
+            "definition": "CHECK (person_type = ANY (ARRAY['employee'::text, 'broker'::text, 'agency'::text, 'partner'::text, 'consultant'::text, 'contractor'::text]))"
+        },
+        {
+            "name": "people_directory_pkey",
+            "type": "p",
+            "relation": "people_directory",
+            "validated": true,
+            "definition": "PRIMARY KEY (id)"
+        },
+        {
+            "name": "people_directory_tenant_id_fkey",
+            "type": "f",
+            "relation": "people_directory",
+            "validated": true,
+            "definition": "FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE"
+        },
+        {
+            "name": "people_directory_user_id_fkey",
+            "type": "f",
+            "relation": "people_directory",
+            "validated": true,
+            "definition": "FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE SET NULL"
+        },
+        {
+            "name": "preschool_chain_course_branch_assignments_branch_id_fkey",
+            "type": "f",
+            "relation": "preschool_chain_course_branch_assignments",
+            "validated": true,
+            "definition": "FOREIGN KEY (branch_id) REFERENCES org_units(id) ON DELETE RESTRICT"
+        },
+        {
+            "name": "preschool_chain_course_branch_assignments_course_id_fkey",
+            "type": "f",
+            "relation": "preschool_chain_course_branch_assignments",
+            "validated": true,
+            "definition": "FOREIGN KEY (course_id) REFERENCES edu_courses(id) ON DELETE RESTRICT"
+        },
+        {
+            "name": "preschool_chain_course_branch_assignments_pkey",
+            "type": "p",
+            "relation": "preschool_chain_course_branch_assignments",
+            "validated": true,
+            "definition": "PRIMARY KEY (id)"
+        },
+        {
+            "name": "preschool_chain_course_branch_assignments_tenant_id_fkey",
+            "type": "f",
+            "relation": "preschool_chain_course_branch_assignments",
+            "validated": true,
+            "definition": "FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE RESTRICT"
+        },
+        {
+            "name": "uq_preschool_chain_course_branch_assignment",
+            "type": "u",
+            "relation": "preschool_chain_course_branch_assignments",
+            "validated": true,
+            "definition": "UNIQUE (tenant_id, course_id)"
+        },
+        {
+            "name": "preschool_teacher_branch_confirmations_attestation_check",
+            "type": "c",
+            "relation": "preschool_teacher_branch_confirmations",
+            "validated": true,
+            "definition": "CHECK (length(attestation) >= 1 AND length(attestation) <= 500 AND attestation = btrim(attestation) AND attestation !~ '[[:cntrl:]]'::text)"
+        },
+        {
+            "name": "preschool_teacher_branch_confirmations_branch_id_fkey",
+            "type": "f",
+            "relation": "preschool_teacher_branch_confirmations",
+            "validated": true,
+            "definition": "FOREIGN KEY (branch_id) REFERENCES org_units(id) ON DELETE RESTRICT"
+        },
+        {
+            "name": "preschool_teacher_branch_confirmations_check",
+            "type": "c",
+            "relation": "preschool_teacher_branch_confirmations",
+            "validated": true,
+            "definition": "CHECK (valid_to IS NULL OR isfinite(valid_to) AND valid_to >= valid_from)"
+        },
+        {
+            "name": "preschool_teacher_branch_confirmations_check1",
+            "type": "c",
+            "relation": "preschool_teacher_branch_confirmations",
+            "validated": true,
+            "definition": "CHECK (revoked_at IS NULL AND revoked_by IS NULL AND revocation_reason IS NULL OR revoked_at IS NOT NULL AND revoked_by IS NOT NULL AND revocation_reason IS NOT NULL AND length(revocation_reason) >= 1 AND length(revocation_reason) <= 500 AND revocation_reason = btrim(revocation_reason) AND revocation_reason !~ '[[:cntrl:]]'::text)"
+        },
+        {
+            "name": "preschool_teacher_branch_confirmations_confirmed_by_fkey",
+            "type": "f",
+            "relation": "preschool_teacher_branch_confirmations",
+            "validated": true,
+            "definition": "FOREIGN KEY (confirmed_by) REFERENCES users(id) ON DELETE RESTRICT"
+        },
+        {
+            "name": "preschool_teacher_branch_confirmations_pkey",
+            "type": "p",
+            "relation": "preschool_teacher_branch_confirmations",
+            "validated": true,
+            "definition": "PRIMARY KEY (id)"
+        },
+        {
+            "name": "preschool_teacher_branch_confirmations_revoked_by_fkey",
+            "type": "f",
+            "relation": "preschool_teacher_branch_confirmations",
+            "validated": true,
+            "definition": "FOREIGN KEY (revoked_by) REFERENCES users(id) ON DELETE RESTRICT"
+        },
+        {
+            "name": "preschool_teacher_branch_confirmations_teacher_party_id_fkey",
+            "type": "f",
+            "relation": "preschool_teacher_branch_confirmations",
+            "validated": true,
+            "definition": "FOREIGN KEY (teacher_party_id) REFERENCES party_parties(id) ON DELETE RESTRICT"
+        },
+        {
+            "name": "preschool_teacher_branch_confirmations_tenant_id_fkey",
+            "type": "f",
+            "relation": "preschool_teacher_branch_confirmations",
+            "validated": true,
+            "definition": "FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE RESTRICT"
+        },
+        {
+            "name": "preschool_teacher_branch_confirmations_valid_from_check",
+            "type": "c",
+            "relation": "preschool_teacher_branch_confirmations",
+            "validated": true,
+            "definition": "CHECK (isfinite(valid_from))"
+        },
+        {
+            "name": "teacher_assignments_canonical_confirmation_required",
+            "type": "c",
+            "relation": "teacher_assignments",
+            "validated": true,
+            "definition": "CHECK (canonical_course_id IS NULL AND canonical_teacher_confirmation_id IS NULL OR canonical_course_id IS NOT NULL AND canonical_teacher_confirmation_id IS NOT NULL)"
+        },
+        {
+            "name": "teacher_assignments_canonical_course_id_fkey",
+            "type": "f",
+            "relation": "teacher_assignments",
+            "validated": true,
+            "definition": "FOREIGN KEY (canonical_course_id) REFERENCES edu_courses(id) ON DELETE RESTRICT"
+        },
+        {
+            "name": "teacher_assignments_canonical_teacher_confirmation_id_fkey",
+            "type": "f",
+            "relation": "teacher_assignments",
+            "validated": true,
+            "definition": "FOREIGN KEY (canonical_teacher_confirmation_id) REFERENCES preschool_teacher_branch_confirmations(id) ON DELETE RESTRICT"
+        },
+        {
+            "name": "teacher_assignments_course_fk",
+            "type": "f",
+            "relation": "teacher_assignments",
+            "validated": true,
+            "definition": "FOREIGN KEY (course_id) REFERENCES courses(course_id) ON DELETE CASCADE"
+        },
+        {
+            "name": "teacher_assignments_dates_check",
+            "type": "c",
+            "relation": "teacher_assignments",
+            "validated": true,
+            "definition": "CHECK (effective_end_date IS NULL OR effective_end_date >= effective_start_date)"
+        },
+        {
+            "name": "teacher_assignments_one_course_identity",
+            "type": "c",
+            "relation": "teacher_assignments",
+            "validated": true,
+            "definition": "CHECK (num_nonnulls(course_id, canonical_course_id) = 1)"
+        },
+        {
+            "name": "teacher_assignments_pkey",
+            "type": "p",
+            "relation": "teacher_assignments",
+            "validated": true,
+            "definition": "PRIMARY KEY (assignment_id)"
+        },
+        {
+            "name": "teacher_assignments_role_check",
+            "type": "c",
+            "relation": "teacher_assignments",
+            "validated": true,
+            "definition": "CHECK (role = ANY (ARRAY['lead_teacher'::text, 'co_teacher'::text, 'assistant'::text, 'substitute'::text]))"
+        },
+        {
+            "name": "teacher_assignments_status_check",
+            "type": "c",
+            "relation": "teacher_assignments",
+            "validated": true,
+            "definition": "CHECK (status = ANY (ARRAY['active'::text, 'completed'::text, 'terminated'::text]))"
+        },
+        {
+            "name": "teacher_assignments_teacher_fk",
+            "type": "f",
+            "relation": "teacher_assignments",
+            "validated": true,
+            "definition": "FOREIGN KEY (teacher_party_id) REFERENCES party_parties(id) ON DELETE RESTRICT"
+        },
+        {
+            "name": "teacher_assignments_tenant_fk",
+            "type": "f",
+            "relation": "teacher_assignments",
+            "validated": true,
+            "definition": "FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE"
+        },
+        {
+            "name": "tenants_accounting_mode_check",
+            "type": "c",
+            "relation": "tenants",
+            "validated": true,
+            "definition": "CHECK (accounting_mode = ANY (ARRAY['SIMPLE'::text, 'PROFESSIONAL'::text]))"
+        },
+        {
+            "name": "tenants_parent_tenant_id_fkey",
+            "type": "f",
+            "relation": "tenants",
+            "validated": true,
+            "definition": "FOREIGN KEY (parent_tenant_id) REFERENCES tenants(id)"
+        },
+        {
+            "name": "tenants_pkey",
+            "type": "p",
+            "relation": "tenants",
+            "validated": true,
+            "definition": "PRIMARY KEY (id)"
+        },
+        {
+            "name": "tenants_royalty_type_check",
+            "type": "c",
+            "relation": "tenants",
+            "validated": true,
+            "definition": "CHECK (royalty_type::text = ANY (ARRAY['fixed'::character varying, 'percentage'::character varying]::text[]))"
+        },
+        {
+            "name": "tenants_status_check",
+            "type": "c",
+            "relation": "tenants",
+            "validated": true,
+            "definition": "CHECK (status = ANY (ARRAY['active'::text, 'suspended'::text, 'terminated'::text]))"
+        },
+        {
+            "name": "users_email_key",
+            "type": "u",
+            "relation": "users",
+            "validated": true,
+            "definition": "UNIQUE (email)"
+        },
+        {
+            "name": "users_pkey",
+            "type": "p",
+            "relation": "users",
+            "validated": true,
+            "definition": "PRIMARY KEY (id)"
+        },
+        {
+            "name": "users_position_tier_check",
+            "type": "c",
+            "relation": "users",
+            "validated": true,
+            "definition": "CHECK (position_tier = ANY (ARRAY['junior'::text, 'senior'::text, 'lead'::text]))"
+        },
+        {
+            "name": "users_role_check",
+            "type": "c",
+            "relation": "users",
+            "validated": true,
+            "definition": "CHECK (role = ANY (ARRAY['admin'::text, 'ktv_lead'::text, 'ktv'::text, 'admin_staff'::text, 'accountant'::text, 'hr'::text, 'student'::text, 'parent'::text]))"
+        },
+        {
+            "name": "users_tenant_id_fkey",
+            "type": "f",
+            "relation": "users",
+            "validated": true,
+            "definition": "FOREIGN KEY (tenant_id) REFERENCES tenants(id)"
+        }
+    ],
+    "serverVersion": "17.6",
+    "roleCapabilities": [
+        {
+            "role": "anon",
+            "inherits": true,
+            "bypassRls": false,
+            "superuser": false
+        },
+        {
+            "role": "authenticated",
+            "inherits": true,
+            "bypassRls": false,
+            "superuser": false
+        },
+        {
+            "role": "postgres",
+            "inherits": true,
+            "bypassRls": true,
+            "superuser": false
+        },
+        {
+            "role": "service_role",
+            "inherits": true,
+            "bypassRls": true,
+            "superuser": false
+        }
+    ],
+    "relatedRpcInventory": [
+        {
+            "acl": "{postgres=X/postgres}",
+            "owner": "postgres",
+            "signature": "preschool_canonical_teacher_assignment_integrity()",
+            "securityDefiner": true
+        },
+        {
+            "acl": "{postgres=X/postgres,service_role=X/postgres,authenticated=X/postgres}",
+            "owner": "postgres",
+            "signature": "preschool_course_assignment_visible(uuid,uuid,uuid)",
+            "securityDefiner": true
+        },
+        {
+            "acl": "{postgres=X/postgres,service_role=X/postgres,authenticated=X/postgres}",
+            "owner": "postgres",
+            "signature": "preschool_enrollment_assignment_visible(uuid,uuid,uuid,uuid,uuid)",
+            "securityDefiner": true
+        },
+        {
+            "acl": "{=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+            "owner": "postgres",
+            "signature": "update_teacher_assignments_updated_at()",
+            "securityDefiner": false
+        }
+    ],
+    "transactionReadOnly": "on",
+    "effectiveTablePrivileges": [
+        {
+            "role": "anon",
+            "delete": true,
+            "insert": true,
+            "select": true,
+            "update": true,
+            "relation": "courses"
+        },
+        {
+            "role": "authenticated",
+            "delete": true,
+            "insert": true,
+            "select": true,
+            "update": true,
+            "relation": "courses"
+        },
+        {
+            "role": "postgres",
+            "delete": true,
+            "insert": true,
+            "select": true,
+            "update": true,
+            "relation": "courses"
+        },
+        {
+            "role": "service_role",
+            "delete": true,
+            "insert": true,
+            "select": true,
+            "update": true,
+            "relation": "courses"
+        },
+        {
+            "role": "anon",
+            "delete": true,
+            "insert": true,
+            "select": true,
+            "update": true,
+            "relation": "edu_courses"
+        },
+        {
+            "role": "authenticated",
+            "delete": true,
+            "insert": true,
+            "select": true,
+            "update": true,
+            "relation": "edu_courses"
+        },
+        {
+            "role": "postgres",
+            "delete": true,
+            "insert": true,
+            "select": true,
+            "update": true,
+            "relation": "edu_courses"
+        },
+        {
+            "role": "service_role",
+            "delete": true,
+            "insert": true,
+            "select": true,
+            "update": true,
+            "relation": "edu_courses"
+        },
+        {
+            "role": "anon",
+            "delete": false,
+            "insert": false,
+            "select": false,
+            "update": false,
+            "relation": "edu_curriculums"
+        },
+        {
+            "role": "authenticated",
+            "delete": false,
+            "insert": false,
+            "select": false,
+            "update": false,
+            "relation": "edu_curriculums"
+        },
+        {
+            "role": "postgres",
+            "delete": true,
+            "insert": true,
+            "select": true,
+            "update": true,
+            "relation": "edu_curriculums"
+        },
+        {
+            "role": "service_role",
+            "delete": true,
+            "insert": true,
+            "select": true,
+            "update": true,
+            "relation": "edu_curriculums"
+        },
+        {
+            "role": "anon",
+            "delete": true,
+            "insert": true,
+            "select": true,
+            "update": true,
+            "relation": "edu_dev_milestone_progress"
+        },
+        {
+            "role": "authenticated",
+            "delete": true,
+            "insert": true,
+            "select": true,
+            "update": true,
+            "relation": "edu_dev_milestone_progress"
+        },
+        {
+            "role": "postgres",
+            "delete": true,
+            "insert": true,
+            "select": true,
+            "update": true,
+            "relation": "edu_dev_milestone_progress"
+        },
+        {
+            "role": "service_role",
+            "delete": true,
+            "insert": true,
+            "select": true,
+            "update": true,
+            "relation": "edu_dev_milestone_progress"
+        },
+        {
+            "role": "anon",
+            "delete": true,
+            "insert": true,
+            "select": true,
+            "update": true,
+            "relation": "edu_dev_observation_students"
+        },
+        {
+            "role": "authenticated",
+            "delete": true,
+            "insert": true,
+            "select": true,
+            "update": true,
+            "relation": "edu_dev_observation_students"
+        },
+        {
+            "role": "postgres",
+            "delete": true,
+            "insert": true,
+            "select": true,
+            "update": true,
+            "relation": "edu_dev_observation_students"
+        },
+        {
+            "role": "service_role",
+            "delete": true,
+            "insert": true,
+            "select": true,
+            "update": true,
+            "relation": "edu_dev_observation_students"
+        },
+        {
+            "role": "anon",
+            "delete": true,
+            "insert": true,
+            "select": true,
+            "update": true,
+            "relation": "edu_dev_observations"
+        },
+        {
+            "role": "authenticated",
+            "delete": true,
+            "insert": true,
+            "select": true,
+            "update": true,
+            "relation": "edu_dev_observations"
+        },
+        {
+            "role": "postgres",
+            "delete": true,
+            "insert": true,
+            "select": true,
+            "update": true,
+            "relation": "edu_dev_observations"
+        },
+        {
+            "role": "service_role",
+            "delete": true,
+            "insert": true,
+            "select": true,
+            "update": true,
+            "relation": "edu_dev_observations"
+        },
+        {
+            "role": "anon",
+            "delete": false,
+            "insert": false,
+            "select": false,
+            "update": false,
+            "relation": "edu_lesson_plans"
+        },
+        {
+            "role": "authenticated",
+            "delete": false,
+            "insert": false,
+            "select": false,
+            "update": false,
+            "relation": "edu_lesson_plans"
+        },
+        {
+            "role": "postgres",
+            "delete": true,
+            "insert": true,
+            "select": true,
+            "update": true,
+            "relation": "edu_lesson_plans"
+        },
+        {
+            "role": "service_role",
+            "delete": true,
+            "insert": true,
+            "select": true,
+            "update": true,
+            "relation": "edu_lesson_plans"
+        },
+        {
+            "role": "anon",
+            "delete": false,
+            "insert": false,
+            "select": false,
+            "update": false,
+            "relation": "edu_weekly_menu_days"
+        },
+        {
+            "role": "authenticated",
+            "delete": false,
+            "insert": false,
+            "select": false,
+            "update": false,
+            "relation": "edu_weekly_menu_days"
+        },
+        {
+            "role": "postgres",
+            "delete": true,
+            "insert": true,
+            "select": true,
+            "update": true,
+            "relation": "edu_weekly_menu_days"
+        },
+        {
+            "role": "service_role",
+            "delete": true,
+            "insert": true,
+            "select": true,
+            "update": true,
+            "relation": "edu_weekly_menu_days"
+        },
+        {
+            "role": "anon",
+            "delete": false,
+            "insert": false,
+            "select": false,
+            "update": false,
+            "relation": "edu_weekly_menus"
+        },
+        {
+            "role": "authenticated",
+            "delete": false,
+            "insert": false,
+            "select": false,
+            "update": false,
+            "relation": "edu_weekly_menus"
+        },
+        {
+            "role": "postgres",
+            "delete": true,
+            "insert": true,
+            "select": true,
+            "update": true,
+            "relation": "edu_weekly_menus"
+        },
+        {
+            "role": "service_role",
+            "delete": true,
+            "insert": true,
+            "select": true,
+            "update": true,
+            "relation": "edu_weekly_menus"
+        },
+        {
+            "role": "anon",
+            "delete": false,
+            "insert": false,
+            "select": false,
+            "update": false,
+            "relation": "org_relationships"
+        },
+        {
+            "role": "authenticated",
+            "delete": true,
+            "insert": true,
+            "select": true,
+            "update": true,
+            "relation": "org_relationships"
+        },
+        {
+            "role": "postgres",
+            "delete": true,
+            "insert": true,
+            "select": true,
+            "update": true,
+            "relation": "org_relationships"
+        },
+        {
+            "role": "service_role",
+            "delete": true,
+            "insert": true,
+            "select": true,
+            "update": true,
+            "relation": "org_relationships"
+        },
+        {
+            "role": "anon",
+            "delete": false,
+            "insert": false,
+            "select": false,
+            "update": false,
+            "relation": "org_units"
+        },
+        {
+            "role": "authenticated",
+            "delete": true,
+            "insert": true,
+            "select": true,
+            "update": true,
+            "relation": "org_units"
+        },
+        {
+            "role": "postgres",
+            "delete": true,
+            "insert": true,
+            "select": true,
+            "update": true,
+            "relation": "org_units"
+        },
+        {
+            "role": "service_role",
+            "delete": true,
+            "insert": true,
+            "select": true,
+            "update": true,
+            "relation": "org_units"
+        },
+        {
+            "role": "anon",
+            "delete": false,
+            "insert": false,
+            "select": false,
+            "update": false,
+            "relation": "party_auth_links"
+        },
+        {
+            "role": "authenticated",
+            "delete": false,
+            "insert": false,
+            "select": false,
+            "update": false,
+            "relation": "party_auth_links"
+        },
+        {
+            "role": "postgres",
+            "delete": true,
+            "insert": true,
+            "select": true,
+            "update": true,
+            "relation": "party_auth_links"
+        },
+        {
+            "role": "service_role",
+            "delete": false,
+            "insert": false,
+            "select": false,
+            "update": false,
+            "relation": "party_auth_links"
+        },
+        {
+            "role": "anon",
+            "delete": false,
+            "insert": false,
+            "select": false,
+            "update": false,
+            "relation": "party_identity_link_managers"
+        },
+        {
+            "role": "authenticated",
+            "delete": false,
+            "insert": false,
+            "select": false,
+            "update": false,
+            "relation": "party_identity_link_managers"
+        },
+        {
+            "role": "postgres",
+            "delete": true,
+            "insert": true,
+            "select": true,
+            "update": true,
+            "relation": "party_identity_link_managers"
+        },
+        {
+            "role": "service_role",
+            "delete": false,
+            "insert": false,
+            "select": false,
+            "update": false,
+            "relation": "party_identity_link_managers"
+        },
+        {
+            "role": "anon",
+            "delete": false,
+            "insert": false,
+            "select": false,
+            "update": false,
+            "relation": "people_directory"
+        },
+        {
+            "role": "authenticated",
+            "delete": true,
+            "insert": true,
+            "select": true,
+            "update": true,
+            "relation": "people_directory"
+        },
+        {
+            "role": "postgres",
+            "delete": true,
+            "insert": true,
+            "select": true,
+            "update": true,
+            "relation": "people_directory"
+        },
+        {
+            "role": "service_role",
+            "delete": true,
+            "insert": true,
+            "select": true,
+            "update": true,
+            "relation": "people_directory"
+        },
+        {
+            "role": "anon",
+            "delete": false,
+            "insert": false,
+            "select": false,
+            "update": false,
+            "relation": "preschool_chain_course_branch_assignments"
+        },
+        {
+            "role": "authenticated",
+            "delete": false,
+            "insert": false,
+            "select": true,
+            "update": false,
+            "relation": "preschool_chain_course_branch_assignments"
+        },
+        {
+            "role": "postgres",
+            "delete": true,
+            "insert": true,
+            "select": true,
+            "update": true,
+            "relation": "preschool_chain_course_branch_assignments"
+        },
+        {
+            "role": "service_role",
+            "delete": false,
+            "insert": false,
+            "select": true,
+            "update": false,
+            "relation": "preschool_chain_course_branch_assignments"
+        },
+        {
+            "role": "anon",
+            "delete": false,
+            "insert": false,
+            "select": false,
+            "update": false,
+            "relation": "preschool_teacher_branch_confirmations"
+        },
+        {
+            "role": "authenticated",
+            "delete": false,
+            "insert": false,
+            "select": false,
+            "update": false,
+            "relation": "preschool_teacher_branch_confirmations"
+        },
+        {
+            "role": "postgres",
+            "delete": true,
+            "insert": true,
+            "select": true,
+            "update": true,
+            "relation": "preschool_teacher_branch_confirmations"
+        },
+        {
+            "role": "service_role",
+            "delete": false,
+            "insert": false,
+            "select": false,
+            "update": false,
+            "relation": "preschool_teacher_branch_confirmations"
+        },
+        {
+            "role": "anon",
+            "delete": true,
+            "insert": true,
+            "select": true,
+            "update": true,
+            "relation": "teacher_assignments"
+        },
+        {
+            "role": "authenticated",
+            "delete": true,
+            "insert": true,
+            "select": true,
+            "update": true,
+            "relation": "teacher_assignments"
+        },
+        {
+            "role": "postgres",
+            "delete": true,
+            "insert": true,
+            "select": true,
+            "update": true,
+            "relation": "teacher_assignments"
+        },
+        {
+            "role": "service_role",
+            "delete": true,
+            "insert": true,
+            "select": true,
+            "update": true,
+            "relation": "teacher_assignments"
+        },
+        {
+            "role": "anon",
+            "delete": true,
+            "insert": true,
+            "select": true,
+            "update": true,
+            "relation": "tenants"
+        },
+        {
+            "role": "authenticated",
+            "delete": true,
+            "insert": true,
+            "select": true,
+            "update": true,
+            "relation": "tenants"
+        },
+        {
+            "role": "postgres",
+            "delete": true,
+            "insert": true,
+            "select": true,
+            "update": true,
+            "relation": "tenants"
+        },
+        {
+            "role": "service_role",
+            "delete": true,
+            "insert": true,
+            "select": true,
+            "update": true,
+            "relation": "tenants"
+        },
+        {
+            "role": "anon",
+            "delete": false,
+            "insert": false,
+            "select": false,
+            "update": false,
+            "relation": "user_org_unit_access"
+        },
+        {
+            "role": "authenticated",
+            "delete": false,
+            "insert": false,
+            "select": true,
+            "update": false,
+            "relation": "user_org_unit_access"
+        },
+        {
+            "role": "postgres",
+            "delete": true,
+            "insert": true,
+            "select": true,
+            "update": true,
+            "relation": "user_org_unit_access"
+        },
+        {
+            "role": "service_role",
+            "delete": true,
+            "insert": true,
+            "select": true,
+            "update": true,
+            "relation": "user_org_unit_access"
+        },
+        {
+            "role": "anon",
+            "delete": false,
+            "insert": false,
+            "select": true,
+            "update": false,
+            "relation": "users"
+        },
+        {
+            "role": "authenticated",
+            "delete": false,
+            "insert": false,
+            "select": true,
+            "update": false,
+            "relation": "users"
+        },
+        {
+            "role": "postgres",
+            "delete": true,
+            "insert": true,
+            "select": true,
+            "update": true,
+            "relation": "users"
+        },
+        {
+            "role": "service_role",
+            "delete": true,
+            "insert": true,
+            "select": true,
+            "update": true,
+            "relation": "users"
+        }
+    ],
+    "effectiveExecutePrivileges": [
+        {
+            "role": "anon",
+            "execute": false,
+            "signature": "edu_assign_preschool_teacher(uuid,uuid,uuid,uuid,uuid,uuid,uuid,text,text,date,date)"
+        },
+        {
+            "role": "authenticated",
+            "execute": false,
+            "signature": "edu_assign_preschool_teacher(uuid,uuid,uuid,uuid,uuid,uuid,uuid,text,text,date,date)"
+        },
+        {
+            "role": "postgres",
+            "execute": true,
+            "signature": "edu_assign_preschool_teacher(uuid,uuid,uuid,uuid,uuid,uuid,uuid,text,text,date,date)"
+        },
+        {
+            "role": "service_role",
+            "execute": true,
+            "signature": "edu_assign_preschool_teacher(uuid,uuid,uuid,uuid,uuid,uuid,uuid,text,text,date,date)"
+        },
+        {
+            "role": "anon",
+            "execute": false,
+            "signature": "edu_get_preschool_course_teachers(uuid,uuid,uuid,uuid,date,integer,integer)"
+        },
+        {
+            "role": "authenticated",
+            "execute": false,
+            "signature": "edu_get_preschool_course_teachers(uuid,uuid,uuid,uuid,date,integer,integer)"
+        },
+        {
+            "role": "postgres",
+            "execute": true,
+            "signature": "edu_get_preschool_course_teachers(uuid,uuid,uuid,uuid,date,integer,integer)"
+        },
+        {
+            "role": "service_role",
+            "execute": true,
+            "signature": "edu_get_preschool_course_teachers(uuid,uuid,uuid,uuid,date,integer,integer)"
+        },
+        {
+            "role": "anon",
+            "execute": true,
+            "signature": "get_auth_tenant_id()"
+        },
+        {
+            "role": "authenticated",
+            "execute": true,
+            "signature": "get_auth_tenant_id()"
+        },
+        {
+            "role": "postgres",
+            "execute": true,
+            "signature": "get_auth_tenant_id()"
+        },
+        {
+            "role": "service_role",
+            "execute": true,
+            "signature": "get_auth_tenant_id()"
+        },
+        {
+            "role": "anon",
+            "execute": false,
+            "signature": "party_resolve_current_auth_link()"
+        },
+        {
+            "role": "authenticated",
+            "execute": true,
+            "signature": "party_resolve_current_auth_link()"
+        },
+        {
+            "role": "postgres",
+            "execute": true,
+            "signature": "party_resolve_current_auth_link()"
+        },
+        {
+            "role": "service_role",
+            "execute": false,
+            "signature": "party_resolve_current_auth_link()"
+        },
+        {
+            "role": "anon",
+            "execute": false,
+            "signature": "platform_assert_active_branch_for_actor(uuid,uuid,uuid)"
+        },
+        {
+            "role": "authenticated",
+            "execute": false,
+            "signature": "platform_assert_active_branch_for_actor(uuid,uuid,uuid)"
+        },
+        {
+            "role": "postgres",
+            "execute": true,
+            "signature": "platform_assert_active_branch_for_actor(uuid,uuid,uuid)"
+        },
+        {
+            "role": "service_role",
+            "execute": true,
+            "signature": "platform_assert_active_branch_for_actor(uuid,uuid,uuid)"
+        },
+        {
+            "role": "anon",
+            "execute": false,
+            "signature": "platform_current_actor_org_unit_access()"
+        },
+        {
+            "role": "authenticated",
+            "execute": true,
+            "signature": "platform_current_actor_org_unit_access()"
+        },
+        {
+            "role": "postgres",
+            "execute": true,
+            "signature": "platform_current_actor_org_unit_access()"
+        },
+        {
+            "role": "service_role",
+            "execute": false,
+            "signature": "platform_current_actor_org_unit_access()"
+        },
+        {
+            "role": "anon",
+            "execute": false,
+            "signature": "platform_current_actor_profile()"
+        },
+        {
+            "role": "authenticated",
+            "execute": true,
+            "signature": "platform_current_actor_profile()"
+        },
+        {
+            "role": "postgres",
+            "execute": true,
+            "signature": "platform_current_actor_profile()"
+        },
+        {
+            "role": "service_role",
+            "execute": false,
+            "signature": "platform_current_actor_profile()"
+        },
+        {
+            "role": "anon",
+            "execute": false,
+            "signature": "platform_org_unit_access_for_actor(uuid,uuid)"
+        },
+        {
+            "role": "authenticated",
+            "execute": false,
+            "signature": "platform_org_unit_access_for_actor(uuid,uuid)"
+        },
+        {
+            "role": "postgres",
+            "execute": true,
+            "signature": "platform_org_unit_access_for_actor(uuid,uuid)"
+        },
+        {
+            "role": "service_role",
+            "execute": true,
+            "signature": "platform_org_unit_access_for_actor(uuid,uuid)"
+        },
+        {
+            "role": "anon",
+            "execute": false,
+            "signature": "preschool_confirm_teacher(uuid,uuid,uuid,uuid,uuid,date,date,text)"
+        },
+        {
+            "role": "authenticated",
+            "execute": false,
+            "signature": "preschool_confirm_teacher(uuid,uuid,uuid,uuid,uuid,date,date,text)"
+        },
+        {
+            "role": "postgres",
+            "execute": true,
+            "signature": "preschool_confirm_teacher(uuid,uuid,uuid,uuid,uuid,date,date,text)"
+        },
+        {
+            "role": "service_role",
+            "execute": true,
+            "signature": "preschool_confirm_teacher(uuid,uuid,uuid,uuid,uuid,date,date,text)"
+        },
+        {
+            "role": "anon",
+            "execute": false,
+            "signature": "preschool_teacher_assert_admin(uuid,uuid,uuid,uuid)"
+        },
+        {
+            "role": "authenticated",
+            "execute": false,
+            "signature": "preschool_teacher_assert_admin(uuid,uuid,uuid,uuid)"
+        },
+        {
+            "role": "postgres",
+            "execute": true,
+            "signature": "preschool_teacher_assert_admin(uuid,uuid,uuid,uuid)"
+        },
+        {
+            "role": "service_role",
+            "execute": false,
+            "signature": "preschool_teacher_assert_admin(uuid,uuid,uuid,uuid)"
+        }
+    ]
+}

@@ -1,0 +1,364 @@
+{
+  "headRefOid": "0280c687343728b70b149559c982f319c31af509",
+  "mergeStateStatus": "CLEAN",
+  "state": "OPEN",
+  "statusCheckRollup": [
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-02T02:24:42Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/bellaspahcm/bella-ai-platform/actions/runs/41377444668/job/125060671303",
+      "name": "Frozen File Check",
+      "startedAt": "2026-11-02T02:23:16Z",
+      "status": "COMPLETED",
+      "workflowName": "Architecture Gate"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-02T02:23:25Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/bellaspahcm/bella-ai-platform/actions/runs/41377444688/job/125060671049",
+      "name": "Detect Changed Scope",
+      "startedAt": "2026-11-02T02:23:16Z",
+      "status": "COMPLETED",
+      "workflowName": "Architecture Guard"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-02T02:23:30Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/bellaspahcm/bella-ai-platform/actions/runs/41377444647/job/125060671145",
+      "name": "Detect Changed Scope",
+      "startedAt": "2026-11-02T02:23:16Z",
+      "status": "COMPLETED",
+      "workflowName": "CI - Quality Gates"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-02T02:27:53Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/bellaspahcm/bella-ai-platform/actions/runs/41377444708/job/125060671226",
+      "name": "Test Decision Engine",
+      "startedAt": "2026-11-02T02:23:16Z",
+      "status": "COMPLETED",
+      "workflowName": "Decision Engine Deploy"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-02T02:27:07Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/bellaspahcm/bella-ai-platform/actions/runs/41377444680/job/125060671273",
+      "name": "Baseline Comparison",
+      "startedAt": "2026-11-02T02:23:16Z",
+      "status": "COMPLETED",
+      "workflowName": "Identity-Aware No-New-Debt Baseline"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-02T02:23:28Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/bellaspahcm/bella-ai-platform/actions/runs/41377444717/job/125060671227",
+      "name": "Detect Changed Scope",
+      "startedAt": "2026-11-02T02:23:16Z",
+      "status": "COMPLETED",
+      "workflowName": "Quality and Security"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-02T02:25:17Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/bellaspahcm/bella-ai-platform/actions/runs/41377444718/job/125060671697",
+      "name": "CodeQL",
+      "startedAt": "2026-11-02T02:23:16Z",
+      "status": "COMPLETED",
+      "workflowName": "Static Analysis Security Suite"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-02T02:23:30Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/bellaspahcm/bella-ai-platform/actions/runs/41377444742/job/125060671385",
+      "name": "Detect Changed Scope",
+      "startedAt": "2026-11-02T02:23:16Z",
+      "status": "COMPLETED",
+      "workflowName": "Type Check"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-02T02:23:33Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/bellaspahcm/bella-ai-platform/actions/runs/41377444756/job/125060671144",
+      "name": "Validate PR Scope",
+      "startedAt": "2026-11-02T02:23:16Z",
+      "status": "COMPLETED",
+      "workflowName": "Validate PR Scope"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-02T02:23:30Z",
+      "conclusion": "SKIPPED",
+      "detailsUrl": "https://github.com/bellaspahcm/bella-ai-platform/actions/runs/41377444742/job/125060750590",
+      "name": "Type Check (${{ needs.detect_changes.outputs.typecheck_mode }})",
+      "startedAt": "2026-11-02T02:23:31Z",
+      "status": "COMPLETED",
+      "workflowName": "Type Check"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-02T02:24:46Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/bellaspahcm/bella-ai-platform/actions/runs/41377444668/job/125060671519",
+      "name": "Architecture Guard Verification",
+      "startedAt": "2026-11-02T02:23:16Z",
+      "status": "COMPLETED",
+      "workflowName": "Architecture Gate"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-02T02:23:36Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/bellaspahcm/bella-ai-platform/actions/runs/41377444688/job/125060723313",
+      "name": "Healthcare Constitution Enforcement",
+      "startedAt": "2026-11-02T02:23:27Z",
+      "status": "COMPLETED",
+      "workflowName": "Architecture Guard"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-02T02:24:59Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/bellaspahcm/bella-ai-platform/actions/runs/41377444647/job/125060745785",
+      "name": "Changed-file Lint",
+      "startedAt": "2026-11-02T02:23:32Z",
+      "status": "COMPLETED",
+      "workflowName": "CI - Quality Gates"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-02T02:28:05Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/bellaspahcm/bella-ai-platform/actions/runs/41377444708/job/125061987054",
+      "name": "Deploy to Staging",
+      "startedAt": "2026-11-02T02:27:55Z",
+      "status": "COMPLETED",
+      "workflowName": "Decision Engine Deploy"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-02T02:27:48Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/bellaspahcm/bella-ai-platform/actions/runs/41377444717/job/125060738037",
+      "name": "quality-security",
+      "startedAt": "2026-11-02T02:23:31Z",
+      "status": "COMPLETED",
+      "workflowName": "Quality and Security"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-02T02:27:30Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/bellaspahcm/bella-ai-platform/actions/runs/41377444718/job/125060671689",
+      "name": "Semgrep CE",
+      "startedAt": "2026-11-02T02:23:16Z",
+      "status": "COMPLETED",
+      "workflowName": "Static Analysis Security Suite"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-02T02:23:25Z",
+      "conclusion": "SKIPPED",
+      "detailsUrl": "https://github.com/bellaspahcm/bella-ai-platform/actions/runs/41377444688/job/125060725000",
+      "name": "Education Constitution Enforcement",
+      "startedAt": "2026-11-02T02:23:26Z",
+      "status": "COMPLETED",
+      "workflowName": "Architecture Guard"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-02T02:27:53Z",
+      "conclusion": "SKIPPED",
+      "detailsUrl": "https://github.com/bellaspahcm/bella-ai-platform/actions/runs/41377444708/job/125061987889",
+      "name": "Deploy to Production",
+      "startedAt": "2026-11-02T02:27:53Z",
+      "status": "COMPLETED",
+      "workflowName": "Decision Engine Deploy"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-02T02:24:54Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/bellaspahcm/bella-ai-platform/actions/runs/41377444668/job/125060671547",
+      "name": "Dependency Boundary Check",
+      "startedAt": "2026-11-02T02:23:16Z",
+      "status": "COMPLETED",
+      "workflowName": "Architecture Gate"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-02T02:25:06Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/bellaspahcm/bella-ai-platform/actions/runs/41377444647/job/125060745746",
+      "name": "Affected Unit and Integration Tests",
+      "startedAt": "2026-11-02T02:23:32Z",
+      "status": "COMPLETED",
+      "workflowName": "CI - Quality Gates"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-02T02:23:32Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/bellaspahcm/bella-ai-platform/actions/runs/41377444718/job/125060671468",
+      "name": "Gitleaks",
+      "startedAt": "2026-11-02T02:23:16Z",
+      "status": "COMPLETED",
+      "workflowName": "Static Analysis Security Suite"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-02T02:23:38Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/bellaspahcm/bella-ai-platform/actions/runs/41377444742/job/125060748944",
+      "name": "Type Check Skipped",
+      "startedAt": "2026-11-02T02:23:34Z",
+      "status": "COMPLETED",
+      "workflowName": "Type Check"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-02T02:23:25Z",
+      "conclusion": "SKIPPED",
+      "detailsUrl": "https://github.com/bellaspahcm/bella-ai-platform/actions/runs/41377444688/job/125060725133",
+      "name": "Core Freeze Verification",
+      "startedAt": "2026-11-02T02:23:26Z",
+      "status": "COMPLETED",
+      "workflowName": "Architecture Guard"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-02T02:25:03Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/bellaspahcm/bella-ai-platform/actions/runs/41377444668/job/125060671449",
+      "name": "Logistics Kernel Regression",
+      "startedAt": "2026-11-02T02:23:16Z",
+      "status": "COMPLETED",
+      "workflowName": "Architecture Gate"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-02T02:24:32Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/bellaspahcm/bella-ai-platform/actions/runs/41377444647/job/125060746006",
+      "name": "Real Database Business E2E",
+      "startedAt": "2026-11-02T02:23:32Z",
+      "status": "COMPLETED",
+      "workflowName": "CI - Quality Gates"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-02T02:23:27Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/bellaspahcm/bella-ai-platform/actions/runs/41377444718/job/125060671677",
+      "name": "Trivy filesystem",
+      "startedAt": "2026-11-02T02:23:16Z",
+      "status": "COMPLETED",
+      "workflowName": "Static Analysis Security Suite"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-02T02:23:36Z",
+      "conclusion": "SKIPPED",
+      "detailsUrl": "https://github.com/bellaspahcm/bella-ai-platform/actions/runs/41377444688/job/125060773866",
+      "name": "Architecture Guard Summary",
+      "startedAt": "2026-11-02T02:23:36Z",
+      "status": "COMPLETED",
+      "workflowName": "Architecture Guard"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-02T02:24:54Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/bellaspahcm/bella-ai-platform/actions/runs/41377444647/job/125060745775",
+      "name": "Security Gates",
+      "startedAt": "2026-11-02T02:23:32Z",
+      "status": "COMPLETED",
+      "workflowName": "CI - Quality Gates"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-02T02:23:27Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/bellaspahcm/bella-ai-platform/actions/runs/41377444718/job/125060671756",
+      "name": "SonarQube",
+      "startedAt": "2026-11-02T02:23:16Z",
+      "status": "COMPLETED",
+      "workflowName": "Static Analysis Security Suite"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-02T02:26:43Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/bellaspahcm/bella-ai-platform/actions/runs/41377444647/job/125060745822",
+      "name": "Relevant App Build",
+      "startedAt": "2026-11-02T02:23:32Z",
+      "status": "COMPLETED",
+      "workflowName": "CI - Quality Gates"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-02T02:24:32Z",
+      "conclusion": "SKIPPED",
+      "detailsUrl": "https://github.com/bellaspahcm/bella-ai-platform/actions/runs/41377444647/job/125061050250",
+      "name": "Migration Gates",
+      "startedAt": "2026-11-02T02:24:33Z",
+      "status": "COMPLETED",
+      "workflowName": "CI - Quality Gates"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-02T02:26:47Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/bellaspahcm/bella-ai-platform/actions/runs/41377444647/job/125061667746",
+      "name": "All Required Gates Passed",
+      "startedAt": "2026-11-02T02:26:45Z",
+      "status": "COMPLETED",
+      "workflowName": "CI - Quality Gates"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-02T02:27:23Z",
+      "conclusion": "NEUTRAL",
+      "detailsUrl": "https://github.com/bellaspahcm/bella-ai-platform/runs/125061827769",
+      "name": "Semgrep OSS",
+      "startedAt": "2026-11-02T02:27:18Z",
+      "status": "COMPLETED",
+      "workflowName": ""
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-02T02:25:11Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/bellaspahcm/bella-ai-platform/runs/125061216649",
+      "name": "CodeQL",
+      "startedAt": "2026-11-02T02:25:08Z",
+      "status": "COMPLETED",
+      "workflowName": ""
+    },
+    {
+      "__typename": "StatusContext",
+      "context": "Vercel",
+      "startedAt": "2026-11-02T02:31:04Z",
+      "state": "SUCCESS",
+      "targetUrl": "https://vercel.com/bella-spa-s-projects/bella-spa-erp/26wNgWWK7zwXh1qJuHiutNqbHWAd"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-02T02:31:05Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://vercel.com/github",
+      "name": "Vercel Preview Comments",
+      "startedAt": "2026-11-02T02:31:05Z",
+      "status": "COMPLETED",
+      "workflowName": ""
+    }
+  ]
+}

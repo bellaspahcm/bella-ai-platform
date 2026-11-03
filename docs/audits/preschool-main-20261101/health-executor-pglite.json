@@ -1,0 +1,11 @@
+{
+  "engine": "PGlite 0.5.14 WASM PostgreSQL",
+  "checks": [
+    "wrong_hash_denied",
+    "only_health_and_ledger_insert",
+    "replay_denied",
+    "ledger_failure_rolls_back_function_and_acl"
+  ],
+  "status": "PASS",
+  "scope": "in-memory synthetic roles/ledger; no production concurrency, PostgREST or runner proof"
+}

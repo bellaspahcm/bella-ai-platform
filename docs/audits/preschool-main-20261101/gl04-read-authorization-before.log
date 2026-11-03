@@ -1,0 +1,205 @@
+FAIL src/app/api/education/portal/[token]/attendance/__tests__/route.test.ts
+  ● Console
+
+    console.log
+      ◇ injected env (0) from .env.local // tip: ⌘ multiple files { path: ['.env.local', '.env'] }
+
+      at _log (../../../Antigravity/Projects/BELLA SPA ERP/node_modules/dotenv/lib/main.js:131:11)
+
+    console.log
+      [Jest Setup] SUPABASE_SERVICE_ROLE_KEY loaded: true
+
+      at Object.<anonymous> (jest.setup.ts:30:9)
+
+  ● GET /api/education/portal/[token]/attendance › returns attendance history and summary for a verified token
+
+    expect(jest.fn()).toHaveBeenCalledWith(...expected)
+
+    Expected: "valid-token"
+
+    Number of calls: 0
+
+      136 |     expect(mockAuthorizePortalToken).toHaveBeenCalledWith('valid-token');
+      137 |   });
+    > 138 |
+          | ^
+      139 |   it.each([
+      140 |     { status: 401, code: 'GUARDIAN_NOT_AUTHORIZED' },
+      141 |     { status: 503, code: 'PORTAL_ACCESS_UNAVAILABLE' },
+
+      at Object.<anonymous> (src/app/api/education/portal/[token]/attendance/__tests__/route.test.ts:138:42)
+
+  ● GET /api/education/portal/[token]/attendance › does not read attendance when authorization returns GUARDIAN_NOT_AUTHORIZED
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 401
+    Received: 200
+
+      154 |     let release: (value: typeof claims) => void = () => { throw new Error('Authorization not initialized'); };
+      155 |     mockAuthorizePortalToken.mockReturnValue(new Promise<typeof claims>(resolve => { release = resolve; }));
+    > 156 |     const responsePromise = GET(new Request('http://localhost/api/education/portal/valid-token/attendance'), {
+          |                                 ^
+      157 |       params: Promise.resolve({ token: 'valid-token' }),
+      158 |     });
+      159 |     try {
+
+      at src/app/api/education/portal/[token]/attendance/__tests__/route.test.ts:156:33
+
+  ● GET /api/education/portal/[token]/attendance › does not read attendance when authorization returns PORTAL_ACCESS_UNAVAILABLE
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 503
+    Received: 200
+
+      154 |     let release: (value: typeof claims) => void = () => { throw new Error('Authorization not initialized'); };
+      155 |     mockAuthorizePortalToken.mockReturnValue(new Promise<typeof claims>(resolve => { release = resolve; }));
+    > 156 |     const responsePromise = GET(new Request('http://localhost/api/education/portal/valid-token/attendance'), {
+          |                                 ^
+      157 |       params: Promise.resolve({ token: 'valid-token' }),
+      158 |     });
+      159 |     try {
+
+      at src/app/api/education/portal/[token]/attendance/__tests__/route.test.ts:156:33
+
+  ● GET /api/education/portal/[token]/attendance › waits for current guardian authorization before enrollment or attendance reads
+
+    expect(jest.fn()).toHaveBeenCalledWith(...expected)
+
+    Expected: "valid-token"
+
+    Number of calls: 0
+
+      176 |     expect(mockDataRead).not.toHaveBeenCalled();
+      177 |   });
+    > 178 |
+          | ^
+      179 |   it.each(['edu_enrollments', 'edu_attendance_daily_state', 'edu_attendance'])('returns unavailable when %s fails', async table => {
+      180 |     mockQueryError.mockImplementation((resource: string) => resource === table ? { code: 'XX000', message: 'private DB detail' } : null);
+      181 |     const response = await GET(new Request('http://localhost/api/education/portal/valid-token/attendance'), {
+
+      at Object.<anonymous> (src/app/api/education/portal/[token]/attendance/__tests__/route.test.ts:178:46)
+
+  ● GET /api/education/portal/[token]/attendance › returns unavailable when edu_enrollments fails
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 503
+    Received: 200
+
+
+
+      at src/app/api/education/portal/[token]/attendance/__tests__/route.test.ts:212:33
+
+  ● GET /api/education/portal/[token]/attendance › returns unavailable when edu_attendance_daily_state fails
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 503
+    Received: 200
+
+
+
+      at src/app/api/education/portal/[token]/attendance/__tests__/route.test.ts:212:33
+
+  ● GET /api/education/portal/[token]/attendance › returns unavailable when edu_attendance fails
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 503
+    Received: 200
+
+
+
+      at src/app/api/education/portal/[token]/attendance/__tests__/route.test.ts:212:33
+
+FAIL src/app/api/education/portal/[token]/tuition/__tests__/route.test.ts
+  ● Console
+
+    console.log
+      ◇ injected env (0) from .env.local // tip: ◈ secrets for agents [www.dotenvx.com]
+
+      at _log (../../../Antigravity/Projects/BELLA SPA ERP/node_modules/dotenv/lib/main.js:131:11)
+
+    console.log
+      [Jest Setup] SUPABASE_SERVICE_ROLE_KEY loaded: true
+
+      at Object.<anonymous> (jest.setup.ts:30:9)
+
+  ● GET /api/education/portal/[token]/tuition › returns tuition invoices and summary for a verified token
+
+    expect(jest.fn()).toHaveBeenCalledWith(...expected)
+
+    Expected: "valid-token"
+
+    Number of calls: 0
+
+      122 |     expect(body.data.invoices).toHaveLength(1);
+      123 |     expect(body.data.invoices[0].invoiceNumber).toBe('INV-202610-5698');
+    > 124 |     expect(body.data.invoices[0].netAmount).toBe(5700000);
+          |                                          ^
+      125 |     expect(body.data.invoices[0].paidAmount).toBe(5700000);
+      126 |     expect(body.data.invoices[0].outstandingAmount).toBe(0);
+      127 |     expect(body.data.invoices[0].settlementStatus).toBe('PAID');
+
+      at Object.<anonymous> (src/app/api/education/portal/[token]/tuition/__tests__/route.test.ts:124:42)
+
+  ● GET /api/education/portal/[token]/tuition › does not read invoices or banking metadata when authorization returns GUARDIAN_NOT_AUTHORIZED
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 401
+    Received: 200
+
+      140 |     });
+      141 |     expect(response.status).toBe(status);
+    > 142 |     expect(await response.json()).toEqual({ success: false, error: code });
+          |                                 ^
+      143 |     expect(response.headers.get('Cache-Control')).toBe('private, no-store');
+      144 |     expect(mockDataRead).not.toHaveBeenCalled();
+      145 |   });
+
+      at src/app/api/education/portal/[token]/tuition/__tests__/route.test.ts:142:33
+
+  ● GET /api/education/portal/[token]/tuition › does not read invoices or banking metadata when authorization returns PORTAL_ACCESS_UNAVAILABLE
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 503
+    Received: 200
+
+      140 |     });
+      141 |     expect(response.status).toBe(status);
+    > 142 |     expect(await response.json()).toEqual({ success: false, error: code });
+          |                                 ^
+      143 |     expect(response.headers.get('Cache-Control')).toBe('private, no-store');
+      144 |     expect(mockDataRead).not.toHaveBeenCalled();
+      145 |   });
+
+      at src/app/api/education/portal/[token]/tuition/__tests__/route.test.ts:142:33
+
+  ● GET /api/education/portal/[token]/tuition › waits for current guardian authorization before invoice or tenant reads
+
+    expect(jest.fn()).toHaveBeenCalledWith(...expected)
+
+    Expected: "valid-token"
+
+    Number of calls: 0
+
+      162 |     jest.mocked(PreschoolParentPortalService.verifyPortalToken).mockImplementation(() => {
+      163 |       throw new ParentPortalAccessError(401, 'TOKEN_SIGNATURE_MISMATCH');
+    > 164 |     });
+          |        ^
+      165 |     const response = await GET(new Request('http://localhost/api/education/portal/invalid-token/tuition'), {
+      166 |       params: Promise.resolve({ token: 'invalid-token' }),
+      167 |     });
+
+      at Object.<anonymous> (src/app/api/education/portal/[token]/tuition/__tests__/route.test.ts:164:46)
+
+Test Suites: 2 failed, 2 total
+Tests:       11 failed, 3 passed, 14 total
+Snapshots:   0 total
+Time:        1.981 s
+Ran all test suites within paths "src/app/api/education/portal/[token]/attendance/__tests__/route.test.ts", "src/app/api/education/portal/[token]/tuition/__tests__/route.test.ts".
+Test results written to: docs\audits\preschool-main-20261101\gl04-read-authorization-before.json

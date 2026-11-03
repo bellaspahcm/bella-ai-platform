@@ -14,6 +14,29 @@ describe('CurriculumService', () => {
   });
 
   describe('Curriculums', () => {
+    it.each([
+      { row: { id: 'curr-1' }, error: null, success: true, expectedError: undefined },
+      { row: null, error: null, success: false, expectedError: 'RECORD_NOT_FOUND' },
+      { row: null, error: { message: 'write denied' }, success: false, expectedError: 'write denied' },
+    ])('requires a returned curriculum row without changing valid update results: $success/$expectedError', async ({ row, error, success, expectedError }) => {
+      const query = {
+        update: jest.fn().mockReturnThis(),
+        eq: jest.fn().mockReturnThis(),
+        select: jest.fn().mockReturnThis(),
+        maybeSingle: jest.fn<() => Promise<{ data: { id: string } | null; error: { message: string } | null }>>()
+          .mockResolvedValue({ data: row, error }),
+      };
+      service = new CurriculumService({ from: jest.fn().mockReturnValue(query) } as never);
+      const result = await service.saveCurriculum(tenantId, {
+        id: 'curr-1', code: 'TEST', name: 'Existing curriculum', status: 'ACTIVE', subjects: [],
+      });
+      expect(result.success).toBe(success);
+      expect(result.id).toBe(success ? 'curr-1' : '');
+      expect(result.error).toBe(expectedError);
+      expect(query.eq).toHaveBeenCalledWith('id', 'curr-1');
+      expect(query.eq).toHaveBeenCalledWith('tenant_id', tenantId);
+    });
+
     it('lists curriculums with parsed subjects', async () => {
       const mockQuery = {
         select: jest.fn().mockReturnThis(),
@@ -139,19 +162,51 @@ describe('CurriculumService', () => {
       expect(result.id).toBe('created-plan-uuid');
     });
 
+    it('does not report update success when no tenant-scoped lesson plan was updated', async () => {
+      const query = {
+        update: jest.fn().mockReturnThis(),
+        eq: jest.fn().mockReturnThis(),
+        select: jest.fn().mockReturnThis(),
+        maybeSingle: jest.fn<() => Promise<{ data: null; error: null }>>().mockResolvedValue({ data: null, error: null }),
+      };
+      mockSupabase = { from: jest.fn().mockReturnValue(query) };
+      service = new CurriculumService(mockSupabase as never);
+
+      const result = await service.saveLessonPlan(tenantId, actorId, { ...validPlan, id: 'missing-plan' });
+      expect(result).toMatchObject({ success: false, id: '', error: 'RECORD_NOT_FOUND' });
+      expect(query.select).toHaveBeenCalledWith('id');
+    });
+
     it('deletes a lesson plan', async () => {
-      const mockEq2 = jest.fn<() => Promise<{ error: null }>>().mockResolvedValue({ error: null });
-      const mockEq1 = jest.fn().mockReturnValue({ eq: mockEq2 });
-      const mockDelete = jest.fn().mockReturnValue({ eq: mockEq1 });
+      const query = {
+        delete: jest.fn().mockReturnThis(),
+        eq: jest.fn().mockReturnThis(),
+        select: jest.fn().mockReturnThis(),
+        maybeSingle: jest.fn<() => Promise<{ data: { id: string }; error: null }>>().mockResolvedValue({ data: { id: 'plan-to-delete' }, error: null }),
+      };
 
       mockSupabase = {
-        from: jest.fn().mockReturnValue({ delete: mockDelete }),
+        from: jest.fn().mockReturnValue(query),
       };
 
       service = new CurriculumService(mockSupabase as never);
 
       const result = await service.deleteLessonPlan(tenantId, 'plan-to-delete');
       expect(result.success).toBe(true);
+    });
+
+    it('does not report delete success when no tenant-scoped lesson plan was removed', async () => {
+      const query = {
+        delete: jest.fn().mockReturnThis(),
+        eq: jest.fn().mockReturnThis(),
+        select: jest.fn().mockReturnThis(),
+        maybeSingle: jest.fn<() => Promise<{ data: null; error: null }>>().mockResolvedValue({ data: null, error: null }),
+      };
+      mockSupabase = { from: jest.fn().mockReturnValue(query) };
+      service = new CurriculumService(mockSupabase as never);
+
+      const result = await service.deleteLessonPlan(tenantId, 'missing-plan');
+      expect(result).toMatchObject({ success: false, id: 'missing-plan', error: 'RECORD_NOT_FOUND' });
     });
   });
 });

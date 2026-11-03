@@ -1,0 +1,23 @@
+{
+  "capturedAt": "2026-11-01T03:51:40.377Z",
+  "sourceBase": "f1299e3138f3700062a1ed84271db315737b0071",
+  "baselineGitBlob": "1c451ddcad23ece97ff4117cece4b872635ac0b7",
+  "baselineWorkingSha256": "cf480356bf1fb9c062f4d6690cf52bea855e59abc886cb42dc7e80cd67209d8d",
+  "baselineOccurrences": 265,
+  "exceptionsAdded": 0,
+  "F10_F12SourcesUnchanged": 10,
+  "F10_F12EvidenceUnchanged": true,
+  "historicalArtifactsUnchanged": 39,
+  "nonControlSourceUnchanged": true,
+  "wipUnchanged": true,
+  "diffCheck": "PASS",
+  "scope": "F13 control-only",
+  "regression": {
+    "scannerTestsPassed": 16,
+    "architectureTestsPassed": 8,
+    "architectureTestsFailed": 2,
+    "focusedTypecheck": "PASS",
+    "actualCiExit": 1
+  },
+  "status": "BLOCK — NOT MERGE-READY"
+}

@@ -1,0 +1,15 @@
+{
+  "scope": "Copied package manifests and lockfile in owned temporary directory; no shared node_modules install",
+  "checks": [
+    {
+      "command": "npm ci --dry-run --ignore-scripts --no-audit --no-fund",
+      "exitCode": 0,
+      "errors": []
+    },
+    {
+      "command": "npm ci --dry-run --ignore-scripts --no-audit --no-fund --legacy-peer-deps",
+      "exitCode": 0,
+      "errors": []
+    }
+  ]
+}

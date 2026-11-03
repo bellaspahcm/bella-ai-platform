@@ -1,0 +1,23 @@
+{
+  "capturedAt": "2026-11-01T02:56:52.769Z",
+  "baseline": {
+    "gitNormalizedBlob": "1c451ddcad23ece97ff4117cece4b872635ac0b7",
+    "workingSha256": "cf480356bf1fb9c062f4d6690cf52bea855e59abc886cb42dc7e80cd67209d8d",
+    "unchanged": true,
+    "legacyOccurrences": 265,
+    "exactExceptions": 0,
+    "note": "Raw worktree bytes use CRLF; git show uses LF. Initial raw-byte equality check was unsuitable. Git normalized content matches HEAD."
+  },
+  "F10_F12SourceHashesUnchanged": 10,
+  "F10_F12EvidenceUnchanged": true,
+  "historicalArtifactHashesVerified": 39,
+  "nonControlSourceUnchanged": true,
+  "wipUnchanged": true,
+  "diffCheck": "PASS",
+  "regression": {
+    "scannerNodeTestsPassed": 14,
+    "architectureJestTestsPassed": 8,
+    "architectureJestTestsFailed": 2
+  },
+  "status": "BLOCK"
+}

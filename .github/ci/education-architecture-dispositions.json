@@ -1,0 +1,2725 @@
+{
+  "version": 1,
+  "policyId": "F13-P1-P2-P3-20261101",
+  "sourceBase": "f1299e3138f3700062a1ed84271db315737b0071",
+  "approval": {
+    "scope": "local-enforcement",
+    "date": "2026-11-01",
+    "decision": "Duyệt P1/P2/P3, triển khai local",
+    "reference": "Owner reply to request_user_input_async/call_79c33faa5fb842919c56703514c34354",
+    "exceptionIds": [
+      "M066",
+      "M067",
+      "M068",
+      "M069",
+      "M070",
+      "M071",
+      "M004"
+    ]
+  },
+  "legacyBaselineDigest": "41083ababa66221d4ab83e2515d07f177362617394f6dcdd6453b2cb8e807af8",
+  "knownDebt": [
+    {
+      "id": "D001",
+      "file": "src/products/bella-education/analytics/repositories/preschool-analytics.repository.ts",
+      "caller": "PreschoolAnalyticsRepository/getEnrollmentRawData",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_enrollments",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D002",
+      "file": "src/products/bella-education/analytics/repositories/preschool-analytics.repository.ts",
+      "caller": "PreschoolAnalyticsRepository/getEnrollmentRawData",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "students",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D003",
+      "file": "src/products/bella-education/analytics/repositories/preschool-analytics.repository.ts",
+      "caller": "PreschoolAnalyticsRepository/getEnrollmentRawData",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_courses",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D004",
+      "file": "src/products/bella-education/analytics/repositories/preschool-analytics.repository.ts",
+      "caller": "PreschoolAnalyticsRepository/getAttendanceRawData",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_attendance_daily_state",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D005",
+      "file": "src/products/bella-education/analytics/repositories/preschool-analytics.repository.ts",
+      "caller": "PreschoolAnalyticsRepository/getAttendanceRawData",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_daily_care_records",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D006",
+      "file": "src/products/bella-education/analytics/repositories/preschool-analytics.repository.ts",
+      "caller": "PreschoolAnalyticsRepository/getCareSafetyRawData",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_care_health_incidents",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D007",
+      "file": "src/products/bella-education/analytics/repositories/preschool-analytics.repository.ts",
+      "caller": "PreschoolAnalyticsRepository/getCareSafetyRawData",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_care_medication_logs",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D008",
+      "file": "src/products/bella-education/analytics/repositories/preschool-analytics.repository.ts",
+      "caller": "PreschoolAnalyticsRepository/getLearningRawData",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_dev_portfolio_versions",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D009",
+      "file": "src/products/bella-education/analytics/repositories/preschool-analytics.repository.ts",
+      "caller": "PreschoolAnalyticsRepository/getLearningRawData",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_dev_observations",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D010",
+      "file": "src/products/bella-education/analytics/repositories/preschool-analytics.repository.ts",
+      "caller": "PreschoolAnalyticsRepository/getParentEngagementRawData",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_comm_deliveries",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D011",
+      "file": "src/products/bella-education/analytics/repositories/preschool-analytics.repository.ts",
+      "caller": "PreschoolAnalyticsRepository/getFinanceRawData",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_fin_invoices",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D012",
+      "file": "src/products/bella-education/analytics/repositories/preschool-analytics.repository.ts",
+      "caller": "PreschoolAnalyticsRepository/getFinanceRawData",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_fin_reconciliation_ledger",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D013",
+      "file": "src/products/bella-education/analytics/repositories/preschool-analytics.repository.ts",
+      "caller": "PreschoolAnalyticsRepository/getWorkforceRawData",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_sched_compliance_snapshots",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D014",
+      "file": "src/products/bella-education/analytics/repositories/preschool-analytics.repository.ts",
+      "caller": "PreschoolAnalyticsRepository/getWorkforceRawData",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_comm_exceptions",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D015",
+      "file": "src/products/bella-education/analytics/repositories/preschool-analytics.repository.ts",
+      "caller": "PreschoolAnalyticsRepository/getFacilitiesRawData",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_fac_assets",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D016",
+      "file": "src/products/bella-education/analytics/repositories/preschool-analytics.repository.ts",
+      "caller": "PreschoolAnalyticsRepository/getFacilitiesRawData",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_fac_zones",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D017",
+      "file": "src/products/bella-education/analytics/repositories/preschool-analytics.repository.ts",
+      "caller": "PreschoolAnalyticsRepository/getFacilitiesRawData",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_fac_inspection_schedules",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D018",
+      "file": "src/products/bella-education/analytics/repositories/preschool-analytics.repository.ts",
+      "caller": "PreschoolAnalyticsRepository/getFacilitiesRawData",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_comm_exceptions",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D019",
+      "file": "src/products/bella-education/analytics/repositories/preschool-analytics.repository.ts",
+      "caller": "PreschoolAnalyticsRepository/getCommandCenterRawData/openExceptions",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_comm_exceptions",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D020",
+      "file": "src/products/bella-education/analytics/repositories/preschool-analytics.repository.ts",
+      "caller": "PreschoolAnalyticsRepository/getCommandCenterRawData",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_health_incidents",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D021",
+      "file": "src/products/bella-education/analytics/repositories/preschool-analytics.repository.ts",
+      "caller": "PreschoolAnalyticsRepository/getCommandCenterRawData",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_fin_invoices",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D022",
+      "file": "src/products/bella-education/analytics/repositories/preschool-analytics.repository.ts",
+      "caller": "PreschoolAnalyticsRepository/getCommandCenterRawData",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_attendance_daily_state",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D023",
+      "file": "src/products/bella-education/analytics/repositories/preschool-analytics.repository.ts",
+      "caller": "PreschoolAnalyticsRepository/getCommandCenterRawData",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_enrollments",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D024",
+      "file": "src/products/bella-education/analytics/repositories/preschool-analytics.repository.ts",
+      "caller": "PreschoolAnalyticsRepository/getRecentActivitiesRawData",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_preschool_pickup_handover_events",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D025",
+      "file": "src/products/bella-education/analytics/repositories/preschool-analytics.repository.ts",
+      "caller": "PreschoolAnalyticsRepository/getRecentActivitiesRawData",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_dev_activities",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D026",
+      "file": "src/products/bella-education/analytics/repositories/preschool-analytics.repository.ts",
+      "caller": "PreschoolAnalyticsRepository/getRecentActivitiesRawData",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_dev_observations",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D027",
+      "file": "src/products/bella-education/analytics/repositories/preschool-analytics.repository.ts",
+      "caller": "PreschoolAnalyticsRepository/getRecentActivitiesRawData",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_comm_exceptions",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D028",
+      "file": "src/products/bella-education/analytics/repositories/preschool-analytics.repository.ts",
+      "caller": "PreschoolAnalyticsRepository/getRecentActivitiesRawData",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_comm_notices",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D029",
+      "file": "src/products/bella-education/analytics/repositories/preschool-analytics.repository.ts",
+      "caller": "PreschoolAnalyticsRepository/getRecentActivitiesRawData",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_fin_invoices",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D030",
+      "file": "src/products/bella-education/analytics/repositories/preschool-analytics.repository.ts",
+      "caller": "PreschoolAnalyticsRepository/getRecentActivitiesRawData",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_care_health_incidents",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D031",
+      "file": "src/products/bella-education/analytics/repositories/preschool-analytics.repository.ts",
+      "caller": "PreschoolAnalyticsRepository/getRecentActivitiesRawData",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_courses",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D032",
+      "file": "src/products/bella-education/analytics/repositories/preschool-analytics.repository.ts",
+      "caller": "PreschoolAnalyticsRepository/getRecentNoticesRawData",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_comm_notices",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D033",
+      "file": "src/products/bella-education/analytics/repositories/preschool-analytics.repository.ts",
+      "caller": "PreschoolAnalyticsRepository/getCurrentWeeklyMenuRawData",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_weekly_menus",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D034",
+      "file": "src/products/bella-education/care-wellbeing/daily-care/daily-care.service.ts",
+      "caller": "DailyCareService/assertCourseBelongsToTenant",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_courses",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D035",
+      "file": "src/products/bella-education/care-wellbeing/daily-care/daily-care.service.ts",
+      "caller": "DailyCareService/getCanonicalRoster",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_enrollments",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D036",
+      "file": "src/products/bella-education/care-wellbeing/daily-care/daily-care.service.ts",
+      "caller": "DailyCareService/getOrCreateSession",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_daily_care_sessions",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D037",
+      "file": "src/products/bella-education/care-wellbeing/daily-care/daily-care.service.ts",
+      "caller": "DailyCareService/getOrCreateSession",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_daily_care_sessions",
+      "operation": "insert",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D038",
+      "file": "src/products/bella-education/care-wellbeing/daily-care/daily-care.service.ts",
+      "caller": "DailyCareService/getExistingSession",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_daily_care_sessions",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D039",
+      "file": "src/products/bella-education/care-wellbeing/daily-care/daily-care.service.ts",
+      "caller": "DailyCareService/getOrCreateStudentRecord",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_daily_care_records",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D040",
+      "file": "src/products/bella-education/care-wellbeing/daily-care/daily-care.service.ts",
+      "caller": "DailyCareService/getOrCreateStudentRecord",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_daily_care_records",
+      "operation": "insert",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D041",
+      "file": "src/products/bella-education/care-wellbeing/daily-care/daily-care.service.ts",
+      "caller": "DailyCareService/getDailyCareRoster",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "students",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D042",
+      "file": "src/products/bella-education/care-wellbeing/daily-care/daily-care.service.ts",
+      "caller": "DailyCareService/getDailyCareRoster",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_daily_care_records",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D043",
+      "file": "src/products/bella-education/care-wellbeing/daily-care/daily-care.service.ts",
+      "caller": "DailyCareService/recordBulkArrival",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_daily_care_records",
+      "operation": "update",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D044",
+      "file": "src/products/bella-education/care-wellbeing/daily-care/daily-care.service.ts",
+      "caller": "DailyCareService/recordBulkMeals",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_daily_care_records",
+      "operation": "update",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D045",
+      "file": "src/products/bella-education/care-wellbeing/daily-care/daily-care.service.ts",
+      "caller": "DailyCareService/recordBulkHygiene",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_daily_care_records",
+      "operation": "update",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D046",
+      "file": "src/products/bella-education/care-wellbeing/daily-care/daily-care.service.ts",
+      "caller": "DailyCareService/recordBulkNap",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_daily_care_records",
+      "operation": "update",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D047",
+      "file": "src/products/bella-education/care-wellbeing/daily-care/daily-care.service.ts",
+      "caller": "DailyCareService/generateParentDigest",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_daily_care_records",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D048",
+      "file": "src/products/bella-education/care-wellbeing/daily-care/daily-care.service.ts",
+      "caller": "DailyCareService/generateParentDigest",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_daily_parent_digests",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D049",
+      "file": "src/products/bella-education/care-wellbeing/daily-care/daily-care.service.ts",
+      "caller": "DailyCareService/generateParentDigest",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_daily_parent_digests",
+      "operation": "update",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D050",
+      "file": "src/products/bella-education/care-wellbeing/daily-care/daily-care.service.ts",
+      "caller": "DailyCareService/generateParentDigest",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_daily_parent_digests",
+      "operation": "insert",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D051",
+      "file": "src/products/bella-education/care-wellbeing/daily-care/daily-care.service.ts",
+      "caller": "DailyCareService/publishParentDigest",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_daily_parent_digests",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D052",
+      "file": "src/products/bella-education/care-wellbeing/daily-care/daily-care.service.ts",
+      "caller": "DailyCareService/publishParentDigest",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_daily_parent_digests",
+      "operation": "update",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D053",
+      "file": "src/products/bella-education/care-wellbeing/health-profile/allergy-safety.service.ts",
+      "caller": "AllergySafetyService/checkMealSafety",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_child_allergies",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D054",
+      "file": "src/products/bella-education/care-wellbeing/health-profile/allergy-safety.service.ts",
+      "caller": "AllergySafetyService/checkMealSafety",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_meal_item_ingredients",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D055",
+      "file": "src/products/bella-education/care-wellbeing/incidents/incident-safety.service.ts",
+      "caller": "IncidentSafetyService/reportIncident",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_health_incidents",
+      "operation": "insert",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D056",
+      "file": "src/products/bella-education/care-wellbeing/incidents/incident-safety.service.ts",
+      "caller": "IncidentSafetyService/recordEscalationNotification",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_health_incidents",
+      "operation": "update",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D057",
+      "file": "src/products/bella-education/care-wellbeing/incidents/incident-safety.service.ts",
+      "caller": "IncidentSafetyService/closeIncident",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_health_incidents",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D058",
+      "file": "src/products/bella-education/care-wellbeing/incidents/incident-safety.service.ts",
+      "caller": "IncidentSafetyService/closeIncident",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_health_incidents",
+      "operation": "update",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D059",
+      "file": "src/products/bella-education/care-wellbeing/medication/medication-safety.service.ts",
+      "caller": "MedicationSafetyService/administerDose",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_medication_dose_occurrences",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D060",
+      "file": "src/products/bella-education/care-wellbeing/medication/medication-safety.service.ts",
+      "caller": "MedicationSafetyService/administerDose",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_medication_logs",
+      "operation": "insert",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D061",
+      "file": "src/products/bella-education/care-wellbeing/medication/medication-safety.service.ts",
+      "caller": "MedicationSafetyService/administerDose",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_medication_dose_occurrences",
+      "operation": "update",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D062",
+      "file": "src/products/bella-education/care-wellbeing/nutrition/weekly-menu.service.ts",
+      "caller": "WeeklyMenuService/getWeeklyMenu",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_weekly_menus",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D063",
+      "file": "src/products/bella-education/care-wellbeing/nutrition/weekly-menu.service.ts",
+      "caller": "WeeklyMenuService/listWeeklyMenus",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_weekly_menus",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D064",
+      "file": "src/products/bella-education/care-wellbeing/nutrition/weekly-menu.service.ts",
+      "caller": "WeeklyMenuService/saveWeeklyMenu",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_weekly_menus",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D065",
+      "file": "src/products/bella-education/care-wellbeing/nutrition/weekly-menu.service.ts",
+      "caller": "WeeklyMenuService/saveWeeklyMenu",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_weekly_menus",
+      "operation": "update",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D066",
+      "file": "src/products/bella-education/care-wellbeing/nutrition/weekly-menu.service.ts",
+      "caller": "WeeklyMenuService/saveWeeklyMenu",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_weekly_menus",
+      "operation": "insert",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D067",
+      "file": "src/products/bella-education/care-wellbeing/nutrition/weekly-menu.service.ts",
+      "caller": "WeeklyMenuService/saveWeeklyMenu",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_weekly_menu_days",
+      "operation": "upsert",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D068",
+      "file": "src/products/bella-education/facilities/repositories/preschool-facilities.repository.ts",
+      "caller": "PreschoolFacilitiesRepository/createFacility",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_fac_facilities",
+      "operation": "insert",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D069",
+      "file": "src/products/bella-education/facilities/repositories/preschool-facilities.repository.ts",
+      "caller": "PreschoolFacilitiesRepository/getFacility",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_fac_facilities",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D070",
+      "file": "src/products/bella-education/facilities/repositories/preschool-facilities.repository.ts",
+      "caller": "PreschoolFacilitiesRepository/createZone",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_fac_zones",
+      "operation": "insert",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D071",
+      "file": "src/products/bella-education/facilities/repositories/preschool-facilities.repository.ts",
+      "caller": "PreschoolFacilitiesRepository/getZone",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_fac_zones",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D072",
+      "file": "src/products/bella-education/facilities/repositories/preschool-facilities.repository.ts",
+      "caller": "PreschoolFacilitiesRepository/updateZoneStatus",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_fac_zones",
+      "operation": "update",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D073",
+      "file": "src/products/bella-education/facilities/repositories/preschool-facilities.repository.ts",
+      "caller": "PreschoolFacilitiesRepository/createAsset",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_fac_assets",
+      "operation": "insert",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D074",
+      "file": "src/products/bella-education/facilities/repositories/preschool-facilities.repository.ts",
+      "caller": "PreschoolFacilitiesRepository/getAsset",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_fac_assets",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D075",
+      "file": "src/products/bella-education/facilities/repositories/preschool-facilities.repository.ts",
+      "caller": "PreschoolFacilitiesRepository/updateAssetStatus",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_fac_assets",
+      "operation": "update",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D076",
+      "file": "src/products/bella-education/facilities/repositories/preschool-facilities.repository.ts",
+      "caller": "PreschoolFacilitiesRepository/createInspectionSchedule",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_fac_inspection_schedules",
+      "operation": "insert",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D077",
+      "file": "src/products/bella-education/facilities/repositories/preschool-facilities.repository.ts",
+      "caller": "PreschoolFacilitiesRepository/recordInspectionLog",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_fac_inspection_logs",
+      "operation": "insert",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D078",
+      "file": "src/products/bella-education/facilities/repositories/preschool-facilities.repository.ts",
+      "caller": "PreschoolFacilitiesRepository/listInspectionLogs",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_fac_inspection_logs",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D079",
+      "file": "src/products/bella-education/facilities/repositories/preschool-facilities.repository.ts",
+      "caller": "PreschoolFacilitiesRepository/recordOutOfServiceLog",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_fac_out_of_service_logs",
+      "operation": "insert",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D080",
+      "file": "src/products/bella-education/facilities/repositories/preschool-facilities.repository.ts",
+      "caller": "PreschoolFacilitiesRepository/resolveOutOfServiceLog",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_fac_out_of_service_logs",
+      "operation": "update",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D081",
+      "file": "src/products/bella-education/facilities/repositories/preschool-facilities.repository.ts",
+      "caller": "PreschoolFacilitiesRepository/getLatestActiveOutOfServiceLog",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_fac_out_of_service_logs",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D082",
+      "file": "src/products/bella-education/facilities/repositories/preschool-facilities.repository.ts",
+      "caller": "PreschoolFacilitiesRepository/listFacilities",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_fac_facilities",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D083",
+      "file": "src/products/bella-education/facilities/repositories/preschool-facilities.repository.ts",
+      "caller": "PreschoolFacilitiesRepository/listZones",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_fac_zones",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D084",
+      "file": "src/products/bella-education/facilities/repositories/preschool-facilities.repository.ts",
+      "caller": "PreschoolFacilitiesRepository/listAssets",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_fac_assets",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D085",
+      "file": "src/products/bella-education/facilities/repositories/preschool-facilities.repository.ts",
+      "caller": "PreschoolFacilitiesRepository/listMaintenanceJobs",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_fac_maintenance_jobs",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D086",
+      "file": "src/products/bella-education/facilities/repositories/preschool-facilities.repository.ts",
+      "caller": "PreschoolFacilitiesRepository/createMaintenanceJob",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_fac_maintenance_jobs",
+      "operation": "insert",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D087",
+      "file": "src/products/bella-education/facilities/repositories/preschool-facilities.repository.ts",
+      "caller": "PreschoolFacilitiesRepository/getMaintenanceJob",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_fac_maintenance_jobs",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D088",
+      "file": "src/products/bella-education/facilities/repositories/preschool-facilities.repository.ts",
+      "caller": "PreschoolFacilitiesRepository/updateMaintenanceJob",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_fac_maintenance_jobs",
+      "operation": "update",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D089",
+      "file": "src/products/bella-education/finance/repositories/preschool-finance.repository.ts",
+      "caller": "PreschoolFinanceRepository/readBranchStateFromTables",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_fin_billing_periods",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D090",
+      "file": "src/products/bella-education/finance/repositories/preschool-finance.repository.ts",
+      "caller": "PreschoolFinanceRepository/readBranchStateFromTables",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_enrollments",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D091",
+      "file": "src/products/bella-education/finance/repositories/preschool-finance.repository.ts",
+      "caller": "PreschoolFinanceRepository/readBranchStateFromTables",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "students",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D092",
+      "file": "src/products/bella-education/finance/repositories/preschool-finance.repository.ts",
+      "caller": "PreschoolFinanceRepository/readBranchStateFromTables",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_fin_invoices",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D093",
+      "file": "src/products/bella-education/finance/repositories/preschool-finance.repository.ts",
+      "caller": "PreschoolFinanceRepository/readBranchStateFromTables",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_fin_payments",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D094",
+      "file": "src/products/bella-education/finance/repositories/preschool-finance.repository.ts",
+      "caller": "PreschoolFinanceRepository/hasActiveEnrollmentForStudentParty",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_enrollments",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D095",
+      "file": "src/products/bella-education/finance/repositories/preschool-finance.repository.ts",
+      "caller": "PreschoolFinanceRepository/createFeeStructure",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_fin_fee_structures",
+      "operation": "insert",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D096",
+      "file": "src/products/bella-education/finance/repositories/preschool-finance.repository.ts",
+      "caller": "PreschoolFinanceRepository/getFeeStructures",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_fin_fee_structures",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D097",
+      "file": "src/products/bella-education/finance/repositories/preschool-finance.repository.ts",
+      "caller": "PreschoolFinanceRepository/createBillingPeriod",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_fin_billing_periods",
+      "operation": "insert",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D098",
+      "file": "src/products/bella-education/finance/repositories/preschool-finance.repository.ts",
+      "caller": "PreschoolFinanceRepository/listActiveBillingPeriods",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_fin_billing_periods",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D099",
+      "file": "src/products/bella-education/finance/repositories/preschool-finance.repository.ts",
+      "caller": "PreschoolFinanceRepository/getBillingPeriodById",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_fin_billing_periods",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D100",
+      "file": "src/products/bella-education/finance/repositories/preschool-finance.repository.ts",
+      "caller": "PreschoolFinanceRepository/createTuitionRecognitionPolicy",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_fin_tuition_recognition_policies",
+      "operation": "insert",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D101",
+      "file": "src/products/bella-education/finance/repositories/preschool-finance.repository.ts",
+      "caller": "PreschoolFinanceRepository/listActiveTuitionRecognitionPoliciesAsOf",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_fin_tuition_recognition_policies",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D102",
+      "file": "src/products/bella-education/finance/repositories/preschool-finance.repository.ts",
+      "caller": "PreschoolFinanceRepository/createTuitionServicePeriodCompletion",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_fin_tuition_service_period_completions",
+      "operation": "insert",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D103",
+      "file": "src/products/bella-education/finance/repositories/preschool-finance.repository.ts",
+      "caller": "PreschoolFinanceRepository/getTuitionServicePeriodCompletion",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_fin_tuition_service_period_completions",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D104",
+      "file": "src/products/bella-education/finance/repositories/preschool-finance.repository.ts",
+      "caller": "PreschoolFinanceRepository/listTuitionServicePeriodCompletions",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_fin_tuition_service_period_completions",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D105",
+      "file": "src/products/bella-education/finance/repositories/preschool-finance.repository.ts",
+      "caller": "PreschoolFinanceRepository/createDiscountProfile",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_fin_student_discount_profiles",
+      "operation": "insert",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D106",
+      "file": "src/products/bella-education/finance/repositories/preschool-finance.repository.ts",
+      "caller": "PreschoolFinanceRepository/getActiveDiscountProfiles",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_fin_student_discount_profiles",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D107",
+      "file": "src/products/bella-education/finance/repositories/preschool-finance.repository.ts",
+      "caller": "PreschoolFinanceRepository/createInvoice",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_fin_invoices",
+      "operation": "insert",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D108",
+      "file": "src/products/bella-education/finance/repositories/preschool-finance.repository.ts",
+      "caller": "PreschoolFinanceRepository/createInvoice",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_fin_invoice_line_items",
+      "operation": "insert",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D109",
+      "file": "src/products/bella-education/finance/repositories/preschool-finance.repository.ts",
+      "caller": "PreschoolFinanceRepository/listInvoices",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_fin_invoices",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D110",
+      "file": "src/products/bella-education/finance/repositories/preschool-finance.repository.ts",
+      "caller": "PreschoolFinanceRepository/getInvoiceById",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_fin_invoices",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D111",
+      "file": "src/products/bella-education/finance/repositories/preschool-finance.repository.ts",
+      "caller": "PreschoolFinanceRepository/getInvoiceById",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_fin_invoice_line_items",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D112",
+      "file": "src/products/bella-education/finance/repositories/preschool-finance.repository.ts",
+      "caller": "PreschoolFinanceRepository/updateInvoiceStatus",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_fin_invoices",
+      "operation": "update",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D113",
+      "file": "src/products/bella-education/finance/repositories/preschool-finance.repository.ts",
+      "caller": "PreschoolFinanceRepository/recordPayment",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_fin_payments",
+      "operation": "insert",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D114",
+      "file": "src/products/bella-education/finance/repositories/preschool-finance.repository.ts",
+      "caller": "PreschoolFinanceRepository/updatePaymentAllocation",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_fin_payments",
+      "operation": "update",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D115",
+      "file": "src/products/bella-education/finance/repositories/preschool-finance.repository.ts",
+      "caller": "PreschoolFinanceRepository/getPaymentById",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_fin_payments",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D116",
+      "file": "src/products/bella-education/finance/repositories/preschool-finance.repository.ts",
+      "caller": "PreschoolFinanceRepository/addReconciliationEntry",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_fin_reconciliation_ledger",
+      "operation": "insert",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D117",
+      "file": "src/products/bella-education/finance/repositories/preschool-finance.repository.ts",
+      "caller": "PreschoolFinanceRepository/getReconciliationEntriesForInvoice",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_fin_reconciliation_ledger",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D118",
+      "file": "src/products/bella-education/finance/repositories/preschool-finance.repository.ts",
+      "caller": "PreschoolFinanceRepository/createReceipt",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_fin_receipts",
+      "operation": "insert",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D119",
+      "file": "src/products/bella-education/finance/services/overdue-payment-scanner.service.ts",
+      "caller": "OverduePaymentScannerService/scanAndEscalateOverdueInvoices",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_fin_invoices",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D120",
+      "file": "src/products/bella-education/finance/services/overdue-payment-scanner.service.ts",
+      "caller": "OverduePaymentScannerService/scanAndEscalateOverdueInvoices",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_comm_notices",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D121",
+      "file": "src/products/bella-education/finance/services/overdue-payment-scanner.service.ts",
+      "caller": "OverduePaymentScannerService/scanAndEscalateOverdueInvoices",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_comm_exceptions",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D122",
+      "file": "src/products/bella-education/finance/services/overdue-payment-scanner.service.ts",
+      "caller": "OverduePaymentScannerService/scanAndEscalateOverdueInvoices",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_comm_exceptions",
+      "operation": "insert",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D123",
+      "file": "src/products/bella-education/learning-development/activity.service.ts",
+      "caller": "ActivityService/createActivity",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_dev_activities",
+      "operation": "insert",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D124",
+      "file": "src/products/bella-education/learning-development/activity.service.ts",
+      "caller": "ActivityService/updateActivityStatus",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_dev_activities",
+      "operation": "update",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D125",
+      "file": "src/products/bella-education/learning-development/activity.service.ts",
+      "caller": "ActivityService/getActivitiesForClass",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_dev_activities",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D126",
+      "file": "src/products/bella-education/learning-development/curriculum/curriculum.service.ts",
+      "caller": "CurriculumService/listCurriculums",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_curriculums",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D127",
+      "file": "src/products/bella-education/learning-development/curriculum/curriculum.service.ts",
+      "caller": "CurriculumService/saveCurriculum",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_curriculums",
+      "operation": "update",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D128",
+      "file": "src/products/bella-education/learning-development/curriculum/curriculum.service.ts",
+      "caller": "CurriculumService/saveCurriculum",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_curriculums",
+      "operation": "insert",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D129",
+      "file": "src/products/bella-education/learning-development/curriculum/curriculum.service.ts",
+      "caller": "CurriculumService/listLessonPlans",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_lesson_plans",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D130",
+      "file": "src/products/bella-education/learning-development/curriculum/curriculum.service.ts",
+      "caller": "CurriculumService/saveLessonPlan",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_lesson_plans",
+      "operation": "update",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D131",
+      "file": "src/products/bella-education/learning-development/curriculum/curriculum.service.ts",
+      "caller": "CurriculumService/saveLessonPlan",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_lesson_plans",
+      "operation": "insert",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D132",
+      "file": "src/products/bella-education/learning-development/curriculum/curriculum.service.ts",
+      "caller": "CurriculumService/deleteLessonPlan",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_lesson_plans",
+      "operation": "delete",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D133",
+      "file": "src/products/bella-education/learning-development/framework-registry.service.ts",
+      "caller": "FrameworkRegistryService/createFramework",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_dev_frameworks",
+      "operation": "insert",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D134",
+      "file": "src/products/bella-education/learning-development/framework-registry.service.ts",
+      "caller": "FrameworkRegistryService/createVersion",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_dev_framework_versions",
+      "operation": "insert",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D135",
+      "file": "src/products/bella-education/learning-development/framework-registry.service.ts",
+      "caller": "FrameworkRegistryService/createDomain",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_dev_framework_domains",
+      "operation": "insert",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D136",
+      "file": "src/products/bella-education/learning-development/framework-registry.service.ts",
+      "caller": "FrameworkRegistryService/createMilestone",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_dev_milestones",
+      "operation": "insert",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D137",
+      "file": "src/products/bella-education/learning-development/framework-registry.service.ts",
+      "caller": "FrameworkRegistryService/activateVersion",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_dev_framework_versions",
+      "operation": "update",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D138",
+      "file": "src/products/bella-education/learning-development/framework-registry.service.ts",
+      "caller": "FrameworkRegistryService/getActiveMilestones",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_dev_milestones",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D139",
+      "file": "src/products/bella-education/learning-development/learning-workspace.service.ts",
+      "caller": "LearningWorkspaceService/getTeacherWorkQueue",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "students",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D140",
+      "file": "src/products/bella-education/learning-development/learning-workspace.service.ts",
+      "caller": "LearningWorkspaceService/getTeacherWorkQueue",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_dev_observation_students",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D141",
+      "file": "src/products/bella-education/learning-development/learning-workspace.service.ts",
+      "caller": "LearningWorkspaceService/getTeacherWorkQueue",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_dev_milestone_progress",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D142",
+      "file": "src/products/bella-education/learning-development/learning-workspace.service.ts",
+      "caller": "LearningWorkspaceService/getTeacherWorkQueue",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_dev_next_steps",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D143",
+      "file": "src/products/bella-education/learning-development/learning-workspace.service.ts",
+      "caller": "LearningWorkspaceService/getTeacherWorkQueue",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_dev_portfolio_versions",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D144",
+      "file": "src/products/bella-education/learning-development/milestone-progress.service.ts",
+      "caller": "MilestoneProgressService/interpretProgress",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_dev_evidence",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D145",
+      "file": "src/products/bella-education/learning-development/milestone-progress.service.ts",
+      "caller": "MilestoneProgressService/interpretProgress",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_dev_milestones",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D146",
+      "file": "src/products/bella-education/learning-development/milestone-progress.service.ts",
+      "caller": "MilestoneProgressService/interpretProgress",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_dev_milestone_progress",
+      "operation": "insert",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D147",
+      "file": "src/products/bella-education/learning-development/milestone-progress.service.ts",
+      "caller": "MilestoneProgressService/interpretProgress",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_dev_progress_evidence_links",
+      "operation": "insert",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D148",
+      "file": "src/products/bella-education/learning-development/milestone-progress.service.ts",
+      "caller": "MilestoneProgressService/confirmProgress",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_dev_milestone_progress",
+      "operation": "update",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D149",
+      "file": "src/products/bella-education/learning-development/milestone-progress.service.ts",
+      "caller": "MilestoneProgressService/amendProgress",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_dev_milestone_progress",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D150",
+      "file": "src/products/bella-education/learning-development/milestone-progress.service.ts",
+      "caller": "MilestoneProgressService/amendProgress",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_dev_milestone_progress",
+      "operation": "update",
+      "maxOccurrences": 2
+    },
+    {
+      "id": "D151",
+      "file": "src/products/bella-education/learning-development/milestone-progress.service.ts",
+      "caller": "MilestoneProgressService/getStudentProgressSummary",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_dev_milestone_progress",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D152",
+      "file": "src/products/bella-education/learning-development/next-steps.service.ts",
+      "caller": "NextStepsService/createNextStep",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "students",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D153",
+      "file": "src/products/bella-education/learning-development/next-steps.service.ts",
+      "caller": "NextStepsService/createNextStep",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_dev_next_steps",
+      "operation": "insert",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D154",
+      "file": "src/products/bella-education/learning-development/next-steps.service.ts",
+      "caller": "NextStepsService/updateStatus",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_dev_next_steps",
+      "operation": "update",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D155",
+      "file": "src/products/bella-education/learning-development/next-steps.service.ts",
+      "caller": "NextStepsService/getStudentNextSteps",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_dev_next_steps",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D156",
+      "file": "src/products/bella-education/learning-development/observation.service.ts",
+      "caller": "ObservationService/recordObservation",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_dev_observations",
+      "operation": "insert",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D157",
+      "file": "src/products/bella-education/learning-development/observation.service.ts",
+      "caller": "ObservationService/recordObservation",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_dev_evidence",
+      "operation": "insert",
+      "maxOccurrences": 2
+    },
+    {
+      "id": "D158",
+      "file": "src/products/bella-education/learning-development/observation.service.ts",
+      "caller": "ObservationService/recordObservation",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "students",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D159",
+      "file": "src/products/bella-education/learning-development/observation.service.ts",
+      "caller": "ObservationService/recordObservation",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_dev_observation_students",
+      "operation": "insert",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D160",
+      "file": "src/products/bella-education/learning-development/observation.service.ts",
+      "caller": "ObservationService/recordObservation",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_dev_observation_milestones",
+      "operation": "insert",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D161",
+      "file": "src/products/bella-education/learning-development/observation.service.ts",
+      "caller": "ObservationService/amendObservation",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_dev_observations",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D162",
+      "file": "src/products/bella-education/learning-development/observation.service.ts",
+      "caller": "ObservationService/amendObservation",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_dev_observations",
+      "operation": "update",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D163",
+      "file": "src/products/bella-education/learning-development/observation.service.ts",
+      "caller": "ObservationService/amendObservation",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_dev_observations",
+      "operation": "insert",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D164",
+      "file": "src/products/bella-education/learning-development/observation.service.ts",
+      "caller": "ObservationService/amendObservation",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_dev_observation_students",
+      "operation": "insert",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D165",
+      "file": "src/products/bella-education/learning-development/observation.service.ts",
+      "caller": "ObservationService/getObservationEvidence",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_dev_evidence",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D166",
+      "file": "src/products/bella-education/learning-development/portfolio.service.ts",
+      "caller": "PortfolioService/getOrCreatePortfolio",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_dev_portfolios",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D167",
+      "file": "src/products/bella-education/learning-development/portfolio.service.ts",
+      "caller": "PortfolioService/getOrCreatePortfolio",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_dev_portfolios",
+      "operation": "insert",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D168",
+      "file": "src/products/bella-education/learning-development/portfolio.service.ts",
+      "caller": "PortfolioService/compilePortfolioVersion",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_dev_portfolio_versions",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D169",
+      "file": "src/products/bella-education/learning-development/portfolio.service.ts",
+      "caller": "PortfolioService/compilePortfolioVersion",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_dev_portfolio_versions",
+      "operation": "insert",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D170",
+      "file": "src/products/bella-education/learning-development/portfolio.service.ts",
+      "caller": "PortfolioService/compilePortfolioVersion",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_dev_evidence",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D171",
+      "file": "src/products/bella-education/learning-development/portfolio.service.ts",
+      "caller": "PortfolioService/compilePortfolioVersion",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_dev_portfolio_items",
+      "operation": "insert",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D172",
+      "file": "src/products/bella-education/learning-development/portfolio.service.ts",
+      "caller": "PortfolioService/publishPortfolioVersion",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_dev_portfolio_versions",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D173",
+      "file": "src/products/bella-education/learning-development/portfolio.service.ts",
+      "caller": "PortfolioService/publishPortfolioVersion",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_dev_evidence",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D174",
+      "file": "src/products/bella-education/learning-development/portfolio.service.ts",
+      "caller": "PortfolioService/publishPortfolioVersion",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_dev_portfolio_versions",
+      "operation": "update",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D175",
+      "file": "src/products/bella-education/learning-development/portfolio.service.ts",
+      "caller": "PortfolioService/publishPortfolioVersion",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_dev_portfolio_publications",
+      "operation": "insert",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D176",
+      "file": "src/products/bella-education/learning-development/portfolio.service.ts",
+      "caller": "PortfolioService/getParentPortfolioProjection",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_dev_portfolios",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D177",
+      "file": "src/products/bella-education/learning-development/portfolio.service.ts",
+      "caller": "PortfolioService/getParentPortfolioProjection",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_dev_portfolio_versions",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D178",
+      "file": "src/products/bella-education/learning-development/portfolio.service.ts",
+      "caller": "PortfolioService/getParentPortfolioProjection",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_dev_portfolio_publications",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D179",
+      "file": "src/products/bella-education/learning-development/portfolio.service.ts",
+      "caller": "PortfolioService/getParentPortfolioProjection",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_dev_evidence",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D180",
+      "file": "src/products/bella-education/learning-development/portfolio.service.ts",
+      "caller": "PortfolioService/getParentPortfolioProjection",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_dev_milestone_progress",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D181",
+      "file": "src/products/bella-education/learning-development/portfolio.service.ts",
+      "caller": "PortfolioService/getParentPortfolioProjection",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_dev_next_steps",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D182",
+      "file": "src/products/bella-education/learning-development/portfolio.service.ts",
+      "caller": "PortfolioService/getParentPortfolioProjection",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_dev_observations",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D183",
+      "file": "src/products/bella-education/parent-engagement/bridges/care-projection.bridge.ts",
+      "caller": "CareProjectionBridge/projectHealthIncident",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_comm_notices",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D184",
+      "file": "src/products/bella-education/parent-engagement/bridges/care-projection.bridge.ts",
+      "caller": "CareProjectionBridge/projectHealthIncident",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_comm_deliveries",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D185",
+      "file": "src/products/bella-education/parent-engagement/bridges/care-projection.bridge.ts",
+      "caller": "CareProjectionBridge/projectHealthIncident",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "students",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D186",
+      "file": "src/products/bella-education/parent-engagement/bridges/care-projection.bridge.ts",
+      "caller": "CareProjectionBridge/projectMedicationRequest",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_comm_notices",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D187",
+      "file": "src/products/bella-education/parent-engagement/bridges/care-projection.bridge.ts",
+      "caller": "CareProjectionBridge/projectMedicationRequest",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_comm_deliveries",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D188",
+      "file": "src/products/bella-education/parent-engagement/bridges/classroom-projection.bridge.ts",
+      "caller": "ClassroomProjectionBridge/projectAnnouncement",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_comm_notices",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D189",
+      "file": "src/products/bella-education/parent-engagement/bridges/classroom-projection.bridge.ts",
+      "caller": "ClassroomProjectionBridge/projectAnnouncement",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_comm_deliveries",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D190",
+      "file": "src/products/bella-education/parent-engagement/bridges/finance-projection.bridge.ts",
+      "caller": "FinanceProjectionBridge/projectIssuedInvoice",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_comm_notices",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D191",
+      "file": "src/products/bella-education/parent-engagement/bridges/finance-projection.bridge.ts",
+      "caller": "FinanceProjectionBridge/projectIssuedInvoice",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_comm_deliveries",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D192",
+      "file": "src/products/bella-education/parent-engagement/bridges/learning-projection.bridge.ts",
+      "caller": "LearningProjectionBridge/projectPublishedPortfolio",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_dev_portfolio_versions",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D193",
+      "file": "src/products/bella-education/parent-engagement/bridges/learning-projection.bridge.ts",
+      "caller": "LearningProjectionBridge/projectPublishedPortfolio",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_comm_notices",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D194",
+      "file": "src/products/bella-education/parent-engagement/bridges/learning-projection.bridge.ts",
+      "caller": "LearningProjectionBridge/projectPublishedPortfolio",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_comm_deliveries",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D195",
+      "file": "src/products/bella-education/parent-engagement/repositories/parent-communication.repository.ts",
+      "caller": "ParentCommunicationRepository/validateGuardianAuthorization",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "students",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D196",
+      "file": "src/products/bella-education/parent-engagement/repositories/parent-communication.repository.ts",
+      "caller": "ParentCommunicationRepository/createThread",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_comm_threads",
+      "operation": "insert",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D197",
+      "file": "src/products/bella-education/parent-engagement/repositories/parent-communication.repository.ts",
+      "caller": "ParentCommunicationRepository/getThreadById",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_comm_threads",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D198",
+      "file": "src/products/bella-education/parent-engagement/repositories/parent-communication.repository.ts",
+      "caller": "ParentCommunicationRepository/createNotice",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_comm_notices",
+      "operation": "insert",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D199",
+      "file": "src/products/bella-education/parent-engagement/repositories/parent-communication.repository.ts",
+      "caller": "ParentCommunicationRepository/getNoticeById",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_comm_notices",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D200",
+      "file": "src/products/bella-education/parent-engagement/repositories/parent-communication.repository.ts",
+      "caller": "ParentCommunicationRepository/createDelivery",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_comm_deliveries",
+      "operation": "insert",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D201",
+      "file": "src/products/bella-education/parent-engagement/repositories/parent-communication.repository.ts",
+      "caller": "ParentCommunicationRepository/updateDelivery",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_comm_deliveries",
+      "operation": "update",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D202",
+      "file": "src/products/bella-education/parent-engagement/repositories/parent-communication.repository.ts",
+      "caller": "ParentCommunicationRepository/getDelivery",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_comm_deliveries",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D203",
+      "file": "src/products/bella-education/parent-engagement/repositories/parent-communication.repository.ts",
+      "caller": "ParentCommunicationRepository/getDeliveryByNoticeAndRecipient",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_comm_deliveries",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D204",
+      "file": "src/products/bella-education/parent-engagement/repositories/parent-communication.repository.ts",
+      "caller": "ParentCommunicationRepository/addDeliveryAttempt",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_comm_delivery_attempts",
+      "operation": "insert",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D205",
+      "file": "src/products/bella-education/parent-engagement/repositories/parent-communication.repository.ts",
+      "caller": "ParentCommunicationRepository/getDeliveryAttempts",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_comm_delivery_attempts",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D206",
+      "file": "src/products/bella-education/parent-engagement/repositories/parent-communication.repository.ts",
+      "caller": "ParentCommunicationRepository/createAcknowledgement",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_comm_acknowledgements",
+      "operation": "insert",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D207",
+      "file": "src/products/bella-education/parent-engagement/repositories/parent-communication.repository.ts",
+      "caller": "ParentCommunicationRepository/getAcknowledgement",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_comm_acknowledgements",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D208",
+      "file": "src/products/bella-education/parent-engagement/repositories/parent-communication.repository.ts",
+      "caller": "ParentCommunicationRepository/createConsentResponse",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_comm_consent_responses",
+      "operation": "insert",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D209",
+      "file": "src/products/bella-education/parent-engagement/repositories/parent-communication.repository.ts",
+      "caller": "ParentCommunicationRepository/getConsentResponse",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_comm_consent_responses",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D210",
+      "file": "src/products/bella-education/parent-engagement/repositories/parent-communication.repository.ts",
+      "caller": "ParentCommunicationRepository/updateConsentResponse",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_comm_consent_responses",
+      "operation": "update",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D211",
+      "file": "src/products/bella-education/parent-engagement/repositories/parent-communication.repository.ts",
+      "caller": "ParentCommunicationRepository/createResponse",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_comm_responses",
+      "operation": "insert",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D212",
+      "file": "src/products/bella-education/parent-engagement/repositories/parent-communication.repository.ts",
+      "caller": "ParentCommunicationRepository/getResponsesByThread",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_comm_responses",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D213",
+      "file": "src/products/bella-education/parent-engagement/repositories/parent-communication.repository.ts",
+      "caller": "ParentCommunicationRepository/createException",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_comm_exceptions",
+      "operation": "insert",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D214",
+      "file": "src/products/bella-education/parent-engagement/repositories/parent-communication.repository.ts",
+      "caller": "ParentCommunicationRepository/updateException",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_comm_exceptions",
+      "operation": "update",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D215",
+      "file": "src/products/bella-education/parent-engagement/repositories/parent-communication.repository.ts",
+      "caller": "ParentCommunicationRepository/getExceptionsByTenant",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_comm_exceptions",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D216",
+      "file": "src/products/bella-education/parent-engagement/repositories/parent-communication.repository.ts",
+      "caller": "ParentCommunicationRepository/createSentSnapshot",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_comm_sent_snapshots",
+      "operation": "insert",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D217",
+      "file": "src/products/bella-education/parent-engagement/repositories/parent-communication.repository.ts",
+      "caller": "ParentCommunicationRepository/getSentSnapshot",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_comm_sent_snapshots",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D218",
+      "file": "src/products/bella-education/parent-portal/repositories/parent-portal.repository.ts",
+      "caller": "ParentPortalRepository/findStudentByPartyId",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "students",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D219",
+      "file": "src/products/bella-education/parent-portal/repositories/parent-portal.repository.ts",
+      "caller": "ParentPortalRepository/findActiveEnrollment",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_enrollments",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D220",
+      "file": "src/products/bella-education/parent-portal/repositories/parent-portal.repository.ts",
+      "caller": "ParentPortalRepository/findCourse",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_courses",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D221",
+      "file": "src/products/bella-education/parent-portal/repositories/parent-portal.repository.ts",
+      "caller": "ParentPortalRepository/countActiveEnrollmentsInCourse",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_enrollments",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D222",
+      "file": "src/products/bella-education/parent-portal/repositories/parent-portal.repository.ts",
+      "caller": "ParentPortalRepository/countPresentStudentsInCourse",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_attendance_daily_state",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D223",
+      "file": "src/products/bella-education/parent-portal/repositories/parent-portal.repository.ts",
+      "caller": "ParentPortalRepository/findStudentAttendance",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_attendance_daily_state",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D224",
+      "file": "src/products/bella-education/parent-portal/repositories/parent-portal.repository.ts",
+      "caller": "ParentPortalRepository/findLatestDailyCareSession",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_daily_care_sessions",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D225",
+      "file": "src/products/bella-education/parent-portal/repositories/parent-portal.repository.ts",
+      "caller": "ParentPortalRepository/findLatestDailyCareRecord",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_daily_care_records",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D226",
+      "file": "src/products/bella-education/parent-portal/repositories/parent-portal.repository.ts",
+      "caller": "ParentPortalRepository/findPickupHandoverOnDay",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_preschool_pickup_handover_events",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D227",
+      "file": "src/products/bella-education/parent-portal/repositories/parent-portal.repository.ts",
+      "caller": "ParentPortalRepository/findWeeklyMenuForDate",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_weekly_menus",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D228",
+      "file": "src/products/bella-education/parent-portal/repositories/parent-portal.repository.ts",
+      "caller": "ParentPortalRepository/findLatestInvoice",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_fin_invoices",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D229",
+      "file": "src/products/bella-education/parent-portal/repositories/parent-portal.repository.ts",
+      "caller": "ParentPortalRepository/findLatestInvoice",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_invoices",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D230",
+      "file": "src/products/bella-education/parent-portal/repositories/parent-portal.repository.ts",
+      "caller": "ParentPortalRepository/findInvoiceLineItems",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_fin_invoice_line_items",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D231",
+      "file": "src/products/bella-education/parent-portal/repositories/parent-portal.repository.ts",
+      "caller": "ParentPortalRepository/findCommThread",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_comm_threads",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D232",
+      "file": "src/products/bella-education/parent-portal/repositories/parent-portal.repository.ts",
+      "caller": "ParentPortalRepository/createCommThread",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_comm_threads",
+      "operation": "insert",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D233",
+      "file": "src/products/bella-education/parent-portal/repositories/parent-portal.repository.ts",
+      "caller": "ParentPortalRepository/listCommResponses",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_comm_responses",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D234",
+      "file": "src/products/bella-education/parent-portal/repositories/parent-portal.repository.ts",
+      "caller": "ParentPortalRepository/insertCommResponse",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_comm_responses",
+      "operation": "insert",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D235",
+      "file": "src/products/bella-education/parent-portal/repositories/parent-portal.repository.ts",
+      "caller": "ParentPortalRepository/touchThreadActivity",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_comm_threads",
+      "operation": "update",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D236",
+      "file": "src/products/bella-education/scheduling/repositories/preschool-scheduling.repository.ts",
+      "caller": "PreschoolSchedulingRepository/createShiftTemplate",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_sched_shift_templates",
+      "operation": "insert",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D237",
+      "file": "src/products/bella-education/scheduling/repositories/preschool-scheduling.repository.ts",
+      "caller": "PreschoolSchedulingRepository/listShiftTemplates",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_sched_shift_templates",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D238",
+      "file": "src/products/bella-education/scheduling/repositories/preschool-scheduling.repository.ts",
+      "caller": "PreschoolSchedulingRepository/upsertRatioPolicy",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_sched_ratio_policies",
+      "operation": "upsert",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D239",
+      "file": "src/products/bella-education/scheduling/repositories/preschool-scheduling.repository.ts",
+      "caller": "PreschoolSchedulingRepository/getRatioPolicy",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_sched_ratio_policies",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D240",
+      "file": "src/products/bella-education/scheduling/repositories/preschool-scheduling.repository.ts",
+      "caller": "PreschoolSchedulingRepository/setStaffAvailability",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_sched_staff_availability",
+      "operation": "insert",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D241",
+      "file": "src/products/bella-education/scheduling/repositories/preschool-scheduling.repository.ts",
+      "caller": "PreschoolSchedulingRepository/getStaffAvailability",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_sched_staff_availability",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D242",
+      "file": "src/products/bella-education/scheduling/repositories/preschool-scheduling.repository.ts",
+      "caller": "PreschoolSchedulingRepository/createShiftAssignment",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_sched_shift_assignments",
+      "operation": "insert",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D243",
+      "file": "src/products/bella-education/scheduling/repositories/preschool-scheduling.repository.ts",
+      "caller": "PreschoolSchedulingRepository/getShiftAssignment",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_sched_shift_assignments",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D244",
+      "file": "src/products/bella-education/scheduling/repositories/preschool-scheduling.repository.ts",
+      "caller": "PreschoolSchedulingRepository/listShiftAssignments",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_sched_shift_assignments",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D245",
+      "file": "src/products/bella-education/scheduling/repositories/preschool-scheduling.repository.ts",
+      "caller": "PreschoolSchedulingRepository/supersedeShiftAssignment",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_sched_shift_assignments",
+      "operation": "update",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D246",
+      "file": "src/products/bella-education/scheduling/repositories/preschool-scheduling.repository.ts",
+      "caller": "PreschoolSchedulingRepository/supersedeShiftAssignment",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_sched_shift_assignments",
+      "operation": "insert",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D247",
+      "file": "src/products/bella-education/scheduling/repositories/preschool-scheduling.repository.ts",
+      "caller": "PreschoolSchedulingRepository/updateShiftAssignmentStatus",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_sched_shift_assignments",
+      "operation": "update",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D248",
+      "file": "src/products/bella-education/scheduling/repositories/preschool-scheduling.repository.ts",
+      "caller": "PreschoolSchedulingRepository/createLeaveRequest",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_sched_leave_requests",
+      "operation": "insert",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D249",
+      "file": "src/products/bella-education/scheduling/repositories/preschool-scheduling.repository.ts",
+      "caller": "PreschoolSchedulingRepository/approveLeaveRequest",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_sched_leave_requests",
+      "operation": "update",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D250",
+      "file": "src/products/bella-education/scheduling/repositories/preschool-scheduling.repository.ts",
+      "caller": "PreschoolSchedulingRepository/listScheduledAssignmentsForStaffLeave",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_sched_shift_assignments",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D251",
+      "file": "src/products/bella-education/scheduling/repositories/preschool-scheduling.repository.ts",
+      "caller": "PreschoolSchedulingRepository/createSubstitution",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_sched_substitutions",
+      "operation": "insert",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D252",
+      "file": "src/products/bella-education/scheduling/repositories/preschool-scheduling.repository.ts",
+      "caller": "PreschoolSchedulingRepository/createComplianceSnapshot",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_sched_compliance_snapshots",
+      "operation": "insert",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D253",
+      "file": "src/products/bella-education/scheduling/repositories/preschool-scheduling.repository.ts",
+      "caller": "PreschoolSchedulingRepository/getLatestComplianceSnapshot",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_sched_compliance_snapshots",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D254",
+      "file": "src/products/bella-education/services/preschool-guardian-authorization.service.ts",
+      "caller": "PreschoolGuardianAuthorizationService/getAuthorizedGuardians",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_preschool_pickup_authorizations",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D255",
+      "file": "src/products/bella-education/services/preschool-guardian-authorization.service.ts",
+      "caller": "PreschoolGuardianAuthorizationService/ensurePickupAuthorization",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_preschool_pickup_authorizations",
+      "operation": "insert",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D256",
+      "file": "src/products/bella-education/services/preschool-guardian-authorization.service.ts",
+      "caller": "PreschoolGuardianAuthorizationService/findActivePickupAuthorization",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_preschool_pickup_authorizations",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D257",
+      "file": "src/products/bella-education/services/preschool-parent-daily-experience.service.ts",
+      "caller": "PreschoolParentDailyExperienceService/loadChildrenDailyTruth",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "students",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D258",
+      "file": "src/products/bella-education/services/preschool-parent-daily-experience.service.ts",
+      "caller": "PreschoolParentDailyExperienceService/loadChildrenDailyTruth",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_enrollments",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D259",
+      "file": "src/products/bella-education/services/preschool-parent-daily-experience.service.ts",
+      "caller": "PreschoolParentDailyExperienceService/loadCourses",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_courses",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D260",
+      "file": "src/products/bella-education/services/preschool-parent-daily-experience.service.ts",
+      "caller": "PreschoolParentDailyExperienceService/loadAttendance",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_attendance_daily_state",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D261",
+      "file": "src/products/bella-education/services/preschool-parent-daily-experience.service.ts",
+      "caller": "PreschoolParentDailyExperienceService/loadCareRecords",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_daily_care_sessions",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D262",
+      "file": "src/products/bella-education/services/preschool-parent-daily-experience.service.ts",
+      "caller": "PreschoolParentDailyExperienceService/loadCareRecords",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_daily_care_records",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "D263",
+      "file": "src/products/bella-education/services/preschool-safe-pickup-handover.service.ts",
+      "caller": "PreschoolSafePickupHandoverService/getLatestHandovers",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_preschool_pickup_handover_events",
+      "operation": "select",
+      "maxOccurrences": 1
+    }
+  ],
+  "approvedExceptions": [
+    {
+      "id": "M066",
+      "file": "src/app/api/education/work-queue/incident-queue.persistence.ts",
+      "caller": "IncidentQueuePersistence/query",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_health_incidents",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "M067",
+      "file": "src/app/api/education/work-queue/incident-queue.persistence.ts",
+      "caller": "IncidentQueuePersistence/get",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_health_incidents",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "M068",
+      "file": "src/app/api/education/work-queue/request-review.persistence.ts",
+      "caller": "RequestReviewPersistence/query",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_comm_exceptions",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "M069",
+      "file": "src/app/api/education/work-queue/request-review.persistence.ts",
+      "caller": "RequestReviewPersistence/get",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_comm_exceptions",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "M070",
+      "file": "src/app/api/education/work-queue/request-review.persistence.ts",
+      "caller": "RequestReviewPersistence/resolveOpen",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_comm_exceptions",
+      "operation": "update",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "M071",
+      "file": "src/app/api/education/work-queue/request-review.persistence.ts",
+      "caller": "RequestReviewPersistence/financeNoticeIds",
+      "method": "from",
+      "schema": "<client-default>",
+      "target": "edu_comm_notices",
+      "operation": "select",
+      "maxOccurrences": 1
+    },
+    {
+      "id": "M004",
+      "file": "src/app/api/education/care/bulk/route.ts",
+      "caller": "POST",
+      "method": "rpc",
+      "schema": "<client-default>",
+      "target": "preschool_save_care_records",
+      "operation": "execute",
+      "maxOccurrences": 1
+    }
+  ]
+}

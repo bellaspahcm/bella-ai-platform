@@ -1,0 +1,217 @@
+{
+  "scope": "Existing Core7.21.2 and Routers7.6.0; public query-string API replacement; synthetic concrete routes, not device E2E",
+  "checks": [
+    {
+      "kind": "linking",
+      "input": "/login",
+      "pass": true
+    },
+    {
+      "kind": "linking",
+      "input": "/home",
+      "pass": true
+    },
+    {
+      "kind": "linking",
+      "input": "/schedule",
+      "pass": true
+    },
+    {
+      "kind": "linking",
+      "input": "/profile",
+      "pass": true
+    },
+    {
+      "kind": "linking",
+      "input": "/home/",
+      "pass": true
+    },
+    {
+      "kind": "linking",
+      "input": "/schedule?date=2026-11-02",
+      "pass": true
+    },
+    {
+      "kind": "linking",
+      "input": "/login?returnTo=%2Fhome",
+      "pass": true
+    },
+    {
+      "kind": "linking",
+      "input": "/profile?name=Ch%C3%A0o%20b%C3%A9",
+      "pass": true
+    },
+    {
+      "kind": "linking",
+      "input": "/home?space=a+b&plus=a%2Bb",
+      "pass": true
+    },
+    {
+      "kind": "linking",
+      "input": "/home?empty=&flag",
+      "pass": true
+    },
+    {
+      "kind": "linking",
+      "input": "/home?tag=one&tag=two",
+      "pass": true
+    },
+    {
+      "kind": "linking",
+      "input": "/profile?email=synthetic%40example.test",
+      "pass": true
+    },
+    {
+      "kind": "linking",
+      "input": "/home?next=%2Fprofile%3Fx%3D1",
+      "pass": true
+    },
+    {
+      "kind": "linking",
+      "input": "/home?hash=x%23y",
+      "pass": true
+    },
+    {
+      "kind": "linking",
+      "input": "/home?null=null&false=false&zero=0",
+      "pass": true
+    },
+    {
+      "kind": "linking",
+      "input": "/home?value=%E0%A4%A",
+      "pass": true
+    },
+    {
+      "kind": "linking",
+      "input": "/unknown",
+      "pass": true
+    },
+    {
+      "kind": "Expo stringify",
+      "pass": true,
+      "results": [
+        "",
+        ""
+      ]
+    },
+    {
+      "kind": "Expo stringify",
+      "pass": true,
+      "results": [
+        "date=2026-11-02",
+        "date=2026-11-02"
+      ]
+    },
+    {
+      "kind": "Expo stringify",
+      "pass": true,
+      "results": [
+        "name=Ch%C3%A0o%20b%C3%A9",
+        "name=Ch%C3%A0o%20b%C3%A9"
+      ]
+    },
+    {
+      "kind": "Expo stringify",
+      "pass": true,
+      "results": [
+        "space=a%20b&plus=a%2Bb",
+        "space=a%20b&plus=a%2Bb"
+      ]
+    },
+    {
+      "kind": "Expo stringify",
+      "pass": true,
+      "results": [
+        "returnTo=%2Fhome%3Fx%3D1%23y",
+        "returnTo=%2Fhome%3Fx%3D1%23y"
+      ]
+    },
+    {
+      "kind": "Expo stringify",
+      "pass": true,
+      "results": [
+        "flag&empty=",
+        "flag&empty="
+      ]
+    },
+    {
+      "kind": "Expo stringify",
+      "pass": true,
+      "results": [
+        "tag=one&tag=two",
+        "tag=one&tag=two"
+      ]
+    },
+    {
+      "kind": "Expo stringify",
+      "pass": true,
+      "results": [
+        "enabled=false&zero=0",
+        "enabled=false&zero=0"
+      ]
+    },
+    {
+      "kind": "Expo stringify",
+      "pass": true,
+      "results": [
+        "keep=yes",
+        "keep=yes"
+      ]
+    },
+    {
+      "kind": "Expo stringify",
+      "pass": true,
+      "results": [
+        "emoji=%F0%9F%99%82",
+        "emoji=%F0%9F%99%82"
+      ]
+    },
+    {
+      "kind": "Expo stringify",
+      "pass": true,
+      "results": [
+        "value=%21%28%29%2A%27~",
+        "value=%21%28%29%2A%27~"
+      ]
+    },
+    {
+      "kind": "Expo stringify",
+      "pass": true,
+      "results": [
+        "value=%25zz",
+        "value=%25zz"
+      ]
+    },
+    {
+      "kind": "Expo stringify",
+      "pass": true,
+      "results": [
+        "values=a&values&values=",
+        "values=a&values&values="
+      ]
+    },
+    {
+      "kind": "Expo stringify",
+      "pass": true,
+      "results": [
+        "constructor=safe",
+        "constructor=safe"
+      ]
+    }
+  ],
+  "fixtureWiring": "After fixture imports the scoped public parse/stringify bridge; upstream function logic unchanged. Real Metro resolution tested separately.",
+  "versions": {
+    "core": "7.21.2",
+    "routers": "7.6.0",
+    "queryString": [
+      "7.1.3",
+      "9.5.1"
+    ],
+    "decode": [
+      "0.2.2",
+      "0.5.1"
+    ]
+  },
+  "passed": 31,
+  "failed": 0
+}

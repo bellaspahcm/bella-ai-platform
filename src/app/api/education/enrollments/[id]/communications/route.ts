@@ -3,6 +3,7 @@ import { createClient as createSupabaseClient, type SupabaseClient } from '@supa
 import { createClient } from '@/lib/supabase-server';
 import { getSupabaseAdminKey, getSupabaseAdminUrl } from '@/lib/supabase-admin-env';
 import { CURRENT_ACTOR_PROFILE_RPC, reconcileCurrentActorProfile } from '@/platform/security/current-actor.contract';
+import { loadStudent360Identity } from '../../student-360.service';
 import type { Database } from '@/types/database.types';
 
 export const dynamic = 'force-dynamic';
@@ -74,6 +75,13 @@ export async function GET(request: Request, { params }: RouteContext): Promise<N
     const actor = reconcileCurrentActorProfile(auth.data.user.id, profileResult.data);
     if (!actor?.tenant_id || actor.role !== 'admin') return failure('STUDENT_COMMUNICATION_ACCESS_DENIED', 403);
 
+    const canonicalStudent = await loadStudent360Identity(client, actor.tenant_id, resolvedParams.id);
+    if (!canonicalStudent) {
+      return NextResponse.json({
+        success: true, studentId: resolvedParams.id, dailyCareRecords: [], exceptions: [],
+      }, { headers: PRIVATE_HEADERS });
+    }
+
     const adminClient = createAdminClient();
     const queryClient = adminClient ?? client;
 
@@ -82,7 +90,7 @@ export async function GET(request: Request, { params }: RouteContext): Promise<N
         .from('edu_daily_care_records')
         .select('id, session_id, arrival_status, arrival_time, morning_condition, meal_records, hygiene_records, nap_records, health_checks, created_at, session:edu_daily_care_sessions(id, date, status)')
         .eq('tenant_id', actor.tenant_id)
-        .eq('student_id', resolvedParams.id)
+        .or(`student_party_id.eq.${canonicalStudent.partyId},student_id.eq.${canonicalStudent.id}`)
         .order('created_at', { ascending: false })
         .limit(14),
       queryClient

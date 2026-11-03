@@ -1,0 +1,52 @@
+{
+  "scope": "Read-only invalid-token/health smoke of PR474 Preview, no guardian token, login, business read or write",
+  "preview": "https://bella-spa-j0frb4z7q-bella-spa-s-projects.vercel.app",
+  "checks": [
+    {
+      "path": "/api/health",
+      "status": 401,
+      "contentType": "application/json",
+      "error": null,
+      "cacheControl": "no-store, max-age=0",
+      "applicationProof": "NOT_PROVEN",
+      "reason": "HTTP/JSON response without expected application error or health status; platform protection not excluded"
+    },
+    {
+      "path": "/api/education/portal/not-a-valid-token",
+      "status": 401,
+      "contentType": "application/json",
+      "error": null,
+      "cacheControl": "no-store, max-age=0",
+      "applicationProof": "NOT_PROVEN",
+      "reason": "HTTP/JSON response without expected application error or health status; platform protection not excluded"
+    },
+    {
+      "path": "/api/education/portal/not-a-valid-token/care",
+      "status": 401,
+      "contentType": "application/json",
+      "error": null,
+      "cacheControl": "no-store, max-age=0",
+      "applicationProof": "NOT_PROVEN",
+      "reason": "HTTP/JSON response without expected application error or health status; platform protection not excluded"
+    },
+    {
+      "path": "/api/education/portal/not-a-valid-token/attendance",
+      "status": 401,
+      "contentType": "application/json",
+      "error": null,
+      "cacheControl": "no-store, max-age=0",
+      "applicationProof": "NOT_PROVEN",
+      "reason": "HTTP/JSON response without expected application error or health status; platform protection not excluded"
+    },
+    {
+      "path": "/api/education/portal/not-a-valid-token/tuition",
+      "status": 401,
+      "contentType": "application/json",
+      "error": null,
+      "cacheControl": "no-store, max-age=0",
+      "applicationProof": "NOT_PROVEN",
+      "reason": "HTTP/JSON response without expected application error or health status; platform protection not excluded"
+    }
+  ],
+  "result": "APPLICATION_SMOKE_NOT_PROVEN"
+}

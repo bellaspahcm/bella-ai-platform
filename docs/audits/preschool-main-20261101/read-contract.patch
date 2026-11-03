@@ -1,0 +1,182 @@
+diff --git a/src/app/api/education/enrollments/[id]/development/__tests__/route.test.ts b/src/app/api/education/enrollments/[id]/development/__tests__/route.test.ts
+index a9682a1c2..6d7a0f5a2 100644
+--- a/src/app/api/education/enrollments/[id]/development/__tests__/route.test.ts
++++ b/src/app/api/education/enrollments/[id]/development/__tests__/route.test.ts
+@@ -15,7 +15,7 @@ const mockGetSession = jest.fn<() => Promise<{
+ }>>();
+ const mockRpc = jest.fn<(name: string, args?: unknown) => Promise<ProfileResult>>();
+ 
+-const mockFrom = jest.fn();
++const mockFrom = jest.fn<(tableName: string) => unknown>();
+ 
+ const callerClient = {
+   auth: { getUser: mockGetUser, getSession: mockGetSession },
+@@ -31,7 +31,7 @@ jest.mock('@/lib/supabase-admin-env', () => ({
+   requireSupabaseAdminEnv: () => ({ url: 'https://mock.supabase.co', adminKey: 'mock-service-role-key' }),
+ }));
+ 
+-const mockAdminFrom = jest.fn();
++const mockAdminFrom = jest.fn<(tableName: string) => unknown>();
+ jest.mock('@supabase/supabase-js', () => ({
+   createClient: jest.fn(() => ({
+     from: mockAdminFrom,
+@@ -43,6 +43,7 @@ const { GET, POST, PUT, PATCH, DELETE } = require('../route') as typeof import('
+ const tenantId = 'ed100000-0000-4000-8000-000000000001';
+ const actorId = 'ad6899c2-4b9d-49af-acb3-69e2e1d11447';
+ const studentId = '00000001-0000-4000-8000-000000000001';
++const enrollmentId = '00000001-0000-4000-8000-000000000002';
+ 
+ const activeActor: CurrentActorProfileRow = {
+   id: actorId,
+@@ -78,10 +79,10 @@ describe('Student Development Authenticated Read-Only Route', () => {
+         chain.eq = jest.fn().mockReturnValue(chain);
+         chain.in = jest.fn().mockReturnValue(chain);
+         chain.order = jest.fn().mockReturnValue(chain);
+-        chain.maybeSingle = jest.fn().mockResolvedValue({
++        chain.maybeSingle = jest.fn(async () => ({
+           data: resolvedData[0] ?? null,
+           error: null,
+-        });
++        }));
+         chain.then = (resolve: (val: unknown) => void) =>
+           Promise.resolve({ data: resolvedData, error: null }).then(resolve);
+         return chain;
+@@ -91,16 +92,18 @@ describe('Student Development Authenticated Read-Only Route', () => {
+         return createBuilder([{ student_id: studentId, party_id: 'party-1' }]);
+       }
+       if (tableName === 'edu_enrollments') {
+-        return createBuilder([{ id: 'enroll-1', student_party_id: 'party-1' }]);
++        return createBuilder([{ id: enrollmentId, student_party_id: 'party-1' }]);
+       }
+       if (tableName === 'edu_assessments') {
+         return createBuilder([
+           {
+             id: 'asm-1',
++            enrollment_id: enrollmentId,
+             score_type: 'midterm',
+             grade: 9.5,
+             weight: 1.0,
+             occurred_at: '2026-10-25T08:00:00Z',
++            created_at: '2026-10-25T09:00:00Z',
+           },
+         ]);
+       }
+@@ -147,6 +150,70 @@ describe('Student Development Authenticated Read-Only Route', () => {
+     expect(body.milestoneProgress).toHaveLength(1);
+   });
+ 
++  it('preserves the report for the same Student with an explicit or implicit enrollment selector', async () => {
++    const implicit = await GET(request(), context());
++    const implicitBody = await implicit.json();
++    expect(implicit.status).toBe(200);
++    expect(mockAdminFrom.mock.calls.map(([table]) => table)).toEqual([
++      'students', 'edu_enrollments', 'edu_assessments', 'edu_dev_milestone_progress',
++    ]);
++    const enrollmentQuery = mockAdminFrom.mock.results[1].value as { eq: unknown };
++    expect(enrollmentQuery.eq).toHaveBeenCalledWith('tenant_id', tenantId);
++    expect(enrollmentQuery.eq).toHaveBeenCalledWith('student_party_id', 'party-1');
++
++    mockAdminFrom.mockClear();
++    const explicit = await GET(request(`?enrollment_id=${enrollmentId}`), context());
++    expect(explicit.status).toBe(200);
++    expect(explicit.headers.get('Cache-Control')).toBe('private, no-store');
++    expect(await explicit.json()).toEqual(implicitBody);
++    expect(implicitBody.enrollmentId).toBe(enrollmentId);
++    expect(implicitBody.assessments[0]).toEqual(expect.objectContaining({
++      enrollment_id: enrollmentId, grade: 9.5, created_at: '2026-10-25T09:00:00Z',
++    }));
++    expect(mockAdminFrom.mock.calls.map(([table]) => table)).toEqual([
++      'edu_assessments', 'edu_dev_milestone_progress',
++    ]);
++    for (const { value } of mockAdminFrom.mock.results) {
++      expect((value as { eq: unknown }).eq).toHaveBeenCalledWith('tenant_id', tenantId);
++    }
++  });
++
++  it.each(['teacher', 'parent', 'accountant'])('keeps an explicit enrollment selector behind admin authorization: %s', async role => {
++    mockRpc.mockResolvedValue({ data: [{ ...activeActor, role }], error: null });
++    const response = await GET(request(`?enrollment_id=${enrollmentId}`), context());
++    expect(response.status).toBe(403);
++    expect(await response.json()).toEqual({ success: false, error: 'STUDENT_DEVELOPMENT_ACCESS_DENIED' });
++    expect(mockAdminFrom).not.toHaveBeenCalled();
++    expect(mockFrom).not.toHaveBeenCalled();
++  });
++
++  it('rejects an invalid explicit enrollment selector before authentication or data access', async () => {
++    const response = await GET(request('?enrollment_id=not-a-uuid'), context());
++    expect(response.status).toBe(400);
++    expect(await response.json()).toEqual({ success: false, error: 'INVALID_ENROLLMENT_ID' });
++    expect(mockCreateClient).not.toHaveBeenCalled();
++    expect(mockAdminFrom).not.toHaveBeenCalled();
++  });
++
++  it.each(['edu_assessments', 'edu_dev_milestone_progress'])('retains explicit-report failure when %s is unavailable', async failingTable => {
++    const implementation = mockAdminFrom.getMockImplementation();
++    mockAdminFrom.mockImplementation(table => {
++      if (table !== failingTable) return implementation?.(table);
++      const chain = {
++        select: () => chain, eq: () => chain, in: () => chain, order: () => chain,
++        then: (resolve: (value: unknown) => unknown) => Promise.resolve({
++          data: null, error: { message: 'synthetic report failure' },
++        }).then(resolve),
++      };
++      return chain;
++    });
++    const response = await GET(request(`?enrollment_id=${enrollmentId}`), context());
++    expect(response.status).toBe(503);
++    expect(await response.json()).toEqual({ success: false, error: 'STUDENT_DEVELOPMENT_UNAVAILABLE' });
++    expect(mockAdminFrom).not.toHaveBeenCalledWith('students');
++    expect(mockAdminFrom).not.toHaveBeenCalledWith('edu_enrollments');
++  });
++
+   it('returns 405 for unsupported HTTP methods', async () => {
+     expect((await POST()).status).toBe(405);
+     expect((await PUT()).status).toBe(405);
+diff --git a/src/app/api/education/enrollments/[id]/development/route.ts b/src/app/api/education/enrollments/[id]/development/route.ts
+index 3a32e7e0d..0033f5a59 100644
+--- a/src/app/api/education/enrollments/[id]/development/route.ts
++++ b/src/app/api/education/enrollments/[id]/development/route.ts
+@@ -87,27 +87,27 @@ export async function GET(request: Request, { params }: RouteContext): Promise<N
+     const adminClient = createAdminClient();
+     const queryClient = adminClient ?? client;
+ 
+-    // First find student party_id
+-    const studentRes = await queryClient
+-      .from('students')
+-      .select('student_id, party_id')
+-      .eq('tenant_id', actor.tenant_id)
+-      .eq('student_id', resolvedParams.id)
+-      .maybeSingle();
+-
+-    const partyId = studentRes.data?.party_id;
+-
+     // Find enrollment IDs for this student
+     let validEnrollmentIds: string[] = [];
+     if (enrollmentIdParam) {
+       validEnrollmentIds = [enrollmentIdParam];
+-    } else if (partyId) {
+-      const enrollRes = await queryClient
+-        .from('edu_enrollments')
+-        .select('id')
++    } else {
++      // The Student -> Party lookup is only consumed by the implicit selector.
++      const studentRes = await queryClient
++        .from('students')
++        .select('student_id, party_id')
+         .eq('tenant_id', actor.tenant_id)
+-        .eq('student_party_id', partyId);
+-      validEnrollmentIds = (enrollRes.data ?? []).map((e: { id: string }) => e.id);
++        .eq('student_id', resolvedParams.id)
++        .maybeSingle();
++      const partyId = studentRes.data?.party_id;
++      if (partyId) {
++        const enrollRes = await queryClient
++          .from('edu_enrollments')
++          .select('id')
++          .eq('tenant_id', actor.tenant_id)
++          .eq('student_party_id', partyId);
++        validEnrollmentIds = (enrollRes.data ?? []).map((e: { id: string }) => e.id);
++      }
+     }
+ 
+     // Fetch assessments & milestone progress

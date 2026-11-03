@@ -1,0 +1,113 @@
+{
+  "at": "2026-11-02T00:03:30.983Z",
+  "state": "LOCAL_VERIFIED_CI_PENDING",
+  "changes": [
+    {
+      "path": "node_modules/decode-uri-component",
+      "before": "0.2.2",
+      "after": "0.5.1"
+    },
+    {
+      "path": "node_modules/filter-obj",
+      "before": "1.1.0",
+      "after": "5.1.0"
+    },
+    {
+      "path": "node_modules/query-string",
+      "before": "7.1.3",
+      "after": "9.5.1"
+    },
+    {
+      "path": "node_modules/split-on-first",
+      "before": "1.1.0",
+      "after": "3.0.0"
+    },
+    {
+      "path": "node_modules/strict-uri-encode",
+      "before": "2.0.0"
+    }
+  ],
+  "files": [
+    {
+      "file": "apps/mobile/package.json",
+      "sha256": "3b38ad1b39e0d6cb8843905d34722aded3d8cefcf64ab35f47ebdaf8dc26dd04"
+    },
+    {
+      "file": "apps/mobile/package-lock.json",
+      "sha256": "6e3cd9fd35f0b77ff5fd1cc3f8509288ef8a9c12b8b383ea2d872b34a0163b5b"
+    },
+    {
+      "file": "apps/mobile/metro.config.js",
+      "sha256": "43a496e494d533a0e254db981b317682078d87700c7c9d0145a9e99451f81154"
+    },
+    {
+      "file": "apps/mobile/src/lib/query-string-compat.js",
+      "sha256": "46779526b23bd896b5300c2e19bce62bdf2deb8eba96c89f692d467556b7c2f1"
+    },
+    {
+      "file": "apps/mobile/tests/query-string-compat.test.cjs",
+      "sha256": "7e4f8227a72ac19860c45f33855bdf5417142d567134792dca3d5584d9b21723"
+    }
+  ],
+  "checks": [
+    {
+      "command": "npm ci --ignore-scripts --no-audit --no-fund",
+      "environment": "owned isolated full Mobile copy",
+      "exit": 0
+    },
+    {
+      "command": "same-Core real helper and Expo serializer parity",
+      "pass": 31,
+      "fail": 0,
+      "scope": "module bridge rewiring in fixture; no helper logic changes, not device E2E"
+    },
+    {
+      "command": "node --test tests/query-string-compat.test.cjs",
+      "pass": 5,
+      "fail": 0,
+      "exit": 0
+    },
+    {
+      "command": "Metro.runBuild actual Core and 3 Expo callers, platform ios",
+      "exit": 0
+    },
+    {
+      "command": "root TypeScript5.9.3 -p isolatedMobile/tsconfig.json --noEmit",
+      "exit": 0,
+      "diagnostics": 0
+    },
+    {
+      "command": "Mobile TypeScript5.3.3 --noEmit",
+      "exit": 2,
+      "classification": "PRE_EXISTING",
+      "reason": "Existing Expo module:preserve unsupported by existing compiler; no dependency/toolchain adjustment outside scope"
+    },
+    {
+      "command": "node scripts/audit-production.mjs",
+      "exit": 0,
+      "allowlist": "unchanged"
+    },
+    {
+      "command": "git diff --check",
+      "exit": 0
+    }
+  ],
+  "limits": [
+    "No device E2E",
+    "No app store or OTA release",
+    "No Production/DB mutation"
+  ],
+  "review": {
+    "blind": "no findings",
+    "acceptance": "no findings",
+    "edge": "no findings"
+  },
+  "metroBundle": {
+    "bytes": 2563869,
+    "sha256": "04a839c165ac8afc076857d51804f65e98412768425a1f1b10e5ce376e79b857"
+  },
+  "cleanup": {
+    "ownedIsolatedInstallRemoved": true,
+    "sharedNodeModulesTouched": false
+  }
+}

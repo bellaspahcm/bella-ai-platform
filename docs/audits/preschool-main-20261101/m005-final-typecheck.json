@@ -1,0 +1,9 @@
+{
+  "scope": [
+    "src/app/api/education/care/bulk/__tests__/access.test.ts",
+    "src/products/bella-education/__tests__/preschool-daily-care-canonical.service.test.ts"
+  ],
+  "includes": "transitive imports",
+  "diagnostics": [],
+  "exitCode": 0
+}

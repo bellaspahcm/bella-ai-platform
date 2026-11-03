@@ -1,0 +1,98 @@
+  console.log
+    ◇ injected env (0) from .env.local // tip: ⌁ auth for agents [www.vestauth.com]
+
+      at _log (../../../Antigravity/Projects/BELLA SPA ERP/node_modules/dotenv/lib/main.js:131:11)
+
+  console.log
+    [Jest Setup] SUPABASE_SERVICE_ROLE_KEY loaded: true
+
+      at Object.<anonymous> (jest.setup.ts:30:9)
+
+FAIL src/app/api/education/portal/[token]/care/__tests__/route.test.ts
+  ● GET /api/education/portal/[token]/care › returns care summary with parsed meals, nap, health, and hygiene
+
+    expect(jest.fn()).toHaveBeenCalledWith(...expected)
+
+    Expected: "valid-token"
+
+    Number of calls: 0
+
+      163 |     { scenario: 'revoked guardian binding', status: 401, code: 'GUARDIAN_NOT_AUTHORIZED' },
+      164 |     { scenario: 'token targeting another child without a current binding', status: 401, code: 'GUARDIAN_NOT_AUTHORIZED' },
+    > 165 |     { scenario: 'guardian lookup dependency failure', status: 503, code: 'PORTAL_ACCESS_UNAVAILABLE' },
+          |                                          ^
+      166 |   ] as const)('does not read Care on $scenario', async ({ status, code }) => {
+      167 |     mockAuthorizePortalToken.mockRejectedValue(new ParentPortalAccessError(status, code));
+      168 |     const response = await GET(new Request('http://localhost/api/education/portal/valid-token/care?date=2026-10-30'), {
+
+      at Object.<anonymous> (src/app/api/education/portal/[token]/care/__tests__/route.test.ts:165:42)
+
+  ● GET /api/education/portal/[token]/care › does not read Care on revoked guardian binding
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 401
+    Received: 200
+
+      188 |       expect(mockDataRead).not.toHaveBeenCalled();
+      189 |     } finally {
+    > 190 |       release(claims);
+          |                       ^
+      191 |     }
+      192 |     expect((await responsePromise).status).toBe(200);
+      193 |     expect(mockDataRead).toHaveBeenCalledWith('edu_daily_care_records');
+
+      at src/app/api/education/portal/[token]/care/__tests__/route.test.ts:190:33
+
+  ● GET /api/education/portal/[token]/care › does not read Care on token targeting another child without a current binding
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 401
+    Received: 200
+
+      188 |       expect(mockDataRead).not.toHaveBeenCalled();
+      189 |     } finally {
+    > 190 |       release(claims);
+          |                       ^
+      191 |     }
+      192 |     expect((await responsePromise).status).toBe(200);
+      193 |     expect(mockDataRead).toHaveBeenCalledWith('edu_daily_care_records');
+
+      at src/app/api/education/portal/[token]/care/__tests__/route.test.ts:190:33
+
+  ● GET /api/education/portal/[token]/care › does not read Care on guardian lookup dependency failure
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 503
+    Received: 200
+
+      188 |       expect(mockDataRead).not.toHaveBeenCalled();
+      189 |     } finally {
+    > 190 |       release(claims);
+          |                       ^
+      191 |     }
+      192 |     expect((await responsePromise).status).toBe(200);
+      193 |     expect(mockDataRead).toHaveBeenCalledWith('edu_daily_care_records');
+
+      at src/app/api/education/portal/[token]/care/__tests__/route.test.ts:190:33
+
+  ● GET /api/education/portal/[token]/care › waits for current guardian authorization before any enrollment or Care query
+
+    expect(jest.fn()).toHaveBeenCalledWith(...expected)
+
+    Expected: "valid-token"
+
+    Number of calls: 0
+
+
+
+      at Object.<anonymous> (src/app/api/education/portal/[token]/care/__tests__/route.test.ts:214:46)
+
+Test Suites: 1 failed, 1 total
+Tests:       5 failed, 1 passed, 6 total
+Snapshots:   0 total
+Time:        1.511 s
+Ran all test suites within paths "src/app/api/education/portal/[token]/care/__tests__/route.test.ts".
+Test results written to: docs\audits\preschool-main-20261101\gl03-portal-care-auth-before.json

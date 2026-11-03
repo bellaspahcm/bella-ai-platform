@@ -1,0 +1,12 @@
+{
+  "name": "bella-spa-erp",
+  "project": "prj_Rgncynqz8ptznREGggMxPfjwoikW",
+  "target": "production",
+  "gitSource": {
+    "type": "github",
+    "repoId": 1235614110,
+    "ref": "main",
+    "sha": "7346840706ee71b14f9bcf956d1e0d53c6bbf782"
+  },
+  "autoAssignCustomDomains": false
+}

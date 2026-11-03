@@ -1,0 +1,221 @@
+{
+  "at": "2026-11-02T00:16:07.718Z",
+  "deployment": "dpl_DstNQvShsVvhXgWrsM283n6pJQVN",
+  "url": "https://bella-spa-ahbgh7ns1-bella-spa-s-projects.vercel.app",
+  "sha": "f1299e3138f3700062a1ed84271db315737b0071",
+  "target": "production",
+  "checks": [
+    {
+      "name": "care invalid-token denial",
+      "status": 401,
+      "code": "TOKEN_MALFORMED",
+      "pass": false
+    },
+    {
+      "name": "attendance invalid-token denial",
+      "status": 401,
+      "code": "TOKEN_MALFORMED",
+      "pass": false
+    },
+    {
+      "name": "tuition invalid-token denial",
+      "status": 401,
+      "code": "TOKEN_MALFORMED",
+      "pass": false
+    },
+    {
+      "name": "constant Supabase health probe",
+      "status": 503,
+      "applicationStatus": "unhealthy",
+      "database": "failed",
+      "pass": false
+    },
+    {
+      "name": "real browser login",
+      "pass": true
+    },
+    {
+      "name": "dashboard",
+      "path": "/dashboard",
+      "status": 200,
+      "content": true,
+      "routeMatches": true,
+      "appError": false,
+      "runtimeErrorCount": 1,
+      "pass": false
+    },
+    {
+      "name": "ai-copilot",
+      "path": "/dashboard/ai-copilot",
+      "status": 200,
+      "content": true,
+      "routeMatches": true,
+      "appError": false,
+      "runtimeErrorCount": 0,
+      "pass": true
+    },
+    {
+      "name": "customers",
+      "path": "/dashboard/customers",
+      "status": 200,
+      "content": true,
+      "routeMatches": true,
+      "appError": false,
+      "runtimeErrorCount": 0,
+      "pass": true
+    },
+    {
+      "name": "bookings",
+      "path": "/dashboard/bookings",
+      "status": 200,
+      "content": true,
+      "routeMatches": true,
+      "appError": false,
+      "runtimeErrorCount": 0,
+      "pass": true
+    },
+    {
+      "name": "sessions",
+      "path": "/dashboard/sessions",
+      "status": 200,
+      "content": true,
+      "routeMatches": true,
+      "appError": false,
+      "runtimeErrorCount": 0,
+      "pass": true
+    },
+    {
+      "name": "chat",
+      "path": "/dashboard/chat",
+      "status": 200,
+      "content": true,
+      "routeMatches": true,
+      "appError": false,
+      "runtimeErrorCount": 0,
+      "pass": true
+    },
+    {
+      "name": "crm",
+      "path": "/dashboard/crm",
+      "status": 200,
+      "content": true,
+      "routeMatches": true,
+      "appError": false,
+      "runtimeErrorCount": 0,
+      "pass": true
+    },
+    {
+      "name": "meta-ads",
+      "path": "/dashboard/marketing",
+      "status": 200,
+      "content": true,
+      "routeMatches": true,
+      "appError": false,
+      "runtimeErrorCount": 0,
+      "pass": true
+    },
+    {
+      "name": "finance",
+      "path": "/dashboard/finance",
+      "status": 200,
+      "content": true,
+      "routeMatches": true,
+      "appError": false,
+      "runtimeErrorCount": 2,
+      "pass": false
+    },
+    {
+      "name": "financial-reconciliation",
+      "path": "/dashboard/finance/reconciliation",
+      "status": 200,
+      "content": true,
+      "routeMatches": true,
+      "appError": false,
+      "runtimeErrorCount": 0,
+      "pass": true
+    },
+    {
+      "name": "salary",
+      "path": "/dashboard/salary",
+      "status": 200,
+      "content": true,
+      "routeMatches": true,
+      "appError": false,
+      "runtimeErrorCount": 0,
+      "pass": true
+    },
+    {
+      "name": "accounting",
+      "path": "/dashboard/accounting",
+      "status": 200,
+      "content": true,
+      "routeMatches": true,
+      "appError": false,
+      "runtimeErrorCount": 1,
+      "pass": false
+    },
+    {
+      "name": "inventory",
+      "path": "/dashboard/inventory",
+      "status": 200,
+      "content": true,
+      "routeMatches": true,
+      "appError": false,
+      "runtimeErrorCount": 0,
+      "pass": true
+    },
+    {
+      "name": "services",
+      "path": "/dashboard/services",
+      "status": 200,
+      "content": true,
+      "routeMatches": true,
+      "appError": false,
+      "runtimeErrorCount": 0,
+      "pass": true
+    },
+    {
+      "name": "system-monitor",
+      "path": "/dashboard/system-monitor",
+      "status": 200,
+      "content": true,
+      "routeMatches": true,
+      "appError": false,
+      "runtimeErrorCount": 0,
+      "pass": true
+    },
+    {
+      "name": "audit",
+      "path": "/dashboard/audit",
+      "status": 200,
+      "content": true,
+      "routeMatches": true,
+      "appError": false,
+      "runtimeErrorCount": 0,
+      "pass": true
+    },
+    {
+      "name": "settings",
+      "path": "/dashboard/settings",
+      "status": 200,
+      "content": true,
+      "routeMatches": true,
+      "appError": false,
+      "runtimeErrorCount": 0,
+      "pass": true
+    },
+    {
+      "name": "preschool-care",
+      "path": "/dashboard/education/care",
+      "status": 200,
+      "content": true,
+      "routeMatches": true,
+      "appError": false,
+      "runtimeErrorCount": 1,
+      "pass": false
+    }
+  ],
+  "passed": 15,
+  "failed": 8,
+  "limits": "Read-only route/guard smoke; no child records, CRUD or Product end-to-end claim. No browser artifacts or credential storage."
+}

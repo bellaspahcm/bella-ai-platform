@@ -1,0 +1,543 @@
+{
+  "status": "REHEARSED_SCOPED_READY_FOR_CUTOVER_REVIEW",
+  "projectRef": "lvnvkpyxtuilhrabtlwv",
+  "liveMetadataAt": "2026-11-01T16:15:25.805582+07:00",
+  "sourceBase": "f1299e3138f3700062a1ed84271db315737b0071",
+  "functions": [
+    {
+      "name": "preschool_teacher_can_attend_course",
+      "source": "supabase/migrations/20261026183000_integrate_preschool_teacher_attendance.sql",
+      "sourceSha256": "922e28ec5e81c1bd618b9885671fec6a7064701482e2ad4a3d7f98a8383ba447",
+      "definitionSha256": "0d6295ee0aadaaedeb2619ce23ec039968c4c4f2045f2ab61cd786f10931e364",
+      "reuse": "EXACT_SOURCE"
+    },
+    {
+      "name": "preschool_teacher_attendance_courses",
+      "source": "supabase/migrations/20261026183000_integrate_preschool_teacher_attendance.sql",
+      "sourceSha256": "922e28ec5e81c1bd618b9885671fec6a7064701482e2ad4a3d7f98a8383ba447",
+      "definitionSha256": "c894789e4ddfa5875239b2ef4bbd17480d35387cd79b699437ed1fc81fe0813b",
+      "reuse": "EXACT_SOURCE"
+    },
+    {
+      "name": "edu_can_access_attendance_enrollment",
+      "source": "supabase/migrations/20261026183000_integrate_preschool_teacher_attendance.sql",
+      "sourceSha256": "922e28ec5e81c1bd618b9885671fec6a7064701482e2ad4a3d7f98a8383ba447",
+      "definitionSha256": "c9f87bda4092ccc84dcae2eb228744a047ea8c77b72fb1407f8422a7824760f9",
+      "reuse": "EXACT_SOURCE"
+    },
+    {
+      "name": "edu_preschool_roster_identity",
+      "source": "supabase/migrations/20261026183000_integrate_preschool_teacher_attendance.sql",
+      "sourceSha256": "922e28ec5e81c1bd618b9885671fec6a7064701482e2ad4a3d7f98a8383ba447",
+      "definitionSha256": "9ba93671e8cabae60244bbc09d1d85ad339e5203b0e9117260758a6930514058",
+      "reuse": "EXACT_SOURCE"
+    },
+    {
+      "name": "edu_set_daily_attendance",
+      "source": "supabase/migrations/20261026152000_harden_education_attendance_access.sql",
+      "sourceSha256": "a85d051fe618caac3ee89413acbce33a7909bba1fdcb9ce7632789e2589e9399",
+      "definitionSha256": "f8f03cb3fc85ade157897a436375e6b2768b619c546552f4e430b9ec4ecd3dd8",
+      "sourceDefinitionSha256": "9da288c0cbec9198f5e4a5e9663a768e1c5eab58b76a40bfadd4a2559a3be0ff",
+      "reuse": "SOURCE_BASE_WITH_PRESCHOOL_ONLY_ISOLATION_CHECK"
+    }
+  ],
+  "requiredColumns": [
+    {
+      "name": "id",
+      "notNull": true,
+      "table": "tenants",
+      "type": "uuid"
+    },
+    {
+      "name": "status",
+      "notNull": false,
+      "table": "tenants",
+      "type": "text"
+    },
+    {
+      "name": "product_key",
+      "notNull": false,
+      "table": "tenants",
+      "type": "text"
+    },
+    {
+      "name": "id",
+      "notNull": true,
+      "table": "users",
+      "type": "uuid"
+    },
+    {
+      "name": "tenant_id",
+      "notNull": false,
+      "table": "users",
+      "type": "uuid"
+    },
+    {
+      "name": "role",
+      "notNull": true,
+      "table": "users",
+      "type": "text"
+    },
+    {
+      "name": "status",
+      "notNull": false,
+      "table": "users",
+      "type": "text"
+    },
+    {
+      "name": "id",
+      "notNull": true,
+      "table": "edu_courses",
+      "type": "uuid"
+    },
+    {
+      "name": "tenant_id",
+      "notNull": true,
+      "table": "edu_courses",
+      "type": "uuid"
+    },
+    {
+      "name": "title",
+      "notNull": true,
+      "table": "edu_courses",
+      "type": "text"
+    },
+    {
+      "name": "status",
+      "notNull": true,
+      "table": "edu_courses",
+      "type": "text"
+    },
+    {
+      "name": "id",
+      "notNull": true,
+      "table": "edu_enrollments",
+      "type": "uuid"
+    },
+    {
+      "name": "tenant_id",
+      "notNull": true,
+      "table": "edu_enrollments",
+      "type": "uuid"
+    },
+    {
+      "name": "course_id",
+      "notNull": true,
+      "table": "edu_enrollments",
+      "type": "uuid"
+    },
+    {
+      "name": "student_party_id",
+      "notNull": true,
+      "table": "edu_enrollments",
+      "type": "uuid"
+    },
+    {
+      "name": "status",
+      "notNull": true,
+      "table": "edu_enrollments",
+      "type": "text"
+    },
+    {
+      "name": "enrolled_at",
+      "notNull": true,
+      "table": "edu_enrollments",
+      "type": "timestamp with time zone"
+    },
+    {
+      "name": "request_id",
+      "notNull": true,
+      "table": "edu_enrollments",
+      "type": "text"
+    },
+    {
+      "name": "id",
+      "notNull": true,
+      "table": "org_units",
+      "type": "uuid"
+    },
+    {
+      "name": "tenant_id",
+      "notNull": true,
+      "table": "org_units",
+      "type": "uuid"
+    },
+    {
+      "name": "unit_type",
+      "notNull": true,
+      "table": "org_units",
+      "type": "text"
+    },
+    {
+      "name": "is_active",
+      "notNull": true,
+      "table": "org_units",
+      "type": "boolean"
+    },
+    {
+      "name": "user_id",
+      "notNull": false,
+      "table": "user_org_unit_access",
+      "type": "uuid"
+    },
+    {
+      "name": "tenant_id",
+      "notNull": false,
+      "table": "user_org_unit_access",
+      "type": "uuid"
+    },
+    {
+      "name": "org_unit_id",
+      "notNull": false,
+      "table": "user_org_unit_access",
+      "type": "uuid"
+    },
+    {
+      "name": "relationship_id",
+      "notNull": false,
+      "table": "user_org_unit_access",
+      "type": "uuid"
+    },
+    {
+      "name": "id",
+      "notNull": true,
+      "table": "party_parties",
+      "type": "uuid"
+    },
+    {
+      "name": "tenant_id",
+      "notNull": true,
+      "table": "party_parties",
+      "type": "uuid"
+    },
+    {
+      "name": "party_type",
+      "notNull": true,
+      "table": "party_parties",
+      "type": "text"
+    },
+    {
+      "name": "deleted_at",
+      "notNull": false,
+      "table": "party_parties",
+      "type": "timestamp with time zone"
+    },
+    {
+      "name": "display_name",
+      "notNull": true,
+      "table": "party_parties",
+      "type": "text"
+    },
+    {
+      "name": "gender",
+      "notNull": false,
+      "table": "party_parties",
+      "type": "text"
+    },
+    {
+      "name": "dob",
+      "notNull": false,
+      "table": "party_parties",
+      "type": "date"
+    },
+    {
+      "name": "student_id",
+      "notNull": true,
+      "table": "students",
+      "type": "uuid"
+    },
+    {
+      "name": "tenant_id",
+      "notNull": true,
+      "table": "students",
+      "type": "uuid"
+    },
+    {
+      "name": "party_id",
+      "notNull": false,
+      "table": "students",
+      "type": "uuid"
+    },
+    {
+      "name": "student_code",
+      "notNull": true,
+      "table": "students",
+      "type": "text"
+    },
+    {
+      "name": "academic_status",
+      "notNull": true,
+      "table": "students",
+      "type": "text"
+    },
+    {
+      "name": "tenant_id",
+      "notNull": true,
+      "table": "teacher_assignments",
+      "type": "uuid"
+    },
+    {
+      "name": "teacher_party_id",
+      "notNull": true,
+      "table": "teacher_assignments",
+      "type": "uuid"
+    },
+    {
+      "name": "canonical_course_id",
+      "notNull": false,
+      "table": "teacher_assignments",
+      "type": "uuid"
+    },
+    {
+      "name": "canonical_teacher_confirmation_id",
+      "notNull": false,
+      "table": "teacher_assignments",
+      "type": "uuid"
+    },
+    {
+      "name": "course_id",
+      "notNull": false,
+      "table": "teacher_assignments",
+      "type": "uuid"
+    },
+    {
+      "name": "status",
+      "notNull": true,
+      "table": "teacher_assignments",
+      "type": "text"
+    },
+    {
+      "name": "effective_start_date",
+      "notNull": true,
+      "table": "teacher_assignments",
+      "type": "date"
+    },
+    {
+      "name": "effective_end_date",
+      "notNull": false,
+      "table": "teacher_assignments",
+      "type": "date"
+    },
+    {
+      "name": "id",
+      "notNull": true,
+      "table": "preschool_teacher_branch_confirmations",
+      "type": "uuid"
+    },
+    {
+      "name": "tenant_id",
+      "notNull": true,
+      "table": "preschool_teacher_branch_confirmations",
+      "type": "uuid"
+    },
+    {
+      "name": "branch_id",
+      "notNull": true,
+      "table": "preschool_teacher_branch_confirmations",
+      "type": "uuid"
+    },
+    {
+      "name": "teacher_party_id",
+      "notNull": true,
+      "table": "preschool_teacher_branch_confirmations",
+      "type": "uuid"
+    },
+    {
+      "name": "valid_from",
+      "notNull": true,
+      "table": "preschool_teacher_branch_confirmations",
+      "type": "date"
+    },
+    {
+      "name": "valid_to",
+      "notNull": false,
+      "table": "preschool_teacher_branch_confirmations",
+      "type": "date"
+    },
+    {
+      "name": "revoked_at",
+      "notNull": false,
+      "table": "preschool_teacher_branch_confirmations",
+      "type": "timestamp with time zone"
+    },
+    {
+      "name": "tenant_id",
+      "notNull": true,
+      "table": "preschool_chain_course_branch_assignments",
+      "type": "uuid"
+    },
+    {
+      "name": "course_id",
+      "notNull": true,
+      "table": "preschool_chain_course_branch_assignments",
+      "type": "uuid"
+    },
+    {
+      "name": "branch_id",
+      "notNull": true,
+      "table": "preschool_chain_course_branch_assignments",
+      "type": "uuid"
+    },
+    {
+      "name": "tenant_id",
+      "notNull": true,
+      "table": "preschool_chain_enrollment_branch_assignments",
+      "type": "uuid"
+    },
+    {
+      "name": "enrollment_id",
+      "notNull": true,
+      "table": "preschool_chain_enrollment_branch_assignments",
+      "type": "uuid"
+    },
+    {
+      "name": "course_id",
+      "notNull": true,
+      "table": "preschool_chain_enrollment_branch_assignments",
+      "type": "uuid"
+    },
+    {
+      "name": "branch_id",
+      "notNull": true,
+      "table": "preschool_chain_enrollment_branch_assignments",
+      "type": "uuid"
+    },
+    {
+      "name": "request_id",
+      "notNull": true,
+      "table": "preschool_chain_enrollment_branch_assignments",
+      "type": "uuid"
+    },
+    {
+      "name": "id",
+      "notNull": true,
+      "table": "edu_attendance",
+      "type": "uuid"
+    },
+    {
+      "name": "tenant_id",
+      "notNull": true,
+      "table": "edu_attendance",
+      "type": "uuid"
+    },
+    {
+      "name": "enrollment_id",
+      "notNull": true,
+      "table": "edu_attendance",
+      "type": "uuid"
+    },
+    {
+      "name": "status",
+      "notNull": true,
+      "table": "edu_attendance",
+      "type": "text"
+    },
+    {
+      "name": "roll_call_time",
+      "notNull": true,
+      "table": "edu_attendance",
+      "type": "timestamp with time zone"
+    },
+    {
+      "name": "id",
+      "notNull": true,
+      "table": "edu_attendance_daily_state",
+      "type": "uuid"
+    },
+    {
+      "name": "tenant_id",
+      "notNull": true,
+      "table": "edu_attendance_daily_state",
+      "type": "uuid"
+    },
+    {
+      "name": "enrollment_id",
+      "notNull": true,
+      "table": "edu_attendance_daily_state",
+      "type": "uuid"
+    },
+    {
+      "name": "school_day",
+      "notNull": true,
+      "table": "edu_attendance_daily_state",
+      "type": "date"
+    },
+    {
+      "name": "status",
+      "notNull": true,
+      "table": "edu_attendance_daily_state",
+      "type": "text"
+    },
+    {
+      "name": "created_at",
+      "notNull": true,
+      "table": "edu_attendance_daily_state",
+      "type": "timestamp with time zone"
+    },
+    {
+      "name": "updated_at",
+      "notNull": true,
+      "table": "edu_attendance_daily_state",
+      "type": "timestamp with time zone"
+    }
+  ],
+  "newFunctions": 2,
+  "replacedFunctions": 3,
+  "alteredPolicies": 2,
+  "directWriteContainment": "edu_attendance: revoke INSERT UPDATE DELETE TRUNCATE from PUBLIC anon authenticated; preserve SELECT and worker privileges",
+  "ending": "ROLLBACK",
+  "rehearsal": "PASS",
+  "cutover": "NOT_AUTHORIZED",
+  "review": {
+    "dependencyCatalog": "LIVE_METADATA_CAPTURED",
+    "sourceFunctions": "EXACT_REUSE_5",
+    "sqlParse": "PASS_ON_OWNED_ISOLATED_DB",
+    "candidateRehearsal": "PASS_29_CHECKS",
+    "crossProductCompatibility": "PASS_WITHIN_RECORDED_MATRIX",
+    "releaseReadiness": "CUTOVER_REVIEW_ONLY_PRODUCTION_NOT_AUTHORIZED",
+    "careDependency": "Cached source references helper; current live catalog has only the two attendance-state policies referencing it",
+    "sharedWriterConsumers": [
+      "Education AttendanceContractImpl.recordAttendance/setDailyAttendance",
+      "Bella English Center LearningOperationsService",
+      "service-only Education/Preschool scoped commands"
+    ],
+    "compatibilityConcerns": [
+      "V1 had 3 observed compatibility failures; preserved in attendance-db-rehearsal-v1.json",
+      "V2 resolves the observed non-Preschool GUC read widening and REPEATABLE READ writer failures",
+      "External/dynamic legacy direct event writers remain outside the executed matrix"
+    ],
+    "nextVerification": [
+      "Review exact tested v2 candidate and scoped evidence for release authority",
+      "Fresh target/dependency/ACL checkpoint and recovery planning before any authorized cutover",
+      "No Production execution is authorized by this local rehearsal"
+    ],
+    "staticValidation": {
+      "candidateSha256": "af506babfb13da00ae072fcc7802e8c43fa4c0ab1770e73b89d03f2070903922",
+      "functionCount": 5,
+      "exactSourceFunctions": 4,
+      "scopedWriterDelta": 1,
+      "endsWithRollback": true,
+      "postgresqlParse": "PASS",
+      "execution": "OWNED_LOCAL_ONLY"
+    }
+  },
+  "originalV1Hash": "f5bdaa32df134eb215de883ed8a7f0cfa59eac1489718b146c75eabbf400bf32",
+  "version": 2,
+  "candidateSha256": "af506babfb13da00ae072fcc7802e8c43fa4c0ab1770e73b89d03f2070903922",
+  "policyDelta": "Permissive state policy limited to Preschool by existing caller-bound platform_current_actor_tenant_presentation; restrictive helper scope retained. No new grant on tenant tables.",
+  "rehearsalEvidence": {
+    "v1": "attendance-db-rehearsal-v1.json",
+    "v1Compatibility": "FAIL_3_CASES",
+    "v2": "attendance-db-rehearsal-v2.json",
+    "v2Checks": 29,
+    "rollback": "EXPLICIT_AND_LATE_ERROR_METADATA_RESTORATION_PASS",
+    "preflightDrift": [
+      "dependency",
+      "acl",
+      "schema",
+      "function"
+    ],
+    "baseline": "MATCHED_TARGETED_PRIOR_METADATA_NOT_A_FULL_PRODUCTION_CLONE",
+    "browser": "Prior Browser evidence reused for unchanged UI/API; this rehearsal invokes DB/RPC boundaries only"
+  }
+}

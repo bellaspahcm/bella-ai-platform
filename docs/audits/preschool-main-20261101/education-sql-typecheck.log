@@ -1,0 +1,142 @@
+[96msrc/app/api/education/courses/__tests__/route.test.ts[0m:[93m56[0m:[93m92[0m - [91merror[0m[90m TS2353: [0mObject literal may only specify known properties, and 'status' does not exist in type '{ id?: string | undefined; tenant_id?: string | null | undefined; role?: string | undefined; }'.
+
+[7m56[0m     mockGetCurrentUser.mockResolvedValue({ id: 'actor-a', tenant_id: tenantId,role:'admin',status:'active' });
+[7m  [0m [91m                                                                                           ~~~~~~[0m
+[96msrc/app/api/education/courses/__tests__/route.test.ts[0m:[93m57[0m:[93m40[0m - [91merror[0m[90m TS2345: [0mArgument of type '{ filteredTotal: number; nextOffset: null; students: never[]; }' is not assignable to parameter of type 'never'.
+
+[7m57[0m     mockReadRegistry.mockResolvedValue({ filteredTotal: 0, nextOffset: null, students: [] });
+[7m  [0m [91m                                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+[96msrc/app/api/education/courses/__tests__/route.test.ts[0m:[93m58[0m:[93m55[0m - [91merror[0m[90m TS2345: [0mArgument of type '{ total: number; nextOffset: null; assignments: never[]; }' is not assignable to parameter of type 'never'.
+
+[7m58[0m     mockListCanonicalCourseTeachers.mockResolvedValue({ total: 0, nextOffset: null, assignments: [] });
+[7m  [0m [91m                                                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+[96msrc/app/api/education/courses/__tests__/route.test.ts[0m:[93m61[0m:[93m33[0m - [91merror[0m[90m TS2345: [0mArgument of type '(table: string) => { select: () => { eq: () => { in: () => Promise<{ data: never[]; error: null; }>; }; }; } | { select: () => { eq: (column: string, value: string) => { order: () => Promise<{ data: never[]; error: null; }>; }; }; }' is not assignable to parameter of type 'UnknownFunction'.
+  Types of parameters 'table' and 'args' are incompatible.
+    Type 'unknown' is not assignable to type 'string'.
+
+[7m 61[0m     mockFrom.mockImplementation((table: string) => table === 'courses'
+[7m   [0m [91m                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+[7m 62[0m       ? { select: () => ({ eq: () => ({ in: async () => ({ data: [], error: null }) }) }) }
+[7m   [0m [91m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+[7m...[0m 
+[7m 67[0m         },
+[7m   [0m [91m~~~~~~~~~~[0m
+[7m 68[0m       }) });
+[7m   [0m [91m~~~~~~~~~~[0m
+[96msrc/app/api/education/courses/__tests__/route.test.ts[0m:[93m69[0m:[93m40[0m - [91merror[0m[90m TS2345: [0mArgument of type '(table: string) => { select: () => { eq: (column: string, value: string) => { order: () => Promise<{ data: never[]; error: null; }>; }; }; } | { select: () => { eq: () => { eq: () => { in: () => Promise<{ data: never[]; error: null; }>; }; }; }; }' is not assignable to parameter of type 'UnknownFunction'.
+  Types of parameters 'table' and 'args' are incompatible.
+    Type 'unknown' is not assignable to type 'string'.
+
+[7m69[0m     mockSessionFrom.mockImplementation((table: string) => {
+[7m  [0m [91m                                       ~~~~~~~~~~~~~~~~~~~~[0m
+[96msrc/app/api/education/courses/__tests__/route.test.ts[0m:[93m126[0m:[93m86[0m - [91merror[0m[90m TS2353: [0mObject literal may only specify known properties, and 'status' does not exist in type '{ id?: string | undefined; tenant_id?: string | null | undefined; role?: string | undefined; }'.
+
+[7m126[0m     mockGetCurrentUser.mockResolvedValue({ id: 'actor-a', tenant_id: tenantId, role, status: 'active' });
+[7m   [0m [91m                                                                                     ~~~~~~[0m
+[96msrc/app/api/education/courses/__tests__/route.test.ts[0m:[93m170[0m:[93m56[0m - [91merror[0m[90m TS2554: [0mExpected 0 arguments, but got 3.
+
+[7m170[0m     expect(mockCreateAdminClient).toHaveBeenCalledWith('https://courses-test.invalid', 'courses-test-admin-placeholder', {
+[7m   [0m [91m                                                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+[7m171[0m       auth: { persistSession: false, autoRefreshToken: false },
+[7m   [0m [91m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+[7m172[0m     });
+[7m   [0m [91m~~~~~[0m
+[96msrc/app/api/education/courses/__tests__/route.test.ts[0m:[93m198[0m:[93m33[0m - [91merror[0m[90m TS2345: [0mArgument of type '(table: string) => { select: () => { eq: () => { order: () => Promise<{ data: { id: string; course_code: string; title: string; status: string; max_students: number; current_enrollment: number; created_at: string; }[]; error: null; }>; }; }; } | { ...; }' is not assignable to parameter of type 'UnknownFunction'.
+  Types of parameters 'table' and 'args' are incompatible.
+    Type 'unknown' is not assignable to type 'string'.
+
+[7m198[0m     mockFrom.mockImplementation((table: string) => table === 'edu_courses'
+[7m   [0m [91m                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+[7m199[0m       ? { select: () => ({ eq: () => ({ order: async () => ({ data: [{
+[7m   [0m [91m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+[7m...[0m 
+[7m203[0m       : table === 'courses' ? { select: () => ({ eq: () => ({ in: async () => ({ data: [], error: null }) }) }) }
+[7m   [0m [91m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+[7m204[0m       : { select: () => ({ eq: () => ({ order: async () => ({ data: [], error: null }) }) }) });
+[7m   [0m [91m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+[96msrc/app/api/education/courses/__tests__/route.test.ts[0m:[93m205[0m:[93m40[0m - [91merror[0m[90m TS2345: [0mArgument of type 'PreschoolRegistryError' is not assignable to parameter of type 'never'.
+
+[7m205[0m     mockReadRegistry.mockRejectedValue(new PreschoolRegistryError('REGISTRY_UNAVAILABLE', 503));
+[7m   [0m [91m                                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+[96msrc/app/api/education/courses/__tests__/route.test.ts[0m:[93m214[0m:[93m33[0m - [91merror[0m[90m TS2345: [0mArgument of type '(table: string) => { select: () => { eq: () => { order: () => Promise<{ data: { id: string; course_code: string; title: string; status: string; max_students: null; current_enrollment: number; created_at: string; }[]; error: null; }>; }; }; } | { ...; }' is not assignable to parameter of type 'UnknownFunction'.
+  Types of parameters 'table' and 'args' are incompatible.
+    Type 'unknown' is not assignable to type 'string'.
+
+[7m214[0m     mockFrom.mockImplementation((table: string) => table === 'edu_courses'
+[7m   [0m [91m                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+[7m215[0m       ? { select: () => ({ eq: () => ({ order: async () => ({ data: [{
+[7m   [0m [91m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+[7m...[0m 
+[7m219[0m       : { select: () => ({ eq: () => ({ in: async () => ({ data: null,
+[7m   [0m [91m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+[7m220[0m         error: { code: '42703', message: 'column courses.course_id does not exist' } }) }) }) });
+[7m   [0m [91m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+[96msrc/app/api/education/courses/__tests__/route.test.ts[0m:[93m232[0m:[93m33[0m - [91merror[0m[90m TS2345: [0mArgument of type '(table: string) => { select: () => { eq: () => { order: () => Promise<{ data: { id: string; course_code: string; title: string; status: string; max_students: number; current_enrollment: number; created_at: string; }[]; error: null; }>; }; }; } | { ...; }' is not assignable to parameter of type 'UnknownFunction'.
+  Types of parameters 'table' and 'args' are incompatible.
+    Type 'unknown' is not assignable to type 'string'.
+
+[7m232[0m     mockFrom.mockImplementation((table: string) => table === 'edu_courses'
+[7m   [0m [91m                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+[7m233[0m       ? { select: () => ({ eq: () => ({ order: async () => ({ data: [{
+[7m   [0m [91m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+[7m...[0m 
+[7m237[0m       : table === 'courses' ? { select: () => ({ eq: () => ({ in: async () => ({ data: [], error: null }) }) }) }
+[7m   [0m [91m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+[7m238[0m       : { select: () => ({ eq: () => ({ order: async () => ({ data: [], error: null }) }) }) });
+[7m   [0m [91m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+[96msrc/app/api/education/courses/__tests__/route.test.ts[0m:[93m240[0m:[93m7[0m - [91merror[0m[90m TS2345: [0mArgument of type 'PreschoolTeacherContractError' is not assignable to parameter of type 'never'.
+
+[7m240[0m       new PreschoolTeacherContractError('PRESCHOOL_TEACHER_UNAVAILABLE', 503),
+[7m   [0m [91m      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+[96msrc/app/api/education/courses/__tests__/route.test.ts[0m:[93m255[0m:[93m40[0m - [91merror[0m[90m TS2345: [0mArgument of type '{ filteredTotal: number; nextOffset: null; students: { id: string; tenantId: string; enrollments: { id: string; courseId: string; branchId: string; status: string; }[]; }[]; }' is not assignable to parameter of type 'never'.
+
+[7m255[0m     mockReadRegistry.mockResolvedValue({
+[7m   [0m [91m                                       ~[0m
+[7m256[0m       filteredTotal: 2,
+[7m   [0m [91m~~~~~~~~~~~~~~~~~~~~~~~[0m
+[7m...[0m 
+[7m261[0m       ],
+[7m   [0m [91m~~~~~~~~[0m
+[7m262[0m     });
+[7m   [0m [91m~~~~~[0m
+[96msrc/app/api/education/courses/__tests__/route.test.ts[0m:[93m263[0m:[93m55[0m - [91merror[0m[90m TS2345: [0mArgument of type '{ total: number; nextOffset: null; assignments: { assignmentId: string; tenantId: string; branchId: string; courseId: string; teacherPartyId: string; teacherName: string; role: string; effectiveOnDate: boolean; eligibility: string; }[]; }' is not assignable to parameter of type 'never'.
+
+[7m263[0m     mockListCanonicalCourseTeachers.mockResolvedValue({
+[7m   [0m [91m                                                      ~[0m
+[7m264[0m       total: 1,
+[7m   [0m [91m~~~~~~~~~~~~~~~[0m
+[7m...[0m 
+[7m270[0m       }],
+[7m   [0m [91m~~~~~~~~~[0m
+[7m271[0m     });
+[7m   [0m [91m~~~~~[0m
+[96msrc/app/api/education/courses/__tests__/route.test.ts[0m:[93m273[0m:[93m33[0m - [91merror[0m[90m TS2345: [0mArgument of type '(table: string) => { select: (columns: string, options?: { count?: string; head?: boolean; }) => { eq: () => { eq: (column: string, value: string) => { in: () => { in: () => Promise<{ count: number; error: null; }>; }; }; }; } | { ...; }; } | { ...; } | { ...; } | { ...; }' is not assignable to parameter of type 'UnknownFunction'.
+  Types of parameters 'table' and 'args' are incompatible.
+    Type 'unknown' is not assignable to type 'string'.
+
+[7m273[0m     mockFrom.mockImplementation((table: string) => {
+[7m   [0m [91m                                ~~~~~~~~~~~~~~~~~~~~[0m
+[96msrc/app/api/education/courses/__tests__/route.test.ts[0m:[93m354[0m:[93m40[0m - [91merror[0m[90m TS2345: [0mArgument of type '(table: string) => { select: () => { eq: (column: string, value: string) => { eq: () => { in: (enrollmentColumn: string, enrollmentIds: string[]) => Promise<{ data: { enrollment_id: string; status: string; }[]; error: null; }>; }; }; }; }' is not assignable to parameter of type 'UnknownFunction'.
+  Types of parameters 'table' and 'args' are incompatible.
+    Type 'unknown' is not assignable to type 'string'.
+
+[7m354[0m     mockSessionFrom.mockImplementation((table: string) => {
+[7m   [0m [91m                                       ~~~~~~~~~~~~~~~~~~~~[0m
+[96msrc/app/api/education/courses/__tests__/route.test.ts[0m:[93m413[0m:[93m33[0m - [91merror[0m[90m TS2345: [0mArgument of type '(table: string) => { select: () => { eq: () => { order: () => Promise<{ data: { id: string; course_code: string; title: string; status: string; max_students: number; current_enrollment: number; created_at: string; }[]; error: null; }>; }; }; } | { ...; }' is not assignable to parameter of type 'UnknownFunction'.
+  Types of parameters 'table' and 'args' are incompatible.
+    Type 'unknown' is not assignable to type 'string'.
+
+[7m413[0m     mockFrom.mockImplementation((table: string) => {
+[7m   [0m [91m                                ~~~~~~~~~~~~~~~~~~~~[0m
+[96msrc/app/api/education/courses/__tests__/route.test.ts[0m:[93m451[0m:[93m33[0m - [91merror[0m[90m TS2345: [0mArgument of type '(table: string) => { select: () => { eq: () => { order: () => Promise<{ data: { id: string; course_code: string; title: string; status: string; max_students: number; current_enrollment: number; created_at: string; }[]; error: null; }>; }; }; } | { ...; } | { ...; }' is not assignable to parameter of type 'UnknownFunction'.
+  Types of parameters 'table' and 'args' are incompatible.
+    Type 'unknown' is not assignable to type 'string'.
+
+[7m451[0m     mockFrom.mockImplementation((table: string) => {
+[7m   [0m [91m                                ~~~~~~~~~~~~~~~~~~~~[0m
+[96msrc/app/api/education/courses/__tests__/route.test.ts[0m:[93m512[0m:[93m33[0m - [91merror[0m[90m TS2345: [0mArgument of type '(table: string) => { select: () => { eq: () => { eq: () => { maybeSingle: () => Promise<{ data: null; error: null; }>; }; }; }; insert: () => { select: () => { single: () => Promise<{ data: { course_id: string; tenant_id: string; ... 5 more ...; status: string; }; error: null; }>; }; }; delete: () => { ...; }; } | {...' is not assignable to parameter of type 'UnknownFunction'.
+  Types of parameters 'table' and 'args' are incompatible.
+    Type 'unknown' is not assignable to type 'string'.
+
+[7m512[0m     mockFrom.mockImplementation((table: string) => {
+[7m   [0m [91m                                ~~~~~~~~~~~~~~~~~~~~[0m

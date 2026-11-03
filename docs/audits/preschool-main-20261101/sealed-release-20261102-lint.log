@@ -1,0 +1,194 @@
+
+> bella-spa-erp@0.1.0 lint
+> eslint
+
+(node:15820) ESLintIgnoreWarning: The ".eslintignore" file is no longer supported. Switch to using the "ignores" property in "eslint.config.js": https://eslint.org/docs/latest/use/configure/migration-guide#ignoring-files
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+D:\CodexWorktrees\preschool-sealed-release-20261102\BELLA SPA ERP\eslint.config.mjs
+  8:1  warning  Assign array to a variable before exporting as module default  import/no-anonymous-default-export
+
+D:\CodexWorktrees\preschool-sealed-release-20261102\BELLA SPA ERP\eslint.strict.config.mjs
+  4:1  warning  Assign array to a variable before exporting as module default  import/no-anonymous-default-export
+
+D:\CodexWorktrees\preschool-sealed-release-20261102\BELLA SPA ERP\load-tests\scripts\01-smoke.js
+  40:1  warning  Unexpected default export of anonymous function  import/no-anonymous-default-export
+
+D:\CodexWorktrees\preschool-sealed-release-20261102\BELLA SPA ERP\load-tests\scripts\02-dashboard-load.js
+  49:1  warning  Unexpected default export of anonymous function  import/no-anonymous-default-export
+
+D:\CodexWorktrees\preschool-sealed-release-20261102\BELLA SPA ERP\load-tests\scripts\03-booking-stress.js
+  61:1  warning  Unexpected default export of anonymous function  import/no-anonymous-default-export
+
+D:\CodexWorktrees\preschool-sealed-release-20261102\BELLA SPA ERP\load-tests\scripts\04-login-spike.js
+  51:1  warning  Unexpected default export of anonymous function  import/no-anonymous-default-export
+
+D:\CodexWorktrees\preschool-sealed-release-20261102\BELLA SPA ERP\load-tests\scripts\05-checkout-soak.js
+  79:1  warning  Unexpected default export of anonymous function  import/no-anonymous-default-export
+
+D:\CodexWorktrees\preschool-sealed-release-20261102\BELLA SPA ERP\load-tests\scripts\06-concurrent-booking-spike.js
+  58:1  warning  Unexpected default export of anonymous function  import/no-anonymous-default-export
+
+D:\CodexWorktrees\preschool-sealed-release-20261102\BELLA SPA ERP\load-tests\scripts\07-payroll-calc.js
+  34:1  warning  Unexpected default export of anonymous function  import/no-anonymous-default-export
+
+D:\CodexWorktrees\preschool-sealed-release-20261102\BELLA SPA ERP\load-tests\scripts\08-inventory-checkout.js
+  50:1  warning  Unexpected default export of anonymous function  import/no-anonymous-default-export
+
+D:\CodexWorktrees\preschool-sealed-release-20261102\BELLA SPA ERP\load-tests\scripts\09-ai-assistant.js
+  40:1  warning  Unexpected default export of anonymous function  import/no-anonymous-default-export
+
+D:\CodexWorktrees\preschool-sealed-release-20261102\BELLA SPA ERP\load-tests\scripts\10-enterprise-workflow.js
+  47:1  warning  Unexpected default export of anonymous function  import/no-anonymous-default-export
+
+D:\CodexWorktrees\preschool-sealed-release-20261102\BELLA SPA ERP\load-tests\scripts\11-spike-200vus.js
+  66:1  warning  Unexpected default export of anonymous function  import/no-anonymous-default-export
+
+D:\CodexWorktrees\preschool-sealed-release-20261102\BELLA SPA ERP\load-tests\scripts\12-spike-1000vus.js
+  66:1  warning  Unexpected default export of anonymous function  import/no-anonymous-default-export
+
+D:\CodexWorktrees\preschool-sealed-release-20261102\BELLA SPA ERP\load-tests\scripts\13-medical-load.js
+  95:1  warning  Unexpected default export of anonymous function  import/no-anonymous-default-export
+
+D:\CodexWorktrees\preschool-sealed-release-20261102\BELLA SPA ERP\load-tests\scripts\15-scale-runner.js
+  86:1  warning  Unexpected default export of anonymous function  import/no-anonymous-default-export
+
+D:\CodexWorktrees\preschool-sealed-release-20261102\BELLA SPA ERP\load-tests\scripts\16-soak-runner.js
+  38:1  warning  Unexpected default export of anonymous function  import/no-anonymous-default-export
+
+D:\CodexWorktrees\preschool-sealed-release-20261102\BELLA SPA ERP\load-tests\scripts\17-latency-decomposition.js
+  50:1  warning  Unexpected default export of anonymous function  import/no-anonymous-default-export
+
+D:\CodexWorktrees\preschool-sealed-release-20261102\BELLA SPA ERP\load-tests\scripts\18-k6-1-baseline.js
+  65:1  warning  Unexpected default export of anonymous function  import/no-anonymous-default-export
+
+D:\CodexWorktrees\preschool-sealed-release-20261102\BELLA SPA ERP\load-tests\scripts\19-k6-2-latency-breakdown.js
+  115:1  warning  Unexpected default export of anonymous function  import/no-anonymous-default-export
+
+D:\CodexWorktrees\preschool-sealed-release-20261102\BELLA SPA ERP\load-tests\scripts\19-k6-2-progressive.js
+  65:1  warning  Unexpected default export of anonymous function  import/no-anonymous-default-export
+
+D:\CodexWorktrees\preschool-sealed-release-20261102\BELLA SPA ERP\load-tests\scripts\20-k6-3-business-workload.js
+  142:1  warning  Unexpected default export of anonymous function  import/no-anonymous-default-export
+
+D:\CodexWorktrees\preschool-sealed-release-20261102\BELLA SPA ERP\load-tests\scripts\20-k6-3-stress.js
+  58:1  warning  Unexpected default export of anonymous function  import/no-anonymous-default-export
+
+D:\CodexWorktrees\preschool-sealed-release-20261102\BELLA SPA ERP\load-tests\scripts\21-k6-3v2-authenticated-business.js
+  238:1  warning  Unexpected default export of anonymous function  import/no-anonymous-default-export
+
+D:\CodexWorktrees\preschool-sealed-release-20261102\BELLA SPA ERP\load-tests\scripts\22-capacity-progression.js
+  304:1  warning  Unexpected default export of anonymous function  import/no-anonymous-default-export
+
+D:\CodexWorktrees\preschool-sealed-release-20261102\BELLA SPA ERP\load-tests\scripts\23-k6-3v3-100-150vus.js
+  210:1  warning  Unexpected default export of anonymous function  import/no-anonymous-default-export
+
+D:\CodexWorktrees\preschool-sealed-release-20261102\BELLA SPA ERP\load-tests\scripts\23-k6-3v3-100-200vus.js
+  210:1  warning  Unexpected default export of anonymous function  import/no-anonymous-default-export
+
+D:\CodexWorktrees\preschool-sealed-release-20261102\BELLA SPA ERP\load-tests\scripts\23-k6-3v3-100vus-cloud.js
+  175:1  warning  Unexpected default export of anonymous function  import/no-anonymous-default-export
+
+D:\CodexWorktrees\preschool-sealed-release-20261102\BELLA SPA ERP\load-tests\scripts\24-k6-3v4-post-optimization.js
+  277:1  warning  Unexpected default export of anonymous function  import/no-anonymous-default-export
+
+D:\CodexWorktrees\preschool-sealed-release-20261102\BELLA SPA ERP\load-tests\scripts\24-k6-3v4-short.js
+  188:1  warning  Unexpected default export of anonymous function  import/no-anonymous-default-export
+
+D:\CodexWorktrees\preschool-sealed-release-20261102\BELLA SPA ERP\load-tests\scripts\25-k6-3v5-pro-tier.js
+  278:1  warning  Unexpected default export of anonymous function  import/no-anonymous-default-export
+
+D:\CodexWorktrees\preschool-sealed-release-20261102\BELLA SPA ERP\load-tests\scripts\debug-redis-cache.js
+  39:1  warning  Unexpected default export of anonymous function  import/no-anonymous-default-export
+
+D:\CodexWorktrees\preschool-sealed-release-20261102\BELLA SPA ERP\scripts\load-test-k6.js
+  65:1  warning  Unexpected default export of anonymous function  import/no-anonymous-default-export
+
+D:\CodexWorktrees\preschool-sealed-release-20261102\BELLA SPA ERP\src\app\dashboard\bella-auto\trade-in\page.tsx
+  463:25  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+D:\CodexWorktrees\preschool-sealed-release-20261102\BELLA SPA ERP\src\app\dashboard\customer\segmentation\page.tsx
+  171:6  warning  React Hook useEffect has a missing dependency: 'fetchSegmentation'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+D:\CodexWorktrees\preschool-sealed-release-20261102\BELLA SPA ERP\src\app\dashboard\education\scheduling\page.tsx
+  159:6  warning  React Hook useEffect has a missing dependency: 'loadData'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+D:\CodexWorktrees\preschool-sealed-release-20261102\BELLA SPA ERP\src\app\dashboard\english-center\timetable\page.tsx
+  130:6  warning  React Hook useEffect has a missing dependency: 'loadData'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+D:\CodexWorktrees\preschool-sealed-release-20261102\BELLA SPA ERP\src\app\dashboard\healthcare\encounters\page.tsx
+  199:6  warning  React Hook useEffect has a missing dependency: 'loadEncounters'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+D:\CodexWorktrees\preschool-sealed-release-20261102\BELLA SPA ERP\src\app\dashboard\healthcare\pharmacy\page.tsx
+  494:6  warning  React Hook useEffect has a missing dependency: 'loadPrescriptions'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+D:\CodexWorktrees\preschool-sealed-release-20261102\BELLA SPA ERP\src\app\dashboard\healthcare\queue\tv\page.tsx
+  405:6  warning  React Hook useEffect has missing dependencies: 'isAutoSpeechEnabled' and 'speakAIVoiceCall'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+
+D:\CodexWorktrees\preschool-sealed-release-20261102\BELLA SPA ERP\src\app\dashboard\hospital\ancillary\page.tsx
+  700:23  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  756:17  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+D:\CodexWorktrees\preschool-sealed-release-20261102\BELLA SPA ERP\src\app\dashboard\hospital\beds\page.tsx
+  574:6  warning  React Hook useEffect has a missing dependency: 'loadHospitalBeds'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+D:\CodexWorktrees\preschool-sealed-release-20261102\BELLA SPA ERP\src\app\dashboard\hospital\mar\page.tsx
+  600:79  warning  React Hook useEffect has a missing dependency: 'loadMAR'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+D:\CodexWorktrees\preschool-sealed-release-20261102\BELLA SPA ERP\src\app\dashboard\hospital\nursing-vitals\page.tsx
+  355:82  warning  React Hook useEffect has a missing dependency: 'loadVitals'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+D:\CodexWorktrees\preschool-sealed-release-20261102\BELLA SPA ERP\src\app\dashboard\real-estate\apartments\page.tsx
+  242:11  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+D:\CodexWorktrees\preschool-sealed-release-20261102\BELLA SPA ERP\src\app\dashboard\real-estate\contracts\page.tsx
+  757:29  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  921:17  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+D:\CodexWorktrees\preschool-sealed-release-20261102\BELLA SPA ERP\src\app\dashboard\real-estate\page.tsx
+  164:11  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+D:\CodexWorktrees\preschool-sealed-release-20261102\BELLA SPA ERP\src\app\dashboard\real-estate\projects\page.tsx
+  181:11  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  412:29  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+D:\CodexWorktrees\preschool-sealed-release-20261102\BELLA SPA ERP\src\app\page.tsx
+  150:15  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  976:19  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+D:\CodexWorktrees\preschool-sealed-release-20261102\BELLA SPA ERP\src\app\partner\register\steps\Step3Documents.tsx
+  170:19  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+D:\CodexWorktrees\preschool-sealed-release-20261102\BELLA SPA ERP\src\app\workforce\dashboard\page.tsx
+  82:15  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+D:\CodexWorktrees\preschool-sealed-release-20261102\BELLA SPA ERP\src\app\workforce\kpi\page.tsx
+  178:27  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+D:\CodexWorktrees\preschool-sealed-release-20261102\BELLA SPA ERP\src\components\bella-auto\CreateBookingModal.tsx
+  201:6  warning  React Hook useEffect has a missing dependency: 'handleSelectVehicle'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+D:\CodexWorktrees\preschool-sealed-release-20261102\BELLA SPA ERP\src\components\bella-auto\rule-builder\ConditionBuilder.tsx
+  114:9  warning  The 'fields' logical expression could make the dependencies of useCallback Hook (at line 125) change on every render. To fix this, wrap the initialization of 'fields' in its own useMemo() Hook  react-hooks/exhaustive-deps
+
+D:\CodexWorktrees\preschool-sealed-release-20261102\BELLA SPA ERP\src\components\ui\CurrencyInput.tsx
+  277:9  warning  The attribute aria-valuemin is not supported by the role textbox. This role is implicit on the element input  jsx-a11y/role-supports-aria-props
+  277:9  warning  The attribute aria-valuemax is not supported by the role textbox. This role is implicit on the element input  jsx-a11y/role-supports-aria-props
+  277:9  warning  The attribute aria-valuenow is not supported by the role textbox. This role is implicit on the element input  jsx-a11y/role-supports-aria-props
+
+D:\CodexWorktrees\preschool-sealed-release-20261102\BELLA SPA ERP\src\core\examples\TenantInfoExample.tsx
+  161:9  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+D:\CodexWorktrees\preschool-sealed-release-20261102\BELLA SPA ERP\src\modules\real_estate\components\OrgChartPage.tsx
+  859:21  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+D:\CodexWorktrees\preschool-sealed-release-20261102\BELLA SPA ERP\src\platform\host\feature-flags\use-feature-flag.ts
+   75:6  warning  React Hook useEffect has a missing dependency: 'context'. Either include it or remove the dependency array                                react-hooks/exhaustive-deps
+  145:6  warning  React Hook useEffect has missing dependencies: 'context' and 'flagKeys'. Either include them or remove the dependency array               react-hooks/exhaustive-deps
+  145:7  warning  React Hook useEffect has a complex expression in the dependency array. Extract it to a separate variable so it can be statically checked  react-hooks/exhaustive-deps
+
+D:\CodexWorktrees\preschool-sealed-release-20261102\BELLA SPA ERP\tests\performance\intelligence-executive-load-test.js
+  298:1  warning  Unexpected default export of anonymous function  import/no-anonymous-default-export
+
+✖ 67 problems (0 errors, 67 warnings)
+

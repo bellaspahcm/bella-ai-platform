@@ -1,0 +1,5 @@
+The approved health-only Production run failed before revealing its cause; immediate catalog read-back confirmed neither the health function nor its ledger entry exists. Preserve that failure and add a bounded diagnosis rather than retrying the migration blindly.
+
+The existing protected health workflow now defaults to `preflight`: it uses the same main/project/hash/TLS checks and a PostgreSQL READ ONLY transaction to inspect the target principal, schema/ledger privileges, absent target state and relevant default/inherited ACLs. The existing apply path requires an explicit `apply` choice. Logs expose only a fixed execution stage, sanitized error code and boolean metadata; credentials and raw errors stay suppressed.
+
+Validation: 12 scoped Jest tests and ESLint PASS; PGlite read-only happy path and stale-version denial PASS; workflow input and shell syntax PASS; independent scoped review completed. The existing health SQL, full release workflow and full-ledger guard are unchanged. No Production schema or business data is changed by this PR. Do not retry apply until the failed run's cause is established.

@@ -1,0 +1,461 @@
+diff --git a/src/app/api/education/curriculum/__tests__/route.test.ts b/src/app/api/education/curriculum/__tests__/route.test.ts
+index fe0a0c3c1..e9ad72e99 100644
+--- a/src/app/api/education/curriculum/__tests__/route.test.ts
++++ b/src/app/api/education/curriculum/__tests__/route.test.ts
+@@ -137,9 +137,29 @@ describe('Curriculum & Lesson Plan API Route (/api/education/curriculum)', () =>
+       expect(json.success).toBe(true);
+       expect(json.id).toBe('saved-plan-1');
+     });
++
++    it('uses the existing 400 error envelope for a zero-row update', async () => {
++      mockGetUser.mockResolvedValueOnce({ data: { user: { id: actorId } }, error: null } as never);
++      mockGetCurrentUser.mockResolvedValueOnce({ id: actorId, tenant_id: tenantId, role: 'admin' } as never);
++      mockSaveLessonPlan.mockResolvedValueOnce({ success: false, id: '', error: 'RECORD_NOT_FOUND' } as never);
++      const response = await POST(new Request(TEST_BASE_URL, {
++        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...validLesson, id: 'missing-plan' }),
++      }));
++      expect(response.status).toBe(400);
++      expect(await response.json()).toEqual({ success: false, error: 'RECORD_NOT_FOUND' });
++      expect(response.headers.get('Cache-Control')).toBe('private, no-store');
++    });
+   });
+ 
+   describe('DELETE', () => {
++    it('uses the existing 400 error envelope for a zero-row deletion', async () => {
++      mockGetUser.mockResolvedValueOnce({ data: { user: { id: actorId } }, error: null } as never);
++      mockGetCurrentUser.mockResolvedValueOnce({ id: actorId, tenant_id: tenantId, role: 'admin' } as never);
++      mockDeleteLessonPlan.mockResolvedValueOnce({ success: false, id: 'missing-plan', error: 'RECORD_NOT_FOUND' } as never);
++      const response = await DELETE(new Request(TEST_BASE_URL + '?id=missing-plan', { method: 'DELETE' }));
++      expect(response.status).toBe(400);
++      expect(await response.json()).toEqual({ success: false, error: 'RECORD_NOT_FOUND' });
++    });
+     it('returns 200 when deleting lesson plan by id', async () => {
+       mockGetUser.mockResolvedValueOnce({ data: { user: { id: actorId } }, error: null } as never);
+       mockGetCurrentUser.mockResolvedValueOnce({ id: actorId, tenant_id: tenantId, role: 'admin' } as never);
+diff --git a/src/app/api/education/enrollments/[id]/communications/__tests__/route.test.ts b/src/app/api/education/enrollments/[id]/communications/__tests__/route.test.ts
+index c08bafe91..2ad1a3ef1 100644
+--- a/src/app/api/education/enrollments/[id]/communications/__tests__/route.test.ts
++++ b/src/app/api/education/enrollments/[id]/communications/__tests__/route.test.ts
+@@ -1,5 +1,6 @@
+ import { beforeEach, describe, expect, it, jest } from '@jest/globals';
+ import type { CurrentActorProfileRow } from '@/platform/security/current-actor.contract';
++import type { PreschoolRegistryStudent } from '@/platform/education/contracts/preschool-registry.contract';
+ import { CURRENT_ACTOR_PROFILE_RPC } from '@/platform/security/current-actor.contract';
+ 
+ type AuthResult = {
+@@ -29,6 +30,8 @@ jest.mock('@/lib/supabase-admin-env', () => ({
+ }));
+ 
+ const mockAdminFrom = jest.fn();
++const mockLoadStudent360Identity = jest.fn<(...args: unknown[]) => Promise<PreschoolRegistryStudent | null>>();
++jest.mock('../../../student-360.service', () => ({ loadStudent360Identity: mockLoadStudent360Identity }));
+ jest.mock('@supabase/supabase-js', () => ({
+   createClient: jest.fn(() => ({
+     from: mockAdminFrom,
+@@ -40,6 +43,7 @@ const { GET, POST, PUT, PATCH, DELETE } = require('../route') as typeof import('
+ const tenantId = 'ed100000-0000-4000-8000-000000000001';
+ const actorId = 'ad6899c2-4b9d-49af-acb3-69e2e1d11447';
+ const studentId = '00000001-0000-4000-8000-000000000001';
++const studentPartyId = '00000002-0000-4000-8000-000000000001';
+ 
+ const activeActor: CurrentActorProfileRow = {
+   id: actorId,
+@@ -67,12 +71,17 @@ describe('Student Communication Authenticated Read-Only Route', () => {
+     });
+     mockGetUser.mockResolvedValue({ data: { user: { id: actorId } }, error: null });
+     mockRpc.mockResolvedValue({ data: [activeActor], error: null });
++    mockLoadStudent360Identity.mockResolvedValue({
++      id: studentId, partyId: studentPartyId, tenantId, studentCode: 'HS0001', name: 'Canonical child',
++      dob: null, gender: null, enrollments: [],
++    });
+ 
+     mockAdminFrom.mockImplementation((tableName: string) => {
+       const createBuilder = (resolvedData: unknown[]) => {
+         const chain: Record<string, unknown> = {};
+         chain.select = jest.fn().mockReturnValue(chain);
+         chain.eq = jest.fn().mockReturnValue(chain);
++        chain.or = jest.fn().mockReturnValue(chain);
+         chain.order = jest.fn().mockReturnValue(chain);
+         chain.limit = jest.fn().mockReturnValue(chain);
+         chain.then = (resolve: (val: unknown) => void) =>
+@@ -120,6 +129,34 @@ describe('Student Communication Authenticated Read-Only Route', () => {
+     expect(body.studentId).toBe(studentId);
+     expect(body.dailyCareRecords).toHaveLength(1);
+     expect(body.exceptions).toHaveLength(1);
++    expect(mockLoadStudent360Identity).toHaveBeenCalledWith(callerClient, tenantId, studentId);
++    const careQuery = mockAdminFrom.mock.results[0].value as { eq: jest.Mock; or: jest.Mock };
++    expect(careQuery.eq).toHaveBeenCalledWith('tenant_id', tenantId);
++    expect(careQuery.or).toHaveBeenCalledWith(`student_party_id.eq.${studentPartyId},student_id.eq.${studentId}`);
++  });
++
++  it('preserves the empty-read response without privileged reads when identity is not resolved', async () => {
++    mockLoadStudent360Identity.mockResolvedValueOnce(null);
++    const res = await GET(request(), context());
++    expect(res.status).toBe(200);
++    expect(await res.json()).toEqual({ success: true, studentId, dailyCareRecords: [], exceptions: [] });
++    expect(mockAdminFrom).not.toHaveBeenCalled();
++  });
++
++  it('keeps the existing unavailable response when the identity dependency fails', async () => {
++    mockLoadStudent360Identity.mockRejectedValueOnce(new Error('registry denied or unavailable'));
++    const res = await GET(request(), context());
++    expect(res.status).toBe(503);
++    expect(await res.json()).toEqual({ success: false, error: 'STUDENT_COMMUNICATION_UNAVAILABLE' });
++    expect(mockAdminFrom).not.toHaveBeenCalled();
++  });
++
++  it('rejects non-admin callers before identity or privileged reads', async () => {
++    mockRpc.mockResolvedValueOnce({ data: [{ ...activeActor, role: 'parent' }], error: null });
++    const res = await GET(request(), context());
++    expect(res.status).toBe(403);
++    expect(mockLoadStudent360Identity).not.toHaveBeenCalled();
++    expect(mockAdminFrom).not.toHaveBeenCalled();
+   });
+ 
+   it('returns 405 for unsupported HTTP methods', async () => {
+diff --git a/src/app/api/education/enrollments/[id]/communications/route.ts b/src/app/api/education/enrollments/[id]/communications/route.ts
+index d148f597e..3ad7330fa 100644
+--- a/src/app/api/education/enrollments/[id]/communications/route.ts
++++ b/src/app/api/education/enrollments/[id]/communications/route.ts
+@@ -3,6 +3,7 @@ import { createClient as createSupabaseClient, type SupabaseClient } from '@supa
+ import { createClient } from '@/lib/supabase-server';
+ import { getSupabaseAdminKey, getSupabaseAdminUrl } from '@/lib/supabase-admin-env';
+ import { CURRENT_ACTOR_PROFILE_RPC, reconcileCurrentActorProfile } from '@/platform/security/current-actor.contract';
++import { loadStudent360Identity } from '../../student-360.service';
+ import type { Database } from '@/types/database.types';
+ 
+ export const dynamic = 'force-dynamic';
+@@ -74,6 +75,13 @@ export async function GET(request: Request, { params }: RouteContext): Promise<N
+     const actor = reconcileCurrentActorProfile(auth.data.user.id, profileResult.data);
+     if (!actor?.tenant_id || actor.role !== 'admin') return failure('STUDENT_COMMUNICATION_ACCESS_DENIED', 403);
+ 
++    const canonicalStudent = await loadStudent360Identity(client, actor.tenant_id, resolvedParams.id);
++    if (!canonicalStudent) {
++      return NextResponse.json({
++        success: true, studentId: resolvedParams.id, dailyCareRecords: [], exceptions: [],
++      }, { headers: PRIVATE_HEADERS });
++    }
++
+     const adminClient = createAdminClient();
+     const queryClient = adminClient ?? client;
+ 
+@@ -82,7 +90,7 @@ export async function GET(request: Request, { params }: RouteContext): Promise<N
+         .from('edu_daily_care_records')
+         .select('id, session_id, arrival_status, arrival_time, morning_condition, meal_records, hygiene_records, nap_records, health_checks, created_at, session:edu_daily_care_sessions(id, date, status)')
+         .eq('tenant_id', actor.tenant_id)
+-        .eq('student_id', resolvedParams.id)
++        .or(`student_party_id.eq.${canonicalStudent.partyId},student_id.eq.${canonicalStudent.id}`)
+         .order('created_at', { ascending: false })
+         .limit(14),
+       queryClient
+diff --git a/src/app/api/education/enrollments/__tests__/student-360.service.test.ts b/src/app/api/education/enrollments/__tests__/student-360.service.test.ts
+index 660991df3..f4b9d7597 100644
+--- a/src/app/api/education/enrollments/__tests__/student-360.service.test.ts
++++ b/src/app/api/education/enrollments/__tests__/student-360.service.test.ts
+@@ -18,7 +18,7 @@ jest.mock('@/platform/education/contracts/attendance.contract.impl', () => ({
+   AttendanceContractImpl: jest.fn().mockImplementation(() => ({ getAttendanceHistory: mockHistory })),
+ }));
+ 
+-const { loadStudent360Profile } = require('../student-360.service') as typeof import('../student-360.service');
++const { loadStudent360Profile, loadStudent360Identity } = require('../student-360.service') as typeof import('../student-360.service');
+ const { PreschoolRegistryContractImpl } = require('@/platform/education/contracts/preschool-registry.contract.impl') as typeof import('@/platform/education/contracts/preschool-registry.contract.impl');
+ const { AttendanceContractImpl } = require('@/platform/education/contracts/attendance.contract.impl') as typeof import('@/platform/education/contracts/attendance.contract.impl');
+ const tenantId = 'ed100000-0000-0000-0000-000000000001';
+@@ -51,6 +51,14 @@ describe('Student 360 caller-authorized public contract composition', () => {
+     mockHistory.mockReset().mockResolvedValue([]);
+   });
+ 
++  it('resolves the existing canonical identity without adding an Attendance dependency', async () => {
++    mockHistory.mockRejectedValue(new Error('attendance unavailable'));
++    expect(await loadStudent360Identity(callerClient, tenantId, student().id)).toEqual(student());
++    expect(PreschoolRegistryContractImpl).toHaveBeenCalledWith(callerClient);
++    expect(AttendanceContractImpl).not.toHaveBeenCalled();
++    expect(mockHistory).not.toHaveBeenCalled();
++  });
++
+   it.each([student().studentCode, student().id, student().partyId, student().enrollments[0].id])(
+     'matches exactly the authorized student identifier %s', async identifier => {
+       const profile = await loadStudent360Profile(callerClient, tenantId, identifier);
+diff --git a/src/app/api/education/enrollments/student-360.service.ts b/src/app/api/education/enrollments/student-360.service.ts
+index 64c5782e2..6c4d42e2f 100644
+--- a/src/app/api/education/enrollments/student-360.service.ts
++++ b/src/app/api/education/enrollments/student-360.service.ts
+@@ -84,11 +84,11 @@ function isAttendanceRecord(value: unknown, tenantId: string, enrollmentId: stri
+ }
+ 
+ /** Only caller-authorized Registry records may supply Student 360 identities. */
+-export async function loadStudent360Profile(
++export async function loadStudent360Identity(
+   client: SupabaseClient<Database>,
+   tenantId: string,
+   rawIdentifier: string,
+-): Promise<Student360ProfileData | null> {
++): Promise<PreschoolRegistryStudent | null> {
+   const identifier = rawIdentifier.trim();
+   if (!identifier || identifier.length > 80 || /[\u0000-\u001f\u007f]/.test(identifier)) {
+     throw new Student360ReadError('INVALID_STUDENT_ID', 400);
+@@ -141,6 +141,15 @@ export async function loadStudent360Profile(
+   }
+ 
+   if (!complete) unavailable();
++  return student;
++}
++
++export async function loadStudent360Profile(
++  client: SupabaseClient<Database>,
++  tenantId: string,
++  rawIdentifier: string,
++): Promise<Student360ProfileData | null> {
++  const student = await loadStudent360Identity(client, tenantId, rawIdentifier);
+   if (!student) return null;
+ 
+   const attendance = new AttendanceContractImpl(client);
+diff --git a/src/app/api/education/nutrition/weekly-menu/__tests__/route.test.ts b/src/app/api/education/nutrition/weekly-menu/__tests__/route.test.ts
+index 560e048b2..c5deb0c3d 100644
+--- a/src/app/api/education/nutrition/weekly-menu/__tests__/route.test.ts
++++ b/src/app/api/education/nutrition/weekly-menu/__tests__/route.test.ts
+@@ -185,6 +185,18 @@ describe('Weekly Menu API Route (/api/education/nutrition/weekly-menu)', () => {
+       expect(json.success).toBe(true);
+       expect(json.menuId).toBe('saved-menu-123');
+     });
++
++    it('uses the existing 400 error envelope for a zero-row menu update', async () => {
++      mockGetUser.mockResolvedValueOnce({ data: { user: { id: actorId } }, error: null } as never);
++      mockGetCurrentUser.mockResolvedValueOnce({ id: actorId, tenant_id: tenantId, role: 'admin' } as never);
++      mockSaveWeeklyMenu.mockResolvedValueOnce({ success: false, menuId: '', error: 'MENU_NOT_FOUND' } as never);
++      const response = await POST(new Request('http://localhost/api/education/nutrition/weekly-menu', {
++        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...validPayload, menuId: 'missing-menu' }),
++      }));
++      expect(response.status).toBe(400);
++      expect(await response.json()).toEqual({ success: false, error: 'MENU_NOT_FOUND' });
++      expect(response.headers.get('Cache-Control')).toBe('private, no-store');
++    });
+   });
+ });
+ 
+diff --git a/src/products/bella-education/care-wellbeing/nutrition/__tests__/weekly-menu.service.test.ts b/src/products/bella-education/care-wellbeing/nutrition/__tests__/weekly-menu.service.test.ts
+index b027327f6..670a76efe 100644
+--- a/src/products/bella-education/care-wellbeing/nutrition/__tests__/weekly-menu.service.test.ts
++++ b/src/products/bella-education/care-wellbeing/nutrition/__tests__/weekly-menu.service.test.ts
+@@ -192,6 +192,44 @@ describe('WeeklyMenuService', () => {
+       expect(result.menuId).toBe('created-menu-uuid');
+       expect(mockDaysUpsert).toHaveBeenCalledTimes(1);
+     });
++
++    it('does not report update success or write menu days when the tenant-scoped menu update matched no row', async () => {
++      const maybeSingle = jest.fn<() => Promise<{ data: { id: string } | null; error: null }>>()
++        .mockResolvedValueOnce({ data: { id: 'existing-menu' }, error: null })
++        .mockResolvedValueOnce({ data: null, error: null });
++      const menuQuery = {
++        select: jest.fn().mockReturnThis(),
++        eq: jest.fn().mockReturnThis(),
++        maybeSingle,
++        update: jest.fn().mockReturnThis(),
++      };
++      const mockDaysUpsert = jest.fn();
++      const mockFrom = jest.fn((table: string) => table === 'edu_weekly_menus'
++        ? menuQuery
++        : { upsert: mockDaysUpsert });
++      service = new WeeklyMenuService({ from: mockFrom } as never);
++
++      const result = await service.saveWeeklyMenu(tenantId, actorId, validInput);
++      expect(result).toMatchObject({ success: false, menuId: '', error: 'MENU_NOT_FOUND' });
++      expect(menuQuery.update).toHaveBeenCalledTimes(1);
++      expect(mockDaysUpsert).not.toHaveBeenCalled();
++    });
++
++    it('preserves the existing success response and day payload when a menu row is updated', async () => {
++      const menuQuery = {
++        update: jest.fn().mockReturnThis(), eq: jest.fn().mockReturnThis(), select: jest.fn().mockReturnThis(),
++        maybeSingle: jest.fn<() => Promise<{ data: { id: string }; error: null }>>()
++          .mockResolvedValue({ data: { id: 'existing-menu' }, error: null }),
++      };
++      const upsert = jest.fn<() => Promise<{ error: null }>>().mockResolvedValue({ error: null });
++      service = new WeeklyMenuService({ from: jest.fn((table: string) => table === 'edu_weekly_menus' ? menuQuery : { upsert }) } as never);
++      const result = await service.saveWeeklyMenu(tenantId, actorId, { ...validInput, menuId: 'existing-menu' });
++      expect(result).toEqual({ success: true, menuId: 'existing-menu', message: 'Thực đơn tuần đã được ban hành thành công.' });
++      expect(menuQuery.eq).toHaveBeenCalledWith('tenant_id', tenantId);
++      expect(upsert).toHaveBeenCalledWith([expect.objectContaining({
++        tenant_id: tenantId, menu_id: 'existing-menu', day_of_week: 'MON', meals_payload: validInput.days[0].mealsPayload,
++      })], { onConflict: 'tenant_id,menu_id,day_of_week' });
++    });
+   });
+ });
+ 
+diff --git a/src/products/bella-education/care-wellbeing/nutrition/weekly-menu.service.ts b/src/products/bella-education/care-wellbeing/nutrition/weekly-menu.service.ts
+index c2d51b0c5..2d5270e7f 100644
+--- a/src/products/bella-education/care-wellbeing/nutrition/weekly-menu.service.ts
++++ b/src/products/bella-education/care-wellbeing/nutrition/weekly-menu.service.ts
+@@ -318,15 +318,18 @@ export class WeeklyMenuService {
+       };
+ 
+       if (menuId) {
+-        const { error: updateErr } = await this.supabase
++        const { data: updated, error: updateErr } = await this.supabase
+           .from('edu_weekly_menus')
+           .update(masterPayload)
+           .eq('id', menuId)
+-          .eq('tenant_id', tenantId);
++          .eq('tenant_id', tenantId)
++          .select('id')
++          .maybeSingle();
+ 
+         if (updateErr) {
+           return { success: false, menuId: '', error: `UPDATE_FAILED: ${updateErr.message}` };
+         }
++        if (!updated) return { success: false, menuId: '', error: 'MENU_NOT_FOUND' };
+       } else {
+         const { data: inserted, error: insertErr } = await this.supabase
+           .from('edu_weekly_menus')
+diff --git a/src/products/bella-education/learning-development/curriculum/__tests__/curriculum.service.test.ts b/src/products/bella-education/learning-development/curriculum/__tests__/curriculum.service.test.ts
+index 020d4a482..9786d5e51 100644
+--- a/src/products/bella-education/learning-development/curriculum/__tests__/curriculum.service.test.ts
++++ b/src/products/bella-education/learning-development/curriculum/__tests__/curriculum.service.test.ts
+@@ -14,6 +14,29 @@ describe('CurriculumService', () => {
+   });
+ 
+   describe('Curriculums', () => {
++    it.each([
++      { row: { id: 'curr-1' }, error: null, success: true, expectedError: undefined },
++      { row: null, error: null, success: false, expectedError: 'RECORD_NOT_FOUND' },
++      { row: null, error: { message: 'write denied' }, success: false, expectedError: 'write denied' },
++    ])('requires a returned curriculum row without changing valid update results: $success/$expectedError', async ({ row, error, success, expectedError }) => {
++      const query = {
++        update: jest.fn().mockReturnThis(),
++        eq: jest.fn().mockReturnThis(),
++        select: jest.fn().mockReturnThis(),
++        maybeSingle: jest.fn<() => Promise<{ data: { id: string } | null; error: { message: string } | null }>>()
++          .mockResolvedValue({ data: row, error }),
++      };
++      service = new CurriculumService({ from: jest.fn().mockReturnValue(query) } as never);
++      const result = await service.saveCurriculum(tenantId, {
++        id: 'curr-1', code: 'TEST', name: 'Existing curriculum', status: 'ACTIVE', subjects: [],
++      });
++      expect(result.success).toBe(success);
++      expect(result.id).toBe(success ? 'curr-1' : '');
++      expect(result.error).toBe(expectedError);
++      expect(query.eq).toHaveBeenCalledWith('id', 'curr-1');
++      expect(query.eq).toHaveBeenCalledWith('tenant_id', tenantId);
++    });
++
+     it('lists curriculums with parsed subjects', async () => {
+       const mockQuery = {
+         select: jest.fn().mockReturnThis(),
+@@ -139,13 +162,31 @@ describe('CurriculumService', () => {
+       expect(result.id).toBe('created-plan-uuid');
+     });
+ 
++    it('does not report update success when no tenant-scoped lesson plan was updated', async () => {
++      const query = {
++        update: jest.fn().mockReturnThis(),
++        eq: jest.fn().mockReturnThis(),
++        select: jest.fn().mockReturnThis(),
++        maybeSingle: jest.fn<() => Promise<{ data: null; error: null }>>().mockResolvedValue({ data: null, error: null }),
++      };
++      mockSupabase = { from: jest.fn().mockReturnValue(query) };
++      service = new CurriculumService(mockSupabase as never);
++
++      const result = await service.saveLessonPlan(tenantId, actorId, { ...validPlan, id: 'missing-plan' });
++      expect(result).toMatchObject({ success: false, id: '', error: 'RECORD_NOT_FOUND' });
++      expect(query.select).toHaveBeenCalledWith('id');
++    });
++
+     it('deletes a lesson plan', async () => {
+-      const mockEq2 = jest.fn<() => Promise<{ error: null }>>().mockResolvedValue({ error: null });
+-      const mockEq1 = jest.fn().mockReturnValue({ eq: mockEq2 });
+-      const mockDelete = jest.fn().mockReturnValue({ eq: mockEq1 });
++      const query = {
++        delete: jest.fn().mockReturnThis(),
++        eq: jest.fn().mockReturnThis(),
++        select: jest.fn().mockReturnThis(),
++        maybeSingle: jest.fn<() => Promise<{ data: { id: string }; error: null }>>().mockResolvedValue({ data: { id: 'plan-to-delete' }, error: null }),
++      };
+ 
+       mockSupabase = {
+-        from: jest.fn().mockReturnValue({ delete: mockDelete }),
++        from: jest.fn().mockReturnValue(query),
+       };
+ 
+       service = new CurriculumService(mockSupabase as never);
+@@ -153,6 +194,20 @@ describe('CurriculumService', () => {
+       const result = await service.deleteLessonPlan(tenantId, 'plan-to-delete');
+       expect(result.success).toBe(true);
+     });
++
++    it('does not report delete success when no tenant-scoped lesson plan was removed', async () => {
++      const query = {
++        delete: jest.fn().mockReturnThis(),
++        eq: jest.fn().mockReturnThis(),
++        select: jest.fn().mockReturnThis(),
++        maybeSingle: jest.fn<() => Promise<{ data: null; error: null }>>().mockResolvedValue({ data: null, error: null }),
++      };
++      mockSupabase = { from: jest.fn().mockReturnValue(query) };
++      service = new CurriculumService(mockSupabase as never);
++
++      const result = await service.deleteLessonPlan(tenantId, 'missing-plan');
++      expect(result).toMatchObject({ success: false, id: 'missing-plan', error: 'RECORD_NOT_FOUND' });
++    });
+   });
+ });
+ 
+diff --git a/src/products/bella-education/learning-development/curriculum/curriculum.service.ts b/src/products/bella-education/learning-development/curriculum/curriculum.service.ts
+index e8e0364d7..8e06d5e82 100644
+--- a/src/products/bella-education/learning-development/curriculum/curriculum.service.ts
++++ b/src/products/bella-education/learning-development/curriculum/curriculum.service.ts
+@@ -170,13 +170,16 @@ export class CurriculumService {
+       };
+ 
+       if (input.id) {
+-        const { error } = await this.supabase
++        const { data, error } = await this.supabase
+           .from('edu_curriculums')
+           .update(payload)
+           .eq('id', input.id)
+-          .eq('tenant_id', tenantId);
++          .eq('tenant_id', tenantId)
++          .select('id')
++          .maybeSingle();
+ 
+         if (error) return { success: false, id: '', error: error.message };
++        if (!data) return { success: false, id: '', error: 'RECORD_NOT_FOUND' };
+         return { success: true, id: input.id, message: 'Cập nhật khung giáo trình thành công.' };
+       } else {
+         const { data, error } = await this.supabase
+@@ -290,13 +293,16 @@ export class CurriculumService {
+       };
+ 
+       if (input.id) {
+-        const { error } = await this.supabase
++        const { data, error } = await this.supabase
+           .from('edu_lesson_plans')
+           .update(payload)
+           .eq('id', input.id)
+-          .eq('tenant_id', tenantId);
++          .eq('tenant_id', tenantId)
++          .select('id')
++          .maybeSingle();
+ 
+         if (error) return { success: false, id: '', error: error.message };
++        if (!data) return { success: false, id: '', error: 'RECORD_NOT_FOUND' };
+         return { success: true, id: input.id, message: 'Cập nhật giáo án thành công.' };
+       } else {
+         const { data, error } = await this.supabase
+@@ -319,13 +325,16 @@ export class CurriculumService {
+ 
+   async deleteLessonPlan(tenantId: string, id: string): Promise<SaveResult> {
+     try {
+-      const { error } = await this.supabase
++      const { data, error } = await this.supabase
+         .from('edu_lesson_plans')
+         .delete()
+         .eq('id', id)
+-        .eq('tenant_id', tenantId);
++        .eq('tenant_id', tenantId)
++        .select('id')
++        .maybeSingle();
+ 
+       if (error) return { success: false, id, error: error.message };
++      if (!data) return { success: false, id, error: 'RECORD_NOT_FOUND' };
+       return { success: true, id, message: 'Đã xóa giáo án thành công.' };
+     } catch (err) {
+       return { success: false, id, error: err instanceof Error ? err.message : 'DELETE_FAILED' };

@@ -1,0 +1,187 @@
+{
+  "deploymentId": "dpl_DstNQvShsVvhXgWrsM283n6pJQVN",
+  "base": "f1299e3138f3700062a1ed84271db315737b0071",
+  "comparison": "Read-only source comparison only; no SWC/build-artifact or application runtime proof",
+  "paths": [
+    {
+      "path": "src/app/api/admin/partners/[id]/webhook-retry-config/route.ts",
+      "uid": "df318a6ee1de82c167587ed9548a6fbbb52042b4",
+      "classification": "TEXT_EQUIVALENT_AFTER_BOM_LINE_ENDINGS"
+    },
+    {
+      "path": "src/app/dashboard/customer/history/page.tsx",
+      "uid": "4368037b2e779f47f72afd239e9f0bf21bcdd0eb",
+      "classification": "TEXT_EQUIVALENT_AFTER_BOM_LINE_ENDINGS"
+    },
+    {
+      "path": "src/app/dashboard/customer/notifications/page.tsx",
+      "uid": "28cdbc91663b105cd4377304cc4b756900614c33",
+      "classification": "TEXT_EQUIVALENT_AFTER_BOM_LINE_ENDINGS"
+    },
+    {
+      "path": "src/app/dashboard/customer/page.tsx",
+      "uid": "ab04c3ab697d27f295cf5640bd4df7ab38bb41b9",
+      "classification": "TEXT_EQUIVALENT_AFTER_BOM_LINE_ENDINGS"
+    },
+    {
+      "path": "src/app/dashboard/customer/profile/page.tsx",
+      "uid": "37552b5a29a8084346a086a85d6224c0a307c1b3",
+      "classification": "TEXT_EQUIVALENT_AFTER_BOM_LINE_ENDINGS"
+    },
+    {
+      "path": "src/app/hq/components/HqAuditLogLedger.tsx",
+      "uid": "f81ec702d94d4232c32104422fd2550b3204512d",
+      "classification": "TEXT_EQUIVALENT_AFTER_BOM_LINE_ENDINGS"
+    },
+    {
+      "path": "src/app/hq/components/HqAuditStats.tsx",
+      "uid": "68dee5b9442c1471ae44cf4c4411f60ba5c91ce2",
+      "classification": "TEXT_EQUIVALENT_AFTER_BOM_LINE_ENDINGS"
+    },
+    {
+      "path": "src/app/hq/components/HqClearingRecordsLedger.tsx",
+      "uid": "5b1bc63990ed628a0ba65d977dfd24a150dfebfd",
+      "classification": "TEXT_EQUIVALENT_AFTER_BOM_LINE_ENDINGS"
+    },
+    {
+      "path": "src/app/hq/components/HqRoyaltyInvoiceLedger.tsx",
+      "uid": "9212c1c178c2ad59d03366e015f71296afb4ed0a",
+      "classification": "TEXT_EQUIVALENT_AFTER_BOM_LINE_ENDINGS"
+    },
+    {
+      "path": "src/app/hq/components/HqTransferOrdersLedger.tsx",
+      "uid": "0742664c10019d124fabf4e24538079963b0beb6",
+      "classification": "TEXT_EQUIVALENT_AFTER_BOM_LINE_ENDINGS"
+    },
+    {
+      "path": "src/app/hq/components/HqTransferStats.tsx",
+      "uid": "11dbcf3e9a41f409b66967e640551a2915d51323",
+      "classification": "TEXT_EQUIVALENT_AFTER_BOM_LINE_ENDINGS"
+    },
+    {
+      "path": "src/app/hq/page.tsx",
+      "uid": "91d41756b35d39e78c465f772aa4af381cc92068",
+      "classification": "TEXT_EQUIVALENT_AFTER_BOM_LINE_ENDINGS"
+    },
+    {
+      "path": "src/components/common/PwaRegister.tsx",
+      "uid": "bcad0cf2a5654ec0da229804f70fc7bf624250bd",
+      "classification": "TEXT_EQUIVALENT_AFTER_BOM_LINE_ENDINGS"
+    },
+    {
+      "path": "src/components/features/landing/ServiceWizard.tsx",
+      "uid": "defa1ffed65bda08449aef64f9c2d2eec9baf609",
+      "classification": "TEXT_EQUIVALENT_AFTER_BOM_LINE_ENDINGS"
+    },
+    {
+      "path": "src/components/features/VietQRPaymentModal.tsx",
+      "uid": "057f2048efc415153392bdef3b648acd63134b70",
+      "classification": "TEXT_EQUIVALENT_AFTER_BOM_LINE_ENDINGS"
+    },
+    {
+      "path": "src/components/intelligence/customer/CustomerActivityChart.tsx",
+      "uid": "58c30e85412cb192a049bb7f312fa01598095a6a",
+      "classification": "TEXT_EQUIVALENT_AFTER_BOM_LINE_ENDINGS"
+    },
+    {
+      "path": "src/components/intelligence/customer/LtvByCohortChart.tsx",
+      "uid": "5a2c2ee9b107d2a06af3a27da3ec69384aa78df8",
+      "classification": "TEXT_EQUIVALENT_AFTER_BOM_LINE_ENDINGS"
+    },
+    {
+      "path": "src/components/intelligence/customer/LtvDistributionChart.tsx",
+      "uid": "0cc443a9a01e26311c8811b61a133195b0cc9546",
+      "classification": "TEXT_EQUIVALENT_AFTER_BOM_LINE_ENDINGS"
+    },
+    {
+      "path": "src/components/intelligence/CustomerMetricsChart.tsx",
+      "uid": "09413e31afdf58708781577bff99ecabee06c295",
+      "classification": "TEXT_EQUIVALENT_AFTER_BOM_LINE_ENDINGS"
+    },
+    {
+      "path": "src/components/intelligence/FinancialHealthChart.tsx",
+      "uid": "168634ef17986cd8c603512344092b6d7d78254e",
+      "classification": "TEXT_EQUIVALENT_AFTER_BOM_LINE_ENDINGS"
+    },
+    {
+      "path": "src/components/intelligence/GrowthIndicatorsChart.tsx",
+      "uid": "46a18d670e368162b6839924bd0f5794802cb735",
+      "classification": "TEXT_EQUIVALENT_AFTER_BOM_LINE_ENDINGS"
+    },
+    {
+      "path": "src/components/intelligence/PnLStatementChart.tsx",
+      "uid": "5d45a891936da69c9d973774386e9b74109d4312",
+      "classification": "TEXT_EQUIVALENT_AFTER_BOM_LINE_ENDINGS"
+    },
+    {
+      "path": "src/components/ui/PremiumExportButton.tsx",
+      "uid": "9d09ef9c1309404ffcdc8cc43250e46ab95b8283",
+      "classification": "TEXT_EQUIVALENT_AFTER_BOM_LINE_ENDINGS"
+    },
+    {
+      "path": "src/core/services/analytics/export-actions.ts",
+      "uid": "144dc83437af296f1fa620c110387f0cfc37f8d0",
+      "classification": "TEXT_EQUIVALENT_AFTER_BOM_LINE_ENDINGS"
+    },
+    {
+      "path": "src/core/services/order/session-actions.ts",
+      "uid": "aef5ab56b35cebb5dd448a142c8429a04234bfec",
+      "classification": "TEXT_EQUIVALENT_AFTER_BOM_LINE_ENDINGS"
+    },
+    {
+      "path": "src/core/services/order/session-mutation-actions.ts",
+      "uid": "b934fe6fe86469e2ab8f14e701230b5456c729b8",
+      "classification": "TEXT_EQUIVALENT_AFTER_BOM_LINE_ENDINGS"
+    },
+    {
+      "path": "src/lib/dashboard-client-context.ts",
+      "uid": "afd2b23113837e06e573548161502f7aa8ab4c0d",
+      "classification": "TEXT_EQUIVALENT_AFTER_BOM_LINE_ENDINGS"
+    },
+    {
+      "path": "src/lib/middleware/rate-limit.middleware.ts",
+      "uid": "1abf2ef3b84c58709440c8cec50af23c00f1e2b0",
+      "classification": "TEXT_EQUIVALENT_AFTER_BOM_LINE_ENDINGS"
+    },
+    {
+      "path": "src/lib/migration.ts",
+      "uid": "b7ef70cfd17f1273f609b255bc6d409ae086f340",
+      "classification": "TEXT_EQUIVALENT_AFTER_BOM_LINE_ENDINGS"
+    },
+    {
+      "path": "src/lib/revalidate.ts",
+      "uid": "6346e47d0992e686e63fdd390d391617e3d41a6e",
+      "classification": "TEXT_EQUIVALENT_AFTER_BOM_LINE_ENDINGS"
+    },
+    {
+      "path": "src/platform/finance/index.ts",
+      "uid": "253723ca4c52e4e17eb1aacc0872ff775fac2524",
+      "classification": "TEXT_EQUIVALENT_AFTER_BOM_LINE_ENDINGS"
+    },
+    {
+      "path": "src/products/bella-education/finance/services/invoice-issuance.service.ts",
+      "uid": "ffb3f6384edfe17120778aeb0d3dc4a398754788",
+      "classification": "TEXT_EQUIVALENT_AFTER_BOM_LINE_ENDINGS"
+    },
+    {
+      "path": "src/products/bella-education/finance/services/overdue-payment-scanner.service.ts",
+      "uid": "76d7605e836fff9dccd7a4cf212c62146bd89acb",
+      "classification": "TEXT_EQUIVALENT_AFTER_BOM_LINE_ENDINGS"
+    },
+    {
+      "path": "src/products/bella-education/parent-engagement/bridges/finance-projection.bridge.ts",
+      "uid": "45cdde855df75fc52057c16da75b8556ff1739e2",
+      "classification": "TEXT_EQUIVALENT_AFTER_BOM_LINE_ENDINGS"
+    },
+    {
+      "path": "src/services/accounting-engine.ts",
+      "uid": "52d950bf1e21a3b45a1ab8093528e01f367598d4",
+      "classification": "TEXT_EQUIVALENT_AFTER_BOM_LINE_ENDINGS"
+    },
+    {
+      "path": "src/services/api-gateway/partner.service.ts",
+      "uid": "7d03dcbb8f53f8bb58e785a2399cda35b35c3080",
+      "classification": "TEXT_EQUIVALENT_AFTER_BOM_LINE_ENDINGS"
+    }
+  ]
+}

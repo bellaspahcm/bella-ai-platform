@@ -1,0 +1,142 @@
+announcement_catalog
+"{
+    ""execute"": [
+        {
+            ""role"": ""authenticated"",
+            ""execute"": true,
+            ""signature"": ""preschool_list_school_announcements()""
+        },
+        {
+            ""role"": ""anon"",
+            ""execute"": true,
+            ""signature"": ""preschool_list_school_announcements()""
+        },
+        {
+            ""role"": ""service_role"",
+            ""execute"": true,
+            ""signature"": ""preschool_list_school_announcements()""
+        },
+        {
+            ""role"": ""authenticated"",
+            ""execute"": true,
+            ""signature"": ""preschool_publish_school_announcement(uuid,text,text)""
+        },
+        {
+            ""role"": ""anon"",
+            ""execute"": true,
+            ""signature"": ""preschool_publish_school_announcement(uuid,text,text)""
+        },
+        {
+            ""role"": ""service_role"",
+            ""execute"": true,
+            ""signature"": ""preschool_publish_school_announcement(uuid,text,text)""
+        }
+    ],
+    ""policies"": [
+        {
+            ""name"": ""tenant_isolation_edu_announcements"",
+            ""roles"": [
+                ""public""
+            ],
+            ""using"": ""((tenant_id = get_auth_tenant_id()) OR (current_setting('role'::text, true) = 'service_role'::text))"",
+            ""command"": ""ALL"",
+            ""withCheck"": ""((tenant_id = get_auth_tenant_id()) OR (current_setting('role'::text, true) = 'service_role'::text))"",
+            ""permissive"": ""PERMISSIVE""
+        }
+    ],
+    ""triggers"": null,
+    ""functions"": [
+        {
+            ""acl"": ""{=X/postgres,postgres=X/postgres,service_role=X/postgres,authenticated=X/postgres}"",
+            ""config"": [
+                ""search_path=public""
+            ],
+            ""signature"": ""preschool_list_school_announcements()"",
+            ""definition"": ""CREATE OR REPLACE FUNCTION public.preschool_list_school_announcements()\n RETURNS jsonb\n LANGUAGE plpgsql\n SET search_path TO 'public'\nAS $function$\nDECLARE\n  v_tenant_id UUID;\n  v_rows      jsonb;\nBEGIN\n  v_tenant_id := public.get_auth_tenant_id();\n\n  SELECT jsonb_agg(\n    jsonb_build_object(\n      'id',          a.id,\n      'title',       a.title,\n      'bodyText',    a.body_text,\n      'publishedAt', to_char(a.published_at AT TIME ZONE 'UTC', 'YYYY-MM-DD\""T\""HH24:MI:SS.MS\""Z\""')\n    ) ORDER BY a.published_at DESC\n  )\n  INTO v_rows\n  FROM public.edu_announcements a\n  WHERE a.tenant_id = v_tenant_id;\n\n  RETURN jsonb_build_object(\n    'tenantId',      v_tenant_id,\n    'announcements', COALESCE(v_rows, '[]'::jsonb)\n  );\nEND;\n$function$\n"",
+            ""securityDefiner"": false
+        },
+        {
+            ""acl"": ""{=X/postgres,postgres=X/postgres,service_role=X/postgres,authenticated=X/postgres}"",
+            ""config"": [
+                ""search_path=public""
+            ],
+            ""signature"": ""preschool_publish_school_announcement(uuid,text,text)"",
+            ""definition"": ""CREATE OR REPLACE FUNCTION public.preschool_publish_school_announcement(p_request_id uuid, p_title text, p_body_text text)\n RETURNS jsonb\n LANGUAGE plpgsql\n SET search_path TO 'public'\nAS $function$\nDECLARE\n  v_tenant_id UUID;\n  v_row       public.edu_announcements%ROWTYPE;\n  v_duplicate BOOLEAN := FALSE;\nBEGIN\n  v_tenant_id := public.get_auth_tenant_id();\n\n  IF p_request_id IS NULL THEN\n    RAISE EXCEPTION 'p_request_id is required' USING ERRCODE = '22023';\n  END IF;\n  IF p_title IS NULL OR char_length(trim(p_title)) < 1 OR char_length(trim(p_title)) > 200 THEN\n    RAISE EXCEPTION 'title must be 1-200 characters' USING ERRCODE = '22023';\n  END IF;\n  IF p_body_text IS NULL OR char_length(trim(p_body_text)) < 1 OR char_length(trim(p_body_text)) > 20000 THEN\n    RAISE EXCEPTION 'body_text must be 1-20000 characters' USING ERRCODE = '22023';\n  END IF;\n\n  SELECT * INTO v_row\n  FROM public.edu_announcements\n  WHERE tenant_id = v_tenant_id AND request_id = p_request_id;\n\n  IF FOUND THEN\n    v_duplicate := TRUE;\n  ELSE\n    INSERT INTO public.edu_announcements (tenant_id, request_id, title, body_text, created_by)\n    VALUES (v_tenant_id, p_request_id, trim(p_title), trim(p_body_text), auth.uid())\n    RETURNING * INTO v_row;\n  END IF;\n\n  RETURN jsonb_build_object(\n    'id',          v_row.id,\n    'title',       v_row.title,\n    'bodyText',    v_row.body_text,\n    'publishedAt', to_char(v_row.published_at AT TIME ZONE 'UTC', 'YYYY-MM-DD\""T\""HH24:MI:SS.MS\""Z\""'),\n    'duplicate',   v_duplicate\n  );\nEND;\n$function$\n"",
+            ""securityDefiner"": false
+        }
+    ],
+    ""relations"": [
+        {
+            ""acl"": ""{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres,bella_developer=r/postgres,bella_migration_executor=arwdDxtm/postgres,verification_executor=r/postgres,authenticated=ar/postgres}"",
+            ""rls"": true,
+            ""name"": ""edu_announcements"",
+            ""forced"": false
+        }
+    ],
+    ""capturedAt"": ""2026-11-01T00:43:29.967814+00:00"",
+    ""privileges"": [
+        {
+            ""role"": ""authenticated"",
+            ""delete"": false,
+            ""insert"": true,
+            ""select"": true,
+            ""update"": false,
+            ""anyColumnInsert"": true,
+            ""anyColumnSelect"": true,
+            ""anyColumnUpdate"": false
+        },
+        {
+            ""role"": ""anon"",
+            ""delete"": false,
+            ""insert"": false,
+            ""select"": false,
+            ""update"": false,
+            ""anyColumnInsert"": false,
+            ""anyColumnSelect"": false,
+            ""anyColumnUpdate"": false
+        },
+        {
+            ""role"": ""service_role"",
+            ""delete"": true,
+            ""insert"": true,
+            ""select"": true,
+            ""update"": true,
+            ""anyColumnInsert"": true,
+            ""anyColumnSelect"": true,
+            ""anyColumnUpdate"": true
+        }
+    ],
+    ""constraints"": [
+        {
+            ""name"": ""edu_announcements_body_text_check"",
+            ""validated"": true,
+            ""definition"": ""CHECK (char_length(TRIM(BOTH FROM body_text)) >= 1 AND char_length(TRIM(BOTH FROM body_text)) <= 20000)""
+        },
+        {
+            ""name"": ""edu_announcements_created_by_fkey"",
+            ""validated"": true,
+            ""definition"": ""FOREIGN KEY (created_by) REFERENCES auth.users(id)""
+        },
+        {
+            ""name"": ""edu_announcements_pkey"",
+            ""validated"": true,
+            ""definition"": ""PRIMARY KEY (id)""
+        },
+        {
+            ""name"": ""edu_announcements_tenant_id_fkey"",
+            ""validated"": true,
+            ""definition"": ""FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE""
+        },
+        {
+            ""name"": ""edu_announcements_tenant_id_request_id_key"",
+            ""validated"": true,
+            ""definition"": ""UNIQUE (tenant_id, request_id)""
+        },
+        {
+            ""name"": ""edu_announcements_title_check"",
+            ""validated"": true,
+            ""definition"": ""CHECK (char_length(TRIM(BOTH FROM title)) >= 1 AND char_length(TRIM(BOTH FROM title)) <= 200)""
+        }
+    ],
+    ""transactionReadOnly"": ""on""
+}"

@@ -1,0 +1,232 @@
+{
+  "label": "v1",
+  "projectId": "bella-preschool-46198d05",
+  "sourceRevision": "f1299e3138f3700062a1ed84271db315737b0071",
+  "candidateHash": "f5bdaa32df134eb215de883ed8a7f0cfa59eac1489718b146c75eabbf400bf32",
+  "baseline": "MATCHED_TARGETED_FUNCTION_POLICY_ACL_SURFACES",
+  "parse": "PASS",
+  "rollback": "PASS",
+  "checks": [
+    {
+      "name": "original_candidate_parse_preflight_postflight",
+      "status": "PASS"
+    },
+    {
+      "name": "explicit_rollback_restores_all_package_metadata",
+      "status": "PASS"
+    },
+    {
+      "name": "late_package_failure_rolls_back_all_ddl_acl",
+      "status": "PASS"
+    },
+    {
+      "name": "preflight_rejects_dependency_drift",
+      "status": "PASS"
+    },
+    {
+      "name": "preflight_rejects_acl_drift",
+      "status": "PASS"
+    },
+    {
+      "name": "preflight_rejects_schema_drift",
+      "status": "PASS"
+    },
+    {
+      "name": "preflight_rejects_function_drift",
+      "status": "PASS"
+    },
+    {
+      "name": "isolated_commit_of_exact_candidate",
+      "status": "PASS"
+    },
+    {
+      "name": "english_compatibility_withoutGuc",
+      "status": "FAIL",
+      "detail": {
+        "before": [],
+        "after": [
+          {
+            "tenant_id": "a2894d09-6b82-4f90-8dd2-ecd8165326b3",
+            "enrollment_id": "91952656-6469-4f7d-a80b-85641d88eb3c"
+          }
+        ]
+      }
+    },
+    {
+      "name": "english_compatibility_withoutGucWrite",
+      "status": "PASS",
+      "detail": {
+        "before": true,
+        "after": true
+      }
+    },
+    {
+      "name": "english_compatibility_withGuc",
+      "status": "PASS",
+      "detail": {
+        "before": [
+          {
+            "tenant_id": "a2894d09-6b82-4f90-8dd2-ecd8165326b3",
+            "enrollment_id": "91952656-6469-4f7d-a80b-85641d88eb3c"
+          }
+        ],
+        "after": [
+          {
+            "tenant_id": "a2894d09-6b82-4f90-8dd2-ecd8165326b3",
+            "enrollment_id": "91952656-6469-4f7d-a80b-85641d88eb3c"
+          }
+        ]
+      }
+    },
+    {
+      "name": "english_compatibility_withGucWrite",
+      "status": "PASS",
+      "detail": {
+        "before": true,
+        "after": true
+      }
+    },
+    {
+      "name": "english_compatibility_foreignGuc",
+      "status": "FAIL",
+      "detail": {
+        "before": [],
+        "after": [
+          {
+            "tenant_id": "a2894d09-6b82-4f90-8dd2-ecd8165326b3",
+            "enrollment_id": "91952656-6469-4f7d-a80b-85641d88eb3c"
+          }
+        ]
+      }
+    },
+    {
+      "name": "english_compatibility_foreignGucWrite",
+      "status": "PASS",
+      "detail": {
+        "before": true,
+        "after": true
+      }
+    },
+    {
+      "name": "english_compatibility_repeatableReadWrite",
+      "status": "FAIL",
+      "detail": {
+        "before": true,
+        "after": {
+          "error": "40001"
+        }
+      }
+    },
+    {
+      "name": "english_compatibility_restWriteWithoutGuc",
+      "status": "PASS",
+      "detail": {
+        "before": true,
+        "after": true
+      }
+    },
+    {
+      "name": "teacher_assigned_scope",
+      "status": "PASS"
+    },
+    {
+      "name": "teacher_assigned_roster",
+      "status": "PASS"
+    },
+    {
+      "name": "teacher_save_owner_readback",
+      "status": "PASS"
+    },
+    {
+      "name": "teacher_caller_readback",
+      "status": "PASS"
+    },
+    {
+      "name": "teacher_denies_other_branch",
+      "status": "PASS"
+    },
+    {
+      "name": "teacher_denies_other_tenant",
+      "status": "PASS"
+    },
+    {
+      "name": "admin_service_nested_scoped_write",
+      "status": "PASS"
+    },
+    {
+      "name": "acl_direct_user_writes_closed",
+      "status": "PASS"
+    },
+    {
+      "name": "acl_worker_writes_retained",
+      "status": "PASS"
+    },
+    {
+      "name": "authenticated_direct_event_insert_denied",
+      "status": "PASS"
+    }
+  ],
+  "compatibility": "FAIL",
+  "productionTouched": false,
+  "fixtureKind": "synthetic-only",
+  "completedAt": "2026-11-01T09:35:36.339Z",
+  "baselineFunctions": [
+    {
+      "signature": "edu_set_daily_attendance(uuid,uuid,text,timestamp with time zone,date)",
+      "md5": "0bd77a772ef098df2f09ba02bd58ec5e",
+      "acl": "{postgres=X/postgres,service_role=X/postgres,authenticated=X/postgres}"
+    },
+    {
+      "signature": "edu_can_access_attendance_enrollment(uuid,uuid,date)",
+      "md5": "d320d997c656cb1af131ce23a343a0f8",
+      "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "signature": "edu_preschool_roster_identity(uuid,date)",
+      "md5": "7eac33bda0e481d1d0693cd1b2f77546",
+      "acl": "{postgres=X/postgres,authenticated=X/postgres}"
+    }
+  ],
+  "englishBefore": {
+    "withoutGuc": [],
+    "withoutGucWrite": true,
+    "withGuc": [
+      {
+        "tenant_id": "a2894d09-6b82-4f90-8dd2-ecd8165326b3",
+        "enrollment_id": "91952656-6469-4f7d-a80b-85641d88eb3c"
+      }
+    ],
+    "withGucWrite": true,
+    "foreignGuc": [],
+    "foreignGucWrite": true,
+    "repeatableReadWrite": true,
+    "restWriteWithoutGuc": true
+  },
+  "englishAfter": {
+    "withoutGuc": [
+      {
+        "tenant_id": "a2894d09-6b82-4f90-8dd2-ecd8165326b3",
+        "enrollment_id": "91952656-6469-4f7d-a80b-85641d88eb3c"
+      }
+    ],
+    "withoutGucWrite": true,
+    "withGuc": [
+      {
+        "tenant_id": "a2894d09-6b82-4f90-8dd2-ecd8165326b3",
+        "enrollment_id": "91952656-6469-4f7d-a80b-85641d88eb3c"
+      }
+    ],
+    "withGucWrite": true,
+    "foreignGuc": [
+      {
+        "tenant_id": "a2894d09-6b82-4f90-8dd2-ecd8165326b3",
+        "enrollment_id": "91952656-6469-4f7d-a80b-85641d88eb3c"
+      }
+    ],
+    "foreignGucWrite": true,
+    "repeatableReadWrite": {
+      "error": "40001"
+    },
+    "restWriteWithoutGuc": true
+  }
+}

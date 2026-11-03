@@ -1,0 +1,16 @@
+  console.log
+    ◇ injected env (0) from .env.local // tip: ⌘ multiple files { path: ['.env.local', '.env'] }
+
+      at _log (../../../Antigravity/Projects/BELLA SPA ERP/node_modules/dotenv/lib/main.js:131:11)
+
+  console.log
+    [Jest Setup] SUPABASE_SERVICE_ROLE_KEY loaded: true
+
+      at Object.<anonymous> (jest.setup.ts:30:9)
+
+Test Suites: 1 passed, 1 total
+Tests:       4 passed, 4 total
+Snapshots:   0 total
+Time:        2.972 s
+Ran all test suites within paths "src/app/portal/education/[token]/__tests__/page.test.tsx".
+Test results written to: docs\audits\preschool-main-20261101\gl04-ui-fresh-baseline.json

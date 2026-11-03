@@ -1,0 +1,8 @@
+{
+  "temp": "C:\\Users\\DELL\\AppData\\Local\\Temp\\bella-pg-bin-d527cb0034354231926ad0ed3fe25b5a",
+  "paths": [
+    "C:\\Users\\DELL\\AppData\\Local\\Temp\\bella-pg-bin-d527cb0034354231926ad0ed3fe25b5a\\node_modules\\@embedded-postgres\\windows-x64\\native\\bin\\pg_ctl.exe",
+    "C:\\Users\\DELL\\AppData\\Local\\Temp\\bella-pg-bin-d527cb0034354231926ad0ed3fe25b5a\\node_modules\\@embedded-postgres\\windows-x64\\native\\bin\\initdb.exe",
+    "C:\\Users\\DELL\\AppData\\Local\\Temp\\bella-pg-bin-d527cb0034354231926ad0ed3fe25b5a\\node_modules\\@embedded-postgres\\windows-x64\\native\\share\\postgres.bki"
+  ]
+}

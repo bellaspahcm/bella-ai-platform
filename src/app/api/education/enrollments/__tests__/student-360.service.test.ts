@@ -18,7 +18,7 @@ jest.mock('@/platform/education/contracts/attendance.contract.impl', () => ({
   AttendanceContractImpl: jest.fn().mockImplementation(() => ({ getAttendanceHistory: mockHistory })),
 }));
 
-const { loadStudent360Profile } = require('../student-360.service') as typeof import('../student-360.service');
+const { loadStudent360Profile, loadStudent360Identity } = require('../student-360.service') as typeof import('../student-360.service');
 const { PreschoolRegistryContractImpl } = require('@/platform/education/contracts/preschool-registry.contract.impl') as typeof import('@/platform/education/contracts/preschool-registry.contract.impl');
 const { AttendanceContractImpl } = require('@/platform/education/contracts/attendance.contract.impl') as typeof import('@/platform/education/contracts/attendance.contract.impl');
 const tenantId = 'ed100000-0000-0000-0000-000000000001';
@@ -49,6 +49,14 @@ describe('Student 360 caller-authorized public contract composition', () => {
     jest.clearAllMocks();
     mockRegistryRead.mockReset().mockResolvedValue(page([student()]));
     mockHistory.mockReset().mockResolvedValue([]);
+  });
+
+  it('resolves the existing canonical identity without adding an Attendance dependency', async () => {
+    mockHistory.mockRejectedValue(new Error('attendance unavailable'));
+    expect(await loadStudent360Identity(callerClient, tenantId, student().id)).toEqual(student());
+    expect(PreschoolRegistryContractImpl).toHaveBeenCalledWith(callerClient);
+    expect(AttendanceContractImpl).not.toHaveBeenCalled();
+    expect(mockHistory).not.toHaveBeenCalled();
   });
 
   it.each([student().studentCode, student().id, student().partyId, student().enrollments[0].id])(

@@ -1,0 +1,99 @@
+{
+  "capturedAt": "2026-11-01T02:38:57.158Z",
+  "sourceBase": "f1299e3138f3700062a1ed84271db315737b0071",
+  "branch": "codex/preschool-main-technical-20261101",
+  "committed": false,
+  "status": "LOCAL_PASS",
+  "regression": {
+    "suitesPassed": 6,
+    "testsPassed": 76,
+    "testsFailed": 0,
+    "reused": true,
+    "sourceHashesUnchanged": true
+  },
+  "typecheck": {
+    "status": "PASS_PREVIOUS_RUN",
+    "source": "technical-typecheck.log",
+    "exitCode": 0,
+    "reused": true,
+    "note": "Empty compiler log is not standalone exit-status proof; prior execution recorded exit 0 in REMEDIATION_SCOPE.md. No TS source changed this turn."
+  },
+  "diffCheck": {
+    "exitCode": 0,
+    "command": "git diff --check",
+    "output": ""
+  },
+  "changedFiles": [
+    {
+      "file": "src/app/api/education/curriculum/__tests__/route.test.ts",
+      "sha256": "bb0e78e39462779725ffa3257797b2877c676cab0defcfb486d867a750bb9926"
+    },
+    {
+      "file": "src/app/api/education/enrollments/[id]/communications/__tests__/route.test.ts",
+      "sha256": "92468acac347d12f5c8c10351aa2a9f30e6a71acbdb2bebbf6060c1d13133bfa"
+    },
+    {
+      "file": "src/app/api/education/enrollments/[id]/communications/route.ts",
+      "sha256": "9cb209c0984b286a1ac77f0361b4655a7475e1e84b9058f29d53c89c30afc031"
+    },
+    {
+      "file": "src/app/api/education/enrollments/__tests__/student-360.service.test.ts",
+      "sha256": "9635da7c095e59e2768c99c362695d83e15e56d307a380325454b4a55ffe8a12"
+    },
+    {
+      "file": "src/app/api/education/enrollments/student-360.service.ts",
+      "sha256": "581472f004dea82f4e0455e3a0a65a247d608c624654072fda05424741da5725"
+    },
+    {
+      "file": "src/app/api/education/nutrition/weekly-menu/__tests__/route.test.ts",
+      "sha256": "4f3cbcbdda03730d1cc02faf1039c35f16c6a205693845f73a90fc17edd84bd5"
+    },
+    {
+      "file": "src/products/bella-education/care-wellbeing/nutrition/__tests__/weekly-menu.service.test.ts",
+      "sha256": "c4317eb7d5091d4351e05766db32d339b76d36deaf97fbf917c20dd6cb783bac"
+    },
+    {
+      "file": "src/products/bella-education/care-wellbeing/nutrition/weekly-menu.service.ts",
+      "sha256": "e6cc9c344dfd1dd5e891f4ce163350a161185279b0b14ee9731fbaecb944d7fb"
+    },
+    {
+      "file": "src/products/bella-education/learning-development/curriculum/__tests__/curriculum.service.test.ts",
+      "sha256": "0f71c9d10db6be3cb874a8a91457b2937d816dea52b8db00049868fde3af309d"
+    },
+    {
+      "file": "src/products/bella-education/learning-development/curriculum/curriculum.service.ts",
+      "sha256": "17316e58f1d2d5d26517651e87077af4c4d4f592cebaa4a588fcbc107cffb46b"
+    }
+  ],
+  "artifacts": [
+    {
+      "file": "f10-f12-jest.json",
+      "sha256": "d2ad349756a5891b129d650c4926188c565e00ac319ba9b3c0a35e8b4e0fbfcf"
+    },
+    {
+      "file": "f10-f12-jest.log",
+      "sha256": "aff901a4ae4f5902177f6724cc8c46a7534b9c06be8e963a0ab8c1625ec5bc18"
+    },
+    {
+      "file": "technical-typecheck.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "file": "f10-f12-changes.patch",
+      "sha256": "1d0eb55ca7c2b1bfabb156925760c9d48e6120d9d57cf1ac700c7a94ea7b2646"
+    }
+  ],
+  "notProven": [
+    "real DB mutation/read-back",
+    "caller JWT/RLS",
+    "Browser E2E",
+    "Production"
+  ],
+  "actionsNotPerformed": [
+    "commit",
+    "push",
+    "merge",
+    "deploy",
+    "DB mutation"
+  ]
+}

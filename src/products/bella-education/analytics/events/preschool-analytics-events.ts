@@ -23,7 +23,7 @@ export type PreschoolDomainEventType =
   | 'SAFETY_DEFECT_REPORTED'
   | 'SAFETY_INSPECTION_PASSED';
 
-export interface PreschoolDomainEvent<T = any> {
+export interface PreschoolDomainEvent<T = unknown> {
   eventId: string;
   tenantId: string;
   eventType: PreschoolDomainEventType;

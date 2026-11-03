@@ -1,0 +1,30 @@
+{
+  "scope": "Additional non-mutating checks from existing production Validate Main Release; secret guard and normal build reused from successful CI; no DB/migration execution",
+  "results": [
+    {
+      "name": "lint",
+      "command": "npm run lint",
+      "exitCode": 0
+    },
+    {
+      "name": "critical",
+      "command": "npm run test:critical",
+      "exitCode": 0
+    },
+    {
+      "name": "audit",
+      "command": "npm run security:audit",
+      "exitCode": 1
+    },
+    {
+      "name": "api-versioning",
+      "command": "npm run docs:api:versioning",
+      "exitCode": 0
+    },
+    {
+      "name": "migration-policy",
+      "command": "npm run db:migration:zero-downtime -- --base HEAD^",
+      "exitCode": 0
+    }
+  ]
+}

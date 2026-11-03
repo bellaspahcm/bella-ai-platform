@@ -1,0 +1,5 @@
+
+> bella-spa-erp@0.1.0 docs:api:versioning
+> node scripts/check-api-versioning.mjs
+
+API versioning policy covers all implemented route groups.

@@ -185,6 +185,18 @@ describe('Weekly Menu API Route (/api/education/nutrition/weekly-menu)', () => {
       expect(json.success).toBe(true);
       expect(json.menuId).toBe('saved-menu-123');
     });
+
+    it('uses the existing 400 error envelope for a zero-row menu update', async () => {
+      mockGetUser.mockResolvedValueOnce({ data: { user: { id: actorId } }, error: null } as never);
+      mockGetCurrentUser.mockResolvedValueOnce({ id: actorId, tenant_id: tenantId, role: 'admin' } as never);
+      mockSaveWeeklyMenu.mockResolvedValueOnce({ success: false, menuId: '', error: 'MENU_NOT_FOUND' } as never);
+      const response = await POST(new Request('http://localhost/api/education/nutrition/weekly-menu', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...validPayload, menuId: 'missing-menu' }),
+      }));
+      expect(response.status).toBe(400);
+      expect(await response.json()).toEqual({ success: false, error: 'MENU_NOT_FOUND' });
+      expect(response.headers.get('Cache-Control')).toBe('private, no-store');
+    });
   });
 });
 

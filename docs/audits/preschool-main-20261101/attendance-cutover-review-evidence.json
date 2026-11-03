@@ -1,0 +1,744 @@
+{
+  "projectRef": "lvnvkpyxtuilhrabtlwv",
+  "scope": "Read-only cutover review; no candidate DDL/DML, Production business RPC, commit, migration or deployment",
+  "decision": "HOLD",
+  "decisionReasons": [
+    "No verified recovery point/restore readiness; platform backup inventory is null and PITR disabled",
+    "External/dynamic client inventory and ownership not proven by repository scan or bounded telemetry"
+  ],
+  "candidateSeal": {
+    "rawSha256": "af506babfb13da00ae072fcc7802e8c43fa4c0ab1770e73b89d03f2070903922",
+    "canonicalSha256": "af506babfb13da00ae072fcc7802e8c43fa4c0ab1770e73b89d03f2070903922",
+    "receiptSha256": "7e394f38212bdc0720142ee0738086fe539e97575c75e47bf581eec4a9f9421c",
+    "matchesReceipt": true,
+    "matchesManifest": true,
+    "receiptChecks": 29,
+    "v1Preserved": true,
+    "v1FailuresPreserved": 3,
+    "executionApproved": false
+  },
+  "freshPreflight": {
+    "businessRowsRead": false,
+    "candidateApplied": false,
+    "candidatePreflight": "PASS",
+    "candidateSha256": "af506babfb13da00ae072fcc7802e8c43fa4c0ab1770e73b89d03f2070903922",
+    "checkedAt": "2026-11-01T16:46:31.504621+07:00",
+    "database": "postgres",
+    "executor": "postgres",
+    "transactionIsolation": "read committed",
+    "transactionReadOnly": "on"
+  },
+  "freshCatalogComparison": {
+    "capturedAt": "2026-11-01T16:50:31.265281+07:00",
+    "executor": "postgres",
+    "database": "postgres",
+    "transactionReadOnly": "on",
+    "comparedTo": "2026-11-01T16:15:25.805582+07:00",
+    "checks": [
+      {
+        "component": "targets",
+        "status": "MATCH",
+        "items": 5
+      },
+      {
+        "component": "functions",
+        "status": "MATCH",
+        "items": 7
+      },
+      {
+        "component": "policyReferences",
+        "status": "MATCH",
+        "items": 2
+      },
+      {
+        "component": "registeredDependents",
+        "status": "MATCH",
+        "items": 2
+      },
+      {
+        "component": "relations",
+        "status": "MATCH",
+        "items": 15
+      },
+      {
+        "component": "columns",
+        "status": "MATCH",
+        "items": 199
+      },
+      {
+        "component": "constraints",
+        "status": "MATCH",
+        "items": 97
+      },
+      {
+        "component": "effectiveExecute",
+        "status": "MATCH",
+        "items": 21
+      },
+      {
+        "component": "directAttendancePrivileges",
+        "status": "MATCH",
+        "items": 6
+      }
+    ],
+    "functions": [
+      {
+        "signature": "edu_can_access_attendance_enrollment(uuid,uuid,date)",
+        "owner": "postgres",
+        "securityDefiner": true,
+        "config": [
+          "search_path=pg_catalog"
+        ],
+        "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+        "definitionMd5": "d320d997c656cb1af131ce23a343a0f8"
+      },
+      {
+        "signature": "edu_preschool_roster_identity(uuid,date)",
+        "owner": "postgres",
+        "securityDefiner": true,
+        "config": [
+          "search_path=pg_catalog",
+          "statement_timeout=10s",
+          "lock_timeout=5s"
+        ],
+        "acl": "{postgres=X/postgres,authenticated=X/postgres}",
+        "definitionMd5": "7eac33bda0e481d1d0693cd1b2f77546"
+      },
+      {
+        "signature": "edu_set_daily_attendance(uuid,uuid,text,timestamp with time zone,date)",
+        "owner": "postgres",
+        "securityDefiner": true,
+        "config": [
+          "search_path=public"
+        ],
+        "acl": "{postgres=X/postgres,service_role=X/postgres,authenticated=X/postgres}",
+        "definitionMd5": "0bd77a772ef098df2f09ba02bd58ec5e"
+      },
+      {
+        "signature": "edu_set_scoped_daily_attendance(uuid,uuid,text,uuid,uuid,uuid,uuid,text,text,timestamp with time zone,date)",
+        "owner": "postgres",
+        "securityDefiner": true,
+        "config": [
+          "search_path=\"\""
+        ],
+        "acl": "{postgres=X/postgres,service_role=X/postgres}",
+        "definitionMd5": "af079945a2f1c3dbaf7ba9701e500ed6"
+      },
+      {
+        "signature": "party_resolve_current_auth_link()",
+        "owner": "postgres",
+        "securityDefiner": true,
+        "config": [
+          "search_path=pg_catalog"
+        ],
+        "acl": "{postgres=X/postgres,authenticated=X/postgres}",
+        "definitionMd5": "43a8920a6fdf334ef608ec5c1775bd9f"
+      },
+      {
+        "signature": "platform_current_actor_tenant_presentation()",
+        "owner": "postgres",
+        "securityDefiner": true,
+        "config": [
+          "search_path=\"\""
+        ],
+        "acl": "{postgres=X/postgres,authenticated=X/postgres}",
+        "definitionMd5": "85bbf1a94c8ca765e57c3e0fd3505044"
+      },
+      {
+        "signature": "preschool_set_scoped_daily_attendance(uuid,uuid,text,uuid,uuid,uuid,uuid,text,timestamp with time zone,date)",
+        "owner": "postgres",
+        "securityDefiner": true,
+        "config": [
+          "search_path=\"\""
+        ],
+        "acl": "{postgres=X/postgres,service_role=X/postgres}",
+        "definitionMd5": "de0427e0ca0b7fe2374783cd1f4361c1"
+      }
+    ],
+    "targets": [
+      {
+        "exists": false,
+        "signature": "public.preschool_teacher_can_attend_course(uuid,uuid,date,uuid)"
+      },
+      {
+        "exists": false,
+        "signature": "public.preschool_teacher_attendance_courses(date,uuid)"
+      },
+      {
+        "exists": true,
+        "signature": "public.edu_can_access_attendance_enrollment(uuid,uuid,date)"
+      },
+      {
+        "exists": true,
+        "signature": "public.edu_preschool_roster_identity(uuid,date)"
+      },
+      {
+        "exists": true,
+        "signature": "public.edu_set_daily_attendance(uuid,uuid,text,timestamptz,date)"
+      }
+    ],
+    "policyReferences": [
+      {
+        "check": null,
+        "command": "r",
+        "name": "roster_rpc_state_allow",
+        "permissive": true,
+        "roles": [
+          "authenticated"
+        ],
+        "schema": "public",
+        "table": "edu_attendance_daily_state",
+        "using": "((( SELECT t.product_key\n   FROM tenants t\n  WHERE (t.id = edu_attendance_daily_state.tenant_id)) = 'bella_preschool'::text) AND edu_can_access_attendance_enrollment(tenant_id, enrollment_id, school_day))"
+      },
+      {
+        "check": null,
+        "command": "r",
+        "name": "roster_rpc_state_guard",
+        "permissive": false,
+        "roles": [
+          "authenticated"
+        ],
+        "schema": "public",
+        "table": "edu_attendance_daily_state",
+        "using": "((EXISTS ( SELECT 1\n   FROM tenants t\n  WHERE ((t.id = edu_attendance_daily_state.tenant_id) AND (t.product_key IS DISTINCT FROM 'bella_preschool'::text)))) OR edu_can_access_attendance_enrollment(tenant_id, enrollment_id, school_day))"
+      }
+    ]
+  },
+  "recovery": {
+    "status": "NOT_PROVEN",
+    "command": "supabase backups list --project-ref lvnvkpyxtuilhrabtlwv --output json",
+    "inventory": {
+      "backups": null,
+      "physical_backup_data": {},
+      "pitr_enabled": false,
+      "region": "ap-southeast-1",
+      "walg_enabled": true
+    },
+    "restoreReceipt": "NOT_PROVEN",
+    "rtoRpo": "NOT_PROVEN",
+    "postCommitContainmentOwnerAndMechanism": "NOT_PROVEN",
+    "automaticUnsafeWriterRollback": "PROHIBITED",
+    "externalBackupAbsenceClaimed": false
+  },
+  "legacyWriterBoundary": {
+    "status": "NOT_PROVEN",
+    "discovery": {
+      "checkedAt": "2026-11-01T16:47:16.911369+07:00",
+      "connectionsByRoleClass": [
+        {
+          "connections": 1,
+          "roleClass": "authenticator"
+        },
+        {
+          "connections": 1,
+          "roleClass": "postgres"
+        },
+        {
+          "connections": 4,
+          "roleClass": "supabase_admin"
+        }
+      ],
+      "directDmlPrivilegeClasses": [
+        {
+          "roleClass": "NON_LOGIN_ROLE",
+          "roles": 4
+        },
+        {
+          "roleClass": "LOGIN_ROLE",
+          "roles": 3
+        }
+      ],
+      "directEventMutatorFunctions": [
+        {
+          "owner": "postgres",
+          "securityDefiner": true,
+          "signature": "edu_set_daily_attendance(uuid,uuid,text,timestamp with time zone,date)"
+        }
+      ],
+      "statisticsRelations": [
+        {
+          "columns": [
+            "userid",
+            "dbid",
+            "toplevel",
+            "queryid",
+            "query",
+            "plans",
+            "total_plan_time",
+            "min_plan_time",
+            "max_plan_time",
+            "mean_plan_time",
+            "stddev_plan_time",
+            "calls",
+            "total_exec_time",
+            "min_exec_time",
+            "max_exec_time",
+            "mean_exec_time",
+            "stddev_exec_time",
+            "rows",
+            "shared_blks_hit",
+            "shared_blks_read",
+            "shared_blks_dirtied",
+            "shared_blks_written",
+            "local_blks_hit",
+            "local_blks_read",
+            "local_blks_dirtied",
+            "local_blks_written",
+            "temp_blks_read",
+            "temp_blks_written",
+            "shared_blk_read_time",
+            "shared_blk_write_time",
+            "local_blk_read_time",
+            "local_blk_write_time",
+            "temp_blk_read_time",
+            "temp_blk_write_time",
+            "wal_records",
+            "wal_fpi",
+            "wal_bytes",
+            "jit_functions",
+            "jit_generation_time",
+            "jit_inlining_count",
+            "jit_inlining_time",
+            "jit_optimization_count",
+            "jit_optimization_time",
+            "jit_emission_count",
+            "jit_emission_time",
+            "jit_deform_count",
+            "jit_deform_time",
+            "stats_since",
+            "minmax_stats_since"
+          ],
+          "name": "pg_stat_statements",
+          "schema": "extensions"
+        },
+        {
+          "columns": [
+            "dealloc",
+            "stats_reset"
+          ],
+          "name": "pg_stat_statements_info",
+          "schema": "extensions"
+        }
+      ],
+      "statisticsSettings": {
+        "auditLog": "none",
+        "save": "on",
+        "track": "top",
+        "trackUtility": "on"
+      },
+      "transactionReadOnly": "on"
+    },
+    "aggregateCounters": {
+      "auditLog": "none",
+      "checkedAt": "2026-11-01T16:48:07.896916+07:00",
+      "clientIdentitiesReturned": false,
+      "directEventDmlCandidates": {
+        "calls": 2,
+        "earliestEntrySince": "2026-10-30T16:25:04.02688+07:00",
+        "entries": 1
+      },
+      "earliestEntrySince": "2026-10-30T10:05:45.299009+07:00",
+      "limitation": "Bounded normalized-statement pattern inventory; no proof of external-client absence or complete audit coverage.",
+      "rawStatementsReturned": false,
+      "resetInfo": {
+        "deallocations": 0,
+        "statsReset": "2026-10-30T10:05:43.8571+07:00"
+      },
+      "track": "top",
+      "trackedEntries": 1190,
+      "transactionReadOnly": "on",
+      "writerRpcMentions": {
+        "calls": 8,
+        "earliestEntrySince": "2026-10-30T16:24:59.602334+07:00",
+        "entries": 1
+      }
+    },
+    "roleCounters": {
+      "checkedAt": "2026-11-01T16:49:08.375679+07:00",
+      "groups": [
+        {
+          "calls": 2,
+          "entries": 1,
+          "roleClass": "service_role",
+          "shape": "POSTGREST_SHAPED",
+          "statementClass": "WITH"
+        }
+      ],
+      "limitation": "DB role and query shape cannot identify a caller application, business owner, intent or current activity.",
+      "queryIdsReturned": false,
+      "rawStatementsReturned": false,
+      "transactionReadOnly": "on"
+    },
+    "interpretation": "Observed direct-DML-shaped calls use service_role, whose DML is retained by V2. DB role/query shape do not identify client or owner. No complete external-client absence claim.",
+    "requiredEvidence": "Named owners and inventory of integrations/jobs/external/dynamic writers, supported by relevant logs or attestation"
+  },
+  "followUpInventory": {
+    "scope": "Read-only recovery and legacy-writer inventory only; no backup/export/restore, business rows, candidate edits, Production mutation or release",
+    "sourceRevision": "f1299e3138f3700062a1ed84271db315737b0071",
+    "recovery": {
+      "result": "NOT_PROVEN",
+      "latestProviderInventory": "Reused the timestamped backup API observation above; no duplicate backup request",
+      "latestUsableRecoveryPoint": "CHƯA XÁC MINH",
+      "isolatedRestoreReceiptForProductionPoint": "CHƯA CÓ",
+      "attendanceRtoRpo": "CHƯA XÁC MINH",
+      "accountableRecoveryOperator": "CHƯA XÁC MINH",
+      "authorizedContainmentOperatorAndMechanism": "CHƯA XÁC MINH",
+      "reviewedSources": [
+        {
+          "path": "scripts/backup-database.sh",
+          "finding": "Logical subset: policy_registry, decision_audit_logs, decision_metrics, rule_version_history, workflow_definitions, workflow_executions; no attendance data. Script presence and file-existence check do not prove execution or restore."
+        },
+        {
+          "path": "scripts/run-staging-dr-drill.ts",
+          "finding": "Staging utility requires manual snapshot/restore and writes synthetic manifests; not executed and not a receipt tied to a Production recovery point."
+        },
+        {
+          "path": "docs/guides/DECISION_ENGINE_PRODUCTION_RUNBOOK.md",
+          "finding": "Documented RPO <60 seconds / RTO <120 seconds and PITR claims are Decision Engine guidance, not verified current Attendance recovery evidence."
+        },
+        {
+          "path": "docs/security/INCIDENT_RESPONSE_PLAN.md",
+          "finding": "API Gateway response roles/contact template; no verified attendance operator, usable recovery point or post-COMMIT containment authorization."
+        },
+        {
+          "path": "docs/architecture/ARCHITECTURE_GATE_RESULT_PLATFORM_BACKUP_RESTORE_READINESS_ROOT_CAUSE_TRACE_2026_10_07.md",
+          "finding": "Historical NOT_VERIFIED evidence, not a current restore receipt."
+        }
+      ],
+      "externalStorageInventory": "CHƯA XÁC MINH: no owner-identified external backup account/object/recovery point was supplied; no broad disk/cloud search or provisioning performed"
+    },
+    "runtimeCatalog": {
+      "checkedAt": "2026-11-01T16:58:17.029771+07:00",
+      "transactionReadOnly": "on",
+      "query": "attendance-runtime-inventory-discovery-readonly.sql",
+      "pgCronInstalled": true,
+      "attendanceFunctionReferences": [
+        {
+          "signature": "edu_set_daily_attendance(uuid,uuid,text,timestamp with time zone,date)",
+          "bodyMd5": "2a7375353be80dd00b75e5507fa67e75",
+          "owner": "postgres",
+          "securityDefiner": true,
+          "dynamicExecuteToken": false
+        },
+        {
+          "signature": "edu_set_scoped_daily_attendance(uuid,uuid,text,uuid,uuid,uuid,uuid,text,text,timestamp with time zone,date)",
+          "bodyMd5": "a746b40edc3f658a02832a6ad87fdac6",
+          "owner": "postgres",
+          "securityDefiner": true,
+          "dynamicExecuteToken": false
+        },
+        {
+          "signature": "preschool_set_scoped_daily_attendance(uuid,uuid,text,uuid,uuid,uuid,uuid,text,timestamp with time zone,date)",
+          "bodyMd5": "d7fc23c93cf62f7ff5be3162134e766f",
+          "owner": "postgres",
+          "securityDefiner": true,
+          "dynamicExecuteToken": false
+        },
+        {
+          "signature": "preschool_portal_daily_read(uuid,uuid,uuid,uuid)",
+          "bodyMd5": "d5d3f1164d45b5ba43b029ea0ebd2b71",
+          "owner": "postgres",
+          "securityDefiner": true,
+          "dynamicExecuteToken": false
+        }
+      ],
+      "eventTableTriggers": {
+        "count": 4,
+        "internalFkChecksOnly": true
+      },
+      "limitation": "Catalog source-token inventory, not a proof that dynamically constructed or external calls are absent"
+    },
+    "edgeFunctions": {
+      "projectRef": "lvnvkpyxtuilhrabtlwv",
+      "command": "supabase functions list --project-ref lvnvkpyxtuilhrabtlwv -o json",
+      "exitCode": 0,
+      "functions": [],
+      "limitation": "No deployed Edge Functions listed at this check; no claim about external servers or clients"
+    },
+    "scheduler": {
+      "query": "attendance-scheduler-inventory-readonly.sql",
+      "activeJobCount": 6,
+      "checkedAt": "2026-11-01T17:00:38.078103+07:00",
+      "jobCount": 6,
+      "jobs": [
+        {
+          "active": true,
+          "attendanceToken": false,
+          "backupRestoreToken": false,
+          "commandMd5": "5091b92c06f9119fcc8f6b5ebb413fef",
+          "functionCallTokens": null,
+          "jobId": 1,
+          "lastRetainedStart": "2026-11-01T17:00:00.394944+07:00",
+          "networkToken": false,
+          "publicFunctionTokens": null,
+          "relationTokens": [
+            "public.mv_campaign_performance"
+          ],
+          "retainedFailed": 2,
+          "retainedRuns": 2952,
+          "retainedSucceeded": 2950,
+          "roleClass": "postgres",
+          "sameDatabase": true,
+          "schedule": "0 * * * *"
+        },
+        {
+          "active": true,
+          "attendanceToken": false,
+          "backupRestoreToken": false,
+          "commandMd5": "734a13f761e545e86f708ea0d9e0a50c",
+          "functionCallTokens": null,
+          "jobId": 2,
+          "lastRetainedStart": "2026-11-01T16:05:00.391913+07:00",
+          "networkToken": false,
+          "publicFunctionTokens": null,
+          "relationTokens": [
+            "public.mv_channel_performance"
+          ],
+          "retainedFailed": 4,
+          "retainedRuns": 2951,
+          "retainedSucceeded": 2947,
+          "roleClass": "postgres",
+          "sameDatabase": true,
+          "schedule": "5 * * * *"
+        },
+        {
+          "active": true,
+          "attendanceToken": false,
+          "backupRestoreToken": false,
+          "commandMd5": "08a8a2299538cda58e392b9757f192cb",
+          "functionCallTokens": null,
+          "jobId": 13,
+          "lastRetainedStart": "2026-11-01T17:00:00.384855+07:00",
+          "networkToken": false,
+          "publicFunctionTokens": null,
+          "relationTokens": [
+            "public.mv_ktv_performance_summary"
+          ],
+          "retainedFailed": 14,
+          "retainedRuns": 17705,
+          "retainedSucceeded": 17691,
+          "roleClass": "postgres",
+          "sameDatabase": true,
+          "schedule": "*/10 * * * *"
+        },
+        {
+          "active": true,
+          "attendanceToken": false,
+          "backupRestoreToken": false,
+          "commandMd5": "8346ef51a365d153c51d3c18029739a1",
+          "functionCallTokens": null,
+          "jobId": 14,
+          "lastRetainedStart": "2026-11-01T17:00:00.375579+07:00",
+          "networkToken": false,
+          "publicFunctionTokens": null,
+          "relationTokens": [
+            "public.mv_inventory_status"
+          ],
+          "retainedFailed": 30,
+          "retainedRuns": 35410,
+          "retainedSucceeded": 35379,
+          "roleClass": "postgres",
+          "sameDatabase": true,
+          "schedule": "*/5 * * * *"
+        },
+        {
+          "active": true,
+          "attendanceToken": false,
+          "backupRestoreToken": false,
+          "commandMd5": "2006d14c03e866f6a61cf3726abfe6a9",
+          "functionCallTokens": null,
+          "jobId": 15,
+          "lastRetainedStart": "2026-11-01T17:00:00.392648+07:00",
+          "networkToken": false,
+          "publicFunctionTokens": null,
+          "relationTokens": [
+            "public.mv_session_analytics"
+          ],
+          "retainedFailed": 15,
+          "retainedRuns": 17705,
+          "retainedSucceeded": 17690,
+          "roleClass": "postgres",
+          "sameDatabase": true,
+          "schedule": "*/10 * * * *"
+        },
+        {
+          "active": true,
+          "attendanceToken": false,
+          "backupRestoreToken": false,
+          "commandMd5": "4eaa608aae843a3a1f74b37e5d1a4201",
+          "functionCallTokens": [
+            {
+              "attendanceBodyToken": false,
+              "dynamicExecuteToken": false,
+              "function": "cleanup_expired_recommendation_cache()"
+            }
+          ],
+          "jobId": 16,
+          "lastRetainedStart": "2026-11-01T09:00:00.707322+07:00",
+          "networkToken": false,
+          "publicFunctionTokens": [
+            "cleanup_expired_recommendation_cache()"
+          ],
+          "relationTokens": null,
+          "retainedFailed": 0,
+          "retainedRuns": 107,
+          "retainedSucceeded": 107,
+          "roleClass": "postgres",
+          "sameDatabase": true,
+          "schedule": "0 2 * * *"
+        }
+      ],
+      "transactionReadOnly": "on",
+      "limitation": "Relation/function token resolution only; command bodies, parameters, run messages and secrets are not returned. No job executed. No attendance/network/backup token found in the six commands. This is not a complete external-writer inventory."
+    },
+    "github": {
+      "repository": "bellaspahcm/bella-ai-platform",
+      "liveMainSha": "f1299e3138f3700062a1ed84271db315737b0071",
+      "activeWorkflowCount": 26,
+      "comparedFiles": [
+        {
+          "path": ".github/workflows/production-cron-smoke.yml",
+          "mainSha": "f1299e3138f3700062a1ed84271db315737b0071",
+          "blobSha": "2c4e0e61ed09f25808f9cdaa7766bb0a1ded5861",
+          "matchesLocalLf": true,
+          "attendanceToken": false,
+          "backupScriptToken": false
+        },
+        {
+          "path": ".github/workflows/deploy-production.yml",
+          "mainSha": "f1299e3138f3700062a1ed84271db315737b0071",
+          "blobSha": "9b32fba74b8c2272c8623f31ca4e7f30da223ee6",
+          "matchesLocalLf": true,
+          "attendanceToken": false,
+          "backupScriptToken": false
+        },
+        {
+          "path": "vercel.json",
+          "mainSha": "f1299e3138f3700062a1ed84271db315737b0071",
+          "blobSha": "a8ec71a0708325fa2446a573a894f61b81320611",
+          "matchesLocalLf": true,
+          "attendanceToken": false,
+          "backupScriptToken": false
+        }
+      ],
+      "productionCronRuns": [
+        {
+          "conclusion": "success",
+          "created_at": "2026-11-01T09:38:22Z",
+          "event": "schedule",
+          "head_sha": "f1299e3138f3700062a1ed84271db315737b0071",
+          "html_url": "https://github.com/bellaspahcm/bella-ai-platform/actions/runs/41289705147",
+          "id": 41289705147,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "created_at": "2026-11-01T01:48:03Z",
+          "event": "schedule",
+          "head_sha": "f1299e3138f3700062a1ed84271db315737b0071",
+          "html_url": "https://github.com/bellaspahcm/bella-ai-platform/actions/runs/41262572690",
+          "id": 41262572690,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "created_at": "2026-10-31T22:39:27Z",
+          "event": "schedule",
+          "head_sha": "f1299e3138f3700062a1ed84271db315737b0071",
+          "html_url": "https://github.com/bellaspahcm/bella-ai-platform/actions/runs/41249160807",
+          "id": 41249160807,
+          "status": "completed"
+        }
+      ],
+      "sourceInterpretation": "Current main's cron smoke, deployment workflow and vercel.json match local LF-normalized files. Cron smoke calls accounting/business-rule scripts; no attendance writer or backup execution identified in reviewed source. vercel.json has no cron declaration. Workflow success is not recovery proof or complete external scheduler inventory."
+    },
+    "interfaces": [
+      {
+        "name": "Preschool teacher POST /api/education/attendance",
+        "path": "src/app/api/education/attendance/route.ts:133",
+        "chain": "PreschoolTeacherAttendanceService -> AttendanceContractImpl -> edu_set_daily_attendance",
+        "client": "caller SSR/JWT; source teacher role admin_staff",
+        "directEventTableDml": false,
+        "operationalOwner": "CHƯA XÁC MINH",
+        "productionRuntime": "BLOCKED as previously evidenced; no new Production business RPC executed"
+      },
+      {
+        "name": "Preschool/admin scoped command",
+        "path": "src/app/api/education/attendance/route.ts:137",
+        "chain": "PreschoolAttendanceCommandService -> preschool_set_scoped_daily_attendance -> edu_set_scoped_daily_attendance -> edu_set_daily_attendance",
+        "client": "service-role operation client when configured; source fallback caller otherwise",
+        "directEventTableDml": false,
+        "operationalOwner": "CHƯA XÁC MINH",
+        "productionRuntime": "CHƯA XÁC MINH: source/client selection does not prove deployed environment or current operator"
+      },
+      {
+        "name": "English Center POST /api/english-center/learning/attendance",
+        "path": "src/app/api/english-center/learning/attendance/route.ts:49",
+        "chain": "LearningOperationsService.recordAttendance -> AttendanceContractImpl -> edu_set_daily_attendance",
+        "client": "SSR caller client from shared contract",
+        "directEventTableDml": false,
+        "operationalOwner": "CHƯA XÁC MINH",
+        "productionRuntime": "Isolated DB/RPC compatibility already rehearsed; English Center application E2E NOT_PROVEN"
+      },
+      {
+        "name": "Observed direct event DML",
+        "chain": "PostgREST-shaped WITH query -> edu_attendance",
+        "client": "service_role",
+        "callsInPriorBoundedTelemetry": 2,
+        "application": "CHƯA XÁC MINH",
+        "operationalOwner": "CHƯA XÁC MINH",
+        "v2PrivilegeEffect": "service_role DML retained; no demonstrated incompatibility for those observed calls",
+        "limitation": "Not evidence of successful changes, caller identity or complete inventory"
+      },
+      {
+        "name": "Manual seed",
+        "path": "scripts/seed-preschool-complete.mjs:354",
+        "chain": "batchUpsert -> edu_attendance_daily_state",
+        "client": "service_role from environment",
+        "directEventTableDml": false,
+        "operationalOwner": "CHƯA XÁC MINH",
+        "runtime": "Script present; not run or proven scheduled. This state-table write is distinct from event-table DML."
+      },
+      {
+        "name": "CI/bootstrap and test tools",
+        "paths": [
+          "scripts/ci/preschool-t1-prerequisites.sql",
+          "scripts/ci/preschool-browser-profile/verify-bootstrap.sql",
+          "scripts/verify-preschool-care-rls-e2e.cjs"
+        ],
+        "runtime": "Fixtures/definitions/isolated test writers; file presence does not identify a Production writer. None executed in this follow-up."
+      }
+    ],
+    "directEventDmlByAnonOrAuthenticated": {
+      "status": "CHƯA XÁC MINH",
+      "meaning": "No such caller established by the available source and bounded telemetry; absence is not proven",
+      "ownerAttestationReceived": false
+    },
+    "callerLogAttribution": {
+      "status": "NOT_PROVEN",
+      "attemptedDashboard": "https://supabase.com/dashboard/project/lvnvkpyxtuilhrabtlwv/logs/explorer",
+      "observedUi": "Welcome back / Sign in to your account",
+      "result": "No authenticated Dashboard session; no request-level logs read, no credentials entered",
+      "usefulOwnerEvidence": "Redacted correlation for direct /rest/v1/edu_attendance writes during the retained telemetry window, identifying application/service and accountable owner; no raw authorization headers, IPs, user/child records or payloads"
+    },
+    "suppliedUserChecklist": "Evidence request requirements only; no backup object, restore receipt or writer-owner attestation supplied. It grants no Production mutation authority.",
+    "preservation": {
+      "candidateV2Sha256": "af506babfb13da00ae072fcc7802e8c43fa4c0ab1770e73b89d03f2070903922",
+      "candidateV1Sha256": "f5bdaa32df134eb215de883ed8a7f0cfa59eac1489718b146c75eabbf400bf32",
+      "v1ReceiptSha256": "41ed88a888ca6a30fa4d408d762a0bc73e37ca6a52a4378ca3491055236775e9",
+      "v2ReceiptSha256": "7e394f38212bdc0720142ee0738086fe539e97575c75e47bf581eec4a9f9421c",
+      "sourceHashChecks": 22,
+      "sourceChanges": [],
+      "priorEvidenceHashChecks": 8,
+      "priorEvidenceChanges": [],
+      "harnessMatchesSealedHash": true
+    },
+    "result": "HOLD",
+    "nextDecision": "Requires actual recovery evidence and owner-backed writer inventory; no new approval request for candidate apply until these dependencies are evidenced. Refresh Production preflight immediately before any later separately authorized mutation."
+  },
+  "productionTeacher": "BLOCKED",
+  "preschoolGoLive": "NOT_READY",
+  "candidateApplied": false,
+  "sqlMutationsExecuted": false,
+  "nextDecision": "Continue HOLD until recovery and legacy-client conditions are evidenced; refresh volatile preconditions immediately before any separately authorized cutover"
+}

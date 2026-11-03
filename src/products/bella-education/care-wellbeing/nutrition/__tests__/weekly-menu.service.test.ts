@@ -192,6 +192,44 @@ describe('WeeklyMenuService', () => {
       expect(result.menuId).toBe('created-menu-uuid');
       expect(mockDaysUpsert).toHaveBeenCalledTimes(1);
     });
+
+    it('does not report update success or write menu days when the tenant-scoped menu update matched no row', async () => {
+      const maybeSingle = jest.fn<() => Promise<{ data: { id: string } | null; error: null }>>()
+        .mockResolvedValueOnce({ data: { id: 'existing-menu' }, error: null })
+        .mockResolvedValueOnce({ data: null, error: null });
+      const menuQuery = {
+        select: jest.fn().mockReturnThis(),
+        eq: jest.fn().mockReturnThis(),
+        maybeSingle,
+        update: jest.fn().mockReturnThis(),
+      };
+      const mockDaysUpsert = jest.fn();
+      const mockFrom = jest.fn((table: string) => table === 'edu_weekly_menus'
+        ? menuQuery
+        : { upsert: mockDaysUpsert });
+      service = new WeeklyMenuService({ from: mockFrom } as never);
+
+      const result = await service.saveWeeklyMenu(tenantId, actorId, validInput);
+      expect(result).toMatchObject({ success: false, menuId: '', error: 'MENU_NOT_FOUND' });
+      expect(menuQuery.update).toHaveBeenCalledTimes(1);
+      expect(mockDaysUpsert).not.toHaveBeenCalled();
+    });
+
+    it('preserves the existing success response and day payload when a menu row is updated', async () => {
+      const menuQuery = {
+        update: jest.fn().mockReturnThis(), eq: jest.fn().mockReturnThis(), select: jest.fn().mockReturnThis(),
+        maybeSingle: jest.fn<() => Promise<{ data: { id: string }; error: null }>>()
+          .mockResolvedValue({ data: { id: 'existing-menu' }, error: null }),
+      };
+      const upsert = jest.fn<() => Promise<{ error: null }>>().mockResolvedValue({ error: null });
+      service = new WeeklyMenuService({ from: jest.fn((table: string) => table === 'edu_weekly_menus' ? menuQuery : { upsert }) } as never);
+      const result = await service.saveWeeklyMenu(tenantId, actorId, { ...validInput, menuId: 'existing-menu' });
+      expect(result).toEqual({ success: true, menuId: 'existing-menu', message: 'Thực đơn tuần đã được ban hành thành công.' });
+      expect(menuQuery.eq).toHaveBeenCalledWith('tenant_id', tenantId);
+      expect(upsert).toHaveBeenCalledWith([expect.objectContaining({
+        tenant_id: tenantId, menu_id: 'existing-menu', day_of_week: 'MON', meals_payload: validInput.days[0].mealsPayload,
+      })], { onConflict: 'tenant_id,menu_id,day_of_week' });
+    });
   });
 });
 

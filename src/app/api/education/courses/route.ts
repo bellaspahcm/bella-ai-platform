@@ -199,9 +199,6 @@ export async function GET(request: Request) {
     const branchScope = new PreschoolChainService(supabase);
     if (admissionBranchId!==null) await branchScope.assertBranchAccess(tenantId,currentUser.id,admissionBranchId);
     const courseAssignments = admissionBranchId!==null ? [] : await branchScope.listCourseAssignments(tenantId,currentUser.id,searchParams.get('branchId') ?? undefined);
-    const enrollmentAssignments = admissionBranchId !== null || role === 'admin'
-      ? []
-      : await branchScope.listEnrollmentAssignments(tenantId, currentUser.id, searchParams.get('branchId') ?? undefined);
     const targetDate = searchParams.get('date') || getLocalDateString(new Date()) || '2026-10-18';
 
     // 1. Fetch canonical Education courses used by enrollment runtime.
@@ -310,31 +307,9 @@ export async function GET(request: Request) {
         const roster = await readBranchRoster(registry, tenantId, course.id, courseBranch.branch_id);
         currentStudents = roster.studentCount;
         attendanceEnrollmentIds = roster.attendanceEnrollmentIds;
-      } else {
-        const scopedEnrollmentIds = enrollmentAssignments
-          .filter((row)=>row.courseId===course.id && row.branchId===courseBranch.branch_id)
-          .map((row)=>row.enrollmentId);
-        const { count, error: countError } = await supabase
-          .from('edu_enrollments')
-          .select('id', { count: 'exact', head: true })
-          .eq('course_id', course.id)
-          .eq('tenant_id', tenantId)
-          .in('id', scopedEnrollmentIds)
-          .in('status', [...ROSTER_ENROLLMENT_STATUSES]);
-        if (countError) throw new Error(countError.message);
-        currentStudents = count ?? 0;
-        const { data: scopedRows, error: enrollmentReadError } = await supabase
-          .from('edu_enrollments')
-          .select('id,status')
-          .eq('course_id', course.id)
-          .eq('tenant_id', tenantId)
-          .in('id', scopedEnrollmentIds)
-          .in('status', [...ROSTER_ENROLLMENT_STATUSES]);
-        if (enrollmentReadError) throw new Error(enrollmentReadError.message);
-        attendanceEnrollmentIds = (scopedRows || [])
-          .filter(row => row.status === 'active')
-          .map(row => row.id);
       }
+      // The admin-only boundary above leaves inactive courses with no scoped
+      // enrollments. Keep their existing zero totals without empty DB reads.
       // Grade key mapping from course_code or course_name
       let gradeKey: 'mam' | 'choi' | 'la' | 'nursery' = 'mam';
       const codeUpper = (course.course_code || '').toUpperCase();

@@ -1,0 +1,9 @@
+{
+  "scope": [
+    "src/app/api/education/courses/route.ts",
+    "src/app/api/education/courses/__tests__/route.test.ts"
+  ],
+  "includes": "transitive imports",
+  "diagnostics": [],
+  "exitCode": 0
+}

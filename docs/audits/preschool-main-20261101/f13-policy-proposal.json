@@ -1,0 +1,5178 @@
+{
+  "status": "PROPOSED — NOT APPROVED / NOT APPLIED",
+  "policyId": "F13-P1-P2-P3-20261101",
+  "sourceBase": "f1299e3138f3700062a1ed84271db315737b0071",
+  "sourceScannerSha256": "9c38aa51c6d327414638b0d3894642c76d4a9111e571cad18f44b22b2fa53f7b",
+  "runtimeUseAuthorized": false,
+  "ownerDecision": null,
+  "actualExceptionsApplied": 0,
+  "P1": {
+    "recommendation": "Retain 265 historical occurrences as bounded existing debt; exact snapshot projection is debt identity, not approval of access.",
+    "sourceOccurrences": 265,
+    "exactIdentities": 263,
+    "existingBaselineUnchanged": true,
+    "automaticRegeneration": false,
+    "projection": [
+      {
+        "tuple": {
+          "file": "src/products/bella-education/analytics/repositories/preschool-analytics.repository.ts",
+          "caller": "PreschoolAnalyticsRepository/getEnrollmentRawData",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_enrollments",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/analytics/repositories/preschool-analytics.repository.ts",
+            "line": 66
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/analytics/repositories/preschool-analytics.repository.ts",
+          "caller": "PreschoolAnalyticsRepository/getEnrollmentRawData",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "students",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/analytics/repositories/preschool-analytics.repository.ts",
+            "line": 75
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/analytics/repositories/preschool-analytics.repository.ts",
+          "caller": "PreschoolAnalyticsRepository/getEnrollmentRawData",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_courses",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/analytics/repositories/preschool-analytics.repository.ts",
+            "line": 83
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/analytics/repositories/preschool-analytics.repository.ts",
+          "caller": "PreschoolAnalyticsRepository/getAttendanceRawData",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_attendance_daily_state",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/analytics/repositories/preschool-analytics.repository.ts",
+            "line": 111
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/analytics/repositories/preschool-analytics.repository.ts",
+          "caller": "PreschoolAnalyticsRepository/getAttendanceRawData",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_daily_care_records",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/analytics/repositories/preschool-analytics.repository.ts",
+            "line": 125
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/analytics/repositories/preschool-analytics.repository.ts",
+          "caller": "PreschoolAnalyticsRepository/getCareSafetyRawData",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_care_health_incidents",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/analytics/repositories/preschool-analytics.repository.ts",
+            "line": 138
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/analytics/repositories/preschool-analytics.repository.ts",
+          "caller": "PreschoolAnalyticsRepository/getCareSafetyRawData",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_care_medication_logs",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/analytics/repositories/preschool-analytics.repository.ts",
+            "line": 139
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/analytics/repositories/preschool-analytics.repository.ts",
+          "caller": "PreschoolAnalyticsRepository/getLearningRawData",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_dev_portfolio_versions",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/analytics/repositories/preschool-analytics.repository.ts",
+            "line": 151
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/analytics/repositories/preschool-analytics.repository.ts",
+          "caller": "PreschoolAnalyticsRepository/getLearningRawData",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_dev_observations",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/analytics/repositories/preschool-analytics.repository.ts",
+            "line": 152
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/analytics/repositories/preschool-analytics.repository.ts",
+          "caller": "PreschoolAnalyticsRepository/getParentEngagementRawData",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_comm_deliveries",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/analytics/repositories/preschool-analytics.repository.ts",
+            "line": 164
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/analytics/repositories/preschool-analytics.repository.ts",
+          "caller": "PreschoolAnalyticsRepository/getFinanceRawData",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_fin_invoices",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/analytics/repositories/preschool-analytics.repository.ts",
+            "line": 183
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/analytics/repositories/preschool-analytics.repository.ts",
+          "caller": "PreschoolAnalyticsRepository/getFinanceRawData",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_fin_reconciliation_ledger",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/analytics/repositories/preschool-analytics.repository.ts",
+            "line": 184
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/analytics/repositories/preschool-analytics.repository.ts",
+          "caller": "PreschoolAnalyticsRepository/getWorkforceRawData",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_sched_compliance_snapshots",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/analytics/repositories/preschool-analytics.repository.ts",
+            "line": 196
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/analytics/repositories/preschool-analytics.repository.ts",
+          "caller": "PreschoolAnalyticsRepository/getWorkforceRawData",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_comm_exceptions",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/analytics/repositories/preschool-analytics.repository.ts",
+            "line": 197
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/analytics/repositories/preschool-analytics.repository.ts",
+          "caller": "PreschoolAnalyticsRepository/getFacilitiesRawData",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_fac_assets",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/analytics/repositories/preschool-analytics.repository.ts",
+            "line": 209
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/analytics/repositories/preschool-analytics.repository.ts",
+          "caller": "PreschoolAnalyticsRepository/getFacilitiesRawData",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_fac_zones",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/analytics/repositories/preschool-analytics.repository.ts",
+            "line": 210
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/analytics/repositories/preschool-analytics.repository.ts",
+          "caller": "PreschoolAnalyticsRepository/getFacilitiesRawData",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_fac_inspection_schedules",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/analytics/repositories/preschool-analytics.repository.ts",
+            "line": 211
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/analytics/repositories/preschool-analytics.repository.ts",
+          "caller": "PreschoolAnalyticsRepository/getFacilitiesRawData",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_comm_exceptions",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/analytics/repositories/preschool-analytics.repository.ts",
+            "line": 212
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/analytics/repositories/preschool-analytics.repository.ts",
+          "caller": "PreschoolAnalyticsRepository/getCommandCenterRawData/openExceptions",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_comm_exceptions",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/analytics/repositories/preschool-analytics.repository.ts",
+            "line": 225
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/analytics/repositories/preschool-analytics.repository.ts",
+          "caller": "PreschoolAnalyticsRepository/getCommandCenterRawData",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_health_incidents",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/analytics/repositories/preschool-analytics.repository.ts",
+            "line": 231
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/analytics/repositories/preschool-analytics.repository.ts",
+          "caller": "PreschoolAnalyticsRepository/getCommandCenterRawData",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_fin_invoices",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/analytics/repositories/preschool-analytics.repository.ts",
+            "line": 233
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/analytics/repositories/preschool-analytics.repository.ts",
+          "caller": "PreschoolAnalyticsRepository/getCommandCenterRawData",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_attendance_daily_state",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/analytics/repositories/preschool-analytics.repository.ts",
+            "line": 235
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/analytics/repositories/preschool-analytics.repository.ts",
+          "caller": "PreschoolAnalyticsRepository/getCommandCenterRawData",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_enrollments",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/analytics/repositories/preschool-analytics.repository.ts",
+            "line": 237
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/analytics/repositories/preschool-analytics.repository.ts",
+          "caller": "PreschoolAnalyticsRepository/getRecentActivitiesRawData",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_preschool_pickup_handover_events",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/analytics/repositories/preschool-analytics.repository.ts",
+            "line": 278
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/analytics/repositories/preschool-analytics.repository.ts",
+          "caller": "PreschoolAnalyticsRepository/getRecentActivitiesRawData",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_dev_activities",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/analytics/repositories/preschool-analytics.repository.ts",
+            "line": 284
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/analytics/repositories/preschool-analytics.repository.ts",
+          "caller": "PreschoolAnalyticsRepository/getRecentActivitiesRawData",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_dev_observations",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/analytics/repositories/preschool-analytics.repository.ts",
+            "line": 290
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/analytics/repositories/preschool-analytics.repository.ts",
+          "caller": "PreschoolAnalyticsRepository/getRecentActivitiesRawData",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_comm_exceptions",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/analytics/repositories/preschool-analytics.repository.ts",
+            "line": 296
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/analytics/repositories/preschool-analytics.repository.ts",
+          "caller": "PreschoolAnalyticsRepository/getRecentActivitiesRawData",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_comm_notices",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/analytics/repositories/preschool-analytics.repository.ts",
+            "line": 302
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/analytics/repositories/preschool-analytics.repository.ts",
+          "caller": "PreschoolAnalyticsRepository/getRecentActivitiesRawData",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_fin_invoices",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/analytics/repositories/preschool-analytics.repository.ts",
+            "line": 308
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/analytics/repositories/preschool-analytics.repository.ts",
+          "caller": "PreschoolAnalyticsRepository/getRecentActivitiesRawData",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_care_health_incidents",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/analytics/repositories/preschool-analytics.repository.ts",
+            "line": 314
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/analytics/repositories/preschool-analytics.repository.ts",
+          "caller": "PreschoolAnalyticsRepository/getRecentActivitiesRawData",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_courses",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/analytics/repositories/preschool-analytics.repository.ts",
+            "line": 325
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/analytics/repositories/preschool-analytics.repository.ts",
+          "caller": "PreschoolAnalyticsRepository/getRecentNoticesRawData",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_comm_notices",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/analytics/repositories/preschool-analytics.repository.ts",
+            "line": 534
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/analytics/repositories/preschool-analytics.repository.ts",
+          "caller": "PreschoolAnalyticsRepository/getCurrentWeeklyMenuRawData",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_weekly_menus",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/analytics/repositories/preschool-analytics.repository.ts",
+            "line": 588
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/care-wellbeing/daily-care/daily-care.service.ts",
+          "caller": "DailyCareService/assertCourseBelongsToTenant",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_courses",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/care-wellbeing/daily-care/daily-care.service.ts",
+            "line": 101
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/care-wellbeing/daily-care/daily-care.service.ts",
+          "caller": "DailyCareService/getCanonicalRoster",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_enrollments",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/care-wellbeing/daily-care/daily-care.service.ts",
+            "line": 118
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/care-wellbeing/daily-care/daily-care.service.ts",
+          "caller": "DailyCareService/getOrCreateSession",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_daily_care_sessions",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/care-wellbeing/daily-care/daily-care.service.ts",
+            "line": 148
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/care-wellbeing/daily-care/daily-care.service.ts",
+          "caller": "DailyCareService/getOrCreateSession",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_daily_care_sessions",
+          "operation": "insert"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/care-wellbeing/daily-care/daily-care.service.ts",
+            "line": 160
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/care-wellbeing/daily-care/daily-care.service.ts",
+          "caller": "DailyCareService/getExistingSession",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_daily_care_sessions",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/care-wellbeing/daily-care/daily-care.service.ts",
+            "line": 174
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/care-wellbeing/daily-care/daily-care.service.ts",
+          "caller": "DailyCareService/getOrCreateStudentRecord",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_daily_care_records",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/care-wellbeing/daily-care/daily-care.service.ts",
+            "line": 197
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/care-wellbeing/daily-care/daily-care.service.ts",
+          "caller": "DailyCareService/getOrCreateStudentRecord",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_daily_care_records",
+          "operation": "insert"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/care-wellbeing/daily-care/daily-care.service.ts",
+            "line": 218
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/care-wellbeing/daily-care/daily-care.service.ts",
+          "caller": "DailyCareService/getDailyCareRoster",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "students",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/care-wellbeing/daily-care/daily-care.service.ts",
+            "line": 257
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/care-wellbeing/daily-care/daily-care.service.ts",
+          "caller": "DailyCareService/getDailyCareRoster",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_daily_care_records",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/care-wellbeing/daily-care/daily-care.service.ts",
+            "line": 270
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/care-wellbeing/daily-care/daily-care.service.ts",
+          "caller": "DailyCareService/recordBulkArrival",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_daily_care_records",
+          "operation": "update"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/care-wellbeing/daily-care/daily-care.service.ts",
+            "line": 342
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/care-wellbeing/daily-care/daily-care.service.ts",
+          "caller": "DailyCareService/recordBulkMeals",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_daily_care_records",
+          "operation": "update"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/care-wellbeing/daily-care/daily-care.service.ts",
+            "line": 405
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/care-wellbeing/daily-care/daily-care.service.ts",
+          "caller": "DailyCareService/recordBulkHygiene",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_daily_care_records",
+          "operation": "update"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/care-wellbeing/daily-care/daily-care.service.ts",
+            "line": 456
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/care-wellbeing/daily-care/daily-care.service.ts",
+          "caller": "DailyCareService/recordBulkNap",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_daily_care_records",
+          "operation": "update"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/care-wellbeing/daily-care/daily-care.service.ts",
+            "line": 509
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/care-wellbeing/daily-care/daily-care.service.ts",
+          "caller": "DailyCareService/generateParentDigest",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_daily_care_records",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/care-wellbeing/daily-care/daily-care.service.ts",
+            "line": 538
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/care-wellbeing/daily-care/daily-care.service.ts",
+          "caller": "DailyCareService/generateParentDigest",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_daily_parent_digests",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/care-wellbeing/daily-care/daily-care.service.ts",
+            "line": 549
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/care-wellbeing/daily-care/daily-care.service.ts",
+          "caller": "DailyCareService/generateParentDigest",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_daily_parent_digests",
+          "operation": "update"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/care-wellbeing/daily-care/daily-care.service.ts",
+            "line": 574
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/care-wellbeing/daily-care/daily-care.service.ts",
+          "caller": "DailyCareService/generateParentDigest",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_daily_parent_digests",
+          "operation": "insert"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/care-wellbeing/daily-care/daily-care.service.ts",
+            "line": 598
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/care-wellbeing/daily-care/daily-care.service.ts",
+          "caller": "DailyCareService/publishParentDigest",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_daily_parent_digests",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/care-wellbeing/daily-care/daily-care.service.ts",
+            "line": 626
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/care-wellbeing/daily-care/daily-care.service.ts",
+          "caller": "DailyCareService/publishParentDigest",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_daily_parent_digests",
+          "operation": "update"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/care-wellbeing/daily-care/daily-care.service.ts",
+            "line": 650
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/care-wellbeing/health-profile/allergy-safety.service.ts",
+          "caller": "AllergySafetyService/checkMealSafety",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_child_allergies",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/care-wellbeing/health-profile/allergy-safety.service.ts",
+            "line": 31
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/care-wellbeing/health-profile/allergy-safety.service.ts",
+          "caller": "AllergySafetyService/checkMealSafety",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_meal_item_ingredients",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/care-wellbeing/health-profile/allergy-safety.service.ts",
+            "line": 50
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/care-wellbeing/incidents/incident-safety.service.ts",
+          "caller": "IncidentSafetyService/reportIncident",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_health_incidents",
+          "operation": "insert"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/care-wellbeing/incidents/incident-safety.service.ts",
+            "line": 21
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/care-wellbeing/incidents/incident-safety.service.ts",
+          "caller": "IncidentSafetyService/recordEscalationNotification",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_health_incidents",
+          "operation": "update"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/care-wellbeing/incidents/incident-safety.service.ts",
+            "line": 49
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/care-wellbeing/incidents/incident-safety.service.ts",
+          "caller": "IncidentSafetyService/closeIncident",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_health_incidents",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/care-wellbeing/incidents/incident-safety.service.ts",
+            "line": 65
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/care-wellbeing/incidents/incident-safety.service.ts",
+          "caller": "IncidentSafetyService/closeIncident",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_health_incidents",
+          "operation": "update"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/care-wellbeing/incidents/incident-safety.service.ts",
+            "line": 98
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/care-wellbeing/medication/medication-safety.service.ts",
+          "caller": "MedicationSafetyService/administerDose",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_medication_dose_occurrences",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/care-wellbeing/medication/medication-safety.service.ts",
+            "line": 15
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/care-wellbeing/medication/medication-safety.service.ts",
+          "caller": "MedicationSafetyService/administerDose",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_medication_logs",
+          "operation": "insert"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/care-wellbeing/medication/medication-safety.service.ts",
+            "line": 59
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/care-wellbeing/medication/medication-safety.service.ts",
+          "caller": "MedicationSafetyService/administerDose",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_medication_dose_occurrences",
+          "operation": "update"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/care-wellbeing/medication/medication-safety.service.ts",
+            "line": 83
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/care-wellbeing/nutrition/weekly-menu.service.ts",
+          "caller": "WeeklyMenuService/getWeeklyMenu",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_weekly_menus",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/care-wellbeing/nutrition/weekly-menu.service.ts",
+            "line": 129
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/care-wellbeing/nutrition/weekly-menu.service.ts",
+          "caller": "WeeklyMenuService/listWeeklyMenus",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_weekly_menus",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/care-wellbeing/nutrition/weekly-menu.service.ts",
+            "line": 206
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/care-wellbeing/nutrition/weekly-menu.service.ts",
+          "caller": "WeeklyMenuService/saveWeeklyMenu",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_weekly_menus",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/care-wellbeing/nutrition/weekly-menu.service.ts",
+            "line": 291
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/care-wellbeing/nutrition/weekly-menu.service.ts",
+          "caller": "WeeklyMenuService/saveWeeklyMenu",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_weekly_menus",
+          "operation": "update"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/care-wellbeing/nutrition/weekly-menu.service.ts",
+            "line": 322
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/care-wellbeing/nutrition/weekly-menu.service.ts",
+          "caller": "WeeklyMenuService/saveWeeklyMenu",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_weekly_menus",
+          "operation": "insert"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/care-wellbeing/nutrition/weekly-menu.service.ts",
+            "line": 332
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/care-wellbeing/nutrition/weekly-menu.service.ts",
+          "caller": "WeeklyMenuService/saveWeeklyMenu",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_weekly_menu_days",
+          "operation": "upsert"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/care-wellbeing/nutrition/weekly-menu.service.ts",
+            "line": 363
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/facilities/repositories/preschool-facilities.repository.ts",
+          "caller": "PreschoolFacilitiesRepository/createFacility",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_fac_facilities",
+          "operation": "insert"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/facilities/repositories/preschool-facilities.repository.ts",
+            "line": 75
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/facilities/repositories/preschool-facilities.repository.ts",
+          "caller": "PreschoolFacilitiesRepository/getFacility",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_fac_facilities",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/facilities/repositories/preschool-facilities.repository.ts",
+            "line": 94
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/facilities/repositories/preschool-facilities.repository.ts",
+          "caller": "PreschoolFacilitiesRepository/createZone",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_fac_zones",
+          "operation": "insert"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/facilities/repositories/preschool-facilities.repository.ts",
+            "line": 106
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/facilities/repositories/preschool-facilities.repository.ts",
+          "caller": "PreschoolFacilitiesRepository/getZone",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_fac_zones",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/facilities/repositories/preschool-facilities.repository.ts",
+            "line": 128
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/facilities/repositories/preschool-facilities.repository.ts",
+          "caller": "PreschoolFacilitiesRepository/updateZoneStatus",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_fac_zones",
+          "operation": "update"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/facilities/repositories/preschool-facilities.repository.ts",
+            "line": 139
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/facilities/repositories/preschool-facilities.repository.ts",
+          "caller": "PreschoolFacilitiesRepository/createAsset",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_fac_assets",
+          "operation": "insert"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/facilities/repositories/preschool-facilities.repository.ts",
+            "line": 159
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/facilities/repositories/preschool-facilities.repository.ts",
+          "caller": "PreschoolFacilitiesRepository/getAsset",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_fac_assets",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/facilities/repositories/preschool-facilities.repository.ts",
+            "line": 182
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/facilities/repositories/preschool-facilities.repository.ts",
+          "caller": "PreschoolFacilitiesRepository/updateAssetStatus",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_fac_assets",
+          "operation": "update"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/facilities/repositories/preschool-facilities.repository.ts",
+            "line": 201
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/facilities/repositories/preschool-facilities.repository.ts",
+          "caller": "PreschoolFacilitiesRepository/createInspectionSchedule",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_fac_inspection_schedules",
+          "operation": "insert"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/facilities/repositories/preschool-facilities.repository.ts",
+            "line": 218
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/facilities/repositories/preschool-facilities.repository.ts",
+          "caller": "PreschoolFacilitiesRepository/recordInspectionLog",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_fac_inspection_logs",
+          "operation": "insert"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/facilities/repositories/preschool-facilities.repository.ts",
+            "line": 240
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/facilities/repositories/preschool-facilities.repository.ts",
+          "caller": "PreschoolFacilitiesRepository/listInspectionLogs",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_fac_inspection_logs",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/facilities/repositories/preschool-facilities.repository.ts",
+            "line": 265
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/facilities/repositories/preschool-facilities.repository.ts",
+          "caller": "PreschoolFacilitiesRepository/recordOutOfServiceLog",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_fac_out_of_service_logs",
+          "operation": "insert"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/facilities/repositories/preschool-facilities.repository.ts",
+            "line": 277
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/facilities/repositories/preschool-facilities.repository.ts",
+          "caller": "PreschoolFacilitiesRepository/resolveOutOfServiceLog",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_fac_out_of_service_logs",
+          "operation": "update"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/facilities/repositories/preschool-facilities.repository.ts",
+            "line": 298
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/facilities/repositories/preschool-facilities.repository.ts",
+          "caller": "PreschoolFacilitiesRepository/getLatestActiveOutOfServiceLog",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_fac_out_of_service_logs",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/facilities/repositories/preschool-facilities.repository.ts",
+            "line": 317
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/facilities/repositories/preschool-facilities.repository.ts",
+          "caller": "PreschoolFacilitiesRepository/listFacilities",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_fac_facilities",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/facilities/repositories/preschool-facilities.repository.ts",
+            "line": 332
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/facilities/repositories/preschool-facilities.repository.ts",
+          "caller": "PreschoolFacilitiesRepository/listZones",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_fac_zones",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/facilities/repositories/preschool-facilities.repository.ts",
+            "line": 342
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/facilities/repositories/preschool-facilities.repository.ts",
+          "caller": "PreschoolFacilitiesRepository/listAssets",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_fac_assets",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/facilities/repositories/preschool-facilities.repository.ts",
+            "line": 356
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/facilities/repositories/preschool-facilities.repository.ts",
+          "caller": "PreschoolFacilitiesRepository/listMaintenanceJobs",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_fac_maintenance_jobs",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/facilities/repositories/preschool-facilities.repository.ts",
+            "line": 370
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/facilities/repositories/preschool-facilities.repository.ts",
+          "caller": "PreschoolFacilitiesRepository/createMaintenanceJob",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_fac_maintenance_jobs",
+          "operation": "insert"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/facilities/repositories/preschool-facilities.repository.ts",
+            "line": 391
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/facilities/repositories/preschool-facilities.repository.ts",
+          "caller": "PreschoolFacilitiesRepository/getMaintenanceJob",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_fac_maintenance_jobs",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/facilities/repositories/preschool-facilities.repository.ts",
+            "line": 449
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/facilities/repositories/preschool-facilities.repository.ts",
+          "caller": "PreschoolFacilitiesRepository/updateMaintenanceJob",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_fac_maintenance_jobs",
+          "operation": "update"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/facilities/repositories/preschool-facilities.repository.ts",
+            "line": 465
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/finance/repositories/preschool-finance.repository.ts",
+          "caller": "PreschoolFinanceRepository/readBranchStateFromTables",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_fin_billing_periods",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/finance/repositories/preschool-finance.repository.ts",
+            "line": 205
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/finance/repositories/preschool-finance.repository.ts",
+          "caller": "PreschoolFinanceRepository/readBranchStateFromTables",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_enrollments",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/finance/repositories/preschool-finance.repository.ts",
+            "line": 217
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/finance/repositories/preschool-finance.repository.ts",
+          "caller": "PreschoolFinanceRepository/readBranchStateFromTables",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "students",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/finance/repositories/preschool-finance.repository.ts",
+            "line": 228
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/finance/repositories/preschool-finance.repository.ts",
+          "caller": "PreschoolFinanceRepository/readBranchStateFromTables",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_fin_invoices",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/finance/repositories/preschool-finance.repository.ts",
+            "line": 256
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/finance/repositories/preschool-finance.repository.ts",
+          "caller": "PreschoolFinanceRepository/readBranchStateFromTables",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_fin_payments",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/finance/repositories/preschool-finance.repository.ts",
+            "line": 264
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/finance/repositories/preschool-finance.repository.ts",
+          "caller": "PreschoolFinanceRepository/hasActiveEnrollmentForStudentParty",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_enrollments",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/finance/repositories/preschool-finance.repository.ts",
+            "line": 400
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/finance/repositories/preschool-finance.repository.ts",
+          "caller": "PreschoolFinanceRepository/createFeeStructure",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_fin_fee_structures",
+          "operation": "insert"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/finance/repositories/preschool-finance.repository.ts",
+            "line": 465
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/finance/repositories/preschool-finance.repository.ts",
+          "caller": "PreschoolFinanceRepository/getFeeStructures",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_fin_fee_structures",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/finance/repositories/preschool-finance.repository.ts",
+            "line": 489
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/finance/repositories/preschool-finance.repository.ts",
+          "caller": "PreschoolFinanceRepository/createBillingPeriod",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_fin_billing_periods",
+          "operation": "insert"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/finance/repositories/preschool-finance.repository.ts",
+            "line": 502
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/finance/repositories/preschool-finance.repository.ts",
+          "caller": "PreschoolFinanceRepository/listActiveBillingPeriods",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_fin_billing_periods",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/finance/repositories/preschool-finance.repository.ts",
+            "line": 524
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/finance/repositories/preschool-finance.repository.ts",
+          "caller": "PreschoolFinanceRepository/getBillingPeriodById",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_fin_billing_periods",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/finance/repositories/preschool-finance.repository.ts",
+            "line": 535
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/finance/repositories/preschool-finance.repository.ts",
+          "caller": "PreschoolFinanceRepository/createTuitionRecognitionPolicy",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_fin_tuition_recognition_policies",
+          "operation": "insert"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/finance/repositories/preschool-finance.repository.ts",
+            "line": 552
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/finance/repositories/preschool-finance.repository.ts",
+          "caller": "PreschoolFinanceRepository/listActiveTuitionRecognitionPoliciesAsOf",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_fin_tuition_recognition_policies",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/finance/repositories/preschool-finance.repository.ts",
+            "line": 577
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/finance/repositories/preschool-finance.repository.ts",
+          "caller": "PreschoolFinanceRepository/createTuitionServicePeriodCompletion",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_fin_tuition_service_period_completions",
+          "operation": "insert"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/finance/repositories/preschool-finance.repository.ts",
+            "line": 595
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/finance/repositories/preschool-finance.repository.ts",
+          "caller": "PreschoolFinanceRepository/getTuitionServicePeriodCompletion",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_fin_tuition_service_period_completions",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/finance/repositories/preschool-finance.repository.ts",
+            "line": 617
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/finance/repositories/preschool-finance.repository.ts",
+          "caller": "PreschoolFinanceRepository/listTuitionServicePeriodCompletions",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_fin_tuition_service_period_completions",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/finance/repositories/preschool-finance.repository.ts",
+            "line": 634
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/finance/repositories/preschool-finance.repository.ts",
+          "caller": "PreschoolFinanceRepository/createDiscountProfile",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_fin_student_discount_profiles",
+          "operation": "insert"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/finance/repositories/preschool-finance.repository.ts",
+            "line": 648
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/finance/repositories/preschool-finance.repository.ts",
+          "caller": "PreschoolFinanceRepository/getActiveDiscountProfiles",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_fin_student_discount_profiles",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/finance/repositories/preschool-finance.repository.ts",
+            "line": 674
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/finance/repositories/preschool-finance.repository.ts",
+          "caller": "PreschoolFinanceRepository/createInvoice",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_fin_invoices",
+          "operation": "insert"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/finance/repositories/preschool-finance.repository.ts",
+            "line": 692
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/finance/repositories/preschool-finance.repository.ts",
+          "caller": "PreschoolFinanceRepository/createInvoice",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_fin_invoice_line_items",
+          "operation": "insert"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/finance/repositories/preschool-finance.repository.ts",
+            "line": 737
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/finance/repositories/preschool-finance.repository.ts",
+          "caller": "PreschoolFinanceRepository/listInvoices",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_fin_invoices",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/finance/repositories/preschool-finance.repository.ts",
+            "line": 758
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/finance/repositories/preschool-finance.repository.ts",
+          "caller": "PreschoolFinanceRepository/getInvoiceById",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_fin_invoices",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/finance/repositories/preschool-finance.repository.ts",
+            "line": 769
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/finance/repositories/preschool-finance.repository.ts",
+          "caller": "PreschoolFinanceRepository/getInvoiceById",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_fin_invoice_line_items",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/finance/repositories/preschool-finance.repository.ts",
+            "line": 781
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/finance/repositories/preschool-finance.repository.ts",
+          "caller": "PreschoolFinanceRepository/updateInvoiceStatus",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_fin_invoices",
+          "operation": "update"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/finance/repositories/preschool-finance.repository.ts",
+            "line": 827
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/finance/repositories/preschool-finance.repository.ts",
+          "caller": "PreschoolFinanceRepository/recordPayment",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_fin_payments",
+          "operation": "insert"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/finance/repositories/preschool-finance.repository.ts",
+            "line": 897
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/finance/repositories/preschool-finance.repository.ts",
+          "caller": "PreschoolFinanceRepository/updatePaymentAllocation",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_fin_payments",
+          "operation": "update"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/finance/repositories/preschool-finance.repository.ts",
+            "line": 925
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/finance/repositories/preschool-finance.repository.ts",
+          "caller": "PreschoolFinanceRepository/getPaymentById",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_fin_payments",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/finance/repositories/preschool-finance.repository.ts",
+            "line": 942
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/finance/repositories/preschool-finance.repository.ts",
+          "caller": "PreschoolFinanceRepository/addReconciliationEntry",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_fin_reconciliation_ledger",
+          "operation": "insert"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/finance/repositories/preschool-finance.repository.ts",
+            "line": 954
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/finance/repositories/preschool-finance.repository.ts",
+          "caller": "PreschoolFinanceRepository/getReconciliationEntriesForInvoice",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_fin_reconciliation_ledger",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/finance/repositories/preschool-finance.repository.ts",
+            "line": 979
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/finance/repositories/preschool-finance.repository.ts",
+          "caller": "PreschoolFinanceRepository/createReceipt",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_fin_receipts",
+          "operation": "insert"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/finance/repositories/preschool-finance.repository.ts",
+            "line": 991
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/finance/services/overdue-payment-scanner.service.ts",
+          "caller": "OverduePaymentScannerService/scanAndEscalateOverdueInvoices",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_fin_invoices",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/finance/services/overdue-payment-scanner.service.ts",
+            "line": 43
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/finance/services/overdue-payment-scanner.service.ts",
+          "caller": "OverduePaymentScannerService/scanAndEscalateOverdueInvoices",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_comm_notices",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/finance/services/overdue-payment-scanner.service.ts",
+            "line": 75
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/finance/services/overdue-payment-scanner.service.ts",
+          "caller": "OverduePaymentScannerService/scanAndEscalateOverdueInvoices",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_comm_exceptions",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/finance/services/overdue-payment-scanner.service.ts",
+            "line": 87
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/finance/services/overdue-payment-scanner.service.ts",
+          "caller": "OverduePaymentScannerService/scanAndEscalateOverdueInvoices",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_comm_exceptions",
+          "operation": "insert"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/finance/services/overdue-payment-scanner.service.ts",
+            "line": 106
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/learning-development/activity.service.ts",
+          "caller": "ActivityService/createActivity",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_dev_activities",
+          "operation": "insert"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/learning-development/activity.service.ts",
+            "line": 31
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/learning-development/activity.service.ts",
+          "caller": "ActivityService/updateActivityStatus",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_dev_activities",
+          "operation": "update"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/learning-development/activity.service.ts",
+            "line": 53
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/learning-development/activity.service.ts",
+          "caller": "ActivityService/getActivitiesForClass",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_dev_activities",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/learning-development/activity.service.ts",
+            "line": 69
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/learning-development/curriculum/curriculum.service.ts",
+          "caller": "CurriculumService/listCurriculums",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_curriculums",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/learning-development/curriculum/curriculum.service.ts",
+            "line": 121
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/learning-development/curriculum/curriculum.service.ts",
+          "caller": "CurriculumService/saveCurriculum",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_curriculums",
+          "operation": "update"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/learning-development/curriculum/curriculum.service.ts",
+            "line": 174
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/learning-development/curriculum/curriculum.service.ts",
+          "caller": "CurriculumService/saveCurriculum",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_curriculums",
+          "operation": "insert"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/learning-development/curriculum/curriculum.service.ts",
+            "line": 183
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/learning-development/curriculum/curriculum.service.ts",
+          "caller": "CurriculumService/listLessonPlans",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_lesson_plans",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/learning-development/curriculum/curriculum.service.ts",
+            "line": 212
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/learning-development/curriculum/curriculum.service.ts",
+          "caller": "CurriculumService/saveLessonPlan",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_lesson_plans",
+          "operation": "update"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/learning-development/curriculum/curriculum.service.ts",
+            "line": 294
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/learning-development/curriculum/curriculum.service.ts",
+          "caller": "CurriculumService/saveLessonPlan",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_lesson_plans",
+          "operation": "insert"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/learning-development/curriculum/curriculum.service.ts",
+            "line": 303
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/learning-development/curriculum/curriculum.service.ts",
+          "caller": "CurriculumService/deleteLessonPlan",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_lesson_plans",
+          "operation": "delete"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/learning-development/curriculum/curriculum.service.ts",
+            "line": 323
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/learning-development/framework-registry.service.ts",
+          "caller": "FrameworkRegistryService/createFramework",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_dev_frameworks",
+          "operation": "insert"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/learning-development/framework-registry.service.ts",
+            "line": 86
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/learning-development/framework-registry.service.ts",
+          "caller": "FrameworkRegistryService/createVersion",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_dev_framework_versions",
+          "operation": "insert"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/learning-development/framework-registry.service.ts",
+            "line": 105
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/learning-development/framework-registry.service.ts",
+          "caller": "FrameworkRegistryService/createDomain",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_dev_framework_domains",
+          "operation": "insert"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/learning-development/framework-registry.service.ts",
+            "line": 124
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/learning-development/framework-registry.service.ts",
+          "caller": "FrameworkRegistryService/createMilestone",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_dev_milestones",
+          "operation": "insert"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/learning-development/framework-registry.service.ts",
+            "line": 144
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/learning-development/framework-registry.service.ts",
+          "caller": "FrameworkRegistryService/activateVersion",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_dev_framework_versions",
+          "operation": "update"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/learning-development/framework-registry.service.ts",
+            "line": 168
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/learning-development/framework-registry.service.ts",
+          "caller": "FrameworkRegistryService/getActiveMilestones",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_dev_milestones",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/learning-development/framework-registry.service.ts",
+            "line": 187
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/learning-development/learning-workspace.service.ts",
+          "caller": "LearningWorkspaceService/getTeacherWorkQueue",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "students",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/learning-development/learning-workspace.service.ts",
+            "line": 19
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/learning-development/learning-workspace.service.ts",
+          "caller": "LearningWorkspaceService/getTeacherWorkQueue",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_dev_observation_students",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/learning-development/learning-workspace.service.ts",
+            "line": 36
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/learning-development/learning-workspace.service.ts",
+          "caller": "LearningWorkspaceService/getTeacherWorkQueue",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_dev_milestone_progress",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/learning-development/learning-workspace.service.ts",
+            "line": 46
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/learning-development/learning-workspace.service.ts",
+          "caller": "LearningWorkspaceService/getTeacherWorkQueue",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_dev_next_steps",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/learning-development/learning-workspace.service.ts",
+            "line": 55
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/learning-development/learning-workspace.service.ts",
+          "caller": "LearningWorkspaceService/getTeacherWorkQueue",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_dev_portfolio_versions",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/learning-development/learning-workspace.service.ts",
+            "line": 63
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/learning-development/milestone-progress.service.ts",
+          "caller": "MilestoneProgressService/interpretProgress",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_dev_evidence",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/learning-development/milestone-progress.service.ts",
+            "line": 64
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/learning-development/milestone-progress.service.ts",
+          "caller": "MilestoneProgressService/interpretProgress",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_dev_milestones",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/learning-development/milestone-progress.service.ts",
+            "line": 87
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/learning-development/milestone-progress.service.ts",
+          "caller": "MilestoneProgressService/interpretProgress",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_dev_milestone_progress",
+          "operation": "insert"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/learning-development/milestone-progress.service.ts",
+            "line": 103
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/learning-development/milestone-progress.service.ts",
+          "caller": "MilestoneProgressService/interpretProgress",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_dev_progress_evidence_links",
+          "operation": "insert"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/learning-development/milestone-progress.service.ts",
+            "line": 128
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/learning-development/milestone-progress.service.ts",
+          "caller": "MilestoneProgressService/confirmProgress",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_dev_milestone_progress",
+          "operation": "update"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/learning-development/milestone-progress.service.ts",
+            "line": 148
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/learning-development/milestone-progress.service.ts",
+          "caller": "MilestoneProgressService/amendProgress",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_dev_milestone_progress",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/learning-development/milestone-progress.service.ts",
+            "line": 173
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/learning-development/milestone-progress.service.ts",
+          "caller": "MilestoneProgressService/amendProgress",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_dev_milestone_progress",
+          "operation": "update"
+        },
+        "maximumStaticOccurrences": 2,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/learning-development/milestone-progress.service.ts",
+            "line": 185
+          },
+          {
+            "file": "src/products/bella-education/learning-development/milestone-progress.service.ts",
+            "line": 205
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/learning-development/milestone-progress.service.ts",
+          "caller": "MilestoneProgressService/getStudentProgressSummary",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_dev_milestone_progress",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/learning-development/milestone-progress.service.ts",
+            "line": 220
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/learning-development/next-steps.service.ts",
+          "caller": "NextStepsService/createNextStep",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "students",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/learning-development/next-steps.service.ts",
+            "line": 40
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/learning-development/next-steps.service.ts",
+          "caller": "NextStepsService/createNextStep",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_dev_next_steps",
+          "operation": "insert"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/learning-development/next-steps.service.ts",
+            "line": 52
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/learning-development/next-steps.service.ts",
+          "caller": "NextStepsService/updateStatus",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_dev_next_steps",
+          "operation": "update"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/learning-development/next-steps.service.ts",
+            "line": 77
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/learning-development/next-steps.service.ts",
+          "caller": "NextStepsService/getStudentNextSteps",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_dev_next_steps",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/learning-development/next-steps.service.ts",
+            "line": 93
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/learning-development/observation.service.ts",
+          "caller": "ObservationService/recordObservation",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_dev_observations",
+          "operation": "insert"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/learning-development/observation.service.ts",
+            "line": 100
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/learning-development/observation.service.ts",
+          "caller": "ObservationService/recordObservation",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_dev_evidence",
+          "operation": "insert"
+        },
+        "maximumStaticOccurrences": 2,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/learning-development/observation.service.ts",
+            "line": 124
+          },
+          {
+            "file": "src/products/bella-education/learning-development/observation.service.ts",
+            "line": 207
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/learning-development/observation.service.ts",
+          "caller": "ObservationService/recordObservation",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "students",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/learning-development/observation.service.ts",
+            "line": 150
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/learning-development/observation.service.ts",
+          "caller": "ObservationService/recordObservation",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_dev_observation_students",
+          "operation": "insert"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/learning-development/observation.service.ts",
+            "line": 161
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/learning-development/observation.service.ts",
+          "caller": "ObservationService/recordObservation",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_dev_observation_milestones",
+          "operation": "insert"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/learning-development/observation.service.ts",
+            "line": 186
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/learning-development/observation.service.ts",
+          "caller": "ObservationService/amendObservation",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_dev_observations",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/learning-development/observation.service.ts",
+            "line": 249
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/learning-development/observation.service.ts",
+          "caller": "ObservationService/amendObservation",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_dev_observations",
+          "operation": "update"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/learning-development/observation.service.ts",
+            "line": 265
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/learning-development/observation.service.ts",
+          "caller": "ObservationService/amendObservation",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_dev_observations",
+          "operation": "insert"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/learning-development/observation.service.ts",
+            "line": 276
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/learning-development/observation.service.ts",
+          "caller": "ObservationService/amendObservation",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_dev_observation_students",
+          "operation": "insert"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/learning-development/observation.service.ts",
+            "line": 301
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/learning-development/observation.service.ts",
+          "caller": "ObservationService/getObservationEvidence",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_dev_evidence",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/learning-development/observation.service.ts",
+            "line": 330
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/learning-development/portfolio.service.ts",
+          "caller": "PortfolioService/getOrCreatePortfolio",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_dev_portfolios",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/learning-development/portfolio.service.ts",
+            "line": 67
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/learning-development/portfolio.service.ts",
+          "caller": "PortfolioService/getOrCreatePortfolio",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_dev_portfolios",
+          "operation": "insert"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/learning-development/portfolio.service.ts",
+            "line": 78
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/learning-development/portfolio.service.ts",
+          "caller": "PortfolioService/compilePortfolioVersion",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_dev_portfolio_versions",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/learning-development/portfolio.service.ts",
+            "line": 102
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/learning-development/portfolio.service.ts",
+          "caller": "PortfolioService/compilePortfolioVersion",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_dev_portfolio_versions",
+          "operation": "insert"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/learning-development/portfolio.service.ts",
+            "line": 113
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/learning-development/portfolio.service.ts",
+          "caller": "PortfolioService/compilePortfolioVersion",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_dev_evidence",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/learning-development/portfolio.service.ts",
+            "line": 139
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/learning-development/portfolio.service.ts",
+          "caller": "PortfolioService/compilePortfolioVersion",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_dev_portfolio_items",
+          "operation": "insert"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/learning-development/portfolio.service.ts",
+            "line": 161
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/learning-development/portfolio.service.ts",
+          "caller": "PortfolioService/publishPortfolioVersion",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_dev_portfolio_versions",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/learning-development/portfolio.service.ts",
+            "line": 186
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/learning-development/portfolio.service.ts",
+          "caller": "PortfolioService/publishPortfolioVersion",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_dev_evidence",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/learning-development/portfolio.service.ts",
+            "line": 207
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/learning-development/portfolio.service.ts",
+          "caller": "PortfolioService/publishPortfolioVersion",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_dev_portfolio_versions",
+          "operation": "update"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/learning-development/portfolio.service.ts",
+            "line": 224
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/learning-development/portfolio.service.ts",
+          "caller": "PortfolioService/publishPortfolioVersion",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_dev_portfolio_publications",
+          "operation": "insert"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/learning-development/portfolio.service.ts",
+            "line": 245
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/learning-development/portfolio.service.ts",
+          "caller": "PortfolioService/getParentPortfolioProjection",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_dev_portfolios",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/learning-development/portfolio.service.ts",
+            "line": 275
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/learning-development/portfolio.service.ts",
+          "caller": "PortfolioService/getParentPortfolioProjection",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_dev_portfolio_versions",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/learning-development/portfolio.service.ts",
+            "line": 287
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/learning-development/portfolio.service.ts",
+          "caller": "PortfolioService/getParentPortfolioProjection",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_dev_portfolio_publications",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/learning-development/portfolio.service.ts",
+            "line": 304
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/learning-development/portfolio.service.ts",
+          "caller": "PortfolioService/getParentPortfolioProjection",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_dev_evidence",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/learning-development/portfolio.service.ts",
+            "line": 319
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/learning-development/portfolio.service.ts",
+          "caller": "PortfolioService/getParentPortfolioProjection",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_dev_milestone_progress",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/learning-development/portfolio.service.ts",
+            "line": 329
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/learning-development/portfolio.service.ts",
+          "caller": "PortfolioService/getParentPortfolioProjection",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_dev_next_steps",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/learning-development/portfolio.service.ts",
+            "line": 339
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/learning-development/portfolio.service.ts",
+          "caller": "PortfolioService/getParentPortfolioProjection",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_dev_observations",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/learning-development/portfolio.service.ts",
+            "line": 349
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/parent-engagement/bridges/care-projection.bridge.ts",
+          "caller": "CareProjectionBridge/projectHealthIncident",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_comm_notices",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/parent-engagement/bridges/care-projection.bridge.ts",
+            "line": 51
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/parent-engagement/bridges/care-projection.bridge.ts",
+          "caller": "CareProjectionBridge/projectHealthIncident",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_comm_deliveries",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/parent-engagement/bridges/care-projection.bridge.ts",
+            "line": 62
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/parent-engagement/bridges/care-projection.bridge.ts",
+          "caller": "CareProjectionBridge/projectHealthIncident",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "students",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/parent-engagement/bridges/care-projection.bridge.ts",
+            "line": 76
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/parent-engagement/bridges/care-projection.bridge.ts",
+          "caller": "CareProjectionBridge/projectMedicationRequest",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_comm_notices",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/parent-engagement/bridges/care-projection.bridge.ts",
+            "line": 130
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/parent-engagement/bridges/care-projection.bridge.ts",
+          "caller": "CareProjectionBridge/projectMedicationRequest",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_comm_deliveries",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/parent-engagement/bridges/care-projection.bridge.ts",
+            "line": 141
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/parent-engagement/bridges/classroom-projection.bridge.ts",
+          "caller": "ClassroomProjectionBridge/projectAnnouncement",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_comm_notices",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/parent-engagement/bridges/classroom-projection.bridge.ts",
+            "line": 33
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/parent-engagement/bridges/classroom-projection.bridge.ts",
+          "caller": "ClassroomProjectionBridge/projectAnnouncement",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_comm_deliveries",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/parent-engagement/bridges/classroom-projection.bridge.ts",
+            "line": 44
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/parent-engagement/bridges/finance-projection.bridge.ts",
+          "caller": "FinanceProjectionBridge/projectIssuedInvoice",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_comm_notices",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/parent-engagement/bridges/finance-projection.bridge.ts",
+            "line": 46
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/parent-engagement/bridges/finance-projection.bridge.ts",
+          "caller": "FinanceProjectionBridge/projectIssuedInvoice",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_comm_deliveries",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/parent-engagement/bridges/finance-projection.bridge.ts",
+            "line": 57
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/parent-engagement/bridges/learning-projection.bridge.ts",
+          "caller": "LearningProjectionBridge/projectPublishedPortfolio",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_dev_portfolio_versions",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/parent-engagement/bridges/learning-projection.bridge.ts",
+            "line": 32
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/parent-engagement/bridges/learning-projection.bridge.ts",
+          "caller": "LearningProjectionBridge/projectPublishedPortfolio",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_comm_notices",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/parent-engagement/bridges/learning-projection.bridge.ts",
+            "line": 51
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/parent-engagement/bridges/learning-projection.bridge.ts",
+          "caller": "LearningProjectionBridge/projectPublishedPortfolio",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_comm_deliveries",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/parent-engagement/bridges/learning-projection.bridge.ts",
+            "line": 62
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/parent-engagement/repositories/parent-communication.repository.ts",
+          "caller": "ParentCommunicationRepository/validateGuardianAuthorization",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "students",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/parent-engagement/repositories/parent-communication.repository.ts",
+            "line": 58
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/parent-engagement/repositories/parent-communication.repository.ts",
+          "caller": "ParentCommunicationRepository/createThread",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_comm_threads",
+          "operation": "insert"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/parent-engagement/repositories/parent-communication.repository.ts",
+            "line": 91
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/parent-engagement/repositories/parent-communication.repository.ts",
+          "caller": "ParentCommunicationRepository/getThreadById",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_comm_threads",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/parent-engagement/repositories/parent-communication.repository.ts",
+            "line": 113
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/parent-engagement/repositories/parent-communication.repository.ts",
+          "caller": "ParentCommunicationRepository/createNotice",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_comm_notices",
+          "operation": "insert"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/parent-engagement/repositories/parent-communication.repository.ts",
+            "line": 128
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/parent-engagement/repositories/parent-communication.repository.ts",
+          "caller": "ParentCommunicationRepository/getNoticeById",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_comm_notices",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/parent-engagement/repositories/parent-communication.repository.ts",
+            "line": 159
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/parent-engagement/repositories/parent-communication.repository.ts",
+          "caller": "ParentCommunicationRepository/createDelivery",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_comm_deliveries",
+          "operation": "insert"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/parent-engagement/repositories/parent-communication.repository.ts",
+            "line": 174
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/parent-engagement/repositories/parent-communication.repository.ts",
+          "caller": "ParentCommunicationRepository/updateDelivery",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_comm_deliveries",
+          "operation": "update"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/parent-engagement/repositories/parent-communication.repository.ts",
+            "line": 201
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/parent-engagement/repositories/parent-communication.repository.ts",
+          "caller": "ParentCommunicationRepository/getDelivery",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_comm_deliveries",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/parent-engagement/repositories/parent-communication.repository.ts",
+            "line": 219
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/parent-engagement/repositories/parent-communication.repository.ts",
+          "caller": "ParentCommunicationRepository/getDeliveryByNoticeAndRecipient",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_comm_deliveries",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/parent-engagement/repositories/parent-communication.repository.ts",
+            "line": 237
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/parent-engagement/repositories/parent-communication.repository.ts",
+          "caller": "ParentCommunicationRepository/addDeliveryAttempt",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_comm_delivery_attempts",
+          "operation": "insert"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/parent-engagement/repositories/parent-communication.repository.ts",
+            "line": 252
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/parent-engagement/repositories/parent-communication.repository.ts",
+          "caller": "ParentCommunicationRepository/getDeliveryAttempts",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_comm_delivery_attempts",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/parent-engagement/repositories/parent-communication.repository.ts",
+            "line": 274
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/parent-engagement/repositories/parent-communication.repository.ts",
+          "caller": "ParentCommunicationRepository/createAcknowledgement",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_comm_acknowledgements",
+          "operation": "insert"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/parent-engagement/repositories/parent-communication.repository.ts",
+            "line": 289
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/parent-engagement/repositories/parent-communication.repository.ts",
+          "caller": "ParentCommunicationRepository/getAcknowledgement",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_comm_acknowledgements",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/parent-engagement/repositories/parent-communication.repository.ts",
+            "line": 311
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/parent-engagement/repositories/parent-communication.repository.ts",
+          "caller": "ParentCommunicationRepository/createConsentResponse",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_comm_consent_responses",
+          "operation": "insert"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/parent-engagement/repositories/parent-communication.repository.ts",
+            "line": 327
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/parent-engagement/repositories/parent-communication.repository.ts",
+          "caller": "ParentCommunicationRepository/getConsentResponse",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_comm_consent_responses",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/parent-engagement/repositories/parent-communication.repository.ts",
+            "line": 353
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/parent-engagement/repositories/parent-communication.repository.ts",
+          "caller": "ParentCommunicationRepository/updateConsentResponse",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_comm_consent_responses",
+          "operation": "update"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/parent-engagement/repositories/parent-communication.repository.ts",
+            "line": 372
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/parent-engagement/repositories/parent-communication.repository.ts",
+          "caller": "ParentCommunicationRepository/createResponse",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_comm_responses",
+          "operation": "insert"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/parent-engagement/repositories/parent-communication.repository.ts",
+            "line": 388
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/parent-engagement/repositories/parent-communication.repository.ts",
+          "caller": "ParentCommunicationRepository/getResponsesByThread",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_comm_responses",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/parent-engagement/repositories/parent-communication.repository.ts",
+            "line": 409
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/parent-engagement/repositories/parent-communication.repository.ts",
+          "caller": "ParentCommunicationRepository/createException",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_comm_exceptions",
+          "operation": "insert"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/parent-engagement/repositories/parent-communication.repository.ts",
+            "line": 424
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/parent-engagement/repositories/parent-communication.repository.ts",
+          "caller": "ParentCommunicationRepository/updateException",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_comm_exceptions",
+          "operation": "update"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/parent-engagement/repositories/parent-communication.repository.ts",
+            "line": 453
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/parent-engagement/repositories/parent-communication.repository.ts",
+          "caller": "ParentCommunicationRepository/getExceptionsByTenant",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_comm_exceptions",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/parent-engagement/repositories/parent-communication.repository.ts",
+            "line": 471
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/parent-engagement/repositories/parent-communication.repository.ts",
+          "caller": "ParentCommunicationRepository/createSentSnapshot",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_comm_sent_snapshots",
+          "operation": "insert"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/parent-engagement/repositories/parent-communication.repository.ts",
+            "line": 489
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/parent-engagement/repositories/parent-communication.repository.ts",
+          "caller": "ParentCommunicationRepository/getSentSnapshot",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_comm_sent_snapshots",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/parent-engagement/repositories/parent-communication.repository.ts",
+            "line": 510
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/parent-portal/repositories/parent-portal.repository.ts",
+          "caller": "ParentPortalRepository/findStudentByPartyId",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "students",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/parent-portal/repositories/parent-portal.repository.ts",
+            "line": 225
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/parent-portal/repositories/parent-portal.repository.ts",
+          "caller": "ParentPortalRepository/findActiveEnrollment",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_enrollments",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/parent-portal/repositories/parent-portal.repository.ts",
+            "line": 251
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/parent-portal/repositories/parent-portal.repository.ts",
+          "caller": "ParentPortalRepository/findCourse",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_courses",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/parent-portal/repositories/parent-portal.repository.ts",
+            "line": 263
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/parent-portal/repositories/parent-portal.repository.ts",
+          "caller": "ParentPortalRepository/countActiveEnrollmentsInCourse",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_enrollments",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/parent-portal/repositories/parent-portal.repository.ts",
+            "line": 274
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/parent-portal/repositories/parent-portal.repository.ts",
+          "caller": "ParentPortalRepository/countPresentStudentsInCourse",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_attendance_daily_state",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/parent-portal/repositories/parent-portal.repository.ts",
+            "line": 289
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/parent-portal/repositories/parent-portal.repository.ts",
+          "caller": "ParentPortalRepository/findStudentAttendance",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_attendance_daily_state",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/parent-portal/repositories/parent-portal.repository.ts",
+            "line": 307
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/parent-portal/repositories/parent-portal.repository.ts",
+          "caller": "ParentPortalRepository/findLatestDailyCareSession",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_daily_care_sessions",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/parent-portal/repositories/parent-portal.repository.ts",
+            "line": 321
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/parent-portal/repositories/parent-portal.repository.ts",
+          "caller": "ParentPortalRepository/findLatestDailyCareRecord",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_daily_care_records",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/parent-portal/repositories/parent-portal.repository.ts",
+            "line": 335
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/parent-portal/repositories/parent-portal.repository.ts",
+          "caller": "ParentPortalRepository/findPickupHandoverOnDay",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_preschool_pickup_handover_events",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/parent-portal/repositories/parent-portal.repository.ts",
+            "line": 354
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/parent-portal/repositories/parent-portal.repository.ts",
+          "caller": "ParentPortalRepository/findWeeklyMenuForDate",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_weekly_menus",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/parent-portal/repositories/parent-portal.repository.ts",
+            "line": 372
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/parent-portal/repositories/parent-portal.repository.ts",
+          "caller": "ParentPortalRepository/findLatestInvoice",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_fin_invoices",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/parent-portal/repositories/parent-portal.repository.ts",
+            "line": 390
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/parent-portal/repositories/parent-portal.repository.ts",
+          "caller": "ParentPortalRepository/findLatestInvoice",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_invoices",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/parent-portal/repositories/parent-portal.repository.ts",
+            "line": 414
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/parent-portal/repositories/parent-portal.repository.ts",
+          "caller": "ParentPortalRepository/findInvoiceLineItems",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_fin_invoice_line_items",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/parent-portal/repositories/parent-portal.repository.ts",
+            "line": 431
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/parent-portal/repositories/parent-portal.repository.ts",
+          "caller": "ParentPortalRepository/findCommThread",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_comm_threads",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/parent-portal/repositories/parent-portal.repository.ts",
+            "line": 453
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/parent-portal/repositories/parent-portal.repository.ts",
+          "caller": "ParentPortalRepository/createCommThread",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_comm_threads",
+          "operation": "insert"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/parent-portal/repositories/parent-portal.repository.ts",
+            "line": 469
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/parent-portal/repositories/parent-portal.repository.ts",
+          "caller": "ParentPortalRepository/listCommResponses",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_comm_responses",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/parent-portal/repositories/parent-portal.repository.ts",
+            "line": 492
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/parent-portal/repositories/parent-portal.repository.ts",
+          "caller": "ParentPortalRepository/insertCommResponse",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_comm_responses",
+          "operation": "insert"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/parent-portal/repositories/parent-portal.repository.ts",
+            "line": 510
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/parent-portal/repositories/parent-portal.repository.ts",
+          "caller": "ParentPortalRepository/touchThreadActivity",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_comm_threads",
+          "operation": "update"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/parent-portal/repositories/parent-portal.repository.ts",
+            "line": 527
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/scheduling/repositories/preschool-scheduling.repository.ts",
+          "caller": "PreschoolSchedulingRepository/createShiftTemplate",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_sched_shift_templates",
+          "operation": "insert"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/scheduling/repositories/preschool-scheduling.repository.ts",
+            "line": 48
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/scheduling/repositories/preschool-scheduling.repository.ts",
+          "caller": "PreschoolSchedulingRepository/listShiftTemplates",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_sched_shift_templates",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/scheduling/repositories/preschool-scheduling.repository.ts",
+            "line": 76
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/scheduling/repositories/preschool-scheduling.repository.ts",
+          "caller": "PreschoolSchedulingRepository/upsertRatioPolicy",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_sched_ratio_policies",
+          "operation": "upsert"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/scheduling/repositories/preschool-scheduling.repository.ts",
+            "line": 102
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/scheduling/repositories/preschool-scheduling.repository.ts",
+          "caller": "PreschoolSchedulingRepository/getRatioPolicy",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_sched_ratio_policies",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/scheduling/repositories/preschool-scheduling.repository.ts",
+            "line": 137
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/scheduling/repositories/preschool-scheduling.repository.ts",
+          "caller": "PreschoolSchedulingRepository/setStaffAvailability",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_sched_staff_availability",
+          "operation": "insert"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/scheduling/repositories/preschool-scheduling.repository.ts",
+            "line": 165
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/scheduling/repositories/preschool-scheduling.repository.ts",
+          "caller": "PreschoolSchedulingRepository/getStaffAvailability",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_sched_staff_availability",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/scheduling/repositories/preschool-scheduling.repository.ts",
+            "line": 193
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/scheduling/repositories/preschool-scheduling.repository.ts",
+          "caller": "PreschoolSchedulingRepository/createShiftAssignment",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_sched_shift_assignments",
+          "operation": "insert"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/scheduling/repositories/preschool-scheduling.repository.ts",
+            "line": 213
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/scheduling/repositories/preschool-scheduling.repository.ts",
+          "caller": "PreschoolSchedulingRepository/getShiftAssignment",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_sched_shift_assignments",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/scheduling/repositories/preschool-scheduling.repository.ts",
+            "line": 236
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/scheduling/repositories/preschool-scheduling.repository.ts",
+          "caller": "PreschoolSchedulingRepository/listShiftAssignments",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_sched_shift_assignments",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/scheduling/repositories/preschool-scheduling.repository.ts",
+            "line": 251
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/scheduling/repositories/preschool-scheduling.repository.ts",
+          "caller": "PreschoolSchedulingRepository/supersedeShiftAssignment",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_sched_shift_assignments",
+          "operation": "update"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/scheduling/repositories/preschool-scheduling.repository.ts",
+            "line": 276
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/scheduling/repositories/preschool-scheduling.repository.ts",
+          "caller": "PreschoolSchedulingRepository/supersedeShiftAssignment",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_sched_shift_assignments",
+          "operation": "insert"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/scheduling/repositories/preschool-scheduling.repository.ts",
+            "line": 283
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/scheduling/repositories/preschool-scheduling.repository.ts",
+          "caller": "PreschoolSchedulingRepository/updateShiftAssignmentStatus",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_sched_shift_assignments",
+          "operation": "update"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/scheduling/repositories/preschool-scheduling.repository.ts",
+            "line": 311
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/scheduling/repositories/preschool-scheduling.repository.ts",
+          "caller": "PreschoolSchedulingRepository/createLeaveRequest",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_sched_leave_requests",
+          "operation": "insert"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/scheduling/repositories/preschool-scheduling.repository.ts",
+            "line": 335
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/scheduling/repositories/preschool-scheduling.repository.ts",
+          "caller": "PreschoolSchedulingRepository/approveLeaveRequest",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_sched_leave_requests",
+          "operation": "update"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/scheduling/repositories/preschool-scheduling.repository.ts",
+            "line": 361
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/scheduling/repositories/preschool-scheduling.repository.ts",
+          "caller": "PreschoolSchedulingRepository/listScheduledAssignmentsForStaffLeave",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_sched_shift_assignments",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/scheduling/repositories/preschool-scheduling.repository.ts",
+            "line": 386
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/scheduling/repositories/preschool-scheduling.repository.ts",
+          "caller": "PreschoolSchedulingRepository/createSubstitution",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_sched_substitutions",
+          "operation": "insert"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/scheduling/repositories/preschool-scheduling.repository.ts",
+            "line": 405
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/scheduling/repositories/preschool-scheduling.repository.ts",
+          "caller": "PreschoolSchedulingRepository/createComplianceSnapshot",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_sched_compliance_snapshots",
+          "operation": "insert"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/scheduling/repositories/preschool-scheduling.repository.ts",
+            "line": 439
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/scheduling/repositories/preschool-scheduling.repository.ts",
+          "caller": "PreschoolSchedulingRepository/getLatestComplianceSnapshot",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_sched_compliance_snapshots",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/scheduling/repositories/preschool-scheduling.repository.ts",
+            "line": 483
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/services/preschool-guardian-authorization.service.ts",
+          "caller": "PreschoolGuardianAuthorizationService/getAuthorizedGuardians",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_preschool_pickup_authorizations",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/services/preschool-guardian-authorization.service.ts",
+            "line": 153
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/services/preschool-guardian-authorization.service.ts",
+          "caller": "PreschoolGuardianAuthorizationService/ensurePickupAuthorization",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_preschool_pickup_authorizations",
+          "operation": "insert"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/services/preschool-guardian-authorization.service.ts",
+            "line": 312
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/services/preschool-guardian-authorization.service.ts",
+          "caller": "PreschoolGuardianAuthorizationService/findActivePickupAuthorization",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_preschool_pickup_authorizations",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/services/preschool-guardian-authorization.service.ts",
+            "line": 344
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/services/preschool-parent-daily-experience.service.ts",
+          "caller": "PreschoolParentDailyExperienceService/loadChildrenDailyTruth",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "students",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/services/preschool-parent-daily-experience.service.ts",
+            "line": 256
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/services/preschool-parent-daily-experience.service.ts",
+          "caller": "PreschoolParentDailyExperienceService/loadChildrenDailyTruth",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_enrollments",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/services/preschool-parent-daily-experience.service.ts",
+            "line": 261
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/services/preschool-parent-daily-experience.service.ts",
+          "caller": "PreschoolParentDailyExperienceService/loadCourses",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_courses",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/services/preschool-parent-daily-experience.service.ts",
+            "line": 336
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/services/preschool-parent-daily-experience.service.ts",
+          "caller": "PreschoolParentDailyExperienceService/loadAttendance",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_attendance_daily_state",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/services/preschool-parent-daily-experience.service.ts",
+            "line": 356
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/services/preschool-parent-daily-experience.service.ts",
+          "caller": "PreschoolParentDailyExperienceService/loadCareRecords",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_daily_care_sessions",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/services/preschool-parent-daily-experience.service.ts",
+            "line": 379
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/services/preschool-parent-daily-experience.service.ts",
+          "caller": "PreschoolParentDailyExperienceService/loadCareRecords",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_daily_care_records",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/services/preschool-parent-daily-experience.service.ts",
+            "line": 393
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      },
+      {
+        "tuple": {
+          "file": "src/products/bella-education/services/preschool-safe-pickup-handover.service.ts",
+          "caller": "PreschoolSafePickupHandoverService/getLatestHandovers",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_preschool_pickup_handover_events",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceLocations": [
+          {
+            "file": "src/products/bella-education/services/preschool-safe-pickup-handover.service.ts",
+            "line": 112
+          }
+        ],
+        "proposedDisposition": "KNOWN_DEBT_BOUNDED",
+        "semanticReviewClaim": false
+      }
+    ]
+  },
+  "P2": {
+    "recommendation": "Default BLOCK for new/changed/unresolved calls; individual exact exceptions only after control approval.",
+    "newlyObservedOccurrences": 77,
+    "unresolvedExpressions": 20,
+    "wildcardOrFileException": false,
+    "consumerLiteralRewrite": false,
+    "unknownTargetException": false
+  },
+  "P3": {
+    "recommendation": "Approve only the seven listed control exceptions; grant no DB/user/business authority.",
+    "exceptions": [
+      {
+        "frozenId": "M066",
+        "tuple": {
+          "file": "src/app/api/education/work-queue/incident-queue.persistence.ts",
+          "caller": "IncidentQueuePersistence/query",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_health_incidents",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceFileSha256": "64fe56a857dd3b7e0f5f8ab8f5583547268c9411e52c91ed2e925bebd7bc8ccc",
+        "sourceReview": "Exact typed Product persistence port and server adapter are explicitly described by the existing Work Queue Architecture Gate. These are six bounded source candidates, not approved exceptions. Authentication dependency includes a development mock path in getCurrentUser; no caller/runtime certificate follows.",
+        "proposedDisposition": "APPROVED_CONTRACT_PATH_IF_OWNER_ACCEPTS",
+        "approved": false
+      },
+      {
+        "frozenId": "M067",
+        "tuple": {
+          "file": "src/app/api/education/work-queue/incident-queue.persistence.ts",
+          "caller": "IncidentQueuePersistence/get",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_health_incidents",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceFileSha256": "64fe56a857dd3b7e0f5f8ab8f5583547268c9411e52c91ed2e925bebd7bc8ccc",
+        "sourceReview": "Exact typed Product persistence port and server adapter are explicitly described by the existing Work Queue Architecture Gate. These are six bounded source candidates, not approved exceptions. Authentication dependency includes a development mock path in getCurrentUser; no caller/runtime certificate follows.",
+        "proposedDisposition": "APPROVED_CONTRACT_PATH_IF_OWNER_ACCEPTS",
+        "approved": false
+      },
+      {
+        "frozenId": "M068",
+        "tuple": {
+          "file": "src/app/api/education/work-queue/request-review.persistence.ts",
+          "caller": "RequestReviewPersistence/query",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_comm_exceptions",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceFileSha256": "b78f643b2e2e0b1f7d27608f6618cb4ef0fa075b3e002a50c82ec2b05990ad2c",
+        "sourceReview": "Exact typed Product persistence port and server adapter are explicitly described by the existing Work Queue Architecture Gate. These are six bounded source candidates, not approved exceptions. Authentication dependency includes a development mock path in getCurrentUser; no caller/runtime certificate follows.",
+        "proposedDisposition": "APPROVED_CONTRACT_PATH_IF_OWNER_ACCEPTS",
+        "approved": false
+      },
+      {
+        "frozenId": "M069",
+        "tuple": {
+          "file": "src/app/api/education/work-queue/request-review.persistence.ts",
+          "caller": "RequestReviewPersistence/get",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_comm_exceptions",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceFileSha256": "b78f643b2e2e0b1f7d27608f6618cb4ef0fa075b3e002a50c82ec2b05990ad2c",
+        "sourceReview": "Exact typed Product persistence port and server adapter are explicitly described by the existing Work Queue Architecture Gate. These are six bounded source candidates, not approved exceptions. Authentication dependency includes a development mock path in getCurrentUser; no caller/runtime certificate follows.",
+        "proposedDisposition": "APPROVED_CONTRACT_PATH_IF_OWNER_ACCEPTS",
+        "approved": false
+      },
+      {
+        "frozenId": "M070",
+        "tuple": {
+          "file": "src/app/api/education/work-queue/request-review.persistence.ts",
+          "caller": "RequestReviewPersistence/resolveOpen",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_comm_exceptions",
+          "operation": "update"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceFileSha256": "b78f643b2e2e0b1f7d27608f6618cb4ef0fa075b3e002a50c82ec2b05990ad2c",
+        "sourceReview": "Exact typed Product persistence port and server adapter are explicitly described by the existing Work Queue Architecture Gate. These are six bounded source candidates, not approved exceptions. Authentication dependency includes a development mock path in getCurrentUser; no caller/runtime certificate follows.",
+        "proposedDisposition": "APPROVED_CONTRACT_PATH_IF_OWNER_ACCEPTS",
+        "approved": false
+      },
+      {
+        "frozenId": "M071",
+        "tuple": {
+          "file": "src/app/api/education/work-queue/request-review.persistence.ts",
+          "caller": "RequestReviewPersistence/financeNoticeIds",
+          "transport": "from",
+          "schema": "<client-default>",
+          "resource": "edu_comm_notices",
+          "operation": "select"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceFileSha256": "b78f643b2e2e0b1f7d27608f6618cb4ef0fa075b3e002a50c82ec2b05990ad2c",
+        "sourceReview": "Exact typed Product persistence port and server adapter are explicitly described by the existing Work Queue Architecture Gate. These are six bounded source candidates, not approved exceptions. Authentication dependency includes a development mock path in getCurrentUser; no caller/runtime certificate follows.",
+        "proposedDisposition": "APPROVED_CONTRACT_PATH_IF_OWNER_ACCEPTS",
+        "approved": false
+      },
+      {
+        "frozenId": "M004",
+        "tuple": {
+          "file": "src/app/api/education/care/bulk/route.ts",
+          "caller": "POST",
+          "transport": "rpc",
+          "schema": "<client-default>",
+          "resource": "preschool_save_care_records",
+          "operation": "execute"
+        },
+        "maximumStaticOccurrences": 1,
+        "sourceFileSha256": "7411e3b3de461a6fa9a603dcab44b5885c764595e7c02eda4549c65644e5ec12",
+        "sourceReview": "Caller checks Auth/profile/Product, current day, branch, active roster, all student targets and rejects derived health before the named atomic non-health command; response count is validated. Bounded source path matches the existing Care contract. No DB execution/installation/rollback proof is implied and no baseline exception is added.",
+        "proposedDisposition": "APPROVED_CONTRACT_PATH_IF_OWNER_ACCEPTS",
+        "approved": false
+      }
+    ]
+  },
+  "implementationIfApproved": {
+    "scope": "Local enforcement only: reuse scanner v2 and the two existing comparisons; no new analyzer.",
+    "keepLegacy265FileUnchanged": true,
+    "metadataPathIfApproved": ".github/ci/education-architecture-dispositions.json",
+    "ownedFiles": [
+      "scripts/ci-run-education-architecture.mjs",
+      "scripts/test-ci-education-architecture.mjs",
+      "src/products/bella-education/__tests__/bella-education-architecture.test.ts",
+      ".github/ci/education-architecture-dispositions.json"
+    ],
+    "metadata": "One separately approved, typed disposition input attached to the existing Education guard; this document JSON is not active configuration.",
+    "bothGates": "Apply the same exact tuple/count disposition before comparisons, retain raw observations and all blocked findings.",
+    "prohibited": [
+      "Product or UI changes",
+      "DB/schema/Auth/RLS/grant changes",
+      "commit/push/merge/deploy",
+      "automatic current-source baselining"
+    ]
+  },
+  "expectedAfterLocalImplementation": {
+    "rawResourceOccurrences": 362,
+    "boundedHistoricalDebt": 265,
+    "approvedControlOccurrences": 7,
+    "blockedResourceOccurrences": 90,
+    "blockedResourceSignatures": 85,
+    "blockedKnownNewOccurrences": 70,
+    "blockedLegacySignatures": 30,
+    "unresolvedBlocked": 20,
+    "overall": "BLOCK — NOT MERGE-READY"
+  }
+}

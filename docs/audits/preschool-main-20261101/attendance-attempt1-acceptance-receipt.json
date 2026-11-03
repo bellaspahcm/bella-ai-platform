@@ -1,0 +1,412 @@
+{
+  "profileId": "preschool-teacher-browser-acceptance-v1",
+  "targetCommit": "f1299e3138f3700062a1ed84271db315737b0071",
+  "applicationSourceRevision": "f1299e3138f3700062a1ed84271db315737b0071",
+  "schemaSourceRevision": "f1299e3138f3700062a1ed84271db315737b0071",
+  "manifestSha256": "5ae25793dfa70265d52a4c6f3125468276df4a66111eefcfc83bd9d7640067ac",
+  "migrationHashes": [
+    {
+      "profileVersion": "20260511000000",
+      "sha256": "2509adfb40627bf7e3858015eec9f7bfe41bf3e664e21ad7985dca45d5d10fdd"
+    },
+    {
+      "profileVersion": "20260521000004",
+      "sha256": "fb578f052455928f09bcfbaa4af1ca52cfd40f55f9c410e74a04f758071bc6cb"
+    },
+    {
+      "profileVersion": "20260523030000",
+      "sha256": "64b1eb7589e393f3fe34dfaaf25fdc1af1448cd1d2b1fb74df76b9784802b687"
+    },
+    {
+      "profileVersion": "20260523040000",
+      "sha256": "c9365050879fb7a512b1c81991d9cbe339e55d8821517ef03106472bc8d725a2"
+    },
+    {
+      "profileVersion": "20260525000000",
+      "sha256": "9ba77ffba99153bd0fe92e1722d3d7ee8e01911d4f3bcc80e33c205e8db97e17"
+    },
+    {
+      "profileVersion": "20260608104000",
+      "sha256": "2bed31475c899ab7b0f84be3b21ddc32d32c2cfef0d3a7ac73fac5c4eb0b4265"
+    },
+    {
+      "profileVersion": "20260801030000",
+      "sha256": "679175d199cbb4dc9d596a1344f94c2be582b800ea0c2e9595456e158b49507e"
+    },
+    {
+      "profileVersion": "20260806000000",
+      "sha256": "ec444780ef5e692f3e60ab9465fa068d0ae6b02f40c120384d8b598f94dab45b"
+    },
+    {
+      "profileVersion": "20260808000012",
+      "sha256": "4f5fa90544622fa27f5a89b4be575c665e1da8f8f60d1d05690009d5b198f31c"
+    },
+    {
+      "profileVersion": "20260810000001",
+      "sha256": "9c75e14ce8f54f668ec40809f9110c78915832c82c34e8f4bc8c428c4d6596ad"
+    },
+    {
+      "profileVersion": "20260810224417",
+      "sha256": "2d6760ca13212084259e86daeaec1d2fb83625c691f3e4df4f9835eb1b5b1a9e"
+    },
+    {
+      "profileVersion": "20260810224418",
+      "sha256": "b0f3dd85b7a25886c15c2d341b682f0f9406fe2a30e3d8f77ba066b2d1c145a4"
+    },
+    {
+      "profileVersion": "20260810231500",
+      "sha256": "37291d8b1cd3ba46369ed68258299fe76001131ce4f787a11f2650c390a4c481"
+    },
+    {
+      "profileVersion": "20260812060000",
+      "sha256": "eee26bbdf06c9645019f025cf1975c1b91b7e6cd7135ecc42abe4a0a643cc9d8"
+    },
+    {
+      "profileVersion": "20260813000020",
+      "sha256": "042910c68760a0b6bb5b2ca93995b8761368c9d0fab73710977defb62dd1a176"
+    },
+    {
+      "profileVersion": "20260813000040",
+      "sha256": "3997f2ed46e2815050f56c4b5af184a5d85d33c88d99005cccd12f67e41e6040"
+    },
+    {
+      "profileVersion": "20260813000050",
+      "sha256": "0dee7a5cf8c8d327380ff638c600871674dfa767b275f7a02d65f50288591314"
+    },
+    {
+      "profileVersion": "20260912000001",
+      "sha256": "a72c5e4940ab5ed22c7f9435882d104e3d088eb97c6e882e9b8e04c3521d57f7"
+    },
+    {
+      "profileVersion": "20260914000000",
+      "sha256": "54cc3431d813405ae9b635a2d7e5dc534defacb8b0c0ed0f44b495ddc81fbd6d"
+    },
+    {
+      "profileVersion": "20260914000001",
+      "sha256": "bfba4ba24357a7a416dea65a1e8b7129b2f02f61d51dba0738507441cd3ed54f"
+    },
+    {
+      "profileVersion": "20260919030000",
+      "sha256": "ba6b665afbafd1bde01294dffb18fe9b0225f5690e8f32e2955fecdea5ef8912"
+    },
+    {
+      "profileVersion": "20260926003000",
+      "sha256": "ec55260d4ae5242d4b93fc51d3f484a3404e7b6ace73e0247222a36e5948b6c0"
+    },
+    {
+      "profileVersion": "20260927000000",
+      "sha256": "c32999a499bddaec4dbfc58910c0d0de62869e2d6b23b054bb2adcdb14d4d436"
+    },
+    {
+      "profileVersion": "20260927010000",
+      "sha256": "4556731073632908044f0ce9ffb904f0f6a9222339ed4cbfbdbe4f8ee4310164"
+    },
+    {
+      "profileVersion": "20260927020000",
+      "sha256": "1e0c2f73be37c8ce5d0ba3291e3126ab53afb3b5f77b7c1929f28f73232e16c4"
+    },
+    {
+      "profileVersion": "20261006010000",
+      "sha256": "1ec3626f746fd10b3e7a343fa2be128ac5ea6406e68274e4422d7b6414cf501a"
+    },
+    {
+      "profileVersion": "20261019020001",
+      "sha256": "7126b84aee5d113b1efc4d953e19c2325e45bca27d3a1e5c0798321125f24df8"
+    },
+    {
+      "profileVersion": "20261019030000",
+      "sha256": "6e76b0340ce15a5e0097b35b7cab9039046b80c32f29d0e7d83ac58144fcf41a"
+    },
+    {
+      "profileVersion": "20261019045000",
+      "sha256": "8c4aa1f6d38fc1633ae069ad5e8a0ca59c8f2e6fe0b2f47c239ad30601082541"
+    },
+    {
+      "profileVersion": "20261019060000",
+      "sha256": "e390ba5769768c532915d55eb931351088feec8563693a453827e18bca2daf20"
+    },
+    {
+      "profileVersion": "20261023040000",
+      "sha256": "8d414c52ee20bb931e83bb447911284d2628e84092b6191178ef0248903d5c28"
+    },
+    {
+      "profileVersion": "20261023050000",
+      "sha256": "6cd299be1e58d8f50e1cb6e4d89876d70d6a0c7e15338eaccc3d33091a976266"
+    },
+    {
+      "profileVersion": "20261023120001",
+      "sha256": "fd2e44c971cbf33532577dfbd7cb4a6f4c96d738efbcab9d5a74f249d6ba7fc5"
+    },
+    {
+      "profileVersion": "20261025070000",
+      "sha256": "50b0a75b24d8968db35dda0a0ddccd3f202b2ff4cda2b29d312535069103b571"
+    },
+    {
+      "profileVersion": "20261026100000",
+      "sha256": "daa2ff0688b606b1408a8d420f79f993a3269a874595658c9938491a2b63cb73"
+    },
+    {
+      "profileVersion": "20261026130100",
+      "sha256": "97d2fde76de569e80379f69360320c543e207eefa0f806c58428f5f3f103523f"
+    },
+    {
+      "profileVersion": "20261026152000",
+      "sha256": "a85d051fe618caac3ee89413acbce33a7909bba1fdcb9ce7632789e2589e9399"
+    },
+    {
+      "profileVersion": "20261026170000",
+      "sha256": "7dada3ff8dcbcc72de0cfc1c271824936ac2e910e99e2624f2b14b036182c684"
+    },
+    {
+      "profileVersion": "20261026183000",
+      "sha256": "922e28ec5e81c1bd618b9885671fec6a7064701482e2ad4a3d7f98a8383ba447"
+    },
+    {
+      "profileVersion": "20261027010000",
+      "sha256": "8957451c0bef5a77631d52d0fb74bc4569921ce66aa10288085460a363001b37"
+    },
+    {
+      "profileVersion": "20261027010100",
+      "sha256": "659528725606fb86dd83a6ec3a1afdf8e106360e81d7a3b392eee5b85c442d31"
+    },
+    {
+      "profileVersion": "20261027010200",
+      "sha256": "f711a242099ba953b8e637a39ee6f3483a496ae5a7b17fc0e2107d138c507bd0"
+    },
+    {
+      "profileVersion": "20261027010300",
+      "sha256": "e685a675a13e0783128dc1f59a32eb0526cd51bd25e0042e2455b015c46e8551"
+    },
+    {
+      "profileVersion": "20261027020000",
+      "sha256": "44971a66d6de39bd5e18431ef6564d8bf1d1ef3aa449f8ffb1de08a21b3925f2"
+    }
+  ],
+  "schemaAcceptance": "PASS",
+  "fixture": {
+    "kind": "synthetic-only",
+    "businessDataImported": false,
+    "fabricatedR3IdentityMappings": false,
+    "tenantCount": 2,
+    "branchCount": 3,
+    "teacherCount": 1,
+    "studentCount": 3,
+    "classCount": 3,
+    "preflightEmpty": true,
+    "syntheticOnly": true
+  },
+  "jwtDatabase": {
+    "status": "PASS",
+    "results": [
+      {
+        "name": "real_teacher_jwt_resolves_auth_party",
+        "result": "PASS"
+      },
+      {
+        "name": "teacher_jwt_reads_minimal_own_tenant_presentation",
+        "result": "PASS"
+      },
+      {
+        "name": "tenant_presentation_has_no_client_selected_tenant",
+        "result": "PASS"
+      },
+      {
+        "name": "tenant_presentation_denies_missing_profile",
+        "result": "PASS",
+        "detail": "42501"
+      },
+      {
+        "name": "tenant_presentation_denies_missing_identity",
+        "result": "PASS",
+        "detail": "42501"
+      },
+      {
+        "name": "teacher_cannot_select_tenants_table",
+        "result": "PASS",
+        "detail": "42501"
+      },
+      {
+        "name": "second_tenant_actor_is_self_scoped",
+        "result": "PASS"
+      },
+      {
+        "name": "teacher_course_list_is_self_and_branch_scoped",
+        "result": "PASS"
+      },
+      {
+        "name": "teacher_reads_assigned_course_roster",
+        "result": "PASS"
+      },
+      {
+        "name": "teacher_db_access_denied_other_branch",
+        "result": "PASS"
+      },
+      {
+        "name": "teacher_roster_denied_other_branch",
+        "result": "PASS",
+        "detail": "42501"
+      },
+      {
+        "name": "teacher_direct_write_denied_other_branch",
+        "result": "PASS",
+        "detail": "42501"
+      },
+      {
+        "name": "attendance_state_rls_hides_other_branch",
+        "result": "PASS"
+      },
+      {
+        "name": "enrollment_branch_rls_hides_other_branch",
+        "result": "PASS"
+      },
+      {
+        "name": "teacher_db_access_denied_other_tenant",
+        "result": "PASS"
+      },
+      {
+        "name": "teacher_roster_denied_other_tenant",
+        "result": "PASS",
+        "detail": "42501"
+      },
+      {
+        "name": "teacher_direct_write_denied_other_tenant",
+        "result": "PASS",
+        "detail": "42501"
+      },
+      {
+        "name": "attendance_state_rls_hides_other_tenant",
+        "result": "PASS"
+      },
+      {
+        "name": "enrollment_branch_rls_hides_other_tenant",
+        "result": "PASS"
+      },
+      {
+        "name": "caller_cannot_write_identity_manager_grants",
+        "result": "PASS",
+        "detail": "42501"
+      }
+    ]
+  },
+  "browserE2e": {
+    "status": "FAIL",
+    "results": [
+      {
+        "name": "teacher_signs_in_through_real_supabase_auth",
+        "result": "PASS"
+      },
+      {
+        "name": "teacher_sees_only_assigned_course_and_child",
+        "result": "PASS"
+      },
+      {
+        "name": "attendance_courses_api_returns_assigned_class_only",
+        "result": "PASS"
+      },
+      {
+        "name": "attendance_api_denies_other_branch_course",
+        "result": "PASS",
+        "detail": "403"
+      },
+      {
+        "name": "attendance_api_denies_other_branch_write_without_partial_state",
+        "result": "PASS",
+        "detail": "403"
+      },
+      {
+        "name": "attendance_api_denies_other_tenant_course",
+        "result": "PASS",
+        "detail": "403"
+      },
+      {
+        "name": "attendance_api_denies_other_tenant_write_without_partial_state",
+        "result": "PASS",
+        "detail": "403"
+      }
+    ]
+  },
+  "credentialsRecorded": false,
+  "completedAt": "2026-11-01T07:29:11.033Z",
+  "_fixtureIds": {
+    "tenantA": "db134cb4-979e-4efa-810d-873e63bdb6e4",
+    "tenantB": "592e2d9e-fa17-40a3-8539-81fadd8e6a15",
+    "adminA": "95e05208-9727-4788-a0e4-c1bbb0383840",
+    "adminB": "c97ac9e8-8834-4c8d-b6f8-7b881f52bd4c",
+    "teacher": "d39e87d3-0fa2-4529-a9e7-2eaa1042e710",
+    "branchA": "cca45367-4b8b-4e20-ba36-01d39913c822",
+    "branchB": "11b3a7d7-452d-4d4f-9a0d-7f213832221c",
+    "branchC": "4668beaa-e5a9-4119-b2ae-0f5030dcb6c6",
+    "adminDirectoryA": "fbfc57fe-80b9-4550-be9e-90ea3ace756c",
+    "adminDirectoryB": "dc7d0abe-6b02-4842-8d07-2f4025c5ce92",
+    "teacherDirectory": "081e63f1-3242-4b13-beb6-20e1cfc98902",
+    "teacherParty": "e5ec48e1-900f-4904-afb6-dd2b5cb07710",
+    "studentPartyA": "10d87e3b-81c0-4cfd-9dc0-10de7c7f18ea",
+    "studentPartyB": "83197c09-6a89-4924-8e9c-8d6db53bf9f8",
+    "studentPartyC": "2f473245-9e88-4fd0-9749-5f4df08ed46a",
+    "personA": "6062511f-a146-4fcb-9c9a-7e622165f884",
+    "personB": "002ad28d-4a3f-424c-bd7e-73c30eebaa23",
+    "personC": "89c1b8df-6f9f-4629-aa14-583d9664cff4",
+    "studentA": "cf0cf9ef-94b5-44ed-b335-af92f20522a8",
+    "studentB": "f3a3123f-d16e-401f-b4c4-8c916e812715",
+    "studentC": "060ccbbf-adad-4f4d-8a32-02a1c5b803e3",
+    "courseA": "988c83fb-b5ac-4b05-ab25-24cbf2652ff3",
+    "courseB": "8025c06a-b4e3-44d3-a189-4b0eeef1e496",
+    "courseC": "4651fe0c-d2a5-4e6f-a113-0c8c3e8af886",
+    "enrollmentA": "fad989aa-432e-4d50-82fa-ad655a12a371",
+    "enrollmentB": "2b4347fa-1435-4b06-b212-a3a5d523d2de",
+    "enrollmentC": "d82fdae7-fff8-4e79-8d5a-7cf8ffe6e840",
+    "requestA": "65ea5105-7697-49d8-97c6-997bf8699e0e",
+    "requestB": "c0ee820b-fccc-4390-b7c3-c5b3bb1cddb9",
+    "requestC": "a66f1423-d0e6-463e-8814-3a4fc47cfbcf",
+    "authLink": "03c16f08-d26a-47af-9af8-051fbf84bc2c",
+    "identityManagerGrant": "df065d78-ad03-4c49-b427-1983d71aa712",
+    "teacherConfirmation": "0f0aa7d1-085d-4e6f-b315-35761d72729d",
+    "teacherAssignment": "7802ca88-c217-4458-9009-c8a085c719b7"
+  },
+  "_schoolDay": "2026-11-01",
+  "_studentNames": [
+    "Synthetic Child A",
+    "Synthetic Child B",
+    "Synthetic Child C"
+  ],
+  "error": {
+    "phase": "browser-e2e",
+    "code": "locator.waitFor: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: 'Có mặt — Synthetic Child A' }) to be visible\u001b[22m\n"
+  },
+  "cleanup": "DISPOSABLE_STACK_CLEANED",
+  "appWorktreeCleanup": "TEMP_APP_WORKTREE_REMOVED",
+  "applicationOverlay": {
+    "sourceRevision": "f1299e3138f3700062a1ed84271db315737b0071",
+    "status": "TRACKED_LOCAL_RUNTIME_CHANGES_APPLIED",
+    "files": [
+      {
+        "path": "src/app/api/education/courses/route.ts",
+        "sha256": "6fbf445ac7440a5da947b454b39a8d1ceac714fbd602032be2b54fc2bf7b31ce"
+      },
+      {
+        "path": "src/app/api/education/enrollments/[id]/communications/route.ts",
+        "sha256": "9cb209c0984b286a1ac77f0361b4655a7475e1e84b9058f29d53c89c30afc031"
+      },
+      {
+        "path": "src/app/api/education/enrollments/[id]/development/route.ts",
+        "sha256": "e0d83ede7e900b3eac71aec05fbd92e38e221c4d7738579a0a30975e4bedd11e"
+      },
+      {
+        "path": "src/app/api/education/enrollments/student-360.service.ts",
+        "sha256": "581472f004dea82f4e0455e3a0a65a247d608c624654072fda05424741da5725"
+      },
+      {
+        "path": "src/products/bella-education/analytics/events/preschool-analytics-events.ts",
+        "sha256": "4d9b296bf6a49535fe760031912bac0fd48516c6d1a9f9f3a8aa790da7b14694"
+      },
+      {
+        "path": "src/products/bella-education/care-wellbeing/nutrition/weekly-menu.service.ts",
+        "sha256": "e6cc9c344dfd1dd5e891f4ce163350a161185279b0b14ee9731fbaecb944d7fb"
+      },
+      {
+        "path": "src/products/bella-education/learning-development/curriculum/curriculum.service.ts",
+        "sha256": "17316e58f1d2d5d26517651e87077af4c4d4f592cebaa4a588fcbc107cffb46b"
+      }
+    ]
+  }
+}

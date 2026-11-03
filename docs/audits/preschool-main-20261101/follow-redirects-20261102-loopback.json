@@ -1,0 +1,81 @@
+{
+  "scope": "Isolated real package 1.16.2 from integrity-verified npm tarball; two loopback HTTP servers and synthetic headers only",
+  "advisory": "GHSA-mrwp-f3q8-3g9p",
+  "previousVersion": "1.16.0",
+  "patchedVersion": "1.16.2",
+  "integrityMatched": true,
+  "checks": [
+    {
+      "name": "previous cross-realm reproduction",
+      "observed": {
+        "customPresent": true,
+        "harmlessPreserved": true,
+        "authorizationPresent": false,
+        "cookiePresent": false
+      },
+      "expectedCustomPresent": true,
+      "pass": true
+    },
+    {
+      "name": "patched same-realm cross-origin",
+      "observed": {
+        "customPresent": false,
+        "harmlessPreserved": true,
+        "authorizationPresent": false,
+        "cookiePresent": false
+      },
+      "expectedCustomPresent": false,
+      "pass": true
+    },
+    {
+      "name": "patched cross-realm cross-origin",
+      "observed": {
+        "customPresent": false,
+        "harmlessPreserved": true,
+        "authorizationPresent": false,
+        "cookiePresent": false
+      },
+      "expectedCustomPresent": false,
+      "pass": true
+    },
+    {
+      "name": "patched cross-realm array headers",
+      "observed": {
+        "customPresent": false,
+        "harmlessPreserved": true,
+        "authorizationPresent": false,
+        "cookiePresent": false
+      },
+      "expectedCustomPresent": false,
+      "pass": true
+    },
+    {
+      "name": "patched direct request preserved",
+      "observed": {
+        "customPresent": true,
+        "harmlessPreserved": true,
+        "authorizationPresent": true,
+        "cookiePresent": true
+      },
+      "expectedCustomPresent": true,
+      "pass": true
+    },
+    {
+      "name": "patched same-origin redirect preserved",
+      "observed": {
+        "customPresent": true,
+        "harmlessPreserved": true,
+        "authorizationPresent": true,
+        "cookiePresent": true
+      },
+      "expectedCustomPresent": true,
+      "pass": true
+    }
+  ],
+  "passed": 6,
+  "failed": 0,
+  "limits": [
+    "Not Production exploitation or Axios application E2E proof",
+    "Shared node_modules was not installed or modified"
+  ]
+}

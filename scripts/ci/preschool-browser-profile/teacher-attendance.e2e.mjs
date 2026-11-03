@@ -459,7 +459,6 @@ async function main() {
   assert(Boolean(managerWrite.error) && managerWrite.error.code === '42501', 'AUTHENTICATED_CANNOT_SELF_GRANT_IDENTITY_MANAGER');
   addPass('jwtDatabase', 'caller_cannot_write_identity_manager_grants', managerWrite.error.code);
 
-  outcome.jwtDatabase.status = 'PASS';
   const route = await startApp();
   currentPhase = 'browser-e2e';
   outcome.browserE2e.status = 'RUNNING';
@@ -643,10 +642,10 @@ async function main() {
     addPass('browserE2e', `attendance_api_denies_${label}_write_without_partial_state`, String(posted.status));
   }
 
-  const present = page.getByRole('button', { name: 'Có mặt — Synthetic Child A' });
+  const present = childRowBeforeWrite.getByRole('button', { name: 'Có Mặt', exact: true });
   await present.waitFor({ state: 'visible', timeout: 30000 });
   await present.click();
-  await page.getByRole('status').filter({ hasText: 'Đã ghi nhận điểm danh.' }).waitFor({ state: 'visible', timeout: 30000 });
+  await page.getByRole('status').filter({ hasText: 'Đã ghi nhận điểm danh thật vào hệ thống' }).waitFor({ state: 'visible', timeout: 30000 });
   const saved = await pgClient.query(`SELECT s.status,e.status AS event_status FROM public.edu_attendance_daily_state s
     JOIN public.edu_attendance e ON e.tenant_id=s.tenant_id AND e.enrollment_id=s.enrollment_id
       AND e.roll_call_time::date = s.school_day
@@ -656,10 +655,102 @@ async function main() {
     'BROWSER_WRITE_READS_BACK_FROM_DATABASE');
   await page.reload({ waitUntil: 'domcontentloaded' });
   const childRow = page.getByRole('row').filter({ hasText: 'Synthetic Child A' });
-  await childRow.getByRole('cell', { name: 'Có mặt', exact: true }).waitFor({ state: 'visible', timeout: 45000 });
+  await childRow.getByRole('cell', { name: 'Có Mặt', exact: true }).waitFor({ state: 'visible', timeout: 45000 });
   addPass('browserE2e', 'teacher_marks_present_and_state_persists_after_reload');
   assert(pageErrors.length === 0, 'BROWSER_HAS_NO_UNHANDLED_PAGE_ERRORS');
   addPass('browserE2e', 'browser_page_has_no_unhandled_errors');
+
+  outcome.jwtDatabase.status = 'RUNNING';
+  const attendanceSnapshot = async () => {
+    const result = await pgClient.query(`SELECT
+      (SELECT coalesce(jsonb_agg(to_jsonb(e) ORDER BY e.id),'[]'::jsonb)
+        FROM public.edu_attendance e WHERE e.tenant_id=$1 AND e.enrollment_id=$2) AS events,
+      (SELECT coalesce(jsonb_agg(to_jsonb(s) ORDER BY s.id),'[]'::jsonb)
+        FROM public.edu_attendance_daily_state s WHERE s.tenant_id=$1 AND s.enrollment_id=$2 AND s.school_day=$3) AS states`,
+    [ids.tenantA, ids.enrollmentA, schoolDay]);
+    return result.rows[0];
+  };
+
+  const beforeInvalid = await attendanceSnapshot();
+  const invalidWrite = await teacherClient.rpc('edu_set_daily_attendance', {
+    p_tenant_id: ids.tenantA, p_enrollment_id: ids.enrollmentA, p_status: 'invalid-status',
+    p_roll_call_time: rollCallTime, p_school_day: schoolDay,
+  });
+  assert(invalidWrite.error?.code === '22023' && !invalidWrite.data, 'DB_INPUT_ERROR_IS_NOT_SUCCESS');
+  assert(JSON.stringify(await attendanceSnapshot()) === JSON.stringify(beforeInvalid),
+    'DB_INPUT_ERROR_LEAVES_EVENT_AND_STATE_UNCHANGED');
+  addPass('jwtDatabase', 'database_input_error_has_no_success_or_partial_state', '22023');
+
+  const concurrent = await Promise.all(['absent', 'excused'].map(async status => {
+    const rows = await requiredRpc(teacherClient, 'edu_set_daily_attendance', {
+      p_tenant_id: ids.tenantA, p_enrollment_id: ids.enrollmentA, p_status: status,
+      p_roll_call_time: rollCallTime, p_school_day: schoolDay,
+    });
+    assert(Array.isArray(rows) && rows.length === 1 && rows[0].tenant_id === ids.tenantA
+      && rows[0].enrollment_id === ids.enrollmentA && rows[0].school_day === schoolDay
+      && rows[0].status === status && rows[0].event_id, 'CONCURRENT_WRITER_CANONICAL_RECEIPT');
+    return rows[0];
+  }));
+  const afterConcurrent = await attendanceSnapshot();
+  assert(afterConcurrent.states.length === 1 && concurrent.every(row => row.id === afterConcurrent.states[0].id)
+    && concurrent.some(row => row.status === afterConcurrent.states[0].status)
+    && new Set(concurrent.map(row => row.event_id)).size === 2
+    && afterConcurrent.events.length === beforeInvalid.events.length + 2
+    && concurrent.every(row => afterConcurrent.events.some(event => event.id === row.event_id && event.status === row.status)),
+  'CONCURRENT_WRITES_KEEP_ONE_DAILY_STATE_AND_BOTH_ADDITIVE_EVENTS');
+  addPass('jwtDatabase', 'concurrent_teacher_writes_keep_one_state_and_two_events');
+
+  const revokedAssignment = await requiredRpc(serviceClient, 'edu_terminate_preschool_teacher', {
+    p_tenant_id: ids.tenantA, p_actor_id: ids.adminA, p_branch_id: ids.branchA,
+    p_course_id: ids.courseA, p_assignment_id: ids.teacherAssignment, p_end_date: schoolDay,
+  });
+  assert(revokedAssignment?.assignment_id === ids.teacherAssignment && revokedAssignment?.status === 'terminated',
+    'SYNTHETIC_ASSIGNMENT_REVOCATION_TARGETED');
+  {
+    const beforeRevokedWrite = await attendanceSnapshot();
+    const revokedScope = await requiredRpc(teacherClient, 'preschool_teacher_attendance_courses', {
+      p_school_day: schoolDay, p_branch_id: null,
+    });
+    assert(revokedScope?.courses?.length === 0, 'REVOKED_ASSIGNMENT_HAS_NO_TEACHER_COURSE');
+    const revokedWrite = await teacherClient.rpc('edu_set_daily_attendance', {
+      p_tenant_id: ids.tenantA, p_enrollment_id: ids.enrollmentA, p_status: 'present',
+      p_roll_call_time: rollCallTime, p_school_day: schoolDay,
+    });
+    assert(denied(revokedWrite.error) && !revokedWrite.data, 'REVOKED_ASSIGNMENT_DB_WRITE_DENIED');
+    const revokedRequests = await page.evaluate(async input => {
+      const read = await fetch(`/api/education/attendance?courseId=${encodeURIComponent(input.courseId)}&date=${encodeURIComponent(input.date)}`, { cache: 'no-store' });
+      const write = await fetch('/api/education/attendance', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ enrollmentId: input.enrollmentId, status: 'present', date: input.date }),
+      });
+      return { readStatus: read.status, readBody: await read.json(), writeStatus: write.status, writeBody: await write.json() };
+    }, { courseId: ids.courseA, enrollmentId: ids.enrollmentA, date: schoolDay });
+    assert(revokedRequests.readStatus === 403 && revokedRequests.writeStatus === 403
+      && revokedRequests.readBody?.success === false && revokedRequests.writeBody?.success === false,
+    'REVOKED_ASSIGNMENT_API_READ_AND_WRITE_DENIED');
+    assert(JSON.stringify(await attendanceSnapshot()) === JSON.stringify(beforeRevokedWrite),
+      'REVOKED_ASSIGNMENT_DENIAL_HAS_NO_PARTIAL_STATE');
+    addPass('jwtDatabase', 'revoked_assignment_denies_same_branch_teacher_without_partial_state');
+    addPass('browserE2e', 'revoked_assignment_denies_api_read_and_write', '403');
+  }
+
+  // Preserve terminated history and use a new public-command assignment for the independent identity-link case.
+  const replacementAssignmentId = randomUUID();
+  const replacement = await requiredRpc(serviceClient, 'edu_assign_preschool_teacher', {
+    p_tenant_id: ids.tenantA, p_actor_id: ids.adminA, p_branch_id: ids.branchA,
+    p_operation_key: replacementAssignmentId, p_course_id: ids.courseA,
+    p_confirmation_id: ids.teacherConfirmation, p_teacher_party_id: ids.teacherParty,
+    p_role: 'lead_teacher', p_academic_year: '2026-2027',
+    p_effective_start_date: schoolDay, p_effective_end_date: null,
+  });
+  assert(replacement?.assignment_id === replacementAssignmentId && replacement?.status === 'active',
+    'INDEPENDENT_IDENTITY_CASE_HAS_ACTIVE_SYNTHETIC_ASSIGNMENT');
+  const restoredScope = await requiredRpc(teacherClient, 'preschool_teacher_attendance_courses', {
+    p_school_day: schoolDay, p_branch_id: null,
+  });
+  assert(restoredScope?.courses?.length === 1 && restoredScope.courses[0].courseId === ids.courseA,
+    'INDEPENDENT_IDENTITY_CASE_HAS_RESTORED_COURSE_ACCESS');
+  outcome.jwtDatabase.status = 'PASS';
 
   const adminRevoke = await adminAClient.rpc('party_revoke_auth_link', {
     p_link_id: ids.authLink, p_reason: 'Synthetic E2E revocation to verify immediate denial.',
@@ -682,7 +773,7 @@ try {
   await main();
 } catch (error) {
   failure = { phase: currentPhase, code: scrub(error?.message ?? 'UNKNOWN_FAILURE').slice(0, 1500) };
-  if (currentPhase === 'jwt-database-acceptance' && outcome.jwtDatabase.status === 'RUNNING') outcome.jwtDatabase.status = 'FAIL';
+  if (outcome.jwtDatabase.status === 'RUNNING') outcome.jwtDatabase.status = 'FAIL';
   if (currentPhase === 'browser-e2e' && outcome.browserE2e.status === 'RUNNING') outcome.browserE2e.status = 'FAIL';
   process.stderr.write(`PRESCHOOL_PROFILE_ACCEPTANCE_FAIL phase=${failure.phase} reason=${failure.code}\n`);
 } finally {

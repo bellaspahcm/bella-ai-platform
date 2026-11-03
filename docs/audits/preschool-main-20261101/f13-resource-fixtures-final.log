@@ -1,0 +1,25 @@
+PASS EDUCATION ARCH SAME BASELINE = ALLOW
+PASS EDUCATION ARCH NEW VIOLATION = BLOCK
+PASS EDUCATION ARCH DEBT REDUCTION = ALLOW
+✔ line movement is allowed but increasing an existing signature count blocks (2.6503ms)
+✔ the real scanner covers Product TSX, API, UI, and repeated calls on one line (84.1786ms)
+✔ public contracts, unknown, comments, and literal any text remain allowed (25.9343ms)
+✔ resource inventory separates mixed ownership without approving a baseline exception (47.97ms)
+✔ resource enforcement blocks target substitution hidden by the legacy prefix signature (21.0044ms)
+✔ mixed ownership needs separate exact caller/resource/operation counts (10.3889ms)
+✔ SQL write/returning, bracket calls and multiline literals retain the actual operation (10.8378ms)
+✔ unknown target/operation cannot be approved by a wildcard or even its own unresolved key (9.2912ms)
+✔ malformed source fails closed and shadowed conversion names do not hide client calls (15.3187ms)
+✔ resource identity preserves literal line-like text and rejects invalid reviewed counts (0.7475ms)
+✔ the actual CLI allows contract-only code and blocks a call hidden inside matching legacy debt (1330.2522ms)
+✔ a multiline receiver keeps the member location used by frozen occurrence evidence (8.8181ms)
+✔ same-file handler substitution is a different caller and never inherits an exact exception (11.265ms)
+✔ an explicit schema substitution changes resource identity and an unknown schema stays blocked (10.6345ms)
+ℹ tests 14
+ℹ suites 0
+ℹ pass 14
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1600.9838

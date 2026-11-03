@@ -1,0 +1,9 @@
+{
+  "status": "PASS",
+  "checks": [
+    "read_only_happy_path",
+    "no_health_or_ledger_write",
+    "existing_version_rejected"
+  ],
+  "scope": "PGlite 0.5.14 in memory; not runner/network proof"
+}

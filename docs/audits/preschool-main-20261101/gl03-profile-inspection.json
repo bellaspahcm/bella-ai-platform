@@ -1,0 +1,76 @@
+{
+  "date": "2026-11-01",
+  "sourceRevision": "f1299e3138f3700062a1ed84271db315737b0071",
+  "scope": "Existing local profile READ ONLY metadata/count inspection; not GL03 E2E",
+  "productionTouched": false,
+  "writesExecuted": false,
+  "guardianBindingsCreated": 0,
+  "guardianBindingIdsOrPersonalDataReturned": false,
+  "profiles": [
+    {
+      "projectId": "bella-preschool-532b3b8a",
+      "sourceRevision": "bf1ac7030eb740c7c8b59e8e4c4321f53acded04",
+      "repositoryRoot": "D:/CodexWorktrees/preschool-teacher-onboarding/BELLA SPA ERP",
+      "profileId": "preschool-teacher-browser-acceptance-v1",
+      "loopbackVerified": true,
+      "databaseContainerIdMatchesOwnerIntent": true,
+      "schemaReceipt": "PASS for its recorded profile, not this GL03",
+      "sourceMatchesCurrent": false,
+      "readOnly": "on",
+      "relations": {
+        "party_relationships": true,
+        "teacher_assignments": true,
+        "edu_daily_care_sessions": false,
+        "edu_daily_care_records": false
+      },
+      "portalIssuerRpc": false,
+      "portalDailyReadRpc": false,
+      "guardianBindingCount": 0
+    },
+    {
+      "projectId": "bella-preschool-95c70855",
+      "sourceRevision": "bf1ac7030eb740c7c8b59e8e4c4321f53acded04",
+      "repositoryRoot": "D:/CodexWorktrees/preschool-teacher-onboarding/BELLA SPA ERP",
+      "profileIdFromOwnerAndReceipt": "preschool-admission-disposable-v1",
+      "snapshotRecipeId": "preschool-teacher-browser-acceptance-v1",
+      "loopbackVerified": true,
+      "databaseContainerIdMatchesOwnerIntent": true,
+      "sourceMatchesCurrent": false,
+      "readOnly": "on",
+      "relations": {
+        "party_relationships": true,
+        "teacher_assignments": true,
+        "edu_daily_care_sessions": true,
+        "edu_daily_care_records": true
+      },
+      "portalIssuerRpc": false,
+      "portalDailyReadRpc": false,
+      "guardianBindingCount": 3,
+      "bindingsAreCurrentlyValidOrApprovedForGl03": "NOT_PROVEN",
+      "limitation": "Count only, no identities/relations exported; did not infer current fixture authority or mutate this other checkout profile."
+    }
+  ],
+  "initialInspection": {
+    "exitCode": 1,
+    "error": "Missing public.edu_daily_care_sessions in teacher profile; no combined SELECT result returned",
+    "transaction": "READ ONLY; aborted transaction closed with psql connection; no writes",
+    "notCountedAsPass": true
+  },
+  "boundedFollowup": {
+    "exitCode": 0,
+    "changedInput": "Use to_regclass to inspect optional tables before reading binding count",
+    "countsAreNotFamilyAuthorizationProof": true
+  },
+  "result": "GL03_PROFILE_NOT_QUALIFIED_FOR_FULL_CURRENT_APP_FLOW",
+  "fullTeacherJwtApiDbParentBrowser": "NOT_RUN",
+  "containmentPreserved": {
+    "parentDaily": "503 PARENT_ACCESS_NOT_READY",
+    "teacherCare": "CARE_TEACHER_IDENTITY_UNAVAILABLE source hold; no bypass"
+  },
+  "currentWriterSource": {
+    "path": "supabase/migrations/20261031143000_preschool_care_rpc_and_rls.sql",
+    "guard": "u.role = 'admin'",
+    "runtimeOnTheseProfilesOrProduction": "NOT_PROVEN from source alone; no new Production query"
+  },
+  "operatorQuestion": "Existing approved compatible Care/Parent profile/receipt requested; no request to create guardian bindings or widen permissions."
+}

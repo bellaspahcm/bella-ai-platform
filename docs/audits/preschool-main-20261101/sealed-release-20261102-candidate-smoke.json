@@ -1,0 +1,38 @@
+{
+  "at": "2026-11-02T00:37:01.728Z",
+  "deployment": "dpl_FvHBz3BBp7wcdNtXEyFAgdYLGZyP",
+  "url": "bella-spa-k4m8qgeiy-bella-spa-s-projects.vercel.app",
+  "sha": "7346840706ee71b14f9bcf956d1e0d53c6bbf782",
+  "build": "READY",
+  "target": "production",
+  "checks": [
+    {
+      "name": "care malformed-token denial",
+      "status": 401,
+      "code": "TOKEN_MALFORMED",
+      "pass": true
+    },
+    {
+      "name": "attendance malformed-token denial",
+      "status": 401,
+      "code": "TOKEN_MALFORMED",
+      "pass": true
+    },
+    {
+      "name": "tuition malformed-token denial",
+      "status": 401,
+      "code": "TOKEN_MALFORMED",
+      "pass": true
+    },
+    {
+      "name": "application health",
+      "status": 503,
+      "applicationStatus": "unhealthy",
+      "database": "failed",
+      "pass": false
+    }
+  ],
+  "decision": "HOLD_NO_PROMOTE",
+  "authenticatedCandidateBrowser": "NOT_RUN_HEALTH_BLOCKED",
+  "limits": "Read-only health/invalid-token HTTP only; not teacher/parent/DB/RLS/E2E proof"
+}

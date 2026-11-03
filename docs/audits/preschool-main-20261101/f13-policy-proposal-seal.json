@@ -1,0 +1,53 @@
+{
+  "capturedAt": "2026-11-01T04:22:01.121Z",
+  "scope": "Policy proposal only",
+  "status": "PROPOSED — NOT APPROVED / NOT APPLIED",
+  "sourceBase": "f1299e3138f3700062a1ed84271db315737b0071",
+  "ownerDecision": null,
+  "activeExceptions": 0,
+  "scannerSourceUnchanged": true,
+  "baselineUnchanged": 265,
+  "newRuntimeMetadataCreated": false,
+  "F10_F12Unchanged": true,
+  "wipUnchanged": true,
+  "priorSealedEvidenceUnchanged": true,
+  "simulation": {
+    "positiveProbes": 9,
+    "negativeProbes": 118,
+    "failedProbes": 0,
+    "expectedOnlyAfterApprovalAndImplementation": {
+      "rawResourceOccurrences": 362,
+      "boundedHistoricalDebt": 265,
+      "approvedControlOccurrences": 7,
+      "blockedResourceOccurrences": 90,
+      "blockedResourceSignatures": 85,
+      "blockedKnownNewOccurrences": 70,
+      "blockedLegacySignatures": 30,
+      "unresolvedBlocked": 20,
+      "overall": "BLOCK — NOT MERGE-READY"
+    }
+  },
+  "diffCheck": "PASS",
+  "artifacts": [
+    {
+      "file": "propose-f13-policy.mjs",
+      "sha256": "bd27df22e1c904cc030c28af615b70187c435b34e35bc34d15fd456a09694762"
+    },
+    {
+      "file": "F13_POLICY_PROPOSAL.md",
+      "sha256": "9a32bd6daf3998c561db15728b224bf78eab7163d52b7b08efeb92300f64a8a7"
+    },
+    {
+      "file": "f13-policy-proposal.json",
+      "sha256": "99ceca6349c8c8a4486c7e3af5fd165fba674cb73a1d630403a98729377e9b96"
+    },
+    {
+      "file": "f13-policy-simulation.json",
+      "sha256": "2b2679065eee40c23acca9ad15defa157c68a8afc3d4c2624d51835be32f93da"
+    }
+  ],
+  "currentF13": "BLOCK — NOT MERGE-READY",
+  "RealAuthRls": "NOT_PROVEN",
+  "Browser": "NOT_PROVEN",
+  "Production": "NOT_PROVEN"
+}

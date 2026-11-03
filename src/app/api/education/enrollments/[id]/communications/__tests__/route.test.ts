@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import type { CurrentActorProfileRow } from '@/platform/security/current-actor.contract';
+import type { PreschoolRegistryStudent } from '@/platform/education/contracts/preschool-registry.contract';
 import { CURRENT_ACTOR_PROFILE_RPC } from '@/platform/security/current-actor.contract';
 
 type AuthResult = {
@@ -29,6 +30,8 @@ jest.mock('@/lib/supabase-admin-env', () => ({
 }));
 
 const mockAdminFrom = jest.fn();
+const mockLoadStudent360Identity = jest.fn<(...args: unknown[]) => Promise<PreschoolRegistryStudent | null>>();
+jest.mock('../../../student-360.service', () => ({ loadStudent360Identity: mockLoadStudent360Identity }));
 jest.mock('@supabase/supabase-js', () => ({
   createClient: jest.fn(() => ({
     from: mockAdminFrom,
@@ -40,6 +43,7 @@ const { GET, POST, PUT, PATCH, DELETE } = require('../route') as typeof import('
 const tenantId = 'ed100000-0000-4000-8000-000000000001';
 const actorId = 'ad6899c2-4b9d-49af-acb3-69e2e1d11447';
 const studentId = '00000001-0000-4000-8000-000000000001';
+const studentPartyId = '00000002-0000-4000-8000-000000000001';
 
 const activeActor: CurrentActorProfileRow = {
   id: actorId,
@@ -67,12 +71,17 @@ describe('Student Communication Authenticated Read-Only Route', () => {
     });
     mockGetUser.mockResolvedValue({ data: { user: { id: actorId } }, error: null });
     mockRpc.mockResolvedValue({ data: [activeActor], error: null });
+    mockLoadStudent360Identity.mockResolvedValue({
+      id: studentId, partyId: studentPartyId, tenantId, studentCode: 'HS0001', name: 'Canonical child',
+      dob: null, gender: null, enrollments: [],
+    });
 
     mockAdminFrom.mockImplementation((tableName: string) => {
       const createBuilder = (resolvedData: unknown[]) => {
         const chain: Record<string, unknown> = {};
         chain.select = jest.fn().mockReturnValue(chain);
         chain.eq = jest.fn().mockReturnValue(chain);
+        chain.or = jest.fn().mockReturnValue(chain);
         chain.order = jest.fn().mockReturnValue(chain);
         chain.limit = jest.fn().mockReturnValue(chain);
         chain.then = (resolve: (val: unknown) => void) =>
@@ -120,6 +129,34 @@ describe('Student Communication Authenticated Read-Only Route', () => {
     expect(body.studentId).toBe(studentId);
     expect(body.dailyCareRecords).toHaveLength(1);
     expect(body.exceptions).toHaveLength(1);
+    expect(mockLoadStudent360Identity).toHaveBeenCalledWith(callerClient, tenantId, studentId);
+    const careQuery = mockAdminFrom.mock.results[0].value as { eq: jest.Mock; or: jest.Mock };
+    expect(careQuery.eq).toHaveBeenCalledWith('tenant_id', tenantId);
+    expect(careQuery.or).toHaveBeenCalledWith(`student_party_id.eq.${studentPartyId},student_id.eq.${studentId}`);
+  });
+
+  it('preserves the empty-read response without privileged reads when identity is not resolved', async () => {
+    mockLoadStudent360Identity.mockResolvedValueOnce(null);
+    const res = await GET(request(), context());
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ success: true, studentId, dailyCareRecords: [], exceptions: [] });
+    expect(mockAdminFrom).not.toHaveBeenCalled();
+  });
+
+  it('keeps the existing unavailable response when the identity dependency fails', async () => {
+    mockLoadStudent360Identity.mockRejectedValueOnce(new Error('registry denied or unavailable'));
+    const res = await GET(request(), context());
+    expect(res.status).toBe(503);
+    expect(await res.json()).toEqual({ success: false, error: 'STUDENT_COMMUNICATION_UNAVAILABLE' });
+    expect(mockAdminFrom).not.toHaveBeenCalled();
+  });
+
+  it('rejects non-admin callers before identity or privileged reads', async () => {
+    mockRpc.mockResolvedValueOnce({ data: [{ ...activeActor, role: 'parent' }], error: null });
+    const res = await GET(request(), context());
+    expect(res.status).toBe(403);
+    expect(mockLoadStudent360Identity).not.toHaveBeenCalled();
+    expect(mockAdminFrom).not.toHaveBeenCalled();
   });
 
   it('returns 405 for unsupported HTTP methods', async () => {

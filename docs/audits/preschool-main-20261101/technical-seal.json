@@ -1,0 +1,127 @@
+{
+  "sourceBase": "f1299e3138f3700062a1ed84271db315737b0071",
+  "branch": "codex/preschool-main-technical-20261101",
+  "committed": false,
+  "historicalCatalogHashesUnchanged": true,
+  "regression": {
+    "testsFailed": 0,
+    "suitesPassed": 6,
+    "testsPassed": 76
+  },
+  "finalGuardJest": {
+    "testsFailed": 1,
+    "suitesFailed": 1,
+    "testsPassed": 8
+  },
+  "finalCiGuard": "BLOCK",
+  "newCoverageMatches": 33,
+  "newCoverageOccurrences": 77,
+  "changedFiles": [
+    {
+      "file": "scripts/ci-run-education-architecture.mjs",
+      "sha256": "975e604ac33a27edd6c56139644462ecf8b4092d16d65d4882c25ff90cd9165b"
+    },
+    {
+      "file": "scripts/test-ci-education-architecture.mjs",
+      "sha256": "787f4e9c905459d3008bc3fc9b9676ad2f5a448756ebf60d6d48f25756b1d3c8"
+    },
+    {
+      "file": "src/app/api/education/curriculum/__tests__/route.test.ts",
+      "sha256": "bb0e78e39462779725ffa3257797b2877c676cab0defcfb486d867a750bb9926"
+    },
+    {
+      "file": "src/app/api/education/enrollments/[id]/communications/__tests__/route.test.ts",
+      "sha256": "92468acac347d12f5c8c10351aa2a9f30e6a71acbdb2bebbf6060c1d13133bfa"
+    },
+    {
+      "file": "src/app/api/education/enrollments/[id]/communications/route.ts",
+      "sha256": "9cb209c0984b286a1ac77f0361b4655a7475e1e84b9058f29d53c89c30afc031"
+    },
+    {
+      "file": "src/app/api/education/enrollments/__tests__/student-360.service.test.ts",
+      "sha256": "9635da7c095e59e2768c99c362695d83e15e56d307a380325454b4a55ffe8a12"
+    },
+    {
+      "file": "src/app/api/education/enrollments/student-360.service.ts",
+      "sha256": "581472f004dea82f4e0455e3a0a65a247d608c624654072fda05424741da5725"
+    },
+    {
+      "file": "src/app/api/education/nutrition/weekly-menu/__tests__/route.test.ts",
+      "sha256": "4f3cbcbdda03730d1cc02faf1039c35f16c6a205693845f73a90fc17edd84bd5"
+    },
+    {
+      "file": "src/products/bella-education/__tests__/bella-education-architecture.test.ts",
+      "sha256": "dc479e3d8d1e71ac1626884db5f89597197907c3c1e7bdcc34b8dbe862553c59"
+    },
+    {
+      "file": "src/products/bella-education/analytics/events/preschool-analytics-events.ts",
+      "sha256": "4d9b296bf6a49535fe760031912bac0fd48516c6d1a9f9f3a8aa790da7b14694"
+    },
+    {
+      "file": "src/products/bella-education/care-wellbeing/nutrition/__tests__/weekly-menu.service.test.ts",
+      "sha256": "c4317eb7d5091d4351e05766db32d339b76d36deaf97fbf917c20dd6cb783bac"
+    },
+    {
+      "file": "src/products/bella-education/care-wellbeing/nutrition/weekly-menu.service.ts",
+      "sha256": "e6cc9c344dfd1dd5e891f4ce163350a161185279b0b14ee9731fbaecb944d7fb"
+    },
+    {
+      "file": "src/products/bella-education/learning-development/curriculum/__tests__/curriculum.service.test.ts",
+      "sha256": "0f71c9d10db6be3cb874a8a91457b2937d816dea52b8db00049868fde3af309d"
+    },
+    {
+      "file": "src/products/bella-education/learning-development/curriculum/curriculum.service.ts",
+      "sha256": "17316e58f1d2d5d26517651e87077af4c4d4f592cebaa4a588fcbc107cffb46b"
+    }
+  ],
+  "artifacts": [
+    {
+      "file": "REMEDIATION_SCOPE.md",
+      "sha256": "5fb9037ad6cee73168d5c5c061f371900ce9902fbec760beb948ef9024b3c98b"
+    },
+    {
+      "file": "f10-f12-jest.json",
+      "sha256": "d2ad349756a5891b129d650c4926188c565e00ac319ba9b3c0a35e8b4e0fbfcf"
+    },
+    {
+      "file": "f10-f12-jest.log",
+      "sha256": "aff901a4ae4f5902177f6724cc8c46a7534b9c06be8e963a0ab8c1625ec5bc18"
+    },
+    {
+      "file": "f13-jest.json",
+      "sha256": "3fe5b411fd53c6f5d02c605b71c0acb62bc9dfa5fcf25cf88406d6c4cac48f61"
+    },
+    {
+      "file": "f13-jest.log",
+      "sha256": "57162faf8c08e787d08a3198d6e658ec112c79fa254a33a7db610d5306b9f42e"
+    },
+    {
+      "file": "f13-jest-final.json",
+      "sha256": "69ac18afbfc2a1358992607c66310f170feb7325d807cab4c88d7cb45b97d3f4"
+    },
+    {
+      "file": "f13-jest-final.log",
+      "sha256": "9bd686ad03ab4896e94f4f9c478412fdb0a3887c9ed1fdc86aefc6cad1d9ccb9"
+    },
+    {
+      "file": "f13-ci.log",
+      "sha256": "81fdce3481c6f8dd6f17109e44deccb638792ac3394bf6f5e08e81841983aecf"
+    },
+    {
+      "file": "f13-ci-final.log",
+      "sha256": "b1fd2e0d762d44c16ea2694cd03203a0080545b59ac5894c64d5d9539c255f7c"
+    },
+    {
+      "file": "f13-scan-final.json",
+      "sha256": "22fcb126931d26885970884afeae4a0a9c43ea7858f79bf37141edab9ecc68f1"
+    },
+    {
+      "file": "technical-typecheck.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "file": "technical-changes.patch",
+      "sha256": "21dc3a69f5fa5f6ca9986b6cf57b6003653f8254cf98fd2bd4b100c5f26e9c7e"
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+
+Test Suites: 5 passed, 5 total
+Tests:       86 passed, 86 total
+Snapshots:   0 total
+Time:        4.778 s
+Ran all test suites within paths "src/app/portal/education/[token]/__tests__/page.test.tsx", "src/app/api/education/portal/[token]/attendance/__tests__/route.test.ts", "src/app/api/education/portal/[token]/tuition/__tests__/route.test.ts", "src/app/api/education/portal/__tests__/access.test.ts", "src/app/api/education/portal/token/__tests__/access.test.ts".
+Test results written to: docs\audits\preschool-main-20261101\gl04-existing-before.json

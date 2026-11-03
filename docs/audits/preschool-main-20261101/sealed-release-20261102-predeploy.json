@@ -1,0 +1,22 @@
+{
+  "at": "2026-11-02T00:04:55.1351662Z",
+  "project": "prj_Rgncynqz8ptznREGggMxPfjwoikW",
+  "repo": "bella-ai-platform",
+  "repoId": 1235614110,
+  "productionBranch": "main",
+  "buildCommand": null,
+  "installCommand": null,
+  "framework": "nextjs",
+  "protection": {
+    "deploymentType": "all_except_custom_domains"
+  },
+  "hasExistingAutomationBypass": true,
+  "currentId": "dpl_DstNQvShsVvhXgWrsM283n6pJQVN",
+  "currentURL": "bella-spa-ahbgh7ns1-bella-spa-s-projects.vercel.app",
+  "sourceSha": "f1299e3138f3700062a1ed84271db315737b0071",
+  "state": "READY",
+  "aliases": [
+    "bella-spa-erp.vercel.app",
+    "bella-spa-erp-bella-spa-s-projects.vercel.app"
+  ]
+}
