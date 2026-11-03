@@ -131,6 +131,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
       
+      - name: Test Education Architecture Scanner
+        run: npm run ci:education-architecture:test
+
       - name: Run Education Architecture Tests
         run: npm run education:architecture:ci
       

@@ -439,6 +439,7 @@ const bellaEducationMenuItems: SidebarMenuItem[] = [
   { icon: GraduationCap, label: 'Học tập & Hoạt động', href: '/dashboard/education/grades', badge: 'Chưa mở' },
   { icon: MessageSquare, label: 'Truyền thông', href: '/dashboard/education/communication' },
   { icon: CircleDollarSign, label: 'Tài chính', href: '/dashboard/education/finance' },
+  { icon: CircleDollarSign, label: 'Chương trình phí', href: '/dashboard/education/fee-program' },
   { icon: Building2, label: 'Cơ sở vật chất', href: '/dashboard/education/facilities' },
   { icon: BarChart3, label: 'Báo cáo thống kê', href: '/dashboard/education/reports' },
   { icon: Settings, label: 'Cài đặt', href: '/dashboard/settings' },
@@ -651,6 +652,9 @@ export function Sidebar() {
     }
     if (item.href === '/dashboard/education/finance') {
       return role === 'admin' || role === 'accountant';
+    }
+    if (item.href === '/dashboard/education/fee-program') {
+      return role === 'admin' || role === 'super_admin';
     }
     return true;
   });
