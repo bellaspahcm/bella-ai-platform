@@ -46,3 +46,9 @@ Human owner explicitly approved this ACR direction in this chat (`approve`, 2026
 ## Superseding owner decision — 2026-10-25
 
 The owner later approved the exact course migration, Platform helper, Teacher profiles, Production course-map SELECT and Production Attendance structural prerequisite recorded in `PENDING-DECISIONS.md`; those exact SQL changes were applied and verified. The owner separately approved no-op migration checkpoint `20261025104453`, now recorded on both targets. This approval does not authorize inferred enrollment mappings or browser/Go-Live claims; executable migrations for clean provisioning remain unresolved as described in `RESULT.md`.
+
+## Superseding owner decision — official teacher schema provisioning, 2026-10-27
+
+The owner explicitly approved reviewing the exact teacher SQL package and adding an official, additive migration sequence on a separate branch, followed by verification on a fresh isolated local/E2E database only. The selected legacy-compatible profile is 010 plus the shared teacher confirmation/assignment SQL 020; the empty E2E-only profile 011 is excluded from standard provisioning because the repository's canonical migration chain creates the legacy assignment table and FK. A third migration adds the reviewed non-null end-date invariant for terminated canonical assignments.
+
+This decision authorizes source migration files and isolated synthetic verification. It does not authorize applying any migration to the shared Preschool stack or Production, changing migration history, changing UI/contracts/ACLs, or committing/pushing/merging/deploying. The exact path allowlist and recovery boundary are recorded in `teacher-design/SCOPED_MIGRATION_UNLOCK_20261027.json`.
