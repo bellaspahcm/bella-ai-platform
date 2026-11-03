@@ -91,10 +91,13 @@ CREATE TABLE public.preschool_fee_program_version_items (
     REFERENCES public.preschool_fee_item_versions(tenant_id, id) ON DELETE RESTRICT
 );
 
+-- zero-downtime: allow blocking-index - New table created in this transaction; no existing rows or traffic.
 CREATE INDEX preschool_fee_programs_tenant_status_idx
   ON public.preschool_fee_programs(tenant_id, status);
+-- zero-downtime: allow blocking-index - New table created in this transaction; no existing rows or traffic.
 CREATE INDEX preschool_fee_program_versions_tenant_program_idx
   ON public.preschool_fee_program_versions(tenant_id, fee_program_id, status);
+-- zero-downtime: allow blocking-index - New table created in this transaction; no existing rows or traffic.
 CREATE INDEX preschool_fee_item_versions_tenant_item_idx
   ON public.preschool_fee_item_versions(tenant_id, fee_item_id, status);
 
