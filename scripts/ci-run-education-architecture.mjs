@@ -1,6 +1,12 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { readdir, readFile } from 'node:fs/promises';
 import path from 'node:path';
+import { createRequire } from 'node:module';
+import { fileURLToPath } from 'node:url';
+
+const ts = createRequire(import.meta.url)('typescript');
+const feeProgramAdapter = 'fee-program/fee-program.persistence.ts';
+const feeProgramPublishRpc = 'preschool_publish_fee_program_version';
 
 const baselinePath =
   process.env.CI_EDUCATION_ARCHITECTURE_BASELINES ||
@@ -76,8 +82,61 @@ function compareBaseline(baseline, current) {
   };
 }
 
-async function scanViolations() {
-  const files = await getAllTsFiles(root);
+function scanFeeProgramAdapter(content, relativeFile, violations) {
+  const source = ts.createSourceFile(relativeFile, content, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
+  let approvedCalls = 0;
+  const reject = (node) => {
+    const line = source.getLineAndCharacterOfPosition(node.getStart(source)).line + 1;
+    addCount(violations.directDatabaseAccess, `${relativeFile}:L${line} - Fee Program adapter RPC exception violation.`);
+  };
+  if (source.parseDiagnostics.length) reject(source);
+  function visit(node) {
+    if (ts.isElementAccessExpression(node)) reject(node);
+    if (ts.isImportDeclaration(node) && !node.importClause?.isTypeOnly) reject(node);
+    if (ts.isNewExpression(node) && !(ts.isIdentifier(node.expression) && node.expression.text === 'Error')) reject(node);
+    if (ts.isCallExpression(node)) {
+      const expr = node.expression;
+      const isRpc = ts.isPropertyAccessExpression(expr) && ts.isIdentifier(expr.expression)
+        && expr.expression.text === 'client' && expr.name.text === 'rpc';
+      const isArrayCheck = ts.isPropertyAccessExpression(expr) && ts.isIdentifier(expr.expression)
+        && expr.expression.text === 'Array' && expr.name.text === 'isArray'
+        && !expr.questionDotToken && !node.questionDotToken && node.arguments.length === 1;
+      if (!isRpc && !isArrayCheck) reject(node);
+    }
+    if (ts.isPropertyAccessExpression(node) && node.name.text === 'rpc') {
+      const call = node.parent;
+      if (!node.questionDotToken && ts.isIdentifier(node.expression) && node.expression.text === 'client'
+        && ts.isCallExpression(call) && call.expression === node && !call.questionDotToken
+        && call.arguments.length === 2 && ts.isStringLiteral(call.arguments[0])
+        && call.arguments[0].text === feeProgramPublishRpc) approvedCalls++;
+      else reject(node);
+    }
+    if (ts.isIdentifier(node) && node.text === 'rpc'
+      && !(ts.isPropertyAccessExpression(node.parent) && node.parent.name === node)) reject(node);
+    ts.forEachChild(node, visit);
+  }
+  visit(source);
+  if (approvedCalls !== 1) reject(source);
+}
+
+function scanFeeProgramCaller(content, relativeFile, violations) {
+  const source = ts.createSourceFile(relativeFile, content, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
+  const lines = content.split('\n');
+  function visit(node) {
+    if ((ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node)) && node.text === feeProgramPublishRpc) {
+      const line = source.getLineAndCharacterOfPosition(node.getStart(source)).line;
+      // The existing line scanner already records a direct literal .rpc call on this line.
+      if (!/\.rpc\s*\(\s*['"`]/.test(lines[line])) {
+        addCount(violations.directDatabaseAccess, `${relativeFile}:L${line + 1} - Fee Program publish RPC is restricted to its registered adapter.`);
+      }
+    }
+    ts.forEachChild(node, visit);
+  }
+  visit(source);
+}
+
+export async function scanViolations(scanRoot = root) {
+  const files = await getAllTsFiles(scanRoot);
   const violations = {
     directDatabaseAccess: {},
     internalKernelImports: {},
@@ -87,7 +146,10 @@ async function scanViolations() {
   for (const file of files) {
     const content = await readFile(file, 'utf8');
     const lines = content.split('\n');
-    const relativeFile = normalizePath(path.relative(root, file));
+    const relativeFile = normalizePath(path.relative(scanRoot, file));
+
+    if (relativeFile === feeProgramAdapter) scanFeeProgramAdapter(content, relativeFile, violations);
+    else scanFeeProgramCaller(content, relativeFile, violations);
 
     lines.forEach((line, index) => {
       const trimmed = line.trim();
@@ -104,7 +166,7 @@ async function scanViolations() {
       }
 
       const rpcPattern = /\.rpc\s*\(\s*['"`]/;
-      if (rpcPattern.test(line)) {
+      if (relativeFile !== feeProgramAdapter && rpcPattern.test(line)) {
         addCount(
           violations.directDatabaseAccess,
           `${relativeFile}:L${lineNumber} - Direct RPC database execution is prohibited in the Product layer.`
@@ -165,6 +227,7 @@ function printComparison(name, comparison) {
   }
 }
 
+async function main() {
 const current = await scanViolations();
 const baselines = loadBaselines();
 const categories = [
@@ -188,3 +251,6 @@ if (blocked) {
 }
 
 console.log('Education architecture baseline policy: ALLOW');
+}
+
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) await main();

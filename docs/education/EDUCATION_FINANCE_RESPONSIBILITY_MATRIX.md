@@ -16,6 +16,8 @@
 - Finance OS: Owns financial integrity
 - Integration Layer: Transforms Education intent → Finance contract
 
+> **Bella Preschool scope clarification (2026-11-03):** This Phase 2 matrix is general Education Finance discovery. Bella Preschool Fee Program definitions, pricing versions, publication, assignment, and fee calculation are Product-owned under the [Bella Preschool Fee Program Publish Contract](../products/bella-preschool/FEE_PROGRAM_PUBLISH_CONTRACT.md). Finance retains ownership of invoices, receivables, payments, and accounting treatment. This clarification does not move fee policy into the Education Kernel.
+
 **No ambiguity allowed** - Every responsibility must have ONE clear owner.
 
 ---
