@@ -896,7 +896,7 @@ function StandardDashboardPage() {
                  <div className="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center">
                     <Package className="w-6 h-6 text-amber-500" />
                  </div>
-                 <h2 className="text-2xl font-bold text-foreground uppercase tracking-tight">Vật Tư & Tồn Kho</h2>
+                 <h2 className="text-2xl font-bold text-foreground uppercase tracking-tight">Vật Tư &amp; Tồn Kho</h2>
               </div>
               <Link href="/dashboard/inventory" className="px-6 py-3 bg-white/50 hover:bg-white text-primary border border-primary/20 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-sm flex items-center gap-2 group/inv">
                  Quản lý kho <ArrowRight className="w-4 h-4 group-hover/inv:translate-x-1 transition-transform" />

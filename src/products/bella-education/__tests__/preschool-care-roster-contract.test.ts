@@ -22,13 +22,13 @@ describe('Preschool Care reuses the public Attendance roster', () => {
       { enrollmentId: 'enrollment', studentPartyId: 'party', studentCode: null, name: 'Child', gender: null, dob: null, care: null },
     ]);
     expect(spy).toHaveBeenCalledWith({ tenantId: 'tenant', courseId: 'course', schoolDay: '2026-10-23' });
-    expect(c.from.mock.calls.map(([table]) => table)).toEqual(['edu_courses', 'tenants', 'edu_daily_care_sessions']);
+    expect(c.from.mock.calls.map(([table]) => table)).toEqual(['tenants', 'edu_daily_care_sessions']);
   });
   it('propagates public-contract denial without direct-table fallback', async () => {
     jest.spyOn(AttendanceContractImpl.prototype, 'getCourseDailyAttendance').mockRejectedValue(new Error('DENIED'));
     const c = client();
     await expect(new DailyCareService(c as never).getDailyCareRoster('tenant', 'course', '2026-10-23')).rejects.toThrow('DENIED');
-    expect(c.from.mock.calls.map(([table]) => table)).toEqual(['edu_courses', 'tenants']);
+    expect(c.from.mock.calls.map(([table]) => table)).toEqual(['tenants']);
   });
   it('uses the current-caller Attendance contract as the Preschool course and roster authority', async () => {
     jest.spyOn(AttendanceContractImpl.prototype, 'getCourseDailyAttendance').mockResolvedValue([

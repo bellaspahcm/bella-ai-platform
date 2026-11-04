@@ -12,6 +12,8 @@ import {
 } from './daily-care.contract';
 import { AllergySafetyService } from '../health-profile/allergy-safety.service';
 import { AttendanceContractImpl } from '@/platform/education/contracts/attendance.contract.impl';
+import { CourseContractImpl } from '@/platform/education/contracts/course.contract.impl';
+import type { EducationCourseDTO } from '@/platform/education/contracts/course.contract';
 
 type CareSessionRow = {
   id: string;
@@ -96,31 +98,58 @@ export class DailyCareService implements IDailyCareContract {
   }
 
   private async assertCourseBelongsToTenant(tenantId: string, courseId: string, schoolDay: string): Promise<void> {
-    if (this.trustedProductKey !== 'bella_preschool') {
-      const { data, error } = await this.supabase.from('edu_courses').select('id').eq('id', courseId)
-        .eq('tenant_id', tenantId).eq('status', 'active').maybeSingle();
-      if (error) throw new Error(`CARE_COURSE_LOOKUP_FAILED: ${error.message}`);
-      if (!data) throw new Error('CARE_COURSE_NOT_FOUND_FOR_TENANT');
+    const productKey = await this.resolveProductKey(tenantId);
+    if (productKey === 'bella_preschool') {
+      // The caller-scoped Attendance contract verifies the active course, current
+      // branch authorization, and (for admin_staff) the live teacher assignment.
+      await this.getAttendanceRoster(tenantId, courseId, schoolDay, productKey);
       return;
     }
-    // The caller-scoped Attendance contract verifies the active course, current
-    // branch authorization, and (for admin_staff) the live teacher assignment.
-    await this.getCanonicalRoster(tenantId, courseId, schoolDay);
+
+    await this.assertActiveCourse(tenantId, courseId);
   }
 
-  private async getCanonicalRoster(tenantId: string, courseId: string, date: string): Promise<readonly EnrollmentRow[]> {
-    if (this.trustedProductKey !== 'bella_preschool') return this.getLegacyRoster(tenantId, courseId);
-    const roster = await new AttendanceContractImpl(this.supabase, 'bella_preschool')
-      .getCourseDailyAttendance({ tenantId, courseId, schoolDay: date });
+  private async getCanonicalRoster(
+    tenantId: string,
+    courseId: string,
+    date: string,
+    trustedProductKey?: string | null,
+  ): Promise<readonly EnrollmentRow[]> {
+    const productKey = await this.resolveProductKey(tenantId, trustedProductKey);
+    const roster = await this.getAttendanceRoster(tenantId, courseId, date, productKey);
     return roster.map(item => ({ id: item.enrollmentId, student_party_id: item.studentPartyId, status: item.enrollmentStatus }));
   }
 
-  private async getLegacyRoster(tenantId: string, courseId: string): Promise<readonly EnrollmentRow[]> {
-    const { data, error } = await this.supabase.from('edu_enrollments')
-      .select('id, student_party_id, status').eq('tenant_id', tenantId).eq('course_id', courseId)
-      .in('status', ['active', 'pending']);
-    if (error) throw new Error(`CARE_ROSTER_LOOKUP_FAILED: ${error.message}`);
-    return (data ?? []) as EnrollmentRow[];
+  private async resolveProductKey(tenantId: string, trustedProductKey?: string | null): Promise<string | null> {
+    if (trustedProductKey !== undefined) return trustedProductKey;
+    if (this.trustedProductKey !== undefined) return this.trustedProductKey;
+
+    const tenant = await this.supabase.from('tenants').select('id, product_key').eq('id', tenantId).maybeSingle();
+    if (tenant.error || !tenant.data || tenant.data.id !== tenantId) {
+      throw new Error('CARE_PRODUCT_CONTEXT_UNAVAILABLE');
+    }
+    return tenant.data.product_key;
+  }
+
+  private async getAttendanceRoster(
+    tenantId: string,
+    courseId: string,
+    schoolDay: string,
+    productKey: string | null,
+  ): Promise<Awaited<ReturnType<AttendanceContractImpl['getCourseDailyAttendance']>>> {
+    return new AttendanceContractImpl(this.supabase, productKey)
+      .getCourseDailyAttendance({ tenantId, courseId, schoolDay });
+  }
+
+  private async assertActiveCourse(tenantId: string, courseId: string): Promise<void> {
+    let course: EducationCourseDTO | null;
+    try {
+      course = await new CourseContractImpl(this.supabase).getCourse(tenantId, courseId);
+    } catch (error) {
+      const detail = error instanceof Error ? error.message : 'Unknown error';
+      throw new Error(`CARE_COURSE_LOOKUP_FAILED: ${detail}`);
+    }
+    if (!course || course.status !== 'active') throw new Error('CARE_COURSE_NOT_FOUND_FOR_TENANT');
   }
 
   private async assertStudentInCourse(
@@ -231,30 +260,19 @@ export class DailyCareService implements IDailyCareContract {
     date: string,
     trustedProductKey?: string,
   ): Promise<readonly DailyCareRosterItem[]> {
-    let productKey = trustedProductKey;
+    const productKey = await this.resolveProductKey(tenantId, trustedProductKey);
     let preschoolRoster: Awaited<ReturnType<AttendanceContractImpl['getCourseDailyAttendance']>> | null = null;
     if (productKey === 'bella_preschool') {
       // The caller-scoped Attendance contract is the course/roster authority for
       // both Preschool admins and assigned teachers; the admin-only catalog is
       // intentionally not used to authorize teacher reads.
-      preschoolRoster = await new AttendanceContractImpl(this.supabase, productKey)
-        .getCourseDailyAttendance({ tenantId, courseId, schoolDay: date });
+      preschoolRoster = await this.getAttendanceRoster(tenantId, courseId, date, productKey);
     } else {
-      const course = await this.supabase.from('edu_courses').select('id').eq('id', courseId)
-        .eq('tenant_id', tenantId).eq('status', 'active').maybeSingle();
-      if (course.error) throw new Error(`CARE_COURSE_LOOKUP_FAILED: ${course.error.message}`);
-      if (!course.data) throw new Error('CARE_COURSE_NOT_FOUND_FOR_TENANT');
-      const tenant = await this.supabase.from('tenants').select('id, product_key').eq('id', tenantId).maybeSingle();
-      if (tenant.error || !tenant.data || tenant.data.id !== tenantId) throw new Error('CARE_PRODUCT_CONTEXT_UNAVAILABLE');
-      productKey = tenant.data.product_key;
-      if (productKey === 'bella_preschool') {
-        preschoolRoster = await new AttendanceContractImpl(this.supabase, productKey)
-          .getCourseDailyAttendance({ tenantId, courseId, schoolDay: date });
-      }
+      await this.assertActiveCourse(tenantId, courseId);
     }
     const enrollmentRows: readonly EnrollmentRow[] = preschoolRoster
       ? preschoolRoster.map(row => ({ id: row.enrollmentId, student_party_id: row.studentPartyId, status: row.enrollmentStatus }))
-      : await this.getLegacyRoster(tenantId, courseId);
+      : await this.getCanonicalRoster(tenantId, courseId, date, productKey);
     if (enrollmentRows.length === 0) return [];
 
     const studentPartyIds = [...new Set(enrollmentRows.map((enrollment) => enrollment.student_party_id))];

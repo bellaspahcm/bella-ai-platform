@@ -87,6 +87,45 @@ BEGIN
     RAISE EXCEPTION 'PRESCHOOL_PROFILE_ATTENDANCE_STATE_RLS_MISMATCH';
   END IF;
 
+  IF to_regclass('public.edu_daily_care_sessions') IS NULL
+    OR to_regclass('public.edu_daily_care_records') IS NULL
+    OR NOT EXISTS (SELECT 1 FROM pg_class WHERE oid='public.edu_daily_care_sessions'::regclass AND relrowsecurity)
+    OR NOT EXISTS (SELECT 1 FROM pg_class WHERE oid='public.edu_daily_care_records'::regclass AND relrowsecurity)
+    OR to_regprocedure('public.preschool_daily_care_access_allowed(uuid,uuid,date,uuid)') IS NULL
+    OR to_regprocedure('public.preschool_save_care_records(uuid,uuid,date,jsonb)') IS NULL
+    OR NOT has_function_privilege('authenticated','public.preschool_daily_care_access_allowed(uuid,uuid,date,uuid)','EXECUTE')
+    OR has_function_privilege('anon','public.preschool_daily_care_access_allowed(uuid,uuid,date,uuid)','EXECUTE')
+    OR has_function_privilege('service_role','public.preschool_daily_care_access_allowed(uuid,uuid,date,uuid)','EXECUTE')
+    OR NOT has_function_privilege('authenticated','public.preschool_save_care_records(uuid,uuid,date,jsonb)','EXECUTE')
+    OR has_function_privilege('anon','public.preschool_save_care_records(uuid,uuid,date,jsonb)','EXECUTE')
+    OR has_function_privilege('service_role','public.preschool_save_care_records(uuid,uuid,date,jsonb)','EXECUTE') THEN
+    RAISE EXCEPTION 'PRESCHOOL_PROFILE_DAILY_CARE_RPC_ACL_OR_RLS_MISMATCH';
+  END IF;
+
+  SELECT count(*) INTO v_count
+  FROM pg_policy
+  WHERE polrelid IN ('public.edu_daily_care_sessions'::regclass, 'public.edu_daily_care_records'::regclass)
+    AND polname IN (
+      'edu_daily_care_sessions_authorized_select',
+      'edu_daily_care_sessions_authorized_insert',
+      'edu_daily_care_records_authorized_select',
+      'edu_daily_care_records_authorized_insert',
+      'edu_daily_care_records_authorized_update'
+    );
+  IF v_count <> 5 THEN RAISE EXCEPTION 'PRESCHOOL_PROFILE_DAILY_CARE_POLICY_SET_MISMATCH'; END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_proc p
+    WHERE p.oid='public.preschool_daily_care_access_allowed(uuid,uuid,date,uuid)'::regprocedure
+      AND p.prosecdef AND p.proconfig @> ARRAY['search_path=""']::text[]
+  ) OR NOT EXISTS (
+    SELECT 1 FROM pg_proc p
+    WHERE p.oid='public.preschool_save_care_records(uuid,uuid,date,jsonb)'::regprocedure
+      AND p.prosecdef AND p.proconfig @> ARRAY['search_path=""']::text[]
+  ) THEN
+    RAISE EXCEPTION 'PRESCHOOL_PROFILE_DAILY_CARE_FUNCTION_SECURITY_MISMATCH';
+  END IF;
+
   SELECT count(*) INTO v_count FROM pg_policy p
   WHERE p.polrelid='public.edu_attendance_daily_state'::regclass
     AND p.polname IN ('roster_rpc_state_allow','roster_rpc_state_guard')

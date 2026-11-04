@@ -15,6 +15,53 @@ const CATALOG_HASH = '4b87b19444ef4b5f788278c94d8709983d94fe991674e48b9fcdc091fa
 const PROBE_POLICY = 'bdgf_automove_owner_rehearsal';
 const PROBE_BUCKET = 'bdgf-automove-owner-rehearsal';
 
+// The rehearsal uses the canonical append-only audit contract. Keep this
+// bootstrap additive for the dedicated non-production E2E project only.
+const GOVERNANCE_AUDIT_SCHEMA = `
+CREATE TABLE public.bella_execution_audit (
+ audit_id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+ token_id uuid REFERENCES public.bella_gate_tokens(token_id),
+ approval_id uuid REFERENCES public.bella_migration_approval(approval_id),
+ migration_id varchar(255) NOT NULL,
+ migration_hash varchar(64) NOT NULL,
+ target_environment varchar(50) NOT NULL,
+ target_schema varchar(255),
+ gate_decision varchar(10) NOT NULL CHECK (gate_decision IN ('PASS','BLOCK')),
+ block_reason varchar(100),
+ execution_result varchar(20) CHECK (execution_result IN ('success','failed','not_attempted')),
+ execution_error text,
+ execution_duration_ms integer,
+ transaction_committed boolean,
+ executor_identity text NOT NULL,
+ executor_role text,
+ timestamp timestamptz NOT NULL DEFAULT now(),
+ created_by text NOT NULL,
+ metadata jsonb
+);
+CREATE INDEX idx_execution_audit_timestamp ON public.bella_execution_audit(timestamp DESC);
+CREATE INDEX idx_execution_audit_migration ON public.bella_execution_audit(migration_id);
+CREATE INDEX idx_execution_audit_token ON public.bella_execution_audit(token_id);
+CREATE INDEX idx_execution_audit_decision ON public.bella_execution_audit(gate_decision);
+CREATE FUNCTION public.bdgf_rehearsal_prevent_audit_modification()
+RETURNS trigger
+LANGUAGE plpgsql
+SET search_path = ''
+AS $bdgf_audit$
+BEGIN
+ RAISE EXCEPTION 'bella_execution_audit is append-only. UPDATE and DELETE are forbidden.';
+END;
+$bdgf_audit$;
+REVOKE ALL ON FUNCTION public.bdgf_rehearsal_prevent_audit_modification() FROM PUBLIC,anon,authenticated;
+CREATE TRIGGER bdgf_rehearsal_prevent_audit_update
+ BEFORE UPDATE ON public.bella_execution_audit
+ FOR EACH ROW EXECUTE FUNCTION public.bdgf_rehearsal_prevent_audit_modification();
+CREATE TRIGGER bdgf_rehearsal_prevent_audit_delete
+ BEFORE DELETE ON public.bella_execution_audit
+ FOR EACH ROW EXECUTE FUNCTION public.bdgf_rehearsal_prevent_audit_modification();
+ALTER TABLE public.bella_execution_audit ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON public.bella_execution_audit FROM PUBLIC,anon,authenticated;
+`;
+
 // Missing E2E infrastructure only. Final columns/invariants come from the R4
 // approval/token contracts and 20260926001000 owner-operated forward migration.
 // The original inline partial UNIQUE clause is expressed as a valid unique index.
@@ -53,6 +100,7 @@ CREATE TABLE public.bella_gate_tokens (
 ALTER TABLE public.bella_migration_approval ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.bella_gate_tokens ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON public.bella_migration_approval,public.bella_gate_tokens FROM PUBLIC,anon,authenticated;
+${GOVERNANCE_AUDIT_SCHEMA}
 `;
 
 export function rehearsalConnection(env) {
@@ -115,24 +163,41 @@ END $bdgf_rehearsal$;`;
 
 async function ensureGovernance(db) {
   const { rows: [state] } = await db.query(`select to_regclass('public.bella_migration_approval')::text as approvals,
-    to_regclass('public.bella_gate_tokens')::text as tokens`);
+    to_regclass('public.bella_gate_tokens')::text as tokens,
+    to_regclass('public.bella_execution_audit')::text as audit`);
   assert.equal(Boolean(state.approvals), Boolean(state.tokens), 'Partial governance schema requires explicit repair, not a guessed bootstrap.');
+  assert.ok(state.approvals || !state.audit, 'Orphan governance audit table requires explicit repair.');
+  let created = false;
   if (!state.approvals) {
     await db.query('BEGIN');
     try { await db.query(GOVERNANCE_SCHEMA); await db.query('COMMIT'); }
     catch (error) { await db.query('ROLLBACK'); throw error; }
+    created = true;
+  } else if (!state.audit) {
+    // A previous rehearsal can leave the two bootstrap tables after its audit
+    // insert exposed this missing dependency. Repair only by adding that exact
+    // table and append-only controls; never alter or replace existing objects.
+    await db.query('BEGIN');
+    try { await db.query(GOVERNANCE_AUDIT_SCHEMA); await db.query('COMMIT'); }
+    catch (error) { await db.query('ROLLBACK'); throw error; }
+    created = true;
   }
   const { rows } = await db.query(`select c.relname,r.rolname as owner,c.relrowsecurity,
     has_table_privilege('anon',c.oid,'SELECT,INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER') as anon_rights,
     has_table_privilege('authenticated',c.oid,'SELECT,INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER') as app_rights
     from pg_class c join pg_namespace n on n.oid=c.relnamespace join pg_roles r on r.oid=c.relowner
-    where n.nspname='public' and c.relname in ('bella_migration_approval','bella_gate_tokens')`);
-  assert.equal(rows.length, 2);
+    where n.nspname='public' and c.relname in ('bella_migration_approval','bella_gate_tokens','bella_execution_audit')`);
+  assert.equal(rows.length, 3);
   for (const row of rows) {
     assert.equal(row.owner, 'postgres'); assert.equal(row.relrowsecurity, true);
     assert.equal(row.anon_rights, false); assert.equal(row.app_rights, false);
   }
-  return !state.approvals;
+  const { rows: [triggerState] } = await db.query(`select array_agg(tgname order by tgname) as trigger_names
+    from pg_trigger where tgrelid='public.bella_execution_audit'::regclass and not tgisinternal`);
+  assert.deepEqual(triggerState.trigger_names, [
+    'bdgf_rehearsal_prevent_audit_delete', 'bdgf_rehearsal_prevent_audit_update'
+  ]);
+  return created;
 }
 
 export async function rehearseOwnerDdl() {

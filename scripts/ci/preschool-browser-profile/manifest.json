@@ -163,6 +163,12 @@
       "sha256": "0dee7a5cf8c8d327380ff638c600871674dfa767b275f7a02d65f50288591314"
     },
     {
+      "profileVersion": "20260909000052",
+      "source": "supabase/migrations/20260909000052_p42_daily_care_operations.sql",
+      "sha256": "edad559754e3ad55bd4d3a844a802089535978528da9dbfce43cb16326234ec3",
+      "dependencyReason": "Creates the isolated Daily Care tables required by the canonical student-party projection and the authorization/save migration below."
+    },
+    {
       "profileVersion": "20260912000001",
       "source": "scripts/ci/preschool-browser-profile/20260912000001_preschool_student_party_id_schema_projection.sql",
       "sha256": "a72c5e4940ab5ed22c7f9435882d104e3d088eb97c6e882e9b8e04c3521d57f7",
@@ -219,6 +225,12 @@
       "source": "supabase/migrations/20260927030000_preschool_safe_pickup_handover_events.sql",
       "sha256": "0e9075391723954e4c30dad48e18b7e2458f5f9d6aea381500af3663db09abc2",
       "dependencyReason": "The existing Preschool attendance read route loads safe-pickup handover history for the authorized roster; this canonical migration creates its source table and RLS policy for the disposable profile only."
+    },
+    {
+      "profileVersion": "20260927040000",
+      "source": "supabase/migrations/20260927040000_preschool_daily_care_canonical_student_party.sql",
+      "sha256": "65edc03c2f3d1267b791221823fc91a602d0298418ea8e2db6f9bebea265b6b4",
+      "dependencyReason": "Adds canonical Student Party identity to Daily Care records; required by the authenticated Daily Care boundary."
     },
     {
       "profileVersion": "20261006010000",
@@ -370,6 +382,12 @@
       "source": "supabase/migrations/20261028170000_preschool_g1_guardians_read.sql",
       "sha256": "713c143a18fa6c3b0933b9a3294fd4192d8b0d5009d640bca7e8a64f7ad9eb8a",
       "dependencyReason": "Existing G1 read contract; requires an active Preschool admin, authorized branch access and an exact enrollment-to-course-to-branch binding. No direct table grants are added."
+    },
+    {
+      "profileVersion": "20261028180000",
+      "source": "supabase/migrations/20261028180000_preschool_daily_care_authorization_and_save.sql",
+      "sha256": "9fb05dd6caeb13e6af5b3ad7a07c68eec7e878160c0e494ae23e326894488cbb",
+      "dependencyReason": "Enforces current-actor tenant, active-enrollment, branch and teacher authorization for Daily Care reads and saves; validated by the disposable profile's real-JWT DB checks."
     },
     {
       "profileVersion": "20261029100000",

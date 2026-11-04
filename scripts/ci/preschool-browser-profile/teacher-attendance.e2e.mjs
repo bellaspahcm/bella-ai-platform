@@ -144,7 +144,7 @@ async function ownerCount(table) {
   const allowed = new Set([
     'tenants', 'users', 'org_units', 'people_directory', 'org_relationships', 'party_parties', 'party_relationships', 'party_identifiers',
     'students', 'edu_courses', 'edu_enrollments', 'edu_preschool_pickup_authorizations', 'party_auth_links', 'teacher_assignments',
-    'edu_attendance', 'edu_attendance_daily_state',
+    'edu_attendance', 'edu_attendance_daily_state', 'edu_daily_care_sessions', 'edu_daily_care_records',
   ]);
   if (!allowed.has(table)) throw new Error('PROFILE_COUNT_TABLE_NOT_ALLOWLISTED');
   const result = await pgClient.query(`SELECT count(*)::int AS count FROM public.${table}`);
@@ -293,7 +293,8 @@ async function main() {
 
   currentPhase = 'empty-profile-preflight';
   const emptyTables = ['tenants', 'users', 'org_units', 'people_directory', 'org_relationships', 'party_parties', 'party_relationships', 'party_identifiers',
-    'students', 'edu_courses', 'edu_enrollments', 'edu_preschool_pickup_authorizations', 'party_auth_links', 'teacher_assignments', 'edu_attendance', 'edu_attendance_daily_state'];
+    'students', 'edu_courses', 'edu_enrollments', 'edu_preschool_pickup_authorizations', 'party_auth_links', 'teacher_assignments',
+    'edu_attendance', 'edu_attendance_daily_state', 'edu_daily_care_sessions', 'edu_daily_care_records'];
   const emptyCounts = {};
   for (const table of emptyTables) emptyCounts[table] = await ownerCount(table);
   const authCount = await pgClient.query('SELECT count(*)::int AS count FROM auth.users');
@@ -632,6 +633,82 @@ async function main() {
   assert(ownRoster?.tenantId === ids.tenantA && ownRoster?.roster?.length === 1
     && ownRoster.roster[0].enrollmentId === ids.enrollmentA && ownRoster.roster[0].name === 'Synthetic Child A', 'REAL_JWT_READS_ASSIGNED_ROSTER');
   addPass('jwtDatabase', 'teacher_reads_assigned_course_roster');
+
+  const adminCareAccess = await requiredRpc(adminAClient, 'preschool_daily_care_access_allowed', {
+    p_tenant_id: ids.tenantA, p_course_id: ids.courseA, p_school_day: schoolDay,
+    p_student_party_id: ids.studentPartyA,
+  });
+  assert(adminCareAccess === true, 'DAILY_CARE_ADMIN_ACCESS_IS_SCOPED_TO_OWN_ACTIVE_ENROLLMENT');
+  addPass('jwtDatabase', 'daily_care_admin_can_access_own_enrolled_child');
+
+  const adminCareOtherTenant = await requiredRpc(adminAClient, 'preschool_daily_care_access_allowed', {
+    p_tenant_id: ids.tenantB, p_course_id: ids.courseC, p_school_day: schoolDay,
+    p_student_party_id: ids.studentPartyC,
+  });
+  assert(adminCareOtherTenant === false, 'DAILY_CARE_ADMIN_CANNOT_ACCESS_OTHER_TENANT');
+  addPass('jwtDatabase', 'daily_care_admin_is_denied_other_tenant');
+
+  const teacherCareOwn = await requiredRpc(teacherClient, 'preschool_daily_care_access_allowed', {
+    p_tenant_id: ids.tenantA, p_course_id: ids.courseA, p_school_day: schoolDay,
+    p_student_party_id: ids.studentPartyA,
+  });
+  assert(teacherCareOwn === true, 'DAILY_CARE_ASSIGNED_TEACHER_ACCESS_IS_ALLOWED');
+  addPass('jwtDatabase', 'daily_care_assigned_teacher_can_access_own_child');
+
+  const teacherCareOtherBranch = await requiredRpc(teacherClient, 'preschool_daily_care_access_allowed', {
+    p_tenant_id: ids.tenantA, p_course_id: ids.courseB, p_school_day: schoolDay,
+    p_student_party_id: ids.studentPartyB,
+  });
+  assert(teacherCareOtherBranch === false, 'DAILY_CARE_TEACHER_CANNOT_ACCESS_OTHER_BRANCH');
+  addPass('jwtDatabase', 'daily_care_teacher_is_denied_other_branch');
+
+  const anonymousCareAccess = await anonymousClient.rpc('preschool_daily_care_access_allowed', {
+    p_tenant_id: ids.tenantA, p_course_id: ids.courseA, p_school_day: schoolDay,
+    p_student_party_id: ids.studentPartyA,
+  });
+  assert(denied(anonymousCareAccess.error) && !anonymousCareAccess.data,
+    'DAILY_CARE_ACCESS_HELPER_DENIES_ANONYMOUS_CALLER');
+  addPass('jwtDatabase', 'daily_care_helper_denies_anonymous', anonymousCareAccess.error.code ?? 'DENIED');
+
+  const savedCare = await requiredRpc(adminAClient, 'preschool_save_care_records', {
+    p_tenant_id: ids.tenantA,
+    p_course_id: ids.courseA,
+    p_day: schoolDay,
+    p_records: [{ studentPartyId: ids.studentPartyA, note: 'Synthetic local E2E Daily Care record.' }],
+  });
+  assert(savedCare?.savedCount === 1 && savedCare?.total === 1, 'DAILY_CARE_AUTHENTICATED_ADMIN_SAVE_SUCCEEDS');
+  addPass('jwtDatabase', 'daily_care_admin_saves_through_authenticated_rpc');
+
+  const savedCareReadback = await adminAClient.from('edu_daily_care_records')
+    .select('tenant_id,student_party_id,morning_condition')
+    .eq('tenant_id', ids.tenantA).eq('student_party_id', ids.studentPartyA);
+  assert(!savedCareReadback.error && savedCareReadback.data?.length === 1
+    && savedCareReadback.data[0].tenant_id === ids.tenantA
+    && savedCareReadback.data[0].student_party_id === ids.studentPartyA
+    && savedCareReadback.data[0].morning_condition === 'Synthetic local E2E Daily Care record.',
+  'DAILY_CARE_ADMIN_READS_BACK_OWN_RECORD');
+  addPass('jwtDatabase', 'daily_care_admin_reads_back_own_record');
+
+  const deniedCareSave = await adminAClient.rpc('preschool_save_care_records', {
+    p_tenant_id: ids.tenantB,
+    p_course_id: ids.courseC,
+    p_day: schoolDay,
+    p_records: [{ studentPartyId: ids.studentPartyC }],
+  });
+  assert(denied(deniedCareSave.error) && !deniedCareSave.data,
+    'DAILY_CARE_SAVE_DENIES_OTHER_TENANT_WITHOUT_SIDE_EFFECT');
+  addPass('jwtDatabase', 'daily_care_save_is_denied_other_tenant', deniedCareSave.error.code ?? 'DENIED');
+
+  const hiddenCareRead = await adminAClient.from('edu_daily_care_records')
+    .select('id').eq('tenant_id', ids.tenantB);
+  assert(!hiddenCareRead.error && Array.isArray(hiddenCareRead.data) && hiddenCareRead.data.length === 0,
+    'DAILY_CARE_RLS_HIDES_OTHER_TENANT_ROWS');
+  addPass('jwtDatabase', 'daily_care_rls_hides_other_tenant_rows');
+
+  const deniedCareSessionInsert = await adminAClient.from('edu_daily_care_sessions')
+    .insert({ tenant_id: ids.tenantB, class_id: ids.courseC, date: schoolDay });
+  assert(denied(deniedCareSessionInsert.error), 'DAILY_CARE_DIRECT_SESSION_INSERT_DENIES_OTHER_TENANT');
+  addPass('jwtDatabase', 'daily_care_direct_insert_is_denied_other_tenant', deniedCareSessionInsert.error.code ?? 'DENIED');
 
   for (const [label, tenantId, courseId, enrollmentId] of [
     ['other_branch', ids.tenantA, ids.courseB, ids.enrollmentB],

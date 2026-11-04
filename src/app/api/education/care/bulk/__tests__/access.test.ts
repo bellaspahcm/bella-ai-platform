@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 import type { DailyCareRosterItem, IBulkCareResult } from '@/products/bella-education/care-wellbeing/daily-care/daily-care.contract';
 import type { EducationEnrollmentDTO } from '@/platform/education/contracts/enrollment.contract';
+import type { CourseDailyAttendanceRosterItem } from '@/platform/education/contracts/attendance.contract';
 
 type Row = Record<string, unknown>;
 interface Profile { id: string; tenant_id: string | null; status: string; role: string; }
@@ -72,7 +73,7 @@ const mockMeal = jest.fn<(...args: unknown[]) => Promise<IBulkCareResult>>();
 const mockNap = jest.fn<(...args: unknown[]) => Promise<IBulkCareResult>>();
 const mockHygiene = jest.fn<(...args: unknown[]) => Promise<IBulkCareResult>>();
 const mockService = jest.fn((_client?: unknown) => ({ getDailyCareRoster: mockRoster, recordBulkArrival: mockArrival, recordBulkMeals: mockMeal, recordBulkNap: mockNap, recordBulkHygiene: mockHygiene }));
-const mockAttendanceRoster = jest.fn<() => Promise<readonly import('@/platform/education/contracts/attendance.contract').CourseDailyAttendanceRosterItem[]>>();
+const mockAttendanceRoster = jest.fn<() => Promise<readonly CourseDailyAttendanceRosterItem[]>>();
 const mockTeacherCourses = jest.fn<(...args: unknown[]) => Promise<readonly { courseId: string; name: string; branchId: string }[]>>();
 const mockPrivilegedClient = jest.fn();
 

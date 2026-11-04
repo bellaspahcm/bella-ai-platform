@@ -56,6 +56,18 @@ test('owner authority is real Actions metadata, never a local injected role', ()
   assert.doesNotMatch(source, /GITHUB_ACTIONS\s*=|ownerAuthority:|approverRole:\s*'admin'/);
 });
 
+test('E2E governance bootstrap provides an append-only audit dependency with no client grants', () => {
+  const source = readFileSync(new URL('rehearse-automove-owner-ddl.mjs', import.meta.url), 'utf8');
+  assert.match(source, /CREATE TABLE public\.bella_execution_audit\s*\(/i);
+  assert.match(source, /ALTER TABLE public\.bella_execution_audit ENABLE ROW LEVEL SECURITY/i);
+  assert.match(source, /REVOKE ALL ON public\.bella_execution_audit FROM PUBLIC,anon,authenticated/i);
+  assert.match(source, /CREATE TRIGGER bdgf_rehearsal_prevent_audit_update/i);
+  assert.match(source, /CREATE TRIGGER bdgf_rehearsal_prevent_audit_delete/i);
+  assert.match(source, /else if \(!state\.audit\)/);
+  assert.match(source, /assert\.equal\(rows\.length, 3\)/);
+  assert.match(source, /triggerState\.trigger_names/);
+});
+
 test('workflow uses exact same-repository PR SHA and E2E secrets only', () => {
   const workflow = readFileSync(new URL('../../.github/workflows/bdgf-automove-owner-rehearsal.yml', import.meta.url), 'utf8');
   assert.match(workflow, /head.repo.full_name == github.repository/);

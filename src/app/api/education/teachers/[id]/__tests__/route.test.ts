@@ -1,5 +1,10 @@
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
-import type { CurrentActorProfileRow } from '@/platform/security/current-actor.contract';
+import {
+  CURRENT_ACTOR_PROFILE_RPC,
+  CURRENT_ACTOR_TENANT_PRESENTATION_RPC,
+  type CurrentActorProfileRow,
+  type CurrentActorTenantPresentationRow,
+} from '@/platform/security/current-actor.contract';
 
 const tenantId = '00000000-0000-4000-8000-000000000001';
 const actorId = '00000000-0000-4000-8000-000000000002';
@@ -18,9 +23,9 @@ const actor: CurrentActorProfileRow = {
 
 const auth = jest.fn<() => Promise<{ data: { user: { id: string } | null }; error: null }>>();
 const profile = jest.fn<() => Promise<{ data: CurrentActorProfileRow[] | null; error: null }>>();
-const tenant = jest.fn<() => Promise<{ data: { id: string; status: string; product_key: string }; error: null }>>();
-const readerFrom = jest.fn(() => ({ select: () => ({ eq: () => ({ maybeSingle: tenant }) }) }));
-const reader = jest.fn(() => ({ auth: { getUser: auth }, rpc: profile, from: readerFrom }));
+const tenantPresentation = jest.fn<() => Promise<{ data: CurrentActorTenantPresentationRow[] | null; error: null }>>();
+const readerRpc = jest.fn<(name: string) => Promise<{ data: unknown; error: { code: string; message: string } | null }>>();
+const reader = jest.fn(() => ({ auth: { getUser: auth }, rpc: readerRpc }));
 
 const writerRpc = jest.fn<(...args: unknown[]) => Promise<{ data: unknown; error: { code: string; message: string } | null }>>();
 const writer = jest.fn(() => ({ rpc: writerRpc }));
@@ -72,7 +77,20 @@ beforeEach(() => {
   adminKey.mockReturnValue('synthetic-key');
   auth.mockResolvedValue({ data: { user: { id: actorId } }, error: null });
   profile.mockResolvedValue({ data: [actor], error: null });
-  tenant.mockResolvedValue({ data: { id: tenantId, status: 'active', product_key: 'bella_preschool' }, error: null });
+  tenantPresentation.mockResolvedValue({ data: [{
+    tenant_id: tenantId,
+    tenant_status: 'active',
+    name: 'Preschool',
+    product_key: 'bella_preschool',
+    enabled_modules: [],
+    brand_theme: {},
+    logo_url: null,
+  } as unknown as CurrentActorTenantPresentationRow], error: null });
+  readerRpc.mockImplementation(async name => {
+    if (name === CURRENT_ACTOR_PROFILE_RPC) return profile();
+    if (name === CURRENT_ACTOR_TENANT_PRESENTATION_RPC) return tenantPresentation();
+    return { data: null, error: { code: '42883', message: 'Unexpected RPC' } };
+  });
   writerRpc.mockResolvedValue({ data: sampleProfile, error: null });
 });
 
