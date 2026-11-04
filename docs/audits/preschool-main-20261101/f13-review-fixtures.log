@@ -1,0 +1,16 @@
+PASS EDUCATION ARCH SAME BASELINE = ALLOW
+PASS EDUCATION ARCH NEW VIOLATION = BLOCK
+PASS EDUCATION ARCH DEBT REDUCTION = ALLOW
+✔ line movement is allowed but increasing an existing signature count blocks (3.1171ms)
+✔ the real scanner covers Product TSX, API, UI, and repeated calls on one line (95.7398ms)
+✔ public contracts, unknown, comments, and literal any text remain allowed (14.1139ms)
+✔ resource inventory separates mixed ownership without approving a baseline exception (53.3896ms)
+✔ resource inventory exposes target substitution hidden by the legacy prefix signature (21.7264ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 211.7064

@@ -1,0 +1,142 @@
+{
+  "capturedAt": "2026-11-01T06:10:52.862Z",
+  "sourceBase": "f1299e3138f3700062a1ed84271db315737b0071",
+  "branch": "codex/preschool-main-technical-20261101",
+  "scope": {
+    "reviewed": [
+      "M013",
+      "M014",
+      "M015",
+      "M018",
+      "M021",
+      "M022",
+      "M023",
+      "M024",
+      "M025",
+      "M026"
+    ],
+    "M024": "PARTIAL_CLEANUP_LOCAL_BOUNDARY_STILL_BLOCK",
+    "removedExpressions": 0,
+    "explicitSelectorStudentLookup": "REMOVED_FROM_THIS_REQUEST_PATH",
+    "implicitSelectorLookup": "UNCHANGED",
+    "allOtherReplacements": "HELD_BLOCK"
+  },
+  "verification": {
+    "api": {
+      "suitesPassed": 2,
+      "testsPassed": 17,
+      "testsFailed": 0
+    },
+    "architecture": {
+      "testsPassed": 8,
+      "testsFailed": 2,
+      "failures": [
+        "Bella Education V1 — Static Architecture Guard Law 3: exact resource access stays within bounded debt and approved contract paths",
+        "Bella Education V1 — Static Architecture Guard Law 3: legacy database matches stay within reviewed debt after exact contract dispositions"
+      ]
+    },
+    "typecheck": "PASS",
+    "diffCheck": "PASS",
+    "preservation": {
+      "hashChecks": 87,
+      "allSealedHashesUnchanged": true,
+      "otherRuntimeUnchanged": true,
+      "oldWipUnchanged": true
+    }
+  },
+  "F13": {
+    "status": "BLOCK",
+    "ciExitCode": 1,
+    "exactBlocked": 88,
+    "unresolved": 20,
+    "legacyAdded": 68,
+    "legacyAddedSignatures": 30,
+    "recognizedHistoricalDebt": 265,
+    "recognizedApprovedTuples": 7,
+    "configurationErrors": 0
+  },
+  "sourceFiles": [
+    {
+      "file": "src/app/api/education/enrollments/[id]/development/route.ts",
+      "sha256": "e0d83ede7e900b3eac71aec05fbd92e38e221c4d7738579a0a30975e4bedd11e"
+    },
+    {
+      "file": "src/app/api/education/enrollments/[id]/development/__tests__/route.test.ts",
+      "sha256": "8bbf330dcf4e57bdeeb2eedaea387499ebcf46ca76698ceef801ae1e0b355f51"
+    }
+  ],
+  "artifacts": [
+    {
+      "file": "read-contract-architecture-jest.json",
+      "sha256": "8cc4f91b88ac4c86a7043a2536c26f1a609cc04dd0400a5fe54bad14186ec6c0"
+    },
+    {
+      "file": "read-contract-architecture-jest.log",
+      "sha256": "08cf5c19c12fe7c556ecab33d0aef9e59a0c1074658f657671e36f02397b22e9"
+    },
+    {
+      "file": "read-contract-before-jest.json",
+      "sha256": "3bcba3a741874be5e0c9adda246813f50d32cc9e87886b4c56176376bbe5eda7"
+    },
+    {
+      "file": "read-contract-before-jest.log",
+      "sha256": "92418d747095cae083bd929e0c6810e4344f9a23f0d451462d81a7479e7845f2"
+    },
+    {
+      "file": "read-contract-before.json",
+      "sha256": "be2a9dd976fa745aaec4235b5c5d865243b99e53f29d0f7c569bef4a913aeb98"
+    },
+    {
+      "file": "read-contract-ci.log",
+      "sha256": "433bc796ff7fd3e3a5c046b4b6ed46fde1ecf2d604be105c4802fc96c5925bdb"
+    },
+    {
+      "file": "read-contract-final-jest.json",
+      "sha256": "c21fdd3ad1c916cb29e38fc77b5584f92f3d39faa6928ea28f2d38b5d2a7a3b3"
+    },
+    {
+      "file": "read-contract-final-jest.log",
+      "sha256": "9990358ccde2aa630d25847d49e38a27781e28c0cbba02775deb85de7dd909ac"
+    },
+    {
+      "file": "read-contract-gate.json",
+      "sha256": "a88174fd3314035afa8def2a77aaeb278eea1d373927aee966c90a2f143150f0"
+    },
+    {
+      "file": "read-contract-preservation.json",
+      "sha256": "30b4f9a7cd3ea65307c7a3567a1dde528d9ccb409bc6374c61997075598cf2d5"
+    },
+    {
+      "file": "read-contract-typecheck.json",
+      "sha256": "eafc8dd8de8e0c5505ac98f8721427b11043c2c960e4304bda34329741de3ef4"
+    },
+    {
+      "file": "read-contract.patch",
+      "sha256": "51881c87195e28cea22193ea3b0fbd45c41e852b8f9b36c9495848e2a54be100"
+    },
+    {
+      "file": "READ_ONLY_CONTRACT_REVIEW.md",
+      "sha256": "f453c73e302898b2fd086267967b6f98b9d08bbc97e32762b5303a6a6ac8f616"
+    }
+  ],
+  "notProven": [
+    "Registry id-to-legacy-Student producer mapping",
+    "Real Auth/RLS",
+    "Student-to-explicit-enrollment authority binding",
+    "Browser E2E",
+    "Production",
+    "Latency improvement"
+  ],
+  "actionsNotPerformed": [
+    "UI/business/Finance/permission changes",
+    "Kernel/public-contract changes",
+    "guard/metadata/baseline changes",
+    "DB probe/mutation/migration",
+    "seed",
+    "build",
+    "commit",
+    "push",
+    "merge",
+    "deploy"
+  ]
+}

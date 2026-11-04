@@ -87,27 +87,27 @@ export async function GET(request: Request, { params }: RouteContext): Promise<N
     const adminClient = createAdminClient();
     const queryClient = adminClient ?? client;
 
-    // First find student party_id
-    const studentRes = await queryClient
-      .from('students')
-      .select('student_id, party_id')
-      .eq('tenant_id', actor.tenant_id)
-      .eq('student_id', resolvedParams.id)
-      .maybeSingle();
-
-    const partyId = studentRes.data?.party_id;
-
     // Find enrollment IDs for this student
     let validEnrollmentIds: string[] = [];
     if (enrollmentIdParam) {
       validEnrollmentIds = [enrollmentIdParam];
-    } else if (partyId) {
-      const enrollRes = await queryClient
-        .from('edu_enrollments')
-        .select('id')
+    } else {
+      // The Student -> Party lookup is only consumed by the implicit selector.
+      const studentRes = await queryClient
+        .from('students')
+        .select('student_id, party_id')
         .eq('tenant_id', actor.tenant_id)
-        .eq('student_party_id', partyId);
-      validEnrollmentIds = (enrollRes.data ?? []).map((e: { id: string }) => e.id);
+        .eq('student_id', resolvedParams.id)
+        .maybeSingle();
+      const partyId = studentRes.data?.party_id;
+      if (partyId) {
+        const enrollRes = await queryClient
+          .from('edu_enrollments')
+          .select('id')
+          .eq('tenant_id', actor.tenant_id)
+          .eq('student_party_id', partyId);
+        validEnrollmentIds = (enrollRes.data ?? []).map((e: { id: string }) => e.id);
+      }
     }
 
     // Fetch assessments & milestone progress

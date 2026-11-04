@@ -1,0 +1,685 @@
+{
+  "profileId": "preschool-teacher-browser-acceptance-v1",
+  "manifestSha256": "5ae25793dfa70265d52a4c6f3125468276df4a66111eefcfc83bd9d7640067ac",
+  "sourceRevision": "f1299e3138f3700062a1ed84271db315737b0071",
+  "projectId": "bella-preschool-6fc50866",
+  "apiOrigin": "http://127.0.0.1:31475",
+  "databasePort": 31476,
+  "databaseContainerId": "add418ea8f924296aac04dab806bbbe56d54a76b76db9b30d7bb797ee523da9e",
+  "profileMigrationVersionsApplied": [
+    "20260511000000",
+    "20260521000004",
+    "20260523030000",
+    "20260523040000",
+    "20260525000000",
+    "20260608104000",
+    "20260801030000",
+    "20260806000000",
+    "20260808000012",
+    "20260810000001",
+    "20260810224417",
+    "20260810224418",
+    "20260810231500",
+    "20260812060000",
+    "20260813000020",
+    "20260813000040",
+    "20260813000050",
+    "20260912000001",
+    "20260914000000",
+    "20260914000001",
+    "20260919030000",
+    "20260926003000",
+    "20260927000000",
+    "20260927010000",
+    "20260927020000",
+    "20261006010000",
+    "20261019020001",
+    "20261019030000",
+    "20261019045000",
+    "20261019060000",
+    "20261023040000",
+    "20261023050000",
+    "20261023120001",
+    "20261025070000",
+    "20261026100000",
+    "20261026130100",
+    "20261026152000",
+    "20261026170000",
+    "20261026183000",
+    "20261027010000",
+    "20261027010100",
+    "20261027010200",
+    "20261027010300",
+    "20261027020000"
+  ],
+  "migrationSourceHashes": [
+    {
+      "source": "supabase/migrations/20260511000000_initial_schema.sql",
+      "sha256": "2509adfb40627bf7e3858015eec9f7bfe41bf3e664e21ad7985dca45d5d10fdd"
+    },
+    {
+      "source": "supabase/migrations/20260521000004_harden_rls_and_tenant.sql",
+      "sha256": "fb578f052455928f09bcfbaa4af1ca52cfd40f55f9c410e74a04f758071bc6cb"
+    },
+    {
+      "source": "supabase/migrations/20260523030000_grant_service_role_schema_access.sql",
+      "sha256": "64b1eb7589e393f3fe34dfaaf25fdc1af1448cd1d2b1fb74df76b9784802b687"
+    },
+    {
+      "source": "supabase/migrations/20260523040000_fix_hq_super_admin_rls.sql",
+      "sha256": "c9365050879fb7a512b1c81991d9cbe339e55d8821517ef03106472bc8d725a2"
+    },
+    {
+      "source": "supabase/migrations/20260525000000_security_hardening.sql",
+      "sha256": "9ba77ffba99153bd0fe92e1722d3d7ee8e01911d4f3bcc80e33c205e8db97e17"
+    },
+    {
+      "source": "supabase/migrations/20260608104000_add_tenant_module_white_label_config.sql",
+      "sha256": "2bed31475c899ab7b0f84be3b21ddc32d32c2cfef0d3a7ac73fac5c4eb0b4265"
+    },
+    {
+      "source": "supabase/migrations/20260801030000_foundation_org_people_schema.sql",
+      "sha256": "679175d199cbb4dc9d596a1344f94c2be582b800ea0c2e9595456e158b49507e"
+    },
+    {
+      "source": "supabase/migrations/20260806000000_blueprint_core_schema.sql",
+      "sha256": "ec444780ef5e692f3e60ab9465fa068d0ae6b02f40c120384d8b598f94dab45b"
+    },
+    {
+      "source": "scripts/ci/preschool-browser-profile/20260808000012_platform_rule_domain_projection.sql",
+      "sha256": "4f5fa90544622fa27f5a89b4be575c665e1da8f8f60d1d05690009d5b198f31c"
+    },
+    {
+      "source": "supabase/migrations/20260810000001_create_persons_table.sql",
+      "sha256": "9c75e14ce8f54f668ec40809f9110c78915832c82c34e8f4bc8c428c4d6596ad"
+    },
+    {
+      "source": "supabase/migrations/20260810224417_create_students_table.sql",
+      "sha256": "2d6760ca13212084259e86daeaec1d2fb83625c691f3e4df4f9835eb1b5b1a9e"
+    },
+    {
+      "source": "supabase/migrations/20260810224418_migrate_students_to_platform_schema.sql",
+      "sha256": "b0f3dd85b7a25886c15c2d341b682f0f9406fe2a30e3d8f77ba066b2d1c145a4"
+    },
+    {
+      "source": "supabase/migrations/20260810231500_create_courses_and_enrollments.sql",
+      "sha256": "37291d8b1cd3ba46369ed68258299fe76001131ce4f787a11f2650c390a4c481"
+    },
+    {
+      "source": "supabase/migrations/20260812060000_create_education_schema.sql",
+      "sha256": "eee26bbdf06c9645019f025cf1975c1b91b7e6cd7135ecc42abe4a0a643cc9d8"
+    },
+    {
+      "source": "supabase/migrations/20260813000020_create_edu_attendance_and_assessment.sql",
+      "sha256": "042910c68760a0b6bb5b2ca93995b8761368c9d0fab73710977defb62dd1a176"
+    },
+    {
+      "source": "supabase/migrations/20260813000040_create_enrollment_transaction_rpc.sql",
+      "sha256": "3997f2ed46e2815050f56c4b5af184a5d85d33c88d99005cccd12f67e41e6040"
+    },
+    {
+      "source": "supabase/migrations/20260813000050_create_teacher_assignments.sql",
+      "sha256": "0dee7a5cf8c8d327380ff638c600871674dfa767b275f7a02d65f50288591314"
+    },
+    {
+      "source": "scripts/ci/preschool-browser-profile/20260912000001_preschool_student_party_id_schema_projection.sql",
+      "sha256": "a72c5e4940ab5ed22c7f9435882d104e3d088eb97c6e882e9b8e04c3521d57f7"
+    },
+    {
+      "source": "supabase/migrations/20260914_create_user_org_unit_access_projection.sql",
+      "sha256": "54cc3431d813405ae9b635a2d7e5dc534defacb8b0c0ed0f44b495ddc81fbd6d"
+    },
+    {
+      "source": "supabase/migrations/20260914_repair_platform_org_people_rls.sql",
+      "sha256": "bfba4ba24357a7a416dea65a1e8b7129b2f02f61d51dba0738507441cd3ed54f"
+    },
+    {
+      "source": "supabase/migrations/20260919030000_add_product_key_to_tenants.sql",
+      "sha256": "ba6b665afbafd1bde01294dffb18fe9b0225f5690e8f32e2955fecdea5ef8912"
+    },
+    {
+      "source": "supabase/migrations/20260926003000_education_daily_attendance_state.sql",
+      "sha256": "ec55260d4ae5242d4b93fc51d3f484a3404e7b6ace73e0247222a36e5948b6c0"
+    },
+    {
+      "source": "supabase/migrations/20260927000000_fix_edu_set_daily_attendance_column_ambiguity.sql",
+      "sha256": "c32999a499bddaec4dbfc58910c0d0de62869e2d6b23b054bb2adcdb14d4d436"
+    },
+    {
+      "source": "supabase/migrations/20260927010000_preschool_guardian_pickup_authorizations.sql",
+      "sha256": "4556731073632908044f0ce9ffb904f0f6a9222339ed4cbfbdbe4f8ee4310164"
+    },
+    {
+      "source": "supabase/migrations/20260927020000_fix_course_rls_auth_tenant_helper.sql",
+      "sha256": "1e0c2f73be37c8ce5d0ba3291e3126ab53afb3b5f77b7c1929f28f73232e16c4"
+    },
+    {
+      "source": "supabase/migrations/20261006010000_preschool_chain_assignments.sql",
+      "sha256": "1ec3626f746fd10b3e7a343fa2be128ac5ea6406e68274e4422d7b6414cf501a"
+    },
+    {
+      "source": "scripts/ci/preschool-browser-profile/20261019020001_preschool_admission_operations_projection.sql",
+      "sha256": "7126b84aee5d113b1efc4d953e19c2325e45bca27d3a1e5c0798321125f24df8"
+    },
+    {
+      "source": "supabase/migrations/20261019030000_preschool_chain_branch_security.sql",
+      "sha256": "6e76b0340ce15a5e0097b35b7cab9039046b80c32f29d0e7d83ac58144fcf41a"
+    },
+    {
+      "source": "supabase/migrations/20261019045000_platform_trusted_actor_org_unit_access.sql",
+      "sha256": "8c4aa1f6d38fc1633ae069ad5e8a0ca59c8f2e6fe0b2f47c239ad30601082541"
+    },
+    {
+      "source": "supabase/migrations/20261019060000_platform_current_actor_read_contract.sql",
+      "sha256": "e390ba5769768c532915d55eb931351088feec8563693a453827e18bca2daf20"
+    },
+    {
+      "source": "supabase/migrations/20261023040000_attendance_authorization_wait_repair.sql",
+      "sha256": "8d414c52ee20bb931e83bb447911284d2628e84092b6191178ef0248903d5c28"
+    },
+    {
+      "source": "supabase/migrations/20261023050000_attendance_final_authority_order.sql",
+      "sha256": "6cd299be1e58d8f50e1cb6e4d89876d70d6a0c7e15338eaccc3d33091a976266"
+    },
+    {
+      "source": "scripts/ci/preschool-browser-profile/20261023120001_preschool_chain_access_projection.sql",
+      "sha256": "fd2e44c971cbf33532577dfbd7cb4a6f4c96d738efbcab9d5a74f249d6ba7fc5"
+    },
+    {
+      "source": "supabase/migrations/20261025070000_preschool_canonical_course_create.sql",
+      "sha256": "50b0a75b24d8968db35dda0a0ddccd3f202b2ff4cda2b29d312535069103b571"
+    },
+    {
+      "source": "supabase/migrations/20261026100000_scope_education_attendance_state_by_branch.sql",
+      "sha256": "daa2ff0688b606b1408a8d420f79f993a3269a874595658c9938491a2b63cb73"
+    },
+    {
+      "source": "supabase/migrations/20261026130100_finalize_education_attendance_branch_read.sql",
+      "sha256": "97d2fde76de569e80379f69360320c543e207eefa0f806c58428f5f3f103523f"
+    },
+    {
+      "source": "supabase/migrations/20261026152000_harden_education_attendance_access.sql",
+      "sha256": "a85d051fe618caac3ee89413acbce33a7909bba1fdcb9ce7632789e2589e9399"
+    },
+    {
+      "source": "supabase/migrations/20261026170000_party_auth_identity_links.sql",
+      "sha256": "7dada3ff8dcbcc72de0cfc1c271824936ac2e910e99e2624f2b14b036182c684"
+    },
+    {
+      "source": "supabase/migrations/20261026183000_integrate_preschool_teacher_attendance.sql",
+      "sha256": "922e28ec5e81c1bd618b9885671fec6a7064701482e2ad4a3d7f98a8383ba447"
+    },
+    {
+      "source": "supabase/migrations/20261027010000_preschool_teacher_assignment_legacy_profile.sql",
+      "sha256": "8957451c0bef5a77631d52d0fb74bc4569921ce66aa10288085460a363001b37"
+    },
+    {
+      "source": "supabase/migrations/20261027010100_preschool_teacher_confirmation_and_canonical_assignment.sql",
+      "sha256": "659528725606fb86dd83a6ec3a1afdf8e106360e81d7a3b392eee5b85c442d31"
+    },
+    {
+      "source": "supabase/migrations/20261027010200_preschool_teacher_termination_end_date_check.sql",
+      "sha256": "f711a242099ba953b8e637a39ee6f3483a496ae5a7b17fc0e2107d138c507bd0"
+    },
+    {
+      "source": "supabase/migrations/20261027010300_scope_attendance_state_with_authorized_helper.sql",
+      "sha256": "e685a675a13e0783128dc1f59a32eb0526cd51bd25e0042e2455b015c46e8551"
+    },
+    {
+      "source": "supabase/migrations/20261027020000_platform_current_actor_tenant_presentation.sql",
+      "sha256": "44971a66d6de39bd5e18431ef6564d8bf1d1ef3aa449f8ffb1de08a21b3925f2"
+    }
+  ],
+  "schemaAcceptance": "PASS",
+  "schemaAcceptanceOutput": "PRESCHOOL_PROFILE_SCHEMA_ACL_RLS_PASS",
+  "realJwt": "PASS",
+  "browserE2e": "PASS",
+  "businessRowsImported": false,
+  "fabricatedR3IdentityMappings": false,
+  "cleanup": "OWNED_PROJECT_AND_VOLUMES_REMOVED",
+  "completedAt": "2026-11-01T07:47:12.159Z",
+  "acceptanceReceipt": "acceptance-receipt.json",
+  "acceptance": {
+    "profileId": "preschool-teacher-browser-acceptance-v1",
+    "targetCommit": "f1299e3138f3700062a1ed84271db315737b0071",
+    "applicationSourceRevision": "f1299e3138f3700062a1ed84271db315737b0071",
+    "schemaSourceRevision": "f1299e3138f3700062a1ed84271db315737b0071",
+    "manifestSha256": "5ae25793dfa70265d52a4c6f3125468276df4a66111eefcfc83bd9d7640067ac",
+    "migrationHashes": [
+      {
+        "profileVersion": "20260511000000",
+        "sha256": "2509adfb40627bf7e3858015eec9f7bfe41bf3e664e21ad7985dca45d5d10fdd"
+      },
+      {
+        "profileVersion": "20260521000004",
+        "sha256": "fb578f052455928f09bcfbaa4af1ca52cfd40f55f9c410e74a04f758071bc6cb"
+      },
+      {
+        "profileVersion": "20260523030000",
+        "sha256": "64b1eb7589e393f3fe34dfaaf25fdc1af1448cd1d2b1fb74df76b9784802b687"
+      },
+      {
+        "profileVersion": "20260523040000",
+        "sha256": "c9365050879fb7a512b1c81991d9cbe339e55d8821517ef03106472bc8d725a2"
+      },
+      {
+        "profileVersion": "20260525000000",
+        "sha256": "9ba77ffba99153bd0fe92e1722d3d7ee8e01911d4f3bcc80e33c205e8db97e17"
+      },
+      {
+        "profileVersion": "20260608104000",
+        "sha256": "2bed31475c899ab7b0f84be3b21ddc32d32c2cfef0d3a7ac73fac5c4eb0b4265"
+      },
+      {
+        "profileVersion": "20260801030000",
+        "sha256": "679175d199cbb4dc9d596a1344f94c2be582b800ea0c2e9595456e158b49507e"
+      },
+      {
+        "profileVersion": "20260806000000",
+        "sha256": "ec444780ef5e692f3e60ab9465fa068d0ae6b02f40c120384d8b598f94dab45b"
+      },
+      {
+        "profileVersion": "20260808000012",
+        "sha256": "4f5fa90544622fa27f5a89b4be575c665e1da8f8f60d1d05690009d5b198f31c"
+      },
+      {
+        "profileVersion": "20260810000001",
+        "sha256": "9c75e14ce8f54f668ec40809f9110c78915832c82c34e8f4bc8c428c4d6596ad"
+      },
+      {
+        "profileVersion": "20260810224417",
+        "sha256": "2d6760ca13212084259e86daeaec1d2fb83625c691f3e4df4f9835eb1b5b1a9e"
+      },
+      {
+        "profileVersion": "20260810224418",
+        "sha256": "b0f3dd85b7a25886c15c2d341b682f0f9406fe2a30e3d8f77ba066b2d1c145a4"
+      },
+      {
+        "profileVersion": "20260810231500",
+        "sha256": "37291d8b1cd3ba46369ed68258299fe76001131ce4f787a11f2650c390a4c481"
+      },
+      {
+        "profileVersion": "20260812060000",
+        "sha256": "eee26bbdf06c9645019f025cf1975c1b91b7e6cd7135ecc42abe4a0a643cc9d8"
+      },
+      {
+        "profileVersion": "20260813000020",
+        "sha256": "042910c68760a0b6bb5b2ca93995b8761368c9d0fab73710977defb62dd1a176"
+      },
+      {
+        "profileVersion": "20260813000040",
+        "sha256": "3997f2ed46e2815050f56c4b5af184a5d85d33c88d99005cccd12f67e41e6040"
+      },
+      {
+        "profileVersion": "20260813000050",
+        "sha256": "0dee7a5cf8c8d327380ff638c600871674dfa767b275f7a02d65f50288591314"
+      },
+      {
+        "profileVersion": "20260912000001",
+        "sha256": "a72c5e4940ab5ed22c7f9435882d104e3d088eb97c6e882e9b8e04c3521d57f7"
+      },
+      {
+        "profileVersion": "20260914000000",
+        "sha256": "54cc3431d813405ae9b635a2d7e5dc534defacb8b0c0ed0f44b495ddc81fbd6d"
+      },
+      {
+        "profileVersion": "20260914000001",
+        "sha256": "bfba4ba24357a7a416dea65a1e8b7129b2f02f61d51dba0738507441cd3ed54f"
+      },
+      {
+        "profileVersion": "20260919030000",
+        "sha256": "ba6b665afbafd1bde01294dffb18fe9b0225f5690e8f32e2955fecdea5ef8912"
+      },
+      {
+        "profileVersion": "20260926003000",
+        "sha256": "ec55260d4ae5242d4b93fc51d3f484a3404e7b6ace73e0247222a36e5948b6c0"
+      },
+      {
+        "profileVersion": "20260927000000",
+        "sha256": "c32999a499bddaec4dbfc58910c0d0de62869e2d6b23b054bb2adcdb14d4d436"
+      },
+      {
+        "profileVersion": "20260927010000",
+        "sha256": "4556731073632908044f0ce9ffb904f0f6a9222339ed4cbfbdbe4f8ee4310164"
+      },
+      {
+        "profileVersion": "20260927020000",
+        "sha256": "1e0c2f73be37c8ce5d0ba3291e3126ab53afb3b5f77b7c1929f28f73232e16c4"
+      },
+      {
+        "profileVersion": "20261006010000",
+        "sha256": "1ec3626f746fd10b3e7a343fa2be128ac5ea6406e68274e4422d7b6414cf501a"
+      },
+      {
+        "profileVersion": "20261019020001",
+        "sha256": "7126b84aee5d113b1efc4d953e19c2325e45bca27d3a1e5c0798321125f24df8"
+      },
+      {
+        "profileVersion": "20261019030000",
+        "sha256": "6e76b0340ce15a5e0097b35b7cab9039046b80c32f29d0e7d83ac58144fcf41a"
+      },
+      {
+        "profileVersion": "20261019045000",
+        "sha256": "8c4aa1f6d38fc1633ae069ad5e8a0ca59c8f2e6fe0b2f47c239ad30601082541"
+      },
+      {
+        "profileVersion": "20261019060000",
+        "sha256": "e390ba5769768c532915d55eb931351088feec8563693a453827e18bca2daf20"
+      },
+      {
+        "profileVersion": "20261023040000",
+        "sha256": "8d414c52ee20bb931e83bb447911284d2628e84092b6191178ef0248903d5c28"
+      },
+      {
+        "profileVersion": "20261023050000",
+        "sha256": "6cd299be1e58d8f50e1cb6e4d89876d70d6a0c7e15338eaccc3d33091a976266"
+      },
+      {
+        "profileVersion": "20261023120001",
+        "sha256": "fd2e44c971cbf33532577dfbd7cb4a6f4c96d738efbcab9d5a74f249d6ba7fc5"
+      },
+      {
+        "profileVersion": "20261025070000",
+        "sha256": "50b0a75b24d8968db35dda0a0ddccd3f202b2ff4cda2b29d312535069103b571"
+      },
+      {
+        "profileVersion": "20261026100000",
+        "sha256": "daa2ff0688b606b1408a8d420f79f993a3269a874595658c9938491a2b63cb73"
+      },
+      {
+        "profileVersion": "20261026130100",
+        "sha256": "97d2fde76de569e80379f69360320c543e207eefa0f806c58428f5f3f103523f"
+      },
+      {
+        "profileVersion": "20261026152000",
+        "sha256": "a85d051fe618caac3ee89413acbce33a7909bba1fdcb9ce7632789e2589e9399"
+      },
+      {
+        "profileVersion": "20261026170000",
+        "sha256": "7dada3ff8dcbcc72de0cfc1c271824936ac2e910e99e2624f2b14b036182c684"
+      },
+      {
+        "profileVersion": "20261026183000",
+        "sha256": "922e28ec5e81c1bd618b9885671fec6a7064701482e2ad4a3d7f98a8383ba447"
+      },
+      {
+        "profileVersion": "20261027010000",
+        "sha256": "8957451c0bef5a77631d52d0fb74bc4569921ce66aa10288085460a363001b37"
+      },
+      {
+        "profileVersion": "20261027010100",
+        "sha256": "659528725606fb86dd83a6ec3a1afdf8e106360e81d7a3b392eee5b85c442d31"
+      },
+      {
+        "profileVersion": "20261027010200",
+        "sha256": "f711a242099ba953b8e637a39ee6f3483a496ae5a7b17fc0e2107d138c507bd0"
+      },
+      {
+        "profileVersion": "20261027010300",
+        "sha256": "e685a675a13e0783128dc1f59a32eb0526cd51bd25e0042e2455b015c46e8551"
+      },
+      {
+        "profileVersion": "20261027020000",
+        "sha256": "44971a66d6de39bd5e18431ef6564d8bf1d1ef3aa449f8ffb1de08a21b3925f2"
+      }
+    ],
+    "schemaAcceptance": "PASS",
+    "fixture": {
+      "kind": "synthetic-only",
+      "businessDataImported": false,
+      "fabricatedR3IdentityMappings": false,
+      "tenantCount": 2,
+      "branchCount": 3,
+      "teacherCount": 1,
+      "studentCount": 3,
+      "classCount": 3,
+      "preflightEmpty": true,
+      "syntheticOnly": true,
+      "cleanup": "CONTAINED_IN_DISPOSABLE_PROFILE"
+    },
+    "jwtDatabase": {
+      "status": "PASS",
+      "results": [
+        {
+          "name": "real_teacher_jwt_resolves_auth_party",
+          "result": "PASS"
+        },
+        {
+          "name": "teacher_jwt_reads_minimal_own_tenant_presentation",
+          "result": "PASS"
+        },
+        {
+          "name": "tenant_presentation_has_no_client_selected_tenant",
+          "result": "PASS"
+        },
+        {
+          "name": "tenant_presentation_denies_missing_profile",
+          "result": "PASS",
+          "detail": "42501"
+        },
+        {
+          "name": "tenant_presentation_denies_missing_identity",
+          "result": "PASS",
+          "detail": "42501"
+        },
+        {
+          "name": "teacher_cannot_select_tenants_table",
+          "result": "PASS",
+          "detail": "42501"
+        },
+        {
+          "name": "second_tenant_actor_is_self_scoped",
+          "result": "PASS"
+        },
+        {
+          "name": "teacher_course_list_is_self_and_branch_scoped",
+          "result": "PASS"
+        },
+        {
+          "name": "teacher_reads_assigned_course_roster",
+          "result": "PASS"
+        },
+        {
+          "name": "teacher_db_access_denied_other_branch",
+          "result": "PASS"
+        },
+        {
+          "name": "teacher_roster_denied_other_branch",
+          "result": "PASS",
+          "detail": "42501"
+        },
+        {
+          "name": "teacher_direct_write_denied_other_branch",
+          "result": "PASS",
+          "detail": "42501"
+        },
+        {
+          "name": "attendance_state_rls_hides_other_branch",
+          "result": "PASS"
+        },
+        {
+          "name": "enrollment_branch_rls_hides_other_branch",
+          "result": "PASS"
+        },
+        {
+          "name": "teacher_db_access_denied_other_tenant",
+          "result": "PASS"
+        },
+        {
+          "name": "teacher_roster_denied_other_tenant",
+          "result": "PASS",
+          "detail": "42501"
+        },
+        {
+          "name": "teacher_direct_write_denied_other_tenant",
+          "result": "PASS",
+          "detail": "42501"
+        },
+        {
+          "name": "attendance_state_rls_hides_other_tenant",
+          "result": "PASS"
+        },
+        {
+          "name": "enrollment_branch_rls_hides_other_tenant",
+          "result": "PASS"
+        },
+        {
+          "name": "caller_cannot_write_identity_manager_grants",
+          "result": "PASS",
+          "detail": "42501"
+        },
+        {
+          "name": "database_input_error_has_no_success_or_partial_state",
+          "result": "PASS",
+          "detail": "22023"
+        },
+        {
+          "name": "concurrent_teacher_writes_keep_one_state_and_two_events",
+          "result": "PASS"
+        },
+        {
+          "name": "revoked_assignment_denies_same_branch_teacher_without_partial_state",
+          "result": "PASS"
+        }
+      ]
+    },
+    "browserE2e": {
+      "status": "PASS",
+      "results": [
+        {
+          "name": "teacher_signs_in_through_real_supabase_auth",
+          "result": "PASS"
+        },
+        {
+          "name": "teacher_sees_only_assigned_course_and_child",
+          "result": "PASS"
+        },
+        {
+          "name": "attendance_courses_api_returns_assigned_class_only",
+          "result": "PASS"
+        },
+        {
+          "name": "attendance_api_denies_other_branch_course",
+          "result": "PASS",
+          "detail": "403"
+        },
+        {
+          "name": "attendance_api_denies_other_branch_write_without_partial_state",
+          "result": "PASS",
+          "detail": "403"
+        },
+        {
+          "name": "attendance_api_denies_other_tenant_course",
+          "result": "PASS",
+          "detail": "403"
+        },
+        {
+          "name": "attendance_api_denies_other_tenant_write_without_partial_state",
+          "result": "PASS",
+          "detail": "403"
+        },
+        {
+          "name": "teacher_marks_present_and_state_persists_after_reload",
+          "result": "PASS"
+        },
+        {
+          "name": "browser_page_has_no_unhandled_errors",
+          "result": "PASS"
+        },
+        {
+          "name": "revoked_assignment_denies_api_read_and_write",
+          "result": "PASS",
+          "detail": "403"
+        },
+        {
+          "name": "revoked_auth_party_link_denies_following_teacher_request",
+          "result": "PASS"
+        }
+      ]
+    },
+    "credentialsRecorded": false,
+    "completedAt": "2026-11-01T07:47:12.159Z",
+    "_fixtureIds": {
+      "tenantA": "b4058a94-88b3-48c5-97e9-db3ee4981566",
+      "tenantB": "8cffcfd1-4d03-478a-844d-5332e28acc18",
+      "adminA": "9c615d2a-ccd8-472a-9d03-c858d6ca818e",
+      "adminB": "a4a8f7f1-de27-47d0-a7f7-e00a0ae7e278",
+      "teacher": "c4ffb37d-f5a2-4654-91ba-bdc87d357fc7",
+      "branchA": "cae166f2-0ac7-4b08-8976-2f088773c4d5",
+      "branchB": "9ebcb1ed-501d-42ea-a605-6ddb4b0039d4",
+      "branchC": "4385c9a1-c237-443b-9a6b-6fcd71622c3d",
+      "adminDirectoryA": "4e07e26f-29f2-4221-8311-a8e7bc71873e",
+      "adminDirectoryB": "e75821eb-5c70-4379-a26c-e23e360f2214",
+      "teacherDirectory": "f2c4fbc5-ce41-4650-81d6-ba0cfeaf8dcf",
+      "teacherParty": "476c0556-0b18-43c5-a0d6-5aced5439c0e",
+      "studentPartyA": "aeed4e16-9af5-4257-9413-4851de9f89fa",
+      "studentPartyB": "df4e4196-7dde-4329-9011-1e364db53209",
+      "studentPartyC": "033e7191-4517-472d-9c67-0b6c64ef1a73",
+      "personA": "e31ea4c1-de28-4a76-b5eb-61211a0f6c02",
+      "personB": "63cb7f43-3f5e-4b99-b61f-ac84763f0442",
+      "personC": "d75e6492-e7ee-4d1f-a2e8-89b53d67ed3d",
+      "studentA": "f1a77029-ad38-44ac-87a6-528cb4ab5dd0",
+      "studentB": "f5589359-23cf-422c-9d4b-62bc2bbbc106",
+      "studentC": "ee8566c0-b76f-4f3f-bbbb-3e6cfc1aba9e",
+      "courseA": "936ab84c-5ac4-49ad-8b54-dcc4ad16ac90",
+      "courseB": "bfaa02dd-ea10-4a97-a2c5-895373b418dd",
+      "courseC": "34e12c21-a38c-4d20-9815-9893003ecebf",
+      "enrollmentA": "4eca92d3-baed-47ec-b011-a5ed7f0ac84e",
+      "enrollmentB": "c0d3df5e-c614-441c-bc78-43d3e41474d5",
+      "enrollmentC": "1319db0b-5fc3-4677-93cb-eaa25e044543",
+      "requestA": "3bd45060-7fa4-42b8-ac94-374e6b38f7a0",
+      "requestB": "2ae92a57-b88b-4272-ba36-1418b17517ce",
+      "requestC": "27e7e8df-aeca-4a65-8d26-e3cc04a7c0f4",
+      "teacherIdentityLinkId": "6ba86763-3b0b-4596-824e-f0a84a02c4e9",
+      "identityManagerGrant": "a9b4c4f6-7a74-424d-9bfa-df88f5a0e1b4",
+      "teacherConfirmation": "006b7e58-2892-44df-8267-61437e7ac16d",
+      "teacherAssignment": "9e26c254-c631-4882-bd30-ea515df59128"
+    },
+    "_schoolDay": "2026-11-01",
+    "_studentNames": [
+      "Synthetic Child A",
+      "Synthetic Child B",
+      "Synthetic Child C"
+    ],
+    "error": null,
+    "cleanup": "DISPOSABLE_STACK_CLEANED",
+    "appWorktreeCleanup": "TEMP_APP_WORKTREE_REMOVED",
+    "applicationOverlay": {
+      "sourceRevision": "f1299e3138f3700062a1ed84271db315737b0071",
+      "status": "TRACKED_LOCAL_RUNTIME_CHANGES_APPLIED",
+      "files": [
+        {
+          "path": "src/app/api/education/courses/route.ts",
+          "sha256": "6fbf445ac7440a5da947b454b39a8d1ceac714fbd602032be2b54fc2bf7b31ce"
+        },
+        {
+          "path": "src/app/api/education/enrollments/[id]/communications/route.ts",
+          "sha256": "9cb209c0984b286a1ac77f0361b4655a7475e1e84b9058f29d53c89c30afc031"
+        },
+        {
+          "path": "src/app/api/education/enrollments/[id]/development/route.ts",
+          "sha256": "e0d83ede7e900b3eac71aec05fbd92e38e221c4d7738579a0a30975e4bedd11e"
+        },
+        {
+          "path": "src/app/api/education/enrollments/student-360.service.ts",
+          "sha256": "581472f004dea82f4e0455e3a0a65a247d608c624654072fda05424741da5725"
+        },
+        {
+          "path": "src/products/bella-education/analytics/events/preschool-analytics-events.ts",
+          "sha256": "4d9b296bf6a49535fe760031912bac0fd48516c6d1a9f9f3a8aa790da7b14694"
+        },
+        {
+          "path": "src/products/bella-education/care-wellbeing/nutrition/weekly-menu.service.ts",
+          "sha256": "e6cc9c344dfd1dd5e891f4ce163350a161185279b0b14ee9731fbaecb944d7fb"
+        },
+        {
+          "path": "src/products/bella-education/learning-development/curriculum/curriculum.service.ts",
+          "sha256": "17316e58f1d2d5d26517651e87077af4c4d4f592cebaa4a588fcbc107cffb46b"
+        }
+      ]
+    }
+  },
+  "acceptanceCleanup": "DISPOSABLE_STACK_CLEANED",
+  "acceptanceAppWorktreeCleanup": "TEMP_APP_WORKTREE_REMOVED",
+  "acceptanceCompletedAt": "2026-11-01T07:47:31.8045762Z"
+}

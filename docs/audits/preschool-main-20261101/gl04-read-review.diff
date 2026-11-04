@@ -1,0 +1,391 @@
+diff --git a/src/app/api/education/portal/[token]/attendance/__tests__/route.test.ts b/src/app/api/education/portal/[token]/attendance/__tests__/route.test.ts
+index 16831e241..3bad7777e 100644
+--- a/src/app/api/education/portal/[token]/attendance/__tests__/route.test.ts
++++ b/src/app/api/education/portal/[token]/attendance/__tests__/route.test.ts
+@@ -1,5 +1,17 @@
+ /** @jest-environment node */
+ import { GET } from '../route';
++import { ParentPortalAccessError, PreschoolParentPortalService } from '@/products/bella-education/parent-portal/services/preschool-parent-portal.service';
++
++const mockAuthorizePortalToken = jest.fn();
++const mockDataRead = jest.fn();
++const mockQueryError = jest.fn();
++const mockEnrollment = jest.fn();
++const claims = {
++  tenantId: 'ed100000-0000-0000-0000-000000000001',
++  studentPartyId: 'be938bc0-8815-41b8-8609-e2c05ede085d',
++  guardianPartyId: 'ed100000-0002-0000-0000-000000000001',
++  createdAt: Date.now(), exp: Date.now() + 86_400_000,
++};
+ 
+ jest.mock('@/lib/supabase-admin-env', () => ({
+   getSupabaseAdminUrl: () => 'https://mock.supabase.co',
+@@ -7,13 +19,15 @@ jest.mock('@/lib/supabase-admin-env', () => ({
+ }));
+ 
+ jest.mock('@/products/bella-education/parent-portal/services/preschool-parent-portal.service', () => ({
+-  PreschoolParentPortalService: {
++  PreschoolParentPortalService: Object.assign(jest.fn().mockImplementation(() => ({
++    authorizePortalToken: (token: string) => mockAuthorizePortalToken(token),
++  })), {
+     verifyPortalToken: jest.fn().mockReturnValue({
+       tenantId: 'ed100000-0000-0000-0000-000000000001',
+       studentPartyId: 'be938bc0-8815-41b8-8609-e2c05ede085d',
+       guardianPartyId: 'ed100000-0002-0000-0000-000000000001',
+     }),
+-  },
++  }),
+   ParentPortalAccessError: class extends Error {
+     constructor(public status: number, public code: string) {
+       super(code);
+@@ -24,13 +38,14 @@ jest.mock('@/products/bella-education/parent-portal/services/preschool-parent-po
+ jest.mock('@supabase/supabase-js', () => ({
+   createClient: () => ({
+     from: (table: string) => {
++      mockDataRead(table);
+       if (table === 'edu_enrollments') {
+         return {
+           select: () => ({
+             eq: () => ({
+               eq: () => ({
+                 eq: () => ({
+-                  maybeSingle: () => Promise.resolve({ data: { id: 'enr-001' }, error: null }),
++                  maybeSingle: () => Promise.resolve({ data: mockEnrollment(), error: mockQueryError(table) }),
+                 }),
+               }),
+             }),
+@@ -47,7 +62,7 @@ jest.mock('@supabase/supabase-js', () => ({
+                     data: [
+                       { id: 'att-1', school_day: '2026-10-31', status: 'present', updated_at: null },
+                     ],
+-                    error: null,
++                    error: mockQueryError(table),
+                   }),
+                 }),
+               }),
+@@ -65,7 +80,7 @@ jest.mock('@supabase/supabase-js', () => ({
+                     data: [
+                       { status: 'present', roll_call_time: '2026-10-31T05:00:00Z' },
+                     ],
+-                    error: null,
++                    error: mockQueryError(table),
+                   }),
+                 }),
+               }),
+@@ -81,6 +96,14 @@ jest.mock('@supabase/supabase-js', () => ({
+ }));
+ 
+ describe('GET /api/education/portal/[token]/attendance', () => {
++  beforeEach(() => {
++    mockAuthorizePortalToken.mockReset().mockResolvedValue(claims);
++    mockDataRead.mockClear();
++    mockQueryError.mockReset().mockReturnValue(null);
++    mockEnrollment.mockReset().mockReturnValue({ id: 'enr-001' });
++    jest.mocked(PreschoolParentPortalService.verifyPortalToken).mockReset().mockReturnValue(claims);
++  });
++
+   it('returns attendance history and summary for a verified token', async () => {
+     const request = new Request('http://localhost/api/education/portal/valid-token/attendance');
+     const response = await GET(request, { params: Promise.resolve({ token: 'valid-token' }) });
+@@ -110,5 +133,68 @@ describe('GET /api/education/portal/[token]/attendance', () => {
+     expect(body.data.totalMarked).toBe(1);
+     expect(body.data.presentCount).toBe(1);
+     expect(body.data.attendanceRatePercent).toBe(100);
++    expect(mockAuthorizePortalToken).toHaveBeenCalledWith('valid-token');
++  });
++
++  it.each([
++    { status: 401, code: 'GUARDIAN_NOT_AUTHORIZED' },
++    { status: 503, code: 'PORTAL_ACCESS_UNAVAILABLE' },
++  ] as const)('does not read attendance when authorization returns $code', async ({ status, code }) => {
++    mockAuthorizePortalToken.mockRejectedValue(new ParentPortalAccessError(status, code));
++    const response = await GET(new Request('http://localhost/api/education/portal/valid-token/attendance'), {
++      params: Promise.resolve({ token: 'valid-token' }),
++    });
++    expect(response.status).toBe(status);
++    expect(await response.json()).toEqual({ success: false, error: code });
++    expect(response.headers.get('Cache-Control')).toBe('private, no-store');
++    expect(mockDataRead).not.toHaveBeenCalled();
++  });
++
++  it('waits for current guardian authorization before enrollment or attendance reads', async () => {
++    let release: (value: typeof claims) => void = () => { throw new Error('Authorization not initialized'); };
++    mockAuthorizePortalToken.mockReturnValue(new Promise<typeof claims>(resolve => { release = resolve; }));
++    const responsePromise = GET(new Request('http://localhost/api/education/portal/valid-token/attendance'), {
++      params: Promise.resolve({ token: 'valid-token' }),
++    });
++    try {
++      await new Promise<void>(resolve => setImmediate(resolve));
++      expect(mockAuthorizePortalToken).toHaveBeenCalledWith('valid-token');
++      expect(mockDataRead).not.toHaveBeenCalled();
++    } finally { release(claims); }
++    expect((await responsePromise).status).toBe(200);
++  });
++
++  it('rejects an invalid signature before guardian lookup or private reads', async () => {
++    jest.mocked(PreschoolParentPortalService.verifyPortalToken).mockImplementation(() => {
++      throw new ParentPortalAccessError(401, 'TOKEN_SIGNATURE_MISMATCH');
++    });
++    const response = await GET(new Request('http://localhost/api/education/portal/invalid-token/attendance'), {
++      params: Promise.resolve({ token: 'invalid-token' }),
++    });
++    expect(response.status).toBe(401);
++    expect(mockAuthorizePortalToken).not.toHaveBeenCalled();
++    expect(mockDataRead).not.toHaveBeenCalled();
++  });
++
++  it.each(['edu_enrollments', 'edu_attendance_daily_state', 'edu_attendance'])('returns unavailable when %s fails', async table => {
++    mockQueryError.mockImplementation((resource: string) => resource === table ? { code: 'XX000', message: 'private DB detail' } : null);
++    const response = await GET(new Request('http://localhost/api/education/portal/valid-token/attendance'), {
++      params: Promise.resolve({ token: 'valid-token' }),
++    });
++    expect(response.status).toBe(503);
++    expect(await response.json()).toEqual({ success: false, error: 'PORTAL_ATTENDANCE_UNAVAILABLE' });
++    expect(response.headers.get('Cache-Control')).toBe('private, no-store');
++  });
++
++  it('preserves the empty summary when no active enrollment exists without a query error', async () => {
++    mockEnrollment.mockReturnValue(null);
++    const response = await GET(new Request('http://localhost/api/education/portal/valid-token/attendance'), {
++      params: Promise.resolve({ token: 'valid-token' }),
++    });
++    expect(response.status).toBe(200);
++    expect(await response.json()).toEqual({ success: true, data: {
++      history: [], totalMarked: 0, presentCount: 0, attendanceRatePercent: null,
++    } });
++    expect(mockDataRead.mock.calls).toEqual([['edu_enrollments']]);
+   });
+ });
+diff --git a/src/app/api/education/portal/[token]/attendance/route.ts b/src/app/api/education/portal/[token]/attendance/route.ts
+index b3f708265..804492cc6 100644
+--- a/src/app/api/education/portal/[token]/attendance/route.ts
++++ b/src/app/api/education/portal/[token]/attendance/route.ts
+@@ -83,8 +83,9 @@ export async function GET(
+       );
+     }
+ 
+-    const claims = PreschoolParentPortalService.verifyPortalToken(token);
++    PreschoolParentPortalService.verifyPortalToken(token);
+     const supabase = await getOperationClient();
++    const claims = await new PreschoolParentPortalService(supabase).authorizePortalToken(token);
+ 
+     // 1. Get active enrollment for the student
+     const { data: enrollmentData, error: enrError } = await supabase
+@@ -95,7 +96,8 @@ export async function GET(
+       .eq('status', 'active')
+       .maybeSingle();
+ 
+-    if (enrError || !enrollmentData) {
++    if (enrError) throw new ParentPortalAccessError(503, 'PORTAL_ATTENDANCE_UNAVAILABLE');
++    if (!enrollmentData) {
+       const emptySummary: PortalAttendanceSummary = {
+         history: [],
+         totalMarked: 0,
+@@ -125,6 +127,9 @@ export async function GET(
+         .limit(30),
+     ]);
+ 
++    if (dailyResult.error || rollCallResult.error) {
++      throw new ParentPortalAccessError(503, 'PORTAL_ATTENDANCE_UNAVAILABLE');
++    }
+     const dailyRows = (dailyResult.data ?? []) as unknown as readonly RawAttendanceDailyRow[];
+     const rollCallRows = (rollCallResult.data ?? []) as unknown as readonly RawRollCallRow[];
+ 
+diff --git a/src/app/api/education/portal/[token]/tuition/__tests__/route.test.ts b/src/app/api/education/portal/[token]/tuition/__tests__/route.test.ts
+index 03204856a..2ae295027 100644
+--- a/src/app/api/education/portal/[token]/tuition/__tests__/route.test.ts
++++ b/src/app/api/education/portal/[token]/tuition/__tests__/route.test.ts
+@@ -1,5 +1,15 @@
+ /** @jest-environment node */
+ import { GET } from '../route';
++import { ParentPortalAccessError, PreschoolParentPortalService } from '@/products/bella-education/parent-portal/services/preschool-parent-portal.service';
++
++const mockAuthorizePortalToken = jest.fn();
++const mockDataRead = jest.fn();
++const claims = {
++  tenantId: 'ed100000-0000-0000-0000-000000000001',
++  studentPartyId: 'be938bc0-8815-41b8-8609-e2c05ede085d',
++  guardianPartyId: 'ed100000-0002-0000-0000-000000000001',
++  createdAt: Date.now(), exp: Date.now() + 86_400_000,
++};
+ 
+ jest.mock('@/lib/supabase-admin-env', () => ({
+   getSupabaseAdminUrl: () => 'https://mock.supabase.co',
+@@ -30,13 +40,15 @@ const mockTenant = {
+ };
+ 
+ jest.mock('@/products/bella-education/parent-portal/services/preschool-parent-portal.service', () => ({
+-  PreschoolParentPortalService: {
++  PreschoolParentPortalService: Object.assign(jest.fn().mockImplementation(() => ({
++    authorizePortalToken: (token: string) => mockAuthorizePortalToken(token),
++  })), {
+     verifyPortalToken: jest.fn().mockReturnValue({
+       tenantId: 'ed100000-0000-0000-0000-000000000001',
+       studentPartyId: 'be938bc0-8815-41b8-8609-e2c05ede085d',
+       guardianPartyId: 'ed100000-0002-0000-0000-000000000001',
+     }),
+-  },
++  }),
+   ParentPortalAccessError: class extends Error {
+     constructor(public status: number, public code: string) {
+       super(code);
+@@ -47,6 +59,7 @@ jest.mock('@/products/bella-education/parent-portal/services/preschool-parent-po
+ jest.mock('@supabase/supabase-js', () => ({
+   createClient: () => ({
+     from: (table: string) => {
++      mockDataRead(table);
+       if (table === 'edu_fin_invoices') {
+         return {
+           select: () => ({
+@@ -77,6 +90,12 @@ jest.mock('@supabase/supabase-js', () => ({
+ }));
+ 
+ describe('GET /api/education/portal/[token]/tuition', () => {
++  beforeEach(() => {
++    mockAuthorizePortalToken.mockReset().mockResolvedValue(claims);
++    mockDataRead.mockClear();
++    jest.mocked(PreschoolParentPortalService.verifyPortalToken).mockReset().mockReturnValue(claims);
++  });
++
+   it('returns tuition invoices and summary for a verified token', async () => {
+     const request = new Request('http://localhost/api/education/portal/valid-token/tuition');
+     const response = await GET(request, { params: Promise.resolve({ token: 'valid-token' }) });
+@@ -108,5 +127,46 @@ describe('GET /api/education/portal/[token]/tuition', () => {
+     expect(body.data.invoices[0].settlementStatus).toBe('PAID');
+     expect(body.data.invoices[0].billingPeriodName).toBe('Học phí & Tiền ăn Tháng 10/2026');
+     expect(body.data.totalOutstanding).toBe(0);
++    expect(mockAuthorizePortalToken).toHaveBeenCalledWith('valid-token');
++  });
++
++  it.each([
++    { status: 401, code: 'GUARDIAN_NOT_AUTHORIZED' },
++    { status: 503, code: 'PORTAL_ACCESS_UNAVAILABLE' },
++  ] as const)('does not read invoices or banking metadata when authorization returns $code', async ({ status, code }) => {
++    mockAuthorizePortalToken.mockRejectedValue(new ParentPortalAccessError(status, code));
++    const response = await GET(new Request('http://localhost/api/education/portal/valid-token/tuition'), {
++      params: Promise.resolve({ token: 'valid-token' }),
++    });
++    expect(response.status).toBe(status);
++    expect(await response.json()).toEqual({ success: false, error: code });
++    expect(response.headers.get('Cache-Control')).toBe('private, no-store');
++    expect(mockDataRead).not.toHaveBeenCalled();
++  });
++
++  it('waits for current guardian authorization before invoice or tenant reads', async () => {
++    let release: (value: typeof claims) => void = () => { throw new Error('Authorization not initialized'); };
++    mockAuthorizePortalToken.mockReturnValue(new Promise<typeof claims>(resolve => { release = resolve; }));
++    const responsePromise = GET(new Request('http://localhost/api/education/portal/valid-token/tuition'), {
++      params: Promise.resolve({ token: 'valid-token' }),
++    });
++    try {
++      await new Promise<void>(resolve => setImmediate(resolve));
++      expect(mockAuthorizePortalToken).toHaveBeenCalledWith('valid-token');
++      expect(mockDataRead).not.toHaveBeenCalled();
++    } finally { release(claims); }
++    expect((await responsePromise).status).toBe(200);
++  });
++
++  it('rejects an invalid signature before guardian lookup or private reads', async () => {
++    jest.mocked(PreschoolParentPortalService.verifyPortalToken).mockImplementation(() => {
++      throw new ParentPortalAccessError(401, 'TOKEN_SIGNATURE_MISMATCH');
++    });
++    const response = await GET(new Request('http://localhost/api/education/portal/invalid-token/tuition'), {
++      params: Promise.resolve({ token: 'invalid-token' }),
++    });
++    expect(response.status).toBe(401);
++    expect(mockAuthorizePortalToken).not.toHaveBeenCalled();
++    expect(mockDataRead).not.toHaveBeenCalled();
+   });
+ });
+diff --git a/src/app/api/education/portal/[token]/tuition/route.ts b/src/app/api/education/portal/[token]/tuition/route.ts
+index 246ab278a..96c2a6263 100644
+--- a/src/app/api/education/portal/[token]/tuition/route.ts
++++ b/src/app/api/education/portal/[token]/tuition/route.ts
+@@ -74,8 +74,9 @@ export async function GET(
+       );
+     }
+ 
+-    const claims = PreschoolParentPortalService.verifyPortalToken(token);
++    PreschoolParentPortalService.verifyPortalToken(token);
+     const supabase = await getOperationClient();
++    const claims = await new PreschoolParentPortalService(supabase).authorizePortalToken(token);
+ 
+     // Query real invoices for this student
+     const [invoicesResult, tenantResult] = await Promise.all([
+diff --git a/src/app/portal/education/[token]/__tests__/page.test.tsx b/src/app/portal/education/[token]/__tests__/page.test.tsx
+index 566cd5275..8936d2d21 100644
+--- a/src/app/portal/education/[token]/__tests__/page.test.tsx
++++ b/src/app/portal/education/[token]/__tests__/page.test.tsx
+@@ -1,14 +1,15 @@
+ /** @jest-environment jsdom */
+ import '@testing-library/jest-dom';
+-import { cleanup, render, screen, fireEvent } from '@testing-library/react';
++import { act, cleanup, render, screen, fireEvent, waitFor } from '@testing-library/react';
+ import PortalPage from '../page';
+ 
+-jest.mock('react', () => ({ ...jest.requireActual('react'), use: () => ({ token: 'synthetic-token' }) }));
++let mockToken = 'synthetic-token';
++jest.mock('react', () => ({ ...jest.requireActual('react'), use: () => ({ token: mockToken }) }));
+ const originalFetch = globalThis.fetch;
+ const daily = { scope: 'daily_read_v1', tenantId: '00000000-0000-4000-8000-000000000001', courseId: '00000000-0000-4000-8000-000000000002', studentPartyId: '00000000-0000-4000-8000-000000000003', guardianPartyId: '00000000-0000-4000-8000-000000000004', schoolName: 'Synthetic School', guardianName: 'Synthetic Guardian', childName: 'Synthetic Child', courseTitle: 'Synthetic Class', courseCode: 'SYN', schoolDay: '2026-10-23', attendanceStatus: 'unmarked', attendanceUpdatedAt: null, totalClassSize: 2, presentTodayCount: 1, announcements: [{ id: '00000000-0000-4000-8000-000000000005', title: 'Synthetic school notice', bodyText: 'Read-only common notice', publishedAt: '2026-10-23T01:00:00Z' }], serverTime: '2026-10-23T01:00:00Z' };
+ const legacy = { tenantId: '00000000-0000-4000-8000-000000000001', schoolName: 'Synthetic School', guardianName: 'Synthetic Guardian', child: { studentPartyId: '00000000-0000-4000-8000-000000000003', studentCode: 'SYN', childName: 'Synthetic Child' }, classroom: { courseId: '00000000-0000-4000-8000-000000000002', courseCode: 'SYN', courseTitle: 'Synthetic Class', totalClassSize: 1, presentTodayCount: 1, attendanceRatePercent: 100 }, todayAttendance: { status: 'present' }, dailyCare: null, handover: { handedOver: false, handedOverAt: null, handedOverBy: null, guardianPartyId: null }, weeklyMenu: null, dailyTimetable: [], tuition: null, chatMessages: [], serverTime: '2026-10-23T01:00:00Z', announcements: daily.announcements };
+ const reply = (data: unknown, ok = true) => ({ ok, json: async () => data } as Response);
+-afterEach(() => { cleanup(); globalThis.fetch = originalFetch; });
++afterEach(() => { cleanup(); globalThis.fetch = originalFetch; mockToken = 'synthetic-token'; });
+ 
+ it('renders real daily fields and the tenant-wide bulletin without chat/Copilot/payment actions', async () => {
+   globalThis.fetch = jest.fn().mockResolvedValue(reply({ success: true, data: daily }));
+@@ -42,3 +43,53 @@ it('rejects malformed scoped payload rather than falling through to legacy UI',
+   await screen.findByRole('heading', { name: 'Liên kết không hợp lệ hoặc đã hết hạn' });
+   expect(screen.queryByRole('heading', { name: 'Synthetic Child' })).not.toBeInTheDocument();
+ });
++
++it('reloads child attendance and the bulletin from the current no-store response', async () => {
++  let rootReads = 0;
++  const updated = { ...daily, attendanceStatus: 'absent', announcements: [
++    { ...daily.announcements[0], title: 'Updated school notice' },
++  ] };
++  const fetchMock = jest.fn().mockImplementation((url: string, options?: RequestInit) => {
++    expect(options?.cache).toBe('no-store');
++    return Promise.resolve(reply(url.endsWith('/synthetic-token')
++      ? { success: true, data: ++rootReads === 1 ? daily : updated }
++      : { success: false }, url.endsWith('/synthetic-token')));
++  });
++  globalThis.fetch = fetchMock;
++  render(<PortalPage params={Promise.resolve({ token: mockToken })} />);
++  await screen.findByRole('heading', { name: 'Synthetic Child' });
++  fireEvent.click(screen.getByRole('button', { name: 'Tải lại thông tin' }));
++  await screen.findByText('Updated school notice');
++  expect(screen.queryByText('Synthetic school notice')).not.toBeInTheDocument();
++  expect(screen.queryByText('Chưa điểm danh')).not.toBeInTheDocument();
++  expect(rootReads).toBe(2);
++});
++
++it('does not replace the current child or bulletin with a late response for a previous token', async () => {
++  let releaseOld: (response: Response) => void = () => { throw new Error('Old request not started'); };
++  const oldResponse = new Promise<Response>(resolve => { releaseOld = resolve; });
++  const newDaily = { ...daily, childName: 'Current Child', announcements: [] };
++  const fetchMock = jest.fn().mockImplementation((url: string) => url.endsWith('/synthetic-token')
++    ? oldResponse
++    : Promise.resolve(reply(url.endsWith('/current-token')
++      ? { success: true, data: newDaily } : { success: false }, url.endsWith('/current-token'))));
++  globalThis.fetch = fetchMock;
++  const view = render(<PortalPage params={Promise.resolve({ token: mockToken })} />);
++  await waitFor(() => expect(fetchMock).toHaveBeenCalledWith('/api/education/portal/synthetic-token', { cache: 'no-store' }));
++  mockToken = 'current-token';
++  view.rerender(<PortalPage params={Promise.resolve({ token: mockToken })} />);
++  await screen.findByRole('heading', { name: 'Current Child' });
++  await act(async () => { releaseOld(reply({ success: true, data: daily })); });
++  expect(screen.getByRole('heading', { name: 'Current Child' })).toBeInTheDocument();
++  expect(screen.queryByRole('heading', { name: 'Synthetic Child' })).not.toBeInTheDocument();
++  expect(screen.queryByText('Synthetic school notice')).not.toBeInTheDocument();
++});
++
++it('renders handover supplied by the existing legacy payload without inventing pickup authority', async () => {
++  globalThis.fetch = jest.fn().mockResolvedValue(reply({ success: true, data: {
++    ...legacy, handover: { handedOver: true, handedOverAt: '15:30', handedOverBy: 'Synthetic Pickup', guardianPartyId: daily.guardianPartyId },
++  } }));
++  render(<PortalPage params={Promise.resolve({ token: mockToken })} />);
++  expect(await screen.findByText('Người đón: Synthetic Pickup')).toBeInTheDocument();
++  expect(screen.getByText(/Đã đón.*15:30/)).toBeInTheDocument();
++});

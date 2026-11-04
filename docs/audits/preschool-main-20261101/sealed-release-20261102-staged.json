@@ -1,0 +1,24 @@
+{
+  "at": "2026-11-02T00:23:27.5760170Z",
+  "id": "dpl_FvHBz3BBp7wcdNtXEyFAgdYLGZyP",
+  "url": "bella-spa-k4m8qgeiy-bella-spa-s-projects.vercel.app",
+  "project": "prj_Rgncynqz8ptznREGggMxPfjwoikW",
+  "target": "production",
+  "state": "INITIALIZING",
+  "sha": "7346840706ee71b14f9bcf956d1e0d53c6bbf782",
+  "gitSource": {
+    "type": "github",
+    "repoId": 1235614110,
+    "ref": "main",
+    "sha": "7346840706ee71b14f9bcf956d1e0d53c6bbf782"
+  },
+  "aliases": [
+    "bella-spa-erp-bella-spa-s-projects.vercel.app",
+    "bella-spa-erp-git-main-bella-spa-s-projects.vercel.app"
+  ],
+  "autoAssignCustomDomains": false,
+  "mainTree": "04df4164288f0123eafd9478fe8c67e1afe8de8b",
+  "testedTree": "04df4164288f0123eafd9478fe8c67e1afe8de8b",
+  "requestedAutoAssign": false,
+  "productionBefore": "dpl_DstNQvShsVvhXgWrsM283n6pJQVN"
+}

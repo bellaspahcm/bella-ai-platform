@@ -1,0 +1,58 @@
+FAIL src/app/dashboard/education/care/__tests__/page.test.tsx
+  ● Console
+
+    console.log
+      ◇ injected env (0) from .env.local // tip: ⌘ override existing { override: true }
+
+      at _log (../../../Antigravity/Projects/BELLA SPA ERP/node_modules/dotenv/lib/main.js:131:11)
+
+    console.log
+      [Jest Setup] SUPABASE_SERVICE_ROLE_KEY loaded: true
+
+      at Object.<anonymous> (jest.setup.ts:30:9)
+
+  ● care quick save from a canonical child context sends only that Party ID and reloads the roster
+
+    expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 0
+    + Received  + 1
+
+      Array [
+        "82c3aa22-9edc-47fa-9ba3-e10af2ba61ef",
+    +   "a2d11af9-dd44-4e11-9a14-c2abcf7d80a8",
+      ]
+
+
+
+      at Object.<anonymous> (src/app/dashboard/education/care/__tests__/page.test.tsx:485:68)
+
+  ● navigating to another child clears the previous bulk selection and draft before saving
+
+    expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 0
+    + Received  + 4
+
+      Array [
+        Object {
+          "note": "",
+          "studentPartyId": "82c3aa22-9edc-47fa-9ba3-e10af2ba61ef",
+        },
+    +   Object {
+    +     "note": "",
+    +     "studentPartyId": "a2d11af9-dd44-4e11-9a14-c2abcf7d80a8",
+    +   },
+      ]
+
+
+
+      at Object.<anonymous> (src/app/dashboard/education/care/__tests__/page.test.tsx:580:14)
+
+
+Test Suites: 1 failed, 2 passed, 3 total
+Tests:       2 failed, 109 passed, 111 total
+Snapshots:   0 total
+Time:        7.524 s
+Ran all test suites within paths "src/app/dashboard/education/care/__tests__/page.test.tsx", "src/app/dashboard/education/care/__tests__/care-save.test.ts", "src/app/api/education/care/bulk/__tests__/access.test.ts".
+Test results written to: docs\audits\preschool-main-20261101\go-live-care-context-after.json

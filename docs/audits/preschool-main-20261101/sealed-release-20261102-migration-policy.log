@@ -1,0 +1,5 @@
+
+> bella-spa-erp@0.1.0 db:migration:zero-downtime
+> node scripts/check-zero-downtime-migrations.cjs --base HEAD
+
+No changed Supabase migrations require zero-downtime review.

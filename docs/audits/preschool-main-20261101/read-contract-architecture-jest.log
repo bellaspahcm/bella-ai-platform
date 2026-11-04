@@ -1,0 +1,123 @@
+  console.log
+    ◇ injected env (0) from .env.local // tip: ⌘ multiple files { path: ['.env.local', '.env'] }
+
+      at _log (../../../Antigravity/Projects/BELLA SPA ERP/node_modules/dotenv/lib/main.js:131:11)
+
+  console.log
+    [Jest Setup] SUPABASE_SERVICE_ROLE_KEY loaded: true
+
+      at Object.<anonymous> (jest.setup.ts:30:9)
+
+FAIL src/products/bella-education/__tests__/bella-education-architecture.test.ts
+  ● Bella Education V1 — Static Architecture Guard › Law 3: exact resource access stays within bounded debt and approved contract paths
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: "ALLOW"
+    Received: "BLOCK"
+
+      143 |         }
+      144 |       });
+    > 145 |     });
+          |        ^
+      146 |
+      147 |     expect(violations).toEqual([]);
+      148 |   });
+
+      at Object.<anonymous> (src/products/bella-education/__tests__/bella-education-architecture.test.ts:145:57)
+
+  ● Bella Education V1 — Static Architecture Guard › Law 3: legacy database matches stay within reviewed debt after exact contract dispositions
+
+    expect(received).toEqual(expected) // deep equality
+
+    - Expected  -  1
+    + Received  + 70
+
+    - Array []
+    + Array [
+    +   "../../app/api/education/announcements/route.ts:L55 - Direct RPC database execution is prohibited in the Product layer.",
+    +   "../../app/api/education/announcements/route.ts:L83 - Direct RPC database execution is prohibited in the Product layer.",
+    +   "../../app/api/education/attendance/handover/route.ts:L89 - Direct RPC database execution is prohibited in the Product layer.",
+    +   "../../app/api/education/care/bulk/route.ts:L127 - Direct database query targeting '.from('edu_' is prohibited in the Product layer.",
+    +   "../../app/api/education/care/digest/route.ts:L83 - Direct database query targeting '.from('edu_' is prohibited in the Product layer.",
+    +   "../../app/api/education/care/digest/route.ts:L146 - Direct database query targeting '.from('edu_' is prohibited in the Product layer.",
+    +   "../../app/api/education/communication/messages/route.ts:L72 - Direct database query targeting '.from('edu_' is prohibited in the Product layer.",
+    +   "../../app/api/education/communication/messages/route.ts:L109 - Direct database query targeting '.from('edu_' is prohibited in the Product layer.",
+    +   "../../app/api/education/communication/threads/route.ts:L41 - Direct database query targeting '.from('edu_' is prohibited in the Product layer.",
+    +   "../../app/api/education/communication/threads/route.ts:L55 - Direct database query targeting '.from('edu_' is prohibited in the Product layer.",
+    +   "../../app/api/education/communication/threads/route.ts:L60 - Direct database query targeting '.from('edu_' is prohibited in the Product layer.",
+    +   "../../app/api/education/courses/route.ts:L206 - Direct database query targeting '.from('edu_' is prohibited in the Product layer.",
+    +   "../../app/api/education/courses/route.ts:L366 - Direct database query targeting '.from('edu_' is prohibited in the Product layer.",
+    +   "../../app/api/education/courses/[id]/route.ts:L82 - Direct database query targeting '.from('edu_' is prohibited in the Product layer.",
+    +   "../../app/api/education/courses/[id]/route.ts:L97 - Direct database query targeting '.from('students' is prohibited in the Product layer.",
+    +   "../../app/api/education/enrollments/admission-course-reader.ts:L10 - Direct database query targeting '.from('edu_' is prohibited in the Product layer.",
+    +   "../../app/api/education/enrollments/confirm-admission/route.ts:L76 - Direct database query targeting '.from('edu_' is prohibited in the Product layer.",
+    +   "../../app/api/education/enrollments/confirm-admission/route.ts:L102 - Direct database query targeting '.from('students' is prohibited in the Product layer.",
+    +   "../../app/api/education/enrollments/confirm-admission/route.ts:L114 - Direct database query targeting '.from('edu_' is prohibited in the Product layer.",
+    +   "../../app/api/education/enrollments/confirm-admission/route.ts:L129 - Direct database query targeting '.from('edu_' is prohibited in the Product layer.",
+    +   "../../app/api/education/enrollments/confirm-admission/route.ts:L149 - Direct database query targeting '.from('edu_' is prohibited in the Product layer.",
+    +   "../../app/api/education/enrollments/confirm-admission/route.ts:L160 - Direct database query targeting '.from('edu_' is prohibited in the Product layer.",
+    +   "../../app/api/education/enrollments/confirm-admission/route.ts:L187 - Direct database query targeting '.from('edu_' is prohibited in the Product layer.",
+    +   "../../app/api/education/enrollments/confirm-admission/route.ts:L212 - Direct database query targeting '.from('edu_' is prohibited in the Product layer.",
+    +   "../../app/api/education/enrollments/confirm-admission/route.ts:L244 - Direct database query targeting '.from('edu_' is prohibited in the Product layer.",
+    +   "../../app/api/education/enrollments/confirm-admission/route.ts:L266 - Direct database query targeting '.from('edu_' is prohibited in the Product layer.",
+    +   "../../app/api/education/enrollments/confirm-admission/route.ts:L280 - Direct database query targeting '.from('edu_' is prohibited in the Product layer.",
+    +   "../../app/api/education/enrollments/confirm-admission/route.ts:L288 - Direct database query targeting '.from('edu_' is prohibited in the Product layer.",
+    +   "../../app/api/education/enrollments/route.ts:L222 - Direct database query targeting '.from('edu_' is prohibited in the Product layer.",
+    +   "../../app/api/education/enrollments/route.ts:L254 - Direct database query targeting '.from('students' is prohibited in the Product layer.",
+    +   "../../app/api/education/enrollments/route.ts:L260 - Direct database query targeting '.from('edu_' is prohibited in the Product layer.",
+    +   "../../app/api/education/enrollments/[id]/communications/route.ts:L90 - Direct database query targeting '.from('edu_' is prohibited in the Product layer.",
+    +   "../../app/api/education/enrollments/[id]/communications/route.ts:L97 - Direct database query targeting '.from('edu_' is prohibited in the Product layer.",
+    +   "../../app/api/education/enrollments/[id]/development/route.ts:L97 - Direct database query targeting '.from('students' is prohibited in the Product layer.",
+    +   "../../app/api/education/enrollments/[id]/development/route.ts:L105 - Direct database query targeting '.from('edu_' is prohibited in the Product layer.",
+    +   "../../app/api/education/enrollments/[id]/development/route.ts:L117 - Direct database query targeting '.from('edu_' is prohibited in the Product layer.",
+    +   "../../app/api/education/enrollments/[id]/development/route.ts:L124 - Direct database query targeting '.from('edu_' is prohibited in the Product layer.",
+    +   "../../app/api/education/enrollments/[id]/finance-summary/route.ts:L86 - Direct database query targeting '.from('students' is prohibited in the Product layer.",
+    +   "../../app/api/education/enrollments/[id]/finance-summary/route.ts:L96 - Direct database query targeting '.from('edu_' is prohibited in the Product layer.",
+    +   "../../app/api/education/enrollments/[id]/health/route.ts:L82 - Direct database query targeting '.from('edu_' is prohibited in the Product layer.",
+    +   "../../app/api/education/enrollments/[id]/health/route.ts:L88 - Direct database query targeting '.from('edu_' is prohibited in the Product layer.",
+    +   "../../app/api/education/enrollments/[id]/health/route.ts:L94 - Direct database query targeting '.from('edu_' is prohibited in the Product layer.",
+    +   "../../app/api/education/enrollments/[id]/route.ts:L137 - Direct RPC database execution is prohibited in the Product layer.",
+    +   "../../app/api/education/grades/route.ts:L101 - Direct database query targeting '.from('edu_' is prohibited in the Product layer.",
+    +   "../../app/api/education/grades/route.ts:L141 - Direct database query targeting '.from('edu_' is prohibited in the Product layer.",
+    +   "../../app/api/education/grades/route.ts:L160 - Direct database query targeting '.from('edu_' is prohibited in the Product layer.",
+    +   "../../app/api/education/grades/route.ts:L419 - Direct database query targeting '.from('edu_' is prohibited in the Product layer.",
+    +   "../../app/api/education/grades/route.ts:L432 - Direct database query targeting '.from('edu_' is prohibited in the Product layer.",
+    +   "../../app/api/education/portal/token/route.ts:L44 - Direct RPC database execution is prohibited in the Product layer.",
+    +   "../../app/api/education/portal/[token]/attendance/route.ts:L91 - Direct database query targeting '.from('edu_' is prohibited in the Product layer.",
+    +   "../../app/api/education/portal/[token]/attendance/route.ts:L113 - Direct database query targeting '.from('edu_' is prohibited in the Product layer.",
+    +   "../../app/api/education/portal/[token]/attendance/route.ts:L120 - Direct database query targeting '.from('edu_' is prohibited in the Product layer.",
+    +   "../../app/api/education/portal/[token]/care/route.ts:L295 - Direct database query targeting '.from('edu_' is prohibited in the Product layer.",
+    +   "../../app/api/education/portal/[token]/care/route.ts:L304 - Direct database query targeting '.from('edu_' is prohibited in the Product layer.",
+    +   "../../app/api/education/portal/[token]/care/route.ts:L336 - Direct database query targeting '.from('edu_' is prohibited in the Product layer.",
+    +   "../../app/api/education/portal/[token]/route.ts:L54 - Direct RPC database execution is prohibited in the Product layer.",
+    +   "../../app/api/education/portal/[token]/route.ts:L59 - Direct RPC database execution is prohibited in the Product layer.",
+    +   "../../app/api/education/portal/[token]/route.ts:L87 - Direct RPC database execution is prohibited in the Product layer.",
+    +   "../../app/api/education/portal/[token]/tuition/route.ts:L83 - Direct database query targeting '.from('edu_' is prohibited in the Product layer.",
+    +   "../../app/api/education/teachers/teacher-360.service.ts:L95 - Direct RPC database execution is prohibited in the Product layer.",
+    +   "../../app/api/education/teachers/teacher-360.service.ts:L118 - Direct RPC database execution is prohibited in the Product layer.",
+    +   "../../app/api/education/work-queue/identity.persistence.ts:L10 - Direct database query targeting '.from('students' is prohibited in the Product layer.",
+    +   "../../app/dashboard/education/scheduling/page.tsx:L133 - Direct database query targeting '.from('edu_' is prohibited in the Product layer.",
+    +   "../../app/dashboard/education/scheduling/page.tsx:L141 - Direct database query targeting '.from('edu_' is prohibited in the Product layer.",
+    +   "../../app/dashboard/education/scheduling/page.tsx:L168 - Direct database query targeting '.from('edu_' is prohibited in the Product layer.",
+    +   "../../app/dashboard/education/scheduling/page.tsx:L173 - Direct database query targeting '.from('edu_' is prohibited in the Product layer.",
+    +   "../../app/dashboard/education/scheduling/page.tsx:L178 - Direct database query targeting '.from('edu_' is prohibited in the Product layer.",
+    +   "../../app/dashboard/education/scheduling/page.tsx:L183 - Direct database query targeting '.from('edu_' is prohibited in the Product layer.",
+    + ]
+
+      161 |         const crossVerticalPattern = /import\s+.*\s+from\s+['"].*products\/(bella-medical|bella-dental|bella-land)\b/;
+      162 |         if (crossVerticalPattern.test(line)) {
+    > 163 |           violations.push(
+          |                           ^
+      164 |             `${path.relative(BELLA_EDUCATION_ROOT, file)}:L${index + 1} - Cross-vertical import of other product layers is prohibited.`
+      165 |           );
+      166 |         }
+
+      at Object.<anonymous> (src/products/bella-education/__tests__/bella-education-architecture.test.ts:163:38)
+
+Test Suites: 1 failed, 1 total
+Tests:       2 failed, 8 passed, 10 total
+Snapshots:   0 total
+Time:        3.885 s
+Ran all test suites within paths "src/products/bella-education/__tests__/bella-education-architecture.test.ts".
+Test results written to: docs\audits\preschool-main-20261101\read-contract-architecture-jest.json

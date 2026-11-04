@@ -1,0 +1,5 @@
+{
+  "command": "node scripts/ci-run-education-architecture.mjs",
+  "exitCode": 1,
+  "capturedAt": "2026-11-01T04:34:47.6992191Z"
+}

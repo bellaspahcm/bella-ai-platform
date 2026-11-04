@@ -1,0 +1,8 @@
+{
+  "scope": "Architecture Jest file and imported dependencies; not whole Education",
+  "roots": [
+    "src/products/bella-education/__tests__/bella-education-architecture.test.ts"
+  ],
+  "diagnostics": 0,
+  "exitCode": 0
+}

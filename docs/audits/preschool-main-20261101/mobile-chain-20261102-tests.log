@@ -1,0 +1,13 @@
+✔ Core and Expo namespace imports resolve to the public API bridge (4.2014ms)
+✔ bridge imports the real package without a resolution cycle (2.1368ms)
+✔ unrelated and similarly named consumers keep default resolution (2.5698ms)
+✔ other package imports and any existing custom resolver are preserved (3.844ms)
+✔ compiled bridge exposes unchanged public parse/stringify functions (374.16ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 848.2889

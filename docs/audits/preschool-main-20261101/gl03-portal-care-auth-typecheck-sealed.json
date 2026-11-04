@@ -1,0 +1,10 @@
+{
+  "scope": "GL03 changed API/tests only",
+  "files": [
+    "src/app/api/education/portal/[token]/care/route.ts",
+    "src/app/api/education/portal/[token]/care/__tests__/route.test.ts",
+    "src/products/bella-education/__tests__/preschool-parent-portal.service.test.ts"
+  ],
+  "diagnostics": [],
+  "otherDiagnostics": 0
+}

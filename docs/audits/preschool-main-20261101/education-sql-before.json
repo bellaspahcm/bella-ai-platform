@@ -1,0 +1,19 @@
+{
+  "sourceBase": "f1299e3138f3700062a1ed84271db315737b0071",
+  "sourceFiles": [
+    {
+      "file": "src/app/api/education/courses/route.ts",
+      "sha256": "108c15627d6527eeac3ad238ad5ad28d1ed33e2a0c19aa0c664bfcc6befd355b"
+    },
+    {
+      "file": "src/app/api/education/courses/__tests__/route.test.ts",
+      "sha256": "92012b6ca8fee7e3f4571310be250c473ff4a42f86ba798fe4c6f40fdc4bc0ae"
+    }
+  ],
+  "tests": {
+    "suitesPassed": 1,
+    "testsPassed": 26,
+    "testsFailed": 0
+  },
+  "description": "Three inactive-course response fixtures pass on the existing route while verifying the old enrollment reads have an empty id scope. Authenticated active/pending Registry and denied roles also pass."
+}

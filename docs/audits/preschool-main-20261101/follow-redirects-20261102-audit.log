@@ -1,0 +1,7 @@
+
+> bella-spa-erp@0.1.0 security:audit
+> node scripts/audit-production.mjs
+
+Allowed production audit advisories:
+- xlsx (high): GHSA-4r6h-8v6p-xvw6, GHSA-5pgg-2g8v-p4x9
+Production dependency audit passed: no unallowlisted high/critical advisories.

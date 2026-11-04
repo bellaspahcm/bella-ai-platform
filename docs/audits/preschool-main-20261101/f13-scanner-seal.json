@@ -1,0 +1,133 @@
+{
+  "capturedAt": "2026-11-01T03:51:40.377Z",
+  "sourceBase": "f1299e3138f3700062a1ed84271db315737b0071",
+  "baselineGitBlob": "1c451ddcad23ece97ff4117cece4b872635ac0b7",
+  "baselineWorkingSha256": "cf480356bf1fb9c062f4d6690cf52bea855e59abc886cb42dc7e80cd67209d8d",
+  "baselineOccurrences": 265,
+  "exceptionsAdded": 0,
+  "F10_F12SourcesUnchanged": 10,
+  "F10_F12EvidenceUnchanged": true,
+  "historicalArtifactsUnchanged": 39,
+  "nonControlSourceUnchanged": true,
+  "wipUnchanged": true,
+  "diffCheck": "PASS",
+  "scope": "F13 control-only",
+  "regression": {
+    "scannerTestsPassed": 16,
+    "architectureTestsPassed": 8,
+    "architectureTestsFailed": 2,
+    "focusedTypecheck": "PASS",
+    "actualCiExit": 1
+  },
+  "status": "BLOCK — NOT MERGE-READY",
+  "committed": false,
+  "branch": "codex/preschool-main-technical-20261101",
+  "sourceFiles": [
+    {
+      "file": "scripts/ci-run-education-architecture.mjs",
+      "sha256": "9c38aa51c6d327414638b0d3894642c76d4a9111e571cad18f44b22b2fa53f7b"
+    },
+    {
+      "file": "scripts/test-ci-education-architecture.mjs",
+      "sha256": "c3e8c4a1f8e28310ca41acfeec2eb9676281512561889715f841ff07355c9212"
+    },
+    {
+      "file": "src/products/bella-education/__tests__/bella-education-architecture.test.ts",
+      "sha256": "1e88eb5a5825c91c2b55ea65ddb327fa2f500f32449b0c9202b7bbf87682a02f"
+    }
+  ],
+  "artifacts": [
+    {
+      "file": "F13_SCANNER_CLOSEOUT.md",
+      "sha256": "c1b5789ea962ffda1309160f43eb44ac64d6a8a5948e6f5e8cee5f7ff9535c71"
+    },
+    {
+      "file": "F13_RESOURCE_REVIEW.md",
+      "sha256": "45f6a6601a9320e4a2e78092a2ca72895235b6efa7fba4bb1b3ef4d92a3e26e8"
+    },
+    {
+      "file": "F13_CALLERS.md",
+      "sha256": "d5a3c465fd80b84745f6f18731afa7d1cccd84a75d150c27cebc4109dc0aa1f6"
+    },
+    {
+      "file": "f13-enforcement-review.json",
+      "sha256": "2c7bea2332cb69060ac30a8e677b11febc18db7b44cceb401d33c89cd2c1013e"
+    },
+    {
+      "file": "f13-resource-edge-findings.json",
+      "sha256": "bf8ba6846e6cf99a7181cce8869a312e23fd2facfd7fd1b5d28e9ea47cdc3974"
+    },
+    {
+      "file": "f13-resource-v2-edge-findings.json",
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
+    },
+    {
+      "file": "f13-resource-v2-edge-resolution.json",
+      "sha256": "ecc935cbc2427d87d5ea63ca88fac8c465a65050550634b915372ee325fbe66a"
+    },
+    {
+      "file": "verify-f13-resource-v2-scopes.mjs",
+      "sha256": "bf9844f9f8334f7064221539eb3b5c50cad73ae9d812d386c9a48223b7d9359c"
+    },
+    {
+      "file": "f13-resource-v2-main.json",
+      "sha256": "a7f3fc984d50cfc6aabd4d13eef84037cb73ce7ee6ba3d65ecbacca3924c035a"
+    },
+    {
+      "file": "f13-resource-v2-technical.json",
+      "sha256": "1de22c67c0f14d077a6e6927b49ef446294799da63979ef520049e94ccc0da0e"
+    },
+    {
+      "file": "f13-resource-v2-wip.json",
+      "sha256": "ff9caa79afe18c7654a25766221121c6811290b77c58a360d2f97e882df39cf9"
+    },
+    {
+      "file": "f13-resource-v2-scopes.json",
+      "sha256": "1e1083f1d2dc078aeb375232e022dbac11fbdcd470a782288048a3fb39ff3c16"
+    },
+    {
+      "file": "f13-resource-v2-scopes.log",
+      "sha256": "abaf88f2922fc31bf14fcbea28f3313ee0d20a04c271e033dd8ebef4e8391e9c"
+    },
+    {
+      "file": "f13-resource-v2-fixtures.log",
+      "sha256": "56de8b9a603d75d30b24f3304ccf36422ae9c092d39e0be42abb53076074639b"
+    },
+    {
+      "file": "f13-resource-v2-jest.json",
+      "sha256": "ec77a00d923c8cb45157f9f0cb0120d30752a66a67ed46ed09d04b7218f056d7"
+    },
+    {
+      "file": "f13-resource-v2-jest.log",
+      "sha256": "2edeaf5ce43771d0fc5afc3519fa37579a3a993a65f9eb70faa7f9d696d25be1"
+    },
+    {
+      "file": "f13-resource-v2-typecheck.json",
+      "sha256": "f98009fb4e602ac89bae12317e46cfab855e8b871b018971a376e650d65622bd"
+    },
+    {
+      "file": "f13-resource-v2-typecheck.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "file": "f13-resource-v2-ci-result.json",
+      "sha256": "10f04c1591b54cf0303369cef3f85b5fa804f9d1060815cbcab6c3beda309f0c"
+    },
+    {
+      "file": "f13-resource-v2-ci.log",
+      "sha256": "9277417c1607947c9e696cb11bea9bfaa93652d41baffcce5cffd57f65ec7de6"
+    },
+    {
+      "file": "f13-resource-v2-preservation.json",
+      "sha256": "fab052329b9a4481ae22080cf321a0eb71fd78b2e2bd94a6ed1585c4c59cb7e0"
+    },
+    {
+      "file": "f13-scanner-changes.patch",
+      "sha256": "1bd4760181dbbca33a6885c7532395a096e2abb987c04c867245843b0b560d52"
+    }
+  ],
+  "RealAuthRls": "NOT_PROVEN",
+  "Browser": "NOT_PROVEN",
+  "Production": "NOT_PROVEN",
+  "PreschoolGoLive": "NOT_READY"
+}

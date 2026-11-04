@@ -1,0 +1,149 @@
+{
+  "capturedAt": "2026-11-01T05:58:51.380Z",
+  "sourceBase": "f1299e3138f3700062a1ed84271db315737b0071",
+  "branch": "codex/preschool-main-technical-20261101",
+  "M005": "HELD_BLOCK_PARITY_NOT_ESTABLISHED",
+  "F01": "HELD_SOURCE_CONTRACT_PRECHECK_ONLY",
+  "runtimeChanged": false,
+  "verification": {
+    "suitesPassed": 2,
+    "testsPassed": 86,
+    "testsFailed": 0,
+    "newCharacterizations": [
+      {
+        "name": "M005 current projection semantics — source characterization only preserves the current present projection and null time/note",
+        "status": "passed"
+      },
+      {
+        "name": "M005 current projection semantics — source characterization only preserves the current absent projection and null time/note",
+        "status": "passed"
+      },
+      {
+        "name": "M005 current projection semantics — source characterization only preserves the current excused projection and null time/note",
+        "status": "passed"
+      },
+      {
+        "name": "M005 current projection semantics — source characterization only accepts the current array-shaped enrollment relationship",
+        "status": "passed"
+      },
+      {
+        "name": "M005 current projection semantics — source characterization only differs from the contract if another caller-visible enrollment shares the authorized Party",
+        "status": "passed"
+      },
+      {
+        "name": "M005 current projection semantics — source characterization only reads a later status than the DTO previously consumed by the Care roster",
+        "status": "passed"
+      },
+      {
+        "name": "M005 current projection semantics — source characterization only retains its separate projection failure code after an authorized roster",
+        "status": "passed"
+      },
+      {
+        "name": "M005 current projection semantics — source characterization only maps a contract failure during roster authorization to the existing scope error",
+        "status": "passed"
+      },
+      {
+        "name": "DailyCareService canonical student party connection currently drops the Attendance DTO from the Preschool Care roster",
+        "status": "passed"
+      }
+    ],
+    "focusedTypecheck": "PASS",
+    "diffCheck": "PASS",
+    "sealedHashChecks": 62,
+    "sealedHashesUnchanged": true,
+    "runtimeUnchanged": true,
+    "oldWipUnchanged": true
+  },
+  "reusedArchitectureEvidence": {
+    "file": "education-sql-seal.json",
+    "sha256": "0d1f4be604bf6bfc857b0e2b525ecd78f18264d0a27949fa37a1bf61a0c5ef5d",
+    "gate": {
+      "status": "BLOCK",
+      "ciExitCode": 1,
+      "recognizedHistoricalDebt": 265,
+      "recognizedApprovedTuples": 7,
+      "rawLegacyMatches": 340,
+      "effectiveLegacyMatches": 333,
+      "newLegacyOccurrences": 68,
+      "newLegacySignatures": 30,
+      "exactBlocked": 88,
+      "unresolved": 20,
+      "policyConfigurationErrors": 0
+    },
+    "architectureJest": {
+      "testsPassed": 8,
+      "testsFailed": 2,
+      "failures": [
+        "Bella Education V1 — Static Architecture Guard Law 3: exact resource access stays within bounded debt and approved contract paths",
+        "Bella Education V1 — Static Architecture Guard Law 3: legacy database matches stay within reviewed debt after exact contract dispositions"
+      ]
+    },
+    "reason": "Only __tests__ files changed; scanner excludes these directories. Runtime, controls, metadata and prior evidence unchanged. Not a new scanner/Jest execution."
+  },
+  "sourceFiles": [
+    {
+      "file": "src/app/api/education/care/bulk/__tests__/access.test.ts",
+      "sha256": "2f08ba1c703f638ee9d0e57639280b4e4734c06016f88bc5d39a707ac53b8ec7"
+    },
+    {
+      "file": "src/products/bella-education/__tests__/preschool-daily-care-canonical.service.test.ts",
+      "sha256": "7ef31132795220eb45885bc512d454bd5e121bc2fc9ae403432e10c924f9295f"
+    }
+  ],
+  "artifacts": [
+    {
+      "file": "m005-final-jest.json",
+      "sha256": "3e5eb7badfdd983bca4969c9c7cc7db51f342043197811f4244e24089e6dfc03"
+    },
+    {
+      "file": "m005-final-jest.log",
+      "sha256": "355647d0c1d620f1007e212d3349c5ef75d812cfa60a912bd2c07944cbabeeb4"
+    },
+    {
+      "file": "m005-final-typecheck.json",
+      "sha256": "dcdf37ea4019fc7efa5802e0dc99f98a50d9f3f1d40c289a0ee8858173fd0a6c"
+    },
+    {
+      "file": "m005-jest.json",
+      "sha256": "aab01f9ac1d46ed7cbe99f7c861a715fc0cf969db83f228a8cf6a4fd69d344ef"
+    },
+    {
+      "file": "m005-jest.log",
+      "sha256": "2a4dbd90dc3d5c098420ae23cbbd753ad358336c4fbe99e0b9ad6fb87af143b7"
+    },
+    {
+      "file": "m005-preservation.json",
+      "sha256": "317c50b6d20eda158902af0faeb7f4964fecc80aa07dbfbe610a91426d6b82b0"
+    },
+    {
+      "file": "m005-tests.patch",
+      "sha256": "a8f3892b694f7c18c0a9a02ea2d0d6ec1c35d5e275ff31cfaddb6266c0579d3d"
+    },
+    {
+      "file": "m005-typecheck.json",
+      "sha256": "dcdf37ea4019fc7efa5802e0dc99f98a50d9f3f1d40c289a0ee8858173fd0a6c"
+    },
+    {
+      "file": "M005_PARITY_REVIEW.md",
+      "sha256": "88adac61e731868ab3e0a3ec23ee378fce802c558df5c75661f81863695da88e"
+    }
+  ],
+  "notProven": [
+    "DB constraint reachability of synthetic fixtures",
+    "Real Auth/RLS visibility",
+    "PostgreSQL concurrency/isolation",
+    "Browser E2E",
+    "Production"
+  ],
+  "actionsNotPerformed": [
+    "runtime/UI/business/permission changes",
+    "Kernel/public-contract edits",
+    "DB probes/mutations/migrations",
+    "seed",
+    "build",
+    "commit",
+    "push",
+    "merge",
+    "deploy"
+  ]
+}

@@ -1,0 +1,34 @@
+{
+  "sourceRevision": "f1299e3138f3700062a1ed84271db315737b0071",
+  "status": "TRACKED_LOCAL_RUNTIME_CHANGES_APPLIED",
+  "files": [
+    {
+      "path": "src/app/api/education/courses/route.ts",
+      "sha256": "6fbf445ac7440a5da947b454b39a8d1ceac714fbd602032be2b54fc2bf7b31ce"
+    },
+    {
+      "path": "src/app/api/education/enrollments/[id]/communications/route.ts",
+      "sha256": "9cb209c0984b286a1ac77f0361b4655a7475e1e84b9058f29d53c89c30afc031"
+    },
+    {
+      "path": "src/app/api/education/enrollments/[id]/development/route.ts",
+      "sha256": "e0d83ede7e900b3eac71aec05fbd92e38e221c4d7738579a0a30975e4bedd11e"
+    },
+    {
+      "path": "src/app/api/education/enrollments/student-360.service.ts",
+      "sha256": "581472f004dea82f4e0455e3a0a65a247d608c624654072fda05424741da5725"
+    },
+    {
+      "path": "src/products/bella-education/analytics/events/preschool-analytics-events.ts",
+      "sha256": "4d9b296bf6a49535fe760031912bac0fd48516c6d1a9f9f3a8aa790da7b14694"
+    },
+    {
+      "path": "src/products/bella-education/care-wellbeing/nutrition/weekly-menu.service.ts",
+      "sha256": "e6cc9c344dfd1dd5e891f4ce163350a161185279b0b14ee9731fbaecb944d7fb"
+    },
+    {
+      "path": "src/products/bella-education/learning-development/curriculum/curriculum.service.ts",
+      "sha256": "17316e58f1d2d5d26517651e87077af4c4d4f592cebaa4a588fcbc107cffb46b"
+    }
+  ]
+}

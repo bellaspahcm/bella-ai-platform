@@ -121,7 +121,7 @@ function getSupabaseMigrationListArgs() {
   const args = ['--yes', 'supabase', 'migration', 'list'];
 
   if (dbUrl) {
-    return [...args, '--db-url', dbUrl];
+    return [...args, `--remote=${dbUrl}`];
   }
 
   return [...args, '--linked'];
@@ -252,6 +252,7 @@ if (require.main === module) {
 
 module.exports = {
   analyzeMigrationState,
+  getSupabaseMigrationListArgs,
   listGitMigrationVersions,
   listLocalMigrationVersions,
   parseSupabaseMigrationList,

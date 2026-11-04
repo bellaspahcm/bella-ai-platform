@@ -1,0 +1,7 @@
+
+Test Suites: 2 passed, 2 total
+Tests:       17 passed, 17 total
+Snapshots:   0 total
+Time:        2.05 s
+Ran all test suites within paths "src/app/api/education/enrollments/confirm-admission/__tests__/route.test.ts", "src/app/api/education/enrollments/confirm-admission/__tests__/integrity-gap.test.ts".
+Test results written to: docs\audits\preschool-main-20261101\gl05-admission-diagnostic.json

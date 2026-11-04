@@ -1,0 +1,35 @@
+{
+  "at": "2026-11-02T01:40:00.4760738Z",
+  "mainSha": "7346840706ee71b14f9bcf956d1e0d53c6bbf782",
+  "testedHead": "535b5ed20cc814d4b3b322011a5c371f826a8181",
+  "tree": "04df4164288f0123eafd9478fe8c67e1afe8de8b",
+  "PR475": "MERGED_ALL_HEAD_CHECKS_PASS",
+  "build": "READY",
+  "candidate": "dpl_FvHBz3BBp7wcdNtXEyFAgdYLGZyP",
+  "candidateURL": "bella-spa-k4m8qgeiy-bella-spa-s-projects.vercel.app",
+  "productionTarget": "dpl_DstNQvShsVvhXgWrsM283n6pJQVN",
+  "aliases": [
+    {
+      "domain": "bella-spa-erp.vercel.app",
+      "id": "dpl_DstNQvShsVvhXgWrsM283n6pJQVN",
+      "sha": "f1299e3138f3700062a1ed84271db315737b0071"
+    },
+    {
+      "domain": "bella-spa-erp-bella-spa-s-projects.vercel.app",
+      "id": "dpl_DstNQvShsVvhXgWrsM283n6pJQVN",
+      "sha": "f1299e3138f3700062a1ed84271db315737b0071"
+    }
+  ],
+  "account": "CREATED_AUTH_PROFILE_LOGIN_VERIFIED_ON_EXISTING_PRODUCTION",
+  "accountCredentialProcess": "CLOSED_NO_SECRET_PERSISTED",
+  "candidateHealth": "FAIL_503",
+  "candidateMalformedTokenDenial": "3_OF_3_PASS",
+  "candidateAuthenticatedBrowser": "NOT_RUN_HEALTH_BLOCKED",
+  "productionCutover": "HOLD_NO_PROMOTE",
+  "secondaryAliasIncident": "AUTOASSIGNED_THEN_RESTORED_VERIFIED",
+  "transientImpact": "NOT_PROVEN",
+  "settingsOrWorkflowChanged": false,
+  "schemaOrBusinessDataChanged": false,
+  "exception": "Owner-authorized single Auth/public.users account creation",
+  "preschoolGoLive": "NOT_READY"
+}

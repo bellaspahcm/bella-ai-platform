@@ -1,0 +1,11 @@
+{
+  "scope": "GL04 changed API/tests only",
+  "files": [
+    "src/app/api/education/portal/[token]/attendance/route.ts",
+    "src/app/api/education/portal/[token]/attendance/__tests__/route.test.ts",
+    "src/app/api/education/portal/[token]/tuition/route.ts",
+    "src/app/api/education/portal/[token]/tuition/__tests__/route.test.ts",
+    "src/app/portal/education/[token]/__tests__/page.test.tsx"
+  ],
+  "diagnostics": []
+}

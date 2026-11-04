@@ -1,5 +1,6 @@
 const {
   analyzeMigrationState,
+  getSupabaseMigrationListArgs,
   listLocalMigrationVersions,
   parseSupabaseMigrationList,
 } = require('../../scripts/check-supabase-migrations.cjs');
@@ -8,6 +9,27 @@ const { tmpdir } = require('node:os');
 const { join } = require('node:path');
 
 describe('Supabase migration check script', () => {
+  it('uses the Supabase CLI v3 remote database URL flag', () => {
+    const previousDbUrl = process.env.SUPABASE_DB_URL;
+    const previousDatabaseUrl = process.env.SUPABASE_DATABASE_URL;
+    const expectedUrl = 'postgresql://ci.example/bella';
+
+    try {
+      process.env.SUPABASE_DB_URL = expectedUrl;
+      delete process.env.SUPABASE_DATABASE_URL;
+
+      expect(getSupabaseMigrationListArgs()).toEqual([
+        '--yes', 'supabase', 'migration', 'list', `--remote=${expectedUrl}`,
+      ]);
+    } finally {
+      if (previousDbUrl === undefined) delete process.env.SUPABASE_DB_URL;
+      else process.env.SUPABASE_DB_URL = previousDbUrl;
+
+      if (previousDatabaseUrl === undefined) delete process.env.SUPABASE_DATABASE_URL;
+      else process.env.SUPABASE_DATABASE_URL = previousDatabaseUrl;
+    }
+  });
+
   it('parses Supabase CLI migration list output', () => {
     const output = `
       Local          | Remote         | Time (UTC)

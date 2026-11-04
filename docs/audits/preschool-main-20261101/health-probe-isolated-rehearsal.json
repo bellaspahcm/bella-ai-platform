@@ -1,0 +1,18 @@
+{
+  "checks": [
+    "exact_git_blob_apply",
+    "anon_executes_true",
+    "acl_and_invoker_stable",
+    "late_failure_rolls_back_function_and_acl",
+    "executor_concurrency",
+    "executor_ledger_scope",
+    "executor_failure_rollback",
+    "unexpected_default_grant_rejected",
+    "wrong_executor_rejected",
+    "unexpected_inheritance_rejected"
+  ],
+  "status": "PASS",
+  "postgres": "17",
+  "artifactSha256": "46A11CFF0F380C957C55C118436FD1E3D23D9277BCBE2FEBDB15017E38AF5282",
+  "scope": "isolated local PostgreSQL, synthetic roles; not Production"
+}

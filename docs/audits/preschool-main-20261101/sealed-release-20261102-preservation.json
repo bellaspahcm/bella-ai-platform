@@ -1,0 +1,9 @@
+{
+  "scope": "Audit-worktree WIP preservation across isolated release preparation",
+  "snapshotSource": "gl04-read-seal.json",
+  "snapshotSha256": "3cdacffc1c8e43a1de23ba3391e2667cc8ee15f6d29430552bf917a2fad3b2d8",
+  "files": 31,
+  "changed": [],
+  "result": "PASS",
+  "note": "Derived from durable GL04 seal; not a new before-snapshot or a rerun of sealed tests"
+}

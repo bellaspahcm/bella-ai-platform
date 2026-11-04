@@ -1,0 +1,178 @@
+diff --git a/src/app/api/education/care/bulk/__tests__/access.test.ts b/src/app/api/education/care/bulk/__tests__/access.test.ts
+index f6cb0b197..00431826d 100644
+--- a/src/app/api/education/care/bulk/__tests__/access.test.ts
++++ b/src/app/api/education/care/bulk/__tests__/access.test.ts
+@@ -1,6 +1,7 @@
+ import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
+ import type { DailyCareRosterItem, IBulkCareResult } from '@/products/bella-education/care-wellbeing/daily-care/daily-care.contract';
+ import type { EducationEnrollmentDTO } from '@/platform/education/contracts/enrollment.contract';
++import { AttendanceContractImpl } from '@/platform/education/contracts/attendance.contract.impl';
+ 
+ type Row = Record<string, unknown>;
+ interface Profile { id: string; tenant_id: string | null; status: string; role: string; }
+@@ -23,16 +24,19 @@ let writes: Array<{ table: string; operation: string; value: Row }>;
+ 
+ class Query {
+   private filters: Array<readonly [string, unknown]> = [];
++  private inFilters: Array<readonly [string, readonly unknown[]]> = [];
+   private operation = 'read';
+   private value: Row = {};
+   constructor(private table: string) {}
+   select() { return this; }
+   eq(key: string, value: unknown) { this.filters.push([key, value]); return this; }
++  in(key: string, values: readonly unknown[]) { this.inFilters.push([key, values]); return this; }
+   insert(value: Row) { this.operation = 'insert'; this.value = value; return this; }
+   update(value: Row) { this.operation = 'update'; this.value = value; return this; }
+   private execute(single: boolean): Result {
+     if (errors[this.table]) return { data: null, error: { message: errors[this.table] } };
+-    const rows = (tables[this.table] ?? []).filter(row => this.filters.every(([key, value]) => row[key] === value));
++    const rows = (tables[this.table] ?? []).filter(row => this.filters.every(([key, value]) => row[key] === value)
++      && this.inFilters.every(([key, values]) => values.includes(row[key])));
+     if (this.operation !== 'read') {
+       writes.push({ table: this.table, operation: this.operation, value: this.value });
+       if (this.operation === 'insert') {
+@@ -228,6 +232,97 @@ describe('Care branch and active enrollment resource boundary', () => {
+   });
+ });
+ 
++describe('M005 current projection semantics — source characterization only', () => {
++  function state(status: string, id = enrollmentId, relationship: Row | Row[] = { student_party_id: studentId }) {
++    return { id: `state-${id}`, tenant_id: tenantId, school_day: date, enrollment_id: id, status,
++      created_at: `${date}T00:00:00Z`, updated_at: `${date}T00:00:00Z`,
++      'edu_enrollments.course_id': courseId, edu_enrollments: relationship };
++  }
++  function readContract() {
++    mockSave.mockResolvedValue({ data: { tenantId, courseId, schoolDay: date, roster: [{
++      enrollmentId, studentId: otherId, studentPartyId: studentId, studentCode: 'SYNTHETIC',
++      name: rosterItem.name, gender: null, dob: null, enrollmentStatus: 'active',
++    }] }, error: null });
++    return new AttendanceContractImpl(mockClient as never).getCourseDailyAttendance({ tenantId, courseId, schoolDay: date });
++  }
++  function expectOnlyRosterRead() {
++    expect(writes).toEqual([]);
++    expect(mockSave).toHaveBeenCalledTimes(1);
++    expect(mockSave).toHaveBeenCalledWith('edu_preschool_roster_identity', { p_course_id: courseId, p_school_day: date });
++    for (const fn of [mockArrival, mockMeal, mockNap, mockHygiene, mockPrivilegedClient]) expect(fn).not.toHaveBeenCalled();
++  }
++
++  it.each(['present', 'absent', 'excused'])('preserves the current %s projection and null time/note', async status => {
++    tables.edu_attendance_daily_state = [state(status)];
++    const response = await GET(get());
++    expect(response.status).toBe(200);
++    expect(await response.json()).toEqual({ success: true, roster: [{
++      ...rosterItem, attendance: { status, rollCallTime: null }, attendanceNote: null,
++    }] });
++    expectNoMutation();
++  });
++
++  it('accepts the current array-shaped enrollment relationship', async () => {
++    tables.edu_attendance_daily_state = [state('present', enrollmentId, [{ student_party_id: studentId }])];
++    const response = await GET(get());
++    expect(response.status).toBe(200);
++    expect((await response.json()).roster[0].attendance).toEqual({ status: 'present', rollCallTime: null });
++    expectNoMutation();
++  });
++
++  it('differs from the contract if another caller-visible enrollment shares the authorized Party', async () => {
++    tables.edu_attendance_daily_state = [state('present'), state('absent', otherId)];
++    const canonical = await readContract();
++    const response = await GET(get());
++    expect(response.status).toBe(200);
++    expect(canonical[0].attendance?.status).toBe('present');
++    expect((await response.json()).roster[0].attendance).toEqual({ status: 'absent', rollCallTime: null });
++    expectOnlyRosterRead();
++  });
++
++  it('reads a later status than the DTO previously consumed by the Care roster', async () => {
++    tables.edu_attendance_daily_state = [state('present')];
++    let previouslyReadStatus: string | undefined;
++    mockRoster.mockImplementationOnce(async () => {
++      const canonical = await readContract();
++      previouslyReadStatus = canonical[0].attendance?.status;
++      tables.edu_attendance_daily_state = [state('absent')];
++      return [rosterItem];
++    });
++    const response = await GET(get());
++    expect(response.status).toBe(200);
++    expect(previouslyReadStatus).toBe('present');
++    expect((await response.json()).roster[0].attendance).toEqual({ status: 'absent', rollCallTime: null });
++    expectOnlyRosterRead();
++  });
++
++  it('retains its separate projection failure code after an authorized roster', async () => {
++    mockRoster.mockImplementationOnce(async () => {
++      await readContract();
++      errors.edu_attendance_daily_state = 'synthetic projection failure after roster read';
++      return [rosterItem];
++    });
++    const response = await GET(get());
++    expect(response.status).toBe(503);
++    expect(await response.json()).toEqual({ success: false, error: 'CARE_DATA_UNAVAILABLE' });
++    expect(mockRoster).toHaveBeenCalledTimes(1);
++    expectOnlyRosterRead();
++  });
++
++  it('maps a contract failure during roster authorization to the existing scope error', async () => {
++    errors.edu_attendance_daily_state = 'synthetic failure in the earlier contract read';
++    mockRoster.mockImplementationOnce(async () => {
++      await readContract();
++      return [rosterItem];
++    });
++    const response = await GET(get());
++    expect(response.status).toBe(503);
++    expect(await response.json()).toEqual({ success: false, error: 'CARE_ENROLLMENT_SCOPE_UNAVAILABLE' });
++    expect(mockEnrollment).not.toHaveBeenCalled();
++    expectOnlyRosterRead();
++  });
++});
++
+ describe('Care permitted operations and health-policy hold', () => {
+   it.each(['arrival', 'meal', 'nap', 'hygiene'] as const)('preserves permitted admin %s result via the same session client', async action => {
+     const response = await POST(post(action));
+diff --git a/src/products/bella-education/__tests__/preschool-daily-care-canonical.service.test.ts b/src/products/bella-education/__tests__/preschool-daily-care-canonical.service.test.ts
+index 1393a9d83..3547614e7 100644
+--- a/src/products/bella-education/__tests__/preschool-daily-care-canonical.service.test.ts
++++ b/src/products/bella-education/__tests__/preschool-daily-care-canonical.service.test.ts
+@@ -1,5 +1,6 @@
+-import { describe, expect, it } from '@jest/globals';
++import { describe, expect, it, jest } from '@jest/globals';
+ import { DailyCareService } from '../care-wellbeing/daily-care/daily-care.service';
++import { AttendanceContractImpl } from '@/platform/education/contracts/attendance.contract.impl';
+ 
+ type Row = Record<string, unknown>;
+ type Predicate = (row: Row) => boolean;
+@@ -141,6 +142,34 @@ function buildClient() {
+ }
+ 
+ describe('DailyCareService canonical student party connection', () => {
++  it('currently drops the Attendance DTO from the Preschool Care roster', async () => {
++    const client = buildClient();
++    const enrollmentId = '10000000-0000-4000-8000-000000000001';
++    const partyId = '10000000-0000-4000-8000-000000000002';
++    const date = '2026-10-21';
++    client.state.set('tenants', [{ id: tenantId, product_key: 'bella_preschool' }]);
++    const identity = { enrollmentId, studentId: '10000000-0000-4000-8000-000000000003',
++      studentPartyId: partyId, studentCode: 'SYNTHETIC', name: 'Synthetic child',
++      gender: null, dob: null, enrollmentStatus: 'active' };
++    const caller = Object.assign(client, { rpc: jest.fn(async () => ({ data: {
++      tenantId, courseId, schoolDay: date, roster: [identity],
++    }, error: null })) });
++    client.state.set('edu_attendance_daily_state', [{ id: 'synthetic-state', tenant_id: tenantId,
++      enrollment_id: enrollmentId, school_day: date, status: 'present', created_at: date, updated_at: date }]);
++
++    const attendance = await new AttendanceContractImpl(caller as never)
++      .getCourseDailyAttendance({ tenantId, courseId, schoolDay: date });
++    const care = await new DailyCareService(caller as never).getDailyCareRoster(tenantId, courseId, date);
++
++    expect(attendance[0].attendance?.status).toBe('present');
++    expect(care).toEqual([{ enrollmentId, studentPartyId: partyId, studentCode: 'SYNTHETIC',
++      name: identity.name, gender: null, dob: null, care: null }]);
++    expect(care[0]).not.toHaveProperty('attendance');
++    expect(care[0]).not.toHaveProperty('attendanceNote');
++    expect(client.state.get('edu_daily_care_sessions')).toEqual([]);
++    expect(client.state.get('edu_daily_care_records')).toEqual([]);
++  });
++
+   it('persists and reads back care for a canonical enrolled student without legacy student_id', async () => {
+     const client = buildClient();
+     const service = new DailyCareService(client as never);

@@ -1,0 +1,186 @@
+{
+  "verificationRoot": "C:\\Users\\DELL\\AppData\\Local\\Temp\\bella-mobile-verify-QCIlkp",
+  "mobile": "C:\\Users\\DELL\\AppData\\Local\\Temp\\bella-mobile-verify-QCIlkp\\apps\\mobile",
+  "changes": [
+    {
+      "path": "node_modules/@babel/plugin-bugfix-firefox-class-in-computed-class-key",
+      "before": "7.29.7"
+    },
+    {
+      "path": "node_modules/@babel/plugin-bugfix-safari-class-field-initializer-scope",
+      "before": "7.29.7"
+    },
+    {
+      "path": "node_modules/@babel/plugin-bugfix-safari-id-destructuring-collision-in-function-expression",
+      "before": "7.29.7"
+    },
+    {
+      "path": "node_modules/@babel/plugin-bugfix-safari-rest-destructuring-rhs-array",
+      "before": "7.29.7"
+    },
+    {
+      "path": "node_modules/@babel/plugin-bugfix-v8-spread-parameters-in-optional-chaining",
+      "before": "7.29.7"
+    },
+    {
+      "path": "node_modules/@babel/plugin-bugfix-v8-static-class-fields-redefine-readonly",
+      "before": "7.29.7"
+    },
+    {
+      "path": "node_modules/@babel/plugin-proposal-private-property-in-object",
+      "before": "7.21.0-placeholder-for-preset-env.2"
+    },
+    {
+      "path": "node_modules/@babel/plugin-syntax-import-assertions",
+      "before": "7.29.7"
+    },
+    {
+      "path": "node_modules/@babel/plugin-syntax-unicode-sets-regex",
+      "before": "7.18.6"
+    },
+    {
+      "path": "node_modules/@babel/plugin-transform-block-scoped-functions",
+      "before": "7.29.7"
+    },
+    {
+      "path": "node_modules/@babel/plugin-transform-dotall-regex",
+      "before": "7.29.7"
+    },
+    {
+      "path": "node_modules/@babel/plugin-transform-duplicate-keys",
+      "before": "7.29.7"
+    },
+    {
+      "path": "node_modules/@babel/plugin-transform-duplicate-named-capturing-groups-regex",
+      "before": "7.29.7"
+    },
+    {
+      "path": "node_modules/@babel/plugin-transform-dynamic-import",
+      "before": "7.29.7"
+    },
+    {
+      "path": "node_modules/@babel/plugin-transform-explicit-resource-management",
+      "before": "7.29.7"
+    },
+    {
+      "path": "node_modules/@babel/plugin-transform-exponentiation-operator",
+      "before": "7.29.7"
+    },
+    {
+      "path": "node_modules/@babel/plugin-transform-json-strings",
+      "before": "7.29.7"
+    },
+    {
+      "path": "node_modules/@babel/plugin-transform-member-expression-literals",
+      "before": "7.29.7"
+    },
+    {
+      "path": "node_modules/@babel/plugin-transform-modules-amd",
+      "before": "7.29.7"
+    },
+    {
+      "path": "node_modules/@babel/plugin-transform-modules-systemjs",
+      "before": "7.29.7"
+    },
+    {
+      "path": "node_modules/@babel/plugin-transform-modules-umd",
+      "before": "7.29.7"
+    },
+    {
+      "path": "node_modules/@babel/plugin-transform-new-target",
+      "before": "7.29.7"
+    },
+    {
+      "path": "node_modules/@babel/plugin-transform-object-super",
+      "before": "7.29.7"
+    },
+    {
+      "path": "node_modules/@babel/plugin-transform-property-literals",
+      "before": "7.29.7"
+    },
+    {
+      "path": "node_modules/@babel/plugin-transform-regexp-modifiers",
+      "before": "7.29.7"
+    },
+    {
+      "path": "node_modules/@babel/plugin-transform-reserved-words",
+      "before": "7.29.7"
+    },
+    {
+      "path": "node_modules/@babel/plugin-transform-typeof-symbol",
+      "before": "7.29.7"
+    },
+    {
+      "path": "node_modules/@babel/plugin-transform-unicode-escapes",
+      "before": "7.29.7"
+    },
+    {
+      "path": "node_modules/@babel/plugin-transform-unicode-property-regex",
+      "before": "7.29.7"
+    },
+    {
+      "path": "node_modules/@babel/plugin-transform-unicode-sets-regex",
+      "before": "7.29.7"
+    },
+    {
+      "path": "node_modules/@babel/preset-env",
+      "before": "7.29.7"
+    },
+    {
+      "path": "node_modules/@babel/preset-env/node_modules/babel-plugin-polyfill-corejs3",
+      "before": "0.14.2"
+    },
+    {
+      "path": "node_modules/@babel/preset-modules",
+      "before": "0.1.6-no-external-plugins"
+    },
+    {
+      "path": "node_modules/@types/prop-types",
+      "before": "15.7.15",
+      "after": "15.7.15"
+    },
+    {
+      "path": "node_modules/@types/react",
+      "before": "18.3.31",
+      "after": "18.3.31"
+    },
+    {
+      "path": "node_modules/csstype",
+      "before": "3.2.3",
+      "after": "3.2.3"
+    },
+    {
+      "path": "node_modules/decode-uri-component",
+      "before": "0.2.2",
+      "after": "0.5.1"
+    },
+    {
+      "path": "node_modules/esutils",
+      "before": "2.0.3"
+    },
+    {
+      "path": "node_modules/filter-obj",
+      "before": "1.1.0",
+      "after": "5.1.0"
+    },
+    {
+      "path": "node_modules/query-string",
+      "before": "7.1.3",
+      "after": "9.5.1"
+    },
+    {
+      "path": "node_modules/split-on-first",
+      "before": "1.1.0",
+      "after": "3.0.0"
+    },
+    {
+      "path": "node_modules/strict-uri-encode",
+      "before": "2.0.0"
+    },
+    {
+      "path": "node_modules/typescript",
+      "before": "5.3.3",
+      "after": "5.3.3"
+    }
+  ]
+}

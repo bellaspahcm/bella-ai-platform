@@ -1,0 +1,43 @@
+
+> bella-spa-erp@0.1.0 education:architecture:ci
+> node scripts/ci-run-education-architecture.mjs
+
+Education direct database access baseline: 265
+Education direct database access current: 342
+New Education direct database access violation(s) detected; blocking.
++2 ../../app/api/education/announcements/route.ts:L* - Direct RPC database execution is prohibited in the Product layer.
++1 ../../app/api/education/attendance/handover/route.ts:L* - Direct RPC database execution is prohibited in the Product layer.
++1 ../../app/api/education/care/bulk/route.ts:L* - Direct RPC database execution is prohibited in the Product layer.
++1 ../../app/api/education/care/bulk/route.ts:L* - Direct database query targeting '.from('edu_' is prohibited in the Product layer.
++2 ../../app/api/education/care/digest/route.ts:L* - Direct database query targeting '.from('edu_' is prohibited in the Product layer.
++2 ../../app/api/education/communication/messages/route.ts:L* - Direct database query targeting '.from('edu_' is prohibited in the Product layer.
++3 ../../app/api/education/communication/threads/route.ts:L* - Direct database query targeting '.from('edu_' is prohibited in the Product layer.
++1 ../../app/api/education/courses/[id]/route.ts:L* - Direct database query targeting '.from('edu_' is prohibited in the Product layer.
++1 ../../app/api/education/courses/[id]/route.ts:L* - Direct database query targeting '.from('students' is prohibited in the Product layer.
++4 ../../app/api/education/courses/route.ts:L* - Direct database query targeting '.from('edu_' is prohibited in the Product layer.
++2 ../../app/api/education/enrollments/[id]/communications/route.ts:L* - Direct database query targeting '.from('edu_' is prohibited in the Product layer.
++3 ../../app/api/education/enrollments/[id]/development/route.ts:L* - Direct database query targeting '.from('edu_' is prohibited in the Product layer.
++1 ../../app/api/education/enrollments/[id]/development/route.ts:L* - Direct database query targeting '.from('students' is prohibited in the Product layer.
++1 ../../app/api/education/enrollments/[id]/finance-summary/route.ts:L* - Direct database query targeting '.from('edu_' is prohibited in the Product layer.
++1 ../../app/api/education/enrollments/[id]/finance-summary/route.ts:L* - Direct database query targeting '.from('students' is prohibited in the Product layer.
++3 ../../app/api/education/enrollments/[id]/health/route.ts:L* - Direct database query targeting '.from('edu_' is prohibited in the Product layer.
++1 ../../app/api/education/enrollments/[id]/route.ts:L* - Direct RPC database execution is prohibited in the Product layer.
++1 ../../app/api/education/enrollments/admission-course-reader.ts:L* - Direct database query targeting '.from('edu_' is prohibited in the Product layer.
++11 ../../app/api/education/enrollments/confirm-admission/route.ts:L* - Direct database query targeting '.from('edu_' is prohibited in the Product layer.
++1 ../../app/api/education/enrollments/confirm-admission/route.ts:L* - Direct database query targeting '.from('students' is prohibited in the Product layer.
++2 ../../app/api/education/enrollments/route.ts:L* - Direct database query targeting '.from('edu_' is prohibited in the Product layer.
++1 ../../app/api/education/enrollments/route.ts:L* - Direct database query targeting '.from('students' is prohibited in the Product layer.
++5 ../../app/api/education/grades/route.ts:L* - Direct database query targeting '.from('edu_' is prohibited in the Product layer.
++3 ../../app/api/education/portal/[token]/attendance/route.ts:L* - Direct database query targeting '.from('edu_' is prohibited in the Product layer.
++3 ../../app/api/education/portal/[token]/care/route.ts:L* - Direct database query targeting '.from('edu_' is prohibited in the Product layer.
+... 8 more new violation signature(s)
+Education internal kernel import baseline: 0
+Education internal kernel import current: 0
+Education internal kernel import has zero violations.
+Education cross-vertical leakage baseline: 0
+Education cross-vertical leakage current: 0
+Education cross-vertical leakage has zero violations.
+Education explicit any baseline: 0
+Education explicit any current: 0
+Education explicit any has zero violations.
+Education architecture baseline policy: BLOCK

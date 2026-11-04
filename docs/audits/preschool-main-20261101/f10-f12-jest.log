@@ -1,0 +1,11 @@
+
+> bella-spa-erp@0.1.0 test
+> jest --runInBand --runTestsByPath src/products/bella-education/learning-development/curriculum/__tests__/curriculum.service.test.ts src/products/bella-education/care-wellbeing/nutrition/__tests__/weekly-menu.service.test.ts src/app/api/education/curriculum/__tests__/route.test.ts src/app/api/education/nutrition/weekly-menu/__tests__/route.test.ts src/app/api/education/enrollments/__tests__/student-360.service.test.ts src/app/api/education/enrollments/[id]/communications/__tests__/route.test.ts --json --outputFile=docs/audits/preschool-main-20261101/f10-f12-jest.json
+
+
+Test Suites: 6 passed, 6 total
+Tests:       76 passed, 76 total
+Snapshots:   0 total
+Time:        4.09 s
+Ran all test suites within paths "src/products/bella-education/learning-development/curriculum/__tests__/curriculum.service.test.ts", "src/products/bella-education/care-wellbeing/nutrition/__tests__/weekly-menu.service.test.ts", "src/app/api/education/curriculum/__tests__/route.test.ts", "src/app/api/education/nutrition/weekly-menu/__tests__/route.test.ts", "src/app/api/education/enrollments/__tests__/student-360.service.test.ts", "src/app/api/education/enrollments/[id]/communications/__tests__/route.test.ts".
+Test results written to: docs\audits\preschool-main-20261101\f10-f12-jest.json

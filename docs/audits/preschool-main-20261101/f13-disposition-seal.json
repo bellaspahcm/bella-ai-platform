@@ -1,0 +1,59 @@
+{
+  "capturedAt": "2026-11-01T04:10:00.418Z",
+  "sourceBase": "f1299e3138f3700062a1ed84271db315737b0071",
+  "scope": "F13 disposition analysis only",
+  "status": "BLOCK — NOT MERGE-READY",
+  "actualExceptionsApplied": 0,
+  "sourceAndTestsUnchanged": true,
+  "baselineWorkingSha256": "cf480356bf1fb9c062f4d6690cf52bea855e59abc886cb42dc7e80cd67209d8d",
+  "baselineOccurrencesUnchanged": 265,
+  "scannerEvidenceHashesUnchanged": 22,
+  "historicalArtifactsUnchanged": 39,
+  "F10_F12Unchanged": true,
+  "wipUnchanged": true,
+  "wip": {
+    "head": "f1299e3138f3700062a1ed84271db315737b0071",
+    "branch": "codex/preschool-main-hardening-20261101",
+    "statusSha256": "edd38044e21c183afa1fd4d6224f4b685239801813e83fd77658c6f544de7a1e",
+    "trackedDiffSha256": "f3761f5e986611283e29d0ca5c59e36e229ae0ac4ebea93758ccaed2f2e24990",
+    "untrackedCount": 28,
+    "untrackedSha256": "42b05b2a26dd5ed499cf685f1fb060d02288a121352762299a030823357c952c"
+  },
+  "diffCheck": "PASS",
+  "verification": {
+    "newExecuted": "Read-only comparator simulation: 7 positive / 114 negative probes PASS",
+    "jest": "REUSED_BY_HASH — 8 PASS / 2 FAIL",
+    "scannerRegression": "REUSED_BY_HASH — 16 PASS",
+    "typecheck": "REUSED_BY_HASH — scoped PASS",
+    "ciScanner": "REUSED_BY_HASH — BLOCK, exit 1"
+  },
+  "remainingHypothetical": {
+    "exactOccurrences": 355,
+    "exactSignatures": 348,
+    "legacyOccurrences": 77,
+    "legacySignatures": 33,
+    "unresolved": 20
+  },
+  "artifacts": [
+    {
+      "file": "analyze-f13-disposition.mjs",
+      "sha256": "8c55adedf67f5c7d3aa3591f063605eca5fff2e72c0d549a0d79a286f2ef0b0e"
+    },
+    {
+      "file": "F13_GATE_DISPOSITION.md",
+      "sha256": "031b50a8760ef1a969292a78300da86683589f95ca6848d455126d9e07e9f8e2"
+    },
+    {
+      "file": "F13_GATE_CALLERS.md",
+      "sha256": "3c85573382fe5ce6b5bf35735f8da3150ef8edf177bf19bf82b61fd88386d067"
+    },
+    {
+      "file": "f13-gate-disposition.json",
+      "sha256": "4dabb66aaedeb6363852a8233b3a229ffbcc1f1148971662571d3d65bb7654fb"
+    }
+  ],
+  "RealAuthRls": "NOT_PROVEN",
+  "Browser": "NOT_PROVEN",
+  "Production": "NOT_PROVEN",
+  "Preschool": "NOT_READY"
+}

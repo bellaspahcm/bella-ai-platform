@@ -1,0 +1,7 @@
+
+Test Suites: 7 passed, 7 total
+Tests:       110 passed, 110 total
+Snapshots:   0 total
+Time:        4.161 s
+Ran all test suites within paths "src/app/api/education/attendance/__tests__/route.test.ts", "src/app/api/education/attendance/__tests__/teacher-context.test.ts", "src/app/api/education/attendance/courses/__tests__/route.test.ts", "src/products/bella-education/__tests__/preschool-teacher-attendance.service.test.ts", "src/products/bella-education/__tests__/preschool-attendance-command.service.test.ts", "src/platform/education/contracts/__tests__/attendance-record-rpc.contract.test.ts", "src/platform/education/contracts/__tests__/preschool-roster-identity.contract.test.ts".
+Test results written to: docs\audits\preschool-main-20261101\attendance-flow-local-jest.json

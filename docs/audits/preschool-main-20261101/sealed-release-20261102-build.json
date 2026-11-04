@@ -1,0 +1,7 @@
+{
+  "command": "npm run build:prod",
+  "exitCode": 0,
+  "sourceBase": "f1299e3138f3700062a1ed84271db315737b0071",
+  "scope": "Clean GL02-GL04 release; selected public build env only, no env files copied or Production settings changed",
+  "typecheck": "Production command retains existing SKIP_TYPE_CHECK; separate focused typecheck receipt"
+}

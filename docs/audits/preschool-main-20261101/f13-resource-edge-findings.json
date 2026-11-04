@@ -1,0 +1,20 @@
+[
+  {
+    "location": "scripts/ci-run-education-architecture.mjs:151",
+    "trigger_condition": "A client method name is computed rather than an identifier or literal bracket member",
+    "guard_snippet": "if (isUnresolvedClientMemberCall(node)) recordUnknownAccess(node);",
+    "potential_consequence": "Known-member inventory misses the call; resource enforcement can allow an otherwise empty scan"
+  },
+  {
+    "location": "scripts/ci-run-education-architecture.mjs:218",
+    "trigger_condition": "An rpc/from method is extracted or bound then invoked through another variable",
+    "guard_snippet": "if (isDatabaseMethodReference(node)) recordUnresolvedReference(node);",
+    "potential_consequence": "The eventual alias invocation has no recognizable rpc/from member and escapes inventory"
+  },
+  {
+    "location": "scripts/ci-run-education-architecture.mjs:96",
+    "trigger_condition": "A quoted code example or inline block comment contains legacy database-call syntax",
+    "guard_snippet": "const matches = collectLegacyMatchesFromExecutableAst(source);",
+    "potential_consequence": "Retained regex count gate blocks nonexecuting examples despite correct AST resource inventory"
+  }
+]

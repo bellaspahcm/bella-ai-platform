@@ -1,0 +1,13 @@
+{
+  "status": "PASS",
+  "engine": "PGlite WASM PostgreSQL",
+  "version": "0.5.14",
+  "artifactSha256": "46A11CFF0F380C957C55C118436FD1E3D23D9277BCBE2FEBDB15017E38AF5282",
+  "checks": [
+    "exact_blob_applied",
+    "acl_invoker_stable",
+    "anon_executes_true",
+    "late_failure_rolls_back"
+  ],
+  "scope": "In-memory synthetic roles; no Production DB, concurrency or PostgREST proof"
+}

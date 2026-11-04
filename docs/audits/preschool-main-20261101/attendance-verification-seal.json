@@ -1,0 +1,184 @@
+{
+  "sourceRevision": "f1299e3138f3700062a1ed84271db315737b0071",
+  "branch": "codex/preschool-main-technical-20261101",
+  "scope": "Teacher attendance verification in owned synthetic loopback Supabase profile; production catalog comparison only",
+  "result": {
+    "isolatedSchema": "PASS",
+    "isolatedJwtDatabase": {
+      "status": "PASS",
+      "checks": 23,
+      "receipt": "attendance-attempt3-acceptance-receipt.json"
+    },
+    "isolatedBrowser": {
+      "status": "PASS",
+      "checks": 11,
+      "receipt": "attendance-attempt3-acceptance-receipt.json"
+    },
+    "productionTeacher": "BLOCKED",
+    "productionAdmin": "NOT_PROVEN",
+    "preschoolGoLive": "NOT_READY"
+  },
+  "executedSuccessHarnessSha256": "ec6922f1b48ec1a3dc11308cb98014a7073974558410454e350fd50c5b1745c5",
+  "finalHarnessSha256": "7e29b454aa0aa87ebe47788bc81840eb4343a4937a2466229475c9dd7a4b8bd0",
+  "finalHarnessValidation": {
+    "nodeSyntax": "PASS",
+    "gitDiffCheck": "PASS",
+    "errorClassificationScenarios": 5,
+    "deferredGroupPass": "PASS",
+    "successEvidenceReuse": "Only receipt bookkeeping changed after attempt 3; unchanged DB/Browser assertions retain their executed evidence",
+    "review": "No remaining introduced issue in final narrow source review"
+  },
+  "preservation": {
+    "runtimeAndExistingSources": {
+      "filesChecked": 22,
+      "changed": [],
+      "sourceHashSnapshot": [
+        {
+          "path": "src/app/api/education/care/bulk/__tests__/access.test.ts",
+          "sha256": "2f08ba1c703f638ee9d0e57639280b4e4734c06016f88bc5d39a707ac53b8ec7"
+        },
+        {
+          "path": "src/app/api/education/courses/__tests__/route.test.ts",
+          "sha256": "6f84400c3d03f233cbe2359c71416fdff4bc71583bc0c94c24f35605c6ea5181"
+        },
+        {
+          "path": "src/app/api/education/courses/route.ts",
+          "sha256": "6fbf445ac7440a5da947b454b39a8d1ceac714fbd602032be2b54fc2bf7b31ce"
+        },
+        {
+          "path": "src/app/api/education/curriculum/__tests__/route.test.ts",
+          "sha256": "bb0e78e39462779725ffa3257797b2877c676cab0defcfb486d867a750bb9926"
+        },
+        {
+          "path": "src/app/api/education/enrollments/__tests__/student-360.service.test.ts",
+          "sha256": "9635da7c095e59e2768c99c362695d83e15e56d307a380325454b4a55ffe8a12"
+        },
+        {
+          "path": "src/app/api/education/enrollments/[id]/communications/__tests__/route.test.ts",
+          "sha256": "92468acac347d12f5c8c10351aa2a9f30e6a71acbdb2bebbf6060c1d13133bfa"
+        },
+        {
+          "path": "src/app/api/education/enrollments/[id]/communications/route.ts",
+          "sha256": "9cb209c0984b286a1ac77f0361b4655a7475e1e84b9058f29d53c89c30afc031"
+        },
+        {
+          "path": "src/app/api/education/enrollments/[id]/development/__tests__/route.test.ts",
+          "sha256": "8bbf330dcf4e57bdeeb2eedaea387499ebcf46ca76698ceef801ae1e0b355f51"
+        },
+        {
+          "path": "src/app/api/education/enrollments/[id]/development/route.ts",
+          "sha256": "e0d83ede7e900b3eac71aec05fbd92e38e221c4d7738579a0a30975e4bedd11e"
+        },
+        {
+          "path": "src/app/api/education/enrollments/student-360.service.ts",
+          "sha256": "581472f004dea82f4e0455e3a0a65a247d608c624654072fda05424741da5725"
+        },
+        {
+          "path": "src/app/api/education/nutrition/weekly-menu/__tests__/route.test.ts",
+          "sha256": "4f3cbcbdda03730d1cc02faf1039c35f16c6a205693845f73a90fc17edd84bd5"
+        },
+        {
+          "path": "src/app/dashboard/education/attendance/page.tsx",
+          "sha256": "9f9095a3d83faeefa28291da49779f8ed345be53d0ad9cc57d108b24f168449b"
+        },
+        {
+          "path": "src/app/dashboard/education/attendance/preschool-attendance.tsx",
+          "sha256": "d70cea00133ec056a528c9caf56faf53e4e0c60e77aad0b2ae5be3f8552be026"
+        },
+        {
+          "path": "src/platform/education/contracts/attendance.contract.impl.ts",
+          "sha256": "2d47cd90dd7b55e4a4ca9326489302bcedd8bf9b46e1f2365b715d202d88ba6c"
+        },
+        {
+          "path": "src/products/bella-education/__tests__/bella-education-architecture.test.ts",
+          "sha256": "ccfe6da9b0b2a3633617ce776ee99999df306a5fe914472b94d8dbbf4d1567d9"
+        },
+        {
+          "path": "src/products/bella-education/__tests__/preschool-daily-care-canonical.service.test.ts",
+          "sha256": "7ef31132795220eb45885bc512d454bd5e121bc2fc9ae403432e10c924f9295f"
+        },
+        {
+          "path": "src/products/bella-education/analytics/events/preschool-analytics-events.ts",
+          "sha256": "4d9b296bf6a49535fe760031912bac0fd48516c6d1a9f9f3a8aa790da7b14694"
+        },
+        {
+          "path": "src/products/bella-education/care-wellbeing/nutrition/__tests__/weekly-menu.service.test.ts",
+          "sha256": "c4317eb7d5091d4351e05766db32d339b76d36deaf97fbf917c20dd6cb783bac"
+        },
+        {
+          "path": "src/products/bella-education/care-wellbeing/nutrition/weekly-menu.service.ts",
+          "sha256": "e6cc9c344dfd1dd5e891f4ce163350a161185279b0b14ee9731fbaecb944d7fb"
+        },
+        {
+          "path": "src/products/bella-education/learning-development/curriculum/__tests__/curriculum.service.test.ts",
+          "sha256": "0f71c9d10db6be3cb874a8a91457b2937d816dea52b8db00049868fde3af309d"
+        },
+        {
+          "path": "src/products/bella-education/learning-development/curriculum/curriculum.service.ts",
+          "sha256": "17316e58f1d2d5d26517651e87077af4c4d4f592cebaa4a588fcbc107cffb46b"
+        },
+        {
+          "path": "src/products/bella-education/services/preschool-teacher-attendance.service.ts",
+          "sha256": "8f6acb3af338c66d3750165c935c95aeb28fb84c50f92f503eddccf01ed683d9"
+        }
+      ]
+    },
+    "historicalEvidence": {
+      "historicalHashChecks": 87,
+      "changed": []
+    },
+    "attendanceRuntimeDiffFromHead": "NONE"
+  },
+  "cleanup": {
+    "remainingOwnedContainers": [],
+    "remainingOwnedVolumes": [],
+    "remainingTemporaryWorktrees": [],
+    "checkedProjects": [
+      "bella-preschool-13ebfcd8",
+      "bella-preschool-513f4ec6",
+      "bella-preschool-6fc50866"
+    ]
+  },
+  "limits": [
+    "No production business data read, write, migration or RPC invocation",
+    "No production schema or function apply; catalog snapshots have their own capture timestamps",
+    "No mid-command persistence failure injected; 22023 input rejection occurs before writes",
+    "Concurrent requests dispatched together; lock contention and revocation during in-flight wait not forced",
+    "No admin flow acceptance or full migration-history replay",
+    "No commit, push, merge or deployment"
+  ],
+  "evidence": [
+    {
+      "path": "docs\\audits\\preschool-main-20261101\\ATTENDANCE_FLOW.md",
+      "sha256": "49962289567b8df9c1ac2c86bcb0542bee13320e52a62547e276fdaa61c58180"
+    },
+    {
+      "path": "docs\\audits\\preschool-main-20261101\\attendance-profile-production-parity.json",
+      "sha256": "ac3a9a52f9526737540095d0e17a60e71bc68bb7ef04ee280e198c6f92ae5f58"
+    },
+    {
+      "path": "docs\\audits\\preschool-main-20261101\\attendance-receipt-classifier-regression.json",
+      "sha256": "d278e86c131498cf247876f55d8519b38f14e20d49b43ec0a6b3f034329186f0"
+    },
+    {
+      "path": "docs\\audits\\preschool-main-20261101\\attendance-attempt1-acceptance-receipt.json",
+      "sha256": "3ed0bd5bc49f309bc67b07742167164701f15b369350fa155c53ac233f26e431"
+    },
+    {
+      "path": "docs\\audits\\preschool-main-20261101\\attendance-attempt2-acceptance-receipt.json",
+      "sha256": "7fa4bf0a7fc160ae72978b3e931327e1749ee0db181d8a97049c2722e72c8d80"
+    },
+    {
+      "path": "docs\\audits\\preschool-main-20261101\\attendance-attempt3-acceptance-receipt.json",
+      "sha256": "2b150ffc644a508835f678ed2faf90a062114c6587752c8df47119e2f63127fd"
+    },
+    {
+      "path": "docs\\audits\\preschool-main-20261101\\attendance-attempt3-receipt.json",
+      "sha256": "6e4cbeaf3fc8b28b86ba1a67d5183a9188e30dd7d24ddd485742e1d8a0557313"
+    },
+    {
+      "path": "docs\\audits\\preschool-main-20261101\\attendance-attempt3-application-overlay.json",
+      "sha256": "f26bba89b6c882a6eaa2a0f03ebab7392afe61978218c4e424744e536dbf8ac3"
+    }
+  ]
+}

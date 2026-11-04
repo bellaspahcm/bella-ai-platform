@@ -1,0 +1,17 @@
+{
+  "scope": "Follow-up diff for the three recorded F13 scanner edge paths; not arbitrary JavaScript callgraph proof",
+  "priorFindings": "f13-resource-edge-findings.json",
+  "resolvedPaths": [
+    "Computed member calls are emitted as unresolved candidates and blocked",
+    "Known rpc/from extraction, binding, call/apply and destructuring are emitted as unresolved candidates and blocked",
+    "Legacy database matches are derived only from executable AST calls, excluding strings and comments"
+  ],
+  "regression": "16 Node tests PASS, including actual CLI allowed and denied fixtures",
+  "remainingLimits": [
+    "Arbitrary reflection/dataflow is not resolved",
+    "Imported constants and hidden client configuration are not evaluated",
+    "The scanner does not prove RPC SQL, installed DB parity or runtime authorization"
+  ],
+  "wholeF13": "BLOCK — NOT MERGE-READY",
+  "exceptionsAdded": 0
+}

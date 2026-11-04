@@ -1,0 +1,7 @@
+
+Test Suites: 3 passed, 3 total
+Tests:       57 passed, 57 total
+Snapshots:   0 total
+Time:        3.229 s
+Ran all test suites within paths "src/app/api/education/courses/__tests__/route.test.ts", "src/app/api/education/courses/__tests__/access.test.ts", "src/app/api/education/courses/__tests__/catalog-route.test.ts".
+Test results written to: docs\audits\preschool-main-20261101\education-sql-final-jest.json

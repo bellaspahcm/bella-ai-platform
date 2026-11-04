@@ -1,0 +1,1866 @@
+{
+  "capturedAt": "2026-11-01T04:20:54.558Z",
+  "scope": "Hypothetical policy in memory only; not a live gate change",
+  "actualExceptionsApplied": 0,
+  "positiveProbes": 9,
+  "negativeProbes": 118,
+  "failedProbes": 0,
+  "existingBaselineAndTrackedDiffUnchanged": true,
+  "expected": {
+    "rawResourceOccurrences": 362,
+    "boundedHistoricalDebt": 265,
+    "approvedControlOccurrences": 7,
+    "blockedResourceOccurrences": 90,
+    "blockedResourceSignatures": 85,
+    "blockedKnownNewOccurrences": 70,
+    "blockedLegacySignatures": 30,
+    "unresolvedBlocked": 20,
+    "overall": "BLOCK — NOT MERGE-READY"
+  },
+  "probes": [
+    {
+      "name": "M066: exact candidate",
+      "expected": "ALLOW",
+      "actual": "ALLOW"
+    },
+    {
+      "name": "M066: changed file",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "M066: changed caller",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "M066: changed Education target",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "M066: changed schema",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "M066: changed unknown target",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "M066: changed unknown operation",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "M066: changed unknown schema",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "M066: changed read/write",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "M066: changed transport",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "M066: additional source occurrence",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "M067: exact candidate",
+      "expected": "ALLOW",
+      "actual": "ALLOW"
+    },
+    {
+      "name": "M067: changed file",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "M067: changed caller",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "M067: changed Education target",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "M067: changed schema",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "M067: changed unknown target",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "M067: changed unknown operation",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "M067: changed unknown schema",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "M067: changed read/write",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "M067: changed transport",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "M067: additional source occurrence",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "M068: exact candidate",
+      "expected": "ALLOW",
+      "actual": "ALLOW"
+    },
+    {
+      "name": "M068: changed file",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "M068: changed caller",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "M068: changed Education target",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "M068: changed schema",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "M068: changed unknown target",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "M068: changed unknown operation",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "M068: changed unknown schema",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "M068: changed read/write",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "M068: changed transport",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "M068: additional source occurrence",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "M069: exact candidate",
+      "expected": "ALLOW",
+      "actual": "ALLOW"
+    },
+    {
+      "name": "M069: changed file",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "M069: changed caller",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "M069: changed Education target",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "M069: changed schema",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "M069: changed unknown target",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "M069: changed unknown operation",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "M069: changed unknown schema",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "M069: changed read/write",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "M069: changed transport",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "M069: additional source occurrence",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "M070: exact candidate",
+      "expected": "ALLOW",
+      "actual": "ALLOW"
+    },
+    {
+      "name": "M070: changed file",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "M070: changed caller",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "M070: changed Education target",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "M070: changed schema",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "M070: changed unknown target",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "M070: changed unknown operation",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "M070: changed unknown schema",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "M070: changed read/write",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "M070: changed transport",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "M070: additional source occurrence",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "M071: exact candidate",
+      "expected": "ALLOW",
+      "actual": "ALLOW"
+    },
+    {
+      "name": "M071: changed file",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "M071: changed caller",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "M071: changed Education target",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "M071: changed schema",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "M071: changed unknown target",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "M071: changed unknown operation",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "M071: changed unknown schema",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "M071: changed read/write",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "M071: changed transport",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "M071: additional source occurrence",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "M004: exact candidate",
+      "expected": "ALLOW",
+      "actual": "ALLOW"
+    },
+    {
+      "name": "M004: changed file",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "M004: changed caller",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "M004: changed Education target",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "M004: changed schema",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "M004: changed unknown target",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "M004: changed unknown operation",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "M004: changed unknown schema",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "M004: additional source occurrence",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "M005: Education boundary",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "M013: Education boundary",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "M014: Education boundary",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "M015: Education boundary",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "M016: Education boundary",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "M017: Education boundary",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "M018: Education boundary",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "M024: Education boundary",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "M021: Education boundary",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "M022: Education boundary",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "M026: Education boundary",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "M031: Education boundary",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "M032: Education boundary",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "M043: Education boundary",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "M040: Education boundary",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "M041: Education boundary",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "M042: Education boundary",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "M044: Education boundary",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "M046: Education boundary",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "M045: Education boundary",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "M047: Education boundary",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "M052: Education boundary",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "M053: Education boundary",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "M054: Education boundary",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "M055: Education boundary",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "M065: Education boundary",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "unresolved 4",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "unresolved 16",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "unresolved 17",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "unresolved 22",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "unresolved 25",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "unresolved 30",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "unresolved 33",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "unresolved 34",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "unresolved 38",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "unresolved 39",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "unresolved 42",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "unresolved 58",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "unresolved 62",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "unresolved 76",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "unresolved 77",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "unresolved 181",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "unresolved 187",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "unresolved 207",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "unresolved 208",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "unresolved 352",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "unchanged historical debt",
+      "expected": "ALLOW",
+      "actual": "ALLOW"
+    },
+    {
+      "name": "reduced historical debt",
+      "expected": "ALLOW",
+      "actual": "ALLOW"
+    },
+    {
+      "name": "historical source quota exceeded",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "historical substitution: target",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "historical substitution: caller",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    },
+    {
+      "name": "historical substitution: schema",
+      "expected": "BLOCK",
+      "actual": "BLOCK"
+    }
+  ],
+  "legacy": {
+    "status": "BLOCK",
+    "baselineTotal": 265,
+    "currentTotal": 335,
+    "added": [
+      {
+        "signature": "../../app/api/education/announcements/route.ts:L* - Direct RPC database execution is prohibited in the Product layer.",
+        "baselineCount": 0,
+        "currentCount": 2,
+        "delta": 2
+      },
+      {
+        "signature": "../../app/api/education/attendance/handover/route.ts:L* - Direct RPC database execution is prohibited in the Product layer.",
+        "baselineCount": 0,
+        "currentCount": 1,
+        "delta": 1
+      },
+      {
+        "signature": "../../app/api/education/care/bulk/route.ts:L* - Direct database query targeting '.from('edu_' is prohibited in the Product layer.",
+        "baselineCount": 0,
+        "currentCount": 1,
+        "delta": 1
+      },
+      {
+        "signature": "../../app/api/education/care/digest/route.ts:L* - Direct database query targeting '.from('edu_' is prohibited in the Product layer.",
+        "baselineCount": 0,
+        "currentCount": 2,
+        "delta": 2
+      },
+      {
+        "signature": "../../app/api/education/communication/messages/route.ts:L* - Direct database query targeting '.from('edu_' is prohibited in the Product layer.",
+        "baselineCount": 0,
+        "currentCount": 2,
+        "delta": 2
+      },
+      {
+        "signature": "../../app/api/education/communication/threads/route.ts:L* - Direct database query targeting '.from('edu_' is prohibited in the Product layer.",
+        "baselineCount": 0,
+        "currentCount": 3,
+        "delta": 3
+      },
+      {
+        "signature": "../../app/api/education/courses/[id]/route.ts:L* - Direct database query targeting '.from('edu_' is prohibited in the Product layer.",
+        "baselineCount": 0,
+        "currentCount": 1,
+        "delta": 1
+      },
+      {
+        "signature": "../../app/api/education/courses/[id]/route.ts:L* - Direct database query targeting '.from('students' is prohibited in the Product layer.",
+        "baselineCount": 0,
+        "currentCount": 1,
+        "delta": 1
+      },
+      {
+        "signature": "../../app/api/education/courses/route.ts:L* - Direct database query targeting '.from('edu_' is prohibited in the Product layer.",
+        "baselineCount": 0,
+        "currentCount": 4,
+        "delta": 4
+      },
+      {
+        "signature": "../../app/api/education/enrollments/[id]/communications/route.ts:L* - Direct database query targeting '.from('edu_' is prohibited in the Product layer.",
+        "baselineCount": 0,
+        "currentCount": 2,
+        "delta": 2
+      },
+      {
+        "signature": "../../app/api/education/enrollments/[id]/development/route.ts:L* - Direct database query targeting '.from('edu_' is prohibited in the Product layer.",
+        "baselineCount": 0,
+        "currentCount": 3,
+        "delta": 3
+      },
+      {
+        "signature": "../../app/api/education/enrollments/[id]/development/route.ts:L* - Direct database query targeting '.from('students' is prohibited in the Product layer.",
+        "baselineCount": 0,
+        "currentCount": 1,
+        "delta": 1
+      },
+      {
+        "signature": "../../app/api/education/enrollments/[id]/finance-summary/route.ts:L* - Direct database query targeting '.from('edu_' is prohibited in the Product layer.",
+        "baselineCount": 0,
+        "currentCount": 1,
+        "delta": 1
+      },
+      {
+        "signature": "../../app/api/education/enrollments/[id]/finance-summary/route.ts:L* - Direct database query targeting '.from('students' is prohibited in the Product layer.",
+        "baselineCount": 0,
+        "currentCount": 1,
+        "delta": 1
+      },
+      {
+        "signature": "../../app/api/education/enrollments/[id]/health/route.ts:L* - Direct database query targeting '.from('edu_' is prohibited in the Product layer.",
+        "baselineCount": 0,
+        "currentCount": 3,
+        "delta": 3
+      },
+      {
+        "signature": "../../app/api/education/enrollments/[id]/route.ts:L* - Direct RPC database execution is prohibited in the Product layer.",
+        "baselineCount": 0,
+        "currentCount": 1,
+        "delta": 1
+      },
+      {
+        "signature": "../../app/api/education/enrollments/admission-course-reader.ts:L* - Direct database query targeting '.from('edu_' is prohibited in the Product layer.",
+        "baselineCount": 0,
+        "currentCount": 1,
+        "delta": 1
+      },
+      {
+        "signature": "../../app/api/education/enrollments/confirm-admission/route.ts:L* - Direct database query targeting '.from('edu_' is prohibited in the Product layer.",
+        "baselineCount": 0,
+        "currentCount": 11,
+        "delta": 11
+      },
+      {
+        "signature": "../../app/api/education/enrollments/confirm-admission/route.ts:L* - Direct database query targeting '.from('students' is prohibited in the Product layer.",
+        "baselineCount": 0,
+        "currentCount": 1,
+        "delta": 1
+      },
+      {
+        "signature": "../../app/api/education/enrollments/route.ts:L* - Direct database query targeting '.from('edu_' is prohibited in the Product layer.",
+        "baselineCount": 0,
+        "currentCount": 2,
+        "delta": 2
+      },
+      {
+        "signature": "../../app/api/education/enrollments/route.ts:L* - Direct database query targeting '.from('students' is prohibited in the Product layer.",
+        "baselineCount": 0,
+        "currentCount": 1,
+        "delta": 1
+      },
+      {
+        "signature": "../../app/api/education/grades/route.ts:L* - Direct database query targeting '.from('edu_' is prohibited in the Product layer.",
+        "baselineCount": 0,
+        "currentCount": 5,
+        "delta": 5
+      },
+      {
+        "signature": "../../app/api/education/portal/[token]/attendance/route.ts:L* - Direct database query targeting '.from('edu_' is prohibited in the Product layer.",
+        "baselineCount": 0,
+        "currentCount": 3,
+        "delta": 3
+      },
+      {
+        "signature": "../../app/api/education/portal/[token]/care/route.ts:L* - Direct database query targeting '.from('edu_' is prohibited in the Product layer.",
+        "baselineCount": 0,
+        "currentCount": 3,
+        "delta": 3
+      },
+      {
+        "signature": "../../app/api/education/portal/[token]/route.ts:L* - Direct RPC database execution is prohibited in the Product layer.",
+        "baselineCount": 0,
+        "currentCount": 3,
+        "delta": 3
+      },
+      {
+        "signature": "../../app/api/education/portal/[token]/tuition/route.ts:L* - Direct database query targeting '.from('edu_' is prohibited in the Product layer.",
+        "baselineCount": 0,
+        "currentCount": 1,
+        "delta": 1
+      },
+      {
+        "signature": "../../app/api/education/portal/token/route.ts:L* - Direct RPC database execution is prohibited in the Product layer.",
+        "baselineCount": 0,
+        "currentCount": 1,
+        "delta": 1
+      },
+      {
+        "signature": "../../app/api/education/teachers/teacher-360.service.ts:L* - Direct RPC database execution is prohibited in the Product layer.",
+        "baselineCount": 0,
+        "currentCount": 2,
+        "delta": 2
+      },
+      {
+        "signature": "../../app/api/education/work-queue/identity.persistence.ts:L* - Direct database query targeting '.from('students' is prohibited in the Product layer.",
+        "baselineCount": 0,
+        "currentCount": 1,
+        "delta": 1
+      },
+      {
+        "signature": "../../app/dashboard/education/scheduling/page.tsx:L* - Direct database query targeting '.from('edu_' is prohibited in the Product layer.",
+        "baselineCount": 0,
+        "currentCount": 6,
+        "delta": 6
+      }
+    ],
+    "reduced": []
+  },
+  "resources": {
+    "status": "BLOCK",
+    "legacyBaselineTotal": 265,
+    "exactBaselineTotal": 272,
+    "currentTotal": 362,
+    "added": [
+      {
+        "signature": "resource:[\"src/app/api/education/announcements/route.ts\",\"GET\",\"rpc\",\"<client-default>\",\"preschool_list_school_announcements\",\"execute\"]",
+        "baselineCount": 0,
+        "currentCount": 1,
+        "delta": 1
+      },
+      {
+        "signature": "resource:[\"src/app/api/education/announcements/route.ts\",\"POST\",\"rpc\",\"<client-default>\",\"preschool_publish_school_announcement\",\"execute\"]",
+        "baselineCount": 0,
+        "currentCount": 1,
+        "delta": 1
+      },
+      {
+        "signature": "resource:[\"src/app/api/education/attendance/handover/route.ts\",\"POST/<callback>\",\"rpc\",\"<client-default>\",\"preschool_record_handover\",\"execute\"]",
+        "baselineCount": 0,
+        "currentCount": 1,
+        "delta": 1
+      },
+      {
+        "signature": "resource:[\"src/app/api/education/branches/manage/route.ts\",\"resolveBranchManagementContext\",\"rpc\",\"<client-default>\",null,\"execute\"]",
+        "baselineCount": 0,
+        "currentCount": 1,
+        "delta": 1
+      },
+      {
+        "signature": "resource:[\"src/app/api/education/care/bulk/route.ts\",\"GET\",\"from\",\"<client-default>\",\"edu_attendance_daily_state\",\"select\"]",
+        "baselineCount": 0,
+        "currentCount": 1,
+        "delta": 1
+      },
+      {
+        "signature": "resource:[\"src/app/api/education/care/digest/route.ts\",\"GET\",\"from\",\"<client-default>\",\"edu_daily_parent_digests\",\"select\"]",
+        "baselineCount": 0,
+        "currentCount": 1,
+        "delta": 1
+      },
+      {
+        "signature": "resource:[\"src/app/api/education/care/digest/route.ts\",\"POST\",\"from\",\"<client-default>\",\"edu_daily_parent_digests\",\"select\"]",
+        "baselineCount": 0,
+        "currentCount": 1,
+        "delta": 1
+      },
+      {
+        "signature": "resource:[\"src/app/api/education/communication/messages/route.ts\",\"POST\",\"from\",\"<client-default>\",\"edu_comm_threads\",\"select\"]",
+        "baselineCount": 0,
+        "currentCount": 1,
+        "delta": 1
+      },
+      {
+        "signature": "resource:[\"src/app/api/education/communication/messages/route.ts\",\"POST\",\"from\",\"<client-default>\",\"edu_comm_threads\",\"update\"]",
+        "baselineCount": 0,
+        "currentCount": 1,
+        "delta": 1
+      },
+      {
+        "signature": "resource:[\"src/app/api/education/communication/threads/route.ts\",\"GET\",\"from\",\"<client-default>\",\"edu_comm_exceptions\",\"select\"]",
+        "baselineCount": 0,
+        "currentCount": 1,
+        "delta": 1
+      },
+      {
+        "signature": "resource:[\"src/app/api/education/communication/threads/route.ts\",\"GET\",\"from\",\"<client-default>\",\"edu_comm_responses\",\"select\"]",
+        "baselineCount": 0,
+        "currentCount": 1,
+        "delta": 1
+      },
+      {
+        "signature": "resource:[\"src/app/api/education/communication/threads/route.ts\",\"GET\",\"from\",\"<client-default>\",\"edu_comm_threads\",\"select\"]",
+        "baselineCount": 0,
+        "currentCount": 1,
+        "delta": 1
+      },
+      {
+        "signature": "resource:[\"src/app/api/education/courses/[id]/route.ts\",\"GET\",\"from\",\"<client-default>\",\"edu_enrollments\",\"select\"]",
+        "baselineCount": 0,
+        "currentCount": 1,
+        "delta": 1
+      },
+      {
+        "signature": "resource:[\"src/app/api/education/courses/[id]/route.ts\",\"GET\",\"from\",\"<client-default>\",\"students\",\"select\"]",
+        "baselineCount": 0,
+        "currentCount": 1,
+        "delta": 1
+      },
+      {
+        "signature": "resource:[\"src/app/api/education/courses/canonical-request-context.ts\",\"resolveCanonicalCourseContext\",\"rpc\",\"<client-default>\",null,\"execute\"]",
+        "baselineCount": 0,
+        "currentCount": 1,
+        "delta": 1
+      },
+      {
+        "signature": "resource:[\"src/app/api/education/courses/catalog/route.ts\",\"GET\",\"rpc\",\"<client-default>\",null,\"execute\"]",
+        "baselineCount": 0,
+        "currentCount": 1,
+        "delta": 1
+      },
+      {
+        "signature": "resource:[\"src/app/api/education/courses/route.ts\",\"GET\",\"from\",\"<client-default>\",\"edu_attendance_daily_state\",\"select\"]",
+        "baselineCount": 0,
+        "currentCount": 1,
+        "delta": 1
+      },
+      {
+        "signature": "resource:[\"src/app/api/education/courses/route.ts\",\"GET\",\"from\",\"<client-default>\",\"edu_courses\",\"select\"]",
+        "baselineCount": 0,
+        "currentCount": 1,
+        "delta": 1
+      },
+      {
+        "signature": "resource:[\"src/app/api/education/courses/route.ts\",\"GET\",\"from\",\"<client-default>\",\"edu_enrollments\",\"select\"]",
+        "baselineCount": 0,
+        "currentCount": 2,
+        "delta": 2
+      },
+      {
+        "signature": "resource:[\"src/app/api/education/enrollments/[id]/communications/route.ts\",\"GET\",\"from\",\"<client-default>\",\"edu_comm_exceptions\",\"select\"]",
+        "baselineCount": 0,
+        "currentCount": 1,
+        "delta": 1
+      },
+      {
+        "signature": "resource:[\"src/app/api/education/enrollments/[id]/communications/route.ts\",\"GET\",\"from\",\"<client-default>\",\"edu_daily_care_records\",\"select\"]",
+        "baselineCount": 0,
+        "currentCount": 1,
+        "delta": 1
+      },
+      {
+        "signature": "resource:[\"src/app/api/education/enrollments/[id]/communications/route.ts\",\"GET\",\"rpc\",\"<client-default>\",null,\"execute\"]",
+        "baselineCount": 0,
+        "currentCount": 1,
+        "delta": 1
+      },
+      {
+        "signature": "resource:[\"src/app/api/education/enrollments/[id]/development/route.ts\",\"GET\",\"from\",\"<client-default>\",\"edu_assessments\",\"select\"]",
+        "baselineCount": 0,
+        "currentCount": 1,
+        "delta": 1
+      },
+      {
+        "signature": "resource:[\"src/app/api/education/enrollments/[id]/development/route.ts\",\"GET\",\"from\",\"<client-default>\",\"edu_dev_milestone_progress\",\"select\"]",
+        "baselineCount": 0,
+        "currentCount": 1,
+        "delta": 1
+      },
+      {
+        "signature": "resource:[\"src/app/api/education/enrollments/[id]/development/route.ts\",\"GET\",\"from\",\"<client-default>\",\"edu_enrollments\",\"select\"]",
+        "baselineCount": 0,
+        "currentCount": 1,
+        "delta": 1
+      },
+      {
+        "signature": "resource:[\"src/app/api/education/enrollments/[id]/development/route.ts\",\"GET\",\"from\",\"<client-default>\",\"students\",\"select\"]",
+        "baselineCount": 0,
+        "currentCount": 1,
+        "delta": 1
+      },
+      {
+        "signature": "resource:[\"src/app/api/education/enrollments/[id]/development/route.ts\",\"GET\",\"rpc\",\"<client-default>\",null,\"execute\"]",
+        "baselineCount": 0,
+        "currentCount": 1,
+        "delta": 1
+      },
+      {
+        "signature": "resource:[\"src/app/api/education/enrollments/[id]/finance-summary/route.ts\",\"GET\",\"from\",\"<client-default>\",\"edu_fin_invoices\",\"select\"]",
+        "baselineCount": 0,
+        "currentCount": 1,
+        "delta": 1
+      },
+      {
+        "signature": "resource:[\"src/app/api/education/enrollments/[id]/finance-summary/route.ts\",\"GET\",\"from\",\"<client-default>\",\"students\",\"select\"]",
+        "baselineCount": 0,
+        "currentCount": 1,
+        "delta": 1
+      },
+      {
+        "signature": "resource:[\"src/app/api/education/enrollments/[id]/finance-summary/route.ts\",\"GET\",\"rpc\",\"<client-default>\",null,\"execute\"]",
+        "baselineCount": 0,
+        "currentCount": 1,
+        "delta": 1
+      },
+      {
+        "signature": "resource:[\"src/app/api/education/enrollments/[id]/guardians/route.ts\",\"GET\",\"rpc\",\"<client-default>\",null,\"execute\"]",
+        "baselineCount": 0,
+        "currentCount": 1,
+        "delta": 1
+      },
+      {
+        "signature": "resource:[\"src/app/api/education/enrollments/[id]/health/route.ts\",\"GET\",\"from\",\"<client-default>\",\"edu_child_allergies\",\"select\"]",
+        "baselineCount": 0,
+        "currentCount": 1,
+        "delta": 1
+      },
+      {
+        "signature": "resource:[\"src/app/api/education/enrollments/[id]/health/route.ts\",\"GET\",\"from\",\"<client-default>\",\"edu_health_incidents\",\"select\"]",
+        "baselineCount": 0,
+        "currentCount": 1,
+        "delta": 1
+      },
+      {
+        "signature": "resource:[\"src/app/api/education/enrollments/[id]/health/route.ts\",\"GET\",\"from\",\"<client-default>\",\"edu_medication_authorizations\",\"select\"]",
+        "baselineCount": 0,
+        "currentCount": 1,
+        "delta": 1
+      },
+      {
+        "signature": "resource:[\"src/app/api/education/enrollments/[id]/health/route.ts\",\"GET\",\"rpc\",\"<client-default>\",null,\"execute\"]",
+        "baselineCount": 0,
+        "currentCount": 1,
+        "delta": 1
+      },
+      {
+        "signature": "resource:[\"src/app/api/education/enrollments/[id]/route.ts\",\"GET\",\"rpc\",\"<client-default>\",null,\"execute\"]",
+        "baselineCount": 0,
+        "currentCount": 1,
+        "delta": 1
+      },
+      {
+        "signature": "resource:[\"src/app/api/education/enrollments/[id]/route.ts\",\"PATCH\",\"rpc\",\"<client-default>\",\"preschool_admin_update_student_profile\",\"execute\"]",
+        "baselineCount": 0,
+        "currentCount": 1,
+        "delta": 1
+      },
+      {
+        "signature": "resource:[\"src/app/api/education/enrollments/[id]/route.ts\",\"PATCH\",\"rpc\",\"<client-default>\",null,\"execute\"]",
+        "baselineCount": 0,
+        "currentCount": 1,
+        "delta": 1
+      },
+      {
+        "signature": "resource:[\"src/app/api/education/enrollments/admission-course-reader.ts\",\"admissionCourseReader/readCourse\",\"from\",\"<client-default>\",\"edu_courses\",\"select\"]",
+        "baselineCount": 0,
+        "currentCount": 1,
+        "delta": 1
+      },
+      {
+        "signature": "resource:[\"src/app/api/education/enrollments/confirm-admission/route.ts\",\"POST\",\"from\",\"<client-default>\",\"edu_courses\",\"update\"]",
+        "baselineCount": 0,
+        "currentCount": 1,
+        "delta": 1
+      },
+      {
+        "signature": "resource:[\"src/app/api/education/enrollments/confirm-admission/route.ts\",\"POST\",\"from\",\"<client-default>\",\"edu_enrollments\",\"select\"]",
+        "baselineCount": 0,
+        "currentCount": 2,
+        "delta": 2
+      },
+      {
+        "signature": "resource:[\"src/app/api/education/enrollments/confirm-admission/route.ts\",\"POST\",\"from\",\"<client-default>\",\"edu_enrollments\",\"update\"]",
+        "baselineCount": 0,
+        "currentCount": 1,
+        "delta": 1
+      },
+      {
+        "signature": "resource:[\"src/app/api/education/enrollments/confirm-admission/route.ts\",\"POST\",\"from\",\"<client-default>\",\"edu_fin_billing_periods\",\"select\"]",
+        "baselineCount": 0,
+        "currentCount": 1,
+        "delta": 1
+      },
+      {
+        "signature": "resource:[\"src/app/api/education/enrollments/confirm-admission/route.ts\",\"POST\",\"from\",\"<client-default>\",\"edu_fin_invoice_line_items\",\"insert\"]",
+        "baselineCount": 0,
+        "currentCount": 1,
+        "delta": 1
+      },
+      {
+        "signature": "resource:[\"src/app/api/education/enrollments/confirm-admission/route.ts\",\"POST\",\"from\",\"<client-default>\",\"edu_fin_invoices\",\"insert\"]",
+        "baselineCount": 0,
+        "currentCount": 1,
+        "delta": 1
+      },
+      {
+        "signature": "resource:[\"src/app/api/education/enrollments/confirm-admission/route.ts\",\"POST\",\"from\",\"<client-default>\",\"edu_fin_invoices\",\"select\"]",
+        "baselineCount": 0,
+        "currentCount": 1,
+        "delta": 1
+      },
+      {
+        "signature": "resource:[\"src/app/api/education/enrollments/confirm-admission/route.ts\",\"POST\",\"from\",\"<client-default>\",\"edu_fin_invoices\",\"update\"]",
+        "baselineCount": 0,
+        "currentCount": 1,
+        "delta": 1
+      },
+      {
+        "signature": "resource:[\"src/app/api/education/enrollments/confirm-admission/route.ts\",\"POST\",\"from\",\"<client-default>\",\"edu_fin_payments\",\"insert\"]",
+        "baselineCount": 0,
+        "currentCount": 2,
+        "delta": 2
+      },
+      {
+        "signature": "resource:[\"src/app/api/education/enrollments/confirm-admission/route.ts\",\"POST\",\"from\",\"<client-default>\",\"students\",\"select\"]",
+        "baselineCount": 0,
+        "currentCount": 1,
+        "delta": 1
+      },
+      {
+        "signature": "resource:[\"src/app/api/education/enrollments/confirm-admission/route.ts\",\"POST\",\"rpc\",\"<client-default>\",null,\"execute\"]",
+        "baselineCount": 0,
+        "currentCount": 1,
+        "delta": 1
+      },
+      {
+        "signature": "resource:[\"src/app/api/education/enrollments/route.ts\",\"loadStudentRegistry\",\"from\",\"<client-default>\",\"edu_courses\",\"select\"]",
+        "baselineCount": 0,
+        "currentCount": 1,
+        "delta": 1
+      },
+      {
+        "signature": "resource:[\"src/app/api/education/enrollments/route.ts\",\"loadStudentRegistry\",\"from\",\"<client-default>\",\"edu_enrollments\",\"select\"]",
+        "baselineCount": 0,
+        "currentCount": 1,
+        "delta": 1
+      },
+      {
+        "signature": "resource:[\"src/app/api/education/enrollments/route.ts\",\"loadStudentRegistry\",\"from\",\"<client-default>\",\"students\",\"select\"]",
+        "baselineCount": 0,
+        "currentCount": 1,
+        "delta": 1
+      },
+      {
+        "signature": "resource:[\"src/app/api/education/grades/route.ts\",\"GET\",\"from\",\"<client-default>\",\"edu_courses\",\"select\"]",
+        "baselineCount": 0,
+        "currentCount": 1,
+        "delta": 1
+      },
+      {
+        "signature": "resource:[\"src/app/api/education/grades/route.ts\",\"GET\",\"from\",\"<client-default>\",\"edu_dev_milestone_progress\",\"select\"]",
+        "baselineCount": 0,
+        "currentCount": 1,
+        "delta": 1
+      },
+      {
+        "signature": "resource:[\"src/app/api/education/grades/route.ts\",\"GET\",\"from\",\"<client-default>\",\"edu_dev_observations\",\"select\"]",
+        "baselineCount": 0,
+        "currentCount": 1,
+        "delta": 1
+      },
+      {
+        "signature": "resource:[\"src/app/api/education/grades/route.ts\",\"GET\",\"rpc\",\"<client-default>\",null,\"execute\"]",
+        "baselineCount": 0,
+        "currentCount": 1,
+        "delta": 1
+      },
+      {
+        "signature": "resource:[\"src/app/api/education/grades/route.ts\",\"POST\",\"from\",\"<client-default>\",\"edu_dev_observation_students\",\"insert\"]",
+        "baselineCount": 0,
+        "currentCount": 1,
+        "delta": 1
+      },
+      {
+        "signature": "resource:[\"src/app/api/education/grades/route.ts\",\"POST\",\"from\",\"<client-default>\",\"edu_dev_observations\",\"insert\"]",
+        "baselineCount": 0,
+        "currentCount": 1,
+        "delta": 1
+      },
+      {
+        "signature": "resource:[\"src/app/api/education/grades/route.ts\",\"POST\",\"rpc\",\"<client-default>\",null,\"execute\"]",
+        "baselineCount": 0,
+        "currentCount": 1,
+        "delta": 1
+      },
+      {
+        "signature": "resource:[\"src/app/api/education/portal/[token]/attendance/route.ts\",\"GET\",\"from\",\"<client-default>\",\"edu_attendance\",\"select\"]",
+        "baselineCount": 0,
+        "currentCount": 1,
+        "delta": 1
+      },
+      {
+        "signature": "resource:[\"src/app/api/education/portal/[token]/attendance/route.ts\",\"GET\",\"from\",\"<client-default>\",\"edu_attendance_daily_state\",\"select\"]",
+        "baselineCount": 0,
+        "currentCount": 1,
+        "delta": 1
+      },
+      {
+        "signature": "resource:[\"src/app/api/education/portal/[token]/attendance/route.ts\",\"GET\",\"from\",\"<client-default>\",\"edu_enrollments\",\"select\"]",
+        "baselineCount": 0,
+        "currentCount": 1,
+        "delta": 1
+      },
+      {
+        "signature": "resource:[\"src/app/api/education/portal/[token]/care/route.ts\",\"GET\",\"from\",\"<client-default>\",\"edu_daily_care_records\",\"select\"]",
+        "baselineCount": 0,
+        "currentCount": 1,
+        "delta": 1
+      },
+      {
+        "signature": "resource:[\"src/app/api/education/portal/[token]/care/route.ts\",\"GET\",\"from\",\"<client-default>\",\"edu_daily_care_sessions\",\"select\"]",
+        "baselineCount": 0,
+        "currentCount": 1,
+        "delta": 1
+      },
+      {
+        "signature": "resource:[\"src/app/api/education/portal/[token]/care/route.ts\",\"GET\",\"from\",\"<client-default>\",\"edu_enrollments\",\"select\"]",
+        "baselineCount": 0,
+        "currentCount": 1,
+        "delta": 1
+      },
+      {
+        "signature": "resource:[\"src/app/api/education/portal/[token]/route.ts\",\"GET\",\"rpc\",\"<client-default>\",\"preschool_portal_daily_read\",\"execute\"]",
+        "baselineCount": 0,
+        "currentCount": 1,
+        "delta": 1
+      },
+      {
+        "signature": "resource:[\"src/app/api/education/portal/[token]/route.ts\",\"GET\",\"rpc\",\"<client-default>\",\"preschool_portal_school_announcements_read\",\"execute\"]",
+        "baselineCount": 0,
+        "currentCount": 2,
+        "delta": 2
+      },
+      {
+        "signature": "resource:[\"src/app/api/education/portal/[token]/tuition/route.ts\",\"GET\",\"from\",\"<client-default>\",\"edu_fin_invoices\",\"select\"]",
+        "baselineCount": 0,
+        "currentCount": 1,
+        "delta": 1
+      },
+      {
+        "signature": "resource:[\"src/app/api/education/portal/token/route.ts\",\"issue\",\"rpc\",\"<client-default>\",\"preschool_portal_issuer_context\",\"execute\"]",
+        "baselineCount": 0,
+        "currentCount": 1,
+        "delta": 1
+      },
+      {
+        "signature": "resource:[\"src/app/api/education/student-registry/route.ts\",\"GET\",\"rpc\",\"<client-default>\",null,\"execute\"]",
+        "baselineCount": 0,
+        "currentCount": 1,
+        "delta": 1
+      },
+      {
+        "signature": "resource:[\"src/app/api/education/teachers/request-context.ts\",\"resolvePreschoolTeacherContext\",\"rpc\",\"<client-default>\",null,\"execute\"]",
+        "baselineCount": 0,
+        "currentCount": 1,
+        "delta": 1
+      },
+      {
+        "signature": "resource:[\"src/app/api/education/teachers/teacher-360.service.ts\",\"loadTeacher360Profile\",\"rpc\",\"<client-default>\",\"preschool_admin_get_teacher_profile\",\"execute\"]",
+        "baselineCount": 0,
+        "currentCount": 1,
+        "delta": 1
+      },
+      {
+        "signature": "resource:[\"src/app/api/education/teachers/teacher-360.service.ts\",\"updateTeacher360Profile\",\"rpc\",\"<client-default>\",\"preschool_admin_update_teacher_profile\",\"execute\"]",
+        "baselineCount": 0,
+        "currentCount": 1,
+        "delta": 1
+      },
+      {
+        "signature": "resource:[\"src/app/api/education/work-queue/identity.persistence.ts\",\"QueueIdentityPersistence/identities\",\"from\",\"<client-default>\",\"students\",\"select\"]",
+        "baselineCount": 0,
+        "currentCount": 1,
+        "delta": 1
+      },
+      {
+        "signature": "resource:[\"src/app/dashboard/education/scheduling/page.tsx\",\"SchedulingPage/handleSeedShift\",\"from\",\"<client-default>\",\"edu_comm_exceptions\",\"delete\"]",
+        "baselineCount": 0,
+        "currentCount": 1,
+        "delta": 1
+      },
+      {
+        "signature": "resource:[\"src/app/dashboard/education/scheduling/page.tsx\",\"SchedulingPage/handleSeedShift\",\"from\",\"<client-default>\",\"edu_sched_leave_requests\",\"delete\"]",
+        "baselineCount": 0,
+        "currentCount": 1,
+        "delta": 1
+      },
+      {
+        "signature": "resource:[\"src/app/dashboard/education/scheduling/page.tsx\",\"SchedulingPage/handleSeedShift\",\"from\",\"<client-default>\",\"edu_sched_shift_assignments\",\"delete\"]",
+        "baselineCount": 0,
+        "currentCount": 1,
+        "delta": 1
+      },
+      {
+        "signature": "resource:[\"src/app/dashboard/education/scheduling/page.tsx\",\"SchedulingPage/handleSeedShift\",\"from\",\"<client-default>\",\"edu_sched_substitutions\",\"delete\"]",
+        "baselineCount": 0,
+        "currentCount": 1,
+        "delta": 1
+      },
+      {
+        "signature": "resource:[\"src/app/dashboard/education/scheduling/page.tsx\",\"SchedulingPage/loadData\",\"from\",\"<client-default>\",\"edu_sched_leave_requests\",\"select\"]",
+        "baselineCount": 0,
+        "currentCount": 1,
+        "delta": 1
+      },
+      {
+        "signature": "resource:[\"src/app/dashboard/education/scheduling/page.tsx\",\"SchedulingPage/loadData\",\"from\",\"<client-default>\",\"edu_sched_substitutions\",\"select\"]",
+        "baselineCount": 0,
+        "currentCount": 1,
+        "delta": 1
+      },
+      {
+        "signature": "resource:[\"src/products/bella-education/finance/repositories/preschool-finance.repository.ts\",\"PreschoolFinanceRepository/atomicReconciliationRpc\",\"rpc\",\"<client-default>\",null,\"execute\"]",
+        "baselineCount": 0,
+        "currentCount": 2,
+        "delta": 2
+      },
+      {
+        "signature": "resource:[\"src/products/bella-education/finance/repositories/preschool-finance.repository.ts\",\"PreschoolFinanceRepository/branchCommand\",\"rpc\",\"<client-default>\",null,\"execute\"]",
+        "baselineCount": 0,
+        "currentCount": 1,
+        "delta": 1
+      },
+      {
+        "signature": "resource:[\"src/products/bella-education/finance/repositories/preschool-finance.repository.ts\",\"PreschoolFinanceRepository/readBranchState\",\"rpc\",\"<client-default>\",null,\"execute\"]",
+        "baselineCount": 0,
+        "currentCount": 1,
+        "delta": 1
+      },
+      {
+        "signature": "resource:[\"src/products/bella-education/services/preschool-chain.service.ts\",\"PreschoolChainService/listCurrentActorOrgUnitAccess\",\"rpc\",\"<client-default>\",null,\"execute\"]",
+        "baselineCount": 0,
+        "currentCount": 1,
+        "delta": 1
+      }
+    ],
+    "unresolved": [
+      {
+        "index": 4,
+        "file": "src/app/api/education/branches/manage/route.ts",
+        "line": 48,
+        "column": 34,
+        "method": "rpc",
+        "form": "call",
+        "operation": "execute",
+        "caller": "resolveBranchManagementContext",
+        "schema": "<client-default>",
+        "receiver": "client",
+        "target": null,
+        "targetExpression": "CURRENT_ACTOR_PROFILE_RPC",
+        "legacyMatch": null,
+        "signature": "resource:[\"src/app/api/education/branches/manage/route.ts\",\"resolveBranchManagementContext\",\"rpc\",\"<client-default>\",null,\"execute\"]",
+        "frozenId": null,
+        "groupId": null,
+        "bucket": "UNRESOLVED_EXPRESSION",
+        "blockedBy": [
+          "exact-resource"
+        ],
+        "disposition": "HELD_UNRESOLVED_NO_EXCEPTION",
+        "reason": "No full literal target; a named expression is not an exact exception.",
+        "exceptionApplied": false
+      },
+      {
+        "index": 16,
+        "file": "src/app/api/education/courses/canonical-request-context.ts",
+        "line": 34,
+        "column": 34,
+        "method": "rpc",
+        "form": "call",
+        "operation": "execute",
+        "caller": "resolveCanonicalCourseContext",
+        "schema": "<client-default>",
+        "receiver": "client",
+        "target": null,
+        "targetExpression": "CURRENT_ACTOR_PROFILE_RPC",
+        "legacyMatch": null,
+        "signature": "resource:[\"src/app/api/education/courses/canonical-request-context.ts\",\"resolveCanonicalCourseContext\",\"rpc\",\"<client-default>\",null,\"execute\"]",
+        "frozenId": null,
+        "groupId": null,
+        "bucket": "UNRESOLVED_EXPRESSION",
+        "blockedBy": [
+          "exact-resource"
+        ],
+        "disposition": "HELD_UNRESOLVED_NO_EXCEPTION",
+        "reason": "No full literal target; a named expression is not an exact exception.",
+        "exceptionApplied": false
+      },
+      {
+        "index": 17,
+        "file": "src/app/api/education/courses/catalog/route.ts",
+        "line": 26,
+        "column": 34,
+        "method": "rpc",
+        "form": "call",
+        "operation": "execute",
+        "caller": "GET",
+        "schema": "<client-default>",
+        "receiver": "client",
+        "target": null,
+        "targetExpression": "CURRENT_ACTOR_PROFILE_RPC",
+        "legacyMatch": null,
+        "signature": "resource:[\"src/app/api/education/courses/catalog/route.ts\",\"GET\",\"rpc\",\"<client-default>\",null,\"execute\"]",
+        "frozenId": null,
+        "groupId": null,
+        "bucket": "UNRESOLVED_EXPRESSION",
+        "blockedBy": [
+          "exact-resource"
+        ],
+        "disposition": "HELD_UNRESOLVED_NO_EXCEPTION",
+        "reason": "No full literal target; a named expression is not an exact exception.",
+        "exceptionApplied": false
+      },
+      {
+        "index": 22,
+        "file": "src/app/api/education/enrollments/[id]/communications/route.ts",
+        "line": 66,
+        "column": 40,
+        "method": "rpc",
+        "form": "call",
+        "operation": "execute",
+        "caller": "GET",
+        "schema": "<client-default>",
+        "receiver": "client",
+        "target": null,
+        "targetExpression": "CURRENT_ACTOR_PROFILE_RPC",
+        "legacyMatch": null,
+        "signature": "resource:[\"src/app/api/education/enrollments/[id]/communications/route.ts\",\"GET\",\"rpc\",\"<client-default>\",null,\"execute\"]",
+        "frozenId": null,
+        "groupId": null,
+        "bucket": "UNRESOLVED_EXPRESSION",
+        "blockedBy": [
+          "exact-resource"
+        ],
+        "disposition": "HELD_UNRESOLVED_NO_EXCEPTION",
+        "reason": "No full literal target; a named expression is not an exact exception.",
+        "exceptionApplied": false
+      },
+      {
+        "index": 25,
+        "file": "src/app/api/education/enrollments/[id]/development/route.ts",
+        "line": 76,
+        "column": 40,
+        "method": "rpc",
+        "form": "call",
+        "operation": "execute",
+        "caller": "GET",
+        "schema": "<client-default>",
+        "receiver": "client",
+        "target": null,
+        "targetExpression": "CURRENT_ACTOR_PROFILE_RPC",
+        "legacyMatch": null,
+        "signature": "resource:[\"src/app/api/education/enrollments/[id]/development/route.ts\",\"GET\",\"rpc\",\"<client-default>\",null,\"execute\"]",
+        "frozenId": null,
+        "groupId": null,
+        "bucket": "UNRESOLVED_EXPRESSION",
+        "blockedBy": [
+          "exact-resource"
+        ],
+        "disposition": "HELD_UNRESOLVED_NO_EXCEPTION",
+        "reason": "No full literal target; a named expression is not an exact exception.",
+        "exceptionApplied": false
+      },
+      {
+        "index": 30,
+        "file": "src/app/api/education/enrollments/[id]/finance-summary/route.ts",
+        "line": 66,
+        "column": 40,
+        "method": "rpc",
+        "form": "call",
+        "operation": "execute",
+        "caller": "GET",
+        "schema": "<client-default>",
+        "receiver": "client",
+        "target": null,
+        "targetExpression": "CURRENT_ACTOR_PROFILE_RPC",
+        "legacyMatch": null,
+        "signature": "resource:[\"src/app/api/education/enrollments/[id]/finance-summary/route.ts\",\"GET\",\"rpc\",\"<client-default>\",null,\"execute\"]",
+        "frozenId": null,
+        "groupId": null,
+        "bucket": "UNRESOLVED_EXPRESSION",
+        "blockedBy": [
+          "exact-resource"
+        ],
+        "disposition": "HELD_UNRESOLVED_NO_EXCEPTION",
+        "reason": "No full literal target; a named expression is not an exact exception.",
+        "exceptionApplied": false
+      },
+      {
+        "index": 33,
+        "file": "src/app/api/education/enrollments/[id]/guardians/route.ts",
+        "line": 56,
+        "column": 40,
+        "method": "rpc",
+        "form": "call",
+        "operation": "execute",
+        "caller": "GET",
+        "schema": "<client-default>",
+        "receiver": "client",
+        "target": null,
+        "targetExpression": "CURRENT_ACTOR_PROFILE_RPC",
+        "legacyMatch": null,
+        "signature": "resource:[\"src/app/api/education/enrollments/[id]/guardians/route.ts\",\"GET\",\"rpc\",\"<client-default>\",null,\"execute\"]",
+        "frozenId": null,
+        "groupId": null,
+        "bucket": "UNRESOLVED_EXPRESSION",
+        "blockedBy": [
+          "exact-resource"
+        ],
+        "disposition": "HELD_UNRESOLVED_NO_EXCEPTION",
+        "reason": "No full literal target; a named expression is not an exact exception.",
+        "exceptionApplied": false
+      },
+      {
+        "index": 34,
+        "file": "src/app/api/education/enrollments/[id]/health/route.ts",
+        "line": 66,
+        "column": 40,
+        "method": "rpc",
+        "form": "call",
+        "operation": "execute",
+        "caller": "GET",
+        "schema": "<client-default>",
+        "receiver": "client",
+        "target": null,
+        "targetExpression": "CURRENT_ACTOR_PROFILE_RPC",
+        "legacyMatch": null,
+        "signature": "resource:[\"src/app/api/education/enrollments/[id]/health/route.ts\",\"GET\",\"rpc\",\"<client-default>\",null,\"execute\"]",
+        "frozenId": null,
+        "groupId": null,
+        "bucket": "UNRESOLVED_EXPRESSION",
+        "blockedBy": [
+          "exact-resource"
+        ],
+        "disposition": "HELD_UNRESOLVED_NO_EXCEPTION",
+        "reason": "No full literal target; a named expression is not an exact exception.",
+        "exceptionApplied": false
+      },
+      {
+        "index": 38,
+        "file": "src/app/api/education/enrollments/[id]/route.ts",
+        "line": 52,
+        "column": 40,
+        "method": "rpc",
+        "form": "call",
+        "operation": "execute",
+        "caller": "GET",
+        "schema": "<client-default>",
+        "receiver": "client",
+        "target": null,
+        "targetExpression": "CURRENT_ACTOR_PROFILE_RPC",
+        "legacyMatch": null,
+        "signature": "resource:[\"src/app/api/education/enrollments/[id]/route.ts\",\"GET\",\"rpc\",\"<client-default>\",null,\"execute\"]",
+        "frozenId": null,
+        "groupId": null,
+        "bucket": "UNRESOLVED_EXPRESSION",
+        "blockedBy": [
+          "exact-resource"
+        ],
+        "disposition": "HELD_UNRESOLVED_NO_EXCEPTION",
+        "reason": "No full literal target; a named expression is not an exact exception.",
+        "exceptionApplied": false
+      },
+      {
+        "index": 39,
+        "file": "src/app/api/education/enrollments/[id]/route.ts",
+        "line": 87,
+        "column": 40,
+        "method": "rpc",
+        "form": "call",
+        "operation": "execute",
+        "caller": "PATCH",
+        "schema": "<client-default>",
+        "receiver": "client",
+        "target": null,
+        "targetExpression": "CURRENT_ACTOR_PROFILE_RPC",
+        "legacyMatch": null,
+        "signature": "resource:[\"src/app/api/education/enrollments/[id]/route.ts\",\"PATCH\",\"rpc\",\"<client-default>\",null,\"execute\"]",
+        "frozenId": null,
+        "groupId": null,
+        "bucket": "UNRESOLVED_EXPRESSION",
+        "blockedBy": [
+          "exact-resource"
+        ],
+        "disposition": "HELD_UNRESOLVED_NO_EXCEPTION",
+        "reason": "No full literal target; a named expression is not an exact exception.",
+        "exceptionApplied": false
+      },
+      {
+        "index": 42,
+        "file": "src/app/api/education/enrollments/confirm-admission/route.ts",
+        "line": 45,
+        "column": 40,
+        "method": "rpc",
+        "form": "call",
+        "operation": "execute",
+        "caller": "POST",
+        "schema": "<client-default>",
+        "receiver": "client",
+        "target": null,
+        "targetExpression": "CURRENT_ACTOR_PROFILE_RPC",
+        "legacyMatch": null,
+        "signature": "resource:[\"src/app/api/education/enrollments/confirm-admission/route.ts\",\"POST\",\"rpc\",\"<client-default>\",null,\"execute\"]",
+        "frozenId": null,
+        "groupId": null,
+        "bucket": "UNRESOLVED_EXPRESSION",
+        "blockedBy": [
+          "exact-resource"
+        ],
+        "disposition": "HELD_UNRESOLVED_NO_EXCEPTION",
+        "reason": "No full literal target; a named expression is not an exact exception.",
+        "exceptionApplied": false
+      },
+      {
+        "index": 58,
+        "file": "src/app/api/education/grades/route.ts",
+        "line": 74,
+        "column": 40,
+        "method": "rpc",
+        "form": "call",
+        "operation": "execute",
+        "caller": "GET",
+        "schema": "<client-default>",
+        "receiver": "client",
+        "target": null,
+        "targetExpression": "CURRENT_ACTOR_PROFILE_RPC",
+        "legacyMatch": null,
+        "signature": "resource:[\"src/app/api/education/grades/route.ts\",\"GET\",\"rpc\",\"<client-default>\",null,\"execute\"]",
+        "frozenId": null,
+        "groupId": null,
+        "bucket": "UNRESOLVED_EXPRESSION",
+        "blockedBy": [
+          "exact-resource"
+        ],
+        "disposition": "HELD_UNRESOLVED_NO_EXCEPTION",
+        "reason": "No full literal target; a named expression is not an exact exception.",
+        "exceptionApplied": false
+      },
+      {
+        "index": 62,
+        "file": "src/app/api/education/grades/route.ts",
+        "line": 373,
+        "column": 40,
+        "method": "rpc",
+        "form": "call",
+        "operation": "execute",
+        "caller": "POST",
+        "schema": "<client-default>",
+        "receiver": "client",
+        "target": null,
+        "targetExpression": "CURRENT_ACTOR_PROFILE_RPC",
+        "legacyMatch": null,
+        "signature": "resource:[\"src/app/api/education/grades/route.ts\",\"POST\",\"rpc\",\"<client-default>\",null,\"execute\"]",
+        "frozenId": null,
+        "groupId": null,
+        "bucket": "UNRESOLVED_EXPRESSION",
+        "blockedBy": [
+          "exact-resource"
+        ],
+        "disposition": "HELD_UNRESOLVED_NO_EXCEPTION",
+        "reason": "No full literal target; a named expression is not an exact exception.",
+        "exceptionApplied": false
+      },
+      {
+        "index": 76,
+        "file": "src/app/api/education/student-registry/route.ts",
+        "line": 14,
+        "column": 34,
+        "method": "rpc",
+        "form": "call",
+        "operation": "execute",
+        "caller": "GET",
+        "schema": "<client-default>",
+        "receiver": "client",
+        "target": null,
+        "targetExpression": "CURRENT_ACTOR_PROFILE_RPC",
+        "legacyMatch": null,
+        "signature": "resource:[\"src/app/api/education/student-registry/route.ts\",\"GET\",\"rpc\",\"<client-default>\",null,\"execute\"]",
+        "frozenId": null,
+        "groupId": null,
+        "bucket": "UNRESOLVED_EXPRESSION",
+        "blockedBy": [
+          "exact-resource"
+        ],
+        "disposition": "HELD_UNRESOLVED_NO_EXCEPTION",
+        "reason": "No full literal target; a named expression is not an exact exception.",
+        "exceptionApplied": false
+      },
+      {
+        "index": 77,
+        "file": "src/app/api/education/teachers/request-context.ts",
+        "line": 31,
+        "column": 34,
+        "method": "rpc",
+        "form": "call",
+        "operation": "execute",
+        "caller": "resolvePreschoolTeacherContext",
+        "schema": "<client-default>",
+        "receiver": "client",
+        "target": null,
+        "targetExpression": "CURRENT_ACTOR_PROFILE_RPC",
+        "legacyMatch": null,
+        "signature": "resource:[\"src/app/api/education/teachers/request-context.ts\",\"resolvePreschoolTeacherContext\",\"rpc\",\"<client-default>\",null,\"execute\"]",
+        "frozenId": null,
+        "groupId": null,
+        "bucket": "UNRESOLVED_EXPRESSION",
+        "blockedBy": [
+          "exact-resource"
+        ],
+        "disposition": "HELD_UNRESOLVED_NO_EXCEPTION",
+        "reason": "No full literal target; a named expression is not an exact exception.",
+        "exceptionApplied": false
+      },
+      {
+        "index": 181,
+        "file": "src/products/bella-education/finance/repositories/preschool-finance.repository.ts",
+        "line": 134,
+        "column": 42,
+        "method": "rpc",
+        "form": "call",
+        "operation": "execute",
+        "caller": "PreschoolFinanceRepository/readBranchState",
+        "schema": "<client-default>",
+        "receiver": "client",
+        "target": null,
+        "targetExpression": "FINANCE_BRANCH_READ_RPC",
+        "legacyMatch": null,
+        "signature": "resource:[\"src/products/bella-education/finance/repositories/preschool-finance.repository.ts\",\"PreschoolFinanceRepository/readBranchState\",\"rpc\",\"<client-default>\",null,\"execute\"]",
+        "frozenId": null,
+        "groupId": null,
+        "bucket": "UNRESOLVED_EXPRESSION",
+        "blockedBy": [
+          "exact-resource"
+        ],
+        "disposition": "HELD_UNRESOLVED_NO_EXCEPTION",
+        "reason": "No full literal target; a named expression is not an exact exception.",
+        "exceptionApplied": false
+      },
+      {
+        "index": 187,
+        "file": "src/products/bella-education/finance/repositories/preschool-finance.repository.ts",
+        "line": 371,
+        "column": 42,
+        "method": "rpc",
+        "form": "call",
+        "operation": "execute",
+        "caller": "PreschoolFinanceRepository/branchCommand",
+        "schema": "<client-default>",
+        "receiver": "client",
+        "target": null,
+        "targetExpression": "FINANCE_BRANCH_COMMAND_RPC",
+        "legacyMatch": null,
+        "signature": "resource:[\"src/products/bella-education/finance/repositories/preschool-finance.repository.ts\",\"PreschoolFinanceRepository/branchCommand\",\"rpc\",\"<client-default>\",null,\"execute\"]",
+        "frozenId": null,
+        "groupId": null,
+        "bucket": "UNRESOLVED_EXPRESSION",
+        "blockedBy": [
+          "exact-resource"
+        ],
+        "disposition": "HELD_UNRESOLVED_NO_EXCEPTION",
+        "reason": "No full literal target; a named expression is not an exact exception.",
+        "exceptionApplied": false
+      },
+      {
+        "index": 207,
+        "file": "src/products/bella-education/finance/repositories/preschool-finance.repository.ts",
+        "line": 863,
+        "column": 90,
+        "method": "rpc",
+        "form": "call",
+        "operation": "execute",
+        "caller": "PreschoolFinanceRepository/atomicReconciliationRpc",
+        "schema": "<client-default>",
+        "receiver": "(this.client as unknown as SupabaseClient<PreschoolFinanceBranchDatabase>)",
+        "target": null,
+        "targetExpression": "FINANCE_BRANCH_COMMAND_RPC",
+        "legacyMatch": null,
+        "signature": "resource:[\"src/products/bella-education/finance/repositories/preschool-finance.repository.ts\",\"PreschoolFinanceRepository/atomicReconciliationRpc\",\"rpc\",\"<client-default>\",null,\"execute\"]",
+        "frozenId": null,
+        "groupId": null,
+        "bucket": "UNRESOLVED_EXPRESSION",
+        "blockedBy": [
+          "exact-resource"
+        ],
+        "disposition": "HELD_UNRESOLVED_NO_EXCEPTION",
+        "reason": "No full literal target; a named expression is not an exact exception.",
+        "exceptionApplied": false
+      },
+      {
+        "index": 208,
+        "file": "src/products/bella-education/finance/repositories/preschool-finance.repository.ts",
+        "line": 868,
+        "column": 22,
+        "method": "rpc",
+        "form": "call",
+        "operation": "execute",
+        "caller": "PreschoolFinanceRepository/atomicReconciliationRpc",
+        "schema": "<client-default>",
+        "receiver": "client",
+        "target": null,
+        "targetExpression": "name",
+        "legacyMatch": null,
+        "signature": "resource:[\"src/products/bella-education/finance/repositories/preschool-finance.repository.ts\",\"PreschoolFinanceRepository/atomicReconciliationRpc\",\"rpc\",\"<client-default>\",null,\"execute\"]",
+        "frozenId": null,
+        "groupId": null,
+        "bucket": "UNRESOLVED_EXPRESSION",
+        "blockedBy": [
+          "exact-resource"
+        ],
+        "disposition": "HELD_UNRESOLVED_NO_EXCEPTION",
+        "reason": "No full literal target; a named expression is not an exact exception.",
+        "exceptionApplied": false
+      },
+      {
+        "index": 352,
+        "file": "src/products/bella-education/services/preschool-chain.service.ts",
+        "line": 392,
+        "column": 47,
+        "method": "rpc",
+        "form": "call",
+        "operation": "execute",
+        "caller": "PreschoolChainService/listCurrentActorOrgUnitAccess",
+        "schema": "<client-default>",
+        "receiver": "actorClient",
+        "target": null,
+        "targetExpression": "CURRENT_ACTOR_ORG_UNIT_ACCESS_RPC",
+        "legacyMatch": null,
+        "signature": "resource:[\"src/products/bella-education/services/preschool-chain.service.ts\",\"PreschoolChainService/listCurrentActorOrgUnitAccess\",\"rpc\",\"<client-default>\",null,\"execute\"]",
+        "frozenId": null,
+        "groupId": null,
+        "bucket": "UNRESOLVED_EXPRESSION",
+        "blockedBy": [
+          "exact-resource"
+        ],
+        "disposition": "HELD_UNRESOLVED_NO_EXCEPTION",
+        "reason": "No full literal target; a named expression is not an exact exception.",
+        "exceptionApplied": false
+      }
+    ],
+    "invalidReviewedCounts": []
+  }
+}

@@ -1,0 +1,83 @@
+{
+  "scope": "Preschool F05/F06 source and live authorization catalog; metadata only",
+  "sourceHead": "f1299e3138f3700062a1ed84271db315737b0071",
+  "remoteMain": "f1299e3138f3700062a1ed84271db315737b0071",
+  "remoteMainEvidenceCommand": "git ls-remote origin refs/heads/main",
+  "projectRef": "lvnvkpyxtuilhrabtlwv",
+  "projectName": "bellaspahcm's Project",
+  "dashboard": "https://supabase.com/dashboard/project/lvnvkpyxtuilhrabtlwv",
+  "dashboardBranch": "main / PRODUCTION",
+  "dashboardDatabaseRegion": "ap-southeast-1 / Southeast Asia (Singapore)",
+  "catalogCapturedAt": "2026-11-01T07:33:01.726914+07:00",
+  "supplementCapturedAt": "2026-11-01T07:38:11.553568+07:00",
+  "executor": "postgres",
+  "transactionReadOnly": [
+    "on",
+    "on",
+    "on"
+  ],
+  "catalogQueryUrl": "https://supabase.com/dashboard/project/lvnvkpyxtuilhrabtlwv/sql/1444fe3b-1a23-4fc4-a31f-7e0d3185bcce",
+  "supplementQueryUrl": "https://supabase.com/dashboard/project/lvnvkpyxtuilhrabtlwv/sql/c397b777-6d43-42e5-9083-2c6c745fa530",
+  "sqlNote": "catalog-readonly.sql is the prepared equivalent; first SQL Editor input used compact whitespace/comments. Supplemental and Announcement SQL are recorded as executed.",
+  "evidenceIntegrity": {
+    "jsonMatchesOriginalCsv": true,
+    "privilegedCatalogReadIsNotCallerJwtTest": true
+  },
+  "businessRowsRead": false,
+  "businessRpcInvoked": false,
+  "databaseMutationStatementsExecuted": false,
+  "artifacts": [
+    {
+      "file": "announcement-catalog-readonly.sql",
+      "bytes": 2605,
+      "sha256": "b97d03cb5de19fc1fea644f4538eb31791e338795e4b1e1cb5fea90cc2d9fb18"
+    },
+    {
+      "file": "catalog-readonly.sql",
+      "bytes": 5651,
+      "sha256": "f1c6dce8940e84e680aad862a371220a83ca3f453427d27b54478d34e29a69e2"
+    },
+    {
+      "file": "catalog-supplement-readonly.sql",
+      "bytes": 3041,
+      "sha256": "542b9d771198ced6d9bbc22efa820dac90b9bca8071b416822b7a3fb0ecb2d0c"
+    },
+    {
+      "file": "live-announcement-catalog.csv",
+      "bytes": 7340,
+      "sha256": "3570f0984b33fd734250efc56e67497e3f25e204840a3481b7fd0b15d2d551f9"
+    },
+    {
+      "file": "live-announcement-catalog.json",
+      "bytes": 7040,
+      "sha256": "4e9621f5b0008b200493ec1ab55ff6db4850fa0ca02881a76c05385d5711deb5"
+    },
+    {
+      "file": "live-catalog-supplement.csv",
+      "bytes": 21122,
+      "sha256": "f29065841b4466901fd2045512244044d4a374b1556961705a8c2d188e8a984c"
+    },
+    {
+      "file": "live-catalog-supplement.json",
+      "bytes": 20488,
+      "sha256": "dbbc9a4dfa5d909850562f79402c041ae73e1c03dea43636ff3af798f74f76f9"
+    },
+    {
+      "file": "live-catalog.csv",
+      "bytes": 160295,
+      "sha256": "d72c14e90a41487226ec65846233ec0b2c47c1fe9a0a2d6b2643c298a76e8a02"
+    },
+    {
+      "file": "live-catalog.json",
+      "bytes": 151138,
+      "sha256": "49c5201166c5ddc3acb2fc4e995e375fe57a42f15a0441a8a34858c6ba8b3be6"
+    },
+    {
+      "file": "REPORT.md",
+      "bytes": 10924,
+      "sha256": "aa0fd478be5ada1c6a1fc94815569e3af32fd9d233ad4f58ca87f0f151738d8d"
+    }
+  ],
+  "announcementCapturedAt": "2026-11-01T00:43:29.967814+00:00",
+  "announcementQueryUrl": "https://supabase.com/dashboard/project/lvnvkpyxtuilhrabtlwv/sql/cf31beb9-767c-4e3a-a85b-ddf7f2d89627"
+}

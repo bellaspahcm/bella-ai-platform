@@ -1,0 +1,84 @@
+{
+  "projectId": "bella-preschool-513f4ec6",
+  "apiOrigin": "http://127.0.0.1:36639",
+  "sourceRevision": "f1299e3138f3700062a1ed84271db315737b0071",
+  "localCapturedAt": "2026-11-01T14:40:47.709258+07:00",
+  "localTransactionReadOnly": "on",
+  "productionCapturedAt": "2026-11-01T13:38:33.336041+07:00",
+  "productionTransactionReadOnly": "on",
+  "expectedLocalHelpers": [
+    {
+      "exists": true,
+      "signature": "public.preschool_teacher_attendance_courses(date,uuid)"
+    },
+    {
+      "exists": true,
+      "signature": "public.preschool_teacher_can_attend_course(uuid,uuid,date,uuid)"
+    }
+  ],
+  "comparisons": [
+    {
+      "signature": "edu_can_access_attendance_enrollment(uuid,uuid,date)",
+      "localMd5": "8ba33b5c41d0f83c9002cdf266c4bdc2",
+      "productionMd5": "d320d997c656cb1af131ce23a343a0f8",
+      "sameDefinition": false,
+      "localSecurityDefiner": true,
+      "localOwner": "postgres",
+      "localAcl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "signature": "edu_preschool_roster_identity(uuid,date)",
+      "localMd5": "9003518d64495865a13c5582b3a311bd",
+      "productionMd5": "7eac33bda0e481d1d0693cd1b2f77546",
+      "sameDefinition": false,
+      "localSecurityDefiner": true,
+      "localOwner": "postgres",
+      "localAcl": "{postgres=X/postgres,authenticated=X/postgres}"
+    },
+    {
+      "signature": "edu_set_daily_attendance(uuid,uuid,text,timestamp with time zone,date)",
+      "localMd5": "7937c96ab37cc2a8aa58eca6bcb21b92",
+      "productionMd5": "0bd77a772ef098df2f09ba02bd58ec5e",
+      "sameDefinition": false,
+      "localSecurityDefiner": true,
+      "localOwner": "postgres",
+      "localAcl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "signature": "edu_set_scoped_daily_attendance(uuid,uuid,text,uuid,uuid,uuid,uuid,text,text,timestamp with time zone,date)",
+      "localMd5": "cb454df3da111574d8da6b98c3ac2579",
+      "productionMd5": "af079945a2f1c3dbaf7ba9701e500ed6",
+      "sameDefinition": false,
+      "localSecurityDefiner": true,
+      "localOwner": "postgres",
+      "localAcl": "{=X/postgres,postgres=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "signature": "preschool_teacher_attendance_courses(date,uuid)",
+      "localMd5": "f4d130c38002e2ddac4323ad43a20076",
+      "productionMd5": null,
+      "sameDefinition": false,
+      "localSecurityDefiner": true,
+      "localOwner": "postgres",
+      "localAcl": "{postgres=X/postgres,authenticated=X/postgres}"
+    }
+  ],
+  "localWriterExecute": [
+    {
+      "role": "anon",
+      "execute": false,
+      "signature": "edu_set_daily_attendance(uuid,uuid,text,timestamp with time zone,date)"
+    },
+    {
+      "role": "authenticated",
+      "execute": true,
+      "signature": "edu_set_daily_attendance(uuid,uuid,text,timestamp with time zone,date)"
+    },
+    {
+      "role": "service_role",
+      "execute": true,
+      "signature": "edu_set_daily_attendance(uuid,uuid,text,timestamp with time zone,date)"
+    }
+  ],
+  "businessRowsRead": false
+}

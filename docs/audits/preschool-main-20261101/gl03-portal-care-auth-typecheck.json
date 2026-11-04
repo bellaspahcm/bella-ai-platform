@@ -1,0 +1,9 @@
+{
+  "scope": "GL03 changed API/test only",
+  "files": [
+    "src/app/api/education/portal/[token]/care/route.ts",
+    "src/app/api/education/portal/[token]/care/__tests__/route.test.ts"
+  ],
+  "diagnostics": [],
+  "otherDiagnostics": 0
+}

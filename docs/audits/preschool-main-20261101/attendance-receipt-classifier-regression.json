@@ -1,0 +1,37 @@
+{
+  "boundary": "actual receipt catch code executed in isolated JS context; no DB or Browser",
+  "harnessSha256": "7e29b454aa0aa87ebe47788bc81840eb4343a4937a2466229475c9dd7a4b8bd0",
+  "deferredGroupPass": "PASS",
+  "results": [
+    {
+      "name": "initial_jwt_failure",
+      "result": "PASS",
+      "jwt": "FAIL",
+      "browser": "NOT_RUN"
+    },
+    {
+      "name": "app_start_failure_before_extended_probes",
+      "result": "PASS",
+      "jwt": "FAIL",
+      "browser": "NOT_RUN"
+    },
+    {
+      "name": "browser_failure_cannot_skip_required_db_probes_and_pass_jwt",
+      "result": "PASS",
+      "jwt": "FAIL",
+      "browser": "FAIL"
+    },
+    {
+      "name": "extended_jwt_failure",
+      "result": "PASS",
+      "jwt": "FAIL",
+      "browser": "FAIL"
+    },
+    {
+      "name": "identity_browser_failure_after_all_db_checks",
+      "result": "PASS",
+      "jwt": "PASS",
+      "browser": "FAIL"
+    }
+  ]
+}

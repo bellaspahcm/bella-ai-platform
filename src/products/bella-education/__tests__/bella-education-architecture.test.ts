@@ -36,7 +36,8 @@ function getAllTsFiles(dir: string): string[] {
 describe('Bella Education V1 — Static Architecture Guard', () => {
   const sourceFiles = getAllTsFiles(BELLA_EDUCATION_ROOT);
 
-  it('Law 3: Zero Direct Kernel Database Access (edu_*, students, assessment_*, attendance_*, journal_*)', () => {
+  // Exact RPC adapter ownership is enforced by education:architecture:ci; this unit guard checks direct table access.
+  it('Law 3: Zero Direct Kernel Table Access (edu_*, students, assessment_*, attendance_*, journal_*)', () => {
     const violations: string[] = [];
 
     sourceFiles.forEach((file) => {
@@ -54,13 +55,6 @@ describe('Bella Education V1 — Static Architecture Guard', () => {
           );
         }
 
-        // Check for direct RPC database client calls
-        const rpcPattern = /\.rpc\s*\(\s*['"`]/;
-        if (rpcPattern.test(line)) {
-          violations.push(
-            `${path.relative(BELLA_EDUCATION_ROOT, file)}:L${index + 1} - Direct RPC database execution is prohibited in the Product layer.`
-          );
-        }
       });
     });
 

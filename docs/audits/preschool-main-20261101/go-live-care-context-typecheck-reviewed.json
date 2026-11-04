@@ -1,0 +1,9 @@
+{
+  "scope": "Changed Care UI/test diagnostics only",
+  "files": [
+    "src/app/dashboard/education/care/page.tsx",
+    "src/app/dashboard/education/care/__tests__/page.test.tsx"
+  ],
+  "diagnostics": [],
+  "otherDiagnostics": 0
+}

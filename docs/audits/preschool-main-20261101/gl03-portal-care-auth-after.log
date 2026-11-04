@@ -1,0 +1,7 @@
+
+Test Suites: 3 passed, 3 total
+Tests:       21 passed, 21 total
+Snapshots:   0 total
+Time:        1.989 s
+Ran all test suites within paths "src/app/api/education/portal/[token]/care/__tests__/route.test.ts", "src/products/bella-education/__tests__/preschool-parent-portal.service.test.ts", "src/app/api/education/parent-daily/__tests__/route.test.ts".
+Test results written to: docs\audits\preschool-main-20261101\gl03-portal-care-auth-after.json

@@ -1,0 +1,481 @@
+{
+  "checks": [
+    {
+      "group": "education-sql-seal.json",
+      "file": "src/app/api/education/courses/route.ts",
+      "sha256": "6fbf445ac7440a5da947b454b39a8d1ceac714fbd602032be2b54fc2bf7b31ce",
+      "expected": "6fbf445ac7440a5da947b454b39a8d1ceac714fbd602032be2b54fc2bf7b31ce",
+      "unchanged": true
+    },
+    {
+      "group": "education-sql-seal.json",
+      "file": "src/app/api/education/courses/__tests__/route.test.ts",
+      "sha256": "6f84400c3d03f233cbe2359c71416fdff4bc71583bc0c94c24f35605c6ea5181",
+      "expected": "6f84400c3d03f233cbe2359c71416fdff4bc71583bc0c94c24f35605c6ea5181",
+      "unchanged": true
+    },
+    {
+      "group": "education-sql-seal.json",
+      "file": "docs/audits/preschool-main-20261101/education-sql-after-jest.json",
+      "sha256": "0aa79119d27fac824d71292853be3ed8750fcc36d67cc60975fef3f4d46f1f0d",
+      "expected": "0aa79119d27fac824d71292853be3ed8750fcc36d67cc60975fef3f4d46f1f0d",
+      "unchanged": true
+    },
+    {
+      "group": "education-sql-seal.json",
+      "file": "docs/audits/preschool-main-20261101/education-sql-after-jest.log",
+      "sha256": "987ad75cce563c53b05139a3c5d35e288a7c51438f06e8b2d773f40d4a5fd81a",
+      "expected": "987ad75cce563c53b05139a3c5d35e288a7c51438f06e8b2d773f40d4a5fd81a",
+      "unchanged": true
+    },
+    {
+      "group": "education-sql-seal.json",
+      "file": "docs/audits/preschool-main-20261101/education-sql-architecture-jest.json",
+      "sha256": "b5bc3a72d4ed5be6dee142647bbae20784688dff363567f1823045e2522c2733",
+      "expected": "b5bc3a72d4ed5be6dee142647bbae20784688dff363567f1823045e2522c2733",
+      "unchanged": true
+    },
+    {
+      "group": "education-sql-seal.json",
+      "file": "docs/audits/preschool-main-20261101/education-sql-architecture-jest.log",
+      "sha256": "046f777ccf7dd77e41f5d50de720eab385aa7634305cf1fc7408a5c4561edaac",
+      "expected": "046f777ccf7dd77e41f5d50de720eab385aa7634305cf1fc7408a5c4561edaac",
+      "unchanged": true
+    },
+    {
+      "group": "education-sql-seal.json",
+      "file": "docs/audits/preschool-main-20261101/education-sql-baseline-typecheck.json",
+      "sha256": "bc5c80fcfcdbe674743534622dcca0b7b5fa4d1e2ccc8abfddad26e95c9f7c8c",
+      "expected": "bc5c80fcfcdbe674743534622dcca0b7b5fa4d1e2ccc8abfddad26e95c9f7c8c",
+      "unchanged": true
+    },
+    {
+      "group": "education-sql-seal.json",
+      "file": "docs/audits/preschool-main-20261101/education-sql-before-jest.json",
+      "sha256": "0fba45c84a0ac9442129ae2005c894b7bc7b07552082dff435857eb2feedc314",
+      "expected": "0fba45c84a0ac9442129ae2005c894b7bc7b07552082dff435857eb2feedc314",
+      "unchanged": true
+    },
+    {
+      "group": "education-sql-seal.json",
+      "file": "docs/audits/preschool-main-20261101/education-sql-before-jest.log",
+      "sha256": "731c3ec906f1345ccf04f534cdeebb71f17f091593218fd4ef2b86a66da113f1",
+      "expected": "731c3ec906f1345ccf04f534cdeebb71f17f091593218fd4ef2b86a66da113f1",
+      "unchanged": true
+    },
+    {
+      "group": "education-sql-seal.json",
+      "file": "docs/audits/preschool-main-20261101/education-sql-before.json",
+      "sha256": "8dec3234337eb294a3c18b18fd4cc0fbc3550f018cc9a996f8757b7b027a303b",
+      "expected": "8dec3234337eb294a3c18b18fd4cc0fbc3550f018cc9a996f8757b7b027a303b",
+      "unchanged": true
+    },
+    {
+      "group": "education-sql-seal.json",
+      "file": "docs/audits/preschool-main-20261101/education-sql-ci.log",
+      "sha256": "06923e7fbfbfccf6541a56b18a8a1b039a75fe32dc11046eafc2e49367f601a1",
+      "expected": "06923e7fbfbfccf6541a56b18a8a1b039a75fe32dc11046eafc2e49367f601a1",
+      "unchanged": true
+    },
+    {
+      "group": "education-sql-seal.json",
+      "file": "docs/audits/preschool-main-20261101/education-sql-final-jest.json",
+      "sha256": "ea3da845af1c1efa39c36d290eb1c2ea420bde2fdc19125f53faa262376eacd3",
+      "expected": "ea3da845af1c1efa39c36d290eb1c2ea420bde2fdc19125f53faa262376eacd3",
+      "unchanged": true
+    },
+    {
+      "group": "education-sql-seal.json",
+      "file": "docs/audits/preschool-main-20261101/education-sql-final-jest.log",
+      "sha256": "89132ef6095fb858f72688904ec4af04e9549c9e9b45843ea0c0a35756bcb08b",
+      "expected": "89132ef6095fb858f72688904ec4af04e9549c9e9b45843ea0c0a35756bcb08b",
+      "unchanged": true
+    },
+    {
+      "group": "education-sql-seal.json",
+      "file": "docs/audits/preschool-main-20261101/education-sql-gate.json",
+      "sha256": "cb8ab089099bd72bfa851f4e1b99ea256878e56ba927067d4081b5aff1685fee",
+      "expected": "cb8ab089099bd72bfa851f4e1b99ea256878e56ba927067d4081b5aff1685fee",
+      "unchanged": true
+    },
+    {
+      "group": "education-sql-seal.json",
+      "file": "docs/audits/preschool-main-20261101/education-sql-preservation-final.json",
+      "sha256": "ef0c002e920b5f919ceec6b150c1c339398a460605d5eb3399e3ce8aa4615c3a",
+      "expected": "ef0c002e920b5f919ceec6b150c1c339398a460605d5eb3399e3ce8aa4615c3a",
+      "unchanged": true
+    },
+    {
+      "group": "education-sql-seal.json",
+      "file": "docs/audits/preschool-main-20261101/education-sql-preservation.json",
+      "sha256": "e295028f27601cfe8d290abd1b8ddff84ae830b897eb725ebadc32772468f2f7",
+      "expected": "e295028f27601cfe8d290abd1b8ddff84ae830b897eb725ebadc32772468f2f7",
+      "unchanged": true
+    },
+    {
+      "group": "education-sql-seal.json",
+      "file": "docs/audits/preschool-main-20261101/education-sql-reconciliation.json",
+      "sha256": "e576a162949505a946beefe1853b314990a5f4ad753d5a053e6330078bca7fd5",
+      "expected": "e576a162949505a946beefe1853b314990a5f4ad753d5a053e6330078bca7fd5",
+      "unchanged": true
+    },
+    {
+      "group": "education-sql-seal.json",
+      "file": "docs/audits/preschool-main-20261101/education-sql-typecheck-final.json",
+      "sha256": "e2b9e5e7b8234f289996c89a81dd44fd267414c6b75fea5b8ca4f957b293eb50",
+      "expected": "e2b9e5e7b8234f289996c89a81dd44fd267414c6b75fea5b8ca4f957b293eb50",
+      "unchanged": true
+    },
+    {
+      "group": "education-sql-seal.json",
+      "file": "docs/audits/preschool-main-20261101/education-sql-typecheck-final.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "expected": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "unchanged": true
+    },
+    {
+      "group": "education-sql-seal.json",
+      "file": "docs/audits/preschool-main-20261101/education-sql-typecheck.json",
+      "sha256": "237b68177123a9b0f9b44f21eb49cd3e80502a231c21db058bfa496c83854c2c",
+      "expected": "237b68177123a9b0f9b44f21eb49cd3e80502a231c21db058bfa496c83854c2c",
+      "unchanged": true
+    },
+    {
+      "group": "education-sql-seal.json",
+      "file": "docs/audits/preschool-main-20261101/education-sql-typecheck.log",
+      "sha256": "e9109b8f9e9fdb8365e9cb2d30b3b11959f66ae755e0b07c02e483504c065e7c",
+      "expected": "e9109b8f9e9fdb8365e9cb2d30b3b11959f66ae755e0b07c02e483504c065e7c",
+      "unchanged": true
+    },
+    {
+      "group": "education-sql-seal.json",
+      "file": "docs/audits/preschool-main-20261101/education-sql.patch",
+      "sha256": "fb883df05488364162924d69444ab476a21f4132ed24ad51603ee66438330d07",
+      "expected": "fb883df05488364162924d69444ab476a21f4132ed24ad51603ee66438330d07",
+      "unchanged": true
+    },
+    {
+      "group": "education-sql-seal.json",
+      "file": "docs/audits/preschool-main-20261101/EDUCATION_SQL_CHANGE_MAP.md",
+      "sha256": "725fb2b1f8af63012527d74c3b41b2855bb6cd75e6a5b746c5106e6385f9d624",
+      "expected": "725fb2b1f8af63012527d74c3b41b2855bb6cd75e6a5b746c5106e6385f9d624",
+      "unchanged": true
+    },
+    {
+      "group": "f13-approved-seal.json",
+      "file": "scripts/ci-run-education-architecture.mjs",
+      "sha256": "bd05ed6f8f8c62cfa47d15bee418d120c51d013d03b99c79385ec026fd460d4c",
+      "expected": "bd05ed6f8f8c62cfa47d15bee418d120c51d013d03b99c79385ec026fd460d4c",
+      "unchanged": true
+    },
+    {
+      "group": "f13-approved-seal.json",
+      "file": "scripts/test-ci-education-architecture.mjs",
+      "sha256": "dd0d147556590e37c6aa427924015561c6cf23b83e30a552498e3718fc8b297e",
+      "expected": "dd0d147556590e37c6aa427924015561c6cf23b83e30a552498e3718fc8b297e",
+      "unchanged": true
+    },
+    {
+      "group": "f13-approved-seal.json",
+      "file": "src/products/bella-education/__tests__/bella-education-architecture.test.ts",
+      "sha256": "ccfe6da9b0b2a3633617ce776ee99999df306a5fe914472b94d8dbbf4d1567d9",
+      "expected": "ccfe6da9b0b2a3633617ce776ee99999df306a5fe914472b94d8dbbf4d1567d9",
+      "unchanged": true
+    },
+    {
+      "group": "f13-approved-seal.json",
+      "file": ".github/ci/education-architecture-dispositions.json",
+      "sha256": "443ea7b4fb50da88c661d804804f2d264b1b76943f8821432df9a95aa96e053f",
+      "expected": "443ea7b4fb50da88c661d804804f2d264b1b76943f8821432df9a95aa96e053f",
+      "unchanged": true
+    },
+    {
+      "group": "f13-approved-seal.json",
+      "file": "docs/audits/preschool-main-20261101/F13_P1P2P3_LOCAL_RESULT.md",
+      "sha256": "649e2813fa39dffa4a6454df273b75b76063d582bc2e61a30ad8db554d0643b9",
+      "expected": "649e2813fa39dffa4a6454df273b75b76063d582bc2e61a30ad8db554d0643b9",
+      "unchanged": true
+    },
+    {
+      "group": "f13-approved-seal.json",
+      "file": "docs/audits/preschool-main-20261101/verify-f13-approved-scopes.mjs",
+      "sha256": "ef4aa6d41ad06eebc7932618c6734dddfbd6766fb9dd6bad08544a0029aef6fb",
+      "expected": "ef4aa6d41ad06eebc7932618c6734dddfbd6766fb9dd6bad08544a0029aef6fb",
+      "unchanged": true
+    },
+    {
+      "group": "f13-approved-seal.json",
+      "file": "docs/audits/preschool-main-20261101/f13-approved-control-receipt.json",
+      "sha256": "9b6dd4b30651cdb1a2aa4e74ffcc7405c14a34c93422426dd07f95bf55b15e2d",
+      "expected": "9b6dd4b30651cdb1a2aa4e74ffcc7405c14a34c93422426dd07f95bf55b15e2d",
+      "unchanged": true
+    },
+    {
+      "group": "f13-approved-seal.json",
+      "file": "docs/audits/preschool-main-20261101/f13-approved-edge-review.json",
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+      "expected": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+      "unchanged": true
+    },
+    {
+      "group": "f13-approved-seal.json",
+      "file": "docs/audits/preschool-main-20261101/f13-approved-fixtures.log",
+      "sha256": "9cd8053f05771c3a6d91ebc863f7289bdd818ae23ae41fd26edaff46cd9c1d56",
+      "expected": "9cd8053f05771c3a6d91ebc863f7289bdd818ae23ae41fd26edaff46cd9c1d56",
+      "unchanged": true
+    },
+    {
+      "group": "f13-approved-seal.json",
+      "file": "docs/audits/preschool-main-20261101/f13-approved-fixtures-final.log",
+      "sha256": "cba2261cc69ef23c0397f07798d7629c0ae44a26697cc4dfd5f7158bd4ac8491",
+      "expected": "cba2261cc69ef23c0397f07798d7629c0ae44a26697cc4dfd5f7158bd4ac8491",
+      "unchanged": true
+    },
+    {
+      "group": "f13-approved-seal.json",
+      "file": "docs/audits/preschool-main-20261101/f13-approved-jest.json",
+      "sha256": "efaef69075c7e20a7426f8764e5908de0ab0cf1b278cb08cb5ab3a81f001b4db",
+      "expected": "efaef69075c7e20a7426f8764e5908de0ab0cf1b278cb08cb5ab3a81f001b4db",
+      "unchanged": true
+    },
+    {
+      "group": "f13-approved-seal.json",
+      "file": "docs/audits/preschool-main-20261101/f13-approved-jest.log",
+      "sha256": "dfe6067183ee7924c3c250f842bf3c02263537c7e2e826697cbecdd38b00d963",
+      "expected": "dfe6067183ee7924c3c250f842bf3c02263537c7e2e826697cbecdd38b00d963",
+      "unchanged": true
+    },
+    {
+      "group": "f13-approved-seal.json",
+      "file": "docs/audits/preschool-main-20261101/f13-approved-jest-final.json",
+      "sha256": "59cfc591973b16e5d8ad078bd07d5bf7875ebe8344f5605697d8a63122e1e855",
+      "expected": "59cfc591973b16e5d8ad078bd07d5bf7875ebe8344f5605697d8a63122e1e855",
+      "unchanged": true
+    },
+    {
+      "group": "f13-approved-seal.json",
+      "file": "docs/audits/preschool-main-20261101/f13-approved-jest-final.log",
+      "sha256": "656ab151aaea6bb6644f4454a18e519659674d16fe47b50428d7f237af29c678",
+      "expected": "656ab151aaea6bb6644f4454a18e519659674d16fe47b50428d7f237af29c678",
+      "unchanged": true
+    },
+    {
+      "group": "f13-approved-seal.json",
+      "file": "docs/audits/preschool-main-20261101/f13-approved-scopes.json",
+      "sha256": "9ed939cd6ba827922564b32d6d6023f6754d1ef1a1f1f1271894e4aea8e0efda",
+      "expected": "9ed939cd6ba827922564b32d6d6023f6754d1ef1a1f1f1271894e4aea8e0efda",
+      "unchanged": true
+    },
+    {
+      "group": "f13-approved-seal.json",
+      "file": "docs/audits/preschool-main-20261101/f13-approved-main.json",
+      "sha256": "42f4ab02dc6654dc4bee55bed820bfd31da6a9cfa547d021d9b7273f27ecc2ad",
+      "expected": "42f4ab02dc6654dc4bee55bed820bfd31da6a9cfa547d021d9b7273f27ecc2ad",
+      "unchanged": true
+    },
+    {
+      "group": "f13-approved-seal.json",
+      "file": "docs/audits/preschool-main-20261101/f13-approved-technical.json",
+      "sha256": "b39ece95bb090d6b27fd9521924be4aa356d9afec33f72ec51f8034ae9a849b6",
+      "expected": "b39ece95bb090d6b27fd9521924be4aa356d9afec33f72ec51f8034ae9a849b6",
+      "unchanged": true
+    },
+    {
+      "group": "f13-approved-seal.json",
+      "file": "docs/audits/preschool-main-20261101/f13-approved-wip.json",
+      "sha256": "8ed87443430097b236e9861657c9bfd5eed2daa0ad33b9b7366250dbfd5e3a7a",
+      "expected": "8ed87443430097b236e9861657c9bfd5eed2daa0ad33b9b7366250dbfd5e3a7a",
+      "unchanged": true
+    },
+    {
+      "group": "f13-approved-seal.json",
+      "file": "docs/audits/preschool-main-20261101/f13-approved-scopes-final.log",
+      "sha256": "3ec98a7b7572c8988d269136f66251ae8035445190883304bf146f00f6da2293",
+      "expected": "3ec98a7b7572c8988d269136f66251ae8035445190883304bf146f00f6da2293",
+      "unchanged": true
+    },
+    {
+      "group": "f13-approved-seal.json",
+      "file": "docs/audits/preschool-main-20261101/f13-approved-typecheck-final.json",
+      "sha256": "e5d441366e2d274e019a73f8de7eb7ca57b027406620f1cf41896b2d834601ee",
+      "expected": "e5d441366e2d274e019a73f8de7eb7ca57b027406620f1cf41896b2d834601ee",
+      "unchanged": true
+    },
+    {
+      "group": "f13-approved-seal.json",
+      "file": "docs/audits/preschool-main-20261101/f13-approved-typecheck-final.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "expected": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "unchanged": true
+    },
+    {
+      "group": "f13-approved-seal.json",
+      "file": "docs/audits/preschool-main-20261101/f13-approved-ci-result.json",
+      "sha256": "a9817e0c5c58cfd451504ec6ad9901060dbcf00783897713c6007f1beda68829",
+      "expected": "a9817e0c5c58cfd451504ec6ad9901060dbcf00783897713c6007f1beda68829",
+      "unchanged": true
+    },
+    {
+      "group": "f13-approved-seal.json",
+      "file": "docs/audits/preschool-main-20261101/f13-approved-ci.log",
+      "sha256": "13bad51dc6d0b2563eff32db05dd19639072482537adad4a5b60e71f27c0014c",
+      "expected": "13bad51dc6d0b2563eff32db05dd19639072482537adad4a5b60e71f27c0014c",
+      "unchanged": true
+    },
+    {
+      "group": "f13-approved-seal.json",
+      "file": "docs/audits/preschool-main-20261101/f13-approved-controls.patch",
+      "sha256": "f1436c248597fb62841a9a16db6e4b17acb7e1d75e956fb5eb6e7ac8181d5166",
+      "expected": "f1436c248597fb62841a9a16db6e4b17acb7e1d75e956fb5eb6e7ac8181d5166",
+      "unchanged": true
+    },
+    {
+      "group": "f10-f12-seal.json",
+      "file": "src/app/api/education/curriculum/__tests__/route.test.ts",
+      "sha256": "bb0e78e39462779725ffa3257797b2877c676cab0defcfb486d867a750bb9926",
+      "expected": "bb0e78e39462779725ffa3257797b2877c676cab0defcfb486d867a750bb9926",
+      "unchanged": true
+    },
+    {
+      "group": "f10-f12-seal.json",
+      "file": "src/app/api/education/enrollments/[id]/communications/__tests__/route.test.ts",
+      "sha256": "92468acac347d12f5c8c10351aa2a9f30e6a71acbdb2bebbf6060c1d13133bfa",
+      "expected": "92468acac347d12f5c8c10351aa2a9f30e6a71acbdb2bebbf6060c1d13133bfa",
+      "unchanged": true
+    },
+    {
+      "group": "f10-f12-seal.json",
+      "file": "src/app/api/education/enrollments/[id]/communications/route.ts",
+      "sha256": "9cb209c0984b286a1ac77f0361b4655a7475e1e84b9058f29d53c89c30afc031",
+      "expected": "9cb209c0984b286a1ac77f0361b4655a7475e1e84b9058f29d53c89c30afc031",
+      "unchanged": true
+    },
+    {
+      "group": "f10-f12-seal.json",
+      "file": "src/app/api/education/enrollments/__tests__/student-360.service.test.ts",
+      "sha256": "9635da7c095e59e2768c99c362695d83e15e56d307a380325454b4a55ffe8a12",
+      "expected": "9635da7c095e59e2768c99c362695d83e15e56d307a380325454b4a55ffe8a12",
+      "unchanged": true
+    },
+    {
+      "group": "f10-f12-seal.json",
+      "file": "src/app/api/education/enrollments/student-360.service.ts",
+      "sha256": "581472f004dea82f4e0455e3a0a65a247d608c624654072fda05424741da5725",
+      "expected": "581472f004dea82f4e0455e3a0a65a247d608c624654072fda05424741da5725",
+      "unchanged": true
+    },
+    {
+      "group": "f10-f12-seal.json",
+      "file": "src/app/api/education/nutrition/weekly-menu/__tests__/route.test.ts",
+      "sha256": "4f3cbcbdda03730d1cc02faf1039c35f16c6a205693845f73a90fc17edd84bd5",
+      "expected": "4f3cbcbdda03730d1cc02faf1039c35f16c6a205693845f73a90fc17edd84bd5",
+      "unchanged": true
+    },
+    {
+      "group": "f10-f12-seal.json",
+      "file": "src/products/bella-education/care-wellbeing/nutrition/__tests__/weekly-menu.service.test.ts",
+      "sha256": "c4317eb7d5091d4351e05766db32d339b76d36deaf97fbf917c20dd6cb783bac",
+      "expected": "c4317eb7d5091d4351e05766db32d339b76d36deaf97fbf917c20dd6cb783bac",
+      "unchanged": true
+    },
+    {
+      "group": "f10-f12-seal.json",
+      "file": "src/products/bella-education/care-wellbeing/nutrition/weekly-menu.service.ts",
+      "sha256": "e6cc9c344dfd1dd5e891f4ce163350a161185279b0b14ee9731fbaecb944d7fb",
+      "expected": "e6cc9c344dfd1dd5e891f4ce163350a161185279b0b14ee9731fbaecb944d7fb",
+      "unchanged": true
+    },
+    {
+      "group": "f10-f12-seal.json",
+      "file": "src/products/bella-education/learning-development/curriculum/__tests__/curriculum.service.test.ts",
+      "sha256": "0f71c9d10db6be3cb874a8a91457b2937d816dea52b8db00049868fde3af309d",
+      "expected": "0f71c9d10db6be3cb874a8a91457b2937d816dea52b8db00049868fde3af309d",
+      "unchanged": true
+    },
+    {
+      "group": "f10-f12-seal.json",
+      "file": "src/products/bella-education/learning-development/curriculum/curriculum.service.ts",
+      "sha256": "17316e58f1d2d5d26517651e87077af4c4d4f592cebaa4a588fcbc107cffb46b",
+      "expected": "17316e58f1d2d5d26517651e87077af4c4d4f592cebaa4a588fcbc107cffb46b",
+      "unchanged": true
+    },
+    {
+      "group": "f10-f12-seal.json",
+      "file": "docs/audits/preschool-main-20261101/f10-f12-jest.json",
+      "sha256": "d2ad349756a5891b129d650c4926188c565e00ac319ba9b3c0a35e8b4e0fbfcf",
+      "expected": "d2ad349756a5891b129d650c4926188c565e00ac319ba9b3c0a35e8b4e0fbfcf",
+      "unchanged": true
+    },
+    {
+      "group": "f10-f12-seal.json",
+      "file": "docs/audits/preschool-main-20261101/f10-f12-jest.log",
+      "sha256": "aff901a4ae4f5902177f6724cc8c46a7534b9c06be8e963a0ab8c1625ec5bc18",
+      "expected": "aff901a4ae4f5902177f6724cc8c46a7534b9c06be8e963a0ab8c1625ec5bc18",
+      "unchanged": true
+    },
+    {
+      "group": "f10-f12-seal.json",
+      "file": "docs/audits/preschool-main-20261101/technical-typecheck.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "expected": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "unchanged": true
+    },
+    {
+      "group": "f10-f12-seal.json",
+      "file": "docs/audits/preschool-main-20261101/f10-f12-changes.patch",
+      "sha256": "1d0eb55ca7c2b1bfabb156925760c9d48e6120d9d57cf1ac700c7a94ea7b2646",
+      "expected": "1d0eb55ca7c2b1bfabb156925760c9d48e6120d9d57cf1ac700c7a94ea7b2646",
+      "unchanged": true
+    },
+    {
+      "group": "baseline",
+      "file": ".github/ci/education-architecture-baselines.json",
+      "sha256": "cf480356bf1fb9c062f4d6690cf52bea855e59abc886cb42dc7e80cd67209d8d",
+      "expected": "cf480356bf1fb9c062f4d6690cf52bea855e59abc886cb42dc7e80cd67209d8d",
+      "unchanged": true
+    }
+  ],
+  "runtime": [
+    {
+      "file": "src/app/api/education/care/bulk/route.ts",
+      "sha256": "7411e3b3de461a6fa9a603dcab44b5885c764595e7c02eda4549c65644e5ec12",
+      "normalizedHeadUnchanged": true
+    },
+    {
+      "file": "src/app/api/education/care/bulk/request-context.ts",
+      "sha256": "56e434b701f31f7268424f571fb16824b5d9a9ae6090858a31bd5ba838c49a68",
+      "normalizedHeadUnchanged": true
+    },
+    {
+      "file": "src/products/bella-education/care-wellbeing/daily-care/daily-care.service.ts",
+      "sha256": "c95a205b663683b77eab2503ad89d784a67bb3ae61154b1a5764a78ce1ee644f",
+      "normalizedHeadUnchanged": true
+    },
+    {
+      "file": "src/products/bella-education/care-wellbeing/daily-care/daily-care.contract.ts",
+      "sha256": "4f407a278a12927bcc1d002c5c2a2e9060f04c7efb80c3ba9c71617f0cc6e4e2",
+      "normalizedHeadUnchanged": true
+    },
+    {
+      "file": "src/platform/education/contracts/attendance.contract.ts",
+      "sha256": "1411e492095dee5a37f648f16b2484aca78a18eb168d4b0cb144fc3e46a47872",
+      "normalizedHeadUnchanged": true
+    },
+    {
+      "file": "src/platform/education/contracts/attendance.contract.impl.ts",
+      "sha256": "2d47cd90dd7b55e4a4ca9326489302bcedd8bf9b46e1f2365b715d202d88ba6c",
+      "normalizedHeadUnchanged": true
+    }
+  ],
+  "oldWip": {
+    "head": "f1299e3138f3700062a1ed84271db315737b0071",
+    "branch": "codex/preschool-main-hardening-20261101",
+    "statusSha256": "edd38044e21c183afa1fd4d6224f4b685239801813e83fd77658c6f544de7a1e",
+    "trackedDiffSha256": "f3761f5e986611283e29d0ca5c59e36e229ae0ac4ebea93758ccaed2f2e24990",
+    "untrackedCount": 28,
+    "untrackedSha256": "42b05b2a26dd5ed499cf685f1fb060d02288a121352762299a030823357c952c"
+  },
+  "oldWipUnchanged": true,
+  "allSealedHashesUnchanged": true,
+  "runtimeUnchanged": true
+}

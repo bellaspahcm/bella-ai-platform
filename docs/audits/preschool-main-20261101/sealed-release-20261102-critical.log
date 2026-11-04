@@ -1,0 +1,10 @@
+
+> bella-spa-erp@0.1.0 test:critical
+> jest src/__tests__/payment-webhook.test.ts src/__tests__/accounting-outbox.test.ts src/__tests__/finance.test.ts src/__tests__/finance-transaction-mutations.test.ts src/__tests__/admin-salary-actions.test.ts src/__tests__/salary-recalculation-lifecycle.test.ts src/__tests__/salary-surface-parity.test.ts src/__tests__/salary-reconciliation.test.ts src/__tests__/salary-reconciliation-summary.test.ts src/__tests__/auth-guards.test.ts src/__tests__/tenant-actions.test.ts src/__tests__/meta-ads-actions.test.ts src/__tests__/meta-ads-ui.test.ts src/__tests__/business-invariants-check.test.ts src/__tests__/ai-autopilot-cron.test.ts src/__tests__/test-upcoming-route.test.ts src/__tests__/portal-payment-utils.test.ts --runInBand
+
+
+Test Suites: 17 passed, 17 total
+Tests:       199 passed, 199 total
+Snapshots:   0 total
+Time:        6.466 s
+Ran all test suites matching src/__tests__/payment-webhook.test.ts|src/__tests__/accounting-outbox.test.ts|src/__tests__/finance.test.ts|src/__tests__/finance-transaction-mutations.test.ts|src/__tests__/admin-salary-actions.test.ts|src/__tests__/salary-recalculation-lifecycle.test.ts|src/__tests__/salary-surface-parity.test.ts|src/__tests__/salary-reconciliation.test.ts|src/__tests__/salary-reconciliation-summary.test.ts|src/__tests__/auth-guards.test.ts|src/__tests__/tenant-actions.test.ts|src/__tests__/meta-ads-actions.test.ts|src/__tests__/meta-ads-ui.test.ts|src/__tests__/business-invariants-check.test.ts|src/__tests__/ai-autopilot-cron.test.ts|src/__tests__/test-upcoming-route.test.ts|src/__tests__/portal-payment-utils.test.ts.

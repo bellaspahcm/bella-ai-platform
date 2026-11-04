@@ -1,0 +1,123 @@
+diff --git a/src/app/api/education/courses/__tests__/route.test.ts b/src/app/api/education/courses/__tests__/route.test.ts
+index 7adb69270..5d6fe588c 100644
+--- a/src/app/api/education/courses/__tests__/route.test.ts
++++ b/src/app/api/education/courses/__tests__/route.test.ts
+@@ -1,13 +1,13 @@
+ import { describe, expect, it, jest, beforeEach } from '@jest/globals';
+ 
+-const mockFrom = jest.fn();
+-const mockSessionFrom = jest.fn();
++const mockFrom = jest.fn<(table: string) => unknown>();
++const mockSessionFrom = jest.fn<(table: string) => unknown>();
+ const mockGetAuthUser = jest.fn<() => Promise<{ data: { user: { id: string } | null }; error: { message: string } | null }>>();
+-const mockGetCurrentUser = jest.fn<() => Promise<{ id?: string; tenant_id?: string | null;role?:string } | null>>();
+-const mockReadRegistry = jest.fn();
+-const mockListCanonicalCourseTeachers = jest.fn();
++const mockGetCurrentUser = jest.fn<() => Promise<{ id?: string; tenant_id?: string | null; role?: string; status?: string } | null>>();
++const mockReadRegistry = jest.fn<(...args: unknown[]) => Promise<unknown>>();
++const mockListCanonicalCourseTeachers = jest.fn<(...args: unknown[]) => Promise<unknown>>();
+ const mockCreateSessionClient = jest.fn(() => ({ from: mockSessionFrom, auth: { getUser: mockGetAuthUser } }));
+-const mockCreateAdminClient = jest.fn(() => ({ from: mockFrom }));
++const mockCreateAdminClient = jest.fn((_url: string, _key: string, _options: unknown) => ({ from: mockFrom }));
+ const mockAdminUrl = jest.fn<() => string | undefined>(() => 'https://courses-test.invalid');
+ const mockAdminKey = jest.fn<() => string | undefined>(() => 'courses-test-admin-placeholder');
+ const mockTenantFilter = jest.fn();
+@@ -122,7 +122,7 @@ describe('/api/education/courses canonical classroom route', () => {
+     expectNoOperationAccess();
+   });
+ 
+-  it.each(['admin_staff', 'super_admin', 'parent'])('does not substitute the legacy %s role for canonical Preschool admin authority', async role => {
++  it.each(['admin_staff', 'super_admin', 'parent', 'teacher', 'accountant'])('does not substitute the legacy %s role for canonical Preschool admin authority', async role => {
+     mockGetCurrentUser.mockResolvedValue({ id: 'actor-a', tenant_id: tenantId, role, status: 'active' });
+     const response = await GET(new Request('http://localhost/api/education/courses'));
+     expect(response.status).toBe(403);
+@@ -404,6 +404,41 @@ describe('/api/education/courses canonical classroom route', () => {
+     ]);
+   });
+ 
++  it.each([
++    ['draft', 'inactive'],
++    ['inactive', 'inactive'],
++    ['archived', 'archived'],
++  ])('preserves the empty authorized roster for a %s course', async (status, responseStatus) => {
++    const queriedTables: string[] = [];
++    mockFrom.mockImplementation((table: string) => {
++      queriedTables.push(table);
++      if (table === 'edu_courses') {
++        return { select: () => ({ eq: () => ({ order: async () => ({ data: [{
++          id: courseId, course_code: 'MAM-A1', title: 'Lớp Mầm Canonical', status,
++          max_students: 25, current_enrollment: 19, created_at: '2026-10-06T00:00:00.000Z',
++        }], error: null }) }) }) };
++      }
++      if (table === 'courses') {
++        return { select: () => ({ eq: () => ({ in: async () => ({ data: [], error: null }) }) }) };
++      }
++      throw new Error(`Unexpected table access: ${table}`);
++    });
++
++    const response = await GET(new Request('http://localhost/api/education/courses?date=2026-10-22'));
++
++    expect(response.status).toBe(200);
++    expect(await response.json()).toEqual({ success: true, classrooms: [expect.objectContaining({
++      id: courseId, tenantId, branchId: 'branch-a', name: 'Lớp Mầm Canonical',
++      students: 0, maxStudents: 25, status: responseStatus, teacher: 'Chưa xác minh', teacherCount: null,
++      todayStatus: { present: 0, absent: 0, excused: 0, unmarked: 0, healthAlerts: 0 },
++    })] });
++    expect(mockReadRegistry).not.toHaveBeenCalled();
++    expect(mockListCanonicalCourseTeachers).not.toHaveBeenCalled();
++    expect(mockEnrollmentAssignments).not.toHaveBeenCalled();
++    expect(mockSessionFrom).not.toHaveBeenCalled();
++    expect(queriedTables).toEqual(['edu_courses', 'courses']);
++  });
++
+   it('correctly maps gradeKey for all preschool grades including nursery (Nhà Trẻ)', async () => {
+     const mockEduCourses = [
+       { id: 'c-nursery', course_code: 'NHA-TRE-1', title: 'Lớp Nhà trẻ 1 — Gấu Misa', status: 'active', max_students: 18, current_enrollment: 0, created_at: '2026-10-01' },
+diff --git a/src/app/api/education/courses/route.ts b/src/app/api/education/courses/route.ts
+index cec4ff1bb..14b0b181a 100644
+--- a/src/app/api/education/courses/route.ts
++++ b/src/app/api/education/courses/route.ts
+@@ -199,9 +199,6 @@ export async function GET(request: Request) {
+     const branchScope = new PreschoolChainService(supabase);
+     if (admissionBranchId!==null) await branchScope.assertBranchAccess(tenantId,currentUser.id,admissionBranchId);
+     const courseAssignments = admissionBranchId!==null ? [] : await branchScope.listCourseAssignments(tenantId,currentUser.id,searchParams.get('branchId') ?? undefined);
+-    const enrollmentAssignments = admissionBranchId !== null || role === 'admin'
+-      ? []
+-      : await branchScope.listEnrollmentAssignments(tenantId, currentUser.id, searchParams.get('branchId') ?? undefined);
+     const targetDate = searchParams.get('date') || getLocalDateString(new Date()) || '2026-10-18';
+ 
+     // 1. Fetch canonical Education courses used by enrollment runtime.
+@@ -310,31 +307,9 @@ export async function GET(request: Request) {
+         const roster = await readBranchRoster(registry, tenantId, course.id, courseBranch.branch_id);
+         currentStudents = roster.studentCount;
+         attendanceEnrollmentIds = roster.attendanceEnrollmentIds;
+-      } else {
+-        const scopedEnrollmentIds = enrollmentAssignments
+-          .filter((row)=>row.courseId===course.id && row.branchId===courseBranch.branch_id)
+-          .map((row)=>row.enrollmentId);
+-        const { count, error: countError } = await supabase
+-          .from('edu_enrollments')
+-          .select('id', { count: 'exact', head: true })
+-          .eq('course_id', course.id)
+-          .eq('tenant_id', tenantId)
+-          .in('id', scopedEnrollmentIds)
+-          .in('status', [...ROSTER_ENROLLMENT_STATUSES]);
+-        if (countError) throw new Error(countError.message);
+-        currentStudents = count ?? 0;
+-        const { data: scopedRows, error: enrollmentReadError } = await supabase
+-          .from('edu_enrollments')
+-          .select('id,status')
+-          .eq('course_id', course.id)
+-          .eq('tenant_id', tenantId)
+-          .in('id', scopedEnrollmentIds)
+-          .in('status', [...ROSTER_ENROLLMENT_STATUSES]);
+-        if (enrollmentReadError) throw new Error(enrollmentReadError.message);
+-        attendanceEnrollmentIds = (scopedRows || [])
+-          .filter(row => row.status === 'active')
+-          .map(row => row.id);
+       }
++      // The admin-only boundary above leaves inactive courses with no scoped
++      // enrollments. Keep their existing zero totals without empty DB reads.
+       // Grade key mapping from course_code or course_name
+       let gradeKey: 'mam' | 'choi' | 'la' | 'nursery' = 'mam';
+       const codeUpper = (course.course_code || '').toUpperCase();

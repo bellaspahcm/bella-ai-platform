@@ -1,0 +1,57 @@
+{
+  "at": "2026-11-02T00:28:54.9605671Z",
+  "sourceReceipt": "sealed-release-20261102-baseline-smoke.json",
+  "rawReceiptPreserved": true,
+  "deniedRequests": [
+    {
+      "name": "care invalid-token denial",
+      "status": 401,
+      "observedCode": "TOKEN_MALFORMED",
+      "classification": "FIXTURE_STATE",
+      "sourceExpectedCode": "TOKEN_MALFORMED",
+      "denialVerified": true
+    },
+    {
+      "name": "attendance invalid-token denial",
+      "status": 401,
+      "observedCode": "TOKEN_MALFORMED",
+      "classification": "FIXTURE_STATE",
+      "sourceExpectedCode": "TOKEN_MALFORMED",
+      "denialVerified": true
+    },
+    {
+      "name": "tuition invalid-token denial",
+      "status": 401,
+      "observedCode": "TOKEN_MALFORMED",
+      "classification": "FIXTURE_STATE",
+      "sourceExpectedCode": "TOKEN_MALFORMED",
+      "denialVerified": true
+    }
+  ],
+  "realLoginVerified": true,
+  "health": "FAIL_503_PGRST202",
+  "browserFailures": [
+    {
+      "name": "dashboard",
+      "path": "/dashboard",
+      "runtimeErrorCount": 1
+    },
+    {
+      "name": "finance",
+      "path": "/dashboard/finance",
+      "runtimeErrorCount": 2
+    },
+    {
+      "name": "accounting",
+      "path": "/dashboard/accounting",
+      "runtimeErrorCount": 1
+    },
+    {
+      "name": "preschool-care",
+      "path": "/dashboard/education/care",
+      "runtimeErrorCount": 1
+    }
+  ],
+  "productionRelease": "HOLD",
+  "fullFlowAcceptance": "NOT_PROVEN"
+}

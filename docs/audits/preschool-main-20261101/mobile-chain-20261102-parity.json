@@ -1,0 +1,214 @@
+{
+  "scope": "Real upstream helpers and serializer; flat concrete URL paths, not Expo-generated nested config or device E2E",
+  "fixtureCorrection": "Previous receipt used conflicting synthetic empty group patterns and is FIXTURE_STATE, not an app failure",
+  "before": {
+    "core": "7.21.2",
+    "routers": "7.6.0",
+    "queryString": "7.1.3"
+  },
+  "after": {
+    "core": "7.23.0",
+    "routers": "7.6.4",
+    "queryString": "9.5.1",
+    "decode": "0.5.1"
+  },
+  "isolatedInstalls": "PASS",
+  "shape": {
+    "legacyNamespaceStringify": "function",
+    "esmNamespaceStringify": "undefined",
+    "publicDefaultStringify": "function",
+    "requiresFacade": true
+  },
+  "linking": [
+    {
+      "input": "/login",
+      "parseEqual": true,
+      "printEqual": true,
+      "pass": true
+    },
+    {
+      "input": "/home",
+      "parseEqual": true,
+      "printEqual": true,
+      "pass": true
+    },
+    {
+      "input": "/schedule",
+      "parseEqual": true,
+      "printEqual": true,
+      "pass": true
+    },
+    {
+      "input": "/profile",
+      "parseEqual": true,
+      "printEqual": true,
+      "pass": true
+    },
+    {
+      "input": "/home/",
+      "parseEqual": true,
+      "printEqual": true,
+      "pass": true
+    },
+    {
+      "input": "/schedule?date=2026-11-02",
+      "parseEqual": true,
+      "printEqual": true,
+      "pass": true
+    },
+    {
+      "input": "/login?returnTo=%2Fhome",
+      "parseEqual": true,
+      "printEqual": true,
+      "pass": true
+    },
+    {
+      "input": "/profile?name=Ch%C3%A0o%20b%C3%A9",
+      "parseEqual": true,
+      "printEqual": true,
+      "pass": true
+    },
+    {
+      "input": "/home?space=a+b&plus=a%2Bb",
+      "parseEqual": true,
+      "printEqual": true,
+      "pass": true
+    },
+    {
+      "input": "/home?empty=&flag",
+      "parseEqual": true,
+      "printEqual": false,
+      "pass": false
+    },
+    {
+      "input": "/home?tag=one&tag=two",
+      "parseEqual": true,
+      "printEqual": false,
+      "pass": false
+    },
+    {
+      "input": "/profile?email=synthetic%40example.test",
+      "parseEqual": true,
+      "printEqual": true,
+      "pass": true
+    },
+    {
+      "input": "/home?next=%2Fprofile%3Fx%3D1",
+      "parseEqual": true,
+      "printEqual": true,
+      "pass": true
+    },
+    {
+      "input": "/home?hash=x%23y",
+      "parseEqual": true,
+      "printEqual": true,
+      "pass": true
+    },
+    {
+      "input": "/home?null=null&false=false&zero=0",
+      "parseEqual": true,
+      "printEqual": true,
+      "pass": true
+    },
+    {
+      "input": "/home?value=%E0%A4%A",
+      "parseEqual": true,
+      "printEqual": true,
+      "pass": true
+    },
+    {
+      "input": "/unknown",
+      "parseEqual": true,
+      "printEqual": true,
+      "pass": true
+    }
+  ],
+  "serialization": [
+    {
+      "case": 1,
+      "pass": true,
+      "before": "",
+      "after": ""
+    },
+    {
+      "case": 2,
+      "pass": true,
+      "before": "date=2026-11-02",
+      "after": "date=2026-11-02"
+    },
+    {
+      "case": 3,
+      "pass": true,
+      "before": "name=Ch%C3%A0o%20b%C3%A9",
+      "after": "name=Ch%C3%A0o%20b%C3%A9"
+    },
+    {
+      "case": 4,
+      "pass": true,
+      "before": "space=a%20b&plus=a%2Bb",
+      "after": "space=a%20b&plus=a%2Bb"
+    },
+    {
+      "case": 5,
+      "pass": true,
+      "before": "returnTo=%2Fhome%3Fx%3D1%23y",
+      "after": "returnTo=%2Fhome%3Fx%3D1%23y"
+    },
+    {
+      "case": 6,
+      "pass": true,
+      "before": "flag&empty=",
+      "after": "flag&empty="
+    },
+    {
+      "case": 7,
+      "pass": true,
+      "before": "tag=one&tag=two",
+      "after": "tag=one&tag=two"
+    },
+    {
+      "case": 8,
+      "pass": true,
+      "before": "enabled=false&zero=0",
+      "after": "enabled=false&zero=0"
+    },
+    {
+      "case": 9,
+      "pass": true,
+      "before": "keep=yes",
+      "after": "keep=yes"
+    },
+    {
+      "case": 10,
+      "pass": true,
+      "before": "emoji=%F0%9F%99%82",
+      "after": "emoji=%F0%9F%99%82"
+    },
+    {
+      "case": 11,
+      "pass": true,
+      "before": "value=%21%28%29%2A%27~",
+      "after": "value=%21%28%29%2A%27~"
+    },
+    {
+      "case": 12,
+      "pass": true,
+      "before": "value=%25zz",
+      "after": "value=%25zz"
+    },
+    {
+      "case": 13,
+      "pass": true,
+      "before": "values=a&values&values=",
+      "after": "values=a&values&values="
+    },
+    {
+      "case": 14,
+      "pass": true,
+      "before": "constructor=safe",
+      "after": "constructor=safe"
+    }
+  ],
+  "passed": 29,
+  "failed": 2
+}

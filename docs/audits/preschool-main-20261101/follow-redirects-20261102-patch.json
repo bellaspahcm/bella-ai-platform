@@ -1,0 +1,18 @@
+{
+  "package": "follow-redirects",
+  "from": "1.16.1",
+  "to": "1.16.2",
+  "changedPackages": [
+    "node_modules/follow-redirects"
+  ],
+  "registryIntegrity": "sha512-/kVP2U8z596Ia0gwFrwyIeo74ta5aVmSeU1FfAUMAmcEP5EP7zydmag3SLiN64NaRKef3lxsq7i/g7ltJQDGow==",
+  "registryUrl": "https://registry.npmjs.org/follow-redirects/-/follow-redirects-1.16.2.tgz",
+  "unchangedContracts": [
+    "license",
+    "engines",
+    "peerDependencies",
+    "peerDependenciesMeta"
+  ],
+  "advisory": "GHSA-mrwp-f3q8-3g9p",
+  "scope": "Owner-approved lockfile-only patch; no install or change to shared node_modules"
+}

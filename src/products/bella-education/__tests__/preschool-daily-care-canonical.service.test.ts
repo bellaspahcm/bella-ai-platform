@@ -1,5 +1,6 @@
-import { describe, expect, it } from '@jest/globals';
+import { describe, expect, it, jest } from '@jest/globals';
 import { DailyCareService } from '../care-wellbeing/daily-care/daily-care.service';
+import { AttendanceContractImpl } from '@/platform/education/contracts/attendance.contract.impl';
 
 type Row = Record<string, unknown>;
 type Predicate = (row: Row) => boolean;
@@ -145,6 +146,34 @@ function buildClient() {
 }
 
 describe('DailyCareService canonical student party connection', () => {
+  it('currently drops the Attendance DTO from the Preschool Care roster', async () => {
+    const client = buildClient();
+    const enrollmentId = '10000000-0000-4000-8000-000000000001';
+    const partyId = '10000000-0000-4000-8000-000000000002';
+    const date = '2026-10-21';
+    client.state.set('tenants', [{ id: tenantId, product_key: 'bella_preschool' }]);
+    const identity = { enrollmentId, studentId: '10000000-0000-4000-8000-000000000003',
+      studentPartyId: partyId, studentCode: 'SYNTHETIC', name: 'Synthetic child',
+      gender: null, dob: null, enrollmentStatus: 'active' };
+    const caller = Object.assign(client, { rpc: jest.fn(async () => ({ data: {
+      tenantId, courseId, schoolDay: date, roster: [identity],
+    }, error: null })) });
+    client.state.set('edu_attendance_daily_state', [{ id: 'synthetic-state', tenant_id: tenantId,
+      enrollment_id: enrollmentId, school_day: date, status: 'present', created_at: date, updated_at: date }]);
+
+    const attendance = await new AttendanceContractImpl(caller as never)
+      .getCourseDailyAttendance({ tenantId, courseId, schoolDay: date });
+    const care = await new DailyCareService(caller as never).getDailyCareRoster(tenantId, courseId, date);
+
+    expect(attendance[0].attendance?.status).toBe('present');
+    expect(care).toEqual([{ enrollmentId, studentPartyId: partyId, studentCode: 'SYNTHETIC',
+      name: identity.name, gender: null, dob: null, care: null }]);
+    expect(care[0]).not.toHaveProperty('attendance');
+    expect(care[0]).not.toHaveProperty('attendanceNote');
+    expect(client.state.get('edu_daily_care_sessions')).toEqual([]);
+    expect(client.state.get('edu_daily_care_records')).toEqual([]);
+  });
+
   it('persists and reads back care for a canonical enrolled student without legacy student_id', async () => {
     const client = buildClient();
     const service = new DailyCareService(client as never);

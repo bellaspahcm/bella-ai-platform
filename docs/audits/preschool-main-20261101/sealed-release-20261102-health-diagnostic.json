@@ -1,0 +1,7 @@
+{
+  "at": "2026-11-02T00:19:02.623Z",
+  "scope": "One existing constant health RPC using public key; no rows read or modified",
+  "status": 404,
+  "code": "PGRST202",
+  "constantTrue": false
+}

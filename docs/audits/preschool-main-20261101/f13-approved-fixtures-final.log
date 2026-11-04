@@ -1,0 +1,34 @@
+PASS EDUCATION ARCH SAME BASELINE = ALLOW
+PASS EDUCATION ARCH NEW VIOLATION = BLOCK
+PASS EDUCATION ARCH DEBT REDUCTION = ALLOW
+✔ line movement is allowed but increasing an existing signature count blocks (5.6509ms)
+✔ the real scanner covers Product TSX, API, UI, and repeated calls on one line (124.9029ms)
+✔ public contracts, unknown, comments, and literal any text remain allowed (43.796ms)
+✔ resource inventory separates mixed ownership without approving a baseline exception (121.491ms)
+✔ resource enforcement blocks target substitution hidden by the legacy prefix signature (104.4097ms)
+✔ mixed ownership needs separate exact caller/resource/operation counts (17.1109ms)
+✔ SQL write/returning, bracket calls and multiline literals retain the actual operation (17.5865ms)
+✔ unknown target/operation cannot be approved by a wildcard or even its own unresolved key (19.1343ms)
+✔ malformed source fails closed and shadowed conversion names do not hide client calls (26.2908ms)
+✔ resource identity preserves literal line-like text and rejects invalid reviewed counts (0.7933ms)
+✔ the actual CLI allows contract-only code and blocks a call hidden inside matching legacy debt (2789.7504ms)
+✔ a multiline receiver keeps the member location used by frozen occurrence evidence (10.5274ms)
+✔ same-file handler substitution is a different caller and never inherits an exact exception (15.3562ms)
+✔ an explicit schema substitution changes resource identity and an unknown schema stays blocked (37.8807ms)
+✔ bound, extracted, destructured and computed member calls remain unresolved and block (15.9324ms)
+✔ neither database gate treats quoted examples or inline block comments as executable calls (13.2152ms)
+✔ the configured policy is exactly the owner-approved frozen debt and seven identities (15.8639ms)
+✔ both gates share exact dispositions while preserving raw calls and unresolved denials (51.3036ms)
+✔ same/reduced debt is allowed; a new exact target or caller cannot borrow the prefix budget (86.2527ms)
+✔ an extra occurrence exceeds either debt or exception quota without subtracting an entire signature (44.5452ms)
+✔ missing, invalid, wildcard, overlapping, unknown and quota-drift metadata fail closed (40.9048ms)
+✔ a mismatched legacy observation cannot silently consume an exception (41.7819ms)
+✔ the actual CLI admits exactly a configured command; sibling SQL and missing metadata remain blocked (2959.1407ms)
+ℹ tests 23
+ℹ suites 0
+ℹ pass 23
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 6648.4898

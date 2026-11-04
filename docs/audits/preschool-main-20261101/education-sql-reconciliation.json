@@ -1,0 +1,219 @@
+{
+  "frozenInventoryRetained": true,
+  "sourceBase": "f1299e3138f3700062a1ed84271db315737b0071",
+  "occurrences": [
+    {
+      "id": "M005",
+      "file": "src/app/api/education/care/bulk/route.ts",
+      "caller": "GET",
+      "target": "edu_attendance_daily_state",
+      "operation": "select",
+      "status": "BLOCK"
+    },
+    {
+      "id": "M013",
+      "file": "src/app/api/education/courses/[id]/route.ts",
+      "caller": "GET",
+      "target": "edu_enrollments",
+      "operation": "select",
+      "status": "BLOCK"
+    },
+    {
+      "id": "M014",
+      "file": "src/app/api/education/courses/[id]/route.ts",
+      "caller": "GET",
+      "target": "students",
+      "operation": "select",
+      "status": "BLOCK"
+    },
+    {
+      "id": "M015",
+      "file": "src/app/api/education/courses/route.ts",
+      "caller": "GET",
+      "target": "edu_courses",
+      "operation": "select",
+      "status": "BLOCK"
+    },
+    {
+      "id": "M016",
+      "file": "src/app/api/education/courses/route.ts",
+      "caller": "GET",
+      "target": "edu_enrollments",
+      "operation": "select",
+      "status": "REMOVED_LOCAL"
+    },
+    {
+      "id": "M017",
+      "file": "src/app/api/education/courses/route.ts",
+      "caller": "GET",
+      "target": "edu_enrollments",
+      "operation": "select",
+      "status": "REMOVED_LOCAL"
+    },
+    {
+      "id": "M018",
+      "file": "src/app/api/education/courses/route.ts",
+      "caller": "GET",
+      "target": "edu_attendance_daily_state",
+      "operation": "select",
+      "status": "BLOCK"
+    },
+    {
+      "id": "M021",
+      "file": "src/app/api/education/enrollments/[id]/development/route.ts",
+      "caller": "GET",
+      "target": "edu_enrollments",
+      "operation": "select",
+      "status": "BLOCK"
+    },
+    {
+      "id": "M022",
+      "file": "src/app/api/education/enrollments/[id]/development/route.ts",
+      "caller": "GET",
+      "target": "edu_assessments",
+      "operation": "select",
+      "status": "BLOCK"
+    },
+    {
+      "id": "M024",
+      "file": "src/app/api/education/enrollments/[id]/development/route.ts",
+      "caller": "GET",
+      "target": "students",
+      "operation": "select",
+      "status": "BLOCK"
+    },
+    {
+      "id": "M026",
+      "file": "src/app/api/education/enrollments/[id]/finance-summary/route.ts",
+      "caller": "GET",
+      "target": "students",
+      "operation": "select",
+      "status": "BLOCK"
+    },
+    {
+      "id": "M031",
+      "file": "src/app/api/education/enrollments/admission-course-reader.ts",
+      "caller": "admissionCourseReader/readCourse",
+      "target": "edu_courses",
+      "operation": "select",
+      "status": "BLOCK"
+    },
+    {
+      "id": "M032",
+      "file": "src/app/api/education/enrollments/confirm-admission/route.ts",
+      "caller": "POST",
+      "target": "edu_enrollments",
+      "operation": "select",
+      "status": "BLOCK"
+    },
+    {
+      "id": "M040",
+      "file": "src/app/api/education/enrollments/confirm-admission/route.ts",
+      "caller": "POST",
+      "target": "edu_enrollments",
+      "operation": "update",
+      "status": "BLOCK"
+    },
+    {
+      "id": "M041",
+      "file": "src/app/api/education/enrollments/confirm-admission/route.ts",
+      "caller": "POST",
+      "target": "edu_enrollments",
+      "operation": "select",
+      "status": "BLOCK"
+    },
+    {
+      "id": "M042",
+      "file": "src/app/api/education/enrollments/confirm-admission/route.ts",
+      "caller": "POST",
+      "target": "edu_courses",
+      "operation": "update",
+      "status": "BLOCK"
+    },
+    {
+      "id": "M043",
+      "file": "src/app/api/education/enrollments/confirm-admission/route.ts",
+      "caller": "POST",
+      "target": "students",
+      "operation": "select",
+      "status": "BLOCK"
+    },
+    {
+      "id": "M044",
+      "file": "src/app/api/education/enrollments/route.ts",
+      "caller": "loadStudentRegistry",
+      "target": "edu_enrollments",
+      "operation": "select",
+      "status": "BLOCK"
+    },
+    {
+      "id": "M045",
+      "file": "src/app/api/education/enrollments/route.ts",
+      "caller": "loadStudentRegistry",
+      "target": "edu_courses",
+      "operation": "select",
+      "status": "BLOCK"
+    },
+    {
+      "id": "M046",
+      "file": "src/app/api/education/enrollments/route.ts",
+      "caller": "loadStudentRegistry",
+      "target": "students",
+      "operation": "select",
+      "status": "BLOCK"
+    },
+    {
+      "id": "M047",
+      "file": "src/app/api/education/grades/route.ts",
+      "caller": "GET",
+      "target": "edu_courses",
+      "operation": "select",
+      "status": "BLOCK"
+    },
+    {
+      "id": "M052",
+      "file": "src/app/api/education/portal/[token]/attendance/route.ts",
+      "caller": "GET",
+      "target": "edu_enrollments",
+      "operation": "select",
+      "status": "BLOCK"
+    },
+    {
+      "id": "M053",
+      "file": "src/app/api/education/portal/[token]/attendance/route.ts",
+      "caller": "GET",
+      "target": "edu_attendance_daily_state",
+      "operation": "select",
+      "status": "BLOCK"
+    },
+    {
+      "id": "M054",
+      "file": "src/app/api/education/portal/[token]/attendance/route.ts",
+      "caller": "GET",
+      "target": "edu_attendance",
+      "operation": "select",
+      "status": "BLOCK"
+    },
+    {
+      "id": "M055",
+      "file": "src/app/api/education/portal/[token]/care/route.ts",
+      "caller": "GET",
+      "target": "edu_enrollments",
+      "operation": "select",
+      "status": "BLOCK"
+    },
+    {
+      "id": "M065",
+      "file": "src/app/api/education/work-queue/identity.persistence.ts",
+      "caller": "QueueIdentityPersistence/identities",
+      "target": "students",
+      "operation": "select",
+      "status": "BLOCK"
+    }
+  ],
+  "removed": [
+    "M016",
+    "M017"
+  ],
+  "remainingBlocked": 24
+}

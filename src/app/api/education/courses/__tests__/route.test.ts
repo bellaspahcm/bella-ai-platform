@@ -1,13 +1,13 @@
 import { describe, expect, it, jest, beforeEach } from '@jest/globals';
 
-const mockFrom = jest.fn();
-const mockSessionFrom = jest.fn();
+const mockFrom = jest.fn<(table: string) => unknown>();
+const mockSessionFrom = jest.fn<(table: string) => unknown>();
 const mockGetAuthUser = jest.fn<() => Promise<{ data: { user: { id: string } | null }; error: { message: string } | null }>>();
-const mockGetCurrentUser = jest.fn<() => Promise<{ id?: string; tenant_id?: string | null;role?:string } | null>>();
-const mockReadRegistry = jest.fn();
-const mockListCanonicalCourseTeachers = jest.fn();
+const mockGetCurrentUser = jest.fn<() => Promise<{ id?: string; tenant_id?: string | null; role?: string; status?: string } | null>>();
+const mockReadRegistry = jest.fn<(...args: unknown[]) => Promise<unknown>>();
+const mockListCanonicalCourseTeachers = jest.fn<(...args: unknown[]) => Promise<unknown>>();
 const mockCreateSessionClient = jest.fn(() => ({ from: mockSessionFrom, auth: { getUser: mockGetAuthUser } }));
-const mockCreateAdminClient = jest.fn(() => ({ from: mockFrom }));
+const mockCreateAdminClient = jest.fn((_url: string, _key: string, _options: unknown) => ({ from: mockFrom }));
 const mockAdminUrl = jest.fn<() => string | undefined>(() => 'https://courses-test.invalid');
 const mockAdminKey = jest.fn<() => string | undefined>(() => 'courses-test-admin-placeholder');
 const mockTenantFilter = jest.fn();
@@ -122,7 +122,7 @@ describe('/api/education/courses canonical classroom route', () => {
     expectNoOperationAccess();
   });
 
-  it.each(['admin_staff', 'super_admin', 'parent'])('does not substitute the legacy %s role for canonical Preschool admin authority', async role => {
+  it.each(['admin_staff', 'super_admin', 'parent', 'teacher', 'accountant'])('does not substitute the legacy %s role for canonical Preschool admin authority', async role => {
     mockGetCurrentUser.mockResolvedValue({ id: 'actor-a', tenant_id: tenantId, role, status: 'active' });
     const response = await GET(new Request('http://localhost/api/education/courses'));
     expect(response.status).toBe(403);
@@ -402,6 +402,41 @@ describe('/api/education/courses canonical classroom route', () => {
       { table: 'courses', column: 'tenant_id', value: tenantId },
       { table: 'edu_attendance_daily_state', column: 'tenant_id', value: tenantId },
     ]);
+  });
+
+  it.each([
+    ['draft', 'inactive'],
+    ['inactive', 'inactive'],
+    ['archived', 'archived'],
+  ])('preserves the empty authorized roster for a %s course', async (status, responseStatus) => {
+    const queriedTables: string[] = [];
+    mockFrom.mockImplementation((table: string) => {
+      queriedTables.push(table);
+      if (table === 'edu_courses') {
+        return { select: () => ({ eq: () => ({ order: async () => ({ data: [{
+          id: courseId, course_code: 'MAM-A1', title: 'Lớp Mầm Canonical', status,
+          max_students: 25, current_enrollment: 19, created_at: '2026-10-06T00:00:00.000Z',
+        }], error: null }) }) }) };
+      }
+      if (table === 'courses') {
+        return { select: () => ({ eq: () => ({ in: async () => ({ data: [], error: null }) }) }) };
+      }
+      throw new Error(`Unexpected table access: ${table}`);
+    });
+
+    const response = await GET(new Request('http://localhost/api/education/courses?date=2026-10-22'));
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ success: true, classrooms: [expect.objectContaining({
+      id: courseId, tenantId, branchId: 'branch-a', name: 'Lớp Mầm Canonical',
+      students: 0, maxStudents: 25, status: responseStatus, teacher: 'Chưa xác minh', teacherCount: null,
+      todayStatus: { present: 0, absent: 0, excused: 0, unmarked: 0, healthAlerts: 0 },
+    })] });
+    expect(mockReadRegistry).not.toHaveBeenCalled();
+    expect(mockListCanonicalCourseTeachers).not.toHaveBeenCalled();
+    expect(mockEnrollmentAssignments).not.toHaveBeenCalled();
+    expect(mockSessionFrom).not.toHaveBeenCalled();
+    expect(queriedTables).toEqual(['edu_courses', 'courses']);
   });
 
   it('correctly maps gradeKey for all preschool grades including nursery (Nhà Trẻ)', async () => {

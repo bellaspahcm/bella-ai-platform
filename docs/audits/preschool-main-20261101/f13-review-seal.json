@@ -1,0 +1,116 @@
+{
+  "capturedAt": "2026-11-01T02:40:00.651Z",
+  "base": "f1299e3138f3700062a1ed84271db315737b0071",
+  "branch": "codex/preschool-main-technical-20261101",
+  "committed": false,
+  "status": "BLOCK",
+  "counts": {
+    "WORKFLOW_RPC": 8,
+    "EDUCATION_DIRECT_SQL": 26,
+    "PRODUCT_API_SQL": 34,
+    "PROFILE_RPC_REVIEW": 3,
+    "PRODUCT_UI_REVIEW": 6
+  },
+  "fixtures": {
+    "testsPassed": 5,
+    "testsFailed": 0
+  },
+  "actualCiGuard": {
+    "exitCode": 1,
+    "status": "BLOCK"
+  },
+  "baselineChanged": false,
+  "fullFrozenInventoryPreserved": true,
+  "wipUnchanged": true,
+  "diffCheck": "PASS",
+  "F09": "DESIGN_ONLY_HELD",
+  "F10_F12": "LOCAL_PASS_REUSED_BY_HASH",
+  "catalogAndPriorTechnicalArtifactsUnchanged": true,
+  "sourceFiles": [
+    {
+      "file": "scripts/ci-run-education-architecture.mjs",
+      "sha256": "0da40104f1b326f958bf79325865b8706f93e83a5b66e1b425a42f245b0f0aaf"
+    },
+    {
+      "file": "scripts/test-ci-education-architecture.mjs",
+      "sha256": "40b8fbc7edc674741a3b624ffe1968b5f6548a9cd6201be92b97e27f2f26cfcc"
+    }
+  ],
+  "artifacts": [
+    {
+      "file": "extract-f13-ownership.mjs",
+      "sha256": "d5207f8f92c34c95074c3cc61c97a7c327bf9a7083e976fd27d34847a0feb340"
+    },
+    {
+      "file": "verify-f13-scopes.mjs",
+      "sha256": "f450d810b83b0fd6f3e97c0ecb566de4200c3af813d72646ddd0a4d69edb63eb"
+    },
+    {
+      "file": "f13-ownership-inventory.json",
+      "sha256": "1cbe815e7dea37efc049b2e07f8056dc7f3d25413b81ac1584608cb466fb18da"
+    },
+    {
+      "file": "f13-ownership-review.json",
+      "sha256": "1193384bdd506dc8d1fa6e12ed9b78ee0a837c23f20c8fd413d3ad5d827831bf"
+    },
+    {
+      "file": "F13_OCCURRENCES.md",
+      "sha256": "6158d217c2eb483d88a6dba4fd3de003c6a0ea86d78b65c3788e14a79bb79e0f"
+    },
+    {
+      "file": "F13_REVIEW.md",
+      "sha256": "5f8070e681e41240a59f0fd9ecd3c79533d691bd842bdc071b433ee95a5dafec"
+    },
+    {
+      "file": "f13-review-main.json",
+      "sha256": "d7666a37aa610c800302cbfa8c97df90e6bd0467bc349f1e25201a8dd253babe"
+    },
+    {
+      "file": "f13-review-technical.json",
+      "sha256": "85e598b15a9e656821fc5339be83980a4858f3a2d0e97db6cb036d09cdd3db0c"
+    },
+    {
+      "file": "f13-review-wip.json",
+      "sha256": "daba072d780bc4933b0e69c845a1bcf50bd169fd057b777c32bff8591b3ba8f9"
+    },
+    {
+      "file": "f13-review-scopes.json",
+      "sha256": "5e10fc08979c72a6c06566b1a01abeb8aea5515aed857a10891efbf376ae2d85"
+    },
+    {
+      "file": "f13-review-fixtures.log",
+      "sha256": "d3192620391f8ac1dc28d2fbad30351b5d0bbbf26d31170e4c5c1941293b6b55"
+    },
+    {
+      "file": "f13-review-ci.log",
+      "sha256": "3573193b33d1d20a6e42eb192bcdf9c1c71b92a5ca38b90867fc3d339d241814"
+    },
+    {
+      "file": "f13-review-ci-result.json",
+      "sha256": "5e91ae9b45f1afe9d8edc686784407df65ccedc24f2a8b7413104fc618c749da"
+    },
+    {
+      "file": "F09_ATOMIC_DESIGN.md",
+      "sha256": "36385686e99b7f80b7b85cfcc38fbf46966d2439aaf0a01d558ef7e10136245f"
+    },
+    {
+      "file": "F10_F12_SEAL.md",
+      "sha256": "54b8c3299b52429242b9549fd6ca230efe6ac19b5aa363a157bda15740df8d34"
+    },
+    {
+      "file": "f10-f12-seal.json",
+      "sha256": "42dab799ddf7041c889301ebb6e162c2eae94379ad999c26289d0a6934aa1195"
+    },
+    {
+      "file": "git-main-readonly.json",
+      "sha256": "d71bfe71d04bfc9787f87a4b54fef5fac54b234824334994bd7de367c0060042"
+    }
+  ],
+  "notProven": [
+    "Runtime authorization",
+    "Real DB atomicity",
+    "Browser E2E",
+    "Production",
+    "Go-Live"
+  ]
+}

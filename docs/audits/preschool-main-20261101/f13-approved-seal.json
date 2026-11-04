@@ -1,0 +1,161 @@
+{
+  "capturedAt": "2026-11-01T04:38:42.030Z",
+  "sourceBase": "f1299e3138f3700062a1ed84271db315737b0071",
+  "branch": "codex/preschool-main-technical-20261101",
+  "implementation": "IMPLEMENTED_LOCAL",
+  "F13": "BLOCK — NOT MERGE-READY",
+  "approval": {
+    "scope": "local-enforcement",
+    "date": "2026-11-01",
+    "decision": "Duyệt P1/P2/P3, triển khai local",
+    "reference": "Owner reply to request_user_input_async/call_79c33faa5fb842919c56703514c34354",
+    "exceptionIds": [
+      "M066",
+      "M067",
+      "M068",
+      "M069",
+      "M070",
+      "M071",
+      "M004"
+    ]
+  },
+  "knownDebt": {
+    "identities": 263,
+    "occurrences": 265,
+    "semanticApproval": false
+  },
+  "approvedControlPaths": 7,
+  "blocked": {
+    "exactOccurrences": 90,
+    "exactSignatures": 85,
+    "legacyOccurrences": 70,
+    "legacySignatures": 30,
+    "unresolved": 20
+  },
+  "rawFrozenInventory": {
+    "occurrences": 77,
+    "signatures": 33
+  },
+  "baselineUnchanged": true,
+  "baselineWorkingSha256": "cf480356bf1fb9c062f4d6690cf52bea855e59abc886cb42dc7e80cd67209d8d",
+  "regression": {
+    "nodeTestsPassed": 23,
+    "nodeTestsFailed": 0,
+    "JestPassed": 8,
+    "JestFailed": 2,
+    "focusedTypecheck": "PASS",
+    "ciExitCode": 1,
+    "diffCheck": "PASS"
+  },
+  "F10_F12SourceAndEvidenceUnchanged": true,
+  "oldWipUnchanged": true,
+  "historicalArtifactHashChecks": 69,
+  "noProductRuntimeChange": true,
+  "noDatabasePermissionChange": true,
+  "committed": false,
+  "deployed": false,
+  "sourceFiles": [
+    {
+      "file": "scripts/ci-run-education-architecture.mjs",
+      "sha256": "bd05ed6f8f8c62cfa47d15bee418d120c51d013d03b99c79385ec026fd460d4c"
+    },
+    {
+      "file": "scripts/test-ci-education-architecture.mjs",
+      "sha256": "dd0d147556590e37c6aa427924015561c6cf23b83e30a552498e3718fc8b297e"
+    },
+    {
+      "file": "src/products/bella-education/__tests__/bella-education-architecture.test.ts",
+      "sha256": "ccfe6da9b0b2a3633617ce776ee99999df306a5fe914472b94d8dbbf4d1567d9"
+    },
+    {
+      "file": ".github/ci/education-architecture-dispositions.json",
+      "sha256": "443ea7b4fb50da88c661d804804f2d264b1b76943f8821432df9a95aa96e053f"
+    }
+  ],
+  "artifacts": [
+    {
+      "file": "F13_P1P2P3_LOCAL_RESULT.md",
+      "sha256": "649e2813fa39dffa4a6454df273b75b76063d582bc2e61a30ad8db554d0643b9"
+    },
+    {
+      "file": "verify-f13-approved-scopes.mjs",
+      "sha256": "ef4aa6d41ad06eebc7932618c6734dddfbd6766fb9dd6bad08544a0029aef6fb"
+    },
+    {
+      "file": "f13-approved-control-receipt.json",
+      "sha256": "9b6dd4b30651cdb1a2aa4e74ffcc7405c14a34c93422426dd07f95bf55b15e2d"
+    },
+    {
+      "file": "f13-approved-edge-review.json",
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
+    },
+    {
+      "file": "f13-approved-fixtures.log",
+      "sha256": "9cd8053f05771c3a6d91ebc863f7289bdd818ae23ae41fd26edaff46cd9c1d56"
+    },
+    {
+      "file": "f13-approved-fixtures-final.log",
+      "sha256": "cba2261cc69ef23c0397f07798d7629c0ae44a26697cc4dfd5f7158bd4ac8491"
+    },
+    {
+      "file": "f13-approved-jest.json",
+      "sha256": "efaef69075c7e20a7426f8764e5908de0ab0cf1b278cb08cb5ab3a81f001b4db"
+    },
+    {
+      "file": "f13-approved-jest.log",
+      "sha256": "dfe6067183ee7924c3c250f842bf3c02263537c7e2e826697cbecdd38b00d963"
+    },
+    {
+      "file": "f13-approved-jest-final.json",
+      "sha256": "59cfc591973b16e5d8ad078bd07d5bf7875ebe8344f5605697d8a63122e1e855"
+    },
+    {
+      "file": "f13-approved-jest-final.log",
+      "sha256": "656ab151aaea6bb6644f4454a18e519659674d16fe47b50428d7f237af29c678"
+    },
+    {
+      "file": "f13-approved-scopes.json",
+      "sha256": "9ed939cd6ba827922564b32d6d6023f6754d1ef1a1f1f1271894e4aea8e0efda"
+    },
+    {
+      "file": "f13-approved-main.json",
+      "sha256": "42f4ab02dc6654dc4bee55bed820bfd31da6a9cfa547d021d9b7273f27ecc2ad"
+    },
+    {
+      "file": "f13-approved-technical.json",
+      "sha256": "b39ece95bb090d6b27fd9521924be4aa356d9afec33f72ec51f8034ae9a849b6"
+    },
+    {
+      "file": "f13-approved-wip.json",
+      "sha256": "8ed87443430097b236e9861657c9bfd5eed2daa0ad33b9b7366250dbfd5e3a7a"
+    },
+    {
+      "file": "f13-approved-scopes-final.log",
+      "sha256": "3ec98a7b7572c8988d269136f66251ae8035445190883304bf146f00f6da2293"
+    },
+    {
+      "file": "f13-approved-typecheck-final.json",
+      "sha256": "e5d441366e2d274e019a73f8de7eb7ca57b027406620f1cf41896b2d834601ee"
+    },
+    {
+      "file": "f13-approved-typecheck-final.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "file": "f13-approved-ci-result.json",
+      "sha256": "a9817e0c5c58cfd451504ec6ad9901060dbcf00783897713c6007f1beda68829"
+    },
+    {
+      "file": "f13-approved-ci.log",
+      "sha256": "13bad51dc6d0b2563eff32db05dd19639072482537adad4a5b60e71f27c0014c"
+    },
+    {
+      "file": "f13-approved-controls.patch",
+      "sha256": "f1436c248597fb62841a9a16db6e4b17acb7e1d75e956fb5eb6e7ac8181d5166"
+    }
+  ],
+  "RealAuthRls": "NOT_PROVEN",
+  "Browser": "NOT_PROVEN",
+  "Production": "NOT_PROVEN",
+  "PreschoolGoLive": "NOT_READY"
+}

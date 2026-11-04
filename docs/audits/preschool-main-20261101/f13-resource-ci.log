@@ -1,0 +1,51 @@
+Education legacy database matches baseline: 265
+Education legacy database matches current: 342
+New Education legacy database matches violation(s) detected; blocking.
++2 ../../app/api/education/announcements/route.ts:L* - Direct RPC database execution is prohibited in the Product layer.
++1 ../../app/api/education/attendance/handover/route.ts:L* - Direct RPC database execution is prohibited in the Product layer.
++1 ../../app/api/education/care/bulk/route.ts:L* - Direct RPC database execution is prohibited in the Product layer.
++1 ../../app/api/education/care/bulk/route.ts:L* - Direct database query targeting '.from('edu_' is prohibited in the Product layer.
++2 ../../app/api/education/care/digest/route.ts:L* - Direct database query targeting '.from('edu_' is prohibited in the Product layer.
++2 ../../app/api/education/communication/messages/route.ts:L* - Direct database query targeting '.from('edu_' is prohibited in the Product layer.
++3 ../../app/api/education/communication/threads/route.ts:L* - Direct database query targeting '.from('edu_' is prohibited in the Product layer.
++1 ../../app/api/education/courses/[id]/route.ts:L* - Direct database query targeting '.from('edu_' is prohibited in the Product layer.
++1 ../../app/api/education/courses/[id]/route.ts:L* - Direct database query targeting '.from('students' is prohibited in the Product layer.
++4 ../../app/api/education/courses/route.ts:L* - Direct database query targeting '.from('edu_' is prohibited in the Product layer.
++2 ../../app/api/education/enrollments/[id]/communications/route.ts:L* - Direct database query targeting '.from('edu_' is prohibited in the Product layer.
++3 ../../app/api/education/enrollments/[id]/development/route.ts:L* - Direct database query targeting '.from('edu_' is prohibited in the Product layer.
++1 ../../app/api/education/enrollments/[id]/development/route.ts:L* - Direct database query targeting '.from('students' is prohibited in the Product layer.
++1 ../../app/api/education/enrollments/[id]/finance-summary/route.ts:L* - Direct database query targeting '.from('edu_' is prohibited in the Product layer.
++1 ../../app/api/education/enrollments/[id]/finance-summary/route.ts:L* - Direct database query targeting '.from('students' is prohibited in the Product layer.
++3 ../../app/api/education/enrollments/[id]/health/route.ts:L* - Direct database query targeting '.from('edu_' is prohibited in the Product layer.
++1 ../../app/api/education/enrollments/[id]/route.ts:L* - Direct RPC database execution is prohibited in the Product layer.
++1 ../../app/api/education/enrollments/admission-course-reader.ts:L* - Direct database query targeting '.from('edu_' is prohibited in the Product layer.
++11 ../../app/api/education/enrollments/confirm-admission/route.ts:L* - Direct database query targeting '.from('edu_' is prohibited in the Product layer.
++1 ../../app/api/education/enrollments/confirm-admission/route.ts:L* - Direct database query targeting '.from('students' is prohibited in the Product layer.
++2 ../../app/api/education/enrollments/route.ts:L* - Direct database query targeting '.from('edu_' is prohibited in the Product layer.
++1 ../../app/api/education/enrollments/route.ts:L* - Direct database query targeting '.from('students' is prohibited in the Product layer.
++5 ../../app/api/education/grades/route.ts:L* - Direct database query targeting '.from('edu_' is prohibited in the Product layer.
++3 ../../app/api/education/portal/[token]/attendance/route.ts:L* - Direct database query targeting '.from('edu_' is prohibited in the Product layer.
++3 ../../app/api/education/portal/[token]/care/route.ts:L* - Direct database query targeting '.from('edu_' is prohibited in the Product layer.
+... 8 more new violation signature(s)
+Education exact-resource baseline: 0; historical prefix baseline: 265
+Education exact-resource candidates: 362; unresolved: 20
+Education internal kernel import baseline: 0
+Education internal kernel import current: 0
+Education internal kernel import has zero violations.
+Unreviewed resource +1 resource:["src/app/api/education/announcements/route.ts","GET","rpc","<client-default>","preschool_list_school_announcements","execute"]
+Education cross-vertical leakage baseline: 0
+Education cross-vertical leakage current: 0
+Education cross-vertical leakage has zero violations.
+Education explicit any baseline: 0
+Education explicit any current: 0
+Education explicit any has zero violations.
+Unreviewed resource +1 resource:["src/app/api/education/announcements/route.ts","POST","rpc","<client-default>","preschool_publish_school_announcement","execute"]
+Unreviewed resource +1 resource:["src/app/api/education/attendance/handover/route.ts","POST/<callback>","rpc","<client-default>","preschool_record_handover","execute"]
+Unreviewed resource +1 resource:["src/app/api/education/branches/manage/route.ts","resolveBranchManagementContext","rpc","<client-default>",null,"execute"]
+Unreviewed resource +1 resource:["src/app/api/education/care/bulk/route.ts","GET","from","<client-default>","edu_attendance_daily_state","select"]
+Unreviewed resource +1 resource:["src/app/api/education/care/bulk/route.ts","POST","rpc","<client-default>","preschool_save_care_records","execute"]
+Unreviewed resource +1 resource:["src/app/api/education/care/digest/route.ts","GET","from","<client-default>","edu_daily_parent_digests","select"]
+Unreviewed resource +1 resource:["src/app/api/education/care/digest/route.ts","POST","from","<client-default>","edu_daily_parent_digests","select"]
+Unreviewed resource +1 resource:["src/app/api/education/communication/messages/route.ts","POST","from","<client-default>","edu_comm_threads","select"]
+Unreviewed resource +1 resource:["src/app/api/education/communication/messages/route.ts","POST","from","<client-default>","edu_comm_threads","update"]
+Education architecture baseline policy: BLOCK

@@ -1,0 +1,45 @@
+PASS EDUCATION ARCH SAME BASELINE = ALLOW
+PASS EDUCATION ARCH NEW VIOLATION = BLOCK
+PASS EDUCATION ARCH DEBT REDUCTION = ALLOW
+✔ line movement is allowed but increasing an existing signature count blocks (2.6376ms)
+✔ the real scanner covers Product TSX, API, UI, and repeated calls on one line (88.2075ms)
+✔ public contracts, unknown, comments, and literal any text remain allowed (11.6194ms)
+✔ resource inventory separates mixed ownership without approving a baseline exception (59.7161ms)
+✔ resource enforcement blocks target substitution hidden by the legacy prefix signature (79.4005ms)
+✔ mixed ownership needs separate exact caller/resource/operation counts (10.5378ms)
+✔ SQL write/returning, bracket calls and multiline literals retain the actual operation (13.288ms)
+✔ unknown target/operation cannot be approved by a wildcard or even its own unresolved key (11.4017ms)
+✔ malformed source fails closed and shadowed conversion names do not hide client calls (14.0337ms)
+✔ resource identity preserves literal line-like text and rejects invalid reviewed counts (0.516ms)
+✔ the actual CLI allows contract-only code and blocks a call hidden inside matching legacy debt (3310.0582ms)
+✔ a multiline receiver keeps the member location used by frozen occurrence evidence (34.8605ms)
+✔ same-file handler substitution is a different caller and never inherits an exact exception (14.394ms)
+✔ an explicit schema substitution changes resource identity and an unknown schema stays blocked (16.0633ms)
+✔ bound, extracted, destructured and computed member calls remain unresolved and block (24.5697ms)
+✔ neither database gate treats quoted examples or inline block comments as executable calls (19.4728ms)
+✔ the configured policy is exactly the owner-approved frozen debt and seven identities (28.2015ms)
+✔ both gates share exact dispositions while preserving raw calls and unresolved denials (151.6368ms)
+✔ same/reduced debt is allowed; a new exact target or caller cannot borrow the prefix budget (199.5004ms)
+✔ an extra occurrence exceeds either debt or exception quota without subtracting an entire signature (75.5732ms)
+✖ missing, invalid, wildcard, overlapping, unknown and quota-drift metadata fail closed (62.4439ms)
+✔ a mismatched legacy observation cannot silently consume an exception (66.8045ms)
+✔ the actual CLI admits exactly a configured command; sibling SQL and missing metadata remain blocked (3172.2684ms)
+ℹ tests 23
+ℹ suites 0
+ℹ pass 22
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 7485.6557
+
+✖ failing tests:
+
+test at D:\CodexWorktrees\preschool-main-audit-20261101\BELLA SPA ERP\scripts\test-ci-education-architecture.mjs:388:1
+✖ missing, invalid, wildcard, overlapping, unknown and quota-drift metadata fail closed (62.4439ms)
+  TypeError: Cannot convert object to primitive value
+      at validateDispositionMetadata (file:///D:/CodexWorktrees/preschool-main-audit-20261101/BELLA%20SPA%20ERP/scripts/ci-run-education-architecture.mjs:368:88)
+      at evaluateDatabaseControls (file:///D:/CodexWorktrees/preschool-main-audit-20261101/BELLA%20SPA%20ERP/scripts/ci-run-education-architecture.mjs:390:31)
+      at TestContext.<anonymous> (file:///D:/CodexWorktrees/preschool-main-audit-20261101/BELLA%20SPA%20ERP/scripts/test-ci-education-architecture.mjs:409:20)
+      at async Test.run (node:internal/test_runner/test:1127:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:789:7)

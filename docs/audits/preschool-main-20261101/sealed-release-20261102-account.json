@@ -1,0 +1,14 @@
+{
+  "at": "2026-11-02T00:13:14.672Z",
+  "project": "lvnvkpyxtuilhrabtlwv",
+  "id": "dd3e4a13-5496-4d0c-aada-19c5a2d39a4a",
+  "email": "phuckhangdigital@gmail.com",
+  "tenantId": "00000000-0000-0000-0000-000000000001",
+  "tenant": "Bella Preschool Tenant A",
+  "role": "admin",
+  "status": "active",
+  "authCreated": true,
+  "profileReadBack": true,
+  "credentialsPersisted": false,
+  "scope": "Owner-authorized single smoke account only; no business rows, roles, schema or permissions modified"
+}

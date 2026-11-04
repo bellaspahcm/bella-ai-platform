@@ -1,0 +1,23 @@
+{
+  "observedDate": "2026-11-01",
+  "source": "read-only CLI outputs in this task",
+  "remotes": [
+    {
+      "name": "origin",
+      "url": "https://github.com/bellaspahcm/bella-spa-erp.git",
+      "command": "git ls-remote origin refs/heads/main",
+      "exitCode": 0,
+      "ref": "refs/heads/main",
+      "sha": "f1299e3138f3700062a1ed84271db315737b0071"
+    },
+    {
+      "name": "platform",
+      "url": "https://github.com/bellaspahcm/bella-ai-platform.git",
+      "command": "git ls-remote platform refs/heads/main",
+      "exitCode": 0,
+      "ref": "refs/heads/main",
+      "sha": "f1299e3138f3700062a1ed84271db315737b0071"
+    }
+  ],
+  "fetchCheckoutOrPushPerformed": false
+}
