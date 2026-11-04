@@ -337,6 +337,12 @@ async function main() {
 
   const dayResult = await pgClient.query("SELECT (clock_timestamp() AT TIME ZONE 'Asia/Ho_Chi_Minh')::date::text AS day");
   const schoolDay = dayResult.rows[0].day;
+  // The attendance API's default roll-call time is noon in Vietnam (05:00Z).
+  // Model these synthetic classes and enrollments as existing before that event
+  // so the Student 360 history contract can verify event provenance.
+  const rollCallTime = `${schoolDay}T05:00:00.000Z`;
+  const fixtureCreatedAt = new Date(Date.parse(rollCallTime) - 60 * 60 * 1000).toISOString();
+  assert(Date.parse(fixtureCreatedAt) < Date.parse(rollCallTime), 'SYNTHETIC_CLASS_AND_ENROLLMENT_PRECEDE_ROLL_CALL');
   const studentRows = [
     { tenantId: ids.tenantA, partyId: ids.studentPartyA, personId: ids.personA, studentId: ids.studentA, courseId: ids.courseA, enrollmentId: ids.enrollmentA, requestId: ids.requestA, code: `SYN-A-${suffix}`, first: 'Synthetic', last: 'Child A' },
     { tenantId: ids.tenantA, partyId: ids.studentPartyB, personId: ids.personB, studentId: ids.studentB, courseId: ids.courseB, enrollmentId: ids.enrollmentB, requestId: ids.requestB, code: `SYN-B-${suffix}`, first: 'Synthetic', last: 'Child B' },
@@ -382,12 +388,12 @@ async function main() {
     await pgClient.query(`INSERT INTO public.edu_preschool_pickup_authorizations(tenant_id,student_party_id,guardian_party_id,status)
       VALUES ($1,$2,$3,'authorized')`, [ids.tenantA, ids.studentPartyA, ids.guardianPartyA]);
 
-    await pgClient.query(`INSERT INTO public.edu_courses(id,tenant_id,course_code,title,status,max_students,current_enrollment)
-      VALUES ($1,$4,$6,'Synthetic Assigned Class','active',20,0),($2,$4,$7,'Synthetic Other Branch Class','active',20,0),($3,$5,$8,'Synthetic Other Tenant Class','active',20,0)`,
-    [ids.courseA, ids.courseB, ids.courseC, ids.tenantA, ids.tenantB, `E2E-A-${suffix}`, `E2E-B-${suffix}`, `E2E-C-${suffix}`]);
+    await pgClient.query(`INSERT INTO public.edu_courses(id,tenant_id,course_code,title,status,max_students,current_enrollment,created_at,updated_at)
+      VALUES ($1,$4,$6,'Synthetic Assigned Class','active',20,0,$9,$9),($2,$4,$7,'Synthetic Other Branch Class','active',20,0,$9,$9),($3,$5,$8,'Synthetic Other Tenant Class','active',20,0,$9,$9)`,
+    [ids.courseA, ids.courseB, ids.courseC, ids.tenantA, ids.tenantB, `E2E-A-${suffix}`, `E2E-B-${suffix}`, `E2E-C-${suffix}`, fixtureCreatedAt]);
     for (const row of studentRows) {
-      await pgClient.query(`INSERT INTO public.edu_enrollments(id,tenant_id,student_party_id,course_id,status,enrolled_at,request_id)
-        VALUES ($1,$2,$3,$4,'active',clock_timestamp(),$5)`, [row.enrollmentId, row.tenantId, row.partyId, row.courseId, row.requestId]);
+      await pgClient.query(`INSERT INTO public.edu_enrollments(id,tenant_id,student_party_id,course_id,status,enrolled_at,created_at,updated_at,request_id)
+        VALUES ($1,$2,$3,$4,'active',$5,$5,$5,$6)`, [row.enrollmentId, row.tenantId, row.partyId, row.courseId, fixtureCreatedAt, row.requestId]);
     }
     await pgClient.query(`INSERT INTO public.party_identity_link_managers(id,tenant_id,auth_user_id,valid_from,granted_by,reference)
       VALUES ($1,$2,$3,clock_timestamp()-interval '1 minute',$4,'Synthetic local/E2E fixture grant')`,
@@ -524,7 +530,6 @@ async function main() {
     'CANONICAL_TEACHER_ASSIGNMENT_CONTRACT');
 
   // Seed real out-of-scope attendance rows only in this disposable profile so JWT/RLS denial is observable.
-  const rollCallTime = `${schoolDay}T05:00:00.000Z`;
   for (const [tenantId, enrollmentId] of [[ids.tenantA, ids.enrollmentB], [ids.tenantB, ids.enrollmentC]]) {
     const { error } = await serviceClient.rpc('edu_set_daily_attendance', {
       p_tenant_id: tenantId, p_enrollment_id: enrollmentId, p_status: 'excused',
