@@ -941,7 +941,8 @@ async function main() {
   const present = childRowBeforeWrite.getByRole('button', { name: 'Có Mặt', exact: true });
   await present.waitFor({ state: 'visible', timeout: 30000 });
   await present.click();
-  await page.getByRole('status').filter({ hasText: 'Đã ghi nhận điểm danh.' }).waitFor({ state: 'visible', timeout: 30000 });
+  await page.getByRole('status').filter({ hasText: 'Đã ghi nhận điểm danh thật vào hệ thống' })
+    .waitFor({ state: 'visible', timeout: 30000 });
   const saved = await pgClient.query(`SELECT s.status,e.status AS event_status FROM public.edu_attendance_daily_state s
     JOIN public.edu_attendance e ON e.tenant_id=s.tenant_id AND e.enrollment_id=s.enrollment_id
       AND e.roll_call_time::date = s.school_day
@@ -952,7 +953,7 @@ async function main() {
   outcome.readback.results.push({ name: 'teacher_attendance_state_persisted_in_database', result: 'PASS' });
   await page.reload({ waitUntil: 'domcontentloaded' });
   const childRow = page.getByRole('row').filter({ hasText: 'Synthetic Child A' });
-  await childRow.getByRole('cell', { name: 'Có mặt', exact: true }).waitFor({ state: 'visible', timeout: 45000 });
+  await childRow.getByRole('cell', { name: 'Có Mặt', exact: true }).waitFor({ state: 'visible', timeout: 45000 });
   addPass('browserE2e', 'teacher_marks_present_and_state_persists_after_reload');
   assert(pageErrors.length === 0, 'BROWSER_HAS_NO_UNHANDLED_PAGE_ERRORS');
   addPass('browserE2e', 'browser_page_has_no_unhandled_errors');
