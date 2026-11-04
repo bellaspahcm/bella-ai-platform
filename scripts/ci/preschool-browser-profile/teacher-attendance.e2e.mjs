@@ -935,7 +935,10 @@ async function main() {
     addPass('browserE2e', `attendance_api_denies_${label}_write_without_partial_state`, String(posted.status));
   }
 
-  const present = page.getByRole('button', { name: 'Có mặt — Synthetic Child A' });
+  // The route currently renders AttendancePageContent from page.tsx. Its
+  // accessible control name is the visible status label, scoped to the child
+  // row; the newer PreschoolAttendance component is not mounted by this route.
+  const present = childRowBeforeWrite.getByRole('button', { name: 'Có Mặt', exact: true });
   await present.waitFor({ state: 'visible', timeout: 30000 });
   await present.click();
   await page.getByRole('status').filter({ hasText: 'Đã ghi nhận điểm danh.' }).waitFor({ state: 'visible', timeout: 30000 });
