@@ -1054,8 +1054,9 @@ async function main() {
   'ADMIN_BROWSER_CROSS_TENANT_WRITE_DENIED_WITHOUT_PARTIAL_STATE');
   addPass('browserE2e', 'admin_attendance_api_denies_cross_tenant_write_without_partial_state', String(deniedAdminWrite.status));
 
-  await adminChildRow.getByRole('button', { name: 'Có mặt — Synthetic Child B' }).click();
-  await adminPage.getByRole('status').filter({ hasText: 'Đã ghi nhận điểm danh.' }).waitFor({ state: 'visible', timeout: 30000 });
+  await adminChildRow.getByRole('button', { name: 'Có Mặt', exact: true }).click();
+  await adminPage.getByRole('status').filter({ hasText: 'Đã ghi nhận điểm danh thật vào hệ thống' })
+    .waitFor({ state: 'visible', timeout: 30000 });
   const adminSaved = await pgClient.query(`SELECT s.status,e.status AS event_status FROM public.edu_attendance_daily_state s
     JOIN public.edu_attendance e ON e.tenant_id=s.tenant_id AND e.enrollment_id=s.enrollment_id
       AND e.roll_call_time::date = s.school_day
@@ -1067,7 +1068,7 @@ async function main() {
   await adminPage.reload({ waitUntil: 'domcontentloaded' });
   await adminPage.getByRole('button', { name: /Synthetic Other Branch Class/ }).click();
   const adminChildRowAfterReload = adminPage.getByRole('row').filter({ hasText: 'Synthetic Child B' });
-  await adminChildRowAfterReload.getByRole('cell', { name: 'Có mặt', exact: true })
+  await adminChildRowAfterReload.getByRole('cell', { name: 'Có Mặt', exact: true })
     .waitFor({ state: 'visible', timeout: 45000 });
   assert(adminPageErrors.length === 0, 'ADMIN_BROWSER_HAS_NO_UNHANDLED_PAGE_ERRORS');
   addPass('browserE2e', 'admin_marks_attendance_and_state_persists_after_reload');
