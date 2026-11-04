@@ -139,21 +139,57 @@ describe('POST /api/education/enrollments/confirm-admission', () => {
     expect(body.error).toBe('INVALID_ENROLLMENT_ID');
   });
 
-  it('successfully confirms admission with PAID mode', async () => {
+  it('rejects PAID without payment evidence before any persistence', async () => {
     const res = await POST(postRequest({ enrollmentId, admissionMode: 'PAID' }));
-    expect(res.status).toBe(200);
+    expect(res.status).toBe(400);
     const body = await res.json();
-    expect(body.success).toBe(true);
-    expect(body.enrollment.status).toBe('active');
-    expect(body.admissionMode).toBe('PAID');
+    expect(body).toMatchObject({ success: false, error: 'PAYMENT_EVIDENCE_REQUIRED' });
+    expect(mockAdminFrom).not.toHaveBeenCalled();
   });
 
-  it('successfully confirms admission with DEBT mode', async () => {
+  it.each([
+    { method: 'CASH', amount: 100, receivedAt: '2026-11-02T09:00:00+07:00' },
+    { method: 'BANK_TRANSFER_MANUAL', amount: 100, receivedAt: '2026-11-02T09:00:00+07:00', transactionId: 'bank-ref-1' },
+  ])('keeps valid manual evidence fail-closed until atomic persistence exists: $method', async paymentConfirmation => {
+    const res = await POST(postRequest({ enrollmentId, admissionMode: 'PAID', paymentConfirmation }));
+    expect(res.status).toBe(503);
+    expect(await res.json()).toMatchObject({ success: false, error: 'ADMISSION_CONFIRMATION_UNAVAILABLE' });
+    expect(mockAdminFrom).not.toHaveBeenCalled();
+  });
+
+  it('rejects an untrusted automated actor and a forged manual collector', async () => {
+    const automatic = await POST(postRequest({ enrollmentId, admissionMode: 'PAID', paymentConfirmation: { method: 'BANK_TRANSFER_AUTO' } }));
+    expect(automatic.status).toBe(403);
+    const forged = await POST(postRequest({ enrollmentId, admissionMode: 'PAID', paymentConfirmation: {
+      method: 'CASH', amount: 100, receivedAt: '2026-11-02T09:00:00+07:00', collectorId: 'another-user',
+    } }));
+    expect(forged.status).toBe(400);
+    expect(mockAdminFrom).not.toHaveBeenCalled();
+  });
+
+  it('rejects a manual transfer without a transaction reference', async () => {
+    const res = await POST(postRequest({ enrollmentId, admissionMode: 'PAID', paymentConfirmation: {
+      method: 'BANK_TRANSFER_MANUAL', amount: 100, receivedAt: '2026-11-02T09:00:00+07:00', transactionId: ' ',
+    } }));
+    expect(res.status).toBe(400);
+    expect(mockAdminFrom).not.toHaveBeenCalled();
+  });
+
+  it('rejects a non-string method and payment data attached to DEBT', async () => {
+    const method = await POST(postRequest({ enrollmentId, admissionMode: 'PAID', paymentConfirmation: {
+      method: ['CASH'], amount: 100, receivedAt: '2026-11-02T09:00:00+07:00',
+    } }));
+    expect(method.status).toBe(400);
+    const debt = await POST(postRequest({ enrollmentId, paymentConfirmation: { method: 'CASH' } }));
+    expect(debt.status).toBe(400);
+    expect(mockAdminFrom).not.toHaveBeenCalled();
+  });
+
+  it('fails closed for DEBT without any financial or enrollment writes', async () => {
     const res = await POST(postRequest({ enrollmentId, admissionMode: 'DEBT' }));
-    expect(res.status).toBe(200);
+    expect(res.status).toBe(503);
     const body = await res.json();
-    expect(body.success).toBe(true);
-    expect(body.enrollment.status).toBe('active');
-    expect(body.admissionMode).toBe('DEBT');
+    expect(body).toMatchObject({ success: false, error: 'ADMISSION_CONFIRMATION_UNAVAILABLE' });
+    expect(mockAdminFrom).not.toHaveBeenCalled();
   });
 });

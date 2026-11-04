@@ -170,13 +170,16 @@ export class CurriculumService {
       };
 
       if (input.id) {
-        const { error } = await this.supabase
+        const { data, error } = await this.supabase
           .from('edu_curriculums')
           .update(payload)
           .eq('id', input.id)
-          .eq('tenant_id', tenantId);
+          .eq('tenant_id', tenantId)
+          .select('id')
+          .maybeSingle();
 
         if (error) return { success: false, id: '', error: error.message };
+        if (!data) return { success: false, id: '', error: 'RECORD_NOT_FOUND' };
         return { success: true, id: input.id, message: 'Cập nhật khung giáo trình thành công.' };
       } else {
         const { data, error } = await this.supabase
@@ -258,7 +261,8 @@ export class CurriculumService {
   async saveLessonPlan(
     tenantId: string,
     actorId: string,
-    input: SaveLessonPlanInput
+    input: SaveLessonPlanInput,
+    options?: { isApprover?: boolean }
   ): Promise<SaveResult> {
     if (!tenantId) return { success: false, id: '', error: 'TENANT_REQUIRED' };
     if (!input.title || input.title.trim().length === 0) return { success: false, id: '', error: 'TITLE_REQUIRED' };
@@ -266,8 +270,14 @@ export class CurriculumService {
     if (!input.subjectDomain || input.subjectDomain.trim().length === 0) return { success: false, id: '', error: 'DOMAIN_REQUIRED' };
     if (!input.plannedDate || !/^\d{4}-\d{2}-\d{2}$/.test(input.plannedDate)) return { success: false, id: '', error: 'INVALID_DATE' };
 
+    // F05 Security: Non-approvers cannot approve lesson plans or fabricate approved_by signature
+    if (input.status === 'APPROVED' && options?.isApprover === false) {
+      return { success: false, id: '', error: 'APPROVAL_UNAUTHORIZED' };
+    }
+
     try {
       const now = new Date().toISOString();
+      const approvedBy = input.status === 'APPROVED' && options?.isApprover !== false ? actorId : null;
       const payload = {
         tenant_id: tenantId,
         curriculum_id: input.curriculumId || null,
@@ -285,18 +295,21 @@ export class CurriculumService {
         materials: input.materials?.trim() ?? null,
         activity_steps_payload: input.activitySteps,
         teacher_notes: input.teacherNotes?.trim() ?? null,
-        approved_by: input.status === 'APPROVED' ? actorId : null,
+        approved_by: approvedBy,
         updated_at: now,
       };
 
       if (input.id) {
-        const { error } = await this.supabase
+        const { data, error } = await this.supabase
           .from('edu_lesson_plans')
           .update(payload)
           .eq('id', input.id)
-          .eq('tenant_id', tenantId);
+          .eq('tenant_id', tenantId)
+          .select('id')
+          .maybeSingle();
 
         if (error) return { success: false, id: '', error: error.message };
+        if (!data) return { success: false, id: '', error: 'RECORD_NOT_FOUND' };
         return { success: true, id: input.id, message: 'Cập nhật giáo án thành công.' };
       } else {
         const { data, error } = await this.supabase
@@ -317,15 +330,27 @@ export class CurriculumService {
     }
   }
 
-  async deleteLessonPlan(tenantId: string, id: string): Promise<SaveResult> {
+  async deleteLessonPlan(
+    tenantId: string,
+    id: string,
+    options?: { actorId?: string; isApprover?: boolean }
+  ): Promise<SaveResult> {
     try {
-      const { error } = await this.supabase
+      let query = this.supabase
         .from('edu_lesson_plans')
         .delete()
         .eq('id', id)
         .eq('tenant_id', tenantId);
 
+      // F05 Security: Non-approvers (teachers) can only delete their own DRAFT lesson plans
+      if (options && options.isApprover === false && options.actorId) {
+        query = query.eq('created_by', options.actorId).eq('status', 'DRAFT');
+      }
+
+      const { data, error } = await query.select('id').maybeSingle();
+
       if (error) return { success: false, id, error: error.message };
+      if (!data) return { success: false, id, error: 'RECORD_NOT_FOUND' };
       return { success: true, id, message: 'Đã xóa giáo án thành công.' };
     } catch (err) {
       return { success: false, id, error: err instanceof Error ? err.message : 'DELETE_FAILED' };

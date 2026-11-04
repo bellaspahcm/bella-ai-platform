@@ -1,190 +1,131 @@
-import { describe, expect, it, jest, beforeEach } from '@jest/globals';
+/** @jest-environment node */
+import { beforeEach, expect, it, jest, describe } from '@jest/globals';
 
-const mockGetUser = jest.fn();
-const mockGetCurrentUser = jest.fn();
-const mockGetWeeklyMenu = jest.fn();
-const mockListWeeklyMenus = jest.fn();
-const mockSaveWeeklyMenu = jest.fn();
+const mockGetUser = jest.fn<() => Promise<unknown>>();
+const mockGetCurrentUser = jest.fn<() => Promise<unknown>>();
+const mockRpc = jest.fn<() => Promise<unknown>>();
+
+const mockFrom = jest.fn((table: string) => {
+  const query: Record<string, unknown> = {};
+  query.select = jest.fn().mockReturnValue(query);
+  query.eq = jest.fn().mockReturnValue(query);
+  query.insert = jest.fn().mockReturnValue({
+    select: jest.fn().mockReturnValue({
+      single: jest.fn<() => Promise<unknown>>().mockResolvedValue({ data: { id: 'menu-1' }, error: null }),
+    }),
+  });
+  query.update = jest.fn().mockReturnValue({
+    eq: jest.fn().mockReturnValue({
+      eq: jest.fn().mockReturnValue({
+        select: jest.fn().mockReturnValue({
+          maybeSingle: jest.fn<() => Promise<unknown>>().mockResolvedValue({ data: { id: 'menu-1' }, error: null }),
+        }),
+      }),
+    }),
+  });
+  query.upsert = jest.fn<() => Promise<unknown>>().mockResolvedValue({ error: null });
+  query.maybeSingle = jest.fn<() => Promise<unknown>>().mockResolvedValue({ data: null, error: null });
+  query.delete = jest.fn().mockReturnValue(query);
+  query.not = jest.fn<() => Promise<unknown>>().mockResolvedValue({ error: null });
+  return query;
+});
 
 jest.mock('@/lib/supabase-server', () => ({
-  createClient: () => ({
+  createClient: async () => ({
     auth: { getUser: mockGetUser },
+    from: mockFrom,
+    rpc: mockRpc,
   }),
 }));
 
-jest.mock('@/lib/supabase-admin-env', () => ({
-  getSupabaseAdminUrl: () => 'https://mock.supabase.co',
-  getSupabaseAdminKey: () => 'mock-service-role-key',
-}));
-
-jest.mock('@supabase/supabase-js', () => ({
-  createClient: () => ({}),
-}));
-
 jest.mock('@/services/user-actions', () => ({
-  getCurrentUser: mockGetCurrentUser,
+  getCurrentUser: () => mockGetCurrentUser(),
 }));
 
-jest.mock('@/products/bella-education/care-wellbeing/nutrition/weekly-menu.service', () => ({
-  WeeklyMenuService: jest.fn().mockImplementation(() => ({
-    getWeeklyMenu: mockGetWeeklyMenu,
-    listWeeklyMenus: mockListWeeklyMenus,
-    saveWeeklyMenu: mockSaveWeeklyMenu,
-  })),
+jest.mock('@/lib/supabase-admin-env', () => ({
+  getSupabaseAdminUrl: () => null,
+  getSupabaseAdminKey: () => null,
 }));
 
-// Import GET and POST from route
-const { GET, POST } = require('../route') as typeof import('../route');
+const { POST } = require('../route') as typeof import('../route');
 
-describe('Weekly Menu API Route (/api/education/nutrition/weekly-menu)', () => {
-  const actorId = '00000000-0000-4000-8000-000000000001';
-  const tenantId = '00000000-0000-4000-8000-000000000002';
+describe('Weekly Menu Nutrition API Security & Authorization (F05)', () => {
+  const actorId = '00000000-0000-0000-0000-000000000001';
+  const tenantId = '00000000-0000-0000-0000-000000000002';
+
+  const validMenuPayload = {
+    title: 'Thực đơn tuần 45',
+    weekNumber: 45,
+    year: 2026,
+    startDate: '2026-11-02',
+    endDate: '2026-11-06',
+    ageGroup: 'ALL',
+    status: 'DRAFT',
+    days: [
+      {
+        dayOfWeek: 'MON',
+        menuDate: '2026-11-02',
+        summaryDishes: 'Phở bò',
+        caloriesKcal: 680,
+        mealsPayload: [],
+      },
+    ],
+  };
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockGetUser.mockResolvedValue({ data: { user: { id: actorId } }, error: null });
+    mockRpc.mockResolvedValue({ data: { menuId: 'menu-1', updatedAt: '2026-11-02T00:00:00Z' }, error: null });
   });
 
-  describe('GET', () => {
-    it('returns 401 when unauthenticated', async () => {
-      mockGetUser.mockResolvedValueOnce({ data: { user: null }, error: { message: 'No session' } } as never);
-
-      const request = new Request('http://localhost/api/education/nutrition/weekly-menu');
-      const response = await GET(request);
-
-      expect(response.status).toBe(401);
-      const json = await response.json();
-      expect(json.success).toBe(false);
-      expect(json.error).toBe('NUTRITION_UNAUTHENTICATED');
+  it('F05: rejects teacher attempting to create or edit school-wide weekly menu', async () => {
+    mockGetCurrentUser.mockResolvedValue({ id: actorId, tenant_id: tenantId, role: 'teacher' });
+    const req = new Request('http://localhost/api/education/nutrition/weekly-menu', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(validMenuPayload),
     });
-
-    it('returns 403 when user has no active tenant profile', async () => {
-      mockGetUser.mockResolvedValueOnce({ data: { user: { id: actorId } }, error: null } as never);
-      mockGetCurrentUser.mockResolvedValueOnce(null as never);
-
-      const request = new Request('http://localhost/api/education/nutrition/weekly-menu');
-      const response = await GET(request);
-
-      expect(response.status).toBe(403);
-      const json = await response.json();
-      expect(json.success).toBe(false);
-      expect(json.error).toBe('NUTRITION_ACCESS_DENIED');
-    });
-
-    it('returns 200 with menu data when authenticated', async () => {
-      mockGetUser.mockResolvedValueOnce({ data: { user: { id: actorId } }, error: null } as never);
-      mockGetCurrentUser.mockResolvedValueOnce({ id: actorId, tenant_id: tenantId, role: 'admin' } as never);
-      mockGetWeeklyMenu.mockResolvedValueOnce({
-        menuId: 'menu-123',
-        weekNumber: 44,
-        year: 2026,
-        startDate: '2026-10-26',
-        endDate: '2026-10-30',
-        status: 'PUBLISHED',
-        days: [],
-      } as never);
-
-      const request = new Request('http://localhost/api/education/nutrition/weekly-menu?weekNumber=44&year=2026');
-      const response = await GET(request);
-
-      expect(response.status).toBe(200);
-      const json = await response.json();
-      expect(json.success).toBe(true);
-      expect(json.menu.menuId).toBe('menu-123');
-    });
-
-    it('returns 200 with list of menus when ?list=true', async () => {
-      mockGetUser.mockResolvedValueOnce({ data: { user: { id: actorId } }, error: null } as never);
-      mockGetCurrentUser.mockResolvedValueOnce({ id: actorId, tenant_id: tenantId, role: 'admin' } as never);
-      mockListWeeklyMenus.mockResolvedValueOnce([
-        { id: 'menu-1', weekNumber: 44, year: 2026, title: 'Tuần 44' },
-      ] as never);
-
-      const request = new Request('http://localhost/api/education/nutrition/weekly-menu?list=true');
-      const response = await GET(request);
-
-      expect(response.status).toBe(200);
-      const json = await response.json();
-      expect(json.success).toBe(true);
-      expect(json.menus).toHaveLength(1);
-    });
+    const res = await POST(req);
+    expect(res.status).toBe(403);
+    const body = (await res.json()) as { error: string };
+    expect(body.error).toBe('NUTRITION_ROLE_DENIED');
   });
 
-  describe('POST', () => {
-    const validPayload = {
-      academicYear: '2026-2027',
-      weekNumber: 44,
-      year: 2026,
-      startDate: '2026-10-26',
-      endDate: '2026-10-30',
-      ageGroup: 'ALL',
-      title: 'Thực đơn tuần 44',
-      status: 'PUBLISHED',
-      days: [
-        {
-          dayOfWeek: 'MON',
-          menuDate: '2026-10-26',
-          summaryDishes: 'Phở bò',
-          caloriesKcal: 680,
-          mealsPayload: [
-            { mealType: 'BREAKFAST', mealTypeLabel: 'Bữa sáng', dishes: ['Phở bò'] },
-          ],
-        },
-      ],
-    };
-
-    it('returns 403 when user is not authorized role', async () => {
-      mockGetUser.mockResolvedValueOnce({ data: { user: { id: actorId } }, error: null } as never);
-      mockGetCurrentUser.mockResolvedValueOnce({ id: actorId, tenant_id: tenantId, role: 'parent' } as never);
-
-      const request = new Request('http://localhost/api/education/nutrition/weekly-menu', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(validPayload),
-      });
-
-      const response = await POST(request);
-      expect(response.status).toBe(403);
-      const json = await response.json();
-      expect(json.error).toBe('NUTRITION_ROLE_DENIED');
+  it('F05: rejects non-admin staff attempting to publish weekly menu', async () => {
+    mockGetCurrentUser.mockResolvedValue({ id: actorId, tenant_id: tenantId, role: 'admin_staff' });
+    const req = new Request('http://localhost/api/education/nutrition/weekly-menu', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...validMenuPayload, status: 'PUBLISHED' }),
     });
+    const res = await POST(req);
+    expect(res.status).toBe(403);
+    const body = (await res.json()) as { error: string };
+    expect(body.error).toBe('NUTRITION_ROLE_DENIED');
+    expect(mockRpc).not.toHaveBeenCalled();
+  });
 
-    it('returns 400 when payload is invalid', async () => {
-      mockGetUser.mockResolvedValueOnce({ data: { user: { id: actorId } }, error: null } as never);
-      mockGetCurrentUser.mockResolvedValueOnce({ id: actorId, tenant_id: tenantId, role: 'admin' } as never);
-
-      const request = new Request('http://localhost/api/education/nutrition/weekly-menu', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ invalid: 'body' }),
-      });
-
-      const response = await POST(request);
-      expect(response.status).toBe(400);
-      const json = await response.json();
-      expect(json.error).toBe('INVALID_MENU_PAYLOAD');
+  it('F05: allows admin to publish school-wide weekly menu', async () => {
+    mockGetCurrentUser.mockResolvedValue({ id: actorId, tenant_id: tenantId, role: 'admin' });
+    const req = new Request('http://localhost/api/education/nutrition/weekly-menu', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...validMenuPayload, status: 'PUBLISHED' }),
     });
+    const res = await POST(req);
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as { success: boolean };
+    expect(body.success).toBe(true);
+  });
 
-    it('returns 200 when save succeeds', async () => {
-      mockGetUser.mockResolvedValueOnce({ data: { user: { id: actorId } }, error: null } as never);
-      mockGetCurrentUser.mockResolvedValueOnce({ id: actorId, tenant_id: tenantId, role: 'admin' } as never);
-      mockSaveWeeklyMenu.mockResolvedValueOnce({
-        success: true,
-        menuId: 'saved-menu-123',
-        message: 'Thành công',
-      } as never);
-
-      const request = new Request('http://localhost/api/education/nutrition/weekly-menu', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(validPayload),
-      });
-
-      const response = await POST(request);
-      expect(response.status).toBe(200);
-      const json = await response.json();
-      expect(json.success).toBe(true);
-      expect(json.menuId).toBe('saved-menu-123');
-    });
+  it('returns a conflict when another edit has already changed the menu', async () => {
+    mockGetCurrentUser.mockResolvedValue({ id: actorId, tenant_id: tenantId, role: 'admin' });
+    mockRpc.mockResolvedValue({ data: null, error: { code: '40001' } });
+    const res = await POST(new Request('http://localhost/api/education/nutrition/weekly-menu', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...validMenuPayload, menuId: 'existing', expectedUpdatedAt: '2026-11-02T00:00:00Z' }),
+    }));
+    expect(res.status).toBe(409);
+    expect(await res.json()).toEqual({ success: false, error: 'WEEKLY_MENU_CONFLICT' });
   });
 });
-

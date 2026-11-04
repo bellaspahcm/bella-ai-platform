@@ -77,7 +77,7 @@ import { resolveTenantBrandIdentity } from '@/lib/business-rules/tenant-modules'
 
 export type DevelopmentTabKey = 'overview' | 'observations' | 'progression' | 'portfolio' | 'recognition';
 
-export type DomainScore = 'dat' | 'tot' | 'theodoi' | 'canhotro';
+export type DomainScore = 'dat' | 'tot' | 'theodoi' | 'canhotro' | 'unknown';
 
 export type StudentStatus = 'completed' | 'supplement' | 'attention';
 

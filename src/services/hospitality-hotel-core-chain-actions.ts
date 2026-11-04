@@ -470,7 +470,7 @@ function createFinanceContract(): SemanticReceivableChargeService {
     },
   });
   return new SemanticReceivableChargeService(
-    new SupabaseReceivableChargeGateway(supabase)
+    new SupabaseReceivableChargeGateway(supabase, 'service_role')
   );
 }
 

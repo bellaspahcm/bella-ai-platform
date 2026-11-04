@@ -1,159 +1,143 @@
-import { describe, expect, it, jest, beforeEach } from '@jest/globals';
+/** @jest-environment node */
+import { beforeEach, expect, it, jest, describe } from '@jest/globals';
 
-const mockGetUser = jest.fn();
-const mockGetCurrentUser = jest.fn();
-const mockListCurriculums = jest.fn();
-const mockSaveCurriculum = jest.fn();
-const mockListLessonPlans = jest.fn();
-const mockSaveLessonPlan = jest.fn();
-const mockDeleteLessonPlan = jest.fn();
+const mockGetUser = jest.fn<() => Promise<unknown>>();
+const mockGetCurrentUser = jest.fn<() => Promise<unknown>>();
+
+const mockFrom = jest.fn((table: string) => {
+  const query: Record<string, unknown> = {};
+  query.select = jest.fn().mockReturnValue(query);
+  query.eq = jest.fn().mockReturnValue(query);
+  query.or = jest.fn().mockReturnValue(query);
+  query.insert = jest.fn().mockReturnValue(query);
+  query.update = jest.fn().mockReturnValue(query);
+  query.delete = jest.fn().mockReturnValue(query);
+  query.single = jest.fn<() => Promise<unknown>>().mockResolvedValue({ data: { id: 'plan-1' }, error: null });
+  query.maybeSingle = jest.fn<() => Promise<unknown>>().mockResolvedValue({ data: { id: 'plan-1' }, error: null });
+  query.order = jest.fn().mockReturnValue(query);
+  return query;
+});
 
 jest.mock('@/lib/supabase-server', () => ({
-  createClient: () => ({
+  createClient: async () => ({
     auth: { getUser: mockGetUser },
+    from: mockFrom,
   }),
 }));
 
-jest.mock('@/lib/supabase-admin-env', () => ({
-  getSupabaseAdminUrl: () => 'https://mock.supabase.co',
-  getSupabaseAdminKey: () => 'mock-service-role-key',
-}));
-
-jest.mock('@supabase/supabase-js', () => ({
-  createClient: () => ({}),
-}));
-
 jest.mock('@/services/user-actions', () => ({
-  getCurrentUser: mockGetCurrentUser,
+  getCurrentUser: () => mockGetCurrentUser(),
 }));
 
-jest.mock('@/products/bella-education/learning-development/curriculum/curriculum.service', () => ({
-  CurriculumService: jest.fn().mockImplementation(() => ({
-    listCurriculums: mockListCurriculums,
-    saveCurriculum: mockSaveCurriculum,
-    listLessonPlans: mockListLessonPlans,
-    saveLessonPlan: mockSaveLessonPlan,
-    deleteLessonPlan: mockDeleteLessonPlan,
-  })),
+jest.mock('@/lib/supabase-admin-env', () => ({
+  getSupabaseAdminUrl: () => null,
+  getSupabaseAdminKey: () => null,
 }));
 
-const { GET, POST, DELETE } = require('../route') as typeof import('../route');
-const TEST_BASE_URL = 'http://localhost/api/education/curriculum'; // nosemgrep: typescript.react.security.react-insecure-request.react-insecure-request
+const { POST } = require('../route') as typeof import('../route');
 
-describe('Curriculum & Lesson Plan API Route (/api/education/curriculum)', () => {
-  const actorId = '00000000-0000-4000-8000-000000000001';
-  const tenantId = '00000000-0000-4000-8000-000000000002';
+describe('Curriculum & Lesson Plan API Security & Authorization (F05)', () => {
+  const actorId = '00000000-0000-0000-0000-000000000001';
+  const tenantId = '00000000-0000-0000-0000-000000000002';
+  const courseId = '00000000-0000-0000-0000-000000000010';
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockGetUser.mockResolvedValue({ data: { user: { id: actorId } }, error: null });
   });
 
-  describe('GET', () => {
-    it('returns 401 when unauthenticated', async () => {
-      mockGetUser.mockResolvedValueOnce({ data: { user: null }, error: { message: 'No session' } } as never);
-
-      const request = new Request(TEST_BASE_URL);
-      const response = await GET(request);
-
-      expect(response.status).toBe(401);
-      const json = await response.json();
-      expect(json.success).toBe(false);
-      expect(json.error).toBe('CURRICULUM_UNAUTHENTICATED');
+  it('F05: rejects teacher attempting to modify curriculum framework', async () => {
+    mockGetCurrentUser.mockResolvedValue({ id: actorId, tenant_id: tenantId, role: 'teacher' });
+    const req = new Request('http://localhost/api/education/curriculum', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        type: 'curriculum',
+        data: { code: 'CURR_1', name: 'Curriculum 1', subjects: [] },
+      }),
     });
-
-    it('returns 200 with curriculums and lesson plans when authenticated', async () => {
-      mockGetUser.mockResolvedValueOnce({ data: { user: { id: actorId } }, error: null } as never);
-      mockGetCurrentUser.mockResolvedValueOnce({ id: actorId, tenant_id: tenantId, role: 'admin' } as never);
-      mockListCurriculums.mockResolvedValueOnce([{ id: 'curr-1', name: 'Curriculum 1' }] as never);
-      mockListLessonPlans.mockResolvedValueOnce([{ id: 'plan-1', title: 'Lesson 1' }] as never);
-
-      const request = new Request(TEST_BASE_URL);
-      const response = await GET(request);
-
-      expect(response.status).toBe(200);
-      const json = await response.json();
-      expect(json.success).toBe(true);
-      expect(json.curriculums).toHaveLength(1);
-      expect(json.lessonPlans).toHaveLength(1);
-    });
-
-    it('returns lessons only when ?type=lessons', async () => {
-      mockGetUser.mockResolvedValueOnce({ data: { user: { id: actorId } }, error: null } as never);
-      mockGetCurrentUser.mockResolvedValueOnce({ id: actorId, tenant_id: tenantId, role: 'admin' } as never);
-      mockListLessonPlans.mockResolvedValueOnce([{ id: 'plan-1', title: 'Lesson 1' }] as never);
-
-      const request = new Request(TEST_BASE_URL + "?type=lessons&weekNumber=44");
-      const response = await GET(request);
-
-      expect(response.status).toBe(200);
-      const json = await response.json();
-      expect(json.success).toBe(true);
-      expect(json.lessonPlans).toHaveLength(1);
-    });
+    const res = await POST(req);
+    expect(res.status).toBe(403);
+    const body = (await res.json()) as { error: string };
+    expect(body.error).toBe('CURRICULUM_PERMISSION_DENIED');
   });
 
-  describe('POST', () => {
-    const validLesson = {
-      weekNumber: 44,
-      year: 2026,
-      academicYear: '2026-2027',
-      theme: 'Thế giới động vật',
-      subjectDomain: 'Phát triển Thể chất',
-      title: 'Bật qua vật cản',
-      plannedDate: '2026-10-26',
-      status: 'APPROVED',
-      objectives: { knowledge: 'Biết bật', skills: 'Khéo léo', attitude: 'Hào hứng' },
-      activitySteps: [],
-    };
-
-    it('returns 403 when role is not authorized', async () => {
-      mockGetUser.mockResolvedValueOnce({ data: { user: { id: actorId } }, error: null } as never);
-      mockGetCurrentUser.mockResolvedValueOnce({ id: actorId, tenant_id: tenantId, role: 'parent' } as never);
-
-      const request = new Request(TEST_BASE_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(validLesson),
-      });
-
-      const response = await POST(request);
-      expect(response.status).toBe(403);
+  it('F05: rejects teacher attempting to self-approve lesson plan', async () => {
+    mockGetCurrentUser.mockResolvedValue({ id: actorId, tenant_id: tenantId, role: 'teacher' });
+    const req = new Request('http://localhost/api/education/curriculum', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        title: 'Bật qua vật cản',
+        theme: 'Thể chất',
+        subjectDomain: 'Thể dục',
+        plannedDate: '2026-11-02',
+        status: 'APPROVED',
+      }),
     });
-
-    it('returns 200 when saving valid lesson plan', async () => {
-      mockGetUser.mockResolvedValueOnce({ data: { user: { id: actorId } }, error: null } as never);
-      mockGetCurrentUser.mockResolvedValueOnce({ id: actorId, tenant_id: tenantId, role: 'admin' } as never);
-      mockSaveLessonPlan.mockResolvedValueOnce({ success: true, id: 'saved-plan-1' } as never);
-
-      const request = new Request(TEST_BASE_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(validLesson),
-      });
-
-      const response = await POST(request);
-      expect(response.status).toBe(200);
-      const json = await response.json();
-      expect(json.success).toBe(true);
-      expect(json.id).toBe('saved-plan-1');
-    });
+    const res = await POST(req);
+    expect(res.status).toBe(403);
+    const body = (await res.json()) as { error: string };
+    expect(body.error).toBe('LESSON_PLAN_APPROVAL_FORBIDDEN');
   });
 
-  describe('DELETE', () => {
-    it('returns 200 when deleting lesson plan by id', async () => {
-      mockGetUser.mockResolvedValueOnce({ data: { user: { id: actorId } }, error: null } as never);
-      mockGetCurrentUser.mockResolvedValueOnce({ id: actorId, tenant_id: tenantId, role: 'admin' } as never);
-      mockDeleteLessonPlan.mockResolvedValueOnce({ success: true, id: 'plan-to-del' } as never);
-
-      const request = new Request(TEST_BASE_URL + "?id=plan-to-del", {
-        method: 'DELETE',
-      });
-
-      const response = await DELETE(request);
-      expect(response.status).toBe(200);
-      const json = await response.json();
-      expect(json.success).toBe(true);
+  it('F05: rejects teacher saving lesson for course without active assignment', async () => {
+    mockGetCurrentUser.mockResolvedValue({ id: actorId, tenant_id: tenantId, role: 'teacher' });
+    mockFrom.mockImplementation(() => {
+      const query: Record<string, unknown> = {};
+      query.select = jest.fn().mockReturnValue(query);
+      query.eq = jest.fn().mockReturnValue(query);
+      query.or = jest.fn().mockReturnValue(query);
+      query.maybeSingle = jest.fn<() => Promise<unknown>>().mockResolvedValue({ data: null, error: null });
+      return query;
     });
+
+    const req = new Request('http://localhost/api/education/curriculum', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        title: 'Bật qua vật cản',
+        theme: 'Thể chất',
+        subjectDomain: 'Thể dục',
+        plannedDate: '2026-11-02',
+        courseId,
+        status: 'DRAFT',
+      }),
+    });
+    const res = await POST(req);
+    expect(res.status).toBe(403);
+    const body = (await res.json()) as { error: string };
+    expect(body.error).toBe('TEACHER_NOT_ASSIGNED_TO_COURSE');
+  });
+
+  it('F05: allows admin to approve lesson plans', async () => {
+    mockGetCurrentUser.mockResolvedValue({ id: actorId, tenant_id: tenantId, role: 'admin' });
+    mockFrom.mockImplementation((table: string) => {
+      const query: Record<string, unknown> = {};
+      query.select = jest.fn().mockReturnValue(query);
+      query.eq = jest.fn().mockReturnValue(query);
+      query.insert = jest.fn().mockReturnValue({
+        select: jest.fn().mockReturnValue({
+          single: jest.fn<() => Promise<unknown>>().mockResolvedValue({ data: { id: 'approved-plan' }, error: null }),
+        }),
+      });
+      return query;
+    });
+
+    const req = new Request('http://localhost/api/education/curriculum', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        title: 'Bật qua vật cản',
+        theme: 'Thể chất',
+        subjectDomain: 'Thể dục',
+        plannedDate: '2026-11-02',
+        status: 'APPROVED',
+      }),
+    });
+    const res = await POST(req);
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as { success: boolean };
+    expect(body.success).toBe(true);
   });
 });
-

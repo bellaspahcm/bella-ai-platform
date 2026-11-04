@@ -1,9 +1,6 @@
 import { NextResponse } from 'next/server';
-import { createClient as createSupabaseClient, type SupabaseClient } from '@supabase/supabase-js';
 import { createClient } from '@/lib/supabase-server';
-import { getSupabaseAdminKey, getSupabaseAdminUrl } from '@/lib/supabase-admin-env';
 import { getCurrentUser } from '@/services/user-actions';
-import type { Database } from '@/types/database.types';
 import { WeeklyMenuService } from '@/products/bella-education/care-wellbeing/nutrition/weekly-menu.service';
 import type {
   SaveWeeklyMenuInput,
@@ -20,15 +17,6 @@ const PRIVATE_HEADERS = { 'Cache-Control': 'private, no-store' };
 
 function failure(error: string, status: number): NextResponse {
   return NextResponse.json({ success: false, error }, { status, headers: PRIVATE_HEADERS });
-}
-
-function createOperationClient(): SupabaseClient<Database> | null {
-  const adminUrl = getSupabaseAdminUrl();
-  const adminKey = getSupabaseAdminKey();
-  if (!adminUrl || !adminKey) return null;
-  return createSupabaseClient<Database>(adminUrl, adminKey, {
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
 }
 
 function isWeeklyMenuDayCode(val: unknown): val is WeeklyMenuDayCode {
@@ -78,6 +66,7 @@ function isSaveMenuInput(val: unknown): val is SaveWeeklyMenuInput {
   if (!isWeeklyMenuStatus(menu.status)) return false;
   if (menu.ageGroup !== undefined && !isWeeklyMenuAgeGroup(menu.ageGroup)) return false;
   if (menu.menuId !== undefined && typeof menu.menuId !== 'string') return false;
+  if (menu.menuId && (typeof menu.expectedUpdatedAt !== 'string' || Number.isNaN(Date.parse(menu.expectedUpdatedAt)))) return false;
   if (menu.notes !== undefined && menu.notes !== null && typeof menu.notes !== 'string') return false;
   if (!Array.isArray(menu.days) || menu.days.length === 0 || !menu.days.every(isSaveDayInput)) return false;
   return true;
@@ -95,8 +84,7 @@ export async function GET(request: Request): Promise<NextResponse> {
       return failure('NUTRITION_ACCESS_DENIED', 403);
     }
 
-    const opClient = createOperationClient() ?? client;
-    const service = new WeeklyMenuService(opClient);
+    const service = new WeeklyMenuService(client);
 
     const { searchParams } = new URL(request.url);
     const listMode = searchParams.get('list') === 'true';
@@ -145,7 +133,8 @@ export async function POST(request: Request): Promise<NextResponse> {
     }
 
     const role = profile.role?.trim().toLowerCase();
-    if (role !== 'admin' && role !== 'admin_staff' && role !== 'teacher') {
+    // F05 Security: Teachers only have read access to weekly menus; cannot author or publish school-wide menu
+    if (role !== 'admin') {
       return failure('NUTRITION_ROLE_DENIED', 403);
     }
 
@@ -154,11 +143,17 @@ export async function POST(request: Request): Promise<NextResponse> {
       return failure('INVALID_MENU_PAYLOAD', 400);
     }
 
-    const opClient = createOperationClient() ?? client;
-    const service = new WeeklyMenuService(opClient);
+    // F05 Security: Only administrators have authority to publish the school-wide weekly menu
+    if (body.status === 'PUBLISHED' && role !== 'admin') {
+      return failure('NUTRITION_PUBLISH_FORBIDDEN', 403);
+    }
 
+    const service = new WeeklyMenuService(client);
     const result = await service.saveWeeklyMenu(tenantId, user.id, body);
     if (!result.success) {
+      if (result.error === 'WEEKLY_MENU_PERSISTENCE_FAILED: 40001' || result.error === 'WEEKLY_MENU_PERSISTENCE_FAILED: 23505') {
+        return failure('WEEKLY_MENU_CONFLICT', 409);
+      }
       return failure(result.error || 'SAVE_MENU_FAILED', 400);
     }
 

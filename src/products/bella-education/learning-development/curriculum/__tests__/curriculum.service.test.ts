@@ -139,19 +139,74 @@ describe('CurriculumService', () => {
       expect(result.id).toBe('created-plan-uuid');
     });
 
+    it('does not report update success when no tenant-scoped lesson plan was updated', async () => {
+      const query = {
+        update: jest.fn().mockReturnThis(),
+        eq: jest.fn().mockReturnThis(),
+        select: jest.fn().mockReturnThis(),
+        maybeSingle: jest.fn<() => Promise<{ data: null; error: null }>>().mockResolvedValue({ data: null, error: null }),
+      };
+      mockSupabase = { from: jest.fn().mockReturnValue(query) };
+      service = new CurriculumService(mockSupabase as never);
+
+      const result = await service.saveLessonPlan(tenantId, actorId, { ...validPlan, id: 'missing-plan' });
+      expect(result).toMatchObject({ success: false, id: '', error: 'RECORD_NOT_FOUND' });
+      expect(query.select).toHaveBeenCalledWith('id');
+    });
+
     it('deletes a lesson plan', async () => {
-      const mockEq2 = jest.fn<() => Promise<{ error: null }>>().mockResolvedValue({ error: null });
-      const mockEq1 = jest.fn().mockReturnValue({ eq: mockEq2 });
-      const mockDelete = jest.fn().mockReturnValue({ eq: mockEq1 });
+      const query = {
+        delete: jest.fn().mockReturnThis(),
+        eq: jest.fn().mockReturnThis(),
+        select: jest.fn().mockReturnThis(),
+        maybeSingle: jest.fn<() => Promise<{ data: { id: string }; error: null }>>().mockResolvedValue({ data: { id: 'plan-to-delete' }, error: null }),
+      };
 
       mockSupabase = {
-        from: jest.fn().mockReturnValue({ delete: mockDelete }),
+        from: jest.fn().mockReturnValue(query),
       };
 
       service = new CurriculumService(mockSupabase as never);
 
       const result = await service.deleteLessonPlan(tenantId, 'plan-to-delete');
       expect(result.success).toBe(true);
+    });
+
+    it('does not report delete success when no tenant-scoped lesson plan was removed', async () => {
+      const query = {
+        delete: jest.fn().mockReturnThis(),
+        eq: jest.fn().mockReturnThis(),
+        select: jest.fn().mockReturnThis(),
+        maybeSingle: jest.fn<() => Promise<{ data: null; error: null }>>().mockResolvedValue({ data: null, error: null }),
+      };
+      mockSupabase = { from: jest.fn().mockReturnValue(query) };
+      service = new CurriculumService(mockSupabase as never);
+
+      const result = await service.deleteLessonPlan(tenantId, 'missing-plan');
+      expect(result).toMatchObject({ success: false, id: 'missing-plan', error: 'RECORD_NOT_FOUND' });
+    });
+
+    it('F05: rejects lesson plan approval when caller is not an authorized approver', async () => {
+      service = new CurriculumService({} as never);
+      const res = await service.saveLessonPlan(tenantId, actorId, { ...validPlan, status: 'APPROVED' }, { isApprover: false });
+      expect(res.success).toBe(false);
+      expect(res.error).toBe('APPROVAL_UNAUTHORIZED');
+    });
+
+    it('F05: scopes non-approver deletion to own DRAFT plans only', async () => {
+      const query = {
+        delete: jest.fn().mockReturnThis(),
+        eq: jest.fn().mockReturnThis(),
+        select: jest.fn().mockReturnThis(),
+        maybeSingle: jest.fn<() => Promise<{ data: { id: string }; error: null }>>().mockResolvedValue({ data: { id: 'own-draft' }, error: null }),
+      };
+      mockSupabase = { from: jest.fn().mockReturnValue(query) };
+      service = new CurriculumService(mockSupabase as never);
+
+      const result = await service.deleteLessonPlan(tenantId, 'own-draft', { actorId, isApprover: false });
+      expect(result.success).toBe(true);
+      expect(query.eq).toHaveBeenCalledWith('created_by', actorId);
+      expect(query.eq).toHaveBeenCalledWith('status', 'DRAFT');
     });
   });
 });

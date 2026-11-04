@@ -34393,6 +34393,10 @@ type DatabaseBase = {
         Args: { p_course_id: string; p_student_party_id: string; p_guardian_party_id: string; p_request_id: string }
         Returns: Json
       }
+      edu_preschool_activate_pending_enrollment: {
+        Args: { p_enrollment_id: string; p_tenant_id: string }
+        Returns: Json
+      }
       preschool_portal_issuer_context: {
         Args: { p_course_id: string; p_student_party_id: string; p_guardian_party_id?: string }
         Returns: Json
@@ -34633,6 +34637,52 @@ type DatabaseBase = {
         }
         Returns: string
       }
+      finance_authenticated_add_invoice_line: {
+        Args: {
+          p_description: string
+          p_invoice_id: string
+          p_quantity: number
+          p_revenue_account_code: string
+          p_service_id: string
+          p_tax_rate: number
+          p_tenant_id: string
+          p_unit_price_minor: number
+        }
+        Returns: string
+      }
+      finance_authenticated_allocate_payment: {
+        Args: {
+          p_allocated_amount_minor: number
+          p_cash_movement_id: string
+          p_exchange_rate: number
+          p_invoice_id: string
+          p_rate_source: string
+          p_rate_timestamp: string
+          p_tenant_id: string
+        }
+        Returns: string
+      }
+      finance_authenticated_create_draft_invoice: {
+        Args: {
+          p_currency: string
+          p_customer_id: string
+          p_due_date: string
+          p_invoice_number: string
+          p_issue_date: string
+          p_tenant_id: string
+        }
+        Returns: string
+      }
+      finance_authenticated_finalize_invoice: {
+        Args: {
+          p_idempotency_key: string
+          p_invoice_id: string
+          p_lines_jsonb: Json
+          p_request_hash: string
+          p_tenant_id: string
+        }
+        Returns: Json
+      }
       finance_ap_facts_as_of: {
         Args: {
           p_as_of: string
@@ -34862,6 +34912,10 @@ type DatabaseBase = {
           p_legs: Json
           p_tenant_id: string
         }
+        Returns: Json
+      }
+      finance_f2_project_v2_event: {
+        Args: { p_event_id: string; p_tenant_id: string }
         Returns: Json
       }
       finance_internal_quarantine_cash_event: {

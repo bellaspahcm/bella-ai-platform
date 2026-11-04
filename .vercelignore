@@ -1,4 +1,24 @@
 # Force clean build - ignore build cache
 .next/
 .turbo/
-node_modules/.cache/
+node_modules/
+.worktrees/
+.codex/
+.agents/
+.audit-local-cache/
+.cache/
+.certs/
+.tmp/
+docs/
+evidence/
+evidence-logs/
+implementation-artifacts/
+investigations/
+load-tests/
+playwright-report/
+reports/
+scratch/
+temp_output/
+test-results/
+tests/
+_bmad/
